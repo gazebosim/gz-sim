@@ -37,8 +37,8 @@ namespace systems
 
   /// \brief The triggered publisher system publishes a user specified message
   /// on an output topic in response to an input message that matches user
-  /// specified criteria. An optional delay can be used to cause message
-  /// publication to occur at a future simulation time.
+  /// specified criteria. An optional simulation time delay can be used
+  /// delay message publication.
   ///
   /// ## System Parameters
   ///
