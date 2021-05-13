@@ -679,7 +679,7 @@ void TriggeredPublisher::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       // Reduce the delay time left for this item in the queue.
       *iter -= _info.dt;
 
-      // Publishe the message if time is less than or equal to zero
+      // Publish the message if time is less than or equal to zero
       // milliseconds
       if (*iter <= 0ms)
       {
