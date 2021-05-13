@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<!--
+  Test world downloading two tile files
+-->
+<sdf version="1.6">
+  <world name="collada_world_exporter_submesh_test">
+    <plugin
+      filename="libignition-gazebo-physics-system.so"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+
+    <plugin
+      filename="ignition-gazebo-collada-world-exporter-system"
+      name="ignition::gazebo::systems::ColladaWorldExporter">
+    </plugin>
+
+    <include>
+      <static>true</static>
+      <pose>22 111 -10 0 -0 0</pose>
+      <uri>model://mesh_with_submeshes</uri>
+    </include>
+
+  </world>
+</sdf>

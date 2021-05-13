@@ -106,6 +106,9 @@ using namespace gazebo;
 template<>
 void ignition::gazebo::setData(QStandardItem *_item, const math::Pose3d &_data)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString("Pose3d"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(QList({
@@ -122,6 +125,9 @@ void ignition::gazebo::setData(QStandardItem *_item, const math::Pose3d &_data)
 template<>
 void ignition::gazebo::setData(QStandardItem *_item, const msgs::Light &_data)
 {
+  if (nullptr == _item)
+    return;
+
   int lightType = -1;
   if (_data.type() == msgs::Light::POINT)
   {
@@ -168,6 +174,9 @@ template<>
 void ignition::gazebo::setData(QStandardItem *_item,
     const math::Vector3d &_data)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString("Vector3d"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(QList({
@@ -181,6 +190,9 @@ void ignition::gazebo::setData(QStandardItem *_item,
 template<>
 void ignition::gazebo::setData(QStandardItem *_item, const std::string &_data)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString("String"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(QString::fromStdString(_data),
@@ -192,6 +204,9 @@ template<>
 void ignition::gazebo::setData(QStandardItem *_item,
     const std::ostringstream &_data)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString("Raw"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(QString::fromStdString(_data.str()),
@@ -202,6 +217,9 @@ void ignition::gazebo::setData(QStandardItem *_item,
 template<>
 void ignition::gazebo::setData(QStandardItem *_item, const bool &_data)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString("Boolean"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(_data, ComponentsModel::RoleNames().key("data"));
@@ -211,6 +229,9 @@ void ignition::gazebo::setData(QStandardItem *_item, const bool &_data)
 template<>
 void ignition::gazebo::setData(QStandardItem *_item, const int &_data)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString("Integer"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(_data, ComponentsModel::RoleNames().key("data"));
@@ -220,6 +241,9 @@ void ignition::gazebo::setData(QStandardItem *_item, const int &_data)
 template<>
 void ignition::gazebo::setData(QStandardItem *_item, const double &_data)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString("Float"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(_data, ComponentsModel::RoleNames().key("data"));
@@ -229,6 +253,9 @@ void ignition::gazebo::setData(QStandardItem *_item, const double &_data)
 template<>
 void ignition::gazebo::setData(QStandardItem *_item, const sdf::Physics &_data)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString("Physics"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(QList({
@@ -240,6 +267,9 @@ void ignition::gazebo::setData(QStandardItem *_item, const sdf::Physics &_data)
 //////////////////////////////////////////////////
 void ignition::gazebo::setUnit(QStandardItem *_item, const std::string &_unit)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString::fromStdString(_unit),
       ComponentsModel::RoleNames().key("unit"));
 }

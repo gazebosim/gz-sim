@@ -19,7 +19,7 @@ def read_data(filename):
                 entries.append([float(r) for r in row])
     return (header, np.array(entries))
 
-def compute_rtfs(data):
+def compute_rtfs(real_time, sim_time):
     # Compute time deltas
     real_dt = np.diff(real_time)
     sim_dt = np.diff(sim_time)
@@ -40,7 +40,7 @@ if __name__ == '__main__':
     real_time = data[:,0] + 1e-9 * data[:,1]
     sim_time = data[:,2] + 1e-9 * data[:,3]
 
-    rtfs = compute_rtfs(data)
+    rtfs = compute_rtfs(real_time, sim_time)
 
     if args.summarize:
         iters = len(data)
