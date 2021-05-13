@@ -1,36 +1,35 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo velocity control plugin demo
+This is an example demonstrating the use of the Visualize Contacts GUI plugin.
+The plugin requires that the Contact system be loaded and contact sensors be placed in 
+the links whose contacts need to be visualized.
 
-  Try sending commands:
+Use the checkbox to turn visualization on or off and spin boxes to change the
+the size of the markers.
 
-    ign topic -t "/model/vehicle_blue/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 0.5}, angular: {z: 0.05}"
-
-    ign topic -t "/model/vehicle_green/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 1.0}, angular: {z: -0.1}"
-
+Contacts will be visualized as blue spheres and green cylinders.
 -->
-<sdf version="1.6">
-  <world name="velocity_control">
 
-    <physics name="1ms" type="ignored">
-      <max_step_size>0.001</max_step_size>
-      <real_time_factor>1.0</real_time_factor>
-    </physics>
+<sdf version="1.6">
+  <world name="visualize_contacts">
     <plugin
-      filename="ignition-gazebo-physics-system"
+      filename="libignition-gazebo-physics-system.so"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      filename="libignition-gazebo-contact-system.so"
+      name="ignition::gazebo::systems::Contact">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
+      filename="libignition-gazebo-scene-broadcaster-system.so"
       name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo-user-commands-system.so"
+      name="ignition::gazebo::systems::UserCommands">
     </plugin>
 
     <gui fullscreen="0">
-
       <!-- 3D scene -->
       <plugin filename="GzScene3D" name="3D View">
         <ignition-gui>
@@ -39,7 +38,7 @@
           <property type="string" key="state">docked</property>
         </ignition-gui>
 
-        <engine>ogre2</engine>
+        <engine>ogre</engine>
         <scene>scene</scene>
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
@@ -66,8 +65,8 @@
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
-        <service>/world/velocity_control/control</service>
-        <stats_topic>/world/velocity_control/stats</stats_topic>
+        <service>/world/visualize_contacts/control</service>
+        <stats_topic>/world/visualize_contacts/stats</stats_topic>
 
       </plugin>
 
@@ -92,10 +91,29 @@
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-        <topic>/world/velocity_control/stats</topic>
+        <topic>/world/visualize_contacts/stats</topic>
 
       </plugin>
 
+      <!-- Transform Control -->
+      <plugin filename="TransformControl" name="Transform Control">
+      <ignition-gui>
+        <property key="x" type="double">0</property>
+        <property key="y" type="double">0</property>
+        <property key="width" type="double">263</property>
+        <property key="height" type="double">50</property>
+        <property key="state" type="string">floating</property>
+        <property key="showTitleBar" type="bool">false</property>
+        <property key="cardBackground" type="string">#03a9f4</property>
+      </ignition-gui>
+      </plugin>
+
+      <!-- Visualize Contacts -->
+      <plugin filename="VisualizeContacts" name="Visualize Contacts">
+        <ignition-gui>
+          <property key="state" type="string">docked</property>
+        </ignition-gui>
+      </plugin>
     </gui>
 
     <light type="directional" name="sun">
@@ -119,7 +137,6 @@
           <geometry>
             <plane>
               <normal>0 0 1</normal>
-              <size>100 100</size>
             </plane>
           </geometry>
         </collision>
@@ -139,185 +156,40 @@
       </link>
     </model>
 
-    <model name='vehicle_blue'>
-      <pose>0 2 0.325 0 -0 0</pose>
-
-      <link name='chassis'>
-        <pose>-0.151427 -0 0.175 0 -0 0</pose>
-        <inertial>
-          <mass>1.14395</mass>
-          <inertia>
-            <ixx>0.126164</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>0.416519</iyy>
-            <iyz>0</iyz>
-            <izz>0.481014</izz>
-          </inertia>
-        </inertial>
-        <visual name='visual'>
+    <model name="cylinder">
+      <pose>-0.3 0 1.15 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
           <geometry>
-            <box>
-              <size>2.01142 1 0.568726</size>
-            </box>
-          </geometry>
-          <material>
-            <ambient>0.5 0.5 1.0 1</ambient>
-            <diffuse>0.5 0.5 1.0 1</diffuse>
-            <specular>0.0 0.0 1.0 1</specular>
-          </material>
-        </visual>
-        <collision name='collision'>
-          <geometry>
-            <box>
-              <size>2.01142 1 0.568726</size>
-            </box>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>0.8</length>
+            </cylinder>
           </geometry>
         </collision>
-      </link>
-
-      <link name='left_wheel'>
-        <pose>0.554283 0.625029 -0.025 -1.5707 0 0</pose>
-        <inertial>
-          <mass>2</mass>
-          <inertia>
-            <ixx>0.145833</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>0.145833</iyy>
-            <iyz>0</iyz>
-            <izz>0.125</izz>
-          </inertia>
-        </inertial>
-        <visual name='visual'>
+        <visual name="visual">
           <geometry>
-            <sphere>
+            <cylinder>
               <radius>0.3</radius>
-            </sphere>
+              <length>0.8</length>
+            </cylinder>
           </geometry>
           <material>
-            <ambient>0.2 0.2 0.2 1</ambient>
-            <diffuse>0.2 0.2 0.2 1</diffuse>
-            <specular>0.2 0.2 0.2 1</specular>
+            <ambient>0.5 0.5 0.5 1</ambient>
+            <diffuse>0.5 0.5 0.5 1</diffuse>
+            <specular>0.5 0.5 0.5 1</specular>
           </material>
         </visual>
-        <collision name='collision'>
-          <geometry>
-            <sphere>
-              <radius>0.3</radius>
-            </sphere>
-          </geometry>
-        </collision>
+        <sensor name="contact_sensor" type="contact">
+          <contact>
+            <collision>collision</collision>
+          </contact>
+        </sensor>
       </link>
-
-      <link name='right_wheel'>
-        <pose>0.554282 -0.625029 -0.025 -1.5707 0 0</pose>
-        <inertial>
-          <mass>2</mass>
-          <inertia>
-            <ixx>0.145833</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>0.145833</iyy>
-            <iyz>0</iyz>
-            <izz>0.125</izz>
-          </inertia>
-        </inertial>
-        <visual name='visual'>
-          <geometry>
-            <sphere>
-              <radius>0.3</radius>
-            </sphere>
-          </geometry>
-          <material>
-            <ambient>0.2 0.2 0.2 1</ambient>
-            <diffuse>0.2 0.2 0.2 1</diffuse>
-            <specular>0.2 0.2 0.2 1</specular>
-          </material>
-        </visual>
-        <collision name='collision'>
-          <geometry>
-            <sphere>
-              <radius>0.3</radius>
-            </sphere>
-          </geometry>
-        </collision>
-      </link>
-
-      <link name='caster'>
-        <pose>-0.957138 -0 -0.125 0 -0 0</pose>
-        <inertial>
-          <mass>1</mass>
-          <inertia>
-            <ixx>0.1</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>0.1</iyy>
-            <iyz>0</iyz>
-            <izz>0.1</izz>
-          </inertia>
-        </inertial>
-        <visual name='visual'>
-          <geometry>
-            <sphere>
-              <radius>0.2</radius>
-            </sphere>
-          </geometry>
-          <material>
-            <ambient>0.2 0.2 0.2 1</ambient>
-            <diffuse>0.2 0.2 0.2 1</diffuse>
-            <specular>0.2 0.2 0.2 1</specular>
-          </material>
-        </visual>
-        <collision name='collision'>
-          <geometry>
-            <sphere>
-              <radius>0.2</radius>
-            </sphere>
-          </geometry>
-        </collision>
-      </link>
-
-      <joint name='left_wheel_joint' type='revolute'>
-        <parent>chassis</parent>
-        <child>left_wheel</child>
-        <axis>
-          <xyz>0 0 1</xyz>
-          <limit>
-            <lower>-1.79769e+308</lower>
-            <upper>1.79769e+308</upper>
-          </limit>
-        </axis>
-      </joint>
-
-      <joint name='right_wheel_joint' type='revolute'>
-        <parent>chassis</parent>
-        <child>right_wheel</child>
-        <axis>
-          <xyz>0 0 1</xyz>
-          <limit>
-            <lower>-1.79769e+308</lower>
-            <upper>1.79769e+308</upper>
-          </limit>
-        </axis>
-      </joint>
-
-      <joint name='caster_wheel' type='ball'>
-        <parent>chassis</parent>
-        <child>caster</child>
-      </joint>
-
-      <plugin
-        filename="ignition-gazebo-velocity-control-system"
-        name="ignition::gazebo::systems::VelocityControl">
-        <link_name>caster</link_name>
-      </plugin>
-
     </model>
 
-    <model name='vehicle_green'>
-      <pose>0 -2 0.325 0 -0 0</pose>
-
+    <model name='vehicle'>
+      <pose>0 0 0.325 0 0 0</pose>
       <link name='chassis'>
         <pose>-0.151427 -0 0.175 0 -0 0</pose>
         <inertial>
@@ -340,7 +212,7 @@
           <material>
             <ambient>0.5 1.0 0.5 1</ambient>
             <diffuse>0.5 1.0 0.5 1</diffuse>
-            <specular>0.0 1.0 0.0 1</specular>
+            <specular>0.5 1.0 0.5 1</specular>
           </material>
         </visual>
         <collision name='collision'>
@@ -384,6 +256,11 @@
             </sphere>
           </geometry>
         </collision>
+        <sensor name="contact_sensor" type="contact">
+          <contact>
+            <collision>collision</collision>
+          </contact>
+        </sensor>
       </link>
 
       <link name='right_wheel'>
@@ -482,11 +359,6 @@
         <parent>chassis</parent>
         <child>caster</child>
       </joint>
-
-      <plugin
-        filename="ignition-gazebo-velocity-control-system"
-        name="ignition::gazebo::systems::VelocityControl">
-      </plugin>
 
     </model>
 

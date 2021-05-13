@@ -2,6 +2,14 @@
 
 ### Ignition Gazebo 4.x.x (202x-xx-xx)
 
+### Ignition Gazebo 4.8.0 (2021-04-22)
+
+1. Add odometry publisher system.
+    * [Pull Request 547](https://github.com/ignitionrobotics/ign-gazebo/pull/547)
+
+1. Patch particle emitter2 service.
+    * [Pull Request 777](https://github.com/ignitionrobotics/ign-gazebo/pull/777)
+
 ### Ignition Gazebo 4.7.0 (2021-04-09)
 
 1. Particle emitter based on SDF.
