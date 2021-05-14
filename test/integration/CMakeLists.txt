@@ -37,7 +37,9 @@ set(tests
   multicopter.cc
   multiple_servers.cc
   network_handshake.cc
+  odometry_publisher.cc
   particle_emitter.cc
+  particle_emitter2.cc
   performer_detector.cc
   physics_system.cc
   play_pause.cc
@@ -61,6 +63,7 @@ set(tests_needing_display
   camera_video_record_system.cc
   depth_camera.cc
   gpu_lidar.cc
+  optical_tactile_plugin.cc
   rgbd_camera.cc
   sensors_system.cc
   thermal_system.cc

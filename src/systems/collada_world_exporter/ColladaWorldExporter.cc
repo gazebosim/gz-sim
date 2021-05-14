@@ -112,9 +112,9 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
       ignition::common::MeshManager *meshManager =
           ignition::common::MeshManager::Instance();
 
-      auto addSubmeshFunc = [&](int i) {
+      auto addSubmeshFunc = [&](int i, int k) {
           subm = worldMesh.AddSubMesh(
-              *mesh->SubMeshByIndex(0).lock().get());
+              *mesh->SubMeshByIndex(k).lock().get());
           subm.lock()->SetMaterialIndex(i);
           subm.lock()->Scale(scale);
           subMeshMatrix.push_back(matrix);
@@ -128,7 +128,7 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
           scale = _geom->Data().BoxShape()->Size();
           int i = worldMesh.AddMaterial(mat);
 
-          addSubmeshFunc(i);
+          addSubmeshFunc(i, 0);
         }
       }
       else if (_geom->Data().Type() == sdf::GeometryType::CYLINDER)
@@ -142,7 +142,7 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
 
           int i = worldMesh.AddMaterial(mat);
 
-          addSubmeshFunc(i);
+          addSubmeshFunc(i, 0);
         }
       }
       else if (_geom->Data().Type() == sdf::GeometryType::PLANE)
@@ -166,7 +166,7 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
           matrix = math::Matrix4d(worldPose);
 
           int i = worldMesh.AddMaterial(mat);
-          addSubmeshFunc(i);
+          addSubmeshFunc(i, 0);
         }
       }
       else if (_geom->Data().Type() == sdf::GeometryType::SPHERE)
@@ -180,8 +180,7 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
           scale.Z() = scale.X();
 
           int i = worldMesh.AddMaterial(mat);
-
-          addSubmeshFunc(i);
+          addSubmeshFunc(i, 0);
         }
       }
       else if (_geom->Data().Type() == sdf::GeometryType::MESH)
@@ -221,8 +220,7 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
           }
 
           scale = _geom->Data().MeshShape()->Scale();
-
-          addSubmeshFunc(i);
+          addSubmeshFunc(i, k);
         }
       }
       else
