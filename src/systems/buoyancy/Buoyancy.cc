@@ -83,24 +83,32 @@ class ignition::gazebo::systems::BuoyancyPrivate
   public: double fluidDensity{1000};
 };
 
-struct CutPlane
-{
-  math::Vector3d normal;
-  math::Vector3d point;
-};
 
-double VolumeBelow(sdf::Box box, math::Vector3d position, CutPlane plane)
+math::Vector3d getPointOnPlane(
+  math::Plane<double>& plane,
+  double x,
+  double y)
 {
+  auto z_val = (plane.Offset() - (plane.Normal().Dot({1,1,0})))/plane.Normal().Z();
+  auto coincidentPoint = math::Vector3d{x,y,z_val};
 
+  IGN_ASSERT(coincidentPoint.Dot(plane.Normal()) == plane.Offset(),
+    "Point is not coincident with plane");
+
+  return coincidentPoint;
 }
 
-double VolumeBelow(sdf::Sphere sphere, math::Pose3d position, CutPlane plane)
+
+double VolumeBelow(sdf::Sphere sphere, math::Pose3d position, math::Plane<double> plane)
 {
   auto r = sphere.Radius();
-  auto vec = plane.point - position.Pos();
-  auto h = vec.Dot(plane.normal)/plane.normal.Length();
+  
+  auto coincidentPoint = getPointOnPlane(plane, 1, 1);
 
-  if(h < r)
+  auto vec = coincidentPoint - position.Pos();
+  auto h = r-vec.Dot(plane.Normal())/plane.Normal().Length();
+
+  if(h > 0)
   {
     return IGN_PI*h*h*(3*r-h)/3;
   }
@@ -110,11 +118,60 @@ double VolumeBelow(sdf::Sphere sphere, math::Pose3d position, CutPlane plane)
   }
 }
 
-double VolumeBelow(sdf::Cylinder cylinder, math::Vector3d position, CutPlane plane)
+///////////////////////////////////////////////////
+double VolumeBelow(sdf::Cylinder cylinder, math::Pose3d pos, math::Plane<double> plane)
 {
-  
-}
+  // This function is extremely hairy it needs to account for 3 different cases
+  // 1. Horizontal cut parallel to the cylinder's axis going through both flat
+  // faces
+  // 2. Horizontal cut going through one flat faces
+  // 3. Horizontal cut going through zero flat faces
+  auto length = cylinder.Length();
+  auto radius = cylinder.Radius();
 
+  auto transformedNormal = pos.Rot().RotateVector(plane.Normal());
+
+  auto z_val = (plane.Offset() - (plane.Normal().Dot({1,1,0})))
+    /plane.Normal().Z();
+  auto coincidentPoint = math::Vector3d{1,1,z_val};
+
+  //Transform plane into local coordinate frame.
+  math::Matrix4d pose(pos);
+  auto transformedPoint = pose.TransformAffine(coincidentPoint);
+  auto offset = transformedNormal.Dot(transformedPoint);
+  math::Plane<double> transformedPlane(transformedNormal, offset);
+
+  //Compute intersection point of plane
+  auto theta = atan2(transformedNormal.Y(), transformedNormal.X());
+  auto x = radius * cos(theta);
+  auto y = radius * sin(theta);
+  auto point_max = getPointOnPlane(transformedPlane, x, y);
+  x = radius * cos(theta + IGN_PI);
+  y = radius * sin(theta + IGN_PI);
+  auto point_min = getPointOnPlane(transformedPlane, x, y);
+
+  //Get case type
+  if(abs(point_max.Z()) > length/2)
+  {
+    if(abs(point_min.Z()) > length/2)
+    {
+      // Plane cuts through both flat faces
+    }
+    else
+    {
+      // Cuts throu to plane
+    }
+  }
+  else if(abs(point_min.Z()) > length/2)
+  {
+    // Cuts through bottom plane
+  }
+  else
+  {
+
+  }
+
+}
 
 //////////////////////////////////////////////////
 double BuoyancyPrivate::UniformFluidDensity(const math::Pose3d & /*_pose*/) const
