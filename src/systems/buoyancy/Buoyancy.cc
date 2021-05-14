@@ -159,16 +159,20 @@ double VolumeBelow(sdf::Cylinder cylinder, math::Pose3d pos, math::Plane<double>
     }
     else
     {
-      // Cuts throu to plane
+      // Cuts through one face
     }
   }
   else if(abs(point_min.Z()) > length/2)
   {
-    // Cuts through bottom plane
+    // Cuts through one face
   }
   else
   {
-
+    // Plane Cuts thoguh no faces.
+    auto a = abs(point_max.Z()) + length/2;
+    auto b = abs(point_min.Z()) + length/2;
+    auto avg_height = (a + b)/2;
+    return avg_height * IGN_PI * radius * radius;
   }
 
 }
