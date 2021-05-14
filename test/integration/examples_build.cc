@@ -19,12 +19,13 @@
 #include <string>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/Util.hh>
 #include <ignition/common/Filesystem.hh>
 
 #include "ignition/gazebo/test_config.hh"
 
 // File copied from
-// https://github.com/ignitionrobotics/ign-gui/raw/master/test/integration/ExamplesBuild_TEST.cc
+// https://github.com/ignitionrobotics/ign-gui/raw/ign-gui3/test/integration/ExamplesBuild_TEST.cc
 
 using namespace ignition;
 

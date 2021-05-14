@@ -83,7 +83,7 @@ namespace systems
   /// `<topic_statistics>`: If true, then topic statistics are enabled on
   /// `<topic>` and error messages will be generated when messages are
   /// dropped. Default to false.
-  class IGNITION_GAZEBO_VISIBLE Breadcrumbs
+  class Breadcrumbs
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate

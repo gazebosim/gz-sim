@@ -1,9 +1,9 @@
-cmake_minimum_required(VERSION 3.5.1 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo4 VERSION 4.5.0)
+project(ignition-gazebo4 VERSION 4.8.0)
 
 #============================================================================
 # Find ignition-cmake
@@ -38,7 +38,7 @@ endif()
 # Search for project-specific dependencies
 #============================================================================
 
-ign_find_package(sdformat10 REQUIRED)
+ign_find_package(sdformat10 REQUIRED VERSION 10.3)
 set(SDF_VER ${sdformat10_VERSION_MAJOR})
 
 #--------------------------------------
@@ -53,7 +53,7 @@ set(IGN_TRANSPORT_VER ${ignition-transport9_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-msgs
-ign_find_package(ignition-msgs6 REQUIRED VERSION 6.3)
+ign_find_package(ignition-msgs6 REQUIRED VERSION 6.4)
 set(IGN_MSGS_VER ${ignition-msgs6_VERSION_MAJOR})
 
 #--------------------------------------
@@ -87,7 +87,7 @@ ign_find_package (Qt5
 
 #--------------------------------------
 # Find ignition-physics
-ign_find_package(ignition-physics3 VERSION 3.1
+ign_find_package(ignition-physics3 VERSION 3.2
   COMPONENTS
     mesh
     sdf
@@ -114,7 +114,7 @@ set(IGN_SENSORS_VER ${ignition-sensors4_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-rendering
-ign_find_package(ignition-rendering4 REQUIRED VERSION 4.1.0)
+ign_find_package(ignition-rendering4 REQUIRED VERSION 4.7.0)
 set(IGN_RENDERING_VER ${ignition-rendering4_VERSION_MAJOR})
 
 #--------------------------------------
@@ -136,7 +136,7 @@ ign_find_package(IgnProtobuf
                  REQUIRED
                  COMPONENTS all
                  PRETTY Protobuf)
-set(PROTOBUF_IMPORT_DIRS ${ignition-msgs6_INCLUDE_DIRS})
+set(Protobuf_IMPORT_DIRS ${ignition-msgs6_INCLUDE_DIRS})
 
 # Plugin install dirs
 set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR

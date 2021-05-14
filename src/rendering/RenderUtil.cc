@@ -56,6 +56,7 @@
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/LaserRetro.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/LightCmd.hh"
 #include "ignition/gazebo/components/Link.hh"
@@ -177,6 +178,9 @@ class ignition::gazebo::RenderUtilPrivate
   /// update, and particle emitter msg
   public: std::unordered_map<Entity, msgs::ParticleEmitter>
       newParticleEmittersCmds;
+
+  /// \brief A list of entities with particle emitter cmds to remove
+  public: std::vector<Entity> particleCmdsToRemove;
 
   /// \brief Map of ids of entites to be removed and sim iteration when the
   /// remove request is received
@@ -341,6 +345,13 @@ void RenderUtil::UpdateECM(const UpdateInfo &/*_info*/,
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
 
+  // Remove the commands from the entity
+  // these are commands from the last iteration. We want to make sure all
+  // systems have a chance to process them first before they are removed.
+  for (const auto &entity : this->dataPtr->particleCmdsToRemove)
+    _ecm.RemoveComponent<components::ParticleEmitterCmd>(entity);
+  this->dataPtr->particleCmdsToRemove.clear();
+
   // particle emitters commands
   _ecm.Each<components::ParticleEmitterCmd>(
       [&](const Entity &_entity,
@@ -348,7 +359,7 @@ void RenderUtil::UpdateECM(const UpdateInfo &/*_info*/,
       {
         // store emitter properties and update them in rendering thread
         this->dataPtr->newParticleEmittersCmds[_entity] =
-            _emitterCmd->Data();
+        _emitterCmd->Data();
 
         // update pose comp here
         if (_emitterCmd->Data().has_pose())
@@ -357,7 +368,8 @@ void RenderUtil::UpdateECM(const UpdateInfo &/*_info*/,
           if (poseComp)
             poseComp->Data() = msgs::Convert(_emitterCmd->Data().pose());
         }
-        _ecm.RemoveComponent<components::ParticleEmitterCmd>(_entity);
+        // Store the entity ids to clear outside of the `Each` loop.
+        this->dataPtr->particleCmdsToRemove.push_back(_entity);
 
         return true;
       });
@@ -587,6 +599,14 @@ void RenderUtil::Update()
       {
         this->dataPtr->removeSensorCb(entity.first);
         this->dataPtr->sensorEntities.erase(sensorEntityIt);
+      }
+
+      // delete associated bounding box, if existing
+      auto wireBoxIt = this->dataPtr->wireBoxes.find(entity.first);
+      if (wireBoxIt != this->dataPtr->wireBoxes.end())
+      {
+        this->dataPtr->scene->DestroyVisual(wireBoxIt->second->Parent());
+        this->dataPtr->wireBoxes.erase(wireBoxIt);
       }
     }
   }
@@ -1155,6 +1175,12 @@ void RenderUtilPrivate::CreateRenderingEntities(
             visual.SetMaterial(material->Data());
           }
 
+          auto laserRetro = _ecm.Component<components::LaserRetro>(_entity);
+          if (laserRetro != nullptr)
+          {
+            visual.SetLaserRetro(laserRetro->Data());
+          }
+
           if (auto temp = _ecm.Component<components::Temperature>(_entity))
           {
             // get the uniform temperature for the entity
@@ -1375,6 +1401,12 @@ void RenderUtilPrivate::CreateRenderingEntities(
           if (material != nullptr)
           {
             visual.SetMaterial(material->Data());
+          }
+
+          auto laserRetro = _ecm.Component<components::LaserRetro>(_entity);
+          if (laserRetro != nullptr)
+          {
+            visual.SetLaserRetro(laserRetro->Data());
           }
 
           if (auto temp = _ecm.Component<components::Temperature>(_entity))
@@ -2085,5 +2117,19 @@ void RenderUtil::ViewCollisions(const Entity &_entity)
 
     this->dataPtr->viewingCollisions[colEntity] = showCol;
     colVisual->SetVisible(showCol);
+
+    if (showCol)
+    {
+      // turn off wireboxes for collision entity
+      if (this->dataPtr->wireBoxes.find(colEntity)
+            != this->dataPtr->wireBoxes.end())
+      {
+        ignition::rendering::WireBoxPtr wireBox =
+          this->dataPtr->wireBoxes[colEntity];
+        auto visParent = wireBox->Parent();
+        if (visParent)
+          visParent->SetVisible(false);
+      }
+    }
   }
 }

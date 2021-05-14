@@ -25,6 +25,7 @@
 #include <sdf/World.hh>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/Server.hh"
@@ -46,8 +47,8 @@ class TriggeredPublisherTest : public ::testing::Test
   protected: void SetUp() override
   {
     ignition::common::Console::SetVerbosity(4);
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
+    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
     // Start server
     ServerConfig serverConfig;
     const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
@@ -559,6 +560,41 @@ TEST_F(TriggeredPublisherTest, SubfieldsOfRepeatedFieldsNotSupported)
   // Subfields of repeated fiealds are not supported, so no output should be
   // triggered.
   EXPECT_EQ(0u, recvCount);
+}
+
+TEST_F(TriggeredPublisherTest, TriggerDelay)
+{
+  transport::Node node;
+  auto inputPub = node.Advertise<msgs::Empty>("/in_13");
+  std::atomic<std::size_t> recvCount{0};
+  auto msgCb = std::function<void(const msgs::Empty &)>(
+      [&recvCount](const auto &)
+      {
+        ++recvCount;
+      });
+  node.Subscribe("/out_13", msgCb);
+  IGN_SLEEP_MS(100ms);
+
+  const std::size_t pubCount{10};
+  for (std::size_t i = 0; i < pubCount; ++i)
+  {
+    EXPECT_TRUE(inputPub.Publish(msgs::Empty()));
+  }
+  waitUntil(1000, [&]{return pubCount == recvCount;});
+
+  // Delay has been specified, but simulation is not running. No messages
+  // should have been received.
+  EXPECT_EQ(0u, recvCount);
+
+  // The simulation delay is 1000ms, which is equal to 1000 steps. Run
+  // for 999 steps, and the count should still be zero. Take one additional
+  // step and all the messages should arrive.
+  this->server->Run(true, 999, false);
+  waitUntil(1000, [&]{return pubCount == recvCount;});
+  EXPECT_EQ(0u, recvCount);
+  this->server->Run(true, 1, false);
+  waitUntil(1000, [&]{return pubCount == recvCount;});
+  EXPECT_EQ(pubCount, recvCount);
 }
 
 TEST_F(TriggeredPublisherTest, WrongInputWhenRepeatedFieldExpected)

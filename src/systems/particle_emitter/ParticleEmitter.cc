@@ -188,13 +188,16 @@ void ParticleEmitter::Configure(const Entity &_entity,
   ignition::msgs::Set(this->dataPtr->emitter.mutable_size(), size);
 
   // Rate.
-  this->dataPtr->emitter.set_rate(_sdf->Get<double>("rate", 10).first);
+  this->dataPtr->emitter.mutable_rate()->set_data(
+      _sdf->Get<double>("rate", 10).first);
 
   // Duration.
-  this->dataPtr->emitter.set_duration(_sdf->Get<double>("duration", 0).first);
+  this->dataPtr->emitter.mutable_duration()->set_data(
+      _sdf->Get<double>("duration", 0).first);
 
   // Emitting.
-  this->dataPtr->emitter.set_emitting(_sdf->Get<bool>("emitting", false).first);
+  this->dataPtr->emitter.mutable_emitting()->set_data(
+      _sdf->Get<bool>("emitting", false).first);
 
   // Particle size.
   size = ignition::math::Vector3d::One;
@@ -203,7 +206,8 @@ void ParticleEmitter::Configure(const Entity &_entity,
   ignition::msgs::Set(this->dataPtr->emitter.mutable_particle_size(), size);
 
   // Lifetime.
-  this->dataPtr->emitter.set_lifetime(_sdf->Get<double>("lifetime", 5).first);
+  this->dataPtr->emitter.mutable_lifetime()->set_data(
+      _sdf->Get<double>("lifetime", 5).first);
 
   // Material.
   if (_sdf->HasElement("material"))
@@ -216,11 +220,11 @@ void ParticleEmitter::Configure(const Entity &_entity,
   }
 
   // Min velocity.
-  this->dataPtr->emitter.set_min_velocity(
+  this->dataPtr->emitter.mutable_min_velocity()->set_data(
     _sdf->Get<double>("min_velocity", 1).first);
 
   // Max velocity.
-  this->dataPtr->emitter.set_max_velocity(
+  this->dataPtr->emitter.mutable_max_velocity()->set_data(
     _sdf->Get<double>("max_velocity", 1).first);
 
   // Color start.
@@ -236,7 +240,7 @@ void ParticleEmitter::Configure(const Entity &_entity,
   ignition::msgs::Set(this->dataPtr->emitter.mutable_color_end(), color);
 
   // Scale rate.
-  this->dataPtr->emitter.set_scale_rate(
+  this->dataPtr->emitter.mutable_scale_rate()->set_data(
     _sdf->Get<double>("scale_rate", 1).first);
 
   // Color range image.
@@ -250,7 +254,19 @@ void ParticleEmitter::Configure(const Entity &_entity,
     systemPaths.SetFilePathEnv(kResourcePathEnv);
     auto absolutePath = systemPaths.FindFile(path);
 
-    this->dataPtr->emitter.set_color_range_image(absolutePath);
+    this->dataPtr->emitter.mutable_color_range_image()->set_data(
+        absolutePath);
+  }
+
+  // particle scatter ratio
+  const std::string scatterRatioKey = "particle_scatter_ratio";
+  if (_sdf->HasElement(scatterRatioKey))
+  {
+    // todo(anyone) add particle_scatter_ratio field in next release of ign-msgs
+    auto data = this->dataPtr->emitter.mutable_header()->add_data();
+    data->set_key(scatterRatioKey);
+    std::string *value = data->add_value();
+    *value = _sdf->Get<std::string>(scatterRatioKey);
   }
 
   igndbg << "Loading particle emitter:" << std::endl
