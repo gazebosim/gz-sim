@@ -258,7 +258,7 @@ void Hydrodynamics::Configure(
 
   if(_sdf->HasElement("default_current"))
   {
-    this->dataPtr->currentVector= _sdf->Get<math::Vector3d>("default_current");
+    this->dataPtr->currentVector = _sdf->Get<math::Vector3d>("default_current");
   }
 
   this->dataPtr->prevState = Eigen::VectorXd::Zero(6);
