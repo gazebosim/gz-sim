@@ -64,19 +64,19 @@ Item {
     x: menu.x + menu.width
     y: menu.y + viewSubmenu.y
     MenuItem {
-      id: viewWireframesMenu
-      text: "Wireframe"
-      onTriggered: {
-        menu.close()
-        context.OnRequest("view_wireframes", context.entity)
-      }
-    }
-    MenuItem {
       id: viewCollisionsMenu
       text: "Collisions"
       onTriggered: {
         menu.close()
         context.OnRequest("view_collisions", context.entity)
+      }
+    }
+    MenuItem {
+      id: viewWireframesMenu
+      text: "Wireframe"
+      onTriggered: {
+        menu.close()
+        context.OnRequest("view_wireframes", context.entity)
       }
     }
   }
