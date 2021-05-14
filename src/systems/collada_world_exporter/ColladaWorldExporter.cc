@@ -112,36 +112,27 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
       ignition::common::MeshManager *meshManager =
           ignition::common::MeshManager::Instance();
 
-      auto addSubmeshMatFunc = [&](
-        std::shared_ptr<ignition::common::SubMesh> subMeshLock)
+      auto addSubmeshFunc = [&](int _matIndex)
       {
-          int j = subMeshLock->MaterialIndex();
-          int i = 0;
-          if (j != -1)
+        int newMatIndex = 0;
+        if (_matIndex != -1)
+        {
+          newMatIndex = worldMesh.IndexOfMaterial(
+              mesh->MaterialByIndex(_matIndex).get());
+          if (_matIndex < 0)
           {
-            i = worldMesh.IndexOfMaterial(mesh->MaterialByIndex(j).get());
-            if (i < 0)
-            {
-              i = worldMesh.AddMaterial(mesh->MaterialByIndex(j));
-            }
+            newMatIndex = worldMesh.AddMaterial(
+                mesh->MaterialByIndex(_matIndex));
           }
-          else
-          {
-            i = worldMesh.AddMaterial(mat);
-          }
+        }
+        else
+        {
+          newMatIndex = worldMesh.AddMaterial(mat);
+        }
 
-          subm = worldMesh.AddSubMesh(*subMeshLock.get());
-          subm.lock()->SetMaterialIndex(i);
-          subm.lock()->Scale(scale);
-          subMeshMatrix.push_back(matrix);
-      };
-
-      auto addSubmeshFunc = [&](int i) {
-          subm = worldMesh.AddSubMesh(
-              *mesh->SubMeshByIndex(0).lock().get());
-          subm.lock()->SetMaterialIndex(i);
-          subm.lock()->Scale(scale);
-          subMeshMatrix.push_back(matrix);
+        subm.lock()->SetMaterialIndex(newMatIndex);
+        subm.lock()->Scale(scale);
+        subMeshMatrix.push_back(matrix);
       };
 
       if (_geom->Data().Type() == sdf::GeometryType::BOX)
@@ -150,9 +141,10 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
         {
           mesh = meshManager->MeshByName("unit_box");
           scale = _geom->Data().BoxShape()->Size();
-          int i = worldMesh.AddMaterial(mat);
+          subm = worldMesh.AddSubMesh(
+              *mesh->SubMeshByIndex(0).lock().get());
 
-          addSubmeshFunc(i);
+          addSubmeshFunc(-1);
         }
       }
       else if (_geom->Data().Type() == sdf::GeometryType::CYLINDER)
@@ -163,10 +155,10 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
           scale.X() = _geom->Data().CylinderShape()->Radius() * 2;
           scale.Y() = scale.X();
           scale.Z() = _geom->Data().CylinderShape()->Length();
+          subm = worldMesh.AddSubMesh(
+              *mesh->SubMeshByIndex(0).lock().get());
 
-          int i = worldMesh.AddMaterial(mat);
-
-          addSubmeshFunc(i);
+          addSubmeshFunc(-1);
         }
       }
       else if (_geom->Data().Type() == sdf::GeometryType::PLANE)
@@ -188,9 +180,10 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
           worldPose.Rot() = worldPose.Rot() * normalRot;
 
           matrix = math::Matrix4d(worldPose);
+          subm = worldMesh.AddSubMesh(
+              *mesh->SubMeshByIndex(0).lock().get());
 
-          int i = worldMesh.AddMaterial(mat);
-          addSubmeshFunc(i);
+          addSubmeshFunc(-1);
         }
       }
       else if (_geom->Data().Type() == sdf::GeometryType::SPHERE)
@@ -203,8 +196,10 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
           scale.Y() = scale.X();
           scale.Z() = scale.X();
 
-          int i = worldMesh.AddMaterial(mat);
-          addSubmeshFunc(i);
+          subm = worldMesh.AddSubMesh(
+              *mesh->SubMeshByIndex(0).lock().get());
+
+          addSubmeshFunc(-1);
         }
       }
       else if (_geom->Data().Type() == sdf::GeometryType::MESH)
@@ -231,13 +226,15 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
           for (unsigned int k = 0; k < mesh->SubMeshCount(); k++)
           {
             auto subMeshLock = mesh->SubMeshByIndex(k).lock();
-            addSubmeshMatFunc(subMeshLock);
+            subm = worldMesh.AddSubMesh(*subMeshLock.get());
+            addSubmeshFunc(subMeshLock->MaterialIndex());
           }
         }
         else
         {
           auto subMeshLock = mesh->SubMeshByName(subMeshName).lock();
-          addSubmeshMatFunc(subMeshLock);
+          subm = worldMesh.AddSubMesh(*subMeshLock.get());
+          addSubmeshFunc(subMeshLock->MaterialIndex());
         }
       }
       else
