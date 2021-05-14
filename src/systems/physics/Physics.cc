@@ -1873,6 +1873,42 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
 {
   IGN_PROFILE("PhysicsPrivate::UpdateSim");
 
+  // Populate world components with default values
+  _ecm.EachNew<components::World>(
+      [&](const Entity &_entity,
+        const components::World *)->bool
+      {
+        // If not provided by ECM, create component with values from physics if
+        // those features are available
+        auto collisionDetectorComp =
+            _ecm.Component<components::PhysicsCollisionDetector>(_entity);
+        if (!collisionDetectorComp)
+        {
+          auto collisionDetectorFeature =
+              this->entityWorldMap.EntityCast<CollisionDetectorFeatureList>(
+              _entity);
+          if (collisionDetectorFeature)
+          {
+            _ecm.CreateComponent(_entity, components::PhysicsCollisionDetector(
+                collisionDetectorFeature->GetCollisionDetector()));
+          }
+        }
+
+        auto solverComp = _ecm.Component<components::PhysicsSolver>(_entity);
+        if (!solverComp)
+        {
+          auto solverFeature =
+              this->entityWorldMap.EntityCast<SolverFeatureList>(_entity);
+          if (solverFeature)
+          {
+            _ecm.CreateComponent(_entity,
+                components::PhysicsSolver(solverFeature->GetSolver()));
+          }
+        }
+
+        return true;
+      });
+
   IGN_PROFILE_BEGIN("Models");
 
   _ecm.Each<components::Model, components::ModelCanonicalLink>(
