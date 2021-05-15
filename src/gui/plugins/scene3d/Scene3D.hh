@@ -185,6 +185,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: ~IgnRenderer() override;
 
     ///  \brief Main render function
+    /// \param[in] _renderSync RenderSync to safely
+    /// synchronize Qt and worker thread (this)
     public: void Render(RenderSync *_renderSync);
 
     /// \brief Initialize the render engine
@@ -489,6 +491,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: RenderThread();
 
     /// \brief Render the next frame
+    /// \param[in] _renderSync RenderSync to safely
+    /// synchronize Qt and worker thread (this)
     public slots: void RenderNext(RenderSync *renderSync);
 
     /// \brief Shutdown the thread and the render engine
@@ -726,6 +730,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Constructor
     /// \param[in] _window Parent window
+    /// \param[in] _renderSync RenderSync to safely
+    /// synchronize Qt (this) and worker thread
     public: explicit TextureNode(QQuickWindow *_window,
                                  RenderSync &_renderSync);
 
@@ -744,6 +750,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Signal emitted when the texture is being rendered and renderer
     /// can start rendering next frame
+    /// \param[in] _renderSync RenderSync to send to the worker thread
     signals: void TextureInUse(RenderSync *_renderSync);
 
     /// \brief Signal emitted when a new texture is ready to trigger window
