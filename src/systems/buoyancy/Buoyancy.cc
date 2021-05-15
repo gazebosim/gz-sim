@@ -89,14 +89,29 @@ math::Vector3d getPointOnPlane(
   double x,
   double y)
 {
-  auto z_val = (plane.Offset() - (plane.Normal().Dot({1,1,0})))/plane.Normal().Z();
+  auto z_val = (plane.Offset() - (plane.Normal().Dot({x,y,0})))/plane.Normal().Z();
   auto coincidentPoint = math::Vector3d{x,y,z_val};
+
+  IGN_ASSERT((coincidentPoint.Dot(plane.Normal()) - plane.Offset()) < 1e-3,
+    "Point is not coincident with plane");
+
+  return coincidentPoint;
+}
+
+math::Vector3d solveForY(
+  math::Plane<double>& plane,
+  double x,
+  double z)
+{
+  auto y_val = (plane.Offset() - (plane.Normal().Dot({x,0,z})))/plane.Normal().Z();
+  auto coincidentPoint = math::Vector3d{x,y_val, z};
 
   IGN_ASSERT(coincidentPoint.Dot(plane.Normal()) == plane.Offset(),
     "Point is not coincident with plane");
 
   return coincidentPoint;
 }
+
 
 
 double VolumeBelow(sdf::Sphere sphere, math::Pose3d position, math::Plane<double> plane)
@@ -116,6 +131,37 @@ double VolumeBelow(sdf::Sphere sphere, math::Pose3d position, math::Plane<double
   {
     return 4/3*IGN_PI*r*r*r;
   }
+}
+
+std::pair<math::Vector3d, math::Vector3d>
+  GetCylinderIntersectionsAtZ(
+    sdf::Cylinder cylinder,
+    math::Plane<double> plane,
+    double z)
+{
+  auto k = (plane.Offset() - plane.Normal().Z() * z)/cylinder.Radius();
+  auto a = plane.Normal().X();
+  auto b = plane.Normal().Y();
+
+  auto internal = (b - sqrt(a*a + b*b - k*k))/(a+k);
+  auto theta1 = 2*(atan(internal));
+  auto theta2 = 2*(atan(-internal));
+
+  math::Vector3d intersect1
+  {
+    cylinder.Radius() * cos(theta1),
+    cylinder.Radius() * sin(theta1),
+    z
+  };
+
+  math::Vector3d intersect2
+  {
+    cylinder.Radius() * cos(theta2),
+    cylinder.Radius() * sin(theta2),
+    z
+  };
+
+  return {intersect1, intersect2};
 }
 
 ///////////////////////////////////////////////////
@@ -159,16 +205,16 @@ double VolumeBelow(sdf::Cylinder cylinder, math::Pose3d pos, math::Plane<double>
     }
     else
     {
-      // Cuts through one face
+      // Cuts through one flat face
     }
   }
   else if(abs(point_min.Z()) > length/2)
   {
-    // Cuts through one face
+    // Cuts through one flat face
   }
   else
   {
-    // Plane Cuts thoguh no faces.
+    // Plane Cuts thoguh no flat faces.
     auto a = abs(point_max.Z()) + length/2;
     auto b = abs(point_min.Z()) + length/2;
     auto avg_height = (a + b)/2;
