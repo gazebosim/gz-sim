@@ -843,7 +843,6 @@ void IgnRenderer::Render()
     }
   }
 
-
   // View collisions
   {
     IGN_PROFILE("IgnRenderer::Render ViewCollisions");

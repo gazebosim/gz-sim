@@ -2236,9 +2236,9 @@ void RenderUtil::ViewWireframes(const Entity &_entity)
   }
 
   for (const auto &link : links)
-      visEntities.insert(visEntities.end(),
-          this->dataPtr->linkToVisualEntities[link].begin(),
-          this->dataPtr->linkToVisualEntities[link].end());
+    visEntities.insert(visEntities.end(),
+        this->dataPtr->linkToVisualEntities[link].begin(),
+        this->dataPtr->linkToVisualEntities[link].end());
 
   // Toggle wireframes
   bool showWireframe, showWireframeInit = false;
