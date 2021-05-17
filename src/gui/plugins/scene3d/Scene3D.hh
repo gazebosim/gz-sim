@@ -154,6 +154,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: bool OnMoveToPose(const msgs::GUICamera &_msg,
                  msgs::Boolean &_res);
 
+    /// \brief Callback for view wireframes request
+    /// \param[in] _msg Request message to set the target to view wireframes
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnViewWireframes(const msgs::StringMsg &_msg,
+        msgs::Boolean &_res);
+
     /// \brief Callback for view collisions request
     /// \param[in] _msg Request message to set the target to view collisions
     /// \param[in] _res Response data
@@ -251,6 +258,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set the world pose of the camera
     /// \param[in] _pose The world pose to set the camera to.
     public: void SetMoveToPose(const math::Pose3d &_pose);
+
+    /// \brief View wireframes of the specified target
+    /// \param[in] _target Target to view wireframes
+    public: void SetViewWireframesTarget(const std::string &_target);
 
     /// \brief View collisions of the specified target
     /// \param[in] _target Target to view collisions
@@ -597,6 +608,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set the pose of the camera
     /// \param[in] _pose The new camera pose in the world frame.
     public: void SetMoveToPose(const math::Pose3d &_pose);
+
+    /// \brief View wireframes of the specified target
+    /// \param[in] _target Target to view wireframes
+    public: void SetViewWireframesTarget(const std::string &_target);
 
     /// \brief View collisions of the specified target
     /// \param[in] _target Target to view collisions
