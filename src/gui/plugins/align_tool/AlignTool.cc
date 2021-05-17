@@ -82,6 +82,9 @@ namespace ignition::gazebo
 
     /// \brief The map of the original transparency values for the nodes.
     public: std::map<std::string, double> originalTransparency;
+
+    /// \brief Pointer to the scene.
+    public: rendering::ScenePtr scene{nullptr};
   };
 }
 
@@ -316,52 +319,9 @@ void AlignTool::Align()
   if (this->dataPtr->currentState == AlignState::NONE)
     return;
 
-  auto loadedEngNames = rendering::loadedEngines();
-  if (loadedEngNames.empty())
-  {
-    ignerr << "Internal error: engine should be loaded at this point."
-      << std::endl;
-    return;
-  }
-
-  // Assume there is only one engine loaded
-  auto engineName = loadedEngNames[0];
-  if (loadedEngNames.size() > 1)
-  {
-    ignwarn << "Found more than one loaded engine "
-      "- using " << engineName << "." << std::endl;
-  }
-  auto engine = rendering::engine(engineName);
-
-  if (!engine)
-  {
-    ignerr << "Internal error: failed to load engine [" << engineName
-      << "]. Align tool plugin won't work." << std::endl;
-    return;
-  }
-
-  if (engine->SceneCount() == 0)
-  {
-    ignerr<< "Internal error: no scenes are available with the loaded engine."
-      << std::endl;
-    return;
-  }
-  // assume there is only one scene
   // load scene
-  auto scene = engine->SceneByIndex(0);
-
-  if (!scene)
-  {
-    ignerr << "Internal error: scene is null." << std::endl;
-    return;
-  }
-
-  if (!scene->IsInitialized() || scene->VisualCount() == 0)
-  {
-    ignerr << "Internal error: scene is either not initialized "
-      "or there are no visuals within it." << std::endl;
-    return;
-  }
+  if (!this->dataPtr->scene)
+    this->dataPtr->scene = rendering::sceneFromFirstRenderEngine();
 
   // Get current list of selected entities
   std::vector<ignition::rendering::VisualPtr> selectedList;
@@ -369,9 +329,10 @@ void AlignTool::Align()
 
   for (const auto &entityId : this->dataPtr->selectedEntities)
   {
-    for (auto i = 0u; i < scene->VisualCount(); ++i)
+    for (auto i = 0u; i < this->dataPtr->scene->VisualCount(); ++i)
     {
-      ignition::rendering::VisualPtr vis = scene->VisualByIndex(i);
+      ignition::rendering::VisualPtr vis =
+        this->dataPtr->scene->VisualByIndex(i);
       if (!vis)
         continue;
       if (std::get<int>(vis->UserData("gazebo-entity")) ==
@@ -417,7 +378,8 @@ void AlignTool::Align()
     rendering::VisualPtr vis = selectedList[i];
 
     // Check here to see if visual is top level or not, continue if not
-    rendering::VisualPtr topLevelVis = this->TopLevelVisual(scene, vis);
+    rendering::VisualPtr topLevelVis = this->TopLevelVisual(
+        this->dataPtr->scene, vis);
     if (topLevelVis != vis)
       continue;
 
