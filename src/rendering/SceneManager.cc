@@ -1585,6 +1585,9 @@ void SceneManager::RemoveEntity(Entity _id)
     auto it = this->dataPtr->visuals.find(_id);
     if (it != this->dataPtr->visuals.end())
     {
+      ignition::common::MeshManager *meshManager =
+          ignition::common::MeshManager::Instance();
+      meshManager->RemoveMesh(it->second->Name());
       this->dataPtr->scene->DestroyVisual(it->second);
       this->dataPtr->visuals.erase(it);
       return;
