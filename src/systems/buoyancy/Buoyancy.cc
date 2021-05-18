@@ -81,6 +81,13 @@ class ignition::gazebo::systems::BuoyancyPrivate
   /// \brief The density of the fluid in which the object is submerged in
   /// kg/m^3. Defaults to 1000, the fluid density of water.
   public: double fluidDensity{1000};
+
+  /// \brief When using GradedBuoyancy, we provide a different buoyancy for
+  /// each layer. The key on this map is height in meters and the value is fluid
+  /// density. I.E all the fluid between $key$m and $next_key$m has the density
+  /// $value$kg/m^3. Everything below the first key is considered as having
+  /// fluidDensity.
+  public: std::map<double, double> layers;
 };
 
 
@@ -112,7 +119,10 @@ math::Vector3d solveForY(
   return coincidentPoint;
 }
 
-double VolumeBelow(sdf::Sphere sphere, math::Pose3d position, math::Plane<double> plane)
+double VolumeBelow(
+  sdf::Sphere sphere,
+  math::Pose3d position,
+  math::Plane<double> plane)
 {
   auto r = sphere.Radius();
   auto coincidentPoint = getPointOnPlane(plane, 1, 1);
@@ -260,7 +270,7 @@ double VolumeBelow(
     {
       // Plane cuts through both flat faces
       // Need to average the volume. Closed form integral of the surface
-      // is gross and yucky
+      // is too hard to find
       return ApproxHWedgeVolume(cylinder, transformedPlane);
     }
     else
@@ -327,6 +337,26 @@ void Buoyancy::Configure(const Entity &_entity,
   if (_sdf->HasElement("uniform_fluid_density"))
   {
     this->dataPtr->fluidDensity = _sdf->Get<double>("uniform_fluid_density");
+  }
+  else if(_sdf->HasElement("graded_buoyancy"))
+  {
+    this->dataPtr->buoyancyType =
+      BuoyancyPrivate::BuoyancyType::GRADED_BUOYANCY;
+    auto gradedElement = _sdf->GetElementDescription("graded_buoyancy");
+    auto argument = gradedElement->GetFirstElement();
+    while(argument != nullptr)
+    {
+      if(argument->GetName() == "default_density")
+      {
+        argument->GetValue()->Get<double>(this->dataPtr->fluidDensity);
+      }
+      if(argument->GetName() == "density_change")
+      {
+        auto depth = argument->Get<double>("above_depth");
+        auto density = argument->Get<double>("density");
+      }
+      argument = argument->GetNextElement();
+    }
   }
 }
 
@@ -469,19 +499,24 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
         buoyancy =
         -this->dataPtr->UniformFluidDensity(linkWorldPose) *
         _volume->Data() * gravity->Data();
+
+        // Convert the center of volume to the world frame
+        math::Vector3d offsetWorld = linkWorldPose.Rot().RotateVector(
+            _centerOfVolume->Data());
+        // Compute the torque that should be applied due to buoyancy and
+        // the center of volume.
+        math::Vector3d torque = offsetWorld.Cross(buoyancy);
+
+        // Apply the wrench to the link. This wrench is applied in the
+        // Physics System.
+        Link link(_entity);
+        link.AddWorldWrench(_ecm, buoyancy, torque);
       }
+      else if(this->dataPtr->buoyancyType
+        == BuoyancyPrivate::BuoyancyType::GRADED_BUOYANCY)
+      {
 
-      // Convert the center of volume to the world frame
-      math::Vector3d offsetWorld = linkWorldPose.Rot().RotateVector(
-          _centerOfVolume->Data());
-      // Compute the torque that should be applied due to buoyancy and
-      // the center of volume.
-      math::Vector3d torque = offsetWorld.Cross(buoyancy);
-
-      // Apply the wrench to the link. This wrench is applied in the
-      // Physics System.
-      Link link(_entity);
-      link.AddWorldWrench(_ecm, buoyancy, torque);
+      }
 
       return true;
   });
