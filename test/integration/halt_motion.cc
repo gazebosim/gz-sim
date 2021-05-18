@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2021 Open Source Robotics Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 #include <gtest/gtest.h>
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
@@ -71,7 +88,7 @@ class HaltMotionTest : public ::testing::TestWithParam<int>
         EXPECT_NE(kNullEntity, model);
         if (!_ecm.Component<components::HaltMotion>(model))
         {
-          _ecm.CreateComponent(model,components::HaltMotion(false));
+          _ecm.CreateComponent(model, components::HaltMotion(false));
         }
         if (poses.size() == 4000u &&
             !_ecm.Component<components::HaltMotion>(model)->Data())
@@ -129,7 +146,7 @@ class HaltMotionTest : public ::testing::TestWithParam<int>
 
     EXPECT_EQ(9000u, poses.size());
 
-    for (long unsigned int i = 4001; i < poses.size(); i++)
+    for (uint64_t i = 4001; i < poses.size(); ++i)
     {
       EXPECT_EQ(poses[3999], poses[i]);
     }
