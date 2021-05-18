@@ -1390,7 +1390,8 @@ msgs::ParticleEmitter ignition::gazebo::convert(const sdf::ParticleEmitter &_in)
     header->add_value(_in.Topic());
   }
 
-  // todo(anyone) add particle_scatter_ratio field in particle_emitter.proto
+  // todo(anyone) Use particle_scatter_ratio in particle_emitter.proto from
+  // Fortress on.
   auto header = out.mutable_header()->add_data();
   header->set_key("particle_scatter_ratio");
   std::string *value = header->add_value();
