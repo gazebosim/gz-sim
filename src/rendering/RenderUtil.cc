@@ -324,6 +324,9 @@ class ignition::gazebo::RenderUtilPrivate
   /// visible
   public: std::map<Entity, bool> viewingCollisions;
 
+  /// \brief A map of model entities and their corresponding children models
+  public: std::map<Entity, std::vector<Entity>> modelToModelEntities;
+
   /// \brief A map of entity id to thermal camera sensor configuration
   /// properties. The elements in the tuple are:
   /// <resolution, temperature range (min, max)>
@@ -481,6 +484,19 @@ void RenderUtilPrivate::FindCollisionLinks(const EntityComponentManager &_ecm)
     {
       links = _ecm.EntitiesByComponents(components::ParentEntity(entity),
                                         components::Link());
+
+      std::vector<Entity> models;
+      models = _ecm.EntitiesByComponents(components::ParentEntity(entity),
+                                         components::Model());
+      for (const auto model : models)
+      {
+        std::vector<Entity> childLinks;
+        childLinks = _ecm.EntitiesByComponents(components::ParentEntity(model),
+                                               components::Link());
+        links.insert(links.end(),
+                     childLinks.begin(),
+                     childLinks.end());
+      }
     }
     else if (_ecm.EntityMatches(entity,
                 std::set<ComponentTypeId>{components::Link::typeId}))
@@ -1154,6 +1170,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
           this->newModels.push_back(
               std::make_tuple(_entity, model, _parent->Data(),
               _info.iterations));
+          this->modelToModelEntities[_parent->Data()].push_back(_entity);
           return true;
         });
 
@@ -1382,6 +1399,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
           this->newModels.push_back(
               std::make_tuple(_entity, model, _parent->Data(),
               _info.iterations));
+          this->modelToModelEntities[_parent->Data()].push_back(_entity);
           return true;
         });
 
@@ -1740,6 +1758,7 @@ void RenderUtilPrivate::RemoveRenderingEntities(
       {
         this->removeEntities[_entity] = _info.iterations;
         this->modelToLinkEntities.erase(_entity);
+        this->modelToModelEntities.erase(_entity);
         return true;
       });
 
@@ -2111,6 +2130,8 @@ void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
 void RenderUtil::ViewCollisions(const Entity &_entity)
 {
   std::vector<Entity> colEntities;
+  std::vector<Entity> links;
+
   if (this->dataPtr->linkToCollisionEntities.find(_entity) !=
       this->dataPtr->linkToCollisionEntities.end())
   {
@@ -2119,12 +2140,27 @@ void RenderUtil::ViewCollisions(const Entity &_entity)
   else if (this->dataPtr->modelToLinkEntities.find(_entity) !=
            this->dataPtr->modelToLinkEntities.end())
   {
-    std::vector<Entity> links = this->dataPtr->modelToLinkEntities[_entity];
-    for (const auto &link : links)
-      colEntities.insert(colEntities.end(),
-          this->dataPtr->linkToCollisionEntities[link].begin(),
-          this->dataPtr->linkToCollisionEntities[link].end());
+    links.insert(links.end(),
+        this->dataPtr->modelToLinkEntities[_entity].begin(),
+        this->dataPtr->modelToLinkEntities[_entity].end());
   }
+
+  if (this->dataPtr->modelToModelEntities.find(_entity) !=
+      this->dataPtr->modelToModelEntities.end())
+  {
+    std::vector<Entity> models = this->dataPtr->modelToModelEntities[_entity];
+    for (const auto model : models)
+    {
+      links.insert(links.end(),
+          this->dataPtr->modelToLinkEntities[model].begin(),
+          this->dataPtr->modelToLinkEntities[model].end());
+    }
+  }
+
+  for (const auto &link : links)
+    colEntities.insert(colEntities.end(),
+        this->dataPtr->linkToCollisionEntities[link].begin(),
+        this->dataPtr->linkToCollisionEntities[link].end());
 
   // create and/or toggle collision visuals
 
