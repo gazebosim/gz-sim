@@ -31,15 +31,16 @@ namespace systems
   class HydrodynamicsPrivateData;
 
   /// \brief This class provides hydrodynamic behaviour for underwater vehicles
-  /// It is shamelessly based off Brian Bingham's plugin for VRX
+  /// It is shamelessly based off Brian Bingham's
+  /// [plugin for VRX](https://github.com/osrf/vrx).
   /// which in turn is based of Fossen's equations described in "Guidance and
-  /// Control of Ocean Vehicles". The class should be used together with the
+  /// Control of Ocean Vehicles" [1]. The class should be used together with the
   /// buoyancy plugin to help simulate behaviour of maritime vehicles.
   /// Hydrodynamics refers to the behaviour of bodies in water. It includes
   /// forces like linear and quadratic drag, buoyancy (not provided by this
   /// plugin), etc.
   ///
-  /// ## System Parameters
+  /// # System Parameters
   /// The exact description of these parameters can be found on p. 37 of
   /// Fossen's book. They are used to calculate added mass, linear and quadratic
   /// drag and coriolis force.
@@ -74,14 +75,14 @@ namespace systems
   ///     separately. If no namespace is given then the plugin listens on
   ///     the `/ocean_current` topic for a `Vector3d` message. Otherwise it
   ///     listens on `/model/{namespace name}/ocean_current`.[String, Optional]
-  ///   <default_current> - A generic current.
+  ///   * <default_current> - A generic current.
   ///      [vector3d m/s, optional, default = [0,0,0]m/s]
   ///
   /// # Example
   /// An example configuration is provided in the examples folder. The example
   /// uses the LiftDrag plugin to apply steering controls. It also uses the
   /// thruster plugin to propel the craft and the buoyancy plugin for buoyant
-  /// force. To run th example run.
+  /// force. To run the example run.
   /// ```
   /// ign gazebo auv_controls.sdf
   /// ```
@@ -96,6 +97,7 @@ namespace systems
   /// -m ignition.msgs.Double -p 'data: -31'
   /// ```
   /// The vehicle should move in a circle.
+  ///
   /// ## Ocean Currents
   /// When underwater, vehicles are often subject to ocean currents. The
   /// hydrodynamics plugin allows simulation of such currents. We can add
@@ -104,6 +106,10 @@ namespace systems
   /// ign topic -t /ocean_current -m ignition.msgs.Vector3d -p 'x: 1, y:0, z:0'
   /// ```
   /// You should observe your vehicle slowly drift to the side.
+  ///
+  /// # Citations
+  /// [1] Fossen, Thor I. _Guidance and Control of Ocean Vehicles_.
+  ///    United Kingdom: Wiley, 1994.
   class Hydrodynamics:
     public ignition::gazebo::System,
     public ignition::gazebo::ISystemConfigure,
