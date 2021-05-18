@@ -54,13 +54,13 @@ class EntityComponentManagerFixture: public benchmark::Fixture
     {
       Entity worldEntity = mgr->CreateEntity();
       mgr->CreateComponent(worldEntity, World());
-      mgr->CreateComponent(worldEntity, Name("world_name"));
+      mgr->CreateComponent(worldEntity, components::Name("world_name"));
     }
 
     for (int i = 0; i < _nonmatchingEntityCount; ++i)
     {
       Entity worldEntity = mgr->CreateEntity();
-      mgr->CreateComponent(worldEntity, Name("world_name"));
+      mgr->CreateComponent(worldEntity, components::Name("world_name"));
     }
   }
 
@@ -77,8 +77,8 @@ BENCHMARK_DEFINE_F(EntityComponentManagerFixture, EachNoCache)
     {
       int entitiesMatched = 0;
 
-      mgr->EachNoCache<World, Name>(
-          [&](const Entity &, const World *, const Name *)->bool
+      mgr->EachNoCache<World, components::Name>(
+          [&](const Entity &, const World *, const components::Name *)->bool
           {
             entitiesMatched++;
             return true;
@@ -102,8 +102,8 @@ BENCHMARK_DEFINE_F(EntityComponentManagerFixture, EachCache)
     {
       int entitiesMatched = 0;
 
-      mgr->Each<World, Name>(
-          [&](const Entity &, const World *, const Name *)->bool
+      mgr->Each<World, components::Name>(
+          [&](const Entity &, const World *, const components::Name *)->bool
           {
             entitiesMatched++;
             return true;
@@ -131,7 +131,7 @@ class ManyComponentFixture: public benchmark::Fixture
     for (int i = 0; i < _entityCount; ++i)
     {
       Entity entity = mgr->CreateEntity();
-      mgr->CreateComponent(entity, Name("world_name"));
+      mgr->CreateComponent(entity, components::Name("world_name"));
       mgr->CreateComponent(entity, AngularVelocity());
       mgr->CreateComponent(entity, WorldAngularVelocity());
       mgr->CreateComponent(entity, Inertial());
@@ -158,8 +158,8 @@ BENCHMARK_DEFINE_F(ManyComponentFixture, Each1ComponentCache)
     {
       int entitiesMatched = 0;
 
-      mgr->Each<Name>(
-          [&](const Entity &, const Name *)->bool
+      mgr->Each<components::Name>(
+          [&](const Entity &, const components::Name *)->bool
           {
             entitiesMatched++;
             return true;
@@ -184,13 +184,13 @@ BENCHMARK_DEFINE_F(ManyComponentFixture, Each5ComponentCache)
     {
       int entitiesMatched = 0;
 
-      mgr->Each<Name,
+      mgr->Each<components::Name,
                 AngularVelocity,
                 Inertial,
                 LinearAcceleration,
                 LinearVelocity>(
           [&](const Entity &,
-              const Name *,
+              const components::Name *,
               const AngularVelocity *,
               const Inertial *,
               const LinearAcceleration *,
@@ -219,7 +219,7 @@ BENCHMARK_DEFINE_F(ManyComponentFixture, Each10ComponentCache)
     {
       int entitiesMatched = 0;
 
-      mgr->Each<Name,
+      mgr->Each<components::Name,
                 AngularVelocity,
                 WorldAngularVelocity,
                 Inertial,
@@ -230,7 +230,7 @@ BENCHMARK_DEFINE_F(ManyComponentFixture, Each10ComponentCache)
                 Pose,
                 WorldPose>(
           [&](const Entity &,
-              const Name *,
+              const components::Name *,
               const AngularVelocity *,
               const WorldAngularVelocity *,
               const Inertial *,
@@ -264,8 +264,8 @@ BENCHMARK_DEFINE_F(ManyComponentFixture, Each1ComponentNoCache)
     {
       int entitiesMatched = 0;
 
-      mgr->EachNoCache<Name>(
-          [&](const Entity &, const Name *)->bool
+      mgr->EachNoCache<components::Name>(
+          [&](const Entity &, const components::Name *)->bool
           {
             entitiesMatched++;
             return true;
@@ -290,13 +290,13 @@ BENCHMARK_DEFINE_F(ManyComponentFixture, Each5ComponentNoCache)
     {
       int entitiesMatched = 0;
 
-      mgr->EachNoCache<Name,
+      mgr->EachNoCache<components::Name,
                 AngularVelocity,
                 Inertial,
                 LinearAcceleration,
                 LinearVelocity>(
           [&](const Entity &,
-              const Name *,
+              const components::Name *,
               const AngularVelocity *,
               const Inertial *,
               const LinearAcceleration *,
@@ -325,7 +325,7 @@ BENCHMARK_DEFINE_F(ManyComponentFixture, Each10ComponentNoCache)
     {
       int entitiesMatched = 0;
 
-      mgr->EachNoCache<Name,
+      mgr->EachNoCache<components::Name,
                 AngularVelocity,
                 WorldAngularVelocity,
                 Inertial,
@@ -336,7 +336,7 @@ BENCHMARK_DEFINE_F(ManyComponentFixture, Each10ComponentNoCache)
                 Pose,
                 WorldPose>(
           [&](const Entity &,
-              const Name *,
+              const components::Name *,
               const AngularVelocity *,
               const WorldAngularVelocity *,
               const Inertial *,
