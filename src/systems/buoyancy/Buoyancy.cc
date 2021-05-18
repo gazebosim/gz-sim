@@ -112,12 +112,9 @@ math::Vector3d solveForY(
   return coincidentPoint;
 }
 
-
-
 double VolumeBelow(sdf::Sphere sphere, math::Pose3d position, math::Plane<double> plane)
 {
   auto r = sphere.Radius();
-  
   auto coincidentPoint = getPointOnPlane(plane, 1, 1);
 
   auto vec = coincidentPoint - position.Pos();
@@ -132,6 +129,8 @@ double VolumeBelow(sdf::Sphere sphere, math::Pose3d position, math::Plane<double
     return 4/3*IGN_PI*r*r*r;
   }
 }
+
+
 
 std::pair<math::Vector3d, math::Vector3d>
   GetCylinderIntersectionsAtZ(
@@ -164,8 +163,66 @@ std::pair<math::Vector3d, math::Vector3d>
   return {intersect1, intersect2};
 }
 
+////////////////////////////////////////////////////
+/// Volume of cylindrical wedge as given by:
+/// https://mathworld.wolfram.com/CylindricalWedge.html
+double WedgeVolume(
+  double radius,
+  double b,
+  double a,
+  double h)
+{
+  auto r = radius;
+  auto psi = IGN_PI_2 + atan((b- r)/a);
+  return h/(3*b)*(a*(3*r*r - a*a) + 3*r*r*(b-r)*psi);
+}
+
+
+double CircleSegmentSliceArea(
+  sdf::Cylinder cylinder,
+  math::Vector3d point1,
+  math::Vector3d point2,
+  double z)
+{
+  math::Vector3d center{0,0,z};
+  auto a1 = point1-center;
+  auto a2 = point2-center;
+  auto cosDist = (a1).Dot(a2);
+  auto theta = acos(cosDist / (a1.Length() * a2.Length()));
+  auto r = cylinder.Radius();
+
+  return r * r * (theta - sin(theta)) / 2;
+}
+
+////////////////////////////////////////////////////
+/// Approximate horizontal wedge volume
+/// Sympy can't find an integral even after 20 minutes
+/// So I guess it doesn't work.
+double ApproxHWedgeVolume(
+  sdf::Cylinder cylinder,
+  math::Plane<double> tranformed_plane)
+{
+  auto length = cylinder.Length();
+  auto [int1, int2] = GetCylinderIntersectionsAtZ(
+    cylinder,
+    tranformed_plane,
+    length / 2);
+
+  // Doing more of these will give better approx. For now 3 is good enough
+  auto area1 = CircleSegmentSliceArea(cylinder, int1, int2, length/2);
+  auto area2 = CircleSegmentSliceArea(cylinder, int1, int2, -length/2);
+  auto area3 = CircleSegmentSliceArea(cylinder, int1, int2, 0);
+
+  auto average_area = (area1 + area2 + area3)/3;
+
+  return average_area * length;
+}
+
 ///////////////////////////////////////////////////
-double VolumeBelow(sdf::Cylinder cylinder, math::Pose3d pos, math::Plane<double> plane)
+double VolumeBelow(
+  sdf::Cylinder cylinder,
+  math::Pose3d pos,
+  math::Plane<double> plane)
 {
   // This function is extremely hairy it needs to account for 3 different cases
   // 1. Horizontal cut parallel to the cylinder's axis going through both flat
@@ -202,10 +259,16 @@ double VolumeBelow(sdf::Cylinder cylinder, math::Pose3d pos, math::Plane<double>
     if(abs(point_min.Z()) > length/2)
     {
       // Plane cuts through both flat faces
+      // Need to average the volume. Closed form integral of the surface
+      // is gross and yucky
+      return ApproxHWedgeVolume(cylinder, transformedPlane);
     }
     else
     {
       // Cuts through one flat face
+      // Point Min will be the point where it cuts through
+      // Next we need to determine which way is up.
+
     }
   }
   else if(abs(point_min.Z()) > length/2)
@@ -214,7 +277,7 @@ double VolumeBelow(sdf::Cylinder cylinder, math::Pose3d pos, math::Plane<double>
   }
   else
   {
-    // Plane Cuts thoguh no flat faces.
+    // Plane Cuts through no flat faces.
     auto a = abs(point_max.Z()) + length/2;
     auto b = abs(point_min.Z()) + length/2;
     auto avg_height = (a + b)/2;
