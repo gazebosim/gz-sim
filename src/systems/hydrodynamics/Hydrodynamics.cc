@@ -203,6 +203,11 @@ void Hydrodynamics::Configure(
   ignition::gazebo::EventManager &/*_eventMgr*/
 )
 {
+  if(_sdf->HasElement("waterDensity"))
+    ignwarn <<
+      "<waterDensity> parameter is deprecated and will be removed Ignition G.\n"
+      << "\tPlease update your SDF to use <water_desnity> instead.";
+
   this->dataPtr->waterDensity     = SdfParamDouble(_sdf, "waterDensity",
                                       SdfParamDouble(_sdf, "water_density", 998)
                                     );
