@@ -97,8 +97,8 @@ namespace systems
       </plugin>
     </model>
   \endverbatim */
-  class IGNITION_GAZEBO_VISIBLE KineticEnergyMonitor:
-    public System,
+  class IGNITION_GAZEBO_VISIBLE KineticEnergyMonitor
+  : public System,
     public ISystemConfigure,
     public ISystemPostUpdate
   {
