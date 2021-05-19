@@ -482,20 +482,29 @@ void RenderUtilPrivate::FindCollisionLinks(const EntityComponentManager &_ecm)
     if (_ecm.EntityMatches(entity,
           std::set<ComponentTypeId>{components::Model::typeId}))
     {
-      links = _ecm.EntitiesByComponents(components::ParentEntity(entity),
-                                        components::Link());
-
-      std::vector<Entity> models;
-      models = _ecm.EntitiesByComponents(components::ParentEntity(entity),
-                                         components::Model());
-      for (const auto model : models)
+      std::stack<Entity> modelStack;
+      modelStack.push(entity);
+      while (!modelStack.empty())
       {
+        Entity model = modelStack.top();
+        modelStack.pop();
+
         std::vector<Entity> childLinks;
         childLinks = _ecm.EntitiesByComponents(components::ParentEntity(model),
                                                components::Link());
+
         links.insert(links.end(),
                      childLinks.begin(),
                      childLinks.end());
+
+        std::vector<Entity> childModels;
+        childModels =
+            _ecm.EntitiesByComponents(components::ParentEntity(model),
+                                      components::Model());
+        for (auto childModel : childModels)
+        {
+            modelStack.push(childModel);
+        }
       }
     }
     else if (_ecm.EntityMatches(entity,
@@ -2148,12 +2157,23 @@ void RenderUtil::ViewCollisions(const Entity &_entity)
   if (this->dataPtr->modelToModelEntities.find(_entity) !=
       this->dataPtr->modelToModelEntities.end())
   {
-    std::vector<Entity> models = this->dataPtr->modelToModelEntities[_entity];
-    for (const auto model : models)
+    std::stack<Entity> modelStack;
+    modelStack.push(_entity);
+    while (!modelStack.empty())
     {
+      Entity model = modelStack.top();
+      modelStack.pop();
+
       links.insert(links.end(),
           this->dataPtr->modelToLinkEntities[model].begin(),
           this->dataPtr->modelToLinkEntities[model].end());
+
+      std::vector<Entity> childModels =
+          this->dataPtr->modelToModelEntities[model];
+      for (const auto childModel : childModels)
+      {
+        modelStack.push(childModel);
+      }
     }
   }
 
