@@ -121,6 +121,7 @@
         <color_end>0 1 0</color_end>
         <scale_rate>10</scale_rate>
         <color_range_image>/path/to/dummy_image.png</color_range_image>
+        <particle_scatter_ratio>0.01</particle_scatter_ratio>
       </plugin>
     </model>
 
