@@ -1146,6 +1146,12 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
 }
 
 /////////////////////////////////////////////////
+rendering::VisualPtr SceneManager::CreateInertiaVisual(Entity _id,
+    const sdf::Inertia &_inertia, Entity _parentId)
+{
+}
+
+/////////////////////////////////////////////////
 rendering::ParticleEmitterPtr SceneManager::CreateParticleEmitter(
     Entity _id, const msgs::ParticleEmitter &_emitter, Entity _parentId)
 {

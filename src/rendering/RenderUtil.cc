@@ -2209,6 +2209,11 @@ void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
 }
 
 /////////////////////////////////////////////////
+void RenderUtil::ViewInertia(const Entity &_entity)
+{
+}
+
+/////////////////////////////////////////////////
 void RenderUtil::ViewWireframes(const Entity &_entity)
 {
   std::vector<Entity> visEntities;

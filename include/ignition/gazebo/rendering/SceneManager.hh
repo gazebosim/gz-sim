@@ -171,6 +171,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: rendering::VisualPtr CreateLightVisual(Entity _id,
         const sdf::Light &_light, Entity _parentId);
 
+    /// \brief Create a inertia visual
+    /// \param[in] _id Unique inertia id
+    /// \param[in] _inertia Inertia sdf dom
+    /// \param[in] _parentId Parent id
+    /// \return Inertia object created from the sdf dom
+    public: rendering::VisualPtr CreateInertiaVisual(Entity _id,
+        const sdf::Inertia &_inertia, Entity _parentId);
+
     /// \brief Create a particle emitter.
     /// \param[in] _id Unique particle emitter id
     /// \param[in] _emitter Particle emitter data
