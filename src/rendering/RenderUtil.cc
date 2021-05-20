@@ -484,24 +484,23 @@ void RenderUtilPrivate::FindCollisionLinks(const EntityComponentManager &_ecm)
     {
       std::stack<Entity> modelStack;
       modelStack.push(entity);
+
+      std::vector<Entity> childLinks, childModels;
       while (!modelStack.empty())
       {
         Entity model = modelStack.top();
         modelStack.pop();
 
-        std::vector<Entity> childLinks;
         childLinks = _ecm.EntitiesByComponents(components::ParentEntity(model),
                                                components::Link());
-
         links.insert(links.end(),
                      childLinks.begin(),
                      childLinks.end());
 
-        std::vector<Entity> childModels;
         childModels =
             _ecm.EntitiesByComponents(components::ParentEntity(model),
                                       components::Model());
-        for (auto childModel : childModels)
+        for (const auto &childModel : childModels)
         {
             modelStack.push(childModel);
         }
@@ -2159,6 +2158,8 @@ void RenderUtil::ViewCollisions(const Entity &_entity)
   {
     std::stack<Entity> modelStack;
     modelStack.push(_entity);
+
+    std::vector<Entity> childModels;
     while (!modelStack.empty())
     {
       Entity model = modelStack.top();
@@ -2168,9 +2169,8 @@ void RenderUtil::ViewCollisions(const Entity &_entity)
           this->dataPtr->modelToLinkEntities[model].begin(),
           this->dataPtr->modelToLinkEntities[model].end());
 
-      std::vector<Entity> childModels =
-          this->dataPtr->modelToModelEntities[model];
-      for (const auto childModel : childModels)
+      childModels = this->dataPtr->modelToModelEntities[model];
+      for (const auto &childModel : childModels)
       {
         modelStack.push(childModel);
       }
