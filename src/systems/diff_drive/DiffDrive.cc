@@ -28,6 +28,7 @@
 #include <ignition/common/Profiler.hh>
 #include <ignition/math/DiffDriveOdometry.hh>
 #include <ignition/math/Quaternion.hh>
+#include <ignition/math/SpeedLimiter.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
@@ -129,10 +130,10 @@ class ignition::gazebo::systems::DiffDrivePrivate
   public: transport::Node::Publisher tfPub;
 
   /// \brief Linear velocity limiter.
-  public: std::unique_ptr<SpeedLimiter> limiterLin;
+  public: std::unique_ptr<ignition::math::SpeedLimiter> limiterLin;
 
   /// \brief Angular velocity limiter.
-  public: std::unique_ptr<SpeedLimiter> limiterAng;
+  public: std::unique_ptr<ignition::math::SpeedLimiter> limiterAng;
 
   /// \brief Previous control command.
   public: Commands last0Cmd;
@@ -205,57 +206,49 @@ void DiffDrive::Configure(const Entity &_entity,
       this->dataPtr->wheelSeparation).first;
   this->dataPtr->wheelRadius = _sdf->Get<double>("wheel_radius",
       this->dataPtr->wheelRadius).first;
+  
+  // Instantiate the speed limiters.
+  this->dataPtr->limiterLin = std::make_unique<ignition::math::SpeedLimiter>();
+  this->dataPtr->limiterAng = std::make_unique<ignition::math::SpeedLimiter>();
 
   // Parse speed limiter parameters.
-  bool hasVelocityLimits     = false;
-  bool hasAccelerationLimits = false;
-  bool hasJerkLimits         = false;
-  double minVel              = std::numeric_limits<double>::lowest();
-  double maxVel              = std::numeric_limits<double>::max();
-  double minAccel            = std::numeric_limits<double>::lowest();
-  double maxAccel            = std::numeric_limits<double>::max();
-  double minJerk             = std::numeric_limits<double>::lowest();
-  double maxJerk             = std::numeric_limits<double>::max();
-
   if (_sdf->HasElement("min_velocity"))
   {
-    minVel = _sdf->Get<double>("min_velocity");
-    hasVelocityLimits = true;
+    double minVel = _sdf->Get<double>("min_velocity");
+    this->dataPtr->limiterLin->SetMinVelocity(minVel);
+    this->dataPtr->limiterAng->SetMinVelocity(minVel);
   }
   if (_sdf->HasElement("max_velocity"))
   {
-    maxVel = _sdf->Get<double>("max_velocity");
-    hasVelocityLimits = true;
+    double maxVel = _sdf->Get<double>("max_velocity");
+    this->dataPtr->limiterLin->SetMaxVelocity(maxVel);
+    this->dataPtr->limiterAng->SetMaxVelocity(maxVel);
   }
   if (_sdf->HasElement("min_acceleration"))
   {
-    minAccel = _sdf->Get<double>("min_acceleration");
-    hasAccelerationLimits = true;
+    double minAccel = _sdf->Get<double>("min_acceleration");
+    this->dataPtr->limiterLin->SetMinAcceleration(minAccel);
+    this->dataPtr->limiterAng->SetMinAcceleration(minAccel);
   }
   if (_sdf->HasElement("max_acceleration"))
   {
-    maxAccel = _sdf->Get<double>("max_acceleration");
-    hasAccelerationLimits = true;
+    double maxAccel = _sdf->Get<double>("max_acceleration");
+    this->dataPtr->limiterLin->SetMaxAcceleration(maxAccel);
+    this->dataPtr->limiterAng->SetMaxAcceleration(maxAccel);
   }
   if (_sdf->HasElement("min_jerk"))
   {
-    minJerk = _sdf->Get<double>("min_jerk");
-    hasJerkLimits = true;
+    double minJerk = _sdf->Get<double>("min_jerk");
+    this->dataPtr->limiterLin->SetMinJerk(minJerk);
+    this->dataPtr->limiterAng->SetMinJerk(minJerk);
   }
   if (_sdf->HasElement("max_jerk"))
   {
-    maxJerk = _sdf->Get<double>("max_jerk");
-    hasJerkLimits = true;
+    double maxJerk = _sdf->Get<double>("max_jerk");
+    this->dataPtr->limiterLin->SetMaxJerk(maxJerk);
+    this->dataPtr->limiterAng->SetMaxJerk(maxJerk);
   }
 
-  // Instantiate the speed limiters.
-  this->dataPtr->limiterLin = std::make_unique<SpeedLimiter>(
-    hasVelocityLimits, hasAccelerationLimits, hasJerkLimits,
-    minVel, maxVel, minAccel, maxAccel, minJerk, maxJerk);
-
-  this->dataPtr->limiterAng = std::make_unique<SpeedLimiter>(
-    hasVelocityLimits, hasAccelerationLimits, hasJerkLimits,
-    minVel, maxVel, minAccel, maxAccel, minJerk, maxJerk);
 
   double odomFreq = _sdf->Get<double>("odom_publish_frequency", 50).first;
   if (odomFreq > 0)
@@ -563,11 +556,9 @@ void DiffDrivePrivate::UpdateVelocity(const ignition::gazebo::UpdateInfo &_info,
     angVel = this->targetVel.angular().z();
   }
 
-  const double dt = std::chrono::duration<double>(_info.dt).count();
-
   // Limit the target velocity if needed.
-  this->limiterLin->Limit(linVel, this->last0Cmd.lin, this->last1Cmd.lin, dt);
-  this->limiterAng->Limit(angVel, this->last0Cmd.ang, this->last1Cmd.ang, dt);
+  this->limiterLin->Limit(linVel, this->last0Cmd.lin, this->last1Cmd.lin, _info.dt);
+  this->limiterAng->Limit(angVel, this->last0Cmd.ang, this->last1Cmd.ang, _info.dt);
 
   // Update history of commands.
   this->last1Cmd = last0Cmd;
