@@ -134,6 +134,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: rendering::VisualPtr CreateVisual(Entity _id,
         const sdf::Visual &_visual, Entity _parentId = 0);
 
+    /// \brief Create a inertia visual
+    /// \param[in] _id Unique visual id
+    /// \param[in] _inertia Inertia sdf dom
+    /// \param[in] _parentId Parent id
+    /// \return Visual (inertia) object created from the sdf dom
+    public: rendering::VisualPtr CreateInertia(Entity _id,
+        const math::Inertiald &_inertial, Entity _parentId = 0);
+
     /// \brief Create a collision visual
     /// \param[in] _id Unique visual id
     /// \param[in] _collision Collision sdf dom
