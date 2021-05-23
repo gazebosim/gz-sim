@@ -2472,19 +2472,30 @@ void TextureNode::PrepareNode()
 
     // This will notify the rendering thread that the texture is now being
     // rendered and it can start rendering to the other one.
-    emit TextureInUse(&this->renderSync);
+    // emit TextureInUse(&this->renderSync); See comment below
   }
-  else
-  {
-    // This is necessary because we're forcing serialization of
-    // of worker and Qt threads via renderSync; and if PrepareNode gets
-    // called twice in a row with the worker thread still finishing the
-    // 1st iteration, it may result in a deadlock for newer versions of Qt;
-    // as WaitForWorkerThread will be called with no corresponding
-    // WaitForQtThreadAndBlock as the worker thread thinks there is
-    // no more jobs to do.
-    emit TextureInUse(&this->renderSync);
-  }
+
+  // NOTE: The original code from Qt samples only emitted when
+  // newId is not null.
+  //
+  // This is correct... for their case.
+  // However we need to synchronize the threads when resolution changes,
+  // and we're also currently doing everything in lockstep (i.e. both Qt
+  // and worker thread are serialized,
+  // see https://github.com/ignitionrobotics/ign-rendering/issues/304 )
+  //
+  // We need to emit even if newId == 0 because it's safe as long as both
+  // threads are forcefully serialized and otherwise we may get a
+  // deadlock (this func. called twice in a row with the worker thread still
+  // finishing the 1st iteration, may result in a deadlock for newer versions
+  // of Qt; as WaitForWorkerThread will be called with no corresponding
+  // WaitForQtThreadAndBlock as the worker thread thinks there are
+  // no more jobs to do.
+  //
+  // If we want these to run in worker thread and stay resolution-synchronized,
+  // we probably should use a different method of signals and slots
+  // to send work to the worker thread and get results back
+  emit TextureInUse(&this->renderSync);
 
   this->renderSync.WaitForWorkerThread();
 }
