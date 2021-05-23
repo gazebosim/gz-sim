@@ -496,7 +496,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public slots: void RenderNext(RenderSync *renderSync);
 
     /// \brief Shutdown the thread and the render engine
-    public Q_SLOTS: void ShutDown();
+    public slots: void ShutDown();
 
     /// \brief Slot called to update render texture size
     public slots: void SizeChanged();
