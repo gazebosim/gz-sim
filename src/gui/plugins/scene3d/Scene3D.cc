@@ -48,6 +48,7 @@
 
 #include <ignition/rendering/Image.hh>
 #include <ignition/rendering/OrbitViewController.hh>
+#include <ignition/rendering/OrthoViewController.hh>
 #include <ignition/rendering/RayQuery.hh>
 #include <ignition/rendering/RenderEngine.hh>
 #include <ignition/rendering/RenderingIface.hh>
@@ -184,8 +185,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief User camera
     public: rendering::CameraPtr camera;
 
-    /// \brief Camera orbit controller
-    public: rendering::OrbitViewController viewControl;
+    /// \brief Orbit view controller
+    public: rendering::OrbitViewController orbitViewControl;
+
+    /// \brief Ortho view controller
+    public: rendering::OrthoViewController orthoViewControl;
+
+    /// \brief Camera view controller
+    public: rendering::ViewController *viewControl{nullptr};
 
     /// \brief Transform controller for models
     public: rendering::TransformController transformControl;
@@ -238,6 +245,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Target to view collisions
     public: std::string viewCollisionsTarget;
+
+    /// \brief View controller
+    public: std::string viewController{"orbit"};
 
     /// \brief Helper object to select entities. Only the latest selection
     /// request is kept.
@@ -443,6 +453,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief View collisions service
     public: std::string viewCollisionsService;
+
+    /// \brief Camera view control service
+    public: std::string cameraViewControlService;
   };
 }
 }
@@ -503,6 +516,9 @@ void IgnRenderer::Render()
       IGN_PROFILE("IgnRenderer::Render Pre-render camera");
       this->dataPtr->camera->PreRender();
     }
+    // mark mouse dirty to force update view projection in HandleMouseEvent
+    this->dataPtr->mouseDirty = true;
+
     this->textureDirty = false;
   }
 
@@ -1716,17 +1732,32 @@ void IgnRenderer::HandleMouseViewControl()
   if (!this->dataPtr->followTarget.empty())
     this->dataPtr->camera->WorldPosition();
 
-  this->dataPtr->viewControl.SetCamera(this->dataPtr->camera);
+  if (this->dataPtr->viewController == "ortho")
+  {
+    this->dataPtr->viewControl = &this->dataPtr->orthoViewControl;
+  }
+  else if (this->dataPtr->viewController == "orbit")
+  {
+    this->dataPtr->viewControl = &this->dataPtr->orbitViewControl;
+  }
+  else
+  {
+    ignerr << "Unknown view controller: " << this->dataPtr->viewController
+           << ". Defaulting to orbit view controller" << std::endl;
+    this->dataPtr->viewController = "orbit";
+    this->dataPtr->viewControl = &this->dataPtr->orbitViewControl;
+  }
+  this->dataPtr->viewControl->SetCamera(this->dataPtr->camera);
 
   if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::SCROLL)
   {
     this->dataPtr->target =
         this->ScreenToScene(this->dataPtr->mouseEvent.Pos());
-    this->dataPtr->viewControl.SetTarget(this->dataPtr->target);
+    this->dataPtr->viewControl->SetTarget(this->dataPtr->target);
     double distance = this->dataPtr->camera->WorldPosition().Distance(
         this->dataPtr->target);
     double amount = -this->dataPtr->drag.Y() * distance / 5.0;
-    this->dataPtr->viewControl.Zoom(amount);
+    this->dataPtr->viewControl->Zoom(amount);
   }
   else
   {
@@ -1734,21 +1765,21 @@ void IgnRenderer::HandleMouseViewControl()
     {
       this->dataPtr->target = this->ScreenToScene(
           this->dataPtr->mouseEvent.PressPos());
-      this->dataPtr->viewControl.SetTarget(this->dataPtr->target);
+      this->dataPtr->viewControl->SetTarget(this->dataPtr->target);
     }
 
     // Pan with left button
     if (this->dataPtr->mouseEvent.Buttons() & common::MouseEvent::LEFT)
     {
       if (Qt::ShiftModifier == QGuiApplication::queryKeyboardModifiers())
-        this->dataPtr->viewControl.Orbit(this->dataPtr->drag);
+        this->dataPtr->viewControl->Orbit(this->dataPtr->drag);
       else
-        this->dataPtr->viewControl.Pan(this->dataPtr->drag);
+        this->dataPtr->viewControl->Pan(this->dataPtr->drag);
     }
     // Orbit with middle button
     else if (this->dataPtr->mouseEvent.Buttons() & common::MouseEvent::MIDDLE)
     {
-      this->dataPtr->viewControl.Orbit(this->dataPtr->drag);
+      this->dataPtr->viewControl->Orbit(this->dataPtr->drag);
     }
     else if (this->dataPtr->mouseEvent.Buttons() & common::MouseEvent::RIGHT)
     {
@@ -1760,7 +1791,7 @@ void IgnRenderer::HandleMouseViewControl()
       double amount = ((-this->dataPtr->drag.Y() /
           static_cast<double>(this->dataPtr->camera->ImageHeight()))
           * distance * tan(vfov/2.0) * 6.0);
-      this->dataPtr->viewControl.Zoom(amount);
+      this->dataPtr->viewControl->Zoom(amount);
     }
   }
   this->dataPtr->drag = 0;
@@ -2050,6 +2081,17 @@ void IgnRenderer::SetViewCollisionsTarget(const std::string &_target)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->viewCollisionsTarget = _target;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetViewController(const std::string &_controller)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->viewController = _controller;
+
+  // mark mouse dirty to trigger HandleMouseEvent call and
+  // set up a new view controller
+  this->dataPtr->mouseDirty = true;
 }
 
 /////////////////////////////////////////////////
@@ -2792,6 +2834,13 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   ignmsg << "View collisions service on ["
          << this->dataPtr->viewCollisionsService << "]" << std::endl;
 
+  // camera view control mode
+  this->dataPtr->cameraViewControlService = "/gui/camera/view_control";
+  this->dataPtr->node.Advertise(this->dataPtr->cameraViewControlService,
+      &Scene3D::OnViewControl, this);
+  ignmsg << "Camera view controller topic advertised on ["
+         << this->dataPtr->cameraViewControlService << "]" << std::endl;
+
   ignition::gui::App()->findChild<
       ignition::gui::MainWindow *>()->QuickWindow()->installEventFilter(this);
   ignition::gui::App()->findChild<
@@ -2970,6 +3019,19 @@ bool Scene3D::OnViewCollisions(const msgs::StringMsg &_msg,
   _res.set_data(true);
   return true;
 }
+
+/////////////////////////////////////////////////
+bool Scene3D::OnViewControl(const msgs::StringMsg &_msg,
+  msgs::Boolean &_res)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+
+  renderWindow->SetViewController(_msg.data());
+
+  _res.set_data(true);
+  return true;
+}
+
 
 /////////////////////////////////////////////////
 void Scene3D::OnHovered(int _mouseX, int _mouseY)
@@ -3238,6 +3300,12 @@ void RenderWindowItem::SetViewWireframesTarget(const std::string &_target)
 void RenderWindowItem::SetViewCollisionsTarget(const std::string &_target)
 {
   this->dataPtr->renderThread->ignRenderer.SetViewCollisionsTarget(_target);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetViewController(const std::string &_controller)
+{
+  this->dataPtr->renderThread->ignRenderer.SetViewController(_controller);
 }
 
 /////////////////////////////////////////////////

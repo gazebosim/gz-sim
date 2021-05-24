@@ -168,6 +168,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: bool OnViewCollisions(const msgs::StringMsg &_msg,
         msgs::Boolean &_res);
 
+    /// \brief Callback for camera view controller request
+    /// \param[in] _msg Request message to set the camera view controller
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnViewControl(const msgs::StringMsg &_msg,
+        msgs::Boolean &_res);
+
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<Scene3DPrivate> dataPtr;
@@ -266,6 +273,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief View collisions of the specified target
     /// \param[in] _target Target to view collisions
     public: void SetViewCollisionsTarget(const std::string &_target);
+
+    /// \brief Set camera view controller
+    /// \param[in] _viewController. Values are "orbit", and "ortho"
+    public: void SetViewController(const std::string &_viewController);
 
     /// \brief Set the p gain for the camera follow movement
     /// \param[in] _gain Camera follow p gain.
@@ -616,6 +627,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief View collisions of the specified target
     /// \param[in] _target Target to view collisions
     public: void SetViewCollisionsTarget(const std::string &_target);
+
+    /// \brief Set camera view controller
+    /// \param[in] _viewController. Values are "orbit", and "ortho"
+    public: void SetViewController(const std::string &_viewController);
 
     /// \brief Set the p gain for the camera follow movement
     /// \param[in] _gain Camera follow p gain.
