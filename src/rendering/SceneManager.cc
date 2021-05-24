@@ -1176,6 +1176,7 @@ rendering::VisualPtr SceneManager::CreateInertia(Entity _id,
   std::string name = std::to_string(_id);
   if (parent)
     name = parent->Name() + "::" + name;
+  
   rendering::InertiaVisualPtr inertiaVisual = this->dataPtr->scene->CreateInertiaVisual(name);
   auto pose = _inertia.Pose().Pos();
   auto rot = _inertia.Pose().Rot();

@@ -312,15 +312,15 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief A list of links used to create new inertia visuals
   public: std::vector<Entity> newInertiaLinks;
 
-  /// \brief A map of entity ids and their inertials
+  /// \brief A map of entity ids and their inertias
   public: std::map<Entity, math::Inertiald> entityInertias;
 
-  /// \brief A map of link entities and their corresponding children inertia
-  public: std::map<Entity, std::vector<Entity>> linkToInertiaEntities;
-
-  /// \brief A map of created inertia entities and if they are currently
+  /// \brief A map of link entities and if their inertias are currently
   /// visible
   public: std::map<Entity, bool> viewingInertias;
+
+  /// \brief A map of links and their inertia visuals
+  public: std::map<Entity, Entity> linkToInertiaVisuals;
 
   /// \brief New wireframe visuals to be toggled
   public: std::vector<Entity> newWireframes;
@@ -507,6 +507,7 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
   this->dataPtr->UpdateRenderingEntities(_ecm);
   this->dataPtr->RemoveRenderingEntities(_ecm, _info);
   this->dataPtr->markerManager.SetSimTime(_info.simTime);
+  this->dataPtr->FindInertiaLinks(_ecm);
   this->dataPtr->FindWireframeVisualLinks(_ecm);
   this->dataPtr->FindCollisionLinks(_ecm);
 }
@@ -1166,35 +1167,20 @@ void RenderUtil::Update()
   {
     for (const auto &link : newInertiaLinks)
     {
-      std::vector<Entity> inrEntities =
-          this->dataPtr->linkToInertiaEntities[link];
-
-      for (const auto &inrEntity : inrEntities)
+      // create a new id for the inertia visual
+      auto attempts = 100000u;
+      for (auto i = 0u; i < attempts; ++i)
       {
-        if (!this->dataPtr->sceneManager.HasEntity(inrEntity))
+        Entity id = std::numeric_limits<uint64_t>::min() + i;
+        if (!this->dataPtr->sceneManager.HasEntity(id) &&
+            !this->dataPtr->viewingInertias[link])
         {
-          igndbg << "Creating inertia visual for " << inrEntity << std::endl;
-          auto vis = this->dataPtr->sceneManager.CreateInertia(inrEntity,
-              this->dataPtr->entityInertias[inrEntity], link);
-          this->dataPtr->viewingInertias[inrEntity] = true;
-
-          // add geometry material to originalEmissive map
-          for (auto g = 0u; g < vis->GeometryCount(); ++g)
-          {
-            auto geom = vis->GeometryByIndex(g);
-
-            // Geometry material
-            auto geomMat = geom->Material();
-            if (nullptr == geomMat)
-              continue;
-
-            if (this->dataPtr->originalEmissive.find(geom->Name()) ==
-                this->dataPtr->originalEmissive.end())
-            {
-              this->dataPtr->originalEmissive[geom->Name()] =
-                  geomMat->Emissive();
-            }
-          }
+          rendering::VisualPtr inrVisual =
+            this->dataPtr->sceneManager.CreateInertia(
+              id, this->dataPtr->entityInertias[link], link);
+          this->dataPtr->viewingInertias[link] = true;
+          this->dataPtr->linkToInertiaVisuals[link] = id;
+          break;
         }
       }
     }
@@ -1472,18 +1458,12 @@ void RenderUtilPrivate::CreateRenderingEntities(
         });
 
     // inertias
-    _ecm.Each<components::Inertial, components::Name,
-              components::Pose, components::Geometry,
-              components::ParentEntity>(
+    _ecm.Each<components::Inertial, components::Pose>(
         [&](const Entity &_entity,
             const components::Inertial *_inrElement,
-            const components::Name *,
-            const components::Pose *,
-            const components::Geometry *,
-            const components::ParentEntity *_parent) -> bool
+            const components::Pose *) -> bool
         {
           this->entityInertias[_entity] = _inrElement->Data();
-          this->linkToInertiaEntities[_parent->Data()].push_back(_entity);
           return true;
         });
 
@@ -1719,18 +1699,12 @@ void RenderUtilPrivate::CreateRenderingEntities(
         });
 
     // inertias
-    _ecm.EachNew<components::Inertial, components::Name,
-              components::Pose, components::Geometry,
-              components::ParentEntity>(
+    _ecm.EachNew<components::Inertial, components::Pose>(
         [&](const Entity &_entity,
             const components::Inertial *_inrElement,
-            const components::Name *,
-            const components::Pose *,
-            const components::Geometry *,
-            const components::ParentEntity *_parent) -> bool
+            const components::Pose *) -> bool
         {
           this->entityInertias[_entity] = _inrElement->Data();
-          this->linkToInertiaEntities[_parent->Data()].push_back(_entity);
           return true;
         });
 
@@ -1991,6 +1965,14 @@ void RenderUtilPrivate::RemoveRenderingEntities(
         this->removeEntities[_entity] = _info.iterations;
         this->linkToVisualEntities.erase(_entity);
         this->linkToCollisionEntities.erase(_entity);
+
+        if (this->viewingInertias[_entity])
+        {
+          this->removeEntities[this->linkToInertiaVisuals[_entity]] = _info.iterations;
+        }
+        this->linkToInertiaVisuals.erase(_entity);
+        this->viewingInertias.erase(_entity);
+        this->entityInertias.erase(_entity);
         return true;
       });
 
@@ -2058,16 +2040,6 @@ void RenderUtilPrivate::RemoveRenderingEntities(
     [&](const Entity &_entity, const components::ThermalCamera *)->bool
       {
         this->removeEntities[_entity] = _info.iterations;
-        return true;
-      });
-
-  // inertias
-  _ecm.EachRemoved<components::Inertial>(
-    [&](const Entity &_entity, const components::Inertial *)->bool
-      {
-        this->removeEntities[_entity] = _info.iterations;
-        this->viewingInertias.erase(_entity);
-        this->entityInertias.erase(_entity);
         return true;
       });
 
@@ -2363,7 +2335,75 @@ void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
 /////////////////////////////////////////////////
 void RenderUtil::ViewInertia(const Entity &_entity)
 {
-  
+  std::vector<Entity> inrLinks;
+  if (this->dataPtr->modelToLinkEntities.find(_entity) !=
+           this->dataPtr->modelToLinkEntities.end())
+  {
+    std::vector<Entity> links = this->dataPtr->modelToLinkEntities[_entity];
+    for (const auto &link : links)
+      inrLinks.push_back(link);
+  }
+  else
+  {
+    inrLinks.push_back(_entity);
+  }
+
+  // create and/or toggle inertia visuals
+
+  bool showInr, showInrInit = false;
+  // first loop looks for new inertias
+  for (const auto &inrLink : inrLinks)
+  {
+    if (this->dataPtr->viewingInertias.find(inrLink) ==
+        this->dataPtr->viewingInertias.end())
+    {
+      this->dataPtr->newInertias.push_back(_entity);
+      showInrInit = showInr = true;
+    }
+  }
+
+  // second loop toggles already created inertias
+  for (const auto &inrLink : inrLinks)
+  {
+    if (this->dataPtr->viewingInertias.find(inrLink) ==
+        this->dataPtr->viewingInertias.end())
+      continue;
+
+    // when viewing multiple inertias (e.g. _entity is a model),
+    // boolean for view inertias is based on first inrEntity in list
+    if (!showInrInit)
+    {
+      showInr = !this->dataPtr->viewingInertias[inrLink];
+      showInrInit = true;
+    }
+
+    Entity inrVisualId = this->dataPtr->linkToInertiaVisuals[inrLink];
+    rendering::VisualPtr inrVisual =
+        this->dataPtr->sceneManager.VisualById(inrVisualId);
+    if (inrVisual == nullptr)
+    {
+      ignerr << "Could not find inertia visual for entity [" << inrLink
+             << "]" << std::endl;
+      continue;
+    }
+
+    this->dataPtr->viewingInertias[inrLink] = showInr;
+    inrVisual->SetVisible(showInr);
+
+    if (showInr)
+    {
+      // turn off wireboxes for inertia entity
+      if (this->dataPtr->wireBoxes.find(inrVisualId)
+            != this->dataPtr->wireBoxes.end())
+      {
+        ignition::rendering::WireBoxPtr wireBox =
+          this->dataPtr->wireBoxes[inrVisualId];
+        auto visParent = wireBox->Parent();
+        if (visParent)
+          visParent->SetVisible(false);
+      }
+    }
+  }
 }
 
 /////////////////////////////////////////////////
