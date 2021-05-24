@@ -270,7 +270,7 @@ void SensorsPrivate::RunOnce()
       // We only need to do this once per frame It is important to call
       // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
       // so we don't waste cycles doing one scene graph update per sensor
-      this->scene->PostRenderGpuFlush();
+      this->scene->PostRender();
       this->eventManager->Emit<events::PostRender>();
     }
 
