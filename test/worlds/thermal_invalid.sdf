@@ -38,7 +38,7 @@
 
     <model name="sphere">
       <static>true</static>`
-      <pose>0 0.5 0.5 0 0 0</pose>
+      <pose>0 0.85 0.5 0 0 0</pose>
       <link name="sphere_link">
         <collision name="sphere_collision">
           <geometry>
@@ -70,7 +70,7 @@
 
     <model name="cylinder">
       <static>true</static>`
-      <pose>0 -0.5 0.5 0 0 0</pose>
+      <pose>0 -0.85 0.5 0 0 0</pose>
       <link name="cylinder_link">
         <collision name="cylinder_collision">
           <geometry>
@@ -97,6 +97,38 @@
             filename="ignition-gazebo-thermal-system"
             name="ignition::gazebo::systems::Thermal">
             <temperature>800.0</temperature>
+          </plugin>
+        </visual>
+      </link>
+    </model>
+
+    <model name="box">
+      <static>true</static>`
+      <pose>-1 0.0 0.5 0 0 0</pose>
+      <link name="box_link">
+        <collision name="box_collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="box_visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1 0 0 1</ambient>
+            <diffuse>1 0 0 1</diffuse>
+            <specular>1 0 0 1</specular>
+          </material>
+          <plugin
+            filename="ignition-gazebo-thermal-system"
+            name="ignition::gazebo::systems::Thermal">
+            <temperature>-10.0</temperature>
           </plugin>
         </visual>
       </link>
