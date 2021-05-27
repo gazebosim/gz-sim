@@ -2067,16 +2067,26 @@ void RenderUtil::SetWireBoxScale(const Entity &_entityId,
   if (this->dataPtr->wireBoxes.find(_entityId) ==
           this->dataPtr->wireBoxes.end())
   {
+    ignerr << "Trying to scale a wirebox with unknown id [" << _entityId
+           << "]" << std::endl;
     return;
   }
 
   ignition::rendering::WireBoxPtr wireBox = this->dataPtr->wireBoxes[_entityId];
   if (!wireBox)
+  {
+    ignerr << "Null wirebox associated to id [" << _entityId
+           << "]" << std::endl;
     return;
+  }
 
   auto visParent = wireBox->Parent();
   if (!visParent)
+  {
+    ignerr << "Trying to scale a wirebox with null parent [" << _entityId
+           << "]" << std::endl;
     return;
+  }
 
   visParent->SetLocalScale(_scale);
 }
