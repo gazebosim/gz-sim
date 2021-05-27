@@ -52,8 +52,7 @@ TEST_F(ComponentFactoryTest, Register)
   auto registeredCount = factory->TypeIds().size();
 
   factory->Register<MyCustom>("ign_gazebo_components.MyCustom",
-      new components::ComponentDescriptor<MyCustom>(),
-      new components::StorageDescriptor<MyCustom>());
+      new components::ComponentDescriptor<MyCustom>());
 
   // Check now it has type id
   EXPECT_NE(0u, MyCustom::typeId);
@@ -68,8 +67,7 @@ TEST_F(ComponentFactoryTest, Register)
 
   // Fail to register same component twice
   factory->Register<MyCustom>("ign_gazebo_components.MyCustom",
-      new components::ComponentDescriptor<MyCustom>(),
-      new components::StorageDescriptor<MyCustom>());
+      new components::ComponentDescriptor<MyCustom>());
 
   EXPECT_EQ(registeredCount + 1, factory->TypeIds().size());
 
@@ -77,8 +75,7 @@ TEST_F(ComponentFactoryTest, Register)
   using Duplicate = components::Component<components::NoData,
       class DuplicateTag>;
   factory->Register<Duplicate>("ign_gazebo_components.MyCustom",
-      new components::ComponentDescriptor<Duplicate>(),
-      new components::StorageDescriptor<Duplicate>());
+      new components::ComponentDescriptor<Duplicate>());
 
   EXPECT_EQ(registeredCount + 1, factory->TypeIds().size());
 
@@ -117,14 +114,6 @@ TEST_F(ComponentFactoryTest, New)
     EXPECT_NE(0u, comp->TypeId());
 
     EXPECT_TRUE(nullptr != static_cast<components::Pose *>(comp.get()));
-  }
-
-  {
-    auto storage = factory->NewStorage(components::Pose::typeId);
-    ASSERT_TRUE(storage != nullptr);
-
-    EXPECT_NE(nullptr, static_cast<ComponentStorage<components::Pose> *>(
-        storage.get()));
   }
 }
 

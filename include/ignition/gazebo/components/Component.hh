@@ -224,6 +224,11 @@ namespace serializers
   };
 }
 
+namespace detail
+{
+  class ComponentStorage;
+}
+
 namespace components
 {
   /// \brief Base class for all components.
@@ -275,6 +280,21 @@ namespace components
     /// Factory registration and is guaranteed to be the same across compilers
     /// and runs.
     public: virtual ComponentTypeId TypeId() const = 0;
+
+    /// \brief A flag used by the EntityComponentManager (ECM) to determine
+    /// whether a component should be ignored or not. This is useful for
+    /// achieving removal (and re-addition) behavior for a component that
+    /// already exists without actually removing the component from the ECM
+    /// (using an internal flag instead of actually removing and re-adding the
+    /// component yields better runtime performance). This flag is to be used by
+    /// the ECM only, and should not change how users interact with components.
+    private: bool ignore{false};
+
+    // Make ComponentStorage and EntityComponentManager a friend of the
+    // BaseComponent class so that they have access to a component's ignore
+    // flag.
+    friend class ignition::gazebo::detail::ComponentStorage;
+    friend class ignition::gazebo::EntityComponentManager;
   };
 
   /// \brief A component type that wraps any data type. The intention is for

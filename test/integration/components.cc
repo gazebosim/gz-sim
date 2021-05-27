@@ -966,7 +966,7 @@ TEST_F(ComponentsTest, LogicalMicrophone)
   comp1.Serialize(ostr);
   EXPECT_EQ("0 0.5", ostr.str());
 
-  std::istringstream istr;
+  std::istringstream istr(ostr.str());
   components::LogicalMicrophone comp3;
   comp3.Deserialize(istr);
   EXPECT_EQ(comp1, comp3);

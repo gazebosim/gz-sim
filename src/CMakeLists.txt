@@ -42,6 +42,8 @@ target_link_libraries(${ign_lib_target}
 
 set (sources
   Barrier.cc
+  BaseView.cc
+  ComponentStorage.cc
   Conversions.cc
   EntityComponentManager.cc
   LevelManager.cc
@@ -55,7 +57,6 @@ set (sources
   SimulationRunner.cc
   SystemLoader.cc
   Util.cc
-  View.cc
   World.cc
   ${PROTO_PRIVATE_SRC}
   ${network_sources}
