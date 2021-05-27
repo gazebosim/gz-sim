@@ -835,7 +835,7 @@ TEST_F(LogSystemTest, RecordAndPlayback)
 
   // Count the total number of state messages in the log file
   int nTotal{0};
-  for (auto it = batch.begin(); it != batch.end(); ++it, ++nTotal);
+  for (auto it = batch.begin(); it != batch.end(); ++it, ++nTotal) { }
 
   EXPECT_EQ(numIterations, nTotal);
 

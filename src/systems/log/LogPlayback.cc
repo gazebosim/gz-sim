@@ -624,6 +624,8 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 
   // flag changed entity poses as periodically changed based on
   // the latest LogPlaybackPrivate::Parse results
+  // TODO(jenn) When merge forward to Fortress, remove pose
+  // ref: github.com/ignitionrobotics/ign-gazebo/pull/839
   _ecm.Each<components::Pose>(
       [&](const Entity &_entity, components::Pose *_poseComp) -> bool
   {
