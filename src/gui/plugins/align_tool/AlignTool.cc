@@ -24,24 +24,26 @@
 #include <queue>
 #include <string>
 #include <vector>
+
+#include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
-#include <ignition/gazebo/rendering/RenderUtil.hh>
-#include <ignition/common/Console.hh>
 #include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/rendering/Visual.hh>
 #include <ignition/rendering/Geometry.hh>
 #include <ignition/rendering/Material.hh>
+#include <ignition/rendering/RenderEngine.hh>
 #include <ignition/rendering/RenderTypes.hh>
 #include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/RenderEngine.hh>
 #include <ignition/rendering/Scene.hh>
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/components/Name.hh"
+#include <ignition/rendering/Visual.hh>
+#include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
+#include "ignition/gazebo/rendering/RenderUtil.hh"
+
 #include "AlignTool.hh"
 
 namespace ignition::gazebo

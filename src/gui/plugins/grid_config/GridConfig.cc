@@ -18,9 +18,9 @@
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
-#include <ignition/plugin/Register.hh>
 #include <ignition/math/Color.hh>
 #include <ignition/math/Pose3.hh>
+#include <ignition/plugin/Register.hh>
 #include <ignition/rendering.hh>
 
 #include "ignition/gazebo/gui/GuiEvents.hh"
