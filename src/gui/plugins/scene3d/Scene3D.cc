@@ -1364,7 +1364,8 @@ bool IgnRenderer::ContainsSimpleShape(const rendering::NodePtr &_node,
         {
           int userData = std::get<int>(v->UserData("geometry-type"));
 
-          /// \TODO(anyone) Consider sdf::GeometryType::CAPSULE in Edifice.
+          /// \TODO(anyone) Consider sdf::GeometryType::CAPSULE and
+          /// sdf::GeometryType::ELLIPSOID in Edifice.
           if (userData == static_cast<int>(sdf::GeometryType::BOX)      ||
               userData == static_cast<int>(sdf::GeometryType::CYLINDER) ||
               userData == static_cast<int>(sdf::GeometryType::SPHERE))
