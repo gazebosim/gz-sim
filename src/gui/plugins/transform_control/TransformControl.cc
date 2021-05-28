@@ -27,19 +27,16 @@
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/Publisher.hh>
-#include <ignition/rendering/Visual.hh>
 #include <ignition/rendering/Geometry.hh>
 #include <ignition/rendering/Grid.hh>
+#include <ignition/rendering/RenderEngine.hh>
 #include <ignition/rendering/RenderTypes.hh>
 #include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/RenderEngine.hh>
 #include <ignition/rendering/Scene.hh>
+#include <ignition/rendering/Visual.hh>
+#include <ignition/transport/Node.hh>
+#include <ignition/transport/Publisher.hh>
 
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
 namespace ignition::gazebo
