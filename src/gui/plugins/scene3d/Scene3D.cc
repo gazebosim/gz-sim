@@ -23,6 +23,7 @@
 #include <limits>
 #include <map>
 #include <mutex>
+#include <queue>
 #include <sstream>
 #include <string>
 #include <utility>
