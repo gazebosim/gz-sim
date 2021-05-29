@@ -36,7 +36,7 @@ double random_angle_within_limits(double min=-0.261799, double max=0.261799)
     (static_cast<float>(RAND_MAX / (max - min)));
 }
 
-// Nominal speed is thruster 300 rpm = 31.4 radians
+// Nominal speed is thruster 300 rpm = 31.4 radians per second
 double random_thrust_within_limits(double min=-31.4, double max=31.4)
 {
   return min + static_cast<float>(rand()) /
@@ -101,7 +101,7 @@ int main(int argc, char** argv)
       propellerPubs[i].Publish(propellerMsg);
 
       std::cout << "Commanding " << ns[i] << " rudder angle " << rudderCmds[i]
-        << ", thrust " << propellerCmds[i] << std::endl;
+        << " rad, thrust " << propellerCmds[i] << " rad/s" << std::endl;
     }
 
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
