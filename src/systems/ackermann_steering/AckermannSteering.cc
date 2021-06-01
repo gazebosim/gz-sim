@@ -19,7 +19,6 @@
 
 #include <ignition/msgs/odometry.pb.h>
 
-#include <limits>
 #include <mutex>
 #include <set>
 #include <string>
