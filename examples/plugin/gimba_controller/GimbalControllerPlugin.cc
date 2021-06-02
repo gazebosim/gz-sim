@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2015 Open Source Robotics Foundation
+ * Copyright (C) 2021 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ using namespace systems;
 
 class ignition::gazebo::systems::GimbalControllerPluginPrivate
 {
-	public: void OnPitchStringMsg(const msgs::StringMsg &_msg);
+  public: void OnPitchStringMsg(const msgs::StringMsg &_msg);
 
 	public: void OnRollStringMsg(const msgs::StringMsg &_msg);
 
