@@ -22,20 +22,20 @@
 
 #include <ignition/transport/Node.hh>
 
-#include <ignition/gazebo/Model.hh>
-#include <ignition/gazebo/Util.hh>
-
 #include <ignition/msgs/imu.pb.h>
 #include <ignition/msgs/stringmsg.pb.h>
 
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Quaternion.hh>
 #include <ignition/math/PID.hh>
+
 #include <ignition/gazebo/components/Imu.hh>
 #include <ignition/gazebo/components/JointForceCmd.hh>
 #include <ignition/gazebo/components/JointPosition.hh>
 #include <ignition/gazebo/components/Name.hh>
 #include <ignition/gazebo/components/ParentEntity.hh>
+#include <ignition/gazebo/Model.hh>
+#include <ignition/gazebo/Util.hh>
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
