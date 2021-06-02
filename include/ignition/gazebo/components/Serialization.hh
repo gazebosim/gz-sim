@@ -183,6 +183,40 @@ namespace serializers
       return _in;
     }
   };
+
+  template <typename T>
+  class VectorSerializer
+  {
+    /// \brief Serialization for `std::vector<T>` with serializable T.
+    /// \param[in] _out Output stream.
+    /// \param[in] _data The data to stream.
+    /// \return The stream.
+    public: static std::ostream &Serialize(std::ostream &_out,
+      const std::vector<T> &_data)
+    {
+      _out << _data.size();
+      for (const auto& datum : _data)
+        _out << datum;
+      return _out;
+    }
+
+    /// \brief Deserialization for `std::vector<T>` with serializable T.
+    /// \param[in] _in Input stream.
+    /// \param[out] _data The data to populate.
+    /// \return The stream.
+    public: static std::istream &Deserialize(std::istream &_in,
+      std::vector<T> &_data)
+    {
+      size_t size;
+      _in >> size;
+      _data.resize(size);
+      for (size_t i = 0; i < size; ++i)
+      {
+        _in >> _data[i];
+      }
+      return _in;
+    }
+  };
 }
 }
 }
