@@ -336,9 +336,9 @@ void GimbalControllerPlugin::PreUpdate(const ignition::gazebo::UpdateInfo &_info
 
       if(topic.empty())
       {
-          ignerr << "imu_sensor [" << this->dataPtr->imuName
-                 << "] not found, abort ArduPilot plugin." << "\n";
-          return;
+        ignerr << "imu_sensor [" << this->dataPtr->imuName
+               << "] not found, abort ArduPilot plugin." << "\n";
+        return;
       }
 
       this->dataPtr->node.Subscribe(topic, &GimbalControllerPluginPrivate::imuCb, this->dataPtr.get());
