@@ -103,7 +103,7 @@ void GzSceneManagerPrivate::OnRender()
 {
   if (nullptr == this->scene)
   {
-    this->scene = rendering::someInitializedScene();
+    this->scene = rendering::sceneFromFirstRenderEngine();
     if (nullptr == this->scene)
       return;
 

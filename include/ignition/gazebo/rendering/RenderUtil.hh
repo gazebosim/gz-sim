@@ -44,7 +44,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   class IGNITION_GAZEBO_RENDERING_VISIBLE RenderUtil
   {
     /// \brief Constructor
-    public: explicit RenderUtil(bool updateNewEntities);
+    public: explicit RenderUtil(bool updateNewEntities = false);
 
     /// \brief Destructor
     public: ~RenderUtil();

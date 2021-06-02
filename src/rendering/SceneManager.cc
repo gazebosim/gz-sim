@@ -175,8 +175,10 @@ rendering::VisualPtr SceneManager::CreateModel(Entity _id,
 
   if (this->dataPtr->scene->HasVisualName(name))
   {
-    ignerr << "Visual: [" << name << "] already exists" << std::endl;
-    return rendering::VisualPtr();
+    ignerr << "Visual: [" << name << " - " << _id << "] already exists" << std::endl;
+    auto vis = this->dataPtr->scene->VisualByName(name);
+    this->dataPtr->visuals[_id] = vis;
+    return vis;
   }
 
   rendering::VisualPtr modelVis = this->dataPtr->scene->CreateVisual(name);
@@ -204,7 +206,9 @@ rendering::VisualPtr SceneManager::CreateLink(Entity _id,
   {
     ignerr << "Entity with Id: [" << _id << "] already exists in the scene"
            << std::endl;
-    return rendering::VisualPtr();
+    auto vis = this->dataPtr->scene->VisualById(_id);
+    this->dataPtr->visuals[_id] = vis;
+    return vis;
   }
 
   rendering::VisualPtr parent;
@@ -224,6 +228,12 @@ rendering::VisualPtr SceneManager::CreateLink(Entity _id,
       _link.Name();
   if (parent)
     name = parent->Name() + "::" + name;
+  if (this->dataPtr->scene->HasVisualName(name))
+  {
+    auto vis = this->dataPtr->scene->VisualByName(name);
+    this->dataPtr->visuals[_id] = vis;
+    return vis;
+  }
   rendering::VisualPtr linkVis = this->dataPtr->scene->CreateVisual(name);
   linkVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   linkVis->SetUserData("pause-update", static_cast<int>(0));
@@ -271,6 +281,12 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
       _visual.Name();
   if (parent)
     name = parent->Name() + "::" + name;
+  if (this->dataPtr->scene->HasVisualName(name))
+  {
+    auto vis = this->dataPtr->scene->VisualByName(name);
+    this->dataPtr->visuals[_id] = vis;
+    return vis;
+  }
   rendering::VisualPtr visualVis = this->dataPtr->scene->CreateVisual(name);
   visualVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   visualVis->SetUserData("pause-update", static_cast<int>(0));

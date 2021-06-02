@@ -713,19 +713,15 @@ void RenderUtil::Update()
         // scoped names
         // TODO(anyone) do this in ign-sensors?
         auto parentNode = this->dataPtr->sceneManager.NodeById(parent);
-        while (!parentNode) {
-          using namespace std::chrono_literals;
-          std::this_thread::sleep_for(5ms);
-          if (!parentNode)
-          {
-            ignerr << "Failed to create sensor with name[" << dataSdf.Name()
-                   << "] for entity [" << entity
-                   << "]. Parent not found with ID[" << parent << "]."
-                   << std::endl;
-            continue;
-          }
-          parentNode = this->dataPtr->sceneManager.NodeById(parent);
+        if (!parentNode)
+        {
+          ignerr << "Failed to create sensor with name[" << dataSdf.Name()
+                 << "] for entity [" << entity
+                 << "]. Parent not found with ID[" << parent << "]."
+                 << std::endl;
+          continue;
         }
+        parentNode = this->dataPtr->sceneManager.NodeById(parent);
 
         std::string sensorName =
             this->dataPtr->createSensorCb(entity, dataSdf, parentNode->Name());
