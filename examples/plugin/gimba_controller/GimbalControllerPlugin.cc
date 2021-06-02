@@ -47,14 +47,16 @@ using namespace gazebo;
 using namespace systems;
 
 class ignition::gazebo::systems::GimbalControllerPluginPrivate
-{
+{    
+  /// \brief function for Pitch joint message
   public: void OnPitchStringMsg(const msgs::StringMsg &_msg);
 
+  /// \brief function for Roll joint message
 	public: void OnRollStringMsg(const msgs::StringMsg &_msg);
 
+  /// \brief function for Yaw joint message
 	public: void OnYawStringMsg(const msgs::StringMsg &_msg);
 
-	/// \TODO something to move into Angle class
   /// \brief returns _angle1 normalized about
   /// (_reference - IGN_PI, _reference + IGN_PI]
   /// \param[in] _angle1 input angle
@@ -62,15 +64,25 @@ class ignition::gazebo::systems::GimbalControllerPluginPrivate
   /// \return normalized _angle1 about _reference
   public: double NormalizeAbout(double _angle, double _reference);
 
-  /// \TODO something to move into Angle class
   /// \brief returns shortest angular distance from _from to _to
   /// \param[in] _from starting anglular position
   /// \param[in] _to end angular position
   /// \return distance traveled from starting to end angular positions
   public: double ShortestAngularDistance(double _from, double _to);
 
+  /// \brief function for 3-Axis rotation
+  public: ignition::math::Vector3d ThreeAxisRot(
+      double r11, double r12, double r21, double r31, double r32);
+
+  /// \brief function for conversion of Quaternion to ZYX matrix
+  public: ignition::math::Vector3d QtoZXY(
+      const ignition::math::Quaterniond &_q);
+
   /// \brief function to initialize parameters
   public: void Init(const EntityComponentManager &_ecm);
+
+  /// \brief callback for imu sensor
+  public: void imuCb(const ignition::msgs::IMU &_msg);
 
   /// \brief publisher node for pitch
   public: transport::Node::Publisher pitchPub;
@@ -106,9 +118,6 @@ class ignition::gazebo::systems::GimbalControllerPluginPrivate
   /// \brief model link entity
   public: Entity modelLink{ignition::gazebo::kNullEntity};
 
-  /// \brief callback for imu sensor
-  public: void imuCb(const ignition::msgs::IMU &_msg);
-
   /// \brief commands for pitch, yaw, and roll
   public: double pitchCommand;
   public: double yawCommand;
@@ -127,14 +136,6 @@ class ignition::gazebo::systems::GimbalControllerPluginPrivate
   public: ignition::math::PID pitchPid;
   public: ignition::math::PID yawPid;
   public: ignition::math::PID rollPid;
-
-  /// \brief function for 3-Axis rotation
-  public: ignition::math::Vector3d ThreeAxisRot(
-      double r11, double r12, double r21, double r31, double r32);
-
-  /// \brief function for conversion of Quaternion to ZYX matrix
-  public: ignition::math::Vector3d QtoZXY(
-      const ignition::math::Quaterniond &_q);
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -419,6 +420,7 @@ void GimbalControllerPlugin::PreUpdate(const ignition::gazebo::UpdateInfo &_info
       }
   }
 }
+
 ////////////////////////////////////////////////////////////////////////////
 double GimbalControllerPluginPrivate::NormalizeAbout(double _angle, double reference)
 {

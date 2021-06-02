@@ -31,7 +31,6 @@ namespace systems
 {   
     // Forward declaration
     class GimbalControllerPluginPrivate;
-
     /// \brief A plugin that simulates lift and drag.
     class GimbalControllerPlugin : 
         public System,
@@ -61,5 +60,4 @@ namespace systems
 }
 }
 }
-    
 #endif
