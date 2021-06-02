@@ -103,8 +103,10 @@ class ignition::gazebo::systems::GimbalControllerPluginPrivate
     bool imuMsgValid;
     std::mutex imuMsgMutex;
 
+  /// \brief model link entity
   public: Entity modelLink{ignition::gazebo::kNullEntity};
 
+  /// \brief callback for imu sensor
   public: void imuCb(const ignition::msgs::IMU &_msg);
 
   /// \brief commands for pitch, yaw, and roll
@@ -118,6 +120,7 @@ class ignition::gazebo::systems::GimbalControllerPluginPrivate
   /// \brief Update time for the controller
   public: math::clock::time_point lastUpdateTime;
 
+  /// \brief last update time
   public: std::chrono::steady_clock::duration lastControllerUpdateTime{0};
 
   /// \brief PID
@@ -125,9 +128,11 @@ class ignition::gazebo::systems::GimbalControllerPluginPrivate
   public: ignition::math::PID yawPid;
   public: ignition::math::PID rollPid;
 
+  /// \brief function for 3-Axis rotation
   public: ignition::math::Vector3d ThreeAxisRot(
       double r11, double r12, double r21, double r31, double r32);
 
+  /// \brief function for conversion of Quaternion to ZYX matrix
   public: ignition::math::Vector3d QtoZXY(
       const ignition::math::Quaterniond &_q);
 };
@@ -342,23 +347,20 @@ void GimbalControllerPlugin::PreUpdate(const ignition::gazebo::UpdateInfo &_info
       return;
 
     if(_info.simTime < this->dataPtr->lastControllerUpdateTime)
-    {  
+    {    
        ignerr << "time reset event\n";
        this->dataPtr->lastControllerUpdateTime = _info.simTime;
         return;
     }
     else if (_info.simTime > this->dataPtr->lastControllerUpdateTime)
-    {
-        
+    { 
       // Time delta
       std::chrono::duration<double> dt  = (this->dataPtr->lastControllerUpdateTime - _info.simTime);
   
       // apply forces to move gimbal
       // for pitch 
       auto pitchJointPos = _ecm.Component<components::JointPosition>(this->dataPtr->pitchJoint);
-
       double pitchError = pitchJointPos->Data().at(0) - this->dataPtr->pitchCommand;
-
       double pitchForce = this->dataPtr->pitchPid.Update(pitchError, dt);
 
       ignition::gazebo::components::JointForceCmd* pjfcComp = nullptr;
@@ -372,9 +374,7 @@ void GimbalControllerPlugin::PreUpdate(const ignition::gazebo::UpdateInfo &_info
       //_ecm.SetComponentData(this->dataPtr->pitchJoint, components::JointForceCmd({pitchForce}));
       // for yaw
       auto yawJointPos = _ecm.Component<components::JointPosition>(this->dataPtr->yawJoint);
-
       double yawError = yawJointPos->Data().at(0) - this->dataPtr->yawCommand;
-
       double yawForce = this->dataPtr->yawPid.Update(yawError, dt);
 
       ignition::gazebo::components::JointForceCmd* yjfcComp = nullptr;
@@ -387,9 +387,7 @@ void GimbalControllerPlugin::PreUpdate(const ignition::gazebo::UpdateInfo &_info
 
       // for roll
       auto rollJointPos = _ecm.Component<components::JointPosition>(this->dataPtr->rollJoint);
-
       double rollError = rollJointPos->Data().at(0) - this->dataPtr->rollCommand;
-
       double rollForce = this->dataPtr->rollPid.Update(rollError, dt);
 
       ignition::gazebo::components::JointForceCmd* rjfcComp = nullptr;
@@ -404,7 +402,6 @@ void GimbalControllerPlugin::PreUpdate(const ignition::gazebo::UpdateInfo &_info
       if (++i>100)
       {
         i = 0;
-
         std::stringstream ss;
         ignition::msgs::StringMsg m;
 
