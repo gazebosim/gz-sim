@@ -1269,6 +1269,10 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         if (nullptr == jointPhys)
           return true;
 
+        auto jointVelFeature =
+          this->entityJointMap.EntityCast<JointVelocityCommandFeatureList>(
+              _entity);
+
         auto haltMotionComp = _ecm.Component<components::HaltMotion>(
             _ecm.ParentEntity(_entity));
         bool haltMotion = false;
@@ -1277,14 +1281,19 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           haltMotion = haltMotionComp->Data();
         }
 
-
-        // Model is out of battery
+        // Model is out of battery or halt motion has been triggered.
         if (this->entityOffMap[_ecm.ParentEntity(_entity)] || haltMotion)
         {
           std::size_t nDofs = jointPhys->GetDegreesOfFreedom();
           for (std::size_t i = 0; i < nDofs; ++i)
           {
             jointPhys->SetForce(i, 0);
+
+            // Halt motion requires the vehicle to come to a full stop,
+            // while running out of battery can leave existing joint velocity
+            // in place.
+            if (haltMotion && jointVelFeature)
+              jointVelFeature->SetVelocityCommand(i, 0);
           }
           return true;
         }
@@ -1389,9 +1398,6 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
                     << velocityCmd.size() << ".\n";
           }
 
-          auto jointVelFeature =
-              this->entityJointMap.EntityCast<JointVelocityCommandFeatureList>(
-                  _entity);
           if (!jointVelFeature)
           {
             return true;

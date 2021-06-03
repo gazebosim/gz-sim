@@ -2,6 +2,11 @@
 
 ### Ignition Gazebo 4.x.x (202x-xx-xx)
 
+### Ignition Gazebo 4.9.1 (2021-05-24)
+
+1. Make halt motion act like a brake.
+    * [Pull Request 830](https://github.com/ignitionrobotics/ign-gazebo/pull/830)
+
 ### Ignition Gazebo 4.9.0 (2021-05-20)
 
 1. Enable Focal CI.
