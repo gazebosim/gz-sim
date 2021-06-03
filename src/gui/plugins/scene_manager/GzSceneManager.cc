@@ -28,6 +28,7 @@
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
 
+#include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -47,6 +48,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     //// \brief Pointer to the rendering scene
     public: rendering::ScenePtr scene;
 
+    public: EventManager *eventManager{nullptr};
+
     /// \brief Rendering utility
     public: RenderUtil renderUtil;
   };
@@ -65,6 +68,12 @@ GzSceneManager::GzSceneManager()
 
 /////////////////////////////////////////////////
 GzSceneManager::~GzSceneManager() = default;
+
+/////////////////////////////////////////////////
+void GzSceneManager::Configure(EventManager &_eventMgr)
+{
+  this->dataPtr->eventManager = &_eventMgr;
+}
 
 /////////////////////////////////////////////////
 void GzSceneManager::LoadConfig(const tinyxml2::XMLElement *)
@@ -92,6 +101,7 @@ bool GzSceneManager::eventFilter(QObject *_obj, QEvent *_event)
   if (_event->type() == gui::events::Render::kType)
   {
     this->dataPtr->OnRender();
+    this->dataPtr->eventManager->Emit<ignition::gazebo::events::Render>();
   }
 
   // Standard event processing

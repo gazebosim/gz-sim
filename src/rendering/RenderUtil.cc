@@ -1874,13 +1874,11 @@ void RenderUtil::Init()
   // Scene
   this->dataPtr->scene =
       this->dataPtr->engine->SceneByName(this->dataPtr->sceneName);
-  std::cerr << "this->dataPtr->scene " << this->dataPtr->scene << '\n';
   if (!this->dataPtr->scene)
   {
     igndbg << "Create scene [" << this->dataPtr->sceneName << "]" << std::endl;
     this->dataPtr->scene =
         this->dataPtr->engine->CreateScene(this->dataPtr->sceneName);
-    std::cerr << "this->dataPtr->scene " << this->dataPtr->scene << '\n';
     if (this->dataPtr->scene)
     {
       this->dataPtr->scene->SetAmbientLight(this->dataPtr->ambientLight);

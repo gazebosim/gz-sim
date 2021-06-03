@@ -26,6 +26,7 @@
 #include "ignition/gazebo/components/components.hh"
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/EventManager.hh"
 #include "ignition/gazebo/gui/GuiRunner.hh"
 #include "ignition/gazebo/gui/GuiSystem.hh"
 
@@ -35,15 +36,18 @@ using namespace gazebo;
 /////////////////////////////////////////////////
 class ignition::gazebo::GuiRunner::Implementation
 {
-
-  public: explicit Implementation(gazebo::EntityComponentManager &_ecm)
-  : ecm(_ecm){}
+  public: explicit Implementation(gazebo::EntityComponentManager &_ecm,
+    gazebo::EventManager &_eventMgr)
+  : ecm(_ecm), eventMgr(_eventMgr){}
 
   /// \brief Update the plugins.
   public: void UpdatePlugins();
 
   /// \brief Entity-component manager.
   public: gazebo::EntityComponentManager &ecm;
+
+  /// \brief Event manager.
+  public: gazebo::EventManager &eventMgr;
 
   public: bool sameProcess;
 
@@ -68,8 +72,9 @@ class ignition::gazebo::GuiRunner::Implementation
 
 /////////////////////////////////////////////////
 GuiRunner::GuiRunner(const std::string &_worldName,
-  EntityComponentManager &_ecm, bool _sameProcess)
-  : dataPtr(utils::MakeUniqueImpl<Implementation>(_ecm))
+  EntityComponentManager &_ecm, gazebo::EventManager &_eventMgr,
+  bool _sameProcess)
+  : dataPtr(utils::MakeUniqueImpl<Implementation>(_ecm, _eventMgr))
 {
   this->dataPtr->sameProcess = _sameProcess;
 
@@ -173,7 +178,7 @@ void GuiRunner::OnPluginAdded(const QString &_objectName)
            << "]" << std::endl;
     return;
   }
-
+  plugin->Configure(this->dataPtr->eventMgr);
   this->RequestState();
 }
 

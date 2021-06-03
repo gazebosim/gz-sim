@@ -214,6 +214,14 @@ EntityComponentManager &Server::GetEntityComponentManager()
   }
 }
 
+EventManager &Server::GetEventManager()
+{
+  for (std::unique_ptr<SimulationRunner> &runner : this->dataPtr->simRunners)
+  {
+    return runner->EventMgr();
+  }
+}
+
 /////////////////////////////////////////////////
 bool Server::Run(const bool _blocking, const uint64_t _iterations,
     const bool _paused)

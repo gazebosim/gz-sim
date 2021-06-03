@@ -23,6 +23,7 @@
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/EventManager.hh"
 #include "ignition/gazebo/gui/Export.hh"
 
 namespace ignition
@@ -45,6 +46,7 @@ namespace gui
   IGNITION_GAZEBO_GUI_VISIBLE int runGui(int &_argc, char **_argv,
                                      const char *_guiConfig,
                                      EntityComponentManager &_ecm,
+                                     EventManager &_eventMgr,
                                      bool sameProcess);
 
   /// \brief Create a Gazebo GUI application
@@ -67,6 +69,7 @@ namespace gui
   std::unique_ptr<ignition::gui::Application> createGui(
       int &_argc, char **_argv, const char *_guiConfig,
       EntityComponentManager &_ecm,
+      EventManager &_eventMgr,
       bool sameProcess,
       const char *_defaultGuiConfig = nullptr, bool _loadPluginsFromSdf = true);
 

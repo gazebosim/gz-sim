@@ -27,6 +27,7 @@
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/EventManager.hh"
 #include "ignition/gazebo/gui/Export.hh"
 
 namespace ignition
@@ -47,6 +48,7 @@ class IGNITION_GAZEBO_GUI_VISIBLE GuiRunner : public QObject
   /// \todo Move to src/gui on v6.
   public: explicit IGN_DEPRECATED(5.0) GuiRunner(
       const std::string &_worldName, EntityComponentManager &_ecm,
+      EventManager &_event,
       bool sameProcess);
 
   /// \brief Destructor

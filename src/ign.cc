@@ -404,6 +404,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runCombined(const char *_sdfString,
     server.Run(false, _iterations, _run == 0);
 
     auto &sharedEcm = server.GetEntityComponentManager();
+    auto &sharedEventManager = server.GetEventManager();
 
     // argc and argv are going to be passed to a QApplication. The Qt
     // documentation has a warning about these:
@@ -416,7 +417,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runCombined(const char *_sdfString,
     // be converted to a const char *. The const cast is here to prevent a warning
     // since we do need to pass a char* to runGui
     char *argv = const_cast<char *>("ign-gazebo-gui");
-    return ignition::gazebo::gui::runGui(argc, &argv, _guiConfig, sharedEcm, true);
+    return ignition::gazebo::gui::runGui(argc, &argv, _guiConfig, sharedEcm, sharedEventManager, true);
   }
 
   ignerr << "Unable to create server config\n";
@@ -439,5 +440,6 @@ extern "C" int runGui(const char *_guiConfig)
   // since we do need to pass a char* to runGui
   char *argv = const_cast<char *>("ign-gazebo-gui");
   ignition::gazebo::v6::EntityComponentManager guiEcm;
-  return ignition::gazebo::gui::runGui(argc, &argv, _guiConfig, guiEcm, false);
+  ignition::gazebo::v6::EventManager guiEventEcm;
+  return ignition::gazebo::gui::runGui(argc, &argv, _guiConfig, guiEcm, guiEventEcm, false);
 }

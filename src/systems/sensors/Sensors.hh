@@ -57,6 +57,9 @@ namespace systems
                            EventManager &_eventMgr) final;
 
     // Documentation inherited
+    public: void SetSameProcess(bool _sameProcess) final;
+
+    // Documentation inherited
     public: void Update(const UpdateInfo &_info,
                         EntityComponentManager &_ecm) final;
 

@@ -834,6 +834,7 @@ void SimulationRunner::LoadPlugin(const Entity _entity,
       systemConfig->Configure(_entity, _sdf,
           this->entityCompMgr,
           this->eventMgr);
+      systemConfig->SetSameProcess(serverConfig.SameProcessAsGUI());
     }
 
     this->AddSystem(system.value());

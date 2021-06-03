@@ -58,6 +58,8 @@ namespace ignition
       /// the entity, which may contain multiple <plugin> tags.
       using LoadPlugins = common::EventT<void(Entity, sdf::ElementPtr),
           struct LoadPluginsTag>;
+
+      using Render = ignition::common::EventT<void(void), struct RenderTag>;
       }
     }  // namespace events
   }  // namespace gazebo
