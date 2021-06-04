@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 
-find_package(ignition-cmake2 REQUIRED)
+ign_find_package(ignition-cmake2 REQUIRED)
 
 project(Hello_world)
 
 find_package(ignition-plugin1 REQUIRED COMPONENTS register)
 set(IGN_PLUGIN_VER ${ignition-plugin1_VERSION_MAJOR})
 
-find_package(ignition-gazebo4 REQUIRED)
+ign_find_package(ignition-gazebo4 REQUIRED)
 add_library(HelloWorld SHARED HelloWorld)
 set_property(TARGET HelloWorld PROPERTY CXX_STANDARD 17)
 target_link_libraries(HelloWorld
