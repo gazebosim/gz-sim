@@ -93,7 +93,6 @@ void GzSceneManager::Update(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
   IGN_PROFILE("GzSceneManager::Update");
-  std::cerr << "GzSceneManager sameProcess " << this->dataPtr->sameProcess << '\n';
   this->dataPtr->renderUtil.UpdateECM(_info, _ecm);
   if (this->dataPtr->sameProcess)
   {
