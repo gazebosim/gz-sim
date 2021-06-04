@@ -97,7 +97,7 @@ void GzSceneManager::Update(const UpdateInfo &_info,
   this->dataPtr->renderUtil.UpdateECM(_info, _ecm);
   if (this->dataPtr->sameProcess)
   {
-    // this->dataPtr->renderUtil.UpdateFromECM2(_info, _ecm);
+    this->dataPtr->renderUtil.UpdateFromECM2(_info, _ecm);
   }
   else
   {
@@ -113,7 +113,7 @@ bool GzSceneManager::eventFilter(QObject *_obj, QEvent *_event)
     this->dataPtr->OnRender();
     if (this->dataPtr->sameProcess)
     {
-      // this->dataPtr->eventManager->Emit<ignition::gazebo::events::Render>();
+      this->dataPtr->eventManager->Emit<ignition::gazebo::events::Render>();
     }
   }
 
