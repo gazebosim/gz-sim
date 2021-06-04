@@ -54,7 +54,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
         EntityComponentManager &_ecm) override;
 
     // Documentation inherited
-    public: void Configure(EventManager &_eventMgr) override;
+    public: void Configure(EventManager &_eventMgr, bool _sameProcess) override;
 
     // Documentation inherited
     private: bool eventFilter(QObject *_obj, QEvent *_event) override;

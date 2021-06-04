@@ -465,8 +465,11 @@ void Sensors::Configure(const Entity &/*_id*/,
   this->dataPtr->stopConn = _eventMgr.Connect<events::Stop>(
       std::bind(&SensorsPrivate::Stop, this->dataPtr.get()));
 
-  this->dataPtr->renderConn = _eventMgr.Connect<events::Render>(
-      std::bind(&SensorsPrivate::Render, this->dataPtr.get()));
+  if (this->dataPtr->sameProcess)
+  {
+    this->dataPtr->renderConn = _eventMgr.Connect<events::Render>(
+        std::bind(&SensorsPrivate::Render, this->dataPtr.get()));
+  }
 
   // Kick off worker thread
   this->dataPtr->Run();
@@ -515,12 +518,12 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
         this->dataPtr->doInit = true;
         this->dataPtr->renderCv.notify_one();
       }
-      else
-      {
-        igndbg << "Initialization needed" << std::endl;
-        this->dataPtr->doInit = true;
-        this->dataPtr->renderCv.notify_one();
-      }
+    }
+    else
+    {
+      igndbg << "Initialization needed" << std::endl;
+      this->dataPtr->doInit = true;
+      this->dataPtr->renderCv.notify_one();
     }
   }
 

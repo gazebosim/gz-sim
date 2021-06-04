@@ -841,7 +841,7 @@ ignition::gazebo::parsePluginsFromString(const std::string &_str)
 
 /////////////////////////////////////////////////
 std::list<ServerConfig::PluginInfo>
-ignition::gazebo::loadPluginInfo(bool _isPlayback, bool _sameProcessAsGUI)
+ignition::gazebo::loadPluginInfo(bool _isPlayback)
 {
   std::list<ServerConfig::PluginInfo> ret;
 

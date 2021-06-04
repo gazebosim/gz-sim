@@ -50,6 +50,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     public: EventManager *eventManager{nullptr};
 
+    public: bool sameProcess{false};
+
     /// \brief Rendering utility
     public: RenderUtil renderUtil;
   };
@@ -70,9 +72,10 @@ GzSceneManager::GzSceneManager()
 GzSceneManager::~GzSceneManager() = default;
 
 /////////////////////////////////////////////////
-void GzSceneManager::Configure(EventManager &_eventMgr)
+void GzSceneManager::Configure(EventManager &_eventMgr, bool _sameProcess)
 {
   this->dataPtr->eventManager = &_eventMgr;
+  this->dataPtr->sameProcess = _sameProcess;
 }
 
 /////////////////////////////////////////////////
@@ -90,9 +93,16 @@ void GzSceneManager::Update(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
   IGN_PROFILE("GzSceneManager::Update");
-
+  std::cerr << "GzSceneManager sameProcess " << this->dataPtr->sameProcess << '\n';
   this->dataPtr->renderUtil.UpdateECM(_info, _ecm);
-  this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
+  if (this->dataPtr->sameProcess)
+  {
+    // this->dataPtr->renderUtil.UpdateFromECM2(_info, _ecm);
+  }
+  else
+  {
+    this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
+  }
 }
 
 /////////////////////////////////////////////////
@@ -101,7 +111,10 @@ bool GzSceneManager::eventFilter(QObject *_obj, QEvent *_event)
   if (_event->type() == gui::events::Render::kType)
   {
     this->dataPtr->OnRender();
-    this->dataPtr->eventManager->Emit<ignition::gazebo::events::Render>();
+    if (this->dataPtr->sameProcess)
+    {
+      // this->dataPtr->eventManager->Emit<ignition::gazebo::events::Render>();
+    }
   }
 
   // Standard event processing

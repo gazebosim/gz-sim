@@ -471,6 +471,21 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
+void RenderUtil::UpdateFromECM2(const UpdateInfo &_info,
+                                const EntityComponentManager &_ecm)
+{
+  IGN_PROFILE("RenderUtil::UpdateFromECM");
+  std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
+  this->dataPtr->simTime = _info.simTime;
+
+  // this->dataPtr->CreateRenderingEntities(_ecm, _info);
+  this->dataPtr->UpdateRenderingEntities(_ecm);
+  this->dataPtr->RemoveRenderingEntities(_ecm, _info);
+  this->dataPtr->markerManager.SetSimTime(_info.simTime);
+  this->dataPtr->FindCollisionLinks(_ecm);
+}
+
+//////////////////////////////////////////////////
 void RenderUtilPrivate::FindCollisionLinks(const EntityComponentManager &_ecm)
 {
   if (this->newCollisions.empty())
@@ -628,7 +643,6 @@ void RenderUtil::Update()
   // create new entities
   {
     IGN_PROFILE("RenderUtil::Update Create");
-    // std::cerr << "newModels size " << newModels.size() << '\n';
     for (const auto &model : newModels)
     {
       uint64_t iteration = std::get<3>(model);
@@ -721,7 +735,6 @@ void RenderUtil::Update()
                  << std::endl;
           continue;
         }
-        parentNode = this->dataPtr->sceneManager.NodeById(parent);
 
         std::string sensorName =
             this->dataPtr->createSensorCb(entity, dataSdf, parentNode->Name());
@@ -1156,18 +1169,9 @@ void RenderUtilPrivate::CreateRenderingEntities(
           sdf::Model model;
           model.SetName(_name->Data());
           model.SetRawPose(_pose->Data());
-          auto tupleTemp = std::make_tuple(_entity, model, _parent->Data(),
-            _info.iterations);
-          bool found = false;
-          for (auto & data: this->newModels)
-          {
-            if (std::get<0>(data) == std::get<0>(tupleTemp))
-            {
-              found = true;
-            }
-          }
-          if (!found)
-            this->newModels.push_back(tupleTemp);
+          this->newModels.push_back(
+              std::make_tuple(_entity, model, _parent->Data(),
+              _info.iterations));
           return true;
         });
 
@@ -1393,18 +1397,9 @@ void RenderUtilPrivate::CreateRenderingEntities(
           sdf::Model model;
           model.SetName(_name->Data());
           model.SetRawPose(_pose->Data());
-          auto tupleTemp = std::make_tuple(_entity, model, _parent->Data(),
-            _info.iterations);
-          bool found = false;
-          for (auto & data: this->newModels)
-          {
-            if (std::get<0>(data) == std::get<0>(tupleTemp))
-            {
-              found = true;
-            }
-          }
-          if (!found)
-            this->newModels.push_back(tupleTemp);
+          this->newModels.push_back(
+              std::make_tuple(_entity, model, _parent->Data(),
+              _info.iterations));
           return true;
         });
 

@@ -1026,17 +1026,11 @@ rendering::VisualPtr SceneManager::CreateLightVisual(Entity _id,
 
   rendering::LightPtr lightParent;
   auto it = this->dataPtr->lights.find(_parentId);
-  int attemps = 10;
-  while (it != this->dataPtr->lights.end())
+  if (it != this->dataPtr->lights.end())
   {
-    if (attemps < 0)
-      break;
-    attemps--;
-    using namespace std::chrono_literals;
-    std::this_thread::sleep_for(5ms);
+    lightParent = it->second;
   }
-  lightParent = it->second;
-  if (it == this->dataPtr->lights.end())
+  else
   {
     ignerr << "Parent entity with Id: [" << _parentId << "] not found. "
            << "Not adding light visual with ID[" << _id

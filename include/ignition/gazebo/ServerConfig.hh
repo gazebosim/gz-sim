@@ -436,7 +436,7 @@ namespace ignition
     /// \return A list of plugins to load, based on above ordering
     std::list<ServerConfig::PluginInfo>
     IGNITION_GAZEBO_VISIBLE
-    loadPluginInfo(bool _isPlayback = false, bool _sameProcessAsGUI = false);
+    loadPluginInfo(bool _isPlayback = false);
     }
   }
 }

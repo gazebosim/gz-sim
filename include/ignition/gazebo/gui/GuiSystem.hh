@@ -55,7 +55,7 @@ namespace gazebo
     public: virtual void Update(const UpdateInfo &/*_info*/,
                                 EntityComponentManager &/*_ecm*/){}
 
-    public: virtual void Configure(EventManager &/*_event*/){};
+    public: virtual void Configure(EventManager &/*_event*/, bool /*sameProcess*/){};
   };
 }
 }

@@ -168,8 +168,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   {
     ignmsg << "No systems loaded from SDF, loading defaults" << std::endl;
     bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
-    auto plugins = ignition::gazebo::loadPluginInfo(
-      isPlayback, this->serverConfig.SameProcessAsGUI());
+    auto plugins = ignition::gazebo::loadPluginInfo(isPlayback);
     this->LoadServerPlugins(plugins);
   }
 

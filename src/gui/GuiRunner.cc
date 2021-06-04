@@ -134,8 +134,10 @@ GuiRunner::~GuiRunner()
 /////////////////////////////////////////////////
 void GuiRunner::RequestState()
 {
-  if (this->dataPtr->sameProcess)
-    return;
+  std::cerr << "RequestState sameProcess " << this->dataPtr->sameProcess << '\n';
+
+  // if (this->dataPtr->sameProcess)
+  //   return;
 
   // set up service for async state response callback
   std::string id = std::to_string(gui::App()->applicationPid());
@@ -178,7 +180,7 @@ void GuiRunner::OnPluginAdded(const QString &_objectName)
            << "]" << std::endl;
     return;
   }
-  plugin->Configure(this->dataPtr->eventMgr);
+  plugin->Configure(this->dataPtr->eventMgr, this->dataPtr->sameProcess);
   this->RequestState();
 }
 
