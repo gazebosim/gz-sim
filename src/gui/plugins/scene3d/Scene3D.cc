@@ -2019,7 +2019,7 @@ void IgnRenderer::Initialize()
 
   auto root = scene->RootVisual();
 
-  scene->SetNumCameraPassesPerGpuFlush( 6u );
+  scene->SetCameraPassCountPerGpuFlush( 6u );
 
   // Camera
   this->dataPtr->camera = scene->CreateCamera();
