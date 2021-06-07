@@ -54,8 +54,10 @@ class DiffDriveTest : public ::testing::TestWithParam<int>
                                  const std::string &_cmdVelTopic,
                                  const std::string &_odomTopic)
   {
-    /// \param[in] forward true for testing the forward movement or
-    /// false for testing the backward movement.
+    /// \param[in] forward If forward is true, the 'max_acceleration'
+    // an 'max_velocity' properties are tested, as the movement
+    // is forward, otherwise 'min_acceleration' and 'min_velocity'
+    // properties are tested.
     auto testCmdVel = [&](bool forward){
       // Start server
       ServerConfig serverConfig;
@@ -121,17 +123,16 @@ class DiffDriveTest : public ::testing::TestWithParam<int>
 
       msgs::Twist msg;
 
-      // Avoid wheel slip by limiting acceleration
       // Avoid wheel slip by limiting acceleration (1 m/s^2)
       // and max velocity (0.5 m/s).
       // See <max_velocity> and <max_aceleration> parameters
       // in "/test/worlds/diff_drive.sdf".
-      // <min_velocity>, <min_aceleration>, <min_jerk> and 
-      // <max_jerk> parameters were also included.
+      // See <min_velocity>, <min_aceleration>, <min_jerk> and
+      // <max_jerk> parameters in "/test/worlds/diff_drive.sdf".
       test::Relay velocityRamp;
-      int kMovementDirection = (forward ? 1 : -1);
-      double desiredLinVel = kMovementDirection * 10.5;
-      double desiredAngVel = kMovementDirection * 0.2;
+      const int kmovementDirection = (forward ? 1 : -1);
+      double desiredLinVel = kmovementDirection * 10.5;
+      double desiredAngVel = kmovementDirection * 0.2;
       velocityRamp.OnPreUpdate(
           [&](const gazebo::UpdateInfo &/*_info*/,
               const gazebo::EntityComponentManager &)
@@ -174,10 +175,14 @@ class DiffDriveTest : public ::testing::TestWithParam<int>
       ASSERT_FALSE(odomPoses.empty());
       EXPECT_EQ(150u, odomPoses.size());
 
-      auto expectedLowerPosition = (forward ? poses[0].Pos() : poses[3999].Pos());
-      auto expectedGreaterPosition = (forward ? poses[3999].Pos() : poses[0].Pos());
-      auto expectedLowerRotation = (forward ? poses[0].Rot() : poses[3999].Rot());
-      auto expectedGreaterRotation = (forward ? poses[3999].Rot() : poses[0].Rot());
+      auto expectedLowerPosition =
+          (forward ? poses[0].Pos() : poses[3999].Pos());
+      auto expectedGreaterPosition =
+          (forward ? poses[3999].Pos() : poses[0].Pos());
+      auto expectedLowerRotation =
+          (forward ? poses[0].Rot() : poses[3999].Rot());
+      auto expectedGreaterRotation =
+          (forward ? poses[3999].Rot() : poses[0].Rot());
 
       EXPECT_LT(expectedLowerPosition.X(), expectedGreaterPosition.X());
       EXPECT_LT(expectedLowerPosition.Y(), expectedGreaterPosition.Y());
@@ -195,21 +200,19 @@ class DiffDriveTest : public ::testing::TestWithParam<int>
       EXPECT_NEAR(poses.back().Pos().X(), finalModelFramePose.Pos().X(), 1e-2);
       EXPECT_NEAR(poses.back().Pos().Y(), finalModelFramePose.Pos().Y(), 1e-2);
 
+      // Verify velocity and acceleration boundaries.
+      // Moving time.
       double t = 3.0;
       double d = poses[3999].Pos().Distance(poses[0].Pos());
       double v0 = 0;
       double v = d / t;
       double a = (v - v0) / t;
-      
-      // Max velocities/accelerations expectations.
-      // Moving time.
+
       if(forward)
       {
         EXPECT_LT(v, 0.5);
         EXPECT_LT(a, 1);
       }
-      // Min velocities/accelerations expectations.
-      // Moving time.
       else
       {
         EXPECT_GT(v, -0.5);
