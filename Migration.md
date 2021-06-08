@@ -12,6 +12,9 @@ caused shadow artifacts to appear on some meshes. Double sided material is
 now disabled and made an opt-in feature. Users can configure this property
 in SDF by setting the `<visual><material><double_sided>` SDF element.
 
+* `dynamic_pose/info` topic is removed from `LogRecord` since pose information
+is being logged in the `changed_state` topic.
+
 ## Ignition Gazebo 3.x to 4.x
 
 * The `RenderUtil::SetEnabledSensors` callback in gazebo rendering has a new
@@ -74,4 +77,3 @@ ignition-gazebo. To use the gui component downstream, update the find package
 call in cmake to request for the component, e.g.
 `ign_find_package(ignition-gazebo1 REQUIRED COMPONENTS gui)`, and link to the
 `libignition-gazebo1::gui` target instead of `libignition-gazebo1-gui`
-
