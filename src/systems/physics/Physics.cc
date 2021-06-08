@@ -77,6 +77,7 @@
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Util.hh"
+#include "ignition/gazebo/Events.hh"
 
 // Components
 #include "ignition/gazebo/components/AngularAcceleration.hh"
@@ -173,7 +174,8 @@ class ignition::gazebo::systems::PhysicsPrivate
 
   /// \brief Remove physics entities if they are removed from the ECM
   /// \param[in] _ecm Constant reference to ECM.
-  public: void RemovePhysicsEntities(const EntityComponentManager &_ecm);
+  public: void RemovePhysicsEntities(const EntityComponentManager &_ecm,
+    const UpdateInfo &_info);
 
   /// \brief Update physics from components
   /// \param[in] _ecm Mutable reference to ECM.
@@ -439,6 +441,9 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// \brief A map between collision entity ids in the ECM to FreeGroup Entities
   /// in ign-physics.
   public: EntityFreeGroupMap entityFreeGroupMap;
+
+  /// \brief Pointer to the event manager
+  public: EventManager *eventManager{nullptr};
 };
 
 //////////////////////////////////////////////////
@@ -450,8 +455,11 @@ Physics::Physics() : System(), dataPtr(std::make_unique<PhysicsPrivate>())
 void Physics::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm,
-    EventManager &/*_eventMgr*/)
+    EventManager &_eventMgr)
 {
+
+  this->dataPtr->eventManager = &_eventMgr;
+
   std::string pluginLib;
 
   // 1. Engine from component (from command line / ServerConfig)
@@ -589,7 +597,7 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
     // Entities scheduled to be removed should be removed from physics after the
     // simulation step. Otherwise, since the to-be-removed entity still shows up
     // in the ECM::Each the UpdatePhysics and UpdateSim calls will have an error
-    this->dataPtr->RemovePhysicsEntities(_ecm);
+    this->dataPtr->RemovePhysicsEntities(_ecm, _info);
   }
 }
 
@@ -1119,7 +1127,8 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 }
 
 //////////////////////////////////////////////////
-void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
+void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm,
+  const UpdateInfo &_info)
 {
   // Assume the world will not be erased
   // Only removing models is supported by ign-physics right now so we only
@@ -1132,6 +1141,9 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
       [&](const Entity &_entity, const components::Model *
           /* _model */) -> bool
       {
+        if (this->eventManager)
+          this->eventManager->Emit<ignition::gazebo::events::UpdateGUIECM>(_ecm, _info);
+
         // Remove model if found
         if (auto modelPtrPhys = this->entityModelMap.Get(_entity))
         {

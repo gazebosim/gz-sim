@@ -23,6 +23,7 @@
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Entity.hh"
+#include "ignition/gazebo/EntityComponentManager.hh"
 
 namespace ignition
 {
@@ -105,6 +106,14 @@ namespace ignition
       using AddToECM =
         ignition::common::EventT<void(
           unsigned int, std::string, unsigned int), struct AddToECMTag>;
+
+      /// \brief Event used to emit a render event when running in one process.
+      /// Same remove event are lost because of the rate when running in the
+      /// same process without sensors. This event is launched in the physics
+      /// system plugin to remove entities in the renderUtil
+      using UpdateGUIECM = common::EventT<void(
+        const EntityComponentManager &, const UpdateInfo &),
+        struct UpdateGUIECMTag>;
       }
     }  // namespace events
   }  // namespace gazebo

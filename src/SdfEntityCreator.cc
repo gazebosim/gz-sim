@@ -839,7 +839,6 @@ void SdfEntityCreator::RequestRemoveEntity(Entity _entity, bool _recursive)
   }
 
   this->dataPtr->ecm->RequestRemoveEntity(_entity, _recursive);
-  this->dataPtr->eventManager->Emit<ignition::gazebo::events::RemoveFromECM>(_entity);
 }
 
 //////////////////////////////////////////////////

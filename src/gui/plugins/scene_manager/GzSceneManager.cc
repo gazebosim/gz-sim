@@ -139,8 +139,8 @@ bool GzSceneManager::eventFilter(QObject *_obj, QEvent *_event)
     if (this->dataPtr->sameProcess)
     {
       this->dataPtr->eventManager->Emit<ignition::gazebo::events::Render>();
-      this->dataPtr->emitFirstRender = true;
     }
+    this->dataPtr->emitFirstRender = true;
   }
 
   // Standard event processing

@@ -417,6 +417,8 @@ void Sensors::SetSameProcess(bool _sameProcess)
 
   if (this->dataPtr->sameProcess)
   {
+    this->dataPtr->renderUtil.SetEventManager(*this->dataPtr->eventManager);
+
     this->dataPtr->renderConn = this->dataPtr->eventManager->Connect<events::Render>(
         std::bind(&SensorsPrivate::Render, this->dataPtr.get()));
   }
@@ -467,8 +469,6 @@ void Sensors::Configure(const Entity &/*_id*/,
 
   this->dataPtr->stopConn = _eventMgr.Connect<events::Stop>(
       std::bind(&SensorsPrivate::Stop, this->dataPtr.get()));
-
-  this->dataPtr->renderUtil.SetEventManager(_eventMgr);
 
   // Kick off worker thread
   this->dataPtr->Run();

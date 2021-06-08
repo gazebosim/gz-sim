@@ -500,7 +500,6 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
       [&](const Entity &_entity,
           const components::Name *)->bool
     {
-      std::cerr << "Remove Entity tree" << '\n';
       QMetaObject::invokeMethod(&this->dataPtr->treeModel, "RemoveEntity",
           Qt::QueuedConnection,
           Q_ARG(unsigned int, _entity));

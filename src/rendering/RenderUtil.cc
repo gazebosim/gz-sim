@@ -333,6 +333,10 @@ class ignition::gazebo::RenderUtilPrivate
 
     /// \brief Event Manager
   public: EventManager *eventManager{nullptr};
+
+  /// \brief Connection to events::UpdateGUIECMConn event, used to remove
+  /// entities.
+  public: ignition::common::ConnectionPtr UpdateGUIECMConn;
 };
 
 //////////////////////////////////////////////////
@@ -352,6 +356,10 @@ rendering::ScenePtr RenderUtil::Scene() const
 void RenderUtil::SetEventManager(EventManager &_eventMgr)
 {
   this->dataPtr->eventManager = &_eventMgr;
+  this->dataPtr->UpdateGUIECMConn =
+    _eventMgr.Connect<ignition::gazebo::events::UpdateGUIECM>(
+      std::bind(&RenderUtilPrivate::RemoveRenderingEntities, this->dataPtr.get(),
+        std::placeholders::_1, std::placeholders::_2));
 }
 
 //////////////////////////////////////////////////
@@ -1145,7 +1153,9 @@ void RenderUtilPrivate::CreateRenderingEntities(
           this->sceneManager.SetWorldId(_entity);
           const sdf::Scene &sceneSdf = _scene->Data();
           this->newScenes.push_back(sceneSdf);
-          this->eventManager->Emit<ignition::gazebo::events::AddToECM>(_entity, "None", 0);
+          if (this->eventManager)
+            this->eventManager->Emit<ignition::gazebo::events::AddToECM>(
+              _entity, "None", 0);
           return true;
         });
 
@@ -1175,8 +1185,9 @@ void RenderUtilPrivate::CreateRenderingEntities(
           if (!found)
           {
             this->newModels.push_back(tupleTemp);
-            std::cerr << "Emit new Model " << _entity << '\n';
-            this->eventManager->Emit<ignition::gazebo::events::AddToECM>(_entity, _name->Data(), _parent->Data());
+            if (this->eventManager)
+              this->eventManager->Emit<ignition::gazebo::events::AddToECM>(
+                _entity, _name->Data(), _parent->Data());
           }
           return true;
         });
@@ -1202,8 +1213,12 @@ void RenderUtilPrivate::CreateRenderingEntities(
               break;
             }
           }
-          if (!found)
+          if (!found){
             this->newLinks.push_back(tupleTemp);
+            if (this->eventManager)
+              this->eventManager->Emit<ignition::gazebo::events::AddToECM>(
+                _entity, _name->Data(), _parent->Data());
+          }
 
           // used for collsions
           this->modelToLinkEntities[_parent->Data()].push_back(_entity);
@@ -1283,8 +1298,12 @@ void RenderUtilPrivate::CreateRenderingEntities(
               break;
             }
           }
-          if (!found)
+          if (!found){
             this->newVisuals.push_back(tupleTemp);
+            if (this->eventManager)
+              this->eventManager->Emit<ignition::gazebo::events::AddToECM>(
+                _entity, _name->Data(), _parent->Data());
+          }
 
           return true;
         });
@@ -1306,7 +1325,12 @@ void RenderUtilPrivate::CreateRenderingEntities(
             }
           }
           if (!found)
+          {
             this->newActors.push_back(tupleTemp);
+            if (this->eventManager)
+              this->eventManager->Emit<ignition::gazebo::events::AddToECM>(
+                _entity, _actor->Data().Name(), _parent->Data());
+          }
 
           return true;
         });
@@ -1327,8 +1351,12 @@ void RenderUtilPrivate::CreateRenderingEntities(
               break;
             }
           }
-          if (!found)
+          if (!found){
             this->newLights.push_back(tupleTemp);
+            if (this->eventManager)
+              this->eventManager->Emit<ignition::gazebo::events::AddToECM>(
+                _entity, _light->Data().Name(), _parent->Data());
+          }
 
           return true;
         });
@@ -1367,7 +1395,12 @@ void RenderUtilPrivate::CreateRenderingEntities(
             }
           }
           if (!found)
+          {
             this->newParticleEmitters.push_back(tupleTemp);
+            if (this->eventManager)
+              this->eventManager->Emit<ignition::gazebo::events::AddToECM>(
+                _entity, _emitter->Data().name(), _parent->Data());
+          }
 
           return true;
         });
@@ -1444,7 +1477,9 @@ void RenderUtilPrivate::CreateRenderingEntities(
           this->sceneManager.SetWorldId(_entity);
           const sdf::Scene &sceneSdf = _scene->Data();
           this->newScenes.push_back(sceneSdf);
-          this->eventManager->Emit<ignition::gazebo::events::AddToECM>(_entity, "None", 0);
+          if (this->eventManager)
+            this->eventManager->Emit<ignition::gazebo::events::AddToECM>(
+              _entity, "None", 0);
           return true;
         });
 
@@ -1474,7 +1509,9 @@ void RenderUtilPrivate::CreateRenderingEntities(
           {
             this->newModels.push_back(tupleTemp);
             std::cerr << "Emit new Model2 " << _entity << '\n';
-            this->eventManager->Emit<ignition::gazebo::events::AddToECM>(_entity, _name->Data(), _parent->Data());
+            if (this->eventManager)
+              this->eventManager->Emit<ignition::gazebo::events::AddToECM>(
+                _entity, _name->Data(), _parent->Data());
           }
           return true;
         });
@@ -1501,7 +1538,12 @@ void RenderUtilPrivate::CreateRenderingEntities(
             }
           }
           if (!found)
+          {
             this->newLinks.push_back(tupleTemp);
+            if (this->eventManager)
+              this->eventManager->Emit<ignition::gazebo::events::AddToECM>(
+                _entity, _name->Data(), _parent->Data());
+          }
 
           // used for collsions
           this->modelToLinkEntities[_parent->Data()].push_back(_entity);
@@ -1582,7 +1624,12 @@ void RenderUtilPrivate::CreateRenderingEntities(
             }
           }
           if (!found)
+          {
             this->newVisuals.push_back(tupleTemp);
+            if (this->eventManager)
+              this->eventManager->Emit<ignition::gazebo::events::AddToECM>(
+                _entity, _name->Data(), _parent->Data());
+          }
 
           return true;
         });
@@ -1604,7 +1651,12 @@ void RenderUtilPrivate::CreateRenderingEntities(
             }
           }
           if (!found)
+          {
             this->newActors.push_back(tupleTemp);
+            if (this->eventManager)
+              this->eventManager->Emit<ignition::gazebo::events::AddToECM>(
+                _entity, _actor->Data().Name(), _parent->Data());
+          }
 
           return true;
         });
@@ -1626,7 +1678,12 @@ void RenderUtilPrivate::CreateRenderingEntities(
             }
           }
           if (!found)
+          {
             this->newLights.push_back(tupleTemp);
+            if (this->eventManager)
+              this->eventManager->Emit<ignition::gazebo::events::AddToECM>(
+                _entity, _light->Data().Name(), _parent->Data());
+          }
 
           return true;
         });
@@ -1665,7 +1722,12 @@ void RenderUtilPrivate::CreateRenderingEntities(
             }
           }
           if (!found)
+          {
             this->newParticleEmitters.push_back(tupleTemp);
+            if (this->eventManager)
+              this->eventManager->Emit<ignition::gazebo::events::AddToECM>(
+                _entity, _emitter->Data().name(), _parent->Data());
+          }
 
           return true;
         });
@@ -1884,7 +1946,8 @@ void RenderUtilPrivate::RemoveRenderingEntities(
       {
         this->removeEntities[_entity] = _info.iterations;
         this->modelToLinkEntities.erase(_entity);
-        this->eventManager->Emit<ignition::gazebo::events::RemoveFromECM>(_entity);
+        if (this->eventManager)
+          this->eventManager->Emit<ignition::gazebo::events::RemoveFromECM>(_entity);
         return true;
       });
 
