@@ -231,8 +231,6 @@
         <min_acceleration>-1</min_acceleration>
         <max_velocity>0.5</max_velocity>
         <min_velocity>-0.5</min_velocity>
-        <max_jerk>inf</max_jerk>
-        <min_jerk>-inf</min_jerk>
         <!-- no odom_publisher_frequency defaults to 50 Hz -->
       </plugin>
 

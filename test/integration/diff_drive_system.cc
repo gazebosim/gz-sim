@@ -130,9 +130,9 @@ class DiffDriveTest : public ::testing::TestWithParam<int>
       // See <min_velocity>, <min_aceleration>, <min_jerk> and
       // <max_jerk> parameters in "/test/worlds/diff_drive.sdf".
       test::Relay velocityRamp;
-      const int kmovementDirection = (forward ? 1 : -1);
-      double desiredLinVel = kmovementDirection * 10.5;
-      double desiredAngVel = kmovementDirection * 0.2;
+      const int movementDirection = (forward ? 1 : -1);
+      double desiredLinVel = movementDirection * 10.5;
+      double desiredAngVel = 0.2;
       velocityRamp.OnPreUpdate(
           [&](const gazebo::UpdateInfo &/*_info*/,
               const gazebo::EntityComponentManager &)
@@ -159,11 +159,11 @@ class DiffDriveTest : public ::testing::TestWithParam<int>
       }
       ASSERT_NE(maxSleep, sleep);
 
-      // Odometry calculates the pose of a point that is located half way between
-      // the two wheels, not the origin of the model. For example, if the
-      // vehicle is commanded to rotate in place, the vehicle will rotate about
-      // the point half way between the two wheels, thus, the odometry position
-      // will remain zero.
+      // Odometry calculates the pose of a point that is located half way
+      // between the two wheels, not the origin of the model. For example,
+      // if the vehicle is commanded to rotate in place, the vehicle will
+      // rotate about the point half way between the two wheels, thus,
+      // the odometry position will remain zero.
       // However, since the model origin is offset, the model position will
       // change. To find the final pose of the model, we have to do the
       // following similarity transformation
@@ -179,17 +179,13 @@ class DiffDriveTest : public ::testing::TestWithParam<int>
           (forward ? poses[0].Pos() : poses[3999].Pos());
       auto expectedGreaterPosition =
           (forward ? poses[3999].Pos() : poses[0].Pos());
-      auto expectedLowerRotation =
-          (forward ? poses[0].Rot() : poses[3999].Rot());
-      auto expectedGreaterRotation =
-          (forward ? poses[3999].Rot() : poses[0].Rot());
 
       EXPECT_LT(expectedLowerPosition.X(), expectedGreaterPosition.X());
       EXPECT_LT(expectedLowerPosition.Y(), expectedGreaterPosition.Y());
       EXPECT_NEAR(expectedLowerPosition.Z(), expectedGreaterPosition.Z(), tol);
-      EXPECT_NEAR(expectedLowerRotation.X(), expectedGreaterRotation.X(), tol);
-      EXPECT_NEAR(expectedLowerRotation.Y(), expectedGreaterRotation.Y(), tol);
-      EXPECT_LT(expectedLowerRotation.Z(), expectedGreaterRotation.Z());
+      EXPECT_NEAR(poses[0].Rot().X(), poses[3999].Rot().X(), tol);
+      EXPECT_NEAR(poses[0].Rot().Y(), poses[3999].Rot().Y(), tol);
+      EXPECT_LT(poses[0].Rot().Z(), poses[3999].Rot().Z());
 
       // The value from odometry will be close, but not exactly the ground truth
       // pose of the robot model. This is partially due to throttling the
