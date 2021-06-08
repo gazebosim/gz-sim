@@ -57,6 +57,7 @@
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/Label.hh"
 #include "ignition/gazebo/components/LaserRetro.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/LightCmd.hh"
@@ -219,6 +220,9 @@ class ignition::gazebo::RenderUtilPrivate
   ///
   /// All temperatures are in Kelvin.
   public: std::map<Entity, std::tuple<float, float, std::string>> entityTemp;
+
+  /// \brief A map of entity ids and label data for datasets annotations
+  public: std::map<Entity, int> entityLabel;
 
   /// \brief A map of entity ids and wire boxes
   public: std::unordered_map<Entity, ignition::rendering::WireBoxPtr> wireBoxes;
@@ -637,6 +641,7 @@ void RenderUtil::Update()
   auto actorTransforms = std::move(this->dataPtr->actorTransforms);
   auto actorAnimationData = std::move(this->dataPtr->actorAnimationData);
   auto entityTemp = std::move(this->dataPtr->entityTemp);
+  auto entityLabel = std::move(this->dataPtr->entityLabel);
   auto newWireframeVisualLinks =
     std::move(this->dataPtr->newWireframeVisualLinks);
   auto newCollisionLinks = std::move(this->dataPtr->newCollisionLinks);
@@ -657,6 +662,7 @@ void RenderUtil::Update()
   this->dataPtr->actorTransforms.clear();
   this->dataPtr->actorAnimationData.clear();
   this->dataPtr->entityTemp.clear();
+  this->dataPtr->entityLabel.clear();
   this->dataPtr->newWireframeVisualLinks.clear();
   this->dataPtr->newCollisionLinks.clear();
   this->dataPtr->thermalCameraData.clear();
@@ -680,9 +686,7 @@ void RenderUtil::Update()
     if (scene.Grid() && !this->dataPtr->enableSensors)
       this->ShowGrid();
     if (scene.Sky())
-    {
       this->dataPtr->scene->SetSkyEnabled(true);
-    }
 
     // only one scene so break
     break;
@@ -971,9 +975,7 @@ void RenderUtil::Update()
 
         math::Pose3d globalPose;
         if (entityPoses.find(tf.first) != entityPoses.end())
-        {
           globalPose = entityPoses[tf.first];
-        }
 
         math::Pose3d trajPose;
         // Trajectory from the ECS
@@ -1096,8 +1098,7 @@ void RenderUtil::Update()
     if (!node)
       continue;
 
-    auto visual =
-        std::dynamic_pointer_cast<rendering::Visual>(node);
+    auto visual = std::dynamic_pointer_cast<rendering::Visual>(node);
     if (!visual)
       continue;
 
@@ -1110,6 +1111,20 @@ void RenderUtil::Update()
       visual->SetUserData("maxTemp", std::get<1>(temp.second));
       visual->SetUserData("temperature", heatSignature);
     }
+  }
+
+  // set visual label
+  for (const auto &label : entityLabel)
+  {
+    auto node = this->dataPtr->sceneManager.NodeById(label.first);
+    if (!node)
+      continue;
+
+    auto visual = std::dynamic_pointer_cast<rendering::Visual>(node);
+    if (!visual)
+      continue;
+
+    visual->SetUserData("label", label.second);
   }
 
   // create new wireframe visuals
@@ -1327,6 +1342,13 @@ void RenderUtilPrivate::CreateRenderingEntities(
           if (laserRetro != nullptr)
           {
             visual.SetLaserRetro(laserRetro->Data());
+          }
+
+          // set label
+          auto label = _ecm.Component<components::Label>(_entity);
+          if (label != nullptr)
+          {
+            this->entityLabel[_entity] = label->Data();
           }
 
           if (auto temp = _ecm.Component<components::Temperature>(_entity))
@@ -1558,6 +1580,13 @@ void RenderUtilPrivate::CreateRenderingEntities(
           if (laserRetro != nullptr)
           {
             visual.SetLaserRetro(laserRetro->Data());
+          }
+
+          // set label
+          auto label = _ecm.Component<components::Label>(_entity);
+          if (label != nullptr)
+          {
+            this->entityLabel[_entity] = label->Data();
           }
 
           if (auto temp = _ecm.Component<components::Temperature>(_entity))
