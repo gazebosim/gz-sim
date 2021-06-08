@@ -1109,6 +1109,14 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
   if (parent)
     name = parent->Name() +  "::" + name;
 
+  if (this->dataPtr->scene->HasLightName(name))
+  {
+    ignerr << "Visual: [" << name << " - " << _id << "] already exists" << std::endl;
+    auto l = this->dataPtr->scene->LightByName(name);
+    this->dataPtr->lights[_id] = l;
+    return l;
+  }
+
   rendering::LightPtr light;
   switch (_light.Type())
   {

@@ -77,6 +77,7 @@
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/Events.hh"
 
 #include "ignition/gazebo/rendering/RenderUtil.hh"
 #include "ignition/gazebo/rendering/SceneManager.hh"
@@ -330,13 +331,13 @@ class ignition::gazebo::RenderUtilPrivate
   public: std::unordered_map<Entity,
       std::tuple<double, components::TemperatureRangeInfo>> thermalCameraData;
 
-  public: bool sameProcess;
+    /// \brief Event Manager
+  public: EventManager *eventManager{nullptr};
 };
 
 //////////////////////////////////////////////////
-RenderUtil::RenderUtil(bool _sameProcess) : dataPtr(std::make_unique<RenderUtilPrivate>())
+RenderUtil::RenderUtil() : dataPtr(std::make_unique<RenderUtilPrivate>())
 {
-  this->dataPtr->sameProcess = _sameProcess;
 }
 
 //////////////////////////////////////////////////
@@ -346,6 +347,11 @@ RenderUtil::~RenderUtil() = default;
 rendering::ScenePtr RenderUtil::Scene() const
 {
   return this->dataPtr->scene;
+}
+
+void RenderUtil::SetEventManager(EventManager &_eventMgr)
+{
+  this->dataPtr->eventManager = &_eventMgr;
 }
 
 //////////////////////////////////////////////////
@@ -464,21 +470,6 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
   this->dataPtr->simTime = _info.simTime;
 
   this->dataPtr->CreateRenderingEntities(_ecm, _info);
-  this->dataPtr->UpdateRenderingEntities(_ecm);
-  this->dataPtr->RemoveRenderingEntities(_ecm, _info);
-  this->dataPtr->markerManager.SetSimTime(_info.simTime);
-  this->dataPtr->FindCollisionLinks(_ecm);
-}
-
-//////////////////////////////////////////////////
-void RenderUtil::UpdateFromECM2(const UpdateInfo &_info,
-                                const EntityComponentManager &_ecm)
-{
-  IGN_PROFILE("RenderUtil::UpdateFromECM");
-  std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
-  this->dataPtr->simTime = _info.simTime;
-
-  // this->dataPtr->CreateRenderingEntities(_ecm, _info);
   this->dataPtr->UpdateRenderingEntities(_ecm);
   this->dataPtr->RemoveRenderingEntities(_ecm, _info);
   this->dataPtr->markerManager.SetSimTime(_info.simTime);
@@ -1154,6 +1145,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
           this->sceneManager.SetWorldId(_entity);
           const sdf::Scene &sceneSdf = _scene->Data();
           this->newScenes.push_back(sceneSdf);
+          this->eventManager->Emit<ignition::gazebo::events::AddToECM>(_entity, "None", 0);
           return true;
         });
 
@@ -1169,9 +1161,23 @@ void RenderUtilPrivate::CreateRenderingEntities(
           sdf::Model model;
           model.SetName(_name->Data());
           model.SetRawPose(_pose->Data());
-          this->newModels.push_back(
-              std::make_tuple(_entity, model, _parent->Data(),
-              _info.iterations));
+          auto tupleTemp = std::make_tuple(_entity, model, _parent->Data(),
+            _info.iterations);
+          bool found = false;
+          for (auto & data: this->newModels)
+          {
+            if (std::get<0>(data) == _entity)
+            {
+              found = true;
+              break;
+            }
+          }
+          if (!found)
+          {
+            this->newModels.push_back(tupleTemp);
+            std::cerr << "Emit new Model " << _entity << '\n';
+            this->eventManager->Emit<ignition::gazebo::events::AddToECM>(_entity, _name->Data(), _parent->Data());
+          }
           return true;
         });
 
@@ -1186,8 +1192,19 @@ void RenderUtilPrivate::CreateRenderingEntities(
           sdf::Link link;
           link.SetName(_name->Data());
           link.SetRawPose(_pose->Data());
-          this->newLinks.push_back(
-              std::make_tuple(_entity, link, _parent->Data()));
+          auto tupleTemp = std::make_tuple(_entity, link, _parent->Data());
+          bool found = false;
+          for (auto & data: this->newLinks)
+          {
+            if (std::get<0>(data) == _entity)
+            {
+              found = true;
+              break;
+            }
+          }
+          if (!found)
+            this->newLinks.push_back(tupleTemp);
+
           // used for collsions
           this->modelToLinkEntities[_parent->Data()].push_back(_entity);
           return true;
@@ -1256,8 +1273,19 @@ void RenderUtilPrivate::CreateRenderingEntities(
             }
           }
 
-          this->newVisuals.push_back(
-              std::make_tuple(_entity, visual, _parent->Data()));
+          auto tupleTemp = std::make_tuple(_entity, visual, _parent->Data());
+          bool found = false;
+          for (auto & data: this->newVisuals)
+          {
+            if (std::get<0>(data) == _entity)
+            {
+              found = true;
+              break;
+            }
+          }
+          if (!found)
+            this->newVisuals.push_back(tupleTemp);
+
           return true;
         });
 
@@ -1267,8 +1295,19 @@ void RenderUtilPrivate::CreateRenderingEntities(
             const components::Actor *_actor,
             const components::ParentEntity *_parent) -> bool
         {
-          this->newActors.push_back(
-              std::make_tuple(_entity, _actor->Data(), _parent->Data()));
+          auto tupleTemp = std::make_tuple(_entity, _actor->Data(), _parent->Data());
+          bool found = false;
+          for (auto & data: this->newActors)
+          {
+            if (std::get<0>(data) == _entity)
+            {
+              found = true;
+              break;
+            }
+          }
+          if (!found)
+            this->newActors.push_back(tupleTemp);
+
           return true;
         });
 
@@ -1278,8 +1317,19 @@ void RenderUtilPrivate::CreateRenderingEntities(
             const components::Light *_light,
             const components::ParentEntity *_parent) -> bool
         {
-          this->newLights.push_back(
-              std::make_tuple(_entity, _light->Data(), _parent->Data()));
+          auto tupleTemp = std::make_tuple(_entity, _light->Data(), _parent->Data());
+          bool found = false;
+          for (auto & data: this->newLights)
+          {
+            if (std::get<0>(data) == _entity)
+            {
+              found = true;
+              break;
+            }
+          }
+          if (!found)
+            this->newLights.push_back(tupleTemp);
+
           return true;
         });
 
@@ -1306,8 +1356,19 @@ void RenderUtilPrivate::CreateRenderingEntities(
             const components::ParticleEmitter *_emitter,
             const components::ParentEntity *_parent) -> bool
         {
-          this->newParticleEmitters.push_back(
-              std::make_tuple(_entity, _emitter->Data(), _parent->Data()));
+          auto tupleTemp = std::make_tuple(_entity, _emitter->Data(), _parent->Data());
+          bool found = false;
+          for (auto & data: this->newParticleEmitters)
+          {
+            if (std::get<0>(data) == _entity)
+            {
+              found = true;
+              break;
+            }
+          }
+          if (!found)
+            this->newParticleEmitters.push_back(tupleTemp);
+
           return true;
         });
 
@@ -1383,6 +1444,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
           this->sceneManager.SetWorldId(_entity);
           const sdf::Scene &sceneSdf = _scene->Data();
           this->newScenes.push_back(sceneSdf);
+          this->eventManager->Emit<ignition::gazebo::events::AddToECM>(_entity, "None", 0);
           return true;
         });
 
@@ -1397,9 +1459,23 @@ void RenderUtilPrivate::CreateRenderingEntities(
           sdf::Model model;
           model.SetName(_name->Data());
           model.SetRawPose(_pose->Data());
-          this->newModels.push_back(
-              std::make_tuple(_entity, model, _parent->Data(),
-              _info.iterations));
+          auto tupleTemp = std::make_tuple(_entity, model, _parent->Data(),
+            _info.iterations);
+          bool found = false;
+          for (auto & data: this->newModels)
+          {
+            if (std::get<0>(data) == _entity)
+            {
+              found = true;
+              break;
+            }
+          }
+          if (!found)
+          {
+            this->newModels.push_back(tupleTemp);
+            std::cerr << "Emit new Model2 " << _entity << '\n';
+            this->eventManager->Emit<ignition::gazebo::events::AddToECM>(_entity, _name->Data(), _parent->Data());
+          }
           return true;
         });
 
@@ -1414,8 +1490,19 @@ void RenderUtilPrivate::CreateRenderingEntities(
           sdf::Link link;
           link.SetName(_name->Data());
           link.SetRawPose(_pose->Data());
-          this->newLinks.push_back(
-              std::make_tuple(_entity, link, _parent->Data()));
+          auto tupleTemp = std::make_tuple(_entity, link, _parent->Data());
+          bool found = false;
+          for (auto & data: this->newLinks)
+          {
+            if (std::get<0>(data) == _entity)
+            {
+              found = true;
+              break;
+            }
+          }
+          if (!found)
+            this->newLinks.push_back(tupleTemp);
+
           // used for collsions
           this->modelToLinkEntities[_parent->Data()].push_back(_entity);
           return true;
@@ -1484,8 +1571,19 @@ void RenderUtilPrivate::CreateRenderingEntities(
             }
           }
 
-          this->newVisuals.push_back(
-              std::make_tuple(_entity, visual, _parent->Data()));
+          auto tupleTemp = std::make_tuple(_entity, visual, _parent->Data());
+          bool found = false;
+          for (auto & data: this->newVisuals)
+          {
+            if (std::get<0>(data) == _entity)
+            {
+              found = true;
+              break;
+            }
+          }
+          if (!found)
+            this->newVisuals.push_back(tupleTemp);
+
           return true;
         });
 
@@ -1495,8 +1593,19 @@ void RenderUtilPrivate::CreateRenderingEntities(
             const components::Actor *_actor,
             const components::ParentEntity *_parent) -> bool
         {
-          this->newActors.push_back(
-              std::make_tuple(_entity, _actor->Data(), _parent->Data()));
+          auto tupleTemp = std::make_tuple(_entity, _actor->Data(), _parent->Data());
+          bool found = false;
+          for (auto & data: this->newActors)
+          {
+            if (std::get<0>(data) == _entity)
+            {
+              found = true;
+              break;
+            }
+          }
+          if (!found)
+            this->newActors.push_back(tupleTemp);
+
           return true;
         });
 
@@ -1506,8 +1615,19 @@ void RenderUtilPrivate::CreateRenderingEntities(
             const components::Light *_light,
             const components::ParentEntity *_parent) -> bool
         {
-          this->newLights.push_back(
-              std::make_tuple(_entity, _light->Data(), _parent->Data()));
+          auto tupleTemp = std::make_tuple(_entity, _light->Data(), _parent->Data());
+          bool found = false;
+          for (auto & data: this->newLights)
+          {
+            if (std::get<0>(data) == _entity)
+            {
+              found = true;
+              break;
+            }
+          }
+          if (!found)
+            this->newLights.push_back(tupleTemp);
+
           return true;
         });
 
@@ -1534,8 +1654,19 @@ void RenderUtilPrivate::CreateRenderingEntities(
             const components::ParticleEmitter *_emitter,
             const components::ParentEntity *_parent) -> bool
         {
-          this->newParticleEmitters.push_back(
-              std::make_tuple(_entity, _emitter->Data(), _parent->Data()));
+          auto tupleTemp = std::make_tuple(_entity, _emitter->Data(), _parent->Data());
+          bool found = false;
+          for (auto & data: this->newParticleEmitters)
+          {
+            if (std::get<0>(data) == _entity)
+            {
+              found = true;
+              break;
+            }
+          }
+          if (!found)
+            this->newParticleEmitters.push_back(tupleTemp);
+
           return true;
         });
 
@@ -1753,6 +1884,7 @@ void RenderUtilPrivate::RemoveRenderingEntities(
       {
         this->removeEntities[_entity] = _info.iterations;
         this->modelToLinkEntities.erase(_entity);
+        this->eventManager->Emit<ignition::gazebo::events::RemoveFromECM>(_entity);
         return true;
       });
 

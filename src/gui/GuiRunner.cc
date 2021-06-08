@@ -134,11 +134,6 @@ GuiRunner::~GuiRunner()
 /////////////////////////////////////////////////
 void GuiRunner::RequestState()
 {
-  std::cerr << "RequestState sameProcess " << this->dataPtr->sameProcess << '\n';
-
-  if (this->dataPtr->sameProcess)
-    return;
-
   // set up service for async state response callback
   std::string id = std::to_string(gui::App()->applicationPid());
   std::string reqSrv =
@@ -180,7 +175,15 @@ void GuiRunner::OnPluginAdded(const QString &_objectName)
            << "]" << std::endl;
     return;
   }
-  plugin->Configure(this->dataPtr->eventMgr, this->dataPtr->sameProcess);
+
+  // The call above always return the same plugin, which the first that was
+  // load. This plugin will set again the eventMgr and the sameProcess
+  // state.
+  auto plugins = gui::App()->findChildren<GuiSystem *>();
+  for (auto &p: plugins)
+  {
+    p->Configure(this->dataPtr->eventMgr, this->dataPtr->sameProcess);
+  }
   this->RequestState();
 }
 

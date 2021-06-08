@@ -27,8 +27,9 @@
 #include <ignition/gazebo/rendering/Export.hh>
 #include <ignition/gazebo/System.hh>
 
-#include "ignition/gazebo/rendering/SceneManager.hh"
+#include "ignition/gazebo/EventManager.hh"
 #include "ignition/gazebo/rendering/MarkerManager.hh"
+#include "ignition/gazebo/rendering/SceneManager.hh"
 
 
 namespace ignition
@@ -44,7 +45,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   class IGNITION_GAZEBO_RENDERING_VISIBLE RenderUtil
   {
     /// \brief Constructor
-    public: explicit RenderUtil(bool updateNewEntities = false);
+    public: RenderUtil();
 
     /// \brief Destructor
     public: ~RenderUtil();
@@ -62,6 +63,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Main update function. Must be called in the rendering thread.
     public: void Update();
 
+    /// brief Set the event Manager
+    /// \param[in] _eventMgr Reference to the event Manager
+    public: void SetEventManager(EventManager &_eventMgr);
+
     /// \brief Get a pointer to the scene
     /// \return Pointer to the scene
     public: rendering::ScenePtr Scene() const;
@@ -74,10 +79,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Helper PostUpdate function for updating the scene
     public: void UpdateFromECM(const UpdateInfo &_info,
-                               const EntityComponentManager &_ecm);
-
-    /// \brief Helper PostUpdate function for updating the scene
-    public: void UpdateFromECM2(const UpdateInfo &_info,
                                const EntityComponentManager &_ecm);
 
     /// \brief Set the rendering engine to use

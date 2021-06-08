@@ -26,6 +26,7 @@
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
 
+#include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Joint.hh"
@@ -44,6 +45,13 @@
 
 namespace ignition::gazebo
 {
+  struct AddNewEntity
+  {
+    unsigned int entity;
+    std::string name;
+    unsigned int parent;
+  };
+
   class EntityTreePrivate
   {
     /// \brief Model holding all the current entities in the world.
@@ -51,6 +59,36 @@ namespace ignition::gazebo
 
     /// \brief True if initialized
     public: bool initialized{false};
+
+    /// \brief Event Manager
+    public: EventManager *eventManager{nullptr};
+
+    /// \brief is the simulation running in the same process
+    public: bool sameProcess{false};
+
+    /// \brief is any sensor available in the simulation
+    public: bool enableSensors{false};
+
+    /// \brief Connection to events::removeFromECM event, used to remove
+    /// entities.
+    public: ignition::common::ConnectionPtr removeFromECMConn;
+
+    /// \brief Connection to events::removeFromECMConn event, used to add
+    /// entities.
+    public: ignition::common::ConnectionPtr addToECMConn;
+
+    /// \brief vector with entities to add to the entity tree.
+    public: std::vector<struct AddNewEntity> entitiesToAdd;
+
+    /// \brief method to handle the removeFromECM event
+    public: void removeEntityEvent(unsigned int _entity);
+
+    /// \brief method to handle the addToECM event
+    /// \param[in] _entity entity to add
+    /// \param[in] _name name of the entity
+    /// \param[in] _parentEntity parant of the entity
+    public: void addEntityEvent(unsigned int _entity, std::string _name,
+      unsigned int _parentEntity);
 
     /// \brief World entity
     public: Entity worldEntity{kNullEntity};
@@ -274,6 +312,43 @@ EntityTree::EntityTree()
 /////////////////////////////////////////////////
 EntityTree::~EntityTree() = default;
 
+void EntityTreePrivate::removeEntityEvent(unsigned int _entity)
+{
+  QMetaObject::invokeMethod(&this->treeModel, "RemoveEntity",
+      Qt::QueuedConnection,
+      Q_ARG(unsigned int, _entity));
+}
+
+void EntityTreePrivate::addEntityEvent(unsigned int _entity, std::string _name, unsigned int _parentEntity)
+{
+  entitiesToAdd.push_back(AddNewEntity {_entity, _name, _parentEntity});
+}
+
+/////////////////////////////////////////////////
+void EntityTree::Configure(EventManager &_eventMgr, bool _sameProcess)
+{
+  if (this->dataPtr->eventManager)
+    return;
+
+  this->dataPtr->eventManager = &_eventMgr;
+  this->dataPtr->sameProcess = _sameProcess;
+
+  if (this->dataPtr->sameProcess)
+  {
+    this->dataPtr->removeFromECMConn =
+      _eventMgr.Connect<ignition::gazebo::events::RemoveFromECM>(
+        std::bind(&EntityTreePrivate::removeEntityEvent, this->dataPtr.get(),
+          std::placeholders::_1));
+
+    this->dataPtr->addToECMConn =
+      _eventMgr.Connect<ignition::gazebo::events::AddToECM>(
+        std::bind(&EntityTreePrivate::addEntityEvent, this->dataPtr.get(),
+          std::placeholders::_1,
+          std::placeholders::_2,
+          std::placeholders::_3));
+  }
+}
+
 /////////////////////////////////////////////////
 void EntityTree::LoadConfig(const tinyxml2::XMLElement *)
 {
@@ -288,87 +363,150 @@ void EntityTree::LoadConfig(const tinyxml2::XMLElement *)
 void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
 {
   IGN_PROFILE("EntityTree::Update");
-  // Treat all pre-existent entities as new at startup
-  if (!this->dataPtr->initialized)
+  if (this->dataPtr->sameProcess)
   {
-    _ecm.Each<components::Name>(
-      [&](const Entity &_entity,
-          const components::Name *_name)->bool
+    for (auto &entityToAdd: this->dataPtr->entitiesToAdd)
     {
-      auto worldComp = _ecm.Component<components::World>(_entity);
-      if (worldComp)
+      if (!this->dataPtr->initialized)
       {
-        this->dataPtr->worldEntity = _entity;
+        auto worldComp = _ecm.Component<components::World>(entityToAdd.entity);
+        if (worldComp)
+        {
+          this->dataPtr->worldEntity = entityToAdd.entity;
+          continue;
+        }
 
-        // Skipping the world for now to keep the tree shallow
-        return true;
+        // Parent
+        Entity parentEntity{kNullEntity};
+
+        auto parentComp =
+          _ecm.Component<components::ParentEntity>(entityToAdd.entity);
+        if (parentComp)
+        {
+          parentEntity = parentComp->Data();
+        }
+
+        // World children are top-level
+        if (this->dataPtr->worldEntity != kNullEntity &&
+            parentEntity == this->dataPtr->worldEntity)
+        {
+          parentEntity = kNullEntity;
+        }
+
+        QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddEntity",
+            Qt::QueuedConnection,
+            Q_ARG(unsigned int, entityToAdd.entity),
+            Q_ARG(QString, QString::fromStdString(entityToAdd.name)),
+            Q_ARG(unsigned int, parentEntity),
+            Q_ARG(QString, entityType(entityToAdd.entity, _ecm)));
+        if (this->dataPtr->worldEntity != kNullEntity)
+          this->dataPtr->initialized = true;
       }
+      else{
+        auto parentEntity = entityToAdd.parent;
 
-      // Parent
-      Entity parentEntity{kNullEntity};
+        // World children are top-level
+        if (this->dataPtr->worldEntity != kNullEntity &&
+            parentEntity == this->dataPtr->worldEntity)
+        {
+          parentEntity = kNullEntity;
+        }
 
-      auto parentComp = _ecm.Component<components::ParentEntity>(_entity);
-      if (parentComp)
-      {
-        parentEntity = parentComp->Data();
+        QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddEntity",
+            Qt::QueuedConnection,
+            Q_ARG(unsigned int, entityToAdd.entity),
+            Q_ARG(QString, QString::fromStdString(entityToAdd.name)),
+            Q_ARG(unsigned int, parentEntity),
+            Q_ARG(QString, entityType(entityToAdd.entity, _ecm)));
       }
-
-      // World children are top-level
-      if (this->dataPtr->worldEntity != kNullEntity &&
-          parentEntity == this->dataPtr->worldEntity)
-      {
-        parentEntity = kNullEntity;
-      }
-
-      QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddEntity",
-          Qt::QueuedConnection,
-          Q_ARG(unsigned int, _entity),
-          Q_ARG(QString, QString::fromStdString(_name->Data())),
-          Q_ARG(unsigned int, parentEntity),
-          Q_ARG(QString, entityType(_entity, _ecm)));
-      return true;
-    });
-
-    if (this->dataPtr->worldEntity != kNullEntity)
-      this->dataPtr->initialized = true;
+    }
+    this->dataPtr->entitiesToAdd.clear();
   }
   else
   {
-    // Requiring a parent entity because we're not adding the world, which is
-    // parentless, to the tree
-    _ecm.EachNew<components::Name, components::ParentEntity>(
-      [&](const Entity &_entity,
-          const components::Name *_name,
-          const components::ParentEntity *_parentEntity)->bool
+    // Treat all pre-existent entities as new at startup
+    if (!this->dataPtr->initialized)
     {
-      auto parentEntity = _parentEntity->Data();
-
-      // World children are top-level
-      if (this->dataPtr->worldEntity != kNullEntity &&
-          parentEntity == this->dataPtr->worldEntity)
+      _ecm.Each<components::Name>(
+        [&](const Entity &_entity,
+            const components::Name *_name)->bool
       {
-        parentEntity = kNullEntity;
-      }
+        auto worldComp = _ecm.Component<components::World>(_entity);
+        if (worldComp)
+        {
+          this->dataPtr->worldEntity = _entity;
 
-      QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddEntity",
+          // Skipping the world for now to keep the tree shallow
+          return true;
+        }
+
+        // Parent
+        Entity parentEntity{kNullEntity};
+
+        auto parentComp = _ecm.Component<components::ParentEntity>(_entity);
+        if (parentComp)
+        {
+          parentEntity = parentComp->Data();
+        }
+
+        // World children are top-level
+        if (this->dataPtr->worldEntity != kNullEntity &&
+            parentEntity == this->dataPtr->worldEntity)
+        {
+          parentEntity = kNullEntity;
+        }
+
+        QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddEntity",
+            Qt::QueuedConnection,
+            Q_ARG(unsigned int, _entity),
+            Q_ARG(QString, QString::fromStdString(_name->Data())),
+            Q_ARG(unsigned int, parentEntity),
+            Q_ARG(QString, entityType(_entity, _ecm)));
+        return true;
+      });
+
+      if (this->dataPtr->worldEntity != kNullEntity)
+        this->dataPtr->initialized = true;
+    }
+    else
+    {
+      // Requiring a parent entity because we're not adding the world, which is
+      // parentless, to the tree
+      _ecm.EachNew<components::Name, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::Name *_name,
+            const components::ParentEntity *_parentEntity)->bool
+      {
+        auto parentEntity = _parentEntity->Data();
+
+        // World children are top-level
+        if (this->dataPtr->worldEntity != kNullEntity &&
+            parentEntity == this->dataPtr->worldEntity)
+        {
+          parentEntity = kNullEntity;
+        }
+
+        QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddEntity",
+            Qt::QueuedConnection,
+            Q_ARG(unsigned int, _entity),
+            Q_ARG(QString, QString::fromStdString(_name->Data())),
+            Q_ARG(unsigned int, parentEntity),
+            Q_ARG(QString, entityType(_entity, _ecm)));
+        return true;
+      });
+    }
+
+    _ecm.EachRemoved<components::Name>(
+      [&](const Entity &_entity,
+          const components::Name *)->bool
+    {
+      std::cerr << "Remove Entity tree" << '\n';
+      QMetaObject::invokeMethod(&this->dataPtr->treeModel, "RemoveEntity",
           Qt::QueuedConnection,
-          Q_ARG(unsigned int, _entity),
-          Q_ARG(QString, QString::fromStdString(_name->Data())),
-          Q_ARG(unsigned int, parentEntity),
-          Q_ARG(QString, entityType(_entity, _ecm)));
+          Q_ARG(unsigned int, _entity));
       return true;
     });
   }
-
-  _ecm.EachRemoved<components::Name>(
-    [&](const Entity &_entity,
-        const components::Name *)->bool
-  {
-    QMetaObject::invokeMethod(&this->dataPtr->treeModel, "RemoveEntity",
-        Qt::QueuedConnection,
-        Q_ARG(unsigned int, _entity));
-    return true;
-  });
 }
 
 /////////////////////////////////////////////////

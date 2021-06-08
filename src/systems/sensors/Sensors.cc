@@ -58,9 +58,6 @@ using namespace systems;
 // Private data class.
 class ignition::gazebo::systems::SensorsPrivate
 {
-  public: explicit SensorsPrivate()
-    : renderUtil(false){}
-
   /// \brief Sensor manager object. This manages the lifecycle of the
   /// instantiated sensors.
   public: sensors::Manager sensorManager;
@@ -471,6 +468,8 @@ void Sensors::Configure(const Entity &/*_id*/,
   this->dataPtr->stopConn = _eventMgr.Connect<events::Stop>(
       std::bind(&SensorsPrivate::Stop, this->dataPtr.get()));
 
+  this->dataPtr->renderUtil.SetEventManager(_eventMgr);
+
   // Kick off worker thread
   this->dataPtr->Run();
 }
@@ -515,6 +514,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
       if (rendering::isEngineLoaded("ogre") || rendering::isEngineLoaded("ogre2"))
       {
         igndbg << "Initialization needed" << std::endl;
+        this->dataPtr->eventManager->Emit<ignition::gazebo::events::EnableSensors>(true);
         this->dataPtr->doInit = true;
         this->dataPtr->renderCv.notify_one();
       }

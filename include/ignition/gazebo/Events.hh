@@ -59,7 +59,52 @@ namespace ignition
       using LoadPlugins = common::EventT<void(Entity, sdf::ElementPtr),
           struct LoadPluginsTag>;
 
+      /// \brief Event used to emit a render event when running in one process.
+      /// This is required because we have two RenderUtils classes when there
+      /// is a render sensor in the scene (camera, depth sensor, etc).
+      /// We could only have one thread updating the renderscene, with this
+      /// signal we are able to call grom the GzSceneManager the render calls
+      /// required by the sensor
+      ///
+      /// For example:
+      /// \code
+      /// eventManager.Emit<ignition::gazebo::events::Render>();
+      /// \endcode
       using Render = ignition::common::EventT<void(void), struct RenderTag>;
+
+      /// \brief Event used to emit render event when running in one process
+      using EnableSensors =
+        ignition::common::EventT<void(bool), struct EnableSensorsTag>;
+
+      /// \brief Event used to emit a render event when running in one process.
+      /// This will allow to emit a signal to remove an entity, this event is
+      /// used for example in the entitytree. The ECM is udpated at 30Hz in
+      /// GUI thread, which means it will miss some additions or removals
+      /// This event will allow us to remove entities indenpendly from the
+      /// update rate.
+      ///
+      /// For example:
+      /// \code
+      /// eventManager.Emit<ignition::gazebo::events::RemoveFromECM>(_entity);
+      /// \endcode
+      using RemoveFromECM =
+        ignition::common::EventT<void(unsigned int), struct RemoveFromECMTag>;
+
+      /// \brief Event used to emit a render event when running in one process.
+      /// This will allow to emit a signal to add an entity, this event is
+      /// used for example in the entitytree. The ECM is udpated at 30Hz in
+      /// GUI thread, which means it will miss some additions or removals
+      /// This event will allow us to add entities indenpendly from the
+      /// update rate.
+      ///
+      /// For example:
+      /// \code
+      /// eventManager.Emit<ignition::gazebo::events::RemoveFromECM>(
+      /// _entity, _name, _parent);
+      /// \endcode
+      using AddToECM =
+        ignition::common::EventT<void(
+          unsigned int, std::string, unsigned int), struct AddToECMTag>;
       }
     }  // namespace events
   }  // namespace gazebo

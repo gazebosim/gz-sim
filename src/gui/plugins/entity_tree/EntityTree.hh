@@ -120,6 +120,9 @@ namespace gazebo
     // Documentation inherited
     public: void Update(const UpdateInfo &, EntityComponentManager &) override;
 
+    // Documentation inherited
+    public: void Configure(EventManager &_eventMgr, bool _sameProcess) override;
+
     /// \brief Callback when an entity has been selected. This should be
     /// called from QML.
     /// \param[in] _entity Entity being selected.

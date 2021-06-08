@@ -45,12 +45,28 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Update the 3D scene based on the latest state of the ECM.
     public: void OnRender();
 
+    /// \brief This method is used to connect with the event
+    /// events::EnableSensors. It will set if the simulation is running any
+    /// sensors
+    public: void EnableSensors(bool _enable);
+
     //// \brief Pointer to the rendering scene
     public: rendering::ScenePtr scene;
 
+    /// \brief Event Manager
     public: EventManager *eventManager{nullptr};
 
+    /// \brief Is the simulation running the GUI and server in the same process
     public: bool sameProcess{false};
+
+    /// \brief is the sensors system plugin running ?
+    public: bool enableSensors{false};
+
+    /// \brief did the first render event occur?
+    public: bool emitFirstRender{false};
+
+    /// \brief Track connection to "EnableSensors" Event
+    public: ignition::common::ConnectionPtr enableSensorsConn;
 
     /// \brief Rendering utility
     public: RenderUtil renderUtil;
@@ -74,8 +90,21 @@ GzSceneManager::~GzSceneManager() = default;
 /////////////////////////////////////////////////
 void GzSceneManager::Configure(EventManager &_eventMgr, bool _sameProcess)
 {
+  if (this->dataPtr->eventManager)
+    return;
+
   this->dataPtr->eventManager = &_eventMgr;
   this->dataPtr->sameProcess = _sameProcess;
+
+  this->dataPtr->renderUtil.SetEventManager(_eventMgr);
+
+  if (_sameProcess)
+  {
+    this->dataPtr->enableSensorsConn =
+      _eventMgr.Connect<ignition::gazebo::events::EnableSensors>(
+        std::bind(&GzSceneManagerPrivate::EnableSensors, this->dataPtr.get(),
+          std::placeholders::_1));
+  }
 }
 
 /////////////////////////////////////////////////
@@ -93,13 +122,10 @@ void GzSceneManager::Update(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
   IGN_PROFILE("GzSceneManager::Update");
-  this->dataPtr->renderUtil.UpdateECM(_info, _ecm);
-  if (this->dataPtr->sameProcess)
+  if (this->dataPtr->emitFirstRender &&
+    (!this->dataPtr->sameProcess || !this->dataPtr->enableSensors))
   {
-    this->dataPtr->renderUtil.UpdateFromECM2(_info, _ecm);
-  }
-  else
-  {
+    this->dataPtr->renderUtil.UpdateECM(_info, _ecm);
     this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
   }
 }
@@ -113,11 +139,18 @@ bool GzSceneManager::eventFilter(QObject *_obj, QEvent *_event)
     if (this->dataPtr->sameProcess)
     {
       this->dataPtr->eventManager->Emit<ignition::gazebo::events::Render>();
+      this->dataPtr->emitFirstRender = true;
     }
   }
 
   // Standard event processing
   return QObject::eventFilter(_obj, _event);
+}
+
+/////////////////////////////////////////////////
+void GzSceneManagerPrivate::EnableSensors(bool _enable)
+{
+  this->enableSensors = _enable;
 }
 
 /////////////////////////////////////////////////
@@ -132,7 +165,10 @@ void GzSceneManagerPrivate::OnRender()
     this->renderUtil.SetScene(this->scene);
   }
 
-  this->renderUtil.Update();
+  if (this->emitFirstRender && (!this->sameProcess || !this->enableSensors))
+  {
+    this->renderUtil.Update();
+  }
 }
 
 // Register this plugin
