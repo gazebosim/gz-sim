@@ -15,7 +15,10 @@
  *
 */
 
+#include "VisualizeLidar.hh"
+
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <sdf/Link.hh>
@@ -56,7 +59,6 @@
 #include "ignition/gazebo/Util.hh"
 
 #include "ignition/msgs/laserscan.pb.h"
-#include "VisualizeLidar.hh"
 
 namespace ignition
 {

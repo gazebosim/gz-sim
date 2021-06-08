@@ -35,6 +35,7 @@
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
 #include "ignition/gazebo/components/JointType.hh"
+#include "ignition/gazebo/components/LaserRetro.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Material.hh"
@@ -42,6 +43,7 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
+#include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Transparency.hh"
 #include "ignition/gazebo/components/Visibility.hh"
@@ -102,6 +104,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
   EXPECT_TRUE(this->ecm.HasComponentType(components::Geometry::typeId));
   EXPECT_TRUE(this->ecm.HasComponentType(components::Material::typeId));
   EXPECT_TRUE(this->ecm.HasComponentType(components::Inertial::typeId));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::LaserRetro::typeId));
 
   // Check entities
   // 1 x world + 3 x model + 3 x link + 3 x collision + 3 x visual + 1 x light
@@ -111,15 +114,20 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
   unsigned int worldCount{0};
   Entity worldEntity = kNullEntity;
   this->ecm.Each<components::World,
-           components::Name>(
+           components::Name,
+           components::Physics>(
     [&](const Entity &_entity,
         const components::World *_world,
-        const components::Name *_name)->bool
+        const components::Name *_name,
+        const components::Physics *_physics)->bool
     {
       EXPECT_NE(nullptr, _world);
       EXPECT_NE(nullptr, _name);
+      EXPECT_NE(nullptr, _physics);
 
       EXPECT_EQ("default", _name->Data());
+      EXPECT_DOUBLE_EQ(0.001, _physics->Data().MaxStepSize());
+      EXPECT_DOUBLE_EQ(1.0, _physics->Data().RealTimeFactor());
 
       worldCount++;
 
@@ -357,6 +365,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
   unsigned int visualCount{0};
   this->ecm.Each<components::Visual,
            components::Transparency,
+           components::LaserRetro,
            components::CastShadows,
            components::Geometry,
            components::Material,
@@ -367,6 +376,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
     [&](const Entity &_entity,
         const components::Visual *_visual,
         const components::Transparency *_transparency,
+        const components::LaserRetro *_laserRetro,
         const components::CastShadows *_castShadows,
         const components::Geometry *_geometry,
         const components::Material *_material,
@@ -398,6 +408,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
         EXPECT_EQ(boxLinkEntity, this->ecm.ParentEntity(_entity));
 
         EXPECT_DOUBLE_EQ(0.0, _transparency->Data());
+        EXPECT_DOUBLE_EQ(1150.0, _laserRetro->Data());
         EXPECT_TRUE(_castShadows->Data());
 
         EXPECT_EQ(sdf::GeometryType::BOX, _geometry->Data().Type());
@@ -423,6 +434,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
         EXPECT_EQ(cylLinkEntity, this->ecm.ParentEntity(_entity));
 
         EXPECT_DOUBLE_EQ(0.0, _transparency->Data());
+        EXPECT_DOUBLE_EQ(1654.0, _laserRetro->Data());
         EXPECT_TRUE(_castShadows->Data());
 
         EXPECT_EQ(sdf::GeometryType::CYLINDER, _geometry->Data().Type());
@@ -448,6 +460,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
         EXPECT_EQ(sphLinkEntity, this->ecm.ParentEntity(_entity));
 
         EXPECT_DOUBLE_EQ(0.5, _transparency->Data());
+        EXPECT_DOUBLE_EQ(50.0, _laserRetro->Data());
         EXPECT_FALSE(_castShadows->Data());
 
         EXPECT_EQ(sdf::GeometryType::SPHERE, _geometry->Data().Type());

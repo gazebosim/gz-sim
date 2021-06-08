@@ -1,15 +1,15 @@
-cmake_minimum_required(VERSION 3.5.1 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo4 VERSION 4.0.0)
+project(ignition-gazebo4 VERSION 4.9.1)
 
 #============================================================================
 # Find ignition-cmake
 #============================================================================
 # If you get an error at this line, you need to install ignition-cmake
-find_package(ignition-cmake2 2.3 REQUIRED)
+find_package(ignition-cmake2 2.8.0 REQUIRED)
 
 #============================================================================
 # Configure the project
@@ -38,7 +38,7 @@ endif()
 # Search for project-specific dependencies
 #============================================================================
 
-ign_find_package(sdformat10 REQUIRED)
+ign_find_package(sdformat10 REQUIRED VERSION 10.3)
 set(SDF_VER ${sdformat10_VERSION_MAJOR})
 
 #--------------------------------------
@@ -48,18 +48,18 @@ set(IGN_PLUGIN_VER ${ignition-plugin1_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-transport
-ign_find_package(ignition-transport9 REQUIRED COMPONENTS log)
+ign_find_package(ignition-transport9 REQUIRED COMPONENTS log VERSION 9.1)
 set(IGN_TRANSPORT_VER ${ignition-transport9_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-msgs
-ign_find_package(ignition-msgs6 REQUIRED)
+ign_find_package(ignition-msgs6 REQUIRED VERSION 6.4)
 set(IGN_MSGS_VER ${ignition-msgs6_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-common
 # Always use the profiler component to get the headers, regardless of status.
-ign_find_package(ignition-common3 VERSION 3.5
+ign_find_package(ignition-common3 VERSION 3.8
   COMPONENTS
     profiler
     events
@@ -75,7 +75,7 @@ set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools5_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-gui
-ign_find_package(ignition-gui4 REQUIRED)
+ign_find_package(ignition-gui4 REQUIRED VERSION 4.1.1)
 set(IGN_GUI_VER ${ignition-gui4_VERSION_MAJOR})
 ign_find_package (Qt5
   COMPONENTS
@@ -87,7 +87,7 @@ ign_find_package (Qt5
 
 #--------------------------------------
 # Find ignition-physics
-ign_find_package(ignition-physics3 VERSION 3.1
+ign_find_package(ignition-physics3 VERSION 3.2
   COMPONENTS
     mesh
     sdf
@@ -114,13 +114,19 @@ set(IGN_SENSORS_VER ${ignition-sensors4_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-rendering
-ign_find_package(ignition-rendering4 REQUIRED VERSION 4.1.0)
+ign_find_package(ignition-rendering4 REQUIRED VERSION 4.7.0)
 set(IGN_RENDERING_VER ${ignition-rendering4_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-math
 ign_find_package(ignition-math6 REQUIRED COMPONENTS eigen3 VERSION 6.6)
 set(IGN_MATH_VER ${ignition-math6_VERSION_MAJOR})
+
+#--------------------------------------
+# Find ignition-tools
+ign_find_package(ignition-tools
+                 REQUIRED
+                 PKGCONFIG "ignition-tools")
 
 #--------------------------------------
 # Find protobuf
@@ -130,7 +136,7 @@ ign_find_package(IgnProtobuf
                  REQUIRED
                  COMPONENTS all
                  PRETTY Protobuf)
-set(PROTOBUF_IMPORT_DIRS ${ignition-msgs6_INCLUDE_DIRS})
+set(Protobuf_IMPORT_DIRS ${ignition-msgs6_INCLUDE_DIRS})
 
 # Plugin install dirs
 set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR
@@ -158,19 +164,24 @@ ign_create_packages()
 configure_file(${CMAKE_SOURCE_DIR}/api.md.in ${CMAKE_BINARY_DIR}/api.md)
 configure_file(${CMAKE_SOURCE_DIR}/tutorials.md.in ${CMAKE_BINARY_DIR}/tutorials.md)
 
-ign_create_docs(
-  API_MAINPAGE_MD "${CMAKE_BINARY_DIR}/api.md"
-  TUTORIALS_MAINPAGE_MD "${CMAKE_BINARY_DIR}/tutorials.md"
-  ADDITIONAL_INPUT_DIRS "${CMAKE_SOURCE_DIR}/src/systems ${CMAKE_SOURCE_DIR}/src/gui/plugins"
-  TAGFILES
-   "${IGNITION-MATH_DOXYGEN_TAGFILE} = ${IGNITION-MATH_API_URL}"
-   "${IGNITION-MSGS_DOXYGEN_TAGFILE} = ${IGNITION-MSGS_API_URL}"
-   "${IGNITION-PHYSICS_DOXYGEN_TAGFILE} = ${IGNITION-PHYSICS_API_URL}"
-   "${IGNITION-PLUGIN_DOXYGEN_TAGFILE} = ${IGNITION-PLUGIN_API_URL}"
-   "${IGNITION-TRANSPORT_DOXYGEN_TAGFILE} = ${IGNITION-TRANSPORT_API_URL}"
-   "${IGNITION-SENSORS_DOXYGEN_TAGFILE} = ${IGNITION-SENSORS_API_URL}"
-   "${IGNITION-COMMON_DOXYGEN_TAGFILE} = ${IGNITION-COMMON_API_URL}"
-)
+# disable doxygen on macOS due to issues with doxygen 1.9.0
+# there is an unreleased fix; revert this when 1.9.1 is released
+# https://github.com/ignitionrobotics/ign-gazebo/issues/520
+if (NOT APPLE)
+  ign_create_docs(
+    API_MAINPAGE_MD "${CMAKE_BINARY_DIR}/api.md"
+    TUTORIALS_MAINPAGE_MD "${CMAKE_BINARY_DIR}/tutorials.md"
+    ADDITIONAL_INPUT_DIRS "${CMAKE_SOURCE_DIR}/src/systems ${CMAKE_SOURCE_DIR}/src/gui/plugins"
+    TAGFILES
+     "${IGNITION-MATH_DOXYGEN_TAGFILE} = ${IGNITION-MATH_API_URL}"
+     "${IGNITION-MSGS_DOXYGEN_TAGFILE} = ${IGNITION-MSGS_API_URL}"
+     "${IGNITION-PHYSICS_DOXYGEN_TAGFILE} = ${IGNITION-PHYSICS_API_URL}"
+     "${IGNITION-PLUGIN_DOXYGEN_TAGFILE} = ${IGNITION-PLUGIN_API_URL}"
+     "${IGNITION-TRANSPORT_DOXYGEN_TAGFILE} = ${IGNITION-TRANSPORT_API_URL}"
+     "${IGNITION-SENSORS_DOXYGEN_TAGFILE} = ${IGNITION-SENSORS_API_URL}"
+     "${IGNITION-COMMON_DOXYGEN_TAGFILE} = ${IGNITION-COMMON_API_URL}"
+  )
+endif()
 
 if(TARGET doc)
   file(COPY ${CMAKE_SOURCE_DIR}/tutorials/files/ DESTINATION ${CMAKE_BINARY_DIR}/doxygen/html/files/)

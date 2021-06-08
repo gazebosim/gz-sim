@@ -73,6 +73,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *findFuelResource(
     ignmsg << "Cached world found." << std::endl;
     worldPath = path;
   }
+  // cppcheck-suppress syntaxError
   else if (ignition::fuel_tools::Result result =
     fuelClient.DownloadWorld(ignition::common::URI(_pathToResource), path);
     result)

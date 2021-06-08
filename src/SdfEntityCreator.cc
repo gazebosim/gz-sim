@@ -41,6 +41,7 @@
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
 #include "ignition/gazebo/components/JointType.hh"
+#include "ignition/gazebo/components/LaserRetro.hh"
 #include "ignition/gazebo/components/Lidar.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/LinearAcceleration.hh"
@@ -54,6 +55,8 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include <ignition/gazebo/components/ParticleEmitter.hh>
+#include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/Scene.hh"
@@ -201,6 +204,16 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
   // Gravity
   this->dataPtr->ecm->CreateComponent(worldEntity,
       components::Gravity(_world->Gravity()));
+
+  // Physics
+  // \todo(anyone) Support picking a specific physics profile
+  auto physics = _world->PhysicsByIndex(0);
+  if (!physics)
+  {
+    physics = _world->PhysicsDefault();
+  }
+  this->dataPtr->ecm->CreateComponent(worldEntity,
+      components::Physics(*physics));
 
   // MagneticField
   this->dataPtr->ecm->CreateComponent(worldEntity,
@@ -446,6 +459,16 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Link *_link)
     this->SetParent(sensorEntity, linkEntity);
   }
 
+  // Particle emitters
+  for (uint64_t emitterIndex = 0; emitterIndex  < _link->ParticleEmitterCount();
+       ++emitterIndex)
+  {
+    auto emitter = _link->ParticleEmitterByIndex(emitterIndex);
+    auto emitterEntity = this->CreateEntities(emitter);
+
+    this->SetParent(emitterEntity, linkEntity);
+  }
+
   return linkEntity;
 }
 
@@ -510,6 +533,12 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
   this->dataPtr->ecm->CreateComponent(visualEntity,
       components::VisibilityFlags(_visual->VisibilityFlags()));
 
+  if (_visual->HasLaserRetro())
+  {
+    this->dataPtr->ecm->CreateComponent(visualEntity,
+        components::LaserRetro(_visual->LaserRetro()));
+  }
+
   if (_visual->Geom())
   {
     this->dataPtr->ecm->CreateComponent(visualEntity,
@@ -528,6 +557,25 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
   this->dataPtr->newVisuals[visualEntity] = _visual->Element();
 
   return visualEntity;
+}
+
+//////////////////////////////////////////////////
+Entity SdfEntityCreator::CreateEntities(const sdf::ParticleEmitter *_emitter)
+{
+  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::ParticleEmitter)");
+
+  // Entity
+  Entity emitterEntity = this->dataPtr->ecm->CreateEntity();
+
+  // Components
+  this->dataPtr->ecm->CreateComponent(emitterEntity,
+      components::ParticleEmitter(convert<msgs::ParticleEmitter>(*_emitter)));
+  this->dataPtr->ecm->CreateComponent(emitterEntity,
+      components::Pose(ResolveSdfPose(_emitter->SemanticPose())));
+  this->dataPtr->ecm->CreateComponent(emitterEntity,
+      components::Name(_emitter->Name()));
+
+  return emitterEntity;
 }
 
 //////////////////////////////////////////////////

@@ -31,16 +31,16 @@ System plugins may be loaded through:
     * Attached to a **model**: `<model><plugin>`
     * Attached to a **sensor**: `<sensor><plugin>`
 * Passing the shared library and class to be loaded through
-  [PluginInfo](https://ignitionrobotics.org/api/gazebo/3.0/classignition_1_1gazebo_1_1ServerConfig_1_1PluginInfo.html)
-  (within [ServerConfig](https://ignitionrobotics.org/api/gazebo/3.0/classignition_1_1gazebo_1_1ServerConfig.html))
+  [PluginInfo](https://ignitionrobotics.org/api/gazebo/4.6/classignition_1_1gazebo_1_1ServerConfig_1_1PluginInfo.html)
+  (within [ServerConfig](https://ignitionrobotics.org/api/gazebo/4.6/classignition_1_1gazebo_1_1ServerConfig.html))
   when instantiating the
-  [Server](https://ignitionrobotics.org/api/gazebo/3.0/classignition_1_1gazebo_1_1Server.html#a084ef7616f5af42061a7aeded5651ab0).
+  [Server](https://ignitionrobotics.org/api/gazebo/4.6/classignition_1_1gazebo_1_1Server.html#a084ef7616f5af42061a7aeded5651ab0).
 
 Ignition will look for system plugins on the following paths, in order:
 
 1. All paths on the `IGN_GAZEBO_SYSTEM_PLUGIN_PATH` environment variable
 2. `$HOME/.ignition/gazebo/plugins`
-3. [Systems that are installed with Ignition Gazebo](https://github.com/ignitionrobotics/ign-gazebo/blob/master/src/systems/)
+3. [Systems that are installed with Ignition Gazebo](https://ignitionrobotics.org/api/gazebo/4.6/namespaceignition_1_1gazebo_1_1systems.html)
 
 ### Ignition GUI plugins
 
@@ -51,7 +51,7 @@ GUI plugins may be loaded through:
 
 * Tags in SDF world files, where `filename` is the shared library:
     * `<world><gui><plugin>`
-* Tags in [GUI config files](https://ignitionrobotics.org/api/gui/3.0/config.html),
+* Tags in [GUI config files](https://ignitionrobotics.org/api/gui/4.2/config.html),
   where `filename` is the shared library:
     * `<plugin>`
 * The plugin menu on the top-right of the screen.
@@ -59,10 +59,10 @@ GUI plugins may be loaded through:
 Ignition will look for GUI plugins on the following paths, in order:
 
 1. All paths set on the `IGN_GUI_PLUGIN_PATH` environment variable
-2. [GUI plugins that are installed with Ignition Gazebo](https://github.com/ignitionrobotics/ign-gazebo/tree/master/src/gui/plugins)
+2. [GUI plugins that are installed with Ignition Gazebo](https://github.com/ignitionrobotics/ign-gazebo/tree/ign-gazebo4/src/gui/plugins)
 3. Other paths added by calling `ignition::gui::App()->AddPluginPath`
 4. `~/.ignition/gui/plugins`
-5. [Plugins which are installed with Ignition GUI](https://ignitionrobotics.org/api/gui/3.0/namespaceignition_1_1gui_1_1plugins.html)
+5. [Plugins which are installed with Ignition GUI](https://ignitionrobotics.org/api/gui/4.2/namespaceignition_1_1gui_1_1plugins.html)
 
 ### Physics engines
 
@@ -111,7 +111,7 @@ Top-level entities such as models, lights and actors may be loaded through:
     * Path / URL to SDF file
     * (TODO) `ignition::msgs::Model`, `ignition::msgs::Light`
 * Within a system, using
-  [SdfEntityCreator](https://ignitionrobotics.org/api/gazebo/3.0/classignition_1_1gazebo_1_1SdfEntityCreator.html)
+  [SdfEntityCreator](https://ignitionrobotics.org/api/gazebo/4.6/classignition_1_1gazebo_1_1SdfEntityCreator.html)
   or directly creating components and entities.
 
 Ignition will look for URIs (path / URL) in the following, in order:
@@ -147,7 +147,7 @@ Ignition will look for URIs (path / URL) in the following, in order:
 ### GUI configuration
 
 Ignition Gazebo's
-[GUI configuration](https://ignitionrobotics.org/api/gui/3.0/config.html)
+[GUI configuration](https://ignitionrobotics.org/api/gui/4.2/config.html)
 can come from the following, in order:
 
 1. The command line option `--gui-config <file path>`

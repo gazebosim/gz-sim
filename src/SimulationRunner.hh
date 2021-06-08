@@ -70,16 +70,16 @@ namespace ignition
     struct WorldControl
     {
       /// \brief True to pause simulation.
-      /// cppcheck-suppress unusedStructMember
+      // cppcheck-suppress unusedStructMember
       bool pause{false};  // NOLINT
 
       /// \biref Run a given number of simulation iterations.
-      /// cppcheck-suppress unusedStructMember
+      // cppcheck-suppress unusedStructMember
       uint64_t multiStep{0u};  // NOLINT
 
       /// \brief Reset simulation back to time zero. Rewinding resets sim time,
       /// real time and iterations.
-      /// cppcheck-suppress unusedStructMember
+      // cppcheck-suppress unusedStructMember
       bool rewind{false};  // NOLINT
 
       /// \brief Sim time to jump to. A negative value means don't seek.
@@ -170,11 +170,31 @@ namespace ignition
       /// \brief Publish current world statistics.
       public: void PublishStats();
 
+      /// \brief Load system plugin for a given entity.
+      /// \param[in] _entity Entity
+      /// \param[in] _fname Filename of the plugin library
+      /// \param[in] _name Name of the plugin
+      /// \param[in] _sdf SDF element (content of plugin tag)
+      public: void LoadPlugin(const Entity _entity,
+          const std::string &_fname,
+          const std::string &_name,
+          const sdf::ElementPtr &_sdf);
+
       /// \brief Load system plugins for a given entity.
       /// \param[in] _entity Entity
       /// \param[in] _sdf SDF element
       public: void LoadPlugins(const Entity _entity,
           const sdf::ElementPtr &_sdf);
+
+      /// \brief Load server plugins for a given entity.
+      /// \param[in] _config Configuration to load plugins from.
+      ///     plugins based on the _config contents
+      public: void LoadServerPlugins(
+          const std::list<ServerConfig::PluginInfo> &_plugins);
+
+      /// \brief Load logging/playback plugins
+      /// \param[in] _config Configuration to load plugins from.
+      public: void LoadLoggingPlugins(const ServerConfig &_config);
 
       /// \brief Get whether this is running. When running is true,
       /// then simulation is stepping forward.
@@ -352,6 +372,10 @@ namespace ignition
       /// \brief Set the next step to be blocking and paused.
       public: void SetNextStepAsBlockingPaused(const bool value);
 
+      /// \brief Updates the physics parameters of the simulation based on the
+      /// Physics component of the world, if any.
+      public: void UpdatePhysicsParams();
+
       /// \brief This is used to indicate that a stop event has been received.
       private: std::atomic<bool> stopReceived{false};
 
@@ -441,6 +465,9 @@ namespace ignition
 
       /// \brief Step size
       private: ignition::math::clock::duration stepSize{10ms};
+
+      /// \brief Desired real time factor
+      private: double desiredRtf{1.0};
 
       /// \brief Connection to the pause event.
       private: ignition::common::ConnectionPtr pauseConn;

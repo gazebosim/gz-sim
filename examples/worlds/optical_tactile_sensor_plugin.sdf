@@ -1,0 +1,249 @@
+<?xml version="1.0" ?>
+<!--
+
+  Demo of an optical tactile plugin.
+  Move the tactile sensor to touch different objects and see the output.
+
+  Disable the sensor with:
+
+    ign service -s /optical_tactile_plugin/enable \
+        --reqtype ignition.msgs.Boolean \
+        --reptype ignition.msgs.Empty \
+        --timeout 2000 --req 'data: false'
+
+-->
+
+<sdf version="1.7">
+  <world name="optical_tactile_plugin">
+    <plugin
+      filename="libignition-gazebo-physics-system.so"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo-contact-system.so"
+      name="ignition::gazebo::systems::Contact">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo-user-commands-system.so"
+      name="ignition::gazebo::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo-scene-broadcaster-system.so"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo-sensors-system.so"
+      name="ignition::gazebo::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+
+    <gui fullscreen="0">
+
+      <!-- 3D scene -->
+      <plugin filename="GzScene3D" name="3D View">
+        <ignition-gui>
+          <title>3D View</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </ignition-gui>
+
+        <engine>ogre2</engine>
+        <scene>scene</scene>
+        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
+        <camera_pose>0.35 0.23 0.94 0 0.05 -2.53</camera_pose>
+
+      </plugin>
+
+      <!-- World control -->
+      <plugin filename="WorldControl" name="World control">
+        <ignition-gui>
+          <title>World control</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">72</property>
+          <property type="double" key="width">121</property>
+          <property type="double" key="z">1</property>
+
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="left" target="left"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </ignition-gui>
+
+        <play_pause>true</play_pause>
+        <step>true</step>
+        <start_paused>true</start_paused>
+        <service>/world/optical_tactile_plugin/control</service>
+        <stats_topic>/world/optical_tactile_plugin/stats</stats_topic>
+        <service>/world/depth_camera_sensor/control</service>
+        <stats_topic>/world/depth_camera_sensor/stats</stats_topic>
+
+      </plugin>
+
+      <!-- World statistics -->
+      <plugin filename="WorldStats" name="World stats">
+        <ignition-gui>
+          <title>World stats</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">110</property>
+          <property type="double" key="width">290</property>
+          <property type="double" key="z">1</property>
+
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="right" target="right"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </ignition-gui>
+
+        <sim_time>true</sim_time>
+        <real_time>true</real_time>
+        <real_time_factor>true</real_time_factor>
+        <iterations>true</iterations>
+        <topic>/world/optical_tactile_plugin/stats</topic>
+        <topic>/world/depth_camera_sensor/stats</topic>
+      </plugin>
+
+      <plugin filename="ImageDisplay" name="Image Display">
+        <ignition-gui>
+          <property key="state" type="string">docked</property>
+        </ignition-gui>
+      </plugin>
+
+       <!-- Transform Control -->
+      <plugin filename="TransformControl" name="Transform Control">
+        <ignition-gui>
+          <property key="x" type="double">0</property>
+          <property key="y" type="double">0</property>
+          <property key="width" type="double">263</property>
+          <property key="height" type="double">50</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+          <property key="cardBackground" type="string">#03a9f4</property>
+        </ignition-gui>
+      </plugin>
+
+      <!-- Entity tree -->
+      <plugin filename="EntityTree" name="Entity tree">
+        <ignition-gui>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </ignition-gui>
+      </plugin>
+      <plugin filename="ComponentInspector" name="Component inspector">
+      </plugin>
+
+    </gui>
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="tactile_sensor">
+      <pose>-0.005 -0.001 0.847 0 1.57 -1.57</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.005 0.02 0.02</size>
+            </box>
+          </geometry>
+        </collision>
+        <sensor name="depth_camera" type="depth_camera">
+          <update_rate>1</update_rate>
+          <topic>depth_camera</topic>
+          <pose relative_to="tactile_sensor">-0.05 0 0 0 0 0</pose>
+          <camera>
+            <image>
+              <width>640</width>
+              <height>480</height>
+              <format>R_FLOAT32</format>
+            </image>
+            <clip>
+              <near>0.030</near>
+              <far>10.0</far>
+            </clip>
+          </camera>
+        </sensor>
+        <sensor name="contact_sensor" type="contact">
+          <contact>
+            <collision>collision</collision>
+          </contact>
+        </sensor>
+
+      </link>
+      <static>false</static>
+      <plugin
+        filename="libignition-gazebo-opticaltactileplugin-system.so"
+        name="ignition::gazebo::systems::OpticalTactilePlugin">
+        <enabled>true</enabled>
+        <namespace>optical_tactile_plugin</namespace>
+        <visualize_sensor>true</visualize_sensor>
+        <visualize_contacts>true</visualize_contacts>
+        <visualize_forces>true</visualize_forces>
+        <visualization_resolution>15</visualization_resolution>
+        <force_length>0.01</force_length>
+        <extended_sensing>0.001</extended_sensing>
+      </plugin>
+    </model>
+
+    <include>
+      <pose>0 0 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/SurgicalTrolleyMed</uri>
+    </include>
+
+    <include>
+      <pose>0 0 0.7 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Coke</uri>
+    </include>
+
+    <include>
+    <pose>0 -0.7 0 0 0 3.14</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/OfficeChairBlue</uri>
+    </include>
+
+    <include>
+    <pose>-1.5 0 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/VendingMachine</uri>
+    </include>
+
+  </world>
+</sdf>

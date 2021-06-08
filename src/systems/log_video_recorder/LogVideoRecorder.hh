@@ -50,7 +50,7 @@ namespace systems
   /// When recording is finished. An `end` string will be published to the
   /// `/log_video_recorder/status` topic and the videos are saved to a
   /// timestamped directory
-  class IGNITION_GAZEBO_VISIBLE LogVideoRecorder:
+  class LogVideoRecorder:
     public System,
     public ISystemConfigure,
     public ISystemPostUpdate

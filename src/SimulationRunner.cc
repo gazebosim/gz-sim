@@ -19,16 +19,20 @@
 
 #include <algorithm>
 
-#include "ignition/common/Profiler.hh"
+#include <sdf/Root.hh>
 
+#include "ignition/common/Profiler.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/components/Physics.hh"
+#include "ignition/gazebo/components/PhysicsCmd.hh"
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
 #include "ignition/gazebo/Util.hh"
+
 #include "network/NetworkManagerPrimary.hh"
 #include "SdfGenerator.hh"
 
@@ -58,8 +62,8 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // Keep system loader so plugins can be loaded at runtime
   this->systemLoader = _systemLoader;
 
-  // Get the first physics profile
-  // \todo(louise) Support picking a specific profile
+  // Get the physics profile
+  // TODO(luca): remove duplicated logic in SdfEntityCreator and LevelManager
   auto physics = _world->PhysicsByIndex(0);
   if (!physics)
   {
@@ -74,7 +78,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
       dur);
 
   // Desired real time factor
-  double desiredRtf = _world->PhysicsDefault()->RealTimeFactor();
+  this->desiredRtf = physics->RealTimeFactor();
 
   // The instantaneous real time factor is given as:
   //
@@ -100,7 +104,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   //
   // period = step_size / RTF
   this->updatePeriod = std::chrono::nanoseconds(
-      static_cast<int>(this->stepSize.count() / desiredRtf));
+      static_cast<int>(this->stepSize.count() / this->desiredRtf));
 
   this->pauseConn = this->eventMgr.Connect<events::Pause>(
       std::bind(&SimulationRunner::SetPaused, this, std::placeholders::_1));
@@ -155,17 +159,37 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // Load the active levels
   this->levelMgr->UpdateLevelsState();
 
+  // Load any additional plugins from the Server Configuration
+  this->LoadServerPlugins(this->serverConfig.Plugins());
+
+  // If we have reached this point and no systems have been loaded, then load
+  // a default set of systems.
+  if (this->systems.empty() && this->pendingSystems.empty())
+  {
+    ignmsg << "No systems loaded from SDF, loading defaults" << std::endl;
+    bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
+    auto plugins = ignition::gazebo::loadPluginInfo(isPlayback);
+    this->LoadServerPlugins(plugins);
+  }
+
+  this->LoadLoggingPlugins(this->serverConfig);
+
   // World control
   transport::NodeOptions opts;
+  std::string ns{"/world/" + this->worldName};
   if (this->networkMgr)
   {
-    opts.SetNameSpace(this->networkMgr->Namespace() +
-                      "/world/" + this->worldName);
+    ns = this->networkMgr->Namespace() + ns;
   }
-  else
+
+  auto validNs = transport::TopicUtils::AsValidTopic(ns);
+  if (validNs.empty())
   {
-    opts.SetNameSpace("/world/" + this->worldName);
+    ignerr << "Invalid namespace [" << ns
+           << "], not initializing runner transport." << std::endl;
+    return;
   }
+  opts.SetNameSpace(validNs);
 
   this->node = std::make_unique<transport::Node>(opts);
 
@@ -306,6 +330,59 @@ void SimulationRunner::UpdateCurrentInfo()
     ++this->currentInfo.iterations;
     this->currentInfo.dt = this->stepSize;
   }
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::UpdatePhysicsParams()
+{
+  auto worldEntity =
+    this->entityCompMgr.EntityByComponents(components::World());
+  const auto physicsCmdComp =
+    this->entityCompMgr.Component<components::PhysicsCmd>(worldEntity);
+  if (!physicsCmdComp)
+  {
+    return;
+  }
+  auto physicsComp =
+    this->entityCompMgr.Component<components::Physics>(worldEntity);
+
+  const auto& physicsParams = physicsCmdComp->Data();
+  const auto newStepSize =
+    std::chrono::duration<double>(physicsParams.max_step_size());
+  const double newRTF = physicsParams.real_time_factor();
+
+  const double eps = 0.00001;
+  if (newStepSize != this->stepSize ||
+      std::abs(newRTF - this->desiredRtf) > eps)
+  {
+    bool updated = false;
+    // Make sure the values are valid before setting them
+    if (newStepSize.count() > 0.0)
+    {
+      this->SetStepSize(
+        std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+          newStepSize));
+      physicsComp->Data().SetMaxStepSize(physicsParams.max_step_size());
+      updated = true;
+    }
+    if (newRTF > 0.0)
+    {
+      this->desiredRtf = newRTF;
+      this->updatePeriod = std::chrono::nanoseconds(
+          static_cast<int>(this->stepSize.count() / this->desiredRtf));
+      physicsComp->Data().SetRealTimeFactor(newRTF);
+      updated = true;
+    }
+    if (updated)
+    {
+      this->simTimes.clear();
+      this->realTimes.clear();
+      // Set as OneTimeChange to make sure the update is not missed
+      this->entityCompMgr.SetChanged(worldEntity, components::Physics::typeId,
+          ComponentState::OneTimeChange);
+    }
+  }
+  this->entityCompMgr.RemoveComponent<components::PhysicsCmd>(worldEntity);
 }
 
 /////////////////////////////////////////////////
@@ -625,6 +702,10 @@ bool SimulationRunner::Run(const uint64_t _iterations)
        processedIterations < _iterations))
   {
     IGN_PROFILE("SimulationRunner::Run - Iteration");
+
+    // Update the step size and desired rtf
+    this->UpdatePhysicsParams();
+
     // Compute the time to sleep in order to match, as closely as possible,
     // the update period.
     sleepTime = 0ns;
@@ -735,50 +816,46 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 }
 
 //////////////////////////////////////////////////
-void SimulationRunner::LoadPlugins(const Entity _entity,
-    const sdf::ElementPtr &_sdf)
+void SimulationRunner::LoadPlugin(const Entity _entity,
+                                  const std::string &_fname,
+                                  const std::string &_name,
+                                  const sdf::ElementPtr &_sdf)
 {
-  sdf::ElementPtr pluginElem = _sdf->GetElement("plugin");
-  while (pluginElem)
+  std::optional<SystemPluginPtr> system;
   {
-    // No error message for the 'else' case of the following 'if' statement
-    // because SDF create a default <plugin> element even if it's not
-    // specified. An error message would result in spamming
-    // the console. \todo(nkoenig) Fix SDF should so that elements are not
-    // automatically added.
-    if (pluginElem->Get<std::string>("filename") != "__default__" &&
-        pluginElem->Get<std::string>("name") != "__default__")
-    {
-      std::optional<SystemPluginPtr> system;
-      {
-        std::lock_guard<std::mutex> lock(this->systemLoaderMutex);
-        system = this->systemLoader->LoadPlugin(pluginElem);
-      }
-      if (system)
-      {
-        auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
-        if (systemConfig != nullptr)
-        {
-          systemConfig->Configure(_entity, pluginElem,
-              this->entityCompMgr,
-              this->eventMgr);
-        }
-        this->AddSystem(system.value());
-        igndbg << "Loaded system [" << pluginElem->Get<std::string>("name")
-               << "] for entity [" << _entity << "]" << std::endl;
-      }
-    }
-
-    pluginElem = pluginElem->GetNextElement("plugin");
+    std::lock_guard<std::mutex> lock(this->systemLoaderMutex);
+    system = this->systemLoader->LoadPlugin(_fname, _name, _sdf);
   }
 
+  // System correctly loaded from library, try to configure
+  if (system)
+  {
+    auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
+    if (systemConfig != nullptr)
+    {
+      systemConfig->Configure(_entity, _sdf,
+          this->entityCompMgr,
+          this->eventMgr);
+    }
+
+    this->AddSystem(system.value());
+    igndbg << "Loaded system [" << _name
+           << "] for entity [" << _entity << "]" << std::endl;
+  }
+}
+
+//////////////////////////////////////////////////
+void SimulationRunner::LoadServerPlugins(
+    const std::list<ServerConfig::PluginInfo> &_plugins)
+{
   // \todo(nkoenig) Remove plugins from the server config after they have
   // been added. We might not want to do this if we want to support adding
   // the same plugin to multiple entities, for example via a regex
   // expression.
   //
   // Check plugins from the ServerConfig for matching entities.
-  for (const ServerConfig::PluginInfo &plugin : this->serverConfig.Plugins())
+
+  for (const ServerConfig::PluginInfo &plugin : _plugins)
   {
     // \todo(anyone) Type + name is not enough to uniquely identify an entity
     // \todo(louise) The runner shouldn't care about specific components, this
@@ -792,8 +869,16 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
     }
     else if ("world" == plugin.EntityType())
     {
-      entity = this->entityCompMgr.EntityByComponents(
-          components::Name(plugin.EntityName()), components::World());
+      // Allow wildcard for world name
+      if (plugin.EntityName() == "*")
+      {
+        entity = this->entityCompMgr.EntityByComponents(components::World());
+      }
+      else
+      {
+        entity = this->entityCompMgr.EntityByComponents(
+            components::Name(plugin.EntityName()), components::World());
+      }
     }
     else if ("sensor" == plugin.EntityType())
     {
@@ -833,29 +918,59 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
               << plugin.EntityType() << "]" << std::endl;
     }
 
-    // Skip plugins that do not match the provided entity
-    if (entity != _entity)
-      continue;
 
-    std::optional<SystemPluginPtr> system;
+    if (kNullEntity != entity)
     {
-      std::lock_guard<std::mutex> lock(this->systemLoaderMutex);
-      system = this->systemLoader->LoadPlugin(plugin.Filename(), plugin.Name(),
-                                              nullptr);
+      this->LoadPlugin(entity, plugin.Filename(), plugin.Name(), plugin.Sdf());
+    }
+  }
+}
+
+//////////////////////////////////////////////////
+void SimulationRunner::LoadLoggingPlugins(const ServerConfig &_config)
+{
+  std::list<ServerConfig::PluginInfo> plugins;
+
+  if (_config.UseLogRecord() && !_config.LogPlaybackPath().empty())
+  {
+    ignwarn <<
+      "Both recording and playback are specified, defaulting to playback\n";
+  }
+
+  if (!_config.LogPlaybackPath().empty())
+  {
+    auto playbackPlugin = _config.LogPlaybackPlugin();
+    plugins.push_back(playbackPlugin);
+  }
+  else if (_config.UseLogRecord())
+  {
+    auto recordPlugin = _config.LogRecordPlugin();
+    plugins.push_back(recordPlugin);
+  }
+
+  this->LoadServerPlugins(plugins);
+}
+
+//////////////////////////////////////////////////
+void SimulationRunner::LoadPlugins(const Entity _entity,
+    const sdf::ElementPtr &_sdf)
+{
+  sdf::ElementPtr pluginElem = _sdf->GetElement("plugin");
+  while (pluginElem)
+  {
+    auto filename = pluginElem->Get<std::string>("filename");
+    auto name = pluginElem->Get<std::string>("name");
+    // No error message for the 'else' case of the following 'if' statement
+    // because SDF create a default <plugin> element even if it's not
+    // specified. An error message would result in spamming
+    // the console. \todo(nkoenig) Fix SDF should so that elements are not
+    // automatically added.
+    if (filename != "__default__" && name != "__default__")
+    {
+      this->LoadPlugin(_entity, filename, name, pluginElem);
     }
 
-    if (system)
-    {
-      auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
-      if (systemConfig != nullptr)
-      {
-        systemConfig->Configure(_entity, plugin.Sdf(), this->entityCompMgr,
-                                this->eventMgr);
-      }
-      this->AddSystem(system.value());
-      igndbg << "Loaded system [" << plugin.Name()
-             << "] for entity [" << _entity << "]" << std::endl;
-    }
+    pluginElem = pluginElem->GetNextElement("plugin");
   }
 }
 

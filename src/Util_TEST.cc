@@ -16,6 +16,7 @@
 */
 
 #include <gtest/gtest.h>
+#include <ignition/common/Console.hh>
 #include <sdf/Actor.hh>
 #include <sdf/Light.hh>
 
@@ -27,6 +28,7 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/ParticleEmitter.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -36,8 +38,18 @@
 using namespace ignition;
 using namespace gazebo;
 
+/// \brief Tests for Util.hh
+class UtilTest : public ::testing::Test
+{
+  // Documentation inherited
+  protected: void SetUp() override
+  {
+    common::Console::SetVerbosity(4);
+  }
+};
+
 /////////////////////////////////////////////////
-TEST(UtilTest, ScopedName)
+TEST_F(UtilTest, ScopedName)
 {
   EntityComponentManager ecm;
 
@@ -219,7 +231,7 @@ TEST(UtilTest, ScopedName)
 }
 
 /////////////////////////////////////////////////
-TEST(UtilTest, EntityTypeId)
+TEST_F(UtilTest, EntityTypeId)
 {
   EntityComponentManager ecm;
 
@@ -261,10 +273,14 @@ TEST(UtilTest, EntityTypeId)
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::Actor());
   EXPECT_EQ(components::Actor::typeId, entityTypeId(entity, ecm));
+
+  entity = ecm.CreateEntity();
+  ecm.CreateComponent(entity, components::ParticleEmitter());
+  EXPECT_EQ(components::ParticleEmitter::typeId, entityTypeId(entity, ecm));
 }
 
 /////////////////////////////////////////////////
-TEST(UtilTest, EntityTypeStr)
+TEST_F(UtilTest, EntityTypeStr)
 {
   EntityComponentManager ecm;
 
@@ -306,10 +322,14 @@ TEST(UtilTest, EntityTypeStr)
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::Actor());
   EXPECT_EQ("actor", entityTypeStr(entity, ecm));
+
+  entity = ecm.CreateEntity();
+  ecm.CreateComponent(entity, components::ParticleEmitter());
+  EXPECT_EQ("particle_emitter", entityTypeStr(entity, ecm));
 }
 
 /////////////////////////////////////////////////
-TEST(UtilTest, RemoveParentScopedName)
+TEST_F(UtilTest, RemoveParentScopedName)
 {
   EXPECT_EQ(removeParentScope("world/world_name", "/"), "world_name");
   EXPECT_EQ(removeParentScope("world::world_name::light::lightA_name", "::"),
@@ -324,7 +344,7 @@ TEST(UtilTest, RemoveParentScopedName)
 }
 
 /////////////////////////////////////////////////
-TEST(UtilTest, AsFullPath)
+TEST_F(UtilTest, AsFullPath)
 {
   const std::string relativeUriUnix{"meshes/collision.dae"};
   const std::string relativeUriWindows{"meshes\\collision.dae"};
@@ -408,7 +428,7 @@ TEST(UtilTest, AsFullPath)
 }
 
 /////////////////////////////////////////////////
-TEST(UtilTest, TopLevelModel)
+TEST_F(UtilTest, TopLevelModel)
 {
   EntityComponentManager ecm;
 
@@ -417,6 +437,7 @@ TEST(UtilTest, TopLevelModel)
   //    - linkA
   //    - modelB
   //      - linkB
+  //        - visualB
   //  - modelC
 
   // World
@@ -448,18 +469,143 @@ TEST(UtilTest, TopLevelModel)
   ecm.CreateComponent(linkBEntity, components::Name("linkB_name"));
   ecm.CreateComponent(linkBEntity, components::ParentEntity(modelBEntity));
 
+  // Visual B - child of Link B
+  auto visualBEntity = ecm.CreateEntity();
+  ecm.CreateComponent(visualBEntity, components::Visual());
+  ecm.CreateComponent(visualBEntity, components::Name("visualB_name"));
+  ecm.CreateComponent(visualBEntity, components::ParentEntity(linkBEntity));
+
   // Model C
   auto modelCEntity = ecm.CreateEntity();
   ecm.CreateComponent(modelCEntity, components::Model());
   ecm.CreateComponent(modelCEntity, components::Name("modelC_name"));
   ecm.CreateComponent(modelCEntity, components::ParentEntity(worldEntity));
 
-  // model A, link A, model B and link B should have model A as top level entity
+  // model A, link A, model B, link B and visual B should have
+  // model A as the top level model
   EXPECT_EQ(modelAEntity, topLevelModel(modelAEntity, ecm));
   EXPECT_EQ(modelAEntity, topLevelModel(linkAEntity, ecm));
   EXPECT_EQ(modelAEntity, topLevelModel(modelBEntity, ecm));
   EXPECT_EQ(modelAEntity, topLevelModel(linkBEntity, ecm));
+  EXPECT_EQ(modelAEntity, topLevelModel(visualBEntity, ecm));
 
-  // model C should have itself as the top level entity
+  // model C should have itself as the top level model
   EXPECT_EQ(modelCEntity, topLevelModel(modelCEntity, ecm));
+
+  // the world should have no top level model
+  EXPECT_EQ(kNullEntity, topLevelModel(worldEntity, ecm));
+}
+
+/////////////////////////////////////////////////
+TEST_F(UtilTest, ValidTopic)
+{
+  std::string good{"good"};
+  std::string fixable{"not bad~"};
+  std::string invalid{"@~@~@~"};
+
+  EXPECT_EQ("good", validTopic({good}));
+  EXPECT_EQ("not_bad", validTopic({fixable}));
+  EXPECT_EQ("", validTopic({invalid}));
+
+  EXPECT_EQ("good", validTopic({good, fixable}));
+  EXPECT_EQ("not_bad", validTopic({fixable, good}));
+
+  EXPECT_EQ("good", validTopic({good, invalid}));
+  EXPECT_EQ("good", validTopic({invalid, good}));
+
+  EXPECT_EQ("not_bad", validTopic({fixable, invalid}));
+  EXPECT_EQ("not_bad", validTopic({invalid, fixable}));
+
+  EXPECT_EQ("not_bad", validTopic({fixable, invalid, good}));
+  EXPECT_EQ("good", validTopic({invalid, good, fixable}));
+}
+
+/////////////////////////////////////////////////
+TEST_F(UtilTest, TopicFromScopedName)
+{
+  EntityComponentManager ecm;
+
+  // world
+  //  - modelA
+  //    - linkA
+  //    - modelB
+  //      - linkB
+  //        - emitterB
+  //  - modelC
+
+  // World
+  auto worldEntity = ecm.CreateEntity();
+  ecm.CreateComponent(worldEntity, components::World());
+  ecm.CreateComponent(worldEntity, components::Name("world_name"));
+
+  // Model A
+  auto modelAEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelAEntity, components::Model());
+  ecm.CreateComponent(modelAEntity, components::Name("modelA_name"));
+  ecm.CreateComponent(modelAEntity, components::ParentEntity(worldEntity));
+
+  // Link A - Child of Model A
+  auto linkAEntity = ecm.CreateEntity();
+  ecm.CreateComponent(linkAEntity, components::Link());
+  ecm.CreateComponent(linkAEntity, components::Name("linkA_name"));
+  ecm.CreateComponent(linkAEntity, components::ParentEntity(modelAEntity));
+
+  // Model B - nested inside Model A
+  auto modelBEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelBEntity, components::Model());
+  ecm.CreateComponent(modelBEntity, components::Name("modelB_name"));
+  ecm.CreateComponent(modelBEntity, components::ParentEntity(modelAEntity));
+
+  // Link B - child of Model B
+  auto linkBEntity = ecm.CreateEntity();
+  ecm.CreateComponent(linkBEntity, components::Link());
+  ecm.CreateComponent(linkBEntity, components::Name("linkB_name"));
+  ecm.CreateComponent(linkBEntity, components::ParentEntity(modelBEntity));
+
+  // Emitter B - child of Link B
+  auto emitterBEntity = ecm.CreateEntity();
+  ecm.CreateComponent(emitterBEntity, components::ParticleEmitter());
+  ecm.CreateComponent(emitterBEntity, components::Name("emitterB_name"));
+  ecm.CreateComponent(emitterBEntity, components::ParentEntity(linkBEntity));
+
+  // Model C
+  auto modelCEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelCEntity, components::Model());
+  ecm.CreateComponent(modelCEntity, components::Name("modelC_name"));
+  ecm.CreateComponent(modelCEntity, components::ParentEntity(worldEntity));
+
+  std::string testName = "/model/modelA_name";
+  std::string worldName = "/world/world_name";
+  // model A, link A, model B, link B and visual B should have
+  // model A as the top level model
+  EXPECT_EQ(testName, topicFromScopedName(modelAEntity, ecm));
+  EXPECT_EQ(worldName + testName,
+      topicFromScopedName(modelAEntity, ecm, false));
+
+  testName += "/link/linkA_name";
+  EXPECT_EQ(testName, topicFromScopedName(linkAEntity, ecm));
+  EXPECT_EQ(worldName + testName, topicFromScopedName(linkAEntity, ecm, false));
+
+  testName = "/model/modelA_name/model/modelB_name";
+  EXPECT_EQ(testName, topicFromScopedName(modelBEntity, ecm));
+  EXPECT_EQ(worldName + testName,
+      topicFromScopedName(modelBEntity, ecm, false));
+
+  testName +="/link/linkB_name";
+  EXPECT_EQ(testName, topicFromScopedName(linkBEntity, ecm));
+  EXPECT_EQ(worldName + testName, topicFromScopedName(linkBEntity, ecm, false));
+
+  testName += "/particle_emitter/emitterB_name";
+  EXPECT_EQ(testName,
+      topicFromScopedName(emitterBEntity, ecm));
+  EXPECT_EQ(worldName + testName,
+      topicFromScopedName(emitterBEntity, ecm, false));
+
+  testName = "/model/modelC_name";
+  EXPECT_EQ(testName, topicFromScopedName(modelCEntity, ecm));
+  EXPECT_EQ(worldName + testName,
+      topicFromScopedName(modelCEntity, ecm, false));
+
+  EXPECT_TRUE(topicFromScopedName(worldEntity, ecm).empty());
+  EXPECT_EQ(worldName, topicFromScopedName(worldEntity, ecm, false));
 }

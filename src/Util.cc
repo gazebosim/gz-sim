@@ -16,14 +16,24 @@
 */
 
 #ifndef __APPLE__
-  #if __GNUC__ < 8
+  #if (defined(_MSVC_LANG))
+    #if (_MSVC_LANG >= 201703L || __cplusplus >= 201703L)
+      #include <filesystem>  // c++17
+    #else
+      #define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
+      #include <experimental/filesystem>
+    #endif
+  #elif __GNUC__ < 8
     #include <experimental/filesystem>
   #else
     #include <filesystem>
   #endif
 #endif
+
 #include <ignition/common/Filesystem.hh>
 #include <ignition/common/StringUtils.hh>
+#include <ignition/common/Util.hh>
+#include <ignition/transport/TopicUtils.hh>
 
 #include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/Collision.hh"
@@ -33,6 +43,7 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/ParticleEmitter.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Visual.hh"
@@ -158,6 +169,10 @@ ComponentTypeId entityTypeId(const Entity &_entity,
   {
     type = components::Actor::typeId;
   }
+  else if (_ecm.Component<components::ParticleEmitter>(_entity))
+  {
+    type = components::ParticleEmitter::typeId;
+  }
 
   return type;
 }
@@ -203,6 +218,10 @@ std::string entityTypeStr(const Entity &_entity,
   else if (_ecm.Component<components::Actor>(_entity))
   {
     type = "actor";
+  }
+  else if (_ecm.Component<components::ParticleEmitter>(_entity))
+  {
+    type = "particle_emitter";
   }
 
   return type;
@@ -257,7 +276,13 @@ std::string asFullPath(const std::string &_uri, const std::string &_filePath)
   }
 #else
   // Not a relative path, return unmodified
-  #if __GNUC__ < 8
+  #if (defined(_MSVC_LANG))
+    #if (_MSVC_LANG >= 201703L || __cplusplus >= 201703L)
+      using namespace std::filesystem;
+    #else
+      using namespace std::experimental::filesystem;
+    #endif
+  #elif __GNUC__ < 8
     using namespace std::experimental::filesystem;
   #else
     using namespace std::filesystem;
@@ -303,7 +328,7 @@ std::string asFullPath(const std::string &_uri, const std::string &_filePath)
 std::vector<std::string> resourcePaths()
 {
   std::vector<std::string> gzPaths;
-  char *gzPathCStr = getenv(kResourcePathEnv.c_str());
+  char *gzPathCStr = std::getenv(kResourcePathEnv.c_str());
   if (gzPathCStr && *gzPathCStr != '\0')
   {
     gzPaths = common::Split(gzPathCStr, ':');
@@ -323,7 +348,7 @@ void addResourcePaths(const std::vector<std::string> &_paths)
 {
   // SDF paths (for <include>s)
   std::vector<std::string> sdfPaths;
-  char *sdfPathCStr = getenv(kSdfPathEnv.c_str());
+  char *sdfPathCStr = std::getenv(kSdfPathEnv.c_str());
   if (sdfPathCStr && *sdfPathCStr != '\0')
   {
     sdfPaths = common::Split(sdfPathCStr, ':');
@@ -332,7 +357,7 @@ void addResourcePaths(const std::vector<std::string> &_paths)
   // Ignition file paths (for <uri>s)
   auto systemPaths = common::systemPaths();
   std::vector<std::string> ignPaths;
-  char *ignPathCStr = getenv(systemPaths->FilePathEnv().c_str());
+  char *ignPathCStr = std::getenv(systemPaths->FilePathEnv().c_str());
   if (ignPathCStr && *ignPathCStr != '\0')
   {
     ignPaths = common::Split(ignPathCStr, ':');
@@ -340,7 +365,7 @@ void addResourcePaths(const std::vector<std::string> &_paths)
 
   // Gazebo resource paths
   std::vector<std::string> gzPaths;
-  char *gzPathCStr = getenv(kResourcePathEnv.c_str());
+  char *gzPathCStr = std::getenv(kResourcePathEnv.c_str());
   if (gzPathCStr && *gzPathCStr != '\0')
   {
     gzPaths = common::Split(gzPathCStr, ':');
@@ -374,19 +399,20 @@ void addResourcePaths(const std::vector<std::string> &_paths)
   for (const auto &path : sdfPaths)
     sdfPathsStr += ':' + path;
 
-  setenv(kSdfPathEnv.c_str(), sdfPathsStr.c_str(), 1);
+  ignition::common::setenv(kSdfPathEnv.c_str(), sdfPathsStr.c_str());
 
   std::string ignPathsStr;
   for (const auto &path : ignPaths)
     ignPathsStr += ':' + path;
 
-  setenv(systemPaths->FilePathEnv().c_str(), ignPathsStr.c_str(), 1);
+  ignition::common::setenv(
+    systemPaths->FilePathEnv().c_str(), ignPathsStr.c_str());
 
   std::string gzPathsStr;
   for (const auto &path : gzPaths)
     gzPathsStr += ':' + path;
 
-  setenv(kResourcePathEnv.c_str(), gzPathsStr.c_str(), 1);
+  ignition::common::setenv(kResourcePathEnv.c_str(), gzPathsStr.c_str());
 
   // Force re-evaluation
   // SDF is evaluated at find call
@@ -399,22 +425,61 @@ ignition::gazebo::Entity topLevelModel(const Entity &_entity,
 {
   auto entity = _entity;
 
-  // check if parent is a model
-  auto parentComp = _ecm.Component<components::ParentEntity>(entity);
-  while (parentComp)
+  // search up the entity tree and find the model with no parent models
+  // (there is the possibility of nested models)
+  Entity modelEntity = kNullEntity;
+  while (entity)
   {
-    // check if parent is a model
-    auto parentEntity = parentComp->Data();
-    auto modelComp = _ecm.Component<components::Model>(
-        parentEntity);
-    if (!modelComp)
+    if (_ecm.Component<components::Model>(entity))
+      modelEntity = entity;
+
+    // stop searching if we are at the root of the tree
+    auto parentComp = _ecm.Component<components::ParentEntity>(entity);
+    if (!parentComp)
       break;
 
-    // set current model entity
-    entity = parentEntity;
-    parentComp = _ecm.Component<components::ParentEntity>(entity);
+    entity = parentComp->Data();
   }
-  return entity;
+
+  return modelEntity;
+}
+
+//////////////////////////////////////////////////
+std::string topicFromScopedName(const Entity &_entity,
+    const EntityComponentManager &_ecm, bool _excludeWorld)
+{
+  std::string topic = scopedName(_entity, _ecm, "/", true);
+
+  if (_excludeWorld)
+  {
+    // Exclude the world name. If the entity is a world, then return an
+    // empty string.
+    topic = _ecm.Component<components::World>(_entity) ? "" :
+      removeParentScope(removeParentScope(topic, "/"), "/");
+  }
+
+  return transport::TopicUtils::AsValidTopic("/" + topic);
+}
+
+//////////////////////////////////////////////////
+std::string validTopic(const std::vector<std::string> &_topics)
+{
+  for (const auto &topic : _topics)
+  {
+    auto validTopic = transport::TopicUtils::AsValidTopic(topic);
+    if (validTopic.empty())
+    {
+      ignerr << "Topic [" << topic << "] is invalid, ignoring." << std::endl;
+      continue;
+    }
+    if (validTopic != topic)
+    {
+      igndbg << "Topic [" << topic << "] changed to valid topic ["
+             << validTopic << "]" << std::endl;
+    }
+    return validTopic;
+  }
+  return std::string();
 }
 }
 }

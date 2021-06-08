@@ -5,18 +5,6 @@
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
     </physics>
-    <plugin
-      filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
-    </plugin>
-    <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
-    </plugin>
-    <plugin
-      filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
-    </plugin>
 
     <gui fullscreen="0">
 
@@ -76,6 +64,7 @@
         </collision>
 
         <visual name="box_visual">
+          <laser_retro>1150</laser_retro>
           <pose>0.12 0.12 0.12 0 0 0</pose>
           <geometry>
             <box>
@@ -117,6 +106,7 @@
         </collision>
 
         <visual name="cylinder_visual">
+          <laser_retro>1654</laser_retro>
           <pose>0.22 0.22 0.22 0 0 0</pose>
           <geometry>
             <cylinder>
@@ -158,6 +148,7 @@
         </collision>
 
         <visual name="sphere_visual">
+          <laser_retro>50</laser_retro>
           <pose>0.32 0.32 0.32 0 0 0</pose>
           <transparency>0.5</transparency>
           <cast_shadows>false</cast_shadows>
