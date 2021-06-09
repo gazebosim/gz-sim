@@ -26,6 +26,7 @@
 #include "ignition/gazebo/components/components.hh"
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/EventManager.hh"
 #include "ignition/gazebo/gui/GuiRunner.hh"
 #include "ignition/gazebo/gui/GuiSystem.hh"
@@ -38,10 +39,20 @@ class ignition::gazebo::GuiRunner::Implementation
 {
   public: explicit Implementation(gazebo::EntityComponentManager &_ecm,
     gazebo::EventManager &_eventMgr)
-  : ecm(_ecm), eventMgr(_eventMgr){}
+  : ecm(_ecm), eventMgr(_eventMgr)
+  {
+    this->UpdatePluginsConn =
+      _eventMgr.Connect<ignition::gazebo::events::UpdateGUIThread>(
+        std::bind(&Implementation::UpdatePluginsEvent, this));
+  }
 
   /// \brief Update the plugins.
   public: void UpdatePlugins();
+
+  /// \brief
+  void UpdatePluginsEvent();
+
+  public: ignition::common::ConnectionPtr UpdatePluginsConn;
 
   /// \brief Entity-component manager.
   public: gazebo::EntityComponentManager &ecm;
@@ -79,8 +90,6 @@ GuiRunner::GuiRunner(const std::string &_worldName,
   this->dataPtr->sameProcess = _sameProcess;
 
   this->setProperty("worldName", QString::fromStdString(_worldName));
-  this->setProperty("sameProcess",
-    QString::fromStdString(std::to_string(_sameProcess)));
 
   auto win = gui::App()->findChild<ignition::gui::MainWindow *>();
   auto winWorldNames = win->property("worldNames").toStringList();
@@ -232,4 +241,10 @@ void GuiRunner::Implementation::UpdatePlugins()
     plugin->Update(this->updateInfo, this->ecm);
   }
   this->ecm.ClearRemovedComponents();
+}
+
+void GuiRunner::Implementation::UpdatePluginsEvent()
+{
+  std::lock_guard<std::mutex> lock(this->updateMutex);
+  this->UpdatePlugins();
 }

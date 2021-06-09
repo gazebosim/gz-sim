@@ -78,42 +78,12 @@ namespace ignition
         ignition::common::EventT<void(bool), struct EnableSensorsTag>;
 
       /// \brief Event used to emit a render event when running in one process.
-      /// This will allow to emit a signal to remove an entity, this event is
-      /// used for example in the entitytree. The ECM is udpated at 30Hz in
-      /// GUI thread, which means it will miss some additions or removals
-      /// This event will allow us to remove entities indenpendly from the
-      /// update rate.
-      ///
-      /// For example:
-      /// \code
-      /// eventManager.Emit<ignition::gazebo::events::RemoveFromECM>(_entity);
-      /// \endcode
-      using RemoveFromECM =
-        ignition::common::EventT<void(unsigned int), struct RemoveFromECMTag>;
-
-      /// \brief Event used to emit a render event when running in one process.
-      /// This will allow to emit a signal to add an entity, this event is
-      /// used for example in the entitytree. The ECM is udpated at 30Hz in
-      /// GUI thread, which means it will miss some additions or removals
-      /// This event will allow us to add entities indenpendly from the
-      /// update rate.
-      ///
-      /// For example:
-      /// \code
-      /// eventManager.Emit<ignition::gazebo::events::RemoveFromECM>(
-      /// _entity, _name, _parent);
-      /// \endcode
-      using AddToECM =
-        ignition::common::EventT<void(
-          unsigned int, std::string, unsigned int), struct AddToECMTag>;
-
-      /// \brief Event used to emit a render event when running in one process.
-      /// Same remove event are lost because of the rate when running in the
-      /// same process without sensors. This event is launched in the physics
-      /// system plugin to remove entities in the renderUtil
-      using UpdateGUIECM = common::EventT<void(
-        const EntityComponentManager &, const UpdateInfo &),
-        struct UpdateGUIECMTag>;
+      /// Some remove events are lost because of the rate when running in the
+      /// same process without sensors. This event is launched in the Simulation
+      /// runner when there is any new entity or entity marked to be removed
+      /// to remove/add entities in the renderUtil
+      using UpdateGUIThread =
+        ignition::common::EventT<void(void), struct UpdateGUIThreadTag>;
       }
     }  // namespace events
   }  // namespace gazebo

@@ -524,6 +524,14 @@ void SimulationRunner::UpdateSystems()
     IGN_PROFILE("Update");
     for (auto& system : this->systemsUpdate)
       system->Update(this->currentInfo, this->entityCompMgr);
+
+    if (serverConfig.SameProcessAsGUI()){
+      if (this->entityCompMgr.HasNewEntities() ||
+          this->entityCompMgr.HasEntitiesMarkedForRemoval())
+      {
+        this->eventMgr.Emit<events::UpdateGUIThread>();
+      }
+    }
   }
 
   {
