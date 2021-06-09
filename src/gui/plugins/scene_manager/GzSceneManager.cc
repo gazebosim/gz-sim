@@ -49,6 +49,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Rendering utility
     public: RenderUtil renderUtil;
+
+    public: bool blockUpdate = false;
   };
 }
 }
@@ -82,8 +84,11 @@ void GzSceneManager::Update(const UpdateInfo &_info,
 {
   IGN_PROFILE("GzSceneManager::Update");
 
-  this->dataPtr->renderUtil.UpdateECM(_info, _ecm);
-  this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
+  if (!this->dataPtr->blockUpdate)
+  {
+    this->dataPtr->renderUtil.UpdateECM(_info, _ecm);
+    this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
+  }
 }
 
 /////////////////////////////////////////////////
@@ -92,6 +97,12 @@ bool GzSceneManager::eventFilter(QObject *_obj, QEvent *_event)
   if (_event->type() == gui::events::Render::kType)
   {
     this->dataPtr->OnRender();
+  }
+  else if (_event->type() == ignition::gui::events::BlockOrbit::kType)
+  {
+    auto blockOrbit = reinterpret_cast<ignition::gui::events::BlockOrbit *>(
+        _event);
+    this->dataPtr->blockUpdate = blockOrbit->Block();
   }
 
   // Standard event processing
@@ -103,7 +114,7 @@ void GzSceneManagerPrivate::OnRender()
 {
   if (nullptr == this->scene)
   {
-    this->scene = rendering::someInitializedScene();
+    this->scene = rendering::sceneFromFirstRenderEngine();
     if (nullptr == this->scene)
       return;
 

@@ -1,0 +1,5 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="TransformControlLogic/">
+  <file>TransformControlLogic.qml</file>
+</qresource>
+</RCC>

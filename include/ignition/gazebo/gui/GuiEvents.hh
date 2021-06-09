@@ -210,6 +210,27 @@ namespace events
     /// \brief The path of SDF file to be previewed.
     std::string filePath;
   };
+
+  class TransformControlMode : public QEvent
+  {
+    /// \brief Constructor
+    /// \param[in] _filePath The path to an SDF file.
+    public: explicit TransformControlMode(const bool _tranformModeActive)
+        : QEvent(kType), tranformModeActive(_tranformModeActive)
+    {
+    }
+
+    /// \brief Unique type for this event.
+    static const QEvent::Type kType = QEvent::Type(QEvent::User + 6);
+
+    public: bool TransformControl()
+    {
+      return this->tranformModeActive;
+    }
+
+    private: bool tranformModeActive;
+  };
+
 }  // namespace events
 }
 }  // namespace gui
