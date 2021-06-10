@@ -244,11 +244,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Wait for follow target
     public: bool followTargetWait = false;
 
-    /// \brief Offset of camera from taget being followed
+    /// \brief Offset of camera from target being followed
     public: math::Vector3d followOffset = math::Vector3d(-5, 0, 3);
 
     /// \brief Flag to indicate the follow offset needs to be updated
     public: bool followOffsetDirty = false;
+
+    /// \brief Flag to indicate the follow offset has been updated
+    public: bool newFollowOffset = true;
 
     /// \brief Follow P gain
     public: double followPGain = 0.01;
@@ -404,6 +407,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Follow service
     public: std::string followService;
+
+    /// \brief Follow offset service
+    public: std::string followOffsetService;
 
     /// \brief View angle service
     public: std::string viewAngleService;
@@ -693,7 +699,8 @@ void IgnRenderer::Render()
           this->dataPtr->followTarget);
       if (target)
       {
-        if (!followTarget || target != followTarget)
+        if (!followTarget || target != followTarget
+              || this->dataPtr->newFollowOffset)
         {
           this->dataPtr->camera->SetFollowTarget(target,
               this->dataPtr->followOffset,
@@ -703,6 +710,7 @@ void IgnRenderer::Render()
           this->dataPtr->camera->SetTrackTarget(target);
           // found target, no need to wait anymore
           this->dataPtr->followTargetWait = false;
+          this->dataPtr->newFollowOffset = false;
         }
         else if (this->dataPtr->followOffsetDirty)
         {
@@ -2000,6 +2008,9 @@ void IgnRenderer::SetFollowOffset(const math::Vector3d &_offset)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->followOffset = _offset;
+
+  if (!this->dataPtr->followTarget.empty())
+    this->dataPtr->newFollowOffset = true;
 }
 
 /////////////////////////////////////////////////
@@ -2663,6 +2674,13 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   ignmsg << "Follow service on ["
          << this->dataPtr->followService << "]" << std::endl;
 
+  // follow offset
+  this->dataPtr->followOffsetService = "/gui/follow/offset";
+  this->dataPtr->node.Advertise(this->dataPtr->followOffsetService,
+      &Scene3D::OnFollowOffset, this);
+  ignmsg << "Follow offset service on ["
+         << this->dataPtr->followOffsetService << "]" << std::endl;
+
   // view angle
   this->dataPtr->viewAngleService =
       "/gui/view_angle";
@@ -2804,6 +2822,19 @@ bool Scene3D::OnFollow(const msgs::StringMsg &_msg,
   auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
 
   renderWindow->SetFollowTarget(_msg.data());
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool Scene3D::OnFollowOffset(const msgs::Vector3d &_msg,
+  msgs::Boolean &_res)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+
+  math::Vector3d offset = msgs::Convert(_msg);
+  renderWindow->SetFollowOffset(offset);
 
   _res.set_data(true);
   return true;
