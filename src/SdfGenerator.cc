@@ -17,6 +17,7 @@
 
 #include "SdfGenerator.hh"
 
+#include <ctype.h>
 #include <memory>
 #include <vector>
 
@@ -305,6 +306,7 @@ namespace sdf_generator
 
           auto modelDir =
               common::parentPath(_modelSdf->Data().Element()->FilePath());
+
           const std::string modelName =
               scopedName(_modelEntity, _ecm, "::", false);
 
@@ -324,6 +326,13 @@ namespace sdf_generator
           {
             auto modelElem = _elem->AddElement("model");
             updateModelElement(modelElem, _ecm, _modelEntity);
+
+            // Check & update possible //model/include(s)
+            if (!modelConfig.expand_include_tags().data())
+            {
+              updateModelElementWithNestedInclude(modelElem,
+                    modelConfig.save_fuel_version().data(), _includeUriMap);
+            }
           }
           else if (uriMapIt != _includeUriMap.end())
           {
@@ -420,6 +429,65 @@ namespace sdf_generator
       relativeToAbsoluteUri(_elem, common::parentPath(pathComp->Data()));
     }
     return true;
+  }
+
+  /////////////////////////////////////////////////
+  /// \brief Checks if a string is a number
+  /// \param[in] _str The string to check
+  /// \return True if the string is a number
+  bool isNumber(const std::string &_str)
+  {
+    for (const char &c : _str)
+      if (!std::isdigit(c)) return false;
+
+    return true;
+  }
+
+  /////////////////////////////////////////////////
+  void updateModelElementWithNestedInclude(sdf::ElementPtr &_elem,
+                                           const bool _saveFuelVersion,
+                                           const IncludeUriMap &_includeUriMap)
+  {
+    sdf::ElementPtr e = _elem->GetFirstElement(), nextE = nullptr;
+    while (e != nullptr)
+    {
+      nextE = e->GetNextElement();
+
+      if (e->GetIncludeElement() != nullptr)
+      {
+        std::string modelDir = common::parentPath(e->FilePath());
+        auto uriMapIt = _includeUriMap.find(modelDir);
+
+        if (_saveFuelVersion && uriMapIt != _includeUriMap.end())
+        {
+          // find fuel model version from file path
+          std::string version = common::basename(modelDir);
+
+          if (isNumber(version))
+          {
+            std::string uri = e->GetIncludeElement()->Get<std::string>("uri");
+            uri = uri + "/" + version;
+            e->GetIncludeElement()->GetElement("uri")->Set(uri);
+          }
+          else
+          {
+            ignwarn << "Error retrieving Fuel model version,"
+                    << " saving model without version."
+                    << std::endl;
+          }
+        }
+
+        e->RemoveAllAttributes();
+        e->Copy(e->GetIncludeElement());
+      }
+      else if (e->GetName() == "model")
+      {
+        updateModelElementWithNestedInclude(e,
+              _saveFuelVersion, _includeUriMap);
+      }
+
+      e = nextE;
+    }
   }
 
   /////////////////////////////////////////////////

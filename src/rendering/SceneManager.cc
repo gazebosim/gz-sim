@@ -329,8 +329,8 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
         material->SetAmbient(0.3, 0.3, 0.3);
         material->SetDiffuse(0.7, 0.7, 0.7);
         material->SetSpecular(1.0, 1.0, 1.0);
-        material->SetRoughness(0.2);
-        material->SetMetalness(1.0);
+        material->SetRoughness(0.2f);
+        material->SetMetalness(1.0f);
       }
     }
     else
@@ -400,8 +400,8 @@ rendering::VisualPtr SceneManager::CreateCollision(Entity _id,
     const sdf::Collision &_collision, Entity _parentId)
 {
   sdf::Material material;
-  material.SetAmbient(math::Color(1, 0.5088, 0.0468, 0.7));
-  material.SetDiffuse(math::Color(1, 0.5088, 0.0468, 0.7));
+  material.SetAmbient(math::Color(1.0f, 0.5088f, 0.0468f, 0.7f));
+  material.SetDiffuse(math::Color(1.0f, 0.5088f, 0.0468f, 0.7f));
 
   sdf::Visual visual;
   visual.SetGeom(*_collision.Geom());
@@ -1297,6 +1297,21 @@ rendering::ParticleEmitterPtr SceneManager::UpdateParticleEmitter(Entity _id,
   // pose
   if (_emitter.has_pose())
     emitter->SetLocalPose(msgs::Convert(_emitter.pose()));
+
+  // particle scatter ratio
+  if (_emitter.has_header())
+  {
+    for (int i = 0; i < _emitter.header().data_size(); ++i)
+    {
+      const auto &data = _emitter.header().data(i);
+      const std::string key = "particle_scatter_ratio";
+      if (data.key() == "particle_scatter_ratio" && data.value_size() > 0)
+      {
+        emitter->SetParticleScatterRatio(math::parseFloat(data.value(0)));
+        break;
+      }
+    }
+  }
 
   return emitter;
 }

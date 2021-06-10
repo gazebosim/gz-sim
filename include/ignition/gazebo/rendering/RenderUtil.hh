@@ -134,6 +134,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public : void SetRemoveSensorCb(
         std::function<void(const gazebo::Entity &)> _removeSensorCb);
 
+    /// \brief View wireframes of specified entity
+    /// \param[in] _entity Entity to view wireframes
+    public: void ViewWireframes(const Entity &_entity);
+
     /// \brief View collisions of specified entity which are shown in orange
     /// \param[in] _entity Entity to view collisions
     public: void ViewCollisions(const Entity &_entity);
