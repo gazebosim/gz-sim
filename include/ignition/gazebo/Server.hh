@@ -118,11 +118,11 @@ namespace ignition
 
       /// \brief Get the Entity Component Manager reference
       /// \return The Entity Component Manager reference
-      public: EntityComponentManager &GetEntityComponentManager();
+      public: EntityComponentManager &SharedEntityComponentManager();
 
       /// \brief Get the Event Manager reference
       /// \return The Event Manager reference
-      public: EventManager &GetEventManager();
+      public: EventManager &SharedEventManager();
 
       /// \brief Set the update period. The update period is the wall-clock time
       /// between ECS updates.

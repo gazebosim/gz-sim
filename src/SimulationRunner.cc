@@ -526,11 +526,7 @@ void SimulationRunner::UpdateSystems()
       system->Update(this->currentInfo, this->entityCompMgr);
 
     if (serverConfig.SameProcessAsGUI()){
-      if (this->entityCompMgr.HasNewEntities() ||
-          this->entityCompMgr.HasEntitiesMarkedForRemoval())
-      {
-        this->eventMgr.Emit<events::UpdateGUIThread>();
-      }
+      this->eventMgr.Emit<events::UpdateSystems>();
     }
   }
 

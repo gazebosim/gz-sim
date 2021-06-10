@@ -305,7 +305,7 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// \brief Boolean to define if the server and gui run in the same process
   /// True gui and server will run in the same process, False otherwise
-  public: bool sameProcessAsGUI;
+  public: bool sameProcessAsGUI = false;
 };
 
 //////////////////////////////////////////////////

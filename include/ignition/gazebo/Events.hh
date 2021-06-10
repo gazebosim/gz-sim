@@ -82,8 +82,8 @@ namespace ignition
       /// same process without sensors. This event is launched in the Simulation
       /// runner when there is any new entity or entity marked to be removed
       /// to remove/add entities in the renderUtil
-      using UpdateGUIThread =
-        ignition::common::EventT<void(void), struct UpdateGUIThreadTag>;
+      using UpdateSystems =
+        ignition::common::EventT<void(void), struct UpdateSystemsTag>;
       }
     }  // namespace events
   }  // namespace gazebo

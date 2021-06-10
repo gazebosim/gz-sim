@@ -122,6 +122,10 @@ void GzSceneManager::Update(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
   IGN_PROFILE("GzSceneManager::Update");
+
+  // When we are running with the same process
+  //  * has sensors - sensors system calls RenderUtil::Update*
+  //  * no sensors  - GzSceneManager calls RenderUtil::Update*
   if (this->dataPtr->emitFirstRender &&
     (!this->dataPtr->sameProcess || !this->dataPtr->enableSensors))
   {

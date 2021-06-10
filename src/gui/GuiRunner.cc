@@ -41,9 +41,6 @@ class ignition::gazebo::GuiRunner::Implementation
     gazebo::EventManager &_eventMgr)
   : ecm(_ecm), eventMgr(_eventMgr)
   {
-    this->UpdatePluginsConn =
-      _eventMgr.Connect<ignition::gazebo::events::UpdateGUIThread>(
-        std::bind(&Implementation::UpdatePluginsEvent, this));
   }
 
   /// \brief Update the plugins.
@@ -60,7 +57,8 @@ class ignition::gazebo::GuiRunner::Implementation
   /// \brief Event manager.
   public: gazebo::EventManager &eventMgr;
 
-  public: bool sameProcess;
+  /// \brief Is the GUI and server running in the same process?
+  public: bool sameProcess = false;
 
   /// \brief Transport node.
   public: transport::Node node{};
@@ -88,6 +86,13 @@ GuiRunner::GuiRunner(const std::string &_worldName,
   : dataPtr(utils::MakeUniqueImpl<Implementation>(_ecm, _eventMgr))
 {
   this->dataPtr->sameProcess = _sameProcess;
+
+  if (this->dataPtr->sameProcess)
+  {
+    this->dataPtr->UpdatePluginsConn =
+      _eventMgr.Connect<ignition::gazebo::events::UpdateSystems>(
+        std::bind(&Implementation::UpdatePluginsEvent, this->dataPtr.get()));
+  }
 
   this->setProperty("worldName", QString::fromStdString(_worldName));
 
@@ -246,5 +251,9 @@ void GuiRunner::Implementation::UpdatePlugins()
 void GuiRunner::Implementation::UpdatePluginsEvent()
 {
   std::lock_guard<std::mutex> lock(this->updateMutex);
-  this->UpdatePlugins();
+  if (this->ecm.HasNewEntities() ||
+      this->ecm.HasEntitiesMarkedForRemoval())
+  {
+    this->UpdatePlugins();
+  }
 }

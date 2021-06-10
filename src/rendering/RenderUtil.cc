@@ -1495,7 +1495,6 @@ void RenderUtilPrivate::CreateRenderingEntities(
             if (!found)
             {
               this->newModels.push_back(tupleTemp);
-              std::cerr << "Emit new Model2 " << _entity << '\n';
             }
           }
           return true;

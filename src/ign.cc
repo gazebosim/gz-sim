@@ -403,8 +403,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runCombined(const char *_sdfString,
     // Run the server
     server.Run(false, _iterations, _run == 0);
 
-    auto &sharedEcm = server.GetEntityComponentManager();
-    auto &sharedEventManager = server.GetEventManager();
+    auto &sharedEcm = server.SharedEntityComponentManager();
+    auto &sharedEventManager = server.SharedEventManager();
 
     // argc and argv are going to be passed to a QApplication. The Qt
     // documentation has a warning about these:

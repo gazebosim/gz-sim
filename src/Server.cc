@@ -206,7 +206,7 @@ Server::Server(const ServerConfig &_config)
 /////////////////////////////////////////////////
 Server::~Server() = default;
 
-EntityComponentManager &Server::GetEntityComponentManager()
+EntityComponentManager &Server::SharedEntityComponentManager()
 {
   for (std::unique_ptr<SimulationRunner> &runner : this->dataPtr->simRunners)
   {
@@ -214,7 +214,7 @@ EntityComponentManager &Server::GetEntityComponentManager()
   }
 }
 
-EventManager &Server::GetEventManager()
+EventManager &Server::SharedEventManager()
 {
   for (std::unique_ptr<SimulationRunner> &runner : this->dataPtr->simRunners)
   {
