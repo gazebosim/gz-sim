@@ -1652,10 +1652,6 @@ void IgnRenderer::HandleMouseViewControl()
             << std::endl;
   }
 
-  math::Vector3d camWorldPos;
-  if (!this->dataPtr->followTarget.empty())
-    this->dataPtr->camera->WorldPosition();
-
   this->dataPtr->viewControl.SetCamera(this->dataPtr->camera);
 
   if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::SCROLL)
@@ -1708,13 +1704,7 @@ void IgnRenderer::HandleMouseViewControl()
 
 
   if (!this->dataPtr->followTarget.empty())
-  {
-    math::Vector3d dPos = this->dataPtr->camera->WorldPosition() - camWorldPos;
-    if (dPos != math::Vector3d::Zero)
-    {
-      this->dataPtr->followOffsetDirty = true;
-    }
-  }
+    this->dataPtr->followOffsetDirty = true;
 }
 
 /////////////////////////////////////////////////
