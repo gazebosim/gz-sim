@@ -194,7 +194,7 @@ void GuiRunner::OnPluginAdded(const QString &_objectName)
   // load. This plugin will set again the eventMgr and the sameProcess
   // state.
   auto plugins = gui::App()->findChildren<GuiSystem *>();
-  for (auto &p: plugins)
+  for (auto &p : plugins)
   {
     p->Configure(this->dataPtr->eventMgr, this->dataPtr->sameProcess);
   }

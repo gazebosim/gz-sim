@@ -175,7 +175,6 @@ rendering::VisualPtr SceneManager::CreateModel(Entity _id,
 
   if (this->dataPtr->scene->HasVisualName(name))
   {
-    ignerr << "Visual: [" << name << " - " << _id << "] already exists" << std::endl;
     auto vis = this->dataPtr->scene->VisualByName(name);
     this->dataPtr->visuals[_id] = vis;
     return vis;
@@ -1111,7 +1110,6 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
 
   if (this->dataPtr->scene->HasLightName(name))
   {
-    ignerr << "Visual: [" << name << " - " << _id << "] already exists" << std::endl;
     auto l = this->dataPtr->scene->LightByName(name);
     this->dataPtr->lights[_id] = l;
     return l;

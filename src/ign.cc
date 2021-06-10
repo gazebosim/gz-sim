@@ -413,11 +413,12 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runCombined(const char *_sdfString,
     //  greater than zero and argv must contain at least one valid character
     //  string."
     int argc = 1;
-    // Converting a string literal to char * is forbidden as of C++11. It can only
-    // be converted to a const char *. The const cast is here to prevent a warning
-    // since we do need to pass a char* to runGui
+    // Converting a string literal to char * is forbidden as of C++11.
+    // It can only be converted to a const char *. The const cast is here to
+    // prevent a warning since we do need to pass a char* to runGui
     char *argv = const_cast<char *>("ign-gazebo-gui");
-    return ignition::gazebo::gui::runGui(argc, &argv, _guiConfig, sharedEcm, sharedEventManager, true);
+    return ignition::gazebo::gui::runGui(
+      argc, &argv, _guiConfig, sharedEcm, sharedEventManager, true);
   }
 
   ignerr << "Unable to create server config\n";
@@ -441,5 +442,6 @@ extern "C" int runGui(const char *_guiConfig)
   char *argv = const_cast<char *>("ign-gazebo-gui");
   ignition::gazebo::v6::EntityComponentManager guiEcm;
   ignition::gazebo::v6::EventManager guiEventEcm;
-  return ignition::gazebo::gui::runGui(argc, &argv, _guiConfig, guiEcm, guiEventEcm, false);
+  return ignition::gazebo::gui::runGui(
+    argc, &argv, _guiConfig, guiEcm, guiEventEcm, false);
 }

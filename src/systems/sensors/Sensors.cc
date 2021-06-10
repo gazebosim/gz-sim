@@ -419,7 +419,8 @@ void Sensors::SetSameProcess(bool _sameProcess)
   {
     this->dataPtr->renderUtil.SetEventManager(*this->dataPtr->eventManager);
 
-    this->dataPtr->renderConn = this->dataPtr->eventManager->Connect<events::Render>(
+    this->dataPtr->renderConn =
+      this->dataPtr->eventManager->Connect<events::Render>(
         std::bind(&SensorsPrivate::Render, this->dataPtr.get()));
   }
 }
@@ -511,10 +512,12 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
     // This will allow to load first the scene3D
     if (this->dataPtr->sameProcess)
     {
-      if (rendering::isEngineLoaded("ogre") || rendering::isEngineLoaded("ogre2"))
+      if (rendering::isEngineLoaded("ogre") ||
+          rendering::isEngineLoaded("ogre2"))
       {
         igndbg << "Initialization needed" << std::endl;
-        this->dataPtr->eventManager->Emit<ignition::gazebo::events::EnableSensors>(true);
+        this->dataPtr->eventManager->Emit
+          <ignition::gazebo::events::EnableSensors>(true);
         this->dataPtr->doInit = true;
         this->dataPtr->renderCv.notify_one();
       }

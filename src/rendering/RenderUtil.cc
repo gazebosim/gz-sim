@@ -108,6 +108,11 @@ class ignition::gazebo::RenderUtilPrivate
   /// \param[in] _ecm The entity-component manager
   public: void UpdateRenderingEntities(const EntityComponentManager &_ecm);
 
+  /// \brief Helper function to add sensors in the CreateRenderingEntities
+  /// method
+  /// \param[in] _ecm The entity-component manager
+  public: void AddSensors(const EntityComponentManager &_ecm);
+
   /// \brief Total time elapsed in simulation. This will not increase while
   /// paused.
   public: std::chrono::steady_clock::duration simTime{0};
@@ -1102,10 +1107,8 @@ void RenderUtil::Update()
 }
 
 //////////////////////////////////////////////////
-void RenderUtilPrivate::CreateRenderingEntities(
-    const EntityComponentManager &_ecm, const UpdateInfo &_info)
+void RenderUtilPrivate::AddSensors(const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("RenderUtilPrivate::CreateRenderingEntities");
   auto addNewSensor = [&_ecm, this](Entity _entity, const sdf::Sensor &_sdfData,
                                     Entity _parent,
                                     const std::string &_topicSuffix)
@@ -1130,6 +1133,133 @@ void RenderUtilPrivate::CreateRenderingEntities(
   const std::string thermalCameraSuffix{"/image"};
   const std::string gpuLidarSuffix{"/scan"};
 
+  if (!this->initialized)
+  {
+    if (this->enableSensors)
+    {
+      // Create cameras
+      _ecm.Each<components::Camera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::Camera *_camera,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _camera->Data(), _parent->Data(),
+                         cameraSuffix);
+            return true;
+          });
+
+      // Create depth cameras
+      _ecm.Each<components::DepthCamera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::DepthCamera *_depthCamera,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _depthCamera->Data(), _parent->Data(),
+                         depthCameraSuffix);
+            return true;
+          });
+
+      // Create rgbd cameras
+      _ecm.Each<components::RgbdCamera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::RgbdCamera *_rgbdCamera,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _rgbdCamera->Data(), _parent->Data(),
+                         rgbdCameraSuffix);
+            return true;
+          });
+
+      // Create gpu lidar
+      _ecm.Each<components::GpuLidar, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::GpuLidar *_gpuLidar,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _gpuLidar->Data(), _parent->Data(),
+                         gpuLidarSuffix);
+            return true;
+          });
+
+      // Create thermal camera
+      _ecm.Each<components::ThermalCamera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::ThermalCamera *_thermalCamera,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _thermalCamera->Data(), _parent->Data(),
+                         thermalCameraSuffix);
+            return true;
+          });
+    }
+  }
+  else
+  {
+    if (this->enableSensors)
+    {
+      // Create cameras
+      _ecm.EachNew<components::Camera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::Camera *_camera,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _camera->Data(), _parent->Data(),
+                         cameraSuffix);
+            return true;
+          });
+
+      // Create depth cameras
+      _ecm.EachNew<components::DepthCamera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::DepthCamera *_depthCamera,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _depthCamera->Data(), _parent->Data(),
+                         depthCameraSuffix);
+            return true;
+          });
+
+      // Create RGBD cameras
+      _ecm.EachNew<components::RgbdCamera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::RgbdCamera *_rgbdCamera,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _rgbdCamera->Data(), _parent->Data(),
+                         rgbdCameraSuffix);
+            return true;
+          });
+
+      // Create gpu lidar
+      _ecm.EachNew<components::GpuLidar, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::GpuLidar *_gpuLidar,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _gpuLidar->Data(), _parent->Data(),
+                         gpuLidarSuffix);
+            return true;
+          });
+
+      // Create thermal camera
+      _ecm.EachNew<components::ThermalCamera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::ThermalCamera *_thermalCamera,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _thermalCamera->Data(), _parent->Data(),
+                         thermalCameraSuffix);
+            return true;
+          });
+    }
+  }
+}
+
+//////////////////////////////////////////////////
+void RenderUtilPrivate::CreateRenderingEntities(
+    const EntityComponentManager &_ecm, const UpdateInfo &_info)
+{
+  IGN_PROFILE("RenderUtilPrivate::CreateRenderingEntities");
   // Treat all pre-existent entities as new at startup
   // TODO(anyone) refactor Each and EachNew below to reduce duplicate code
   if (!this->initialized)
@@ -1148,7 +1278,6 @@ void RenderUtilPrivate::CreateRenderingEntities(
           return true;
         });
 
-
     _ecm.Each<components::Model, components::Name, components::Pose,
               components::ParentEntity>(
         [&](const Entity &_entity,
@@ -1166,7 +1295,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
             auto tupleTemp = std::make_tuple(_entity, model, _parent->Data(),
               _info.iterations);
             bool found = false;
-            for (auto & data: this->newModels)
+            for (auto & data : this->newModels)
             {
               if (std::get<0>(data) == _entity)
               {
@@ -1175,9 +1304,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
               }
             }
             if (!found)
-            {
               this->newModels.push_back(tupleTemp);
-            }
           }
           return true;
         });
@@ -1198,7 +1325,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
           {
             auto tupleTemp = std::make_tuple(_entity, link, _parent->Data());
             bool found = false;
-            for (auto & data: this->newLinks)
+            for (auto & data : this->newLinks)
             {
               if (std::get<0>(data) == _entity)
               {
@@ -1206,11 +1333,9 @@ void RenderUtilPrivate::CreateRenderingEntities(
                 break;
               }
             }
-            if (!found){
+            if (!found)
               this->newLinks.push_back(tupleTemp);
-            }
           }
-
           // used for collsions
           this->modelToLinkEntities[_parent->Data()].push_back(_entity);
           return true;
@@ -1283,7 +1408,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
           {
             auto tupleTemp = std::make_tuple(_entity, visual, _parent->Data());
             bool found = false;
-            for (auto & data: this->newVisuals)
+            for (auto & data : this->newVisuals)
             {
               if (std::get<0>(data) == _entity)
               {
@@ -1291,9 +1416,8 @@ void RenderUtilPrivate::CreateRenderingEntities(
                 break;
               }
             }
-            if (!found){
+            if (!found)
               this->newVisuals.push_back(tupleTemp);
-            }
           }
           return true;
         });
@@ -1307,9 +1431,10 @@ void RenderUtilPrivate::CreateRenderingEntities(
           auto node = this->sceneManager.NodeById(_entity);
           if (!node)
           {
-            auto tupleTemp = std::make_tuple(_entity, _actor->Data(), _parent->Data());
+            auto tupleTemp = std::make_tuple(
+              _entity, _actor->Data(), _parent->Data());
             bool found = false;
-            for (auto & data: this->newActors)
+            for (auto & data : this->newActors)
             {
               if (std::get<0>(data) == _entity)
               {
@@ -1318,9 +1443,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
               }
             }
             if (!found)
-            {
               this->newActors.push_back(tupleTemp);
-            }
           }
           return true;
         });
@@ -1334,9 +1457,10 @@ void RenderUtilPrivate::CreateRenderingEntities(
           auto node = this->sceneManager.NodeById(_entity);
           if (!node)
           {
-            auto tupleTemp = std::make_tuple(_entity, _light->Data(), _parent->Data());
+            auto tupleTemp = std::make_tuple(
+              _entity, _light->Data(), _parent->Data());
             bool found = false;
-            for (auto & data: this->newLights)
+            for (auto & data : this->newLights)
             {
               if (std::get<0>(data) == _entity)
               {
@@ -1344,9 +1468,8 @@ void RenderUtilPrivate::CreateRenderingEntities(
                 break;
               }
             }
-            if (!found){
+            if (!found)
               this->newLights.push_back(tupleTemp);
-            }
           }
           return true;
         });
@@ -1374,9 +1497,10 @@ void RenderUtilPrivate::CreateRenderingEntities(
             const components::ParticleEmitter *_emitter,
             const components::ParentEntity *_parent) -> bool
         {
-          auto tupleTemp = std::make_tuple(_entity, _emitter->Data(), _parent->Data());
+          auto tupleTemp = std::make_tuple(
+            _entity, _emitter->Data(), _parent->Data());
           bool found = false;
-          for (auto & data: this->newParticleEmitters)
+          for (auto & data : this->newParticleEmitters)
           {
             if (std::get<0>(data) == _entity)
             {
@@ -1385,70 +1509,11 @@ void RenderUtilPrivate::CreateRenderingEntities(
             }
           }
           if (!found)
-          {
             this->newParticleEmitters.push_back(tupleTemp);
-          }
-
           return true;
         });
 
-    if (this->enableSensors)
-    {
-      // Create cameras
-      _ecm.Each<components::Camera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::Camera *_camera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _camera->Data(), _parent->Data(),
-                         cameraSuffix);
-            return true;
-          });
-
-      // Create depth cameras
-      _ecm.Each<components::DepthCamera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::DepthCamera *_depthCamera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _depthCamera->Data(), _parent->Data(),
-                         depthCameraSuffix);
-            return true;
-          });
-
-      // Create rgbd cameras
-      _ecm.Each<components::RgbdCamera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::RgbdCamera *_rgbdCamera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _rgbdCamera->Data(), _parent->Data(),
-                         rgbdCameraSuffix);
-            return true;
-          });
-
-      // Create gpu lidar
-      _ecm.Each<components::GpuLidar, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::GpuLidar *_gpuLidar,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _gpuLidar->Data(), _parent->Data(),
-                         gpuLidarSuffix);
-            return true;
-          });
-
-      // Create thermal camera
-      _ecm.Each<components::ThermalCamera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::ThermalCamera *_thermalCamera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _thermalCamera->Data(), _parent->Data(),
-                         thermalCameraSuffix);
-            return true;
-          });
-    }
+    this->AddSensors(_ecm);
     this->initialized = true;
   }
   else
@@ -1484,7 +1549,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
             auto tupleTemp = std::make_tuple(_entity, model, _parent->Data(),
               _info.iterations);
             bool found = false;
-            for (auto & data: this->newModels)
+            for (auto & data : this->newModels)
             {
               if (std::get<0>(data) == _entity)
               {
@@ -1493,9 +1558,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
               }
             }
             if (!found)
-            {
               this->newModels.push_back(tupleTemp);
-            }
           }
           return true;
         });
@@ -1516,7 +1579,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
           {
             auto tupleTemp = std::make_tuple(_entity, link, _parent->Data());
             bool found = false;
-            for (auto & data: this->newLinks)
+            for (auto & data : this->newLinks)
             {
               if (std::get<0>(data) == _entity)
               {
@@ -1525,11 +1588,8 @@ void RenderUtilPrivate::CreateRenderingEntities(
               }
             }
             if (!found)
-            {
               this->newLinks.push_back(tupleTemp);
-            }
           }
-
           // used for collsions
           this->modelToLinkEntities[_parent->Data()].push_back(_entity);
           return true;
@@ -1602,7 +1662,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
           {
             auto tupleTemp = std::make_tuple(_entity, visual, _parent->Data());
             bool found = false;
-            for (auto & data: this->newVisuals)
+            for (auto & data : this->newVisuals)
             {
               if (std::get<0>(data) == _entity)
               {
@@ -1611,11 +1671,8 @@ void RenderUtilPrivate::CreateRenderingEntities(
               }
             }
             if (!found)
-            {
               this->newVisuals.push_back(tupleTemp);
-            }
           }
-
           return true;
         });
 
@@ -1628,9 +1685,10 @@ void RenderUtilPrivate::CreateRenderingEntities(
           auto node = this->sceneManager.NodeById(_entity);
           if (!node)
           {
-            auto tupleTemp = std::make_tuple(_entity, _actor->Data(), _parent->Data());
+            auto tupleTemp = std::make_tuple(
+              _entity, _actor->Data(), _parent->Data());
             bool found = false;
-            for (auto & data: this->newActors)
+            for (auto & data : this->newActors)
             {
               if (std::get<0>(data) == _entity)
               {
@@ -1639,11 +1697,8 @@ void RenderUtilPrivate::CreateRenderingEntities(
               }
             }
             if (!found)
-            {
               this->newActors.push_back(tupleTemp);
-            }
           }
-
           return true;
         });
 
@@ -1656,9 +1711,10 @@ void RenderUtilPrivate::CreateRenderingEntities(
           auto node = this->sceneManager.NodeById(_entity);
           if (!node)
           {
-            auto tupleTemp = std::make_tuple(_entity, _light->Data(), _parent->Data());
+            auto tupleTemp = std::make_tuple(
+              _entity, _light->Data(), _parent->Data());
             bool found = false;
-            for (auto & data: this->newLights)
+            for (auto & data : this->newLights)
             {
               if (std::get<0>(data) == _entity)
               {
@@ -1667,9 +1723,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
               }
             }
             if (!found)
-            {
               this->newLights.push_back(tupleTemp);
-            }
           }
           return true;
         });
@@ -1700,9 +1754,10 @@ void RenderUtilPrivate::CreateRenderingEntities(
           auto node = this->sceneManager.NodeById(_entity);
           if (!node)
           {
-            auto tupleTemp = std::make_tuple(_entity, _emitter->Data(), _parent->Data());
+            auto tupleTemp = std::make_tuple(
+              _entity, _emitter->Data(), _parent->Data());
             bool found = false;
-            for (auto & data: this->newParticleEmitters)
+            for (auto & data : this->newParticleEmitters)
             {
               if (std::get<0>(data) == _entity)
               {
@@ -1711,70 +1766,12 @@ void RenderUtilPrivate::CreateRenderingEntities(
               }
             }
             if (!found)
-            {
               this->newParticleEmitters.push_back(tupleTemp);
-            }
           }
           return true;
         });
 
-    if (this->enableSensors)
-    {
-      // Create cameras
-      _ecm.EachNew<components::Camera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::Camera *_camera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _camera->Data(), _parent->Data(),
-                         cameraSuffix);
-            return true;
-          });
-
-      // Create depth cameras
-      _ecm.EachNew<components::DepthCamera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::DepthCamera *_depthCamera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _depthCamera->Data(), _parent->Data(),
-                         depthCameraSuffix);
-            return true;
-          });
-
-      // Create RGBD cameras
-      _ecm.EachNew<components::RgbdCamera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::RgbdCamera *_rgbdCamera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _rgbdCamera->Data(), _parent->Data(),
-                         rgbdCameraSuffix);
-            return true;
-          });
-
-      // Create gpu lidar
-      _ecm.EachNew<components::GpuLidar, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::GpuLidar *_gpuLidar,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _gpuLidar->Data(), _parent->Data(),
-                         gpuLidarSuffix);
-            return true;
-          });
-
-      // Create thermal camera
-      _ecm.EachNew<components::ThermalCamera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::ThermalCamera *_thermalCamera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _thermalCamera->Data(), _parent->Data(),
-                         thermalCameraSuffix);
-            return true;
-          });
-    }
+    this->AddSensors(_ecm);
   }
 }
 

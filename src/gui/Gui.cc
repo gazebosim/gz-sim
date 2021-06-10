@@ -182,7 +182,8 @@ std::unique_ptr<ignition::gui::Application> createGui(
 # pragma warning(push)
 # pragma warning(disable: 4996)
 #endif
-    auto runner = new ignition::gazebo::GuiRunner(worldsMsg.data(0), sharedEcm, sharedEventManager, sameProcess);
+    auto runner = new ignition::gazebo::GuiRunner(
+      worldsMsg.data(0), sharedEcm, sharedEventManager, sameProcess);
 #ifndef _WIN32
 # pragma GCC diagnostic pop
 #else
@@ -246,7 +247,8 @@ std::unique_ptr<ignition::gui::Application> createGui(
 # pragma warning(push)
 # pragma warning(disable: 4996)
 #endif
-      auto runner = new ignition::gazebo::GuiRunner(worldName, sharedEcm, sharedEventManager, sameProcess);
+      auto runner = new ignition::gazebo::GuiRunner(
+        worldName, sharedEcm, sharedEventManager, sameProcess);
 #ifndef _WIN32
 # pragma GCC diagnostic pop
 #else
