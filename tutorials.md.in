@@ -29,6 +29,7 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage videorecorder "Video Recorder": Record videos from the 3D render window.
 * \subpage collada_world_exporter "Collada World Exporter": Export an entire
 world to a single Collada mesh.
+* \subpage underwater_vehicles "Underwater Vehicles": Understand how to simulate underwater vehicles.
 
 **Migration from Gazebo classic**
 
