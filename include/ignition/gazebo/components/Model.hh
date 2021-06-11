@@ -43,7 +43,17 @@ namespace serializers
     public: static std::ostream &Serialize(std::ostream &_out,
                 const sdf::Model &_model)
     {
-      _out << _model.Element()->GetParent()->ToString("");
+      sdf::ElementPtr modelElem = _model.Element();
+      if (!modelElem)
+      {
+        ignerr << "Unable to serialize sdf::Model" << std::endl;
+        return _out;
+      }
+
+      _out << "<?xml version=\"1.0\" ?>"
+           << "<sdf version='" << modelElem->OriginalVersion() << "'>"
+           << modelElem->ToString("")
+           << "</sdf>";
       return _out;
     }
 

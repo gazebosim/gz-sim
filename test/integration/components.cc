@@ -1108,15 +1108,25 @@ TEST_F(ComponentsTest, ModelSdf)
   stream
     << "<?xml version=\"1.0\" ?>"
     << "<sdf version='" << version << "'>"
-    << "<model name='my_model'>"
-    << "  <link name='link'>"
-    << "    <light type= 'point' name='my_light'>"
-    << "      <pose>0.1 0 0 0 0 0</pose>"
-    << "      <diffuse>0.2 0.3 0.4 1</diffuse>"
-    << "      <specular>0.3 0.4 0.5 1</specular>"
-    << "    </light>"
-    << "  </link>"
-    << "</model>"
+    << "  <world name=\"modelSDF\">"
+    << "    <physics name=\"1ms\" type=\"ode\">"
+    << "      <max_step_size>0.001</max_step_size>"
+    << "      <real_time_factor>1.0</real_time_factor>"
+    << "    </physics>"
+    << "    <plugin"
+    << "      filename=\"ignition-gazebo-physics-system\""
+    << "      name=\"ignition::gazebo::systems::Physics\">"
+    << "    </plugin>"
+    << "    <model name='my_model'>"
+    << "      <link name='link'>"
+    << "        <light type= 'point' name='my_light'>"
+    << "          <pose>0.1 0 0 0 0 0</pose>"
+    << "          <diffuse>0.2 0.3 0.4 1</diffuse>"
+    << "          <specular>0.3 0.4 0.5 1</specular>"
+    << "        </light>"
+    << "      </link>"
+    << "    </model>"
+    << "  </world>"
     << "</sdf>";
 
   sdf::SDFPtr sdfParsed(new sdf::SDF());
@@ -1124,8 +1134,10 @@ TEST_F(ComponentsTest, ModelSdf)
   ASSERT_TRUE(sdf::readString(stream.str(), sdfParsed));
 
   // model
-  EXPECT_TRUE(sdfParsed->Root()->HasElement("model"));
-  sdf::ElementPtr modelElem = sdfParsed->Root()->GetElement("model");
+  EXPECT_TRUE(sdfParsed->Root()->HasElement("world"));
+  sdf::ElementPtr worldElem = sdfParsed->Root()->GetElement("world");
+  EXPECT_TRUE(worldElem->HasElement("model"));
+  sdf::ElementPtr modelElem = worldElem->GetElement("model");
   EXPECT_TRUE(modelElem->HasAttribute("name"));
   EXPECT_EQ(modelElem->Get<std::string>("name"), "my_model");
 
