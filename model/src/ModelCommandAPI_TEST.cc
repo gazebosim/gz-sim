@@ -1,0 +1,333 @@
+/*
+ * Copyright (C) 2021 Open Source Robotics Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+*/
+
+#include "cmd/ModelCommandAPI.hh"
+
+#include <cstdio>
+#include <cstdlib>
+#include <string>
+
+#include <gtest/gtest.h>
+
+#include "ignition/gazebo/Server.hh"
+
+static const std::string kIgnModelCommand(std::string(IGN_PATH) +
+                                          "/ign model ");
+
+
+/////////////////////////////////////////////////
+// Used to avoid the cases where the zero is represented as a negative number.
+std::string ReplaceNegativeZeroValues(std::string s)
+{
+  std::string neg_zero{"-0.000000"};
+  std::string zero{"0.000000"};
+  size_t pos = 0;
+  while ((pos = s.find(neg_zero, pos)) != std::string::npos)
+  {
+        s.replace(pos, neg_zero.length(), zero);
+        pos += zero.length();
+  }
+  return s;
+}
+
+/////////////////////////////////////////////////
+std::string customExecStr(std::string _cmd)
+{
+  _cmd += " 2>&1";
+  FILE *pipe = popen(_cmd.c_str(), "r");
+
+  if (!pipe)
+    return "ERROR";
+
+  char buffer[128];
+  std::string result = "";
+
+  while (!feof(pipe))
+  {
+    if (fgets(buffer, 128, pipe) != nullptr)
+    {
+      result += buffer;
+    }
+  }
+
+  pclose(pipe);
+  return result;
+}
+
+// Test `ign model` command when no Gazebo server is running.
+TEST(ModelCommandAPI, NoServerRunning)
+{
+  const std::string cmd = kIgnModelCommand + "--list ";
+  const std::string output = customExecStr(cmd);
+  const std::string expectedOutput{
+        "\nService call to [/gazebo/worlds] timed out\n"};
+  EXPECT_EQ(expectedOutput, output);
+}
+
+// Tests `ign model` command.
+TEST(ModelCommandAPI, Commands)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+  // Using an static model to avoid any movements in the simulation.
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+                          "/test/worlds/static_diff_drive_vehicle.sdf");
+
+  ignition::gazebo::Server server(serverConfig);
+  // Run at least one iteration before continuing to guarantee correctly set up.
+  ASSERT_TRUE(server.Run(true, 5, false));
+  // Run without blocking.
+  server.Run(false, 0, false);
+
+  // Tested command: ign model --list
+  {
+    const std::string cmd = kIgnModelCommand + "--list";
+    const std::string output = customExecStr(cmd);
+    const std::string expectedOutput =
+      "Available models:\n"
+      "    - ground_plane\n"
+      "    - vehicle_blue\n";
+    EXPECT_EQ(expectedOutput, output);
+  }
+
+  // Tested command: ign model -m vehicle_blue
+  {
+    const std::string cmd = kIgnModelCommand + "-m vehicle_blue";
+    const std::string output = customExecStr(cmd);
+    const std::string non_neg_zero_output = ReplaceNegativeZeroValues(output);
+    const std::string expectedOutput =
+      "\nRequesting state for world [diff_drive] on service "
+      "[/world/diff_drive/state]...\n\n"
+      "Name: vehicle_blue\n"
+      "  - Pose: \n"
+      "      [0.000000 | 2.000000 | 0.325000]\n"
+      "      [0.000000 | 0.000000 | 0.000000]\n"
+      "\n"
+      "  - Link [9]\n"
+      "    - Name: chassis\n"
+      "    - Parent: vehicle_blue [8]\n"
+      "    - Mass: [1.143950]\n"
+      "    - Inertial Matrix: \n"
+      "        [0.126164 | 0.000000 | 0.000000]\n"
+      "        [0.000000 | 0.416519 | 0.000000]\n"
+      "        [0.000000 | 0.000000 | 0.481014]\n"
+      "    - Pose: \n"
+      "        [-0.151427 | 0.000000 | 0.175000]\n"
+      "        [0.000000 | 0.000000 | 0.000000]\n"
+      "  - Link [12]\n"
+      "    - Name: left_wheel\n"
+      "    - Parent: vehicle_blue [8]\n"
+      "    - Mass: [2.000000]\n"
+      "    - Inertial Matrix: \n"
+      "        [0.145833 | 0.000000 | 0.000000]\n"
+      "        [0.000000 | 0.145833 | 0.000000]\n"
+      "        [0.000000 | 0.000000 | 0.125000]\n"
+      "    - Pose: \n"
+      "        [0.554283 | 0.625029 | -0.025000]\n"
+      "        [-1.570700 | 0.000000 | 0.000000]\n"
+      "  - Link [15]\n"
+      "    - Name: right_wheel\n"
+      "    - Parent: vehicle_blue [8]\n"
+      "    - Mass: [2.000000]\n"
+      "    - Inertial Matrix: \n"
+      "        [0.145833 | 0.000000 | 0.000000]\n"
+      "        [0.000000 | 0.145833 | 0.000000]\n"
+      "        [0.000000 | 0.000000 | 0.125000]\n"
+      "    - Pose: \n"
+      "        [0.554282 | -0.625029 | -0.025000]\n"
+      "        [-1.570700 | 0.000000 | 0.000000]\n"
+      "  - Link [18]\n"
+      "    - Name: caster\n"
+      "    - Parent: vehicle_blue [8]\n"
+      "    - Mass: [1.000000]\n"
+      "    - Inertial Matrix: \n"
+      "        [0.100000 | 0.000000 | 0.000000]\n"
+      "        [0.000000 | 0.100000 | 0.000000]\n"
+      "        [0.000000 | 0.000000 | 0.100000]\n"
+      "    - Pose: \n"
+      "        [-0.957138 | 0.000000 | -0.125000]\n"
+      "        [0.000000 | 0.000000 | 0.000000]\n"
+      "  - Joint [21]\n"
+      "    - Name: left_wheel_joint\n"
+      "    - Parent: vehicle_blue [8]\n"
+      "    - Joint type:  revolute\n"
+      "    - Parent Link: [left_wheel]\n"
+      "    - Child Link:  [chassis]\n"
+      "  - Joint [22]\n"
+      "    - Name: right_wheel_joint\n"
+      "    - Parent: vehicle_blue [8]\n"
+      "    - Joint type:  revolute\n"
+      "    - Parent Link: [right_wheel]\n"
+      "    - Child Link:  [chassis]\n"
+      "  - Joint [23]\n"
+      "    - Name: caster_wheel\n"
+      "    - Parent: vehicle_blue [8]\n"
+      "    - Joint type:  ball\n"
+      "    - Parent Link: [caster]\n"
+      "    - Child Link:  [chassis]\n";
+    EXPECT_EQ(expectedOutput, non_neg_zero_output);
+  }
+
+  // Tested command: ign model -m vehicle_blue --pose
+  {
+    const std::string cmd = kIgnModelCommand + "-m vehicle_blue --pose ";
+    const std::string output = customExecStr(cmd);
+    const std::string non_neg_zero_output = ReplaceNegativeZeroValues(output);
+    const std::string expectedOutput =
+      "\nRequesting state for world [diff_drive] on service "
+      "[/world/diff_drive/state]...\n\n"
+      "Name: vehicle_blue\n"
+      "  - Pose: \n"
+      "      [0.000000 | 2.000000 | 0.325000]\n"
+      "      [0.000000 | 0.000000 | 0.000000]\n\n";
+    EXPECT_EQ(expectedOutput, non_neg_zero_output);
+  }
+
+  // Tested command: ign model -m vehicle_blue --link
+  {
+    const std::string cmd = kIgnModelCommand +
+                            "-m vehicle_blue --link";
+    const std::string output = customExecStr(cmd);
+    const std::string non_neg_zero_output = ReplaceNegativeZeroValues(output);
+    const std::string expectedOutput =
+      "\nRequesting state for world [diff_drive] on service "
+      "[/world/diff_drive/state]...\n\n"
+
+      "  - Link [9]\n"
+      "    - Name: chassis\n"
+      "    - Parent: vehicle_blue [8]\n"
+      "    - Mass: [1.143950]\n"
+      "    - Inertial Matrix: \n"
+      "        [0.126164 | 0.000000 | 0.000000]\n"
+      "        [0.000000 | 0.416519 | 0.000000]\n"
+      "        [0.000000 | 0.000000 | 0.481014]\n"
+      "    - Pose: \n"
+      "        [-0.151427 | 0.000000 | 0.175000]\n"
+      "        [0.000000 | 0.000000 | 0.000000]\n"
+      "  - Link [12]\n"
+      "    - Name: left_wheel\n"
+      "    - Parent: vehicle_blue [8]\n"
+      "    - Mass: [2.000000]\n"
+      "    - Inertial Matrix: \n"
+      "        [0.145833 | 0.000000 | 0.000000]\n"
+      "        [0.000000 | 0.145833 | 0.000000]\n"
+      "        [0.000000 | 0.000000 | 0.125000]\n"
+      "    - Pose: \n"
+      "        [0.554283 | 0.625029 | -0.025000]\n"
+      "        [-1.570700 | 0.000000 | 0.000000]\n"
+      "  - Link [15]\n"
+      "    - Name: right_wheel\n"
+      "    - Parent: vehicle_blue [8]\n"
+      "    - Mass: [2.000000]\n"
+      "    - Inertial Matrix: \n"
+      "        [0.145833 | 0.000000 | 0.000000]\n"
+      "        [0.000000 | 0.145833 | 0.000000]\n"
+      "        [0.000000 | 0.000000 | 0.125000]\n"
+      "    - Pose: \n"
+      "        [0.554282 | -0.625029 | -0.025000]\n"
+      "        [-1.570700 | 0.000000 | 0.000000]\n"
+      "  - Link [18]\n"
+      "    - Name: caster\n"
+      "    - Parent: vehicle_blue [8]\n"
+      "    - Mass: [1.000000]\n"
+      "    - Inertial Matrix: \n"
+      "        [0.100000 | 0.000000 | 0.000000]\n"
+      "        [0.000000 | 0.100000 | 0.000000]\n"
+      "        [0.000000 | 0.000000 | 0.100000]\n"
+      "    - Pose: \n"
+      "        [-0.957138 | 0.000000 | -0.125000]\n"
+      "        [0.000000 | 0.000000 | 0.000000]\n";
+    EXPECT_EQ(expectedOutput, non_neg_zero_output);
+  }
+
+  // Tested command: ign model -m vehicle_blue --link caster
+  {
+    const std::string cmd = kIgnModelCommand +
+                            "-m vehicle_blue --link caster";
+    const std::string output = customExecStr(cmd);
+    const std::string non_neg_zero_output = ReplaceNegativeZeroValues(output);
+    const std::string expectedOutput =
+      "\nRequesting state for world [diff_drive] on service "
+      "[/world/diff_drive/state]...\n\n"
+      "  - Link [18]\n"
+      "    - Name: caster\n"
+      "    - Parent: vehicle_blue [8]\n"
+      "    - Mass: [1.000000]\n"
+      "    - Inertial Matrix: \n"
+      "        [0.100000 | 0.000000 | 0.000000]\n"
+      "        [0.000000 | 0.100000 | 0.000000]\n"
+      "        [0.000000 | 0.000000 | 0.100000]\n"
+      "    - Pose: \n"
+      "        [-0.957138 | 0.000000 | -0.125000]\n"
+      "        [0.000000 | 0.000000 | 0.000000]\n";
+    EXPECT_EQ(expectedOutput, non_neg_zero_output);
+  }
+
+  // Tested command: ign model -m vehicle_blue --joint
+  {
+    const std::string cmd = kIgnModelCommand +
+                            "-m vehicle_blue --joint";
+    const std::string output = customExecStr(cmd);
+    const std::string non_neg_zero_output = ReplaceNegativeZeroValues(output);
+    const std::string expectedOutput =
+      "\nRequesting state for world [diff_drive] on service "
+      "[/world/diff_drive/state]...\n\n"
+      "  - Joint [21]\n"
+      "    - Name: left_wheel_joint\n"
+      "    - Parent: vehicle_blue [8]\n"
+      "    - Joint type:  revolute\n"
+      "    - Parent Link: [left_wheel]\n"
+      "    - Child Link:  [chassis]\n"
+      "  - Joint [22]\n"
+      "    - Name: right_wheel_joint\n"
+      "    - Parent: vehicle_blue [8]\n"
+      "    - Joint type:  revolute\n"
+      "    - Parent Link: [right_wheel]\n"
+      "    - Child Link:  [chassis]\n"
+      "  - Joint [23]\n"
+      "    - Name: caster_wheel\n"
+      "    - Parent: vehicle_blue [8]\n"
+      "    - Joint type:  ball\n"
+      "    - Parent Link: [caster]\n"
+      "    - Child Link:  [chassis]\n";
+    EXPECT_EQ(expectedOutput, non_neg_zero_output);
+  }
+
+  // Tested command: ign model -m vehicle_blue --joint caster_wheel
+  {
+    const std::string cmd = kIgnModelCommand +
+                            "-m vehicle_blue --joint caster_wheel";
+    const std::string output = customExecStr(cmd);
+    const std::string non_neg_zero_output = ReplaceNegativeZeroValues(output);
+    const std::string expectedOutput =
+      "\nRequesting state for world [diff_drive] on service "
+      "[/world/diff_drive/state]...\n\n"
+      "  - Joint [23]\n"
+      "    - Name: caster_wheel\n"
+      "    - Parent: vehicle_blue [8]\n"
+      "    - Joint type:  ball\n"
+      "    - Parent Link: [caster]\n"
+      "    - Child Link:  [chassis]\n";
+    EXPECT_EQ(expectedOutput, non_neg_zero_output);
+  }
+}
+
+//////////////////////////////////////////////////
+int main(int argc, char **argv)
+{
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}
