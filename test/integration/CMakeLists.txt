@@ -63,6 +63,7 @@ set(tests_needing_display
   camera_video_record_system.cc
   depth_camera.cc
   gpu_lidar.cc
+  optical_tactile_plugin.cc
   rgbd_camera.cc
   sensors_system.cc
   thermal_system.cc
