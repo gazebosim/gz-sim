@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2021 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@
 #define IGNITION_GAZEBO_SYSTEMS_LABEL_HH_
 
 #include <memory>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/System.hh>
+#include "ignition/gazebo/config.hh"
+#include "ignition/gazebo/System.hh"
 
 namespace ignition
 {

@@ -38,10 +38,12 @@
 
 #include "ignition/gazebo/components/Atmosphere.hh"
 #include "ignition/gazebo/components/Camera.hh"
+#include "ignition/gazebo/components/BoundingBoxCamera.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/RenderEngineServerPlugin.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
+#include "ignition/gazebo/components/SegmentationCamera.hh"
 #include "ignition/gazebo/components/ThermalCamera.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Events.hh"
@@ -442,7 +444,10 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
        _ecm.HasComponentType(components::DepthCamera::typeId) ||
        _ecm.HasComponentType(components::GpuLidar::typeId) ||
        _ecm.HasComponentType(components::RgbdCamera::typeId) ||
-       _ecm.HasComponentType(components::ThermalCamera::typeId)))
+       _ecm.HasComponentType(components::ThermalCamera::typeId) ||
+       _ecm.HasComponentType(components::SegmentationCamera::typeId) ||
+       _ecm.HasComponentType(components::BoundingBoxCamera::typeId)
+       ))
   {
     igndbg << "Initialization needed" << std::endl;
     std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);

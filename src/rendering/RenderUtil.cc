@@ -54,6 +54,7 @@
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/CastShadows.hh"
 #include "ignition/gazebo/components/Collision.hh"
+#include "ignition/gazebo/components/BoundingBoxCamera.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Geometry.hh"
@@ -70,6 +71,7 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/Scene.hh"
+#include "ignition/gazebo/components/SegmentationCamera.hh"
 #include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/Temperature.hh"
 #include "ignition/gazebo/components/TemperatureRange.hh"
@@ -686,7 +688,9 @@ void RenderUtil::Update()
     if (scene.Grid() && !this->dataPtr->enableSensors)
       this->ShowGrid();
     if (scene.Sky())
+    {
       this->dataPtr->scene->SetSkyEnabled(true);
+    }
 
     // only one scene so break
     break;
@@ -1066,9 +1070,7 @@ void RenderUtil::Update()
         // update actor trajectory animation
         math::Pose3d globalPose;
         if (entityPoses.find(it.first) != entityPoses.end())
-        {
           globalPose = entityPoses[it.first];
-        }
 
         math::Pose3d trajPose;
         // Trajectory from the ECS
@@ -1250,6 +1252,8 @@ void RenderUtilPrivate::CreateRenderingEntities(
   const std::string rgbdCameraSuffix{""};
   const std::string thermalCameraSuffix{"/image"};
   const std::string gpuLidarSuffix{"/scan"};
+  const std::string segmentationCameraSuffix{"/segmentation"};
+  const std::string boundingBoxCameraSuffix{"/boundingbox"};
 
   // Treat all pre-existent entities as new at startup
   // TODO(anyone) refactor Each and EachNew below to reduce duplicate code
@@ -1487,6 +1491,28 @@ void RenderUtilPrivate::CreateRenderingEntities(
           {
             addNewSensor(_entity, _thermalCamera->Data(), _parent->Data(),
                          thermalCameraSuffix);
+            return true;
+          });
+
+      // Create segmentation cameras
+      _ecm.Each<components::SegmentationCamera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::SegmentationCamera *_segmentationCamera,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _segmentationCamera->Data(),
+              _parent->Data(), segmentationCameraSuffix);
+            return true;
+          });
+
+      // Create bounding box cameras
+      _ecm.Each<components::BoundingBoxCamera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::BoundingBoxCamera *_boundingBoxCamera,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _boundingBoxCamera->Data(),
+              _parent->Data(), boundingBoxCameraSuffix);
             return true;
           });
     }
@@ -1727,6 +1753,28 @@ void RenderUtilPrivate::CreateRenderingEntities(
                          thermalCameraSuffix);
             return true;
           });
+
+      // Create segmentation cameras
+      _ecm.EachNew<components::SegmentationCamera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::SegmentationCamera *_segmentationCamera,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _segmentationCamera->Data(),
+              _parent->Data(), segmentationCameraSuffix);
+            return true;
+          });
+
+      // Create bounding box cameras
+      _ecm.EachNew<components::BoundingBoxCamera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::BoundingBoxCamera *_boundingBoxCamera,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _boundingBoxCamera->Data(),
+              _parent->Data(), boundingBoxCameraSuffix);
+            return true;
+          });
     }
   }
 }
@@ -1878,6 +1926,26 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         this->entityPoses[_entity] = _pose->Data();
         return true;
       });
+
+  // Update segmentation cameras
+  _ecm.Each<components::SegmentationCamera, components::Pose>(
+      [&](const Entity &_entity,
+        const components::SegmentationCamera *,
+        const components::Pose *_pose)->bool
+      {
+        this->entityPoses[_entity] = _pose->Data();
+        return true;
+      });
+
+  // Update bounding box cameras
+  _ecm.Each<components::BoundingBoxCamera, components::Pose>(
+      [&](const Entity &_entity,
+        const components::BoundingBoxCamera *,
+        const components::Pose *_pose)->bool
+      {
+        this->entityPoses[_entity] = _pose->Data();
+        return true;
+      });
 }
 
 //////////////////////////////////////////////////
@@ -1965,6 +2033,22 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   // thermal cameras
   _ecm.EachRemoved<components::ThermalCamera>(
     [&](const Entity &_entity, const components::ThermalCamera *)->bool
+      {
+        this->removeEntities[_entity] = _info.iterations;
+        return true;
+      });
+
+  // segmentation cameras
+  _ecm.EachRemoved<components::SegmentationCamera>(
+    [&](const Entity &_entity, const components::SegmentationCamera *)->bool
+      {
+        this->removeEntities[_entity] = _info.iterations;
+        return true;
+      });
+
+  // bounding box cameras
+  _ecm.EachRemoved<components::BoundingBoxCamera>(
+    [&](const Entity &_entity, const components::BoundingBoxCamera *)->bool
       {
         this->removeEntities[_entity] = _info.iterations;
         return true;
