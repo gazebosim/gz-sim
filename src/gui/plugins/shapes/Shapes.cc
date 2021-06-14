@@ -31,7 +31,6 @@
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/Publisher.hh>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
 namespace ignition::gazebo
