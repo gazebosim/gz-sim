@@ -39,6 +39,7 @@
 #include <ignition/transport/Node.hh>
 
 #include "ignition/common/Profiler.hh"
+#include "ignition/common/MeshManager.hh"
 
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/LightCmd.hh"
@@ -806,6 +807,16 @@ bool RemoveCommand::Execute()
            << std::endl;
     return false;
   }
+
+  auto modelsdf = this->iface->ecm->Component<components::ModelSdf>(entity);
+  if (!modelsdf)
+  {
+    ignerr << "Invalid Model pointer. This shouldn't happen\n";
+  }
+
+  ignition::common::MeshManager *meshManager =
+      ignition::common::MeshManager::Instance();
+  meshManager->RemoveMesh(modelsdf->Data().Name());
 
   igndbg << "Requesting removal of entity [" << entity << "]" << std::endl;
   this->iface->creator->RequestRemoveEntity(entity);
