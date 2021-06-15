@@ -55,7 +55,7 @@ class DiffDriveTest : public ::testing::TestWithParam<int>
                                  const std::string &_odomTopic)
   {
     /// \param[in] forward If forward is true, the 'max_acceleration'
-    // an 'max_velocity' properties are tested, as the movement
+    // and 'max_velocity' properties are tested, as the movement
     // is forward, otherwise 'min_acceleration' and 'min_velocity'
     // properties are tested.
     auto testCmdVel = [&](bool forward){
@@ -204,16 +204,11 @@ class DiffDriveTest : public ::testing::TestWithParam<int>
       double v = d / t;
       double a = (v - v0) / t;
 
-      if(forward)
-      {
-        EXPECT_LT(v, 0.5);
-        EXPECT_LT(a, 1);
-      }
-      else
-      {
-        EXPECT_GT(v, -0.5);
-        EXPECT_GT(a, -1);
-      }
+      EXPECT_LT(v, 0.5);
+      EXPECT_LT(a, 1);
+      EXPECT_GT(v, -0.5);
+      EXPECT_GT(a, -1);
+
     };
 
   testCmdVel(true /*test forward movement*/);
