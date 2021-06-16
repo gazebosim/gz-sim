@@ -2563,6 +2563,66 @@ TEST_P(EntityComponentManagerFixture, RemovedComponentsSyncBetweenServerAndGUI)
   }
 }
 
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, LockEntity)
+{
+  // Create some entities
+  auto e1 = manager.CreateEntity();
+  EXPECT_EQ(1u, e1);
+  EXPECT_TRUE(manager.HasEntity(e1));
+
+  auto e2 = manager.CreateEntity();
+  EXPECT_TRUE(manager.SetParentEntity(e2, e1));
+  EXPECT_EQ(2u, e2);
+  EXPECT_TRUE(manager.HasEntity(e2));
+
+  auto e3 = manager.CreateEntity();
+  EXPECT_EQ(3u, e3);
+  EXPECT_TRUE(manager.HasEntity(e3));
+
+  EXPECT_EQ(3u, manager.EntityCount());
+
+  // Lock e1, which should also lock its child entity e2
+  manager.LockEntity(e1);
+
+  // Try to remove e1, which is locked entity
+  manager.RequestRemoveEntity(e1);
+  EXPECT_EQ(3u, manager.EntityCount());
+  EXPECT_FALSE(manager.HasEntitiesMarkedForRemoval());
+  manager.ProcessEntityRemovals();
+  EXPECT_EQ(3u, manager.EntityCount());
+
+  // Try to remove e2, which has been locked recursively
+  manager.RequestRemoveEntity(e2);
+  EXPECT_EQ(3u, manager.EntityCount());
+  EXPECT_FALSE(manager.HasEntitiesMarkedForRemoval());
+  manager.ProcessEntityRemovals();
+  EXPECT_EQ(3u, manager.EntityCount());
+
+  std::cout << "RequestRemoveEntities\n";
+  // Try to remove all entities, which should leave just e1 and e2
+  manager.RequestRemoveEntities();
+  std::cout << "RequestRemoveEntities Done\n";
+  EXPECT_TRUE(manager.HasEntitiesMarkedForRemoval());
+  manager.ProcessEntityRemovals();
+  EXPECT_EQ(2u, manager.EntityCount());
+
+  // Unlock e2, and now it should be removable.
+  manager.UnlockEntity(e2);
+  manager.RequestRemoveEntity(e2);
+  EXPECT_EQ(2u, manager.EntityCount());
+  EXPECT_TRUE(manager.HasEntitiesMarkedForRemoval());
+  manager.ProcessEntityRemovals();
+  EXPECT_EQ(1u, manager.EntityCount());
+
+  // Unlock all entities, and now it should be removable.
+  manager.UnlockAllEntities();
+  manager.RequestRemoveEntities();
+  EXPECT_TRUE(manager.HasEntitiesMarkedForRemoval());
+  manager.ProcessEntityRemovals();
+  EXPECT_EQ(0u, manager.EntityCount());
+}
+
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
 INSTANTIATE_TEST_SUITE_P(EntityComponentManagerRepeat,

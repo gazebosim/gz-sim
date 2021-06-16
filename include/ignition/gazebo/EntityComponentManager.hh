@@ -91,6 +91,35 @@ namespace ignition
       public: void RequestRemoveEntity(const Entity _entity,
           bool _recursive = true);
 
+      /// \brief Prevent an entity and optionally its children from
+      /// being removed.
+      ///
+      /// This function can be useful when seek operations during log
+      /// playback are used in conjunciton with spawned entities. For
+      /// example, you may want to record a video based on a log file
+      /// using a headless simulation instance. This requires a
+      /// camera sensor which would be spawned during log playback. If
+      /// a seek backward in time is performed during log playback, then the
+      /// spawned camera would be removed. Use this function to prevent the
+      /// camera from automatic removal.
+      ///
+      /// \param[in] _entity Entity to be locked.
+      /// \param[in] _recursive Whether to recursively lock all child
+      /// entities. True by default.
+      public: void LockEntity(const Entity _entity, bool _recursive = true);
+
+      /// \brief Allow a previously lock entity and optionally its children
+      /// to be removed.
+      /// \param[in] _entity Entity to be unlocked.
+      /// \param[in] _recursive Whether to recursively unlock all child
+      /// entities. True by default.
+      /// \sa void LockEntity(const Entity, bool)
+      public: void UnlockEntity(const Entity _entity, bool _recursive = true);
+
+      /// \brief Allow all previously locked entitied to be removed.
+      /// \sa void LockEntity(const Entity, bool)
+      public: void UnlockAllEntities();
+
       /// \brief Request to remove all entities. This will insert the request
       /// into a queue. The queue is processed toward the end of a simulation
       /// update step.

@@ -37,10 +37,14 @@ namespace systems
   **/
   /// \brief Record video from a camera sensor
   /// The system takes in the following parameter:
-  ///   <topic>    Name of topic for the video recorder service. If this is
+  ///   <service>  Name of topic for the video recorder service. If this is
   ///              not specified, the topic defaults to:
   ///              /world/<world_name/model/<model_name>/link/<link_name>/
   ///                  sensor/<sensor_name>/record_video
+  ///   <use_sim_time> True/false value that specified if the video should
+  //                   be recorded using simulation time or real time. The
+  //                   default is false, which indicates the use of real
+  //                   time.
   class CameraVideoRecorder:
     public System,
     public ISystemConfigure,
