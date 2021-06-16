@@ -1487,7 +1487,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
           return true;
         });
 
-    // inertias
+    // inertials
     _ecm.Each<components::Inertial, components::Pose>(
         [&](const Entity &_entity,
             const components::Inertial *_inrElement,
@@ -1728,7 +1728,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
           return true;
         });
 
-    // inertias
+    // inertials
     _ecm.EachNew<components::Inertial, components::Pose>(
         [&](const Entity &_entity,
             const components::Inertial *_inrElement,
