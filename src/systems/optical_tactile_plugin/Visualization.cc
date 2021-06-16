@@ -115,14 +115,14 @@ void OpticalTactilePluginVisualization::InitializeNormalForcesMarkerMsgs(
   ignition::msgs::Set(_positionMarkerMsg.mutable_material()->
     mutable_diffuse(), math::Color(0, 0, 1, 1));
   _positionMarkerMsg.mutable_lifetime()->set_nsec(
-    this->cameraUpdateRate * 1000000000);
+    static_cast<int>(this->cameraUpdateRate * 1000000000));
 
   ignition::msgs::Set(_forceMarkerMsg.mutable_material()->
     mutable_ambient(), math::Color(0, 1, 0, 1));
   ignition::msgs::Set(_forceMarkerMsg.mutable_material()->
     mutable_diffuse(), math::Color(0, 1, 0, 1));
   _forceMarkerMsg.mutable_lifetime()->set_sec(
-    this->cameraUpdateRate * 1000000000);
+    static_cast<int>(this->cameraUpdateRate * 1000000000));
 }
 
 //////////////////////////////////////////////////
