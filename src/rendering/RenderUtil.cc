@@ -2367,17 +2367,17 @@ void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
 /////////////////////////////////////////////////
 void RenderUtil::ViewInertia(const Entity &_entity)
 {
-  std::vector<Entity> inrLinks;
+  std::vector<Entity> inertiaLinks;
   if (this->dataPtr->modelToLinkEntities.find(_entity) !=
            this->dataPtr->modelToLinkEntities.end())
   {
     std::vector<Entity> links = this->dataPtr->modelToLinkEntities[_entity];
     for (const auto &link : links)
-      inrLinks.push_back(link);
+      inertiaLinks.push_back(link);
   }
   else
   {
-    inrLinks.push_back(_entity);
+    inertiaLinks.push_back(_entity);
   }
 
   if (this->dataPtr->modelToModelEntities.find(_entity) !=
@@ -2392,7 +2392,7 @@ void RenderUtil::ViewInertia(const Entity &_entity)
       Entity model = modelStack.top();
       modelStack.pop();
 
-      inrLinks.insert(inrLinks.end(),
+      inertiaLinks.insert(inertiaLinks.end(),
           this->dataPtr->modelToLinkEntities[model].begin(),
           this->dataPtr->modelToLinkEntities[model].end());
 
@@ -2405,55 +2405,54 @@ void RenderUtil::ViewInertia(const Entity &_entity)
   }
 
   // create and/or toggle inertia visuals
-
-  bool showInr, showInrInit = false;
+  bool showInertia, showInertiaInit = false;
   // first loop looks for new inertias
-  for (const auto &inrLink : inrLinks)
+  for (const auto &inertiaLink : inertiaLinks)
   {
-    if (this->dataPtr->viewingInertias.find(inrLink) ==
+    if (this->dataPtr->viewingInertias.find(inertiaLink) ==
         this->dataPtr->viewingInertias.end())
     {
       this->dataPtr->newInertias.push_back(_entity);
-      showInrInit = showInr = true;
+      showInertiaInit = showInertia = true;
     }
   }
 
   // second loop toggles already created inertias
-  for (const auto &inrLink : inrLinks)
+  for (const auto &inertiaLink : inertiaLinks)
   {
-    if (this->dataPtr->viewingInertias.find(inrLink) ==
+    if (this->dataPtr->viewingInertias.find(inertiaLink) ==
         this->dataPtr->viewingInertias.end())
       continue;
 
     // when viewing multiple inertias (e.g. _entity is a model),
     // boolean for view inertias is based on first inrEntity in list
-    if (!showInrInit)
+    if (!showInertiaInit)
     {
-      showInr = !this->dataPtr->viewingInertias[inrLink];
-      showInrInit = true;
+      showInertia = !this->dataPtr->viewingInertias[inertiaLink];
+      showInertiaInit = true;
     }
 
-    Entity inrVisualId = this->dataPtr->linkToInertiaVisuals[inrLink];
-    rendering::VisualPtr inrVisual =
-        this->dataPtr->sceneManager.VisualById(inrVisualId);
-    if (inrVisual == nullptr)
+    Entity inertiaVisualId = this->dataPtr->linkToInertiaVisuals[inertiaLink];
+    rendering::VisualPtr inertiaVisual =
+        this->dataPtr->sceneManager.VisualById(inertiaVisualId);
+    if (inertiaVisual == nullptr)
     {
-      ignerr << "Could not find inertia visual for entity [" << inrLink
+      ignerr << "Could not find inertia visual for entity [" << inertiaLink
              << "]" << std::endl;
       continue;
     }
 
-    this->dataPtr->viewingInertias[inrLink] = showInr;
-    inrVisual->SetVisible(showInr);
+    this->dataPtr->viewingInertias[inertiaLink] = showInertia;
+    inertiaVisual->SetVisible(showInertia);
 
-    if (showInr)
+    if (showInertia)
     {
       // turn off wireboxes for inertia entity
-      if (this->dataPtr->wireBoxes.find(inrVisualId)
+      if (this->dataPtr->wireBoxes.find(inertiaVisualId)
             != this->dataPtr->wireBoxes.end())
       {
         ignition::rendering::WireBoxPtr wireBox =
-          this->dataPtr->wireBoxes[inrVisualId];
+          this->dataPtr->wireBoxes[inertiaVisualId];
         auto visParent = wireBox->Parent();
         if (visParent)
           visParent->SetVisible(false);
