@@ -136,9 +136,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Create an inertia visual
     /// \param[in] _id Unique visual id
-    /// \param[in] _inertia Inertia sdf dom
+    /// \param[in] _inertial Inertial component of the link
     /// \param[in] _parentId Parent id
-    /// \return Visual (inertia) object created from the sdf dom
+    /// \return Visual (inertia) object created from the inertial
     public: rendering::VisualPtr CreateInertiaVisual(Entity _id,
         const math::Inertiald &_inertial, Entity _parentId = 0);
 
