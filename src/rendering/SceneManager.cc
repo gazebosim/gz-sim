@@ -1147,7 +1147,7 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
 }
 
 /////////////////////////////////////////////////
-rendering::VisualPtr SceneManager::CreateInertia(Entity _id,
+rendering::VisualPtr SceneManager::CreateInertiaVisual(Entity _id,
     const math::Inertiald &_inertia, Entity _parentId)
 {
   if (!this->dataPtr->scene)
@@ -1176,28 +1176,13 @@ rendering::VisualPtr SceneManager::CreateInertia(Entity _id,
   std::string name = std::to_string(_id);
   if (parent)
     name = parent->Name() + "::" + name;
-  
-  rendering::InertiaVisualPtr inertiaVisual = this->dataPtr->scene->CreateInertiaVisual(name);
-  auto pose = _inertia.Pose().Pos();
-  auto rot = _inertia.Pose().Rot();
-  auto m = _inertia.MassMatrix();
 
-  ignition::math::Vector3d boxScale;
-  ignition::math::Quaterniond boxRot;
-  if (!m.EquivalentBox(boxScale, boxRot))
-  {
-    // Invalid inertia, load with default scale
-    igndbg << "The link " << _parentId << " is static or has unrealistic "
-          << "inertia, so the equivalent inertia box will not be shown.\n";
-  }
-  else
-  {
-    // Apply additional rotation by boxRot
-    inertiaVisual->Load(ignition::math::Pose3d(pose, rot * boxRot), boxScale);
-  }
+  rendering::InertiaVisualPtr inertiaVisual =
+    this->dataPtr->scene->CreateInertiaVisual(name);
+  inertiaVisual->SetInertial(_inertia);
 
-  rendering::VisualPtr inertiaVis = std::dynamic_pointer_cast<rendering::Visual>(
-    inertiaVisual);
+  rendering::VisualPtr inertiaVis =
+    std::dynamic_pointer_cast<rendering::Visual>(inertiaVisual);
   inertiaVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   inertiaVis->SetUserData("pause-update", static_cast<int>(0));
   this->dataPtr->visuals[_id] = inertiaVis;

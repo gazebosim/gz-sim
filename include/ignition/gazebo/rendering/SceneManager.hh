@@ -134,12 +134,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: rendering::VisualPtr CreateVisual(Entity _id,
         const sdf::Visual &_visual, Entity _parentId = 0);
 
-    /// \brief Create a inertia visual
+    /// \brief Create an inertia visual
     /// \param[in] _id Unique visual id
     /// \param[in] _inertia Inertia sdf dom
     /// \param[in] _parentId Parent id
     /// \return Visual (inertia) object created from the sdf dom
-    public: rendering::VisualPtr CreateInertia(Entity _id,
+    public: rendering::VisualPtr CreateInertiaVisual(Entity _id,
         const math::Inertiald &_inertial, Entity _parentId = 0);
 
     /// \brief Create a collision visual
@@ -178,14 +178,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Light object created from the sdf dom
     public: rendering::VisualPtr CreateLightVisual(Entity _id,
         const sdf::Light &_light, Entity _parentId);
-
-    /// \brief Create a inertia visual
-    /// \param[in] _id Unique inertia id
-    /// \param[in] _inertia Inertia sdf dom
-    /// \param[in] _parentId Parent id
-    /// \return Inertia object created from the sdf dom
-    public: rendering::VisualPtr CreateInertiaVisual(Entity _id,
-        const sdf::Inertia &_inertia, Entity _parentId);
 
     /// \brief Create a particle emitter.
     /// \param[in] _id Unique particle emitter id

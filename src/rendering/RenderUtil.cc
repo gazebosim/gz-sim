@@ -16,6 +16,7 @@
  */
 
 #include <map>
+#include <stack>
 #include <string>
 #include <tuple>
 #include <unordered_map>
@@ -303,7 +304,7 @@ class ignition::gazebo::RenderUtilPrivate
 
   /// \brief New inertias to be created
   public: std::vector<Entity> newInertias;
-  
+
   /// \brief Finds the links (inertia parent) that are used to create child
   /// inertia visuals in RenderUtil::Update
   /// \param[in] _ecm The entity-component manager
@@ -312,8 +313,8 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief A list of links used to create new inertia visuals
   public: std::vector<Entity> newInertiaLinks;
 
-  /// \brief A map of entity ids and their inertias
-  public: std::map<Entity, math::Inertiald> entityInertias;
+  /// \brief A map of entity ids and their inertials
+  public: std::map<Entity, math::Inertiald> entityInertials;
 
   /// \brief A map of link entities and if their inertias are currently
   /// visible
@@ -524,20 +525,28 @@ void RenderUtilPrivate::FindInertiaLinks(const EntityComponentManager &_ecm)
     if (_ecm.EntityMatches(entity,
           std::set<ComponentTypeId>{components::Model::typeId}))
     {
-      links = _ecm.EntitiesByComponents(components::ParentEntity(entity),
-                                        components::Link());
+      std::stack<Entity> modelStack;
+      modelStack.push(entity);
 
-      std::vector<Entity> models;
-      models = _ecm.EntitiesByComponents(components::ParentEntity(entity),
-                                         components::Model());
-      for (const auto model : models)
+      std::vector<Entity> childLinks, childModels;
+      while (!modelStack.empty())
       {
-        std::vector<Entity> childLinks;
+        Entity model = modelStack.top();
+        modelStack.pop();
+
         childLinks = _ecm.EntitiesByComponents(components::ParentEntity(model),
                                                components::Link());
         links.insert(links.end(),
                      childLinks.begin(),
                      childLinks.end());
+
+        childModels =
+            _ecm.EntitiesByComponents(components::ParentEntity(model),
+                                      components::Model());
+        for (const auto &childModel : childModels)
+        {
+            modelStack.push(childModel);
+        }
       }
     }
     else if (_ecm.EntityMatches(entity,
@@ -1171,13 +1180,13 @@ void RenderUtil::Update()
       auto attempts = 100000u;
       for (auto i = 0u; i < attempts; ++i)
       {
-        Entity id = std::numeric_limits<uint64_t>::min() + i;
+        Entity id = std::numeric_limits<uint64_t>::max() - i;
         if (!this->dataPtr->sceneManager.HasEntity(id) &&
             !this->dataPtr->viewingInertias[link])
         {
           rendering::VisualPtr inrVisual =
-            this->dataPtr->sceneManager.CreateInertia(
-              id, this->dataPtr->entityInertias[link], link);
+            this->dataPtr->sceneManager.CreateInertiaVisual(
+              id, this->dataPtr->entityInertials[link], link);
           this->dataPtr->viewingInertias[link] = true;
           this->dataPtr->linkToInertiaVisuals[link] = id;
           break;
@@ -1463,7 +1472,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
             const components::Inertial *_inrElement,
             const components::Pose *) -> bool
         {
-          this->entityInertias[_entity] = _inrElement->Data();
+          this->entityInertials[_entity] = _inrElement->Data();
           return true;
         });
 
@@ -1704,7 +1713,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
             const components::Inertial *_inrElement,
             const components::Pose *) -> bool
         {
-          this->entityInertias[_entity] = _inrElement->Data();
+          this->entityInertials[_entity] = _inrElement->Data();
           return true;
         });
 
@@ -1966,13 +1975,15 @@ void RenderUtilPrivate::RemoveRenderingEntities(
         this->linkToVisualEntities.erase(_entity);
         this->linkToCollisionEntities.erase(_entity);
 
-        if (this->viewingInertias[_entity])
+        if (this->linkToInertiaVisuals.find(_entity) !=
+            this->linkToInertiaVisuals.end())
         {
-          this->removeEntities[this->linkToInertiaVisuals[_entity]] = _info.iterations;
+          this->removeEntities[this->linkToInertiaVisuals[_entity]] =
+            _info.iterations;
         }
         this->linkToInertiaVisuals.erase(_entity);
         this->viewingInertias.erase(_entity);
-        this->entityInertias.erase(_entity);
+        this->entityInertials.erase(_entity);
         return true;
       });
 
@@ -2346,6 +2357,30 @@ void RenderUtil::ViewInertia(const Entity &_entity)
   else
   {
     inrLinks.push_back(_entity);
+  }
+
+  if (this->dataPtr->modelToModelEntities.find(_entity) !=
+      this->dataPtr->modelToModelEntities.end())
+  {
+    std::stack<Entity> modelStack;
+    modelStack.push(_entity);
+
+    std::vector<Entity> childModels;
+    while (!modelStack.empty())
+    {
+      Entity model = modelStack.top();
+      modelStack.pop();
+
+      inrLinks.insert(inrLinks.end(),
+          this->dataPtr->modelToLinkEntities[model].begin(),
+          this->dataPtr->modelToLinkEntities[model].end());
+
+      childModels = this->dataPtr->modelToModelEntities[model];
+      for (const auto &childModel : childModels)
+      {
+        modelStack.push(childModel);
+      }
+    }
   }
 
   // create and/or toggle inertia visuals
