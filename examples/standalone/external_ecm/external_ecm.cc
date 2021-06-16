@@ -58,12 +58,12 @@ int main(int argc, char **argv)
 
   if (!result)
   {
-    std::cerr << std::endl << "Service call to [" << service << "] timed out"
+    std::cerr << std::endl << "Service call to [" << service << "] failed"
               << std::endl;
     return -1;
   }
 
-  // Instantiate an ECM
+  // Instantiate an ECM and populate with data from message
   ignition::gazebo::EntityComponentManager ecm;
   ecm.SetState(res.state());
 
