@@ -56,7 +56,7 @@ Here is the content of the Fog Generator [model.sdf](https://fuel.ignitionroboti
   </model>
 ```
 
-The SDF 1.6+ specification supports having a `<particle_emitter>` SDF element as a child of `<link>`. The particle emitter itself has several properties that can be configured, see Ignition Rendering's [particles tutorial](https://ignitionrobotics.org/api/rendering/4.0/particles.html) for more details on these properties. In our Fog Generator model, we are using a box type particle emitter that covers a region size of 10 by 10m. By default, the particles are emitted towards the `+x` direction, hence the model as a pitch rotation of -90 degrees to rotate the particle emitter so that the particles are emitted upwards in `+z`.
+The SDF 1.6+ specification supports having a `<particle_emitter>` SDF element as a child of `<link>`. The particle emitter itself has several properties that can be configured, see Ignition Rendering's [particles tutorial](https://ignitionrobotics.org/api/rendering/4.0/particles.html) for more details on these properties. In our Fog Generator model, we are using a box type particle emitter that covers a region size of 10 by 10m. By default, the particles are emitted in the `+x` direction, hence the model as a pitch rotation of -90 degrees to rotate the particle emitter so that the particles are emitted upwards in `+z`.
 
 
 Let's launch the example world to see what it looks like.
@@ -70,9 +70,7 @@ You should see the fog slowly starting to appear from the ground plane in the wo
 @image html files/particle_emitter/fog_generator.png
 
 
-Next, try changing some properties of the particle emitter while the simulation is running. You can do this by publishing messages over Ignition Transport. Here are commands to turn the fog generator off then back on.
-
-Turn off the particle emitter by setting the `emitting` property to `false`. Make sure the simulation is running in order for this command to take effect.
+Next, try changing some properties of the particle emitter while the simulation is running. You can do this by publishing messages over Ignition Transport. Try turning off the particle emitter by setting the `emitting` property to `false`. Make sure the simulation is running in order for this command to take effect.
 
 ```
 ign topic -t /model/fog_generator/link/fog_link/particle_emitter/emitter/cmd -m ignition.msgs.ParticleEmitter -p 'emitting: {data: false}'
@@ -94,26 +92,25 @@ ign topic -t /model/fog_generator/link/fog_link/particle_emitter/emitter/cmd -m 
 
 ## Particle Effects on Sensors
 
-The particles are not only a visual effect in simulation, they also have an effect on the data perceived by sensors in simulation. Here are the sensor types and the effects the particle emitter have on them:
+The particles are not only a visual effect in simulation, they also have an effect on sensors in simulation. Here are the sensor types and the effects the particle emitter have on them:
 
 * `camera`: The particles are visible to a regular camera sensor
-* `depth_camera`: The particles have a scattering effect on the depth readings.
+* `depth_camera`: The particles have a scattering effect on the depth data.
 * `rgbd_camera`: The particles are visible in the RGB image and have a scattering effect on the depth data.
 * `gpu_lidar`: The particles have a scattering effect on the lidar range readings.
 * `thermal_camera`: The particles are not visible in the thermal camera image.
 
 
-The gif below shows an [example world](https://gist.github.com/iche033/bcd3b7d3f4874e1e707e392d6dbb0aa0) with the above sensors looking at the fog generator with a rescue randy model inside the fog.
+The gif below shows an [example world](https://gist.github.com/iche033/bcd3b7d3f4874e1e707e392d6dbb0aa0) with six different sensors looking at the fog generator with a rescue randy model inside the fog.
 
 
 @image html files/particle_emitter/sensor_scatter_tutorial.gif
 
-The two image displays on the left show the images from a regular camera sensor and RGB output of a RGBD camera. The two have very similar color image output that shows a dense fog. To their right are the depth images produced by a depth camera and the depth output of the RGBD camera. The depth readings are noisy as they are perturbed by the particle scattering effect. You can also see that these sensors are able to see through the fog and detect the rescue randy inside it. The bottom left of the gif shows the lidar visualization, which the range readings are also affected by sensor scattering. Lastly, the thermal camera image display on the bottom right shows that thermal cameras do not detect particles.
+The two image displays on the left show the images from a regular camera sensor and RGB output of a RGBD camera. The two have very similar color image output that shows the fog in the camera view. To their right are the depth images produced by a depth camera and the depth output of the RGBD camera. The depth readings are noisy due to the particle scattering effect. You can also see that these sensors can partially see through the fog and detect the rescue randy inside it. The bottom left of the gif shows the lidar visualization; the range data are also affected by the scattering effect. Finally, the thermal camera image display on the bottom right shows that thermal cameras do not detect particles.
 
+The sensor scattering effect can be configured by adding `<particle_scatter_ratio>` to the `<particle_emitter>` SDF element. This property determines the ratio of particles that will be detected by sensors. Increasing the ratio means there is a higher chance of particles reflecting and interfering with depth sensing, making the emitter appear more dense. Decreasing the ratio decreases the chance of particles reflecting and interfering with depth sensing, making it appear less dense.
 
-The sensor scattering effect can also be configured by adding `<particle_scatter_ratio>` to the `<particle_emitter>` SDF element. This property determines the ratio of particles that will be detected by sensors. Increasing the ratio means there is a higher chance of particles reflecting and interfering with depth sensing, making the emitter appear more dense. Decreasing the ratio decreases the chance of particles reflecting and interfering with depth sensing, making it appear less dense.
-
-Here is an example of reducing the particle scatter ratio to 0.1:
+See image below that reduces the particle scatter ratio to 0.1. The depth camera image, RGBD camera's depth image, and lidar's range data are noticeably less noisy than the gif above.
 
 
 @image html files/particle_emitter/particle_scatter_ratio.png
