@@ -38,7 +38,10 @@ namespace ignition::gazebo
     public: std::mutex mutex;
 
     /// \brief View Angle service name
-    public: std::string service;
+    public: std::string viewAngleService;
+
+    /// \brief View Control service name
+    public: std::string viewControlService;
   };
 }
 
@@ -61,7 +64,10 @@ void ViewAngle::LoadConfig(const tinyxml2::XMLElement *)
     this->title = "View Angle";
 
   // For view angle requests
-  this->dataPtr->service = "/gui/view_angle";
+  this->dataPtr->viewAngleService = "/gui/view_angle";
+
+  // view control requests
+  this->dataPtr->viewControlService = "/gui/camera/view_control";
 }
 
 /////////////////////////////////////////////////
@@ -79,7 +85,32 @@ void ViewAngle::OnAngleMode(int _x, int _y, int _z)
   req.set_y(_y);
   req.set_z(_z);
 
-  this->dataPtr->node.Request(this->dataPtr->service, req, cb);
+  this->dataPtr->node.Request(this->dataPtr->viewAngleService, req, cb);
+}
+
+/////////////////////////////////////////////////
+void ViewAngle::OnViewControl(const QString &_controller)
+{
+  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  {
+    if (!_result)
+      ignerr << "Error setting view controller" << std::endl;
+  };
+
+  ignition::msgs::StringMsg req;
+  std::string str = _controller.toStdString();
+  if (str.find("Orbit") != std::string::npos)
+    req.set_data("orbit");
+  else if (str.find("Ortho") != std::string::npos)
+    req.set_data("ortho");
+  else
+  {
+    ignerr << "Unknown view controller selected: " << str << std::endl;
+    return;
+  }
+
+  this->dataPtr->node.Request(this->dataPtr->viewControlService, req, cb);
 }
 
 // Register this plugin
