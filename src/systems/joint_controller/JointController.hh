@@ -98,6 +98,9 @@ namespace systems
 
     /// \brief Private data pointer
     private: std::unique_ptr<JointControllerPrivate> dataPtr;
+
+    /// \brief Private tells us if the configuration is considered valid
+    bool validConfig = false;
   };
   }
 }

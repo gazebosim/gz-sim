@@ -103,8 +103,10 @@ void JointController::Configure(const Entity &_entity,
   {
     ignerr << "Joint with name[" << this->dataPtr->jointName << "] not found. "
     << "The JointController will not control this joint.\n";
+    return;
   }
 
+  validConfig = true;
   if (_sdf->HasElement("initial_velocity"))
   {
     this->dataPtr->jointVelCmd = _sdf->Get<double>("initial_velocity");
@@ -185,17 +187,10 @@ void JointController::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   {
     ignwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
-        << "s]. System may not work properly." << std::endl;
+        << "s]. System will not work properly." << std::endl;
   }
 
-  // If the joint hasn't been identified yet, look for it
-  if (this->dataPtr->jointEntity == kNullEntity)
-  {
-    this->dataPtr->jointEntity =
-        this->dataPtr->model.JointByName(_ecm, this->dataPtr->jointName);
-  }
-
-  if (this->dataPtr->jointEntity == kNullEntity)
+  if (!validConfig)
     return;
 
   // Nothing left to do if paused.
