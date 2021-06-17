@@ -30,11 +30,12 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief A component that holds the label of the object used by
-  /// Segmentation & Bounding box sensors to generate datasets annotations
-  using Label = Component<int, class LabelTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Label",
-      Label)
+  /// \brief A component that holds the label of an entity. One example use
+  /// case of the Label component is with Segmentation & Bounding box
+  /// sensors to generate dataset annotations.
+  using SemanticLabel = Component<uint32_t, class SemanticLabelTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.SemanticLabel",
+      SemanticLabel)
 }
 }
 }

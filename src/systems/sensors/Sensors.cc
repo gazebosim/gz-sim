@@ -37,8 +37,8 @@
 #include <ignition/sensors/Manager.hh>
 
 #include "ignition/gazebo/components/Atmosphere.hh"
-#include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/BoundingBoxCamera.hh"
+#include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/RenderEngineServerPlugin.hh"

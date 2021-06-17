@@ -51,14 +51,14 @@
 #include <ignition/rendering/Scene.hh>
 
 #include "ignition/gazebo/components/Actor.hh"
+#include "ignition/gazebo/components/BoundingBoxCamera.hh"
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/CastShadows.hh"
 #include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/BoundingBoxCamera.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Geometry.hh"
-#include "ignition/gazebo/components/Label.hh"
+#include "ignition/gazebo/components/SemanticLabel.hh"
 #include "ignition/gazebo/components/LaserRetro.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/LightCmd.hh"
@@ -224,7 +224,7 @@ class ignition::gazebo::RenderUtilPrivate
   public: std::map<Entity, std::tuple<float, float, std::string>> entityTemp;
 
   /// \brief A map of entity ids and label data for datasets annotations
-  public: std::map<Entity, int> entityLabel;
+  public: std::unordered_map<Entity, int> entityLabel;
 
   /// \brief A map of entity ids and wire boxes
   public: std::unordered_map<Entity, ignition::rendering::WireBoxPtr> wireBoxes;
@@ -357,7 +357,14 @@ class ignition::gazebo::RenderUtilPrivate
   /// <resolution, temperature range (min, max)>
   public:std::unordered_map<Entity,
       std::tuple<double, components::TemperatureRangeInfo>> thermalCameraData;
+
+  /// \brief Update the visuals with label user data
+  /// \param[in] _entityLabel Map with key visual entity id and value label
+  public: void UpdateVisualLabels(
+    const std::unordered_map<Entity, int> &_entityLabel);
 };
+
+
 
 //////////////////////////////////////////////////
 RenderUtil::RenderUtil() : dataPtr(std::make_unique<RenderUtilPrivate>())
@@ -979,7 +986,9 @@ void RenderUtil::Update()
 
         math::Pose3d globalPose;
         if (entityPoses.find(tf.first) != entityPoses.end())
+        {
           globalPose = entityPoses[tf.first];
+        }
 
         math::Pose3d trajPose;
         // Trajectory from the ECS
@@ -1070,7 +1079,9 @@ void RenderUtil::Update()
         // update actor trajectory animation
         math::Pose3d globalPose;
         if (entityPoses.find(it.first) != entityPoses.end())
+        {
           globalPose = entityPoses[it.first];
+        }
 
         math::Pose3d trajPose;
         // Trajectory from the ECS
@@ -1115,19 +1126,8 @@ void RenderUtil::Update()
     }
   }
 
-  // set visual label
-  for (const auto &label : entityLabel)
-  {
-    auto node = this->dataPtr->sceneManager.NodeById(label.first);
-    if (!node)
-      continue;
+  this->dataPtr->UpdateVisualLabels(entityLabel);
 
-    auto visual = std::dynamic_pointer_cast<rendering::Visual>(node);
-    if (!visual)
-      continue;
-
-    visual->SetUserData("label", label.second);
-  }
 
   // create new wireframe visuals
   {
@@ -1349,7 +1349,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
           }
 
           // set label
-          auto label = _ecm.Component<components::Label>(_entity);
+          auto label = _ecm.Component<components::SemanticLabel>(_entity);
           if (label != nullptr)
           {
             this->entityLabel[_entity] = label->Data();
@@ -1609,7 +1609,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
           }
 
           // set label
-          auto label = _ecm.Component<components::Label>(_entity);
+          auto label = _ecm.Component<components::SemanticLabel>(_entity);
           if (label != nullptr)
           {
             this->entityLabel[_entity] = label->Data();
@@ -2271,6 +2271,25 @@ const std::vector<Entity> &RenderUtil::SelectedEntities() const
 void RenderUtil::SetTransformActive(bool _active)
 {
   this->dataPtr->transformActive = _active;
+}
+
+////////////////////////////////////////////////
+void RenderUtilPrivate::UpdateVisualLabels(
+  const std::unordered_map<Entity, int> &_entityLabel)
+{
+  // set visual label
+  for (const auto &label : _entityLabel)
+  {
+    auto node = this->sceneManager.NodeById(label.first);
+    if (!node)
+      continue;
+
+    auto visual = std::dynamic_pointer_cast<rendering::Visual>(node);
+    if (!visual)
+      continue;
+
+    visual->SetUserData("label", label.second);
+  }
 }
 
 ////////////////////////////////////////////////

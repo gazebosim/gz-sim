@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_SYSTEMS_LABEL_HH_
 
 #include <memory>
+
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/System.hh"
 
@@ -29,7 +30,13 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
 {
-  /// \brief A label plugin that sets the label for the parent entity
+  /// \brief A label plugin that annotates models by setting the label
+  /// for the parent entity's visuals
+  ///
+  /// Must contain exactly one <label> tag with a value of the label to
+  /// set it to the visuals's user data
+  /// Ex: "<label>1</label>" with a label = 1
+  /// Label value must be in [0-255] range
   class Label:
     public System,
     public ISystemConfigure
@@ -40,7 +47,7 @@ namespace systems
     /// \brief Destructor
     public: ~Label() override;
 
-    /// Documentation inherited
+    // Documentation inherited
     public: void Configure(const Entity &_entity,
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
