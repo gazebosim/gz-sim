@@ -175,8 +175,8 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
         it = this->secondaryStates.find(_info.iterations))
       {
         // SAFETY: This doesn't suffer from lost wakeups because we're first
-	// taking the lock, then checking the condition and finally waiting
-	// the condition variable.
+        // taking the lock, then checking the condition and finally waiting
+        // the condition variable.
         this->secondaryStatesCv.wait(guard);
       }
 
@@ -194,7 +194,7 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
         }))
     {
       ignerr << "Secondaries are running asynchronously and their simulation "
-	     << "time is different" << std::endl;
+             << "time is different" << std::endl;
       return false;
     }
 

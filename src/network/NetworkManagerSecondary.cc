@@ -200,7 +200,7 @@ void NetworkManagerSecondary::AsyncStepTask()
       {
         // Performer model
         auto parent =
-	  this->dataPtr->ecm->Component<components::ParentEntity>(perf);
+          this->dataPtr->ecm->Component<components::ParentEntity>(perf);
         if (parent == nullptr)  // TODO(ivanpauno): why is this now needed?
         {
           ignerr << "Failed to get parent for performer [" << perf << "]"
@@ -216,7 +216,7 @@ void NetworkManagerSecondary::AsyncStepTask()
       private_msgs::SecondaryStep secondaryStep;
       if (!entities.empty()) {
         this->dataPtr->ecm->State(
-	*secondaryStep.mutable_serialized_map(), entities);
+        *secondaryStep.mutable_serialized_map(), entities);
       }
       secondaryStep.set_secondary_prefix(this->Namespace());
       secondaryStep.mutable_stats()->CopyFrom(

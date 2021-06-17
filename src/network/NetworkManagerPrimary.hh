@@ -22,6 +22,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
@@ -106,7 +107,7 @@ namespace ignition
       /// \param[out] _msg Message to be populated.
       private: void SetAffinity(Entity _performer,
           const std::string &_secondary,
-	  private_msgs::PerformerAffinity *_msg);
+          private_msgs::PerformerAffinity *_msg);
 
       /// \brief Container of currently used secondary peers
       private: std::map<std::string, SecondaryControl::Ptr> secondaries;
