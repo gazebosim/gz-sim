@@ -19,7 +19,6 @@
 
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/gui_camera.pb.h>
-#include <ignition/msgs/pose.pb.h>
 #include <ignition/msgs/vector3d.pb.h>
 
 #include <iostream>
@@ -33,9 +32,6 @@ namespace ignition::gazebo
 {
   class ViewAnglePrivate
   {
-    /// \brief ViewAngle model
-    public: ViewAngle *viewAngle{nullptr};
-
     /// \brief Ignition communication node.
     public: transport::Node node;
 
@@ -50,10 +46,6 @@ namespace ignition::gazebo
 
     /// \brief gui camera pose
     public: math::Pose3d camPose;
-
-    /// \brief Callback for retrieving gui camera pose
-    /// \param[in] _msg Pose message
-    public: void CamPoseCb(const msgs::Pose &_msg);
   };
 }
 
@@ -81,12 +73,10 @@ void ViewAngle::LoadConfig(const tinyxml2::XMLElement *)
   // Subscribe to camera pose
   std::string topic = "/gui/camera/pose";
   this->dataPtr->node.Subscribe(
-    topic, &ViewAnglePrivate::CamPoseCb, this->dataPtr.get());
+    topic, &ViewAngle::CamPoseCb, this);
 
   // Move to pose service
   this->dataPtr->moveToPoseService = "/gui/move_to/pose";
-
-  this->dataPtr->viewAngle = this;
 }
 
 /////////////////////////////////////////////////
@@ -140,15 +130,15 @@ void ViewAngle::SetCamPose(double _x, double _y, double _z,
 }
 
 /////////////////////////////////////////////////
-void ViewAnglePrivate::CamPoseCb(const msgs::Pose &_msg)
+void ViewAngle::CamPoseCb(const msgs::Pose &_msg)
 {
-  std::lock_guard<std::mutex> lock(this->mutex);
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   math::Pose3d pose = msgs::Convert(_msg);
 
-  if (pose != this->camPose)
+  if (pose != this->dataPtr->camPose)
   {
-    this->camPose = pose;
-    this->viewAngle->CamPoseChanged();
+    this->dataPtr->camPose = pose;
+    this->CamPoseChanged();
   }
 }
 
