@@ -98,15 +98,15 @@ void ViewAngle::OnAngleMode(int _x, int _y, int _z)
 }
 
 /////////////////////////////////////////////////
-QList<QString> ViewAngle::CamPose() const
+QList<double> ViewAngle::CamPose() const
 {
   return QList({
-    QString::number(this->dataPtr->camPose.Pos().X()),
-    QString::number(this->dataPtr->camPose.Pos().Y()),
-    QString::number(this->dataPtr->camPose.Pos().Z()),
-    QString::number(this->dataPtr->camPose.Rot().Roll()),
-    QString::number(this->dataPtr->camPose.Rot().Pitch()),
-    QString::number(this->dataPtr->camPose.Rot().Yaw())
+    this->dataPtr->camPose.Pos().X(),
+    this->dataPtr->camPose.Pos().Y(),
+    this->dataPtr->camPose.Pos().Z(),
+    this->dataPtr->camPose.Rot().Roll(),
+    this->dataPtr->camPose.Rot().Pitch(),
+    this->dataPtr->camPose.Rot().Yaw()
   });
 }
 

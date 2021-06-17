@@ -40,7 +40,7 @@ namespace gazebo
 
     /// \brief gui camera pose (QList order is x, y, z, roll, pitch, yaw)
     Q_PROPERTY(
-      QList<QString> camPose
+      QList<double> camPose
       READ CamPose
       NOTIFY CamPoseChanged
     )
@@ -64,7 +64,7 @@ namespace gazebo
     public slots: void OnAngleMode(int _x, int _y, int _z);
 
     /// \brief Get the current gui camera pose.
-    public: Q_INVOKABLE QList<QString> CamPose() const;
+    public: Q_INVOKABLE QList<double> CamPose() const;
 
     /// \brief Notify that the gui camera pose has changed.
     signals: void CamPoseChanged();
