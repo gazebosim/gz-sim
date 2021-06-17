@@ -111,9 +111,6 @@ bool NetworkManagerPrimary::Ready() const
   return (nSecondary == this->dataPtr->config.numSecondariesExpected);
 }
 
-/// Number of iterations a secondary can move ahead.
-constexpr uint64_t kSecondaryIterations = 1000uLL;
-
 //////////////////////////////////////////////////
 bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
 {
@@ -141,13 +138,13 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
   // This should be handle in a better fashion.
   // Note: send an ack each N/2 iterations, allows secondaries
   // to move ahead faster.
-  if ( ((0uLL == _info.iterations % (kSecondaryIterations/2)) || this->paused)
-       && !_info.paused) {
+  if ( ((0uLL == _info.iterations % (this->kSecondaryIterations/2))
+	|| this->paused) && !_info.paused) {
     // Allow secondaries to continue moving forward each N steps (1000).
     // Also send a message if the simulation was paused and now it's running.
     private_msgs::SimulationStep step;
     step.mutable_stats()->CopyFrom(convert<msgs::WorldStatistics>(_info));
-    step.set_max_iterations(_info.iterations + kSecondaryIterations);
+    step.set_max_iterations(_info.iterations + this->kSecondaryIterations);
 
     // TODO(ivanpauno): Affinities should only be calculated at startup.
     // Then we should have logic to detect if performers are "far apart",

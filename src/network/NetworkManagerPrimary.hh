@@ -82,6 +82,11 @@ namespace ignition
       /// \return True if simulation step was successfully synced.
       public: bool Step(const UpdateInfo &_info);
 
+      /// Number of iterations a secondary can move ahead.
+      /// TODO(blast545): consider using as a parameter that can be configured
+      /// before starting the simulation
+      public: static constexpr uint64_t kSecondaryIterations = 1000uLL;
+
       // Documentation inherited
       public: std::string Namespace() const override;
 
