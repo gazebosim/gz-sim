@@ -121,6 +121,9 @@ class ignition::gazebo::systems::CameraVideoRecorderPrivate
   /// \brief Use sim time as timestamp during video recording
   /// By default (false), video encoding is done using real time.
   public: bool recordVideoUseSimTime = false;
+
+  /// \brief Video recorder bitrate (bps)
+  public: unsigned int recordVideoBitrate = 2070000;
 };
 
 //////////////////////////////////////////////////
@@ -241,6 +244,10 @@ void CameraVideoRecorder::Configure(
   // Get whether sim time should be used for recording.
   this->dataPtr->recordVideoUseSimTime = _sdf->Get<bool>("use_sim_time",
       this->dataPtr->recordVideoUseSimTime).first;
+
+  // Get video recoder bitrate param
+  this->dataPtr->recordVideoBitrate = _sdf->Get<unsigned int>("bitrate",
+      this->dataPtr->recordVideoBitrate).first;
 
   // recorder stats topic
   std::string recorderStatsTopic = this->dataPtr->sensorTopic + "/stats";
@@ -379,7 +386,8 @@ void CameraVideoRecorderPrivate::OnPostRender()
           &CameraVideoRecorderPrivate::OnImage, this);
 
       this->videoEncoder.Start(this->recordVideoFormat,
-          this->tmpVideoFilename, width, height);
+          this->tmpVideoFilename, width, height, 25,
+          this->recordVideoBitrate);
 
       this->recordStartTime = std::chrono::steady_clock::time_point(
             std::chrono::duration(std::chrono::seconds(0)));
