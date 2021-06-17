@@ -503,20 +503,28 @@ void RenderUtilPrivate::FindWireframeVisualLinks(
     if (_ecm.EntityMatches(entity,
           std::set<ComponentTypeId>{components::Model::typeId}))
     {
-      links = _ecm.EntitiesByComponents(components::ParentEntity(entity),
-                                        components::Link());
+      std::stack<Entity> modelStack;
+      modelStack.push(entity);
 
-      std::vector<Entity> models;
-      models = _ecm.EntitiesByComponents(components::ParentEntity(entity),
-                                         components::Model());
-      for (const auto model : models)
+      std::vector<Entity> childLinks, childModels;
+      while (!modelStack.empty())
       {
-        std::vector<Entity> childLinks;
+        Entity model = modelStack.top();
+        modelStack.pop();
+
         childLinks = _ecm.EntitiesByComponents(components::ParentEntity(model),
                                                components::Link());
         links.insert(links.end(),
                      childLinks.begin(),
                      childLinks.end());
+
+        childModels =
+            _ecm.EntitiesByComponents(components::ParentEntity(model),
+                                      components::Model());
+        for (const auto &childModel : childModels)
+        {
+            modelStack.push(childModel);
+        }
       }
     }
     else if (_ecm.EntityMatches(entity,
@@ -2252,13 +2260,24 @@ void RenderUtil::ViewWireframes(const Entity &_entity)
   if (this->dataPtr->modelToModelEntities.find(_entity) !=
       this->dataPtr->modelToModelEntities.end())
   {
-    std::vector<Entity> models = this->dataPtr->modelToModelEntities[_entity];
+    std::stack<Entity> modelStack;
+    modelStack.push(_entity);
 
-    for (const auto model : models)
+    std::vector<Entity> childModels;
+    while (!modelStack.empty())
     {
+      Entity model = modelStack.top();
+      modelStack.pop();
+
       links.insert(links.end(),
           this->dataPtr->modelToLinkEntities[model].begin(),
           this->dataPtr->modelToLinkEntities[model].end());
+
+      childModels = this->dataPtr->modelToModelEntities[model];
+      for (const auto &childModel : childModels)
+      {
+        modelStack.push(childModel);
+      }
     }
   }
 
