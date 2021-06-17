@@ -20,10 +20,11 @@ import QtQuick.Controls.Material 2.2
 import QtQuick.Controls.Material.impl 2.2
 import QtQuick.Layouts 1.3
 import QtQuick.Controls.Styles 1.4
+import "qrc:/qml"
 
 ToolBar {
-  Layout.minimumWidth: 200
-  Layout.minimumHeight: 200
+  Layout.minimumWidth: 420
+  Layout.minimumHeight: 260
 
   background: Rectangle {
     color: "transparent"
@@ -34,7 +35,7 @@ ToolBar {
   }
 
   GridLayout {
-    columns: 4
+    columns: 8
     ToolButton {
       id: top
       checkable: true
@@ -181,6 +182,131 @@ ToolBar {
       onClicked: {
         ViewAngle.OnAngleMode(0, 0, 1)
       }
+    }
+
+    // set camera pose
+    // xyz
+    Text {
+      Layout.columnSpan: 2
+      Layout.row: 0
+      Layout.column: 5
+      color: "dimgrey"
+      font.bold: true
+      text: "Position (m)"
+    }
+
+    Text {
+      text: "X"
+      color: "dimgrey"
+      Layout.row: 1
+      Layout.column: 5
+    }
+    IgnSpinBox {
+      id: x
+      Layout.row: 1
+      Layout.column: 6
+      value: ViewAngle.camPose[0]
+      maximumValue: 1000.00
+      minimumValue: -1000.00
+      decimals: 2
+      stepSize: 0.01
+      onEditingFinished: ViewAngle.SetCamPose(x.value, y.value, z.value, roll.value, pitch.value, yaw.value)
+    }
+    Text {
+      text: "Y"
+      color: "dimgrey"
+      Layout.row: 2
+      Layout.column: 5
+    }
+    IgnSpinBox {
+      id: y
+      Layout.row: 2
+      Layout.column: 6
+      value: ViewAngle.camPose[1]
+      maximumValue: 1000.00
+      minimumValue: -1000.00
+      decimals: 2
+      stepSize: 0.01
+      onEditingFinished: ViewAngle.SetCamPose(x.value, y.value, z.value, roll.value, pitch.value, yaw.value)
+    }
+    Text {
+      text: "Z"
+      color: "dimgrey"
+      Layout.row: 3
+      Layout.column: 5
+    }
+    IgnSpinBox {
+      id: z
+      Layout.row: 3
+      Layout.column: 6
+      value: ViewAngle.camPose[2]
+      maximumValue: 1000.00
+      minimumValue: -1000.00
+      decimals: 2
+      stepSize: 0.01
+      onEditingFinished: ViewAngle.SetCamPose(x.value, y.value, z.value, roll.value, pitch.value, yaw.value)
+    }
+
+    // rpy
+    Text {
+      Layout.columnSpan: 2
+      Layout.row: 0
+      Layout.column: 7
+      color: "dimgrey"
+      font.bold: true
+      text: "Rotation (rad)"
+    }
+
+    Text {
+      text: "Roll"
+      color: "dimgrey"
+      Layout.row: 1
+      Layout.column: 7
+    }
+    IgnSpinBox {
+      id: roll
+      Layout.row: 1
+      Layout.column: 8
+      value: ViewAngle.camPose[3]
+      maximumValue: 6.28
+      minimumValue: 0.00
+      decimals: 2
+      stepSize: 0.01
+      onEditingFinished: ViewAngle.SetCamPose(x.value, y.value, z.value, roll.value, pitch.value, yaw.value)
+    }
+    Text {
+      text: "Pitch"
+      color: "dimgrey"
+      Layout.row: 2
+      Layout.column: 7
+    }
+    IgnSpinBox {
+      id: pitch
+      Layout.row: 2
+      Layout.column: 8
+      value: ViewAngle.camPose[4]
+      maximumValue: 6.28
+      minimumValue: 0.00
+      decimals: 2
+      stepSize: 0.01
+      onEditingFinished: ViewAngle.SetCamPose(x.value, y.value, z.value, roll.value, pitch.value, yaw.value)
+    }
+    Text {
+      text: "Yaw"
+      color: "dimgrey"
+      Layout.row: 3
+      Layout.column: 7
+    }
+    IgnSpinBox {
+      id: yaw
+      Layout.row: 3
+      Layout.column: 8
+      value: ViewAngle.camPose[5]
+      maximumValue: 6.28
+      minimumValue: 0.00
+      decimals: 2
+      stepSize: 0.01
+      onEditingFinished: ViewAngle.SetCamPose(x.value, y.value, z.value, roll.value, pitch.value, yaw.value)
     }
   }
 }

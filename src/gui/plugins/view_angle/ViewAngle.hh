@@ -36,6 +36,13 @@ namespace gazebo
   {
     Q_OBJECT
 
+    /// \brief gui camera pose (QList order is x, y, z, roll, pitch, yaw)
+    Q_PROPERTY(
+      QList<QString> camPose
+      READ CamPose
+      NOTIFY CamPoseChanged
+    )
+
     /// \brief Constructor
     public: ViewAngle();
 
@@ -53,6 +60,18 @@ namespace gazebo
     /// \param[in] _z The z component of the directional vector for the camera
     /// to assume.  All 0s for x, y, and z indicate the initial camera pose.
     public slots: void OnAngleMode(int _x, int _y, int _z);
+
+    /// \brief Get the current gui camera pose.
+    public: Q_INVOKABLE QList<QString> CamPose() const;
+
+    /// \brief Notify that the gui camera pose has changed.
+    signals: void CamPoseChanged();
+
+    /// \brief Callback to update gui camera pose
+    /// \param[in] _x, _y, _z cartesion coordinates
+    /// \param[in] _roll, _pitch, _yaw principal coordinates
+    public slots: void SetCamPose(double _x, double _y, double _z,
+                               double _roll, double _pitch, double _yaw);
 
     /// \internal
     /// \brief Pointer to private data.

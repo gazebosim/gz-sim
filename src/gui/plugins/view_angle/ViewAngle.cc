@@ -18,6 +18,8 @@
 #include "ViewAngle.hh"
 
 #include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/gui_camera.pb.h>
+#include <ignition/msgs/pose.pb.h>
 #include <ignition/msgs/vector3d.pb.h>
 
 #include <iostream>
@@ -31,6 +33,9 @@ namespace ignition::gazebo
 {
   class ViewAnglePrivate
   {
+    /// \brief ViewAngle model
+    public: ViewAngle *viewAngle{nullptr};
+
     /// \brief Ignition communication node.
     public: transport::Node node;
 
@@ -38,7 +43,17 @@ namespace ignition::gazebo
     public: std::mutex mutex;
 
     /// \brief View Angle service name
-    public: std::string service;
+    public: std::string viewAngleService;
+
+    /// \brief Move gui camera to pose service name
+    public: std::string moveToPoseService;
+
+    /// \brief gui camera pose
+    public: math::Pose3d camPose;
+
+    /// \brief Callback for retrieving gui camera pose
+    /// \param[in] _msg Pose message
+    public: void CamPoseCb(const msgs::Pose &_msg);
   };
 }
 
@@ -61,7 +76,17 @@ void ViewAngle::LoadConfig(const tinyxml2::XMLElement *)
     this->title = "View Angle";
 
   // For view angle requests
-  this->dataPtr->service = "/gui/view_angle";
+  this->dataPtr->viewAngleService = "/gui/view_angle";
+
+  // Subscribe to camera pose
+  std::string topic = "/gui/camera/pose";
+  this->dataPtr->node.Subscribe(
+    topic, &ViewAnglePrivate::CamPoseCb, this->dataPtr.get());
+
+  // Move to pose service
+  this->dataPtr->moveToPoseService = "/gui/move_to/pose";
+
+  this->dataPtr->viewAngle = this;
 }
 
 /////////////////////////////////////////////////
@@ -79,7 +104,52 @@ void ViewAngle::OnAngleMode(int _x, int _y, int _z)
   req.set_y(_y);
   req.set_z(_z);
 
-  this->dataPtr->node.Request(this->dataPtr->service, req, cb);
+  this->dataPtr->node.Request(this->dataPtr->viewAngleService, req, cb);
+}
+
+/////////////////////////////////////////////////
+QList<QString> ViewAngle::CamPose() const
+{
+  return QList({
+    QString::number(this->dataPtr->camPose.Pos().X()),
+    QString::number(this->dataPtr->camPose.Pos().Y()),
+    QString::number(this->dataPtr->camPose.Pos().Z()),
+    QString::number(this->dataPtr->camPose.Rot().Roll()),
+    QString::number(this->dataPtr->camPose.Rot().Pitch()),
+    QString::number(this->dataPtr->camPose.Rot().Yaw())
+  });
+}
+
+/////////////////////////////////////////////////
+void ViewAngle::SetCamPose(double _x, double _y, double _z,
+                           double _roll, double _pitch, double _yaw)
+{
+  this->dataPtr->camPose.Set(_x, _y, _z, _roll, _pitch, _yaw);
+
+  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  {
+    if (!_result)
+      ignerr << "Error sending move camera to pose request" << std::endl;
+  };
+
+  ignition::msgs::GUICamera req;
+  msgs::Set(req.mutable_pose(), this->dataPtr->camPose);
+
+  this->dataPtr->node.Request(this->dataPtr->moveToPoseService, req, cb);
+}
+
+/////////////////////////////////////////////////
+void ViewAnglePrivate::CamPoseCb(const msgs::Pose &_msg)
+{
+  std::lock_guard<std::mutex> lock(this->mutex);
+  math::Pose3d pose = msgs::Convert(_msg);
+
+  if (pose != this->camPose)
+  {
+    this->camPose = pose;
+    this->viewAngle->CamPoseChanged();
+  }
 }
 
 // Register this plugin
