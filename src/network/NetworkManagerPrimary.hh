@@ -105,7 +105,8 @@ namespace ignition
       /// \param[in] _secondary Secondary identifier.
       /// \param[out] _msg Message to be populated.
       private: void SetAffinity(Entity _performer,
-          const std::string &_secondary, private_msgs::PerformerAffinity *_msg);
+          const std::string &_secondary,
+	  private_msgs::PerformerAffinity *_msg);
 
       /// \brief Container of currently used secondary peers
       private: std::map<std::string, SecondaryControl::Ptr> secondaries;
@@ -120,13 +121,15 @@ namespace ignition
       private: uint64_t nextIteration{1u};
 
       /// \brief Keep track of states received from secondaries.
-      // TODO(ivanpauno): I could probably use a `deque` here instead of a `map`.
-      private: std::map<uint64_t, std::vector<private_msgs::SecondaryStep>> secondaryStates;
+      /// TODO(ivanpauno): Maybe a `deque` here instead of a `map`.
+      private: std::map<uint64_t, std::vector<private_msgs::SecondaryStep>>
+            secondaryStates;
 
       /// \brief Mutex used to protect secondaryStates map.
       private: std::mutex secondaryStatesMutex;
 
-      /// \brief Condition variable used to notify when secondaryStates map has more info.
+      /// \brief Condition variable used to notify when secondaryStates
+      /// map has more info.
       private: std::condition_variable secondaryStatesCv;
 
       /// \brief Indicates if the last step was in paused state;

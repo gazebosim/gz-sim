@@ -22,6 +22,7 @@
 #include <set>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
@@ -133,23 +134,29 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
     return false;
   }
 
-  // TODO(ivanpauno): If secondaries received a step message allowing them to move ahead N iterations (hardcoded to 1000 now),
-  // until the secondaries completed those N steps the simulation cannot be paused, the step size cannot be changed, etc.
+  // TODO(ivanpauno): If secondaries received a step message allowing them to
+  // move ahead N iterations (hardcoded to 1000 now),
+  // until the secondaries completed those N steps the simulation cannot be
+  // paused, the step size cannot be changed, etc.
   // This should be handle in a better fashion.
-  // Note: send an ack each N/2 iterations, to allow secondaries to move ahead faster.
-  if (((0uLL == _info.iterations % (kSecondaryIterations/2)) || this->paused) && !_info.paused) {
+  // Note: send an ack each N/2 iterations, allows secondaries
+  // to move ahead faster.
+  if ( ((0uLL == _info.iterations % (kSecondaryIterations/2)) || this->paused)
+       && !_info.paused) {
     // Allow secondaries to continue moving forward each N steps (1000).
-    // Also send a message if the simulation was paused before and now is running.
+    // Also send a message if the simulation was paused and now it's running.
     private_msgs::SimulationStep step;
     step.mutable_stats()->CopyFrom(convert<msgs::WorldStatistics>(_info));
     step.set_max_iterations(_info.iterations + kSecondaryIterations);
 
     // TODO(ivanpauno): Affinities should only be calculated at startup.
-    // Then we should have logic to detect if performers are "far apart", "viewing each other", "interacting".
+    // Then we should have logic to detect if performers are "far apart",
+    // "viewing each other", "interacting".
     // In the first case secondaries can run asynchronously (implemented).
     // In the second a perfect lockstep is needed (TODO).
-    // In the third case, the physics should be simulated in the same secondary,
-    // and we need to run the preUpdate/Update/postUpdate in a perfect lockstep fashion.
+    // In the third case, physics should be simulated in the same secondary,
+    // and we need to run the preUpdate/Update/postUpdate in a perfect
+    // lockstep fashion.
     this->PopulateAffinities(step);
     this->simStepPub.Publish(step);
   }
@@ -167,8 +174,9 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
         it == this->secondaryStates.end() || it->second.size() != nSecondaries;
         it = this->secondaryStates.find(_info.iterations))
       {
-        // SAFETY: This doesn't suffer from lost wakeups because we're first taking the lock,
-        // then checking the condition and finally waiting the condition variable.
+        // SAFETY: This doesn't suffer from lost wakeups because we're first
+	// taking the lock, then checking the condition and finally waiting
+	// the condition variable.
         this->secondaryStatesCv.wait(guard);
       }
 
@@ -185,9 +193,8 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
           return info.simTime == _info.simTime && info.dt == _info.dt;
         }))
     {
-      ignerr <<
-        "Secondaries are running asynchronously and their simulation time is different" <<
-        std::endl;
+      ignerr << "Secondaries are running asynchronously and their simulation "
+	     << "time is different" << std::endl;
       return false;
     }
 
@@ -227,7 +234,9 @@ void NetworkManagerPrimary::OnStepAck(const private_msgs::SecondaryStep &_msg)
   auto iteration = _msg.stats().iterations();
   auto & secState = this->secondaryStates[iteration];
   secState.emplace_back(_msg);
-  if (iteration == this->nextIteration && secState.size() == this->secondaries.size())
+  if (
+      iteration == this->nextIteration &&
+      secState.size() == this->secondaries.size())
   {
     guard.unlock();  // no need to hold the lock while notifying
     this->secondaryStatesCv.notify_one();

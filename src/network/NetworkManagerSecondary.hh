@@ -78,7 +78,7 @@ namespace ignition
       /// \param[in] _msg Step message.
       private: void OnStep(const private_msgs::SimulationStep &_msg);
 
-      /// \brief Task that will be executed asynchronously in a separated thread.
+      /// \brief Task that will be rn asynchronously in a separated thread.
       private: void AsyncStepTask();
 
       /// \brief Flag to control enabling/disabling simulation secondary.
@@ -105,7 +105,8 @@ namespace ignition
       /// \brief Condition variable used to awake the thread doing steps.
       private: std::condition_variable moreStepsCv;
 
-      /// \brief Boolean used to indicate that the thread doing asynchronous steps has to stop.
+      /// \brief Boolean used to indicate that the thread
+      /// doing asynchronous steps has to stop.
       private: bool stopAsyncStepThread {false};
 
       private: using Duration = std::chrono::steady_clock::duration;

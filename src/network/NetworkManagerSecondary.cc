@@ -20,6 +20,8 @@
 #include <mutex>
 #include <string>
 #include <tuple>
+#include <utility>
+#include <vector>
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
@@ -65,9 +67,11 @@ NetworkManagerSecondary::NetworkManagerSecondary(
 
   this->node.Subscribe("step", &NetworkManagerSecondary::OnStep, this);
 
-  this->stepAckPub = this->node.Advertise<private_msgs::SecondaryStep>("step_ack");
+  this->stepAckPub =
+    this->node.Advertise<private_msgs::SecondaryStep>("step_ack");
 
-  this->steppingThread = std::thread{&NetworkManagerSecondary::AsyncStepTask, this};
+  this->steppingThread =
+    std::thread{&NetworkManagerSecondary::AsyncStepTask, this};
 }
 
 //////////////////////////////////////////////////
@@ -150,7 +154,8 @@ void NetworkManagerSecondary::AsyncStepTask()
 
       // Update affinities
       // TODO(ivanpauno):
-      // This needs to be redone based on if performers can "far apart", "can view each other" or "are interacting".
+      // This needs to be redone based on if performers can "far apart",
+      // "can view each other" or "are interacting".
       for (int i = 0; i < next_step.affinity_size(); ++i)
       {
         const auto &affinityMsg = next_step.affinity(i);
@@ -194,7 +199,8 @@ void NetworkManagerSecondary::AsyncStepTask()
       for (const auto &perf : this->performers)
       {
         // Performer model
-        auto parent = this->dataPtr->ecm->Component<components::ParentEntity>(perf);
+        auto parent =
+	  this->dataPtr->ecm->Component<components::ParentEntity>(perf);
         if (parent == nullptr)  // TODO(ivanpauno): why is this now needed?
         {
           ignerr << "Failed to get parent for performer [" << perf << "]"
@@ -209,10 +215,12 @@ void NetworkManagerSecondary::AsyncStepTask()
 
       private_msgs::SecondaryStep secondaryStep;
       if (!entities.empty()) {
-        this->dataPtr->ecm->State(*secondaryStep.mutable_serialized_map(), entities);
+        this->dataPtr->ecm->State(
+	*secondaryStep.mutable_serialized_map(), entities);
       }
       secondaryStep.set_secondary_prefix(this->Namespace());
-      secondaryStep.mutable_stats()->CopyFrom(convert<msgs::WorldStatistics>(lastUpdateInfo));
+      secondaryStep.mutable_stats()->CopyFrom(
+        convert<msgs::WorldStatistics>(lastUpdateInfo));
       this->stepAckPub.Publish(secondaryStep);
       this->dataPtr->ecm->SetAllComponentsUnchanged();
 
@@ -222,7 +230,8 @@ void NetworkManagerSecondary::AsyncStepTask()
     }
     if (!next_steps.size()) {
       std::unique_lock<std::mutex> guard{this->stepsMutex};
-      this->moreStepsCv.wait(guard, [this]{return !this->steps.empty() || this->stopAsyncStepThread;});
+      this->moreStepsCv.wait(guard, [this]{
+        return !this->steps.empty() || this->stopAsyncStepThread;});
       next_steps = std::move(this->steps);
     }
   }
