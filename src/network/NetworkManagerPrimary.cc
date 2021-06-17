@@ -159,6 +159,7 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
   }
   this->paused = _info.paused;
 
+  // Block until all secondaries are done
   if (_info.iterations >= this->nextIteration && !_info.paused) {
     // Update state based on secondaries messages.
     std::vector<private_msgs::SecondaryStep> secondariesSteps;
