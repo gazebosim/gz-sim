@@ -139,7 +139,7 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
   // Note: send an ack each N/2 iterations, allows secondaries
   // to move ahead faster.
   if ( ((0uLL == _info.iterations % (this->kSecondaryIterations/2))
-	|| this->paused) && !_info.paused) {
+        || this->paused) && !_info.paused) {
     // Allow secondaries to continue moving forward each N steps (1000).
     // Also send a message if the simulation was paused and now it's running.
     private_msgs::SimulationStep step;
