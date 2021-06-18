@@ -70,7 +70,7 @@ class IGNITION_GAZEBO_VISIBLE BaseView
   /// \brief See if an entity is marked as an entity to be added to the view
   /// \param[in] _entity The entity
   /// \return true if _entity is to be added to the view, false otherwise
-  public: bool HasEntityToAdd(const Entity _entity) const;
+  public: bool IsEntityMarkedForAddition(const Entity _entity) const;
 
   /// \brief See if the view has cached the component data for an entity
   /// \param[in] _entity The entity
@@ -88,8 +88,8 @@ class IGNITION_GAZEBO_VISIBLE BaseView
   /// view or when rebuilding the view.
   /// \return True if _entity isn't already a part of the view and was marked as
   /// an entity to be added. False otherwise
-  /// \sa HasEntity, HasEntityToAdd
-  public: bool MarkEntityToAdd(const Entity _entity, const bool _new = false);
+  /// \sa HasEntity, IsEntityMarkedForAddition
+  public: bool MarkEntityToAdd(const Entity _entity, bool _new = false);
 
   /// \brief See if the view requires a particular component type
   /// \param[in] _typeId The component type

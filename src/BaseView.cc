@@ -30,13 +30,13 @@ bool BaseView::HasEntity(const Entity _entity) const
 }
 
 //////////////////////////////////////////////////
-bool BaseView::HasEntityToAdd(const Entity _entity) const
+bool BaseView::IsEntityMarkedForAddition(const Entity _entity) const
 {
   return this->toAddEntities.find(_entity) != this->toAddEntities.end();
 }
 
 //////////////////////////////////////////////////
-bool BaseView::MarkEntityToAdd(const Entity _entity, const bool _new)
+bool BaseView::MarkEntityToAdd(const Entity _entity, bool _new)
 {
   if (this->HasCachedComponentData(_entity))
     return false;
@@ -54,7 +54,8 @@ bool BaseView::RequiresComponent(const ComponentTypeId _typeId) const
 //////////////////////////////////////////////////
 bool BaseView::AddEntityToRemoved(const Entity _entity)
 {
-  if (this->HasCachedComponentData(_entity) || this->HasEntityToAdd(_entity))
+  if (this->HasCachedComponentData(_entity) ||
+      this->IsEntityMarkedForAddition(_entity))
   {
     this->toRemoveEntities.insert(_entity);
     return true;

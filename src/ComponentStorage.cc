@@ -16,8 +16,11 @@
 */
 #include "ignition/gazebo/detail/ComponentStorage.hh"
 
+#include <cstdint>
 #include <memory>
+#include <unordered_map>
 #include <utility>
+#include <vector>
 
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/Types.hh"
@@ -36,15 +39,15 @@ void ComponentStorage::Reset()
 //////////////////////////////////////////////////
 bool ComponentStorage::AddEntity(const Entity _entity)
 {
-  if (this->entityComponents.find(_entity) != this->entityComponents.end())
-    return false;
-  this->entityComponents[_entity];
-
-  if (this->componentTypeIndex.find(_entity) != this->componentTypeIndex.end())
-    return false;
-  this->componentTypeIndex[_entity];
-
-  return true;
+  const auto [it, success] = this->entityComponents.insert({_entity,
+      std::vector<std::unique_ptr<components::BaseComponent>>()});
+  if (success)
+  {
+    const auto [it2, success2] = this->componentTypeIndex.insert({_entity,
+        std::unordered_map<ComponentTypeId, std::size_t>()});
+    return success2;
+  }
+  return success;
 }
 
 //////////////////////////////////////////////////
@@ -62,9 +65,10 @@ ComponentAdditionResult ComponentStorage::AddComponent(
 {
   // make sure the entity exists
   auto typeMapIter = this->componentTypeIndex.find(_entity);
+  if (typeMapIter == this->componentTypeIndex.end())
+    return ComponentAdditionResult::FAILED_ADDITION;
   auto entityCompIter = this->entityComponents.find(_entity);
-  if (typeMapIter == this->componentTypeIndex.end() ||
-      entityCompIter == this->entityComponents.end())
+  if (entityCompIter == this->entityComponents.end())
     return ComponentAdditionResult::FAILED_ADDITION;
 
   const auto typeId = _component->TypeId();

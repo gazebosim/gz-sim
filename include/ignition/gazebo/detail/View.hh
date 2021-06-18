@@ -66,7 +66,7 @@ class IGNITION_GAZEBO_VISIBLE View : public BaseView
     this->invalidConstData.erase(_entity);
     this->missingCompTracker.erase(_entity);
 
-    if (!this->HasEntity(_entity) && !this->HasEntityToAdd(_entity))
+    if (!this->HasEntity(_entity) && !this->IsEntityMarkedForAddition(_entity))
       return false;
 
     this->entities.erase(_entity);

@@ -367,7 +367,7 @@ bool EntityComponentManager::RemoveComponent(
   {
     oneTimeIter->second.erase(_entity);
     if (oneTimeIter->second.empty())
-      this->dataPtr->oneTimeChangedComponents.erase(_typeId);
+      this->dataPtr->oneTimeChangedComponents.erase(oneTimeIter);
   }
 
   auto periodicIter = this->dataPtr->periodicChangedComponents.find(_typeId);
@@ -375,7 +375,7 @@ bool EntityComponentManager::RemoveComponent(
   {
     periodicIter->second.erase(_entity);
     if (periodicIter->second.empty())
-      this->dataPtr->periodicChangedComponents.erase(_typeId);
+      this->dataPtr->periodicChangedComponents.erase(periodicIter);
   }
 
   auto removedComp =
