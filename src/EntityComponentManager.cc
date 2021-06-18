@@ -162,7 +162,7 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// \brief Unordered map of removed components. The key is the entity to
   /// which belongs the component, and the value is a set of the component types
   /// being removed.
-  std::unordered_map<Entity, std::unordered_set<ComponentTypeId>>
+  public: std::unordered_map<Entity, std::unordered_set<ComponentTypeId>>
     removedComponents;
 };
 
@@ -402,8 +402,9 @@ bool EntityComponentManager::RemoveComponent(
 bool EntityComponentManager::RemoveComponent(
     const Entity _entity, const ComponentKey &_key)
 {
-  ignwarn << "This method is deprecated. Please use the RemoveComponent method "
-    << "with a ComponentTypeId parameter type instead." << std::endl;
+  ignwarn << "EntityComponentManager::RemoveComponent is deprecated. Please "
+    << "use the RemoveComponent method with a ComponentTypeId parameter type "
+    << "instead." << std::endl;
   return this->RemoveComponent(_entity, _key.first);
 }
 
@@ -411,8 +412,9 @@ bool EntityComponentManager::RemoveComponent(
 bool EntityComponentManager::EntityHasComponent(const Entity _entity,
     const ComponentKey &_key) const
 {
-  ignwarn << "This method is deprecated. Please use "
-    << "EntityComponentManager::EntityHasComponentType instead." << std::endl;
+  ignwarn << "EntityComponentManager::EntityHasComponent is deprecated. Please "
+    << "use EntityComponentManager::EntityHasComponentType instead."
+    << std::endl;
   if (!this->HasEntity(_entity))
     return false;
   auto &compSet = this->dataPtr->entityComponents[_entity];

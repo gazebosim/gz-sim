@@ -176,7 +176,8 @@ bool EntityComponentManager::SetComponentData(const Entity _entity,
 template<typename ComponentTypeT>
 const ComponentTypeT *EntityComponentManager::First() const
 {
-  ignwarn << "This method is now deprecated and will always return nullptr.\n";
+  ignwarn << "EntityComponentManager::First is now deprecated and will always "
+    << "return nullptr.\n";
   return nullptr;
 }
 
@@ -184,7 +185,8 @@ const ComponentTypeT *EntityComponentManager::First() const
 template<typename ComponentTypeT>
 ComponentTypeT *EntityComponentManager::First()
 {
-  ignwarn << "This method is now deprecated and will always return nullptr.\n";
+  ignwarn << "EntityComponentManager::First is now deprecated and will always "
+    << "return nullptr.\n";
   return nullptr;
 }
 
