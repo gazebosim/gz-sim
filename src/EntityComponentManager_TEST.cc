@@ -2564,7 +2564,7 @@ TEST_P(EntityComponentManagerFixture, RemovedComponentsSyncBetweenServerAndGUI)
 }
 
 //////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, LockEntity)
+TEST_P(EntityComponentManagerFixture, UnremovableEntity)
 {
   // Create some entities
   auto e1 = manager.CreateEntity();
@@ -2582,8 +2582,8 @@ TEST_P(EntityComponentManagerFixture, LockEntity)
 
   EXPECT_EQ(3u, manager.EntityCount());
 
-  // Lock e1, which should also lock its child entity e2
-  manager.LockEntity(e1);
+  // Mark e1 as unremovable, which should also lock its child entity e2
+  manager.MarkEntityUnremovable(e1);
 
   // Try to remove e1, which is locked entity
   manager.RequestRemoveEntity(e1);
@@ -2599,24 +2599,22 @@ TEST_P(EntityComponentManagerFixture, LockEntity)
   manager.ProcessEntityRemovals();
   EXPECT_EQ(3u, manager.EntityCount());
 
-  std::cout << "RequestRemoveEntities\n";
   // Try to remove all entities, which should leave just e1 and e2
   manager.RequestRemoveEntities();
-  std::cout << "RequestRemoveEntities Done\n";
   EXPECT_TRUE(manager.HasEntitiesMarkedForRemoval());
   manager.ProcessEntityRemovals();
   EXPECT_EQ(2u, manager.EntityCount());
 
-  // Unlock e2, and now it should be removable.
-  manager.UnlockEntity(e2);
+  // Unmark e2, and now it should be removable.
+  manager.MarkEntityRemovable(e2);
   manager.RequestRemoveEntity(e2);
   EXPECT_EQ(2u, manager.EntityCount());
   EXPECT_TRUE(manager.HasEntitiesMarkedForRemoval());
   manager.ProcessEntityRemovals();
   EXPECT_EQ(1u, manager.EntityCount());
 
-  // Unlock all entities, and now it should be removable.
-  manager.UnlockAllEntities();
+  // Unmark all entities, and now it should be removable.
+  manager.MarkAllEntitiesRemovable();
   manager.RequestRemoveEntities();
   EXPECT_TRUE(manager.HasEntitiesMarkedForRemoval());
   manager.ProcessEntityRemovals();

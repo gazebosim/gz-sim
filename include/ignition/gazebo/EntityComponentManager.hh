@@ -106,7 +106,8 @@ namespace ignition
       /// \param[in] _entity Entity to be locked.
       /// \param[in] _recursive Whether to recursively lock all child
       /// entities. True by default.
-      public: void LockEntity(const Entity _entity, bool _recursive = true);
+      public: void MarkEntityUnremovable(const Entity _entity,
+                  bool _recursive = true);
 
       /// \brief Allow a previously lock entity and optionally its children
       /// to be removed.
@@ -114,11 +115,11 @@ namespace ignition
       /// \param[in] _recursive Whether to recursively unlock all child
       /// entities. True by default.
       /// \sa void LockEntity(const Entity, bool)
-      public: void UnlockEntity(const Entity _entity, bool _recursive = true);
+      public: void MarkEntityRemovable(const Entity _entity, bool _recursive = true);
 
       /// \brief Allow all previously locked entitied to be removed.
       /// \sa void LockEntity(const Entity, bool)
-      public: void UnlockAllEntities();
+      public: void MarkAllEntitiesRemovable();
 
       /// \brief Request to remove all entities. This will insert the request
       /// into a queue. The queue is processed toward the end of a simulation
