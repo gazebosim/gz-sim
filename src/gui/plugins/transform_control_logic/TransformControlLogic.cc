@@ -696,10 +696,10 @@ bool TransformControlLogic::eventFilter(QObject *_obj, QEvent *_event)
     this->dataPtr->mouseDirty = true;
     this->dataPtr->HandleTransform();
   }
-  else if (_event->type() == ignition::gui::events::KeyPress::kType)
+  else if (_event->type() == ignition::gui::events::KeyPressOnScene::kType)
   {
-    ignition::gui::events::KeyPress *_e =
-      static_cast<ignition::gui::events::KeyPress*>(_event);
+    ignition::gui::events::KeyPressOnScene *_e =
+      static_cast<ignition::gui::events::KeyPressOnScene*>(_event);
     this->dataPtr->keyEvent = _e->Key();
   }
   else if (_event->type() ==
