@@ -352,12 +352,12 @@ class ignition::gazebo::RenderUtilPrivate
   public: void UpdateThermalCamera(const std::unordered_map<Entity,
     std::tuple<double, components::TemperatureRangeInfo>> &_thermalCamData);
 
-  /// \brief Helper function that lets the render engine update animation based
-  /// on sim time. This should be called in RenderUtil::Update.
+  /// \brief Helper function for updating animation. This should be called in
+  /// RenderUtil::Update.
   /// \param[in] _actorAnimationData A map of entities to their animation update
   /// data.
   /// \sa actorManualSkeletonUpdate
-  public: void UpdateAnimationWithRenderEngine(const std::unordered_map<Entity,
+  public: void UpdateAnimation(const std::unordered_map<Entity,
               AnimationUpdateData> &_actorAnimationData);
 };
 
@@ -804,7 +804,7 @@ void RenderUtil::Update()
     }
     else
     {
-      this->dataPtr->UpdateAnimationWithRenderEngine(actorAnimationData);
+      this->dataPtr->UpdateAnimation(actorAnimationData);
     }
   }
 
@@ -2027,7 +2027,7 @@ void RenderUtilPrivate::UpdateThermalCamera(const std::unordered_map<Entity,
 }
 
 /////////////////////////////////////////////////
-void RenderUtilPrivate::UpdateAnimationWithRenderEngine(
+void RenderUtilPrivate::UpdateAnimation(
     const std::unordered_map<Entity, AnimationUpdateData> &_actorAnimationData)
 {
   for (auto &it : _actorAnimationData)
