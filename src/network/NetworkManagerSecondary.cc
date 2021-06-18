@@ -201,12 +201,6 @@ void NetworkManagerSecondary::AsyncStepTask()
         // Performer model
         auto parent =
           this->dataPtr->ecm->Component<components::ParentEntity>(perf);
-        if (parent == nullptr)  // TODO(ivanpauno): why is this now needed?
-        {
-          ignerr << "Failed to get parent for performer [" << perf << "]"
-                << std::endl;
-          continue;
-        }
         auto modelEntity = parent->Data();
 
         auto children = this->dataPtr->ecm->Descendants(modelEntity);
