@@ -273,7 +273,8 @@ void EntityComponentManager::RequestRemoveEntity(Entity _entity,
     this->dataPtr->InsertEntityRecursive(_entity, tmpToRemoveEntities);
   }
 
-  // Remove entities from tmpToRemoveEntities that are locked.
+  // Remove entities from tmpToRemoveEntities that are marked as
+  // unremovable.
   for (auto iter = tmpToRemoveEntities.begin();
        iter != tmpToRemoveEntities.end();)
   {

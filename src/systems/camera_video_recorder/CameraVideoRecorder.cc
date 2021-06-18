@@ -122,8 +122,11 @@ class ignition::gazebo::systems::CameraVideoRecorderPrivate
   /// By default (false), video encoding is done using real time.
   public: bool recordVideoUseSimTime = false;
 
+  /// \brief Video recorder bitrate (bps)
+  public: unsigned int recordVideoBitrate = 2070000;
+
   /// \brief Recording frames per second.
-  public: int fps = 25;
+  public: unsigned int fps = 25;
 };
 
 //////////////////////////////////////////////////
@@ -245,7 +248,11 @@ void CameraVideoRecorder::Configure(
   this->dataPtr->recordVideoUseSimTime = _sdf->Get<bool>("use_sim_time",
       this->dataPtr->recordVideoUseSimTime).first;
 
-  this->dataPtr->fps = _sdf->Get<double>("fps", this->dataPtr->fps).first;
+  // Get video recoder bitrate param
+  this->dataPtr->recordVideoBitrate = _sdf->Get<unsigned int>("bitrate",
+      this->dataPtr->recordVideoBitrate).first;
+
+  this->dataPtr->fps = _sdf->Get<unsigned int>("fps", this->dataPtr->fps).first;
 
   // recorder stats topic
   std::string recorderStatsTopic = this->dataPtr->sensorTopic + "/stats";
@@ -384,7 +391,8 @@ void CameraVideoRecorderPrivate::OnPostRender()
           &CameraVideoRecorderPrivate::OnImage, this);
 
       this->videoEncoder.Start(this->recordVideoFormat,
-          this->tmpVideoFilename, width, height, this->fps);
+          this->tmpVideoFilename, width, height, this->fps,
+          this->recordVideoBitrate);
 
       this->recordStartTime = std::chrono::steady_clock::time_point(
             std::chrono::duration(std::chrono::seconds(0)));

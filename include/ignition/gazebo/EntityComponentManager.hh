@@ -103,22 +103,23 @@ namespace ignition
       /// spawned camera would be removed. Use this function to prevent the
       /// camera from automatic removal.
       ///
-      /// \param[in] _entity Entity to be locked.
-      /// \param[in] _recursive Whether to recursively lock all child
+      /// \param[in] _entity Entity to be marked.
+      /// \param[in] _recursive Whether to recursively mark all child
       /// entities. True by default.
       public: void MarkEntityUnremovable(const Entity _entity,
                   bool _recursive = true);
 
-      /// \brief Allow a previously lock entity and optionally its children
-      /// to be removed.
-      /// \param[in] _entity Entity to be unlocked.
-      /// \param[in] _recursive Whether to recursively unlock all child
+      /// \brief Allow an entity, and optionally its children, previously
+      /// marked as unremoable to be removed.
+      /// \param[in] _entity Entity to be unmarked.
+      /// \param[in] _recursive Whether to recursively unmark all child
       /// entities. True by default.
-      /// \sa void LockEntity(const Entity, bool)
-      public: void MarkEntityRemovable(const Entity _entity, bool _recursive = true);
+      /// \sa void MarkEntityUnremovable(const Entity, bool)
+      public: void MarkEntityRemovable(const Entity _entity,
+                  bool _recursive = true);
 
-      /// \brief Allow all previously locked entitied to be removed.
-      /// \sa void LockEntity(const Entity, bool)
+      /// \brief Allow all previously marked entities to be removed.
+      /// \sa void MarkEntityUnremovable(const Entity, bool)
       public: void MarkAllEntitiesRemovable();
 
       /// \brief Request to remove all entities. This will insert the request
