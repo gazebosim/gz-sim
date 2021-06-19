@@ -28,17 +28,16 @@
 #include <sdf/parser.hh>
 
 #include <ignition/common/Console.hh>
-#include <ignition/common/Profiler.hh>
 #include <ignition/common/Filesystem.hh>
+#include <ignition/common/Profiler.hh>
+#include <ignition/fuel_tools/ClientConfig.hh>
+#include <ignition/fuel_tools/FuelClient.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/Publisher.hh>
-#include <ignition/fuel_tools/FuelClient.hh>
-#include <ignition/fuel_tools/ClientConfig.hh>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
 namespace ignition::gazebo
