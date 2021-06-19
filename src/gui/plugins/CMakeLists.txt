@@ -76,6 +76,15 @@ function(gz_add_gui_plugin plugin_name)
 
   cmake_parse_arguments(gz_add_gui_plugin "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
+  if(MSVC)
+    # Warning #4251 is the "dll-interface" warning that tells you when types
+    # used by a class are not being exported. These generated source files have
+    # private members that don't get exported, so they trigger this warning.
+    # However, the warning is not important since those members do not need to
+    # be interfaced with.
+    set_source_files_properties(${gz_add_gui_plugin_SOURCES} COMPILE_FLAGS "/wd4251")
+  endif()
+
   gz_add_gui_library(${plugin_name}
     SOURCES ${gz_add_gui_plugin_SOURCES}
     QT_HEADERS ${gz_add_gui_plugin_QT_HEADERS}
