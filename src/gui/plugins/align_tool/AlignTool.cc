@@ -367,7 +367,8 @@ void AlignTool::Align()
           static_cast<int>(entityId))
       {
         // Check here to see if visual is top level or not, continue if not
-        rendering::VisualPtr topLevelVis = this->TopLevelVisual(scene, vis);
+        rendering::VisualPtr topLevelVis =
+          this->TopLevelVisual(this->dataPtr->scene, vis);
         if (topLevelVis != vis)
           continue;
 
