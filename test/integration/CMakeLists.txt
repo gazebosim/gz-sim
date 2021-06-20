@@ -41,6 +41,7 @@ set(tests
   sdf_include.cc
   thermal_system.cc
   touch_plugin.cc
+  tracked_vehicle_system.cc
   triggered_publisher.cc
   user_commands.cc
   velocity_control_system.cc
