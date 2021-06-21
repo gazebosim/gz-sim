@@ -274,6 +274,14 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
   rendering::VisualPtr visualVis = this->dataPtr->scene->CreateVisual(name);
   visualVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   visualVis->SetUserData("pause-update", static_cast<int>(0));
+
+  auto geometry = _visual.Geom();
+  if (geometry)
+  {
+    std::cout << "Setting geometry type " << static_cast<int>(geometry->Type()) << std::endl;
+    visualVis->SetUserData("geometry-type", static_cast<int>(geometry->Type()));
+  }
+
   visualVis->SetLocalPose(_visual.RawPose());
 
   if (_visual.HasLaserRetro())

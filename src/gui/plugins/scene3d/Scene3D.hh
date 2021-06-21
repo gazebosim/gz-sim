@@ -175,6 +175,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: bool OnViewControl(const msgs::StringMsg &_msg,
         msgs::Boolean &_res);
 
+    /// \brief ToDo.
+    private: bool UpdateGeomSize(sdf::ElementPtr &_modelPtr,
+        const ignition::math::Vector3d &_scale);
+
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<Scene3DPrivate> dataPtr;
@@ -368,6 +372,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void RequestSelectionChange(Entity _selectedEntity,
         bool _deselectAll, bool _sendEvent);
 
+    /// \brief Returns the map of entities scaled that need to update their
+    /// associated ModelSdf components.
+    /// \return A reference to the map with the scaling information.
+    public: std::map<Entity, math::Vector3d> &ScaledEntities();
+
     /// \brief Snaps a value at intervals of a fixed distance. Currently used
     /// to give a snapping behavior when moving models with a mouse.
     /// \param[in] _coord Input coordinate point.
@@ -461,6 +470,16 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// when the deselection is initiated from this plugin.
     private: void DeselectAllEntities(bool _sendEvent);
 
+    /// \brief Helper function that traverses the node tree looking for any
+    /// child with the "geometry-type" user data. If found, the function also
+    /// checks if the value is a simple shape (box, cylinder or sphere).
+    /// \param[in] _node Root node.
+    /// \param[out] _visual The visual pointer to the simple shape if found.
+    /// \return True if any simple shape was found in the tree or false
+    /// otherwise.
+    private: bool ContainsSimpleShape(const rendering::NodePtr &_node,
+        rendering::VisualPtr &_visual) const;
+
     /// \brief Signal fired when context menu event is triggered
     signals: void ContextMenuRequested(QString _entity);
 
@@ -470,6 +489,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _waitForTarget True to continuously look for the target
     signals: void FollowTargetChanged(const std::string &_target,
         bool _waitForTarget);
+
+    /// \brief ToDo.
+    signals: void UpdateSdfGeometry(Entity _entity, const std::string &_scale);
 
     /// \brief Render texture id
     public: GLuint textureId = 0u;
@@ -708,6 +730,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _e The key event to process.
     public: void HandleKeyRelease(QKeyEvent *_e);
 
+    /// \brief ToDo.
+    public: void SetScaledEntities(
+        const std::map<Entity, math::Vector3d> &_newScaledEntities);
+
+    /// \brief ToDo.
+    public: std::map<Entity, math::Vector3d> ScaledEntities() const;
+
     // Documentation inherited
     protected: void mousePressEvent(QMouseEvent *_e) override;
 
@@ -738,6 +767,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Qt callback when context menu request is received
     /// \param[in] _entity Scoped name of entity.
     public slots: void OnContextMenuRequested(QString _entity);
+
+    /// \brief ToDo.
+    public slots: void OnEntityScaled(Entity _entity, const std::string &_scale);
 
     /// \internal
     /// \brief Pointer to private data.

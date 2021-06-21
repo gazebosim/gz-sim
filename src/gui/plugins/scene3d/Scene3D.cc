@@ -23,6 +23,7 @@
 #include <limits>
 #include <map>
 #include <mutex>
+#include <queue>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -64,6 +65,7 @@
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
 
+#include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/RenderEngineGuiPlugin.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -378,6 +380,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief The scale values by which to snap the object.
     public: math::Vector3d scaleSnap = math::Vector3d::One;
+
+    /// \brief The entities scaled that need to update their associated
+    /// ModelSDF components. The key is the entity Id and the value is the
+    /// scaled applied to that entity.
+    public: std::map<Entity, math::Vector3d> scaledEntities;
   };
 
   /// \brief Private data class for RenderWindowItem
@@ -391,6 +398,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     //// \brief Set to true after the renderer is initialized
     public: bool rendererInit = false;
+
+    /// \brief The entities scaled that need to update their associated
+    /// ModelSDF components. The key is the entity Id and the value is the
+    /// scaled applied to that entity.
+    public: std::map<Entity, math::Vector3d> scaledEntities;
+
+    /// \brief ToDo.
+    std::mutex mutex;
 
     //// \brief List of threads
     public: static QList<QThread *> threads;
@@ -1426,6 +1441,53 @@ void IgnRenderer::XYZConstraint(math::Vector3d &_axis)
 }
 
 /////////////////////////////////////////////////
+bool IgnRenderer::ContainsSimpleShape(const rendering::NodePtr &_node,
+    rendering::VisualPtr &_visual) const
+{
+  std::queue<rendering::NodePtr> q;
+
+  // Adding the root node.
+  q.push(_node);
+
+  while (!q.empty())
+  {
+    // Process the next node.
+    auto n = q.front();
+    q.pop();
+    if (n)
+    {
+      auto v = std::dynamic_pointer_cast<ignition::rendering::Visual>(n);
+      if (v)
+      {
+        try
+        {
+          int userData = std::get<int>(v->UserData("geometry-type"));
+
+          /// \TODO(anyone) Consider sdf::GeometryType::CAPSULE and
+          /// sdf::GeometryType::ELLIPSOID in Edifice.
+          if (userData == static_cast<int>(sdf::GeometryType::BOX)      ||
+              userData == static_cast<int>(sdf::GeometryType::CYLINDER) ||
+              userData == static_cast<int>(sdf::GeometryType::SPHERE))
+          {
+            _visual = v;
+            return true;
+          }
+        }
+        catch (const std::bad_variant_access& ex)
+        {
+        }
+      }
+
+      // Add all children to the queue to be considered.
+      for (auto i = 0u; i < n->ChildCount(); ++i)
+        q.push(n->ChildByIndex(i));
+    }
+  }
+
+  return false;
+}
+
+/////////////////////////////////////////////////
 void IgnRenderer::HandleMouseTransformControl()
 {
   if (this->dataPtr->renderThreadId != std::this_thread::get_id())
@@ -1503,31 +1565,48 @@ void IgnRenderer::HandleMouseTransformControl()
       {
         if (this->dataPtr->transformControl.Node())
         {
-          std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-              [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+          if (this->dataPtr->transformControl.Mode() ==
+              rendering::TransformMode::TM_SCALE)
           {
-            if (!_result)
-              ignerr << "Error setting pose" << std::endl;
-          };
-          rendering::NodePtr node = this->dataPtr->transformControl.Node();
-          ignition::msgs::Pose req;
-          req.set_name(node->Name());
-          msgs::Set(req.mutable_position(), node->WorldPosition());
-          msgs::Set(req.mutable_orientation(), node->WorldRotation());
-          if (this->dataPtr->poseCmdService.empty())
-          {
-            this->dataPtr->poseCmdService = "/world/" + this->worldName
-                + "/set_pose";
+            std::cout << "End scaling" << std::endl;
+
+            for (auto const &[entity, scale] : this->dataPtr->scaledEntities)
+            {
+              std::ostringstream ss;
+              ss << scale;
+              emit this->UpdateSdfGeometry(entity, ss.str());
+            }
+
+            this->dataPtr->scaledEntities.clear();
           }
-          this->dataPtr->poseCmdService = transport::TopicUtils::AsValidTopic(
-              this->dataPtr->poseCmdService);
-          if (this->dataPtr->poseCmdService.empty())
+          else
           {
-            ignerr << "Failed to create valid pose command service for world ["
-                   << this->worldName <<"]" << std::endl;
-            return;
+            std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+                [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+            {
+              if (!_result)
+                ignerr << "Error setting pose" << std::endl;
+            };
+            rendering::NodePtr node = this->dataPtr->transformControl.Node();
+            ignition::msgs::Pose req;
+            req.set_name(node->Name());
+            msgs::Set(req.mutable_position(), node->WorldPosition());
+            msgs::Set(req.mutable_orientation(), node->WorldRotation());
+            if (this->dataPtr->poseCmdService.empty())
+            {
+              this->dataPtr->poseCmdService = "/world/" + this->worldName
+                  + "/set_pose";
+            }
+            this->dataPtr->poseCmdService = transport::TopicUtils::AsValidTopic(
+                this->dataPtr->poseCmdService);
+            if (this->dataPtr->poseCmdService.empty())
+            {
+              ignerr << "Failed to create valid pose command service for world ["
+                     << this->worldName <<"]" << std::endl;
+              return;
+            }
+            this->dataPtr->node.Request(this->dataPtr->poseCmdService, req, cb);
           }
-          this->dataPtr->node.Request(this->dataPtr->poseCmdService, req, cb);
         }
 
         this->dataPtr->transformControl.Stop();
@@ -1691,10 +1770,23 @@ void IgnRenderer::HandleMouseTransformControl()
     else if (this->dataPtr->transformControl.Mode() ==
         rendering::TransformMode::TM_SCALE)
     {
+      // Check if the model that we're trying to scale looks like a simple shape
+      rendering::VisualPtr visualSimple;
+      auto node = this->dataPtr->transformControl.Node();
+      auto v = std::dynamic_pointer_cast<ignition::rendering::Visual>(node);
+      bool found = this->ContainsSimpleShape(node, visualSimple);
+      if (!found)
+        return;
+
+      int userData = std::get<int>(v->UserData("geometry-type"));
+      sdf::GeometryType geomType = static_cast<sdf::GeometryType>(userData);
+
+      std::cout << "GeomType: " << userData << std::endl;
+
       this->XYZConstraint(axis);
       // note: scaling is limited to local space
       math::Vector3d scale =
-          this->dataPtr->transformControl.ScaleFrom2d(axis, start, end);
+        this->dataPtr->transformControl.ScaleFrom2d(axis, start, end);
       if (this->dataPtr->keyEvent.Control())
       {
         math::Vector3d snapVals = this->ScaleSnap();
@@ -1708,13 +1800,58 @@ void IgnRenderer::HandleMouseTransformControl()
 
         SnapPoint(scale, snapVals);
       }
+
+      // Apply geometry constaints to the scaling.
+      if (geomType == sdf::GeometryType::SPHERE)
+      {
+        if (axis.X() > 0)
+        {
+          scale.Y(scale.X());
+          scale.Z(scale.X());
+        }
+        else if (axis.Y() > 0)
+        {
+          scale.X(scale.Y());
+          scale.Z(scale.Y());
+        }
+        else if (axis.Z() > 0)
+        {
+          scale.X(scale.Z());
+          scale.Y(scale.Z());
+        }
+      }
+      else if (geomType == sdf::GeometryType::CYLINDER)
+      {
+        if (axis.X() > 0)
+        {
+          scale.Y(scale.X());
+        }
+        else if (axis.Y() > 0)
+        {
+          scale.X(scale.Y());
+        }
+      }
+
+      // Scale.
       this->dataPtr->transformControl.Scale(scale);
+
+      if (v)
+      {
+        Entity entityId = std::get<int>(v->UserData("gazebo-entity"));
+
+        // Update the bounding box.
+        auto s = this->dataPtr->transformControl.Node()->LocalScale();
+        this->dataPtr->renderUtil.SetWireBoxScale(entityId, s);
+
+        // Set the entity that has been scaled. Scene3D will update the
+        // associated ModelSdf component in a separate thread.
+        this->dataPtr->scaledEntities[entityId] = scale;
+      }
     }
     this->dataPtr->drag = 0;
     this->dataPtr->mouseDirty = false;
   }
 }
-
 
 /////////////////////////////////////////////////
 void IgnRenderer::HandleMouseViewControl()
@@ -2244,6 +2381,13 @@ void IgnRenderer::RequestSelectionChange(Entity _selectedEntity,
   this->dataPtr->selectionHelper = {_selectedEntity, _deselectAll, _sendEvent};
 }
 
+////////////////////////////////////////////////
+std::map<Entity, math::Vector3d> &IgnRenderer::ScaledEntities()
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  return this->dataPtr->scaledEntities;
+}
+
 /////////////////////////////////////////////////
 RenderThread::RenderThread()
 {
@@ -2425,6 +2569,10 @@ void RenderWindowItem::Ready()
       &IgnRenderer::FollowTargetChanged,
       this, &RenderWindowItem::SetFollowTarget, Qt::QueuedConnection);
 
+  this->connect(&this->dataPtr->renderThread->ignRenderer,
+      &IgnRenderer::UpdateSdfGeometry,
+      this, &RenderWindowItem::OnEntityScaled, Qt::QueuedConnection);
+
   this->dataPtr->renderThread->moveToThread(this->dataPtr->renderThread);
 
   this->connect(this, &QObject::destroyed,
@@ -2535,6 +2683,18 @@ QSGNode *RenderWindowItem::updatePaintNode(QSGNode *_node,
 void RenderWindowItem::OnContextMenuRequested(QString _entity)
 {
   emit openContextMenu(std::move(_entity));
+}
+
+///////////////////////////////////////////////////
+void RenderWindowItem::OnEntityScaled(Entity _entity, const std::string &_scale)
+{
+  std::cout << "OnEntityScaled: " << std::endl;
+  std::cout << _entity << ": " << _scale << std::endl;
+  math::Vector3d scale;
+  std::istringstream is(_scale);
+  is >> scale;
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->scaledEntities[_entity] = scale;
 }
 
 ///////////////////////////////////////////////////
@@ -2887,6 +3047,35 @@ void Scene3D::Update(const UpdateInfo &_info,
     }
   }
 
+  auto scaledEntities = renderWindow->ScaledEntities();
+  if (!scaledEntities.empty())
+  {
+    _ecm.Each<components::Model, components::ModelSdf>(
+        [&](const Entity &_modelEntity, const components::Model *,
+            const components::ModelSdf *_modelSdf)
+        {
+          if (scaledEntities.find(_modelEntity) != scaledEntities.end())
+          {
+            std::cout << "Updating SDF for entity " << _modelEntity << std::endl;
+
+            sdf::ElementPtr modelElem = _modelSdf->Data().Element();
+
+            std::cout << "Before:" << std::endl;
+            std::cout << _modelSdf->Data().Element()->ToString("");
+            if (!this->UpdateGeomSize(modelElem, scaledEntities[_modelEntity]))
+            {
+              ignerr << "Unable to update geometry size: "
+                     << _modelSdf->Data().Element()->ToString("") << std::endl;
+            }
+            std::cout << "After:" << std::endl;
+            std::cout << _modelSdf->Data().Element()->ToString("");
+          }
+
+          return true;
+        });
+    renderWindow->SetScaledEntities({});
+  }
+
   if (this->dataPtr->cameraPosePub.HasConnections())
   {
     msgs::Pose poseMsg = msgs::Convert(renderWindow->CameraPose());
@@ -3032,6 +3221,57 @@ bool Scene3D::OnViewControl(const msgs::StringMsg &_msg,
   return true;
 }
 
+/////////////////////////////////////////////////
+bool Scene3D::UpdateGeomSize(sdf::ElementPtr &_modelElem,
+  const ignition::math::Vector3d &_scale)
+{
+  if (!_modelElem->HasElement("link"))
+    return false;
+
+  sdf::ElementPtr linkElem = _modelElem->GetElement("link");
+  if (!linkElem->HasElement("visual"))
+    return false;
+
+  for (auto label : {"visual", "collision"})
+  {
+    sdf::ElementPtr elem = linkElem->GetElement(label);
+    if (!elem->HasElement("geometry"))
+      continue;
+
+    sdf::ElementPtr geomElem = elem->GetElement("geometry");
+    if (geomElem->HasElement("box"))
+    {
+      ignition::math::Vector3d size =
+          geomElem->GetElement("box")->Get<ignition::math::Vector3d>("size");
+      ignition::math::Vector3d geomBoxSize = _scale * size;
+
+      geomElem->GetElement("box")->GetElement("size")->Set(geomBoxSize);
+    }
+    else if (geomElem->HasElement("sphere"))
+    {
+      // update radius the same way as collision shapes
+      double radius = geomElem->GetElement("sphere")->Get<double>("radius");
+      double newRadius = _scale.Max();
+      double geomRadius = newRadius * radius;
+      geomElem->GetElement("sphere")->GetElement("radius")->Set(geomRadius);
+    }
+    else if (geomElem->HasElement("cylinder"))
+    {
+      // update radius the same way as collision shapes
+      double radius = geomElem->GetElement("cylinder")->Get<double>("radius");
+      double newRadius = std::max(_scale.X(), _scale.Y());
+      double length = geomElem->GetElement("cylinder")->Get<double>("length");
+      double geomRadius = newRadius * radius;
+      double geomLength = _scale.Z() * length;
+      geomElem->GetElement("cylinder")->GetElement("radius")->Set(geomRadius);
+      geomElem->GetElement("cylinder")->GetElement("length")->Set(geomLength);
+    }
+    else if (geomElem->HasElement("mesh"))
+      geomElem->GetElement("mesh")->GetElement("scale")->Set(_scale);
+  }
+
+  return true;
+}
 
 /////////////////////////////////////////////////
 void Scene3D::OnHovered(int _mouseX, int _mouseY)
@@ -3472,6 +3712,21 @@ void RenderWindowItem::HandleKeyRelease(QKeyEvent *_e)
       _e->accept();
     }
   }
+}
+
+////////////////////////////////////////////////
+void RenderWindowItem::SetScaledEntities(
+        const std::map<Entity, math::Vector3d> &_newScaledEntities)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->scaledEntities = _newScaledEntities;
+}
+
+////////////////////////////////////////////////
+std::map<Entity, math::Vector3d> RenderWindowItem::ScaledEntities() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  return this->dataPtr->scaledEntities;
 }
 
 ///////////////////////////////////////////////////
