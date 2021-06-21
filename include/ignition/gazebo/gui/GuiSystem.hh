@@ -55,6 +55,11 @@ namespace gazebo
     public: virtual void Update(const UpdateInfo &/*_info*/,
                                 EntityComponentManager &/*_ecm*/){}
 
+    /// \brief When running in the same process GUI and server we need to
+    /// configure the gui system plugins with the event manager to listen
+    /// ecm updates and set if we are running in the same process
+    /// \param[in] _ecm Mutable event manager
+    /// \param[in] _sameProcess is server and gui running in the same process ?
     public: virtual void Configure(
       EventManager &/*_event*/, bool /*sameProcess*/){}
   };

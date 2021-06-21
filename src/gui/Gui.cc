@@ -44,12 +44,9 @@ namespace gui
 std::unique_ptr<ignition::gui::Application> createGui(
     int &_argc, char **_argv, const char *_guiConfig,
     EntityComponentManager &_ecm, EventManager &_eventMgr,
-    bool sameProcess, const char *_defaultGuiConfig,
+    bool _sameProcess, const char *_defaultGuiConfig,
     bool _loadPluginsFromSdf)
 {
-  auto &sharedEcm = _ecm;
-  auto &sharedEventManager = _eventMgr;
-
   ignition::common::SignalHandler sigHandler;
   bool sigKilled = false;
   sigHandler.AddCallback([&](const int /*_sig*/)
@@ -183,7 +180,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
 # pragma warning(disable: 4996)
 #endif
     auto runner = new ignition::gazebo::GuiRunner(
-      worldsMsg.data(0), sharedEcm, sharedEventManager, sameProcess);
+      worldsMsg.data(0), _ecm, _eventMgr, _sameProcess);
 #ifndef _WIN32
 # pragma GCC diagnostic pop
 #else
@@ -248,7 +245,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
 # pragma warning(disable: 4996)
 #endif
       auto runner = new ignition::gazebo::GuiRunner(
-        worldName, sharedEcm, sharedEventManager, sameProcess);
+        worldName, _ecm, _eventMgr, _sameProcess);
 #ifndef _WIN32
 # pragma GCC diagnostic pop
 #else
@@ -326,12 +323,10 @@ std::unique_ptr<ignition::gui::Application> createGui(
 
 //////////////////////////////////////////////////
 int runGui(int &_argc, char **_argv, const char *_guiConfig,
-  EntityComponentManager &_ecm, EventManager &_eventMgr, bool sameProcess)
+  EntityComponentManager &_ecm, EventManager &_eventMgr, bool _sameProcess)
 {
-  auto &sharedEcm = _ecm;
-  auto &sharedEventManager = _eventMgr;
   auto app = gazebo::gui::createGui(_argc, _argv, _guiConfig,
-    sharedEcm, sharedEventManager, sameProcess);
+    _ecm, _eventMgr, _sameProcess);
   if (nullptr != app)
   {
     // Run main window.

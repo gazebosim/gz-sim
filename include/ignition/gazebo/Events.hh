@@ -23,7 +23,6 @@
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
 
 namespace ignition
 {
@@ -61,10 +60,10 @@ namespace ignition
           struct LoadPluginsTag>;
 
       /// \brief Event used to emit a render event when running in one process.
-      /// This is required because we have two RenderUtils classes when there
+      /// This is required because we have two RenderUtil classes when there
       /// is a render sensor in the scene (camera, depth sensor, etc).
-      /// We could only have one thread updating the renderscene, with this
-      /// signal we are able to call grom the GzSceneManager the render calls
+      /// We could only have one thread updating the render scene, with this
+      /// signal we are able to call from the GzSceneManager the render calls
       /// required by the sensor
       ///
       /// For example:

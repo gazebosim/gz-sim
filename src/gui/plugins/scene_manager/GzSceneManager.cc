@@ -48,6 +48,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief This method is used to connect with the event
     /// events::EnableSensors. It will set if the simulation is running any
     /// sensors
+    /// \param[in] _enable True if the sensors thread is enabled, false
+    /// otherwise
     public: void EnableSensors(bool _enable);
 
     //// \brief Pointer to the rendering scene
@@ -85,7 +87,12 @@ GzSceneManager::GzSceneManager()
 }
 
 /////////////////////////////////////////////////
-GzSceneManager::~GzSceneManager() = default;
+GzSceneManager::~GzSceneManager()
+{
+  this->dataPtr->eventManager = nullptr;
+  this->dataPtr->enableSensorsConn = nullptr;
+  this->dataPtr = nullptr;
+}
 
 /////////////////////////////////////////////////
 void GzSceneManager::Configure(EventManager &_eventMgr, bool _sameProcess)

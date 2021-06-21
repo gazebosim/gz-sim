@@ -375,8 +375,9 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     return 0;
   }
 
-  igndbg << "Shutting down ign-gazebo-server" << std::endl;
-  return 0;
+  ignerr << "Something was wrong configuring the server. " <<
+    "Shutting down ign-gazebo-server" << std::endl;
+  return -1;
 }
 
 //////////////////////////////////////////////////

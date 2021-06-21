@@ -49,6 +49,7 @@ class ignition::gazebo::GuiRunner::Implementation
   /// \brief
   void UpdatePluginsEvent();
 
+  /// \brief Connection to the UpdatePlugins event.
   public: ignition::common::ConnectionPtr UpdatePluginsConn;
 
   /// \brief Entity-component manager.
@@ -190,9 +191,9 @@ void GuiRunner::OnPluginAdded(const QString &_objectName)
     return;
   }
 
-  // The call above always return the same plugin, which the first that was
-  // load. This plugin will set again the eventMgr and the sameProcess
-  // state.
+  // The call above always returns the same plugin, which is the first plugin
+  // that was loaded. This plugin will set again the eventMgr and the
+  // sameProcess state.
   auto plugins = gui::App()->findChildren<GuiSystem *>();
   for (auto &p : plugins)
   {

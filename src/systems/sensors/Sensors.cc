@@ -139,6 +139,7 @@ class ignition::gazebo::systems::SensorsPrivate
   /// \brief Pointer to the event manager
   public: EventManager *eventManager{nullptr};
 
+  /// \brief Is the GUI and server running in the same process?
   public: bool sameProcess = false;
 
   /// \brief Wait for initialization to happen
@@ -181,7 +182,7 @@ class ignition::gazebo::systems::SensorsPrivate
   /// \brief Stop the rendering thread
   public: void Stop();
 
-  /// \brief Stop the rendering thread
+  /// \brief Start the rendering thread
   public: void Render();
 };
 

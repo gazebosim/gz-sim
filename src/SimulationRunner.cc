@@ -537,7 +537,8 @@ void SimulationRunner::UpdateSystems()
     for (auto& system : this->systemsUpdate)
       system->Update(this->currentInfo, this->entityCompMgr);
 
-    if (serverConfig.SameProcessAsGUI()){
+    if (serverConfig.SameProcessAsGUI())
+    {
       this->eventMgr.Emit<events::UpdateSystems>();
     }
   }

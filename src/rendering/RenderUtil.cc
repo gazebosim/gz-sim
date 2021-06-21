@@ -358,9 +358,15 @@ class ignition::gazebo::RenderUtilPrivate
   public: std::unordered_map<Entity,
       std::tuple<double, components::TemperatureRangeInfo>> thermalCameraData;
 
-    /// \brief Event Manager
+  /// \brief Event Manager
   public: EventManager *eventManager{nullptr};
+
+  /// \brief when running in the same process we should initialize the scenes
+  /// one by one otherwise a race condition will happen
+  static std::mutex mutexInit;
 };
+
+std::mutex ignition::gazebo::RenderUtilPrivate::mutexInit;
 
 //////////////////////////////////////////////////
 RenderUtil::RenderUtil() : dataPtr(std::make_unique<RenderUtilPrivate>())
@@ -2152,14 +2158,13 @@ void RenderUtilPrivate::RemoveRenderingEntities(
       });
 }
 
-static std::mutex mutexInit;
 /////////////////////////////////////////////////
 void RenderUtil::Init()
 {
   // Already initialized
   if (nullptr != this->dataPtr->scene)
     return;
-  std::lock_guard<std::mutex> lock(mutexInit);
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutexInit);
 
   ignition::common::SystemPaths pluginPath;
   pluginPath.SetPluginPathEnv(kRenderPluginPathEnv);

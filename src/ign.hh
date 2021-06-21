@@ -54,7 +54,7 @@ extern "C" const char *worldInstallDir();
 /// \param[in] _file Path to file being loaded
 /// \param[in] _recordTopics Colon separated list of topics to record. Leave
 /// null to record the default topics.
-/// \return 0 if successful, 1 if not.
+/// \return 0 if successful, -1 if not.
 extern "C" int runServer(const char *_sdfString,
     int _iterations, int _run, float _hz, int _levels,
     const char *_networkRole, int _networkSecondaries, int _record,
@@ -66,7 +66,7 @@ extern "C" int runServer(const char *_sdfString,
 
 /// \brief External hook to run simulation GUI.
 /// \param[in] _guiConfig Path to Ignition GUI configuration file.
-/// \return 0 if successful, 1 if not.
+/// \return 0 if successful, -1 if not.
 extern "C" int runGui(const char *_guiConfig);
 
 /// \brief External hook to find or download a fuel world provided a URL.
@@ -97,7 +97,7 @@ extern "C" const char *findFuelResource(
 /// \param[in] _recordTopics Colon separated list of topics to record. Leave
 /// null to record the default topics.
 /// \param[in] _guiConfig Path to Ignition GUI configuration file.
-/// \return 0 if successful, 1 if not.
+/// \return 0 if successful, -1 if not.
 extern "C" IGNITION_GAZEBO_VISIBLE int runCombined(const char *_sdfString,
     int _iterations, int _run, float _hz, int _levels, const char *_networkRole,
     int _networkSecondaries, int _record, const char *_recordPath,
@@ -105,6 +105,4 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runCombined(const char *_sdfString,
     const char *_playback, const char *_physicsEngine,
     const char *_renderEngineServer, const char *_renderEngineGui,
     const char *_file, const char *_recordTopics, const char *_guiConfig);
-
-
 #endif

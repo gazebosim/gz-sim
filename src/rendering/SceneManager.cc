@@ -175,6 +175,7 @@ rendering::VisualPtr SceneManager::CreateModel(Entity _id,
 
   if (this->dataPtr->scene->HasVisualName(name))
   {
+    ignerr << "Visual: [" << name << "] already exists" << std::endl;
     auto vis = this->dataPtr->scene->VisualByName(name);
     this->dataPtr->visuals[_id] = vis;
     return vis;

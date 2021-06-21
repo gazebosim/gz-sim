@@ -133,8 +133,7 @@ void TreeModel::AddEntity(unsigned int _entity, const QString &_entityName,
     return;
   }
 
-  auto itemExists = this->entityItems.find(_entity);
-  if (itemExists != this->entityItems.end())
+  if (this->entityItems.find(_entity) != this->entityItems.end())
   {
     return;
   }
