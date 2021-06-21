@@ -54,6 +54,10 @@ namespace gazebo
     /// to assume.  All 0s for x, y, and z indicate the initial camera pose.
     public slots: void OnAngleMode(int _x, int _y, int _z);
 
+    /// \brief Callback in Qt thread when camera view controller changes.
+    /// \param[in] _mode New camera view controller
+    public slots: void OnViewControl(const QString &_controller);
+
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<ViewAnglePrivate> dataPtr;

@@ -355,20 +355,32 @@ void SimulationRunner::UpdatePhysicsParams()
   if (newStepSize != this->stepSize ||
       std::abs(newRTF - this->desiredRtf) > eps)
   {
-    this->SetStepSize(
-      std::chrono::duration_cast<std::chrono::steady_clock::duration>(
-        newStepSize));
-    this->desiredRtf = newRTF;
-    this->updatePeriod = std::chrono::nanoseconds(
-        static_cast<int>(this->stepSize.count() / this->desiredRtf));
-
-    this->simTimes.clear();
-    this->realTimes.clear();
-    // Update physics components
-    physicsComp->Data().SetMaxStepSize(physicsParams.max_step_size());
-    physicsComp->Data().SetRealTimeFactor(newRTF);
-    this->entityCompMgr.SetChanged(worldEntity, components::Physics::typeId,
-        ComponentState::OneTimeChange);
+    bool updated = false;
+    // Make sure the values are valid before setting them
+    if (newStepSize.count() > 0.0)
+    {
+      this->SetStepSize(
+        std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+          newStepSize));
+      physicsComp->Data().SetMaxStepSize(physicsParams.max_step_size());
+      updated = true;
+    }
+    if (newRTF > 0.0)
+    {
+      this->desiredRtf = newRTF;
+      this->updatePeriod = std::chrono::nanoseconds(
+          static_cast<int>(this->stepSize.count() / this->desiredRtf));
+      physicsComp->Data().SetRealTimeFactor(newRTF);
+      updated = true;
+    }
+    if (updated)
+    {
+      this->simTimes.clear();
+      this->realTimes.clear();
+      // Set as OneTimeChange to make sure the update is not missed
+      this->entityCompMgr.SetChanged(worldEntity, components::Physics::typeId,
+          ComponentState::OneTimeChange);
+    }
   }
   this->entityCompMgr.RemoveComponent<components::PhysicsCmd>(worldEntity);
 }
@@ -471,9 +483,9 @@ void SimulationRunner::ProcessSystemQueue()
       << this->systemsPostupdate.size() + 1 << std::endl;
 
     this->postUpdateStartBarrier =
-      std::make_unique<Barrier>(this->systemsPostupdate.size() + 1);
+      std::make_unique<Barrier>(this->systemsPostupdate.size() + 1u);
     this->postUpdateStopBarrier =
-      std::make_unique<Barrier>(this->systemsPostupdate.size() + 1);
+      std::make_unique<Barrier>(this->systemsPostupdate.size() + 1u);
 
     this->postUpdateThreadsRunning = true;
     int id = 0;

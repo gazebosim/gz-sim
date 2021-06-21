@@ -48,6 +48,7 @@
 
 #include <ignition/rendering/Image.hh>
 #include <ignition/rendering/OrbitViewController.hh>
+#include <ignition/rendering/OrthoViewController.hh>
 #include <ignition/rendering/RayQuery.hh>
 #include <ignition/rendering/RenderEngine.hh>
 #include <ignition/rendering/RenderingIface.hh>
@@ -184,8 +185,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief User camera
     public: rendering::CameraPtr camera;
 
-    /// \brief Camera orbit controller
-    public: rendering::OrbitViewController viewControl;
+    /// \brief Orbit view controller
+    public: rendering::OrbitViewController orbitViewControl;
+
+    /// \brief Ortho view controller
+    public: rendering::OrthoViewController orthoViewControl;
+
+    /// \brief Camera view controller
+    public: rendering::ViewController *viewControl{nullptr};
 
     /// \brief Transform controller for models
     public: rendering::TransformController transformControl;
@@ -233,8 +240,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Helper object to move user camera
     public: MoveToHelper moveToHelper;
 
+    /// \brief Target to view wireframes
+    public: std::string viewWireframesTarget;
+
     /// \brief Target to view collisions
     public: std::string viewCollisionsTarget;
+
+    /// \brief View controller
+    public: std::string viewController{"orbit"};
 
     /// \brief Helper object to select entities. Only the latest selection
     /// request is kept.
@@ -435,8 +448,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// Used when recording in lockstep mode.
     public: std::mutex renderMutex;
 
+    /// \brief View wireframes service
+    public: std::string viewWireframesService;
+
     /// \brief View collisions service
     public: std::string viewCollisionsService;
+
+    /// \brief Camera view control service
+    public: std::string cameraViewControlService;
   };
 }
 }
@@ -497,6 +516,9 @@ void IgnRenderer::Render()
       IGN_PROFILE("IgnRenderer::Render Pre-render camera");
       this->dataPtr->camera->PreRender();
     }
+    // mark mouse dirty to force update view projection in HandleMouseEvent
+    this->dataPtr->mouseDirty = true;
+
     this->textureDirty = false;
   }
 
@@ -808,6 +830,32 @@ void IgnRenderer::Render()
       this->DeselectAllEntities(true);
       this->TerminateSpawnPreview();
       this->dataPtr->escapeReleased = false;
+    }
+  }
+
+  // View wireframes
+  {
+    IGN_PROFILE("IgnRenderer::Render ViewWireframes");
+    if (!this->dataPtr->viewWireframesTarget.empty())
+    {
+      rendering::NodePtr targetNode =
+          scene->NodeByName(this->dataPtr->viewWireframesTarget);
+      auto targetVis = std::dynamic_pointer_cast<rendering::Visual>(targetNode);
+
+      if (targetVis)
+      {
+        Entity targetEntity =
+            std::get<int>(targetVis->UserData("gazebo-entity"));
+        this->dataPtr->renderUtil.ViewWireframes(targetEntity);
+      }
+      else
+      {
+        ignerr << "Unable to find node name ["
+               << this->dataPtr->viewWireframesTarget
+               << "] to view wireframes" << std::endl;
+      }
+
+      this->dataPtr->viewWireframesTarget.clear();
     }
   }
 
@@ -1684,17 +1732,32 @@ void IgnRenderer::HandleMouseViewControl()
   if (!this->dataPtr->followTarget.empty())
     this->dataPtr->camera->WorldPosition();
 
-  this->dataPtr->viewControl.SetCamera(this->dataPtr->camera);
+  if (this->dataPtr->viewController == "ortho")
+  {
+    this->dataPtr->viewControl = &this->dataPtr->orthoViewControl;
+  }
+  else if (this->dataPtr->viewController == "orbit")
+  {
+    this->dataPtr->viewControl = &this->dataPtr->orbitViewControl;
+  }
+  else
+  {
+    ignerr << "Unknown view controller: " << this->dataPtr->viewController
+           << ". Defaulting to orbit view controller" << std::endl;
+    this->dataPtr->viewController = "orbit";
+    this->dataPtr->viewControl = &this->dataPtr->orbitViewControl;
+  }
+  this->dataPtr->viewControl->SetCamera(this->dataPtr->camera);
 
   if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::SCROLL)
   {
     this->dataPtr->target =
         this->ScreenToScene(this->dataPtr->mouseEvent.Pos());
-    this->dataPtr->viewControl.SetTarget(this->dataPtr->target);
+    this->dataPtr->viewControl->SetTarget(this->dataPtr->target);
     double distance = this->dataPtr->camera->WorldPosition().Distance(
         this->dataPtr->target);
     double amount = -this->dataPtr->drag.Y() * distance / 5.0;
-    this->dataPtr->viewControl.Zoom(amount);
+    this->dataPtr->viewControl->Zoom(amount);
   }
   else
   {
@@ -1702,21 +1765,21 @@ void IgnRenderer::HandleMouseViewControl()
     {
       this->dataPtr->target = this->ScreenToScene(
           this->dataPtr->mouseEvent.PressPos());
-      this->dataPtr->viewControl.SetTarget(this->dataPtr->target);
+      this->dataPtr->viewControl->SetTarget(this->dataPtr->target);
     }
 
     // Pan with left button
     if (this->dataPtr->mouseEvent.Buttons() & common::MouseEvent::LEFT)
     {
       if (Qt::ShiftModifier == QGuiApplication::queryKeyboardModifiers())
-        this->dataPtr->viewControl.Orbit(this->dataPtr->drag);
+        this->dataPtr->viewControl->Orbit(this->dataPtr->drag);
       else
-        this->dataPtr->viewControl.Pan(this->dataPtr->drag);
+        this->dataPtr->viewControl->Pan(this->dataPtr->drag);
     }
     // Orbit with middle button
     else if (this->dataPtr->mouseEvent.Buttons() & common::MouseEvent::MIDDLE)
     {
-      this->dataPtr->viewControl.Orbit(this->dataPtr->drag);
+      this->dataPtr->viewControl->Orbit(this->dataPtr->drag);
     }
     else if (this->dataPtr->mouseEvent.Buttons() & common::MouseEvent::RIGHT)
     {
@@ -1728,7 +1791,7 @@ void IgnRenderer::HandleMouseViewControl()
       double amount = ((-this->dataPtr->drag.Y() /
           static_cast<double>(this->dataPtr->camera->ImageHeight()))
           * distance * tan(vfov/2.0) * 6.0);
-      this->dataPtr->viewControl.Zoom(amount);
+      this->dataPtr->viewControl->Zoom(amount);
     }
   }
   this->dataPtr->drag = 0;
@@ -2007,10 +2070,28 @@ void IgnRenderer::SetMoveToPose(const math::Pose3d &_pose)
 }
 
 /////////////////////////////////////////////////
+void IgnRenderer::SetViewWireframesTarget(const std::string &_target)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->viewWireframesTarget = _target;
+}
+
+/////////////////////////////////////////////////
 void IgnRenderer::SetViewCollisionsTarget(const std::string &_target)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->viewCollisionsTarget = _target;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetViewController(const std::string &_controller)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->viewController = _controller;
+
+  // mark mouse dirty to trigger HandleMouseEvent call and
+  // set up a new view controller
+  this->dataPtr->mouseDirty = true;
 }
 
 /////////////////////////////////////////////////
@@ -2739,12 +2820,26 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   ignmsg << "Camera pose topic advertised on ["
          << this->dataPtr->cameraPoseTopic << "]" << std::endl;
 
+  // view wireframes service
+  this->dataPtr->viewWireframesService = "/gui/view/wireframes";
+  this->dataPtr->node.Advertise(this->dataPtr->viewWireframesService,
+      &Scene3D::OnViewWireframes, this);
+  ignmsg << "View wireframes service on ["
+         << this->dataPtr->viewWireframesService << "]" << std::endl;
+
   // view collisions service
   this->dataPtr->viewCollisionsService = "/gui/view/collisions";
   this->dataPtr->node.Advertise(this->dataPtr->viewCollisionsService,
       &Scene3D::OnViewCollisions, this);
   ignmsg << "View collisions service on ["
          << this->dataPtr->viewCollisionsService << "]" << std::endl;
+
+  // camera view control mode
+  this->dataPtr->cameraViewControlService = "/gui/camera/view_control";
+  this->dataPtr->node.Advertise(this->dataPtr->cameraViewControlService,
+      &Scene3D::OnViewControl, this);
+  ignmsg << "Camera view controller topic advertised on ["
+         << this->dataPtr->cameraViewControlService << "]" << std::endl;
 
   ignition::gui::App()->findChild<
       ignition::gui::MainWindow *>()->QuickWindow()->installEventFilter(this);
@@ -2902,6 +2997,18 @@ bool Scene3D::OnMoveToPose(const msgs::GUICamera &_msg, msgs::Boolean &_res)
 }
 
 /////////////////////////////////////////////////
+bool Scene3D::OnViewWireframes(const msgs::StringMsg &_msg,
+  msgs::Boolean &_res)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+
+  renderWindow->SetViewWireframesTarget(_msg.data());
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
 bool Scene3D::OnViewCollisions(const msgs::StringMsg &_msg,
   msgs::Boolean &_res)
 {
@@ -2912,6 +3019,19 @@ bool Scene3D::OnViewCollisions(const msgs::StringMsg &_msg,
   _res.set_data(true);
   return true;
 }
+
+/////////////////////////////////////////////////
+bool Scene3D::OnViewControl(const msgs::StringMsg &_msg,
+  msgs::Boolean &_res)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+
+  renderWindow->SetViewController(_msg.data());
+
+  _res.set_data(true);
+  return true;
+}
+
 
 /////////////////////////////////////////////////
 void Scene3D::OnHovered(int _mouseX, int _mouseY)
@@ -3171,9 +3291,21 @@ void RenderWindowItem::SetMoveToPose(const math::Pose3d &_pose)
 }
 
 /////////////////////////////////////////////////
+void RenderWindowItem::SetViewWireframesTarget(const std::string &_target)
+{
+  this->dataPtr->renderThread->ignRenderer.SetViewWireframesTarget(_target);
+}
+
+/////////////////////////////////////////////////
 void RenderWindowItem::SetViewCollisionsTarget(const std::string &_target)
 {
   this->dataPtr->renderThread->ignRenderer.SetViewCollisionsTarget(_target);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetViewController(const std::string &_controller)
+{
+  this->dataPtr->renderThread->ignRenderer.SetViewController(_controller);
 }
 
 /////////////////////////////////////////////////

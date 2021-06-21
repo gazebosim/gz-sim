@@ -222,6 +222,57 @@ TEST_P(SceneBroadcasterTest, SceneTopic)
 
 /////////////////////////////////////////////////
 /// Test whether the scene topic is published only when new entities are added
+TEST_P(SceneBroadcasterTest, SceneTopicSensors)
+{
+  // Start server
+  ignition::gazebo::ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+                          "/test/worlds/altimeter_with_pose.sdf");
+
+  gazebo::Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+  EXPECT_EQ(12u, *server.EntityCount());
+
+  // Create requester
+  transport::Node node;
+
+  std::vector<msgs::Scene> sceneMsgs;
+  std::function<void(const msgs::Scene &)> collectMsgs =
+      [&sceneMsgs](const msgs::Scene &_msg)
+      {
+        sceneMsgs.push_back(_msg);
+      };
+
+  node.Subscribe("/world/altimeter_sensor/scene/info", collectMsgs);
+
+  // Run server
+  server.Run(true, 10, false);
+
+  // Should only have one scene even though the simulation ran multiple times
+  ASSERT_EQ(1u, sceneMsgs.size());
+
+  // Compare this scene with one from a service request
+  msgs::Scene &scene = sceneMsgs.front();
+
+  bool result{false};
+  unsigned int timeout{5000};
+  ignition::msgs::Scene msg;
+
+  EXPECT_TRUE(node.Request("/world/altimeter_sensor/scene/info",
+        timeout, msg, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(google::protobuf::util::MessageDifferencer::Equals(msg, scene));
+
+  EXPECT_EQ(1, msg.model(1).link(0).sensor_size());
+  EXPECT_EQ("altimeter_sensor", msg.model(1).link(0).sensor(0).name());
+  EXPECT_DOUBLE_EQ(0.1, msg.model(1).link(0).sensor(0).pose().position().x());
+  EXPECT_DOUBLE_EQ(0.2, msg.model(1).link(0).sensor(0).pose().position().y());
+  EXPECT_DOUBLE_EQ(0.3, msg.model(1).link(0).sensor(0).pose().position().z());
+}
+
+/////////////////////////////////////////////////
+/// Test whether the scene topic is published only when new entities are added
 TEST_P(SceneBroadcasterTest, DeletedTopic)
 {
   // Start server
