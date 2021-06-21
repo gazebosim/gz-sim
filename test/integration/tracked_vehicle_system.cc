@@ -185,7 +185,7 @@ class TrackedVehicleTest : public ::testing::TestWithParam<int>
     EXPECT_LT(v, 1);
 
     poses.clear();
-    
+
     gazebo::Model model(modelEntity);
 
     // Move the robot somewhere to free space without obstacles.

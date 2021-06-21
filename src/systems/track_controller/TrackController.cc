@@ -17,8 +17,11 @@
 
 #include "TrackController.hh"
 
+#include <limits>
 #include <mutex>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 
 #include <ignition/msgs/double.pb.h>
 #include <ignition/msgs/marker.pb.h>
@@ -417,8 +420,8 @@ void TrackControllerPrivate::ComputeSurfaceProperties(
       ignerr << "TrackController requires a physics engine that computes "
              << "contact normals!" << std::endl;
       informed = true;
-      return;
     }
+    return;
   }
 
   const auto isCollision1Track = this->trackCollisions.find(_collision1) !=

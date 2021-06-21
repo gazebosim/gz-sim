@@ -19,10 +19,10 @@
 
 #include <ignition/common/Event.hh>
 
+#include <ignition/physics/ContactJointProperties.hh>
+
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Entity.hh"
-
-#include "ignition/physics/ContactJointProperties.hh"
 
 #include <Eigen/Geometry>
 
@@ -55,7 +55,6 @@ namespace ignition
             ContactSurfaceParams<Policy>& /* params */
         ),
         struct CollectContactSurfacePropertiesTag>;
-
       }
     }  // namespace events
   }  // namespace gazebo

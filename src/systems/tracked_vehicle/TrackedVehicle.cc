@@ -20,9 +20,11 @@
 #include <ignition/msgs/odometry.pb.h>
 
 #include <limits>
+#include <map>
 #include <mutex>
 #include <set>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <ignition/common/Profiler.hh>
@@ -754,4 +756,5 @@ IGNITION_ADD_PLUGIN(TrackedVehicle,
                     TrackedVehicle::ISystemPreUpdate,
                     TrackedVehicle::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(TrackedVehicle, "ignition::gazebo::systems::TrackedVehicle")
+IGNITION_ADD_PLUGIN_ALIAS(TrackedVehicle,
+                          "ignition::gazebo::systems::TrackedVehicle")
