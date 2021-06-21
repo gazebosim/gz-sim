@@ -1344,7 +1344,7 @@ void IgnRenderer::XYZConstraint(math::Vector3d &_axis)
 
 /////////////////////////////////////////////////
 rendering::VisualPtr IgnRenderer::ContainsSimpleShape(
-    const rendering::NodePtr) const
+    const rendering::NodePtr &_node) const
 {
   std::queue<rendering::NodePtr> q;
 
