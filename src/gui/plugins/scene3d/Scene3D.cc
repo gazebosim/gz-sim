@@ -1343,8 +1343,8 @@ void IgnRenderer::XYZConstraint(math::Vector3d &_axis)
 }
 
 /////////////////////////////////////////////////
-bool IgnRenderer::ContainsSimpleShape(const rendering::NodePtr &_node,
-    rendering::VisualPtr &_visual) const
+rendering::VisualPtr IgnRenderer::ContainsSimpleShape(
+    const rendering::NodePtr) const
 {
   std::queue<rendering::NodePtr> q;
 
@@ -1371,8 +1371,7 @@ bool IgnRenderer::ContainsSimpleShape(const rendering::NodePtr &_node,
               userData == static_cast<int>(sdf::GeometryType::CYLINDER) ||
               userData == static_cast<int>(sdf::GeometryType::SPHERE))
           {
-            _visual = v;
-            return true;
+            return v;
           }
         }
         catch (const std::bad_variant_access& ex)
@@ -1386,7 +1385,7 @@ bool IgnRenderer::ContainsSimpleShape(const rendering::NodePtr &_node,
     }
   }
 
-  return false;
+  return nullptr;
 }
 
 /////////////////////////////////////////////////
@@ -1656,11 +1655,10 @@ void IgnRenderer::HandleMouseTransformControl()
         rendering::TransformMode::TM_SCALE)
     {
       // Check if the model that we're trying to scale looks like a simple shape
-      rendering::VisualPtr visualSimple;
       auto node = this->dataPtr->transformControl.Node();
       auto v = std::dynamic_pointer_cast<ignition::rendering::Visual>(node);
-      bool found = this->ContainsSimpleShape(node, visualSimple);
-      if (!found)
+      rendering::VisualPtr visualSimple = this->ContainsSimpleShape(node);
+      if (!visualSimple)
         return;
 
       int userData = std::get<int>(v->UserData("geometry-type"));

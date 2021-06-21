@@ -443,11 +443,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// child with the "geometry-type" user data. If found, the function also
     /// checks if the value is a simple shape (box, cylinder or sphere).
     /// \param[in] _node Root node.
-    /// \param[out] _visual The visual pointer to the simple shape if found.
-    /// \return True if any simple shape was found in the tree or false
+    /// \return The visual pointer to the simple shape if found or nullptr
     /// otherwise.
-    private: bool ContainsSimpleShape(const rendering::NodePtr &_node,
-        rendering::VisualPtr &_visual) const;
+    private: rendering::VisualPtr ContainsSimpleShape(
+        const rendering::NodePtr &_node) const;
 
     /// \brief Signal fired when context menu event is triggered
     signals: void ContextMenuRequested(QString _entity);
