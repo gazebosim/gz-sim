@@ -121,8 +121,10 @@ TEST_F(ColladaWorldExporterFixture, ExportWorldMadeFromObj)
 
   const std::string outputPath = "./office_world";
   const std::string outputPathTextures = "./office_world/materials/textures";
-  const std::string outputPathTexture1 = "./office_world/materials/textures/default.png";
-  const std::string outputPathTexture2 = "./office_world/materials/textures/blue_linoleum.png";
+  const std::string outputPathTexture1 =
+    "./office_world/materials/textures/default.png";
+  const std::string outputPathTexture2 = 
+    "./office_world/materials/textures/blue_linoleum.png";
 
   // Cleanup
   common::removeAll(outputPath);
