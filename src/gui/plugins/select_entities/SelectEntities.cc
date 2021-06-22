@@ -15,7 +15,10 @@
  *
 */
 
-#include <algorithm>  // std::find
+#include <algorithm>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 #include <ignition/common/MouseEvent.hh>
 #include <ignition/gui/Application.hh>

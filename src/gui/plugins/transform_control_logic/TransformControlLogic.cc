@@ -14,7 +14,10 @@
  * limitations under the License.
  *
 */
+#include <algorithm>
 #include <mutex>
+#include <string>
+#include <vector>
 
 #include <ignition/common/KeyEvent.hh>
 #include <ignition/common/MouseEvent.hh>
@@ -172,7 +175,8 @@ void TransformControlLogicPrivate::HandleTransform()
     if (nullptr == this->scene)
       return;
 
-    this->camera = std::dynamic_pointer_cast<rendering::Camera>(this->scene->SensorByName("Scene3DCamera"));
+    this->camera = std::dynamic_pointer_cast<rendering::Camera>(
+      this->scene->SensorByName("Scene3DCamera"));
     if (!this->camera)
     {
       ignerr << "TransformControlLogic Camera is not available" << std::endl;
@@ -263,10 +267,10 @@ void TransformControlLogicPrivate::HandleTransform()
               ignerr << "Error setting pose" << std::endl;
           };
           rendering::NodePtr nodeTmp = this->transformControl.Node();
-          auto topVisual = std::dynamic_pointer_cast<rendering::Visual>(nodeTmp);
+          auto topVisual = std::dynamic_pointer_cast<rendering::Visual>(
+            nodeTmp);
           ignition::msgs::Pose req;
           req.set_name(topVisual->Name());
-          std::cerr << "TransformControlLogic Moving " << nodeTmp->Name() << " " << topVisual->Name() << '\n';
           msgs::Set(req.mutable_position(), nodeTmp->WorldPosition());
           msgs::Set(req.mutable_orientation(), nodeTmp->WorldRotation());
           if (this->poseCmdService.empty())
@@ -321,18 +325,17 @@ void TransformControlLogicPrivate::HandleTransform()
             // * top-level nodes (model, light...)
             if (this->transformMode != rendering::TransformMode::TM_NONE)
             {
-              std::cerr << "TransformControlLogic Trying to attach!" << '\n';
-              rendering::VisualPtr visual = this->scene->VisualAt(
+              rendering::VisualPtr clickedVisual = this->scene->VisualAt(
                     this->camera,
                     this->mouseEvent.Pos());
 
+              auto topClickedNode = this->TopLevelNode(clickedVisual);
+              auto topClickedVisual =
+                std::dynamic_pointer_cast<rendering::Visual>(topClickedNode);
 
-              auto topNode = this->TopLevelNode(visual);
-              auto topVisual = std::dynamic_pointer_cast<rendering::Visual>(topNode);
-
-              if (topNode == topVisual)
+              if (topClickedNode == topClickedVisual)
               {
-                this->transformControl.Attach(topVisual);
+                this->transformControl.Attach(topClickedVisual);
               }
               else
               {
@@ -350,8 +353,6 @@ void TransformControlLogicPrivate::HandleTransform()
   if (this->mouseEvent.Type() == common::MouseEvent::MOVE
       && this->transformControl.Active())
   {
-    std::cerr << "TransformControlLogicPrivate MOVE" << '\n';
-
     this->blockOrbit = true;
     // compute the the start and end mouse positions in normalized coordinates
     auto imageWidth = static_cast<double>(this->camera->ImageWidth());
@@ -372,7 +373,19 @@ void TransformControlLogicPrivate::HandleTransform()
         rendering::TransformMode::TM_TRANSLATION)
     {
       Entity nodeId = this->selectedEntities.front();
-      rendering::NodePtr target = this->scene->VisualById(nodeId);
+      rendering::NodePtr target;
+      for (unsigned int i = 0; i < this->scene->VisualCount(); i++)
+      {
+        auto visual = this->scene->VisualByIndex(i);
+        auto entityId = static_cast<unsigned int>(
+            std::get<int>(visual->UserData("gazebo-entity")));
+        if (entityId == nodeId)
+        {
+          target = std::dynamic_pointer_cast<rendering::Node>(
+            this->scene->VisualById(visual->Id()));
+          break;
+        }
+      }
       if (!target)
       {
         ignwarn << "Failed to find node with ID [" << nodeId << "]"
@@ -406,7 +419,6 @@ void TransformControlLogicPrivate::HandleTransform()
         distance *= axis;
       }
       this->transformControl.Translate(distance);
-      std::cerr << "distance " << distance << " " << startWorldPos << '\n';
     }
     else if (this->transformControl.Mode() ==
         rendering::TransformMode::TM_ROTATION)
@@ -609,7 +621,8 @@ bool TransformControlLogicPrivate::OnTransformMode(const msgs::StringMsg &_msg,
   else
     ignerr << "Unknown transform mode: [" << _mode << "]" << std::endl;
 
-  ignition::gazebo::gui::events::TransformControlMode transformControlMode(this->transformMode);
+  ignition::gazebo::gui::events::TransformControlMode transformControlMode(
+    this->transformMode);
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
       &transformControlMode);
@@ -684,7 +697,8 @@ bool TransformControlLogic::eventFilter(QObject *_obj, QEvent *_event)
       this->dataPtr->mouseDirty = true;
     this->dataPtr->HandleTransform();
   }
-  else if (_event->type() == ignition::gazebo::gui::events::DeselectAllEntities::kType)
+  else if (_event->type() ==
+    ignition::gazebo::gui::events::DeselectAllEntities::kType)
   {
     this->dataPtr->selectedEntities.clear();
   }
