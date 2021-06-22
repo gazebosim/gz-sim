@@ -80,15 +80,15 @@ TEST(Conversions, Light)
       msgs::Convert(lightMsg.diffuse()));
   EXPECT_EQ(math::Color(0.8f, 0.9f, 0.1f, 1),
       msgs::Convert(lightMsg.specular()));
-  EXPECT_FLOAT_EQ(3.2, lightMsg.range());
-  EXPECT_FLOAT_EQ(0.5, lightMsg.attenuation_constant());
-  EXPECT_FLOAT_EQ(0.1, lightMsg.attenuation_linear());
-  EXPECT_FLOAT_EQ(0.01, lightMsg.attenuation_quadratic());
+  EXPECT_FLOAT_EQ(3.2f, lightMsg.range());
+  EXPECT_FLOAT_EQ(0.5f, lightMsg.attenuation_constant());
+  EXPECT_FLOAT_EQ(0.1f, lightMsg.attenuation_linear());
+  EXPECT_FLOAT_EQ(0.01f, lightMsg.attenuation_quadratic());
   EXPECT_EQ(math::Vector3d(0.1, 0.2, 1), msgs::Convert(lightMsg.direction()));
   EXPECT_EQ(math::Angle(1.9), lightMsg.spot_inner_angle());
   EXPECT_EQ(math::Angle(3.3), lightMsg.spot_outer_angle());
-  EXPECT_FLOAT_EQ(0.9, lightMsg.spot_falloff());
-  EXPECT_FLOAT_EQ(1.7, lightMsg.intensity());
+  EXPECT_FLOAT_EQ(0.9f, lightMsg.spot_falloff());
+  EXPECT_FLOAT_EQ(1.7f, lightMsg.intensity());
 
   auto newLight = convert<sdf::Light>(lightMsg);
   EXPECT_EQ("test_convert_light", newLight.Name());
@@ -99,15 +99,15 @@ TEST(Conversions, Light)
   EXPECT_TRUE(newLight.CastShadows());
   EXPECT_EQ(math::Color(0.4f, 0.5f, 0.6f, 1.0f), newLight.Diffuse());
   EXPECT_EQ(math::Color(0.8f, 0.9f, 0.1f, 1.0f), newLight.Specular());
-  EXPECT_FLOAT_EQ(3.2, newLight.AttenuationRange());
-  EXPECT_FLOAT_EQ(0.5, newLight.ConstantAttenuationFactor());
-  EXPECT_FLOAT_EQ(0.1, newLight.LinearAttenuationFactor());
-  EXPECT_FLOAT_EQ(0.01, newLight.QuadraticAttenuationFactor());
+  EXPECT_FLOAT_EQ(3.2f, newLight.AttenuationRange());
+  EXPECT_FLOAT_EQ(0.5f, newLight.ConstantAttenuationFactor());
+  EXPECT_FLOAT_EQ(0.1f, newLight.LinearAttenuationFactor());
+  EXPECT_FLOAT_EQ(0.01f, newLight.QuadraticAttenuationFactor());
   EXPECT_EQ(math::Vector3d(0.1, 0.2, 1), newLight.Direction());
   EXPECT_EQ(math::Angle(1.9), newLight.SpotInnerAngle());
   EXPECT_EQ(math::Angle(3.3), newLight.SpotOuterAngle());
-  EXPECT_FLOAT_EQ(0.9, newLight.SpotFalloff());
-  EXPECT_FLOAT_EQ(1.7, newLight.Intensity());
+  EXPECT_FLOAT_EQ(0.9f, newLight.SpotFalloff());
+  EXPECT_FLOAT_EQ(1.7f, newLight.Intensity());
 
   EXPECT_EQ("", convert(sdf::LightType::INVALID));
   EXPECT_EQ("point", convert(sdf::LightType::POINT));
@@ -894,24 +894,24 @@ TEST(Conversions, Actor)
   EXPECT_EQ(math::Pose3d(3, 2, 1, 0, 0, 0),
       msgs::Convert(actorMsg.pose()));
   EXPECT_EQ("walk.dae", actorMsg.skin_filename());
-  EXPECT_FLOAT_EQ(2.0, actorMsg.skin_scale());
+  EXPECT_FLOAT_EQ(2.0f, actorMsg.skin_scale());
   EXPECT_TRUE(actorMsg.script_loop());
-  EXPECT_FLOAT_EQ(2.8, actorMsg.script_delay_start());
+  EXPECT_FLOAT_EQ(2.8f, actorMsg.script_delay_start());
   EXPECT_TRUE(actorMsg.script_auto_start());
 
   ASSERT_EQ(1, actorMsg.animations_size());
   EXPECT_EQ("animation", actorMsg.animations(0).name());
   EXPECT_EQ("animation_filename", actorMsg.animations(0).filename());
-  EXPECT_FLOAT_EQ(1.23, actorMsg.animations(0).scale());
+  EXPECT_FLOAT_EQ(1.23f, actorMsg.animations(0).scale());
   EXPECT_TRUE(actorMsg.animations(0).interpolate_x());
 
   ASSERT_EQ(1, actorMsg.trajectories_size());
   EXPECT_EQ(456u, actorMsg.trajectories(0).id());
   EXPECT_EQ("traj_type", actorMsg.trajectories(0).type());
-  EXPECT_FLOAT_EQ(7.89, actorMsg.trajectories(0).tension());
+  EXPECT_FLOAT_EQ(7.89f, actorMsg.trajectories(0).tension());
 
   ASSERT_EQ(1, actorMsg.trajectories(0).waypoints_size());
-  EXPECT_FLOAT_EQ(0.123, actorMsg.trajectories(0).waypoints(0).time());
+  EXPECT_FLOAT_EQ(0.123f, actorMsg.trajectories(0).waypoints(0).time());
   EXPECT_EQ(math::Pose3d(6, 5, 4, 0, 0, 0),
       msgs::Convert(actorMsg.trajectories(0).waypoints(0).pose()));
 
@@ -919,25 +919,105 @@ TEST(Conversions, Actor)
   EXPECT_EQ("test_convert_actor", newActor.Name());
   EXPECT_EQ(math::Pose3d(3, 2, 1, 0, 0, 0), newActor.RawPose());
   EXPECT_EQ("walk.dae", newActor.SkinFilename());
-  EXPECT_FLOAT_EQ(2.0, newActor.SkinScale());
+  EXPECT_FLOAT_EQ(2.0f, newActor.SkinScale());
   EXPECT_TRUE(newActor.ScriptLoop());
-  EXPECT_FLOAT_EQ(2.8, newActor.ScriptDelayStart());
+  EXPECT_FLOAT_EQ(2.8f, newActor.ScriptDelayStart());
   EXPECT_TRUE(newActor.ScriptAutoStart());
 
   ASSERT_EQ(1u, newActor.AnimationCount());
   EXPECT_EQ("animation", newActor.AnimationByIndex(0)->Name());
   EXPECT_EQ("animation_filename", newActor.AnimationByIndex(0)->Filename());
-  EXPECT_FLOAT_EQ(1.23, newActor.AnimationByIndex(0)->Scale());
+  EXPECT_FLOAT_EQ(1.23f, newActor.AnimationByIndex(0)->Scale());
   EXPECT_TRUE(newActor.AnimationByIndex(0)->InterpolateX());
 
   ASSERT_EQ(1u, newActor.TrajectoryCount());
   EXPECT_EQ(456u, newActor.TrajectoryByIndex(0)->Id());
   EXPECT_EQ("traj_type", newActor.TrajectoryByIndex(0)->Type());
-  EXPECT_FLOAT_EQ(7.89, newActor.TrajectoryByIndex(0)->Tension());
+  EXPECT_FLOAT_EQ(7.89f, newActor.TrajectoryByIndex(0)->Tension());
 
   ASSERT_EQ(1u, newActor.TrajectoryByIndex(0)->WaypointCount());
-  EXPECT_FLOAT_EQ(0.123,
+  EXPECT_FLOAT_EQ(0.123f,
           newActor.TrajectoryByIndex(0)->WaypointByIndex(0)->Time());
   EXPECT_EQ(math::Pose3d(6, 5, 4, 0, 0, 0),
       newActor.TrajectoryByIndex(0)->WaypointByIndex(0)->Pose());
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, ParticleEmitter)
+{
+  sdf::ParticleEmitter emitter;
+  emitter.SetName("my_emitter");
+  emitter.SetType(sdf::ParticleEmitterType::BOX);
+  emitter.SetEmitting(false);
+  emitter.SetDuration(12);
+  emitter.SetLifetime(56);
+  emitter.SetRate(0.5);
+  emitter.SetScaleRate(1.2);
+  emitter.SetMinVelocity(0.1);
+  emitter.SetMaxVelocity(0.2);
+  emitter.SetSize(math::Vector3d(1, 2, 3));
+  emitter.SetParticleSize(math::Vector3d(4, 5, 6));
+  emitter.SetColorStart(math::Color(0.1, 0.2, 0.3));
+  emitter.SetColorEnd(math::Color(0.4, 0.5, 0.6));
+  emitter.SetColorRangeImage("range_image");
+  emitter.SetTopic("my_topic");
+  emitter.SetRawPose(math::Pose3d(1, 2, 3, 0, 0, 0));
+
+  sdf::Material material;
+  sdf::Pbr pbr;
+  sdf::PbrWorkflow workflow;
+  workflow.SetType(sdf::PbrWorkflowType::METAL);
+  workflow.SetAlbedoMap("albedo_map.png");
+  pbr.SetWorkflow(workflow.Type(), workflow);
+  material.SetPbrMaterial(pbr);
+
+  emitter.SetMaterial(material);
+
+  // Convert SDF to a message.
+  msgs::ParticleEmitter emitterMsg = convert<msgs::ParticleEmitter>(emitter);
+
+  EXPECT_EQ("my_emitter", emitterMsg.name());
+  EXPECT_EQ(msgs::ParticleEmitter::BOX, emitterMsg.type());
+  EXPECT_FALSE(emitterMsg.emitting().data());
+  EXPECT_NEAR(12, emitterMsg.duration().data(), 1e-3);
+  EXPECT_NEAR(56, emitterMsg.lifetime().data(), 1e-3);
+  EXPECT_NEAR(0.5, emitterMsg.rate().data(), 1e-3);
+  EXPECT_NEAR(1.2, emitterMsg.scale_rate().data(), 1e-3);
+  EXPECT_NEAR(0.1, emitterMsg.min_velocity().data(), 1e-3);
+  EXPECT_NEAR(0.2, emitterMsg.max_velocity().data(), 1e-3);
+  EXPECT_EQ(math::Vector3d(1, 2, 3), msgs::Convert(emitterMsg.size()));
+  EXPECT_EQ(math::Vector3d(4, 5, 6), msgs::Convert(emitterMsg.particle_size()));
+  EXPECT_EQ(math::Color(0.1, 0.2, 0.3),
+      msgs::Convert(emitterMsg.color_start()));
+  EXPECT_EQ(math::Color(0.4, 0.5, 0.6), msgs::Convert(emitterMsg.color_end()));
+  EXPECT_EQ("range_image", emitterMsg.color_range_image().data());
+
+  auto header = emitterMsg.header().data(0);
+  EXPECT_EQ("topic", header.key());
+  EXPECT_EQ("my_topic", header.value(0));
+
+  EXPECT_EQ(math::Pose3d(1, 2, 3, 0, 0, 0), msgs::Convert(emitterMsg.pose()));
+
+  auto pbrMsg = emitterMsg.material().pbr();
+  EXPECT_EQ(msgs::Material::PBR::METAL, pbrMsg.type());
+  EXPECT_EQ("albedo_map.png", pbrMsg.albedo_map());
+
+  // Convert the message back to SDF.
+  sdf::ParticleEmitter emitter2 = convert<sdf::ParticleEmitter>(emitterMsg);
+  EXPECT_EQ(emitter2.Name(), emitter.Name());
+  EXPECT_EQ(emitter2.Type(), emitter.Type());
+  EXPECT_EQ(emitter2.Emitting(), emitter.Emitting());
+  EXPECT_NEAR(emitter2.Duration(), emitter.Duration(), 1e-3);
+  EXPECT_NEAR(emitter2.Lifetime(), emitter.Lifetime(), 1e-3);
+  EXPECT_NEAR(emitter2.Rate(), emitter.Rate(), 1e-3);
+  EXPECT_NEAR(emitter2.ScaleRate(), emitter.ScaleRate(), 1e-3);
+  EXPECT_NEAR(emitter2.MinVelocity(), emitter.MinVelocity(), 1e-3);
+  EXPECT_NEAR(emitter2.MaxVelocity(), emitter.MaxVelocity(), 1e-3);
+  EXPECT_EQ(emitter2.Size(), emitter.Size());
+  EXPECT_EQ(emitter2.ParticleSize(), emitter.ParticleSize());
+  EXPECT_EQ(emitter2.ColorStart(), emitter.ColorStart());
+  EXPECT_EQ(emitter2.ColorEnd(), emitter.ColorEnd());
+  EXPECT_EQ(emitter2.ColorRangeImage(), emitter.ColorRangeImage());
+  EXPECT_EQ(emitter2.Topic(), emitter.Topic());
+  EXPECT_EQ(emitter2.RawPose(), emitter.RawPose());
 }

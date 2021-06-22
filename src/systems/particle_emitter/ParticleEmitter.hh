@@ -33,6 +33,9 @@ namespace systems
 
   /// \brief A system for creating a particle emitter.
   ///
+  /// This system will be deprecated in Igition Fortress. Please consider
+  /// using the ParticleEmitter2 system.
+  ///
   /// System parameters
   ///
   /// `<emitter_name>`: Unique name for the particle emitter. The name will be
