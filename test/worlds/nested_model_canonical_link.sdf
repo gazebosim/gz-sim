@@ -84,5 +84,39 @@
       </model>
     </model>
 
+    <!--
+      similar to the nested model above, but each model in this case
+      shares the same canonical link
+    -->
+    <model name="model_10">
+      <pose>0 5 0 0 0 0</pose>
+
+      <model name="model_11">
+        <pose>4 5 0 0 0 0</pose>
+
+        <model name="model_12">
+          <pose>10 5 0 0 0 0</pose>
+          <link name="link_12">
+            <collision name="collision_12">
+              <geometry>
+                <box>
+                  <size>1 1 1</size>
+                </box>
+              </geometry>
+            </collision>
+            <visual name="visual_12">
+              <geometry>
+                <box>
+                  <size>1 1 1</size>
+                </box>
+              </geometry>
+            </visual>
+          </link>
+        </model>
+
+      </model>
+
+    </model>
+
   </world>
 </sdf>

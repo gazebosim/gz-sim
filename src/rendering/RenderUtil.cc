@@ -16,6 +16,7 @@
  */
 
 #include <map>
+#include <stack>
 #include <string>
 #include <tuple>
 #include <unordered_map>
@@ -300,6 +301,24 @@ class ignition::gazebo::RenderUtilPrivate
   /// \param[in] _node Node to be restored.
   public: void LowlightNode(const rendering::NodePtr &_node);
 
+  /// \brief New wireframe visuals to be toggled
+  public: std::vector<Entity> newWireframes;
+
+  /// \brief Finds the links (visual parent) that are used to toggle wireframe
+  /// views for visuals in RenderUtil::Update
+  /// \param[in] _ecm The entity-component manager
+  public: void FindWireframeVisualLinks(const EntityComponentManager &_ecm);
+
+  /// \brief A list of links used to toggle different views for visuals
+  public: std::vector<Entity> newWireframeVisualLinks;
+
+  /// \brief A map of link entities and their corresponding children visuals
+  public: std::map<Entity, std::vector<Entity>> linkToVisualEntities;
+
+  /// \brief A map of created wireframe visuals and if they are currently
+  /// visible
+  public: std::map<Entity, bool> viewingWireframes;
+
   /// \brief New collisions to be created
   public: std::vector<Entity> newCollisions;
 
@@ -323,6 +342,9 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief A map of created collision entities and if they are currently
   /// visible
   public: std::map<Entity, bool> viewingCollisions;
+
+  /// \brief A map of model entities and their corresponding children models
+  public: std::map<Entity, std::vector<Entity>> modelToModelEntities;
 
   /// \brief A map of entity id to thermal camera sensor configuration
   /// properties. The elements in the tuple are:
@@ -464,7 +486,65 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
   this->dataPtr->UpdateRenderingEntities(_ecm);
   this->dataPtr->RemoveRenderingEntities(_ecm, _info);
   this->dataPtr->markerManager.SetSimTime(_info.simTime);
+  this->dataPtr->FindWireframeVisualLinks(_ecm);
   this->dataPtr->FindCollisionLinks(_ecm);
+}
+
+//////////////////////////////////////////////////
+void RenderUtilPrivate::FindWireframeVisualLinks(
+                        const EntityComponentManager &_ecm)
+{
+  if (this->newWireframes.empty())
+    return;
+
+  for (const auto &entity : this->newWireframes)
+  {
+    std::vector<Entity> links;
+    if (_ecm.EntityMatches(entity,
+          std::set<ComponentTypeId>{components::Model::typeId}))
+    {
+      std::stack<Entity> modelStack;
+      modelStack.push(entity);
+
+      std::vector<Entity> childLinks, childModels;
+      while (!modelStack.empty())
+      {
+        Entity model = modelStack.top();
+        modelStack.pop();
+
+        childLinks = _ecm.EntitiesByComponents(components::ParentEntity(model),
+                                               components::Link());
+        links.insert(links.end(),
+                     childLinks.begin(),
+                     childLinks.end());
+
+        childModels =
+            _ecm.EntitiesByComponents(components::ParentEntity(model),
+                                      components::Model());
+        for (const auto &childModel : childModels)
+        {
+            modelStack.push(childModel);
+        }
+      }
+    }
+    else if (_ecm.EntityMatches(entity,
+                std::set<ComponentTypeId>{components::Link::typeId}))
+    {
+      links.push_back(entity);
+    }
+    else
+    {
+      ignerr << "Entity [" << entity
+             << "] for viewing wireframe must be a model or link"
+             << std::endl;
+      continue;
+    }
+
+    this->newWireframeVisualLinks.insert(this->newWireframeVisualLinks.end(),
+        links.begin(),
+        links.end());
+  }
+  this->newWireframes.clear();
 }
 
 //////////////////////////////////////////////////
@@ -479,8 +559,29 @@ void RenderUtilPrivate::FindCollisionLinks(const EntityComponentManager &_ecm)
     if (_ecm.EntityMatches(entity,
           std::set<ComponentTypeId>{components::Model::typeId}))
     {
-      links = _ecm.EntitiesByComponents(components::ParentEntity(entity),
-                                        components::Link());
+      std::stack<Entity> modelStack;
+      modelStack.push(entity);
+
+      std::vector<Entity> childLinks, childModels;
+      while (!modelStack.empty())
+      {
+        Entity model = modelStack.top();
+        modelStack.pop();
+
+        childLinks = _ecm.EntitiesByComponents(components::ParentEntity(model),
+                                               components::Link());
+        links.insert(links.end(),
+                     childLinks.begin(),
+                     childLinks.end());
+
+        childModels =
+            _ecm.EntitiesByComponents(components::ParentEntity(model),
+                                      components::Model());
+        for (const auto &childModel : childModels)
+        {
+            modelStack.push(childModel);
+        }
+      }
     }
     else if (_ecm.EntityMatches(entity,
                 std::set<ComponentTypeId>{components::Link::typeId}))
@@ -544,6 +645,8 @@ void RenderUtil::Update()
   auto actorTransforms = std::move(this->dataPtr->actorTransforms);
   auto actorAnimationData = std::move(this->dataPtr->actorAnimationData);
   auto entityTemp = std::move(this->dataPtr->entityTemp);
+  auto newWireframeVisualLinks =
+    std::move(this->dataPtr->newWireframeVisualLinks);
   auto newCollisionLinks = std::move(this->dataPtr->newCollisionLinks);
   auto thermalCameraData = std::move(this->dataPtr->thermalCameraData);
 
@@ -562,6 +665,7 @@ void RenderUtil::Update()
   this->dataPtr->actorTransforms.clear();
   this->dataPtr->actorAnimationData.clear();
   this->dataPtr->entityTemp.clear();
+  this->dataPtr->newWireframeVisualLinks.clear();
   this->dataPtr->newCollisionLinks.clear();
   this->dataPtr->thermalCameraData.clear();
 
@@ -1016,6 +1120,25 @@ void RenderUtil::Update()
     }
   }
 
+  // create new wireframe visuals
+  {
+    for (const auto &link : newWireframeVisualLinks)
+    {
+      std::vector<Entity> visEntities =
+          this->dataPtr->linkToVisualEntities[link];
+
+      for (const auto &visEntity : visEntities)
+      {
+        if (!this->dataPtr->viewingWireframes[visEntity])
+        {
+          auto vis = this->dataPtr->sceneManager.VisualById(visEntity);
+          vis->SetWireframe(true);
+          this->dataPtr->viewingWireframes[visEntity] = true;
+        }
+      }
+    }
+  }
+
   // create new collision visuals
   {
     for (const auto &link : newCollisionLinks)
@@ -1154,6 +1277,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
           this->newModels.push_back(
               std::make_tuple(_entity, model, _parent->Data(),
               _info.iterations));
+          this->modelToModelEntities[_parent->Data()].push_back(_entity);
           return true;
         });
 
@@ -1240,6 +1364,8 @@ void RenderUtilPrivate::CreateRenderingEntities(
 
           this->newVisuals.push_back(
               std::make_tuple(_entity, visual, _parent->Data()));
+
+          this->linkToVisualEntities[_parent->Data()].push_back(_entity);
           return true;
         });
 
@@ -1382,6 +1508,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
           this->newModels.push_back(
               std::make_tuple(_entity, model, _parent->Data(),
               _info.iterations));
+          this->modelToModelEntities[_parent->Data()].push_back(_entity);
           return true;
         });
 
@@ -1468,6 +1595,8 @@ void RenderUtilPrivate::CreateRenderingEntities(
 
           this->newVisuals.push_back(
               std::make_tuple(_entity, visual, _parent->Data()));
+
+          this->linkToVisualEntities[_parent->Data()].push_back(_entity);
           return true;
         });
 
@@ -1653,8 +1782,13 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         // Trajectory info from SDF so ign-rendering can calculate bone poses
         else
         {
-          this->actorAnimationData[_entity] =
-              this->sceneManager.ActorAnimationAt(_entity, this->simTime);
+          auto animData =
+            this->sceneManager.ActorAnimationAt(_entity, this->simTime);
+
+          if (animData.valid)
+          {
+            this->actorAnimationData[_entity] = animData;
+          }
         }
 
         // Trajectory pose set by other systems
@@ -1735,6 +1869,7 @@ void RenderUtilPrivate::RemoveRenderingEntities(
       {
         this->removeEntities[_entity] = _info.iterations;
         this->modelToLinkEntities.erase(_entity);
+        this->modelToModelEntities.erase(_entity);
         return true;
       });
 
@@ -1742,6 +1877,7 @@ void RenderUtilPrivate::RemoveRenderingEntities(
       [&](const Entity &_entity, const components::Link *)->bool
       {
         this->removeEntities[_entity] = _info.iterations;
+        this->linkToVisualEntities.erase(_entity);
         this->linkToCollisionEntities.erase(_entity);
         return true;
       });
@@ -2115,9 +2251,116 @@ void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
 }
 
 /////////////////////////////////////////////////
+void RenderUtil::ViewWireframes(const Entity &_entity)
+{
+  std::vector<Entity> visEntities;
+  std::vector<Entity> links;
+
+  if (this->dataPtr->linkToVisualEntities.find(_entity) !=
+      this->dataPtr->linkToVisualEntities.end())
+  {
+    visEntities = this->dataPtr->linkToVisualEntities[_entity];
+  }
+  else if (this->dataPtr->modelToLinkEntities.find(_entity) !=
+           this->dataPtr->modelToLinkEntities.end())
+  {
+    links.insert(links.end(),
+        this->dataPtr->modelToLinkEntities[_entity].begin(),
+        this->dataPtr->modelToLinkEntities[_entity].end());
+  }
+
+  if (this->dataPtr->modelToModelEntities.find(_entity) !=
+      this->dataPtr->modelToModelEntities.end())
+  {
+    std::stack<Entity> modelStack;
+    modelStack.push(_entity);
+
+    std::vector<Entity> childModels;
+    while (!modelStack.empty())
+    {
+      Entity model = modelStack.top();
+      modelStack.pop();
+
+      links.insert(links.end(),
+          this->dataPtr->modelToLinkEntities[model].begin(),
+          this->dataPtr->modelToLinkEntities[model].end());
+
+      childModels = this->dataPtr->modelToModelEntities[model];
+      for (const auto &childModel : childModels)
+      {
+        modelStack.push(childModel);
+      }
+    }
+  }
+
+  for (const auto &link : links)
+    visEntities.insert(visEntities.end(),
+        this->dataPtr->linkToVisualEntities[link].begin(),
+        this->dataPtr->linkToVisualEntities[link].end());
+
+  // Toggle wireframes
+  bool showWireframe, showWireframeInit = false;
+
+  // first loop looks for new wireframes
+  for (const auto &visEntity : visEntities)
+  {
+    if (this->dataPtr->viewingWireframes.find(visEntity) ==
+        this->dataPtr->viewingWireframes.end())
+    {
+      this->dataPtr->newWireframes.push_back(_entity);
+      showWireframeInit = showWireframe = true;
+    }
+  }
+
+  // second loop toggles wireframes
+  for (const auto &visEntity : visEntities)
+  {
+    if (this->dataPtr->viewingWireframes.find(visEntity) ==
+        this->dataPtr->viewingWireframes.end())
+      continue;
+
+    // when viewing multiple wireframes (e.g. _entity is a model),
+    // boolean for view wireframe is based on first visEntity in list
+    if (!showWireframeInit)
+    {
+      showWireframe = !this->dataPtr->viewingWireframes[visEntity];
+      showWireframeInit = true;
+    }
+
+    rendering::VisualPtr wireframeVisual =
+        this->dataPtr->sceneManager.VisualById(visEntity);
+    if (wireframeVisual == nullptr)
+    {
+      ignerr << "Could not find visual for entity [" << visEntity
+             << "]" << std::endl;
+      continue;
+    }
+
+    this->dataPtr->viewingWireframes[visEntity] = showWireframe;
+    wireframeVisual->SetWireframe(showWireframe);
+
+    if (showWireframe)
+    {
+      // turn off wireboxes for visual entity
+      if (this->dataPtr->wireBoxes.find(visEntity)
+            != this->dataPtr->wireBoxes.end())
+      {
+        ignition::rendering::WireBoxPtr wireBox =
+          this->dataPtr->wireBoxes[visEntity];
+        auto visParent = wireBox->Parent();
+        if (visParent)
+          visParent->SetVisible(false);
+      }
+    }
+  }
+}
+
+/////////////////////////////////////////////////
 void RenderUtil::ViewCollisions(const Entity &_entity)
 {
   std::vector<Entity> colEntities;
+  std::vector<Entity> links;
+
   if (this->dataPtr->linkToCollisionEntities.find(_entity) !=
       this->dataPtr->linkToCollisionEntities.end())
   {
@@ -2126,12 +2369,39 @@ void RenderUtil::ViewCollisions(const Entity &_entity)
   else if (this->dataPtr->modelToLinkEntities.find(_entity) !=
            this->dataPtr->modelToLinkEntities.end())
   {
-    std::vector<Entity> links = this->dataPtr->modelToLinkEntities[_entity];
-    for (const auto &link : links)
-      colEntities.insert(colEntities.end(),
-          this->dataPtr->linkToCollisionEntities[link].begin(),
-          this->dataPtr->linkToCollisionEntities[link].end());
+    links.insert(links.end(),
+        this->dataPtr->modelToLinkEntities[_entity].begin(),
+        this->dataPtr->modelToLinkEntities[_entity].end());
   }
+
+  if (this->dataPtr->modelToModelEntities.find(_entity) !=
+      this->dataPtr->modelToModelEntities.end())
+  {
+    std::stack<Entity> modelStack;
+    modelStack.push(_entity);
+
+    std::vector<Entity> childModels;
+    while (!modelStack.empty())
+    {
+      Entity model = modelStack.top();
+      modelStack.pop();
+
+      links.insert(links.end(),
+          this->dataPtr->modelToLinkEntities[model].begin(),
+          this->dataPtr->modelToLinkEntities[model].end());
+
+      childModels = this->dataPtr->modelToModelEntities[model];
+      for (const auto &childModel : childModels)
+      {
+        modelStack.push(childModel);
+      }
+    }
+  }
+
+  for (const auto &link : links)
+    colEntities.insert(colEntities.end(),
+        this->dataPtr->linkToCollisionEntities[link].begin(),
+        this->dataPtr->linkToCollisionEntities[link].end());
 
   // create and/or toggle collision visuals
 

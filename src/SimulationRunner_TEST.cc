@@ -785,9 +785,9 @@ TEST_P(SimulationRunnerTest, CreateLights)
       EXPECT_NE(nullptr, _geometry->Data().SphereShape());
       EXPECT_DOUBLE_EQ(0.5, _geometry->Data().SphereShape()->Radius());
 
-      EXPECT_EQ(math::Color(0.3, 0.3, 0.3), _material->Data().Ambient());
-      EXPECT_EQ(math::Color(0.3, 0.3, 0.3), _material->Data().Diffuse());
-      EXPECT_EQ(math::Color(0.3, 0.3, 0.3), _material->Data().Specular());
+      EXPECT_EQ(math::Color(0.3f, 0.3f, 0.3f), _material->Data().Ambient());
+      EXPECT_EQ(math::Color(0.3f, 0.3f, 0.3f), _material->Data().Diffuse());
+      EXPECT_EQ(math::Color(0.3f, 0.3f, 0.3f), _material->Data().Specular());
       return true;
     });
 
