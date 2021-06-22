@@ -28,7 +28,7 @@
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/Types.hh"
 #include "ignition/gazebo/detail/View.hh"
-#include "ignition/gazebo/detail/ComponentStorage.hh"
+#include "ignition/gazebo/detail/EntityStorage.hh"
 #include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/Model.hh"
@@ -62,7 +62,7 @@ class ViewTest : public::testing::Test
   }
 };
 
-/// \brief Helper class that wraps ComponentStorage to provide a simplified
+/// \brief Helper class that wraps EntityStorage to provide a simplified
 /// API for working with entities and their components. This class also stores
 /// a set of user-defined views and handles updating views as needed whenever
 /// an entity's components are modified.
@@ -187,7 +187,7 @@ class StorageViewWrapper
     EXPECT_EQ(entityComp->Data(), _component.Data());
   }
 
-  /// \brief Helper function that uses ComponentStorage::ValidComponent to get
+  /// \brief Helper function that uses EntityStorage::ValidComponent to get
   /// a component of a particular type that belongs to an entity.
   /// \param[in] _entity The entity
   /// \return A pointer to the component of the templated type. If no such
@@ -230,8 +230,8 @@ class StorageViewWrapper
     return this->storage.AddComponent(_entity, std::move(compPtr));
   }
 
-  /// \brief The actual detail::ComponentStorage instance
-  private: detail::ComponentStorage storage;
+  /// \brief The actual detail::EntityStorage instance
+  private: detail::EntityStorage storage;
 
   /// \brief All of the views that will be updated as needed based on the
   /// changes being made to this->storage

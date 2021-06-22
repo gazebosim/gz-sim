@@ -43,9 +43,9 @@ target_link_libraries(${ign_lib_target}
 set (sources
   Barrier.cc
   BaseView.cc
-  ComponentStorage.cc
   Conversions.cc
   EntityComponentManager.cc
+  EntityStorage.cc
   LevelManager.cc
   Link.cc
   Model.cc
@@ -68,7 +68,7 @@ set (gtest_sources
   BaseView_TEST.cc
   Component_TEST.cc
   ComponentFactory_TEST.cc
-  ComponentStorage_TEST.cc
+  EntityStorage_TEST.cc
   Conversions_TEST.cc
   EntityComponentManager_TEST.cc
   EventManager_TEST.cc

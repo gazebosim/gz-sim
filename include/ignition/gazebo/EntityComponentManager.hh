@@ -203,6 +203,22 @@ namespace ignition
       public: template<typename ComponentTypeT>
               ComponentTypeT *Component(const Entity _entity);
 
+      /// \brief Get a component based on a key.
+      /// \param[in] _key A key that uniquely identifies a component.
+      /// \return The component associated with the key, or nullptr if the
+      /// component could not be found.
+      public: template<typename ComponentTypeT>
+              const ComponentTypeT *IGN_DEPRECATED(6) Component(
+              const ComponentKey &_key) const;
+
+      /// \brief Get a mutable component based on a key.
+      /// \param[in] _key A key that uniquely identifies a component.
+      /// \return The component associated with the key, or nullptr if the
+      /// component could not be found.
+      public: template<typename ComponentTypeT>
+              ComponentTypeT *IGN_DEPRECATED(6) Component(
+              const ComponentKey &_key);
+
       /// \brief Get a mutable component assigned to an entity based on a
       /// component type. If the component doesn't exist, create it and
       /// initialize with the given default value.
