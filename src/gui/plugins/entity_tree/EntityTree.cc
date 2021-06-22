@@ -26,7 +26,6 @@
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
 
-#include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Joint.hh"

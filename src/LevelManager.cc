@@ -51,6 +51,7 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/RenderEngineGuiPlugin.hh"
 #include "ignition/gazebo/components/RenderEngineServerPlugin.hh"
+#include "ignition/gazebo/components/SameProcess.hh"
 #include "ignition/gazebo/components/Scene.hh"
 #include "ignition/gazebo/components/Wind.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -125,6 +126,10 @@ void LevelManager::ReadLevelPerformerInfo()
   this->runner->entityCompMgr.CreateComponent(this->worldEntity,
       components::RenderEngineGuiPlugin(
       this->runner->serverConfig.RenderEngineGui()));
+
+  this->runner->entityCompMgr.CreateComponent(this->worldEntity,
+      components::SameProcess(
+      this->runner->serverConfig.SameProcessAsGUI()));
 
   auto worldElem = this->runner->sdfWorld->Element();
 

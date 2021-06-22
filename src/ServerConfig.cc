@@ -352,7 +352,7 @@ std::string ServerConfig::SdfString() const
 }
 
 //////////////////////////////////////////////////
-void ServerConfig::SetSameProcessAsGUI(const bool &_sameProcessAsGUI)
+void ServerConfig::SetSameProcessAsGUI(bool _sameProcessAsGUI)
 {
   this->dataPtr->sameProcessAsGUI = _sameProcessAsGUI;
 }

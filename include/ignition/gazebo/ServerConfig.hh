@@ -178,7 +178,7 @@ namespace ignition
       /// \brief Set if the server and GUI should run in the same process.
       /// \param[in] _sameProcessAsGUI True if the server and GUI will run in
       /// the same process, False otherwise
-      public: void SetSameProcessAsGUI(const bool &_sameProcessAsGUI);
+      public: void SetSameProcessAsGUI(bool _sameProcessAsGUI);
 
       /// \brief Get if the server and GUI are running in the same process
       /// \return  True if the server and GUI will run in

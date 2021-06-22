@@ -43,6 +43,7 @@
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/RenderEngineServerPlugin.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
+#include "ignition/gazebo/components/SameProcess.hh"
 #include "ignition/gazebo/components/ThermalCamera.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Events.hh"
@@ -412,20 +413,6 @@ Sensors::~Sensors()
   this->dataPtr->Stop();
 }
 
-void Sensors::SetSameProcess(bool _sameProcess)
-{
-  this->dataPtr->sameProcess = _sameProcess;
-
-  if (this->dataPtr->sameProcess)
-  {
-    this->dataPtr->renderUtil.SetEventManager(*this->dataPtr->eventManager);
-
-    this->dataPtr->renderConn =
-      this->dataPtr->eventManager->Connect<events::Render>(
-        std::bind(&SensorsPrivate::Render, this->dataPtr.get()));
-  }
-}
-
 //////////////////////////////////////////////////
 void Sensors::Configure(const Entity &/*_id*/,
     const std::shared_ptr<const sdf::Element> &_sdf,
@@ -464,6 +451,23 @@ void Sensors::Configure(const Entity &/*_id*/,
     if (renderEngineServerComp && !renderEngineServerComp->Data().empty())
     {
       this->dataPtr->renderUtil.SetEngineName(renderEngineServerComp->Data());
+    }
+
+    // Check if the server and gui are running in the same process
+    auto sameProcessComp =
+      _ecm.Component<components::SameProcess>(worldEntity);
+    if (sameProcessComp)
+    {
+      this->dataPtr->sameProcess = sameProcessComp->Data();
+
+      if (this->dataPtr->sameProcess)
+      {
+        this->dataPtr->renderUtil.SetEventManager(*this->dataPtr->eventManager);
+
+        this->dataPtr->renderConn =
+          _eventMgr.Connect<events::Render>(
+            std::bind(&SensorsPrivate::Render, this->dataPtr.get()));
+      }
     }
   }
 
@@ -513,8 +517,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
     // This will allow to load first the scene3D
     if (this->dataPtr->sameProcess)
     {
-      if (rendering::isEngineLoaded("ogre") ||
-          rendering::isEngineLoaded("ogre2"))
+      if (rendering::loadedEngines().size())
       {
         igndbg << "Initialization needed" << std::endl;
         this->dataPtr->eventManager->Emit

@@ -98,12 +98,6 @@ namespace ignition
                   const std::shared_ptr<const sdf::Element> &_sdf,
                   EntityComponentManager &_ecm,
                   EventManager &_eventMgr) = 0;
-
-      /// \brief Set the system plugins if the simulation is running in the
-      /// same process
-      /// \param[in] _sameProcess True if the server and client are running in
-      /// the same process, False otherwise.
-      public: virtual void SetSameProcess(bool /*_sameProcess*/){}
     };
 
     /// \class ISystemPreUpdate ISystem.hh ignition/gazebo/System.hh
