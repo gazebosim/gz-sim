@@ -124,7 +124,7 @@ namespace components
     /// \deprecated See function that doesn't accept a storage
     public: template<typename ComponentTypeT>
     void IGN_DEPRECATED(6) Register(const std::string &_type,
-        ComponentDescriptorBase *_compDesc, StorageDescriptorBase *)
+        ComponentDescriptorBase *_compDesc, StorageDescriptorBase * /*_storageDesc*/)
     {
       this->Register<ComponentTypeT>(_type, _compDesc);
     }
@@ -289,7 +289,7 @@ namespace components
     /// \return Always returns nullptr.
     /// \deprecated Storages aren't necessary anymore.
     public: std::unique_ptr<ComponentStorageBase> IGN_DEPRECATED(6) NewStorage(
-        const ComponentTypeId &)
+        const ComponentTypeId & /*_typeId*/)
     {
       return nullptr;
     }
