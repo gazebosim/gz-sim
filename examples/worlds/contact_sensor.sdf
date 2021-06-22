@@ -77,16 +77,18 @@ Run the following to print out contacts,
       <link name="link">
         <collision name="collision_sphere">
           <geometry>
-            <sphere>
-              <radius>0.5</radius>
-            </sphere>
+            <cylinder>
+              <radius>0.2</radius>
+              <length>0.1</length>
+            </cylinder>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
-            <sphere>
-              <radius>0.5</radius>
-            </sphere>
+            <cylinder>
+              <radius>0.2</radius>
+              <length>0.1</length>
+            </cylinder>
           </geometry>
         </visual>
         <sensor name='sensor_contact' type='contact'>

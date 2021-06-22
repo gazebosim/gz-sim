@@ -43,8 +43,17 @@ class AckermannSteeringTest : public ::testing::TestWithParam<int>
   protected: void SetUp() override
   {
     common::Console::SetVerbosity(4);
-    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
+
+    std::string binPath;
+    ASSERT_TRUE(gazebo::testing::ProjectBinaryPath(binPath));
+
+    std::string libPath = 
+      ignition::common::joinPaths(binPath, "lib") + ":" + 
+      ignition::common::joinPaths(binPath, "test") + ":" + 
+      binPath;
+
+    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH", libPath);
+
   }
 
   /// \param[in] _sdfFile SDF file to load.
@@ -201,16 +210,17 @@ class AckermannSteeringTest : public ::testing::TestWithParam<int>
 /////////////////////////////////////////////////
 TEST_P(AckermannSteeringTest, PublishCmd)
 {
-  TestPublishCmd(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-                                   "/test/worlds/ackermann_steering.sdf"),
+  TestPublishCmd(
+      gazebo::testing::TestFile("worlds", "ackermann_steering.sdf"),
       "/model/vehicle/cmd_vel", "/model/vehicle/odometry");
 }
 
 /////////////////////////////////////////////////
 TEST_P(AckermannSteeringTest, PublishCmdCustomTopics)
 {
-  TestPublishCmd(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-      "/test/worlds/ackermann_steering_custom_topics.sdf"),
+  TestPublishCmd(
+      gazebo::testing::TestFile("worlds", 
+                                "ackermann_steering_custom_topics.sdf"),
       "/model/foo/cmdvel", "/model/bar/odom");
 }
 
@@ -219,8 +229,8 @@ TEST_P(AckermannSteeringTest, SkidPublishCmd)
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-      "/test/worlds/ackermann_steering_slow_odom.sdf"));
+  serverConfig.SetSdfFile(
+      gazebo::testing::TestFile("ackermann_steering_slow_odom.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -317,8 +327,8 @@ TEST_P(AckermannSteeringTest, OdomFrameId)
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-      "/test/worlds/ackermann_steering.sdf"));
+  serverConfig.SetSdfFile(
+      gazebo::testing::TestFile("worlds", "ackermann_steering.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -375,8 +385,8 @@ TEST_P(AckermannSteeringTest, OdomCustomFrameId)
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-             "/test/worlds/ackermann_steering_custom_frame_id.sdf"));
+  serverConfig.SetSdfFile(
+      gazebo::testing::TestFile("worlds", "ackermann_steering_custom_frame_id.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());

@@ -64,6 +64,9 @@ std::unique_ptr<ignition::gui::Application> createGui(
   // Initialize Qt app
   auto app = std::make_unique<ignition::gui::Application>(_argc, _argv);
   app->AddPluginPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
+  app->AddPluginPath(
+      ignition::common::joinPaths(ignition::common::cwd(),
+        "ign_gazebo", "src", "gui", "plugins"));
 
   auto aboutDialogHandler = new ignition::gazebo::gui::AboutDialogHandler();
   aboutDialogHandler->setParent(app->Engine());
@@ -76,6 +79,11 @@ std::unique_ptr<ignition::gui::Application> createGui(
 
   // add import path so we can load custom modules
   app->Engine()->addImportPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
+  app->Engine()->addImportPath(
+      QString::fromStdString(
+      ignition::common::joinPaths(ignition::common::cwd(),
+        "ign_gazebo", "src", "gui", "plugins")));
+
   std::string defaultGuiConfigName = "gui.config";
 
   // Set default config file for Gazebo

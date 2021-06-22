@@ -20,10 +20,7 @@
 #include <stdlib.h>
 #include <ignition/gazebo/config.hh>
 
-#define PROJECT_SOURCE_PATH "${PROJECT_SOURCE_DIR}"
-#define PROJECT_BINARY_PATH "${CMAKE_BINARY_DIR}"
-
-#define IGN_CONFIG_PATH "@CMAKE_BINARY_DIR@/test/conf"
+#define IGN_CONFIG_PATH "${PROJECT_BINARY_DIR}/test/conf"
 
 #ifdef _MSC_VER
 #    define popen _popen
@@ -34,6 +31,135 @@ namespace ignition
 {
 namespace gazebo
 {
+
+namespace testing
+{
+  /// \brief Method to retrieve root directory of project source
+  ///
+  /// This is used to get various test files
+  /// \param[inout] _sourceDir Full path to the source directory
+  /// \return True if directory is set correctly, false otherwise
+  bool ProjectSourcePath(std::string &_sourceDir)
+  {
+    // Bazel builds set TEST_SRCDIR
+    if (common::env("TEST_SRCDIR", _sourceDir))
+    {
+      _sourceDir = common::joinPaths(
+          _sourceDir, "__main__", "ign_gazebo");
+      return true;
+    }
+    else
+    {
+      // CMake builds set PROJECT_SOURCE_DIR
+      _sourceDir = "${PROJECT_SOURCE_DIR}";
+      return true;
+    }
+  }
+
+  /// \brief Method to retrieve root directory of project binary 
+  ///
+  /// This is used to get various test files
+  /// \param[inout] _sourceDir Full path to the source directory
+  /// \return True if directory is set correctly, false otherwise
+  bool ProjectBinaryPath(std::string &_sourceDir)
+  {
+    // Bazel builds set TEST_SRCDIR
+    if (common::env("TEST_SRCDIR", _sourceDir))
+    {
+      _sourceDir = common::joinPaths(
+          _sourceDir, "__main__", "ign_gazebo");
+      return true;
+    }
+    else
+    {
+      // CMake builds set PROJECT_SOURCE_DIR
+      _sourceDir = "${PROJECT_BINARY_DIR}";
+      return true;
+    }
+  }
+
+  /// \brief Method to retrieve temporary directory for test outputs
+  ///
+  /// \param[inout] _tmpDir Full path to the temp directory
+  /// \return True if directory is set correctly, false otherwise
+  bool TestTmpPath(std::string &_tmpDir)
+  {
+    // Bazel builds set TEST_UNDECLARED_OUTPUTS_DIR
+    if (common::env("TEST_UNDECLARED_OUTPUTS_DIR", _tmpDir))
+    {
+      return true;
+    }
+    else
+    {
+      _tmpDir = common::joinPaths("${PROJECT_BINARY_DIR}", "tmp");
+      return true;
+    }
+  }
+
+  /// \brief Method to retrieve temporary home directory for tests
+  ///
+  /// This will update the contents of the home directory path variable
+  /// (HOME on Linux/MacOS, HOMEPATH on Windows) to this newly-set
+  /// directory
+  /// This additionally sets the HOME and HOMEPATH environment variables
+  ///
+  /// \param[inout] _homeDir Full path to the home directory
+  /// \return True if directory is set correctly, false otherwise
+  bool TestSetHomePath(std::string &_homeDir)
+  {
+    if (common::env("TEST_UNDECLARED_OUTPUTS_DIR", _homeDir))
+    {
+      return ignition::common::setenv(IGN_HOMEDIR, _homeDir);
+    }
+    else
+    {
+      if (TestTmpPath(_homeDir))
+      {
+        // Set both for linux and windows
+        return ignition::common::setenv(IGN_HOMEDIR, _homeDir);
+      }
+      else
+      {
+        return false;
+      }
+    }
+  }
+
+  /// \brief Retrieve a file from the project source directory
+  /// \param[in] variable length of arguments relative to the
+  ///   repository source directory
+  /// \return Full path to requested file
+  template <typename... Args>
+  std::string SourceFile(Args const &... args)
+  {
+    std::string dataDir;
+    ProjectSourcePath(dataDir);
+    return common::joinPaths(dataDir, args...);
+  }
+
+  /// \brief Retrieve a file from the test directory
+  /// \param[in] variable length of arguments relative to the
+  ///   repository test directory
+  /// \return Full path to requested test file
+  template <typename... Args>
+  std::string TestFile(Args const &... args)
+  {
+    return SourceFile("test", args...);
+  }
+
+  /// \brief Retrieve a file from the project temporary directory
+  /// \param[in] variable length of arguments relative to the
+  ///   temporary test directory
+  /// \return Full path to requested file
+  template <typename... Args>
+  std::string TempPath(Args const &... args)
+  {
+    std::string dataDir;
+    TestTmpPath(dataDir);
+    return common::joinPaths(dataDir, args...);
+  }
+}  // namespace testing
+
 // Create a special test world that doesn't use physics to avoid some issues
 // where ODE doesn't initialize properly in multiple physics instances in the
 // same process.

@@ -8,11 +8,13 @@ load(
     "ign_config_header",
     "ign_export_header",
 )
+
 load(
     "//ign_bazel:qt.bzl",
-    "qt_cc_binary",
     "qt_cc_library",
+    "qt_resource",
 )
+
 load(
     "//ign_msgs:ign_msg_gen.bzl",
     "get_proto_headers",
@@ -120,6 +122,7 @@ sources = [
     "src/Util.cc",
     "src/View.cc",
     "src/World.cc",
+    "src/rendering/MarkerManager.cc",
     "src/rendering/RenderUtil.cc",
     "src/rendering/SceneManager.cc",
     "src/network/NetworkConfig.cc",
@@ -146,42 +149,6 @@ test_sources = [
     "src/SystemLoader_TEST.cc",
     "src/System_TEST.cc",
     "src/Util_TEST.cc",
-]
-
-systems = [
-    "air_pressure",
-    "altimeter",
-    "apply_joint_force",
-    "battery_plugin",
-    "breadcrumbs",
-    "buoyancy",
-    "camera_video_recorder",
-    "contact",
-    "detachable_joint",
-    "diff_drive",
-    "follow_actor",
-    "imu",
-    "joint_controller",
-    "joint_position_controller",
-    "joint_state_publisher",
-    "lift_drag",
-    "log",
-    "logical_camera",
-    "log_video_recorder",
-    "magnetometer",
-    "multicopter_control",
-    "multicopter_motor_model",
-    "performer_detector",
-    "physics",
-    "pose_publisher",
-    "scene_broadcaster",
-    "sensors",
-    "touch_plugin",
-    "triggered_publisher",
-    "user_commands",
-    "velocity_control",
-    "wheel_slip",
-    "wind_effects",
 ]
 
 protos = glob(
@@ -245,53 +212,43 @@ cc_library(
     includes = ["include"],
 )
 
-genrule(
-    name = "resources_gen",
-    srcs = [
-        "src/gui/resources/gazebo.qrc",
+qt_resource(
+    name = "gazebo",
+    qrc_file = "src/gui/resources/gazebo.qrc",
+    files = glob([
         "src/gui/resources/GazeboDrawer.qml",
-    ] + glob(["src/gui/resources/images/*"]),
-    outs = [
-        "qrc_gazebo.cpp",
-    ],
-    cmd = "cd ign_gazebo/src/gui/resources/ && qtchooser -qt=5 -run-tool=rcc --name gazebo gazebo.qrc -o qrc_gazebo.cpp && cp qrc_gazebo.cpp ../../../../$(OUTS)",
-)
-
-filegroup(
-    name = "example-worlds",
-    srcs = glob([
-        "examples/worlds/*.sdf",
-    ]),
+        "src/gui/resources/images/*.*"
+    ])
 )
 
 qt_cc_library(
     name = "ign_gazebo_gui",
-    srcs = ["qrc_gazebo.cpp"] + glob(
-        ["src/gui/*.cc"],
-        exclude = ["src/gui/*_TEST.cc"],
-    ),
+    srcs = [
+        "src/gui/AboutDialogHandler.cc",
+        "src/gui/Gui.cc",
+        "src/gui/GuiFileHandler.cc",
+        "src/gui/PathManager.cc",
+        "src/gui/TmpIface.cc",
+        "src/gui/GuiRunner.cc",
+        "src/gui/GuiSystem.cc",
+    ],
     hdrs = [
-        "include/ignition/gazebo/gui/Gui.hh",
-        "include/ignition/gazebo/gui/GuiEvents.hh",
+        "src/gui/AboutDialogHandler.hh",
+        "src/gui/GuiFileHandler.hh",
+        "src/gui/PathManager.hh",
+        "include/ignition/gazebo/gui/TmpIface.hh",
         "include/ignition/gazebo/gui/GuiRunner.hh",
         "include/ignition/gazebo/gui/GuiSystem.hh",
-        "include/ignition/gazebo/gui/TmpIface.hh",
-    ] + glob(["src/gui/*.hh"]),
-    includes = [
-        "include",
-        "src",
     ],
-    linkopts = [],
+    alwayslink = 1,
+    includes = [".", "include"],
     deps = [
-        ":ign_gazebo",
-        ":ign_gazebo_headers",
+        IGNITION_ROOT + "ign_gazebo:ign_gazebo_headers",
+        IGNITION_ROOT + "sdformat",
+        IGNITION_ROOT + "ign_fuel_tools",
         IGNITION_ROOT + "ign_common",
         IGNITION_ROOT + "ign_common/profiler",
-        IGNITION_ROOT + "ign_fuel_tools",
         IGNITION_ROOT + "ign_gui",
-        IGNITION_ROOT + "ign_msgs",
-        IGNITION_ROOT + "ign_transport",
-        IGNITION_ROOT + "sdformat",
     ],
 )
 
@@ -300,208 +257,75 @@ cc_library(
     srcs = sources + private_headers,
     hdrs = public_headers,
     includes = ["include"],
+    alwayslink = 1,
     deps = [
         ":igngazebo_proto_cc",
-        IGNITION_ROOT + "ign_bazel:utilities",
         IGNITION_ROOT + "ign_common",
         IGNITION_ROOT + "ign_common/events",
         IGNITION_ROOT + "ign_common/graphics",
         IGNITION_ROOT + "ign_common/profiler",
         IGNITION_ROOT + "ign_fuel_tools",
         IGNITION_ROOT + "ign_gui",
+        IGNITION_ROOT + "ign_math",
         IGNITION_ROOT + "ign_msgs",
         IGNITION_ROOT + "ign_plugin",
-        IGNITION_ROOT + "ign_plugin/loader",
         IGNITION_ROOT + "ign_rendering",
         IGNITION_ROOT + "ign_transport",
-        IGNITION_ROOT + "sdformat",
-    ],
-)
-
-cc_binary(
-    name = "libignition-gazebo.so",
-    srcs = ["src/ign.cc"],
-    linkshared = True,
-    deps = [
-        ":ign_gazebo",
-        ":ign_gazebo_gui",
-    ],
-)
-
-[
-    cc_binary(
-        name = "libignition-gazebo-%s-system.so" % system.replace("_", "-"),
-        srcs = glob(
-            [
-                "src/systems/%s/*.cc" % system,
-                "src/systems/%s/*.hh" % system,
-            ],
-            allow_empty = False,
-        ),
-        includes = ["include"],
-        linkshared = True,
-        visibility = ["//visibility:public"],
-        deps = [
-            IGNITION_ROOT + "ign_bazel:utilities",
-            IGNITION_ROOT + "ign_common",
-            IGNITION_ROOT + "ign_common/av",
-            IGNITION_ROOT + "ign_common/events",
-            IGNITION_ROOT + "ign_common/graphics",
-            IGNITION_ROOT + "ign_common/profiler",
-            IGNITION_ROOT + "ign_fuel_tools",
-            IGNITION_ROOT + "ign_gazebo",
-            IGNITION_ROOT + "ign_gui",
-            IGNITION_ROOT + "ign_math/eigen3",
-            IGNITION_ROOT + "ign_msgs",
-            IGNITION_ROOT + "ign_physics",
-            IGNITION_ROOT + "ign_physics:mesh",
-            IGNITION_ROOT + "ign_physics:sdf",
-            IGNITION_ROOT + "ign_physics/dartsim:libignition-physics-dartsim-plugin.so",
-            IGNITION_ROOT + "ign_plugin",
-            IGNITION_ROOT + "ign_plugin/loader",
-            IGNITION_ROOT + "ign_plugin/register",
-            IGNITION_ROOT + "ign_rendering",
-            IGNITION_ROOT + "ign_sensors",
-            IGNITION_ROOT + "ign_transport",
-            IGNITION_ROOT + "ign_transport/log:ign_transport-log",
-            IGNITION_ROOT + "sdformat",
-        ],
-    )
-    for system in systems
-]
-
-[
-    cc_library(
-        name = system,
-        srcs = [
-            "libignition-gazebo-%s-system.so" % system.replace("_", "-"),
-        ],
-        hdrs = glob(
-            [
-                "src/systems/%s/*.hh" % system,
-            ],
-            allow_empty = False,
-        ),
-        deps = [
-            IGNITION_ROOT + "ign_bazel:utilities",
-            IGNITION_ROOT + "ign_common",
-            IGNITION_ROOT + "ign_common/events",
-            IGNITION_ROOT + "ign_common/graphics",
-            IGNITION_ROOT + "ign_common/profiler",
-            IGNITION_ROOT + "ign_fuel_tools",
-            IGNITION_ROOT + "ign_gazebo",
-            IGNITION_ROOT + "ign_gui",
-            IGNITION_ROOT + "ign_math/eigen3",
-            IGNITION_ROOT + "ign_msgs",
-            IGNITION_ROOT + "ign_physics",
-            IGNITION_ROOT + "ign_physics:mesh",
-            IGNITION_ROOT + "ign_physics:sdf",
-            IGNITION_ROOT + "ign_plugin",
-            IGNITION_ROOT + "ign_plugin/register",
-            IGNITION_ROOT + "ign_rendering",
-            IGNITION_ROOT + "ign_sensors",
-            IGNITION_ROOT + "ign_transport",
-            IGNITION_ROOT + "ign_transport/log:ign_transport-log",
-            IGNITION_ROOT + "sdformat",
-        ],
-    )
-    for system in systems
-]
-
-cc_binary(
-    name = "libignition-gazebo-thermal-system.so",
-    srcs = [
-        "src/systems/thermal/Thermal.cc",
-        "src/systems/thermal/Thermal.hh",
-    ],
-    includes = ["include"],
-    linkshared = True,
-    deps = [
-        IGNITION_ROOT + "ign_gazebo",
-        IGNITION_ROOT + "ign_plugin",
-        IGNITION_ROOT + "ign_plugin/loader",
-        IGNITION_ROOT + "ign_plugin/register",
-        IGNITION_ROOT + "ign_rendering",
-        IGNITION_ROOT + "ign_sensors",
-        IGNITION_ROOT + "ign_transport",
-        IGNITION_ROOT + "ign_transport/log:ign_transport-log",
-        IGNITION_ROOT + "sdformat",
-    ],
-)
-
-cc_binary(
-    name = "libignition-gazebo-thermal-sensor-system.so",
-    srcs = [
-        "src/systems/thermal/ThermalSensor.cc",
-        "src/systems/thermal/ThermalSensor.hh",
-    ],
-    includes = ["include"],
-    linkshared = True,
-    deps = [
-        IGNITION_ROOT + "ign_gazebo",
-        IGNITION_ROOT + "ign_plugin",
-        IGNITION_ROOT + "ign_plugin/loader",
-        IGNITION_ROOT + "ign_plugin/register",
-        IGNITION_ROOT + "ign_rendering",
-        IGNITION_ROOT + "ign_sensors",
-        IGNITION_ROOT + "ign_transport",
-        IGNITION_ROOT + "ign_transport/log:ign_transport-log",
         IGNITION_ROOT + "sdformat",
     ],
 )
 
 cc_library(
-    name = "ign_gazebo_systems",
+    name = "ign_gazebo_resources",
     deps = [
-        IGNITION_ROOT + "ign_gui/src/plugins",
-        IGNITION_ROOT + "ign_gazebo/src/gui/plugins:libGzScene3D.so",
-        IGNITION_ROOT + "ign_gazebo/src/gui/plugins:libComponentInspector.so",
-        IGNITION_ROOT + "ign_gazebo/src/gui/plugins:libEntityTree.so",
-        IGNITION_ROOT + "ign_gazebo/src/gui/plugins:libTransformControl.so",
-        IGNITION_ROOT + "ign_gazebo/src/gui/plugins:libShapes.so",
-        IGNITION_ROOT + "ign_gazebo/src/gui/plugins:IgnGazebo/libEntityContextMenu.so",
-        ":libignition-gazebo-thermal-system.so",
-        ":libignition-gazebo-thermal-sensor-system.so",
-    ] + [":libignition-gazebo-%s-system.so" % system.replace("_", "-") for system in systems],
+        ":gazebo",
+        IGNITION_ROOT + "ign_gui:ign_gui_resources" ,
+        IGNITION_ROOT + "ign_gazebo/src/gui/plugins:ign_gui_plugin_resources"
+    ],
 )
 
-[cc_test(
-    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
-    srcs = [src] + private_headers,
-    deps = [
-        ":ign_gazebo_systems",
-        IGNITION_ROOT + "ign_bazel:utilities",
-        IGNITION_ROOT + "ign_common",
-        IGNITION_ROOT + "ign_common/events",
-        IGNITION_ROOT + "ign_common/graphics",
-        IGNITION_ROOT + "ign_common/profiler",
-        IGNITION_ROOT + "ign_fuel_tools",
-        IGNITION_ROOT + "ign_gazebo",
-        IGNITION_ROOT + "ign_gazebo/test:test_systems",
-        IGNITION_ROOT + "ign_gazebo/test:test_utils",
-        IGNITION_ROOT + "ign_gui",
-        IGNITION_ROOT + "ign_math/eigen3",
-        IGNITION_ROOT + "ign_msgs",
-        IGNITION_ROOT + "ign_physics",
-        IGNITION_ROOT + "ign_physics:mesh",
-        IGNITION_ROOT + "ign_physics:sdf",
-        IGNITION_ROOT + "ign_plugin",
-        IGNITION_ROOT + "ign_plugin/loader",
-        IGNITION_ROOT + "ign_plugin/register",
-        IGNITION_ROOT + "ign_rendering",
-        IGNITION_ROOT + "ign_sensors",
-        IGNITION_ROOT + "ign_transport",
-        IGNITION_ROOT + "ign_transport/log:ign_transport-log",
-        IGNITION_ROOT + "sdformat",
-        "@gtest",
-        "@gtest//:gtest_main",
+cc_binary(
+    name = "libignition-gazebo.so",
+    srcs = ["src/ign.cc", "src/ign.hh"],
+    linkstatic = False,
+    linkshared = True,
+    data = [
+        IGNITION_ROOT + "ign_gazebo/src/systems:systems"
     ],
-) for src in test_sources]
+    deps = [
+        ":ign_gazebo",
+        ":ign_gazebo_headers",
+        ":ign_gazebo_gui",
+        ":ign_gazebo_resources",
+    ],
+)
+
+cc_binary(
+    name = "ign-gazebo-server",
+    srcs = ["src/ign-gazebo-server.cc"],
+    deps = [
+        ":ign_gazebo",
+        ":ign_gazebo_headers",
+        IGNITION_ROOT + "ign_gazebo/src/systems"
+    ],
+)
+
+cc_binary(
+    name = "ign-gazebo-gui",
+    srcs = ["src/ign-gazebo-gui.cc"],
+    linkstatic = False,
+    deps = [
+        ":ign_gazebo",
+        ":ign_gazebo_headers",
+        ":ign_gazebo_gui",
+        ":ign_gazebo_resources",
+    ],
+)
 
 cmake_configure_file(
     name = "gazebo.rb",
     src = "src/cmd/cmdgazebo.rb.in",
-    out = "cmdgazebo.rb",
+    out = "cmdazebo.rb",
     cmakelists = ["CMakeLists.txt"],
     defines = [
         "library_location=libignition-gazebo.so",
@@ -510,12 +334,13 @@ cmake_configure_file(
     ],
 )
 
-CMDS = "    - gazebo   : Run and manage Gazebo."
+CMDS = "    - gazebo   : Launch graphical interfaces."
 
 generate_yaml(
-    name = "gazebo",
+    name = "gazebo.yaml",
     commands = CMDS,
     library_name = PROJECT_NAME,
     library_version = "%d.%d.%d" % (PROJECT_MAJOR, PROJECT_MINOR, PROJECT_PATCH),
     ruby_target = "gazebo.rb",
 )
+

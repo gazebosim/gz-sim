@@ -45,6 +45,8 @@ namespace gazebo
   {
     Q_OBJECT
 
+    public: virtual ~GuiSystem();
+
     /// \brief Update callback called every time the system is stepped.
     /// This is called at an Ignition transport thread, so any interaction
     /// with Qt should be done through signals and slots.

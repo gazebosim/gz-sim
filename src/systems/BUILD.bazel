@@ -1,0 +1,126 @@
+load( "//ign_bazel:build_defs.bzl",
+     "IGNITION_ROOT",
+     "IGNITION_VISIBILITY",
+)
+
+load( ":ign_gazebo_system_plugin.bzl",
+      "ign_gazebo_system_plugin")
+
+package(default_visibility = IGNITION_VISIBILITY)
+
+plugin_folders = [
+  "ackermann_steering",
+  "air_pressure",
+  "altimeter",
+  "apply_joint_force",
+  "battery_plugin",
+  "breadcrumbs",
+  "buoyancy",
+  "camera_video_recorder",
+  "collada_world_exporter",
+  "contact",
+  "detachable_joint",
+  "diff_drive",
+  "follow_actor",
+  "imu",
+  "joint_controller",
+  "joint_position_controller",
+  "joint_state_publisher",
+  "joint_trajectory_controller",
+  "kinetic_energy_monitor",
+  "lift_drag",
+  "log",
+#  "logical_audio_sensor_plugin",
+  "logical_camera",
+  "log_video_recorder",
+  "magnetometer",
+  "mecanum_drive",
+  "multicopter_control",
+  "multicopter_motor_model",
+  "optical_tactile_plugin",
+  "particle_emitter",
+  "performer_detector",
+#  "physics",
+  "pose_publisher",
+  "scene_broadcaster",
+  "sensors",
+#  "thermal",
+  "touch_plugin",
+  "triggered_publisher",
+  "user_commands",
+  "velocity_control",
+  "wheel_slip",
+  "wind_effects",
+]
+
+[
+    ign_gazebo_system_plugin(
+      folder_name = folder_name,
+      deps = [
+          IGNITION_ROOT + "ign_physics",
+          IGNITION_ROOT + "ign_sensors",
+          IGNITION_ROOT + "ign_transport/log:ign_transport-log",
+      ]
+    ) for folder_name in plugin_folders
+]
+
+ign_gazebo_system_plugin(
+    folder_name = "physics",
+    deps = [
+        IGNITION_ROOT + "ign_common/graphics",
+        IGNITION_ROOT + "ign_physics",
+    ],
+    data = [
+        IGNITION_ROOT + "ign_physics/dartsim:libignition-physics-dartsim-plugin.so",
+    ]
+)
+
+cc_library(
+    name = "thermal",
+    srcs = ["thermal/Thermal.cc"],
+    hdrs = ["thermal/Thermal.hh"],
+    includes = ["thermal"],
+    deps = [
+       IGNITION_ROOT + "ign_common",
+       IGNITION_ROOT + "ign_gazebo",
+       IGNITION_ROOT + "ign_gazebo:ign_gazebo_headers",
+       IGNITION_ROOT + "ign_plugin/register",
+    ]
+)
+
+cc_binary(
+    name = "libignition-gazebo-thermal-system.so",
+    deps = [":thermal"],
+    linkshared = 1
+)
+
+cc_library(
+    name = "thermal-sensor",
+    srcs = ["thermal/ThermalSensor.cc"],
+    hdrs = ["thermal/ThermalSensor.hh"],
+    includes = ["thermal"],
+    deps = [
+       IGNITION_ROOT + "ign_common",
+       IGNITION_ROOT + "ign_gazebo",
+       IGNITION_ROOT + "ign_gazebo:ign_gazebo_headers",
+       IGNITION_ROOT + "ign_plugin/register",
+    ]
+)
+
+cc_binary(
+    name = "libignition-gazebo-thermal-sensor-system.so",
+    deps = [":thermal-sensor"],
+    linkshared = 1
+)
+
+
+cc_library(
+    name = "systems",
+    data = [":libignition-gazebo-%s-system.so" % '-'.join(folder_name.split('_')) for folder_name in plugin_folders] +
+    [
+        ":libignition-gazebo-physics-system.so",
+        ":libignition-gazebo-thermal-system.so",
+        ":libignition-gazebo-thermal-sensor-system.so",
+    ],
+)
+

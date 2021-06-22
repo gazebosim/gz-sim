@@ -1,57 +1,48 @@
 load(
-    "//ign_bazel:qt.bzl",
-    "qt_cc_binary",
+    "//ign_bazel:build_defs.bzl",
+    "IGNITION_ROOT",
+    "IGNITION_VISIBILITY",
     "qt_cc_library",
-)
-load(":gui_plugin.bzl", "ign_gazebo_gui_plugin")
-
-package(default_visibility = ["//visibility:public"])
-
-genrule(
-    name = "modules_gen",
-    srcs = [
-        "modules/EntityContextMenu.qml",
-        "modules/EntityContextMenu.qrc",
-        "modules/TypeIcon.qml",
-    ],
-    outs = [
-        "qrc_EntityContextMenu.cpp",
-    ],
-    cmd = "cd ign_gazebo/src/gui/plugins/modules && qtchooser -qt=5 -run-tool=rcc --name EntityContextMenu EntityContextMenu.qrc -o qrc_EntityContextMenu.cpp && cp qrc_EntityContextMenu.cpp ../../../../../$(OUTS)",
+    "qt_resource",
 )
 
-qt_cc_binary(
-    name = "IgnGazebo/libEntityContextMenu.so",
-    srcs = [
-        "modules/EntityContextMenu.cc",
-        "qrc_EntityContextMenu.cpp",
-    ],
+load(
+    ":ign_gazebo_gui_plugin.bzl",
+    "ign_gazebo_gui_plugin",
+)
+
+package(default_visibility = IGNITION_VISIBILITY)
+
+qt_resource(
+    name = "IgnGazebo",
+    qrc_file = "modules/EntityContextMenu.qrc",
+    files = glob(["modules/*.qml"]),
+)
+
+qt_cc_library(
+    name = "entity_context_menu",
+    srcs = ["modules/EntityContextMenu.cc"],
     hdrs = ["modules/EntityContextMenu.hh"],
-    includes = ["."],
-    linkopts = [],
-    linkshared = True,
     deps = [
-        "//ign_common",
-        "//ign_common/av",
-        "//ign_common/events",
-        "//ign_common/graphics",
-        "//ign_common/profiler",
-        "//ign_gazebo",
-        "//ign_gui",
-        "//ign_msgs",
-        "//ign_rendering",
-        "//ign_rendering/ogre2",
-        "//ign_transport",
-        "//sdformat",
-        "@qt//:qt_core",
-        "@qt//:qt_gui",
-        "@qt//:qt_network",
-        "@qt//:qt_opengl",
-        "@qt//:qt_qml",
-        "@qt//:qt_quick",
-        "@qt//:qt_quick_control",
-        "@qt//:qt_widgets",
+        IGNITION_ROOT + "ign_gui",
+        IGNITION_ROOT + "ign_gazebo",
+        IGNITION_ROOT + "ign_gazebo:ign_gazebo_gui",
     ],
+)
+
+cc_binary(
+    name = "IgnGazebo/libEntityContextMenu.so",
+    srcs = ["modules/EntityContextMenu.cc",
+            "modules/EntityContextMenu.hh",
+            ":modules/EntityContextMenu_hh_moc",
+            ],
+    linkshared = True,
+    linkstatic = False,
+    deps = [
+        IGNITION_ROOT + "ign_gui",
+        IGNITION_ROOT + "ign_gazebo",
+        IGNITION_ROOT + "ign_gazebo:ign_gazebo_gui",
+    ]
 )
 
 genrule(
@@ -62,203 +53,302 @@ genrule(
     output_to_bindir = True,
 )
 
-genrule(
-    name = "scene3d_gen",
-    srcs = [
-        "scene3d/GzScene3D.qml",
-        "scene3d/GzScene3D.qrc",
-    ],
-    outs = [
-        "qrc_GzScene3D.cpp",
-    ],
-    cmd = "cd ign_gazebo/src/gui/plugins/scene3d && qtchooser -qt=5 -run-tool=rcc --name GzScene3D GzScene3D.qrc -o qrc_GzScene3D.cpp && cp qrc_GzScene3D.cpp ../../../../../$(OUTS)",
-)
-
 ign_gazebo_gui_plugin(
-    name = "AlignTool",
-    srcs = ["align_tool/AlignTool.cc"],
-    hdrs = ["align_tool/AlignTool.hh"],
-    dirname = "align_tool",
-    resources = [
-        "align_tool/AlignTool.qrc",
+    folder_name = "align_tool",
+    plugin_name = "AlignTool",
+    qrc_resources = glob([
         "align_tool/AlignTool.qml",
-    ] + glob(["align_tool/*.png"]),
-    deps = [],
-)
-
-ign_gazebo_gui_plugin(
-    name = "ComponentInspector",
-    srcs = ["component_inspector/ComponentInspector.cc"],
-    hdrs = ["component_inspector/ComponentInspector.hh"],
-    dirname = "component_inspector",
-    resources = [
-        "component_inspector/ComponentInspector.qrc",
-        "component_inspector/plottable_icon.svg",
-    ] + glob([
-        "component_inspector/*.qml",
+        "align_tool/*.png"
     ]),
-    deps = [],
+    deps = [
+        IGNITION_ROOT + "ign_gui",
+        IGNITION_ROOT + "ign_gazebo",
+        IGNITION_ROOT + "ign_gazebo:ign_gazebo_gui",
+        IGNITION_ROOT + "ign_msgs",
+        IGNITION_ROOT + "ign_plugin/register",
+        IGNITION_ROOT + "ign_rendering",
+        IGNITION_ROOT + "ign_rendering:ign_rendering_plugins",
+    ]
 )
 
 ign_gazebo_gui_plugin(
-    name = "EntityTree",
-    srcs = ["entity_tree/EntityTree.cc"],
-    hdrs = ["entity_tree/EntityTree.hh"],
-    dirname = "entity_tree",
-    resources = [
-        "entity_tree/EntityTree.qml",
-        "entity_tree/EntityTree.qrc",
-    ],
-    deps = [],
+    folder_name = "component_inspector",
+    plugin_name = "ComponentInspector",
+    qrc_resources = glob([
+        "component_inspector/*.qml",
+        "component_inspector/*.svg",
+    ]),
+    deps = [
+        IGNITION_ROOT + "ign_gui",
+        IGNITION_ROOT + "ign_gazebo",
+        IGNITION_ROOT + "ign_gazebo:ign_gazebo_gui",
+        IGNITION_ROOT + "ign_plugin/register",
+        IGNITION_ROOT + "ign_common/profiler",
+    ]
 )
 
 ign_gazebo_gui_plugin(
-    name = "GridConfig",
-    srcs = ["grid_config/GridConfig.cc"],
-    hdrs = ["grid_config/GridConfig.hh"],
-    dirname = "grid_config",
-    resources = [
-        "grid_config/GridConfig.qml",
-        "grid_config/GridConfig.qrc",
-    ],
-    deps = [],
+    folder_name = "entity_tree",
+    plugin_name = "EntityTree",
+    deps = [
+        IGNITION_ROOT + "ign_gui",
+        IGNITION_ROOT + "ign_gazebo",
+        IGNITION_ROOT + "ign_gazebo:ign_gazebo_gui",
+        IGNITION_ROOT + "ign_plugin/register",
+        IGNITION_ROOT + "ign_common/profiler",
+    ]
 )
 
 ign_gazebo_gui_plugin(
-    name = "PlaybackScrubber",
-    srcs = ["playback_scrubber/PlaybackScrubber.cc"],
-    hdrs = ["playback_scrubber/PlaybackScrubber.hh"],
-    dirname = "playback_scrubber",
-    resources = [
-        "playback_scrubber/PlaybackScrubber.qml",
-        "playback_scrubber/PlaybackScrubber.qrc",
-    ],
-    deps = [],
+    folder_name = "grid_config",
+    plugin_name = "GridConfig",
+    deps = [
+        IGNITION_ROOT + "ign_gui",
+        IGNITION_ROOT + "ign_gazebo",
+        IGNITION_ROOT + "ign_gazebo:ign_gazebo_gui",
+        IGNITION_ROOT + "ign_common",
+        IGNITION_ROOT + "ign_plugin/register",
+        IGNITION_ROOT + "ign_rendering",
+        IGNITION_ROOT + "ign_rendering:ign_rendering_plugins",
+    ]
 )
 
 ign_gazebo_gui_plugin(
-    name = "Plotting",
-    srcs = ["plotting/Plotting.cc"],
-    hdrs = ["plotting/Plotting.hh"],
-    dirname = "plotting",
-    resources = [
-        "plotting/Plotting.qml",
-        "plotting/Plotting.qrc",
-    ],
-    deps = [],
+    folder_name = "joint_position_controller",
+    plugin_name = "JointPositionController",
+    qrc_resources = glob([
+        "joint_position_controller/*.qml"
+    ]),
+    deps = [
+        IGNITION_ROOT + "ign_gui",
+        IGNITION_ROOT + "ign_gazebo",
+        IGNITION_ROOT + "ign_gazebo:ign_gazebo_gui",
+        IGNITION_ROOT + "ign_plugin/register",
+        IGNITION_ROOT + "ign_common/profiler",
+    ]
 )
 
 ign_gazebo_gui_plugin(
-    name = "ResourceSpawner",
-    srcs = ["resource_spawner/ResourceSpawner.cc"],
-    hdrs = ["resource_spawner/ResourceSpawner.hh"],
-    dirname = "resource_spawner",
-    resources = [
-        "resource_spawner/ResourceSpawner.qrc",
-        "resource_spawner/ResourceSpawner.qml",
-    ] + glob([
+    folder_name = "lights",
+    plugin_name = "Lights",
+    qrc_resources = glob([
+        "lights/*.qml",
+        "lights/*.png"
+    ]),
+    deps = [
+        IGNITION_ROOT + "ign_gui",
+        IGNITION_ROOT + "ign_gazebo",
+        IGNITION_ROOT + "ign_gazebo:ign_gazebo_gui",
+        IGNITION_ROOT + "ign_plugin/register",
+    ]
+)
+
+ign_gazebo_gui_plugin(
+    folder_name = "playback_scrubber",
+    plugin_name = "PlaybackScrubber",
+    deps = [
+        IGNITION_ROOT + "ign_gui",
+        IGNITION_ROOT + "ign_gazebo",
+        IGNITION_ROOT + "ign_gazebo:ign_gazebo_gui",
+        IGNITION_ROOT + "ign_plugin/register",
+    ]
+)
+
+ign_gazebo_gui_plugin(
+    folder_name = "plotting",
+    plugin_name = "Plotting",
+    deps = [
+        IGNITION_ROOT + "ign_gui",
+        IGNITION_ROOT + "ign_gazebo",
+        IGNITION_ROOT + "ign_gazebo:ign_gazebo_gui",
+        IGNITION_ROOT + "ign_plugin/register",
+    ]
+)
+
+ign_gazebo_gui_plugin(
+    folder_name = "resource_spawner",
+    plugin_name = "ResourceSpawner",
+    qrc_resources = glob([
+        "resource_spawner/*.qml",
         "resource_spawner/*.png",
         "resource_spawner/*.svg",
     ]),
-    deps = [],
+    deps = [
+        IGNITION_ROOT + "ign_gui",
+        IGNITION_ROOT + "ign_gazebo",
+        IGNITION_ROOT + "ign_gazebo:ign_gazebo_gui",
+        IGNITION_ROOT + "ign_common/profiler",
+        IGNITION_ROOT + "ign_plugin/register",
+        IGNITION_ROOT + "ign_fuel_tools",
+    ]
 )
 
 ign_gazebo_gui_plugin(
-    name = "Shapes",
-    srcs = ["shapes/Shapes.cc"],
-    hdrs = ["shapes/Shapes.hh"],
-    dirname = "shapes",
-    resources = [
-        "shapes/Shapes.qrc",
-        "shapes/Shapes.qml",
-    ] + glob([
-        "shapes/*.png",
-    ]),
-    deps = [],
-)
-
-ign_gazebo_gui_plugin(
-    name = "TransformControl",
-    srcs = ["transform_control/TransformControl.cc"],
-    hdrs = ["transform_control/TransformControl.hh"],
-    dirname = "transform_control",
-    resources = [
-        "transform_control/TransformControl.qrc",
-        "transform_control/TransformControl.qml",
-    ] + glob(["transform_control/*.png"]),
-    deps = [],
-)
-
-ign_gazebo_gui_plugin(
-    name = "VideoRecorder",
-    srcs = ["video_recorder/VideoRecorder.cc"],
-    hdrs = ["video_recorder/VideoRecorder.hh"],
-    dirname = "video_recorder",
-    resources = [
-        "video_recorder/VideoRecorder.qrc",
-        "video_recorder/VideoRecorder.qml",
-    ] + glob(["video_recorder/*.svg"]),
-    deps = [],
-)
-
-ign_gazebo_gui_plugin(
-    name = "ViewAngle",
-    srcs = ["view_angle/ViewAngle.cc"],
-    hdrs = ["view_angle/ViewAngle.hh"],
-    dirname = "view_angle",
-    resources = [
-        "view_angle/ViewAngle.qrc",
-        "view_angle/ViewAngle.qml",
-    ] + glob(["view_angle/*.png"]),
-    deps = [],
-)
-
-ign_gazebo_gui_plugin(
-    name = "VisualizeLidar",
-    srcs = ["visualize_lidar/VisualizeLidar.cc"],
-    hdrs = ["visualize_lidar/VisualizeLidar.hh"],
-    dirname = "visualize_lidar",
-    resources = [
-        "visualize_lidar/VisualizeLidar.qml",
-        "visualize_lidar/VisualizeLidar.qrc",
-    ],
-    deps = [],
-)
-
-qt_cc_binary(
-    name = "libGzScene3D.so",
+    folder_name="scene3d",
+    plugin_name="GzScene3D",
     srcs = [
-        "qrc_GzScene3D.cpp",
         "scene3d/Scene3D.cc",
     ],
     hdrs = [
         "scene3d/Scene3D.hh",
     ],
-    data = ["IgnGazebo/qmldir"],
-    includes = ["."],
-    linkopts = [],
-    linkshared = True,
-    deps = [
-        "//ign_common",
-        "//ign_common/av",
-        "//ign_common/events",
-        "//ign_common/graphics",
-        "//ign_common/profiler",
-        "//ign_gazebo",
-        "//ign_gazebo:ign_gazebo_gui",
-        "//ign_gui",
-        "//ign_msgs",
-        "//ign_rendering",
-        "//ign_rendering/ogre2",
-        "//ign_transport",
-        "//sdformat",
-        "@qt//:qt_core",
-        "@qt//:qt_gui",
-        "@qt//:qt_network",
-        "@qt//:qt_opengl",
-        "@qt//:qt_qml",
-        "@qt//:qt_quick",
-        "@qt//:qt_quick_control",
-        "@qt//:qt_widgets",
+    qrc_file = "scene3d/GzScene3D.qrc",
+    qrc_resources = [
+        "scene3d/GzScene3D.qml",
     ],
+    deps = [
+        IGNITION_ROOT + "ign_gui",
+        IGNITION_ROOT + "ign_gazebo",
+        IGNITION_ROOT + "ign_gazebo:ign_gazebo_gui",
+        IGNITION_ROOT + "ign_common",
+        IGNITION_ROOT + "ign_common/av",
+        IGNITION_ROOT + "ign_plugin/register",
+        IGNITION_ROOT + "ign_rendering",
+        IGNITION_ROOT + "ign_rendering:ign_rendering_plugins",
+    ],
+)
+
+ign_gazebo_gui_plugin(
+    folder_name = "shapes",
+    plugin_name = "Shapes",
+    qrc_resources = glob([
+        "shapes/*.qml",
+        "shapes/*.png",
+        "shapes/*.svg",
+    ]),
+    deps = [
+        IGNITION_ROOT + "ign_gui",
+        IGNITION_ROOT + "ign_gazebo",
+        IGNITION_ROOT + "ign_gazebo:ign_gazebo_gui",
+        IGNITION_ROOT + "ign_plugin/register",
+    ]
+)
+
+ign_gazebo_gui_plugin(
+    folder_name = "tape_measure",
+    plugin_name = "TapeMeasure",
+    qrc_resources = glob([
+        "tape_measure/*.qml",
+        "tape_measure/*.png",
+        "tape_measure/*.svg",
+    ]),
+    deps = [
+        IGNITION_ROOT + "ign_gui",
+        IGNITION_ROOT + "ign_gazebo",
+        IGNITION_ROOT + "ign_gazebo:ign_gazebo_gui",
+        IGNITION_ROOT + "ign_plugin/register",
+    ]
+)
+
+ign_gazebo_gui_plugin(
+    folder_name = "transform_control",
+    plugin_name = "TransformControl",
+    qrc_resources = glob([
+        "transform_control/*.png",
+        "transform_control/*.qml",
+        "transform_control/*.svg",
+    ]),
+    deps = [
+        IGNITION_ROOT + "ign_gui",
+        IGNITION_ROOT + "ign_gazebo",
+        IGNITION_ROOT + "ign_gazebo:ign_gazebo_gui",
+        IGNITION_ROOT + "ign_plugin/register",
+        IGNITION_ROOT + "ign_rendering",
+        IGNITION_ROOT + "ign_rendering:ign_rendering_plugins",
+    ]
+)
+
+ign_gazebo_gui_plugin(
+    folder_name = "video_recorder",
+    plugin_name = "VideoRecorder",
+    qrc_resources = glob([
+        "video_recorder/*.qml",
+        "video_recorder/*.svg",
+    ]),
+    deps = [
+        IGNITION_ROOT + "ign_gui",
+        IGNITION_ROOT + "ign_gazebo",
+        IGNITION_ROOT + "ign_gazebo:ign_gazebo_gui",
+        IGNITION_ROOT + "ign_plugin/register",
+    ]
+)
+
+ign_gazebo_gui_plugin(
+    folder_name = "view_angle",
+    plugin_name = "ViewAngle",
+    qrc_resources = glob([
+        "view_angle/*.png",
+        "view_angle/*.qml",
+        "view_angle/*.svg",
+    ]),
+    deps = [
+        IGNITION_ROOT + "ign_gui",
+        IGNITION_ROOT + "ign_gazebo",
+        IGNITION_ROOT + "ign_gazebo:ign_gazebo_gui",
+        IGNITION_ROOT + "ign_plugin/register",
+        IGNITION_ROOT + "ign_rendering",
+        IGNITION_ROOT + "ign_rendering:ign_rendering_plugins",
+    ]
+)
+
+ign_gazebo_gui_plugin(
+    folder_name = "visualize_lidar",
+    plugin_name = "VisualizeLidar",
+    deps = [
+        IGNITION_ROOT + "ign_gui",
+        IGNITION_ROOT + "ign_gazebo",
+        IGNITION_ROOT + "ign_gazebo:ign_gazebo_gui",
+        IGNITION_ROOT + "ign_plugin/register",
+        IGNITION_ROOT + "ign_rendering",
+        IGNITION_ROOT + "ign_common/profiler",
+    ]
+)
+
+gui_plugin_folders = [
+  "align_tool",
+  "component_inspector",
+  "entity_tree",
+  "grid_config",
+  "joint_position_controller",
+  "lights",
+  "playback_scrubber",
+  "plotting",
+  "resource_spawner",
+  "scene3d",
+  "shapes",
+  "tape_measure",
+  "transform_control",
+  "video_recorder",
+  "view_angle",
+  "visualize_lidar",
+  "IgnGazebo",
+]
+
+gui_plugins = [
+    "AlignTool",
+    "ComponentInspector",
+    "EntityTree",
+    "GridConfig",
+    "JointPositionController",
+    "Lights",
+    "PlaybackScrubber",
+    "Plotting",
+    "ResourceSpawner",
+    "GzScene3D",
+    "Shapes",
+    "TapeMeasure",
+    "TransformControl",
+    "VideoRecorder",
+    "ViewAngle",
+    "VisualizeLidar",
+]
+
+cc_library(
+    name = "ign_gui_plugin_resources",
+    deps = [":" + folder for folder in gui_plugin_folders],
+    data = [":lib%s.so" % plugin for plugin in gui_plugins] +
+      [
+          "IgnGazebo/libEntityContextMenu.so",
+          "IgnGazebo/qmldir",
+      ],
 )
