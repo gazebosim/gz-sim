@@ -110,6 +110,40 @@ TEST_F(ColladaWorldExporterFixture, ExportWorldFromFuelWithSubmesh)
   common::removeAll(outputPath);
 }
 
+TEST_F(ColladaWorldExporterFixture, ExportWorldMadeFromObj)
+{
+  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+    (std::string(PROJECT_SOURCE_PATH) + "/test/worlds:" +
+    std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models").c_str());
+
+  this->LoadWorld(common::joinPaths("test", "worlds",
+        "office.sdf"));
+
+  const std::string outputPath = "./office_world";
+  const std::string outputPathTextures = "./office_world/materials/textures";
+  const std::string outputPathTexture1 = "./office_world/materials/textures/default.png";
+  const std::string outputPathTexture2 = "./office_world/materials/textures/blue_linoleum.png";
+
+  // Cleanup
+  common::removeAll(outputPath);
+
+  // The export directory shouldn't exist.
+  EXPECT_FALSE(common::exists(outputPath));
+
+  // Run one iteration which should export the world.
+  server->Run(true, 1, false);
+
+  // The export directory and corresponding textures should now exist.
+  EXPECT_TRUE(common::exists(outputPath));
+  EXPECT_TRUE(common::exists(outputPathTextures));
+  EXPECT_TRUE(common::exists(outputPathTexture1));
+  EXPECT_TRUE(common::exists(outputPathTexture2));
+
+  // Cleanup
+  common::removeAll(outputPath);
+}
+
+
 /////////////////////////////////////////////////
 /// Main
 int main(int _argc, char **_argv)
