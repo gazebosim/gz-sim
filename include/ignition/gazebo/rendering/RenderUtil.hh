@@ -126,6 +126,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public : void SetRemoveSensorCb(
         std::function<void(const gazebo::Entity &)> _removeSensorCb);
 
+    /// \brief View an entity as transparent
+    /// \param[in] _entity Entity to view as transparent
+    public: void ViewTransparent(const Entity &_entity);
+
     /// \brief View wireframes of specified entity
     /// \param[in] _entity Entity to view wireframes
     public: void ViewWireframes(const Entity &_entity);

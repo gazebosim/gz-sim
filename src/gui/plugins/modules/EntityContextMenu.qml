@@ -72,6 +72,14 @@ Item {
       }
     }
     MenuItem {
+      id: viewTransparentMenu
+      text: "Transparent"
+      onTriggered: {
+        menu.close()
+        context.OnRequest("view_transparent", context.entity)
+      }
+    }
+    MenuItem {
       id: viewWireframesMenu
       text: "Wireframe"
       onTriggered: {
@@ -89,6 +97,7 @@ Item {
     moveToMenu.enabled = false
     followMenu.enabled = false
     removeMenu.enabled = false
+    viewTransparentMenu.enabled = false;
     viewWireframesMenu.enabled = false;
     viewCollisionsMenu.enabled = false;
 
@@ -108,6 +117,7 @@ Item {
 
     if (context.type == "model" || context.type == "link")
     {
+      viewTransparentMenu.enabled = true;
       viewWireframesMenu.enabled = true;
       viewCollisionsMenu.enabled = true;
     }

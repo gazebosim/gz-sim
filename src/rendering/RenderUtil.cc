@@ -304,13 +304,19 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief New wireframe visuals to be toggled
   public: std::vector<Entity> newWireframes;
 
-  /// \brief Finds the links (visual parent) that are used to toggle wireframe
-  /// views for visuals in RenderUtil::Update
-  /// \param[in] _ecm The entity-component manager
-  public: void FindWireframeVisualLinks(const EntityComponentManager &_ecm);
+  /// \brief New wireframe visuals to be toggled
+  public: std::vector<Entity> newTransparentEntities;
 
-  /// \brief A list of links used to toggle different views for visuals
+  /// \brief Finds the links (visual parent) that are used to toggle wireframe
+  /// and transparent view for visuals in RenderUtil::Update
+  /// \param[in] _ecm The entity-component manager
+  public: void FindVisualLinks(const EntityComponentManager &_ecm);
+
+  /// \brief A list of links used to toggle wireframe mode for visuals
   public: std::vector<Entity> newWireframeVisualLinks;
+
+  /// \brief A list of links used to toggle transparent mode for visuals
+  public: std::vector<Entity> newTransparentVisualLinks;
 
   /// \brief A map of link entities and their corresponding children visuals
   public: std::map<Entity, std::vector<Entity>> linkToVisualEntities;
@@ -318,6 +324,10 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief A map of created wireframe visuals and if they are currently
   /// visible
   public: std::map<Entity, bool> viewingWireframes;
+
+  /// \brief A map of created transparent visuals and if they are currently
+  /// visible
+  public: std::map<Entity, bool> viewingTransparent;
 
   /// \brief New collisions to be created
   public: std::vector<Entity> newCollisions;
@@ -486,17 +496,15 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
   this->dataPtr->UpdateRenderingEntities(_ecm);
   this->dataPtr->RemoveRenderingEntities(_ecm, _info);
   this->dataPtr->markerManager.SetSimTime(_info.simTime);
-  this->dataPtr->FindWireframeVisualLinks(_ecm);
+  this->dataPtr->FindVisualLinks(_ecm);
   this->dataPtr->FindCollisionLinks(_ecm);
 }
 
 //////////////////////////////////////////////////
-void RenderUtilPrivate::FindWireframeVisualLinks(
+void RenderUtilPrivate::FindVisualLinks(
                         const EntityComponentManager &_ecm)
 {
-  if (this->newWireframes.empty())
-    return;
-
+  // Find links to toggle wireframes
   for (const auto &entity : this->newWireframes)
   {
     std::vector<Entity> links;
@@ -545,6 +553,57 @@ void RenderUtilPrivate::FindWireframeVisualLinks(
         links.end());
   }
   this->newWireframes.clear();
+
+  // Find links to view as transparent
+  for (const auto &entity : this->newTransparentEntities)
+  {
+    std::vector<Entity> links;
+    if (_ecm.EntityMatches(entity,
+          std::set<ComponentTypeId>{components::Model::typeId}))
+    {
+      std::stack<Entity> modelStack;
+      modelStack.push(entity);
+
+      std::vector<Entity> childLinks, childModels;
+      while (!modelStack.empty())
+      {
+        Entity model = modelStack.top();
+        modelStack.pop();
+
+        childLinks = _ecm.EntitiesByComponents(components::ParentEntity(model),
+                                               components::Link());
+        links.insert(links.end(),
+                     childLinks.begin(),
+                     childLinks.end());
+
+        childModels =
+            _ecm.EntitiesByComponents(components::ParentEntity(model),
+                                      components::Model());
+        for (const auto &childModel : childModels)
+        {
+            modelStack.push(childModel);
+        }
+      }
+    }
+    else if (_ecm.EntityMatches(entity,
+                std::set<ComponentTypeId>{components::Link::typeId}))
+    {
+      links.push_back(entity);
+    }
+    else
+    {
+      ignerr << "Entity [" << entity
+             << "] for viewing as transparent must be a model or link"
+             << std::endl;
+      continue;
+    }
+
+    this->newTransparentVisualLinks.insert(
+        this->newTransparentVisualLinks.end(),
+        links.begin(),
+        links.end());
+  }
+  this->newTransparentEntities.clear();
 }
 
 //////////////////////////////////////////////////
@@ -645,6 +704,8 @@ void RenderUtil::Update()
   auto actorTransforms = std::move(this->dataPtr->actorTransforms);
   auto actorAnimationData = std::move(this->dataPtr->actorAnimationData);
   auto entityTemp = std::move(this->dataPtr->entityTemp);
+  auto newTransparentVisualLinks =
+    std::move(this->dataPtr->newTransparentVisualLinks);
   auto newWireframeVisualLinks =
     std::move(this->dataPtr->newWireframeVisualLinks);
   auto newCollisionLinks = std::move(this->dataPtr->newCollisionLinks);
@@ -665,6 +726,7 @@ void RenderUtil::Update()
   this->dataPtr->actorTransforms.clear();
   this->dataPtr->actorAnimationData.clear();
   this->dataPtr->entityTemp.clear();
+  this->dataPtr->newTransparentVisualLinks.clear();
   this->dataPtr->newWireframeVisualLinks.clear();
   this->dataPtr->newCollisionLinks.clear();
   this->dataPtr->thermalCameraData.clear();
@@ -1117,6 +1179,27 @@ void RenderUtil::Update()
       visual->SetUserData("minTemp", std::get<0>(temp.second));
       visual->SetUserData("maxTemp", std::get<1>(temp.second));
       visual->SetUserData("temperature", heatSignature);
+    }
+  }
+
+  // create new transparent visuals
+  {
+    for (const auto &link : newTransparentVisualLinks)
+    {
+      std::vector<Entity> visEntities =
+          this->dataPtr->linkToVisualEntities[link];
+
+      for (const auto &visEntity : visEntities)
+      {
+        if (!this->dataPtr->viewingTransparent[visEntity])
+        {
+          auto vis = this->dataPtr->sceneManager.VisualById(visEntity);
+
+          this->dataPtr->sceneManager.UpdateTransparency(vis,
+              true /* transparent */);
+          this->dataPtr->viewingTransparent[visEntity] = true;
+        }
+      }
     }
   }
 
@@ -2235,6 +2318,113 @@ void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
     auto visParent = wireBox->Parent();
     if (visParent)
       visParent->SetVisible(false);
+  }
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::ViewTransparent(const Entity &_entity)
+{
+  std::vector<Entity> visEntities;
+  std::vector<Entity> links;
+
+  if (this->dataPtr->linkToVisualEntities.find(_entity) !=
+      this->dataPtr->linkToVisualEntities.end())
+  {
+    visEntities = this->dataPtr->linkToVisualEntities[_entity];
+  }
+  else if (this->dataPtr->modelToLinkEntities.find(_entity) !=
+           this->dataPtr->modelToLinkEntities.end())
+  {
+    links.insert(links.end(),
+        this->dataPtr->modelToLinkEntities[_entity].begin(),
+        this->dataPtr->modelToLinkEntities[_entity].end());
+  }
+
+  if (this->dataPtr->modelToModelEntities.find(_entity) !=
+      this->dataPtr->modelToModelEntities.end())
+  {
+    std::stack<Entity> modelStack;
+    modelStack.push(_entity);
+
+    std::vector<Entity> childModels;
+    while (!modelStack.empty())
+    {
+      Entity model = modelStack.top();
+      modelStack.pop();
+
+      links.insert(links.end(),
+          this->dataPtr->modelToLinkEntities[model].begin(),
+          this->dataPtr->modelToLinkEntities[model].end());
+
+      childModels = this->dataPtr->modelToModelEntities[model];
+      for (const auto &childModel : childModels)
+      {
+        modelStack.push(childModel);
+      }
+    }
+  }
+
+  for (const auto &link : links)
+    visEntities.insert(visEntities.end(),
+        this->dataPtr->linkToVisualEntities[link].begin(),
+        this->dataPtr->linkToVisualEntities[link].end());
+
+  // Toggle transparent mode
+  bool showTransparent, showTransparentInit = false;
+
+  // first loop looks for new transparent entities
+  for (const auto &visEntity : visEntities)
+  {
+    if (this->dataPtr->viewingTransparent.find(visEntity) ==
+        this->dataPtr->viewingTransparent.end())
+    {
+      this->dataPtr->newTransparentEntities.push_back(_entity);
+      showTransparentInit = showTransparent = true;
+    }
+  }
+
+  // second loop toggles transparent mode
+  for (const auto &visEntity : visEntities)
+  {
+    if (this->dataPtr->viewingTransparent.find(visEntity) ==
+        this->dataPtr->viewingTransparent.end())
+      continue;
+
+    // when viewing multiple transparent visuals (e.g. _entity is a model),
+    // boolean for view as transparent is based on first visEntity in list
+    if (!showTransparentInit)
+    {
+      showTransparent = !this->dataPtr->viewingTransparent[visEntity];
+      showTransparentInit = true;
+    }
+
+    rendering::VisualPtr transparentVisual =
+        this->dataPtr->sceneManager.VisualById(visEntity);
+    if (transparentVisual == nullptr)
+    {
+      ignerr << "Could not find visual for entity [" << visEntity
+             << "]" << std::endl;
+      continue;
+    }
+
+    this->dataPtr->viewingTransparent[visEntity] = showTransparent;
+
+    this->dataPtr->sceneManager.UpdateTransparency(transparentVisual,
+              showTransparent);
+
+    if (showTransparent)
+    {
+      // turn off wireboxes for visual entity
+      if (this->dataPtr->wireBoxes.find(visEntity)
+            != this->dataPtr->wireBoxes.end())
+      {
+        ignition::rendering::WireBoxPtr wireBox =
+          this->dataPtr->wireBoxes[visEntity];
+        auto visParent = wireBox->Parent();
+        if (visParent)
+          visParent->SetVisible(false);
+      }
+    }
   }
 }
 

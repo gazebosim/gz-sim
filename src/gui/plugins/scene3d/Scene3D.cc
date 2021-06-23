@@ -240,6 +240,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Helper object to move user camera
     public: MoveToHelper moveToHelper;
 
+    /// \brief Target to view as transparent
+    public: std::string viewTransparentTarget;
+
     /// \brief Target to view wireframes
     public: std::string viewWireframesTarget;
 
@@ -447,6 +450,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief mutex to protect the render condition variable
     /// Used when recording in lockstep mode.
     public: std::mutex renderMutex;
+
+    /// \brief View transparent service
+    public: std::string viewTransparentService;
 
     /// \brief View wireframes service
     public: std::string viewWireframesService;
@@ -830,6 +836,32 @@ void IgnRenderer::Render()
       this->DeselectAllEntities(true);
       this->TerminateSpawnPreview();
       this->dataPtr->escapeReleased = false;
+    }
+  }
+
+  // View as transparent
+  {
+    IGN_PROFILE("IgnRenderer::Render ViewTransparent");
+    if (!this->dataPtr->viewTransparentTarget.empty())
+    {
+      rendering::NodePtr targetNode =
+          scene->NodeByName(this->dataPtr->viewTransparentTarget);
+      auto targetVis = std::dynamic_pointer_cast<rendering::Visual>(targetNode);
+
+      if (targetVis)
+      {
+        Entity targetEntity =
+            std::get<int>(targetVis->UserData("gazebo-entity"));
+        this->dataPtr->renderUtil.ViewTransparent(targetEntity);
+      }
+      else
+      {
+        ignerr << "Unable to find node name ["
+               << this->dataPtr->viewTransparentTarget
+               << "] to view as transparent" << std::endl;
+      }
+
+      this->dataPtr->viewTransparentTarget.clear();
     }
   }
 
@@ -2070,6 +2102,13 @@ void IgnRenderer::SetMoveToPose(const math::Pose3d &_pose)
 }
 
 /////////////////////////////////////////////////
+void IgnRenderer::SetViewTransparentTarget(const std::string &_target)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->viewTransparentTarget = _target;
+}
+
+/////////////////////////////////////////////////
 void IgnRenderer::SetViewWireframesTarget(const std::string &_target)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -2820,6 +2859,13 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   ignmsg << "Camera pose topic advertised on ["
          << this->dataPtr->cameraPoseTopic << "]" << std::endl;
 
+  // view as transparent service
+  this->dataPtr->viewTransparentService = "/gui/view/transparent";
+  this->dataPtr->node.Advertise(this->dataPtr->viewTransparentService,
+      &Scene3D::OnViewTransparent, this);
+  ignmsg << "View as transparent service on ["
+         << this->dataPtr->viewTransparentService << "]" << std::endl;
+
   // view wireframes service
   this->dataPtr->viewWireframesService = "/gui/view/wireframes";
   this->dataPtr->node.Advertise(this->dataPtr->viewWireframesService,
@@ -2991,6 +3037,18 @@ bool Scene3D::OnMoveToPose(const msgs::GUICamera &_msg, msgs::Boolean &_res)
     pose.Pos().X() = math::INF_D;
 
   renderWindow->SetMoveToPose(pose);
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool Scene3D::OnViewTransparent(const msgs::StringMsg &_msg,
+  msgs::Boolean &_res)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+
+  renderWindow->SetViewTransparentTarget(_msg.data());
 
   _res.set_data(true);
   return true;
@@ -3288,6 +3346,12 @@ void RenderWindowItem::SetViewAngle(const math::Vector3d &_direction)
 void RenderWindowItem::SetMoveToPose(const math::Pose3d &_pose)
 {
   this->dataPtr->renderThread->ignRenderer.SetMoveToPose(_pose);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetViewTransparentTarget(const std::string &_target)
+{
+  this->dataPtr->renderThread->ignRenderer.SetViewTransparentTarget(_target);
 }
 
 /////////////////////////////////////////////////
