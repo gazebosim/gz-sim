@@ -142,7 +142,6 @@ TEST_F(JointPositionControllerGui,
   app->AddPluginPath(std::string(PROJECT_BINARY_PATH) + "/lib");
 
   // Create GUI runner to handle gazebo::gui plugins
-  // TODO(anyone) Remove deprecation guard once GuiRunner becomes private
   auto runner = new gazebo::GuiRunner("test");
   runner->connect(app.get(), &gui::Application::PluginAdded,
                   runner, &gazebo::GuiRunner::OnPluginAdded);

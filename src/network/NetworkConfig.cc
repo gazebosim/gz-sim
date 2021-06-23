@@ -68,7 +68,7 @@ NetworkConfig NetworkConfig::FromValues(const std::string &_role,
     if (config.numSecondariesExpected == 0)
     {
       config.role = NetworkRole::None;
-      ignwarn << "Detected network role=PRIMARY, but "
+      ignwarn << "Detected network role as PRIMARY, but "
         << "network secondaries not set, "
         << "no distributed sim available" << std::endl;
     }

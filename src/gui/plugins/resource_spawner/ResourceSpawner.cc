@@ -40,7 +40,6 @@
 #include <ignition/fuel_tools/ClientConfig.hh>
 
 #include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/gui/GuiEvents.hh"
 
 namespace ignition::gazebo
 {

@@ -169,7 +169,6 @@ std::unique_ptr<ignition::gui::Application> createGui(
     // TODO(anyone) Most of ign-gazebo's transport API includes the world name,
     // which makes it complicated to mix configurations across worlds.
     // We could have a way to use world-agnostic topics like Gazebo-classic's ~
-    // Remove warning suppression in v6
     auto runner = new ignition::gazebo::GuiRunner(worldsMsg.data(0));
     runner->connect(app.get(), &ignition::gui::Application::PluginAdded, runner,
         &ignition::gazebo::GuiRunner::OnPluginAdded);
@@ -221,7 +220,6 @@ std::unique_ptr<ignition::gui::Application> createGui(
       }
 
       // GUI runner
-      // Remove warning suppression in v6
       auto runner = new ignition::gazebo::GuiRunner(worldName);
       runner->connect(app.get(), &ignition::gui::Application::PluginAdded,
                       runner, &ignition::gazebo::GuiRunner::OnPluginAdded);
