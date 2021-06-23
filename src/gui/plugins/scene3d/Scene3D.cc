@@ -57,8 +57,6 @@
 
 #include <ignition/transport/Node.hh>
 
-#include <ignition/utils/SuppressWarning.hh>
-
 #include <ignition/gui/Conversions.hh>
 #include <ignition/gui/GuiEvents.hh>
 #include <ignition/gui/Application.hh>
@@ -891,13 +889,6 @@ void IgnRenderer::Render()
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
         &event);
-
-    IGN_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
-    ignition::gazebo::gui::events::Render oldEvent;
-    ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-        &oldEvent);
-    IGN_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
   }
 
   // only has an effect in video recording lockstep mode
