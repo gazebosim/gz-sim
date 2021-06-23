@@ -78,7 +78,7 @@ TEST_F(ColladaWorldExporterFixture, ExportWorld)
 TEST_F(ColladaWorldExporterFixture, ExportWorldFromFuelWithSubmesh)
 {
   std::string world_path =
-    ignition::common::joinPaths(PROJECT_SOURCE_PATH, "test","worlds");
+    ignition::common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds");
   ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
     (world_path + ":" +
     ignition::common::joinPaths(world_path, "models")).c_str());
@@ -115,7 +115,7 @@ TEST_F(ColladaWorldExporterFixture, ExportWorldFromFuelWithSubmesh)
 TEST_F(ColladaWorldExporterFixture, ExportWorldMadeFromObj)
 {
   std::string world_path =
-    ignition::common::joinPaths(PROJECT_SOURCE_PATH, "test","worlds");
+    ignition::common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds");
   ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
     (world_path + ":" +
     ignition::common::joinPaths(world_path, "models")).c_str());
