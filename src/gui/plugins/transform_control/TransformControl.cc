@@ -37,7 +37,6 @@
 #include <ignition/rendering/Visual.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/Publisher.hh>
-#include <ignition/utils/SuppressWarning.hh>
 
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
@@ -118,16 +117,6 @@ void TransformControl::OnSnapUpdate(
       this->dataPtr->scaleSnapVals);
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(), &event);
-
-  IGN_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
-  ignition::gui::events::SnapIntervals oldEvent(
-      this->dataPtr->xyzSnapVals,
-      this->dataPtr->rpySnapVals,
-      this->dataPtr->scaleSnapVals);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-      &oldEvent);
-  IGN_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
 
   this->newSnapValues();
 }

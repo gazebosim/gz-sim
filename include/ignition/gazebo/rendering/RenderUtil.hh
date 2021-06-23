@@ -151,10 +151,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _node Node representing the selected entity
     public: void SetSelectedEntity(const rendering::NodePtr &_node);
 
-    /// \brief Get the entity being selected. This will only return the
-    /// last entity selected.
-    public: rendering::NodePtr IGN_DEPRECATED(4) SelectedEntity() const;
-
     /// \brief Get the entities currently selected, in order of selection.
     /// \return Vector of currently selected entities
     public: const std::vector<Entity> &SelectedEntities() const;
