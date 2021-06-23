@@ -1588,6 +1588,7 @@ void IgnRenderer::HandleMouseViewControl()
         // the move event overrides the press event before it is processed)
         // so we double check to see if target is set or not
         (this->dataPtr->mouseEvent.Type() == common::MouseEvent::MOVE &&
+        this->dataPtr->mouseEvent.Dragging() &&
         std::isinf(this->dataPtr->target.X())))
     {
       this->dataPtr->target = this->ScreenToScene(
