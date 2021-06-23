@@ -30,10 +30,6 @@
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/Publisher.hh>
 
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-
 namespace ignition::gazebo
 {
   class VideoRecorderPrivate
