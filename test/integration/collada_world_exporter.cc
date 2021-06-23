@@ -77,9 +77,11 @@ TEST_F(ColladaWorldExporterFixture, ExportWorld)
 
 TEST_F(ColladaWorldExporterFixture, ExportWorldFromFuelWithSubmesh)
 {
+  std::string world_path =
+    ignition::common::joinPaths(PROJECT_SOURCE_PATH, "test","worlds");
   ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
-    (std::string(PROJECT_SOURCE_PATH) + "/test/worlds:" +
-    std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models").c_str());
+    (world_path + ":" +
+    ignition::common::joinPaths(world_path, "models")).c_str());
 
   this->LoadWorld(common::joinPaths("test", "worlds",
         "collada_world_exporter_submesh.sdf"));
@@ -112,19 +114,22 @@ TEST_F(ColladaWorldExporterFixture, ExportWorldFromFuelWithSubmesh)
 
 TEST_F(ColladaWorldExporterFixture, ExportWorldMadeFromObj)
 {
+  std::string world_path =
+    ignition::common::joinPaths(PROJECT_SOURCE_PATH, "test","worlds");
   ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
-    (std::string(PROJECT_SOURCE_PATH) + "/test/worlds:" +
-    std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models").c_str());
+    (world_path + ":" +
+    ignition::common::joinPaths(world_path, "models")).c_str());
 
   this->LoadWorld(common::joinPaths("test", "worlds",
         "office.sdf"));
 
   const std::string outputPath = "./office_world";
-  const std::string outputPathTextures = "./office_world/materials/textures";
+  const std::string outputPathTextures =
+    common::joinPaths(outputPath, "materials", "textures");
   const std::string outputPathTexture1 =
-    "./office_world/materials/textures/default.png";
+    common::joinPaths(outputPathTextures, "default.png");
   const std::string outputPathTexture2 =
-    "./office_world/materials/textures/blue_linoleum.png";
+    common::joinPaths(outputPathTextures, "blue_linoleum.png");
 
   // Cleanup
   common::removeAll(outputPath);
