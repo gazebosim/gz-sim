@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <string>
 #include <vector>
 
 #include <ignition/common/Console.hh>
@@ -33,6 +34,7 @@
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
+#include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
 #include "ignition/gazebo/components/AxisAlignedBox.hh"
@@ -70,6 +72,87 @@ class PhysicsSystemFixture : public ::testing::Test
     // Augment the system plugin path.  In SetUp to avoid test order issues.
     ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
       (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
+  }
+
+  /// \brief Test pose updates for models that only have their canonical link
+  /// move. In this scenario, we want to make sure that all of the other links
+  /// in the model have their pose updated since non-canonical link poses are
+  /// reported w.r.t. the model (since the canonical link's pose changed, this
+  /// means that the model's pose changed).
+  /// \param[in] _fileName The name of the file to test.
+  /// \note This method is to avoid code duplication so that the same models can
+  /// be tested with different links as the canonical link.
+  protected: void TestStaticNonCanonicalLinkUpdates(
+                 const std::string &_fileName)
+  {
+    ignition::gazebo::ServerConfig serverConfig;
+
+    const auto sdfFile = std::string(PROJECT_SOURCE_PATH) + _fileName;
+
+    sdf::Root root;
+    root.Load(sdfFile);
+    const sdf::World *world = root.WorldByIndex(0);
+    ASSERT_TRUE(nullptr != world);
+
+    serverConfig.SetSdfFile(sdfFile);
+
+    gazebo::Server server(serverConfig);
+
+    server.SetUpdatePeriod(1us);
+
+    // Create a system that records the poses of the links after physics
+    test::Relay testSystem;
+
+    size_t numBaseLinkChecks = 0;
+    size_t numOuterLinkChecks = 0;
+
+    size_t currIter = 0;
+    testSystem.OnPostUpdate(
+      [&world, &numBaseLinkChecks, &numOuterLinkChecks, &currIter](
+        const gazebo::UpdateInfo &,
+        const gazebo::EntityComponentManager &_ecm)
+      {
+        currIter++;
+        _ecm.Each<components::Link, components::Name>(
+            [&](const ignition::gazebo::Entity &_entity, const components::Link *,
+            const components::Name *_name)->bool
+            {
+              // ignore the link for the ground plane
+              if (_name->Data() != "surface")
+              {
+                if (_name->Data() == "base_link")
+                {
+                  // link "base_link" falls due to gravity, starting from rest
+                  const double dt = 0.001;
+                  const double zExpected =
+                    0.5 * world->Gravity().Z() * pow(dt * currIter, 2);
+                  EXPECT_NEAR(zExpected,
+                      ignition::gazebo::worldPose(_entity, _ecm).Z(), 1e-2);
+                  numBaseLinkChecks++;
+                }
+                else
+                {
+                  // link "link0_outer" is resting on the ground and does not
+                  // move, so it should always have a pose of (1 0 0 0 0 0)
+                  EXPECT_EQ(ignition::math::Pose3d(1, 0, 0, 0, 0, 0),
+                      ignition::gazebo::worldPose(_entity, _ecm));
+                  numOuterLinkChecks++;
+                }
+              }
+
+              return true;
+            });
+
+        return true;
+      });
+
+    server.AddSystem(testSystem.systemPtr);
+    const size_t iters = 500;
+    server.Run(true, iters, false);
+
+    EXPECT_EQ(iters, numBaseLinkChecks);
+    EXPECT_EQ(iters, numOuterLinkChecks);
+    EXPECT_EQ(iters, currIter);
   }
 };
 
@@ -986,4 +1069,26 @@ TEST_F(PhysicsSystemFixture, NestedModel)
   parentIt = parents.find("link_01");
   EXPECT_NE(parents.end(), parentIt);
   EXPECT_EQ("model_01", parentIt->second);
+}
+
+/////////////////////////////////////////////////
+// This tests whether pose updates are correct for a model whose canonical link
+// changes, but other links do not
+TEST_F(PhysicsSystemFixture, MovingCanonicalLinkOnly)
+{
+  TestStaticNonCanonicalLinkUpdates(
+      "/test/worlds/static_non_canonical_link.sdf");
+}
+
+/////////////////////////////////////////////////
+// This tests whether pose updates are correct for a model whose canonical link
+// changes, but other links do not.
+//
+// This is similar to the MovingCanonicalLinkOnly test, with the difference in
+// this test being that the canonical link for the model in this test was
+// manually specified by the user instead of defaulting to the first link in the
+// model.
+TEST_F(PhysicsSystemFixture, MovingCustomCanonicalLinkOnly)
+{
+  TestStaticNonCanonicalLinkUpdates("/test/worlds/custom_canonical_links.sdf");
 }
