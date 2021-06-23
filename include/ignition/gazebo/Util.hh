@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_UTIL_HH_
 
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include <ignition/math/Pose3.hh>
@@ -138,6 +139,14 @@ namespace ignition
     /// kNullEntity is returned.
     ignition::gazebo::Entity IGNITION_GAZEBO_VISIBLE topLevelModel(
         const Entity &_entity,
+        const EntityComponentManager &_ecm);
+
+    /// \brief Get all of the links that belong to a model. If the model has
+    /// nested models, the links for the nested models will also be retrieved.
+    /// \param[in] _model The model to retrieve links from.
+    /// \param[in] _ecm The entity component manager.
+    /// \return All of the links that belong to _model.
+    std::unordered_set<Entity> allModelLinks(const Entity &_model,
         const EntityComponentManager &_ecm);
 
     /// \brief Helper function to generate a valid transport topic, given

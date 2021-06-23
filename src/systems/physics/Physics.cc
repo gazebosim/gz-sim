@@ -206,6 +206,20 @@ class ignition::gazebo::systems::PhysicsPrivate
   public: ignition::math::Pose3d RelativePose(const Entity &_from,
       const Entity &_to, const EntityComponentManager &_ecm) const;
 
+  /// \brief Update a link's pose w.r.t to the link's top level model.
+  /// This is a helper method that should be called in UpdateSim.
+  /// \param[in] _topLevelModel The top level model.
+  /// \param[in] _link The link whose pose should be updated.
+  /// \param[in] _linkParent The parent entity of _link.
+  /// \param[in, out] _linkPose The pose component of _link, which is stored
+  /// w.r.t. _topLevelModel.
+  /// \param[in] _linkWorldPose The world pose of _link.
+  /// \param[in] _ecm The entity component manager.
+  public: void UpdateRelativeLinkPose(const Entity &_topLevelModel,
+    const Entity &_link, const components::ParentEntity *_linkParent,
+    components::Pose *_linkPose, const math::Pose3d &_linkWorldPose,
+    EntityComponentManager &_ecm);
+
   /// \brief Cache the top-level model for each entity.
   /// The key is an entity and the value is its top level model.
   public: std::unordered_map<Entity, Entity> topLevelModelMap;
@@ -1862,14 +1876,48 @@ ignition::math::Pose3d PhysicsPrivate::RelativePose(const Entity &_from,
 }
 
 //////////////////////////////////////////////////
+void PhysicsPrivate::UpdateRelativeLinkPose(const Entity &_topLevelModel,
+    const Entity &_link, const components::ParentEntity *_linkParent,
+    components::Pose *_linkPose, const math::Pose3d &_linkWorldPose,
+    EntityComponentManager &_ecm)
+{
+  // Compute the relative pose of _link from _topLevelModel
+  // first get the world pose of _topLevelModel
+  auto worldComp =
+      _ecm.Component<components::ParentEntity>(_topLevelModel);
+  // if the worldComp is a nullptr, something is wrong with ECS
+  if (!worldComp)
+  {
+    ignerr << "The parent component of " << _topLevelModel
+           << " could not be found. This should never happen!\n";
+    return;
+  }
+  math::Pose3d parentWorldPose =
+      this->RelativePose(worldComp->Data(), _linkParent->Data(), _ecm);
+
+  // Unlike canonical links, pose of regular links can move relative
+  // to the parent. Same for links inside nested models.
+  *_linkPose = components::Pose(_linkWorldPose +
+                            parentWorldPose.Inverse());
+  _ecm.SetChanged(_link, components::Pose::typeId,
+      ComponentState::PeriodicChange);
+}
+
+//////////////////////////////////////////////////
 void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
 {
   IGN_PROFILE("PhysicsPrivate::UpdateSim");
 
   // Link poses, velocities...
   IGN_PROFILE_BEGIN("Links");
-  // keep track of all the top level models that had a pose change
-  std::unordered_set<Entity> modelPoseChange;
+  // Keep track of all the top level models that had a pose change,
+  // and all of the links that were updated due to a model pose change.
+  // This is to help make sure that links with poses stored w.r.t. the model
+  // are updated whenever the model pose changes (we keep track of links
+  // that were updated due to a model pose change to help prevent redundant
+  // link pose updates in a single UpdateSim call).
+  std::unordered_set<Entity> modelPoseChanged;
+  std::unordered_set<Entity> linkPoseChanged;
   _ecm.Each<components::Link, components::Pose, components::ParentEntity>(
       [&](const Entity &_entity, components::Link * /*_link*/,
           components::Pose *_pose,
@@ -1898,8 +1946,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
         const auto &worldPose = frameData.pose;
 
         // update the link or top level model pose if this is the first update,
-        // or if the link pose has changed since the last update
-        // (if the link pose hasn't changed, there's no need for a pose update).
+        // or if the link pose has changed since the last update.
         // We should also update the link pose if the link's top level model
         // pose has been updated because non-canonical links are saved w.r.t.
         // the top level model (if the top level model pose changes, but we
@@ -1907,7 +1954,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
         // seems like the link(s) have changed pose, which may not be true).
         const auto worldPoseMath3d = ignition::math::eigen3::convert(worldPose);
         if ((this->linkWorldPoses.find(_entity) == this->linkWorldPoses.end())
-            || modelPoseChange.find(topLevelModelEnt) != modelPoseChange.end()
+            || modelPoseChanged.find(topLevelModelEnt) != modelPoseChanged.end()
             || !this->pose3Eql(this->linkWorldPoses[_entity], worldPoseMath3d))
         {
           // cache the updated link pose to check if the link pose has changed
@@ -1937,30 +1984,41 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
             _ecm.SetChanged(topLevelModelEnt, components::Pose::typeId,
                 ComponentState::PeriodicChange);
 
-            modelPoseChange.insert(topLevelModelEnt);
-          }
-          else
-          {
-            // Compute the relative pose of this link from the top level model
-            // first get the world pose of the top level model
-            auto worldComp =
-                _ecm.Component<components::ParentEntity>(topLevelModelEnt);
-            // if the worldComp is a nullptr, something is wrong with ECS
-            if (!worldComp)
+            // mark this model pose as changed and update all links in this
+            // model that have a pose stored w.r.t. the model pose
+            modelPoseChanged.insert(topLevelModelEnt);
+            auto modelLinks = gazebo::allModelLinks(topLevelModelEnt, _ecm);
+            for (const auto &modelLink : modelLinks)
             {
-              ignerr << "The parent component of " << topLevelModelEnt
-                     << " could not be found. This should never happen!\n";
-              return true;
-            }
-            math::Pose3d parentWorldPose =
-                this->RelativePose(worldComp->Data(), _parent->Data(), _ecm);
+              // skip the canonical link since it was just updated
+              if (modelLink == _entity)
+                continue;
 
-            // Unlike canonical links, pose of regular links can move relative
-            // to the parent. Same for links inside nested models.
-            *_pose = components::Pose(worldPoseMath3d +
-                                      parentWorldPose.Inverse());
-            _ecm.SetChanged(_entity, components::Pose::typeId,
-                ComponentState::PeriodicChange);
+              auto modelLinkPhys = this->entityLinkMap.Get(modelLink);
+              if (nullptr == modelLinkPhys)
+              {
+                ignerr << "Internal error: link [" << _entity
+                       << "] not in entity map" << std::endl;
+                continue;
+              }
+              auto modelLinkFrameData =
+                modelLinkPhys->FrameDataRelativeToWorld();
+              this->UpdateRelativeLinkPose(topLevelModelEnt, modelLink,
+                  _ecm.Component<components::ParentEntity>(modelLink),
+                  _ecm.Component<components::Pose>(modelLink),
+                  ignition::math::eigen3::convert(modelLinkFrameData.pose),
+                  _ecm);
+
+              // mark this link as changed due to a model pose update
+              linkPoseChanged.insert(modelLink);
+            }
+          }
+          // don't update the link's pose if it was already updated due to a
+          // model pose upate
+          else if (linkPoseChanged.find(_entity) == linkPoseChanged.end())
+          {
+            this->UpdateRelativeLinkPose(topLevelModelEnt, _entity, _parent,
+                _pose, worldPoseMath3d, _ecm);
           }
         }
         IGN_PROFILE_END();

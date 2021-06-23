@@ -114,8 +114,8 @@ class PhysicsSystemFixture : public ::testing::Test
       {
         currIter++;
         _ecm.Each<components::Link, components::Name>(
-            [&](const ignition::gazebo::Entity &_entity, const components::Link *,
-            const components::Name *_name)->bool
+            [&](const ignition::gazebo::Entity &_entity,
+            const components::Link *, const components::Name *_name)->bool
             {
               // ignore the link for the ground plane
               if (_name->Data() != "surface")

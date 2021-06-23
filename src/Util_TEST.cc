@@ -497,6 +497,101 @@ TEST_F(UtilTest, TopLevelModel)
 }
 
 /////////////////////////////////////////////////
+TEST_F(UtilTest, AllModelLinks)
+{
+  EntityComponentManager ecm;
+
+  // - modelA
+  //    - linkAA
+  //    - modelB
+  //      - linkBA
+  //      - modelC
+  //          - linkCA
+  //          - linkCB
+  //    - linkAB
+  // - modelD
+  //    - linkDA
+  //    - linkDB
+
+  // model A
+  auto modelAEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelAEntity, components::Model());
+
+  // link AA - child of model A
+  auto linkAAEntity = ecm.CreateEntity();
+  ecm.CreateComponent(linkAAEntity, components::Link());
+  ecm.SetParentEntity(linkAAEntity, modelAEntity);
+
+  // model B - nested inside model A
+  auto modelBEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelBEntity, components::Model());
+  ecm.SetParentEntity(modelBEntity, modelAEntity);
+
+  // link BA - child of model B
+  auto linkBAEntity = ecm.CreateEntity();
+  ecm.CreateComponent(linkBAEntity, components::Link());
+  ecm.SetParentEntity(linkBAEntity, modelBEntity);
+
+  // model C - nested inside model B
+  auto modelCEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelCEntity, components::Model());
+  ecm.SetParentEntity(modelCEntity, modelBEntity);
+
+  // link CA - child of model C
+  auto linkCAEntity = ecm.CreateEntity();
+  ecm.CreateComponent(linkCAEntity, components::Link());
+  ecm.SetParentEntity(linkCAEntity, modelCEntity);
+
+  // link CB - child of model C
+  auto linkCBEntity = ecm.CreateEntity();
+  ecm.CreateComponent(linkCBEntity, components::Link());
+  ecm.SetParentEntity(linkCBEntity, modelCEntity);
+
+  // link AB - child of model A
+  auto linkABEntity = ecm.CreateEntity();
+  ecm.CreateComponent(linkABEntity, components::Link());
+  ecm.SetParentEntity(linkABEntity, modelAEntity);
+
+  // model D
+  auto modelDEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelDEntity, components::Model());
+
+  // link DA - child of model D
+  auto linkDAEntity = ecm.CreateEntity();
+  ecm.CreateComponent(linkDAEntity, components::Link());
+  ecm.SetParentEntity(linkDAEntity, modelDEntity);
+
+  // link DB - child of model D
+  auto linkDBEntity = ecm.CreateEntity();
+  ecm.CreateComponent(linkDBEntity, components::Link());
+  ecm.SetParentEntity(linkDBEntity, modelDEntity);
+
+  auto modelALinks = allModelLinks(modelAEntity, ecm);
+  EXPECT_EQ(5u, modelALinks.size());
+  EXPECT_TRUE(modelALinks.find(linkAAEntity) != modelALinks.end());
+  EXPECT_TRUE(modelALinks.find(linkBAEntity) != modelALinks.end());
+  EXPECT_TRUE(modelALinks.find(linkCAEntity) != modelALinks.end());
+  EXPECT_TRUE(modelALinks.find(linkCBEntity) != modelALinks.end());
+  EXPECT_TRUE(modelALinks.find(linkABEntity) != modelALinks.end());
+
+  auto modelBLinks = allModelLinks(modelBEntity, ecm);
+  EXPECT_EQ(3u, modelBLinks.size());
+  EXPECT_TRUE(modelBLinks.find(linkBAEntity) != modelBLinks.end());
+  EXPECT_TRUE(modelBLinks.find(linkCAEntity) != modelBLinks.end());
+  EXPECT_TRUE(modelBLinks.find(linkCBEntity) != modelBLinks.end());
+
+  auto modelCLinks = allModelLinks(modelCEntity, ecm);
+  EXPECT_EQ(2u, modelCLinks.size());
+  EXPECT_TRUE(modelCLinks.find(linkCAEntity) != modelCLinks.end());
+  EXPECT_TRUE(modelCLinks.find(linkCBEntity) != modelCLinks.end());
+
+  auto modelDLinks = allModelLinks(modelDEntity, ecm);
+  EXPECT_EQ(2u, modelDLinks.size());
+  EXPECT_TRUE(modelDLinks.find(linkDAEntity) != modelDLinks.end());
+  EXPECT_TRUE(modelDLinks.find(linkDBEntity) != modelDLinks.end());
+}
+
+/////////////////////////////////////////////////
 TEST_F(UtilTest, ValidTopic)
 {
   std::string good{"good"};

@@ -15,6 +15,8 @@
  *
 */
 
+#include <unordered_set>
+
 #ifndef __APPLE__
   #if (defined(_MSVC_LANG))
     #if (_MSVC_LANG >= 201703L || __cplusplus >= 201703L)
@@ -442,6 +444,36 @@ ignition::gazebo::Entity topLevelModel(const Entity &_entity,
   }
 
   return modelEntity;
+}
+
+//////////////////////////////////////////////////
+/// \brief Helper function for AllModelLinks. This helper uses recursion
+/// to account for nested model links.
+/// \param[in] _model The model to retrieve links from.
+/// \param[in] _ecm The entity component manager.
+/// \param[in, out] _links The links that belong to _model.
+static void AllModelLinksHelper(const Entity &_model,
+    const EntityComponentManager &_ecm,
+    std::unordered_set<Entity> &_links)
+{
+  auto childLinks = _ecm.ChildrenByComponents<components::Link>(_model,
+      components::Link());
+  for (const auto &link : childLinks)
+    _links.insert(link);
+
+  auto nestedModels = _ecm.ChildrenByComponents<components::Model>(_model,
+      components::Model());
+  for (const auto &nestedModel : nestedModels)
+    AllModelLinksHelper(nestedModel, _ecm, _links);
+}
+
+//////////////////////////////////////////////////
+std::unordered_set<Entity> allModelLinks(const Entity &_model,
+    const EntityComponentManager &_ecm)
+{
+  std::unordered_set<Entity> links;
+  AllModelLinksHelper(_model, _ecm, links);
+  return links;
 }
 
 //////////////////////////////////////////////////
