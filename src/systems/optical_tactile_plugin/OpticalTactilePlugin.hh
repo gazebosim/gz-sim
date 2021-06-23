@@ -87,7 +87,7 @@ namespace systems
   ///                    depth camera. This element is optional, and the
   ///                    default value is false.
 
-  class IGNITION_GAZEBO_VISIBLE OpticalTactilePlugin :
+  class OpticalTactilePlugin :
     public System,
     public ISystemConfigure,
     public ISystemPreUpdate,

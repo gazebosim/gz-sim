@@ -38,7 +38,7 @@ endif()
 # Search for project-specific dependencies
 #============================================================================
 
-ign_find_package(sdformat11 REQUIRED VERSION 11.1)
+ign_find_package(sdformat11 REQUIRED VERSION 11.2)
 set(SDF_VER ${sdformat11_VERSION_MAJOR})
 
 #--------------------------------------
@@ -75,7 +75,7 @@ set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools6_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-gui
-ign_find_package(ignition-gui5 REQUIRED)
+ign_find_package(ignition-gui5 REQUIRED VERSION 5.1)
 set(IGN_GUI_VER ${ignition-gui5_VERSION_MAJOR})
 ign_find_package (Qt5
   COMPONENTS
@@ -114,7 +114,7 @@ set(IGN_SENSORS_VER ${ignition-sensors5_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-rendering
-ign_find_package(ignition-rendering5 REQUIRED)
+ign_find_package(ignition-rendering5 REQUIRED VERSION 5.1)
 set(IGN_RENDERING_VER ${ignition-rendering5_VERSION_MAJOR})
 
 #--------------------------------------
