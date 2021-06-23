@@ -206,19 +206,22 @@ Server::Server(const ServerConfig &_config)
 /////////////////////////////////////////////////
 Server::~Server() = default;
 
-EntityComponentManager &Server::SharedEntityComponentManager()
+/////////////////////////////////////////////////
+EntityComponentManager &Server::SharedEntityComponentManager(
+  const unsigned int _worldIndex)
 {
-  for (auto &runner : this->dataPtr->simRunners)
+  if (this->dataPtr->simRunners.size() > _worldIndex)
   {
-    return runner->EntityCompMgr();
+    return this->dataPtr->simRunners[_worldIndex]->EntityCompMgr();
   }
 }
 
-EventManager &Server::SharedEventManager()
+/////////////////////////////////////////////////
+EventManager &Server::SharedEventManager(const unsigned int _worldIndex)
 {
-  for (auto &runner : this->dataPtr->simRunners)
+  if (this->dataPtr->simRunners.size() > _worldIndex)
   {
-    return runner->EventMgr();
+    return this->dataPtr->simRunners[_worldIndex]->EventMgr();
   }
 }
 
