@@ -18,9 +18,9 @@
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
-#include <ignition/plugin/Register.hh>
 #include <ignition/math/Color.hh>
 #include <ignition/math/Pose3.hh>
+#include <ignition/plugin/Register.hh>
 #include <ignition/rendering.hh>
 
 #include "ignition/gazebo/gui/GuiEvents.hh"
@@ -149,42 +149,7 @@ void GridConfig::UpdateGrid()
 /////////////////////////////////////////////////
 void GridConfig::LoadGrid()
 {
-  auto loadedEngNames = rendering::loadedEngines();
-  if (loadedEngNames.empty())
-    return;
-
-  // assume there is only one engine loaded
-  auto engineName = loadedEngNames[0];
-  if (loadedEngNames.size() > 1)
-  {
-    igndbg << "More than one engine is available. "
-      << "Grid config plugin will use engine ["
-        << engineName << "]" << std::endl;
-  }
-  auto engine = rendering::engine(engineName);
-  if (!engine)
-  {
-    ignerr << "Internal error: failed to load engine [" << engineName
-      << "]. Grid plugin won't work." << std::endl;
-    return;
-  }
-
-  if (engine->SceneCount() == 0)
-    return;
-
-  // assume there is only one scene
-  // load scene
-  auto scene = engine->SceneByIndex(0);
-  if (!scene)
-  {
-    ignerr << "Internal error: scene is null." << std::endl;
-    return;
-  }
-
-  if (!scene->IsInitialized() || nullptr == scene->RootVisual())
-  {
-    return;
-  }
+  auto scene = rendering::sceneFromFirstRenderEngine();
 
   // load grid
   // if gridPtr found, load the existing gridPtr to class

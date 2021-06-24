@@ -943,31 +943,33 @@ TEST_F(ComponentsTest, LogicalAudioSourcePlayInfo)
 TEST_F(ComponentsTest, LogicalMicrophone)
 {
   logical_audio::Microphone mic1;
-  mic1.id = 0;
+  mic1.id = 4;
   mic1.volumeDetectionThreshold = 0.5;
 
   logical_audio::Microphone mic2;
-  mic2.id = 1;
-  mic2.volumeDetectionThreshold = mic1.volumeDetectionThreshold;
+  mic2.id = 8;
+  mic2.volumeDetectionThreshold = 0.8;
 
   // create components
   auto comp1 = components::LogicalMicrophone(mic1);
   auto comp2 = components::LogicalMicrophone(mic2);
 
   // equality operators
-  EXPECT_NE(mic1, mic2);
-  EXPECT_FALSE(mic1 == mic2);
-  EXPECT_TRUE(mic1 != mic2);
+  EXPECT_NE(comp1, comp2);
+  EXPECT_FALSE(comp1 == comp2);
+  EXPECT_TRUE(comp1 != comp2);
 
   // stream operators
   std::ostringstream ostr;
   comp1.Serialize(ostr);
-  EXPECT_EQ("0 0.5", ostr.str());
+  EXPECT_EQ("4 0.5", ostr.str());
 
-  std::istringstream istr;
+  std::istringstream istr(ostr.str());
   components::LogicalMicrophone comp3;
   comp3.Deserialize(istr);
   EXPECT_EQ(comp1, comp3);
+  EXPECT_DOUBLE_EQ(comp1.Data().volumeDetectionThreshold,
+      comp3.Data().volumeDetectionThreshold);
 }
 
 /////////////////////////////////////////////////
