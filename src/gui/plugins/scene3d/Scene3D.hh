@@ -147,7 +147,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: bool OnViewAngle(const msgs::Vector3d &_msg,
         msgs::Boolean &_res);
 
-    /// \brief ToDo.
+    /// \brief Update the geometry of an SDF element.
+    /// \param[in out] _modelPtr The SDF element to update.
+    /// \param[in] _scale The scaling factor.
+    /// \return True if the scaling was successful or false otherwise.
     private: bool UpdateGeomSize(sdf::ElementPtr &_modelPtr,
         const ignition::math::Vector3d &_scale);
 
@@ -467,7 +470,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     signals: void FollowTargetChanged(const std::string &_target,
         bool _waitForTarget);
 
-    /// \brief ToDo.
+    /// \brief When fire, the ModelSDF associated to en entity should be
+    /// updated.
+    /// \param[in] _entity Entity to be update.
+    /// \param[in] _scale The scaling vector.
     signals: void UpdateSdfGeometry(Entity _entity, const std::string &_scale);
 
     /// \brief Render texture id
@@ -699,11 +705,15 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _e The key event to process.
     public: void HandleKeyRelease(QKeyEvent *_e);
 
-    /// \brief ToDo.
+    /// \brief Update the copy of entities that need an SDF geometry update
+    /// after scaling.
+    /// \param[in] _newScaledEntities The new list of entities.
     public: void SetScaledEntities(
         const std::map<Entity, math::Vector3d> &_newScaledEntities);
 
-    /// \brief ToDo.
+    /// \brief Get the copy of entities that need an SDF geometry update
+    /// after scaling.
+    /// \return The list of entities.
     public: std::map<Entity, math::Vector3d> ScaledEntities() const;
 
     // Documentation inherited
@@ -737,7 +747,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _entity Scoped name of entity.
     public slots: void OnContextMenuRequested(QString _entity);
 
-    /// \brief ToDo.
+    /// \brief Qt callback when an entity has been scaled. It stores the entity
+    /// and scaling factor to be used in the future for SDF geometry updates.
+    /// \param[in] _entity The entity to update.
+    /// \param[in] _scale The serialized scaling vector.
     public slots: void OnEntityScaled(Entity _entity,
         const std::string &_scale);
 

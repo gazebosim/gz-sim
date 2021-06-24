@@ -389,7 +389,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// scaled applied to that entity.
     public: std::map<Entity, math::Vector3d> scaledEntities;
 
-    /// \brief ToDo.
+    /// \brief A mutex.
     std::mutex mutex;
 
     //// \brief List of threads
@@ -1498,12 +1498,12 @@ void IgnRenderer::HandleMouseTransformControl()
           if (this->dataPtr->transformControl.Mode() ==
               rendering::TransformMode::TM_SCALE)
           {
-            std::cout << "End scaling" << std::endl;
-
             for (auto const &[entity, scale] : this->dataPtr->scaledEntities)
             {
               std::ostringstream ss;
               ss << scale;
+
+              // Fire the event to trigger the SDF sync on Scene::Update().
               emit this->UpdateSdfGeometry(entity, ss.str());
             }
 
@@ -2583,8 +2583,6 @@ void RenderWindowItem::OnContextMenuRequested(QString _entity)
 ///////////////////////////////////////////////////
 void RenderWindowItem::OnEntityScaled(Entity _entity, const std::string &_scale)
 {
-  std::cout << "OnEntityScaled: " << std::endl;
-  std::cout << _entity << ": " << _scale << std::endl;
   math::Vector3d scale;
   std::istringstream is(_scale);
   is >> scale;
@@ -2930,19 +2928,18 @@ void Scene3D::Update(const UpdateInfo &_info,
         {
           if (scaledEntities.find(_modelEntity) != scaledEntities.end())
           {
-            std::cout << "Updating SDF for entity " << _modelEntity << std::endl;
-
             sdf::ElementPtr modelElem = _modelSdf->Data().Element();
 
-            std::cout << "Before:" << std::endl;
-            std::cout << _modelSdf->Data().Element()->ToString("");
+            igndbg << "Updating SDF for entity " << _modelEntity << std::endl;
+            igndbg << "Before:" << std::endl;
+            igndbg << _modelSdf->Data().Element()->ToString("");
             if (!this->UpdateGeomSize(modelElem, scaledEntities[_modelEntity]))
             {
               ignerr << "Unable to update geometry size: "
                      << _modelSdf->Data().Element()->ToString("") << std::endl;
             }
-            std::cout << "After:" << std::endl;
-            std::cout << _modelSdf->Data().Element()->ToString("");
+            igndbg << "After:" << std::endl;
+            igndbg << _modelSdf->Data().Element()->ToString("");
           }
 
           return true;
