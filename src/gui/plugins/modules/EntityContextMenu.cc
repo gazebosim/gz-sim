@@ -15,6 +15,7 @@
  *
 */
 
+#include "../../GuiRunner.hh"
 #include "EntityContextMenu.hh"
 
 #include <ignition/msgs/boolean.pb.h>
@@ -25,7 +26,6 @@
 #include <string>
 
 #include <ignition/common/Console.hh>
-#include <ignition/gazebo/gui/GuiRunner.hh>
 #include <ignition/gazebo/Conversions.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/transport/Node.hh>

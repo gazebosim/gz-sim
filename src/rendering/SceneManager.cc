@@ -1501,13 +1501,6 @@ AnimationUpdateData SceneManager::ActorAnimationAt(
 }
 
 /////////////////////////////////////////////////
-std::map<std::string, math::Matrix4d> SceneManager::ActorMeshAnimationAt(
-    Entity _id, std::chrono::steady_clock::duration _time) const
-{
-  return this->ActorSkeletonTransformsAt(_id, _time);
-}
-
-/////////////////////////////////////////////////
 std::map<std::string, math::Matrix4d> SceneManager::ActorSkeletonTransformsAt(
     Entity _id, std::chrono::steady_clock::duration _time) const
 {
@@ -1668,45 +1661,6 @@ rendering::NodePtr SceneManager::TopLevelNode(
   }
 
   return node;
-}
-
-/////////////////////////////////////////////////
-Entity SceneManager::EntityFromNode(const rendering::NodePtr &_node) const
-{
-  // TODO(anyone) On Dome, set entity ID into node with SetUserData
-  auto visual = std::dynamic_pointer_cast<rendering::Visual>(_node);
-  if (visual)
-  {
-    auto found = std::find_if(std::begin(this->dataPtr->visuals),
-        std::end(this->dataPtr->visuals),
-        [&](const std::pair<Entity, rendering::VisualPtr> &_item)
-    {
-      return _item.second == visual;
-    });
-
-    if (found != this->dataPtr->visuals.end())
-    {
-      return found->first;
-    }
-  }
-
-  auto light = std::dynamic_pointer_cast<rendering::Light>(_node);
-  if (light)
-  {
-    auto found = std::find_if(std::begin(this->dataPtr->lights),
-        std::end(this->dataPtr->lights),
-        [&](const std::pair<Entity, rendering::LightPtr> &_item)
-    {
-      return _item.second == light;
-    });
-
-    if (found != this->dataPtr->lights.end())
-    {
-      return found->first;
-    }
-  }
-
-  return kNullEntity;
 }
 
 ////////////////////////////////////////////////
