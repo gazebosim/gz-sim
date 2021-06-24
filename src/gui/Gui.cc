@@ -43,6 +43,18 @@ namespace gui
 //////////////////////////////////////////////////
 std::unique_ptr<ignition::gui::Application> createGui(
     int &_argc, char **_argv, const char *_guiConfig,
+    const char *_defaultGuiConfig,
+    bool _loadPluginsFromSdf)
+{
+  EntityComponentManager ecm;
+  EventManager eventMgr;
+  return createGui(_argc, _argv, _guiConfig, ecm, eventMgr,
+    false, _defaultGuiConfig, _loadPluginsFromSdf);
+}
+
+//////////////////////////////////////////////////
+std::unique_ptr<ignition::gui::Application> createGui(
+    int &_argc, char **_argv, const char *_guiConfig,
     EntityComponentManager &_ecm, EventManager &_eventMgr,
     bool _sameProcess, const char *_defaultGuiConfig,
     bool _loadPluginsFromSdf)
@@ -293,6 +305,14 @@ std::unique_ptr<ignition::gui::Application> createGui(
   }
 
   return app;
+}
+
+//////////////////////////////////////////////////
+int runGui(int &_argc, char **_argv, const char *_guiConfig)
+{
+  EntityComponentManager ecm;
+  EventManager eventMgr;
+  return runGui(_argc, _argv, _guiConfig, ecm, eventMgr, false);
 }
 
 //////////////////////////////////////////////////
