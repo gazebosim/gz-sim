@@ -23,6 +23,7 @@
 #include <limits>
 #include <map>
 #include <mutex>
+#include <queue>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -1342,6 +1343,52 @@ void IgnRenderer::XYZConstraint(math::Vector3d &_axis)
 }
 
 /////////////////////////////////////////////////
+rendering::VisualPtr IgnRenderer::ContainsSimpleShape(
+    const rendering::NodePtr &_node) const
+{
+  std::queue<rendering::NodePtr> q;
+
+  // Adding the root node.
+  q.push(_node);
+
+  while (!q.empty())
+  {
+    // Process the next node.
+    auto n = q.front();
+    q.pop();
+    if (n)
+    {
+      auto v = std::dynamic_pointer_cast<ignition::rendering::Visual>(n);
+      if (v)
+      {
+        try
+        {
+          int userData = std::get<int>(v->UserData("geometry-type"));
+
+          /// \TODO(anyone) Consider sdf::GeometryType::CAPSULE and
+          /// sdf::GeometryType::ELLIPSOID in Edifice.
+          if (userData == static_cast<int>(sdf::GeometryType::BOX)      ||
+              userData == static_cast<int>(sdf::GeometryType::CYLINDER) ||
+              userData == static_cast<int>(sdf::GeometryType::SPHERE))
+          {
+            return v;
+          }
+        }
+        catch (const std::bad_variant_access& ex)
+        {
+        }
+      }
+
+      // Add all children to the queue to be considered.
+      for (auto i = 0u; i < n->ChildCount(); ++i)
+        q.push(n->ChildByIndex(i));
+    }
+  }
+
+  return nullptr;
+}
+
+/////////////////////////////////////////////////
 void IgnRenderer::HandleMouseTransformControl()
 {
   if (this->dataPtr->renderThreadId != std::this_thread::get_id())
@@ -1607,10 +1654,20 @@ void IgnRenderer::HandleMouseTransformControl()
     else if (this->dataPtr->transformControl.Mode() ==
         rendering::TransformMode::TM_SCALE)
     {
+      // Check if the model that we're trying to scale looks like a simple shape
+      auto node = this->dataPtr->transformControl.Node();
+      auto v = std::dynamic_pointer_cast<ignition::rendering::Visual>(node);
+      rendering::VisualPtr visualSimple = this->ContainsSimpleShape(node);
+      if (!visualSimple)
+        return;
+
+      int userData = std::get<int>(v->UserData("geometry-type"));
+      sdf::GeometryType geomType = static_cast<sdf::GeometryType>(userData);
+
       this->XYZConstraint(axis);
       // note: scaling is limited to local space
       math::Vector3d scale =
-          this->dataPtr->transformControl.ScaleFrom2d(axis, start, end);
+        this->dataPtr->transformControl.ScaleFrom2d(axis, start, end);
       if (this->dataPtr->keyEvent.Control())
       {
         math::Vector3d snapVals = this->ScaleSnap();
@@ -1624,13 +1681,53 @@ void IgnRenderer::HandleMouseTransformControl()
 
         SnapPoint(scale, snapVals);
       }
+
+      // Apply geometry constaints to the scaling.
+      if (geomType == sdf::GeometryType::SPHERE)
+      {
+        if (axis.X() > 0)
+        {
+          scale.Y(scale.X());
+          scale.Z(scale.X());
+        }
+        else if (axis.Y() > 0)
+        {
+          scale.X(scale.Y());
+          scale.Z(scale.Y());
+        }
+        else if (axis.Z() > 0)
+        {
+          scale.X(scale.Z());
+          scale.Y(scale.Z());
+        }
+      }
+      else if (geomType == sdf::GeometryType::CYLINDER)
+      {
+        if (axis.X() > 0)
+        {
+          scale.Y(scale.X());
+        }
+        else if (axis.Y() > 0)
+        {
+          scale.X(scale.Y());
+        }
+      }
+
+      // Scale.
       this->dataPtr->transformControl.Scale(scale);
+
+      // Update the bounding box.
+      if (v)
+      {
+        Entity entityId = std::get<int>(v->UserData("gazebo-entity"));
+        auto s = this->dataPtr->transformControl.Node()->LocalScale();
+        this->dataPtr->renderUtil.SetWireBoxScale(entityId, s);
+      }
     }
     this->dataPtr->drag = 0;
     this->dataPtr->mouseDirty = false;
   }
 }
-
 
 /////////////////////////////////////////////////
 void IgnRenderer::HandleMouseViewControl()

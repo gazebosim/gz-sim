@@ -2059,6 +2059,39 @@ void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
 }
 
 /////////////////////////////////////////////////
+void RenderUtil::SetWireBoxScale(const Entity &_entityId,
+    const math::Vector3d &_scale)
+{
+  /// \TODO(anyone) Consider to use this->dataPtr->sceneManager.NodeById()
+  /// when WireBoxes are tracked in the scene manager.
+  if (this->dataPtr->wireBoxes.find(_entityId) ==
+          this->dataPtr->wireBoxes.end())
+  {
+    ignerr << "Trying to scale a wirebox with unknown id [" << _entityId
+           << "]" << std::endl;
+    return;
+  }
+
+  ignition::rendering::WireBoxPtr wireBox = this->dataPtr->wireBoxes[_entityId];
+  if (!wireBox)
+  {
+    ignerr << "Null wirebox associated to id [" << _entityId
+           << "]" << std::endl;
+    return;
+  }
+
+  auto visParent = wireBox->Parent();
+  if (!visParent)
+  {
+    ignerr << "Trying to scale a wirebox with null parent [" << _entityId
+           << "]" << std::endl;
+    return;
+  }
+
+  visParent->SetLocalScale(_scale);
+}
+
+/////////////////////////////////////////////////
 void RenderUtil::ViewCollisions(const Entity &_entity)
 {
   std::vector<Entity> colEntities;
