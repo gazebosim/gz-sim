@@ -2282,15 +2282,6 @@ void RenderUtil::DeselectAllEntities()
 }
 
 /////////////////////////////////////////////////
-rendering::NodePtr RenderUtil::SelectedEntity() const
-{
-  // Return most recently selected node
-  auto node = this->dataPtr->sceneManager.NodeById(
-      this->dataPtr->selectedEntities.back());
-  return node;
-}
-
-/////////////////////////////////////////////////
 const std::vector<Entity> &RenderUtil::SelectedEntities() const
 {
   return this->dataPtr->selectedEntities;
