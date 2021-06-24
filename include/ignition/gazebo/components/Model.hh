@@ -17,7 +17,10 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_MODEL_HH_
 #define IGNITION_GAZEBO_COMPONENTS_MODEL_HH_
 
+#include <string>
+
 #include <sdf/Model.hh>
+#include <sdf/Root.hh>
 
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
@@ -29,6 +32,54 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+namespace serializers
+{
+  class SdfModelSerializer
+  {
+    /// \brief Serialization for `sdf::Model`.
+    /// \param[in] _out Output stream.
+    /// \param[in] _time Model to stream
+    /// \return The stream.
+    public: static std::ostream &Serialize(std::ostream &_out,
+                const sdf::Model &_model)
+    {
+      sdf::ElementPtr modelElem = _model.Element();
+      if (!modelElem)
+      {
+        ignerr << "Unable to serialize sdf::Model" << std::endl;
+        return _out;
+      }
+
+      _out << "<?xml version=\"1.0\" ?>"
+           << "<sdf version='" << SDF_PROTOCOL_VERSION << "'>"
+           << modelElem->ToString("")
+           << "</sdf>";
+      return _out;
+    }
+
+    /// \brief Deserialization for `sdf::Model`.
+    /// \param[in] _in Input stream.
+    /// \param[out] _model Model to populate
+    /// \return The stream.
+    public: static std::istream &Deserialize(std::istream &_in,
+                sdf::Model &_model)
+    {
+      sdf::Root root;
+      std::string sdf(std::istreambuf_iterator<char>(_in), {});
+
+      sdf::Errors errors = root.LoadSdfString(sdf);
+      if (!errors.empty())
+      {
+        ignerr << "Unable to unserialize sdf::Model" << std::endl;
+        return _in;
+      }
+
+      _model.Load(root.Element()->GetElement("model"));
+      return _in;
+    }
+  };
+}
+
 namespace components
 {
   /// \brief A component that identifies an entity as being a model.
@@ -36,7 +87,9 @@ namespace components
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Model", Model)
 
   /// \brief A component that holds the model's SDF DOM
-  using ModelSdf = Component<sdf::Model, class ModelTag>;
+  using ModelSdf = Component<sdf::Model,
+                   class ModelTag,
+                   serializers::SdfModelSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.ModelSdf", ModelSdf)
 }
 }

@@ -161,6 +161,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: bool OnViewCollisions(const msgs::StringMsg &_msg,
         msgs::Boolean &_res);
 
+    /// \brief Update the geometry of an SDF element.
+    /// \param[in out] _modelPtr The SDF element to update.
+    /// \param[in] _scale The scaling factor.
+    /// \return True if the scaling was successful or false otherwise.
+    private: bool UpdateGeomSize(sdf::ElementPtr &_modelPtr,
+        const ignition::math::Vector3d &_scale);
+
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<Scene3DPrivate> dataPtr;
@@ -346,6 +353,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void RequestSelectionChange(Entity _selectedEntity,
         bool _deselectAll, bool _sendEvent);
 
+    /// \brief Returns the map of entities scaled that need to update their
+    /// associated ModelSdf components.
+    /// \return A reference to the map with the scaling information.
+    public: std::map<Entity, math::Vector3d> &ScaledEntities();
+
     /// \brief Snaps a value at intervals of a fixed distance. Currently used
     /// to give a snapping behavior when moving models with a mouse.
     /// \param[in] _coord Input coordinate point.
@@ -457,6 +469,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _waitForTarget True to continuously look for the target
     signals: void FollowTargetChanged(const std::string &_target,
         bool _waitForTarget);
+
+    /// \brief When fire, the ModelSDF associated to en entity should be
+    /// updated.
+    /// \param[in] _entity Entity to be update.
+    /// \param[in] _scale The scaling vector.
+    signals: void UpdateSdfGeometry(Entity _entity, const std::string &_scale);
 
     /// \brief Render texture id
     public: GLuint textureId = 0u;
@@ -687,6 +705,17 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _e The key event to process.
     public: void HandleKeyRelease(QKeyEvent *_e);
 
+    /// \brief Update the copy of entities that need an SDF geometry update
+    /// after scaling.
+    /// \param[in] _newScaledEntities The new list of entities.
+    public: void SetScaledEntities(
+        const std::map<Entity, math::Vector3d> &_newScaledEntities);
+
+    /// \brief Get the copy of entities that need an SDF geometry update
+    /// after scaling.
+    /// \return The list of entities.
+    public: std::map<Entity, math::Vector3d> ScaledEntities() const;
+
     // Documentation inherited
     protected: void mousePressEvent(QMouseEvent *_e) override;
 
@@ -717,6 +746,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Qt callback when context menu request is received
     /// \param[in] _entity Scoped name of entity.
     public slots: void OnContextMenuRequested(QString _entity);
+
+    /// \brief Qt callback when an entity has been scaled. It stores the entity
+    /// and scaling factor to be used in the future for SDF geometry updates.
+    /// \param[in] _entity The entity to update.
+    /// \param[in] _scale The serialized scaling vector.
+    public slots: void OnEntityScaled(Entity _entity,
+        const std::string &_scale);
 
     /// \internal
     /// \brief Pointer to private data.
