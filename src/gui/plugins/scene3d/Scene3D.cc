@@ -1511,7 +1511,8 @@ void IgnRenderer::HandleMouseTransformControl()
           }
           else
           {
-            std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+            std::function<void(const ignition::msgs::Boolean &,
+                               const bool)> cb =
                 [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
             {
               if (!_result)
@@ -1531,8 +1532,8 @@ void IgnRenderer::HandleMouseTransformControl()
                 this->dataPtr->poseCmdService);
             if (this->dataPtr->poseCmdService.empty())
             {
-              ignerr << "Failed to create valid pose command service for world ["
-                     << this->worldName <<"]" << std::endl;
+              ignerr << "Failed to create valid pose command service for world "
+                     << "[" << this->worldName <<"]" << std::endl;
               return;
             }
             this->dataPtr->node.Request(this->dataPtr->poseCmdService, req, cb);

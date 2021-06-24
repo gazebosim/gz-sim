@@ -24,9 +24,10 @@
 #include <ignition/msgs/vector3d.pb.h>
 #include <ignition/msgs/video_record.pb.h>
 
-#include <string>
+#include <map>
 #include <memory>
 #include <mutex>
+#include <string>
 
 #include <sdf/Root.hh>
 
