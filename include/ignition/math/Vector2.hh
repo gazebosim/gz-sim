@@ -531,13 +531,19 @@ namespace ignition
       }
 
       /// \brief Stream extraction operator
-      /// \param[in] _out output stream
+      /// \param[out] _out output stream
       /// \param[in] _pt Vector2 to output
       /// \return The stream
       public: friend std::ostream
       &operator<<(std::ostream &_out, const Vector2<T> &_pt)
       {
-        _out << _pt[0] << " " << _pt[1];
+        for (auto i : {0, 1})
+        {
+          if (i > 0)
+            _out << " ";
+
+          appendToStream(_out, _pt[i], 6);
+        }
         return _out;
       }
 

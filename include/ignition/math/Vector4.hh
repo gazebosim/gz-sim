@@ -700,7 +700,13 @@ namespace ignition
       public: friend std::ostream &operator<<(
                   std::ostream &_out, const ignition::math::Vector4<T> &_pt)
       {
-        _out << _pt[0] << " " << _pt[1] << " " << _pt[2] << " " << _pt[3];
+        for (auto i : {0, 1, 2, 3})
+        {
+          if (i > 0)
+            _out << " ";
+
+          appendToStream(_out, _pt[i], 6);
+        }
         return _out;
       }
 

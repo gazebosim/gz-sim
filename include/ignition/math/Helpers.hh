@@ -462,6 +462,33 @@ namespace ignition
       sort2(_a, _b);
     }
 
+    /// \brief Append a number to a stream. Makes sure "-0" is returned as "0".
+    /// \param[out] _out Output stream.
+    /// \param[in] _number Number to append.
+    /// \param[in] _precision Precision for floating point numbers.
+    template<typename T>
+    inline void appendToStream(std::ostream &_out, T _number, int _precision)
+    {
+      if (std::fpclassify(_number) == FP_ZERO)
+      {
+        _out << 0;
+      }
+      else
+      {
+        _out << precision(_number, _precision);
+      }
+    }
+
+    /// \brief Append a number to a stream, specialized for int.
+    /// \param[out] _out Output stream.
+    /// \param[in] _number Number to append.
+    /// \param[in] _precision Not used for int.
+    template<>
+    inline void appendToStream(std::ostream &_out, int _number, int)
+    {
+      _out << _number;
+    }
+
     /// \brief Is the parameter a power of 2?
     /// \param[in] _x The number to check.
     /// \return True if _x is a power of 2, false otherwise.

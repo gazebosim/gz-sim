@@ -161,12 +161,12 @@ TEST(Matrix3dTest, OperatorMul)
 TEST(Matrix3dTest, OperatorStreamOut)
 {
   math::Matrix3d matA(1, 2, 3,
-                      4, 5, 6,
+                      4, 0, 6,
                       7, 8, 9);
 
   std::ostringstream stream;
   stream << matA;
-  EXPECT_EQ(stream.str(), "1 2 3 4 5 6 7 8 9");
+  EXPECT_EQ(stream.str(), "1 2 3 4 0 6 7 8 9");
 }
 
 /////////////////////////////////////////////////

@@ -933,3 +933,27 @@ TEST(HelpersTest, roundUpMultiple)
   EXPECT_EQ(0, math::roundUpMultiple(0, -2));
   EXPECT_EQ(-2, math::roundUpMultiple(-2, -2));
 }
+
+/////////////////////////////////////////////////
+TEST(HelpersTest, AppendToStream)
+{
+  std::ostringstream out;
+
+  math::appendToStream(out, 0.12345678, 3);
+  EXPECT_EQ(out.str(), "0.123");
+
+  out << " ";
+
+  math::appendToStream(out, 0.0f, 5);
+  EXPECT_EQ(out.str(), "0.123 0");
+
+  out << " ";
+
+  math::appendToStream(out, 456, 3);
+  EXPECT_EQ(out.str(), "0.123 0 456");
+
+  out << " ";
+
+  math::appendToStream(out, 0, 3);
+  EXPECT_EQ(out.str(), "0.123 0 456 0");
+}

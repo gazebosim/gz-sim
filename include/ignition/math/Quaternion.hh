@@ -1220,8 +1220,7 @@ namespace ignition
                   const ignition::math::Quaternion<T> &_q)
       {
         Vector3<T> v(_q.Euler());
-        _out << precision(v.X(), 6) << " " << precision(v.Y(), 6) << " "
-             << precision(v.Z(), 6);
+        _out << v;
         return _out;
       }
 

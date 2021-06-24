@@ -74,8 +74,8 @@ namespace ignition
 
       /// \brief Constructor
       /// \param[in] _r Red value (range 0 to 1)
-      /// \param[in] _g Green value (range 0 to 1
-      /// \param[in] _b Blue value (range 0 to 1
+      /// \param[in] _g Green value (range 0 to 1)
+      /// \param[in] _b Blue value (range 0 to 1)
       /// \param[in] _a Alpha value (0=transparent, 1=opaque)
       public: Color(const float _r, const float _g, const float _b,
                   const float _a = 1.0);
@@ -126,10 +126,18 @@ namespace ignition
       public: Color &operator=(const Color &_pt);
 
       /// \brief Array index operator
-      /// \param[in] _index Color component index(0=red, 1=green, 2=blue)
+      /// \param[in] _index Color component index(0=red, 1=green, 2=blue,
+      /// 3=alpha)
       /// \return r, g, b, or a when _index is 0, 1, 2 or 3. A NAN_F value is
       /// returned if the _index is invalid
       public: float operator[](const unsigned int _index);
+
+      /// \brief Array index operator, const version
+      /// \param[in] _index Color component index(0=red, 1=green, 2=blue,
+      /// 3=alpha)
+      /// \return r, g, b, or a when _index is 0, 1, 2 or 3. A NAN_F value is
+      /// returned if the _index is invalid
+      public: float operator[](const unsigned int _index) const;
 
       /// \brief Get as uint32 RGBA packed value
       /// \return the color
@@ -238,12 +246,18 @@ namespace ignition
 
       /// \brief Stream insertion operator
       /// \param[in] _out the output stream
-      /// \param[in] _pt the color
+      /// \param[in] _color the color
       /// \return the output stream
       public: friend std::ostream &operator<<(std::ostream &_out,
-                                              const Color &_pt)
+                                              const Color &_color)
       {
-        _out << _pt.r << " " << _pt.g << " " << _pt.b << " " << _pt.a;
+        for (auto i : {0, 1, 2, 3})
+        {
+          if (i > 0)
+            _out << " ";
+
+          appendToStream(_out, _color[i], 6);
+        }
         return _out;
       }
 

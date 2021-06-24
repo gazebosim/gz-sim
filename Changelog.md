@@ -21,6 +21,9 @@
 1. Updated Temperature class documentation, script interface, and added examples.
     * [BitBucket pull request 339](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-math/pull-requests/339)
 
+1. Prevent -0 with out stream operator
+    * [Pull request 206](https://github.com/ignitionrobotics/ign-math/pull/206)
+
 ## Ignition Math 6.x
 
 ### Ignition Math 6.x.x
