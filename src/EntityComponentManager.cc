@@ -165,7 +165,7 @@ class ignition::gazebo::EntityComponentManagerPrivate
   std::unordered_multimap<Entity, ComponentKey> removedComponents;
 
   /// \brief Set of entities that are prevented from removal.
-  public: std::unordered_set<Entity> unremovableEntities;
+  public: std::unordered_set<Entity> pinnedEntities;
 };
 
 //////////////////////////////////////////////////
@@ -278,9 +278,9 @@ void EntityComponentManager::RequestRemoveEntity(Entity _entity,
   for (auto iter = tmpToRemoveEntities.begin();
        iter != tmpToRemoveEntities.end();)
   {
-    if (std::find(this->dataPtr->unremovableEntities.begin(),
-                  this->dataPtr->unremovableEntities.end(), *iter) !=
-               this->dataPtr->unremovableEntities.end())
+    if (std::find(this->dataPtr->pinnedEntities.begin(),
+                  this->dataPtr->pinnedEntities.end(), *iter) !=
+               this->dataPtr->pinnedEntities.end())
     {
       iter = tmpToRemoveEntities.erase(iter);
     }
@@ -305,7 +305,7 @@ void EntityComponentManager::RequestRemoveEntity(Entity _entity,
 /////////////////////////////////////////////////
 void EntityComponentManager::RequestRemoveEntities()
 {
-  if (this->dataPtr->unremovableEntities.empty())
+  if (this->dataPtr->pinnedEntities.empty())
   {
     {
       std::lock_guard<std::mutex> lock(this->dataPtr->entityRemoveMutex);
@@ -321,9 +321,9 @@ void EntityComponentManager::RequestRemoveEntities()
     // UpdateViews on each of them
     for (const auto &vertex : this->dataPtr->entities.Vertices())
     {
-      if (std::find(this->dataPtr->unremovableEntities.begin(),
-                    this->dataPtr->unremovableEntities.end(), vertex.first) ==
-          this->dataPtr->unremovableEntities.end())
+      if (std::find(this->dataPtr->pinnedEntities.begin(),
+                    this->dataPtr->pinnedEntities.end(), vertex.first) ==
+          this->dataPtr->pinnedEntities.end())
       {
         tmpToRemoveEntities.insert(vertex.first);
       }
@@ -1575,37 +1575,35 @@ void EntityComponentManagerPrivate::AddModifiedComponent(const Entity &_entity)
 }
 
 /////////////////////////////////////////////////
-void EntityComponentManager::MarkEntityUnremovable(const Entity _entity,
-    bool _recursive)
+void EntityComponentManager::PinEntity(const Entity _entity, bool _recursive)
 {
   if (_recursive)
   {
     this->dataPtr->InsertEntityRecursive(_entity,
-        this->dataPtr->unremovableEntities);
+        this->dataPtr->pinnedEntities);
   }
   else
   {
-    this->dataPtr->unremovableEntities.insert(_entity);
+    this->dataPtr->pinnedEntities.insert(_entity);
   }
 }
 
 /////////////////////////////////////////////////
-void EntityComponentManager::MarkEntityRemovable(const Entity _entity,
-    bool _recursive)
+void EntityComponentManager::UnpinEntity(const Entity _entity, bool _recursive)
 {
   if (_recursive)
   {
     this->dataPtr->EraseEntityRecursive(_entity,
-        this->dataPtr->unremovableEntities);
+        this->dataPtr->pinnedEntities);
   }
   else
   {
-    this->dataPtr->unremovableEntities.erase(_entity);
+    this->dataPtr->pinnedEntities.erase(_entity);
   }
 }
 
 /////////////////////////////////////////////////
-void EntityComponentManager::MarkAllEntitiesRemovable()
+void EntityComponentManager::UnpinAllEntities()
 {
-  this->dataPtr->unremovableEntities.clear();
+  this->dataPtr->pinnedEntities.clear();
 }

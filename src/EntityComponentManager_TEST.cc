@@ -2564,7 +2564,7 @@ TEST_P(EntityComponentManagerFixture, RemovedComponentsSyncBetweenServerAndGUI)
 }
 
 //////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, UnremovableEntity)
+TEST_P(EntityComponentManagerFixture, PinnedEntity)
 {
   // Create some entities
   auto e1 = manager.CreateEntity();
@@ -2583,7 +2583,7 @@ TEST_P(EntityComponentManagerFixture, UnremovableEntity)
   EXPECT_EQ(3u, manager.EntityCount());
 
   // Mark e1 as unremovable, which should also lock its child entity e2
-  manager.MarkEntityUnremovable(e1);
+  manager.PinEntity(e1);
 
   // Try to remove e1, which is locked entity
   manager.RequestRemoveEntity(e1);
@@ -2606,7 +2606,7 @@ TEST_P(EntityComponentManagerFixture, UnremovableEntity)
   EXPECT_EQ(2u, manager.EntityCount());
 
   // Unmark e2, and now it should be removable.
-  manager.MarkEntityRemovable(e2);
+  manager.UnpinEntity(e2);
   manager.RequestRemoveEntity(e2);
   EXPECT_EQ(2u, manager.EntityCount());
   EXPECT_TRUE(manager.HasEntitiesMarkedForRemoval());
@@ -2614,7 +2614,7 @@ TEST_P(EntityComponentManagerFixture, UnremovableEntity)
   EXPECT_EQ(1u, manager.EntityCount());
 
   // Unmark all entities, and now it should be removable.
-  manager.MarkAllEntitiesRemovable();
+  manager.UnpinAllEntities();
   manager.RequestRemoveEntities();
   EXPECT_TRUE(manager.HasEntitiesMarkedForRemoval());
   manager.ProcessEntityRemovals();
