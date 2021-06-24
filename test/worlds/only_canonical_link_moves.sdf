@@ -131,6 +131,9 @@
       </link>
     </model>
 
-    <!-- TODO(adlarkin) add a similar test with nested models? -->
+    <!--
+      TODO(adlarkin) add a similar test with nested models in Edifice, since
+      nested model support is limited in Dome.
+    -->
   </world>
 </sdf>
