@@ -40,7 +40,6 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/gui/GuiEvents.hh"
 
 namespace ignition::gazebo
 {
