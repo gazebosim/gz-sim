@@ -147,6 +147,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: bool OnViewAngle(const msgs::Vector3d &_msg,
         msgs::Boolean &_res);
 
+    /// \brief ToDo.
+    private: bool UpdateGeomSize(sdf::ElementPtr &_modelPtr,
+        const ignition::math::Vector3d &_scale);
+
     /// \brief Callback for a move to pose request.
     /// \param[in] _msg GUICamera request message.
     /// \param[in] _res Response data
@@ -346,6 +350,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void RequestSelectionChange(Entity _selectedEntity,
         bool _deselectAll, bool _sendEvent);
 
+    /// \brief Returns the map of entities scaled that need to update their
+    /// associated ModelSdf components.
+    /// \return A reference to the map with the scaling information.
+    public: std::map<Entity, math::Vector3d> &ScaledEntities();
+
     /// \brief Snaps a value at intervals of a fixed distance. Currently used
     /// to give a snapping behavior when moving models with a mouse.
     /// \param[in] _coord Input coordinate point.
@@ -457,6 +466,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _waitForTarget True to continuously look for the target
     signals: void FollowTargetChanged(const std::string &_target,
         bool _waitForTarget);
+
+    /// \brief ToDo.
+    signals: void UpdateSdfGeometry(Entity _entity, const std::string &_scale);
 
     /// \brief Render texture id
     public: GLuint textureId = 0u;
@@ -687,6 +699,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _e The key event to process.
     public: void HandleKeyRelease(QKeyEvent *_e);
 
+    /// \brief ToDo.
+    public: void SetScaledEntities(
+        const std::map<Entity, math::Vector3d> &_newScaledEntities);
+
+    /// \brief ToDo.
+    public: std::map<Entity, math::Vector3d> ScaledEntities() const;
+
     // Documentation inherited
     protected: void mousePressEvent(QMouseEvent *_e) override;
 
@@ -717,6 +736,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Qt callback when context menu request is received
     /// \param[in] _entity Scoped name of entity.
     public slots: void OnContextMenuRequested(QString _entity);
+
+    /// \brief ToDo.
+    public slots: void OnEntityScaled(Entity _entity,
+        const std::string &_scale);
 
     /// \internal
     /// \brief Pointer to private data.
