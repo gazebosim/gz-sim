@@ -404,8 +404,19 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runCombined(const char *_sdfString,
     // Run the server
     server.Run(false, _iterations, _run == 0);
 
-    auto &sharedEcm = server.SharedEntityComponentManager();
-    auto &sharedEventManager = server.SharedEventManager();
+    auto sharedEcm = server.SharedEntityComponentManager();
+    auto sharedEventManager = server.SharedEventManager();
+
+    if (!sharedEcm)
+    {
+      ignerr << "Unable to get a shared ECM\n";
+      return -1;
+    }
+    if (!sharedEventManager)
+    {
+      ignerr << "Unable to get a shared Event Manager\n";
+      return -1;
+    }
 
     // argc and argv are going to be passed to a QApplication. The Qt
     // documentation has a warning about these:
@@ -419,7 +430,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runCombined(const char *_sdfString,
     // prevent a warning since we do need to pass a char* to runGui
     char *argv = const_cast<char *>("ign-gazebo-gui");
     return ignition::gazebo::gui::runGui(
-      argc, &argv, _guiConfig, sharedEcm, sharedEventManager, true);
+      argc, &argv, _guiConfig, (*sharedEcm).get(), (*sharedEventManager).get(), true);
   }
 
   ignerr << "Unable to create server config\n";

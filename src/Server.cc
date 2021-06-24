@@ -16,6 +16,7 @@
 */
 
 #include <numeric>
+#include <optional>
 
 #include <ignition/common/SystemPaths.hh>
 #include <ignition/fuel_tools/Interface.hh>
@@ -207,22 +208,24 @@ Server::Server(const ServerConfig &_config)
 Server::~Server() = default;
 
 /////////////////////////////////////////////////
-EntityComponentManager &Server::SharedEntityComponentManager(
+std::optional<std::reference_wrapper<EntityComponentManager>> Server::SharedEntityComponentManager(
   const unsigned int _worldIndex)
 {
   if (this->dataPtr->simRunners.size() > _worldIndex)
   {
-    return this->dataPtr->simRunners[_worldIndex]->EntityCompMgr();
+    return std::reference_wrapper<EntityComponentManager>(this->dataPtr->simRunners[_worldIndex]->EntityCompMgr());
   }
+  return std::nullopt;
 }
 
 /////////////////////////////////////////////////
-EventManager &Server::SharedEventManager(const unsigned int _worldIndex)
+std::optional<std::reference_wrapper<EventManager>> Server::SharedEventManager(const unsigned int _worldIndex)
 {
   if (this->dataPtr->simRunners.size() > _worldIndex)
   {
-    return this->dataPtr->simRunners[_worldIndex]->EventMgr();
+    return std::reference_wrapper<EventManager>(this->dataPtr->simRunners[_worldIndex]->EventMgr());
   }
+  return std::nullopt;
 }
 
 /////////////////////////////////////////////////
