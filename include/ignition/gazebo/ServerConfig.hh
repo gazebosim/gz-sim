@@ -254,16 +254,6 @@ namespace ignition
       /// \param[in] _recordPath Path to place recorded states
       public: void SetLogRecordPath(const std::string &_recordPath);
 
-      /// \brief Get whether to ignore the path specified in SDF.
-      /// \return Whether to ignore the path specified in SDF
-      public: bool IGN_DEPRECATED(4) LogIgnoreSdfPath() const;
-
-      /// \brief Set whether to ignore the path specified in SDF. Path in SDF
-      /// should be ignored if a record path is specified on the command line,
-      /// for example.
-      /// \param[in] _ignore Whether to ignore the path specified in SDF
-      public: void IGN_DEPRECATED(4) SetLogIgnoreSdfPath(bool _ignore);
-
       /// \brief Add a topic to record.
       /// \param[in] _topic Topic name, which can include wildcards.
       public: void AddLogRecordTopic(const std::string &_topic);

@@ -29,7 +29,6 @@
 #include <ignition/gui/Plugin.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/utilities/ExtraTestMacros.hh>
-#include <ignition/utils/SuppressWarning.hh>
 
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
@@ -38,10 +37,10 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/gui/GuiRunner.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/test_config.hh"
 
+#include "../../GuiRunner.hh"
 #include "JointPositionController.hh"
 
 int g_argc = 1;
@@ -68,12 +67,9 @@ TEST_F(JointPositionControllerGui, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Load))
   app->AddPluginPath(std::string(PROJECT_BINARY_PATH) + "/lib");
 
   // Create GUI runner to handle gazebo::gui plugins
-  // TODO(anyone) Remove deprecation guard once GuiRunner becomes private
-  IGN_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
   ignition::gazebo::EntityComponentManager ecm;
   ignition::gazebo::EventManager eventMgr;
   auto runner = new gazebo::GuiRunner("test", ecm, eventMgr, false);
-  IGN_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
   runner->connect(app.get(), &gui::Application::PluginAdded,
                   runner, &gazebo::GuiRunner::OnPluginAdded);
   runner->setParent(gui::App());
@@ -149,11 +145,9 @@ TEST_F(JointPositionControllerGui,
 
   // Create GUI runner to handle gazebo::gui plugins
   // TODO(anyone) Remove deprecation guard once GuiRunner becomes private
-  IGN_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
   ignition::gazebo::EntityComponentManager ecm2;
   ignition::gazebo::EventManager eventMgr;
   auto runner = new gazebo::GuiRunner("test", ecm2, eventMgr, false);
-  IGN_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
   runner->connect(app.get(), &gui::Application::PluginAdded,
                   runner, &gazebo::GuiRunner::OnPluginAdded);
   runner->setParent(gui::App());
@@ -230,4 +224,3 @@ TEST_F(JointPositionControllerGui,
   // Cleanup
   plugins.clear();
 }
-
