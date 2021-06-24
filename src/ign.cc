@@ -430,7 +430,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runCombined(const char *_sdfString,
     // prevent a warning since we do need to pass a char* to runGui
     char *argv = const_cast<char *>("ign-gazebo-gui");
     return ignition::gazebo::gui::runGui(
-      argc, &argv, _guiConfig, (*sharedEcm).get(), (*sharedEventManager).get(), true);
+      argc, &argv, _guiConfig, (*sharedEcm).get(),
+      (*sharedEventManager).get(), true);
   }
 
   ignerr << "Unable to create server config\n";
