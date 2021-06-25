@@ -310,7 +310,7 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief Finds the links (visual parent) that are used to toggle wireframe
   /// and transparent view for visuals in RenderUtil::Update
   /// \param[in] _ecm The entity-component manager
-  public: void FindVisualLinks(const EntityComponentManager &_ecm);
+  public: void PopulateViewModeVisualLinks(const EntityComponentManager &_ecm);
 
   /// \brief A list of links used to toggle wireframe mode for visuals
   public: std::vector<Entity> newWireframeVisualLinks;
@@ -496,12 +496,12 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
   this->dataPtr->UpdateRenderingEntities(_ecm);
   this->dataPtr->RemoveRenderingEntities(_ecm, _info);
   this->dataPtr->markerManager.SetSimTime(_info.simTime);
-  this->dataPtr->FindVisualLinks(_ecm);
+  this->dataPtr->PopulateViewModeVisualLinks(_ecm);
   this->dataPtr->FindCollisionLinks(_ecm);
 }
 
 //////////////////////////////////////////////////
-void RenderUtilPrivate::FindVisualLinks(
+void RenderUtilPrivate::PopulateViewModeVisualLinks(
                         const EntityComponentManager &_ecm)
 {
   // Find links to toggle wireframes
