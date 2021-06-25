@@ -2313,17 +2313,11 @@ void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
 }
 
 /////////////////////////////////////////////////
-void RenderUtil::ViewTransparent(const Entity &_entity)
+std::vector<Entity> RenderUtil::FindChildLinks(const Entity &_entity)
 {
-  std::vector<Entity> visEntities;
   std::vector<Entity> links;
 
-  if (this->dataPtr->linkToVisualEntities.find(_entity) !=
-      this->dataPtr->linkToVisualEntities.end())
-  {
-    visEntities = this->dataPtr->linkToVisualEntities[_entity];
-  }
-  else if (this->dataPtr->modelToLinkEntities.find(_entity) !=
+  if (this->dataPtr->modelToLinkEntities.find(_entity) !=
            this->dataPtr->modelToLinkEntities.end())
   {
     links.insert(links.end(),
@@ -2354,6 +2348,37 @@ void RenderUtil::ViewTransparent(const Entity &_entity)
       }
     }
   }
+
+  return links;
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::HideWireboxes(const Entity &_entity)
+{
+  if (this->dataPtr->wireBoxes.find(_entity)
+        != this->dataPtr->wireBoxes.end())
+  {
+    ignition::rendering::WireBoxPtr wireBox =
+      this->dataPtr->wireBoxes[_entity];
+    auto visParent = wireBox->Parent();
+    if (visParent)
+      visParent->SetVisible(false);
+  }
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::ViewTransparent(const Entity &_entity)
+{
+  std::vector<Entity> visEntities;
+
+  if (this->dataPtr->linkToVisualEntities.find(_entity) !=
+      this->dataPtr->linkToVisualEntities.end())
+  {
+    visEntities = this->dataPtr->linkToVisualEntities[_entity];
+  }
+
+  // Find all existing child links for this entity
+  std::vector<Entity> links = this->FindChildLinks(_entity);
 
   for (const auto &link : links)
     visEntities.insert(visEntities.end(),
@@ -2406,15 +2431,7 @@ void RenderUtil::ViewTransparent(const Entity &_entity)
     if (showTransparent)
     {
       // turn off wireboxes for visual entity
-      if (this->dataPtr->wireBoxes.find(visEntity)
-            != this->dataPtr->wireBoxes.end())
-      {
-        ignition::rendering::WireBoxPtr wireBox =
-          this->dataPtr->wireBoxes[visEntity];
-        auto visParent = wireBox->Parent();
-        if (visParent)
-          visParent->SetVisible(false);
-      }
+      this->HideWireboxes(visEntity);
     }
   }
 }
@@ -2423,44 +2440,15 @@ void RenderUtil::ViewTransparent(const Entity &_entity)
 void RenderUtil::ViewWireframes(const Entity &_entity)
 {
   std::vector<Entity> visEntities;
-  std::vector<Entity> links;
 
   if (this->dataPtr->linkToVisualEntities.find(_entity) !=
       this->dataPtr->linkToVisualEntities.end())
   {
     visEntities = this->dataPtr->linkToVisualEntities[_entity];
   }
-  else if (this->dataPtr->modelToLinkEntities.find(_entity) !=
-           this->dataPtr->modelToLinkEntities.end())
-  {
-    links.insert(links.end(),
-        this->dataPtr->modelToLinkEntities[_entity].begin(),
-        this->dataPtr->modelToLinkEntities[_entity].end());
-  }
 
-  if (this->dataPtr->modelToModelEntities.find(_entity) !=
-      this->dataPtr->modelToModelEntities.end())
-  {
-    std::stack<Entity> modelStack;
-    modelStack.push(_entity);
-
-    std::vector<Entity> childModels;
-    while (!modelStack.empty())
-    {
-      Entity model = modelStack.top();
-      modelStack.pop();
-
-      links.insert(links.end(),
-          this->dataPtr->modelToLinkEntities[model].begin(),
-          this->dataPtr->modelToLinkEntities[model].end());
-
-      childModels = this->dataPtr->modelToModelEntities[model];
-      for (const auto &childModel : childModels)
-      {
-        modelStack.push(childModel);
-      }
-    }
-  }
+  // Find all existing child links for this entity
+  std::vector<Entity> links = this->FindChildLinks(_entity);
 
   for (const auto &link : links)
     visEntities.insert(visEntities.end(),
@@ -2511,15 +2499,7 @@ void RenderUtil::ViewWireframes(const Entity &_entity)
     if (showWireframe)
     {
       // turn off wireboxes for visual entity
-      if (this->dataPtr->wireBoxes.find(visEntity)
-            != this->dataPtr->wireBoxes.end())
-      {
-        ignition::rendering::WireBoxPtr wireBox =
-          this->dataPtr->wireBoxes[visEntity];
-        auto visParent = wireBox->Parent();
-        if (visParent)
-          visParent->SetVisible(false);
-      }
+      this->HideWireboxes(visEntity);
     }
   }
 }
@@ -2528,44 +2508,15 @@ void RenderUtil::ViewWireframes(const Entity &_entity)
 void RenderUtil::ViewCollisions(const Entity &_entity)
 {
   std::vector<Entity> colEntities;
-  std::vector<Entity> links;
 
   if (this->dataPtr->linkToCollisionEntities.find(_entity) !=
       this->dataPtr->linkToCollisionEntities.end())
   {
     colEntities = this->dataPtr->linkToCollisionEntities[_entity];
   }
-  else if (this->dataPtr->modelToLinkEntities.find(_entity) !=
-           this->dataPtr->modelToLinkEntities.end())
-  {
-    links.insert(links.end(),
-        this->dataPtr->modelToLinkEntities[_entity].begin(),
-        this->dataPtr->modelToLinkEntities[_entity].end());
-  }
 
-  if (this->dataPtr->modelToModelEntities.find(_entity) !=
-      this->dataPtr->modelToModelEntities.end())
-  {
-    std::stack<Entity> modelStack;
-    modelStack.push(_entity);
-
-    std::vector<Entity> childModels;
-    while (!modelStack.empty())
-    {
-      Entity model = modelStack.top();
-      modelStack.pop();
-
-      links.insert(links.end(),
-          this->dataPtr->modelToLinkEntities[model].begin(),
-          this->dataPtr->modelToLinkEntities[model].end());
-
-      childModels = this->dataPtr->modelToModelEntities[model];
-      for (const auto &childModel : childModels)
-      {
-        modelStack.push(childModel);
-      }
-    }
-  }
+  // Find all existing child links for this entity
+  std::vector<Entity> links = this->FindChildLinks(_entity);
 
   for (const auto &link : links)
     colEntities.insert(colEntities.end(),
@@ -2615,16 +2566,7 @@ void RenderUtil::ViewCollisions(const Entity &_entity)
 
     if (showCol)
     {
-      // turn off wireboxes for collision entity
-      if (this->dataPtr->wireBoxes.find(colEntity)
-            != this->dataPtr->wireBoxes.end())
-      {
-        ignition::rendering::WireBoxPtr wireBox =
-          this->dataPtr->wireBoxes[colEntity];
-        auto visParent = wireBox->Parent();
-        if (visParent)
-          visParent->SetVisible(false);
-      }
+      this->HideWireboxes(colEntity);
     }
   }
 }
