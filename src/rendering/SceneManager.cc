@@ -1597,6 +1597,16 @@ void SceneManager::RemoveEntity(Entity _id)
     auto it = this->dataPtr->visuals.find(_id);
     if (it != this->dataPtr->visuals.end())
     {
+      // Remove visual's original transparency from map
+      rendering::VisualPtr vis = this->dataPtr->visuals[_id];
+      this->dataPtr->originalTransparency.erase(vis->Name());
+
+      for (auto g = 0u; g < vis->GeometryCount(); ++g)
+      {
+        auto geom = vis->GeometryByIndex(g);
+        this->dataPtr->originalTransparency.erase(geom->Name());
+      }
+
       this->dataPtr->scene->DestroyVisual(it->second);
       this->dataPtr->visuals.erase(it);
       return;
