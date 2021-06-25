@@ -1720,7 +1720,7 @@ void SceneManager::UpdateTransparency(const rendering::NodePtr &_node,
 
     // Geometry material
     auto geomMat = geom->Material();
-    if (nullptr == geomMat)
+    if (nullptr == geomMat || visMat == geomMat)
       continue;
     auto geomTransparency =
         this->dataPtr->originalTransparency.find(geom->Name());
