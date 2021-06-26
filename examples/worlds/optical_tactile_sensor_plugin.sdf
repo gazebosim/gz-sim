@@ -1,4 +1,17 @@
 <?xml version="1.0" ?>
+<!--
+
+  Demo of an optical tactile plugin.
+  Move the tactile sensor to touch different objects and see the output.
+
+  Disable the sensor with:
+
+    ign service -s /optical_tactile_plugin/enable \
+        --reqtype ignition.msgs.Boolean \
+        --reptype ignition.msgs.Empty \
+        --timeout 2000 --req 'data: false'
+
+-->
 
 <sdf version="1.7">
   <world name="optical_tactile_plugin">
@@ -38,7 +51,8 @@
         <scene>scene</scene>
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
-        <camera_pose>-6 0 6 0 0.5 0</camera_pose>
+        <camera_pose>0.35 0.23 0.94 0 0.05 -2.53</camera_pose>
+
       </plugin>
 
       <!-- World control -->
@@ -196,14 +210,16 @@
         </sensor>
 
       </link>
-      <static>true</static>
+      <static>false</static>
       <plugin
         filename="libignition-gazebo-opticaltactileplugin-system.so"
         name="ignition::gazebo::systems::OpticalTactilePlugin">
         <enabled>true</enabled>
-        <visualization_resolution>15</visualization_resolution>
-        <visualize_forces>true</visualize_forces>
+        <namespace>optical_tactile_plugin</namespace>
         <visualize_sensor>true</visualize_sensor>
+        <visualize_contacts>true</visualize_contacts>
+        <visualize_forces>true</visualize_forces>
+        <visualization_resolution>15</visualization_resolution>
         <force_length>0.01</force_length>
         <extended_sensing>0.001</extended_sensing>
       </plugin>
@@ -223,7 +239,7 @@
     <pose>0 -0.7 0 0 0 3.14</pose>
       <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/OfficeChairBlue</uri>
     </include>
-    
+
     <include>
     <pose>-1.5 0 0 0 0 0</pose>
       <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/VendingMachine</uri>
