@@ -99,7 +99,7 @@ ComponentTypeT *EntityComponentManager::CreateComponent(const Entity _entity,
       return comp;
     }
     *comp = _data;
-    comp->ignore = false;
+    comp->removed = false;
   }
   return comp;
 }
@@ -168,7 +168,7 @@ bool EntityComponentManager::SetComponentData(const Entity _entity,
 
   auto changed = comp->SetData(_data,
       CompareData<typename ComponentTypeT::Type>);
-  comp->ignore = false;
+  comp->removed = false;
   return changed;
 }
 

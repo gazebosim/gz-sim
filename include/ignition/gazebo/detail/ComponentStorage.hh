@@ -92,7 +92,7 @@ class IGNITION_GAZEBO_HIDDEN ComponentStorage
   /// \brief Get a pointer to a component of a particular type that belongs to
   /// an entity. This is useful for determining whether an entity has a
   /// reference to a particular component type or not, but says nothing about
-  /// the state/validity of the component. The component's ignore flag
+  /// the state/validity of the component. The component's removed flag
   /// should be checked to learn more about the state/validity of the component.
   /// \param[in] _entity The entity
   /// \param[in] _typeId The type of component to be retrieved
@@ -110,12 +110,12 @@ class IGNITION_GAZEBO_HIDDEN ComponentStorage
 
   /// \brief Get a pointer to a component of a particular type that belongs to
   /// an entity, if the component pointer is valid. A valid component pointer
-  /// is one that is not nullptr and is also one that does not have the ignore
+  /// is one that is not nullptr and is also one that does not have the removed
   /// flag set to true.
   /// \param[in] _entity The entity
   /// \param[in] _typeId The type of the component to retrieve
   /// \return The pointer to a component, if 1) the pointer isn't nullptr, and
-  /// 2) the ignore flag of the component pointer is false. Otherwise, nullptr
+  /// 2) the removed flag of the component pointer is false. Otherwise, nullptr
   /// is returned
   public: const components::BaseComponent *ValidComponent(const Entity _entity,
               const ComponentTypeId _typeId) const;

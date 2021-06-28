@@ -85,18 +85,18 @@ ComponentAdditionResult ComponentStorage::AddComponent(
     return ComponentAdditionResult::NEW_ADDITION;
   }
 
-  // if the pre-existing component is being ignored, this means that the
+  // if the pre-existing component is marked as removed, this means that the
   // component was added to the entity previously, but later removed. In this
   // case, a re-addition of the component is occuring. If the pre-existing
-  // component is not being ignored, this means that the component was added
+  // component is not marked as removed, this means that the component was added
   // to the entity previously and never removed. In this case, we are simply
   // modifying the data of the pre-existing component (the modification of the
   // data is done externally in a templated ECM method call, because we need the
   // derived component class in order to update the derived component data)
-  const auto additionResult = existingCompPtr->ignore ?
+  const auto additionResult = existingCompPtr->removed ?
     ComponentAdditionResult::RE_ADDITION :
     ComponentAdditionResult::MODIFICATION;
-  existingCompPtr->ignore = false;
+  existingCompPtr->removed = false;
   return additionResult;
 }
 
@@ -108,12 +108,10 @@ bool ComponentStorage::RemoveComponent(const Entity _entity,
   if (nullptr == compPtr)
     return false;
 
-  // if this component is already being ignored, that means it was already
-  // removed
-  if (compPtr->ignore)
+  if (compPtr->removed)
     return false;
 
-  compPtr->ignore = true;
+  compPtr->removed = true;
   return true;
 }
 
@@ -158,7 +156,7 @@ const components::BaseComponent *ComponentStorage::ValidComponent(
     const Entity _entity, const ComponentTypeId _typeId) const
 {
   auto compPtr = this->Component(_entity, _typeId);
-  if (nullptr != compPtr && !compPtr->ignore)
+  if (nullptr != compPtr && !compPtr->removed)
     return compPtr;
   return nullptr;
 }
@@ -168,7 +166,7 @@ components::BaseComponent *ComponentStorage::ValidComponent(
     const Entity _entity, const ComponentTypeId _typeId)
 {
   auto compPtr = this->Component(_entity, _typeId);
-  if (nullptr != compPtr && !compPtr->ignore)
+  if (nullptr != compPtr && !compPtr->removed)
     return compPtr;
   return nullptr;
 }
