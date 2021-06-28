@@ -121,6 +121,7 @@
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
 #include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/components/HaltMotion.hh"
 
 #include "CanonicalLinkModelTracker.hh"
 #include "EntityFeatureMap.hh"
@@ -291,6 +292,42 @@ class ignition::gazebo::systems::PhysicsPrivate
                      {
                        return _a == _b;
                      }};
+
+  /// \brief msgs::Contacts equality comparison function.
+  public: std::function<bool(const msgs::Contacts &,
+          const msgs::Contacts &)>
+          contactsEql { [](const msgs::Contacts &_a,
+                          const msgs::Contacts &_b)
+                    {
+                      if (_a.contact_size() != _b.contact_size())
+                      {
+                        return false;
+                      }
+
+                      for (int i = 0; i < _a.contact_size(); ++i)
+                      {
+                        if (_a.contact(i).position_size() !=
+                            _b.contact(i).position_size())
+                        {
+                          return false;
+                        }
+
+                        for (int j = 0; j < _a.contact(i).position_size();
+                          ++j)
+                        {
+                          auto pos1 = _a.contact(i).position(j);
+                          auto pos2 = _b.contact(i).position(j);
+
+                          if (!math::equal(pos1.x(), pos2.x(), 1e-6) ||
+                              !math::equal(pos1.y(), pos2.y(), 1e-6) ||
+                              !math::equal(pos1.z(), pos2.z(), 1e-6))
+                          {
+                            return false;
+                          }
+                        }
+                      }
+                      return true;
+                    }};
 
   /// \brief Environment variable which holds paths to look for engine plugins
   public: std::string pluginPathEnv = "IGN_GAZEBO_PHYSICS_ENGINE_PATH";
@@ -1336,13 +1373,31 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         if (nullptr == jointPhys)
           return true;
 
-        // Model is out of battery
-        if (this->entityOffMap[_ecm.ParentEntity(_entity)])
+        auto jointVelFeature =
+          this->entityJointMap.EntityCast<JointVelocityCommandFeatureList>(
+              _entity);
+
+        auto haltMotionComp = _ecm.Component<components::HaltMotion>(
+            _ecm.ParentEntity(_entity));
+        bool haltMotion = false;
+        if (haltMotionComp)
+        {
+          haltMotion = haltMotionComp->Data();
+        }
+
+        // Model is out of battery or halt motion has been triggered.
+        if (this->entityOffMap[_ecm.ParentEntity(_entity)] || haltMotion)
         {
           std::size_t nDofs = jointPhys->GetDegreesOfFreedom();
           for (std::size_t i = 0; i < nDofs; ++i)
           {
             jointPhys->SetForce(i, 0);
+
+            // Halt motion requires the vehicle to come to a full stop,
+            // while running out of battery can leave existing joint velocity
+            // in place.
+            if (haltMotion && jointVelFeature)
+              jointVelFeature->SetVelocityCommand(i, 0);
           }
           return true;
         }
@@ -1447,9 +1502,6 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
                     << velocityCmd.size() << ".\n";
           }
 
-          auto jointVelFeature =
-              this->entityJointMap.EntityCast<JointVelocityCommandFeatureList>(
-                  _entity);
           if (!jointVelFeature)
           {
             return true;
@@ -2579,16 +2631,20 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
       [&](const Entity &_collEntity1, components::Collision *,
           components::ContactSensorData *_contacts) -> bool
       {
+        msgs::Contacts contactsComp;
         if (entityContactMap.find(_collEntity1) == entityContactMap.end())
         {
           // Clear the last contact data
-          *_contacts = components::ContactSensorData();
+          auto state = _contacts->SetData(contactsComp,
+            this->contactsEql) ?
+            ComponentState::OneTimeChange :
+            ComponentState::NoChange;
+          _ecm.SetChanged(
+            _collEntity1, components::ContactSensorData::typeId, state);
           return true;
         }
 
         const auto &contactMap = entityContactMap[_collEntity1];
-
-        msgs::Contacts contactsComp;
 
         for (const auto &[collEntity2, contactData] : contactMap)
         {
@@ -2603,7 +2659,13 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
             position->set_z(contact->point.z());
           }
         }
-        *_contacts = components::ContactSensorData(contactsComp);
+
+        auto state = _contacts->SetData(contactsComp,
+          this->contactsEql) ?
+          ComponentState::OneTimeChange :
+          ComponentState::NoChange;
+        _ecm.SetChanged(
+          _collEntity1, components::ContactSensorData::typeId, state);
 
         return true;
       });
