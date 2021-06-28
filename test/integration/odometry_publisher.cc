@@ -260,6 +260,7 @@ class OdometryPublisherTest : public ::testing::TestWithParam<int>
 
     int sleep = 0;
     int maxSleep = 30;
+    // cppcheck-suppress knownConditionTrueFalse
     for (; odomPosesCount < 5 && sleep < maxSleep; ++sleep)
     {
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
