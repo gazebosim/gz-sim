@@ -48,7 +48,8 @@ class ignition::gazebo::GuiRunner::Implementation
   /// \brief Update the plugins.
   public: void UpdatePlugins();
 
-  /// \brief This method will be executed when a UpdatePlugins event is received.
+  /// \brief This method will be executed when a UpdatePlugins event is
+  /// received.
   void UpdatePluginsEvent();
 
   /// \brief This method will update the plugins in one of the workers
@@ -271,6 +272,7 @@ void GuiRunner::Implementation::UpdatePluginsEvent()
   if (this->ecm.HasNewEntities() ||
       this->ecm.HasEntitiesMarkedForRemoval())
   {
-    pool.AddWork(std::bind(&GuiRunner::Implementation::UpdatePluginsFromEvent, this));
+    pool.AddWork(std::bind(
+      &GuiRunner::Implementation::UpdatePluginsFromEvent, this));
   }
 }
