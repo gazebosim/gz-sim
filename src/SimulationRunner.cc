@@ -536,11 +536,11 @@ void SimulationRunner::UpdateSystems()
     IGN_PROFILE("Update");
     for (auto& system : this->systemsUpdate)
       system->Update(this->currentInfo, this->entityCompMgr);
+  }
 
-    if (serverConfig.SameProcessAsGUI())
-    {
-      this->eventMgr.Emit<events::UpdateSystems>();
-    }
+  if (serverConfig.SameProcessAsGUI())
+  {
+    this->eventMgr.Emit<events::UpdateSystems>();
   }
 
   {

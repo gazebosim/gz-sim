@@ -17,6 +17,7 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Profiler.hh>
+#include <ignition/common/WorkerPool.hh>
 #include <ignition/fuel_tools/Interface.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
@@ -47,8 +48,11 @@ class ignition::gazebo::GuiRunner::Implementation
   /// \brief Update the plugins.
   public: void UpdatePlugins();
 
-  /// \brief
+  /// \brief This method will be executed when a UpdatePlugins event is received.
   void UpdatePluginsEvent();
+
+  /// \brief This method will update the plugins in one of the workers
+  public: void UpdatePluginsFromEvent();
 
   /// \brief Connection to the UpdatePlugins event.
   public: ignition::common::ConnectionPtr UpdatePluginsConn;
@@ -79,6 +83,9 @@ class ignition::gazebo::GuiRunner::Implementation
 
   /// \brief The plugin update thread..
   public: std::thread updateThread;
+
+  /// \brief A pool of worker threads.
+  public: common::WorkerPool pool;
 };
 
 /////////////////////////////////////////////////
@@ -250,12 +257,20 @@ void GuiRunner::Implementation::UpdatePlugins()
   this->ecm.ClearRemovedComponents();
 }
 
+/////////////////////////////////////////////////
+void GuiRunner::Implementation::UpdatePluginsFromEvent()
+{
+  std::lock_guard<std::mutex> lock(this->updateMutex);
+  UpdatePlugins();
+}
+
+/////////////////////////////////////////////////
 void GuiRunner::Implementation::UpdatePluginsEvent()
 {
   std::lock_guard<std::mutex> lock(this->updateMutex);
   if (this->ecm.HasNewEntities() ||
       this->ecm.HasEntitiesMarkedForRemoval())
   {
-    this->UpdatePlugins();
+    pool.AddWork(std::bind(&GuiRunner::Implementation::UpdatePluginsFromEvent, this));
   }
 }
