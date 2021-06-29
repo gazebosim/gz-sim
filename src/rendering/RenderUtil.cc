@@ -2378,7 +2378,7 @@ void RenderUtil::ViewTransparent(const Entity &_entity)
   }
 
   // Find all existing child links for this entity
-  std::vector<Entity> links = this->FindChildLinks(_entity);
+  std::vector<Entity> links = std::move(this->FindChildLinks(_entity));
 
   for (const auto &link : links)
     visEntities.insert(visEntities.end(),
@@ -2448,7 +2448,7 @@ void RenderUtil::ViewWireframes(const Entity &_entity)
   }
 
   // Find all existing child links for this entity
-  std::vector<Entity> links = this->FindChildLinks(_entity);
+  std::vector<Entity> links = std::move(this->FindChildLinks(_entity));
 
   for (const auto &link : links)
     visEntities.insert(visEntities.end(),
@@ -2516,7 +2516,7 @@ void RenderUtil::ViewCollisions(const Entity &_entity)
   }
 
   // Find all existing child links for this entity
-  std::vector<Entity> links = this->FindChildLinks(_entity);
+  std::vector<Entity> links = std::move(this->FindChildLinks(_entity));
 
   for (const auto &link : links)
     colEntities.insert(colEntities.end(),
