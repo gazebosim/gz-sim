@@ -7,6 +7,8 @@ from bpy.types import Operator
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
+# Target blender version: 2.82
+
 ########################################################################################################################
 ### Exports model.dae of the scene with textures, its corresponding model.sdf file, and a default model.config file ####
 ########################################################################################################################
