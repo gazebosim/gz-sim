@@ -1035,6 +1035,26 @@ TEST_P(EntityComponentManagerFixture, EachNewBasic)
   manager.RunClearNewlyCreatedEntities();
   EXPECT_EQ(0, newCount<IntComponent>(manager));
   EXPECT_FALSE(manager.HasNewEntities());
+
+  // Below tests adding a new entity, but not using the view until the following
+  // simulation step. This is to ensure that the views update the status of
+  // their new entities correctly at the end of each simulation step, regardless
+  // of whether the view is used in a given simulation step or not
+
+  // Create a new entity and add a component to it that makes this entity a
+  // part of the IntComponent View
+  Entity e3 = manager.CreateEntity();
+  EXPECT_EQ(3u, manager.EntityCount());
+  EXPECT_TRUE(manager.HasNewEntities());
+  auto comp3 = manager.CreateComponent<IntComponent>(e3, IntComponent(789));
+  EXPECT_NE(nullptr, comp3);
+  // Mimic the end of a simulation step
+  manager.RunClearNewlyCreatedEntities();
+  // Use the IntComponent View, checking that the view has no entities marked as
+  // new since we are now in a new simulation step
+  EXPECT_EQ(0, newCount<IntComponent>(manager));
+  EXPECT_FALSE(manager.HasNewEntities());
+  EXPECT_EQ(3, eachCount<IntComponent>(manager));
 }
 
 //////////////////////////////////////////////////

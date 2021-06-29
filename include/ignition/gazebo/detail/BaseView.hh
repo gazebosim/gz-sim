@@ -62,6 +62,9 @@ struct ComponentTypeHasher
 /// ignition::gazebo::detail) directly.
 class IGNITION_GAZEBO_VISIBLE BaseView
 {
+  /// \brief Destructor
+  public: virtual ~BaseView() = default;
+
   /// \brief See if an entity is a part of the view
   /// \param[in] _entity The entity
   /// \return true if _entity is a part of the view, false otherwise
@@ -131,8 +134,10 @@ class IGNITION_GAZEBO_VISIBLE BaseView
   /// was not associated with the view.
   public: bool AddEntityToRemoved(const Entity _entity);
 
-  /// \brief Clear the list of new entities
-  public: void ClearNewEntities();
+  /// \brief Update the entities in the view to no longer appear as newly
+  /// created. This method should be called whenever a new simulation step is
+  /// about to take place.
+  public: void ResetNewEntityState();
 
   /// \brief Get the set of component types that this view requires.
   /// \return The set of component types.
@@ -146,26 +151,33 @@ class IGNITION_GAZEBO_VISIBLE BaseView
   /// \return The entities in the view
   public: const std::set<Entity> &Entities() const;
 
-  /// \brief Get all of the new entities in the view
-  /// \return The new entities in the view
+  /// \brief Get all of the entities in the view that are considered "newly
+  /// created". While an entity may be new to the view, it may not be a newly
+  /// created entity (perhaps this entity has existed for some time, and just
+  /// had a component added to it that now makes this entity a part of the
+  /// view). An entity's "newness" is determined by the entity component
+  /// manager.
+  /// \return The newly created entities that are a part of the view
   public: const std::set<Entity> &NewEntities() const;
 
   /// \brief Get all of the entities to be removed from the view
   /// \return The entities to be removed from the view
   public: const std::set<Entity> &ToRemoveEntities() const;
 
-  /// \brief Get all of the entities to be added to the view
-  /// \return The entities to be added to the view
+  /// \brief Get all of the entities that should be added to the view. This is
+  /// useful for adding entities to the view before the view is used to ensure
+  /// that the view is up-to-date. Once all entities marked "to be added" are
+  /// added to the view, the ClearToAddEntities method should be called.
+  /// \return The entities to be added to the view, with the key of the map
+  /// indicating whether an entity is a newly created entity or not.
+  /// \sa ClearToAddEntities
   public: const std::unordered_map<Entity, bool> &ToAddEntities() const;
 
   /// \brief Clear all of the entities that are marked as to be added to the
-  /// view
+  /// view. This should be called after all of the entities marked as to be
+  /// added to the view are actually added to the view.
+  /// \sa ToAddEntities
   public: void ClearToAddEntities();
-
-  /// \brief Destructor
-  public: virtual ~BaseView()
-  {
-  }
 
   // TODO(adlarkin) make this a std::unordered_set for better performance.
   // We need to make sure nothing else depends on the ordered preserved by

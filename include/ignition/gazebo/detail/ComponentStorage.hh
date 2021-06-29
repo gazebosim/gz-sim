@@ -54,6 +54,8 @@ enum class ComponentAdditionResult
   FAILED_ADDITION = 3
 };
 
+/// \brief A class that stores all components that have been created. This class
+/// also keeps track of the entity a component belongs to.
 class IGNITION_GAZEBO_HIDDEN ComponentStorage
 {
   /// \brief Clear all of the entity and component data that has been tracked.

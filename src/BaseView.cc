@@ -64,9 +64,13 @@ bool BaseView::AddEntityToRemoved(const Entity _entity)
 }
 
 //////////////////////////////////////////////////
-void BaseView::ClearNewEntities()
+void BaseView::ResetNewEntityState()
 {
   this->newEntities.clear();
+
+  // mark all entities in the toAddEntities map as not newly created
+  for (auto &entityNewPair : this->toAddEntities)
+    entityNewPair.second = false;
 }
 
 //////////////////////////////////////////////////

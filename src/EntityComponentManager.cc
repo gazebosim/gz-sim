@@ -229,7 +229,7 @@ void EntityComponentManager::ClearNewlyCreatedEntities()
 
   for (auto &view : this->dataPtr->views)
   {
-    view.second->ClearNewEntities();
+    view.second->ResetNewEntityState();
   }
 }
 
