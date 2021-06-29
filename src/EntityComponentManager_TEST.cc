@@ -139,12 +139,16 @@ TEST_P(EntityComponentManagerFixture, RemoveComponent)
   // Add components
   auto cIntEInt = manager.CreateComponent<IntComponent>(eInt,
       IntComponent(123));
+  ASSERT_NE(nullptr, cIntEInt);
   auto cDoubleEDouble = manager.CreateComponent<DoubleComponent>(eDouble,
       DoubleComponent(0.123));
+  ASSERT_NE(nullptr, cDoubleEDouble);
   auto cIntEIntDouble = manager.CreateComponent<IntComponent>(eIntDouble,
       IntComponent(456));
+  ASSERT_NE(nullptr, cIntEIntDouble);
   auto cDoubleEIntDouble = manager.CreateComponent<DoubleComponent>(eIntDouble,
       DoubleComponent(0.456));
+  ASSERT_NE(nullptr, cDoubleEIntDouble);
 
   // Check entities have the components
   EXPECT_TRUE(manager.EntityHasComponentType(eInt, IntComponent::typeId));
@@ -213,6 +217,7 @@ TEST_P(EntityComponentManagerFixture, EntitiesAndComponents)
   // Add a component to an entity
   auto compPtr =  manager.CreateComponent<IntComponent>(entity,
       IntComponent(123));
+  ASSERT_NE(nullptr, compPtr);
 
   EXPECT_TRUE(manager.HasComponentType(IntComponent::typeId));
   EXPECT_TRUE(manager.EntityHasComponentType(entity, IntComponent::typeId));
@@ -272,14 +277,23 @@ TEST_P(EntityComponentManagerFixture, ComponentValues)
   EXPECT_EQ(5u, manager.EntityCount());
 
   // Add components of different types to each entity
-  manager.CreateComponent<IntComponent>(eInt, IntComponent(123));
-  manager.CreateComponent<DoubleComponent>(eDouble, DoubleComponent(0.123));
-  manager.CreateComponent<IntComponent>(eIntDouble, IntComponent(456));
-  manager.CreateComponent<DoubleComponent>(eIntDouble, DoubleComponent(0.456));
-  manager.CreateComponent<components::Pose>(ePose,
+  auto comp1 = manager.CreateComponent<IntComponent>(eInt, IntComponent(123));
+  ASSERT_NE(nullptr, comp1);
+  auto comp2 = manager.CreateComponent<DoubleComponent>(eDouble,
+      DoubleComponent(0.123));
+  ASSERT_NE(nullptr, comp2);
+  auto comp3 = manager.CreateComponent<IntComponent>(eIntDouble,
+      IntComponent(456));
+  ASSERT_NE(nullptr, comp3);
+  auto comp4 = manager.CreateComponent<DoubleComponent>(eIntDouble,
+      DoubleComponent(0.456));
+  ASSERT_NE(nullptr, comp4);
+  auto comp5 = manager.CreateComponent<components::Pose>(ePose,
       components::Pose({1, 2, 3, 0, 0, 0}));
-  manager.CreateComponent<CustomComponent>(eCustom,
+  ASSERT_NE(nullptr, comp5);
+  auto comp6 = manager.CreateComponent<CustomComponent>(eCustom,
       CustomComponent(Custom()));
+  ASSERT_NE(nullptr, comp6);
 
   // Get and set component values
   {
@@ -436,10 +450,17 @@ TEST_P(EntityComponentManagerFixture, RebuildViews)
   EXPECT_EQ(3u, manager.EntityCount());
 
   // Add components of different types to each entity
-  manager.CreateComponent<IntComponent>(eInt, IntComponent(123));
-  manager.CreateComponent<DoubleComponent>(eDouble, DoubleComponent(0.123));
-  manager.CreateComponent<IntComponent>(eIntDouble, IntComponent(456));
-  manager.CreateComponent<DoubleComponent>(eIntDouble, DoubleComponent(0.456));
+  auto comp1 = manager.CreateComponent<IntComponent>(eInt, IntComponent(123));
+  ASSERT_NE(nullptr, comp1);
+  auto comp2 = manager.CreateComponent<DoubleComponent>(eDouble,
+      DoubleComponent(0.123));
+  ASSERT_NE(nullptr, comp2);
+  auto comp3 = manager.CreateComponent<IntComponent>(eIntDouble,
+      IntComponent(456));
+  ASSERT_NE(nullptr, comp3);
+  auto comp4 = manager.CreateComponent<DoubleComponent>(eIntDouble,
+      DoubleComponent(0.456));
+  ASSERT_NE(nullptr, comp4);
 
   // The first iteration of this loop builds views. At the end, views are
   // rebuilt. The second iteration should return the same values as the
@@ -498,10 +519,17 @@ TEST_P(EntityComponentManagerFixture, ViewsAddComponents)
   EXPECT_EQ(3u, manager.EntityCount());
 
   // Add components of different types to each entity
-  manager.CreateComponent<IntComponent>(eInt, IntComponent(123));
-  manager.CreateComponent<DoubleComponent>(eDouble, DoubleComponent(0.123));
-  manager.CreateComponent<IntComponent>(eIntDouble, IntComponent(456));
-  manager.CreateComponent<DoubleComponent>(eIntDouble, DoubleComponent(0.456));
+  auto comp1 = manager.CreateComponent<IntComponent>(eInt, IntComponent(123));
+  ASSERT_NE(nullptr, comp1);
+  auto comp2 = manager.CreateComponent<DoubleComponent>(eDouble,
+      DoubleComponent(0.123));
+  ASSERT_NE(nullptr, comp2);
+  auto comp3 = manager.CreateComponent<IntComponent>(eIntDouble,
+      IntComponent(456));
+  ASSERT_NE(nullptr, comp3);
+  auto comp4 = manager.CreateComponent<DoubleComponent>(eIntDouble,
+      DoubleComponent(0.456));
+  ASSERT_NE(nullptr, comp4);
 
   for (int i = 0; i < 2; ++i)
   {
@@ -548,7 +576,9 @@ TEST_P(EntityComponentManagerFixture, ViewsAddComponents)
     else
       EXPECT_EQ(3, count);
 
-    manager.CreateComponent<DoubleComponent>(eInt, DoubleComponent(12.123));
+    auto comp5 = manager.CreateComponent<DoubleComponent>(eInt,
+        DoubleComponent(12.123));
+    ASSERT_NE(nullptr, comp5);
   }
 }
 
@@ -562,11 +592,17 @@ TEST_P(EntityComponentManagerFixture, ViewsRemoveComponents)
   EXPECT_EQ(3u, manager.EntityCount());
 
   // Add components of different types to each entity
-  manager.CreateComponent<IntComponent>(eInt, IntComponent(123));
-  manager.CreateComponent<DoubleComponent>(eDouble, DoubleComponent(0.123));
-  manager.CreateComponent<IntComponent>(eIntDouble, IntComponent(456));
+  auto comp1 = manager.CreateComponent<IntComponent>(eInt, IntComponent(123));
+  ASSERT_NE(nullptr, comp1);
+  auto comp2 = manager.CreateComponent<DoubleComponent>(eDouble,
+      DoubleComponent(0.123));
+  ASSERT_NE(nullptr, comp2);
+  auto comp3 = manager.CreateComponent<IntComponent>(eIntDouble,
+      IntComponent(456));
+  ASSERT_NE(nullptr, comp3);
   auto compToRemove = manager.CreateComponent<DoubleComponent>(eIntDouble,
       DoubleComponent(0.456));
+  ASSERT_NE(nullptr, compToRemove);
 
   for (int i = 0; i < 2; ++i)
   {
@@ -630,10 +666,17 @@ TEST_P(EntityComponentManagerFixture, ViewsAddEntity)
   EXPECT_EQ(3u, manager.EntityCount());
 
   // Add components of different types to each entity
-  manager.CreateComponent<IntComponent>(eInt, IntComponent(123));
-  manager.CreateComponent<DoubleComponent>(eDouble, DoubleComponent(0.123));
-  manager.CreateComponent<IntComponent>(eIntDouble, IntComponent(456));
-  manager.CreateComponent<DoubleComponent>(eIntDouble, DoubleComponent(0.456));
+  auto comp1 = manager.CreateComponent<IntComponent>(eInt, IntComponent(123));
+  ASSERT_NE(nullptr, comp1);
+  auto comp2 = manager.CreateComponent<DoubleComponent>(eDouble,
+      DoubleComponent(0.123));
+  ASSERT_NE(nullptr, comp2);
+  auto comp3 = manager.CreateComponent<IntComponent>(eIntDouble,
+      IntComponent(456));
+  ASSERT_NE(nullptr, comp3);
+  auto comp4 = manager.CreateComponent<DoubleComponent>(eIntDouble,
+      DoubleComponent(0.456));
+  ASSERT_NE(nullptr, comp4);
 
   Entity newEntity;
 
@@ -695,7 +738,10 @@ TEST_P(EntityComponentManagerFixture, ViewsAddEntity)
     EXPECT_EQ(2, count);
 
     newEntity = manager.CreateEntity();
-    manager.CreateComponent<IntComponent>(newEntity, IntComponent(789));
+    ASSERT_NE(kNullEntity, newEntity);
+    auto createdComp = manager.CreateComponent<IntComponent>(newEntity,
+        IntComponent(789));
+    ASSERT_NE(nullptr, createdComp);
   }
 }
 
@@ -709,10 +755,17 @@ TEST_P(EntityComponentManagerFixture, ViewsRemoveEntities)
   EXPECT_EQ(3u, manager.EntityCount());
 
   // Add components of different types to each entity
-  manager.CreateComponent<IntComponent>(eInt, IntComponent(123));
-  manager.CreateComponent<DoubleComponent>(eDouble, DoubleComponent(0.123));
-  manager.CreateComponent<IntComponent>(eIntDouble, IntComponent(456));
-  manager.CreateComponent<DoubleComponent>(eIntDouble, DoubleComponent(0.456));
+  auto comp1 = manager.CreateComponent<IntComponent>(eInt, IntComponent(123));
+  ASSERT_NE(nullptr, comp1);
+  auto comp2 = manager.CreateComponent<DoubleComponent>(eDouble,
+      DoubleComponent(0.123));
+  ASSERT_NE(nullptr, comp2);
+  auto comp3 = manager.CreateComponent<IntComponent>(eIntDouble,
+      IntComponent(456));
+  ASSERT_NE(nullptr, comp3);
+  auto comp4 = manager.CreateComponent<DoubleComponent>(eIntDouble,
+      DoubleComponent(0.456));
+  ASSERT_NE(nullptr, comp4);
 
   for (int i = 0; i < 2; ++i)
   {
@@ -838,10 +891,17 @@ TEST_P(EntityComponentManagerFixture, ViewsRemoveEntity)
   EXPECT_EQ(3u, manager.EntityCount());
 
   // Add components of different types to each entity
-  manager.CreateComponent<IntComponent>(eInt, IntComponent(123));
-  manager.CreateComponent<DoubleComponent>(eDouble, DoubleComponent(0.123));
-  manager.CreateComponent<IntComponent>(eIntDouble, IntComponent(456));
-  manager.CreateComponent<DoubleComponent>(eIntDouble, DoubleComponent(0.456));
+  auto comp1 = manager.CreateComponent<IntComponent>(eInt, IntComponent(123));
+  ASSERT_NE(nullptr, comp1);
+  auto comp2 = manager.CreateComponent<DoubleComponent>(eDouble,
+      DoubleComponent(0.123));
+  ASSERT_NE(nullptr, comp2);
+  auto comp3 = manager.CreateComponent<IntComponent>(eIntDouble,
+      IntComponent(456));
+  ASSERT_NE(nullptr, comp3);
+  auto comp4 = manager.CreateComponent<DoubleComponent>(eIntDouble,
+      DoubleComponent(0.456));
+  ASSERT_NE(nullptr, comp4);
 
   int count = 0;
   manager.Each<IntComponent> ([&](const Entity &_entity,
@@ -962,8 +1022,10 @@ TEST_P(EntityComponentManagerFixture, EachNewBasic)
   EXPECT_EQ(2u, manager.EntityCount());
 
   // Add components to each entity
-  manager.CreateComponent<IntComponent>(e1, IntComponent(123));
-  manager.CreateComponent<IntComponent>(e2, IntComponent(456));
+  auto comp1 = manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  ASSERT_NE(nullptr, comp1);
+  auto comp2 = manager.CreateComponent<IntComponent>(e2, IntComponent(456));
+  ASSERT_NE(nullptr, comp2);
 
   EXPECT_EQ(2, newCount<IntComponent>(manager));
   EXPECT_TRUE(manager.HasNewEntities());
@@ -981,11 +1043,14 @@ TEST_P(EntityComponentManagerFixture, EachNewAfterRemoveComponent)
   // Create entities
   Entity e1 = manager.CreateEntity();
   auto comp1 = manager.CreateComponent<IntComponent>(e1, IntComponent(123));
-  manager.CreateComponent<DoubleComponent>(e1, DoubleComponent(0.0));
+  ASSERT_NE(nullptr, comp1);
+  auto comp2 = manager.CreateComponent<DoubleComponent>(e1,
+      DoubleComponent(0.0));
+  ASSERT_NE(nullptr, comp2);
 
   EXPECT_EQ(1, newCount<IntComponent>(manager));
 
-  manager.RemoveComponent(e1, comp1->TypeId());
+  EXPECT_TRUE(manager.RemoveComponent(e1, comp1->TypeId()));
   EXPECT_EQ(1, newCount<DoubleComponent>(manager));
 
   manager.RunClearNewlyCreatedEntities();
@@ -997,13 +1062,15 @@ TEST_P(EntityComponentManagerFixture, EachNewRemoveComponentFromRemoveEntity)
 {
   // Create entities
   Entity e1 = manager.CreateEntity();
-  manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  auto comp1 = manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  ASSERT_NE(nullptr, comp1);
   manager.RunClearNewlyCreatedEntities();
   // Nothing new after cleared
   EXPECT_EQ(0, newCount<IntComponent>(manager));
 
   Entity e2 = manager.CreateEntity();
-  manager.CreateComponent<IntComponent>(e2, IntComponent(456));
+  auto comp2 = manager.CreateComponent<IntComponent>(e2, IntComponent(456));
+  ASSERT_NE(nullptr, comp2);
   EXPECT_EQ(1, newCount<IntComponent>(manager));
   // Check if this true after RebuildViews
   manager.RebuildViews();
@@ -1016,18 +1083,25 @@ TEST_P(EntityComponentManagerFixture, EachNewAddComponentToExistingEntity)
   // Create entities
   Entity e1 = manager.CreateEntity();
   Entity e2 = manager.CreateEntity();
-  manager.CreateComponent<IntComponent>(e1, IntComponent(123));
-  manager.CreateComponent<IntComponent>(e2, IntComponent(456));
+  auto comp1 = manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  ASSERT_NE(nullptr, comp1);
+  auto comp2 = manager.CreateComponent<IntComponent>(e2, IntComponent(456));
+  ASSERT_NE(nullptr, comp2);
   manager.RunClearNewlyCreatedEntities();
   // Nothing new after cleared
   EXPECT_EQ(0, newCount<IntComponent>(manager));
 
   // Create a new entity
   Entity e3 = manager.CreateEntity();
-  manager.CreateComponent<IntComponent>(e3, IntComponent(789));
+  auto comp3 = manager.CreateComponent<IntComponent>(e3, IntComponent(789));
+  ASSERT_NE(nullptr, comp3);
   // Add a new component to existing entities
-  manager.CreateComponent<DoubleComponent>(e1, DoubleComponent(0.0));
-  manager.CreateComponent<DoubleComponent>(e2, DoubleComponent(2.0));
+  auto comp4 = manager.CreateComponent<DoubleComponent>(e1,
+      DoubleComponent(0.0));
+  ASSERT_NE(nullptr, comp4);
+  auto comp5 = manager.CreateComponent<DoubleComponent>(e2,
+      DoubleComponent(2.0));
+  ASSERT_NE(nullptr, comp5);
 
   // e1 and e2 have a new double component, but they are not considered new
   // entities
@@ -1045,8 +1119,10 @@ TEST_P(EntityComponentManagerFixture, EachRemoveBasic)
   EXPECT_EQ(2u, manager.EntityCount());
 
   // Add components to each entity
-  manager.CreateComponent<IntComponent>(e1, IntComponent(123));
-  manager.CreateComponent<IntComponent>(e2, IntComponent(456));
+  auto comp1 = manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  ASSERT_NE(nullptr, comp1);
+  auto comp2 = manager.CreateComponent<IntComponent>(e2, IntComponent(456));
+  ASSERT_NE(nullptr, comp2);
 
   // Remove an entity.
   manager.RequestRemoveEntity(e1);
@@ -1075,8 +1151,10 @@ TEST_P(EntityComponentManagerFixture, EachRemoveAlreadyRemove)
   EXPECT_EQ(2u, manager.EntityCount());
 
   // Add components to each entity
-  manager.CreateComponent<IntComponent>(e1, IntComponent(123));
-  manager.CreateComponent<IntComponent>(e2, IntComponent(456));
+  auto comp1 = manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  ASSERT_NE(nullptr, comp1);
+  auto comp2 = manager.CreateComponent<IntComponent>(e2, IntComponent(456));
+  ASSERT_NE(nullptr, comp2);
   manager.RequestRemoveEntity(e2);
 
   manager.ProcessEntityRemovals();
@@ -1093,7 +1171,8 @@ TEST_P(EntityComponentManagerFixture, EachRemoveAfterRebuild)
   Entity e1 = manager.CreateEntity();
   EXPECT_EQ(1u, manager.EntityCount());
 
-  manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  auto comp1 = manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  ASSERT_NE(nullptr, comp1);
   EXPECT_EQ(1, newCount<IntComponent>(manager));
   manager.RunClearNewlyCreatedEntities();
 
@@ -1108,13 +1187,16 @@ TEST_P(EntityComponentManagerFixture, EachRemoveAfterRebuild)
 TEST_P(EntityComponentManagerFixture, EachRemoveAddComponentToRemoveEntity)
 {
   Entity e1 = manager.CreateEntity();
-  manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  auto comp1 = manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  ASSERT_NE(nullptr, comp1);
   manager.RunClearNewlyCreatedEntities();
   manager.RequestRemoveEntity(e1);
 
   // Add a new component to an removed entity. This should be possible since the
   // entity is only scheduled to be removed.
-  manager.CreateComponent<DoubleComponent>(e1, DoubleComponent(0.0));
+  auto comp2 = manager.CreateComponent<DoubleComponent>(e1,
+      DoubleComponent(0.0));
+  ASSERT_NE(nullptr, comp2);
   EXPECT_EQ(1, removedCount<IntComponent>(manager));
   EXPECT_EQ(1, (removedCount<IntComponent, DoubleComponent>(manager)));
 }
@@ -1125,8 +1207,10 @@ TEST_P(EntityComponentManagerFixture, EachRemoveAllRemove)
   // Test when all entities are removed
   Entity e1 = manager.CreateEntity();
   Entity e2 = manager.CreateEntity();
-  manager.CreateComponent<IntComponent>(e1, IntComponent(123));
-  manager.CreateComponent<IntComponent>(e2, IntComponent(456));
+  auto comp1 = manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  ASSERT_NE(nullptr, comp1);
+  auto comp2 = manager.CreateComponent<IntComponent>(e2, IntComponent(456));
+  ASSERT_NE(nullptr, comp2);
   EXPECT_EQ(2u, manager.EntityCount());
 
   manager.RequestRemoveEntities();
@@ -1142,8 +1226,10 @@ TEST_P(EntityComponentManagerFixture, EachNewEachRemove)
   // Test EachNew and EachRemove together
   Entity e1 = manager.CreateEntity();
   Entity e2 = manager.CreateEntity();
-  manager.CreateComponent<IntComponent>(e1, IntComponent(123));
-  manager.CreateComponent<IntComponent>(e2, IntComponent(456));
+  auto comp1 = manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  ASSERT_NE(nullptr, comp1);
+  auto comp2 = manager.CreateComponent<IntComponent>(e2, IntComponent(456));
+  ASSERT_NE(nullptr, comp2);
   EXPECT_EQ(2u, manager.EntityCount());
 
   EXPECT_EQ(2, newCount<IntComponent>(manager));
@@ -1170,8 +1256,10 @@ TEST_P(EntityComponentManagerFixture, EachGetsNewOldRemove)
   // Test that an Each call gets new, old, and removed entities
   Entity e1 = manager.CreateEntity();
   Entity e2 = manager.CreateEntity();
-  manager.CreateComponent<IntComponent>(e1, IntComponent(123));
-  manager.CreateComponent<IntComponent>(e2, IntComponent(456));
+  auto comp1 = manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  ASSERT_NE(nullptr, comp1);
+  auto comp2 = manager.CreateComponent<IntComponent>(e2, IntComponent(456));
+  ASSERT_NE(nullptr, comp2);
   EXPECT_EQ(2u, manager.EntityCount());
 
   EXPECT_EQ(2, eachCount<IntComponent>(manager));
@@ -1210,37 +1298,48 @@ TEST_P(EntityComponentManagerFixture, EachAddRemoveComponent)
   EXPECT_EQ(nullptr, comp);
 
   // add a component
-  manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  auto comp1 = manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  ASSERT_NE(nullptr, comp1);
   EXPECT_EQ(1, eachCount<IntComponent>(manager));
   comp = manager.Component<IntComponent>(e1);
   ASSERT_NE(nullptr, comp);
   EXPECT_EQ(123, comp->Data());
+  EXPECT_EQ(123, comp1->Data());
+  EXPECT_EQ(comp, comp1);
 
   // remove a component
-  manager.RemoveComponent(e1, IntComponent::typeId);
+  EXPECT_TRUE(manager.RemoveComponent(e1, IntComponent::typeId));
   EXPECT_EQ(nullptr, manager.Component<IntComponent>(e1));
   EXPECT_EQ(0, eachCount<IntComponent>(manager));
 
   // add the same type of component back in
-  manager.CreateComponent<IntComponent>(e1, IntComponent(456));
+  auto comp2 = manager.CreateComponent<IntComponent>(e1, IntComponent(456));
+  ASSERT_NE(nullptr, comp2);
   EXPECT_EQ(1, eachCount<IntComponent>(manager));
   comp = manager.Component<IntComponent>(e1);
   ASSERT_NE(nullptr, comp);
   EXPECT_EQ(456, comp->Data());
+  EXPECT_EQ(456, comp2->Data());
+  EXPECT_EQ(comp, comp2);
 
   // remove the component again
-  manager.RemoveComponent(e1, IntComponent::typeId);
+  EXPECT_TRUE(manager.RemoveComponent(e1, IntComponent::typeId));
   EXPECT_EQ(nullptr, manager.Component<IntComponent>(e1));
   EXPECT_EQ(0, eachCount<IntComponent>(manager));
 
   // add and remove the component before calling ecm.Each. This is to make sure
-  // that the views remove any entities in the toAdd queue if required
-  // components for entities in the toAdd queue are removed before calling Each
-  manager.CreateComponent<IntComponent>(e1, IntComponent(789));
+  // that the views remove any entities in their toAddEntities queue if required
+  // components for entities in a view's toAddEntities queue are removed before
+  // calling Each, since a view's toAddEntities queue is processed (and then
+  // cleared) in an Each call
+  auto comp3 = manager.CreateComponent<IntComponent>(e1, IntComponent(789));
+  ASSERT_NE(nullptr, comp3);
   comp = manager.Component<IntComponent>(e1);
   ASSERT_NE(nullptr, comp);
   EXPECT_EQ(789, comp->Data());
-  manager.RemoveComponent(e1, IntComponent::typeId);
+  EXPECT_EQ(789, comp3->Data());
+  EXPECT_EQ(comp, comp3);
+  EXPECT_TRUE(manager.RemoveComponent(e1, IntComponent::typeId));
   EXPECT_EQ(nullptr, manager.Component<IntComponent>(e1));
   // call ecm.Each after adding/removing the component
   EXPECT_EQ(0, eachCount<IntComponent>(manager));
@@ -1256,16 +1355,28 @@ TEST_P(EntityComponentManagerFixture, EntityByComponents)
   EXPECT_EQ(3u, manager.EntityCount());
 
   // Add components of different types to each entity
-  manager.CreateComponent<IntComponent>(eInt, IntComponent(-123));
-  manager.CreateComponent<StringComponent>(eInt, StringComponent("int"));
+  auto comp1 = manager.CreateComponent<IntComponent>(eInt, IntComponent(-123));
+  ASSERT_NE(nullptr, comp1);
+  auto comp2 = manager.CreateComponent<StringComponent>(eInt,
+      StringComponent("int"));
+  ASSERT_NE(nullptr, comp2);
 
-  manager.CreateComponent<UIntComponent>(eUint, UIntComponent(456u));
-  manager.CreateComponent<StringComponent>(eUint, StringComponent("uint"));
+  auto comp3 = manager.CreateComponent<UIntComponent>(eUint,
+      UIntComponent(456u));
+  ASSERT_NE(nullptr, comp3);
+  auto comp4 = manager.CreateComponent<StringComponent>(eUint,
+      StringComponent("uint"));
+  ASSERT_NE(nullptr, comp4);
 
-  manager.CreateComponent<IntComponent>(eIntUint, IntComponent(789));
-  manager.CreateComponent<UIntComponent>(eIntUint, UIntComponent(789u));
-  manager.CreateComponent<StringComponent>(eIntUint,
+  auto comp5 = manager.CreateComponent<IntComponent>(eIntUint,
+      IntComponent(789));
+  ASSERT_NE(nullptr, comp5);
+  auto comp6 = manager.CreateComponent<UIntComponent>(eIntUint,
+      UIntComponent(789u));
+  ASSERT_NE(nullptr, comp6);
+  auto comp7 = manager.CreateComponent<StringComponent>(eIntUint,
       StringComponent("int-uint"));
+  ASSERT_NE(nullptr, comp7);
 
   // Get entities by the value of their components
   EXPECT_EQ(eInt, manager.EntityByComponents(IntComponent(-123)));
@@ -1301,8 +1412,11 @@ TEST_P(EntityComponentManagerFixture, EntityByComponents)
   Entity eInt2 = manager.CreateEntity();
   EXPECT_EQ(4u, manager.EntityCount());
 
-  manager.CreateComponent<IntComponent>(eInt2, IntComponent(-123));
-  manager.CreateComponent<StringComponent>(eInt2, StringComponent("int2"));
+  auto comp8 = manager.CreateComponent<IntComponent>(eInt2, IntComponent(-123));
+  ASSERT_NE(nullptr, comp8);
+  auto comp9 = manager.CreateComponent<StringComponent>(eInt2,
+      StringComponent("int2"));
+  ASSERT_NE(nullptr, comp9);
 
   auto entities = manager.EntitiesByComponents(IntComponent(-123));
   EXPECT_EQ(2u, entities.size());
@@ -1370,14 +1484,21 @@ TEST_P(EntityComponentManagerFixture, EntityGraph)
    */
 
   // Add components
-  manager.CreateComponent<Even>(e2, {});
-  manager.CreateComponent<Even>(e4, {});
-  manager.CreateComponent<Even>(e6, {});
+  auto comp1 = manager.CreateComponent<Even>(e2, {});
+  ASSERT_NE(nullptr, comp1);
+  auto comp2 = manager.CreateComponent<Even>(e4, {});
+  ASSERT_NE(nullptr, comp2);
+  auto comp3 = manager.CreateComponent<Even>(e6, {});
+  ASSERT_NE(nullptr, comp3);
 
-  manager.CreateComponent<Odd>(e1, {});
-  manager.CreateComponent<Odd>(e3, {});
-  manager.CreateComponent<Odd>(e5, {});
-  manager.CreateComponent<Odd>(e7, {});
+  auto comp4 = manager.CreateComponent<Odd>(e1, {});
+  ASSERT_NE(nullptr, comp4);
+  auto comp5 = manager.CreateComponent<Odd>(e3, {});
+  ASSERT_NE(nullptr, comp5);
+  auto comp6 = manager.CreateComponent<Odd>(e5, {});
+  ASSERT_NE(nullptr, comp6);
+  auto comp7 = manager.CreateComponent<Odd>(e7, {});
+  ASSERT_NE(nullptr, comp7);
 
   // Get children by components
   {
@@ -1469,10 +1590,16 @@ TEST_P(EntityComponentManagerFixture, State)
     EXPECT_EQ(3u, manager.EntityCount());
 
     // Components
-    manager.CreateComponent<IntComponent>(e1, IntComponent(e1c0));
-    manager.CreateComponent<DoubleComponent>(e2, DoubleComponent(e2c0));
-    manager.CreateComponent<StringComponent>(e2, StringComponent(e2c1));
-    manager.CreateComponent<IntComponent>(e3, IntComponent(e3c0));
+    auto comp1 = manager.CreateComponent<IntComponent>(e1, IntComponent(e1c0));
+    ASSERT_NE(nullptr, comp1);
+    auto comp2 = manager.CreateComponent<DoubleComponent>(e2,
+        DoubleComponent(e2c0));
+    ASSERT_NE(nullptr, comp2);
+    auto comp3 = manager.CreateComponent<StringComponent>(e2,
+        StringComponent(e2c1));
+    ASSERT_NE(nullptr, comp3);
+    auto comp4 = manager.CreateComponent<IntComponent>(e3, IntComponent(e3c0));
+    ASSERT_NE(nullptr, comp4);
   }
 
   // Serialize into a message
@@ -1731,7 +1858,8 @@ TEST_P(EntityComponentManagerFixture, ChangedStateComponents)
   EXPECT_EQ(1u, manager.EntityCount());
 
   // Component
-  manager.CreateComponent<IntComponent>(e1, IntComponent(e1c0));
+  auto comp1 = manager.CreateComponent<IntComponent>(e1, IntComponent(e1c0));
+  ASSERT_NE(nullptr, comp1);
 
   // Serialize into a message
   msgs::SerializedStateMap stateMsg;
@@ -1746,6 +1874,7 @@ TEST_P(EntityComponentManagerFixture, ChangedStateComponents)
   // create component
   auto compPtr =
       manager.CreateComponent<StringComponent>(e1, StringComponent(e1c1));
+  ASSERT_NE(nullptr, compPtr);
   changedStateMsg = manager.ChangedState();
   EXPECT_EQ(1, changedStateMsg.entities_size());
   manager.State(stateMsg);
@@ -1780,7 +1909,7 @@ TEST_P(EntityComponentManagerFixture, ChangedStateComponents)
   EXPECT_EQ(0, changedStateMsg.entities_size());
 
   // remove component
-  manager.RemoveComponent(e1, StringComponent::typeId);
+  EXPECT_TRUE(manager.RemoveComponent(e1, StringComponent::typeId));
 
   changedStateMsg = manager.ChangedState();
   EXPECT_EQ(1, changedStateMsg.entities_size());
@@ -2007,7 +2136,9 @@ TEST_P(EntityComponentManagerFixture, SetChanged)
 
   // Add components to each entity
   auto c1 = manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  ASSERT_NE(nullptr, c1);
   auto c2 = manager.CreateComponent<IntComponent>(e2, IntComponent(456));
+  ASSERT_NE(nullptr, c2);
 
   EXPECT_TRUE(manager.HasOneTimeComponentChanges());
   EXPECT_EQ(0u, manager.ComponentTypesWithPeriodicChanges().size());
@@ -2100,10 +2231,13 @@ TEST_P(EntityComponentManagerFixture, SerializedStateMapMsgAfterRemoveComponent)
   Entity e1 = manager.CreateEntity();
   auto e1c0 =
     manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  ASSERT_NE(nullptr, e1c0);
   auto e1c1 =
     manager.CreateComponent<DoubleComponent>(e1, DoubleComponent(0.0));
+  ASSERT_NE(nullptr, e1c1);
   auto e1c2 =
     manager.CreateComponent<StringComponent>(e1, StringComponent("int"));
+  ASSERT_NE(nullptr, e1c2);
 
   // We use this map because the order in which components are iterated
   // through depends on the (undetermined) order of unordered multimaps
@@ -2112,8 +2246,8 @@ TEST_P(EntityComponentManagerFixture, SerializedStateMapMsgAfterRemoveComponent)
   expectations.insert(std::make_pair(e1c1->TypeId(), true));
   expectations.insert(std::make_pair(e1c2->TypeId(), true));
 
-  manager.RemoveComponent(e1, e1c1->TypeId());
-  manager.RemoveComponent(e1, e1c2->TypeId());
+  EXPECT_TRUE(manager.RemoveComponent(e1, e1c1->TypeId()));
+  EXPECT_TRUE(manager.RemoveComponent(e1, e1c2->TypeId()));
 
   // Serialize into a message
   msgs::SerializedStateMap stateMsg;
@@ -2165,10 +2299,13 @@ TEST_P(EntityComponentManagerFixture, SerializedStateMsgAfterRemoveComponent)
   Entity e1 = manager.CreateEntity();
   auto e1c0 =
     manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  ASSERT_NE(nullptr, e1c0);
   auto e1c1 =
     manager.CreateComponent<DoubleComponent>(e1, DoubleComponent(0.0));
+  ASSERT_NE(nullptr, e1c1);
   auto e1c2 =
     manager.CreateComponent<StringComponent>(e1, StringComponent("int"));
+  ASSERT_NE(nullptr, e1c2);
 
   // We use this map because the order in which components are iterated
   // through depends on the (undetermined) order of unordered multimaps
@@ -2177,8 +2314,8 @@ TEST_P(EntityComponentManagerFixture, SerializedStateMsgAfterRemoveComponent)
   expectations.insert(std::make_pair(e1c1->TypeId(), true));
   expectations.insert(std::make_pair(e1c2->TypeId(), true));
 
-  manager.RemoveComponent(e1, e1c1->TypeId());
-  manager.RemoveComponent(e1, e1c2->TypeId());
+  EXPECT_TRUE(manager.RemoveComponent(e1, e1c1->TypeId()));
+  EXPECT_TRUE(manager.RemoveComponent(e1, e1c2->TypeId()));
 
   // Serialize into a message
   msgs::SerializedState stateMsg;
@@ -2226,13 +2363,17 @@ TEST_P(EntityComponentManagerFixture, SerializedStateMapMsgCompsRemovedOnly)
   Entity e1 = manager.CreateEntity();
   auto e1c0 =
     manager.CreateComponent<IntComponent>(e1, IntComponent(123));
-  manager.CreateComponent<DoubleComponent>(e1, DoubleComponent(0.0));
+  ASSERT_NE(nullptr, e1c0);
+  auto e1c1 = manager.CreateComponent<DoubleComponent>(e1,
+      DoubleComponent(0.0));
+  ASSERT_NE(nullptr, e1c1);
   auto e1c2 =
     manager.CreateComponent<StringComponent>(e1, StringComponent("int"));
+  ASSERT_NE(nullptr, e1c2);
 
   manager.RunSetAllComponentsUnchanged();
-  manager.RemoveComponent(e1, e1c0->TypeId());
-  manager.RemoveComponent(e1, e1c2->TypeId());
+  EXPECT_TRUE(manager.RemoveComponent(e1, e1c0->TypeId()));
+  EXPECT_TRUE(manager.RemoveComponent(e1, e1c2->TypeId()));
   // Serialize into a message
   msgs::SerializedStateMap stateMsg;
   manager.State(stateMsg);
@@ -2266,14 +2407,17 @@ TEST_P(EntityComponentManagerFixture, SetRemovedComponentsMsgTypesFilter)
   Entity e1 = manager.CreateEntity();
   auto e1c0 =
     manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  ASSERT_NE(nullptr, e1c0);
   auto e1c1 =
     manager.CreateComponent<DoubleComponent>(e1, DoubleComponent(0.0));
+  ASSERT_NE(nullptr, e1c1);
   auto e1c2 =
     manager.CreateComponent<StringComponent>(e1, StringComponent("foo"));
+  ASSERT_NE(nullptr, e1c2);
 
   manager.RunSetAllComponentsUnchanged();
-  manager.RemoveComponent(e1, e1c0->TypeId());
-  manager.RemoveComponent(e1, e1c2->TypeId());
+  EXPECT_TRUE(manager.RemoveComponent(e1, e1c0->TypeId()));
+  EXPECT_TRUE(manager.RemoveComponent(e1, e1c2->TypeId()));
 
   // Serialize into a message, providing a list of types to be included
   msgs::SerializedStateMap stateMsg;
@@ -2307,10 +2451,13 @@ TEST_P(EntityComponentManagerFixture, RemovedComponentsSyncBetweenServerAndGUI)
   Entity e1 = manager.CreateEntity();
   auto e1c0 =
     manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  ASSERT_NE(nullptr, e1c0);
   auto e1c1 =
     manager.CreateComponent<DoubleComponent>(e1, DoubleComponent(0.0));
+  ASSERT_NE(nullptr, e1c1);
   auto e1c2 =
     manager.CreateComponent<StringComponent>(e1, StringComponent("int"));
+  ASSERT_NE(nullptr, e1c2);
 
   // We use this map because the order in which components are iterated
   // through depends on the (undetermined) order of unordered multimaps
@@ -2355,8 +2502,8 @@ TEST_P(EntityComponentManagerFixture, RemovedComponentsSyncBetweenServerAndGUI)
   expectationsAfterRemoving.insert(std::make_pair(e1c2->TypeId(), true));
 
   // Remove components and synchronize again
-  manager.RemoveComponent(e1, e1c1->TypeId());
-  manager.RemoveComponent(e1, e1c2->TypeId());
+  EXPECT_TRUE(manager.RemoveComponent(e1, e1c1->TypeId()));
+  EXPECT_TRUE(manager.RemoveComponent(e1, e1c2->TypeId()));
 
   msgs::SerializedStateMap newStateMsg;
   manager.State(newStateMsg);
