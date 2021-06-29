@@ -30,6 +30,7 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage collada_world_exporter "Collada World Exporter": Export an entire world to a single Collada mesh.
 * \subpage underwater_vehicles "Underwater Vehicles": Understand how to simulate underwater vehicles.
 * \subpage particle_mitter "Particle emitter": Using particle emitters in simulation
+* \subpage blender_sdf_exporter "Blender SDF Exporter": Use a blender script to export a model to the SDF format.
 
 **Migration from Gazebo classic**
 
