@@ -38,7 +38,7 @@ endif()
 # Search for project-specific dependencies
 #============================================================================
 
-ign_find_package(sdformat11 REQUIRED VERSION 11.2)
+ign_find_package(sdformat11 REQUIRED VERSION 11.2.1)
 set(SDF_VER ${sdformat11_VERSION_MAJOR})
 
 #--------------------------------------
