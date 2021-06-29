@@ -2381,9 +2381,11 @@ void RenderUtil::ViewTransparent(const Entity &_entity)
   std::vector<Entity> links = std::move(this->FindChildLinks(_entity));
 
   for (const auto &link : links)
+  {
     visEntities.insert(visEntities.end(),
         this->dataPtr->linkToVisualEntities[link].begin(),
         this->dataPtr->linkToVisualEntities[link].end());
+  }
 
   // Toggle transparent mode
   bool showTransparent, showTransparentInit = false;
@@ -2451,9 +2453,11 @@ void RenderUtil::ViewWireframes(const Entity &_entity)
   std::vector<Entity> links = std::move(this->FindChildLinks(_entity));
 
   for (const auto &link : links)
+  {
     visEntities.insert(visEntities.end(),
         this->dataPtr->linkToVisualEntities[link].begin(),
         this->dataPtr->linkToVisualEntities[link].end());
+  }
 
   // Toggle wireframes
   bool showWireframe, showWireframeInit = false;
@@ -2519,13 +2523,15 @@ void RenderUtil::ViewCollisions(const Entity &_entity)
   std::vector<Entity> links = std::move(this->FindChildLinks(_entity));
 
   for (const auto &link : links)
+  {
     colEntities.insert(colEntities.end(),
         this->dataPtr->linkToCollisionEntities[link].begin(),
         this->dataPtr->linkToCollisionEntities[link].end());
+  }
 
   // create and/or toggle collision visuals
-
   bool showCol, showColInit = false;
+
   // first loop looks for new collisions
   for (const auto &colEntity : colEntities)
   {
