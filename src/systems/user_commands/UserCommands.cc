@@ -53,6 +53,9 @@
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
+#include "ignition/gazebo/components/ContactSensorData.hh"
+#include "ignition/gazebo/components/ContactSensor.hh"
+#include "ignition/gazebo/components/Sensor.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -78,6 +81,13 @@ class UserCommandsInterface
 
   /// \brief World entity.
   public: Entity worldEntity{kNullEntity};
+
+  /// \brief Check if there's a contact sensor connected to a collision
+  /// component
+  /// \param[in] _collision Collision entity to be checked
+  /// \return True if a contact sensor is connected to the collision entity,
+  /// false otherwise
+  public: bool HasContactSensor(const Entity _collision);
 };
 
 /// \brief All user commands should inherit from this class so they can be
@@ -235,6 +245,32 @@ class PhysicsCommand : public UserCommandBase
   // Documentation inherited
   public: bool Execute() final;
 };
+
+/// \brief Command to enable a collision component.
+class EnableCollisionCommand : public UserCommandBase
+{
+  /// \brief Constructor
+  /// \param[in] _msg Message identifying the collision to be enabled.
+  /// \param[in] _iface Pointer to user commands interface.
+  public: EnableCollisionCommand(msgs::Entity *_msg,
+      std::shared_ptr<UserCommandsInterface> &_iface);
+
+  // Documentation inherited
+  public: bool Execute() final;
+};
+
+/// \brief Command to disable a collision component.
+class DisableCollisionCommand : public UserCommandBase
+{
+  /// \brief Constructor
+  /// \param[in] _msg Message identifying the collision to be disabled.
+  /// \param[in] _iface Pointer to user commands interface.
+  public: DisableCollisionCommand(msgs::Entity *_msg,
+      std::shared_ptr<UserCommandsInterface> &_iface);
+
+  // Documentation inherited
+  public: bool Execute() final;
+};
 }
 }
 }
@@ -288,6 +324,22 @@ class ignition::gazebo::systems::UserCommandsPrivate
   /// \return True if successful.
   public: bool PhysicsService(const msgs::Physics &_req, msgs::Boolean &_res);
 
+  /// \brief Callback for enable collision service
+  /// \param[in] _req Request containing collision entity.
+  /// \param[in] _res True if message successfully received and queued.
+  /// It does not mean that the collision will be successfully enabled.
+  /// \return True if successful.
+  public: bool EnableCollisionService(
+      const msgs::Entity &_req, msgs::Boolean &_res);
+
+  /// \brief Callback for disable collision service
+  /// \param[in] _req Request containing collision entity.
+  /// \param[in] _res True if message successfully received and queued.
+  /// It does not mean that the collision will be successfully disabled.
+  /// \return True if successful.
+  public: bool DisableCollisionService(
+      const msgs::Entity &_req, msgs::Boolean &_res);
+
   /// \brief Queue of commands pending execution.
   public: std::vector<std::unique_ptr<UserCommandBase>> pendingCmds;
 
@@ -309,6 +361,38 @@ UserCommands::UserCommands() : System(),
 
 //////////////////////////////////////////////////
 UserCommands::~UserCommands() = default;
+
+//////////////////////////////////////////////////
+bool UserCommandsInterface::HasContactSensor(const Entity _collision)
+{
+  auto *linkEntity = ecm->Component<components::ParentEntity>(_collision);
+  auto allLinkSensors =
+    ecm->EntitiesByComponents(components::Sensor(),
+      components::ParentEntity(*linkEntity));
+
+  for (auto const &sensor : allLinkSensors)
+  {
+    // Check if it is a contact sensor
+    auto isContactSensor =
+      ecm->EntityHasComponentType(sensor, components::ContactSensor::typeId);
+    if (!isContactSensor)
+      continue;
+
+    // Check if sensor is connected to _collision
+    auto componentName = ecm->Component<components::Name>(_collision);
+    std::string collisionName = componentName->Data();
+    auto sensorSDF = ecm->Component<components::ContactSensor>(sensor)->Data();
+    auto sensorCollisionName =
+      sensorSDF->GetElement("contact")->Get<std::string>("collision");
+
+    if (collisionName == sensorCollisionName)
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
 
 //////////////////////////////////////////////////
 void UserCommands::Configure(const Entity &_entity,
@@ -376,6 +460,24 @@ void UserCommands::Configure(const Entity &_entity,
       &UserCommandsPrivate::PhysicsService, this->dataPtr.get());
 
   ignmsg << "Physics service on [" << physicsService << "]" << std::endl;
+
+  // Enable collision service
+  std::string enableCollisionService{
+    "/world/" + validWorldName + "/enable_collision"};
+  this->dataPtr->node.Advertise(enableCollisionService,
+      &UserCommandsPrivate::EnableCollisionService, this->dataPtr.get());
+
+  ignmsg << "Enable collision service on [" << enableCollisionService << "]"
+    << std::endl;
+
+  // Disable collision service
+  std::string disableCollisionService{
+    "/world/" + validWorldName + "/disable_collision"};
+  this->dataPtr->node.Advertise(disableCollisionService,
+      &UserCommandsPrivate::DisableCollisionService, this->dataPtr.get());
+
+  ignmsg << "Disable collision service on [" << disableCollisionService << "]"
+    << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -495,6 +597,44 @@ bool UserCommandsPrivate::PoseService(const msgs::Pose &_req,
   auto msg = _req.New();
   msg->CopyFrom(_req);
   auto cmd = std::make_unique<PoseCommand>(msg, this->iface);
+
+  // Push to pending
+  {
+    std::lock_guard<std::mutex> lock(this->pendingMutex);
+    this->pendingCmds.push_back(std::move(cmd));
+  }
+
+  _res.set_data(true);
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool UserCommandsPrivate::EnableCollisionService(const msgs::Entity &_req,
+    msgs::Boolean &_res)
+{
+  // Create command and push it to queue
+  auto msg = _req.New();
+  msg->CopyFrom(_req);
+  auto cmd = std::make_unique<EnableCollisionCommand>(msg, this->iface);
+
+  // Push to pending
+  {
+    std::lock_guard<std::mutex> lock(this->pendingMutex);
+    this->pendingCmds.push_back(std::move(cmd));
+  }
+
+  _res.set_data(true);
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool UserCommandsPrivate::DisableCollisionService(const msgs::Entity &_req,
+    msgs::Boolean &_res)
+{
+  // Create command and push it to queue
+  auto msg = _req.New();
+  msg->CopyFrom(_req);
+  auto cmd = std::make_unique<DisableCollisionCommand>(msg, this->iface);
 
   // Push to pending
   {
@@ -812,7 +952,6 @@ bool RemoveCommand::Execute()
   return true;
 }
 
-
 //////////////////////////////////////////////////
 LightCommand::LightCommand(msgs::Light *_msg,
     std::shared_ptr<UserCommandsInterface> &_iface)
@@ -987,6 +1126,108 @@ bool PhysicsCommand::Execute()
     this->iface->ecm->CreateComponent(worldEntity,
         components::PhysicsCmd(*physicsMsg));
   }
+
+  return true;
+}
+
+//////////////////////////////////////////////////
+EnableCollisionCommand::EnableCollisionCommand(msgs::Entity *_msg,
+    std::shared_ptr<UserCommandsInterface> &_iface)
+    : UserCommandBase(_msg, _iface)
+{
+}
+
+//////////////////////////////////////////////////
+bool EnableCollisionCommand::Execute()
+{
+  auto entityMsg = dynamic_cast<const msgs::Entity *>(this->msg);
+  if (nullptr == entityMsg)
+  {
+    ignerr << "Internal error, null create message" << std::endl;
+    return false;
+  }
+
+  // Check Entity type
+  if (entityMsg->type() != msgs::Entity::COLLISION)
+  {
+    ignwarn << "Expected msgs::Entity::Type::COLLISION, exiting service..."
+      << std::endl;
+    return false;
+  }
+
+  // Check if collision is connected to a contact sensor
+  if (this->iface->HasContactSensor(entityMsg->id()))
+  {
+    ignwarn << "Requested collision is connected to a contact sensor, "
+      << "exiting service..." << std::endl;
+    return false;
+  }
+
+  // Create ContactSensorData component
+  auto contactDataComp =
+    this->iface->ecm->Component<
+      components::ContactSensorData>(entityMsg->id());
+  if (contactDataComp)
+  {
+    ignwarn << "Can't create component that already exists" << std::endl;
+    return false;
+  }
+
+  this->iface->ecm->
+    CreateComponent(entityMsg->id(), components::ContactSensorData());
+  igndbg << "Enabled collision [" << entityMsg->id() << "]" << std::endl;
+
+  return true;
+}
+
+//////////////////////////////////////////////////
+DisableCollisionCommand::DisableCollisionCommand(msgs::Entity *_msg,
+    std::shared_ptr<UserCommandsInterface> &_iface)
+    : UserCommandBase(_msg, _iface)
+{
+}
+
+//////////////////////////////////////////////////
+bool DisableCollisionCommand::Execute()
+{
+  auto entityMsg = dynamic_cast<const msgs::Entity *>(this->msg);
+  if (nullptr == entityMsg)
+  {
+    ignerr << "Internal error, null create message" << std::endl;
+    return false;
+  }
+
+  // Check Entity type
+  if (entityMsg->type() != msgs::Entity::COLLISION)
+  {
+    ignwarn << "Expected msgs::Entity::Type::COLLISION, exiting service..."
+      << std::endl;
+    return false;
+  }
+
+  // Check if collision is connected to a contact sensor
+  if (this->iface->HasContactSensor(entityMsg->id()))
+  {
+    ignwarn << "Requested collision is connected to a contact sensor, "
+      << "exiting service..." << std::endl;
+    return false;
+  }
+
+  // Remove ContactSensorData component
+  auto *contactDataComp =
+    this->iface->ecm->Component<
+      components::ContactSensorData>(entityMsg->id());
+  if (!contactDataComp)
+  {
+    ignwarn << "No ContactSensorData detected inside entity " << entityMsg->id()
+      << std::endl;
+    return false;
+  }
+
+  this->iface->ecm->
+    RemoveComponent(entityMsg->id(), components::ContactSensorData::typeId);
+
+  igndbg << "Disabled collision [" << entityMsg->id() << "]" << std::endl;
 
   return true;
 }

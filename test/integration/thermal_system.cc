@@ -224,7 +224,6 @@ TEST_F(ThermalTest, IGN_UTILS_TEST_DISABLED_ON_MAC(ThermalSensorSystem))
             maxTemp = info.max.Kelvin();
             return true;
           });
-
     });
   server.AddSystem(testSystem.systemPtr);
 
