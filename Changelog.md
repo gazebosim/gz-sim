@@ -2,9 +2,9 @@
 
 ### Ignition Gazebo 5.X.X (20XX-XX-XX)
 
-### Ignition Gazebo 5.1.0 (2021-06-28)
+### Ignition Gazebo 5.1.0 (2021-06-29)
 
-1. Depend on SDF 11.2, rendering 5.1 and GUI 5.1. Fix Windows.
+1. Depend on SDF 11.2.1, rendering 5.1 and GUI 5.1. Fix Windows.
     * [Pull request #877](https://github.com/ignitionrobotics/ign-gazebo/pull/877)
 
 1. Set gui camera pose
