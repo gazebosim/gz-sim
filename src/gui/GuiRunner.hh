@@ -43,9 +43,7 @@ class IGNITION_GAZEBO_GUI_VISIBLE GuiRunner : public QObject
 
   /// \brief Constructor
   /// \param[in] _worldName World name.
-  /// \todo Move to src/gui on v6.
-  public: explicit IGN_DEPRECATED(5.0) GuiRunner(
-      const std::string &_worldName);
+  public: explicit GuiRunner(const std::string &_worldName);
 
   /// \brief Destructor
   public: ~GuiRunner() override;
