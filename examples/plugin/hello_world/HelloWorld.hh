@@ -18,25 +18,29 @@
 #ifndef SYSTEM_PLUGIN_HELLOWORLD_HH_
 #define SYSTEM_PLUGIN_HELLOWORLD_HH_
 
+// The only required include in the header is this one.
+// All others will depend on what your plugin does.
 #include <ignition/gazebo/System.hh>
 
+// It's good practice to use a custom namespace for your project.
 namespace hello_world
 {
-
-  class HelloWorld: 
-
+  // This is the main plugin's class. It must inherit from System and at least
+  // one other interface.
+  // Here we use `ISystemPostUpdate`, which is used to get results after
+  // physics runs. The opposite of that, `ISystemPreUpdate`, would be used by
+  // plugins that want to send commands.
+  class HelloWorld:
     public ignition::gazebo::System,
     public ignition::gazebo::ISystemPostUpdate
-  
   {
-    
-    public: HelloWorld();
-
-    public: ~HelloWorld();
-
+    // Plugins inheriting ISystemPostUpdate must implement the PostUpdate
+    // callback. This is called at every simulation iteration after the physics
+    // updates the world. The _info variable provides information such as time,
+    // while the _ecm provides an interface to all entities and components in
+    // simulation.
     public: void PostUpdate(const ignition::gazebo::UpdateInfo &_info,
-                const ignition::gazebo::EntityComponentManager &_ecm);
+                const ignition::gazebo::EntityComponentManager &_ecm) override;
   };
-
 }
-#endif 
+#endif
