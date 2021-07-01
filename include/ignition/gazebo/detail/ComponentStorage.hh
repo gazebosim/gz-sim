@@ -56,7 +56,10 @@ enum class ComponentAdditionResult
 
 /// \brief A class that stores all components that have been created. This class
 /// also keeps track of the entity a component belongs to.
-class IGNITION_GAZEBO_HIDDEN ComponentStorage
+///
+/// \note The symbols are visible so that unit tests can be written for this
+/// class.
+class IGNITION_GAZEBO_VISIBLE ComponentStorage
 {
   /// \brief Clear all of the entity and component data that has been tracked.
   /// This "resets" the storage to its initial, empty state.

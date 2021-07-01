@@ -67,6 +67,7 @@ set (gtest_sources
   Barrier_TEST.cc
   Component_TEST.cc
   ComponentFactory_TEST.cc
+  ComponentStorage_TEST.cc
   Conversions_TEST.cc
   EntityComponentManager_TEST.cc
   EventManager_TEST.cc
