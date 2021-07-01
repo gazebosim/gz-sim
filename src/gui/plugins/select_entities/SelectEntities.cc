@@ -353,12 +353,20 @@ void SelectEntitiesPrivate::Initialize()
     if (nullptr == this->scene)
       return;
 
-    this->camera = std::dynamic_pointer_cast<rendering::Camera>(
-      this->scene->SensorByName("Scene3DCamera"));
-    if (!this->camera)
+    for (unsigned int i = 0; i < this->scene->NodeCount(); ++i)
     {
-      ignerr << "Camera is not available" << std::endl;
-      return;
+      auto cam = std::dynamic_pointer_cast<rendering::Camera>(
+        this->scene->NodeByIndex(i));
+      if (cam)
+      {
+        if (cam->Name().find("scene::Camera") != std::string::npos)
+        {
+          this->camera = cam;
+          igndbg << "InteractiveViewControl plugin is moving camera ["
+                 << this->camera->Name() << "]" << std::endl;
+          break;
+        }
+      }
     }
   }
 }

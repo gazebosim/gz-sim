@@ -30,6 +30,8 @@ namespace plugins
 {
   class SelectEntitiesPrivate;
 
+  /// \brief This plugin is in charge of selecting and deselecting the entities
+  /// from the Scene3D and emit the corresponding events.
   class SelectEntities : public ignition::gazebo::GuiSystem
   {
     Q_OBJECT

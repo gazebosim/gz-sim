@@ -30,6 +30,8 @@ namespace plugins
 {
   class TransformControlLogicPrivate;
 
+  /// \brief This plugins is in charge of handling the transform control logic.
+  /// This plugin emits event to block the Interactive View Plugin.
   class TransformControlLogic : public ignition::gazebo::GuiSystem
   {
     Q_OBJECT

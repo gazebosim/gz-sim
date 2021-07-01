@@ -51,6 +51,7 @@ class ignition::gazebo::plugins::TransformControlLogicPrivate
   public: bool OnTransformMode(const msgs::StringMsg &_msg,
       msgs::Boolean &_res);
 
+  /// \brief The method handle the logic of the transform control.
   public: void HandleTransform();
 
   /// \brief Snaps a point at intervals of a fixed distance. Currently used
@@ -83,7 +84,11 @@ class ignition::gazebo::plugins::TransformControlLogicPrivate
   /// \param[in] _scale The scale snap values
   public: void SetScaleSnap(const math::Vector3d &_scale);
 
-  /////////////////////////////////////////////////
+  /// \brief Get the top level node for the given node, which
+  /// is the ancestor which is a direct child to the root visual.
+  /// Usually, this will be a model or a light.
+  /// \param[in] _node Child node
+  /// \return Top level node containining this node
   rendering::NodePtr TopLevelNode(
       const rendering::NodePtr &_node) const;
 
@@ -146,10 +151,10 @@ class ignition::gazebo::plugins::TransformControlLogicPrivate
   public: std::mutex mutex;
 
   //// \brief Pointer to the rendering scene
-  public: rendering::ScenePtr scene = nullptr;
+  public: rendering::ScenePtr scene{nullptr};
 
   /// \brief User camera
-  public: rendering::CameraPtr camera = nullptr;
+  public: rendering::CameraPtr camera{nullptr};
 
   /// \brief The xyz values by which to snap the object.
   public: math::Vector3d xyzSnap = math::Vector3d::One;
@@ -175,12 +180,20 @@ void TransformControlLogicPrivate::HandleTransform()
     if (nullptr == this->scene)
       return;
 
-    this->camera = std::dynamic_pointer_cast<rendering::Camera>(
-      this->scene->SensorByName("Scene3DCamera"));
-    if (!this->camera)
+    for (unsigned int i = 0; i < this->scene->NodeCount(); ++i)
     {
-      ignerr << "TransformControlLogic Camera is not available" << std::endl;
-      return;
+      auto cam = std::dynamic_pointer_cast<rendering::Camera>(
+        this->scene->NodeByIndex(i));
+      if (cam)
+      {
+        if (cam->Name().find("scene::Camera") != std::string::npos)
+        {
+          this->camera = cam;
+          igndbg << "InteractiveViewControl plugin is moving camera ["
+                 << this->camera->Name() << "]" << std::endl;
+          break;
+        }
+      }
     }
 
     if (!this->transformControl.Camera())

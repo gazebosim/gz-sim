@@ -164,7 +164,7 @@ namespace events
   class TransformControlMode : public QEvent
   {
     /// \brief Constructor
-    /// \param[in] _filePath The path to an SDF file.
+    /// \param[in] _tranformModeActive is the transform control mode active
     public: explicit TransformControlMode(const bool _tranformModeActive)
         : QEvent(kType), tranformModeActive(_tranformModeActive)
     {
