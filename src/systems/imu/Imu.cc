@@ -58,6 +58,10 @@ class ignition::gazebo::systems::ImuPrivate
   /// \brief Ign-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
 
+  /// \brief True to compute and output orientation values,
+  /// false to leave the orientation field empty in the published msg.
+  public: bool outputOrientation = true;
+
   public: Entity worldEntity = kNullEntity;
 
   /// \brief Create IMU sensor
@@ -81,6 +85,19 @@ Imu::Imu() : System(), dataPtr(std::make_unique<ImuPrivate>())
 
 //////////////////////////////////////////////////
 Imu::~Imu() = default;
+
+//////////////////////////////////////////////////
+void Imu::Configure(const Entity & /*_entity*/,
+    const std::shared_ptr<const sdf::Element> &_sdf,
+    gazebo::EntityComponentManager & /*_ecm*/,
+    gazebo::EventManager & /*_eventMgr*/)
+{
+  if (_sdf->HasElement("output_orientation"))
+  {
+    this->dataPtr->outputOrientation =
+        _sdf->Get<bool>("output_orientation");
+  }
+}
 
 //////////////////////////////////////////////////
 void Imu::PreUpdate(const UpdateInfo &/*_info*/,
@@ -186,6 +203,9 @@ void ImuPrivate::CreateImuEntities(EntityComponentManager &_ecm)
         // Set topic
         _ecm.CreateComponent(_entity, components::SensorTopic(sensor->Topic()));
 
+        // Set whether to output orientation
+        sensor->SetOrientationEnabled(this->outputOrientation);
+
         this->entitySensorMap.insert(
             std::make_pair(_entity, std::move(sensor)));
 
@@ -254,7 +274,8 @@ void ImuPrivate::RemoveImuEntities(
 
 IGNITION_ADD_PLUGIN(Imu, System,
   Imu::ISystemPreUpdate,
-  Imu::ISystemPostUpdate
+  Imu::ISystemPostUpdate,
+  Imu::ISystemConfigure
 )
 
 IGNITION_ADD_PLUGIN_ALIAS(Imu, "ignition::gazebo::systems::Imu")
