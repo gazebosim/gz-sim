@@ -32,8 +32,6 @@
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/Publisher.hh>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
-
 namespace ignition::gazebo
 {
   class ShapesPrivate

@@ -143,6 +143,49 @@
 
 ### Ignition Gazebo 4.x.x (202x-xx-xx)
 
+### Ignition Gazebo 4.9.1 (2021-05-24)
+
+1. Make halt motion act like a brake.
+    * [Pull Request 830](https://github.com/ignitionrobotics/ign-gazebo/pull/830)
+
+### Ignition Gazebo 4.9.0 (2021-05-20)
+
+1. Enable Focal CI.
+    * [Pull Request 646](https://github.com/ignitionrobotics/ign-gazebo/pull/646)
+
+1. [TPE] Support setting individual link velocity.
+    * [Pull Request 427](https://github.com/ignitionrobotics/ign-gazebo/pull/427)
+
+1. Don't store duplicate ComponentTypeId in ECM.
+    * [Pull Request 751](https://github.com/ignitionrobotics/ign-gazebo/pull/751)
+
+1. Fix macOS build: components::Name in benchmark.
+    * [Pull Request 784](https://github.com/ignitionrobotics/ign-gazebo/pull/784)
+
+1. Fix documentation for EntityComponentManager::EachNew.
+    * [Pull Request 795](https://github.com/ignitionrobotics/ign-gazebo/pull/795)
+
+1. Add functionalities for optical tactile plugin.
+    * [Pull Request 431](https://github.com/ignitionrobotics/ign-gazebo/pull/431)
+
+1. Visualize ContactSensorData.
+    * [Pull Request 234](https://github.com/ignitionrobotics/ign-gazebo/pull/234)
+
+1. Backport PR #763.
+    * [Pull Request 804](https://github.com/ignitionrobotics/ign-gazebo/pull/804)
+
+1. Backport PR #536.
+    * [Pull Request 812](https://github.com/ignitionrobotics/ign-gazebo/pull/812)
+
+1. Add an optional delay to the TriggeredPublisher system.
+    * [Pull Request 817](https://github.com/ignitionrobotics/ign-gazebo/pull/817)
+
+1. Remove tools/code_check and update codecov.
+    * [Pull Request 814](https://github.com/ignitionrobotics/ign-gazebo/pull/814)
+
+1. add conversion for particle scatter ratio field.
+    * [Pull Request 791](https://github.com/ignitionrobotics/ign-gazebo/pull/791)
+
 ### Ignition Gazebo 4.8.0 (2021-04-22)
 
 1. Add odometry publisher system.

@@ -962,6 +962,7 @@ TEST(Conversions, ParticleEmitter)
   emitter.SetColorRangeImage("range_image");
   emitter.SetTopic("my_topic");
   emitter.SetRawPose(math::Pose3d(1, 2, 3, 0, 0, 0));
+  emitter.SetScatterRatio(0.9f);
 
   sdf::Material material;
   sdf::Pbr pbr;
@@ -996,6 +997,10 @@ TEST(Conversions, ParticleEmitter)
   EXPECT_EQ("topic", header.key());
   EXPECT_EQ("my_topic", header.value(0));
 
+  auto headerScatterRatio = emitterMsg.header().data(1);
+  EXPECT_EQ("particle_scatter_ratio", headerScatterRatio.key());
+  EXPECT_FLOAT_EQ(0.9f, std::stof(headerScatterRatio.value(0)));
+
   EXPECT_EQ(math::Pose3d(1, 2, 3, 0, 0, 0), msgs::Convert(emitterMsg.pose()));
 
   auto pbrMsg = emitterMsg.material().pbr();
@@ -1020,4 +1025,5 @@ TEST(Conversions, ParticleEmitter)
   EXPECT_EQ(emitter2.ColorRangeImage(), emitter.ColorRangeImage());
   EXPECT_EQ(emitter2.Topic(), emitter.Topic());
   EXPECT_EQ(emitter2.RawPose(), emitter.RawPose());
+  EXPECT_FLOAT_EQ(emitter2.ScatterRatio(), emitter.ScatterRatio());
 }
