@@ -50,6 +50,9 @@ namespace ignition::gazebo
     /// \brief View as transparent service name
     public: std::string viewTransparentService;
 
+    /// \brief View inertia service name
+    public: std::string viewInertiaService;
+
     /// \brief View wireframes service name
     public: std::string viewWireframesService;
 
@@ -87,6 +90,9 @@ EntityContextMenu::EntityContextMenu()
 
   // For view transparent service requests
   this->dataPtr->viewTransparentService = "/gui/view/transparent";
+
+  // For view inertia service requests
+  this->dataPtr->viewInertiaService = "/gui/view/inertia";
 
   // For view wireframes service requests
   this->dataPtr->viewWireframesService = "/gui/view/wireframes";
@@ -169,6 +175,12 @@ void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
     ignition::msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->viewTransparentService, req, cb);
+  }
+  else if (request == "view_inertia")
+  {
+    ignition::msgs::StringMsg req;
+    req.set_data(_data.toStdString());
+    this->dataPtr->node.Request(this->dataPtr->viewInertiaService, req, cb);
   }
   else if (request == "view_wireframes")
   {

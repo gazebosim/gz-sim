@@ -179,6 +179,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Target to view as transparent
     public: std::string viewTransparentTarget;
 
+    /// \brief Target to view inertia
+    public: std::string viewInertiaTarget;
+
     /// \brief Target to view wireframes
     public: std::string viewWireframesTarget;
 
@@ -481,6 +484,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief View transparent service
     public: std::string viewTransparentService;
+
+    /// \brief View inertia service
+    public: std::string viewInertiaService;
 
     /// \brief View wireframes service
     public: std::string viewWireframesService;
@@ -968,6 +974,32 @@ void IgnRenderer::Render(RenderSync *_renderSync)
       }
 
       this->dataPtr->viewTransparentTarget.clear();
+    }
+  }
+
+  // View inertia
+  {
+    IGN_PROFILE("IgnRenderer::Render ViewInertia");
+    if (!this->dataPtr->viewInertiaTarget.empty())
+    {
+      rendering::NodePtr targetNode =
+          scene->NodeByName(this->dataPtr->viewInertiaTarget);
+      auto targetVis = std::dynamic_pointer_cast<rendering::Visual>(targetNode);
+
+      if (targetVis)
+      {
+        Entity targetEntity =
+            std::get<int>(targetVis->UserData("gazebo-entity"));
+        this->dataPtr->renderUtil.ViewInertia(targetEntity);
+      }
+      else
+      {
+        ignerr << "Unable to find node name ["
+               << this->dataPtr->viewInertiaTarget
+               << "] to view inertia" << std::endl;
+      }
+
+      this->dataPtr->viewInertiaTarget.clear();
     }
   }
 
@@ -2209,6 +2241,13 @@ void IgnRenderer::SetViewTransparentTarget(const std::string &_target)
 }
 
 /////////////////////////////////////////////////
+void IgnRenderer::SetViewInertiaTarget(const std::string &_target)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->viewInertiaTarget = _target;
+}
+
+/////////////////////////////////////////////////
 void IgnRenderer::SetViewWireframesTarget(const std::string &_target)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -3007,6 +3046,13 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   ignmsg << "View as transparent service on ["
          << this->dataPtr->viewTransparentService << "]" << std::endl;
 
+  // view inertia service
+  this->dataPtr->viewInertiaService = "/gui/view/inertia";
+  this->dataPtr->node.Advertise(this->dataPtr->viewInertiaService,
+      &Scene3D::OnViewInertia, this);
+  ignmsg << "View inertia service on ["
+         << this->dataPtr->viewInertiaService << "]" << std::endl;
+
   // view wireframes service
   this->dataPtr->viewWireframesService = "/gui/view/wireframes";
   this->dataPtr->node.Advertise(this->dataPtr->viewWireframesService,
@@ -3203,6 +3249,18 @@ bool Scene3D::OnViewTransparent(const msgs::StringMsg &_msg,
   auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
 
   renderWindow->SetViewTransparentTarget(_msg.data());
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool Scene3D::OnViewInertia(const msgs::StringMsg &_msg,
+  msgs::Boolean &_res)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+
+  renderWindow->SetViewInertiaTarget(_msg.data());
 
   _res.set_data(true);
   return true;
@@ -3506,6 +3564,12 @@ void RenderWindowItem::SetMoveToPose(const math::Pose3d &_pose)
 void RenderWindowItem::SetViewTransparentTarget(const std::string &_target)
 {
   this->dataPtr->renderThread->ignRenderer.SetViewTransparentTarget(_target);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetViewInertiaTarget(const std::string &_target)
+{
+  this->dataPtr->renderThread->ignRenderer.SetViewInertiaTarget(_target);
 }
 
 /////////////////////////////////////////////////

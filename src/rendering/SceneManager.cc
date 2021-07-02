@@ -44,6 +44,7 @@
 #include <ignition/rendering/Geometry.hh>
 #include <ignition/rendering/Heightmap.hh>
 #include <ignition/rendering/HeightmapDescriptor.hh>
+#include <ignition/rendering/InertiaVisual.hh>
 #include <ignition/rendering/Light.hh>
 #include <ignition/rendering/LightVisual.hh>
 #include <ignition/rendering/Material.hh>
@@ -1147,6 +1148,55 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
     this->dataPtr->scene->RootVisual()->AddChild(light);
 
   return light;
+}
+
+/////////////////////////////////////////////////
+rendering::VisualPtr SceneManager::CreateInertiaVisual(Entity _id,
+    const math::Inertiald &_inertia, Entity _parentId)
+{
+  if (!this->dataPtr->scene)
+    return rendering::VisualPtr();
+
+  if (this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end())
+  {
+    ignerr << "Entity with Id: [" << _id << "] already exists in the scene"
+           << std::endl;
+    return rendering::VisualPtr();
+  }
+
+  rendering::VisualPtr parent;
+  if (_parentId != this->dataPtr->worldId)
+  {
+    auto it = this->dataPtr->visuals.find(_parentId);
+    if (it == this->dataPtr->visuals.end())
+    {
+      // It is possible to get here if the model entity is created then
+      // removed in between render updates.
+      return rendering::VisualPtr();
+    }
+    parent = it->second;
+  }
+
+  std::string name = std::to_string(_id);
+  if (parent)
+    name = parent->Name() + "::" + name;
+
+  rendering::InertiaVisualPtr inertiaVisual =
+    this->dataPtr->scene->CreateInertiaVisual(name);
+  inertiaVisual->SetInertial(_inertia);
+
+  rendering::VisualPtr inertiaVis =
+    std::dynamic_pointer_cast<rendering::Visual>(inertiaVisual);
+  inertiaVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  inertiaVis->SetUserData("pause-update", static_cast<int>(0));
+  this->dataPtr->visuals[_id] = inertiaVis;
+
+  if (parent)
+  {
+    inertiaVis->RemoveParent();
+    parent->AddChild(inertiaVis);
+  }
+  return inertiaVis;
 }
 
 /////////////////////////////////////////////////

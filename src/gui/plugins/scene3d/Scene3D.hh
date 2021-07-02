@@ -167,6 +167,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _res Response data
     /// \return True if the request is received
     private: bool OnViewTransparent(const msgs::StringMsg &_msg,
+                 msgs::Boolean &_res);
+
+    /// \brief Callback for view inertia request
+    /// \param[in] _msg Request message to set the target to view inertia
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnViewInertia(const msgs::StringMsg &_msg,
         msgs::Boolean &_res);
 
     /// \brief Callback for view wireframes request
@@ -288,6 +295,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief View the specified target as transparent
     /// \param[in] _target Target to view as transparent
     public: void SetViewTransparentTarget(const std::string &_target);
+
+    /// \brief View inertia of the specified target
+    /// \param[in] _target Target to view inertia
+    public: void SetViewInertiaTarget(const std::string &_target);
 
     /// \brief View wireframes of the specified target
     /// \param[in] _target Target to view wireframes
@@ -651,6 +662,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief View the specified target as transparent
     /// \param[in] _target Target to view as transparent
     public: void SetViewTransparentTarget(const std::string &_target);
+
+    /// \brief View inertia of the specified target
+    /// \param[in] _target Target to view inertia
+    public: void SetViewInertiaTarget(const std::string &_target);
 
     /// \brief View wireframes of the specified target
     /// \param[in] _target Target to view wireframes
