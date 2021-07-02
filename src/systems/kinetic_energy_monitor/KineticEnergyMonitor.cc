@@ -31,6 +31,7 @@
 #include <ignition/gazebo/Link.hh>
 #include <ignition/gazebo/Model.hh>
 #include <ignition/gazebo/Util.hh>
+#include <ignition/common/Profiler.hh>
 
 #include <ignition/plugin/Register.hh>
 
@@ -164,9 +165,14 @@ void KineticEnergyMonitor::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void KineticEnergyMonitor::PostUpdate(const UpdateInfo &/*_info*/,
+void KineticEnergyMonitor::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("KineticEnergyMonitor::PostUpdate");
+  // Nothing left to do if paused or the publisher wasn't created.
+  if (_info.paused || !this->dataPtr->pub)
+    return;
+
   if (this->dataPtr->linkEntity != kNullEntity)
   {
     Link link(this->dataPtr->linkEntity);
@@ -191,10 +197,10 @@ void KineticEnergyMonitor::PostUpdate(const UpdateInfo &/*_info*/,
   }
 }
 
-IGNITION_ADD_PLUGIN(KineticEnergyMonitor, System,
-  KineticEnergyMonitor::ISystemConfigure,
-  KineticEnergyMonitor::ISystemPostUpdate
-)
+IGNITION_ADD_PLUGIN(KineticEnergyMonitor,
+                    ignition::gazebo::System,
+                    KineticEnergyMonitor::ISystemConfigure,
+                    KineticEnergyMonitor::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(KineticEnergyMonitor,
   "ignition::gazebo::systems::KineticEnergyMonitor")
