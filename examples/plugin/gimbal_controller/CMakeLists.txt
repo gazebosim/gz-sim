@@ -8,7 +8,7 @@ find_package(ignition-plugin1 REQUIRED COMPONENTS register)
 set(IGN_PLUGIN_VER ${ignition-plugin1_VERSION_MAJOR})
 
 find_package(ignition-gazebo5 REQUIRED)
-add_library(GimbalControllerPlugin ARED GimbalControllerPlugin)
+add_library(GimbalControllerPlugin SHARED GimbalControllerPlugin)
 set_property(TARGET GimbalControllerPlugin PROPERTY CXX_STANDARD 17)
 target_link_libraries(GimbalControllerPlugin
   PRIVATE ignition-plugin${IGN_PLUGIN_VER}::ignition-plugin${IGN_PLUGIN_VER}
