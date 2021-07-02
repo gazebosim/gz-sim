@@ -109,11 +109,6 @@ class ignition::gazebo::RenderUtilPrivate
   /// \param[in] _ecm The entity-component manager
   public: void UpdateRenderingEntities(const EntityComponentManager &_ecm);
 
-  /// \brief Helper function to add sensors in the CreateRenderingEntities
-  /// method
-  /// \param[in] _ecm The entity-component manager
-  public: void AddSensors(const EntityComponentManager &_ecm);
-
   /// \brief Total time elapsed in simulation. This will not increase while
   /// paused.
   public: std::chrono::steady_clock::duration simTime{0};
@@ -1236,8 +1231,10 @@ void RenderUtil::Update()
 }
 
 //////////////////////////////////////////////////
-void RenderUtilPrivate::AddSensors(const EntityComponentManager &_ecm)
+void RenderUtilPrivate::CreateRenderingEntities(
+    const EntityComponentManager &_ecm, const UpdateInfo &_info)
 {
+  IGN_PROFILE("RenderUtilPrivate::CreateRenderingEntities");
   auto addNewSensor = [&_ecm, this](Entity _entity, const sdf::Sensor &_sdfData,
                                     Entity _parent,
                                     const std::string &_topicSuffix)
@@ -1262,133 +1259,6 @@ void RenderUtilPrivate::AddSensors(const EntityComponentManager &_ecm)
   const std::string thermalCameraSuffix{"/image"};
   const std::string gpuLidarSuffix{"/scan"};
 
-  if (!this->initialized)
-  {
-    if (this->enableSensors)
-    {
-      // Create cameras
-      _ecm.Each<components::Camera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::Camera *_camera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _camera->Data(), _parent->Data(),
-                         cameraSuffix);
-            return true;
-          });
-
-      // Create depth cameras
-      _ecm.Each<components::DepthCamera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::DepthCamera *_depthCamera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _depthCamera->Data(), _parent->Data(),
-                         depthCameraSuffix);
-            return true;
-          });
-
-      // Create rgbd cameras
-      _ecm.Each<components::RgbdCamera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::RgbdCamera *_rgbdCamera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _rgbdCamera->Data(), _parent->Data(),
-                         rgbdCameraSuffix);
-            return true;
-          });
-
-      // Create gpu lidar
-      _ecm.Each<components::GpuLidar, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::GpuLidar *_gpuLidar,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _gpuLidar->Data(), _parent->Data(),
-                         gpuLidarSuffix);
-            return true;
-          });
-
-      // Create thermal camera
-      _ecm.Each<components::ThermalCamera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::ThermalCamera *_thermalCamera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _thermalCamera->Data(), _parent->Data(),
-                         thermalCameraSuffix);
-            return true;
-          });
-    }
-  }
-  else
-  {
-    if (this->enableSensors)
-    {
-      // Create cameras
-      _ecm.EachNew<components::Camera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::Camera *_camera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _camera->Data(), _parent->Data(),
-                         cameraSuffix);
-            return true;
-          });
-
-      // Create depth cameras
-      _ecm.EachNew<components::DepthCamera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::DepthCamera *_depthCamera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _depthCamera->Data(), _parent->Data(),
-                         depthCameraSuffix);
-            return true;
-          });
-
-      // Create RGBD cameras
-      _ecm.EachNew<components::RgbdCamera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::RgbdCamera *_rgbdCamera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _rgbdCamera->Data(), _parent->Data(),
-                         rgbdCameraSuffix);
-            return true;
-          });
-
-      // Create gpu lidar
-      _ecm.EachNew<components::GpuLidar, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::GpuLidar *_gpuLidar,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _gpuLidar->Data(), _parent->Data(),
-                         gpuLidarSuffix);
-            return true;
-          });
-
-      // Create thermal camera
-      _ecm.EachNew<components::ThermalCamera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::ThermalCamera *_thermalCamera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _thermalCamera->Data(), _parent->Data(),
-                         thermalCameraSuffix);
-            return true;
-          });
-    }
-  }
-}
-
-//////////////////////////////////////////////////
-void RenderUtilPrivate::CreateRenderingEntities(
-    const EntityComponentManager &_ecm, const UpdateInfo &_info)
-{
-  IGN_PROFILE("RenderUtilPrivate::CreateRenderingEntities");
   // Treat all pre-existent entities as new at startup
   // TODO(anyone) refactor Each and EachNew below to reduce duplicate code
   if (!this->initialized)
@@ -1644,7 +1514,63 @@ void RenderUtilPrivate::CreateRenderingEntities(
           return true;
         });
 
-    this->AddSensors(_ecm);
+    if (this->enableSensors)
+    {
+      // Create cameras
+      _ecm.Each<components::Camera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::Camera *_camera,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _camera->Data(), _parent->Data(),
+                         cameraSuffix);
+            return true;
+          });
+
+      // Create depth cameras
+      _ecm.Each<components::DepthCamera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::DepthCamera *_depthCamera,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _depthCamera->Data(), _parent->Data(),
+                         depthCameraSuffix);
+            return true;
+          });
+
+      // Create rgbd cameras
+      _ecm.Each<components::RgbdCamera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::RgbdCamera *_rgbdCamera,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _rgbdCamera->Data(), _parent->Data(),
+                         rgbdCameraSuffix);
+            return true;
+          });
+
+      // Create gpu lidar
+      _ecm.Each<components::GpuLidar, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::GpuLidar *_gpuLidar,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _gpuLidar->Data(), _parent->Data(),
+                         gpuLidarSuffix);
+            return true;
+          });
+
+      // Create thermal camera
+      _ecm.Each<components::ThermalCamera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::ThermalCamera *_thermalCamera,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _thermalCamera->Data(), _parent->Data(),
+                         thermalCameraSuffix);
+            return true;
+          });
+    }
     this->initialized = true;
   }
   else
@@ -1904,7 +1830,63 @@ void RenderUtilPrivate::CreateRenderingEntities(
           return true;
         });
 
-    this->AddSensors(_ecm);
+    if (this->enableSensors)
+    {
+      // Create cameras
+      _ecm.EachNew<components::Camera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::Camera *_camera,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _camera->Data(), _parent->Data(),
+                         cameraSuffix);
+            return true;
+          });
+
+      // Create depth cameras
+      _ecm.EachNew<components::DepthCamera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::DepthCamera *_depthCamera,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _depthCamera->Data(), _parent->Data(),
+                         depthCameraSuffix);
+            return true;
+          });
+
+      // Create RGBD cameras
+      _ecm.EachNew<components::RgbdCamera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::RgbdCamera *_rgbdCamera,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _rgbdCamera->Data(), _parent->Data(),
+                         rgbdCameraSuffix);
+            return true;
+          });
+
+      // Create gpu lidar
+      _ecm.EachNew<components::GpuLidar, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::GpuLidar *_gpuLidar,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _gpuLidar->Data(), _parent->Data(),
+                         gpuLidarSuffix);
+            return true;
+          });
+
+      // Create thermal camera
+      _ecm.EachNew<components::ThermalCamera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::ThermalCamera *_thermalCamera,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _thermalCamera->Data(), _parent->Data(),
+                         thermalCameraSuffix);
+            return true;
+          });
+    }
   }
 }
 
