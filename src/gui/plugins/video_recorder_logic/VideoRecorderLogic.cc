@@ -139,7 +139,7 @@ void VideoRecorderLogicPrivate::Initialize()
         scene->NodeByIndex(i));
       if (cam)
       {
-        if (cam->Name().find("scene::Camera") != std::string::npos)
+        if (std::get<bool>(cam->UserData("user-camera")))
         {
           this->camera = cam;
           igndbg << "Video Recorder plugin is recoding camera ["
