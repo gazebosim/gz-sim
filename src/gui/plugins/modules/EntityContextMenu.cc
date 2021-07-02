@@ -47,6 +47,9 @@ namespace ignition::gazebo
     /// \brief Remove service name
     public: std::string removeService;
 
+    /// \brief View inertia service name
+    public: std::string viewInertiaService;
+
     /// \brief View wireframes service name
     public: std::string viewWireframesService;
 
@@ -81,6 +84,9 @@ EntityContextMenu::EntityContextMenu()
 
   // For remove service requests
   this->dataPtr->removeService = "/world/default/remove";
+
+  // For view inertia service requests
+  this->dataPtr->viewInertiaService = "/gui/view/inertia";
 
   // For view wireframes service requests
   this->dataPtr->viewWireframesService = "/gui/view/wireframes";
@@ -157,6 +163,12 @@ void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
     ignition::msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->followService, req, cb);
+  }
+  else if (request == "view_inertia")
+  {
+    ignition::msgs::StringMsg req;
+    req.set_data(_data.toStdString());
+    this->dataPtr->node.Request(this->dataPtr->viewInertiaService, req, cb);
   }
   else if (request == "view_wireframes")
   {

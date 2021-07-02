@@ -176,6 +176,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Helper object to move user camera
     public: ignition::rendering::MoveToHelper moveToHelper;
 
+    /// \brief Target to view inertia
+    public: std::string viewInertiaTarget;
+
     /// \brief Target to view wireframes
     public: std::string viewWireframesTarget;
 
@@ -475,6 +478,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief mutex to protect the render condition variable
     /// Used when recording in lockstep mode.
     public: std::mutex renderMutex;
+
+    /// \brief View inertia service
+    public: std::string viewInertiaService;
 
     /// \brief View wireframes service
     public: std::string viewWireframesService;
@@ -936,6 +942,32 @@ void IgnRenderer::Render(RenderSync *_renderSync)
       this->DeselectAllEntities(true);
       this->TerminateSpawnPreview();
       this->dataPtr->escapeReleased = false;
+    }
+  }
+
+  // View inertia
+  {
+    IGN_PROFILE("IgnRenderer::Render ViewInertia");
+    if (!this->dataPtr->viewInertiaTarget.empty())
+    {
+      rendering::NodePtr targetNode =
+          scene->NodeByName(this->dataPtr->viewInertiaTarget);
+      auto targetVis = std::dynamic_pointer_cast<rendering::Visual>(targetNode);
+
+      if (targetVis)
+      {
+        Entity targetEntity =
+            std::get<int>(targetVis->UserData("gazebo-entity"));
+        this->dataPtr->renderUtil.ViewInertia(targetEntity);
+      }
+      else
+      {
+        ignerr << "Unable to find node name ["
+               << this->dataPtr->viewInertiaTarget
+               << "] to view inertia" << std::endl;
+      }
+
+      this->dataPtr->viewInertiaTarget.clear();
     }
   }
 
@@ -2170,6 +2202,13 @@ void IgnRenderer::SetMoveToPose(const math::Pose3d &_pose)
 }
 
 /////////////////////////////////////////////////
+void IgnRenderer::SetViewInertiaTarget(const std::string &_target)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->viewInertiaTarget = _target;
+}
+
+/////////////////////////////////////////////////
 void IgnRenderer::SetViewWireframesTarget(const std::string &_target)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -2961,6 +3000,13 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   ignmsg << "Camera pose topic advertised on ["
          << this->dataPtr->cameraPoseTopic << "]" << std::endl;
 
+  // view inertia service
+  this->dataPtr->viewInertiaService = "/gui/view/inertia";
+  this->dataPtr->node.Advertise(this->dataPtr->viewInertiaService,
+      &Scene3D::OnViewInertia, this);
+  ignmsg << "View inertia service on ["
+         << this->dataPtr->viewInertiaService << "]" << std::endl;
+
   // view wireframes service
   this->dataPtr->viewWireframesService = "/gui/view/wireframes";
   this->dataPtr->node.Advertise(this->dataPtr->viewWireframesService,
@@ -3145,6 +3191,18 @@ bool Scene3D::OnMoveToPose(const msgs::GUICamera &_msg, msgs::Boolean &_res)
     pose.Pos().X() = math::INF_D;
 
   renderWindow->SetMoveToPose(pose);
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool Scene3D::OnViewInertia(const msgs::StringMsg &_msg,
+  msgs::Boolean &_res)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+
+  renderWindow->SetViewInertiaTarget(_msg.data());
 
   _res.set_data(true);
   return true;
@@ -3442,6 +3500,12 @@ void RenderWindowItem::SetViewAngle(const math::Vector3d &_direction)
 void RenderWindowItem::SetMoveToPose(const math::Pose3d &_pose)
 {
   this->dataPtr->renderThread->ignRenderer.SetMoveToPose(_pose);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetViewInertiaTarget(const std::string &_target)
+{
+  this->dataPtr->renderThread->ignRenderer.SetViewInertiaTarget(_target);
 }
 
 /////////////////////////////////////////////////
