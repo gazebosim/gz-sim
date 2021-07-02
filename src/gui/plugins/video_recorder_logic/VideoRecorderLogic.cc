@@ -15,6 +15,8 @@
  *
 */
 
+#include <string>
+
 #include <ignition/common/Console.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/common/VideoEncoder.hh>
@@ -194,7 +196,6 @@ void VideoRecorderLogicPrivate::OnRender()
   // check if recording is in lockstep mode and if it is using sim time
   // if so, there is no need to update camera if sim time has not advanced
   bool update = true;
-  // TODO (ahcorde)
   if (this->recordVideoLockstep &&
       this->recordVideoUseSimTime &&
       this->videoEncoder.IsEncoding())
