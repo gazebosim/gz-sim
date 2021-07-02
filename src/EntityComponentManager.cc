@@ -277,7 +277,7 @@ void EntityComponentManager::RequestRemoveEntity(Entity _entity,
   {
     for (auto &view : this->dataPtr->views)
     {
-      view.second->AddEntityToRemoved(removedEntity);
+      view.second->MarkEntityToRemove(removedEntity);
     }
   }
 }
@@ -611,7 +611,8 @@ bool EntityComponentManager::CreateComponentImplementation(
       break;
     case detail::ComponentAdditionResult::RE_ADDITION:
       for (auto &viewPair : this->dataPtr->views)
-        viewPair.second->NotifyComponentAddition(_entity, _componentTypeId);
+        viewPair.second->NotifyComponentAddition(_entity,
+            this->IsNewEntity(_entity), _componentTypeId);
       break;
     case detail::ComponentAdditionResult::MODIFICATION:
       break;
@@ -729,7 +730,7 @@ void EntityComponentManager::RebuildViews()
         // If there is a request to delete this entity, update the view as
         // well
         if (this->IsMarkedForRemoval(entity))
-          view->AddEntityToRemoved(entity);
+          view->MarkEntityToRemove(entity);
       }
     }
   }

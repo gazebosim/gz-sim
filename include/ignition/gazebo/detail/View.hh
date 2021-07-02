@@ -22,6 +22,8 @@
 #include <unordered_set>
 #include <utility>
 
+#include <ignition/common/Console.hh>
+
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/detail/BaseView.hh"
@@ -55,8 +57,25 @@ class IGNITION_GAZEBO_VISIBLE View : public BaseView
   /// \brief Documentation inherited
   public: bool HasCachedComponentData(const Entity _entity) const override
   {
-    return this->validData.find(_entity) != this->validData.end() ||
+    auto cachedComps =
+      this->validData.find(_entity) != this->validData.end() ||
       this->invalidData.find(_entity) != this->invalidData.end();
+    auto cachedConstComps =
+      this->validConstData.find(_entity) != this->validConstData.end() ||
+      this->invalidConstData.find(_entity) != this->invalidConstData.end();
+
+    if (cachedComps && !cachedConstComps)
+    {
+      ignwarn << "Non-const component data is cached for entity " << _entity
+        << ", but const component data is not cached." << std::endl;
+    }
+    else if (cachedConstComps && !cachedComps)
+    {
+      ignwarn << "Const component data is cached for entity " << _entity
+        << ", but non-const component data is not cached." << std::endl;
+    }
+
+    return cachedComps && cachedConstComps;
   }
 
   /// \brief Documentation inherited
@@ -135,7 +154,7 @@ class IGNITION_GAZEBO_VISIBLE View : public BaseView
   }
 
   /// \brief Documentation inherited
-  public: bool NotifyComponentAddition(const Entity _entity,
+  public: bool NotifyComponentAddition(const Entity _entity, bool _newEntity,
               const ComponentTypeId _typeId) override
   {
     // make sure that _typeId is a type required by the view and that _entity is
@@ -148,7 +167,10 @@ class IGNITION_GAZEBO_VISIBLE View : public BaseView
     // list
     auto missingCompsIter = this->missingCompTracker.find(_entity);
     if (missingCompsIter == this->missingCompTracker.end())
-      return false;
+    {
+      // the component is already added, so nothing else needs to be done
+      return true;
+    }
     missingCompsIter->second.erase(_typeId);
 
     // if the entity now has all components that meet the requirements of the
@@ -160,6 +182,8 @@ class IGNITION_GAZEBO_VISIBLE View : public BaseView
       auto constCompNh = this->invalidConstData.extract(_entity);
       this->validConstData.insert(std::move(constCompNh));
       this->entities.insert(_entity);
+      if (_newEntity)
+        this->newEntities.insert(_entity);
       this->missingCompTracker.erase(_entity);
     }
 
@@ -189,6 +213,7 @@ class IGNITION_GAZEBO_VISIBLE View : public BaseView
       auto constCompNh = this->validConstData.extract(constCompIt);
       this->invalidConstData.insert(std::move(constCompNh));
       this->entities.erase(_entity);
+      this->newEntities.erase(_entity);
     }
 
     this->missingCompTracker[_entity].insert(_typeId);

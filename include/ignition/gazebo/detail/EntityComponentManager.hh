@@ -511,7 +511,7 @@ detail::View<ComponentTypeTs...> *EntityComponentManager::FindView() const
         const_cast<EntityComponentManager*>(this)->Component<ComponentTypeTs>(
             entity)...);
     if (this->IsMarkedForRemoval(entity))
-      view.AddEntityToRemoved(entity);
+      view.MarkEntityToRemove(entity);
   }
 
   baseViewPtr = this->AddView(viewKey,

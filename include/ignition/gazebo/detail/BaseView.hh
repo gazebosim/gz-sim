@@ -104,12 +104,15 @@ class IGNITION_GAZEBO_VISIBLE BaseView
   /// added to an entity. It is assumed that the entity is already associated
   /// with the view, and that the added component type is required by the view.
   /// \param[in] _entity The entity
+  /// \param[in] _newEntity Whether to add the entity to the list of new
+  /// entities. The new here is to indicate whether the entity is new to the
+  /// entity component manager.
   /// \param[in] _typeId The type of component that was added to _entity
   /// \return true if the notification related to the component addition of type
   /// _typeId occurred for _entity, false otherwise
   /// \sa HasCachedComponentData, RequiresComponent
   public: virtual bool NotifyComponentAddition(const Entity _entity,
-              const ComponentTypeId _typeId) = 0;
+              bool _newEntity, const ComponentTypeId _typeId) = 0;
 
   /// \brief Update the internal data in the view because a component has been
   /// removed to an entity. It is assumed that the entity is already associated
@@ -132,7 +135,7 @@ class IGNITION_GAZEBO_VISIBLE BaseView
   /// \param[in] _entity The entity to add.
   /// \return True if the entity was added to the list, false if the entity
   /// was not associated with the view.
-  public: bool AddEntityToRemoved(const Entity _entity);
+  public: bool MarkEntityToRemove(const Entity _entity);
 
   /// \brief Update the entities in the view to no longer appear as newly
   /// created. This method should be called whenever a new simulation step is

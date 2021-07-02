@@ -65,6 +65,7 @@ set (sources
 set (gtest_sources
   ${gtest_sources}
   Barrier_TEST.cc
+  BaseView_TEST.cc
   Component_TEST.cc
   ComponentFactory_TEST.cc
   ComponentStorage_TEST.cc

@@ -52,7 +52,7 @@ bool BaseView::RequiresComponent(const ComponentTypeId _typeId) const
 }
 
 //////////////////////////////////////////////////
-bool BaseView::AddEntityToRemoved(const Entity _entity)
+bool BaseView::MarkEntityToRemove(const Entity _entity)
 {
   if (this->HasCachedComponentData(_entity) ||
       this->IsEntityMarkedForAddition(_entity))
