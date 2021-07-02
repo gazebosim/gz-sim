@@ -2149,6 +2149,25 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
   }
 }
 
+////////////////////////////////////////////////
+void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
+{
+  if (!_node)
+    return;
+  auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
+  Entity entityId = kNullEntity;
+  if (vis)
+    entityId = std::get<int>(vis->UserData("gazebo-entity"));
+  if (this->wireBoxes.find(entityId) != this->wireBoxes.end())
+  {
+    ignition::rendering::WireBoxPtr wireBox =
+      this->wireBoxes[entityId];
+    auto visParent = wireBox->Parent();
+    if (visParent)
+      visParent->SetVisible(false);
+  }
+}
+
 /////////////////////////////////////////////////
 void RenderUtilPrivate::RemoveSensor(const Entity _entity)
 {
@@ -2399,25 +2418,6 @@ void RenderUtilPrivate::UpdateAnimation(
     }
 
     actorVisual->SetLocalPose(trajPose + globalPose);
-  }
-}
-
-////////////////////////////////////////////////
-void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
-{
-  if (!_node)
-    return;
-  auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
-  Entity entityId = kNullEntity;
-  if (vis)
-    entityId = std::get<int>(vis->UserData("gazebo-entity"));
-  if (this->wireBoxes.find(entityId) != this->wireBoxes.end())
-  {
-    ignition::rendering::WireBoxPtr wireBox =
-      this->wireBoxes[entityId];
-    auto visParent = wireBox->Parent();
-    if (visParent)
-      visParent->SetVisible(false);
   }
 }
 
