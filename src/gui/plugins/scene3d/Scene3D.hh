@@ -140,6 +140,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: bool OnFollow(const msgs::StringMsg &_msg,
         msgs::Boolean &_res);
 
+    /// \brief Callback for a follow offset request
+    /// \param[in] _msg Request message to set the camera's follow offset.
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnFollowOffset(const msgs::Vector3d &_msg,
+        msgs::Boolean &_res);
+
     /// \brief Callback for a view angle request
     /// \param[in] _msg Request message to set the camera to.
     /// \param[in] _res Response data
@@ -187,6 +194,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: std::unique_ptr<Scene3DPrivate> dataPtr;
   };
 
+  class RenderSync;
+
   /// \brief Ign-rendering renderer.
   /// All ign-rendering calls should be performed inside this class as it makes
   /// sure that opengl calls in the underlying render engine do not interfere
@@ -204,7 +213,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: ~IgnRenderer() override;
 
     ///  \brief Main render function
-    public: void Render();
+    /// \param[in] _renderSync RenderSync to safely
+    /// synchronize Qt and worker thread (this)
+    public: void Render(RenderSync *_renderSync);
 
     /// \brief Initialize the render engine
     public: void Initialize();
@@ -483,7 +494,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
         bool _waitForTarget);
 
     /// \brief Render texture id
-    public: GLuint textureId = 0u;
+    /// Values is constantly constantly cycled/swapped/changed
+    /// from a worker thread
+    /// Don't read this directly
+    public: GLuint textureId;
 
     /// \brief Initial Camera pose
     public: math::Pose3d cameraPose = math::Pose3d(0, 0, 2, 0, 0.4, 0);
@@ -517,7 +531,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: RenderThread();
 
     /// \brief Render the next frame
-    public slots: void RenderNext();
+    /// \param[in] _renderSync RenderSync to safely
+    /// synchronize Qt and worker thread (this)
+    public slots: void RenderNext(RenderSync *renderSync);
 
     /// \brief Shutdown the thread and the render engine
     public slots: void ShutDown();
@@ -529,7 +545,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// to be displayed
     /// \param[in] _id GLuid of the opengl texture
     /// \param[in] _size Size of the texture
-    signals: void TextureReady(int _id, const QSize &_size);
+    signals: void TextureReady(uint _id, const QSize &_size);
 
     /// \brief Offscreen surface to render to
     public: QOffscreenSurface *surface = nullptr;
@@ -766,7 +782,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Constructor
     /// \param[in] _window Parent window
-    public: explicit TextureNode(QQuickWindow *_window);
+    /// \param[in] _renderSync RenderSync to safely
+    /// synchronize Qt (this) and worker thread
+    public: explicit TextureNode(QQuickWindow *_window,
+                                 RenderSync &_renderSync);
 
     /// \brief Destructor
     public: ~TextureNode() override;
@@ -775,7 +794,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     ///  store the texture id and size and schedule an update on the window.
     /// \param[in] _id OpenGL render texture Id
     /// \param[in] _size Texture size
-    public slots: void NewTexture(int _id, const QSize &_size);
+    public slots: void NewTexture(uint _id, const QSize &_size);
 
     /// \brief Before the scene graph starts to render, we update to the
     /// pending texture
@@ -783,20 +802,24 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Signal emitted when the texture is being rendered and renderer
     /// can start rendering next frame
-    signals: void TextureInUse();
+    /// \param[in] _renderSync RenderSync to send to the worker thread
+    signals: void TextureInUse(RenderSync *_renderSync);
 
     /// \brief Signal emitted when a new texture is ready to trigger window
     /// update
     signals: void PendingNewTexture();
 
     /// \brief OpenGL texture id
-    public: int id = 0;
+    public: uint id = 0;
 
     /// \brief Texture size
     public: QSize size = QSize(0, 0);
 
     /// \brief Mutex to protect the texture variables
     public: QMutex mutex;
+
+    /// \brief See RenderSync
+    public: RenderSync &renderSync;
 
     /// \brief Qt's scene graph texture
     public: QSGTexture *texture = nullptr;

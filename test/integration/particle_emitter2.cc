@@ -84,7 +84,6 @@ TEST_F(ParticleEmitter2Test, SDFLoad)
                 const components::Name *_name,
                 const components::Pose *_pose) -> bool
             {
-
               if (_name->Data() == "smoke_emitter")
               {
                 updateCustomChecked = true;
@@ -119,6 +118,24 @@ TEST_F(ParticleEmitter2Test, SDFLoad)
                 // will not be able to find a file that does not exist
                 EXPECT_EQ("/path/to/dummy_image.png",
                     _emitter->Data().color_range_image().data());
+
+                // particle scatter ratio is temporarily stored in header
+                bool hasParticleScatterRatio = false;
+                for (int i = 0; i < _emitter->Data().header().data_size(); ++i)
+                {
+                  for (int j = 0;
+                      j < _emitter->Data().header().data(i).value_size(); ++j)
+                  {
+                    if (_emitter->Data().header().data(i).key() ==
+                        "particle_scatter_ratio")
+                    {
+                      EXPECT_DOUBLE_EQ(0.01, math::parseFloat(
+                          _emitter->Data().header().data(i).value(0)));
+                      hasParticleScatterRatio = true;
+                    }
+                  }
+                }
+                EXPECT_TRUE(hasParticleScatterRatio);
               }
               else
               {
