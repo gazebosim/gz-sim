@@ -50,7 +50,9 @@ namespace systems
   /// the desired track velocity in the contact point (up to friction). For
   /// better behavior when turning with tracked vehicles, it also accepts the
   /// position of the center of rotation of the whole vehicle so that it can
-  /// adjust the direction of friction along the desired circle.
+  /// adjust the direction of friction along the desired circle. This system
+  /// does not simulate the effect of grousers. The best way to achieve a
+  /// similar effect is to set a very high `<mu1>` for the track links.
   ///
   /// # Examples
   ///
