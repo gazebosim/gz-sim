@@ -538,10 +538,6 @@ void TrackedVehicle::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
            << "], plugin will start working." << std::endl;
     warnedModels.erase(modelName);
   }
-
-  // Nothing left to do if paused.
-  if (_info.paused)
-    return;
 }
 
 //////////////////////////////////////////////////

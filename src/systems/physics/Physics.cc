@@ -129,7 +129,6 @@ using namespace ignition;
 using namespace ignition::gazebo::systems;
 using namespace ignition::gazebo::systems::physics_system;
 namespace components = ignition::gazebo::components;
-namespace physics = ignition::physics;
 
 
 // Private data class.
@@ -455,7 +454,7 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// \brief Event manager from simulation runner.
   public: EventManager *eventManager = nullptr;
 
-  /// \brief Keep track of what entities are use customized contact surfaces.
+  /// \brief Keep track of what entities use customized contact surfaces.
   public: std::unordered_set<Entity> customContactSurfaceEntities;
 };
 

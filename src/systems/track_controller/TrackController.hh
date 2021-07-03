@@ -59,27 +59,34 @@ namespace systems
   ///
   /// # System Parameters
   ///
-  /// `<link>` Name of the link the controller controls.
+  /// `<link>` Name of the link the controller controls. Required parameter.
   ///
   /// `<debug>` If 1, the system will output debugging info and visualizations.
+  ///   The default value is 0.
   ///
   /// `<track_orientation>` Orientation of the track relative to the link.
   ///   It is assumed that the track moves along the +x direction of the
-  ///   transformed coordinate system.
+  ///   transformed coordinate system. Defaults to no rotation (`0 0 0`).
   ///
   /// `<velocity_topic>` Name of the topic on which the system accepts velocity
-  ///   commands (defaults to`/model/${model}/link/${link}/track_cmd_vel`).
+  ///   commands.
+  ///   Defaults to `/model/${model_name}/link/${link_name}/track_cmd_vel`.
   ///
   /// `<center_of_rotation_topic>` The topic on which the track accepts center
-  ///   of rotation commands (defaults to
-  ///   `/model/${model}/link/${link}/track_cmd_center_of_rotation`).
+  ///   of rotation commands. Defaults to
+  ///   `/model/${model_name}/link/${link_name}/track_cmd_center_of_rotation`.
   ///
   /// `<min_velocity>`/`<max_velocity>` Min/max velocity of the track (m/s).
+  ///   If not specified, the velocity is not limited (however the physics will,
+  ///   in the end, have some implicit limit).
   ///
   /// `<min_acceleration>`/`<max_acceleration>` Min/max acceleration of the
-  ///   track (m/s^2).
+  ///   track (m/s^2). If not specified, the acceleration is not limited
+  ///   (however the physics will, in the end, have some implicit limit).
   ///
-  /// `<min_jerk>`/`<max_jerk>` Min/max jerk of the track (m/s^3).
+  /// `<min_jerk>`/`<max_jerk>` Min/max jerk of the track (m/s^3). If not
+  ///   specified, the acceleration is not limited (however the physics will,
+  ///   in the end, have some implicit limit).
   class TrackController
       : public System,
         public ISystemConfigure,

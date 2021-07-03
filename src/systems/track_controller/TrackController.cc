@@ -82,27 +82,24 @@ class ignition::gazebo::systems::TrackControllerPrivate
     const Entity& _collision1,
     const Entity& _collision2,
     const Eigen::Vector3d & _point,
-    const Eigen::Vector3d * const _force,
     const Eigen::Vector3d * const _normal,
-    const double * const _depth,
-    const size_t _numContactsOnCollision,
     F::ContactSurfaceParams<P>& _params);
 
   /// \brief Compute speed and direction of motion of the contact surface.
-  /// \param _beltSpeed Speed of the belt.
-  /// \param _beltDirection Direction of the belt (in world coords).
-  /// \param _frictionDirection First friction direction (in world coords).
+  /// \param[in] _beltSpeed Speed of the belt.
+  /// \param[in] _beltDirection Direction of the belt (in world coords).
+  /// \param[in] _frictionDirection First friction direction (in world coords).
   /// \return The computed contact surface speed.
   public: double ComputeSurfaceMotion(
     double _beltSpeed, const ignition::math::Vector3d &_beltDirection,
     const ignition::math::Vector3d &_frictionDirection);
 
   /// \brief Compute the first friction direction of the contact surface.
-  /// \param _centerOfRotation The point around which the track circles (+Inf
-  ///                          vector in case of straight motion).
-  /// \param _contactWorldPosition Position of the contact point.
-  /// \param _contactNormal Normal of the contact surface (in world coords).
-  /// \param _beltDirection Direction of the belt (in world coords).
+  /// \param[in] _centerOfRotation The point around which the track circles (
+  ///                              +Inf vector in case of straight motion).
+  /// \param[in] _contactWorldPosition Position of the contact point.
+  /// \param[in] _contactNormal Normal of the contact surface (in world coords).
+  /// \param[in] _beltDirection Direction of the belt (in world coords).
   public: ignition::math::Vector3d ComputeFrictionDirection(
     const ignition::math::Vector3d &_centerOfRotation,
     const ignition::math::Vector3d &_contactWorldPosition,
@@ -195,7 +192,6 @@ void TrackController::Configure(const Entity &_entity,
     return;
   }
   this->dataPtr->linkName = _sdf->Get<std::string>("link");
-  this->dataPtr->model.LinkByName(_ecm, this->dataPtr->linkName);
 
   using P = physics::FeaturePolicy3d;
   using F = physics::SetContactJointPropertiesCallbackFeature;
@@ -206,14 +202,14 @@ void TrackController::Configure(const Entity &_entity,
       const Entity& _collision1,
       const Entity& _collision2,
       const Eigen::Vector3d & _point,
-      const Eigen::Vector3d * const _force,
+      const Eigen::Vector3d * const /*_force*/,
       const Eigen::Vector3d * const _normal,
-      const double * const _depth,
-      const size_t _numContactsOnCollision,
+      const double * const /*_depth*/,
+      const size_t /*_numContactsOnCollision*/,
       F::ContactSurfaceParams<P>& _params)
     {
       this->dataPtr->ComputeSurfaceProperties(_collision1, _collision2,
-        _point, _force, _normal, _depth, _numContactsOnCollision, _params);
+        _point, _normal, _params);
     }
   );
 
@@ -403,10 +399,7 @@ void TrackControllerPrivate::ComputeSurfaceProperties(
   const Entity& _collision1,
   const Entity& _collision2,
   const Eigen::Vector3d & _point,
-  const Eigen::Vector3d * const /* _force */,
   const Eigen::Vector3d * const _normal,
-  const double * const /* _depth */,
-  const size_t /* _numContactsOnCollision */,
   F::ContactSurfaceParams<P>& _params
   )
 {

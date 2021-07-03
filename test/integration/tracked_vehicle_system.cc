@@ -112,6 +112,7 @@ class TrackedVehicleTest : public ::testing::TestWithParam<int>
 
     for (size_t i = 101;  i < poses.size(); ++i)
     {
+      SCOPED_TRACE(i);
       verifyPose(poses[100], poses[i]);
     }
 
