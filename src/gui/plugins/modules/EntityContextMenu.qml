@@ -80,6 +80,14 @@ Item {
       }
     }
     MenuItem {
+      id: viewJointsMenu
+      text: "Joints"
+      onTriggered: {
+        menu.close()
+        context.OnRequest("view_joints", context.entity)
+      }
+    }
+    MenuItem {
       id: viewWireframesMenu
       text: "Wireframe"
       onTriggered: {
@@ -98,6 +106,7 @@ Item {
     followMenu.enabled = false
     removeMenu.enabled = false
     viewInertiaMenu.enabled = false;
+    viewJointsMenu.enabled = false;
     viewWireframesMenu.enabled = false;
     viewCollisionsMenu.enabled = false;
 
@@ -120,6 +129,11 @@ Item {
       viewInertiaMenu.enabled = true;
       viewWireframesMenu.enabled = true;
       viewCollisionsMenu.enabled = true;
+    }
+
+    if (context.type == "model")
+    {
+      viewJointsMenu.enabled = true;
     }
 
     menu.open()

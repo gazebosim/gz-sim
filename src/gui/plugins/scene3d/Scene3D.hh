@@ -168,6 +168,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: bool OnViewInertia(const msgs::StringMsg &_msg,
         msgs::Boolean &_res);
 
+    /// \brief Callback for view joints request
+    /// \param[in] _msg Request message to set the target to view joints
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnViewJoints(const msgs::StringMsg &_msg,
+        msgs::Boolean &_res);
+
     /// \brief Callback for view wireframes request
     /// \param[in] _msg Request message to set the target to view wireframes
     /// \param[in] _res Response data
@@ -287,6 +294,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief View inertia of the specified target
     /// \param[in] _target Target to view inertia
     public: void SetViewInertiaTarget(const std::string &_target);
+
+    /// \brief View joints of the specified target
+    /// \param[in] _target Target to view joints
+    public: void SetViewJointsTarget(const std::string &_target);
 
     /// \brief View wireframes of the specified target
     /// \param[in] _target Target to view wireframes
@@ -650,6 +661,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief View inertia of the specified target
     /// \param[in] _target Target to view inertia
     public: void SetViewInertiaTarget(const std::string &_target);
+
+    /// \brief View joints of the specified target
+    /// \param[in] _target Target to view joints
+    public: void SetViewJointsTarget(const std::string &_target);
 
     /// \brief View wireframes of the specified target
     /// \param[in] _target Target to view wireframes

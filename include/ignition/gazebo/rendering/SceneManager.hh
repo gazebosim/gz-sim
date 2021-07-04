@@ -24,6 +24,7 @@
 
 #include <sdf/Geometry.hh>
 #include <sdf/Actor.hh>
+#include <sdf/Joint.hh>
 #include <sdf/Light.hh>
 #include <sdf/Link.hh>
 #include <sdf/Material.hh>
@@ -141,6 +142,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Visual (inertia) object created from the inertial
     public: rendering::VisualPtr CreateInertiaVisual(Entity _id,
         const math::Inertiald &_inertial, Entity _parentId = 0);
+
+    /// \brief Create a joint visual
+    /// \param[in] _id Unique visual id
+    /// \param[in] _collision Joint sdf dom
+    /// \param[in] _parentId Parent id
+    /// \return Visual (joint) object created from the sdf dom
+    public: rendering::VisualPtr CreateJointVisual(Entity _id,
+        const sdf::Joint &_joint, Entity _parentId = 0);
 
     /// \brief Create a collision visual
     /// \param[in] _id Unique visual id

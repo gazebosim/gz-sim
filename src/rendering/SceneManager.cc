@@ -45,6 +45,7 @@
 #include <ignition/rendering/Heightmap.hh>
 #include <ignition/rendering/HeightmapDescriptor.hh>
 #include <ignition/rendering/InertiaVisual.hh>
+#include <ignition/rendering/JointVisual.hh>
 #include <ignition/rendering/Light.hh>
 #include <ignition/rendering/LightVisual.hh>
 #include <ignition/rendering/Material.hh>
@@ -1193,6 +1194,57 @@ rendering::VisualPtr SceneManager::CreateInertiaVisual(Entity _id,
     parent->AddChild(inertiaVis);
   }
   return inertiaVis;
+}
+
+/////////////////////////////////////////////////
+rendering::VisualPtr SceneManager::CreateJointVisual(
+    Entity _id, const sdf::Joint &_joint, Entity _parentId)
+{
+  if (!this->dataPtr->scene)
+    return rendering::VisualPtr();
+
+  if (this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end())
+  {
+    ignerr << "Entity with Id: [" << _id << "] already exists in the scene"
+           << std::endl;
+    return rendering::VisualPtr();
+  }
+
+  rendering::VisualPtr parent;
+  if (_parentId != this->dataPtr->worldId)
+  {
+    auto it = this->dataPtr->visuals.find(_parentId);
+    if (it == this->dataPtr->visuals.end())
+    {
+      // It is possible to get here if the model entity is created then
+      // removed in between render updates.
+      return rendering::VisualPtr();
+    }
+    parent = it->second;
+  }
+
+  // Name.
+  std::string name = _joint.Name().empty() ? std::to_string(_id) :
+    _joint.Name();
+  if (parent)
+    name = parent->Name() +  "::" + name;
+
+  rendering::JointVisualPtr jointVisual =
+    this->dataPtr->scene->CreateJointVisual(name);
+  // set data
+
+  rendering::VisualPtr jointVis =
+    std::dynamic_pointer_cast<rendering::Visual>(jointVisual);
+  jointVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  jointVis->SetUserData("pause-update", static_cast<int>(0));
+  this->dataPtr->visuals[_id] = jointVis;
+
+  if (parent)
+  {
+    jointVis->RemoveParent();
+    parent->AddChild(jointVis);
+  }
+  return jointVis;
 }
 
 /////////////////////////////////////////////////
