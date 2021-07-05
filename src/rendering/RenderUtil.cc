@@ -2627,16 +2627,7 @@ void RenderUtil::ViewInertia(const Entity &_entity)
 
     if (showInertia)
     {
-      // turn off wireboxes for inertia entity
-      if (this->dataPtr->wireBoxes.find(inertiaVisualId)
-            != this->dataPtr->wireBoxes.end())
-      {
-        ignition::rendering::WireBoxPtr wireBox =
-          this->dataPtr->wireBoxes[inertiaVisualId];
-        auto visParent = wireBox->Parent();
-        if (visParent)
-          visParent->SetVisible(false);
-      }
+      this->HideWireboxes(inertiaVisualId);
     }
   }
 }
@@ -2695,16 +2686,7 @@ void RenderUtil::ViewCOM(const Entity &_entity)
 
     if (showCOM)
     {
-      // turn off wireboxes for center of mass entity
-      if (this->dataPtr->wireBoxes.find(comVisualId)
-            != this->dataPtr->wireBoxes.end())
-      {
-        ignition::rendering::WireBoxPtr wireBox =
-          this->dataPtr->wireBoxes[comVisualId];
-        auto visParent = wireBox->Parent();
-        if (visParent)
-          visParent->SetVisible(false);
-      }
+      this->HideWireboxes(comVisualId);
     }
   }
 }
