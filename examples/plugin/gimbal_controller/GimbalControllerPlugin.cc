@@ -47,116 +47,116 @@ using namespace gazebo;
 using namespace systems;
 
 class ignition::gazebo::systems::GimbalControllerPluginPrivate
-{    
-  /// \brief function for Pitch joint message
-  public: void OnPitchStringMsg(const msgs::StringMsg &_msg);
+{      
+   /// \brief function for Pitch joint message
+   public: void OnPitchStringMsg(const msgs::StringMsg &_msg);
 
-  /// \brief function for Roll joint message
-  public: void OnRollStringMsg(const msgs::StringMsg &_msg);
+   /// \brief function for Roll joint message
+   public: void OnRollStringMsg(const msgs::StringMsg &_msg);
 
-  /// \brief function for Yaw joint message
-  public: void OnYawStringMsg(const msgs::StringMsg &_msg);
+   /// \brief function for Yaw joint message
+   public: void OnYawStringMsg(const msgs::StringMsg &_msg);
 
-  /// \brief returns _angle1 normalized about
-  /// (_reference - IGN_PI, _reference + IGN_PI]
-  /// \param[in] _angle1 input angle
-  /// \param[in] _reference reference input angle for normalization
-  /// \return normalized _angle1 about _reference
-  public: double NormalizeAbout(double _angle, double _reference);
+   /// \brief returns _angle1 normalized about
+   /// (_reference - IGN_PI, _reference + IGN_PI]
+   /// \param[in] _angle1 input angle
+   /// \param[in] _reference reference input angle for normalization
+   /// \return normalized _angle1 about _reference
+   public: double NormalizeAbout(double _angle, double _reference);
 
-  /// \brief returns shortest angular distance from _from to _to
-  /// \param[in] _from starting anglular position
-  /// \param[in] _to end angular position
-  /// \return distance traveled from starting to end angular positions
-  public: double ShortestAngularDistance(double _from, double _to);
+   /// \brief returns shortest angular distance from _from to _to
+   /// \param[in] _from starting anglular position
+   /// \param[in] _to end angular position
+   /// \return distance traveled from starting to end angular positions
+   public: double ShortestAngularDistance(double _from, double _to);
 
-  /// \brief function for 3-Axis rotation
-  public: ignition::math::Vector3d ThreeAxisRot(
-      double r11, double r12, double r21, double r31, double r32);
+   /// \brief function for 3-Axis rotation
+   public: ignition::math::Vector3d ThreeAxisRot(double r11, double r12, double r21, double r31, double r32);
 
-  /// \brief function for conversion of Quaternion to ZYX matrix
-  public: ignition::math::Vector3d QtoZXY(
-      const ignition::math::Quaterniond &_q);
+   /// \brief function for conversion of Quaternion to ZYX matrix
+   public: ignition::math::Vector3d QtoZXY(const ignition::math::Quaterniond &_q);
 
-  /// \brief function to initialize parameters
-  public: void Init(const EntityComponentManager &_ecm);
+   /// \brief function to initialize parameters
+   public: void Init(const EntityComponentManager &_ecm);
 
-  /// \brief callback for imu sensor
-  public: void imuCb(const ignition::msgs::IMU &_msg);
+   /// \brief callback for imu sensor
+   public: void imuCb(const ignition::msgs::IMU &_msg);
 
-  /// \brief publisher node for pitch
-  public: transport::Node::Publisher pitchPub;
+   /// \brief publisher node for pitch
+   public: transport::Node::Publisher pitchPub;
 
-  /// \brief publisher node for roll
-  public: transport::Node::Publisher rollPub;
+   /// \brief publisher node for roll
+   public: transport::Node::Publisher rollPub;
 
-  /// \breif publisher node for yaw
-  public: transport::Node::Publisher yawPub;
+   /// \breif publisher node for yaw
+   public: transport::Node::Publisher yawPub;
 
-  /// \brief interface to the Model
-  public: Model model{kNullEntity};
+   /// \brief interface to the Model
+   public: Model model{kNullEntity};
 
-  /// \brief yaw joint entity
-  public: Entity yawJoint;
+   /// \brief yaw joint entity
+   public: Entity yawJoint;
 
-  /// \brief pitch joint entity
-  public: Entity pitchJoint;
+   /// \brief pitch joint entity
+   public: Entity pitchJoint;
 
-  /// \brief roll joint entity
-  public: Entity rollJoint;
+   /// \brief roll joint entity
+   public: Entity rollJoint;
 
-  /// \brief status 
-  public: std::string status;
+   /// \brief status 
+   public: std::string status;
 
-  /// IMU sensor
-  public: 
-    std::string imuName;
-    bool imuInitialized;
-    bool imuMsgValid;
-    std::mutex imuMsgMutex;
+   /// IMU sensor params
+   public: std::string imuName;
+    
+   public: bool imuInitialized;
+    
+   public: bool imuMsgValid;
+    
+   public: std::mutex imuMsgMutex;
 
-  /// \brief model link entity
-  public: Entity modelLink{ignition::gazebo::kNullEntity};
+   /// \brief model link entity
+   public: Entity modelLink{ignition::gazebo::kNullEntity};
 
-  /// \brief commands for pitch, yaw, and roll
-  public: double pitchCommand;
-  public: double yawCommand;
-  public: double rollCommand;
+   /// \brief commands for pitch, yaw, and roll
+   public: double pitchCommand;
+   public: double yawCommand;
+   public: double rollCommand;
 
-  /// \brief node for communication
-  public: transport::Node node;
+   /// \brief node for communication
+   public: transport::Node node;
 
-  /// \brief Update time for the controller
-  public: math::clock::time_point lastUpdateTime;
+   /// \brief Update time for the controller
+   public: math::clock::time_point lastUpdateTime;
 
-  /// \brief last update time
-  public: std::chrono::steady_clock::duration lastControllerUpdateTime{0};
+   /// \brief last update time
+   public: std::chrono::steady_clock::duration lastControllerUpdateTime{0};
 
-  /// \brief PID
-  public: ignition::math::PID pitchPid;
-  public: ignition::math::PID yawPid;
-  public: ignition::math::PID rollPid;
+   /// \brief PID
+   public: ignition::math::PID pitchPid;
+   public: ignition::math::PID yawPid;
+   public: ignition::math::PID rollPid;
 };
 
 ////////////////////////////////////////////////////////////////////////
 GimbalControllerPlugin::GimbalControllerPlugin()
   :dataPtr(std::make_unique<GimbalControllerPluginPrivate>())
-{
-  /// TODO: make these gains part of sdf xml
-  this->dataPtr->pitchPid.Init(5, 0, 0, 0, 0, 0.3, -0.3);
-  this->dataPtr->rollPid.Init(5, 0, 0, 0, 0, 0.3, -0.3);
-  this->dataPtr->yawPid.Init(1.0, 0, 0, 0, 0, 1.0, -1.0);
-  this->dataPtr->pitchCommand = 0.5* IGN_PI;
-  this->dataPtr->rollCommand = 0;
-  this->dataPtr->yawCommand = 0;
+{  
+   /// TODO: make these gains part of sdf xml
+   this->dataPtr->pitchPid.Init(5, 0, 0, 0, 0, 0.3, -0.3);
+   this->dataPtr->rollPid.Init(5, 0, 0, 0, 0, 0.3, -0.3);
+   this->dataPtr->yawPid.Init(1.0, 0, 0, 0, 0, 1.0, -1.0);
+   this->dataPtr->pitchCommand = 0.5* IGN_PI;
+   this->dataPtr->rollCommand = 0;
+   this->dataPtr->yawCommand = 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////
 void GimbalControllerPluginPrivate::imuCb(const ignition::msgs::IMU &_msg)
-{
-  std::lock_guard<std::mutex> lock(this->imuMsgMutex);
-  ignition::msgs::IMU imuMsg = _msg;
-  this->imuMsgValid = true;
+{   
+   std::lock_guard<std::mutex> lock(this->imuMsgMutex);
+   ignition::msgs::IMU imuMsg = _msg;
+   this->imuMsgValid = true;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -164,7 +164,7 @@ void GimbalControllerPlugin::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm,
     EventManager &/*_eventMgr*/)
-{
+{  
    this->dataPtr->model = ignition::gazebo::Model(_entity);
 	
    std::string yawJointName = "cgo3_vertical_arm_joint";
