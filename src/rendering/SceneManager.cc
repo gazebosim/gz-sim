@@ -1198,7 +1198,8 @@ rendering::VisualPtr SceneManager::CreateInertiaVisual(Entity _id,
 
 /////////////////////////////////////////////////
 rendering::VisualPtr SceneManager::CreateJointVisual(
-    Entity _id, const sdf::Joint &_joint, Entity _parentId)
+    Entity _id, const sdf::Joint &_joint,
+    Entity _childId, Entity _parentId)
 {
   if (!this->dataPtr->scene)
     return rendering::VisualPtr();
@@ -1211,9 +1212,9 @@ rendering::VisualPtr SceneManager::CreateJointVisual(
   }
 
   rendering::VisualPtr parent;
-  if (_parentId != this->dataPtr->worldId)
+  if (_childId != this->dataPtr->worldId)
   {
-    auto it = this->dataPtr->visuals.find(_parentId);
+    auto it = this->dataPtr->visuals.find(_childId);
     if (it == this->dataPtr->visuals.end())
     {
       // It is possible to get here if the model entity is created then
@@ -1231,19 +1232,72 @@ rendering::VisualPtr SceneManager::CreateJointVisual(
 
   rendering::JointVisualPtr jointVisual =
     this->dataPtr->scene->CreateJointVisual(name);
-  // set data
+
+  switch (_joint.Type())
+  {
+    case sdf::JointType::REVOLUTE:
+      jointVisual->SetType(rendering::JointVisualType::JVT_REVOLUTE);
+      break;
+    case sdf::JointType::REVOLUTE2:
+      jointVisual->SetType(rendering::JointVisualType::JVT_REVOLUTE2);
+      break;
+    case sdf::JointType::PRISMATIC:
+      jointVisual->SetType(rendering::JointVisualType::JVT_PRISMATIC);
+      break;
+    case sdf::JointType::UNIVERSAL:
+      jointVisual->SetType(rendering::JointVisualType::JVT_UNIVERSAL);
+      break;
+    case sdf::JointType::BALL:
+      jointVisual->SetType(rendering::JointVisualType::JVT_BALL);
+      break;
+    case sdf::JointType::SCREW:
+      jointVisual->SetType(rendering::JointVisualType::JVT_SCREW);
+      break;
+    case sdf::JointType::GEARBOX:
+      jointVisual->SetType(rendering::JointVisualType::JVT_GEARBOX);
+      break;
+    case sdf::JointType::FIXED:
+      jointVisual->SetType(rendering::JointVisualType::JVT_FIXED);
+      break;
+    default:
+      jointVisual->SetType(rendering::JointVisualType::JVT_NONE);
+      break;
+  }
+
+  if (parent)
+  {
+    jointVisual->RemoveParent();
+    parent->AddChild(jointVisual);
+  }
+
+  if (_joint.Axis(1))
+  {
+    auto axis1 = _joint.Axis(0)->Xyz();
+    auto axis2 = _joint.Axis(1)->Xyz();
+    auto axis1ExpressedIn = _joint.Axis(0)->XyzExpressedIn();
+    auto axis2ExpressedIn = _joint.Axis(0)->XyzExpressedIn();
+
+    jointVisual->CreateAxis(axis2, axis2ExpressedIn);
+
+    if (this->dataPtr->visuals.find(_parentId) != this->dataPtr->visuals.end())
+    {
+      auto parentName = this->dataPtr->visuals[_parentId]->Name();
+      jointVisual->CreateParentAxis(
+          axis1, axis2ExpressedIn, parentName);
+    }
+  }
+  else if (_joint.Axis(0))
+  {
+    auto axis1 = _joint.Axis(0)->Xyz();
+    auto axis1ExpressedIn = _joint.Axis(0)->XyzExpressedIn();
+    jointVisual->CreateAxis(axis1, axis1ExpressedIn);
+  }
 
   rendering::VisualPtr jointVis =
     std::dynamic_pointer_cast<rendering::Visual>(jointVisual);
   jointVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   jointVis->SetUserData("pause-update", static_cast<int>(0));
   this->dataPtr->visuals[_id] = jointVis;
-
-  if (parent)
-  {
-    jointVis->RemoveParent();
-    parent->AddChild(jointVis);
-  }
   return jointVis;
 }
 

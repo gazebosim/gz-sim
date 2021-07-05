@@ -575,6 +575,7 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
   this->dataPtr->RemoveRenderingEntities(_ecm, _info);
   this->dataPtr->markerManager.SetSimTime(_info.simTime);
   this->dataPtr->FindInertiaLinks(_ecm);
+  this->dataPtr->FindJointModels(_ecm);
   this->dataPtr->FindWireframeVisualLinks(_ecm);
   this->dataPtr->FindCollisionLinks(_ecm);
 }
@@ -1156,11 +1157,17 @@ void RenderUtil::Update()
         {
           std::string childLinkName =
               this->dataPtr->entityJoints[jointEntity].ChildLinkName();
-          Entity parentId =
+          Entity childId =
               this->dataPtr->matchLinksWithEntities[childLinkName];
 
+          std::string parentLinkName =
+              this->dataPtr->entityJoints[jointEntity].ParentLinkName();
+          Entity parentId =
+              this->dataPtr->matchLinksWithEntities[parentLinkName];
+
           auto vis = this->dataPtr->sceneManager.CreateJointVisual(
-              jointEntity, this->dataPtr->entityJoints[jointEntity], parentId);
+              jointEntity, this->dataPtr->entityJoints[jointEntity],
+              childId, parentId);
           this->dataPtr->viewingJoints[jointEntity] = true;
         }
       }
@@ -1584,6 +1591,8 @@ void RenderUtilPrivate::CreateRenderingEntities(
               std::make_tuple(_entity, link, _parent->Data()));
           // used for collsions
           this->modelToLinkEntities[_parent->Data()].push_back(_entity);
+          // used for joints
+          this->matchLinksWithEntities[_name->Data()] = _entity;
           return true;
         });
 

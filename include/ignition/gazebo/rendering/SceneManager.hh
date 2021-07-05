@@ -146,10 +146,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Create a joint visual
     /// \param[in] _id Unique visual id
     /// \param[in] _collision Joint sdf dom
+    /// \param[in] _childId Child id
     /// \param[in] _parentId Parent id
     /// \return Visual (joint) object created from the sdf dom
     public: rendering::VisualPtr CreateJointVisual(Entity _id,
-        const sdf::Joint &_joint, Entity _parentId = 0);
+        const sdf::Joint &_joint, Entity _childId = 0,
+        Entity _parentId = 0);
 
     /// \brief Create a collision visual
     /// \param[in] _id Unique visual id
