@@ -36,25 +36,25 @@ namespace systems
         public System,
         public ISystemConfigure,
         public ISystemPreUpdate
-    {
-      /// \brief Constructor
-      public: GimbalControllerPlugin();
+    {  
+       /// \brief Constructor
+       public: GimbalControllerPlugin();
 
-      /// \brief Destructor.
-      public: ~GimbalControllerPlugin();
+       /// \brief Destructor.
+       public: ~GimbalControllerPlugin();
 
-      // Documentation inherited
-      public: void Configure(const Entity &_entity,
-                             const std::shared_ptr<const sdf::Element> &_sdf,
-                             EntityComponentManager &_ecm,
-                             EventManager &_eventMgr) override;
+       // Documentation inherited
+       public: void Configure(const Entity &_entity,
+                              const std::shared_ptr<const sdf::Element> &_sdf,
+                              EntityComponentManager &_ecm,
+                              EventManager &_eventMgr) override;
 
-      /// Documentation inherited
-      public: void PreUpdate(const UpdateInfo &_info,
+       /// Documentation inherited
+       public: void PreUpdate(const UpdateInfo &_info,
                            EntityComponentManager &_ecm) final;
 
-      /// \brief Private data pointer
-      private: std::unique_ptr<GimbalControllerPluginPrivate> dataPtr;
+       /// \brief Private data pointer
+       private: std::unique_ptr<GimbalControllerPluginPrivate> dataPtr;
     };
     }
 }
