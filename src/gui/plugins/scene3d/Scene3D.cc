@@ -179,6 +179,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Target to view as transparent
     public: std::string viewTransparentTarget;
 
+    /// \brief Target to view center of mass
+    public: std::string viewCOMTarget;
+
     /// \brief Target to view inertia
     public: std::string viewInertiaTarget;
 
@@ -484,6 +487,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief View transparent service
     public: std::string viewTransparentService;
+
+    /// \brief View center of mass service
+    public: std::string viewCOMService;
 
     /// \brief View inertia service
     public: std::string viewInertiaService;
@@ -974,6 +980,32 @@ void IgnRenderer::Render(RenderSync *_renderSync)
       }
 
       this->dataPtr->viewTransparentTarget.clear();
+    }
+  }
+
+  // View center of mass
+  {
+    IGN_PROFILE("IgnRenderer::Render ViewCOM");
+    if (!this->dataPtr->viewCOMTarget.empty())
+    {
+      rendering::NodePtr targetNode =
+          scene->NodeByName(this->dataPtr->viewCOMTarget);
+      auto targetVis = std::dynamic_pointer_cast<rendering::Visual>(targetNode);
+
+      if (targetVis)
+      {
+        Entity targetEntity =
+            std::get<int>(targetVis->UserData("gazebo-entity"));
+        this->dataPtr->renderUtil.ViewCOM(targetEntity);
+      }
+      else
+      {
+        ignerr << "Unable to find node name ["
+               << this->dataPtr->viewCOMTarget
+               << "] to view center of mass" << std::endl;
+      }
+
+      this->dataPtr->viewCOMTarget.clear();
     }
   }
 
@@ -2241,6 +2273,13 @@ void IgnRenderer::SetViewTransparentTarget(const std::string &_target)
 }
 
 /////////////////////////////////////////////////
+void IgnRenderer::SetViewCOMTarget(const std::string &_target)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->viewCOMTarget = _target;
+}
+
+/////////////////////////////////////////////////
 void IgnRenderer::SetViewInertiaTarget(const std::string &_target)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -3046,6 +3085,13 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   ignmsg << "View as transparent service on ["
          << this->dataPtr->viewTransparentService << "]" << std::endl;
 
+  // view center of mass service
+  this->dataPtr->viewCOMService = "/gui/view/com";
+  this->dataPtr->node.Advertise(this->dataPtr->viewCOMService,
+      &Scene3D::OnViewCOM, this);
+  ignmsg << "View center of mass service on ["
+         << this->dataPtr->viewCOMService << "]" << std::endl;
+
   // view inertia service
   this->dataPtr->viewInertiaService = "/gui/view/inertia";
   this->dataPtr->node.Advertise(this->dataPtr->viewInertiaService,
@@ -3249,6 +3295,18 @@ bool Scene3D::OnViewTransparent(const msgs::StringMsg &_msg,
   auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
 
   renderWindow->SetViewTransparentTarget(_msg.data());
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool Scene3D::OnViewCOM(const msgs::StringMsg &_msg,
+  msgs::Boolean &_res)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+
+  renderWindow->SetViewCOMTarget(_msg.data());
 
   _res.set_data(true);
   return true;
@@ -3564,6 +3622,12 @@ void RenderWindowItem::SetMoveToPose(const math::Pose3d &_pose)
 void RenderWindowItem::SetViewTransparentTarget(const std::string &_target)
 {
   this->dataPtr->renderThread->ignRenderer.SetViewTransparentTarget(_target);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetViewCOMTarget(const std::string &_target)
+{
+  this->dataPtr->renderThread->ignRenderer.SetViewCOMTarget(_target);
 }
 
 /////////////////////////////////////////////////

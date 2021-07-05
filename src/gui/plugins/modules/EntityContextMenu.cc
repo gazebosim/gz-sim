@@ -50,6 +50,9 @@ namespace ignition::gazebo
     /// \brief View as transparent service name
     public: std::string viewTransparentService;
 
+    /// \brief View center of mass service name
+    public: std::string viewCOMService;
+
     /// \brief View inertia service name
     public: std::string viewInertiaService;
 
@@ -90,6 +93,9 @@ EntityContextMenu::EntityContextMenu()
 
   // For view transparent service requests
   this->dataPtr->viewTransparentService = "/gui/view/transparent";
+
+  // For view center of mass service requests
+  this->dataPtr->viewCOMService = "/gui/view/com";
 
   // For view inertia service requests
   this->dataPtr->viewInertiaService = "/gui/view/inertia";
@@ -175,6 +181,12 @@ void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
     ignition::msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->viewTransparentService, req, cb);
+  }
+  else if (request == "view_com")
+  {
+    ignition::msgs::StringMsg req;
+    req.set_data(_data.toStdString());
+    this->dataPtr->node.Request(this->dataPtr->viewCOMService, req, cb);
   }
   else if (request == "view_inertia")
   {
