@@ -51,6 +51,7 @@
 #include <ignition/rendering/ParticleEmitter.hh>
 #include <ignition/rendering/Scene.hh>
 #include <ignition/rendering/Visual.hh>
+#include <ignition/rendering/WireBox.hh>
 
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/Util.hh"
@@ -95,6 +96,9 @@ class ignition::gazebo::SceneManagerPrivate
 
   /// \brief Map of sensor entity in Gazebo to sensor pointers.
   public: std::map<Entity, rendering::SensorPtr> sensors;
+
+  /// \brief The map of the original transparency values for the nodes.
+  public: std::map<std::string, double> originalTransparency;
 
   /// \brief Helper function to compute actor trajectory at specified tiime
   /// \param[in] _id Actor entity's unique id
@@ -1643,6 +1647,16 @@ void SceneManager::RemoveEntity(Entity _id)
     auto it = this->dataPtr->visuals.find(_id);
     if (it != this->dataPtr->visuals.end())
     {
+      // Remove visual's original transparency from map
+      rendering::VisualPtr vis = it->second;
+      this->dataPtr->originalTransparency.erase(vis->Name());
+
+      for (auto g = 0u; g < vis->GeometryCount(); ++g)
+      {
+        auto geom = vis->GeometryByIndex(g);
+        this->dataPtr->originalTransparency.erase(geom->Name());
+      }
+
       this->dataPtr->scene->DestroyVisual(it->second);
       this->dataPtr->visuals.erase(it);
       return;
@@ -1707,6 +1721,77 @@ rendering::NodePtr SceneManager::TopLevelNode(
   }
 
   return node;
+}
+
+////////////////////////////////////////////////
+void SceneManager::UpdateTransparency(const rendering::NodePtr &_node,
+    bool _makeTransparent)
+{
+  if (!_node)
+    return;
+
+  for (auto n = 0u; n < _node->ChildCount(); ++n)
+  {
+    auto child = _node->ChildByIndex(n);
+    this->UpdateTransparency(child, _makeTransparent);
+  }
+
+  auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
+  if (nullptr == vis)
+    return;
+
+  // Visual material
+  auto visMat = vis->Material();
+  if (nullptr != visMat)
+  {
+    auto visTransparency =
+        this->dataPtr->originalTransparency.find(vis->Name());
+    if (_makeTransparent)
+    {
+      if (visTransparency == this->dataPtr->originalTransparency.end())
+      {
+        this->dataPtr->originalTransparency[vis->Name()] =
+          visMat->Transparency();
+      }
+      visMat->SetTransparency(1.0 - ((1.0 - visMat->Transparency()) * 0.5));
+    }
+    else
+    {
+      if (visTransparency != this->dataPtr->originalTransparency.end())
+      {
+        visMat->SetTransparency(visTransparency->second);
+      }
+    }
+  }
+
+  for (auto g = 0u; g < vis->GeometryCount(); ++g)
+  {
+    auto geom = vis->GeometryByIndex(g);
+
+    // Geometry material
+    auto geomMat = geom->Material();
+    if (nullptr == geomMat || visMat == geomMat)
+      continue;
+    auto geomTransparency =
+        this->dataPtr->originalTransparency.find(geom->Name());
+
+    if (_makeTransparent)
+    {
+      if (geomTransparency == this->dataPtr->originalTransparency.end())
+      {
+        this->dataPtr->originalTransparency[geom->Name()] =
+            geomMat->Transparency();
+      }
+      geomMat->SetTransparency(1.0 - ((1.0 - geomMat->Transparency()) * 0.5));
+    }
+    else
+    {
+      if (geomTransparency != this->dataPtr->originalTransparency.end())
+      {
+        geomMat->SetTransparency(geomTransparency->second);
+      }
+    }
+  }
 }
 
 /////////////////////////////////////////////////

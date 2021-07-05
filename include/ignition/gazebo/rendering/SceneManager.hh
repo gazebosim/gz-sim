@@ -278,6 +278,16 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: rendering::NodePtr TopLevelNode(
         const rendering::NodePtr &_node) const;
 
+    /// \brief Updates the node to increase its transparency or reset
+    /// back to its original transparency value, an opaque call requires
+    /// a previous transparent call, otherwise, no action will be taken
+    /// Usually, this will be a link visual
+    /// \param[in] _node The node to update.
+    /// \param[in] _makeTransparent true if updating to increase transparency,
+    /// false to set back to original transparency values (make more opaque)
+    public: void UpdateTransparency(const rendering::NodePtr &_node,
+        bool _makeTransparent);
+
     /// \internal
     /// \brief Pointer to private data class
     private: std::unique_ptr<SceneManagerPrivate> dataPtr;
