@@ -1234,8 +1234,7 @@ rendering::VisualPtr SceneManager::CreateCOMVisual(Entity _id,
     return rendering::VisualPtr();
 
   std::string name = std::to_string(_id);
-  if (parent)
-    name = parent->Name() + "::" + name;
+  name = parent->Name() + "::" + name;
 
   rendering::COMVisualPtr comVisual =
       this->dataPtr->scene->CreateCOMVisual(name);
