@@ -126,6 +126,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public : void SetRemoveSensorCb(
         std::function<void(const gazebo::Entity &)> _removeSensorCb);
 
+    /// \brief View an entity as transparent
+    /// \param[in] _entity Entity to view as transparent
+    public: void ViewTransparent(const Entity &_entity);
+
     /// \brief View inertia of specified entity
     /// \param[in] _entity Entity to view inertia
     public: void ViewInertia(const Entity &_entity);
@@ -165,6 +169,15 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Clears the set of selected entities and lowlights all of them.
     public: void DeselectAllEntities();
+
+    /// \brief Helper function to get all child links of a model entity.
+    /// \param[in] _entity Entity to find child links
+    /// \return Vector of child links found for the parent entity
+    private: std::vector<Entity> FindChildLinks(const Entity &_entity);
+
+    /// \brief Helper function to hide wireboxes for an entity
+    /// \param[in] _entity Entity to hide wireboxes
+    private: void HideWireboxes(const Entity &_entity);
 
     /// \brief Set whether the transform controls are currently being dragged.
     /// \param[in] _active True if active.

@@ -47,6 +47,9 @@ namespace ignition::gazebo
     /// \brief Remove service name
     public: std::string removeService;
 
+    /// \brief View as transparent service name
+    public: std::string viewTransparentService;
+
     /// \brief View inertia service name
     public: std::string viewInertiaService;
 
@@ -87,6 +90,9 @@ EntityContextMenu::EntityContextMenu()
 
   // For remove service requests
   this->dataPtr->removeService = "/world/default/remove";
+
+  // For view transparent service requests
+  this->dataPtr->viewTransparentService = "/gui/view/transparent";
 
   // For view inertia service requests
   this->dataPtr->viewInertiaService = "/gui/view/inertia";
@@ -169,6 +175,12 @@ void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
     ignition::msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->followService, req, cb);
+  }
+  else if (request == "view_transparent")
+  {
+    ignition::msgs::StringMsg req;
+    req.set_data(_data.toStdString());
+    this->dataPtr->node.Request(this->dataPtr->viewTransparentService, req, cb);
   }
   else if (request == "view_inertia")
   {
