@@ -130,6 +130,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _entity Entity to view as transparent
     public: void ViewTransparent(const Entity &_entity);
 
+    /// \brief View center of mass of specified entity
+    /// \param[in] _entity Entity to view center of mass
+    public: void ViewCOM(const Entity &_entity);
+
     /// \brief View inertia of specified entity
     /// \param[in] _entity Entity to view inertia
     public: void ViewInertia(const Entity &_entity);
