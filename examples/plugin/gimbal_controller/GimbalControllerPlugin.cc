@@ -48,13 +48,17 @@ using namespace systems;
 
 class ignition::gazebo::systems::GimbalControllerPluginPrivate
 {      
-   /// \brief function for Pitch joint message
+   /// \brief Callback when a command String is received for Pitch
+   /// \param[in] _msg Mesage containing the command string
    public: void OnPitchStringMsg(const msgs::StringMsg &_msg);
 
-   /// \brief function for Roll joint message
+   /// \brief Callback when a command String is received for Roll
+   /// \param[in] _msg Mesage containing the command string
    public: void OnRollStringMsg(const msgs::StringMsg &_msg);
 
    /// \brief function for Yaw joint message
+   /// \brief Callback when a command String is received for Yaw
+   /// \param[in] _msg Mesage containing the command string
    public: void OnYawStringMsg(const msgs::StringMsg &_msg);
 
    /// \brief returns _angle1 normalized about
@@ -70,16 +74,22 @@ class ignition::gazebo::systems::GimbalControllerPluginPrivate
    /// \return distance traveled from starting to end angular positions
    public: double ShortestAngularDistance(double _from, double _to);
 
-   /// \brief function for 3-Axis rotation
+   /// \brief fuction returns elementary rotation matrix
+   /// \param[in] r11, r12, r21, r31, r32 are the elements of the rotation matrix
+   /// \returns arctangent of the elements of rotation matrix 
    public: ignition::math::Vector3d ThreeAxisRot(double r11, double r12, double r21, double r31, double r32);
 
    /// \brief function for conversion of Quaternion to ZYX matrix
+   /// \param[in] _q contains the quaternion
+   /// \return euler angle rotation "ZXY" in form of a matrix
    public: ignition::math::Vector3d QtoZXY(const ignition::math::Quaterniond &_q);
 
-   /// \brief function to initialize parameters
+   /// \brief initialises the values
+   /// \param[in] _ecm is an interface to the EntityComponentManager
    public: void Init(const EntityComponentManager &_ecm);
 
-   /// \brief callback for imu sensor
+   /// \brief Callback when new message is received by the IMU sensor
+   /// \param[in] _msg Mesage containing the command for IMU sensor
    public: void imuCb(const ignition::msgs::IMU &_msg);
 
    /// \brief publisher node for pitch
@@ -288,18 +298,13 @@ void GimbalControllerPluginPrivate::OnRollStringMsg(const msgs::StringMsg &_msg)
 }
 
 ////////////////////////////////////////////////////////////////////////////
-ignition::math::Vector3d GimbalControllerPluginPrivate::ThreeAxisRot(
-  double r11, double r12, double r21, double r31, double r32)
+ignition::math::Vector3d GimbalControllerPluginPrivate::ThreeAxisRot(double r11, double r12, double r21, double r31, double r32)
 {  
-   return ignition::math::Vector3d(
-     atan2(r31,r32),
-     asin (r21),
-     atan2(r11,r12));
+   return ignition::math::Vector3d(atan2(r31,r32),asin (r21),atan2(r11,r12));
 }
 
 ////////////////////////////////////////////////////////////////////////////
-ignition::math::Vector3d GimbalControllerPluginPrivate::QtoZXY(
-  const ignition::math::Quaterniond &_q)
+ignition::math::Vector3d GimbalControllerPluginPrivate::QtoZXY(const ignition::math::Quaterniond &_q)
 {  
    // taken from
    // http://bediyap.com/programming/convert-quaternion-to-euler-rotations/
@@ -417,7 +422,7 @@ void GimbalControllerPlugin::PreUpdate(const ignition::gazebo::UpdateInfo &_info
 
 ////////////////////////////////////////////////////////////////////////////
 double GimbalControllerPluginPrivate::NormalizeAbout(double _angle, double reference)
-{  
+{    
    double diff = _angle - reference;
    // normalize diff about (-pi, pi], then add reference
    while (diff <= -IGN_PI)
