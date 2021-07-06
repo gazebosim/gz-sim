@@ -302,13 +302,33 @@ class ignition::gazebo::RenderUtilPrivate
   /// \param[in] _node Node to be restored.
   public: void LowlightNode(const rendering::NodePtr &_node);
 
+  /// \brief New center of mass visuals to be created
+  public: std::vector<Entity> newCOMVisuals;
+
+  /// \brief A list of links used to create new center of mass visuals
+  public: std::vector<Entity> newCOMLinks;
+
+  /// \brief A map of link entities and if their center of mass visuals
+  /// are currently visible
+  public: std::map<Entity, bool> viewingCOM;
+
   /// \brief New inertias to be created
   public: std::vector<Entity> newInertias;
 
-  /// \brief Finds the links (inertia parent) that are used to create child
-  /// inertia visuals in RenderUtil::Update
+  /// \brief A map of links and their center of mass visuals
+  public: std::map<Entity, Entity> linkToCOMVisuals;
+
+  /// \brief Finds the child links for given entity from the ECM
   /// \param[in] _ecm The entity-component manager
-  public: void FindInertiaLinks(const EntityComponentManager &_ecm);
+  /// \param[in] _entity Entity to find child links
+  /// \return A vector of child links found for the entity
+  public: std::vector<Entity> FindChildLinksFromECM(
+      const EntityComponentManager &_ecm, const Entity &_entity);
+
+  /// \brief Finds the links (inertial parent) that are used to create child
+  /// inertia and center of mass visuals in RenderUtil::Update
+  /// \param[in] _ecm The entity-component manager
+  public: void FindInertialLinks(const EntityComponentManager &_ecm);
 
   /// \brief A list of links used to create new inertia visuals
   public: std::vector<Entity> newInertiaLinks;
@@ -555,50 +575,62 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
   this->dataPtr->RemoveRenderingEntities(_ecm, _info);
   this->dataPtr->markerManager.SetSimTime(_info.simTime);
   this->dataPtr->PopulateViewModeVisualLinks(_ecm);
-  this->dataPtr->FindInertiaLinks(_ecm);
+  this->dataPtr->FindInertialLinks(_ecm);
   this->dataPtr->FindCollisionLinks(_ecm);
 }
 
 //////////////////////////////////////////////////
-void RenderUtilPrivate::FindInertiaLinks(const EntityComponentManager &_ecm)
+std::vector<Entity> RenderUtilPrivate::FindChildLinksFromECM(
+    const EntityComponentManager &_ecm, const Entity &_entity)
 {
-  if (this->newInertias.empty())
-    return;
+  std::vector<Entity> links;
+  if (_ecm.EntityMatches(_entity,
+        std::set<ComponentTypeId>{components::Model::typeId}))
+  {
+    std::stack<Entity> modelStack;
+    modelStack.push(_entity);
 
+    std::vector<Entity> childLinks, childModels;
+    while (!modelStack.empty())
+    {
+      Entity model = modelStack.top();
+      modelStack.pop();
+
+      childLinks = _ecm.EntitiesByComponents(components::ParentEntity(model),
+                                             components::Link());
+      links.insert(links.end(),
+                   childLinks.begin(),
+                   childLinks.end());
+
+      childModels =
+          _ecm.EntitiesByComponents(components::ParentEntity(model),
+                                    components::Model());
+      for (const auto &childModel : childModels)
+      {
+          modelStack.push(childModel);
+      }
+    }
+  }
+  else if (_ecm.EntityMatches(_entity,
+              std::set<ComponentTypeId>{components::Link::typeId}))
+  {
+    links.push_back(_entity);
+  }
+  return links;
+}
+
+//////////////////////////////////////////////////
+void RenderUtilPrivate::FindInertialLinks(const EntityComponentManager &_ecm)
+{
   for (const auto &entity : this->newInertias)
   {
     std::vector<Entity> links;
     if (_ecm.EntityMatches(entity,
-          std::set<ComponentTypeId>{components::Model::typeId}))
-    {
-      std::stack<Entity> modelStack;
-      modelStack.push(entity);
-
-      std::vector<Entity> childLinks, childModels;
-      while (!modelStack.empty())
-      {
-        Entity model = modelStack.top();
-        modelStack.pop();
-
-        childLinks = _ecm.EntitiesByComponents(components::ParentEntity(model),
-                                               components::Link());
-        links.insert(links.end(),
-                     childLinks.begin(),
-                     childLinks.end());
-
-        childModels =
-            _ecm.EntitiesByComponents(components::ParentEntity(model),
-                                      components::Model());
-        for (const auto &childModel : childModels)
-        {
-            modelStack.push(childModel);
-        }
-      }
-    }
-    else if (_ecm.EntityMatches(entity,
+          std::set<ComponentTypeId>{components::Model::typeId}) ||
+        _ecm.EntityMatches(entity,
                 std::set<ComponentTypeId>{components::Link::typeId}))
     {
-      links.push_back(entity);
+      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
     }
     else
     {
@@ -613,6 +645,30 @@ void RenderUtilPrivate::FindInertiaLinks(const EntityComponentManager &_ecm)
         links.end());
   }
   this->newInertias.clear();
+
+  for (const auto &entity : this->newCOMVisuals)
+  {
+    std::vector<Entity> links;
+    if (_ecm.EntityMatches(entity,
+          std::set<ComponentTypeId>{components::Model::typeId}) ||
+        _ecm.EntityMatches(entity,
+                std::set<ComponentTypeId>{components::Link::typeId}))
+    {
+      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
+    }
+    else
+    {
+      ignerr << "Entity [" << entity
+             << "] for viewing center of mass must be a model or link"
+             << std::endl;
+      continue;
+    }
+
+    this->newCOMLinks.insert(this->newCOMLinks.end(),
+        links.begin(),
+        links.end());
+  }
+  this->newCOMVisuals.clear();
 }
 
 //////////////////////////////////////////////////
@@ -624,36 +680,11 @@ void RenderUtilPrivate::PopulateViewModeVisualLinks(
   {
     std::vector<Entity> links;
     if (_ecm.EntityMatches(entity,
-          std::set<ComponentTypeId>{components::Model::typeId}))
-    {
-      std::stack<Entity> modelStack;
-      modelStack.push(entity);
-
-      std::vector<Entity> childLinks, childModels;
-      while (!modelStack.empty())
-      {
-        Entity model = modelStack.top();
-        modelStack.pop();
-
-        childLinks = _ecm.EntitiesByComponents(components::ParentEntity(model),
-                                               components::Link());
-        links.insert(links.end(),
-                     childLinks.begin(),
-                     childLinks.end());
-
-        childModels =
-            _ecm.EntitiesByComponents(components::ParentEntity(model),
-                                      components::Model());
-        for (const auto &childModel : childModels)
-        {
-            modelStack.push(childModel);
-        }
-      }
-    }
-    else if (_ecm.EntityMatches(entity,
+          std::set<ComponentTypeId>{components::Model::typeId}) ||
+        _ecm.EntityMatches(entity,
                 std::set<ComponentTypeId>{components::Link::typeId}))
     {
-      links.push_back(entity);
+      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
     }
     else
     {
@@ -674,36 +705,11 @@ void RenderUtilPrivate::PopulateViewModeVisualLinks(
   {
     std::vector<Entity> links;
     if (_ecm.EntityMatches(entity,
-          std::set<ComponentTypeId>{components::Model::typeId}))
-    {
-      std::stack<Entity> modelStack;
-      modelStack.push(entity);
-
-      std::vector<Entity> childLinks, childModels;
-      while (!modelStack.empty())
-      {
-        Entity model = modelStack.top();
-        modelStack.pop();
-
-        childLinks = _ecm.EntitiesByComponents(components::ParentEntity(model),
-                                               components::Link());
-        links.insert(links.end(),
-                     childLinks.begin(),
-                     childLinks.end());
-
-        childModels =
-            _ecm.EntitiesByComponents(components::ParentEntity(model),
-                                      components::Model());
-        for (const auto &childModel : childModels)
-        {
-            modelStack.push(childModel);
-        }
-      }
-    }
-    else if (_ecm.EntityMatches(entity,
+          std::set<ComponentTypeId>{components::Model::typeId}) ||
+        _ecm.EntityMatches(entity,
                 std::set<ComponentTypeId>{components::Link::typeId}))
     {
-      links.push_back(entity);
+      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
     }
     else
     {
@@ -731,36 +737,11 @@ void RenderUtilPrivate::FindCollisionLinks(const EntityComponentManager &_ecm)
   {
     std::vector<Entity> links;
     if (_ecm.EntityMatches(entity,
-          std::set<ComponentTypeId>{components::Model::typeId}))
-    {
-      std::stack<Entity> modelStack;
-      modelStack.push(entity);
-
-      std::vector<Entity> childLinks, childModels;
-      while (!modelStack.empty())
-      {
-        Entity model = modelStack.top();
-        modelStack.pop();
-
-        childLinks = _ecm.EntitiesByComponents(components::ParentEntity(model),
-                                               components::Link());
-        links.insert(links.end(),
-                     childLinks.begin(),
-                     childLinks.end());
-
-        childModels =
-            _ecm.EntitiesByComponents(components::ParentEntity(model),
-                                      components::Model());
-        for (const auto &childModel : childModels)
-        {
-            modelStack.push(childModel);
-        }
-      }
-    }
-    else if (_ecm.EntityMatches(entity,
+          std::set<ComponentTypeId>{components::Model::typeId}) ||
+        _ecm.EntityMatches(entity,
                 std::set<ComponentTypeId>{components::Link::typeId}))
     {
-      links.push_back(entity);
+      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
     }
     else
     {
@@ -822,6 +803,7 @@ void RenderUtil::Update()
   auto newTransparentVisualLinks =
     std::move(this->dataPtr->newTransparentVisualLinks);
   auto newInertiaLinks = std::move(this->dataPtr->newInertiaLinks);
+  auto newCOMLinks = std::move(this->dataPtr->newCOMLinks);
   auto newWireframeVisualLinks =
     std::move(this->dataPtr->newWireframeVisualLinks);
   auto newCollisionLinks = std::move(this->dataPtr->newCollisionLinks);
@@ -844,6 +826,7 @@ void RenderUtil::Update()
   this->dataPtr->entityTemp.clear();
   this->dataPtr->newTransparentVisualLinks.clear();
   this->dataPtr->newInertiaLinks.clear();
+  this->dataPtr->newCOMLinks.clear();
   this->dataPtr->newWireframeVisualLinks.clear();
   this->dataPtr->newCollisionLinks.clear();
   this->dataPtr->thermalCameraData.clear();
@@ -1142,6 +1125,29 @@ void RenderUtil::Update()
               id, this->dataPtr->entityInertials[link], link);
           this->dataPtr->viewingInertias[link] = true;
           this->dataPtr->linkToInertiaVisuals[link] = id;
+          break;
+        }
+      }
+    }
+  }
+
+  // create new center of mass visuals
+  {
+    for (const auto &link : newCOMLinks)
+    {
+      // create a new id for the center of mass visual
+      auto attempts = 100000u;
+      for (auto i = 0u; i < attempts; ++i)
+      {
+        Entity id = std::numeric_limits<uint64_t>::max() - i;
+        if (!this->dataPtr->sceneManager.HasEntity(id) &&
+            !this->dataPtr->viewingCOM[link])
+        {
+          rendering::VisualPtr inrVisual =
+            this->dataPtr->sceneManager.CreateCOMVisual(
+              id, this->dataPtr->entityInertials[link], link);
+          this->dataPtr->viewingCOM[link] = true;
+          this->dataPtr->linkToCOMVisuals[link] = id;
           break;
         }
       }
@@ -1898,8 +1904,18 @@ void RenderUtilPrivate::RemoveRenderingEntities(
           this->removeEntities[this->linkToInertiaVisuals[_entity]] =
             _info.iterations;
         }
+
+        if (this->linkToCOMVisuals.find(_entity) !=
+            this->linkToCOMVisuals.end())
+        {
+          this->removeEntities[this->linkToCOMVisuals[_entity]] =
+            _info.iterations;
+        }
+
         this->linkToInertiaVisuals.erase(_entity);
         this->viewingInertias.erase(_entity);
+        this->linkToCOMVisuals.erase(_entity);
+        this->viewingCOM.erase(_entity);
         this->entityInertials.erase(_entity);
         return true;
       });
@@ -2611,16 +2627,66 @@ void RenderUtil::ViewInertia(const Entity &_entity)
 
     if (showInertia)
     {
-      // turn off wireboxes for inertia entity
-      if (this->dataPtr->wireBoxes.find(inertiaVisualId)
-            != this->dataPtr->wireBoxes.end())
-      {
-        ignition::rendering::WireBoxPtr wireBox =
-          this->dataPtr->wireBoxes[inertiaVisualId];
-        auto visParent = wireBox->Parent();
-        if (visParent)
-          visParent->SetVisible(false);
-      }
+      this->HideWireboxes(inertiaVisualId);
+    }
+  }
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::ViewCOM(const Entity &_entity)
+{
+  std::vector<Entity> inertiaLinks = std::move(this->FindChildLinks(_entity));
+
+  // check if _entity has an inertial component (_entity is a link)
+  if (this->dataPtr->entityInertials.find(_entity) !=
+      this->dataPtr->entityInertials.end())
+    inertiaLinks.push_back(_entity);
+
+  // create and/or toggle center of mass visuals
+  bool showCOM, showCOMInit = false;
+  // first loop looks for new center of mass visuals
+  for (const auto &inertiaLink : inertiaLinks)
+  {
+    if (this->dataPtr->viewingCOM.find(inertiaLink) ==
+        this->dataPtr->viewingCOM.end())
+    {
+      this->dataPtr->newCOMVisuals.push_back(_entity);
+      showCOMInit = showCOM = true;
+    }
+  }
+
+  // second loop toggles already created center of mass visuals
+  for (const auto &inertiaLink : inertiaLinks)
+  {
+    if (this->dataPtr->viewingCOM.find(inertiaLink) ==
+        this->dataPtr->viewingCOM.end())
+      continue;
+
+    // when viewing multiple center of mass visuals (e.g. _entity is a model),
+    // boolean for view center of mass is based on first inertiaEntity in list
+    if (!showCOMInit)
+    {
+      showCOM = !this->dataPtr->viewingCOM[inertiaLink];
+      showCOMInit = true;
+    }
+
+    Entity comVisualId = this->dataPtr->linkToCOMVisuals[inertiaLink];
+    rendering::VisualPtr comVisual =
+        this->dataPtr->sceneManager.VisualById(comVisualId);
+    if (comVisual == nullptr)
+    {
+      ignerr << "Could not find center of mass visual for entity ["
+             << inertiaLink
+             << "]" << std::endl;
+      continue;
+    }
+
+    this->dataPtr->viewingCOM[inertiaLink] = showCOM;
+    comVisual->SetVisible(showCOM);
+
+    if (showCOM)
+    {
+      this->HideWireboxes(comVisualId);
     }
   }
 }

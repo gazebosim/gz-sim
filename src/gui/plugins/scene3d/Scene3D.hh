@@ -169,6 +169,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: bool OnViewTransparent(const msgs::StringMsg &_msg,
                  msgs::Boolean &_res);
 
+    /// \brief Callback for view center of mass request
+    /// \param[in] _msg Request message to set the target to view center of
+    /// mass
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnViewCOM(const msgs::StringMsg &_msg,
+        msgs::Boolean &_res);
+
     /// \brief Callback for view inertia request
     /// \param[in] _msg Request message to set the target to view inertia
     /// \param[in] _res Response data
@@ -295,6 +303,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief View the specified target as transparent
     /// \param[in] _target Target to view as transparent
     public: void SetViewTransparentTarget(const std::string &_target);
+
+    /// \brief View center of mass of the specified target
+    /// \param[in] _target Target to view center of mass
+    public: void SetViewCOMTarget(const std::string &_target);
 
     /// \brief View inertia of the specified target
     /// \param[in] _target Target to view inertia
@@ -662,6 +674,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief View the specified target as transparent
     /// \param[in] _target Target to view as transparent
     public: void SetViewTransparentTarget(const std::string &_target);
+
+    /// \brief View center of mass of the specified target
+    /// \param[in] _target Target to view center of mass
+    public: void SetViewCOMTarget(const std::string &_target);
 
     /// \brief View inertia of the specified target
     /// \param[in] _target Target to view inertia

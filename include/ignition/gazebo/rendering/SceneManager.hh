@@ -134,6 +134,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: rendering::VisualPtr CreateVisual(Entity _id,
         const sdf::Visual &_visual, Entity _parentId = 0);
 
+    /// \brief Create a center of mass visual
+    /// \param[in] _id Unique visual id
+    /// \param[in] _inertial Inertial component of the link
+    /// \param[in] _parentId Parent id
+    /// \return Visual (center of mass) object created from the inertial
+    public: rendering::VisualPtr CreateCOMVisual(Entity _id,
+        const math::Inertiald &_inertial, Entity _parentId = 0);
+
     /// \brief Create an inertia visual
     /// \param[in] _id Unique visual id
     /// \param[in] _inertial Inertial component of the link
