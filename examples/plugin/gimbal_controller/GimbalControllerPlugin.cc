@@ -15,30 +15,32 @@
  *
 */
 
+#include <chrono>
+#include <mutex>
 #include <string>
 #include <vector>
-#include <mutex>
-#include <chrono>
 
-#include <ignition/transport/Node.hh>
+#include <ignition/common/Profiler.hh>
 
-#include <ignition/msgs/imu.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
-
-#include <ignition/math/Vector3.hh>
-#include <ignition/math/Quaternion.hh>
-#include <ignition/math/PID.hh>
+#include <ignition/gazebo/Model.hh>
+#include <ignition/gazebo/Util.hh>
 
 #include <ignition/gazebo/components/Imu.hh>
 #include <ignition/gazebo/components/JointForceCmd.hh>
 #include <ignition/gazebo/components/JointPosition.hh>
 #include <ignition/gazebo/components/Name.hh>
 #include <ignition/gazebo/components/ParentEntity.hh>
-#include <ignition/gazebo/Model.hh>
-#include <ignition/gazebo/Util.hh>
 
-#include <ignition/common/Profiler.hh>
+#include <ignition/math/PID.hh>
+#include <ignition/math/Quaternion.hh>
+#include <ignition/math/Vector3.hh>
+
+#include <ignition/msgs/imu.pb.h>
+#include <ignition/msgs/stringmsg.pb.h>
+
 #include <ignition/plugin/Register.hh>
+
+#include <ignition/transport/Node.hh>
 
 #include "GimbalControllerPlugin.hh"
 
@@ -77,7 +79,8 @@ class ignition::gazebo::systems::GimbalControllerPluginPrivate
    /// \brief fuction returns elementary rotation matrix
    /// \param[in] r11, r12, r21, r31, r32 are the elements of the rotation matrix
    /// \returns arctangent of the elements of rotation matrix 
-   public: ignition::math::Vector3d ThreeAxisRot(double r11, double r12, double r21, double r31, double r32);
+   public: ignition::math::Vector3d ThreeAxisRot(double r11, double r12, 
+      double r21, double r31, double r32);
 
    /// \brief function for conversion of Quaternion to ZYX matrix
    /// \param[in] _q contains the quaternion
@@ -181,22 +184,24 @@ void GimbalControllerPlugin::Configure(const Entity &_entity,
    this->dataPtr->yawJoint = this->dataPtr->model.JointByName(_ecm, "yawJointName");
 
    if(_sdf->HasElement("joint_yaw"))
-   {
+   {  
       // Add names to map
       yawJointName = _sdf->Get<std::string>("joint_yaw");
 
-     if(this->dataPtr->model.JointByName(_ecm, "yawJointName"))
-     {  
-	this->dataPtr->yawJoint = this->dataPtr->model.JointByName(_ecm, "yawJointName");
-     }
-     else
-     {
-        ignwarn << "joint_yaw ["<< yawJointName <<"] does not exist?\n"<< std::endl;
-     }
+      if(this->dataPtr->model.JointByName(_ecm, "yawJointName"))
+      {    
+	      this->dataPtr->yawJoint = this->dataPtr->model.JointByName(_ecm, "yawJointName");
+      }
+      else
+      {  
+         ignwarn << "joint_yaw ["<< yawJointName <<"] does not exist?\n"<< std::endl;
+      }
    }
+   
    if(!this->dataPtr->yawJoint)
-   {
-      ignerr << "GimbalControllerPlugin::Configure ERROR! Can't get yaw joint. " <<yawJointName <<"' " <<std::endl;
+   {  
+      ignerr << "GimbalControllerPlugin::Configure ERROR! Can't get yaw joint." 
+             <<yawJointName <<"' " <<std::endl;
    }
 	
    // for roll joint
@@ -204,7 +209,7 @@ void GimbalControllerPlugin::Configure(const Entity &_entity,
    this->dataPtr->rollJoint = this->dataPtr->model.JointByName(_ecm, "rollJointName");
 
    if(_sdf->HasElement("joint_roll"))
-   {
+   {  
       // Add names to map
       rollJointName = _sdf->Get<std::string>("joint_roll");
 
@@ -216,19 +221,20 @@ void GimbalControllerPlugin::Configure(const Entity &_entity,
       {
          ignwarn << "joint_roll ["<< rollJointName <<"] does not exist?\n"<< std::endl;
       }
-    }
+   }
    
-    if(!this->dataPtr->rollJoint)
-    {  
-       ignerr << "GimbalControllerPlugin::Configure ERROR! Can't get roll joint. " <<rollJointName <<"' " <<std::endl;
-    }
+   if(!this->dataPtr->rollJoint)
+   {      
+      ignerr << "GimbalControllerPlugin::Configure ERROR! Can't get roll joint." 
+             <<rollJointName<<"' " <<std::endl;
+   }
 
-    // for pitch joint
-    std::string pitchJointName = "cgo3_camera_joint";
-    this->dataPtr->pitchJoint = this->dataPtr->model.JointByName(_ecm, "pitchJointName");
+   // for pitch joint
+   std::string pitchJointName = "cgo3_camera_joint";
+   this->dataPtr->pitchJoint = this->dataPtr->model.JointByName(_ecm, "pitchJointName");
 
-    if(_sdf->HasElement("joint_pitch"))
-    {  
+   if(_sdf->HasElement("joint_pitch"))
+   {    
       // Add names to map
       pitchJointName = _sdf->Get<std::string>("joint_pitch");
       if(this->dataPtr->model.JointByName(_ecm, "pitchJointName"))
@@ -236,44 +242,45 @@ void GimbalControllerPlugin::Configure(const Entity &_entity,
          this->dataPtr->pitchJoint = this->dataPtr->model.JointByName(_ecm, "picthJointName");
       }
       else
-     {
-	ignwarn << "joint_pitch ["<< pitchJointName <<"] does not exist?\n"<< std::endl;
-     }
-    }
+      {      
+	      ignwarn << "joint_pitch ["<< pitchJointName <<"] does not exist?\n"<< std::endl;
+      }
+   }
 
-    if(!this->dataPtr->pitchJoint)
-    {
-       ignerr << "GimbalControllerPlugin::Configure ERROR! Can't get pitch joint. " <<pitchJointName <<"' " <<std::endl;
-    }
-    // get imu sensor
-    this->dataPtr->imuName = _sdf->Get("imuName", static_cast<std::string>("imu_sensor")).first;
-}
+   if(!this->dataPtr->pitchJoint)
+   {  
+      ignerr << "GimbalControllerPlugin::Configure ERROR! Can't get pitch joint." 
+             <<pitchJointName <<"' " <<std::endl;
+   }
+   // get imu sensor
+   this->dataPtr->imuName = _sdf->Get("imuName", static_cast<std::string>("imu_sensor")).first;
+}  
 
 ///////////////////////////////////////////////////////////////////////////
 void GimbalControllerPluginPrivate::Init(const EntityComponentManager &_ecm)
 {    
    // receive pitch command via ignition transport 
-   std::string pitchTopic = std::string("~/") +  this->model.Name(_ecm) + "/gimbal_pitch_cmd";
+   std::string pitchTopic = this->model.Name(_ecm) + "/gimbal_pitch_cmd";
    this->node.Subscribe(pitchTopic, &GimbalControllerPluginPrivate::OnPitchStringMsg, this);
 
    // receive roll command via ignition transport
-   std::string rollTopic = std::string("~/") +  this->model.Name(_ecm) + "/gimbal_roll_cmd";
+   std::string rollTopic = this->model.Name(_ecm) + "/gimbal_roll_cmd";
    this->node.Subscribe(rollTopic, &GimbalControllerPluginPrivate::OnRollStringMsg, this);
 
    // receive yaw command via ignition transport
-   std::string yawTopic = std::string("~/") +  this->model.Name(_ecm) + "/gimbal_yaw_cmd";
+   std::string yawTopic = this->model.Name(_ecm) + "/gimbal_yaw_cmd";
    this->node.Subscribe(yawTopic, &GimbalControllerPluginPrivate::OnYawStringMsg, this);
 
    // publish pitch status via ignition transport
-   pitchTopic = std::string("~/") +  this->model.Name(_ecm) + "/gimbal_pitch_status";
+   pitchTopic = this->model.Name(_ecm) + "/gimbal_pitch_status";
    this->pitchPub= this->node.Advertise<ignition::msgs::StringMsg>(pitchTopic);
 
    // publish roll status via ignition transport
-   rollTopic = std::string("~/") +  this->model.Name(_ecm) + "/gimbal_roll_status";
+   rollTopic = this->model.Name(_ecm) + "/gimbal_roll_status";
    this->rollPub= this->node.Advertise<ignition::msgs::StringMsg>(rollTopic);
 
    // publish yaw status via ignition transport
-   yawTopic = std::string("~/") +  this->model.Name(_ecm) + "/gimbal_yaw_status";
+   yawTopic = this->model.Name(_ecm) + "/gimbal_yaw_status";
    this->yawPub= this->node.Advertise<ignition::msgs::StringMsg>(yawTopic);
 
    ignmsg<< "GimbalControllerPluginPrivate::Init" <<std::endl;
@@ -298,7 +305,8 @@ void GimbalControllerPluginPrivate::OnRollStringMsg(const msgs::StringMsg &_msg)
 }
 
 ////////////////////////////////////////////////////////////////////////////
-ignition::math::Vector3d GimbalControllerPluginPrivate::ThreeAxisRot(double r11, double r12, double r21, double r31, double r32)
+ignition::math::Vector3d GimbalControllerPluginPrivate::ThreeAxisRot(double r11, 
+   double r12, double r21, double r31, double r32)
 {  
    return ignition::math::Vector3d(atan2(r31,r32),asin (r21),atan2(r11,r12));
 }
@@ -336,88 +344,91 @@ void GimbalControllerPlugin::PreUpdate(const ignition::gazebo::UpdateInfo &_info
       std::string topic = scopedName(imuEntity, _ecm) + "/imu";
 
       if(topic.empty())
-      {
-        ignerr << "imu_sensor [" << this->dataPtr->imuName
-               << "] not found, abort ArduPilot plugin." << "\n";
-        return;
+      {  
+         ignerr << "imu_sensor [" << this->dataPtr->imuName
+                << "] not found, abort ArduPilot plugin." << "\n";
+         return;
       }
       this->dataPtr->node.Subscribe(topic, &GimbalControllerPluginPrivate::imuCb, this->dataPtr.get());
-    }
+   }
     
-    if(!this->dataPtr->pitchJoint || !this->dataPtr->rollJoint || !this->dataPtr->yawJoint)
+   if(!this->dataPtr->pitchJoint || !this->dataPtr->rollJoint || !this->dataPtr->yawJoint)
       return;
 
-    if(_info.simTime < this->dataPtr->lastControllerUpdateTime)
-    {    
-       ignerr << "time reset event\n";
-       this->dataPtr->lastControllerUpdateTime = _info.simTime;
-        return;
-    }
-    else if (_info.simTime > this->dataPtr->lastControllerUpdateTime)
-    {   
-       // Time delta
-       std::chrono::duration<double> dt  = (this->dataPtr->lastControllerUpdateTime - _info.simTime);
+   if(_info.simTime < this->dataPtr->lastControllerUpdateTime)
+   {        
+      ignerr << "time reset event\n";
+      this->dataPtr->lastControllerUpdateTime = _info.simTime;
+      return;
+   }
+   else if(_info.simTime > this->dataPtr->lastControllerUpdateTime)
+   {   
+      // Time delta
+      std::chrono::duration<double> dt  = (this->dataPtr->lastControllerUpdateTime - _info.simTime);
   
-       // apply forces to move gimbal
-       // for pitch 
-       auto pitchJointPos = _ecm.Component<components::JointPosition>(this->dataPtr->pitchJoint);
-       double pitchError = pitchJointPos->Data().at(0) - this->dataPtr->pitchCommand;
-       double pitchForce = this->dataPtr->pitchPid.Update(pitchError, dt);
+      // apply forces to move gimbal
+      // for pitch 
+      auto pitchJointPos = _ecm.Component<components::JointPosition>(this->dataPtr->pitchJoint);
+      double pitchError = pitchJointPos->Data().at(0) - this->dataPtr->pitchCommand;
+      double pitchForce = this->dataPtr->pitchPid.Update(pitchError, dt);
 
-       ignition::gazebo::components::JointForceCmd* pjfcComp = nullptr;
-       pjfcComp = _ecm.Component<components::JointForceCmd>(this->dataPtr->pitchJoint);
+      ignition::gazebo::components::JointForceCmd* pjfcComp = nullptr;
+      pjfcComp = _ecm.Component<components::JointForceCmd>(this->dataPtr->pitchJoint);
 
-       if (pjfcComp == nullptr)
-       {  
-          pjfcComp = _ecm.Component<components::JointForceCmd>(_ecm.CreateComponent(this->dataPtr->pitchJoint, components::JointForceCmd({0})));
-       }
+      if (pjfcComp == nullptr)
+      {    
+         pjfcComp = _ecm.Component<components::JointForceCmd>(_ecm.CreateComponent(this->dataPtr->pitchJoint, 
+            components::JointForceCmd({0})));
+      }
 
-       // for yaw
-       auto yawJointPos = _ecm.Component<components::JointPosition>(this->dataPtr->yawJoint);
-       double yawError = yawJointPos->Data().at(0) - this->dataPtr->yawCommand;
-       double yawForce = this->dataPtr->yawPid.Update(yawError, dt);
+      // for yaw
+      auto yawJointPos = _ecm.Component<components::JointPosition>(this->dataPtr->yawJoint);
+      double yawError = yawJointPos->Data().at(0) - this->dataPtr->yawCommand;
+      double yawForce = this->dataPtr->yawPid.Update(yawError, dt);
 
-       ignition::gazebo::components::JointForceCmd* yjfcComp = nullptr;
-       yjfcComp = _ecm.Component<components::JointForceCmd>(this->dataPtr->yawJoint);
+      ignition::gazebo::components::JointForceCmd* yjfcComp = nullptr;
+      yjfcComp = _ecm.Component<components::JointForceCmd>(this->dataPtr->yawJoint);
 
-       if (yjfcComp == nullptr)
-       {
-          yjfcComp = _ecm.Component<components::JointForceCmd>(_ecm.CreateComponent(this->dataPtr->yawJoint, components::JointForceCmd({0})));
-       }
+      if (yjfcComp == nullptr)
+      {
+         yjfcComp = _ecm.Component<components::JointForceCmd>(_ecm.CreateComponent(this->dataPtr->yawJoint, 
+            components::JointForceCmd({0})));
+      }
 
-       // for roll
-       auto rollJointPos = _ecm.Component<components::JointPosition>(this->dataPtr->rollJoint);
-       double rollError = rollJointPos->Data().at(0) - this->dataPtr->rollCommand;
-       double rollForce = this->dataPtr->rollPid.Update(rollError, dt);
+      // for roll
+      auto rollJointPos = _ecm.Component<components::JointPosition>(this->dataPtr->rollJoint);
+      double rollError = rollJointPos->Data().at(0) - this->dataPtr->rollCommand;
+      double rollForce = this->dataPtr->rollPid.Update(rollError, dt);
 
-       ignition::gazebo::components::JointForceCmd* rjfcComp = nullptr;
-       rjfcComp = _ecm.Component<components::JointForceCmd>(this->dataPtr->rollJoint);
+      ignition::gazebo::components::JointForceCmd* rjfcComp = nullptr;
+      rjfcComp = _ecm.Component<components::JointForceCmd>(this->dataPtr->rollJoint);
 
-       if (rjfcComp == nullptr)
-       {
-          rjfcComp = _ecm.Component<components::JointForceCmd>(_ecm.CreateComponent(this->dataPtr->rollJoint, components::JointForceCmd({0})));
-       }
+      if (rjfcComp == nullptr)
+      {
+         rjfcComp = _ecm.Component<components::JointForceCmd>(_ecm.CreateComponent(this->dataPtr->rollJoint, 
+            components::JointForceCmd({0})));
+      }
 
-       static int i =1000;
-       if (++i>100)
-       {  
-          i = 0;
-          std::stringstream ss;
-          ignition::msgs::StringMsg m;
+      static int i = 1000;
+      if (++i > 100)
+      {    
+         i = 0;
+         std::stringstream ss;
+         ignition::msgs::StringMsg m;
 
-          ss << pitchJointPos;
-          m.set_data(ss.str());
-          this->dataPtr->pitchPub.Publish(m);
+         ss << pitchJointPos;
+         m.set_data(ss.str());
+         this->dataPtr->pitchPub.Publish(m);
 
-          ss << rollJointPos;
-          m.set_data(ss.str());
-          this->dataPtr->rollPub.Publish(m);
+         ss << rollJointPos;
+         m.set_data(ss.str());
+         this->dataPtr->rollPub.Publish(m);
 
-          ss << yawJointPos;
-          m.set_data(ss.str());
-          this->dataPtr->yawPub.Publish(m);
-       }
-  }
+         ss << yawJointPos;
+         m.set_data(ss.str());
+         this->dataPtr->yawPub.Publish(m);
+      }
+   }
 }
 
 ////////////////////////////////////////////////////////////////////////////
