@@ -331,8 +331,44 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief A map of entity id to thermal camera sensor configuration
   /// properties. The elements in the tuple are:
   /// <resolution, temperature range (min, max)>
-  public:std::unordered_map<Entity,
+  public: std::unordered_map<Entity,
       std::tuple<double, components::TemperatureRangeInfo>> thermalCameraData;
+
+  /// \brief A helper function that removes the sensor associated with an
+  /// entity, if an associated sensor exists. This should be called in
+  /// RenderUtil::Update.
+  /// \param[in] _entity The entity that should be checked for an associated
+  /// sensor.
+  public: void RemoveSensor(const Entity _entity);
+
+  /// \brief A helper function that removes the bounding box associated with an
+  /// entity, if an associated bounding box exists. This should be called in
+  /// RenderUtil::Update.
+  /// \param[in] _entity The entity that should be checked for an associated
+  /// bounding box.
+  public: void RemoveBoundingBox(const Entity _entity);
+
+  /// \brief A helper function for updating lights. This should be called in
+  /// RenderUtil::Update.
+  /// \param[in] _entityLights A map of entity IDs to their light updates.
+  public: void UpdateLights(
+              const std::unordered_map<Entity, msgs::Light> &_entityLights);
+
+  /// \brief A helper function for updating the thermal camera. This should be
+  /// called in RenderUtil::Update.
+  /// \param[in] _thermalCamData The thermal camera data that needs to be
+  /// updated.
+  /// \sa thermalCameraData
+  public: void UpdateThermalCamera(const std::unordered_map<Entity,
+    std::tuple<double, components::TemperatureRangeInfo>> &_thermalCamData);
+
+  /// \brief Helper function for updating animation. This should be called in
+  /// RenderUtil::Update.
+  /// \param[in] _actorAnimationData A map of entities to their animation update
+  /// data.
+  /// \sa actorManualSkeletonUpdate
+  public: void UpdateAnimation(const std::unordered_map<Entity,
+              AnimationUpdateData> &_actorAnimationData);
 };
 
 //////////////////////////////////////////////////
@@ -629,21 +665,8 @@ void RenderUtil::Update()
           this->dataPtr->selectedEntities.end());
       this->dataPtr->sceneManager.RemoveEntity(entity.first);
 
-      // delete associated sensor, if existing
-      auto sensorEntityIt = this->dataPtr->sensorEntities.find(entity.first);
-      if (sensorEntityIt != this->dataPtr->sensorEntities.end())
-      {
-        this->dataPtr->removeSensorCb(entity.first);
-        this->dataPtr->sensorEntities.erase(sensorEntityIt);
-      }
-
-      // delete associated bounding box, if existing
-      auto wireBoxIt = this->dataPtr->wireBoxes.find(entity.first);
-      if (wireBoxIt != this->dataPtr->wireBoxes.end())
-      {
-        this->dataPtr->scene->DestroyVisual(wireBoxIt->second->Parent());
-        this->dataPtr->wireBoxes.erase(wireBoxIt);
-      }
+      this->dataPtr->RemoveSensor(entity.first);
+      this->dataPtr->RemoveBoundingBox(entity.first);
     }
   }
 
@@ -755,101 +778,8 @@ void RenderUtil::Update()
     }
   }
 
-  // update lights
-  {
-    IGN_PROFILE("RenderUtil::Update Lights");
-    for (const auto &light : entityLights) {
-      auto node = this->dataPtr->sceneManager.NodeById(light.first);
-      if (!node)
-        continue;
-      auto l = std::dynamic_pointer_cast<rendering::Light>(node);
-      if (l)
-      {
-        if (light.second.has_diffuse())
-        {
-          if (l->DiffuseColor() != msgs::Convert(light.second.diffuse()))
-            l->SetDiffuseColor(msgs::Convert(light.second.diffuse()));
-        }
-        if (light.second.has_specular())
-        {
-          if (l->SpecularColor() != msgs::Convert(light.second.specular()))
-          {
-            l->SetSpecularColor(msgs::Convert(light.second.specular()));
-          }
-        }
-        if (!ignition::math::equal(
-            l->AttenuationRange(),
-            static_cast<double>(light.second.range())))
-        {
-          l->SetAttenuationRange(light.second.range());
-        }
-        if (!ignition::math::equal(
-            l->AttenuationLinear(),
-            static_cast<double>(light.second.attenuation_linear())))
-        {
-          l->SetAttenuationLinear(light.second.attenuation_linear());
-        }
-        if (!ignition::math::equal(
-            l->AttenuationConstant(),
-            static_cast<double>(light.second.attenuation_constant())))
-        {
-          l->SetAttenuationConstant(light.second.attenuation_constant());
-        }
-        if (!ignition::math::equal(
-            l->AttenuationQuadratic(),
-            static_cast<double>(light.second.attenuation_quadratic())))
-        {
-          l->SetAttenuationQuadratic(light.second.attenuation_quadratic());
-        }
-        if (l->CastShadows() != light.second.cast_shadows())
-          l->SetCastShadows(light.second.cast_shadows());
-        if (!ignition::math::equal(
-            l->Intensity(),
-            static_cast<double>(light.second.intensity())))
-        {
-          l->SetIntensity(light.second.intensity());
-        }
-        auto lDirectional =
-          std::dynamic_pointer_cast<rendering::DirectionalLight>(node);
-        if (lDirectional)
-        {
-          if (light.second.has_direction())
-          {
-            if (lDirectional->Direction() !=
-                msgs::Convert(light.second.direction()))
-            {
-              lDirectional->SetDirection(
-                msgs::Convert(light.second.direction()));
-            }
-          }
-        }
-        auto lSpotLight =
-          std::dynamic_pointer_cast<rendering::SpotLight>(node);
-        if (lSpotLight)
-        {
-          if (light.second.has_direction())
-          {
-            if (lSpotLight->Direction() !=
-              msgs::Convert(light.second.direction()))
-            {
-              lSpotLight->SetDirection(
-                msgs::Convert(light.second.direction()));
-            }
-          }
-          if (lSpotLight->InnerAngle() != light.second.spot_inner_angle())
-            lSpotLight->SetInnerAngle(light.second.spot_inner_angle());
-          if (lSpotLight->OuterAngle() != light.second.spot_outer_angle())
-            lSpotLight->SetOuterAngle(light.second.spot_outer_angle());
-          if (!ignition::math::equal(
-              lSpotLight->Falloff(),
-              static_cast<double>(light.second.spot_falloff())))
-          {
-            lSpotLight->SetFalloff(light.second.spot_falloff());
-          }
-        }
-      }
-    }
-  }
+  this->dataPtr->UpdateLights(entityLights);
+
   // update entities' pose
   {
     IGN_PROFILE("RenderUtil::Update Poses");
@@ -925,96 +855,7 @@ void RenderUtil::Update()
     }
     else
     {
-      for (auto &it : actorAnimationData)
-      {
-        auto actorMesh = this->dataPtr->sceneManager.ActorMeshById(it.first);
-        auto actorVisual = this->dataPtr->sceneManager.NodeById(it.first);
-        auto actorSkel = this->dataPtr->sceneManager.ActorSkeletonById(
-            it.first);
-        if (!actorMesh || !actorVisual || !actorSkel)
-        {
-          ignerr << "Actor with Entity ID '" << it.first << "'. not found. "
-                 << "Skipping skeleton animation update." << std::endl;
-          continue;
-        }
-
-        AnimationUpdateData &animData = it.second;
-        if (!animData.valid)
-        {
-          ignerr << "invalid animation update data" << std::endl;
-          continue;
-        }
-        // Enable skeleton animation
-        if (!actorMesh->SkeletonAnimationEnabled(animData.animationName))
-        {
-          // disable all animations for this actor
-          for (unsigned int i = 0; i < actorSkel->AnimationCount(); ++i)
-          {
-            actorMesh->SetSkeletonAnimationEnabled(
-                actorSkel->Animation(i)->Name(), false, false, 0.0);
-          }
-
-          // enable requested animation
-          actorMesh->SetSkeletonAnimationEnabled(
-              animData.animationName, true, animData.loop);
-
-          // Set skeleton root node weight to zero so it is not affected by
-          // the animation being played. This is needed if trajectory animation
-          // is enabled. We need to let the trajectory animation set the
-          // position of the actor instead
-          common::SkeletonPtr skeleton =
-              this->dataPtr->sceneManager.ActorSkeletonById(it.first);
-          if (skeleton)
-          {
-            float rootBoneWeight = (animData.followTrajectory) ? 0.0 : 1.0;
-            std::unordered_map<std::string, float> weights;
-            weights[skeleton->RootNode()->Name()] = rootBoneWeight;
-            actorMesh->SetSkeletonWeights(weights);
-          }
-        }
-        // Update skeleton animation by setting animation time.
-        // Note that animation time is different from sim time. An actor can
-        // have multiple animations. Animation time is associated with
-        // current animation that is being played. It is also adjusted if
-        // interpotate_x is enabled.
-        actorMesh->UpdateSkeletonAnimation(animData.time);
-
-        // manually update root transform in order to sync with trajectory
-        // animation
-        if (animData.followTrajectory)
-        {
-          common::SkeletonPtr skeleton =
-              this->dataPtr->sceneManager.ActorSkeletonById(it.first);
-          std::map<std::string, math::Matrix4d> rootTf;
-          rootTf[skeleton->RootNode()->Name()] = animData.rootTransform;
-          actorMesh->SetSkeletonLocalTransforms(rootTf);
-        }
-
-        // update actor trajectory animation
-        math::Pose3d globalPose;
-        if (entityPoses.find(it.first) != entityPoses.end())
-        {
-          globalPose = entityPoses[it.first];
-        }
-
-        math::Pose3d trajPose;
-        // Trajectory from the ECS
-        if (trajectoryPoses.find(it.first) != trajectoryPoses.end())
-        {
-          trajPose = trajectoryPoses[it.first];
-        }
-        else
-        {
-          // trajectory from sdf script
-          common::PoseKeyFrame poseFrame(0.0);
-          if (animData.followTrajectory)
-            animData.trajectory.Waypoints()->InterpolatedKeyFrame(poseFrame);
-          trajPose.Pos() = poseFrame.Translation();
-          trajPose.Rot() = poseFrame.Rotation();
-        }
-
-        actorVisual->SetLocalPose(trajPose + globalPose);
-      }
+      this->dataPtr->UpdateAnimation(actorAnimationData);
     }
   }
 
@@ -1078,43 +919,7 @@ void RenderUtil::Update()
     }
   }
 
-  // update thermal camera
-  for (const auto &thermal : this->dataPtr->thermalCameraData)
-  {
-    Entity id = thermal.first;
-    rendering::ThermalCameraPtr camera =
-        std::dynamic_pointer_cast<rendering::ThermalCamera>(
-        this->dataPtr->sceneManager.NodeById(id));
-    if (camera)
-    {
-      double resolution = std::get<0>(thermal.second);
-
-      if (resolution > 0.0)
-      {
-        camera->SetLinearResolution(resolution);
-      }
-      else
-      {
-        ignwarn << "Unable to set thermal camera temperature linear resolution."
-                << " Value must be greater than 0. Using the default value: "
-                << camera->LinearResolution() << ". " << std::endl;
-      }
-      double minTemp = std::get<1>(thermal.second).min.Kelvin();
-      double maxTemp = std::get<1>(thermal.second).max.Kelvin();
-      if (maxTemp >= minTemp)
-      {
-        camera->SetMinTemperature(minTemp);
-        camera->SetMaxTemperature(maxTemp);
-      }
-      else
-      {
-        ignwarn << "Unable to set thermal camera temperature range."
-                << "Max temperature must be greater or equal to min. "
-                << "Using the default values : [" << camera->MinTemperature()
-                << ", " << camera->MaxTemperature() << "]." << std::endl;
-      }
-    }
-  }
+  this->dataPtr->UpdateThermalCamera(thermalCameraData);
 }
 
 //////////////////////////////////////////////////
@@ -2132,6 +1937,259 @@ void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
     auto visParent = wireBox->Parent();
     if (visParent)
       visParent->SetVisible(false);
+  }
+}
+
+/////////////////////////////////////////////////
+void RenderUtilPrivate::RemoveSensor(const Entity _entity)
+{
+  auto sensorEntityIt = this->sensorEntities.find(_entity);
+  if (sensorEntityIt != this->sensorEntities.end())
+  {
+    this->removeSensorCb(_entity);
+    this->sensorEntities.erase(sensorEntityIt);
+  }
+}
+
+/////////////////////////////////////////////////
+void RenderUtilPrivate::RemoveBoundingBox(const Entity _entity)
+{
+  auto wireBoxIt = this->wireBoxes.find(_entity);
+  if (wireBoxIt != this->wireBoxes.end())
+  {
+    this->scene->DestroyVisual(wireBoxIt->second->Parent());
+    this->wireBoxes.erase(wireBoxIt);
+  }
+}
+
+/////////////////////////////////////////////////
+void RenderUtilPrivate::UpdateLights(
+    const std::unordered_map<Entity, msgs::Light> &_entityLights)
+{
+  IGN_PROFILE("RenderUtil::Update Lights");
+  for (const auto &light : _entityLights)
+  {
+    auto node = this->sceneManager.NodeById(light.first);
+    if (!node)
+      continue;
+    auto l = std::dynamic_pointer_cast<rendering::Light>(node);
+    if (l)
+    {
+      if (light.second.has_diffuse())
+      {
+        if (l->DiffuseColor() != msgs::Convert(light.second.diffuse()))
+          l->SetDiffuseColor(msgs::Convert(light.second.diffuse()));
+      }
+      if (light.second.has_specular())
+      {
+        if (l->SpecularColor() != msgs::Convert(light.second.specular()))
+        {
+          l->SetSpecularColor(msgs::Convert(light.second.specular()));
+        }
+      }
+      if (!ignition::math::equal(
+          l->AttenuationRange(),
+          static_cast<double>(light.second.range())))
+      {
+        l->SetAttenuationRange(light.second.range());
+      }
+      if (!ignition::math::equal(
+          l->AttenuationLinear(),
+          static_cast<double>(light.second.attenuation_linear())))
+      {
+        l->SetAttenuationLinear(light.second.attenuation_linear());
+      }
+      if (!ignition::math::equal(
+          l->AttenuationConstant(),
+          static_cast<double>(light.second.attenuation_constant())))
+      {
+        l->SetAttenuationConstant(light.second.attenuation_constant());
+      }
+      if (!ignition::math::equal(
+          l->AttenuationQuadratic(),
+          static_cast<double>(light.second.attenuation_quadratic())))
+      {
+        l->SetAttenuationQuadratic(light.second.attenuation_quadratic());
+      }
+      if (l->CastShadows() != light.second.cast_shadows())
+        l->SetCastShadows(light.second.cast_shadows());
+      auto lDirectional =
+        std::dynamic_pointer_cast<rendering::DirectionalLight>(node);
+      if (lDirectional)
+      {
+        if (light.second.has_direction())
+        {
+          if (lDirectional->Direction() !=
+              msgs::Convert(light.second.direction()))
+          {
+            lDirectional->SetDirection(
+              msgs::Convert(light.second.direction()));
+          }
+        }
+      }
+      auto lSpotLight =
+        std::dynamic_pointer_cast<rendering::SpotLight>(node);
+      if (lSpotLight)
+      {
+        if (light.second.has_direction())
+        {
+          if (lSpotLight->Direction() !=
+            msgs::Convert(light.second.direction()))
+          {
+            lSpotLight->SetDirection(
+              msgs::Convert(light.second.direction()));
+          }
+        }
+        if (lSpotLight->InnerAngle() != light.second.spot_inner_angle())
+          lSpotLight->SetInnerAngle(light.second.spot_inner_angle());
+        if (lSpotLight->OuterAngle() != light.second.spot_outer_angle())
+          lSpotLight->SetOuterAngle(light.second.spot_outer_angle());
+        if (!ignition::math::equal(
+            lSpotLight->Falloff(),
+            static_cast<double>(light.second.spot_falloff())))
+        {
+          lSpotLight->SetFalloff(light.second.spot_falloff());
+        }
+      }
+    }
+  }
+}
+
+/////////////////////////////////////////////////
+void RenderUtilPrivate::UpdateThermalCamera(const std::unordered_map<Entity,
+    std::tuple<double, components::TemperatureRangeInfo>> &_thermalCamData)
+{
+  for (const auto &thermal : _thermalCamData)
+  {
+    Entity id = thermal.first;
+    rendering::ThermalCameraPtr camera =
+        std::dynamic_pointer_cast<rendering::ThermalCamera>(
+        this->sceneManager.NodeById(id));
+    if (camera)
+    {
+      double resolution = std::get<0>(thermal.second);
+
+      if (resolution > 0.0)
+      {
+        camera->SetLinearResolution(resolution);
+      }
+      else
+      {
+        ignwarn << "Unable to set thermal camera temperature linear resolution."
+                << " Value must be greater than 0. Using the default value: "
+                << camera->LinearResolution() << ". " << std::endl;
+      }
+      double minTemp = std::get<1>(thermal.second).min.Kelvin();
+      double maxTemp = std::get<1>(thermal.second).max.Kelvin();
+      if (maxTemp >= minTemp)
+      {
+        camera->SetMinTemperature(minTemp);
+        camera->SetMaxTemperature(maxTemp);
+      }
+      else
+      {
+        ignwarn << "Unable to set thermal camera temperature range."
+                << "Max temperature must be greater or equal to min. "
+                << "Using the default values : [" << camera->MinTemperature()
+                << ", " << camera->MaxTemperature() << "]." << std::endl;
+      }
+    }
+  }
+}
+
+/////////////////////////////////////////////////
+void RenderUtilPrivate::UpdateAnimation(
+    const std::unordered_map<Entity, AnimationUpdateData> &_actorAnimationData)
+{
+  for (auto &it : _actorAnimationData)
+  {
+    auto actorMesh = this->sceneManager.ActorMeshById(it.first);
+    auto actorVisual = this->sceneManager.NodeById(it.first);
+    auto actorSkel = this->sceneManager.ActorSkeletonById(
+        it.first);
+    if (!actorMesh || !actorVisual || !actorSkel)
+    {
+      ignerr << "Actor with Entity ID '" << it.first << "'. not found. "
+             << "Skipping skeleton animation update." << std::endl;
+      continue;
+    }
+
+    const AnimationUpdateData &animData = it.second;
+    if (!animData.valid)
+    {
+      ignerr << "invalid animation update data" << std::endl;
+      continue;
+    }
+    // Enable skeleton animation
+    if (!actorMesh->SkeletonAnimationEnabled(animData.animationName))
+    {
+      // disable all animations for this actor
+      for (unsigned int i = 0; i < actorSkel->AnimationCount(); ++i)
+      {
+        actorMesh->SetSkeletonAnimationEnabled(
+            actorSkel->Animation(i)->Name(), false, false, 0.0);
+      }
+
+      // enable requested animation
+      actorMesh->SetSkeletonAnimationEnabled(
+          animData.animationName, true, animData.loop);
+
+      // Set skeleton root node weight to zero so it is not affected by
+      // the animation being played. This is needed if trajectory animation
+      // is enabled. We need to let the trajectory animation set the
+      // position of the actor instead
+      common::SkeletonPtr skeleton =
+          this->sceneManager.ActorSkeletonById(it.first);
+      if (skeleton)
+      {
+        float rootBoneWeight = (animData.followTrajectory) ? 0.0 : 1.0;
+        std::unordered_map<std::string, float> weights;
+        weights[skeleton->RootNode()->Name()] = rootBoneWeight;
+        actorMesh->SetSkeletonWeights(weights);
+      }
+    }
+    // Update skeleton animation by setting animation time.
+    // Note that animation time is different from sim time. An actor can
+    // have multiple animations. Animation time is associated with
+    // current animation that is being played. It is also adjusted if
+    // interpotate_x is enabled.
+    actorMesh->UpdateSkeletonAnimation(animData.time);
+
+    // manually update root transform in order to sync with trajectory
+    // animation
+    if (animData.followTrajectory)
+    {
+      common::SkeletonPtr skeleton =
+          this->sceneManager.ActorSkeletonById(it.first);
+      std::map<std::string, math::Matrix4d> rootTf;
+      rootTf[skeleton->RootNode()->Name()] = animData.rootTransform;
+      actorMesh->SetSkeletonLocalTransforms(rootTf);
+    }
+
+    // update actor trajectory animation
+    math::Pose3d globalPose;
+    if (entityPoses.find(it.first) != entityPoses.end())
+    {
+      globalPose = entityPoses[it.first];
+    }
+
+    math::Pose3d trajPose;
+    // Trajectory from the ECS
+    if (trajectoryPoses.find(it.first) != trajectoryPoses.end())
+    {
+      trajPose = trajectoryPoses[it.first];
+    }
+    else
+    {
+      // trajectory from sdf script
+      common::PoseKeyFrame poseFrame(0.0);
+      if (animData.followTrajectory)
+        animData.trajectory.Waypoints()->InterpolatedKeyFrame(poseFrame);
+      trajPose.Pos() = poseFrame.Translation();
+      trajPose.Rot() = poseFrame.Rotation();
+    }
+
+    actorVisual->SetLocalPose(trajPose + globalPose);
   }
 }
 
