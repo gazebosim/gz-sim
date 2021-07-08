@@ -1881,7 +1881,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
   // avoid calling this again on canonical links when doing the remaining link
   // update work later.
   std::unordered_set<Entity> modelPoseChanged;
-  std::unordered_map<Entity, physics::FrameData3d> linkWorldFrameData;
+  std::unordered_map<Entity, physics::FrameData3d> canonicalLinkWorldFrameData;
   _ecm.Each<components::CanonicalLink, components::ParentEntity>(
       [&](const Entity &_entity, components::CanonicalLink * /*_link*/,
           const components::ParentEntity *_parent)->bool
@@ -1900,7 +1900,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
           return true;
         }
         auto frameData = linkPhys->FrameDataRelativeToWorld();
-        linkWorldFrameData[_entity] = frameData;
+        canonicalLinkWorldFrameData[_entity] = frameData;
         const auto worldPoseMath3d = math::eigen3::convert(frameData.pose);
 
         // update the top level model pose if this is the first update,
@@ -1956,8 +1956,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
         // FrameData instead of calling FrameDataRelativeToWorld again (this can
         // be an expensive call)
         physics::FrameData3d frameData;
-        auto frameDataIter = linkWorldFrameData.find(_entity);
-        bool isCanonicalLink = frameDataIter != linkWorldFrameData.end();
+        auto frameDataIter = canonicalLinkWorldFrameData.find(_entity);
+        bool isCanonicalLink =
+          frameDataIter != canonicalLinkWorldFrameData.end();
         if (isCanonicalLink)
         {
           frameData = frameDataIter->second;
