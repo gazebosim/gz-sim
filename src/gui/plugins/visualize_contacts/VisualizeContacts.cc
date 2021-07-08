@@ -65,11 +65,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \brief Transport node
     public: transport::Node node;
 
-    /// \brief Current state of the checkbox
-    public: bool checkboxState{false};
+    /// \brief Current state of the menu item
+    public: bool menuItemState{false};
 
-    /// \brief Previous state of the checkbox
-    public: bool checkboxPrevState{false};
+    /// \brief Previous state of the menu item
+    public: bool menuItemPrevState{false};
 
     /// \brief Message for visualizing contact positions
     public: ignition::msgs::Marker positionMarkerMsg;
@@ -83,9 +83,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \brief Simulation time for the last markers update
     public: std::chrono::steady_clock::duration lastMarkersUpdateTime{0};
 
-    /// \brief Mutex for variable mutated by the checkbox and spinboxes
+    /// \brief Mutex for variable mutated by the menu item and spinboxes
     /// callbacks.
-    /// The variables are: checkboxState, contactRadius and markerLifetime
+    /// The variables are: menuItemState, contactRadius and markerLifetime
     public: std::mutex serviceMutex;
 
     /// \brief Initialization flag
@@ -93,6 +93,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 
     /// \brief Name of the world
     public: std::string worldName;
+
+    /// \brief View contacts service name
+    public: std::string viewContactsService;
   };
 }
 }
@@ -148,13 +151,25 @@ void VisualizeContacts::LoadConfig(const tinyxml2::XMLElement *)
     ignition::math::Vector3d(this->dataPtr->contactRadius,
     this->dataPtr->contactRadius,
     this->dataPtr->contactRadius));
+
+  // view contacts service
+  this->dataPtr->viewContactsService = "/gui/view/contacts";
+  this->dataPtr->node.Advertise(this->dataPtr->viewContactsService,
+      &VisualizeContacts::OnViewContacts, this);
+  ignmsg << "View contacts service on ["
+         << this->dataPtr->viewContactsService << "]" << std::endl;
 }
 
 /////////////////////////////////////////////////
-void VisualizeContacts::OnVisualize(bool _checked)
+bool VisualizeContacts::OnViewContacts(const msgs::StringMsg &,
+  msgs::Boolean &_res)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
-  this->dataPtr->checkboxState = _checked;
+  this->dataPtr->menuItemState =
+      (this->dataPtr->menuItemState) ? false : true;
+
+  _res.set_data(true);
+  return true;
 }
 
 //////////////////////////////////////////////////
@@ -186,7 +201,7 @@ void VisualizeContacts::Update(const UpdateInfo &_info,
 
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
-    if (this->dataPtr->checkboxPrevState && !this->dataPtr->checkboxState)
+    if (this->dataPtr->menuItemPrevState && !this->dataPtr->menuItemState)
     {
       // Remove the markers
       this->dataPtr->positionMarkerMsg.set_action(
@@ -196,13 +211,13 @@ void VisualizeContacts::Update(const UpdateInfo &_info,
       this->dataPtr->node.Request(
         "/marker", this->dataPtr->positionMarkerMsg);
 
-      // Change action in case checkbox is checked again
+      // Change action in case menu item is selected again
       this->dataPtr->positionMarkerMsg.set_action(
         ignition::msgs::Marker::ADD_MODIFY);
     }
 
-    this->dataPtr->checkboxPrevState = this->dataPtr->checkboxState;
-    if (!this->dataPtr->checkboxState)
+    this->dataPtr->menuItemPrevState = this->dataPtr->menuItemState;
+    if (!this->dataPtr->menuItemState)
       return;
   }
 

@@ -20,6 +20,9 @@
 
 #include <memory>
 
+#include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/stringmsg.pb.h>
+
 #include <ignition/gazebo/gui/GuiSystem.hh>
 
 #include "ignition/gui/qt.h"
@@ -33,9 +36,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 {
   class VisualizeContactsPrivate;
 
-  /// \brief Visualize the contacts returned by the Physics plugin. Use the
-  /// checkbox to turn visualization on or off and spin boxes to change
-  /// the size of the markers.
+  /// \brief Visualize the contacts returned by the Physics plugin.
+  /// Use the Entity Context Menu to turn visualization on or off
+  /// and spin boxes to change the size of the markers.
   class VisualizeContacts : public ignition::gazebo::GuiSystem
   {
     Q_OBJECT
@@ -53,10 +56,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     public: void Update(const UpdateInfo &_info,
         EntityComponentManager &_ecm) override;
 
-    /// \brief Callback when checkbox state is changed
-    /// \param[in] _checked indicates show or hide contacts
-    public slots: void OnVisualize(bool _checked);
-
     /// \brief Update the radius of the contact
     /// \param[in] _radius new radius of the contact
     public slots: void UpdateRadius(double _radius);
@@ -64,6 +63,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \brief Update the update period of the markers
     /// \param[in] _period new update period
     public slots: void UpdatePeriod(double _period);
+
+    /// \brief Callback for view contacts request
+    /// \param[in] _msg Request message to set the target to view contacts
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnViewContacts(const msgs::StringMsg &,
+        msgs::Boolean &_res);
 
     /// \internal
     /// \brief Pointer to private data

@@ -71,6 +71,14 @@ Item {
         context.OnRequest("view_collisions", context.entity)
       }
     }
+    MenuItem {
+      id: viewContactsMenu
+      text: "Contacts"
+      onTriggered: {
+        menu.close()
+        context.OnRequest("view_contacts", context.entity)
+      }
+    }
   }
 
   function open(_entity, _type, _x, _y) {
@@ -82,6 +90,7 @@ Item {
     followMenu.enabled = false
     removeMenu.enabled = false
     viewCollisionsMenu.enabled = false;
+    viewContactsMenu.enabled = false;
 
     // enable / disable menu items
     if (context.type == "model" || context.type == "link" ||
@@ -100,6 +109,7 @@ Item {
     if (context.type == "model" || context.type == "link")
     {
       viewCollisionsMenu.enabled = true;
+      viewContactsMenu.enabled = true;
     }
 
     menu.open()

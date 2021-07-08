@@ -35,17 +35,6 @@ GridLayout {
     Layout.fillWidth: true
   }
 
-  CheckBox {
-    Layout.alignment: Qt.AlignHCenter
-    id: visualizeContacts
-    Layout.columnSpan: 4
-    text: qsTr("Show Contacts")
-    checked: false
-    onClicked: {
-      VisualizeContacts.OnVisualize(checked)
-    }
-  }
-
   // Right spacer
   Item {
     Layout.columnSpan: 1
