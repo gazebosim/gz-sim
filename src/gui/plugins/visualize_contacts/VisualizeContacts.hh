@@ -65,7 +65,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     public slots: void UpdatePeriod(double _period);
 
     /// \brief Callback for view contacts request
-    /// \param[in] _msg Request message to set the target to view contacts
     /// \param[in] _res Response data
     /// \return True if the request is received
     private: bool OnViewContacts(const msgs::StringMsg &,
