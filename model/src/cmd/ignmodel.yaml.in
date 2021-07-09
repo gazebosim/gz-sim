@@ -4,5 +4,5 @@ library_name: ignition-model
 library_version: @PROJECT_VERSION_FULL@
 library_path: @ign_model_ruby_path@
 commands:
-    - model   : Get information about a model.
+    - model   : Print information about models.
 ---

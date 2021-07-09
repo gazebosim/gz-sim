@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2021 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,32 +20,18 @@
 #include <ignition/gazebo/EntityComponentManager.hh>
 #include <string>
 
-extern "C"
-{
-    /// \brief Get the name of the world being used.
-    std::string getWorldName();
 
-    /// \brief Print the model pose information.
-    void printPose(uint64_t entity,
-        ignition::gazebo::EntityComponentManager &ecm);
+/// \brief External hook to get a list of available models.
+extern "C" IGNITION_GAZEBO_VISIBLE void cmdModelList();
 
-    /// \brief Print the model links information.
-    void printLinks(uint64_t entity,
-        ignition::gazebo::EntityComponentManager &ecm, std::string link_name);
+/// \brief External hook to dump model information.
+/// \param[in] _model Model name.
+/// \param[in] _pose --pose option.
+/// \param[in] _link --link option.
+/// \param[in] _link_name Link name.
+/// \param[in] _joint --joint option.
+/// \param[in] _joint_name Joint name.
+extern "C" IGNITION_GAZEBO_VISIBLE void cmdModelInfo(
+    const char *_model, int _pose, int _link, const char *_linkName,
+    int _joint, const char *_jointName);
 
-    /// \brief Print the model joints information.
-    void printJoints(uint64_t entity,
-        ignition::gazebo::EntityComponentManager &ecm, std::string joint_name);
-
-    /// \brief Print the model bounding box information.
-    void printBoundingBox(uint64_t entity,
-        ignition::gazebo::EntityComponentManager &ecm);
-
-    /// \brief External hook to get a list of available models.
-    extern "C" IGNITION_GAZEBO_VISIBLE void cmdModelList();
-
-    /// \brief External hook to dump model information.
-    extern "C" IGNITION_GAZEBO_VISIBLE void cmdModelInfo(
-        const char *_model, int _pose, int _link, const char *_link_name,
-        int _joint, const char *joint_name);
-}

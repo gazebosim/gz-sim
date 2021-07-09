@@ -1,6 +1,6 @@
 #!/usr/bin/ruby
 
-# Copyright (C) 2017 Open Source Robotics Foundation
+# Copyright (C) 2021 Open Source Robotics Foundation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -36,11 +36,21 @@ COMMON_OPTIONS =
   "                                                                        \n"\
 
 COMMANDS = { 'model' =>
-"Print information about models.\n\n"+
+  "Print information about models.\n\n"+
+  "                                                                        \n"\
+  "  ign model [options]                                                   \n"\
+  "                                                                        \n"\
+  "Available Options:                                                      \n"\
   "  --list                     Get a list of the available models.        \n"\
   "  -m [--model] arg           Select the model to be shown.              \n"\
-  "  -l [--link]  arg           Select a link to show it's properties.     \n"\
-  "  -j [--joint] arg           Select a joint to show it's properties.    \n\n"\
+  "  -l [--link]  arg           Select a link to show its properties.      \n"\
+  "                             If no arg is passed all links are printed  \n"\
+  "                             Requires the -m option                     \n"\
+  "                                                                        \n"\
+  "  -j [--joint] arg           Select a joint to show its properties.     \n"\
+  "                             If no arg is passed all joints are printed \n"\
+  "                             Requires the -m option                     \n"\
+  "                                                                        \n"\
   "                             E.g. to get information about the          \n"\
   "                             box_link in the shapes world, run:         \n"\
   "                             ign model -m box -l box_link               \n\n"+
@@ -52,17 +62,17 @@ COMMANDS = { 'model' =>
 #
 class Cmd
 
-    #
-    # Return a structure describing the options.
-    #
+  #
+  # Return a structure describing the options.
+  #
   def parse(args)
     options = {
-    'pose' => 0,
-    'link' => 0,
-    'link_name' => '',
-    'joint' => 0,
-    'joint_name' => ''
-  }
+      'pose' => 0,
+      'link' => 0,
+      'link_name' => '',
+      'joint' => 0,
+      'joint_name' => ''
+    }
     usage = COMMANDS[args[0]]
 
     opt_parser = OptionParser.new do |opts|
@@ -90,8 +100,6 @@ class Cmd
         options['joint_name'] = j
       end
     end # opt_parser do
-
-
     begin
       opt_parser.parse!(args)
     rescue

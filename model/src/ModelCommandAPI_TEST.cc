@@ -30,18 +30,19 @@ static const std::string kIgnModelCommand(std::string(IGN_PATH) +
 
 
 /////////////////////////////////////////////////
-// Used to avoid the cases where the zero is represented as a negative number.
-std::string ReplaceNegativeZeroValues(std::string s)
+/// \brief Used to avoid the cases where the zero is
+/// \brief represented as a negative number.
+/// \param _output_string Output string that may have negative zero values.
+void ReplaceNegativeZeroValues(std::string &_output_string)
 {
   std::string neg_zero{"-0.000000"};
   std::string zero{"0.000000"};
   size_t pos = 0;
-  while ((pos = s.find(neg_zero, pos)) != std::string::npos)
+  while ((pos = _output_string.find(neg_zero, pos)) != std::string::npos)
   {
-        s.replace(pos, neg_zero.length(), zero);
+        _output_string.replace(pos, neg_zero.length(), zero);
         pos += zero.length();
   }
-  return s;
 }
 
 /////////////////////////////////////////////////
@@ -73,8 +74,10 @@ TEST(ModelCommandAPI, NoServerRunning)
 {
   const std::string cmd = kIgnModelCommand + "--list ";
   const std::string output = customExecStr(cmd);
-  const std::string expectedOutput{
-        "\nService call to [/gazebo/worlds] timed out\n"};
+  const std::string expectedOutput =
+        "\nService call to [/gazebo/worlds] timed out\n"
+        "Command failed when trying to get the world name "
+        "of the running simulation.\n";
   EXPECT_EQ(expectedOutput, output);
 }
 
@@ -97,7 +100,9 @@ TEST(ModelCommandAPI, Commands)
     const std::string cmd = kIgnModelCommand + "--list";
     const std::string output = customExecStr(cmd);
     const std::string expectedOutput =
-      "Available models:\n"
+      "\nRequesting state for world [diff_drive] on service "
+      "[/world/diff_drive/state]..."
+      "\n\nAvailable models:\n"
       "    - ground_plane\n"
       "    - vehicle_blue\n";
     EXPECT_EQ(expectedOutput, output);
@@ -106,8 +111,8 @@ TEST(ModelCommandAPI, Commands)
   // Tested command: ign model -m vehicle_blue
   {
     const std::string cmd = kIgnModelCommand + "-m vehicle_blue";
-    const std::string output = customExecStr(cmd);
-    const std::string non_neg_zero_output = ReplaceNegativeZeroValues(output);
+    std::string output = customExecStr(cmd);
+    ReplaceNegativeZeroValues(output);
     const std::string expectedOutput =
       "\nRequesting state for world [diff_drive] on service "
       "[/world/diff_drive/state]...\n\n"
@@ -178,14 +183,14 @@ TEST(ModelCommandAPI, Commands)
       "    - Joint type:  ball\n"
       "    - Parent Link: [caster]\n"
       "    - Child Link:  [chassis]\n";
-    EXPECT_EQ(expectedOutput, non_neg_zero_output);
+    EXPECT_EQ(expectedOutput, output);
   }
 
   // Tested command: ign model -m vehicle_blue --pose
   {
     const std::string cmd = kIgnModelCommand + "-m vehicle_blue --pose ";
-    const std::string output = customExecStr(cmd);
-    const std::string non_neg_zero_output = ReplaceNegativeZeroValues(output);
+    std::string output = customExecStr(cmd);
+    ReplaceNegativeZeroValues(output);
     const std::string expectedOutput =
       "\nRequesting state for world [diff_drive] on service "
       "[/world/diff_drive/state]...\n\n"
@@ -193,15 +198,15 @@ TEST(ModelCommandAPI, Commands)
       "  - Pose: \n"
       "      [0.000000 | 2.000000 | 0.325000]\n"
       "      [0.000000 | 0.000000 | 0.000000]\n\n";
-    EXPECT_EQ(expectedOutput, non_neg_zero_output);
+    EXPECT_EQ(expectedOutput, output);
   }
 
   // Tested command: ign model -m vehicle_blue --link
   {
     const std::string cmd = kIgnModelCommand +
                             "-m vehicle_blue --link";
-    const std::string output = customExecStr(cmd);
-    const std::string non_neg_zero_output = ReplaceNegativeZeroValues(output);
+    std::string output = customExecStr(cmd);
+    ReplaceNegativeZeroValues(output);
     const std::string expectedOutput =
       "\nRequesting state for world [diff_drive] on service "
       "[/world/diff_drive/state]...\n\n"
@@ -250,15 +255,15 @@ TEST(ModelCommandAPI, Commands)
       "    - Pose: \n"
       "        [-0.957138 | 0.000000 | -0.125000]\n"
       "        [0.000000 | 0.000000 | 0.000000]\n";
-    EXPECT_EQ(expectedOutput, non_neg_zero_output);
+    EXPECT_EQ(expectedOutput, output);
   }
 
   // Tested command: ign model -m vehicle_blue --link caster
   {
     const std::string cmd = kIgnModelCommand +
                             "-m vehicle_blue --link caster";
-    const std::string output = customExecStr(cmd);
-    const std::string non_neg_zero_output = ReplaceNegativeZeroValues(output);
+    std::string output = customExecStr(cmd);
+    ReplaceNegativeZeroValues(output);
     const std::string expectedOutput =
       "\nRequesting state for world [diff_drive] on service "
       "[/world/diff_drive/state]...\n\n"
@@ -273,15 +278,15 @@ TEST(ModelCommandAPI, Commands)
       "    - Pose: \n"
       "        [-0.957138 | 0.000000 | -0.125000]\n"
       "        [0.000000 | 0.000000 | 0.000000]\n";
-    EXPECT_EQ(expectedOutput, non_neg_zero_output);
+    EXPECT_EQ(expectedOutput, output);
   }
 
   // Tested command: ign model -m vehicle_blue --joint
   {
     const std::string cmd = kIgnModelCommand +
                             "-m vehicle_blue --joint";
-    const std::string output = customExecStr(cmd);
-    const std::string non_neg_zero_output = ReplaceNegativeZeroValues(output);
+    std::string output = customExecStr(cmd);
+    ReplaceNegativeZeroValues(output);
     const std::string expectedOutput =
       "\nRequesting state for world [diff_drive] on service "
       "[/world/diff_drive/state]...\n\n"
@@ -303,15 +308,15 @@ TEST(ModelCommandAPI, Commands)
       "    - Joint type:  ball\n"
       "    - Parent Link: [caster]\n"
       "    - Child Link:  [chassis]\n";
-    EXPECT_EQ(expectedOutput, non_neg_zero_output);
+    EXPECT_EQ(expectedOutput, output);
   }
 
   // Tested command: ign model -m vehicle_blue --joint caster_wheel
   {
     const std::string cmd = kIgnModelCommand +
                             "-m vehicle_blue --joint caster_wheel";
-    const std::string output = customExecStr(cmd);
-    const std::string non_neg_zero_output = ReplaceNegativeZeroValues(output);
+    std::string output = customExecStr(cmd);
+    ReplaceNegativeZeroValues(output);
     const std::string expectedOutput =
       "\nRequesting state for world [diff_drive] on service "
       "[/world/diff_drive/state]...\n\n"
@@ -321,7 +326,7 @@ TEST(ModelCommandAPI, Commands)
       "    - Joint type:  ball\n"
       "    - Parent Link: [caster]\n"
       "    - Child Link:  [chassis]\n";
-    EXPECT_EQ(expectedOutput, non_neg_zero_output);
+    EXPECT_EQ(expectedOutput, output);
   }
 }
 
