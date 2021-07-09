@@ -255,7 +255,11 @@ void CessnaPluginPrivate::UpdatePIDs(ignition::gazebo::EntityComponentManager &_
    double maxVel = this->propellerMaxRpm*2.0*IGN_PI/60.0;
    double target = maxVel * this->cmds[this->kPropeller];
    double error = vel - target;
-   double force = this->propellerPID.Update(error, _info.dt);   
+   double force = this->propellerPID.Update(error, _info.dt); 
+
+   // Add a joint messge
+   msgs::Joint *jointMsg;
+   jointMsg->mutable_axis1()->set_force(force);
 
    // Position PID for the control surfaces.
    for (size_t i = 0; i < this->controlSurfacesPID.size(); ++i)
@@ -263,6 +267,7 @@ void CessnaPluginPrivate::UpdatePIDs(ignition::gazebo::EntityComponentManager &_
       auto pos = _ecm.Component<ignition::gazebo::components::JointPosition>(this->joints[i])->Data().at(0);
       double error = pos - this->cmds[i];
       double force = this->controlSurfacesPID[i].Update(error, _info.dt);
+      jointMsg->mutable_axis1()->set_force(force);
    }
 }
 
