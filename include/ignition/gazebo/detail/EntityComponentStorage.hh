@@ -35,7 +35,7 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace detail
 {
-/// \brief Enum class that lets external users of EntityStorage know what
+/// \brief Enum class that lets external users of EntityComponentStorage know what
 /// type of action took place when a component was added to an entity.
 enum class ComponentAdditionResult
 {
@@ -59,7 +59,7 @@ enum class ComponentAdditionResult
 ///
 /// \note The symbols are visible so that unit tests can be written for this
 /// class.
-class IGNITION_GAZEBO_VISIBLE EntityStorage
+class IGNITION_GAZEBO_VISIBLE EntityComponentStorage
 {
   /// \brief Clear all of the entity and component data that has been tracked.
   /// This "resets" the storage to its initial, empty state.

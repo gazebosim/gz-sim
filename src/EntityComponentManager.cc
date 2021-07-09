@@ -27,7 +27,7 @@
 #include <ignition/math/graph/GraphAlgorithms.hh>
 #include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/detail/EntityStorage.hh"
+#include "ignition/gazebo/detail/EntityComponentStorage.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
 using namespace ignition;
@@ -78,7 +78,7 @@ class ignition::gazebo::EntityComponentManagerPrivate
 
   /// \brief A class that stores all components and maps entities to their
   /// component types
-  public: detail::EntityStorage entityStorage;
+  public: detail::EntityComponentStorage entityStorage;
 
   /// \brief All component types that have ever been created.
   public: std::unordered_set<ComponentTypeId> createdCompTypes;

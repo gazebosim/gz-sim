@@ -226,7 +226,7 @@ namespace serializers
 
 namespace detail
 {
-  class EntityStorage;
+  class EntityComponentStorage;
 }
 
 namespace components
@@ -296,10 +296,10 @@ namespace components
     /// users interact with components.
     private: bool removed{false};
 
-    // Make EntityStorage and EntityComponentManager a friend of the
+    // Make EntityComponentStorage and EntityComponentManager a friend of the
     // BaseComponent class so that they have access to a component's "removed"
     // flag.
-    friend class ignition::gazebo::detail::EntityStorage;
+    friend class ignition::gazebo::detail::EntityComponentStorage;
     friend class ignition::gazebo::EntityComponentManager;
   };
 
