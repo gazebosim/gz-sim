@@ -21,6 +21,7 @@
 #include <ignition/plugin/Register.hh>
 
 #include <ignition/gazebo/components/Geometry.hh>
+#include <ignition/gazebo/components/Light.hh>
 #include <ignition/gazebo/components/Link.hh>
 #include <ignition/gazebo/components/Material.hh>
 #include <ignition/gazebo/components/Model.hh>
@@ -36,6 +37,7 @@
 #include <sdf/Visual.hh>
 #include <sdf/Mesh.hh>
 #include <sdf/Model.hh>
+#include <sdf/Light.hh>
 
 #include <ignition/common/Material.hh>
 #include <ignition/common/MeshManager.hh>
@@ -244,9 +246,47 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
       return true;
     });
 
+    std::vector<common::ColladaLight> lights;
+    _ecm.Each<components::Light,
+              components::Name>(
+    [&](const Entity &/*_entity*/,
+        const components::Light *_light,
+        const components::Name *_name)->bool
+    {
+      std::string name = _name->Data();
+      const auto& sdf_light = _light->Data();
+
+      common::ColladaLight p;
+      p.name = name;
+      if (sdf_light.Type() == sdf::LightType::POINT)
+        p.type = "point";
+      else if (sdf_light.Type() == sdf::LightType::SPOT)
+        p.type = "spot";
+      else if (sdf_light.Type() == sdf::LightType::DIRECTIONAL)
+        p.type = "directional";
+      else
+        p.type = "invalid";
+
+      p.position = sdf_light.RawPose().Pos();
+      p.direction = sdf_light.Direction();
+      p.diffuse = sdf_light.Diffuse();
+
+      p.constant_attenuation = sdf_light.ConstantAttenuationFactor();
+      p.linear_attenuation = sdf_light.LinearAttenuationFactor();
+      p.quadratic_attenuation = sdf_light.QuadraticAttenuationFactor();
+
+      // Falloff angle is treated as the outer angle in blender
+      // https://community.khronos.org/t/spotlight-properties/7111/7
+      p.falloff_angle_deg = sdf_light.SpotOuterAngle().Degree();
+      p.falloff_exponent = sdf_light.SpotFalloff();
+
+      lights.push_back(p);
+      return true;
+    });
+    
     common::ColladaExporter exporter;
     exporter.Export(&worldMesh, "./" + worldMesh.Name(), true,
-                    subMeshMatrix);
+                    subMeshMatrix, lights);
     ignmsg << "The world has been exported into the "
            << "./" + worldMesh.Name() << " directory." << std::endl;
     this->exported = true;
