@@ -33,7 +33,6 @@
 #include <ignition/transport/Publisher.hh>
 #include <ignition/utils/SuppressWarning.hh>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
 namespace ignition::gazebo

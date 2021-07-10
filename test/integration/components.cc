@@ -779,15 +779,15 @@ TEST_F(ComponentsTest, Light)
   EXPECT_EQ(math::Color(1, 0, 0, 1), comp3.Data().Diffuse());
   EXPECT_EQ(math::Color(0, 1, 0, 1), comp3.Data().Specular());
   EXPECT_TRUE(comp3.Data().CastShadows());
-  EXPECT_FLOAT_EQ(1.3, comp3.Data().AttenuationRange());
-  EXPECT_FLOAT_EQ(0.3, comp3.Data().LinearAttenuationFactor());
-  EXPECT_FLOAT_EQ(0.1, comp3.Data().QuadraticAttenuationFactor());
-  EXPECT_FLOAT_EQ(0.05, comp3.Data().ConstantAttenuationFactor());
+  EXPECT_FLOAT_EQ(1.3f, comp3.Data().AttenuationRange());
+  EXPECT_FLOAT_EQ(0.3f, comp3.Data().LinearAttenuationFactor());
+  EXPECT_FLOAT_EQ(0.1f, comp3.Data().QuadraticAttenuationFactor());
+  EXPECT_FLOAT_EQ(0.05f, comp3.Data().ConstantAttenuationFactor());
   EXPECT_EQ(math::Angle(0.3), comp3.Data().SpotInnerAngle());
   EXPECT_EQ(math::Angle(2.3), comp3.Data().SpotOuterAngle());
-  EXPECT_FLOAT_EQ(5.15, comp3.Data().SpotFalloff());
+  EXPECT_FLOAT_EQ(5.15f, comp3.Data().SpotFalloff());
   EXPECT_EQ(math::Vector3d(2, 3, 4), comp3.Data().Direction());
-  EXPECT_FLOAT_EQ(1.55, comp3.Data().Intensity());
+  EXPECT_FLOAT_EQ(1.55f, comp3.Data().Intensity());
 }
 
 /////////////////////////////////////////////////
@@ -945,31 +945,33 @@ TEST_F(ComponentsTest, LogicalAudioSourcePlayInfo)
 TEST_F(ComponentsTest, LogicalMicrophone)
 {
   logical_audio::Microphone mic1;
-  mic1.id = 0;
+  mic1.id = 4;
   mic1.volumeDetectionThreshold = 0.5;
 
   logical_audio::Microphone mic2;
-  mic2.id = 1;
-  mic2.volumeDetectionThreshold = mic1.volumeDetectionThreshold;
+  mic2.id = 8;
+  mic2.volumeDetectionThreshold = 0.8;
 
   // create components
   auto comp1 = components::LogicalMicrophone(mic1);
   auto comp2 = components::LogicalMicrophone(mic2);
 
   // equality operators
-  EXPECT_NE(mic1, mic2);
-  EXPECT_FALSE(mic1 == mic2);
-  EXPECT_TRUE(mic1 != mic2);
+  EXPECT_NE(comp1, comp2);
+  EXPECT_FALSE(comp1 == comp2);
+  EXPECT_TRUE(comp1 != comp2);
 
   // stream operators
   std::ostringstream ostr;
   comp1.Serialize(ostr);
-  EXPECT_EQ("0 0.5", ostr.str());
+  EXPECT_EQ("4 0.5", ostr.str());
 
-  std::istringstream istr;
+  std::istringstream istr(ostr.str());
   components::LogicalMicrophone comp3;
   comp3.Deserialize(istr);
   EXPECT_EQ(comp1, comp3);
+  EXPECT_DOUBLE_EQ(comp1.Data().volumeDetectionThreshold,
+      comp3.Data().volumeDetectionThreshold);
 }
 
 /////////////////////////////////////////////////

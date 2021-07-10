@@ -34,6 +34,7 @@
 
 using namespace ignition;
 using namespace gazebo;
+using namespace std::chrono_literals;
 
 /// \brief Test RgbdCameraTest system
 class RgbdCameraTest : public ::testing::Test
@@ -87,14 +88,14 @@ TEST_F(RgbdCameraTest, IGN_UTILS_TEST_DISABLED_ON_MAC(RgbdCameraBox))
   size_t iters100 = 100u;
   server.Run(true, iters100, false);
 
-  auto waitTime = std::chrono::duration_cast< std::chrono::milliseconds>(
-      std::chrono::duration<double>(0.001));
-  int i = 0;
-  while (nullptr == depthBuffer && i < 500)
+  int sleep{0};
+  int maxSleep{30};
+  while (depthBuffer == nullptr && sleep < maxSleep)
   {
-    std::this_thread::sleep_for(waitTime);
-    i++;
+    std::this_thread::sleep_for(100ms);
+    sleep++;
   }
+  EXPECT_LT(sleep, maxSleep);
   ASSERT_NE(depthBuffer, nullptr);
 
   // Take into account box of 1 m on each side and 0.05 cm sensor offset

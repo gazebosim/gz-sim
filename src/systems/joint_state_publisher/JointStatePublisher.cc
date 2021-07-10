@@ -169,6 +169,8 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
   if (pose)
     msgs::Set(msg.mutable_pose(), pose->Data());
 
+  static bool hasWarned {false};
+
   // Process each joint
   for (const Entity &joint : this->joints)
   {
@@ -190,11 +192,18 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
       for (size_t i = 0; i < jointPositions->Data().size(); ++i)
       {
         if (i == 0)
+        {
           jointMsg->mutable_axis1()->set_position(jointPositions->Data()[i]);
+        }
         else if (i == 1)
+        {
           jointMsg->mutable_axis2()->set_position(jointPositions->Data()[i]);
-        else
+        }
+        else if (!hasWarned)
+        {
           ignwarn << "Joint state publisher only supports two joint axis\n";
+          hasWarned = true;
+        }
       }
     }
 
@@ -206,11 +215,18 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
       for (size_t i = 0; i < jointVelocity->Data().size(); ++i)
       {
         if (i == 0)
+        {
           jointMsg->mutable_axis1()->set_velocity(jointVelocity->Data()[i]);
+        }
         else if (i == 1)
+        {
           jointMsg->mutable_axis2()->set_velocity(jointVelocity->Data()[i]);
-        else
+        }
+        else if (!hasWarned)
+        {
           ignwarn << "Joint state publisher only supports two joint axis\n";
+          hasWarned = true;
+        }
       }
     }
 
@@ -222,11 +238,18 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
       for (size_t i = 0; i < jointForce->Data().size(); ++i)
       {
         if (i == 0)
+        {
           jointMsg->mutable_axis1()->set_force(jointForce->Data()[i]);
+        }
         else if (i == 1)
+        {
           jointMsg->mutable_axis2()->set_force(jointForce->Data()[i]);
-        else
+        }
+        else if (!hasWarned)
+        {
           ignwarn << "Joint state publisher only supports two joint axis\n";
+          hasWarned = true;
+        }
       }
     }
   }

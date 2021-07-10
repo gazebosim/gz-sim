@@ -780,7 +780,27 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   stateMsg.ParseFromString(recordedIter->Data());
   // entity size = 28 in dbl pendulum + 4 in nested model
   EXPECT_EQ(32, stateMsg.entities_size());
-  EXPECT_EQ(batch.end(), ++recordedIter);
+  EXPECT_NE(batch.end(), ++recordedIter);
+
+  // check rest of recordIter (state message) for poses
+  while (batch.end() != recordedIter)
+  {
+    EXPECT_EQ("ignition.msgs.SerializedStateMap", recordedIter->Type());
+    EXPECT_EQ(recordedIter->Topic(), "/world/log_pendulum/changed_state");
+
+    stateMsg.ParseFromString(recordedIter->Data());
+
+    for (const auto &entityIter : stateMsg.entities())
+    {
+      for (const auto &compIter : entityIter.second.components())
+      {
+        EXPECT_EQ(components::Pose::typeId, compIter.second.type());
+      }
+    }
+    ++recordedIter;
+  }
+
+  EXPECT_EQ(batch.end(), recordedIter);
 
   // Keep track of total number of pose comparisons
   int nTotal{0};
@@ -1189,8 +1209,8 @@ TEST_F(LogSystemTest, LogControlLevels)
   // verify there are entities at the beginning of the playback
   EXPECT_TRUE(!entitiesAtTime0.empty());
 
-  double timeA = 8;
-  double timeB = 18;
+  int timeA = 8;
+  int timeB = 18;
 
   transport::Node node;
 

@@ -1,5 +1,10 @@
 <?xml version="1.0" ?>
 
+<!-- NOTE: This world uses a particle emitter that is implemented as
+     a plugin. We recommend using particle emitters based on the SDF
+     specification. See the test/worlds/particle_emitter2.sdf example.
+-->
+
 <!--
   Launch this example with:
 

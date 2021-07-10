@@ -70,12 +70,12 @@ namespace ignition::gazebo
     /// \brief The color to set the marker when hovering the mouse over the
     /// scene.
     public: ignition::math::Color
-            hoverColor{ignition::math::Color(0.2, 0.2, 0.2, 0.5)};
+            hoverColor{ignition::math::Color(0.2f, 0.2f, 0.2f, 0.5f)};
 
     /// \brief The color to draw the marker when the user clicks to confirm
     /// its location.
     public: ignition::math::Color
-            drawColor{ignition::math::Color(0.2, 0.2, 0.2, 1.0)};
+            drawColor{ignition::math::Color(0.2f, 0.2f, 0.2f, 1.0f)};
 
     /// \brief A set of the currently placed markers.  Used to make sure a
     /// non-existent marker is not deleted.

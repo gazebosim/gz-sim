@@ -34,6 +34,7 @@
 #include <ignition/common/StringUtils.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/transport/TopicUtils.hh>
+#include <sdf/Types.hh>
 
 #include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/Collision.hh"
@@ -43,6 +44,7 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/ParticleEmitter.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Visual.hh"
@@ -168,6 +170,10 @@ ComponentTypeId entityTypeId(const Entity &_entity,
   {
     type = components::Actor::typeId;
   }
+  else if (_ecm.Component<components::ParticleEmitter>(_entity))
+  {
+    type = components::ParticleEmitter::typeId;
+  }
 
   return type;
 }
@@ -213,6 +219,10 @@ std::string entityTypeStr(const Entity &_entity,
   else if (_ecm.Component<components::Actor>(_entity))
   {
     type = "actor";
+  }
+  else if (_ecm.Component<components::ParticleEmitter>(_entity))
+  {
+    type = "particle_emitter";
   }
 
   return type;
@@ -286,7 +296,7 @@ std::string asFullPath(const std::string &_uri, const std::string &_filePath)
 #endif
 
   // When SDF is loaded from a string instead of a file
-  if ("data-string" == _filePath)
+  if (std::string(sdf::kSdfStringSource) == _filePath)
   {
     ignwarn << "Can't resolve full path for relative path ["
             << _uri << "]. Loaded from a data-string." << std::endl;
@@ -433,6 +443,23 @@ ignition::gazebo::Entity topLevelModel(const Entity &_entity,
   }
 
   return modelEntity;
+}
+
+//////////////////////////////////////////////////
+std::string topicFromScopedName(const Entity &_entity,
+    const EntityComponentManager &_ecm, bool _excludeWorld)
+{
+  std::string topic = scopedName(_entity, _ecm, "/", true);
+
+  if (_excludeWorld)
+  {
+    // Exclude the world name. If the entity is a world, then return an
+    // empty string.
+    topic = _ecm.Component<components::World>(_entity) ? "" :
+      removeParentScope(removeParentScope(topic, "/"), "/");
+  }
+
+  return transport::TopicUtils::AsValidTopic("/" + topic);
 }
 
 //////////////////////////////////////////////////
