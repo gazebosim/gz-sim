@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Open Source Robotics Foundation
+ * Copyright (C) 2021 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import QtQuick.Layouts 1.3
 import QtQuick.Controls.Styles 1.4
 
 ToolBar {
-  id: bananaForScale 
+  id: bananaForScale
   Layout.minimumWidth: 200
   Layout.minimumHeight: 100
 
@@ -34,7 +34,7 @@ ToolBar {
   RowLayout {
     spacing: 2
     ToolButton {
-      id: banana 
+      id: banana
       ToolTip.text: "Banana for Scale"
       ToolTip.visible: hovered
       ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
@@ -51,7 +51,7 @@ ToolBar {
       }
     }
     ToolButton {
-      id: bigbanana 
+      id: bigbanana
       ToolTip.text: "Big Banana for Scale (1m)"
       ToolTip.visible: hovered
       ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Open Source Robotics Foundation
+ * Copyright (C) 2021 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,6 @@
 
 #include "BananaForScale.hh"
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
-
 #include <algorithm>
 #include <iostream>
 #include <string>
@@ -29,29 +26,17 @@
 #include <ignition/gui/GuiEvents.hh>
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/Publisher.hh>
 #include <ignition/utils/SuppressWarning.hh>
 
 #include <ignition/fuel_tools/FuelClient.hh>
 #include <ignition/fuel_tools/ClientConfig.hh>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
 namespace ignition::gazebo
 {
   class BananaPrivate
   {
-    /// \brief Ignition communication node.
-    public: transport::Node node;
-
-    /// \brief Mutex to protect mode
-    public: std::mutex mutex;
-
-    /// \brief Transform control service name
-    public: std::string service;
-
     /// \brief Fuel client
     public:  std::unique_ptr<ignition::fuel_tools::FuelClient>
              fuelClient {nullptr};
@@ -85,10 +70,6 @@ void BananaForScale::LoadConfig(const tinyxml2::XMLElement *)
 {
   if (this->title.empty())
     this->title = "Banana for Scale";
-
-  // For shapes requests
-  ignition::gui::App()->findChild
-    <ignition::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
