@@ -278,7 +278,7 @@ class ignition::gazebo::systems::ArduCopterPluginPrivate
       std::mutex imuMsgMutex;
 };
 
-
+//////////////////////////////////////////////////////////////////////////////
 ArduCopterPlugin::ArduCopterPlugin()
   : dataPtr(new ArduCopterPluginPrivate)
 { 
@@ -313,12 +313,12 @@ ArduCopterPlugin::ArduCopterPlugin()
   #endif
 }
 
-
+//////////////////////////////////////////////////////////////////////////////
 ArduCopterPlugin::~ArduCopterPlugin()
 {
 }
 
-
+//////////////////////////////////////////////////////////////////////////////
 void ArduCopterPlugin::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm,
@@ -440,7 +440,7 @@ void ArduCopterPlugin::Configure(const Entity &_entity,
    ignlog <<"ArduCopter ready to fly. The force will be with you"<< std::endl;
 }
 
-
+//////////////////////////////////////////////////////////////////////////////
 void ArduCopterPlugin::PreUpdate(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
@@ -501,7 +501,7 @@ void ArduCopterPlugin::PreUpdate(const UpdateInfo &_info,
    IGN_PROFILE_END();
 }
 
-
+//////////////////////////////////////////////////////////////////////////////
 void ArduCopterPluginPrivate::ResetPIDs()
 {  
    // Reset velocity PID for rotors
@@ -512,6 +512,7 @@ void ArduCopterPluginPrivate::ResetPIDs()
    }
 }
 
+//////////////////////////////////////////////////////////////////////////////
 void ArduCopterPluginPrivate::ApplyMotorForces(const double _dt, EntityComponentManager &_ecm)
 {
    // update velocity PID for rotors and apply force to joint
@@ -537,6 +538,7 @@ void ArduCopterPluginPrivate::ApplyMotorForces(const double _dt, EntityComponent
     }
 }
 
+//////////////////////////////////////////////////////////////////////////////
 void ArduCopterPluginPrivate::ReceiveMotorCommand()
 {
    // Added detection for whether ArduCopter is online or not.
@@ -615,7 +617,7 @@ void ArduCopterPluginPrivate::ReceiveMotorCommand()
     }
 }
 
-
+//////////////////////////////////////////////////////////////////////////////
 void ArduCopterPluginPrivate::SendState(const UpdateInfo &_info, const EntityComponentManager &_ecm)
 {
    // send_fdm
