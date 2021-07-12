@@ -569,6 +569,10 @@ bool EntityComponentManager::CreateComponentImplementation(
     const Entity _entity, const ComponentTypeId _componentTypeId,
     const components::BaseComponent *_data)
 {
+  // make sure that the entity exists
+  if (!this->HasEntity(_entity))
+    return false;
+
   // if this is the first time this component type is being created, make sure
   // the component type to be created is valid
   if (!this->HasComponentType(_componentTypeId) &&
@@ -597,7 +601,7 @@ bool EntityComponentManager::CreateComponentImplementation(
   switch (compAddResult)
   {
     case detail::ComponentAdditionResult::FAILED_ADDITION:
-      ignwarn << "Attempt to create a component of type [" << _componentTypeId
+      ignerr << "Attempt to create a component of type [" << _componentTypeId
         << "] attached to entity [" << _entity << "] failed.\n";
       return false;
     case detail::ComponentAdditionResult::NEW_ADDITION:

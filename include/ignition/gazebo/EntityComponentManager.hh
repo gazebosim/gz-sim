@@ -181,7 +181,8 @@ namespace ignition
       /// the component.
       /// \param[in] _data Data used to construct the component.
       /// \return A pointer to the component that was created. nullptr is
-      /// returned if the component was not able to be created.
+      /// returned if the component was not able to be created. If _entity
+      /// does not exist, nullptr will be returned.
       public: template<typename ComponentTypeT>
               ComponentTypeT *CreateComponent(
                   const Entity _entity,
@@ -210,7 +211,7 @@ namespace ignition
       /// \param[in] _default The value that should be used to construct
       /// the component in case the component doesn't exist.
       /// \return The component of the specified type assigned to the specified
-      /// entity.
+      /// entity. If _entity does not exist, nullptr is returned.
       public: template<typename ComponentTypeT>
               ComponentTypeT *ComponentDefault(Entity _entity,
               const typename ComponentTypeT::Type &_default =

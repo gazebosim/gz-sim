@@ -250,6 +250,27 @@ TEST_P(EntityComponentManagerFixture, EntitiesAndComponents)
   EXPECT_TRUE(manager.EntityHasComponentType(entity, IntComponent::typeId));
   EXPECT_EQ(123, intComp->Data());
 
+  // Try to create/query a component from an entity that does not exist. nullptr
+  // should be returned since a component cannot be attached to a non-existent
+  // entity
+  EXPECT_FALSE(manager.HasEntity(kNullEntity));
+  /*
+   * TODO(adlarkin) test with the following methods once the deprecation
+   * process has been sorted out:
+   *  EntityHasComponent
+   *  EntityHasComponentType
+   */
+  EXPECT_EQ(nullptr, manager.CreateComponent<IntComponent>(kNullEntity,
+        IntComponent(123)));
+  EXPECT_EQ(nullptr, manager.ComponentDefault<IntComponent>(kNullEntity, 123));
+  EXPECT_EQ(nullptr, manager.Component<IntComponent>(kNullEntity));
+  EXPECT_FALSE(manager.ComponentData<IntComponent>(kNullEntity).has_value());
+  EXPECT_EQ(ComponentState::NoChange, manager.ComponentState(kNullEntity,
+        IntComponent::typeId));
+  // (make sure the entity wasn't implicitly created during the invalid
+  // component calls)
+  EXPECT_FALSE(manager.HasEntity(kNullEntity));
+
   // Remove all entities
   manager.RequestRemoveEntities();
   EXPECT_EQ(3u, manager.EntityCount());
