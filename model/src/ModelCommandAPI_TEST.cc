@@ -31,16 +31,16 @@ static const std::string kIgnModelCommand(std::string(IGN_PATH) +
 
 /////////////////////////////////////////////////
 /// \brief Used to avoid the cases where the zero is
-/// \brief represented as a negative number.
-/// \param _output_string Output string that may have negative zero values.
-void ReplaceNegativeZeroValues(std::string &_output_string)
+/// represented as a negative number.
+/// \param _text Output string that may have negative zero values.
+void ReplaceNegativeZeroValues(std::string &_text)
 {
   std::string neg_zero{"-0.000000"};
   std::string zero{"0.000000"};
   size_t pos = 0;
-  while ((pos = _output_string.find(neg_zero, pos)) != std::string::npos)
+  while ((pos = _text.find(neg_zero, pos)) != std::string::npos)
   {
-        _output_string.replace(pos, neg_zero.length(), zero);
+        _text.replace(pos, neg_zero.length(), zero);
         pos += zero.length();
   }
 }
@@ -210,7 +210,6 @@ TEST(ModelCommandAPI, Commands)
     const std::string expectedOutput =
       "\nRequesting state for world [diff_drive] on service "
       "[/world/diff_drive/state]...\n\n"
-
       "  - Link [9]\n"
       "    - Name: chassis\n"
       "    - Parent: vehicle_blue [8]\n"

@@ -25,6 +25,7 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage logicalaudiosensor "Logical Audio Sensor": Using the LogicalAudioSensor system to mimic logical audio emission and detection in simulation.
 * \subpage videorecorder "Video Recorder": Record videos from the 3D render window.
 * \subpage model_and_optimize_meshes  "Model and optimize meshes": Some recomendations when creating meshes  in blender for simulations.
+* \subpage model_command "Model Command": Print information about models.
 
 **Migration from Gazebo classic**
 
