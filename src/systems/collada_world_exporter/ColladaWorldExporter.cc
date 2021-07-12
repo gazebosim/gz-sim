@@ -283,7 +283,7 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
       lights.push_back(p);
       return true;
     });
-    
+
     common::ColladaExporter exporter;
     exporter.Export(&worldMesh, "./" + worldMesh.Name(), true,
                     subMeshMatrix, lights);
