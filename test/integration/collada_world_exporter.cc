@@ -150,6 +150,27 @@ TEST_F(ColladaWorldExporterFixture, ExportWorldMadeFromObj)
   common::removeAll(outputPath);
 }
 
+TEST_F(ColladaWorldExporterFixture, ExportWorldWithLights)
+{
+  this->LoadWorld(common::joinPaths("test", "worlds",
+        "collada_world_exporter_lights.sdf"));
+
+  // Cleanup
+  common::removeAll("./collada_world_exporter_lights_test");
+
+  // The export directory shouldn't exist.
+  EXPECT_FALSE(common::exists("./collada_world_exporter_lights_test"));
+
+  // Run one iteration which should export the world.
+  server->Run(true, 1, false);
+
+  // The export directory should now exist.
+  EXPECT_TRUE(common::exists("./collada_world_exporter_lights_test"));
+
+  // Cleanup
+  common::removeAll("./collada_world_exporter_lights_test");
+}
+
 /////////////////////////////////////////////////
 /// Main
 int main(int _argc, char **_argv)
