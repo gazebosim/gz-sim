@@ -18,4 +18,4 @@ mesh/materials/lights feature set. As such feel free to customize the script as 
 
 3. You will see a file dialog requesting for a location to save the files to. Hit 'Save' when you are done.
 
-4. The files `model.dae`, `model.config` and `model.sdf` will be created at the location you specified.
+4. The files `meshes/model.dae`, `model.config` and `model.sdf` will be created at the location you specified.
