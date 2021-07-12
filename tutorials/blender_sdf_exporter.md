@@ -1,7 +1,7 @@
 \page blender_sdf_exporter Blender SDF Exporter
 
-Blender is a DCC tool to create 3d models. In some cases you may be using it to bake
-lighting and environment maps.
+Blender is a Digital Content Creation (DCC) tool for working with 3d models.
+In some cases you may be using it to bake lighting and environment maps.
 
 The Blender SDF exporter is a blender script in which you can run within Blender to
 export your meshes, their associated textures and lights to a dae file, its 
