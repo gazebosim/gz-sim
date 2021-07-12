@@ -14,11 +14,11 @@ from xml.dom import minidom
 ########################################################################################################################
 def export_sdf(prefix_path):
 
-    dae_filename = 'model.dae'
+    dae_filename = 'meshes/model.dae'
     sdf_filename = 'model.sdf'
     model_config_filename = 'model.config'
     lightmap_filename = 'LightmapBaked.png'
-    model_name = 'model'
+    model_name = 'my_model'
     
     # Exports the dae file and its associated textures
     bpy.ops.wm.collada_export(filepath=prefix_path+dae_filename, check_existing=False, filter_blender=False, filter_image=False, filter_movie=False, filter_python=False, filter_font=False, filter_sound=False, filter_text=False, filter_btx=False, filter_collada=True, filter_folder=True, filemode=8)
