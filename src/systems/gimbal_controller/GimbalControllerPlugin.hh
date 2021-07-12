@@ -19,6 +19,7 @@
 #define _IGNITION_GAZEBO_GIMBAL_CONTROLLER_PLUGIN_HH_
 
 #include <memory>
+
 #include <ignition/gazebo/System.hh>
 
 namespace ignition
@@ -28,15 +29,15 @@ namespace gazebo
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
-{   
+{
     // Forward declaration
     class GimbalControllerPluginPrivate;
     /// \brief A plugin that simulates lift and drag.
-    class GimbalControllerPlugin : 
+    class GimbalControllerPlugin :
         public System,
         public ISystemConfigure,
         public ISystemPreUpdate
-    {  
+    {
        /// \brief Constructor
        public: GimbalControllerPlugin();
 
@@ -47,7 +48,7 @@ namespace systems
        public: void Configure(const Entity &_entity,
                               const std::shared_ptr<const sdf::Element> &_sdf,
                               EntityComponentManager &_ecm,
-                              EventManager &_eventMgr) override;
+                              EventManager &_eventMgr) final;
 
        /// Documentation inherited
        public: void PreUpdate(const UpdateInfo &_info,
