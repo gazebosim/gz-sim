@@ -231,6 +231,8 @@
         <odom_topic>/model/bar/odom</odom_topic>
         <max_acceleration>1</max_acceleration>
         <max_velocity>0.5</max_velocity>
+        <min_acceleration>-1</min_acceleration>
+        <min_velocity>-0.5</min_velocity>
         <!-- no odom_publisher_frequency defaults to 50 Hz -->
       </plugin>
 

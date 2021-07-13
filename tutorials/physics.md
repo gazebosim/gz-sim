@@ -84,6 +84,18 @@ serverConfig.SetPhysicsEngine("CustomEngine");
 ignition::gazebo::Server server(serverConfig);
 ```
 
+## Engine configuration
+
+Gazebo supports the following physics engine configurations through SDF.
+These options are available to all physics engines, but not all engines
+may support them. The default physics engine, DART, supports all these options.
+
+* [//physics/dart/collision_detector](http://sdformat.org/spec?ver=1.8&elem=physics#dart_collision_detector)
+    * Options supported by DART: `ode` (default), `bullet`, `fcl`, `dart`.
+
+* [//physics/dart/solver/solver_type](http://sdformat.org/spec?ver=1.8&elem=physics#solver_solver_type)
+    * Options supported by DART: `dantzig` (default), `pgs`
+
 ## Troubleshooting
 
 > Failed to find plugin [libCustomEngine.so]. Have you checked the
