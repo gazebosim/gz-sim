@@ -309,7 +309,8 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
     this->dataPtr->toRemoveEntities.clear();
     this->dataPtr->entityComponentsDirty = true;
 
-    this->dataPtr->componentStorage.Reset();
+    // reset the entity component storage
+    this->dataPtr->componentStorage = ComponentStorage();
 
     // All views are now invalid.
     this->dataPtr->views.clear();

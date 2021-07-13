@@ -29,13 +29,6 @@ using namespace ignition;
 using namespace gazebo;
 
 //////////////////////////////////////////////////
-void ComponentStorage::Reset()
-{
-  this->entityComponents.clear();
-  this->componentTypeIndex.clear();
-}
-
-//////////////////////////////////////////////////
 bool ComponentStorage::AddEntity(const Entity _entity)
 {
   const auto [it, success] = this->entityComponents.insert({_entity,

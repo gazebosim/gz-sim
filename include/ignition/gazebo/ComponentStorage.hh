@@ -56,10 +56,6 @@ namespace ignition
     /// class also keeps track of the entity a component belongs to.
     class IGNITION_GAZEBO_VISIBLE ComponentStorage
     {
-      /// \brief Clear all of the entity and component data that has been
-      /// tracked. This "resets" the storage to its initial, empty state.
-      public: void Reset();
-
       /// \brief Add an entity to the component storage, so that newly created
       /// components for this entity can be mapped to the entity. This should be
       /// called whenever an entity is created.
