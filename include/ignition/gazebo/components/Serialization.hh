@@ -196,7 +196,7 @@ namespace serializers
     {
       _out << _data.size();
       for (const auto& datum : _data)
-        _out << datum;
+        _out << " " << datum;
       return _out;
     }
 

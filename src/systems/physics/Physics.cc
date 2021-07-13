@@ -345,21 +345,21 @@ class ignition::gazebo::systems::PhysicsPrivate
   // Joint position limits command
   /// \brief Feature list for setting joint position limits.
   public: struct JointPositionLimitsCommandFeatureList : physics::FeatureList<
-            physics::SetJointPositionLimitsCommandFeature>{};
+            physics::SetJointPositionLimitsFeature>{};
 
 
   //////////////////////////////////////////////////
   // Joint velocity limits command
   /// \brief Feature list for setting joint velocity limits.
   public: struct JointVelocityLimitsCommandFeatureList : physics::FeatureList<
-            physics::SetJointVelocityLimitsCommandFeature>{};
+            physics::SetJointVelocityLimitsFeature>{};
 
 
   //////////////////////////////////////////////////
   // Joint effort limits command
   /// \brief Feature list for setting joint effort limits.
   public: struct JointEffortLimitsCommandFeatureList : physics::FeatureList<
-            physics::SetJointEffortLimitsCommandFeature>{};
+            physics::SetJointEffortLimitsFeature>{};
 
 
   //////////////////////////////////////////////////
@@ -1282,7 +1282,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
             _entity);
         if (posLimits && !posLimits->Data().empty())
         {
-          auto limits = posLimits->Data();
+          const auto& limits = posLimits->Data();
 
           if (limits.size() != jointPhys->GetDegreesOfFreedom())
           {
@@ -1303,8 +1303,8 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
             for (std::size_t i = 0; i < nDofs; ++i)
             {
-              jointPosLimitsFeature->SetMinPositionCommand(i, limits[i].X());
-              jointPosLimitsFeature->SetMaxPositionCommand(i, limits[i].Y());
+              jointPosLimitsFeature->SetMinPosition(i, limits[i].X());
+              jointPosLimitsFeature->SetMaxPosition(i, limits[i].Y());
             }
           }
         }
@@ -1313,7 +1313,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
             _entity);
         if (velLimits && !velLimits->Data().empty())
         {
-          auto limits = velLimits->Data();
+          const auto& limits = velLimits->Data();
 
           if (limits.size() != jointPhys->GetDegreesOfFreedom())
           {
@@ -1334,8 +1334,8 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
             for (std::size_t i = 0; i < nDofs; ++i)
             {
-              jointVelLimitsFeature->SetMinVelocityCommand(i, limits[i].X());
-              jointVelLimitsFeature->SetMaxVelocityCommand(i, limits[i].Y());
+              jointVelLimitsFeature->SetMinVelocity(i, limits[i].X());
+              jointVelLimitsFeature->SetMaxVelocity(i, limits[i].Y());
             }
           }
         }
@@ -1344,7 +1344,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
             _entity);
         if (effLimits && !effLimits->Data().empty())
         {
-          auto limits = effLimits->Data();
+          const auto& limits = effLimits->Data();
 
           if (limits.size() != jointPhys->GetDegreesOfFreedom())
           {
@@ -1365,8 +1365,8 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
             for (std::size_t i = 0; i < nDofs; ++i)
             {
-              jointEffLimitsFeature->SetMinEffortCommand(i, limits[i].X());
-              jointEffLimitsFeature->SetMaxEffortCommand(i, limits[i].Y());
+              jointEffLimitsFeature->SetMinEffort(i, limits[i].X());
+              jointEffLimitsFeature->SetMaxEffort(i, limits[i].Y());
             }
           }
         }

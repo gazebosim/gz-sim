@@ -856,11 +856,10 @@ TEST_F(PhysicsSystemFixture, JointPositionLimitsCommandComponent)
         {
           if (_name->Data() == rotatingJointName)
           {
-            auto limitComp =
-                _ecm.Component<components::JointPositionLimitsCmd>(_entity);
-
             if (iteration == 0u)
             {
+              auto limitComp =
+                _ecm.Component<components::JointPositionLimitsCmd>(_entity);
               EXPECT_EQ(nullptr, limitComp);
               _ecm.CreateComponent(_entity,
                 components::JointPositionLimitsCmd ({{-1e-6, 1e-6}}));
@@ -868,11 +867,18 @@ TEST_F(PhysicsSystemFixture, JointPositionLimitsCommandComponent)
             }
             else if (iteration == 50u)
             {
+              auto limitComp =
+                _ecm.Component<components::JointPositionLimitsCmd>(_entity);
               EXPECT_NE(nullptr, limitComp);
-              limitComp->Data() = {{-1e6, 1e6}};
+              if (limitComp)
+              {
+                limitComp->Data() = {{-1e6, 1e6}};
+              }
             }
             else
             {
+              auto limitComp =
+                _ecm.Component<components::JointPositionLimitsCmd>(_entity);
               EXPECT_NE(nullptr, limitComp);
               if (limitComp)
               {
@@ -880,21 +886,13 @@ TEST_F(PhysicsSystemFixture, JointPositionLimitsCommandComponent)
               }
               if (iteration >= 30u && iteration < 40u)
               {
-                if (iteration == 30u)
-                  _ecm.CreateComponent(_entity, components::JointForceCmd(
-                    std::vector<double>({100.0})));
-                else
-                  _ecm.Component<components::JointForceCmd>(_entity)->Data() =
-                    {100.0};
+                _ecm.SetComponentData<components::JointForceCmd>(
+                  _entity, {100.0});
               }
               else if (iteration >= 40u && iteration < 50u)
               {
-                if (iteration == 40u)
-                  _ecm.CreateComponent(_entity, components::JointVelocityCmd(
-                    std::vector<double>({1.0})));
-                else
-                  _ecm.Component<components::JointVelocityCmd>(
-                    _entity)->Data() = {1.0};
+                _ecm.SetComponentData<components::JointVelocityCmd>(
+                  _entity, {1.0});
               }
             }
             ++iteration;
@@ -981,11 +979,10 @@ TEST_F(PhysicsSystemFixture, JointVelocityLimitsCommandComponent)
         {
           if (_name->Data() == rotatingJointName)
           {
-            auto limitComp =
-                _ecm.Component<components::JointVelocityLimitsCmd>(_entity);
-
             if (iteration == 0u)
             {
+              auto limitComp =
+                _ecm.Component<components::JointVelocityLimitsCmd>(_entity);
               EXPECT_EQ(nullptr, limitComp);
               _ecm.CreateComponent(_entity,
                 components::JointVelocityLimitsCmd ({{-0.1, 0.1}}));
@@ -993,11 +990,18 @@ TEST_F(PhysicsSystemFixture, JointVelocityLimitsCommandComponent)
             }
             else if (iteration == 50u)
             {
+              auto limitComp =
+                _ecm.Component<components::JointVelocityLimitsCmd>(_entity);
               EXPECT_NE(nullptr, limitComp);
-              limitComp->Data() = {{-1e6, 1e6}};
+              if (limitComp)
+              {
+                limitComp->Data() = {{-1e6, 1e6}};
+              }
             }
             else
             {
+              auto limitComp =
+                _ecm.Component<components::JointVelocityLimitsCmd>(_entity);
               EXPECT_NE(nullptr, limitComp);
               if (limitComp)
               {
@@ -1005,21 +1009,13 @@ TEST_F(PhysicsSystemFixture, JointVelocityLimitsCommandComponent)
               }
               if (iteration >= 30u && iteration < 40u)
               {
-                if (iteration == 30u)
-                  _ecm.CreateComponent(_entity, components::JointForceCmd(
-                    std::vector<double>({100.0})));
-                else
-                  _ecm.Component<components::JointForceCmd>(_entity)->Data() =
-                    {100.0};
+                _ecm.SetComponentData<components::JointForceCmd>(
+                  _entity, {100.0});
               }
               else if (iteration >= 40u && iteration < 50u)
               {
-                if (iteration == 40u)
-                  _ecm.CreateComponent(_entity, components::JointVelocityCmd(
-                    std::vector<double>({1.0})));
-                else
-                  _ecm.Component<components::JointVelocityCmd>(
-                    _entity)->Data() = {1.0};
+                _ecm.SetComponentData<components::JointVelocityCmd>(
+                  _entity, {1.0});
               }
             }
             ++iteration;
@@ -1107,11 +1103,10 @@ TEST_F(PhysicsSystemFixture, JointEffortLimitsCommandComponent)
         {
           if (_name->Data() == rotatingJointName)
           {
-            auto limitComp =
-                _ecm.Component<components::JointEffortLimitsCmd>(_entity);
-
             if (iteration == 0u)
             {
+              auto limitComp =
+                _ecm.Component<components::JointEffortLimitsCmd>(_entity);
               EXPECT_EQ(nullptr, limitComp);
               _ecm.CreateComponent(_entity,
                 components::JointEffortLimitsCmd ({{-1e-6, 1e-6}}));
@@ -1119,11 +1114,18 @@ TEST_F(PhysicsSystemFixture, JointEffortLimitsCommandComponent)
             }
             else if (iteration == 50u)
             {
+              auto limitComp =
+                _ecm.Component<components::JointEffortLimitsCmd>(_entity);
               EXPECT_NE(nullptr, limitComp);
-              limitComp->Data() = {{-1e9, 1e9}};
+              if (limitComp)
+              {
+                limitComp->Data() = {{-1e9, 1e9}};
+              }
             }
             else
             {
+              auto limitComp =
+                _ecm.Component<components::JointEffortLimitsCmd>(_entity);
               EXPECT_NE(nullptr, limitComp);
               if (limitComp)
               {
@@ -1131,21 +1133,13 @@ TEST_F(PhysicsSystemFixture, JointEffortLimitsCommandComponent)
               }
               if (iteration >= 30u && iteration < 40u)
               {
-                if (iteration == 30u)
-                  _ecm.CreateComponent(_entity, components::JointForceCmd(
-                    std::vector<double>({100.0})));
-                else
-                  _ecm.Component<components::JointForceCmd>(_entity)->Data() =
-                    {100.0};
+                _ecm.SetComponentData<components::JointForceCmd>(
+                  _entity, {100.0});
               }
               else if (iteration >= 40u && iteration < 50u)
               {
-                if (iteration == 40u)
-                  _ecm.CreateComponent(_entity, components::JointVelocityCmd(
-                    std::vector<double>({1.0})));
-                else
-                  _ecm.Component<components::JointVelocityCmd>(
-                    _entity)->Data() = {1.0};
+                _ecm.SetComponentData<components::JointVelocityCmd>(
+                  _entity, {1.0});
               }
               else if (iteration >= 50u)
               {
