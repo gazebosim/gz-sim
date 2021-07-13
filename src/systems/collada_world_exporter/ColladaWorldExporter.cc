@@ -34,10 +34,10 @@
 #include <ignition/gazebo/EntityComponentManager.hh>
 #include <ignition/gazebo/Util.hh>
 
-#include <sdf/Visual.hh>
+#include <sdf/Light.hh>
 #include <sdf/Mesh.hh>
 #include <sdf/Model.hh>
-#include <sdf/Light.hh>
+#include <sdf/Visual.hh>
 
 #include <ignition/common/Material.hh>
 #include <ignition/common/MeshManager.hh>
@@ -258,14 +258,15 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
 
       common::ColladaLight p;
       p.name = name;
-      if (sdf_light.Type() == sdf::LightType::POINT)
+      if (sdf_light.Type() == sdf::LightType::POINT) {
         p.type = "point";
-      else if (sdf_light.Type() == sdf::LightType::SPOT)
+      } else if (sdf_light.Type() == sdf::LightType::SPOT) {
         p.type = "spot";
-      else if (sdf_light.Type() == sdf::LightType::DIRECTIONAL)
+      } else if (sdf_light.Type() == sdf::LightType::DIRECTIONAL) {
         p.type = "directional";
-      else
+      } else {
         p.type = "invalid";
+      }
 
       p.position = sdf_light.RawPose().Pos();
       p.direction = sdf_light.Direction();
