@@ -124,7 +124,8 @@ namespace components
     /// \deprecated See function that doesn't accept a storage
     public: template<typename ComponentTypeT>
     void IGN_DEPRECATED(6) Register(const std::string &_type,
-        ComponentDescriptorBase *_compDesc, StorageDescriptorBase * /*_storageDesc*/)
+        ComponentDescriptorBase *_compDesc,
+        StorageDescriptorBase * /*_storageDesc*/)
     {
       this->Register<ComponentTypeT>(_type, _compDesc);
     }
