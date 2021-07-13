@@ -48,6 +48,7 @@
 
 #include <ignition/rendering/Image.hh>
 #include <ignition/rendering/OrbitViewController.hh>
+#include <ignition/rendering/MoveToHelper.hh>
 #include <ignition/rendering/RayQuery.hh>
 #include <ignition/rendering/RenderEngine.hh>
 #include <ignition/rendering/RenderingIface.hh>
@@ -92,70 +93,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief True to send an event and notify all widgets
     bool sendEvent{false};
-  };
-
-  //
-  /// \brief Helper class for animating a user camera to move to a target entity
-  /// todo(anyone) Move this functionality to rendering::Camera class in
-  /// ign-rendering3
-  class MoveToHelper
-  {
-    /// \brief Move the camera to look at the specified target
-    /// param[in] _camera Camera to be moved
-    /// param[in] _target Target to look at
-    /// param[in] _duration Duration of the move to animation, in seconds.
-    /// param[in] _onAnimationComplete Callback function when animation is
-    /// complete
-    public: void MoveTo(const rendering::CameraPtr &_camera,
-        const rendering::NodePtr &_target, double _duration,
-        std::function<void()> _onAnimationComplete);
-
-    /// \brief Move the camera to the specified pose.
-    /// param[in] _camera Camera to be moved
-    /// param[in] _target Pose to move to
-    /// param[in] _duration Duration of the move to animation, in seconds.
-    /// param[in] _onAnimationComplete Callback function when animation is
-    /// complete
-    public: void MoveTo(const rendering::CameraPtr &_camera,
-        const math::Pose3d &_target, double _duration,
-        std::function<void()> _onAnimationComplete);
-
-    /// \brief Move the camera to look at the specified target
-    /// param[in] _camera Camera to be moved
-    /// param[in] _direction The pose to assume relative to the entit(y/ies),
-    /// (0, 0, 0) indicates to return the camera back to the home pose
-    /// originally loaded in from the sdf.
-    /// param[in] _duration Duration of the move to animation, in seconds.
-    /// param[in] _onAnimationComplete Callback function when animation is
-    /// complete
-    public: void LookDirection(const rendering::CameraPtr &_camera,
-        const math::Vector3d &_direction, const math::Vector3d &_lookAt,
-        double _duration, std::function<void()> _onAnimationComplete);
-
-    /// \brief Add time to the animation.
-    /// \param[in] _time Time to add in seconds
-    public: void AddTime(double _time);
-
-    /// \brief Get whether the move to helper is idle, i.e. no animation
-    /// is being executed.
-    /// \return True if idle, false otherwise
-    public: bool Idle() const;
-
-    /// \brief Set the initial camera pose
-    /// param[in] _pose The init pose of the camera
-    public: void SetInitCameraPose(const math::Pose3d &_pose);
-
-    /// \brief Pose animation object
-    public: std::unique_ptr<common::PoseAnimation> poseAnim;
-
-    /// \brief Pointer to the camera being moved
-    public: rendering::CameraPtr camera;
-
-    /// \brief Callback function when animation is complete.
-    public: std::function<void()> onAnimationComplete;
-
-    /// \brief Initial pose of the camera used for view angles
-    public: math::Pose3d initCameraPose;
   };
 
   /// \brief Private data class for IgnRenderer
@@ -229,7 +166,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: std::string moveToTarget;
 
     /// \brief Helper object to move user camera
-    public: MoveToHelper moveToHelper;
+    public: ignition::rendering::MoveToHelper moveToHelper;
 
     /// \brief Target to view collisions
     public: std::string viewCollisionsTarget;
@@ -244,11 +181,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Wait for follow target
     public: bool followTargetWait = false;
 
-    /// \brief Offset of camera from taget being followed
+    /// \brief Offset of camera from target being followed
     public: math::Vector3d followOffset = math::Vector3d(-5, 0, 3);
 
     /// \brief Flag to indicate the follow offset needs to be updated
     public: bool followOffsetDirty = false;
+
+    /// \brief Flag to indicate the follow offset has been updated
+    public: bool newFollowOffset = true;
 
     /// \brief Follow P gain
     public: double followPGain = 0.01;
@@ -405,6 +345,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Follow service
     public: std::string followService;
 
+    /// \brief Follow offset service
+    public: std::string followOffsetService;
+
     /// \brief View angle service
     public: std::string viewAngleService;
 
@@ -449,7 +392,7 @@ QList<QThread *> RenderWindowItemPrivate::threads;
 IgnRenderer::IgnRenderer()
   : dataPtr(new IgnRendererPrivate)
 {
-  this->dataPtr->moveToHelper.initCameraPose = this->cameraPose;
+  this->dataPtr->moveToHelper.SetInitCameraPose(this->cameraPose);
 
   // recorder stats topic
   std::string recorderStatsTopic = "/gui/record_video/stats";
@@ -693,7 +636,8 @@ void IgnRenderer::Render()
           this->dataPtr->followTarget);
       if (target)
       {
-        if (!followTarget || target != followTarget)
+        if (!followTarget || target != followTarget
+              || this->dataPtr->newFollowOffset)
         {
           this->dataPtr->camera->SetFollowTarget(target,
               this->dataPtr->followOffset,
@@ -703,6 +647,7 @@ void IgnRenderer::Render()
           this->dataPtr->camera->SetTrackTarget(target);
           // found target, no need to wait anymore
           this->dataPtr->followTargetWait = false;
+          this->dataPtr->newFollowOffset = false;
         }
         else if (this->dataPtr->followOffsetDirty)
         {
@@ -1644,10 +1589,6 @@ void IgnRenderer::HandleMouseViewControl()
             << std::endl;
   }
 
-  math::Vector3d camWorldPos;
-  if (!this->dataPtr->followTarget.empty())
-    this->dataPtr->camera->WorldPosition();
-
   this->dataPtr->viewControl.SetCamera(this->dataPtr->camera);
 
   if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::SCROLL)
@@ -1700,13 +1641,7 @@ void IgnRenderer::HandleMouseViewControl()
 
 
   if (!this->dataPtr->followTarget.empty())
-  {
-    math::Vector3d dPos = this->dataPtr->camera->WorldPosition() - camWorldPos;
-    if (dPos != math::Vector3d::Zero)
-    {
-      this->dataPtr->followOffsetDirty = true;
-    }
-  }
+    this->dataPtr->followOffsetDirty = true;
 }
 
 /////////////////////////////////////////////////
@@ -2010,6 +1945,9 @@ void IgnRenderer::SetFollowOffset(const math::Vector3d &_offset)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->followOffset = _offset;
+
+  if (!this->dataPtr->followTarget.empty())
+    this->dataPtr->newFollowOffset = true;
 }
 
 /////////////////////////////////////////////////
@@ -2673,6 +2611,13 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   ignmsg << "Follow service on ["
          << this->dataPtr->followService << "]" << std::endl;
 
+  // follow offset
+  this->dataPtr->followOffsetService = "/gui/follow/offset";
+  this->dataPtr->node.Advertise(this->dataPtr->followOffsetService,
+      &Scene3D::OnFollowOffset, this);
+  ignmsg << "Follow offset service on ["
+         << this->dataPtr->followOffsetService << "]" << std::endl;
+
   // view angle
   this->dataPtr->viewAngleService =
       "/gui/view_angle";
@@ -2721,29 +2666,31 @@ void Scene3D::Update(const UpdateInfo &_info,
   if (this->dataPtr->worldName.empty())
   {
     // TODO(anyone) Only one scene is supported for now
+    Entity worldEntity;
     _ecm.Each<components::World, components::Name>(
-        [&](const Entity &/*_entity*/,
+        [&](const Entity &_entity,
           const components::World * /* _world */ ,
           const components::Name *_name)->bool
         {
           this->dataPtr->worldName = _name->Data();
+          worldEntity = _entity;
           return true;
         });
 
-    renderWindow->SetWorldName(this->dataPtr->worldName);
-    auto worldEntity =
-      _ecm.EntityByComponents(components::Name(this->dataPtr->worldName),
-        components::World());
-    auto renderEngineGuiComp =
-      _ecm.Component<components::RenderEngineGuiPlugin>(worldEntity);
-    if (renderEngineGuiComp && !renderEngineGuiComp->Data().empty())
+    if (!this->dataPtr->worldName.empty())
     {
-      this->dataPtr->renderUtil->SetEngineName(renderEngineGuiComp->Data());
-    }
-    else
-    {
-      igndbg << "RenderEngineGuiPlugin component not found, "
-        "render engine won't be set from the ECM" << std::endl;
+      renderWindow->SetWorldName(this->dataPtr->worldName);
+      auto renderEngineGuiComp =
+        _ecm.Component<components::RenderEngineGuiPlugin>(worldEntity);
+      if (renderEngineGuiComp && !renderEngineGuiComp->Data().empty())
+      {
+        this->dataPtr->renderUtil->SetEngineName(renderEngineGuiComp->Data());
+      }
+      else
+      {
+        igndbg << "RenderEngineGuiPlugin component not found, "
+          "render engine won't be set from the ECM " << std::endl;
+      }
     }
   }
 
@@ -2812,6 +2759,19 @@ bool Scene3D::OnFollow(const msgs::StringMsg &_msg,
   auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
 
   renderWindow->SetFollowTarget(_msg.data());
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool Scene3D::OnFollowOffset(const msgs::Vector3d &_msg,
+  msgs::Boolean &_res)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+
+  math::Vector3d offset = msgs::Convert(_msg);
+  renderWindow->SetFollowOffset(offset);
 
   _res.set_data(true);
   return true;
@@ -3312,158 +3272,6 @@ void RenderWindowItem::HandleKeyRelease(QKeyEvent *_e)
 //  }
 // }
 //
-
-////////////////////////////////////////////////
-void MoveToHelper::MoveTo(const rendering::CameraPtr &_camera,
-    const ignition::math::Pose3d &_target,
-    double _duration, std::function<void()> _onAnimationComplete)
-{
-  this->camera = _camera;
-  this->poseAnim = std::make_unique<common::PoseAnimation>(
-      "move_to", _duration, false);
-  this->onAnimationComplete = std::move(_onAnimationComplete);
-
-  math::Pose3d start = _camera->WorldPose();
-
-  common::PoseKeyFrame *key = this->poseAnim->CreateKeyFrame(0);
-  key->Translation(start.Pos());
-  key->Rotation(start.Rot());
-
-  key = this->poseAnim->CreateKeyFrame(_duration);
-  if (_target.Pos().IsFinite())
-    key->Translation(_target.Pos());
-  else
-    key->Translation(start.Pos());
-
-  if (_target.Rot().IsFinite())
-    key->Rotation(_target.Rot());
-  else
-    key->Rotation(start.Rot());
-}
-
-////////////////////////////////////////////////
-void MoveToHelper::MoveTo(const rendering::CameraPtr &_camera,
-    const rendering::NodePtr &_target,
-    double _duration, std::function<void()> _onAnimationComplete)
-{
-  this->camera = _camera;
-  this->poseAnim = std::make_unique<common::PoseAnimation>(
-      "move_to", _duration, false);
-  this->onAnimationComplete = std::move(_onAnimationComplete);
-
-  math::Pose3d start = _camera->WorldPose();
-
-  // todo(anyone) implement bounding box function in rendering to get
-  // target size and center.
-  // Assume fixed size and target world position is its center
-  math::Box targetBBox(1.0, 1.0, 1.0);
-  math::Vector3d targetCenter = _target->WorldPosition();
-  math::Vector3d dir = targetCenter - start.Pos();
-  dir.Correct();
-  dir.Normalize();
-
-  // distance to move
-  double maxSize = targetBBox.Size().Max();
-  double dist = start.Pos().Distance(targetCenter) - maxSize;
-
-  // Scale to fit in view
-  double hfov = this->camera->HFOV().Radian();
-  double offset = maxSize*0.5 / std::tan(hfov/2.0);
-
-  // End position and rotation
-  math::Vector3d endPos = start.Pos() + dir*(dist - offset);
-  math::Quaterniond endRot =
-      math::Matrix4d::LookAt(endPos, targetCenter).Rotation();
-  math::Pose3d end(endPos, endRot);
-
-  common::PoseKeyFrame *key = this->poseAnim->CreateKeyFrame(0);
-  key->Translation(start.Pos());
-  key->Rotation(start.Rot());
-
-  key = this->poseAnim->CreateKeyFrame(_duration);
-  key->Translation(end.Pos());
-  key->Rotation(end.Rot());
-}
-
-////////////////////////////////////////////////
-void MoveToHelper::LookDirection(const rendering::CameraPtr &_camera,
-    const math::Vector3d &_direction, const math::Vector3d &_lookAt,
-    double _duration, std::function<void()> _onAnimationComplete)
-{
-  this->camera = _camera;
-  this->poseAnim = std::make_unique<common::PoseAnimation>(
-      "view_angle", _duration, false);
-  this->onAnimationComplete = std::move(_onAnimationComplete);
-
-  math::Pose3d start = _camera->WorldPose();
-
-  // Look at world origin unless there are visuals selected
-  // Keep current distance to look at target
-  math::Vector3d camPos = _camera->WorldPose().Pos();
-  double distance = std::fabs((camPos - _lookAt).Length());
-
-  // Calculate camera position
-  math::Vector3d endPos = _lookAt - _direction * distance;
-
-  // Calculate camera orientation
-  math::Quaterniond endRot =
-    ignition::math::Matrix4d::LookAt(endPos, _lookAt).Rotation();
-
-  // Move camera to that pose
-  common::PoseKeyFrame *key = this->poseAnim->CreateKeyFrame(0);
-  key->Translation(start.Pos());
-  key->Rotation(start.Rot());
-
-  // Move camera back to initial pose
-  if (_direction == math::Vector3d::Zero)
-  {
-    endPos = this->initCameraPose.Pos();
-    endRot = this->initCameraPose.Rot();
-  }
-
-  key = this->poseAnim->CreateKeyFrame(_duration);
-  key->Translation(endPos);
-  key->Rotation(endRot);
-}
-
-////////////////////////////////////////////////
-void MoveToHelper::AddTime(double _time)
-{
-  if (!this->camera || !this->poseAnim)
-    return;
-
-  common::PoseKeyFrame kf(0);
-
-  this->poseAnim->AddTime(_time);
-  this->poseAnim->InterpolatedKeyFrame(kf);
-
-  math::Pose3d offset(kf.Translation(), kf.Rotation());
-
-  this->camera->SetWorldPose(offset);
-
-  if (this->poseAnim->Length() <= this->poseAnim->Time())
-  {
-    if (this->onAnimationComplete)
-    {
-      this->onAnimationComplete();
-    }
-    this->camera.reset();
-    this->poseAnim.reset();
-    this->onAnimationComplete = nullptr;
-  }
-}
-
-////////////////////////////////////////////////
-bool MoveToHelper::Idle() const
-{
-  return this->poseAnim == nullptr;
-}
-
-////////////////////////////////////////////////
-void MoveToHelper::SetInitCameraPose(const math::Pose3d &_pose)
-{
-  this->initCameraPose = _pose;
-}
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(ignition::gazebo::Scene3D,

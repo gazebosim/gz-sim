@@ -55,7 +55,7 @@ namespace systems
   /// * **Response type*: ignition.msgs.Boolean
   ///
   /// Try some examples described on examples/worlds/empty.sdf
-  class IGNITION_GAZEBO_VISIBLE UserCommands:
+  class UserCommands:
     public System,
     public ISystemConfigure,
     public ISystemPreUpdate

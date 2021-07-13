@@ -38,7 +38,7 @@ namespace systems
   **/
   /// \brief A logical camera sensor that reports objects detected within its
   /// frustum readings over ign transport
-  class IGNITION_GAZEBO_VISIBLE LogicalCamera:
+  class LogicalCamera:
     public System,
     public ISystemPreUpdate,
     public ISystemPostUpdate

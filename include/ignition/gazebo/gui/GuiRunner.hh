@@ -61,6 +61,10 @@ class IGNITION_GAZEBO_VISIBLE GuiRunner : public QObject
   /// \param[in] _msg New state message.
   private: void OnState(const msgs::SerializedStepMap &_msg);
 
+  /// \brief Update the plugins.
+  /// \todo(anyone) Move to GuiRunner::Implementation when porting to v5
+  private: void UpdatePlugins();
+
   /// \brief Entity-component manager.
   private: gazebo::EntityComponentManager ecm;
 

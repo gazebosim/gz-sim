@@ -21,6 +21,7 @@
 #include <ignition/msgs/light.pb.h>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
 
@@ -47,8 +48,8 @@ class UserCommandsTest : public ::testing::Test
   protected: void SetUp() override
   {
     ignition::common::Console::SetVerbosity(4);
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
+    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
   }
 };
 
@@ -968,6 +969,23 @@ TEST_F(UserCommandsTest, Physics)
   std::string service{"/world/default/set_physics"};
 
   transport::Node node;
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Run two iterations, in the first one the PhysicsCmd component is created
+  // in the second one it is processed
+  server.Run(true, 2, false);
+
+  // Check updated physics properties
+  physicsComp = ecm->Component<components::Physics>(worldEntity);
+  EXPECT_DOUBLE_EQ(0.123, physicsComp->Data().MaxStepSize());
+  EXPECT_DOUBLE_EQ(4.567, physicsComp->Data().RealTimeFactor());
+
+  // Send invalid values (not > 0) and make sure they are not updated
+  req.set_max_step_size(0.0);
+  req.set_real_time_factor(0.0);
+
   EXPECT_TRUE(node.Request(service, req, timeout, res, result));
   EXPECT_TRUE(result);
   EXPECT_TRUE(res.data());

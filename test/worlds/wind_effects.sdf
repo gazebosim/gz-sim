@@ -7,6 +7,10 @@
       filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
     </plugin>
+    <plugin
+      filename="ignition-gazebo-user-commands-system"
+      name="ignition::gazebo::systems::UserCommands">
+    </plugin>
 
     <plugin
       filename="ignition-gazebo-wind-effects-system"

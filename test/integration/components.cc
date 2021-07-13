@@ -943,31 +943,33 @@ TEST_F(ComponentsTest, LogicalAudioSourcePlayInfo)
 TEST_F(ComponentsTest, LogicalMicrophone)
 {
   logical_audio::Microphone mic1;
-  mic1.id = 0;
+  mic1.id = 4;
   mic1.volumeDetectionThreshold = 0.5;
 
   logical_audio::Microphone mic2;
-  mic2.id = 1;
-  mic2.volumeDetectionThreshold = mic1.volumeDetectionThreshold;
+  mic2.id = 8;
+  mic2.volumeDetectionThreshold = 0.8;
 
   // create components
   auto comp1 = components::LogicalMicrophone(mic1);
   auto comp2 = components::LogicalMicrophone(mic2);
 
   // equality operators
-  EXPECT_NE(mic1, mic2);
-  EXPECT_FALSE(mic1 == mic2);
-  EXPECT_TRUE(mic1 != mic2);
+  EXPECT_NE(comp1, comp2);
+  EXPECT_FALSE(comp1 == comp2);
+  EXPECT_TRUE(comp1 != comp2);
 
   // stream operators
   std::ostringstream ostr;
   comp1.Serialize(ostr);
-  EXPECT_EQ("0 0.5", ostr.str());
+  EXPECT_EQ("4 0.5", ostr.str());
 
-  std::istringstream istr;
+  std::istringstream istr(ostr.str());
   components::LogicalMicrophone comp3;
   comp3.Deserialize(istr);
   EXPECT_EQ(comp1, comp3);
+  EXPECT_DOUBLE_EQ(comp1.Data().volumeDetectionThreshold,
+      comp3.Data().volumeDetectionThreshold);
 }
 
 /////////////////////////////////////////////////
@@ -1520,15 +1522,15 @@ TEST_F(ComponentsTest, ParticleEmitter)
   emitter1.mutable_size()->set_x(1);
   emitter1.mutable_size()->set_y(2);
   emitter1.mutable_size()->set_z(3);
-  emitter1.set_rate(4.0);
-  emitter1.set_duration(5.0);
-  emitter1.set_emitting(false);
+  emitter1.mutable_rate()->set_data(4.0);
+  emitter1.mutable_duration()->set_data(5.0);
+  emitter1.mutable_emitting()->set_data(false);
   emitter1.mutable_particle_size()->set_x(0.1);
   emitter1.mutable_particle_size()->set_y(0.2);
   emitter1.mutable_particle_size()->set_z(0.3);
-  emitter1.set_lifetime(6.0);
-  emitter1.set_min_velocity(7.0);
-  emitter1.set_max_velocity(8.0);
+  emitter1.mutable_lifetime()->set_data(6.0);
+  emitter1.mutable_min_velocity()->set_data(7.0);
+  emitter1.mutable_max_velocity()->set_data(8.0);
   emitter1.mutable_color_start()->set_r(1.0);
   emitter1.mutable_color_start()->set_g(0);
   emitter1.mutable_color_start()->set_b(0);
@@ -1537,8 +1539,8 @@ TEST_F(ComponentsTest, ParticleEmitter)
   emitter1.mutable_color_end()->set_g(1.0);
   emitter1.mutable_color_end()->set_b(1.0);
   emitter1.mutable_color_end()->set_a(0);
-  emitter1.set_scale_rate(9.0);
-  emitter1.set_color_range_image("path_to_texture");
+  emitter1.mutable_scale_rate()->set_data(9.0);
+  emitter1.mutable_color_range_image()->set_data("path_to_texture");
 
   msgs::ParticleEmitter emitter2;
   emitter2.set_name("emitter2");
@@ -1547,15 +1549,15 @@ TEST_F(ComponentsTest, ParticleEmitter)
   emitter2.mutable_size()->set_x(1);
   emitter2.mutable_size()->set_y(2);
   emitter2.mutable_size()->set_z(3);
-  emitter2.set_rate(4.0);
-  emitter2.set_duration(5.0);
-  emitter2.set_emitting(false);
+  emitter2.mutable_rate()->set_data(4.0);
+  emitter2.mutable_duration()->set_data(5.0);
+  emitter2.mutable_emitting()->set_data(false);
   emitter2.mutable_particle_size()->set_x(0.1);
   emitter2.mutable_particle_size()->set_y(0.2);
   emitter2.mutable_particle_size()->set_z(0.3);
-  emitter2.set_lifetime(6.0);
-  emitter2.set_min_velocity(7.0);
-  emitter2.set_max_velocity(8.0);
+  emitter2.mutable_lifetime()->set_data(6.0);
+  emitter2.mutable_min_velocity()->set_data(7.0);
+  emitter2.mutable_max_velocity()->set_data(8.0);
   emitter2.mutable_color_start()->set_r(1.0);
   emitter2.mutable_color_start()->set_g(0);
   emitter2.mutable_color_start()->set_b(0);
@@ -1564,8 +1566,8 @@ TEST_F(ComponentsTest, ParticleEmitter)
   emitter2.mutable_color_end()->set_g(1.0);
   emitter2.mutable_color_end()->set_b(1.0);
   emitter2.mutable_color_end()->set_a(0);
-  emitter2.set_scale_rate(9.0);
-  emitter2.set_color_range_image("path_to_texture");
+  emitter2.mutable_scale_rate()->set_data(9.0);
+  emitter2.mutable_color_range_image()->set_data("path_to_texture");
 
   // Create components.
   auto comp1 = components::ParticleEmitter(emitter1);
@@ -1586,7 +1588,7 @@ TEST_F(ComponentsTest, ParticleEmitterCmd)
 {
   msgs::ParticleEmitter emitter1;
   emitter1.set_name("emitter1");
-  emitter1.set_emitting(true);
+  emitter1.mutable_emitting()->set_data(true);
 
   // Create components.
   auto comp1 = components::ParticleEmitterCmd(emitter1);
@@ -1598,6 +1600,6 @@ TEST_F(ComponentsTest, ParticleEmitterCmd)
   std::istringstream istr(ostr.str());
   components::ParticleEmitter comp3;
   comp3.Deserialize(istr);
-  EXPECT_EQ(comp1.Data().emitting(), comp3.Data().emitting());
+  EXPECT_EQ(comp1.Data().emitting().data(), comp3.Data().emitting().data());
   EXPECT_EQ(comp1.Data().name(), comp3.Data().name());
 }

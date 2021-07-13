@@ -431,6 +431,12 @@ void ComponentInspector::Update(const UpdateInfo &,
       continue;
     }
 
+    if (typeId == components::Light::typeId)
+    {
+      this->SetType("light");
+      continue;
+    }
+
     if (typeId == components::Actor::typeId)
     {
       this->SetType("actor");

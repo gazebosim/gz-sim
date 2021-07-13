@@ -37,7 +37,8 @@ namespace systems
 
   /// \brief The triggered publisher system publishes a user specified message
   /// on an output topic in response to an input message that matches user
-  /// specified criteria.
+  /// specified criteria. An optional simulation time delay can be used
+  /// delay message publication.
   ///
   /// ## System Parameters
   ///
@@ -72,6 +73,9 @@ namespace systems
   ///   * Value: String used to construct the output protobuf message . This is
   ///     the human-readable representation of a protobuf message as used by
   ///     `ign topic` for publishing messages
+  ///
+  /// `<delay_ms>`: Integer number of milliseconds, in simulation time,  to
+  /// delay publication.
   ///
   /// Examples:
   /// 1. Any receipt of a Boolean messages on the input topic triggers an output
@@ -153,8 +157,9 @@ namespace systems
   /// The current implementation of this system does not support specifying a
   /// subfield of a repeated field in the "field" attribute. i.e, if
   /// `field="f1.f2"`, `f1` cannot be a repeated field.
-  class IGNITION_GAZEBO_VISIBLE TriggeredPublisher : public System,
-                                                     public ISystemConfigure
+  class TriggeredPublisher : public System,
+                             public ISystemConfigure,
+                             public ISystemPreUpdate
   {
     /// \brief Constructor
     public: TriggeredPublisher() = default;
@@ -167,6 +172,11 @@ namespace systems
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) override;
+
+    // Documentation inherited
+    public: void PreUpdate(
+                const ignition::gazebo::UpdateInfo &_info,
+                ignition::gazebo::EntityComponentManager &_ecm) override;
 
     /// \brief Thread that handles publishing output messages
     public: void DoWork();
@@ -223,6 +233,15 @@ namespace systems
     /// \brief Flag for when the system is done and the worker thread should
     /// stop
     private: std::atomic<bool> done{false};
+
+    /// \brief Publish delay time. This is in simulation time.
+    private: std::chrono::steady_clock::duration delay{0};
+
+    /// \brief Queue of publication times.
+    private: std::vector<std::chrono::steady_clock::duration> publishQueue;
+
+    /// \brief Mutex to synchronize access to publishQueue
+    private: std::mutex publishQueueMutex;
   };
   }
 }
