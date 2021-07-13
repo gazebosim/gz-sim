@@ -170,7 +170,8 @@ namespace ignition
     /// \return An Ignition Transport topic name based on the scoped name of
     /// the provided entity, or empty string if a topic name could not be
     /// generated.
-    std::string topicFromScopedName(const Entity &_entity,
+    std::string IGNITION_GAZEBO_VISIBLE topicFromScopedName(
+        const Entity &_entity,
         const EntityComponentManager &_ecm,
         bool _excludeWorld = true);
 

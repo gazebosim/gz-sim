@@ -67,20 +67,23 @@ namespace ignition
     /// to the values contained in a sdf::Noise object.
     /// \param[out] _msg SensorNoise message to set.
     /// \param[in] _sdf SDF Noise object.
-    void set(msgs::SensorNoise *_msg, const sdf::Noise &_sdf);
+    void IGNITION_GAZEBO_VISIBLE
+    set(msgs::SensorNoise *_msg, const sdf::Noise &_sdf);
 
     /// \brief Helper function that sets a mutable msgs::WorldStatistics object
     /// to the values contained in a gazebo::UpdateInfo  object.
     /// \param[out] _msg WorldStatistics message to set.
     /// \param[in] _in UpdateInfo object.
-    void set(msgs::WorldStatistics *_msg, const UpdateInfo &_in);
+    void IGNITION_GAZEBO_VISIBLE
+    set(msgs::WorldStatistics *_msg, const UpdateInfo &_in);
 
     /// \brief Helper function that sets a mutable msgs::Time object
     /// to the values contained in a std::chrono::steady_clock::duration
     /// object.
     /// \param[out] _msg Time message to set.
     /// \param[in] _in Chrono duration object.
-    void set(msgs::Time *_msg, const std::chrono::steady_clock::duration &_in);
+    void IGNITION_GAZEBO_VISIBLE
+    set(msgs::Time *_msg, const std::chrono::steady_clock::duration &_in);
 
     /// \brief Generic conversion from an SDF geometry to another type.
     /// \param[in] _in SDF geometry.
@@ -217,6 +220,12 @@ namespace ignition
     template<>
     msgs::Light convert(const sdf::Light &_in);
 
+    /// \brief Generic conversion from a SDF light type to string.
+    /// \param[in] _in SDF light type.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    std::string IGNITION_GAZEBO_VISIBLE
+    convert(const sdf::LightType &_in);
 
     /// \brief Generic conversion from a light message to another type.
     /// \param[in] _in Light message.
@@ -234,6 +243,12 @@ namespace ignition
     /// \return Light SDF object.
     template<>
     sdf::Light convert(const msgs::Light &_in);
+
+    /// \brief Specialized conversion from a string to a sdf light type
+    /// \param[in] _in String with the light type.
+    /// \return Light type emun SDF object.
+    sdf::LightType IGNITION_GAZEBO_VISIBLE
+    convert(const std::string &_in);
 
     /// \brief Generic conversion from an SDF gui to another type.
     /// \param[in] _in SDF gui.

@@ -1137,8 +1137,8 @@ TEST_F(LogSystemTest, LogControlLevels)
   // verify there are entities at the beginning of the playback
   EXPECT_TRUE(!entitiesAtTime0.empty());
 
-  double timeA = 8;
-  double timeB = 18;
+  int timeA = 8;
+  int timeB = 18;
 
   transport::Node node;
 

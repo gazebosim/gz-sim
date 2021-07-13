@@ -25,7 +25,9 @@
 
 // Features need to be defined ahead of entityCast
 #include <ignition/physics/BoxShape.hh>
+#include <ignition/physics/CapsuleShape.hh>
 #include <ignition/physics/CylinderShape.hh>
+#include <ignition/physics/EllipsoidShape.hh>
 #include <ignition/physics/ForwardStep.hh>
 #include <ignition/physics/FrameSemantics.hh>
 #include <ignition/physics/FreeGroup.hh>
@@ -37,6 +39,7 @@
 #include <ignition/physics/RemoveEntities.hh>
 #include <ignition/physics/Shape.hh>
 #include <ignition/physics/SphereShape.hh>
+#include <ignition/physics/World.hh>
 #include <ignition/physics/mesh/MeshShape.hh>
 #include <ignition/physics/sdf/ConstructCollision.hh>
 #include <ignition/physics/sdf/ConstructJoint.hh>
@@ -46,7 +49,6 @@
 #include <ignition/physics/sdf/ConstructWorld.hh>
 
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
 
 namespace ignition

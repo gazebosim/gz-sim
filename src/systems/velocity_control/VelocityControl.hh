@@ -34,6 +34,15 @@ namespace systems
 
   /// \brief Linear and angular velocity controller
   /// which is directly set on a model.
+  ///
+  /// ## System Parameters
+  ///
+  /// `<topic>` Topic to receive commands in. Defaults to
+  ///     `/model/<model_name>/cmd_vel`.
+  ///
+  /// `<initial_linear>` Linear velocity to start with.
+  ///
+  /// `<initial_angular>` Linear velocity to start with.
   class VelocityControl
       : public System,
         public ISystemConfigure,

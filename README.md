@@ -9,10 +9,10 @@
 
 Build | Status
 -- | --
-Test coverage | [![codecov](https://codecov.io/gh/ignitionrobotics/ign-gazebo/branch/master/graph/badge.svg)](https://codecov.io/gh/ignitionrobotics/ign-gazebo)
-Ubuntu Bionic | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-master-bionic-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-master-bionic-amd64)
-Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-master-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-master-homebrew-amd64)
-Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-master-windows7-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-master-windows7-amd64)
+Test coverage | [![codecov](https://codecov.io/gh/ignitionrobotics/ign-gazebo/branch/main/graph/badge.svg)](https://codecov.io/gh/ignitionrobotics/ign-gazebo)
+Ubuntu Bionic | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-main-bionic-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-main-bionic-amd64)
+Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-main-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-main-homebrew-amd64)
+Windows       | [![Build Status](https://build.osrfoundation.org/job/ign_gazebo-ci-win/badge/icon)](https://build.osrfoundation.org/job/ign_gazebo-ci-win/)
 
 Ignition Gazebo is an open source robotics simulator. Through Ignition Gazebo, users have access to high fidelity physics, rendering, and sensor models. Additionally, users and developers have multiple points of entry to simulation including a graphical user interface, plugins, and asynchronous message passing and services.
 
@@ -122,8 +122,10 @@ installing Ignition Gazebo from source.
 2. Install Ignition Gazebo
 
     ```
-    sudo apt-get install libignition-gazebo4-dev
+    sudo apt-get install libignition-gazebo<#>-dev
     ```
+
+    Where `<#>` is the desired version number, like 3 or 4.
 
 ## Source Install
 
@@ -158,7 +160,7 @@ for dependency installation instructions for each supported operating system.
 2. Install package dependencies:
 
     ```
-    git clone https://github.com/ignitionrobotics/ign-gazebo -b ign-gazebo4
+    git clone https://github.com/ignitionrobotics/ign-gazebo -b main
     ```
 
     ```
@@ -186,7 +188,7 @@ for dependency installation instructions for each supported operating system.
 3. Clone the repository if you haven't already.
 
     ```
-    git clone https://github.com/ignitionrobotics/ign-gazebo -b ign-gazebo4
+    git clone https://github.com/ignitionrobotics/ign-gazebo -b main
     ```
 
 4. Configure and build.
@@ -233,9 +235,9 @@ line is using symbolic links to each library's YAML file.
 ```
 mkdir ~/.ignition/tools/configs -p
 cd ~/.ignition/tools/configs/
-ln -s /usr/local/share/ignition/fuel4.yaml .
-ln -s /usr/local/share/ignition/transport9.yaml .
-ln -s /usr/local/share/ignition/transportlog9.yaml .
+ln -s /usr/local/share/ignition/fuel7.yaml .
+ln -s /usr/local/share/ignition/transport11.yaml .
+ln -s /usr/local/share/ignition/transportlog11.yaml .
 ...
 export IGN_CONFIG_PATH=$HOME/.ignition/tools/configs
 ```

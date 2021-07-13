@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo4 VERSION 4.9.1)
+project(ignition-gazebo6 VERSION 6.0.0)
 
 #============================================================================
 # Find ignition-cmake
@@ -14,7 +14,7 @@ find_package(ignition-cmake2 2.8.0 REQUIRED)
 #============================================================================
 # Configure the project
 #============================================================================
-ign_configure_project(VERSION_SUFFIX)
+ign_configure_project(VERSION_SUFFIX pre1)
 
 #============================================================================
 # Set project-specific options
@@ -38,8 +38,8 @@ endif()
 # Search for project-specific dependencies
 #============================================================================
 
-ign_find_package(sdformat10 REQUIRED VERSION 10.3)
-set(SDF_VER ${sdformat10_VERSION_MAJOR})
+ign_find_package(sdformat12 REQUIRED)
+set(SDF_VER ${sdformat12_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-plugin
@@ -48,35 +48,35 @@ set(IGN_PLUGIN_VER ${ignition-plugin1_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-transport
-ign_find_package(ignition-transport9 REQUIRED COMPONENTS log VERSION 9.1)
-set(IGN_TRANSPORT_VER ${ignition-transport9_VERSION_MAJOR})
+ign_find_package(ignition-transport11 REQUIRED COMPONENTS log)
+set(IGN_TRANSPORT_VER ${ignition-transport11_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-msgs
-ign_find_package(ignition-msgs6 REQUIRED VERSION 6.4)
-set(IGN_MSGS_VER ${ignition-msgs6_VERSION_MAJOR})
+ign_find_package(ignition-msgs8 REQUIRED)
+set(IGN_MSGS_VER ${ignition-msgs8_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-common
 # Always use the profiler component to get the headers, regardless of status.
-ign_find_package(ignition-common3 VERSION 3.8
+ign_find_package(ignition-common4
   COMPONENTS
     profiler
     events
     av
   REQUIRED
 )
-set(IGN_COMMON_VER ${ignition-common3_VERSION_MAJOR})
+set(IGN_COMMON_VER ${ignition-common4_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-fuel_tools
-ign_find_package(ignition-fuel_tools5 REQUIRED)
-set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools5_VERSION_MAJOR})
+ign_find_package(ignition-fuel_tools7 REQUIRED)
+set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools7_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-gui
-ign_find_package(ignition-gui4 REQUIRED VERSION 4.1.1)
-set(IGN_GUI_VER ${ignition-gui4_VERSION_MAJOR})
+ign_find_package(ignition-gui6 REQUIRED)
+set(IGN_GUI_VER ${ignition-gui6_VERSION_MAJOR})
 ign_find_package (Qt5
   COMPONENTS
     Core
@@ -87,17 +87,17 @@ ign_find_package (Qt5
 
 #--------------------------------------
 # Find ignition-physics
-ign_find_package(ignition-physics3 VERSION 3.2
+ign_find_package(ignition-physics5
   COMPONENTS
     mesh
     sdf
   REQUIRED
 )
-set(IGN_PHYSICS_VER ${ignition-physics3_VERSION_MAJOR})
+set(IGN_PHYSICS_VER ${ignition-physics5_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-sensors
-ign_find_package(ignition-sensors4 REQUIRED
+ign_find_package(ignition-sensors6 REQUIRED
   COMPONENTS
     rendering
     air_pressure
@@ -110,16 +110,16 @@ ign_find_package(ignition-sensors4 REQUIRED
     depth_camera
     thermal_camera
 )
-set(IGN_SENSORS_VER ${ignition-sensors4_VERSION_MAJOR})
+set(IGN_SENSORS_VER ${ignition-sensors6_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-rendering
-ign_find_package(ignition-rendering4 REQUIRED VERSION 4.7.0)
-set(IGN_RENDERING_VER ${ignition-rendering4_VERSION_MAJOR})
+ign_find_package(ignition-rendering6 REQUIRED)
+set(IGN_RENDERING_VER ${ignition-rendering6_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-math
-ign_find_package(ignition-math6 REQUIRED COMPONENTS eigen3 VERSION 6.6)
+ign_find_package(ignition-math6 REQUIRED COMPONENTS eigen3 VERSION 6.8)
 set(IGN_MATH_VER ${ignition-math6_VERSION_MAJOR})
 
 #--------------------------------------
@@ -129,14 +129,21 @@ ign_find_package(ignition-tools
                  PKGCONFIG "ignition-tools")
 
 #--------------------------------------
+# Find ignition-utils
+ign_find_package(ignition-utils1 REQUIRED COMPONENTS cli)
+set(IGN_UTILS_VER ${ignition-utils1_VERSION_MAJOR})
+
+#--------------------------------------
 # Find protobuf
+# Module is needed to use the PROTOBUF_GENERATE_CPP
+set(protobuf_MODULE_COMPATIBLE TRUE)
 set(REQ_PROTOBUF_VER 3)
 ign_find_package(IgnProtobuf
                  VERSION ${REQ_PROTOBUF_VER}
                  REQUIRED
                  COMPONENTS all
                  PRETTY Protobuf)
-set(Protobuf_IMPORT_DIRS ${ignition-msgs6_INCLUDE_DIRS})
+set(Protobuf_IMPORT_DIRS ${ignition-msgs8_INCLUDE_DIRS})
 
 # Plugin install dirs
 set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR

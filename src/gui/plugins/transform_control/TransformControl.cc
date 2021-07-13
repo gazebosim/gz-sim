@@ -25,21 +25,19 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
+#include <ignition/gui/GuiEvents.hh>
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/Publisher.hh>
-#include <ignition/rendering/Visual.hh>
 #include <ignition/rendering/Geometry.hh>
 #include <ignition/rendering/Grid.hh>
+#include <ignition/rendering/RenderEngine.hh>
 #include <ignition/rendering/RenderTypes.hh>
 #include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/RenderEngine.hh>
 #include <ignition/rendering/Scene.hh>
+#include <ignition/rendering/Visual.hh>
+#include <ignition/transport/Node.hh>
+#include <ignition/transport/Publisher.hh>
 
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
 namespace ignition::gazebo
@@ -110,7 +108,7 @@ void TransformControl::OnSnapUpdate(
   this->dataPtr->rpySnapVals = math::Vector3d(_roll, _pitch, _yaw);
   this->dataPtr->scaleSnapVals = math::Vector3d(_scaleX, _scaleY, _scaleZ);
 
-  gui::events::SnapIntervals event(
+  ignition::gui::events::SnapIntervals event(
       this->dataPtr->xyzSnapVals,
       this->dataPtr->rpySnapVals,
       this->dataPtr->scaleSnapVals);
@@ -164,42 +162,7 @@ void TransformControl::SnapToGrid()
 /////////////////////////////////////////////////
 void TransformControl::LoadGrid()
 {
-  auto loadedEngNames = rendering::loadedEngines();
-  if (loadedEngNames.empty())
-    return;
-
-  // assume there is only one engine loaded
-  auto engineName = loadedEngNames[0];
-  if (loadedEngNames.size() > 1)
-  {
-    igndbg << "More than one engine is available. "
-      << "Grid config plugin will use engine ["
-        << engineName << "]" << std::endl;
-  }
-  auto engine = rendering::engine(engineName);
-  if (!engine)
-  {
-    ignerr << "Internal error: failed to load engine [" << engineName
-      << "]. Grid plugin won't work." << std::endl;
-    return;
-  }
-
-  if (engine->SceneCount() == 0)
-    return;
-
-  // assume there is only one scene
-  // load scene
-  auto scene = engine->SceneByIndex(0);
-  if (!scene)
-  {
-    ignerr << "Internal error: scene is null." << std::endl;
-    return;
-  }
-
-  if (!scene->IsInitialized() || scene->VisualCount() == 0)
-  {
-    return;
-  }
+  auto scene = rendering::sceneFromFirstRenderEngine();
 
   // load grid
   // if gridPtr found, load the existing gridPtr to class
@@ -224,7 +187,7 @@ void TransformControl::LoadGrid()
 /////////////////////////////////////////////////
 bool TransformControl::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gazebo::gui::events::Render::kType)
+  if (_event->type() == ignition::gui::events::Render::kType)
   {
     // This event is called in Scene3d's RenderThread, so it's safe to make
     // rendering calls here

@@ -36,6 +36,7 @@ set(tests
   model.cc
   multicopter.cc
   multiple_servers.cc
+  nested_model_physics.cc
   network_handshake.cc
   odometry_publisher.cc
   particle_emitter.cc
@@ -81,6 +82,15 @@ else()
   foreach(test ${tests_needing_display})
     message(STATUS " ${test}")
   endforeach(test)
+endif()
+
+if (MSVC)
+  # Warning #4251 is the "dll-interface" warning that tells you when types used
+  # by a class are not being exported. These generated source files have private
+  # members that don't get exported, so they trigger this warning. However, the
+  # warning is not important since those members do not need to be interfaced
+  # with.
+  set_source_files_properties(${tests} COMPILE_FLAGS "/wd4251 /wd4146")
 endif()
 
 link_directories(${PROJECT_BINARY_DIR}/test)

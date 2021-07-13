@@ -9,6 +9,7 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 
 * \subpage terminology "Terminology": List of terms used across the documentation.
 * \subpage createsystemplugins "Create System Plugins": Programmatically access simulation using C++ plugins.
+* \subpage rendering_plugins "Rendering plugins": Write plugins that use Ignition Rendering on the server and client.
 * \subpage levels "Levels": Load entities on demand in large environments.
 * \subpage distributedsimulation "Distributed Simulation": Spread simulation across several processes.
 * \subpage resources "Finding resources": The different ways in which Ignition looks for files.
@@ -27,6 +28,7 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage logicalaudiosensor "Logical Audio Sensor": Using the LogicalAudioSensor system to mimic logical audio emission and detection in simulation.
 * \subpage videorecorder "Video Recorder": Record videos from the 3D render window.
 * \subpage collada_world_exporter "Collada World Exporter": Export an entire world to a single Collada mesh.
+* \subpage underwater_vehicles "Underwater Vehicles": Understand how to simulate underwater vehicles.
 * \subpage particle_mitter "Particle emitter": Using particle emitters in simulation
 
 **Migration from Gazebo classic**

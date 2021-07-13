@@ -151,6 +151,7 @@
         filename="ignition-gazebo-joint-controller-system"
         name="ignition::gazebo::systems::JointController">
         <joint_name>j1</joint_name>
+        <initial_velocity>5.0</initial_velocity>
       </plugin>
     </model>
 

@@ -26,6 +26,7 @@
 #include <functional>
 #include <list>
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -81,6 +82,10 @@ namespace ignition
       /// real time and iterations.
       // cppcheck-suppress unusedStructMember
       bool rewind{false};  // NOLINT
+
+      /// \brief A simulation time in the future to run to and then pause.
+      /// A negative number indicates that this variable it not being used.
+      std::chrono::steady_clock::duration runToSimTime{-1};  // NOLINT
 
       /// \brief Sim time to jump to. A negative value means don't seek.
       /// Seeking changes sim time but doesn't affect real time.
@@ -239,6 +244,13 @@ namespace ignition
       /// \brief Get the pause state.
       /// \return True if the simulation runner is paused, false otherwise.
       public: bool Paused() const;
+
+      /// \brief Set the run to simulation time.
+      /// \param[in] _time A simulation time in the future to run to and then
+      /// pause. A negative number or a time less than the current simulation
+      /// time disables the run-to feature.
+      public: void SetRunToSimTime(
+                  const std::chrono::steady_clock::duration &_time);
 
       /// \brief Get the EntityComponentManager
       /// \return Reference to the entity component manager.
@@ -495,6 +507,10 @@ namespace ignition
       /// \brief If user asks to seek to a specific sim time, this holds the
       /// time.s A negative value means there's no request from the user.
       private: std::chrono::steady_clock::duration requestedSeek{-1};
+
+      /// \brief A simulation time in the future to run to and then pause.
+      /// A negative number indicates that this variable it not being used.
+      private: std::chrono::steady_clock::duration requestedRunToSimTime{-1};
 
       /// \brief Keeps the latest simulation info.
       private: UpdateInfo currentInfo;

@@ -251,7 +251,9 @@ TEST_F(ModelElementFixture, ModelsInline)
 {
   this->LoadWorld("test/worlds/shapes.sdf");
   this->TestModel("box");
+  this->TestModel("capsule");
   this->TestModel("cylinder");
+  this->TestModel("ellipsoid");
   this->TestModel("sphere");
 }
 
@@ -543,7 +545,7 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedNotExpanded)
 TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithInvalidUris)
 {
   const std::string goodUri =
-      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack/2";
+      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack/2/";
 
   // These are URIs that are potentially problematic.
   const std::vector<std::string> fuelUris = {

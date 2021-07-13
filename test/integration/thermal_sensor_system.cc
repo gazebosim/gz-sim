@@ -22,6 +22,7 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Filesystem.hh>
+#include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/utilities/ExtraTestMacros.hh>
 
@@ -46,8 +47,8 @@ class ThermalSensorTest : public ::testing::Test
   protected: void SetUp() override
   {
     common::Console::SetVerbosity(4);
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
+    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
   }
 };
 
@@ -185,7 +186,7 @@ TEST_F(ThermalSensorTest,
   EXPECT_DOUBLE_EQ(-10.0, entityTemp[boxVisual].Kelvin());
 
   // Run server
-  server.Run(true, 10, false);
+  server.Run(true, 35, false);
 
   // wait for image
   bool received = false;
@@ -200,6 +201,7 @@ TEST_F(ThermalSensorTest,
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
   EXPECT_TRUE(received);
+  ASSERT_NE(nullptr, g_image);
 
   // check temperature in actual image output
   {

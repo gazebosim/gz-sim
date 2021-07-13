@@ -19,6 +19,7 @@
 #define IGNITION_GAZEBO_SYSTEMS_MULTICOPTERVELOCITYCONTROL_COMMON_HH_
 
 #include <Eigen/Geometry>
+#include <optional>
 #include <vector>
 
 #include <sdf/sdf.hh>

@@ -5,6 +5,46 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
+## Ignition Gazebo 5.x to 6.x
+
+* Marker example has been moved to Ignition GUI.
+
+* Some GUI plugins have been moved to Ignition GUI. Gazebo users don't need to
+  change their configuration files, the plugins will be loaded the same way.
+    * Grid Config
+    * Tape Measure
+
+## Ignition Gazebo 4.x to 5.x
+
+* Use `cli` component of `ignition-utils1`.
+
+* `ignition::gazebo::RenderUtil::SelectedEntities()` now returns a
+  `const std::vector<Entity> &` instead of forcing a copy. The calling code
+  should create a copy if it needs to modify the vector in some way.
+
+* Default generated topic name for thermal cameras now includes the `/image`
+  suffix. The `camera_info` topic has also been fixed to include the sensor
+  name in the generated topic string. The naming scheme should be consistent
+  with a normal camera sensor. Topic changes:
+    * `/<prefix>/<sensor_name>` -> `/<prefix>/<sensor_name>/image`
+    * `/<prefix>/camera_info` -> `/<prefix>/<sensor_name>/camera_info`
+
+* Various `GuiEvent`s were deprecated in favor of their Ignition GUI
+  equivalents.
+  * **Deprecated** `ignition::gazebo::gui::SnapIntervals`
+  * **Replacement** `ignition::gui::SnapIntervals`
+  * **Deprecated** `ignition::gazebo::gui::Render`
+  * **Replacement** `ignition::gui::Render`
+  * **Deprecated** `ignition::gazebo::gui::SpawnPreviewModel`
+  * **Replacement** `ignition::gui::SpawnFromDescription`
+  * **Deprecated** `ignition::gazebo::gui::SnapPreviewPath`
+  * **Replacement** `ignition::gui::SnapFromPath`
+
+* The `<direction>` tag of spot lights was previously not parsed by the
+  scene, so all spot lights shone in the direction corresponding to the
+  default `0 0 -1`. Since 5.x, the `<direction>` tag is correctly
+  processed.
+
 ## Ignition Gazebo 4.0.0 to 4.X.X
 
 * Ignition Gazebo 4.0.0 enabled double sided material by default but this

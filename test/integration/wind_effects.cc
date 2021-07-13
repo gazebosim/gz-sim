@@ -270,7 +270,7 @@ TEST_F(WindEffectsTest , TopicsAndServices)
   this->server->Run(true, 10, false);
 
   // As specified in SDF
-  math::Vector3d windVelSeed{1.0, 0.0, 1.0};
+  math::Vector3d windVelSeed{10.0, 0.0, 10.0};
 
   transport::Node node;
   std::size_t timeout{5000};
@@ -325,4 +325,56 @@ TEST_F(WindEffectsTest , TopicsAndServices)
     EXPECT_LT(std::fabs(lastVelMagnitude - velMagnitude), 1e-6);
     lastVelMagnitude = velMagnitude;
   }
+}
+
+/// Test if adding a link with wind after first iteration adds
+/// WorldLinearVelocity component properly
+TEST_F(WindEffectsTest, WindEntityAddedAfterStart)
+{
+  const std::string windBox = R"EOF(
+  <?xml version="1.0" ?>
+  <sdf version="1.6">
+      <model name="box_wind">
+        <pose>5 5 5 0 0 0</pose>
+        <enable_wind>true</enable_wind>
+        <link name="test_link_wind">
+          <collision name="collision">
+            <geometry>
+              <box>
+                <size>1 1 1</size>
+              </box>
+            </geometry>
+          </collision>
+        </link>
+      </model>
+  </sdf>)EOF";
+
+  this->StartServer("/test/worlds/wind_effects.sdf");
+
+  LinkComponentRecorder<components::WorldLinearVelocity>
+    linkVelocityComponent("test_link_wind");
+  this->server->AddSystem(linkVelocityComponent.systemPtr);
+  EXPECT_TRUE(linkVelocityComponent.values.empty());
+
+  // Run the logger for a time, check it is still empty
+  this->server->Run(true, 10, false);
+  EXPECT_TRUE(linkVelocityComponent.values.empty());
+
+  // Add the box to be logged via the command system
+  // and check that is not empty
+  transport::Node node;
+  msgs::EntityFactory req;
+  unsigned int timeout = 5000;
+  std::string service{"/world/wind_demo/create"};
+  msgs::Boolean res;
+  bool result;
+
+  req.set_sdf(windBox);
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Now box_wind WorldLinearVelocity component should be added
+  this->server->Run(true, 10, false);
+  ASSERT_FALSE(linkVelocityComponent.values.empty());
 }

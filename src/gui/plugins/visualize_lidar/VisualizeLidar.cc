@@ -34,15 +34,15 @@
 
 #include <ignition/transport/Node.hh>
 
-#include <ignition/gui/Conversions.hh>
 #include <ignition/gui/Application.hh>
+#include <ignition/gui/Conversions.hh>
+#include <ignition/gui/GuiEvents.hh>
 #include <ignition/gui/MainWindow.hh>
 
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/gui/GuiEvents.hh"
 #include "ignition/gazebo/rendering/RenderUtil.hh"
 
 #include "ignition/rendering/RenderTypes.hh"
@@ -221,7 +221,7 @@ void VisualizeLidar::LoadConfig(const tinyxml2::XMLElement *)
 /////////////////////////////////////////////////
 bool VisualizeLidar::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gazebo::gui::events::Render::kType)
+  if (_event->type() == ignition::gui::events::Render::kType)
   {
     // This event is called in Scene3d's RenderThread, so it's safe to make
     // rendering calls here

@@ -192,6 +192,10 @@ class LightCommand : public UserCommandBase
                  1e-6f) &&
                _a.cast_shadows() == _b.cast_shadows() &&
                math::equal(
+                 _a.intensity(),
+                 _b.intensity(),
+                 1e-6f) &&
+               math::equal(
                  _a.direction().x(), _b.direction().x(), 1e-6) &&
                math::equal(
                  _a.direction().y(), _b.direction().y(), 1e-6) &&
@@ -743,17 +747,17 @@ bool CreateCommand::Execute()
   bool isLight{false};
   bool isActor{false};
   bool isRoot{false};
-  if (root.ModelCount() > 0)
+  if (nullptr != root.Model())
   {
     isRoot = true;
     isModel = true;
   }
-  else if (root.LightCount() > 0)
+  else if (nullptr != root.Light())
   {
     isRoot = true;
     isLight = true;
   }
-  else if (root.ActorCount() > 0)
+  else if (nullptr != root.Actor())
   {
     isRoot = true;
     isActor = true;
@@ -769,7 +773,7 @@ bool CreateCommand::Execute()
     return false;
   }
 
-  if ((root.ModelCount() + root.LightCount() + root.ActorCount()) > 1)
+  if ((isModel && isLight) || (isModel && isActor) || (isLight && isActor))
   {
     ignwarn << "Expected exactly one top-level <model>, <light> or <actor>, "
             << "but found more. Only the 1st will be spawned." << std::endl;
@@ -783,11 +787,11 @@ bool CreateCommand::Execute()
   }
   else if (isModel)
   {
-    desiredName = root.ModelByIndex(0)->Name();
+    desiredName = root.Model()->Name();
   }
   else if (isLight && isRoot)
   {
-    desiredName = root.LightByIndex(0)->Name();
+    desiredName = root.Light()->Name();
   }
   else if (isLight)
   {
@@ -795,7 +799,7 @@ bool CreateCommand::Execute()
   }
   else if (isActor)
   {
-    desiredName = root.ActorByIndex(0)->Name();
+    desiredName = root.Actor()->Name();
   }
 
   // Check if there's already a top-level entity with the given name
@@ -827,15 +831,15 @@ bool CreateCommand::Execute()
   Entity entity{kNullEntity};
   if (isModel)
   {
-    auto model = *root.ModelByIndex(0);
+    auto model = *root.Model();
     model.SetName(desiredName);
     entity = this->iface->creator->CreateEntities(&model);
   }
   else if (isLight && isRoot)
   {
-    auto light = root.LightByIndex(0);
-    light->SetName(desiredName);
-    entity = this->iface->creator->CreateEntities(light);
+    auto light = *root.Light();
+    light.SetName(desiredName);
+    entity = this->iface->creator->CreateEntities(&light);
   }
   else if (isLight)
   {
@@ -844,7 +848,7 @@ bool CreateCommand::Execute()
   }
   else if (isActor)
   {
-    auto actor = *root.ActorByIndex(0);
+    auto actor = *root.Actor();
     actor.SetName(desiredName);
     entity = this->iface->creator->CreateEntities(&actor);
   }
