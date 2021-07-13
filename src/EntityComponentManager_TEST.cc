@@ -2568,6 +2568,10 @@ TEST_P(EntityComponentManagerFixture, Deprecated)
 {
   IGN_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
 
+  // Fail to create component for inexistent entity
+  EXPECT_EQ(nullptr, manager.CreateComponent<IntComponent>(789,
+      IntComponent(123)));
+
   // Create some entities
   auto eInt = manager.CreateEntity();
   auto eDouble = manager.CreateEntity();
