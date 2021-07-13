@@ -15,6 +15,8 @@
  *
 */
 
+#include "ignition/gazebo/EntityComponentManager.hh"
+
 #include <map>
 #include <memory>
 #include <set>
@@ -25,10 +27,10 @@
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/math/graph/GraphAlgorithms.hh>
+
+#include "ignition/gazebo/ComponentStorage.hh"
 #include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/detail/ComponentStorage.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -78,7 +80,7 @@ class ignition::gazebo::EntityComponentManagerPrivate
 
   /// \brief A class that stores all components and maps entities to their
   /// component types
-  public: detail::ComponentStorage componentStorage;
+  public: ComponentStorage componentStorage;
 
   /// \brief All component types that have ever been created.
   public: std::unordered_set<ComponentTypeId> createdCompTypes;
@@ -596,11 +598,11 @@ bool EntityComponentManager::CreateComponentImplementation(
     this->dataPtr->componentStorage.AddComponent(_entity, std::move(newComp));
   switch (compAddResult)
   {
-    case detail::ComponentAdditionResult::FAILED_ADDITION:
+    case ComponentAdditionResult::FAILED_ADDITION:
       ignwarn << "Attempt to create a component of type [" << _componentTypeId
         << "] attached to entity [" << _entity << "] failed.\n";
       return false;
-    case detail::ComponentAdditionResult::NEW_ADDITION:
+    case ComponentAdditionResult::NEW_ADDITION:
       updateData = false;
       for (auto &viewPair : this->dataPtr->views)
       {
@@ -609,12 +611,12 @@ bool EntityComponentManager::CreateComponentImplementation(
           view->MarkEntityToAdd(_entity, this->IsNewEntity(_entity));
       }
       break;
-    case detail::ComponentAdditionResult::RE_ADDITION:
+    case ComponentAdditionResult::RE_ADDITION:
       for (auto &viewPair : this->dataPtr->views)
         viewPair.second->NotifyComponentAddition(_entity,
             this->IsNewEntity(_entity), _componentTypeId);
       break;
-    case detail::ComponentAdditionResult::MODIFICATION:
+    case ComponentAdditionResult::MODIFICATION:
       break;
     default:
       ignerr << "Undefined behavior occurred when creating a component of "

@@ -20,13 +20,13 @@
 #include <memory>
 #include <utility>
 
+#include "ignition/gazebo/ComponentStorage.hh"
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/Types.hh"
 #include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/detail/ComponentStorage.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -56,7 +56,7 @@ class ComponentStorageTest : public ::testing::Test
   /// \param[in] _typeId The type ID of _component
   /// \param[in] _component The component, which belongs to _entity
   /// \return The result of the component addition
-  public: detail::ComponentAdditionResult AddComponent(const Entity _entity,
+  public: ComponentAdditionResult AddComponent(const Entity _entity,
               const ComponentTypeId _typeId,
               const components::BaseComponent *_component)
   {
@@ -87,7 +87,7 @@ class ComponentStorageTest : public ::testing::Test
     return static_cast<const ComponentTypeT *>(baseComp);
   }
 
-  public: detail::ComponentStorage storage;
+  public: ComponentStorage storage;
 
   public: const Entity e1{1};
 
@@ -128,9 +128,9 @@ TEST_F(ComponentStorageTest, RemoveEntity)
 TEST_F(ComponentStorageTest, AddComponent)
 {
   // Add components to entities in the storage
-  EXPECT_EQ(detail::ComponentAdditionResult::NEW_ADDITION,
+  EXPECT_EQ(ComponentAdditionResult::NEW_ADDITION,
       this->AddComponent(this->e1, components::Pose::typeId, &poseComp));
-  EXPECT_EQ(detail::ComponentAdditionResult::NEW_ADDITION,
+  EXPECT_EQ(ComponentAdditionResult::NEW_ADDITION,
       this->AddComponent(this->e2, components::LinearVelocity::typeId,
         &linVelComp));
 
@@ -149,9 +149,9 @@ TEST_F(ComponentStorageTest, AddComponent)
   // remove call should fail)
   EXPECT_FALSE(this->storage.RemoveEntity(entity3));
   EXPECT_FALSE(this->storage.RemoveEntity(entity4));
-  EXPECT_EQ(detail::ComponentAdditionResult::FAILED_ADDITION,
+  EXPECT_EQ(ComponentAdditionResult::FAILED_ADDITION,
       this->AddComponent(entity3, components::Pose::typeId, &poseComp));
-  EXPECT_EQ(detail::ComponentAdditionResult::FAILED_ADDITION,
+  EXPECT_EQ(ComponentAdditionResult::FAILED_ADDITION,
       this->AddComponent(entity4, components::LinearVelocity::typeId,
         &linVelComp));
   EXPECT_EQ(nullptr, this->Component<components::Pose>(entity3));
@@ -159,9 +159,9 @@ TEST_F(ComponentStorageTest, AddComponent)
 
   // Add components to entities that already have a component of the same type
   // (this has the same effect of modifying an existing component)
-  EXPECT_EQ(detail::ComponentAdditionResult::MODIFICATION,
+  EXPECT_EQ(ComponentAdditionResult::MODIFICATION,
       this->AddComponent(this->e1, components::Pose::typeId, &poseComp2));
-  EXPECT_EQ(detail::ComponentAdditionResult::MODIFICATION,
+  EXPECT_EQ(ComponentAdditionResult::MODIFICATION,
       this->AddComponent(this->e2, components::LinearVelocity::typeId,
         &linVelComp2));
 
@@ -177,7 +177,7 @@ TEST_F(ComponentStorageTest, AddComponent)
   EXPECT_TRUE(this->storage.RemoveComponent(this->e1,
         components::Pose::typeId));
   EXPECT_EQ(nullptr, this->Component<components::Pose>(this->e1));
-  EXPECT_EQ(detail::ComponentAdditionResult::RE_ADDITION,
+  EXPECT_EQ(ComponentAdditionResult::RE_ADDITION,
       this->AddComponent(this->e1, components::Pose::typeId, &poseComp));
   storagePoseComp = this->Component<components::Pose>(this->e1);
   ASSERT_NE(nullptr, storagePoseComp);
@@ -186,7 +186,7 @@ TEST_F(ComponentStorageTest, AddComponent)
   EXPECT_TRUE(this->storage.RemoveComponent(this->e2,
         components::LinearVelocity::typeId));
   EXPECT_EQ(nullptr, this->Component<components::LinearVelocity>(this->e2));
-  EXPECT_EQ(detail::ComponentAdditionResult::RE_ADDITION,
+  EXPECT_EQ(ComponentAdditionResult::RE_ADDITION,
       this->AddComponent(this->e2, components::LinearVelocity::typeId,
         &linVelComp));
   storageLinVelComp = this->Component<components::LinearVelocity>(this->e2);
@@ -198,10 +198,10 @@ TEST_F(ComponentStorageTest, AddComponent)
 TEST_F(ComponentStorageTest, RemoveComponent)
 {
   // Add components to entities
-  EXPECT_EQ(detail::ComponentAdditionResult::NEW_ADDITION,
+  EXPECT_EQ(ComponentAdditionResult::NEW_ADDITION,
       this->AddComponent(this->e1, poseComp.TypeId(), &poseComp));
   EXPECT_NE(nullptr, this->Component<components::Pose>(this->e1));
-  EXPECT_EQ(detail::ComponentAdditionResult::NEW_ADDITION,
+  EXPECT_EQ(ComponentAdditionResult::NEW_ADDITION,
       this->AddComponent(this->e2, linVelComp.TypeId(), &linVelComp));
   EXPECT_NE(nullptr, this->Component<components::LinearVelocity>(this->e2));
 
@@ -234,7 +234,7 @@ TEST_F(ComponentStorageTest, RemoveComponent)
 TEST_F(ComponentStorageTest, ValidComponent)
 {
   // Attach a component to an entity
-  EXPECT_EQ(detail::ComponentAdditionResult::NEW_ADDITION,
+  EXPECT_EQ(ComponentAdditionResult::NEW_ADDITION,
       this->AddComponent(this->e1, poseComp.TypeId(), &poseComp));
 
   // Get a component that is attached to an entity
@@ -265,7 +265,7 @@ TEST_F(ComponentStorageTest, ValidComponent)
 TEST_F(ComponentStorageTest, ValidComponentConst)
 {
   // Attach a component to an entity
-  EXPECT_EQ(detail::ComponentAdditionResult::NEW_ADDITION,
+  EXPECT_EQ(ComponentAdditionResult::NEW_ADDITION,
       this->AddComponent(this->e1, poseComp.TypeId(), &poseComp));
 
   // Get a component that is attached to an entity
@@ -288,9 +288,9 @@ TEST_F(ComponentStorageTest, ValidComponentConst)
 TEST_F(ComponentStorageTest, Reset)
 {
   // Add components to entities in the storage
-  EXPECT_EQ(detail::ComponentAdditionResult::NEW_ADDITION,
+  EXPECT_EQ(ComponentAdditionResult::NEW_ADDITION,
       this->AddComponent(this->e1, poseComp.TypeId(), &poseComp));
-  EXPECT_EQ(detail::ComponentAdditionResult::NEW_ADDITION,
+  EXPECT_EQ(ComponentAdditionResult::NEW_ADDITION,
       this->AddComponent(this->e2, linVelComp.TypeId(), &linVelComp));
 
   // Make sure that the storage has entities and components

@@ -14,7 +14,7 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/detail/ComponentStorage.hh"
+#include "ignition/gazebo/ComponentStorage.hh"
 
 #include <cstdint>
 #include <memory>
@@ -27,7 +27,6 @@
 
 using namespace ignition;
 using namespace gazebo;
-using namespace detail;
 
 //////////////////////////////////////////////////
 void ComponentStorage::Reset()
