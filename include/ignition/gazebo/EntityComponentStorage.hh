@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTSTORAGE_HH_
-#define IGNITION_GAZEBO_COMPONENTSTORAGE_HH_
+#ifndef IGNITION_GAZEBO_ENTITYCOMPONENTSTORAGE_HH_
+#define IGNITION_GAZEBO_ENTITYCOMPONENTSTORAGE_HH_
 
 #include <cstddef>
 #include <memory>
@@ -33,8 +33,9 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-    /// \brief Enum class that lets external users of ComponentStorage know what
-    /// type of action took place when a component was added to an entity.
+    /// \brief Enum class that lets external users of EntityComponentStorage
+    /// know what type of action took place when a component was added to an
+    /// entity.
     enum class ComponentAdditionResult
     {
       /// \brief The type of the component added to an entity is a type that
@@ -54,7 +55,7 @@ namespace ignition
 
     /// \brief A class that stores all components that have been created. This
     /// class also keeps track of the entity a component belongs to.
-    class IGNITION_GAZEBO_VISIBLE ComponentStorage
+    class IGNITION_GAZEBO_VISIBLE EntityComponentStorage
     {
       /// \brief Add an entity to the component storage, so that newly created
       /// components for this entity can be mapped to the entity. This should be

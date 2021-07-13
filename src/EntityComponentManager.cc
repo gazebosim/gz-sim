@@ -28,7 +28,7 @@
 #include <ignition/common/Profiler.hh>
 #include <ignition/math/graph/GraphAlgorithms.hh>
 
-#include "ignition/gazebo/ComponentStorage.hh"
+#include "ignition/gazebo/EntityComponentStorage.hh"
 #include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/components/Factory.hh"
 
@@ -80,7 +80,7 @@ class ignition::gazebo::EntityComponentManagerPrivate
 
   /// \brief A class that stores all components and maps entities to their
   /// component types
-  public: ComponentStorage componentStorage;
+  public: EntityComponentStorage entityCompStorage;
 
   /// \brief All component types that have ever been created.
   public: std::unordered_set<ComponentTypeId> createdCompTypes;
@@ -213,7 +213,7 @@ Entity EntityComponentManagerPrivate::CreateEntityImplementation(Entity _entity)
   // Reset descendants cache
   this->descendantCache.clear();
 
-  if (!this->componentStorage.AddEntity(_entity))
+  if (!this->entityCompStorage.AddEntity(_entity))
   {
     ignwarn << "Attempted to add entity [" << _entity
       << "] to component storage, but this entity is already in component "
@@ -310,7 +310,7 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
     this->dataPtr->entityComponentsDirty = true;
 
     // reset the entity component storage
-    this->dataPtr->componentStorage = ComponentStorage();
+    this->dataPtr->entityCompStorage = EntityComponentStorage();
 
     // All views are now invalid.
     this->dataPtr->views.clear();
@@ -332,7 +332,7 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
       // Remove the components, if any.
       if (entityIter != this->dataPtr->entityComponents.end())
       {
-        this->dataPtr->componentStorage.RemoveEntity(entity);
+        this->dataPtr->entityCompStorage.RemoveEntity(entity);
 
         // Remove the entry in the entityComponent map
         this->dataPtr->entityComponents.erase(entity);
@@ -382,7 +382,7 @@ bool EntityComponentManager::RemoveComponent(
   }
 
   auto removedComp =
-    this->dataPtr->componentStorage.RemoveComponent(_entity, _typeId);
+    this->dataPtr->entityCompStorage.RemoveComponent(_entity, _typeId);
   if (removedComp)
   {
     // update views to reflect the component removal
@@ -596,7 +596,7 @@ bool EntityComponentManager::CreateComponentImplementation(
   auto newComp = components::Factory::Instance()->New(_componentTypeId, _data);
 
   auto compAddResult =
-    this->dataPtr->componentStorage.AddComponent(_entity, std::move(newComp));
+    this->dataPtr->entityCompStorage.AddComponent(_entity, std::move(newComp));
   switch (compAddResult)
   {
     case ComponentAdditionResult::FAILED_ADDITION:
@@ -664,14 +664,14 @@ const components::BaseComponent
     const Entity _entity, const ComponentTypeId _type) const
 {
   IGN_PROFILE("EntityComponentManager::ComponentImplementation");
-  return this->dataPtr->componentStorage.ValidComponent(_entity, _type);
+  return this->dataPtr->entityCompStorage.ValidComponent(_entity, _type);
 }
 
 /////////////////////////////////////////////////
 components::BaseComponent *EntityComponentManager::ComponentImplementation(
     const Entity _entity, const ComponentTypeId _type)
 {
-  return this->dataPtr->componentStorage.ValidComponent(_entity, _type);
+  return this->dataPtr->entityCompStorage.ValidComponent(_entity, _type);
 }
 
 /////////////////////////////////////////////////

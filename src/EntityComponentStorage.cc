@@ -14,7 +14,7 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/ComponentStorage.hh"
+#include "ignition/gazebo/EntityComponentStorage.hh"
 
 #include <cstdint>
 #include <memory>
@@ -29,7 +29,7 @@ using namespace ignition;
 using namespace gazebo;
 
 //////////////////////////////////////////////////
-bool ComponentStorage::AddEntity(const Entity _entity)
+bool EntityComponentStorage::AddEntity(const Entity _entity)
 {
   const auto [it, success] = this->entityComponents.insert({_entity,
       std::vector<std::unique_ptr<components::BaseComponent>>()});
@@ -43,7 +43,7 @@ bool ComponentStorage::AddEntity(const Entity _entity)
 }
 
 //////////////////////////////////////////////////
-bool ComponentStorage::RemoveEntity(const Entity _entity)
+bool EntityComponentStorage::RemoveEntity(const Entity _entity)
 {
   const auto removedComponents = this->entityComponents.erase(_entity);
   const auto removedTypeIdxMap = this->componentTypeIndex.erase(_entity);
@@ -51,7 +51,7 @@ bool ComponentStorage::RemoveEntity(const Entity _entity)
 }
 
 //////////////////////////////////////////////////
-ComponentAdditionResult ComponentStorage::AddComponent(
+ComponentAdditionResult EntityComponentStorage::AddComponent(
     const Entity _entity,
     std::unique_ptr<components::BaseComponent> _component)
 {
@@ -93,7 +93,7 @@ ComponentAdditionResult ComponentStorage::AddComponent(
 }
 
 //////////////////////////////////////////////////
-bool ComponentStorage::RemoveComponent(const Entity _entity,
+bool EntityComponentStorage::RemoveComponent(const Entity _entity,
     const ComponentTypeId _typeId)
 {
   auto compPtr = this->Component(_entity, _typeId);
@@ -108,7 +108,7 @@ bool ComponentStorage::RemoveComponent(const Entity _entity,
 }
 
 //////////////////////////////////////////////////
-const components::BaseComponent *ComponentStorage::Component(
+const components::BaseComponent *EntityComponentStorage::Component(
     const Entity _entity,
     const ComponentTypeId _typeId) const
 {
@@ -136,15 +136,16 @@ const components::BaseComponent *ComponentStorage::Component(
 }
 
 //////////////////////////////////////////////////
-components::BaseComponent *ComponentStorage::Component(const Entity _entity,
-    const ComponentTypeId _typeId)
+components::BaseComponent *EntityComponentStorage::Component(
+    const Entity _entity, const ComponentTypeId _typeId)
 {
   return const_cast<components::BaseComponent *>(
-      static_cast<const ComponentStorage &>(*this).Component(_entity, _typeId));
+      static_cast<const EntityComponentStorage &>(*this).Component(_entity,
+        _typeId));
 }
 
 //////////////////////////////////////////////////
-const components::BaseComponent *ComponentStorage::ValidComponent(
+const components::BaseComponent *EntityComponentStorage::ValidComponent(
     const Entity _entity, const ComponentTypeId _typeId) const
 {
   auto compPtr = this->Component(_entity, _typeId);
@@ -154,7 +155,7 @@ const components::BaseComponent *ComponentStorage::ValidComponent(
 }
 
 //////////////////////////////////////////////////
-components::BaseComponent *ComponentStorage::ValidComponent(
+components::BaseComponent *EntityComponentStorage::ValidComponent(
     const Entity _entity, const ComponentTypeId _typeId)
 {
   auto compPtr = this->Component(_entity, _typeId);

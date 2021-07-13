@@ -20,8 +20,8 @@
 #include <memory>
 #include <utility>
 
-#include "ignition/gazebo/ComponentStorage.hh"
 #include "ignition/gazebo/Entity.hh"
+#include "ignition/gazebo/EntityComponentStorage.hh"
 #include "ignition/gazebo/Types.hh"
 #include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/components/Factory.hh"
@@ -42,7 +42,7 @@ const Entity entity3 = 3;
 const Entity entity4 = 4;
 
 /////////////////////////////////////////////////
-class ComponentStorageTest : public ::testing::Test
+class EntityComponentStorageTest : public ::testing::Test
 {
   // Documentation inherited
   protected: void SetUp() override
@@ -65,8 +65,8 @@ class ComponentStorageTest : public ::testing::Test
     return this->storage.AddComponent(_entity, std::move(compPtr));
   }
 
-  /// \brief Helper function that uses ComponentStorage::ValidComponent to get
-  /// a component of a particular type that belongs to an entity.
+  /// \brief Helper function that uses EntityComponentStorage::ValidComponent to
+  /// get a component of a particular type that belongs to an entity.
   /// \param[in] _entity The entity
   /// \return A pointer to the component of the templated type. If no such
   /// component exists, nullptr is returned
@@ -87,7 +87,7 @@ class ComponentStorageTest : public ::testing::Test
     return static_cast<const ComponentTypeT *>(baseComp);
   }
 
-  public: ComponentStorage storage;
+  public: EntityComponentStorage storage;
 
   public: const Entity e1{1};
 
@@ -95,7 +95,7 @@ class ComponentStorageTest : public ::testing::Test
 };
 
 /////////////////////////////////////////////////
-TEST_F(ComponentStorageTest, AddEntity)
+TEST_F(EntityComponentStorageTest, AddEntity)
 {
   // Entities were already added to the storage in the test fixture's SetUp
   // method. So, try to add entities that are already in the storage.
@@ -109,7 +109,7 @@ TEST_F(ComponentStorageTest, AddEntity)
 }
 
 /////////////////////////////////////////////////
-TEST_F(ComponentStorageTest, RemoveEntity)
+TEST_F(EntityComponentStorageTest, RemoveEntity)
 {
   // Try to remove entities that aren't in the storage
   EXPECT_FALSE(this->storage.RemoveEntity(3));
@@ -125,7 +125,7 @@ TEST_F(ComponentStorageTest, RemoveEntity)
 }
 
 /////////////////////////////////////////////////
-TEST_F(ComponentStorageTest, AddComponent)
+TEST_F(EntityComponentStorageTest, AddComponent)
 {
   // Add components to entities in the storage
   EXPECT_EQ(ComponentAdditionResult::NEW_ADDITION,
@@ -166,9 +166,10 @@ TEST_F(ComponentStorageTest, AddComponent)
         &linVelComp2));
 
   // We can't check if the modification actually took place since this requires
-  // functionality beyond the ComponentStorage API (see the comments in the
-  // ComponentStorage::AddComponent method definition for more details), but we
-  // can at least check that the components still exist after modification
+  // functionality beyond the EntityComponentStorage API (see the comments in
+  // the EntityComponentStorage::AddComponent method definition for more
+  // details), but we can at least check that the components still exist after
+  // modification
   ASSERT_NE(nullptr, this->Component<components::Pose>(this->e1));
   ASSERT_NE(nullptr, this->Component<components::LinearVelocity>(this->e2));
 
@@ -195,7 +196,7 @@ TEST_F(ComponentStorageTest, AddComponent)
 }
 
 /////////////////////////////////////////////////
-TEST_F(ComponentStorageTest, RemoveComponent)
+TEST_F(EntityComponentStorageTest, RemoveComponent)
 {
   // Add components to entities
   EXPECT_EQ(ComponentAdditionResult::NEW_ADDITION,
@@ -231,7 +232,7 @@ TEST_F(ComponentStorageTest, RemoveComponent)
 }
 
 /////////////////////////////////////////////////
-TEST_F(ComponentStorageTest, ValidComponent)
+TEST_F(EntityComponentStorageTest, ValidComponent)
 {
   // Attach a component to an entity
   EXPECT_EQ(ComponentAdditionResult::NEW_ADDITION,
@@ -260,9 +261,9 @@ TEST_F(ComponentStorageTest, ValidComponent)
 
 /////////////////////////////////////////////////
 // Similar to the ValidComponent test, but this test covers the const version of
-// the ComponentStorage::ValidComponent method (the ValidComponent test covered
-// the non-const version of the ComponentStorage::ValidComponent)
-TEST_F(ComponentStorageTest, ValidComponentConst)
+// the EntityComponentStorage::ValidComponent method (the ValidComponent test
+// covered the non-const version of the EntityComponentStorage::ValidComponent)
+TEST_F(EntityComponentStorageTest, ValidComponentConst)
 {
   // Attach a component to an entity
   EXPECT_EQ(ComponentAdditionResult::NEW_ADDITION,
