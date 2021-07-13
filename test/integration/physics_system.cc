@@ -53,6 +53,7 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/Visual.hh"
@@ -1372,4 +1373,88 @@ TEST_F(PhysicsSystemFixture, NestedModelIndividualCanonicalLinks)
   // zExpected is also the z component of the world pose for model_10
   EXPECT_DOUBLE_EQ(model11WorldPose.Z(), model10It->second.Z());
   EXPECT_DOUBLE_EQ(model12WorldPose.Z(), model10It->second.Z());
+}
+
+/////////////////////////////////////////////////
+TEST_F(PhysicsSystemFixture, DefaultPhysicsOptions)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+
+  bool checked{false};
+
+  // Create a system to check components
+  test::Relay testSystem;
+  testSystem.OnPostUpdate(
+    [&checked](const gazebo::UpdateInfo &,
+    const gazebo::EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::World, components::PhysicsCollisionDetector,
+                components::PhysicsSolver>(
+        [&](const ignition::gazebo::Entity &, const components::World *,
+            const components::PhysicsCollisionDetector *_collisionDetector,
+            const components::PhysicsSolver *_solver)->bool
+        {
+          EXPECT_NE(nullptr, _collisionDetector);
+          if (_collisionDetector)
+          {
+            EXPECT_EQ("ode", _collisionDetector->Data());
+          }
+          EXPECT_NE(nullptr, _solver);
+          if (_solver)
+          {
+            EXPECT_EQ("DantzigBoxedLcpSolver", _solver->Data());
+          }
+          checked = true;
+          return true;
+        });
+    });
+
+  gazebo::Server server(serverConfig);
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 1, false);
+
+  EXPECT_TRUE(checked);
+}
+
+/////////////////////////////////////////////////
+TEST_F(PhysicsSystemFixture, PhysicsOptions)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "physics_options.sdf"));
+
+  bool checked{false};
+
+  // Create a system to check components
+  test::Relay testSystem;
+  testSystem.OnPostUpdate(
+    [&checked](const gazebo::UpdateInfo &,
+    const gazebo::EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::World, components::PhysicsCollisionDetector,
+                components::PhysicsSolver>(
+        [&](const ignition::gazebo::Entity &, const components::World *,
+            const components::PhysicsCollisionDetector *_collisionDetector,
+            const components::PhysicsSolver *_solver)->bool
+        {
+          EXPECT_NE(nullptr, _collisionDetector);
+          if (_collisionDetector)
+          {
+            EXPECT_EQ("bullet", _collisionDetector->Data());
+          }
+          EXPECT_NE(nullptr, _solver);
+          if (_solver)
+          {
+            EXPECT_EQ("pgs", _solver->Data());
+          }
+          checked = true;
+          return true;
+        });
+    });
+
+  gazebo::Server server(serverConfig);
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 1, false);
+
+  EXPECT_TRUE(checked);
 }

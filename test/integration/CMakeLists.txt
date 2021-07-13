@@ -19,6 +19,7 @@ set(tests
   examples_build.cc
   follow_actor_system.cc
   fuel_cached_server.cc
+  halt_motion.cc
   imu_system.cc
   joint_controller_system.cc
   joint_position_controller_system.cc
@@ -64,6 +65,7 @@ set(tests_needing_display
   camera_video_record_system.cc
   depth_camera.cc
   gpu_lidar.cc
+  optical_tactile_plugin.cc
   rgbd_camera.cc
   sensors_system.cc
   thermal_system.cc

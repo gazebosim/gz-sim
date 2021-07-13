@@ -14,7 +14,7 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/detail/EntityComponentStorage.hh"
+#include "ignition/gazebo/EntityComponentStorage.hh"
 
 #include <cstdint>
 #include <memory>
@@ -27,14 +27,6 @@
 
 using namespace ignition;
 using namespace gazebo;
-using namespace detail;
-
-//////////////////////////////////////////////////
-void EntityComponentStorage::Reset()
-{
-  this->entityComponents.clear();
-  this->componentTypeIndex.clear();
-}
 
 //////////////////////////////////////////////////
 bool EntityComponentStorage::AddEntity(const Entity _entity)
@@ -149,7 +141,7 @@ components::BaseComponent *EntityComponentStorage::Component(
 {
   return const_cast<components::BaseComponent *>(
       static_cast<const EntityComponentStorage &>(*this).Component(_entity,
-      _typeId));
+        _typeId));
 }
 
 //////////////////////////////////////////////////

@@ -49,54 +49,13 @@ class IGNITION_GAZEBO_VISIBLE View : public BaseView
            std::tuple<Entity, const ComponentTypeTs*...>;
 
   /// \brief Constructor
-  public: View()
-  {
-    this->componentTypes = {ComponentTypeTs::typeId...};
-  }
+  public: View();
 
   /// \brief Documentation inherited
-  public: bool HasCachedComponentData(const Entity _entity) const override
-  {
-    auto cachedComps =
-      this->validData.find(_entity) != this->validData.end() ||
-      this->invalidData.find(_entity) != this->invalidData.end();
-    auto cachedConstComps =
-      this->validConstData.find(_entity) != this->validConstData.end() ||
-      this->invalidConstData.find(_entity) != this->invalidConstData.end();
-
-    if (cachedComps && !cachedConstComps)
-    {
-      ignwarn << "Non-const component data is cached for entity " << _entity
-        << ", but const component data is not cached." << std::endl;
-    }
-    else if (cachedConstComps && !cachedComps)
-    {
-      ignwarn << "Const component data is cached for entity " << _entity
-        << ", but non-const component data is not cached." << std::endl;
-    }
-
-    return cachedComps && cachedConstComps;
-  }
+  public: bool HasCachedComponentData(const Entity _entity) const override;
 
   /// \brief Documentation inherited
-  public: bool RemoveEntity(const Entity _entity) override
-  {
-    this->invalidData.erase(_entity);
-    this->invalidConstData.erase(_entity);
-    this->missingCompTracker.erase(_entity);
-
-    if (!this->HasEntity(_entity) && !this->IsEntityMarkedForAddition(_entity))
-      return false;
-
-    this->entities.erase(_entity);
-    this->newEntities.erase(_entity);
-    this->toRemoveEntities.erase(_entity);
-    this->toAddEntities.erase(_entity);
-    this->validData.erase(_entity);
-    this->validConstData.erase(_entity);
-
-    return true;
-  }
+  public: bool RemoveEntity(const Entity _entity) override;
 
   /// \brief Get an entity and its component data. It is assumed that the entity
   /// being requested exists in the view.
@@ -104,20 +63,14 @@ class IGNITION_GAZEBO_VISIBLE View : public BaseView
   /// \return The entity and its component data. Const pointers to the component
   /// data are returned.
   public: ConstComponentData EntityComponentConstData(
-              const Entity _entity) const
-  {
-    return this->validConstData.at(_entity);
-  }
+              const Entity _entity) const;
 
   /// \brief Get an entity and its component data. It is assumed that the entity
   /// being requested exists in the view.
   /// \param[_in] _entity The entity
   /// \return The entity and its component data. Mutable pointers to the
   /// component data are returned.
-  public: ComponentData EntityComponentData(const Entity _entity)
-  {
-    return this->validData.at(_entity);
-  }
+  public: ComponentData EntityComponentData(const Entity _entity);
 
   /// \brief Add an entity with its component data to the view. It is assunmed
   /// that the entity to be added does not already exist in the view.
@@ -128,13 +81,7 @@ class IGNITION_GAZEBO_VISIBLE View : public BaseView
   /// view or when rebuilding the view.
   /// \param[in] _compPtrs Const pointers to the entity's components
   public: void AddEntityWithConstComps(const Entity &_entity, const bool _new,
-              const ComponentTypeTs*... _compPtrs)
-  {
-    this->validConstData[_entity] = std::make_tuple(_entity, _compPtrs...);
-    this->entities.insert(_entity);
-    if (_new)
-      this->newEntities.insert(_entity);
-  }
+              const ComponentTypeTs*... _compPtrs);
 
   /// \brief Add an entity with its component data to the view. It is assunmed
   /// that the entity to be added does not already exist in the view.
@@ -145,99 +92,18 @@ class IGNITION_GAZEBO_VISIBLE View : public BaseView
   /// view or when rebuilding the view.
   /// \param[in] _compPtrs Pointers to the entity's components
   public: void AddEntityWithComps(const Entity &_entity, const bool _new,
-              ComponentTypeTs*... _compPtrs)
-  {
-    this->validData[_entity] = std::make_tuple(_entity, _compPtrs...);
-    this->entities.insert(_entity);
-    if (_new)
-      this->newEntities.insert(_entity);
-  }
+              ComponentTypeTs*... _compPtrs);
 
   /// \brief Documentation inherited
   public: bool NotifyComponentAddition(const Entity _entity, bool _newEntity,
-              const ComponentTypeId _typeId) override
-  {
-    // make sure that _typeId is a type required by the view and that _entity is
-    // already a part of the view
-    if (!this->RequiresComponent(_typeId) ||
-        !this->HasCachedComponentData(_entity))
-      return false;
-
-    // remove the newly added component type from the missing component types
-    // list
-    auto missingCompsIter = this->missingCompTracker.find(_entity);
-    if (missingCompsIter == this->missingCompTracker.end())
-    {
-      // the component is already added, so nothing else needs to be done
-      return true;
-    }
-    missingCompsIter->second.erase(_typeId);
-
-    // if the entity now has all components that meet the requirements of the
-    // view, then add the entity back to the view
-    if (missingCompsIter->second.empty())
-    {
-      auto nh = this->invalidData.extract(_entity);
-      this->validData.insert(std::move(nh));
-      auto constCompNh = this->invalidConstData.extract(_entity);
-      this->validConstData.insert(std::move(constCompNh));
-      this->entities.insert(_entity);
-      if (_newEntity)
-        this->newEntities.insert(_entity);
-      this->missingCompTracker.erase(_entity);
-    }
-
-    return true;
-  };
+              const ComponentTypeId _typeId) override;
 
   /// \brief Documentation inherited
   public: bool NotifyComponentRemoval(const Entity _entity,
-              const ComponentTypeId _typeId) override
-  {
-    // make sure that _typeId is a type required by the view and that _entity is
-    // already a part of the view
-    if (!this->RequiresComponent(_typeId) ||
-        !this->HasCachedComponentData(_entity))
-      return false;
-
-    // if the component being removed is the first component that causes _entity
-    // to be invalid for this view, move _entity from validData to invalidData
-    // since _entity should no longer be considered a part of the view
-    auto it = this->validData.find(_entity);
-    auto constCompIt = this->validConstData.find(_entity);
-    if (it != this->validData.end() &&
-        constCompIt != this->validConstData.end())
-    {
-      auto nh = this->validData.extract(it);
-      this->invalidData.insert(std::move(nh));
-      auto constCompNh = this->validConstData.extract(constCompIt);
-      this->invalidConstData.insert(std::move(constCompNh));
-      this->entities.erase(_entity);
-      this->newEntities.erase(_entity);
-    }
-
-    this->missingCompTracker[_entity].insert(_typeId);
-
-    return true;
-  };
+              const ComponentTypeId _typeId) override;
 
   /// \brief Documentation inherited
-  public: void Reset() override
-  {
-    // reset all data structures in the BaseView except for componentTypes since
-    // the view always requires the types in componentTypes
-    this->entities.clear();
-    this->newEntities.clear();
-    this->toRemoveEntities.clear();
-    this->toAddEntities.clear();
-
-    // reset all data structures unique to the templated view
-    this->validData.clear();
-    this->validConstData.clear();
-    this->invalidData.clear();
-    this->invalidConstData.clear();
-    this->missingCompTracker.clear();
-  }
+  public: void Reset() override;
 
   /// \brief A map of entities to their component data. Since tuples are defined
   /// at compile time, we need seperate containers that have tuples for both
@@ -278,6 +144,187 @@ class IGNITION_GAZEBO_VISIBLE View : public BaseView
   private: std::unordered_map<Entity, std::unordered_set<ComponentTypeId>>
              missingCompTracker;
 };
+
+//////////////////////////////////////////////////
+template<typename ...ComponentTypeTs>
+View<ComponentTypeTs...>::View()
+{
+  this->componentTypes = {ComponentTypeTs::typeId...};
+}
+
+//////////////////////////////////////////////////
+template<typename ...ComponentTypeTs>
+bool View<ComponentTypeTs...>::HasCachedComponentData(
+    const Entity _entity) const
+{
+  auto cachedComps =
+    this->validData.find(_entity) != this->validData.end() ||
+    this->invalidData.find(_entity) != this->invalidData.end();
+  auto cachedConstComps =
+    this->validConstData.find(_entity) != this->validConstData.end() ||
+    this->invalidConstData.find(_entity) != this->invalidConstData.end();
+
+  if (cachedComps && !cachedConstComps)
+  {
+    ignwarn << "Non-const component data is cached for entity " << _entity
+      << ", but const component data is not cached." << std::endl;
+  }
+  else if (cachedConstComps && !cachedComps)
+  {
+    ignwarn << "Const component data is cached for entity " << _entity
+      << ", but non-const component data is not cached." << std::endl;
+  }
+
+  return cachedComps && cachedConstComps;
+}
+
+//////////////////////////////////////////////////
+template<typename ...ComponentTypeTs>
+bool View<ComponentTypeTs...>::RemoveEntity(const Entity _entity)
+{
+  this->invalidData.erase(_entity);
+  this->invalidConstData.erase(_entity);
+  this->missingCompTracker.erase(_entity);
+
+  if (!this->HasEntity(_entity) && !this->IsEntityMarkedForAddition(_entity))
+    return false;
+
+  this->entities.erase(_entity);
+  this->newEntities.erase(_entity);
+  this->toRemoveEntities.erase(_entity);
+  this->toAddEntities.erase(_entity);
+  this->validData.erase(_entity);
+  this->validConstData.erase(_entity);
+
+  return true;
+}
+
+//////////////////////////////////////////////////
+template<typename ...ComponentTypeTs>
+typename View<ComponentTypeTs...>::ConstComponentData
+  View<ComponentTypeTs...>::EntityComponentConstData(const Entity _entity) const
+{
+  return this->validConstData.at(_entity);
+}
+
+//////////////////////////////////////////////////
+template<typename ...ComponentTypeTs>
+typename View<ComponentTypeTs...>::ComponentData
+  View<ComponentTypeTs...>::EntityComponentData(const Entity _entity)
+{
+  return this->validData.at(_entity);
+}
+
+//////////////////////////////////////////////////
+template<typename ...ComponentTypeTs>
+void View<ComponentTypeTs...>::AddEntityWithConstComps(const Entity &_entity,
+    const bool _new, const ComponentTypeTs*... _compPtrs)
+{
+  this->validConstData[_entity] = std::make_tuple(_entity, _compPtrs...);
+  this->entities.insert(_entity);
+  if (_new)
+    this->newEntities.insert(_entity);
+}
+
+//////////////////////////////////////////////////
+template<typename ...ComponentTypeTs>
+void View<ComponentTypeTs...>::AddEntityWithComps(const Entity &_entity,
+    const bool _new, ComponentTypeTs*... _compPtrs)
+{
+  this->validData[_entity] = std::make_tuple(_entity, _compPtrs...);
+  this->entities.insert(_entity);
+  if (_new)
+    this->newEntities.insert(_entity);
+}
+
+//////////////////////////////////////////////////
+template<typename ...ComponentTypeTs>
+bool View<ComponentTypeTs...>::NotifyComponentAddition(const Entity _entity,
+    bool _newEntity, const ComponentTypeId _typeId)
+{
+  // make sure that _typeId is a type required by the view and that _entity is
+  // already a part of the view
+  if (!this->RequiresComponent(_typeId) ||
+      !this->HasCachedComponentData(_entity))
+    return false;
+
+  // remove the newly added component type from the missing component types
+  // list
+  auto missingCompsIter = this->missingCompTracker.find(_entity);
+  if (missingCompsIter == this->missingCompTracker.end())
+  {
+    // the component is already added, so nothing else needs to be done
+    return true;
+  }
+  missingCompsIter->second.erase(_typeId);
+
+  // if the entity now has all components that meet the requirements of the
+  // view, then add the entity back to the view
+  if (missingCompsIter->second.empty())
+  {
+    auto nh = this->invalidData.extract(_entity);
+    this->validData.insert(std::move(nh));
+    auto constCompNh = this->invalidConstData.extract(_entity);
+    this->validConstData.insert(std::move(constCompNh));
+    this->entities.insert(_entity);
+    if (_newEntity)
+      this->newEntities.insert(_entity);
+    this->missingCompTracker.erase(_entity);
+  }
+
+  return true;
+}
+
+//////////////////////////////////////////////////
+template<typename ...ComponentTypeTs>
+bool View<ComponentTypeTs...>::NotifyComponentRemoval(const Entity _entity,
+    const ComponentTypeId _typeId)
+{
+  // make sure that _typeId is a type required by the view and that _entity is
+  // already a part of the view
+  if (!this->RequiresComponent(_typeId) ||
+      !this->HasCachedComponentData(_entity))
+    return false;
+
+  // if the component being removed is the first component that causes _entity
+  // to be invalid for this view, move _entity from validData to invalidData
+  // since _entity should no longer be considered a part of the view
+  auto it = this->validData.find(_entity);
+  auto constCompIt = this->validConstData.find(_entity);
+  if (it != this->validData.end() &&
+      constCompIt != this->validConstData.end())
+  {
+    auto nh = this->validData.extract(it);
+    this->invalidData.insert(std::move(nh));
+    auto constCompNh = this->validConstData.extract(constCompIt);
+    this->invalidConstData.insert(std::move(constCompNh));
+    this->entities.erase(_entity);
+    this->newEntities.erase(_entity);
+  }
+
+  this->missingCompTracker[_entity].insert(_typeId);
+
+  return true;
+}
+
+//////////////////////////////////////////////////
+template<typename ...ComponentTypeTs>
+void View<ComponentTypeTs...>::Reset()
+{
+  // reset all data structures in the BaseView except for componentTypes since
+  // the view always requires the types in componentTypes
+  this->entities.clear();
+  this->newEntities.clear();
+  this->toRemoveEntities.clear();
+  this->toAddEntities.clear();
+
+  // reset all data structures unique to the templated view
+  this->validData.clear();
+  this->validConstData.clear();
+  this->invalidData.clear();
+  this->invalidConstData.clear();
+  this->missingCompTracker.clear();
+}
 }  // namespace detail
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 }  // namespace gazebo

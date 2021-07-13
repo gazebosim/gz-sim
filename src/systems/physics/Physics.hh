@@ -39,6 +39,7 @@
 #include <ignition/physics/RemoveEntities.hh>
 #include <ignition/physics/Shape.hh>
 #include <ignition/physics/SphereShape.hh>
+#include <ignition/physics/World.hh>
 #include <ignition/physics/mesh/MeshShape.hh>
 #include <ignition/physics/sdf/ConstructCollision.hh>
 #include <ignition/physics/sdf/ConstructJoint.hh>

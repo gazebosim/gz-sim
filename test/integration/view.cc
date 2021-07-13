@@ -26,15 +26,15 @@
 #include <ignition/common/Console.hh>
 
 #include "ignition/gazebo/Entity.hh"
+#include "ignition/gazebo/EntityComponentStorage.hh"
 #include "ignition/gazebo/Types.hh"
-#include "ignition/gazebo/detail/View.hh"
-#include "ignition/gazebo/detail/EntityComponentStorage.hh"
 #include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Visual.hh"
+#include "ignition/gazebo/detail/View.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -125,7 +125,7 @@ class StorageViewWrapper
           void AddNewComponent(const Entity _entity,
               const ComponentTypeT &_component, bool _isNewEntity = false)
   {
-    EXPECT_EQ(detail::ComponentAdditionResult::NEW_ADDITION,
+    EXPECT_EQ(ComponentAdditionResult::NEW_ADDITION,
         this->AddComponent(_entity, _component));
 
     for (auto &view : this->views)
@@ -156,7 +156,7 @@ class StorageViewWrapper
           void ReAddComponent(const Entity _entity, bool _kNewEntity,
               const ComponentTypeT &_component)
   {
-    EXPECT_EQ(detail::ComponentAdditionResult::RE_ADDITION,
+    EXPECT_EQ(ComponentAdditionResult::RE_ADDITION,
         this->AddComponent(_entity, _component));
 
     // after the component has been "re-added", the actual data of the component
@@ -179,7 +179,7 @@ class StorageViewWrapper
           void ModifyComponent(const Entity _entity,
               const ComponentTypeT &_component)
   {
-    EXPECT_EQ(detail::ComponentAdditionResult::MODIFICATION,
+    EXPECT_EQ(ComponentAdditionResult::MODIFICATION,
         this->AddComponent(_entity, _component));
     auto entityComp = this->Component<ComponentTypeT>(_entity);
     ASSERT_NE(nullptr, entityComp);
@@ -222,7 +222,7 @@ class StorageViewWrapper
   /// \param[in] _component The component, which belongs to _entity
   /// \return The result of the component addition
   private: template<typename ComponentTypeT>
-           detail::ComponentAdditionResult AddComponent(const Entity _entity,
+           ComponentAdditionResult AddComponent(const Entity _entity,
                const ComponentTypeT &_component)
   {
     auto compPtr = components::Factory::Instance()->New(
@@ -230,8 +230,8 @@ class StorageViewWrapper
     return this->storage.AddComponent(_entity, std::move(compPtr));
   }
 
-  /// \brief The actual detail::EntityComponentStorage instance
-  private: detail::EntityComponentStorage storage;
+  /// \brief The actual EntityComponentStorage instance
+  private: EntityComponentStorage storage;
 
   /// \brief All of the views that will be updated as needed based on the
   /// changes being made to this->storage

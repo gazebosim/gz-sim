@@ -152,10 +152,6 @@ class ignition::gazebo::systems::WindEffectsPrivate
   /// valid.
   public: bool validConfig{false};
 
-  /// \brief Whether links have been initialized. Initialization involves
-  /// creating components this system needs on links that are affected by wind.
-  public: bool linksInitialized{false};
-
   /// \brief Mutex to protect currWindVelSeed and windEnabled
   public: std::mutex windInfoMutex;
 
@@ -550,45 +546,39 @@ void WindEffects::PreUpdate(const UpdateInfo &_info,
   // Process commands
   this->dataPtr->ProcessCommandQueue(_ecm);
 
-  if (this->dataPtr->validConfig)
+  if (!this->dataPtr->validConfig)
+    return;
+
+  _ecm.EachNew<components::Link, components::WindMode>(
+      [&](const Entity &_entity, components::Link *,
+          components::WindMode *_windMode) -> bool
   {
-    if (!this->dataPtr->linksInitialized)
+    if (_windMode->Data())
     {
-      _ecm.Each<components::Link, components::WindMode>(
-          [&](const Entity &_entity, components::Link *,
-              components::WindMode *_windMode) -> bool
-          {
-            if (_windMode->Data())
-            {
-              // Create a WorldLinearVelocity component on the link so that
-              // physics can populate it
-              if (!_ecm.Component<components::WorldLinearVelocity>(_entity))
-              {
-                _ecm.CreateComponent(_entity,
-                                     components::WorldLinearVelocity());
-              }
-              if (!_ecm.Component<components::WorldPose>(_entity))
-              {
-                _ecm.CreateComponent(_entity, components::WorldPose());
-              }
-            }
-            return true;
-          });
-
-      this->dataPtr->linksInitialized = true;
+      // Create a WorldLinearVelocity component on the link so that
+      // physics can populate it
+      if (!_ecm.Component<components::WorldLinearVelocity>(_entity))
+      {
+        _ecm.CreateComponent(_entity,
+                             components::WorldLinearVelocity());
+      }
+      if (!_ecm.Component<components::WorldPose>(_entity))
+      {
+        _ecm.CreateComponent(_entity, components::WorldPose());
+      }
     }
-    else
-    {
-      if (_info.paused)
-        return;
+    return true;
+  });
 
-      if (!this->dataPtr->currentWindInfo.enable_wind())
-        return;
+  if (_info.paused)
+    return;
 
-      this->dataPtr->UpdateWindVelocity(_info, _ecm);
-      this->dataPtr->ApplyWindForce(_info, _ecm);
-    }
-  }
+  if (!this->dataPtr->currentWindInfo.enable_wind())
+    return;
+
+  this->dataPtr->UpdateWindVelocity(_info, _ecm);
+  this->dataPtr->ApplyWindForce(_info, _ecm);
+
 }
 
 IGNITION_ADD_PLUGIN(WindEffects, System,
