@@ -314,8 +314,8 @@ TEST_F(LogSystemTest, LogPlaybackStatistics)
 
   EXPECT_EQ(0, startTimePair.first);
   EXPECT_EQ(0, startTimePair.second);
-  EXPECT_EQ(9, endTimePair.first);
-  EXPECT_EQ(721000000, endTimePair.second);
+  EXPECT_EQ(5, endTimePair.first);
+  EXPECT_EQ(800000000, endTimePair.second);
 }
 
 /////////////////////////////////////////////////
@@ -887,7 +887,7 @@ TEST_F(LogSystemTest, LogControl)
   transport::Node node;
 
   // Seek forward (downhill)
-  std::vector<int> secs(9);
+  std::vector<int> secs(5);
   std::iota(std::begin(secs), std::end(secs), 1);
 
   msgs::LogPlaybackControl req;
