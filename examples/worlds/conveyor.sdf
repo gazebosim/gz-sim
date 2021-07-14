@@ -51,7 +51,6 @@
             <link name='base_link'>
                 <pose relative_to='__model__'>0 0 0 0 0 0</pose>
                 <inertial>
-                    <pose relative_to='base_link'>0 0 0 0 0 0</pose>
                     <mass>6.06</mass>
                     <inertia>
                         <ixx>0.002731</ixx>
@@ -189,7 +188,6 @@
             <pose frame=''>0 0 1 0 0 0</pose>
             <link name='base_link'>
                 <inertial>
-                    <pose relative_to='base_link'>0 0 0 0 0 0</pose>
                     <mass>1.06</mass>
                     <inertia>
                         <ixx>0.01</ixx>

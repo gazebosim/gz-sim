@@ -81,8 +81,8 @@ class ignition::gazebo::systems::TrackControllerPrivate
   public: void ComputeSurfaceProperties(
     const Entity& _collision1,
     const Entity& _collision2,
-    const Eigen::Vector3d & _point,
-    const Eigen::Vector3d * const _normal,
+    const math::Vector3d& _point,
+    const std::optional<math::Vector3d>& _normal,
     F::ContactSurfaceParams<P>& _params);
 
   /// \brief Compute speed and direction of motion of the contact surface.
@@ -201,10 +201,10 @@ void TrackController::Configure(const Entity &_entity,
     [this](
       const Entity& _collision1,
       const Entity& _collision2,
-      const Eigen::Vector3d & _point,
-      const Eigen::Vector3d * const /*_force*/,
-      const Eigen::Vector3d * const _normal,
-      const double * const /*_depth*/,
+      const math::Vector3d& _point,
+      const std::optional<math::Vector3d> /* _force */,
+      const std::optional<math::Vector3d> _normal,
+      const std::optional<double> /* _depth */,
       const size_t /*_numContactsOnCollision*/,
       F::ContactSurfaceParams<P>& _params)
     {
@@ -398,14 +398,14 @@ void TrackController::PreUpdate(
 void TrackControllerPrivate::ComputeSurfaceProperties(
   const Entity& _collision1,
   const Entity& _collision2,
-  const Eigen::Vector3d & _point,
-  const Eigen::Vector3d * const _normal,
+  const math::Vector3d& _point,
+  const std::optional<math::Vector3d>& _normal,
   F::ContactSurfaceParams<P>& _params
   )
 {
   using math::eigen3::convert;
 
-  if (_normal == nullptr)
+  if (!_normal)
   {
     static bool informed = false;
     if (!informed)
@@ -426,12 +426,12 @@ void TrackControllerPrivate::ComputeSurfaceProperties(
 
   const auto trackCollision = isCollision1Track ? _collision1 : _collision2;
 
-  auto contactNormal = math::eigen3::convert(*_normal);
+  auto contactNormal = _normal.value();
 
   const auto& collisionPose = this->collisionsWorldPose[trackCollision];
 
   // Flip the contact normal if it points outside the track collision
-  if (contactNormal.Dot(collisionPose.Pos() - convert(_point)) < 0)
+  if (contactNormal.Dot(collisionPose.Pos() - _point) < 0)
     contactNormal = -contactNormal;
 
   const auto trackWorldRot = this->linkWorldPose.Rot() * this->trackOrientation;
@@ -452,16 +452,17 @@ void TrackControllerPrivate::ComputeSurfaceProperties(
   }
 
   const auto frictionDirection = this->ComputeFrictionDirection(
-    cor, convert(_point), contactNormal, beltDirection);
+    cor, _point, contactNormal, beltDirection);
 
-  _params.Get<F::FirstFrictionalDirection<P>>().firstFrictionalDirection =
+  _params.firstFrictionalDirection =
     convert(isCollision1Track ? frictionDirection : -frictionDirection);
 
   const auto surfaceMotion = this->ComputeSurfaceMotion(
     this->limitedVelocity, beltDirection, frictionDirection);
 
-  _params.Get<F::ContactSurfaceMotionVelocity<P>>().
-    contactSurfaceMotionVelocity.y() = surfaceMotion;
+  if (!_params.contactSurfaceMotionVelocity)
+    _params.contactSurfaceMotionVelocity.emplace(Eigen::Vector3d::Zero());
+  _params.contactSurfaceMotionVelocity->y() = surfaceMotion;
 
   if (this->debug)
   {
@@ -482,7 +483,7 @@ void TrackControllerPrivate::ComputeSurfaceProperties(
 
     math::Quaterniond rot;
     rot.From2Axes(math::Vector3d::UnitX, frictionDirection);
-    math::Vector3d p = convert(_point);
+    math::Vector3d p = _point;
     p += rot.RotateVector(
       math::Vector3d::UnitX * this->debugMarker.scale().x() / 2);
 

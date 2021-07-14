@@ -17,6 +17,8 @@
 #ifndef IGNITION_GAZEBO_PHYSICS_EVENTS_HH_
 #define IGNITION_GAZEBO_PHYSICS_EVENTS_HH_
 
+#include <optional>
+
 #include <ignition/common/Event.hh>
 
 #include <ignition/physics/ContactJointProperties.hh>
@@ -46,10 +48,10 @@ namespace ignition
         void(
           const Entity& /* collision1 */,
           const Entity& /* collision2 */,
-          const Eigen::Vector3d &  /* point */,
-          const Eigen::Vector3d * const /* force */,
-          const Eigen::Vector3d * const /* normal */,
-          const double * const /* depth */,
+          const math::Vector3d &  /* point */,
+          const std::optional<math::Vector3d> /* force */,
+          const std::optional<math::Vector3d> /* normal */,
+          const std::optional<double> /* depth */,
           const size_t /* numContactsOnCollision */,
           physics::SetContactJointPropertiesCallbackFeature::
             ContactSurfaceParams<Policy>& /* params */
