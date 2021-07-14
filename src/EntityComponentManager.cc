@@ -405,9 +405,6 @@ bool EntityComponentManager::RemoveComponent(
 bool EntityComponentManager::RemoveComponent(
     const Entity _entity, const ComponentKey &_key)
 {
-  ignwarn << "EntityComponentManager::RemoveComponent is deprecated. Please "
-    << "use the RemoveComponent method with a ComponentTypeId parameter type "
-    << "instead." << std::endl;
   return this->RemoveComponent(_entity, _key.first);
 }
 
@@ -415,9 +412,6 @@ bool EntityComponentManager::RemoveComponent(
 bool EntityComponentManager::EntityHasComponent(const Entity _entity,
     const ComponentKey &_key) const
 {
-  ignwarn << "EntityComponentManager::EntityHasComponent is deprecated. Please "
-    << "use EntityComponentManager::EntityHasComponentType instead."
-    << std::endl;
   if (!this->HasEntity(_entity))
     return false;
   auto &compSet = this->dataPtr->entityComponents[_entity];

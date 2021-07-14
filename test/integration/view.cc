@@ -62,10 +62,10 @@ class ViewTest : public::testing::Test
   }
 };
 
-/// \brief Helper class that wraps EntityComponentStorage to provide a simplified
-/// API for working with entities and their components. This class also stores
-/// a set of user-defined views and handles updating views as needed whenever
-/// an entity's components are modified.
+/// \brief Helper class that wraps EntityComponentStorage to provide a
+/// simplified API for working with entities and their components. This class
+/// also stores a set of user-defined views and handles updating views as
+/// needed whenever an entity's components are modified.
 class StorageViewWrapper
 {
   /// \brief Constructor
@@ -187,8 +187,8 @@ class StorageViewWrapper
     EXPECT_EQ(entityComp->Data(), _component.Data());
   }
 
-  /// \brief Helper function that uses EntityComponentStorage::ValidComponent to get
-  /// a component of a particular type that belongs to an entity.
+  /// \brief Helper function that uses EntityComponentStorage::ValidComponent
+  /// to get a component of a particular type that belongs to an entity.
   /// \param[in] _entity The entity
   /// \return A pointer to the component of the templated type. If no such
   /// component exists, nullptr is returned
