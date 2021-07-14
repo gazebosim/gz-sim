@@ -14,6 +14,9 @@ release will remove the deprecated code.
     * Grid Config
     * Tape Measure
 
+* `dynamic_pose/info` topic is removed from `LogRecord` and `LogPlayback`
+since pose information is being logged in the `changed_state` topic.
+
 ## Ignition Gazebo 4.x to 5.x
 
 * Use `cli` component of `ignition-utils1`.
@@ -51,9 +54,6 @@ release will remove the deprecated code.
 caused shadow artifacts to appear on some meshes. Double sided material is
 now disabled and made an opt-in feature. Users can configure this property
 in SDF by setting the `<visual><material><double_sided>` SDF element.
-
-* `dynamic_pose/info` topic is removed from `LogRecord` since pose information
-is being logged in the `changed_state` topic.
 
 ## Ignition Gazebo 3.x to 4.x
 
