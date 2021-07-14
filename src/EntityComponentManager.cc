@@ -111,10 +111,6 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// \brief Flag that indicates if all entities should be removed.
   public: bool removeAllEntities{false};
 
-  /// \brief The set of components that each entity has.
-  public: std::unordered_map<Entity,
-          std::unordered_set<ComponentTypeId>> entityComponents;
-
   /// \brief A mutex to protect newly created entities.
   public: std::mutex entityCreatedMutex;
 
@@ -333,7 +329,6 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
     IGN_PROFILE("RemoveAll");
     this->dataPtr->removeAllEntities = false;
     this->dataPtr->entities = EntityGraph();
-    this->dataPtr->entityComponents.clear();
     this->dataPtr->toRemoveEntities.clear();
 
     // reset the entity component storage
@@ -357,17 +352,9 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
       // Remove from graph
       this->dataPtr->entities.RemoveVertex(entity);
 
-      auto entityIter = this->dataPtr->entityComponents.find(entity);
-      // Remove the components, if any.
-      if (entityIter != this->dataPtr->entityComponents.end())
-      {
-        this->dataPtr->storage.erase(entity);
-        this->dataPtr->componentTypeIndex.erase(entity);
-        this->dataPtr->componentTypeIndexDirty = true;
-
-        // Remove the entry in the entityComponent map
-        this->dataPtr->entityComponents.erase(entity);
-      }
+      this->dataPtr->storage.erase(entity);
+      this->dataPtr->componentTypeIndex.erase(entity);
+      this->dataPtr->componentTypeIndexDirty = true;
 
       // Remove the entity from views.
       for (auto &view : this->dataPtr->views)
@@ -418,11 +405,6 @@ bool EntityComponentManager::RemoveComponent(
       viewPair.second->NotifyComponentRemoval(_entity, _typeId);
   }
 
-  this->dataPtr->entityComponents[_entity].erase(_typeId);
-
-  // FIXME: we didn't really change that
-  this->dataPtr->componentTypeIndexDirty = true;
-
   this->dataPtr->AddModifiedComponent(_entity);
 
   // Add component to map of removed components
@@ -445,10 +427,7 @@ bool EntityComponentManager::RemoveComponent(
 bool EntityComponentManager::EntityHasComponent(const Entity _entity,
     const ComponentKey &_key) const
 {
-  if (!this->HasEntity(_entity))
-    return false;
-  auto &compSet = this->dataPtr->entityComponents[_entity];
-  return compSet.find(_key.first) != compSet.end();
+  return this->EntityHasComponentType(_entity, _key.first);
 }
 
 /////////////////////////////////////////////////
@@ -458,13 +437,9 @@ bool EntityComponentManager::EntityHasComponentType(const Entity _entity,
   if (!this->HasEntity(_entity))
     return false;
 
-  auto iter = this->dataPtr->entityComponents.find(_entity);
+  auto comp = this->ComponentImplementation(_entity, _typeId);
 
-  if (iter == this->dataPtr->entityComponents.end())
-    return false;
-
-  auto typeIter = iter->second.find(_typeId);
-  return (typeIter != iter->second.end());
+  return comp != nullptr;
 }
 
 /////////////////////////////////////////////////
@@ -493,16 +468,18 @@ ComponentState EntityComponentManager::ComponentState(const Entity _entity,
 {
   auto result = ComponentState::NoChange;
 
-  auto ecIter = this->dataPtr->entityComponents.find(_entity);
+  auto ctIter = this->dataPtr->componentTypeIndex.find(_entity);
 
-  if (ecIter == this->dataPtr->entityComponents.end())
+  if (ctIter == this->dataPtr->componentTypeIndex.end())
     return result;
 
-  auto typeIter = ecIter->second.find(_typeId);
-  if (typeIter == ecIter->second.end())
+  auto typeIter = ctIter->second.find(_typeId);
+  if (typeIter == ctIter->second.end())
     return result;
 
-  auto oneTimeIter = this->dataPtr->oneTimeChangedComponents.find(*typeIter);
+  auto typeId = typeIter->first;
+
+  auto oneTimeIter = this->dataPtr->oneTimeChangedComponents.find(typeId);
   if (oneTimeIter != this->dataPtr->oneTimeChangedComponents.end() &&
       oneTimeIter->second.find(_entity) != oneTimeIter->second.end())
   {
@@ -511,7 +488,7 @@ ComponentState EntityComponentManager::ComponentState(const Entity _entity,
   else
   {
     auto periodicIter =
-      this->dataPtr->periodicChangedComponents.find(*typeIter);
+      this->dataPtr->periodicChangedComponents.find(typeId);
     if (periodicIter != this->dataPtr->periodicChangedComponents.end() &&
         periodicIter->second.find(_entity) != periodicIter->second.end())
       result = ComponentState::PeriodicChange;
@@ -615,7 +592,6 @@ bool EntityComponentManager::CreateComponentImplementation(
   bool updateData = true;
 
   this->dataPtr->AddModifiedComponent(_entity);
-  this->dataPtr->entityComponents[_entity].insert(_componentTypeId);
   this->dataPtr->oneTimeChangedComponents[_componentTypeId].insert(_entity);
 
   // Instantiate the new component.
@@ -689,8 +665,8 @@ bool EntityComponentManager::CreateComponentImplementation(
 bool EntityComponentManager::EntityMatches(Entity _entity,
     const std::set<ComponentTypeId> &_types) const
 {
-  auto iter = this->dataPtr->entityComponents.find(_entity);
-  if (iter == this->dataPtr->entityComponents.end())
+  auto iter = this->dataPtr->componentTypeIndex.find(_entity);
+  if (iter == this->dataPtr->componentTypeIndex.end())
     return false;
 
   // quick check: the entity cannot match _types if _types is larger than the
@@ -863,7 +839,7 @@ void EntityComponentManagerPrivate::SetRemovedComponentsMsgs(Entity &_entity,
 
   // The message need not necessarily contain the entity initially. For
   // instance, when AddEntityToMessage() calls this function, the entity may
-  // have some removed components but none in entityComponents that changed,
+  // have some removed components but none that changed,
   // so the entity may not have been added to the message beforehand.
   auto entIter = _msg.mutable_entities()->find(_entity);
   if (entIter == _msg.mutable_entities()->end())
@@ -900,8 +876,8 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
 {
   auto entityMsg = _msg.add_entities();
   entityMsg->set_id(_entity);
-  auto iter = this->dataPtr->entityComponents.find(_entity);
-  if (iter == this->dataPtr->entityComponents.end())
+  auto iter = this->dataPtr->componentTypeIndex.find(_entity);
+  if (iter == this->dataPtr->componentTypeIndex.end())
     return;
 
   if (this->dataPtr->toRemoveEntities.find(_entity) !=
@@ -915,8 +891,8 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
   auto types = _types;
   if (types.empty())
   {
-    for (auto &type : this->dataPtr->entityComponents[_entity])
-      types.insert(type);
+    for (auto &type : this->dataPtr->componentTypeIndex[_entity])
+      types.insert(type.first);
   }
 
   for (const ComponentTypeId type : types)
@@ -926,8 +902,11 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
     if (typeIter == iter->second.end())
       continue;
 
-    auto compMsg = entityMsg->add_components();
     auto compBase = this->ComponentImplementation(_entity, type);
+    if (nullptr == compBase)
+      continue;
+
+    auto compMsg = entityMsg->add_components();
     compMsg->set_type(compBase->TypeId());
 
     std::ostringstream ostr;
@@ -946,8 +925,8 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
     Entity _entity, const std::unordered_set<ComponentTypeId> &_types,
     bool _full) const
 {
-  auto iter = this->dataPtr->entityComponents.find(_entity);
-  if (iter == this->dataPtr->entityComponents.end())
+  auto iter = this->dataPtr->componentTypeIndex.find(_entity);
+  if (iter == this->dataPtr->componentTypeIndex.end())
     return;
 
   // Set the default entity iterator to the end. This will allow us to know
@@ -976,9 +955,9 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
   auto types = _types;
   if (types.empty())
   {
-    for (auto &type : this->dataPtr->entityComponents[_entity])
+    for (auto &type : this->dataPtr->componentTypeIndex[_entity])
     {
-      types.insert(type);
+      types.insert(type.first);
     }
   }
 
@@ -1158,7 +1137,7 @@ ignition::msgs::SerializedState EntityComponentManager::State(
     const std::unordered_set<ComponentTypeId> &_types) const
 {
   ignition::msgs::SerializedState stateMsg;
-  for (const auto &it : this->dataPtr->entityComponents)
+  for (const auto &it : this->dataPtr->componentTypeIndex)
   {
     auto entity = it.first;
     if (!_entities.empty() && _entities.find(entity) == _entities.end())
@@ -1457,8 +1436,8 @@ void EntityComponentManager::SetChanged(
     gazebo::ComponentState _c)
 {
   // make sure _entity exists
-  auto ecIter = this->dataPtr->entityComponents.find(_entity);
-  if (ecIter == this->dataPtr->entityComponents.end())
+  auto ecIter = this->dataPtr->componentTypeIndex.find(_entity);
+  if (ecIter == this->dataPtr->componentTypeIndex.end())
     return;
 
   // make sure the entity has a component of type _type
@@ -1496,11 +1475,22 @@ void EntityComponentManager::SetChanged(
 std::unordered_set<ComponentTypeId> EntityComponentManager::ComponentTypes(
     const Entity _entity) const
 {
-  auto it = this->dataPtr->entityComponents.find(_entity);
-  if (it == this->dataPtr->entityComponents.end())
+  auto it = this->dataPtr->componentTypeIndex.find(_entity);
+  if (it == this->dataPtr->componentTypeIndex.end())
     return {};
 
-  return it->second;
+  // FIXME: Must skip removed components
+  // Is the component itself the best place to hold the removed information?
+  // The ECM is the only one who uses it.
+  std::unordered_set<ComponentTypeId> result;
+  std::transform(it->second.begin(), it->second.end(),
+      std::inserter(result, result.begin()),
+      [](std::pair<const ComponentTypeId, std::size_t> &_mapIt)
+      {
+        return _mapIt.first;
+      });
+
+  return result;
 }
 
 /////////////////////////////////////////////////
