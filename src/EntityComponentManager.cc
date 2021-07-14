@@ -111,25 +111,9 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// \brief Flag that indicates if all entities should be removed.
   public: bool removeAllEntities{false};
 
-  /// \brief True if the entityComponents map was changed.  Primarily used
-  /// by the multithreading functionality in `State()` to allocate work to
-  /// each thread.
-  public: bool entityComponentsDirty{true};
-
   /// \brief The set of components that each entity has.
-  /// NOTE: Any modification of this data structure must be followed
-  /// by setting `entityComponentsDirty` to true.
   public: std::unordered_map<Entity,
           std::unordered_set<ComponentTypeId>> entityComponents;
-
-  /// \brief A vector of iterators to evenly distributed spots in the
-  /// `entityComponents` map.  Threads in the `State` function use this
-  /// vector for easy access of their pre-allocated work.  This vector
-  /// is recalculated if `entityComponents` is changed (when
-  /// `entityComponentsDirty` == true).
-  public: std::vector<std::unordered_map<Entity,
-          std::unordered_set<ComponentTypeId>>::iterator>
-            entityComponentIterators;
 
   /// \brief A mutex to protect newly created entities.
   public: std::mutex entityCreatedMutex;
@@ -168,20 +152,37 @@ class ignition::gazebo::EntityComponentManagerPrivate
              storage;
 
   /// \brief A map that keeps track of where each type of component is
-  /// located in the this->entityComponents vector. Since the
-  /// this->entityComponents vector is of type BaseComponent, we need to
-  /// keep track of which component type corresponds to a given index in
-  /// the vector so that we can cast the BaseComponent to this type if
-  /// needed.
+  /// located in the storage vector. Since the storage vector is of type
+  /// BaseComponent, we need to keep track of which component type corresponds
+  /// to a given index in the vector so that we can cast the BaseComponent
+  /// to this type if needed.
   ///
   /// The key of this map is the Entity, and the value is a map of the
   /// component type to the corresponding index in the
-  /// this->entityComponents vector (a component of a particular type is
+  /// storage vector (a component of a particular type is
   /// only a key for the value map if a component of this type exists in
-  /// the this->entityComponents vector)
+  /// the storage vector)
+
+  /// NOTE: Any modification of this data structure must be followed
+  /// by setting `componentTypeIndexDirty` to true.
+  /// FIXME: But how does this play with `removed`?
   public: std::unordered_map<Entity,
            std::unordered_map<ComponentTypeId, std::size_t>>
                                 componentTypeIndex;
+
+  /// \brief A vector of iterators to evenly distributed spots in the
+  /// `componentTypeIndex` map.  Threads in the `State` function use this
+  /// vector for easy access of their pre-allocated work.  This vector
+  /// is recalculated if `componentTypeIndex` is changed (when
+  /// `componentTypeIndexDirty` == true).
+  public: std::vector<std::unordered_map<Entity,
+          std::unordered_map<ComponentTypeId, std::size_t>>::iterator>
+            componentTypeIndexIterators;
+
+  /// \brief True if the componentTypeIndex map was changed.  Primarily used
+  /// by the multithreading functionality in `State()` to allocate work to
+  /// each thread.
+  public: bool componentTypeIndexDirty{true};
 };
 
 //////////////////////////////////////////////////
@@ -334,11 +335,11 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
     this->dataPtr->entities = EntityGraph();
     this->dataPtr->entityComponents.clear();
     this->dataPtr->toRemoveEntities.clear();
-    this->dataPtr->entityComponentsDirty = true;
 
     // reset the entity component storage
     this->dataPtr->storage.clear();
     this->dataPtr->componentTypeIndex.clear();
+    this->dataPtr->componentTypeIndexDirty = true;
 
     // All views are now invalid.
     this->dataPtr->views.clear();
@@ -362,10 +363,10 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
       {
         this->dataPtr->storage.erase(entity);
         this->dataPtr->componentTypeIndex.erase(entity);
+        this->dataPtr->componentTypeIndexDirty = true;
 
         // Remove the entry in the entityComponent map
         this->dataPtr->entityComponents.erase(entity);
-        this->dataPtr->entityComponentsDirty = true;
       }
 
       // Remove the entity from views.
@@ -418,7 +419,9 @@ bool EntityComponentManager::RemoveComponent(
   }
 
   this->dataPtr->entityComponents[_entity].erase(_typeId);
-  this->dataPtr->entityComponentsDirty = true;
+
+  // FIXME: we didn't really change that
+  this->dataPtr->componentTypeIndexDirty = true;
 
   this->dataPtr->AddModifiedComponent(_entity);
 
@@ -614,7 +617,6 @@ bool EntityComponentManager::CreateComponentImplementation(
   this->dataPtr->AddModifiedComponent(_entity);
   this->dataPtr->entityComponents[_entity].insert(_componentTypeId);
   this->dataPtr->oneTimeChangedComponents[_componentTypeId].insert(_entity);
-  this->dataPtr->entityComponentsDirty = true;
 
   // Instantiate the new component.
   auto newComp = components::Factory::Instance()->New(_componentTypeId, _data);
@@ -645,6 +647,7 @@ bool EntityComponentManager::CreateComponentImplementation(
     const auto vectorIdx = entityCompIter->second.size();
     entityCompIter->second.push_back(std::move(newComp));
     this->dataPtr->componentTypeIndex[_entity][_componentTypeId] = vectorIdx;
+    this->dataPtr->componentTypeIndexDirty = true;
 
     updateData = false;
     for (auto &viewPair : this->dataPtr->views)
@@ -1108,13 +1111,13 @@ void EntityComponentManagerPrivate::CalculateStateThreadLoad()
 {
   // If the entity component vector is dirty, we need to recalculate the
   // threads and each threads work load
-  if (!this->entityComponentsDirty)
+  if (!this->componentTypeIndexDirty)
     return;
 
-  this->entityComponentsDirty = false;
-  this->entityComponentIterators.clear();
-  auto startIt = this->entityComponents.begin();
-  int numComponents = this->entityComponents.size();
+  this->componentTypeIndexDirty = false;
+  this->componentTypeIndexIterators.clear();
+  auto startIt = this->componentTypeIndex.begin();
+  int numComponents = this->componentTypeIndex.size();
 
   // Set the number of threads to spawn to the min of the calculated thread
   // count or max threads that the hardware supports
@@ -1129,7 +1132,7 @@ void EntityComponentManagerPrivate::CalculateStateThreadLoad()
          << " components each." << std::endl;
 
   // Push back the starting iterator
-  this->entityComponentIterators.push_back(startIt);
+  this->componentTypeIndexIterators.push_back(startIt);
   for (uint64_t i = 0; i < numThreads; ++i)
   {
     // If we have added all of the components to the iterator vector, we are
@@ -1137,14 +1140,14 @@ void EntityComponentManagerPrivate::CalculateStateThreadLoad()
     numComponents -= componentsPerThread;
     if (numComponents <= 0)
     {
-      this->entityComponentIterators.push_back(
-          this->entityComponents.end());
+      this->componentTypeIndexIterators.push_back(
+          this->componentTypeIndex.end());
       break;
     }
 
     // Get the iterator to the next starting group of components
     auto nextIt = std::next(startIt, componentsPerThread);
-    this->entityComponentIterators.push_back(nextIt);
+    this->componentTypeIndexIterators.push_back(nextIt);
     startIt = nextIt;
   }
 }
@@ -1203,12 +1206,12 @@ void EntityComponentManager::State(
   };
 
   // Spawn workers
-  uint64_t numThreads = this->dataPtr->entityComponentIterators.size() - 1;
+  uint64_t numThreads = this->dataPtr->componentTypeIndexIterators.size() - 1;
   for (uint64_t i = 0; i < numThreads; i++)
   {
     workers.push_back(std::thread(functor,
-        this->dataPtr->entityComponentIterators[i],
-        this->dataPtr->entityComponentIterators[i+1]));
+        this->dataPtr->componentTypeIndexIterators[i],
+        this->dataPtr->componentTypeIndexIterators[i+1]));
   }
 
   // Wait for each thread to finish processing its components
