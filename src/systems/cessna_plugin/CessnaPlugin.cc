@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-
 #include <array>
 #include <chrono>
 #include <functional>
