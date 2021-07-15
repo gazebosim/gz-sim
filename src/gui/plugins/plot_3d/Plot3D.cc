@@ -39,11 +39,7 @@
 
 #include "Plot3D.hh"
 
-namespace ignition
-{
-namespace gazebo
-{
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+namespace ignition::gazebo::gui
 {
   /// \brief Private data class for Plot3D
   class Plot3DPrivate
@@ -75,9 +71,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \brief Previous plotted position.
     public: math::Vector3d prevPos;
 
-    /// \brief Offset from entity origin to place plot point. The orientation
-    /// isn't used. The offset is expressed in the entity's frame.
-    public: math::Pose3d offset;
+    /// \brief Offset from entity origin to place plot point.
+    /// The offset is expressed in the entity's frame.
+    public: math::Vector3d offset;
 
     /// \brief Minimum distance between points. If the object has moved by less
     /// than this distance, a new point isn't plotted.
@@ -91,11 +87,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     public: std::mutex mutex;
   };
 }
-}
-}
 
 using namespace ignition;
-using namespace gazebo;
+using namespace ignition::gazebo;
+using namespace ignition::gazebo::gui;
 
 /////////////////////////////////////////////////
 Plot3D::Plot3D()
@@ -105,7 +100,10 @@ Plot3D::Plot3D()
 }
 
 /////////////////////////////////////////////////
-Plot3D::~Plot3D() = default;
+Plot3D::~Plot3D()
+{
+  this->ClearPlot();
+}
 
 /////////////////////////////////////////////////
 void Plot3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
@@ -121,17 +119,16 @@ void Plot3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
     {
       this->dataPtr->targetName = nameElem->GetText();
       this->dataPtr->targetNameDirty = true;
-      this->dataPtr->locked = true;
+      this->SetLocked(true);
     }
 
     auto offsetElem = _pluginElem->FirstChildElement("offset");
     if (nullptr != offsetElem && nullptr != offsetElem->GetText())
     {
-      math::Vector3d pos;
       std::stringstream offsetStr;
       offsetStr << std::string(offsetElem->GetText());
-      offsetStr >> pos;
-      this->dataPtr->offset.Set(pos, math::Vector3d::Zero);
+      offsetStr >> this->dataPtr->offset;
+      this->OffsetChanged();
     }
 
     auto colorElem = _pluginElem->FirstChildElement("color");
@@ -140,23 +137,37 @@ void Plot3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       std::stringstream colorStr;
       colorStr << std::string(colorElem->GetText());
       colorStr >> this->dataPtr->color;
+      this->ColorChanged();
     }
 
     auto distElem = _pluginElem->FirstChildElement("minimum_distance");
     if (nullptr != distElem && nullptr != distElem->GetText())
     {
       distElem->QueryDoubleText(&this->dataPtr->minDistance);
+      this->MinDistanceChanged();
     }
 
     auto ptsElem = _pluginElem->FirstChildElement("maximum_points");
     if (nullptr != ptsElem && nullptr != ptsElem->GetText())
     {
       ptsElem->QueryInt64Text(&this->dataPtr->maxPoints);
+      this->MaxPointsChanged();
     }
   }
 
   ignition::gui::App()->findChild<
       ignition::gui::MainWindow *>()->installEventFilter(this);
+}
+
+/////////////////////////////////////////////////
+void Plot3D::ClearPlot()
+{
+  // Clear previous plot
+  if (this->dataPtr->markerMsg.point().size() > 0)
+  {
+    this->dataPtr->markerMsg.set_action(ignition::msgs::Marker::DELETE_MARKER);
+    this->dataPtr->node.Request("/marker", this->dataPtr->markerMsg);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -199,9 +210,7 @@ void Plot3D::Update(const UpdateInfo &, EntityComponentManager &_ecm)
 
   if (newTarget)
   {
-    // Clear previous plot
-    this->dataPtr->markerMsg.set_action(ignition::msgs::Marker::DELETE_MARKER);
-    this->dataPtr->node.Request("/marker", this->dataPtr->markerMsg);
+    this->ClearPlot();
 
     // Reset message
     this->dataPtr->markerMsg.Clear();
@@ -218,8 +227,10 @@ void Plot3D::Update(const UpdateInfo &, EntityComponentManager &_ecm)
 
   // Get entity pose
   auto pose = worldPose(this->dataPtr->targetEntity, _ecm);
+  math::Pose3d offsetPose;
+  offsetPose.Set(this->dataPtr->offset, math::Vector3d::Zero);
 
-  auto point = (pose * this->dataPtr->offset).Pos();
+  auto point = (pose * offsetPose).Pos();
 
   // Only add points if the distance is past a threshold.
   if (point.Distance(this->dataPtr->prevPos) < this->dataPtr->minDistance)
@@ -238,7 +249,6 @@ void Plot3D::Update(const UpdateInfo &, EntityComponentManager &_ecm)
     this->dataPtr->color);
 
   // Request
-//igndbg << this->dataPtr->markerMsg.DebugString() << std::endl;
   this->dataPtr->node.Request("/marker", this->dataPtr->markerMsg);
 }
 
@@ -318,29 +328,63 @@ void Plot3D::SetLocked(bool _locked)
 }
 
 /////////////////////////////////////////////////
-void Plot3D::SetOffset(double _x, double _y, double _z)
+QVector3D Plot3D::Offset() const
 {
-  this->dataPtr->offset.Set(_x, _y, _z, 0, 0, 0);
+  return QVector3D(
+      this->dataPtr->offset.X(),
+      this->dataPtr->offset.Y(),
+      this->dataPtr->offset.Z());
 }
 
 /////////////////////////////////////////////////
-void Plot3D::SetColor(double _r, double _g, double _b)
+void Plot3D::SetOffset(const QVector3D &_offset)
 {
-  this->dataPtr->color.Set(_r, _g, _b);
+  this->dataPtr->offset.Set(_offset.x(), _offset.y(), _offset.z());
+  this->OffsetChanged();
 }
 
 /////////////////////////////////////////////////
-void Plot3D::SetMinDistance(double _dist)
+QVector3D Plot3D::Color() const
 {
-  this->dataPtr->minDistance = _dist;
+  return QVector3D(
+      this->dataPtr->color.R(),
+      this->dataPtr->color.G(),
+      this->dataPtr->color.B());
 }
 
 /////////////////////////////////////////////////
-void Plot3D::SetMaxPoints(int _max)
+void Plot3D::SetColor(const QVector3D &_color)
 {
-  this->dataPtr->maxPoints = _max;
+  this->dataPtr->color.Set(_color.x(), _color.y(), _color.z());
+  this->ColorChanged();
+}
+
+/////////////////////////////////////////////////
+double Plot3D::MinDistance() const
+{
+  return this->dataPtr->minDistance;
+}
+
+/////////////////////////////////////////////////
+void Plot3D::SetMinDistance(double _minDistance)
+{
+  this->dataPtr->minDistance = _minDistance;
+  this->MinDistanceChanged();
+}
+
+/////////////////////////////////////////////////
+int Plot3D::MaxPoints() const
+{
+  return this->dataPtr->maxPoints;
+}
+
+/////////////////////////////////////////////////
+void Plot3D::SetMaxPoints(int _maxPoints)
+{
+  this->dataPtr->maxPoints = _maxPoints;
+  this->MaxPointsChanged();
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::Plot3D,
+IGNITION_ADD_PLUGIN(ignition::gazebo::gui::Plot3D,
                     ignition::gui::Plugin)

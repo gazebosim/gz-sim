@@ -26,7 +26,7 @@ Rectangle {
   id: plot3D
   color: "transparent"
   Layout.minimumWidth: 400
-  Layout.minimumHeight: 375
+  Layout.minimumHeight: 320
   anchors.fill: parent
 
   /**
@@ -121,7 +121,8 @@ Rectangle {
       Layout.row: 0
       Layout.column: 0
       Layout.columnSpan: 6
-      color: Material.Grey
+      color: "dimgrey"
+      font.bold: true
       leftPadding: 5
     }
 
@@ -137,12 +138,12 @@ Rectangle {
       Layout.fillWidth: true
       Layout.row: 1
       Layout.column: 1
-      value: 0
+      value: Plot3D.offset.x
       maximumValue: 1000000
       minimumValue: -1000000
-      decimals: 6
+      decimals: 2
       stepSize: 0.01
-      onEditingFinished: Plot3D.SetOffset(x.value, y.value, z.value)
+      onEditingFinished: Plot3D.SetOffset(Qt.vector3d(x.value, y.value, z.value))
     }
     Text {
       text: "Y (m)"
@@ -156,12 +157,12 @@ Rectangle {
       Layout.fillWidth: true
       Layout.row: 1
       Layout.column: 3
-      value: 0
+      value: Plot3D.offset.y
       maximumValue: 1000000
       minimumValue: -1000000
-      decimals: 6
+      decimals: 2
       stepSize: 0.01
-      onEditingFinished: Plot3D.SetOffset(x.value, y.value, z.value)
+      onEditingFinished: Plot3D.SetOffset(Qt.vector3d(x.value, y.value, z.value))
     }
     Text {
       text: "Z (m)"
@@ -175,21 +176,23 @@ Rectangle {
       Layout.fillWidth: true
       Layout.row: 1
       Layout.column: 5
-      value: 0
+      value: Plot3D.offset.z
       maximumValue: 1000000
       minimumValue: -1000000
-      decimals: 6
+      decimals: 2
       stepSize: 0.01
-      onEditingFinished: Plot3D.SetOffset(x.value, y.value, z.value)
+      onEditingFinished: Plot3D.SetOffset(Qt.vector3d(x.value, y.value, z.value))
     }
 
     Text {
-      Layout.columnSpan: 6
       text: "Color"
-      color: "dimgrey"
-      font.bold: true
+      Layout.fillWidth: true
       Layout.row: 2
       Layout.column: 0
+      Layout.columnSpan: 6
+      color: "dimgrey"
+      font.bold: true
+      leftPadding: 5
     }
 
     Text {
@@ -202,14 +205,15 @@ Rectangle {
 
     IgnSpinBox {
       id: r
+      Layout.fillWidth: true
       Layout.row: 3
       Layout.column: 1
+      value: Plot3D.color.x
       maximumValue: 1.00
       minimumValue: 0.00
-      value: 0
-      stepSize: 0.01
       decimals: 2
-      onEditingFinished: Plot3D.SetColor(r.value, g.value, b.value)
+      stepSize: 0.01
+      onEditingFinished: Plot3D.SetColor(Qt.vector3d(r.value, g.value, b.value))
     }
 
     Text {
@@ -222,14 +226,15 @@ Rectangle {
 
     IgnSpinBox {
       id: g
+      Layout.fillWidth: true
       Layout.row: 3
       Layout.column: 3
+      value: Plot3D.color.y
       maximumValue: 1.00
       minimumValue: 0.00
-      value: 0
-      stepSize: 0.01
       decimals: 2
-      onEditingFinished: Plot3D.SetColor(r.value, g.value, b.value)
+      stepSize: 0.01
+      onEditingFinished: Plot3D.SetColor(Qt.vector3d(r.value, g.value, b.value))
     }
 
     Text {
@@ -242,14 +247,15 @@ Rectangle {
 
     IgnSpinBox {
       id: b
+      Layout.fillWidth: true
       Layout.row: 3
       Layout.column: 5
+      value: Plot3D.color.z
       maximumValue: 1.00
       minimumValue: 0.00
-      value: 1.0
-      stepSize: 0.01
       decimals: 2
-      onEditingFinished: Plot3D.SetColor(r.value, g.value, b.value)
+      stepSize: 0.01
+      onEditingFinished: Plot3D.SetColor(Qt.vector3d(r.value, g.value, b.value))
     }
 
     Text {
@@ -266,9 +272,9 @@ Rectangle {
       Layout.row: 4
       Layout.column: 3
       Layout.columnSpan: 3
-      value: 0.05
+      value: Plot3D.minDistance
       maximumValue: 1000000
-      minimumValue: -1000000
+      minimumValue: 0
       decimals: 6
       stepSize: 0.01
       onEditingFinished: Plot3D.SetMinDistance(minDist.value)
@@ -288,9 +294,9 @@ Rectangle {
       Layout.row: 5
       Layout.column: 3
       Layout.columnSpan: 3
-      value: 1000
+      value: Plot3D.maxPoints
       maximumValue: 1000000
-      minimumValue: -1000000
+      minimumValue: 0
       decimals: 0
       stepSize: 100
       onEditingFinished: Plot3D.SetMaxPoints(maxPoints.value)

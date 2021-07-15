@@ -28,8 +28,7 @@ namespace ignition
 {
 namespace gazebo
 {
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+namespace gui
 {
   class Plot3DPrivate;
 
@@ -60,6 +59,38 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
       READ Locked
       WRITE SetLocked
       NOTIFY LockedChanged
+    )
+
+    /// \brief Locked
+    Q_PROPERTY(
+      QVector3D offset
+      READ Offset
+      WRITE SetOffset
+      NOTIFY OffsetChanged
+    )
+
+    /// \brief Locked
+    Q_PROPERTY(
+      QVector3D color
+      READ Color
+      WRITE SetColor
+      NOTIFY ColorChanged
+    )
+
+    /// \brief Minimum distance
+    Q_PROPERTY(
+      double minDistance
+      READ MinDistance
+      WRITE SetMinDistance
+      NOTIFY MinDistanceChanged
+    )
+
+    /// \brief Maximum points
+    Q_PROPERTY(
+      int maxPoints
+      READ MaxPoints
+      WRITE SetMaxPoints
+      NOTIFY MaxPointsChanged
     )
 
     /// \brief Constructor
@@ -97,39 +128,68 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \brief Notify that target name has changed
     signals: void TargetNameChanged();
 
-    /// \brief Get whether the controller is currently locked on a target.
+    /// \brief Get whether the plugin is currently locked on a target.
     /// \return True for locked
     public: Q_INVOKABLE bool Locked() const;
 
-    /// \brief Set whether the controller is currently locked on a target.
+    /// \brief Set whether the plugin is currently locked on a target.
     /// \param[in] _locked True for locked.
     public: Q_INVOKABLE void SetLocked(bool _locked);
 
     /// \brief Notify that locked has changed.
     signals: void LockedChanged();
 
-    /// \brief Callback to update offset
-    /// \param[in] _x Offset on X axis
-    /// \param[in] _y Offset on Y axis
-    /// \param[in] _z Offset on Z axis
-    public: Q_INVOKABLE void SetOffset(double _x, double _y, double _z);
+    /// \brief Get the offset in the target's frame.
+    /// \return The current offset.
+    public: Q_INVOKABLE QVector3D Offset() const;
 
-    /// \brief Callback to update color
-    /// \param[in] _r Red
-    /// \param[in] _g Green
-    /// \param[in] _b Blue
-    public: Q_INVOKABLE void SetColor(double _r, double _g, double _b);
+    /// \brief Set the offset.
+    /// \param[in] _offset The offset in the target's frame
+    public: Q_INVOKABLE void SetOffset(const QVector3D &_offset);
 
-    /// \brief Callback to set minimum distance between points.
-    /// \param[in] _dist Minimum distance
-    public: Q_INVOKABLE void SetMinDistance(double _dist);
+    /// \brief Notify that offset has changed.
+    signals: void OffsetChanged();
 
-    /// \brief Callback to set maximum number of points
-    /// \param[in] _max Maximum number of points in the plot.
-    public: Q_INVOKABLE void SetMaxPoints(int _max);
+    /// \brief Get the color of the plot.
+    /// \return The current color.
+    public: Q_INVOKABLE QVector3D Color() const;
+
+    /// \brief Set the color of the plot.
+    /// \param[in] _color New color.
+    public: Q_INVOKABLE void SetColor(const QVector3D &_color);
+
+    /// \brief Notify that offset has changed.
+    signals: void ColorChanged();
+
+    /// \brief Get the minimum distance between points.
+    /// \return The current minimum distance.
+    public: Q_INVOKABLE double MinDistance() const;
+
+    /// \brief Set the minimum distance between points. If the target moved
+    /// less than this distance, the latest position won't be plotted.
+    /// \param[in] _minDistance New distance.
+    public: Q_INVOKABLE void SetMinDistance(double _minDistance);
+
+    /// \brief Notify that the minimum distance has changed.
+    signals: void MinDistanceChanged();
+
+    /// \brief Get the maximum points between points.
+    /// \return The current maximum points.
+    public: Q_INVOKABLE int MaxPoints() const;
+
+    /// \brief Set the maximum points between points. If the target moved
+    /// less than this distance, the latest position won't be plotted.
+    /// \param[in] _maxPoints New distance.
+    public: Q_INVOKABLE void SetMaxPoints(int _maxPoints);
+
+    /// \brief Notify that the maximum points has changed.
+    signals: void MaxPointsChanged();
 
     // Documentation inherited
     protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
+
+    /// \brief Clear plot
+    private: void ClearPlot();
 
     /// \internal
     /// \brief Pointer to private data
