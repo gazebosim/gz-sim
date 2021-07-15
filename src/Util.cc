@@ -59,8 +59,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 math::Pose3d worldPose(const Entity &_entity,
     const EntityComponentManager &_ecm)
 {
+  auto poseComp = _ecm.Component<components::Pose>(_entity);
+  if (nullptr == poseComp)
+    return math::Pose3d();
+
   // work out pose in world frame
-  math::Pose3d pose = _ecm.Component<components::Pose>(_entity)->Data();
+  math::Pose3d pose = poseComp->Data();
   auto p = _ecm.Component<components::ParentEntity>(_entity);
   while (p)
   {
@@ -120,6 +124,46 @@ std::string scopedName(const Entity &_entity,
       result.insert(0, _delim);
 
     entity = parentComp->Data();
+  }
+
+  return result;
+}
+
+//////////////////////////////////////////////////
+Entity entityFromScopedName(const std::string &_scopedName,
+    const EntityComponentManager &_ecm, const std::string &_delim)
+{
+  Entity result{kNullEntity};
+
+  std::vector<std::string> names;
+  size_t pos1 = 0;
+  size_t pos2 = _scopedName.find(_delim);
+  while (pos2 != std::string::npos)
+  {
+    names.push_back(_scopedName.substr(pos1, pos2 - pos1));
+    pos1 = pos2 + _delim.length();
+    pos2 = _scopedName.find(_delim, pos2 + _delim.length());
+  }
+  names.push_back(_scopedName.substr(pos1, _scopedName.size()-pos1));
+
+  for (const auto &name : names)
+  {
+    Entity entity;
+    if (kNullEntity == result)
+    {
+      entity = _ecm.EntityByComponents(components::Name(name));
+    }
+    else
+    {
+      entity = _ecm.EntityByComponents(components::Name(name),
+          components::ParentEntity(result));
+    }
+
+    if (kNullEntity == entity)
+    {
+      return kNullEntity;
+    }
+    result = entity;
   }
 
   return result;

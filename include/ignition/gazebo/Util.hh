@@ -51,6 +51,14 @@ namespace ignition
       const EntityComponentManager &_ecm, const std::string &_delim = "/",
       bool _includePrefix = true);
 
+    /// \brief Helper function to get an entity given its scoped name.
+    /// \param[in] _scopedName Entity's scoped name.
+    /// \param[in] _ecm Immutable reference to ECM.
+    /// \param[in] _delim Delimiter between names, defaults to "::".
+    Entity IGNITION_GAZEBO_VISIBLE entityFromScopedName(
+      const std::string &_entity, const EntityComponentManager &_ecm,
+      const std::string &_delim = "::");
+
     /// \brief Generally, each entity will be of some specific high-level type,
     /// such as World, Sensor, Collision, etc, and one type only.
     /// The entity type is usually marked by having some component that

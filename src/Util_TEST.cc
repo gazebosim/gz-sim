@@ -216,6 +216,37 @@ TEST(UtilTest, ScopedName)
   EXPECT_EQ(worldEntity, gazebo::worldEntity(linkCCEntity, ecm));
   EXPECT_EQ(worldEntity, gazebo::worldEntity(actorDEntity, ecm));
   EXPECT_EQ(kNullEntity, gazebo::worldEntity(kNullEntity, ecm));
+
+  // Entity from scoped name
+  EXPECT_EQ(kNullEntity, gazebo::entityFromScopedName("banana", ecm));
+  EXPECT_EQ(kNullEntity, gazebo::entityFromScopedName(
+      "world_name::banana", ecm));
+  EXPECT_EQ(kNullEntity, gazebo::entityFromScopedName(
+      "modelB_name::banana", ecm));
+
+  EXPECT_EQ(worldEntity, gazebo::entityFromScopedName(
+      "world_name", ecm));
+
+  EXPECT_EQ(modelBEntity, gazebo::entityFromScopedName(
+      "world_name::modelB_name", ecm));
+  EXPECT_EQ(modelBEntity, gazebo::entityFromScopedName(
+      "modelB_name", ecm));
+
+  EXPECT_EQ(linkBEntity, gazebo::entityFromScopedName(
+      "world_name::modelB_name::linkB_name", ecm));
+  EXPECT_EQ(linkBEntity, gazebo::entityFromScopedName(
+      "modelB_name::linkB_name", ecm));
+  EXPECT_EQ(linkBEntity, gazebo::entityFromScopedName(
+      "linkB_name", ecm));
+
+  EXPECT_EQ(sensorBEntity, gazebo::entityFromScopedName(
+      "world_name::modelB_name::linkB_name::sensorB_name", ecm));
+  EXPECT_EQ(sensorBEntity, gazebo::entityFromScopedName(
+      "modelB_name::linkB_name::sensorB_name", ecm));
+  EXPECT_EQ(sensorBEntity, gazebo::entityFromScopedName(
+      "linkB_name::sensorB_name", ecm));
+  EXPECT_EQ(sensorBEntity, gazebo::entityFromScopedName(
+      "sensorB_name", ecm));
 }
 
 /////////////////////////////////////////////////
