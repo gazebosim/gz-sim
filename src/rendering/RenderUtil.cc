@@ -1946,7 +1946,8 @@ void RenderUtilPrivate::RemoveSensor(const Entity _entity)
   auto sensorEntityIt = this->sensorEntities.find(_entity);
   if (sensorEntityIt != this->sensorEntities.end())
   {
-    this->removeSensorCb(_entity);
+    if (this->removeSensorCb)
+      this->removeSensorCb(_entity);
     this->sensorEntities.erase(sensorEntityIt);
   }
 }
