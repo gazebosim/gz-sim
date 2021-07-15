@@ -41,10 +41,10 @@
 namespace {
 
 //////////////////////////////////////////////////
-/// \brief Get the name of the world being used by calling
-/// `/gazebo/worlds` service.
-/// \return The name of the world if service is available,
-/// an empty string otherwise.
+// \brief Get the name of the world being used by calling
+// `/gazebo/worlds` service.
+// \return The name of the world if service is available,
+// an empty string otherwise.
 std::string getWorldName()
 {
   // Create a transport node.
@@ -75,9 +75,9 @@ std::string getWorldName()
 }
 
 //////////////////////////////////////////////////
-/// \brief Set the state of a ECM instance with a world snapshot.
-/// \param _ecm ECM instance to be populated.
-/// \return boolean indicating if it was able to populate the ECM.
+// \brief Set the state of a ECM instance with a world snapshot.
+// \param _ecm ECM instance to be populated.
+// \return boolean indicating if it was able to populate the ECM.
 bool PopulateECM(ignition::gazebo::EntityComponentManager &_ecm)
 {
   const std::string world = getWorldName();
@@ -94,7 +94,7 @@ bool PopulateECM(ignition::gazebo::EntityComponentManager &_ecm)
   const std::string service{"/world/" + world + "/state"};
 
   std::cout << std::endl << "Requesting state for world [" << world
-            << "] on service [" << service << "]..." << std::endl << std::endl;
+            << "]..." << std::endl << std::endl;
 
   // Request and block
   ignition::msgs::SerializedStepMap res;
@@ -120,9 +120,9 @@ bool PopulateECM(ignition::gazebo::EntityComponentManager &_ecm)
 
 
 //////////////////////////////////////////////////
-/// \brief Print the model pose information.
-/// \param[in] _entity Entity of the model requested.
-/// \param[in] _ecm ECM ready for requests.
+// \brief Print the model pose information.
+// \param[in] _entity Entity of the model requested.
+// \param[in] _ecm ECM ready for requests.
 void printPose(const uint64_t _entity,
                const ignition::gazebo::EntityComponentManager &_ecm){
   const auto modelPose = _ecm.EntitiesByComponents(
@@ -149,10 +149,10 @@ void printPose(const uint64_t _entity,
 }
 
 //////////////////////////////////////////////////
-/// \brief Print the model links information.
-/// \param[in] _entity Entity of the model requested.
-/// \param[in] _ecm ECM ready for requests.
-/// \param[in] _linkName Link to be printed, if nullptr, print all links.
+// \brief Print the model links information.
+// \param[in] _entity Entity of the model requested.
+// \param[in] _ecm ECM ready for requests.
+// \param[in] _linkName Link to be printed, if nullptr, print all links.
 void printLinks(const uint64_t _entity,
                 const ignition::gazebo::EntityComponentManager &_ecm,
                 const std::string &_linkName)
@@ -230,10 +230,10 @@ void printLinks(const uint64_t _entity,
 }
 
 //////////////////////////////////////////////////
-/// \brief Print the model joints information.
-/// \param[in] _entity Entity of the model requested.
-/// \param[in] _ecm ECM ready for requests.
-/// \param[in] _jointName Joint to be printed, if nullptr, print all joints.
+// \brief Print the model joints information.
+// \param[in] _entity Entity of the model requested.
+// \param[in] _ecm ECM ready for requests.
+// \param[in] _jointName Joint to be printed, if nullptr, print all joints.
 void printJoints(const uint64_t entity,
                 const ignition::gazebo::EntityComponentManager &_ecm,
                 const std::string &_jointName)

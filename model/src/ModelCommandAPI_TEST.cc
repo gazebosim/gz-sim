@@ -100,8 +100,7 @@ TEST(ModelCommandAPI, Commands)
     const std::string cmd = kIgnModelCommand + "--list";
     const std::string output = customExecStr(cmd);
     const std::string expectedOutput =
-      "\nRequesting state for world [diff_drive] on service "
-      "[/world/diff_drive/state]..."
+      "\nRequesting state for world [diff_drive]..."
       "\n\nAvailable models:\n"
       "    - ground_plane\n"
       "    - vehicle_blue\n";
@@ -114,8 +113,7 @@ TEST(ModelCommandAPI, Commands)
     std::string output = customExecStr(cmd);
     ReplaceNegativeZeroValues(output);
     const std::string expectedOutput =
-      "\nRequesting state for world [diff_drive] on service "
-      "[/world/diff_drive/state]...\n\n"
+      "\nRequesting state for world [diff_drive]...\n\n"
       "Name: vehicle_blue\n"
       "  - Pose: \n"
       "      [0.000000 | 2.000000 | 0.325000]\n"
@@ -192,8 +190,7 @@ TEST(ModelCommandAPI, Commands)
     std::string output = customExecStr(cmd);
     ReplaceNegativeZeroValues(output);
     const std::string expectedOutput =
-      "\nRequesting state for world [diff_drive] on service "
-      "[/world/diff_drive/state]...\n\n"
+      "\nRequesting state for world [diff_drive]...\n\n"
       "Name: vehicle_blue\n"
       "  - Pose: \n"
       "      [0.000000 | 2.000000 | 0.325000]\n"
@@ -208,8 +205,7 @@ TEST(ModelCommandAPI, Commands)
     std::string output = customExecStr(cmd);
     ReplaceNegativeZeroValues(output);
     const std::string expectedOutput =
-      "\nRequesting state for world [diff_drive] on service "
-      "[/world/diff_drive/state]...\n\n"
+      "\nRequesting state for world [diff_drive]...\n\n"
       "  - Link [9]\n"
       "    - Name: chassis\n"
       "    - Parent: vehicle_blue [8]\n"
@@ -264,8 +260,7 @@ TEST(ModelCommandAPI, Commands)
     std::string output = customExecStr(cmd);
     ReplaceNegativeZeroValues(output);
     const std::string expectedOutput =
-      "\nRequesting state for world [diff_drive] on service "
-      "[/world/diff_drive/state]...\n\n"
+      "\nRequesting state for world [diff_drive]...\n\n"
       "  - Link [18]\n"
       "    - Name: caster\n"
       "    - Parent: vehicle_blue [8]\n"
@@ -287,8 +282,7 @@ TEST(ModelCommandAPI, Commands)
     std::string output = customExecStr(cmd);
     ReplaceNegativeZeroValues(output);
     const std::string expectedOutput =
-      "\nRequesting state for world [diff_drive] on service "
-      "[/world/diff_drive/state]...\n\n"
+      "\nRequesting state for world [diff_drive]...\n\n"
       "  - Joint [21]\n"
       "    - Name: left_wheel_joint\n"
       "    - Parent: vehicle_blue [8]\n"
@@ -317,8 +311,7 @@ TEST(ModelCommandAPI, Commands)
     std::string output = customExecStr(cmd);
     ReplaceNegativeZeroValues(output);
     const std::string expectedOutput =
-      "\nRequesting state for world [diff_drive] on service "
-      "[/world/diff_drive/state]...\n\n"
+      "\nRequesting state for world [diff_drive]...\n\n"
       "  - Joint [23]\n"
       "    - Name: caster_wheel\n"
       "    - Parent: vehicle_blue [8]\n"
