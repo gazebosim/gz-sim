@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sdf version="1.7">
+  <world name="default">
+    <plugin
+      filename="ignition-gazebo-physics-system"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-scene-broadcaster-system"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+    <light type="directional" name="sun">
+      <pose>0 0 10 0 0 0</pose>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="surface">
+        <collision name="surface">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>2 2</size>
+            </plane>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <!--
+      base_link is the canonical link of cylinder1 and does not have a
+      collision shape, so it will fall indefinitely. However, link0_outer
+      has a collision shape, so it should fall until it hits the ground plane
+      and then stop.
+    -->
+    <model name="cylinder1">
+      <link name="base_link">
+        <visual name="visual1">
+          <geometry>
+            <cylinder>
+              <radius>0.2</radius>
+              <length>0.1</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.0 0.6 0.9 0.4</ambient>
+            <diffuse>0.0 0.6 0.9 0.4</diffuse>
+          </material>
+        </visual>
+      </link>
+      <!--
+        link0_outer is already resting on the ground plane, so it shouldn't
+        move at all
+      -->
+      <link name="link0_outer">
+        <pose>1 0 0 0 0 0</pose>
+        <collision name="collision_disk">
+          <geometry>
+            <cylinder>
+              <radius>0.2</radius>
+              <length>0.2</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual1">
+          <geometry>
+            <cylinder>
+              <radius>0.2</radius>
+              <length>0.2</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.6 0.6 0.9 1</ambient>
+            <diffuse>0.6 0.6 0.9 1</diffuse>
+            <specular>1.0 1.0 1.0 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!--
+      Same as the model above, but mark the second link of this model as the
+      canonical link. This is to test whether all links of a model are updated
+      after a canonical link update is registered. By default, unless a
+      canonical link is specified, then the first link of a model is the
+      canonical link. We want to make sure that model/link poses update
+      correctly regardless of the order of link updates that are
+      received/processed.
+    -->
+    <model name="cylinder1_custom" canonical_link="base_link_custom">
+      <pose>0 2 0 0 0 0</pose>
+      <link name="link0_outer_custom">
+        <pose>1 0 0 0 0 0</pose>
+        <collision name="collision_disk">
+          <geometry>
+            <cylinder>
+              <radius>0.2</radius>
+              <length>0.2</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual1">
+          <geometry>
+            <cylinder>
+              <radius>0.2</radius>
+              <length>0.2</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.6 0.6 0.9 1</ambient>
+            <diffuse>0.6 0.6 0.9 1</diffuse>
+            <specular>1.0 1.0 1.0 1</specular>
+          </material>
+        </visual>
+      </link>
+
+      <link name="base_link_custom">
+        <visual name="visual1">
+          <geometry>
+            <cylinder>
+              <radius>0.2</radius>
+              <length>0.1</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.0 0.6 0.9 0.4</ambient>
+            <diffuse>0.0 0.6 0.9 0.4</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!--
+      TODO(adlarkin) add a similar test with nested models in Edifice, since
+      nested model support is limited in Dome.
+    -->
+  </world>
+</sdf>
