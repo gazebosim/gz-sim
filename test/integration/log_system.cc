@@ -271,6 +271,7 @@ class LogSystemTest : public ::testing::Test
 /////////////////////////////////////////////////
 TEST_F(LogSystemTest, LogPlaybackStatistics)
 {
+  // TODO(anyone) see LogSystemTest.LogControl comment about re-recording
   auto logPath = common::joinPaths(PROJECT_SOURCE_PATH, "test", "media",
       "rolling_shapes_log");
 
@@ -845,6 +846,12 @@ TEST_F(LogSystemTest, RecordAndPlayback)
 /////////////////////////////////////////////////
 TEST_F(LogSystemTest, LogControl)
 {
+  // TODO(anyone) when re-recording state.tlog file, do not run
+  // `ign gazebo --record rolling_shapes.sdf` with `-r` flag and pause sim
+  // before terminating. For some reason, when running with `-r` &/or
+  // terminating sim w/o pausing causing strange pose behavior
+  // when seeking close to end of file followed by rewind. For more details:
+  // https://github.com/ignitionrobotics/ign-gazebo/pull/839
   auto logPath = common::joinPaths(PROJECT_SOURCE_PATH, "test", "media",
       "rolling_shapes_log");
 
