@@ -23,12 +23,16 @@ ign_build_tests(
 
 if(TARGET UNIT_ModelCommandAPI_TEST)
 
+  set(IGN_CONFIG_PATH "${CMAKE_BINARY_DIR}/model/test/lib/ruby/ignition")
   target_compile_definitions(UNIT_ModelCommandAPI_TEST PRIVATE
       "IGN_PATH=\"${IGNITION-TOOLS_BINARY_DIRS}\"")
 
   target_compile_definitions(UNIT_ModelCommandAPI_TEST PRIVATE
   "PROJECT_SOURCE_PATH=\"${PROJECT_SOURCE_DIR}\"")
 
+  set_tests_properties(UNIT_ModelCommandAPI_TEST PROPERTIES
+    ENVIRONMENT "IGN_CONFIG_PATH=${IGN_CONFIG_PATH}"
+  )
 endif()
 
 if(NOT WIN32)
