@@ -1458,3 +1458,83 @@ TEST_F(PhysicsSystemFixture, PhysicsOptions)
 
   EXPECT_TRUE(checked);
 }
+
+/////////////////////////////////////////////////
+TEST_F(PhysicsSystemFixture, Heightmap)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/heightmap.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  sdf::Root root;
+  root.Load(sdfFile);
+
+  bool checked{false};
+  int maxIt{0};
+
+  test::Relay testSystem;
+  testSystem.OnPostUpdate(
+    [&](const gazebo::UpdateInfo &_info,
+    const gazebo::EntityComponentManager &_ecm)
+    {
+      double aboveHeight;
+      double farHeight;
+      bool checkedAbove{false};
+      bool checkedFar{false};
+      bool checkedHeightmap{false};
+
+      _ecm.Each<components::Model, components::Name, components::Pose>(
+        [&](const ignition::gazebo::Entity &, const components::Model *,
+        const components::Name *_name, const components::Pose *_pose)->bool
+        {
+          if (_name->Data() == "above_heightmap")
+          {
+            aboveHeight = _pose->Data().Pos().Z();
+            checkedAbove = true;
+          }
+          else if (_name->Data() == "far_from_heightmap")
+          {
+            farHeight = _pose->Data().Pos().Z();
+            checkedFar = true;
+          }
+          else
+          {
+            EXPECT_EQ("Heightmap Bowl", _name->Data());
+            EXPECT_EQ(math::Pose3d(), _pose->Data());
+            checkedHeightmap = true;
+          }
+
+          return true;
+        });
+
+      EXPECT_TRUE(checkedAbove);
+      EXPECT_TRUE(checkedFar);
+      EXPECT_TRUE(checkedHeightmap);
+
+      // Both models drop from 7m
+      EXPECT_GE(7.01, aboveHeight) << _info.iterations;
+      EXPECT_GE(7.01, farHeight) << _info.iterations;
+
+      // Model above heightmap hits it and never drops below 5.5m
+      EXPECT_LE(5.5, aboveHeight) << _info.iterations;
+
+      // Model far from heightmap keeps falling
+      if (_info.iterations > 600)
+      {
+        EXPECT_GT(5.5, farHeight) << _info.iterations;
+      }
+
+      checked = true;
+      maxIt = _info.iterations;
+      return true;
+    });
+
+  gazebo::Server server(serverConfig);
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 1000, false);
+
+  EXPECT_TRUE(checked);
+  EXPECT_EQ(1000, maxIt);
+}
