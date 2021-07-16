@@ -329,8 +329,10 @@ class ignition::gazebo::RenderUtilPrivate
   /// visible
   public: std::map<Entity, bool> viewingJoints;
 
-  /// \brief A map of link names and their corresponding entity id
-  public: std::map<std::string, Entity> matchLinksWithEntities;
+  /// \brief A map of models entities and link attributes used
+  /// to create joint visuals
+  public: std::map<Entity, std::map<std::string, Entity>>
+                           matchLinksWithEntities;
 
   /// \brief New center of mass visuals to be created
   public: std::vector<Entity> newCOMVisuals;
@@ -1224,18 +1226,17 @@ void RenderUtil::Update()
           std::string childLinkName =
               this->dataPtr->entityJoints[jointEntity].ChildLinkName();
           Entity childId =
-              this->dataPtr->matchLinksWithEntities[childLinkName];
+              this->dataPtr->matchLinksWithEntities[model][childLinkName];
 
           std::string parentLinkName =
               this->dataPtr->entityJoints[jointEntity].ParentLinkName();
           Entity parentId =
-              this->dataPtr->matchLinksWithEntities[parentLinkName];
+              this->dataPtr->matchLinksWithEntities[model][parentLinkName];
 
           auto vis = this->dataPtr->sceneManager.CreateJointVisual(
               jointEntity, this->dataPtr->entityJoints[jointEntity],
               childId, parentId);
           this->dataPtr->viewingJoints[jointEntity] = true;
-          break;
         }
       }
     }
@@ -1405,7 +1406,8 @@ void RenderUtilPrivate::CreateRenderingEntities(
           // used for collsions
           this->modelToLinkEntities[_parent->Data()].push_back(_entity);
           // used for joints
-          this->matchLinksWithEntities[_name->Data()] = _entity;
+          this->matchLinksWithEntities[_parent->Data()][_name->Data()] =
+              _entity;
           return true;
         });
 
@@ -1682,7 +1684,8 @@ void RenderUtilPrivate::CreateRenderingEntities(
           // used for collsions
           this->modelToLinkEntities[_parent->Data()].push_back(_entity);
           // used for joints
-          this->matchLinksWithEntities[_name->Data()] = _entity;
+          this->matchLinksWithEntities[_parent->Data()][_name->Data()] =
+              _entity;
           return true;
         });
 
@@ -2070,6 +2073,7 @@ void RenderUtilPrivate::RemoveRenderingEntities(
         this->removeEntities[_entity] = _info.iterations;
         this->modelToLinkEntities.erase(_entity);
         this->modelToModelEntities.erase(_entity);
+        this->matchLinksWithEntities.erase(_entity);
         return true;
       });
 
@@ -2128,15 +2132,6 @@ void RenderUtilPrivate::RemoveRenderingEntities(
         this->removeEntities[_entity] = _info.iterations;
         this->entityJoints.erase(_entity);
         this->viewingJoints.erase(_entity);
-        return true;
-      });
-
-  _ecm.EachRemoved<components::Link, components::Name>(
-      [&](const Entity &_entity, const components::Link *,
-          const components::Name *_name)->bool
-      {
-        this->removeEntities[_entity] = _info.iterations;
-        this->matchLinksWithEntities.erase(_name->Data());
         return true;
       });
 
