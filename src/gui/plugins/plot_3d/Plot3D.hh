@@ -32,7 +32,22 @@ namespace gui
 {
   class Plot3DPrivate;
 
-  /// \brief
+  /// \brief Plot the trajectory of an entity into the 3D scene.
+  ///
+  /// This plugin can be instantiated multiple times to plot various entities.
+  ///
+  /// ## Configuration
+  ///
+  /// `<entity_name>`: Plot the given entity at startup. Accepts names scoped
+  /// with `::`, for example `my_model::my_link`
+  /// `<color>`: RGB color of line, defaults to blue.
+  /// `<offset>`: XYZ offset from the entity's origin to plot from, expressed
+  /// in the entity's frame. Defaults to zero.
+  /// `<minimum_distance>`: The minimum distance between points to plot. A new
+  /// point will not be plotted until the entity has moved beyond this distance
+  /// from the previous point.
+  /// `<maximum_points>`: Maximum number of points on the plot. After this
+  /// number is reached, the older points start being deleted.
   class Plot3D : public ignition::gazebo::GuiSystem
   {
     Q_OBJECT

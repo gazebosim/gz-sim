@@ -64,7 +64,7 @@ Rectangle {
       spacing: 0
 
       Label {
-        text: Plot3D.targetName
+        text: Plot3D.targetName.empty ? "No entity selected" : Plot3D.targetName
         color: Material.theme == Material.Light ? "#444444" : "#cccccc"
         font.pointSize: 12
         padding: 3
