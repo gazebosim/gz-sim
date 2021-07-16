@@ -49,7 +49,6 @@
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
-
       </plugin>
 
       <!-- Time / RTF -->
@@ -73,7 +72,6 @@
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-
       </plugin>
 
       <!-- Translate / rotate -->
@@ -172,7 +170,6 @@
             </sphere>
           </geometry>
         </collision>
-
         <visual name="sphere_visual">
           <geometry>
             <sphere>
@@ -209,7 +206,6 @@
             </sphere>
           </geometry>
         </collision>
-
         <visual name="sphere_visual">
           <geometry>
             <sphere>
@@ -246,7 +242,6 @@
             </sphere>
           </geometry>
         </collision>
-
         <visual name="sphere_visual">
           <geometry>
             <sphere>
@@ -283,7 +278,6 @@
             </sphere>
           </geometry>
         </collision>
-
         <visual name="sphere_visual">
           <geometry>
             <sphere>
