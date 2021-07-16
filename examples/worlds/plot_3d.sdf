@@ -48,7 +48,6 @@
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
-
       </plugin>
 
       <!-- World statistics -->
@@ -72,7 +71,6 @@
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-
       </plugin>
 
       <!-- Entity tree -->
@@ -102,7 +100,6 @@
         <maximum_points>40</maximum_points>
         <minimum_distance>0.3</minimum_distance>
       </plugin>
-
     </gui>
 
     <light type="directional" name="sun">

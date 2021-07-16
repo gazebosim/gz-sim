@@ -44,7 +44,10 @@
 #include "Plot3D.hh"
 
 int g_argc = 1;
-char **g_argv;
+char* g_argv[] =
+{
+  reinterpret_cast<char*>(const_cast<char*>("dummy")),
+};
 
 using namespace ignition;
 

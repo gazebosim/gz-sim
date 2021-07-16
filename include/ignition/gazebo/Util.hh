@@ -52,11 +52,25 @@ namespace ignition
       bool _includePrefix = true);
 
     /// \brief Helper function to get an entity given its scoped name.
+    /// The scope may start at any level. For example, in this hierarchy:
+    ///
+    /// world_name
+    ///  model_name
+    ///    link_name
+    ///
+    /// All these names will return the link entity:
+    ///
+    /// * world_name::model_name::link_name
+    /// * model_name::link_name
+    /// * link_name
+    ///
     /// \param[in] _scopedName Entity's scoped name.
     /// \param[in] _ecm Immutable reference to ECM.
     /// \param[in] _delim Delimiter between names, defaults to "::".
+    /// \return The engity or kNullEntity if no entity was found with that
+    /// name.
     Entity IGNITION_GAZEBO_VISIBLE entityFromScopedName(
-      const std::string &_entity, const EntityComponentManager &_ecm,
+      const std::string &_scopedName, const EntityComponentManager &_ecm,
       const std::string &_delim = "::");
 
     /// \brief Generally, each entity will be of some specific high-level type,
