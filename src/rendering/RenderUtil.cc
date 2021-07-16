@@ -1896,7 +1896,7 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
     auto aabb = vis->LocalBoundingBox();
     if (aabb == math::AxisAlignedBox())
     {
-      // Infinite bounding box, skip hihglighting this node.
+      // Infinite bounding box, skip highlighting this node.
       // This happens for Heightmaps, for example.
       return;
     }
