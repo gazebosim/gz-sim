@@ -2,16 +2,6 @@
 
 3d shapes created for simulation serve the purpose of bringing realism to a scene. It also helps identify everything in the scene easier. If for example all of the objects in a scene were simple shapes like cubes and circles it can be difficult to distinguish objects in the simulation.
 
-### Table of Contents
-
- - [Collision shapes vs Visual shapes](#collision-shapes-vs-visual-shapes)
- - [Creating Models](#creating-models)
-   - [Create/add simple mesh](#create/add-simple-mesh)
-   - [More polygons less performance](#more-polygons-less-performance)
- - [Exporting Models](#exporting-models)
- - [Troubleshooting](#troubleshooting)
-
-
 ## Collision shapes vs Visual shapes
 Simple shapes like cubes and spheres, better known as “primitives”, are often used as collision pieces. Collision shapes use simplified geometry compared to the visual mesh because they serve different purposes in simulations.
 
@@ -106,7 +96,7 @@ To export: select your shape and then `File>Export>Collada(Default)(.dae)`
 
 After you hit export in whatever file format you decide to go with, the "Blender File View" will appear. This is where you choose the location of your file. You can also choose how you want to export your model.
 
-Double checking the “global Orientation” can save time and here you can quickly change the “Up Axis” to Y up. This is the standard orientation in Gazebo
+Double checking the “global Orientation” can save time and here you can quickly change the “Up Axis” to Z up. This is the standard orientation in Gazebo
 
 Equally make sure that the If the shape is meant to stand on the ground, place the origin on the base, and make the model face X (Forward Axis)
 
