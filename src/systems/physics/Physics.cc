@@ -31,6 +31,8 @@
 #include <unordered_set>
 #include <vector>
 
+#include <ignition/common/HeightmapData.hh>
+#include <ignition/common/ImageHeightmap.hh>
 #include <ignition/common/MeshManager.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/common/SystemPaths.hh>
@@ -40,6 +42,7 @@
 #include <ignition/physics/config.hh>
 #include <ignition/physics/FeatureList.hh>
 #include <ignition/physics/FeaturePolicy.hh>
+#include <ignition/physics/heightmap/HeightmapShape.hh>
 #include <ignition/physics/RelativeQuantity.hh>
 #include <ignition/physics/RequestEngine.hh>
 
@@ -70,6 +73,7 @@
 
 // SDF
 #include <sdf/Collision.hh>
+#include <sdf/Heightmap.hh>
 #include <sdf/Joint.hh>
 #include <sdf/Link.hh>
 #include <sdf/Mesh.hh>
@@ -176,6 +180,30 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// \brief Create physics entities
   /// \param[in] _ecm Constant reference to ECM.
   public: void CreatePhysicsEntities(const EntityComponentManager &_ecm);
+
+  /// \brief Create world entities
+  /// \param[in] _ecm Constant reference to ECM.
+  public: void CreateWorldEntities(const EntityComponentManager &_ecm);
+
+  /// \brief Create model entities
+  /// \param[in] _ecm Constant reference to ECM.
+  public: void CreateModelEntities(const EntityComponentManager &_ecm);
+
+  /// \brief Create link entities
+  /// \param[in] _ecm Constant reference to ECM.
+  public: void CreateLinkEntities(const EntityComponentManager &_ecm);
+
+  /// \brief Create collision entities
+  /// \param[in] _ecm Constant reference to ECM.
+  public: void CreateCollisionEntities(const EntityComponentManager &_ecm);
+
+  /// \brief Create joint entities
+  /// \param[in] _ecm Constant reference to ECM.
+  public: void CreateJointEntities(const EntityComponentManager &_ecm);
+
+  /// \brief Create Battery entities
+  /// \param[in] _ecm Constant reference to ECM.
+  public: void CreateBatteryEntities(const EntityComponentManager &_ecm);
 
   /// \brief Remove physics entities if they are removed from the ECM
   /// \param[in] _ecm Constant reference to ECM.
@@ -458,6 +486,16 @@ class ignition::gazebo::systems::PhysicsPrivate
             physics::mesh::AttachMeshShapeFeature>{};
 
   //////////////////////////////////////////////////
+  // Heightmap
+
+  /// \brief Feature list for heightmaps.
+  /// Include MinimumFeatureList so created collision can be automatically
+  /// up-cast.
+  public: struct HeightmapFeatureList : ignition::physics::FeatureList<
+            CollisionFeatureList,
+            physics::heightmap::AttachHeightmapShapeFeature>{};
+
+  //////////////////////////////////////////////////
   // Collision detector
   /// \brief Feature list for setting and getting the collision detector
   public: struct CollisionDetectorFeatureList : ignition::physics::FeatureList<
@@ -510,6 +548,7 @@ class ignition::gazebo::systems::PhysicsPrivate
             MinimumFeatureList,
             DetachableJointFeatureList,
             CollisionFeatureList,
+            HeightmapFeatureList,
             LinkForceFeatureList,
             MeshFeatureList>;
 
@@ -711,6 +750,18 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 {
+  this->CreateWorldEntities(_ecm);
+  this->CreateModelEntities(_ecm);
+  this->CreateLinkEntities(_ecm);
+  // We don't need to add visuals to the physics engine.
+  this->CreateCollisionEntities(_ecm);
+  this->CreateJointEntities(_ecm);
+  this->CreateBatteryEntities(_ecm);
+}
+
+//////////////////////////////////////////////////
+void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm)
+{
   // Get all the new worlds
   _ecm.EachNew<components::World, components::Name, components::Gravity>(
       [&](const Entity &_entity,
@@ -787,7 +838,11 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 
         return true;
       });
+}
 
+//////////////////////////////////////////////////
+void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm)
+{
   _ecm.EachNew<components::Model, components::Name, components::Pose,
             components::ParentEntity>(
       [&](const Entity &_entity,
@@ -915,7 +970,11 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 
         return true;
       });
+}
 
+//////////////////////////////////////////////////
+void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm)
+{
   _ecm.EachNew<components::Link, components::Name, components::Pose,
             components::ParentEntity>(
       [&](const Entity &_entity,
@@ -969,10 +1028,11 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 
         return true;
       });
+}
 
-  // We don't need to add visuals to the physics engine.
-
-  // collisions
+//////////////////////////////////////////////////
+void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm)
+{
   _ecm.EachNew<components::Collision, components::Name, components::Pose,
             components::Geometry, components::CollisionElement,
             components::ParentEntity>(
@@ -1051,6 +1111,56 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
               math::eigen3::convert(_pose->Data()),
               math::eigen3::convert(meshSdf->Scale()));
         }
+        else if (_geom->Data().Type() == sdf::GeometryType::HEIGHTMAP)
+        {
+          auto linkHeightmapFeature =
+              this->entityLinkMap.EntityCast<HeightmapFeatureList>(
+                  _parent->Data());
+          if (!linkHeightmapFeature)
+          {
+            static bool informed{false};
+            if (!informed)
+            {
+              igndbg << "Attempting to process heightmap geometries, but the "
+                     << "physics engine doesn't support feature "
+                     << "[AttachHeightmapShapeFeature]. Heightmaps will be "
+                     << "ignored." << std::endl;
+              informed = true;
+            }
+            return true;
+          }
+
+          auto heightmapSdf = _geom->Data().HeightmapShape();
+          if (nullptr == heightmapSdf)
+          {
+            ignwarn << "Heightmap geometry for collision [" << _name->Data()
+                    << "] missing heightmap shape." << std::endl;
+            return true;
+          }
+
+          auto fullPath = asFullPath(heightmapSdf->Uri(),
+              heightmapSdf->FilePath());
+          if (fullPath.empty())
+          {
+            ignerr << "Heightmap geometry missing URI" << std::endl;
+            return true;
+          }
+
+          common::ImageHeightmap data;
+          if (data.Load(fullPath) < 0)
+          {
+            ignerr << "Failed to load heightmap image data from [" << fullPath
+                   << "]" << std::endl;
+            return true;
+          }
+
+          collisionPtrPhys = linkHeightmapFeature->AttachHeightmapShape(
+              _name->Data(),
+              data,
+              math::eigen3::convert(_pose->Data()),
+              math::eigen3::convert(heightmapSdf->Size()),
+              heightmapSdf->Sampling());
+        }
         else
         {
           auto linkCollisionFeature =
@@ -1101,8 +1211,11 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
             topLevelModel(_entity, _ecm)));
         return true;
       });
+}
 
-  // joints
+//////////////////////////////////////////////////
+void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm)
+{
   _ecm.EachNew<components::Joint, components::Name, components::JointType,
                components::Pose, components::ThreadPitch,
                components::ParentEntity, components::ParentLinkName,
@@ -1184,15 +1297,6 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
           this->topLevelModelMap.insert(std::make_pair(_entity,
               topLevelModel(_entity, _ecm)));
         }
-        return true;
-      });
-
-  _ecm.EachNew<components::BatterySoC>(
-      [&](const Entity & _entity, const components::BatterySoC *)->bool
-      {
-        // Parent entity of battery is model entity
-        this->entityOffMap.insert(std::make_pair(
-          _ecm.ParentEntity(_entity), false));
         return true;
       });
 
@@ -1281,6 +1385,19 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         {
           ignwarn << "DetachableJoint could not be created." << std::endl;
         }
+        return true;
+      });
+}
+
+//////////////////////////////////////////////////
+void PhysicsPrivate::CreateBatteryEntities(const EntityComponentManager &_ecm)
+{
+  _ecm.EachNew<components::BatterySoC>(
+      [&](const Entity & _entity, const components::BatterySoC *)->bool
+      {
+        // Parent entity of battery is model entity
+        this->entityOffMap.insert(std::make_pair(
+          _ecm.ParentEntity(_entity), false));
         return true;
       });
 }
