@@ -196,7 +196,7 @@ void SensorsPrivate::WaitForInit()
       igndbg << "Initializing render context" << std::endl;
       this->renderUtil.Init();
       this->scene = this->renderUtil.Scene();
-      this->scene->SetCameraPassCountPerGpuFlush( 6u );
+      this->scene->SetCameraPassCountPerGpuFlush(6u);
       this->initialized = true;
     }
 
