@@ -78,7 +78,7 @@ std::string getWorldName()
 // \brief Set the state of a ECM instance with a world snapshot.
 // \param _ecm ECM instance to be populated.
 // \return boolean indicating if it was able to populate the ECM.
-bool PopulateECM(ignition::gazebo::EntityComponentManager &_ecm)
+bool populateECM(ignition::gazebo::EntityComponentManager &_ecm)
 {
   const std::string world = getWorldName();
   if (world.empty())
@@ -143,7 +143,8 @@ void printPose(const uint64_t _entity,
                             + std::to_string(poseComp->Data().Pitch()) + " | "
                             + std::to_string(poseComp->Data().Yaw()) + "]";
 
-    std::cout << "Name: " << nameComp->Data() << std::endl
+    std::cout << "Model: [" << _entity << "]" << std::endl
+              << "  - Name: " << nameComp->Data() << std::endl
               << "  - Pose: " << poseInfo << std::endl << std::endl;
   }
 }
@@ -304,7 +305,7 @@ void printJoints(const uint64_t entity,
 extern "C" IGNITION_GAZEBO_VISIBLE void cmdModelList()
 {
   ignition::gazebo::EntityComponentManager ecm{};
-  if(!PopulateECM(ecm))
+  if(!populateECM(ecm))
   {
     return;
   }
@@ -347,7 +348,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE void cmdModelInfo(
   // Get arguments
 
   ignition::gazebo::EntityComponentManager ecm{};
-  if(!PopulateECM(ecm))
+  if(!populateECM(ecm))
     return;
 
   // Get the desired model entity.

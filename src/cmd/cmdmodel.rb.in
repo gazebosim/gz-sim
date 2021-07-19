@@ -47,13 +47,18 @@ COMMANDS = { 'model' =>
   "                             If no arg is passed all links are printed  \n"\
   "                             Requires the -m option                     \n"\
   "                                                                        \n"\
+  "                             E.g. to get information about the          \n"\
+  "                             caster link in the diff_drive world, run:  \n"\
+  "                             ign model -m vehicle_blue -l caster        \n"\
+  "                                                                        \n"\
   "  -j [--joint] arg           Select a joint to show its properties.     \n"\
   "                             If no arg is passed all joints are printed \n"\
   "                             Requires the -m option                     \n"\
   "                                                                        \n"\
   "                             E.g. to get information about the          \n"\
-  "                             box_link in the shapes world, run:         \n"\
-  "                             ign model -m box -l box_link               \n\n"+
+  "                             caster_wheel joint in the diff_drive       \n"\
+  "                             world, run:                                \n"\
+  "                             ign model -m vehicle_blue -j caster_wheel  \n\n"+
   COMMON_OPTIONS
 }
 
@@ -77,7 +82,7 @@ class Cmd
 
     opt_parser = OptionParser.new do |opts|
       opts.banner = usage
-  
+
       opts.on('-h', '--help') do
           puts usage
           exit
@@ -124,8 +129,8 @@ class Cmd
 
     options
   end # parse()
-  
-  
+
+
   def execute(args)
     options = parse(args)
 
@@ -159,7 +164,7 @@ class Cmd
 
       Importer.cmdModelInfo(options['model'], options['pose'], options['link'],
       options['link_name'], options['joint'], options['joint_name'])
-    else 
+    else
       puts 'Command error: I do not have an implementation for '\
         "command [ign #{options['command']}]."
     end

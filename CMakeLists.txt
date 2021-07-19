@@ -149,9 +149,7 @@ set(IGNITION_GAZEBO_GUI_PLUGIN_INSTALL_DIR
 #============================================================================
 # Configure the build
 #============================================================================
-ign_configure_build(QUIT_IF_BUILD_ERRORS
-  COMPONENTS model
-)
+ign_configure_build(QUIT_IF_BUILD_ERRORS)
 
 add_subdirectory(examples)
 

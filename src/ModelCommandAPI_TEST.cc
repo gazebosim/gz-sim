@@ -24,6 +24,7 @@
 #include <gtest/gtest.h>
 
 #include "ignition/gazebo/Server.hh"
+#include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
 static const std::string kIgnModelCommand(std::string(IGN_PATH) +
                                           "/ign model ");
@@ -40,8 +41,8 @@ void ReplaceNegativeZeroValues(std::string &_text)
   size_t pos = 0;
   while ((pos = _text.find(neg_zero, pos)) != std::string::npos)
   {
-        _text.replace(pos, neg_zero.length(), zero);
-        pos += zero.length();
+    _text.replace(pos, neg_zero.length(), zero);
+    pos += zero.length();
   }
 }
 
@@ -114,7 +115,8 @@ TEST(ModelCommandAPI, Commands)
     ReplaceNegativeZeroValues(output);
     const std::string expectedOutput =
       "\nRequesting state for world [diff_drive]...\n\n"
-      "Name: vehicle_blue\n"
+      "Model: [8]\n"
+      "  - Name: vehicle_blue\n"
       "  - Pose: \n"
       "      [0.000000 | 2.000000 | 0.325000]\n"
       "      [0.000000 | 0.000000 | 0.000000]\n"
@@ -191,7 +193,8 @@ TEST(ModelCommandAPI, Commands)
     ReplaceNegativeZeroValues(output);
     const std::string expectedOutput =
       "\nRequesting state for world [diff_drive]...\n\n"
-      "Name: vehicle_blue\n"
+      "Model: [8]\n"
+      "  - Name: vehicle_blue\n"
       "  - Pose: \n"
       "      [0.000000 | 2.000000 | 0.325000]\n"
       "      [0.000000 | 0.000000 | 0.000000]\n\n";

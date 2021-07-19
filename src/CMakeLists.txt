@@ -31,6 +31,7 @@ set(gui_sources
   PARENT_SCOPE
 )
 
+ign_add_component(model SOURCES cmd/ModelCommandAPI.cc GET_TARGET_NAME model_lib_target)
 ign_add_component(ign SOURCES ign.cc GET_TARGET_NAME ign_lib_target)
 target_link_libraries(${ign_lib_target}
   PRIVATE
@@ -59,6 +60,7 @@ set (sources
   Util.cc
   View.cc
   World.cc
+  cmd/ModelCommandAPI.cc
   ${PROTO_PRIVATE_SRC}
   ${network_sources}
 )
@@ -74,6 +76,7 @@ set (gtest_sources
   ign_TEST.cc
   Link_TEST.cc
   Model_TEST.cc
+  ModelCommandAPI_TEST.cc
   SdfEntityCreator_TEST.cc
   SdfGenerator_TEST.cc
   Server_TEST.cc
@@ -162,6 +165,13 @@ if(TARGET UNIT_ign_TEST)
 
   set_tests_properties(UNIT_ign_TEST PROPERTIES
     ENVIRONMENT "${_env_vars}")
+endif()
+
+if(TARGET UNIT_ModelCommandAPI_TEST)
+
+  target_compile_definitions(UNIT_ModelCommandAPI_TEST PRIVATE
+  "IGN_PATH=\"${IGNITION-TOOLS_BINARY_DIRS}\"")
+
 endif()
 
 if(NOT WIN32)
