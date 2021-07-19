@@ -272,14 +272,14 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
       p.direction = sdf_light.Direction();
       p.diffuse = sdf_light.Diffuse();
 
-      p.constant_attenuation = sdf_light.ConstantAttenuationFactor();
-      p.linear_attenuation = sdf_light.LinearAttenuationFactor();
-      p.quadratic_attenuation = sdf_light.QuadraticAttenuationFactor();
+      p.constantAttenuation = sdf_light.ConstantAttenuationFactor();
+      p.linearAttenuation = sdf_light.LinearAttenuationFactor();
+      p.quadraticAttenuation = sdf_light.QuadraticAttenuationFactor();
 
       // Falloff angle is treated as the outer angle in blender
       // https://community.khronos.org/t/spotlight-properties/7111/7
-      p.falloff_angle_deg = sdf_light.SpotOuterAngle().Degree();
-      p.falloff_exponent = sdf_light.SpotFalloff();
+      p.falloffAngleDeg = sdf_light.SpotOuterAngle().Degree();
+      p.falloffExponent = sdf_light.SpotFalloff();
 
       lights.push_back(p);
       return true;
