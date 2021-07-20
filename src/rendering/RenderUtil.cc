@@ -2220,9 +2220,15 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
       white->SetEmissive(1.0, 1.0, 1.0);
     }
 
-    ignition::rendering::WireBoxPtr wireBox =
-      this->scene->CreateWireBox();
-    ignition::math::AxisAlignedBox aabb = vis->LocalBoundingBox();
+    auto aabb = vis->LocalBoundingBox();
+    if (aabb == math::AxisAlignedBox())
+    {
+      // Infinite bounding box, skip highlighting this node.
+      // This happens for Heightmaps, for example.
+      return;
+    }
+
+    auto wireBox = this->scene->CreateWireBox();
     wireBox->SetBox(aabb);
 
     // Create visual and add wire box
@@ -2273,7 +2279,8 @@ void RenderUtilPrivate::RemoveSensor(const Entity _entity)
   auto sensorEntityIt = this->sensorEntities.find(_entity);
   if (sensorEntityIt != this->sensorEntities.end())
   {
-    this->removeSensorCb(_entity);
+    if (this->removeSensorCb)
+      this->removeSensorCb(_entity);
     this->sensorEntities.erase(sensorEntityIt);
   }
 }

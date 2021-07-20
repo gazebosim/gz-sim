@@ -8,6 +8,197 @@
 
 ### Ignition Gazebo 5.X.X (20XX-XX-XX)
 
+### Ignition Gazebo 5.1.0 (2021-06-29)
+
+1. Depend on SDF 11.2.1, rendering 5.1 and GUI 5.1. Fix Windows.
+    * [Pull request #877](https://github.com/ignitionrobotics/ign-gazebo/pull/877)
+
+1. Set gui camera pose
+    * [Pull request #863](https://github.com/ignitionrobotics/ign-gazebo/pull/863)
+
+1. Refactor RenderUtil::Update with helper functions
+    * [Pull request #858](https://github.com/ignitionrobotics/ign-gazebo/pull/858)
+
+1. Enables confirmation dialog when closing Gazebo.
+    * [Pull request #850](https://github.com/ignitionrobotics/ign-gazebo/pull/850)
+
+1. Using math::SpeedLimiter on the diff_drive controller.
+    * [Pull request #833](https://github.com/ignitionrobotics/ign-gazebo/pull/833)
+
+1. New example: get an ECM snapshot from an external program
+    * [Pull request #859](https://github.com/ignitionrobotics/ign-gazebo/pull/859)
+
+1. Fix WindEffects Plugin bug, not configuring new links
+    * [Pull request #844](https://github.com/ignitionrobotics/ign-gazebo/pull/844)
+
+1. Set collision detector and solver from SDF
+    * [Pull request #684](https://github.com/ignitionrobotics/ign-gazebo/pull/684)
+
+1. Add Particle Emitter tutorial
+    * [Pull request #860](https://github.com/ignitionrobotics/ign-gazebo/pull/860)
+
+1. Fix potentially flaky integration component test case
+    * [Pull request #848](https://github.com/ignitionrobotics/ign-gazebo/pull/848)
+
+1. Added follow camera offset service
+    * [Pull request #855](https://github.com/ignitionrobotics/ign-gazebo/pull/855)
+
+1. Remove unneeded camera follow offset checks
+    * [Pull request #857](https://github.com/ignitionrobotics/ign-gazebo/pull/857)
+
+1. Using math::SpeedLimiter on the ackermann_steering controller.
+    * [Pull request #837](https://github.com/ignitionrobotics/ign-gazebo/pull/837)
+
+1. Cleanup and alphabetize plugin headers
+    * [Pull request #838](https://github.com/ignitionrobotics/ign-gazebo/pull/838)
+
+1. Fix race condition when rendering the UI
+    * [Pull request #774](https://github.com/ignitionrobotics/ign-gazebo/pull/774)
+
+1. Removed duplicated code with rendering::sceneFromFirstRenderEngine
+    * [Pull request #819](https://github.com/ignitionrobotics/ign-gazebo/pull/819)
+
+1. Remove unused headers in video_recoder plugin
+    * [Pull request #834](https://github.com/ignitionrobotics/ign-gazebo/pull/834)
+
+1. Use moveToHelper from ign-rendering
+    * [Pull request #825](https://github.com/ignitionrobotics/ign-gazebo/pull/825)
+
+1. Make halt motion act like a brake
+    * [Pull request #830](https://github.com/ignitionrobotics/ign-gazebo/pull/830)
+
+1. Update collision visualization to support nested models
+    * [Pull request #823](https://github.com/ignitionrobotics/ign-gazebo/pull/823)
+
+1. Adds support for ocean currents
+    * [Pull request #800](https://github.com/ignitionrobotics/ign-gazebo/pull/800)
+
+1. Add conversion for particle scatter ratio field
+    * [Pull request #791](https://github.com/ignitionrobotics/ign-gazebo/pull/791)
+
+1. Adding HaltMotion to physics plugin
+    * [Pull request #728](https://github.com/ignitionrobotics/ign-gazebo/pull/728)
+
+1. ColladaExporter, export submesh selected
+    * [Pull request #802](https://github.com/ignitionrobotics/ign-gazebo/pull/802)
+
+1. Remove tools/code_check and update codecov
+    * [Pull request #814](https://github.com/ignitionrobotics/ign-gazebo/pull/814)
+
+1. Trigger delay
+    * [Pull request #817](https://github.com/ignitionrobotics/ign-gazebo/pull/817)
+
+1. Map canonical links to their models
+    * [Pull request #736](https://github.com/ignitionrobotics/ign-gazebo/pull/736)
+
+1. Fix included nested model expansion in SDF generation
+    * [Pull request #768](https://github.com/ignitionrobotics/ign-gazebo/pull/768)
+
+1. Util: Use public API from libsdformat for detecting non-file source
+    * [Pull request #794](https://github.com/ignitionrobotics/ign-gazebo/pull/794)
+
+1. Contacts visualization
+    * [Pull request #234](https://github.com/ignitionrobotics/ign-gazebo/pull/234)
+
+1. Bump to ign-msgs 7.1 / sdformat 11.1, Windows fixes
+    * [Pull request #758](https://github.com/ignitionrobotics/ign-gazebo/pull/758)
+
+1. Add functionalities for optical tactile plugin
+    * [Pull request #431](https://github.com/ignitionrobotics/ign-gazebo/pull/431)
+
+1. Fix documentation for EntityComponentManager::EachNew
+    * [Pull request #795](https://github.com/ignitionrobotics/ign-gazebo/pull/795)
+
+1. Bump ign-physics version to 3.2
+    * [Pull request #792](https://github.com/ignitionrobotics/ign-gazebo/pull/792)
+
+1. Prevent crash on Plotting plugin with mutex
+    * [Pull request #747](https://github.com/ignitionrobotics/ign-gazebo/pull/747)
+
+1. 👩‍🌾 Fix Windows build and some warnings
+    * [Pull request #782](https://github.com/ignitionrobotics/ign-gazebo/pull/782)
+
+1. Fix ColladaExporter submesh index bug
+    * [Pull request #763](https://github.com/ignitionrobotics/ign-gazebo/pull/763)
+
+1. Fix macOS build: components::Name in benchmark
+    * [Pull request #784](https://github.com/ignitionrobotics/ign-gazebo/pull/784)
+
+1. Feature/hydrodynamics
+    * [Pull request #749](https://github.com/ignitionrobotics/ign-gazebo/pull/749)
+
+1. Don't store duplicate ComponentTypeId in ECM
+    * [Pull request #751](https://github.com/ignitionrobotics/ign-gazebo/pull/751)
+
+1. [TPE] Support setting individual link velocity
+    * [Pull request #427](https://github.com/ignitionrobotics/ign-gazebo/pull/427)
+
+1. 👩‍🌾 Enable Focal CI
+    * [Pull request #646](https://github.com/ignitionrobotics/ign-gazebo/pull/646)
+
+1. Patch particle emitter2 service
+    * [Pull request #777](https://github.com/ignitionrobotics/ign-gazebo/pull/777)
+
+1. Add odometry publisher system
+    * [Pull request #547](https://github.com/ignitionrobotics/ign-gazebo/pull/547)
+
+1. [DiffDrive] add enable/disable
+    * [Pull request #772](https://github.com/ignitionrobotics/ign-gazebo/pull/772)
+
+1. Update benchmark comparison instructions
+    * [Pull request #766](https://github.com/ignitionrobotics/ign-gazebo/pull/766)
+
+1. Fix 'invalid animation update data' msg for actors
+    * [Pull request #754](https://github.com/ignitionrobotics/ign-gazebo/pull/754)
+
+1. Fixed particle emitter forward playback
+    * [Pull request #745](https://github.com/ignitionrobotics/ign-gazebo/pull/745)
+
+1. ECM's ChangedState gets message with modified components
+    * [Pull request #742](https://github.com/ignitionrobotics/ign-gazebo/pull/742)
+
+1. Fixed collision visual bounding boxes
+    * [Pull request #746](https://github.com/ignitionrobotics/ign-gazebo/pull/746)
+
+1. Fix compute_rtfs arguments
+    * [Pull request #737](https://github.com/ignitionrobotics/ign-gazebo/pull/737)
+
+1. Validate step size and RTF parameters
+    * [Pull request #740](https://github.com/ignitionrobotics/ign-gazebo/pull/740)
+
+1. Fix component inspector shutdown crash
+    * [Pull request #724](https://github.com/ignitionrobotics/ign-gazebo/pull/724)
+
+1. Use Protobuf_IMPORT_DIRS instead of PROTOBUF_IMPORT_DIRS for compatibility with Protobuf CMake config
+    * [Pull request #715](https://github.com/ignitionrobotics/ign-gazebo/pull/715)
+
+1. Do not pass -Wno-unused-parameter to MSVC compiler
+    * [Pull request #716](https://github.com/ignitionrobotics/ign-gazebo/pull/716)
+
+1. Iterate through changed links only in UpdateSim
+    * [Pull request #678](https://github.com/ignitionrobotics/ign-gazebo/pull/678)
+
+1. Update PlaybackScrubber description
+    * [Pull request #733](https://github.com/ignitionrobotics/ign-gazebo/pull/733)
+
+1. Support configuring particle scatter ratio in particle emitter system
+    * [Pull request #674](https://github.com/ignitionrobotics/ign-gazebo/pull/674)
+
+1. Fix diffuse and ambient values for ackermann example
+    * [Pull request #707](https://github.com/ignitionrobotics/ign-gazebo/pull/707)
+
+1. Scenebroadcaster sensors
+    * [Pull request #698](https://github.com/ignitionrobotics/ign-gazebo/pull/698)
+
+1. Add test for thermal object temperatures below 0 kelvin
+    * [Pull request #621](https://github.com/ignitionrobotics/ign-gazebo/pull/621)
+
+1. [BULLET] Making GetContactsFromLastStepFeature optional in Collision Features
+    * [Pull request #690](https://github.com/ignitionrobotics/ign-gazebo/pull/690)
+
+1. Make it so joint state publisher is quieter
+    * [Pull request #696](https://github.com/ignitionrobotics/ign-gazebo/pull/696)
+
 ### Ignition Gazebo 5.0.0 (2021-03-30)
 
 1. Added Ellipsoid and Capsule geometries
@@ -224,7 +415,7 @@
 1. Support configuring particle scatter ratio in particle emitter system.
     * [Pull Request 674](https://github.com/ignitionrobotics/ign-gazebo/pull/674)
 
-1. Fix diffuse and ambient values for ackermann example. 
+1. Fix diffuse and ambient values for ackermann example.
     * [Pull Request 707](https://github.com/ignitionrobotics/ign-gazebo/pull/707)
 
 1. Scenebroadcaster sensors.
@@ -245,7 +436,7 @@
 1. Ackermann Steering Plugin.
     * [Pull Request 618](https://github.com/ignitionrobotics/ign-gazebo/pull/618)
 
-1. Remove bounding box when model is deleted 
+1. Remove bounding box when model is deleted
     * [Pull Request 675](https://github.com/ignitionrobotics/ign-gazebo/pull/675)
 
 1. Cache link poses to improve performance.
@@ -254,7 +445,7 @@
 1. Check empty world name in Scene3d.
     * [Pull Request 662](https://github.com/ignitionrobotics/ign-gazebo/pull/662)
 
-1. All changes up to 3.8.0. 
+1. All changes up to 3.8.0.
 
 ### Ignition Gazebo 4.6.0 (2021-03-01)
 
