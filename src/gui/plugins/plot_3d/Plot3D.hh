@@ -36,18 +36,29 @@ namespace gui
   ///
   /// This plugin can be instantiated multiple times to plot various entities.
   ///
+  /// The plugin is automatically attached to the currently selected entity,
+  /// unless it is locked on an entity.
+  ///
   /// ## Configuration
   ///
-  /// `<entity_name>`: Plot the given entity at startup. Accepts names scoped
-  /// with `::`, for example `my_model::my_link`
-  /// `<color>`: RGB color of line, defaults to blue.
-  /// `<offset>`: XYZ offset from the entity's origin to plot from, expressed
-  /// in the entity's frame. Defaults to zero.
-  /// `<minimum_distance>`: The minimum distance between points to plot. A new
-  /// point will not be plotted until the entity has moved beyond this distance
-  /// from the previous point.
-  /// `<maximum_points>`: Maximum number of points on the plot. After this
-  /// number is reached, the older points start being deleted.
+  /// * `<entity_name>` (optional): Plot the given entity at startup. Accepts
+  /// names scoped with `::`, for example `my_model::my_link`. If not provided,
+  /// the plugin starts not attached to any entity, and will attach to the
+  /// next selected entity.
+  ///
+  /// * `<color>` (optional): RGB color of line, defaults to blue.
+  ///
+  /// * `<offset>` (optional): XYZ offset from the entity's origin to plot from,
+  /// expressed in the entity's frame. Defaults to zero.
+  ///
+  /// * `<minimum_distance>` (optional): The minimum distance between points to
+  /// plot. A new point will not be plotted until the entity has moved beyond
+  /// this distance from the previous point. Defaults to 5 cm.
+  ///
+  /// * `<maximum_points> (optional)`: Maximum number of points on the plot.
+  /// After this number is reached, the older points start being deleted.
+  /// Defaults to 1000.
+  ///
   class Plot3D : public ignition::gazebo::GuiSystem
   {
     Q_OBJECT
@@ -60,7 +71,7 @@ namespace gui
       NOTIFY TargetEntityChanged
     )
 
-    /// \brief Target name
+    /// \brief Target entity scoped name
     Q_PROPERTY(
       QString targetName
       READ TargetName
@@ -68,7 +79,7 @@ namespace gui
       NOTIFY TargetNameChanged
     )
 
-    /// \brief Locked
+    /// \brief Whether the plugin is locked on an entity
     Q_PROPERTY(
       bool locked
       READ Locked
@@ -76,7 +87,7 @@ namespace gui
       NOTIFY LockedChanged
     )
 
-    /// \brief Locked
+    /// \brief XYZ offset to the entity's origin to plot
     Q_PROPERTY(
       QVector3D offset
       READ Offset
@@ -84,7 +95,7 @@ namespace gui
       NOTIFY OffsetChanged
     )
 
-    /// \brief Locked
+    /// \brief Plot line color
     Q_PROPERTY(
       QVector3D color
       READ Color
@@ -92,7 +103,7 @@ namespace gui
       NOTIFY ColorChanged
     )
 
-    /// \brief Minimum distance
+    /// \brief Minimum distance between plot points
     Q_PROPERTY(
       double minDistance
       READ MinDistance
@@ -100,7 +111,7 @@ namespace gui
       NOTIFY MinDistanceChanged
     )
 
-    /// \brief Maximum points
+    /// \brief Maximum number of total points on the plot
     Q_PROPERTY(
       int maxPoints
       READ MaxPoints
@@ -162,7 +173,7 @@ namespace gui
     /// \param[in] _offset The offset in the target's frame
     public: Q_INVOKABLE void SetOffset(const QVector3D &_offset);
 
-    /// \brief Notify that offset has changed.
+    /// \brief Notify that the offset has changed.
     signals: void OffsetChanged();
 
     /// \brief Get the color of the plot.
@@ -173,7 +184,7 @@ namespace gui
     /// \param[in] _color New color.
     public: Q_INVOKABLE void SetColor(const QVector3D &_color);
 
-    /// \brief Notify that offset has changed.
+    /// \brief Notify that the color has changed.
     signals: void ColorChanged();
 
     /// \brief Get the minimum distance between points.
@@ -188,13 +199,13 @@ namespace gui
     /// \brief Notify that the minimum distance has changed.
     signals: void MinDistanceChanged();
 
-    /// \brief Get the maximum points between points.
+    /// \brief Get the maximum number of points.
     /// \return The current maximum points.
     public: Q_INVOKABLE int MaxPoints() const;
 
-    /// \brief Set the maximum points between points. If the target moved
-    /// less than this distance, the latest position won't be plotted.
-    /// \param[in] _maxPoints New distance.
+    /// \brief Set the maximum number of points. If the plot has more than
+    /// this number, older points start being removed.
+    /// \param[in] _maxPoints Maximum number of points.
     public: Q_INVOKABLE void SetMaxPoints(int _maxPoints);
 
     /// \brief Notify that the maximum points has changed.
