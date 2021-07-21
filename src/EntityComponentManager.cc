@@ -77,6 +77,15 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// \param[in] _entity Entity that has component newly modified
   public: void AddModifiedComponent(const Entity &_entity);
 
+  /// \brief Check whether a component is marked as a component that is
+  /// currently removed or not.
+  /// \param[in] _entity The entity
+  /// \param[in] _typeId The type ID for the component that belongs to _entity
+  /// \return True if _entity has a component of type _typeId that is currently
+  /// removed. False otherwise
+  public: bool ComponentMarkedAsRemoved(const Entity _entity,
+              const ComponentTypeId _typeId) const;
+
   /// \brief All component types that have ever been created.
   public: std::unordered_set<ComponentTypeId> createdCompTypes;
 
@@ -142,6 +151,14 @@ class ignition::gazebo::EntityComponentManagerPrivate
   public: std::unordered_map<Entity, std::unordered_set<ComponentTypeId>>
     removedComponents;
 
+  /// \brief All components that have been removed. The difference between
+  /// removedComponents and componentsMarkedAsRemoved is that removedComponents
+  /// keeps track of components that were removed in the current simulation
+  /// step, while componentsMarkedAsRemoved keeps track of components that are
+  /// currently removed based on all simulation steps.
+  public: std::unordered_map<Entity, std::unordered_set<ComponentTypeId>>
+    componentsMarkedAsRemoved;
+
   /// \brief A map of an entity to its components
   public: std::unordered_map<Entity,
            std::vector<std::unique_ptr<components::BaseComponent>>>
@@ -158,10 +175,9 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// storage vector (a component of a particular type is
   /// only a key for the value map if a component of this type exists in
   /// the storage vector)
-
+  ///
   /// NOTE: Any modification of this data structure must be followed
   /// by setting `componentTypeIndexDirty` to true.
-  /// FIXME: But how does this play with `removed`?
   public: std::unordered_map<Entity,
            std::unordered_map<ComponentTypeId, std::size_t>>
                                 componentTypeIndex;
@@ -330,6 +346,7 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
     this->dataPtr->removeAllEntities = false;
     this->dataPtr->entities = EntityGraph();
     this->dataPtr->toRemoveEntities.clear();
+    this->dataPtr->componentsMarkedAsRemoved.clear();
 
     // reset the entity component storage
     this->dataPtr->storage.clear();
@@ -352,6 +369,7 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
       // Remove from graph
       this->dataPtr->entities.RemoveVertex(entity);
 
+      this->dataPtr->componentsMarkedAsRemoved.erase(entity);
       this->dataPtr->storage.erase(entity);
       this->dataPtr->componentTypeIndex.erase(entity);
       this->dataPtr->componentTypeIndexDirty = true;
@@ -398,7 +416,7 @@ bool EntityComponentManager::RemoveComponent(
   auto compPtr = this->ComponentImplementation(_entity, _typeId);
   if (compPtr)
   {
-    compPtr->removed = true;
+    this->dataPtr->componentsMarkedAsRemoved[_entity].insert(_typeId);
 
     // update views to reflect the component removal
     for (auto &viewPair : this->dataPtr->views)
@@ -474,7 +492,8 @@ ComponentState EntityComponentManager::ComponentState(const Entity _entity,
     return result;
 
   auto typeIter = ctIter->second.find(_typeId);
-  if (typeIter == ctIter->second.end())
+  if (typeIter == ctIter->second.end() ||
+      this->dataPtr->ComponentMarkedAsRemoved(_entity, _typeId))
     return result;
 
   auto typeId = typeIter->first;
@@ -644,9 +663,17 @@ bool EntityComponentManager::CreateComponentImplementation(
     // data is done externally in a templated ECM method call, because we need the
     // derived component class in order to update the derived component data)
     auto existingCompPtr = entityCompIter->second.at(compIdxIter->second).get();
-    if (nullptr != existingCompPtr && existingCompPtr->removed)
+    if (!existingCompPtr)
     {
-      existingCompPtr->removed = false;
+      ignerr << "Internal error: entity [" << _entity << "] has a component of "
+        << "type [" << _componentTypeId << "] in the storage, but the instance "
+        << "of this component is nullptr. This should never happen!"
+        << std::endl;
+      return false;
+    }
+    else if (this->dataPtr->ComponentMarkedAsRemoved(_entity, _componentTypeId))
+    {
+      this->dataPtr->componentsMarkedAsRemoved[_entity].erase(_componentTypeId);
 
       for (auto &viewPair : this->dataPtr->views)
       {
@@ -681,7 +708,8 @@ bool EntityComponentManager::EntityMatches(Entity _entity,
   for (const ComponentTypeId &type : _types)
   {
     auto typeIter = iter->second.find(type);
-    if (typeIter == iter->second.end())
+    if (typeIter == iter->second.end() ||
+        this->dataPtr->ComponentMarkedAsRemoved(_entity, type))
       return false;
   }
 
@@ -716,9 +744,17 @@ const components::BaseComponent
   }
 
   auto compPtr = compVecIter->second.at(compIdxIter->second).get();
+  if (nullptr == compPtr)
+  {
+    ignerr << "Internal error: entity [" << _entity << "] has a component of "
+      << "type [" << _type << "] in the storage, but the instance "
+      << "of this component is nullptr. This should never happen!"
+      << std::endl;
+    return nullptr;
+  }
 
   // Return component if not marked as removed.
-  if (nullptr != compPtr && !compPtr->removed)
+  if (!this->dataPtr->ComponentMarkedAsRemoved(_entity, _type))
     return compPtr;
 
   return nullptr;
@@ -892,7 +928,10 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
   if (types.empty())
   {
     for (auto &type : this->dataPtr->componentTypeIndex[_entity])
-      types.insert(type.first);
+    {
+      if (!this->dataPtr->ComponentMarkedAsRemoved(_entity, type.first))
+        types.insert(type.first);
+    }
   }
 
   for (const ComponentTypeId type : types)
@@ -902,6 +941,7 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
     if (typeIter == iter->second.end())
       continue;
 
+    // The component instance is nullptr if the component was removed
     auto compBase = this->ComponentImplementation(_entity, type);
     if (nullptr == compBase)
       continue;
@@ -957,7 +997,8 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
   {
     for (auto &type : this->dataPtr->componentTypeIndex[_entity])
     {
-      types.insert(type.first);
+      if (!this->dataPtr->ComponentMarkedAsRemoved(_entity, type.first))
+        types.insert(type.first);
     }
   }
 
@@ -1441,7 +1482,8 @@ void EntityComponentManager::SetChanged(
     return;
 
   // make sure the entity has a component of type _type
-  if (ecIter->second.find(_type) == ecIter->second.end())
+  if (ecIter->second.find(_type) == ecIter->second.end() ||
+      this->dataPtr->ComponentMarkedAsRemoved(_entity, _type))
     return;
 
   if (_c == ComponentState::PeriodicChange)
@@ -1479,16 +1521,12 @@ std::unordered_set<ComponentTypeId> EntityComponentManager::ComponentTypes(
   if (it == this->dataPtr->componentTypeIndex.end())
     return {};
 
-  // FIXME: Must skip removed components
-  // Is the component itself the best place to hold the removed information?
-  // The ECM is the only one who uses it.
   std::unordered_set<ComponentTypeId> result;
-  std::transform(it->second.begin(), it->second.end(),
-      std::inserter(result, result.begin()),
-      [](std::pair<const ComponentTypeId, std::size_t> &_mapIt)
-      {
-        return _mapIt.first;
-      });
+  for (const auto &type : it->second)
+  {
+    if (!this->dataPtr->ComponentMarkedAsRemoved(_entity, type.first))
+      result.insert(type.first);
+  }
 
   return result;
 }
@@ -1520,4 +1558,15 @@ void EntityComponentManagerPrivate::AddModifiedComponent(const Entity &_entity)
   }
 
   this->modifiedComponents.insert(_entity);
+}
+
+/////////////////////////////////////////////////
+bool EntityComponentManagerPrivate::ComponentMarkedAsRemoved(
+    const Entity _entity, const ComponentTypeId _typeId) const
+{
+  auto iter = this->componentsMarkedAsRemoved.find(_entity);
+  if (iter != this->componentsMarkedAsRemoved.end())
+    return iter->second.find(_typeId) != iter->second.end();
+
+  return false;
 }
