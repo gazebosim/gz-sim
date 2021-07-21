@@ -18,10 +18,6 @@
               <albedo_map>model://building_L1/meshes/blue_linoleum.png</albedo_map>
             </metal>
           </pbr>
-          <script>
-            <uri>model://building_L1/meshes/</uri>
-            <name>floor_1_Diffuse</name>
-          </script>
         </material>
       </visual>
       <collision name="collision">
@@ -53,10 +49,6 @@
               <albedo_map>model://building_L1/meshes/default.png</albedo_map>
             </metal>
           </pbr>
-          <script>
-            <uri>model://building_L1/meshes/</uri>
-            <name>wall_1_Diffuse</name>
-          </script>
         </material>
       </visual>
       <collision name="collision">
