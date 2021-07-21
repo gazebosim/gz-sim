@@ -106,6 +106,15 @@ namespace ignition
       {
       }
 
+      /// \brief Constructor
+      public: explicit SystemInternal(System *_system)
+              : system(dynamic_cast<System *>(_system)),
+                preupdate(dynamic_cast<ISystemPreUpdate *>(_system)),
+                update(dynamic_cast<ISystemUpdate *>(_system)),
+                postupdate(dynamic_cast<ISystemPostUpdate *>(_system))
+      {
+      }
+
       /// \brief Plugin object. This manages the lifecycle of the instantiated
       /// class as well as the shared library.
       public: SystemPluginPtr systemPlugin;
@@ -168,6 +177,12 @@ namespace ignition
       /// runner at the begining of the a simulation cycle (call to Run)
       /// \param[in] _system System to be added
       public: void AddSystem(const SystemPluginPtr &_system);
+
+      /// \brief Add system after the simulation runner has been instantiated
+      /// \note This actually adds system to a queue. The system is added to the
+      /// runner at the begining of the a simulation cycle (call to Run)
+      /// \param[in] _system System to be added
+      public: void AddSystem(System *_system);
 
       /// \brief Update all the systems
       public: void UpdateSystems();
@@ -353,6 +368,10 @@ namespace ignition
       /// \param[in] _system System to be added
       public: void AddSystemToRunner(const SystemPluginPtr &_system);
 
+      /// \brief Actually add system to the runner
+      /// \param[in] _system System to be added
+      public: void AddSystemToRunner(System *_system);
+
       /// \brief Calls AddSystemToRunner to each system that is pending to be
       /// added.
       public: void ProcessSystemQueue();
@@ -400,6 +419,9 @@ namespace ignition
 
       /// \brief Pending systems to be added to systems.
       private: std::vector<SystemPluginPtr> pendingSystems;
+
+      /// \brief Pending systems to be added to systems.
+      private: std::vector<System *> pendingRawSystems;
 
       /// \brief Mutex to protect pendingSystems
       private: mutable std::mutex pendingSystemsMutex;

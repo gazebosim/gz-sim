@@ -54,6 +54,7 @@ set (sources
   ServerPrivate.cc
   SimulationRunner.cc
   SystemLoader.cc
+  TestFixture.cc
   Util.cc
   View.cc
   World.cc
