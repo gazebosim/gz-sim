@@ -14,14 +14,15 @@ from xml.dom import minidom
 ########################################################################################################################
 def export_sdf(prefix_path):
 
-    dae_filename = 'meshes/model.dae'
+    dae_filename = 'model.dae'
     sdf_filename = 'model.sdf'
     model_config_filename = 'model.config'
     lightmap_filename = 'LightmapBaked.png'
     model_name = 'my_model'
+    meshes_folder_prefix = 'meshes/'
     
     # Exports the dae file and its associated textures
-    bpy.ops.wm.collada_export(filepath=prefix_path+dae_filename, check_existing=False, filter_blender=False, filter_image=False, filter_movie=False, filter_python=False, filter_font=False, filter_sound=False, filter_text=False, filter_btx=False, filter_collada=True, filter_folder=True, filemode=8)
+    bpy.ops.wm.collada_export(filepath=prefix_path+meshes_folder_prefix+dae_filename, check_existing=False, filter_blender=False, filter_image=False, filter_movie=False, filter_python=False, filter_font=False, filter_sound=False, filter_text=False, filter_btx=False, filter_collada=True, filter_folder=True, filemode=8)
 
     # objects = bpy.context.selected_objects
     objects = bpy.context.selectable_objects
@@ -71,12 +72,12 @@ def export_sdf(prefix_path):
         metal = ET.SubElement(pbr, "metal")
         if diffuse_map != "":
             albedo_map = ET.SubElement(metal, "albedo_map")
-            albedo_map.text = diffuse_map
+            albedo_map.text = meshes_folder_prefix + diffuse_map
         
         # for lightmapping, add the UV and turn off casting of shadows
         if os.path.isfile(lightmap_filename):
             light_map = ET.SubElement(metal, "light_map", attrib={"uv_set":"1"})
-            light_map.text = lightmap_filename
+            light_map.text = meshes_folder_prefix + lightmap_filename
             
             cast_shadows = ET.SubElement(visual, "cast_shadows")
             cast_shadows.text = "0"
