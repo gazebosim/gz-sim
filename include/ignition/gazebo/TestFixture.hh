@@ -19,6 +19,10 @@
 
 #include <ignition/utils/ImplPtr.hh>
 
+#include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/Server.hh"
+#include "ignition/gazebo/ServerConfig.hh"
+
 namespace ignition
 {
 namespace gazebo
