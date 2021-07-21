@@ -18,9 +18,10 @@
 #include <gtest/gtest.h>
 
 #include <ignition/common/Console.hh>
-#include <ignition/gazebo/components/Model.hh>
-#include <ignition/gazebo/components/Pose.hh>
+#include <ignition/gazebo/Model.hh>
+#include <ignition/gazebo/World.hh>
 #include <ignition/gazebo/Server.hh>
+#include <ignition/gazebo/Util.hh>
 #include <ignition/gazebo/TestFixture.hh>
 
 //////////////////////////////////////////////////
@@ -30,33 +31,42 @@ TEST(ExampleTests, Gravity)
   // Maximum verbosity helps with debugging
   ignition::common::Console::SetVerbosity(4);
 
+  // Instantiate test fixture. It starts a server and provides hooks that we'll
+  // use to inspect the running simulation.
   ignition::gazebo::TestFixture fixture("../gravity.sdf");
 
-  bool checked{false};
-
   // This callback is called every simulation iteration
+  int iterations{0};
   fixture.OnPostUpdate(
-    [&checked](const ignition::gazebo::UpdateInfo &,
+    [&iterations](const ignition::gazebo::UpdateInfo &_info,
     const ignition::gazebo::EntityComponentManager &_ecm)
     {
-      _ecm.Each<ignition::gazebo::components::Model,
-                ignition::gazebo::components::Pose>(
-        [&](const ignition::gazebo::Entity &,
-            const ignition::gazebo::components::Model *,
-            const ignition::gazebo::components::Pose *_pose)->bool
-        {
-          if (nullptr == _pose)
-            return testing::AssertionFailure();
+      auto worldEntity = ignition::gazebo::worldEntity(_ecm);
+      ignition::gazebo::World world(worldEntity);
+      auto gravity = world.Gravity(_ecm).value();
 
-          // TODO: check pose
+      auto modelEntity = world.ModelByName(_ecm, "sphere");
+      EXPECT_NE(ignition::gazebo::kNullEntity, modelEntity);
 
-          return true;
-        });
-        checked = true;
+      // Inspect all model poses
+      ignition::gazebo::Model model(modelEntity);
+
+      auto pose = ignition::gazebo::worldPose(modelEntity, _ecm);
+
+      EXPECT_DOUBLE_EQ(0.0, pose.Pos().X());
+      EXPECT_DOUBLE_EQ(0.0, pose.Pos().Y());
+
+      // Check that model is falling due to gravity
+      // -g * t^2 / 2
+      auto time = std::chrono::duration<double>(_info.simTime).count();
+      EXPECT_NEAR(gravity.Z() * time * time * 0.5, pose.Pos().Z(), 1e-2);
+
+      iterations++;
     });
 
   // Setup simulation server
   fixture.Server()->Run(true, 1000, false);
 
-  EXPECT_TRUE(checked);
+  // Verify that the post update function was called 1000 times
+  EXPECT_EQ(1000, iterations);
 }

@@ -176,13 +176,14 @@ namespace ignition
       /// \note This actually adds system to a queue. The system is added to the
       /// runner at the begining of the a simulation cycle (call to Run)
       /// \param[in] _system System to be added
-      public: void AddSystem(const SystemPluginPtr &_system);
-
-      /// \brief Add system after the simulation runner has been instantiated
-      /// \note This actually adds system to a queue. The system is added to the
-      /// runner at the begining of the a simulation cycle (call to Run)
-      /// \param[in] _system System to be added
-      public: void AddSystem(System *_system);
+      /// \tparam SystemType It may be `const SystemPluginPtr &` or `System *`.
+      public:
+      template<typename SystemType>
+      void AddSystem(SystemType _system)
+      {
+        std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
+        this->pendingSystems.push_back(SystemInternal(_system));
+      }
 
       /// \brief Update all the systems
       public: void UpdateSystems();
@@ -366,11 +367,7 @@ namespace ignition
 
       /// \brief Actually add system to the runner
       /// \param[in] _system System to be added
-      public: void AddSystemToRunner(const SystemPluginPtr &_system);
-
-      /// \brief Actually add system to the runner
-      /// \param[in] _system System to be added
-      public: void AddSystemToRunner(System *_system);
+      public: void AddSystemToRunner(SystemInternal _system);
 
       /// \brief Calls AddSystemToRunner to each system that is pending to be
       /// added.
@@ -418,10 +415,7 @@ namespace ignition
       private: std::vector<SystemInternal> systems;
 
       /// \brief Pending systems to be added to systems.
-      private: std::vector<SystemPluginPtr> pendingSystems;
-
-      /// \brief Pending systems to be added to systems.
-      private: std::vector<System *> pendingRawSystems;
+      private: std::vector<SystemInternal> pendingSystems;
 
       /// \brief Mutex to protect pendingSystems
       private: mutable std::mutex pendingSystemsMutex;

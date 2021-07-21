@@ -164,8 +164,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 
   // If we have reached this point and no systems have been loaded, then load
   // a default set of systems.
-  if (this->systems.empty() && this->pendingSystems.empty() &&
-      this->pendingRawSystems.empty())
+  if (this->systems.empty() && this->pendingSystems.empty())
   {
     ignmsg << "No systems loaded from SDF, loading defaults" << std::endl;
     bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
@@ -435,38 +434,7 @@ void SimulationRunner::PublishStats()
 }
 
 /////////////////////////////////////////////////
-void SimulationRunner::AddSystem(const SystemPluginPtr &_system)
-{
-  std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
-  this->pendingSystems.push_back(_system);
-}
-
-/////////////////////////////////////////////////
-void SimulationRunner::AddSystem(System *_system)
-{
-  std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
-  this->pendingRawSystems.push_back(_system);
-}
-
-/////////////////////////////////////////////////
-void SimulationRunner::AddSystemToRunner(const SystemPluginPtr &_system)
-{
-  this->systems.push_back(SystemInternal(_system));
-
-  const auto &system = this->systems.back();
-
-  if (system.preupdate)
-    this->systemsPreupdate.push_back(system.preupdate);
-
-  if (system.update)
-    this->systemsUpdate.push_back(system.update);
-
-  if (system.postupdate)
-    this->systemsPostupdate.push_back(system.postupdate);
-}
-
-/////////////////////////////////////////////////
-void SimulationRunner::AddSystemToRunner(System *_system)
+void SimulationRunner::AddSystemToRunner(SystemInternal _system)
 {
   this->systems.push_back(SystemInternal(_system));
 
@@ -486,7 +454,7 @@ void SimulationRunner::AddSystemToRunner(System *_system)
 void SimulationRunner::ProcessSystemQueue()
 {
   std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
-  auto pending = this->pendingSystems.size() + this->pendingRawSystems.size();
+  auto pending = this->pendingSystems.size();
 
   if (pending > 0)
   {
@@ -499,12 +467,6 @@ void SimulationRunner::ProcessSystemQueue()
     this->AddSystemToRunner(system);
   }
   this->pendingSystems.clear();
-
-  for (const auto &system : this->pendingRawSystems)
-  {
-    this->AddSystemToRunner(system);
-  }
-  this->pendingRawSystems.clear();
 
   // If additional systems were added, recreate the worker threads.
   if (pending > 0)

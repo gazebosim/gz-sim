@@ -360,9 +360,7 @@ std::optional<bool> Server::AddSystem(const SystemPluginPtr &_system,
 std::optional<bool> Server::AddSystem(System *_system,
                                       const unsigned int _worldIndex)
 {
-  // Check the current state, and return early if preconditions are not met.
   std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);
-  // Do not allow running more than once.
   if (this->dataPtr->running)
   {
     ignerr << "Cannot add system while the server is runnnng.\n";

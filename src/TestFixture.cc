@@ -31,14 +31,7 @@ class ignition::gazebo::TestFixture::Implementation
   /// \brief Pointer to underlying server
   public: std::shared_ptr<gazebo::Server> server{nullptr};
 
-  /// \brief Pointer to underlying system
-  public: SystemPluginPtr systemPluginPtr;
-
-  /// \brief Pointer to underlying system
-  public: System *systemPtr{nullptr};
-
   /// \brief Pointer to underlying Helper interface
-  //public: std::unique_ptr<HelperSystem> helperSystem{nullptr};
   public: HelperSystem *helperSystem{nullptr};
 };
 
@@ -64,23 +57,23 @@ class HelperSystem :
   public: void PostUpdate(const UpdateInfo &_info,
               const EntityComponentManager &_ecm) override;
 
-  public: size_t preUpdateCallCount {0};
-  public: size_t updateCallCount {0};
-  public: size_t postUpdateCallCount {0};
-
+  /// \brief Function to call every pre-update
   public: std::function<void(const UpdateInfo &, EntityComponentManager &)>
       preUpdateCallback;
+
+  /// \brief Function to call every update
   public: std::function<void(const UpdateInfo &, EntityComponentManager &)>
       updateCallback;
-  public: std::function<void(const UpdateInfo &, const EntityComponentManager &)>
-      postUpdateCallback;
+
+  /// \brief Function to call every post-update
+  public: std::function<void(const UpdateInfo &,
+      const EntityComponentManager &)> postUpdateCallback;
 };
 
 /////////////////////////////////////////////////
 void HelperSystem::PreUpdate(const UpdateInfo &_info,
       EntityComponentManager &_ecm)
 {
-  ++this->preUpdateCallCount;
   if (this->preUpdateCallback)
     this->preUpdateCallback(_info, _ecm);
 }
@@ -89,7 +82,6 @@ void HelperSystem::PreUpdate(const UpdateInfo &_info,
 void HelperSystem::Update(const UpdateInfo &_info,
       EntityComponentManager &_ecm)
 {
-  ++this->updateCallCount;
   if (this->updateCallback)
     this->updateCallback(_info, _ecm);
 }
@@ -98,7 +90,6 @@ void HelperSystem::Update(const UpdateInfo &_info,
 void HelperSystem::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
-  ++this->postUpdateCallCount;
   if (this->postUpdateCallback)
     this->postUpdateCallback(_info, _ecm);
 }
@@ -123,10 +114,10 @@ TestFixture::TestFixture(const ServerConfig &_config)
 void TestFixture::Implementation::Init(const ServerConfig &_config)
 {
   this->helperSystem = new HelperSystem();
-  this->systemPtr = dynamic_cast<System *>(this->helperSystem);
+  auto systemPtr = dynamic_cast<System *>(this->helperSystem);
 
   this->server = std::make_shared<gazebo::Server>(_config);
-  this->server->AddSystem(this->systemPtr);
+  this->server->AddSystem(systemPtr);
 }
 
 //////////////////////////////////////////////////

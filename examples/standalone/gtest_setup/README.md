@@ -12,7 +12,7 @@ From the root of the repository:
     cmake ..
     make
 
-## Execute
+## Run test
 
     ./gravity_TEST
 

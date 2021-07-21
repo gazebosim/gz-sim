@@ -225,8 +225,7 @@ namespace ignition
       /// \param[in] _worldIndex Index of the world to query.
       /// \return Whether the system was added successfully, or std::nullopt
       /// if _worldIndex is invalid.
-      public: std::optional<bool> AddSystem(
-                  System *_system,
+      public: std::optional<bool> AddSystem(System *_system,
                   const unsigned int _worldIndex = 0);
 
       /// \brief Get an Entity based on a name.

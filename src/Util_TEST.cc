@@ -71,6 +71,7 @@ TEST_F(UtilTest, ScopedName)
 
   // World
   auto worldEntity = ecm.CreateEntity();
+  EXPECT_EQ(kNullEntity, gazebo::worldEntity(ecm));
   EXPECT_EQ(kNullEntity, gazebo::worldEntity(worldEntity, ecm));
   ecm.CreateComponent(worldEntity, components::World());
   ecm.CreateComponent(worldEntity, components::Name("world_name"));
@@ -214,6 +215,7 @@ TEST_F(UtilTest, ScopedName)
     "world_name::actorD_name");
 
   // World entity
+  EXPECT_EQ(worldEntity, gazebo::worldEntity(ecm));
   EXPECT_EQ(worldEntity, gazebo::worldEntity(worldEntity, ecm));
   EXPECT_EQ(worldEntity, gazebo::worldEntity(lightAEntity, ecm));
   EXPECT_EQ(worldEntity, gazebo::worldEntity(modelBEntity, ecm));
