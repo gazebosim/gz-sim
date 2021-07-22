@@ -29,7 +29,7 @@ require 'date'
 require 'optparse'
 
 # Constants.
-LIBRARY_NAME = '@model_library_location@'
+LIBRARY_NAME = '@library_location@'
 LIBRARY_VERSION = '@PROJECT_VERSION_FULL@'
 COMMON_OPTIONS =
   "  -h [ --help ]              Print this help message.                   \n"\
