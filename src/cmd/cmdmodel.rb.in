@@ -87,7 +87,7 @@ class Cmd
           exit
       end
       opts.on('-m', '--model [arg]', String, 'Model name') do |m|
-        options['model'] = m
+        options['model_name'] = m
       end
       opts.on('--list', String, 'List models available') do
         options['list'] = 1
@@ -162,10 +162,10 @@ class Cmd
       Importer.extern 'void cmdModelList()'
       Importer.cmdModelList()
       exit(0)
-    elsif options.key?('model')
-      Importer.extern 'void cmdModelInfo(const char *, int, const char *, 
+    elsif options.key?('model_name')
+      Importer.extern 'void cmdModelInfo(const char *, int, const char *,
           const char *)'
-      Importer.cmdModelInfo(options['model'], options['pose'], 
+      Importer.cmdModelInfo(options['model_name'], options['pose'],
       options['link_name'], options['joint_name'])
     else
       puts 'Command error: I do not have an implementation for '\

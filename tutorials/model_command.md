@@ -10,7 +10,7 @@ For each model, it is possible to get information about its
 
 ## Example running the diff_drive world
 
-To try out this command we need first a running simulation. Let's load the diff_drive ignition simulation. In a terminal, run:
+To try out this command we need first a running simulation. Let's load the `diff_drive` example world. In a terminal, run:
 
     ign gazebo diff_drive.sdf
 
@@ -29,7 +29,7 @@ And available models should be printed:
 
 Once you get the name of the model you want to see, you may run the following commands to get its properties.
 
-`ign model -m <model_name>` to get the **complete information of the model**. e.g. 
+`ign model -m <model_name>` to get the **complete information of the model**. e.g.
 
     ign model -m vehicle_blue
 
@@ -38,7 +38,7 @@ Once you get the name of the model you want to see, you may run the following co
 
 			Model: [8]
 			- Name: vehicle_blue
-			- Pose [ XYZ (m) ] [ RPY (rad) ]: 
+			- Pose [ XYZ (m) ] [ RPY (rad) ]:
 					[0.000000 | 2.000000 | 0.325000]
 					[0.000000 | 0.000000 | 0.000000]
 
@@ -48,11 +48,11 @@ Once you get the name of the model you want to see, you may run the following co
 					- Mass (kg): [1.143950]
 					- Inertial Pose:
 							[0.000000 | 0.000000 | 0.000000]
-					- Inertial Matrix (kg⋅m^2): 
+					- Inertial Matrix (kg⋅m^2):
 							[0.126164 | 0.000000 | 0.000000]
 							[0.000000 | 0.416519 | 0.000000]
 							[0.000000 | 0.000000 | 0.481014]
-					- Pose [ XYZ (m) ] [ RPY (rad) ]: 
+					- Pose [ XYZ (m) ] [ RPY (rad) ]:
 							[-0.151427 | 0.000000 | 0.175000]
 							[0.000000 | 0.000000 | 0.000000]
 			- Link [12]
@@ -61,11 +61,11 @@ Once you get the name of the model you want to see, you may run the following co
 					- Mass (kg): [2.000000]
 					- Inertial Pose:
 							[0.000000 | 0.000000 | 0.000000]
-					- Inertial Matrix (kg⋅m^2): 
+					- Inertial Matrix (kg⋅m^2):
 							[0.145833 | 0.000000 | 0.000000]
 							[0.000000 | 0.145833 | 0.000000]
 							[0.000000 | 0.000000 | 0.125000]
-					- Pose [ XYZ (m) ] [ RPY (rad) ]: 
+					- Pose [ XYZ (m) ] [ RPY (rad) ]:
 							[0.554283 | 0.625029 | -0.025000]
 							[-1.570700 | 0.000000 | 0.000000]
 			- Link [15]
@@ -74,11 +74,11 @@ Once you get the name of the model you want to see, you may run the following co
 					- Mass (kg): [2.000000]
 					- Inertial Pose:
 							[0.000000 | 0.000000 | 0.000000]
-					- Inertial Matrix (kg⋅m^2): 
+					- Inertial Matrix (kg⋅m^2):
 							[0.145833 | 0.000000 | 0.000000]
 							[0.000000 | 0.145833 | 0.000000]
 							[0.000000 | 0.000000 | 0.125000]
-					- Pose [ XYZ (m) ] [ RPY (rad) ]: 
+					- Pose [ XYZ (m) ] [ RPY (rad) ]:
 							[0.554282 | -0.625029 | -0.025000]
 							[-1.570700 | 0.000000 | 0.000000]
 			- Link [18]
@@ -87,11 +87,11 @@ Once you get the name of the model you want to see, you may run the following co
 					- Mass (kg): [1.000000]
 					- Inertial Pose:
 							[0.000000 | 0.000000 | 0.000000]
-					- Inertial Matrix (kg⋅m^2): 
+					- Inertial Matrix (kg⋅m^2):
 							[0.100000 | 0.000000 | 0.000000]
 							[0.000000 | 0.100000 | 0.000000]
 							[0.000000 | 0.000000 | 0.100000]
-					- Pose [ XYZ (m) ] [ RPY (rad) ]: 
+					- Pose [ XYZ (m) ] [ RPY (rad) ]:
 							[-0.957138 | 0.000000 | -0.125000]
 							[0.000000 | 0.000000 | 0.000000]
 			- Joint [21]
@@ -100,10 +100,10 @@ Once you get the name of the model you want to see, you may run the following co
 					- Type:  revolute
 					- Parent Link: left_wheel
 					- Child Link:  chassis
-					- Pose [ XYZ (m) ] [ RPY (rad) ]: 
+					- Pose [ XYZ (m) ] [ RPY (rad) ]:
 					[0.000000 | 0.000000 | 0.000000]
 					[0.000000 | 0.000000 | 0.000000]
-					- Axis position [ XYZ ]: 
+					- Axis position [ XYZ ]:
 					[0 | 0 | 1]
 			- Joint [22]
 					- Name: right_wheel_joint
@@ -111,10 +111,10 @@ Once you get the name of the model you want to see, you may run the following co
 					- Type:  revolute
 					- Parent Link: right_wheel
 					- Child Link:  chassis
-					- Pose [ XYZ (m) ] [ RPY (rad) ]: 
+					- Pose [ XYZ (m) ] [ RPY (rad) ]:
 					[0.000000 | 0.000000 | 0.000000]
 					[0.000000 | 0.000000 | 0.000000]
-					- Axis position [ XYZ ]: 
+					- Axis position [ XYZ ]:
 					[0 | 0 | 1]
 			- Joint [23]
 					- Name: caster_wheel
@@ -122,14 +122,14 @@ Once you get the name of the model you want to see, you may run the following co
 					- Type:  ball
 					- Parent Link: caster
 					- Child Link:  chassis
-					- Pose [ XYZ (m) ] [ RPY (rad) ]: 
+					- Pose [ XYZ (m) ] [ RPY (rad) ]:
 					[0.000000 | 0.000000 | 0.000000]
 					[0.000000 | 0.000000 | 0.000000]
 
 ```
 
 
-`ign model -m <model_name> --pose` to get the **pose** information. e.g. 
+`ign model -m <model_name> --pose` to get the **pose** information. e.g.
 
     ign model -m vehicle_blue --pose
 
@@ -145,12 +145,12 @@ Once you get the name of the model you want to see, you may run the following co
 ```
 
 
-To get the information of **all the model links** enter 
+To get the information of **all the model links** enter
 
     ign model -m <model_name> --link
 
 
-Or you can get the information of a **single link** by adding the name as argument. e.g. 
+Or you can get the information of a **single link** by adding the name as argument. e.g.
 
     ign model -m vehicle_blue --link caster
 
@@ -163,21 +163,21 @@ Or you can get the information of a **single link** by adding the name as argume
 					- Mass (kg): [1.000000]
 					- Inertial Pose:
 							[0.000000 | 0.000000 | 0.000000]
-					- Inertial Matrix (kg⋅m^2): 
+					- Inertial Matrix (kg⋅m^2):
 							[0.100000 | 0.000000 | 0.000000]
 							[0.000000 | 0.100000 | 0.000000]
 							[0.000000 | 0.000000 | 0.100000]
-					- Pose [ XYZ (m) ] [ RPY (rad) ]: 
+					- Pose [ XYZ (m) ] [ RPY (rad) ]:
 							[-0.957138 | 0.000000 | -0.125000]
 							[0.000000 | -0.000000 | 0.000000]
 ```
 
 
-To get the information of **all the model joints** enter 
+To get the information of **all the model joints** enter
 
     ign model -m <model_name> --joint
 
-Or you can get the information of a **single joint** by adding the name as argument. e.g. 
+Or you can get the information of a **single joint** by adding the name as argument. e.g.
 
     ign model -m vehicle_blue --joint caster_wheel
 
@@ -190,7 +190,7 @@ Or you can get the information of a **single joint** by adding the name as argum
 					- Type:  ball
 					- Parent Link: caster
 					- Child Link:  chassis
-					- Pose [ XYZ (m) ] [ RPY (rad) ]: 
+					- Pose [ XYZ (m) ] [ RPY (rad) ]:
 						[0.000000 | 0.000000 | 0.000000]
 						[0.000000 | -0.000000 | 0.000000]
 ```

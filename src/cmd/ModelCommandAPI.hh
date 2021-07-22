@@ -16,22 +16,16 @@
 */
 
 #include "ignition/gazebo/Export.hh"
-#include "ignition/gazebo/Entity.hh"
-#include <ignition/gazebo/EntityComponentManager.hh>
-#include <string>
-
 
 /// \brief External hook to get a list of available models.
 extern "C" IGNITION_GAZEBO_VISIBLE void cmdModelList();
 
 /// \brief External hook to dump model information.
-/// \param[in] _model Model name.
+/// \param[in] _modelName Model name.
 /// \param[in] _pose --pose option.
-/// \param[in] _link --link option.
 /// \param[in] _link_name Link name.
-/// \param[in] _joint --joint option.
 /// \param[in] _joint_name Joint name.
 extern "C" IGNITION_GAZEBO_VISIBLE void cmdModelInfo(
-    const char *_model, int _pose, const char *_linkName,
+    const char *_modelName, int _pose, const char *_linkName,
     const char *_jointName);
 
