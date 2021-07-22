@@ -43,6 +43,7 @@ COMMANDS = { 'model' =>
   "Available Options:                                                      \n"\
   "  --list                     Get a list of the available models.        \n"\
   "  -m [--model] arg           Select the model to be shown.              \n"\
+  "  -p [--pose]                Print the pose of the model.               \n"\
   "  -l [--link]  arg           Select a link to show its properties.      \n"\
   "                             If no arg is passed all links are printed  \n"\
   "                             Requires the -m option                     \n"\
@@ -73,10 +74,8 @@ class Cmd
   def parse(args)
     options = {
       'pose' => 0,
-      'link' => 0,
-      'link_name' => '',
-      'joint' => 0,
-      'joint_name' => ''
+      'link_name' => 0,
+      'joint_name' => 0
     }
     usage = COMMANDS[args[0]]
 
@@ -97,12 +96,17 @@ class Cmd
         options['pose'] = 1
       end
       opts.on('-l', '--link [arg]', String, 'Request link information') do |l|
-        options['link'] = 1
-        options['link_name'] = l
+        options['link_name'] = ''
+        if l
+          options['link_name'] = l
+        end
       end
       opts.on('-j', '--joint [arg]', String, 'Request joint information') do |j|
-        options['joint'] = 1
-        options['joint_name'] = j
+        # options['joint'] = 1
+        options['joint_name'] = ''
+        if j
+          options['joint_name'] = j
+        end
       end
     end # opt_parser do
     begin
@@ -159,11 +163,10 @@ class Cmd
       Importer.cmdModelList()
       exit(0)
     elsif options.key?('model')
-      Importer.extern 'void cmdModelInfo(const char *, int, int, const char *, 
-          int, const char *)'
-
-      Importer.cmdModelInfo(options['model'], options['pose'], options['link'],
-      options['link_name'], options['joint'], options['joint_name'])
+      Importer.extern 'void cmdModelInfo(const char *, int, const char *, 
+          const char *)'
+      Importer.cmdModelInfo(options['model'], options['pose'], 
+      options['link_name'], options['joint_name'])
     else
       puts 'Command error: I do not have an implementation for '\
         "command [ign #{options['command']}]."

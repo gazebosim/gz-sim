@@ -26,6 +26,7 @@
 #include <ignition/gazebo/components/ChildLinkName.hh>
 #include <ignition/gazebo/components/Inertial.hh>
 #include <ignition/gazebo/components/Joint.hh>
+#include <ignition/gazebo/components/JointAxis.hh>
 #include <ignition/gazebo/components/JointType.hh>
 #include <ignition/gazebo/components/Link.hh>
 #include <ignition/gazebo/components/Model.hh>
@@ -145,7 +146,8 @@ void printPose(const uint64_t _entity,
 
     std::cout << "Model: [" << _entity << "]" << std::endl
               << "  - Name: " << nameComp->Data() << std::endl
-              << "  - Pose: " << poseInfo << std::endl << std::endl;
+              << "  - Pose [ XYZ (m) ] [ RPY (rad) ]: "
+              << poseInfo << std::endl << std::endl;
   }
 }
 
@@ -161,7 +163,7 @@ void printLinks(const uint64_t _entity,
   const auto links = _ecm.EntitiesByComponents(
   ignition::gazebo::components::ParentEntity(_entity),
   ignition::gazebo::components::Link());
-  for(const auto &entity : links)
+  for (const auto &entity : links)
   {
     const auto parentComp =
         _ecm.Component<ignition::gazebo::components::ParentEntity>(entity);
@@ -169,7 +171,7 @@ void printLinks(const uint64_t _entity,
     const auto nameComp =
         _ecm.Component<ignition::gazebo::components::Name>(entity);
 
-    if(_linkName.length() && _linkName != nameComp->Data())
+    if (_linkName.length() && _linkName != nameComp->Data())
         continue;
 
     if (parentComp)
@@ -197,6 +199,11 @@ void printLinks(const uint64_t _entity,
       const auto inertialMatrix =  inertialComp->Data().MassMatrix();
       const auto massComp = inertialComp->Data().MassMatrix().Mass();
 
+      const std::string inertialPose =
+        "\n        [" + std::to_string(inertialComp->Data().Pose().X()) + " | "
+                      + std::to_string(inertialComp->Data().Pose().Y()) + " | "
+                      + std::to_string(inertialComp->Data().Pose().Z()) + "]";
+
       const std::string massInfo = "[" + std::to_string(massComp) + "]";
       const std::string inertialInfo =
             "\n        [" + std::to_string(inertialMatrix.Ixx()) + " | "
@@ -208,9 +215,16 @@ void printLinks(const uint64_t _entity,
               "        [" + std::to_string(inertialMatrix.Ixz()) + " | "
                           + std::to_string(inertialMatrix.Iyz()) + " | "
                           + std::to_string(inertialMatrix.Izz()) + "]";
-      std::cout << "    - Mass: " << massInfo << std::endl
-                << "    - Inertial Matrix: " << inertialInfo << std::endl;
+      std::cout << "    - Mass (kg): " << massInfo << std::endl
+                << "    - Inertial Pose:" << inertialPose << std::endl
+                << "    - Inertial Matrix (kg⋅m^2): "
+                << inertialInfo << std::endl;
     }
+      const std::string inertialPose =
+        "\n        [" + std::to_string(inertialComp->Data().Pose().X()) + " | "
+                      + std::to_string(inertialComp->Data().Pose().Y()) + " | "
+                      + std::to_string(inertialComp->Data().Pose().Z()) + "]";
+
 
     const auto poseComp =
         _ecm.Component<ignition::gazebo::components::Pose>(entity);
@@ -225,7 +239,8 @@ void printLinks(const uint64_t _entity,
                           + std::to_string(poseComp->Data().Pitch()) + " | "
                           + std::to_string(poseComp->Data().Yaw()) + "]";
 
-      std::cout << "    - Pose: " << poseInfo << std::endl;
+      std::cout << "    - Pose [ XYZ (m) ] [ RPY (rad) ]: "
+                << poseInfo << std::endl;
     }
   }
 }
@@ -255,7 +270,7 @@ void printJoints(const uint64_t entity,
   ignition::gazebo::components::ParentEntity(entity),
   ignition::gazebo::components::Joint());
 
-  for(const auto &_entity : joints)
+  for (const auto &_entity : joints)
   {
     const auto parentComp =
         _ecm.Component<ignition::gazebo::components::ParentEntity>(_entity);
@@ -263,7 +278,7 @@ void printJoints(const uint64_t entity,
     const auto nameComp =
         _ecm.Component<ignition::gazebo::components::Name>(_entity);
 
-    if(_jointName.length() && _jointName != nameComp->Data())
+    if (_jointName.length() && _jointName != nameComp->Data())
         continue;
 
     if (parentComp)
@@ -290,12 +305,33 @@ void printJoints(const uint64_t entity,
         _ecm.Component<ignition::gazebo::components::ChildLinkName>(_entity);
     const auto parentLinkComp =
         _ecm.Component<ignition::gazebo::components::ParentLinkName>(_entity);
+    const auto poseComp =
+        _ecm.Component<ignition::gazebo::components::Pose>(_entity);
+    const auto axisComp =
+        _ecm.Component<ignition::gazebo::components::JointAxis>(_entity);
 
     if (childLinkComp && parentLinkComp)
     {
-      std::cout << "    - Joint type:  " << jointTypes.at(jointComp->Data())
-      << "\n"   << "    - Parent Link: [" << childLinkComp->Data() << "]\n"
-                << "    - Child Link:  [" << parentLinkComp->Data() << "]\n";
+      const std::string poseInfo =
+                "\n      [" + std::to_string(poseComp->Data().X()) + " | "
+                            + std::to_string(poseComp->Data().Y()) + " | "
+                            + std::to_string(poseComp->Data().Z()) + "]\n"
+                  "      [" + std::to_string(poseComp->Data().Roll()) + " | "
+                            + std::to_string(poseComp->Data().Pitch()) + " | "
+                            + std::to_string(poseComp->Data().Yaw()) + "]";
+
+      std::cout << "    - Type:  " << jointTypes.at(jointComp->Data())
+      << "\n"   << "    - Parent Link: " << childLinkComp->Data() << "\n"
+                << "    - Child Link:  " << parentLinkComp->Data() << "\n"
+                << "    - Pose [ XYZ (m) ] [ RPY (rad) ]: "
+                << poseInfo << std::endl;
+    }
+    if (axisComp)
+    {
+      std::cout << "    - Axis unit vector [ XYZ ]: \n"
+                   "      [" << axisComp->Data().Xyz().X() << " | "
+                             << axisComp->Data().Xyz().Y() << " | "
+                             << axisComp->Data().Xyz().Z() << "]\n";
     }
   }
 }
@@ -305,7 +341,7 @@ void printJoints(const uint64_t entity,
 extern "C" IGNITION_GAZEBO_VISIBLE void cmdModelList()
 {
   ignition::gazebo::EntityComponentManager ecm{};
-  if(!populateECM(ecm))
+  if (!populateECM(ecm))
   {
     return;
   }
@@ -315,7 +351,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE void cmdModelList()
 
   std::cout << "Available models:" << std::endl;
 
-  for(const auto &m : models)
+  for (const auto &m : models)
   {
     const auto nameComp =
         ecm.Component<ignition::gazebo::components::Name>(m);
@@ -325,30 +361,27 @@ extern "C" IGNITION_GAZEBO_VISIBLE void cmdModelList()
 
 //////////////////////////////////////////////////
 extern "C" IGNITION_GAZEBO_VISIBLE void cmdModelInfo(
-  const char *_model, int _pose, int _link, const char *_linkName,
-  int _joint, const char *_joint_name)
+  const char *_model, int _pose, const char *_linkName, const char *_jointName)
 {
   std::string linkName{""};
-  if(_linkName)
+  if (_linkName)
     linkName = _linkName;
   std::string jointName{""};
-  if(_joint_name)
-    jointName = _joint_name;
-
+  if (_jointName)
+    jointName = _jointName;
   bool printAll{false};
-  if(!_pose && !_link && !_joint)
+  if (!_pose && !_linkName && !_jointName)
     printAll = true;
 
-  if(!_model)
+  if (!_model)
   {
     std::cerr << std::endl << "Model name not found" << std::endl;
     return;
   }
   const std::string model{_model};
-  // Get arguments
 
   ignition::gazebo::EntityComponentManager ecm{};
-  if(!populateECM(ecm))
+  if (!populateECM(ecm))
     return;
 
   // Get the desired model entity.
@@ -356,15 +389,18 @@ extern "C" IGNITION_GAZEBO_VISIBLE void cmdModelInfo(
     ignition::gazebo::components::Name(model),
     ignition::gazebo::components::Model());
 
+  if (entity == ignition::gazebo::kNullEntity)
+    std::cout << "No model named <" << model << "> was found" << std::endl;
+
   // Get the pose of the model
-  if(printAll | _pose)
+  if (printAll | _pose)
     printPose(entity, ecm);
 
   // Get the links information
-  if(printAll | _link)
+  if (printAll | (_linkName != nullptr))
     printLinks(entity, ecm, linkName);
 
   // Get the links information
-  if(printAll | _joint)
+  if (printAll | (_jointName != nullptr))
     printJoints(entity, ecm, jointName);
 }

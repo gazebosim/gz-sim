@@ -32,6 +32,6 @@ extern "C" IGNITION_GAZEBO_VISIBLE void cmdModelList();
 /// \param[in] _joint --joint option.
 /// \param[in] _joint_name Joint name.
 extern "C" IGNITION_GAZEBO_VISIBLE void cmdModelInfo(
-    const char *_model, int _pose, int _link, const char *_linkName,
-    int _joint, const char *_jointName);
+    const char *_model, int _pose, const char *_linkName,
+    const char *_jointName);
 
