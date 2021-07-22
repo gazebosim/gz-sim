@@ -120,13 +120,13 @@ namespace ignition
       /// \param[in] _worldIndex Index of the world in the simrunner
       /// \return The Entity Component Manager reference
       public: std::optional<std::reference_wrapper<EntityComponentManager>>
-        SharedEntityComponentManager(const unsigned int _worldIndex = 0);
+        SharedEntityComponentManager(const unsigned int _worldIndex = 0) const;
 
       /// \brief Get the Event Manager reference
       /// \param[in] _worldIndex Index of the world in the simrunner
       /// \return The Event Manager reference
       public: std::optional<std::reference_wrapper<EventManager>>
-        SharedEventManager(const unsigned int _worldIndex = 0);
+        SharedEventManager(const unsigned int _worldIndex = 0) const;
 
       /// \brief Set the update period. The update period is the wall-clock time
       /// between ECS updates.

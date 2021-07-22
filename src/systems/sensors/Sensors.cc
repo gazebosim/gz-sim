@@ -268,7 +268,7 @@ void SensorsPrivate::RunOnce()
         IGN_PROFILE("PreRender");
         this->eventManager->Emit<events::PreRender>();
         // Update the scene graph manually to improve performance
-        // We only need to do this once per frame It is important to call
+        // We only need to do this once per frame. It is important to call
         // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
         // so we don't waste cycles doing one scene graph update per sensor
         this->scene->PreRender();
@@ -321,13 +321,7 @@ void SensorsPrivate::Run()
 //////////////////////////////////////////////////
 void SensorsPrivate::Render()
 {
-  if (!this->sameProcess)
-    return;
-
-  if (!this->running)
-    return;
-
-  if (!this->scene)
+  if (!this->sameProcess || !this->running || !this->scene)
     return;
 
   IGN_PROFILE("SensorsPrivate::RunOnce");
@@ -340,7 +334,7 @@ void SensorsPrivate::Render()
     IGN_PROFILE("PreRender");
     this->eventManager->Emit<events::PreRender>();
     // Update the scene graph manually to improve performance
-    // We only need to do this once per frame It is important to call
+    // We only need to do this once per frame. It is important to call
     // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
     // so we don't waste cycles doing one scene graph update per sensor
     this->scene->PreRender();

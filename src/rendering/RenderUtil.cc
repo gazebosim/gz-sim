@@ -1039,6 +1039,8 @@ void RenderUtil::Update()
 
   this->dataPtr->UpdateThermalCamera(thermalCameraData);
 }
+
+//////////////////////////////////////////////////
 void RenderUtilPrivate::AddSensors(const EntityComponentManager &_ecm)
 {
   auto addNewSensor = [&_ecm, this](Entity _entity, const sdf::Sensor &_sdfData,

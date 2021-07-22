@@ -1084,11 +1084,12 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
   if (!this->dataPtr->scene)
     return rendering::LightPtr();
 
-  if (this->dataPtr->lights.find(_id) != this->dataPtr->lights.end())
+  auto lightFind = this->dataPtr->lights.find(_id);
+  if ( lightFind != this->dataPtr->lights.end())
   {
     ignerr << "Light with Id: [" << _id << "] already exists in the scene"
            << std::endl;
-    return this->dataPtr->lights.find(_id)->second;
+    return lightFind->second;
   }
 
   rendering::VisualPtr parent;

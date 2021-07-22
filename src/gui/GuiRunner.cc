@@ -39,7 +39,7 @@ using namespace gazebo;
 /////////////////////////////////////////////////
 class ignition::gazebo::GuiRunner::Implementation
 {
-  public: explicit Implementation(gazebo::EntityComponentManager &_ecm,
+  public: Implementation(gazebo::EntityComponentManager &_ecm,
     gazebo::EventManager &_eventMgr)
   : ecm(_ecm), eventMgr(_eventMgr)
   {
@@ -52,7 +52,7 @@ class ignition::gazebo::GuiRunner::Implementation
   /// received.
   void UpdatePluginsEvent();
 
-  /// \brief This method will update the plugins in one of the workers
+  /// \brief This method will update the plugins in one of the worker threads
   public: void UpdatePluginsFromEvent();
 
   /// \brief Connection to the UpdatePlugins event.

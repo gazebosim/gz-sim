@@ -61,7 +61,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Is the simulation running the GUI and server in the same process
     public: bool sameProcess{false};
 
-    /// \brief is the sensors system plugin running ?
+    /// \brief is the sensors system plugin running?
     public: bool enableSensors{false};
 
     /// \brief did the first render event occur?

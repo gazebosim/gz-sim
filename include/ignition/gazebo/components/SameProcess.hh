@@ -30,7 +30,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component used to hold if the server and gui are running in the
-  /// same process property.
+  /// same process.
   using SameProcess = Component<bool, class SameProcessTag>;
 
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.SameProcess",

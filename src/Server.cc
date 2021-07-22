@@ -209,7 +209,7 @@ Server::~Server() = default;
 
 /////////////////////////////////////////////////
 std::optional<std::reference_wrapper<EntityComponentManager>>
-  Server::SharedEntityComponentManager(const unsigned int _worldIndex)
+  Server::SharedEntityComponentManager(const unsigned int _worldIndex) const
 {
   if (this->dataPtr->simRunners.size() > _worldIndex)
   {
@@ -221,7 +221,7 @@ std::optional<std::reference_wrapper<EntityComponentManager>>
 
 /////////////////////////////////////////////////
 std::optional<std::reference_wrapper<EventManager>>
-  Server::SharedEventManager(const unsigned int _worldIndex)
+  Server::SharedEventManager(const unsigned int _worldIndex) const
 {
   if (this->dataPtr->simRunners.size() > _worldIndex)
   {
