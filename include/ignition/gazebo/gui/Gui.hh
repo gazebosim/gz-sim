@@ -58,7 +58,8 @@ namespace gui
   /// configuration from IGN_HOMEDIR/.ignition/gazebo/gui.config will be used.
   /// \param[in] _ecm Entity-component manager.
   /// \param[in] _eventMgr Event manager
-  /// \param[in] _sameProcess Are the server and gui running in the same process?
+  /// \param[in] _sameProcess Are the server and gui running in the same
+  /// process?
   IGNITION_GAZEBO_GUI_VISIBLE int runGui(int &_argc,
                                          char **_argv,
                                          const char *_guiConfig,
@@ -98,7 +99,8 @@ namespace gui
   /// configuration from IGN_HOMEDIR/.ignition/gazebo/gui.config will be used.
   /// \param[in] _ecm Entity-component manager.
   /// \param[in] _eventMgr Event manager
-  /// \param[in] _sameProcess are the server and gui running in the same process ?
+  /// \param[in] _sameProcess are the server and gui running in the same
+  /// process ?
   /// \param[in] _defaultGuiConfig The default GUI configuration file. If no
   /// plugins were added from a world file or from _guiConfig, this
   /// configuration file will be loaded. If this argument is a nullptr or if

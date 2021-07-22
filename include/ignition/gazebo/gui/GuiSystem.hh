@@ -59,7 +59,8 @@ namespace gazebo
     /// configure the gui system plugins with the event manager to listen
     /// ecm updates and set if we are running in the same process
     /// \param[in] _ecm Mutable event manager
-    /// \param[in] _sameProcess are the server and gui running in the same process ?
+    /// \param[in] _sameProcess are the server and gui running in the same
+    /// process ?
     public: virtual void Configure(
       EventManager &/*_event*/, bool /*sameProcess*/){}
   };
