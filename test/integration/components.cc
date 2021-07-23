@@ -573,6 +573,7 @@ TEST_F(ComponentsTest, JointPositionLimitsCmd)
   // Create components
   auto comp1 = components::JointPositionLimitsCmd();
   auto comp2 = components::JointPositionLimitsCmd();
+  components::JointPositionLimitsCmd comp3;
 
   // Equality operators
   EXPECT_EQ(comp1, comp2);
@@ -584,11 +585,19 @@ TEST_F(ComponentsTest, JointPositionLimitsCmd)
   comp1.Serialize(ostr);
   EXPECT_EQ("0", ostr.str());
 
+  auto istr = std::istringstream(ostr.str());
+  comp3.Deserialize(istr);
+  EXPECT_EQ(comp1, comp3);
+
   comp2.Data().push_back(math::Vector2d(-1.0, 1.0));
 
   std::ostringstream ostr2;
   comp2.Serialize(ostr2);
   EXPECT_EQ("1 -1 1", ostr2.str());
+
+  istr = std::istringstream(ostr2.str());
+  comp3.Deserialize(istr);
+  EXPECT_EQ(comp2, comp3);
 
   comp2.Data().push_back(math::Vector2d(-2.5, 2.5));
 
@@ -596,9 +605,13 @@ TEST_F(ComponentsTest, JointPositionLimitsCmd)
   comp2.Serialize(ostr3);
   EXPECT_EQ("2 -1 1 -2.5 2.5", ostr3.str());
 
-  std::istringstream istr("ignored");
-  components::JointPositionLimitsCmd comp3;
+  istr = std::istringstream(ostr3.str());
   comp3.Deserialize(istr);
+  EXPECT_EQ(comp2, comp3);
+
+  istr = std::istringstream("ignored");
+  comp3.Deserialize(istr);
+  EXPECT_EQ(comp1, comp3);
 }
 
 /////////////////////////////////////////////////
