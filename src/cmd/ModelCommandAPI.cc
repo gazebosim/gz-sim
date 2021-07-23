@@ -190,7 +190,7 @@ void printModelInfo(const uint64_t _entity,
   {
     std::cout << "Model: [" << _entity << "]" << std::endl
               << "  - Name: " << nameComp->Data() << std::endl
-              << "  - Pose [ XYZ (m) ] [ RPY (rad) ]: " << std::endl
+              << "  - Pose [ XYZ (m) ] [ RPY (rad) ]:" << std::endl
               << poseInfo(poseComp->Data(), "      ") << std::endl;
   }
 }
@@ -237,11 +237,11 @@ void printLinks(const uint64_t _modelEntity,
                           + std::to_string(inertialMatrix.Iyz()) + " | "
                           + std::to_string(inertialMatrix.Izz()) + "]";
       std::cout << "    - Mass (kg): " << massInfo << std::endl
-                << "    - Inertial Pose  [ XYZ (m) ] [ RPY (rad) ]:"
+                << "    - Inertial Pose [ XYZ (m) ] [ RPY (rad) ]:"
                 << std::endl
                 << poseInfo(inertialComp->Data().Pose(), "        ")
                 << std::endl
-                << "    - Inertial Matrix (kg⋅m^2): "
+                << "    - Inertial Matrix (kg.m^2):"
                 << inertialInfo << std::endl;
     }
 
@@ -314,14 +314,14 @@ void printJoints(const uint64_t _modelEntity,
     const auto poseComp = _ecm.Component<components::Pose>(entity);
     if (poseComp)
     {
-      std::cout << "    - Pose [ XYZ (m) ] [ RPY (rad) ]: " << std::endl
+      std::cout << "    - Pose [ XYZ (m) ] [ RPY (rad) ]:" << std::endl
                 << poseInfo(poseComp->Data(), "        ") << std::endl;
     }
 
     const auto axisComp = _ecm.Component<components::JointAxis>(entity);
     if (axisComp)
     {
-      std::cout << "    - Axis unit vector [ XYZ ]: \n"
+      std::cout << "    - Axis unit vector [ XYZ ]:\n"
                    "        [" << axisComp->Data().Xyz().X() << " | "
                                << axisComp->Data().Xyz().Y() << " | "
                                << axisComp->Data().Xyz().Z() << "]\n";
@@ -365,7 +365,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE void cmdModelList()
 
 //////////////////////////////////////////////////
 extern "C" IGNITION_GAZEBO_VISIBLE void cmdModelInfo(
-  const char *_modelName, int _pose, const char *_linkName, const char *_jointName)
+    const char *_modelName, int _pose, const char *_linkName,
+    const char *_jointName)
 {
   std::string linkName{""};
   if (_linkName)

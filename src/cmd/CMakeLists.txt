@@ -56,12 +56,12 @@ install(FILES ${cmd_model_script_generated} DESTINATION lib/ruby/ignition)
 # Used for the installed version.
 set(ign_model_ruby_path "${CMAKE_INSTALL_PREFIX}/lib/ruby/ignition/cmdmodel${PROJECT_VERSION_MAJOR}")
 
-set(ignmodel_configured "${CMAKE_CURRENT_BINARY_DIR}/ignmodel${PROJECT_VERSION_MAJOR}.yaml")
+set(model_configured "${CMAKE_CURRENT_BINARY_DIR}/model${PROJECT_VERSION_MAJOR}.yaml")
 configure_file(
-  "ignmodel.yaml.in"
-  ${ignmodel_configured})
+  "model.yaml.in"
+  ${model_configured})
 
-install(FILES ${ignmodel_configured} DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/ignition/)
+install(FILES ${model_configured} DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/ignition/)
 
 
 #===============================================================================
@@ -115,5 +115,5 @@ file(GENERATE
 set(ign_model_ruby_path "${cmd_model_script_generated_test}")
 
 configure_file(
-  "ignmodel.yaml.in"
-  "${cmd_model_ruby_test_dir}/ignmodel${PROJECT_VERSION_MAJOR}.yaml")
+  "model.yaml.in"
+  "${cmd_model_ruby_test_dir}/model${PROJECT_VERSION_MAJOR}.yaml")
