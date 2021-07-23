@@ -433,6 +433,16 @@ TEST_P(EntityComponentManagerFixture, EntitiesAndComponents)
   EXPECT_FALSE(manager.EntityHasComponentType(entity, DoubleComponent::typeId));
   EXPECT_FALSE(manager.EntityHasComponentType(entity2, IntComponent::typeId));
 
+  // Try to add a component to an entity that does not exist
+  EXPECT_FALSE(manager.HasEntity(kNullEntity));
+  EXPECT_FALSE(manager.EntityHasComponentType(kNullEntity,
+        IntComponent::typeId));
+  EXPECT_EQ(ComponentKey(), manager.CreateComponent<IntComponent>(kNullEntity,
+        IntComponent(123)));
+  EXPECT_FALSE(manager.HasEntity(kNullEntity));
+  EXPECT_FALSE(manager.EntityHasComponentType(kNullEntity,
+        IntComponent::typeId));
+
   // Remove all entities
   manager.RequestRemoveEntities();
   EXPECT_EQ(3u, manager.EntityCount());
