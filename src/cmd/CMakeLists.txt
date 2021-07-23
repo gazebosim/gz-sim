@@ -98,7 +98,7 @@ configure_file(
 #===============================================================================
 # Generate the ruby script for internal testing.
 # Note that the major version of the library is included in the name.
-set(cmd_model_ruby_test_dir "${CMAKE_BINARY_DIR}/model/test/lib/ruby/ignition")
+set(cmd_model_ruby_test_dir "${CMAKE_BINARY_DIR}/test/lib/ruby/ignition")
 set(cmd_model_script_generated_test "${cmd_model_ruby_test_dir}/cmdmodel${PROJECT_VERSION_MAJOR}.rb")
 set(cmd_model_script_configured_test "${cmd_model_script_generated_test}.configured")
 
@@ -116,4 +116,4 @@ set(ign_model_ruby_path "${cmd_model_script_generated_test}")
 
 configure_file(
   "model.yaml.in"
-  "${cmd_model_ruby_test_dir}/model${PROJECT_VERSION_MAJOR}.yaml")
+  "${CMAKE_BINARY_DIR}/test/conf/model${PROJECT_VERSION_MAJOR}.yaml" @ONLY)
