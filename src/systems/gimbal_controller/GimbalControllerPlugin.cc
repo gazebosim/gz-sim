@@ -3,7 +3,6 @@
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- /////////////////////////////////////////////////////////////////////////
  * You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
@@ -21,7 +20,16 @@
 #include <mutex>
 #include <chrono>
 
-#include <ignition/transport/Node.hh>
+#include <ignition/common/Profiler.hh>
+
+#include <ignition/gazebo/Model.hh>
+#include <ignition/gazebo/Util.hh>
+
+#include <ignition/gazebo/components/Imu.hh>
+#include <ignition/gazebo/components/JointForceCmd.hh>
+#include <ignition/gazebo/components/JointPosition.hh>
+#include <ignition/gazebo/components/Name.hh>
+#include <ignition/gazebo/components/ParentEntity.hh>
 
 #include <ignition/msgs/imu.pb.h>
 #include <ignition/msgs/stringmsg.pb.h>
@@ -30,16 +38,9 @@
 #include <ignition/math/Quaternion.hh>
 #include <ignition/math/PID.hh>
 
-#include <ignition/gazebo/components/Imu.hh>
-#include <ignition/gazebo/components/JointForceCmd.hh>
-#include <ignition/gazebo/components/JointPosition.hh>
-#include <ignition/gazebo/components/Name.hh>
-#include <ignition/gazebo/components/ParentEntity.hh>
-#include <ignition/gazebo/Model.hh>
-#include <ignition/gazebo/Util.hh>
-
-#include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
+
+#include <ignition/transport/Node.hh>
 
 #include "GimbalControllerPlugin.hh"
 
@@ -82,19 +83,19 @@ class ignition::gazebo::systems::GimbalControllerPluginPrivate
   /// \brief function to initialize parameters
   public: void Init(const EntityComponentManager &_ecm);
 
-  /// \brief callback for imu sensor
+  /// \brief callback for IMU sensor
   public: void imuCb(const ignition::msgs::IMU &_msg);
 
-  /// \brief publisher node for pitch
+  /// \brief publisher node for pitch joint
   public: transport::Node::Publisher pitchPub;
 
-  /// \brief publisher node for roll
+  /// \brief publisher node for roll joint
   public: transport::Node::Publisher rollPub;
 
-  /// \breif publisher node for yaw
+  /// \breif publisher node for yaw joint
   public: transport::Node::Publisher yawPub;
 
-  /// \brief interface to the Model
+  /// \brief interface to Model
   public: Model model{kNullEntity};
 
   /// \brief yaw joint entity
@@ -109,12 +110,17 @@ class ignition::gazebo::systems::GimbalControllerPluginPrivate
   /// \brief status 
   public: std::string status;
 
-  /// IMU params
-  public: 
-    std::string imuName;
-    bool imuInitialized;
-    bool imuMsgValid;
-    std::mutex imuMsgMutex;
+  /// \ IMU sensor name
+  public: std::string imuName;
+
+  /// \brief a variable to check IMU is initialized
+  public: bool imuInitialized;
+    
+  /// \brief a variable to check the validity of IMU message
+  public: bool imuMsgValid;
+
+  /// \brief a mutex for IMU message  
+  public: std::mutex imuMsgMutex;
 
   /// \brief model link entity
   public: Entity modelLink{kNullEntity};
@@ -127,32 +133,32 @@ class ignition::gazebo::systems::GimbalControllerPluginPrivate
   /// \brief communication node for ignition
   public: transport::Node node;
 
-  /// \brief Update time for the controller
+  /// \brief last update time
   public: math::clock::time_point lastUpdateTime;
 
-  /// \brief last update time
+  /// \brief controller update time
   public: std::chrono::steady_clock::duration lastControllerUpdateTime{0};
 
-  /// \brief PID controllers
+  /// \brief PID controllers for joints
   public: ignition::math::PID pitchPid;
   public: ignition::math::PID yawPid;
   public: ignition::math::PID rollPid;
 };
 
-////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////
 GimbalControllerPlugin::GimbalControllerPlugin()
   :dataPtr(std::make_unique<GimbalControllerPluginPrivate>())
 {
-  /// TODO: make these gains part of sdf xml
+  
   this->dataPtr->pitchPid.Init(5, 0, 0, 0, 0, 0.3, -0.3);
   this->dataPtr->rollPid.Init(5, 0, 0, 0, 0, 0.3, -0.3);
   this->dataPtr->yawPid.Init(1.0, 0, 0, 0, 0, 1.0, -1.0);
-  this->dataPtr->pitchCommand = 0.5* IGN_PI;
+  this->dataPtr->pitchCommand = 0.5 * IGN_PI;
   this->dataPtr->rollCommand = 0;
   this->dataPtr->yawCommand = 0;
 }
 
-////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////
 void GimbalControllerPluginPrivate::imuCb(const ignition::msgs::IMU &_msg)
 {
   std::lock_guard<std::mutex> lock(this->imuMsgMutex);
@@ -160,7 +166,7 @@ void GimbalControllerPluginPrivate::imuCb(const ignition::msgs::IMU &_msg)
   this->imuMsgValid = true;
 }
 
-/////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////
 void GimbalControllerPlugin::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm,
@@ -223,7 +229,6 @@ void GimbalControllerPlugin::Configure(const Entity &_entity,
 	}
 
 	// for pitch joint
-
 	std::string pitchJointName;
 	this->dataPtr->pitchJoint = 
   this->dataPtr->model.JointByName(_ecm, "pitchJointName");
@@ -249,12 +254,13 @@ void GimbalControllerPlugin::Configure(const Entity &_entity,
 		ignerr << "GimbalControllerPlugin::Configure ERROR! Can't get pitch joint." 
            <<pitchJointName <<"' " <<std::endl;
 	}
+
 	// get imu sensor
 	this->dataPtr->imuName = _sdf->Get("imuName", 
     static_cast<std::string>("imu_sensor")).first;
 }
 
-///////////////////////////////////////////////////////////////////////////
+
 void GimbalControllerPluginPrivate::Init(const EntityComponentManager &_ecm)
 {    
   // receive pitch command via ignition transport 
@@ -287,38 +293,38 @@ void GimbalControllerPluginPrivate::Init(const EntityComponentManager &_ecm)
   ignmsg<< "GimbalControllerPluginPrivate::Init" <<std::endl;
 }
 
-////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////
 void GimbalControllerPluginPrivate::OnPitchStringMsg
 (const msgs::StringMsg &_msg)
 {
 	this->pitchCommand = atof(_msg.data().c_str());
 }
 
-////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////
 void GimbalControllerPluginPrivate::OnYawStringMsg
 (const msgs::StringMsg &_msg)
 {
 	this->yawCommand = atof(_msg.data().c_str());
 }
 
-////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////
 void GimbalControllerPluginPrivate::OnRollStringMsg
 (const msgs::StringMsg &_msg)
 {
 	this->rollCommand = atof(_msg.data().c_str());
 }
 
-////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////
 ignition::math::Vector3d GimbalControllerPluginPrivate::ThreeAxisRot(
   double r11, double r12, double r21, double r31, double r32)
 {
   return ignition::math::Vector3d(
-    atan2( r31, r32 ),
+    atan2( r31, r32),
     asin ( r21 ),
-    atan2( r11, r12 ));
+    atan2( r11, r12));
 }
 
-////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////
 ignition::math::Vector3d GimbalControllerPluginPrivate::QtoZXY
 (const ignition::math::Quaterniond &_q)
 {
@@ -331,7 +337,7 @@ ignition::math::Vector3d GimbalControllerPluginPrivate::QtoZXY
   return result;
 }
 
-////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////
 void GimbalControllerPlugin::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     ignition::gazebo::EntityComponentManager &_ecm)
 {  if(!this->dataPtr->imuInitialized)
@@ -344,7 +350,7 @@ void GimbalControllerPlugin::PreUpdate(const ignition::gazebo::UpdateInfo &_info
           components::Imu(),
           components::ParentEntity(this->dataPtr->modelLink));
 
-      //Imu sensor topic 
+      // Imu sensor topic 
       std::string topic = scopedName(imuEntity, _ecm) + "/imu";
 
       if(topic.empty())
@@ -354,6 +360,7 @@ void GimbalControllerPlugin::PreUpdate(const ignition::gazebo::UpdateInfo &_info
         return;
       }
 
+      // Subscribe to IMU sensor topic
       this->dataPtr->node.Subscribe(topic, 
         &GimbalControllerPluginPrivate::imuCb);
     }
@@ -374,13 +381,10 @@ void GimbalControllerPlugin::PreUpdate(const ignition::gazebo::UpdateInfo &_info
       std::chrono::duration<double> dt  = 
       (this->dataPtr->lastControllerUpdateTime - _info.simTime);
   
-      // apply forces to move gimbal
-      // for pitch 
+      // Compute pitch joint's position and set forces
       auto pitchJointPos = _ecm.Component<components::JointPosition>
       (this->dataPtr->pitchJoint);
-      double pitchError = pitchJointPos->Data().at(0) - this->dataPtr->pitchCommand;
-      double pitchForce = this->dataPtr->pitchPid.Update(pitchError, dt);
-
+      
       ignition::gazebo::components::JointForceCmd* pjfcComp = nullptr;
       pjfcComp = _ecm.Component<components::JointForceCmd>
       (this->dataPtr->pitchJoint);
@@ -392,12 +396,10 @@ void GimbalControllerPlugin::PreUpdate(const ignition::gazebo::UpdateInfo &_info
           components::JointForceCmd({0})));
       }
 
-      // for yaw
+      // Compute yaw joint's position and set forces
       auto yawJointPos = _ecm.Component<components::JointPosition>
       (this->dataPtr->yawJoint);
-      double yawError = yawJointPos->Data().at(0) - this->dataPtr->yawCommand;
-      double yawForce = this->dataPtr->yawPid.Update(yawError, dt);
-
+      
       ignition::gazebo::components::JointForceCmd* yjfcComp = nullptr;
       yjfcComp = _ecm.Component<components::JointForceCmd>
       (this->dataPtr->yawJoint);
@@ -409,11 +411,9 @@ void GimbalControllerPlugin::PreUpdate(const ignition::gazebo::UpdateInfo &_info
           components::JointForceCmd({0})));
       }
 
-      // for roll
+      // Compute roll joint's position and set forces
       auto rollJointPos = _ecm.Component<components::JointPosition>
       (this->dataPtr->rollJoint);
-      double rollError = rollJointPos->Data().at(0) - this->dataPtr->rollCommand;
-      double rollForce = this->dataPtr->rollPid.Update(rollError, dt);
 
       ignition::gazebo::components::JointForceCmd* rjfcComp = nullptr;
       rjfcComp = _ecm.Component<components::JointForceCmd>
@@ -426,6 +426,7 @@ void GimbalControllerPlugin::PreUpdate(const ignition::gazebo::UpdateInfo &_info
           components::JointForceCmd({0})));
       }
 
+      // Publish joint positions on the topics 
       static int i = 1000;
       if (++i > 100)
       {
@@ -445,14 +446,15 @@ void GimbalControllerPlugin::PreUpdate(const ignition::gazebo::UpdateInfo &_info
         m.set_data(ss.str());
         this->dataPtr->yawPub.Publish(m);
       }
-  }
+   }
 }
 
-////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////
 double GimbalControllerPluginPrivate::NormalizeAbout
 (double _angle, double reference)
 {
   double diff = _angle - reference;
+
   // normalize diff about (-pi, pi], then add reference
   while (diff <= -IGN_PI)
   {
@@ -465,13 +467,14 @@ double GimbalControllerPluginPrivate::NormalizeAbout
   return diff + reference;
 }
 
-///////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////
 double GimbalControllerPluginPrivate::ShortestAngularDistance
 (double _from, double _to)
 {
   return this->NormalizeAbout(_to, _from) - _from;
 }
 
+// Register Plugin
 IGNITION_ADD_PLUGIN(GimbalControllerPlugin,
   ignition::gazebo::System,
   GimbalControllerPlugin::ISystemConfigure,

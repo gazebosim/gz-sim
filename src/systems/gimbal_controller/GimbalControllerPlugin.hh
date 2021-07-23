@@ -32,7 +32,25 @@ namespace systems
 {
     // Forward declaration
     class GimbalControllerPluginPrivate;
-    /// \brief A plugin that simulates lift and drag.
+
+    /// \brief Plugin to control a 3-axis gimbal.
+    /// See the example usage below:
+    ///
+    /// <plugin 
+    ///    
+    ///    <!-- Plugin file name -->
+    ///    filename="ignition-gazebo-gimbalcontrollerplugin-system"
+    ///    name="ignition::gazebo::systems::GimbalControllerPlugin">
+    ///
+    ///    <joint_yaw>Enter the joint name</joint_yaw>
+    ///
+    ///    <joint_roll>Enter the joint name</joint_roll>
+    ///
+    ///    <joint_pitch>Enter the joint name</joint_pitch>
+    ///
+    ///  </plugin>
+    ///
+    /// Complete world file can be found in example/worlds.
     class GimbalControllerPlugin :
         public System,
         public ISystemConfigure,
