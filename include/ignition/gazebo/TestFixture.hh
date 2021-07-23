@@ -43,7 +43,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 ///   const gazebo::EntityComponentManager &_ecm)
 ///   {
 ///     // Add expectations here
-///   }
+///   }.Finalize(); // Important to initiallize the system
 ///
 /// // Run the server
 /// fixture.Server()->Run(true, 1000, false);
@@ -84,6 +84,9 @@ class TestFixture
   /// \return Reference to self.
   public: TestFixture &OnPostUpdate(std::function<void(
       const UpdateInfo &, const EntityComponentManager &)> _cb);
+
+  /// \brief Finalize all the functions and add fixture to server.
+  public: TestFixture &Finalize();
 
   /// \brief Get pointer to underlying server.
   public: std::shared_ptr<gazebo::Server> Server() const;

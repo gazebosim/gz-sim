@@ -140,10 +140,15 @@ TestFixture::TestFixture(const ServerConfig &_config)
 void TestFixture::Implementation::Init(const ServerConfig &_config)
 {
   this->helperSystem = new HelperSystem();
-  auto systemPtr = dynamic_cast<System *>(this->helperSystem);
-
   this->server = std::make_shared<gazebo::Server>(_config);
-  this->server->AddSystem(systemPtr);
+}
+
+//////////////////////////////////////////////////
+TestFixture &TestFixture::Finalize()
+{
+  auto systemPtr = dynamic_cast<System *>(this->dataPtr->helperSystem);
+  this->dataPtr->server->AddSystem(systemPtr);
+  return *this;
 }
 
 //////////////////////////////////////////////////

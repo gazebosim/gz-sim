@@ -37,16 +37,30 @@ TEST(ExampleTests, Gravity)
 
   // This callback is called every simulation iteration
   int iterations{0};
-  fixture.OnPostUpdate(
-    [&iterations](const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm)
+
+  ignition::gazebo::Entity worldEntity;
+  ignition::gazebo::Entity modelEntity;
+
+  fixture.
+  OnConfigure(
+    [&worldEntity, &modelEntity](const ignition::gazebo::Entity &_entity,
+      const std::shared_ptr<const sdf::Element> &_sdf,
+      ignition::gazebo::EntityComponentManager &_ecm,
+      ignition::gazebo::EventManager &_eventMgr)
     {
-      auto worldEntity = ignition::gazebo::worldEntity(_ecm);
+      worldEntity = ignition::gazebo::worldEntity(_ecm);
+      ignition::gazebo::World world(worldEntity);
+
+      modelEntity = world.ModelByName(_ecm, "sphere");
+      EXPECT_NE(ignition::gazebo::kNullEntity, modelEntity);
+    }).
+  OnPostUpdate(
+    [&iterations, &worldEntity, &modelEntity](
+      const ignition::gazebo::UpdateInfo &_info,
+      const ignition::gazebo::EntityComponentManager &_ecm)
+    {
       ignition::gazebo::World world(worldEntity);
       auto gravity = world.Gravity(_ecm).value();
-
-      auto modelEntity = world.ModelByName(_ecm, "sphere");
-      EXPECT_NE(ignition::gazebo::kNullEntity, modelEntity);
 
       // Inspect all model poses
       ignition::gazebo::Model model(modelEntity);
@@ -62,17 +76,7 @@ TEST(ExampleTests, Gravity)
       EXPECT_NEAR(gravity.Z() * time * time * 0.5, pose.Pos().Z(), 1e-2);
 
       iterations++;
-    });
-
-  fixture.OnConfigure(
-    [](const Entity &_entity,
-      const std::shared_ptr<const sdf::Element> &_sdf,
-      EntityComponentManager &_ecm,
-      EventManager &_eventMgr)> _cb)
-    {
-      std::cout << "Configure " <<std::endl;
-    }
-  );
+    }).Finalize();
 
   // Setup simulation server
   fixture.Server()->Run(true, 1000, false);
