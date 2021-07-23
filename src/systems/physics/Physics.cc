@@ -151,7 +151,7 @@ class ignition::gazebo::systems::PhysicsPrivate
           ignition::physics::FreeGroupFrameSemantics,
           ignition::physics::LinkFrameSemantics,
           ignition::physics::ForwardStep,
-          ignition::physics::RemoveEntities,
+          ignition::physics::RemoveModelFromWorld,
           ignition::physics::sdf::ConstructSdfLink,
           ignition::physics::sdf::ConstructSdfModel,
           ignition::physics::sdf::ConstructSdfWorld
@@ -1182,6 +1182,14 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm)
 
           collisionPtrPhys =
               linkCollisionFeature->ConstructCollision(collision);
+        }
+
+        if (nullptr == collisionPtrPhys)
+        {
+          igndbg << "Failed to create collision [" << _name->Data()
+                 << "]. Does the physics engine support geometries of type ["
+                 << static_cast<int>(_geom->Data().Type()) << "]?" << std::endl;
+          return true;
         }
 
         this->entityCollisionMap.AddEntity(_entity, collisionPtrPhys);
