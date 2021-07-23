@@ -21,8 +21,12 @@
 #include <vector>
 #include <map>
 
+#include <ignition/msgs/serialized.pb.h>
+#include <ignition/msgs/stringmsg.pb.h>
+
 #include <ignition/common/Console.hh>
 #include <ignition/common/Filesystem.hh>
+#include <ignition/gazebo/EntityComponentManager.hh>
 #include <ignition/gazebo/components/ChildLinkName.hh>
 #include <ignition/gazebo/components/Inertial.hh>
 #include <ignition/gazebo/components/Joint.hh>
@@ -34,29 +38,28 @@
 #include <ignition/gazebo/components/ParentEntity.hh>
 #include <ignition/gazebo/components/ParentLinkName.hh>
 #include <ignition/gazebo/components/Pose.hh>
-#include <ignition/gazebo/EntityComponentManager.hh>
-#include <ignition/msgs.hh>
-#include <ignition/msgs/serialized.pb.h>
+#include <ignition/gazebo/components/World.hh>
 #include <ignition/transport/Node.hh>
 
-namespace {
+using namespace ignition;
+using namespace gazebo;
 
 //////////////////////////////////////////////////
-// \brief Get the name of the world being used by calling
-// `/gazebo/worlds` service.
-// \return The name of the world if service is available,
-// an empty string otherwise.
+/// \brief Get the name of the world being used by calling
+/// `/gazebo/worlds` service.
+/// \return The name of the world if service is available,
+/// an empty string otherwise.
 std::string getWorldName()
 {
   // Create a transport node.
-  ignition::transport::Node node;
+  transport::Node node;
 
   bool result{false};
   const unsigned int timeout{5000};
   const std::string service{"/gazebo/worlds"};
 
   // Request and block
-  ignition::msgs::StringMsg_V res;
+  msgs::StringMsg_V res;
 
   if (!node.Request(service, timeout, res, result))
   {
@@ -76,10 +79,62 @@ std::string getWorldName()
 }
 
 //////////////////////////////////////////////////
+/// \brief Get entity info: name and entity ID
+/// \param[in] _entity Entity to get info
+/// \param[in] _ecm Entity component manager
+/// \return "<entity name> [<entity ID>]"
+std::string entityInfo(Entity _entity, const EntityComponentManager &_ecm)
+{
+  std::string info;
+
+  const auto nameComp = _ecm.Component<components::Name>( _entity);
+  if (nameComp)
+  {
+    info += nameComp->Data() + " ";
+  }
+  info += "[" + std::to_string(_entity) + "]";
+  return info;
+}
+
+//////////////////////////////////////////////////
+/// \brief Get entity info: name and entity ID
+/// \param[in] _entity Name of entity to get info
+/// \param[in] _ecm Entity component manager
+/// \return "<entity name> [<entity ID>]"
+std::string entityInfo(const std::string &_name,
+    const EntityComponentManager &_ecm)
+{
+  std::string info{_name};
+
+  auto entity = _ecm.EntityByComponents(components::Name(_name));
+  if (kNullEntity != entity)
+  {
+    info += " [" + std::to_string(entity) + "]";
+  }
+  return info;
+}
+
+//////////////////////////////////////////////////
+/// \brief Get pose info in a standard way
+/// \param[in] _pose Pose to print
+/// \param[in] _prefix Indentation prefix for every line
+/// \return Pose formatted in a standard way
+std::string poseInfo(math::Pose3d _pose, const std::string &_prefix)
+{
+  return
+    _prefix + "[" + std::to_string(_pose.X()) + " | "
+                  + std::to_string(_pose.Y()) + " | "
+                  + std::to_string(_pose.Z()) + "]\n" +
+    _prefix + "[" + std::to_string(_pose.Roll()) + " | "
+                  + std::to_string(_pose.Pitch()) + " | "
+                  + std::to_string(_pose.Yaw()) + "]";
+}
+
+//////////////////////////////////////////////////
 // \brief Set the state of a ECM instance with a world snapshot.
 // \param _ecm ECM instance to be populated.
 // \return boolean indicating if it was able to populate the ECM.
-bool populateECM(ignition::gazebo::EntityComponentManager &_ecm)
+bool populateECM(EntityComponentManager &_ecm)
 {
   const std::string world = getWorldName();
   if (world.empty())
@@ -89,7 +144,7 @@ bool populateECM(ignition::gazebo::EntityComponentManager &_ecm)
     return false;
   }
   // Create a transport node.
-  ignition::transport::Node node;
+  transport::Node node;
   bool result{false};
   const unsigned int timeout{5000};
   const std::string service{"/world/" + world + "/state"};
@@ -98,7 +153,7 @@ bool populateECM(ignition::gazebo::EntityComponentManager &_ecm)
             << "]..." << std::endl << std::endl;
 
   // Request and block
-  ignition::msgs::SerializedStepMap res;
+  msgs::SerializedStepMap res;
 
   if (!node.Request(service, timeout, res, result))
   {
@@ -121,90 +176,56 @@ bool populateECM(ignition::gazebo::EntityComponentManager &_ecm)
 
 
 //////////////////////////////////////////////////
-// \brief Print the model pose information.
+// \brief Print the model information.
 // \param[in] _entity Entity of the model requested.
 // \param[in] _ecm ECM ready for requests.
-void printPose(const uint64_t _entity,
-               const ignition::gazebo::EntityComponentManager &_ecm){
-  const auto modelPose = _ecm.EntitiesByComponents(
-    ignition::gazebo::components::ParentEntity(_entity),
-    ignition::gazebo::components::Pose());
-
+void printModelInfo(const uint64_t _entity,
+               const EntityComponentManager &_ecm)
+{
   const auto poseComp =
-      _ecm.Component<ignition::gazebo::components::Pose>(_entity);
+      _ecm.Component<components::Pose>(_entity);
   const auto nameComp =
-      _ecm.Component<ignition::gazebo::components::Name>(_entity);
-  if (poseComp)
+      _ecm.Component<components::Name>(_entity);
+  if (poseComp && nameComp)
   {
-    std::string poseInfo;
-    poseInfo += "\n      [" + std::to_string(poseComp->Data().X()) + " | "
-                            + std::to_string(poseComp->Data().Y()) + " | "
-                            + std::to_string(poseComp->Data().Z()) + "]\n"
-                  "      [" + std::to_string(poseComp->Data().Roll()) + " | "
-                            + std::to_string(poseComp->Data().Pitch()) + " | "
-                            + std::to_string(poseComp->Data().Yaw()) + "]";
-
     std::cout << "Model: [" << _entity << "]" << std::endl
               << "  - Name: " << nameComp->Data() << std::endl
-              << "  - Pose [ XYZ (m) ] [ RPY (rad) ]: "
-              << poseInfo << std::endl << std::endl;
+              << "  - Pose [ XYZ (m) ] [ RPY (rad) ]:" << std::endl
+              << poseInfo(poseComp->Data(), "      ") << std::endl;
   }
 }
 
 //////////////////////////////////////////////////
 // \brief Print the model links information.
-// \param[in] _entity Entity of the model requested.
+// \param[in] _modelEntity Entity of the model requested.
 // \param[in] _ecm ECM ready for requests.
-// \param[in] _linkName Link to be printed, if nullptr, print all links.
-void printLinks(const uint64_t _entity,
-                const ignition::gazebo::EntityComponentManager &_ecm,
+// \param[in] _linkName Link to be printed, if empty, print all links.
+void printLinks(const uint64_t _modelEntity,
+                const EntityComponentManager &_ecm,
                 const std::string &_linkName)
 {
   const auto links = _ecm.EntitiesByComponents(
-  ignition::gazebo::components::ParentEntity(_entity),
-  ignition::gazebo::components::Link());
+      components::ParentEntity(_modelEntity), components::Link());
   for (const auto &entity : links)
   {
-    const auto parentComp =
-        _ecm.Component<ignition::gazebo::components::ParentEntity>(entity);
-
-    const auto nameComp =
-        _ecm.Component<ignition::gazebo::components::Name>(entity);
+    const auto nameComp = _ecm.Component<components::Name>(entity);
 
     if (_linkName.length() && _linkName != nameComp->Data())
         continue;
 
-    if (parentComp)
-    {
-      std::string parentInfo;
-      const auto parentNameComp =
-          _ecm.Component<ignition::gazebo::components::Name>(
-          parentComp->Data());
+    std::cout << "  - Link [" << entity << "]" << std::endl
+              << "    - Name: " << nameComp->Data() << std::endl
+              << "    - Parent: " << entityInfo(_modelEntity, _ecm)
+              << std::endl;
 
-      if (parentNameComp)
-      {
-        parentInfo += parentNameComp->Data() + " ";
-      }
-      parentInfo += "[" + std::to_string(parentComp->Data()) + "]";
-      std::cout << "  - Link [" << entity << "]" << std::endl
-                << "    - Name: " << nameComp->Data() << std::endl
-                << "    - Parent: " << parentInfo << std::endl;
-    }
-
-    const auto inertialComp =
-        _ecm.Component<ignition::gazebo::components::Inertial>(entity);
+    const auto inertialComp = _ecm.Component<components::Inertial>(entity);
 
     if (inertialComp)
     {
-      const auto inertialMatrix =  inertialComp->Data().MassMatrix();
-      const auto massComp = inertialComp->Data().MassMatrix().Mass();
+      const auto inertialMatrix = inertialComp->Data().MassMatrix();
+      const auto mass = inertialComp->Data().MassMatrix().Mass();
 
-      const std::string inertialPose =
-        "\n        [" + std::to_string(inertialComp->Data().Pose().X()) + " | "
-                      + std::to_string(inertialComp->Data().Pose().Y()) + " | "
-                      + std::to_string(inertialComp->Data().Pose().Z()) + "]";
-
-      const std::string massInfo = "[" + std::to_string(massComp) + "]";
+      const std::string massInfo = "[" + std::to_string(mass) + "]";
       const std::string inertialInfo =
             "\n        [" + std::to_string(inertialMatrix.Ixx()) + " | "
                           + std::to_string(inertialMatrix.Ixy()) + " | "
@@ -216,45 +237,34 @@ void printLinks(const uint64_t _entity,
                           + std::to_string(inertialMatrix.Iyz()) + " | "
                           + std::to_string(inertialMatrix.Izz()) + "]";
       std::cout << "    - Mass (kg): " << massInfo << std::endl
-                << "    - Inertial Pose:" << inertialPose << std::endl
-                << "    - Inertial Matrix (kg⋅m^2): "
+                << "    - Inertial Pose [ XYZ (m) ] [ RPY (rad) ]:"
+                << std::endl
+                << poseInfo(inertialComp->Data().Pose(), "        ")
+                << std::endl
+                << "    - Inertial Matrix (kg.m^2):"
                 << inertialInfo << std::endl;
     }
-      const std::string inertialPose =
-        "\n        [" + std::to_string(inertialComp->Data().Pose().X()) + " | "
-                      + std::to_string(inertialComp->Data().Pose().Y()) + " | "
-                      + std::to_string(inertialComp->Data().Pose().Z()) + "]";
 
-
-    const auto poseComp =
-        _ecm.Component<ignition::gazebo::components::Pose>(entity);
-
+    const auto poseComp = _ecm.Component<components::Pose>(entity);
     if (poseComp)
     {
-      const std::string poseInfo =
-            "\n        [" + std::to_string(poseComp->Data().X()) + " | "
-                          + std::to_string(poseComp->Data().Y()) + " | "
-                          + std::to_string(poseComp->Data().Z()) + "]\n"
-              "        [" + std::to_string(poseComp->Data().Roll()) + " | "
-                          + std::to_string(poseComp->Data().Pitch()) + " | "
-                          + std::to_string(poseComp->Data().Yaw()) + "]";
-
-      std::cout << "    - Pose [ XYZ (m) ] [ RPY (rad) ]: "
-                << poseInfo << std::endl;
+      std::cout << "    - Pose [ XYZ (m) ] [ RPY (rad) ]:" << std::endl
+                << poseInfo(poseComp->Data(), "        ") << std::endl;
     }
   }
 }
 
 //////////////////////////////////////////////////
 // \brief Print the model joints information.
-// \param[in] _entity Entity of the model requested.
+// \param[in] _modelEntity Entity of the model requested.
 // \param[in] _ecm ECM ready for requests.
 // \param[in] _jointName Joint to be printed, if nullptr, print all joints.
-void printJoints(const uint64_t entity,
-                const ignition::gazebo::EntityComponentManager &_ecm,
+void printJoints(const uint64_t _modelEntity,
+                const EntityComponentManager &_ecm,
                 const std::string &_jointName)
 {
-  static const std::map<sdf::JointType, std::string> jointTypes = {
+  static const std::map<sdf::JointType, std::string> jointTypes =
+  {
     {sdf::JointType::REVOLUTE, "revolute"},
     {sdf::JointType::BALL, "ball"},
     {sdf::JointType::CONTINUOUS, "continuous"},
@@ -267,101 +277,96 @@ void printJoints(const uint64_t entity,
   };
 
   const auto joints = _ecm.EntitiesByComponents(
-  ignition::gazebo::components::ParentEntity(entity),
-  ignition::gazebo::components::Joint());
+      components::ParentEntity(_modelEntity), components::Joint());
 
-  for (const auto &_entity : joints)
+  for (const auto &entity : joints)
   {
-    const auto parentComp =
-        _ecm.Component<ignition::gazebo::components::ParentEntity>(_entity);
-
-    const auto nameComp =
-        _ecm.Component<ignition::gazebo::components::Name>(_entity);
+    const auto nameComp = _ecm.Component<components::Name>(entity);
 
     if (_jointName.length() && _jointName != nameComp->Data())
-        continue;
+      continue;
 
-    if (parentComp)
+    std::cout << "  - Joint [" << entity << "]" << std::endl
+              << "    - Name: " << nameComp->Data() << std::endl
+              << "    - Parent: " << entityInfo(_modelEntity, _ecm)
+              << std::endl;
+
+    const auto jointTypeComp = _ecm.Component<components::JointType>(entity);
+    if (jointTypeComp)
     {
-      std::string parentInfo;
-      auto parentNameComp =
-          _ecm.Component<ignition::gazebo::components::Name>(
-          parentComp->Data());
-
-      if (parentNameComp)
-      {
-        parentInfo += parentNameComp->Data() + " ";
-      }
-      parentInfo += "[" + std::to_string(parentComp->Data()) + "]";
-
-      std::cout << "  - Joint [" << _entity << "]" << std::endl
-                << "    - Name: " << nameComp->Data() << std::endl
-                << "    - Parent: " << parentInfo << std::endl;
+      std::cout << "    - Type: " << jointTypes.at(jointTypeComp->Data())
+                << std::endl;
     }
 
-    const auto jointComp =
-        _ecm.Component<ignition::gazebo::components::JointType>(_entity);
     const auto childLinkComp =
-        _ecm.Component<ignition::gazebo::components::ChildLinkName>(_entity);
+        _ecm.Component<components::ChildLinkName>(entity);
     const auto parentLinkComp =
-        _ecm.Component<ignition::gazebo::components::ParentLinkName>(_entity);
-    const auto poseComp =
-        _ecm.Component<ignition::gazebo::components::Pose>(_entity);
-    const auto axisComp =
-        _ecm.Component<ignition::gazebo::components::JointAxis>(_entity);
+        _ecm.Component<components::ParentLinkName>(entity);
 
     if (childLinkComp && parentLinkComp)
     {
-      const std::string poseInfo =
-                "\n      [" + std::to_string(poseComp->Data().X()) + " | "
-                            + std::to_string(poseComp->Data().Y()) + " | "
-                            + std::to_string(poseComp->Data().Z()) + "]\n"
-                  "      [" + std::to_string(poseComp->Data().Roll()) + " | "
-                            + std::to_string(poseComp->Data().Pitch()) + " | "
-                            + std::to_string(poseComp->Data().Yaw()) + "]";
-
-      std::cout << "    - Type:  " << jointTypes.at(jointComp->Data())
-      << "\n"   << "    - Parent Link: " << childLinkComp->Data() << "\n"
-                << "    - Child Link:  " << parentLinkComp->Data() << "\n"
-                << "    - Pose [ XYZ (m) ] [ RPY (rad) ]: "
-                << poseInfo << std::endl;
+      std::cout << "    - Parent Link: "
+                << entityInfo(parentLinkComp->Data(), _ecm) << "\n"
+                << "    - Child Link: "
+                << entityInfo(childLinkComp->Data(), _ecm) << "\n";
     }
+
+    const auto poseComp = _ecm.Component<components::Pose>(entity);
+    if (poseComp)
+    {
+      std::cout << "    - Pose [ XYZ (m) ] [ RPY (rad) ]:" << std::endl
+                << poseInfo(poseComp->Data(), "        ") << std::endl;
+    }
+
+    const auto axisComp = _ecm.Component<components::JointAxis>(entity);
     if (axisComp)
     {
-      std::cout << "    - Axis unit vector [ XYZ ]: \n"
-                   "      [" << axisComp->Data().Xyz().X() << " | "
-                             << axisComp->Data().Xyz().Y() << " | "
-                             << axisComp->Data().Xyz().Z() << "]\n";
+      std::cout << "    - Axis unit vector [ XYZ ]:\n"
+                   "        [" << axisComp->Data().Xyz().X() << " | "
+                               << axisComp->Data().Xyz().Y() << " | "
+                               << axisComp->Data().Xyz().Z() << "]\n";
     }
   }
-}
 }
 
 //////////////////////////////////////////////////
 extern "C" IGNITION_GAZEBO_VISIBLE void cmdModelList()
 {
-  ignition::gazebo::EntityComponentManager ecm{};
+  EntityComponentManager ecm{};
   if (!populateECM(ecm))
   {
     return;
   }
+
+  auto world = ecm.EntityByComponents(components::World());
+  if (kNullEntity == world)
+  {
+    std::cout << "No world found." << std::endl;
+    return;
+  }
+
   const auto models = ecm.EntitiesByComponents(
-    ignition::gazebo::components::ParentEntity(1),
-    ignition::gazebo::components::Model());
+    components::ParentEntity(world), components::Model());
+
+  if (models.size() == 0)
+  {
+    std::cout << "No models in world [" << world << "]" << std::endl;
+    return;
+  }
 
   std::cout << "Available models:" << std::endl;
 
   for (const auto &m : models)
   {
-    const auto nameComp =
-        ecm.Component<ignition::gazebo::components::Name>(m);
+    const auto nameComp = ecm.Component<components::Name>(m);
     std::cout << "    - " << nameComp->Data() << std::endl;
   }
 }
 
 //////////////////////////////////////////////////
 extern "C" IGNITION_GAZEBO_VISIBLE void cmdModelInfo(
-  const char *_model, int _pose, const char *_linkName, const char *_jointName)
+    const char *_modelName, int _pose, const char *_linkName,
+    const char *_jointName)
 {
   std::string linkName{""};
   if (_linkName)
@@ -373,34 +378,32 @@ extern "C" IGNITION_GAZEBO_VISIBLE void cmdModelInfo(
   if (!_pose && !_linkName && !_jointName)
     printAll = true;
 
-  if (!_model)
+  if (!_modelName)
   {
     std::cerr << std::endl << "Model name not found" << std::endl;
     return;
   }
-  const std::string model{_model};
 
-  ignition::gazebo::EntityComponentManager ecm{};
+  EntityComponentManager ecm{};
   if (!populateECM(ecm))
     return;
 
   // Get the desired model entity.
-  auto entity = ecm.EntityByComponents(
-    ignition::gazebo::components::Name(model),
-    ignition::gazebo::components::Model());
+  auto entity = ecm.EntityByComponents(components::Name(_modelName),
+      components::Model());
 
-  if (entity == ignition::gazebo::kNullEntity)
-    std::cout << "No model named <" << model << "> was found" << std::endl;
+  if (entity == kNullEntity)
+    std::cout << "No model named <" << _modelName << "> was found" << std::endl;
 
   // Get the pose of the model
   if (printAll | _pose)
-    printPose(entity, ecm);
+    printModelInfo(entity, ecm);
 
   // Get the links information
   if (printAll | (_linkName != nullptr))
     printLinks(entity, ecm, linkName);
 
-  // Get the links information
+  // Get the joints information
   if (printAll | (_jointName != nullptr))
     printJoints(entity, ecm, jointName);
 }

@@ -15,8 +15,6 @@
  *
 */
 
-#include "cmd/ModelCommandAPI.hh"
-
 #include <cstdio>
 #include <cstdlib>
 #include <string>
@@ -26,8 +24,8 @@
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
-static const std::string kIgnModelCommand(std::string(IGN_PATH) +
-                                          "/ign model ");
+static const std::string kIgnModelCommand(
+    std::string(BREW_RUBY) + std::string(IGN_PATH) + "/ign model ");
 
 
 /////////////////////////////////////////////////
@@ -49,6 +47,8 @@ void ReplaceNegativeZeroValues(std::string &_text)
 /////////////////////////////////////////////////
 std::string customExecStr(std::string _cmd)
 {
+  std::cout << "Running command [" << _cmd << "]" << std::endl;
+
   _cmd += " 2>&1";
   FILE *pipe = popen(_cmd.c_str(), "r");
 
@@ -70,6 +70,7 @@ std::string customExecStr(std::string _cmd)
   return result;
 }
 
+/////////////////////////////////////////////////
 // Test `ign model` command when no Gazebo server is running.
 TEST(ModelCommandAPI, NoServerRunning)
 {
@@ -82,6 +83,7 @@ TEST(ModelCommandAPI, NoServerRunning)
   EXPECT_EQ(expectedOutput, output);
 }
 
+/////////////////////////////////////////////////
 // Tests `ign model` command.
 TEST(ModelCommandAPI, Commands)
 {
@@ -117,93 +119,96 @@ TEST(ModelCommandAPI, Commands)
       "\nRequesting state for world [diff_drive]...\n\n"
       "Model: [8]\n"
       "  - Name: vehicle_blue\n"
-      "  - Pose [ XYZ (m) ] [ RPY (rad) ]: \n"
+      "  - Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
       "      [0.000000 | 2.000000 | 0.325000]\n"
       "      [0.000000 | 0.000000 | 0.000000]\n"
-      "\n"
       "  - Link [9]\n"
       "    - Name: chassis\n"
       "    - Parent: vehicle_blue [8]\n"
       "    - Mass (kg): [1.143950]\n"
-      "    - Inertial Pose:\n"
+      "    - Inertial Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
       "        [0.000000 | 0.000000 | 0.000000]\n"
-      "    - Inertial Matrix (kg⋅m^2): \n"
+      "        [0.000000 | 0.000000 | 0.000000]\n"
+      "    - Inertial Matrix (kg.m^2):\n"
       "        [0.126164 | 0.000000 | 0.000000]\n"
       "        [0.000000 | 0.416519 | 0.000000]\n"
       "        [0.000000 | 0.000000 | 0.481014]\n"
-      "    - Pose [ XYZ (m) ] [ RPY (rad) ]: \n"
+      "    - Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
       "        [-0.151427 | 0.000000 | 0.175000]\n"
       "        [0.000000 | 0.000000 | 0.000000]\n"
       "  - Link [12]\n"
       "    - Name: left_wheel\n"
       "    - Parent: vehicle_blue [8]\n"
       "    - Mass (kg): [2.000000]\n"
-      "    - Inertial Pose:\n"
+      "    - Inertial Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
       "        [0.000000 | 0.000000 | 0.000000]\n"
-      "    - Inertial Matrix (kg⋅m^2): \n"
+      "        [0.000000 | 0.000000 | 0.000000]\n"
+      "    - Inertial Matrix (kg.m^2):\n"
       "        [0.145833 | 0.000000 | 0.000000]\n"
       "        [0.000000 | 0.145833 | 0.000000]\n"
       "        [0.000000 | 0.000000 | 0.125000]\n"
-      "    - Pose [ XYZ (m) ] [ RPY (rad) ]: \n"
+      "    - Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
       "        [0.554283 | 0.625029 | -0.025000]\n"
       "        [-1.570700 | 0.000000 | 0.000000]\n"
       "  - Link [15]\n"
       "    - Name: right_wheel\n"
       "    - Parent: vehicle_blue [8]\n"
       "    - Mass (kg): [2.000000]\n"
-      "    - Inertial Pose:\n"
+      "    - Inertial Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
       "        [0.000000 | 0.000000 | 0.000000]\n"
-      "    - Inertial Matrix (kg⋅m^2): \n"
+      "        [0.000000 | 0.000000 | 0.000000]\n"
+      "    - Inertial Matrix (kg.m^2):\n"
       "        [0.145833 | 0.000000 | 0.000000]\n"
       "        [0.000000 | 0.145833 | 0.000000]\n"
       "        [0.000000 | 0.000000 | 0.125000]\n"
-      "    - Pose [ XYZ (m) ] [ RPY (rad) ]: \n"
+      "    - Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
       "        [0.554282 | -0.625029 | -0.025000]\n"
       "        [-1.570700 | 0.000000 | 0.000000]\n"
       "  - Link [18]\n"
       "    - Name: caster\n"
       "    - Parent: vehicle_blue [8]\n"
       "    - Mass (kg): [1.000000]\n"
-      "    - Inertial Pose:\n"
+      "    - Inertial Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
       "        [0.000000 | 0.000000 | 0.000000]\n"
-      "    - Inertial Matrix (kg⋅m^2): \n"
+      "        [0.000000 | 0.000000 | 0.000000]\n"
+      "    - Inertial Matrix (kg.m^2):\n"
       "        [0.100000 | 0.000000 | 0.000000]\n"
       "        [0.000000 | 0.100000 | 0.000000]\n"
       "        [0.000000 | 0.000000 | 0.100000]\n"
-      "    - Pose [ XYZ (m) ] [ RPY (rad) ]: \n"
+      "    - Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
       "        [-0.957138 | 0.000000 | -0.125000]\n"
       "        [0.000000 | 0.000000 | 0.000000]\n"
       "  - Joint [21]\n"
       "    - Name: left_wheel_joint\n"
       "    - Parent: vehicle_blue [8]\n"
-      "    - Type:  revolute\n"
-      "    - Parent Link: left_wheel\n"
-      "    - Child Link:  chassis\n"
-      "    - Pose [ XYZ (m) ] [ RPY (rad) ]: \n"
-      "      [0.000000 | 0.000000 | 0.000000]\n"
-      "      [0.000000 | 0.000000 | 0.000000]\n"
-      "    - Axis unit vector [ XYZ ]: \n"
-      "      [0 | 0 | 1]\n"
+      "    - Type: revolute\n"
+      "    - Parent Link: chassis [9]\n"
+      "    - Child Link: left_wheel [12]\n"
+      "    - Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
+      "        [0.000000 | 0.000000 | 0.000000]\n"
+      "        [0.000000 | 0.000000 | 0.000000]\n"
+      "    - Axis unit vector [ XYZ ]:\n"
+      "        [0 | 0 | 1]\n"
       "  - Joint [22]\n"
       "    - Name: right_wheel_joint\n"
       "    - Parent: vehicle_blue [8]\n"
-      "    - Type:  revolute\n"
-      "    - Parent Link: right_wheel\n"
-      "    - Child Link:  chassis\n"
-      "    - Pose [ XYZ (m) ] [ RPY (rad) ]: \n"
-      "      [0.000000 | 0.000000 | 0.000000]\n"
-      "      [0.000000 | 0.000000 | 0.000000]\n"
-      "    - Axis unit vector [ XYZ ]: \n"
-      "      [0 | 0 | 1]\n"
+      "    - Type: revolute\n"
+      "    - Parent Link: chassis [9]\n"
+      "    - Child Link: right_wheel [15]\n"
+      "    - Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
+      "        [0.000000 | 0.000000 | 0.000000]\n"
+      "        [0.000000 | 0.000000 | 0.000000]\n"
+      "    - Axis unit vector [ XYZ ]:\n"
+      "        [0 | 0 | 1]\n"
       "  - Joint [23]\n"
       "    - Name: caster_wheel\n"
       "    - Parent: vehicle_blue [8]\n"
-      "    - Type:  ball\n"
-      "    - Parent Link: caster\n"
-      "    - Child Link:  chassis\n"
-      "    - Pose [ XYZ (m) ] [ RPY (rad) ]: \n"
-      "      [0.000000 | 0.000000 | 0.000000]\n"
-      "      [0.000000 | 0.000000 | 0.000000]\n";
+      "    - Type: ball\n"
+      "    - Parent Link: chassis [9]\n"
+      "    - Child Link: caster [18]\n"
+      "    - Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
+      "        [0.000000 | 0.000000 | 0.000000]\n"
+      "        [0.000000 | 0.000000 | 0.000000]\n";
     EXPECT_EQ(expectedOutput, output);
   }
 
@@ -216,9 +221,9 @@ TEST(ModelCommandAPI, Commands)
       "\nRequesting state for world [diff_drive]...\n\n"
       "Model: [8]\n"
       "  - Name: vehicle_blue\n"
-      "  - Pose [ XYZ (m) ] [ RPY (rad) ]: \n"
+      "  - Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
       "      [0.000000 | 2.000000 | 0.325000]\n"
-      "      [0.000000 | 0.000000 | 0.000000]\n\n";
+      "      [0.000000 | 0.000000 | 0.000000]\n";
     EXPECT_EQ(expectedOutput, output);
   }
 
@@ -234,52 +239,56 @@ TEST(ModelCommandAPI, Commands)
       "    - Name: chassis\n"
       "    - Parent: vehicle_blue [8]\n"
       "    - Mass (kg): [1.143950]\n"
-      "    - Inertial Pose:\n"
+      "    - Inertial Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
       "        [0.000000 | 0.000000 | 0.000000]\n"
-      "    - Inertial Matrix (kg⋅m^2): \n"
+      "        [0.000000 | 0.000000 | 0.000000]\n"
+      "    - Inertial Matrix (kg.m^2):\n"
       "        [0.126164 | 0.000000 | 0.000000]\n"
       "        [0.000000 | 0.416519 | 0.000000]\n"
       "        [0.000000 | 0.000000 | 0.481014]\n"
-      "    - Pose [ XYZ (m) ] [ RPY (rad) ]: \n"
+      "    - Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
       "        [-0.151427 | 0.000000 | 0.175000]\n"
       "        [0.000000 | 0.000000 | 0.000000]\n"
       "  - Link [12]\n"
       "    - Name: left_wheel\n"
       "    - Parent: vehicle_blue [8]\n"
       "    - Mass (kg): [2.000000]\n"
-      "    - Inertial Pose:\n"
+      "    - Inertial Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
       "        [0.000000 | 0.000000 | 0.000000]\n"
-      "    - Inertial Matrix (kg⋅m^2): \n"
+      "        [0.000000 | 0.000000 | 0.000000]\n"
+      "    - Inertial Matrix (kg.m^2):\n"
       "        [0.145833 | 0.000000 | 0.000000]\n"
       "        [0.000000 | 0.145833 | 0.000000]\n"
       "        [0.000000 | 0.000000 | 0.125000]\n"
-      "    - Pose [ XYZ (m) ] [ RPY (rad) ]: \n"
+      "    - Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
       "        [0.554283 | 0.625029 | -0.025000]\n"
       "        [-1.570700 | 0.000000 | 0.000000]\n"
       "  - Link [15]\n"
       "    - Name: right_wheel\n"
       "    - Parent: vehicle_blue [8]\n"
       "    - Mass (kg): [2.000000]\n"
-      "    - Inertial Pose:\n"
+      "    - Inertial Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
       "        [0.000000 | 0.000000 | 0.000000]\n"
-      "    - Inertial Matrix (kg⋅m^2): \n"
+      "        [0.000000 | 0.000000 | 0.000000]\n"
+      "    - Inertial Matrix (kg.m^2):\n"
       "        [0.145833 | 0.000000 | 0.000000]\n"
       "        [0.000000 | 0.145833 | 0.000000]\n"
       "        [0.000000 | 0.000000 | 0.125000]\n"
-      "    - Pose [ XYZ (m) ] [ RPY (rad) ]: \n"
+      "    - Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
       "        [0.554282 | -0.625029 | -0.025000]\n"
       "        [-1.570700 | 0.000000 | 0.000000]\n"
       "  - Link [18]\n"
       "    - Name: caster\n"
       "    - Parent: vehicle_blue [8]\n"
       "    - Mass (kg): [1.000000]\n"
-      "    - Inertial Pose:\n"
+      "    - Inertial Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
       "        [0.000000 | 0.000000 | 0.000000]\n"
-      "    - Inertial Matrix (kg⋅m^2): \n"
+      "        [0.000000 | 0.000000 | 0.000000]\n"
+      "    - Inertial Matrix (kg.m^2):\n"
       "        [0.100000 | 0.000000 | 0.000000]\n"
       "        [0.000000 | 0.100000 | 0.000000]\n"
       "        [0.000000 | 0.000000 | 0.100000]\n"
-      "    - Pose [ XYZ (m) ] [ RPY (rad) ]: \n"
+      "    - Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
       "        [-0.957138 | 0.000000 | -0.125000]\n"
       "        [0.000000 | 0.000000 | 0.000000]\n";
     EXPECT_EQ(expectedOutput, output);
@@ -297,13 +306,14 @@ TEST(ModelCommandAPI, Commands)
       "    - Name: caster\n"
       "    - Parent: vehicle_blue [8]\n"
       "    - Mass (kg): [1.000000]\n"
-      "    - Inertial Pose:\n"
+      "    - Inertial Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
       "        [0.000000 | 0.000000 | 0.000000]\n"
-      "    - Inertial Matrix (kg⋅m^2): \n"
+      "        [0.000000 | 0.000000 | 0.000000]\n"
+      "    - Inertial Matrix (kg.m^2):\n"
       "        [0.100000 | 0.000000 | 0.000000]\n"
       "        [0.000000 | 0.100000 | 0.000000]\n"
       "        [0.000000 | 0.000000 | 0.100000]\n"
-      "    - Pose [ XYZ (m) ] [ RPY (rad) ]: \n"
+      "    - Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
       "        [-0.957138 | 0.000000 | -0.125000]\n"
       "        [0.000000 | 0.000000 | 0.000000]\n";
     EXPECT_EQ(expectedOutput, output);
@@ -320,34 +330,34 @@ TEST(ModelCommandAPI, Commands)
       "  - Joint [21]\n"
       "    - Name: left_wheel_joint\n"
       "    - Parent: vehicle_blue [8]\n"
-      "    - Type:  revolute\n"
-      "    - Parent Link: left_wheel\n"
-      "    - Child Link:  chassis\n"
-      "    - Pose [ XYZ (m) ] [ RPY (rad) ]: \n"
-      "      [0.000000 | 0.000000 | 0.000000]\n"
-      "      [0.000000 | 0.000000 | 0.000000]\n"
-      "    - Axis unit vector [ XYZ ]: \n"
-      "      [0 | 0 | 1]\n"
+      "    - Type: revolute\n"
+      "    - Parent Link: chassis [9]\n"
+      "    - Child Link: left_wheel [12]\n"
+      "    - Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
+      "        [0.000000 | 0.000000 | 0.000000]\n"
+      "        [0.000000 | 0.000000 | 0.000000]\n"
+      "    - Axis unit vector [ XYZ ]:\n"
+      "        [0 | 0 | 1]\n"
       "  - Joint [22]\n"
       "    - Name: right_wheel_joint\n"
       "    - Parent: vehicle_blue [8]\n"
-      "    - Type:  revolute\n"
-      "    - Parent Link: right_wheel\n"
-      "    - Child Link:  chassis\n"
-      "    - Pose [ XYZ (m) ] [ RPY (rad) ]: \n"
-      "      [0.000000 | 0.000000 | 0.000000]\n"
-      "      [0.000000 | 0.000000 | 0.000000]\n"
-      "    - Axis unit vector [ XYZ ]: \n"
-      "      [0 | 0 | 1]\n"
+      "    - Type: revolute\n"
+      "    - Parent Link: chassis [9]\n"
+      "    - Child Link: right_wheel [15]\n"
+      "    - Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
+      "        [0.000000 | 0.000000 | 0.000000]\n"
+      "        [0.000000 | 0.000000 | 0.000000]\n"
+      "    - Axis unit vector [ XYZ ]:\n"
+      "        [0 | 0 | 1]\n"
       "  - Joint [23]\n"
       "    - Name: caster_wheel\n"
       "    - Parent: vehicle_blue [8]\n"
-      "    - Type:  ball\n"
-      "    - Parent Link: caster\n"
-      "    - Child Link:  chassis\n"
-      "    - Pose [ XYZ (m) ] [ RPY (rad) ]: \n"
-      "      [0.000000 | 0.000000 | 0.000000]\n"
-      "      [0.000000 | 0.000000 | 0.000000]\n";
+      "    - Type: ball\n"
+      "    - Parent Link: chassis [9]\n"
+      "    - Child Link: caster [18]\n"
+      "    - Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
+      "        [0.000000 | 0.000000 | 0.000000]\n"
+      "        [0.000000 | 0.000000 | 0.000000]\n";
     EXPECT_EQ(expectedOutput, output);
   }
 
@@ -362,12 +372,12 @@ TEST(ModelCommandAPI, Commands)
       "  - Joint [23]\n"
       "    - Name: caster_wheel\n"
       "    - Parent: vehicle_blue [8]\n"
-      "    - Type:  ball\n"
-      "    - Parent Link: caster\n"
-      "    - Child Link:  chassis\n"
-      "    - Pose [ XYZ (m) ] [ RPY (rad) ]: \n"
-      "      [0.000000 | 0.000000 | 0.000000]\n"
-      "      [0.000000 | 0.000000 | 0.000000]\n";
+      "    - Type: ball\n"
+      "    - Parent Link: chassis [9]\n"
+      "    - Child Link: caster [18]\n"
+      "    - Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
+      "        [0.000000 | 0.000000 | 0.000000]\n"
+      "        [0.000000 | 0.000000 | 0.000000]\n";
     EXPECT_EQ(expectedOutput, output);
   }
 }
