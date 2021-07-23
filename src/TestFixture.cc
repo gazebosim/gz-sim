@@ -41,10 +41,18 @@ using namespace gazebo;
 /// \brief
 class HelperSystem :
   public System,
+  public ISystemConfigure,
   public ISystemPreUpdate,
   public ISystemUpdate,
   public ISystemPostUpdate
 {
+  // Documentation inherited
+  public: void Configure(
+                const Entity &_entity,
+                const std::shared_ptr<const sdf::Element> &_sdf,
+                EntityComponentManager &_ecm,
+                EventManager &_eventMgr) override;
+
   // Documentation inherited
   public: void PreUpdate(const UpdateInfo &_info,
                 EntityComponentManager &_ecm) override;
@@ -55,7 +63,14 @@ class HelperSystem :
 
   // Documentation inherited
   public: void PostUpdate(const UpdateInfo &_info,
-              const EntityComponentManager &_ecm) override;
+                const EntityComponentManager &_ecm) override;
+
+  /// \brief Function to call every time  we configure a world
+  public: std::function<void(const Entity &_entity,
+                const std::shared_ptr<const sdf::Element> &_sdf,
+                EntityComponentManager &_ecm,
+                EventManager &_eventMgr)>
+      configureCallback;
 
   /// \brief Function to call every pre-update
   public: std::function<void(const UpdateInfo &, EntityComponentManager &)>
@@ -69,6 +84,17 @@ class HelperSystem :
   public: std::function<void(const UpdateInfo &,
       const EntityComponentManager &)> postUpdateCallback;
 };
+
+/////////////////////////////////////////////////
+void HelperSystem::Configure(
+                const Entity &_entity,
+                const std::shared_ptr<const sdf::Element> &_sdf,
+                EntityComponentManager &_ecm,
+                EventManager &_eventMgr)
+{
+  if (this->configureCallback)
+    this->configureCallback(_entity, _sdf, _ecm, _eventMgr);
+}
 
 /////////////////////////////////////////////////
 void HelperSystem::PreUpdate(const UpdateInfo &_info,
@@ -118,6 +144,18 @@ void TestFixture::Implementation::Init(const ServerConfig &_config)
 
   this->server = std::make_shared<gazebo::Server>(_config);
   this->server->AddSystem(systemPtr);
+}
+
+//////////////////////////////////////////////////
+TestFixture &TestFixture::OnConfigure(std::function<void(
+          const Entity &_entity,
+          const std::shared_ptr<const sdf::Element> &_sdf,
+          EntityComponentManager &_ecm,
+          EventManager &_eventMgr)> _cb)
+{
+  if (nullptr != this->dataPtr->helperSystem)
+    this->dataPtr->helperSystem->configureCallback = std::move(_cb);
+  return *this;
 }
 
 //////////////////////////////////////////////////

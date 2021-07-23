@@ -61,6 +61,15 @@ class TestFixture
   /// \brief Wrapper around a system's pre-update callback
   /// \param[in] _cb Function to be called every pre-update
   /// \return Reference to self.
+  public: TestFixture &OnConfigure(std::function<void(
+      const Entity &_entity,
+      const std::shared_ptr<const sdf::Element> &_sdf,
+      EntityComponentManager &_ecm,
+      EventManager &_eventMgr)> _cb);
+
+  /// \brief Wrapper around a system's pre-update callback
+  /// \param[in] _cb Function to be called every pre-update
+  /// \return Reference to self.
   public: TestFixture &OnPreUpdate(std::function<void(
       const UpdateInfo &, EntityComponentManager &)> _cb);
 

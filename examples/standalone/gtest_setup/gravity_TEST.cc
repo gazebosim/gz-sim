@@ -64,6 +64,16 @@ TEST(ExampleTests, Gravity)
       iterations++;
     });
 
+  fixture.OnConfigure(
+    [](const Entity &_entity,
+      const std::shared_ptr<const sdf::Element> &_sdf,
+      EntityComponentManager &_ecm,
+      EventManager &_eventMgr)> _cb)
+    {
+      std::cout << "Configure " <<std::endl;
+    }
+  );
+
   // Setup simulation server
   fixture.Server()->Run(true, 1000, false);
 

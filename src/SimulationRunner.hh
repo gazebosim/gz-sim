@@ -42,6 +42,7 @@
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Conversions.hh"
+#include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/EventManager.hh"
 #include "ignition/gazebo/Export.hh"
@@ -174,16 +175,33 @@ namespace ignition
 
       /// \brief Add system after the simulation runner has been instantiated
       /// \note This actually adds system to a queue. The system is added to the
-      /// runner at the begining of the a simulation cycle (call to Run)
-      /// \param[in] _system System to be added
-      /// \tparam SystemType It may be `const SystemPluginPtr &` or `System *`.
+      /// runner at the begining of the a simulation cycle (call to Run). It is
+      /// also responsible for calling `Configure` on the system.
+      /// \param[in] _system SystemPluginPtr to be added
+      /// \param[in] _entity Entity of system to be added. Nullopt if system
+      /// doesn't connect to an entity.
+      /// \param[in] _sdf Pointer to the SDF of the entity. Nullopt defaults to
+      /// world.
       public:
-      template<typename SystemType>
-      void AddSystem(SystemType _system)
-      {
-        std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
-        this->pendingSystems.push_back(SystemInternal(_system));
-      }
+      void AddSystem(
+        const SystemPluginPtr& _system,
+        std::optional<Entity> _entity = std::nullopt,
+        std::optional<sdf::ElementPtr> _sdf = std::nullopt);
+
+      /// \brief Add system after the simulation runner has been instantiated
+      /// \note This actually adds system to a queue. The system is added to the
+      /// runner at the begining of the a simulation cycle (call to Run). It is
+      /// also responsible for calling `Configure` on the system.
+      /// \param[in] _system System to be added
+      /// \param[in] _entity Entity of system to be added. Nullopt if system
+      /// doesn't connect to an entity.
+      /// \param[in] _sdf Pointer to the SDF of the entity. Nullopt defaults to
+      /// world.
+      public:
+      void AddSystem(
+        System * _system,
+        std::optional<Entity> _entity = std::nullopt,
+        std::optional<sdf::ElementPtr> _sdf = std::nullopt);
 
       /// \brief Update all the systems
       public: void UpdateSystems();

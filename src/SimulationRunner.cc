@@ -817,6 +817,61 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 }
 
 //////////////////////////////////////////////////
+void SimulationRunner::AddSystem(
+      const SystemPluginPtr& _system,
+      std::optional<Entity> _entity,
+      std::optional<sdf::ElementPtr> _sdf)
+{
+  auto systemConfig = _system->QueryInterface<ISystemConfigure>();
+  if (systemConfig != nullptr)
+  {
+    auto entity = (_entity.has_value()) ?
+      _entity.value()
+      :this->entityCompMgr.EntityByComponents(components::World());
+
+    auto sdf = (_sdf.has_value()) ?
+      _sdf.value()
+      :this->sdfWorld->Element();
+
+    systemConfig->Configure(
+        entity, sdf,
+        this->entityCompMgr,
+        this->eventMgr);
+  }
+  std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
+  this->pendingSystems.push_back(SystemInternal(_system));
+}
+
+//////////////////////////////////////////////////
+void SimulationRunner::AddSystem(
+      System * _system,
+      std::optional<Entity> _entity,
+      std::optional<sdf::ElementPtr> _sdf)
+{
+  auto systemConfig = dynamic_cast<ISystemConfigure*>(_system);
+  if (systemConfig != nullptr)
+  {
+    auto entity = (_entity.has_value()) ?
+      _entity.value()
+      :this->entityCompMgr.EntityByComponents(components::World());
+
+    auto sdf = (_sdf.has_value()) ?
+      _sdf.value()
+      :this->sdfWorld->Element();
+
+    systemConfig->Configure(
+        entity, sdf,
+        this->entityCompMgr,
+        this->eventMgr);
+  }
+  std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
+  this->pendingSystems.push_back(SystemInternal(_system));
+}
+
+//////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////
 void SimulationRunner::LoadPlugin(const Entity _entity,
                                   const std::string &_fname,
                                   const std::string &_name,
@@ -831,15 +886,7 @@ void SimulationRunner::LoadPlugin(const Entity _entity,
   // System correctly loaded from library, try to configure
   if (system)
   {
-    auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
-    if (systemConfig != nullptr)
-    {
-      systemConfig->Configure(_entity, _sdf,
-          this->entityCompMgr,
-          this->eventMgr);
-    }
-
-    this->AddSystem(system.value());
+    this->AddSystem(system.value(), _entity, _sdf);
     igndbg << "Loaded system [" << _name
            << "] for entity [" << _entity << "]" << std::endl;
   }
