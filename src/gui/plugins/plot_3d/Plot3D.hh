@@ -53,7 +53,7 @@ namespace gui
   ///
   /// * `<minimum_distance>` (optional): The minimum distance between points to
   /// plot. A new point will not be plotted until the entity has moved beyond
-  /// this distance from the previous point. Defaults to 5 cm.
+  /// this distance from the previous point. Defaults to 0.05 m.
   ///
   /// * `<maximum_points> (optional)`: Maximum number of points on the plot.
   /// After this number is reached, the older points start being deleted.

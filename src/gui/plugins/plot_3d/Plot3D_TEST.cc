@@ -102,12 +102,12 @@ TEST_F(Plot3D, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Load))
   ASSERT_EQ(plugins.size(), 1);
 
   auto plugin = plugins[0];
-  EXPECT_EQ(plugin->Title(), "Plot3D!");
-  EXPECT_EQ(plugin->TargetEntity(), gazebo::kNullEntity);
-  EXPECT_EQ(plugin->TargetName(), QString("banana"))
+  EXPECT_EQ("Plot3D!", plugin->Title());
+  EXPECT_EQ(gazebo::kNullEntity, plugin->TargetEntity());
+  EXPECT_EQ(QString("banana"), plugin->TargetName())
       << plugin->TargetName().toStdString();
-  EXPECT_EQ(plugin->Color(), QVector3D(0.1, 0.2, 0.3));
-  EXPECT_EQ(plugin->Offset(), QVector3D(1, 2, 3));
+  EXPECT_EQ(QVector3D(0.1, 0.2, 0.3), plugin->Color());
+  EXPECT_EQ(QVector3D(1, 2, 3), plugin->Offset());
   EXPECT_TRUE(plugin->Locked());
 
   // Cleanup

@@ -61,7 +61,11 @@ math::Pose3d worldPose(const Entity &_entity,
 {
   auto poseComp = _ecm.Component<components::Pose>(_entity);
   if (nullptr == poseComp)
+  {
+    ignwarn << "Trying to get world pose from entity [" << _entity
+            << "], which doesn't have a pose component" << std::endl;
     return math::Pose3d();
+  }
 
   // work out pose in world frame
   math::Pose3d pose = poseComp->Data();
@@ -130,11 +134,11 @@ std::string scopedName(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-Entity entityFromScopedName(const std::string &_scopedName,
-    const EntityComponentManager &_ecm, const std::string &_delim)
+std::unordered_set<Entity> entitiesFromScopedName(
+    const std::string &_scopedName, const EntityComponentManager &_ecm,
+    const std::string &_delim)
 {
-  Entity result{kNullEntity};
-
+  // Split names
   std::vector<std::string> names;
   size_t pos1 = 0;
   size_t pos2 = _scopedName.find(_delim);
@@ -142,31 +146,34 @@ Entity entityFromScopedName(const std::string &_scopedName,
   {
     names.push_back(_scopedName.substr(pos1, pos2 - pos1));
     pos1 = pos2 + _delim.length();
-    pos2 = _scopedName.find(_delim, pos2 + _delim.length());
+    pos2 = _scopedName.find(_delim, pos1);
   }
   names.push_back(_scopedName.substr(pos1, _scopedName.size()-pos1));
 
+  std::vector<Entity> resVector;
   for (const auto &name : names)
   {
-    Entity entity;
-    if (kNullEntity == result)
+    std::vector<Entity> current;
+    if (resVector.empty())
     {
-      entity = _ecm.EntityByComponents(components::Name(name));
+      current = _ecm.EntitiesByComponents(components::Name(name));
     }
     else
     {
-      entity = _ecm.EntityByComponents(components::Name(name),
-          components::ParentEntity(result));
+      for (auto res : resVector)
+      {
+        auto matches = _ecm.EntitiesByComponents(components::Name(name),
+            components::ParentEntity(res));
+        std::copy(std::begin(matches), std::end(matches),
+            std::back_inserter(current));
+      }
     }
-
-    if (kNullEntity == entity)
-    {
-      return kNullEntity;
-    }
-    result = entity;
+    if (current.empty())
+      return {};
+    resVector = current;
   }
 
-  return result;
+  return std::unordered_set<Entity>(resVector.begin(), resVector.end());
 }
 
 //////////////////////////////////////////////////

@@ -216,37 +216,102 @@ TEST(UtilTest, ScopedName)
   EXPECT_EQ(worldEntity, gazebo::worldEntity(linkCCEntity, ecm));
   EXPECT_EQ(worldEntity, gazebo::worldEntity(actorDEntity, ecm));
   EXPECT_EQ(kNullEntity, gazebo::worldEntity(kNullEntity, ecm));
+}
 
-  // Entity from scoped name
-  EXPECT_EQ(kNullEntity, gazebo::entityFromScopedName("banana", ecm));
-  EXPECT_EQ(kNullEntity, gazebo::entityFromScopedName(
-      "world_name::banana", ecm));
-  EXPECT_EQ(kNullEntity, gazebo::entityFromScopedName(
-      "modelB_name::banana", ecm));
+/////////////////////////////////////////////////
+TEST_F(UtilTest, EntitiesFromScopedName)
+{
+  EntityComponentManager ecm;
 
-  EXPECT_EQ(worldEntity, gazebo::entityFromScopedName(
-      "world_name", ecm));
+  // banana 1
+  //  - orange 2
+  //    - plum 3
+  //      - grape 4
+  //        - pear 5
+  //          - plum 6
+  //  - grape 7
+  //    - pear 8
+  //      - plum 9
+  //        - pear 10
+  //  - grape 11
+  //    - pear 12
+  //      - orange 13
+  //        - orange 14
 
-  EXPECT_EQ(modelBEntity, gazebo::entityFromScopedName(
-      "world_name::modelB_name", ecm));
-  EXPECT_EQ(modelBEntity, gazebo::entityFromScopedName(
-      "modelB_name", ecm));
+  auto createEntity = [&ecm](const std::string &_name, Entity _parent) -> Entity
+  {
+    auto res = ecm.CreateEntity();
+    ecm.CreateComponent(res, components::Name(_name));
+    ecm.CreateComponent(res, components::ParentEntity(_parent));
+    return res;
+  };
 
-  EXPECT_EQ(linkBEntity, gazebo::entityFromScopedName(
-      "world_name::modelB_name::linkB_name", ecm));
-  EXPECT_EQ(linkBEntity, gazebo::entityFromScopedName(
-      "modelB_name::linkB_name", ecm));
-  EXPECT_EQ(linkBEntity, gazebo::entityFromScopedName(
-      "linkB_name", ecm));
+  auto banana1 = ecm.CreateEntity();
+  ecm.CreateComponent(banana1, components::Name("banana"));
 
-  EXPECT_EQ(sensorBEntity, gazebo::entityFromScopedName(
-      "world_name::modelB_name::linkB_name::sensorB_name", ecm));
-  EXPECT_EQ(sensorBEntity, gazebo::entityFromScopedName(
-      "modelB_name::linkB_name::sensorB_name", ecm));
-  EXPECT_EQ(sensorBEntity, gazebo::entityFromScopedName(
-      "linkB_name::sensorB_name", ecm));
-  EXPECT_EQ(sensorBEntity, gazebo::entityFromScopedName(
-      "sensorB_name", ecm));
+  auto orange2 = createEntity("orange", banana1);
+  auto plum3 = createEntity("plum", orange2);
+  auto grape4 = createEntity("grape", plum3);
+  auto pear5 = createEntity("pear", grape4);
+  auto plum6 = createEntity("plum", pear5);
+  auto grape7 = createEntity("grape", banana1);
+  auto pear8 = createEntity("pear", grape7);
+  auto plum9 = createEntity("plum", pear8);
+  auto pear10 = createEntity("pear", plum9);
+  auto grape11 = createEntity("grape", banana1);
+  auto pear12 = createEntity("pear", grape11);
+  auto orange13 = createEntity("orange", pear12);
+  auto orange14 = createEntity("orange", orange13);
+
+  EXPECT_TRUE(gazebo::entitiesFromScopedName("watermelon", ecm).empty());
+
+  auto bananas = gazebo::entitiesFromScopedName("banana", ecm);
+  EXPECT_EQ(1u, bananas.size());
+  EXPECT_NE(bananas.find(banana1), bananas.end());
+
+  auto oranges = gazebo::entitiesFromScopedName("orange", ecm);
+  EXPECT_EQ(3u, oranges.size());
+  EXPECT_NE(oranges.find(orange2), oranges.end());
+  EXPECT_NE(oranges.find(orange13), oranges.end());
+  EXPECT_NE(oranges.find(orange14), oranges.end());
+
+  auto bananaOranges = gazebo::entitiesFromScopedName("banana::orange", ecm);
+  EXPECT_EQ(1u, bananaOranges.size());
+  EXPECT_NE(bananaOranges.find(orange2), bananaOranges.end());
+
+  auto bananaGrapes = gazebo::entitiesFromScopedName("banana::grape", ecm);
+  EXPECT_EQ(2u, bananaGrapes.size());
+  EXPECT_NE(bananaGrapes.find(grape7), bananaGrapes.end());
+  EXPECT_NE(bananaGrapes.find(grape11), bananaGrapes.end());
+  EXPECT_EQ(bananaGrapes.find(grape4), bananaGrapes.end());
+
+  auto grapePears = gazebo::entitiesFromScopedName("grape::pear", ecm);
+  EXPECT_EQ(3u, grapePears.size());
+  EXPECT_NE(grapePears.find(pear5), grapePears.end());
+  EXPECT_NE(grapePears.find(pear8), grapePears.end());
+  EXPECT_NE(grapePears.find(pear12), grapePears.end());
+  EXPECT_EQ(grapePears.find(pear10), grapePears.end());
+
+  auto grapePearPlums =
+      gazebo::entitiesFromScopedName("grape::pear::plum", ecm);
+  EXPECT_EQ(2u, grapePearPlums.size());
+  EXPECT_NE(grapePearPlums.find(plum6), grapePearPlums.end());
+  EXPECT_NE(grapePearPlums.find(plum9), grapePearPlums.end());
+  EXPECT_EQ(grapePearPlums.find(plum3), grapePearPlums.end());
+
+  auto bananaOrangePlumGrapePearPlums = gazebo::entitiesFromScopedName(
+      "banana::orange::plum::grape::pear::plum", ecm);
+  EXPECT_EQ(1u, bananaOrangePlumGrapePearPlums.size());
+  EXPECT_NE(bananaOrangePlumGrapePearPlums.find(plum6),
+      bananaOrangePlumGrapePearPlums.end());
+
+  auto bananaOrangeKiwiGrapePearPlums = gazebo::entitiesFromScopedName(
+      "banana::orange::kiwi::grape::pear::plum", ecm);
+  EXPECT_EQ(0u, bananaOrangeKiwiGrapePearPlums.size());
+
+  auto orangeOranges = gazebo::entitiesFromScopedName("orange::orange", ecm);
+  EXPECT_EQ(1u, orangeOranges.size());
+  EXPECT_NE(orangeOranges.find(orange14), orangeOranges.end());
 }
 
 /////////////////////////////////////////////////

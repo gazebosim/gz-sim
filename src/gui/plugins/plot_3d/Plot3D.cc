@@ -81,7 +81,7 @@ namespace ignition::gazebo::gui
 
     /// \brief Maximum number of points in the plot. When the plot reaches this
     /// size, older points are deleted.
-    public: int64_t maxPoints{1000};
+    public: int maxPoints{1000};
 
     /// \brief Protects variables that are updated by the user.
     public: std::mutex mutex;
@@ -150,7 +150,7 @@ void Plot3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
     auto ptsElem = _pluginElem->FirstChildElement("maximum_points");
     if (nullptr != ptsElem && nullptr != ptsElem->GetText())
     {
-      ptsElem->QueryInt64Text(&this->dataPtr->maxPoints);
+      ptsElem->QueryIntText(&this->dataPtr->maxPoints);
       this->MaxPointsChanged();
     }
   }
@@ -173,12 +173,20 @@ void Plot3D::ClearPlot()
 //////////////////////////////////////////////////
 void Plot3D::Update(const UpdateInfo &, EntityComponentManager &_ecm)
 {
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   bool newTarget{false};
 
   // New target by name, get entity
   if (this->dataPtr->targetNameDirty)
   {
-    auto entity = entityFromScopedName(this->dataPtr->targetName, _ecm);
+    auto entities = entitiesFromScopedName(this->dataPtr->targetName, _ecm);
+    if (entities.empty())
+    {
+      // Keep trying
+      return;
+    }
+
+    Entity entity = *(entities.begin());
 
     if (kNullEntity == entity)
     {
@@ -290,6 +298,7 @@ Entity Plot3D::TargetEntity() const
 /////////////////////////////////////////////////
 void Plot3D::SetTargetEntity(Entity _entity)
 {
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->targetEntity = _entity;
   this->dataPtr->targetEntityDirty = true;
   this->TargetEntityChanged();
@@ -309,6 +318,7 @@ QString Plot3D::TargetName() const
 /////////////////////////////////////////////////
 void Plot3D::SetTargetName(const QString &_targetName)
 {
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->targetName = _targetName.toStdString();
   this->dataPtr->targetNameDirty = true;
   this->TargetNameChanged();
@@ -323,6 +333,7 @@ bool Plot3D::Locked() const
 /////////////////////////////////////////////////
 void Plot3D::SetLocked(bool _locked)
 {
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->locked = _locked;
   this->LockedChanged();
 }
@@ -339,6 +350,7 @@ QVector3D Plot3D::Offset() const
 /////////////////////////////////////////////////
 void Plot3D::SetOffset(const QVector3D &_offset)
 {
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->offset.Set(_offset.x(), _offset.y(), _offset.z());
   this->OffsetChanged();
 }
@@ -355,6 +367,7 @@ QVector3D Plot3D::Color() const
 /////////////////////////////////////////////////
 void Plot3D::SetColor(const QVector3D &_color)
 {
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->color.Set(_color.x(), _color.y(), _color.z());
   this->ColorChanged();
 }
@@ -368,6 +381,7 @@ double Plot3D::MinDistance() const
 /////////////////////////////////////////////////
 void Plot3D::SetMinDistance(double _minDistance)
 {
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->minDistance = _minDistance;
   this->MinDistanceChanged();
 }
@@ -381,6 +395,7 @@ int Plot3D::MaxPoints() const
 /////////////////////////////////////////////////
 void Plot3D::SetMaxPoints(int _maxPoints)
 {
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->maxPoints = _maxPoints;
   this->MaxPointsChanged();
 }

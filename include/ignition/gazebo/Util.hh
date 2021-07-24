@@ -67,9 +67,9 @@ namespace ignition
     /// \param[in] _scopedName Entity's scoped name.
     /// \param[in] _ecm Immutable reference to ECM.
     /// \param[in] _delim Delimiter between names, defaults to "::".
-    /// \return The engity or kNullEntity if no entity was found with that
+    /// \return The entity or kNullEntity if no entity was found with that
     /// name.
-    Entity IGNITION_GAZEBO_VISIBLE entityFromScopedName(
+    std::unordered_set<Entity> IGNITION_GAZEBO_VISIBLE entitiesFromScopedName(
       const std::string &_scopedName, const EntityComponentManager &_ecm,
       const std::string &_delim = "::");
 

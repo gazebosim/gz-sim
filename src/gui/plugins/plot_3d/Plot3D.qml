@@ -108,198 +108,201 @@ Rectangle {
       }
     }
   }
-  GridLayout {
+  ColumnLayout {
     anchors.top: header.bottom
     anchors.bottom: parent.bottom
     anchors.left: parent.left
     anchors.right: parent.right
-    columns: 6
 
-    Text {
-      text: "Offset"
+    GridLayout {
       Layout.fillWidth: true
-      Layout.row: 0
-      Layout.column: 0
-      Layout.columnSpan: 6
-      color: "dimgrey"
-      font.bold: true
-      leftPadding: 5
+      columns: 6
+
+      Text {
+        text: "Offset"
+        Layout.fillWidth: true
+        Layout.row: 0
+        Layout.column: 0
+        Layout.columnSpan: 6
+        color: "dimgrey"
+        font.bold: true
+        leftPadding: 5
+      }
+
+      Text {
+        text: "X (m)"
+        color: "dimgrey"
+        Layout.row: 1
+        Layout.column: 0
+        leftPadding: 5
+      }
+      IgnSpinBox {
+        id: x
+        Layout.fillWidth: true
+        Layout.row: 1
+        Layout.column: 1
+        value: Plot3D.offset.x
+        maximumValue: 1000000
+        minimumValue: -1000000
+        decimals: 2
+        stepSize: 0.01
+        onEditingFinished: Plot3D.SetOffset(Qt.vector3d(x.value, y.value, z.value))
+      }
+      Text {
+        text: "Y (m)"
+        color: "dimgrey"
+        Layout.row: 1
+        Layout.column: 2
+        leftPadding: 5
+      }
+      IgnSpinBox {
+        id: y
+        Layout.fillWidth: true
+        value: Plot3D.offset.y
+        maximumValue: 1000000
+        minimumValue: -1000000
+        decimals: 2
+        stepSize: 0.01
+        onEditingFinished: Plot3D.SetOffset(Qt.vector3d(x.value, y.value, z.value))
+      }
+      Text {
+        text: "Z (m)"
+        color: "dimgrey"
+        Layout.row: 1
+        Layout.column: 4
+        leftPadding: 5
+      }
+      IgnSpinBox {
+        id: z
+        Layout.fillWidth: true
+        Layout.row: 1
+        Layout.column: 5
+        value: Plot3D.offset.z
+        maximumValue: 1000000
+        minimumValue: -1000000
+        decimals: 2
+        stepSize: 0.01
+        onEditingFinished: Plot3D.SetOffset(Qt.vector3d(x.value, y.value, z.value))
+      }
+
+      Text {
+        text: "Color"
+        Layout.fillWidth: true
+        Layout.row: 2
+        Layout.column: 0
+        Layout.columnSpan: 6
+        color: "dimgrey"
+        font.bold: true
+        leftPadding: 5
+      }
+
+      Text {
+        text: "R"
+        color: "dimgrey"
+        Layout.row: 3
+        Layout.column: 0
+        leftPadding: 5
+      }
+
+      IgnSpinBox {
+        id: r
+        Layout.fillWidth: true
+        Layout.row: 3
+        Layout.column: 1
+        value: Plot3D.color.x
+        maximumValue: 1.00
+        minimumValue: 0.00
+        decimals: 2
+        stepSize: 0.01
+        onEditingFinished: Plot3D.SetColor(Qt.vector3d(r.value, g.value, b.value))
+      }
+
+      Text {
+        text: "G"
+        Layout.row: 3
+        Layout.column: 2
+        color: "dimgrey"
+        leftPadding: 5
+      }
+
+      IgnSpinBox {
+        id: g
+        Layout.fillWidth: true
+        Layout.row: 3
+        Layout.column: 3
+        value: Plot3D.color.y
+        maximumValue: 1.00
+        minimumValue: 0.00
+        decimals: 2
+        stepSize: 0.01
+        onEditingFinished: Plot3D.SetColor(Qt.vector3d(r.value, g.value, b.value))
+      }
+
+      Text {
+        text: "B"
+        Layout.row: 3
+        Layout.column: 4
+        color: "dimgrey"
+        leftPadding: 5
+      }
+
+      IgnSpinBox {
+        id: b
+        Layout.fillWidth: true
+        Layout.row: 3
+        Layout.column: 5
+        value: Plot3D.color.z
+        maximumValue: 1.00
+        minimumValue: 0.00
+        decimals: 2
+        stepSize: 0.01
+        onEditingFinished: Plot3D.SetColor(Qt.vector3d(r.value, g.value, b.value))
+      }
     }
 
-    Text {
-      text: "X (m)"
-      color: "dimgrey"
-      Layout.row: 1
-      Layout.column: 0
-      leftPadding: 5
-    }
-    IgnSpinBox {
-      id: x
+    GridLayout {
       Layout.fillWidth: true
-      Layout.row: 1
-      Layout.column: 1
-      value: Plot3D.offset.x
-      maximumValue: 1000000
-      minimumValue: -1000000
-      decimals: 2
-      stepSize: 0.01
-      onEditingFinished: Plot3D.SetOffset(Qt.vector3d(x.value, y.value, z.value))
-    }
-    Text {
-      text: "Y (m)"
-      color: "dimgrey"
-      Layout.row: 1
-      Layout.column: 2
-      leftPadding: 5
-    }
-    IgnSpinBox {
-      id: y
-      Layout.fillWidth: true
-      Layout.row: 1
-      Layout.column: 3
-      value: Plot3D.offset.y
-      maximumValue: 1000000
-      minimumValue: -1000000
-      decimals: 2
-      stepSize: 0.01
-      onEditingFinished: Plot3D.SetOffset(Qt.vector3d(x.value, y.value, z.value))
-    }
-    Text {
-      text: "Z (m)"
-      color: "dimgrey"
-      Layout.row: 1
-      Layout.column: 4
-      leftPadding: 5
-    }
-    IgnSpinBox {
-      id: z
-      Layout.fillWidth: true
-      Layout.row: 1
-      Layout.column: 5
-      value: Plot3D.offset.z
-      maximumValue: 1000000
-      minimumValue: -1000000
-      decimals: 2
-      stepSize: 0.01
-      onEditingFinished: Plot3D.SetOffset(Qt.vector3d(x.value, y.value, z.value))
-    }
+      columns: 2
 
-    Text {
-      text: "Color"
-      Layout.fillWidth: true
-      Layout.row: 2
-      Layout.column: 0
-      Layout.columnSpan: 6
-      color: "dimgrey"
-      font.bold: true
-      leftPadding: 5
-    }
+      Text {
+        text: "Min distance between points (m)"
+        color: "dimgrey"
+        Layout.row: 0
+        Layout.column: 0
+        leftPadding: 5
+      }
+      IgnSpinBox {
+        id: minDist
+        Layout.fillWidth: true
+        Layout.row: 0
+        Layout.column: 1
+        value: Plot3D.minDistance
+        maximumValue: 1000000
+        minimumValue: 0
+        decimals: 6
+        stepSize: 0.01
+        onEditingFinished: Plot3D.SetMinDistance(minDist.value)
+      }
 
-    Text {
-      text: "R"
-      color: "dimgrey"
-      Layout.row: 3
-      Layout.column: 0
-      leftPadding: 5
-    }
-
-    IgnSpinBox {
-      id: r
-      Layout.fillWidth: true
-      Layout.row: 3
-      Layout.column: 1
-      value: Plot3D.color.x
-      maximumValue: 1.00
-      minimumValue: 0.00
-      decimals: 2
-      stepSize: 0.01
-      onEditingFinished: Plot3D.SetColor(Qt.vector3d(r.value, g.value, b.value))
-    }
-
-    Text {
-      text: "G"
-      Layout.row: 3
-      Layout.column: 2
-      color: "dimgrey"
-      leftPadding: 5
-    }
-
-    IgnSpinBox {
-      id: g
-      Layout.fillWidth: true
-      Layout.row: 3
-      Layout.column: 3
-      value: Plot3D.color.y
-      maximumValue: 1.00
-      minimumValue: 0.00
-      decimals: 2
-      stepSize: 0.01
-      onEditingFinished: Plot3D.SetColor(Qt.vector3d(r.value, g.value, b.value))
-    }
-
-    Text {
-      text: "B"
-      Layout.row: 3
-      Layout.column: 4
-      color: "dimgrey"
-      leftPadding: 5
-    }
-
-    IgnSpinBox {
-      id: b
-      Layout.fillWidth: true
-      Layout.row: 3
-      Layout.column: 5
-      value: Plot3D.color.z
-      maximumValue: 1.00
-      minimumValue: 0.00
-      decimals: 2
-      stepSize: 0.01
-      onEditingFinished: Plot3D.SetColor(Qt.vector3d(r.value, g.value, b.value))
-    }
-
-    Text {
-      text: "Min distance between points (m)"
-      color: "dimgrey"
-      Layout.row: 4
-      Layout.column: 0
-      Layout.columnSpan: 3
-      leftPadding: 5
-    }
-    IgnSpinBox {
-      id: minDist
-      Layout.fillWidth: true
-      Layout.row: 4
-      Layout.column: 3
-      Layout.columnSpan: 3
-      value: Plot3D.minDistance
-      maximumValue: 1000000
-      minimumValue: 0
-      decimals: 6
-      stepSize: 0.01
-      onEditingFinished: Plot3D.SetMinDistance(minDist.value)
-    }
-
-    Text {
-      text: "Max points"
-      color: "dimgrey"
-      Layout.row: 5
-      Layout.column: 0
-      Layout.columnSpan: 3
-      leftPadding: 5
-    }
-    IgnSpinBox {
-      id: maxPoints
-      Layout.fillWidth: true
-      Layout.row: 5
-      Layout.column: 3
-      Layout.columnSpan: 3
-      value: Plot3D.maxPoints
-      maximumValue: 1000000
-      minimumValue: 0
-      decimals: 0
-      stepSize: 100
-      onEditingFinished: Plot3D.SetMaxPoints(maxPoints.value)
+      Text {
+        text: "Max points"
+        color: "dimgrey"
+        Layout.row: 1
+        Layout.column: 0
+        leftPadding: 5
+      }
+      IgnSpinBox {
+        id: maxPoints
+        Layout.fillWidth: true
+        Layout.row: 1
+        Layout.column: 1
+        value: Plot3D.maxPoints
+        maximumValue: 1000000
+        minimumValue: 0
+        decimals: 0
+        stepSize: 100
+        onEditingFinished: Plot3D.SetMaxPoints(maxPoints.value)
+      }
     }
 
     // Bottom spacer
