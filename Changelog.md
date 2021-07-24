@@ -3,7 +3,7 @@
 ### Ignition Gazebo 3.X.X (202X-XX-XX)
 
 
-### Ignition Gazebo 3.9.0 (2020-07-XX)
+### Ignition Gazebo 3.9.0 (2021-07-XX)
 
 1. Add a convenience function for getting possibly non-existing components.
     * [Pull request #629](https://github.com/ignitionrobotics/ign-gazebo/pull/629)
