@@ -114,7 +114,7 @@ Both services accept an `ignition::msgs::Boolean` parameter.
 A battery has been added to a demo world, which can be run using:
 
 ```
-ign gazebo -v 4 linear_battery_demo.sdf -z 1000000
+ign gazebo -v4 linear_battery_demo.sdf -z 1000000
 ```
 
 The blue vehicle on the left has a battery, while the one on the right does not. When the battery drains, the corresponding vehicle stops moving. Please, see
