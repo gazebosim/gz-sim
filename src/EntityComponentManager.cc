@@ -566,9 +566,14 @@ bool EntityComponentManager::CreateComponentImplementation(
     const Entity _entity, const ComponentTypeId _componentTypeId,
     const components::BaseComponent *_data)
 {
-  // make sure that the entity exists
+  // make sure the entity exists
   if (!this->HasEntity(_entity))
+  {
+    ignerr << "Trying to create a component of type [" << _componentTypeId
+      << "] attached to entity [" << _entity << "], but this entity does not "
+      << "exist. This create component request will be ignored." << std::endl;
     return false;
+  }
 
   // if this is the first time this component type is being created, make sure
   // the component type to be created is valid
@@ -597,7 +602,7 @@ bool EntityComponentManager::CreateComponentImplementation(
     this->dataPtr->entityCompStorage.AddComponent(_entity, std::move(newComp));
   switch (compAddResult)
   {
-    case detail::ComponentAdditionResult::FAILED_ADDITION:
+    case ComponentAdditionResult::FAILED_ADDITION:
       ignerr << "Attempt to create a component of type [" << _componentTypeId
         << "] attached to entity [" << _entity << "] failed.\n";
       return false;
