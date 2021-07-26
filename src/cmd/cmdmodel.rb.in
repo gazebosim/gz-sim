@@ -1,0 +1,179 @@
+#!/usr/bin/ruby
+
+# Copyright (C) 2021 Open Source Robotics Foundation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# We use 'dl' for Ruby <= 1.9.x and 'fiddle' for Ruby >= 2.0.x
+if RUBY_VERSION.split('.')[0] < '2'
+  require 'dl'
+  require 'dl/import'
+  include DL
+else
+  require 'fiddle'
+  require 'fiddle/import'
+  include Fiddle
+end
+
+require 'optparse'
+
+# Constants.
+LIBRARY_NAME = '@library_location@'
+LIBRARY_VERSION = '@PROJECT_VERSION_FULL@'
+
+COMMON_OPTIONS =
+               "  -h [--help]                Print this help message.\n"\
+               "                                                    \n"        +
+               "  --force-version <VERSION>  Use a specific library version.\n"\
+               "                                                    \n"        +
+               '  --versions                 Show the available versions.'
+
+COMMANDS = { 'model' =>
+  "Print information about models.\n\n"+
+  "                                                                        \n"\
+  "  ign model [options]                                                   \n"\
+  "                                                                        \n"\
+  "Available Options:                                                      \n"\
+  "  --list                     Get a list of the available models.        \n"\
+  "  -m [--model] arg           Select the model to be shown.              \n"\
+  "  -p [--pose]                Print the pose of the model.               \n"\
+  "  -l [--link]  arg           Select a link to show its properties.      \n"\
+  "                             If no arg is passed all links are printed  \n"\
+  "                             Requires the -m option                     \n"\
+  "                                                                        \n"\
+  "                             E.g. to get information about the          \n"\
+  "                             caster link in the diff_drive world, run:  \n"\
+  "                             ign model -m vehicle_blue -l caster        \n"\
+  "                                                                        \n"\
+  "  -j [--joint] arg           Select a joint to show its properties.     \n"\
+  "                             If no arg is passed all joints are printed \n"\
+  "                             Requires the -m option                     \n"\
+  "                                                                        \n"\
+  "                             E.g. to get information about the          \n"\
+  "                             caster_wheel joint in the diff_drive       \n"\
+  "                             world, run:                                \n"\
+  "                             ign model -m vehicle_blue -j caster_wheel  \n\n"+
+  COMMON_OPTIONS
+}
+
+#
+# Class for the Ignition Gazebo Model command line tools.
+#
+class Cmd
+
+  #
+  # Return a structure describing the options.
+  #
+  def parse(args)
+    options = {
+      'pose' => 0,
+      'link_name' => 0,
+      'joint_name' => 0
+    }
+    usage = COMMANDS[args[0]]
+
+    opt_parser = OptionParser.new do |opts|
+      opts.banner = usage
+
+      opts.on('-h', '--help') do
+        puts usage
+        exit
+      end
+      opts.on('-m', '--model [arg]', String, 'Model name') do |m|
+        options['model_name'] = m
+      end
+      opts.on('--list', String, 'List models available') do
+        options['list'] = 1
+      end
+      opts.on('-p', '--pose', Integer, 'Request pose') do
+        options['pose'] = 1
+      end
+      opts.on('-l', '--link [arg]', String, 'Request link information') do |l|
+        options['link_name'] = ''
+        if l
+          options['link_name'] = l
+        end
+      end
+      opts.on('-j', '--joint [arg]', String, 'Request joint information') do |j|
+        # options['joint'] = 1
+        options['joint_name'] = ''
+        if j
+          options['joint_name'] = j
+        end
+      end
+    end # opt_parser do
+    begin
+      opt_parser.parse!(args)
+    rescue
+      puts usage
+      exit(-1)
+    end
+
+    # Check that there is at least one command and there is a plugin that knows
+    # how to handle it.
+    if ARGV.empty? || !COMMANDS.key?(ARGV[0]) ||
+       options.empty?
+      puts usage
+      exit(-1)
+    end
+
+    # Check that an option was selected.
+    if !(options.key?('list') || options.key?('model_name'))
+     puts usage
+     exit(-1)
+    end
+
+    options['command'] = args[0]
+
+    options
+  end # parse()
+
+  def execute(args)
+    options = parse(args)
+
+    # Read the plugin that handles the command.
+    if LIBRARY_NAME[0] == '/'
+      # If the first character is a slash, we'll assume that we've been given an
+      # absolute path to the library. This is only used during test mode.
+      plugin = LIBRARY_NAME
+    else
+      # We're assuming that the library path is relative to the current
+      # location of this script.
+      plugin = File.expand_path(File.join(File.dirname(__FILE__), LIBRARY_NAME))
+    end
+    conf_version = LIBRARY_VERSION
+
+    begin
+      Importer.dlload plugin
+    rescue DLError => e
+      puts "Library error for [#{plugin}]: #{e.to_s}"
+      exit(-1)
+    end
+
+    if options.key?('list')
+      Importer.extern 'void cmdModelList()'
+      Importer.cmdModelList()
+      exit(0)
+    elsif options.key?('model_name')
+      Importer.extern 'void cmdModelInfo(const char *, int, const char *,
+          const char *)'
+      Importer.cmdModelInfo(options['model_name'], options['pose'],
+      options['link_name'], options['joint_name'])
+    else
+      puts 'Command error: I do not have an implementation for '\
+        "command [ign #{options['command']}]."
+    end
+  # # execute
+  end
+# class
+end
