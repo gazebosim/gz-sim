@@ -5,6 +5,15 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
+## Ignition Gazebo 5.x to 6.x
+
+* Marker example has been moved to Ignition GUI.
+
+* Some GUI plugins have been moved to Ignition GUI. Gazebo users don't need to
+  change their configuration files, the plugins will be loaded the same way.
+    * Grid Config
+    * Tape Measure
+
 ## Ignition Gazebo 4.x to 5.x
 
 * Use `cli` component of `ignition-utils1`.

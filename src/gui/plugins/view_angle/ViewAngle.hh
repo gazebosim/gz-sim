@@ -18,6 +18,8 @@
 #ifndef IGNITION_GAZEBO_GUI_VIEWANGLE_HH_
 #define IGNITION_GAZEBO_GUI_VIEWANGLE_HH_
 
+#include <ignition/msgs/pose.pb.h>
+
 #include <memory>
 
 #include <ignition/gui/Plugin.hh>
@@ -35,6 +37,13 @@ namespace gazebo
   class ViewAngle : public ignition::gui::Plugin
   {
     Q_OBJECT
+
+    /// \brief gui camera pose (QList order is x, y, z, roll, pitch, yaw)
+    Q_PROPERTY(
+      QList<double> camPose
+      READ CamPose
+      NOTIFY CamPoseChanged
+    )
 
     /// \brief Constructor
     public: ViewAngle();
@@ -57,6 +66,22 @@ namespace gazebo
     /// \brief Callback in Qt thread when camera view controller changes.
     /// \param[in] _mode New camera view controller
     public slots: void OnViewControl(const QString &_controller);
+
+    /// \brief Get the current gui camera pose.
+    public: Q_INVOKABLE QList<double> CamPose() const;
+
+    /// \brief Notify that the gui camera pose has changed.
+    signals: void CamPoseChanged();
+
+    /// \brief Callback to update gui camera pose
+    /// \param[in] _x, _y, _z cartesion coordinates
+    /// \param[in] _roll, _pitch, _yaw principal coordinates
+    public slots: void SetCamPose(double _x, double _y, double _z,
+                               double _roll, double _pitch, double _yaw);
+
+    /// \brief Callback for retrieving gui camera pose
+    /// \param[in] _msg Pose message
+    public: void CamPoseCb(const msgs::Pose &_msg);
 
     /// \internal
     /// \brief Pointer to private data.

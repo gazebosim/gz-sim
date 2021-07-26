@@ -26,8 +26,9 @@
 #include "ignition/gazebo/components/components.hh"
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/gui/GuiRunner.hh"
 #include "ignition/gazebo/gui/GuiSystem.hh"
+
+#include "GuiRunner.hh"
 
 using namespace ignition;
 using namespace gazebo;
