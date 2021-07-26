@@ -232,38 +232,7 @@ void CameraVideoRecorderPrivate::OnPostRender()
   // get scene
   if (!this->scene)
   {
-    auto loadedEngNames = rendering::loadedEngines();
-    if (loadedEngNames.empty())
-      return;
-
-    // assume there is only one engine loaded
-    auto engineName = loadedEngNames[0];
-    if (loadedEngNames.size() > 1)
-    {
-      igndbg << "More than one engine is available. "
-        << "Camera video recorder system will use engine ["
-          << engineName << "]" << std::endl;
-    }
-    auto engine = rendering::engine(engineName);
-    if (!engine)
-    {
-      ignerr << "Internal error: failed to load engine [" << engineName
-        << "]. Camera video recorder system won't work." << std::endl;
-      return;
-    }
-
-    if (engine->SceneCount() == 0)
-      return;
-
-    // assume there is only one scene
-    // load scene
-    auto s = engine->SceneByIndex(0);
-    if (!s)
-    {
-      ignerr << "Internal error: scene is null." << std::endl;
-      return;
-    }
-    this->scene = s;
+    this->scene = rendering::sceneFromFirstRenderEngine();
   }
 
   // return if scene not ready or no sensors available.

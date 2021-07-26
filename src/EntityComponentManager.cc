@@ -15,6 +15,8 @@
  *
 */
 
+#include "ignition/gazebo/EntityComponentManager.hh"
+
 #include <map>
 #include <memory>
 #include <set>
@@ -25,10 +27,10 @@
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/math/graph/GraphAlgorithms.hh>
+
+#include "ignition/gazebo/EntityComponentStorage.hh"
 #include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/detail/ComponentStorage.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -78,7 +80,7 @@ class ignition::gazebo::EntityComponentManagerPrivate
 
   /// \brief A class that stores all components and maps entities to their
   /// component types
-  public: detail::ComponentStorage componentStorage;
+  public: EntityComponentStorage entityCompStorage;
 
   /// \brief All component types that have ever been created.
   public: std::unordered_set<ComponentTypeId> createdCompTypes;
@@ -211,7 +213,7 @@ Entity EntityComponentManagerPrivate::CreateEntityImplementation(Entity _entity)
   // Reset descendants cache
   this->descendantCache.clear();
 
-  if (!this->componentStorage.AddEntity(_entity))
+  if (!this->entityCompStorage.AddEntity(_entity))
   {
     ignwarn << "Attempted to add entity [" << _entity
       << "] to component storage, but this entity is already in component "
@@ -307,7 +309,8 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
     this->dataPtr->toRemoveEntities.clear();
     this->dataPtr->entityComponentsDirty = true;
 
-    this->dataPtr->componentStorage.Reset();
+    // reset the entity component storage
+    this->dataPtr->entityCompStorage = EntityComponentStorage();
 
     // All views are now invalid.
     this->dataPtr->views.clear();
@@ -329,7 +332,7 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
       // Remove the components, if any.
       if (entityIter != this->dataPtr->entityComponents.end())
       {
-        this->dataPtr->componentStorage.RemoveEntity(entity);
+        this->dataPtr->entityCompStorage.RemoveEntity(entity);
 
         // Remove the entry in the entityComponent map
         this->dataPtr->entityComponents.erase(entity);
@@ -379,7 +382,7 @@ bool EntityComponentManager::RemoveComponent(
   }
 
   auto removedComp =
-    this->dataPtr->componentStorage.RemoveComponent(_entity, _typeId);
+    this->dataPtr->entityCompStorage.RemoveComponent(_entity, _typeId);
   if (removedComp)
   {
     // update views to reflect the component removal
@@ -402,9 +405,6 @@ bool EntityComponentManager::RemoveComponent(
 bool EntityComponentManager::RemoveComponent(
     const Entity _entity, const ComponentKey &_key)
 {
-  ignwarn << "EntityComponentManager::RemoveComponent is deprecated. Please "
-    << "use the RemoveComponent method with a ComponentTypeId parameter type "
-    << "instead." << std::endl;
   return this->RemoveComponent(_entity, _key.first);
 }
 
@@ -412,9 +412,6 @@ bool EntityComponentManager::RemoveComponent(
 bool EntityComponentManager::EntityHasComponent(const Entity _entity,
     const ComponentKey &_key) const
 {
-  ignwarn << "EntityComponentManager::EntityHasComponent is deprecated. Please "
-    << "use EntityComponentManager::EntityHasComponentType instead."
-    << std::endl;
   if (!this->HasEntity(_entity))
     return false;
   auto &compSet = this->dataPtr->entityComponents[_entity];
@@ -597,14 +594,14 @@ bool EntityComponentManager::CreateComponentImplementation(
   auto newComp = components::Factory::Instance()->New(_componentTypeId, _data);
 
   auto compAddResult =
-    this->dataPtr->componentStorage.AddComponent(_entity, std::move(newComp));
+    this->dataPtr->entityCompStorage.AddComponent(_entity, std::move(newComp));
   switch (compAddResult)
   {
     case detail::ComponentAdditionResult::FAILED_ADDITION:
       ignerr << "Attempt to create a component of type [" << _componentTypeId
         << "] attached to entity [" << _entity << "] failed.\n";
       return false;
-    case detail::ComponentAdditionResult::NEW_ADDITION:
+    case ComponentAdditionResult::NEW_ADDITION:
       updateData = false;
       for (auto &viewPair : this->dataPtr->views)
       {
@@ -613,12 +610,12 @@ bool EntityComponentManager::CreateComponentImplementation(
           view->MarkEntityToAdd(_entity, this->IsNewEntity(_entity));
       }
       break;
-    case detail::ComponentAdditionResult::RE_ADDITION:
+    case ComponentAdditionResult::RE_ADDITION:
       for (auto &viewPair : this->dataPtr->views)
         viewPair.second->NotifyComponentAddition(_entity,
             this->IsNewEntity(_entity), _componentTypeId);
       break;
-    case detail::ComponentAdditionResult::MODIFICATION:
+    case ComponentAdditionResult::MODIFICATION:
       break;
     default:
       ignerr << "Undefined behavior occurred when creating a component of "
@@ -665,14 +662,14 @@ const components::BaseComponent
     const Entity _entity, const ComponentTypeId _type) const
 {
   IGN_PROFILE("EntityComponentManager::ComponentImplementation");
-  return this->dataPtr->componentStorage.ValidComponent(_entity, _type);
+  return this->dataPtr->entityCompStorage.ValidComponent(_entity, _type);
 }
 
 /////////////////////////////////////////////////
 components::BaseComponent *EntityComponentManager::ComponentImplementation(
     const Entity _entity, const ComponentTypeId _type)
 {
-  return this->dataPtr->componentStorage.ValidComponent(_entity, _type);
+  return this->dataPtr->entityCompStorage.ValidComponent(_entity, _type);
 }
 
 /////////////////////////////////////////////////
@@ -1273,13 +1270,6 @@ void EntityComponentManager::SetState(
     for (const auto &compIter : iter.second.components())
     {
       const auto &compMsg = compIter.second;
-
-      // Skip if component not set. Note that this will also skip components
-      // setting an empty value.
-      if (compMsg.component().empty())
-      {
-        continue;
-      }
 
       uint64_t type = compMsg.type();
 

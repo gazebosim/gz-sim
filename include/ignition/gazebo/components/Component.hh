@@ -224,10 +224,9 @@ namespace serializers
   };
 }
 
-namespace detail
-{
-  class ComponentStorage;
-}
+// Forward declaration so that the EntityComponentStorage class can be a friend
+// of BaseComponent
+class EntityComponentStorage;
 
 namespace components
 {
@@ -296,10 +295,10 @@ namespace components
     /// users interact with components.
     private: bool removed{false};
 
-    // Make ComponentStorage and EntityComponentManager a friend of the
+    // Make EntityComponentStorage and EntityComponentManager a friend of the
     // BaseComponent class so that they have access to a component's "removed"
     // flag.
-    friend class ignition::gazebo::detail::ComponentStorage;
+    friend class ignition::gazebo::EntityComponentStorage;
     friend class ignition::gazebo::EntityComponentManager;
   };
 

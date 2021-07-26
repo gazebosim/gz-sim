@@ -21,12 +21,12 @@
 #include <utility>
 
 #include "ignition/gazebo/Entity.hh"
+#include "ignition/gazebo/EntityComponentStorage.hh"
 #include "ignition/gazebo/Types.hh"
 #include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/detail/ComponentStorage.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -42,7 +42,7 @@ const Entity entity3 = 3;
 const Entity entity4 = 4;
 
 /////////////////////////////////////////////////
-class ComponentStorageTest : public ::testing::Test
+class EntityComponentStorageTest : public ::testing::Test
 {
   // Documentation inherited
   protected: void SetUp() override
@@ -56,7 +56,7 @@ class ComponentStorageTest : public ::testing::Test
   /// \param[in] _typeId The type ID of _component
   /// \param[in] _component The component, which belongs to _entity
   /// \return The result of the component addition
-  public: detail::ComponentAdditionResult AddComponent(const Entity _entity,
+  public: ComponentAdditionResult AddComponent(const Entity _entity,
               const ComponentTypeId _typeId,
               const components::BaseComponent *_component)
   {
@@ -65,8 +65,8 @@ class ComponentStorageTest : public ::testing::Test
     return this->storage.AddComponent(_entity, std::move(compPtr));
   }
 
-  /// \brief Helper function that uses ComponentStorage::ValidComponent to get
-  /// a component of a particular type that belongs to an entity.
+  /// \brief Helper function that uses EntityComponentStorage::ValidComponent to
+  /// get a component of a particular type that belongs to an entity.
   /// \param[in] _entity The entity
   /// \return A pointer to the component of the templated type. If no such
   /// component exists, nullptr is returned
@@ -87,7 +87,7 @@ class ComponentStorageTest : public ::testing::Test
     return static_cast<const ComponentTypeT *>(baseComp);
   }
 
-  public: detail::ComponentStorage storage;
+  public: EntityComponentStorage storage;
 
   public: const Entity e1{1};
 
@@ -95,7 +95,7 @@ class ComponentStorageTest : public ::testing::Test
 };
 
 /////////////////////////////////////////////////
-TEST_F(ComponentStorageTest, AddEntity)
+TEST_F(EntityComponentStorageTest, AddEntity)
 {
   // Entities were already added to the storage in the test fixture's SetUp
   // method. So, try to add entities that are already in the storage.
@@ -109,7 +109,7 @@ TEST_F(ComponentStorageTest, AddEntity)
 }
 
 /////////////////////////////////////////////////
-TEST_F(ComponentStorageTest, RemoveEntity)
+TEST_F(EntityComponentStorageTest, RemoveEntity)
 {
   // Try to remove entities that aren't in the storage
   EXPECT_FALSE(this->storage.RemoveEntity(3));
@@ -125,12 +125,12 @@ TEST_F(ComponentStorageTest, RemoveEntity)
 }
 
 /////////////////////////////////////////////////
-TEST_F(ComponentStorageTest, AddComponent)
+TEST_F(EntityComponentStorageTest, AddComponent)
 {
   // Add components to entities in the storage
-  EXPECT_EQ(detail::ComponentAdditionResult::NEW_ADDITION,
+  EXPECT_EQ(ComponentAdditionResult::NEW_ADDITION,
       this->AddComponent(this->e1, components::Pose::typeId, &poseComp));
-  EXPECT_EQ(detail::ComponentAdditionResult::NEW_ADDITION,
+  EXPECT_EQ(ComponentAdditionResult::NEW_ADDITION,
       this->AddComponent(this->e2, components::LinearVelocity::typeId,
         &linVelComp));
 
@@ -149,9 +149,9 @@ TEST_F(ComponentStorageTest, AddComponent)
   // remove call should fail)
   EXPECT_FALSE(this->storage.RemoveEntity(entity3));
   EXPECT_FALSE(this->storage.RemoveEntity(entity4));
-  EXPECT_EQ(detail::ComponentAdditionResult::FAILED_ADDITION,
+  EXPECT_EQ(ComponentAdditionResult::FAILED_ADDITION,
       this->AddComponent(entity3, components::Pose::typeId, &poseComp));
-  EXPECT_EQ(detail::ComponentAdditionResult::FAILED_ADDITION,
+  EXPECT_EQ(ComponentAdditionResult::FAILED_ADDITION,
       this->AddComponent(entity4, components::LinearVelocity::typeId,
         &linVelComp));
   EXPECT_EQ(nullptr, this->Component<components::Pose>(entity3));
@@ -159,16 +159,17 @@ TEST_F(ComponentStorageTest, AddComponent)
 
   // Add components to entities that already have a component of the same type
   // (this has the same effect of modifying an existing component)
-  EXPECT_EQ(detail::ComponentAdditionResult::MODIFICATION,
+  EXPECT_EQ(ComponentAdditionResult::MODIFICATION,
       this->AddComponent(this->e1, components::Pose::typeId, &poseComp2));
-  EXPECT_EQ(detail::ComponentAdditionResult::MODIFICATION,
+  EXPECT_EQ(ComponentAdditionResult::MODIFICATION,
       this->AddComponent(this->e2, components::LinearVelocity::typeId,
         &linVelComp2));
 
   // We can't check if the modification actually took place since this requires
-  // functionality beyond the ComponentStorage API (see the comments in the
-  // ComponentStorage::AddComponent method definition for more details), but we
-  // can at least check that the components still exist after modification
+  // functionality beyond the EntityComponentStorage API (see the comments in
+  // the EntityComponentStorage::AddComponent method definition for more
+  // details), but we can at least check that the components still exist after
+  // modification
   ASSERT_NE(nullptr, this->Component<components::Pose>(this->e1));
   ASSERT_NE(nullptr, this->Component<components::LinearVelocity>(this->e2));
 
@@ -177,7 +178,7 @@ TEST_F(ComponentStorageTest, AddComponent)
   EXPECT_TRUE(this->storage.RemoveComponent(this->e1,
         components::Pose::typeId));
   EXPECT_EQ(nullptr, this->Component<components::Pose>(this->e1));
-  EXPECT_EQ(detail::ComponentAdditionResult::RE_ADDITION,
+  EXPECT_EQ(ComponentAdditionResult::RE_ADDITION,
       this->AddComponent(this->e1, components::Pose::typeId, &poseComp));
   storagePoseComp = this->Component<components::Pose>(this->e1);
   ASSERT_NE(nullptr, storagePoseComp);
@@ -186,7 +187,7 @@ TEST_F(ComponentStorageTest, AddComponent)
   EXPECT_TRUE(this->storage.RemoveComponent(this->e2,
         components::LinearVelocity::typeId));
   EXPECT_EQ(nullptr, this->Component<components::LinearVelocity>(this->e2));
-  EXPECT_EQ(detail::ComponentAdditionResult::RE_ADDITION,
+  EXPECT_EQ(ComponentAdditionResult::RE_ADDITION,
       this->AddComponent(this->e2, components::LinearVelocity::typeId,
         &linVelComp));
   storageLinVelComp = this->Component<components::LinearVelocity>(this->e2);
@@ -195,13 +196,13 @@ TEST_F(ComponentStorageTest, AddComponent)
 }
 
 /////////////////////////////////////////////////
-TEST_F(ComponentStorageTest, RemoveComponent)
+TEST_F(EntityComponentStorageTest, RemoveComponent)
 {
   // Add components to entities
-  EXPECT_EQ(detail::ComponentAdditionResult::NEW_ADDITION,
+  EXPECT_EQ(ComponentAdditionResult::NEW_ADDITION,
       this->AddComponent(this->e1, poseComp.TypeId(), &poseComp));
   EXPECT_NE(nullptr, this->Component<components::Pose>(this->e1));
-  EXPECT_EQ(detail::ComponentAdditionResult::NEW_ADDITION,
+  EXPECT_EQ(ComponentAdditionResult::NEW_ADDITION,
       this->AddComponent(this->e2, linVelComp.TypeId(), &linVelComp));
   EXPECT_NE(nullptr, this->Component<components::LinearVelocity>(this->e2));
 
@@ -231,10 +232,10 @@ TEST_F(ComponentStorageTest, RemoveComponent)
 }
 
 /////////////////////////////////////////////////
-TEST_F(ComponentStorageTest, ValidComponent)
+TEST_F(EntityComponentStorageTest, ValidComponent)
 {
   // Attach a component to an entity
-  EXPECT_EQ(detail::ComponentAdditionResult::NEW_ADDITION,
+  EXPECT_EQ(ComponentAdditionResult::NEW_ADDITION,
       this->AddComponent(this->e1, poseComp.TypeId(), &poseComp));
 
   // Get a component that is attached to an entity
@@ -260,12 +261,12 @@ TEST_F(ComponentStorageTest, ValidComponent)
 
 /////////////////////////////////////////////////
 // Similar to the ValidComponent test, but this test covers the const version of
-// the ComponentStorage::ValidComponent method (the ValidComponent test covered
-// the non-const version of the ComponentStorage::ValidComponent)
-TEST_F(ComponentStorageTest, ValidComponentConst)
+// the EntityComponentStorage::ValidComponent method (the ValidComponent test
+// covered the non-const version of the EntityComponentStorage::ValidComponent)
+TEST_F(EntityComponentStorageTest, ValidComponentConst)
 {
   // Attach a component to an entity
-  EXPECT_EQ(detail::ComponentAdditionResult::NEW_ADDITION,
+  EXPECT_EQ(ComponentAdditionResult::NEW_ADDITION,
       this->AddComponent(this->e1, poseComp.TypeId(), &poseComp));
 
   // Get a component that is attached to an entity
@@ -282,44 +283,4 @@ TEST_F(ComponentStorageTest, ValidComponentConst)
   EXPECT_TRUE(this->storage.RemoveComponent(this->e1,
         components::Pose::typeId));
   ASSERT_EQ(nullptr, this->ConstComponent<components::Pose>(this->e1));
-}
-
-/////////////////////////////////////////////////
-TEST_F(ComponentStorageTest, Reset)
-{
-  // Add components to entities in the storage
-  EXPECT_EQ(detail::ComponentAdditionResult::NEW_ADDITION,
-      this->AddComponent(this->e1, poseComp.TypeId(), &poseComp));
-  EXPECT_EQ(detail::ComponentAdditionResult::NEW_ADDITION,
-      this->AddComponent(this->e2, linVelComp.TypeId(), &linVelComp));
-
-  // Make sure that the storage has entities and components
-  EXPECT_FALSE(this->storage.AddEntity(this->e1));
-  EXPECT_FALSE(this->storage.AddEntity(this->e2));
-  EXPECT_NE(nullptr, this->storage.ValidComponent(this->e1,
-        components::Pose::typeId));
-  EXPECT_NE(nullptr, this->storage.ValidComponent(this->e2,
-        components::LinearVelocity::typeId));
-
-  // Reset the storage
-  this->storage.Reset();
-
-  // Make sure the storage has no entities or components
-  EXPECT_FALSE(this->storage.RemoveEntity(this->e1));
-  EXPECT_EQ(nullptr, this->storage.ValidComponent(this->e1,
-        components::Pose::typeId));
-  EXPECT_FALSE(this->storage.RemoveEntity(this->e2));
-  EXPECT_EQ(nullptr, this->storage.ValidComponent(this->e2,
-        components::LinearVelocity::typeId));
-
-  // We should be able to re-add the entities that were removed
-  EXPECT_TRUE(this->storage.AddEntity(this->e1));
-  EXPECT_TRUE(this->storage.AddEntity(this->e2));
-
-  // The entities that were re-added shouldn't have any components associated
-  // with them since resetting the storage removed all components
-  EXPECT_EQ(nullptr, this->storage.ValidComponent(this->e1,
-        components::Pose::typeId));
-  EXPECT_EQ(nullptr, this->storage.ValidComponent(this->e2,
-        components::LinearVelocity::typeId));
 }
