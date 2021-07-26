@@ -51,7 +51,7 @@ namespace serializers
       }
 
       _out << "<?xml version=\"1.0\" ?>"
-           << "<sdf version='" << modelElem->OriginalVersion() << "'>"
+           << "<sdf version='" << SDF_PROTOCOL_VERSION << "'>"
            << modelElem->ToString("")
            << "</sdf>";
       return _out;
@@ -74,7 +74,7 @@ namespace serializers
         return _in;
       }
 
-      _model.Load(root.Element()->GetElement("model"));
+      _model = *root.Model();
       return _in;
     }
   };
