@@ -68,7 +68,7 @@ namespace serializers
       std::string sdf(std::istreambuf_iterator<char>(_in), {});
 
       sdf::Errors errors = root.LoadSdfString(sdf);
-      if (!errors.empty())
+      if (!root.Element()->GetElement("model"))
       {
         ignerr << "Unable to unserialize sdf::Model" << std::endl;
         return _in;
