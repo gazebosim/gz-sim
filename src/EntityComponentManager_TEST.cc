@@ -255,12 +255,6 @@ TEST_P(EntityComponentManagerFixture, EntitiesAndComponents)
   // should be returned since a component cannot be attached to a non-existent
   // entity
   EXPECT_FALSE(manager.HasEntity(kNullEntity));
-  /*
-   * TODO(adlarkin) test with the following methods once the deprecation
-   * process has been sorted out:
-   *  EntityHasComponent
-   *  EntityHasComponentType
-   */
   EXPECT_EQ(nullptr, manager.CreateComponent<IntComponent>(kNullEntity,
         IntComponent(123)));
   EXPECT_EQ(nullptr, manager.ComponentDefault<IntComponent>(kNullEntity, 123));
