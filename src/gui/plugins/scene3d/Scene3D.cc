@@ -1659,7 +1659,10 @@ void IgnRenderer::HandleMouseTransformControl()
       auto v = std::dynamic_pointer_cast<ignition::rendering::Visual>(node);
       rendering::VisualPtr visualSimple = this->ContainsSimpleShape(node);
       if (!visualSimple)
+      {
+        ignwarn << "Scaling not supported for this visual type." << std::endl;
         return;
+      }
 
       int userData = std::get<int>(v->UserData("geometry-type"));
       sdf::GeometryType geomType = static_cast<sdf::GeometryType>(userData);
