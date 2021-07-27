@@ -19,7 +19,6 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/gazebo/SystemLoader.hh>
 #include <ignition/gazebo/test_config.hh>
 
 #include "../plugins/MockSystem.hh"
@@ -54,15 +53,10 @@ class Relay
   /// \brief Constructor
   public: Relay()
   {
-    auto plugin = loader.LoadPlugin("libMockSystem.so",
-        "ignition::gazebo::MockSystem", nullptr);
-
-    EXPECT_TRUE(plugin.has_value());
-    this->systemPtr = plugin.value();
-
-    this->mockSystem = static_cast<MockSystem *>(
-        systemPtr->QueryInterface<System>());
+    this->mockSystem = std::make_unique<MockSystem>();
     EXPECT_NE(nullptr, this->mockSystem);
+
+    this->systemPtr = this->mockSystem.get();
   }
 
   /// \brief Wrapper around system's pre-update callback
@@ -89,14 +83,11 @@ class Relay
     return *this;
   }
 
-  /// \brief Pointer to underlying syste,
-  public: SystemPluginPtr systemPtr;
-
   /// \brief Pointer to underlying mock interface
-  public: MockSystem *mockSystem;
+  public: std::unique_ptr<MockSystem> mockSystem{nullptr};
 
-  /// \brief Used to load the system.
-  private: SystemLoader loader;
+  /// \brief Underlying raw pointer, for convenience
+  public: MockSystem *systemPtr{nullptr};
 };
 }
 }
