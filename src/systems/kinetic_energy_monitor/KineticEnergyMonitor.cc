@@ -127,39 +127,12 @@ void KineticEnergyMonitor::Configure(const Entity &_entity,
   transport::Node node;
   this->dataPtr->pub = node.Advertise<msgs::Double>(topic);
 
-  if (!_ecm.Component<components::WorldPose>(this->dataPtr->linkEntity))
-  {
-    _ecm.CreateComponent(this->dataPtr->linkEntity,
-        components::WorldPose());
-  }
+  Link link(this->dataPtr->linkEntity);
+  link.EnableVelocityChecks(_ecm, true);
 
   if (!_ecm.Component<components::Inertial>(this->dataPtr->linkEntity))
   {
     _ecm.CreateComponent(this->dataPtr->linkEntity, components::Inertial());
-  }
-
-  // Create a world linear velocity component if one is not present.
-  if (!_ecm.Component<components::WorldLinearVelocity>(
-        this->dataPtr->linkEntity))
-  {
-    _ecm.CreateComponent(this->dataPtr->linkEntity,
-        components::WorldLinearVelocity());
-  }
-
-  // Create an angular velocity component if one is not present.
-  if (!_ecm.Component<components::AngularVelocity>(
-        this->dataPtr->linkEntity))
-  {
-    _ecm.CreateComponent(this->dataPtr->linkEntity,
-        components::AngularVelocity());
-  }
-
-  // Create an angular velocity component if one is not present.
-  if (!_ecm.Component<components::WorldAngularVelocity>(
-        this->dataPtr->linkEntity))
-  {
-    _ecm.CreateComponent(this->dataPtr->linkEntity,
-        components::WorldAngularVelocity());
   }
 }
 

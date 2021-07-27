@@ -45,6 +45,23 @@ using namespace ignition;
 using namespace gazebo;
 
 //////////////////////////////////////////////////
+// Helper function to create and remove components to enable and disable
+// functionality.
+template <class ComponentType>
+void enableComponent(EntityComponentManager &_ecm, Entity _entity, bool _enable)
+{
+  auto exists = _ecm.Component<ComponentType>(_entity);
+  if (_enable && !exists)
+  {
+    _ecm.CreateComponent(_entity, ComponentType());
+  }
+  else if (!_enable && exists)
+  {
+    _ecm.RemoveComponent<ComponentType>(_entity);
+  }
+}
+
+//////////////////////////////////////////////////
 Link::Link(gazebo::Entity _entity)
   : dataPtr(std::make_unique<LinkPrivate>())
 {
@@ -229,11 +246,37 @@ std::optional<math::Vector3d> Link::WorldAngularVelocity(
 }
 
 //////////////////////////////////////////////////
+void Link::EnableVelocityChecks(EntityComponentManager &_ecm, bool _enable)
+    const
+{
+  enableComponent<components::WorldLinearVelocity>(_ecm, this->dataPtr->id,
+      _enable);
+  enableComponent<components::WorldAngularVelocity>(_ecm, this->dataPtr->id,
+      _enable);
+  enableComponent<components::LinearVelocity>(_ecm, this->dataPtr->id,
+      _enable);
+  enableComponent<components::AngularVelocity>(_ecm, this->dataPtr->id,
+      _enable);
+  enableComponent<components::WorldPose>(_ecm, this->dataPtr->id,
+      _enable);
+}
+
+//////////////////////////////////////////////////
 std::optional<math::Vector3d> Link::WorldLinearAcceleration(
     const EntityComponentManager &_ecm) const
 {
   return _ecm.ComponentData<components::WorldLinearAcceleration>(
       this->dataPtr->id);
+}
+
+//////////////////////////////////////////////////
+void Link::EnableAccelerationChecks(EntityComponentManager &_ecm, bool _enable)
+    const
+{
+  enableComponent<components::WorldLinearAcceleration>(_ecm, this->dataPtr->id,
+      _enable);
+  enableComponent<components::LinearAcceleration>(_ecm, this->dataPtr->id,
+      _enable);
 }
 
 //////////////////////////////////////////////////
