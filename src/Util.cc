@@ -237,6 +237,12 @@ Entity worldEntity(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
+Entity worldEntity(const EntityComponentManager &_ecm)
+{
+  return _ecm.EntityByComponents(components::World());
+}
+
+//////////////////////////////////////////////////
 std::string removeParentScope(const std::string &_name,
                               const std::string &_delim)
 {

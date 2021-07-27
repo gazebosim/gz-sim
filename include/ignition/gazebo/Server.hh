@@ -19,6 +19,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <string>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/EntityComponentManager.hh>
@@ -216,6 +217,16 @@ namespace ignition
       /// if _worldIndex is invalid.
       public: std::optional<bool> AddSystem(
                   const SystemPluginPtr &_system,
+                  const unsigned int _worldIndex = 0);
+
+      /// \brief Add a System to the server. The server must not be running when
+      /// calling this. The server does not take ownership of the pointer and
+      /// assumes that the pointer is valid during the server's lifetime.
+      /// \param[in] _system system to be added
+      /// \param[in] _worldIndex Index of the world to query.
+      /// \return Whether the system was added successfully, or std::nullopt
+      /// if _worldIndex is invalid.
+      public: std::optional<bool> AddSystem(System *_system,
                   const unsigned int _worldIndex = 0);
 
       /// \brief Get an Entity based on a name.

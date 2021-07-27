@@ -26,6 +26,7 @@
 #include <functional>
 #include <list>
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -88,25 +89,44 @@ namespace ignition
       std::chrono::steady_clock::duration seek{-1};
     };
 
-    /// \brief Class to hold systems internally
+    /// \brief Class to hold systems internally. It supports systems loaded
+    /// from plugins, as well as systems created at runtime.
     class SystemInternal
     {
       /// \brief Constructor
+      /// \param[in] _systemPlugin A system loaded from a plugin.
       public: explicit SystemInternal(SystemPluginPtr _systemPlugin)
               : systemPlugin(std::move(_systemPlugin)),
                 system(systemPlugin->QueryInterface<System>()),
+                configure(systemPlugin->QueryInterface<ISystemConfigure>()),
                 preupdate(systemPlugin->QueryInterface<ISystemPreUpdate>()),
                 update(systemPlugin->QueryInterface<ISystemUpdate>()),
                 postupdate(systemPlugin->QueryInterface<ISystemPostUpdate>())
       {
       }
 
+      /// \brief Constructor
+      /// \param[in] _system Pointer to a system.
+      public: explicit SystemInternal(System *_system)
+              : system(_system),
+                configure(dynamic_cast<ISystemConfigure *>(_system)),
+                preupdate(dynamic_cast<ISystemPreUpdate *>(_system)),
+                update(dynamic_cast<ISystemUpdate *>(_system)),
+                postupdate(dynamic_cast<ISystemPostUpdate *>(_system))
+      {
+      }
+
       /// \brief Plugin object. This manages the lifecycle of the instantiated
       /// class as well as the shared library.
+      /// This will be null if the system wasn't loaded from a plugin.
       public: SystemPluginPtr systemPlugin;
 
       /// \brief Access this system via the `System` interface
       public: System *system = nullptr;
+
+      /// \brief Access this system via the ISystemConfigure interface
+      /// Will be nullptr if the System doesn't implement this interface.
+      public: ISystemConfigure *configure = nullptr;
 
       /// \brief Access this system via the ISystemPreUpdate interface
       /// Will be nullptr if the System doesn't implement this interface.
@@ -160,9 +180,29 @@ namespace ignition
 
       /// \brief Add system after the simulation runner has been instantiated
       /// \note This actually adds system to a queue. The system is added to the
-      /// runner at the begining of the a simulation cycle (call to Run)
+      /// runner at the begining of the a simulation cycle (call to Run). It is
+      /// also responsible for calling `Configure` on the system.
+      /// \param[in] _system SystemPluginPtr to be added
+      /// \param[in] _entity Entity that system is attached to. If nullopt,
+      /// system is attached to a world.
+      /// \param[in] _sdf Pointer to the SDF of the entity. Nullopt defaults to
+      /// SDF of the entire world.
+      public: void AddSystem(const SystemPluginPtr &_system,
+          std::optional<Entity> _entity = std::nullopt,
+          std::optional<sdf::ElementPtr> _sdf = std::nullopt);
+
+      /// \brief Add system after the simulation runner has been instantiated
+      /// \note This actually adds system to a queue. The system is added to the
+      /// runner at the begining of the a simulation cycle (call to Run). It is
+      /// also responsible for calling `Configure` on the system.
       /// \param[in] _system System to be added
-      public: void AddSystem(const SystemPluginPtr &_system);
+      /// \param[in] _entity Entity of system to be added. Nullopt if system
+      /// doesn't connect to an entity.
+      /// \param[in] _sdf Pointer to the SDF of the entity. Nullopt defaults to
+      /// world.
+      public: void AddSystem(System *_system,
+          std::optional<Entity> _entity = std::nullopt,
+          std::optional<sdf::ElementPtr> _sdf = std::nullopt);
 
       /// \brief Update all the systems
       public: void UpdateSystems();
@@ -339,7 +379,7 @@ namespace ignition
 
       /// \brief Actually add system to the runner
       /// \param[in] _system System to be added
-      public: void AddSystemToRunner(const SystemPluginPtr &_system);
+      public: void AddSystemToRunner(SystemInternal _system);
 
       /// \brief Calls AddSystemToRunner to each system that is pending to be
       /// added.
@@ -376,6 +416,16 @@ namespace ignition
       /// Physics component of the world, if any.
       public: void UpdatePhysicsParams();
 
+      /// \brief Implementation for AddSystem functions. This only adds systems
+      /// to a queue, the actual addition is performed by `AddSystemToRunner` at
+      /// the appropriate time.
+      /// \param[in] _system Generic representation of a system.
+      /// \param[in] _entity Entity received from AddSystem.
+      /// \param[in] _sdf SDF received from AddSystem.
+      private: void AddSystemImpl(SystemInternal _system,
+        std::optional<Entity> _entity = std::nullopt,
+        std::optional<sdf::ElementPtr> _sdf = std::nullopt);
+
       /// \brief This is used to indicate that a stop event has been received.
       private: std::atomic<bool> stopReceived{false};
 
@@ -387,7 +437,7 @@ namespace ignition
       private: std::vector<SystemInternal> systems;
 
       /// \brief Pending systems to be added to systems.
-      private: std::vector<SystemPluginPtr> pendingSystems;
+      private: std::vector<SystemInternal> pendingSystems;
 
       /// \brief Mutex to protect pendingSystems
       private: mutable std::mutex pendingSystemsMutex;

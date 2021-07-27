@@ -16,6 +16,7 @@
 */
 
 #include <gtest/gtest.h>
+#include <ignition/common/Console.hh>
 #include <sdf/Actor.hh>
 #include <sdf/Light.hh>
 
@@ -36,8 +37,18 @@
 using namespace ignition;
 using namespace gazebo;
 
+/// \brief Tests for Util.hh
+class UtilTest : public ::testing::Test
+{
+  // Documentation inherited
+  protected: void SetUp() override
+  {
+    common::Console::SetVerbosity(4);
+  }
+};
+
 /////////////////////////////////////////////////
-TEST(UtilTest, ScopedName)
+TEST_F(UtilTest, ScopedName)
 {
   EntityComponentManager ecm;
 
@@ -58,6 +69,7 @@ TEST(UtilTest, ScopedName)
 
   // World
   auto worldEntity = ecm.CreateEntity();
+  EXPECT_EQ(kNullEntity, gazebo::worldEntity(ecm));
   EXPECT_EQ(kNullEntity, gazebo::worldEntity(worldEntity, ecm));
   ecm.CreateComponent(worldEntity, components::World());
   ecm.CreateComponent(worldEntity, components::Name("world_name"));
@@ -201,6 +213,7 @@ TEST(UtilTest, ScopedName)
     "world_name::actorD_name");
 
   // World entity
+  EXPECT_EQ(worldEntity, gazebo::worldEntity(ecm));
   EXPECT_EQ(worldEntity, gazebo::worldEntity(worldEntity, ecm));
   EXPECT_EQ(worldEntity, gazebo::worldEntity(lightAEntity, ecm));
   EXPECT_EQ(worldEntity, gazebo::worldEntity(modelBEntity, ecm));
@@ -219,7 +232,7 @@ TEST(UtilTest, ScopedName)
 }
 
 /////////////////////////////////////////////////
-TEST(UtilTest, EntityTypeId)
+TEST_F(UtilTest, EntityTypeId)
 {
   EntityComponentManager ecm;
 
@@ -264,7 +277,7 @@ TEST(UtilTest, EntityTypeId)
 }
 
 /////////////////////////////////////////////////
-TEST(UtilTest, EntityTypeStr)
+TEST_F(UtilTest, EntityTypeStr)
 {
   EntityComponentManager ecm;
 
@@ -309,7 +322,7 @@ TEST(UtilTest, EntityTypeStr)
 }
 
 /////////////////////////////////////////////////
-TEST(UtilTest, RemoveParentScopedName)
+TEST_F(UtilTest, RemoveParentScopedName)
 {
   EXPECT_EQ(removeParentScope("world/world_name", "/"), "world_name");
   EXPECT_EQ(removeParentScope("world::world_name::light::lightA_name", "::"),
@@ -324,7 +337,7 @@ TEST(UtilTest, RemoveParentScopedName)
 }
 
 /////////////////////////////////////////////////
-TEST(UtilTest, AsFullPath)
+TEST_F(UtilTest, AsFullPath)
 {
   const std::string relativeUriUnix{"meshes/collision.dae"};
   const std::string relativeUriWindows{"meshes\\collision.dae"};
@@ -408,7 +421,7 @@ TEST(UtilTest, AsFullPath)
 }
 
 /////////////////////////////////////////////////
-TEST(UtilTest, TopLevelModel)
+TEST_F(UtilTest, TopLevelModel)
 {
   EntityComponentManager ecm;
 
