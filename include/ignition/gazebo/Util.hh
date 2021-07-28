@@ -52,7 +52,8 @@ namespace ignition
       bool _includePrefix = true);
 
     /// \brief Helper function to get an entity given its scoped name.
-    /// The scope may start at any level. For example, in this hierarchy:
+    /// The scope may start at any level by default. For example, in this
+    /// hierarchy:
     ///
     /// world_name
     ///  model_name
@@ -66,11 +67,16 @@ namespace ignition
     ///
     /// \param[in] _scopedName Entity's scoped name.
     /// \param[in] _ecm Immutable reference to ECM.
-    /// \param[in] _delim Delimiter between names, defaults to "::".
+    /// \param[in] _relativeTo Entity that the scoped name is relative to. The
+    /// scoped name does not include the name of this entity. If not provided,
+    /// the scoped name could be relative to any entity.
+    /// \param[in] _delim Delimiter between names, defaults to "::", it can't
+    /// be empty.
     /// \return The entity or kNullEntity if no entity was found with that
     /// name.
     std::unordered_set<Entity> IGNITION_GAZEBO_VISIBLE entitiesFromScopedName(
       const std::string &_scopedName, const EntityComponentManager &_ecm,
+      Entity _relativeTo = kNullEntity,
       const std::string &_delim = "::");
 
     /// \brief Generally, each entity will be of some specific high-level type,

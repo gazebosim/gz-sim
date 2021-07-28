@@ -136,8 +136,15 @@ std::string scopedName(const Entity &_entity,
 //////////////////////////////////////////////////
 std::unordered_set<Entity> entitiesFromScopedName(
     const std::string &_scopedName, const EntityComponentManager &_ecm,
-    const std::string &_delim)
+    Entity _relativeTo, const std::string &_delim)
 {
+  if (_delim.empty())
+  {
+    ignwarn << "Can't process scoped name [" << _scopedName
+            << "] with empty delimiter." << std::endl;
+    return {};
+  }
+
   // Split names
   std::vector<std::string> names;
   size_t pos1 = 0;
@@ -150,7 +157,15 @@ std::unordered_set<Entity> entitiesFromScopedName(
   }
   names.push_back(_scopedName.substr(pos1, _scopedName.size()-pos1));
 
+  // Holds current entities that match and is updated for each name
   std::vector<Entity> resVector;
+
+  // If there's an entity we're relative to, treat it as the first level result
+  if (_relativeTo != kNullEntity)
+  {
+    resVector = {_relativeTo};
+  }
+
   for (const auto &name : names)
   {
     std::vector<Entity> current;

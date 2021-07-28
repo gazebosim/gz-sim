@@ -237,6 +237,7 @@ TEST_F(UtilTest, EntitiesFromScopedName)
   //    - pear 12
   //      - orange 13
   //        - orange 14
+  //    - pear 15
 
   auto createEntity = [&ecm](const std::string &_name, Entity _parent) -> Entity
   {
@@ -262,56 +263,40 @@ TEST_F(UtilTest, EntitiesFromScopedName)
   auto pear12 = createEntity("pear", grape11);
   auto orange13 = createEntity("orange", pear12);
   auto orange14 = createEntity("orange", orange13);
+  auto pear15 = createEntity("pear", grape11);
 
-  EXPECT_TRUE(gazebo::entitiesFromScopedName("watermelon", ecm).empty());
+  auto checkEntities = [&ecm](const std::string &_scopedName, Entity _relativeTo,
+      const std::unordered_set<Entity> &_result, const std::string &_delim)
+  {
+    auto res = gazebo::entitiesFromScopedName(_scopedName, ecm, _relativeTo,
+        _delim);
+    EXPECT_EQ(_result.size(), res.size()) << _scopedName;
 
-  auto bananas = gazebo::entitiesFromScopedName("banana", ecm);
-  EXPECT_EQ(1u, bananas.size());
-  EXPECT_NE(bananas.find(banana1), bananas.end());
+    for (auto it : _result)
+    {
+      EXPECT_NE(res.find(it), res.end()) << it << "  " << _scopedName;
+    }
+  };
 
-  auto oranges = gazebo::entitiesFromScopedName("orange", ecm);
-  EXPECT_EQ(3u, oranges.size());
-  EXPECT_NE(oranges.find(orange2), oranges.end());
-  EXPECT_NE(oranges.find(orange13), oranges.end());
-  EXPECT_NE(oranges.find(orange14), oranges.end());
-
-  auto bananaOranges = gazebo::entitiesFromScopedName("banana::orange", ecm);
-  EXPECT_EQ(1u, bananaOranges.size());
-  EXPECT_NE(bananaOranges.find(orange2), bananaOranges.end());
-
-  auto bananaGrapes = gazebo::entitiesFromScopedName("banana::grape", ecm);
-  EXPECT_EQ(2u, bananaGrapes.size());
-  EXPECT_NE(bananaGrapes.find(grape7), bananaGrapes.end());
-  EXPECT_NE(bananaGrapes.find(grape11), bananaGrapes.end());
-  EXPECT_EQ(bananaGrapes.find(grape4), bananaGrapes.end());
-
-  auto grapePears = gazebo::entitiesFromScopedName("grape::pear", ecm);
-  EXPECT_EQ(3u, grapePears.size());
-  EXPECT_NE(grapePears.find(pear5), grapePears.end());
-  EXPECT_NE(grapePears.find(pear8), grapePears.end());
-  EXPECT_NE(grapePears.find(pear12), grapePears.end());
-  EXPECT_EQ(grapePears.find(pear10), grapePears.end());
-
-  auto grapePearPlums =
-      gazebo::entitiesFromScopedName("grape::pear::plum", ecm);
-  EXPECT_EQ(2u, grapePearPlums.size());
-  EXPECT_NE(grapePearPlums.find(plum6), grapePearPlums.end());
-  EXPECT_NE(grapePearPlums.find(plum9), grapePearPlums.end());
-  EXPECT_EQ(grapePearPlums.find(plum3), grapePearPlums.end());
-
-  auto bananaOrangePlumGrapePearPlums = gazebo::entitiesFromScopedName(
-      "banana::orange::plum::grape::pear::plum", ecm);
-  EXPECT_EQ(1u, bananaOrangePlumGrapePearPlums.size());
-  EXPECT_NE(bananaOrangePlumGrapePearPlums.find(plum6),
-      bananaOrangePlumGrapePearPlums.end());
-
-  auto bananaOrangeKiwiGrapePearPlums = gazebo::entitiesFromScopedName(
-      "banana::orange::kiwi::grape::pear::plum", ecm);
-  EXPECT_EQ(0u, bananaOrangeKiwiGrapePearPlums.size());
-
-  auto orangeOranges = gazebo::entitiesFromScopedName("orange::orange", ecm);
-  EXPECT_EQ(1u, orangeOranges.size());
-  EXPECT_NE(orangeOranges.find(orange14), orangeOranges.end());
+  checkEntities("watermelon", kNullEntity, {}, "::");
+  checkEntities("banana", kNullEntity, {banana1}, "::");
+  checkEntities("orange", kNullEntity, {orange2, orange13, orange14}, ":");
+  checkEntities("banana::orange", kNullEntity, {orange2}, "::");
+  checkEntities("banana::grape", kNullEntity, {grape7, grape11}, "::");
+  checkEntities("grape/pear", kNullEntity, {pear5, pear8, pear12, pear15}, "/");
+  checkEntities("grape...pear...plum", kNullEntity, {plum6, plum9}, "...");
+  checkEntities(
+      "banana::orange::plum::grape::pear::plum", kNullEntity, {plum6}, "::");
+  checkEntities(
+      "banana::orange::kiwi::grape::pear::plum", kNullEntity, {}, "::");
+  checkEntities("orange+orange", kNullEntity, {orange14}, "+");
+  checkEntities("orange", banana1, {orange2}, "::");
+  checkEntities("grape", banana1, {grape7, grape11}, "::");
+  checkEntities("orange", orange2, {}, "::");
+  checkEntities("orange", orange13, {orange14}, "::");
+  checkEntities("grape::pear::plum", plum3, {plum6}, "::");
+  checkEntities("pear", grape11, {pear12, pear15}, "==");
+  checkEntities("plum=pear", pear8, {pear10}, "=");
 }
 
 /////////////////////////////////////////////////
