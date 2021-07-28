@@ -733,8 +733,8 @@ TEST_P(ServerFixture, AddSystemWhileRunning)
   EXPECT_EQ(3u, *server.SystemCount());
 
   // Add system pointer
-  auto mockSystem = std::make_unique<MockSystem>();
-  result = server.AddSystem(mockSystem.get());
+  auto mockSystem = std::make_shared<MockSystem>();
+  result = server.AddSystem(mockSystem);
   ASSERT_TRUE(result.has_value());
   EXPECT_FALSE(result.value());
   EXPECT_EQ(3u, *server.SystemCount());
@@ -778,10 +778,10 @@ TEST_P(ServerFixture, AddSystemAfterLoad)
   EXPECT_EQ(1u, mockSystem->configureCallCount);
 
   // Add system pointer
-  auto mockSystemLocal = std::make_unique<MockSystem>();
+  auto mockSystemLocal = std::make_shared<MockSystem>();
   EXPECT_EQ(0u, mockSystemLocal->configureCallCount);
 
-  EXPECT_TRUE(server.AddSystem(mockSystemLocal.get()));
+  EXPECT_TRUE(server.AddSystem(mockSystemLocal));
   EXPECT_EQ(5u, *server.SystemCount());
   EXPECT_EQ(1u, mockSystemLocal->configureCallCount);
 
@@ -805,7 +805,7 @@ TEST_P(ServerFixture, AddSystemAfterLoad)
   auto result = server.AddSystem(mockSystemPlugin.value(), 100);
   EXPECT_FALSE(result.has_value());
 
-  result = server.AddSystem(mockSystemLocal.get(), 100);
+  result = server.AddSystem(mockSystemLocal, 100);
   EXPECT_FALSE(result.has_value());
 }
 

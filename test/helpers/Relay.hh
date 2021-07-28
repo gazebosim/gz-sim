@@ -53,17 +53,15 @@ class Relay
   /// \brief Constructor
   public: Relay()
   {
-    this->mockSystem = std::make_unique<MockSystem>();
-    EXPECT_NE(nullptr, this->mockSystem);
-
-    this->systemPtr = this->mockSystem.get();
+    this->systemPtr = std::make_shared<MockSystem>();
+    EXPECT_NE(nullptr, this->systemPtr);
   }
 
   /// \brief Wrapper around system's pre-update callback
   /// \param[in] _cb Function to be called every pre-update
   public: Relay &OnPreUpdate(MockSystem::CallbackType _cb)
   {
-    this->mockSystem->preUpdateCallback = std::move(_cb);
+    this->systemPtr->preUpdateCallback = std::move(_cb);
     return *this;
   }
 
@@ -71,7 +69,7 @@ class Relay
   /// \param[in] _cb Function to be called every update
   public: Relay &OnUpdate(MockSystem::CallbackType _cb)
   {
-    this->mockSystem->updateCallback = std::move(_cb);
+    this->systemPtr->updateCallback = std::move(_cb);
     return *this;
   }
 
@@ -79,15 +77,12 @@ class Relay
   /// \param[in] _cb Function to be called every post-update
   public: Relay &OnPostUpdate(MockSystem::CallbackTypeConst _cb)
   {
-    this->mockSystem->postUpdateCallback = std::move(_cb);
+    this->systemPtr->postUpdateCallback = std::move(_cb);
     return *this;
   }
 
-  /// \brief Pointer to underlying mock interface
-  public: std::unique_ptr<MockSystem> mockSystem{nullptr};
-
-  /// \brief Underlying raw pointer, for convenience
-  public: MockSystem *systemPtr{nullptr};
+  /// \brief Pointer to system
+  public: std::shared_ptr<MockSystem> systemPtr{nullptr};
 };
 }
 }

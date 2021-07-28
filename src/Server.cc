@@ -355,7 +355,7 @@ std::optional<bool> Server::AddSystem(const SystemPluginPtr &_system,
 }
 
 //////////////////////////////////////////////////
-std::optional<bool> Server::AddSystem(System *_system,
+std::optional<bool> Server::AddSystem(const std::shared_ptr<System> &_system,
                                       const unsigned int _worldIndex)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);

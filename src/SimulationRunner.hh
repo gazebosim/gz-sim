@@ -107,12 +107,13 @@ namespace ignition
 
       /// \brief Constructor
       /// \param[in] _system Pointer to a system.
-      public: explicit SystemInternal(System *_system)
-              : system(_system),
-                configure(dynamic_cast<ISystemConfigure *>(_system)),
-                preupdate(dynamic_cast<ISystemPreUpdate *>(_system)),
-                update(dynamic_cast<ISystemUpdate *>(_system)),
-                postupdate(dynamic_cast<ISystemPostUpdate *>(_system))
+      public: explicit SystemInternal(const std::shared_ptr<System> &_system)
+              : systemShared(_system),
+                system(_system.get()),
+                configure(dynamic_cast<ISystemConfigure *>(_system.get())),
+                preupdate(dynamic_cast<ISystemPreUpdate *>(_system.get())),
+                update(dynamic_cast<ISystemUpdate *>(_system.get())),
+                postupdate(dynamic_cast<ISystemPostUpdate *>(_system.get()))
       {
       }
 
@@ -120,6 +121,10 @@ namespace ignition
       /// class as well as the shared library.
       /// This will be null if the system wasn't loaded from a plugin.
       public: SystemPluginPtr systemPlugin;
+
+      /// \brief Pointer to a system.
+      /// This will be null if the system wasn't loaded from a pointer.
+      public: std::shared_ptr<System> systemShared{nullptr};
 
       /// \brief Access this system via the `System` interface
       public: System *system = nullptr;
@@ -189,7 +194,8 @@ namespace ignition
       /// SDF of the entire world.
       public: void AddSystem(const SystemPluginPtr &_system,
           std::optional<Entity> _entity = std::nullopt,
-          std::optional<sdf::ElementPtr> _sdf = std::nullopt);
+          std::optional<std::shared_ptr<const sdf::Element>> _sdf =
+              std::nullopt);
 
       /// \brief Add system after the simulation runner has been instantiated
       /// \note This actually adds system to a queue. The system is added to the
@@ -200,9 +206,10 @@ namespace ignition
       /// doesn't connect to an entity.
       /// \param[in] _sdf Pointer to the SDF of the entity. Nullopt defaults to
       /// world.
-      public: void AddSystem(System *_system,
+      public: void AddSystem(const std::shared_ptr<System> &_system,
           std::optional<Entity> _entity = std::nullopt,
-          std::optional<sdf::ElementPtr> _sdf = std::nullopt);
+          std::optional<std::shared_ptr<const sdf::Element>> _sdf =
+              std::nullopt);
 
       /// \brief Update all the systems
       public: void UpdateSystems();
@@ -424,7 +431,7 @@ namespace ignition
       /// \param[in] _sdf SDF received from AddSystem.
       private: void AddSystemImpl(SystemInternal _system,
         std::optional<Entity> _entity = std::nullopt,
-        std::optional<sdf::ElementPtr> _sdf = std::nullopt);
+        std::optional<std::shared_ptr<const sdf::Element>> _sdf = std::nullopt);
 
       /// \brief This is used to indicate that a stop event has been received.
       private: std::atomic<bool> stopReceived{false};

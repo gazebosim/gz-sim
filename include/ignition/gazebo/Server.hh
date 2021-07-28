@@ -220,13 +220,13 @@ namespace ignition
                   const unsigned int _worldIndex = 0);
 
       /// \brief Add a System to the server. The server must not be running when
-      /// calling this. The server does not take ownership of the pointer and
-      /// assumes that the pointer is valid during the server's lifetime.
-      /// \param[in] _system system to be added
-      /// \param[in] _worldIndex Index of the world to query.
+      /// calling this.
+      /// \param[in] _system System to be added
+      /// \param[in] _worldIndex Index of the world to add to.
       /// \return Whether the system was added successfully, or std::nullopt
       /// if _worldIndex is invalid.
-      public: std::optional<bool> AddSystem(System *_system,
+      public: std::optional<bool> AddSystem(
+                  const std::shared_ptr<System> &_system,
                   const unsigned int _worldIndex = 0);
 
       /// \brief Get an Entity based on a name.
