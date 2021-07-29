@@ -219,7 +219,7 @@ TEST(UtilTest, ScopedName)
 }
 
 /////////////////////////////////////////////////
-TEST_F(UtilTest, EntitiesFromScopedName)
+TEST(UtilTest, EntitiesFromScopedName)
 {
   EntityComponentManager ecm;
 

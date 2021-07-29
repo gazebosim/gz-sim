@@ -40,7 +40,10 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/test_config.hh"
 
-#include "../../GuiRunner.hh"
+// Use this when forward-porting to v6
+// #include "../../GuiRunner.hh"
+#include "ignition/gazebo/gui/GuiRunner.hh"
+
 #include "Plot3D.hh"
 
 int g_argc = 1;
