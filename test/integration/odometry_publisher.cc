@@ -213,6 +213,135 @@ class OdometryPublisherTest : public ::testing::TestWithParam<int>
 
   /// \param[in] _sdfFile SDF file to load.
   /// \param[in] _odomTopic Odometry topic.
+  protected: void TestMovement3d(const std::string &_sdfFile,
+                                 const std::string &_odomTopic)
+  {
+    // Start server
+    ServerConfig serverConfig;
+    serverConfig.SetSdfFile(_sdfFile);
+
+    Server server(serverConfig);
+    EXPECT_FALSE(server.Running());
+    EXPECT_FALSE(*server.Running(0));
+
+    // Create a system that records the vehicle poses and velocities
+    test::Relay testSystem;
+
+    std::vector<math::Pose3d> poses;
+    testSystem.OnPostUpdate([&poses](const gazebo::UpdateInfo &,
+      const gazebo::EntityComponentManager &_ecm)
+      {
+        auto id = _ecm.EntityByComponents(
+          components::Model(),
+          components::Name("X3"));
+        EXPECT_NE(kNullEntity, id);
+
+        auto poseComp = _ecm.Component<components::Pose>(id);
+        ASSERT_NE(nullptr, poseComp);
+        poses.push_back(poseComp->Data());
+      });
+    server.AddSystem(testSystem.systemPtr);
+
+    // Run server while model is stationary
+    server.Run(true, 1000, false);
+
+    EXPECT_EQ(1000u, poses.size());
+
+    for (const auto &pose : poses)
+    {
+      EXPECT_EQ(poses[0], pose);
+    }
+
+    // 50 Hz is the default publishing freq
+    double period{1.0 / 50.0};
+    double lastMsgTime{1.0};
+    std::vector<math::Pose3d> odomPoses;
+    std::vector<math::Vector3d> odomLinVels;
+    std::vector<math::Vector3d> odomAngVels;
+    // Create function to store data from odometry messages
+    std::function<void(const msgs::Odometry &)> odomCb =
+      [&](const msgs::Odometry &_msg)
+      {
+        ASSERT_TRUE(_msg.has_header());
+        ASSERT_TRUE(_msg.header().has_stamp());
+
+        double msgTime =
+            static_cast<double>(_msg.header().stamp().sec()) +
+            static_cast<double>(_msg.header().stamp().nsec()) * 1e-9;
+
+        EXPECT_DOUBLE_EQ(msgTime, lastMsgTime + period);
+        lastMsgTime = msgTime;
+
+        odomPoses.push_back(msgs::Convert(_msg.pose()));
+        odomLinVels.push_back(msgs::Convert(_msg.twist().linear()));
+        odomAngVels.push_back(msgs::Convert(_msg.twist().angular()));
+      };
+    // Create node for publishing twist messages
+    transport::Node node;
+    auto cmdVel = node.Advertise<msgs::Twist>("/X3/gazebo/command/twist");
+    node.Subscribe(_odomTopic, odomCb);
+
+    test::Relay velocityRamp;
+    math::Vector3d linVelCmd(0.5, 0.3, 1.5);
+    math::Vector3d angVelCmd(0.0, 0.0, 0.2);
+    velocityRamp.OnPreUpdate(
+        [&](const gazebo::UpdateInfo &/*_info*/,
+            gazebo::EntityComponentManager &_ecm)
+        {
+          msgs::Twist msg;
+          msgs::Set(msg.mutable_linear(), linVelCmd);
+          msgs::Set(msg.mutable_angular(), angVelCmd);
+          cmdVel.Publish(msg);
+        });
+
+    server.AddSystem(velocityRamp.systemPtr);
+
+    // Run server while the model moves with the velocities set earlier
+    server.Run(true, 3000, false);
+
+    // Poses for 4s
+    ASSERT_EQ(4000u, poses.size());
+
+    int sleep = 0;
+    int maxSleep = 30;
+    for (; odomPoses.size() < 150 && sleep < maxSleep; ++sleep)
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    ASSERT_NE(maxSleep, sleep);
+
+    // Odom for 3s
+    ASSERT_FALSE(odomPoses.empty());
+    EXPECT_EQ(150u, odomPoses.size());
+    EXPECT_EQ(150u, odomLinVels.size());
+    EXPECT_EQ(150u, odomAngVels.size());
+
+    // Check accuracy of poses published in the odometry message
+    auto finalModelFramePose = odomPoses.back();
+    EXPECT_NEAR(poses[1020].Pos().X(), odomPoses[0].Pos().X(), 1e-2);
+    EXPECT_NEAR(poses[1020].Pos().Y(), odomPoses[0].Pos().Y(), 1e-2);
+    EXPECT_NEAR(poses[1020].Pos().Z(), odomPoses[0].Pos().Z(), 1e-2);
+    EXPECT_NEAR(poses[1020].Rot().X(), odomPoses[0].Rot().X(), 1e-2);
+    EXPECT_NEAR(poses[1020].Rot().Y(), odomPoses[0].Rot().Y(), 1e-2);
+    EXPECT_NEAR(poses[1020].Rot().Z(), odomPoses[0].Rot().Z(), 1e-2);
+    EXPECT_NEAR(poses.back().Pos().X(), finalModelFramePose.Pos().X(), 1e-2);
+    EXPECT_NEAR(poses.back().Pos().Y(), finalModelFramePose.Pos().Y(), 1e-2);
+    EXPECT_NEAR(poses.back().Pos().Z(), finalModelFramePose.Pos().Z(), 1e-2);
+    EXPECT_NEAR(poses.back().Rot().X(), finalModelFramePose.Rot().X(), 1e-2);
+    EXPECT_NEAR(poses.back().Rot().Y(), finalModelFramePose.Rot().Y(), 1e-2);
+    EXPECT_NEAR(poses.back().Rot().Z(), finalModelFramePose.Rot().Z(), 1e-2);
+
+    // Check accuracy of velocities published in the odometry message
+    EXPECT_NEAR(odomLinVels.back().X(), linVelCmd[0], 1e-1);
+    EXPECT_NEAR(odomLinVels.back().Y(), linVelCmd[1], 1e-1);
+    EXPECT_NEAR(odomLinVels.back().Z(), linVelCmd[2], 1e-1);
+    EXPECT_NEAR(odomAngVels.back().X(), 0.0, 1e-1);
+    EXPECT_NEAR(odomAngVels.back().Y(), 0.0, 1e-1);
+    EXPECT_NEAR(odomAngVels.back().Z(), angVelCmd[2], 1e-1);
+  }
+
+  /// \param[in] _sdfFile SDF file to load.
+  /// \param[in] _odomTopic Odometry topic.
   /// \param[in] _frameId Name of the world-fixed coordinate frame
   /// for the odometry message.
   /// \param[in] _childFrameId Name of the coordinate frame rigidly
@@ -287,6 +416,15 @@ TEST_P(OdometryPublisherTest, MovementCustomTopic)
       std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/odometry_publisher_custom.sdf",
       "/model/bar/odom");
+}
+
+/////////////////////////////////////////////////
+TEST_P(OdometryPublisherTest, Movement3d)
+{
+  TestMovement3d(
+      std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/odometry_publisher_3d.sdf",
+      "/model/X3/odometry");
 }
 
 /////////////////////////////////////////////////
