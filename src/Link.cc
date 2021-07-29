@@ -32,6 +32,7 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/WindMode.hh"
+#include "ignition/gazebo/Util.hh"
 
 #include "ignition/gazebo/Link.hh"
 
@@ -43,23 +44,6 @@ class ignition::gazebo::LinkPrivate
 
 using namespace ignition;
 using namespace gazebo;
-
-//////////////////////////////////////////////////
-// Helper function to create and remove components to enable and disable
-// functionality.
-template <class ComponentType>
-void enableComponent(EntityComponentManager &_ecm, Entity _entity, bool _enable)
-{
-  auto exists = _ecm.Component<ComponentType>(_entity);
-  if (_enable && !exists)
-  {
-    _ecm.CreateComponent(_entity, ComponentType());
-  }
-  else if (!_enable && exists)
-  {
-    _ecm.RemoveComponent<ComponentType>(_entity);
-  }
-}
 
 //////////////////////////////////////////////////
 Link::Link(gazebo::Entity _entity)

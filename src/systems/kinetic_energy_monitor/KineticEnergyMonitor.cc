@@ -130,10 +130,8 @@ void KineticEnergyMonitor::Configure(const Entity &_entity,
   Link link(this->dataPtr->linkEntity);
   link.EnableVelocityChecks(_ecm, true);
 
-  if (!_ecm.Component<components::Inertial>(this->dataPtr->linkEntity))
-  {
-    _ecm.CreateComponent(this->dataPtr->linkEntity, components::Inertial());
-  }
+  // Create a default inertia in case the link doesn't have it
+  enableComponent<components::Inertial>(_ecm, this->dataPtr->linkEntity, true);
 }
 
 //////////////////////////////////////////////////

@@ -169,6 +169,33 @@ namespace ignition
         const Entity &_entity,
         const EntityComponentManager &_ecm);
 
+    /// \brief Helper function to "enable" a component (i.e. create it if it
+    /// doesn't exist) or "disable" a component (i.e. remove it if it exists).
+    /// \param[in] _ecm Mutable reference to the ECM
+    /// \param[in] _entity Entity whose component is being enabled
+    /// \param[in] _enable True to enable (create), false to disable (remove).
+    /// \return True if a component was created or removed, false if nothing
+    /// changed.
+    template <class ComponentType>
+    bool IGNITION_GAZEBO_VISIBLE enableComponent(EntityComponentManager &_ecm,
+        Entity _entity, bool _enable)
+    {
+      bool changed{false};
+
+      auto exists = _ecm.Component<ComponentType>(_entity);
+      if (_enable && !exists)
+      {
+        _ecm.CreateComponent(_entity, ComponentType());
+        changed = true;
+      }
+      else if (!_enable && exists)
+      {
+        _ecm.RemoveComponent<ComponentType>(_entity);
+        changed = true;
+      }
+      return changed;
+    }
+
     /// \brief Environment variable holding resource paths.
     const std::string kResourcePathEnv{"IGN_GAZEBO_RESOURCE_PATH"};
 
