@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_UTIL_HH_
 
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include <ignition/math/Pose3.hh>
@@ -50,6 +51,34 @@ namespace ignition
     std::string IGNITION_GAZEBO_VISIBLE scopedName(const Entity &_entity,
       const EntityComponentManager &_ecm, const std::string &_delim = "/",
       bool _includePrefix = true);
+
+    /// \brief Helper function to get an entity given its scoped name.
+    /// The scope may start at any level by default. For example, in this
+    /// hierarchy:
+    ///
+    /// world_name
+    ///  model_name
+    ///    link_name
+    ///
+    /// All these names will return the link entity:
+    ///
+    /// * world_name::model_name::link_name
+    /// * model_name::link_name
+    /// * link_name
+    ///
+    /// \param[in] _scopedName Entity's scoped name.
+    /// \param[in] _ecm Immutable reference to ECM.
+    /// \param[in] _relativeTo Entity that the scoped name is relative to. The
+    /// scoped name does not include the name of this entity. If not provided,
+    /// the scoped name could be relative to any entity.
+    /// \param[in] _delim Delimiter between names, defaults to "::", it can't
+    /// be empty.
+    /// \return All entities that match the scoped name and relative to
+    /// requirements, or an empty set otherwise.
+    std::unordered_set<Entity> IGNITION_GAZEBO_VISIBLE entitiesFromScopedName(
+      const std::string &_scopedName, const EntityComponentManager &_ecm,
+      Entity _relativeTo = kNullEntity,
+      const std::string &_delim = "::");
 
     /// \brief Generally, each entity will be of some specific high-level type,
     /// such as World, Sensor, Collision, etc, and one type only.
