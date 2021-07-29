@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_UTIL_HH_
 
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include <ignition/math/Pose3.hh>
@@ -72,8 +73,8 @@ namespace ignition
     /// the scoped name could be relative to any entity.
     /// \param[in] _delim Delimiter between names, defaults to "::", it can't
     /// be empty.
-    /// \return The entity or kNullEntity if no entity was found with that
-    /// name.
+    /// \return All entities that match the scoped name and relative to
+    /// requirements, or an empty set otherwise.
     std::unordered_set<Entity> IGNITION_GAZEBO_VISIBLE entitiesFromScopedName(
       const std::string &_scopedName, const EntityComponentManager &_ecm,
       Entity _relativeTo = kNullEntity,

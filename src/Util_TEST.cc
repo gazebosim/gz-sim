@@ -265,8 +265,9 @@ TEST_F(UtilTest, EntitiesFromScopedName)
   auto orange14 = createEntity("orange", orange13);
   auto pear15 = createEntity("pear", grape11);
 
-  auto checkEntities = [&ecm](const std::string &_scopedName, Entity _relativeTo,
-      const std::unordered_set<Entity> &_result, const std::string &_delim)
+  auto checkEntities = [&ecm](const std::string &_scopedName,
+      Entity _relativeTo, const std::unordered_set<Entity> &_result,
+      const std::string &_delim)
   {
     auto res = gazebo::entitiesFromScopedName(_scopedName, ecm, _relativeTo,
         _delim);
