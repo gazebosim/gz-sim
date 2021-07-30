@@ -38,7 +38,8 @@ namespace systems
   /// The following parameters are used by the system:
   ///
   /// link_name   : Name of the link affected by the group of lift/drag
-  ///               properties.
+  ///               properties. This can be a scoped name to reference links in
+  ///               nested models.
   /// air_density : Density of the fluid this model is suspended in.
   /// area        : Surface area of the link.
   /// a0          : The initial "alpha" or initial angle of attack. a0 is also
