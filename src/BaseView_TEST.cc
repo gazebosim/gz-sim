@@ -44,10 +44,10 @@ TEST_F(BaseViewTest, ComponentTypes)
 
   // make sure that a view's required component types are initialized properly
   EXPECT_EQ(2u, modelNameView.ComponentTypes().size());
-  EXPECT_TRUE(modelNameView.ComponentTypes().find(components::Model::typeId)
-      != modelNameView.ComponentTypes().end());
-  EXPECT_TRUE(modelNameView.ComponentTypes().find(components::Name::typeId)
-      != modelNameView.ComponentTypes().end());
+  EXPECT_NE(modelNameView.ComponentTypes().find(components::Model::typeId),
+      modelNameView.ComponentTypes().end());
+  EXPECT_NE(modelNameView.ComponentTypes().find(components::Name::typeId),
+      modelNameView.ComponentTypes().end());
   EXPECT_TRUE(modelNameView.RequiresComponent(components::Model::typeId));
   EXPECT_TRUE(modelNameView.RequiresComponent(components::Name::typeId));
   EXPECT_FALSE(modelNameView.RequiresComponent(components::Visual::typeId));
@@ -146,13 +146,31 @@ TEST_F(BaseViewTest, AddEntities)
   EXPECT_TRUE(modelNameView.HasCachedComponentData(e1));
   EXPECT_TRUE(modelNameView.HasCachedComponentData(e2));
   EXPECT_EQ(2u, modelNameView.Entities().size());
-  ASSERT_NE(modelNameView.Entities().find(e1),
-      modelNameView.Entities().end());
-  ASSERT_NE(modelNameView.Entities().find(e2),
-      modelNameView.Entities().end());
+  EXPECT_NE(modelNameView.Entities().find(e1), modelNameView.Entities().end());
+  EXPECT_NE(modelNameView.Entities().find(e2), modelNameView.Entities().end());
   EXPECT_EQ(1u, modelNameView.NewEntities().size());
-  ASSERT_NE(modelNameView.NewEntities().find(e2),
+  EXPECT_NE(modelNameView.NewEntities().find(e2),
       modelNameView.NewEntities().end());
+
+  auto e1ConstData = modelNameView.EntityComponentConstData(e1);
+  EXPECT_EQ(e1, std::get<Entity>(e1ConstData));
+  EXPECT_EQ(&e1ModelComp, std::get<const components::Model *>(e1ConstData));
+  EXPECT_EQ(&e1NameComp, std::get<const components::Name *>(e1ConstData));
+
+  auto e1Data = modelNameView.EntityComponentData(e1);
+  EXPECT_EQ(e1, std::get<Entity>(e1Data));
+  EXPECT_EQ(&e1ModelComp, std::get<components::Model *>(e1Data));
+  EXPECT_EQ(&e1NameComp, std::get<components::Name *>(e1Data));
+
+  auto e2ConstData = modelNameView.EntityComponentConstData(e2);
+  EXPECT_EQ(e2, std::get<Entity>(e2ConstData));
+  EXPECT_EQ(&e2ModelComp, std::get<const components::Model *>(e2ConstData));
+  EXPECT_EQ(&e2NameComp, std::get<const components::Name *>(e2ConstData));
+
+  auto e2Data = modelNameView.EntityComponentData(e2);
+  EXPECT_EQ(e2, std::get<Entity>(e2Data));
+  EXPECT_EQ(&e2ModelComp, std::get<components::Model *>(e2Data));
+  EXPECT_EQ(&e2NameComp, std::get<components::Name *>(e2Data));
 }
 
 /////////////////////////////////////////////////

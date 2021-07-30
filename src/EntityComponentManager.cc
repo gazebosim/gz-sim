@@ -657,11 +657,12 @@ bool EntityComponentManager::CreateComponentImplementation(
     // if the pre-existing component is marked as removed, this means that the
     // component was added to the entity previously, but later removed. In this
     // case, a re-addition of the component is occuring. If the pre-existing
-    // component is not marked as removed, this means that the component was added
-    // to the entity previously and never removed. In this case, we are simply
-    // modifying the data of the pre-existing component (the modification of the
-    // data is done externally in a templated ECM method call, because we need the
-    // derived component class in order to update the derived component data)
+    // component is not marked as removed, this means that the component was
+    // added to the entity previously and never removed. In this case, we are
+    // simply modifying the data of the pre-existing component (the modification
+    // of the data is done externally in a templated ECM method call, because we
+    // need the derived component class in order to update the derived component
+    // data)
     auto existingCompPtr = entityCompIter->second.at(compIdxIter->second).get();
     if (!existingCompPtr)
     {
