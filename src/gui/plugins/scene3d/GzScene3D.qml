@@ -99,7 +99,7 @@ Rectangle {
     }
   }
 
-  // pop error for Scene3D::OnDropped
+  // pop error
   Connections {
     target: GzScene3D
     onPopupError: errorPopup.open()
@@ -115,7 +115,7 @@ Rectangle {
       border.color: "red"
     }
     Text {
-      text: "Unable to load mesh: only DAE, OBJ, and STL meshes are supported."
+      text: GzScene3D.errorPopupText
     }
   }
 

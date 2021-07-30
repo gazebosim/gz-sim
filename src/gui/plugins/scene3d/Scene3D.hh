@@ -80,6 +80,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   {
     Q_OBJECT
 
+    /// \brief Text for popup error
+    Q_PROPERTY(
+      QString errorPopupText
+      READ ErrorPopupText
+      WRITE SetErrorPopupText
+      NOTIFY ErrorPopupTextChanged
+    )
+
     /// \brief Constructor
     public: Scene3D();
 
@@ -161,7 +169,18 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: bool OnViewCollisions(const msgs::StringMsg &_msg,
         msgs::Boolean &_res);
 
-    /// \brief Notify that an error has occurred during OnDrop (opens popup)
+    /// \brief Get the text for the popup error message
+    /// \return The error text
+    public: Q_INVOKABLE QString ErrorPopupText() const;
+
+    /// \brief Set the text for the popup error message
+    /// \param[in] _errorTxt The error text
+    public: Q_INVOKABLE void SetErrorPopupText(const QString &_errorTxt);
+
+    /// \brief Notify the popup error text has changed
+    signals: void ErrorPopupTextChanged();
+
+    /// \brief Notify that an error has occurred (opens popup)
     signals: void popupError();
 
     /// \internal

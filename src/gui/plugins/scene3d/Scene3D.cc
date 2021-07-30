@@ -374,6 +374,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief View collisions service
     public: std::string viewCollisionsService;
+
+    /// \brief Text for popup error message
+    public: QString errorPopupText;
   };
 }
 }
@@ -2817,7 +2820,7 @@ void Scene3D::OnDropped(const QString &_drop, int _mouseX, int _mouseY)
 
     if (!common::MeshManager::Instance()->IsValidFilename(dropStr))
     {
-      this->popupError();
+      this->SetErrorPopupText("Only DAE, OBJ, and STL meshes are supported.");
       return;
     }
 
@@ -2863,6 +2866,20 @@ void Scene3D::OnDropped(const QString &_drop, int _mouseX, int _mouseY)
 
   this->dataPtr->node.Request("/world/" + this->dataPtr->worldName + "/create",
       req, cb);
+}
+
+/////////////////////////////////////////////////
+QString Scene3D::ErrorPopupText() const
+{
+  return this->dataPtr->errorPopupText;
+}
+
+/////////////////////////////////////////////////
+void Scene3D::SetErrorPopupText(const QString &_errorTxt)
+{
+  this->dataPtr->errorPopupText = _errorTxt;
+  this->ErrorPopupTextChanged();
+  this->popupError();
 }
 
 /////////////////////////////////////////////////
