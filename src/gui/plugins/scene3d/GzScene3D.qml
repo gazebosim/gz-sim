@@ -98,4 +98,25 @@ Rectangle {
       GzScene3D.OnDropped(drop.text, drag.x, drag.y)
     }
   }
+
+  // pop error for Scene3D::OnDropped
+  Connections {
+    target: GzScene3D
+    onPopupError: errorPopup.open()
+  }
+
+  Popup {
+    id: errorPopup
+    parent: ApplicationWindow.overlay
+    dim: true
+    anchors.centerIn: parent
+    background: Rectangle {
+      border.width: 3
+      border.color: "red"
+    }
+    Text {
+      text: "Unable to load mesh: only DAE, OBJ, and STL meshes are supported."
+    }
+  }
+
 }

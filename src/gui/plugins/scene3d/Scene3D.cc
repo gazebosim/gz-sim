@@ -2814,13 +2814,10 @@ void Scene3D::OnDropped(const QString &_drop, int _mouseX, int _mouseY)
   {
     // mesh to sdf model
     common::rtrim(dropStr);
-    std::string lowerStr = common::lowercase(dropStr);
 
-    if (!common::EndsWith(lowerStr, ".dae")
-          && !common::EndsWith(lowerStr, ".stl"))
+    if (!common::MeshManager::Instance()->IsValidFilename(dropStr))
     {
-      ignwarn << "Only DAE and STL meshes are supported."
-              << std::endl;
+      this->popupError();
       return;
     }
 
