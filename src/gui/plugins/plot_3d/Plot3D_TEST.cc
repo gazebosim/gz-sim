@@ -29,6 +29,7 @@
 #include <ignition/gui/Plugin.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/utilities/ExtraTestMacros.hh>
+#include <ignition/utils/SuppressWarning.hh>
 
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
@@ -73,7 +74,9 @@ TEST_F(Plot3D, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Load))
   app->AddPluginPath(std::string(PROJECT_BINARY_PATH) + "/lib");
 
   // Create GUI runner to handle gazebo::gui plugins
+  IGN_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
   auto runner = new gazebo::GuiRunner("test");
+  IGN_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
   runner->setParent(gui::App());
 
   // Add plugin
