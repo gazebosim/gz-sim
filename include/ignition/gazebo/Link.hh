@@ -215,9 +215,10 @@ namespace ignition
       /// functions like `WorldLinearVelocity` will return nullopt. This
       /// function can be used to enable all velocity checks.
       /// \param[in] _ecm Mutable reference to the ECM.
-      /// \param[in] _enable True to enable checks, false to disable.
+      /// \param[in] _enable True to enable checks, false to disable. Defaults
+      /// to true.
       public: void EnableVelocityChecks(EntityComponentManager &_ecm,
-          bool _enable) const;
+          bool _enable = true) const;
 
       /// \brief Get the linear acceleration of the body in the world frame.
       /// \param[in] _ecm Entity-component manager.
@@ -231,9 +232,10 @@ namespace ignition
       /// functions like `WorldLinearAcceleration` will return nullopt. This
       /// function can be used to enable all acceleration checks.
       /// \param[in] _ecm Mutable reference to the ECM.
-      /// \param[in] _enable True to enable checks, false to disable.
+      /// \param[in] _enable True to enable checks, false to disable. Defaults
+      /// to true.
       public: void EnableAccelerationChecks(EntityComponentManager &_ecm,
-          bool _enable) const;
+          bool _enable = true) const;
 
       /// \brief Get the inertia matrix in the world frame.
       /// \param[in] _ecm Entity-component manager.

@@ -261,7 +261,7 @@ TEST_F(LinkIntegrationTest, LinkVelocities)
   EXPECT_EQ(std::nullopt, link.WorldAngularVelocity(ecm));
 
   // After enabling, velocity functions should return default values
-  link.EnableVelocityChecks(ecm, true);
+  link.EnableVelocityChecks(ecm);
 
   EXPECT_NE(nullptr, ecm.Component<components::WorldPose>(eLink));
   EXPECT_NE(nullptr, ecm.Component<components::WorldLinearVelocity>(eLink));
@@ -318,7 +318,7 @@ TEST_F(LinkIntegrationTest, LinkAccelerations)
   EXPECT_EQ(std::nullopt, link.WorldLinearAcceleration(ecm));
 
   // After enabling, they should return default values
-  link.EnableAccelerationChecks(ecm, true);
+  link.EnableAccelerationChecks(ecm);
   EXPECT_EQ(math::Vector3d::Zero, link.WorldLinearAcceleration(ecm));
   EXPECT_NE(nullptr, ecm.Component<components::WorldLinearAcceleration>(eLink));
 

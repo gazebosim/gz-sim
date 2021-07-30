@@ -567,7 +567,7 @@ TEST(UtilTest, EnableComponent)
   EXPECT_EQ(nullptr, ecm.Component<components::Name>(entity1));
 
   // Enable
-  EXPECT_TRUE(enableComponent<components::Name>(ecm, entity1, true));
+  EXPECT_TRUE(enableComponent<components::Name>(ecm, entity1));
   EXPECT_NE(nullptr, ecm.Component<components::Name>(entity1));
 
   // Enabling again makes no changes

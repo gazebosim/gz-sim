@@ -174,11 +174,12 @@ namespace ignition
     /// \param[in] _ecm Mutable reference to the ECM
     /// \param[in] _entity Entity whose component is being enabled
     /// \param[in] _enable True to enable (create), false to disable (remove).
+    /// Defaults to true.
     /// \return True if a component was created or removed, false if nothing
     /// changed.
     template <class ComponentType>
     bool IGNITION_GAZEBO_VISIBLE enableComponent(EntityComponentManager &_ecm,
-        Entity _entity, bool _enable)
+        Entity _entity, bool _enable = true)
     {
       bool changed{false};
 
