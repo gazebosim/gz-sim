@@ -103,6 +103,13 @@ void GuiRunner::RequestState()
 }
 
 /////////////////////////////////////////////////
+void GuiRunner::OnPluginAdded(const QString &)
+{
+  // This function used to call Update on the plugin, but that's no longer
+  // necessary. The function is left here for ABI compatibility.
+}
+
+/////////////////////////////////////////////////
 void GuiRunner::OnStateAsyncService(const msgs::SerializedStepMap &_res)
 {
   this->OnState(_res);
