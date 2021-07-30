@@ -176,8 +176,6 @@ std::unique_ptr<ignition::gui::Application> createGui(
     // which makes it complicated to mix configurations across worlds.
     // We could have a way to use world-agnostic topics like Gazebo-classic's ~
     auto runner = new ignition::gazebo::GuiRunner(worldsMsg.data(0));
-    runner->connect(app.get(), &ignition::gui::Application::PluginAdded, runner,
-        &ignition::gazebo::GuiRunner::OnPluginAdded);
     ++runnerCount;
     runner->setParent(ignition::gui::App());
 
@@ -214,8 +212,6 @@ std::unique_ptr<ignition::gui::Application> createGui(
 
       // GUI runner
       auto runner = new ignition::gazebo::GuiRunner(worldName);
-      runner->connect(app.get(), &ignition::gui::Application::PluginAdded,
-                      runner, &ignition::gazebo::GuiRunner::OnPluginAdded);
       runner->setParent(ignition::gui::App());
       ++runnerCount;
 

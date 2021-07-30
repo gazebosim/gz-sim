@@ -1373,9 +1373,6 @@ void IgnRenderer::HandleMouseTransformControl()
       // Select entity
       else if (!this->dataPtr->mouseEvent.Dragging())
       {
-        rendering::VisualPtr v = this->dataPtr->camera->VisualAt(
-              this->dataPtr->mouseEvent.Pos());
-
         rendering::VisualPtr visual = this->dataPtr->camera->Scene()->VisualAt(
               this->dataPtr->camera,
               this->dataPtr->mouseEvent.Pos());
