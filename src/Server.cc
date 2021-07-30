@@ -355,6 +355,26 @@ std::optional<bool> Server::AddSystem(const SystemPluginPtr &_system,
 }
 
 //////////////////////////////////////////////////
+std::optional<bool> Server::AddSystem(const std::shared_ptr<System> &_system,
+                                      const unsigned int _worldIndex)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);
+  if (this->dataPtr->running)
+  {
+    ignerr << "Cannot add system while the server is runnnng.\n";
+    return false;
+  }
+
+  if (_worldIndex < this->dataPtr->simRunners.size())
+  {
+    this->dataPtr->simRunners[_worldIndex]->AddSystem(_system);
+    return true;
+  }
+
+  return std::nullopt;
+}
+
+//////////////////////////////////////////////////
 bool Server::HasEntity(const std::string &_name,
                        const unsigned int _worldIndex) const
 {
