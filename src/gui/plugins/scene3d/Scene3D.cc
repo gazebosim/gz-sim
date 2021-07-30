@@ -889,7 +889,7 @@ void IgnRenderer::HandleMouseEvent()
 /////////////////////////////////////////////////
 void IgnRenderer::BroadcastHoverPos()
 {
-  if (this->dataPtr->hoverDirty)
+  if (this->dataPtr->spawnPreview && this->dataPtr->hoverDirty)
   {
     math::Vector3d pos = this->ScreenToScene(this->dataPtr->mouseHoverPos);
 
