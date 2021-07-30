@@ -570,3 +570,28 @@ TEST_F(UtilTest, TopLevelModel)
   // the world should have no top level model
   EXPECT_EQ(kNullEntity, topLevelModel(worldEntity, ecm));
 }
+
+/////////////////////////////////////////////////
+TEST_F(UtilTest, EnableComponent)
+{
+  EntityComponentManager ecm;
+
+  auto entity1 = ecm.CreateEntity();
+  EXPECT_EQ(nullptr, ecm.Component<components::Name>(entity1));
+
+  // Enable
+  EXPECT_TRUE(enableComponent<components::Name>(ecm, entity1));
+  EXPECT_NE(nullptr, ecm.Component<components::Name>(entity1));
+
+  // Enabling again makes no changes
+  EXPECT_FALSE(enableComponent<components::Name>(ecm, entity1, true));
+  EXPECT_NE(nullptr, ecm.Component<components::Name>(entity1));
+
+  // Disable
+  EXPECT_TRUE(enableComponent<components::Name>(ecm, entity1, false));
+  EXPECT_EQ(nullptr, ecm.Component<components::Name>(entity1));
+
+  // Disabling again makes no changes
+  EXPECT_FALSE(enableComponent<components::Name>(ecm, entity1, false));
+  EXPECT_EQ(nullptr, ecm.Component<components::Name>(entity1));
+}
