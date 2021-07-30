@@ -97,7 +97,7 @@ namespace ignition
     static const ComponentId kComponentIdInvalid = -1;
 
     /// \brief Id that indicates an invalid component type.
-    static const ComponentTypeId kComponentTypeIdInvalid = -1;
+    static const ComponentTypeId kComponentTypeIdInvalid = UINT64_MAX;
     }
   }
 }
