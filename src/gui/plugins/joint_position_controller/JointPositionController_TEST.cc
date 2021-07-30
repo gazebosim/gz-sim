@@ -68,8 +68,6 @@ TEST_F(JointPositionControllerGui, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Load))
 
   // Create GUI runner to handle gazebo::gui plugins
   auto runner = new gazebo::GuiRunner("test");
-  runner->connect(app.get(), &gui::Application::PluginAdded,
-                  runner, &gazebo::GuiRunner::OnPluginAdded);
   runner->setParent(gui::App());
 
   // Add plugin
@@ -143,8 +141,6 @@ TEST_F(JointPositionControllerGui,
 
   // Create GUI runner to handle gazebo::gui plugins
   auto runner = new gazebo::GuiRunner("test");
-  runner->connect(app.get(), &gui::Application::PluginAdded,
-                  runner, &gazebo::GuiRunner::OnPluginAdded);
   runner->setParent(gui::App());
 
   // Load plugin
@@ -217,4 +213,3 @@ TEST_F(JointPositionControllerGui,
   // Cleanup
   plugins.clear();
 }
-

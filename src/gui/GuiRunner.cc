@@ -103,26 +103,6 @@ void GuiRunner::RequestState()
 }
 
 /////////////////////////////////////////////////
-void GuiRunner::OnPluginAdded(const QString &_objectName)
-{
-  auto plugin = gui::App()->PluginByName(_objectName.toStdString());
-  if (!plugin)
-  {
-    ignerr << "Failed to get plugin [" << _objectName.toStdString()
-           << "]" << std::endl;
-    return;
-  }
-
-  auto guiSystem = dynamic_cast<GuiSystem *>(plugin.get());
-
-  // Do nothing for pure ign-gui plugins
-  if (!guiSystem)
-    return;
-
-  guiSystem->Update(this->updateInfo, this->ecm);
-}
-
-/////////////////////////////////////////////////
 void GuiRunner::OnStateAsyncService(const msgs::SerializedStepMap &_res)
 {
   this->OnState(_res);

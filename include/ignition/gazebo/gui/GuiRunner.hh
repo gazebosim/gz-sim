@@ -48,10 +48,6 @@ class IGNITION_GAZEBO_VISIBLE GuiRunner : public QObject
   /// \brief Destructor
   public: ~GuiRunner() override;
 
-  /// \brief Callback when a plugin has been added.
-  /// \param[in] _objectName Plugin's object name.
-  public slots: void OnPluginAdded(const QString &_objectName);
-
   /// \brief Make a new state request to the server.
   public slots: void RequestState();
 
