@@ -572,7 +572,7 @@ TEST_F(UtilTest, TopLevelModel)
 }
 
 /////////////////////////////////////////////////
-TEST(UtilTest, EnableComponent)
+TEST_F(UtilTest, EnableComponent)
 {
   EntityComponentManager ecm;
 
