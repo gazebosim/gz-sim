@@ -2315,13 +2315,12 @@ QSGNode *RenderWindowItem::updatePaintNode(QSGNode *_node,
     }
     this->dataPtr->renderThread->context->setShareContext(current);
     this->dataPtr->renderThread->context->create();
-
 //    this->dataPtr->renderThread->context->moveToThread(
 //        this->dataPtr->renderThread);
 
-    QMetaObject::invokeMethod(this, "Ready");
-
     current->makeCurrent(this->window());
+
+    QMetaObject::invokeMethod(this, "Ready");
 
     return nullptr;
   }
