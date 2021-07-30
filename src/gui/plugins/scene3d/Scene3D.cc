@@ -2270,7 +2270,7 @@ void RenderWindowItem::Ready()
   this->connect(this, &QQuickItem::heightChanged,
       this->dataPtr->renderThread, &RenderThread::SizeChanged);
 
-  this->dataPtr->renderThread->start();
+//  this->dataPtr->renderThread->start();
   this->update();
 
   this->dataPtr->rendererInit = true;
@@ -2287,7 +2287,6 @@ QSGNode *RenderWindowItem::updatePaintNode(QSGNode *_node,
     QQuickItem::UpdatePaintNodeData *)
 {
   auto node = static_cast<TextureNode *>(_node);
-
   if (!this->dataPtr->renderThread->context)
   {
     QOpenGLContext *current = this->window()->openglContext();
@@ -2316,12 +2315,14 @@ QSGNode *RenderWindowItem::updatePaintNode(QSGNode *_node,
     }
     this->dataPtr->renderThread->context->setShareContext(current);
     this->dataPtr->renderThread->context->create();
-    this->dataPtr->renderThread->context->moveToThread(
-        this->dataPtr->renderThread);
+
+//    this->dataPtr->renderThread->context->moveToThread(
+//        this->dataPtr->renderThread);
+
+    QMetaObject::invokeMethod(this, "Ready");
 
     current->makeCurrent(this->window());
 
-    QMetaObject::invokeMethod(this, "Ready");
     return nullptr;
   }
 
@@ -2354,6 +2355,13 @@ QSGNode *RenderWindowItem::updatePaintNode(QSGNode *_node,
         &TextureNode::PrepareNode, Qt::DirectConnection);
     this->connect(node, &TextureNode::TextureInUse, this->dataPtr->renderThread,
         &RenderThread::RenderNext, Qt::QueuedConnection);
+
+    // init ogre before moving to render thread
+    this->dataPtr->renderThread->RenderNext();
+
+    this->dataPtr->renderThread->context->moveToThread(
+        this->dataPtr->renderThread);
+    this->dataPtr->renderThread->start();
 
     // Get the production of FBO textures started..
     QMetaObject::invokeMethod(this->dataPtr->renderThread, "RenderNext",

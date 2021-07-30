@@ -130,7 +130,8 @@ void GuiRunner::RequestState()
 /////////////////////////////////////////////////
 void GuiRunner::OnPluginAdded(const QString &_objectName)
 {
-  auto plugin = gui::App()->PluginByName(_objectName.toStdString());
+//  auto plugin = gui::App()->PluginByName(_objectName.toStdString());
+  auto plugin = gui::App()->findChild<GuiSystem *>(_objectName);
   if (!plugin)
   {
     ignerr << "Failed to get plugin [" << _objectName.toStdString()
@@ -140,13 +141,14 @@ void GuiRunner::OnPluginAdded(const QString &_objectName)
 
   this->RequestState();
 
-  auto guiSystem = dynamic_cast<GuiSystem *>(plugin.get());
+//  auto guiSystem = dynamic_cast<GuiSystem *>(plugin.get());
+//
+//  // Do nothing for pure ign-gui plugins
+//  if (!guiSystem)
+//    return;
 
-  // Do nothing for pure ign-gui plugins
-  if (!guiSystem)
-    return;
-
-  guiSystem->Update(this->updateInfo, this->ecm);
+ //  guiSystem->Update(this->updateInfo, this->ecm);
+  plugin->Update(this->updateInfo, this->ecm);
 }
 
 /////////////////////////////////////////////////
