@@ -254,7 +254,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: rendering::RayQueryPtr rayQuery;
 
     /// \brief View control focus target
-    public: math::Vector3d target;
+    public: math::Vector3d target = math::Vector3d(
+        math::INF_D, math::INF_D, math::INF_D);
 
     /// \brief Rendering utility
     public: RenderUtil renderUtil;
@@ -1603,11 +1604,23 @@ void IgnRenderer::HandleMouseViewControl()
   }
   else
   {
-    if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::PRESS)
+    if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::PRESS ||
+        // the rendering thread may miss the press event due to
+        // race condition when doing a drag operation (press and move, where
+        // the move event overrides the press event before it is processed)
+        // so we double check to see if target is set or not
+        (this->dataPtr->mouseEvent.Type() == common::MouseEvent::MOVE &&
+        this->dataPtr->mouseEvent.Dragging() &&
+        std::isinf(this->dataPtr->target.X())))
     {
       this->dataPtr->target = this->ScreenToScene(
           this->dataPtr->mouseEvent.PressPos());
       this->dataPtr->viewControl.SetTarget(this->dataPtr->target);
+    }
+    // unset the target on release (by setting to inf)
+    else if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE)
+    {
+      this->dataPtr->target = ignition::math::INF_D;
     }
 
     // Pan with left button

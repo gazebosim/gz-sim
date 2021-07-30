@@ -31,7 +31,7 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief A component that identifies an entity as being a link.
+  /// \brief A component that identifies an entity as being a sensor.
   using Sensor = Component<NoData, class SensorTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Sensor", Sensor)
 
