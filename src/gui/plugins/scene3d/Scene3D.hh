@@ -140,6 +140,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: bool OnFollow(const msgs::StringMsg &_msg,
         msgs::Boolean &_res);
 
+    /// \brief Callback for a follow offset request
+    /// \param[in] _msg Request message to set the camera's follow offset.
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnFollowOffset(const msgs::Vector3d &_msg,
+        msgs::Boolean &_res);
+
     /// \brief Callback for a view angle request
     /// \param[in] _msg Request message to set the camera to.
     /// \param[in] _res Response data

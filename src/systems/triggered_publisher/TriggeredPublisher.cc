@@ -481,6 +481,7 @@ void TriggeredPublisher::Configure(const Entity &,
     EntityComponentManager &,
     EventManager &)
 {
+  using namespace std::chrono_literals;
   sdf::ElementPtr sdfClone = _sdf->Clone();
   if (sdfClone->HasElement("input"))
   {
@@ -531,6 +532,14 @@ void TriggeredPublisher::Configure(const Entity &,
   {
     ignerr << "No valid matchers specified\n";
     return;
+  }
+
+  // Read trigger delay, if present
+  if (sdfClone->HasElement("delay_ms"))
+  {
+    int ms = sdfClone->Get<int>("delay_ms");
+    if (ms > 0)
+      this->delay = std::chrono::milliseconds(ms);
   }
 
   if (sdfClone->HasElement("output"))
@@ -589,10 +598,20 @@ void TriggeredPublisher::Configure(const Entity &,
         if (this->MatchInput(_msg))
         {
           {
-            std::lock_guard<std::mutex> lock(this->publishCountMutex);
-            ++this->publishCount;
+            if (this->delay > 0ms)
+            {
+              std::lock_guard<std::mutex> lock(this->publishQueueMutex);
+              this->publishQueue.push_back(this->delay);
+            }
+            else
+            {
+              {
+                std::lock_guard<std::mutex> lock(this->publishCountMutex);
+                ++this->publishCount;
+              }
+              this->newMatchSignal.notify_one();
+            }
           }
-          this->newMatchSignal.notify_one();
         }
       });
   if (!this->node.Subscribe(this->inputTopic, msgCb))
@@ -649,6 +668,45 @@ void TriggeredPublisher::DoWork()
 }
 
 //////////////////////////////////////////////////
+void TriggeredPublisher::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
+    ignition::gazebo::EntityComponentManager &/*_ecm*/)
+{
+  using namespace std::chrono_literals;
+  IGN_PROFILE("TriggeredPublisher::PreUpdate");
+
+  bool notify = false;
+  {
+    std::lock_guard<std::mutex> lock1(this->publishQueueMutex);
+    std::lock_guard<std::mutex> lock2(this->publishCountMutex);
+    // Iterate through the publish queue, and publish messages.
+    for (auto iter = std::begin(this->publishQueue);
+        iter != std::end(this->publishQueue);)
+    {
+      // Reduce the delay time left for this item in the queue.
+      *iter -= _info.dt;
+
+      // Publish the message if time is less than or equal to zero
+      // milliseconds
+      if (*iter <= 0ms)
+      {
+        notify = true;
+        ++this->publishCount;
+
+        // Remove this publication
+        iter = this->publishQueue.erase(iter);
+      }
+      else
+      {
+        ++iter;
+      }
+    }
+  }
+
+  if (notify)
+    this->newMatchSignal.notify_one();
+}
+
+//////////////////////////////////////////////////
 bool TriggeredPublisher::MatchInput(const transport::ProtoMsg &_inputMsg)
 {
   return std::all_of(this->matchers.begin(), this->matchers.end(),
@@ -667,7 +725,8 @@ bool TriggeredPublisher::MatchInput(const transport::ProtoMsg &_inputMsg)
 
 IGNITION_ADD_PLUGIN(TriggeredPublisher,
                     ignition::gazebo::System,
-                    TriggeredPublisher::ISystemConfigure)
+                    TriggeredPublisher::ISystemConfigure,
+                    TriggeredPublisher::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(TriggeredPublisher,
                           "ignition::gazebo::systems::TriggeredPublisher")
