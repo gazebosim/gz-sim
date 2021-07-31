@@ -187,7 +187,7 @@ void JointController::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   {
     ignwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
-        << "s]. System will not work properly." << std::endl;
+        << "s]. System may not work properly." << std::endl;
   }
 
   // Nothing left to do if paused.
