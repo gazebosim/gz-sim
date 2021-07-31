@@ -330,7 +330,7 @@ void printJoints(const uint64_t _modelEntity,
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_GAZEBO_VISIBLE void cmdModelList()
+extern "C" void cmdModelList()
 {
   EntityComponentManager ecm{};
   if (!populateECM(ecm))
@@ -364,7 +364,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE void cmdModelList()
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_GAZEBO_VISIBLE void cmdModelInfo(
+extern "C" void cmdModelInfo(
     const char *_modelName, int _pose, const char *_linkName,
     const char *_jointName)
 {
