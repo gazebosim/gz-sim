@@ -116,6 +116,7 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
+#include "ignition/gazebo/components/JointForce.hh"
 #include "ignition/gazebo/components/JointForceCmd.hh"
 #include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
@@ -2768,6 +2769,24 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
         }
         return true;
       });
+  
+  // Update joint forces
+  _ecm.Each<components::Joint, components::JointForce>(
+      [&](const Entity &_entity, components::Joint *,
+          components::JointForce *_jointVel) -> bool
+      {
+        if (auto jointPhys = this->entityJointMap.Get(_entity))
+        {
+          _jointVel->Data().resize(jointPhys->GetDegreesOfFreedom());
+          for (std::size_t i = 0; i < jointPhys->GetDegreesOfFreedom();
+               ++i)
+          {
+            _jointVel->Data()[i] = jointPhys->GetForce(i);
+          }
+        }
+        return true;
+      });
+
   IGN_PROFILE_END();
 
   // TODO(louise) Skip this if there are no collision features
