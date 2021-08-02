@@ -62,8 +62,16 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 math::Pose3d worldPose(const Entity &_entity,
     const EntityComponentManager &_ecm)
 {
+  auto poseComp = _ecm.Component<components::Pose>(_entity);
+  if (nullptr == poseComp)
+  {
+    ignwarn << "Trying to get world pose from entity [" << _entity
+            << "], which doesn't have a pose component" << std::endl;
+    return math::Pose3d();
+  }
+
   // work out pose in world frame
-  math::Pose3d pose = _ecm.Component<components::Pose>(_entity)->Data();
+  math::Pose3d pose = poseComp->Data();
   auto p = _ecm.Component<components::ParentEntity>(_entity);
   while (p)
   {
@@ -126,6 +134,64 @@ std::string scopedName(const Entity &_entity,
   }
 
   return result;
+}
+
+//////////////////////////////////////////////////
+std::unordered_set<Entity> entitiesFromScopedName(
+    const std::string &_scopedName, const EntityComponentManager &_ecm,
+    Entity _relativeTo, const std::string &_delim)
+{
+  if (_delim.empty())
+  {
+    ignwarn << "Can't process scoped name [" << _scopedName
+            << "] with empty delimiter." << std::endl;
+    return {};
+  }
+
+  // Split names
+  std::vector<std::string> names;
+  size_t pos1 = 0;
+  size_t pos2 = _scopedName.find(_delim);
+  while (pos2 != std::string::npos)
+  {
+    names.push_back(_scopedName.substr(pos1, pos2 - pos1));
+    pos1 = pos2 + _delim.length();
+    pos2 = _scopedName.find(_delim, pos1);
+  }
+  names.push_back(_scopedName.substr(pos1, _scopedName.size()-pos1));
+
+  // Holds current entities that match and is updated for each name
+  std::vector<Entity> resVector;
+
+  // If there's an entity we're relative to, treat it as the first level result
+  if (_relativeTo != kNullEntity)
+  {
+    resVector = {_relativeTo};
+  }
+
+  for (const auto &name : names)
+  {
+    std::vector<Entity> current;
+    if (resVector.empty())
+    {
+      current = _ecm.EntitiesByComponents(components::Name(name));
+    }
+    else
+    {
+      for (auto res : resVector)
+      {
+        auto matches = _ecm.EntitiesByComponents(components::Name(name),
+            components::ParentEntity(res));
+        std::copy(std::begin(matches), std::end(matches),
+            std::back_inserter(current));
+      }
+    }
+    if (current.empty())
+      return {};
+    resVector = current;
+  }
+
+  return std::unordered_set<Entity>(resVector.begin(), resVector.end());
 }
 
 //////////////////////////////////////////////////
@@ -245,6 +311,12 @@ Entity worldEntity(const Entity &_entity,
     entity = parentComp->Data();
   }
   return entity;
+}
+
+//////////////////////////////////////////////////
+Entity worldEntity(const EntityComponentManager &_ecm)
+{
+  return _ecm.EntityByComponents(components::World());
 }
 
 //////////////////////////////////////////////////
