@@ -389,7 +389,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// scaled applied to that entity.
     public: std::map<Entity, math::Vector3d> scaledEntities;
 
-    /// \brief ToDo.
+    /// \brief A mutex.
     std::mutex mutex;
 
     //// \brief List of threads
@@ -2934,6 +2934,8 @@ void Scene3D::Update(const UpdateInfo &_info,
           {
             sdf::ElementPtr modelElem = _modelSdf->Data().Element();
 
+            /// \brief TODO(anyone) Remove debug statements when code goes
+            /// into production.
             igndbg << "Updating SDF for entity " << _modelEntity << std::endl;
             igndbg << "Before:" << std::endl;
             igndbg << _modelSdf->Data().Element()->ToString("");
