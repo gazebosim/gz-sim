@@ -57,7 +57,7 @@ class ModelMover: public test::Relay
   public: explicit ModelMover(Entity _entity): test::Relay(), entity(_entity)
   {
     using namespace std::placeholders;
-    this->mockSystem->preUpdateCallback =
+    this->systemPtr->preUpdateCallback =
         std::bind(&ModelMover::MoveModel, this, _1, _2);
   }
 

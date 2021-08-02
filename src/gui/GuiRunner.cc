@@ -151,25 +151,10 @@ void GuiRunner::RequestState()
 }
 
 /////////////////////////////////////////////////
-void GuiRunner::OnPluginAdded(const QString &_objectName)
+void GuiRunner::OnPluginAdded(const QString &)
 {
-  auto plugin = gui::App()->PluginByName(_objectName.toStdString());
-  if (!plugin)
-  {
-    ignerr << "Failed to get plugin [" << _objectName.toStdString()
-           << "]" << std::endl;
-    return;
-  }
-
-  this->RequestState();
-
-  auto guiSystem = dynamic_cast<GuiSystem *>(plugin.get());
-
-  // Do nothing for pure ign-gui plugins
-  if (!guiSystem)
-    return;
-
-  guiSystem->Update(this->dataPtr->updateInfo, this->dataPtr->ecm);
+  // This function used to call Update on the plugin, but that's no longer
+  // necessary. The function is left here for ABI compatibility.
 }
 
 /////////////////////////////////////////////////
