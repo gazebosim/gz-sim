@@ -2831,7 +2831,7 @@ void Scene3D::OnDropped(const QString &_drop, int _mouseX, int _mouseY)
     std::vector<std::string> splitName = common::split(filename, ".");
 
     std::string sdf = "<?xml version='1.0'?>"
-      "<sdf version='1.8'>"
+      "<sdf version='" + std::string(SDF_PROTOCOL_VERSION) + "'>"
         "<model name='" + splitName[0] + "'>"
           "<link name='link'>"
             "<visual name='visual'>"

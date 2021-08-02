@@ -15,7 +15,8 @@
  *
 */
 import QtQuick 2.9
-import QtQuick.Controls 2.0
+import QtQuick.Controls 2.2
+import QtQuick.Dialogs 1.0
 import RenderWindow 1.0
 import QtGraphicalEffects 1.0
 import IgnGazebo 1.0 as IgnGazebo
@@ -105,18 +106,21 @@ Rectangle {
     onPopupError: errorPopup.open()
   }
 
-  Popup {
+  Dialog {
     id: errorPopup
     parent: ApplicationWindow.overlay
-    dim: true
+    modal: true
+    focus: true
     anchors.centerIn: parent
     background: Rectangle {
-      border.width: 3
+      border.width: 5
       border.color: "red"
     }
+    title: "Error"
     Text {
       text: GzScene3D.errorPopupText
     }
+    standardButtons: Dialog.Ok
   }
 
 }
