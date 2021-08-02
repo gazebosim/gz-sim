@@ -215,6 +215,19 @@ namespace ignition
       public: template<typename ComponentTypeT>
               ComponentTypeT *Component(const ComponentKey &_key);
 
+      /// \brief Get a mutable component assigned to an entity based on a
+      /// component type. If the component doesn't exist, create it and
+      /// initialize with the given default value.
+      /// \param[in] _entity The entity.
+      /// \param[in] _default The value that should be used to construct
+      /// the component in case the component doesn't exist.
+      /// \return The component of the specified type assigned to the specified
+      /// entity.
+      public: template<typename ComponentTypeT>
+              ComponentTypeT *ComponentDefault(Entity _entity,
+              const typename ComponentTypeT::Type &_default =
+                  typename ComponentTypeT::Type());
+
       /// \brief Get the data from a component.
       /// * If the component type doesn't hold any data, this won't compile.
       /// * If the entity doesn't have that component, it will return nullopt.
@@ -397,8 +410,11 @@ namespace ignition
       /// return false to stop subsequent calls to the callback, otherwise
       /// a true value should be returned.
       /// \tparam ComponentTypeTs All the desired component types.
-      /// \warning This function should not be called outside of System's
-      /// PreUpdate, callback. The result of call after PreUpdate is invalid
+      /// \warning Since entity creation occurs during PreUpdate, this function
+      /// should not be called in a System's PreUpdate callback (it's okay to
+      /// call this function in the Update callback). If you need to call this
+      /// function in a system's PostUpdate callback, you should use the const
+      /// version of this method.
       public: template <typename... ComponentTypeTs>
               void EachNew(typename identity<std::function<
                            bool(const Entity &_entity,
@@ -413,8 +429,9 @@ namespace ignition
       /// return false to stop subsequent calls to the callback, otherwise
       /// a true value should be returned.
       /// \tparam ComponentTypeTs All the desired component types.
-      /// \warning This function should not be called outside of System's
-      /// PreUpdate, callback. The result of call after PreUpdate is invalid
+      /// \warning Since entity creation occurs during PreUpdate, this function
+      /// should not be called in a System's PreUpdate callback (it's okay to
+      /// call this function in the Update or PostUpdate callback).
       public: template <typename... ComponentTypeTs>
               void EachNew(typename identity<std::function<
                            bool(const Entity &_entity,
@@ -462,11 +479,9 @@ namespace ignition
       /// \brief Get a message with the serialized state of all entities and
       /// components that are changing in the current iteration
       ///
-      /// Currently supported:
+      /// This includes:
       /// * New entities and all of their components
       /// * Removed entities and all of their components
-      ///
-      /// Future work:
       /// * Entities which had a component added
       /// * Entities which had a component removed
       /// * Entities which had a component modified
@@ -487,6 +502,12 @@ namespace ignition
       /// do not happen frequently and should be processed immediately.
       /// \return True if there are any components with one-time changes.
       public: bool HasOneTimeComponentChanges() const;
+
+      /// \brief Get the components types that are marked as periodic changes.
+      /// \return All the components that at least one entity marked as
+      /// periodic changes.
+      public: std::unordered_set<ComponentTypeId>
+          ComponentTypesWithPeriodicChanges() const;
 
       /// \brief Set the absolute state of the ECM from a serialized message.
       /// Entities / components that are in the new state but not in the old
@@ -517,11 +538,9 @@ namespace ignition
       /// \brief Get a message with the serialized state of all entities and
       /// components that are changing in the current iteration
       ///
-      /// Currently supported:
+      /// This includes:
       /// * New entities and all of their components
       /// * Removed entities and all of their components
-      ///
-      /// Future work:
       /// * Entities which had a component added
       /// * Entities which had a component removed
       /// * Entities which had a component modified

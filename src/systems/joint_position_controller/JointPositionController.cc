@@ -156,6 +156,19 @@ void JointPositionController::Configure(const Entity &_entity,
            << "]" << std::endl;
     return;
   }
+  if (_sdf->HasElement("topic"))
+  {
+    topic = transport::TopicUtils::AsValidTopic(
+        _sdf->Get<std::string>("topic"));
+
+    if (topic.empty())
+    {
+      ignerr << "Failed to create topic [" << _sdf->Get<std::string>("topic")
+             << "]" << " for joint [" << this->dataPtr->jointName
+             << "]" << std::endl;
+      return;
+    }
+  }
   this->dataPtr->node.Subscribe(
       topic, &JointPositionControllerPrivate::OnCmdPos, this->dataPtr.get());
 

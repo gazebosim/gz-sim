@@ -20,7 +20,9 @@
 #include <google/protobuf/message.h>
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/entity_factory.pb.h>
+#include <ignition/msgs/light.pb.h>
 #include <ignition/msgs/pose.pb.h>
+#include <ignition/msgs/physics.pb.h>
 
 #include <string>
 #include <utility>
@@ -28,8 +30,10 @@
 
 #include <ignition/msgs/Utility.hh>
 
+#include <sdf/Physics.hh>
 #include <sdf/Root.hh>
 #include <sdf/Error.hh>
+#include <sdf/Light.hh>
 
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
@@ -37,14 +41,21 @@
 #include "ignition/common/Profiler.hh"
 
 #include "ignition/gazebo/components/Light.hh"
+#include "ignition/gazebo/components/LightCmd.hh"
+#include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/PoseCmd.hh"
+#include "ignition/gazebo/components/PhysicsCmd.hh"
 #include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
+#include "ignition/gazebo/components/ContactSensorData.hh"
+#include "ignition/gazebo/components/ContactSensor.hh"
+#include "ignition/gazebo/components/Sensor.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -70,6 +81,13 @@ class UserCommandsInterface
 
   /// \brief World entity.
   public: Entity worldEntity{kNullEntity};
+
+  /// \brief Check if there's a contact sensor connected to a collision
+  /// component
+  /// \param[in] _collision Collision entity to be checked
+  /// \return True if a contact sensor is connected to the collision entity,
+  /// false otherwise
+  public: bool HasContactSensor(const Entity _collision);
 };
 
 /// \brief All user commands should inherit from this class so they can be
@@ -123,6 +141,74 @@ class RemoveCommand : public UserCommandBase
   public: bool Execute() final;
 };
 
+/// \brief Command to modify a light entity from simulation.
+class LightCommand : public UserCommandBase
+{
+  /// \brief Constructor
+  /// \param[in] _msg Message identifying the entity to be edited.
+  /// \param[in] _iface Pointer to user commands interface.
+  public: LightCommand(msgs::Light *_msg,
+      std::shared_ptr<UserCommandsInterface> &_iface);
+
+  // Documentation inherited
+  public: bool Execute() final;
+
+  /// \brief Light equality comparison function.
+  public: std::function<bool(const msgs::Light &, const msgs::Light &)>
+          lightEql { [](const msgs::Light &_a, const msgs::Light &_b)
+            {
+             return
+                _a.type() == _b.type() &&
+                _a.name() == _b.name() &&
+                math::equal(
+                   _a.diffuse().a(), _b.diffuse().a(), 1e-6f) &&
+                math::equal(
+                  _a.diffuse().r(), _b.diffuse().r(), 1e-6f) &&
+                math::equal(
+                  _a.diffuse().g(), _b.diffuse().g(), 1e-6f) &&
+                math::equal(
+                  _a.diffuse().b(), _b.diffuse().b(), 1e-6f) &&
+                math::equal(
+                  _a.specular().a(), _b.specular().a(), 1e-6f) &&
+                math::equal(
+                  _a.specular().r(), _b.specular().r(), 1e-6f) &&
+                math::equal(
+                  _a.specular().g(), _b.specular().g(), 1e-6f) &&
+                math::equal(
+                  _a.specular().b(), _b.specular().b(), 1e-6f) &&
+                math::equal(
+                  _a.range(), _b.range(), 1e-6f) &&
+               math::equal(
+                 _a.attenuation_linear(),
+                 _b.attenuation_linear(),
+                 1e-6f) &&
+               math::equal(
+                 _a.attenuation_constant(),
+                 _b.attenuation_constant(),
+                 1e-6f) &&
+               math::equal(
+                 _a.attenuation_quadratic(),
+                 _b.attenuation_quadratic(),
+                 1e-6f) &&
+               _a.cast_shadows() == _b.cast_shadows() &&
+               math::equal(
+                 _a.intensity(),
+                 _b.intensity(),
+                 1e-6f) &&
+               math::equal(
+                 _a.direction().x(), _b.direction().x(), 1e-6) &&
+               math::equal(
+                 _a.direction().y(), _b.direction().y(), 1e-6) &&
+               math::equal(
+                 _a.direction().z(), _b.direction().z(), 1e-6) &&
+               math::equal(
+                 _a.spot_inner_angle(), _b.spot_inner_angle(), 1e-6f) &&
+               math::equal(
+                 _a.spot_outer_angle(), _b.spot_outer_angle(), 1e-6f) &&
+               math::equal(_a.spot_falloff(), _b.spot_falloff(), 1e-6f);
+            }};
+};
+
 /// \brief Command to update an entity's pose transform.
 class PoseCommand : public UserCommandBase
 {
@@ -145,6 +231,45 @@ class PoseCommand : public UserCommandBase
                          math::equal(_a.Rot().Z(), _b.Rot().Z(), 1e-6) &&
                          math::equal(_a.Rot().W(), _b.Rot().W(), 1e-6);
                      }};
+};
+
+/// \brief Command to modify the physics parameters of a simulation.
+class PhysicsCommand : public UserCommandBase
+{
+  /// \brief Constructor
+  /// \param[in] _msg Message containing the new physics parameters.
+  /// \param[in] _iface Pointer to user commands interface.
+  public: PhysicsCommand(msgs::Physics *_msg,
+      std::shared_ptr<UserCommandsInterface> &_iface);
+
+  // Documentation inherited
+  public: bool Execute() final;
+};
+
+/// \brief Command to enable a collision component.
+class EnableCollisionCommand : public UserCommandBase
+{
+  /// \brief Constructor
+  /// \param[in] _msg Message identifying the collision to be enabled.
+  /// \param[in] _iface Pointer to user commands interface.
+  public: EnableCollisionCommand(msgs::Entity *_msg,
+      std::shared_ptr<UserCommandsInterface> &_iface);
+
+  // Documentation inherited
+  public: bool Execute() final;
+};
+
+/// \brief Command to disable a collision component.
+class DisableCollisionCommand : public UserCommandBase
+{
+  /// \brief Constructor
+  /// \param[in] _msg Message identifying the collision to be disabled.
+  /// \param[in] _iface Pointer to user commands interface.
+  public: DisableCollisionCommand(msgs::Entity *_msg,
+      std::shared_ptr<UserCommandsInterface> &_iface);
+
+  // Documentation inherited
+  public: bool Execute() final;
 };
 }
 }
@@ -178,12 +303,42 @@ class ignition::gazebo::systems::UserCommandsPrivate
   public: bool RemoveService(const msgs::Entity &_req,
       msgs::Boolean &_res);
 
+  /// \brief Callback for light service
+  /// \param[in] _req Request containing light update of an entity.
+  /// \param[in] _res True if message successfully received and queued.
+  /// It does not mean that the light will be successfully updated.
+  /// \return True if successful.
+  public: bool LightService(const msgs::Light &_req, msgs::Boolean &_res);
+
   /// \brief Callback for pose service
   /// \param[in] _req Request containing pose update of an entity.
   /// \param[in] _res True if message successfully received and queued.
   /// It does not mean that the entity will be successfully moved.
   /// \return True if successful.
   public: bool PoseService(const msgs::Pose &_req, msgs::Boolean &_res);
+
+  /// \brief Callback for physics service
+  /// \param[in] _req Request containing updates to the physics parameters.
+  /// \param[in] _res True if message successfully received and queued.
+  /// It does not mean that the physics parameters will be successfully updated.
+  /// \return True if successful.
+  public: bool PhysicsService(const msgs::Physics &_req, msgs::Boolean &_res);
+
+  /// \brief Callback for enable collision service
+  /// \param[in] _req Request containing collision entity.
+  /// \param[in] _res True if message successfully received and queued.
+  /// It does not mean that the collision will be successfully enabled.
+  /// \return True if successful.
+  public: bool EnableCollisionService(
+      const msgs::Entity &_req, msgs::Boolean &_res);
+
+  /// \brief Callback for disable collision service
+  /// \param[in] _req Request containing collision entity.
+  /// \param[in] _res True if message successfully received and queued.
+  /// It does not mean that the collision will be successfully disabled.
+  /// \return True if successful.
+  public: bool DisableCollisionService(
+      const msgs::Entity &_req, msgs::Boolean &_res);
 
   /// \brief Queue of commands pending execution.
   public: std::vector<std::unique_ptr<UserCommandBase>> pendingCmds;
@@ -206,6 +361,38 @@ UserCommands::UserCommands() : System(),
 
 //////////////////////////////////////////////////
 UserCommands::~UserCommands() = default;
+
+//////////////////////////////////////////////////
+bool UserCommandsInterface::HasContactSensor(const Entity _collision)
+{
+  auto *linkEntity = ecm->Component<components::ParentEntity>(_collision);
+  auto allLinkSensors =
+    ecm->EntitiesByComponents(components::Sensor(),
+      components::ParentEntity(*linkEntity));
+
+  for (auto const &sensor : allLinkSensors)
+  {
+    // Check if it is a contact sensor
+    auto isContactSensor =
+      ecm->EntityHasComponentType(sensor, components::ContactSensor::typeId);
+    if (!isContactSensor)
+      continue;
+
+    // Check if sensor is connected to _collision
+    auto componentName = ecm->Component<components::Name>(_collision);
+    std::string collisionName = componentName->Data();
+    auto sensorSDF = ecm->Component<components::ContactSensor>(sensor)->Data();
+    auto sensorCollisionName =
+      sensorSDF->GetElement("contact")->Get<std::string>("collision");
+
+    if (collisionName == sensorCollisionName)
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
 
 //////////////////////////////////////////////////
 void UserCommands::Configure(const Entity &_entity,
@@ -258,6 +445,39 @@ void UserCommands::Configure(const Entity &_entity,
       &UserCommandsPrivate::PoseService, this->dataPtr.get());
 
   ignmsg << "Pose service on [" << poseService << "]" << std::endl;
+
+  // Light service
+  std::string lightService{"/world/" + validWorldName + "/light_config"};
+  this->dataPtr->node.Advertise(lightService,
+      &UserCommandsPrivate::LightService, this->dataPtr.get());
+
+  ignmsg << "Light configuration service on [" << lightService << "]"
+    << std::endl;
+
+  // Physics service
+  std::string physicsService{"/world/" + validWorldName + "/set_physics"};
+  this->dataPtr->node.Advertise(physicsService,
+      &UserCommandsPrivate::PhysicsService, this->dataPtr.get());
+
+  ignmsg << "Physics service on [" << physicsService << "]" << std::endl;
+
+  // Enable collision service
+  std::string enableCollisionService{
+    "/world/" + validWorldName + "/enable_collision"};
+  this->dataPtr->node.Advertise(enableCollisionService,
+      &UserCommandsPrivate::EnableCollisionService, this->dataPtr.get());
+
+  ignmsg << "Enable collision service on [" << enableCollisionService << "]"
+    << std::endl;
+
+  // Disable collision service
+  std::string disableCollisionService{
+    "/world/" + validWorldName + "/disable_collision"};
+  this->dataPtr->node.Advertise(disableCollisionService,
+      &UserCommandsPrivate::DisableCollisionService, this->dataPtr.get());
+
+  ignmsg << "Disable collision service on [" << disableCollisionService << "]"
+    << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -351,6 +571,25 @@ bool UserCommandsPrivate::RemoveService(const msgs::Entity &_req,
 }
 
 //////////////////////////////////////////////////
+bool UserCommandsPrivate::LightService(const msgs::Light &_req,
+    msgs::Boolean &_res)
+{
+  // Create command and push it to queue
+  auto msg = _req.New();
+  msg->CopyFrom(_req);
+  auto cmd = std::make_unique<LightCommand>(msg, this->iface);
+
+  // Push to pending
+  {
+    std::lock_guard<std::mutex> lock(this->pendingMutex);
+    this->pendingCmds.push_back(std::move(cmd));
+  }
+
+  _res.set_data(true);
+  return true;
+}
+
+//////////////////////////////////////////////////
 bool UserCommandsPrivate::PoseService(const msgs::Pose &_req,
     msgs::Boolean &_res)
 {
@@ -359,6 +598,62 @@ bool UserCommandsPrivate::PoseService(const msgs::Pose &_req,
   msg->CopyFrom(_req);
   auto cmd = std::make_unique<PoseCommand>(msg, this->iface);
 
+  // Push to pending
+  {
+    std::lock_guard<std::mutex> lock(this->pendingMutex);
+    this->pendingCmds.push_back(std::move(cmd));
+  }
+
+  _res.set_data(true);
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool UserCommandsPrivate::EnableCollisionService(const msgs::Entity &_req,
+    msgs::Boolean &_res)
+{
+  // Create command and push it to queue
+  auto msg = _req.New();
+  msg->CopyFrom(_req);
+  auto cmd = std::make_unique<EnableCollisionCommand>(msg, this->iface);
+
+  // Push to pending
+  {
+    std::lock_guard<std::mutex> lock(this->pendingMutex);
+    this->pendingCmds.push_back(std::move(cmd));
+  }
+
+  _res.set_data(true);
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool UserCommandsPrivate::DisableCollisionService(const msgs::Entity &_req,
+    msgs::Boolean &_res)
+{
+  // Create command and push it to queue
+  auto msg = _req.New();
+  msg->CopyFrom(_req);
+  auto cmd = std::make_unique<DisableCollisionCommand>(msg, this->iface);
+
+  // Push to pending
+  {
+    std::lock_guard<std::mutex> lock(this->pendingMutex);
+    this->pendingCmds.push_back(std::move(cmd));
+  }
+
+  _res.set_data(true);
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool UserCommandsPrivate::PhysicsService(const msgs::Physics &_req,
+    msgs::Boolean &_res)
+{
+  // Create command and push it to queue
+  auto msg = _req.New();
+  msg->CopyFrom(_req);
+  auto cmd = std::make_unique<PhysicsCommand>(msg, this->iface);
   // Push to pending
   {
     std::lock_guard<std::mutex> lock(this->pendingMutex);
@@ -658,6 +953,92 @@ bool RemoveCommand::Execute()
 }
 
 //////////////////////////////////////////////////
+LightCommand::LightCommand(msgs::Light *_msg,
+    std::shared_ptr<UserCommandsInterface> &_iface)
+    : UserCommandBase(_msg, _iface)
+{
+}
+
+//////////////////////////////////////////////////
+bool LightCommand::Execute()
+{
+  auto lightMsg = dynamic_cast<const msgs::Light *>(this->msg);
+  if (nullptr == lightMsg)
+  {
+    ignerr << "Internal error, null light message" << std::endl;
+    return false;
+  }
+
+  Entity lightEntity{kNullEntity};
+
+  if (lightMsg->id() != kNullEntity)
+  {
+    lightEntity = lightMsg->id();
+  }
+  else if (!lightMsg->name().empty())
+  {
+    if (lightMsg->parent_id() != kNullEntity)
+    {
+      lightEntity = this->iface->ecm->EntityByComponents(
+        components::Name(lightMsg->name()),
+        components::ParentEntity(lightMsg->parent_id()));
+    }
+    else
+    {
+      lightEntity = this->iface->ecm->EntityByComponents(
+        components::Name(lightMsg->name()));
+    }
+  }
+  if (kNullEntity == lightEntity)
+  {
+    ignerr << "Failed to find light with name [" << lightMsg->name()
+           << "], ID [" << lightMsg->id() << "] and parent ID ["
+           << lightMsg->parent_id() << "]." << std::endl;
+    return false;
+  }
+
+  if (!lightEntity)
+  {
+    ignmsg << "Failed to find light entity named [" << lightMsg->name()
+      << "]." << std::endl;
+    return false;
+  }
+
+  auto lightPose = this->iface->ecm->Component<components::Pose>(lightEntity);
+  if (nullptr == lightPose)
+    lightEntity = kNullEntity;
+
+  if (!lightEntity)
+  {
+    ignmsg << "Pose component not available" << std::endl;
+    return false;
+  }
+
+  if (lightMsg->has_pose())
+  {
+    lightPose->Data().Pos() = msgs::Convert(lightMsg->pose()).Pos();
+  }
+
+  auto lightCmdComp =
+    this->iface->ecm->Component<components::LightCmd>(lightEntity);
+  if (!lightCmdComp)
+  {
+    this->iface->ecm->CreateComponent(
+        lightEntity, components::LightCmd(*lightMsg));
+  }
+  else
+  {
+    auto state = lightCmdComp->SetData(*lightMsg, this->lightEql) ?
+        ComponentState::OneTimeChange :
+        ComponentState::NoChange;
+    this->iface->ecm->SetChanged(lightEntity, components::LightCmd::typeId,
+      state);
+  }
+
+  return true;
+}
+
+//////////////////////////////////////////////////
 PoseCommand::PoseCommand(msgs::Pose *_msg,
     std::shared_ptr<UserCommandsInterface> &_iface)
     : UserCommandBase(_msg, _iface)
@@ -715,6 +1096,141 @@ bool PoseCommand::Execute()
   return true;
 }
 
+//////////////////////////////////////////////////
+PhysicsCommand::PhysicsCommand(msgs::Physics *_msg,
+    std::shared_ptr<UserCommandsInterface> &_iface)
+    : UserCommandBase(_msg, _iface)
+{
+}
+
+//////////////////////////////////////////////////
+bool PhysicsCommand::Execute()
+{
+  auto physicsMsg = dynamic_cast<const msgs::Physics *>(this->msg);
+  if (nullptr == physicsMsg)
+  {
+    ignerr << "Internal error, null physics message" << std::endl;
+    return false;
+  }
+
+  auto worldEntity = this->iface->ecm->EntityByComponents(components::World());
+  if (worldEntity == kNullEntity)
+  {
+    ignmsg << "Failed to find world entity" << std::endl;
+    return false;
+  }
+
+  if (!this->iface->ecm->EntityHasComponentType(worldEntity,
+    components::PhysicsCmd().TypeId()))
+  {
+    this->iface->ecm->CreateComponent(worldEntity,
+        components::PhysicsCmd(*physicsMsg));
+  }
+
+  return true;
+}
+
+//////////////////////////////////////////////////
+EnableCollisionCommand::EnableCollisionCommand(msgs::Entity *_msg,
+    std::shared_ptr<UserCommandsInterface> &_iface)
+    : UserCommandBase(_msg, _iface)
+{
+}
+
+//////////////////////////////////////////////////
+bool EnableCollisionCommand::Execute()
+{
+  auto entityMsg = dynamic_cast<const msgs::Entity *>(this->msg);
+  if (nullptr == entityMsg)
+  {
+    ignerr << "Internal error, null create message" << std::endl;
+    return false;
+  }
+
+  // Check Entity type
+  if (entityMsg->type() != msgs::Entity::COLLISION)
+  {
+    ignwarn << "Expected msgs::Entity::Type::COLLISION, exiting service..."
+      << std::endl;
+    return false;
+  }
+
+  // Check if collision is connected to a contact sensor
+  if (this->iface->HasContactSensor(entityMsg->id()))
+  {
+    ignwarn << "Requested collision is connected to a contact sensor, "
+      << "exiting service..." << std::endl;
+    return false;
+  }
+
+  // Create ContactSensorData component
+  auto contactDataComp =
+    this->iface->ecm->Component<
+      components::ContactSensorData>(entityMsg->id());
+  if (contactDataComp)
+  {
+    ignwarn << "Can't create component that already exists" << std::endl;
+    return false;
+  }
+
+  this->iface->ecm->
+    CreateComponent(entityMsg->id(), components::ContactSensorData());
+  igndbg << "Enabled collision [" << entityMsg->id() << "]" << std::endl;
+
+  return true;
+}
+
+//////////////////////////////////////////////////
+DisableCollisionCommand::DisableCollisionCommand(msgs::Entity *_msg,
+    std::shared_ptr<UserCommandsInterface> &_iface)
+    : UserCommandBase(_msg, _iface)
+{
+}
+
+//////////////////////////////////////////////////
+bool DisableCollisionCommand::Execute()
+{
+  auto entityMsg = dynamic_cast<const msgs::Entity *>(this->msg);
+  if (nullptr == entityMsg)
+  {
+    ignerr << "Internal error, null create message" << std::endl;
+    return false;
+  }
+
+  // Check Entity type
+  if (entityMsg->type() != msgs::Entity::COLLISION)
+  {
+    ignwarn << "Expected msgs::Entity::Type::COLLISION, exiting service..."
+      << std::endl;
+    return false;
+  }
+
+  // Check if collision is connected to a contact sensor
+  if (this->iface->HasContactSensor(entityMsg->id()))
+  {
+    ignwarn << "Requested collision is connected to a contact sensor, "
+      << "exiting service..." << std::endl;
+    return false;
+  }
+
+  // Remove ContactSensorData component
+  auto *contactDataComp =
+    this->iface->ecm->Component<
+      components::ContactSensorData>(entityMsg->id());
+  if (!contactDataComp)
+  {
+    ignwarn << "No ContactSensorData detected inside entity " << entityMsg->id()
+      << std::endl;
+    return false;
+  }
+
+  this->iface->ecm->
+    RemoveComponent(entityMsg->id(), components::ContactSensorData::typeId);
+
+  igndbg << "Disabled collision [" << entityMsg->id() << "]" << std::endl;
+
+  return true;
+}
 
 IGNITION_ADD_PLUGIN(UserCommands, System,
   UserCommands::ISystemConfigure,

@@ -25,7 +25,9 @@
 
 // Features need to be defined ahead of entityCast
 #include <ignition/physics/BoxShape.hh>
+#include <ignition/physics/CapsuleShape.hh>
 #include <ignition/physics/CylinderShape.hh>
+#include <ignition/physics/EllipsoidShape.hh>
 #include <ignition/physics/ForwardStep.hh>
 #include <ignition/physics/FrameSemantics.hh>
 #include <ignition/physics/FreeGroup.hh>
@@ -37,6 +39,7 @@
 #include <ignition/physics/RemoveEntities.hh>
 #include <ignition/physics/Shape.hh>
 #include <ignition/physics/SphereShape.hh>
+#include <ignition/physics/World.hh>
 #include <ignition/physics/mesh/MeshShape.hh>
 #include <ignition/physics/sdf/ConstructCollision.hh>
 #include <ignition/physics/sdf/ConstructJoint.hh>
@@ -85,53 +88,6 @@ namespace systems
     /// \brief Private data pointer.
     private: std::unique_ptr<PhysicsPrivate> dataPtr;
   };
-
-  /// \brief Helper function to cast from an entity type with minimum features
-  /// to an entity with a different set of features. When the entity is cast
-  /// successfully, it is added to _castMap so that subsequent casts will
-  /// use the entity from the map.
-  /// \tparam PolicyT The feature policy, such as
-  /// `ignition::physics::FeaturePolicy3d`.
-  /// \tparam ToFeatureList The list of features of the resulting entity.
-  /// \tparam MinimumFeatureList The minimum list of features.
-  /// \tparam ToEntity Type of entities with ToFeatureList
-  /// \tparam MinimumEntity Type of entities with MinimumFeatureList
-  /// \param[in] _entity Entity ID.
-  /// \param[in] _minimumEntity Entity pointer with minimum features.
-  /// \param[in] _castMap Map to store entities that have already been cast.
-  template <
-      typename PolicyT,
-      typename ToFeatureList,
-      typename MinimumFeatureList,
-      template <typename, typename> class ToEntity,
-      template <typename, typename> class MinimumEntity>
-  physics::EntityPtr<ToEntity<PolicyT, ToFeatureList>> entityCast(
-      Entity _entity,
-      const physics::EntityPtr<MinimumEntity<PolicyT, MinimumFeatureList>>
-        &_minimumEntity,
-      std::unordered_map<Entity, physics::EntityPtr<
-        ToEntity<PolicyT, ToFeatureList>>> &_castMap)
-  {
-    // Has already been cast
-    auto castIt = _castMap.find(_entity);
-    if (castIt != _castMap.end())
-    {
-      return castIt->second;
-    }
-
-    physics::EntityPtr<ToEntity<PolicyT, ToFeatureList>> castEntity;
-
-    // Cast
-    castEntity =
-        physics::RequestFeatures<ToFeatureList>::From(_minimumEntity);
-
-    if (castEntity)
-    {
-      _castMap.insert(std::make_pair(_entity, castEntity));
-    }
-
-    return castEntity;
-  }
 }
 }
 }

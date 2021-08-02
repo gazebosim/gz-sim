@@ -1,12 +1,14 @@
 set(TEST_TYPE "INTEGRATION")
 
 set(tests
+  ackermann_steering_system.cc
   air_pressure_system.cc
   altimeter_system.cc
   apply_joint_force_system.cc
   battery_plugin.cc
   breadcrumbs.cc
   buoyancy.cc
+  collada_world_exporter.cc
   components.cc
   contact_system.cc
   detachable_joint.cc
@@ -16,10 +18,13 @@ set(tests
   events.cc
   examples_build.cc
   follow_actor_system.cc
+  fuel_cached_server.cc
+  halt_motion.cc
   imu_system.cc
   joint_controller_system.cc
   joint_position_controller_system.cc
   joint_state_publisher_system.cc
+  joint_trajectory_controller_system.cc
   kinetic_energy_monitor_system.cc
   lift_drag_system.cc
   level_manager.cc
@@ -30,7 +35,12 @@ set(tests
   magnetometer_system.cc
   model.cc
   multicopter.cc
+  multiple_servers.cc
+  nested_model_physics.cc
   network_handshake.cc
+  odometry_publisher.cc
+  particle_emitter.cc
+  particle_emitter2.cc
   performer_detector.cc
   physics_system.cc
   play_pause.cc
@@ -39,7 +49,6 @@ set(tests
   scene_broadcaster_system.cc
   sdf_frame_semantics.cc
   sdf_include.cc
-  thermal_system.cc
   touch_plugin.cc
   triggered_publisher.cc
   user_commands.cc
@@ -55,8 +64,11 @@ set(tests_needing_display
   camera_video_record_system.cc
   depth_camera.cc
   gpu_lidar.cc
+  optical_tactile_plugin.cc
   rgbd_camera.cc
   sensors_system.cc
+  thermal_system.cc
+  thermal_sensor_system.cc
 )
 
 # Add systems that need a valid display here.
@@ -70,6 +82,15 @@ else()
   foreach(test ${tests_needing_display})
     message(STATUS " ${test}")
   endforeach(test)
+endif()
+
+if (MSVC)
+  # Warning #4251 is the "dll-interface" warning that tells you when types used
+  # by a class are not being exported. These generated source files have private
+  # members that don't get exported, so they trigger this warning. However, the
+  # warning is not important since those members do not need to be interfaced
+  # with.
+  set_source_files_properties(${tests} COMPILE_FLAGS "/wd4251 /wd4146")
 endif()
 
 link_directories(${PROJECT_BINARY_DIR}/test)

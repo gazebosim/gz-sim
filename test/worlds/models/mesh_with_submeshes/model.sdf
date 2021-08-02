@@ -1,0 +1,33 @@
+<?xml version='1.0'?>
+<sdf version='1.6'>
+  <model name='scheme_resource_uri'>
+    <pose>0 0 1 0 0 0</pose>
+    <link name='the_link'>
+      <visual name='visual_submesh'>
+        <geometry>
+          <mesh>
+            <uri>model://mesh_with_submeshes/meshes/mesh_with_submeshes.dae</uri>
+            <submesh>
+              <name>node_0</name>
+              <center>false</center>
+            </submesh>
+          </mesh>
+        </geometry>
+      </visual>
+      <visual name='the_visual'>
+        <geometry>
+          <mesh>
+            <uri>model://mesh_with_submeshes/meshes/mesh_with_submeshes.dae</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name='the_collision'>
+        <geometry>
+          <mesh>
+            <uri>model://mesh_with_submeshes/meshes/mesh_with_submeshes.dae</uri>
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+  </model>
+</sdf>

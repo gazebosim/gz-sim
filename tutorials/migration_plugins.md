@@ -75,7 +75,7 @@ class MyPlugin : public ModelPlugin
     this->link = _model->GetLink(linkName);
 
     // Register callback to be called at every iteration
-    this->connection = event::Events::ConnectWorldUpdateBegin(
+    this->updateConnection = event::Events::ConnectWorldUpdateBegin(
             std::bind(&MyPlugin::OnUpdate, this));
   }
 
@@ -248,7 +248,7 @@ In summary, the key differences between Gazebo Classic and Ignition Gazebo are:
 
 * Plugins don't have direct access to physics objects such as `physics::Model`.
   Instead, they can either deal directly with entities and their components by
-  calling functions of the ECM, or use convenient objects such as
+  calling functions in the ECM, or using convenient objects such as
   `ignition::gazebo::Model` which wrap the ECM interface.
 
 All these changes are meant to give plugin developers more flexibility to

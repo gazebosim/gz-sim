@@ -52,7 +52,7 @@ TEST_P(SceneBroadcasterTest, PoseInfo)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(16u, *server.EntityCount());
+  EXPECT_EQ(24u, *server.EntityCount());
 
   // Create pose subscriber
   transport::Node node;
@@ -64,7 +64,7 @@ TEST_P(SceneBroadcasterTest, PoseInfo)
     ASSERT_TRUE(_msg.header().has_stamp());
     EXPECT_LT(0, _msg.header().stamp().sec() +  _msg.header().stamp().nsec());
 
-    EXPECT_EQ(10, _msg.pose_size());
+    EXPECT_EQ(16, _msg.pose_size());
 
     std::map<int, std::string> entityMap;
     for (auto p = 0; p < _msg.pose_size(); ++p)
@@ -72,7 +72,7 @@ TEST_P(SceneBroadcasterTest, PoseInfo)
       entityMap.insert(std::make_pair(_msg.pose(p).id(), _msg.pose(p).name()));
     }
 
-    EXPECT_EQ(10u, entityMap.size());
+    EXPECT_EQ(16u, entityMap.size());
 
     received = true;
   };
@@ -82,7 +82,7 @@ TEST_P(SceneBroadcasterTest, PoseInfo)
   server.Run(true, 1, false);
 
   unsigned int sleep{0u};
-  unsigned int maxSleep{10u};
+  unsigned int maxSleep{30u};
   // cppcheck-suppress unmatchedSuppression
   // cppcheck-suppress knownConditionTrueFalse
   while (!received && sleep++ < maxSleep)
@@ -102,7 +102,7 @@ TEST_P(SceneBroadcasterTest, SceneInfo)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(16u, *server.EntityCount());
+  EXPECT_EQ(24u, *server.EntityCount());
 
   // Run server
   server.Run(true, 1, false);
@@ -117,7 +117,7 @@ TEST_P(SceneBroadcasterTest, SceneInfo)
   EXPECT_TRUE(node.Request("/world/default/scene/info", timeout, res, result));
   EXPECT_TRUE(result);
 
-  EXPECT_EQ(3, res.model_size());
+  EXPECT_EQ(5, res.model_size());
 
   for (auto m = 0; m < res.model_size(); ++m)
   {
@@ -148,7 +148,7 @@ TEST_P(SceneBroadcasterTest, SceneGraph)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(16u, *server.EntityCount());
+  EXPECT_EQ(24u, *server.EntityCount());
 
   // Run server
   server.Run(true, 1, false);
@@ -188,7 +188,7 @@ TEST_P(SceneBroadcasterTest, SceneTopic)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(16u, *server.EntityCount());
+  EXPECT_EQ(24u, *server.EntityCount());
 
   // Create requester
   transport::Node node;
@@ -222,6 +222,57 @@ TEST_P(SceneBroadcasterTest, SceneTopic)
 
 /////////////////////////////////////////////////
 /// Test whether the scene topic is published only when new entities are added
+TEST_P(SceneBroadcasterTest, SceneTopicSensors)
+{
+  // Start server
+  ignition::gazebo::ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+                          "/test/worlds/altimeter_with_pose.sdf");
+
+  gazebo::Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+  EXPECT_EQ(12u, *server.EntityCount());
+
+  // Create requester
+  transport::Node node;
+
+  std::vector<msgs::Scene> sceneMsgs;
+  std::function<void(const msgs::Scene &)> collectMsgs =
+      [&sceneMsgs](const msgs::Scene &_msg)
+      {
+        sceneMsgs.push_back(_msg);
+      };
+
+  node.Subscribe("/world/altimeter_sensor/scene/info", collectMsgs);
+
+  // Run server
+  server.Run(true, 10, false);
+
+  // Should only have one scene even though the simulation ran multiple times
+  ASSERT_EQ(1u, sceneMsgs.size());
+
+  // Compare this scene with one from a service request
+  msgs::Scene &scene = sceneMsgs.front();
+
+  bool result{false};
+  unsigned int timeout{5000};
+  ignition::msgs::Scene msg;
+
+  EXPECT_TRUE(node.Request("/world/altimeter_sensor/scene/info",
+        timeout, msg, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(google::protobuf::util::MessageDifferencer::Equals(msg, scene));
+
+  EXPECT_EQ(1, msg.model(1).link(0).sensor_size());
+  EXPECT_EQ("altimeter_sensor", msg.model(1).link(0).sensor(0).name());
+  EXPECT_DOUBLE_EQ(0.1, msg.model(1).link(0).sensor(0).pose().position().x());
+  EXPECT_DOUBLE_EQ(0.2, msg.model(1).link(0).sensor(0).pose().position().y());
+  EXPECT_DOUBLE_EQ(0.3, msg.model(1).link(0).sensor(0).pose().position().z());
+}
+
+/////////////////////////////////////////////////
+/// Test whether the scene topic is published only when new entities are added
 TEST_P(SceneBroadcasterTest, DeletedTopic)
 {
   // Start server
@@ -233,7 +284,7 @@ TEST_P(SceneBroadcasterTest, DeletedTopic)
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  const std::size_t initEntityCount = 16;
+  const std::size_t initEntityCount = 24;
   EXPECT_EQ(initEntityCount, *server.EntityCount());
 
   // Subscribe to deletions
@@ -293,7 +344,7 @@ TEST_P(SceneBroadcasterTest, SpawnedModel)
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  const std::size_t initEntityCount = 16;
+  const std::size_t initEntityCount = 24;
   EXPECT_EQ(initEntityCount, *server.EntityCount());
 
   server.Run(true, 1, false);
@@ -362,7 +413,7 @@ TEST_P(SceneBroadcasterTest, State)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(16u, *server.EntityCount());
+  EXPECT_EQ(24u, *server.EntityCount());
   transport::Node node;
 
   // Run server
@@ -392,19 +443,19 @@ TEST_P(SceneBroadcasterTest, State)
       [&](const msgs::SerializedStepMap &_res, const bool _success)
   {
     EXPECT_TRUE(_success);
-    checkMsg(_res, 16);
+    checkMsg(_res, 24);
   };
   std::function<void(const msgs::SerializedStepMap &)> cb2 =
       [&](const msgs::SerializedStepMap &_res)
   {
-    checkMsg(_res, 3);
+    checkMsg(_res, 5);
   };
 
   // async state request with full state response
   std::function<void(const msgs::SerializedStepMap &)> cbAsync =
       [&](const msgs::SerializedStepMap &_res)
   {
-    checkMsg(_res, 16);
+    checkMsg(_res, 24);
   };
 
   // The request is blocking even though it's meant to be async, so we spin a
@@ -417,7 +468,7 @@ TEST_P(SceneBroadcasterTest, State)
 
   // Run server
   unsigned int sleep{0u};
-  unsigned int maxSleep{10u};
+  unsigned int maxSleep{30u};
   while (!received && sleep++ < maxSleep)
   {
     IGN_SLEEP_MS(100);
@@ -439,6 +490,7 @@ TEST_P(SceneBroadcasterTest, State)
   while (!received && sleep++ < maxSleep)
     IGN_SLEEP_MS(100);
   EXPECT_TRUE(received);
+  EXPECT_TRUE(node.Unsubscribe("/world/default/state"));
 
   // test async state request
   received = false;
@@ -540,7 +592,7 @@ TEST_P(SceneBroadcasterTest, StateStatic)
 
   // Run server
   unsigned int sleep{0u};
-  unsigned int maxSleep{10u};
+  unsigned int maxSleep{30u};
   while (!received && sleep++ < maxSleep)
   {
     IGN_SLEEP_MS(100);

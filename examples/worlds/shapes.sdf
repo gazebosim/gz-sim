@@ -17,7 +17,7 @@ Try moving a model:
       <cast_shadows>true</cast_shadows>
       <pose>0 0 10 0 0 0</pose>
       <diffuse>0.8 0.8 0.8 1</diffuse>
-      <specular>0.8 0.8 0.8 1</specular>
+      <specular>0.2 0.2 0.2 1</specular>
       <attenuation>
         <range>1000</range>
         <constant>0.9</constant>
@@ -34,6 +34,7 @@ Try moving a model:
           <geometry>
             <plane>
               <normal>0 0 1</normal>
+              <size>100 100</size>
             </plane>
           </geometry>
         </collision>
@@ -58,12 +59,12 @@ Try moving a model:
       <link name="box_link">
         <inertial>
           <inertia>
-            <ixx>1</ixx>
+            <ixx>0.16666</ixx>
             <ixy>0</ixy>
             <ixz>0</ixz>
-            <iyy>1</iyy>
+            <iyy>0.16666</iyy>
             <iyz>0</iyz>
-            <izz>1</izz>
+            <izz>0.16666</izz>
           </inertia>
           <mass>1.0</mass>
         </inertial>
@@ -95,14 +96,14 @@ Try moving a model:
       <link name="cylinder_link">
         <inertial>
           <inertia>
-            <ixx>2</ixx>
+            <ixx>0.1458</ixx>
             <ixy>0</ixy>
             <ixz>0</ixz>
-            <iyy>2</iyy>
+            <iyy>0.1458</iyy>
             <iyz>0</iyz>
-            <izz>2</izz>
+            <izz>0.125</izz>
           </inertia>
-          <mass>2.0</mass>
+          <mass>1.0</mass>
         </inertial>
         <collision name="cylinder_collision">
           <geometry>
@@ -134,14 +135,14 @@ Try moving a model:
       <link name="sphere_link">
         <inertial>
           <inertia>
-            <ixx>3</ixx>
+            <ixx>0.1</ixx>
             <ixy>0</ixy>
             <ixz>0</ixz>
-            <iyy>3</iyy>
+            <iyy>0.1</iyy>
             <iyz>0</iyz>
-            <izz>3</izz>
+            <izz>0.1</izz>
           </inertia>
-          <mass>3.0</mass>
+          <mass>1.0</mass>
         </inertial>
         <collision name="sphere_collision">
           <geometry>
@@ -161,6 +162,80 @@ Try moving a model:
             <ambient>0 0 1 1</ambient>
             <diffuse>0 0 1 1</diffuse>
             <specular>0 0 1 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="capsule">
+      <pose>0 -3.0 0.5 0 0 0</pose>
+      <link name="capsule_link">
+        <inertial>
+          <inertia>
+            <ixx>0.074154</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.074154</iyy>
+            <iyz>0</iyz>
+            <izz>0.018769</izz>
+          </inertia>
+          <mass>1.0</mass>
+        </inertial>
+        <collision name="capsule_collision">
+          <geometry>
+            <capsule>
+              <radius>0.2</radius>
+              <length>0.6</length>
+            </capsule>
+          </geometry>
+        </collision>
+        <visual name="capsule_visual">
+          <geometry>
+            <capsule>
+              <radius>0.2</radius>
+              <length>0.6</length>
+            </capsule>
+          </geometry>
+          <material>
+            <ambient>1 1 0 1</ambient>
+            <diffuse>1 1 0 1</diffuse>
+            <specular>1 1 0 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="ellipsoid">
+      <pose>0 3.0 0.5 0 0 0</pose>
+      <link name="ellipsoid_link">
+        <inertial>
+          <inertia>
+            <ixx>0.068</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.058</iyy>
+            <iyz>0</iyz>
+            <izz>0.026</izz>
+          </inertia>
+          <mass>1.0</mass>
+        </inertial>
+        <collision name="ellipsoid_collision">
+          <geometry>
+            <ellipsoid>
+              <radii>0.2 0.3 0.5</radii>
+            </ellipsoid>
+          </geometry>
+        </collision>
+        <visual name="ellipsoid_visual">
+          <geometry>
+            <ellipsoid>
+              <radii>0.2 0.3 0.5</radii>
+            </ellipsoid>
+          </geometry>
+          <material>
+            <ambient>1 0 1 1</ambient>
+            <diffuse>1 0 1 1</diffuse>
+            <specular>1 0 1 1</specular>
           </material>
         </visual>
       </link>

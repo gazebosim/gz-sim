@@ -26,6 +26,8 @@
 #include <ignition/msgs/inertial.pb.h>
 #include <ignition/msgs/light.pb.h>
 #include <ignition/msgs/material.pb.h>
+#include <ignition/msgs/particle_emitter.pb.h>
+#include <ignition/msgs/physics.pb.h>
 #include <ignition/msgs/scene.pb.h>
 #include <ignition/msgs/sensor.pb.h>
 #include <ignition/msgs/sensor_noise.pb.h>
@@ -46,6 +48,8 @@
 #include <sdf/Light.hh>
 #include <sdf/Material.hh>
 #include <sdf/Noise.hh>
+#include <sdf/ParticleEmitter.hh>
+#include <sdf/Physics.hh>
 #include <sdf/Scene.hh>
 #include <sdf/Sensor.hh>
 
@@ -432,6 +436,41 @@ namespace ignition
     sdf::Atmosphere convert(const msgs::Atmosphere &_in);
 
 
+    /// \brief Generic conversion from an SDF Physics to another type.
+    /// \param[in] _in SDF Physics.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const sdf::Physics &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from an SDF physics to a physics
+    /// message.
+    /// \param[in] _in SDF physics.
+    /// \return Physics message.
+    template<>
+    msgs::Physics convert(const sdf::Physics &_in);
+
+    /// \brief Generic conversion from a physics message to another type.
+    /// \param[in] _in Physics message.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const msgs::Physics &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from a physics message to a physics
+    /// SDF object.
+    /// \param[in] _in Physics message.
+    /// \return SDF physics.
+    template<>
+    sdf::Physics convert(const msgs::Physics &_in);
+
+
     /// \brief Generic conversion from an SDF Sensor to another type.
     /// \param[in] _in SDF Sensor.
     /// \return Conversion result.
@@ -444,7 +483,7 @@ namespace ignition
 
     /// \brief Specialized conversion from an SDF sensor to a sensor
     /// message.
-    /// \param[in] _in SDF geometry.
+    /// \param[in] _in SDF sensor.
     /// \return Sensor message.
     template<>
     msgs::Sensor convert(const sdf::Sensor &_in);
@@ -602,6 +641,42 @@ namespace ignition
     /// \return Axis aligned box object.
     template<>
     math::AxisAlignedBox convert(const msgs::AxisAlignedBox &_in);
+
+    /// \brief Generic conversion from a particle emitter SDF object to another
+    /// type.
+    /// \param[in] _in Particle emitter SDF object.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const sdf::ParticleEmitter &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from a particle emitter SDF object to
+    /// a particle emitter message object.
+    /// \param[in] _in Particle emitter SDF object.
+    /// \return Particle emitter message.
+    template<>
+    msgs::ParticleEmitter convert(const sdf::ParticleEmitter &_in);
+
+    /// \brief Generic conversion from a particle emitter SDF object to another
+    /// type.
+    /// \param[in] _in Particle emitter SDF object.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const msgs::ParticleEmitter &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from a particle emitter SDF object to
+    /// a particle emitter message object.
+    /// \param[in] _in Particle emitter SDF object.
+    /// \return Particle emitter message.
+    template<>
+    sdf::ParticleEmitter convert(const msgs::ParticleEmitter &_in);
     }
   }
 }

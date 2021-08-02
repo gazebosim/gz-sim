@@ -18,8 +18,10 @@
 #include <ignition/msgs/atmosphere.pb.h>
 #include <ignition/msgs/axis_aligned_box.pb.h>
 #include <ignition/msgs/boxgeom.pb.h>
+#include <ignition/msgs/capsulegeom.pb.h>
 #include <ignition/msgs/cylindergeom.pb.h>
 #include <ignition/msgs/entity.pb.h>
+#include <ignition/msgs/ellipsoidgeom.pb.h>
 #include <ignition/msgs/geometry.pb.h>
 #include <ignition/msgs/gui.pb.h>
 #include <ignition/msgs/heightmapgeom.pb.h>
@@ -46,7 +48,9 @@
 #include <sdf/Altimeter.hh>
 #include <sdf/Box.hh>
 #include <sdf/Camera.hh>
+#include <sdf/Capsule.hh>
 #include <sdf/Cylinder.hh>
+#include <sdf/Ellipsoid.hh>
 #include <sdf/Geometry.hh>
 #include <sdf/Gui.hh>
 #include <sdf/Heightmap.hh>
@@ -160,11 +164,23 @@ msgs::Geometry ignition::gazebo::convert(const sdf::Geometry &_in)
     out.set_type(msgs::Geometry::BOX);
     msgs::Set(out.mutable_box()->mutable_size(), _in.BoxShape()->Size());
   }
+  else if (_in.Type() == sdf::GeometryType::CAPSULE && _in.CapsuleShape())
+  {
+    out.set_type(msgs::Geometry::CAPSULE);
+    out.mutable_capsule()->set_radius(_in.CapsuleShape()->Radius());
+    out.mutable_capsule()->set_length(_in.CapsuleShape()->Length());
+  }
   else if (_in.Type() == sdf::GeometryType::CYLINDER && _in.CylinderShape())
   {
     out.set_type(msgs::Geometry::CYLINDER);
     out.mutable_cylinder()->set_radius(_in.CylinderShape()->Radius());
     out.mutable_cylinder()->set_length(_in.CylinderShape()->Length());
+  }
+  else if (_in.Type() == sdf::GeometryType::ELLIPSOID && _in.EllipsoidShape())
+  {
+    out.set_type(msgs::Geometry::ELLIPSOID);
+    msgs::Set(out.mutable_ellipsoid()->mutable_radii(),
+             _in.EllipsoidShape()->Radii());
   }
   else if (_in.Type() == sdf::GeometryType::PLANE && _in.PlaneShape())
   {
@@ -247,6 +263,16 @@ sdf::Geometry ignition::gazebo::convert(const msgs::Geometry &_in)
 
     out.SetBoxShape(boxShape);
   }
+  else if (_in.type() == msgs::Geometry::CAPSULE && _in.has_capsule())
+  {
+    out.SetType(sdf::GeometryType::CAPSULE);
+
+    sdf::Capsule capsuleShape;
+    capsuleShape.SetRadius(_in.capsule().radius());
+    capsuleShape.SetLength(_in.capsule().length());
+
+    out.SetCapsuleShape(capsuleShape);
+  }
   else if (_in.type() == msgs::Geometry::CYLINDER && _in.has_cylinder())
   {
     out.SetType(sdf::GeometryType::CYLINDER);
@@ -256,6 +282,15 @@ sdf::Geometry ignition::gazebo::convert(const msgs::Geometry &_in)
     cylinderShape.SetLength(_in.cylinder().length());
 
     out.SetCylinderShape(cylinderShape);
+  }
+  else if (_in.type() == msgs::Geometry::ELLIPSOID && _in.has_ellipsoid())
+  {
+    out.SetType(sdf::GeometryType::ELLIPSOID);
+
+    sdf::Ellipsoid ellipsoidShape;
+    ellipsoidShape.SetRadii(msgs::Convert(_in.ellipsoid().radii()));
+
+    out.SetEllipsoidShape(ellipsoidShape);
   }
   else if (_in.type() == msgs::Geometry::PLANE && _in.has_plane())
   {
@@ -840,6 +875,28 @@ void ignition::gazebo::set(msgs::WorldStatistics *_msg,
 }
 
 //////////////////////////////////////////////////
+template<>
+IGNITION_GAZEBO_VISIBLE
+msgs::Physics ignition::gazebo::convert(const sdf::Physics &_in)
+{
+  msgs::Physics out;
+  out.set_max_step_size(_in.MaxStepSize());
+  out.set_real_time_factor(_in.RealTimeFactor());
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+IGNITION_GAZEBO_VISIBLE
+sdf::Physics ignition::gazebo::convert(const msgs::Physics &_in)
+{
+  sdf::Physics out;
+  out.SetRealTimeFactor(_in.real_time_factor());
+  out.SetMaxStepSize(_in.max_step_size());
+  return out;
+}
+
+//////////////////////////////////////////////////
 void ignition::gazebo::set(msgs::SensorNoise *_msg, const sdf::Noise &_sdf)
 {
   switch (_sdf.Type())
@@ -1206,8 +1263,8 @@ sdf::Sensor ignition::gazebo::convert(const msgs::Sensor &_in)
     if (_in.has_camera())
     {
       sensor.SetHorizontalFov(_in.camera().horizontal_fov());
-      sensor.SetImageWidth(_in.camera().image_size().x());
-      sensor.SetImageHeight(_in.camera().image_size().y());
+      sensor.SetImageWidth(static_cast<int>(_in.camera().image_size().x()));
+      sensor.SetImageHeight(static_cast<int>(_in.camera().image_size().y()));
       sensor.SetPixelFormatStr(_in.camera().image_format());
       sensor.SetNearClip(_in.camera().near_clip());
       sensor.SetFarClip(_in.camera().far_clip());
@@ -1437,5 +1494,143 @@ math::AxisAlignedBox ignition::gazebo::convert(const msgs::AxisAlignedBox &_in)
   math::AxisAlignedBox out;
   out.Min() = msgs::Convert(_in.min_corner());
   out.Max() = msgs::Convert(_in.max_corner());
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+IGNITION_GAZEBO_VISIBLE
+msgs::ParticleEmitter ignition::gazebo::convert(const sdf::ParticleEmitter &_in)
+{
+  msgs::ParticleEmitter out;
+  out.set_name(_in.Name());
+  switch (_in.Type())
+  {
+    default:
+    case sdf::ParticleEmitterType::POINT:
+      out.set_type(msgs::ParticleEmitter::POINT);
+      break;
+    case sdf::ParticleEmitterType::BOX:
+      out.set_type(msgs::ParticleEmitter::BOX);
+      break;
+    case sdf::ParticleEmitterType::CYLINDER:
+      out.set_type(msgs::ParticleEmitter::CYLINDER);
+      break;
+    case sdf::ParticleEmitterType::ELLIPSOID:
+      out.set_type(msgs::ParticleEmitter::ELLIPSOID);
+      break;
+  }
+
+  msgs::Set(out.mutable_pose(), _in.RawPose());
+  msgs::Set(out.mutable_size(), _in.Size());
+  msgs::Set(out.mutable_particle_size(), _in.ParticleSize());
+  out.mutable_rate()->set_data(_in.Rate());
+  out.mutable_duration()->set_data(_in.Duration());
+  out.mutable_emitting()->set_data(_in.Emitting());
+  out.mutable_lifetime()->set_data(_in.Lifetime());
+  if (_in.Material())
+  {
+    out.mutable_material()->CopyFrom(convert<msgs::Material>(*_in.Material()));
+  }
+  out.mutable_min_velocity()->set_data(_in.MinVelocity());
+  out.mutable_max_velocity()->set_data(_in.MaxVelocity());
+  msgs::Set(out.mutable_color_start(), _in.ColorStart());
+  msgs::Set(out.mutable_color_end(), _in.ColorEnd());
+  out.mutable_scale_rate()->set_data(_in.ScaleRate());
+  out.mutable_color_range_image()->set_data(_in.ColorRangeImage());
+
+  if (!_in.ColorRangeImage().empty())
+  {
+    std::string path = asFullPath(_in.ColorRangeImage(), _in.FilePath());
+
+    common::SystemPaths systemPaths;
+    systemPaths.SetFilePathEnv(kResourcePathEnv);
+    std::string absolutePath = systemPaths.FindFile(path);
+
+    if (!absolutePath.empty())
+      out.mutable_color_range_image()->set_data(absolutePath);
+  }
+
+  /// \todo(nkoenig) Modify the particle_emitter.proto file to
+  /// have a topic field.
+  if (!_in.Topic().empty())
+  {
+    auto header = out.mutable_header()->add_data();
+    header->set_key("topic");
+    header->add_value(_in.Topic());
+  }
+
+  // todo(anyone) Use particle_scatter_ratio in particle_emitter.proto from
+  // Fortress on.
+  auto header = out.mutable_header()->add_data();
+  header->set_key("particle_scatter_ratio");
+  std::string *value = header->add_value();
+  *value = std::to_string(_in.ScatterRatio());
+
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+IGNITION_GAZEBO_VISIBLE
+sdf::ParticleEmitter ignition::gazebo::convert(const msgs::ParticleEmitter &_in)
+{
+  sdf::ParticleEmitter out;
+  out.SetName(_in.name());
+  switch (_in.type())
+  {
+    default:
+    case msgs::ParticleEmitter::POINT:
+      out.SetType(sdf::ParticleEmitterType::POINT);
+      break;
+    case msgs::ParticleEmitter::BOX:
+      out.SetType(sdf::ParticleEmitterType::BOX);
+      break;
+    case msgs::ParticleEmitter::CYLINDER:
+      out.SetType(sdf::ParticleEmitterType::CYLINDER);
+      break;
+    case msgs::ParticleEmitter::ELLIPSOID:
+      out.SetType(sdf::ParticleEmitterType::ELLIPSOID);
+      break;
+  }
+  out.SetRawPose(msgs::Convert(_in.pose()));
+  out.SetSize(msgs::Convert(_in.size()));
+  out.SetParticleSize(msgs::Convert(_in.particle_size()));
+  out.SetMinVelocity(msgs::Convert(_in.min_velocity()));
+  out.SetMaxVelocity(msgs::Convert(_in.max_velocity()));
+  out.SetColorStart(msgs::Convert(_in.color_start()));
+  out.SetColorEnd(msgs::Convert(_in.color_end()));
+
+  if (_in.has_material())
+  {
+    out.SetMaterial(convert<sdf::Material>(_in.material()));
+  }
+
+  if (_in.has_rate())
+    out.SetRate(_in.rate().data());
+  if (_in.has_duration())
+    out.SetDuration(_in.duration().data());
+  if (_in.has_emitting())
+    out.SetEmitting(_in.emitting().data());
+  if (_in.has_lifetime())
+    out.SetLifetime(_in.lifetime().data());
+  if (_in.has_scale_rate())
+    out.SetScaleRate(_in.scale_rate().data());
+  if (_in.has_color_range_image())
+    out.SetColorRangeImage(_in.color_range_image().data());
+
+  for (int i = 0; i < _in.header().data_size(); ++i)
+  {
+    auto data = _in.header().data(i);
+    if (data.key() == "topic" && data.value_size() > 0)
+    {
+      out.SetTopic(data.value(0));
+    }
+    else if (data.key() == "particle_scatter_ratio" && data.value_size() > 0)
+    {
+      out.SetScatterRatio(std::stof(data.value(0)));
+    }
+  }
+
   return out;
 }

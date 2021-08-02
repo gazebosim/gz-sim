@@ -98,6 +98,13 @@ void JointController::Configure(const Entity &_entity,
     return;
   }
 
+  if (_sdf->HasElement("initial_velocity"))
+  {
+    this->dataPtr->jointVelCmd = _sdf->Get<double>("initial_velocity");
+    ignmsg << "Joint velocity initialized to ["
+           << this->dataPtr->jointVelCmd << "]" << std::endl;
+  }
+
   if (_sdf->HasElement("use_force_commands") &&
       _sdf->Get<bool>("use_force_commands"))
   {
@@ -139,6 +146,19 @@ void JointController::Configure(const Entity &_entity,
     ignerr << "Failed to create topic for joint [" << this->dataPtr->jointName
            << "]" << std::endl;
     return;
+  }
+  if (_sdf->HasElement("topic"))
+  {
+    topic = transport::TopicUtils::AsValidTopic(
+        _sdf->Get<std::string>("topic"));
+
+    if (topic.empty())
+    {
+      ignerr << "Failed to create topic [" << _sdf->Get<std::string>("topic")
+             << "]" << " for joint [" << this->dataPtr->jointName
+             << "]" << std::endl;
+      return;
+    }
   }
   this->dataPtr->node.Subscribe(topic, &JointControllerPrivate::OnCmdVel,
                                 this->dataPtr.get());
@@ -195,19 +215,22 @@ void JointController::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   // Force mode.
   if (this->dataPtr->useForceCommands)
   {
-    double error = jointVelComp->Data().at(0) - targetVel;
-    double force = this->dataPtr->velPid.Update(error, _info.dt);
+    if (!jointVelComp->Data().empty())
+    {
+      double error = jointVelComp->Data().at(0) - targetVel;
+      double force = this->dataPtr->velPid.Update(error, _info.dt);
 
-    auto forceComp =
-        _ecm.Component<components::JointForceCmd>(this->dataPtr->jointEntity);
-    if (forceComp == nullptr)
-    {
-      _ecm.CreateComponent(this->dataPtr->jointEntity,
-                           components::JointForceCmd({force}));
-    }
-    else
-    {
-      forceComp->Data()[0] = force;
+      auto forceComp =
+          _ecm.Component<components::JointForceCmd>(this->dataPtr->jointEntity);
+      if (forceComp == nullptr)
+      {
+        _ecm.CreateComponent(this->dataPtr->jointEntity,
+                             components::JointForceCmd({force}));
+      }
+      else
+      {
+        forceComp->Data()[0] = force;
+      }
     }
   }
   // Velocity mode.
@@ -223,7 +246,7 @@ void JointController::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
           this->dataPtr->jointEntity,
           components::JointVelocityCmd({targetVel}));
     }
-    else
+    else if (!vel->Data().empty())
     {
       vel->Data()[0] = targetVel;
     }

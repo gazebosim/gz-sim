@@ -1,0 +1,149 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="particle_emitters">
+
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <gui fullscreen="0">
+
+      <!-- 3D scene -->
+      <plugin filename="GzScene3D" name="3D View">
+        <ignition-gui>
+          <title>3D View</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="z">0</property>
+          <anchor line="right" target="window" target_line="right"/>
+          <anchor line="left" target="window" target_line="left"/>
+          <anchor line="top" target="window" target_line="top"/>
+          <anchor line="bottom" target="window" target_line="bottom"/>
+        </ignition-gui>
+
+        <engine>ogre</engine>
+        <scene>scene</scene>
+        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
+        <camera_pose>-1 0 1 0 0.5 0</camera_pose>
+      </plugin>
+
+      <!-- World control -->
+      <plugin filename="WorldControl" name="World control">
+        <ignition-gui>
+          <title>World control</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">72</property>
+          <property type="double" key="width">121</property>
+          <property type="double" key="z">1</property>
+          <anchor line="left" target="window" target_line="left"/>
+          <anchor line="bottom" target="window" target_line="bottom"/>
+        </ignition-gui>
+
+        <play_pause>true</play_pause>
+        <step>true</step>
+        <start_paused>true</start_paused>
+
+      </plugin>
+    </gui>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- test custom parameters -->
+    <model name="smoke_generator_demo_model">
+      <pose>0 0 0 0 0 0</pose>
+      <static>true</static>
+      <link name="link">
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+
+      <plugin filename="ignition-gazebo-particle-emitter-system"
+        name="ignition::gazebo::systems::ParticleEmitter">
+        <emitter_name>smoke_emitter</emitter_name>
+        <type>box</type>
+        <pose>0 1 0 0 0 0</pose>
+        <size>2 2 2</size>
+        <rate>5</rate>
+        <duration>1</duration>
+        <emitting>true</emitting>
+        <particle_size>3 3 3</particle_size>
+        <lifetime>2</lifetime>
+        <!-- TODO(anyone) add <material> once other PRs are merged -->
+        <min_velocity>10</min_velocity>
+        <max_velocity>20</max_velocity>
+        <color_start>0 0 1</color_start>
+        <color_end>0 1 0</color_end>
+        <scale_rate>10</scale_rate>
+        <color_range_image>/path/to/dummy_image.png</color_range_image>
+        <particle_scatter_ratio>0.01</particle_scatter_ratio>
+      </plugin>
+    </model>
+
+    <!-- test default parameters -->
+    <model name="smoke_generator_demo_model_2">
+      <pose>5 5 0 0 0 0</pose>
+      <static>true</static>
+      <link name="link">
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+
+      <plugin filename="ignition-gazebo-particle-emitter-system"
+        name="ignition::gazebo::systems::ParticleEmitter">
+      </plugin>
+    </model>
+  </world>
+</sdf>
+
+

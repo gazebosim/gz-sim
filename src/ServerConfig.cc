@@ -224,7 +224,6 @@ class ignition::gazebo::ServerConfigPrivate
             useLevels(_cfg->useLevels),
             useLogRecord(_cfg->useLogRecord),
             logRecordPath(_cfg->logRecordPath),
-            logIgnoreSdfPath(_cfg->logIgnoreSdfPath),
             logPlaybackPath(_cfg->logPlaybackPath),
             logRecordResources(_cfg->logRecordResources),
             logRecordCompressPath(_cfg->logRecordCompressPath),
@@ -255,10 +254,6 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// \brief Path to place recorded states
   public: std::string logRecordPath = "";
-
-  /// TODO(anyone) Deprecate in public APIs in Ignition-D, remove in Ignition-E
-  /// \brief Whether log record path is specified from command line
-  public: bool logIgnoreSdfPath{false};
 
   /// \brief Path to recorded states to play back using logging system
   public: std::string logPlaybackPath = "";
@@ -442,18 +437,6 @@ void ServerConfig::SetLogRecordPath(const std::string &_recordPath)
 }
 
 /////////////////////////////////////////////////
-bool ServerConfig::LogIgnoreSdfPath() const
-{
-  return this->dataPtr->logIgnoreSdfPath;
-}
-
-/////////////////////////////////////////////////
-void ServerConfig::SetLogIgnoreSdfPath(bool _ignore)
-{
-  this->dataPtr->logIgnoreSdfPath = _ignore;
-}
-
-/////////////////////////////////////////////////
 const std::string ServerConfig::LogPlaybackPath() const
 {
   return this->dataPtr->logPlaybackPath;
@@ -572,9 +555,9 @@ ServerConfig::LogPlaybackPlugin() const
   if (!this->LogPlaybackPath().empty())
   {
     sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
-    pathElem->SetName("path");
+    pathElem->SetName("playback_path");
     playbackElem->AddElementDescription(pathElem);
-    pathElem = playbackElem->GetElement("path");
+    pathElem = playbackElem->GetElement("playback_path");
     pathElem->AddValue("string", "", false, "");
     pathElem->Set<std::string>(this->LogPlaybackPath());
   }
@@ -922,4 +905,3 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
 
   return ret;
 }
-

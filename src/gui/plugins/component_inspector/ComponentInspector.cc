@@ -35,6 +35,7 @@
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/Level.hh"
 #include "ignition/gazebo/components/Light.hh"
+#include "ignition/gazebo/components/LightCmd.hh"
 #include "ignition/gazebo/components/LightType.hh"
 #include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
@@ -47,8 +48,12 @@
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/PerformerAffinity.hh"
+#include "ignition/gazebo/components/Physics.hh"
+#include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/PoseCmd.hh"
+#include "ignition/gazebo/components/RenderEngineGuiPlugin.hh"
+#include "ignition/gazebo/components/RenderEngineServerPlugin.hh"
 #include "ignition/gazebo/components/SelfCollide.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/SourceFilePath.hh"
@@ -77,6 +82,9 @@ namespace ignition::gazebo
     /// \brief Name of the world
     public: std::string worldName;
 
+    /// \brief Entity name
+    public: std::string entityName;
+
     /// \brief Entity type, such as 'world' or 'model'.
     public: QString type;
 
@@ -101,6 +109,9 @@ using namespace gazebo;
 template<>
 void ignition::gazebo::setData(QStandardItem *_item, const math::Pose3d &_data)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString("Pose3d"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(QList({
@@ -115,9 +126,60 @@ void ignition::gazebo::setData(QStandardItem *_item, const math::Pose3d &_data)
 
 //////////////////////////////////////////////////
 template<>
+void ignition::gazebo::setData(QStandardItem *_item, const msgs::Light &_data)
+{
+  if (nullptr == _item)
+    return;
+
+  int lightType = -1;
+  if (_data.type() == msgs::Light::POINT)
+  {
+    lightType = 0;
+  }
+  else if (_data.type() == msgs::Light::SPOT)
+  {
+    lightType = 1;
+  }
+  else if (_data.type() == msgs::Light::DIRECTIONAL)
+  {
+    lightType = 2;
+  }
+
+  _item->setData(QString("Light"),
+      ComponentsModel::RoleNames().key("dataType"));
+  _item->setData(QList({
+    QVariant(_data.specular().r()),
+    QVariant(_data.specular().g()),
+    QVariant(_data.specular().b()),
+    QVariant(_data.specular().a()),
+    QVariant(_data.diffuse().r()),
+    QVariant(_data.diffuse().g()),
+    QVariant(_data.diffuse().b()),
+    QVariant(_data.diffuse().a()),
+    QVariant(_data.range()),
+    QVariant(_data.attenuation_linear()),
+    QVariant(_data.attenuation_constant()),
+    QVariant(_data.attenuation_quadratic()),
+    QVariant(_data.cast_shadows()),
+    QVariant(_data.direction().x()),
+    QVariant(_data.direction().y()),
+    QVariant(_data.direction().z()),
+    QVariant(_data.spot_inner_angle()),
+    QVariant(_data.spot_outer_angle()),
+    QVariant(_data.spot_falloff()),
+    QVariant(_data.intensity()),
+    QVariant(lightType)
+  }), ComponentsModel::RoleNames().key("data"));
+}
+
+//////////////////////////////////////////////////
+template<>
 void ignition::gazebo::setData(QStandardItem *_item,
     const math::Vector3d &_data)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString("Vector3d"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(QList({
@@ -131,6 +193,9 @@ void ignition::gazebo::setData(QStandardItem *_item,
 template<>
 void ignition::gazebo::setData(QStandardItem *_item, const std::string &_data)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString("String"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(QString::fromStdString(_data),
@@ -142,6 +207,9 @@ template<>
 void ignition::gazebo::setData(QStandardItem *_item,
     const std::ostringstream &_data)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString("Raw"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(QString::fromStdString(_data.str()),
@@ -152,6 +220,9 @@ void ignition::gazebo::setData(QStandardItem *_item,
 template<>
 void ignition::gazebo::setData(QStandardItem *_item, const bool &_data)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString("Boolean"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(_data, ComponentsModel::RoleNames().key("data"));
@@ -161,6 +232,9 @@ void ignition::gazebo::setData(QStandardItem *_item, const bool &_data)
 template<>
 void ignition::gazebo::setData(QStandardItem *_item, const int &_data)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString("Integer"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(_data, ComponentsModel::RoleNames().key("data"));
@@ -170,14 +244,35 @@ void ignition::gazebo::setData(QStandardItem *_item, const int &_data)
 template<>
 void ignition::gazebo::setData(QStandardItem *_item, const double &_data)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString("Float"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(_data, ComponentsModel::RoleNames().key("data"));
 }
 
 //////////////////////////////////////////////////
+template<>
+void ignition::gazebo::setData(QStandardItem *_item, const sdf::Physics &_data)
+{
+  if (nullptr == _item)
+    return;
+
+  _item->setData(QString("Physics"),
+      ComponentsModel::RoleNames().key("dataType"));
+  _item->setData(QList({
+    QVariant(_data.MaxStepSize()),
+    QVariant(_data.RealTimeFactor())
+  }), ComponentsModel::RoleNames().key("data"));
+}
+
+//////////////////////////////////////////////////
 void ignition::gazebo::setUnit(QStandardItem *_item, const std::string &_unit)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString::fromStdString(_unit),
       ComponentsModel::RoleNames().key("unit"));
 }
@@ -500,6 +595,7 @@ void ComponentInspector::Update(const UpdateInfo &,
 
       if (this->dataPtr->entity == this->dataPtr->worldEntity)
         this->dataPtr->worldName = comp->Data();
+      this->dataPtr->entityName = comp->Data();
     }
     else if (typeId == components::LightType::typeId)
     {
@@ -528,9 +624,53 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, comp->Data());
     }
+    else if (typeId == components::Light::typeId)
+    {
+      this->SetType("light");
+      auto comp = _ecm.Component<components::Light>(this->dataPtr->entity);
+      if (comp)
+      {
+        msgs::Light lightMsgs = convert<msgs::Light>(comp->Data());
+        setData(item, lightMsgs);
+      }
+    }
+    else if (typeId == components::Physics::typeId)
+    {
+      auto comp = _ecm.Component<components::Physics>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::PhysicsCollisionDetector::typeId)
+    {
+      auto comp = _ecm.Component<components::PhysicsCollisionDetector>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::PhysicsSolver::typeId)
+    {
+      auto comp = _ecm.Component<components::PhysicsSolver>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
     else if (typeId == components::Pose::typeId)
     {
       auto comp = _ecm.Component<components::Pose>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::RenderEngineGuiPlugin::typeId)
+    {
+      auto comp = _ecm.Component<components::RenderEngineGuiPlugin>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::RenderEngineServerPlugin::typeId)
+    {
+      auto comp = _ecm.Component<components::RenderEngineServerPlugin>(
+          this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
@@ -733,6 +873,91 @@ void ComponentInspector::OnPose(double _x, double _y, double _z, double _roll,
   auto poseCmdService = "/world/" + this->dataPtr->worldName
       + "/set_pose";
   this->dataPtr->node.Request(poseCmdService, req, cb);
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::OnLight(
+  double _rSpecular, double _gSpecular, double _bSpecular, double _aSpecular,
+  double _rDiffuse, double _gDiffuse, double _bDiffuse, double _aDiffuse,
+  double _attRange, double _attLinear, double _attConstant,
+  double _attQuadratic, bool _castShadows, double _directionX,
+  double _directionY, double _directionZ, double _innerAngle,
+  double _outerAngle, double _falloff, double _intensity, int _type)
+{
+  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  {
+    if (!_result)
+      ignerr << "Error setting light configuration" << std::endl;
+  };
+
+  ignition::msgs::Light req;
+  req.set_name(this->dataPtr->entityName);
+  req.set_id(this->dataPtr->entity);
+  ignition::msgs::Set(req.mutable_diffuse(),
+    ignition::math::Color(_rDiffuse, _gDiffuse, _bDiffuse, _aDiffuse));
+  ignition::msgs::Set(req.mutable_specular(),
+    ignition::math::Color(_rSpecular, _gSpecular, _bSpecular, _aSpecular));
+  req.set_range(_attRange);
+  req.set_attenuation_linear(_attLinear);
+  req.set_attenuation_constant(_attConstant);
+  req.set_attenuation_quadratic(_attQuadratic);
+  req.set_cast_shadows(_castShadows);
+  req.set_intensity(_intensity);
+  if (_type == 0)
+    req.set_type(ignition::msgs::Light::POINT);
+  else if (_type == 1)
+    req.set_type(ignition::msgs::Light::SPOT);
+  else
+    req.set_type(ignition::msgs::Light::DIRECTIONAL);
+
+  if (_type == 1)  // sdf::LightType::SPOT
+  {
+    req.set_spot_inner_angle(_innerAngle);
+    req.set_spot_outer_angle(_outerAngle);
+    req.set_spot_falloff(_falloff);
+  }
+
+  // if sdf::LightType::SPOT || sdf::LightType::DIRECTIONAL
+  if (_type == 1 || _type == 2)
+  {
+    ignition::msgs::Set(req.mutable_direction(),
+      ignition::math::Vector3d(_directionX, _directionY, _directionZ));
+  }
+
+  auto lightConfigService = "/world/" + this->dataPtr->worldName +
+    "/light_config";
+  lightConfigService = transport::TopicUtils::AsValidTopic(lightConfigService);
+  if (lightConfigService.empty())
+  {
+    ignerr << "Invalid light command service topic provided" << std::endl;
+    return;
+  }
+  this->dataPtr->node.Request(lightConfigService, req, cb);
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::OnPhysics(double _stepSize, double _realTimeFactor)
+{
+  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  {
+    if (!_result)
+        ignerr << "Error setting physics parameters" << std::endl;
+  };
+
+  ignition::msgs::Physics req;
+  req.set_max_step_size(_stepSize);
+  req.set_real_time_factor(_realTimeFactor);
+  auto physicsCmdService = "/world/" + this->dataPtr->worldName
+      + "/set_physics";
+  physicsCmdService = transport::TopicUtils::AsValidTopic(physicsCmdService);
+  if (physicsCmdService.empty())
+  {
+    ignerr << "Invalid physics command service topic provided" << std::endl;
+    return;
+  }
+  this->dataPtr->node.Request(physicsCmdService, req, cb);
 }
 
 /////////////////////////////////////////////////

@@ -5,7 +5,18 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
+## Ignition Gazebo 5.x to 6.x
+
+* Marker example has been moved to Ignition GUI.
+
+* Some GUI plugins have been moved to Ignition GUI. Gazebo users don't need to
+  change their configuration files, the plugins will be loaded the same way.
+    * Grid Config
+    * Tape Measure
+
 ## Ignition Gazebo 4.x to 5.x
+
+* Use `cli` component of `ignition-utils1`.
 
 * `ignition::gazebo::RenderUtil::SelectedEntities()` now returns a
   `const std::vector<Entity> &` instead of forcing a copy. The calling code
@@ -29,6 +40,11 @@ release will remove the deprecated code.
   * **Deprecated** `ignition::gazebo::gui::SnapPreviewPath`
   * **Replacement** `ignition::gui::SnapFromPath`
 
+* The `<direction>` tag of spot lights was previously not parsed by the
+  scene, so all spot lights shone in the direction corresponding to the
+  default `0 0 -1`. Since 5.x, the `<direction>` tag is correctly
+  processed.
+
 ## Ignition Gazebo 4.0.0 to 4.X.X
 
 * Ignition Gazebo 4.0.0 enabled double sided material by default but this
@@ -47,6 +63,13 @@ in SDF by setting the `<visual><material><double_sided>` SDF element.
       `public: void SetEnableSensors(bool, std::function<
           std::string(const gazebo::Entity &,
           const sdf::Sensor &, const std::string &)>)`
+
+* Log playback using `<path>` SDF parameter is removed. Use --playback command
+  line argument instead.
+
+* `rendering::SceneManager`
+    * **Deprecated**: `Entity EntityFromNode(const rendering::NodePtr &_node) const;`
+    * **Replacement**: `Entity entity = std::get<int>(visual->UserData("gazebo-entity"));`
 
 ## Ignition Gazebo 2.x to 3.x
 

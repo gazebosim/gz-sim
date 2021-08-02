@@ -105,3 +105,10 @@ going to the world SDF file, locate the
 
 * **bitrate**: Video encoding bitrate in bps. This affects the quality of the
 generated video. The default bitrate is 2Mbps.
+  
+## Hardware-accelerated encoding
+
+Since Ignition Common 3.10.2, there is support for utilizing the power of GPUs
+to speed up the video encoding process. See the
+[Hardware-accelerated Video Encoding tutorial](https://ignitionrobotics.org/api/common/3.10/hw-encoding.html)
+for more details.

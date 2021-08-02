@@ -37,11 +37,7 @@
 #include <ignition/rendering/Visual.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/Publisher.hh>
-#include <ignition/utils/SuppressWarning.hh>
 
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
 namespace ignition::gazebo
@@ -119,16 +115,6 @@ void TransformControl::OnSnapUpdate(
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(), &event);
 
-  IGN_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
-  ignition::gui::events::SnapIntervals oldEvent(
-      this->dataPtr->xyzSnapVals,
-      this->dataPtr->rpySnapVals,
-      this->dataPtr->scaleSnapVals);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-      &oldEvent);
-  IGN_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
-
   this->newSnapValues();
 }
 
@@ -176,42 +162,7 @@ void TransformControl::SnapToGrid()
 /////////////////////////////////////////////////
 void TransformControl::LoadGrid()
 {
-  auto loadedEngNames = rendering::loadedEngines();
-  if (loadedEngNames.empty())
-    return;
-
-  // assume there is only one engine loaded
-  auto engineName = loadedEngNames[0];
-  if (loadedEngNames.size() > 1)
-  {
-    igndbg << "More than one engine is available. "
-      << "Grid config plugin will use engine ["
-        << engineName << "]" << std::endl;
-  }
-  auto engine = rendering::engine(engineName);
-  if (!engine)
-  {
-    ignerr << "Internal error: failed to load engine [" << engineName
-      << "]. Grid plugin won't work." << std::endl;
-    return;
-  }
-
-  if (engine->SceneCount() == 0)
-    return;
-
-  // assume there is only one scene
-  // load scene
-  auto scene = engine->SceneByIndex(0);
-  if (!scene)
-  {
-    ignerr << "Internal error: scene is null." << std::endl;
-    return;
-  }
-
-  if (!scene->IsInitialized() || scene->VisualCount() == 0)
-  {
-    return;
-  }
+  auto scene = rendering::sceneFromFirstRenderEngine();
 
   // load grid
   // if gridPtr found, load the existing gridPtr to class

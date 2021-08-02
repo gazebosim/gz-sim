@@ -1,0 +1,722 @@
+<?xml version="1.0" ?>
+<!--
+  Ignition Gazebo demo for JointTrajectoryController plugin
+
+  Try sending joint trajectory commands:
+
+    - Position control (Red RR robot) -
+
+    ign topic -t "/model/RR_position_control/joint_trajectory" -m ignition.msgs.JointTrajectory -p '
+    joint_names: "RR_position_control_joint1"
+    joint_names: "RR_position_control_joint2"
+    points {
+      positions: -0.7854
+      positions: 1.5708
+      time_from_start {
+        sec: 0
+        nsec: 250000000
+      }
+    }
+    points {
+      positions: -1.5708
+      positions: 0
+      time_from_start {
+        sec: 0
+        nsec: 500000000
+      }
+    }
+    points {
+      positions: -1.5708
+      positions: -1.5708
+      time_from_start {
+        sec: 0
+        nsec: 750000000
+      }
+    }
+    points {
+      positions: 0
+      positions: 0
+      time_from_start {
+        sec: 1
+        nsec: 0
+      }
+    }'
+
+
+    - Velocity control (Green RR robot) -
+
+    ign topic -t "/model/RR_velocity_control/joint_trajectory" -m ignition.msgs.JointTrajectory -p '
+    joint_names: "RR_velocity_control_joint1"
+    joint_names: "RR_velocity_control_joint2"
+    points {
+      velocities: 0.7854
+      velocities: -0.7854
+      time_from_start {
+        sec: 0
+        nsec: 50000000
+      }
+    }
+    points {
+      velocities: 1.5708
+      velocities: 0
+      time_from_start {
+        sec: 1
+        nsec: 50000000
+      }
+    }
+    points {
+      velocities: 2.3562
+      velocities: -1.5708
+      time_from_start {
+        sec: 3
+        nsec: 0
+      }
+    }
+    points {
+      velocities: 3.1416
+      velocities: -3.1416
+      time_from_start {
+        sec: 5
+        nsec: 0
+      }
+    }'
+
+
+    - Effort control (Blue RR robot) -
+
+    ign topic -t "/custom_topic_effort_control" -m ignition.msgs.JointTrajectory -p '
+    joint_names: "RR_effort_control_joint1"
+    joint_names: "RR_effort_control_joint2"
+    points {
+      effort: 1
+      effort: 0.5
+      time_from_start {
+        sec: 1
+        nsec: 0
+      }
+    }
+    points {
+      effort: 2.5
+      effort: 1.5
+      time_from_start {
+        sec: 1
+        nsec: 500000000
+      }
+    }
+    points {
+      effort: -0.4
+      effort: -0.2
+      time_from_start {
+        sec: 1
+        nsec: 750000000
+      }
+    }'
+
+
+  Progress of each trajectory can then be tracked by subscribing to the corresponding topic:
+
+    ign topic -e -t "/model/RR_position_control/joint_trajectory_progress"
+    ign topic -e -t "/model/RR_velocity_control/joint_trajectory_progress"
+    ign topic -e -t "/custom_topic_effort_control_progress"
+
+
+  To enable hybrid control, e.g. position + velocity control, parameters for both PID controllers
+  can be set simultaneously. Their respective targets can then be specified in trajectory points,
+  e.g:
+    points {
+      positions: ${POS1}
+      positions: ${POS2}
+      velocities: ${VEL1}
+      velocities: ${VEL2}
+      effort: ${EFF1}
+      effort: ${EFF2}
+      time_from_start {
+        sec: ${SEC}
+        nsec: ${NSEC}
+      }
+    }
+-->
+<sdf version="1.6">
+  <world name="default">
+    <!-- Physics -->
+    <plugin
+      filename="ignition-gazebo-physics-system"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+
+    <!-- Scene -->
+    <plugin
+      filename="ignition-gazebo-scene-broadcaster-system"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+    <scene>
+      <ambient>0.4 0.4 0.4</ambient>
+      <grid>false</grid>
+    </scene>
+
+    <!--     -->
+    <!-- GUI -->
+    <!--     -->
+    <gui>
+      <!-- 3D scene -->
+      <plugin filename="GzScene3D" name="3D View">
+        <ignition-gui>
+          <title>3D View</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </ignition-gui>
+        <engine>ogre</engine>
+        <scene>scene</scene>
+        <camera_pose>1 0 0 0 0 3.1416</camera_pose>
+      </plugin>
+
+      <!-- World control -->
+      <plugin filename="WorldControl" name="World control">
+        <ignition-gui>
+          <title>World control</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">50</property>
+          <property type="double" key="width">100</property>
+          <property type="double" key="z">1</property>
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="left" target="left"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </ignition-gui>
+        <play_pause>true</play_pause>
+        <step>true</step>
+        <start_paused>true</start_paused>
+      </plugin>
+
+      <!-- World stats -->
+      <plugin filename="WorldStats" name="World stats">
+        <ignition-gui>
+          <title>World stats</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property key="width" type="double">250</property>
+          <property key="height" type="double">110</property>
+          <property type="double" key="z">1</property>
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="right" target="right"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </ignition-gui>
+        <sim_time>true</sim_time>
+        <real_time>true</real_time>
+        <real_time_factor>true</real_time_factor>
+        <iterations>true</iterations>
+      </plugin>
+    </gui>
+
+    <!--              -->
+    <!-- Illumination -->
+    <!--              -->
+    <light type="directional" name="sun">
+      <cast_shadows>false</cast_shadows>
+      <pose>5 5 5 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-1 -1 -1</direction>
+    </light>
+
+    <!--        -->
+    <!-- Models -->
+    <!--        -->
+    <model name="background_plane">
+      <pose>-0.1 0 0 0 1.5708 0</pose>
+      <static>true</static>
+      <link name="background_plane_link">
+        <visual name="background_plane_visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>5 5</size>
+            </plane>
+          </geometry>
+          <material>
+            <diffuse>0.5 0.5 0.5 1</diffuse>
+            <specular>0.5 0.5 0.5 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+
+    <!-- RR robot (Red) - Position control -->
+    <model name="RR_position_control">
+      <pose>0 0 0.25 -2.3561945 0 0</pose>
+      <!-- Fix To World -->
+      <joint name="RR_position_control_world" type="fixed">
+        <parent>world</parent>
+        <child>RR_position_control_link0</child>
+      </joint>
+      <!-- Links -->
+      <link name="RR_position_control_link0">
+        <collision name="RR_position_control_link0_collision_0">
+          <geometry>
+            <sphere>
+              <radius>0.025</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="RR_position_control_link0_visual_0">
+          <geometry>
+            <sphere>
+              <radius>0.025</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0.5 0.5 0.5 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+      <link name="RR_position_control_link1">
+        <pose relative_to="RR_position_control_joint1">0 0 0.1 0 0 0</pose>
+        <collision name="RR_position_control_link1_collision_0">
+          <geometry>
+            <cylinder>
+              <radius>0.01</radius>
+              <length>0.2</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <collision name="RR_position_control_link1_collision_1">
+          <geometry>
+            <sphere>
+              <radius>0.0125</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="RR_position_control_link1_visual_0">
+          <geometry>
+            <cylinder>
+              <radius>0.01</radius>
+              <length>0.2</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.5 0 0 1</ambient>
+            <diffuse>0.8 0 0 1</diffuse>
+            <specular>0.8 0 0 1</specular>
+          </material>
+        </visual>
+        <visual name="RR_position_control_link1_visual_1">
+          <pose relative_to="RR_position_control_joint1">0 0 0.2 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>0.0125</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0.5 0.5 0.5 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+        <inertial>
+          <mass>0.1</mass>
+          <inertia>
+            <ixx>0.0003358</ixx>
+            <iyy>0.0003358</iyy>
+            <izz>0.000005</izz>
+          </inertia>
+        </inertial>
+      </link>
+      <link name="RR_position_control_link2">
+        <pose relative_to="RR_position_control_joint2">0 0 0.1 0 0 0</pose>
+        <collision name="RR_position_control_link2_collision">
+          <geometry>
+            <cylinder>
+              <radius>0.01</radius>
+              <length>0.2</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="RR_position_control_link2_visual">
+          <geometry>
+            <cylinder>
+              <radius>0.01</radius>
+              <length>0.2</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.5 0 0 1</ambient>
+            <diffuse>0.8 0 0 1</diffuse>
+            <specular>0.8 0 0 1</specular>
+          </material>
+        </visual>
+        <inertial>
+          <mass>0.1</mass>
+          <inertia>
+            <ixx>0.0003358</ixx>
+            <iyy>0.0003358</iyy>
+            <izz>0.000005</izz>
+          </inertia>
+        </inertial>
+      </link>
+      <!-- Joints -->
+      <joint name="RR_position_control_joint1" type="revolute">
+        <pose relative_to="RR_position_control_link0">0 0 0 0 0 0</pose>
+        <parent>RR_position_control_link0</parent>
+        <child>RR_position_control_link1</child>
+        <axis>
+          <xyz>1 0 0</xyz>
+          <dynamics>
+            <damping>0.5</damping>
+          </dynamics>
+        </axis>
+      </joint>
+      <joint name="RR_position_control_joint2" type="revolute">
+        <pose relative_to="RR_position_control_link1">0 0 0.1 0 0 0</pose>
+        <parent>RR_position_control_link1</parent>
+        <child>RR_position_control_link2</child>
+        <axis>
+          <xyz>1 0 0</xyz>
+          <dynamics>
+            <damping>0.25</damping>
+          </dynamics>
+        </axis>
+      </joint>
+      <!-- Controller -->
+      <plugin
+        filename="libignition-gazebo-joint-trajectory-controller-system.so"
+        name="ignition::gazebo::systems::JointTrajectoryController">
+        <joint_name>RR_position_control_joint1</joint_name>
+        <initial_position>0.7854</initial_position>
+        <position_p_gain>20</position_p_gain>
+        <position_i_gain>0.4</position_i_gain>
+        <position_d_gain>1.0</position_d_gain>
+        <position_i_min>-1</position_i_min>
+        <position_i_max>1</position_i_max>
+        <position_cmd_min>-20</position_cmd_min>
+        <position_cmd_max>20</position_cmd_max>
+
+        <joint_name>RR_position_control_joint2</joint_name>
+        <initial_position>-1.5708</initial_position>
+        <position_p_gain>10</position_p_gain>
+        <position_i_gain>0.2</position_i_gain>
+        <position_d_gain>0.5</position_d_gain>
+        <position_i_min>-1</position_i_min>
+        <position_i_max>1</position_i_max>
+        <position_cmd_min>-10</position_cmd_min>
+        <position_cmd_max>10</position_cmd_max>
+      </plugin>
+    </model>
+
+
+    <!-- RR robot (Green) - Velocity control -->
+    <model name="RR_velocity_control">
+      <pose>0 -0.5 -0.25 0 0 0</pose>
+      <!-- Fix To World -->
+      <joint name="RR_velocity_control_world" type="fixed">
+        <parent>world</parent>
+        <child>RR_velocity_control_link0</child>
+      </joint>
+      <!-- Links -->
+      <link name="RR_velocity_control_link0">
+        <collision name="RR_velocity_control_link0_collision_0">
+          <geometry>
+            <sphere>
+              <radius>0.025</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="RR_velocity_control_link0_visual_0">
+          <geometry>
+            <sphere>
+              <radius>0.025</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0.5 0.5 0.5 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+      <link name="RR_velocity_control_link1">
+        <pose relative_to="RR_velocity_control_joint1">0 0 0.1 0 0 0</pose>
+        <collision name="RR_velocity_control_link1_collision_0">
+          <geometry>
+            <cylinder>
+              <radius>0.01</radius>
+              <length>0.2</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <collision name="RR_velocity_control_link1_collision_1">
+          <geometry>
+            <sphere>
+              <radius>0.0125</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="RR_velocity_control_link1_visual_0">
+          <geometry>
+            <cylinder>
+              <radius>0.01</radius>
+              <length>0.2</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0 0.5 0 1</ambient>
+            <diffuse>0 0.8 0 1</diffuse>
+            <specular>0 0.8 0 1</specular>
+          </material>
+        </visual>
+        <visual name="RR_velocity_control_link1_visual_1">
+          <pose relative_to="RR_velocity_control_joint1">0 0 0.2 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>0.0125</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0.5 0.5 0.5 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+        <inertial>
+          <mass>0.1</mass>
+          <inertia>
+            <ixx>0.0003358</ixx>
+            <iyy>0.0003358</iyy>
+            <izz>0.000005</izz>
+          </inertia>
+        </inertial>
+      </link>
+      <link name="RR_velocity_control_link2">
+        <pose relative_to="RR_velocity_control_joint2">0 0 0.1 0 0 0</pose>
+        <collision name="RR_velocity_control_link2_collision">
+          <geometry>
+            <cylinder>
+              <radius>0.01</radius>
+              <length>0.2</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="RR_velocity_control_link2_visual">
+          <geometry>
+            <cylinder>
+              <radius>0.01</radius>
+              <length>0.2</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0 0.5 0 1</ambient>
+            <diffuse>0 0.8 0 1</diffuse>
+            <specular>0 0.8 0 1</specular>
+          </material>
+        </visual>
+        <inertial>
+          <mass>0.1</mass>
+          <inertia>
+            <ixx>0.0003358</ixx>
+            <iyy>0.0003358</iyy>
+            <izz>0.000005</izz>
+          </inertia>
+        </inertial>
+      </link>
+      <!-- Joints -->
+      <joint name="RR_velocity_control_joint1" type="revolute">
+        <pose relative_to="RR_velocity_control_link0">0 0 0 0 0 0</pose>
+        <parent>RR_velocity_control_link0</parent>
+        <child>RR_velocity_control_link1</child>
+        <axis>
+          <xyz>1 0 0</xyz>
+        </axis>
+        <dynamics>
+          <damping>0.02</damping>
+        </dynamics>
+      </joint>
+      <joint name="RR_velocity_control_joint2" type="revolute">
+        <pose relative_to="RR_velocity_control_link1">0 0 0.1 0 0 0</pose>
+        <parent>RR_velocity_control_link1</parent>
+        <child>RR_velocity_control_link2</child>
+        <axis>
+          <xyz>1 0 0</xyz>
+        </axis>
+        <dynamics>
+          <damping>0.01</damping>
+        </dynamics>
+      </joint>
+      <!-- Controller -->
+      <plugin
+        filename="libignition-gazebo-joint-trajectory-controller-system.so"
+        name="ignition::gazebo::systems::JointTrajectoryController">
+        <!-- Note: If joint names are omitted, their respective order from model will be preserved
+             when applying other parameters during configuration -->
+        <velocity_p_gain>0.6</velocity_p_gain>
+        <velocity_i_gain>175</velocity_i_gain>
+        <velocity_cmd_min>-10</velocity_cmd_min>
+        <velocity_cmd_max>10</velocity_cmd_max>
+
+        <velocity_p_gain>0.1</velocity_p_gain>
+        <velocity_i_gain>200</velocity_i_gain>
+        <velocity_cmd_min>-5</velocity_cmd_min>
+        <velocity_cmd_max>5</velocity_cmd_max>
+      </plugin>
+    </model>
+
+
+    <!-- RR robot (Blue) - Effort control -->
+    <model name="RR_effort_control">
+      <pose>0 0.5 -0.25 -0.7854 0 0</pose>
+      <!-- Fix To World -->
+      <joint name="RR_effort_control_world" type="fixed">
+        <parent>world</parent>
+        <child>RR_effort_control_link0</child>
+      </joint>
+      <!-- Links -->
+      <link name="RR_effort_control_link0">
+        <collision name="RR_effort_control_link0_collision_0">
+          <geometry>
+            <sphere>
+              <radius>0.025</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="RR_effort_control_link0_visual_0">
+          <geometry>
+            <sphere>
+              <radius>0.025</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0.5 0.5 0.5 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+      <link name="RR_effort_control_link1">
+        <pose relative_to="RR_effort_control_joint1">0 0 0.1 0 0 0</pose>
+        <collision name="RR_effort_control_link1_collision_0">
+          <geometry>
+            <cylinder>
+              <radius>0.01</radius>
+              <length>0.2</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <collision name="RR_effort_control_link1_collision_1">
+          <geometry>
+            <sphere>
+              <radius>0.0125</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="RR_effort_control_link1_visual_0">
+          <geometry>
+            <cylinder>
+              <radius>0.01</radius>
+              <length>0.2</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0 0 0.5 1</ambient>
+            <diffuse>0 0 0.8 1</diffuse>
+            <specular>0 0 0.8 1</specular>
+          </material>
+        </visual>
+        <visual name="RR_effort_control_link1_visual_1">
+          <pose relative_to="RR_effort_control_joint1">0 0 0.2 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>0.0125</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0.5 0.5 0.5 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+        <inertial>
+          <mass>0.1</mass>
+          <inertia>
+            <ixx>0.0003358</ixx>
+            <iyy>0.0003358</iyy>
+            <izz>0.000005</izz>
+          </inertia>
+        </inertial>
+      </link>
+      <link name="RR_effort_control_link2">
+        <pose relative_to="RR_effort_control_joint2">0 0 0.1 0 0 0</pose>
+        <collision name="RR_effort_control_link2_collision">
+          <geometry>
+            <cylinder>
+              <radius>0.01</radius>
+              <length>0.2</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="RR_effort_control_link2_visual">
+          <geometry>
+            <cylinder>
+              <radius>0.01</radius>
+              <length>0.2</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0 0 0.5 1</ambient>
+            <diffuse>0 0 0.8 1</diffuse>
+            <specular>0 0 0.8 1</specular>
+          </material>
+        </visual>
+        <inertial>
+          <mass>0.1</mass>
+          <inertia>
+            <ixx>0.0003358</ixx>
+            <iyy>0.0003358</iyy>
+            <izz>0.000005</izz>
+          </inertia>
+        </inertial>
+      </link>
+      <!-- Joints -->
+      <joint name="RR_effort_control_joint1" type="revolute">
+        <pose relative_to="RR_effort_control_link0">0 0 0 0 0 0</pose>
+        <parent>RR_effort_control_link0</parent>
+        <child>RR_effort_control_link1</child>
+        <axis>
+          <xyz>1 0 0</xyz>
+          <dynamics>
+            <damping>0.02</damping>
+          </dynamics>
+        </axis>
+      </joint>
+      <joint name="RR_effort_control_joint2" type="revolute">
+        <pose relative_to="RR_effort_control_link1">0 0 0.1 0 0 0</pose>
+        <parent>RR_effort_control_link1</parent>
+        <child>RR_effort_control_link2</child>
+        <axis>
+          <xyz>1 0 0</xyz>
+          <dynamics>
+            <damping>0.01</damping>
+          </dynamics>
+        </axis>
+      </joint>
+      <!-- Controller -->
+      <plugin
+        filename="libignition-gazebo-joint-trajectory-controller-system.so"
+        name="ignition::gazebo::systems::JointTrajectoryController">
+        <!-- Note: You can also specify a custom topic for the joint trajectory commands -->
+        <topic>custom_topic_effort_control</topic>
+      </plugin>
+    </model>
+
+  </world>
+</sdf>

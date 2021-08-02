@@ -46,6 +46,7 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/PerformerLevels.hh"
+#include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/RenderEngineGuiPlugin.hh"
@@ -101,6 +102,39 @@ void LevelManager::ReadLevelPerformerInfo()
 
   this->runner->entityCompMgr.CreateComponent(this->worldEntity,
       components::Gravity(this->runner->sdfWorld->Gravity()));
+
+  auto physics = this->runner->sdfWorld->PhysicsByIndex(0);
+  if (!physics)
+  {
+    physics = this->runner->sdfWorld->PhysicsDefault();
+  }
+  this->runner->entityCompMgr.CreateComponent(this->worldEntity,
+      components::Physics(*physics));
+
+  // Populate physics options that aren't accessible outside the Element()
+  // See https://github.com/osrf/sdformat/issues/508
+  if (physics->Element() && physics->Element()->HasElement("dart"))
+  {
+    auto dartElem = physics->Element()->GetElement("dart");
+
+    if (dartElem->HasElement("collision_detector"))
+    {
+      auto collisionDetector =
+          dartElem->Get<std::string>("collision_detector");
+
+      this->runner->entityCompMgr.CreateComponent(worldEntity,
+          components::PhysicsCollisionDetector(collisionDetector));
+    }
+    if (dartElem->HasElement("solver") &&
+        dartElem->GetElement("solver")->HasElement("solver_type"))
+    {
+      auto solver =
+          dartElem->GetElement("solver")->Get<std::string>("solver_type");
+
+      this->runner->entityCompMgr.CreateComponent(worldEntity,
+          components::PhysicsSolver(solver));
+    }
+  }
 
   this->runner->entityCompMgr.CreateComponent(this->worldEntity,
       components::MagneticField(this->runner->sdfWorld->MagneticField()));

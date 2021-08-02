@@ -119,6 +119,7 @@
           <geometry>
             <plane>
               <normal>0 0 1</normal>
+              <size>100 100</size>
             </plane>
           </geometry>
         </collision>
@@ -309,6 +310,7 @@
       <plugin
         filename="ignition-gazebo-velocity-control-system"
         name="ignition::gazebo::systems::VelocityControl">
+        <link_name>caster</link_name>
       </plugin>
 
     </model>
@@ -484,6 +486,8 @@
       <plugin
         filename="ignition-gazebo-velocity-control-system"
         name="ignition::gazebo::systems::VelocityControl">
+        <initial_linear>0.3 0 0</initial_linear>
+        <initial_angular>0 0 -0.1</initial_angular>
       </plugin>
 
     </model>

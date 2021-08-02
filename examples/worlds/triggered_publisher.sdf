@@ -6,8 +6,9 @@ Send the command:
   ign topic -t "/start" -m ignition.msgs.Empty -p " "
 
 The vehicle should start moving while the two boxes remain floating. When the
-vehicle crosses the line on the ground, the first box should start falling. The
-moment the box hits the ground, the second box should start falling.
+vehicle crosses the line on the ground, the first box should start falling.
+Five simulation seconds after the box hits the ground, the second box should
+start falling.
 
 -->
 <sdf version="1.6">
@@ -125,6 +126,7 @@ moment the box hits the ground, the second box should start falling.
           <geometry>
             <plane>
               <normal>0 0 1</normal>
+              <size>100 100</size>
             </plane>
           </geometry>
         </collision>
@@ -528,8 +530,8 @@ moment the box hits the ground, the second box should start falling.
       <input type="ignition.msgs.Altimeter" topic="/altimeter">
         <match field="vertical_position" tol="0.2">-7.5</match>
       </input>
+      <delay_ms>5000</delay_ms>
       <output type="ignition.msgs.Empty" topic="/box2/detach"/>
     </plugin>
 </world>
 </sdf>
-

@@ -15,8 +15,6 @@
  *
 */
 
-#include <dlfcn.h>
-
 #include <optional>
 #include <string>
 #include <unordered_set>
@@ -128,7 +126,6 @@ class ignition::gazebo::SystemLoaderPrivate
 SystemLoader::SystemLoader()
   : dataPtr(new SystemLoaderPrivate())
 {
-  this->dataPtr->loader.SetFlags(RTLD_LAZY | RTLD_GLOBAL);
 }
 
 //////////////////////////////////////////////////
