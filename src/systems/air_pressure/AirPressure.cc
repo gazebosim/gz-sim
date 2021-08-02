@@ -23,14 +23,13 @@
 #include <unordered_map>
 #include <utility>
 
+#include <ignition/plugin/Register.hh>
+
 #include <ignition/common/Profiler.hh>
 
 #include <sdf/Sensor.hh>
 
 #include <ignition/math/Helpers.hh>
-
-// This plugin loads another plugin, so it shouldn't include Register.hh
-#include <ignition/plugin/RegisterMore.hh>
 
 #include <ignition/sensors/SensorFactory.hh>
 #include <ignition/sensors/AirPressureSensor.hh>
@@ -140,16 +139,17 @@ void AirPressurePrivate::CreateAirPressureEntities(EntityComponentManager &_ecm)
           std::string topic = scopedName(_entity, _ecm) + "/air_pressure";
           data.SetTopic(topic);
         }
-        std::unique_ptr<sensors::AirPressureSensor> sensor =
-            this->sensorFactory.CreateSensor<
-            sensors::AirPressureSensor>(data);
-        if (nullptr == sensor)
+        auto sensor = std::make_unique<sensors::AirPressureSensor>();
+        if (!sensor->Load(data))
         {
-          ignerr << "Failed to create sensor [" << sensorScopedName << "]"
-                 << std::endl;
-          return true;
+          ignerr << "Sensor::Load failed for plugin [AirPressureSensor]\n";
+          return false;
         }
-
+        if (!sensor->Init())
+        {
+          ignerr << "Sensor::Init failed for plugin [AirPressureSensor]\n";
+          return false;
+        }
         // set sensor parent
         std::string parentName = _ecm.Component<components::Name>(
             _parent->Data())->Data();

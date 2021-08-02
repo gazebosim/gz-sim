@@ -21,17 +21,16 @@
 #include <unordered_map>
 #include <utility>
 
+#include <ignition/plugin/Register.hh>
+
 #include <sdf/Sensor.hh>
 
 #include <ignition/common/Profiler.hh>
 
-// This plugin loads another plugin, so it shouldn't include Register.hh
-#include <ignition/plugin/RegisterMore.hh>
+#include <ignition/transport/Node.hh>
 
 #include <ignition/sensors/SensorFactory.hh>
 #include <ignition/sensors/MagnetometerSensor.hh>
-
-#include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/components/MagneticField.hh"
 #include "ignition/gazebo/components/Magnetometer.hh"
@@ -157,15 +156,17 @@ void MagnetometerPrivate::CreateMagnetometerEntities(
           data.SetTopic(topic);
         }
         std::unique_ptr<sensors::MagnetometerSensor> sensor =
-            this->sensorFactory.CreateSensor<
-            sensors::MagnetometerSensor>(data);
-        if (nullptr == sensor)
+          std::make_unique<sensors::MagnetometerSensor>();
+        if (!sensor->Load(data))
         {
-          ignerr << "Failed to create sensor [" << sensorScopedName << "]"
-                 << std::endl;
-          return true;
+          ignerr << "Sensor::Load failed for plugin [MagnetometerSensor]\n";
+          return false;
         }
-
+        if (!sensor->Init())
+        {
+          ignerr << "Sensor::Init failed for plugin [MagnetometerSensor]\n";
+          return false;
+        }
         // set sensor parent
         std::string parentName = _ecm.Component<components::Name>(
             _parent->Data())->Data();

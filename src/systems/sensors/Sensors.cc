@@ -35,6 +35,7 @@
 #include <ignition/rendering/Scene.hh>
 #include <ignition/sensors/CameraSensor.hh>
 #include <ignition/sensors/DepthCameraSensor.hh>
+#include <ignition/sensors/GpuLidarSensor.hh>
 #include <ignition/sensors/RenderingSensor.hh>
 #include <ignition/sensors/RgbdCameraSensor.hh>
 #include <ignition/sensors/ThermalCameraSensor.hh>
@@ -90,7 +91,7 @@ class ignition::gazebo::systems::SensorsPrivate
   /// Key: Camera's parent scoped name
   /// Value: Pointer to camera
   // TODO(anyone) Remove element when sensor is deleted
-  public: std::map<std::string, sensors::CameraSensor *> cameras;
+  public: std::map<std::string, std::shared_ptr<sensors::CameraSensor>> cameras;
 
   /// \brief Maps gazebo entity to its matching sensor ID
   ///
@@ -530,8 +531,47 @@ std::string Sensors::CreateSensor(const Entity &_entity,
   }
 
   // Create within ign-sensors
-  auto sensorId = this->dataPtr->sensorManager.CreateSensor(_sdf);
-  auto sensor = this->dataPtr->sensorManager.Sensor(sensorId);
+  std::shared_ptr<sensors::Sensor> sensor{nullptr};
+  if (_sdf.Type() == sdf::SensorType::CAMERA)
+  {
+    sensor = std::make_shared<sensors::CameraSensor>();
+  }
+  else if (_sdf.Type() == sdf::SensorType::DEPTH_CAMERA)
+  {
+    sensor = std::make_shared<sensors::DepthCameraSensor>();
+  }
+  else if (_sdf.Type() == sdf::SensorType::GPU_LIDAR)
+  {
+    sensor = std::make_shared<sensors::GpuLidarSensor>();
+  }
+  else if (_sdf.Type() == sdf::SensorType::RGBD_CAMERA)
+  {
+    sensor = std::make_shared<sensors::RgbdCameraSensor>();
+  }
+  else if (_sdf.Type() == sdf::SensorType::THERMAL_CAMERA)
+  {
+    sensor = std::make_shared<sensors::ThermalCameraSensor>();
+  }
+
+  if (nullptr == sensor)
+  {
+    ignerr << "Sensor type [" << static_cast<int>(_sdf.Type())
+           << "] not supported by Sensors system." << std::endl;
+    return std::string();
+  }
+
+  if (!sensor->Load(_sdf))
+  {
+    ignerr << "Sensor::Load failed\n";
+    return std::string();
+  }
+  if (!sensor->Init())
+  {
+    ignerr << "Sensor::Init failed\n";
+    return std::string();
+  }
+
+  auto sensorId = this->dataPtr->sensorManager.AddSensor(sensor);
 
   // Add to sensorID -> entity map
   this->dataPtr->entityToIdMap.insert({_entity, sensorId});
@@ -547,13 +587,13 @@ std::string Sensors::CreateSensor(const Entity &_entity,
 
   // Set the scene so it can create the rendering sensor
   auto renderingSensor =
-      dynamic_cast<sensors::RenderingSensor *>(sensor);
+      std::dynamic_pointer_cast<sensors::RenderingSensor>(sensor);
   renderingSensor->SetScene(this->dataPtr->scene);
   renderingSensor->SetParent(_parentName);
   renderingSensor->SetManualSceneUpdate(true);
 
   // Special case for stereo cameras
-  auto cameraSensor = dynamic_cast<sensors::CameraSensor *>(sensor);
+  auto cameraSensor = std::dynamic_pointer_cast<sensors::CameraSensor>(sensor);
   if (nullptr != cameraSensor)
   {
     // Parent
@@ -591,7 +631,8 @@ std::string Sensors::CreateSensor(const Entity &_entity,
   }
 
   // Sensor-specific settings
-  auto thermalSensor = dynamic_cast<sensors::ThermalCameraSensor *>(sensor);
+  auto thermalSensor =
+      std::dynamic_pointer_cast<sensors::ThermalCameraSensor>(sensor);
   if (nullptr != thermalSensor)
   {
     thermalSensor->SetAmbientTemperature(this->dataPtr->ambientTemperature);
@@ -619,12 +660,14 @@ std::string Sensors::CreateSensor(const Entity &_entity,
   }
 
   // Use all supported sensor types to make sure we load their symbols
-  auto depthCamera = dynamic_cast<sensors::DepthCameraSensor *>(sensor);
+  auto depthCamera =
+      std::dynamic_pointer_cast<sensors::DepthCameraSensor>(sensor);
   if (nullptr != depthCamera)
   {
     igndbg << "Loaded a depth camera" << std::endl;
   }
-  auto rgbdCamera = dynamic_cast<sensors::RgbdCameraSensor *>(sensor);
+  auto rgbdCamera =
+      std::dynamic_pointer_cast<sensors::RgbdCameraSensor>(sensor);
   if (nullptr != rgbdCamera)
   {
     igndbg << "Loaded an RGBD camera" << std::endl;

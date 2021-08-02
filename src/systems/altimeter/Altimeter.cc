@@ -24,14 +24,11 @@
 #include <utility>
 
 #include <ignition/common/Profiler.hh>
+#include <ignition/plugin/Register.hh>
 
 #include <sdf/Sensor.hh>
 
 #include <ignition/math/Helpers.hh>
-
-// This plugin loads another plugin, so it shouldn't include Register.hh
-#include <ignition/plugin/RegisterMore.hh>
-
 #include <ignition/transport/Node.hh>
 
 #include <ignition/sensors/SensorFactory.hh>
@@ -144,13 +141,16 @@ void AltimeterPrivate::CreateAltimeterEntities(EntityComponentManager &_ecm)
           data.SetTopic(topic);
         }
         std::unique_ptr<sensors::AltimeterSensor> sensor =
-            this->sensorFactory.CreateSensor<
-            sensors::AltimeterSensor>(data);
-        if (nullptr == sensor)
+          std::make_unique<sensors::AltimeterSensor>();
+        if (!sensor->Load(data))
         {
-          ignerr << "Failed to create sensor [" << sensorScopedName << "]"
-                 << std::endl;
-          return true;
+          ignerr << "Sensor::Load failed for plugin [AltimeterSensor]\n";
+          return false;
+        }
+        if (!sensor->Init())
+        {
+          ignerr << "Sensor::Init failed for plugin [AltimeterSensor]\n";
+          return false;
         }
 
         // set sensor parent
