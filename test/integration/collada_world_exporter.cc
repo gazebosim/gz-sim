@@ -77,9 +77,11 @@ TEST_F(ColladaWorldExporterFixture, ExportWorld)
 
 TEST_F(ColladaWorldExporterFixture, ExportWorldFromFuelWithSubmesh)
 {
+  std::string world_path =
+    ignition::common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds");
   ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
-    (std::string(PROJECT_SOURCE_PATH) + "/test/worlds:" +
-    std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models").c_str());
+    (world_path + ":" +
+    ignition::common::joinPaths(world_path, "models")).c_str());
 
   this->LoadWorld(common::joinPaths("test", "worlds",
         "collada_world_exporter_submesh.sdf"));
@@ -105,6 +107,44 @@ TEST_F(ColladaWorldExporterFixture, ExportWorldFromFuelWithSubmesh)
   const common::Mesh *meshExported = loader.Load(common::joinPaths(
       outputPath, "meshes", "collada_world_exporter_submesh_test.dae"));
   EXPECT_EQ(3u, meshExported->SubMeshCount());
+
+  // Cleanup
+  common::removeAll(outputPath);
+}
+
+TEST_F(ColladaWorldExporterFixture, ExportWorldMadeFromObj)
+{
+  std::string world_path =
+    ignition::common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds");
+  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+    (world_path + ":" +
+    ignition::common::joinPaths(world_path, "models")).c_str());
+
+  this->LoadWorld(common::joinPaths("test", "worlds",
+        "office.sdf"));
+
+  const std::string outputPath = "./office_world";
+  const std::string outputPathTextures =
+    common::joinPaths(outputPath, "materials", "textures");
+  const std::string outputPathTexture1 =
+    common::joinPaths(outputPathTextures, "default.png");
+  const std::string outputPathTexture2 =
+    common::joinPaths(outputPathTextures, "blue_linoleum.png");
+
+  // Cleanup
+  common::removeAll(outputPath);
+
+  // The export directory shouldn't exist.
+  EXPECT_FALSE(common::exists(outputPath));
+
+  // Run one iteration which should export the world.
+  server->Run(true, 1, false);
+
+  // The export directory and corresponding textures should now exist.
+  EXPECT_TRUE(common::exists(outputPath));
+  EXPECT_TRUE(common::exists(outputPathTextures));
+  EXPECT_TRUE(common::exists(outputPathTexture1));
+  EXPECT_TRUE(common::exists(outputPathTexture2));
 
   // Cleanup
   common::removeAll(outputPath);
