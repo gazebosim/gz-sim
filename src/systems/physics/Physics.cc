@@ -2769,7 +2769,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
         }
         return true;
       });
-  
+
   // Update joint forces
   _ecm.Each<components::Joint, components::JointForce>(
       [&](const Entity &_entity, components::Joint *,
