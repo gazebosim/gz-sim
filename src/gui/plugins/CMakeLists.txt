@@ -119,6 +119,7 @@ add_subdirectory(modules)
 
 # Plugins
 add_subdirectory(align_tool)
+add_subdirectory(banana_for_scale)
 add_subdirectory(component_inspector)
 add_subdirectory(entity_tree)
 add_subdirectory(joint_position_controller)
