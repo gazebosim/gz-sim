@@ -245,6 +245,10 @@ bool TransformControl::eventFilter(QObject *_obj, QEvent *_event)
     {
       this->activateRotate();
     }
+    else if (keyEvent->key() == Qt::Key_S)
+    {
+      this->activateScale();
+    }
   }
   else if (_event->type() == QEvent::KeyRelease)
   {

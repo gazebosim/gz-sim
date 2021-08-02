@@ -28,11 +28,10 @@ ToolBar {
   Layout.minimumWidth: 200
   Layout.minimumHeight: 100
 
-  // TODO(anyone) enable scale button when support is added in ign-physics
-  // function activateScale() {
-  //   scale.checked = true;
-  //   TransformControl.OnMode("scale");
-  // }
+  function activateScale() {
+    scale.checked = true;
+    TransformControl.OnMode("scale");
+  }
 
   property color snapTitle: (Material.theme == Material.Light) ?
     Material.color(Material.Grey, Material.Shade900) :
@@ -104,6 +103,11 @@ ToolBar {
   Connections {
     target: TransformControl
     onActivateRotate: activateRotate();
+  }
+
+  Connections {
+    target: TransformControl
+    onActivateScale: activateScale();
   }
 
   RowLayout {
@@ -219,10 +223,6 @@ ToolBar {
         TransformControl.OnMode("rotate")
       }
     }
-    // TODO(anyone) enable scale snap values below when support is added in ign-physics
-    // Also be sure to replace the placeholder 0's in all of the `OnSnapUpdate` calls in
-    // this file to xScaleEntry.value, yScaleEntry.value, and zScaleEntry.value, respectively
-    /*
     ToolButton {
       id: scale
       text: "S"
@@ -260,7 +260,6 @@ ToolBar {
         TransformControl.OnMode("scale")
       }
     }
-    */
 
     ToolButton {
       id: snap
