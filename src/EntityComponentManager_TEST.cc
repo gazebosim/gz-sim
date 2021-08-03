@@ -230,7 +230,7 @@ TEST_P(EntityComponentManagerFixture, EntitiesAndComponents)
   EXPECT_FALSE(manager.HasEntity(kNullEntity));
   EXPECT_FALSE(manager.EntityHasComponentType(kNullEntity,
         IntComponent::typeId));
-  EXPECT_EQ(ComponentKey(), manager.CreateComponent<IntComponent>(kNullEntity,
+  EXPECT_EQ(nullptr, manager.CreateComponent<IntComponent>(kNullEntity,
         IntComponent(123)));
   EXPECT_FALSE(manager.HasEntity(kNullEntity));
   EXPECT_FALSE(manager.EntityHasComponentType(kNullEntity,
