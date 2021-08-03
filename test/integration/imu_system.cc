@@ -221,8 +221,8 @@ TEST_F(ImuTest, OrientationDisabled)
 
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/imu_no_orientation.sdf";
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "imu_no_orientation.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);
