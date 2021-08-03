@@ -40,20 +40,13 @@ namespace systems
   class Imu:
     public System,
     public ISystemPreUpdate,
-    public ISystemPostUpdate,
-    public ISystemConfigure
+    public ISystemPostUpdate
   {
     /// \brief Constructor
     public: explicit Imu();
 
     /// \brief Destructor
     public: ~Imu() override;
-
-    /// Documentation inherited
-    public: void Configure(const Entity &_entity,
-                           const std::shared_ptr<const sdf::Element> &_sdf,
-                           EntityComponentManager &_ecm,
-                           gazebo::EventManager &_eventMgr) final;
 
     /// Documentation inherited
     public: void PreUpdate(const UpdateInfo &_info,
