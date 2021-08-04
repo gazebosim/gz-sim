@@ -574,7 +574,7 @@ bool EntityComponentManager::CreateComponentImplementation(
       << "exist. This create component request will be ignored." << std::endl;
     return false;
   }
-  
+
   // if this is the first time this component type is being created, make sure
   // the component type to be created is valid
   if (!this->HasComponentType(_componentTypeId) &&
@@ -603,7 +603,7 @@ bool EntityComponentManager::CreateComponentImplementation(
   switch (compAddResult)
   {
     case ComponentAdditionResult::FAILED_ADDITION:
-      ignwarn << "Attempt to create a component of type [" << _componentTypeId
+      ignerr << "Attempt to create a component of type [" << _componentTypeId
         << "] attached to entity [" << _entity << "] failed.\n";
       return false;
     case ComponentAdditionResult::NEW_ADDITION:
