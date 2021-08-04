@@ -20,9 +20,8 @@
 #include <memory>
 #include <string>
 
-#include <ignition/utils/ImplPtr.hh>
-
 #include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/Export.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/ServerConfig.hh"
 
@@ -33,6 +32,7 @@ namespace gazebo
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 //
+class IGNITION_GAZEBO_HIDDEN TestFixturePrivate;
 /// \brief Helper class to write automated tests. It provides a convenient API
 /// to load a world file, step simulation and check entities and components.
 ///
@@ -61,6 +61,9 @@ class IGNITION_GAZEBO_VISIBLE TestFixture
   /// \brief Constructor
   /// \param[in] _config Server config file
   public: explicit TestFixture(const ServerConfig &_config);
+
+  /// \brief Destructor
+  public: virtual ~TestFixture();
 
   /// \brief Wrapper around a system's pre-update callback
   /// \param[in] _cb Function to be called every pre-update
@@ -101,7 +104,8 @@ class IGNITION_GAZEBO_VISIBLE TestFixture
 
   /// \internal
   /// \brief Pointer to private data.
-  IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)
+  // TODO(chapulina) Use IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr) when porting to v6
+  private: TestFixturePrivate *dataPtr;
 };
 }
 }

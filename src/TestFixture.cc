@@ -20,28 +20,10 @@
 
 #include "ignition/gazebo/TestFixture.hh"
 
-class HelperSystem;
-
-class ignition::gazebo::TestFixture::Implementation
-{
-  /// \brief Initialize fixture
-  /// \param[in] _config Server config
-  public: void Init(const ServerConfig &_config);
-
-  /// \brief Pointer to underlying server
-  public: std::shared_ptr<gazebo::Server> server{nullptr};
-
-  /// \brief Pointer to underlying Helper interface
-  public: std::shared_ptr<HelperSystem> helperSystem{nullptr};
-
-  /// \brief Flag to make sure Finalize is only called once
-  public: bool finalized{false};
-};
-
 using namespace ignition;
 using namespace gazebo;
 
-/// \brief
+/// \brief System that is inserted into the simulation loop to observe the ECM.
 class HelperSystem :
   public System,
   public ISystemConfigure,
@@ -124,8 +106,25 @@ void HelperSystem::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
+class ignition::gazebo::TestFixturePrivate
+{
+  /// \brief Initialize fixture
+  /// \param[in] _config Server config
+  public: void Init(const ServerConfig &_config);
+
+  /// \brief Pointer to underlying server
+  public: std::shared_ptr<gazebo::Server> server{nullptr};
+
+  /// \brief Pointer to underlying Helper interface
+  public: std::shared_ptr<HelperSystem> helperSystem{nullptr};
+
+  /// \brief Flag to make sure Finalize is only called once
+  public: bool finalized{false};
+};
+
+//////////////////////////////////////////////////
 TestFixture::TestFixture(const std::string &_path)
-  : dataPtr(utils::MakeUniqueImpl<Implementation>())
+  : dataPtr(new TestFixturePrivate())
 {
   ServerConfig config;
   config.SetSdfFile(_path);
@@ -134,13 +133,20 @@ TestFixture::TestFixture(const std::string &_path)
 
 //////////////////////////////////////////////////
 TestFixture::TestFixture(const ServerConfig &_config)
-  : dataPtr(utils::MakeUniqueImpl<Implementation>())
+  : dataPtr(new TestFixturePrivate())
 {
   this->dataPtr->Init(_config);
 }
 
 //////////////////////////////////////////////////
-void TestFixture::Implementation::Init(const ServerConfig &_config)
+TestFixture::~TestFixture()
+{
+  delete dataPtr;
+  dataPtr = nullptr;
+}
+
+//////////////////////////////////////////////////
+void TestFixturePrivate::Init(const ServerConfig &_config)
 {
   this->helperSystem = std::make_shared<HelperSystem>();
   this->server = std::make_shared<gazebo::Server>(_config);
