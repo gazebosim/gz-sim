@@ -9,11 +9,14 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 
 * \subpage terminology "Terminology": List of terms used across the documentation.
 * \subpage createsystemplugins "Create System Plugins": Programmatically access simulation using C++ plugins.
+* \subpage rendering_plugins "Rendering plugins": Write plugins that use Ignition Rendering on the server and client.
 * \subpage levels "Levels": Load entities on demand in large environments.
 * \subpage distributedsimulation "Distributed Simulation": Spread simulation across several processes.
 * \subpage resources "Finding resources": The different ways in which Ignition looks for files.
+* \subpage entity_creation "Entity creation": Insert models or lights using services.
 * \subpage log "Logging": Record and play back time series of world state.
 * \subpage physics "Physics engines": Loading different physics engines.
+* \subpage light_config "Light config": Configure lights in the scene.
 * \subpage battery "Battery": Keep track of battery charge on robot models.
 * \subpage gui_config "GUI configuration": Customizing your layout.
 * \subpage server_config "Server configuration": Customizing what system plugins are loaded.
@@ -24,10 +27,13 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage triggeredpublisher "Triggered Publisher": Using the TriggeredPublisher system to orchestrate actions in simulation.
 * \subpage logicalaudiosensor "Logical Audio Sensor": Using the LogicalAudioSensor system to mimic logical audio emission and detection in simulation.
 * \subpage videorecorder "Video Recorder": Record videos from the 3D render window.
-* \subpage collada_world_exporter "Collada World Exporter": Export an entire
-world to a single Collada mesh.
+* \subpage collada_world_exporter "Collada World Exporter": Export an entire world to a single Collada mesh.
+* \subpage underwater_vehicles "Underwater Vehicles": Understand how to simulate underwater vehicles.
+* \subpage particle_emitter "Particle emitter": Using particle emitters in simulation
+* \subpage blender_sdf_exporter "Blender SDF Exporter": Use a blender script to export a model to the SDF format.
 * \subpage model_and_optimize_meshes  "Model and optimize meshes": Some recomendations when creating meshes  in blender for simulations.
 * \subpage model_command "Model Command": Use the CLI to get information about the models in a simulation.
+* \subpage test_fixture "Test Fixture": Writing automated CI tests
 
 **Migration from Gazebo classic**
 
