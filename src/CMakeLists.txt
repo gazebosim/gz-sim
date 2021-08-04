@@ -60,6 +60,7 @@ set (sources
   SimulationRunner.cc
   System.cc
   SystemLoader.cc
+  TestFixture.cc
   Util.cc
   View.cc
   World.cc
@@ -87,6 +88,7 @@ set (gtest_sources
   SimulationRunner_TEST.cc
   System_TEST.cc
   SystemLoader_TEST.cc
+  TestFixture_TEST.cc
   Util_TEST.cc
   World_TEST.cc
   network/NetworkConfig_TEST.cc
