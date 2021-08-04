@@ -182,7 +182,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Notify that an error has occurred (opens popup)
     /// Note that the function name needs to start with lowercase in order for
-    /// the connection to work on the QML side 
+    /// the connection to work on the QML side
     signals: void popupError();
 
     /// \internal

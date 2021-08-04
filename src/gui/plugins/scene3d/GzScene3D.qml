@@ -111,7 +111,8 @@ Rectangle {
     parent: ApplicationWindow.overlay
     modal: true
     focus: true
-    anchors.centerIn: parent
+    x: (parent.width - width) / 2
+    y: (parent.height - height) / 2
     background: Rectangle {
       border.width: 5
       border.color: "red"
