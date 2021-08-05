@@ -24,6 +24,7 @@
 #include <vector>
 
 #include <ignition/common/Profiler.hh>
+#include <ignition/plugin/Register.hh>
 
 #include <sdf/Sensor.hh>
 
@@ -91,7 +92,7 @@ class ignition::gazebo::systems::SensorsPrivate
   /// Key: Camera's parent scoped name
   /// Value: Pointer to camera
   // TODO(anyone) Remove element when sensor is deleted
-  public: std::map<std::string, std::shared_ptr<sensors::CameraSensor>> cameras;
+  public: std::map<std::string, sensors::CameraSensor *> cameras;
 
   /// \brief Maps gazebo entity to its matching sensor ID
   ///
@@ -531,69 +532,53 @@ std::string Sensors::CreateSensor(const Entity &_entity,
   }
 
   // Create within ign-sensors
-  std::shared_ptr<sensors::Sensor> sensor{nullptr};
+  sensors::Sensor *sensor{nullptr};
   if (_sdf.Type() == sdf::SensorType::CAMERA)
   {
-    sensor = std::make_shared<sensors::CameraSensor>();
+    sensor = this->dataPtr->sensorManager.CreateSensor<
+      sensors::CameraSensor>(_sdf);
   }
   else if (_sdf.Type() == sdf::SensorType::DEPTH_CAMERA)
   {
-    sensor = std::make_shared<sensors::DepthCameraSensor>();
+    sensor = this->dataPtr->sensorManager.CreateSensor<
+      sensors::DepthCameraSensor>(_sdf);
   }
   else if (_sdf.Type() == sdf::SensorType::GPU_LIDAR)
   {
-    sensor = std::make_shared<sensors::GpuLidarSensor>();
+    sensor = this->dataPtr->sensorManager.CreateSensor<
+      sensors::GpuLidarSensor>(_sdf);
   }
   else if (_sdf.Type() == sdf::SensorType::RGBD_CAMERA)
   {
-    sensor = std::make_shared<sensors::RgbdCameraSensor>();
+    sensor = this->dataPtr->sensorManager.CreateSensor<
+      sensors::RgbdCameraSensor>(_sdf);
   }
   else if (_sdf.Type() == sdf::SensorType::THERMAL_CAMERA)
   {
-    sensor = std::make_shared<sensors::ThermalCameraSensor>();
+    sensor = this->dataPtr->sensorManager.CreateSensor<
+      sensors::ThermalCameraSensor>(_sdf);
   }
 
   if (nullptr == sensor)
   {
-    ignerr << "Sensor type [" << static_cast<int>(_sdf.Type())
-           << "] not supported by Sensors system." << std::endl;
-    return std::string();
-  }
-
-  if (!sensor->Load(_sdf))
-  {
-    ignerr << "Sensor::Load failed\n";
-    return std::string();
-  }
-  if (!sensor->Init())
-  {
-    ignerr << "Sensor::Init failed\n";
-    return std::string();
-  }
-
-  auto sensorId = this->dataPtr->sensorManager.AddSensor(sensor);
-
-  // Add to sensorID -> entity map
-  this->dataPtr->entityToIdMap.insert({_entity, sensorId});
-
-  if (nullptr == sensor || sensors::NO_SENSOR == sensor->Id())
-  {
     ignerr << "Failed to create sensor [" << _sdf.Name()
-           << "]" << std::endl;
+           << "]." << std::endl;
     return std::string();
   }
 
+  // Store sensor ID
+  auto sensorId = sensor->Id();
+  this->dataPtr->entityToIdMap.insert({_entity, sensorId});
   this->dataPtr->sensorIds.insert(sensorId);
 
   // Set the scene so it can create the rendering sensor
-  auto renderingSensor =
-      std::dynamic_pointer_cast<sensors::RenderingSensor>(sensor);
+  auto renderingSensor = dynamic_cast<sensors::RenderingSensor *>(sensor);
   renderingSensor->SetScene(this->dataPtr->scene);
   renderingSensor->SetParent(_parentName);
   renderingSensor->SetManualSceneUpdate(true);
 
   // Special case for stereo cameras
-  auto cameraSensor = std::dynamic_pointer_cast<sensors::CameraSensor>(sensor);
+  auto cameraSensor = dynamic_cast<sensors::CameraSensor *>(sensor);
   if (nullptr != cameraSensor)
   {
     // Parent
@@ -631,8 +616,7 @@ std::string Sensors::CreateSensor(const Entity &_entity,
   }
 
   // Sensor-specific settings
-  auto thermalSensor =
-      std::dynamic_pointer_cast<sensors::ThermalCameraSensor>(sensor);
+  auto thermalSensor = dynamic_cast<sensors::ThermalCameraSensor *>(sensor);
   if (nullptr != thermalSensor)
   {
     thermalSensor->SetAmbientTemperature(this->dataPtr->ambientTemperature);
@@ -659,20 +643,7 @@ std::string Sensors::CreateSensor(const Entity &_entity,
            << " Kelvin." << std::endl;
   }
 
-  // Use all supported sensor types to make sure we load their symbols
-  auto depthCamera =
-      std::dynamic_pointer_cast<sensors::DepthCameraSensor>(sensor);
-  if (nullptr != depthCamera)
-  {
-    igndbg << "Loaded a depth camera" << std::endl;
-  }
-  auto rgbdCamera =
-      std::dynamic_pointer_cast<sensors::RgbdCameraSensor>(sensor);
-  if (nullptr != rgbdCamera)
-  {
-    igndbg << "Loaded an RGBD camera" << std::endl;
-  }
-
+  // maybe-uninitialized
   return sensor->Name();
 }
 
