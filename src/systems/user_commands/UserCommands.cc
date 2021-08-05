@@ -725,9 +725,28 @@ bool CreateCommand::Execute()
     }
     case msgs::EntityFactory::kCloneName:
     {
-      // TODO(louise) Implement clone
-      ignerr << "Cloning an entity is not yet supported." << std::endl;
-      return false;
+      auto entityToClone = this->iface->ecm->EntityByComponents(
+          components::Name(createMsg->clone_name()));
+      auto parentComp =
+        this->iface->ecm->Component<components::ParentEntity>(entityToClone);
+      auto parentEntity = parentComp ? parentComp->Data() : kNullEntity;
+      auto clonedEntity = this->iface->ecm->Clone(entityToClone, parentEntity,
+          createMsg->name(), createMsg->allow_renaming(), true);
+      if (kNullEntity == clonedEntity)
+      {
+        ignerr << "Request to clone an entity named ["
+          << createMsg->clone_name() << "] failed." << std::endl;
+        return false;
+      }
+
+      if (createMsg->has_pose())
+      {
+        // TODO(adlarkin) handle if relative_to is filled
+        auto pose = gazebo::convert<math::Pose3d>(createMsg->pose());
+        this->iface->ecm->SetComponentData<components::Pose>(clonedEntity,
+            pose);
+      }
+      return true;
     }
     default:
     {

@@ -17,6 +17,7 @@
 
 #include <map>
 #include <set>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -25,6 +26,8 @@
 #include <ignition/math/graph/GraphAlgorithms.hh>
 #include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/components/Factory.hh"
+#include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
 using namespace ignition;
@@ -204,6 +207,79 @@ Entity EntityComponentManagerPrivate::CreateEntityImplementation(Entity _entity)
   this->descendantCache.clear();
 
   return _entity;
+}
+
+/////////////////////////////////////////////////
+Entity EntityComponentManager::Clone(const Entity _entity, const Entity _parent,
+    const std::string &_name, bool _allowRename, bool _recursive)
+{
+  auto uniqueNameGenerated = false;
+
+  // Before cloning, we should make sure that:
+  //  1. The entity to be cloned exists
+  //  2. We can generate a unique name for the cloned entity
+  if (!this->HasEntity(_entity))
+  {
+    ignerr << "Requested to clone entity [" << _entity
+      << "], but this entity does not exist." << std::endl;
+    return kNullEntity;
+  }
+  else if (!_name.empty() && !_allowRename)
+  {
+    if (kNullEntity != this->EntityByComponents(components::Name(_name)))
+    {
+      ignerr << "Requested to clone entity [" << _entity
+        << "] with a name of [" << _name << "], but another entity already "
+        << "has this name." << std::endl;
+      return kNullEntity;
+    }
+    uniqueNameGenerated = true;
+  }
+
+  auto clonedEntity = this->CreateEntity();
+
+  if (_parent != kNullEntity)
+    this->CreateComponent(clonedEntity, components::ParentEntity(_parent));
+
+  // copy all components from _entity to clonedEntity
+  for (const auto &type : this->ComponentTypes(_entity))
+  {
+    if (type == components::Name::typeId)
+    {
+      // make sure that the cloned entity has a unique name
+      auto clonedName = _name;
+      if (!uniqueNameGenerated)
+      {
+        if (clonedName.empty())
+        {
+          auto originalNameComp = this->Component<components::Name>(_entity);
+          clonedName =
+            originalNameComp ? originalNameComp->Data() : "cloned_entity";
+        }
+        uint64_t suffix = 1;
+        while (kNullEntity != this->EntityByComponents(
+              components::Name(clonedName + "_" + std::to_string(suffix))))
+          suffix++;
+        clonedName += "_" + std::to_string(suffix);
+      }
+      this->CreateComponent(clonedEntity, components::Name(clonedName));
+    }
+    else if (type != components::ParentEntity::typeId)
+    {
+      auto originalComp = this->ComponentImplementation(_entity, type);
+      auto clonedComp = originalComp->Clone();
+      this->CreateComponentImplementation(clonedEntity, type, clonedComp.get());
+    }
+  }
+
+  if (_recursive)
+  {
+    for (const auto &childEntity :
+        this->EntitiesByComponents(components::ParentEntity(_entity)))
+      this->Clone(childEntity, clonedEntity, "", true, true);
+  }
+
+  return clonedEntity;
 }
 
 /////////////////////////////////////////////////
