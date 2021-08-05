@@ -609,8 +609,8 @@ void RenderUtil::Update()
   // extend the sensor system to support mutliple scenes in the future
   for (auto &scene : newScenes)
   {
-    this->dataPtr->scene->SetAmbientLight(scene.Ambient());
-    this->dataPtr->scene->SetBackgroundColor(scene.Background());
+    this->dataPtr->scene->SetAmbientLight(this->dataPtr->ambientLight);
+    this->dataPtr->scene->SetBackgroundColor(this->dataPtr->backgroundColor );
     if (scene.Grid() && !this->dataPtr->enableSensors)
       this->ShowGrid();
     // only one scene so break

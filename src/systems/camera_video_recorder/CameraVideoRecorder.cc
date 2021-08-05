@@ -30,7 +30,9 @@
 #include <ignition/rendering/RenderingIface.hh>
 #include <ignition/rendering/Scene.hh>
 
+#include "ignition/gazebo/rendering/RenderUtil.hh"
 #include "ignition/gazebo/rendering/Events.hh"
+#include "ignition/gazebo/rendering/MarkerManager.hh"
 
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/Model.hh"
@@ -127,6 +129,9 @@ class ignition::gazebo::systems::CameraVideoRecorderPrivate
 
   /// \brief Recording frames per second.
   public: unsigned int fps = 25;
+
+  /// \brief Marker manager
+  public: MarkerManager markerManager;
 };
 
 //////////////////////////////////////////////////
@@ -269,6 +274,8 @@ void CameraVideoRecorderPrivate::OnPostRender()
   if (!this->scene)
   {
     this->scene = rendering::sceneFromFirstRenderEngine();
+    this->markerManager.SetTopic(this->sensorTopic + "/marker");
+    this->markerManager.Init(this->scene);
   }
 
   // return if scene not ready or no sensors available.
@@ -300,6 +307,9 @@ void CameraVideoRecorderPrivate::OnPostRender()
   }
 
   std::lock_guard<std::mutex> lock(this->updateMutex);
+
+  this->markerManager.SetSimTime(this->simTime);
+  this->markerManager.Update();
 
   // record video
   if (this->recordVideo)
