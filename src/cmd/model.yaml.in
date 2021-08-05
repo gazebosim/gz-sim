@@ -1,0 +1,8 @@
+--- # Model subcommand available inside ignition gazebo.
+format: 1.0.0
+library_name: ignition-gazebo-ign
+library_version: @PROJECT_VERSION_FULL@
+library_path: @ign_model_ruby_path@
+commands:
+    - model   : Print information about models.
+---

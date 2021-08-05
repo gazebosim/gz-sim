@@ -185,8 +185,9 @@ namespace ignition
       /// body-fixed frame. If no offset is given, the velocity at the origin of
       /// the Link frame will be returned.
       /// \param[in] _ecm Entity-component manager.
-      /// \return Linear velocity of the link or nullopt if the link does not
-      /// have components components::WorldPose.
+      /// \return Linear velocity of the link or nullopt if the velocity checks
+      /// aren't enabled.
+      /// \sa EnableVelocityChecks
       public: std::optional<math::Vector3d> WorldLinearVelocity(
           const EntityComponentManager &_ecm) const;
 
@@ -195,27 +196,46 @@ namespace ignition
       /// \param[in] _ecm Entity-component manager.
       /// \param[in] _offset Offset of the point from the origin of the Link
       /// frame, expressed in the body-fixed frame.
-      /// \return Linear velocity of the point on the body or nullopt if the
-      /// link does not have components components::WorldPose,
-      /// components::WorldLinearVelocity and components::WorldAngularVelocity.
+      /// \return Linear velocity of the point on the body or nullopt if
+      /// velocity checks aren't enabled.
+      /// \sa EnableVelocityChecks
       public: std::optional<math::Vector3d> WorldLinearVelocity(
           const EntityComponentManager &_ecm,
           const math::Vector3d &_offset) const;
 
       /// \brief Get the angular velocity of the link in the world frame
       /// \param[in] _ecm Entity-component manager.
-      /// \return Angular velocity of the link or nullopt if the link does not
-      /// have a components::WorldAngularVelocity component.
+      /// \return Angular velocity of the link or nullopt if velocity checks
+      /// aren't enabled.
+      /// \sa EnableVelocityChecks
       public: std::optional<math::Vector3d> WorldAngularVelocity(
           const EntityComponentManager &_ecm) const;
+
+      /// \brief By default, Gazebo will not report velocities for a link, so
+      /// functions like `WorldLinearVelocity` will return nullopt. This
+      /// function can be used to enable all velocity checks.
+      /// \param[in] _ecm Mutable reference to the ECM.
+      /// \param[in] _enable True to enable checks, false to disable. Defaults
+      /// to true.
+      public: void EnableVelocityChecks(EntityComponentManager &_ecm,
+          bool _enable = true) const;
 
       /// \brief Get the linear acceleration of the body in the world frame.
       /// \param[in] _ecm Entity-component manager.
       /// \return Linear acceleration of the body in the world frame or nullopt
-      /// if the link does not have a components::WorldLinearAcceleration
-      /// component.
+      /// if acceleration checks aren't enabled.
+      /// \sa EnableAccelerationChecks
       public: std::optional<math::Vector3d> WorldLinearAcceleration(
           const EntityComponentManager &_ecm) const;
+
+      /// \brief By default, Gazebo will not report accelerations for a link, so
+      /// functions like `WorldLinearAcceleration` will return nullopt. This
+      /// function can be used to enable all acceleration checks.
+      /// \param[in] _ecm Mutable reference to the ECM.
+      /// \param[in] _enable True to enable checks, false to disable. Defaults
+      /// to true.
+      public: void EnableAccelerationChecks(EntityComponentManager &_ecm,
+          bool _enable = true) const;
 
       /// \brief Get the inertia matrix in the world frame.
       /// \param[in] _ecm Entity-component manager.
