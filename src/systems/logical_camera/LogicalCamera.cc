@@ -144,16 +144,13 @@ void LogicalCameraPrivate::CreateLogicalCameraEntities(
           data->GetElement("topic")->Set(topic);
         }
         std::unique_ptr<sensors::LogicalCameraSensor> sensor =
-          std::make_unique<sensors::LogicalCameraSensor>();
-        if (!sensor->Load(data))
+            this->sensorFactory.CreateSensor<
+            sensors::LogicalCameraSensor>(data);
+        if (nullptr == sensor)
         {
-          ignerr << "Sensor::Load failed for plugin [LogicalCameraSensor]\n";
-          return false;
-        }
-        if (!sensor->Init())
-        {
-          ignerr << "Sensor::Init failed for plugin [LogicalCameraSensor]\n";
-          return false;
+          ignerr << "Failed to create sensor [" << sensorScopedName << "]"
+                 << std::endl;
+          return true;
         }
 
         // set sensor parent

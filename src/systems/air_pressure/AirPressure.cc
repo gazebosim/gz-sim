@@ -139,17 +139,16 @@ void AirPressurePrivate::CreateAirPressureEntities(EntityComponentManager &_ecm)
           std::string topic = scopedName(_entity, _ecm) + "/air_pressure";
           data.SetTopic(topic);
         }
-        auto sensor = std::make_unique<sensors::AirPressureSensor>();
-        if (!sensor->Load(data))
+        std::unique_ptr<sensors::AirPressureSensor> sensor =
+            this->sensorFactory.CreateSensor<
+            sensors::AirPressureSensor>(data);
+        if (nullptr == sensor)
         {
-          ignerr << "Sensor::Load failed for plugin [AirPressureSensor]\n";
-          return false;
+          ignerr << "Failed to create sensor [" << sensorScopedName << "]"
+                 << std::endl;
+          return true;
         }
-        if (!sensor->Init())
-        {
-          ignerr << "Sensor::Init failed for plugin [AirPressureSensor]\n";
-          return false;
-        }
+
         // set sensor parent
         std::string parentName = _ecm.Component<components::Name>(
             _parent->Data())->Data();

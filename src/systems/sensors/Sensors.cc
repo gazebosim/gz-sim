@@ -643,7 +643,6 @@ std::string Sensors::CreateSensor(const Entity &_entity,
            << " Kelvin." << std::endl;
   }
 
-  // maybe-uninitialized
   return sensor->Name();
 }
 

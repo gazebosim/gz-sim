@@ -156,17 +156,15 @@ void MagnetometerPrivate::CreateMagnetometerEntities(
           data.SetTopic(topic);
         }
         std::unique_ptr<sensors::MagnetometerSensor> sensor =
-          std::make_unique<sensors::MagnetometerSensor>();
-        if (!sensor->Load(data))
+            this->sensorFactory.CreateSensor<
+            sensors::MagnetometerSensor>(data);
+        if (nullptr == sensor)
         {
-          ignerr << "Sensor::Load failed for plugin [MagnetometerSensor]\n";
-          return false;
+          ignerr << "Failed to create sensor [" << sensorScopedName << "]"
+                 << std::endl;
+          return true;
         }
-        if (!sensor->Init())
-        {
-          ignerr << "Sensor::Init failed for plugin [MagnetometerSensor]\n";
-          return false;
-        }
+
         // set sensor parent
         std::string parentName = _ecm.Component<components::Name>(
             _parent->Data())->Data();
