@@ -14,6 +14,33 @@ release will remove the deprecated code.
     * Grid Config
     * Tape Measure
 
+* The internal management of entities and components in the
+  `EntityComponentManager` has been updated to improve runtime performance. As a
+  result, several methods have been deprecated, and a few types have changed.
+  * **Deprecated**:
+    + All `EntityComponentManager` methods that use `ComponentKey` as an input
+      parameter.
+    + The `EntityComponentManager::First` method.
+    + The `ComponentId` and `ComponentKey` types are now deprecated. A
+      combination of `Entity` and `ComponentTypeId` should be used instead.
+    + The `components::StorageDescriptorBase` and
+      `components::StorageDescriptor<ComponentTypeT>` classes.
+    + Methods in `components::Factory` that have deprecated input parameter
+      types and/or deprecated return types.
+        - The version of `components::Factory::Register` which has a
+          `StorageDescriptorBase *` input parameter.
+        - `components::Factory::NewStorage`
+    + The `ComponentStorageBase` and `ComponentStorage<ComponentTypeT>` classes.
+  * **Modified**:
+    + `EntityComponentManager::CreateComponent` now returns a pointer to the
+      created component instead of a `ComponentKey`.
+    + `ComponentKey` has been modified to be a
+      `std::pair<ComponentTypeId, Entity>` (it used to be a
+      `std::pair<ComponentTypeId, ComponentId>`) since the `ComponentId` type
+      is now deprecated. `ComponentKey` has also been deprecated, so usage of
+      this type is discouraged (see the **Deprecated** section above for more
+      information about how to replace usage of `ComponentKey`).
+
 ## Ignition Gazebo 4.x to 5.x
 
 * Use `cli` component of `ignition-utils1`.
