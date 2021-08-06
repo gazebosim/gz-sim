@@ -555,17 +555,8 @@ void WindEffects::PreUpdate(const UpdateInfo &_info,
   {
     if (_windMode->Data())
     {
-      // Create a WorldLinearVelocity component on the link so that
-      // physics can populate it
-      if (!_ecm.Component<components::WorldLinearVelocity>(_entity))
-      {
-        _ecm.CreateComponent(_entity,
-                             components::WorldLinearVelocity());
-      }
-      if (!_ecm.Component<components::WorldPose>(_entity))
-      {
-        _ecm.CreateComponent(_entity, components::WorldPose());
-      }
+      Link link(_entity);
+      link.EnableVelocityChecks(_ecm, true);
     }
     return true;
   });

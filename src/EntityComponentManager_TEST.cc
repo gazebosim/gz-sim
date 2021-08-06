@@ -226,6 +226,16 @@ TEST_P(EntityComponentManagerFixture, EntitiesAndComponents)
   EXPECT_FALSE(manager.EntityHasComponentType(entity, DoubleComponent::typeId));
   EXPECT_FALSE(manager.EntityHasComponentType(entity2, IntComponent::typeId));
 
+  // Try to add a component to an entity that does not exist
+  EXPECT_FALSE(manager.HasEntity(kNullEntity));
+  EXPECT_FALSE(manager.EntityHasComponentType(kNullEntity,
+        IntComponent::typeId));
+  EXPECT_EQ(nullptr, manager.CreateComponent<IntComponent>(kNullEntity,
+        IntComponent(123)));
+  EXPECT_FALSE(manager.HasEntity(kNullEntity));
+  EXPECT_FALSE(manager.EntityHasComponentType(kNullEntity,
+        IntComponent::typeId));
+
   // Query non-existing component, the default value is default-constructed
   BoolComponent *boolComp = manager.ComponentDefault<BoolComponent>(entity);
   ASSERT_NE(nullptr, boolComp);
@@ -250,6 +260,21 @@ TEST_P(EntityComponentManagerFixture, EntitiesAndComponents)
   EXPECT_TRUE(manager.HasComponentType(IntComponent::typeId));
   EXPECT_TRUE(manager.EntityHasComponentType(entity, IntComponent::typeId));
   EXPECT_EQ(123, intComp->Data());
+
+  // Try to create/query a component from an entity that does not exist. nullptr
+  // should be returned since a component cannot be attached to a non-existent
+  // entity
+  EXPECT_FALSE(manager.HasEntity(kNullEntity));
+  EXPECT_EQ(nullptr, manager.CreateComponent<IntComponent>(kNullEntity,
+        IntComponent(123)));
+  EXPECT_EQ(nullptr, manager.ComponentDefault<IntComponent>(kNullEntity, 123));
+  EXPECT_EQ(nullptr, manager.Component<IntComponent>(kNullEntity));
+  EXPECT_FALSE(manager.ComponentData<IntComponent>(kNullEntity).has_value());
+  EXPECT_EQ(ComponentState::NoChange, manager.ComponentState(kNullEntity,
+        IntComponent::typeId));
+  // (make sure the entity wasn't implicitly created during the invalid
+  // component calls)
+  EXPECT_FALSE(manager.HasEntity(kNullEntity));
 
   // Remove all entities
   manager.RequestRemoveEntities();
