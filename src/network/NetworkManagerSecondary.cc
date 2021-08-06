@@ -77,10 +77,7 @@ NetworkManagerSecondary::NetworkManagerSecondary(
 //////////////////////////////////////////////////
 NetworkManagerSecondary::~NetworkManagerSecondary()
 {
-  {
-    std::lock_guard<std::mutex> guard{this->stepsMutex};
-    this->stopAsyncStepThread = true;
-  }
+  this->stopAsyncStepThread = true;
   this->moreStepsCv.notify_one();
   this->steppingThread.join();
 }

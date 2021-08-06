@@ -107,7 +107,7 @@ namespace ignition
 
       /// \brief Boolean used to indicate that the thread
       /// doing asynchronous steps has to stop.
-      private: bool stopAsyncStepThread {false};
+      private: std::atomic<bool> stopAsyncStepThread {false};
 
       private: using Duration = std::chrono::steady_clock::duration;
     };
