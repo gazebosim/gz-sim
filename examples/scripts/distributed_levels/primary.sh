@@ -48,8 +48,8 @@ trap cleanup EXIT
 OUTPUT_STATS_FILE="stats_distributed_r${ROBOTS}_s${SECONDARIES}.csv"
 
 if [[ -f $OUTPUT_STATS_FILE ]]; then
-  echo "$OUTPUT_STATS_FILE already exists, delete it before running a simulation with the same settings"
-  exit 0
+  echo "$OUTPUT_STATS_FILE already exists, deleting before running a simulation with the same settings..."
+  rm $OUTPUT_STATS_FILE
 fi
 
 empy3 -o "$TMPFILE" "$FILENAME.sdf.em" $ROBOTS
