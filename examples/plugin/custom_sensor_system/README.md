@@ -1,6 +1,9 @@
 # Custom sensor system
 
-TODO
+This example shows how to use a custom sensor with Ignition Gazebo.
+
+It uses the odometer created on this example:
+[ign-sensors/examples/custom_sensor](https://github.com/ignitionrobotics/ign-sensors/tree/main/examples/custom_sensor).
 
 ## Build
 
@@ -14,12 +17,12 @@ cmake ..
 make
 ~~~
 
-This will generate the `CustomSensorSystem` library under `build`.
+This will generate the `OdometerSystem` library under `build`.
 
 ## Run
 
 The plugin must be attached to an entity to be loaded. This is demonstrated in
-the `custom_sensor.sdf` file that's going to be loaded.
+the `odometer.sdf` file that's going to be loaded.
 
 Before starting Gazebo, we must make sure it can find the plugin by doing:
 
@@ -30,7 +33,13 @@ export IGN_GAZEBO_SYSTEM_PLUGIN_PATH=`pwd`/build
 
 Then load the example world:
 
-    ign gazebo -v 3 custom_sensor.sdf
+    ign gazebo -r odometer.sdf
 
+You should see a box slowly moving in a straight line.
 
-TODO
+Listen to the odometer data with:
+
+```
+ign topic -e -t /world/odometer_world/model/model_with_sensor/link/link/sensor/an_odometer/odometer
+```
+

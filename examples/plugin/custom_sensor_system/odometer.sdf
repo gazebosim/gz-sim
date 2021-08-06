@@ -2,14 +2,10 @@
 <!--
 -->
 <sdf version="1.6">
-  <world name="custom_sensor_world">
+  <world name="odometer_world">
     <plugin
       filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
-    </plugin>
-    <plugin
-      filename="CustomSensorSystem"
-      name="custom::CustomSensorSystem">
     </plugin>
     <plugin
       filename="ignition-gazebo-user-commands-system"
@@ -18,6 +14,11 @@
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+    <!-- The system is added to the world, so it handles all odometers in the world-->
+    <plugin
+      filename="OdometerSystem"
+      name="custom::OdometerSystem">
     </plugin>
 
     <light type="directional" name="sun">
@@ -62,6 +63,7 @@
     </model>
 
     <model name="model_with_sensor">
+      <pose>0 0 0.05 0 0 0</pose>
       <link name="link">
         <inertial>
           <mass>0.1</mass>
@@ -85,19 +87,26 @@
             </box>
           </geometry>
         </visual>
-        <sensor name="custom_sensor" type="custom">
+        <!-- Here's our custom sensor -->
+        <sensor name="an_odometer" type="custom" ignition:type="odometer">
           <always_on>1</always_on>
           <update_rate>30</update_rate>
           <visualize>true</visualize>
-          <topic>custom</topic>
-          <ignition:custom_sensor>
+          <ignition:odometer>
             <noise type="gaussian">
-              <mean>0.2</mean>
-              <stddev>0.1</stddev>
+              <mean>0.00001</mean>
+              <stddev>0.00001</stddev>
             </noise>
-          </ignition:custom_sensor>
+          </ignition:odometer>
         </sensor>
       </link>
+
+      <!-- Use the velocity control plugin to give it some initial velocity -->
+      <plugin
+        filename="ignition-gazebo-velocity-control-system"
+        name="ignition::gazebo::systems::VelocityControl">
+        <initial_linear>0.2 0 0</initial_linear>
+      </plugin>
     </model>
 
   </world>
