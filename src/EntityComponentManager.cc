@@ -162,19 +162,19 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// \brief A map of an entity to its components
   public: std::unordered_map<Entity,
            std::vector<std::unique_ptr<components::BaseComponent>>>
-             storage;
+             componentStorage;
 
   /// \brief A map that keeps track of where each type of component is
-  /// located in the storage vector. Since the storage vector is of type
-  /// BaseComponent, we need to keep track of which component type corresponds
-  /// to a given index in the vector so that we can cast the BaseComponent
-  /// to this type if needed.
+  /// located in the componentStorage vector. Since the componentStorage vector
+  /// is of type BaseComponent, we need to keep track of which component type
+  /// corresponds to a given index in the vector so that we can cast the
+  /// BaseComponent to this type if needed.
   ///
   /// The key of this map is the Entity, and the value is a map of the
   /// component type to the corresponding index in the
-  /// storage vector (a component of a particular type is
+  /// componentStorage vector (a component of a particular type is
   /// only a key for the value map if a component of this type exists in
-  /// the storage vector)
+  /// the componentStorage vector)
   ///
   /// NOTE: Any modification of this data structure must be followed
   /// by setting `componentTypeIndexDirty` to true.
@@ -242,7 +242,7 @@ Entity EntityComponentManagerPrivate::CreateEntityImplementation(Entity _entity)
   // Reset descendants cache
   this->descendantCache.clear();
 
-  const auto result = this->storage.insert({_entity,
+  const auto result = this->componentStorage.insert({_entity,
       std::vector<std::unique_ptr<components::BaseComponent>>()});
   if (!result.second)
   {
@@ -349,7 +349,7 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
     this->dataPtr->componentsMarkedAsRemoved.clear();
 
     // reset the entity component storage
-    this->dataPtr->storage.clear();
+    this->dataPtr->componentStorage.clear();
     this->dataPtr->componentTypeIndex.clear();
     this->dataPtr->componentTypeIndexDirty = true;
 
@@ -370,7 +370,7 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
       this->dataPtr->entities.RemoveVertex(entity);
 
       this->dataPtr->componentsMarkedAsRemoved.erase(entity);
-      this->dataPtr->storage.erase(entity);
+      this->dataPtr->componentStorage.erase(entity);
       this->dataPtr->componentTypeIndex.erase(entity);
       this->dataPtr->componentTypeIndexDirty = true;
 
@@ -613,9 +613,6 @@ bool EntityComponentManager::CreateComponentImplementation(
   this->dataPtr->AddModifiedComponent(_entity);
   this->dataPtr->oneTimeChangedComponents[_componentTypeId].insert(_entity);
 
-  // Instantiate the new component.
-  auto newComp = components::Factory::Instance()->New(_componentTypeId, _data);
-
   // make sure the entity exists
   auto typeMapIter = this->dataPtr->componentTypeIndex.find(_entity);
   if (typeMapIter == this->dataPtr->componentTypeIndex.end())
@@ -626,8 +623,8 @@ bool EntityComponentManager::CreateComponentImplementation(
     return false;
   }
 
-  auto entityCompIter = this->dataPtr->storage.find(_entity);
-  if (entityCompIter == this->dataPtr->storage.end())
+  auto entityCompIter = this->dataPtr->componentStorage.find(_entity);
+  if (entityCompIter == this->dataPtr->componentStorage.end())
   {
     ignerr << "Attempt to create a component of type [" << _componentTypeId
       << "] attached to entity [" << _entity
@@ -635,8 +632,11 @@ bool EntityComponentManager::CreateComponentImplementation(
     return false;
   }
 
-  // If entity has never had a component of this type
+  // Instantiate the new component.
+  auto newComp = components::Factory::Instance()->New(_componentTypeId, _data);
+
   const auto compIdxIter = typeMapIter->second.find(_componentTypeId);
+  // If entity has never had a component of this type
   if (compIdxIter == typeMapIter->second.end())
   {
     const auto vectorIdx = entityCompIter->second.size();
@@ -735,8 +735,8 @@ const components::BaseComponent
     return nullptr;
 
   // get the pointer to the component
-  const auto compVecIter = this->dataPtr->storage.find(_entity);
-  if (compVecIter == this->dataPtr->storage.end())
+  const auto compVecIter = this->dataPtr->componentStorage.find(_entity);
+  if (compVecIter == this->dataPtr->componentStorage.end())
   {
     ignerr << "Internal error: Entity [" << _entity
       << "] is missing in storage, but is in "
@@ -1131,43 +1131,43 @@ void EntityComponentManager::ChangedState(
 void EntityComponentManagerPrivate::CalculateStateThreadLoad()
 {
   // If the entity component vector is dirty, we need to recalculate the
-  // threads and each threads work load
+  // threads and each thread's work load
   if (!this->componentTypeIndexDirty)
     return;
 
   this->componentTypeIndexDirty = false;
   this->componentTypeIndexIterators.clear();
   auto startIt = this->componentTypeIndex.begin();
-  int numComponents = this->componentTypeIndex.size();
+  int numEntities = this->componentTypeIndex.size();
 
   // Set the number of threads to spawn to the min of the calculated thread
   // count or max threads that the hardware supports
   int maxThreads = std::thread::hardware_concurrency();
-  uint64_t numThreads = std::min(numComponents, maxThreads);
+  uint64_t numThreads = std::min(numEntities, maxThreads);
 
-  int componentsPerThread = static_cast<int>(std::ceil(
-    static_cast<double>(numComponents) / numThreads));
+  int entitiesPerThread = static_cast<int>(std::ceil(
+    static_cast<double>(numEntities) / numThreads));
 
   igndbg << "Updated state thread iterators: " << numThreads
-         << " threads processing around " << componentsPerThread
-         << " components each." << std::endl;
+         << " threads processing around " << entitiesPerThread
+         << " entities each." << std::endl;
 
   // Push back the starting iterator
   this->componentTypeIndexIterators.push_back(startIt);
   for (uint64_t i = 0; i < numThreads; ++i)
   {
-    // If we have added all of the components to the iterator vector, we are
+    // If we have added all of the entities to the iterator vector, we are
     // done so push back the end iterator
-    numComponents -= componentsPerThread;
-    if (numComponents <= 0)
+    numEntities -= entitiesPerThread;
+    if (numEntities <= 0)
     {
       this->componentTypeIndexIterators.push_back(
           this->componentTypeIndex.end());
       break;
     }
 
-    // Get the iterator to the next starting group of components
-    auto nextIt = std::next(startIt, componentsPerThread);
+    // Get the iterator to the next starting group of entities
+    auto nextIt = std::next(startIt, entitiesPerThread);
     this->componentTypeIndexIterators.push_back(nextIt);
     startIt = nextIt;
   }
