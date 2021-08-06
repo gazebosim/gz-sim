@@ -30,9 +30,6 @@
 
 #include <ignition/math/Helpers.hh>
 
-// This plugin loads another plugin, so it shouldn't include Register.hh
-#include <ignition/plugin/RegisterMore.hh>
-
 #include <ignition/rendering/Scene.hh>
 #include <ignition/sensors/CameraSensor.hh>
 #include <ignition/sensors/DepthCameraSensor.hh>
