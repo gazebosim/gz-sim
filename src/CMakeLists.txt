@@ -49,7 +49,6 @@ set (sources
   BaseView.cc
   Conversions.cc
   EntityComponentManager.cc
-  EntityComponentStorage.cc
   LevelManager.cc
   Link.cc
   Model.cc
@@ -75,7 +74,6 @@ set (gtest_sources
   Component_TEST.cc
   Conversions_TEST.cc
   EntityComponentManager_TEST.cc
-  EntityComponentStorage_TEST.cc
   EventManager_TEST.cc
   Link_TEST.cc
   Model_TEST.cc

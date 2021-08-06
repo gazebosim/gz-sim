@@ -224,10 +224,6 @@ namespace serializers
   };
 }
 
-// Forward declaration so that the EntityComponentStorage class can be a friend
-// of BaseComponent
-class EntityComponentStorage;
-
 namespace components
 {
   /// \brief Base class for all components.
@@ -279,27 +275,6 @@ namespace components
     /// Factory registration and is guaranteed to be the same across compilers
     /// and runs.
     public: virtual ComponentTypeId TypeId() const = 0;
-
-    /// \brief A flag used by the EntityComponentManager (ECM) to determine
-    /// whether a component should be considered "removed". This is useful for
-    /// achieving removal (and re-addition) behavior for a component that
-    /// already exists without actually removing the component from the ECM.
-    /// Using an internal flag instead of actually removing and re-adding the
-    /// component yields faster performance at runtime. Although memory usage is
-    /// increased since components aren't actually re-added/removed, the memory
-    /// needed for components is (usually) small, and frequent component
-    /// addition/removal is a rare use case, so the speedup that this approach
-    /// brings is worthwhile.
-    ///
-    /// \note This flag is to be used by the ECM only, and should not change how
-    /// users interact with components.
-    private: bool removed{false};
-
-    // Make EntityComponentStorage and EntityComponentManager a friend of the
-    // BaseComponent class so that they have access to a component's "removed"
-    // flag.
-    friend class ignition::gazebo::EntityComponentStorage;
-    friend class ignition::gazebo::EntityComponentManager;
   };
 
   /// \brief A component type that wraps any data type. The intention is for

@@ -28,7 +28,6 @@
 #include <ignition/common/Profiler.hh>
 #include <ignition/math/graph/GraphAlgorithms.hh>
 
-#include "ignition/gazebo/EntityComponentStorage.hh"
 #include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/components/Factory.hh"
 
@@ -78,9 +77,14 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// \param[in] _entity Entity that has component newly modified
   public: void AddModifiedComponent(const Entity &_entity);
 
-  /// \brief A class that stores all components and maps entities to their
-  /// component types
-  public: EntityComponentStorage entityCompStorage;
+  /// \brief Check whether a component is marked as a component that is
+  /// currently removed or not.
+  /// \param[in] _entity The entity
+  /// \param[in] _typeId The type ID for the component that belongs to _entity
+  /// \return True if _entity has a component of type _typeId that is currently
+  /// removed. False otherwise
+  public: bool ComponentMarkedAsRemoved(const Entity _entity,
+              const ComponentTypeId _typeId) const;
 
   /// \brief All component types that have ever been created.
   public: std::unordered_set<ComponentTypeId> createdCompTypes;
@@ -116,26 +120,6 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// \brief Flag that indicates if all entities should be removed.
   public: bool removeAllEntities{false};
 
-  /// \brief True if the entityComponents map was changed.  Primarily used
-  /// by the multithreading functionality in `State()` to allocate work to
-  /// each thread.
-  public: bool entityComponentsDirty{true};
-
-  /// \brief The set of components that each entity has.
-  /// NOTE: Any modification of this data structure must be followed
-  /// by setting `entityComponentsDirty` to true.
-  public: std::unordered_map<Entity,
-          std::unordered_set<ComponentTypeId>> entityComponents;
-
-  /// \brief A vector of iterators to evenly distributed spots in the
-  /// `entityComponents` map.  Threads in the `State` function use this
-  /// vector for easy access of their pre-allocated work.  This vector
-  /// is recalculated if `entityComponents` is changed (when
-  /// `entityComponentsDirty` == true).
-  public: std::vector<std::unordered_map<Entity,
-          std::unordered_set<ComponentTypeId>>::iterator>
-            entityComponentIterators;
-
   /// \brief A mutex to protect newly created entities.
   public: std::mutex entityCreatedMutex;
 
@@ -166,6 +150,51 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// being removed.
   public: std::unordered_map<Entity, std::unordered_set<ComponentTypeId>>
     removedComponents;
+
+  /// \brief All components that have been removed. The difference between
+  /// removedComponents and componentsMarkedAsRemoved is that removedComponents
+  /// keeps track of components that were removed in the current simulation
+  /// step, while componentsMarkedAsRemoved keeps track of components that are
+  /// currently removed based on all simulation steps.
+  public: std::unordered_map<Entity, std::unordered_set<ComponentTypeId>>
+    componentsMarkedAsRemoved;
+
+  /// \brief A map of an entity to its components
+  public: std::unordered_map<Entity,
+           std::vector<std::unique_ptr<components::BaseComponent>>>
+             componentStorage;
+
+  /// \brief A map that keeps track of where each type of component is
+  /// located in the componentStorage vector. Since the componentStorage vector
+  /// is of type BaseComponent, we need to keep track of which component type
+  /// corresponds to a given index in the vector so that we can cast the
+  /// BaseComponent to this type if needed.
+  ///
+  /// The key of this map is the Entity, and the value is a map of the
+  /// component type to the corresponding index in the
+  /// componentStorage vector (a component of a particular type is
+  /// only a key for the value map if a component of this type exists in
+  /// the componentStorage vector)
+  ///
+  /// NOTE: Any modification of this data structure must be followed
+  /// by setting `componentTypeIndexDirty` to true.
+  public: std::unordered_map<Entity,
+           std::unordered_map<ComponentTypeId, std::size_t>>
+                                componentTypeIndex;
+
+  /// \brief A vector of iterators to evenly distributed spots in the
+  /// `componentTypeIndex` map.  Threads in the `State` function use this
+  /// vector for easy access of their pre-allocated work.  This vector
+  /// is recalculated if `componentTypeIndex` is changed (when
+  /// `componentTypeIndexDirty` == true).
+  public: std::vector<std::unordered_map<Entity,
+          std::unordered_map<ComponentTypeId, std::size_t>>::iterator>
+            componentTypeIndexIterators;
+
+  /// \brief True if the componentTypeIndex map was changed.  Primarily used
+  /// by the multithreading functionality in `State()` to allocate work to
+  /// each thread.
+  public: bool componentTypeIndexDirty{true};
 };
 
 //////////////////////////////////////////////////
@@ -213,11 +242,22 @@ Entity EntityComponentManagerPrivate::CreateEntityImplementation(Entity _entity)
   // Reset descendants cache
   this->descendantCache.clear();
 
-  if (!this->entityCompStorage.AddEntity(_entity))
+  const auto result = this->componentStorage.insert({_entity,
+      std::vector<std::unique_ptr<components::BaseComponent>>()});
+  if (!result.second)
   {
     ignwarn << "Attempted to add entity [" << _entity
       << "] to component storage, but this entity is already in component "
       << "storage.\n";
+  }
+
+  const auto result2 = this->componentTypeIndex.insert({_entity,
+      std::unordered_map<ComponentTypeId, std::size_t>()});
+  if (!result2.second)
+  {
+    ignwarn << "Attempted to add entity [" << _entity
+      << "] to component type index, but this entity is already in component "
+      << "type index.\n";
   }
 
   return _entity;
@@ -305,12 +345,13 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
     IGN_PROFILE("RemoveAll");
     this->dataPtr->removeAllEntities = false;
     this->dataPtr->entities = EntityGraph();
-    this->dataPtr->entityComponents.clear();
     this->dataPtr->toRemoveEntities.clear();
-    this->dataPtr->entityComponentsDirty = true;
+    this->dataPtr->componentsMarkedAsRemoved.clear();
 
     // reset the entity component storage
-    this->dataPtr->entityCompStorage = EntityComponentStorage();
+    this->dataPtr->componentStorage.clear();
+    this->dataPtr->componentTypeIndex.clear();
+    this->dataPtr->componentTypeIndexDirty = true;
 
     // All views are now invalid.
     this->dataPtr->views.clear();
@@ -328,16 +369,10 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
       // Remove from graph
       this->dataPtr->entities.RemoveVertex(entity);
 
-      auto entityIter = this->dataPtr->entityComponents.find(entity);
-      // Remove the components, if any.
-      if (entityIter != this->dataPtr->entityComponents.end())
-      {
-        this->dataPtr->entityCompStorage.RemoveEntity(entity);
-
-        // Remove the entry in the entityComponent map
-        this->dataPtr->entityComponents.erase(entity);
-        this->dataPtr->entityComponentsDirty = true;
-      }
+      this->dataPtr->componentsMarkedAsRemoved.erase(entity);
+      this->dataPtr->componentStorage.erase(entity);
+      this->dataPtr->componentTypeIndex.erase(entity);
+      this->dataPtr->componentTypeIndexDirty = true;
 
       // Remove the entity from views.
       for (auto &view : this->dataPtr->views)
@@ -362,9 +397,6 @@ bool EntityComponentManager::RemoveComponent(
   if (!this->EntityHasComponentType(_entity, _typeId))
     return false;
 
-  this->dataPtr->entityComponents[_entity].erase(_typeId);
-  this->dataPtr->entityComponentsDirty = true;
-
   auto oneTimeIter = this->dataPtr->oneTimeChangedComponents.find(_typeId);
   if (oneTimeIter != this->dataPtr->oneTimeChangedComponents.end())
   {
@@ -381,10 +413,11 @@ bool EntityComponentManager::RemoveComponent(
       this->dataPtr->periodicChangedComponents.erase(periodicIter);
   }
 
-  auto removedComp =
-    this->dataPtr->entityCompStorage.RemoveComponent(_entity, _typeId);
-  if (removedComp)
+  auto compPtr = this->ComponentImplementation(_entity, _typeId);
+  if (compPtr)
   {
+    this->dataPtr->componentsMarkedAsRemoved[_entity].insert(_typeId);
+
     // update views to reflect the component removal
     for (auto &viewPair : this->dataPtr->views)
       viewPair.second->NotifyComponentRemoval(_entity, _typeId);
@@ -412,10 +445,7 @@ bool EntityComponentManager::RemoveComponent(
 bool EntityComponentManager::EntityHasComponent(const Entity _entity,
     const ComponentKey &_key) const
 {
-  if (!this->HasEntity(_entity))
-    return false;
-  auto &compSet = this->dataPtr->entityComponents[_entity];
-  return compSet.find(_key.first) != compSet.end();
+  return this->EntityHasComponentType(_entity, _key.first);
 }
 
 /////////////////////////////////////////////////
@@ -425,13 +455,9 @@ bool EntityComponentManager::EntityHasComponentType(const Entity _entity,
   if (!this->HasEntity(_entity))
     return false;
 
-  auto iter = this->dataPtr->entityComponents.find(_entity);
+  auto comp = this->ComponentImplementation(_entity, _typeId);
 
-  if (iter == this->dataPtr->entityComponents.end())
-    return false;
-
-  auto typeIter = iter->second.find(_typeId);
-  return (typeIter != iter->second.end());
+  return comp != nullptr;
 }
 
 /////////////////////////////////////////////////
@@ -460,16 +486,19 @@ ComponentState EntityComponentManager::ComponentState(const Entity _entity,
 {
   auto result = ComponentState::NoChange;
 
-  auto ecIter = this->dataPtr->entityComponents.find(_entity);
+  auto ctIter = this->dataPtr->componentTypeIndex.find(_entity);
 
-  if (ecIter == this->dataPtr->entityComponents.end())
+  if (ctIter == this->dataPtr->componentTypeIndex.end())
     return result;
 
-  auto typeIter = ecIter->second.find(_typeId);
-  if (typeIter == ecIter->second.end())
+  auto typeIter = ctIter->second.find(_typeId);
+  if (typeIter == ctIter->second.end() ||
+      this->dataPtr->ComponentMarkedAsRemoved(_entity, _typeId))
     return result;
 
-  auto oneTimeIter = this->dataPtr->oneTimeChangedComponents.find(*typeIter);
+  auto typeId = typeIter->first;
+
+  auto oneTimeIter = this->dataPtr->oneTimeChangedComponents.find(typeId);
   if (oneTimeIter != this->dataPtr->oneTimeChangedComponents.end() &&
       oneTimeIter->second.find(_entity) != oneTimeIter->second.end())
   {
@@ -478,7 +507,7 @@ ComponentState EntityComponentManager::ComponentState(const Entity _entity,
   else
   {
     auto periodicIter =
-      this->dataPtr->periodicChangedComponents.find(*typeIter);
+      this->dataPtr->periodicChangedComponents.find(typeId);
     if (periodicIter != this->dataPtr->periodicChangedComponents.end() &&
         periodicIter->second.find(_entity) != periodicIter->second.end())
       result = ComponentState::PeriodicChange;
@@ -591,42 +620,77 @@ bool EntityComponentManager::CreateComponentImplementation(
   bool updateData = true;
 
   this->dataPtr->AddModifiedComponent(_entity);
-  this->dataPtr->entityComponents[_entity].insert(_componentTypeId);
   this->dataPtr->oneTimeChangedComponents[_componentTypeId].insert(_entity);
-  this->dataPtr->entityComponentsDirty = true;
+
+  // make sure the entity exists
+  auto typeMapIter = this->dataPtr->componentTypeIndex.find(_entity);
+  if (typeMapIter == this->dataPtr->componentTypeIndex.end())
+  {
+    ignerr << "Attempt to create a component of type [" << _componentTypeId
+      << "] attached to entity [" << _entity
+      << "] failed: entity not in componentTypeIndex." << std::endl;
+    return false;
+  }
+
+  auto entityCompIter = this->dataPtr->componentStorage.find(_entity);
+  if (entityCompIter == this->dataPtr->componentStorage.end())
+  {
+    ignerr << "Attempt to create a component of type [" << _componentTypeId
+      << "] attached to entity [" << _entity
+      << "] failed: entity not in storage." << std::endl;
+    return false;
+  }
 
   // Instantiate the new component.
   auto newComp = components::Factory::Instance()->New(_componentTypeId, _data);
 
-  auto compAddResult =
-    this->dataPtr->entityCompStorage.AddComponent(_entity, std::move(newComp));
-  switch (compAddResult)
+  const auto compIdxIter = typeMapIter->second.find(_componentTypeId);
+  // If entity has never had a component of this type
+  if (compIdxIter == typeMapIter->second.end())
   {
-    case ComponentAdditionResult::FAILED_ADDITION:
-      ignerr << "Attempt to create a component of type [" << _componentTypeId
-        << "] attached to entity [" << _entity << "] failed.\n";
+    const auto vectorIdx = entityCompIter->second.size();
+    entityCompIter->second.push_back(std::move(newComp));
+    this->dataPtr->componentTypeIndex[_entity][_componentTypeId] = vectorIdx;
+    this->dataPtr->componentTypeIndexDirty = true;
+
+    updateData = false;
+    for (auto &viewPair : this->dataPtr->views)
+    {
+      auto &view = viewPair.second;
+      if (this->EntityMatches(_entity, view->ComponentTypes()))
+        view->MarkEntityToAdd(_entity, this->IsNewEntity(_entity));
+    }
+  }
+  else
+  {
+    // if the pre-existing component is marked as removed, this means that the
+    // component was added to the entity previously, but later removed. In this
+    // case, a re-addition of the component is occuring. If the pre-existing
+    // component is not marked as removed, this means that the component was
+    // added to the entity previously and never removed. In this case, we are
+    // simply modifying the data of the pre-existing component (the modification
+    // of the data is done externally in a templated ECM method call, because we
+    // need the derived component class in order to update the derived component
+    // data)
+    auto existingCompPtr = entityCompIter->second.at(compIdxIter->second).get();
+    if (!existingCompPtr)
+    {
+      ignerr << "Internal error: entity [" << _entity << "] has a component of "
+        << "type [" << _componentTypeId << "] in the storage, but the instance "
+        << "of this component is nullptr. This should never happen!"
+        << std::endl;
       return false;
-    case ComponentAdditionResult::NEW_ADDITION:
-      updateData = false;
+    }
+    else if (this->dataPtr->ComponentMarkedAsRemoved(_entity, _componentTypeId))
+    {
+      this->dataPtr->componentsMarkedAsRemoved[_entity].erase(_componentTypeId);
+
       for (auto &viewPair : this->dataPtr->views)
       {
-        auto &view = viewPair.second;
-        if (this->EntityMatches(_entity, view->ComponentTypes()))
-          view->MarkEntityToAdd(_entity, this->IsNewEntity(_entity));
-      }
-      break;
-    case ComponentAdditionResult::RE_ADDITION:
-      for (auto &viewPair : this->dataPtr->views)
         viewPair.second->NotifyComponentAddition(_entity,
             this->IsNewEntity(_entity), _componentTypeId);
-      break;
-    case ComponentAdditionResult::MODIFICATION:
-      break;
-    default:
-      ignerr << "Undefined behavior occurred when creating a component of "
-        << "type [" << _componentTypeId << "] attached to entity [" << _entity
-        << "]. This should never happen!\n";
-      return false;
+      }
+    }
   }
 
   this->dataPtr->createdCompTypes.insert(_componentTypeId);
@@ -638,8 +702,8 @@ bool EntityComponentManager::CreateComponentImplementation(
 bool EntityComponentManager::EntityMatches(Entity _entity,
     const std::set<ComponentTypeId> &_types) const
 {
-  auto iter = this->dataPtr->entityComponents.find(_entity);
-  if (iter == this->dataPtr->entityComponents.end())
+  auto iter = this->dataPtr->componentTypeIndex.find(_entity);
+  if (iter == this->dataPtr->componentTypeIndex.end())
     return false;
 
   // quick check: the entity cannot match _types if _types is larger than the
@@ -654,7 +718,8 @@ bool EntityComponentManager::EntityMatches(Entity _entity,
   for (const ComponentTypeId &type : _types)
   {
     auto typeIter = iter->second.find(type);
-    if (typeIter == iter->second.end())
+    if (typeIter == iter->second.end() ||
+        this->dataPtr->ComponentMarkedAsRemoved(_entity, type))
       return false;
   }
 
@@ -667,14 +732,52 @@ const components::BaseComponent
     const Entity _entity, const ComponentTypeId _type) const
 {
   IGN_PROFILE("EntityComponentManager::ComponentImplementation");
-  return this->dataPtr->entityCompStorage.ValidComponent(_entity, _type);
+
+  // make sure the entity exists
+  const auto typeMapIter = this->dataPtr->componentTypeIndex.find(_entity);
+  if (typeMapIter == this->dataPtr->componentTypeIndex.end())
+    return nullptr;
+
+  // make sure the component type exists for the entity
+  const auto compIdxIter = typeMapIter->second.find(_type);
+  if (compIdxIter == typeMapIter->second.end())
+    return nullptr;
+
+  // get the pointer to the component
+  const auto compVecIter = this->dataPtr->componentStorage.find(_entity);
+  if (compVecIter == this->dataPtr->componentStorage.end())
+  {
+    ignerr << "Internal error: Entity [" << _entity
+      << "] is missing in storage, but is in "
+      << "componentTypeIndex. This should never happen!" << std::endl;
+    return nullptr;
+  }
+
+  auto compPtr = compVecIter->second.at(compIdxIter->second).get();
+  if (nullptr == compPtr)
+  {
+    ignerr << "Internal error: entity [" << _entity << "] has a component of "
+      << "type [" << _type << "] in the storage, but the instance "
+      << "of this component is nullptr. This should never happen!"
+      << std::endl;
+    return nullptr;
+  }
+
+  // Return component if not marked as removed.
+  if (!this->dataPtr->ComponentMarkedAsRemoved(_entity, _type))
+    return compPtr;
+
+  return nullptr;
 }
 
 /////////////////////////////////////////////////
 components::BaseComponent *EntityComponentManager::ComponentImplementation(
     const Entity _entity, const ComponentTypeId _type)
 {
-  return this->dataPtr->entityCompStorage.ValidComponent(_entity, _type);
+  // Call the const version of the function
+  return const_cast<components::BaseComponent *>(
+      static_cast<const EntityComponentManager &>(
+      *this).ComponentImplementation(_entity, _type));
 }
 
 /////////////////////////////////////////////////
@@ -782,7 +885,7 @@ void EntityComponentManagerPrivate::SetRemovedComponentsMsgs(Entity &_entity,
 
   // The message need not necessarily contain the entity initially. For
   // instance, when AddEntityToMessage() calls this function, the entity may
-  // have some removed components but none in entityComponents that changed,
+  // have some removed components but none that changed,
   // so the entity may not have been added to the message beforehand.
   auto entIter = _msg.mutable_entities()->find(_entity);
   if (entIter == _msg.mutable_entities()->end())
@@ -819,8 +922,8 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
 {
   auto entityMsg = _msg.add_entities();
   entityMsg->set_id(_entity);
-  auto iter = this->dataPtr->entityComponents.find(_entity);
-  if (iter == this->dataPtr->entityComponents.end())
+  auto iter = this->dataPtr->componentTypeIndex.find(_entity);
+  if (iter == this->dataPtr->componentTypeIndex.end())
     return;
 
   if (this->dataPtr->toRemoveEntities.find(_entity) !=
@@ -834,8 +937,11 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
   auto types = _types;
   if (types.empty())
   {
-    for (auto &type : this->dataPtr->entityComponents[_entity])
-      types.insert(type);
+    for (auto &type : this->dataPtr->componentTypeIndex[_entity])
+    {
+      if (!this->dataPtr->ComponentMarkedAsRemoved(_entity, type.first))
+        types.insert(type.first);
+    }
   }
 
   for (const ComponentTypeId type : types)
@@ -845,8 +951,12 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
     if (typeIter == iter->second.end())
       continue;
 
-    auto compMsg = entityMsg->add_components();
+    // The component instance is nullptr if the component was removed
     auto compBase = this->ComponentImplementation(_entity, type);
+    if (nullptr == compBase)
+      continue;
+
+    auto compMsg = entityMsg->add_components();
     compMsg->set_type(compBase->TypeId());
 
     std::ostringstream ostr;
@@ -865,8 +975,8 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
     Entity _entity, const std::unordered_set<ComponentTypeId> &_types,
     bool _full) const
 {
-  auto iter = this->dataPtr->entityComponents.find(_entity);
-  if (iter == this->dataPtr->entityComponents.end())
+  auto iter = this->dataPtr->componentTypeIndex.find(_entity);
+  if (iter == this->dataPtr->componentTypeIndex.end())
     return;
 
   // Set the default entity iterator to the end. This will allow us to know
@@ -895,9 +1005,10 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
   auto types = _types;
   if (types.empty())
   {
-    for (auto &type : this->dataPtr->entityComponents[_entity])
+    for (auto &type : this->dataPtr->componentTypeIndex[_entity])
     {
-      types.insert(type);
+      if (!this->dataPtr->ComponentMarkedAsRemoved(_entity, type.first))
+        types.insert(type.first);
     }
   }
 
@@ -1029,44 +1140,44 @@ void EntityComponentManager::ChangedState(
 void EntityComponentManagerPrivate::CalculateStateThreadLoad()
 {
   // If the entity component vector is dirty, we need to recalculate the
-  // threads and each threads work load
-  if (!this->entityComponentsDirty)
+  // threads and each thread's work load
+  if (!this->componentTypeIndexDirty)
     return;
 
-  this->entityComponentsDirty = false;
-  this->entityComponentIterators.clear();
-  auto startIt = this->entityComponents.begin();
-  int numComponents = this->entityComponents.size();
+  this->componentTypeIndexDirty = false;
+  this->componentTypeIndexIterators.clear();
+  auto startIt = this->componentTypeIndex.begin();
+  int numEntities = this->componentTypeIndex.size();
 
   // Set the number of threads to spawn to the min of the calculated thread
   // count or max threads that the hardware supports
   int maxThreads = std::thread::hardware_concurrency();
-  uint64_t numThreads = std::min(numComponents, maxThreads);
+  uint64_t numThreads = std::min(numEntities, maxThreads);
 
-  int componentsPerThread = static_cast<int>(std::ceil(
-    static_cast<double>(numComponents) / numThreads));
+  int entitiesPerThread = static_cast<int>(std::ceil(
+    static_cast<double>(numEntities) / numThreads));
 
   igndbg << "Updated state thread iterators: " << numThreads
-         << " threads processing around " << componentsPerThread
-         << " components each." << std::endl;
+         << " threads processing around " << entitiesPerThread
+         << " entities each." << std::endl;
 
   // Push back the starting iterator
-  this->entityComponentIterators.push_back(startIt);
+  this->componentTypeIndexIterators.push_back(startIt);
   for (uint64_t i = 0; i < numThreads; ++i)
   {
-    // If we have added all of the components to the iterator vector, we are
+    // If we have added all of the entities to the iterator vector, we are
     // done so push back the end iterator
-    numComponents -= componentsPerThread;
-    if (numComponents <= 0)
+    numEntities -= entitiesPerThread;
+    if (numEntities <= 0)
     {
-      this->entityComponentIterators.push_back(
-          this->entityComponents.end());
+      this->componentTypeIndexIterators.push_back(
+          this->componentTypeIndex.end());
       break;
     }
 
-    // Get the iterator to the next starting group of components
-    auto nextIt = std::next(startIt, componentsPerThread);
-    this->entityComponentIterators.push_back(nextIt);
+    // Get the iterator to the next starting group of entities
+    auto nextIt = std::next(startIt, entitiesPerThread);
+    this->componentTypeIndexIterators.push_back(nextIt);
     startIt = nextIt;
   }
 }
@@ -1077,7 +1188,7 @@ ignition::msgs::SerializedState EntityComponentManager::State(
     const std::unordered_set<ComponentTypeId> &_types) const
 {
   ignition::msgs::SerializedState stateMsg;
-  for (const auto &it : this->dataPtr->entityComponents)
+  for (const auto &it : this->dataPtr->componentTypeIndex)
   {
     auto entity = it.first;
     if (!_entities.empty() && _entities.find(entity) == _entities.end())
@@ -1125,12 +1236,12 @@ void EntityComponentManager::State(
   };
 
   // Spawn workers
-  uint64_t numThreads = this->dataPtr->entityComponentIterators.size() - 1;
+  uint64_t numThreads = this->dataPtr->componentTypeIndexIterators.size() - 1;
   for (uint64_t i = 0; i < numThreads; i++)
   {
     workers.push_back(std::thread(functor,
-        this->dataPtr->entityComponentIterators[i],
-        this->dataPtr->entityComponentIterators[i+1]));
+        this->dataPtr->componentTypeIndexIterators[i],
+        this->dataPtr->componentTypeIndexIterators[i+1]));
   }
 
   // Wait for each thread to finish processing its components
@@ -1376,12 +1487,13 @@ void EntityComponentManager::SetChanged(
     gazebo::ComponentState _c)
 {
   // make sure _entity exists
-  auto ecIter = this->dataPtr->entityComponents.find(_entity);
-  if (ecIter == this->dataPtr->entityComponents.end())
+  auto ecIter = this->dataPtr->componentTypeIndex.find(_entity);
+  if (ecIter == this->dataPtr->componentTypeIndex.end())
     return;
 
   // make sure the entity has a component of type _type
-  if (ecIter->second.find(_type) == ecIter->second.end())
+  if (ecIter->second.find(_type) == ecIter->second.end() ||
+      this->dataPtr->ComponentMarkedAsRemoved(_entity, _type))
     return;
 
   if (_c == ComponentState::PeriodicChange)
@@ -1415,11 +1527,18 @@ void EntityComponentManager::SetChanged(
 std::unordered_set<ComponentTypeId> EntityComponentManager::ComponentTypes(
     const Entity _entity) const
 {
-  auto it = this->dataPtr->entityComponents.find(_entity);
-  if (it == this->dataPtr->entityComponents.end())
+  auto it = this->dataPtr->componentTypeIndex.find(_entity);
+  if (it == this->dataPtr->componentTypeIndex.end())
     return {};
 
-  return it->second;
+  std::unordered_set<ComponentTypeId> result;
+  for (const auto &type : it->second)
+  {
+    if (!this->dataPtr->ComponentMarkedAsRemoved(_entity, type.first))
+      result.insert(type.first);
+  }
+
+  return result;
 }
 
 /////////////////////////////////////////////////
@@ -1449,4 +1568,15 @@ void EntityComponentManagerPrivate::AddModifiedComponent(const Entity &_entity)
   }
 
   this->modifiedComponents.insert(_entity);
+}
+
+/////////////////////////////////////////////////
+bool EntityComponentManagerPrivate::ComponentMarkedAsRemoved(
+    const Entity _entity, const ComponentTypeId _typeId) const
+{
+  auto iter = this->componentsMarkedAsRemoved.find(_entity);
+  if (iter != this->componentsMarkedAsRemoved.end())
+    return iter->second.find(_typeId) != iter->second.end();
+
+  return false;
 }
