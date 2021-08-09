@@ -16,6 +16,7 @@
  */
 
 #include <algorithm>
+#include <atomic>
 #include <optional>
 #include <string>
 #include <vector>
@@ -55,8 +56,8 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
   public: void Load(const EntityComponentManager &_ecm);
 
   /// \brief Actual function that enables the plugin.
-  /// \param[in] _value True to enable plugin.
-  public: void Enable(const bool _value);
+  /// \param[in] _req Whether to enable the plugin or disable it.
+  public: void Enable(const ignition::msgs::Boolean &_req);
 
   /// \brief Callback for the depth camera
   /// \param[in] _msg Message from the subscribed topic
@@ -98,6 +99,9 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
   /// \brief Whether to visualize the normal forces.
   public: bool visualizeForces{false};
 
+  /// \brief Whether to visualize the contacts.
+  public: bool visualizeContacts{false};
+
   /// \brief Model interface.
   public: Model model{kNullEntity};
 
@@ -112,7 +116,7 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
   public: ignition::gazebo::Entity objectCollisionEntity;
 
   /// \brief Whether the plugin is enabled.
-  public: bool enabled{true};
+  public: std::atomic<bool> enabled{true};
 
   /// \brief Initialization flag.
   public: bool initialized{false};
@@ -150,7 +154,7 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
   public: bool visualizeSensor{false};
 
   /// \brief Size of the contact sensor
-  public: ignition::math::Vector3d sensorSize;
+  public: ignition::math::Vector3d sensorSize{0.005, 0.02, 0.02};
 
   /// \brief Extended sensing distance. The sensor will output data coming from
   /// its volume plus this distance.
@@ -164,6 +168,12 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
 
   /// \brief Flag for allowing the plugin to output error/warning only once
   public: bool initErrorPrinted{false};
+
+  /// \brief Normal forces publisher
+  public: ignition::transport::Node::Publisher normalForcesPub;
+
+  /// \brief Namespace for transport topics
+  public: std::string ns{"optical_tactile_sensor"};
 };
 
 //////////////////////////////////////////////////
@@ -228,6 +238,16 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
     this->dataPtr->visualizeForces = _sdf->Get<bool>("visualize_forces");
   }
 
+  if (!_sdf->HasElement("visualize_contacts"))
+  {
+    igndbg << "Missing parameter <visualize_contacts>, "
+      << "setting to " << this->dataPtr->visualizeContacts << std::endl;
+  }
+  else
+  {
+    this->dataPtr->visualizeContacts = _sdf->Get<bool>("visualize_contacts");
+  }
+
   if (!_sdf->HasElement("extended_sensing"))
   {
     igndbg << "Missing parameter <extended_sensing>, "
@@ -273,6 +293,73 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
       this->dataPtr->forceLength = _sdf->Get<double>("force_length");
     }
   }
+
+  if (!_sdf->HasElement("namespace"))
+  {
+    igndbg << "Missing parameter <namespace>, "
+      << "setting to " << this->dataPtr->ns << std::endl;
+  }
+  else
+  {
+    this->dataPtr->ns = _sdf->Get<std::string>("namespace");
+  }
+
+  // Get the size of the sensor from the SDF
+  // If there's no <collision> specified inside <link>, a default one
+  // is set
+  if (_sdf->GetParent() != nullptr)
+  {
+    if (_sdf->GetParent()->GetElement("link") != nullptr)
+    {
+      if (_sdf->GetParent()->GetElement("link")->GetElement("collision")
+          != nullptr)
+      {
+        if (_sdf->GetParent()->GetElement("link")->GetElement("collision")->
+            GetElement("geometry") != nullptr)
+        {
+          if (_sdf->GetParent()->GetElement("link")->GetElement("collision")->
+              GetElement("geometry")->GetElement("box") != nullptr)
+          {
+            this->dataPtr->sensorSize =
+              _sdf->GetParent()->GetElement("link")->GetElement("collision")->
+              GetElement("geometry")->GetElement("box")->
+              Get<ignition::math::Vector3d>("size");
+            igndbg << "Setting sensor size to box collision size: ["
+                   << this->dataPtr->sensorSize << "]" << std::endl;
+          }
+        }
+      }
+    }
+  }
+
+  // Advertise topic for normal forces
+  std::string normalForcesTopic = "/" + this->dataPtr->ns + "/normal_forces";
+  this->dataPtr->normalForcesPub =
+    this->dataPtr->node.Advertise<ignition::msgs::Image>(normalForcesTopic);
+  if (!this->dataPtr->normalForcesPub)
+  {
+    ignerr << "Error advertising topic [" << normalForcesTopic << "]"
+      << std::endl;
+  }
+  else
+  {
+    ignmsg << "Topic publishing normal forces [" << normalForcesTopic << "]"
+           << std::endl;
+  }
+
+  // Advertise enabling service
+  std::string enableService = "/" + this->dataPtr->ns + "/enable";
+  if (!this->dataPtr->node.Advertise(enableService,
+      &OpticalTactilePluginPrivate::Enable, this->dataPtr.get()))
+  {
+    ignerr << "Error advertising service [" << enableService << "]"
+      << std::endl;
+  }
+  else
+  {
+    ignmsg << "Service to enable tactile sensor [" << enableService << "]"
+           << std::endl;
+  }
 }
 
 //////////////////////////////////////////////////
@@ -282,7 +369,7 @@ void OpticalTactilePlugin::PreUpdate(const UpdateInfo &_info,
   IGN_PROFILE("OpticalTactilePlugin::PreUpdate");
 
   // Nothing left to do if paused
-  if (_info.paused)
+  if (_info.paused || !this->dataPtr->enabled)
     return;
 
   if (!this->dataPtr->initialized)
@@ -327,15 +414,26 @@ void OpticalTactilePlugin::PreUpdate(const UpdateInfo &_info,
 //////////////////////////////////////////////////
 void OpticalTactilePlugin::PostUpdate(
   const ignition::gazebo::UpdateInfo &_info,
-  const ignition::gazebo::EntityComponentManager &/*_ecm*/)
+  const ignition::gazebo::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("OpticalTactilePlugin::PostUpdate");
 
   // Nothing left to do if paused or failed to initialize.
-  if (_info.paused || !this->dataPtr->initialized)
+  if (_info.paused || !this->dataPtr->initialized || !this->dataPtr->enabled)
     return;
 
   // TODO(anyone) Get ContactSensor data and merge it with DepthCamera data
+  if (this->dataPtr->visualizeContacts)
+  {
+    auto *contacts =
+      _ecm.Component<components::ContactSensorData>(
+        this->dataPtr->sensorCollisionEntity);
+
+    if (nullptr != contacts)
+    {
+      this->dataPtr->visualizePtr->RequestContactsMarkerMsg(contacts);
+    }
+  }
 
   // Process camera message if it's new
   {
@@ -524,9 +622,20 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm)
 }
 
 //////////////////////////////////////////////////
-void OpticalTactilePluginPrivate::Enable(const bool /*_value*/)
+void OpticalTactilePluginPrivate::Enable(const ignition::msgs::Boolean &_req)
 {
-  // todo(mcres) Implement method
+  if (_req.data() != this->enabled)
+  {
+    ignmsg << "Enabling optical tactile sensor with namespace [" << this->ns
+           << "]: " << _req.data() << std::endl;
+  }
+
+  this->enabled = _req.data();
+
+  if (!_req.data())
+  {
+    this->visualizePtr->RemoveNormalForcesAndContactsMarkers();
+  }
 }
 
 //////////////////////////////////////////////////
@@ -535,7 +644,7 @@ void OpticalTactilePluginPrivate::DepthCameraCallback(
 {
   // This check avoids running the callback at t=0 and getting
   // unexpected markers in the scene
-  if (!this->initialized)
+  if (!this->initialized || !this->enabled)
     return;
 
   // Check whether DepthCamera returns FLOAT32 data
@@ -652,6 +761,17 @@ void OpticalTactilePluginPrivate::ComputeNormalForces(
   // Declare variables for storing the XYZ points
   ignition::math::Vector3f p1, p2, p3, p4, markerPosition;
 
+  // Message for publishing normal forces
+  ignition::msgs::Image normalsMsg;
+  normalsMsg.set_width(_msg.width());
+  normalsMsg.set_height(_msg.height());
+  normalsMsg.set_step(3 * sizeof(float) * _msg.width());
+  normalsMsg.set_pixel_format_type(ignition::msgs::PixelFormatType::R_FLOAT32);
+
+  uint32_t bufferSize = 3 * sizeof(float) * _msg.width() * _msg.height();
+  std::shared_ptr<char> normalForcesBuffer(new char[bufferSize]);
+  uint32_t bufferIndex;
+
   // Marker messages representing the normal forces
   ignition::msgs::Marker positionMarkerMsg;
   ignition::msgs::Marker forceMarkerMsg;
@@ -682,8 +802,15 @@ void OpticalTactilePluginPrivate::ComputeNormalForces(
       // https://github.com/ignitionrobotics/ign-math/issues/144
       ignition::math::Vector3f normalForce = direction.Normalized();
 
-      // todo(mcres) Normal forces are computed even if visualization
-      // is turned off. These forces should be published in the future.
+      // Add force to buffer
+      // Forces buffer is composed of XYZ coordinates, while _msg buffer is
+      // made up of XYZRGB values
+      bufferIndex = j * (_msg.row_step() / 2) + i * (_msg.point_step() / 2);
+      normalForcesBuffer.get()[bufferIndex] = normalForce.X();
+      normalForcesBuffer.get()[bufferIndex + sizeof(float)] = normalForce.Y();
+      normalForcesBuffer.get()[bufferIndex + 2 * sizeof(float)] =
+        normalForce.Z();
+
       if (!_visualizeForces)
         continue;
 
@@ -693,6 +820,11 @@ void OpticalTactilePluginPrivate::ComputeNormalForces(
         this->tactileSensorWorldPose);
     }
   }
+
+  // Publish message
+  normalsMsg.set_data(normalForcesBuffer.get(),
+    3 * sizeof(float) * _msg.width() * _msg.height());
+  this->normalForcesPub.Publish(normalsMsg);
 
   if (_visualizeForces)
   {
