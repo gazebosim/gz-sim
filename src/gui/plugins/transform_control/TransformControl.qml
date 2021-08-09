@@ -28,7 +28,6 @@ ToolBar {
   Layout.minimumWidth: 200
   Layout.minimumHeight: 100
 
-  // TODO(anyone) enable scale button when support is added in ign-physics
   function activateScale() {
     scale.checked = true;
     TransformControl.OnMode("scale");
