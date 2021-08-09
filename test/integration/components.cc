@@ -30,6 +30,7 @@
 #include <sdf/Material.hh>
 #include <sdf/Noise.hh>
 #include <sdf/Pbr.hh>
+#include <sdf/sdf.hh>
 #include <sdf/Sensor.hh>
 
 #include "ignition/gazebo/components/Actor.hh"
@@ -1096,6 +1097,66 @@ TEST_F(ComponentsTest, Model)
   std::istringstream istr("ignored");
   components::Model comp3;
   comp3.Deserialize(istr);
+}
+
+/////////////////////////////////////////////////
+TEST_F(ComponentsTest, ModelSdf)
+{
+  std::ostringstream stream;
+  std::string version = SDF_VERSION;
+  stream
+    << "<?xml version=\"1.0\" ?>"
+    << "<sdf version='" << version << "'>"
+    << "  <world name=\"modelSDF\">"
+    << "    <physics name=\"1ms\" type=\"ode\">"
+    << "      <max_step_size>0.001</max_step_size>"
+    << "      <real_time_factor>1.0</real_time_factor>"
+    << "    </physics>"
+    << "    <plugin"
+    << "      filename=\"ignition-gazebo-physics-system\""
+    << "      name=\"ignition::gazebo::systems::Physics\">"
+    << "    </plugin>"
+    << "    <model name='my_model'>"
+    << "      <link name='link'>"
+    << "        <light type= 'point' name='my_light'>"
+    << "          <pose>0.1 0 0 0 0 0</pose>"
+    << "          <diffuse>0.2 0.3 0.4 1</diffuse>"
+    << "          <specular>0.3 0.4 0.5 1</specular>"
+    << "        </light>"
+    << "      </link>"
+    << "    </model>"
+    << "  </world>"
+    << "</sdf>";
+
+  sdf::SDFPtr sdfParsed(new sdf::SDF());
+  sdf::init(sdfParsed);
+  ASSERT_TRUE(sdf::readString(stream.str(), sdfParsed));
+
+  // model
+  EXPECT_TRUE(sdfParsed->Root()->HasElement("world"));
+  sdf::ElementPtr worldElem = sdfParsed->Root()->GetElement("world");
+  EXPECT_TRUE(worldElem->HasElement("model"));
+  sdf::ElementPtr modelElem = worldElem->GetElement("model");
+  EXPECT_TRUE(modelElem->HasAttribute("name"));
+  EXPECT_EQ(modelElem->Get<std::string>("name"), "my_model");
+
+  sdf::Model model;
+  model.Load(modelElem);
+  EXPECT_EQ("my_model", model.Name());
+
+  // Create components
+  auto comp1 = components::ModelSdf(model);
+  components::ModelSdf comp2;
+
+  // Stream operators
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+
+  std::istringstream istr(ostr.str());
+  comp2.Deserialize(istr);
+
+  EXPECT_EQ("my_model", comp2.Data().Name());
+  EXPECT_EQ(1u, comp2.Data().LinkCount());
 }
 
 /////////////////////////////////////////////////
