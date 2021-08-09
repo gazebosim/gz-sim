@@ -190,7 +190,7 @@ TEST_F(ThermalSensorTest,
 
   // wait for image
   bool received = false;
-  for (unsigned int i = 0; i < 20; ++i)
+  for (unsigned int i = 0; i < 30; ++i)
   {
     {
       std::lock_guard<std::mutex> lock(g_mutex);
