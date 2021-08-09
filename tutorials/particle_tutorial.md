@@ -1,4 +1,4 @@
-\page particle_mitter Particle Emitter
+\page particle_emitter Particle Emitter
 
 This tutorial shows how to use the particle emitter system to add and configure particle effects like smoke and fog in simulation. It also shows the effects that particles have on different types of sensors in Ignition Gazebo.
 
