@@ -532,6 +532,15 @@ ComponentKey EntityComponentManager::CreateComponentImplementation(
     const Entity _entity, const ComponentTypeId _componentTypeId,
     const components::BaseComponent *_data)
 {
+  // make sure the entity exists
+  if (!this->HasEntity(_entity))
+  {
+    ignerr << "Trying to create a component of type [" << _componentTypeId
+      << "] attached to entity [" << _entity << "], but this entity does not "
+      << "exist. This create component request will be ignored." << std::endl;
+    return ComponentKey();
+  }
+
   // If type hasn't been instantiated yet, create a storage for it
   if (!this->HasComponentType(_componentTypeId))
   {
