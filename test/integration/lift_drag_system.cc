@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 
 #include <ignition/msgs/double.pb.h>
+#include <ignition/common/Filesystem.hh>
 #include <ignition/msgs/Utility.hh>
 
 #include <ignition/common/Console.hh>
@@ -48,8 +49,8 @@ using namespace gazebo;
 
 struct VerticalForceTestParam
 {
-  const char *fileName;
-  const char *bladeName;
+  const std::string fileName;
+  const std::string bladeName;
 };
 
 std::ostream &operator<<(std::ostream &_out, const VerticalForceTestParam &_val)
@@ -66,8 +67,9 @@ class VerticalForceParamFixture:
   protected: void SetUp() override
   {
     ignition::common::Console::SetVerbosity(4);
-    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
+    ignition::common::setenv(
+        "IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+        common::joinPaths(PROJECT_BINARY_PATH, "lib").c_str());
   }
 };
 
@@ -76,13 +78,14 @@ class VerticalForceParamFixture:
 TEST_P(VerticalForceParamFixture, VerifyVerticalForce)
 {
   using namespace std::chrono_literals;
-  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
-                           PROJECT_SOURCE_PATH "/test/worlds/models");
+  ignition::common::setenv(
+      "IGN_GAZEBO_RESOURCE_PATH",
+      common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", "models"));
 
   // Start server
   ServerConfig serverConfig;
   const auto sdfFile =
-      std::string(PROJECT_SOURCE_PATH "/") + GetParam().fileName;
+      common::joinPaths(PROJECT_SOURCE_PATH, GetParam().fileName);
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);
@@ -229,6 +232,8 @@ TEST_P(VerticalForceParamFixture, VerifyVerticalForce)
 INSTANTIATE_TEST_SUITE_P(
     LiftDragTests, VerticalForceParamFixture,
     ::testing::Values(
-        VerticalForceTestParam{"test/worlds/lift_drag.sdf", "wing_1"},
-        VerticalForceTestParam{"test/worlds/lift_drag_nested_model.sdf",
-                               "wing_1::base_link"}));
+        VerticalForceTestParam{
+            common::joinPaths("test", "worlds", "lift_drag.sdf"), "wing_1"},
+        VerticalForceTestParam{
+            common::joinPaths("test", "worlds", "lift_drag_nested_model.sdf"),
+            "wing_1::base_link"}));

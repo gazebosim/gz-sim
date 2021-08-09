@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!--
-  This the same example as lift_drag.sdf but modified to show that links in
+  This is the same example as lift_drag.sdf but modified to show that links in
   nested models can be references in the link_name parameter.
 
   This file was adapted from osrf/gazebo/worlds/single_rotor_demo.world
@@ -219,7 +219,7 @@
             </material>
           </visual>
         </link>
-    </model>
+      </model>
       <joint name="rod_1_joint" type="revolute">
         <parent>body</parent>
         <child>rod_1</child>
