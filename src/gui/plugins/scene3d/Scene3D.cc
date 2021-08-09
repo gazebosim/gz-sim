@@ -176,6 +176,15 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Helper object to move user camera
     public: ignition::rendering::MoveToHelper moveToHelper;
 
+    /// \brief Target to view as transparent
+    public: std::string viewTransparentTarget;
+
+    /// \brief Target to view center of mass
+    public: std::string viewCOMTarget;
+
+    /// \brief Target to view inertia
+    public: std::string viewInertiaTarget;
+
     /// \brief Target to view wireframes
     public: std::string viewWireframesTarget;
 
@@ -268,7 +277,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: rendering::RayQueryPtr rayQuery;
 
     /// \brief View control focus target
-    public: math::Vector3d target;
+    public: math::Vector3d target = math::Vector3d(
+        math::INF_D, math::INF_D, math::INF_D);
 
     /// \brief Rendering utility
     public: RenderUtil renderUtil;
@@ -475,6 +485,15 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief mutex to protect the render condition variable
     /// Used when recording in lockstep mode.
     public: std::mutex renderMutex;
+
+    /// \brief View transparent service
+    public: std::string viewTransparentService;
+
+    /// \brief View center of mass service
+    public: std::string viewCOMService;
+
+    /// \brief View inertia service
+    public: std::string viewInertiaService;
 
     /// \brief View wireframes service
     public: std::string viewWireframesService;
@@ -936,6 +955,84 @@ void IgnRenderer::Render(RenderSync *_renderSync)
       this->DeselectAllEntities(true);
       this->TerminateSpawnPreview();
       this->dataPtr->escapeReleased = false;
+    }
+  }
+
+  // View as transparent
+  {
+    IGN_PROFILE("IgnRenderer::Render ViewTransparent");
+    if (!this->dataPtr->viewTransparentTarget.empty())
+    {
+      rendering::NodePtr targetNode =
+          scene->NodeByName(this->dataPtr->viewTransparentTarget);
+      auto targetVis = std::dynamic_pointer_cast<rendering::Visual>(targetNode);
+
+      if (targetVis)
+      {
+        Entity targetEntity =
+            std::get<int>(targetVis->UserData("gazebo-entity"));
+        this->dataPtr->renderUtil.ViewTransparent(targetEntity);
+      }
+      else
+      {
+        ignerr << "Unable to find node name ["
+               << this->dataPtr->viewTransparentTarget
+               << "] to view as transparent" << std::endl;
+      }
+
+      this->dataPtr->viewTransparentTarget.clear();
+    }
+  }
+
+  // View center of mass
+  {
+    IGN_PROFILE("IgnRenderer::Render ViewCOM");
+    if (!this->dataPtr->viewCOMTarget.empty())
+    {
+      rendering::NodePtr targetNode =
+          scene->NodeByName(this->dataPtr->viewCOMTarget);
+      auto targetVis = std::dynamic_pointer_cast<rendering::Visual>(targetNode);
+
+      if (targetVis)
+      {
+        Entity targetEntity =
+            std::get<int>(targetVis->UserData("gazebo-entity"));
+        this->dataPtr->renderUtil.ViewCOM(targetEntity);
+      }
+      else
+      {
+        ignerr << "Unable to find node name ["
+               << this->dataPtr->viewCOMTarget
+               << "] to view center of mass" << std::endl;
+      }
+
+      this->dataPtr->viewCOMTarget.clear();
+    }
+  }
+
+  // View inertia
+  {
+    IGN_PROFILE("IgnRenderer::Render ViewInertia");
+    if (!this->dataPtr->viewInertiaTarget.empty())
+    {
+      rendering::NodePtr targetNode =
+          scene->NodeByName(this->dataPtr->viewInertiaTarget);
+      auto targetVis = std::dynamic_pointer_cast<rendering::Visual>(targetNode);
+
+      if (targetVis)
+      {
+        Entity targetEntity =
+            std::get<int>(targetVis->UserData("gazebo-entity"));
+        this->dataPtr->renderUtil.ViewInertia(targetEntity);
+      }
+      else
+      {
+        ignerr << "Unable to find node name ["
+               << this->dataPtr->viewInertiaTarget
+               << "] to view inertia" << std::endl;
+      }
+
+      this->dataPtr->viewInertiaTarget.clear();
     }
   }
 
@@ -1643,9 +1740,6 @@ void IgnRenderer::HandleMouseTransformControl()
       // Select entity
       else if (!this->dataPtr->mouseEvent.Dragging())
       {
-        rendering::VisualPtr v = this->dataPtr->camera->VisualAt(
-              this->dataPtr->mouseEvent.Pos());
-
         rendering::VisualPtr visual = this->dataPtr->camera->Scene()->VisualAt(
               this->dataPtr->camera,
               this->dataPtr->mouseEvent.Pos());
@@ -1867,11 +1961,23 @@ void IgnRenderer::HandleMouseViewControl()
   }
   else
   {
-    if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::PRESS)
+    if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::PRESS ||
+        // the rendering thread may miss the press event due to
+        // race condition when doing a drag operation (press and move, where
+        // the move event overrides the press event before it is processed)
+        // so we double check to see if target is set or not
+        (this->dataPtr->mouseEvent.Type() == common::MouseEvent::MOVE &&
+        this->dataPtr->mouseEvent.Dragging() &&
+        std::isinf(this->dataPtr->target.X())))
     {
       this->dataPtr->target = this->ScreenToScene(
           this->dataPtr->mouseEvent.PressPos());
       this->dataPtr->viewControl->SetTarget(this->dataPtr->target);
+    }
+    // unset the target on release (by setting to inf)
+    else if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE)
+    {
+      this->dataPtr->target = ignition::math::INF_D;
     }
 
     // Pan with left button
@@ -1922,6 +2028,8 @@ void IgnRenderer::Initialize()
     return;
 
   auto root = scene->RootVisual();
+
+  scene->SetCameraPassCountPerGpuFlush(6u);
 
   // Camera
   this->dataPtr->camera = scene->CreateCamera();
@@ -2167,6 +2275,27 @@ void IgnRenderer::SetMoveToPose(const math::Pose3d &_pose)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->moveToPoseValue = _pose;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetViewTransparentTarget(const std::string &_target)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->viewTransparentTarget = _target;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetViewCOMTarget(const std::string &_target)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->viewCOMTarget = _target;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetViewInertiaTarget(const std::string &_target)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->viewInertiaTarget = _target;
 }
 
 /////////////////////////////////////////////////
@@ -2961,6 +3090,27 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   ignmsg << "Camera pose topic advertised on ["
          << this->dataPtr->cameraPoseTopic << "]" << std::endl;
 
+  // view as transparent service
+  this->dataPtr->viewTransparentService = "/gui/view/transparent";
+  this->dataPtr->node.Advertise(this->dataPtr->viewTransparentService,
+      &Scene3D::OnViewTransparent, this);
+  ignmsg << "View as transparent service on ["
+         << this->dataPtr->viewTransparentService << "]" << std::endl;
+
+  // view center of mass service
+  this->dataPtr->viewCOMService = "/gui/view/com";
+  this->dataPtr->node.Advertise(this->dataPtr->viewCOMService,
+      &Scene3D::OnViewCOM, this);
+  ignmsg << "View center of mass service on ["
+         << this->dataPtr->viewCOMService << "]" << std::endl;
+
+  // view inertia service
+  this->dataPtr->viewInertiaService = "/gui/view/inertia";
+  this->dataPtr->node.Advertise(this->dataPtr->viewInertiaService,
+      &Scene3D::OnViewInertia, this);
+  ignmsg << "View inertia service on ["
+         << this->dataPtr->viewInertiaService << "]" << std::endl;
+
   // view wireframes service
   this->dataPtr->viewWireframesService = "/gui/view/wireframes";
   this->dataPtr->node.Advertise(this->dataPtr->viewWireframesService,
@@ -3145,6 +3295,42 @@ bool Scene3D::OnMoveToPose(const msgs::GUICamera &_msg, msgs::Boolean &_res)
     pose.Pos().X() = math::INF_D;
 
   renderWindow->SetMoveToPose(pose);
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool Scene3D::OnViewTransparent(const msgs::StringMsg &_msg,
+  msgs::Boolean &_res)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+
+  renderWindow->SetViewTransparentTarget(_msg.data());
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool Scene3D::OnViewCOM(const msgs::StringMsg &_msg,
+  msgs::Boolean &_res)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+
+  renderWindow->SetViewCOMTarget(_msg.data());
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool Scene3D::OnViewInertia(const msgs::StringMsg &_msg,
+  msgs::Boolean &_res)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+
+  renderWindow->SetViewInertiaTarget(_msg.data());
 
   _res.set_data(true);
   return true;
@@ -3442,6 +3628,24 @@ void RenderWindowItem::SetViewAngle(const math::Vector3d &_direction)
 void RenderWindowItem::SetMoveToPose(const math::Pose3d &_pose)
 {
   this->dataPtr->renderThread->ignRenderer.SetMoveToPose(_pose);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetViewTransparentTarget(const std::string &_target)
+{
+  this->dataPtr->renderThread->ignRenderer.SetViewTransparentTarget(_target);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetViewCOMTarget(const std::string &_target)
+{
+  this->dataPtr->renderThread->ignRenderer.SetViewCOMTarget(_target);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetViewInertiaTarget(const std::string &_target)
+{
+  this->dataPtr->renderThread->ignRenderer.SetViewInertiaTarget(_target);
 }
 
 /////////////////////////////////////////////////

@@ -151,6 +151,12 @@ namespace ignition
       public: std::vector<gazebo::Entity> Links(
           const EntityComponentManager &_ecm) const;
 
+      /// \brief Get all models which are immediate children of this model.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return All models in this model.
+      public: std::vector<gazebo::Entity> Models(
+          const EntityComponentManager &_ecm) const;
+
       /// \brief Get the number of joints which are immediate children of this
       /// model.
       /// \param[in] _ecm Entity-component manager.

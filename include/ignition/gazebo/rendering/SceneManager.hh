@@ -134,6 +134,22 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: rendering::VisualPtr CreateVisual(Entity _id,
         const sdf::Visual &_visual, Entity _parentId = 0);
 
+    /// \brief Create a center of mass visual
+    /// \param[in] _id Unique visual id
+    /// \param[in] _inertial Inertial component of the link
+    /// \param[in] _parentId Parent id
+    /// \return Visual (center of mass) object created from the inertial
+    public: rendering::VisualPtr CreateCOMVisual(Entity _id,
+        const math::Inertiald &_inertial, Entity _parentId = 0);
+
+    /// \brief Create an inertia visual
+    /// \param[in] _id Unique visual id
+    /// \param[in] _inertial Inertial component of the link
+    /// \param[in] _parentId Parent id
+    /// \return Visual (inertia) object created from the inertial
+    public: rendering::VisualPtr CreateInertiaVisual(Entity _id,
+        const math::Inertiald &_inertial, Entity _parentId = 0);
+
     /// \brief Create a collision visual
     /// \param[in] _id Unique visual id
     /// \param[in] _collision Collision sdf dom
@@ -269,6 +285,16 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Top level node containining this node
     public: rendering::NodePtr TopLevelNode(
         const rendering::NodePtr &_node) const;
+
+    /// \brief Updates the node to increase its transparency or reset
+    /// back to its original transparency value, an opaque call requires
+    /// a previous transparent call, otherwise, no action will be taken
+    /// Usually, this will be a link visual
+    /// \param[in] _node The node to update.
+    /// \param[in] _makeTransparent true if updating to increase transparency,
+    /// false to set back to original transparency values (make more opaque)
+    public: void UpdateTransparency(const rendering::NodePtr &_node,
+        bool _makeTransparent);
 
     /// \internal
     /// \brief Pointer to private data class
