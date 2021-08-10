@@ -87,6 +87,17 @@ TEST_F(JointPositionControllerGui, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Load))
   EXPECT_EQ(plugins.size(), 1);
 
   auto plugin = plugins[0];
+
+  int sleep = 0;
+  int maxSleep = 30;
+  while (plugin->ModelName() != "No model selected" && sleep < maxSleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    QCoreApplication::processEvents();
+    sleep++;
+  }
+
+  EXPECT_LT(sleep, maxSleep);
   EXPECT_EQ(plugin->Title(), "Joint position controller");
   EXPECT_EQ(plugin->ModelEntity(), gazebo::kNullEntity);
   EXPECT_EQ(plugin->ModelName(), QString("No model selected"))
@@ -179,6 +190,16 @@ TEST_F(JointPositionControllerGui,
 
   auto plugin = plugins[0];
   EXPECT_EQ(plugin->Title(), "JointPositionController!");
+
+  int sleep = 0;
+  int maxSleep = 30;
+  while (plugin->ModelName() != "No model selected" && sleep < maxSleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    QCoreApplication::processEvents();
+    sleep++;
+  }
+  EXPECT_LT(sleep, maxSleep);
 
   EXPECT_EQ(plugin->ModelEntity(), gazebo::kNullEntity);
   EXPECT_EQ(plugin->ModelName(), QString("No model selected"))

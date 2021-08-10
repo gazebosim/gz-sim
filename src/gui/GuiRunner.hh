@@ -59,6 +59,7 @@ class IGNITION_GAZEBO_GUI_VISIBLE GuiRunner : public QObject
   public: ~GuiRunner() override;
 
   /// \brief Callback when a plugin has been added.
+  /// This function has no effect and is left here for ABI compatibility.
   /// \param[in] _objectName Plugin's object name.
   public slots: void OnPluginAdded(const QString &_objectName);
 

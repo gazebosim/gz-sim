@@ -190,16 +190,8 @@ void GuiRunner::RequestState()
 }
 
 /////////////////////////////////////////////////
-void GuiRunner::OnPluginAdded(const QString &_objectName)
+void GuiRunner::OnPluginAdded(const QString &)
 {
-  auto plugin = gui::App()->findChild<GuiSystem *>(_objectName);
-  if (!plugin)
-  {
-    ignerr << "Failed to get plugin [" << _objectName.toStdString()
-           << "]" << std::endl;
-    return;
-  }
-
   // The call above always returns the same plugin, which is the first plugin
   // that was loaded. This plugin will set again the eventMgr and the
   // sameProcess state.

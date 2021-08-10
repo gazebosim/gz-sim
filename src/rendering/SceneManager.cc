@@ -41,15 +41,18 @@
 #include <ignition/msgs/Utility.hh>
 
 #include "ignition/rendering/Capsule.hh"
+#include <ignition/rendering/COMVisual.hh>
 #include <ignition/rendering/Geometry.hh>
 #include <ignition/rendering/Heightmap.hh>
 #include <ignition/rendering/HeightmapDescriptor.hh>
+#include <ignition/rendering/InertiaVisual.hh>
 #include <ignition/rendering/Light.hh>
 #include <ignition/rendering/LightVisual.hh>
 #include <ignition/rendering/Material.hh>
 #include <ignition/rendering/ParticleEmitter.hh>
 #include <ignition/rendering/Scene.hh>
 #include <ignition/rendering/Visual.hh>
+#include <ignition/rendering/WireBox.hh>
 
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/Util.hh"
@@ -94,6 +97,12 @@ class ignition::gazebo::SceneManagerPrivate
 
   /// \brief Map of sensor entity in Gazebo to sensor pointers.
   public: std::map<Entity, rendering::SensorPtr> sensors;
+
+  /// \brief The map of the original transparency values for the nodes.
+  public: std::map<std::string, double> originalTransparency;
+
+  /// \brief The map of the original depth write values for the nodes.
+  public: std::map<std::string, bool> originalDepthWrite;
 
   /// \brief Helper function to compute actor trajectory at specified tiime
   /// \param[in] _id Actor entity's unique id
@@ -1178,6 +1187,103 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
 }
 
 /////////////////////////////////////////////////
+rendering::VisualPtr SceneManager::CreateInertiaVisual(Entity _id,
+    const math::Inertiald &_inertia, Entity _parentId)
+{
+  if (!this->dataPtr->scene)
+    return rendering::VisualPtr();
+
+  if (this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end())
+  {
+    ignerr << "Entity with Id: [" << _id << "] already exists in the scene"
+           << std::endl;
+    return rendering::VisualPtr();
+  }
+
+  rendering::VisualPtr parent;
+  if (_parentId != this->dataPtr->worldId)
+  {
+    auto it = this->dataPtr->visuals.find(_parentId);
+    if (it == this->dataPtr->visuals.end())
+    {
+      // It is possible to get here if the model entity is created then
+      // removed in between render updates.
+      return rendering::VisualPtr();
+    }
+    parent = it->second;
+  }
+
+  std::string name = std::to_string(_id);
+  if (parent)
+    name = parent->Name() + "::" + name;
+
+  rendering::InertiaVisualPtr inertiaVisual =
+    this->dataPtr->scene->CreateInertiaVisual(name);
+  inertiaVisual->SetInertial(_inertia);
+
+  rendering::VisualPtr inertiaVis =
+    std::dynamic_pointer_cast<rendering::Visual>(inertiaVisual);
+  inertiaVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  inertiaVis->SetUserData("pause-update", static_cast<int>(0));
+  this->dataPtr->visuals[_id] = inertiaVis;
+
+  if (parent)
+  {
+    inertiaVis->RemoveParent();
+    parent->AddChild(inertiaVis);
+  }
+  return inertiaVis;
+}
+
+/////////////////////////////////////////////////
+rendering::VisualPtr SceneManager::CreateCOMVisual(Entity _id,
+    const math::Inertiald &_inertia, Entity _parentId)
+{
+  if (!this->dataPtr->scene)
+    return rendering::VisualPtr();
+
+  if (this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end())
+  {
+    ignerr << "Entity with Id: [" << _id << "] already exists in the scene"
+           << std::endl;
+    return rendering::VisualPtr();
+  }
+
+  rendering::VisualPtr parent;
+  if (_parentId != this->dataPtr->worldId)
+  {
+    auto it = this->dataPtr->visuals.find(_parentId);
+    if (it == this->dataPtr->visuals.end())
+    {
+      // It is possible to get here if the model entity is created then
+      // removed in between render updates.
+      return rendering::VisualPtr();
+    }
+    parent = it->second;
+  }
+
+  if (!parent)
+    return rendering::VisualPtr();
+
+  std::string name = std::to_string(_id);
+  name = parent->Name() + "::" + name;
+
+  rendering::COMVisualPtr comVisual =
+      this->dataPtr->scene->CreateCOMVisual(name);
+  comVisual->RemoveParent();
+  parent->AddChild(comVisual);
+  comVisual->SetInertial(_inertia);
+
+  rendering::VisualPtr comVis =
+    std::dynamic_pointer_cast<rendering::Visual>(comVisual);
+  comVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  comVis->SetUserData("pause-update", static_cast<int>(0));
+  this->dataPtr->visuals[_id] = comVis;
+
+  return comVis;
+}
+
+/////////////////////////////////////////////////
 rendering::ParticleEmitterPtr SceneManager::CreateParticleEmitter(
     Entity _id, const msgs::ParticleEmitter &_emitter, Entity _parentId)
 {
@@ -1625,6 +1731,19 @@ void SceneManager::RemoveEntity(Entity _id)
     auto it = this->dataPtr->visuals.find(_id);
     if (it != this->dataPtr->visuals.end())
     {
+      // Remove visual's original transparency from map
+      rendering::VisualPtr vis = it->second;
+      this->dataPtr->originalTransparency.erase(vis->Name());
+      // Remove visual's original depth write value from map
+      this->dataPtr->originalDepthWrite.erase(vis->Name());
+
+      for (auto g = 0u; g < vis->GeometryCount(); ++g)
+      {
+        auto geom = vis->GeometryByIndex(g);
+        this->dataPtr->originalTransparency.erase(geom->Name());
+        this->dataPtr->originalDepthWrite.erase(geom->Name());
+      }
+
       this->dataPtr->scene->DestroyVisual(it->second);
       this->dataPtr->visuals.erase(it);
       return;
@@ -1689,6 +1808,103 @@ rendering::NodePtr SceneManager::TopLevelNode(
   }
 
   return node;
+}
+
+////////////////////////////////////////////////
+void SceneManager::UpdateTransparency(const rendering::NodePtr &_node,
+    bool _makeTransparent)
+{
+  if (!_node)
+    return;
+
+  for (auto n = 0u; n < _node->ChildCount(); ++n)
+  {
+    auto child = _node->ChildByIndex(n);
+    this->UpdateTransparency(child, _makeTransparent);
+  }
+
+  auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
+  if (nullptr == vis)
+    return;
+
+  // Visual material
+  auto visMat = vis->Material();
+  if (nullptr != visMat)
+  {
+    auto visTransparency =
+        this->dataPtr->originalTransparency.find(vis->Name());
+    auto visDepthWrite =
+        this->dataPtr->originalDepthWrite.find(vis->Name());
+    if (_makeTransparent)
+    {
+      if (visTransparency == this->dataPtr->originalTransparency.end())
+      {
+        this->dataPtr->originalTransparency[vis->Name()] =
+          visMat->Transparency();
+      }
+      visMat->SetTransparency(1.0 - ((1.0 - visMat->Transparency()) * 0.5));
+
+      if (visDepthWrite == this->dataPtr->originalDepthWrite.end())
+      {
+        this->dataPtr->originalDepthWrite[vis->Name()] =
+          visMat->DepthWriteEnabled();
+      }
+      visMat->SetDepthWriteEnabled(false);
+    }
+    else
+    {
+      if (visTransparency != this->dataPtr->originalTransparency.end())
+      {
+        visMat->SetTransparency(visTransparency->second);
+      }
+      if (visDepthWrite != this->dataPtr->originalDepthWrite.end())
+      {
+        visMat->SetDepthWriteEnabled(visDepthWrite->second);
+      }
+    }
+  }
+
+  for (auto g = 0u; g < vis->GeometryCount(); ++g)
+  {
+    auto geom = vis->GeometryByIndex(g);
+
+    // Geometry material
+    auto geomMat = geom->Material();
+    if (nullptr == geomMat || visMat == geomMat)
+      continue;
+    auto geomTransparency =
+        this->dataPtr->originalTransparency.find(geom->Name());
+    auto geomDepthWrite =
+        this->dataPtr->originalDepthWrite.find(geom->Name());
+
+    if (_makeTransparent)
+    {
+      if (geomTransparency == this->dataPtr->originalTransparency.end())
+      {
+        this->dataPtr->originalTransparency[geom->Name()] =
+            geomMat->Transparency();
+      }
+      geomMat->SetTransparency(1.0 - ((1.0 - geomMat->Transparency()) * 0.5));
+
+      if (geomDepthWrite == this->dataPtr->originalDepthWrite.end())
+      {
+        this->dataPtr->originalDepthWrite[geom->Name()] =
+            geomMat->DepthWriteEnabled();
+      }
+      geomMat->SetDepthWriteEnabled(false);
+    }
+    else
+    {
+      if (geomTransparency != this->dataPtr->originalTransparency.end())
+      {
+        geomMat->SetTransparency(geomTransparency->second);
+      }
+      if (geomDepthWrite != this->dataPtr->originalDepthWrite.end())
+      {
+        geomMat->SetDepthWriteEnabled(geomDepthWrite->second);
+      }
+    }
+  }
 }
 
 /////////////////////////////////////////////////
