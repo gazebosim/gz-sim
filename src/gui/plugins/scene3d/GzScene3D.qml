@@ -113,10 +113,6 @@ Rectangle {
     focus: true
     x: (parent.width - width) / 2
     y: (parent.height - height) / 2
-    background: Rectangle {
-      border.width: 5
-      border.color: "red"
-    }
     title: "Error"
     Text {
       text: GzScene3D.errorPopupText

@@ -2797,7 +2797,7 @@ void Scene3D::OnDropped(const QString &_drop, int _mouseX, int _mouseY)
 {
   if (_drop.toStdString().empty())
   {
-    ignwarn << "Dropped empty entity URI." << std::endl;
+    this->SetErrorPopupText("Dropped empty entity URI.");
     return;
   }
 
@@ -2820,7 +2820,9 @@ void Scene3D::OnDropped(const QString &_drop, int _mouseX, int _mouseY)
 
     if (!common::MeshManager::Instance()->IsValidFilename(dropStr))
     {
-      this->SetErrorPopupText("Only DAE, OBJ, and STL meshes are supported.");
+      QString errTxt = QString::fromStdString("Invalid URI: " + dropStr +
+        "\nOnly Fuel URLs or mesh file types DAE, OBJ, and STL are supported.");
+      this->SetErrorPopupText(errTxt);
       return;
     }
 
