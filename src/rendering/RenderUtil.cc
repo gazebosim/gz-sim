@@ -356,6 +356,8 @@ class ignition::gazebo::RenderUtilPrivate
   /// RenderUtil::Update.
   /// \param[in] _actorAnimationData A map of entities to their animation update
   /// data.
+  /// \param[in] _entityPoses A map of entity ids and pose updates.
+  /// \param[in] _trajectoryPoses A map of entity ids and trajectory pose updates.
   /// \sa actorManualSkeletonUpdate
   public: void UpdateAnimation(const std::unordered_map<Entity,
               AnimationUpdateData> &_actorAnimationData,
