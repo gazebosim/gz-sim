@@ -72,8 +72,12 @@ TEST_F(Plot3D, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Load))
   app->AddPluginPath(std::string(PROJECT_BINARY_PATH) + "/lib");
 
   // Create GUI runner to handle gazebo::gui plugins
+  ignition::gazebo::EntityComponentManager ecm;
+  ignition::gazebo::EventManager eventMgr;
   IGN_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
-  auto runner = new gazebo::GuiRunner("test");
+  auto runner = new gazebo::GuiRunner("test", ecm, eventMgr, false);
+  runner->connect(app.get(), &gui::Application::PluginAdded,
+                  runner, &gazebo::GuiRunner::OnPluginAdded);
   IGN_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
   runner->setParent(gui::App());
 

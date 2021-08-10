@@ -224,8 +224,8 @@ TEST_F(JointPositionControllerGui,
     isRequestDone = true;
   });
 
-  int sleep = 0;
-  int maxSleep = 30;
+  sleep = 0;
+  maxSleep = 30;
   while (sleep < maxSleep && !isRequestDone)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
