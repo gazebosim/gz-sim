@@ -126,6 +126,18 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public : void SetRemoveSensorCb(
         std::function<void(const gazebo::Entity &)> _removeSensorCb);
 
+    /// \brief View an entity as transparent
+    /// \param[in] _entity Entity to view as transparent
+    public: void ViewTransparent(const Entity &_entity);
+
+    /// \brief View center of mass of specified entity
+    /// \param[in] _entity Entity to view center of mass
+    public: void ViewCOM(const Entity &_entity);
+
+    /// \brief View inertia of specified entity
+    /// \param[in] _entity Entity to view inertia
+    public: void ViewInertia(const Entity &_entity);
+
     /// \brief View wireframes of specified entity
     /// \param[in] _entity Entity to view wireframes
     public: void ViewWireframes(const Entity &_entity);
@@ -151,16 +163,21 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _node Node representing the selected entity
     public: void SetSelectedEntity(const rendering::NodePtr &_node);
 
-    /// \brief Get the entity being selected. This will only return the
-    /// last entity selected.
-    public: rendering::NodePtr IGN_DEPRECATED(4) SelectedEntity() const;
-
     /// \brief Get the entities currently selected, in order of selection.
     /// \return Vector of currently selected entities
     public: const std::vector<Entity> &SelectedEntities() const;
 
     /// \brief Clears the set of selected entities and lowlights all of them.
     public: void DeselectAllEntities();
+
+    /// \brief Helper function to get all child links of a model entity.
+    /// \param[in] _entity Entity to find child links
+    /// \return Vector of child links found for the parent entity
+    private: std::vector<Entity> FindChildLinks(const Entity &_entity);
+
+    /// \brief Helper function to hide wireboxes for an entity
+    /// \param[in] _entity Entity to hide wireboxes
+    private: void HideWireboxes(const Entity &_entity);
 
     /// \brief Set whether the transform controls are currently being dragged.
     /// \param[in] _active True if active.

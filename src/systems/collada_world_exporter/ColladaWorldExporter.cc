@@ -117,12 +117,11 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
         int newMatIndex = 0;
         if (_matIndex != -1)
         {
-          newMatIndex = worldMesh.IndexOfMaterial(
-              mesh->MaterialByIndex(_matIndex).get());
-          if (_matIndex < 0)
+          auto m = mesh->MaterialByIndex(_matIndex);
+          newMatIndex = worldMesh.IndexOfMaterial(m.get());
+          if (newMatIndex < 0)
           {
-            newMatIndex = worldMesh.AddMaterial(
-                mesh->MaterialByIndex(_matIndex));
+            newMatIndex = worldMesh.AddMaterial(m);
           }
         }
         else

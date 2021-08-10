@@ -17,6 +17,8 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_PHYSICS_HH_
 #define IGNITION_GAZEBO_COMPONENTS_PHYSICS_HH_
 
+#include <string>
+
 #include <ignition/msgs/physics.pb.h>
 
 #include <sdf/Physics.hh>
@@ -48,6 +50,21 @@ namespace components
       serializers::PhysicsSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Physics",
       Physics)
+
+  /// \brief The name of the collision detector to be used. The supported
+  /// options will depend on the physics engine being used.
+  using PhysicsCollisionDetector = Component<std::string,
+      class PhysicsCollisionDetectorTag, serializers::StringSerializer>;
+  IGN_GAZEBO_REGISTER_COMPONENT(
+      "ign_gazebo_components.PhysicsCollisionDetector",
+       PhysicsCollisionDetector)
+
+  /// \brief The name of the solver to be used. The supported options will
+  /// depend on the physics engine being used.
+  using PhysicsSolver = Component<std::string,
+      class PhysicsSolverTag, serializers::StringSerializer>;
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.PhysicsSolver",
+       PhysicsSolver)
 }
 }
 }

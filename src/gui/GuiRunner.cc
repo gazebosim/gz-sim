@@ -26,8 +26,9 @@
 #include "ignition/gazebo/components/components.hh"
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/gui/GuiRunner.hh"
 #include "ignition/gazebo/gui/GuiSystem.hh"
+
+#include "GuiRunner.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -150,17 +151,10 @@ void GuiRunner::RequestState()
 }
 
 /////////////////////////////////////////////////
-void GuiRunner::OnPluginAdded(const QString &_objectName)
+void GuiRunner::OnPluginAdded(const QString &)
 {
-  auto plugin = gui::App()->findChild<GuiSystem *>(_objectName);
-  if (!plugin)
-  {
-    ignerr << "Failed to get plugin [" << _objectName.toStdString()
-           << "]" << std::endl;
-    return;
-  }
-
-  this->RequestState();
+  // This function used to call Update on the plugin, but that's no longer
+  // necessary. The function is left here for ABI compatibility.
 }
 
 /////////////////////////////////////////////////
