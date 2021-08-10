@@ -37,7 +37,12 @@ namespace detail
 /// \brief A key into the map of views
 using ComponentTypeKey = std::vector<ComponentTypeId>;
 
-/// \brief Hash functor for ComponentTypeKey
+/// \brief Hash functor for ComponentTypeKey.
+/// The implementation was inspired by:
+/// * https://stackoverflow.com/a/20511429
+/// * https://stackoverflow.com/a/4948967
+/// * https://stackoverflow.com/a/35991300
+/// * https://softwareengineering.stackexchange.com/a/402543
 struct ComponentTypeHasher
 {
   std::size_t operator()(const std::vector<ComponentTypeId> &_vec) const

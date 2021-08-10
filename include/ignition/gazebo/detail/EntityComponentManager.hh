@@ -182,9 +182,7 @@ bool EntityComponentManager::SetComponentData(const Entity _entity,
     return true;
   }
 
-  auto changed = comp->SetData(_data,
-      CompareData<typename ComponentTypeT::Type>);
-  return changed;
+  return comp->SetData(_data, CompareData<typename ComponentTypeT::Type>);
 }
 
 //////////////////////////////////////////////////

@@ -20,10 +20,12 @@
 #include <ignition/common/Console.hh>
 
 #include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/detail/View.hh"
+#include "ignition/gazebo/Types.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Visual.hh"
+#include "ignition/gazebo/detail/BaseView.hh"
+#include "ignition/gazebo/detail/View.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -469,4 +471,52 @@ TEST_F(BaseViewTest, ComponentChangeNotification)
   EXPECT_NE(view.Entities().end(), view.Entities().find(e2));
   EXPECT_EQ(1u, view.NewEntities().size());
   EXPECT_EQ(view.NewEntities().end(), view.NewEntities().find(e2));
+}
+
+/////////////////////////////////////////////////
+TEST_F(BaseViewTest, ComponentTypeHasher)
+{
+  // Test the hash function for a std::vector<ComponentTypeId> to make
+  // sure that views with different component types (either a different type
+  // ordering or a different set of types alltogether) are considered unique
+  using ComponentVec = std::vector<ComponentTypeId>;
+
+  // Create vectors with the same types, but different order
+  ComponentVec vec1 = {
+    components::Model::typeId,
+    components::Name::typeId,
+    components::Visual::typeId
+  };
+  ComponentVec vec2 = {
+    components::Name::typeId,
+    components::Model::typeId,
+    components::Visual::typeId
+  };
+  ComponentVec vec3 = {
+    components::Model::typeId,
+    components::Visual::typeId,
+    components::Name::typeId
+  };
+
+  // Create vectors with different types
+  ComponentVec vec4 = {components::Model::typeId};
+  ComponentVec vec5 = {components::Name::typeId};
+  ComponentVec vec6 = {components::Visual::typeId};
+  ComponentVec vec7 = {
+    components::Model::typeId,
+    components::Name::typeId
+  };
+
+  // Test the hash function. Each vector defined above should be unique, which
+  // means that the std::unordered_set should have 7 elements in it after all
+  // insertions have been attempted (7 unique vectors were created)
+  std::unordered_set<ComponentVec, detail::ComponentTypeHasher> uniqueVecs;
+  uniqueVecs.insert(vec1);
+  uniqueVecs.insert(vec2);
+  uniqueVecs.insert(vec3);
+  uniqueVecs.insert(vec4);
+  uniqueVecs.insert(vec5);
+  uniqueVecs.insert(vec6);
+  uniqueVecs.insert(vec7);
+  EXPECT_EQ(7u, uniqueVecs.size());
 }

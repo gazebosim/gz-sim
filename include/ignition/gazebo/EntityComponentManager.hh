@@ -209,7 +209,7 @@ namespace ignition
       /// \return The component associated with the key, or nullptr if the
       /// component could not be found.
       public: template<typename ComponentTypeT>
-              const ComponentTypeT *IGN_DEPRECATED(6) Component(
+              const ComponentTypeT IGN_DEPRECATED(6) * Component(
               const ComponentKey &_key) const;
 
       /// \brief Get a mutable component based on a key.
@@ -217,7 +217,7 @@ namespace ignition
       /// \return The component associated with the key, or nullptr if the
       /// component could not be found.
       public: template<typename ComponentTypeT>
-              ComponentTypeT *IGN_DEPRECATED(6) Component(
+              ComponentTypeT IGN_DEPRECATED(6) * Component(
               const ComponentKey &_key);
 
       /// \brief Get a mutable component assigned to an entity based on a
@@ -269,13 +269,13 @@ namespace ignition
       /// This function is now deprecated, and will always return nullptr.
       /// \return nullptr.
       public: template<typename ComponentTypeT>
-              const ComponentTypeT *IGN_DEPRECATED(6) First() const;
+              const ComponentTypeT IGN_DEPRECATED(6) * First() const;
 
       /// \brief The first component instance of the specified type.
       /// This function is now deprecated, and will always return nullptr.
       /// \return nullptr.
       public: template<typename ComponentTypeT>
-              ComponentTypeT *IGN_DEPRECATED(6) First();
+              ComponentTypeT IGN_DEPRECATED(6) * First();
 
       /// \brief Get an entity which matches the value of all the given
       /// components. For example, the following will return the entity which

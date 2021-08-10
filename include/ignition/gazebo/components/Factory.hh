@@ -63,13 +63,13 @@ namespace components
   class ComponentDescriptor
     : public ComponentDescriptorBase
   {
-    /// \brief Create an instance of a ComponentTypeT Component.
-    /// \return Pointer to a component.
+    /// \brief Documentation inherited
     public: std::unique_ptr<BaseComponent> Create() const override
     {
       return std::make_unique<ComponentTypeT>();
     }
 
+    /// \brief Documentation inherited
     public: virtual std::unique_ptr<BaseComponent> Create(
                 const components::BaseComponent *_data) const override
     {
@@ -276,11 +276,24 @@ namespace components
     public: std::unique_ptr<components::BaseComponent> New(
         const ComponentTypeId &_type, const components::BaseComponent *_data)
     {
-      // Create a new component if a FactoryFn has been assigned to this type.
       std::unique_ptr<components::BaseComponent> comp;
-      auto it = this->compsById.find(_type);
-      if (it != this->compsById.end() && nullptr != it->second)
-        comp = it->second->Create(_data);
+
+      if (nullptr == _data)
+      {
+        ignerr << "Requested to create a new component instance with null "
+          << "data." << std::endl;
+      }
+      else if (_type != _data->TypeId())
+      {
+        ignerr << "The typeID of _type [" << _type << "] does not match the "
+          << "typeID of _data [" << _data->TypeId() << "]." << std::endl;
+      }
+      else
+      {
+        auto it = this->compsById.find(_type);
+        if (it != this->compsById.end() && nullptr != it->second)
+          comp = it->second->Create(_data);
+      }
 
       return comp;
     }
