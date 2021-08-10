@@ -1,0 +1,36 @@
+<?xml version='1.0'?>
+<sdf version='1.8'>
+  <model name="lift_drag_wing">
+    <link name="base_link">
+      <inertial>
+        <inertia>
+          <ixx>0.465</ixx>
+          <ixy>0.0</ixy>
+          <ixz>0.0</ixz>
+          <iyy>0.006</iyy>
+          <iyz>0.0</iyz>
+          <izz>0.470</izz>
+        </inertia>
+        <mass>1.0</mass>
+      </inertial>
+      <collision name="collision">
+        <geometry>
+          <box>
+            <size>1.0 10.0 0.01</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <geometry>
+          <box>
+            <size>1.0 10.0 0.01</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.5 0.2 0.2 1.0</ambient>
+          <diffuse>.421 0.225 0.0 1.0</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>

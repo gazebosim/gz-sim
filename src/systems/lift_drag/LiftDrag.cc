@@ -33,6 +33,7 @@
 
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/Inertial.hh"
+#include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointPosition.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Link.hh"
@@ -172,33 +173,67 @@ void LiftDragPrivate::Load(const EntityComponentManager &_ecm,
   {
     sdf::ElementPtr elem = _sdf->GetElement("link_name");
     auto linkName = elem->Get<std::string>();
-    this->linkEntity = this->model.LinkByName(_ecm, linkName);
+    auto entities =
+        entitiesFromScopedName(linkName, _ecm, this->model.Entity());
 
-    if (this->linkEntity == kNullEntity)
+    if (entities.empty())
     {
       ignerr << "Link with name[" << linkName << "] not found. "
              << "The LiftDrag will not generate forces\n";
       this->validConfig = false;
       return;
     }
+    else if (entities.size() > 1)
+    {
+      ignwarn << "Multiple link entities with name[" << linkName << "] found. "
+             << "Using the first one.\n";
+    }
+
+    this->linkEntity = *entities.begin();
+    if (!_ecm.EntityHasComponentType(this->linkEntity,
+                                     components::Link::typeId))
+    {
+      this->linkEntity = kNullEntity;
+      ignerr << "Entity with name[" << linkName << "] is not a link\n";
+      this->validConfig = false;
+      return;
+    }
   }
   else
   {
+    ignerr << "The LiftDrag system requires the 'link_name' parameter\n";
     this->validConfig = false;
+    return;
   }
 
 
   if (_sdf->HasElement("control_joint_name"))
   {
     auto controlJointName = _sdf->Get<std::string>("control_joint_name");
-    this->controlJointEntity = this->model.JointByName(_ecm, controlJointName);
-    if (this->controlJointEntity == kNullEntity)
+    auto entities =
+        entitiesFromScopedName(controlJointName, _ecm, this->model.Entity());
+
+    if (entities.empty())
     {
-      ignerr << "Joint with name[" << controlJointName << "] does not exist.\n";
-    }
-    else
-    {
+      ignerr << "Joint with name[" << controlJointName << "] not found. "
+             << "The LiftDrag will not generate forces\n";
       this->validConfig = false;
+      return;
+    }
+    else if (entities.size() > 1)
+    {
+      ignwarn << "Multiple joint entities with name[" << controlJointName
+              << "] found. Using the first one.\n";
+    }
+
+    this->controlJointEntity = *entities.begin();
+    if (!_ecm.EntityHasComponentType(this->controlJointEntity,
+                                     components::Joint::typeId))
+    {
+      this->controlJointEntity = kNullEntity;
+      ignerr << "Entity with name[" << controlJointName << "] is not a joint\n";
+      this->validConfig = false;
+      return;
     }
   }
 
