@@ -11,13 +11,13 @@ Features:
 * Markers
 * Tape measure
 * Grid config
+* Select entities
 
 Missing for parity with GzScene3D:
 
 * Spawn entities through GUI
 * Context menu
 * Transform controls
-* Select entities
 * Record video
 * View angles
 * View collisions, wireframe, transparent, CoM, etc

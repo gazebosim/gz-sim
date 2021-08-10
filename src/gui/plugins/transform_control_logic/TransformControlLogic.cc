@@ -23,6 +23,7 @@
 #include <ignition/common/MouseEvent.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/GuiEvents.hh>
+#include <ignition/gui/Helpers.hh>
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/rendering/RenderingIface.hh>
@@ -96,16 +97,13 @@ class ignition::gazebo::plugins::TransformControlLogicPrivate
   public: bool transformActive{false};
 
   /// \brief Transform mode service
-  public: std::string transformModeService;
+  public: std::string transformModeService{"/gui/transform_mode"};
 
   /// \brief Transport node
   public: transport::Node node;
 
   /// \brief Name of service for setting entity pose
   public: std::string poseCmdService;
-
-  /// \brief Name of the world
-  public: std::string worldName;
 
   /// \brief Transform mode: none, translation, rotation, or scale
   public: rendering::TransformMode transformMode =
@@ -286,18 +284,25 @@ void TransformControlLogicPrivate::HandleTransform()
           req.set_name(topVisual->Name());
           msgs::Set(req.mutable_position(), nodeTmp->WorldPosition());
           msgs::Set(req.mutable_orientation(), nodeTmp->WorldRotation());
+
+          // First time, create the service
           if (this->poseCmdService.empty())
           {
-            this->poseCmdService = "/world/" + this->worldName
-                + "/set_pose";
-          }
-          this->poseCmdService = transport::TopicUtils::AsValidTopic(
-              this->poseCmdService);
-          if (this->poseCmdService.empty())
-          {
-            ignerr << "Failed to create valid pose command service for world ["
-                   << this->worldName <<"]" << std::endl;
-            return;
+            std::string worldName;
+            auto worldNames = ignition::gui::worldNames();
+            if (!worldNames.empty())
+              worldName = worldNames[0].toStdString();
+
+            this->poseCmdService = "/world/" + worldName + "/set_pose";
+
+            this->poseCmdService = transport::TopicUtils::AsValidTopic(
+                this->poseCmdService);
+            if (this->poseCmdService.empty())
+            {
+              ignerr << "Failed to create valid pose command service for world ["
+                     << worldName <<"]" << std::endl;
+              return;
+            }
           }
           this->node.Request(this->poseCmdService, req, cb);
         }
@@ -664,8 +669,6 @@ void TransformControlLogic::LoadConfig(const tinyxml2::XMLElement *)
     this->title = "Select entities";
 
   // transform mode
-  this->dataPtr->transformModeService =
-      "/gui/transform_mode";
   this->dataPtr->node.Advertise(this->dataPtr->transformModeService,
       &TransformControlLogicPrivate::OnTransformMode, this->dataPtr.get());
   ignmsg << "Transform mode service on ["
@@ -673,25 +676,6 @@ void TransformControlLogic::LoadConfig(const tinyxml2::XMLElement *)
 
   ignition::gui::App()->findChild<
       ignition::gui::MainWindow *>()->installEventFilter(this);
-}
-
-/////////////////////////////////////////////////
-void TransformControlLogic::Update(const UpdateInfo &/* _info */,
-    EntityComponentManager &_ecm)
-{
-  if (this->dataPtr->worldName.empty())
-  {
-  Entity worldEntity;
-  _ecm.Each<components::World, components::Name>(
-      [&](const Entity &_entity,
-        const components::World * /* _world */ ,
-        const components::Name *_name)->bool
-      {
-        this->dataPtr->worldName = _name->Data();
-        worldEntity = _entity;
-        return true;
-      });
-  }
 }
 
 /////////////////////////////////////////////////

@@ -42,6 +42,8 @@ namespace ignition
 {
 namespace gazebo
 {
+namespace gui
+{
 /// \brief Helper to store selection requests to be handled in the render
 /// thread by `IgnRenderer::HandleEntitySelection`.
 struct SelectionHelper
@@ -57,25 +59,42 @@ struct SelectionHelper
 };
 }
 }
+}
 
 /// \brief Private data class for SelectEntities
-class ignition::gazebo::plugins::SelectEntitiesPrivate
+class ignition::gazebo::gui::SelectEntitiesPrivate
 {
+  /// \brief Initialize the plugin, attaching to a camera.
   public: void Initialize();
 
+  /// \brief Handle entity selection in the render thread.
   public: void HandleEntitySelection();
 
+  /// \brief Select new entity
+  /// \param[in] _visual Visual that was clicked
+  /// \param[in] _sendEvent True to send an event and notify other widgets
   public: void UpdateSelectedEntity(const rendering::VisualPtr &_visual,
     bool _sendEvent);
 
+  /// \brief Highlight a selected rendering node
+  /// \param[in] _visual Node to be highlighted
   public: void HighlightNode(const rendering::VisualPtr &_visual);
 
-  public: void SetSelectedEntity(const rendering::VisualPtr &_visual);
-
-  public: void DeselectAllEntities();
-
+  /// \brief Remove highlight from a rendering node that's no longer selected
+  /// \param[in] _visual Node to be lowlighted
   public: void LowlightNode(const rendering::VisualPtr &_visual);
 
+  /// \brief Select the entity for the given visual
+  /// \param[in] _visual Visual to select
+  public: void SetSelectedEntity(const rendering::VisualPtr &_visual);
+
+  /// \brief Deselect all selected entities.
+  public: void DeselectAllEntities();
+
+  /// \brief Get the ancestor of a given node which is a direct child of the
+  /// world.
+  /// \param[in] _node Node to get ancestor of
+  /// \return Top level node.
   public: rendering::NodePtr TopLevelNode(
       const rendering::NodePtr &_node);
 
@@ -84,13 +103,16 @@ class ignition::gazebo::plugins::SelectEntitiesPrivate
   public: SelectionHelper selectionHelper;
 
   /// \brief Currently selected entities, organized by order of selection.
+  /// These are ign-gazebo IDs
   public: std::vector<Entity> selectedEntities;
 
   /// \brief Currently selected entities, organized by order of selection.
-  public: std::vector<Entity> selectedEntitiesID;
+  /// These are ign-rendering IDs
+  public: std::vector<unsigned int> selectedEntitiesID;
 
   /// \brief New entities received from other plugins.
-  public: std::vector<Entity> selectedEntitiesIDNew;
+  /// These are ign-rendering IDs
+  public: std::vector<unsigned int> selectedEntitiesIDNew;
 
   //// \brief Pointer to the rendering scene
   public: rendering::ScenePtr scene = nullptr;
@@ -106,7 +128,7 @@ class ignition::gazebo::plugins::SelectEntitiesPrivate
   public: bool mouseDirty = false;
 
   /// \brief selected entities from other plugins (for example: entityTree)
-  public: bool recievedSelectedEntities = false;
+  public: bool receivedSelectedEntities = false;
 
   /// \brief User camera
   public: rendering::CameraPtr camera = nullptr;
@@ -117,12 +139,12 @@ class ignition::gazebo::plugins::SelectEntitiesPrivate
 
 using namespace ignition;
 using namespace gazebo;
-using namespace plugins;
+using namespace gazebo::gui;
 
 /////////////////////////////////////////////////
 void SelectEntitiesPrivate::HandleEntitySelection()
 {
-  if (this->recievedSelectedEntities)
+  if (this->receivedSelectedEntities)
   {
     if (!(QGuiApplication::keyboardModifiers() & Qt::ControlModifier))
     {
@@ -133,17 +155,27 @@ void SelectEntitiesPrivate::HandleEntitySelection()
     {
       auto visualToHighLight = this->scene->VisualById(
         this->selectedEntitiesIDNew[i]);
+
+      if (nullptr == visualToHighLight)
+      {
+        ignerr << "Failed to get visual with ID ["
+               << this->selectedEntitiesIDNew[i] << "]" << std::endl;
+        continue;
+      }
+
       this->selectedEntitiesID.push_back(this->selectedEntitiesIDNew[i]);
       this->selectedEntities.push_back(
         std::get<int>(visualToHighLight->UserData("gazebo-entity")));
+
       this->HighlightNode(visualToHighLight);
+
       ignition::gazebo::gui::events::EntitiesSelected selectEvent(
           this->selectedEntities);
       ignition::gui::App()->sendEvent(
           ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
           &selectEvent);
     }
-    this->recievedSelectedEntities = false;
+    this->receivedSelectedEntities = false;
     this->selectionHelper = SelectionHelper();
     this->selectedEntitiesIDNew.clear();
   }
@@ -174,8 +206,7 @@ void SelectEntitiesPrivate::HandleEntitySelection()
   }
   else if (this->selectionHelper.selectEntity != kNullEntity)
   {
-    this->UpdateSelectedEntity(visual,
-        this->selectionHelper.sendEvent);
+    this->UpdateSelectedEntity(visual, this->selectionHelper.sendEvent);
 
     this->selectionHelper = SelectionHelper();
   }
@@ -189,8 +220,7 @@ void SelectEntitiesPrivate::LowlightNode(const rendering::VisualPtr &_visual)
     entityId = std::get<int>(_visual->UserData("gazebo-entity"));
   if (this->wireBoxes.find(entityId) != this->wireBoxes.end())
   {
-    ignition::rendering::WireBoxPtr wireBox =
-      this->wireBoxes[entityId];
+    ignition::rendering::WireBoxPtr wireBox = this->wireBoxes[entityId];
     auto visParent = wireBox->Parent();
     if (visParent)
       visParent->SetVisible(false);
@@ -200,10 +230,13 @@ void SelectEntitiesPrivate::LowlightNode(const rendering::VisualPtr &_visual)
 ////////////////////////////////////////////////
 void SelectEntitiesPrivate::HighlightNode(const rendering::VisualPtr &_visual)
 {
-  Entity entityId = kNullEntity;
+  if (nullptr == _visual)
+  {
+    ignerr << "Failed to highlight null visual." << std::endl;
+    return;
+  }
 
-  if (_visual)
-    entityId = std::get<int>(_visual->UserData("gazebo-entity"));
+  auto  entityId = std::get<int>(_visual->UserData("gazebo-entity"));
 
   // If the entity is not found in the existing map, create a wire box
   auto wireBoxIt = this->wireBoxes.find(entityId);
@@ -219,14 +252,12 @@ void SelectEntitiesPrivate::HighlightNode(const rendering::VisualPtr &_visual)
       white->SetEmissive(1.0, 1.0, 1.0);
     }
 
-    ignition::rendering::WireBoxPtr wireBox =
-      this->scene->CreateWireBox();
+    ignition::rendering::WireBoxPtr wireBox = this->scene->CreateWireBox();
     ignition::math::AxisAlignedBox aabb = _visual->LocalBoundingBox();
     wireBox->SetBox(aabb);
 
     // Create visual and add wire box
-    ignition::rendering::VisualPtr wireBoxVis =
-      this->scene->CreateVisual();
+    ignition::rendering::VisualPtr wireBoxVis = this->scene->CreateVisual();
     wireBoxVis->SetInheritScale(false);
     wireBoxVis->AddGeometry(wireBox);
     wireBoxVis->SetMaterial(white, false);
@@ -270,6 +301,12 @@ rendering::NodePtr SelectEntitiesPrivate::TopLevelNode(
 void SelectEntitiesPrivate::SetSelectedEntity(
   const rendering::VisualPtr &_visual)
 {
+  if (nullptr == _visual)
+  {
+    ignerr << "Failed to select null visual" << std::endl;
+    return;
+  }
+
   Entity entityId = kNullEntity;
 
   auto topLevelNode = this->TopLevelNode(_visual);
@@ -297,22 +334,22 @@ void SelectEntitiesPrivate::SetSelectedEntity(
 /////////////////////////////////////////////////
 void SelectEntitiesPrivate::DeselectAllEntities()
 {
-  if (this->scene)
-  {
-    for (const auto &entity : this->selectedEntitiesID)
-    {
-      auto node = this->scene->VisualById(entity);
-      auto vis = std::dynamic_pointer_cast<rendering::Visual>(node);
-      this->LowlightNode(vis);
-    }
-    this->selectedEntities.clear();
-    this->selectedEntitiesID.clear();
+  if (nullptr == this->scene)
+    return;
 
-    ignition::gazebo::gui::events::DeselectAllEntities deselectEvent(true);
-    ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-        &deselectEvent);
+  for (const auto &entity : this->selectedEntitiesID)
+  {
+    auto node = this->scene->VisualById(entity);
+    auto vis = std::dynamic_pointer_cast<rendering::Visual>(node);
+    this->LowlightNode(vis);
   }
+  this->selectedEntities.clear();
+  this->selectedEntitiesID.clear();
+
+  ignition::gazebo::gui::events::DeselectAllEntities deselectEvent(true);
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      &deselectEvent);
 }
 
 /////////////////////////////////////////////////
@@ -374,14 +411,12 @@ void SelectEntitiesPrivate::Initialize()
 
 /////////////////////////////////////////////////
 SelectEntities::SelectEntities()
-  : GuiSystem(), dataPtr(new SelectEntitiesPrivate)
+  : dataPtr(std::make_unique<SelectEntitiesPrivate>())
 {
 }
 
 /////////////////////////////////////////////////
-SelectEntities::~SelectEntities()
-{
-}
+SelectEntities::~SelectEntities() = default;
 
 /////////////////////////////////////////////////
 void SelectEntities::LoadConfig(const tinyxml2::XMLElement *)
@@ -396,21 +431,16 @@ void SelectEntities::LoadConfig(const tinyxml2::XMLElement *)
 /////////////////////////////////////////////////
 bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
 {
-  // std::cerr << "_obj " << _obj << " this " << this << '\n';
   if (_event->type() == ignition::gui::events::LeftClickOnScene::kType)
   {
     ignition::gui::events::LeftClickOnScene *_e =
       static_cast<ignition::gui::events::LeftClickOnScene*>(_event);
     this->dataPtr->mouseEvent = _e->Mouse();
     // handle transform control
-    if (this->dataPtr->mouseEvent.Button() ==
-      ignition::common::MouseEvent::LEFT)
+    if (this->dataPtr->mouseEvent.Button() == common::MouseEvent::LEFT &&
+        this->dataPtr->mouseEvent.Type() == common::MouseEvent::PRESS)
     {
-      if (this->dataPtr->mouseEvent.Type() ==
-        ignition::common::MouseEvent::PRESS)
-      {
-        this->dataPtr->mouseDirty = true;
-      }
+      this->dataPtr->mouseDirty = true;
     }
   }
   else if (_event->type() == ignition::gui::events::Render::kType)
@@ -445,7 +475,7 @@ bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
           if (entityId == entity)
           {
             this->dataPtr->selectedEntitiesIDNew.push_back(visual->Id());
-            this->dataPtr->recievedSelectedEntities = true;
+            this->dataPtr->receivedSelectedEntities = true;
             break;
           }
         }
@@ -464,5 +494,5 @@ bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::plugins::SelectEntities,
+IGNITION_ADD_PLUGIN(ignition::gazebo::gui::SelectEntities,
                     ignition::gui::Plugin)

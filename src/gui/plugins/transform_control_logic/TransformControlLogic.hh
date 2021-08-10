@@ -43,10 +43,6 @@ namespace plugins
     public: virtual ~TransformControlLogic();
 
     // Documentation inherited
-    public: void Update(const UpdateInfo &_info,
-        EntityComponentManager &_ecm) override;
-
-    // Documentation inherited
     public: virtual void LoadConfig(const tinyxml2::XMLElement *_pluginElem)
         override;
 

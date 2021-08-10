@@ -15,24 +15,24 @@
  *
 */
 
-#ifndef IGNITION_GUI_PLUGINS_CAMERACONTROLLERMANAGER_HH_
-#define IGNITION_GUI_PLUGINS_CAMERACONTROLLERMANAGER_HH_
+#ifndef IGNITION_GAZEBO_GUI_SELECTENTITIES_HH_
+#define IGNITION_GAZEBO_GUI_SELECTENTITIES_HH_
 
 #include <memory>
 
-#include <ignition/gazebo/gui/GuiSystem.hh>
+#include <ignition/gui/Plugin.hh>
 
 namespace ignition
 {
 namespace gazebo
 {
-namespace plugins
+namespace gui
 {
   class SelectEntitiesPrivate;
 
   /// \brief This plugin is in charge of selecting and deselecting the entities
   /// from the Scene3D and emit the corresponding events.
-  class SelectEntities : public ignition::gazebo::GuiSystem
+  class SelectEntities : public ignition::gui::Plugin
   {
     Q_OBJECT
 
