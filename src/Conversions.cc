@@ -61,6 +61,7 @@
 #include <string>
 
 #include "ignition/gazebo/Conversions.hh"
+#include "ignition/gazebo/Export.hh"
 #include "ignition/gazebo/Util.hh"
 
 using namespace ignition;
