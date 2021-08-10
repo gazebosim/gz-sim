@@ -44,59 +44,59 @@ Missing for parity with GzScene3D:
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
       </plugin>
 
-     <!-- Plugins that add functionality to the scene -->
-     <plugin filename="GzSceneManager" name="Scene Manager">
-       <ignition-gui>
-         <anchors target="3D View">
-           <line own="right" target="right"/>
-           <line own="top" target="top"/>
-         </anchors>
-         <property key="resizable" type="bool">false</property>
-         <property key="width" type="double">5</property>
-         <property key="height" type="double">5</property>
-         <property key="state" type="string">floating</property>
-         <property key="showTitleBar" type="bool">false</property>
-       </ignition-gui>
-     </plugin>
-     <plugin filename="InteractiveViewControl" name="Interactive view control">
-       <ignition-gui>
-         <anchors target="3D View">
-           <line own="right" target="right"/>
-           <line own="top" target="top"/>
-         </anchors>
-         <property key="resizable" type="bool">false</property>
-         <property key="width" type="double">5</property>
-         <property key="height" type="double">5</property>
-         <property key="state" type="string">floating</property>
-         <property key="showTitleBar" type="bool">false</property>
-       </ignition-gui>
-     </plugin>
-     <plugin filename="CameraTracking" name="Camera Tracking">
-       <ignition-gui>
-         <anchors target="3D View">
-           <line own="right" target="right"/>
-           <line own="top" target="top"/>
-         </anchors>
-         <property key="resizable" type="bool">false</property>
-         <property key="width" type="double">5</property>
-         <property key="height" type="double">5</property>
-         <property key="state" type="string">floating</property>
-         <property key="showTitleBar" type="bool">false</property>
-       </ignition-gui>
-     </plugin>
-     <plugin filename="MarkerManager" name="Marker manager">
-       <ignition-gui>
-         <anchors target="3D View">
-           <line own="right" target="right"/>
-           <line own="top" target="top"/>
-         </anchors>
-         <property key="resizable" type="bool">false</property>
-         <property key="width" type="double">5</property>
-         <property key="height" type="double">5</property>
-         <property key="state" type="string">floating</property>
-         <property key="showTitleBar" type="bool">false</property>
-       </ignition-gui>
-     </plugin>
+      <!-- Plugins that add functionality to the scene -->
+      <plugin filename="GzSceneManager" name="Scene Manager">
+        <ignition-gui>
+          <anchors target="3D View">
+            <line own="right" target="right"/>
+            <line own="top" target="top"/>
+          </anchors>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
+      <plugin filename="InteractiveViewControl" name="Interactive view control">
+        <ignition-gui>
+          <anchors target="3D View">
+            <line own="right" target="right"/>
+            <line own="top" target="top"/>
+          </anchors>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
+      <plugin filename="CameraTracking" name="Camera Tracking">
+        <ignition-gui>
+          <anchors target="3D View">
+            <line own="right" target="right"/>
+            <line own="top" target="top"/>
+          </anchors>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
+      <plugin filename="MarkerManager" name="Marker manager">
+        <ignition-gui>
+          <anchors target="3D View">
+            <line own="right" target="right"/>
+            <line own="top" target="top"/>
+          </anchors>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
 
       <!-- World control -->
       <plugin filename="WorldControl" name="World control">
