@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="default">
+    <!--
+      System plugins can be loaded from <plugin> tags attached to entities like
+      the world, models, visuals, etc.
+    -->
+    <plugin filename="HelloWorld" name="hello_world::HelloWorld">
+    </plugin>
+  </world>
+</sdf>

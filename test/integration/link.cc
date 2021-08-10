@@ -256,17 +256,28 @@ TEST_F(LinkIntegrationTest, LinkVelocities)
 
   ASSERT_TRUE(link.Valid(ecm));
 
-  // Before we add components, velocity functions should return nullopt
+  // Before enabling, velocity functions should return nullopt
   EXPECT_EQ(std::nullopt, link.WorldLinearVelocity(ecm));
   EXPECT_EQ(std::nullopt, link.WorldAngularVelocity(ecm));
 
+  // After enabling, velocity functions should return default values
+  link.EnableVelocityChecks(ecm);
+
+  EXPECT_NE(nullptr, ecm.Component<components::WorldPose>(eLink));
+  EXPECT_NE(nullptr, ecm.Component<components::WorldLinearVelocity>(eLink));
+  EXPECT_NE(nullptr, ecm.Component<components::WorldAngularVelocity>(eLink));
+
+  EXPECT_EQ(math::Vector3d::Zero, link.WorldLinearVelocity(ecm));
+  EXPECT_EQ(math::Vector3d::Zero, link.WorldAngularVelocity(ecm));
+
+  // With custom velocities
   math::Pose3d pose;
   pose.Set(0, 0, 0, IGN_PI_2, 0, 0);
   math::Vector3d linVel{1.0, 0.0, 0.0};
   math::Vector3d angVel{0.0, 0.0, 2.0};
-  ecm.CreateComponent(eLink, components::WorldPose(pose));
-  ecm.CreateComponent(eLink, components::WorldLinearVelocity(linVel));
-  ecm.CreateComponent(eLink, components::WorldAngularVelocity(angVel));
+  ecm.SetComponentData<components::WorldPose>(eLink, pose);
+  ecm.SetComponentData<components::WorldLinearVelocity>(eLink, linVel);
+  ecm.SetComponentData<components::WorldAngularVelocity>(eLink, angVel);
 
   EXPECT_EQ(linVel, link.WorldLinearVelocity(ecm));
   EXPECT_EQ(angVel, link.WorldAngularVelocity(ecm));
@@ -276,6 +287,16 @@ TEST_F(LinkIntegrationTest, LinkVelocities)
   math::Vector3d angVelBody = pose.Rot().RotateVectorReverse(angVel);
   auto expLinVel = linVel + pose.Rot().RotateVector(angVelBody.Cross(offset));
   EXPECT_EQ(expLinVel, link.WorldLinearVelocity(ecm, offset));
+
+  // Disabling velocities goes back to nullopt
+  link.EnableVelocityChecks(ecm, false);
+
+  EXPECT_EQ(std::nullopt, link.WorldLinearVelocity(ecm));
+  EXPECT_EQ(std::nullopt, link.WorldAngularVelocity(ecm));
+  EXPECT_EQ(std::nullopt, link.WorldLinearVelocity(ecm, offset));
+  EXPECT_EQ(nullptr, ecm.Component<components::WorldPose>(eLink));
+  EXPECT_EQ(nullptr, ecm.Component<components::WorldLinearVelocity>(eLink));
+  EXPECT_EQ(nullptr, ecm.Component<components::WorldAngularVelocity>(eLink));
 }
 
 //////////////////////////////////////////////////
@@ -293,14 +314,25 @@ TEST_F(LinkIntegrationTest, LinkAccelerations)
 
   ASSERT_TRUE(link.Valid(ecm));
 
-  // Before we add components, velocity functions should return nullopt
+  // Before we enable acceleration, acceleration should return nullopt
   EXPECT_EQ(std::nullopt, link.WorldLinearAcceleration(ecm));
 
+  // After enabling, they should return default values
+  link.EnableAccelerationChecks(ecm);
+  EXPECT_EQ(math::Vector3d::Zero, link.WorldLinearAcceleration(ecm));
+  EXPECT_NE(nullptr, ecm.Component<components::WorldLinearAcceleration>(eLink));
+
+  // After setting acceleration, we get the value
   math::Vector3d linAccel{1.0, 0.0, 0.0};
-  math::Vector3d angAccel{0.0, 0.0, 2.0};
-  ecm.CreateComponent(eLink, components::WorldLinearAcceleration(linAccel));
+  ecm.SetComponentData<components::WorldLinearAcceleration>(eLink, linAccel);
 
   EXPECT_EQ(linAccel, link.WorldLinearAcceleration(ecm));
+
+  // Disabling accelerations goes back to nullopt
+  link.EnableAccelerationChecks(ecm, false);
+
+  EXPECT_EQ(std::nullopt, link.WorldLinearAcceleration(ecm));
+  EXPECT_EQ(nullptr, ecm.Component<components::WorldLinearAcceleration>(eLink));
 }
 
 //////////////////////////////////////////////////
