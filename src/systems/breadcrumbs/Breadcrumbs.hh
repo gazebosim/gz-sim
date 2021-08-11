@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_SYSTEMS_BREADCRUMBS_HH_
 
 #include <memory>
+#include <optional>
 #include <set>
 #include <string>
 #include <unordered_map>
