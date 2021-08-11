@@ -151,9 +151,6 @@ namespace ignition::gazebo
     /// \brief Flag to indicate whether the z key is currently being pressed
     public: bool zPressed = false;
 
-    /// \brief Flag to indicate whether the escape key has been released.
-    public: bool escapeReleased = false;
-
     /// \brief Where the mouse left off - used to continue translating
     /// smoothly when switching axes through keybinding and clicking
     /// Updated on an x, y, or z, press or release and a mouse press
@@ -168,6 +165,7 @@ namespace ignition::gazebo
 
     public: ignition::common::KeyEvent keyEvent;
 
+    /// \brief Block orbit
     public: bool blockOrbit = false;
 
     /// \brief Enable legacy features for plugin to work with GzScene3D.
@@ -283,6 +281,7 @@ void TransformControl::OnMode(const QString &_mode)
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
         &transformControlMode);
+    this->dataPtr->mouseDirty = true;
   }
 }
 
@@ -349,6 +348,8 @@ bool TransformControl::eventFilter(QObject *_obj, QEvent *_event)
       this->SnapToGrid();
       this->dataPtr->snapToGrid = false;
     }
+    if (this->dataPtr->transformControl.Active())
+      this->dataPtr->mouseDirty = true;
     this->dataPtr->HandleTransform();
   }
   else if (_event->type() == QEvent::KeyPress)
@@ -373,19 +374,20 @@ bool TransformControl::eventFilter(QObject *_obj, QEvent *_event)
   }
   else if (_event->type() == ignition::gazebo::gui::events::EntitiesSelected::kType)
   {
-    ignition::gazebo::gui::events::EntitiesSelected *_e =
-      static_cast<ignition::gazebo::gui::events::EntitiesSelected*>(_event);
-    this->dataPtr->selectedEntities = _e->Data();
-  }
-  if (_event->type() == ignition::gui::events::Render::kType)
-  {
-    if (this->dataPtr->transformControl.Active())
-      this->dataPtr->mouseDirty = true;
+    if (!this->dataPtr->blockOrbit)
+    {
+      ignition::gazebo::gui::events::EntitiesSelected *_e =
+        static_cast<ignition::gazebo::gui::events::EntitiesSelected*>(_event);
+      this->dataPtr->selectedEntities = _e->Data();
+    }
   }
   else if (_event->type() ==
     ignition::gazebo::gui::events::DeselectAllEntities::kType)
   {
-    this->dataPtr->selectedEntities.clear();
+    if (!this->dataPtr->blockOrbit)
+    {
+      this->dataPtr->selectedEntities.clear();
+    }
   }
   else if (_event->type() == ignition::gui::events::LeftClickOnScene::kType)
   {
@@ -399,7 +401,6 @@ bool TransformControl::eventFilter(QObject *_obj, QEvent *_event)
     ignition::gui::events::KeyPressOnScene *_e =
       static_cast<ignition::gui::events::KeyPressOnScene*>(_event);
     this->dataPtr->keyEvent = _e->Key();
-ignerr << "EVENT " << this->dataPtr->keyEvent.Control() << std::endl;
   }
 
   return QObject::eventFilter(_obj, _event);
@@ -466,7 +467,9 @@ void TransformControlPrivate::HandleTransform()
   {
     this->scene = rendering::sceneFromFirstRenderEngine();
     if (nullptr == this->scene)
+    {
       return;
+    }
 
     for (unsigned int i = 0; i < this->scene->NodeCount(); ++i)
     {
@@ -474,7 +477,7 @@ void TransformControlPrivate::HandleTransform()
         this->scene->NodeByIndex(i));
       if (cam)
       {
-        if (cam->Name().find("scene::Camera") != std::string::npos)
+        if (std::get<bool>(cam->UserData("user-camera")))
         {
           this->camera = cam;
           igndbg << "TransformControl plugin is using camera ["
@@ -486,13 +489,6 @@ void TransformControlPrivate::HandleTransform()
 
     if (!this->transformControl.Camera())
       this->transformControl.SetCamera(this->camera);
-  }
-
-  // Escape action, clear all selections
-  if (this->escapeReleased)
-  {
-    this->selectedEntities.clear();
-    this->escapeReleased = false;
   }
 
   // set transform configuration
@@ -633,7 +629,7 @@ void TransformControlPrivate::HandleTransform()
           // TODO(anyone) Check plane geometry instead of hardcoded name!
           if (topVis && topVis->Name() != "ground_plane")
           {
-            // // Highlight entity and notify other widgets
+            // Highlight entity and notify other widgets
 
             // Attach control if in a transform mode - control is attached to:
             // * latest selection

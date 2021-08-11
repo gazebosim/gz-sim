@@ -164,8 +164,14 @@ void SelectEntitiesPrivate::HandleEntitySelection()
       }
 
       this->selectedEntitiesID.push_back(this->selectedEntitiesIDNew[i]);
-      this->selectedEntities.push_back(
-        std::get<int>(visualToHighLight->UserData("gazebo-entity")));
+
+      unsigned int entityId = kNullEntity;
+      try{
+        entityId = std::get<int>(visualToHighLight->UserData("gazebo-entity"));
+      }
+      catch(std::bad_variant_access &e){}
+
+      this->selectedEntities.push_back(entityId);
 
       this->HighlightNode(visualToHighLight);
 
@@ -195,8 +201,13 @@ void SelectEntitiesPrivate::HandleEntitySelection()
     return;
   }
 
-  this->selectionHelper.selectEntity =
-    std::get<int>(visual->UserData("gazebo-entity"));
+  unsigned int entityId = kNullEntity;
+  try{
+    entityId = std::get<int>(visual->UserData("gazebo-entity"));
+  }
+  catch(std::bad_variant_access &e) {}
+
+  this->selectionHelper.selectEntity = entityId;
 
   if (this->selectionHelper.deselectAll)
   {
@@ -217,7 +228,12 @@ void SelectEntitiesPrivate::LowlightNode(const rendering::VisualPtr &_visual)
 {
   Entity entityId = kNullEntity;
   if (_visual)
-    entityId = std::get<int>(_visual->UserData("gazebo-entity"));
+  {
+    try{
+      entityId = std::get<int>(_visual->UserData("gazebo-entity"));
+    }
+    catch(std::bad_variant_access &e){}
+  }
   if (this->wireBoxes.find(entityId) != this->wireBoxes.end())
   {
     ignition::rendering::WireBoxPtr wireBox = this->wireBoxes[entityId];
@@ -236,7 +252,11 @@ void SelectEntitiesPrivate::HighlightNode(const rendering::VisualPtr &_visual)
     return;
   }
 
-  auto  entityId = std::get<int>(_visual->UserData("gazebo-entity"));
+  int entityId = kNullEntity;
+  try{
+    entityId = std::get<int>(_visual->UserData("gazebo-entity"));
+  }
+  catch(std::bad_variant_access &e) {}
 
   // If the entity is not found in the existing map, create a wire box
   auto wireBoxIt = this->wireBoxes.find(entityId);
@@ -315,7 +335,10 @@ void SelectEntitiesPrivate::SetSelectedEntity(
 
   if (topLevelVisual)
   {
-    entityId = std::get<int>(topLevelVisual->UserData("gazebo-entity"));
+    try{
+      entityId = std::get<int>(topLevelVisual->UserData("gazebo-entity"));
+    }
+    catch(std::bad_variant_access &e) {}
   }
 
   if (entityId == kNullEntity)
@@ -391,20 +414,26 @@ void SelectEntitiesPrivate::Initialize()
     if (nullptr == this->scene)
       return;
 
-    for (unsigned int i = 0; i < this->scene->NodeCount(); ++i)
+    for (unsigned int i = 0; i < scene->NodeCount(); ++i)
     {
       auto cam = std::dynamic_pointer_cast<rendering::Camera>(
-        this->scene->NodeByIndex(i));
+        scene->NodeByIndex(i));
       if (cam)
       {
-        if (cam->Name().find("scene::Camera") != std::string::npos)
+        if (std::get<bool>(cam->UserData("user-camera")))
         {
           this->camera = cam;
-          igndbg << "InteractiveViewControl plugin is moving camera ["
+          igndbg << "TransformControl plugin is using camera ["
                  << this->camera->Name() << "]" << std::endl;
           break;
         }
       }
+    }
+
+    if (!this->camera)
+    {
+      ignerr << "TransformControl camera is not available" << std::endl;
+      return;
     }
   }
 }
@@ -470,8 +499,16 @@ bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
         for (unsigned int i = 0; i < this->dataPtr->scene->VisualCount(); i++)
         {
           auto visual = this->dataPtr->scene->VisualByIndex(i);
-          auto entityId = static_cast<unsigned int>(
-              std::get<int>(visual->UserData("gazebo-entity")));
+
+          unsigned int entityId = kNullEntity;
+          try{
+            entityId = std::get<int>(visual->UserData("gazebo-entity"));
+          }
+          catch(std::bad_variant_access &e)
+          {
+            ignerr << "Error eventFilter" << std::endl;
+          }
+
           if (entityId == entity)
           {
             this->dataPtr->selectedEntitiesIDNew.push_back(visual->Id());
