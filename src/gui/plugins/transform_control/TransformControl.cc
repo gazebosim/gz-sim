@@ -20,6 +20,7 @@
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/stringmsg.pb.h>
 
+#include <algorithm>
 #include <iostream>
 #include <mutex>
 #include <string>
@@ -45,9 +46,6 @@
 #include <ignition/transport/Publisher.hh>
 
 #include "ignition/gazebo/gui/GuiEvents.hh"
-
-// TODO: snap not working
-// TODO: select -> press T: no transform
 
 namespace ignition::gazebo
 {
@@ -86,7 +84,7 @@ namespace ignition::gazebo
     public: transport::Node node;
 
     /// \brief Mutex to protect mode
-// TODO: check on mutex usage
+    // TODO(anyone): check on mutex usage
     public: std::mutex mutex;
 
     /// \brief Transform control service name
@@ -372,7 +370,8 @@ bool TransformControl::eventFilter(QObject *_obj, QEvent *_event)
       this->activateSelect();
     }
   }
-  else if (_event->type() == ignition::gazebo::gui::events::EntitiesSelected::kType)
+  else if (_event->type() ==
+    ignition::gazebo::gui::events::EntitiesSelected::kType)
   {
     if (!this->dataPtr->blockOrbit)
     {
@@ -592,8 +591,8 @@ void TransformControlPrivate::HandleTransform()
                 this->poseCmdService);
             if (this->poseCmdService.empty())
             {
-              ignerr << "Failed to create valid pose command service for world ["
-                     << worldName <<"]" << std::endl;
+              ignerr << "Failed to create valid pose command service " <<
+                     << "for world [" << worldName << "]" << std::endl;
               return;
             }
           }
