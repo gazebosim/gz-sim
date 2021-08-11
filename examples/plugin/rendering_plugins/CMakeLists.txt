@@ -32,7 +32,7 @@ target_link_libraries(${GUI_PLUGIN}
 set(SERVER_PLUGIN RenderingServerPlugin)
 
 find_package(ignition-plugin1 REQUIRED COMPONENTS register)
-find_package(ignition-gazebo3 REQUIRED)
+find_package(ignition-gazebo4 REQUIRED)
 
 add_library(${SERVER_PLUGIN} SHARED ${SERVER_PLUGIN}.cc)
 set_property(TARGET ${SERVER_PLUGIN} PROPERTY CXX_STANDARD 17)
