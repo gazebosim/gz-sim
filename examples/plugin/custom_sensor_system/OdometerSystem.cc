@@ -115,16 +115,11 @@ void OdometerSystem::RemoveSensorEntities(
     [&](const ignition::gazebo::Entity &_entity,
         const ignition::gazebo::components::CustomSensor *)->bool
       {
-        auto sensorId = this->entitySensorMap.find(_entity);
-        if (sensorId == this->entitySensorMap.end())
+        if (this->entitySensorMap.erase(_entity) == 0)
         {
           ignerr << "Internal error, missing odometer for entity ["
-                 << _entity << "]" << std::endl;
-          return true;
+                         << _entity << "]" << std::endl;
         }
-
-        this->entitySensorMap.erase(sensorId);
-
         return true;
       });
 }
