@@ -14,6 +14,9 @@ release will remove the deprecated code.
     * Grid Config
     * Tape Measure
 
+* `dynamic_pose/info` topic is removed from `LogRecord` and `LogPlayback`
+since pose information is being logged in the `changed_state` topic.
+
 ## Ignition Gazebo 4.x to 5.x
 
 * Use `cli` component of `ignition-utils1`.
