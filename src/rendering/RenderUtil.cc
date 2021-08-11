@@ -2201,6 +2201,7 @@ void RenderUtil::Init()
   // Already initialized
   if (nullptr != this->dataPtr->scene)
     return;
+
   std::lock_guard<std::mutex> lock(this->dataPtr->mutexInit);
 
   ignition::common::SystemPaths pluginPath;
