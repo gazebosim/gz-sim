@@ -2001,6 +2001,10 @@ void RenderUtilPrivate::RemoveRenderingEntities(
 /////////////////////////////////////////////////
 void RenderUtil::Init()
 {
+  // Already initialized
+  if (nullptr != this->dataPtr->scene)
+    return;
+
   ignition::common::SystemPaths pluginPath;
   pluginPath.SetPluginPathEnv(kRenderPluginPathEnv);
   rendering::setPluginPaths(pluginPath.PluginPaths());
@@ -2099,6 +2103,14 @@ std::string RenderUtil::EngineName() const
 void RenderUtil::SetSceneName(const std::string &_name)
 {
   this->dataPtr->sceneName = _name;
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::SetScene(const rendering::ScenePtr &_scene)
+{
+  this->dataPtr->scene = _scene;
+  this->dataPtr->sceneManager.SetScene(_scene);
+  this->dataPtr->engine = _scene == nullptr ? nullptr : _scene->Engine();
 }
 
 /////////////////////////////////////////////////
