@@ -286,7 +286,7 @@ class OdometryPublisherTest : public ::testing::TestWithParam<int>
     math::Vector3d angVelCmd(0.0, 0.0, 0.2);
     velocityRamp.OnPreUpdate(
         [&](const gazebo::UpdateInfo &/*_info*/,
-            gazebo::EntityComponentManager &_ecm)
+            gazebo::EntityComponentManager &/*_ecm*/)
         {
           msgs::Twist msg;
           msgs::Set(msg.mutable_linear(), linVelCmd);
