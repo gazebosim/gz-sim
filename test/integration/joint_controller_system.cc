@@ -103,12 +103,21 @@ TEST_F(JointControllerTestFixture, JointVelocityCommand)
 
   server.AddSystem(testSystem.systemPtr);
 
-  const std::size_t initIters = 10;
+  const std::size_t initIters = 1000;
   server.Run(true, initIters, false);
   EXPECT_EQ(initIters, angularVelocities.size());
-  for (const auto &angVel : angularVelocities)
+  for (auto i = 0u; i < angularVelocities.size(); ++i)
   {
-    EXPECT_NEAR(0, angVel.Length(), TOL);
+    if (i == 0)
+    {
+      EXPECT_NEAR(0.0, angularVelocities[i].Length(), TOL)
+          << "Iteration [" << i << "]";
+    }
+    else
+    {
+      EXPECT_NEAR(5.0, angularVelocities[i].Length(), TOL)
+          << "Iteration [" << i << "]";
+    }
   }
 
   angularVelocities.clear();
