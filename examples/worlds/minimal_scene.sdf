@@ -26,6 +26,23 @@ Missing for parity with GzScene3D:
 -->
 <sdf version="1.6">
   <world name="minimal_scene">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin
+      filename="ignition-gazebo-physics-system"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-user-commands-system"
+      name="ignition::gazebo::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-sensors-system"
+      name="ignition::gazebo::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
 
     <gui fullscreen="0">
 
@@ -118,9 +135,6 @@ Missing for parity with GzScene3D:
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
-        <service>/world/buoyancy/control</service>
-        <stats_topic>/world/buoyancy/stats</stats_topic>
-
       </plugin>
 
       <!-- World statistics -->
@@ -144,7 +158,6 @@ Missing for parity with GzScene3D:
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-        <topic>/world/buoyancy/stats</topic>
       </plugin>
 
       <!-- Insert simple shapes -->

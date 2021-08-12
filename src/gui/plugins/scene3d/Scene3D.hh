@@ -40,6 +40,7 @@
 
 #include <ignition/rendering/Camera.hh>
 
+#include <ignition/gazebo/EventManager.hh>
 #include <ignition/gazebo/gui/GuiSystem.hh>
 
 #include "ignition/gui/qt.h"
@@ -92,6 +93,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Documentation inherited
     public: void Update(const UpdateInfo &_info,
         EntityComponentManager &_ecm) override;
+
+    // Documentation inherited
+    public: void Configure(EventManager &_eventMgr, bool _sameProcess) override;
 
     /// \brief Callback when receives a drop event.
     /// \param[in] _drop Dropped string.
@@ -336,6 +340,25 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set the camera follow offset position
     /// \param[in] _offset Camera follow offset position.
     public: void SetFollowOffset(const math::Vector3d &_offset);
+
+    /// \brief Set if the server and GUI should run in the same process.
+    /// \param[in]_sameProcessAsGUI True if the server and GUI will run in
+    /// the same process, False otherwise
+    public: void SetSameProcess(bool _sameProcess);
+
+    /// \brief Set if the first render event is emitted
+    /// \param[in] _emitFirstRender True if the first render event is emitted,
+    /// false otherwise.
+    public: void SetEmitFirstRender(bool _emitFirstRender);
+
+    /// \brief Set if there is any sensor available
+    /// \param[in] _enableSensors True if there is any sensor available,
+    /// false otherwise.
+    public: void SetEnableSensors(bool _enableSensors);
+
+    /// brief Set the event Manager
+    /// \param[in] _eventMgr Reference to the event Manager
+    public: void SetEventManager(EventManager &_eventMgr);
 
     /// \brief Get the target which the user camera is following
     /// \return Target being followed
@@ -698,6 +721,25 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set the p gain for the camera follow movement
     /// \param[in] _gain Camera follow p gain.
     public: void SetFollowPGain(double _gain);
+
+    /// \brief Set if the server and GUI should run in the same process.
+    /// \param[in]_sameProcessAsGUI True if the server and GUI will run in
+    /// the same process, False otherwise
+    public: void SetSameProcess(bool _sameProcess);
+
+    /// \brief Set if the first render event is emitted
+    /// \param[in] _emitFirstRender True if the first render event is emitted,
+    /// false otherwise.
+    public: void SetEmitFirstRender(bool _emitFirstRender);
+
+    /// \brief Set if there is any sensor available
+    /// \param[in] _enableSensors True if there is any sensor available,
+    /// false otherwise.
+    public: void SetEnableSensors(bool _enableSensors);
+
+    /// brief Set the event Manager
+    /// \param[in] _eventMgr Reference to the event Manager
+    public: void SetEventManager(EventManager &_eventMgr);
 
     /// \brief True to set the camera to follow the target in world frame,
     /// false to follow in target's local frame

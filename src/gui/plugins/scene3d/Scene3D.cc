@@ -67,6 +67,7 @@
 #include "ignition/gazebo/components/RenderEngineGuiPlugin.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 #include "ignition/gazebo/rendering/RenderUtil.hh"
 
@@ -327,6 +328,18 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief The scale values by which to snap the object.
     public: math::Vector3d scaleSnap = math::Vector3d::One;
+
+    /// \brief Event Manager
+    public: EventManager *eventManager{nullptr};
+
+    /// \brief Is the simulation running the GUI and server in the same process
+    public: bool sameProcess{false};
+
+    /// \brief is the sensors system plugin running?
+    public: bool enableSensors{false};
+
+    /// \brief did the first render event occur?
+    public: bool emitFirstRender{false};
   };
 
   /// \brief Qt and Ogre rendering is happening in different threads
@@ -434,6 +447,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   /// \brief Private data class for Scene3D
   class Scene3DPrivate
   {
+    /// \brief This method is used to connect with the event
+    /// events::EnableSensors. It will set if the simulation is running any
+    /// sensors
+    /// \param[in] _enable True if the sensors thread is enabled, false
+    /// otherwise
+    public: void EnableSensors(bool _enable);
+
     /// \brief Transport node
     public: transport::Node node;
 
@@ -503,6 +523,21 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Camera view control service
     public: std::string cameraViewControlService;
+
+    /// \brief Event Manager
+    public: EventManager *eventManager{nullptr};
+
+    /// \brief Is the simulation running the GUI and server in the same process
+    public: bool sameProcess{false};
+
+    /// \brief is the sensors system plugin running?
+    public: bool enableSensors{false};
+
+    /// \brief did the first render event occur?
+    public: bool emitFirstRender{false};
+
+    /// \brief Track connection to "EnableSensors" Event
+    public: ignition::common::ConnectionPtr enableSensorsConn{nullptr};
   };
 }
 }
@@ -648,7 +683,12 @@ void IgnRenderer::Render(RenderSync *_renderSync)
   // update the scene
   this->dataPtr->renderUtil.SetTransformActive(
       this->dataPtr->transformControl.Active());
-  this->dataPtr->renderUtil.Update();
+
+  if (this->dataPtr->emitFirstRender &&
+    (!this->dataPtr->sameProcess || !this->dataPtr->enableSensors))
+  {
+    this->dataPtr->renderUtil.Update();
+  }
 
   // view control
   this->HandleMouseEvent();
@@ -2331,6 +2371,36 @@ void IgnRenderer::SetFollowPGain(double _gain)
 }
 
 /////////////////////////////////////////////////
+void IgnRenderer::SetSameProcess(bool _sameProcess)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->sameProcess = _sameProcess;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetEmitFirstRender(bool _emitFirstRender)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->emitFirstRender = _emitFirstRender;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetEnableSensors(bool _enableSensors)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->enableSensors = _enableSensors;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetEventManager(EventManager &_eventMgr)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->eventManager = &_eventMgr;
+  if (this->dataPtr->eventManager != nullptr)
+    this->dataPtr->renderUtil.SetEventManager(_eventMgr);
+}
+
+/////////////////////////////////////////////////
 void IgnRenderer::SetFollowWorldFrame(bool _worldFrame)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -3183,8 +3253,12 @@ void Scene3D::Update(const UpdateInfo &_info,
     msgs::Pose poseMsg = msgs::Convert(renderWindow->CameraPose());
     this->dataPtr->cameraPosePub.Publish(poseMsg);
   }
-  this->dataPtr->renderUtil->UpdateECM(_info, _ecm);
-  this->dataPtr->renderUtil->UpdateFromECM(_info, _ecm);
+  if (this->dataPtr->emitFirstRender &&
+    (!this->dataPtr->sameProcess || !this->dataPtr->enableSensors))
+  {
+    this->dataPtr->renderUtil->UpdateECM(_info, _ecm);
+    this->dataPtr->renderUtil->UpdateFromECM(_info, _ecm);
+  }
 
   // check if video recording is enabled and if we need to lock step
   // ECM updates with GUI rendering during video recording
@@ -3194,6 +3268,27 @@ void Scene3D::Update(const UpdateInfo &_info,
   {
     std::unique_lock<std::mutex> lock2(this->dataPtr->renderMutex);
     g_renderCv.wait(lock2);
+  }
+}
+
+/////////////////////////////////////////////////
+void Scene3D::Configure(EventManager &_eventMgr, bool _sameProcess)
+{
+  if (this->dataPtr->eventManager)
+    return;
+
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+  renderWindow->SetSameProcess(_sameProcess);
+
+  this->dataPtr->eventManager = &_eventMgr;
+  this->dataPtr->sameProcess = _sameProcess;
+
+  if (_sameProcess)
+  {
+    this->dataPtr->enableSensorsConn =
+      _eventMgr.Connect<ignition::gazebo::events::EnableSensors>(
+        std::bind(&Scene3DPrivate::EnableSensors, this->dataPtr.get(),
+          std::placeholders::_1));
   }
 }
 
@@ -3549,9 +3644,25 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
           dropdownMenuEnabledEvent->MenuEnabled());
     }
   }
+  else if (_event->type() == ignition::gui::events::Render::kType)
+  {
+    if (this->dataPtr->sameProcess)
+    {
+      this->dataPtr->eventManager->Emit<ignition::gazebo::events::Render>();
+    }
+    this->dataPtr->emitFirstRender = true;
+    auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+    renderWindow->SetEmitFirstRender(true);
+  }
 
   // Standard event processing
   return QObject::eventFilter(_obj, _event);
+}
+
+/////////////////////////////////////////////////
+void Scene3DPrivate::EnableSensors(bool _enable)
+{
+  this->enableSensors = _enable;
 }
 
 /////////////////////////////////////////////////
@@ -3670,6 +3781,30 @@ void RenderWindowItem::SetViewController(const std::string &_controller)
 void RenderWindowItem::SetFollowPGain(double _gain)
 {
   this->dataPtr->renderThread->ignRenderer.SetFollowPGain(_gain);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetSameProcess(bool _sameProcess)
+{
+  this->dataPtr->renderThread->ignRenderer.SetSameProcess(_sameProcess);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetEmitFirstRender(bool _emitFirstRender)
+{
+  this->dataPtr->renderThread->ignRenderer.SetEmitFirstRender(_emitFirstRender);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetEnableSensors(bool _enableSensors)
+{
+  this->dataPtr->renderThread->ignRenderer.SetEnableSensors(_enableSensors);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetEventManager(EventManager &_eventMgr)
+{
+  this->dataPtr->renderThread->ignRenderer.SetEventManager(_eventMgr);
 }
 
 /////////////////////////////////////////////////

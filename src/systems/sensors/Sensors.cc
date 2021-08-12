@@ -356,6 +356,15 @@ void SensorsPrivate::Render()
     this->sensorManager.RunOnce(this->updateTime);
     this->eventManager->Emit<events::PostRender>();
   }
+  {
+    IGN_PROFILE("PostRender");
+    // Update the scene graph manually to improve performance
+    // We only need to do this once per frame It is important to call
+    // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
+    // so we don't waste cycles doing one scene graph update per sensor
+    this->scene->PostRender();
+    this->eventManager->Emit<events::PostRender>();
+  }
 }
 
 //////////////////////////////////////////////////
