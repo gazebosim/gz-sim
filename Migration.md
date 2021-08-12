@@ -14,6 +14,9 @@ release will remove the deprecated code.
     * Grid Config
     * Tape Measure
 
+* `dynamic_pose/info` topic is removed from `LogRecord` and `LogPlayback`
+since pose information is being logged in the `changed_state` topic.
+
 * The internal management of entities and components in the
   `EntityComponentManager` has been updated to improve runtime performance. As a
   result, several methods have been deprecated, and a few types have changed.
