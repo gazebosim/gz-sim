@@ -39,22 +39,11 @@
 
 #include "plugins/MockSystem.hh"
 #include "../test/helpers/Relay.hh"
+#include "../test/helpers/EnvTestFixture.hh"
 
 using namespace ignition;
 using namespace ignition::gazebo;
 using namespace std::chrono_literals;
-
-class ServerFixture : public ::testing::TestWithParam<int>
-{
-  protected: void SetUp() override
-  {
-    // Augment the system plugin path.  In SetUp to avoid test order issues.
-    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
-
-    ignition::common::Console::SetVerbosity(4);
-  }
-};
 
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, DefaultServerConfig)
