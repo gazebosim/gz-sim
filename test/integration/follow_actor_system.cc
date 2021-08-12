@@ -89,7 +89,7 @@ class Relay
 
 
 /////////////////////////////////////////////////
-TEST_F(FollowActorTest, IGN_UTILS_TEST_DISABLED_ON_MAC(PublishCmd))
+TEST_P(FollowActorTest, IGN_UTILS_TEST_DISABLED_ON_MAC(PublishCmd))
 {
   // Start server
   ServerConfig serverConfig;
