@@ -276,9 +276,6 @@ class ignition::gazebo::ServerConfigPrivate
   /// will be used.
   public: std::string renderEngineServer = "";
 
-  /// \brief is the headless mode active.
-  public: bool isHeadlessRendering = false;
-
   /// \brief File containing render engine gui plugin. If empty, OGRE2
   /// will be used.
   public: std::string renderEngineGui = "";
@@ -300,6 +297,9 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// \brief Topics to record.
   public: std::vector<std::string> logRecordTopics;
+
+  /// \brief is the headless mode active.
+  public: bool isHeadlessRendering = false;
 };
 
 //////////////////////////////////////////////////
