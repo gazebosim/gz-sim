@@ -582,16 +582,19 @@ void DiffDrivePrivate::UpdateVelocity(const ignition::gazebo::UpdateInfo &_info,
 void DiffDrivePrivate::OnCmdVel(const msgs::Twist &_msg)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
-  if (this->enabled) {
+  if (this->enabled)
+  {
     this->targetVel = _msg;
   }
 }
 
+//////////////////////////////////////////////////
 void DiffDrivePrivate::OnEnable(const msgs::Boolean &_msg)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
   this->enabled = _msg.data();
-  if (!this->enabled) {
+  if (!this->enabled)
+  {
     math::Vector3d zeroVector{0, 0, 0};
     msgs::Set(this->targetVel.mutable_linear(), zeroVector);
     msgs::Set(this->targetVel.mutable_angular(), zeroVector);
