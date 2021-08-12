@@ -98,7 +98,7 @@ extern "C" const char *findFuelResource(
 /// null to record the default topics.
 /// \param[in] _guiConfig Path to Ignition GUI configuration file.
 /// \return 0 if successful, -1 if not.
-extern "C" IGNITION_GAZEBO_VISIBLE int runCombined(const char *_sdfString,
+extern "C" int runCombined(const char *_sdfString,
     int _iterations, int _run, float _hz, int _levels, const char *_networkRole,
     int _networkSecondaries, int _record, const char *_recordPath,
     int _recordResources, int _logOverwrite, int _logCompress,
