@@ -1504,7 +1504,7 @@ msgs::ParticleEmitter ignition::gazebo::convert(const sdf::ParticleEmitter &_in)
 {
   msgs::ParticleEmitter out;
   out.set_name(_in.Name());
-  switch(_in.Type())
+  switch (_in.Type())
   {
     default:
     case sdf::ParticleEmitterType::POINT:
@@ -1560,6 +1560,13 @@ msgs::ParticleEmitter ignition::gazebo::convert(const sdf::ParticleEmitter &_in)
     header->add_value(_in.Topic());
   }
 
+  // todo(anyone) Use particle_scatter_ratio in particle_emitter.proto from
+  // Fortress on.
+  auto header = out.mutable_header()->add_data();
+  header->set_key("particle_scatter_ratio");
+  std::string *value = header->add_value();
+  *value = std::to_string(_in.ScatterRatio());
+
   return out;
 }
 
@@ -1570,7 +1577,7 @@ sdf::ParticleEmitter ignition::gazebo::convert(const msgs::ParticleEmitter &_in)
 {
   sdf::ParticleEmitter out;
   out.SetName(_in.name());
-  switch(_in.type())
+  switch (_in.type())
   {
     default:
     case msgs::ParticleEmitter::POINT:
@@ -1618,6 +1625,10 @@ sdf::ParticleEmitter ignition::gazebo::convert(const msgs::ParticleEmitter &_in)
     if (data.key() == "topic" && data.value_size() > 0)
     {
       out.SetTopic(data.value(0));
+    }
+    else if (data.key() == "particle_scatter_ratio" && data.value_size() > 0)
+    {
+      out.SetScatterRatio(std::stof(data.value(0)));
     }
   }
 

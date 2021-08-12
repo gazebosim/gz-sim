@@ -144,6 +144,12 @@
       <output type="ignition.msgs.Empty" topic="/out_12"/>
     </plugin>
 
+    <plugin filename="ignition-gazebo-triggered-publisher-system" name="ignition::gazebo::systems::TriggeredPublisher">
+      <input type="ignition.msgs.Empty" topic="/in_13"/>
+      <output type="ignition.msgs.Empty" topic="/out_13"/>
+      <delay_ms>1000</delay_ms>
+    </plugin>
+
     <!-- The following systems are used for testing invalid configuration. They don't have actual tests -->
     <plugin filename="ignition-gazebo-triggered-publisher-system" name="ignition::gazebo::systems::TriggeredPublisher">
       <input type="ignition.msgs.NonExtentType" topic="/invalid_input_0">
