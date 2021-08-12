@@ -147,6 +147,7 @@ class IGNITION_GAZEBO_VISIBLE View : public BaseView
 
 //////////////////////////////////////////////////
 template<typename ...ComponentTypeTs>
+IGNITION_GAZEBO_VISIBLE
 View<ComponentTypeTs...>::View()
 {
   this->componentTypes = {ComponentTypeTs::typeId...};
@@ -154,6 +155,7 @@ View<ComponentTypeTs...>::View()
 
 //////////////////////////////////////////////////
 template<typename ...ComponentTypeTs>
+IGNITION_GAZEBO_VISIBLE
 bool View<ComponentTypeTs...>::HasCachedComponentData(
     const Entity _entity) const
 {
@@ -180,6 +182,7 @@ bool View<ComponentTypeTs...>::HasCachedComponentData(
 
 //////////////////////////////////////////////////
 template<typename ...ComponentTypeTs>
+IGNITION_GAZEBO_VISIBLE
 bool View<ComponentTypeTs...>::RemoveEntity(const Entity _entity)
 {
   this->invalidData.erase(_entity);
@@ -201,6 +204,7 @@ bool View<ComponentTypeTs...>::RemoveEntity(const Entity _entity)
 
 //////////////////////////////////////////////////
 template<typename ...ComponentTypeTs>
+IGNITION_GAZEBO_VISIBLE
 typename View<ComponentTypeTs...>::ConstComponentData
   View<ComponentTypeTs...>::EntityComponentConstData(const Entity _entity) const
 {
@@ -209,6 +213,7 @@ typename View<ComponentTypeTs...>::ConstComponentData
 
 //////////////////////////////////////////////////
 template<typename ...ComponentTypeTs>
+IGNITION_GAZEBO_VISIBLE
 typename View<ComponentTypeTs...>::ComponentData
   View<ComponentTypeTs...>::EntityComponentData(const Entity _entity)
 {
@@ -217,6 +222,7 @@ typename View<ComponentTypeTs...>::ComponentData
 
 //////////////////////////////////////////////////
 template<typename ...ComponentTypeTs>
+IGNITION_GAZEBO_VISIBLE
 void View<ComponentTypeTs...>::AddEntityWithConstComps(const Entity &_entity,
     const bool _new, const ComponentTypeTs*... _compPtrs)
 {
@@ -228,6 +234,7 @@ void View<ComponentTypeTs...>::AddEntityWithConstComps(const Entity &_entity,
 
 //////////////////////////////////////////////////
 template<typename ...ComponentTypeTs>
+IGNITION_GAZEBO_VISIBLE
 void View<ComponentTypeTs...>::AddEntityWithComps(const Entity &_entity,
     const bool _new, ComponentTypeTs*... _compPtrs)
 {
@@ -239,6 +246,7 @@ void View<ComponentTypeTs...>::AddEntityWithComps(const Entity &_entity,
 
 //////////////////////////////////////////////////
 template<typename ...ComponentTypeTs>
+IGNITION_GAZEBO_VISIBLE
 bool View<ComponentTypeTs...>::NotifyComponentAddition(const Entity _entity,
     bool _newEntity, const ComponentTypeId _typeId)
 {
@@ -277,6 +285,7 @@ bool View<ComponentTypeTs...>::NotifyComponentAddition(const Entity _entity,
 
 //////////////////////////////////////////////////
 template<typename ...ComponentTypeTs>
+IGNITION_GAZEBO_VISIBLE
 bool View<ComponentTypeTs...>::NotifyComponentRemoval(const Entity _entity,
     const ComponentTypeId _typeId)
 {
@@ -309,6 +318,7 @@ bool View<ComponentTypeTs...>::NotifyComponentRemoval(const Entity _entity,
 
 //////////////////////////////////////////////////
 template<typename ...ComponentTypeTs>
+IGNITION_GAZEBO_VISIBLE
 void View<ComponentTypeTs...>::Reset()
 {
   // reset all data structures in the BaseView except for componentTypes since
