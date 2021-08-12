@@ -57,6 +57,7 @@
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/LaserRetro.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/LightCmd.hh"
@@ -304,16 +305,63 @@ class ignition::gazebo::RenderUtilPrivate
   /// \param[in] _node Node to be restored.
   public: void LowlightNode(const rendering::NodePtr &_node);
 
+  /// \brief New center of mass visuals to be created
+  public: std::vector<Entity> newCOMVisuals;
+
+  /// \brief A list of links used to create new center of mass visuals
+  public: std::vector<Entity> newCOMLinks;
+
+  /// \brief A map of link entities and if their center of mass visuals
+  /// are currently visible
+  public: std::map<Entity, bool> viewingCOM;
+
+  /// \brief New inertias to be created
+  public: std::vector<Entity> newInertias;
+
+  /// \brief A map of links and their center of mass visuals
+  public: std::map<Entity, Entity> linkToCOMVisuals;
+
+  /// \brief Finds the child links for given entity from the ECM
+  /// \param[in] _ecm The entity-component manager
+  /// \param[in] _entity Entity to find child links
+  /// \return A vector of child links found for the entity
+  public: std::vector<Entity> FindChildLinksFromECM(
+      const EntityComponentManager &_ecm, const Entity &_entity);
+
+  /// \brief Finds the links (inertial parent) that are used to create child
+  /// inertia and center of mass visuals in RenderUtil::Update
+  /// \param[in] _ecm The entity-component manager
+  public: void FindInertialLinks(const EntityComponentManager &_ecm);
+
+  /// \brief A list of links used to create new inertia visuals
+  public: std::vector<Entity> newInertiaLinks;
+
+  /// \brief A map of entity ids and their inertials
+  public: std::map<Entity, math::Inertiald> entityInertials;
+
+  /// \brief A map of link entities and if their inertias are currently
+  /// visible
+  public: std::map<Entity, bool> viewingInertias;
+
+  /// \brief A map of links and their inertia visuals
+  public: std::map<Entity, Entity> linkToInertiaVisuals;
+
   /// \brief New wireframe visuals to be toggled
   public: std::vector<Entity> newWireframes;
 
-  /// \brief Finds the links (visual parent) that are used to toggle wireframe
-  /// views for visuals in RenderUtil::Update
-  /// \param[in] _ecm The entity-component manager
-  public: void FindWireframeVisualLinks(const EntityComponentManager &_ecm);
+  /// \brief New wireframe visuals to be toggled
+  public: std::vector<Entity> newTransparentEntities;
 
-  /// \brief A list of links used to toggle different views for visuals
+  /// \brief Finds the links (visual parent) that are used to toggle wireframe
+  /// and transparent view for visuals in RenderUtil::Update
+  /// \param[in] _ecm The entity-component manager
+  public: void PopulateViewModeVisualLinks(const EntityComponentManager &_ecm);
+
+  /// \brief A list of links used to toggle wireframe mode for visuals
   public: std::vector<Entity> newWireframeVisualLinks;
+
+  /// \brief A list of links used to toggle transparent mode for visuals
+  public: std::vector<Entity> newTransparentVisualLinks;
 
   /// \brief A map of link entities and their corresponding children visuals
   public: std::map<Entity, std::vector<Entity>> linkToVisualEntities;
@@ -321,6 +369,10 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief A map of created wireframe visuals and if they are currently
   /// visible
   public: std::map<Entity, bool> viewingWireframes;
+
+  /// \brief A map of created transparent visuals and if they are currently
+  /// visible
+  public: std::map<Entity, bool> viewingTransparent;
 
   /// \brief New collisions to be created
   public: std::vector<Entity> newCollisions;
@@ -352,8 +404,44 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief A map of entity id to thermal camera sensor configuration
   /// properties. The elements in the tuple are:
   /// <resolution, temperature range (min, max)>
-  public:std::unordered_map<Entity,
+  public: std::unordered_map<Entity,
       std::tuple<double, components::TemperatureRangeInfo>> thermalCameraData;
+
+  /// \brief A helper function that removes the sensor associated with an
+  /// entity, if an associated sensor exists. This should be called in
+  /// RenderUtil::Update.
+  /// \param[in] _entity The entity that should be checked for an associated
+  /// sensor.
+  public: void RemoveSensor(const Entity _entity);
+
+  /// \brief A helper function that removes the bounding box associated with an
+  /// entity, if an associated bounding box exists. This should be called in
+  /// RenderUtil::Update.
+  /// \param[in] _entity The entity that should be checked for an associated
+  /// bounding box.
+  public: void RemoveBoundingBox(const Entity _entity);
+
+  /// \brief A helper function for updating lights. This should be called in
+  /// RenderUtil::Update.
+  /// \param[in] _entityLights A map of entity IDs to their light updates.
+  public: void UpdateLights(
+              const std::unordered_map<Entity, msgs::Light> &_entityLights);
+
+  /// \brief A helper function for updating the thermal camera. This should be
+  /// called in RenderUtil::Update.
+  /// \param[in] _thermalCamData The thermal camera data that needs to be
+  /// updated.
+  /// \sa thermalCameraData
+  public: void UpdateThermalCamera(const std::unordered_map<Entity,
+    std::tuple<double, components::TemperatureRangeInfo>> &_thermalCamData);
+
+  /// \brief Helper function for updating animation. This should be called in
+  /// RenderUtil::Update.
+  /// \param[in] _actorAnimationData A map of entities to their animation update
+  /// data.
+  /// \sa actorManualSkeletonUpdate
+  public: void UpdateAnimation(const std::unordered_map<Entity,
+              AnimationUpdateData> &_actorAnimationData);
 };
 
 //////////////////////////////////////////////////
@@ -489,43 +577,117 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
   this->dataPtr->UpdateRenderingEntities(_ecm);
   this->dataPtr->RemoveRenderingEntities(_ecm, _info);
   this->dataPtr->markerManager.SetSimTime(_info.simTime);
-  this->dataPtr->FindWireframeVisualLinks(_ecm);
+  this->dataPtr->PopulateViewModeVisualLinks(_ecm);
+  this->dataPtr->FindInertialLinks(_ecm);
   this->dataPtr->FindCollisionLinks(_ecm);
 }
 
 //////////////////////////////////////////////////
-void RenderUtilPrivate::FindWireframeVisualLinks(
+std::vector<Entity> RenderUtilPrivate::FindChildLinksFromECM(
+    const EntityComponentManager &_ecm, const Entity &_entity)
+{
+  std::vector<Entity> links;
+  if (_ecm.EntityMatches(_entity,
+        std::set<ComponentTypeId>{components::Model::typeId}))
+  {
+    std::stack<Entity> modelStack;
+    modelStack.push(_entity);
+
+    std::vector<Entity> childLinks, childModels;
+    while (!modelStack.empty())
+    {
+      Entity model = modelStack.top();
+      modelStack.pop();
+
+      childLinks = _ecm.EntitiesByComponents(components::ParentEntity(model),
+                                             components::Link());
+      links.insert(links.end(),
+                   childLinks.begin(),
+                   childLinks.end());
+
+      childModels =
+          _ecm.EntitiesByComponents(components::ParentEntity(model),
+                                    components::Model());
+      for (const auto &childModel : childModels)
+      {
+          modelStack.push(childModel);
+      }
+    }
+  }
+  else if (_ecm.EntityMatches(_entity,
+              std::set<ComponentTypeId>{components::Link::typeId}))
+  {
+    links.push_back(_entity);
+  }
+  return links;
+}
+
+//////////////////////////////////////////////////
+void RenderUtilPrivate::FindInertialLinks(const EntityComponentManager &_ecm)
+{
+  for (const auto &entity : this->newInertias)
+  {
+    std::vector<Entity> links;
+    if (_ecm.EntityMatches(entity,
+          std::set<ComponentTypeId>{components::Model::typeId}) ||
+        _ecm.EntityMatches(entity,
+                std::set<ComponentTypeId>{components::Link::typeId}))
+    {
+      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
+    }
+    else
+    {
+      ignerr << "Entity [" << entity
+             << "] for viewing inertia must be a model or link"
+             << std::endl;
+      continue;
+    }
+
+    this->newInertiaLinks.insert(this->newInertiaLinks.end(),
+        links.begin(),
+        links.end());
+  }
+  this->newInertias.clear();
+
+  for (const auto &entity : this->newCOMVisuals)
+  {
+    std::vector<Entity> links;
+    if (_ecm.EntityMatches(entity,
+          std::set<ComponentTypeId>{components::Model::typeId}) ||
+        _ecm.EntityMatches(entity,
+                std::set<ComponentTypeId>{components::Link::typeId}))
+    {
+      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
+    }
+    else
+    {
+      ignerr << "Entity [" << entity
+             << "] for viewing center of mass must be a model or link"
+             << std::endl;
+      continue;
+    }
+
+    this->newCOMLinks.insert(this->newCOMLinks.end(),
+        links.begin(),
+        links.end());
+  }
+  this->newCOMVisuals.clear();
+}
+
+//////////////////////////////////////////////////
+void RenderUtilPrivate::PopulateViewModeVisualLinks(
                         const EntityComponentManager &_ecm)
 {
-  if (this->newWireframes.empty())
-    return;
-
+  // Find links to toggle wireframes
   for (const auto &entity : this->newWireframes)
   {
     std::vector<Entity> links;
     if (_ecm.EntityMatches(entity,
-          std::set<ComponentTypeId>{components::Model::typeId}))
-    {
-      links = _ecm.EntitiesByComponents(components::ParentEntity(entity),
-                                        components::Link());
-
-      std::vector<Entity> models;
-      models = _ecm.EntitiesByComponents(components::ParentEntity(entity),
-                                         components::Model());
-      for (const auto model : models)
-      {
-        std::vector<Entity> childLinks;
-        childLinks = _ecm.EntitiesByComponents(components::ParentEntity(model),
-                                               components::Link());
-        links.insert(links.end(),
-                     childLinks.begin(),
-                     childLinks.end());
-      }
-    }
-    else if (_ecm.EntityMatches(entity,
+          std::set<ComponentTypeId>{components::Model::typeId}) ||
+        _ecm.EntityMatches(entity,
                 std::set<ComponentTypeId>{components::Link::typeId}))
     {
-      links.push_back(entity);
+      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
     }
     else
     {
@@ -540,6 +702,32 @@ void RenderUtilPrivate::FindWireframeVisualLinks(
         links.end());
   }
   this->newWireframes.clear();
+
+  // Find links to view as transparent
+  for (const auto &entity : this->newTransparentEntities)
+  {
+    std::vector<Entity> links;
+    if (_ecm.EntityMatches(entity,
+          std::set<ComponentTypeId>{components::Model::typeId}) ||
+        _ecm.EntityMatches(entity,
+                std::set<ComponentTypeId>{components::Link::typeId}))
+    {
+      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
+    }
+    else
+    {
+      ignerr << "Entity [" << entity
+             << "] for viewing as transparent must be a model or link"
+             << std::endl;
+      continue;
+    }
+
+    this->newTransparentVisualLinks.insert(
+        this->newTransparentVisualLinks.end(),
+        links.begin(),
+        links.end());
+  }
+  this->newTransparentEntities.clear();
 }
 
 //////////////////////////////////////////////////
@@ -552,36 +740,11 @@ void RenderUtilPrivate::FindCollisionLinks(const EntityComponentManager &_ecm)
   {
     std::vector<Entity> links;
     if (_ecm.EntityMatches(entity,
-          std::set<ComponentTypeId>{components::Model::typeId}))
-    {
-      std::stack<Entity> modelStack;
-      modelStack.push(entity);
-
-      std::vector<Entity> childLinks, childModels;
-      while (!modelStack.empty())
-      {
-        Entity model = modelStack.top();
-        modelStack.pop();
-
-        childLinks = _ecm.EntitiesByComponents(components::ParentEntity(model),
-                                               components::Link());
-        links.insert(links.end(),
-                     childLinks.begin(),
-                     childLinks.end());
-
-        childModels =
-            _ecm.EntitiesByComponents(components::ParentEntity(model),
-                                      components::Model());
-        for (const auto &childModel : childModels)
-        {
-            modelStack.push(childModel);
-        }
-      }
-    }
-    else if (_ecm.EntityMatches(entity,
+          std::set<ComponentTypeId>{components::Model::typeId}) ||
+        _ecm.EntityMatches(entity,
                 std::set<ComponentTypeId>{components::Link::typeId}))
     {
-      links.push_back(entity);
+      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
     }
     else
     {
@@ -640,6 +803,10 @@ void RenderUtil::Update()
   auto actorTransforms = std::move(this->dataPtr->actorTransforms);
   auto actorAnimationData = std::move(this->dataPtr->actorAnimationData);
   auto entityTemp = std::move(this->dataPtr->entityTemp);
+  auto newTransparentVisualLinks =
+    std::move(this->dataPtr->newTransparentVisualLinks);
+  auto newInertiaLinks = std::move(this->dataPtr->newInertiaLinks);
+  auto newCOMLinks = std::move(this->dataPtr->newCOMLinks);
   auto newWireframeVisualLinks =
     std::move(this->dataPtr->newWireframeVisualLinks);
   auto newCollisionLinks = std::move(this->dataPtr->newCollisionLinks);
@@ -660,6 +827,9 @@ void RenderUtil::Update()
   this->dataPtr->actorTransforms.clear();
   this->dataPtr->actorAnimationData.clear();
   this->dataPtr->entityTemp.clear();
+  this->dataPtr->newTransparentVisualLinks.clear();
+  this->dataPtr->newInertiaLinks.clear();
+  this->dataPtr->newCOMLinks.clear();
   this->dataPtr->newWireframeVisualLinks.clear();
   this->dataPtr->newCollisionLinks.clear();
   this->dataPtr->thermalCameraData.clear();
@@ -703,21 +873,8 @@ void RenderUtil::Update()
           this->dataPtr->selectedEntities.end());
       this->dataPtr->sceneManager.RemoveEntity(entity.first);
 
-      // delete associated sensor, if existing
-      auto sensorEntityIt = this->dataPtr->sensorEntities.find(entity.first);
-      if (sensorEntityIt != this->dataPtr->sensorEntities.end())
-      {
-        this->dataPtr->removeSensorCb(entity.first);
-        this->dataPtr->sensorEntities.erase(sensorEntityIt);
-      }
-
-      // delete associated bounding box, if existing
-      auto wireBoxIt = this->dataPtr->wireBoxes.find(entity.first);
-      if (wireBoxIt != this->dataPtr->wireBoxes.end())
-      {
-        this->dataPtr->scene->DestroyVisual(wireBoxIt->second->Parent());
-        this->dataPtr->wireBoxes.erase(wireBoxIt);
-      }
+      this->dataPtr->RemoveSensor(entity.first);
+      this->dataPtr->RemoveBoundingBox(entity.first);
     }
   }
 
@@ -829,101 +986,8 @@ void RenderUtil::Update()
     }
   }
 
-  // update lights
-  {
-    IGN_PROFILE("RenderUtil::Update Lights");
-    for (const auto &light : entityLights) {
-      auto node = this->dataPtr->sceneManager.NodeById(light.first);
-      if (!node)
-        continue;
-      auto l = std::dynamic_pointer_cast<rendering::Light>(node);
-      if (l)
-      {
-        if (light.second.has_diffuse())
-        {
-          if (l->DiffuseColor() != msgs::Convert(light.second.diffuse()))
-            l->SetDiffuseColor(msgs::Convert(light.second.diffuse()));
-        }
-        if (light.second.has_specular())
-        {
-          if (l->SpecularColor() != msgs::Convert(light.second.specular()))
-          {
-            l->SetSpecularColor(msgs::Convert(light.second.specular()));
-          }
-        }
-        if (!ignition::math::equal(
-            l->AttenuationRange(),
-            static_cast<double>(light.second.range())))
-        {
-          l->SetAttenuationRange(light.second.range());
-        }
-        if (!ignition::math::equal(
-            l->AttenuationLinear(),
-            static_cast<double>(light.second.attenuation_linear())))
-        {
-          l->SetAttenuationLinear(light.second.attenuation_linear());
-        }
-        if (!ignition::math::equal(
-            l->AttenuationConstant(),
-            static_cast<double>(light.second.attenuation_constant())))
-        {
-          l->SetAttenuationConstant(light.second.attenuation_constant());
-        }
-        if (!ignition::math::equal(
-            l->AttenuationQuadratic(),
-            static_cast<double>(light.second.attenuation_quadratic())))
-        {
-          l->SetAttenuationQuadratic(light.second.attenuation_quadratic());
-        }
-        if (l->CastShadows() != light.second.cast_shadows())
-          l->SetCastShadows(light.second.cast_shadows());
-        if (!ignition::math::equal(
-            l->Intensity(),
-            static_cast<double>(light.second.intensity())))
-        {
-          l->SetIntensity(light.second.intensity());
-        }
-        auto lDirectional =
-          std::dynamic_pointer_cast<rendering::DirectionalLight>(node);
-        if (lDirectional)
-        {
-          if (light.second.has_direction())
-          {
-            if (lDirectional->Direction() !=
-                msgs::Convert(light.second.direction()))
-            {
-              lDirectional->SetDirection(
-                msgs::Convert(light.second.direction()));
-            }
-          }
-        }
-        auto lSpotLight =
-          std::dynamic_pointer_cast<rendering::SpotLight>(node);
-        if (lSpotLight)
-        {
-          if (light.second.has_direction())
-          {
-            if (lSpotLight->Direction() !=
-              msgs::Convert(light.second.direction()))
-            {
-              lSpotLight->SetDirection(
-                msgs::Convert(light.second.direction()));
-            }
-          }
-          if (lSpotLight->InnerAngle() != light.second.spot_inner_angle())
-            lSpotLight->SetInnerAngle(light.second.spot_inner_angle());
-          if (lSpotLight->OuterAngle() != light.second.spot_outer_angle())
-            lSpotLight->SetOuterAngle(light.second.spot_outer_angle());
-          if (!ignition::math::equal(
-              lSpotLight->Falloff(),
-              static_cast<double>(light.second.spot_falloff())))
-          {
-            lSpotLight->SetFalloff(light.second.spot_falloff());
-          }
-        }
-      }
-    }
-  }
+  this->dataPtr->UpdateLights(entityLights);
+
   // update entities' pose
   {
     IGN_PROFILE("RenderUtil::Update Poses");
@@ -999,96 +1063,7 @@ void RenderUtil::Update()
     }
     else
     {
-      for (auto &it : actorAnimationData)
-      {
-        auto actorMesh = this->dataPtr->sceneManager.ActorMeshById(it.first);
-        auto actorVisual = this->dataPtr->sceneManager.NodeById(it.first);
-        auto actorSkel = this->dataPtr->sceneManager.ActorSkeletonById(
-            it.first);
-        if (!actorMesh || !actorVisual || !actorSkel)
-        {
-          ignerr << "Actor with Entity ID '" << it.first << "'. not found. "
-                 << "Skipping skeleton animation update." << std::endl;
-          continue;
-        }
-
-        AnimationUpdateData &animData = it.second;
-        if (!animData.valid)
-        {
-          ignerr << "invalid animation update data" << std::endl;
-          continue;
-        }
-        // Enable skeleton animation
-        if (!actorMesh->SkeletonAnimationEnabled(animData.animationName))
-        {
-          // disable all animations for this actor
-          for (unsigned int i = 0; i < actorSkel->AnimationCount(); ++i)
-          {
-            actorMesh->SetSkeletonAnimationEnabled(
-                actorSkel->Animation(i)->Name(), false, false, 0.0);
-          }
-
-          // enable requested animation
-          actorMesh->SetSkeletonAnimationEnabled(
-              animData.animationName, true, animData.loop);
-
-          // Set skeleton root node weight to zero so it is not affected by
-          // the animation being played. This is needed if trajectory animation
-          // is enabled. We need to let the trajectory animation set the
-          // position of the actor instead
-          common::SkeletonPtr skeleton =
-              this->dataPtr->sceneManager.ActorSkeletonById(it.first);
-          if (skeleton)
-          {
-            float rootBoneWeight = (animData.followTrajectory) ? 0.0 : 1.0;
-            std::unordered_map<std::string, float> weights;
-            weights[skeleton->RootNode()->Name()] = rootBoneWeight;
-            actorMesh->SetSkeletonWeights(weights);
-          }
-        }
-        // Update skeleton animation by setting animation time.
-        // Note that animation time is different from sim time. An actor can
-        // have multiple animations. Animation time is associated with
-        // current animation that is being played. It is also adjusted if
-        // interpotate_x is enabled.
-        actorMesh->UpdateSkeletonAnimation(animData.time);
-
-        // manually update root transform in order to sync with trajectory
-        // animation
-        if (animData.followTrajectory)
-        {
-          common::SkeletonPtr skeleton =
-              this->dataPtr->sceneManager.ActorSkeletonById(it.first);
-          std::map<std::string, math::Matrix4d> rootTf;
-          rootTf[skeleton->RootNode()->Name()] = animData.rootTransform;
-          actorMesh->SetSkeletonLocalTransforms(rootTf);
-        }
-
-        // update actor trajectory animation
-        math::Pose3d globalPose;
-        if (entityPoses.find(it.first) != entityPoses.end())
-        {
-          globalPose = entityPoses[it.first];
-        }
-
-        math::Pose3d trajPose;
-        // Trajectory from the ECS
-        if (trajectoryPoses.find(it.first) != trajectoryPoses.end())
-        {
-          trajPose = trajectoryPoses[it.first];
-        }
-        else
-        {
-          // trajectory from sdf script
-          common::PoseKeyFrame poseFrame(0.0);
-          if (animData.followTrajectory)
-            animData.trajectory.Waypoints()->InterpolatedKeyFrame(poseFrame);
-          trajPose.Pos() = poseFrame.Translation();
-          trajPose.Rot() = poseFrame.Rotation();
-        }
-
-        actorVisual->SetLocalPose(trajPose + globalPose);
-      }
+      this->dataPtr->UpdateAnimation(actorAnimationData);
     }
   }
 
@@ -1112,6 +1087,73 @@ void RenderUtil::Update()
       visual->SetUserData("minTemp", std::get<0>(temp.second));
       visual->SetUserData("maxTemp", std::get<1>(temp.second));
       visual->SetUserData("temperature", heatSignature);
+    }
+  }
+
+  // create new transparent visuals
+  {
+    for (const auto &link : newTransparentVisualLinks)
+    {
+      std::vector<Entity> visEntities =
+          this->dataPtr->linkToVisualEntities[link];
+
+      for (const auto &visEntity : visEntities)
+      {
+        if (!this->dataPtr->viewingTransparent[visEntity])
+        {
+          auto vis = this->dataPtr->sceneManager.VisualById(visEntity);
+
+          this->dataPtr->sceneManager.UpdateTransparency(vis,
+              true /* transparent */);
+          this->dataPtr->viewingTransparent[visEntity] = true;
+        }
+      }
+    }
+  }
+
+  // create new inertia visuals
+  {
+    for (const auto &link : newInertiaLinks)
+    {
+      // create a new id for the inertia visual
+      auto attempts = 100000u;
+      for (auto i = 0u; i < attempts; ++i)
+      {
+        Entity id = std::numeric_limits<uint64_t>::max() - i;
+        if (!this->dataPtr->sceneManager.HasEntity(id) &&
+            !this->dataPtr->viewingInertias[link])
+        {
+          rendering::VisualPtr inrVisual =
+            this->dataPtr->sceneManager.CreateInertiaVisual(
+              id, this->dataPtr->entityInertials[link], link);
+          this->dataPtr->viewingInertias[link] = true;
+          this->dataPtr->linkToInertiaVisuals[link] = id;
+          break;
+        }
+      }
+    }
+  }
+
+  // create new center of mass visuals
+  {
+    for (const auto &link : newCOMLinks)
+    {
+      // create a new id for the center of mass visual
+      auto attempts = 100000u;
+      for (auto i = 0u; i < attempts; ++i)
+      {
+        Entity id = std::numeric_limits<uint64_t>::max() - i;
+        if (!this->dataPtr->sceneManager.HasEntity(id) &&
+            !this->dataPtr->viewingCOM[link])
+        {
+          rendering::VisualPtr inrVisual =
+            this->dataPtr->sceneManager.CreateCOMVisual(
+              id, this->dataPtr->entityInertials[link], link);
+          this->dataPtr->viewingCOM[link] = true;
+          this->dataPtr->linkToCOMVisuals[link] = id;
+          break;
+        }
+      }
     }
   }
 
@@ -1171,43 +1213,7 @@ void RenderUtil::Update()
     }
   }
 
-  // update thermal camera
-  for (const auto &thermal : this->dataPtr->thermalCameraData)
-  {
-    Entity id = thermal.first;
-    rendering::ThermalCameraPtr camera =
-        std::dynamic_pointer_cast<rendering::ThermalCamera>(
-        this->dataPtr->sceneManager.NodeById(id));
-    if (camera)
-    {
-      double resolution = std::get<0>(thermal.second);
-
-      if (resolution > 0.0)
-      {
-        camera->SetLinearResolution(resolution);
-      }
-      else
-      {
-        ignwarn << "Unable to set thermal camera temperature linear resolution."
-                << " Value must be greater than 0. Using the default value: "
-                << camera->LinearResolution() << ". " << std::endl;
-      }
-      double minTemp = std::get<1>(thermal.second).min.Kelvin();
-      double maxTemp = std::get<1>(thermal.second).max.Kelvin();
-      if (maxTemp >= minTemp)
-      {
-        camera->SetMinTemperature(minTemp);
-        camera->SetMaxTemperature(maxTemp);
-      }
-      else
-      {
-        ignwarn << "Unable to set thermal camera temperature range."
-                << "Max temperature must be greater or equal to min. "
-                << "Using the default values : [" << camera->MinTemperature()
-                << ", " << camera->MaxTemperature() << "]." << std::endl;
-      }
-    }
-  }
+  this->dataPtr->UpdateThermalCamera(thermalCameraData);
 }
 
 //////////////////////////////////////////////////
@@ -1383,6 +1389,16 @@ void RenderUtilPrivate::CreateRenderingEntities(
         {
           this->newLights.push_back(
               std::make_tuple(_entity, _light->Data(), _parent->Data()));
+          return true;
+        });
+
+    // inertials
+    _ecm.Each<components::Inertial, components::Pose>(
+        [&](const Entity &_entity,
+            const components::Inertial *_inrElement,
+            const components::Pose *) -> bool
+        {
+          this->entityInertials[_entity] = _inrElement->Data();
           return true;
         });
 
@@ -1614,6 +1630,16 @@ void RenderUtilPrivate::CreateRenderingEntities(
         {
           this->newLights.push_back(
               std::make_tuple(_entity, _light->Data(), _parent->Data()));
+          return true;
+        });
+
+    // inertials
+    _ecm.EachNew<components::Inertial, components::Pose>(
+        [&](const Entity &_entity,
+            const components::Inertial *_inrElement,
+            const components::Pose *) -> bool
+        {
+          this->entityInertials[_entity] = _inrElement->Data();
           return true;
         });
 
@@ -1874,6 +1900,26 @@ void RenderUtilPrivate::RemoveRenderingEntities(
         this->removeEntities[_entity] = _info.iterations;
         this->linkToVisualEntities.erase(_entity);
         this->linkToCollisionEntities.erase(_entity);
+
+        if (this->linkToInertiaVisuals.find(_entity) !=
+            this->linkToInertiaVisuals.end())
+        {
+          this->removeEntities[this->linkToInertiaVisuals[_entity]] =
+            _info.iterations;
+        }
+
+        if (this->linkToCOMVisuals.find(_entity) !=
+            this->linkToCOMVisuals.end())
+        {
+          this->removeEntities[this->linkToCOMVisuals[_entity]] =
+            _info.iterations;
+        }
+
+        this->linkToInertiaVisuals.erase(_entity);
+        this->viewingInertias.erase(_entity);
+        this->linkToCOMVisuals.erase(_entity);
+        this->viewingCOM.erase(_entity);
+        this->entityInertials.erase(_entity);
         return true;
       });
 
@@ -1970,6 +2016,10 @@ bool RenderUtil::HeadlessRendering() const
 /////////////////////////////////////////////////
 void RenderUtil::Init()
 {
+  // Already initialized
+  if (nullptr != this->dataPtr->scene)
+    return;
+
   ignition::common::SystemPaths pluginPath;
   pluginPath.SetPluginPathEnv(kRenderPluginPathEnv);
   rendering::setPluginPaths(pluginPath.PluginPaths());
@@ -2073,6 +2123,14 @@ void RenderUtil::SetSceneName(const std::string &_name)
 }
 
 /////////////////////////////////////////////////
+void RenderUtil::SetScene(const rendering::ScenePtr &_scene)
+{
+  this->dataPtr->scene = _scene;
+  this->dataPtr->sceneManager.SetScene(_scene);
+  this->dataPtr->engine = _scene == nullptr ? nullptr : _scene->Engine();
+}
+
+/////////////////////////////////////////////////
 std::string RenderUtil::SceneName() const
 {
   return this->dataPtr->sceneName;
@@ -2157,15 +2215,6 @@ void RenderUtil::DeselectAllEntities()
 }
 
 /////////////////////////////////////////////////
-rendering::NodePtr RenderUtil::SelectedEntity() const
-{
-  // Return most recently selected node
-  auto node = this->dataPtr->sceneManager.NodeById(
-      this->dataPtr->selectedEntities.back());
-  return node;
-}
-
-/////////////////////////////////////////////////
 const std::vector<Entity> &RenderUtil::SelectedEntities() const
 {
   return this->dataPtr->selectedEntities;
@@ -2200,9 +2249,15 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
       white->SetEmissive(1.0, 1.0, 1.0);
     }
 
-    ignition::rendering::WireBoxPtr wireBox =
-      this->scene->CreateWireBox();
-    ignition::math::AxisAlignedBox aabb = vis->LocalBoundingBox();
+    auto aabb = vis->LocalBoundingBox();
+    if (aabb == math::AxisAlignedBox())
+    {
+      // Infinite bounding box, skip highlighting this node.
+      // This happens for Heightmaps, for example.
+      return;
+    }
+
+    auto wireBox = this->scene->CreateWireBox();
     wireBox->SetBox(aabb);
 
     // Create visual and add wire box
@@ -2248,17 +2303,265 @@ void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
 }
 
 /////////////////////////////////////////////////
-void RenderUtil::ViewWireframes(const Entity &_entity)
+void RenderUtilPrivate::RemoveSensor(const Entity _entity)
 {
-  std::vector<Entity> visEntities;
+  auto sensorEntityIt = this->sensorEntities.find(_entity);
+  if (sensorEntityIt != this->sensorEntities.end())
+  {
+    if (this->removeSensorCb)
+      this->removeSensorCb(_entity);
+    this->sensorEntities.erase(sensorEntityIt);
+  }
+}
+
+/////////////////////////////////////////////////
+void RenderUtilPrivate::RemoveBoundingBox(const Entity _entity)
+{
+  auto wireBoxIt = this->wireBoxes.find(_entity);
+  if (wireBoxIt != this->wireBoxes.end())
+  {
+    this->scene->DestroyVisual(wireBoxIt->second->Parent());
+    this->wireBoxes.erase(wireBoxIt);
+  }
+}
+
+/////////////////////////////////////////////////
+void RenderUtilPrivate::UpdateLights(
+    const std::unordered_map<Entity, msgs::Light> &_entityLights)
+{
+  IGN_PROFILE("RenderUtil::Update Lights");
+  for (const auto &light : _entityLights)
+  {
+    auto node = this->sceneManager.NodeById(light.first);
+    if (!node)
+      continue;
+    auto l = std::dynamic_pointer_cast<rendering::Light>(node);
+    if (l)
+    {
+      if (light.second.has_diffuse())
+      {
+        if (l->DiffuseColor() != msgs::Convert(light.second.diffuse()))
+          l->SetDiffuseColor(msgs::Convert(light.second.diffuse()));
+      }
+      if (light.second.has_specular())
+      {
+        if (l->SpecularColor() != msgs::Convert(light.second.specular()))
+        {
+          l->SetSpecularColor(msgs::Convert(light.second.specular()));
+        }
+      }
+      if (!ignition::math::equal(
+          l->AttenuationRange(),
+          static_cast<double>(light.second.range())))
+      {
+        l->SetAttenuationRange(light.second.range());
+      }
+      if (!ignition::math::equal(
+          l->AttenuationLinear(),
+          static_cast<double>(light.second.attenuation_linear())))
+      {
+        l->SetAttenuationLinear(light.second.attenuation_linear());
+      }
+      if (!ignition::math::equal(
+          l->AttenuationConstant(),
+          static_cast<double>(light.second.attenuation_constant())))
+      {
+        l->SetAttenuationConstant(light.second.attenuation_constant());
+      }
+      if (!ignition::math::equal(
+          l->AttenuationQuadratic(),
+          static_cast<double>(light.second.attenuation_quadratic())))
+      {
+        l->SetAttenuationQuadratic(light.second.attenuation_quadratic());
+      }
+      if (l->CastShadows() != light.second.cast_shadows())
+        l->SetCastShadows(light.second.cast_shadows());
+      auto lDirectional =
+        std::dynamic_pointer_cast<rendering::DirectionalLight>(node);
+      if (lDirectional)
+      {
+        if (light.second.has_direction())
+        {
+          if (lDirectional->Direction() !=
+              msgs::Convert(light.second.direction()))
+          {
+            lDirectional->SetDirection(
+              msgs::Convert(light.second.direction()));
+          }
+        }
+      }
+      auto lSpotLight =
+        std::dynamic_pointer_cast<rendering::SpotLight>(node);
+      if (lSpotLight)
+      {
+        if (light.second.has_direction())
+        {
+          if (lSpotLight->Direction() !=
+            msgs::Convert(light.second.direction()))
+          {
+            lSpotLight->SetDirection(
+              msgs::Convert(light.second.direction()));
+          }
+        }
+        if (lSpotLight->InnerAngle() != light.second.spot_inner_angle())
+          lSpotLight->SetInnerAngle(light.second.spot_inner_angle());
+        if (lSpotLight->OuterAngle() != light.second.spot_outer_angle())
+          lSpotLight->SetOuterAngle(light.second.spot_outer_angle());
+        if (!ignition::math::equal(
+            lSpotLight->Falloff(),
+            static_cast<double>(light.second.spot_falloff())))
+        {
+          lSpotLight->SetFalloff(light.second.spot_falloff());
+        }
+      }
+    }
+  }
+}
+
+/////////////////////////////////////////////////
+void RenderUtilPrivate::UpdateThermalCamera(const std::unordered_map<Entity,
+    std::tuple<double, components::TemperatureRangeInfo>> &_thermalCamData)
+{
+  for (const auto &thermal : _thermalCamData)
+  {
+    Entity id = thermal.first;
+    rendering::ThermalCameraPtr camera =
+        std::dynamic_pointer_cast<rendering::ThermalCamera>(
+        this->sceneManager.NodeById(id));
+    if (camera)
+    {
+      double resolution = std::get<0>(thermal.second);
+
+      if (resolution > 0.0)
+      {
+        camera->SetLinearResolution(resolution);
+      }
+      else
+      {
+        ignwarn << "Unable to set thermal camera temperature linear resolution."
+                << " Value must be greater than 0. Using the default value: "
+                << camera->LinearResolution() << ". " << std::endl;
+      }
+      double minTemp = std::get<1>(thermal.second).min.Kelvin();
+      double maxTemp = std::get<1>(thermal.second).max.Kelvin();
+      if (maxTemp >= minTemp)
+      {
+        camera->SetMinTemperature(minTemp);
+        camera->SetMaxTemperature(maxTemp);
+      }
+      else
+      {
+        ignwarn << "Unable to set thermal camera temperature range."
+                << "Max temperature must be greater or equal to min. "
+                << "Using the default values : [" << camera->MinTemperature()
+                << ", " << camera->MaxTemperature() << "]." << std::endl;
+      }
+    }
+  }
+}
+
+/////////////////////////////////////////////////
+void RenderUtilPrivate::UpdateAnimation(
+    const std::unordered_map<Entity, AnimationUpdateData> &_actorAnimationData)
+{
+  for (auto &it : _actorAnimationData)
+  {
+    auto actorMesh = this->sceneManager.ActorMeshById(it.first);
+    auto actorVisual = this->sceneManager.NodeById(it.first);
+    auto actorSkel = this->sceneManager.ActorSkeletonById(
+        it.first);
+    if (!actorMesh || !actorVisual || !actorSkel)
+    {
+      ignerr << "Actor with Entity ID '" << it.first << "'. not found. "
+             << "Skipping skeleton animation update." << std::endl;
+      continue;
+    }
+
+    const AnimationUpdateData &animData = it.second;
+    if (!animData.valid)
+    {
+      ignerr << "invalid animation update data" << std::endl;
+      continue;
+    }
+    // Enable skeleton animation
+    if (!actorMesh->SkeletonAnimationEnabled(animData.animationName))
+    {
+      // disable all animations for this actor
+      for (unsigned int i = 0; i < actorSkel->AnimationCount(); ++i)
+      {
+        actorMesh->SetSkeletonAnimationEnabled(
+            actorSkel->Animation(i)->Name(), false, false, 0.0);
+      }
+
+      // enable requested animation
+      actorMesh->SetSkeletonAnimationEnabled(
+          animData.animationName, true, animData.loop);
+
+      // Set skeleton root node weight to zero so it is not affected by
+      // the animation being played. This is needed if trajectory animation
+      // is enabled. We need to let the trajectory animation set the
+      // position of the actor instead
+      common::SkeletonPtr skeleton =
+          this->sceneManager.ActorSkeletonById(it.first);
+      if (skeleton)
+      {
+        float rootBoneWeight = (animData.followTrajectory) ? 0.0 : 1.0;
+        std::unordered_map<std::string, float> weights;
+        weights[skeleton->RootNode()->Name()] = rootBoneWeight;
+        actorMesh->SetSkeletonWeights(weights);
+      }
+    }
+    // Update skeleton animation by setting animation time.
+    // Note that animation time is different from sim time. An actor can
+    // have multiple animations. Animation time is associated with
+    // current animation that is being played. It is also adjusted if
+    // interpotate_x is enabled.
+    actorMesh->UpdateSkeletonAnimation(animData.time);
+
+    // manually update root transform in order to sync with trajectory
+    // animation
+    if (animData.followTrajectory)
+    {
+      common::SkeletonPtr skeleton =
+          this->sceneManager.ActorSkeletonById(it.first);
+      std::map<std::string, math::Matrix4d> rootTf;
+      rootTf[skeleton->RootNode()->Name()] = animData.rootTransform;
+      actorMesh->SetSkeletonLocalTransforms(rootTf);
+    }
+
+    // update actor trajectory animation
+    math::Pose3d globalPose;
+    if (entityPoses.find(it.first) != entityPoses.end())
+    {
+      globalPose = entityPoses[it.first];
+    }
+
+    math::Pose3d trajPose;
+    // Trajectory from the ECS
+    if (trajectoryPoses.find(it.first) != trajectoryPoses.end())
+    {
+      trajPose = trajectoryPoses[it.first];
+    }
+    else
+    {
+      // trajectory from sdf script
+      common::PoseKeyFrame poseFrame(0.0);
+      if (animData.followTrajectory)
+        animData.trajectory.Waypoints()->InterpolatedKeyFrame(poseFrame);
+      trajPose.Pos() = poseFrame.Translation();
+      trajPose.Rot() = poseFrame.Rotation();
+    }
+
+    actorVisual->SetLocalPose(trajPose + globalPose);
+  }
+}
+
+/////////////////////////////////////////////////
+std::vector<Entity> RenderUtil::FindChildLinks(const Entity &_entity)
+{
   std::vector<Entity> links;
 
-  if (this->dataPtr->linkToVisualEntities.find(_entity) !=
-      this->dataPtr->linkToVisualEntities.end())
-  {
-    visEntities = this->dataPtr->linkToVisualEntities[_entity];
-  }
-  else if (this->dataPtr->modelToLinkEntities.find(_entity) !=
+  if (this->dataPtr->modelToLinkEntities.find(_entity) !=
            this->dataPtr->modelToLinkEntities.end())
   {
     links.insert(links.end(),
@@ -2269,20 +2572,253 @@ void RenderUtil::ViewWireframes(const Entity &_entity)
   if (this->dataPtr->modelToModelEntities.find(_entity) !=
       this->dataPtr->modelToModelEntities.end())
   {
-    std::vector<Entity> models = this->dataPtr->modelToModelEntities[_entity];
+    std::stack<Entity> modelStack;
+    modelStack.push(_entity);
 
-    for (const auto model : models)
+    std::vector<Entity> childModels;
+    while (!modelStack.empty())
     {
+      Entity model = modelStack.top();
+      modelStack.pop();
+
       links.insert(links.end(),
           this->dataPtr->modelToLinkEntities[model].begin(),
           this->dataPtr->modelToLinkEntities[model].end());
+
+      childModels = this->dataPtr->modelToModelEntities[model];
+      for (const auto &childModel : childModels)
+      {
+        modelStack.push(childModel);
+      }
     }
   }
 
+  return links;
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::HideWireboxes(const Entity &_entity)
+{
+  if (this->dataPtr->wireBoxes.find(_entity)
+        != this->dataPtr->wireBoxes.end())
+  {
+    ignition::rendering::WireBoxPtr wireBox =
+      this->dataPtr->wireBoxes[_entity];
+    auto visParent = wireBox->Parent();
+    if (visParent)
+      visParent->SetVisible(false);
+  }
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::ViewInertia(const Entity &_entity)
+{
+  std::vector<Entity> inertiaLinks = std::move(this->FindChildLinks(_entity));
+
+  // check if _entity has an inertial component (_entity is a link)
+  if (this->dataPtr->entityInertials.find(_entity) !=
+      this->dataPtr->entityInertials.end())
+    inertiaLinks.push_back(_entity);
+
+  // create and/or toggle inertia visuals
+  bool showInertia, showInertiaInit = false;
+  // first loop looks for new inertias
+  for (const auto &inertiaLink : inertiaLinks)
+  {
+    if (this->dataPtr->viewingInertias.find(inertiaLink) ==
+        this->dataPtr->viewingInertias.end())
+    {
+      this->dataPtr->newInertias.push_back(_entity);
+      showInertiaInit = showInertia = true;
+    }
+  }
+
+  // second loop toggles already created inertias
+  for (const auto &inertiaLink : inertiaLinks)
+  {
+    if (this->dataPtr->viewingInertias.find(inertiaLink) ==
+        this->dataPtr->viewingInertias.end())
+      continue;
+
+    // when viewing multiple inertias (e.g. _entity is a model),
+    // boolean for view inertias is based on first inrEntity in list
+    if (!showInertiaInit)
+    {
+      showInertia = !this->dataPtr->viewingInertias[inertiaLink];
+      showInertiaInit = true;
+    }
+
+    Entity inertiaVisualId = this->dataPtr->linkToInertiaVisuals[inertiaLink];
+    rendering::VisualPtr inertiaVisual =
+        this->dataPtr->sceneManager.VisualById(inertiaVisualId);
+    if (inertiaVisual == nullptr)
+    {
+      ignerr << "Could not find inertia visual for entity [" << inertiaLink
+             << "]" << std::endl;
+      continue;
+    }
+
+    this->dataPtr->viewingInertias[inertiaLink] = showInertia;
+    inertiaVisual->SetVisible(showInertia);
+
+    if (showInertia)
+    {
+      this->HideWireboxes(inertiaVisualId);
+    }
+  }
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::ViewCOM(const Entity &_entity)
+{
+  std::vector<Entity> inertiaLinks = std::move(this->FindChildLinks(_entity));
+
+  // check if _entity has an inertial component (_entity is a link)
+  if (this->dataPtr->entityInertials.find(_entity) !=
+      this->dataPtr->entityInertials.end())
+    inertiaLinks.push_back(_entity);
+
+  // create and/or toggle center of mass visuals
+  bool showCOM, showCOMInit = false;
+  // first loop looks for new center of mass visuals
+  for (const auto &inertiaLink : inertiaLinks)
+  {
+    if (this->dataPtr->viewingCOM.find(inertiaLink) ==
+        this->dataPtr->viewingCOM.end())
+    {
+      this->dataPtr->newCOMVisuals.push_back(_entity);
+      showCOMInit = showCOM = true;
+    }
+  }
+
+  // second loop toggles already created center of mass visuals
+  for (const auto &inertiaLink : inertiaLinks)
+  {
+    if (this->dataPtr->viewingCOM.find(inertiaLink) ==
+        this->dataPtr->viewingCOM.end())
+      continue;
+
+    // when viewing multiple center of mass visuals (e.g. _entity is a model),
+    // boolean for view center of mass is based on first inertiaEntity in list
+    if (!showCOMInit)
+    {
+      showCOM = !this->dataPtr->viewingCOM[inertiaLink];
+      showCOMInit = true;
+    }
+
+    Entity comVisualId = this->dataPtr->linkToCOMVisuals[inertiaLink];
+    rendering::VisualPtr comVisual =
+        this->dataPtr->sceneManager.VisualById(comVisualId);
+    if (comVisual == nullptr)
+    {
+      ignerr << "Could not find center of mass visual for entity ["
+             << inertiaLink
+             << "]" << std::endl;
+      continue;
+    }
+
+    this->dataPtr->viewingCOM[inertiaLink] = showCOM;
+    comVisual->SetVisible(showCOM);
+
+    if (showCOM)
+    {
+      this->HideWireboxes(comVisualId);
+    }
+  }
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::ViewTransparent(const Entity &_entity)
+{
+  std::vector<Entity> visEntities;
+
+  if (this->dataPtr->linkToVisualEntities.find(_entity) !=
+      this->dataPtr->linkToVisualEntities.end())
+  {
+    visEntities = this->dataPtr->linkToVisualEntities[_entity];
+  }
+
+  // Find all existing child links for this entity
+  std::vector<Entity> links = std::move(this->FindChildLinks(_entity));
+
   for (const auto &link : links)
+  {
     visEntities.insert(visEntities.end(),
         this->dataPtr->linkToVisualEntities[link].begin(),
         this->dataPtr->linkToVisualEntities[link].end());
+  }
+
+  // Toggle transparent mode
+  bool showTransparent, showTransparentInit = false;
+
+  // first loop looks for new transparent entities
+  for (const auto &visEntity : visEntities)
+  {
+    if (this->dataPtr->viewingTransparent.find(visEntity) ==
+        this->dataPtr->viewingTransparent.end())
+    {
+      this->dataPtr->newTransparentEntities.push_back(_entity);
+      showTransparentInit = showTransparent = true;
+    }
+  }
+
+  // second loop toggles transparent mode
+  for (const auto &visEntity : visEntities)
+  {
+    if (this->dataPtr->viewingTransparent.find(visEntity) ==
+        this->dataPtr->viewingTransparent.end())
+      continue;
+
+    // when viewing multiple transparent visuals (e.g. _entity is a model),
+    // boolean for view as transparent is based on first visEntity in list
+    if (!showTransparentInit)
+    {
+      showTransparent = !this->dataPtr->viewingTransparent[visEntity];
+      showTransparentInit = true;
+    }
+
+    rendering::VisualPtr transparentVisual =
+        this->dataPtr->sceneManager.VisualById(visEntity);
+    if (transparentVisual == nullptr)
+    {
+      ignerr << "Could not find visual for entity [" << visEntity
+             << "]" << std::endl;
+      continue;
+    }
+
+    this->dataPtr->viewingTransparent[visEntity] = showTransparent;
+
+    this->dataPtr->sceneManager.UpdateTransparency(transparentVisual,
+              showTransparent);
+
+    if (showTransparent)
+    {
+      // turn off wireboxes for visual entity
+      this->HideWireboxes(visEntity);
+    }
+  }
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::ViewWireframes(const Entity &_entity)
+{
+  std::vector<Entity> visEntities;
+
+  if (this->dataPtr->linkToVisualEntities.find(_entity) !=
+      this->dataPtr->linkToVisualEntities.end())
+  {
+    visEntities = this->dataPtr->linkToVisualEntities[_entity];
+  }
+
+  // Find all existing child links for this entity
+  std::vector<Entity> links = std::move(this->FindChildLinks(_entity));
+
+  for (const auto &link : links)
+  {
+    visEntities.insert(visEntities.end(),
+        this->dataPtr->linkToVisualEntities[link].begin(),
+        this->dataPtr->linkToVisualEntities[link].end());
+  }
 
   // Toggle wireframes
   bool showWireframe, showWireframeInit = false;
@@ -2328,15 +2864,7 @@ void RenderUtil::ViewWireframes(const Entity &_entity)
     if (showWireframe)
     {
       // turn off wireboxes for visual entity
-      if (this->dataPtr->wireBoxes.find(visEntity)
-            != this->dataPtr->wireBoxes.end())
-      {
-        ignition::rendering::WireBoxPtr wireBox =
-          this->dataPtr->wireBoxes[visEntity];
-        auto visParent = wireBox->Parent();
-        if (visParent)
-          visParent->SetVisible(false);
-      }
+      this->HideWireboxes(visEntity);
     }
   }
 }
@@ -2345,53 +2873,26 @@ void RenderUtil::ViewWireframes(const Entity &_entity)
 void RenderUtil::ViewCollisions(const Entity &_entity)
 {
   std::vector<Entity> colEntities;
-  std::vector<Entity> links;
 
   if (this->dataPtr->linkToCollisionEntities.find(_entity) !=
       this->dataPtr->linkToCollisionEntities.end())
   {
     colEntities = this->dataPtr->linkToCollisionEntities[_entity];
   }
-  else if (this->dataPtr->modelToLinkEntities.find(_entity) !=
-           this->dataPtr->modelToLinkEntities.end())
-  {
-    links.insert(links.end(),
-        this->dataPtr->modelToLinkEntities[_entity].begin(),
-        this->dataPtr->modelToLinkEntities[_entity].end());
-  }
 
-  if (this->dataPtr->modelToModelEntities.find(_entity) !=
-      this->dataPtr->modelToModelEntities.end())
-  {
-    std::stack<Entity> modelStack;
-    modelStack.push(_entity);
-
-    std::vector<Entity> childModels;
-    while (!modelStack.empty())
-    {
-      Entity model = modelStack.top();
-      modelStack.pop();
-
-      links.insert(links.end(),
-          this->dataPtr->modelToLinkEntities[model].begin(),
-          this->dataPtr->modelToLinkEntities[model].end());
-
-      childModels = this->dataPtr->modelToModelEntities[model];
-      for (const auto &childModel : childModels)
-      {
-        modelStack.push(childModel);
-      }
-    }
-  }
+  // Find all existing child links for this entity
+  std::vector<Entity> links = std::move(this->FindChildLinks(_entity));
 
   for (const auto &link : links)
+  {
     colEntities.insert(colEntities.end(),
         this->dataPtr->linkToCollisionEntities[link].begin(),
         this->dataPtr->linkToCollisionEntities[link].end());
+  }
 
   // create and/or toggle collision visuals
-
   bool showCol, showColInit = false;
+
   // first loop looks for new collisions
   for (const auto &colEntity : colEntities)
   {
@@ -2432,16 +2933,7 @@ void RenderUtil::ViewCollisions(const Entity &_entity)
 
     if (showCol)
     {
-      // turn off wireboxes for collision entity
-      if (this->dataPtr->wireBoxes.find(colEntity)
-            != this->dataPtr->wireBoxes.end())
-      {
-        ignition::rendering::WireBoxPtr wireBox =
-          this->dataPtr->wireBoxes[colEntity];
-        auto visParent = wireBox->Parent();
-        if (visParent)
-          visParent->SetVisible(false);
-      }
+      this->HideWireboxes(colEntity);
     }
   }
 }

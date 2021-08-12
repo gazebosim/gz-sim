@@ -20,8 +20,8 @@
 
 #include <memory>
 
-#include <ignition/gui/Plugin.hh>
 #include <ignition/gazebo/gui/GuiSystem.hh>
+#include <ignition/gui/Plugin.hh>
 #include <ignition/rendering/Node.hh>
 
 namespace ignition

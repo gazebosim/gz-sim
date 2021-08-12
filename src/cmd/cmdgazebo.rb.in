@@ -160,13 +160,7 @@ COMMANDS = { 'gazebo' =>
   " locate system plugins.                                               \n\n"\
   "  IGN_GAZEBO_SERVER_CONFIG_PATH    Path to server configuration file. \n\n"\
   "  IGN_GUI_PLUGIN_PATH    Colon separated paths used to locate GUI       \n"\
-  " plugins.                                                             \n\n"\
-  "  IGN_GAZEBO_NETWORK_ROLE     Participant role used in a distributed    \n"\
-  " simulation environment. Role is one of [PRIMARY, SECONDARY]. This is   \n"\
-  " deprecated in ign-gazebo2. Please use --network-role instead.        \n\n"\
-  "  IGN_GAZEBO_NETWORK_SECONDARIES    Number of secondary participants    \n"\
-  " expected to join a distributed simulation environment. (Primary only)  \n"\
-  " This is deprecated in ign-gazebo2. Please use --network-role instead.  \n"
+  " plugins.                                                               \n"\
 }
 
 #

@@ -114,8 +114,6 @@ TEST_F(UserCommandsTest, Create)
       "<sdf version='1.6'>" +
       "<light name='accepted_light' type='directional'>" +
       "</light>" +
-      "<light name='ignored_light' type='directional'>" +
-      "</light>" +
       "</sdf>";
 
   auto badStr = std::string("<?xml version='1.0' ?>") +
