@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 #include <ignition/common/Console.hh>
 #include <ignition/math/Pose3.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/Name.hh"
