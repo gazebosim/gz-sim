@@ -17,7 +17,6 @@
 
 #include "LogPlayback.hh"
 
-#include <ignition/msgs/pose_v.pb.h>
 #include <ignition/msgs/log_playback_stats.pb.h>
 
 #include <set>
@@ -44,6 +43,7 @@
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/LogPlaybackStatistics.hh"
 #include "ignition/gazebo/components/Material.hh"
+#include "ignition/gazebo/components/ParticleEmitter.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/World.hh"
 
@@ -72,14 +72,6 @@ class ignition::gazebo::systems::LogPlaybackPrivate
   /// \param[in] _uri URI of mesh in geometry
   /// \return String of prepended path.
   public: std::string PrependLogPath(const std::string &_uri);
-
-  /// \brief Keeps track of which entity poses have updated
-  /// according to the given message.
-  /// \param[in] _msg Message containing pose updates.
-  /// \param[in] _clear Whether the most recently cached pose updates
-  /// should be deleted or not. Useful for when Parse is called multiple
-  /// times in the same Update cycle.
-  public: void Parse(const msgs::Pose_V &_msg, bool &_clear);
 
   /// \brief Updates the ECM according to the given message.
   /// \param[in] _ecm Mutable ECM.
@@ -121,9 +113,8 @@ class ignition::gazebo::systems::LogPlaybackPrivate
   /// plugin versions that did not record resources. False for older log files.
   public: bool doReplaceResourceURIs{true};
 
-  /// \brief Saves which entity poses have changed according to the latest
-  /// LogPlaybackPrivate::Parse call.
-  public: std::unordered_map<Entity, msgs::Pose> recentEntityPoseUpdates;
+  // \brief Saves which particle emitter emitting components have changed
+  public: std::unordered_map<Entity, bool> prevParticleEmitterCmds;
 };
 
 bool LogPlaybackPrivate::started{false};
@@ -143,24 +134,6 @@ LogPlayback::~LogPlayback()
   }
   if (this->dataPtr->instStarted)
     LogPlaybackPrivate::started = false;
-}
-
-//////////////////////////////////////////////////
-void LogPlaybackPrivate::Parse(const msgs::Pose_V &_msg, bool &_clear)
-{
-  if (_clear)
-    this->recentEntityPoseUpdates.clear();
-
-  // save the new entity pose updates
-  for (auto i=0; i < _msg.pose_size(); ++i)
-  {
-    const auto &pose = _msg.pose(i);
-    this->recentEntityPoseUpdates.insert_or_assign(pose.id(), pose);
-  }
-
-  // make sure that any future detected pose updates from the same Update
-  // cycle don't overwrite already-cached pose updates from the same cycle
-  _clear = false;
 }
 
 //////////////////////////////////////////////////
@@ -515,39 +488,12 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   this->dataPtr->batch = this->dataPtr->log->QueryMessages(
       transport::log::AllTopics({startTime, endTime}));
 
-  msgs::Pose_V queuedPose;
-
-  // If new pose updates are received, make sure that only the cached poses
-  // from a previous Update cycle are cleared.
-  //
-  // Since Parse can be called multiple times in a single Update,
-  // it's important to make sure that new poses from a given Update aren't
-  // overwritten by poses received in a later Parse call from the same Update.
-  // Since Parse may not be called at all for a given Update (it depends on the
-  // timestamp being investigated from the log file), we will only clear cached
-  // poses from a previous Update if there are new poses to be saved in the
-  // current Update (we know that there are new poses to be saved if Parse
-  // is called).
-  bool clearCachedPoseUpdates = true;
-
   auto iter = this->dataPtr->batch.begin();
   while (iter != this->dataPtr->batch.end())
   {
     auto msgType = iter->Type();
 
-    // Only set the last pose of a sequence of poses.
-    if (msgType != "ignition.msgs.Pose_V" && queuedPose.pose_size() > 0)
-    {
-      this->dataPtr->Parse(queuedPose, clearCachedPoseUpdates);
-      queuedPose.Clear();
-    }
-
-    if (msgType == "ignition.msgs.Pose_V")
-    {
-      // Queue poses to be set later
-      queuedPose.ParseFromString(iter->Data());
-    }
-    else if (msgType == "ignition.msgs.SerializedState")
+    if (msgType == "ignition.msgs.SerializedState")
     {
       msgs::SerializedState msg;
       msg.ParseFromString(iter->Data());
@@ -613,25 +559,27 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
     ++iter;
   }
 
-  if (queuedPose.pose_size() > 0)
+    // particle emitters
+  _ecm.Each<components::ParticleEmitterCmd>(
+      [&](const Entity &_entity,
+          const components::ParticleEmitterCmd *_emitter) -> bool
   {
-    this->dataPtr->Parse(queuedPose, clearCachedPoseUpdates);
-  }
-
-  // flag changed entity poses as periodically changed based on
-  // the latest LogPlaybackPrivate::Parse results
-  _ecm.Each<components::Pose>(
-      [&](const Entity &_entity, components::Pose *_poseComp) -> bool
-  {
-    if (this->dataPtr->recentEntityPoseUpdates.find(_entity) ==
-        this->dataPtr->recentEntityPoseUpdates.end())
+    if (this->dataPtr->prevParticleEmitterCmds.find(_entity) ==
+        this->dataPtr->prevParticleEmitterCmds.end())
+    {
+      this->dataPtr->prevParticleEmitterCmds[_entity]
+          = _emitter->Data().emitting().data();
       return true;
+    }
 
-    msgs::Pose pose = this->dataPtr->recentEntityPoseUpdates.at(_entity);
-    *_poseComp = components::Pose(msgs::Convert(pose));
-
-    _ecm.SetChanged(_entity, components::Pose::typeId,
-        ComponentState::PeriodicChange);
+    if (this->dataPtr->prevParticleEmitterCmds[_entity] !=
+        _emitter->Data().emitting().data())
+    {
+      this->dataPtr->prevParticleEmitterCmds[_entity]
+          = _emitter->Data().emitting().data();
+      _ecm.SetChanged(_entity, components::ParticleEmitterCmd::typeId,
+          ComponentState::OneTimeChange);
+    }
 
     return true;
   });

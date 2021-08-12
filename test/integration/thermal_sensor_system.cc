@@ -172,20 +172,25 @@ TEST_F(ThermalSensorTest,
   // verify temperature of heat source
   const std::string sphereVisual = "sphere_visual";
   const std::string cylinderVisual = "cylinder_visual";
-  EXPECT_EQ(2u, entityTemp.size());
+  const std::string boxVisual = "box_visual";
+  EXPECT_EQ(3u, entityTemp.size());
   ASSERT_TRUE(entityTemp.find(sphereVisual) != entityTemp.end());
   ASSERT_TRUE(entityTemp.find(cylinderVisual) != entityTemp.end());
+  ASSERT_TRUE(entityTemp.find(boxVisual) != entityTemp.end());
   EXPECT_DOUBLE_EQ(600.0, entityTemp[sphereVisual].Kelvin());
   // the user specified temp is larger than the max value representable by an
   // 8 bit 3 degree resolution camera - this value should be clamped
   EXPECT_DOUBLE_EQ(800.0, entityTemp[cylinderVisual].Kelvin());
+  // the user specified temp is less than the min value of the camera - this
+  // value should be clamped
+  EXPECT_DOUBLE_EQ(-10.0, entityTemp[boxVisual].Kelvin());
 
   // Run server
   server.Run(true, 35, false);
 
   // wait for image
   bool received = false;
-  for (unsigned int i = 0; i < 20; ++i)
+  for (unsigned int i = 0; i < 30; ++i)
   {
     {
       std::lock_guard<std::mutex> lock(g_mutex);
@@ -203,9 +208,11 @@ TEST_F(ThermalSensorTest,
     std::lock_guard<std::mutex> lock(g_mutex);
     unsigned int leftIdx = height * 0.5 * width;
     unsigned int rightIdx = leftIdx + width-1;
+    unsigned int middleIdx = leftIdx + (0.5 * width);
     unsigned int defaultResolution = 3u;
     unsigned int cylinderTemp = g_image[leftIdx] * defaultResolution;
     unsigned int sphereTemp = g_image[rightIdx] * defaultResolution;
+    unsigned int boxTemp = g_image[middleIdx] * defaultResolution;
     // default resolution, min, max values used so we should get correct
     // temperature value
     EXPECT_EQ(600u, sphereTemp);
@@ -213,6 +220,9 @@ TEST_F(ThermalSensorTest,
     // in the image output to:
     //     2^(bitDepth) - 1 * resolution = 2^8 - 1 * 3 = 765
     EXPECT_EQ(765u, cylinderTemp);
+    // the box resolution should be clamped to the camera's default
+    // minimum temperature (0)
+    EXPECT_EQ(0u, boxTemp);
   }
 
   g_imageMsgs.clear();

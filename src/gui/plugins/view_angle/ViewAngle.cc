@@ -18,6 +18,7 @@
 #include "ViewAngle.hh"
 
 #include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/gui_camera.pb.h>
 #include <ignition/msgs/vector3d.pb.h>
 
 #include <iostream>
@@ -38,7 +39,16 @@ namespace ignition::gazebo
     public: std::mutex mutex;
 
     /// \brief View Angle service name
-    public: std::string service;
+    public: std::string viewAngleService;
+
+    /// \brief View Control service name
+    public: std::string viewControlService;
+
+    /// \brief Move gui camera to pose service name
+    public: std::string moveToPoseService;
+
+    /// \brief gui camera pose
+    public: math::Pose3d camPose;
   };
 }
 
@@ -61,7 +71,18 @@ void ViewAngle::LoadConfig(const tinyxml2::XMLElement *)
     this->title = "View Angle";
 
   // For view angle requests
-  this->dataPtr->service = "/gui/view_angle";
+  this->dataPtr->viewAngleService = "/gui/view_angle";
+
+  // view control requests
+  this->dataPtr->viewControlService = "/gui/camera/view_control";
+
+  // Subscribe to camera pose
+  std::string topic = "/gui/camera/pose";
+  this->dataPtr->node.Subscribe(
+    topic, &ViewAngle::CamPoseCb, this);
+
+  // Move to pose service
+  this->dataPtr->moveToPoseService = "/gui/move_to/pose";
 }
 
 /////////////////////////////////////////////////
@@ -79,7 +100,77 @@ void ViewAngle::OnAngleMode(int _x, int _y, int _z)
   req.set_y(_y);
   req.set_z(_z);
 
-  this->dataPtr->node.Request(this->dataPtr->service, req, cb);
+  this->dataPtr->node.Request(this->dataPtr->viewAngleService, req, cb);
+}
+
+/////////////////////////////////////////////////
+void ViewAngle::OnViewControl(const QString &_controller)
+{
+  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  {
+    if (!_result)
+      ignerr << "Error setting view controller" << std::endl;
+  };
+
+  ignition::msgs::StringMsg req;
+  std::string str = _controller.toStdString();
+  if (str.find("Orbit") != std::string::npos)
+    req.set_data("orbit");
+  else if (str.find("Ortho") != std::string::npos)
+    req.set_data("ortho");
+  else
+  {
+    ignerr << "Unknown view controller selected: " << str << std::endl;
+    return;
+  }
+
+  this->dataPtr->node.Request(this->dataPtr->viewControlService, req, cb);
+}
+
+/////////////////////////////////////////////////
+QList<double> ViewAngle::CamPose() const
+{
+  return QList({
+    this->dataPtr->camPose.Pos().X(),
+    this->dataPtr->camPose.Pos().Y(),
+    this->dataPtr->camPose.Pos().Z(),
+    this->dataPtr->camPose.Rot().Roll(),
+    this->dataPtr->camPose.Rot().Pitch(),
+    this->dataPtr->camPose.Rot().Yaw()
+  });
+}
+
+/////////////////////////////////////////////////
+void ViewAngle::SetCamPose(double _x, double _y, double _z,
+                           double _roll, double _pitch, double _yaw)
+{
+  this->dataPtr->camPose.Set(_x, _y, _z, _roll, _pitch, _yaw);
+
+  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  {
+    if (!_result)
+      ignerr << "Error sending move camera to pose request" << std::endl;
+  };
+
+  ignition::msgs::GUICamera req;
+  msgs::Set(req.mutable_pose(), this->dataPtr->camPose);
+
+  this->dataPtr->node.Request(this->dataPtr->moveToPoseService, req, cb);
+}
+
+/////////////////////////////////////////////////
+void ViewAngle::CamPoseCb(const msgs::Pose &_msg)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  math::Pose3d pose = msgs::Convert(_msg);
+
+  if (pose != this->dataPtr->camPose)
+  {
+    this->dataPtr->camPose = pose;
+    this->CamPoseChanged();
+  }
 }
 
 // Register this plugin

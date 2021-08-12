@@ -86,7 +86,7 @@ int main(int _argc, char** _argv)
   std::function<void(const ignition::msgs::WorldStatistics &)> cb2 =
     [&](const ignition::msgs::WorldStatistics &_msg)
     {
-      double nIters = _msg.iterations();
+      double nIters = static_cast<double>(_msg.iterations());
       nIters = nIters / iterations * 100;
       if (nIters >= progress)
       {

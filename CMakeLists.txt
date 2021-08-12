@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.1 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 
 #============================================================================
 # Initialize the project
@@ -9,7 +9,7 @@ project(ignition-gazebo6 VERSION 6.0.0)
 # Find ignition-cmake
 #============================================================================
 # If you get an error at this line, you need to install ignition-cmake
-find_package(ignition-cmake2 2.3 REQUIRED)
+find_package(ignition-cmake2 2.8.0 REQUIRED)
 
 #============================================================================
 # Configure the project
@@ -89,6 +89,7 @@ ign_find_package (Qt5
 # Find ignition-physics
 ign_find_package(ignition-physics5
   COMPONENTS
+    heightmap
     mesh
     sdf
   REQUIRED

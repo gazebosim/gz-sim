@@ -64,11 +64,43 @@ Item {
     x: menu.x + menu.width
     y: menu.y + viewSubmenu.y
     MenuItem {
+      id: viewCOMMenu
+      text: "Center of Mass"
+      onTriggered: {
+        menu.close()
+        context.OnRequest("view_com", context.entity)
+      }
+    }
+    MenuItem {
       id: viewCollisionsMenu
       text: "Collisions"
       onTriggered: {
         menu.close()
         context.OnRequest("view_collisions", context.entity)
+      }
+    }
+    MenuItem {
+      id: viewInertiaMenu
+      text: "Inertia"
+      onTriggered: {
+        menu.close()
+        context.OnRequest("view_inertia", context.entity)
+      }
+    }
+    MenuItem {
+      id: viewTransparentMenu
+      text: "Transparent"
+      onTriggered: {
+        menu.close()
+        context.OnRequest("view_transparent", context.entity)
+      }
+    }
+    MenuItem {
+      id: viewWireframesMenu
+      text: "Wireframe"
+      onTriggered: {
+        menu.close()
+        context.OnRequest("view_wireframes", context.entity)
       }
     }
   }
@@ -81,6 +113,10 @@ Item {
     moveToMenu.enabled = false
     followMenu.enabled = false
     removeMenu.enabled = false
+    viewTransparentMenu.enabled = false;
+    viewCOMMenu.enabled = false;
+    viewInertiaMenu.enabled = false;
+    viewWireframesMenu.enabled = false;
     viewCollisionsMenu.enabled = false;
 
     // enable / disable menu items
@@ -99,6 +135,10 @@ Item {
 
     if (context.type == "model" || context.type == "link")
     {
+      viewTransparentMenu.enabled = true;
+      viewCOMMenu.enabled = true;
+      viewInertiaMenu.enabled = true;
+      viewWireframesMenu.enabled = true;
       viewCollisionsMenu.enabled = true;
     }
 

@@ -258,6 +258,17 @@ void ParticleEmitter::Configure(const Entity &_entity,
         absolutePath);
   }
 
+  // particle scatter ratio
+  const std::string scatterRatioKey = "particle_scatter_ratio";
+  if (_sdf->HasElement(scatterRatioKey))
+  {
+    // todo(anyone) add particle_scatter_ratio field in next release of ign-msgs
+    auto data = this->dataPtr->emitter.mutable_header()->add_data();
+    data->set_key(scatterRatioKey);
+    std::string *value = data->add_value();
+    *value = _sdf->Get<std::string>(scatterRatioKey);
+  }
+
   igndbg << "Loading particle emitter:" << std::endl
          << this->dataPtr->emitter.DebugString() << std::endl;
 

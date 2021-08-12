@@ -164,6 +164,14 @@ std::vector<Entity> Model::Links(const EntityComponentManager &_ecm) const
 }
 
 //////////////////////////////////////////////////
+std::vector<Entity> Model::Models(const EntityComponentManager &_ecm) const
+{
+  return _ecm.EntitiesByComponents(
+      components::ParentEntity(this->dataPtr->id),
+      components::Model());
+}
+
+//////////////////////////////////////////////////
 uint64_t Model::JointCount(const EntityComponentManager &_ecm) const
 {
   return this->Joints(_ecm).size();

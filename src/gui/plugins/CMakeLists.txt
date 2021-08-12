@@ -76,6 +76,15 @@ function(gz_add_gui_plugin plugin_name)
 
   cmake_parse_arguments(gz_add_gui_plugin "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
+  if(MSVC)
+    # Warning #4251 is the "dll-interface" warning that tells you when types
+    # used by a class are not being exported. These generated source files have
+    # private members that don't get exported, so they trigger this warning.
+    # However, the warning is not important since those members do not need to
+    # be interfaced with.
+    set_source_files_properties(${gz_add_gui_plugin_SOURCES} COMPILE_FLAGS "/wd4251")
+  endif()
+
   gz_add_gui_library(${plugin_name}
     SOURCES ${gz_add_gui_plugin_SOURCES}
     QT_HEADERS ${gz_add_gui_plugin_QT_HEADERS}
@@ -110,18 +119,20 @@ add_subdirectory(modules)
 
 # Plugins
 add_subdirectory(align_tool)
+add_subdirectory(banana_for_scale)
 add_subdirectory(component_inspector)
 add_subdirectory(entity_tree)
-add_subdirectory(grid_config)
 add_subdirectory(joint_position_controller)
 add_subdirectory(lights)
 add_subdirectory(playback_scrubber)
+add_subdirectory(plot_3d)
 add_subdirectory(plotting)
 add_subdirectory(resource_spawner)
 add_subdirectory(scene3d)
+add_subdirectory(scene_manager)
 add_subdirectory(shapes)
-add_subdirectory(tape_measure)
 add_subdirectory(transform_control)
 add_subdirectory(video_recorder)
 add_subdirectory(view_angle)
+add_subdirectory(visualize_contacts)
 add_subdirectory(visualize_lidar)
