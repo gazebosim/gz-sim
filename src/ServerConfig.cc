@@ -831,7 +831,8 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
   // 1. Check contents of environment variable
   std::string envConfig;
   bool configSet = ignition::common::env(gazebo::kServerConfigPathEnv,
-                                         envConfig);
+                                         envConfig,
+                                         true);
 
   if (configSet)
   {

@@ -366,9 +366,14 @@ class ignition::gazebo::RenderUtilPrivate
   /// RenderUtil::Update.
   /// \param[in] _actorAnimationData A map of entities to their animation update
   /// data.
+  /// \param[in] _entityPoses A map of entity ids and pose updates.
+  /// \param[in] _trajectoryPoses A map of entity ids and trajectory
+  /// pose updates.
   /// \sa actorManualSkeletonUpdate
   public: void UpdateAnimation(const std::unordered_map<Entity,
-              AnimationUpdateData> &_actorAnimationData);
+              AnimationUpdateData> &_actorAnimationData,
+              const std::unordered_map<Entity, math::Pose3d> &_entityPoses,
+              const std::unordered_map<Entity, math::Pose3d> &_trajectoryPoses);
 };
 
 //////////////////////////////////////////////////
@@ -855,7 +860,8 @@ void RenderUtil::Update()
     }
     else
     {
-      this->dataPtr->UpdateAnimation(actorAnimationData);
+      this->dataPtr->UpdateAnimation(actorAnimationData, entityPoses,
+          trajectoryPoses);
     }
   }
 
@@ -2105,8 +2111,10 @@ void RenderUtilPrivate::UpdateThermalCamera(const std::unordered_map<Entity,
 }
 
 /////////////////////////////////////////////////
-void RenderUtilPrivate::UpdateAnimation(
-    const std::unordered_map<Entity, AnimationUpdateData> &_actorAnimationData)
+void RenderUtilPrivate::UpdateAnimation(const std::unordered_map<Entity,
+    AnimationUpdateData> &_actorAnimationData,
+    const std::unordered_map<Entity, math::Pose3d> &_entityPoses,
+    const std::unordered_map<Entity, math::Pose3d> &_trajectoryPoses)
 {
   for (auto &it : _actorAnimationData)
   {
@@ -2175,16 +2183,18 @@ void RenderUtilPrivate::UpdateAnimation(
 
     // update actor trajectory animation
     math::Pose3d globalPose;
-    if (entityPoses.find(it.first) != entityPoses.end())
+    auto entityPosesIt = _entityPoses.find(it.first);
+    if (entityPosesIt != _entityPoses.end())
     {
-      globalPose = entityPoses[it.first];
+      globalPose = entityPosesIt->second;
     }
 
     math::Pose3d trajPose;
     // Trajectory from the ECS
-    if (trajectoryPoses.find(it.first) != trajectoryPoses.end())
+    auto trajectoryPosesIt = _trajectoryPoses.find(it.first);
+    if (trajectoryPosesIt != _trajectoryPoses.end())
     {
-      trajPose = trajectoryPoses[it.first];
+      trajPose = trajectoryPosesIt->second;
     }
     else
     {
