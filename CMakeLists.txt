@@ -38,6 +38,12 @@ endif()
 # Search for project-specific dependencies
 #============================================================================
 
+# This option is needed to use the PROTOBUF_GENERATE_CPP
+# in case protobuf is found with the CMake config files
+# It needs to be set before any find_package(...) call 
+# as protobuf could be find transitively by any dependency
+set(protobuf_MODULE_COMPATIBLE TRUE)
+
 ign_find_package(sdformat10 REQUIRED VERSION 10.5)
 set(SDF_VER ${sdformat10_VERSION_MAJOR})
 

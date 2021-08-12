@@ -15,7 +15,8 @@
  *
 */
 import QtQuick 2.9
-import QtQuick.Controls 2.0
+import QtQuick.Controls 2.2
+import QtQuick.Dialogs 1.0
 import RenderWindow 1.0
 import QtGraphicalEffects 1.0
 import IgnGazebo 1.0 as IgnGazebo
@@ -98,4 +99,25 @@ Rectangle {
       GzScene3D.OnDropped(drop.text, drag.x, drag.y)
     }
   }
+
+  // pop error
+  Connections {
+    target: GzScene3D
+    onPopupError: errorPopup.open()
+  }
+
+  Dialog {
+    id: errorPopup
+    parent: ApplicationWindow.overlay
+    modal: true
+    focus: true
+    x: (parent.width - width) / 2
+    y: (parent.height - height) / 2
+    title: "Error"
+    Text {
+      text: GzScene3D.errorPopupText
+    }
+    standardButtons: Dialog.Ok
+  }
+
 }

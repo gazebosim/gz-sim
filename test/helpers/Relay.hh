@@ -17,8 +17,6 @@
 #ifndef IGNITION_GAZEBO_TEST_HELPERS_RELAY_HH_
 #define IGNITION_GAZEBO_TEST_HELPERS_RELAY_HH_
 
-#include <gtest/gtest.h>
-
 #include <ignition/gazebo/test_config.hh>
 
 #include "../plugins/MockSystem.hh"
@@ -51,10 +49,8 @@ namespace test
 class Relay
 {
   /// \brief Constructor
-  public: Relay()
+  public: Relay() : systemPtr(std::make_shared<MockSystem>())
   {
-    this->systemPtr = std::make_shared<MockSystem>();
-    EXPECT_NE(nullptr, this->systemPtr);
   }
 
   /// \brief Wrapper around system's pre-update callback

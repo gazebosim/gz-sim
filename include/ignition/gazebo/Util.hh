@@ -218,7 +218,7 @@ namespace ignition
     /// \return True if a component was created or removed, false if nothing
     /// changed.
     template <class ComponentType>
-    bool IGNITION_GAZEBO_VISIBLE enableComponent(EntityComponentManager &_ecm,
+    bool enableComponent(EntityComponentManager &_ecm,
         Entity _entity, bool _enable = true)
     {
       bool changed{false};
