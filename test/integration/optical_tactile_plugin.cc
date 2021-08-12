@@ -161,6 +161,7 @@ TEST_F(OpticalTactilePluginTest,
 
   // Give some time for messages to propagate
   sleep = 0;
+  // cppcheck-suppress knownConditionTrueFalse
   while (!receivedMsg && sleep < maxSleep)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));

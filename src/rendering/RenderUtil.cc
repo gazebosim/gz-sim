@@ -2001,6 +2001,10 @@ void RenderUtilPrivate::RemoveRenderingEntities(
 /////////////////////////////////////////////////
 void RenderUtil::Init()
 {
+  // Already initialized
+  if (nullptr != this->dataPtr->scene)
+    return;
+
   ignition::common::SystemPaths pluginPath;
   pluginPath.SetPluginPathEnv(kRenderPluginPathEnv);
   rendering::setPluginPaths(pluginPath.PluginPaths());
@@ -2099,6 +2103,14 @@ std::string RenderUtil::EngineName() const
 void RenderUtil::SetSceneName(const std::string &_name)
 {
   this->dataPtr->sceneName = _name;
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::SetScene(const rendering::ScenePtr &_scene)
+{
+  this->dataPtr->scene = _scene;
+  this->dataPtr->sceneManager.SetScene(_scene);
+  this->dataPtr->engine = _scene == nullptr ? nullptr : _scene->Engine();
 }
 
 /////////////////////////////////////////////////
@@ -2220,9 +2232,15 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
       white->SetEmissive(1.0, 1.0, 1.0);
     }
 
-    ignition::rendering::WireBoxPtr wireBox =
-      this->scene->CreateWireBox();
-    ignition::math::AxisAlignedBox aabb = vis->LocalBoundingBox();
+    auto aabb = vis->LocalBoundingBox();
+    if (aabb == math::AxisAlignedBox())
+    {
+      // Infinite bounding box, skip highlighting this node.
+      // This happens for Heightmaps, for example.
+      return;
+    }
+
+    auto wireBox = this->scene->CreateWireBox();
     wireBox->SetBox(aabb);
 
     // Create visual and add wire box
@@ -2273,7 +2291,8 @@ void RenderUtilPrivate::RemoveSensor(const Entity _entity)
   auto sensorEntityIt = this->sensorEntities.find(_entity);
   if (sensorEntityIt != this->sensorEntities.end())
   {
-    this->removeSensorCb(_entity);
+    if (this->removeSensorCb)
+      this->removeSensorCb(_entity);
     this->sensorEntities.erase(sensorEntityIt);
   }
 }
