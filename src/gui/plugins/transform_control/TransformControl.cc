@@ -591,7 +591,7 @@ void TransformControlPrivate::HandleTransform()
                 this->poseCmdService);
             if (this->poseCmdService.empty())
             {
-              ignerr << "Failed to create valid pose command service " <<
+              ignerr << "Failed to create valid pose command service "
                      << "for world [" << worldName << "]" << std::endl;
               return;
             }
