@@ -20,8 +20,7 @@ include(FetchContent)
 FetchContent_Declare(
   sensors_clone
   GIT_REPOSITORY https://github.com/ignitionrobotics/ign-sensors
-  # TODO(chapulina) change to main once https://github.com/ignitionrobotics/ign-sensors/pull/90 is merged
-  GIT_TAG chapulina/5/plugin
+  GIT_TAG main
 )
 FetchContent_Populate(sensors_clone)
 add_subdirectory(${sensors_clone_SOURCE_DIR}/examples/custom_sensor ${sensors_clone_BINARY_DIR})
