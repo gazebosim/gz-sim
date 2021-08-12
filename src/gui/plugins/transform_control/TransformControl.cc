@@ -711,10 +711,8 @@ void TransformControlPrivate::HandleTransform()
       ignition::math::Vector3d worldPos = target->WorldPosition();
       math::Vector3d distance =
         this->transformControl.TranslationFrom2d(axis, start, end);
-ignerr << "CONTROL " << this->keyEvent.Control() << std::endl;
       if (this->keyEvent.Control())
       {
-ignerr << "SNAP" << std::endl;
         // Translate to world frame for snapping
         distance += this->startWorldPos;
         math::Vector3d snapVals = this->xyzSnapVals;
