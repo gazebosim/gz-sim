@@ -38,7 +38,9 @@ namespace systems
   /// The following parameters are used by the system:
   ///
   /// link_name   : Name of the link affected by the group of lift/drag
-  ///               properties.
+  ///               properties. This can be a scoped name to reference links in
+  ///               nested models. \sa entitiesFromScopedName to learn more
+  ///               about scoped names.
   /// air_density : Density of the fluid this model is suspended in.
   /// area        : Surface area of the link.
   /// a0          : The initial "alpha" or initial angle of attack. a0 is also
@@ -59,6 +61,8 @@ namespace systems
   ///               coefficient curve.
   /// cda_stall   : The ratio of coefficient of drag and alpha slope after
   ///               stall.
+  /// control_joint_name: Name of joint that actuates a control surface for this
+  ///                     lifting body (Optional)
   class LiftDrag
       : public System,
         public ISystemConfigure,

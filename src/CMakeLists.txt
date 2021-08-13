@@ -59,6 +59,7 @@ set (sources
   ServerPrivate.cc
   SimulationRunner.cc
   SystemLoader.cc
+  TestFixture.cc
   Util.cc
   World.cc
   cmd/ModelCommandAPI.cc
@@ -85,6 +86,7 @@ set (gtest_sources
   SimulationRunner_TEST.cc
   SystemLoader_TEST.cc
   System_TEST.cc
+  TestFixture_TEST.cc
   Util_TEST.cc
   World_TEST.cc
   ign_TEST.cc
