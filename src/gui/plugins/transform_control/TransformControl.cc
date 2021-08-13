@@ -284,11 +284,11 @@ void TransformControl::OnMode(const QString &_mode)
     else
       ignerr << "Unknown transform mode: [" << modeStr << "]" << std::endl;
 
-    ignition::gazebo::gui::events::TransformControlMode transformControlMode(
-      this->dataPtr->transformMode);
+    ignition::gazebo::gui::events::TransformControlModeActive
+      transformControlModeActive(this->dataPtr->transformMode);
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-        &transformControlMode);
+        &transformControlModeActive);
     this->dataPtr->mouseDirty = true;
   }
 }

@@ -498,13 +498,13 @@ bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
     this->dataPtr->HandleEntitySelection();
   }
   else if (_event->type() ==
-    ignition::gazebo::gui::events::TransformControlMode::kType)
+    ignition::gazebo::gui::events::TransformControlModeActive::kType)
   {
     auto transformControlMode =
-      reinterpret_cast<ignition::gazebo::gui::events::TransformControlMode *>(
+      reinterpret_cast<ignition::gazebo::gui::events::TransformControlModeActive *>(
         _event);
     this->dataPtr->transformControlActive =
-      transformControlMode->TransformControl();
+      transformControlMode->TransformControlActive();
   }
   else if (_event->type() ==
     ignition::gazebo::gui::events::EntitiesSelected::kType)
