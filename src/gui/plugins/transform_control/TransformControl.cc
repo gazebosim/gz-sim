@@ -512,6 +512,7 @@ void TransformControlPrivate::HandleTransform()
       this->selectedEntities.empty()))
   {
     if (this->transformControl.Node())
+    {
       try {
         this->transformControl.Node()->SetUserData(
           "pause-update", static_cast<int>(0));
@@ -520,6 +521,7 @@ void TransformControlPrivate::HandleTransform()
       {
         // It's ok to get here
       }
+    }
 
     if (this->transformControl.Active())
       this->transformControl.Stop();
@@ -567,7 +569,7 @@ void TransformControlPrivate::HandleTransform()
           // start the transform process
           this->transformControl.SetActiveAxis(axis);
           this->transformControl.Start();
-          if (this->transformControl.Node())
+          if (this->transformControl.Node()){
             try {
               this->transformControl.Node()->SetUserData(
                 "pause-update", static_cast<int>(1));
@@ -576,6 +578,7 @@ void TransformControlPrivate::HandleTransform()
             {
               // It's ok to get here
             }
+          }
           this->mouseDirty = false;
         }
         else
@@ -595,7 +598,7 @@ void TransformControlPrivate::HandleTransform()
         if (this->transformControl.Node())
         {
           std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-              [this](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+            [this](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
           {
             if (this->transformControl.Node())
             {

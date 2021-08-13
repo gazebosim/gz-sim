@@ -501,7 +501,7 @@ bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
     ignition::gazebo::gui::events::TransformControlModeActive::kType)
   {
     auto transformControlMode =
-      reinterpret_cast<ignition::gazebo::gui::events::TransformControlModeActive *>(
+      reinterpret_cast<gazebo::gui::events::TransformControlModeActive *>(
         _event);
     this->dataPtr->transformControlActive =
       transformControlMode->TransformControlActive();
