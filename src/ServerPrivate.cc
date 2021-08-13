@@ -238,8 +238,6 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
     bool sdfCompress;
     std::tie(sdfRecordResources, hasRecordResources) =
       recordPluginElem->Get<bool>("record_resources", false);
-    std::tie(sdfCompress, hasCompress) =
-      recordPluginElem->Get<bool>("compress", false);
 
     hasRecordTopics = recordPluginElem->HasElement("record_topic");
     if (hasRecordTopics)
