@@ -350,7 +350,7 @@ int createServerConfig(ignition::gazebo::ServerConfig &_serverConfig,
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
+extern "C" int runServer(const char *_sdfString,
     int _iterations, int _run, float _hz, int _levels, const char *_networkRole,
     int _networkSecondaries, int _record, const char *_recordPath,
     int _recordResources, int _logOverwrite, int _logCompress,
@@ -381,7 +381,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_GAZEBO_VISIBLE int runCombined(const char *_sdfString,
+extern "C" int runCombined(const char *_sdfString,
     int _iterations, int _run, float _hz, int _levels, const char *_networkRole,
     int _networkSecondaries, int _record, const char *_recordPath,
     int _recordResources, int _logOverwrite, int _logCompress,
