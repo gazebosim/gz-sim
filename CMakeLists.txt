@@ -105,16 +105,24 @@ set(IGN_PHYSICS_VER ${ignition-physics5_VERSION_MAJOR})
 #--------------------------------------
 # Find ignition-sensors
 ign_find_package(ignition-sensors6 REQUIRED
+  # component order is important
   COMPONENTS
-    rendering
+    # non-rendering
     air_pressure
     altimeter
-    camera
-    gpu_lidar
     imu
     logical_camera
     magnetometer
+
+    # rendering
+    rendering
+    lidar
+    gpu_lidar
+
+    # cameras
+    camera
     depth_camera
+    rgbd_camera
     thermal_camera
 )
 set(IGN_SENSORS_VER ${ignition-sensors6_VERSION_MAJOR})
