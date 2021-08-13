@@ -511,6 +511,10 @@ void TransformControlPrivate::HandleTransform()
       (this->transformControl.Node() &&
       this->selectedEntities.empty()))
   {
+    if (this->transformControl.Node())
+      this->transformControl.Node()->SetUserData(
+        "pause-update", static_cast<int>(0));
+
     if (this->transformControl.Active())
       this->transformControl.Stop();
 
@@ -557,6 +561,9 @@ void TransformControlPrivate::HandleTransform()
           // start the transform process
           this->transformControl.SetActiveAxis(axis);
           this->transformControl.Start();
+          if (this->transformControl.Node())
+            this->transformControl.Node()->SetUserData(
+              "pause-update", static_cast<int>(1));
           this->mouseDirty = false;
         }
         else
@@ -576,8 +583,13 @@ void TransformControlPrivate::HandleTransform()
         if (this->transformControl.Node())
         {
           std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-              [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+              [this](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
           {
+            if (this->transformControl.Node())
+            {
+              this->transformControl.Node()->SetUserData(
+                "pause-update", static_cast<int>(0));
+            }
             if (!_result)
               ignerr << "Error setting pose" << std::endl;
           };
@@ -658,10 +670,14 @@ void TransformControlPrivate::HandleTransform()
               if (topClickedNode == topClickedVisual)
               {
                 this->transformControl.Attach(topClickedVisual);
+                topClickedVisual->SetUserData(
+                  "pause-update", static_cast<int>(1));
               }
               else
               {
                 this->transformControl.Detach();
+                topClickedVisual->SetUserData(
+                  "pause-update", static_cast<int>(0));
               }
             }
 
@@ -675,6 +691,10 @@ void TransformControlPrivate::HandleTransform()
   if (this->mouseEvent.Type() == common::MouseEvent::MOVE
       && this->transformControl.Active())
   {
+    if (this->transformControl.Node())
+      this->transformControl.Node()->SetUserData(
+        "pause-update", static_cast<int>(1));
+
     this->blockOrbit = true;
     // compute the the start and end mouse positions in normalized coordinates
     auto imageWidth = static_cast<double>(this->camera->ImageWidth());

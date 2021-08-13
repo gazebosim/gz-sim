@@ -81,11 +81,8 @@ void GzSceneManager::Update(const UpdateInfo &_info,
 {
   IGN_PROFILE("GzSceneManager::Update");
 
-  if (!this->dataPtr->blockUpdate)
-  {
-    this->dataPtr->renderUtil.UpdateECM(_info, _ecm);
-    this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
-  }
+  this->dataPtr->renderUtil.UpdateECM(_info, _ecm);
+  this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
 }
 
 /////////////////////////////////////////////////
