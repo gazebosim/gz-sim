@@ -27,7 +27,12 @@ using namespace ignition::gazebo;
 using namespace std::chrono_literals;
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, TwoServersNonBlocking)
+class MultipleServers : public InternalFixture<::testing::TestWithParam<int>>
+{
+};
+
+/////////////////////////////////////////////////
+TEST_P(MultipleServers, TwoServersNonBlocking)
 {
   ignition::gazebo::ServerConfig serverConfig;
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
@@ -67,7 +72,7 @@ TEST_P(ServerFixture, TwoServersNonBlocking)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, TwoServersMixedBlocking)
+TEST_P(MultipleServers, TwoServersMixedBlocking)
 {
   ignition::gazebo::ServerConfig serverConfig;
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
@@ -101,4 +106,4 @@ TEST_P(ServerFixture, TwoServersMixedBlocking)
 
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
-INSTANTIATE_TEST_SUITE_P(ServerRepeat, ServerFixture, ::testing::Range(1, 2));
+INSTANTIATE_TEST_SUITE_P(ServerRepeat, MultipleServers, ::testing::Range(1, 2));

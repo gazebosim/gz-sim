@@ -32,6 +32,7 @@
 #include "ignition/gazebo/test_config.hh"
 
 #include "../helpers/Relay.hh"
+#include "../helpers/EnvTestFixture.hh"
 
 #define tol 0.005
 
@@ -40,16 +41,9 @@ using namespace gazebo;
 using namespace std::chrono_literals;
 
 /// \brief Test OdometryPublisher system
-class OdometryPublisherTest : public ::testing::TestWithParam<int>
+class OdometryPublisherTest
+  : public InternalFixture<::testing::TestWithParam<int>>
 {
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    common::Console::SetVerbosity(4);
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
-  }
-
   /// \param[in] _sdfFile SDF file to load.
   /// \param[in] _odomTopic Odometry topic.
   protected: void TestMovement(const std::string &_sdfFile,
