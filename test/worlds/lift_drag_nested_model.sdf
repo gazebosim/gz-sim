@@ -1,0 +1,149 @@
+<?xml version="1.0" ?>
+<!-- Adapted from osrf/gazebo/test/worlds/lift_drag_plugin.world  -->
+<sdf version="1.8">
+  <world name="default">
+
+    <plugin
+      filename="ignition-gazebo-physics-system"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+            <emissive>0.8 0.8 0.8 1</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="lift_drag_demo_model">
+      <pose>0 0 0.5 0 0 0</pose>
+      <link name="body">
+        <inertial>
+          <pose>0.0 0 0 0.0 0.0 0.0</pose>
+          <inertia>
+            <ixx>0.465</ixx>
+            <ixy>0.0</ixy>
+            <ixz>0.0</ixz>
+            <iyy>0.006</iyy>
+            <iyz>0.0</iyz>
+            <izz>0.470</izz>
+          </inertia>
+          <mass>1.0</mass>
+        </inertial>
+        <collision name="collision">
+          <pose>0.0 0 0 0.0 0.0 0.0</pose>
+          <geometry>
+            <sphere>
+              <radius>0.2</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <pose>0.0 0 0 0.0 0.0 0.0</pose>
+          <geometry>
+            <sphere>
+              <radius>0.2</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0.5 0.2 0.2 1.0</ambient>
+            <diffuse>.421 0.225 0.0 1.0</diffuse>
+          </material>
+        </visual>
+      </link>
+
+      <!-- The IGN_GAZEBO_RESOURCE_PATH environment variable must be set properly for these includes to work -->
+      <include>
+        <uri>file://lift_drag_wing</uri>
+        <name>wing_1</name>
+        <pose>0 5.5 0.5 0.1 0 0</pose>
+      </include>
+
+      <include>
+        <uri>file://lift_drag_wing</uri>
+        <name>wing_2</name>
+        <pose>0 -5.5 0.5 -0.1 0 0</pose>
+      </include>
+
+
+      <joint name="body_joint" type="prismatic">
+        <parent>world</parent>
+        <child>body</child>
+        <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
+        <axis>
+          <xyz>1.0 0.0 0.0</xyz>
+          <dynamics>
+            <damping>0.000000</damping>
+          </dynamics>
+        </axis>
+      </joint>
+
+      <joint name="wing_1_joint" type="fixed">
+        <parent>body</parent>
+        <child>wing_1::base_link</child>
+      </joint>
+      <joint name="wing_2_joint" type="fixed">
+        <parent>body</parent>
+        <child>wing_2::base_link</child>
+      </joint>
+
+      <plugin
+        filename="ignition-gazebo-lift-drag-system"
+        name="ignition::gazebo::systems::LiftDrag">
+        <a0>0.1</a0>
+        <cla>4.000</cla>
+        <cda>20.0</cda>
+        <cma>0.00</cma>
+        <alpha_stall>10.0</alpha_stall>
+        <cla_stall>-0.2</cla_stall>
+        <cda_stall>1.0</cda_stall>
+        <cma_stall>0.0</cma_stall>
+        <cp>0.0 5.0 0</cp>
+        <area>10</area>
+        <air_density>1.2041</air_density>
+        <forward>-1 0 0</forward>
+        <upward>0 0 1</upward>
+        <link_name>wing_1::base_link</link_name>
+      </plugin>
+      <plugin
+        filename="ignition-gazebo-lift-drag-system"
+        name="ignition::gazebo::systems::LiftDrag">
+        <a0>0.1</a0>
+        <cla>4.000</cla>
+        <cda>20.0</cda>
+        <cma>0.00</cma>
+        <alpha_stall>10.0</alpha_stall>
+        <cla_stall>-0.2</cla_stall>
+        <cda_stall>1.0</cda_stall>
+        <cma_stall>0.0</cma_stall>
+        <cp>0.0 -5.0 0</cp>
+        <area>10</area>
+        <air_density>1.2041</air_density>
+        <forward>-1 0 0</forward>
+        <upward>0 0 1</upward>
+        <link_name>wing_2::base_link</link_name>
+      </plugin>
+    </model>
+  </world>
+</sdf>
