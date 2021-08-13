@@ -372,14 +372,6 @@ bool TransformControl::eventFilter(QObject *_obj, QEvent *_event)
       this->activateRotate();
     }
   }
-  else if (_event->type() == QEvent::KeyRelease)
-  {
-    QKeyEvent *keyEvent = static_cast<QKeyEvent*>(_event);
-    if (keyEvent->key() == Qt::Key_Escape)
-    {
-      this->activateSelect();
-    }
-  }
   else if (_event->type() ==
     ignition::gazebo::gui::events::EntitiesSelected::kType)
   {
@@ -410,6 +402,16 @@ bool TransformControl::eventFilter(QObject *_obj, QEvent *_event)
     ignition::gui::events::KeyPressOnScene *_e =
       static_cast<ignition::gui::events::KeyPressOnScene*>(_event);
     this->dataPtr->keyEvent = _e->Key();
+  }
+  else if (_event->type() == ignition::gui::events::KeyReleaseOnScene::kType)
+  {
+    ignition::gui::events::KeyReleaseOnScene *_e =
+      static_cast<ignition::gui::events::KeyReleaseOnScene*>(_event);
+    this->dataPtr->keyEvent = _e->Key();
+    if (this->dataPtr->keyEvent.Key() == Qt::Key_Escape)
+    {
+      this->activateSelect();
+    }
   }
 
   return QObject::eventFilter(_obj, _event);
