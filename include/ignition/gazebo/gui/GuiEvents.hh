@@ -99,6 +99,8 @@ namespace events
     private: bool fromUser{false};
   };
 
+  /// \brief True if a transform control is currently active (translate /
+  /// rotate / scale). False if we're in selection mode.
   class TransformControlMode : public QEvent
   {
     /// \brief Constructor
@@ -111,11 +113,13 @@ namespace events
     /// \brief Unique type for this event.
     static const QEvent::Type kType = QEvent::Type(QEvent::User + 6);
 
+    /// \brief Get the event's value.
     public: bool TransformControl()
     {
       return this->tranformModeActive;
     }
 
+    /// \brief True if a transform mode is active.
     private: bool tranformModeActive;
   };
 }  // namespace events

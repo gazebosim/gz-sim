@@ -66,9 +66,17 @@ namespace ignition::gazebo
         double _sensitivity = 0.4) const;
 
     /// \brief Constraints the passed in axis to the currently selected axes.
-    /// \param[in] _axis The axis to constrain.
+    /// \param[in, out] _axis The axis to constrain.
     public: void XYZConstraint(math::Vector3d &_axis);
 
+    /// \brief Snaps a value at intervals of a fixed distance. Currently used
+    /// to give a snapping behavior when moving models with a mouse.
+    /// \param[in] _coord Input coordinate point.
+    /// \param[in] _interval Fixed distance interval at which the point is
+    /// snapped.
+    /// \param[in] _sensitivity Sensitivity of a point snapping, in terms of a
+    /// percentage of the interval.
+    /// \return Snapped coordinate point.
     public: double SnapValue(
         double _coord, double _interval, double _sensitivity) const;
 
@@ -88,7 +96,7 @@ namespace ignition::gazebo
     public: std::mutex mutex;
 
     /// \brief Transform control service name
-    /// \brief Only used when in legacy mode, where this plugin requested a
+    /// Only used when in legacy mode, where this plugin requests a
     /// transport service provided by `GzScene3D`.
     /// The new behaviour is that this plugin performs the entire transform
     /// operation.
@@ -138,7 +146,11 @@ namespace ignition::gazebo
     /// \brief Currently selected entities, organized by order of selection.
     public: std::vector<Entity> selectedEntities;
 
+    /// \brief Holds the latest mouse event
     public: ignition::common::MouseEvent mouseEvent;
+
+    /// \brief Holds the latest key event
+    public: ignition::common::KeyEvent keyEvent;
 
     /// \brief Flag to indicate whether the x key is currently being pressed
     public: bool xPressed = false;
@@ -160,8 +172,6 @@ namespace ignition::gazebo
 
     /// \brief The starting world pose of a clicked visual.
     public: ignition::math::Vector3d startWorldPos = math::Vector3d::Zero;
-
-    public: ignition::common::KeyEvent keyEvent;
 
     /// \brief Block orbit
     public: bool blockOrbit = false;
@@ -243,18 +253,18 @@ void TransformControl::OnSnapUpdate(
 /////////////////////////////////////////////////
 void TransformControl::OnMode(const QString &_mode)
 {
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
-  {
-    if (!_result)
-      ignerr << "Error setting transform mode" << std::endl;
-  };
-
   auto modeStr = _mode.toStdString();
 
   // Legacy behaviour: send request to GzScene3D
   if (this->dataPtr->legacy)
   {
+    std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+        [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+    {
+      if (!_result)
+        ignerr << "Error setting transform mode" << std::endl;
+    };
+
     ignition::msgs::StringMsg req;
     req.set_data(modeStr);
     this->dataPtr->node.Request(this->dataPtr->service, req, cb);
