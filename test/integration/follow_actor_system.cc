@@ -19,6 +19,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/Name.hh"
@@ -89,7 +90,7 @@ class Relay
 
 
 /////////////////////////////////////////////////
-TEST_P(FollowActorTest, PublishCmd)
+TEST_P(FollowActorTest, IGN_UTILS_TEST_DISABLED_ON_MAC(PublishCmd))
 {
   // Start server
   ServerConfig serverConfig;
