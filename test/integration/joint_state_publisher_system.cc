@@ -29,7 +29,8 @@ using namespace gazebo;
 using namespace std::chrono_literals;
 
 /// \brief Test JointStatePublisher system
-class JointStatePublisherTest : public InternalFixture<::testing::TestWithParam<int>>
+class JointStatePublisherTest
+  : public InternalFixture<::testing::TestWithParam<int>>
 {
 };
 

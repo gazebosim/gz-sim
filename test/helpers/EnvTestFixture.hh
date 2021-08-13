@@ -20,6 +20,7 @@
 #include <gtest/gtest.h>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/Filesystem.hh>
 #include <ignition/common/Util.hh>
 #include "ignition/gazebo/test_config.hh"
 
@@ -34,7 +35,7 @@ class InternalFixture : public TestType
   {
     // Augment the system plugin path.  In SetUp to avoid test order issues.
     common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
+           common::joinPaths(std::string(PROJECT_BINARY_PATH), "lib").c_str());
 
     common::Console::SetVerbosity(4);
 

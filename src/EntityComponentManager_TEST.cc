@@ -94,7 +94,8 @@ class EntityCompMgrTest : public EntityComponentManager
   }
 };
 
-class EntityComponentManagerFixture : public InternalFixture<::testing::TestWithParam<int>>
+class EntityComponentManagerFixture
+  : public InternalFixture<::testing::TestWithParam<int>>
 {
   public: EntityCompMgrTest manager;
 };

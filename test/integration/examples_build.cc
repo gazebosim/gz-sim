@@ -123,7 +123,8 @@ bool createAndSwitchToTempDir(std::string &_newTempPath)
 #endif
 
 //////////////////////////////////////////////////
-class ExamplesBuild : public InternalFixture<::testing::TestWithParam<const char*>>
+class ExamplesBuild
+  : public InternalFixture<::testing::TestWithParam<const char*>>
 {
   /// \brief Build code in a temporary build folder.
   /// \param[in] _type Type of example to build (plugins, standalone).

@@ -32,7 +32,7 @@
 using namespace ignition;
 
 /// \brief Test SceneBroadcaster system
-class SceneBroadcasterTest 
+class SceneBroadcasterTest
   : public InternalFixture<::testing::TestWithParam<int>>
 {
   // Documentation inherited

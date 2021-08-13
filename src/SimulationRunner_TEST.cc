@@ -81,7 +81,8 @@ IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.DoubleComponent",
 }
 
 /////////////////////////////////////////////////
-class SimulationRunnerTest : public InternalFixture<::testing::TestWithParam<int>>
+class SimulationRunnerTest
+  : public InternalFixture<::testing::TestWithParam<int>>
 {
 };
 

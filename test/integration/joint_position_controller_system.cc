@@ -40,7 +40,8 @@ using namespace ignition;
 using namespace gazebo;
 
 /// \brief Test fixture for JointPositionController system
-class JointPositionControllerTestFixture : public InternalFixture<::testing::Test>
+class JointPositionControllerTestFixture
+  : public InternalFixture<::testing::Test>
 {
 };
 
