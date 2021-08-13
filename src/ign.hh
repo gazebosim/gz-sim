@@ -54,6 +54,7 @@ extern "C" const char *worldInstallDir();
 /// \param[in] _file Path to file being loaded
 /// \param[in] _recordTopics Colon separated list of topics to record. Leave
 /// null to record the default topics.
+/// \param[in] _headless True if server rendering should run headless
 /// \return 0 if successful, 1 if not.
 extern "C" int runServer(const char *_sdfString,
     int _iterations, int _run, float _hz, int _levels,

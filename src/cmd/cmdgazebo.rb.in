@@ -73,7 +73,7 @@ COMMANDS = { 'gazebo' =>
   "                               enable console logging to a console.log          \n"\
   "                               file in the specified path.                      \n"\
   "\n"\
-  "  --headless-rendering         Run in rendering in headless mode                \n"\
+  "  --headless-rendering         Run rendering in headless mode                   \n"\
   "\n"\
   "  --record-resources           Implicitly invokes --record, and records         \n"\
   "                               meshes and material files, in addition to        \n"\

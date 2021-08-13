@@ -526,7 +526,7 @@ void ServerConfig::SetRenderEngineServer(const std::string &_renderEngineServer)
 }
 
 /////////////////////////////////////////////////
-void ServerConfig::SetHeadlessRendering(const bool &_headless)
+void ServerConfig::SetHeadlessRendering(const bool _headless)
 {
   this->dataPtr->isHeadlessRendering = _headless;
 }
