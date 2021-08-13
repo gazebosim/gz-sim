@@ -27,10 +27,13 @@
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"
 
+#include "../helpers/EnvTestFixture.hh"
+
 using namespace ignition;
 
 /// \brief Test SceneBroadcaster system
-class SceneBroadcasterTest : public ::testing::TestWithParam<int>
+class SceneBroadcasterTest 
+  : public InternalFixture<::testing::TestWithParam<int>>
 {
   // Documentation inherited
   protected: void SetUp() override

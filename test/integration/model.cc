@@ -34,15 +34,13 @@
 #include <ignition/gazebo/components/Static.hh>
 #include <ignition/gazebo/components/WindMode.hh>
 
+#include "../helpers/EnvTestFixture.hh"
+
 using namespace ignition;
 using namespace gazebo;
 
-class ModelIntegrationTest : public ::testing::Test
+class ModelIntegrationTest : public InternalFixture<::testing::Test>
 {
-  public: void SetUp() override
-  {
-    ignition::common::Console::SetVerbosity(4);
-  }
 };
 
 //////////////////////////////////////////////////

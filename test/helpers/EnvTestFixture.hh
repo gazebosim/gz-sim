@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Open Source Robotics Foundation
+ * Copyright (C) 2021 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,8 @@
 using namespace ignition;
 
 /// \brief Common test setup for various tests
-class ServerFixture : public ::testing::TestWithParam<int>
+template <typename TestType>
+class InternalFixture : public TestType
 {
   // Documentation inherited
   protected: void SetUp() override
@@ -39,7 +40,7 @@ class ServerFixture : public ::testing::TestWithParam<int>
 
     // Change environment variable so that test files aren't written to $HOME
     common::env(IGN_HOMEDIR, this->realHome);
-    EXPECT_TRUE(common::setenv(IGN_HOMEDIR, this->fakeHome.c_str()));
+    EXPECT_TRUE(common::setenv(IGN_HOMEDIR, this->kFakeHome.c_str()));
   }
 
   // Documentation inherited
@@ -50,8 +51,8 @@ class ServerFixture : public ::testing::TestWithParam<int>
   }
 
   /// \brief Directory to act as $HOME for tests
-  public: std::string fakeHome = common::joinPaths(PROJECT_BINARY_PATH, "test",
-      "fake_home");
+  public: const std::string kFakeHome = common::joinPaths(PROJECT_BINARY_PATH,
+      "test", "fake_home");
 
   /// \brief Store user's real $HOME to set it back at the end of tests.
   public: std::string realHome;
