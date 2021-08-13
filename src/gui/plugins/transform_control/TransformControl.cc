@@ -512,8 +512,14 @@ void TransformControlPrivate::HandleTransform()
       this->selectedEntities.empty()))
   {
     if (this->transformControl.Node())
-      this->transformControl.Node()->SetUserData(
-        "pause-update", static_cast<int>(0));
+      try {
+        this->transformControl.Node()->SetUserData(
+          "pause-update", static_cast<int>(0));
+      }
+      catch (std::bad_variant_access &)
+      {
+        // It's ok to get here
+      }
 
     if (this->transformControl.Active())
       this->transformControl.Stop();
@@ -562,8 +568,14 @@ void TransformControlPrivate::HandleTransform()
           this->transformControl.SetActiveAxis(axis);
           this->transformControl.Start();
           if (this->transformControl.Node())
-            this->transformControl.Node()->SetUserData(
-              "pause-update", static_cast<int>(1));
+            try {
+              this->transformControl.Node()->SetUserData(
+                "pause-update", static_cast<int>(1));
+            }
+            catch (std::bad_variant_access &)
+            {
+              // It's ok to get here
+            }
           this->mouseDirty = false;
         }
         else
@@ -587,8 +599,14 @@ void TransformControlPrivate::HandleTransform()
           {
             if (this->transformControl.Node())
             {
-              this->transformControl.Node()->SetUserData(
-                "pause-update", static_cast<int>(0));
+              try {
+                this->transformControl.Node()->SetUserData(
+                  "pause-update", static_cast<int>(0));
+              }
+              catch (std::bad_variant_access &)
+              {
+                // It's ok to get here
+              }
             }
             if (!_result)
               ignerr << "Error setting pose" << std::endl;
@@ -670,14 +688,26 @@ void TransformControlPrivate::HandleTransform()
               if (topClickedNode == topClickedVisual)
               {
                 this->transformControl.Attach(topClickedVisual);
-                topClickedVisual->SetUserData(
-                  "pause-update", static_cast<int>(1));
+                try {
+                  topClickedVisual->SetUserData(
+                    "pause-update", static_cast<int>(1));
+                }
+                catch (std::bad_variant_access &)
+                {
+                  // It's ok to get here
+                }
               }
               else
               {
                 this->transformControl.Detach();
-                topClickedVisual->SetUserData(
-                  "pause-update", static_cast<int>(0));
+                try {
+                  topClickedVisual->SetUserData(
+                    "pause-update", static_cast<int>(0));
+                }
+                catch (std::bad_variant_access &)
+                {
+                  // It's ok to get here
+                }
               }
             }
 
@@ -691,9 +721,15 @@ void TransformControlPrivate::HandleTransform()
   if (this->mouseEvent.Type() == common::MouseEvent::MOVE
       && this->transformControl.Active())
   {
-    if (this->transformControl.Node())
-      this->transformControl.Node()->SetUserData(
-        "pause-update", static_cast<int>(1));
+    if (this->transformControl.Node()){
+      try {
+        this->transformControl.Node()->SetUserData(
+          "pause-update", static_cast<int>(1));
+      } catch (std::bad_variant_access &)
+      {
+        // It's ok to get here
+      }
+    }
 
     this->blockOrbit = true;
     // compute the the start and end mouse positions in normalized coordinates
@@ -719,8 +755,15 @@ void TransformControlPrivate::HandleTransform()
       for (unsigned int i = 0; i < this->scene->VisualCount(); i++)
       {
         auto visual = this->scene->VisualByIndex(i);
-        auto entityId = static_cast<unsigned int>(
+        auto entityId = kNullEntity;
+        try {
+          entityId = static_cast<unsigned int>(
             std::get<int>(visual->UserData("gazebo-entity")));
+        }
+        catch (std::bad_variant_access &)
+        {
+          // It's ok to get here
+        }
         if (entityId == nodeId)
         {
           target = std::dynamic_pointer_cast<rendering::Node>(
