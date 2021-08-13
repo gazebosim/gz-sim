@@ -708,7 +708,9 @@ void RenderUtilPrivate::FindInertialLinks(const EntityComponentManager &_ecm)
 void RenderUtilPrivate::FindJointModels(const EntityComponentManager &_ecm)
 {
   if (this->newJoints.empty())
+  {
     return;
+  }
 
   for (const auto &entity : this->newJoints)
   {
@@ -1555,9 +1557,13 @@ void RenderUtilPrivate::CreateRenderingEntities(
           auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);
 
           if (jointAxis)
+          {
             joint.SetAxis(0, jointAxis->Data());
+          }
           if (jointAxis2)
+          {
             joint.SetAxis(1, jointAxis2->Data());
+          }
 
           this->entityJoints[_entity] = joint;
           this->modelToJointEntities[_parentModel->Data()].push_back(_entity);
@@ -1833,9 +1839,13 @@ void RenderUtilPrivate::CreateRenderingEntities(
           auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);
 
           if (jointAxis)
+          {
             joint.SetAxis(0, jointAxis->Data());
+          }
           if (jointAxis2)
+          {
             joint.SetAxis(1, jointAxis2->Data());
+          }
 
           this->entityJoints[_entity] = joint;
           this->modelToJointEntities[_parentModel->Data()].push_back(_entity);

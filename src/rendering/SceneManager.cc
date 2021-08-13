@@ -1210,7 +1210,9 @@ rendering::VisualPtr SceneManager::CreateJointVisual(
     Entity _childId, Entity _parentId)
 {
   if (!this->dataPtr->scene)
+  {
     return rendering::VisualPtr();
+  }
 
   if (this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end())
   {
@@ -1236,7 +1238,9 @@ rendering::VisualPtr SceneManager::CreateJointVisual(
   std::string name = _joint.Name().empty() ? std::to_string(_id) :
     _joint.Name();
   if (parent)
+  {
     name = parent->Name() +  "::" + name;
+  }
 
   rendering::JointVisualPtr jointVisual =
     this->dataPtr->scene->CreateJointVisual(name);
