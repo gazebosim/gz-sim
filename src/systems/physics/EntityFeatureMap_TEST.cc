@@ -30,6 +30,7 @@
 #include <ignition/physics/config.hh>
 #include <ignition/plugin/Loader.hh>
 
+#include "../../../test/helpers/EnvTestFixture.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
 using namespace ignition;
@@ -46,10 +47,12 @@ using EnginePtrType =
     physics::EnginePtr<physics::FeaturePolicy3d, MinimumFeatureList>;
 
 
-class EntityFeatureMapFixture: public ::testing::Test
+class EntityFeatureMapFixture: public InternalFixture<::testing::Test>
 {
   protected: void SetUp() override
   {
+    InternalFixture::SetUp();
+
     const std::string pluginLib = "libignition-physics-dartsim-plugin.so";
 
     common::SystemPaths systemPaths;

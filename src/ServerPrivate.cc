@@ -229,13 +229,11 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
   bool hasRecordPath {false};
   bool hasCompressPath {false};
   bool hasRecordResources {false};
-  bool hasCompress {false};
   bool hasRecordTopics {false};
 
   std::string sdfRecordPath;
   std::string sdfCompressPath;
   bool sdfRecordResources;
-  bool sdfCompress;
   std::vector<std::string> sdfRecordTopics;
 
   if (sdfUseLogRecord)
@@ -246,8 +244,6 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
       recordPluginElem->Get<std::string>("compress_path", "");
     std::tie(sdfRecordResources, hasRecordResources) =
       recordPluginElem->Get<bool>("record_resources", false);
-    std::tie(sdfCompress, hasCompress) =
-      recordPluginElem->Get<bool>("compress", false);
 
     hasRecordTopics = recordPluginElem->HasElement("record_topic");
     if (hasRecordTopics)
