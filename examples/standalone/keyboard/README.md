@@ -5,7 +5,7 @@
 From the root of the `ign-gazebo` repository, do the following to build the example:
 
 ~~~
-cd ign-gazebo/examples/standalone/keyboard
+cd examples/standalone/keyboard
 mkdir build
 cd build
 cmake ..
@@ -30,13 +30,13 @@ that can be controlled using a keyboard. You can run it as follows:
 
 1. In a terminal, run the keyboard executable as described above:
 
-        cd ign-gazebo/examples/standalone/keyboard/build
+        cd examples/standalone/keyboard/build
         ./keyboard ../keyboard.sdf
 
 1. On another terminal, run `ign gazebo` with the vehicle that will
    consume the twist messages:
 
-        cd ign-gazebo/examples/worlds
+        cd examples/worlds
         ign gazebo -v 4 diff_drive.sdf
 
 1. Switch back to the first terminal. Use the arrow keys to control one vehicle,

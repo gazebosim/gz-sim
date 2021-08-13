@@ -18,7 +18,6 @@
 #define IGNITION_GAZEBO_SYSTEMS_CONTACT_HH_
 
 #include <memory>
-#include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
 
 namespace ignition
