@@ -299,7 +299,7 @@ class ignition::gazebo::ServerConfigPrivate
   public: std::vector<std::string> logRecordTopics;
 
   /// \brief is the headless mode active.
-  public: bool isHeadlessRendering = false;
+  public: bool isHeadlessRendering;
 };
 
 //////////////////////////////////////////////////
