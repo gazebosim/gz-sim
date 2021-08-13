@@ -664,8 +664,8 @@ void Physics::Configure(const Entity &_entity,
   }
 
   auto classNames = pluginLoader.PluginsImplementing<
-      ignition::physics::ForwardStep::Implementation<
-      ignition::physics::FeaturePolicy3d>>();
+      physics::ForwardStep::Implementation<
+      physics::FeaturePolicy3d>>();
   if (classNames.empty())
   {
     ignerr << "No physics plugins found in library [" << pathToLib << "]."

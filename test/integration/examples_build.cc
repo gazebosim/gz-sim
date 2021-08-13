@@ -146,7 +146,8 @@ void ExamplesBuild::Build(const std::string &_type)
 
     math::SemanticVersion cmakeVersion{std::string(CMAKE_VERSION)};
     if (cmakeVersion < math::SemanticVersion(3, 11, 0) &&
-        base == "custom_sensor_system")
+        (base == "custom_sensor_system" ||
+         base == "gtest_setup"))
     {
       igndbg << "Skipping [" << base << "] test, which requires CMake version "
              << ">= 3.11.0. Currently using CMake " << cmakeVersion
