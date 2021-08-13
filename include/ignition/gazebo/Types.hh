@@ -22,6 +22,8 @@
 #include <functional>
 #include <utility>
 
+#include "ignition/gazebo/Entity.hh"
+
 namespace ignition
 {
   namespace gazebo
@@ -78,6 +80,8 @@ namespace ignition
     /// \brief A unique identifier for a component instance. The uniqueness
     /// of a ComponentId is scoped to the component's type.
     /// \sa ComponentKey.
+    /// \deprecated Deprecated on version 6, removed on version 7. Use
+    /// ComponentTypeId + Entity instead.
     using ComponentId = int;
 
     /// \brief A unique identifier for a component type. A component type
@@ -87,7 +91,10 @@ namespace ignition
 
     /// \brief A key that uniquely identifies, at the global scope, a component
     /// instance
-    using ComponentKey = std::pair<ComponentTypeId, ComponentId>;
+    /// \note On version 6, the 2nd element was changed to the entity ID.
+    /// \deprecated Deprecated on version 6, removed on version 7. Use
+    /// ComponentTypeId + Entity instead.
+    using ComponentKey = std::pair<ComponentTypeId, Entity>;
 
     /// \brief typedef for query callbacks
     using EntityQueryCallback = std::function<void (const UpdateInfo,
