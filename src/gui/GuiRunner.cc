@@ -87,6 +87,11 @@ class ignition::gazebo::GuiRunner::Implementation
 
   /// \brief A pool of worker threads.
   public: common::WorkerPool pool;
+
+  /// \brief Keep track of the last time the update has been run. Only applies
+  /// to same process.
+  public: std::chrono::time_point<std::chrono::system_clock>
+      lastSameProcessUpdate{std::chrono::system_clock::now()};
 };
 
 /////////////////////////////////////////////////
@@ -96,13 +101,6 @@ GuiRunner::GuiRunner(const std::string &_worldName,
   : dataPtr(utils::MakeUniqueImpl<Implementation>(_ecm, _eventMgr))
 {
   this->dataPtr->sameProcess = _sameProcess;
-
-  if (this->dataPtr->sameProcess)
-  {
-    this->dataPtr->UpdatePluginsConn =
-      _eventMgr.Connect<ignition::gazebo::events::UpdateSystems>(
-        std::bind(&Implementation::UpdatePluginsEvent, this->dataPtr.get()));
-  }
 
   this->setProperty("worldName", QString::fromStdString(_worldName));
 
@@ -130,20 +128,32 @@ GuiRunner::GuiRunner(const std::string &_worldName,
 
   this->RequestState();
 
-  // Periodically update the plugins
-  this->dataPtr->running = true;
-  this->dataPtr->updateThread = std::thread([&]()
+  // When running in the same process, the server drives the update loop through
+  // the ClientUpdate event.
+  if (this->dataPtr->sameProcess)
   {
-    while (this->dataPtr->running)
+    this->dataPtr->UpdatePluginsConn =
+      _eventMgr.Connect<ignition::gazebo::events::ClientUpdate>(
+        std::bind(&Implementation::UpdatePluginsEvent, this->dataPtr.get()));
+  }
+  // When running in a separate process, periodically update GUI plugins in a
+  // separate thread
+  else
+  {
+    this->dataPtr->running = true;
+    this->dataPtr->updateThread = std::thread([&]()
     {
+      while (this->dataPtr->running)
       {
-        std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
-        this->dataPtr->UpdatePlugins();
+        {
+          std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
+          this->dataPtr->UpdatePlugins();
+        }
+        // This is roughly a 30Hz update rate.
+        std::this_thread::sleep_for(std::chrono::milliseconds(33));
       }
-      // This is roughly a 30Hz update rate.
-      std::this_thread::sleep_for(std::chrono::milliseconds(33));
-    }
-  });
+    });
+  }
 }
 
 /////////////////////////////////////////////////
@@ -266,10 +276,26 @@ void GuiRunner::Implementation::UpdatePluginsFromEvent()
 void GuiRunner::Implementation::UpdatePluginsEvent()
 {
   std::lock_guard<std::mutex> lock(this->updateMutex);
-  if (this->ecm.HasNewEntities() ||
-      this->ecm.HasEntitiesMarkedForRemoval())
+
+  // Louise: How does the GUI get sim time?
+
+  // 30 Hz
+  auto updatePeriod = std::chrono::milliseconds(1000/60);
+
+  // bool jumpBackInTime = _info.dt < std::chrono::steady_clock::duration::zero();
+  bool changeEvent = this->ecm.HasEntitiesMarkedForRemoval() ||
+    this->ecm.HasNewEntities() || this->ecm.HasOneTimeComponentChanges();
+//    || jumpBackInTime;
+  auto now = std::chrono::system_clock::now();
+  bool itsTime =  now - this->lastSameProcessUpdate > updatePeriod;
+
+  if (changeEvent || itsTime)
   {
+    // Louise: What happens if the server is already running the next
+    // PreUpdate and modifying the ECM while gui plugins are still
+    // reading from it?
     pool.AddWork(std::bind(
       &GuiRunner::Implementation::UpdatePluginsFromEvent, this));
+    this->lastSameProcessUpdate = now;
   }
 }

@@ -76,13 +76,14 @@ namespace ignition
       using EnableSensors =
         ignition::common::EventT<void(bool), struct EnableSensorsTag>;
 
-      /// \brief Event used to emit a render event when running in one process.
-      /// Some remove events are lost because of the rate when running in the
-      /// same process without sensors. This event is launched in the Simulation
-      /// runner when there is any new entity or entity marked to be removed
-      /// to remove/add entities in the renderUtil
-      using UpdateSystems =
-        ignition::common::EventT<void(void), struct UpdateSystemsTag>;
+      /// \brief Event used to signal clients that they can update. It's used
+      /// when running the server and GUI in the same process. This acts
+      /// as a 4th update callback that happens after Update, and before
+      /// PostUpdate.
+      /// Clients are encouraged not to block too long on this event, and
+      /// delegate complex computation to worker threads.
+      using ClientUpdate =
+        ignition::common::EventT<void(void), struct ClientUpdateTag>;
       }
     }  // namespace events
   }  // namespace gazebo

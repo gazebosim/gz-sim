@@ -570,9 +570,15 @@ void SimulationRunner::UpdateSystems()
       system->Update(this->currentInfo, this->entityCompMgr);
   }
 
+  // Call client updates before PostUpdate, with the assumption is that each
+  // client will spin a worker thread and won't block here too long. This way,
+  // client worker threads and server post updates can run in parallel.
   if (this->serverConfig.SameProcessAsGUI())
   {
-    this->eventMgr.Emit<events::UpdateSystems>();
+    // Client updates are called at the server's update rate. It's up to each
+    // client to throttle as needed.
+    IGN_PROFILE("ClientUpdate");
+    this->eventMgr.Emit<events::ClientUpdate>();
   }
 
   {
