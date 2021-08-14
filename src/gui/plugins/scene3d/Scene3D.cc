@@ -2037,6 +2037,7 @@ void IgnRenderer::Initialize()
 
   // Camera
   this->dataPtr->camera = scene->CreateCamera();
+  this->dataPtr->camera->SetUserData("user-camera", true);
   root->AddChild(this->dataPtr->camera);
   this->dataPtr->camera->SetLocalPose(this->cameraPose);
   this->dataPtr->camera->SetImageWidth(this->textureSize.width());
