@@ -19,8 +19,10 @@
 
 #include <cstring>
 #include <map>
+#include <memory>
 #include <optional>
 #include <set>
+#include <tuple>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -81,11 +83,24 @@ auto CompareData = [](const DataType &_a, const DataType &_b) -> bool
 
 //////////////////////////////////////////////////
 template<typename ComponentTypeT>
-ComponentKey EntityComponentManager::CreateComponent(const Entity _entity,
+ComponentTypeT *EntityComponentManager::CreateComponent(const Entity _entity,
             const ComponentTypeT &_data)
 {
-  return this->CreateComponentImplementation(_entity, ComponentTypeT::typeId,
-      &_data);
+  auto updateData = this->CreateComponentImplementation(_entity,
+      ComponentTypeT::typeId, &_data);
+  auto comp = this->Component<ComponentTypeT>(_entity);
+  if (updateData)
+  {
+    if (!comp)
+    {
+      ignerr << "Internal error. Failure to create a component of type "
+        << ComponentTypeT::typeId << " for entity " << _entity
+        << ". This should never happen!\n";
+      return comp;
+    }
+    *comp = _data;
+  }
+  return comp;
 }
 
 //////////////////////////////////////////////////
@@ -117,7 +132,7 @@ const ComponentTypeT *EntityComponentManager::Component(
     const ComponentKey &_key) const
 {
   return static_cast<const ComponentTypeT *>(
-      this->ComponentImplementation(_key));
+      this->ComponentImplementation(_key.second, _key.first));
 }
 
 //////////////////////////////////////////////////
@@ -125,7 +140,7 @@ template<typename ComponentTypeT>
 ComponentTypeT *EntityComponentManager::Component(const ComponentKey &_key)
 {
   return static_cast<ComponentTypeT *>(
-      this->ComponentImplementation(_key));
+      this->ComponentImplementation(_key.second, _key.first));
 }
 
 //////////////////////////////////////////////////
@@ -174,16 +189,18 @@ bool EntityComponentManager::SetComponentData(const Entity _entity,
 template<typename ComponentTypeT>
 const ComponentTypeT *EntityComponentManager::First() const
 {
-  return static_cast<const ComponentTypeT *>(
-      this->First(ComponentTypeT::typeId));
+  ignwarn << "EntityComponentManager::First is now deprecated and will always "
+    << "return nullptr.\n";
+  return nullptr;
 }
 
 //////////////////////////////////////////////////
 template<typename ComponentTypeT>
 ComponentTypeT *EntityComponentManager::First()
 {
-  return static_cast<ComponentTypeT *>(
-      this->First(ComponentTypeT::typeId));
+  ignwarn << "EntityComponentManager::First is now deprecated and will always "
+    << "return nullptr.\n";
+  return nullptr;
 }
 
 //////////////////////////////////////////////////
@@ -196,7 +213,7 @@ Entity EntityComponentManager::EntityByComponents(
 
   // Iterate over entities
   Entity result{kNullEntity};
-  for (const Entity entity : view.entities)
+  for (const Entity entity : view->Entities())
   {
     bool different{false};
 
@@ -234,7 +251,7 @@ std::vector<Entity> EntityComponentManager::EntitiesByComponents(
 
   // Iterate over entities
   std::vector<Entity> result;
-  for (const Entity entity : view.entities)
+  for (const Entity entity : view->Entities())
   {
     bool different{false};
 
@@ -274,7 +291,7 @@ std::vector<Entity> EntityComponentManager::ChildrenByComponents(Entity _parent,
 
   // Iterate over entities
   std::vector<Entity> result;
-  for (const Entity entity : view.entities)
+  for (const Entity entity : view->Entities())
   {
     if (children.find(entity) == children.end())
     {
@@ -361,13 +378,13 @@ void EntityComponentManager::Each(typename identity<std::function<
 {
   // Get the view. This will create a new view if one does not already
   // exist.
-  detail::View &view = this->FindView<ComponentTypeTs...>();
+  auto view = this->FindView<ComponentTypeTs...>();
 
   // Iterate over the entities in the view, and invoke the callback
   // function.
-  for (const Entity entity : view.entities)
+  for (const Entity entity : view->Entities())
   {
-    if (!_f(entity, view.Component<ComponentTypeTs>(entity, this)...))
+    if (!std::apply(_f, view->EntityComponentConstData(entity)))
     {
       break;
     }
@@ -381,13 +398,13 @@ void EntityComponentManager::Each(typename identity<std::function<
 {
   // Get the view. This will create a new view if one does not already
   // exist.
-  detail::View &view = this->FindView<ComponentTypeTs...>();
+  auto view = this->FindView<ComponentTypeTs...>();
 
   // Iterate over the entities in the view, and invoke the callback
   // function.
-  for (const Entity entity : view.entities)
+  for (const Entity entity : view->Entities())
   {
-    if (!_f(entity, view.Component<ComponentTypeTs>(entity, this)...))
+    if (!std::apply(_f, view->EntityComponentData(entity)))
     {
       break;
     }
@@ -409,14 +426,14 @@ void EntityComponentManager::EachNew(typename identity<std::function<
 {
   // Get the view. This will create a new view if one does not already
   // exist.
-  detail::View &view = this->FindView<ComponentTypeTs...>();
+  auto view = this->FindView<ComponentTypeTs...>();
 
   // Iterate over the entities in the view and in the newly created
   // entities list, and invoke the callback
   // function.
-  for (const Entity entity : view.newEntities)
+  for (const Entity entity : view->NewEntities())
   {
-    if (!_f(entity, view.Component<ComponentTypeTs>(entity, this)...))
+    if (!std::apply(_f, view->EntityComponentData(entity)))
     {
       break;
     }
@@ -430,14 +447,14 @@ void EntityComponentManager::EachNew(typename identity<std::function<
 {
   // Get the view. This will create a new view if one does not already
   // exist.
-  detail::View &view = this->FindView<ComponentTypeTs...>();
+  auto view = this->FindView<ComponentTypeTs...>();
 
   // Iterate over the entities in the view and in the newly created
   // entities list, and invoke the callback
   // function.
-  for (const Entity entity : view.newEntities)
+  for (const Entity entity : view->NewEntities())
   {
-    if (!_f(entity, view.Component<ComponentTypeTs>(entity, this)...))
+    if (!std::apply(_f, view->EntityComponentConstData(entity)))
     {
       break;
     }
@@ -451,14 +468,14 @@ void EntityComponentManager::EachRemoved(typename identity<std::function<
 {
   // Get the view. This will create a new view if one does not already
   // exist.
-  detail::View &view = this->FindView<ComponentTypeTs...>();
+  auto view = this->FindView<ComponentTypeTs...>();
 
   // Iterate over the entities in the view and in the newly created
   // entities list, and invoke the callback
   // function.
-  for (const Entity entity : view.toRemoveEntities)
+  for (const Entity entity : view->ToRemoveEntities())
   {
-    if (!_f(entity, view.Component<ComponentTypeTs>(entity, this)...))
+    if (!std::apply(_f, view->EntityComponentConstData(entity)))
     {
       break;
     }
@@ -466,93 +483,53 @@ void EntityComponentManager::EachRemoved(typename identity<std::function<
 }
 
 //////////////////////////////////////////////////
-template<typename FirstComponent,
-         typename ...RemainingComponents,
-         typename std::enable_if<
-           sizeof...(RemainingComponents) == 0, int>::type>
-void EntityComponentManager::AddComponentsToView(detail::View &_view,
-    const Entity _entity) const
-{
-  const ComponentTypeId typeId = FirstComponent::typeId;
-
-  const ComponentId compId =
-      this->EntityComponentIdFromType(_entity, typeId);
-  if (compId >= 0)
-  {
-    // Add the component to the view.
-    _view.AddComponent(_entity, typeId, compId);
-  }
-  else
-  {
-    ignerr << "Entity[" << _entity << "] has no component of type["
-      << typeId << "]. This should never happen.\n";
-  }
-}
-
-//////////////////////////////////////////////////
-template<typename FirstComponent,
-         typename ...RemainingComponents,
-         typename std::enable_if<
-           sizeof...(RemainingComponents) != 0, int>::type>
-void EntityComponentManager::AddComponentsToView(detail::View &_view,
-    const Entity _entity) const
-{
-  const ComponentTypeId typeId = FirstComponent::typeId;
-  const ComponentId compId =
-      this->EntityComponentIdFromType(_entity, typeId);
-  if (compId >= 0)
-  {
-    // Add the component to the view.
-    _view.AddComponent(_entity, typeId, compId);
-  }
-  else
-  {
-    ignerr << "Entity[" << _entity << "] has no component of type["
-      << typeId << "]. This should never happen.\n";
-  }
-
-  // Add the remaining components to the view.
-  this->AddComponentsToView<RemainingComponents...>(_view, _entity);
-}
-
-//////////////////////////////////////////////////
 template<typename ...ComponentTypeTs>
-detail::View &EntityComponentManager::FindView() const
+detail::View<ComponentTypeTs...> *EntityComponentManager::FindView() const
 {
-  auto types = std::set<ComponentTypeId>{ComponentTypeTs::typeId...};
+  auto viewKey = std::vector<ComponentTypeId>{ComponentTypeTs::typeId...};
 
-  std::map<detail::ComponentTypeKey, detail::View>::iterator viewIter;
-
-  // Find the view. If the view doesn't exist, then create a new view.
-  if (!this->FindView(types, viewIter))
+  auto baseViewPtr = this->FindView(viewKey);
+  if (nullptr != baseViewPtr)
   {
-    detail::View view;
-    // Add all the entities that match the component types to the
-    // view.
-    for (const auto &vertex : this->Entities().Vertices())
+    auto view = static_cast<detail::View<ComponentTypeTs...>*>(baseViewPtr);
+
+    // add any new entities to the view before using it
+    for (const auto &[entity, isNew] : view->ToAddEntities())
     {
-      Entity entity = vertex.first;
-      if (this->EntityMatches(entity, types))
-      {
-        view.AddEntity(entity, this->IsNewEntity(entity));
-        // If there is a request to delete this entity, update the view as
-        // well
-        if (this->IsMarkedForRemoval(entity))
-        {
-          view.AddEntityToRemoved(entity);
-        }
-
-        // Store pointers to all the components. This recursively adds
-        // all the ComponentTypeTs that belong to the entity to the view.
-        this->AddComponentsToView<ComponentTypeTs...>(view, entity);
-      }
+      view->AddEntityWithConstComps(entity, isNew,
+          this->Component<ComponentTypeTs>(entity)...);
+      view->AddEntityWithComps(entity, isNew,
+          const_cast<EntityComponentManager*>(this)->Component<ComponentTypeTs>(
+            entity)...);
     }
+    view->ClearToAddEntities();
 
-    // Store the view.
-    return this->AddView(types, std::move(view))->second;
+    return view;
   }
 
-  return viewIter->second;
+  // create a new view if one wasn't found
+  detail::View<ComponentTypeTs...> view;
+
+  for (const auto &vertex : this->Entities().Vertices())
+  {
+    Entity entity = vertex.first;
+
+    // only add entities to the view that have all of the components in viewKey
+    if (!this->EntityMatches(entity, view.ComponentTypes()))
+      continue;
+
+    view.AddEntityWithConstComps(entity, this->IsNewEntity(entity),
+        this->Component<ComponentTypeTs>(entity)...);
+    view.AddEntityWithComps(entity, this->IsNewEntity(entity),
+        const_cast<EntityComponentManager*>(this)->Component<ComponentTypeTs>(
+            entity)...);
+    if (this->IsMarkedForRemoval(entity))
+      view.MarkEntityToRemove(entity);
+  }
+
+  baseViewPtr = this->AddView(viewKey,
+      std::make_unique<detail::View<ComponentTypeTs...>>(view));
+  return static_cast<detail::View<ComponentTypeTs...>*>(baseViewPtr);
 }
 
 //////////////////////////////////////////////////

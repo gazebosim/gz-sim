@@ -28,3 +28,4 @@ target_link_libraries(${rendering_target}
 
 install(TARGETS ${rendering_target} DESTINATION ${IGN_LIB_INSTALL_DIR})
 
+set(rendering_target ${rendering_target} PARENT_SCOPE)

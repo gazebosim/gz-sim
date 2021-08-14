@@ -38,6 +38,12 @@ endif()
 # Search for project-specific dependencies
 #============================================================================
 
+# This option is needed to use the PROTOBUF_GENERATE_CPP
+# in case protobuf is found with the CMake config files
+# It needs to be set before any find_package(...) call 
+# as protobuf could be find transitively by any dependency
+set(protobuf_MODULE_COMPATIBLE TRUE)
+
 ign_find_package(sdformat12 REQUIRED)
 set(SDF_VER ${sdformat12_VERSION_MAJOR})
 
@@ -99,16 +105,24 @@ set(IGN_PHYSICS_VER ${ignition-physics5_VERSION_MAJOR})
 #--------------------------------------
 # Find ignition-sensors
 ign_find_package(ignition-sensors6 REQUIRED
+  # component order is important
   COMPONENTS
-    rendering
+    # non-rendering
     air_pressure
     altimeter
-    camera
-    gpu_lidar
     imu
     logical_camera
     magnetometer
+
+    # rendering
+    rendering
+    lidar
+    gpu_lidar
+
+    # cameras
+    camera
     depth_camera
+    rgbd_camera
     thermal_camera
 )
 set(IGN_SENSORS_VER ${ignition-sensors6_VERSION_MAJOR})
@@ -136,8 +150,6 @@ set(IGN_UTILS_VER ${ignition-utils1_VERSION_MAJOR})
 
 #--------------------------------------
 # Find protobuf
-# Module is needed to use the PROTOBUF_GENERATE_CPP
-set(protobuf_MODULE_COMPATIBLE TRUE)
 set(REQ_PROTOBUF_VER 3)
 ign_find_package(IgnProtobuf
                  VERSION ${REQ_PROTOBUF_VER}
