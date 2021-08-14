@@ -3279,7 +3279,11 @@ void Scene3D::Update(const UpdateInfo &_info,
 void Scene3D::Configure(EventManager &_eventMgr, bool _sameProcess)
 {
   if (this->dataPtr->eventManager)
+  {
+    ignerr << "Already have event manager, configure was called multiple times."
+           << std::endl;
     return;
+  }
 
   auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
   renderWindow->SetSameProcess(_sameProcess);

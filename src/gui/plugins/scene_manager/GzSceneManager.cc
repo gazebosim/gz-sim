@@ -95,7 +95,11 @@ GzSceneManager::~GzSceneManager()
 void GzSceneManager::Configure(EventManager &_eventMgr, bool _sameProcess)
 {
   if (this->dataPtr->eventManager)
+  {
+    ignerr << "Already have event manager, configure was called multiple times."
+           << std::endl;
     return;
+  }
 
   this->dataPtr->eventManager = &_eventMgr;
   this->dataPtr->sameProcess = _sameProcess;

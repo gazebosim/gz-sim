@@ -31,7 +31,6 @@
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/ServerConfig.hh"
-#include "SimulationRunner.hh"
 
 #include "ignition/gazebo/gui/Gui.hh"
 
@@ -116,6 +115,7 @@ extern "C" const char *findFuelResource(
 }
 
 //////////////////////////////////////////////////
+// Populate _serverConfig with the values from the other inputs.
 int createServerConfig(ignition::gazebo::ServerConfig &_serverConfig,
     const char *_sdfString,
     float _hz, int _levels, const char *_networkRole,
@@ -391,52 +391,51 @@ extern "C" int runCombined(const char *_sdfString,
 {
   ignition::gazebo::ServerConfig serverConfig;
 
-  if (createServerConfig(serverConfig,
+  if (!createServerConfig(serverConfig,
         _sdfString, _hz, _levels, _networkRole,
         _networkSecondaries, _record, _recordPath,
         _recordResources, _logOverwrite, _logCompress,
         _playback, _physicsEngine, _renderEngineServer,
         _renderEngineGui, _file, _recordTopics, true) == 0)
   {
-    // Create the Gazebo server
-    ignition::gazebo::Server server(serverConfig);
-
-    // Run the server
-    server.Run(false, _iterations, _run == 0);
-
-    auto sharedEcm = server.SharedEntityComponentManager();
-    auto sharedEventManager = server.SharedEventManager();
-
-    if (!sharedEcm)
-    {
-      ignerr << "Unable to get a shared ECM\n";
-      return -1;
-    }
-    if (!sharedEventManager)
-    {
-      ignerr << "Unable to get a shared Event Manager\n";
-      return -1;
-    }
-
-    // argc and argv are going to be passed to a QApplication. The Qt
-    // documentation has a warning about these:
-    //  "Warning: The data referred to by argc and argv must stay valid for the
-    //  entire lifetime of the QApplication object. In addition, argc must be
-    //  greater than zero and argv must contain at least one valid character
-    //  string."
-    int argc = 1;
-    // Converting a string literal to char * is forbidden as of C++11.
-    // It can only be converted to a const char *. The const cast is here to
-    // prevent a warning since we do need to pass a char* to runGui
-    char *argv = const_cast<char *>("ign-gazebo-gui");
-    return ignition::gazebo::gui::runGui(
-      argc, &argv, _guiConfig, (*sharedEcm).get(),
-      (*sharedEventManager).get(), true);
+    ignerr << "Unable to create server config\n";
+    return -1;
   }
 
-  ignerr << "Unable to create server config\n";
+  // Create the Gazebo server
+  ignition::gazebo::Server server(serverConfig);
 
-  return -1;
+  auto sharedEcm = server.SharedEntityComponentManager();
+  auto sharedEventManager = server.SharedEventManager();
+
+  if (!sharedEcm)
+  {
+    ignerr << "Unable to get a shared ECM\n";
+    return -1;
+  }
+  if (!sharedEventManager)
+  {
+    ignerr << "Unable to get a shared Event Manager\n";
+    return -1;
+  }
+
+  // Run the server
+  server.Run(false, _iterations, _run == 0);
+
+  // argc and argv are going to be passed to a QApplication. The Qt
+  // documentation has a warning about these:
+  //  "Warning: The data referred to by argc and argv must stay valid for the
+  //  entire lifetime of the QApplication object. In addition, argc must be
+  //  greater than zero and argv must contain at least one valid character
+  //  string."
+  int argc = 1;
+  // Converting a string literal to char * is forbidden as of C++11.
+  // It can only be converted to a const char *. The const cast is here to
+  // prevent a warning since we do need to pass a char* to runGui
+  char *argv = const_cast<char *>("ign-gazebo-gui");
+  return ignition::gazebo::gui::runGui(
+    argc, &argv, _guiConfig, (*sharedEcm).get(),
+    (*sharedEventManager).get(), true);
 }
 
 //////////////////////////////////////////////////

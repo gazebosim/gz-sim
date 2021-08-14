@@ -131,7 +131,6 @@ GuiRunner::GuiRunner(const std::string &_worldName,
   this->RequestState();
 
   // Periodically update the plugins
-  // \todo(anyone) Move the global variables to GuiRunner::Implementation on v5
   this->dataPtr->running = true;
   this->dataPtr->updateThread = std::thread([&]()
   {
@@ -190,17 +189,23 @@ void GuiRunner::RequestState()
 }
 
 /////////////////////////////////////////////////
-void GuiRunner::OnPluginAdded(const QString &)
+void GuiRunner::OnPluginAdded(const QString &_objectName)
 {
-  // The call above always returns the same plugin, which is the first plugin
-  // that was loaded. This plugin will set again the eventMgr and the
-  // sameProcess state.
-  auto plugins = gui::App()->findChildren<GuiSystem *>();
-  for (auto &p : plugins)
+  auto plugin = gui::App()->PluginByName(_objectName.toStdString());
+  if (!plugin)
   {
-    p->Configure(this->dataPtr->eventMgr, this->dataPtr->sameProcess);
+    ignerr << "Failed to get plugin [" << _objectName.toStdString()
+           << "]" << std::endl;
+    return;
   }
-  this->RequestState();
+
+  auto guiSystem = dynamic_cast<GuiSystem *>(plugin.get());
+
+  // Do nothing for pure ign-gui plugins
+  if (!guiSystem)
+    return;
+
+  guiSystem->Configure(this->dataPtr->eventMgr, this->dataPtr->sameProcess);
 }
 
 /////////////////////////////////////////////////
@@ -254,7 +259,7 @@ void GuiRunner::Implementation::UpdatePlugins()
 void GuiRunner::Implementation::UpdatePluginsFromEvent()
 {
   std::lock_guard<std::mutex> lock(this->updateMutex);
-  UpdatePlugins();
+  this->UpdatePlugins();
 }
 
 /////////////////////////////////////////////////
