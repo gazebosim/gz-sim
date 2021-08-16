@@ -29,7 +29,6 @@
 #include <ignition/gui/Plugin.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/utilities/ExtraTestMacros.hh>
-#include <ignition/utils/SuppressWarning.hh>
 
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
@@ -38,10 +37,10 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/gui/GuiRunner.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/test_config.hh"
 
+#include "../../GuiRunner.hh"
 #include "JointPositionController.hh"
 
 int g_argc = 1;
@@ -68,12 +67,7 @@ TEST_F(JointPositionControllerGui, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Load))
   app->AddPluginPath(std::string(PROJECT_BINARY_PATH) + "/lib");
 
   // Create GUI runner to handle gazebo::gui plugins
-  // TODO(anyone) Remove deprecation guard once GuiRunner becomes private
-  IGN_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
   auto runner = new gazebo::GuiRunner("test");
-  IGN_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
-  runner->connect(app.get(), &gui::Application::PluginAdded,
-                  runner, &gazebo::GuiRunner::OnPluginAdded);
   runner->setParent(gui::App());
 
   // Add plugin
@@ -89,6 +83,17 @@ TEST_F(JointPositionControllerGui, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Load))
   EXPECT_EQ(plugins.size(), 1);
 
   auto plugin = plugins[0];
+
+  int sleep = 0;
+  int maxSleep = 30;
+  while (plugin->ModelName() != "No model selected" && sleep < maxSleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    QCoreApplication::processEvents();
+    sleep++;
+  }
+
+  EXPECT_LT(sleep, maxSleep);
   EXPECT_EQ(plugin->Title(), "Joint position controller");
   EXPECT_EQ(plugin->ModelEntity(), gazebo::kNullEntity);
   EXPECT_EQ(plugin->ModelName(), QString("No model selected"))
@@ -146,12 +151,7 @@ TEST_F(JointPositionControllerGui,
   app->AddPluginPath(std::string(PROJECT_BINARY_PATH) + "/lib");
 
   // Create GUI runner to handle gazebo::gui plugins
-  // TODO(anyone) Remove deprecation guard once GuiRunner becomes private
-  IGN_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
   auto runner = new gazebo::GuiRunner("test");
-  IGN_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
-  runner->connect(app.get(), &gui::Application::PluginAdded,
-                  runner, &gazebo::GuiRunner::OnPluginAdded);
   runner->setParent(gui::App());
 
   // Load plugin
@@ -182,6 +182,16 @@ TEST_F(JointPositionControllerGui,
   auto plugin = plugins[0];
   EXPECT_EQ(plugin->Title(), "JointPositionController!");
 
+  int sleep = 0;
+  int maxSleep = 30;
+  while (plugin->ModelName() != "No model selected" && sleep < maxSleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    QCoreApplication::processEvents();
+    sleep++;
+  }
+  EXPECT_LT(sleep, maxSleep);
+
   EXPECT_EQ(plugin->ModelEntity(), gazebo::kNullEntity);
   EXPECT_EQ(plugin->ModelName(), QString("No model selected"))
       << plugin->ModelName().toStdString();
@@ -203,8 +213,7 @@ TEST_F(JointPositionControllerGui,
     runner->RequestState();
   });
 
-  int sleep = 0;
-  int maxSleep = 30;
+  sleep = 0;
   while (plugin->ModelName() != "model_name" && sleep < maxSleep)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -224,4 +233,3 @@ TEST_F(JointPositionControllerGui,
   // Cleanup
   plugins.clear();
 }
-

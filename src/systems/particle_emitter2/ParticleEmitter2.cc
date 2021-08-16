@@ -242,7 +242,6 @@ void ParticleEmitter2::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
           components::ParticleEmitterCmd::typeId,
           ComponentState::OneTimeChange);
     }
-
   }
   this->dataPtr->userCmd.clear();
 }

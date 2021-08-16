@@ -19,6 +19,7 @@
 #include <ignition/common/Console.hh>
 #include <sdf/Actor.hh>
 #include <sdf/Light.hh>
+#include <sdf/Types.hh>
 
 #include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/Collision.hh"
@@ -70,6 +71,7 @@ TEST_F(UtilTest, ScopedName)
 
   // World
   auto worldEntity = ecm.CreateEntity();
+  EXPECT_EQ(kNullEntity, gazebo::worldEntity(ecm));
   EXPECT_EQ(kNullEntity, gazebo::worldEntity(worldEntity, ecm));
   ecm.CreateComponent(worldEntity, components::World());
   ecm.CreateComponent(worldEntity, components::Name("world_name"));
@@ -213,6 +215,7 @@ TEST_F(UtilTest, ScopedName)
     "world_name::actorD_name");
 
   // World entity
+  EXPECT_EQ(worldEntity, gazebo::worldEntity(ecm));
   EXPECT_EQ(worldEntity, gazebo::worldEntity(worldEntity, ecm));
   EXPECT_EQ(worldEntity, gazebo::worldEntity(lightAEntity, ecm));
   EXPECT_EQ(worldEntity, gazebo::worldEntity(modelBEntity, ecm));
@@ -228,6 +231,88 @@ TEST_F(UtilTest, ScopedName)
   EXPECT_EQ(worldEntity, gazebo::worldEntity(linkCCEntity, ecm));
   EXPECT_EQ(worldEntity, gazebo::worldEntity(actorDEntity, ecm));
   EXPECT_EQ(kNullEntity, gazebo::worldEntity(kNullEntity, ecm));
+}
+
+/////////////////////////////////////////////////
+TEST_F(UtilTest, EntitiesFromScopedName)
+{
+  EntityComponentManager ecm;
+
+  // banana 1
+  //  - orange 2
+  //    - plum 3
+  //      - grape 4
+  //        - pear 5
+  //          - plum 6
+  //  - grape 7
+  //    - pear 8
+  //      - plum 9
+  //        - pear 10
+  //  - grape 11
+  //    - pear 12
+  //      - orange 13
+  //        - orange 14
+  //    - pear 15
+
+  auto createEntity = [&ecm](const std::string &_name, Entity _parent) -> Entity
+  {
+    auto res = ecm.CreateEntity();
+    ecm.CreateComponent(res, components::Name(_name));
+    ecm.CreateComponent(res, components::ParentEntity(_parent));
+    return res;
+  };
+
+  auto banana1 = ecm.CreateEntity();
+  ecm.CreateComponent(banana1, components::Name("banana"));
+
+  auto orange2 = createEntity("orange", banana1);
+  auto plum3 = createEntity("plum", orange2);
+  auto grape4 = createEntity("grape", plum3);
+  auto pear5 = createEntity("pear", grape4);
+  auto plum6 = createEntity("plum", pear5);
+  auto grape7 = createEntity("grape", banana1);
+  auto pear8 = createEntity("pear", grape7);
+  auto plum9 = createEntity("plum", pear8);
+  auto pear10 = createEntity("pear", plum9);
+  auto grape11 = createEntity("grape", banana1);
+  auto pear12 = createEntity("pear", grape11);
+  auto orange13 = createEntity("orange", pear12);
+  auto orange14 = createEntity("orange", orange13);
+  auto pear15 = createEntity("pear", grape11);
+
+  auto checkEntities = [&ecm](const std::string &_scopedName,
+      Entity _relativeTo, const std::unordered_set<Entity> &_result,
+      const std::string &_delim)
+  {
+    auto res = gazebo::entitiesFromScopedName(_scopedName, ecm, _relativeTo,
+        _delim);
+    EXPECT_EQ(_result.size(), res.size()) << _scopedName;
+
+    for (auto it : _result)
+    {
+      EXPECT_NE(res.find(it), res.end()) << it << "  " << _scopedName;
+    }
+  };
+
+  checkEntities("watermelon", kNullEntity, {}, "::");
+  checkEntities("banana", kNullEntity, {banana1}, "::");
+  checkEntities("orange", kNullEntity, {orange2, orange13, orange14}, ":");
+  checkEntities("banana::orange", kNullEntity, {orange2}, "::");
+  checkEntities("banana::grape", kNullEntity, {grape7, grape11}, "::");
+  checkEntities("grape/pear", kNullEntity, {pear5, pear8, pear12, pear15}, "/");
+  checkEntities("grape...pear...plum", kNullEntity, {plum6, plum9}, "...");
+  checkEntities(
+      "banana::orange::plum::grape::pear::plum", kNullEntity, {plum6}, "::");
+  checkEntities(
+      "banana::orange::kiwi::grape::pear::plum", kNullEntity, {}, "::");
+  checkEntities("orange+orange", kNullEntity, {orange14}, "+");
+  checkEntities("orange", banana1, {orange2}, "::");
+  checkEntities("grape", banana1, {grape7, grape11}, "::");
+  checkEntities("orange", orange2, {}, "::");
+  checkEntities("orange", orange13, {orange14}, "::");
+  checkEntities("grape::pear::plum", plum3, {plum6}, "::");
+  checkEntities("pear", grape11, {pear12, pear15}, "==");
+  checkEntities("plum=pear", pear8, {pear10}, "=");
 }
 
 /////////////////////////////////////////////////
@@ -365,7 +450,7 @@ TEST_F(UtilTest, AsFullPath)
 
   // Data string
   {
-    const std::string path{"data-string"};
+    const std::string path{sdf::kSdfStringSource};
 
     EXPECT_EQ(relativeUriUnix, asFullPath(relativeUriUnix, path));
     EXPECT_EQ(relativeUriWindows, asFullPath(relativeUriWindows, path));
@@ -608,4 +693,29 @@ TEST_F(UtilTest, TopicFromScopedName)
 
   EXPECT_TRUE(topicFromScopedName(worldEntity, ecm).empty());
   EXPECT_EQ(worldName, topicFromScopedName(worldEntity, ecm, false));
+}
+
+/////////////////////////////////////////////////
+TEST_F(UtilTest, EnableComponent)
+{
+  EntityComponentManager ecm;
+
+  auto entity1 = ecm.CreateEntity();
+  EXPECT_EQ(nullptr, ecm.Component<components::Name>(entity1));
+
+  // Enable
+  EXPECT_TRUE(enableComponent<components::Name>(ecm, entity1));
+  EXPECT_NE(nullptr, ecm.Component<components::Name>(entity1));
+
+  // Enabling again makes no changes
+  EXPECT_FALSE(enableComponent<components::Name>(ecm, entity1, true));
+  EXPECT_NE(nullptr, ecm.Component<components::Name>(entity1));
+
+  // Disable
+  EXPECT_TRUE(enableComponent<components::Name>(ecm, entity1, false));
+  EXPECT_EQ(nullptr, ecm.Component<components::Name>(entity1));
+
+  // Disabling again makes no changes
+  EXPECT_FALSE(enableComponent<components::Name>(ecm, entity1, false));
+  EXPECT_EQ(nullptr, ecm.Component<components::Name>(entity1));
 }

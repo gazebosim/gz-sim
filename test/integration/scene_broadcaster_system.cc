@@ -82,7 +82,7 @@ TEST_P(SceneBroadcasterTest, PoseInfo)
   server.Run(true, 1, false);
 
   unsigned int sleep{0u};
-  unsigned int maxSleep{10u};
+  unsigned int maxSleep{30u};
   // cppcheck-suppress unmatchedSuppression
   // cppcheck-suppress knownConditionTrueFalse
   while (!received && sleep++ < maxSleep)
@@ -468,7 +468,7 @@ TEST_P(SceneBroadcasterTest, State)
 
   // Run server
   unsigned int sleep{0u};
-  unsigned int maxSleep{10u};
+  unsigned int maxSleep{30u};
   while (!received && sleep++ < maxSleep)
   {
     IGN_SLEEP_MS(100);
@@ -592,7 +592,7 @@ TEST_P(SceneBroadcasterTest, StateStatic)
 
   // Run server
   unsigned int sleep{0u};
-  unsigned int maxSleep{10u};
+  unsigned int maxSleep{30u};
   while (!received && sleep++ < maxSleep)
   {
     IGN_SLEEP_MS(100);

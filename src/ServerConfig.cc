@@ -224,7 +224,6 @@ class ignition::gazebo::ServerConfigPrivate
             useLevels(_cfg->useLevels),
             useLogRecord(_cfg->useLogRecord),
             logRecordPath(_cfg->logRecordPath),
-            logIgnoreSdfPath(_cfg->logIgnoreSdfPath),
             logPlaybackPath(_cfg->logPlaybackPath),
             logRecordResources(_cfg->logRecordResources),
             logRecordCompressPath(_cfg->logRecordCompressPath),
@@ -255,10 +254,6 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// \brief Path to place recorded states
   public: std::string logRecordPath = "";
-
-  /// TODO(anyone) Deprecate in public APIs in Ignition-D, remove in Ignition-E
-  /// \brief Whether log record path is specified from command line
-  public: bool logIgnoreSdfPath{false};
 
   /// \brief Path to recorded states to play back using logging system
   public: std::string logPlaybackPath = "";
@@ -439,18 +434,6 @@ const std::string ServerConfig::LogRecordPath() const
 void ServerConfig::SetLogRecordPath(const std::string &_recordPath)
 {
   this->dataPtr->logRecordPath = _recordPath;
-}
-
-/////////////////////////////////////////////////
-bool ServerConfig::LogIgnoreSdfPath() const
-{
-  return this->dataPtr->logIgnoreSdfPath;
-}
-
-/////////////////////////////////////////////////
-void ServerConfig::SetLogIgnoreSdfPath(bool _ignore)
-{
-  this->dataPtr->logIgnoreSdfPath = _ignore;
 }
 
 /////////////////////////////////////////////////
@@ -831,7 +814,8 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
   // 1. Check contents of environment variable
   std::string envConfig;
   bool configSet = ignition::common::env(gazebo::kServerConfigPathEnv,
-                                         envConfig);
+                                         envConfig,
+                                         true);
 
   if (configSet)
   {
@@ -874,16 +858,26 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
     configFilename = "server.config";
   }
 
-  std::string defaultConfig;
-  ignition::common::env(IGN_HOMEDIR, defaultConfig);
-  defaultConfig = ignition::common::joinPaths(defaultConfig, ".ignition",
-    "gazebo", configFilename);
+  std::string defaultConfigDir;
+  ignition::common::env(IGN_HOMEDIR, defaultConfigDir);
+  defaultConfigDir = ignition::common::joinPaths(defaultConfigDir, ".ignition",
+    "gazebo");
+
+  auto defaultConfig = ignition::common::joinPaths(defaultConfigDir,
+      configFilename);
 
   if (!ignition::common::exists(defaultConfig))
   {
     auto installedConfig = ignition::common::joinPaths(
         IGNITION_GAZEBO_SERVER_CONFIG_PATH,
         configFilename);
+
+    if (!ignition::common::createDirectories(defaultConfigDir))
+    {
+      ignerr << "Failed to create directory [" << defaultConfigDir
+             << "]." << std::endl;
+      return ret;
+    }
 
     if (!ignition::common::exists(installedConfig))
     {

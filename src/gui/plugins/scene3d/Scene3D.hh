@@ -80,6 +80,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   {
     Q_OBJECT
 
+    /// \brief Text for popup error
+    Q_PROPERTY(
+      QString errorPopupText
+      READ ErrorPopupText
+      WRITE SetErrorPopupText
+      NOTIFY ErrorPopupTextChanged
+    )
+
     /// \brief Constructor
     public: Scene3D();
 
@@ -140,6 +148,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: bool OnFollow(const msgs::StringMsg &_msg,
         msgs::Boolean &_res);
 
+    /// \brief Callback for a follow offset request
+    /// \param[in] _msg Request message to set the camera's follow offset.
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnFollowOffset(const msgs::Vector3d &_msg,
+        msgs::Boolean &_res);
+
     /// \brief Callback for a view angle request
     /// \param[in] _msg Request message to set the camera to.
     /// \param[in] _res Response data
@@ -154,6 +169,36 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: bool OnMoveToPose(const msgs::GUICamera &_msg,
                  msgs::Boolean &_res);
 
+    /// \brief Callback for view as transparent request
+    /// \param[in] _msg Request message to set the target to view as
+    /// transparent
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnViewTransparent(const msgs::StringMsg &_msg,
+                 msgs::Boolean &_res);
+
+    /// \brief Callback for view center of mass request
+    /// \param[in] _msg Request message to set the target to view center of
+    /// mass
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnViewCOM(const msgs::StringMsg &_msg,
+        msgs::Boolean &_res);
+
+    /// \brief Callback for view inertia request
+    /// \param[in] _msg Request message to set the target to view inertia
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnViewInertia(const msgs::StringMsg &_msg,
+        msgs::Boolean &_res);
+
+    /// \brief Callback for view wireframes request
+    /// \param[in] _msg Request message to set the target to view wireframes
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnViewWireframes(const msgs::StringMsg &_msg,
+        msgs::Boolean &_res);
+
     /// \brief Callback for view collisions request
     /// \param[in] _msg Request message to set the target to view collisions
     /// \param[in] _res Response data
@@ -161,10 +206,35 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: bool OnViewCollisions(const msgs::StringMsg &_msg,
         msgs::Boolean &_res);
 
+    /// \brief Get the text for the popup error message
+    /// \return The error text
+    public: Q_INVOKABLE QString ErrorPopupText() const;
+
+    /// \brief Set the text for the popup error message
+    /// \param[in] _errorTxt The error text
+    public: Q_INVOKABLE void SetErrorPopupText(const QString &_errorTxt);
+
+    /// \brief Notify the popup error text has changed
+    signals: void ErrorPopupTextChanged();
+
+    /// \brief Notify that an error has occurred (opens popup)
+    /// Note that the function name needs to start with lowercase in order for
+    /// the connection to work on the QML side
+    signals: void popupError();
+
+    /// \brief Callback for camera view controller request
+    /// \param[in] _msg Request message to set the camera view controller
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnViewControl(const msgs::StringMsg &_msg,
+        msgs::Boolean &_res);
+
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<Scene3DPrivate> dataPtr;
   };
+
+  class RenderSync;
 
   /// \brief Ign-rendering renderer.
   /// All ign-rendering calls should be performed inside this class as it makes
@@ -183,7 +253,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: ~IgnRenderer() override;
 
     ///  \brief Main render function
-    public: void Render();
+    /// \param[in] _renderSync RenderSync to safely
+    /// synchronize Qt and worker thread (this)
+    public: void Render(RenderSync *_renderSync);
 
     /// \brief Initialize the render engine
     public: void Initialize();
@@ -252,9 +324,29 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _pose The world pose to set the camera to.
     public: void SetMoveToPose(const math::Pose3d &_pose);
 
+    /// \brief View the specified target as transparent
+    /// \param[in] _target Target to view as transparent
+    public: void SetViewTransparentTarget(const std::string &_target);
+
+    /// \brief View center of mass of the specified target
+    /// \param[in] _target Target to view center of mass
+    public: void SetViewCOMTarget(const std::string &_target);
+
+    /// \brief View inertia of the specified target
+    /// \param[in] _target Target to view inertia
+    public: void SetViewInertiaTarget(const std::string &_target);
+
+    /// \brief View wireframes of the specified target
+    /// \param[in] _target Target to view wireframes
+    public: void SetViewWireframesTarget(const std::string &_target);
+
     /// \brief View collisions of the specified target
     /// \param[in] _target Target to view collisions
     public: void SetViewCollisionsTarget(const std::string &_target);
+
+    /// \brief Set camera view controller
+    /// \param[in] _viewController. Values are "orbit", and "ortho"
+    public: void SetViewController(const std::string &_viewController);
 
     /// \brief Set the p gain for the camera follow movement
     /// \param[in] _gain Camera follow p gain.
@@ -450,7 +542,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
         bool _waitForTarget);
 
     /// \brief Render texture id
-    public: GLuint textureId = 0u;
+    /// Values is constantly constantly cycled/swapped/changed
+    /// from a worker thread
+    /// Don't read this directly
+    public: GLuint textureId;
 
     /// \brief Initial Camera pose
     public: math::Pose3d cameraPose = math::Pose3d(0, 0, 2, 0, 0.4, 0);
@@ -484,7 +579,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: RenderThread();
 
     /// \brief Render the next frame
-    public slots: void RenderNext();
+    /// \param[in] _renderSync RenderSync to safely
+    /// synchronize Qt and worker thread (this)
+    public slots: void RenderNext(RenderSync *renderSync);
 
     /// \brief Shutdown the thread and the render engine
     public slots: void ShutDown();
@@ -496,7 +593,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// to be displayed
     /// \param[in] _id GLuid of the opengl texture
     /// \param[in] _size Size of the texture
-    signals: void TextureReady(int _id, const QSize &_size);
+    signals: void TextureReady(uint _id, const QSize &_size);
 
     /// \brief Offscreen surface to render to
     public: QOffscreenSurface *surface = nullptr;
@@ -598,9 +695,29 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _pose The new camera pose in the world frame.
     public: void SetMoveToPose(const math::Pose3d &_pose);
 
+    /// \brief View the specified target as transparent
+    /// \param[in] _target Target to view as transparent
+    public: void SetViewTransparentTarget(const std::string &_target);
+
+    /// \brief View center of mass of the specified target
+    /// \param[in] _target Target to view center of mass
+    public: void SetViewCOMTarget(const std::string &_target);
+
+    /// \brief View inertia of the specified target
+    /// \param[in] _target Target to view inertia
+    public: void SetViewInertiaTarget(const std::string &_target);
+
+    /// \brief View wireframes of the specified target
+    /// \param[in] _target Target to view wireframes
+    public: void SetViewWireframesTarget(const std::string &_target);
+
     /// \brief View collisions of the specified target
     /// \param[in] _target Target to view collisions
     public: void SetViewCollisionsTarget(const std::string &_target);
+
+    /// \brief Set camera view controller
+    /// \param[in] _viewController. Values are "orbit", and "ortho"
+    public: void SetViewController(const std::string &_viewController);
 
     /// \brief Set the p gain for the camera follow movement
     /// \param[in] _gain Camera follow p gain.
@@ -721,7 +838,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Constructor
     /// \param[in] _window Parent window
-    public: explicit TextureNode(QQuickWindow *_window);
+    /// \param[in] _renderSync RenderSync to safely
+    /// synchronize Qt (this) and worker thread
+    public: explicit TextureNode(QQuickWindow *_window,
+                                 RenderSync &_renderSync);
 
     /// \brief Destructor
     public: ~TextureNode() override;
@@ -730,7 +850,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     ///  store the texture id and size and schedule an update on the window.
     /// \param[in] _id OpenGL render texture Id
     /// \param[in] _size Texture size
-    public slots: void NewTexture(int _id, const QSize &_size);
+    public slots: void NewTexture(uint _id, const QSize &_size);
 
     /// \brief Before the scene graph starts to render, we update to the
     /// pending texture
@@ -738,20 +858,24 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Signal emitted when the texture is being rendered and renderer
     /// can start rendering next frame
-    signals: void TextureInUse();
+    /// \param[in] _renderSync RenderSync to send to the worker thread
+    signals: void TextureInUse(RenderSync *_renderSync);
 
     /// \brief Signal emitted when a new texture is ready to trigger window
     /// update
     signals: void PendingNewTexture();
 
     /// \brief OpenGL texture id
-    public: int id = 0;
+    public: uint id = 0;
 
     /// \brief Texture size
     public: QSize size = QSize(0, 0);
 
     /// \brief Mutex to protect the texture variables
     public: QMutex mutex;
+
+    /// \brief See RenderSync
+    public: RenderSync &renderSync;
 
     /// \brief Qt's scene graph texture
     public: QSGTexture *texture = nullptr;

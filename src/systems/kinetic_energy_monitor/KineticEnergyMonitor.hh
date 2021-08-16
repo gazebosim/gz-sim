@@ -97,7 +97,7 @@ namespace systems
       </plugin>
     </model>
   \endverbatim */
-  class KineticEnergyMonitor:
+  class KineticEnergyMonitor :
     public System,
     public ISystemConfigure,
     public ISystemPostUpdate
