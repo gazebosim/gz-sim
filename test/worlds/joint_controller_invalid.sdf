@@ -1,0 +1,14 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="default">
+    <model name="joint_controller_test">
+      <link name="base_link">
+      </link>
+      <plugin
+        filename="ignition-gazebo-joint-controller-system"
+        name="ignition::gazebo::systems::JointController">
+        <joint_name>invalid</joint_name>
+      </plugin>
+    </model>
+  </world>
+</sdf>

@@ -224,3 +224,22 @@ TEST_F(JointControllerTestFixture, JointVelocityCommandWithForce)
   EXPECT_NEAR(0, angularVelocity.Y(), 1e-2);
   EXPECT_NEAR(testAngVel, angularVelocity.Z(), 1e-2);
 }
+
+/////////////////////////////////////////////////
+TEST_F(JointControllerTestFixture, InexistentJoint)
+{
+  using namespace std::chrono_literals;
+
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "joint_controller_invalid.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Run some iterations to make sure nothing explodes
+  server.Run(true, 100, false);
+}
