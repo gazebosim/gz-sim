@@ -32,6 +32,7 @@
 
 #include <ignition/rendering/Scene.hh>
 #include <ignition/sensors/CameraSensor.hh>
+#include <ignition/sensors/BoundingBoxCameraSensor.hh>
 #include <ignition/sensors/DepthCameraSensor.hh>
 #include <ignition/sensors/GpuLidarSensor.hh>
 #include <ignition/sensors/RenderingSensor.hh>
@@ -559,6 +560,11 @@ std::string Sensors::CreateSensor(const Entity &_entity,
   {
     sensor = this->dataPtr->sensorManager.CreateSensor<
       sensors::ThermalCameraSensor>(_sdf);
+  }
+  else if (_sdf.Type() == sdf::SensorType::BOUNDINGBOX_CAMERA)
+  {
+    sensor = this->dataPtr->sensorManager.CreateSensor<
+      sensors::BoundingBoxCameraSensor>(_sdf);
   }
 
   if (nullptr == sensor)
