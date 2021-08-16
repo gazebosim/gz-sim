@@ -237,7 +237,6 @@ rendering::VisualPtr SceneManager::CreateLink(Entity _id,
   linkVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   linkVis->SetUserData("pause-update", static_cast<int>(0));
   linkVis->SetLocalPose(_link.RawPose());
-  linkVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   this->dataPtr->visuals[_id] = linkVis;
 
   if (parent)
