@@ -54,7 +54,6 @@
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -320,13 +319,8 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
   ignmsg << "Recording to log file [" << dbPath << "]" << std::endl;
 
   // Add default topics if no topics were specified.
-  std::string dynPoseTopic = "/world/" + this->worldName +
-    "/dynamic_pose/info";
-
-  igndbg << "Recording default topic[" << dynPoseTopic << "].\n";
   igndbg << "Recording default topic[" << sdfTopic << "].\n";
   igndbg << "Recording default topic[" << stateTopic << "].\n";
-  this->recorder.AddTopic(dynPoseTopic);
   this->recorder.AddTopic(sdfTopic);
   this->recorder.AddTopic(stateTopic);
 

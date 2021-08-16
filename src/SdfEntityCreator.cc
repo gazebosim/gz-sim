@@ -34,6 +34,7 @@
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/ContactSensor.hh"
+#include "ignition/gazebo/components/CustomSensor.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
@@ -784,7 +785,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
   }
   else if (_sensor->Type() == sdf::SensorType::LIDAR)
   {
-    // \todo(anyone) Implement CPU-base lidar
+    // \todo(anyone) Implement CPU-based lidar
     // this->dataPtr->ecm->CreateComponent(sensorEntity,
     //     components::Lidar(*_sensor));
     ignwarn << "Sensor type LIDAR not supported yet. Try using"
@@ -876,6 +877,12 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
             components::ContactSensor(elem));
     // We will let the contact system create the necessary components for
     // physics to populate.
+  }
+  else if (_sensor->Type() == sdf::SensorType::CUSTOM)
+  {
+    auto elem = _sensor->Element();
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+            components::CustomSensor(*_sensor));
   }
   else
   {

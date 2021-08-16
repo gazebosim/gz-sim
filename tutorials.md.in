@@ -33,6 +33,7 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage blender_sdf_exporter "Blender SDF Exporter": Use a blender script to export a model to the SDF format.
 * \subpage model_and_optimize_meshes  "Model and optimize meshes": Some recomendations when creating meshes  in blender for simulations.
 * \subpage model_command "Model Command": Use the CLI to get information about the models in a simulation.
+* \subpage test_fixture "Test Fixture": Writing automated CI tests
 
 **Migration from Gazebo classic**
 
