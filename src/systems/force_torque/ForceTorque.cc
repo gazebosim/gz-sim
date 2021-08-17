@@ -34,7 +34,7 @@
 
 #include "ignition/gazebo/components/ForceTorque.hh"
 #include "ignition/gazebo/components/JointForce.hh"
-#include "ignition/gazebo/components/JointTorque.hh"
+#include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
@@ -134,10 +134,9 @@ void ForceTorquePrivate::CreateForceTorqueEntities(EntityComponentManager &_ecm)
   }
 
   // Create FT Sensors
-  _ecm.EachNew<components::ForceTorque, components::ParentEntity>(
+  _ecm.EachNew<components::ForceTorque>(
     [&](const Entity &_entity,
-        const components::ForceTorque *_ft,
-        const components::ParentEntity *_parent)->bool
+        const components::ForceTorque *_ft)->bool
       {
         // create sensor
         std::string sensorScopedName =
@@ -159,11 +158,6 @@ void ForceTorquePrivate::CreateForceTorqueEntities(EntityComponentManager &_ecm)
                  << std::endl;
           return true;
         }
-
-        // set sensor parent
-        std::string parentName = _ecm.Component<components::Name>(
-            _parent->Data())->Data();
-        sensor->SetParent(parentName);
 
         // Set topic
         _ecm.CreateComponent(_entity, components::SensorTopic(sensor->Topic()));
