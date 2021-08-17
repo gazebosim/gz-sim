@@ -40,7 +40,7 @@ endif()
 
 # This option is needed to use the PROTOBUF_GENERATE_CPP
 # in case protobuf is found with the CMake config files
-# It needs to be set before any find_package(...) call 
+# It needs to be set before any find_package(...) call
 # as protobuf could be find transitively by any dependency
 set(protobuf_MODULE_COMPATIBLE TRUE)
 
@@ -121,6 +121,7 @@ ign_find_package(ignition-sensors6 REQUIRED
 
     # cameras
     camera
+    boundingbox_camera
     depth_camera
     rgbd_camera
     thermal_camera

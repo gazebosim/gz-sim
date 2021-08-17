@@ -42,7 +42,7 @@
           <property type="string" key="state">docked</property>
         </ignition-gui>
 
-        <engine>ogre</engine>
+        <engine>ogre2</engine>
         <scene>scene</scene>
         <ambient_light>1.0 1.0 1.0</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
@@ -262,7 +262,7 @@
       </plugin>
     </model>
 
-    <model name="segmentation_camera">
+    <model name="boundingbox_camera">
       <pose>4 0 1.0 0 0.0 3.14</pose>
       <link name="link">
         <pose>0.05 0.05 0.05 0 0 0</pose>
@@ -289,10 +289,10 @@
           </geometry>
         </visual>
 
-        <sensor name="boundingbox_camera" type="boundingbox_camera">
-          <box_type>full_2d</box_type>
+        <sensor name="boundingbox_sensor" type="boundingbox_camera">
           <topic>boxes</topic>
           <camera>
+            <box_type>full_2d</box_type>
             <horizontal_fov>1.047</horizontal_fov>
             <image>
               <width>800</width>
