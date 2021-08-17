@@ -92,6 +92,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Name of the rendering scene.
     public: std::string SceneName() const;
 
+    /// \brief Set the scene to use.
+    /// \param[in] _scene Pointer to the scene.
+    public: void SetScene(const rendering::ScenePtr &_scene);
+
     /// \brief Set background color of render window
     /// \param[in] _color Color of render window background
     public: void SetBackgroundColor(const math::Color &_color);
