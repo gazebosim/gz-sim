@@ -32,7 +32,10 @@
 
 #include <ignition/rendering/Scene.hh>
 #include <ignition/sensors/CameraSensor.hh>
+#include <ignition/sensors/DepthCameraSensor.hh>
+#include <ignition/sensors/GpuLidarSensor.hh>
 #include <ignition/sensors/RenderingSensor.hh>
+#include <ignition/sensors/RgbdCameraSensor.hh>
 #include <ignition/sensors/ThermalCameraSensor.hh>
 #include <ignition/sensors/Manager.hh>
 
@@ -526,24 +529,47 @@ std::string Sensors::CreateSensor(const Entity &_entity,
   }
 
   // Create within ign-sensors
-  auto sensorId = this->dataPtr->sensorManager.CreateSensor(_sdf);
-  auto sensor = this->dataPtr->sensorManager.Sensor(sensorId);
+  sensors::Sensor *sensor{nullptr};
+  if (_sdf.Type() == sdf::SensorType::CAMERA)
+  {
+    sensor = this->dataPtr->sensorManager.CreateSensor<
+      sensors::CameraSensor>(_sdf);
+  }
+  else if (_sdf.Type() == sdf::SensorType::DEPTH_CAMERA)
+  {
+    sensor = this->dataPtr->sensorManager.CreateSensor<
+      sensors::DepthCameraSensor>(_sdf);
+  }
+  else if (_sdf.Type() == sdf::SensorType::GPU_LIDAR)
+  {
+    sensor = this->dataPtr->sensorManager.CreateSensor<
+      sensors::GpuLidarSensor>(_sdf);
+  }
+  else if (_sdf.Type() == sdf::SensorType::RGBD_CAMERA)
+  {
+    sensor = this->dataPtr->sensorManager.CreateSensor<
+      sensors::RgbdCameraSensor>(_sdf);
+  }
+  else if (_sdf.Type() == sdf::SensorType::THERMAL_CAMERA)
+  {
+    sensor = this->dataPtr->sensorManager.CreateSensor<
+      sensors::ThermalCameraSensor>(_sdf);
+  }
 
-  // Add to sensorID -> entity map
-  this->dataPtr->entityToIdMap.insert({_entity, sensorId});
-
-  if (nullptr == sensor || sensors::NO_SENSOR == sensor->Id())
+  if (nullptr == sensor)
   {
     ignerr << "Failed to create sensor [" << _sdf.Name()
-           << "]" << std::endl;
+           << "]." << std::endl;
     return std::string();
   }
 
+  // Store sensor ID
+  auto sensorId = sensor->Id();
+  this->dataPtr->entityToIdMap.insert({_entity, sensorId});
   this->dataPtr->sensorIds.insert(sensorId);
 
   // Set the scene so it can create the rendering sensor
-  auto renderingSensor =
-      dynamic_cast<sensors::RenderingSensor *>(sensor);
+  auto renderingSensor = dynamic_cast<sensors::RenderingSensor *>(sensor);
   renderingSensor->SetScene(this->dataPtr->scene);
   renderingSensor->SetParent(_parentName);
   renderingSensor->SetManualSceneUpdate(true);

@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 
 #include <ignition/msgs/double.pb.h>
+#include <ignition/common/Filesystem.hh>
 #include <ignition/msgs/Utility.hh>
 
 #include <ignition/common/Console.hh>
@@ -36,6 +37,7 @@
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
+#include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/test_config.hh"
 
 #include "../helpers/Relay.hh"
@@ -45,28 +47,45 @@
 using namespace ignition;
 using namespace gazebo;
 
-/// \brief Test fixture for LiftDrag system
-class LiftDragTestFixture : public ::testing::Test
+struct VerticalForceTestParam
 {
-  // Documentation inherited
+  const std::string fileName;
+  const std::string bladeName;
+};
+
+std::ostream &operator<<(std::ostream &_out, const VerticalForceTestParam &_val)
+{
+  _out << "[" << _val.fileName << ", " << _val.bladeName << "]";
+  return _out;
+}
+
+
+/// \brief Test fixture for LiftDrag system
+class VerticalForceParamFixture:
+      public ::testing::TestWithParam<VerticalForceTestParam>
+{
   protected: void SetUp() override
   {
     ignition::common::Console::SetVerbosity(4);
-    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
+    ignition::common::setenv(
+        "IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+        common::joinPaths(PROJECT_BINARY_PATH, "lib").c_str());
   }
 };
 
 /////////////////////////////////////////////////
 /// Measure / verify force torques against analytical answers.
-TEST_F(LiftDragTestFixture, VerifyVerticalForce)
+TEST_P(VerticalForceParamFixture, VerifyVerticalForce)
 {
   using namespace std::chrono_literals;
+  ignition::common::setenv(
+      "IGN_GAZEBO_RESOURCE_PATH",
+      common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", "models"));
 
   // Start server
   ServerConfig serverConfig;
   const auto sdfFile =
-      std::string(PROJECT_SOURCE_PATH) + "/test/worlds/lift_drag.sdf";
+      common::joinPaths(PROJECT_SOURCE_PATH, GetParam().fileName);
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);
@@ -76,9 +95,19 @@ TEST_F(LiftDragTestFixture, VerifyVerticalForce)
   server.SetUpdatePeriod(0ns);
 
   const std::string bodyName = "body";
-  const std::string bladeName = "wing_1";
+  const std::string bladeName = GetParam().bladeName;
   const std::string jointName = "body_joint";
   const double desiredVel = -0.2;
+
+  auto firstEntityFromScopedName = [](const std::string &_scopedName,
+                                 const EntityComponentManager &_ecm) -> Entity
+  {
+    auto entities = entitiesFromScopedName(_scopedName, _ecm);
+    if (entities.size() > 0)
+      return *entities.begin();
+    else
+      return kNullEntity;
+  };
 
   test::Relay testSystem;
   std::vector<math::Vector3d> linearVelocities;
@@ -88,27 +117,14 @@ TEST_F(LiftDragTestFixture, VerifyVerticalForce)
       {
         // Create velocity and acceleration components if they dont't exist.
         // This signals physics system to populate the component
-        auto bladeLink = _ecm.EntityByComponents(components::Link(),
-                                                 components::Name(bladeName));
+        auto bladeLink = firstEntityFromScopedName(bladeName, _ecm);
 
-        if (nullptr == _ecm.Component<components::AngularVelocity>(bladeLink))
-        {
-          _ecm.CreateComponent(bladeLink, components::AngularVelocity());
-        }
+        enableComponent<components::AngularVelocity>(_ecm, bladeLink);
 
-        auto bodyLink = _ecm.EntityByComponents(components::Link(),
-                                                components::Name(bodyName));
+        auto bodyLink = firstEntityFromScopedName(bodyName, _ecm);
 
-        if (nullptr ==
-            _ecm.Component<components::WorldLinearVelocity>(bodyLink))
-        {
-          _ecm.CreateComponent(bodyLink, components::WorldLinearVelocity());
-        }
-        if (nullptr ==
-            _ecm.Component<components::WorldLinearAcceleration>(bodyLink))
-        {
-          _ecm.CreateComponent(bodyLink, components::WorldLinearAcceleration());
-        }
+        enableComponent<components::WorldLinearVelocity>(_ecm, bodyLink);
+        enableComponent<components::WorldLinearAcceleration>(_ecm, bodyLink);
       });
 
   server.AddSystem(testSystem.systemPtr);
@@ -122,8 +138,8 @@ TEST_F(LiftDragTestFixture, VerifyVerticalForce)
         auto joint = _ecm.EntityByComponents(components::Joint(),
                                              components::Name(jointName));
 
-        auto bodyLink = _ecm.EntityByComponents(components::Link(),
-                                                components::Name(bodyName));
+        auto bodyLink = firstEntityFromScopedName(bodyName, _ecm);
+
         auto linVelComp =
             _ecm.Component<components::WorldLinearVelocity>(bodyLink);
 
@@ -151,10 +167,9 @@ TEST_F(LiftDragTestFixture, VerifyVerticalForce)
   wrenchRecorder.OnPreUpdate([&](const gazebo::UpdateInfo &,
                               const gazebo::EntityComponentManager &_ecm)
       {
-        auto bladeLink = _ecm.EntityByComponents(components::Link(),
-                                                 components::Name(bladeName));
-        auto bodyLink = _ecm.EntityByComponents(components::Link(),
-                                                components::Name(bodyName));
+        auto bladeLink = firstEntityFromScopedName(bladeName, _ecm);
+        auto bodyLink = firstEntityFromScopedName(bodyName, _ecm);
+
         auto linVelComp =
             _ecm.Component<components::WorldLinearVelocity>(bodyLink);
         auto wrenchComp =
@@ -213,3 +228,12 @@ TEST_F(LiftDragTestFixture, VerifyVerticalForce)
     EXPECT_GT(vertForce, 0);
   }
 }
+
+INSTANTIATE_TEST_SUITE_P(
+    LiftDragTests, VerticalForceParamFixture,
+    ::testing::Values(
+        VerticalForceTestParam{
+            common::joinPaths("test", "worlds", "lift_drag.sdf"), "wing_1"},
+        VerticalForceTestParam{
+            common::joinPaths("test", "worlds", "lift_drag_nested_model.sdf"),
+            "wing_1::base_link"}));

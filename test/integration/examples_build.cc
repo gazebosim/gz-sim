@@ -21,6 +21,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/common/Filesystem.hh>
+#include <ignition/math/SemanticVersion.hh>
 
 #include "ignition/gazebo/test_config.hh"
 
@@ -142,6 +143,17 @@ void ExamplesBuild::Build(const std::string &_type)
       dirIter != endIter; ++dirIter)
   {
     auto base = ignition::common::basename(*dirIter);
+
+    math::SemanticVersion cmakeVersion{std::string(CMAKE_VERSION)};
+    if (cmakeVersion < math::SemanticVersion(3, 11, 0) &&
+        (base == "custom_sensor_system" ||
+         base == "gtest_setup"))
+    {
+      igndbg << "Skipping [" << base << "] test, which requires CMake version "
+             << ">= 3.11.0. Currently using CMake " << cmakeVersion
+             << std::endl;
+      continue;
+    }
 
     // Source directory for this example
     auto sourceDir = examplesDir;
