@@ -23,7 +23,7 @@ include_directories(${GTEST_INCLUDE_DIRS})
 #============================================================================
 # Do a fake install of ign-math in order to test the examples.
 #============================================================================
-set(FAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/fake/install")
+# install to FAKE_INSTALL_PREFIX defined in root CMakeLists.txt
 
 file(MAKE_DIRECTORY ${FAKE_INSTALL_PREFIX})
 

@@ -57,7 +57,20 @@ if (SWIG_FOUND)
   else()
     message (STATUS "Searching for Ruby - found.")
   endif()
+
+  ########################################
+  # Include python
+  find_package(PythonLibs QUIET)
+  if (NOT PYTHONLIBS_FOUND)
+    message (STATUS "Searching for Python - not found.")
+  else()
+    message (STATUS "Searching for Python - found.")
+  endif()
 endif()
+
+# Location of "fake install folder" used in tests
+# Defined here at root scope so it is available for tests in src and test folders
+set(FAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/fake/install")
 
 #============================================================================
 # Configure the build
