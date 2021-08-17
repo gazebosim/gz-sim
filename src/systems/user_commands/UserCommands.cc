@@ -731,7 +731,7 @@ bool CreateCommand::Execute()
         this->iface->ecm->Component<components::ParentEntity>(entityToClone);
       auto parentEntity = parentComp ? parentComp->Data() : kNullEntity;
       auto clonedEntity = this->iface->ecm->Clone(entityToClone, parentEntity,
-          createMsg->name(), createMsg->allow_renaming(), true);
+          createMsg->name(), createMsg->allow_renaming());
       if (kNullEntity == clonedEntity)
       {
         ignerr << "Request to clone an entity named ["
@@ -741,7 +741,7 @@ bool CreateCommand::Execute()
 
       if (createMsg->has_pose())
       {
-        // TODO(adlarkin) handle if relative_to is filled
+        // TODO(anyone) handle if relative_to is filled
         auto pose = gazebo::convert<math::Pose3d>(createMsg->pose());
         this->iface->ecm->SetComponentData<components::Pose>(clonedEntity,
             pose);

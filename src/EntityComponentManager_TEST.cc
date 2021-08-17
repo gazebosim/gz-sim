@@ -22,6 +22,7 @@
 #include <ignition/math/Pose3.hh>
 #include <ignition/math/Rand.hh>
 
+#include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
@@ -2583,8 +2584,8 @@ TEST_P(EntityComponentManagerFixture, RemovedComponentsSyncBetweenServerAndGUI)
 /// \param[in] _ecm The entity component manager
 /// \param[in] _entity1 The first entity
 /// \param[in] _entity2 The second entity
-/// \param[in] _equal Whether the component type between _entity1 and _entity2
-/// should be equal (true) or not (false)
+/// \param[in] _equal Whether the component's data between _entity1 and
+/// _entity2 should be equal (true) or not (false)
 /// \tparam ComponentTypeT Component type
 template<typename ComponentTypeT>
 static void CompareEntityComponents(const EntityComponentManager &_ecm,
@@ -2608,13 +2609,11 @@ TEST_P(EntityComponentManagerFixture, CloneEntities)
   // testing entity cloning with the following entity structure:
   // - topLevelEntity
   //    - childEntity1
-  //       - grandChildEntity1
-  //    - childEntity2
+  //       - grandChildEntity1 (canonical link for childEntity1)
+  //    - childEntity2 (canonical link for topLevelEntity)
 
   const auto allowRename = true;
   const auto noAllowRename = false;
-  const auto recursive = true;
-  const auto noRecursive = false;
 
   Entity topLevelEntity = manager.CreateEntity();
   manager.CreateComponent(topLevelEntity, components::Name("topLevelEntity"));
@@ -2641,6 +2640,13 @@ TEST_P(EntityComponentManagerFixture, CloneEntities)
   manager.CreateComponent(childEntity2, IntComponent(789));
   manager.CreateComponent(childEntity2, StringComponent("string2"));
 
+  manager.CreateComponent(topLevelEntity,
+      components::ModelCanonicalLink(childEntity2));
+  manager.CreateComponent(childEntity1,
+      components::ModelCanonicalLink(grandChildEntity1));
+  manager.CreateComponent(childEntity2, components::CanonicalLink());
+  manager.CreateComponent(grandChildEntity1, components::CanonicalLink());
+
   EXPECT_EQ(4u, manager.EntityCount());
 
   std::unordered_set<Entity> clonedEntities;
@@ -2648,6 +2654,7 @@ TEST_P(EntityComponentManagerFixture, CloneEntities)
   auto validateTopLevelClone =
     [&](const Entity _clonedEntity)
     {
+      EXPECT_NE(kNullEntity, _clonedEntity);
       EXPECT_NE(_clonedEntity, topLevelEntity);
       EXPECT_EQ(manager.ComponentTypes(_clonedEntity),
           manager.ComponentTypes(topLevelEntity));
@@ -2659,37 +2666,28 @@ TEST_P(EntityComponentManagerFixture, CloneEntities)
           _clonedEntity, true);
       CompareEntityComponents<StringComponent>(manager, topLevelEntity,
           _clonedEntity, true);
+      CompareEntityComponents<components::ModelCanonicalLink>(manager,
+          topLevelEntity, _clonedEntity, false);
     };
 
-  // clone the topLevelEntity without recursive behavior
-  auto clonedTopLevelEntity = manager.Clone(topLevelEntity, kNullEntity, "",
-      allowRename, noRecursive);
-  EXPECT_EQ(5u, manager.EntityCount());
+  // clone the topLevelEntity
+  auto clonedTopLevelEntity =
+    manager.Clone(topLevelEntity, kNullEntity, "", allowRename);
+  EXPECT_EQ(8u, manager.EntityCount());
   clonedEntities.insert(clonedTopLevelEntity);
   validateTopLevelClone(clonedTopLevelEntity);
-
-  // since the clone was not recursive, no entities should have the cloned
-  // entity as its parent
-  EXPECT_TRUE(manager.EntitiesByComponents(
-        components::ParentEntity(clonedTopLevelEntity)).empty());
-
-  // clone the topLevelEntity with recursive behavior
-  auto clonedTopLevelEntityRecursive =
-    manager.Clone(topLevelEntity, kNullEntity, "", allowRename, recursive);
-  EXPECT_EQ(9u, manager.EntityCount());
-  clonedEntities.insert(clonedTopLevelEntityRecursive);
-  validateTopLevelClone(clonedTopLevelEntityRecursive);
 
   auto validateChildClone =
     [&](const Entity _clonedChild, const Entity _originalChild)
     {
+      EXPECT_NE(kNullEntity, _clonedChild);
       EXPECT_NE(_clonedChild, _originalChild);
       EXPECT_EQ(manager.ComponentTypes(_clonedChild),
           manager.ComponentTypes(_originalChild));
       auto parentComp =
         manager.Component<components::ParentEntity>(_clonedChild);
       ASSERT_NE(nullptr, parentComp);
-      EXPECT_EQ(clonedTopLevelEntityRecursive, parentComp->Data());
+      EXPECT_EQ(clonedTopLevelEntity, parentComp->Data());
       CompareEntityComponents<components::Name>(manager, _clonedChild,
           _originalChild, false);
       CompareEntityComponents<IntComponent>(manager, _clonedChild,
@@ -2701,6 +2699,7 @@ TEST_P(EntityComponentManagerFixture, CloneEntities)
   auto validateGrandChildClone =
     [&](const Entity _clonedEntity, bool _sameParent)
     {
+      EXPECT_NE(kNullEntity, _clonedEntity);
       EXPECT_EQ(manager.ComponentTypes(_clonedEntity),
           manager.ComponentTypes(grandChildEntity1));
       CompareEntityComponents<components::Name>(manager, _clonedEntity,
@@ -2711,10 +2710,9 @@ TEST_P(EntityComponentManagerFixture, CloneEntities)
             components::ParentEntity(_clonedEntity)).empty());
     };
 
-  // since the clone was recursive, we should verify that all child entities
-  // were properly cloned
+  // Verify that all child entities were properly cloned
   auto clonedChildEntities = manager.EntitiesByComponents(
-      components::ParentEntity(clonedTopLevelEntityRecursive));
+      components::ParentEntity(clonedTopLevelEntity));
   EXPECT_EQ(2u, clonedChildEntities.size());
   for (const auto &child : clonedChildEntities)
   {
@@ -2729,6 +2727,8 @@ TEST_P(EntityComponentManagerFixture, CloneEntities)
     if (intComp->Data() == 456)
     {
       validateChildClone(child, childEntity1);
+      CompareEntityComponents<components::ModelCanonicalLink>(manager, child,
+          childEntity1, false);
       comparedToOriginalChild = true;
 
       ASSERT_EQ(1u, clonedGrandChildren.size());
@@ -2738,10 +2738,13 @@ TEST_P(EntityComponentManagerFixture, CloneEntities)
         manager.Component<components::ParentEntity>(clonedGrandChildren[0]);
       ASSERT_NE(nullptr, parentComp);
       EXPECT_EQ(child, parentComp->Data());
+      EXPECT_NE(nullptr, manager.Component<components::CanonicalLink>(
+            clonedGrandChildren[0]));
     }
     else if (intComp->Data() == 789)
     {
       validateChildClone(child, childEntity2);
+      EXPECT_NE(nullptr, manager.Component<components::CanonicalLink>(child));
       comparedToOriginalChild = true;
 
       EXPECT_TRUE(clonedGrandChildren.empty());
@@ -2755,13 +2758,31 @@ TEST_P(EntityComponentManagerFixture, CloneEntities)
     manager.Component<components::ParentEntity>(grandChildEntity1);
   ASSERT_NE(nullptr, grandChildParentComp);
   auto clonedGrandChildEntity = manager.Clone(grandChildEntity1,
-      grandChildParentComp->Data(), "", allowRename, recursive);
-  EXPECT_EQ(10u, manager.EntityCount());
+      grandChildParentComp->Data(), "", allowRename);
+  EXPECT_EQ(9u, manager.EntityCount());
   clonedEntities.insert(clonedGrandChildEntity);
   validateGrandChildClone(clonedGrandChildEntity, true);
 
+  // Try cloning an entity with a name that already exists, but allow renaming.
+  // This should succeed and generate a cloned entity with a unique name.
+  const auto existingName = "grandChildEntity1";
+  EXPECT_NE(kNullEntity,
+      manager.EntityByComponents(components::Name(existingName)));
+  auto renamedClonedEntity = manager.Clone(grandChildEntity1,
+      grandChildParentComp->Data(), existingName, allowRename);
+  EXPECT_EQ(10u, manager.EntityCount());
+  clonedEntities.insert(clonedGrandChildEntity);
+  validateGrandChildClone(renamedClonedEntity, true);
+
+  // Try cloning an entity with a name that already exists, without allowing
+  // renaming. This should fail since entities should have unique names.
+  auto failedClonedEntity = manager.Clone(grandChildEntity1,
+      grandChildParentComp->Data(), existingName, noAllowRename);
+  EXPECT_EQ(10u, manager.EntityCount());
+  EXPECT_EQ(kNullEntity, failedClonedEntity);
+
   // make sure that the name given to each cloned entity is unique
-  EXPECT_EQ(6u, clonedEntities.size());
+  EXPECT_EQ(5u, clonedEntities.size());
   for (const auto &entity : clonedEntities)
   {
     auto nameComp = manager.Component<components::Name>(entity);
@@ -2771,10 +2792,8 @@ TEST_P(EntityComponentManagerFixture, CloneEntities)
 
   // try to clone an entity that does not exist
   EXPECT_EQ(kNullEntity, manager.Clone(kNullEntity, topLevelEntity, "",
-        allowRename, recursive));
-
-  // TODO(adlarkin) test various combinations of _name, _allowRename,
-  // and _recursive
+        allowRename));
+  EXPECT_EQ(10u, manager.EntityCount());
 }
 
 // Run multiple times. We want to make sure that static globals don't cause

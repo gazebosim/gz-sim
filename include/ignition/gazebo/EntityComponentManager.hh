@@ -74,7 +74,18 @@ namespace ignition
       /// \return An id for the Entity, or kNullEntity on failure.
       public: Entity CreateEntity();
 
-      /// \brief Clone an entity and its components.
+      /// \brief Clone an entity and its components. If the entity has any child
+      /// entities, they will also be cloned.
+      /// When cloning entities, the following rules apply:
+      ///   1. The name component of a cloned entity will consist of a unique
+      ///      name, since all entities should have a unique name.
+      ///   2. Cloned entities that have a canonical link will have their
+      ///      canonical link set to the cloned canonical link, not the original
+      ///      canonical link.
+      ///   3. Child entities that are cloned will have their parent set to the
+      ///      cloned parent entity.
+      ///   4. Aside from the changes listed above, all other cloned components
+      ///      remain unchanged.
       /// \param[in] _entity The entity to clone.
       /// \param[in] _parent The parent of the cloned entity. Set this to
       /// kNullEntity if the cloned entity should not have a parent.
@@ -87,15 +98,13 @@ namespace ignition
       /// _name is not unique, _entity will not be cloned. If _name is an
       /// empty string, _allowRename is ignored since the cloned entity will
       /// have an auto-generated unique name.
-      /// \param[in] _recursive Whether or not _entity's child entities (and
-      /// components) should be cloned.
       /// \return The cloned entity, which will have a unique name. kNullEntity
       /// is returned if cloning failed. Failure could occur if _entity does not
       /// exist, or if a unique name could not be generated for the entity to be
       /// cloned.
+      /// \sa Clone
       public: Entity Clone(const Entity _entity, const Entity _parent,
-                  const std::string &_name, bool _allowRename,
-                  bool _recursive);
+                  const std::string &_name, bool _allowRename);
 
       /// \brief Get the number of entities on the server.
       /// \return Entity count.
@@ -348,6 +357,28 @@ namespace ignition
       /// why is this required?
       private: template <typename T>
                struct identity;  // NOLINT
+
+      /// \brief Helper function for cloning an entity and its children (this
+      /// includes cloning components attached to these entities). This method
+      /// should never be called directly - it is called internally from the
+      /// public Clone method.
+      /// \param[in] _entity The entity to clone.
+      /// \param[in] _parent The parent of the cloned entity.
+      /// \param[in] _name The name that should be given to the cloned entity.
+      /// \param[in] _allowRename True if _name can be modified to be a unique
+      /// name if it isn't already a unique name. False if _name cannot be
+      /// modified to be a unique name.
+      /// \param[in] _oldModelCanonicalLink A map of cloned entities to their
+      /// original (non-cloned) entity's canonical link.
+      /// \param[in] _oldToClonedCanonicalLink A map of original canonical link
+      /// entities to the cloned canonical link entities.
+      /// \return The cloned entity. kNullEntity is returned if cloning failed.
+      /// \sa Clone
+      private: Entity Clone(const Entity _entity, const Entity _parent,
+                  const std::string &_name, bool _allowRename,
+                  std::unordered_map<Entity, Entity> &_oldModelCanonicalLink,
+                  std::unordered_map<Entity, Entity> &
+                    _oldToClonedCanonicalLink);
 
       /// \brief A version of Each() that doesn't use a cache. The cached
       /// version, Each(), is preferred.
