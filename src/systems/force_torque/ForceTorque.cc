@@ -123,16 +123,6 @@ void ForceTorque::PostUpdate(const UpdateInfo &_info,
 //////////////////////////////////////////////////
 void ForceTorquePrivate::CreateForceTorqueEntities(EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ForceTorquePrivate::CreateForceTorqueEntities");
-  // Get World Entity
-  if (kNullEntity == this->worldEntity)
-    this->worldEntity = _ecm.EntityByComponents(components::World());
-  if (kNullEntity == this->worldEntity)
-  {
-    ignerr << "Missing world entity." << std::endl;
-    return;
-  }
-
   // Create FT Sensors
   _ecm.EachNew<components::ForceTorque>(
     [&](const Entity &_entity,
