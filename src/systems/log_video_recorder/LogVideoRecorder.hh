@@ -20,7 +20,6 @@
 #include <memory>
 #include <vector>
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
 
 namespace ignition

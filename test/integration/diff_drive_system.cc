@@ -336,6 +336,130 @@ TEST_P(DiffDriveTest, SkidPublishCmd)
 }
 
 /////////////////////////////////////////////////
+TEST_P(DiffDriveTest, EnableDisableCmd)
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/diff_drive_skid.sdf");
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  server.SetUpdatePeriod(0ns);
+
+  // Create a system that records the vehicle poses
+  test::Relay testSystem;
+
+  std::vector<math::Pose3d> poses;
+  testSystem.OnPostUpdate([&poses](const gazebo::UpdateInfo &,
+    const gazebo::EntityComponentManager &_ecm)
+    {
+      auto id = _ecm.EntityByComponents(
+        components::Model(),
+        components::Name("vehicle"));
+      EXPECT_NE(kNullEntity, id);
+
+      auto poseComp = _ecm.Component<components::Pose>(id);
+      ASSERT_NE(nullptr, poseComp);
+
+      poses.push_back(poseComp->Data());
+    });
+  server.AddSystem(testSystem.systemPtr);
+
+  // Run server and check that vehicle didn't move
+  server.Run(true, 1000, false);
+
+  EXPECT_EQ(1000u, poses.size());
+
+  for (const auto &pose : poses)
+  {
+    EXPECT_EQ(poses[0], pose);
+  }
+
+  // Publish command and check that vehicle moved
+  double period{1.0};
+  double lastMsgTime{1.0};
+  std::vector<math::Pose3d> odomPoses;
+  std::function<void(const msgs::Odometry &)> odomCb =
+    [&](const msgs::Odometry &_msg)
+    {
+      ASSERT_TRUE(_msg.has_header());
+      ASSERT_TRUE(_msg.header().has_stamp());
+
+      double msgTime =
+          static_cast<double>(_msg.header().stamp().sec()) +
+          static_cast<double>(_msg.header().stamp().nsec()) * 1e-9;
+
+      EXPECT_DOUBLE_EQ(msgTime, lastMsgTime + period);
+      lastMsgTime = msgTime;
+
+      odomPoses.push_back(msgs::Convert(_msg.pose()));
+    };
+
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
+  node.Subscribe("/model/vehicle/odometry", odomCb);
+
+  msgs::Twist msg;
+  msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
+  msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.0));
+
+  pub.Publish(msg);
+
+  server.Run(true, 3000, false);
+
+  // Poses for 4s
+  EXPECT_EQ(4000u, poses.size());
+
+  // Disable controller
+  auto pub_enable = node.Advertise<msgs::Boolean>("/model/vehicle/enable");
+
+  msgs::Boolean msg_enable;
+  msg_enable.set_data(false);
+
+  pub_enable.Publish(msg_enable);
+
+  // Run for 2s and expect no movement
+  server.Run(true, 2000, false);
+
+  EXPECT_EQ(6000u, poses.size());
+
+  // Re-enable controller
+  msg_enable.set_data(true);
+
+  pub_enable.Publish(msg_enable);
+
+  pub.Publish(msg);
+
+  // Run for 2s and expect movement again
+  server.Run(true, 2000, false);
+
+  EXPECT_EQ(8000u, poses.size());
+
+  int sleep = 0;
+  int maxSleep = 70;
+  for (; odomPoses.size() < 7 && sleep < maxSleep; ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  EXPECT_NE(maxSleep, sleep);
+
+  // Odom for 7s
+  ASSERT_FALSE(odomPoses.empty());
+  EXPECT_EQ(7u, odomPoses.size());
+
+  EXPECT_LT(poses[0].Pos().X(), poses[3999].Pos().X());
+
+  // Should no be moving from 5s to 6s (stopped at 3s and time to slow down)
+  EXPECT_NEAR(poses[4999].Pos().X(), poses[5999].Pos().X(), tol);
+
+  // Should be moving from 6s to 8s
+  EXPECT_LT(poses[5999].Pos().X(), poses[7999].Pos().X());
+}
+
+/////////////////////////////////////////////////
 TEST_P(DiffDriveTest, OdomFrameId)
 {
   // Start server

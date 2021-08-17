@@ -553,10 +553,13 @@ void Physics::Configure(const Entity &_entity,
     return;
   }
 
-  auto classNames = pluginLoader.AllPlugins();
+  auto classNames = pluginLoader.PluginsImplementing<
+      physics::ForwardStep::Implementation<
+      physics::FeaturePolicy3d>>();
   if (classNames.empty())
   {
-    ignerr << "No plugins found in library [" << pathToLib << "]." << std::endl;
+    ignerr << "No physics plugins found in library [" << pathToLib << "]."
+           << std::endl;
     return;
   }
 
@@ -566,7 +569,11 @@ void Physics::Configure(const Entity &_entity,
     auto plugin = pluginLoader.Instantiate(className);
 
     if (!plugin)
+    {
+      ignwarn << "Failed to instantiate [" << className << "] from ["
+              << pathToLib << "]" << std::endl;
       continue;
+    }
 
     this->dataPtr->engine = ignition::physics::RequestEngine<
       ignition::physics::FeaturePolicy3d,
