@@ -133,17 +133,6 @@ void ForceTorquePrivate::CreateForceTorqueEntities(EntityComponentManager &_ecm)
     return;
   }
 
-  // // Get the world acceleration (defined in world frame)
-  // auto gravity = _ecm.Component<components::Gravity>(worldEntity);
-  // if (nullptr == gravity)
-  // {
-  //   ignerr << "World missing gravity." << std::endl;
-  //   return;
-  // }
-
-  auto force = _ecm.Component<components::JointForce>(ParentEntity);
-  auto torque = _ecm.Component<components::JointTorque>(ParentEntity);
-
   // Create FT Sensors
   _ecm.EachNew<components::ForceTorque, components::ParentEntity>(
     [&](const Entity &_entity,
@@ -176,10 +165,6 @@ void ForceTorquePrivate::CreateForceTorqueEntities(EntityComponentManager &_ecm)
             _parent->Data())->Data();
         sensor->SetParent(parentName);
 
-        // set gravity - assume it remains fixed
-        sensor->SetForce(force->Data());
-        sensor->SetTorque(torque->Data());
-
         // Set topic
         _ecm.CreateComponent(_entity, components::SensorTopic(sensor->Topic()));
 
@@ -196,28 +181,50 @@ void ForceTorquePrivate::Update(const EntityComponentManager &_ecm)
   IGN_PROFILE("ForceTorquePrivate::Update");
   _ecm.Each<components::ForceTorque,
             components::WorldPose,
-            components::JointForce,
-            components::JointTorque>(
+            components::JointForce>(
     [&](const Entity &_entity,
         const components::ForceTorque * /*_ft*/,
         const components::WorldPose *_worldPose,
-        const components::JointForce *_jointForce,
-        const components::JointTorque *_jointTorque)->bool
+        const components::JointForce *_jointForce)->bool
       {
         auto it = this->entitySensorMap.find(_entity);
         if (it != this->entitySensorMap.end())
         {
           // Set the FT sensor force
-          it->second->SetForce(_jointForce);
-
+          it->second->SetForce(ignition::math::Vector3d(_jointForce->Data()[0], _jointForce->Data()[1], _jointForce->Data()[2]));
           // Set the FT sensor torque
-          it->second->SetTorque(_jointTorque);
+          it->second->SetTorque(ignition::math::Vector3d(_jointForce->Data()[3], _jointForce->Data()[4], _jointForce->Data()[5]));
+
+          ignerr << "Getting Values" << std::endl;
          }
         else
         {
           ignerr << "Failed to update FT Sensor: " << _entity << ". "
                  << "Entity not found." << std::endl;
         }
+
+        return true;
+      });
+}
+
+//////////////////////////////////////////////////
+void ForceTorquePrivate::RemoveForceTorqueEntities(
+    const EntityComponentManager &_ecm)
+{
+  IGN_PROFILE("ForceTorquePrivate::RemoveForceTorqueEntities");
+  _ecm.EachRemoved<components::ForceTorque>(
+    [&](const Entity &_entity,
+        const components::ForceTorque *)->bool
+      {
+        auto sensorId = this->entitySensorMap.find(_entity);
+        if (sensorId == this->entitySensorMap.end())
+        {
+          ignerr << "Internal error, missing FT sensor for entity ["
+                 << _entity << "]" << std::endl;
+          return true;
+        }
+
+        this->entitySensorMap.erase(sensorId);
 
         return true;
       });
