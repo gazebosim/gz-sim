@@ -887,7 +887,7 @@ Entity IgnRenderer::UniqueId()
 void IgnRenderer::HandleMouseEvent()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  this->BroadcastHoverPos();
+//  this->BroadcastHoverPos();
   this->BroadcastLeftClick();
   this->BroadcastRightClick();
   this->HandleMouseContextMenu();
