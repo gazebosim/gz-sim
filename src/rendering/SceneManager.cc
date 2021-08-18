@@ -1285,23 +1285,27 @@ rendering::VisualPtr SceneManager::CreateJointVisual(
   {
     auto axis1 = _joint.Axis(0)->Xyz();
     auto axis2 = _joint.Axis(1)->Xyz();
-    auto axis1ExpressedIn = _joint.Axis(0)->XyzExpressedIn();
-    auto axis2ExpressedIn = _joint.Axis(0)->XyzExpressedIn();
+    auto axis1UseParentFrame =
+        (_joint.Axis(0)->XyzExpressedIn() == "__model__")? true : false;
+    auto axis2UseParentFrame =
+        (_joint.Axis(1)->XyzExpressedIn() == "__model__")? true : false;
 
-    jointVisual->SetAxis(axis2, axis2ExpressedIn);
+    jointVisual->SetAxis(axis2, axis2UseParentFrame);
 
     if (this->dataPtr->visuals.find(_parentId) != this->dataPtr->visuals.end())
     {
       auto parentName = this->dataPtr->visuals[_parentId]->Name();
       jointVisual->SetParentAxis(
-          axis1, axis2ExpressedIn, parentName);
+          axis1, parentName, axis1UseParentFrame);
     }
   }
   else if (_joint.Axis(0))
   {
     auto axis1 = _joint.Axis(0)->Xyz();
-    auto axis1ExpressedIn = _joint.Axis(0)->XyzExpressedIn();
-    jointVisual->SetAxis(axis1, axis1ExpressedIn);
+    auto axis1UseParentFrame =
+        (_joint.Axis(0)->XyzExpressedIn() == "__model__")? true : false;
+
+    jointVisual->SetAxis(axis1, axis1UseParentFrame);
   }
 
   rendering::VisualPtr jointVis =
