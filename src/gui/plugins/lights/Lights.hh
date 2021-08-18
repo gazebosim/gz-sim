@@ -43,6 +43,9 @@ namespace gazebo
     // Documentation inherited
     public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
+    // Documentation inherited
+    protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
+
     /// \brief Callback in Qt thread when mode changes.
     /// \param[in] _sdfString type name of the light to be created
     public slots: void OnNewLightClicked(const QString &_sdfString);
