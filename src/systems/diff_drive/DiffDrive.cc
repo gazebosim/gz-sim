@@ -247,7 +247,6 @@ void DiffDrive::Configure(const Entity &_entity,
     this->dataPtr->limiterAng->SetMaxJerk(maxJerk);
   }
 
-
   double odomFreq = _sdf->Get<double>("odom_publish_frequency", 50).first;
   if (odomFreq > 0)
   {
@@ -382,6 +381,10 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
   for (Entity joint : this->dataPtr->leftJoints)
   {
+    // skip this entity if it has been removed
+    if (!_ecm.HasEntity(joint))
+      continue;
+
     // Update wheel velocity
     auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
 
@@ -398,6 +401,10 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
   for (Entity joint : this->dataPtr->rightJoints)
   {
+    // skip this entity if it has been removed
+    if (!_ecm.HasEntity(joint))
+      continue;
+
     // Update wheel velocity
     auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
 
@@ -416,7 +423,7 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   // don't exist.
   auto leftPos = _ecm.Component<components::JointPosition>(
       this->dataPtr->leftJoints[0]);
-  if (!leftPos)
+  if (!leftPos && _ecm.HasEntity(this->dataPtr->leftJoints[0]))
   {
     _ecm.CreateComponent(this->dataPtr->leftJoints[0],
         components::JointPosition());
@@ -424,7 +431,7 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
   auto rightPos = _ecm.Component<components::JointPosition>(
       this->dataPtr->rightJoints[0]);
-  if (!rightPos)
+  if (!rightPos && _ecm.HasEntity(this->dataPtr->rightJoints[0]))
   {
     _ecm.CreateComponent(this->dataPtr->rightJoints[0],
         components::JointPosition());
@@ -529,8 +536,7 @@ void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
 
   // Construct the Pose_V/tf message and publish it.
   msgs::Pose_V tfMsg;
-  ignition::msgs::Pose *tfMsgPose = nullptr;
-  tfMsgPose = tfMsg.add_pose();
+  ignition::msgs::Pose *tfMsgPose = tfMsg.add_pose();
   tfMsgPose->mutable_header()->CopyFrom(*msg.mutable_header());
   tfMsgPose->mutable_position()->CopyFrom(msg.mutable_pose()->position());
   tfMsgPose->mutable_orientation()->CopyFrom(msg.mutable_pose()->orientation());
@@ -576,16 +582,19 @@ void DiffDrivePrivate::UpdateVelocity(const ignition::gazebo::UpdateInfo &_info,
 void DiffDrivePrivate::OnCmdVel(const msgs::Twist &_msg)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
-  if (this->enabled) {
+  if (this->enabled)
+  {
     this->targetVel = _msg;
   }
 }
 
+//////////////////////////////////////////////////
 void DiffDrivePrivate::OnEnable(const msgs::Boolean &_msg)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
   this->enabled = _msg.data();
-  if (!this->enabled) {
+  if (!this->enabled)
+  {
     math::Vector3d zeroVector{0, 0, 0};
     msgs::Set(this->targetVel.mutable_linear(), zeroVector);
     msgs::Set(this->targetVel.mutable_angular(), zeroVector);
