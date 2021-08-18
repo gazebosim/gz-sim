@@ -134,7 +134,7 @@ void runServerCommand(const ServerOptions &_opt)
         ignerr << "!resourcePathEnv.empty()" << std::endl;
 
         auto resourcePaths = ignition::common::split(resourcePathEnv, ":");
-        for (auto &resourcePath: resourcePaths)
+        for (auto & resourcePath: resourcePaths)
         {
           std::string filePath = resourcePath + _opt.file;
           if (ignition::common::exists(filePath))
@@ -155,7 +155,8 @@ void runServerCommand(const ServerOptions &_opt)
           path = std::string(findFuelResource(_opt.file.c_str()));
           if (path.empty())
           {
-            ignerr << "Unable to find or download file " << _opt.file << std::endl;
+            ignerr << "Unable to find or download file "
+                   << _opt.file << std::endl;
             exit(-1);
           }
         }
