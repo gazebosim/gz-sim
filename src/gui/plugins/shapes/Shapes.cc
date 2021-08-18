@@ -22,7 +22,9 @@
 
 #include <algorithm>
 #include <iostream>
+#include <limits>
 #include <string>
+#include <vector>
 
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
