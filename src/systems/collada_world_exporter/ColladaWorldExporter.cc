@@ -276,7 +276,7 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
       }
 
       p.position = sdfLight.RawPose().Pos();
-      p.direction = sdfLight.Direction();
+      p.direction = sdfLight.RawPose().Rot().RotateVector(sdfLight.Direction());
       p.diffuse = sdfLight.Diffuse();
 
       p.constantAttenuation = sdfLight.ConstantAttenuationFactor();
