@@ -17,9 +17,6 @@
 #ifndef IGNITION_GAZEBO_TEST_HELPERS_RELAY_HH_
 #define IGNITION_GAZEBO_TEST_HELPERS_RELAY_HH_
 
-#include <gtest/gtest.h>
-
-#include <ignition/gazebo/SystemLoader.hh>
 #include <ignition/gazebo/test_config.hh>
 
 #include "../plugins/MockSystem.hh"
@@ -52,24 +49,15 @@ namespace test
 class Relay
 {
   /// \brief Constructor
-  public: Relay()
+  public: Relay() : systemPtr(std::make_shared<MockSystem>())
   {
-    auto plugin = loader.LoadPlugin("libMockSystem.so",
-        "ignition::gazebo::MockSystem", nullptr);
-
-    EXPECT_TRUE(plugin.has_value());
-    this->systemPtr = plugin.value();
-
-    this->mockSystem = static_cast<MockSystem *>(
-        systemPtr->QueryInterface<System>());
-    EXPECT_NE(nullptr, this->mockSystem);
   }
 
   /// \brief Wrapper around system's pre-update callback
   /// \param[in] _cb Function to be called every pre-update
   public: Relay &OnPreUpdate(MockSystem::CallbackType _cb)
   {
-    this->mockSystem->preUpdateCallback = std::move(_cb);
+    this->systemPtr->preUpdateCallback = std::move(_cb);
     return *this;
   }
 
@@ -77,7 +65,7 @@ class Relay
   /// \param[in] _cb Function to be called every update
   public: Relay &OnUpdate(MockSystem::CallbackType _cb)
   {
-    this->mockSystem->updateCallback = std::move(_cb);
+    this->systemPtr->updateCallback = std::move(_cb);
     return *this;
   }
 
@@ -85,18 +73,12 @@ class Relay
   /// \param[in] _cb Function to be called every post-update
   public: Relay &OnPostUpdate(MockSystem::CallbackTypeConst _cb)
   {
-    this->mockSystem->postUpdateCallback = std::move(_cb);
+    this->systemPtr->postUpdateCallback = std::move(_cb);
     return *this;
   }
 
-  /// \brief Pointer to underlying syste,
-  public: SystemPluginPtr systemPtr;
-
-  /// \brief Pointer to underlying mock interface
-  public: MockSystem *mockSystem;
-
-  /// \brief Used to load the system.
-  private: SystemLoader loader;
+  /// \brief Pointer to system
+  public: std::shared_ptr<MockSystem> systemPtr{nullptr};
 };
 }
 }

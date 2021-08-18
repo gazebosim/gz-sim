@@ -38,6 +38,7 @@
 #include <ignition/common/KeyFrame.hh>
 #include <ignition/common/MeshManager.hh>
 #include <ignition/common/Profiler.hh>
+#include <ignition/common/StringUtils.hh>
 #include <ignition/common/Uuid.hh>
 #include <ignition/common/VideoEncoder.hh>
 
@@ -277,7 +278,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: rendering::RayQueryPtr rayQuery;
 
     /// \brief View control focus target
-    public: math::Vector3d target;
+    public: math::Vector3d target = math::Vector3d(
+        math::INF_D, math::INF_D, math::INF_D);
 
     /// \brief Rendering utility
     public: RenderUtil renderUtil;
@@ -499,6 +501,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief View collisions service
     public: std::string viewCollisionsService;
+
+    /// \brief Text for popup error message
+    public: QString errorPopupText;
 
     /// \brief Camera view control service
     public: std::string cameraViewControlService;
@@ -1739,9 +1744,6 @@ void IgnRenderer::HandleMouseTransformControl()
       // Select entity
       else if (!this->dataPtr->mouseEvent.Dragging())
       {
-        rendering::VisualPtr v = this->dataPtr->camera->VisualAt(
-              this->dataPtr->mouseEvent.Pos());
-
         rendering::VisualPtr visual = this->dataPtr->camera->Scene()->VisualAt(
               this->dataPtr->camera,
               this->dataPtr->mouseEvent.Pos());
@@ -1963,11 +1965,23 @@ void IgnRenderer::HandleMouseViewControl()
   }
   else
   {
-    if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::PRESS)
+    if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::PRESS ||
+        // the rendering thread may miss the press event due to
+        // race condition when doing a drag operation (press and move, where
+        // the move event overrides the press event before it is processed)
+        // so we double check to see if target is set or not
+        (this->dataPtr->mouseEvent.Type() == common::MouseEvent::MOVE &&
+        this->dataPtr->mouseEvent.Dragging() &&
+        std::isinf(this->dataPtr->target.X())))
     {
       this->dataPtr->target = this->ScreenToScene(
           this->dataPtr->mouseEvent.PressPos());
       this->dataPtr->viewControl->SetTarget(this->dataPtr->target);
+    }
+    // unset the target on release (by setting to inf)
+    else if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE)
+    {
+      this->dataPtr->target = ignition::math::INF_D;
     }
 
     // Pan with left button
@@ -2019,8 +2033,11 @@ void IgnRenderer::Initialize()
 
   auto root = scene->RootVisual();
 
+  scene->SetCameraPassCountPerGpuFlush(6u);
+
   // Camera
   this->dataPtr->camera = scene->CreateCamera();
+  this->dataPtr->camera->SetUserData("user-camera", true);
   root->AddChild(this->dataPtr->camera);
   this->dataPtr->camera->SetLocalPose(this->cameraPose);
   this->dataPtr->camera->SetImageWidth(this->textureSize.width());
@@ -3373,7 +3390,7 @@ void Scene3D::OnDropped(const QString &_drop, int _mouseX, int _mouseY)
 {
   if (_drop.toStdString().empty())
   {
-    ignwarn << "Dropped empty entity URI." << std::endl;
+    this->SetErrorPopupText("Dropped empty entity URI.");
     return;
   }
 
@@ -3388,13 +3405,76 @@ void Scene3D::OnDropped(const QString &_drop, int _mouseX, int _mouseY)
   math::Vector3d pos = renderWindow->ScreenToScene({_mouseX, _mouseY});
 
   msgs::EntityFactory req;
-  req.set_sdf_filename(_drop.toStdString());
+  std::string dropStr = _drop.toStdString();
+  if (QUrl(_drop).isLocalFile())
+  {
+    // mesh to sdf model
+    common::rtrim(dropStr);
+
+    if (!common::MeshManager::Instance()->IsValidFilename(dropStr))
+    {
+      QString errTxt = QString::fromStdString("Invalid URI: " + dropStr +
+        "\nOnly Fuel URLs or mesh file types DAE, OBJ, and STL are supported.");
+      this->SetErrorPopupText(errTxt);
+      return;
+    }
+
+    // Fixes whitespace
+    dropStr = common::replaceAll(dropStr, "%20", " ");
+
+    std::string filename = common::basename(dropStr);
+    std::vector<std::string> splitName = common::split(filename, ".");
+
+    std::string sdf = "<?xml version='1.0'?>"
+      "<sdf version='" + std::string(SDF_PROTOCOL_VERSION) + "'>"
+        "<model name='" + splitName[0] + "'>"
+          "<link name='link'>"
+            "<visual name='visual'>"
+              "<geometry>"
+                "<mesh>"
+                  "<uri>" + dropStr + "</uri>"
+                "</mesh>"
+              "</geometry>"
+            "</visual>"
+            "<collision name='collision'>"
+              "<geometry>"
+                "<mesh>"
+                  "<uri>" + dropStr + "</uri>"
+                "</mesh>"
+              "</geometry>"
+            "</collision>"
+          "</link>"
+        "</model>"
+      "</sdf>";
+
+    req.set_sdf(sdf);
+  }
+  else
+  {
+    // model from fuel
+    req.set_sdf_filename(dropStr);
+  }
+
   req.set_allow_renaming(true);
   msgs::Set(req.mutable_pose(),
       math::Pose3d(pos.X(), pos.Y(), pos.Z(), 1, 0, 0, 0));
 
   this->dataPtr->node.Request("/world/" + this->dataPtr->worldName + "/create",
       req, cb);
+}
+
+/////////////////////////////////////////////////
+QString Scene3D::ErrorPopupText() const
+{
+  return this->dataPtr->errorPopupText;
+}
+
+/////////////////////////////////////////////////
+void Scene3D::SetErrorPopupText(const QString &_errorTxt)
+{
+  this->dataPtr->errorPopupText = _errorTxt;
+  this->ErrorPopupTextChanged();
+  this->popupError();
 }
 
 /////////////////////////////////////////////////
