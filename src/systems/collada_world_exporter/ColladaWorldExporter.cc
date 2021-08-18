@@ -254,32 +254,39 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
         const components::Name *_name)->bool
     {
       std::string name = _name->Data();
-      const auto& sdf_light = _light->Data();
+      const auto& sdfLight = _light->Data();
 
       common::ColladaLight p;
       p.name = name;
-      if (sdf_light.Type() == sdf::LightType::POINT) {
+      if (sdfLight.Type() == sdf::LightType::POINT)
+      {
         p.type = "point";
-      } else if (sdf_light.Type() == sdf::LightType::SPOT) {
+      }
+      else if (sdfLight.Type() == sdf::LightType::SPOT)
+      {
         p.type = "spot";
-      } else if (sdf_light.Type() == sdf::LightType::DIRECTIONAL) {
+      }
+      else if (sdfLight.Type() == sdf::LightType::DIRECTIONAL)
+      {
         p.type = "directional";
-      } else {
+      }
+      else
+      {
         p.type = "invalid";
       }
 
-      p.position = sdf_light.RawPose().Pos();
-      p.direction = sdf_light.Direction();
-      p.diffuse = sdf_light.Diffuse();
+      p.position = sdfLight.RawPose().Pos();
+      p.direction = sdfLight.Direction();
+      p.diffuse = sdfLight.Diffuse();
 
-      p.constantAttenuation = sdf_light.ConstantAttenuationFactor();
-      p.linearAttenuation = sdf_light.LinearAttenuationFactor();
-      p.quadraticAttenuation = sdf_light.QuadraticAttenuationFactor();
+      p.constantAttenuation = sdfLight.ConstantAttenuationFactor();
+      p.linearAttenuation = sdfLight.LinearAttenuationFactor();
+      p.quadraticAttenuation = sdfLight.QuadraticAttenuationFactor();
 
       // Falloff angle is treated as the outer angle in blender
       // https://community.khronos.org/t/spotlight-properties/7111/7
-      p.falloffAngleDeg = sdf_light.SpotOuterAngle().Degree();
-      p.falloffExponent = sdf_light.SpotFalloff();
+      p.falloffAngleDeg = sdfLight.SpotOuterAngle().Degree();
+      p.falloffExponent = sdfLight.SpotFalloff();
 
       lights.push_back(p);
       return true;
