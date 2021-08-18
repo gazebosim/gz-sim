@@ -164,11 +164,9 @@ void ForceTorquePrivate::Update(const EntityComponentManager &_ecm)
 {
   IGN_PROFILE("ForceTorquePrivate::Update");
   _ecm.Each<components::ForceTorque,
-            components::WorldPose,
             components::JointForce>(
     [&](const Entity &_entity,
         const components::ForceTorque * /*_ft*/,
-        const components::WorldPose *_worldPose,
         const components::JointForce *_jointForce)->bool
       {
         auto it = this->entitySensorMap.find(_entity);
@@ -176,11 +174,10 @@ void ForceTorquePrivate::Update(const EntityComponentManager &_ecm)
         {
           // Set the FT sensor force
           it->second->SetForce(ignition::math::Vector3d(_jointForce->Data()[0], _jointForce->Data()[1], _jointForce->Data()[2]));
+
           // Set the FT sensor torque
           it->second->SetTorque(ignition::math::Vector3d(_jointForce->Data()[3], _jointForce->Data()[4], _jointForce->Data()[5]));
-
-          ignerr << "Getting Values" << std::endl;
-         }
+        }
         else
         {
           ignerr << "Failed to update FT Sensor: " << _entity << ". "
