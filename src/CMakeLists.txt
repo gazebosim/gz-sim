@@ -110,9 +110,7 @@ if (PYTHONLIBS_FOUND)
     ignition-math${PROJECT_VERSION_MAJOR}
   )
 
-  # When using SWIG 3 to build a python interface there is an extra underscore between the name of
-  # the library given to swig_add_library macro and the generated .so
-  if(NOT ${SWIG_VERSION} VERSION_GREATER 4.0.0)
+  if(NOT CMAKE_VERSION VERSION_GREATER_EQUAL 3.13.0)
     set(SWIG_PY_LIB "_${SWIG_PY_LIB}")
     set(SWIG_PY_LIB_OUTPUT "_${SWIG_PY_LIB_OUTPUT}")
   endif()
