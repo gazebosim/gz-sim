@@ -47,10 +47,9 @@ extern "C" char *gazeboVersionHeader()
 }
 
 //////////////////////////////////////////////////
-extern "C" void cmdVerbosity(
-    const char *_verbosity)
+extern "C" void cmdVerbosity(int _verbosity)
 {
-  ignition::common::Console::SetVerbosity(std::atoi(_verbosity));
+  ignition::common::Console::SetVerbosity(_verbosity);
 }
 
 //////////////////////////////////////////////////
@@ -61,7 +60,7 @@ extern "C" const char *worldInstallDir()
 
 //////////////////////////////////////////////////
 extern "C" const char *findFuelResource(
-    char *_pathToResource)
+    const char *_pathToResource)
 {
   std::string path;
   std::string worldPath;

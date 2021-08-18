@@ -30,7 +30,7 @@ extern "C" char *gazeboVersionHeader();
 /// \brief Set verbosity level
 /// \param[in] _verbosity 0 to 4
 extern "C" void cmdVerbosity(
-    const char *_verbosity);
+    int _verbosity);
 
 extern "C" const char *worldInstallDir();
 
@@ -74,6 +74,6 @@ extern "C" int runGui(const char *_guiConfig);
 /// https://staging-fuel.ignitionrobotics.org/1.0/gmas/worlds/ShapesClone
 /// \return C-string containing the path to the local world sdf file
 extern "C" const char *findFuelResource(
-    char *_pathToResource);
+    const char *_pathToResource);
 
 #endif
