@@ -22,7 +22,9 @@
 
 #include <algorithm>
 #include <iostream>
+#include <limits>
 #include <string>
+#include <vector>
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Profiler.hh>
@@ -326,7 +328,8 @@ bool LightsPrivate::GeneratePreview(const sdf::Root &_sdf)
 
   if (nullptr == _sdf.Light())
   {
-    ignwarn << "Only lights entities can be spawned at the moment." << std::endl;
+    ignwarn << "Only lights entities can be spawned at the moment."
+            << std::endl;
     this->TerminateSpawnPreview();
     return false;
   }
