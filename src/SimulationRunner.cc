@@ -558,16 +558,27 @@ void SimulationRunner::UpdateSystems()
   // WorkerPool.cc). We could turn on parallel updates in the future, and/or
   // turn it on if there are sufficient systems. More testing is required.
 
+  // Whn running in the same process we need to emit events for all server
+  // updates (Pre / Update / Post). This way, the GUI can hold the PreUpdate
+  // until its updates end.
   {
     IGN_PROFILE("PreUpdate");
     for (auto& system : this->systemsPreupdate)
       system->PreUpdate(this->currentInfo, this->entityCompMgr);
+    if (this->serverConfig.SameProcessAsGUI())
+    {
+      this->eventMgr.Emit<events::ClientUpdate>();
+    }
   }
 
   {
     IGN_PROFILE("Update");
     for (auto& system : this->systemsUpdate)
       system->Update(this->currentInfo, this->entityCompMgr);
+    if (this->serverConfig.SameProcessAsGUI())
+    {
+      this->eventMgr.Emit<events::ClientUpdate>();
+    }
   }
 
   // Call client updates before PostUpdate, with the assumption is that each

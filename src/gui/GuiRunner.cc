@@ -262,7 +262,13 @@ void GuiRunner::Implementation::UpdatePlugins()
   {
     plugin->Update(this->updateInfo, this->ecm);
   }
-  this->ecm.ClearRemovedComponents();
+
+  // GUIRunner when is running in the same process should not make this call
+  // This is already handle by the Simulation Runner
+  if (!this->sameProcess)
+  {
+    this->ecm.ClearRemovedComponents();
+  }
 }
 
 /////////////////////////////////////////////////
