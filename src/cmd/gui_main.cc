@@ -22,23 +22,23 @@
 
 //////////////////////////////////////////////////
 /// \brief Structure to hold available GUI options
-struct GuiOptions 
+struct GuiOptions
 {
 };
 
 //////////////////////////////////////////////////
-void runServer(GuiOptions *_opts)
+void runGuiCommand(const GuiOptions &_opts)
 {
 
 }
 
 //////////////////////////////////////////////////
-void addServerFlags(CLI::App &_app)
+void addGuiFlags(CLI::App &_app)
 {
   auto opt = std::make_shared<GuiOptions>();
 
-  _app.callback([opt](){ 
-      runGuiCommand(*opt); 
+  _app.callback([opt](){
+      runGuiCommand(*opt);
   });
 }
 

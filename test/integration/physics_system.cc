@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <string>
 #include <vector>
 
 #include <ignition/common/Console.hh>
@@ -31,8 +32,10 @@
 #include <sdf/Sphere.hh>
 #include <sdf/World.hh>
 
+#include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
+#include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
 #include "ignition/gazebo/components/AxisAlignedBox.hh"
@@ -51,6 +54,7 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/Visual.hh"
@@ -416,6 +420,7 @@ TEST_F(PhysicsSystemFixture, CreateRuntime)
   ecm->CreateComponent(linkEntity, components::CanonicalLink());
   ecm->CreateComponent(linkEntity, components::Pose(math::Pose3d::Zero));
   ecm->CreateComponent(linkEntity, components::Name("link"));
+  ecm->CreateComponent(modelEntity, components::ModelCanonicalLink(linkEntity));
 
   math::MassMatrix3d massMatrix;
   massMatrix.SetMass(1.0);
@@ -469,13 +474,11 @@ TEST_F(PhysicsSystemFixture, SetFrictionCoefficient)
 
   // Create a system that records the poses of the 3 boxes
   test::Relay testSystem;
-  double dt = 0.0;
 
   testSystem.OnPostUpdate(
-    [&boxParams, &poses, &dt](const gazebo::UpdateInfo &_info,
+    [&boxParams, &poses](const gazebo::UpdateInfo &,
     const gazebo::EntityComponentManager &_ecm)
     {
-      dt = _info.dt.count();
       _ecm.Each<components::Model, components::Name, components::Pose>(
         [&](const ignition::gazebo::Entity &, const components::Model *,
         const components::Name *_name, const components::Pose *_pose)->bool
@@ -1270,4 +1273,398 @@ TEST_F(PhysicsSystemFixture, IncludeNestedModelTPE)
   parentIt = parents.find("model_01::link_01");
   ASSERT_NE(parents.end(), parentIt);
   EXPECT_EQ("model_01", parentIt->second);
+}
+
+// This tests whether the poses of nested models are updated correctly
+TEST_F(PhysicsSystemFixture, NestedModelIndividualCanonicalLinks)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/nested_model_canonical_link.sdf";
+
+  sdf::Root root;
+  root.Load(sdfFile);
+  const sdf::World *world = root.WorldByIndex(0);
+  ASSERT_TRUE(nullptr != world);
+
+  serverConfig.SetSdfFile(sdfFile);
+
+  gazebo::Server server(serverConfig);
+
+  server.SetUpdatePeriod(1us);
+
+  // Create a system that records the poses of the links after physics
+  test::Relay testSystem;
+
+  // Store a pointer to the ECM used in testSystem so that it can be used to
+  // help verify poses at the end of this test
+  const gazebo::EntityComponentManager *ecm;
+
+  std::unordered_map<std::string, ignition::math::Pose3d> postUpModelPoses;
+  testSystem.OnPostUpdate(
+    [&postUpModelPoses, &ecm](const gazebo::UpdateInfo &,
+    const gazebo::EntityComponentManager &_ecm)
+    {
+      ecm = &_ecm;
+
+      _ecm.Each<components::Model, components::Name, components::Pose>(
+        [&](const ignition::gazebo::Entity &, const components::Model *,
+        const components::Name *_name, const components::Pose *_pose)->bool
+        {
+          // store model pose
+          postUpModelPoses[_name->Data()] = _pose->Data();
+          return true;
+        });
+
+      return true;
+    });
+
+  server.AddSystem(testSystem.systemPtr);
+  const size_t iters = 500;
+  server.Run(true, iters, false);
+  EXPECT_EQ(6u, postUpModelPoses.size());
+
+  auto modelIt = postUpModelPoses.find("model_00");
+  ASSERT_NE(postUpModelPoses.end(), modelIt);
+
+  // link_00 is resting on the ground_box, so it remains stationary. And since
+  // it is the canonical link of the parent model, model_00, the model frame
+  // should also remain stationary.
+  EXPECT_EQ(math::Pose3d::Zero, modelIt->second);
+
+  // link_01 is floating, so it should fall due to gravity. And since it is the
+  // canonical link of the nested model, model_01, the model frame should also
+  // fall. If the model pose is not updated according to this canonical link,
+  // the test would fail.
+  const double dt = 0.001;
+  const double zExpected = 0.5 * world->Gravity().Z() * pow(dt * iters, 2);
+  modelIt = postUpModelPoses.find("model_01");
+  ASSERT_NE(postUpModelPoses.end(), modelIt);
+  EXPECT_NEAR(zExpected, modelIt->second.Z(), 1e-2);
+
+  // model_10, model_11 and model_12 share the same canonical link (link_12),
+  // which is a floating link. So, link_12 should fall due to gravity, which
+  // also means that the frames for model_10, model_11 and model_12 should fall
+  auto model10It = postUpModelPoses.find("model_10");
+  ASSERT_NE(postUpModelPoses.end(), model10It);
+  EXPECT_NEAR(zExpected, model10It->second.Z(), 1e-2);
+  auto model11It = postUpModelPoses.find("model_11");
+  ASSERT_NE(postUpModelPoses.end(), model11It);
+  auto model12It = postUpModelPoses.find("model_12");
+  ASSERT_NE(postUpModelPoses.end(), model12It);
+  // (since model_11 and model_12 are nested, their poses are computed w.r.t.
+  // model_10)
+  EXPECT_DOUBLE_EQ(0.0, model11It->second.Z());
+  EXPECT_DOUBLE_EQ(0.0, model12It->second.Z());
+  // check the world pose of model_11 and model_12 to make sure the z components
+  // of these world poses match zExpected
+  ASSERT_NE(nullptr, ecm);
+  const auto model11Entity =
+    ecm->EntityByComponents(components::Name(model11It->first));
+  ASSERT_NE(kNullEntity, model11Entity);
+  const auto model11WorldPose = gazebo::worldPose(model11Entity, *ecm);
+  EXPECT_NEAR(zExpected, model11WorldPose.Z(), 1e-2);
+  const auto model12Entity =
+    ecm->EntityByComponents(components::Name(model12It->first));
+  ASSERT_NE(kNullEntity, model12Entity);
+  const auto model12WorldPose = gazebo::worldPose(model12Entity, *ecm);
+  EXPECT_NEAR(zExpected, model12WorldPose.Z(), 1e-2);
+  EXPECT_DOUBLE_EQ(model11WorldPose.Z(), model12WorldPose.Z());
+  // zExpected is also the z component of the world pose for model_10
+  EXPECT_DOUBLE_EQ(model11WorldPose.Z(), model10It->second.Z());
+  EXPECT_DOUBLE_EQ(model12WorldPose.Z(), model10It->second.Z());
+}
+
+/////////////////////////////////////////////////
+TEST_F(PhysicsSystemFixture, DefaultPhysicsOptions)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+
+  bool checked{false};
+
+  // Create a system to check components
+  test::Relay testSystem;
+  testSystem.OnPostUpdate(
+    [&checked](const gazebo::UpdateInfo &,
+    const gazebo::EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::World, components::PhysicsCollisionDetector,
+                components::PhysicsSolver>(
+        [&](const ignition::gazebo::Entity &, const components::World *,
+            const components::PhysicsCollisionDetector *_collisionDetector,
+            const components::PhysicsSolver *_solver)->bool
+        {
+          EXPECT_NE(nullptr, _collisionDetector);
+          if (_collisionDetector)
+          {
+            EXPECT_EQ("ode", _collisionDetector->Data());
+          }
+          EXPECT_NE(nullptr, _solver);
+          if (_solver)
+          {
+            EXPECT_EQ("DantzigBoxedLcpSolver", _solver->Data());
+          }
+          checked = true;
+          return true;
+        });
+    });
+
+  gazebo::Server server(serverConfig);
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 1, false);
+
+  EXPECT_TRUE(checked);
+}
+
+/////////////////////////////////////////////////
+TEST_F(PhysicsSystemFixture, PhysicsOptions)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "physics_options.sdf"));
+
+  bool checked{false};
+
+  // Create a system to check components
+  test::Relay testSystem;
+  testSystem.OnPostUpdate(
+    [&checked](const gazebo::UpdateInfo &,
+    const gazebo::EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::World, components::PhysicsCollisionDetector,
+                components::PhysicsSolver>(
+        [&](const ignition::gazebo::Entity &, const components::World *,
+            const components::PhysicsCollisionDetector *_collisionDetector,
+            const components::PhysicsSolver *_solver)->bool
+        {
+          EXPECT_NE(nullptr, _collisionDetector);
+          if (_collisionDetector)
+          {
+            EXPECT_EQ("bullet", _collisionDetector->Data());
+          }
+          EXPECT_NE(nullptr, _solver);
+          if (_solver)
+          {
+            EXPECT_EQ("pgs", _solver->Data());
+          }
+          checked = true;
+          return true;
+        });
+    });
+
+  gazebo::Server server(serverConfig);
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 1, false);
+
+  EXPECT_TRUE(checked);
+}
+
+/////////////////////////////////////////////////
+// This tests whether pose updates are correct for a model whose canonical link
+// changes, but other links do not
+TEST_F(PhysicsSystemFixture, MovingCanonicalLinkOnly)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+
+  const auto sdfFile = common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds",
+    "only_canonical_link_moves.sdf");
+
+  sdf::Root root;
+  root.Load(sdfFile);
+  const sdf::World *world = root.WorldByIndex(0);
+  ASSERT_TRUE(nullptr != world);
+
+  serverConfig.SetSdfFile(sdfFile);
+
+  gazebo::Server server(serverConfig);
+
+  server.SetUpdatePeriod(1us);
+
+  // Create a system that records the poses of the links after physics
+  test::Relay testSystem;
+
+  size_t numBaseLinkChecks = 0;
+  size_t numOuterLinkChecks = 0;
+  size_t numBaseLinkCustomChecks = 0;
+  size_t numOuterLinkCustomChecks = 0;
+  size_t numBaseLinkParentChecks = 0;
+  size_t numNestedModelLinkChecks = 0;
+  size_t numParentModelLinkChecks = 0;
+  size_t numBaseLinkChildChecks = 0;
+
+  size_t currIter = 0;
+  testSystem.OnPostUpdate(
+    [&](const gazebo::UpdateInfo &, const gazebo::EntityComponentManager &_ecm)
+    {
+      currIter++;
+      _ecm.Each<components::Link, components::Name>(
+          [&](const ignition::gazebo::Entity &_entity,
+          const components::Link *, const components::Name *_name)->bool
+          {
+            // ignore the link for the ground plane
+            if (_name->Data() != "surface")
+            {
+              const double dt = 0.001;
+              const double zExpected =
+                0.5 * world->Gravity().Z() * pow(dt * currIter, 2);
+
+              if (_name->Data() == "base_link")
+              {
+                // link "base_link" falls due to gravity, starting from rest
+                EXPECT_NEAR(zExpected,
+                    ignition::gazebo::worldPose(_entity, _ecm).Z(), 1e-2);
+                numBaseLinkChecks++;
+              }
+              else if (_name->Data() == "link0_outer")
+              {
+                // link "link0_outer" is resting on the ground and does not
+                // move, so it should always have a pose of (1 0 0 0 0 0)
+                EXPECT_EQ(ignition::math::Pose3d(1, 0, 0, 0, 0, 0),
+                    ignition::gazebo::worldPose(_entity, _ecm));
+                numOuterLinkChecks++;
+              }
+              else if (_name->Data() == "base_link_custom")
+              {
+                // same as link "base_link"
+                EXPECT_NEAR(zExpected,
+                    ignition::gazebo::worldPose(_entity, _ecm).Z(), 1e-2);
+                numBaseLinkCustomChecks++;
+              }
+              else if (_name->Data() == "link0_outer_custom")
+              {
+                // same as "link0_outer", but with an offset pose
+                EXPECT_EQ(ignition::math::Pose3d(1, 2, 0, 0, 0, 0),
+                    ignition::gazebo::worldPose(_entity, _ecm));
+                numOuterLinkCustomChecks++;
+              }
+              else if (_name->Data() == "base_link_parent")
+              {
+                // same as link "base_link"
+                EXPECT_NEAR(zExpected,
+                    ignition::gazebo::worldPose(_entity, _ecm).Z(), 1e-2);
+                numBaseLinkParentChecks++;
+              }
+              else if (_name->Data() == "nested_model_link")
+              {
+                // same as "link0_outer", but with an offset pose
+                EXPECT_EQ(ignition::math::Pose3d(1, -2, 0, 0, 0, 0),
+                    ignition::gazebo::worldPose(_entity, _ecm));
+                numNestedModelLinkChecks++;
+              }
+              else if (_name->Data() == "parent_model_link")
+              {
+                // same as "link0_outer", but with an offset pose
+                EXPECT_EQ(ignition::math::Pose3d(1, -4, 0, 0, 0, 0),
+                    ignition::gazebo::worldPose(_entity, _ecm));
+                numParentModelLinkChecks++;
+              }
+              else if (_name->Data() == "base_link_child")
+              {
+                // same as link "base_link"
+                EXPECT_NEAR(zExpected,
+                    ignition::gazebo::worldPose(_entity, _ecm).Z(), 1e-2);
+                numBaseLinkChildChecks++;
+              }
+            }
+
+            return true;
+          });
+
+      return true;
+    });
+
+  server.AddSystem(testSystem.systemPtr);
+  const size_t iters = 500;
+  server.Run(true, iters, false);
+
+  EXPECT_EQ(iters, currIter);
+  EXPECT_EQ(iters, numBaseLinkChecks);
+  EXPECT_EQ(iters, numOuterLinkChecks);
+  EXPECT_EQ(iters, numBaseLinkCustomChecks);
+  EXPECT_EQ(iters, numOuterLinkCustomChecks);
+  EXPECT_EQ(iters, numBaseLinkParentChecks);
+  EXPECT_EQ(iters, numNestedModelLinkChecks);
+  EXPECT_EQ(iters, numParentModelLinkChecks);
+  EXPECT_EQ(iters, numBaseLinkChildChecks);
+}
+
+/////////////////////////////////////////////////
+TEST_F(PhysicsSystemFixture, Heightmap)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/heightmap.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  sdf::Root root;
+  root.Load(sdfFile);
+
+  bool checked{false};
+  int maxIt{0};
+
+  test::Relay testSystem;
+  testSystem.OnPostUpdate(
+    [&](const gazebo::UpdateInfo &_info,
+    const gazebo::EntityComponentManager &_ecm)
+    {
+      double aboveHeight;
+      double farHeight;
+      bool checkedAbove{false};
+      bool checkedFar{false};
+      bool checkedHeightmap{false};
+
+      _ecm.Each<components::Model, components::Name, components::Pose>(
+        [&](const ignition::gazebo::Entity &, const components::Model *,
+        const components::Name *_name, const components::Pose *_pose)->bool
+        {
+          if (_name->Data() == "above_heightmap")
+          {
+            aboveHeight = _pose->Data().Pos().Z();
+            checkedAbove = true;
+          }
+          else if (_name->Data() == "far_from_heightmap")
+          {
+            farHeight = _pose->Data().Pos().Z();
+            checkedFar = true;
+          }
+          else
+          {
+            EXPECT_EQ("Heightmap Bowl", _name->Data());
+            EXPECT_EQ(math::Pose3d(), _pose->Data());
+            checkedHeightmap = true;
+          }
+
+          return true;
+        });
+
+      EXPECT_TRUE(checkedAbove);
+      EXPECT_TRUE(checkedFar);
+      EXPECT_TRUE(checkedHeightmap);
+
+      // Both models drop from 7m
+      EXPECT_GE(7.01, aboveHeight) << _info.iterations;
+      EXPECT_GE(7.01, farHeight) << _info.iterations;
+
+      // Model above heightmap hits it and never drops below 5.5m
+      EXPECT_LE(5.5, aboveHeight) << _info.iterations;
+
+      // Model far from heightmap keeps falling
+      if (_info.iterations > 600)
+      {
+        EXPECT_GT(5.5, farHeight) << _info.iterations;
+      }
+
+      checked = true;
+      maxIt = _info.iterations;
+      return true;
+    });
+
+  gazebo::Server server(serverConfig);
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 1000, false);
+
+  EXPECT_TRUE(checked);
+  EXPECT_EQ(1000, maxIt);
 }

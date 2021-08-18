@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_UTIL_HH_
 
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include <ignition/math/Pose3.hh>
@@ -50,6 +51,34 @@ namespace ignition
     std::string IGNITION_GAZEBO_VISIBLE scopedName(const Entity &_entity,
       const EntityComponentManager &_ecm, const std::string &_delim = "/",
       bool _includePrefix = true);
+
+    /// \brief Helper function to get an entity given its scoped name.
+    /// The scope may start at any level by default. For example, in this
+    /// hierarchy:
+    ///
+    /// world_name
+    ///  model_name
+    ///    link_name
+    ///
+    /// All these names will return the link entity:
+    ///
+    /// * world_name::model_name::link_name
+    /// * model_name::link_name
+    /// * link_name
+    ///
+    /// \param[in] _scopedName Entity's scoped name.
+    /// \param[in] _ecm Immutable reference to ECM.
+    /// \param[in] _relativeTo Entity that the scoped name is relative to. The
+    /// scoped name does not include the name of this entity. If not provided,
+    /// the scoped name could be relative to any entity.
+    /// \param[in] _delim Delimiter between names, defaults to "::", it can't
+    /// be empty.
+    /// \return All entities that match the scoped name and relative to
+    /// requirements, or an empty set otherwise.
+    std::unordered_set<Entity> IGNITION_GAZEBO_VISIBLE entitiesFromScopedName(
+      const std::string &_scopedName, const EntityComponentManager &_ecm,
+      Entity _relativeTo = kNullEntity,
+      const std::string &_delim = "::");
 
     /// \brief Generally, each entity will be of some specific high-level type,
     /// such as World, Sensor, Collision, etc, and one type only.
@@ -99,6 +128,12 @@ namespace ignition
     /// \param[in] _ecm Immutable reference to ECM.
     /// \return World entity ID.
     Entity IGNITION_GAZEBO_VISIBLE worldEntity(const Entity &_entity,
+        const EntityComponentManager &_ecm);
+
+    /// \brief Get the first world entity that's found.
+    /// \param[in] _ecm Immutable reference to ECM.
+    /// \return World entity ID.
+    Entity IGNITION_GAZEBO_VISIBLE worldEntity(
         const EntityComponentManager &_ecm);
 
     /// \brief Helper function to remove a parent scope from a given name.
@@ -155,6 +190,54 @@ namespace ignition
     std::string IGNITION_GAZEBO_VISIBLE validTopic(
         const std::vector<std::string> &_topics);
 
+    /// \brief Helper function that returns a valid Ignition Transport topic
+    /// consisting of the scoped name for the provided entity.
+    ///
+    /// For example, if the provided entity has a scoped name of
+    /// `my_model::my_link::my_sensor` then the resulting topic name will
+    /// be `/model/my_model/link/my_link/sensor/my_sensor`. If _excludeWorld
+    /// is false, then the topic name will be prefixed by `/world/WORLD_NAME/`,
+    /// where `WORLD_NAME` is the name of the world.
+    ///
+    /// \param[in] _entity The entity to generate the topic name for.
+    /// \param[in] _ecm The entity component manager.
+    /// \param[in] _excludeWorld True to exclude the world name from the topic.
+    /// \return An Ignition Transport topic name based on the scoped name of
+    /// the provided entity, or empty string if a topic name could not be
+    /// generated.
+    std::string IGNITION_GAZEBO_VISIBLE topicFromScopedName(
+        const Entity &_entity,
+        const EntityComponentManager &_ecm,
+        bool _excludeWorld = true);
+
+    /// \brief Helper function to "enable" a component (i.e. create it if it
+    /// doesn't exist) or "disable" a component (i.e. remove it if it exists).
+    /// \param[in] _ecm Mutable reference to the ECM
+    /// \param[in] _entity Entity whose component is being enabled
+    /// \param[in] _enable True to enable (create), false to disable (remove).
+    /// Defaults to true.
+    /// \return True if a component was created or removed, false if nothing
+    /// changed.
+    template <class ComponentType>
+    bool enableComponent(EntityComponentManager &_ecm,
+        Entity _entity, bool _enable = true)
+    {
+      bool changed{false};
+
+      auto exists = _ecm.Component<ComponentType>(_entity);
+      if (_enable && !exists)
+      {
+        _ecm.CreateComponent(_entity, ComponentType());
+        changed = true;
+      }
+      else if (!_enable && exists)
+      {
+        _ecm.RemoveComponent<ComponentType>(_entity);
+        changed = true;
+      }
+      return changed;
+    }
+
     /// \brief Environment variable holding resource paths.
     const std::string kResourcePathEnv{"IGN_GAZEBO_RESOURCE_PATH"};
 
@@ -168,6 +251,7 @@ namespace ignition
     /// \brief Environment variable holding paths to custom rendering engine
     /// plugins.
     const std::string kRenderPluginPathEnv{"IGN_GAZEBO_RENDER_ENGINE_PATH"};
+
     }
   }
 }

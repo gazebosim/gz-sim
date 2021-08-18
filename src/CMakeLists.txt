@@ -10,10 +10,12 @@ set_source_files_properties(
 )
 
 # Suppress compiler warnings in generated protobuf C++ code.
-set_source_files_properties(
-  ${PROTO_PRIVATE_SRC}
-  COMPILE_FLAGS -Wno-unused-parameter
-)
+if(NOT MSVC)
+  set_source_files_properties(
+    ${PROTO_PRIVATE_SRC}
+    COMPILE_FLAGS -Wno-unused-parameter
+  )
+endif()
 
 set(network_sources
   network/NetworkConfig.cc
@@ -43,9 +45,11 @@ set (sources
   ServerPrivate.cc
   SimulationRunner.cc
   SystemLoader.cc
+  TestFixture.cc
   Util.cc
   View.cc
   World.cc
+  cmd/ModelCommandAPI.cc
   ${PROTO_PRIVATE_SRC}
   ${network_sources}
 )
@@ -60,6 +64,7 @@ set (gtest_sources
   EventManager_TEST.cc
   Link_TEST.cc
   Model_TEST.cc
+  ModelCommandAPI_TEST.cc
   SdfEntityCreator_TEST.cc
   SdfGenerator_TEST.cc
   Server_TEST.cc
@@ -67,6 +72,7 @@ set (gtest_sources
   SimulationRunner_TEST.cc
   System_TEST.cc
   SystemLoader_TEST.cc
+  TestFixture_TEST.cc
   Util_TEST.cc
   World_TEST.cc
   network/NetworkConfig_TEST.cc
@@ -132,4 +138,3 @@ ign_build_tests(TYPE UNIT
 if(NOT WIN32)
   add_subdirectory(cmd)
 endif()
-

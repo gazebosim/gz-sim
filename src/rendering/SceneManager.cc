@@ -19,8 +19,10 @@
 #include <map>
 
 #include <sdf/Box.hh>
+#include <sdf/Capsule.hh>
 #include <sdf/Collision.hh>
 #include <sdf/Cylinder.hh>
+#include <sdf/Ellipsoid.hh>
 #include <sdf/Heightmap.hh>
 #include <sdf/Mesh.hh>
 #include <sdf/Pbr.hh>
@@ -38,6 +40,7 @@
 
 #include <ignition/msgs/Utility.hh>
 
+#include "ignition/rendering/Capsule.hh"
 #include <ignition/rendering/Geometry.hh>
 #include <ignition/rendering/Heightmap.hh>
 #include <ignition/rendering/HeightmapDescriptor.hh>
@@ -326,8 +329,8 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
         material->SetAmbient(0.3, 0.3, 0.3);
         material->SetDiffuse(0.7, 0.7, 0.7);
         material->SetSpecular(1.0, 1.0, 1.0);
-        material->SetRoughness(0.2);
-        material->SetMetalness(1.0);
+        material->SetRoughness(0.2f);
+        material->SetMetalness(1.0f);
       }
     }
     else
@@ -397,8 +400,8 @@ rendering::VisualPtr SceneManager::CreateCollision(Entity _id,
     const sdf::Collision &_collision, Entity _parentId)
 {
   sdf::Material material;
-  material.SetAmbient(math::Color(1, 0.5088, 0.0468, 0.7));
-  material.SetDiffuse(math::Color(1, 0.5088, 0.0468, 0.7));
+  material.SetAmbient(math::Color(1.0f, 0.5088f, 0.0468f, 0.7f));
+  material.SetDiffuse(math::Color(1.0f, 0.5088f, 0.0468f, 0.7f));
 
   sdf::Visual visual;
   visual.SetGeom(*_collision.Geom());
@@ -426,12 +429,26 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     geom = this->dataPtr->scene->CreateBox();
     scale = _geom.BoxShape()->Size();
   }
+  else if (_geom.Type() == sdf::GeometryType::CAPSULE)
+  {
+    auto capsule = this->dataPtr->scene->CreateCapsule();
+    capsule->SetRadius(_geom.CapsuleShape()->Radius());
+    capsule->SetLength(_geom.CapsuleShape()->Length());
+    geom = capsule;
+  }
   else if (_geom.Type() == sdf::GeometryType::CYLINDER)
   {
     geom = this->dataPtr->scene->CreateCylinder();
     scale.X() = _geom.CylinderShape()->Radius() * 2;
     scale.Y() = scale.X();
     scale.Z() = _geom.CylinderShape()->Length();
+  }
+  else if (_geom.Type() == sdf::GeometryType::ELLIPSOID)
+  {
+    geom = this->dataPtr->scene->CreateSphere();
+    scale.X() = _geom.EllipsoidShape()->Radii().X() * 2;
+    scale.Y() = _geom.EllipsoidShape()->Radii().Y() * 2;
+    scale.Z() = _geom.EllipsoidShape()->Radii().Z() * 2;
   }
   else if (_geom.Type() == sdf::GeometryType::PLANE)
   {
@@ -1088,6 +1105,7 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
       spotLight->SetInnerAngle(_light.SpotInnerAngle());
       spotLight->SetOuterAngle(_light.SpotOuterAngle());
       spotLight->SetFalloff(_light.SpotFalloff());
+      spotLight->SetDirection(_light.Direction());
       break;
     }
     case sdf::LightType::DIRECTIONAL:
@@ -1279,6 +1297,21 @@ rendering::ParticleEmitterPtr SceneManager::UpdateParticleEmitter(Entity _id,
   // pose
   if (_emitter.has_pose())
     emitter->SetLocalPose(msgs::Convert(_emitter.pose()));
+
+  // particle scatter ratio
+  if (_emitter.has_header())
+  {
+    for (int i = 0; i < _emitter.header().data_size(); ++i)
+    {
+      const auto &data = _emitter.header().data(i);
+      const std::string key = "particle_scatter_ratio";
+      if (data.key() == "particle_scatter_ratio" && data.value_size() > 0)
+      {
+        emitter->SetParticleScatterRatio(math::parseFloat(data.value(0)));
+        break;
+      }
+    }
+  }
 
   return emitter;
 }

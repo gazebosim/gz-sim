@@ -27,7 +27,7 @@ struct ServerOptions
 };
 
 //////////////////////////////////////////////////
-void runServer(ServerOptions *_opts)
+void runServerCommand(const ServerOptions &_opts)
 {
 
 }
@@ -37,8 +37,8 @@ void addServerFlags(CLI::App &_app)
 {
   auto opt = std::make_shared<ServerOptions>();
 
-  _app.callback([opt](){ 
-      runServerCommand(*opt); 
+  _app.callback([opt](){
+      runServerCommand(*opt);
   });
 }
 
@@ -57,4 +57,3 @@ int main(int argc, char** argv)
   addServerFlags(app);
   CLI11_PARSE(app, argc, argv);
 }
-

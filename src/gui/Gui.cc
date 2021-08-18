@@ -183,8 +183,6 @@ std::unique_ptr<ignition::gui::Application> createGui(
 #else
 # pragma warning(pop)
 #endif
-    runner->connect(app.get(), &ignition::gui::Application::PluginAdded, runner,
-        &ignition::gazebo::GuiRunner::OnPluginAdded);
     ++runnerCount;
     runner->setParent(ignition::gui::App());
 
@@ -247,8 +245,6 @@ std::unique_ptr<ignition::gui::Application> createGui(
 #else
 # pragma warning(pop)
 #endif
-      runner->connect(app.get(), &ignition::gui::Application::PluginAdded,
-                      runner, &ignition::gazebo::GuiRunner::OnPluginAdded);
       runner->setParent(ignition::gui::App());
       ++runnerCount;
 

@@ -410,8 +410,11 @@ namespace ignition
       /// return false to stop subsequent calls to the callback, otherwise
       /// a true value should be returned.
       /// \tparam ComponentTypeTs All the desired component types.
-      /// \warning This function should not be called outside of System's
-      /// PreUpdate, callback. The result of call after PreUpdate is invalid
+      /// \warning Since entity creation occurs during PreUpdate, this function
+      /// should not be called in a System's PreUpdate callback (it's okay to
+      /// call this function in the Update callback). If you need to call this
+      /// function in a system's PostUpdate callback, you should use the const
+      /// version of this method.
       public: template <typename... ComponentTypeTs>
               void EachNew(typename identity<std::function<
                            bool(const Entity &_entity,
@@ -426,8 +429,9 @@ namespace ignition
       /// return false to stop subsequent calls to the callback, otherwise
       /// a true value should be returned.
       /// \tparam ComponentTypeTs All the desired component types.
-      /// \warning This function should not be called outside of System's
-      /// PreUpdate, callback. The result of call after PreUpdate is invalid
+      /// \warning Since entity creation occurs during PreUpdate, this function
+      /// should not be called in a System's PreUpdate callback (it's okay to
+      /// call this function in the Update or PostUpdate callback).
       public: template <typename... ComponentTypeTs>
               void EachNew(typename identity<std::function<
                            bool(const Entity &_entity,
@@ -475,11 +479,9 @@ namespace ignition
       /// \brief Get a message with the serialized state of all entities and
       /// components that are changing in the current iteration
       ///
-      /// Currently supported:
+      /// This includes:
       /// * New entities and all of their components
       /// * Removed entities and all of their components
-      ///
-      /// Future work:
       /// * Entities which had a component added
       /// * Entities which had a component removed
       /// * Entities which had a component modified
@@ -536,11 +538,9 @@ namespace ignition
       /// \brief Get a message with the serialized state of all entities and
       /// components that are changing in the current iteration
       ///
-      /// Currently supported:
+      /// This includes:
       /// * New entities and all of their components
       /// * Removed entities and all of their components
-      ///
-      /// Future work:
       /// * Entities which had a component added
       /// * Entities which had a component removed
       /// * Entities which had a component modified

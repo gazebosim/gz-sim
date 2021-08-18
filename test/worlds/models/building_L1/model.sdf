@@ -1,0 +1,68 @@
+<?xml version='1.0' encoding='utf-8'?>
+<sdf version="1.7">
+  <model name="building_L1">
+    <static>true</static>
+    <link name="floor_1">
+      <visual name="visual">
+        <geometry>
+          <mesh>
+            <uri>model://building_L1/meshes/floor_1.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>1.0 1.0 1.0 1.0</diffuse>
+          <specular>0.1 0.1 0.1 1.0</specular>
+          <pbr>
+            <metal>
+              <metalness>0.0</metalness>
+              <albedo_map>model://building_L1/meshes/blue_linoleum.png</albedo_map>
+            </metal>
+          </pbr>
+        </material>
+      </visual>
+      <collision name="collision">
+        <geometry>
+          <mesh>
+            <uri>model://building_L1/meshes/floor_1.obj</uri>
+          </mesh>
+        </geometry>
+        <surface>
+          <contact>
+            <collide_bitmask>0x01</collide_bitmask>
+          </contact>
+        </surface>
+      </collision>
+    </link>
+    <link name="wall_1">
+      <visual name="wall_1">
+        <geometry>
+          <mesh>
+            <uri>model://building_L1/meshes/wall_1.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>1.0 1.0 1.0 1.0</diffuse>
+          <specular>0.1 0.1 0.1 1.0</specular>
+          <pbr>
+            <metal>
+              <metalness>0.0</metalness>
+              <albedo_map>model://building_L1/meshes/default.png</albedo_map>
+            </metal>
+          </pbr>
+        </material>
+      </visual>
+      <collision name="collision">
+        <geometry>
+          <mesh>
+            <uri>model://building_L1/meshes/wall_1.obj</uri>
+          </mesh>
+        </geometry>
+        <surface>
+          <contact>
+            <collide_bitmask>0x01</collide_bitmask>
+          </contact>
+        </surface>
+      </collision>
+    </link>
+  </model>
+</sdf>

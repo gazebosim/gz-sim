@@ -49,8 +49,11 @@
 #include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/PerformerAffinity.hh"
 #include "ignition/gazebo/components/Physics.hh"
+#include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/PoseCmd.hh"
+#include "ignition/gazebo/components/RenderEngineGuiPlugin.hh"
+#include "ignition/gazebo/components/RenderEngineServerPlugin.hh"
 #include "ignition/gazebo/components/SelfCollide.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/SourceFilePath.hh"
@@ -106,6 +109,9 @@ using namespace gazebo;
 template<>
 void ignition::gazebo::setData(QStandardItem *_item, const math::Pose3d &_data)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString("Pose3d"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(QList({
@@ -122,6 +128,9 @@ void ignition::gazebo::setData(QStandardItem *_item, const math::Pose3d &_data)
 template<>
 void ignition::gazebo::setData(QStandardItem *_item, const msgs::Light &_data)
 {
+  if (nullptr == _item)
+    return;
+
   int lightType = -1;
   if (_data.type() == msgs::Light::POINT)
   {
@@ -168,6 +177,9 @@ template<>
 void ignition::gazebo::setData(QStandardItem *_item,
     const math::Vector3d &_data)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString("Vector3d"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(QList({
@@ -181,6 +193,9 @@ void ignition::gazebo::setData(QStandardItem *_item,
 template<>
 void ignition::gazebo::setData(QStandardItem *_item, const std::string &_data)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString("String"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(QString::fromStdString(_data),
@@ -192,6 +207,9 @@ template<>
 void ignition::gazebo::setData(QStandardItem *_item,
     const std::ostringstream &_data)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString("Raw"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(QString::fromStdString(_data.str()),
@@ -202,6 +220,9 @@ void ignition::gazebo::setData(QStandardItem *_item,
 template<>
 void ignition::gazebo::setData(QStandardItem *_item, const bool &_data)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString("Boolean"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(_data, ComponentsModel::RoleNames().key("data"));
@@ -211,6 +232,9 @@ void ignition::gazebo::setData(QStandardItem *_item, const bool &_data)
 template<>
 void ignition::gazebo::setData(QStandardItem *_item, const int &_data)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString("Integer"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(_data, ComponentsModel::RoleNames().key("data"));
@@ -220,6 +244,9 @@ void ignition::gazebo::setData(QStandardItem *_item, const int &_data)
 template<>
 void ignition::gazebo::setData(QStandardItem *_item, const double &_data)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString("Float"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(_data, ComponentsModel::RoleNames().key("data"));
@@ -229,6 +256,9 @@ void ignition::gazebo::setData(QStandardItem *_item, const double &_data)
 template<>
 void ignition::gazebo::setData(QStandardItem *_item, const sdf::Physics &_data)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString("Physics"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(QList({
@@ -240,6 +270,9 @@ void ignition::gazebo::setData(QStandardItem *_item, const sdf::Physics &_data)
 //////////////////////////////////////////////////
 void ignition::gazebo::setUnit(QStandardItem *_item, const std::string &_unit)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString::fromStdString(_unit),
       ComponentsModel::RoleNames().key("unit"));
 }
@@ -433,6 +466,12 @@ void ComponentInspector::Update(const UpdateInfo &,
       continue;
     }
 
+    if (typeId == components::Light::typeId)
+    {
+      this->SetType("light");
+      continue;
+    }
+
     if (typeId == components::Actor::typeId)
     {
       this->SetType("actor");
@@ -601,9 +640,37 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, comp->Data());
     }
+    else if (typeId == components::PhysicsCollisionDetector::typeId)
+    {
+      auto comp = _ecm.Component<components::PhysicsCollisionDetector>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::PhysicsSolver::typeId)
+    {
+      auto comp = _ecm.Component<components::PhysicsSolver>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
     else if (typeId == components::Pose::typeId)
     {
       auto comp = _ecm.Component<components::Pose>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::RenderEngineGuiPlugin::typeId)
+    {
+      auto comp = _ecm.Component<components::RenderEngineGuiPlugin>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::RenderEngineServerPlugin::typeId)
+    {
+      auto comp = _ecm.Component<components::RenderEngineServerPlugin>(
+          this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }

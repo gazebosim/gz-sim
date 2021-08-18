@@ -20,7 +20,6 @@
 #include <ignition/msgs/serialized_map.pb.h>
 
 #include <QtCore>
-#include <memory>
 #include <string>
 
 #include <ignition/utils/ImplPtr.hh>
@@ -36,7 +35,6 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 /// \brief Responsible for running GUI systems as new states are received from
 /// the backend.
-
 class IGNITION_GAZEBO_GUI_VISIBLE GuiRunner : public QObject
 {
   Q_OBJECT
@@ -51,6 +49,7 @@ class IGNITION_GAZEBO_GUI_VISIBLE GuiRunner : public QObject
   public: ~GuiRunner() override;
 
   /// \brief Callback when a plugin has been added.
+  /// This function has no effect and is left here for ABI compatibility.
   /// \param[in] _objectName Plugin's object name.
   public slots: void OnPluginAdded(const QString &_objectName);
 

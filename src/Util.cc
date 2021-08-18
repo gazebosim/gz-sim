@@ -34,6 +34,7 @@
 #include <ignition/common/StringUtils.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/transport/TopicUtils.hh>
+#include <sdf/Types.hh>
 
 #include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/Collision.hh"
@@ -43,6 +44,7 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/ParticleEmitter.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Visual.hh"
@@ -60,8 +62,16 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 math::Pose3d worldPose(const Entity &_entity,
     const EntityComponentManager &_ecm)
 {
+  auto poseComp = _ecm.Component<components::Pose>(_entity);
+  if (nullptr == poseComp)
+  {
+    ignwarn << "Trying to get world pose from entity [" << _entity
+            << "], which doesn't have a pose component" << std::endl;
+    return math::Pose3d();
+  }
+
   // work out pose in world frame
-  math::Pose3d pose = _ecm.Component<components::Pose>(_entity)->Data();
+  math::Pose3d pose = poseComp->Data();
   auto p = _ecm.Component<components::ParentEntity>(_entity);
   while (p)
   {
@@ -127,6 +137,64 @@ std::string scopedName(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
+std::unordered_set<Entity> entitiesFromScopedName(
+    const std::string &_scopedName, const EntityComponentManager &_ecm,
+    Entity _relativeTo, const std::string &_delim)
+{
+  if (_delim.empty())
+  {
+    ignwarn << "Can't process scoped name [" << _scopedName
+            << "] with empty delimiter." << std::endl;
+    return {};
+  }
+
+  // Split names
+  std::vector<std::string> names;
+  size_t pos1 = 0;
+  size_t pos2 = _scopedName.find(_delim);
+  while (pos2 != std::string::npos)
+  {
+    names.push_back(_scopedName.substr(pos1, pos2 - pos1));
+    pos1 = pos2 + _delim.length();
+    pos2 = _scopedName.find(_delim, pos1);
+  }
+  names.push_back(_scopedName.substr(pos1, _scopedName.size()-pos1));
+
+  // Holds current entities that match and is updated for each name
+  std::vector<Entity> resVector;
+
+  // If there's an entity we're relative to, treat it as the first level result
+  if (_relativeTo != kNullEntity)
+  {
+    resVector = {_relativeTo};
+  }
+
+  for (const auto &name : names)
+  {
+    std::vector<Entity> current;
+    if (resVector.empty())
+    {
+      current = _ecm.EntitiesByComponents(components::Name(name));
+    }
+    else
+    {
+      for (auto res : resVector)
+      {
+        auto matches = _ecm.EntitiesByComponents(components::Name(name),
+            components::ParentEntity(res));
+        std::copy(std::begin(matches), std::end(matches),
+            std::back_inserter(current));
+      }
+    }
+    if (current.empty())
+      return {};
+    resVector = current;
+  }
+
+  return std::unordered_set<Entity>(resVector.begin(), resVector.end());
+}
+
+//////////////////////////////////////////////////
 ComponentTypeId entityTypeId(const Entity &_entity,
     const EntityComponentManager &_ecm)
 {
@@ -167,6 +235,10 @@ ComponentTypeId entityTypeId(const Entity &_entity,
   else if (_ecm.Component<components::Actor>(_entity))
   {
     type = components::Actor::typeId;
+  }
+  else if (_ecm.Component<components::ParticleEmitter>(_entity))
+  {
+    type = components::ParticleEmitter::typeId;
   }
 
   return type;
@@ -214,6 +286,10 @@ std::string entityTypeStr(const Entity &_entity,
   {
     type = "actor";
   }
+  else if (_ecm.Component<components::ParticleEmitter>(_entity))
+  {
+    type = "particle_emitter";
+  }
 
   return type;
 }
@@ -235,6 +311,12 @@ Entity worldEntity(const Entity &_entity,
     entity = parentComp->Data();
   }
   return entity;
+}
+
+//////////////////////////////////////////////////
+Entity worldEntity(const EntityComponentManager &_ecm)
+{
+  return _ecm.EntityByComponents(components::World());
 }
 
 //////////////////////////////////////////////////
@@ -286,7 +368,7 @@ std::string asFullPath(const std::string &_uri, const std::string &_filePath)
 #endif
 
   // When SDF is loaded from a string instead of a file
-  if ("data-string" == _filePath)
+  if (std::string(sdf::kSdfStringSource) == _filePath)
   {
     ignwarn << "Can't resolve full path for relative path ["
             << _uri << "]. Loaded from a data-string." << std::endl;
@@ -433,6 +515,23 @@ ignition::gazebo::Entity topLevelModel(const Entity &_entity,
   }
 
   return modelEntity;
+}
+
+//////////////////////////////////////////////////
+std::string topicFromScopedName(const Entity &_entity,
+    const EntityComponentManager &_ecm, bool _excludeWorld)
+{
+  std::string topic = scopedName(_entity, _ecm, "/", true);
+
+  if (_excludeWorld)
+  {
+    // Exclude the world name. If the entity is a world, then return an
+    // empty string.
+    topic = _ecm.Component<components::World>(_entity) ? "" :
+      removeParentScope(removeParentScope(topic, "/"), "/");
+  }
+
+  return transport::TopicUtils::AsValidTopic("/" + topic);
 }
 
 //////////////////////////////////////////////////

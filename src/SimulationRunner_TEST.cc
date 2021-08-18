@@ -22,7 +22,9 @@
 #include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
 #include <sdf/Box.hh>
+#include <sdf/Capsule.hh>
 #include <sdf/Cylinder.hh>
+#include <sdf/Ellipsoid.hh>
 #include <sdf/Joint.hh>
 #include <sdf/JointAxis.hh>
 #include <sdf/Model.hh>
@@ -150,9 +152,9 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       components::Wind::typeId));
 
   // Check entities
-  // 1 x world + 1 x (default) level + 1 x wind + 3 x model + 3 x link + 3 x
-  // collision + 3 x visual + 1 x light
-  EXPECT_EQ(16u, runner.EntityCompMgr().EntityCount());
+  // 1 x world + 1 x (default) level + 1 x wind + 5 x model + 5 x link + 5 x
+  // collision + 5 x visual + 1 x light
+  EXPECT_EQ(24u, runner.EntityCompMgr().EntityCount());
 
   // Check worlds
   unsigned int worldCount{0};
@@ -186,6 +188,8 @@ TEST_P(SimulationRunnerTest, CreateEntities)
   Entity boxModelEntity = kNullEntity;
   Entity cylModelEntity = kNullEntity;
   Entity sphModelEntity = kNullEntity;
+  Entity capModelEntity = kNullEntity;
+  Entity ellipModelEntity = kNullEntity;
   runner.EntityCompMgr().Each<components::Model,
                             components::Pose,
                             components::ParentEntity,
@@ -225,19 +229,37 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         EXPECT_EQ("sphere", _name->Data());
         sphModelEntity = _entity;
       }
+      else if (modelCount == 4)
+      {
+        EXPECT_EQ(ignition::math::Pose3d(-4, -5, -6, 0, 0, 1),
+            _pose->Data());
+        EXPECT_EQ("capsule", _name->Data());
+        capModelEntity = _entity;
+      }
+      else if (modelCount == 5)
+      {
+        EXPECT_EQ(ignition::math::Pose3d(4, 5, 6, 0, 0, 1),
+            _pose->Data());
+        EXPECT_EQ("ellipsoid", _name->Data());
+        ellipModelEntity = _entity;
+      }
       return true;
     });
 
-  EXPECT_EQ(3u, modelCount);
+  EXPECT_EQ(5u, modelCount);
   EXPECT_NE(kNullEntity, boxModelEntity);
   EXPECT_NE(kNullEntity, cylModelEntity);
   EXPECT_NE(kNullEntity, sphModelEntity);
+  EXPECT_NE(kNullEntity, capModelEntity);
+  EXPECT_NE(kNullEntity, ellipModelEntity);
 
   // Check links
   unsigned int linkCount{0};
   Entity boxLinkEntity = kNullEntity;
   Entity cylLinkEntity = kNullEntity;
   Entity sphLinkEntity = kNullEntity;
+  Entity capLinkEntity = kNullEntity;
+  Entity ellipLinkEntity = kNullEntity;
   runner.EntityCompMgr().Each<components::Link,
                             components::Pose,
                             components::ParentEntity,
@@ -279,13 +301,31 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         EXPECT_EQ(sphModelEntity, _parent->Data());
         sphLinkEntity = _entity;
       }
+      else if (linkCount == 4)
+      {
+        EXPECT_EQ(ignition::math::Pose3d(0.5, 0.5, 0.5, 0, 0, 0),
+            _pose->Data());
+        EXPECT_EQ("capsule_link", _name->Data());
+        EXPECT_EQ(capModelEntity, _parent->Data());
+        capLinkEntity = _entity;
+      }
+      else if (linkCount == 5)
+      {
+        EXPECT_EQ(ignition::math::Pose3d(0.8, 0.8, 0.8, 0, 0, 0),
+            _pose->Data());
+        EXPECT_EQ("ellipsoid_link", _name->Data());
+        EXPECT_EQ(ellipModelEntity, _parent->Data());
+        ellipLinkEntity = _entity;
+      }
       return true;
     });
 
-  EXPECT_EQ(3u, linkCount);
+  EXPECT_EQ(5u, linkCount);
   EXPECT_NE(kNullEntity, boxLinkEntity);
   EXPECT_NE(kNullEntity, cylLinkEntity);
   EXPECT_NE(kNullEntity, sphLinkEntity);
+  EXPECT_NE(kNullEntity, capLinkEntity);
+  EXPECT_NE(kNullEntity, ellipLinkEntity);
 
   // Check inertials
   unsigned int inertialCount{0};
@@ -317,10 +357,22 @@ TEST_P(SimulationRunnerTest, CreateEntities)
                                      math::Vector3d::Zero),
                   _inertial->Data().MassMatrix());
       }
+      else if (_entity == capLinkEntity)
+      {
+        EXPECT_EQ(math::MassMatrix3d(2.0, math::Vector3d(2.0, 2.0, 2.0),
+                                     math::Vector3d::Zero),
+                  _inertial->Data().MassMatrix());
+      }
+      else if (_entity == ellipLinkEntity)
+      {
+        EXPECT_EQ(math::MassMatrix3d(3.0, math::Vector3d(3.0, 3.0, 3.0),
+                                     math::Vector3d::Zero),
+                  _inertial->Data().MassMatrix());
+      }
       return true;
     });
 
-  EXPECT_EQ(3u, inertialCount);
+  EXPECT_EQ(5u, inertialCount);
 
   // Check collisions
   unsigned int collisionCount{0};
@@ -385,10 +437,38 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         EXPECT_NE(nullptr, _geometry->Data().SphereShape());
         EXPECT_DOUBLE_EQ(23.4, _geometry->Data().SphereShape()->Radius());
       }
+      else if (collisionCount == 4)
+      {
+        EXPECT_EQ(ignition::math::Pose3d(0.51, 0.51, 0.51, 0, 0, 0),
+            _pose->Data());
+
+        EXPECT_EQ("capsule_collision", _name->Data());
+
+        EXPECT_EQ(capLinkEntity, _parent->Data());
+
+        EXPECT_EQ(sdf::GeometryType::CAPSULE, _geometry->Data().Type());
+        EXPECT_NE(nullptr, _geometry->Data().CapsuleShape());
+        EXPECT_DOUBLE_EQ(0.23, _geometry->Data().CapsuleShape()->Radius());
+        EXPECT_DOUBLE_EQ(0.14, _geometry->Data().CapsuleShape()->Length());
+      }
+      else if (collisionCount == 5)
+      {
+        EXPECT_EQ(ignition::math::Pose3d(0.81, 0.81, 0.81, 0, 0, 0),
+            _pose->Data());
+
+        EXPECT_EQ("ellipsoid_collision", _name->Data());
+
+        EXPECT_EQ(ellipLinkEntity, _parent->Data());
+
+        EXPECT_EQ(sdf::GeometryType::ELLIPSOID, _geometry->Data().Type());
+        EXPECT_NE(nullptr, _geometry->Data().EllipsoidShape());
+        EXPECT_EQ(ignition::math::Vector3d(0.4, 0.6, 1.6),
+        _geometry->Data().EllipsoidShape()->Radii());
+      }
       return true;
     });
 
-  EXPECT_EQ(3u, collisionCount);
+  EXPECT_EQ(5u, collisionCount);
 
   // Check visuals
   unsigned int visualCount{0};
@@ -471,10 +551,48 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         EXPECT_EQ(math::Color(0, 0, 1), _material->Data().Diffuse());
         EXPECT_EQ(math::Color(0, 0, 1), _material->Data().Specular());
       }
+      else if (visualCount == 4)
+      {
+        EXPECT_EQ(ignition::math::Pose3d(0.52, 0.52, 0.52, 0, 0, 0),
+            _pose->Data());
+
+        EXPECT_EQ("capsule_visual", _name->Data());
+
+        EXPECT_EQ(capLinkEntity, _parent->Data());
+
+        EXPECT_EQ(sdf::GeometryType::CAPSULE, _geometry->Data().Type());
+        EXPECT_NE(nullptr, _geometry->Data().CapsuleShape());
+        EXPECT_DOUBLE_EQ(2.12, _geometry->Data().CapsuleShape()->Radius());
+        EXPECT_DOUBLE_EQ(1.23, _geometry->Data().CapsuleShape()->Length());
+
+        EXPECT_EQ(math::Color(0.0f, 0.0f, 0.0f), _material->Data().Emissive());
+        EXPECT_EQ(math::Color(0.0f, 0.0f, 1.0f), _material->Data().Ambient());
+        EXPECT_EQ(math::Color(0.0f, 0.0f, 1.0f), _material->Data().Diffuse());
+        EXPECT_EQ(math::Color(0.0f, 1.0f, 0.0f), _material->Data().Specular());
+      }
+      else if (visualCount == 5)
+      {
+        EXPECT_EQ(ignition::math::Pose3d(0.82, 0.82, 0.82, 0, 0, 0),
+            _pose->Data());
+
+        EXPECT_EQ("ellipsoid_visual", _name->Data());
+
+        EXPECT_EQ(ellipLinkEntity, _parent->Data());
+
+        EXPECT_EQ(sdf::GeometryType::ELLIPSOID, _geometry->Data().Type());
+        EXPECT_NE(nullptr, _geometry->Data().EllipsoidShape());
+        EXPECT_EQ(ignition::math::Vector3d(0.4, 0.6, 1.6),
+          _geometry->Data().EllipsoidShape()->Radii());
+
+        EXPECT_EQ(math::Color(0.0f, 0.0f, 0.0f), _material->Data().Emissive());
+        EXPECT_EQ(math::Color(1.0f, 0.0f, 1.0f), _material->Data().Ambient());
+        EXPECT_EQ(math::Color(1.0f, 0.0f, 1.0f), _material->Data().Diffuse());
+        EXPECT_EQ(math::Color(1.0f, 0.0f, 1.0f), _material->Data().Specular());
+      }
       return true;
     });
 
-  EXPECT_EQ(3u, visualCount);
+  EXPECT_EQ(5u, visualCount);
 
   // Check lights
   unsigned int lightCount{0};
@@ -667,9 +785,9 @@ TEST_P(SimulationRunnerTest, CreateLights)
       EXPECT_NE(nullptr, _geometry->Data().SphereShape());
       EXPECT_DOUBLE_EQ(0.5, _geometry->Data().SphereShape()->Radius());
 
-      EXPECT_EQ(math::Color(0.3, 0.3, 0.3), _material->Data().Ambient());
-      EXPECT_EQ(math::Color(0.3, 0.3, 0.3), _material->Data().Diffuse());
-      EXPECT_EQ(math::Color(0.3, 0.3, 0.3), _material->Data().Specular());
+      EXPECT_EQ(math::Color(0.3f, 0.3f, 0.3f), _material->Data().Ambient());
+      EXPECT_EQ(math::Color(0.3f, 0.3f, 0.3f), _material->Data().Diffuse());
+      EXPECT_EQ(math::Color(0.3f, 0.3f, 0.3f), _material->Data().Specular());
       return true;
     });
 
@@ -1452,7 +1570,7 @@ TEST_P(SimulationRunnerTest, GenerateWorldSdf)
   ASSERT_EQ(1u, newRoot.WorldCount());
 
   const auto* world = newRoot.WorldByIndex(0);
-  EXPECT_EQ(3u, world->ModelCount());
+  EXPECT_EQ(5u, world->ModelCount());
 }
 
 // Run multiple times. We want to make sure that static globals don't cause

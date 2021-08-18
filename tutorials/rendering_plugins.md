@@ -8,7 +8,7 @@ This is not to be confused with integrating a new rendering engine. See
 for that.
 
 This tutorial will go over a couple of example plugins that are located at
-https://github.com/ignitionrobotics/ign-gazebo/tree/main/examples/plugin/rendering_plugins.
+https://github.com/ignitionrobotics/ign-gazebo/tree/ign-gazebo5/examples/plugin/rendering_plugins.
 
 ## Scenes
 
@@ -48,7 +48,7 @@ To interact with the client-side scene, you'll need to write an
 [ignition::gui::Plugin](https://ignitionrobotics.org/api/gui/4.1/classignition_1_1gui_1_1Plugin.html),
 or a more specialized `ignition::gazebo::GuiSystem`
 if you need to access entities and components.
-See the [GUI system plugin example](https://github.com/ignitionrobotics/ign-gazebo/tree/main/examples/plugin/gui_system_plugin).
+See the [GUI system plugin example](https://github.com/ignitionrobotics/ign-gazebo/tree/ign-gazebo5/examples/plugin/gui_system_plugin).
 
 ## Getting the scene
 
@@ -123,7 +123,7 @@ Here's how to do it:
 ## Running examples
 
 Follow the build instructions on the rendering plugins
-[README](https://github.com/ignitionrobotics/ign-gazebo/blob/main/examples/plugin/rendering_plugins)
+[README](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo5/examples/plugin/rendering_plugins)
 and you'll generate both plugins:
 
 * `RenderingGuiPlugin`: GUI plugin that updates the GUI scene's ambient light with a random color at each click.
