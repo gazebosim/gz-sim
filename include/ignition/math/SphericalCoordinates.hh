@@ -230,7 +230,6 @@ namespace ignition
 #pragma warning(pop)
 #endif
     };
-    /// \}
     }
   }
 }

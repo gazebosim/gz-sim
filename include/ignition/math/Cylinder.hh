@@ -96,7 +96,6 @@ namespace ignition
       /// \brief Set the rotation offset.
       /// See Quaternion<Precision> RotationalOffset() for details on the
       /// rotational offset.
-      /// \return The cylinder's orientation.
       /// \sa Quaternion<Precision> RotationalOffset() const
       public: void SetRotationalOffset(
                   const Quaternion<Precision> &_rotOffset);
