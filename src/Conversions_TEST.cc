@@ -997,7 +997,7 @@ TEST(Conversions, ParticleEmitter)
   EXPECT_EQ("topic", header.key());
   EXPECT_EQ("my_topic", header.value(0));
 
-  EXPECT_FLOAT_EQ(0.9f, emitterMsg.particle_scatter_ratio());
+  EXPECT_FLOAT_EQ(0.9f, emitterMsg.particle_scatter_ratio().data());
 
   EXPECT_EQ(math::Pose3d(1, 2, 3, 0, 0, 0), msgs::Convert(emitterMsg.pose()));
 
