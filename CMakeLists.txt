@@ -44,7 +44,7 @@ endif()
 # as protobuf could be find transitively by any dependency
 set(protobuf_MODULE_COMPATIBLE TRUE)
 
-ign_find_package(sdformat9 REQUIRED VERSION 9.5.0)
+ign_find_package(sdformat9 REQUIRED VERSION 9.6.0)
 set(SDF_VER ${sdformat9_VERSION_MAJOR})
 
 #--------------------------------------
