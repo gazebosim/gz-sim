@@ -30,6 +30,7 @@
 #include <ignition/transport/Node.hh>
 
 #include "msgs/simulation_step.pb.h"
+#include <ignition/msgs/boolean.pb.h>
 
 #include "NetworkManager.hh"
 
@@ -90,7 +91,9 @@ namespace ignition
 
       /// \brief Callback for step ack messages.
       /// \param[in] _msg Message containing secondary's updated state.
-      private: void OnStepAck(const msgs::SerializedStateMap &_msg);
+      /// TO-DO use a proper msg type for this type of acknowledge
+      // private: void OnStepAck(const msgs::SerializedStateMap &_msg);
+      private: void OnStepAck(const msgs::Boolean &_msg);
 
       /// \brief Check if the step publisher has connections.
       private: bool SecondariesCanStep() const;
@@ -117,7 +120,7 @@ namespace ignition
       private: ignition::transport::Node::Publisher simStepPub;
 
       /// \brief Keep track of states received from secondaries.
-      private: std::vector<msgs::SerializedStateMap> secondaryStates;
+      private: std::vector<msgs::Boolean> secondaryStates;
 
       /// \brief Promise used to notify when all secondaryStates where received.
       private: std::promise<void> secondaryStatesPromise;

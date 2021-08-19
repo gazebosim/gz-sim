@@ -61,7 +61,7 @@ NetworkManagerSecondary::NetworkManagerSecondary(
 
   this->node.Subscribe("step", &NetworkManagerSecondary::OnStep, this);
 
-  this->stepAckPub = this->node.Advertise<msgs::SerializedStateMap>("step_ack");
+  this->stepAckPub = this->node.Advertise<msgs::Boolean>("step_ack");
 }
 
 //////////////////////////////////////////////////

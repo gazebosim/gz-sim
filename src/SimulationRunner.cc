@@ -124,20 +124,22 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // If the configuration is invalid, then networkMgr will be `nullptr`.
   if (_config.UseDistributedSimulation())
   {
-    if (_config.NetworkRole().empty())
-    {
-      /// \todo(nkoenig) Remove part of the 'if' statement in ign-gazebo3.
-      this->networkMgr = NetworkManager::Create(
-          std::bind(&SimulationRunner::Step, this, std::placeholders::_1),
-          this->entityCompMgr, &this->eventMgr);
-    }
-    else
+    if (_config.NetworkRole() == "primary" ||
+        _config.NetworkRole() == "secondary")
     {
       this->networkMgr = NetworkManager::Create(
           std::bind(&SimulationRunner::Step, this, std::placeholders::_1),
           this->entityCompMgr, &this->eventMgr,
           NetworkConfig::FromValues(
             _config.NetworkRole(), _config.NetworkSecondaries()));
+    }
+    else
+    {
+      ignerr << "Can't start distributed simulation without a valid role set."
+             << std::endl;
+      ignerr << "Expected: primary,secondary, Role received: "
+             << _config.NetworkRole() << std::endl;
+      return;
     }
 
     if (this->networkMgr)
@@ -160,6 +162,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->levelMgr->UpdateLevelsState();
 
   // Load any additional plugins from the Server Configuration
+  ignwarn << "Load server plugins 1" << std::endl;
   this->LoadServerPlugins(this->serverConfig.Plugins());
 
   // If we have reached this point and no systems have been loaded, then load
@@ -480,14 +483,40 @@ void SimulationRunner::AddSystemToRunner(SystemInternal _system)
 {
   this->systems.push_back(_system);
 
-  if (_system.preupdate)
-    this->systemsPreupdate.push_back(_system.preupdate);
+  // Decide if the system is going to be added to the list of systems
+  // based on its current role.
+  // TO-DO: doing this does not disable running the configure method of the
+  // system. Verify if running that and not running the system later do not
+  // cause issues with the simulation
+  if (this->networkMgr)
+  {
+    if (this->networkMgr->IsSecondary())
+    {
+      igndbg << "Adding system to Secondary." << std::endl;
+      if (_system.postupdate)
+        this->systemsPostupdate.push_back(_system.postupdate);
+    }
+    else
+    {
+      igndbg << "Adding system to primary." << std::endl;
+      if (_system.preupdate)
+        this->systemsPreupdate.push_back(_system.preupdate);
 
-  if (_system.update)
-    this->systemsUpdate.push_back(_system.update);
+      if (_system.update)
+        this->systemsUpdate.push_back(_system.update);
+    }
+  }
+  else
+  {
+    if (_system.preupdate)
+      this->systemsPreupdate.push_back(_system.preupdate);
 
-  if (_system.postupdate)
-    this->systemsPostupdate.push_back(_system.postupdate);
+    if (_system.update)
+      this->systemsUpdate.push_back(_system.update);
+
+    if (_system.postupdate)
+      this->systemsPostupdate.push_back(_system.postupdate);
+  }
 }
 
 /////////////////////////////////////////////////
@@ -511,7 +540,7 @@ void SimulationRunner::ProcessSystemQueue()
   // If additional systems were added, recreate the worker threads.
   if (pending > 0)
   {
-    igndbg << "Creating PostUpdate worker threads: "
+    ignwarn << "Creating PostUpdate worker threads: "
       << this->systemsPostupdate.size() + 1 << std::endl;
 
     this->postUpdateStartBarrier =
@@ -863,7 +892,7 @@ void SimulationRunner::LoadPlugin(const Entity _entity,
   if (system)
   {
     this->AddSystem(system.value(), _entity, _sdf);
-    igndbg << "Loaded system [" << _name
+    ignwarn << "Loaded system [" << _name
            << "] for entity [" << _entity << "]" << std::endl;
   }
 }
@@ -945,6 +974,7 @@ void SimulationRunner::LoadServerPlugins(
 
     if (kNullEntity != entity)
     {
+      ignwarn << "Loading server plugin" << std::endl;
       this->LoadPlugin(entity, plugin.Filename(), plugin.Name(), plugin.Sdf());
     }
   }
@@ -979,6 +1009,7 @@ void SimulationRunner::LoadLoggingPlugins(const ServerConfig &_config)
 void SimulationRunner::LoadPlugins(const Entity _entity,
     const sdf::ElementPtr &_sdf)
 {
+  //ignwarn << "Load plugins called" << std::endl;
   sdf::ElementPtr pluginElem = _sdf->GetElement("plugin");
   while (pluginElem)
   {

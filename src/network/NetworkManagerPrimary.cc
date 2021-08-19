@@ -52,7 +52,8 @@ NetworkManagerPrimary::NetworkManagerPrimary(
   NetworkManager(_stepFunction, _ecm, _eventMgr, _config, _options),
   node(_options)
 {
-  this->simStepPub = this->node.Advertise<private_msgs::SimulationStep>("step");
+  // this->simStepPub = this->node.Advertise<private_msgs::SimulationStep>("step");
+  this->simStepPub = this->node.Advertise<msgs::SerializedStateMap>("step_state");
 
   this->node.Subscribe("step_ack", &NetworkManagerPrimary::OnStepAck, this);
 }
@@ -142,11 +143,28 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
     return false;
   }
 
-  // Send step to all secondaries
+  // STEP PRE-UPDATE + Update PHASE
+  // CHANGE STEP FUNCTION @ primary to only run those sections
+  // Step all systems
+  this->dataPtr->stepFunction(_info);
+
+  // Send full serialized step to all the secondaries
+  // TO-DO(blast545): consider getting the only component id types required for
+  // postUpdate tasks
+  msgs::SerializedStateMap stateMsg;
+  this->dataPtr->ecm->State(stateMsg);
+
+  // `has_one_time_component_changes` field is available in Edifice so this
+  // workaround can be removed
+  auto data = stateMsg.mutable_header()->add_data();
+  data->set_key("has_one_time_component_changes");
+  data->add_value(this->dataPtr->ecm->HasOneTimeComponentChanges() ? "1" : "0");
+
+  // Send current serialized state to all
   this->secondaryStates.clear();
   this->secondaryStatesPromise = std::promise<void>{};
   auto future = this->secondaryStatesPromise.get_future();
-  this->simStepPub.Publish(step);
+  this->simStepPub.Publish(stateMsg);
 
   // Block until all secondaries are done
   {
@@ -165,18 +183,16 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
     }
   }
 
-  // Update primary state with states received from secondaries
-  {
-    IGN_PROFILE("Updating primary state");
-    for (const auto &msg : this->secondaryStates)
-    {
-      this->dataPtr->ecm->SetState(msg);
-    }
-    this->secondaryStates.clear();
-  }
-
-  // Step all systems
-  this->dataPtr->stepFunction(_info);
+  // I think updating is not needed, as postUpdates publish to their topics
+  // Revisit this commented section if needed
+  // {
+  //   IGN_PROFILE("Updating primary state");
+  //   for (const auto &msg : this->secondaryStates)
+  //   {
+  //     this->dataPtr->ecm->SetState(msg);
+  //   }
+  //   this->secondaryStates.clear();
+  // }
 
   this->dataPtr->ecm->SetAllComponentsUnchanged();
 
@@ -197,7 +213,7 @@ std::map<std::string, SecondaryControl::Ptr>
 }
 
 //////////////////////////////////////////////////
-void NetworkManagerPrimary::OnStepAck(const msgs::SerializedStateMap &_msg)
+void NetworkManagerPrimary::OnStepAck(const msgs::Boolean &_msg)
 {
   this->secondaryStates.push_back(_msg);
   if (this->secondaryStates.size() == this->secondaries.size())
