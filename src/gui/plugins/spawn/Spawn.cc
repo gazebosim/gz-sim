@@ -21,8 +21,10 @@
 #include <ignition/msgs/stringmsg.pb.h>
 
 #include <algorithm>
+#include <limits>
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Profiler.hh>
