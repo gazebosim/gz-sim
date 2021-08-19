@@ -1612,6 +1612,8 @@ sdf::ParticleEmitter ignition::gazebo::convert(const msgs::ParticleEmitter &_in)
     out.SetScaleRate(_in.scale_rate().data());
   if (_in.has_color_range_image())
     out.SetColorRangeImage(_in.color_range_image().data());
+  if (_in.has_particle_scatter_ratio())
+    out.SetScatterRatio(_in.particle_scatter_ratio().data());
 
   for (int i = 0; i < _in.header().data_size(); ++i)
   {
@@ -1619,10 +1621,6 @@ sdf::ParticleEmitter ignition::gazebo::convert(const msgs::ParticleEmitter &_in)
     if (data.key() == "topic" && data.value_size() > 0)
     {
       out.SetTopic(data.value(0));
-    }
-    else if (data.key() == "particle_scatter_ratio" && data.value_size() > 0)
-    {
-      out.SetScatterRatio(std::stof(data.value(0)));
     }
   }
 
