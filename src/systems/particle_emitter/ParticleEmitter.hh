@@ -119,7 +119,7 @@ namespace systems
         public ISystemPreUpdate
   {
     /// \brief Constructor
-    public: ParticleEmitter();
+    public: IGN_DEPRECATED(6) ParticleEmitter();
 
     // Documentation inherited
     public: void Configure(const Entity &_entity,

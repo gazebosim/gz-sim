@@ -1560,13 +1560,7 @@ msgs::ParticleEmitter ignition::gazebo::convert(const sdf::ParticleEmitter &_in)
     header->add_value(_in.Topic());
   }
 
-  // todo(anyone) Use particle_scatter_ratio in particle_emitter.proto from
-  // Fortress on.
-  auto header = out.mutable_header()->add_data();
-  header->set_key("particle_scatter_ratio");
-  std::string *value = header->add_value();
-  *value = std::to_string(_in.ScatterRatio());
-
+  out.mutable_particle_scatter_ratio()->set_data(_in.ScatterRatio());
   return out;
 }
 
