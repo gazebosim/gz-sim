@@ -20,11 +20,11 @@ class TestGaussMarkovProcess(unittest.TestCase):
 
     def test_default_constructor(self):
         gmp = GaussMarkovProcess()
-        self.assertAlmostEqual(0.0, gmp.Start())
-        self.assertAlmostEqual(0.0, gmp.Value())
-        self.assertAlmostEqual(0.0, gmp.Theta())
-        self.assertAlmostEqual(0.0, gmp.Mu())
-        self.assertAlmostEqual(0.0, gmp.Sigma())
+        self.assertAlmostEqual(0.0, gmp.start())
+        self.assertAlmostEqual(0.0, gmp.value())
+        self.assertAlmostEqual(0.0, gmp.theta())
+        self.assertAlmostEqual(0.0, gmp.mu())
+        self.assertAlmostEqual(0.0, gmp.sigma())
 
     def test_no_noise(self):
         # Start value of -1.2
@@ -32,23 +32,23 @@ class TestGaussMarkovProcess(unittest.TestCase):
         # Mu (mean value) 2.5
         # Sigma (volatility) of 0.0
         gmp = GaussMarkovProcess(-1.2, 1.0, 2.5, 0)
-        self.assertAlmostEqual(-1.2, gmp.Start())
-        self.assertAlmostEqual(-1.2, gmp.Value())
-        self.assertAlmostEqual(1.0, gmp.Theta())
-        self.assertAlmostEqual(2.5, gmp.Mu())
-        self.assertAlmostEqual(0.0, gmp.Sigma())
+        self.assertAlmostEqual(-1.2, gmp.start())
+        self.assertAlmostEqual(-1.2, gmp.value())
+        self.assertAlmostEqual(1.0, gmp.theta())
+        self.assertAlmostEqual(2.5, gmp.mu())
+        self.assertAlmostEqual(0.0, gmp.sigma())
 
         # This process should steadily increase to the mean value of 2.5 since
         # there is no noise.
         for i in range(200):
-            value = gmp.Update(0.1)
+            value = gmp.update(0.1)
             self.assertGreater(value, -1.2)
 
         self.assertAlmostEqual(2.5, value, delta=1e-4)
 
-        gmp.Reset()
+        gmp.reset()
         for i in range(200):
-            value = gmp.Update(0.1)
+            value = gmp.update(0.1)
             self.assertGreater(value, -1.2)
 
         self.assertAlmostEqual(2.5, value, delta=1e-4)

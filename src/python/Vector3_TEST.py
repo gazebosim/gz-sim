@@ -21,14 +21,14 @@ class TestVector3(unittest.TestCase):
 
     def test_construction(self):
         v = Vector3d()
-        self.assertAlmostEqual(0.0, v.X())
-        self.assertAlmostEqual(0.0, v.Y())
-        self.assertAlmostEqual(0.0, v.Z())
+        self.assertAlmostEqual(0.0, v.x())
+        self.assertAlmostEqual(0.0, v.y())
+        self.assertAlmostEqual(0.0, v.z())
 
         vec = Vector3d(1, 0, 0)
-        self.assertEqual(vec.X(), 1)
-        self.assertEqual(vec.Y(), 0)
-        self.assertEqual(vec.Z(), 0)
+        self.assertEqual(vec.x(), 1)
+        self.assertEqual(vec.y(), 0)
+        self.assertEqual(vec.z(), 0)
 
         vec2 = Vector3d(vec)
         self.assertEqual(vec2, vec)
@@ -42,28 +42,28 @@ class TestVector3(unittest.TestCase):
         self.assertNotEqual(vec, vec4)
 
     def test_vector3(self):
-        # Distance, Length()
+        # Distance, length()
         v = Vector3d(1, 2, 3)
-        self.assertEqual(v.Length(), v.Distance(Vector3d.Zero))
+        self.assertEqual(v.length(), v.distance(Vector3d.ZERO))
 
         # Rounded
-        v.Set(1.23, 2.34, 3.55)
-        self.assertEqual(v.Rounded(), Vector3d(1, 2, 4))
+        v.set(1.23, 2.34, 3.55)
+        self.assertEqual(v.rounded(), Vector3d(1, 2, 4))
 
         # Round
-        v.Round()
-        self.assertEqual(v.Round(), Vector3d(1, 2, 4))
+        v.round()
+        self.assertEqual(v.round(), Vector3d(1, 2, 4))
 
         # DotProd
-        self.assertEqual(v.Dot(Vector3d(1, 2, 3)), 17.0)
+        self.assertEqual(v.dot(Vector3d(1, 2, 3)), 17.0)
 
         # DistToLine
-        v.Set(0, 0, 0)
-        self.assertEqual(1.0, v.DistToLine(Vector3d(1, -1, 0),
+        v.set(0, 0, 0)
+        self.assertEqual(1.0, v.dist_to_line(Vector3d(1, -1, 0),
                          Vector3d(1, 1, 0)))
 
         # __truediv__
-        v.Set(4, 4, 4)
+        v.set(4, 4, 4)
         v = v / Vector3d(1, 2, 4)
         self.assertEqual(v, Vector3d(4, 2, 1))
 
@@ -75,51 +75,51 @@ class TestVector3(unittest.TestCase):
         v = v * Vector3d(2, 3, 4)
         self.assertEqual(v, Vector3d(4, 3, 2))
 
-        v.Set(1.23, 2.35, 3.654321)
-        v.Round(1)
+        v.set(1.23, 2.35, 3.654321)
+        v.round(1)
         self.assertEqual(v, Vector3d(1.2, 2.4, 3.7))
 
         # Abs
-        v.Set(-1, -2, -3)
-        self.assertEqual(v.Abs(), Vector3d(1, 2, 3))
+        v.set(-1, -2, -3)
+        self.assertEqual(v.abs(), Vector3d(1, 2, 3))
 
         # __truediv__
-        v.Set(1, 2, 4)
+        v.set(1, 2, 4)
         v /= Vector3d(1, 4, 4)
         self.assertEqual(v, Vector3d(1, 0.5, 1))
 
         # __mul__
-        v.Set(1, 2, 4)
+        v.set(1, 2, 4)
         v *= Vector3d(2, 0.5, 0.1)
-        self.assertTrue(v.Equal(Vector3d(2, 1, 0.4)))
+        self.assertTrue(v.equal(Vector3d(2, 1, 0.4)))
 
         # Test the static defines.
-        self.assertEqual(Vector3d.Zero, Vector3d(0, 0, 0))
+        self.assertEqual(Vector3d.ZERO, Vector3d(0, 0, 0))
 
-        self.assertEqual(Vector3d.One, Vector3d(1, 1, 1))
+        self.assertEqual(Vector3d.ONE, Vector3d(1, 1, 1))
 
-        self.assertEqual(Vector3d.UnitX, Vector3d(1, 0, 0))
+        self.assertEqual(Vector3d.UNIT_X, Vector3d(1, 0, 0))
 
-        self.assertEqual(Vector3d.UnitY, Vector3d(0, 1, 0))
+        self.assertEqual(Vector3d.UNIT_Y, Vector3d(0, 1, 0))
 
-        self.assertEqual(Vector3d.UnitZ, Vector3d(0, 0, 1))
+        self.assertEqual(Vector3d.UNIT_Z, Vector3d(0, 0, 1))
 
     def test_distance(self):
         vec1 = Vector3d(0, 0, 0)
         vec2 = Vector3d(1, 2, 3)
 
-        dist = vec1.Distance(vec2)
+        dist = vec1.distance(vec2)
         self.assertTrue(abs(dist - 3.74165738677) < 1e-6)
 
-        dist2 = vec1.Distance(1, 2, 3)
+        dist2 = vec1.distance(1, 2, 3)
         self.assertEqual(dist, dist2)
 
     def test_sum(self):
         vec1 = Vector3d(0, 0, 0)
         vec2 = Vector3d(1, 2, 3)
 
-        sum1 = vec1.Sum()
-        sum2 = vec2.Sum()
+        sum1 = vec1.sum()
+        sum2 = vec2.sum()
 
         self.assertEqual(sum1, 0)
         self.assertEqual(sum2, 6)
@@ -128,51 +128,51 @@ class TestVector3(unittest.TestCase):
         vec1 = Vector3d(0, 0, 0)
         vec2 = Vector3d(1, 2, 3)
 
-        sum1 = vec1.SquaredLength()
-        sum2 = vec2.SquaredLength()
+        sum1 = vec1.squared_length()
+        sum2 = vec2.squared_length()
 
         self.assertEqual(sum1, 0)
         self.assertEqual(sum2, 14)
 
     def test_length(self):
         # Zero vector
-        self.assertEqual(Vector3d.Zero.Length(), 0.0)
-        self.assertEqual(Vector3d.Zero.SquaredLength(), 0.0)
+        self.assertEqual(Vector3d.ZERO.length(), 0.0)
+        self.assertEqual(Vector3d.ZERO.squared_length(), 0.0)
 
         # UnitXYZ vectorsIgnition::
-        self.assertEqual(Vector3d.UnitX.Length(), 1.0)
-        self.assertEqual(Vector3d.UnitY.Length(), 1.0)
-        self.assertEqual(Vector3d.UnitZ.Length(), 1.0)
-        self.assertEqual(Vector3d.UnitX.SquaredLength(), 1.0)
-        self.assertEqual(Vector3d.UnitY.SquaredLength(), 1.0)
-        self.assertEqual(Vector3d.UnitZ.SquaredLength(), 1.0)
+        self.assertEqual(Vector3d.UNIT_X.length(), 1.0)
+        self.assertEqual(Vector3d.UNIT_Y.length(), 1.0)
+        self.assertEqual(Vector3d.UNIT_Z.length(), 1.0)
+        self.assertEqual(Vector3d.UNIT_X.squared_length(), 1.0)
+        self.assertEqual(Vector3d.UNIT_Y.squared_length(), 1.0)
+        self.assertEqual(Vector3d.UNIT_Z.squared_length(), 1.0)
 
         # One vector
-        self.assertTrue(Vector3d.One.Length() -
+        self.assertTrue(Vector3d.ONE.length() -
                         abs(math.sqrt(3.0)) < 1e-10)
 
-        self.assertEqual(Vector3d.One.SquaredLength(), 3.0)
+        self.assertEqual(Vector3d.ONE.squared_length(), 3.0)
 
         # Arbitrary vector
         v = Vector3d(0.1, -4.2, 2.5)
-        self.assertTrue(abs(v.Length() - 4.88876262463) < 1e-10)
+        self.assertTrue(abs(v.length() - 4.88876262463) < 1e-10)
 
-        self.assertTrue(abs(v.SquaredLength() - 23.9) < 1e-10)
+        self.assertTrue(abs(v.squared_length() - 23.9) < 1e-10)
 
     def test_normalize(self):
         vec1 = Vector3d(0, 0, 0)
         vec2 = Vector3d(1, 2, 3)
 
-        vec3 = vec1.Normalize()
+        vec3 = vec1.normalize()
         self.assertEqual(vec3, vec1)
-        self.assertEqual(vec1, Vector3d.Zero)
+        self.assertEqual(vec1, Vector3d.ZERO)
 
-        vec3 = vec2.Normalize()
+        vec3 = vec2.normalize()
         self.assertEqual(vec3, vec2)
         self.assertEqual(vec2, Vector3d(0.267261, 0.534522, 0.801784))
 
         vecConst = Vector3d(1, 2, 3)
-        self.assertEqual(vecConst.Normalized(), vec3)
+        self.assertEqual(vecConst.normalized(), vec3)
         self.assertEqual(vecConst, Vector3d(1, 2, 3))
 
     def test_ge_normal(self):
@@ -180,7 +180,7 @@ class TestVector3(unittest.TestCase):
         vec2 = Vector3d(0, 1, 0)
         vec3 = Vector3d(1, 1, 0)
 
-        norm = Vector3d.Normal(vec1, vec2, vec3)
+        norm = Vector3d.normal(vec1, vec2, vec3)
         self.assertEqual(norm, Vector3d(0, 0, -1))
 
     def test_perpendicular(self):
@@ -189,22 +189,22 @@ class TestVector3(unittest.TestCase):
         vec3 = Vector3d(1e-7, 1e-7, 1e-7)
         vec4 = Vector3d(1, 0, 0)
 
-        self.assertEqual(vec1.Perpendicular(), Vector3d(0, 0, -1))
-        self.assertEqual(vec2.Perpendicular(), Vector3d(0, 1, -1))
-        self.assertEqual(vec3.Perpendicular(), Vector3d(0, 0, 0))
-        self.assertEqual(vec4.Perpendicular(), Vector3d(0, 0, 1))
+        self.assertEqual(vec1.perpendicular(), Vector3d(0, 0, -1))
+        self.assertEqual(vec2.perpendicular(), Vector3d(0, 1, -1))
+        self.assertEqual(vec3.perpendicular(), Vector3d(0, 0, 0))
+        self.assertEqual(vec4.perpendicular(), Vector3d(0, 0, 1))
 
     def test_max(self):
         vec1 = Vector3d(0.1, 0.2, 0.3)
         vec2 = Vector3d(0.2, 0.3, 0.4)
         vec3 = Vector3d(0.1, 0.2, 0.3)
 
-        self.assertTrue(abs(vec1.Max() - 0.3) < 1e-10)
+        self.assertTrue(abs(vec1.max() - 0.3) < 1e-10)
 
-        vec1.Max(vec2)
+        vec1.max(vec2)
         self.assertEqual(vec1, Vector3d(0.2, 0.3, 0.4))
 
-        vec1.Max(vec3)
+        vec1.max(vec3)
         self.assertEqual(vec1, Vector3d(0.2, 0.3, 0.4))
 
     def test_min(self):
@@ -212,12 +212,12 @@ class TestVector3(unittest.TestCase):
         vec2 = Vector3d(0.2, 0.3, 0.4)
         vec3 = Vector3d(0.05, 0.1, 0.2)
 
-        self.assertTrue(abs(vec1.Min() - 0.1) < 1e-10)
+        self.assertTrue(abs(vec1.min() - 0.1) < 1e-10)
 
-        vec1.Min(vec2)
+        vec1.min(vec2)
         self.assertEqual(vec1, Vector3d(0.1, 0.2, 0.3))
 
-        vec1.Min(vec3)
+        vec1.min(vec3)
         self.assertEqual(vec1, Vector3d(0.05, 0.1, 0.2))
 
     def test_add(self):
@@ -235,14 +235,14 @@ class TestVector3(unittest.TestCase):
         self.assertEqual(vec1 + 0, vec1)
 
         # Vector left and right
-        self.assertEqual(Vector3d.Zero + vec1, vec1)
-        self.assertEqual(vec1 + Vector3d.Zero, vec1)
+        self.assertEqual(Vector3d.ZERO + vec1, vec1)
+        self.assertEqual(vec1 + Vector3d.ZERO, vec1)
 
         # Addition assignment
         vec4 = vec1
         vec4 += 0
         self.assertEqual(vec4, vec1)
-        vec4 += Vector3d.Zero
+        vec4 += Vector3d.ZERO
         self.assertEqual(vec4, vec1)
 
         # Add non-trivial scalar values left and right
@@ -267,14 +267,14 @@ class TestVector3(unittest.TestCase):
         self.assertEqual(vec1 - 0, vec1)
 
         # Vector left and right
-        self.assertEqual(Vector3d.Zero - vec1, -vec1)
-        self.assertEqual(vec1 - Vector3d.Zero, vec1)
+        self.assertEqual(Vector3d.ZERO - vec1, -vec1)
+        self.assertEqual(vec1 - Vector3d.ZERO, vec1)
 
         # Subtraction assignment
         vec4 = vec1
         vec4 -= 0
         self.assertEqual(vec4, vec1)
-        vec4 -= Vector3d.Zero
+        vec4 -= Vector3d.ZERO
         self.assertEqual(vec4, vec1)
 
         # Subtract non-trivial scalar values left and right
@@ -304,17 +304,17 @@ class TestVector3(unittest.TestCase):
 
         # Multiply by zero
         # Scalar right
-        self.assertEqual(v * 0, Vector3d.Zero)
+        self.assertEqual(v * 0, Vector3d.ZERO)
 
         # Element-wise vector multiplication
-        self.assertEqual(v * Vector3d.Zero, Vector3d.Zero)
+        self.assertEqual(v * Vector3d.ZERO, Vector3d.ZERO)
 
         # Multiply by one
         # Scalar right
         self.assertEqual(v * 1, v)
 
         # Element-wise vector multiplication
-        self.assertEqual(v * Vector3d.One, v)
+        self.assertEqual(v * Vector3d.ONE, v)
 
         # Multiply by non-trivial scalar value
         scalar = 2.5
@@ -333,22 +333,22 @@ class TestVector3(unittest.TestCase):
         self.assertTrue(not(vec1 != vec3))
 
     def test_equal(self):
-        self.assertTrue(not Vector3d.Zero.Equal(
-          Vector3d.One, 1e-6))
-        self.assertTrue(not Vector3d.Zero.Equal(
-          Vector3d.One, 1e-3))
-        self.assertTrue(not Vector3d.Zero.Equal(
-          Vector3d.One, 1e-1))
+        self.assertTrue(not Vector3d.ZERO.equal(
+          Vector3d.ONE, 1e-6))
+        self.assertTrue(not Vector3d.ZERO.equal(
+          Vector3d.ONE, 1e-3))
+        self.assertTrue(not Vector3d.ZERO.equal(
+          Vector3d.ONE, 1e-1))
 
-        self.assertTrue(Vector3d.Zero.Equal(
-            Vector3d.One, 1))
-        self.assertTrue(Vector3d.Zero.Equal(
-            Vector3d.One, 1.1))
+        self.assertTrue(Vector3d.ZERO.equal(
+            Vector3d.ONE, 1))
+        self.assertTrue(Vector3d.ZERO.equal(
+            Vector3d.ONE, 1.1))
 
     def test_finite(self):
         vec1 = Vector3d(0.1, 0.2, 0.3)
 
-        self.assertTrue(vec1.IsFinite())
+        self.assertTrue(vec1.is_finite())
 
 
 if __name__ == '__main__':

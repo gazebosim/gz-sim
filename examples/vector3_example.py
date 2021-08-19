@@ -23,12 +23,12 @@
 import ignition.math
 
 v1 = ignition.math.Vector3d(0, 0, 3)
-print("v =: {} {} {}\n".format(v1.X(), v1.Y(), v1.Z()))
+print("v =: {} {} {}\n".format(v1.x(), v1.y(), v1.z()))
 
 v2 = ignition.math.Vector3d(4, 0, 0)
-print("v2 = {} {} {}\n".format(v2.X(), v2.Y(), v2.Z()))
+print("v2 = {} {} {}\n".format(v2.x(), v2.y(), v2.z()))
 
 v3 = v1 + v2
-print("v1 + v2 = {} {} {}\n".format(v3.X(), v3.Y(), v3.Z()))
+print("v1 + v2 = {} {} {}\n".format(v3.x(), v3.y(), v3.z()))
 
-print("v1.Distance(v2) = {}\n".format(v1.Distance(v2)))
+print("v1.Distance(v2) = {}\n".format(v1.distance(v2)))

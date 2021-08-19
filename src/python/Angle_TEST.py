@@ -22,62 +22,62 @@ class TestAngle(unittest.TestCase):
     def test_angle(self):
 
         angle1 = Angle()
-        self.assertEqual(0.0, angle1.Radian())
+        self.assertEqual(0.0, angle1.radian())
 
-        angle1.SetDegree(90.0)
-        self.assertTrue(angle1 == Angle.HalfPi)
+        angle1.set_degree(90.0)
+        self.assertTrue(angle1 == Angle.HALF_PI)
 
-        angle1.SetDegree(180.0)
-        self.assertTrue(angle1 == Angle.Pi)
-        self.assertFalse(angle1 == Angle.Pi + Angle(0.1))
-        self.assertTrue(angle1 == Angle.Pi + Angle(0.0001))
-        self.assertTrue(angle1 == Angle.Pi - Angle(0.0001))
+        angle1.set_degree(180.0)
+        self.assertTrue(angle1 == Angle.PI)
+        self.assertFalse(angle1 == Angle.PI + Angle(0.1))
+        self.assertTrue(angle1 == Angle.PI + Angle(0.0001))
+        self.assertTrue(angle1 == Angle.PI - Angle(0.0001))
         self.assertTrue(Angle(0) == Angle(0))
         self.assertTrue(Angle(0) == Angle(0.001))
 
         angle1 = Angle(0.1) - Angle(0.3)
-        self.assertAlmostEqual(angle1.Radian(), -0.2)
+        self.assertAlmostEqual(angle1.radian(), -0.2)
 
         angle = Angle(0.5)
-        self.assertEqual(0.5, angle.Radian())
+        self.assertEqual(0.5, angle.radian())
 
-        angle.SetRadian(math.pi/2)
-        self.assertAlmostEqual(math.degrees(math.pi/2), angle.Degree())
+        angle.set_radian(math.pi/2)
+        self.assertAlmostEqual(math.degrees(math.pi/2), angle.degree())
 
-        angle.SetRadian(math.pi)
-        self.assertAlmostEqual(math.degrees(math.pi), angle.Degree())
+        angle.set_radian(math.pi)
+        self.assertAlmostEqual(math.degrees(math.pi), angle.degree())
 
     def test_normalized_angles(self):
 
-        angle = Angle(Angle.Pi)
-        normalized = angle.Normalized()
+        angle = Angle(Angle.PI)
+        normalized = angle.normalized()
 
-        angle.Normalized()
-        self.assertEqual(math.degrees(math.pi), angle.Degree())
+        angle.normalized()
+        self.assertEqual(math.degrees(math.pi), angle.degree())
         self.assertEqual(normalized, angle)
 
     def test_angle_operations(self):
 
         angle = Angle(0.1) + Angle(0.2)
-        self.assertAlmostEqual(0.3, angle.Radian())
+        self.assertAlmostEqual(0.3, angle.radian())
 
         angle = Angle(0.1) * Angle(0.2)
-        self.assertAlmostEqual(0.02, angle.Radian())
+        self.assertAlmostEqual(0.02, angle.radian())
 
         angle = Angle(0.1) / Angle(0.2)
-        self.assertAlmostEqual(0.5, angle.Radian())
+        self.assertAlmostEqual(0.5, angle.radian())
 
         angle -= Angle(0.1)
-        self.assertAlmostEqual(0.4, angle.Radian())
+        self.assertAlmostEqual(0.4, angle.radian())
 
         angle += Angle(0.2)
-        self.assertAlmostEqual(0.6, angle.Radian())
+        self.assertAlmostEqual(0.6, angle.radian())
 
         angle *= Angle(0.5)
-        self.assertAlmostEqual(0.3, angle.Radian())
+        self.assertAlmostEqual(0.3, angle.radian())
 
         angle /= Angle(0.1)
-        self.assertAlmostEqual(3.0, angle.Radian())
+        self.assertAlmostEqual(3.0, angle.radian())
         self.assertTrue(angle == Angle(3))
         self.assertTrue(angle != Angle(2))
         self.assertTrue(angle < Angle(4))

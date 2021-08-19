@@ -23,21 +23,21 @@
 
 import ignition.math
 
-print("PI in degrees = {}\n".format(ignition.math.Angle.Pi.Degree()))
+print("PI in degrees = {}\n".format(ignition.math.Angle.PI.degree()))
 
 a1 = ignition.math.Angle(1.5707)
 a2 = ignition.math.Angle(0.7854)
-print("a1 = {} radians, {} degrees\n".format(a1.Radian(), a1.Degree()))
-print("a2 = {} radians, {} degrees\n".format(a2.Radian(), a2.Degree()))
-print("a1 * a2 = {} radians, {} degrees\n".format((a1 * a2).Radian(),
-      (a1 * a2).Degree()))
-print("a1 + a2 = {} radians, {} degrees\n".format((a1 + a2).Radian(),
-      (a1 + a2).Degree()))
-print("a1 - a2 = {} radians, {} degrees\n".format((a1 - a2).Radian(),
-      (a1 - a2).Degree()))
+print("a1 = {} radians, {} degrees\n".format(a1.radian(), a1.degree()))
+print("a2 = {} radians, {} degrees\n".format(a2.radian(), a2.degree()))
+print("a1 * a2 = {} radians, {} degrees\n".format((a1 * a2).radian(),
+      (a1 * a2).degree()))
+print("a1 + a2 = {} radians, {} degrees\n".format((a1 + a2).radian(),
+      (a1 + a2).degree()))
+print("a1 - a2 = {} radians, {} degrees\n".format((a1 - a2).radian(),
+      (a1 - a2).degree()))
 
 a3 = ignition.math.Angle(15.707)
-print("a3 = {} radians, {} degrees\n".format(a3.Radian(), a3.Degree()))
-a3.Normalize()
-print("a3.Normalize = {} radians, {} degrees\n".format(a3.Radian(),
-                                                       a3.Degree()))
+print("a3 = {} radians, {} degrees\n".format(a3.radian(), a3.degree()))
+a3.normalize()
+print("a3.Normalize = {} radians, {} degrees\n".format(a3.radian(),
+                                                       a3.degree()))

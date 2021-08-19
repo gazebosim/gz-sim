@@ -26,14 +26,14 @@ va = ignition.math.Vector2d(1, 2)
 vb = ignition.math.Vector2d(3, 4)
 vc = ignition.math.Vector2d(vb)
 
-print("va = {} {}\n".format(va.X(), va.Y()))
-print("vb = {} {}\n".format(vb.X(), vb.Y()))
-print("vc = {} {}\n".format(vc.X(), vc.Y()))
+print("va = {} {}\n".format(va.x(), va.y()))
+print("vb = {} {}\n".format(vb.x(), vb.y()))
+print("vc = {} {}\n".format(vc.x(), vc.y()))
 
 vb += va
-print("vb += va: {} {}\n".format(vb.X(), vb.Y()))
+print("vb += va: {} {}\n".format(vb.x(), vb.y()))
 
-vb.Normalize()
-print("vb.Normalize = {} {}\n".format(vb.X(), vb.Y()))
+vb.normalize()
+print("vb.normalize = {} {}\n".format(vb.x(), vb.y()))
 
-print("vb.Distance(va) = {}\n".format(vb.Distance(va)))
+print("vb.distance(va) = {}\n".format(vb.distance(va)))
