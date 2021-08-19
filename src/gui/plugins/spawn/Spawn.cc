@@ -476,7 +476,7 @@ bool Spawn::eventFilter(QObject *_obj, QEvent *_event)
   {
     ignition::gui::events::HoverOnScene *_e =
       static_cast<ignition::gui::events::HoverOnScene*>(_event);
-    this->dataPtr->mouseHoverPos = _e->Point();
+    this->dataPtr->mouseHoverPos = _e->Mouse().Pos();
     this->dataPtr->hoverDirty = true;
   }
   else if (_event->type() ==
