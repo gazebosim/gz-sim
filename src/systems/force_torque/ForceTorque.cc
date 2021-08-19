@@ -149,6 +149,9 @@ void ForceTorquePrivate::CreateForceTorqueEntities(EntityComponentManager &_ecm)
           return true;
         }
 
+
+      std::cout << "SENSOR CREATED" << std::endl;
+
         // Set topic
         _ecm.CreateComponent(_entity, components::SensorTopic(sensor->Topic()));
 
@@ -169,20 +172,22 @@ void ForceTorquePrivate::Update(const EntityComponentManager &_ecm)
         const components::ForceTorque * /*_ft*/,
         const components::JointForce *_jointForce)->bool
       {
-        auto it = this->entitySensorMap.find(_entity);
-        if (it != this->entitySensorMap.end())
-        {
-          // Set the FT sensor force
-          it->second->SetForce(ignition::math::Vector3d(_jointForce->Data()[0], _jointForce->Data()[1], _jointForce->Data()[2]));
 
-          // Set the FT sensor torque
-          it->second->SetTorque(ignition::math::Vector3d(_jointForce->Data()[3], _jointForce->Data()[4], _jointForce->Data()[5]));
-        }
-        else
-        {
-          ignerr << "Failed to update FT Sensor: " << _entity << ". "
-                 << "Entity not found." << std::endl;
-        }
+        std::cout << "VALUE: " << _jointForce->Data()[0] <<std::endl;
+        // auto it = this->entitySensorMap.find(_entity);
+        // if (it != this->entitySensorMap.end())
+        // {
+        //   // Set the IMU angular velocity (defined in imu's local frame)
+        //   it->second->SetForce(ignition::math::Vector3d(_jointForce->Data()[0], _jointForce->Data()[1], _jointForce->Data()[2]));
+
+        //   // // Set the IMU linear acceleration in the imu local frame
+        //   // it->second->SetTorque(_torque);
+        //  }
+        // else
+        // {
+        //   ignerr << "Failed to update Force/Torque Sensor: " << _entity << ". "
+        //          << "Entity not found." << std::endl;
+        // }
 
         return true;
       });
