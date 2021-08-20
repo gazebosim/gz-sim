@@ -316,7 +316,7 @@ class ignition::gazebo::RenderUtilPrivate
   /// \param[in] _ecm The entity-component manager
   public: void FindJointModels(const EntityComponentManager &_ecm);
 
-  /// \brief A list of models used to create new inertia visuals
+  /// \brief A list of models used to create new joint visuals
   public: std::vector<Entity> newJointModels;
 
   /// \brief A map of joint entity ids and their SDF DOM
@@ -2798,11 +2798,10 @@ std::vector<Entity> RenderUtil::FindChildLinks(const Entity &_entity)
 /////////////////////////////////////////////////
 void RenderUtil::HideWireboxes(const Entity &_entity)
 {
-  if (this->dataPtr->wireBoxes.find(_entity)
-        != this->dataPtr->wireBoxes.end())
+  auto wireBoxIt = this->dataPtr->wireBoxes.find(_entity);
+  if (wireBoxIt != this->dataPtr->wireBoxes.end())
   {
-    ignition::rendering::WireBoxPtr wireBox =
-      this->dataPtr->wireBoxes[_entity];
+    ignition::rendering::WireBoxPtr wireBox = wireBoxIt->second;
     auto visParent = wireBox->Parent();
     if (visParent)
       visParent->SetVisible(false);
@@ -2862,6 +2861,7 @@ void RenderUtil::ViewInertia(const Entity &_entity)
 
     if (showInertia)
     {
+      // turn off wireboxes for inertia visual entity
       this->HideWireboxes(inertiaVisualId);
     }
   }
@@ -2921,6 +2921,7 @@ void RenderUtil::ViewCOM(const Entity &_entity)
 
     if (showCOM)
     {
+      // turn off wireboxes for CoM visual entity
       this->HideWireboxes(comVisualId);
     }
   }
@@ -3005,16 +3006,8 @@ void RenderUtil::ViewJoints(const Entity &_entity)
 
     if (showJoint)
     {
-      // turn off wireboxes for joint entity
-      if (this->dataPtr->wireBoxes.find(jointEntity)
-            != this->dataPtr->wireBoxes.end())
-      {
-        ignition::rendering::WireBoxPtr wireBox =
-          this->dataPtr->wireBoxes[jointEntity];
-        auto visParent = wireBox->Parent();
-        if (visParent)
-          visParent->SetVisible(false);
-      }
+      // turn off wireboxes for joint visual entity
+      this->HideWireboxes(jointEntity);
     }
   }
 }

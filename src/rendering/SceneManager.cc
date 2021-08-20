@@ -1285,16 +1285,15 @@ rendering::VisualPtr SceneManager::CreateJointVisual(
   {
     auto axis1 = _joint.Axis(0)->Xyz();
     auto axis2 = _joint.Axis(1)->Xyz();
-    auto axis1UseParentFrame =
-        (_joint.Axis(0)->XyzExpressedIn() == "__model__")? true : false;
-    auto axis2UseParentFrame =
-        (_joint.Axis(1)->XyzExpressedIn() == "__model__")? true : false;
+    auto axis1UseParentFrame = _joint.Axis(0)->XyzExpressedIn() == "__model__";
+    auto axis2UseParentFrame = _joint.Axis(1)->XyzExpressedIn() == "__model__";
 
     jointVisual->SetAxis(axis2, axis2UseParentFrame);
 
-    if (this->dataPtr->visuals.find(_parentId) != this->dataPtr->visuals.end())
+    auto it = this->dataPtr->visuals.find(_parentId);
+    if (it != this->dataPtr->visuals.end())
     {
-      auto parentName = this->dataPtr->visuals[_parentId]->Name();
+      auto parentName = it->second->Name();
       jointVisual->SetParentAxis(
           axis1, parentName, axis1UseParentFrame);
     }
@@ -1302,8 +1301,7 @@ rendering::VisualPtr SceneManager::CreateJointVisual(
   else if (_joint.Axis(0))
   {
     auto axis1 = _joint.Axis(0)->Xyz();
-    auto axis1UseParentFrame =
-        (_joint.Axis(0)->XyzExpressedIn() == "__model__")? true : false;
+    auto axis1UseParentFrame = _joint.Axis(0)->XyzExpressedIn() == "__model__";
 
     jointVisual->SetAxis(axis1, axis1UseParentFrame);
   }
