@@ -29,7 +29,8 @@
 #include <ignition/gazebo/Entity.hh>
 #include <ignition/transport/Node.hh>
 
-#include "msgs/simulation_step.pb.h"
+//#include "msgs/simulation_step.pb.h"
+#include "msgs/simulation_state_step.pb.h"
 #include <ignition/msgs/boolean.pb.h>
 
 #include "NetworkManager.hh"
@@ -101,7 +102,7 @@ namespace ignition
       /// \brief Populate the step message with the latest affinities according
       /// to levels.
       /// \param[in] _msg Step message.
-      private: void PopulateAffinities(private_msgs::SimulationStep &_msg);
+      private: void PopulateAffinities(private_msgs::SimulationStateStep &_msg);
 
       /// \brief Set the performer to secondary affinity.
       /// \param[in] _performer Performer entity.

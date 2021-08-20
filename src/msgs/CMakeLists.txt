@@ -3,6 +3,7 @@ PROTOBUF_GENERATE_CPP(PROTO_PRIVATE_SRC PROTO_PRIVATE_HEADERS
   peer_control.proto
   performer_affinity.proto
   simulation_step.proto
+  simulation_state_step.proto
 )
 
 set(PROTO_PRIVATE_SRC ${PROTO_PRIVATE_SRC} PARENT_SCOPE)

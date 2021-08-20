@@ -183,12 +183,6 @@ namespace ignition
       /// \param[in] _info Time information for the step.
       public: void Step(const UpdateInfo &_info);
 
-      /// \brief Perform a partial simulation step.
-      /// Only runs preUpdate and Update systems.
-      /// Used for distributed simulation.
-      /// \param[in] _info Time information for the step.
-      public: void Step(const UpdateInfo &_info);
-
       /// \brief Add system after the simulation runner has been instantiated
       /// \note This actually adds system to a queue. The system is added to the
       /// runner at the begining of the a simulation cycle (call to Run). It is

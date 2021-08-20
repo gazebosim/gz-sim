@@ -28,7 +28,8 @@
 #include <ignition/common/Profiler.hh>
 
 #include "msgs/peer_control.pb.h"
-#include "msgs/simulation_step.pb.h"
+//#include "msgs/simulation_step.pb.h"
+#include "msgs/simulation_state_step.pb.h"
 
 #include "ignition/gazebo/components/PerformerAffinity.hh"
 #include "ignition/gazebo/components/PerformerLevels.hh"
@@ -53,7 +54,7 @@ NetworkManagerPrimary::NetworkManagerPrimary(
   node(_options)
 {
   // this->simStepPub = this->node.Advertise<private_msgs::SimulationStep>("step");
-  this->simStepPub = this->node.Advertise<msgs::SerializedStateMap>("step_state");
+  this->simStepPub = this->node.Advertise<private_msgs::SimulationStateStep>("step_state");
 
   this->node.Subscribe("step_ack", &NetworkManagerPrimary::OnStepAck, this);
 }
@@ -130,12 +131,6 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
     return false;
   }
 
-  private_msgs::SimulationStep step;
-  step.mutable_stats()->CopyFrom(convert<msgs::WorldStatistics>(_info));
-
-  // Affinities that changed this step
-  this->PopulateAffinities(step);
-
   // Check all secondaries are ready to receive steps - only do this once at
   // startup
   if (!this->SecondariesCanStep())
@@ -151,6 +146,17 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
   // Send full serialized step to all the secondaries
   // TO-DO(blast545): consider getting the only component id types required for
   // postUpdate tasks
+
+  // msgs::SerializedStateMap stateMsg;
+  // this->dataPtr->ecm->State(stateMsg);
+  private_msgs::SimulationStateStep stateStepMsg;
+  stateStepMsg.mutable_stats()->CopyFrom(convert<msgs::WorldStatistics>(_info));
+
+  // Affinities that changed this step
+  this->PopulateAffinities(stateStepMsg);
+
+  // Get the current state of the ECM
+  // TO-DO(blast545) is it possible to get the info directly into stateStepMsg?
   msgs::SerializedStateMap stateMsg;
   this->dataPtr->ecm->State(stateMsg);
 
@@ -159,12 +165,13 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
   auto data = stateMsg.mutable_header()->add_data();
   data->set_key("has_one_time_component_changes");
   data->add_value(this->dataPtr->ecm->HasOneTimeComponentChanges() ? "1" : "0");
+  stateStepMsg.mutable_state()->CopyFrom(stateMsg);
 
   // Send current serialized state to all
   this->secondaryStates.clear();
   this->secondaryStatesPromise = std::promise<void>{};
   auto future = this->secondaryStatesPromise.get_future();
-  this->simStepPub.Publish(stateMsg);
+  this->simStepPub.Publish(stateStepMsg);
 
   // Block until all secondaries are done
   {
@@ -234,7 +241,7 @@ bool NetworkManagerPrimary::SecondariesCanStep() const
 
 //////////////////////////////////////////////////
 void NetworkManagerPrimary::PopulateAffinities(
-    private_msgs::SimulationStep &_msg)
+    private_msgs::SimulationStateStep &_msg)
 {
   IGN_PROFILE("NetworkManagerPrimary::PopulateAffinities");
 
@@ -286,7 +293,7 @@ void NetworkManagerPrimary::PopulateAffinities(
       for (const auto &performer : performers)
       {
         this->SetAffinity(performer, secondaryIt->second->prefix,
-            _msg.add_affinity());
+          _msg.add_affinity());
 
         // Remove performers as they are assigned
         allPerformers.erase(performer);
@@ -304,7 +311,7 @@ void NetworkManagerPrimary::PopulateAffinities(
     for (auto performer : allPerformers)
     {
       this->SetAffinity(performer, secondaryIt->second->prefix,
-          _msg.add_affinity());
+        _msg.add_affinity());
 
       // Round-robin performers
       secondaryIt++;
