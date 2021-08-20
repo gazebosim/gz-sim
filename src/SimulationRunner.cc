@@ -1009,7 +1009,7 @@ void SimulationRunner::LoadLoggingPlugins(const ServerConfig &_config)
 void SimulationRunner::LoadPlugins(const Entity _entity,
     const sdf::ElementPtr &_sdf)
 {
-  //ignwarn << "Load plugins called" << std::endl;
+  // ignwarn << "Load plugins called" << std::endl;
   sdf::ElementPtr pluginElem = _sdf->GetElement("plugin");
   while (pluginElem)
   {

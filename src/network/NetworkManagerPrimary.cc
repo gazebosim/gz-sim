@@ -28,7 +28,7 @@
 #include <ignition/common/Profiler.hh>
 
 #include "msgs/peer_control.pb.h"
-//#include "msgs/simulation_step.pb.h"
+// #include "msgs/simulation_step.pb.h"
 #include "msgs/simulation_state_step.pb.h"
 
 #include "ignition/gazebo/components/PerformerAffinity.hh"
@@ -53,8 +53,10 @@ NetworkManagerPrimary::NetworkManagerPrimary(
   NetworkManager(_stepFunction, _ecm, _eventMgr, _config, _options),
   node(_options)
 {
-  // this->simStepPub = this->node.Advertise<private_msgs::SimulationStep>("step");
-  this->simStepPub = this->node.Advertise<private_msgs::SimulationStateStep>("step_state");
+  // this->simStepPub =
+  //   this->node.Advertise<private_msgs::SimulationStep>("step");
+  this->simStepPub =
+    this->node.Advertise<private_msgs::SimulationStateStep>("step_state");
 
   this->node.Subscribe("step_ack", &NetworkManagerPrimary::OnStepAck, this);
 }

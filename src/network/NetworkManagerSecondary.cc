@@ -175,7 +175,8 @@ void NetworkManagerSecondary::OnStep(
   // // workaround can be removed
   // auto data = stateMsg.mutable_header()->add_data();
   // data->set_key("has_one_time_component_changes");
-  // data->add_value(this->dataPtr->ecm->HasOneTimeComponentChanges() ? "1" : "0");
+  // data->add_value(
+  //   this->dataPtr->ecm->HasOneTimeComponentChanges() ? "1" : "0");
 
   // Send completed acknowledge to the primary
   msgs::Boolean result;

@@ -29,7 +29,7 @@
 #include <ignition/gazebo/Entity.hh>
 #include <ignition/transport/Node.hh>
 
-//#include "msgs/simulation_step.pb.h"
+// #include "msgs/simulation_step.pb.h"
 #include "msgs/simulation_state_step.pb.h"
 #include <ignition/msgs/boolean.pb.h>
 
