@@ -1046,7 +1046,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
     }
   }
 
-  // View inertia
+  // View joints
   {
     IGN_PROFILE("IgnRenderer::Render ViewJoints");
     if (!this->dataPtr->viewJointsTarget.empty())

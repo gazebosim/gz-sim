@@ -1312,6 +1312,7 @@ rendering::VisualPtr SceneManager::CreateJointVisual(
     std::dynamic_pointer_cast<rendering::Visual>(jointVisual);
   jointVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   jointVis->SetUserData("pause-update", static_cast<int>(0));
+  jointVis->SetLocalPose(_joint.RawPose());
   this->dataPtr->visuals[_id] = jointVis;
   return jointVis;
 }
