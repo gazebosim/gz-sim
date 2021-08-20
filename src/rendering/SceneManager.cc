@@ -1281,7 +1281,10 @@ rendering::VisualPtr SceneManager::CreateJointVisual(
     parent->AddChild(jointVisual);
   }
 
-  if (_joint.Axis(1))
+  if (_joint.Axis(1) &&
+      (_joint.Type() == sdf::JointType::REVOLUTE2 ||
+       _joint.Type() == sdf::JointType::UNIVERSAL
+      ))
   {
     auto axis1 = _joint.Axis(0)->Xyz();
     auto axis2 = _joint.Axis(1)->Xyz();
@@ -1298,12 +1301,24 @@ rendering::VisualPtr SceneManager::CreateJointVisual(
           axis1, parentName, axis1UseParentFrame);
     }
   }
-  else if (_joint.Axis(0))
+  else if (_joint.Axis(0) &&
+      (_joint.Type() == sdf::JointType::REVOLUTE ||
+       _joint.Type() == sdf::JointType::PRISMATIC
+      ))
   {
     auto axis1 = _joint.Axis(0)->Xyz();
     auto axis1UseParentFrame = _joint.Axis(0)->XyzExpressedIn() == "__model__";
 
     jointVisual->SetAxis(axis1, axis1UseParentFrame);
+  }
+  else
+  {
+    // For fixed joint type, scale joint visual to the joint child link
+    double childSize =
+        std::max(0.1, parent->BoundingBox().Size().Length());
+    auto scale = ignition::math::Vector3d(childSize * 0.2,
+        childSize * 0.2, childSize * 0.2);
+    jointVisual->SetLocalScale(scale);
   }
 
   rendering::VisualPtr jointVis =
