@@ -136,6 +136,20 @@ Missing for parity with GzScene3D:
 
       </plugin>
 
+      <plugin filename="VisualizationCapabilities" name="Visualization Capabilities">
+        <ignition-gui>
+          <anchors target="Select entities">
+            <line own="right" target="right"/>
+            <line own="top" target="top"/>
+          </anchors>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
+
       <!-- World statistics -->
       <plugin filename="WorldStats" name="World stats">
         <ignition-gui>
