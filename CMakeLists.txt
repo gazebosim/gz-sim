@@ -158,6 +158,10 @@ set(IGNITION_GAZEBO_GUI_PLUGIN_INSTALL_DIR
   ${CMAKE_INSTALL_PREFIX}/${IGN_LIB_INSTALL_DIR}/ign-${IGN_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins/gui
 )
 
+#--------------------------------------
+# Find ignition-tools
+find_program(IGN_TOOLS_PROGRAM ign)
+
 #============================================================================
 # Configure the build
 #============================================================================

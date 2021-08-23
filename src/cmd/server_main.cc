@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
- #include <ignition/common/Console.hh>
- #include <ignition/common/Filesystem.hh>
+#include <ignition/common/Console.hh>
+#include <ignition/common/Filesystem.hh>
 
 #include <ignition/utils/cli/CLI.hpp>
 
@@ -128,18 +128,15 @@ void runServerCommand(const ServerOptions &_opt)
     {
       std::string resourcePathEnv;
       ignition::common::env("IGN_GAZEBO_RESOURCE_PATH", resourcePathEnv);
-      ignerr << "resourcePathEnv " << resourcePathEnv << std::endl;
       if (!resourcePathEnv.empty())
       {
-        ignerr << "!resourcePathEnv.empty()" << std::endl;
-
         auto resourcePaths = ignition::common::split(resourcePathEnv, ":");
         for (auto & resourcePath: resourcePaths)
         {
-          std::string filePath = resourcePath + _opt.file;
+          std::string filePath = ignition::common::joinPaths(
+              resourcePath, _opt.file);
           if (ignition::common::exists(filePath))
           {
-            ignerr << "filePath " << filePath << std::endl;
             path = filePath;
             break;
           }
@@ -149,7 +146,6 @@ void runServerCommand(const ServerOptions &_opt)
       {
         path = ignition::common::joinPaths(
           std::string(worldInstallDir()), _opt.file);
-        igndbg << "worldInstallDir " << path << std::endl;
         if (!ignition::common::exists(path))
         {
           path = std::string(findFuelResource(_opt.file.c_str()));

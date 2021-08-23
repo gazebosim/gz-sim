@@ -4,5 +4,6 @@ library_name: ignition-gazebo-ign
 library_version: @PROJECT_VERSION_FULL@
 library_path: @ign_library_path@
 commands:
-    - gazebo : Run and manage Gazebo.
+  - gazebo-server : Run and manage Gazebo.
+  - gazebo-gui : Run and manage Gazebo.
 ---

@@ -19,7 +19,8 @@ require 'open3'
 # Constants.
 LIBRARY_VERSION = '@PROJECT_VERSION_FULL@'
 COMMANDS = {
-  "gazebo" => "@gazebo_exe_location@",
+  "gazebo-server" => "@gazebo_server_exe_location@",
+  "gazebo-gui" => "@gazebo_gui_exe_location@",
 }
 
 #

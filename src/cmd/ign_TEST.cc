@@ -28,7 +28,7 @@
 static const std::string kBinPath(PROJECT_BINARY_PATH);
 
 static const std::string kIgnCommand(
-    std::string(BREW_RUBY) + std::string(IGN_PATH) + "/ign gazebo -s ");
+    std::string(BREW_RUBY) + std::string(IGN_PATH) + " gazebo-server ");
 
 /////////////////////////////////////////////////
 std::string customExecStr(std::string _cmd)
@@ -137,7 +137,7 @@ TEST(CmdLine, Gazebo)
 /////////////////////////////////////////////////
 TEST(CmdLine, ResourcePath)
 {
-  std::string cmd = kIgnCommand + " -s -r -v 4 --iterations 1 plugins.sdf";
+  std::string cmd = kIgnCommand + " -r -v 4 --iterations 1 plugins.sdf";
 
   // No path
   std::string output = customExecStr(cmd);

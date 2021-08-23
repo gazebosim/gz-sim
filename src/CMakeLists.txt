@@ -64,7 +64,6 @@ set (gtest_sources
   EventManager_TEST.cc
   Link_TEST.cc
   Model_TEST.cc
-  ModelCommandAPI_TEST.cc
   SdfEntityCreator_TEST.cc
   SdfGenerator_TEST.cc
   Server_TEST.cc

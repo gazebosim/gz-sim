@@ -25,7 +25,7 @@
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
 static const std::string kIgnModelCommand(
-    std::string(BREW_RUBY) + std::string(IGN_PATH) + "/ign model ");
+  std::string(BREW_RUBY) + std::string(IGN_PATH) + " model ");
 
 
 /////////////////////////////////////////////////
@@ -89,8 +89,9 @@ TEST(ModelCommandAPI, Commands)
 {
   ignition::gazebo::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-                          "/test/worlds/static_diff_drive_vehicle.sdf");
+  serverConfig.SetSdfFile(ignition::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds",
+    "static_diff_drive_vehicle.sdf"));
 
   ignition::gazebo::Server server(serverConfig);
   // Run at least one iteration before continuing to guarantee correctly set up.
@@ -230,7 +231,7 @@ TEST(ModelCommandAPI, Commands)
   // Tested command: ign model -m vehicle_blue --link
   {
     const std::string cmd = kIgnModelCommand +
-                            "-m vehicle_blue --link";
+                            "-m vehicle_blue --all-links";
     std::string output = customExecStr(cmd);
     ReplaceNegativeZeroValues(output);
     const std::string expectedOutput =
@@ -322,7 +323,7 @@ TEST(ModelCommandAPI, Commands)
   // Tested command: ign model -m vehicle_blue --joint
   {
     const std::string cmd = kIgnModelCommand +
-                            "-m vehicle_blue --joint";
+                            "-m vehicle_blue --all-joints";
     std::string output = customExecStr(cmd);
     ReplaceNegativeZeroValues(output);
     const std::string expectedOutput =
