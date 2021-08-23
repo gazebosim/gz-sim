@@ -362,7 +362,8 @@ namespace ignition::gazebo
     /// \brief A map of collision entity ids and their SDF DOM
     public: std::map<Entity, sdf::Collision> entityCollisions;
 
-    /// \brief A map of link entities and their corresponding children collisions
+    /// \brief A map of link entities and their corresponding children
+    /// collisions
     public: std::map<Entity, std::vector<Entity>> linkToCollisionEntities;
 
     /// \brief A map of created collision entities and if they are currently
