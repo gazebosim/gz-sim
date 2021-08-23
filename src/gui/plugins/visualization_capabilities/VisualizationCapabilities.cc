@@ -22,7 +22,12 @@
 
 #include <algorithm>
 #include <iostream>
+#include <map>
+#include <set>
+#include <stack>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Profiler.hh>
@@ -1101,7 +1106,8 @@ void VisualizationCapabilities::Update(const UpdateInfo &,
             const components::VisibilityFlags *,
             const components::ParentEntity *_parent)->bool
         {
-          this->dataPtr->linkToVisualEntities[_parent->Data()].push_back(_entity);
+          this->dataPtr->linkToVisualEntities[_parent->Data()]
+            .push_back(_entity);
           return true;
         });
 
@@ -1159,7 +1165,8 @@ void VisualizationCapabilities::Update(const UpdateInfo &,
             const components::VisibilityFlags *,
             const components::ParentEntity *_parent)->bool
         {
-          this->dataPtr->linkToVisualEntities[_parent->Data()].push_back(_entity);
+          this->dataPtr->linkToVisualEntities[_parent->Data()]
+            .push_back(_entity);
           return true;
         });
 
