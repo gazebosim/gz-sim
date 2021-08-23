@@ -307,6 +307,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void UpdateTransparency(const rendering::NodePtr &_node,
         bool _makeTransparent);
 
+    /// \brief Updates the world pose of joint parent visual
+    /// according to its child.
+    /// \param[in] _jointId Joint visual id.
+    public: void UpdateJointParentPose(Entity _jointId);
+
     /// \internal
     /// \brief Pointer to private data class
     private: std::unique_ptr<SceneManagerPrivate> dataPtr;

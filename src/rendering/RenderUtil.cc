@@ -329,6 +329,10 @@ class ignition::gazebo::RenderUtilPrivate
   /// visible
   public: std::map<Entity, bool> viewingJoints;
 
+  /// \brief A list of joint visuals for which the parent visual poses
+  /// have to be updated.
+  public: std::vector<Entity> updateJointParentPoses;
+
   /// \brief A map of models entities and link attributes used
   /// to create joint visuals
   public: std::map<Entity, std::map<std::string, Entity>>
@@ -882,6 +886,8 @@ void RenderUtil::Update()
   auto removeEntities = std::move(this->dataPtr->removeEntities);
   auto entityPoses = std::move(this->dataPtr->entityPoses);
   auto entityLights = std::move(this->dataPtr->entityLights);
+  auto updateJointParentPoses =
+    std::move(this->dataPtr->updateJointParentPoses);
   auto trajectoryPoses = std::move(this->dataPtr->trajectoryPoses);
   auto actorTransforms = std::move(this->dataPtr->actorTransforms);
   auto actorAnimationData = std::move(this->dataPtr->actorAnimationData);
@@ -907,6 +913,7 @@ void RenderUtil::Update()
   this->dataPtr->removeEntities.clear();
   this->dataPtr->entityPoses.clear();
   this->dataPtr->entityLights.clear();
+  this->dataPtr->updateJointParentPoses.clear();
   this->dataPtr->trajectoryPoses.clear();
   this->dataPtr->actorTransforms.clear();
   this->dataPtr->actorAnimationData.clear();
@@ -1176,6 +1183,14 @@ void RenderUtil::Update()
     }
   }
 
+  // update joint parent visual poses
+  {
+    for (const auto &jointEntity : updateJointParentPoses)
+    {
+      this->dataPtr->sceneManager.UpdateJointParentPose(jointEntity);
+    }
+  }
+
   // create new transparent visuals
   {
     for (const auto &link : newTransparentVisualLinks)
@@ -1241,10 +1256,17 @@ void RenderUtil::Update()
           Entity parentId =
               this->dataPtr->matchLinksWithEntities[model][parentLinkName];
 
+          auto joint = this->dataPtr->entityJoints[jointEntity];
+
           auto vis = this->dataPtr->sceneManager.CreateJointVisual(
-              jointEntity, this->dataPtr->entityJoints[jointEntity],
-              childId, parentId);
+              jointEntity, joint, childId, parentId);
           this->dataPtr->viewingJoints[jointEntity] = true;
+
+          // Update joint parent visual pose
+          if (joint.Axis(1))
+          {
+            this->dataPtr->updateJointParentPoses.push_back(jointEntity);
+          }
         }
       }
     }

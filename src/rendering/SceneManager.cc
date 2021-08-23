@@ -2002,6 +2002,27 @@ void SceneManager::UpdateTransparency(const rendering::NodePtr &_node,
   }
 }
 
+////////////////////////////////////////////////
+void SceneManager::UpdateJointParentPose(Entity _jointId)
+{
+  auto visual =
+      this->VisualById(_jointId);
+
+  rendering::JointVisualPtr jointVisual =
+      std::dynamic_pointer_cast<rendering::JointVisual>(visual);
+
+  auto childPose = jointVisual->WorldPose();
+
+  if (jointVisual->ParentAxisVisual())
+  {
+    jointVisual->ParentAxisVisual()->SetWorldPose(childPose);
+
+    // scale parent axis visual to the child
+    auto childScale = jointVisual->LocalScale();
+    jointVisual->ParentAxisVisual()->SetLocalScale(childScale);
+  }
+}
+
 /////////////////////////////////////////////////
 AnimationUpdateData SceneManagerPrivate::ActorTrajectoryAt(
     Entity _id,
