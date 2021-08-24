@@ -24,6 +24,8 @@
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
+#include "../helpers/EnvTestFixture.hh"
+
 using namespace ignition;
 using namespace gazebo;
 using namespace std::chrono_literals;
@@ -93,8 +95,12 @@ uint64_t iterations()
   return iterations;
 }
 
+class PlayPause : public InternalFixture<::testing::Test>
+{
+};
+
 /////////////////////////////////////////////////
-TEST(PlayPause, PlayPause)
+TEST_F(PlayPause, PlayPause)
 {
   common::Console::SetVerbosity(4);
 

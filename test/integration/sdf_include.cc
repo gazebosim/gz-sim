@@ -22,11 +22,17 @@
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
+#include "../helpers/EnvTestFixture.hh"
+
 using namespace ignition;
 using namespace gazebo;
 
+class SdfInclude : public InternalFixture<::testing::Test>
+{
+};
+
 /////////////////////////////////////////////////
-TEST(SdfInclude, DownloadFromFuel)
+TEST_F(SdfInclude, DownloadFromFuel)
 {
   std::string path = common::cwd() + "/test_cache";
 

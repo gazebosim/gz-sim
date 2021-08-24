@@ -40,20 +40,18 @@
 #include "ignition/gazebo/components/World.hh"
 
 #include "plugins/MockSystem.hh"
+#include "../helpers/EnvTestFixture.hh"
 
 using namespace ignition;
 using namespace std::chrono_literals;
 namespace components = ignition::gazebo::components;
 
 //////////////////////////////////////////////////
-class SensorsFixture : public ::testing::Test
+class SensorsFixture : public InternalFixture<InternalFixture<::testing::Test>>
 {
   protected: void SetUp() override
   {
-    common::Console::SetVerbosity(4);
-    // Augment the system plugin path.  In SetUp to avoid test order issues.
-    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-      (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
+    InternalFixture::SetUp();
 
     auto plugin = sm.LoadPlugin("libMockSystem.so",
                                 "ignition::gazebo::MockSystem",

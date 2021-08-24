@@ -32,6 +32,7 @@
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"
 
+#include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
 
 #define TOL 1e-4
@@ -40,16 +41,9 @@ using namespace ignition;
 using namespace gazebo;
 
 /// \brief Test fixture for JointTrajectoryController system
-class JointTrajectoryControllerTestFixture : public ::testing::Test
+class JointTrajectoryControllerTestFixture
+  : public InternalFixture<::testing::Test>
 {
-  // Documentation inherited
-protected:
-  void SetUp() override
-  {
-    ignition::common::Console::SetVerbosity(4);
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
-  }
 };
 
 /////////////////////////////////////////////////
