@@ -1671,6 +1671,11 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         worldLinearVelFeature->SetWorldLinearVelocity(
             math::eigen3::convert(worldLinearVel));
 
+        // create linear velocity components for the link, if they don't
+        // already exist. The component data is set in PhysicsPivate::UpdateSim
+        _ecm.ComponentDefault<components::LinearVelocity>(_entity);
+        _ecm.ComponentDefault<components::WorldLinearVelocity>(_entity);
+
         return true;
       });
 
@@ -1848,7 +1853,12 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
 
           // Populate world poses, velocities and accelerations of the link. For
           // now these components are updated only if another system has created
-          // the corresponding component on the entity.
+          // the corresponding component on the entity. An exception to this is
+          // if a LinearVelocityCmd component is applied to a link - if this
+          // happens, then LinearVelocity and WorldLinearVelocity components
+          // are created for this link in case the user who applied the velocity
+          // command would like to read the link's velocity in a future
+          // simulation step.
           auto worldPoseComp = _ecm.Component<components::WorldPose>(_entity);
           if (worldPoseComp)
           {

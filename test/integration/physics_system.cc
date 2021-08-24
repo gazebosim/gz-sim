@@ -33,6 +33,7 @@
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
+#include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
 #include "ignition/gazebo/components/AxisAlignedBox.hh"
@@ -47,6 +48,7 @@
 #include "ignition/gazebo/components/JointVelocityReset.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
+#include "ignition/gazebo/components/LinearVelocityCmd.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
@@ -980,4 +982,100 @@ TEST_F(PhysicsSystemFixture, NestedModel)
   parentIt = parents.find("link_01");
   EXPECT_NE(parents.end(), parentIt);
   EXPECT_EQ("model_01", parentIt->second);
+}
+
+/////////////////////////////////////////////////
+TEST_F(PhysicsSystemFixture, LinVelCmd)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+
+  const auto sdfFile = common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds",
+    "lin_vel_cmd.sdf");
+
+  sdf::Root root;
+  root.Load(sdfFile);
+  const sdf::World *world = root.WorldByIndex(0);
+  ASSERT_TRUE(nullptr != world);
+
+  serverConfig.SetSdfFile(sdfFile);
+
+  gazebo::Server server(serverConfig);
+
+  server.SetUpdatePeriod(1us);
+
+  test::Relay testSystem;
+
+  auto modelEntity = kNullEntity;
+  auto canonicalLinkEntity = kNullEntity;
+
+  double modelPrevXPos = 0.0;
+  const double modelInitYPos = 0.0;
+  const double modelInitZPos = 0.5;
+
+  const math::Vector3d cmdVel(100.0, 0.0, 0.0);
+  const auto dt = 0.001;
+
+  auto numPreUpdateChecks = 0;
+  auto numPostUpdateChecks = 0;
+
+  testSystem.OnPreUpdate(
+      [&](const UpdateInfo &, EntityComponentManager &_ecm)
+      {
+        if (kNullEntity == modelEntity)
+        {
+          modelEntity = _ecm.EntityByComponents(components::Model(),
+              components::Name("box"));
+        }
+        EXPECT_NE(kNullEntity, modelEntity);
+
+        if (kNullEntity == canonicalLinkEntity)
+        {
+          const auto links = _ecm.ChildrenByComponents(modelEntity,
+              components::CanonicalLink());
+          ASSERT_EQ(1u, links.size());
+          canonicalLinkEntity = links[0];
+        }
+        EXPECT_NE(kNullEntity, canonicalLinkEntity);
+        _ecm.SetComponentData<components::LinearVelocityCmd>(
+            canonicalLinkEntity, cmdVel);
+
+        numPreUpdateChecks++;
+      });
+
+  testSystem.OnPostUpdate(
+      [&](const UpdateInfo &, const EntityComponentManager &_ecm)
+      {
+        // make sure that the model moved in the x direction since a
+        // command velocity in the x direction was applied to its
+        // canonical link
+        auto updatedModelWorldPose = gazebo::worldPose(modelEntity, _ecm);
+        EXPECT_NEAR(modelInitYPos, updatedModelWorldPose.Y(), 1e-2);
+        EXPECT_NEAR(modelInitZPos, updatedModelWorldPose.Z(), 1e-2);
+        auto xExpected = modelPrevXPos + (cmdVel.X() * dt);
+        EXPECT_NEAR(xExpected, updatedModelWorldPose.X(), 1e-2);
+        modelPrevXPos = updatedModelWorldPose.X();
+
+        // make sure that the link has a velocity component with data that
+        // matches the velocity command applied to the link
+        const auto linVelComp =
+          _ecm.Component<components::LinearVelocity>(canonicalLinkEntity);
+        ASSERT_NE(nullptr, linVelComp);
+        const auto worldLinVelComp =
+          _ecm.Component<components::WorldLinearVelocity>(canonicalLinkEntity);
+        ASSERT_NE(nullptr, worldLinVelComp);
+        EXPECT_EQ(linVelComp->Data(), worldLinVelComp->Data());
+        // (the command velocity and actual velocity won't be exactly the same
+        // due to physics forces, but they should be close)
+        EXPECT_LT(cmdVel.Distance(linVelComp->Data()), 0.1);
+
+        numPostUpdateChecks++;
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+  const auto iters = 500;
+  server.Run(true, iters, false);
+
+  EXPECT_EQ(iters, numPreUpdateChecks);
+  EXPECT_EQ(iters, numPostUpdateChecks);
+  EXPECT_NE(kNullEntity, modelEntity);
 }
