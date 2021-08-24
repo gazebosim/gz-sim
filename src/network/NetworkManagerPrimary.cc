@@ -137,6 +137,8 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
   // startup
   if (!this->SecondariesCanStep())
   {
+    ignerr << "Secondaries can't step."
+           << std::endl;
     return false;
   }
 

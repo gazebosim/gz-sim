@@ -59,7 +59,7 @@ NetworkManagerSecondary::NetworkManagerSecondary(
       << std::endl;
   }
 
-  this->node.Subscribe("step", &NetworkManagerSecondary::OnStep, this);
+  this->node.Subscribe("step_state", &NetworkManagerSecondary::OnStep, this);
 
   this->stepAckPub = this->node.Advertise<msgs::Boolean>("step_ack");
 }
@@ -101,7 +101,6 @@ void NetworkManagerSecondary::OnStep(
     const private_msgs::SimulationStateStep &_msg)
 {
   IGN_PROFILE("NetworkManagerSecondary::OnStep");
-
   // Throttle the number of step messages going to the debug output.
   if (!_msg.stats().paused() && _msg.stats().iterations() % 1000 == 0)
   {
