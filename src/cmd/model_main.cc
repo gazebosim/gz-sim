@@ -107,7 +107,7 @@ void addServerFlags(CLI::App &_app)
     }, "All joints are printed. Requires the -m option");
   allJointsOpt->needs(allJointsOpt);
 
-  auto allLinksOpt =_app.add_flag_callback("--all-links",
+  auto allLinksOpt = _app.add_flag_callback("--all-links",
     [opt](){
       opt->allLinks = true;
     }, "All links are printed. Requires the -m option");

@@ -131,7 +131,7 @@ void runServerCommand(const ServerOptions &_opt)
       if (!resourcePathEnv.empty())
       {
         auto resourcePaths = ignition::common::split(resourcePathEnv, ":");
-        for (auto & resourcePath: resourcePaths)
+        for (auto & resourcePath : resourcePaths)
         {
           std::string filePath = ignition::common::joinPaths(
               resourcePath, _opt.file);
