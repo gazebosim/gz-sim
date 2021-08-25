@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Open Source Robotics Foundation
+ * Copyright (C) 2021 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,8 @@ namespace gazebo
 {
   class VisualizationCapabilitiesPrivate;
 
-  /// \brief Provides buttons for adding a box, sphere, or cylinder
-  /// to the scene
+  /// \brief Allows to visualize transparent, collisions, inertial,
+  /// CoM and more.
   class VisualizationCapabilities : public ignition::gazebo::GuiSystem
   {
     Q_OBJECT

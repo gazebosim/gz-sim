@@ -517,6 +517,11 @@ void VisualizationCapabilitiesPrivate::OnRender()
             this->entityCollisions[colEntity],
             parentCollisionVisual);
 
+          if (vis == nullptr)
+          {
+            continue;
+          }
+
           this->viewingCollisions[colEntity] = true;
 
           // add geometry material to originalEmissive map
@@ -1002,8 +1007,6 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateVisual(
 
   if (this->visuals.find(_id) != this->visuals.end())
   {
-    ignerr << "Entity with Id: [" << _id << "] already exists in the scene"
-           << std::endl;
     return rendering::VisualPtr();
   }
 
