@@ -171,9 +171,9 @@ namespace components
 
     /// \brief Unregister a component so that the factory can't create instances
     /// of the component or its storage anymore.
-    /// \detail This function will not reset the `typeId` static variable within
-    /// the component type itself. Prefer using the templated `Unregister`
-    /// function when possible.
+    /// \details This function will not reset the `typeId` static variable
+    /// within the component type itself. Prefer using the templated
+    /// `Unregister` function when possible.
     /// \param[in] _typeId Type of component to unregister.
     public: void Unregister(ComponentTypeId _typeId)
     {
@@ -310,12 +310,12 @@ namespace components
     private: std::map<ComponentTypeId, StorageDescriptorBase *> storagesById;
 
     /// \brief A list of IDs and their equivalent names.
-    /// \detail Make it non-static on version 2.0.
+    /// \details Make it non-static on version 2.0.
     public: inline static std::map<ComponentTypeId, std::string> namesById;
 
     /// \brief Keep track of the runtime names for types and warn the user if
     /// they try to register different types with the same typeName.
-    /// \detail Make it non-static on version 2.0.
+    /// \details Make it non-static on version 2.0.
     public: inline static std::map<ComponentTypeId, std::string>
         runtimeNamesById;
   };
@@ -324,7 +324,7 @@ namespace components
   ///
   /// Use this macro to register components.
   ///
-  /// \detail Each time a plugin which uses a component is loaded, it tries to
+  /// \details Each time a plugin which uses a component is loaded, it tries to
   /// register the component again, so we prevent that.
   /// \param[in] _compType Component type name.
   /// \param[in] _classname Class name for component.
