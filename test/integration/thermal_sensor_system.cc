@@ -191,7 +191,7 @@ TEST_F(ThermalSensorTest,
   EXPECT_DOUBLE_EQ(-10.0, entityTemp[boxVisual].Kelvin());
 
   // Run server
-  server.Run(true, 55, false);
+  server.Run(true, 10, false);
 
   // wait for image
   bool received = false;
