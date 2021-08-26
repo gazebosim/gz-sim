@@ -59,7 +59,7 @@ The primary instance will read several command line options to dictate its behav
 
 * **--network-role=primary** - Dictates that the role of this
     participant is a Primary. Capitalization of "primary" is not important.
-* **--network-secondaries=<N>** - The number of secondaries expected
+* **--network-secondaries=`<N>`** - The number of secondaries expected
     to join. Simulation will not begin until **N** secondaries have been
     discovered.
 
@@ -139,4 +139,3 @@ topics that are used for non-distributed simulation, which should all be
 provided by the primary. Therefore, play/pause and GUI functionality all
 interact with the simulation primary instance, which in turn propagates the
 commands to the secondaries.
-

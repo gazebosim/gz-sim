@@ -129,7 +129,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Set the entity being selected
     /// \param[in] _node Node representing the selected entity
-    /// \TODO(anyone) Make const ref when merging forward
+    /// TODO(anyone) Make const ref when merging forward
     // NOLINTNEXTLINE
     public: void SetSelectedEntity(rendering::NodePtr _node);
 
@@ -142,7 +142,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Get the entity being selected. This will only return the
     /// last entity selected.
-    /// \TODO(anyone) Deprecate in favour of SelectedEntities
+    /// TODO(anyone) Deprecate in favour of SelectedEntities
     public: rendering::NodePtr SelectedEntity() const;
 
     /// \brief Get the entities currently selected, in order of selection.
