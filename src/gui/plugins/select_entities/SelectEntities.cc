@@ -545,6 +545,16 @@ bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
     this->dataPtr->selectedEntitiesID.clear();
     this->dataPtr->selectedEntities.clear();
   }
+  else if (_event->type() == ignition::gui::events::KeyReleaseOnScene::kType)
+  {
+    ignition::gui::events::KeyReleaseOnScene *_e =
+      static_cast<ignition::gui::events::KeyReleaseOnScene*>(_event);
+    if (_e->Key().Key() == Qt::Key_Escape)
+    {
+      this->dataPtr->mouseDirty = true;
+      this->dataPtr->selectionHelper.deselectAll = true;
+    }
+  }
 
   // Standard event processing
   return QObject::eventFilter(_obj, _event);
