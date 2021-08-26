@@ -234,7 +234,7 @@ namespace systems::physics_system
     }
 
     /// \brief Remove physics entity from all associated maps
-    /// \param[in] _physicsEntity Gazebo entity.
+    /// \param[in] _physicsEntity Physics entity.
     /// \return True if the entity was found and removed.
     public: bool Remove(const RequiredEntityPtr &_physicsEntity)
     {

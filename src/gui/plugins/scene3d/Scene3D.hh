@@ -286,7 +286,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief True to set the camera to follow the target in world frame,
     /// false to follow in target's local frame
-    /// \param[in] _worldFrame Camera follow p gain.
+    /// \param[in] _worldFrame True to use the world frame.
     public: void SetFollowWorldFrame(bool _worldFrame);
 
     /// \brief Set the camera follow offset position
@@ -625,7 +625,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief True to set the camera to follow the target in world frame,
     /// false to follow in target's local frame
-    /// \param[in] _worldFrame Camera follow p gain.
+    /// \param[in] _worldFrame True to use the world frame.
     public: void SetFollowWorldFrame(bool _worldFrame);
 
     /// \brief Set the camera follow offset position
