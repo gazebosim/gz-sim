@@ -1,21 +1,12 @@
 <?xml version="1.0" ?>
 <!--
-  Demo world with a widget displaying images coming from a segmentation camera sensor.
+  Demo of models being downloaded from http://app.ignitionrobotics.org/
 -->
 <sdf version="1.6">
-  <world name="segmentation_sensor">
-    <physics name="1ms" type="ignored">
-      <max_step_size>0.001</max_step_size>
-      <real_time_factor>1.0</real_time_factor>
-    </physics>
+  <world name="shapes">
     <plugin
       filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
-    </plugin>
-    <plugin
-      filename="ignition-gazebo-sensors-system"
-      name="ignition::gazebo::systems::Sensors">
-      <render_engine>ogre2</render_engine>
     </plugin>
     <plugin
       filename="ignition-gazebo-user-commands-system"
@@ -25,12 +16,11 @@
       filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
-
-    <scene>
-      <ambient>1.0 1.0 1.0</ambient>
-      <background>0.8 0.8 0.8</background>
-      <grid>true</grid>
-    </scene>
+    <plugin
+      filename="ignition-gazebo-sensors-system"
+      name="ignition::gazebo::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
 
     <gui fullscreen="0">
 
@@ -95,34 +85,29 @@
         <iterations>true</iterations>
       </plugin>
 
+      <!-- Image Display Plugins for visualization -->
       <plugin filename="ImageDisplay" name="Image Display">
-        <topic>segmentation/colored_map</topic>
-        <ignition-gui>
-          <property key="state" type="string">docked</property>
-        </ignition-gui>
-      </plugin>
-
-      <plugin filename="ImageDisplay" name="Image Display 2">
-        <topic>segmentation/labels_map</topic>
-        <ignition-gui>
-          <property key="state" type="string">docked</property>
-          <property type="double" key="height">400</property>
-          <property type="double" key="width">600</property>
-        </ignition-gui>
-      </plugin>
-
-      <plugin filename="TransformControl" name="Transform Control">
         <ignition-gui>
         </ignition-gui>
+        <topic>semantic/colored_map</topic>
       </plugin>
-
+      <plugin filename="ImageDisplay" name="Image Display">
+        <ignition-gui>
+        </ignition-gui>
+        <topic>panoptic/colored_map</topic>
+      </plugin>
+      <plugin filename="ImageDisplay" name="Image Display">
+        <ignition-gui>
+        </ignition-gui>
+        <topic>semantic/labels_map</topic>
+      </plugin>
     </gui>
 
     <light type="directional" name="sun">
       <cast_shadows>true</cast_shadows>
       <pose>0 0 10 0 0 0</pose>
       <diffuse>0.8 0.8 0.8 1</diffuse>
-      <specular>0.8 0.8 0.8 1</specular>
+      <specular>0.2 0.2 0.2 1</specular>
       <attenuation>
         <range>1000</range>
         <constant>0.9</constant>
@@ -159,122 +144,122 @@
       </link>
     </model>
 
-    <model name="box2">
-      <pose>0 1 0.5 0 0 0</pose>
-      <link name="box_link2">
-        <inertial>
-          <inertia>
-            <ixx>1</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>1</iyy>
-            <iyz>0</iyz>
-            <izz>1</izz>
-          </inertia>
-          <mass>1.0</mass>
-        </inertial>
-        <collision name="box_collision2">
-          <geometry>
-            <box>
-              <size>1 1 1</size>
-            </box>
-          </geometry>
-        </collision>
-
-        <visual name="box_visual2">
-          <geometry>
-            <box>
-              <size>1 1 1</size>
-            </box>
-          </geometry>
-          <material>
-            <ambient>1 0 0 1</ambient>
-            <diffuse>0.8 0.2 0 1</diffuse>
-            <specular>0.8 0 0 1</specular>
-          </material>
-          <plugin filename="ignition-gazebo-label-system" name="ignition::gazebo::systems::Label">
-            <label>1</label>
-          </plugin>
-        </visual>
-      </link>
-    </model>
-
-    <model name="box">
-      <pose>0 -1 0.5 0 0 0</pose>
-      <link name="box_link">
-        <inertial>
-          <inertia>
-            <ixx>1</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>1</iyy>
-            <iyz>0</iyz>
-            <izz>1</izz>
-          </inertia>
-          <mass>1.0</mass>
-        </inertial>
-        <collision name="box_collision">
-          <geometry>
-            <box>
-              <size>1 1 1</size>
-            </box>
-          </geometry>
-        </collision>
-
-        <visual name="box_visual">
-          <geometry>
-            <box>
-              <size>1 1 1</size>
-            </box>
-          </geometry>
-          <material>
-            <ambient>0 0 0.5 1</ambient>
-            <diffuse>0 0 1 1</diffuse>
-            <specular>0 0 0.3 1</specular>
-          </material>
-          <plugin filename="ignition-gazebo-label-system" name="ignition::gazebo::systems::Label">
-            <label>1</label>
-          </plugin>
-        </visual>
-      </link>
-    </model>
-
-    <model name="sphere">
-      <static>true</static>
-      <pose>-1 -2 0.5 0 0 0</pose>
-      <link name="sphere_link">
-        <collision name="sphere_collision">
-          <geometry>
-            <sphere>
-              <radius>0.5</radius>
-            </sphere>
-          </geometry>
-        </collision>
-        <visual name="sphere_visual">
-          <geometry>
-            <sphere>
-              <radius>0.5</radius>
-            </sphere>
-          </geometry>
-          <material>
-            <ambient>0 1 0 1</ambient>
-            <diffuse>0 1 0 1</diffuse>
-            <specular>0 1 0 1</specular>
-          </material>
-          <cast_shadows>false</cast_shadows>
-        </visual>
-      </link>
+    <!-- Cars, all of them have label 40 -->
+    <include>
+      <name>Car1</name>
+      <pose>-2 -2 0 0 0 0</pose>
+    <uri>
+      https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Hatchback blue
+    </uri>
       <plugin filename="ignition-gazebo-label-system" name="ignition::gazebo::systems::Label">
-        <label>2</label>
+        <label>40</label>
       </plugin>
-    </model>
+    </include>
 
-    <model name="segmentation_camera">
-      <pose>4 0 1.0 0 0.0 3.14</pose>
+    <include>
+      <name>Car2</name>
+      <pose>-3 -5 0 0 0 0</pose>
+    <uri>
+      https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Pickup
+    </uri>
+      <plugin filename="ignition-gazebo-label-system" name="ignition::gazebo::systems::Label">
+        <label>40</label>
+      </plugin>
+    </include>
+
+    <include>
+      <name>Car3</name>
+      <pose>-4 3 0 0 0 -1.57</pose>
+    <uri>
+      https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/SUV
+    </uri>
+      <plugin filename="ignition-gazebo-label-system" name="ignition::gazebo::systems::Label">
+        <label>40</label>
+      </plugin>
+    </include>
+
+    <!-- Tree, all of them have label 30 -->
+    <include>
+      <name>tree1</name>
+      <pose>-2 5 0 0 0 0</pose>
+    <uri>
+      https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Pine Tree
+    </uri>
+      <plugin filename="ignition-gazebo-label-system" name="ignition::gazebo::systems::Label">
+        <label>30</label>
+      </plugin>
+    </include>
+
+    <include>
+      <name>tree2</name>
+      <pose>-7 2 0 0 0 0</pose>
+    <uri>
+      https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Pine Tree
+    </uri>
+      <plugin filename="ignition-gazebo-label-system" name="ignition::gazebo::systems::Label">
+        <label>30</label>
+      </plugin>
+    </include>
+
+    <include>
+      <name>tree3</name>
+      <pose>-7 -4 0 0 0 0</pose>
+    <uri>
+      https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Pine Tree
+    </uri>
+      <plugin filename="ignition-gazebo-label-system" name="ignition::gazebo::systems::Label">
+        <label>30</label>
+      </plugin>
+    </include>
+
+    <!-- Home, we didn't annotate(label) it, so it will be considered as background -->
+    <include>
+      <name>Homee</name>
+      <pose>-15 0 0 0 0 1.57</pose>
+      <uri>
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Collapsed House
+      </uri>
+    </include>
+
+    <!-- Cones, all with label 20-->
+    <include>
+      <name>cone1</name>
+      <pose>0 1 0 0 0 1.570796</pose>
+      <uri>
+      https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Construction Cone
+      </uri>
+      <plugin filename="ignition-gazebo-label-system" name="ignition::gazebo::systems::Label">
+        <label>20</label>
+      </plugin>
+    </include>
+    <include>
+      <name>cone2</name>
+      <pose>0 4 0 0 0 1.570796</pose>
+      <uri>
+      https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Construction Cone
+      </uri>
+      <plugin filename="ignition-gazebo-label-system" name="ignition::gazebo::systems::Label">
+        <label>20</label>
+      </plugin>
+    </include>
+    <include>
+      <name>cone3</name>
+      <pose>2 -2 0 0 0.0 1.57</pose>
+      <uri>
+      https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Construction Cone
+      </uri>
+      <plugin filename="ignition-gazebo-label-system" name="ignition::gazebo::systems::Label">
+        <label>20</label>
+      </plugin>
+    </include>
+
+    <!-- Instance / Panoptic Segmentation Camera Sensor -->
+    <model name="instnace_camera">
+      <pose>6 0 2.0 0 0.0 3.14</pose>
       <link name="link">
-        <pose>0.05 0.05 0.05 0 0 0</pose>
+        <pose>0 0 0 0 0 0</pose>
         <inertial>
-          <mass>0.1</mass>
+          <mass>0.5</mass>
           <inertia>
             <ixx>0.000166667</ixx>
             <iyy>0.000166667</iyy>
@@ -296,19 +281,23 @@
           </geometry>
         </visual>
 
-        <sensor name="segmentation_camera" type="segmentation">
-          <segmentation_type>instance</segmentation_type>
-          <topic>segmentation</topic>
+        <sensor name="instance_segmentation_camera" type="segmentation">
+          <topic>panoptic</topic>
           <camera>
-            <horizontal_fov>1.047</horizontal_fov>
+            <segmentation_type>instance</segmentation_type>
+            <horizontal_fov>1.57</horizontal_fov>
             <image>
               <width>800</width>
               <height>600</height>
             </image>
             <clip>
               <near>0.1</near>
-              <far>10</far>
+              <far>100</far>
             </clip>
+            <!-- Set the Dataset Path with your local path -->
+            <!-- <save enabled="true">
+              <path>/home/amrelsersy/Dataset/Instance</path>
+            </save> -->
           </camera>
           <always_on>1</always_on>
           <update_rate>30</update_rate>
@@ -317,15 +306,57 @@
       </link>
     </model>
 
-    <include>
-      <pose>-1 0 3 0.0 0.0 1.57</pose>
-      <uri>
-      https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Construction Cone
-      </uri>
-      <plugin filename="ignition-gazebo-label-system" name="ignition::gazebo::systems::Label">
-        <label>3</label>
-      </plugin>
-    </include>
+    <!-- Semantic Segmentation Camera Sensor -->
+    <model name="semantic_camera">
+      <pose>6 0 2.0 0 0.0 3.14</pose>
+      <link name="link">
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <mass>0.5</mass>
+          <inertia>
+            <ixx>0.000166667</ixx>
+            <iyy>0.000166667</iyy>
+            <izz>0.000166667</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </visual>
+        <sensor name="semantic_segmentation_camera" type="segmentation">
+          <topic>semantic</topic>
+          <camera>
+            <segmentation_type>semantic</segmentation_type>
+            <horizontal_fov>1.57</horizontal_fov>
+            <image>
+              <width>800</width>
+              <height>600</height>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>100</far>
+            </clip>
+            <!-- Set the Dataset Path with your local path -->
+            <!-- <save enabled="true">
+              <path>/home/amrelsersy/Dataset/Semantic</path>
+            </save> -->
+          </camera>
+          <always_on>1</always_on>
+          <update_rate>30</update_rate>
+          <visualize>true</visualize>
+        </sensor>
+      </link>
+    </model>
 
   </world>
 </sdf>

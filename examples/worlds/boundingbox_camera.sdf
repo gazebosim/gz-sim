@@ -263,7 +263,7 @@
     </model>
 
     <model name="boundingbox_camera">
-      <pose>4 0 1.0 0 0.0 3.14</pose>
+      <pose>3 0 1.0 0 0.0 3.14</pose>
       <link name="link">
         <pose>0.05 0.05 0.05 0 0 0</pose>
         <inertial>
@@ -292,16 +292,20 @@
         <sensor name="boundingbox_sensor" type="boundingbox_camera">
           <topic>boxes</topic>
           <camera>
-            <box_type>full_2d</box_type>
-            <horizontal_fov>1.047</horizontal_fov>
+            <box_type>3d</box_type>
+            <horizontal_fov>1.57</horizontal_fov>
             <image>
               <width>800</width>
               <height>600</height>
             </image>
             <clip>
               <near>0.1</near>
-              <far>10</far>
+              <far>100</far>
             </clip>
+            <!-- Uncomment to save the dataset samples in the given path -->
+            <!-- <save enabled="true">
+              <path>/home/amrelsersy/Dataset/ObjectDetection</path>
+            </save> -->
           </camera>
           <always_on>1</always_on>
           <update_rate>30</update_rate>

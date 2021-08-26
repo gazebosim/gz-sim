@@ -122,6 +122,7 @@ ign_find_package(ignition-sensors6 REQUIRED
     # cameras
     camera
     boundingbox_camera
+    segmentation_camera
     depth_camera
     rgbd_camera
     thermal_camera

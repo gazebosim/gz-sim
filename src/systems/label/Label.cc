@@ -88,8 +88,8 @@ void Label::Configure(const Entity &_entity,
   }
   else
   {
-    ignerr << "Label plugin is not a child of model or visual " <<
-      "label will be ignored. \n";
+    ignerr << "Label plugin " + parentName + " is not a child of model or visual "
+      << "label will be ignored. \n";
     return;
   }
 }
