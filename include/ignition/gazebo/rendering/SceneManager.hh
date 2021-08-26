@@ -111,7 +111,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Create an actor
     /// \param[in] _id Unique actor id
-    /// \param[in] _visual Actor sdf dom
+    /// \param[in] _actor Actor sdf dom
     /// \param[in] _parentId Parent id
     /// \return Actor object created from the sdf dom
     public: rendering::VisualPtr CreateActor(Entity _id,
@@ -130,7 +130,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// the correct parent.
     /// \param[in] _gazeboId Entity in Gazebo
     /// \param[in] _sensorName Name of sensor node in Ignition Rendering.
-    /// \param[in] _parentId Parent Id on Gazebo.
+    /// \param[in] _parentGazeboId Parent Id on Gazebo.
     /// \return True if sensor is successfully handled
     public: bool AddSensor(Entity _gazeboId, const std::string &_sensorName,
         Entity _parentGazeboId = 0);
@@ -188,7 +188,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// Usually, this will be a model or a light.
     /// \param[in] _visual Child visual
     /// \return Top level visual containining this visual
-    /// \TODO(anyone) Make it const ref when merging forward
+    /// TODO(anyone) Make it const ref when merging forward
     public: rendering::VisualPtr TopLevelVisual(
         // NOLINTNEXTLINE
         rendering::VisualPtr _visual) const;

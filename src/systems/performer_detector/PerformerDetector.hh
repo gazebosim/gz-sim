@@ -53,8 +53,8 @@ namespace systems
   /// a value set to "1" if the performer is entering the detector's region and
   /// "0" if the performer is leaving the region.
   ///
-  /// The PerformerDetector has to be attached to a <model> and it's region is
-  /// centered on the containing model's origin.
+  /// The PerformerDetector has to be attached to a `<model>` and it's region
+  /// is centered on the containing model's origin.
   ///
   /// The system does not assume that levels are enabled, but it does require
   /// performers to be specified.
