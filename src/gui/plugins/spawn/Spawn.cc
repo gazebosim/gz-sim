@@ -470,7 +470,8 @@ bool Spawn::eventFilter(QObject *_obj, QEvent *_event)
     ignition::gui::events::LeftClickOnScene *_e =
       static_cast<ignition::gui::events::LeftClickOnScene*>(_event);
     this->dataPtr->mouseEvent = _e->Mouse();
-    this->dataPtr->mouseDirty = true;
+    if (this->dataPtr->isSpawning || this->dataPtr->isPlacing)
+      this->dataPtr->mouseDirty = true;
   }
   else if (_event->type() == ignition::gui::events::HoverOnScene::kType)
   {

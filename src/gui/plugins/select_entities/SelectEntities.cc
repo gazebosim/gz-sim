@@ -135,6 +135,9 @@ class ignition::gazebo::gui::SelectEntitiesPrivate
 
   /// \brief is transform control active ?
   public: bool transformControlActive = false;
+
+  /// \brief is Spawning from description active
+  public: bool isSpawnFromDescription{false};
 };
 
 using namespace ignition;
@@ -489,7 +492,14 @@ bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
     if (this->dataPtr->mouseEvent.Button() == common::MouseEvent::LEFT &&
         this->dataPtr->mouseEvent.Type() == common::MouseEvent::PRESS)
     {
-      this->dataPtr->mouseDirty = true;
+      if(this->dataPtr->isSpawnFromDescription)
+      {
+        this->dataPtr->isSpawnFromDescription = false;
+      }
+      else
+      {
+        this->dataPtr->mouseDirty = true;
+      }
     }
   }
   else if (_event->type() == ignition::gui::events::Render::kType)
@@ -545,6 +555,13 @@ bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
     this->dataPtr->selectedEntitiesID.clear();
     this->dataPtr->selectedEntities.clear();
   }
+  else if (_event->type() ==
+    ignition::gui::events::SpawnFromDescription::kType ||
+    _event->type() == ignition::gui::events::SpawnFromPath::kType)
+  {
+    this->dataPtr->isSpawnFromDescription = true;
+    this->dataPtr->mouseDirty = true;
+  }
   else if (_event->type() == ignition::gui::events::KeyReleaseOnScene::kType)
   {
     ignition::gui::events::KeyReleaseOnScene *_e =
@@ -553,6 +570,7 @@ bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
     {
       this->dataPtr->mouseDirty = true;
       this->dataPtr->selectionHelper.deselectAll = true;
+      this->dataPtr->isSpawnFromDescription = false;
     }
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Open Source Robotics Foundation
+ * Copyright (C) 2021 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_Spawn_HH_
-#define IGNITION_GAZEBO_GUI_Spawn_HH_
+#ifndef IGNITION_GAZEBO_GUI_SPAWN_HH_
+#define IGNITION_GAZEBO_GUI_SPAWN_HH_
 
 #include <memory>
 
@@ -28,8 +28,8 @@ namespace gazebo
 {
   class SpawnPrivate;
 
-  /// \brief Provides buttons for adding a box, sphere, or cylinder
-  /// to the scene
+  /// \brief Allows to spawn models and lights using te gui event
+  /// SpawnFromDescription
   class Spawn : public ignition::gui::Plugin
   {
     Q_OBJECT
