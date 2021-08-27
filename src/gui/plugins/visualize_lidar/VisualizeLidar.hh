@@ -29,8 +29,7 @@ namespace ignition
 namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-{
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   class VisualizeLidarPrivate;
 
   /// \brief Visualize the LaserScan message returned by the sensors. Use the

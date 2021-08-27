@@ -29,8 +29,7 @@ namespace ignition
 namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-{
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   class VisualizeContactsPrivate;
 
   /// \brief Visualize the contacts returned by the Physics plugin. Use the
