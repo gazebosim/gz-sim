@@ -3,7 +3,13 @@
 ### Ignition Gazebo 3.X.X (202X-XX-XX)
 
 
-### Ignition Gazebo 3.9.0 (2021-08-XX)
+### Ignition Gazebo 3.9.0 (2021-08-16)
+
+1. Entity tree: prevent creation of repeated entity items
+    * [Pull request #974](https://github.com/ignitionrobotics/ign-gazebo/pull/974)
+
+1. Don't use $HOME on most tests (InternalFixture)
+    * [Pull request #971](https://github.com/ignitionrobotics/ign-gazebo/pull/971)
 
 1. Be more specific when looking for physics plugins
     * [Pull request #965](https://github.com/ignitionrobotics/ign-gazebo/pull/965)
