@@ -32,6 +32,7 @@
 #include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/components/Factory.hh"
+#include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 
@@ -341,35 +342,45 @@ Entity EntityComponentManager::Clone(const Entity _entity, const Entity _parent,
     this->CreateComponent(clonedEntity, components::ParentEntity(_parent));
   }
 
+  // make sure that the cloned entity has a unique name
+  auto clonedName = _name;
+  if (!uniqueNameGenerated)
+  {
+    if (clonedName.empty())
+    {
+      auto originalNameComp = this->Component<components::Name>(_entity);
+      clonedName =
+        originalNameComp ? originalNameComp->Data() : "cloned_entity";
+    }
+    uint64_t suffix = 1;
+    while (kNullEntity != this->EntityByComponents(
+          components::Name(clonedName + "_" + std::to_string(suffix))))
+      suffix++;
+    clonedName += "_" + std::to_string(suffix);
+  }
+  this->CreateComponent(clonedEntity, components::Name(clonedName));
+
   // copy all components from _entity to clonedEntity
   for (const auto &type : this->ComponentTypes(_entity))
   {
-    if (type == components::Name::typeId)
+    // skip the Name and ParentEntity components since those were already
+    // handled above
+    if ((type == components::Name::typeId) ||
+        (type == components::ParentEntity::typeId))
+      continue;
+
+    auto originalComp = this->ComponentImplementation(_entity, type);
+    auto clonedComp = originalComp->Clone();
+
+    if (type == components::Light::typeId)
     {
-      // make sure that the cloned entity has a unique name
-      auto clonedName = _name;
-      if (!uniqueNameGenerated)
-      {
-        if (clonedName.empty())
-        {
-          auto originalNameComp = this->Component<components::Name>(_entity);
-          clonedName =
-            originalNameComp ? originalNameComp->Data() : "cloned_entity";
-        }
-        uint64_t suffix = 1;
-        while (kNullEntity != this->EntityByComponents(
-              components::Name(clonedName + "_" + std::to_string(suffix))))
-          suffix++;
-        clonedName += "_" + std::to_string(suffix);
-      }
-      this->CreateComponent(clonedEntity, components::Name(clonedName));
+      // set the sdf::Light's name to clonedName
+      auto derivedComp =
+        static_cast<components::Light *>(clonedComp.get());
+      derivedComp->Data().SetName(clonedName);
     }
-    else if (type != components::ParentEntity::typeId)
-    {
-      auto originalComp = this->ComponentImplementation(_entity, type);
-      auto clonedComp = originalComp->Clone();
-      this->CreateComponentImplementation(clonedEntity, type, clonedComp.get());
-    }
+
+    this->CreateComponentImplementation(clonedEntity, type, clonedComp.get());
   }
 
   // keep track of canonical link information (for clones of models, the cloned
