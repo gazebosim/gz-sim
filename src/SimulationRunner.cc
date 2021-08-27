@@ -116,6 +116,12 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
       std::bind(&SimulationRunner::LoadPlugins, this, std::placeholders::_1,
       std::placeholders::_2));
 
+  if (serverConfig.SameProcessAsGUI())
+  {
+  this->updateClientDoneConn = this->eventMgr.Connect<events::ClientUpdateDone>(
+    std::bind(&SimulationRunner::OnClientUpdateDone, this));
+  }
+
   // Create the level manager
   this->levelMgr = std::make_unique<LevelManager>(this, _config.UseLevels());
 
@@ -508,6 +514,11 @@ void SimulationRunner::ProcessSystemQueue()
   }
   this->pendingSystems.clear();
 
+  if (this->serverConfig.SameProcessAsGUI())
+  {
+    this->clientUpdateDoneBarrier = std::make_unique<Barrier>(1u);
+  }
+
   // If additional systems were added, recreate the worker threads.
   if (pending > 0)
   {
@@ -565,20 +576,12 @@ void SimulationRunner::UpdateSystems()
     IGN_PROFILE("PreUpdate");
     for (auto& system : this->systemsPreupdate)
       system->PreUpdate(this->currentInfo, this->entityCompMgr);
-    if (this->serverConfig.SameProcessAsGUI())
-    {
-      this->eventMgr.Emit<events::ClientUpdate>();
-    }
   }
 
   {
     IGN_PROFILE("Update");
     for (auto& system : this->systemsUpdate)
       system->Update(this->currentInfo, this->entityCompMgr);
-    if (this->serverConfig.SameProcessAsGUI())
-    {
-      this->eventMgr.Emit<events::ClientUpdate>();
-    }
   }
 
   // Call client updates before PostUpdate, with the assumption is that each
@@ -590,6 +593,11 @@ void SimulationRunner::UpdateSystems()
     // client to throttle as needed.
     IGN_PROFILE("ClientUpdate");
     this->eventMgr.Emit<events::ClientUpdate>();
+
+    if (this->clientUpdateDoneBarrier)
+    {
+      this->clientUpdateDoneBarrier->Wait();
+    }
   }
 
   {
@@ -618,6 +626,12 @@ void SimulationRunner::OnStop()
 }
 
 /////////////////////////////////////////////////
+void SimulationRunner::OnClientUpdateDone()
+{
+  this->clientUpdateDoneBarrier->Cancel();
+}
+
+/////////////////////////////////////////////////
 void SimulationRunner::StopWorkerThreads()
 {
   this->postUpdateThreadsRunning = false;
@@ -628,6 +642,10 @@ void SimulationRunner::StopWorkerThreads()
   if (this->postUpdateStopBarrier)
   {
     this->postUpdateStopBarrier->Cancel();
+  }
+  if (this->clientUpdateDoneBarrier)
+  {
+    this->clientUpdateDoneBarrier->Cancel();
   }
   for (auto &thread : this->postUpdateThreads)
   {

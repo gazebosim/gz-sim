@@ -281,27 +281,30 @@ void GuiRunner::Implementation::UpdatePluginsFromEvent()
 /////////////////////////////////////////////////
 void GuiRunner::Implementation::UpdatePluginsEvent()
 {
-  std::lock_guard<std::mutex> lock(this->updateMutex);
-
-  // Louise: How does the GUI get sim time?
+  this->updateMutex.lock();
 
   // 30 Hz
   auto updatePeriod = std::chrono::milliseconds(1000/60);
 
-  // bool jumpBackInTime = _info.dt < std::chrono::steady_clock::duration::zero();
   bool changeEvent = this->ecm.HasEntitiesMarkedForRemoval() ||
     this->ecm.HasNewEntities() || this->ecm.HasOneTimeComponentChanges();
-//    || jumpBackInTime;
   auto now = std::chrono::system_clock::now();
   bool itsTime =  now - this->lastSameProcessUpdate > updatePeriod;
+  this->updateMutex.unlock();
 
   if (changeEvent || itsTime)
   {
     // Louise: What happens if the server is already running the next
     // PreUpdate and modifying the ECM while gui plugins are still
     // reading from it?
-    pool.AddWork(std::bind(
+    this->updateMutex.lock();
+    this->pool.AddWork(std::bind(
       &GuiRunner::Implementation::UpdatePluginsFromEvent, this));
     this->lastSameProcessUpdate = now;
+    this->updateMutex.unlock();
+    this->pool.WaitForResults();
+    this->updateMutex.lock();
+    this->eventMgr.Emit<events::ClientUpdateDone>();
+    this->updateMutex.unlock();
   }
 }

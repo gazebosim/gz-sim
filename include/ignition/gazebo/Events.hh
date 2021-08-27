@@ -84,6 +84,12 @@ namespace ignition
       /// delegate complex computation to worker threads.
       using ClientUpdate =
         ignition::common::EventT<void(void), struct ClientUpdateTag>;
+
+      /// \brief Event used to signal the server that GUI udpates are done.
+      /// This only make sense when GUI and server are running in the same
+      /// process.
+      using ClientUpdateDone =
+        ignition::common::EventT<void(void), struct ClientUpdateDoneTag>;
       }
     }  // namespace events
   }  // namespace gazebo
