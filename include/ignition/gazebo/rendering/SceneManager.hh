@@ -24,6 +24,7 @@
 
 #include <sdf/Geometry.hh>
 #include <sdf/Actor.hh>
+#include <sdf/Joint.hh>
 #include <sdf/Light.hh>
 #include <sdf/Link.hh>
 #include <sdf/Material.hh>
@@ -149,6 +150,16 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Visual (inertia) object created from the inertial
     public: rendering::VisualPtr CreateInertiaVisual(Entity _id,
         const math::Inertiald &_inertial, Entity _parentId = 0);
+
+    /// \brief Create a joint visual
+    /// \param[in] _id Unique visual id
+    /// \param[in] _joint Joint sdf dom
+    /// \param[in] _childId Joint child id
+    /// \param[in] _parentId Joint parent id
+    /// \return Visual (joint) object created from the sdf dom
+    public: rendering::VisualPtr CreateJointVisual(Entity _id,
+        const sdf::Joint &_joint, Entity _childId = 0,
+        Entity _parentId = 0);
 
     /// \brief Create a collision visual
     /// \param[in] _id Unique visual id
@@ -295,6 +306,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// false to set back to original transparency values (make more opaque)
     public: void UpdateTransparency(const rendering::NodePtr &_node,
         bool _makeTransparent);
+
+    /// \brief Updates the world pose of joint parent visual
+    /// according to its child.
+    /// \param[in] _jointId Joint visual id.
+    public: void UpdateJointParentPose(Entity _jointId);
 
     /// \internal
     /// \brief Pointer to private data class
