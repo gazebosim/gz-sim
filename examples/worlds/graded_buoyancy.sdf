@@ -118,7 +118,7 @@
     </light>
 
     <model name='ball'>
-      <pose>0 0 -1.50 1.5707963267948966 0 0</pose>
+      <pose>0 0 -1.50 0 0 0</pose>
       <link name='body'>
         <pose>0 0 0 0 0 0</pose>
         <inertial>
