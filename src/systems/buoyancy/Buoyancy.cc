@@ -124,24 +124,22 @@ void BuoyancyPrivate::GradedFluidDensity(
   auto prevLayerFluidDensity = this->fluidDensity;
   auto volsum = 0;
   auto centerOfBuoyancy = math::Vector3d{0,0,0};
-                ignerr << __FILE__ << ": " << __LINE__ <<std::endl;
 
   for(auto [height, currFluidDensity] : layers)
   {
     // Transform plane and slice the shape
-    math::Planed plane{math::Vector3d{0,0,1}, height};
-    math::Matrix4d matrix(_pose);
-    auto waterPlane = plane.Transform(matrix.Inverse());
-    auto vol = _shape.VolumeBelow(waterPlane);
-
-    ignerr << "Got position: " << _pose.Pos() << ", plane_normal: " << waterPlane.Normal() 
-      << ", offset: " << waterPlane.Offset() << std::endl;
+    math::Planed plane{math::Vector3d{0,0,1}, height - _pose.Pos().Z()};
+    //math::Matrix4d matrix(_pose);
+    //auto waterPlane = plane.Transform(matrix.Inverse());
+    auto vol = _shape.VolumeBelow(plane);
+    //ignerr << "Plane: " << waterPlane.Normal() << ".n = " << waterPlane.Offset() << " pose: "
+    //<< _pose.Pos()<< " Rotation: "<< _pose.Rot().Euler() <<std::endl;  
 
     // Archimedes principal for this layer
     auto forceMag =  - (vol - volsum) * _gravity * prevLayerFluidDensity;
 
     // Calculate point from which force is applied
-    auto cov = _shape.CenterOfVolumeBelow(waterPlane);
+    auto cov = _shape.CenterOfVolumeBelow(plane);
 
     if(!cov.has_value()) continue;
 
@@ -159,10 +157,10 @@ void BuoyancyPrivate::GradedFluidDensity(
     prevLayerFluidDensity = currFluidDensity;
     volsum = vol;
   }
-                ignerr << __FILE__ << ": " << __LINE__ <<std::endl;
-
   // For the rest of the layers.
   auto vol = _shape.Volume();
+
+  ignerr << "Volume: " << vol << ", submerged" << volsum << std::endl;
 
   // Archimedes principal for this layer
   auto forceMag = - (vol - volsum) * _gravity * prevLayerFluidDensity;
@@ -185,10 +183,7 @@ std::pair<math::Vector3d, math::Vector3d> BuoyancyPrivate::resolveForces(
   const math::Pose3d &_pose)
 {
   auto force = math::Vector3d{0, 0, 0};
-                ignerr << __FILE__ << ": " << __LINE__ <<std::endl;
-
   auto torque = math::Vector3d{0, 0, 0};
-                ignerr << __FILE__ << ": " << __LINE__ <<std::endl;
 
   for(auto b: this->buoyancyForces)
   {
@@ -197,10 +192,7 @@ std::pair<math::Vector3d, math::Vector3d> BuoyancyPrivate::resolveForces(
     auto globalPoint = b.pose * localPoint;
     auto offset = globalPoint.Pos() - _pose.Pos();
     torque += force.Cross(offset);
-                  ignerr << __FILE__ << ": " << __LINE__ <<std::endl;
-
   }
-                ignerr << __FILE__ << ": " << __LINE__ <<std::endl;
 
   return {force, torque};
 }
@@ -258,13 +250,11 @@ void Buoyancy::Configure(const Entity &_entity,
         auto depth = argument->Get<double>("above_depth");
         auto density = argument->Get<double>("density");
         this->dataPtr->layers[depth] = density;
-        ignerr << "Added layer " << std::endl;
+        igndbg << "Added layer at " << depth << std::endl;
       }
       argument = argument->GetNextElement();
     }
   }
-        ignerr << "Finished parsing" << std::endl;
-
 }
 
 //////////////////////////////////////////////////
@@ -281,7 +271,6 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     return;
   }
 
-  ignerr << "was here" << std::endl;
   // Compute the volume and center of volume for each new link
   _ecm.EachNew<components::Link, components::Inertial>(
       [&](const Entity &_entity,
@@ -296,6 +285,9 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     {
       return true;
     }
+
+    enableComponent<components::Inertial>(_ecm, _entity);
+    enableComponent<components::WorldPose>(_ecm, _entity);
 
     Link link(_entity);
 
@@ -437,8 +429,6 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
             ignerr << "Invalid collision pointer. This shouldn't happen\n";
             continue;
           }
-                        ignerr << __FILE__ << ": " << __LINE__ <<std::endl;
-
 
           switch (coll->Data().Geom()->Type())
           {
@@ -446,7 +436,6 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
               //coll->Data().Geom()->BoxShape()->Shape().VolumeBelow();
               break;
             case sdf::GeometryType::SPHERE:
-              ignerr << __FILE__ << ": " << __LINE__ <<std::endl;
               this->dataPtr->GradedFluidDensity<math::Sphered>(
                 pose,
                 coll->Data().Geom()->SphereShape()->Shape(),
@@ -462,12 +451,11 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
           }
         }
       }
-                    ignerr << __FILE__ << ": " << __LINE__ <<std::endl;
-
       auto [force, torque]= this->dataPtr->resolveForces(
         link.WorldInertialPose(_ecm).value());
       // Apply the wrench to the link. This wrench is applied in the
       // Physics System.
+      ignerr << "Force applied" << force << std::endl;
       link.AddWorldWrench(_ecm, force, torque);
       return true;
   });
