@@ -20,7 +20,6 @@
 #include <cstring>
 #include <map>
 #include <memory>
-#include <mutex>
 #include <optional>
 #include <set>
 #include <tuple>
@@ -487,9 +486,6 @@ void EntityComponentManager::EachRemoved(typename identity<std::function<
 template<typename ...ComponentTypeTs>
 detail::View<ComponentTypeTs...> *EntityComponentManager::FindView() const
 {
-  static std::mutex mutex;
-  std::lock_guard<std::mutex> lock(mutex);
-
   auto viewKey = std::vector<ComponentTypeId>{ComponentTypeTs::typeId...};
 
   auto baseViewPtr = this->FindView(viewKey);
@@ -498,7 +494,6 @@ detail::View<ComponentTypeTs...> *EntityComponentManager::FindView() const
     auto view = static_cast<detail::View<ComponentTypeTs...>*>(baseViewPtr);
 
     // add any new entities to the view before using it
-    view->ToAddEntities();
     for (const auto &[entity, isNew] : view->ToAddEntities())
     {
       view->AddEntityWithConstComps(entity, isNew,
