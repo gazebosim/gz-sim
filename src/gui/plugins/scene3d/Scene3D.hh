@@ -163,11 +163,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
         msgs::Boolean &_res);
 
     /// \brief Update the geometry of an SDF element.
-    /// \param[in out] _modelPtr The SDF element to update.
     /// \param[in] _scale The scaling factor.
+    /// \param[in out] _modelPtr The SDF element to update.
     /// \return True if the scaling was successful or false otherwise.
-    private: bool UpdateGeomSize(sdf::ElementPtr &_modelPtr,
-        const ignition::math::Vector3d &_scale);
+    private: bool UpdateGeomSize(const ignition::math::Vector3d &_scale,
+        sdf::ElementPtr &_modelPtr);
 
     /// \internal
     /// \brief Pointer to private data.

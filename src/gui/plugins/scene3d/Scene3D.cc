@@ -2939,7 +2939,7 @@ void Scene3D::Update(const UpdateInfo &_info,
             igndbg << "Updating SDF for entity " << _modelEntity << std::endl;
             igndbg << "Before:" << std::endl;
             igndbg << _modelSdf->Data().Element()->ToString("");
-            if (!this->UpdateGeomSize(modelElem, scaledEntities[_modelEntity]))
+            if (!this->UpdateGeomSize(scaledEntities[_modelEntity], modelElem))
             {
               ignerr << "Unable to update geometry size: "
                      << _modelSdf->Data().Element()->ToString("") << std::endl;
@@ -3075,8 +3075,8 @@ bool Scene3D::OnViewCollisions(const msgs::StringMsg &_msg,
 }
 
 /////////////////////////////////////////////////
-bool Scene3D::UpdateGeomSize(sdf::ElementPtr &_modelElem,
-  const ignition::math::Vector3d &_scale)
+bool Scene3D::UpdateGeomSize(const ignition::math::Vector3d &_scale,
+  sdf::ElementPtr &_modelElem)
 {
   if (!_modelElem->HasElement("link"))
     return false;
