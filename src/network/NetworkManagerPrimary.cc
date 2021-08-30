@@ -142,6 +142,15 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
     return false;
   }
 
+  // msgs::SerializedStateMap stateMsg;
+  // this->dataPtr->ecm->State(stateMsg);
+  // FILL AFFINITIES BEFORE STEP
+  private_msgs::SimulationStateStep stateStepMsg;
+  stateStepMsg.mutable_stats()->CopyFrom(convert<msgs::WorldStatistics>(_info));
+
+  // Affinities that changed this step
+  this->PopulateAffinities(stateStepMsg);
+
   // STEP PRE-UPDATE + Update PHASE
   // CHANGE STEP FUNCTION @ primary to only run those sections
   // Step all systems
@@ -150,14 +159,6 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
   // Send full serialized step to all the secondaries
   // TO-DO(blast545): consider getting the only component id types required for
   // postUpdate tasks
-
-  // msgs::SerializedStateMap stateMsg;
-  // this->dataPtr->ecm->State(stateMsg);
-  private_msgs::SimulationStateStep stateStepMsg;
-  stateStepMsg.mutable_stats()->CopyFrom(convert<msgs::WorldStatistics>(_info));
-
-  // Affinities that changed this step
-  this->PopulateAffinities(stateStepMsg);
 
   // Get the current state of the ECM
   // TO-DO(blast545) is it possible to get the info directly into stateStepMsg?
