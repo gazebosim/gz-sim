@@ -133,8 +133,15 @@ class ignition::gazebo::EntityComponentManagerPrivate
   public: mutable std::mutex removedComponentsMutex;
 
   /// \brief The set of all views.
+  /// The value is a pair of the view itself and a mutex that can be used for
+  /// locking the view to ensure thread safety when adding entities to the view.
   public: mutable std::unordered_map<detail::ComponentTypeKey,
-          std::unique_ptr<detail::BaseView>, detail::ComponentTypeHasher> views;
+          std::pair<std::unique_ptr<detail::BaseView>,
+            std::unique_ptr<std::mutex>>, detail::ComponentTypeHasher> views;
+
+  /// \brief A flag that indicates whether views should be locked while adding
+  /// new entities to them or not.
+  public: bool lockAddEntitiesToViews{false};
 
   /// \brief Cache of previously queried descendants. The key is the parent
   /// entity for which descendants were queried, and the value are all its
@@ -271,7 +278,7 @@ void EntityComponentManager::ClearNewlyCreatedEntities()
 
   for (auto &view : this->dataPtr->views)
   {
-    view.second->ResetNewEntityState();
+    view.second.first->ResetNewEntityState();
   }
 }
 
@@ -319,7 +326,7 @@ void EntityComponentManager::RequestRemoveEntity(Entity _entity,
   {
     for (auto &view : this->dataPtr->views)
     {
-      view.second->MarkEntityToRemove(removedEntity);
+      view.second.first->MarkEntityToRemove(removedEntity);
     }
   }
 }
@@ -377,7 +384,7 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
       // Remove the entity from views.
       for (auto &view : this->dataPtr->views)
       {
-        view.second->RemoveEntity(entity);
+        view.second.first->RemoveEntity(entity);
       }
     }
     // Clear the set of entities to remove.
@@ -420,7 +427,7 @@ bool EntityComponentManager::RemoveComponent(
 
     // update views to reflect the component removal
     for (auto &viewPair : this->dataPtr->views)
-      viewPair.second->NotifyComponentRemoval(_entity, _typeId);
+      viewPair.second.first->NotifyComponentRemoval(_entity, _typeId);
   }
 
   this->dataPtr->AddModifiedComponent(_entity);
@@ -656,7 +663,7 @@ bool EntityComponentManager::CreateComponentImplementation(
     updateData = false;
     for (auto &viewPair : this->dataPtr->views)
     {
-      auto &view = viewPair.second;
+      auto &view = viewPair.second.first;
       if (this->EntityMatches(_entity, view->ComponentTypes()))
         view->MarkEntityToAdd(_entity, this->IsNewEntity(_entity));
     }
@@ -687,7 +694,7 @@ bool EntityComponentManager::CreateComponentImplementation(
 
       for (auto &viewPair : this->dataPtr->views)
       {
-        viewPair.second->NotifyComponentAddition(_entity,
+        viewPair.second.first->NotifyComponentAddition(_entity,
             this->IsNewEntity(_entity), _componentTypeId);
       }
     }
@@ -795,14 +802,18 @@ const EntityGraph &EntityComponentManager::Entities() const
 }
 
 //////////////////////////////////////////////////
-detail::BaseView *EntityComponentManager::FindView(
+std::pair<detail::BaseView *, std::mutex *> EntityComponentManager::FindView(
     const std::vector<ComponentTypeId> &_types) const
 {
   std::lock_guard<std::mutex> lockViews(this->dataPtr->viewsMutex);
+  std::pair<detail::BaseView *, std::mutex *> viewMutexPair(nullptr, nullptr);
   auto iter = this->dataPtr->views.find(_types);
   if (iter != this->dataPtr->views.end())
-    return iter->second.get();
-  return nullptr;
+  {
+    viewMutexPair.first = iter->second.first.get();
+    viewMutexPair.second = iter->second.second.get();
+  }
+  return viewMutexPair;
 }
 
 //////////////////////////////////////////////////
@@ -810,12 +821,13 @@ detail::BaseView *EntityComponentManager::AddView(
     const detail::ComponentTypeKey &_types,
     std::unique_ptr<detail::BaseView> _view) const
 {
-  // If the view already exists, then the map will return the iterator to
-  // the location that prevented the insertion.
   std::lock_guard<std::mutex> lockViews(this->dataPtr->viewsMutex);
-  auto iter = this->dataPtr->views.insert(
-      std::make_pair(_types, std::move(_view))).first;
-  return iter->second.get();
+  auto iter = this->dataPtr->views.find(_types);
+  if (iter != this->dataPtr->views.end())
+    return iter->second.first.get();
+  this->dataPtr->views[_types] =
+    std::make_pair(std::move(_view), std::make_unique<std::mutex>());
+  return this->dataPtr->views[_types].first.get();
 }
 
 //////////////////////////////////////////////////
@@ -824,7 +836,7 @@ void EntityComponentManager::RebuildViews()
   IGN_PROFILE("EntityComponentManager::RebuildViews");
   for (auto &viewPair : this->dataPtr->views)
   {
-    auto &view = viewPair.second;
+    auto &view = viewPair.second.first;
     view->Reset();
 
     // Add all the entities that match the component types to the
@@ -1552,6 +1564,18 @@ void EntityComponentManager::SetEntityCreateOffset(uint64_t _offset)
   }
 
   this->dataPtr->entityCount = _offset;
+}
+
+/////////////////////////////////////////////////
+void EntityComponentManager::LockAddingEntitiesToViews(bool _lock)
+{
+  this->dataPtr->lockAddEntitiesToViews = _lock;
+}
+
+/////////////////////////////////////////////////
+bool EntityComponentManager::LockAddingEntitiesToViews() const
+{
+  return this->dataPtr->lockAddEntitiesToViews;
 }
 
 /////////////////////////////////////////////////
