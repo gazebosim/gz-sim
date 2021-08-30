@@ -10,10 +10,8 @@
 <sdf version="1.6">
   <world name="default">
 
-    <plugin
-     filename="ignition-gazebo-physics-system"
-     name="ignition::gazebo::systems::Physics">
-    </plugin>
+
+
 
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
