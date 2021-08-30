@@ -3082,12 +3082,15 @@ bool Scene3D::UpdateGeomSize(sdf::ElementPtr &_modelElem,
     return false;
 
   sdf::ElementPtr linkElem = _modelElem->GetElement("link");
-  if (!linkElem->HasElement("visual"))
-    return false;
 
+  bool scaled = false;
   for (auto label : {"visual", "collision"})
   {
+    if (!linkElem->HasElement(label))
+      continue;
+
     sdf::ElementPtr elem = linkElem->GetElement(label);
+
     if (!elem->HasElement("geometry"))
       continue;
 
@@ -3099,6 +3102,7 @@ bool Scene3D::UpdateGeomSize(sdf::ElementPtr &_modelElem,
       ignition::math::Vector3d geomBoxSize = _scale * size;
 
       geomElem->GetElement("box")->GetElement("size")->Set(geomBoxSize);
+      scaled = true;
     }
     else if (geomElem->HasElement("sphere"))
     {
@@ -3107,6 +3111,7 @@ bool Scene3D::UpdateGeomSize(sdf::ElementPtr &_modelElem,
       double newRadius = _scale.Max();
       double geomRadius = newRadius * radius;
       geomElem->GetElement("sphere")->GetElement("radius")->Set(geomRadius);
+      scaled = true;
     }
     else if (geomElem->HasElement("cylinder"))
     {
@@ -3118,12 +3123,16 @@ bool Scene3D::UpdateGeomSize(sdf::ElementPtr &_modelElem,
       double geomLength = _scale.Z() * length;
       geomElem->GetElement("cylinder")->GetElement("radius")->Set(geomRadius);
       geomElem->GetElement("cylinder")->GetElement("length")->Set(geomLength);
+      scaled = true;
     }
     else if (geomElem->HasElement("mesh"))
+    {
       geomElem->GetElement("mesh")->GetElement("scale")->Set(_scale);
+      scaled = true;
+    }
   }
 
-  return true;
+  return scaled;
 }
 
 /////////////////////////////////////////////////
