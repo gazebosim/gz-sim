@@ -110,7 +110,7 @@ namespace ignition
                              double _epsilon = 1e-6) const
       {
         return math::equal(this->CrossProduct(_pt),
-            static_cast<T>(0), _epsilon);
+            0., _epsilon);
       }
 
       /// \brief Check if the given line is parallel with this line.
@@ -124,7 +124,7 @@ namespace ignition
                             double _epsilon = 1e-6) const
       {
         return math::equal(this->CrossProduct(_line),
-            static_cast<T>(0), _epsilon);
+            0., _epsilon);
       }
 
       /// \brief Check if the given line is collinear with this line. This
