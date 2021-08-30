@@ -454,7 +454,8 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
                 gravity->Data());
               break;
             default:
-              ignerr << "Only <box> and <sphere> collisions are supported by the graded buoyancy option." <<std::endl;
+              ignerr << "Only <box> and <sphere> collisions are supported by " 
+                << "the graded buoyancy option." << std::endl;
               break;
           }
         }
