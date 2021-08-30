@@ -169,10 +169,20 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // a default set of systems.
   if (this->systems.empty() && this->pendingSystems.empty())
   {
-    ignmsg << "No systems loaded from SDF, loading defaults" << std::endl;
-    bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
-    auto plugins = ignition::gazebo::loadPluginInfo(isPlayback);
-    this->LoadServerPlugins(plugins);
+    // Do not load extra systems if this is a distributed simulation
+    // TODO(blast545): is this check really necessary?
+    if (this->networkMgr)
+    {
+      ignmsg << "No systems loaded from SDF. Skip defaults, "
+             << "running distriuted simulation." << std::endl;
+    }
+    else
+    {
+      ignmsg << "No systems loaded from SDF, loading defaults" << std::endl;
+      bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
+      auto plugins = ignition::gazebo::loadPluginInfo(isPlayback);
+      this->LoadServerPlugins(plugins);
+    }
   }
 
   this->LoadLoggingPlugins(this->serverConfig);
@@ -492,18 +502,33 @@ void SimulationRunner::AddSystemToRunner(SystemInternal _system)
   {
     if (this->networkMgr->IsSecondary())
     {
-      igndbg << "Adding system to Secondary." << std::endl;
+      igndbg << "Checking Secondary system." << std::endl;
       if (_system.postupdate)
-        this->systemsPostupdate.push_back(_system.postupdate);
+      {
+	igndbg << "Adding postsystem to Secondary." << std::endl;
+	this->systemsPostupdate.push_back(_system.postupdate);
+      }
     }
     else
     {
       igndbg << "Adding system to primary." << std::endl;
       if (_system.preupdate)
+      {
+        igndbg << "Adding PREU system to primary." << std::endl;
         this->systemsPreupdate.push_back(_system.preupdate);
+      }
 
       if (_system.update)
+      {
+        igndbg << "Adding U system to primary." << std::endl;
         this->systemsUpdate.push_back(_system.update);
+      }
+      if (_system.postupdate)
+      {
+        igndbg << "Adding postU system to primary." << std::endl;
+        this->systemsPostupdate.push_back(_system.postupdate);
+      }
+
     }
   }
   else
