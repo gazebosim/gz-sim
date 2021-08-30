@@ -442,7 +442,10 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
           switch (coll->Data().Geom()->Type())
           {
             case sdf::GeometryType::BOX:
-              //coll->Data().Geom()->BoxShape()->Shape().VolumeBelow();
+              this->dataPtr->GradedFluidDensity<math::Boxd>(
+                pose,
+                coll->Data().Geom()->SphereShape()->Shape(),
+                gravity->Data());
               break;
             case sdf::GeometryType::SPHERE:
               this->dataPtr->GradedFluidDensity<math::Sphered>(
@@ -450,12 +453,8 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
                 coll->Data().Geom()->SphereShape()->Shape(),
                 gravity->Data());
               break;
-            case sdf::GeometryType::CYLINDER:
-              //volume = coll->Data().Geom()->CylinderShape()->Shape().Volume();
-              break;
-            case sdf::GeometryType::PLANE:
-              // Ignore plane shapes. They have no volume and are not expected
-              // to be buoyant.
+            default:
+              ignerr << "Only <box> and <sphere> collisions are supported by the graded buoyancy option." <<std::endl;
               break;
           }
         }
