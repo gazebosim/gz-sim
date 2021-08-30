@@ -16,8 +16,10 @@
  */
 #include <ignition/msgs/wrench.pb.h>
 
+#include <map>
 #include <mutex>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <ignition/common/Mesh.hh>
@@ -65,7 +67,7 @@ class ignition::gazebo::systems::BuoyancyPrivate
     GRADED_BUOYANCY
   };
   public: BuoyancyType buoyancyType{BuoyancyType::UNIFORM_BUOYANCY};
-  /// \brief Get the fluid density based on a pose. 
+  /// \brief Get the fluid density based on a pose.
   /// \param[in] _pose The pose to use when computing the fluid density. The
   /// pose frame is left undefined because this function currently returns
   /// a constant value, see the todo in the function implementation.
@@ -111,7 +113,7 @@ class ignition::gazebo::systems::BuoyancyPrivate
 };
 
 //////////////////////////////////////////////////
-double BuoyancyPrivate::UniformFluidDensity(const math::Pose3d & /*_pose*/) const
+double BuoyancyPrivate::UniformFluidDensity(const math::Pose3d &/*_pose*/) const
 {
   return this->fluidDensity;
 }
@@ -123,15 +125,12 @@ void BuoyancyPrivate::GradedFluidDensity(
 {
   auto prevLayerFluidDensity = this->fluidDensity;
   auto volsum = 0.0;
-  auto centerOfBuoyancy = math::Vector3d{0,0,0};
+  auto centerOfBuoyancy = math::Vector3d{0, 0, 0};
 
   for(auto [height, currFluidDensity] : layers)
   {
     // Transform plane and slice the shape
-    math::Planed plane{math::Vector3d{0,0,1}, height - _pose.Pos().Z()};
-    //math::Matrix4d matrix(_pose);
-    //auto waterPlane = plane.Transform(matrix.Inverse());
-    //ignerr << "Plane "<< plane.Offset() <<"," << height << "," << _pose.Pos() << std::endl;
+    math::Planed plane{math::Vector3d{0, 0, 1}, height - _pose.Pos().Z()};
     auto vol = _shape.VolumeBelow(plane);
 
     // Archimedes principal for this layer
@@ -139,7 +138,6 @@ void BuoyancyPrivate::GradedFluidDensity(
 
     // Accumulate layers.
     prevLayerFluidDensity = currFluidDensity;
-    //ignerr << height << ", " << prevLayerFluidDensity << std::endl;
 
     // Calculate point from which force is applied
     auto cov = _shape.CenterOfVolumeBelow(plane);
@@ -163,14 +161,12 @@ void BuoyancyPrivate::GradedFluidDensity(
 
   // Archimedes principal for this layer
   auto forceMag = - (vol - volsum) * _gravity * prevLayerFluidDensity;
-  //ignerr << "surface density" << prevLayerFluidDensity << ", force: " << forceMag << "\n"; 
 
   // No force contributed by this layer.
-  if((vol - volsum) == 0) return;
+  if ((vol - volsum) == 0) return;
 
   // Calculate centre of buoyancy
-  auto cov = math::Vector3d{0,0,0};
-  
+  auto cov = math::Vector3d{0, 0, 0};
   auto cob = (cov * vol - centerOfBuoyancy * volsum) / (vol - volsum);
   centerOfBuoyancy = cov;
   auto buoyancyAction = BuoyancyActionPoint
@@ -189,10 +185,10 @@ std::pair<math::Vector3d, math::Vector3d> BuoyancyPrivate::resolveForces(
   auto force = math::Vector3d{0, 0, 0};
   auto torque = math::Vector3d{0, 0, 0};
 
-  for(auto b: this->buoyancyForces)
+  for(auto b : this->buoyancyForces)
   {
     force += b.force;
-    math::Pose3d localPoint{b.point, math::Quaterniond{1,0,0,0}};
+    math::Pose3d localPoint{b.point, math::Quaterniond{1, 0, 0, 0}};
     auto globalPoint = b.pose * localPoint;
     auto offset = globalPoint.Pos() - _pose.Pos();
     torque += force.Cross(offset);
@@ -234,7 +230,7 @@ void Buoyancy::Configure(const Entity &_entity,
   {
     this->dataPtr->buoyancyType =
       BuoyancyPrivate::BuoyancyType::GRADED_BUOYANCY;
-    
+
     auto gradedElement = _sdf->GetFirstElement();
     if(gradedElement == nullptr)
     {
@@ -248,18 +244,22 @@ void Buoyancy::Configure(const Entity &_entity,
       if(argument->GetName() == "default_density")
       {
         argument->GetValue()->Get<double>(this->dataPtr->fluidDensity);
-        igndbg << "Default density set to " << this->dataPtr->fluidDensity << std::endl;
+        igndbg << "Default density set to "
+          << this->dataPtr->fluidDensity << std::endl;
       }
       if(argument->GetName() == "density_change")
       {
         auto depth = argument->Get<double>("above_depth", 0.0);
         auto density = argument->Get<double>("density", 0.0);
         if(!depth.second)
-          ignwarn << "No <above_depth> tag was found as a child of <density_change>" << std::endl;
+          ignwarn << "No <above_depth> tag was found as a "
+            << "child of <density_change>" << std::endl;
         if(!density.second)
-          ignwarn << "No <density> tag was found as a child of <density_change>" << std::endl;
+          ignwarn << "No <density> tag was found as a "
+            << "child of <density_change>" << std::endl;
         this->dataPtr->layers[depth.first] = density.first;
-        igndbg << "Added layer at " << depth.first << ", " <<  density.first << std::endl;
+        igndbg << "Added layer at " << depth.first << ", "
+          <<  density.first << std::endl;
       }
       argument = argument->GetNextElement();
     }
@@ -426,7 +426,7 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
           _entity, components::Collision());
         this->dataPtr->buoyancyForces.clear();
 
-        for(auto e: collisions)
+        for(auto e : collisions)
         {
           const components::CollisionElement *coll =
             _ecm.Component<components::CollisionElement>(e);
@@ -454,7 +454,7 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
                 gravity->Data());
               break;
             default:
-              ignerr << "Only <box> and <sphere> collisions are supported by " 
+              ignerr << "Only <box> and <sphere> collisions are supported by "
                 << "the graded buoyancy option." << std::endl;
               break;
           }
