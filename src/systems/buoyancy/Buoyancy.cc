@@ -122,7 +122,7 @@ void BuoyancyPrivate::GradedFluidDensity(
   const math::Pose3d &_pose, const T &_shape, const math::Vector3d _gravity)
 {
   auto prevLayerFluidDensity = this->fluidDensity;
-  auto volsum = 0;
+  auto volsum = 0.0;
   auto centerOfBuoyancy = math::Vector3d{0,0,0};
 
   for(auto [height, currFluidDensity] : layers)
@@ -131,12 +131,15 @@ void BuoyancyPrivate::GradedFluidDensity(
     math::Planed plane{math::Vector3d{0,0,1}, height - _pose.Pos().Z()};
     //math::Matrix4d matrix(_pose);
     //auto waterPlane = plane.Transform(matrix.Inverse());
+    //ignerr << "Plane "<< plane.Offset() <<"," << height << "," << _pose.Pos() << std::endl;
     auto vol = _shape.VolumeBelow(plane);
-    //ignerr << "Plane: " << waterPlane.Normal() << ".n = " << waterPlane.Offset() << " pose: "
-    //<< _pose.Pos()<< " Rotation: "<< _pose.Rot().Euler() <<std::endl;  
 
     // Archimedes principal for this layer
     auto forceMag =  - (vol - volsum) * _gravity * prevLayerFluidDensity;
+
+    // Accumulate layers.
+    prevLayerFluidDensity = currFluidDensity;
+    //ignerr << height << ", " << prevLayerFluidDensity << std::endl;
 
     // Calculate point from which force is applied
     auto cov = _shape.CenterOfVolumeBelow(plane);
@@ -153,20 +156,21 @@ void BuoyancyPrivate::GradedFluidDensity(
     };
     buoyancyForces.push_back(buoyancyAction);
 
-    // Accumulate layers.
-    prevLayerFluidDensity = currFluidDensity;
     volsum = vol;
   }
   // For the rest of the layers.
   auto vol = _shape.Volume();
 
-  ignerr << "Volume: " << vol << ", submerged" << volsum << std::endl;
-
   // Archimedes principal for this layer
   auto forceMag = - (vol - volsum) * _gravity * prevLayerFluidDensity;
+  //ignerr << "surface density" << prevLayerFluidDensity << ", force: " << forceMag << "\n"; 
+
+  // No force contributed by this layer.
+  if((vol - volsum) == 0) return;
 
   // Calculate centre of buoyancy
   auto cov = math::Vector3d{0,0,0};
+  
   auto cob = (cov * vol - centerOfBuoyancy * volsum) / (vol - volsum);
   centerOfBuoyancy = cov;
   auto buoyancyAction = BuoyancyActionPoint
@@ -244,13 +248,18 @@ void Buoyancy::Configure(const Entity &_entity,
       if(argument->GetName() == "default_density")
       {
         argument->GetValue()->Get<double>(this->dataPtr->fluidDensity);
+        igndbg << "Default density set to " << this->dataPtr->fluidDensity << std::endl;
       }
       if(argument->GetName() == "density_change")
       {
-        auto depth = argument->Get<double>("above_depth");
-        auto density = argument->Get<double>("density");
-        this->dataPtr->layers[depth] = density;
-        igndbg << "Added layer at " << depth << std::endl;
+        auto depth = argument->Get<double>("above_depth", 0.0);
+        auto density = argument->Get<double>("density", 0.0);
+        if(!depth.second)
+          ignwarn << "No <above_depth> tag was found as a child of <density_change>" << std::endl;
+        if(!density.second)
+          ignwarn << "No <density> tag was found as a child of <density_change>" << std::endl;
+        this->dataPtr->layers[depth.first] = density.first;
+        igndbg << "Added layer at " << depth.first << ", " <<  density.first << std::endl;
       }
       argument = argument->GetNextElement();
     }
@@ -455,7 +464,6 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
         link.WorldInertialPose(_ecm).value());
       // Apply the wrench to the link. This wrench is applied in the
       // Physics System.
-      ignerr << "Force applied" << force << std::endl;
       link.AddWorldWrench(_ecm, force, torque);
       return true;
   });
