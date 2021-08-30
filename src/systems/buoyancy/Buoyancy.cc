@@ -129,7 +129,7 @@ void BuoyancyPrivate::GradedFluidDensity(
 
   for(auto [height, currFluidDensity] : layers)
   {
-    // Transform plane and slice the shape
+    // TODO(arjo): Transform plane and slice the shape
     math::Planed plane{math::Vector3d{0, 0, 1}, height - _pose.Pos().Z()};
     auto vol = _shape.VolumeBelow(plane);
 
@@ -444,7 +444,7 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
             case sdf::GeometryType::BOX:
               this->dataPtr->GradedFluidDensity<math::Boxd>(
                 pose,
-                coll->Data().Geom()->SphereShape()->Shape(),
+                coll->Data().Geom()->BoxShape()->Shape(),
                 gravity->Data());
               break;
             case sdf::GeometryType::SPHERE:
