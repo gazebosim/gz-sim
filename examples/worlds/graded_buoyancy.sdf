@@ -30,7 +30,7 @@
         <default_density>1000</default_density>
         <density_change>
           <above_depth>0</above_depth>
-          <default_density>1</default_density>
+          <density>1</density>
         </density_change>
       </graded_buoyancy>
     </plugin>
@@ -74,7 +74,6 @@
         <start_paused>true</start_paused>
         <service>/world/buoyancy/control</service>
         <stats_topic>/world/buoyancy/stats</stats_topic>
-
       </plugin>
 
       <!-- World statistics -->
@@ -118,11 +117,11 @@
     </light>
 
     <model name='ball'>
-      <pose>0 0 -1.50 0 0 0</pose>
+      <pose>0 0 0 0 0 0</pose>
       <link name='body'>
         <pose>0 0 0 0 0 0</pose>
         <inertial>
-          <mass>10</mass>
+          <mass>25</mass>
           <inertia>
             <ixx>86.28907821859966</ixx>
             <ixy>0</ixy>
@@ -148,12 +147,7 @@
           </geometry>
         </collision>
       </link>
-
-
-      
     </model>
-
-
   </world>
 </sdf>
 
