@@ -40,21 +40,14 @@
 #include "ignition/gazebo/test_config.hh"
 
 #include "../helpers/Relay.hh"
+#include "../helpers/EnvTestFixture.hh"
 
 using namespace ignition;
 using namespace gazebo;
 using namespace std::chrono_literals;
 
-class MulticopterTest : public ::testing::Test
+class MulticopterTest : public InternalFixture<::testing::Test>
 {
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    ignition::common::Console::SetVerbosity(4);
-    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
-  }
-
   protected: std::unique_ptr<Server> StartServer(const std::string &_filePath)
   {
     ServerConfig serverConfig;

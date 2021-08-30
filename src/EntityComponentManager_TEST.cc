@@ -25,6 +25,7 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/config.hh"
+#include "../test/helpers/EnvTestFixture.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -93,12 +94,9 @@ class EntityCompMgrTest : public EntityComponentManager
   }
 };
 
-class EntityComponentManagerFixture : public ::testing::TestWithParam<int>
+class EntityComponentManagerFixture
+  : public InternalFixture<::testing::TestWithParam<int>>
 {
-  public: void SetUp() override
-  {
-    common::Console::SetVerbosity(4);
-  }
   public: EntityCompMgrTest manager;
 };
 
