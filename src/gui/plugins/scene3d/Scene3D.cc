@@ -1511,8 +1511,8 @@ void IgnRenderer::HandleMouseTransformControl()
           }
           else
           {
-            std::function<void(const ignition::msgs::Boolean &,
-                               const bool)> cb =
+            std::function<void(const ignition::msgs::Boolean &, 
+              const bool)> cb =
                 [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
             {
               if (!_result)
