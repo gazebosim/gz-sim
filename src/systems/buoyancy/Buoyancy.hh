@@ -45,14 +45,20 @@ namespace systems
   ///
   /// ## System Parameters
   ///
-  /// * <uniform_fluid_density> sets the density of the fluid that surrounds
-  /// the buoyant object. [Units: kgm^-3, ]
-  /// * <graded_buoyancy> allows you to defining a world where the buoyancy
+  /// * `<uniform_fluid_density>` sets the density of the fluid that surrounds
+  /// the buoyant object. [Units: kgm^-3]
+  /// * `<graded_buoyancy>` allows you to defining a world where the buoyancy
   /// changes with height. An example of such a world could be if we are
   /// simulating an open ocean with its surface and under water behaviour. This
   /// mode slices the volume of the collision mesh according to where the water
-  /// line is set. When defining a <graded_buoyancy> tag, one must also define
-  /// 
+  /// line is set. When defining a `<graded_buoyancy>` tag, one must also define
+  /// `<default_density>` and `<density_change>` tags.
+  /// * `<default_density>` is the default fluid whcih the world should be
+  /// filled with. [Units: kgm^-3]
+  /// * `<density_change>` allows you to define a new layer.
+  /// * `<above_depth>` a child property of `<density_change>`. This determines
+  /// the height at which the next fluid layer should start. [Units: m]
+  /// * `<density>` the density of the fluid in this layer. [Units: kgm^-3]
   ///
   /// ## Examples
   ///
