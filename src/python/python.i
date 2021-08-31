@@ -9,3 +9,4 @@
 %include Line3.i
 %include SignalStats.i
 %include Temperature.i
+%include Triangle.i
