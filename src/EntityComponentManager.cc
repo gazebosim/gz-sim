@@ -821,13 +821,13 @@ detail::BaseView *EntityComponentManager::AddView(
     const detail::ComponentTypeKey &_types,
     std::unique_ptr<detail::BaseView> _view) const
 {
+  // If the view already exists, then the map will return the iterator to
+  // the location that prevented the insertion.
   std::lock_guard<std::mutex> lockViews(this->dataPtr->viewsMutex);
-  auto iter = this->dataPtr->views.find(_types);
-  if (iter != this->dataPtr->views.end())
-    return iter->second.first.get();
-  this->dataPtr->views[_types] =
-    std::make_pair(std::move(_view), std::make_unique<std::mutex>());
-  return this->dataPtr->views[_types].first.get();
+  auto iter = this->dataPtr->views.insert(std::make_pair(_types,
+        std::make_pair(std::move(_view),
+          std::make_unique<std::mutex>()))).first;
+  return iter->second.first.get();
 }
 
 //////////////////////////////////////////////////
