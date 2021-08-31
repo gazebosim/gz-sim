@@ -44,7 +44,7 @@ endif()
 # as protobuf could be find transitively by any dependency
 set(protobuf_MODULE_COMPATIBLE TRUE)
 
-ign_find_package(sdformat9 REQUIRED VERSION 9.3.0)
+ign_find_package(sdformat9 REQUIRED VERSION 9.6.0)
 set(SDF_VER ${sdformat9_VERSION_MAJOR})
 
 #--------------------------------------
@@ -103,7 +103,7 @@ set(IGN_PHYSICS_VER ${ignition-physics2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-sensors
-ign_find_package(ignition-sensors3 REQUIRED
+ign_find_package(ignition-sensors3 REQUIRED VERSION 3.3
   COMPONENTS
     rendering
     air_pressure
