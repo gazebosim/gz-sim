@@ -67,10 +67,11 @@ sudo apt-get install --no-install-recommends -y \
 # ign-physics dependencies
 sudo apt-get install --no-install-recommends -y \
   libeigen3-dev \
-  dart6-data \
-  libdart6-collision-ode-dev \
-  libdart6-dev \
-  libdart6-utils-urdf-dev \
+  libdart-collision-ode-dev \
+  libdart-dev \
+  libdart-external-ikfast-dev \
+  libdart-external-odelcpsolver-dev \
+  libdart-utils-urdf-dev \
   libbenchmark-dev
 
 # ign-gazebo dependencies
