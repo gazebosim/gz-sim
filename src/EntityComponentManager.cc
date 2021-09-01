@@ -29,6 +29,7 @@
 #include <ignition/common/Profiler.hh>
 #include <ignition/math/graph/GraphAlgorithms.hh>
 
+#include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/components/Factory.hh"
@@ -384,6 +385,13 @@ Entity EntityComponentManager::Clone(const Entity _entity, const Entity _parent,
       // set the sdf::Light's name to clonedName
       auto derivedComp =
         static_cast<components::Light *>(clonedComp.get());
+      derivedComp->Data().SetName(clonedName);
+    }
+    else if (type == components::Actor::typeId)
+    {
+      // set the sdf::Actor's name to clonedName
+      auto derivedComp =
+        static_cast<components::Actor *>(clonedComp.get());
       derivedComp->Data().SetName(clonedName);
     }
 
