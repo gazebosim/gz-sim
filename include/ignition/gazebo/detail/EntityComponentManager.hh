@@ -20,6 +20,7 @@
 #include <cstring>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <set>
 #include <tuple>
@@ -488,10 +489,28 @@ detail::View<ComponentTypeTs...> *EntityComponentManager::FindView() const
 {
   auto viewKey = std::vector<ComponentTypeId>{ComponentTypeTs::typeId...};
 
-  auto baseViewPtr = this->FindView(viewKey);
+  auto baseViewMutexPair = this->FindView(viewKey);
+  auto baseViewPtr = baseViewMutexPair.first;
   if (nullptr != baseViewPtr)
   {
     auto view = static_cast<detail::View<ComponentTypeTs...>*>(baseViewPtr);
+
+    std::unique_ptr<std::lock_guard<std::mutex>> viewLock;
+    if (this->LockAddingEntitiesToViews())
+    {
+      // lock the mutex unique to this view in order to prevent multiple threads
+      // from concurrently reading/modifying the view's toAddEntities data
+      // (for example, this is useful in system PostUpdates since they are run
+      // in parallel)
+      auto mutexPtr = baseViewMutexPair.second;
+      if (nullptr == mutexPtr)
+      {
+        ignerr << "Internal error: requested to lock a view, but no mutex "
+          << "exists for this view. This should never happen!" << std::endl;
+        return view;
+      }
+      viewLock = std::make_unique<std::lock_guard<std::mutex>>(*mutexPtr);
+    }
 
     // add any new entities to the view before using it
     for (const auto &[entity, isNew] : view->ToAddEntities())
