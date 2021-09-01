@@ -77,9 +77,9 @@ namespace systems
   /// surface and underwater vessels. This means the buoyancy plugin needs to
   /// take into account two different fluids. One being water with a density of
   /// 1000kgm^-3 and another being air with a very light density of say 1kgm^-3.
-  /// An example for such a configuration may be found in the 
+  /// An example for such a configuration may be found in the
   /// `graded_buoyancy.sdf` world.
-  /// 
+  ///
   /// ```
   /// ign gazebo -v 4 graded_buoyancy.sdf
   /// ```
@@ -101,7 +101,7 @@ namespace systems
   /// The default density tag says that by default the world has a fluid density
   /// of 1000kgm^-3. This essentially states that by default the world is filled
   /// with dihydrogen monoxide (aka water). The `<density_change>` tag
-  /// essentially establishes the fact that there is a nother fluid. The 
+  /// essentially establishes the fact that there is a nother fluid. The
   /// `<above_depth>` tag says that above z=0 there is another fluid with a
   /// different density. The density of that fluid is defined by the `<density>`
   /// tag. We will be simulating air with a fluid density of 1kgm^-3.
