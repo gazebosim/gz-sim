@@ -712,9 +712,11 @@ namespace ignition
       /// \brief Find a view based on the provided component type ids.
       /// \param[in] _types The component type ids that serve as a key into
       /// a map of views.
-      /// \return A pointer to the view. nullptr is returned if the view wasn't
-      /// found.
-      private: detail::BaseView *FindView(
+      /// \return A pair containing a the view itself and a mutex that can be
+      /// used for locking the view while entities are being added to it.
+      /// If a view defined by _types does not exist, the pair will contain
+      /// nullptrs.
+      private: std::pair<detail::BaseView *, std::mutex *> FindView(
                    const std::vector<ComponentTypeId> &_types) const;
 
       /// \brief Add a new view to the set of stored views.
@@ -751,6 +753,22 @@ namespace ignition
           Entity _entity,
           const std::unordered_set<ComponentTypeId> &_types = {},
           bool _full = false) const;
+
+      /// \brief Set whether views should be locked when entities are being
+      /// added to them. This can be used to prevent race conditions in
+      /// system PostUpdates, since these are run in parallel (entities are
+      /// added to views when the view is used, so if two systems try to access
+      /// the same view in PostUpdate, we run the risk of multiple threads
+      /// reading/writing from the same data).
+      /// \param[in] _lock Whether the views should lock while entities are
+      /// being added to them (true) or not (false).
+      private: void LockAddingEntitiesToViews(bool _lock);
+
+      /// \brief Get whether views should be locked when entities are being
+      /// added to them.
+      /// \return True if views should be locked during entitiy addition, false
+      /// otherwise.
+      private: bool LockAddingEntitiesToViews() const;
 
       // Make runners friends so that they can manage entity creation and
       // removal. This should be safe since runners are internal
