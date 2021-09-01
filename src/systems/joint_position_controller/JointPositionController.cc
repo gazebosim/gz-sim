@@ -282,7 +282,8 @@ void JointPositionController::PreUpdate(
     // Limit the maximum change to maxMovement
     if (abs(error) > maxMovement)
     {
-      targetVel = (error < 0) ? maxMovement : -maxMovement;
+      targetVel = (error < 0) ? this->dataPtr->posPid.CmdMax() :
+        -this->dataPtr->posPid.CmdMax();
     }
     else
     {
