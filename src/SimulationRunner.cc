@@ -500,35 +500,25 @@ void SimulationRunner::AddSystemToRunner(SystemInternal _system)
   // cause issues with the simulation
   if (this->networkMgr)
   {
-    if (this->networkMgr->IsSecondary())
+    if (this->networkMgr->IsPrimary())
     {
-      igndbg << "Checking Secondary system." << std::endl;
-      if (_system.postupdate)
-      {
-	igndbg << "Adding postsystem to Secondary." << std::endl;
-	this->systemsPostupdate.push_back(_system.postupdate);
-      }
-    }
-    else
-    {
-      igndbg << "Adding system to primary." << std::endl;
       if (_system.preupdate)
       {
-        igndbg << "Adding PREU system to primary." << std::endl;
+        igndbg << "Adding preUpdate system." << std::endl;
         this->systemsPreupdate.push_back(_system.preupdate);
       }
 
       if (_system.update)
       {
-        igndbg << "Adding U system to primary." << std::endl;
+        igndbg << "Adding update system." << std::endl;
         this->systemsUpdate.push_back(_system.update);
       }
-      if (_system.postupdate)
-      {
-        igndbg << "Adding postU system to primary." << std::endl;
-        this->systemsPostupdate.push_back(_system.postupdate);
-      }
+    }
 
+    if (_system.postupdate)
+    {
+      igndbg << "Adding postUpdate system." << std::endl;
+      this->systemsPostupdate.push_back(_system.postupdate);
     }
   }
   else
