@@ -48,7 +48,7 @@ class BuoyancyTest : public ::testing::Test
 };
 
 /////////////////////////////////////////////////
-TEST_F(BuoyancyTest, Movement)
+TEST_F(BuoyancyTest, UniformWorldMovement)
 {
   // Start server
   ServerConfig serverConfig;
@@ -121,7 +121,7 @@ TEST_F(BuoyancyTest, Movement)
     auto submarineBuoyantCenterOfVolume =
       _ecm.Component<components::CenterOfVolume>(submarineBuoyantLink);
     ASSERT_NE(submarineBuoyantCenterOfVolume, nullptr);
-    EXPECT_EQ(ignition::math::Vector3d(0, 0, 0),
+    EXPECT_EQ(ignition::math::Vector3d(0, 0, -0.4),
         submarineBuoyantCenterOfVolume->Data());
 
     // Get the submarine sinking link
@@ -139,7 +139,7 @@ TEST_F(BuoyancyTest, Movement)
     auto submarineSinkingCenterOfVolume =
       _ecm.Component<components::CenterOfVolume>(submarineSinkingLink);
     ASSERT_NE(submarineSinkingCenterOfVolume, nullptr);
-    EXPECT_EQ(ignition::math::Vector3d(0, 0, 0),
+    EXPECT_EQ(ignition::math::Vector3d(2, 0, -0.4),
         submarineSinkingCenterOfVolume->Data());
 
     // Get the duck link
@@ -155,7 +155,7 @@ TEST_F(BuoyancyTest, Movement)
     auto duckCenterOfVolume =
       _ecm.Component<components::CenterOfVolume>(duckLink);
     ASSERT_NE(duckCenterOfVolume, nullptr);
-    EXPECT_EQ(ignition::math::Vector3d(0, 0, -0.4),
+    EXPECT_EQ(ignition::math::Vector3d(2, 0, -0.4),
         duckCenterOfVolume->Data());
 
     auto submarinePose = _ecm.Component<components::Pose>(submarine);
@@ -194,6 +194,83 @@ TEST_F(BuoyancyTest, Movement)
       EXPECT_NEAR(171.4, duckPose->Data().Pos().Z(), 1e-2);
       finished = true;
     }
+  });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, iterations, false);
+  EXPECT_TRUE(finished);
+}
+
+/////////////////////////////////////////////////
+TEST_F(BuoyancyTest, GradedBuoyancy)
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_BINARY_PATH) +
+    "/test/worlds/graded_buoyancy.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  using namespace std::chrono_literals;
+  server.SetUpdatePeriod(1ns);
+
+  std::size_t iterations = 1000;
+
+  bool finished = false;
+  test::Relay testSystem;
+  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
+                             const gazebo::EntityComponentManager &_ecm)
+  {
+    // Check pose
+    Entity neutralBox = _ecm.EntityByComponents(
+        components::Model(), components::Name("box_neutral_buoyancy"));
+
+    Entity bobbingBall = _ecm.EntityByComponents(
+        components::Model(), components::Name("ball_lighter_than_water"));
+
+    Entity heliumBalloon = _ecm.EntityByComponents(
+        components::Model(), components::Name("balloon_lighter_than_air"));
+
+    ASSERT_NE(neutralBox, kNullEntity);
+    ASSERT_NE(bobbingBall, kNullEntity);
+    ASSERT_NE(heliumBalloon, kNullEntity);
+
+    auto neutralBoxPose = _ecm.Component<components::Pose>(neutralBox);
+    ASSERT_NE(neutralBoxPose, nullptr);
+
+    auto bobbingBallPose = _ecm.Component<components::Pose>(
+        bobbingBall);
+    ASSERT_NE(bobbingBallPose , nullptr);
+
+    auto heliumBalloonPose = _ecm.Component<components::Pose>(
+        heliumBalloon);
+    ASSERT_NE(heliumBalloonPose , nullptr);
+
+    // The "submarine" should stay in its starting location of 0, 0, 1.5 meters.
+    EXPECT_NEAR(0, neutralBoxPose->Data().Pos().X(), 1e-2);
+    EXPECT_NEAR(0, neutralBoxPose->Data().Pos().Y(), 1e-2);
+    EXPECT_NEAR(0, neutralBoxPose->Data().Pos().Z(), 1e-2);
+
+  /*  if (_info.iterations > 10)
+    {
+      EXPECT_LT(submarineSinkingPose->Data().Pos().Z(),
+                submarinePose->Data().Pos().Z());
+      EXPECT_GT(submarineBuoyantPose->Data().Pos().Z(),
+                submarinePose->Data().Pos().Z());
+      EXPECT_GT(duckPose->Data().Pos().Z(),
+                submarinePose->Data().Pos().Z());
+    }
+
+    if (_info.iterations == iterations)
+    {
+      EXPECT_NEAR(-1.63, submarineSinkingPose->Data().Pos().Z(), 1e-2);
+      EXPECT_NEAR(4.90, submarineBuoyantPose->Data().Pos().Z(), 1e-2);
+      EXPECT_NEAR(171.4, duckPose->Data().Pos().Z(), 1e-2);
+      finished = true;
+    }*/
   });
 
   server.AddSystem(testSystem.systemPtr);
