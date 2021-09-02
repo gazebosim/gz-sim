@@ -152,9 +152,9 @@
 
     <!-- This balloon should shoot up -->
     <model name='ballon_lighter_than_air'>
-      <pose>0 0 0 0 0 0</pose>
+      <pose>0 -5 -5 0 0 0</pose>
       <link name='body'>
-        <pose>0 0  0 0 0</pose>
+        <pose>0 0 0 0 0 0</pose>
         <inertial>
           <mass>0.1</mass>
           <inertia>
@@ -186,11 +186,11 @@
 
     <!-- This box is neutrally buoyant and therefore should stay still -->
     <model name='box_neutral_buoyancy'>
-      <pose>0 0 0 0 0 0</pose>
+      <pose>0 5 -3 0 0 0</pose>
       <link name='body'>
-        <pose>0 0 -3 0 0 0</pose>
         <inertial>
           <mass>1000</mass>
+          <pose>0 0 0.1 0 0 0</pose>
           <inertia>
             <ixx>86.28907821859966</ixx>
             <ixy>0</ixy>
@@ -219,4 +219,3 @@
     </model>
   </world>
 </sdf>
-
