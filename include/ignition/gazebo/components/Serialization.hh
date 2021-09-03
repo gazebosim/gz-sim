@@ -25,6 +25,7 @@
 #include <sdf/Sensor.hh>
 
 #include <ignition/gazebo/Conversions.hh>
+#include <ignition/msgs/Utility.hh>
 
 // This header holds serialization operators which are shared among several
 // components
@@ -35,6 +36,31 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+namespace traits
+{
+  /// \brief Type trait that determines if an ignition::gazebo::convert from In
+  /// to Out is defined.
+  /// Usage:
+  /// \code
+  ///    constexpr bool hasGazeboConvert =
+  ///       HasGazeboConvert<math::Pose, msgs::Pose>::value
+  /// \endcode
+  template <typename In, typename Out>
+  class HasGazeboConvert
+  {
+    private: template <typename InArg, typename OutArg>
+    static auto Test(int _test)
+        -> decltype(std::declval<OutArg>() =
+           ignition::gazebo::convert<OutArg>(std::declval<const InArg &>()),
+           std::true_type());
+
+    private: template <typename, typename>
+    static auto Test(...) -> std::false_type;
+
+    public: static constexpr bool value =  // NOLINT
+                decltype(Test<In, Out>(true))::value;
+  };
+}
 /// \brief A Serializer class is used to serialize and deserialize a component.
 /// It is passed in as the third template parameter to components::Component.
 /// Eg.
@@ -78,7 +104,16 @@ namespace serializers
     public: static std::ostream &Serialize(std::ostream &_out,
                                            const DataType &_data)
     {
-      auto msg = ignition::gazebo::convert<MsgType>(_data);
+      MsgType msg;
+      if constexpr (traits::HasGazeboConvert<DataType, MsgType>::value)
+      {
+        msg = ignition::gazebo::convert<MsgType>(_data);
+      }
+      else
+      {
+        msg = ignition::msgs::Convert(_data);
+      }
+
       msg.SerializeToOstream(&_out);
       return _out;
     }
@@ -93,7 +128,14 @@ namespace serializers
       MsgType msg;
       msg.ParseFromIstream(&_in);
 
-      _data = ignition::gazebo::convert<DataType>(msg);
+      if constexpr (traits::HasGazeboConvert<MsgType, DataType>::value)
+      {
+        _data = ignition::gazebo::convert<DataType>(msg);
+      }
+      else
+      {
+        _data = ignition::msgs::Convert(msg);
+      }
       return _in;
     }
   };

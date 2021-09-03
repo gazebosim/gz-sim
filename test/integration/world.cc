@@ -22,6 +22,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>
+#include <ignition/math/SphericalCoordinates.hh>
 
 #include <ignition/gazebo/EntityComponentManager.hh>
 #include <ignition/gazebo/World.hh>
@@ -36,6 +37,7 @@
 #include <ignition/gazebo/components/PoseCmd.hh>
 #include <ignition/gazebo/components/SelfCollide.hh>
 #include <ignition/gazebo/components/SourceFilePath.hh>
+#include <ignition/gazebo/components/SphericalCoordinates.hh>
 #include <ignition/gazebo/components/Static.hh>
 #include <ignition/gazebo/components/WindMode.hh>
 #include <ignition/gazebo/components/World.hh>
@@ -111,6 +113,24 @@ TEST_F(WorldIntegrationTest, Atmosphere)
       components::Atmosphere(sdf::Atmosphere()));
   auto atmosphere = world.Atmosphere(ecm).value();
   EXPECT_EQ(math::Temperature(288.15), atmosphere.Temperature());
+}
+
+//////////////////////////////////////////////////
+TEST_F(WorldIntegrationTest, SphericalCoordinates)
+{
+  EntityComponentManager ecm;
+
+  auto id = ecm.CreateEntity();
+  ecm.CreateComponent<components::World>(id, components::World());
+
+  World world(id);
+
+  EXPECT_EQ(std::nullopt, world.SphericalCoordinates(ecm));
+
+  ecm.CreateComponent<components::SphericalCoordinates>(id,
+      components::SphericalCoordinates(math::SphericalCoordinates()));
+  auto sphericalCoordinates = world.SphericalCoordinates(ecm).value();
+  EXPECT_EQ(0.0, sphericalCoordinates.LatitudeReference().Degree());
 }
 
 //////////////////////////////////////////////////

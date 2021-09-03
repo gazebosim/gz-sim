@@ -24,6 +24,7 @@
 
 #include <sdf/Atmosphere.hh>
 #include <ignition/math/Vector3.hh>
+#include <ignition/math/SphericalCoordinates.hh>
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -116,9 +117,16 @@ namespace ignition
 
       /// \brief Get atmosphere information.
       /// \param[in] _ecm Entity-component manager.
-      /// \return Magnetic field vector or nullopt if the entity does not
+      /// \return Atmosphere or nullopt if the entity does not
       /// have a components::Atmosphere component.
       public: std::optional<sdf::Atmosphere> Atmosphere(
+          const EntityComponentManager &_ecm) const;
+
+      /// \brief Get atmosphere information.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return Spherical coordinates or nullopt if the entity does not
+      /// have a components::SphericalCoordinates component.
+      public: std::optional<math::SphericalCoordinates> SphericalCoordinates(
           const EntityComponentManager &_ecm) const;
 
       /// \brief Get the ID of a light entity which is an immediate child of

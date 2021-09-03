@@ -25,6 +25,7 @@
 #include <sdf/Model.hh>
 #include <sdf/World.hh>
 
+#include <ignition/math/SphericalCoordinates.hh>
 #include <ignition/common/Profiler.hh>
 
 #include "ignition/gazebo/Events.hh"
@@ -52,6 +53,7 @@
 #include "ignition/gazebo/components/RenderEngineGuiPlugin.hh"
 #include "ignition/gazebo/components/RenderEngineServerPlugin.hh"
 #include "ignition/gazebo/components/Scene.hh"
+#include "ignition/gazebo/components/SphericalCoordinates.hh"
 #include "ignition/gazebo/components/Wind.hh"
 #include "ignition/gazebo/components/World.hh"
 
@@ -178,6 +180,14 @@ void LevelManager::ReadLevelPerformerInfo()
   {
     this->runner->entityCompMgr.CreateComponent(this->worldEntity,
         components::Atmosphere(*this->runner->sdfWorld->Atmosphere()));
+  }
+
+  // spherical coordinates
+  if (this->runner->sdfWorld->SphericalCoordinates())
+  {
+    this->runner->entityCompMgr.CreateComponent(this->worldEntity,
+        components::SphericalCoordinates(
+        *this->runner->sdfWorld->SphericalCoordinates()));
   }
 
   // TODO(anyone) This should probably go somewhere else as it is a global
