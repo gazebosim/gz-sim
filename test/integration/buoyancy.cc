@@ -259,7 +259,6 @@ TEST_F(BuoyancyTest, GradedBuoyancy)
       // Helium balloon should float up
       EXPECT_GT(heliumBalloonPose->Data().Pos().Z(),
                 neutralBoxPose->Data().Pos().Z());
-      
       // Bobbing ball should stay within a certain band.
       EXPECT_GT(bobbingBallPose->Data().Pos().Z(), -1.2);
       EXPECT_LT(bobbingBallPose->Data().Pos().Z(), 0.5);
