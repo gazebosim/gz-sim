@@ -369,7 +369,7 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     if (volumeSum > 0)
     {
       // Store the center of volume
-      math::Pose3d linkWorldPose = link.WorldInertialPose(_ecm).value();
+      math::Pose3d linkWorldPose = worldPose(_entity, _ecm);
       _ecm.CreateComponent(_entity, components::CenterOfVolume(
             weightedPosSum / volumeSum - linkWorldPose.Pos()));
 

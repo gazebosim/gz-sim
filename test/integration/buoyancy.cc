@@ -121,7 +121,7 @@ TEST_F(BuoyancyTest, UniformWorldMovement)
     auto submarineBuoyantCenterOfVolume =
       _ecm.Component<components::CenterOfVolume>(submarineBuoyantLink);
     ASSERT_NE(submarineBuoyantCenterOfVolume, nullptr);
-    EXPECT_EQ(ignition::math::Vector3d(0, 0, -0.4),
+    EXPECT_EQ(ignition::math::Vector3d(0, 0, 0),
         submarineBuoyantCenterOfVolume->Data());
 
     // Get the submarine sinking link
@@ -139,7 +139,7 @@ TEST_F(BuoyancyTest, UniformWorldMovement)
     auto submarineSinkingCenterOfVolume =
       _ecm.Component<components::CenterOfVolume>(submarineSinkingLink);
     ASSERT_NE(submarineSinkingCenterOfVolume, nullptr);
-    EXPECT_EQ(ignition::math::Vector3d(2, 0, -0.4),
+    EXPECT_EQ(ignition::math::Vector3d(0, 0, 0),
         submarineSinkingCenterOfVolume->Data());
 
     // Get the duck link
@@ -155,7 +155,7 @@ TEST_F(BuoyancyTest, UniformWorldMovement)
     auto duckCenterOfVolume =
       _ecm.Component<components::CenterOfVolume>(duckLink);
     ASSERT_NE(duckCenterOfVolume, nullptr);
-    EXPECT_EQ(ignition::math::Vector3d(2, 0, -0.4),
+    EXPECT_EQ(ignition::math::Vector3d(0, 0, -0.4),
         duckCenterOfVolume->Data());
 
     auto submarinePose = _ecm.Component<components::Pose>(submarine);
