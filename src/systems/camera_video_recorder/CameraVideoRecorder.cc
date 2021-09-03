@@ -390,18 +390,31 @@ void CameraVideoRecorderPrivate::OnPostRender()
     // stop encoding
     this->videoEncoder.Stop();
 
-    // move the tmp video file to user specified path
+    ignmsg << "Stop video recording on [" << this->service << "]." << std::endl;
+
     if (common::exists(this->tmpVideoFilename))
     {
-      common::moveFile(this->tmpVideoFilename,
-          this->recordVideoSavePath);
+      // move the tmp video file to user specified path
+      if (!common::exists(common::parentPath(this->recordVideoSavePath)) &&
+          !common::createDirectory(
+            common::parentPath(this->recordVideoSavePath)))
+      {
+        ignerr << "Unable to create directory["
+          << common::parentPath(this->recordVideoSavePath)
+          << "]. Video file[" << this->tmpVideoFilename
+          << "] will not be moved." << std::endl;
+      }
+      else
+      {
+        common::moveFile(this->tmpVideoFilename, this->recordVideoSavePath);
 
-      // Remove old temp file, if it exists.
-      std::remove(this->tmpVideoFilename.c_str());
+        // Remove old temp file, if it exists.
+        std::remove(this->tmpVideoFilename.c_str());
+
+        ignmsg << "Saving video file to [" << this->recordVideoSavePath << "]"
+          << std::endl;
+      }
     }
-    ignmsg << "Stop video recording on [" << this->service << "]. "
-           << "Saving file to: [" << this->recordVideoSavePath << "]"
-           << std::endl;
 
     // reset the event connection to prevent unnecessary render callbacks
     this->postRenderConn.reset();
