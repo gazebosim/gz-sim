@@ -189,9 +189,9 @@ TEST_F(BuoyancyTest, UniformWorldMovement)
 
     if (_info.iterations == iterations)
     {
-      //EXPECT_NEAR(-1.63, submarineSinkingPose->Data().Pos().Z(), 1e-2);
-      //EXPECT_NEAR(4.90, submarineBuoyantPose->Data().Pos().Z(), 1e-2);
-      //EXPECT_NEAR(171.4, duckPose->Data().Pos().Z(), 1e-2);
+      EXPECT_NEAR(-1.63, submarineSinkingPose->Data().Pos().Z(), 1e-2);
+      EXPECT_NEAR(4.90, submarineBuoyantPose->Data().Pos().Z(), 1e-2);
+      EXPECT_NEAR(171.4, duckPose->Data().Pos().Z(), 1e-2);
       finished = true;
     }
   });
@@ -267,8 +267,6 @@ TEST_F(BuoyancyTest, GradedBuoyancy)
 
     if (_info.iterations == iterations)
     {
-      //EXPECT_NEAR(-1.63, submarineSinkingPose->Data().Pos().Z(), 1e-2);
-      //EXPECT_NEAR(4.90, submarineBuoyantPose->Data().Pos().Z(), 1e-2);
       finished = true;
     }
   });
