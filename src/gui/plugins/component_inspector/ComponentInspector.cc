@@ -993,15 +993,22 @@ void ComponentInspector::OnSphericalCoordinates(QString _surface,
     double _latitude, double _longitude, double _elevation,
     double _heading)
 {
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  if (_surface != QString("EARTH_WGS84"))
+  {
+    ignerr << "Surface [" << _surface.toStdString() << "] not supported."
+           << std::endl;
+    return;
+  }
+
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
       ignerr << "Error setting spherical coordinates." << std::endl;
   };
 
-  ignition::msgs::SphericalCoordinates req;
-//  req.set_surface_model();
+  msgs::SphericalCoordinates req;
+  req.set_surface_model(msgs::SphericalCoordinates::EARTH_WGS84);
   req.set_latitude_deg(_latitude);
   req.set_longitude_deg(_longitude);
   req.set_elevation(_elevation);

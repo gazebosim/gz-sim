@@ -33,6 +33,7 @@
 #include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/PoseCmd.hh"
+#include "ignition/gazebo/components/SphericalCoordinates.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/WindMode.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -129,6 +130,13 @@ PlotComponent::PlotComponent(const std::string &_type,
   {
     this->dataPtr->data["stepSize"] = std::make_shared<PlotData>();
     this->dataPtr->data["realTimeFactor"] = std::make_shared<PlotData>();
+  }
+  else if (_type == "SphericalCoordinates")
+  {
+    this->dataPtr->data["latitude"] = std::make_shared<PlotData>();
+    this->dataPtr->data["longitude"] = std::make_shared<PlotData>();
+    this->dataPtr->data["elevation"] = std::make_shared<PlotData>();
+    this->dataPtr->data["heading"] = std::make_shared<PlotData>();
   }
   else
     ignwarn << "Invalid Plot Component Type:" << _type << std::endl;
@@ -307,6 +315,20 @@ void Plotting::SetData(std::string _Id, const ignition::math::Pose3d &_pose)
 }
 
 //////////////////////////////////////////////////
+void Plotting::SetData(std::string _Id, const math::SphericalCoordinates &_sc)
+{
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->componentsMutex);
+  this->dataPtr->components[_Id]->SetAttributeValue("latitude",
+      _sc.LatitudeReference().Degree());
+  this->dataPtr->components[_Id]->SetAttributeValue("longitude",
+      _sc.LongitudeReference().Degree());
+  this->dataPtr->components[_Id]->SetAttributeValue("elevation",
+      _sc.ElevationReference());
+  this->dataPtr->components[_Id]->SetAttributeValue("heading",
+      _sc.HeadingOffset().Degree());
+}
+
+//////////////////////////////////////////////////
 void Plotting::SetData(std::string _Id, const sdf::Physics &_physics)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->componentsMutex);
@@ -445,6 +467,12 @@ void Plotting::Update(const ignition::gazebo::UpdateInfo &_info,
     else if (typeId == components::Static::typeId)
     {
       auto comp = _ecm.Component<components::Static>(entity);
+      if (comp)
+        this->SetData(component.first, comp->Data());
+    }
+    else if (typeId == components::SphericalCoordinates::typeId)
+    {
+      auto comp = _ecm.Component<components::SphericalCoordinates>(entity);
       if (comp)
         this->SetData(component.first, comp->Data());
     }

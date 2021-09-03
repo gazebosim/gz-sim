@@ -33,53 +33,23 @@ Rectangle {
   // Left indentation
   property int indentation: 10
 
-  //
-  property double latMax: 90
-  property double lonMax: 180
-
   // Horizontal margins
   property int margin: 5
 
+  // Icon size
   property int iconWidth: 20
   property int iconHeight: 20
 
-  // Loaded item for physics step size
-  property var stepSizeItem: {}
-
-  // Loaded item for real time factor
-  property var realTimeFactorItem: {}
-
-  // Send new physics data to C++
+  // Send new data to C++
   function sendSphericalCoordinates() {
     // TODO(anyone) There's a loss of precision when these values get to C++
     componentInspector.onSphericalCoordinates(
-      stepSizeItem.value,
-      realTimeFactorItem.value
+      surfaceText.text,
+      latSpin.value,
+      lonSpin.value,
+      elevationSpin.value,
+      headingSpin.value
     );
-  }
-
-  FontMetrics {
-    id: fontMetrics
-    font.family: "Roboto"
-  }
-
-  /**
-   * Used to create a spin box
-   */
-
-  Component {
-    id: writablePositiveNumber
-    IgnSpinBox {
-      id: writableSpin
-      value: writableSpin.activeFocus ? writableSpin.value : numberValue
-      minimumValue: -lonMax
-      maximumValue: lonMax
-      decimals: 6
-      stepSize: 0.001
-      onEditingFinished: {
-        sendSphericalCoordinates()
-      }
-    }
   }
 
   Component {
@@ -177,82 +147,195 @@ Rectangle {
       GridLayout {
         id: grid
         width: parent.width
-        columns: 3
+        columns: 4
 
         // Left spacer
         Item {
-          Layout.rowSpan: 3
+          Layout.rowSpan: 5
           width: margin + indentation
         }
 
+        // Surface type
         Rectangle {
           color: "transparent"
           height: 40
-          Layout.preferredWidth: stepSizeText.width + indentation*3
+          Layout.preferredWidth: latText.width + indentation*3
+          Item {
+            width: iconWidth
+          }
+
+          Text {
+            text: 'Surface'
+            leftPadding: 14
+            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+            font.pointSize: 12
+          }
+        }
+        Text {
+          id: surfaceText
+          text: model.data[0]
+          Layout.fillWidth: true
+          horizontalAlignment: Text.AlignRight
+          color: Material.theme == Material.Light ? "black" : "white"
+          font.pointSize: 12
+          elide: Text.ElideLeft
+        }
+
+        // Right spacer
+        Item {
+          Layout.rowSpan: 5
+          width: margin
+        }
+
+        // Latitude
+        Rectangle {
+          color: "transparent"
+          height: 40
+          Layout.preferredWidth: latText.width + indentation*3
           Loader {
-            id: loaderStepSize
+            id: loaderPlotLat
             width: iconWidth
             height: iconHeight
             y:10
             sourceComponent: plotIcon
           }
-          Component.onCompleted: loaderStepSize.item.componentInfo = "stepSize"
+          Component.onCompleted: loaderPlotLat.item.componentInfo = "latitude"
 
           Text {
-            id : stepSizeText
-            text: 'Latitude'
-            leftPadding: 5
+            id : latText
+            text: 'Latitude (°)'
+            leftPadding: 15
             color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
             font.pointSize: 12
             anchors.centerIn: parent
           }
         }
-        Item {
+        IgnSpinBox {
+          id: latSpin
           Layout.fillWidth: true
           height: 40
-          Loader {
-            id: stepSizeLoader
-            anchors.fill: parent
-            property double numberValue: model.data[1]
-            sourceComponent: writablePositiveNumber
-            onLoaded: {
-              stepSizeItem = stepSizeLoader.item
-            }
+          property double numberValue: model.data[1]
+          value: latSpin.activeFocus ? latSpin.value : numberValue
+          minimumValue: -90
+          maximumValue: 90
+          decimals: 12
+          stepSize: 0.1
+          onEditingFinished: {
+            sendSphericalCoordinates()
           }
         }
+
+        // Longitude
         Rectangle {
           color: "transparent"
           height: 40
-          Layout.preferredWidth: realTimeFactorText.width + indentation*3
+          Layout.preferredWidth: lonText.width + indentation*3
           Loader {
-            id: loaderRealTimeFactor
+            id: loaderPlotLon
             width: iconWidth
             height: iconHeight
             y:10
             sourceComponent: plotIcon
           }
-          Component.onCompleted: loaderRealTimeFactor.item.componentInfo = "realTimeFactor"
+          Component.onCompleted: loaderPlotLon.item.componentInfo = "longitude"
 
           Text {
-            id : realTimeFactorText
-            text: 'Longitude'
-            leftPadding: 5
+            id : lonText
+            text: 'Longitude (°)'
+            leftPadding: 15
             color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
             font.pointSize: 12
             anchors.centerIn: parent
           }
         }
-        Item {
+        IgnSpinBox {
+          id: lonSpin
           Layout.fillWidth: true
           height: 40
+          property double numberValue: model.data[2]
+          value: lonSpin.activeFocus ? lonSpin.value : numberValue
+          minimumValue: -180
+          maximumValue: 180
+          decimals: 12
+          stepSize: 0.1
+          onEditingFinished: {
+            sendSphericalCoordinates()
+          }
+        }
+
+        // Elevation
+        Rectangle {
+          color: "transparent"
+          height: 40
+          Layout.preferredWidth: elevationText.width + indentation*3
           Loader {
-            id: realTimeFactorLoader
-            anchors.fill: parent
-            property double numberValue: model.data[2]
-            sourceComponent: writablePositiveNumber
-            onLoaded: {
-              realTimeFactorItem = realTimeFactorLoader.item
-            }
+            id: loaderPlotElevation
+            width: iconWidth
+            height: iconHeight
+            y:10
+            sourceComponent: plotIcon
+          }
+          Component.onCompleted: loaderPlotElevation.item.componentInfo = "elevation"
+
+          Text {
+            id : elevationText
+            text: 'Elevation (m)'
+            leftPadding: 15
+            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+            font.pointSize: 12
+            anchors.centerIn: parent
+          }
+        }
+        IgnSpinBox {
+          id: elevationSpin
+          Layout.fillWidth: true
+          height: 40
+          property double numberValue: model.data[3]
+          value: elevationSpin.activeFocus ? elevationSpin.value : numberValue
+          minimumValue: -100000
+          maximumValue: 100000
+          decimals: 12
+          stepSize: 0.1
+          onEditingFinished: {
+            sendSphericalCoordinates()
+          }
+        }
+
+        // Heading
+        Rectangle {
+          color: "transparent"
+          height: 40
+          Layout.preferredWidth: headingText.width + indentation*3
+          Loader {
+            id: loaderPlotHeading
+            width: iconWidth
+            height: iconHeight
+            y:10
+            sourceComponent: plotIcon
+          }
+          Component.onCompleted: loaderPlotHeading.item.componentInfo = "heading"
+
+          Text {
+            id : headingText
+            text: 'Heading (°)'
+            leftPadding: 15
+            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+            font.pointSize: 12
+            anchors.centerIn: parent
+          }
+        }
+        IgnSpinBox {
+          id: headingSpin
+          Layout.fillWidth: true
+          height: 40
+          property double numberValue: model.data[4]
+          value: headingSpin.activeFocus ? headingSpin.value : numberValue
+          minimumValue: -180
+          maximumValue: 180
+          decimals: 12
+          stepSize: 0.1
+          onEditingFinished: {
+            sendSphericalCoordinates()
           }
         }
       }

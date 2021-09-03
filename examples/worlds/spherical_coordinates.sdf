@@ -11,6 +11,7 @@
       <latitude_deg>-22.9</latitude_deg>
       <longitude_deg>-43.2</longitude_deg>
       <elevation>0</elevation>
+      <heading_deg>0</heading_deg>
     </spherical_coordinates>
 
   </world>
