@@ -47,6 +47,7 @@
 #include "ignition/gazebo/components/ParticleEmitter.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Sensor.hh"
+#include "ignition/gazebo/components/SphericalCoordinates.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 
@@ -553,6 +554,23 @@ std::string validTopic(const std::vector<std::string> &_topics)
     return validTopic;
   }
   return std::string();
+}
+
+//////////////////////////////////////////////////
+std::optional<math::Vector3d> sphericalCoordinates(Entity _entity,
+    const EntityComponentManager &_ecm)
+{
+  auto sphericalCoordinatesComp =
+      _ecm.Component<components::SphericalCoordinates>(
+      worldEntity(_entity, _ecm));
+  if (nullptr == sphericalCoordinatesComp)
+  {
+    return std::nullopt;
+  }
+
+  auto xyzPose = worldPose(_entity, _ecm);
+  return sphericalCoordinatesComp->Data().SphericalFromLocalPosition(
+      xyzPose.Pos());
 }
 }
 }

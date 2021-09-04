@@ -127,10 +127,10 @@ TEST_F(WorldIntegrationTest, SphericalCoordinates)
 
   EXPECT_EQ(std::nullopt, world.SphericalCoordinates(ecm));
 
-  ecm.CreateComponent<components::SphericalCoordinates>(id,
-      components::SphericalCoordinates(math::SphericalCoordinates()));
+  world.SetSphericalCoordinates(ecm, math::SphericalCoordinates());
+
   auto sphericalCoordinates = world.SphericalCoordinates(ecm).value();
-  EXPECT_EQ(0.0, sphericalCoordinates.LatitudeReference().Degree());
+  EXPECT_DOUBLE_EQ(0.0, sphericalCoordinates.LatitudeReference().Degree());
 }
 
 //////////////////////////////////////////////////

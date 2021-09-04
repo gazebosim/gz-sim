@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="spherical coordinates">
+
+    <plugin
+      filename="ignition-gazebo-user-commands-system"
+      name="ignition::gazebo::systems::UserCommands">
+    </plugin>
+
+    <spherical_coordinates>
+      <surface_model>EARTH_WGS84</surface_model>
+      <world_frame_orientation>ENU</world_frame_orientation>
+      <latitude_deg>-22.9</latitude_deg>
+      <longitude_deg>-43.2</longitude_deg>
+      <elevation>123</elevation>
+      <heading_deg>20</heading_deg>
+    </spherical_coordinates>
+
+  </world>
+</sdf>

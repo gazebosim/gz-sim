@@ -102,6 +102,26 @@ std::optional<math::SphericalCoordinates> World::SphericalCoordinates(
 }
 
 //////////////////////////////////////////////////
+void World::SetSphericalCoordinates(EntityComponentManager &_ecm,
+    const math::SphericalCoordinates &_sphericalCoordinates)
+{
+  auto sphericalCoordinatesComp =
+      _ecm.Component<components::SphericalCoordinates>(this->dataPtr->id);
+  if (!sphericalCoordinatesComp)
+  {
+    _ecm.CreateComponent(this->dataPtr->id,
+        components::SphericalCoordinates(_sphericalCoordinates));
+    return;
+  }
+
+  sphericalCoordinatesComp->SetData(_sphericalCoordinates,
+      [](const math::SphericalCoordinates &,
+         const math::SphericalCoordinates &){return false;});
+  _ecm.SetChanged(this->dataPtr->id,
+      components::SphericalCoordinates::typeId, ComponentState::OneTimeChange);
+}
+
+//////////////////////////////////////////////////
 std::optional<math::Vector3d> World::Gravity(
     const EntityComponentManager &_ecm) const
 {

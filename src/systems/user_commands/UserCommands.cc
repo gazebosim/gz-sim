@@ -28,6 +28,7 @@
 #include <utility>
 #include <vector>
 
+#include <ignition/math/SphericalCoordinates.hh>
 #include <ignition/msgs/Utility.hh>
 
 #include <sdf/Physics.hh>
@@ -49,10 +50,12 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/PoseCmd.hh"
 #include "ignition/gazebo/components/PhysicsCmd.hh"
+#include "ignition/gazebo/components/SphericalCoordinates.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
+#include "ignition/gazebo/World.hh"
 #include "ignition/gazebo/components/ContactSensorData.hh"
 #include "ignition/gazebo/components/ContactSensor.hh"
 #include "ignition/gazebo/components/Sensor.hh"
@@ -246,6 +249,19 @@ class PhysicsCommand : public UserCommandBase
   public: bool Execute() final;
 };
 
+/// \brief Command to modify the spherical coordinates of a simulation.
+class SphericalCoordinatesCommand : public UserCommandBase
+{
+  /// \brief Constructor
+  /// \param[in] _msg Message containing the new coordinates.
+  /// \param[in] _iface Pointer to user commands interface.
+  public: SphericalCoordinatesCommand(msgs::SphericalCoordinates *_msg,
+      std::shared_ptr<UserCommandsInterface> &_iface);
+
+  // Documentation inherited
+  public: bool Execute() final;
+};
+
 /// \brief Command to enable a collision component.
 class EnableCollisionCommand : public UserCommandBase
 {
@@ -323,6 +339,14 @@ class ignition::gazebo::systems::UserCommandsPrivate
   /// It does not mean that the physics parameters will be successfully updated.
   /// \return True if successful.
   public: bool PhysicsService(const msgs::Physics &_req, msgs::Boolean &_res);
+
+  /// \brief Callback for spherical coordinates service
+  /// \param[in] _req Request containing updates to the spherical coordinates.
+  /// \param[in] _res True if message successfully received and queued.
+  /// It does not mean that the physics parameters will be successfully updated.
+  /// \return True if successful.
+  public: bool SphericalCoordinatesService(
+      const msgs::SphericalCoordinates &_req, msgs::Boolean &_res);
 
   /// \brief Callback for enable collision service
   /// \param[in] _req Request containing collision entity.
@@ -460,6 +484,15 @@ void UserCommands::Configure(const Entity &_entity,
       &UserCommandsPrivate::PhysicsService, this->dataPtr.get());
 
   ignmsg << "Physics service on [" << physicsService << "]" << std::endl;
+
+  // Spherical coordinates service
+  std::string sphericalCoordinatesService{"/world/" + validWorldName +
+      "/set_spherical_coordinates"};
+  this->dataPtr->node.Advertise(sphericalCoordinatesService,
+      &UserCommandsPrivate::SphericalCoordinatesService, this->dataPtr.get());
+
+  ignmsg << "SphericalCoordinates service on [" << sphericalCoordinatesService
+         << "]" << std::endl;
 
   // Enable collision service
   std::string enableCollisionService{
@@ -654,6 +687,24 @@ bool UserCommandsPrivate::PhysicsService(const msgs::Physics &_req,
   auto msg = _req.New();
   msg->CopyFrom(_req);
   auto cmd = std::make_unique<PhysicsCommand>(msg, this->iface);
+  // Push to pending
+  {
+    std::lock_guard<std::mutex> lock(this->pendingMutex);
+    this->pendingCmds.push_back(std::move(cmd));
+  }
+
+  _res.set_data(true);
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool UserCommandsPrivate::SphericalCoordinatesService(
+    const msgs::SphericalCoordinates &_req, msgs::Boolean &_res)
+{
+  // Create command and push it to queue
+  auto msg = _req.New();
+  msg->CopyFrom(_req);
+  auto cmd = std::make_unique<SphericalCoordinatesCommand>(msg, this->iface);
   // Push to pending
   {
     std::lock_guard<std::mutex> lock(this->pendingMutex);
@@ -1126,6 +1177,32 @@ bool PhysicsCommand::Execute()
     this->iface->ecm->CreateComponent(worldEntity,
         components::PhysicsCmd(*physicsMsg));
   }
+
+  return true;
+}
+
+//////////////////////////////////////////////////
+SphericalCoordinatesCommand::SphericalCoordinatesCommand(
+    msgs::SphericalCoordinates *_msg,
+    std::shared_ptr<UserCommandsInterface> &_iface)
+    : UserCommandBase(_msg, _iface)
+{
+}
+
+//////////////////////////////////////////////////
+bool SphericalCoordinatesCommand::Execute()
+{
+  auto sphericalCoordinatesMsg =
+      dynamic_cast<const msgs::SphericalCoordinates *>(this->msg);
+  if (nullptr == sphericalCoordinatesMsg)
+  {
+    ignerr << "Internal error, null SphericalCoordinates message" << std::endl;
+    return false;
+  }
+
+  World world(this->iface->worldEntity);
+  world.SetSphericalCoordinates(*this->iface->ecm,
+      msgs::Convert(*sphericalCoordinatesMsg));
 
   return true;
 }
