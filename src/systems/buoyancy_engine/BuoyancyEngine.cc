@@ -210,13 +210,12 @@ void BuoyancyEnginePlugin::PreUpdate(
   ignition::gazebo::Link link(this->dataPtr->linkEntity);
   link.AddWorldWrench(_ecm, {0, 0, forceMag}, {0, 0, 0});
 }
-}
 
 IGNITION_ADD_PLUGIN(
   BuoyancyEnginePlugin,
   ignition::gazebo::System,
-  tethys::BuoyancyEnginePlugin::ISystemConfigure,
-  tethys::BuoyancyEnginePlugin::ISystemPreUpdate)
+  BuoyancyEnginePlugin::ISystemConfigure,
+  BuoyancyEnginePlugin::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(BuoyancyEnginePlugin,
                           "ignition::gazebo::systems::BuoyancyEngine")
