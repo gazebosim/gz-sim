@@ -272,10 +272,6 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
   // Entity
   Entity modelEntity = this->dataPtr->ecm->CreateEntity();
 
-  // TO-DO(blast545): Debug msg to be erased before merging
-  igndbg << "Creating model with name " << _model->Name()
-	 << " and entity value: " << modelEntity << std::endl;
-
   // Components
   this->dataPtr->ecm->CreateComponent(modelEntity, components::Model());
   this->dataPtr->ecm->CreateComponent(modelEntity,

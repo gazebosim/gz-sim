@@ -64,7 +64,8 @@ NetworkManagerPrimary::NetworkManagerPrimary(
   }
   else
   {
-    this->simStepPub = this->node.Advertise<private_msgs::SimulationStep>("step");
+    this->simStepPub =
+      this->node.Advertise<private_msgs::SimulationStep>("step");
     this->node.Subscribe("step_ack", &NetworkManagerPrimary::OnStepAck, this);
   }
 }
