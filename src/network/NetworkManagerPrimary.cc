@@ -364,7 +364,7 @@ void NetworkManagerPrimary::PopulateAffinities(
       for (const auto &performer : performers)
       {
         this->SetAffinity(performer, secondaryIt->second->prefix,
-          _msg.add_affinity());
+            _msg.add_affinity());
 
         // Remove performers as they are assigned
         allPerformers.erase(performer);
@@ -382,7 +382,7 @@ void NetworkManagerPrimary::PopulateAffinities(
     for (auto performer : allPerformers)
     {
       this->SetAffinity(performer, secondaryIt->second->prefix,
-        _msg.add_affinity());
+          _msg.add_affinity());
 
       // Round-robin performers
       secondaryIt++;
