@@ -546,7 +546,7 @@ void SimulationRunner::ProcessSystemQueue()
   // If additional systems were added, recreate the worker threads.
   if (pending > 0)
   {
-    ignwarn << "Creating PostUpdate worker threads: "
+    igndbg << "Creating PostUpdate worker threads: "
       << this->systemsPostupdate.size() + 1 << std::endl;
 
     this->postUpdateStartBarrier =
