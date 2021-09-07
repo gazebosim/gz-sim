@@ -22,6 +22,7 @@
 #include <condition_variable>
 #include <limits>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <sstream>
 #include <string>
@@ -245,6 +246,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Path of an SDF file, to be used with plugins that spawn entities.
     public: std::string spawnSdfPath;
 
+    /// \brief The name of a resource to clone
+    public: std::string spawnCloneName;
+
     /// \brief The pose of the spawn preview.
     public: ignition::math::Pose3d spawnPreviewPose =
             ignition::math::Pose3d::Zero;
@@ -252,7 +256,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief The currently hovered mouse position in screen coordinates
     public: math::Vector2i mouseHoverPos = math::Vector2i::Zero;
 
-    /// \brief The visual generated from the spawnSdfString / spawnSdfPath
+    /// \brief The visual generated from spawnSdfString, spawnSdfPath, or
+    /// spawnCloneName
     public: rendering::NodePtr spawnPreview = nullptr;
 
     /// \brief A record of the ids currently used by the entity spawner
@@ -937,6 +942,8 @@ void IgnRenderer::Render(RenderSync *_renderSync)
     IGN_PROFILE("IgnRenderer::Render Shapes");
     if (this->dataPtr->isSpawning)
     {
+      bool cloningResource = false;
+
       // Generate spawn preview
       rendering::VisualPtr rootVis = scene->RootVisual();
       sdf::Root root;
@@ -948,11 +955,22 @@ void IgnRenderer::Render(RenderSync *_renderSync)
       {
         root.Load(this->dataPtr->spawnSdfPath);
       }
+      else if (!this->dataPtr->spawnCloneName.empty())
+      {
+        this->dataPtr->isPlacing =
+          this->GeneratePreview(this->dataPtr->spawnCloneName);
+        cloningResource = true;
+      }
       else
       {
-        ignwarn << "Failed to spawn: no SDF string or path" << std::endl;
+        ignwarn << "Failed to spawn: no SDF string, path, or name of resource "
+          << "to clone" << std::endl;
       }
-      this->dataPtr->isPlacing = this->GeneratePreview(root);
+
+      if (!cloningResource)
+      {
+        this->dataPtr->isPlacing = this->GeneratePreview(root);
+      }
       this->dataPtr->isSpawning = false;
     }
   }
@@ -1153,7 +1171,8 @@ bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
 
   if (nullptr == _sdf.Model() && nullptr == _sdf.Light())
   {
-    ignwarn << "Only model entities can be spawned at the moment." << std::endl;
+    ignwarn << "Only model and light entities can be spawned at the moment."
+      << std::endl;
     this->TerminateSpawnPreview();
     return false;
   }
@@ -1235,6 +1254,51 @@ bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
     this->dataPtr->previewIds.push_back(lightId);
     this->dataPtr->previewIds.push_back(lightVisualId);
   }
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool IgnRenderer::GeneratePreview(const std::string &_name)
+{
+  // Terminate any pre-existing spawned entities
+  this->TerminateSpawnPreview();
+
+  auto scenePtr = this->dataPtr->renderUtil.SceneManager().Scene();
+  if (nullptr == scenePtr)
+  {
+    this->TerminateSpawnPreview();
+    return false;
+  }
+
+  this->dataPtr->spawnPreview = scenePtr->NodeByName(_name);
+  if (nullptr == this->dataPtr->spawnPreview)
+  {
+    ignerr << "Could not find a node with the name [" << _name
+      << "] in the scene." << std::endl;
+    this->TerminateSpawnPreview();
+    return false;
+  }
+
+  this->dataPtr->spawnPreviewPose = this->dataPtr->spawnPreview->WorldPose();
+
+  // clone the existing visual of what should be previewed
+  auto visualPtr = std::dynamic_pointer_cast<rendering::Visual>(
+      this->dataPtr->spawnPreview);
+  if (nullptr == visualPtr)
+  {
+    ignerr << "Could not get a visual from the node named [" << _name
+      << "]" << std::endl;
+    this->TerminateSpawnPreview();
+    return false;
+  }
+  auto clonedVisual = visualPtr->Clone("", visualPtr->Parent());
+  if (nullptr == clonedVisual)
+  {
+    this->TerminateSpawnPreview();
+    return false;
+  }
+
+  this->dataPtr->previewIds.push_back(clonedVisual->Id());
   return true;
 }
 
@@ -1520,6 +1584,10 @@ void IgnRenderer::HandleModelPlacement()
     {
       req.set_sdf_filename(this->dataPtr->spawnSdfPath);
     }
+    else if (!this->dataPtr->spawnCloneName.empty())
+    {
+      req.set_clone_name(this->dataPtr->spawnCloneName);
+    }
     else
     {
       ignwarn << "Failed to find SDF string or file path" << std::endl;
@@ -1546,6 +1614,7 @@ void IgnRenderer::HandleModelPlacement()
     this->dataPtr->mouseDirty = false;
     this->dataPtr->spawnSdfString.clear();
     this->dataPtr->spawnSdfPath.clear();
+    this->dataPtr->spawnCloneName.clear();
   }
 }
 
@@ -2244,6 +2313,15 @@ void IgnRenderer::SetModelPath(const std::string &_filePath)
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->isSpawning = true;
   this->dataPtr->spawnSdfPath = _filePath;
+}
+
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetCloneName(const std::string &_cloneName)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->isSpawning = true;
+  this->dataPtr->spawnCloneName = _cloneName;
 }
 
 /////////////////////////////////////////////////
@@ -3663,6 +3741,16 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
       renderWindow->SetModelPath(spawnPreviewPathEvent->FilePath());
     }
   }
+  else if (_event->type() == ignition::gui::events::SpawnCloneFromName::kType)
+  {
+    auto spawnCloneEvent =
+      reinterpret_cast<ignition::gui::events::SpawnCloneFromName *>(_event);
+    if (spawnCloneEvent)
+    {
+      auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+      renderWindow->SetCloneName(spawnCloneEvent->Name());
+    }
+  }
   else if (_event->type() ==
       ignition::gui::events::DropdownMenuEnabled::kType)
   {
@@ -3704,6 +3792,12 @@ void RenderWindowItem::SetModel(const std::string &_model)
 void RenderWindowItem::SetModelPath(const std::string &_filePath)
 {
   this->dataPtr->renderThread->ignRenderer.SetModelPath(_filePath);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetCloneName(const std::string &_name)
+{
+  this->dataPtr->renderThread->ignRenderer.SetCloneName(_name);
 }
 
 /////////////////////////////////////////////////

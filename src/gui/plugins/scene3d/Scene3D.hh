@@ -285,6 +285,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _filePath Sdf path of the model to load in for the user.
     public: void SetModelPath(const std::string &_filePath);
 
+    /// \brief Set the name of the resource to hover over the scene.
+    /// \param[in] _cloneName Name of the resource to load in for the user.
+    public: void SetCloneName(const std::string &_cloneName);
+
     /// \brief Set if the dropdown menu is enabled or disabled.
     /// \param[in] _enableDropdownMenu The boolean to enable or disable
     /// the dropdown menu
@@ -500,6 +504,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return True on success, false if failure
     public: bool GeneratePreview(const sdf::Root &_sdf);
 
+    /// \brief Generate a preview of a resource.
+    /// \param[in] _name The name of the resource to be previewed.
+    /// \return True on success, false if failure
+    public: bool GeneratePreview(const std::string &_name);
+
     /// \brief Delete the visuals generated while an entity is being spawned.
     public: void TerminateSpawnPreview();
 
@@ -659,6 +668,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set the path of the model to hover.
     /// \param[in] _filePath File path of the model to load in for the user.
     public: void SetModelPath(const std::string &_filePath);
+
+    /// \brief Set the name of the resource to hover.
+    /// \param[in] _name Name of the resource to load in for the user.
+    public: void SetCloneName(const std::string &_name);
 
     /// \brief Set if the dropdown menu is enabled or disabled.
     /// \param[in] _enableDropdownMenu The boolean to enable or disable
