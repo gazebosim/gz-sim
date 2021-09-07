@@ -35,7 +35,7 @@ namespace systems
   /// control the buoyancy of an underwater glider. It uses archimedes principal
   /// to apply an upward force based on the volume of the bladder. It listens to
   /// the topic `buoyancy_engine` or `/model/{namespace}/buoyancy_engine`
-  /// topic for the volume of the bladder in *cubicentimers*.
+  /// topic for the volume of the bladder in *cubicmeters*.
   ///
   /// ## Parameters
   /// <link_name> - The link which the plugin is attached to [required, string]
