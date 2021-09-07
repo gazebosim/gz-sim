@@ -28,9 +28,11 @@
 #include <ignition/common/Profiler.hh>
 
 #include "msgs/peer_control.pb.h"
-// #include "msgs/simulation_step.pb.h"
+#include "msgs/simulation_step.pb.h"
 #include "msgs/simulation_state_step.pb.h"
 
+#include "ignition/gazebo/components/Model.hh"
+#include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/PerformerAffinity.hh"
 #include "ignition/gazebo/components/PerformerLevels.hh"
 #include "ignition/gazebo/Conversions.hh"
@@ -53,12 +55,18 @@ NetworkManagerPrimary::NetworkManagerPrimary(
   NetworkManager(_stepFunction, _ecm, _eventMgr, _config, _options),
   node(_options)
 {
-  // this->simStepPub =
-  //   this->node.Advertise<private_msgs::SimulationStep>("step");
-  this->simStepPub =
-    this->node.Advertise<private_msgs::SimulationStateStep>("step_state");
-
-  this->node.Subscribe("step_ack", &NetworkManagerPrimary::OnStepAck, this);
+  if (this->IsRenderNetwork())
+  {
+    this->simStepPub =
+      this->node.Advertise<private_msgs::SimulationStateStep>("step_state");
+    this->node.Subscribe(
+      "step_ack", &NetworkManagerPrimary::OnRenderingStepAck, this);
+  }
+  else
+  {
+    this->simStepPub = this->node.Advertise<private_msgs::SimulationStep>("step");
+    this->node.Subscribe("step_ack", &NetworkManagerPrimary::OnStepAck, this);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -137,19 +145,76 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
   // startup
   if (!this->SecondariesCanStep())
   {
-    ignerr << "Secondaries can't step."
-           << std::endl;
     return false;
   }
 
-  // msgs::SerializedStateMap stateMsg;
-  // this->dataPtr->ecm->State(stateMsg);
+  // Different step method for render networks
+  if (this->IsRenderNetwork())
+    return this->RenderingStep(_info);
+
+  private_msgs::SimulationStep step;
+  step.mutable_stats()->CopyFrom(convert<msgs::WorldStatistics>(_info));
+
+  // Affinities that changed this step
+  this->PopulateAffinities(step);
+
+  // Send step to all secondaries
+  this->secondaryStates.clear();
+  this->secondaryStatesPromise = std::promise<void>{};
+  auto future = this->secondaryStatesPromise.get_future();
+  this->simStepPub.Publish(step);
+
+  // Block until all secondaries are done
+  {
+    IGN_PROFILE("Waiting for secondaries");
+
+    auto result = future.wait_for(10s);
+
+    if (std::future_status::ready != result)
+    {
+      ignerr << "Waited 10 s and got only [" << this->secondaryStates.size()
+             << " / " << this->secondaries.size()
+             << "] responses from secondaries. Stopping simulation."
+             << std::endl;
+      this->dataPtr->eventMgr->Emit<events::Stop>();
+      return false;
+    }
+  }
+
+  // Update primary state with states received from secondaries
+  {
+    IGN_PROFILE("Updating primary state");
+    for (const auto &msg : this->secondaryStates)
+    {
+      this->dataPtr->ecm->SetState(msg);
+    }
+    this->secondaryStates.clear();
+  }
+
+  // Step all systems
+  this->dataPtr->stepFunction(_info);
+
+  this->dataPtr->ecm->SetAllComponentsUnchanged();
+
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool NetworkManagerPrimary::RenderingStep(const UpdateInfo &_info)
+{
+  IGN_PROFILE("NetworkManagerPrimary::RenderStep");
+
   // FILL AFFINITIES BEFORE STEP
   private_msgs::SimulationStateStep stateStepMsg;
   stateStepMsg.mutable_stats()->CopyFrom(convert<msgs::WorldStatistics>(_info));
 
-  // Affinities that changed this step
-  this->PopulateAffinities(stateStepMsg);
+  // Testing new populate models function
+  if (this->dataPtr->firstIteration)
+  {
+    ignerr << "FIRST ITERATION " << std::endl;
+    this->PopulateRenderingModels(stateStepMsg);
+    this->dataPtr->firstIteration = false;
+  }
 
   // STEP PRE-UPDATE + Update PHASE
   // CHANGE STEP FUNCTION @ primary to only run those sections
@@ -173,7 +238,7 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
   stateStepMsg.mutable_state()->CopyFrom(stateMsg);
 
   // Send current serialized state to all
-  this->secondaryStates.clear();
+  this->secondaryRenderingStates.clear();
   this->secondaryStatesPromise = std::promise<void>{};
   auto future = this->secondaryStatesPromise.get_future();
   this->simStepPub.Publish(stateStepMsg);
@@ -186,7 +251,8 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
 
     if (std::future_status::ready != result)
     {
-      ignerr << "Waited 10 s and got only [" << this->secondaryStates.size()
+      ignerr << "Waited 10 s and got only ["
+             << this->secondaryRenderingStates.size()
              << " / " << this->secondaries.size()
              << "] responses from secondaries. Stopping simulation."
              << std::endl;
@@ -194,17 +260,6 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
       return false;
     }
   }
-
-  // I think updating is not needed, as postUpdates publish to their topics
-  // Revisit this commented section if needed
-  // {
-  //   IGN_PROFILE("Updating primary state");
-  //   for (const auto &msg : this->secondaryStates)
-  //   {
-  //     this->dataPtr->ecm->SetState(msg);
-  //   }
-  //   this->secondaryStates.clear();
-  // }
 
   this->dataPtr->ecm->SetAllComponentsUnchanged();
 
@@ -225,10 +280,20 @@ std::map<std::string, SecondaryControl::Ptr>
 }
 
 //////////////////////////////////////////////////
-void NetworkManagerPrimary::OnStepAck(const msgs::Boolean &_msg)
+void NetworkManagerPrimary::OnStepAck(const msgs::SerializedStateMap &_msg)
 {
   this->secondaryStates.push_back(_msg);
   if (this->secondaryStates.size() == this->secondaries.size())
+  {
+    this->secondaryStatesPromise.set_value();
+  }
+}
+
+//////////////////////////////////////////////////
+void NetworkManagerPrimary::OnRenderingStepAck(const msgs::Boolean &_msg)
+{
+  this->secondaryRenderingStates.push_back(_msg);
+  if (this->secondaryRenderingStates.size() == this->secondaries.size())
   {
     this->secondaryStatesPromise.set_value();
   }
@@ -246,7 +311,7 @@ bool NetworkManagerPrimary::SecondariesCanStep() const
 
 //////////////////////////////////////////////////
 void NetworkManagerPrimary::PopulateAffinities(
-    private_msgs::SimulationStateStep &_msg)
+    private_msgs::SimulationStep &_msg)
 {
   IGN_PROFILE("NetworkManagerPrimary::PopulateAffinities");
 
@@ -329,6 +394,33 @@ void NetworkManagerPrimary::PopulateAffinities(
   }
 
   // TODO(louise) Process level changes
+}
+
+//////////////////////////////////////////////////
+void NetworkManagerPrimary::PopulateRenderingModels(
+    private_msgs::SimulationStateStep &_msg)
+{
+  IGN_PROFILE("NetworkManagerPrimary::PopulateDistributedModels");
+
+  auto secondaryIt = this->secondaries.begin();
+
+  // Go through models and assign a different secondary to each
+  this->dataPtr->ecm->Each<components::Model, components::Name>(
+    [&](const Entity &_entity, const components::Model *,
+        const components::Name *_name) -> bool
+    {
+      this->SetAffinity(_entity, secondaryIt->second->prefix,
+          _msg.add_affinity());
+
+      // Round-robin levels
+      secondaryIt++;
+      if (secondaryIt == this->secondaries.end())
+      {
+        secondaryIt = this->secondaries.begin();
+      }
+
+      return true;
+    });
 }
 
 //////////////////////////////////////////////////

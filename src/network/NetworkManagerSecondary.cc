@@ -24,6 +24,7 @@
 
 #include "msgs/peer_control.pb.h"
 
+#include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/Entity.hh"
@@ -59,9 +60,18 @@ NetworkManagerSecondary::NetworkManagerSecondary(
       << std::endl;
   }
 
-  this->node.Subscribe("step_state", &NetworkManagerSecondary::OnStep, this);
-
-  this->stepAckPub = this->node.Advertise<msgs::Boolean>("step_ack");
+  if (this->IsRenderNetwork())
+  {
+    this->node.Subscribe(
+      "step_state", &NetworkManagerSecondary::OnRenderingStep, this);
+    this->stepAckPub = this->node.Advertise<msgs::Boolean>("step_ack");
+  }
+  else
+  {
+    this->node.Subscribe("step_state", &NetworkManagerSecondary::OnStep, this);
+    this->stepAckPub =
+      this->node.Advertise<msgs::SerializedStateMap>("step_ack");
+  }
 }
 
 //////////////////////////////////////////////////
@@ -98,9 +108,10 @@ bool NetworkManagerSecondary::OnControl(const private_msgs::PeerControl &_req,
 
 /////////////////////////////////////////////////
 void NetworkManagerSecondary::OnStep(
-    const private_msgs::SimulationStateStep &_msg)
+    const private_msgs::SimulationStep &_msg)
 {
   IGN_PROFILE("NetworkManagerSecondary::OnStep");
+
   // Throttle the number of step messages going to the debug output.
   if (!_msg.stats().paused() && _msg.stats().iterations() % 1000 == 0)
   {
@@ -142,9 +153,6 @@ void NetworkManagerSecondary::OnStep(
   // Update info
   auto info = convert<UpdateInfo>(_msg.stats());
 
-  // SYNC SECONDARY ECM WITH PRIMARY ECM
-  this->dataPtr->ecm->SetState(_msg.state());
-
   // Step runner
   this->dataPtr->stepFunction(info);
 
@@ -166,16 +174,86 @@ void NetworkManagerSecondary::OnStep(
     entities.insert(children.begin(), children.end());
   }
 
-  // msgs::SerializedStateMap stateMsg;
-  // if (!entities.empty())
-  //   this->dataPtr->ecm->State(stateMsg, entities);
-  // // Note on merging forward:
-  // // `has_one_time_component_changes` field is available in Edifice so this
-  // // workaround can be removed
-  // auto data = stateMsg.mutable_header()->add_data();
-  // data->set_key("has_one_time_component_changes");
-  // data->add_value(
-  //   this->dataPtr->ecm->HasOneTimeComponentChanges() ? "1" : "0");
+  msgs::SerializedStateMap stateMsg;
+  if (!entities.empty())
+    this->dataPtr->ecm->State(stateMsg, entities);
+  // Note on merging forward:
+  // `has_one_time_component_changes` field is available in Edifice so this
+  // workaround can be removed
+  auto data = stateMsg.mutable_header()->add_data();
+  data->set_key("has_one_time_component_changes");
+  data->add_value(this->dataPtr->ecm->HasOneTimeComponentChanges() ? "1" : "0");
+
+  this->stepAckPub.Publish(stateMsg);
+
+  this->dataPtr->ecm->SetAllComponentsUnchanged();
+}
+
+/////////////////////////////////////////////////
+void NetworkManagerSecondary::OnRenderingStep(
+    const private_msgs::SimulationStateStep &_msg)
+{
+  IGN_PROFILE("NetworkManagerSecondary::OnRenderStep");
+  // Throttle the number of step messages going to the debug output.
+  if (!_msg.stats().paused() && _msg.stats().iterations() % 1000 == 0)
+  {
+    igndbg << "Network iterations: " << _msg.stats().iterations()
+           << std::endl;
+  }
+
+  // Unload the models that don't belong to this
+  // Fill the models array only in the first iteration
+  if(this->dataPtr->firstIteration)
+  {
+    for (int i = 0; i < _msg.affinity_size(); ++i)
+    {
+      const auto &affinityMsg = _msg.affinity(i);
+      const auto &entityId = affinityMsg.entity().id();
+
+      if (affinityMsg.secondary_prefix() == this->Namespace())
+      {
+        this->performers.insert(entityId);
+
+        ignmsg << "Secondary [" << this->Namespace()
+               << "] assigned affinity to model [" << entityId << "]."
+               << std::endl;
+      }
+      // If model has been assigned to another secondary, remove it
+      else
+      {
+        this->dataPtr->ecm->RequestRemoveEntity(entityId);
+
+        if (this->performers.find(entityId) != this->performers.end())
+        {
+          ignmsg << "Secondary [" << this->Namespace()
+                 << "] unassigned affinity to performer [" << entityId << "]."
+                 << std::endl;
+          this->performers.erase(entityId);
+        }
+      }
+    }
+    this->dataPtr->firstIteration = false;
+  }
+
+  // Update info
+  auto info = convert<UpdateInfo>(_msg.stats());
+
+  // SYNC SECONDARY ECM WITH PRIMARY ECM
+  this->dataPtr->ecm->SetState(_msg.state());
+
+  // Step runner
+  this->dataPtr->stepFunction(info);
+
+  // Update state with all the performer's entities
+  std::unordered_set<Entity> entities;
+  for (const auto &perf : this->performers)
+  {
+    // Performer model
+    auto modelEntity = perf;
+
+    auto children = this->dataPtr->ecm->Descendants(modelEntity);
+    entities.insert(children.begin(), children.end());
+  }
 
   // Send completed acknowledge to the primary
   msgs::Boolean result;
@@ -184,4 +262,3 @@ void NetworkManagerSecondary::OnStep(
 
   this->dataPtr->ecm->SetAllComponentsUnchanged();
 }
-

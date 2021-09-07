@@ -114,6 +114,9 @@ namespace ignition
       /// \brief Convenience method for retrieving readonly role.
       public: bool IsReadOnly() const;
 
+      /// \brief Convenience method to check if network type is render.
+      public: bool IsRenderNetwork() const;
+
       /// \brief Get the manager's config.
       /// \return The manager's config.
       public: NetworkConfig Config() const;

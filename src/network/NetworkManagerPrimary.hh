@@ -29,7 +29,7 @@
 #include <ignition/gazebo/Entity.hh>
 #include <ignition/transport/Node.hh>
 
-// #include "msgs/simulation_step.pb.h"
+#include "msgs/simulation_step.pb.h"
 #include "msgs/simulation_state_step.pb.h"
 #include <ignition/msgs/boolean.pb.h>
 
@@ -83,6 +83,11 @@ namespace ignition
       /// \return True if simulation step was successfully synced.
       public: bool Step(const UpdateInfo &_info);
 
+      /// \brief Step the sensors associated with a rendering network
+      /// \param[inout] _info current simulation update information
+      /// \return True if simulation step was successfully synced.
+      public: bool RenderingStep(const UpdateInfo &_info);
+
       // Documentation inherited
       public: std::string Namespace() const override;
 
@@ -92,9 +97,12 @@ namespace ignition
 
       /// \brief Callback for step ack messages.
       /// \param[in] _msg Message containing secondary's updated state.
+      private: void OnStepAck(const msgs::SerializedStateMap &_msg);
+
+      /// \brief Callback for step ack messages.
+      /// \param[in] _msg Message containing secondary's updated state.
       /// TO-DO use a proper msg type for this type of acknowledge
-      // private: void OnStepAck(const msgs::SerializedStateMap &_msg);
-      private: void OnStepAck(const msgs::Boolean &_msg);
+      private: void OnRenderingStepAck(const msgs::Boolean &_msg);
 
       /// \brief Check if the step publisher has connections.
       private: bool SecondariesCanStep() const;
@@ -102,7 +110,12 @@ namespace ignition
       /// \brief Populate the step message with the latest affinities according
       /// to levels.
       /// \param[in] _msg Step message.
-      private: void PopulateAffinities(private_msgs::SimulationStateStep &_msg);
+      private: void PopulateAffinities(private_msgs::SimulationStep &_msg);
+
+      /// \brief Populate the step message with rendering models.
+      /// \param[in] _msg Step message.
+      private: void PopulateRenderingModels(
+          private_msgs::SimulationStateStep &_msg);
 
       /// \brief Set the performer to secondary affinity.
       /// \param[in] _performer Performer entity.
@@ -120,8 +133,12 @@ namespace ignition
       /// \brief Publisher for network step sync
       private: ignition::transport::Node::Publisher simStepPub;
 
+      /// \brief Keep track of confirmation from secondaries
+      /// in a rendering network.
+      private: std::vector<msgs::Boolean> secondaryRenderingStates;
+
       /// \brief Keep track of states received from secondaries.
-      private: std::vector<msgs::Boolean> secondaryStates;
+      private: std::vector<msgs::SerializedStateMap> secondaryStates;
 
       /// \brief Promise used to notify when all secondaryStates where received.
       private: std::promise<void> secondaryStatesPromise;

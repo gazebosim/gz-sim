@@ -60,7 +60,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir()
 extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     int _iterations, int _run, float _hz, int _levels, const char *_networkRole,
     int _networkSecondaries, int _record, const char *_recordPath,
-    int _logOverwrite, const char *_playback, const char *_file)
+    int _logOverwrite, const char *_playback, const char *_file,
+    int _networkRender)
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -173,10 +174,14 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
 
   if (_networkRole && std::strlen(_networkRole) > 0)
   {
-    ignmsg << "Using the distributed simulation and levels systems\n";
+    ignmsg << "Using the distributed simulation\n";
     serverConfig.SetNetworkRole(_networkRole);
     serverConfig.SetNetworkSecondaries(_networkSecondaries);
-    serverConfig.SetUseLevels(true);
+    serverConfig.SetNetworkType(_networkRender);
+
+    // Only force levels use for performers distributed simulation
+    if (!_networkRender)
+     serverConfig.SetUseLevels(true);
   }
 
   if (_playback != nullptr && std::strlen(_playback) > 0)

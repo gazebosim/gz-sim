@@ -26,7 +26,7 @@
 #include <ignition/gazebo/Export.hh>
 #include <ignition/transport/Node.hh>
 
-// #include "msgs/simulation_step.pb.h"
+#include "msgs/simulation_step.pb.h"
 #include "msgs/simulation_state_step.pb.h"
 #include "msgs/peer_control.pb.h"
 
@@ -69,7 +69,11 @@ namespace ignition
 
       /// \brief Callback when step commands are received from the primary
       /// \param[in] _msg Step message.
-      private: void OnStep(const private_msgs::SimulationStateStep &_msg);
+      private: void OnStep(const private_msgs::SimulationStep &_msg);
+
+      /// \brief Callback when step commands are received from the primary
+      /// \param[in] _msg Step message.
+      private: void OnRenderingStep(const private_msgs::SimulationStateStep &_msg);
 
       /// \brief Flag to control enabling/disabling simulation secondary.
       private: std::atomic<bool> enableSim {false};

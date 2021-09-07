@@ -43,15 +43,21 @@ namespace ignition
       /// \param[in] _role One of [primary, secondary].
       /// \param[in] _secondaries Number of secondaries the primary should
       /// expect. This is only meaningful if _role == primary.
+      /// \param[in] _type Distributed simulation type.
+      /// Possible values: 0 -> performers distribution (default),
+      /// 1 -> sensors/render distribution
       /// \return A NetworkConfig object based on the provided values.
       public: static NetworkConfig FromValues(const std::string &_role,
-                                              unsigned int _secondaries = 0);
+        unsigned int _secondaries = 0, unsigned int _type = 0);
 
       /// \brief Role of this network participant
       public: NetworkRole role { NetworkRole::None };
 
       /// \brief Expect number of network secondaries.
       public: size_t numSecondariesExpected { 0 };
+
+      /// \brief Network type to be used.
+      public: unsigned int type { 0 };
     };
     }
   }  // namespace gazebo

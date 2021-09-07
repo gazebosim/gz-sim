@@ -67,6 +67,9 @@ namespace ignition
 
       /// \brief Track connection to "events::Stop" Event
       public: ignition::common::ConnectionPtr stoppingConn;
+
+      /// \brief Flag to indicate that the first iteration ocurred.
+      public: bool firstIteration {true};
     };
     }
   }  // namespace gazebo

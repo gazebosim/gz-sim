@@ -228,6 +228,22 @@ namespace ignition
       /// \sa SetNetworkRole(const std::string &_role)
       public: std::string NetworkRole() const;
 
+      /// \brief Set the distributed simulation type for this network.
+      /// Current supported values:
+      /// 0 -> Performers distribution.
+      /// 1 -> Sensors / rendering distribution.
+      /// \param[in] _role Network type, one of [0, 1].
+      /// \note Not used if a network role is not set.
+      /// \sa SetNetworkRole(const std::string &_role)
+      public: void SetNetworkType(unsigned int _type);
+
+      /// \brief Get the network type. See
+      /// SetNetworkType(unsigned int _type) for more information
+      /// about distributed simulation types supported.
+      /// \return The network type.
+      /// \sa SetNetworkType(unsigned int _type)
+      public: unsigned int NetworkType() const;
+
       /// \brief Get whether the server is recording states
       /// \return True if the server is set to record states
       public: bool UseLogRecord() const;

@@ -235,6 +235,7 @@ class ignition::gazebo::ServerConfigPrivate
             plugins(_cfg->plugins),
             networkRole(_cfg->networkRole),
             networkSecondaries(_cfg->networkSecondaries),
+            networkType(_cfg->networkType),
             seed(_cfg->seed),
             logRecordTopics(_cfg->logRecordTopics) { }
 
@@ -292,6 +293,9 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// \brief The number of network secondaries.
   public: unsigned int networkSecondaries = 0;
+
+  /// \brief The network type.
+  public: unsigned int networkType = 0;
 
   /// \brief The given random seed.
   public: unsigned int seed = 0;
@@ -407,6 +411,18 @@ void ServerConfig::SetNetworkRole(const std::string &_role)
 std::string ServerConfig::NetworkRole() const
 {
   return this->dataPtr->networkRole;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetNetworkType(unsigned int _type)
+{
+  this->dataPtr->networkType = _type;
+}
+
+/////////////////////////////////////////////////
+unsigned int ServerConfig::NetworkType() const
+{
+  return this->dataPtr->networkType;
 }
 
 /////////////////////////////////////////////////

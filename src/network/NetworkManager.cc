@@ -175,3 +175,9 @@ NetworkConfig NetworkManager::Config() const
 {
   return this->dataPtr->config;
 }
+
+//////////////////////////////////////////////////
+bool NetworkManager::IsRenderNetwork() const
+{
+  return this->dataPtr->config.type == 1;
+}

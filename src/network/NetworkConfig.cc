@@ -26,7 +26,7 @@ using namespace gazebo;
 
 /////////////////////////////////////////////////
 NetworkConfig NetworkConfig::FromValues(const std::string &_role,
-    unsigned int _secondaries)
+    unsigned int _secondaries, unsigned int _type)
 {
   NetworkConfig config;
 
@@ -73,7 +73,7 @@ NetworkConfig NetworkConfig::FromValues(const std::string &_role,
         << "no distributed sim available" << std::endl;
     }
   }
-
+  config.type = _type;
   return config;
 }
 

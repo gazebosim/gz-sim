@@ -131,7 +131,8 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
           std::bind(&SimulationRunner::Step, this, std::placeholders::_1),
           this->entityCompMgr, &this->eventMgr,
           NetworkConfig::FromValues(
-            _config.NetworkRole(), _config.NetworkSecondaries()));
+            _config.NetworkRole(), _config.NetworkSecondaries(),
+            _config.NetworkType()));
     }
     else
     {
@@ -169,20 +170,10 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // a default set of systems.
   if (this->systems.empty() && this->pendingSystems.empty())
   {
-    // Do not load extra systems if this is a distributed simulation
-    // TODO(blast545): is this check really necessary?
-    if (this->networkMgr)
-    {
-      ignmsg << "No systems loaded from SDF. Skip defaults, "
-             << "running distriuted simulation." << std::endl;
-    }
-    else
-    {
-      ignmsg << "No systems loaded from SDF, loading defaults" << std::endl;
-      bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
-      auto plugins = ignition::gazebo::loadPluginInfo(isPlayback);
-      this->LoadServerPlugins(plugins);
-    }
+    ignmsg << "No systems loaded from SDF, loading defaults" << std::endl;
+    bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
+    auto plugins = ignition::gazebo::loadPluginInfo(isPlayback);
+    this->LoadServerPlugins(plugins);
   }
 
   this->LoadLoggingPlugins(this->serverConfig);
@@ -498,7 +489,7 @@ void SimulationRunner::AddSystemToRunner(SystemInternal _system)
   // TO-DO: doing this does not disable running the configure method of the
   // system. Verify if running that and not running the system later do not
   // cause issues with the simulation
-  if (this->networkMgr)
+  if (this->networkMgr && this->networkMgr->IsRenderNetwork())
   {
     if (this->networkMgr->IsPrimary())
     {
