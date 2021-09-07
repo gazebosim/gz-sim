@@ -898,7 +898,7 @@ void SimulationRunner::LoadPlugin(const Entity _entity,
   if (system)
   {
     this->AddSystem(system.value(), _entity, _sdf);
-    ignwarn << "Loaded system [" << _name
+    igndbg << "Loaded system [" << _name
            << "] for entity [" << _entity << "]" << std::endl;
   }
 }
@@ -980,7 +980,6 @@ void SimulationRunner::LoadServerPlugins(
 
     if (kNullEntity != entity)
     {
-      ignwarn << "Loading server plugin" << std::endl;
       this->LoadPlugin(entity, plugin.Filename(), plugin.Name(), plugin.Sdf());
     }
   }
@@ -1015,7 +1014,6 @@ void SimulationRunner::LoadLoggingPlugins(const ServerConfig &_config)
 void SimulationRunner::LoadPlugins(const Entity _entity,
     const sdf::ElementPtr &_sdf)
 {
-  // ignwarn << "Load plugins called" << std::endl;
   sdf::ElementPtr pluginElem = _sdf->GetElement("plugin");
   while (pluginElem)
   {
