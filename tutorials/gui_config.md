@@ -15,10 +15,34 @@ There are a few places where the GUI configuration can come from:
 2. A `<gui>` element inside an SDF file
 3. The default configuration file at `$HOME/.ignition/gazebo/gui.config` \*
 
-Each of the items above takes precedence over the ones below it. For example,
-if a user chooses a `--gui-config`, the SDF's `<gui>` element is ignored. And
-the default configuration file is only loaded if no configuration is passed
-through the command line or the SDF file.
+Each of the items above takes precedence over the ones below it by default.
+For example, if a user chooses a `--gui-config`, the SDF's `<gui>` element is
+ignored. And the default configuration file is only loaded if no configuration
+is passed through the command line or the SDF file.
+
+The default behaviour can be overridden using the `--gui-config-options`
+command line argument, which offers options:
+
+* `force`: Force the use of the GUI config file, ignoring the SDF file. If a
+  `--gui-config` is provided explicitly, that is used, otherwise, the default
+  config file is used.
+* `ignore`: Ignore the config file completely and load only plugins from SDF.
+* `prepend`: Load plugins from both the config file and the SDF file. The config
+  file is loaded first.
+
+The table below summarizes how all the options behave together:
+
+--gui-config     | SDF `<gui>`  | --gui-config-option      | Result
+---------------- | ------------ | ------------------------ | ------
+empty            | no plugins   | empty / force / prepend  | Load plugins from `$HOME/.ignition/gazebo/gui.config`
+empty / provided | no plugins   | ignore                   | Load no plugins
+provided         | no plugins   | empty / force / prepend  | Load plugins from `--gui-config`
+empty            | has plugins  | empty / ignore           | Load plugins from SDF
+empty            | has plugins  | force                    | `$HOME/.ignition/gazebo/gui.config`
+empty            | has plugins  | prepend                  | Load plugins from `$HOME/.ignition/gazebo/gui.config` and SDF
+provided         | has plugins  | empty / force            | Load plugins from `--gui-config`
+provided         | has plugins  | ignore                   | Load plugins from SDF
+provided         | has plugins  | prepend                  | Load plugins from `--gui-config` and SDF
 
 > \* For log-playback, the default file is
 > `$HOME/.ignition/gazebo/playback_gui.config`
