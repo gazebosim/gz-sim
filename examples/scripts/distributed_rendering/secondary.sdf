@@ -473,40 +473,5 @@
       </uri>
     </include>
 
-    <plugin name="ignition::gazebo" filename="dummy">
-      <performer name="perf1">
-        <ref>cameras_alone</ref>
-        <geometry>
-          <box>
-            <size>2 2 2</size>
-          </box>
-        </geometry>
-      </performer>
-      <performer name="perf2">
-        <ref>camera_with_lidar</ref>
-        <geometry>
-          <box>
-            <size>2 2 2</size>
-          </box>
-        </geometry>
-      </performer>
-      <performer name="perf3">
-        <ref>rgbd_camera</ref>
-        <geometry>
-          <box>
-            <size>2 2 2</size>
-          </box>
-        </geometry>
-      </performer>
-      <performer name="perf4">
-        <ref>thermal_camera</ref>
-        <geometry>
-          <box>
-            <size>2 2 2</size>
-          </box>
-        </geometry>
-      </performer>
-    </plugin>
-
   </world>
 </sdf>
