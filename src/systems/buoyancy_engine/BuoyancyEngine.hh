@@ -19,6 +19,8 @@
 
 #include <ignition/gazebo/System.hh>
 
+#include <memory>
+
 namespace ignition
 {
 namespace gazebo

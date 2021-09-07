@@ -15,8 +15,11 @@
  *
  */
 
+#include <algorithm>
 #include <chrono>
+#include <memory>
 #include <mutex>
+#include <string>
 
 #include <ignition/gazebo/Link.hh>
 #include <ignition/msgs/double.pb.h>
