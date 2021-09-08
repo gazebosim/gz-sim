@@ -5,11 +5,14 @@
 %include Vector2.i
 %include Vector3.i
 %include Vector4.i
+%include Color.i
 %include Line2.i
 %include Line3.i
 %include PID.i
+%include RollingMean.i
 %include SemanticVersion.i
 %include SignalStats.i
+%include Spline.i
 %include Temperature.i
 %include Triangle.i
 %include Kmeans.i
