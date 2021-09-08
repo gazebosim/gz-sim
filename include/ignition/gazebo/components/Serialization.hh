@@ -148,7 +148,7 @@ namespace serializers
 
     /// \brief Deserialization
     /// \param[in] _in Input stream.
-    /// \param[in] _vec Message to populate
+    /// \param[in] _msg Message to populate
     /// \return The stream.
     public: static std::istream &Deserialize(std::istream &_in,
         google::protobuf::Message &_msg)

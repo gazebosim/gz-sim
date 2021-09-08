@@ -769,7 +769,67 @@
 ### Ignition Gazebo 3.X.X (202X-XX-XX)
 
 
-### Ignition Gazebo 3.9.0 (2021-07-XX)
+### Ignition Gazebo 3.9.0 (2021-08-16)
+
+1. Entity tree: prevent creation of repeated entity items
+    * [Pull request #974](https://github.com/ignitionrobotics/ign-gazebo/pull/974)
+
+1. Don't use $HOME on most tests (InternalFixture)
+    * [Pull request #971](https://github.com/ignitionrobotics/ign-gazebo/pull/971)
+
+1. Be more specific when looking for physics plugins
+    * [Pull request #965](https://github.com/ignitionrobotics/ign-gazebo/pull/965)
+
+1. Drag and drop meshes into scene
+    * [Pull request #939](https://github.com/ignitionrobotics/ign-gazebo/pull/939)
+
+1. Set protobuf_MODULE_COMPATIBLE before any find_package call
+    * [Pull request #957](https://github.com/ignitionrobotics/ign-gazebo/pull/957)
+
+1. [DiffDrive] add enable/disable
+    * [Pull request #772](https://github.com/ignitionrobotics/ign-gazebo/pull/772)
+
+1. Fix component inspector shutdown crash
+    * [Pull request #724](https://github.com/ignitionrobotics/ign-gazebo/pull/724)
+
+1. Add UserCommands Plugin.
+    * [Pull request #719](https://github.com/ignitionrobotics/ign-gazebo/pull/719)
+
+1. Setting the intiial velocity for a model or joint
+    * [Pull request #693](https://github.com/ignitionrobotics/ign-gazebo/pull/693)
+
+1. Examples and tutorial on using rendering API from plugins
+    * [Pull request #596](https://github.com/ignitionrobotics/ign-gazebo/pull/596)
+
+1.  Add missing IGNITION_GAZEBO_VISIBLE macros
+    * [Pull request #563](https://github.com/ignitionrobotics/ign-gazebo/pull/563)
+
+1. Fix visibility macro names when used by a different component (Windows)
+    * [Pull request #564](https://github.com/ignitionrobotics/ign-gazebo/pull/564)
+
+1. No install apt recommends and clear cache
+    * [Pull request #423](https://github.com/ignitionrobotics/ign-gazebo/pull/423)
+
+1. Add 25percent darker view angle icons
+    * [Pull request #426](https://github.com/ignitionrobotics/ign-gazebo/pull/426)
+
+1. Expose a test fixture helper class
+    * [Pull request #926](https://github.com/ignitionrobotics/ign-gazebo/pull/926)
+
+1. Fix logic to disable server default plugins loading
+    * [Pull request #953](https://github.com/ignitionrobotics/ign-gazebo/pull/953)
+
+1. removed unneeded plugin update
+    * [Pull request #944](https://github.com/ignitionrobotics/ign-gazebo/pull/944)
+
+1. Functions to enable velocity and acceleration checks on Link
+    * [Pull request #935](https://github.com/ignitionrobotics/ign-gazebo/pull/935)
+
+1. Support adding systems that don't come from a plugin
+    * [Pull request #936](https://github.com/ignitionrobotics/ign-gazebo/pull/936)
+
+1. 3D plot GUI plugin
+    * [Pull request #917](https://github.com/ignitionrobotics/ign-gazebo/pull/917)
 
 1. Add a convenience function for getting possibly non-existing components.
     * [Pull request #629](https://github.com/ignitionrobotics/ign-gazebo/pull/629)

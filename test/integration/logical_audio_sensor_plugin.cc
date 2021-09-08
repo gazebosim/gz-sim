@@ -39,20 +39,14 @@
 #include "ignition/gazebo/Types.hh"
 
 #include "../helpers/Relay.hh"
+#include "../helpers/EnvTestFixture.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
 /// \brief Test LogicalAudio system plugin
-class LogicalAudioTest : public ::testing::Test
+class LogicalAudioTest : public InternalFixture<::testing::Test>
 {
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    ignition::common::Console::SetVerbosity(4);
-    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
-  }
 };
 
 TEST_F(LogicalAudioTest, LogicalAudioDetections)
