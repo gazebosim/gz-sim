@@ -2860,9 +2860,11 @@ RenderUtil *RenderWindowItem::RenderUtil() const
 Scene3D::Scene3D()
   : GuiSystem(), dataPtr(new Scene3DPrivate)
 {
+  ignwarn << "The GzScene3D plugin is deprecated on v6 and will be removed on "
+          << "v7. Use MinimalScene together with other plugins as needed."
+          << std::endl;
   qmlRegisterType<RenderWindowItem>("RenderWindow", 1, 0, "RenderWindow");
 }
-
 
 /////////////////////////////////////////////////
 Scene3D::~Scene3D() = default;
