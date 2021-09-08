@@ -244,7 +244,7 @@ namespace ignition
     /// `<include>`
     const std::string kSdfPathEnv{"SDF_PATH"};
 
-    /// \breif Environment variable holding server config paths.
+    /// \brief Environment variable holding server config paths.
     const std::string kServerConfigPathEnv{"IGN_GAZEBO_SERVER_CONFIG_PATH"};
 
     /// \brief Environment variable holding paths to custom rendering engine

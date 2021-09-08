@@ -55,8 +55,8 @@ namespace systems
   /// header will also contain the key "count" with a value set to the
   /// number of performers currently in the region.
   ///
-  /// The PerformerDetector has to be attached to a <model> and it's region is
-  /// centered on the containing model's origin.
+  /// The PerformerDetector has to be attached to a `<model>` and it's region
+  /// is centered on the containing model's origin.
   ///
   /// The system does not assume that levels are enabled, but it does require
   /// performers to be specified.
