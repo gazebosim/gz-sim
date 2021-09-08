@@ -127,6 +127,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: rendering::VisualPtr CreateLink(Entity _id,
         const sdf::Link &_link, Entity _parentId = 0);
 
+    /// \brief Copy a visual that currently exists in the scene
+    /// \param[in] _id Unique visual id of the copied visual
+    /// \param[in] _visual Name of the visual to copy
+    /// \param[in] _parentId Parent id of the copied visual
+    /// \return Copied visual object
+    public: rendering::VisualPtr CopyVisual(Entity _id,
+        const std::string &_visual, Entity _parentId = 0);
+
     /// \brief Create a visual
     /// \param[in] _id Unique visual id
     /// \param[in] _visual Visual sdf dom

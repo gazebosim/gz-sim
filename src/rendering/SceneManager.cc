@@ -17,6 +17,7 @@
 
 
 #include <map>
+#include <memory>
 
 #include <sdf/Box.hh>
 #include <sdf/Capsule.hh>
@@ -391,6 +392,67 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
     parent->AddChild(visualVis);
 
   return visualVis;
+}
+
+/////////////////////////////////////////////////
+rendering::VisualPtr SceneManager::CopyVisual(Entity _id,
+    const std::string &_visual, Entity _parentId)
+{
+  if (!this->dataPtr->scene)
+    return rendering::VisualPtr();
+
+  if (this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end())
+  {
+    ignerr << "Entity with Id: [" << _id << "] already exists in the scene"
+           << std::endl;
+    return rendering::VisualPtr();
+  }
+
+  rendering::VisualPtr originalVisual =
+    std::dynamic_pointer_cast<rendering::Visual>(
+        this->dataPtr->scene->NodeByName(_visual));
+  if (!originalVisual)
+  {
+    ignerr << "Could not find a node with the name [" << _visual
+      << "] in the scene." << std::endl;
+    return rendering::VisualPtr();
+  }
+
+  auto name = originalVisual->Name() + "::" + std::to_string(_id);
+
+  rendering::VisualPtr parent;
+  if (_parentId != this->dataPtr->worldId)
+  {
+    auto it = this->dataPtr->visuals.find(_parentId);
+    if (it == this->dataPtr->visuals.end())
+    {
+      ignerr << "Parent entity with Id: [" << _parentId << "] not found. "
+             << "Not adding visual with ID [" << _id
+             << "] and name [" << name << "] to the rendering scene."
+             << std::endl;
+      return rendering::VisualPtr();
+    }
+    parent = it->second;
+  }
+
+  if (parent)
+    name = parent->Name() + "::" + name;
+
+  if (this->dataPtr->scene->HasVisualName(name))
+  {
+    ignerr << "Visual: [" << name << "] already exists" << std::endl;
+    return rendering::VisualPtr();
+  }
+
+  auto clonedVisual = originalVisual->Clone(name, parent);
+  clonedVisual->SetUserData("gazebo-entity", static_cast<int>(_id));
+  clonedVisual->SetUserData("pause-update", static_cast<int>(0));
+  this->dataPtr->visuals[_id] = clonedVisual;
+
+  if (!parent)
+    this->dataPtr->scene->RootVisual()->AddChild(clonedVisual);
+
+  return clonedVisual;
 }
 
 /////////////////////////////////////////////////

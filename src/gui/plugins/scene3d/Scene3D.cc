@@ -1263,42 +1263,19 @@ bool IgnRenderer::GeneratePreview(const std::string &_name)
   // Terminate any pre-existing spawned entities
   this->TerminateSpawnPreview();
 
-  auto scenePtr = this->dataPtr->renderUtil.SceneManager().Scene();
-  if (nullptr == scenePtr)
+  Entity visualId = this->UniqueId();
+  if (!visualId)
   {
     this->TerminateSpawnPreview();
     return false;
   }
 
-  this->dataPtr->spawnPreview = scenePtr->NodeByName(_name);
-  if (nullptr == this->dataPtr->spawnPreview)
-  {
-    ignerr << "Could not find a node with the name [" << _name
-      << "] in the scene." << std::endl;
-    this->TerminateSpawnPreview();
-    return false;
-  }
-
+  this->dataPtr->spawnPreview =
+    this->dataPtr->renderUtil.SceneManager().CopyVisual(visualId,
+        _name, this->dataPtr->renderUtil.SceneManager().WorldId());
   this->dataPtr->spawnPreviewPose = this->dataPtr->spawnPreview->WorldPose();
+  this->dataPtr->previewIds.push_back(visualId);
 
-  // clone the existing visual of what should be previewed
-  auto visualPtr = std::dynamic_pointer_cast<rendering::Visual>(
-      this->dataPtr->spawnPreview);
-  if (nullptr == visualPtr)
-  {
-    ignerr << "Could not get a visual from the node named [" << _name
-      << "]" << std::endl;
-    this->TerminateSpawnPreview();
-    return false;
-  }
-  auto clonedVisual = visualPtr->Clone("", visualPtr->Parent());
-  if (nullptr == clonedVisual)
-  {
-    this->TerminateSpawnPreview();
-    return false;
-  }
-
-  this->dataPtr->previewIds.push_back(clonedVisual->Id());
   return true;
 }
 
