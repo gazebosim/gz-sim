@@ -13,14 +13,15 @@ Features:
 * Grid config
 * Select entities
 * Transform controls
+* Spawn entities through GUI
 
 Missing for parity with GzScene3D:
 
-* Spawn entities through GUI
 * Context menu
 * Record video
 * View angles
 * View collisions, wireframe, transparent, CoM, etc
+* Drag and drop from Fuel / meshes
 * ...
 
 -->

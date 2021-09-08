@@ -18,7 +18,7 @@
 #include "Spawn.hh"
 
 #include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
+#include <ignition/msgs/entity_factory.pb.h>
 
 #include <algorithm>
 #include <limits>
@@ -36,6 +36,7 @@
 #include <ignition/gui/MainWindow.hh>
 
 #include <ignition/math/Vector2.hh>
+#include <ignition/msgs/Utility.hh>
 
 #include <ignition/plugin/Register.hh>
 
@@ -57,7 +58,7 @@ namespace ignition::gazebo
 {
   class SpawnPrivate
   {
-    /// \brief Update the 3D scene with new entities
+    /// \brief Perform operations in the render thread.
     public: void OnRender();
 
     /// \brief Delete the visuals generated while an entity is being spawned.
@@ -68,8 +69,8 @@ namespace ignition::gazebo
     /// \return True on success, false if failure
     public: bool GeneratePreview(const sdf::Root &_sdf);
 
-    /// \brief Handle model placement requests
-    public: void HandleModelPlacement();
+    /// \brief Handle placement requests
+    public: void HandlePlacement();
 
     /// \brief Retrieve the point on a plane at z = 0 in the 3D scene hit by a
     /// ray cast from the given 2D screen coordinates.
@@ -79,23 +80,23 @@ namespace ignition::gazebo
     /// \param[in] _offset Offset along the plane normal
     /// \return 3D coordinates of a point in the 3D scene.
     math::Vector3d ScreenToPlane(
-      const ignition::math::Vector2i &_screenPos,
-      const ignition::rendering::CameraPtr &_camera,
-      const ignition::rendering::RayQueryPtr &_rayQuery,
+      const math::Vector2i &_screenPos,
+      const rendering::CameraPtr &_camera,
+      const rendering::RayQueryPtr &_rayQuery,
       const float offset = 0.0);
 
     /// \brief Generate a unique entity id.
     /// \return The unique entity id
-    ignition::gazebo::Entity UniqueId();
+    Entity UniqueId();
 
     /// \brief Ignition communication node.
     public: transport::Node node;
 
-    /// \brief Flag for indicating whether we are spawning or not.
-    public: bool isSpawning = false;
+    /// \brief Flag for indicating whether the preview needs to be generated.
+    public: bool generatePreview = false;
 
     /// \brief Flag for indicating whether the user is currently placing a
-    /// resource with the shapes plugin or not
+    /// resource or not
     public: bool isPlacing = false;
 
     /// \brief The SDF string of the resource to be used with plugins that spawn
@@ -106,21 +107,21 @@ namespace ignition::gazebo
     public: std::string spawnSdfPath;
 
     /// \brief Pointer to the rendering scene
-    public: ignition::rendering::ScenePtr scene{nullptr};
+    public: rendering::ScenePtr scene{nullptr};
 
     /// \brief A record of the ids currently used by the entity spawner
     /// for easy deletion of visuals later
-    public: std::vector<ignition::gazebo::Entity> previewIds;
+    public: std::vector<Entity> previewIds;
 
-    /// \brief The visual generated from the spawnSdfString
-    public: ignition::rendering::NodePtr spawnPreview{nullptr};
+    /// \brief Pointer to the preview that the user is placing.
+    public: rendering::NodePtr spawnPreview{nullptr};
 
     /// \brief Scene manager
-    public: ignition::gazebo::SceneManager sceneManager;
+    public: SceneManager sceneManager;
 
     /// \brief The pose of the spawn preview.
-    public: ignition::math::Pose3d spawnPreviewPose =
-            ignition::math::Pose3d::Zero;
+    public: math::Pose3d spawnPreviewPose =
+            math::Pose3d::Zero;
 
     /// \brief Mouse event
     public: common::MouseEvent mouseEvent;
@@ -180,7 +181,7 @@ void Spawn::LoadConfig(const tinyxml2::XMLElement *)
 }
 
 
-// TODO(ahcorde): Replace this when this PR is on ign-rendering6
+// TODO(ahcorde): Replace this when this function is on ign-rendering6
 /////////////////////////////////////////////////
 math::Vector3d SpawnPrivate::ScreenToPlane(
     const math::Vector2i &_screenPos,
@@ -199,7 +200,7 @@ math::Vector3d SpawnPrivate::ScreenToPlane(
   _rayQuery->SetFromCamera(
       _camera, math::Vector2d(nx, ny));
 
-  ignition::math::Planed plane(ignition::math::Vector3d(0, 0, 1), offset);
+  math::Planed plane(math::Vector3d(0, 0, 1), offset);
 
   math::Vector3d origin = _rayQuery->Origin();
   math::Vector3d direction = _rayQuery->Direction();
@@ -208,7 +209,7 @@ math::Vector3d SpawnPrivate::ScreenToPlane(
 }
 
 /////////////////////////////////////////////////
-void SpawnPrivate::HandleModelPlacement()
+void SpawnPrivate::HandlePlacement()
 {
   if (!this->isPlacing)
     return;
@@ -228,16 +229,16 @@ void SpawnPrivate::HandleModelPlacement()
     // Delete the generated visuals
     this->TerminateSpawnPreview();
 
-    math::Pose3d modelPose = this->spawnPreviewPose;
-    std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-        [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+    auto pose = this->spawnPreviewPose;
+    std::function<void(const msgs::Boolean &, const bool)> cb =
+        [](const msgs::Boolean &/*_rep*/, const bool _result)
     {
       if (!_result)
-        ignerr << "Error creating model" << std::endl;
+        ignerr << "Error creating entity" << std::endl;
     };
     math::Vector3d pos = this->ScreenToPlane(
       this->mouseEvent.Pos(), this->camera, this->rayQuery);
-    pos.Z(modelPose.Pos().Z());
+    pos.Z(pose.Pos().Z());
     msgs::EntityFactory req;
     if (!this->spawnSdfString.empty())
     {
@@ -252,7 +253,7 @@ void SpawnPrivate::HandleModelPlacement()
       ignwarn << "Failed to find SDF string or file path" << std::endl;
     }
     req.set_allow_renaming(true);
-    msgs::Set(req.mutable_pose(), math::Pose3d(pos, modelPose.Rot()));
+    msgs::Set(req.mutable_pose(), math::Pose3d(pos, pose.Rot()));
 
     if (this->createCmdService.empty())
     {
@@ -277,7 +278,7 @@ void SpawnPrivate::HandleModelPlacement()
 }
 
 /////////////////////////////////////////////////
-ignition::gazebo::Entity SpawnPrivate::UniqueId()
+Entity SpawnPrivate::UniqueId()
 {
   auto timeout = 100000u;
   for (auto i = 0u; i < timeout; ++i)
@@ -324,7 +325,7 @@ void SpawnPrivate::OnRender()
 
   // Spawn
   IGN_PROFILE("IgnRenderer::Render Spawn");
-  if (this->isSpawning)
+  if (this->generatePreview)
   {
     // Generate spawn preview
     rendering::VisualPtr rootVis = this->scene->RootVisual();
@@ -342,7 +343,7 @@ void SpawnPrivate::OnRender()
       ignwarn << "Failed to spawn: no SDF string or path" << std::endl;
     }
     this->isPlacing = this->GeneratePreview(root);
-    this->isSpawning = false;
+    this->generatePreview = false;
   }
 
   // Escape action, clear all selections and terminate any
@@ -355,14 +356,16 @@ void SpawnPrivate::OnRender()
     }
   }
 
-  this->HandleModelPlacement();
+  this->HandlePlacement();
 }
 
 /////////////////////////////////////////////////
 void SpawnPrivate::TerminateSpawnPreview()
 {
   for (auto _id : this->previewIds)
+  {
     this->sceneManager.RemoveEntity(_id);
+  }
   this->previewIds.clear();
   this->isPlacing = false;
 }
@@ -375,8 +378,8 @@ bool SpawnPrivate::GeneratePreview(const sdf::Root &_sdf)
 
   if (nullptr == _sdf.Model() && nullptr == _sdf.Light())
   {
-    ignwarn << "Only model entities can be spawned at the moment." << std::endl;
-    this->TerminateSpawnPreview();
+    ignwarn << "Only model or light entities can be spawned at the moment."
+            << std::endl;
     return false;
   }
 
@@ -385,54 +388,50 @@ bool SpawnPrivate::GeneratePreview(const sdf::Root &_sdf)
     // Only preview first model
     sdf::Model model = *(_sdf.Model());
     this->spawnPreviewPose = model.RawPose();
-    model.SetName(ignition::common::Uuid().String());
+    model.SetName(common::Uuid().String());
     Entity modelId = this->UniqueId();
-    if (!modelId)
+    if (kNullEntity == modelId)
     {
       this->TerminateSpawnPreview();
       return false;
     }
-    this->spawnPreview =
-      this->sceneManager.CreateModel(
-          modelId, model,
-          this->sceneManager.WorldId());
+    this->spawnPreview = this->sceneManager.CreateModel(
+          modelId, model, this->sceneManager.WorldId());
 
     this->previewIds.push_back(modelId);
     for (auto j = 0u; j < model.LinkCount(); j++)
     {
       sdf::Link link = *(model.LinkByIndex(j));
-      link.SetName(ignition::common::Uuid().String());
+      link.SetName(common::Uuid().String());
       Entity linkId = this->UniqueId();
       if (!linkId)
       {
         this->TerminateSpawnPreview();
         return false;
       }
-      this->sceneManager.CreateLink(
-          linkId, link, modelId);
+      this->sceneManager.CreateLink(linkId, link, modelId);
       this->previewIds.push_back(linkId);
       for (auto k = 0u; k < link.VisualCount(); k++)
       {
-       sdf::Visual visual = *(link.VisualByIndex(k));
-       visual.SetName(ignition::common::Uuid().String());
-       Entity visualId = this->UniqueId();
-       if (!visualId)
-       {
-         this->TerminateSpawnPreview();
-         return false;
-       }
-       this->sceneManager.CreateVisual(
-           visualId, visual, linkId);
-       this->previewIds.push_back(visualId);
+        sdf::Visual visual = *(link.VisualByIndex(k));
+        visual.SetName(common::Uuid().String());
+        Entity visualId = this->UniqueId();
+        if (!visualId)
+        {
+          this->TerminateSpawnPreview();
+          return false;
+        }
+        this->sceneManager.CreateVisual(visualId, visual, linkId);
+        this->previewIds.push_back(visualId);
       }
     }
   }
   else if (_sdf.Light())
   {
-    // Only preview first model
+    // Only preview first light
     sdf::Light light = *(_sdf.Light());
     this->spawnPreviewPose = light.RawPose();
-    light.SetName(ignition::common::Uuid().String());
+    light.SetName(common::Uuid().String());
     Entity lightVisualId = this->UniqueId();
     if (!lightVisualId)
     {
@@ -445,10 +444,8 @@ bool SpawnPrivate::GeneratePreview(const sdf::Root &_sdf)
       this->TerminateSpawnPreview();
       return false;
     }
-    this->spawnPreview =
-      this->sceneManager.CreateLight(
-          lightId, light,
-          this->sceneManager.WorldId());
+    this->spawnPreview = this->sceneManager.CreateLight(
+          lightId, light, this->sceneManager.WorldId());
     this->sceneManager.CreateLightVisual(
         lightVisualId, light, lightId);
 
@@ -470,7 +467,7 @@ bool Spawn::eventFilter(QObject *_obj, QEvent *_event)
     ignition::gui::events::LeftClickOnScene *_e =
       static_cast<ignition::gui::events::LeftClickOnScene*>(_event);
     this->dataPtr->mouseEvent = _e->Mouse();
-    if (this->dataPtr->isSpawning || this->dataPtr->isPlacing)
+    if (this->dataPtr->generatePreview || this->dataPtr->isPlacing)
       this->dataPtr->mouseDirty = true;
   }
   else if (_event->type() == ignition::gui::events::HoverOnScene::kType)
@@ -486,14 +483,14 @@ bool Spawn::eventFilter(QObject *_obj, QEvent *_event)
     ignition::gui::events::SpawnFromDescription *_e =
       static_cast<ignition::gui::events::SpawnFromDescription*>(_event);
     this->dataPtr->spawnSdfString = _e->Description();
-    this->dataPtr->isSpawning = true;
+    this->dataPtr->generatePreview = true;
   }
   else if (_event->type() == ignition::gui::events::SpawnFromPath::kType)
   {
     auto spawnPreviewPathEvent =
       reinterpret_cast<ignition::gui::events::SpawnFromPath *>(_event);
     this->dataPtr->spawnSdfPath = spawnPreviewPathEvent->FilePath();
-    this->dataPtr->isSpawning = true;
+    this->dataPtr->generatePreview = true;
   }
   else if (_event->type() == ignition::gui::events::KeyReleaseOnScene::kType)
   {

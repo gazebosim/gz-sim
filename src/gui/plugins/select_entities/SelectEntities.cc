@@ -136,8 +136,8 @@ class ignition::gazebo::gui::SelectEntitiesPrivate
   /// \brief is transform control active ?
   public: bool transformControlActive = false;
 
-  /// \brief is Spawning from description active
-  public: bool isSpawnFromDescription{false};
+  /// \brief Is an entity being spawned
+  public: bool isSpawning{false};
 };
 
 using namespace ignition;
@@ -488,13 +488,13 @@ bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
     ignition::gui::events::LeftClickOnScene *_e =
       static_cast<ignition::gui::events::LeftClickOnScene*>(_event);
     this->dataPtr->mouseEvent = _e->Mouse();
-    // handle transform control
+
     if (this->dataPtr->mouseEvent.Button() == common::MouseEvent::LEFT &&
-        this->dataPtr->mouseEvent.Type() == common::MouseEvent::PRESS)
+        this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE)
     {
-      if(this->dataPtr->isSpawnFromDescription)
+      if (this->dataPtr->isSpawning)
       {
-        this->dataPtr->isSpawnFromDescription = false;
+        this->dataPtr->isSpawning = false;
       }
       else
       {
@@ -559,7 +559,7 @@ bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
     ignition::gui::events::SpawnFromDescription::kType ||
     _event->type() == ignition::gui::events::SpawnFromPath::kType)
   {
-    this->dataPtr->isSpawnFromDescription = true;
+    this->dataPtr->isSpawning = true;
     this->dataPtr->mouseDirty = true;
   }
   else if (_event->type() == ignition::gui::events::KeyReleaseOnScene::kType)
@@ -570,7 +570,7 @@ bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
     {
       this->dataPtr->mouseDirty = true;
       this->dataPtr->selectionHelper.deselectAll = true;
-      this->dataPtr->isSpawnFromDescription = false;
+      this->dataPtr->isSpawning = false;
     }
   }
 

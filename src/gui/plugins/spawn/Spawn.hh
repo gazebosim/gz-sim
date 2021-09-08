@@ -28,8 +28,8 @@ namespace gazebo
 {
   class SpawnPrivate;
 
-  /// \brief Allows to spawn models and lights using te gui event
-  /// SpawnFromDescription
+  /// \brief Allows to spawn models and lights using the spawn gui events.
+  // TODO(anyone) Support drag and drop
   class Spawn : public ignition::gui::Plugin
   {
     Q_OBJECT
@@ -45,10 +45,6 @@ namespace gazebo
 
     // Documentation inherited
     protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
-
-    /// \brief Callback in Qt thread when mode changes.
-    /// \param[in] _mode New transform mode
-    public slots: void OnMode(const QString &_mode);
 
     /// \internal
     /// \brief Pointer to private data.
