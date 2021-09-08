@@ -51,8 +51,13 @@ namespace gazebo
     /// \param[in] _info Current simulation information, such as time.
     /// \param[in] _ecm Mutable reference to the ECM, so the system can read
     /// and write entities and their components.
-    public: virtual void Update(const UpdateInfo &/*_info*/,
-                                EntityComponentManager &/*_ecm*/){}
+    public: virtual void Update(const UpdateInfo &_info,
+                                EntityComponentManager &_ecm)
+    {
+      // This will avoid many doxygen warnings
+      (void)_info;
+      (void)_ecm;
+    }
   };
 }
 }
