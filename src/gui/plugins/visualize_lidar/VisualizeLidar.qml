@@ -25,7 +25,7 @@ GridLayout {
   columns: 6
   columnSpacing: 10
   Layout.minimumWidth: 350
-  Layout.minimumHeight: 300
+  Layout.minimumHeight: 400
   anchors.fill: parent
   anchors.leftMargin: 10
   anchors.rightMargin: 10
@@ -131,4 +131,21 @@ GridLayout {
       VisualizeLidar.UpdateType(typeCombo.currentIndex);
     }
   }
+
+  Text {
+    Layout.columnSpan: 2
+    id: pointSizeText
+    color: "dimgrey"
+    text: "Point size"
+  }
+
+  IgnSpinBox {
+    Layout.columnSpan: 2
+    id: pointSize
+    maximumValue: 1000
+    minimumValue: 1
+    value: 1
+    onEditingFinished: VisualizeLidar.UpdateSize(pointSize.value)
+  }
+
 }
