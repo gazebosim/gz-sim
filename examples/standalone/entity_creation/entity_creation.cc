@@ -79,7 +79,7 @@ void createEntityFromStr(const std::string modelStr)
   if (executed)
   {
     if (result)
-      std::cout << "Sphere was created : [" << res.data() << "]" << std::endl;
+      std::cout << "Entity was created : [" << res.data() << "]" << std::endl;
     else
     {
       std::cout << "Service call failed" << std::endl;

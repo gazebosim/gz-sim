@@ -21,16 +21,18 @@
 #include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/Pose.hh"
 
+#include "../test/helpers/EnvTestFixture.hh"
+
 using namespace ignition;
 using namespace gazebo;
 
 /////////////////////////////////////////////////
-class ComponentFactoryTest : public ::testing::Test
+class ComponentFactoryTest : public InternalFixture<::testing::Test>
 {
   // Documentation inherited
   protected: void SetUp() override
   {
-    common::Console::SetVerbosity(4);
+    InternalFixture::SetUp();
     common::setenv("IGN_DEBUG_COMPONENT_FACTORY", "true");
   }
 };

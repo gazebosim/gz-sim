@@ -35,21 +35,15 @@
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"
 
+#include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
 /// \brief Test Thermal system
-class ThermalSensorTest : public ::testing::Test
+class ThermalSensorTest : public InternalFixture<::testing::Test>
 {
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    common::Console::SetVerbosity(4);
-    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
-  }
 };
 
 

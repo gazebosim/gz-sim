@@ -31,7 +31,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief TODO(anyone) Substitute with sdf::Contact once that exists?
-  /// This is currently the whole <sensor> element.
+  /// This is currently the whole `<sensor>` element.
   using ContactSensor = Component<sdf::ElementPtr, class ContactSensorTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.ContactSensor",
                                 ContactSensor)

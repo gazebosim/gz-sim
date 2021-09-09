@@ -40,19 +40,13 @@
 
 #include "helpers/Relay.hh"
 #include "helpers/UniqueTestDirectoryEnv.hh"
+#include "helpers/EnvTestFixture.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
-class BreadcrumbsTest : public ::testing::Test
+class BreadcrumbsTest : public InternalFixture<::testing::Test>
 {
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    ignition::common::Console::SetVerbosity(4);
-    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
-  }
   public: void LoadWorld(const std::string &_path, bool _useLevels = false)
   {
     this->serverConfig.SetResourceCache(test::UniqueTestDirectoryEnv::Path());

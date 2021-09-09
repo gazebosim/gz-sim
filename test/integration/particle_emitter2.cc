@@ -31,20 +31,14 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/test_config.hh"
 
+#include "helpers/EnvTestFixture.hh"
 #include "helpers/Relay.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
-class ParticleEmitter2Test : public ::testing::Test
+class ParticleEmitter2Test : public InternalFixture<::testing::Test>
 {
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    ignition::common::Console::SetVerbosity(4);
-    common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
-  }
   public: void LoadWorld(const std::string &_path, bool _useLevels = false)
   {
     this->serverConfig.SetSdfFile(

@@ -27,18 +27,14 @@
 #include "ignition/gazebo/test_config.hh"
 
 #include "helpers/UniqueTestDirectoryEnv.hh"
+#include "../helpers/EnvTestFixture.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
 /////////////////////////////////////////////////
-class ColladaWorldExporterFixture : public ::testing::Test
+class ColladaWorldExporterFixture : public InternalFixture<::testing::Test>
 {
-  public: void SetUp() override
-  {
-    ignition::common::Console::SetVerbosity(4);
-  }
-
   public: void LoadWorld(const std::string &_path)
   {
     ServerConfig serverConfig;

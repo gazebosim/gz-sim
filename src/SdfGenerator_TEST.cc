@@ -40,6 +40,7 @@
 #include "ignition/gazebo/test_config.hh"
 
 #include "helpers/UniqueTestDirectoryEnv.hh"
+#include "helpers/EnvTestFixture.hh"
 
 #include "SdfGenerator.hh"
 
@@ -147,11 +148,11 @@ TEST(CompareElements, CompareWithDuplicateElements)
 }
 
 /////////////////////////////////////////////////
-class ElementUpdateFixture : public ::testing::Test
+class ElementUpdateFixture : public InternalFixture<::testing::Test>
 {
   public: void SetUp() override
   {
-    ignition::common::Console::SetVerbosity(4);
+    InternalFixture::SetUp();
 
     fuel_tools::ClientConfig config;
     config.SetCacheLocation(test::UniqueTestDirectoryEnv::Path());
