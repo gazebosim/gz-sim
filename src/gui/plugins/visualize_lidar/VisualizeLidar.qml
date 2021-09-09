@@ -136,7 +136,7 @@ GridLayout {
     Layout.columnSpan: 2
     id: pointSizeText
     color: "dimgrey"
-    text: "Point size"
+    text: "Point Size"
   }
 
   IgnSpinBox {
