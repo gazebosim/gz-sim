@@ -20,7 +20,9 @@
 
 #include <memory>
 
-#include <ignition/gui/Plugin.hh>
+#include <ignition/msgs.hh>
+
+#include "ignition/gazebo/gui/GuiSystem.hh"
 
 namespace ignition
 {
@@ -28,7 +30,8 @@ namespace gazebo
 {
   class CopyPastePrivate;
 
-  class CopyPaste : public ignition::gui::Plugin
+  /// \brief Plugin for copying/pasting entities in the GUI.
+  class CopyPaste : public ignition::gazebo::GuiSystem
   {
     Q_OBJECT
 
@@ -41,13 +44,32 @@ namespace gazebo
     // Documentation inherited
     public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
+    // Documentation inherited
+    public: void Update(const UpdateInfo &_info,
+                EntityComponentManager &_ecm) override;
+
     /// \brief Callback to copy the selected entity
-    /// \param[in] _copyItemName The name of the entity to be copied
-    public slots: void OnCopy(const QString &_copyItemName);
+    public slots: void OnCopy();
 
     /// \brief Callback to paste the data that has been copied, if copied data
     /// exists.
     public slots: void OnPaste();
+
+    // Documentation inherited
+    protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
+
+    /// \brief Callback for handling a copy service request
+    /// \param[in] _req The service request, which contains the name of the
+    /// entity to be copied
+    /// \param[out] _resp The service response
+    private: bool CopyServiceCB(const ignition::msgs::StringMsg &_req,
+                ignition::msgs::Boolean &_resp);
+
+    /// \brief Callback for handling a paste service request
+    /// \param[in] _req The service request
+    /// \param[out] _resp The service response
+    private: bool PasteServiceCB(const ignition::msgs::Empty &_req,
+                ignition::msgs::Boolean &_resp);
 
     /// \internal
     /// \brief Pointer to private data

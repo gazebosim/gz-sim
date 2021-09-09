@@ -25,14 +25,20 @@
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/GuiEvents.hh>
 #include <ignition/gui/MainWindow.hh>
-#include <ignition/msgs.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport.hh>
+
+#include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/gui/GuiEvents.hh"
 
 namespace ignition::gazebo
 {
   class CopyPastePrivate
   {
+    public: Entity selectedEntity = kNullEntity;
+
+    public: std::string selectedEntityName = "";
+
     public: std::string copiedData = "";
 
     public: transport::Node node;
@@ -40,12 +46,6 @@ namespace ignition::gazebo
     public: const std::string copyService = "/gui/copy";
 
     public: const std::string pasteService = "/gui/paste";
-
-    public: bool CopyServiceCB(const ignition::msgs::StringMsg &_req,
-                ignition::msgs::Boolean &_resp);
-
-    public: bool PasteServiceCB(const ignition::msgs::Empty &_req,
-                ignition::msgs::Boolean &_resp);
 
     /// \brief A mutex to ensure that there are no race conditions between
     /// copy/paste
@@ -58,17 +58,17 @@ using namespace gazebo;
 
 /////////////////////////////////////////////////
 CopyPaste::CopyPaste()
-  : ignition::gui::Plugin(), dataPtr(std::make_unique<CopyPastePrivate>())
+  : GuiSystem(), dataPtr(std::make_unique<CopyPastePrivate>())
 {
   if (!this->dataPtr->node.Advertise(this->dataPtr->copyService,
-        &CopyPastePrivate::CopyServiceCB, this->dataPtr.get()))
+        &CopyPaste::CopyServiceCB, this))
   {
     ignerr << "Error advertising service [" << this->dataPtr->copyService
       << "]" << std::endl;
   }
 
   if (!this->dataPtr->node.Advertise(this->dataPtr->pasteService,
-        &CopyPastePrivate::PasteServiceCB, this->dataPtr.get()))
+        &CopyPaste::PasteServiceCB, this))
   {
     ignerr << "Error advertising service [" << this->dataPtr->pasteService
       << "]" << std::endl;
@@ -83,36 +83,79 @@ void CopyPaste::LoadConfig(const tinyxml2::XMLElement *)
 {
   if (this->title.empty())
     this->title = "Copy/Paste";
+
+  ignition::gui::App()->findChild<
+      ignition::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
-bool CopyPastePrivate::CopyServiceCB(const ignition::msgs::StringMsg &_req,
+void CopyPaste::Update(const UpdateInfo &/*_info*/,
+    EntityComponentManager &_ecm)
+{
+  std::lock_guard<std::mutex> guard(this->dataPtr->mutex);
+  auto nameComp =
+    _ecm.Component<components::Name>(this->dataPtr->selectedEntity);
+  if (!nameComp)
+    return;
+  this->dataPtr->selectedEntityName = nameComp->Data();
+}
+
+/////////////////////////////////////////////////
+void CopyPaste::OnCopy()
+{
+  std::lock_guard<std::mutex> guard(this->dataPtr->mutex);
+  this->dataPtr->copiedData = this->dataPtr->selectedEntityName;
+}
+
+/////////////////////////////////////////////////
+void CopyPaste::OnPaste()
+{
+  std::lock_guard<std::mutex> guard(this->dataPtr->mutex);
+
+  // we should only paste if something has been copied
+  if (!this->dataPtr->copiedData.empty())
+  {
+    ignition::gui::events::SpawnCloneFromName event(this->dataPtr->copiedData);
+    ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      &event);
+  }
+}
+
+/////////////////////////////////////////////////
+bool CopyPaste::eventFilter(QObject *_obj, QEvent *_event)
+{
+  if (_event->type() == ignition::gazebo::gui::events::EntitiesSelected::kType)
+  {
+    std::lock_guard<std::mutex> guard(this->dataPtr->mutex);
+
+    auto selectedEvent =
+        reinterpret_cast<gui::events::EntitiesSelected *>(_event);
+    if (selectedEvent && (selectedEvent->Data().size() == 1u))
+      this->dataPtr->selectedEntity = selectedEvent->Data()[0];
+  }
+
+  // Standard event processing
+  return QObject::eventFilter(_obj, _event);
+}
+
+/////////////////////////////////////////////////
+bool CopyPaste::CopyServiceCB(const ignition::msgs::StringMsg &_req,
     ignition::msgs::Boolean &_resp)
 {
   {
-    std::lock_guard<std::mutex> guard(this->mutex);
-    this->copiedData = _req.data();
+    std::lock_guard<std::mutex> guard(this->dataPtr->mutex);
+    this->dataPtr->copiedData = _req.data();
   }
   _resp.set_data(true);
   return true;
 }
 
 /////////////////////////////////////////////////
-bool CopyPastePrivate::PasteServiceCB(const ignition::msgs::Empty &/*_req*/,
+bool CopyPaste::PasteServiceCB(const ignition::msgs::Empty &/*_req*/,
     ignition::msgs::Boolean &_resp)
 {
-  {
-    std::lock_guard<std::mutex> guard(this->mutex);
-
-    // we should only paste if something has been copied
-    if (!this->copiedData.empty())
-    {
-      ignition::gui::events::SpawnCloneFromName event(this->copiedData);
-      ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-        &event);
-    }
-  }
+  this->OnPaste();
   _resp.set_data(true);
   return true;
 }
