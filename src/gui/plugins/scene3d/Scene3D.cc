@@ -38,6 +38,7 @@
 #include <ignition/common/KeyFrame.hh>
 #include <ignition/common/MeshManager.hh>
 #include <ignition/common/Profiler.hh>
+#include <ignition/common/StringUtils.hh>
 #include <ignition/common/Uuid.hh>
 #include <ignition/common/VideoEncoder.hh>
 
@@ -184,6 +185,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Target to view inertia
     public: std::string viewInertiaTarget;
+
+    /// \brief Target to view joints
+    public: std::string viewJointsTarget;
 
     /// \brief Target to view wireframes
     public: std::string viewWireframesTarget;
@@ -495,11 +499,17 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief View inertia service
     public: std::string viewInertiaService;
 
+    /// \brief View joints service
+    public: std::string viewJointsService;
+
     /// \brief View wireframes service
     public: std::string viewWireframesService;
 
     /// \brief View collisions service
     public: std::string viewCollisionsService;
+
+    /// \brief Text for popup error message
+    public: QString errorPopupText;
 
     /// \brief Camera view control service
     public: std::string cameraViewControlService;
@@ -1033,6 +1043,32 @@ void IgnRenderer::Render(RenderSync *_renderSync)
       }
 
       this->dataPtr->viewInertiaTarget.clear();
+    }
+  }
+
+  // View joints
+  {
+    IGN_PROFILE("IgnRenderer::Render ViewJoints");
+    if (!this->dataPtr->viewJointsTarget.empty())
+    {
+      rendering::NodePtr targetNode =
+          scene->NodeByName(this->dataPtr->viewJointsTarget);
+      auto targetVis = std::dynamic_pointer_cast<rendering::Visual>(targetNode);
+
+      if (targetVis)
+      {
+        Entity targetEntity =
+            std::get<int>(targetVis->UserData("gazebo-entity"));
+        this->dataPtr->renderUtil.ViewJoints(targetEntity);
+      }
+      else
+      {
+        ignerr << "Unable to find node name ["
+               << this->dataPtr->viewJointsTarget
+               << "] to view joints" << std::endl;
+      }
+
+      this->dataPtr->viewJointsTarget.clear();
     }
   }
 
@@ -2033,6 +2069,7 @@ void IgnRenderer::Initialize()
 
   // Camera
   this->dataPtr->camera = scene->CreateCamera();
+  this->dataPtr->camera->SetUserData("user-camera", true);
   root->AddChild(this->dataPtr->camera);
   this->dataPtr->camera->SetLocalPose(this->cameraPose);
   this->dataPtr->camera->SetImageWidth(this->textureSize.width());
@@ -2296,6 +2333,13 @@ void IgnRenderer::SetViewInertiaTarget(const std::string &_target)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->viewInertiaTarget = _target;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetViewJointsTarget(const std::string &_target)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->viewJointsTarget = _target;
 }
 
 /////////////////////////////////////////////////
@@ -3111,6 +3155,13 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   ignmsg << "View inertia service on ["
          << this->dataPtr->viewInertiaService << "]" << std::endl;
 
+  // view joints service
+  this->dataPtr->viewJointsService = "/gui/view/joints";
+  this->dataPtr->node.Advertise(this->dataPtr->viewJointsService,
+      &Scene3D::OnViewJoints, this);
+  ignmsg << "View joints service on ["
+         << this->dataPtr->viewJointsService << "]" << std::endl;
+
   // view wireframes service
   this->dataPtr->viewWireframesService = "/gui/view/wireframes";
   this->dataPtr->node.Advertise(this->dataPtr->viewWireframesService,
@@ -3337,6 +3388,18 @@ bool Scene3D::OnViewInertia(const msgs::StringMsg &_msg,
 }
 
 /////////////////////////////////////////////////
+bool Scene3D::OnViewJoints(const msgs::StringMsg &_msg,
+  msgs::Boolean &_res)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+
+  renderWindow->SetViewJointsTarget(_msg.data());
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
 bool Scene3D::OnViewWireframes(const msgs::StringMsg &_msg,
   msgs::Boolean &_res)
 {
@@ -3385,7 +3448,7 @@ void Scene3D::OnDropped(const QString &_drop, int _mouseX, int _mouseY)
 {
   if (_drop.toStdString().empty())
   {
-    ignwarn << "Dropped empty entity URI." << std::endl;
+    this->SetErrorPopupText("Dropped empty entity URI.");
     return;
   }
 
@@ -3400,13 +3463,76 @@ void Scene3D::OnDropped(const QString &_drop, int _mouseX, int _mouseY)
   math::Vector3d pos = renderWindow->ScreenToScene({_mouseX, _mouseY});
 
   msgs::EntityFactory req;
-  req.set_sdf_filename(_drop.toStdString());
+  std::string dropStr = _drop.toStdString();
+  if (QUrl(_drop).isLocalFile())
+  {
+    // mesh to sdf model
+    common::rtrim(dropStr);
+
+    if (!common::MeshManager::Instance()->IsValidFilename(dropStr))
+    {
+      QString errTxt = QString::fromStdString("Invalid URI: " + dropStr +
+        "\nOnly Fuel URLs or mesh file types DAE, OBJ, and STL are supported.");
+      this->SetErrorPopupText(errTxt);
+      return;
+    }
+
+    // Fixes whitespace
+    dropStr = common::replaceAll(dropStr, "%20", " ");
+
+    std::string filename = common::basename(dropStr);
+    std::vector<std::string> splitName = common::split(filename, ".");
+
+    std::string sdf = "<?xml version='1.0'?>"
+      "<sdf version='" + std::string(SDF_PROTOCOL_VERSION) + "'>"
+        "<model name='" + splitName[0] + "'>"
+          "<link name='link'>"
+            "<visual name='visual'>"
+              "<geometry>"
+                "<mesh>"
+                  "<uri>" + dropStr + "</uri>"
+                "</mesh>"
+              "</geometry>"
+            "</visual>"
+            "<collision name='collision'>"
+              "<geometry>"
+                "<mesh>"
+                  "<uri>" + dropStr + "</uri>"
+                "</mesh>"
+              "</geometry>"
+            "</collision>"
+          "</link>"
+        "</model>"
+      "</sdf>";
+
+    req.set_sdf(sdf);
+  }
+  else
+  {
+    // model from fuel
+    req.set_sdf_filename(dropStr);
+  }
+
   req.set_allow_renaming(true);
   msgs::Set(req.mutable_pose(),
       math::Pose3d(pos.X(), pos.Y(), pos.Z(), 1, 0, 0, 0));
 
   this->dataPtr->node.Request("/world/" + this->dataPtr->worldName + "/create",
       req, cb);
+}
+
+/////////////////////////////////////////////////
+QString Scene3D::ErrorPopupText() const
+{
+  return this->dataPtr->errorPopupText;
+}
+
+/////////////////////////////////////////////////
+void Scene3D::SetErrorPopupText(const QString &_errorTxt)
+{
+  this->dataPtr->errorPopupText = _errorTxt;
+  this->ErrorPopupTextChanged();
+  this->popupError();
 }
 
 /////////////////////////////////////////////////
@@ -3646,6 +3772,12 @@ void RenderWindowItem::SetViewCOMTarget(const std::string &_target)
 void RenderWindowItem::SetViewInertiaTarget(const std::string &_target)
 {
   this->dataPtr->renderThread->ignRenderer.SetViewInertiaTarget(_target);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetViewJointsTarget(const std::string &_target)
+{
+  this->dataPtr->renderThread->ignRenderer.SetViewJointsTarget(_target);
 }
 
 /////////////////////////////////////////////////

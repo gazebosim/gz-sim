@@ -67,8 +67,7 @@ TEST_F(ComponentTest, DataByMove)
   using CustomComponent =
       components::Component<std::shared_ptr<int>, class CustomComponentTag>;
   factory->Register<CustomComponent>("ign_gazebo_components.MyCustom",
-     new components::ComponentDescriptor<CustomComponent>(),
-     new components::StorageDescriptor<CustomComponent>());
+     new components::ComponentDescriptor<CustomComponent>());
 
   EntityComponentManager ecm;
   Entity entity = ecm.CreateEntity();

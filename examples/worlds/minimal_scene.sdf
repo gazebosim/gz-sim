@@ -11,16 +11,17 @@ Features:
 * Markers
 * Tape measure
 * Grid config
+* Select entities
+* Transform controls
+* Spawn entities through GUI
 
 Missing for parity with GzScene3D:
 
-* Spawn entities through GUI
 * Context menu
-* Transform controls
-* Select entities
 * Record video
 * View angles
 * View collisions, wireframe, transparent, CoM, etc
+* Drag and drop from Fuel / meshes
 * ...
 
 -->
@@ -97,6 +98,19 @@ Missing for parity with GzScene3D:
           <property key="showTitleBar" type="bool">false</property>
         </ignition-gui>
       </plugin>
+      <plugin filename="SelectEntities" name="Select Entities">
+        <ignition-gui>
+          <anchors target="Select entities">
+            <line own="right" target="right"/>
+            <line own="top" target="top"/>
+          </anchors>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
 
       <!-- World control -->
       <plugin filename="WorldControl" name="World control">
@@ -147,6 +161,20 @@ Missing for parity with GzScene3D:
         <topic>/world/buoyancy/stats</topic>
       </plugin>
 
+      <plugin filename="Spawn" name="Spawn Entities">
+        <ignition-gui>
+          <anchors target="Select entities">
+            <line own="right" target="right"/>
+            <line own="top" target="top"/>
+          </anchors>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
+
       <!-- Insert simple shapes -->
       <plugin filename="Shapes" name="Shapes">
         <ignition-gui>
@@ -187,6 +215,9 @@ Missing for parity with GzScene3D:
           <property key="showTitleBar" type="bool">false</property>
           <property key="cardBackground" type="string">#777777</property>
         </ignition-gui>
+
+        <!-- disable legacy features used to connect this plugin to GzScene3D -->
+        <legacy>false</legacy>
       </plugin>
 
       <!-- Screenshot -->

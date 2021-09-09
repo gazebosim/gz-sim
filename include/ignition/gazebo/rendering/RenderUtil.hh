@@ -150,6 +150,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _entity Entity to view inertia
     public: void ViewInertia(const Entity &_entity);
 
+    /// \brief View joints of specified entity
+    /// \param[in] _entity Entity to view joints
+    public: void ViewJoints(const Entity &_entity);
+
     /// \brief View wireframes of specified entity
     /// \param[in] _entity Entity to view wireframes
     public: void ViewWireframes(const Entity &_entity);

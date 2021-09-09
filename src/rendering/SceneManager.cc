@@ -46,6 +46,7 @@
 #include <ignition/rendering/Heightmap.hh>
 #include <ignition/rendering/HeightmapDescriptor.hh>
 #include <ignition/rendering/InertiaVisual.hh>
+#include <ignition/rendering/JointVisual.hh>
 #include <ignition/rendering/Light.hh>
 #include <ignition/rendering/LightVisual.hh>
 #include <ignition/rendering/Material.hh>
@@ -237,7 +238,6 @@ rendering::VisualPtr SceneManager::CreateLink(Entity _id,
   linkVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   linkVis->SetUserData("pause-update", static_cast<int>(0));
   linkVis->SetLocalPose(_link.RawPose());
-  linkVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   this->dataPtr->visuals[_id] = linkVis;
 
   if (parent)
@@ -1204,6 +1204,133 @@ rendering::VisualPtr SceneManager::CreateInertiaVisual(Entity _id,
 }
 
 /////////////////////////////////////////////////
+rendering::VisualPtr SceneManager::CreateJointVisual(
+    Entity _id, const sdf::Joint &_joint,
+    Entity _childId, Entity _parentId)
+{
+  if (!this->dataPtr->scene)
+  {
+    return rendering::VisualPtr();
+  }
+
+  if (this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end())
+  {
+    ignerr << "Entity with Id: [" << _id << "] already exists in the scene"
+           << std::endl;
+    return rendering::VisualPtr();
+  }
+
+  rendering::VisualPtr parent;
+  if (_childId != this->dataPtr->worldId)
+  {
+    auto it = this->dataPtr->visuals.find(_childId);
+    if (it == this->dataPtr->visuals.end())
+    {
+      // It is possible to get here if the model entity is created then
+      // removed in between render updates.
+      return rendering::VisualPtr();
+    }
+    parent = it->second;
+  }
+
+  // Name.
+  std::string name = _joint.Name().empty() ? std::to_string(_id) :
+    _joint.Name();
+  if (parent)
+  {
+    name = parent->Name() +  "::" + name;
+  }
+
+  rendering::JointVisualPtr jointVisual =
+    this->dataPtr->scene->CreateJointVisual(name);
+
+  switch (_joint.Type())
+  {
+    case sdf::JointType::REVOLUTE:
+      jointVisual->SetType(rendering::JointVisualType::JVT_REVOLUTE);
+      break;
+    case sdf::JointType::REVOLUTE2:
+      jointVisual->SetType(rendering::JointVisualType::JVT_REVOLUTE2);
+      break;
+    case sdf::JointType::PRISMATIC:
+      jointVisual->SetType(rendering::JointVisualType::JVT_PRISMATIC);
+      break;
+    case sdf::JointType::UNIVERSAL:
+      jointVisual->SetType(rendering::JointVisualType::JVT_UNIVERSAL);
+      break;
+    case sdf::JointType::BALL:
+      jointVisual->SetType(rendering::JointVisualType::JVT_BALL);
+      break;
+    case sdf::JointType::SCREW:
+      jointVisual->SetType(rendering::JointVisualType::JVT_SCREW);
+      break;
+    case sdf::JointType::GEARBOX:
+      jointVisual->SetType(rendering::JointVisualType::JVT_GEARBOX);
+      break;
+    case sdf::JointType::FIXED:
+      jointVisual->SetType(rendering::JointVisualType::JVT_FIXED);
+      break;
+    default:
+      jointVisual->SetType(rendering::JointVisualType::JVT_NONE);
+      break;
+  }
+
+  if (parent)
+  {
+    jointVisual->RemoveParent();
+    parent->AddChild(jointVisual);
+  }
+
+  if (_joint.Axis(1) &&
+      (_joint.Type() == sdf::JointType::REVOLUTE2 ||
+       _joint.Type() == sdf::JointType::UNIVERSAL
+      ))
+  {
+    auto axis1 = _joint.Axis(0)->Xyz();
+    auto axis2 = _joint.Axis(1)->Xyz();
+    auto axis1UseParentFrame = _joint.Axis(0)->XyzExpressedIn() == "__model__";
+    auto axis2UseParentFrame = _joint.Axis(1)->XyzExpressedIn() == "__model__";
+
+    jointVisual->SetAxis(axis2, axis2UseParentFrame);
+
+    auto it = this->dataPtr->visuals.find(_parentId);
+    if (it != this->dataPtr->visuals.end())
+    {
+      auto parentName = it->second->Name();
+      jointVisual->SetParentAxis(
+          axis1, parentName, axis1UseParentFrame);
+    }
+  }
+  else if (_joint.Axis(0) &&
+      (_joint.Type() == sdf::JointType::REVOLUTE ||
+       _joint.Type() == sdf::JointType::PRISMATIC
+      ))
+  {
+    auto axis1 = _joint.Axis(0)->Xyz();
+    auto axis1UseParentFrame = _joint.Axis(0)->XyzExpressedIn() == "__model__";
+
+    jointVisual->SetAxis(axis1, axis1UseParentFrame);
+  }
+  else
+  {
+    // For fixed joint type, scale joint visual to the joint child link
+    double childSize =
+        std::max(0.1, parent->BoundingBox().Size().Length());
+    auto scale = ignition::math::Vector3d(childSize * 0.2,
+        childSize * 0.2, childSize * 0.2);
+    jointVisual->SetLocalScale(scale);
+  }
+
+  rendering::VisualPtr jointVis =
+    std::dynamic_pointer_cast<rendering::Visual>(jointVisual);
+  jointVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  jointVis->SetUserData("pause-update", static_cast<int>(0));
+  jointVis->SetLocalPose(_joint.RawPose());
+  this->dataPtr->visuals[_id] = jointVis;
+  return jointVis;
+}
+
+/////////////////////////////////////////////////
 rendering::VisualPtr SceneManager::CreateCOMVisual(Entity _id,
     const math::Inertiald &_inertia, Entity _parentId)
 {
@@ -1872,6 +1999,27 @@ void SceneManager::UpdateTransparency(const rendering::NodePtr &_node,
         geomMat->SetDepthWriteEnabled(geomDepthWrite->second);
       }
     }
+  }
+}
+
+////////////////////////////////////////////////
+void SceneManager::UpdateJointParentPose(Entity _jointId)
+{
+  auto visual =
+      this->VisualById(_jointId);
+
+  rendering::JointVisualPtr jointVisual =
+      std::dynamic_pointer_cast<rendering::JointVisual>(visual);
+
+  auto childPose = jointVisual->WorldPose();
+
+  if (jointVisual->ParentAxisVisual())
+  {
+    jointVisual->ParentAxisVisual()->SetWorldPose(childPose);
+
+    // scale parent axis visual to the child
+    auto childScale = jointVisual->LocalScale();
+    jointVisual->ParentAxisVisual()->SetLocalScale(childScale);
   }
 }
 

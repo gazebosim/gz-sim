@@ -26,6 +26,7 @@
 #include <sdf/Actor.hh>
 #include <sdf/Collision.hh>
 #include <sdf/Element.hh>
+#include <sdf/Joint.hh>
 #include <sdf/Light.hh>
 #include <sdf/Link.hh>
 #include <sdf/Model.hh>
@@ -53,11 +54,15 @@
 #include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/CastShadows.hh"
+#include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Inertial.hh"
+#include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/JointAxis.hh"
+#include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/LaserRetro.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/LightCmd.hh"
@@ -66,6 +71,7 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/ParticleEmitter.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
@@ -305,6 +311,36 @@ class ignition::gazebo::RenderUtilPrivate
   /// \param[in] _node Node to be restored.
   public: void LowlightNode(const rendering::NodePtr &_node);
 
+  /// \brief New joint visuals to be created
+  public: std::vector<Entity> newJoints;
+
+  /// \brief Finds the models (joint parent) that are used to create
+  /// joint visuals in RenderUtil::Update
+  /// \param[in] _ecm The entity-component manager
+  public: void FindJointModels(const EntityComponentManager &_ecm);
+
+  /// \brief A list of models used to create new joint visuals
+  public: std::vector<Entity> newJointModels;
+
+  /// \brief A map of joint entity ids and their SDF DOM
+  public: std::map<Entity, sdf::Joint> entityJoints;
+
+  /// \brief A map of model entities and their corresponding children links
+  public: std::map<Entity, std::vector<Entity>> modelToJointEntities;
+
+  /// \brief A map of created joint entities and if they are currently
+  /// visible
+  public: std::map<Entity, bool> viewingJoints;
+
+  /// \brief A list of joint visuals for which the parent visual poses
+  /// have to be updated.
+  public: std::vector<Entity> updateJointParentPoses;
+
+  /// \brief A map of models entities and link attributes used
+  /// to create joint visuals
+  public: std::map<Entity, std::map<std::string, Entity>>
+                           matchLinksWithEntities;
+
   /// \brief New center of mass visuals to be created
   public: std::vector<Entity> newCOMVisuals;
 
@@ -439,9 +475,14 @@ class ignition::gazebo::RenderUtilPrivate
   /// RenderUtil::Update.
   /// \param[in] _actorAnimationData A map of entities to their animation update
   /// data.
+  /// \param[in] _entityPoses A map of entity ids and pose updates.
+  /// \param[in] _trajectoryPoses A map of entity ids and trajectory
+  /// pose updates.
   /// \sa actorManualSkeletonUpdate
   public: void UpdateAnimation(const std::unordered_map<Entity,
-              AnimationUpdateData> &_actorAnimationData);
+              AnimationUpdateData> &_actorAnimationData,
+              const std::unordered_map<Entity, math::Pose3d> &_entityPoses,
+              const std::unordered_map<Entity, math::Pose3d> &_trajectoryPoses);
 };
 
 //////////////////////////////////////////////////
@@ -579,6 +620,7 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
   this->dataPtr->markerManager.SetSimTime(_info.simTime);
   this->dataPtr->PopulateViewModeVisualLinks(_ecm);
   this->dataPtr->FindInertialLinks(_ecm);
+  this->dataPtr->FindJointModels(_ecm);
   this->dataPtr->FindCollisionLinks(_ecm);
 }
 
@@ -672,6 +714,54 @@ void RenderUtilPrivate::FindInertialLinks(const EntityComponentManager &_ecm)
         links.end());
   }
   this->newCOMVisuals.clear();
+}
+
+//////////////////////////////////////////////////
+void RenderUtilPrivate::FindJointModels(const EntityComponentManager &_ecm)
+{
+  if (this->newJoints.empty())
+  {
+    return;
+  }
+
+  for (const auto &entity : this->newJoints)
+  {
+    std::vector<Entity> models;
+    if (_ecm.EntityMatches(entity,
+          std::set<ComponentTypeId>{components::Model::typeId}))
+    {
+      std::stack<Entity> modelStack;
+      modelStack.push(entity);
+
+      std::vector<Entity> childLinks, childModels;
+      while (!modelStack.empty())
+      {
+        Entity model = modelStack.top();
+        modelStack.pop();
+        models.push_back(model);
+
+        childModels =
+            _ecm.EntitiesByComponents(components::ParentEntity(model),
+                                      components::Model());
+        for (const auto &childModel : childModels)
+        {
+            modelStack.push(childModel);
+        }
+      }
+    }
+    else
+    {
+      ignerr << "Entity [" << entity
+             << "] for viewing joints must be a model"
+             << std::endl;
+      continue;
+    }
+
+    this->newJointModels.insert(this->newJointModels.end(),
+        models.begin(),
+        models.end());
+  }
+  this->newJoints.clear();
 }
 
 //////////////////////////////////////////////////
@@ -799,6 +889,8 @@ void RenderUtil::Update()
   auto removeEntities = std::move(this->dataPtr->removeEntities);
   auto entityPoses = std::move(this->dataPtr->entityPoses);
   auto entityLights = std::move(this->dataPtr->entityLights);
+  auto updateJointParentPoses =
+    std::move(this->dataPtr->updateJointParentPoses);
   auto trajectoryPoses = std::move(this->dataPtr->trajectoryPoses);
   auto actorTransforms = std::move(this->dataPtr->actorTransforms);
   auto actorAnimationData = std::move(this->dataPtr->actorAnimationData);
@@ -806,6 +898,7 @@ void RenderUtil::Update()
   auto newTransparentVisualLinks =
     std::move(this->dataPtr->newTransparentVisualLinks);
   auto newInertiaLinks = std::move(this->dataPtr->newInertiaLinks);
+  auto newJointModels = std::move(this->dataPtr->newJointModels);
   auto newCOMLinks = std::move(this->dataPtr->newCOMLinks);
   auto newWireframeVisualLinks =
     std::move(this->dataPtr->newWireframeVisualLinks);
@@ -823,12 +916,14 @@ void RenderUtil::Update()
   this->dataPtr->removeEntities.clear();
   this->dataPtr->entityPoses.clear();
   this->dataPtr->entityLights.clear();
+  this->dataPtr->updateJointParentPoses.clear();
   this->dataPtr->trajectoryPoses.clear();
   this->dataPtr->actorTransforms.clear();
   this->dataPtr->actorAnimationData.clear();
   this->dataPtr->entityTemp.clear();
   this->dataPtr->newTransparentVisualLinks.clear();
   this->dataPtr->newInertiaLinks.clear();
+  this->dataPtr->newJointModels.clear();
   this->dataPtr->newCOMLinks.clear();
   this->dataPtr->newWireframeVisualLinks.clear();
   this->dataPtr->newCollisionLinks.clear();
@@ -1063,7 +1158,8 @@ void RenderUtil::Update()
     }
     else
     {
-      this->dataPtr->UpdateAnimation(actorAnimationData);
+      this->dataPtr->UpdateAnimation(actorAnimationData, entityPoses,
+          trajectoryPoses);
     }
   }
 
@@ -1087,6 +1183,14 @@ void RenderUtil::Update()
       visual->SetUserData("minTemp", std::get<0>(temp.second));
       visual->SetUserData("maxTemp", std::get<1>(temp.second));
       visual->SetUserData("temperature", heatSignature);
+    }
+  }
+
+  // update joint parent visual poses
+  {
+    for (const auto &jointEntity : updateJointParentPoses)
+    {
+      this->dataPtr->sceneManager.UpdateJointParentPose(jointEntity);
     }
   }
 
@@ -1129,6 +1233,43 @@ void RenderUtil::Update()
           this->dataPtr->viewingInertias[link] = true;
           this->dataPtr->linkToInertiaVisuals[link] = id;
           break;
+        }
+      }
+    }
+  }
+
+  // create new joint visuals
+  {
+    for (const auto &model : newJointModels)
+    {
+      std::vector<Entity> jointEntities =
+          this->dataPtr->modelToJointEntities[model];
+
+      for (const auto &jointEntity : jointEntities)
+      {
+        if (!this->dataPtr->sceneManager.HasEntity(jointEntity))
+        {
+          std::string childLinkName =
+              this->dataPtr->entityJoints[jointEntity].ChildLinkName();
+          Entity childId =
+              this->dataPtr->matchLinksWithEntities[model][childLinkName];
+
+          std::string parentLinkName =
+              this->dataPtr->entityJoints[jointEntity].ParentLinkName();
+          Entity parentId =
+              this->dataPtr->matchLinksWithEntities[model][parentLinkName];
+
+          auto joint = this->dataPtr->entityJoints[jointEntity];
+
+          auto vis = this->dataPtr->sceneManager.CreateJointVisual(
+              jointEntity, joint, childId, parentId);
+          this->dataPtr->viewingJoints[jointEntity] = true;
+
+          // Update joint parent visual pose
+          if (joint.Axis(1))
+          {
+            this->dataPtr->updateJointParentPoses.push_back(jointEntity);
+          }
         }
       }
     }
@@ -1297,6 +1438,9 @@ void RenderUtilPrivate::CreateRenderingEntities(
               std::make_tuple(_entity, link, _parent->Data()));
           // used for collsions
           this->modelToLinkEntities[_parent->Data()].push_back(_entity);
+          // used for joints
+          this->matchLinksWithEntities[_parent->Data()][_name->Data()] =
+              _entity;
           return true;
         });
 
@@ -1419,6 +1563,44 @@ void RenderUtilPrivate::CreateRenderingEntities(
           return true;
         });
 
+    // joints
+    _ecm.Each<components::Joint, components::Name, components::JointType,
+                components::Pose, components::ParentEntity,
+                components::ParentLinkName, components::ChildLinkName>(
+        [&](const Entity &_entity,
+            const components::Joint * /* _joint */,
+            const components::Name *_name,
+            const components::JointType *_jointType,
+            const components::Pose *_pose,
+            const components::ParentEntity *_parentModel,
+            const components::ParentLinkName *_parentLinkName,
+            const components::ChildLinkName *_childLinkName) -> bool
+        {
+          sdf::Joint joint;
+          joint.SetName(_name->Data());
+          joint.SetType(_jointType->Data());
+          joint.SetRawPose(_pose->Data());
+
+          joint.SetParentLinkName(_parentLinkName->Data());
+          joint.SetChildLinkName(_childLinkName->Data());
+
+          auto jointAxis = _ecm.Component<components::JointAxis>(_entity);
+          auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);
+
+          if (jointAxis)
+          {
+            joint.SetAxis(0, jointAxis->Data());
+          }
+          if (jointAxis2)
+          {
+            joint.SetAxis(1, jointAxis2->Data());
+          }
+
+          this->entityJoints[_entity] = joint;
+          this->modelToJointEntities[_parentModel->Data()].push_back(_entity);
+          return true;
+        });
+
     // particle emitters
     _ecm.Each<components::ParticleEmitter, components::ParentEntity>(
         [&](const Entity &_entity,
@@ -1538,6 +1720,9 @@ void RenderUtilPrivate::CreateRenderingEntities(
               std::make_tuple(_entity, link, _parent->Data()));
           // used for collsions
           this->modelToLinkEntities[_parent->Data()].push_back(_entity);
+          // used for joints
+          this->matchLinksWithEntities[_parent->Data()][_name->Data()] =
+              _entity;
           return true;
         });
 
@@ -1657,6 +1842,44 @@ void RenderUtilPrivate::CreateRenderingEntities(
         {
           this->entityCollisions[_entity] = _collElement->Data();
           this->linkToCollisionEntities[_parent->Data()].push_back(_entity);
+          return true;
+        });
+
+    // joints
+    _ecm.EachNew<components::Joint, components::Name, components::JointType,
+                components::Pose, components::ParentEntity,
+                components::ParentLinkName, components::ChildLinkName>(
+        [&](const Entity &_entity,
+            const components::Joint * /* _joint */,
+            const components::Name *_name,
+            const components::JointType *_jointType,
+            const components::Pose *_pose,
+            const components::ParentEntity *_parentModel,
+            const components::ParentLinkName *_parentLinkName,
+            const components::ChildLinkName *_childLinkName) -> bool
+        {
+          sdf::Joint joint;
+          joint.SetName(_name->Data());
+          joint.SetType(_jointType->Data());
+          joint.SetRawPose(_pose->Data());
+
+          joint.SetParentLinkName(_parentLinkName->Data());
+          joint.SetChildLinkName(_childLinkName->Data());
+
+          auto jointAxis = _ecm.Component<components::JointAxis>(_entity);
+          auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);
+
+          if (jointAxis)
+          {
+            joint.SetAxis(0, jointAxis->Data());
+          }
+          if (jointAxis2)
+          {
+            joint.SetAxis(1, jointAxis2->Data());
+          }
+
+          this->entityJoints[_entity] = joint;
+          this->modelToJointEntities[_parentModel->Data()].push_back(_entity);
           return true;
         });
 
@@ -1891,6 +2114,7 @@ void RenderUtilPrivate::RemoveRenderingEntities(
         this->removeEntities[_entity] = _info.iterations;
         this->modelToLinkEntities.erase(_entity);
         this->modelToModelEntities.erase(_entity);
+        this->matchLinksWithEntities.erase(_entity);
         return true;
       });
 
@@ -1939,6 +2163,16 @@ void RenderUtilPrivate::RemoveRenderingEntities(
         this->removeEntities[matchLightWithVisuals[_entity]] =
           _info.iterations;
         matchLightWithVisuals.erase(_entity);
+        return true;
+      });
+
+  // joints
+  _ecm.EachRemoved<components::Joint>(
+      [&](const Entity &_entity, const components::Joint *)->bool
+      {
+        this->removeEntities[_entity] = _info.iterations;
+        this->entityJoints.erase(_entity);
+        this->viewingJoints.erase(_entity);
         return true;
       });
 
@@ -2461,8 +2695,10 @@ void RenderUtilPrivate::UpdateThermalCamera(const std::unordered_map<Entity,
 }
 
 /////////////////////////////////////////////////
-void RenderUtilPrivate::UpdateAnimation(
-    const std::unordered_map<Entity, AnimationUpdateData> &_actorAnimationData)
+void RenderUtilPrivate::UpdateAnimation(const std::unordered_map<Entity,
+    AnimationUpdateData> &_actorAnimationData,
+    const std::unordered_map<Entity, math::Pose3d> &_entityPoses,
+    const std::unordered_map<Entity, math::Pose3d> &_trajectoryPoses)
 {
   for (auto &it : _actorAnimationData)
   {
@@ -2531,16 +2767,18 @@ void RenderUtilPrivate::UpdateAnimation(
 
     // update actor trajectory animation
     math::Pose3d globalPose;
-    if (entityPoses.find(it.first) != entityPoses.end())
+    auto entityPosesIt = _entityPoses.find(it.first);
+    if (entityPosesIt != _entityPoses.end())
     {
-      globalPose = entityPoses[it.first];
+      globalPose = entityPosesIt->second;
     }
 
     math::Pose3d trajPose;
     // Trajectory from the ECS
-    if (trajectoryPoses.find(it.first) != trajectoryPoses.end())
+    auto trajectoryPosesIt = _trajectoryPoses.find(it.first);
+    if (trajectoryPosesIt != _trajectoryPoses.end())
     {
-      trajPose = trajectoryPoses[it.first];
+      trajPose = trajectoryPosesIt->second;
     }
     else
     {
@@ -2599,11 +2837,10 @@ std::vector<Entity> RenderUtil::FindChildLinks(const Entity &_entity)
 /////////////////////////////////////////////////
 void RenderUtil::HideWireboxes(const Entity &_entity)
 {
-  if (this->dataPtr->wireBoxes.find(_entity)
-        != this->dataPtr->wireBoxes.end())
+  auto wireBoxIt = this->dataPtr->wireBoxes.find(_entity);
+  if (wireBoxIt != this->dataPtr->wireBoxes.end())
   {
-    ignition::rendering::WireBoxPtr wireBox =
-      this->dataPtr->wireBoxes[_entity];
+    ignition::rendering::WireBoxPtr wireBox = wireBoxIt->second;
     auto visParent = wireBox->Parent();
     if (visParent)
       visParent->SetVisible(false);
@@ -2663,6 +2900,7 @@ void RenderUtil::ViewInertia(const Entity &_entity)
 
     if (showInertia)
     {
+      // turn off wireboxes for inertia visual entity
       this->HideWireboxes(inertiaVisualId);
     }
   }
@@ -2722,7 +2960,93 @@ void RenderUtil::ViewCOM(const Entity &_entity)
 
     if (showCOM)
     {
+      // turn off wireboxes for CoM visual entity
       this->HideWireboxes(comVisualId);
+    }
+  }
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::ViewJoints(const Entity &_entity)
+{
+  std::vector<Entity> jointEntities;
+  if (this->dataPtr->modelToJointEntities.find(_entity) !=
+           this->dataPtr->modelToJointEntities.end())
+  {
+    jointEntities.insert(jointEntities.end(),
+        this->dataPtr->modelToJointEntities[_entity].begin(),
+        this->dataPtr->modelToJointEntities[_entity].end());
+  }
+
+  if (this->dataPtr->modelToModelEntities.find(_entity) !=
+      this->dataPtr->modelToModelEntities.end())
+  {
+    std::stack<Entity> modelStack;
+    modelStack.push(_entity);
+
+    std::vector<Entity> childModels;
+    while (!modelStack.empty())
+    {
+      Entity model = modelStack.top();
+      modelStack.pop();
+
+      jointEntities.insert(jointEntities.end(),
+          this->dataPtr->modelToJointEntities[model].begin(),
+          this->dataPtr->modelToJointEntities[model].end());
+
+      childModels = this->dataPtr->modelToModelEntities[model];
+      for (const auto &childModel : childModels)
+      {
+        modelStack.push(childModel);
+      }
+    }
+  }
+
+  // Toggle joints
+  bool showJoint, showJointInit = false;
+
+  // first loop looks for new joints
+  for (const auto &jointEntity : jointEntities)
+  {
+    if (this->dataPtr->viewingJoints.find(jointEntity) ==
+        this->dataPtr->viewingJoints.end())
+    {
+      this->dataPtr->newJoints.push_back(_entity);
+      showJointInit = showJoint = true;
+    }
+  }
+
+  // second loop toggles joints
+  for (const auto &jointEntity : jointEntities)
+  {
+    if (this->dataPtr->viewingJoints.find(jointEntity) ==
+        this->dataPtr->viewingJoints.end())
+      continue;
+
+    // when viewing multiple joints (e.g. _entity is a model),
+    // boolean for view joints is based on first jointEntity in list
+    if (!showJointInit)
+    {
+      showJoint = !this->dataPtr->viewingJoints[jointEntity];
+      showJointInit = true;
+    }
+
+    rendering::VisualPtr jointVisual =
+        this->dataPtr->sceneManager.VisualById(jointEntity);
+    if (jointVisual == nullptr)
+    {
+      ignerr << "Could not find visual for entity [" << jointEntity
+             << "]" << std::endl;
+      continue;
+    }
+
+    this->dataPtr->viewingJoints[jointEntity] = showJoint;
+    jointVisual->SetVisible(showJoint);
+
+    if (showJoint)
+    {
+      // turn off wireboxes for joint visual entity
+      this->HideWireboxes(jointEntity);
     }
   }
 }
