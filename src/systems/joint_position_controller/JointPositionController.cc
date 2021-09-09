@@ -70,7 +70,7 @@ class ignition::gazebo::systems::JointPositionControllerPrivate
     PID, ABSOLUTE
   };
 
-  /// \brief Joint positionf mode
+  /// \brief Joint position mode
   public: OperationMode mode = OperationMode::PID;
 };
 
