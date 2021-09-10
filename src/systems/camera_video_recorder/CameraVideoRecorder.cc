@@ -394,13 +394,13 @@ void CameraVideoRecorderPrivate::OnPostRender()
 
     if (common::exists(this->tmpVideoFilename))
     {
+      std::string parentPath = common::parentPath(this->recordVideoSavePath);
+
       // move the tmp video file to user specified path
-      if (!common::exists(common::parentPath(this->recordVideoSavePath)) &&
-          !common::createDirectory(
-            common::parentPath(this->recordVideoSavePath)))
+      if (parentPath != this->recordVideoSavePath &&
+          !common::exists(parentPath) && !common::createDirectory(parentPath))
       {
-        ignerr << "Unable to create directory["
-          << common::parentPath(this->recordVideoSavePath)
+        ignerr << "Unable to create directory[" << parentPath
           << "]. Video file[" << this->tmpVideoFilename
           << "] will not be moved." << std::endl;
       }
@@ -411,8 +411,8 @@ void CameraVideoRecorderPrivate::OnPostRender()
         // Remove old temp file, if it exists.
         std::remove(this->tmpVideoFilename.c_str());
 
-        ignmsg << "Saving video file to [" << this->recordVideoSavePath << "]"
-          << std::endl;
+        ignmsg << "Saving tmp video[" << this->tmpVideoFilename << "] file to ["
+               << this->recordVideoSavePath << "]" << std::endl;
       }
     }
 
