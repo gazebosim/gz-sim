@@ -48,17 +48,22 @@ using namespace gazebo;
 
 /////////////////////////////////////////////////
 /// \breif Checks if elemA is a subset of elemB
-static bool isSubset(const sdf::ElementPtr &_elemA,
+static testing::AssertionResult isSubset(const sdf::ElementPtr &_elemA,
                      const sdf::ElementPtr &_elemB)
 {
   if (_elemA->GetName() != _elemB->GetName())
   {
-    return false;
+    return testing::AssertionFailure()
+           << "Mismatch in element name: '" << _elemA->GetName() << "' vs '"
+           << _elemB->GetName() << "'";
   }
 
   if (_elemA->GetAttributeCount() != _elemB->GetAttributeCount())
   {
-    return false;
+    return testing::AssertionFailure()
+           << "Mismatch in attribute count for " << _elemA->GetName() << ": "
+           << _elemA->GetAttributeCount() << " vs "
+           << _elemB->GetAttributeCount();
   }
 
   // Compare attributes
@@ -68,11 +73,17 @@ static bool isSubset(const sdf::ElementPtr &_elemA,
     sdf::ParamPtr attrB = _elemB->GetAttribute(attrA->GetKey());
     if (attrA->GetTypeName() != attrB->GetTypeName())
     {
-      return false;
+      return testing::AssertionFailure()
+             << "Mismatch in attribute type for " << _elemA->GetName() << "/[@"
+             << attrA->GetKey() << "]: '" << attrA->GetTypeName() << "' vs '"
+             << attrB->GetTypeName() << "'";
     }
     if (attrA->GetAsString() != attrB->GetAsString())
     {
-      return false;
+      return testing::AssertionFailure()
+             << "Mismatch in attribute as string for " << _elemA->GetName()
+             << "/[@" << attrA->GetKey() << "]: '" << attrA->GetAsString()
+             << "' vs '" << attrB->GetAsString() << "'";
     }
   }
   // Compare values
@@ -82,11 +93,35 @@ static bool isSubset(const sdf::ElementPtr &_elemA,
     {
       sdf::ParamPtr valB = _elemB->GetValue();
       if (nullptr == valB)
-        return false;
+      {
+        return testing::AssertionFailure()
+               << "Value of " << _elemB->GetName() << " null";
+      }
       if (valA->GetTypeName() != valB->GetTypeName())
-        return false;
-      if (valA->GetAsString() != valB->GetAsString())
-        return false;
+      {
+        return testing::AssertionFailure()
+               << "Mismatch in value type for " << _elemA->GetName() << ": '"
+               << valA->GetTypeName() << "' vs '" << valB->GetTypeName() << "'";
+      }
+      if (valA->GetTypeName() == "pose")
+      {
+        math::Pose3d poseA, poseB;
+        valA->Get(poseA);
+        valA->Get(poseB);
+
+        if (poseA != poseB)
+        {
+          return testing::AssertionFailure()
+                 << "Mismatch in value as Pose: '" << poseA << "' vs '" << poseB
+                 << "'";
+        }
+      }
+      else if (valA->GetAsString() != valB->GetAsString())
+      {
+        return testing::AssertionFailure()
+          << "Mismatch in value as string: '" << valA->GetAsString()
+          << "' vs '" << valB->GetAsString() << "'";
+      }
     }
   }
 
@@ -111,10 +146,14 @@ static bool isSubset(const sdf::ElementPtr &_elemA,
     }
 
     if (!result)
-      return false;
+    {
+      return testing::AssertionFailure()
+             << "No matching child element in element B for child element '"
+             << childElemA->GetName() << "' in element A";
+    }
   }
 
-  return true;
+  return testing::AssertionSuccess();
 }
 
 /////////////////////////////////////////////////
@@ -123,15 +162,15 @@ TEST(CompareElements, CompareWithDuplicateElements)
   const std::string m1Sdf = R"(
   <sdf version="1.7">
     <model name="M1">
-      <pose>0 0 0 0 0 0 0</pose>
+      <pose>0 0 0 0 0 0</pose>
     </model>
   </sdf>
   )";
   const std::string m1CompTestSdf = R"(
   <sdf version="1.7">
     <model name="M1">
-      <pose>0 0 0 0 0 0 0</pose>
-      <pose>0 0 0 0 0 0 0</pose>
+      <pose>0 0 0 0 0 0</pose>
+      <pose>0 0 0 0 0 0</pose>
     </model>
   </sdf>
   )";
