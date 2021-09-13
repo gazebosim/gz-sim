@@ -471,9 +471,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     signals: void FollowTargetChanged(const std::string &_target,
         bool _waitForTarget);
 
-    /// \brief When fire, the ModelSDF associated to en entity should be
+    /// \brief When fired, the ModelSDF associated to en entity should be
     /// updated.
-    /// \param[in] _entity Entity to be update.
+    /// \param[in] _entity Entity to be updated.
     /// \param[in] _scale The scaling vector.
     signals: void UpdateSdfGeometry(Entity _entity, const std::string &_scale);
 
