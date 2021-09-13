@@ -147,5 +147,4 @@ GridLayout {
     value: 1
     onEditingFinished: VisualizeLidar.UpdateSize(pointSize.value)
   }
-
 }
