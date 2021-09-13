@@ -138,7 +138,7 @@ namespace gazebo
     /// \brief Returns the top level node of the passed in node within
     /// a given scene.
     /// \param[in] _scene The scene to check
-    /// \param[in] _visual The node to get the top level node for
+    /// \param[in] _node The node to get the top level node for
     public: rendering::NodePtr TopLevelNode(rendering::ScenePtr &_scene,
             rendering::NodePtr &_node) const;
 
