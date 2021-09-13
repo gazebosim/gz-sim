@@ -62,12 +62,14 @@ namespace gazebo
     /// \param[in] _req The service request, which contains the name of the
     /// entity to be copied
     /// \param[out] _resp The service response
+    /// \return Whether the service was successful (true) or not (false)
     private: bool CopyServiceCB(const ignition::msgs::StringMsg &_req,
                 ignition::msgs::Boolean &_resp);
 
     /// \brief Callback for handling a paste service request
     /// \param[in] _req The service request
     /// \param[out] _resp The service response
+    /// \return Whether the service was successful (true) or not (false)
     private: bool PasteServiceCB(const ignition::msgs::Empty &_req,
                 ignition::msgs::Boolean &_resp);
 

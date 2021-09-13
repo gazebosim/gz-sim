@@ -964,7 +964,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
       else
       {
         ignwarn << "Failed to spawn: no SDF string, path, or name of resource "
-          << "to clone" << std::endl;
+                << "to clone" << std::endl;
       }
 
       if (!cloningResource)
@@ -1172,7 +1172,7 @@ bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
   if (nullptr == _sdf.Model() && nullptr == _sdf.Light())
   {
     ignwarn << "Only model and light entities can be spawned at the moment."
-      << std::endl;
+            << std::endl;
     this->TerminateSpawnPreview();
     return false;
   }

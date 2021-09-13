@@ -15,8 +15,6 @@
  *
 */
 
-#include "CopyPaste.hh"
-
 #include <memory>
 #include <mutex>
 #include <string>
@@ -31,20 +29,28 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
+#include "CopyPaste.hh"
+
 namespace ignition::gazebo
 {
   class CopyPastePrivate
   {
+    /// \brief The entity that is currently selected
     public: Entity selectedEntity = kNullEntity;
 
+    /// \brief The name of the entity that is currently selected
     public: std::string selectedEntityName = "";
 
+    /// \brief The name of the entity that is copied
     public: std::string copiedData = "";
 
+    /// \brief Transport node for handling service calls
     public: transport::Node node;
 
+    /// \brief Name of the copy service
     public: const std::string copyService = "/gui/copy";
 
+    /// \brief Name of the paste service
     public: const std::string pasteService = "/gui/paste";
 
     /// \brief A mutex to ensure that there are no race conditions between
@@ -64,14 +70,14 @@ CopyPaste::CopyPaste()
         &CopyPaste::CopyServiceCB, this))
   {
     ignerr << "Error advertising service [" << this->dataPtr->copyService
-      << "]" << std::endl;
+           << "]" << std::endl;
   }
 
   if (!this->dataPtr->node.Advertise(this->dataPtr->pasteService,
         &CopyPaste::PasteServiceCB, this))
   {
     ignerr << "Error advertising service [" << this->dataPtr->pasteService
-      << "]" << std::endl;
+           << "]" << std::endl;
   }
 }
 

@@ -414,7 +414,7 @@ rendering::VisualPtr SceneManager::CopyVisual(Entity _id,
   if (!originalVisual)
   {
     ignerr << "Could not find a node with the name [" << _visual
-      << "] in the scene." << std::endl;
+           << "] in the scene." << std::endl;
     return rendering::VisualPtr();
   }
 
