@@ -275,8 +275,8 @@ namespace ignition::gazebo
 
     /// \brief Keep track of world ID, which is equivalent to the scene's
     /// root visual.
-    /// Defaults to zero, which is considered invalid by Ignition Gazebo.
-    public: Entity worldId{0};
+    /// Defaults to kNullEntity.
+    public: Entity worldId{kNullEntity};
 
     /// \brief Pointer to the rendering scene
     public: ignition::rendering::ScenePtr scene{nullptr};
