@@ -15,12 +15,12 @@ Features:
 * Transform controls
 * Spawn entities through GUI
 * View angles
+* View collisions, wireframe, transparent, CoM, etc
 
 Missing for parity with GzScene3D:
 
 * Context menu
 * Record video
-* View collisions, wireframe, transparent, CoM, etc
 * Drag and drop from Fuel / meshes
 * ...
 
