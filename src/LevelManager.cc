@@ -51,6 +51,7 @@
 #include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/RenderEngineGuiPlugin.hh"
+#include "ignition/gazebo/components/RenderEngineServerHeadless.hh"
 #include "ignition/gazebo/components/RenderEngineServerPlugin.hh"
 #include "ignition/gazebo/components/Scene.hh"
 #include "ignition/gazebo/components/SphericalCoordinates.hh"
@@ -148,6 +149,10 @@ void LevelManager::ReadLevelPerformerInfo()
   this->runner->entityCompMgr.CreateComponent(this->worldEntity,
       components::RenderEngineServerPlugin(
       this->runner->serverConfig.RenderEngineServer()));
+
+  this->runner->entityCompMgr.CreateComponent(this->worldEntity,
+      components::RenderEngineServerHeadless(
+      this->runner->serverConfig.HeadlessRendering()));
 
   this->runner->entityCompMgr.CreateComponent(this->worldEntity,
       components::RenderEngineGuiPlugin(

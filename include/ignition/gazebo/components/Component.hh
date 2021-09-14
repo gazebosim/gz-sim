@@ -240,8 +240,10 @@ namespace components
     /// override this function to support serialization.
     ///
     /// \param[in] _out Out stream.
-    public: virtual void Serialize(std::ostream &/*_out*/) const
+    public: virtual void Serialize(std::ostream &_out) const
     {
+      // This will avoid a doxygen warning
+      (void)_out;
       static bool warned{false};
       if (!warned)
       {
@@ -257,8 +259,10 @@ namespace components
     /// override this function to support deserialization.
     ///
     /// \param[in] _in In stream.
-    public: virtual void Deserialize(std::istream &/*_in*/)
+    public: virtual void Deserialize(std::istream &_in)
     {
+      // This will avoid a doxygen warning
+      (void)_in;
       static bool warned{false};
       if (!warned)
       {
@@ -358,7 +362,6 @@ namespace components
     /// \param[in] _data New data for this component.
     /// \param[in] _eql Equality comparison function. This function should
     /// return true if two instances of DataType are equal.
-    /// \param[in} _ecm Pointer to the entity component manager.
     /// \return True if the _eql function returns false.
     public: bool SetData(const DataType &_data,
                 const std::function<
@@ -396,14 +399,14 @@ namespace components
     /// \param[in] _component Component to compare to
     /// \return True.
     public: bool operator==(const Component<NoData, Identifier,
-                            Serializer> &) const;
+                            Serializer> &_component) const;
 
     /// \brief Components with no data are always equal to another instance of
     /// the same type.
     /// \param[in] _component Component to compare to
     /// \return False.
     public: bool operator!=(const Component<NoData, Identifier,
-                            Serializer> &) const;
+                            Serializer> &_component) const;
 
     // Documentation inherited
     public: ComponentTypeId TypeId() const override;

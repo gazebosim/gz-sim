@@ -45,7 +45,7 @@ namespace systems
   ///
   /// ## System Parameters
   ///
-  /// * <uniform_fluid_density> sets the density of the fluid that surrounds
+  /// * `<uniform_fluid_density>` sets the density of the fluid that surrounds
   /// the buoyant object.
   ///
   /// ## Example

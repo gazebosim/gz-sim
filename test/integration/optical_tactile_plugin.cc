@@ -32,21 +32,14 @@
 #include "ignition/gazebo/test_config.hh"
 
 #include "plugins/MockSystem.hh"
+#include "../helpers/EnvTestFixture.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
 /// \brief Test OpticalTactilePlugin system
-class OpticalTactilePluginTest : public ::testing::Test
+class OpticalTactilePluginTest : public InternalFixture<::testing::Test>
 {
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    common::Console::SetVerbosity(4);
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-      (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
-  }
-
   public: void StartServer(const std::string &_sdfFile)
   {
     ServerConfig serverConfig;
