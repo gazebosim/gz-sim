@@ -116,6 +116,7 @@
           <update_rate>30</update_rate>
           <visualize>true</visualize>
           <topic>altimeter</topic>
+          <enable_metrics>true</enable_metrics>
           <altimeter>
             <vertical_position>
               <noise type="gaussian">
@@ -136,6 +137,7 @@
           <update_rate>30</update_rate>
           <visualize>true</visualize>
           <topic>air_pressure</topic>
+          <enable_metrics>true</enable_metrics>
           <air_pressure>
             <reference_altitude>123</reference_altitude>
             <pressure>
@@ -152,12 +154,14 @@
           <update_rate>100</update_rate>
           <visualize>true</visualize>
           <topic>imu</topic>
+          <enable_metrics>true</enable_metrics>
         </sensor>
         <sensor name="magnetometer" type="magnetometer">
           <always_on>1</always_on>
           <update_rate>100</update_rate>
           <visualize>true</visualize>
           <topic>magnetometer</topic>
+          <enable_metrics>true</enable_metrics>
           <magnetometer>
             <x>
               <noise type="gaussian">
