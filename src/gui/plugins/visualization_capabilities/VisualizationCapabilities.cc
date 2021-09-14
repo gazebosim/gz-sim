@@ -46,6 +46,7 @@
 #include <ignition/rendering/COMVisual.hh>
 #include <ignition/rendering/Heightmap.hh>
 #include <ignition/rendering/InertiaVisual.hh>
+#include <ignition/rendering/JointVisual.hh>
 #include <ignition/rendering/Visual.hh>
 #include <ignition/rendering/RenderingIface.hh>
 #include <ignition/rendering/Scene.hh>
@@ -55,19 +56,25 @@
 
 #include <sdf/Capsule.hh>
 #include <sdf/Ellipsoid.hh>
+#include <sdf/Joint.hh>
 #include <sdf/Heightmap.hh>
 #include <sdf/Mesh.hh>
 #include <sdf/Pbr.hh>
 #include <sdf/Root.hh>
 
 #include "ignition/gazebo/components/CastShadows.hh"
+#include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Inertial.hh"
+#include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/JointAxis.hh"
+#include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Transparency.hh"
 #include "ignition/gazebo/components/Visibility.hh"
@@ -228,8 +235,39 @@ namespace ignition::gazebo
       ignition::gazebo::Entity _id,
       const math::Inertiald &_inertia,
       ignition::rendering::VisualPtr &_parent);
+
+    /////////////////////////////////////////////////
+    // Joints
     /////////////////////////////////////////////////
 
+    /// \brief Callback for view joints request
+    /// \param[in] _msg Request message to set the target to view center of
+    /// mass
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    public: bool OnViewJoints(const msgs::StringMsg &_msg,
+      msgs::Boolean &_res);
+
+    /// \brief View joints of specified entity
+    /// \param[in] _entity Entity to view joints
+    public: void ViewJoints(const Entity &_entity);
+
+    /// \brief Create a joint visual
+    /// \param[in] _id Unique visual id
+    /// \param[in] _joint Joint sdf dom
+    /// \param[in] _childId Joint child id
+    /// \param[in] _parentId Joint parent id
+    /// \return Visual (joint) object created from the sdf dom
+    public: rendering::VisualPtr CreateJointVisual(Entity _id,
+        const sdf::Joint &_joint, Entity _childId = 0,
+        Entity _parentId = 0);
+
+    /// \brief Updates the world pose of joint parent visual
+    /// according to its child.
+    /// \param[in] _jointId Joint visual id.
+    public: void UpdateJointParentPose(Entity _jointId);
+
+    /////////////////////////////////////////////////
     /// \brief Ignition communication node.
     public: transport::Node node;
 
@@ -369,6 +407,47 @@ namespace ignition::gazebo
     /// \brief A map of created collision entities and if they are currently
     /// visible
     public: std::map<Entity, bool> viewingCollisions;
+
+    /////////////////////////////////////////////////
+    // Joints
+    /////////////////////////////////////////////////
+
+    /// \brief View joints service name
+    public: std::string viewJointsService;
+
+    /// \brief Target to view joints
+    public: std::string viewJointsTarget;
+
+    /// \brief New joint visuals to be created
+    public: std::vector<Entity> newJoints;
+
+    /// \brief Finds the models (joint parent) that are used to create
+    /// joint visuals in RenderUtil::Update
+    /// \param[in] _ecm The entity-component manager
+    public: void FindJointModels(const EntityComponentManager &_ecm);
+
+    /// \brief A list of models used to create new joint visuals
+    public: std::vector<Entity> newJointModels;
+
+    /// \brief A map of joint entity ids and their SDF DOM
+    public: std::map<Entity, sdf::Joint> entityJoints;
+
+    /// \brief A map of model entities and their corresponding children links
+    public: std::map<Entity, std::vector<Entity>> modelToJointEntities;
+
+    /// \brief A map of created joint entities and if they are currently
+    /// visible
+    public: std::map<Entity, bool> viewingJoints;
+
+    /// \brief A list of joint visuals for which the parent visual poses
+    /// have to be updated.
+    public: std::vector<Entity> updateJointParentPoses;
+
+    /// \brief A map of models entities and link attributes used
+    /// to create joint visuals
+    public: std::map<Entity, std::map<std::string, Entity>>
+                             matchLinksWithEntities;
+
   };
 }
 
@@ -408,6 +487,15 @@ void VisualizationCapabilitiesPrivate::OnRender()
     }
   }
   this->newWireframeVisualLinks.clear();
+
+  // update joint parent visual poses
+  {
+    for (const auto &jointEntity : this->updateJointParentPoses)
+    {
+      this->UpdateJointParentPose(jointEntity);
+    }
+  }
+  this->updateJointParentPoses.clear();
 
   // create new transparent visuals
   for (const auto &link : this->newTransparentVisualLinks)
@@ -462,6 +550,48 @@ void VisualizationCapabilitiesPrivate::OnRender()
     }
   }
   this->newInertiaLinks.clear();
+
+  // create new joint visuals
+  {
+    for (const auto &model : this->newJointModels)
+    {
+      std::vector<Entity> jointEntities =
+          this->modelToJointEntities[model];
+
+      for (const auto &jointEntity : jointEntities)
+      {
+        if (!this->scene->HasNodeId(jointEntity) &&
+            !this->scene->HasLightId(jointEntity) &&
+            !this->scene->HasSensorId(jointEntity) &&
+            !this->scene->HasVisualId(jointEntity) &&
+            !this->viewingInertias[jointEntity])
+        {
+          std::string childLinkName =
+              this->entityJoints[jointEntity].ChildLinkName();
+          Entity childId =
+              this->matchLinksWithEntities[model][childLinkName];
+
+          std::string parentLinkName =
+              this->entityJoints[jointEntity].ParentLinkName();
+          Entity parentId =
+              this->matchLinksWithEntities[model][parentLinkName];
+
+          auto joint = this->entityJoints[jointEntity];
+
+          auto vis = this->CreateJointVisual(
+              jointEntity, joint, childId, parentId);
+          this->viewingJoints[jointEntity] = true;
+
+          // Update joint parent visual pose
+          if (joint.Axis(1))
+          {
+            this->updateJointParentPoses.push_back(jointEntity);
+          }
+        }
+      }
+    }
+  }
+  this->newJointModels.clear();
 
   // create new center of mass visuals
   for (const auto &link : this->newCOMLinks)
@@ -648,6 +778,32 @@ void VisualizationCapabilitiesPrivate::OnRender()
     }
   }
 
+  // View joints
+  {
+    IGN_PROFILE("IgnRenderer::Render ViewJoints");
+    if (!this->viewJointsTarget.empty())
+    {
+      rendering::NodePtr targetNode =
+          scene->NodeByName(this->viewJointsTarget);
+      auto targetVis = std::dynamic_pointer_cast<rendering::Visual>(targetNode);
+
+      if (targetVis)
+      {
+        Entity targetEntity =
+            std::get<int>(targetVis->UserData("gazebo-entity"));
+        this->ViewJoints(targetEntity);
+      }
+      else
+      {
+        ignerr << "Unable to find node name ["
+               << this->viewJointsTarget
+               << "] to view joints" << std::endl;
+      }
+
+      this->viewJointsTarget.clear();
+    }
+  }
+
   // View wireframes
   {
     IGN_PROFILE("IgnRenderer::Render ViewWireframes");
@@ -672,6 +828,145 @@ void VisualizationCapabilitiesPrivate::OnRender()
 
       this->viewWireframesTarget.clear();
     }
+  }
+}
+
+/////////////////////////////////////////////////
+rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateJointVisual(
+    Entity _id, const sdf::Joint &_joint,
+    Entity _childId, Entity _parentId)
+{
+  if (!this->scene)
+  {
+    return rendering::VisualPtr();
+  }
+
+  if (this->visuals.find(_id) != this->visuals.end())
+  {
+    return rendering::VisualPtr();
+  }
+
+  rendering::VisualPtr parent;
+  if (_childId != 1u)
+  {
+    parent = this->VisualById(_childId);
+  }
+
+  // Name.
+  std::string name = _joint.Name().empty() ? std::to_string(_id) :
+    _joint.Name();
+  if (parent)
+  {
+    name = parent->Name() +  "::" + name;
+  }
+
+  rendering::JointVisualPtr jointVisual =
+    this->scene->CreateJointVisual(name);
+
+  switch (_joint.Type())
+  {
+    case sdf::JointType::REVOLUTE:
+      jointVisual->SetType(rendering::JointVisualType::JVT_REVOLUTE);
+      break;
+    case sdf::JointType::REVOLUTE2:
+      jointVisual->SetType(rendering::JointVisualType::JVT_REVOLUTE2);
+      break;
+    case sdf::JointType::PRISMATIC:
+      jointVisual->SetType(rendering::JointVisualType::JVT_PRISMATIC);
+      break;
+    case sdf::JointType::UNIVERSAL:
+      jointVisual->SetType(rendering::JointVisualType::JVT_UNIVERSAL);
+      break;
+    case sdf::JointType::BALL:
+      jointVisual->SetType(rendering::JointVisualType::JVT_BALL);
+      break;
+    case sdf::JointType::SCREW:
+      jointVisual->SetType(rendering::JointVisualType::JVT_SCREW);
+      break;
+    case sdf::JointType::GEARBOX:
+      jointVisual->SetType(rendering::JointVisualType::JVT_GEARBOX);
+      break;
+    case sdf::JointType::FIXED:
+      jointVisual->SetType(rendering::JointVisualType::JVT_FIXED);
+      break;
+    default:
+      jointVisual->SetType(rendering::JointVisualType::JVT_NONE);
+      break;
+  }
+
+  if (parent)
+  {
+    jointVisual->RemoveParent();
+    parent->AddChild(jointVisual);
+  }
+
+  if (_joint.Axis(1) &&
+      (_joint.Type() == sdf::JointType::REVOLUTE2 ||
+       _joint.Type() == sdf::JointType::UNIVERSAL
+      ))
+  {
+    auto axis1 = _joint.Axis(0)->Xyz();
+    auto axis2 = _joint.Axis(1)->Xyz();
+    auto axis1UseParentFrame = _joint.Axis(0)->XyzExpressedIn() == "__model__";
+    auto axis2UseParentFrame = _joint.Axis(1)->XyzExpressedIn() == "__model__";
+
+    jointVisual->SetAxis(axis2, axis2UseParentFrame);
+
+    auto it = this->visuals.find(_parentId);
+    if (it != this->visuals.end())
+    {
+      auto parentName = it->second->Name();
+      jointVisual->SetParentAxis(
+          axis1, parentName, axis1UseParentFrame);
+    }
+  }
+  else if (_joint.Axis(0) &&
+      (_joint.Type() == sdf::JointType::REVOLUTE ||
+       _joint.Type() == sdf::JointType::PRISMATIC
+      ))
+  {
+    auto axis1 = _joint.Axis(0)->Xyz();
+    auto axis1UseParentFrame = _joint.Axis(0)->XyzExpressedIn() == "__model__";
+
+    jointVisual->SetAxis(axis1, axis1UseParentFrame);
+  }
+  else
+  {
+    // For fixed joint type, scale joint visual to the joint child link
+    double childSize =
+        std::max(0.1, parent->BoundingBox().Size().Length());
+    auto scale = ignition::math::Vector3d(childSize * 0.2,
+        childSize * 0.2, childSize * 0.2);
+    jointVisual->SetLocalScale(scale);
+  }
+
+  rendering::VisualPtr jointVis =
+    std::dynamic_pointer_cast<rendering::Visual>(jointVisual);
+  jointVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  jointVis->SetUserData("pause-update", static_cast<int>(0));
+  jointVis->SetLocalPose(_joint.RawPose());
+  this->visuals[_id] = jointVis;
+  return jointVis;
+}
+
+////////////////////////////////////////////////
+void VisualizationCapabilitiesPrivate::UpdateJointParentPose(Entity _jointId)
+{
+  auto visual =
+      this->VisualById(_jointId);
+
+  rendering::JointVisualPtr jointVisual =
+      std::dynamic_pointer_cast<rendering::JointVisual>(visual);
+
+  auto childPose = jointVisual->WorldPose();
+
+  if (jointVisual->ParentAxisVisual())
+  {
+    jointVisual->ParentAxisVisual()->SetWorldPose(childPose);
+
+    // scale parent axis visual to the child
+    auto childScale = jointVisual->LocalScale();
+    jointVisual->ParentAxisVisual()->SetLocalScale(childScale);
   }
 }
 
@@ -1216,6 +1511,16 @@ bool VisualizationCapabilitiesPrivate::OnViewCOM(
 }
 
 /////////////////////////////////////////////////
+bool VisualizationCapabilitiesPrivate::OnViewJoints(
+  const msgs::StringMsg &_msg, msgs::Boolean &_res)
+{
+  this->viewJointsTarget = _msg.data();
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
 bool VisualizationCapabilitiesPrivate::OnViewInertia(
   const msgs::StringMsg &_msg, msgs::Boolean &_res)
 {
@@ -1340,6 +1645,85 @@ void VisualizationCapabilitiesPrivate::ViewInertia(const Entity &_entity)
       this->viewingInertias[inertiaLink] = showInertia;
       inertiaVisual->SetVisible(showInertia);
     }
+  }
+}
+
+/////////////////////////////////////////////////
+void VisualizationCapabilitiesPrivate::ViewJoints(const Entity &_entity)
+{
+  std::vector<Entity> jointEntities;
+  if (this->modelToJointEntities.find(_entity) !=
+           this->modelToJointEntities.end())
+  {
+    jointEntities.insert(jointEntities.end(),
+        this->modelToJointEntities[_entity].begin(),
+        this->modelToJointEntities[_entity].end());
+  }
+
+  if (this->modelToModelEntities.find(_entity) !=
+      this->modelToModelEntities.end())
+  {
+    std::stack<Entity> modelStack;
+    modelStack.push(_entity);
+
+    std::vector<Entity> childModels;
+    while (!modelStack.empty())
+    {
+      Entity model = modelStack.top();
+      modelStack.pop();
+
+      jointEntities.insert(jointEntities.end(),
+          this->modelToJointEntities[model].begin(),
+          this->modelToJointEntities[model].end());
+
+      childModels = this->modelToModelEntities[model];
+      for (const auto &childModel : childModels)
+      {
+        modelStack.push(childModel);
+      }
+    }
+  }
+
+  // Toggle joints
+  bool showJoint, showJointInit = false;
+
+  // first loop looks for new joints
+  for (const auto &jointEntity : jointEntities)
+  {
+    if (this->viewingJoints.find(jointEntity) ==
+        this->viewingJoints.end())
+    {
+      this->newJoints.push_back(_entity);
+      showJointInit = showJoint = true;
+    }
+  }
+
+  // second loop toggles joints
+  for (const auto &jointEntity : jointEntities)
+  {
+    if (this->viewingJoints.find(jointEntity) ==
+        this->viewingJoints.end())
+      continue;
+
+    // when viewing multiple joints (e.g. _entity is a model),
+    // boolean for view joints is based on first jointEntity in list
+    if (!showJointInit)
+    {
+      showJoint = !this->viewingJoints[jointEntity];
+      showJointInit = true;
+    }
+
+    rendering::VisualPtr jointVisual =
+        this->VisualById(jointEntity);
+    if (jointVisual == nullptr)
+    {
+      ignerr << "Could not find visual for entity [" << jointEntity
+             << "]" << std::endl;
+      continue;
+    }
+
+    this->viewingJoints[jointEntity] = showJoint;
+    jointVisual->SetVisible(showJoint);
   }
 }
 
@@ -1554,6 +1938,55 @@ std::vector<Entity> VisualizationCapabilitiesPrivate::FindChildLinks(
 }
 
 //////////////////////////////////////////////////
+void VisualizationCapabilitiesPrivate::FindJointModels(
+  const EntityComponentManager &_ecm)
+{
+  if (this->newJoints.empty())
+  {
+    return;
+  }
+
+  for (const auto &entity : this->newJoints)
+  {
+    std::vector<Entity> models;
+    if (_ecm.EntityMatches(entity,
+          std::set<ComponentTypeId>{components::Model::typeId}))
+    {
+      std::stack<Entity> modelStack;
+      modelStack.push(entity);
+
+      std::vector<Entity> childLinks, childModels;
+      while (!modelStack.empty())
+      {
+        Entity model = modelStack.top();
+        modelStack.pop();
+        models.push_back(model);
+
+        childModels =
+            _ecm.EntitiesByComponents(components::ParentEntity(model),
+                                      components::Model());
+        for (const auto &childModel : childModels)
+        {
+            modelStack.push(childModel);
+        }
+      }
+    }
+    else
+    {
+      ignerr << "Entity [" << entity
+             << "] for viewing joints must be a model"
+             << std::endl;
+      continue;
+    }
+
+    this->newJointModels.insert(this->newJointModels.end(),
+        models.begin(),
+        models.end());
+  }
+  this->newJoints.clear();
+}
+
+//////////////////////////////////////////////////
 void VisualizationCapabilitiesPrivate::FindInertialLinks(
   const EntityComponentManager &_ecm)
 {
@@ -1754,11 +2187,14 @@ void VisualizationCapabilities::Update(const UpdateInfo &,
           components::ParentEntity>(
       [&](const Entity &_entity,
           const components::Link *,
-          const components::Name *,
+          const components::Name *_name,
           const components::Pose *,
           const components::ParentEntity *_parent)->bool
       {
         this->dataPtr->modelToLinkEntities[_parent->Data()].push_back(_entity);
+        // used for joints
+        this->dataPtr->matchLinksWithEntities[_parent->Data()][_name->Data()] =
+            _entity;
         return true;
       });
 
@@ -1771,6 +2207,44 @@ void VisualizationCapabilities::Update(const UpdateInfo &,
         this->dataPtr->entityInertials[_entity] = _inrElement->Data();
         return true;
       });
+
+    // joints
+    _ecm.Each<components::Joint, components::Name, components::JointType,
+                components::Pose, components::ParentEntity,
+                components::ParentLinkName, components::ChildLinkName>(
+        [&](const Entity &_entity,
+            const components::Joint * /* _joint */,
+            const components::Name *_name,
+            const components::JointType *_jointType,
+            const components::Pose *_pose,
+            const components::ParentEntity *_parentModel,
+            const components::ParentLinkName *_parentLinkName,
+            const components::ChildLinkName *_childLinkName) -> bool
+        {
+          sdf::Joint joint;
+          joint.SetName(_name->Data());
+          joint.SetType(_jointType->Data());
+          joint.SetRawPose(_pose->Data());
+
+          joint.SetParentLinkName(_parentLinkName->Data());
+          joint.SetChildLinkName(_childLinkName->Data());
+
+          auto jointAxis = _ecm.Component<components::JointAxis>(_entity);
+          auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);
+
+          if (jointAxis)
+          {
+            joint.SetAxis(0, jointAxis->Data());
+          }
+          if (jointAxis2)
+          {
+            joint.SetAxis(1, jointAxis2->Data());
+          }
+
+          this->dataPtr->entityJoints[_entity] = joint;
+          this->dataPtr->modelToJointEntities[_parentModel->Data()].push_back(_entity);
+          return true;
+        });
 
     // visuals
     _ecm.Each<components::Visual, components::Name, components::Pose,
@@ -1831,11 +2305,14 @@ void VisualizationCapabilities::Update(const UpdateInfo &,
           components::ParentEntity>(
       [&](const Entity &_entity,
           const components::Link *,
-          const components::Name *,
+          const components::Name *_name,
           const components::Pose *,
           const components::ParentEntity *_parent)->bool
       {
         this->dataPtr->modelToLinkEntities[_parent->Data()].push_back(_entity);
+        // used for joints
+        this->dataPtr->matchLinksWithEntities[_parent->Data()][_name->Data()] =
+            _entity;
         return true;
       });
 
@@ -1868,6 +2345,44 @@ void VisualizationCapabilities::Update(const UpdateInfo &,
         {
           this->dataPtr->linkToVisualEntities[_parent->Data()]
             .push_back(_entity);
+          return true;
+        });
+
+    // joints
+    _ecm.EachNew<components::Joint, components::Name, components::JointType,
+                components::Pose, components::ParentEntity,
+                components::ParentLinkName, components::ChildLinkName>(
+        [&](const Entity &_entity,
+            const components::Joint * /* _joint */,
+            const components::Name *_name,
+            const components::JointType *_jointType,
+            const components::Pose *_pose,
+            const components::ParentEntity *_parentModel,
+            const components::ParentLinkName *_parentLinkName,
+            const components::ChildLinkName *_childLinkName) -> bool
+        {
+          sdf::Joint joint;
+          joint.SetName(_name->Data());
+          joint.SetType(_jointType->Data());
+          joint.SetRawPose(_pose->Data());
+
+          joint.SetParentLinkName(_parentLinkName->Data());
+          joint.SetChildLinkName(_childLinkName->Data());
+
+          auto jointAxis = _ecm.Component<components::JointAxis>(_entity);
+          auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);
+
+          if (jointAxis)
+          {
+            joint.SetAxis(0, jointAxis->Data());
+          }
+          if (jointAxis2)
+          {
+            joint.SetAxis(1, jointAxis2->Data());
+          }
+
+          this->dataPtr->entityJoints[_entity] = joint;
+          this->dataPtr->modelToJointEntities[_parentModel->Data()].push_back(_entity);
           return true;
         });
 
@@ -1910,6 +2425,15 @@ void VisualizationCapabilities::Update(const UpdateInfo &,
       return true;
     });
 
+  // joints
+  _ecm.EachRemoved<components::Joint>(
+      [&](const Entity &_entity, const components::Joint *)->bool
+      {
+        this->dataPtr->entityJoints.erase(_entity);
+        this->dataPtr->viewingJoints.erase(_entity);
+        return true;
+      });
+
   _ecm.EachRemoved<components::Link>(
     [&](const Entity &_entity, const components::Link *)->bool
     {
@@ -1919,6 +2443,7 @@ void VisualizationCapabilities::Update(const UpdateInfo &,
 
   this->dataPtr->PopulateViewModeVisualLinks(_ecm);
   this->dataPtr->FindInertialLinks(_ecm);
+  this->dataPtr->FindJointModels(_ecm);
   this->dataPtr->FindCollisionLinks(_ecm);
 }
 
@@ -1963,6 +2488,14 @@ void VisualizationCapabilities::LoadConfig(const tinyxml2::XMLElement *)
        this->dataPtr.get());
    ignmsg << "View collisions service on ["
           << this->dataPtr->viewCollisionsService << "]" << std::endl;
+
+  // view collisions service
+  this->dataPtr->viewJointsService = "/gui/view/joints";
+  this->dataPtr->node.Advertise(this->dataPtr->viewJointsService,
+      &VisualizationCapabilitiesPrivate::OnViewJoints,
+      this->dataPtr.get());
+  ignmsg << "View joints service on ["
+         << this->dataPtr->viewJointsService << "]" << std::endl;
 
   ignition::gui::App()->findChild
     <ignition::gui::MainWindow *>()->installEventFilter(this);
