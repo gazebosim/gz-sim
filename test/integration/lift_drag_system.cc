@@ -41,6 +41,7 @@
 #include "ignition/gazebo/test_config.hh"
 
 #include "../helpers/Relay.hh"
+#include "../helpers/EnvTestFixture.hh"
 
 #define TOL 1e-4
 
@@ -61,16 +62,9 @@ std::ostream &operator<<(std::ostream &_out, const VerticalForceTestParam &_val)
 
 
 /// \brief Test fixture for LiftDrag system
-class VerticalForceParamFixture:
-      public ::testing::TestWithParam<VerticalForceTestParam>
+class VerticalForceParamFixture
+    : public InternalFixture<::testing::TestWithParam<VerticalForceTestParam>>
 {
-  protected: void SetUp() override
-  {
-    ignition::common::Console::SetVerbosity(4);
-    ignition::common::setenv(
-        "IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-        common::joinPaths(PROJECT_BINARY_PATH, "lib").c_str());
-  }
 };
 
 /////////////////////////////////////////////////
