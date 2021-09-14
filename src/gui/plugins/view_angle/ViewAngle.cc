@@ -23,6 +23,7 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
