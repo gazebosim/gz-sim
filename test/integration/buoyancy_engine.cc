@@ -45,7 +45,7 @@ class BuoyancyEngineTest : public ::testing::Test
     ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
         (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
     this->pub = this->node.Advertise<ignition::msgs::Double>(
-      "/model/buoyant_box/buoyancy_engine/"); 
+      "/model/buoyant_box/buoyancy_engine/");
   }
 
   public: ignition::transport::Node node;
@@ -94,7 +94,7 @@ TEST_F(BuoyancyEngineTest, TestDownward)
   volume.set_data(0);
   this->pub.Publish(volume);
   server.Run(true, iterations, false);
-  
+
   ASSERT_LT(poses.rbegin()->Pos().Z(), poses.begin()->Pos().Z());
   ASSERT_NEAR(poses.rbegin()->Pos().X(), poses.begin()->Pos().X(), 1e-3);
   ASSERT_NEAR(poses.rbegin()->Pos().Y(), poses.begin()->Pos().Y(), 1e-3);
@@ -141,7 +141,7 @@ TEST_F(BuoyancyEngineTest, TestUpward)
   volume.set_data(10);
   this->pub.Publish(volume);
   server.Run(true, iterations, false);
-  
+
   ASSERT_GT(poses.rbegin()->Pos().Z(), poses.begin()->Pos().Z());
   ASSERT_NEAR(poses.rbegin()->Pos().X(), poses.begin()->Pos().X(), 1e-3);
   ASSERT_NEAR(poses.rbegin()->Pos().Y(), poses.begin()->Pos().Y(), 1e-3);
