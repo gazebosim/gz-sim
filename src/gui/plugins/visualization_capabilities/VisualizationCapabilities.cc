@@ -2196,6 +2196,7 @@ void VisualizationCapabilities::Update(const UpdateInfo &,
         const components::Scene *)->bool
       {
         this->dataPtr->worldId = _entity;
+        return true;
       });
 
     _ecm.Each<components::Link, components::Name, components::Pose,
@@ -2319,9 +2320,10 @@ void VisualizationCapabilities::Update(const UpdateInfo &,
     _ecm.EachNew<components::World, components::Scene>(
       [&](const Entity & _entity,
         const components::World *,
-        const components::Scene *_scene)->bool
+        const components::Scene *)->bool
       {
         this->dataPtr->worldId = _entity;
+        return true;
       });
 
     _ecm.EachNew<components::Link, components::Name, components::Pose,
