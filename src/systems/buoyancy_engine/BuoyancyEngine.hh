@@ -58,7 +58,28 @@ namespace systems
   ///  `/model/{namespace}/buoyancy_engine`. This is the set point for the
   ///  engine.
   /// * Publishes a ignition::msgs::Double on `buoyancy_engine` or
-  ///  `/model/{namespace}/buoyancy_engine` on the currents
+  ///  `/model/{namespace}/buoyancy_engine/current_volume` on the current volume
+  ///
+  /// ## Examples
+  /// To get started run:
+  /// ```
+  /// ign gazebo buoyancy_engine.sdf
+  /// ```
+  /// Enter the following in a separate terminal:
+  /// ```
+  /// ign topic -t  /model/tethys/buoyancy_engine/ -m ignition.msgs.Double \
+  ///    -p "data: 0.003"
+  /// ```
+  /// To see the box float up.
+  /// ```
+  /// ign topic -t  /model/tethys/buoyancy_engine/ -m ignition.msgs.Double \
+  ///    -p "data: 0.001"
+  /// ```
+  /// To see the box go down.
+  /// To see the current volume enter:
+  /// ```
+  /// ign topic -t  /model/tethys/buoyancy_engine/current_volume -e
+  /// ```
   class BuoyancyEnginePlugin:
     public ignition::gazebo::System,
     public ignition::gazebo::ISystemConfigure,
