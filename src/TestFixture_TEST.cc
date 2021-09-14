@@ -23,20 +23,15 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/ServerConfig.hh"
 #include "ignition/gazebo/test_config.hh"
+#include "../test/helpers/EnvTestFixture.hh"
 #include "ignition/gazebo/TestFixture.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
 /////////////////////////////////////////////////
-class TestFixtureTest : public ::testing::Test
+class TestFixtureTest : public InternalFixture<::testing::Test>
 {
-  // Documentation inherited
-  public: void SetUp() override
-  {
-    common::Console::SetVerbosity(4);
-  }
-
   /// \brief Configure expectations
   public: void Configure(const Entity &_entity,
         const std::shared_ptr<const sdf::Element> &_sdf,
