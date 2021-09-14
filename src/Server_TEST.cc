@@ -45,6 +45,11 @@ using namespace ignition::gazebo;
 using namespace std::chrono_literals;
 
 /////////////////////////////////////////////////
+class ServerFixture : public InternalFixture<::testing::TestWithParam<int>>
+{
+};
+
+/////////////////////////////////////////////////
 TEST_P(ServerFixture, DefaultServerConfig)
 {
   ignition::gazebo::ServerConfig serverConfig;

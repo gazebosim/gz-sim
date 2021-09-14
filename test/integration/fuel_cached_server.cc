@@ -28,7 +28,12 @@ using namespace ignition::gazebo;
 using namespace std::chrono_literals;
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, CachedFuelWorld)
+class FuelCachedServer : public InternalFixture<::testing::TestWithParam<int>>
+{
+};
+
+/////////////////////////////////////////////////
+TEST_P(FuelCachedServer, CachedFuelWorld)
 {
   auto cachedWorldPath =
     common::joinPaths(std::string(PROJECT_SOURCE_PATH), "test", "worlds");
@@ -55,4 +60,5 @@ TEST_P(ServerFixture, CachedFuelWorld)
 
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
-INSTANTIATE_TEST_SUITE_P(ServerRepeat, ServerFixture, ::testing::Range(1, 2));
+INSTANTIATE_TEST_SUITE_P(ServerRepeat, FuelCachedServer,
+    ::testing::Range(1, 2));
