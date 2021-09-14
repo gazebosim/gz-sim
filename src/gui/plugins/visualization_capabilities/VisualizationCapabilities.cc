@@ -76,9 +76,11 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Scene.hh"
 #include "ignition/gazebo/components/Transparency.hh"
 #include "ignition/gazebo/components/Visibility.hh"
 #include "ignition/gazebo/components/Visual.hh"
+#include "ignition/gazebo/components/World.hh"
 
 #include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/rendering/RenderUtil.hh"
@@ -270,6 +272,11 @@ namespace ignition::gazebo
     /////////////////////////////////////////////////
     /// \brief Ignition communication node.
     public: transport::Node node;
+
+    /// \brief Keep track of world ID, which is equivalent to the scene's
+    /// root visual.
+    /// Defaults to zero, which is considered invalid by Ignition Gazebo.
+    public: Entity worldId{0};
 
     /// \brief Pointer to the rendering scene
     public: ignition::rendering::ScenePtr scene{nullptr};
@@ -847,7 +854,7 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateJointVisual(
   }
 
   rendering::VisualPtr parent;
-  if (_childId != 1u)
+  if (_childId != this->worldId)
   {
     parent = this->VisualById(_childId);
   }
@@ -2183,6 +2190,14 @@ void VisualizationCapabilities::Update(const UpdateInfo &,
 {
   if (!this->dataPtr->initialized)
   {
+    _ecm.EachNew<components::World, components::Scene>(
+      [&](const Entity & _entity,
+        const components::World *,
+        const components::Scene *)->bool
+      {
+        this->dataPtr->worldId = _entity;
+      });
+
     _ecm.Each<components::Link, components::Name, components::Pose,
           components::ParentEntity>(
       [&](const Entity &_entity,
@@ -2301,6 +2316,14 @@ void VisualizationCapabilities::Update(const UpdateInfo &,
   }
   else
   {
+    _ecm.EachNew<components::World, components::Scene>(
+      [&](const Entity & _entity,
+        const components::World *,
+        const components::Scene *_scene)->bool
+      {
+        this->dataPtr->worldId = _entity;
+      });
+
     _ecm.EachNew<components::Link, components::Name, components::Pose,
           components::ParentEntity>(
       [&](const Entity &_entity,
