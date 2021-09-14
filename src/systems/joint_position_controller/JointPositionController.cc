@@ -70,7 +70,7 @@ class ignition::gazebo::systems::JointPositionControllerPrivate
     /// \brief Use PID to achieve positional control
     PID,
     /// \brief Bypass PID completely. This means the joint will move to that
-    /// position bypassing the physics engine. 
+    /// position bypassing the physics engine.
     ABSOLUTE
   };
 
