@@ -356,7 +356,14 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
           double productAlpha = (1.0-_visual.Transparency()) *
               (1.0 - submeshMat->Transparency());
           submeshMat->SetTransparency(1 - productAlpha);
+
+          // unlike setting transparency above, the parent submesh are not
+          // notified about the the cast shadows changes. So we need to set
+          // the material back to the submesh.
+          // \todo(anyone) find way to propate cast shadows changes tos submesh
+          // in ign-rendering
           submeshMat->SetCastShadows(_visual.CastShadows());
+          submesh->SetMaterial(submeshMat);
         }
       }
     }

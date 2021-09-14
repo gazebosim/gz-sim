@@ -21,19 +21,14 @@
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
+#include "../helpers/EnvTestFixture.hh"
 
 using namespace ignition;
 using namespace gazebo;
 using namespace std::chrono_literals;
 
-class PhysicsSystemFixture : public ::testing::Test
+class PhysicsSystemFixture : public InternalFixture<::testing::Test>
 {
-  protected: void SetUp() override
-  {
-    // Augment the system plugin path.  In SetUp to avoid test order issues.
-    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-      (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
-  }
 };
 
 /////////////////////////////////////////////////

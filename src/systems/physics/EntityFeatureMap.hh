@@ -142,7 +142,7 @@ namespace systems::physics_system
     /// to an entity with a different set of features. This overload takes a
     /// physics entity as input
     /// \tparam ToFeatureList The list of features of the resulting entity.
-    /// \param[in] _entity Physics entity with required features.
+    /// \param[in] _physicsEntity Physics entity with required features.
     /// \return Physics entity with features in ToFeatureList. nullptr if the
     /// entity can't be found or the physics engine doesn't support the
     /// requested feature.
@@ -252,7 +252,7 @@ namespace systems::physics_system
     }
 
     /// \brief Remove physics entity from all associated maps
-    /// \param[in] _entity Gazebo entity.
+    /// \param[in] _physicsEntity Physics entity.
     /// \return True if the entity was found and removed.
     public: bool Remove(const RequiredEntityPtr &_physicsEntity)
     {
