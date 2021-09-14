@@ -2258,7 +2258,8 @@ void VisualizationCapabilities::Update(const UpdateInfo &,
           }
 
           this->dataPtr->entityJoints[_entity] = joint;
-          this->dataPtr->modelToJointEntities[_parentModel->Data()].push_back(_entity);
+          this->dataPtr->modelToJointEntities[_parentModel->Data()]
+            .push_back(_entity);
           return true;
         });
 
@@ -2407,7 +2408,8 @@ void VisualizationCapabilities::Update(const UpdateInfo &,
           }
 
           this->dataPtr->entityJoints[_entity] = joint;
-          this->dataPtr->modelToJointEntities[_parentModel->Data()].push_back(_entity);
+          this->dataPtr->modelToJointEntities[_parentModel->Data()]
+            .push_back(_entity);
           return true;
         });
 
