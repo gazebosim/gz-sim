@@ -67,7 +67,11 @@ class ignition::gazebo::systems::JointPositionControllerPrivate
 
   /// \brief Operation modes
   enum OperationMode {
-    PID, ABSOLUTE
+    /// \brief Use PID to achieve positional control
+    PID,
+    /// \brief Bypass PID completely. This means the joint will move to that
+    /// position bypassing the physics engine. 
+    ABSOLUTE
   };
 
   /// \brief Joint position mode
