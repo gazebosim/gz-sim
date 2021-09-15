@@ -569,8 +569,15 @@ std::optional<math::Vector3d> sphericalCoordinates(Entity _entity,
   }
 
   auto xyzPose = worldPose(_entity, _ecm);
-  return sphericalCoordinatesComp->Data().SphericalFromLocalPosition(
-      xyzPose.Pos());
+
+  // lat / lon / elevation in rad / rad / m
+  auto rad = sphericalCoordinatesComp->Data().PositionTransform(
+      xyzPose.Pos(),
+      math::SphericalCoordinates::LOCAL2,
+      math::SphericalCoordinates::SPHERICAL);
+
+  // Return degrees
+  return math::Vector3d(IGN_RTOD(rad.X()), IGN_RTOD(rad.Y()), rad.Z());
 }
 }
 }

@@ -160,15 +160,21 @@ Rectangle {
           color: "transparent"
           height: 40
           Layout.preferredWidth: latText.width + indentation*3
-          Item {
+          Rectangle {
+            color: "transparent"
+            id: surfaceSpacer
+            height: iconHeight
             width: iconWidth
+            y: 10
           }
 
           Text {
             text: 'Surface'
-            leftPadding: 14
+            leftPadding: 12
             color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
             font.pointSize: 12
+            anchors.left: surfaceSpacer.right
+            anchors.verticalCenter: parent.verticalCenter
           }
         }
         Text {

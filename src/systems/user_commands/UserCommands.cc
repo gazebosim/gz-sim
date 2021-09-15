@@ -128,15 +128,16 @@ Entity topLevelEntityFromMessage(const EntityComponentManager &_ecm,
 }
 
 /// \brief Pose3d equality comparison function.
-std::function<bool(const math::Pose3d &, const math::Pose3d &)>
-  pose3Eql { [](const math::Pose3d &_a, const math::Pose3d &_b)
+/// \param[in] _a A pose to compare
+/// \param[in] _b Another pose to compare
+bool pose3Eql(const math::Pose3d &_a, const math::Pose3d &_b)
 {
   return _a.Pos().Equal(_b.Pos(), 1e-6) &&
     math::equal(_a.Rot().X(), _b.Rot().X(), 1e-6) &&
     math::equal(_a.Rot().Y(), _b.Rot().Y(), 1e-6) &&
     math::equal(_a.Rot().Z(), _b.Rot().Z(), 1e-6) &&
     math::equal(_a.Rot().W(), _b.Rot().W(), 1e-6);
-}};
+}
 
 /// \brief This class is passed to every command and contains interfaces that
 /// can be shared among all commands. For example, all create and remove
@@ -982,12 +983,15 @@ bool CreateCommand::Execute()
     }
     else
     {
+      // deg to rad
       math::Vector3d latLonEle{
-          createMsg->spherical_coordinates().latitude_deg(),
-          createMsg->spherical_coordinates().longitude_deg(),
+          IGN_DTOR(createMsg->spherical_coordinates().latitude_deg()),
+          IGN_DTOR(createMsg->spherical_coordinates().longitude_deg()),
           createMsg->spherical_coordinates().elevation()};
 
-      auto pos = scComp->Data().LocalFromSphericalPosition(latLonEle);
+      auto pos = scComp->Data().PositionTransform(latLonEle,
+          math::SphericalCoordinates::SPHERICAL,
+          math::SphericalCoordinates::LOCAL2);
 
       auto poseComp = this->iface->ecm->Component<components::Pose>(entity);
       *poseComp = components::Pose({pos.X(), pos.Y(), pos.Z(), 0, 0,
@@ -1277,12 +1281,16 @@ bool SphericalCoordinatesCommand::Execute()
     return false;
   }
 
+  // deg to rad
   math::Vector3d latLonEle{
-      sphericalCoordinatesMsg->latitude_deg(),
-      sphericalCoordinatesMsg->longitude_deg(),
+      IGN_DTOR(sphericalCoordinatesMsg->latitude_deg()),
+      IGN_DTOR(sphericalCoordinatesMsg->longitude_deg()),
       sphericalCoordinatesMsg->elevation()};
 
-  auto pos = scComp->Data().LocalFromSphericalPosition(latLonEle);
+  auto pos = scComp->Data().PositionTransform(latLonEle,
+      math::SphericalCoordinates::SPHERICAL,
+      math::SphericalCoordinates::LOCAL2);
+
   math::Pose3d pose{pos.X(), pos.Y(), pos.Z(), 0, 0,
           IGN_DTOR(sphericalCoordinatesMsg->heading_deg())};
 
