@@ -40,7 +40,7 @@
 1. Using math::SpeedLimiter on the ackermann_steering controller.
     * [Pull Request 837](https://github.com/ignitionrobotics/ign-gazebo/pull/837)
 
-1. All changes merged forward from Citadel
+1. All changes merged forward from ign-gazebo3
     * [Pull Request 866](https://github.com/ignitionrobotics/ign-gazebo/pull/866)
     * [Pull Request 916](https://github.com/ignitionrobotics/ign-gazebo/pull/916)
     * [Pull Request 933](https://github.com/ignitionrobotics/ign-gazebo/pull/933)
