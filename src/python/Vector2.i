@@ -37,6 +37,7 @@ namespace ignition
       %rename("%(uppercase)s", %$isstatic, %$isvariable) "";
       public: static const Vector2 Zero;
       public: static const Vector2 One;
+      public: static const Vector2 NaN;
 
       public: Vector2();
       public: Vector2(const T &_x, const T &_y);

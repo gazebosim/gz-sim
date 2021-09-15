@@ -425,6 +425,29 @@ class Vector3_TEST < Test::Unit::TestCase
     assert(vec1.IsFinite(), "Vector3 vec1 should be be finite")
   end
 
+  def test_nan
+    nanVec = Ignition::Math::Vector3d.NaN
+    assert(!nanVec.IsFinite(),
+           "NaN vector shouldn't be finite")
+    assert(nanVec.X().nan?, "X should be NaN")
+    assert(nanVec.Y().nan?, "Y should be NaN")
+    assert(nanVec.Z().nan?, "Z should be NaN")
+
+    nanVec.Correct()
+    assert(Ignition::Math::Vector3d.Zero == nanVec,
+           "Corrected vector should equal zero")
+
+    nanVecF = Ignition::Math::Vector3f.NaN
+    assert(!nanVecF.IsFinite(),
+           "NaN vector shouldn't be finite")
+    assert(nanVecF.X().nan?, "X should be NaN")
+    assert(nanVecF.Y().nan?, "Y should be NaN")
+    assert(nanVecF.Z().nan?, "Z should be NaN")
+
+    nanVecF.Correct()
+    assert(Ignition::Math::Vector3f.Zero == nanVecF,
+           "Corrected vector should equal zero")
+  end
 end
 
 exit Test::Unit::UI::Console::TestRunner.run(Vector3_TEST).passed? ? 0 : -1

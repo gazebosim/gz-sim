@@ -18,6 +18,7 @@
 #define IGNITION_MATH_VECTOR4_HH_
 
 #include <algorithm>
+#include <limits>
 
 #include <ignition/math/Matrix4.hh>
 #include <ignition/math/Helpers.hh>
@@ -40,6 +41,9 @@ namespace ignition
 
       /// \brief math::Vector4(1, 1, 1, 1)
       public: static const Vector4<T> One;
+
+      /// \brief math::Vector4(NaN, NaN, NaN, NaN)
+      public: static const Vector4 NaN;
 
       /// \brief Constructor
       public: Vector4()
@@ -734,6 +738,12 @@ namespace ignition
 
     template<typename T>
     const Vector4<T> Vector4<T>::One(1, 1, 1, 1);
+
+    template<typename T> const Vector4<T> Vector4<T>::NaN(
+        std::numeric_limits<T>::quiet_NaN(),
+        std::numeric_limits<T>::quiet_NaN(),
+        std::numeric_limits<T>::quiet_NaN(),
+        std::numeric_limits<T>::quiet_NaN());
 
     typedef Vector4<int> Vector4i;
     typedef Vector4<double> Vector4d;

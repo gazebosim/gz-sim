@@ -15,6 +15,7 @@
 import unittest
 import math
 from ignition.math import Vector3d
+from ignition.math import Vector3f
 
 
 class TestVector3(unittest.TestCase):
@@ -350,6 +351,26 @@ class TestVector3(unittest.TestCase):
 
         self.assertTrue(vec1.is_finite())
 
+    def test_nan(self):
+        nanVec = Vector3d.NAN
+        self.assertFalse(nanVec.is_finite())
+        self.assertTrue(math.isnan(nanVec.x()))
+        self.assertTrue(math.isnan(nanVec.y()))
+        self.assertTrue(math.isnan(nanVec.z()))
+
+        nanVec.correct()
+        self.assertEqual(Vector3d.ZERO, nanVec)
+        self.assertTrue(nanVec.is_finite())
+
+        nanVecF = Vector3f.NAN
+        self.assertFalse(nanVecF.is_finite())
+        self.assertTrue(math.isnan(nanVecF.x()))
+        self.assertTrue(math.isnan(nanVecF.y()))
+        self.assertTrue(math.isnan(nanVecF.z()))
+
+        nanVecF.correct()
+        self.assertEqual(Vector3f.ZERO, nanVecF)
+        self.assertTrue(nanVecF.is_finite())
 
 if __name__ == '__main__':
     unittest.main()

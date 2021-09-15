@@ -125,11 +125,25 @@ TEST(Vector3dTest, Vector3d)
   EXPECT_TRUE(v.Equal(math::Vector3d(2, 1, .4)));
 
   // Test the static defines.
-  EXPECT_TRUE(math::Vector3d::Zero == math::Vector3d(0, 0, 0));
-  EXPECT_TRUE(math::Vector3d::One == math::Vector3d(1, 1, 1));
-  EXPECT_TRUE(math::Vector3d::UnitX == math::Vector3d(1, 0, 0));
-  EXPECT_TRUE(math::Vector3d::UnitY == math::Vector3d(0, 1, 0));
-  EXPECT_TRUE(math::Vector3d::UnitZ == math::Vector3d(0, 0, 1));
+  EXPECT_EQ(math::Vector3d::Zero, math::Vector3d(0, 0, 0));
+  EXPECT_EQ(math::Vector3f::Zero, math::Vector3f(0, 0, 0));
+  EXPECT_EQ(math::Vector3i::Zero, math::Vector3i(0, 0, 0));
+
+  EXPECT_EQ(math::Vector3d::One, math::Vector3d(1, 1, 1));
+  EXPECT_EQ(math::Vector3f::One, math::Vector3f(1, 1, 1));
+  EXPECT_EQ(math::Vector3i::One, math::Vector3i(1, 1, 1));
+
+  EXPECT_EQ(math::Vector3d::UnitX, math::Vector3d(1, 0, 0));
+  EXPECT_EQ(math::Vector3f::UnitX, math::Vector3f(1, 0, 0));
+  EXPECT_EQ(math::Vector3i::UnitX, math::Vector3i(1, 0, 0));
+
+  EXPECT_EQ(math::Vector3d::UnitY, math::Vector3d(0, 1, 0));
+  EXPECT_EQ(math::Vector3f::UnitY, math::Vector3f(0, 1, 0));
+  EXPECT_EQ(math::Vector3i::UnitY, math::Vector3i(0, 1, 0));
+
+  EXPECT_EQ(math::Vector3d::UnitZ, math::Vector3d(0, 0, 1));
+  EXPECT_EQ(math::Vector3f::UnitZ, math::Vector3f(0, 0, 1));
+  EXPECT_EQ(math::Vector3i::UnitZ, math::Vector3i(0, 0, 1));
 }
 
 /////////////////////////////////////////////////
@@ -467,3 +481,26 @@ TEST(Vector3dTest, NoException)
   EXPECT_NO_THROW(ss << vInf);
 }
 
+/////////////////////////////////////////////////
+TEST(Vector3dTest, NaN)
+{
+  auto nanVec = math::Vector3d::NaN;
+  EXPECT_FALSE(nanVec.IsFinite());
+  EXPECT_TRUE(math::isnan(nanVec.X()));
+  EXPECT_TRUE(math::isnan(nanVec.Y()));
+  EXPECT_TRUE(math::isnan(nanVec.Z()));
+
+  nanVec.Correct();
+  EXPECT_EQ(math::Vector3d::Zero, nanVec);
+  EXPECT_TRUE(nanVec.IsFinite());
+
+  auto nanVecF = math::Vector3f::NaN;
+  EXPECT_FALSE(nanVecF.IsFinite());
+  EXPECT_TRUE(math::isnan(nanVecF.X()));
+  EXPECT_TRUE(math::isnan(nanVecF.Y()));
+  EXPECT_TRUE(math::isnan(nanVecF.Z()));
+
+  nanVecF.Correct();
+  EXPECT_EQ(math::Vector3f::Zero, nanVecF);
+  EXPECT_TRUE(nanVecF.IsFinite());
+}

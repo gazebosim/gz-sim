@@ -38,6 +38,7 @@ namespace ignition
       public: static const Vector3 UnitX;
       public: static const Vector3 UnitY;
       public: static const Vector3 UnitZ;
+      public: static const Vector3 NaN;
       public: Vector3();
       public: Vector3(const T &_x, const T &_y, const T &_z);
       public: Vector3(const Vector3<T> &_v);

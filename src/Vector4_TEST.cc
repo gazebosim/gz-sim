@@ -443,3 +443,28 @@ TEST(Vector4dTest, Length)
   EXPECT_EQ(math::Vector4i::One.SquaredLength(), 4);
 }
 
+/////////////////////////////////////////////////
+TEST(Vector4Test, NaN)
+{
+  auto nanVec = math::Vector4d::NaN;
+  EXPECT_FALSE(nanVec.IsFinite());
+  EXPECT_TRUE(math::isnan(nanVec.X()));
+  EXPECT_TRUE(math::isnan(nanVec.Y()));
+  EXPECT_TRUE(math::isnan(nanVec.Z()));
+  EXPECT_TRUE(math::isnan(nanVec.W()));
+
+  nanVec.Correct();
+  EXPECT_EQ(math::Vector4d::Zero, nanVec);
+  EXPECT_TRUE(nanVec.IsFinite());
+
+  auto nanVecF = math::Vector4f::NaN;
+  EXPECT_FALSE(nanVecF.IsFinite());
+  EXPECT_TRUE(math::isnan(nanVecF.X()));
+  EXPECT_TRUE(math::isnan(nanVecF.Y()));
+  EXPECT_TRUE(math::isnan(nanVecF.Z()));
+  EXPECT_TRUE(math::isnan(nanVecF.W()));
+
+  nanVecF.Correct();
+  EXPECT_EQ(math::Vector4f::Zero, nanVecF);
+  EXPECT_TRUE(nanVecF.IsFinite());
+}
