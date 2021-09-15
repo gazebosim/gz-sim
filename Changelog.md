@@ -40,6 +40,14 @@
 1. Using math::SpeedLimiter on the ackermann_steering controller.
     * [Pull Request 837](https://github.com/ignitionrobotics/ign-gazebo/pull/837)
 
+1. All changes merged forward from Citadel
+    * [Pull Request 866](https://github.com/ignitionrobotics/ign-gazebo/pull/866)
+    * [Pull Request 916](https://github.com/ignitionrobotics/ign-gazebo/pull/916)
+    * [Pull Request 933](https://github.com/ignitionrobotics/ign-gazebo/pull/933)
+    * [Pull Request 946](https://github.com/ignitionrobotics/ign-gazebo/pull/946)
+    * [Pull Request 973](https://github.com/ignitionrobotics/ign-gazebo/pull/973)
+    * [Pull Request 1017](https://github.com/ignitionrobotics/ign-gazebo/pull/1017)
+
 ### Ignition Gazebo 4.9.1 (2021-05-24)
 
 1. Make halt motion act like a brake.
