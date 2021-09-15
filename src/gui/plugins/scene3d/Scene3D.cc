@@ -641,8 +641,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
     // setting the size should cause the render texture to be rebuilt
     {
       IGN_PROFILE("IgnRenderer::Render Pre-render camera");
-      this->dataPtr->camera->PreRender();
-      this->dataPtr->camera->Render();
+      this->dataPtr->camera->Update();
     }
     // mark mouse dirty to force update view projection in HandleMouseEvent
     this->dataPtr->mouseDirty = true;
