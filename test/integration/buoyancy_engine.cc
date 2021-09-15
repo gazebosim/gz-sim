@@ -36,7 +36,7 @@
 using namespace ignition;
 using namespace gazebo;
 
-class BuoyancyEngineTest : public ::testing::Test
+class BuoyancyEngineTest : public InternalFixture<:::testing::Test>
 {
   // Documentation inherited
   protected: void SetUp() override
