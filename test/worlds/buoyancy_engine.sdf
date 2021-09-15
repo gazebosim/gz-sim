@@ -1,12 +1,6 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
   <world name="buoyant_tethys">
-    <scene>
-      <!-- For turquoise ambient -->
-      <ambient>0.0 1.0 1.0</ambient>
-      <background>0.0 0.7 0.8</background>
-    </scene>
-
     <physics name="1ms" type="ode">
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
@@ -15,19 +9,6 @@
       filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
     </plugin>
-    <plugin
-      filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
-    </plugin>
-    <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
-    </plugin>
-    <plugin
-      filename="ignition-gazebo-contact-system"
-      name="ignition::gazebo::systems::Contact">
-    </plugin>
-
     <plugin
       filename="ignition-gazebo-buoyancy-system"
       name="ignition::gazebo::systems::Buoyancy">

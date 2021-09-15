@@ -32,10 +32,11 @@ namespace systems
   class BuoyancyEnginePrivateData;
 
   /// \brief This class provides a simple mechanical bladder which is used to
-  /// control the buoyancy of an underwater glider. It uses archimedes principal
-  /// to apply an upward force based on the volume of the bladder. It listens to
-  /// the topic `buoyancy_engine` or `/model/{namespace}/buoyancy_engine`
-  /// topic for the volume of the bladder in *cubicmeters*.
+  /// control the buoyancy of an underwater glider. It uses Archimedes'
+  /// principle to apply an upward force based on the volume of the bladder. It
+  /// listens to the topic `buoyancy_engine` or 
+  ///`/model/{namespace}/buoyancy_engine` topic for the volume of the bladder in
+  /// *cubicmeters*.
   ///
   /// ## Parameters
   /// <link_name> - The link which the plugin is attached to [required, string]
@@ -52,6 +53,8 @@ namespace systems
   ///   default=0.00099m^3]
   /// <max_inflation_rate> - Maximum inflation rate for bladder [optional,
   ///   float, default=0.000003m^3/s]
+  /// <fluid_density> - The fluid density of the liquid its suspended in kgm^-3.
+  ///   [optional, float, default=1000kgm^-3]
   ///
   /// ## Topics
   /// * Subscribes to a ignition::msgs::Double on `buoyancy_engine` or
