@@ -72,7 +72,7 @@ TEST_F(BuoyancyEngineTest, TestDownward)
   test::Relay testSystem;
   std::vector<ignition::math::Pose3d> poses;
 
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
+  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &/*_info*/,
                              const gazebo::EntityComponentManager &_ecm)
   {
     // Check pose
@@ -120,7 +120,7 @@ TEST_F(BuoyancyEngineTest, TestUpward)
   test::Relay testSystem;
   std::vector<ignition::math::Pose3d> poses;
 
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
+  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &/*_info*/,
                              const gazebo::EntityComponentManager &_ecm)
   {
     // Check pose

@@ -108,12 +108,12 @@ void BuoyancyEnginePlugin::Configure(
     ignerr << "Buoyancy Engine must be attached to some link."  << std::endl;
     return;
   }
-  
+
   this->dataPtr->linkEntity =
     model.LinkByName(_ecm, _sdf->Get<std::string>("link_name"));
   if (this->dataPtr->linkEntity == kNullEntity)
   {
-    ignerr << "link " << _sdf->Get<std::string>("link_name") 
+    ignerr << "link " << _sdf->Get<std::string>("link_name")
       << "was not found in " << model.Name(_ecm) << std::endl;
     return;
   }
