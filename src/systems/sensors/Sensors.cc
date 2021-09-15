@@ -43,6 +43,7 @@
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
+#include "ignition/gazebo/components/RenderEngineServerHeadless.hh"
 #include "ignition/gazebo/components/RenderEngineServerPlugin.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/ThermalCamera.hh"
@@ -413,6 +414,15 @@ void Sensors::Configure(const Entity &/*_id*/,
     if (renderEngineServerComp && !renderEngineServerComp->Data().empty())
     {
       this->dataPtr->renderUtil.SetEngineName(renderEngineServerComp->Data());
+    }
+
+    // Set headless mode if specified from command line
+    auto renderEngineServerHeadlessComp =
+      _ecm.Component<components::RenderEngineServerHeadless>(worldEntity);
+    if (renderEngineServerHeadlessComp)
+    {
+      this->dataPtr->renderUtil.SetHeadlessRendering(
+        renderEngineServerHeadlessComp->Data());
     }
   }
 
