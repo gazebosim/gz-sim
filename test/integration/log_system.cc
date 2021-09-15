@@ -51,6 +51,7 @@
 #include "ignition/gazebo/test_config.hh"
 
 #include "../helpers/Relay.hh"
+#include "../helpers/EnvTestFixture.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -147,16 +148,8 @@ void entryDiff(std::vector<std::string> &_paths1,
 #endif
 
 //////////////////////////////////////////////////
-class LogSystemTest : public ::testing::Test
+class LogSystemTest : public InternalFixture<::testing::Test>
 {
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    common::Console::SetVerbosity(4);
-    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
-  }
-
   // Create a temporary directory in build path for recorded data
   public: void CreateLogsDir()
   {

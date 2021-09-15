@@ -29,6 +29,7 @@
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"
 
+#include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
 
 #define tol 10e-4
@@ -38,16 +39,8 @@ using namespace gazebo;
 using namespace std::chrono_literals;
 
 /// \brief Test DiffDrive system
-class HaltMotionTest : public ::testing::TestWithParam<int>
+class HaltMotionTest : public InternalFixture<::testing::TestWithParam<int>>
 {
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    common::Console::SetVerbosity(1);
-    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
-  }
-
   /// \param[in] _sdfFile SDF file to load.
   /// \param[in] _cmdVelTopic Command velocity topic.
   /// \param[in] _odomTopic Odometry topic.

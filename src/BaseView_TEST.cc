@@ -27,16 +27,13 @@
 #include "ignition/gazebo/detail/BaseView.hh"
 #include "ignition/gazebo/detail/View.hh"
 
+#include "../test/helpers/EnvTestFixture.hh"
+
 using namespace ignition;
 using namespace gazebo;
 
-class BaseViewTest : public ::testing::Test
+class BaseViewTest : public InternalFixture<::testing::Test>
 {
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    ignition::common::Console::SetVerbosity(4);
-  }
 };
 
 /////////////////////////////////////////////////

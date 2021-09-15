@@ -82,7 +82,7 @@ namespace ignition
       /// into a queue. The queue is processed toward the end of a simulation
       /// update step.
       ///
-      /// \detail It is recommended that systems don't call this function
+      /// \details It is recommended that systems don't call this function
       /// directly, and instead use the `gazebo::SdfEntityCreator` class to
       /// remove entities.
       ///
@@ -103,7 +103,7 @@ namespace ignition
       public: bool HasEntity(const Entity _entity) const;
 
       /// \brief Get the first parent of the given entity.
-      /// \detail Entities are not expected to have multiple parents.
+      /// \details Entities are not expected to have multiple parents.
       /// TODO(louise) Either prevent multiple parents or provide full support
       /// for multiple parents.
       /// \param[in] _entity Entity.
@@ -112,11 +112,13 @@ namespace ignition
 
       /// \brief Set the parent of an entity.
       ///
-      /// \detail It is recommended that systems don't call this function
+      /// \details It is recommended that systems don't call this function
       /// directly, and instead use the `gazebo::SdfEntityCreator` class to
       /// create entities that have the correct parent-child relationship.
       ///
-      /// \param[in] _entity Entity or kNullEntity to remove current parent.
+      /// \param[in] _child Entity to set the parent
+      /// \param[in] _parent Entity which should be an immediate parent _child
+      /// entity.
       /// \return True if successful. Will fail if entities don't exist.
       public: bool SetParentEntity(const Entity _child, const Entity _parent);
 
@@ -284,7 +286,7 @@ namespace ignition
       ///  auto entity = EntityByComponents(components::Name("name"),
       ///    components::Model());
       ///
-      /// \detail Component type must have inequality operator.
+      /// \details Component type must have inequality operator.
       ///
       /// \param[in] _desiredComponents All the components which must match.
       /// \return Entity or kNullEntity if no entity has the exact components.
@@ -299,7 +301,7 @@ namespace ignition
       ///  auto entities = EntitiesByComponents(components::Name("camera"),
       ///    components::Sensor());
       ///
-      /// \detail Component type must have inequality operator.
+      /// \details Component type must have inequality operator.
       ///
       /// \param[in] _desiredComponents All the components which must match.
       /// \return All matching entities, or an empty vector if no child entity
@@ -316,7 +318,7 @@ namespace ignition
       ///
       ///  auto entity = ChildrenByComponents(parent, 123, std::string("name"));
       ///
-      /// \detail Component type must have inequality operator.
+      /// \details Component type must have inequality operator.
       ///
       /// \param[in] _parent Entity which should be an immediate parent of the
       /// returned entity.
@@ -471,7 +473,7 @@ namespace ignition
 
       /// \brief Get a message with the serialized state of the given entities
       /// and components.
-      /// \detail The header of the message will not be populated, it is the
+      /// \details The header of the message will not be populated, it is the
       /// responsibility of the caller to timestamp it before use.
       /// \param[in] _entities Entities to be serialized. Leave empty to get
       /// all entities.
@@ -491,7 +493,7 @@ namespace ignition
       /// * Entities which had a component removed
       /// * Entities which had a component modified
       ///
-      /// \detail The header of the message will not be populated, it is the
+      /// \details The header of the message will not be populated, it is the
       /// responsibility of the caller to timestamp it before use.
       public: msgs::SerializedState ChangedState() const;
 
@@ -519,14 +521,14 @@ namespace ignition
       /// one will be created.
       /// Entities / components that are marked as removed will be removed, but
       /// they won't be removed if they're not present in the state.
-      /// \detail The header of the message will not be handled, it is the
+      /// \details The header of the message will not be handled, it is the
       /// responsibility of the caller to use the timestamp.
       /// \param[in] _stateMsg Message containing state to be set.
       public: void SetState(const msgs::SerializedState &_stateMsg);
 
       /// \brief Get a message with the serialized state of the given entities
       /// and components.
-      /// \detail The header of the message will not be populated, it is the
+      /// \details The header of the message will not be populated, it is the
       /// responsibility of the caller to timestamp it before use.
       /// \param[out] _state The serialized state message to populate.
       /// \param[in] _entities Entities to be serialized. Leave empty to get
@@ -552,7 +554,7 @@ namespace ignition
       /// * Entities which had a component modified
       ///
       /// \param[in] _state New serialized state.
-      /// \detail The header of the message will not be populated, it is the
+      /// \details The header of the message will not be populated, it is the
       /// responsibility of the caller to timestamp it before use.
       public: void ChangedState(msgs::SerializedStateMap &_state) const;
 
@@ -561,7 +563,7 @@ namespace ignition
       /// one will be created.
       /// Entities / components that are marked as removed will be removed, but
       /// they won't be removed if they're not present in the state.
-      /// \detail The header of the message will not be handled, it is the
+      /// \details The header of the message will not be handled, it is the
       /// responsibility of the caller to use the timestamp.
       /// \param[in] _stateMsg Message containing state to be set.
       public: void SetState(const msgs::SerializedStateMap &_stateMsg);
@@ -657,9 +659,11 @@ namespace ignition
       /// \brief Find a view based on the provided component type ids.
       /// \param[in] _types The component type ids that serve as a key into
       /// a map of views.
-      /// \return A pointer to the view. nullptr is returned if the view wasn't
-      /// found.
-      private: detail::BaseView *FindView(
+      /// \return A pair containing a the view itself and a mutex that can be
+      /// used for locking the view while entities are being added to it.
+      /// If a view defined by _types does not exist, the pair will contain
+      /// nullptrs.
+      private: std::pair<detail::BaseView *, std::mutex *> FindView(
                    const std::vector<ComponentTypeId> &_types) const;
 
       /// \brief Add a new view to the set of stored views.
@@ -696,6 +700,22 @@ namespace ignition
           Entity _entity,
           const std::unordered_set<ComponentTypeId> &_types = {},
           bool _full = false) const;
+
+      /// \brief Set whether views should be locked when entities are being
+      /// added to them. This can be used to prevent race conditions in
+      /// system PostUpdates, since these are run in parallel (entities are
+      /// added to views when the view is used, so if two systems try to access
+      /// the same view in PostUpdate, we run the risk of multiple threads
+      /// reading/writing from the same data).
+      /// \param[in] _lock Whether the views should lock while entities are
+      /// being added to them (true) or not (false).
+      private: void LockAddingEntitiesToViews(bool _lock);
+
+      /// \brief Get whether views should be locked when entities are being
+      /// added to them.
+      /// \return True if views should be locked during entitiy addition, false
+      /// otherwise.
+      private: bool LockAddingEntitiesToViews() const;
 
       // Make runners friends so that they can manage entity creation and
       // removal. This should be safe since runners are internal

@@ -298,11 +298,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
         const std::string &_savePath);
 
     /// \brief Set whether to record video using sim time as timestamp
-    /// \param[in] _true True record video using sim time
+    /// \param[in] _useSimTime True record video using sim time
     public: void SetRecordVideoUseSimTime(bool _useSimTime);
 
     /// \brief Set whether to record video in lockstep mode
-    /// \param[in] _true True to record video in lockstep mode
+    /// \param[in] _lockstep True to record video in lockstep mode
     public: void SetRecordVideoLockstep(bool _lockstep);
 
     /// \brief Set video recorder bitrate in bps
@@ -365,7 +365,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief True to set the camera to follow the target in world frame,
     /// false to follow in target's local frame
-    /// \param[in] _gain Camera follow p gain.
+    /// \param[in] _worldFrame True to use the world frame.
     public: void SetFollowWorldFrame(bool _worldFrame);
 
     /// \brief Set the camera follow offset position
@@ -505,7 +505,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Retrieve the point on a plane at z = 0 in the 3D scene hit by a
     /// ray cast from the given 2D screen coordinates.
-    /// \param[in] _screenPod 2D coordinates on the screen, in pixels.
+    /// \param[in] _screenPos 2D coordinates on the screen, in pixels.
     /// \return 3D coordinates of a point in the 3D scene.
     public: math::Vector3d ScreenToPlane(const math::Vector2i &_screenPos)
         const;
@@ -673,11 +673,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
         const std::string &_savePath);
 
     /// \brief Set whether to record video using sim time as timestamp
-    /// \param[in] _true True record video using sim time
+    /// \param[in] _useSimTime True record video using sim time
     public: void SetRecordVideoUseSimTime(bool _useSimTime);
 
     /// \brief Set whether to record video in lockstep mode
-    /// \param[in] _true True to record video in lockstep mode
+    /// \param[in] _lockstep True to record video in lockstep mode
     public: void SetRecordVideoLockstep(bool _lockstep);
 
     /// \brief Set video recorder bitrate in bps
@@ -740,7 +740,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief True to set the camera to follow the target in world frame,
     /// false to follow in target's local frame
-    /// \param[in] _gain Camera follow p gain.
+    /// \param[in] _worldFrame True to use the world frame.
     public: void SetFollowWorldFrame(bool _worldFrame);
 
     /// \brief Set the camera follow offset position
