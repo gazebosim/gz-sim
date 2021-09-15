@@ -212,6 +212,8 @@ namespace gazebo
 
     /// \brief Callback when a request is made to download a fuel resource.
     /// \param[in] _path URI to the fuel resource
+    /// \param[in] _name Name of the resource
+    /// \param[in] _owner The name of the owner
     /// \param[in] index The index of the grid pane to update
     public slots: void OnDownloadFuelResource(const QString &_path,
         const QString &_name, const QString &_owner, int index);
@@ -231,7 +233,7 @@ namespace gazebo
     /// sets the model's thumbnail path attribute to it, no action is
     /// taken if no thumbnail is found.
     /// \param[in] _thumbnailPath The path to search for a thumbnail
-    /// \param[in] _model The model to update with the thumbnail information
+    /// \param[in] _resource The model to update with the thumbnail information
     public: void SetThumbnail(const std::string &_thumbnailPath,
                 Resource &_resource);
 

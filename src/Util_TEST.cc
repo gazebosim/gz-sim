@@ -35,17 +35,14 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Util.hh"
 
+#include "helpers/EnvTestFixture.hh"
+
 using namespace ignition;
 using namespace gazebo;
 
 /// \brief Tests for Util.hh
-class UtilTest : public ::testing::Test
+class UtilTest : public InternalFixture<::testing::Test>
 {
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    common::Console::SetVerbosity(4);
-  }
 };
 
 /////////////////////////////////////////////////

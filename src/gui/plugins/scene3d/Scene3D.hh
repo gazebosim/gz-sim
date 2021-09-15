@@ -80,6 +80,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   {
     Q_OBJECT
 
+    /// \brief Text for popup error
+    Q_PROPERTY(
+      QString errorPopupText
+      READ ErrorPopupText
+      WRITE SetErrorPopupText
+      NOTIFY ErrorPopupTextChanged
+    )
+
     /// \brief Constructor
     public: Scene3D();
 
@@ -168,6 +176,22 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: bool OnViewCollisions(const msgs::StringMsg &_msg,
         msgs::Boolean &_res);
 
+    /// \brief Get the text for the popup error message
+    /// \return The error text
+    public: Q_INVOKABLE QString ErrorPopupText() const;
+
+    /// \brief Set the text for the popup error message
+    /// \param[in] _errorTxt The error text
+    public: Q_INVOKABLE void SetErrorPopupText(const QString &_errorTxt);
+
+    /// \brief Notify the popup error text has changed
+    signals: void ErrorPopupTextChanged();
+
+    /// \brief Notify that an error has occurred (opens popup)
+    /// Note that the function name needs to start with lowercase in order for
+    /// the connection to work on the QML side
+    signals: void popupError();
+
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<Scene3DPrivate> dataPtr;
@@ -226,11 +250,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
         const std::string &_savePath);
 
     /// \brief Set whether to record video using sim time as timestamp
-    /// \param[in] _true True record video using sim time
+    /// \param[in] _useSimTime True record video using sim time
     public: void SetRecordVideoUseSimTime(bool _useSimTime);
 
     /// \brief Set whether to record video in lockstep mode
-    /// \param[in] _true True to record video in lockstep mode
+    /// \param[in] _lockstep True to record video in lockstep mode
     public: void SetRecordVideoLockstep(bool _lockstep);
 
     /// \brief Set video recorder bitrate in bps
@@ -269,7 +293,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief True to set the camera to follow the target in world frame,
     /// false to follow in target's local frame
-    /// \param[in] _gain Camera follow p gain.
+    /// \param[in] _worldFrame True to use the world frame.
     public: void SetFollowWorldFrame(bool _worldFrame);
 
     /// \brief Set the camera follow offset position
@@ -409,7 +433,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Retrieve the point on a plane at z = 0 in the 3D scene hit by a
     /// ray cast from the given 2D screen coordinates.
-    /// \param[in] _screenPod 2D coordinates on the screen, in pixels.
+    /// \param[in] _screenPos 2D coordinates on the screen, in pixels.
     /// \return 3D coordinates of a point in the 3D scene.
     public: math::Vector3d ScreenToPlane(const math::Vector2i &_screenPos)
         const;
@@ -572,11 +596,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
         const std::string &_savePath);
 
     /// \brief Set whether to record video using sim time as timestamp
-    /// \param[in] _true True record video using sim time
+    /// \param[in] _useSimTime True record video using sim time
     public: void SetRecordVideoUseSimTime(bool _useSimTime);
 
     /// \brief Set whether to record video in lockstep mode
-    /// \param[in] _true True to record video in lockstep mode
+    /// \param[in] _lockstep True to record video in lockstep mode
     public: void SetRecordVideoLockstep(bool _lockstep);
 
     /// \brief Set video recorder bitrate in bps
@@ -615,7 +639,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief True to set the camera to follow the target in world frame,
     /// false to follow in target's local frame
-    /// \param[in] _gain Camera follow p gain.
+    /// \param[in] _worldFrame True to use the world frame.
     public: void SetFollowWorldFrame(bool _worldFrame);
 
     /// \brief Set the camera follow offset position

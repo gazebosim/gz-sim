@@ -19,7 +19,6 @@
 
 #include <memory>
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
 
 namespace ignition
@@ -37,10 +36,10 @@ namespace systems
   **/
   /// \brief Record video from a camera sensor
   /// The system takes in the following parameter:
-  ///   <topic>    Name of topic for the video recorder service. If this is
-  ///              not specified, the topic defaults to:
-  ///              /world/<world_name/model/<model_name>/link/<link_name>/
-  ///                  sensor/<sensor_name>/record_video
+  ///   - `<topic>` Name of topic for the video recorder service. If this is
+  ///              not specified, the topic defaults to: <br>
+  ///              `/world/<world_name/model/<model_name>/link/<link_name>/`
+  ///                  `sensor/<sensor_name>/record_video`
   class CameraVideoRecorder:
     public System,
     public ISystemConfigure,
@@ -70,4 +69,3 @@ namespace systems
 }
 }
 #endif
-

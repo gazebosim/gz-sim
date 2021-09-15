@@ -27,6 +27,7 @@
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"
 
+#include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
 
 #define tol 10e-4
@@ -36,16 +37,9 @@ using namespace gazebo;
 using namespace std::chrono_literals;
 
 /// \brief Test AckermannSteering system
-class AckermannSteeringTest : public ::testing::TestWithParam<int>
+class AckermannSteeringTest
+  : public InternalFixture<::testing::TestWithParam<int>>
 {
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    common::Console::SetVerbosity(4);
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
-  }
-
   /// \param[in] _sdfFile SDF file to load.
   /// \param[in] _cmdVelTopic Command velocity topic.
   /// \param[in] _odomTopic Odometry topic.

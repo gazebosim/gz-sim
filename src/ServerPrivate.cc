@@ -26,8 +26,6 @@
 
 #include <ignition/fuel_tools/Interface.hh>
 
-#include <ignition/gui/Application.hh>
-
 #include "ignition/gazebo/Util.hh"
 #include "SimulationRunner.hh"
 
@@ -234,12 +232,8 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
 
   if (sdfUseLogRecord)
   {
-    bool hasCompress {false};
-    bool sdfCompress;
     std::tie(sdfRecordResources, hasRecordResources) =
       recordPluginElem->Get<bool>("record_resources", false);
-    std::tie(sdfCompress, hasCompress) =
-      recordPluginElem->Get<bool>("compress", false);
 
     hasRecordTopics = recordPluginElem->HasElement("record_topic");
     if (hasRecordTopics)

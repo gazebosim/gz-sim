@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 #include <ignition/common/Console.hh>
 #include <ignition/math/Pose3.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/Name.hh"
@@ -27,6 +28,7 @@
 #include "ignition/gazebo/test_config.hh"
 
 #include "plugins/MockSystem.hh"
+#include "../helpers/EnvTestFixture.hh"
 
 #define tol 10e-4
 
@@ -35,15 +37,8 @@ using namespace gazebo;
 using namespace std::chrono_literals;
 
 /// \brief Test FollowActor system
-class FollowActorTest : public ::testing::TestWithParam<int>
+class FollowActorTest : public InternalFixture<::testing::TestWithParam<int>>
 {
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    common::Console::SetVerbosity(4);
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
-  }
 };
 
 class Relay
@@ -88,7 +83,7 @@ class Relay
 
 
 /////////////////////////////////////////////////
-TEST_P(FollowActorTest, PublishCmd)
+TEST_P(FollowActorTest, IGN_UTILS_TEST_DISABLED_ON_MAC(PublishCmd))
 {
   // Start server
   ServerConfig serverConfig;

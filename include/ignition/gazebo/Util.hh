@@ -218,7 +218,7 @@ namespace ignition
     /// \return True if a component was created or removed, false if nothing
     /// changed.
     template <class ComponentType>
-    bool IGNITION_GAZEBO_VISIBLE enableComponent(EntityComponentManager &_ecm,
+    bool enableComponent(EntityComponentManager &_ecm,
         Entity _entity, bool _enable = true)
     {
       bool changed{false};
@@ -244,7 +244,7 @@ namespace ignition
     /// `<include>`
     const std::string kSdfPathEnv{"SDF_PATH"};
 
-    /// \breif Environment variable holding server config paths.
+    /// \brief Environment variable holding server config paths.
     const std::string kServerConfigPathEnv{"IGN_GAZEBO_SERVER_CONFIG_PATH"};
 
     /// \brief Environment variable holding paths to custom rendering engine
