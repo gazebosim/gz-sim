@@ -2,6 +2,44 @@
 
 ### Ignition Gazebo 4.x.x (202x-xx-xx)
 
+### Ignition Gazebo 4.x.x (2021-09-15)
+
+1. Fixed GUI's ComponentInspector light parameter
+    * [Pull Request 1018](https://github.com/ignitionrobotics/ign-gazebo/pull/1018)
+
+1. Fix msg in entity_creation example
+    * [Pull Request 972](https://github.com/ignitionrobotics/ign-gazebo/pull/972)
+
+1. Fix selection buffer crash on resize
+    * [Pull Request 969](https://github.com/ignitionrobotics/ign-gazebo/pull/969)
+
+1. Fix crash in the follow_actor example
+    * [Pull Request 958](https://github.com/ignitionrobotics/ign-gazebo/pull/958)
+
+1. Fix joint controller with empty joint velocity data
+    * [Pull Request 937](https://github.com/ignitionrobotics/ign-gazebo/pull/937)
+
+1. Scale mode - Part2
+    * [Pull Request 881](https://github.com/ignitionrobotics/ign-gazebo/pull/881)
+
+1. Physics system: update link poses if the canonical link pose has been updated
+    * [Pull Request 876](https://github.com/ignitionrobotics/ign-gazebo/pull/876)
+
+1. Add Particle Emitter tutorial
+    * [Pull Request 860](https://github.com/ignitionrobotics/ign-gazebo/pull/860)
+
+1. Refactor RenderUtil::Update with helper functions
+    * [Pull Request 858](https://github.com/ignitionrobotics/ign-gazebo/pull/858)
+
+1. Remove unneeded camera follow offset checks
+    * [Pull Request 857](https://github.com/ignitionrobotics/ign-gazebo/pull/857)
+
+1. Added service to set camera's follow offset
+    * [Pull Request 855](https://github.com/ignitionrobotics/ign-gazebo/pull/855)
+
+1. Using math::SpeedLimiter on the ackermann_steering controller.
+    * [Pull Request 837](https://github.com/ignitionrobotics/ign-gazebo/pull/837)
+
 ### Ignition Gazebo 4.9.1 (2021-05-24)
 
 1. Make halt motion act like a brake.
