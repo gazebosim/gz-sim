@@ -21,6 +21,8 @@
 #include <mutex>
 #include <string>
 
+#include <ignition/gazebo/components/Gravity.hh>
+#include <ignition/gazebo/components/World.hh>
 #include <ignition/gazebo/Link.hh>
 #include <ignition/msgs/double.pb.h>
 #include <ignition/plugin/Register.hh>
@@ -58,8 +60,8 @@ class ignition::gazebo::systems::BuoyancyEnginePrivateData
   /// \brief The link which the bladder is attached to
   public: ignition::gazebo::Entity linkEntity;
 
-  /// \brief The gravitational force kg*m*s^-2
-  public: double gravity = 9.81;
+  /// \brief The world component
+  public: Entity world;
 
   /// \brief The fluid density in kg*m^-3
   public: double fluidDensity = 1000;
@@ -145,6 +147,13 @@ void BuoyancyEnginePlugin::Configure(
     this->dataPtr->neutralVolume = _sdf->Get<double>("neutral_volume");
   }
 
+  this->dataPtr->world = _ecm.EntityByComponents(components::World());
+  if(this->dataPtr->world == kNullEntity)
+  {
+    ignerr << "World entity not found" <<std::endl;
+    return;
+  }
+
   std::string cmdTopic = "/buoyancy_engine/";
   std::string statusTopic = "/buoyancy_engine/current_volume";
   if (_sdf->HasElement("namespace"))
@@ -185,7 +194,15 @@ void BuoyancyEnginePlugin::PreUpdate(
 
   ignition::msgs::Double msg;
 
-  double zForce;
+  const components::Gravity *gravity = _ecm.Component<components::Gravity>(
+    this->dataPtr->world);
+  if(!gravity)
+  {
+    ignerr << "World has no gravity component" << std::endl;
+    return;
+  }
+
+  math::Vector3d zForce;
   {
     std::lock_guard lock(this->dataPtr->mtx);
     /// Adjust the bladder volume using the pump. Assume ability to pump at
@@ -214,11 +231,11 @@ void BuoyancyEnginePlugin::PreUpdate(
     // Simply use Archimede's principle to apply a force at the desired link
     // position. We take off the neutral buoyancy element in order to simulate
     // the mass of the oil in the bladder.
-    zForce = this->dataPtr->gravity * this->dataPtr->fluidDensity
+    zForce = - gravity->Data() * this->dataPtr->fluidDensity
       * (this->dataPtr->bladderVolume - this->dataPtr->neutralVolume);
   }
   ignition::gazebo::Link link(this->dataPtr->linkEntity);
-  link.AddWorldWrench(_ecm, {0, 0, zForce}, {0, 0, 0});
+  link.AddWorldWrench(_ecm, zForce, {0, 0, 0});
 }
 
 IGNITION_ADD_PLUGIN(
