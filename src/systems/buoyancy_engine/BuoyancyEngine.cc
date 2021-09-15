@@ -36,9 +36,9 @@ class ignition::gazebo::systems::BuoyancyEnginePrivateData
 {
   /// \brief Callback for incoming commands
   /// \param[in] volumeSetPoint - ignition message containing the desired volume
-  /// (in cc) to fill/drain bladder to.
+  /// (in m^3) to fill/drain bladder to.
   public: void OnCmdBuoyancyEngine(
-    const ignition::msgs::Double& volumeSetPoint);
+    const ignition::msgs::Double &_volumeSetPoint);
 
   /// \brief current volume of bladder in m^3
   public: double bladderVolume = 3e-5;
@@ -73,15 +73,15 @@ class ignition::gazebo::systems::BuoyancyEnginePrivateData
   /// \brief Get bladder status
   public: ignition::transport::Node::Publisher statusPub;
 
-  /// \brief mutex
+  /// \brief mutex for protecting bladder volume and set point.
   public: std::mutex mtx;
 };
 
 //////////////////////////////////////////////////
 void BuoyancyEnginePrivateData::OnCmdBuoyancyEngine(
-  const ignition::msgs::Double& volumeSetpoint)
+  const ignition::msgs::Double &_volumeSetpoint)
 {
-  auto volume = std::max(this->minVolume, volumeSetpoint.data());
+  auto volume = std::max(this->minVolume, _volumeSetpoint.data());
   volume = std::min(volume, this->maxVolume);
 
   std::lock_guard lock(this->mtx);
@@ -108,8 +108,15 @@ void BuoyancyEnginePlugin::Configure(
     ignerr << "Buoyancy Engine must be attached to some link."  << std::endl;
     return;
   }
+  
   this->dataPtr->linkEntity =
     model.LinkByName(_ecm, _sdf->Get<std::string>("link_name"));
+  if (this->dataPtr->linkEntity == kNullEntity)
+  {
+    ignerr << "link " << _sdf->Get<std::string>("link_name") 
+      << "was not found in " << model.Name(_ecm) << std::endl;
+    return;
+  }
 
   if (_sdf->HasElement("min_volume"))
   {
@@ -178,7 +185,7 @@ void BuoyancyEnginePlugin::PreUpdate(
 
   ignition::msgs::Double msg;
 
-  double forceMag;
+  double zForce;
   {
     std::lock_guard lock(this->dataPtr->mtx);
     /// Adjust the bladder volume using the pump. Assume ability to pump at
@@ -207,11 +214,11 @@ void BuoyancyEnginePlugin::PreUpdate(
     // Simply use Archimede's principle to apply a force at the desired link
     // position. We take off the neutral buoyancy element in order to simulate
     // the mass of the oil in the bladder.
-    forceMag = this->dataPtr->gravity * this->dataPtr->fluidDensity
+    zForce = this->dataPtr->gravity * this->dataPtr->fluidDensity
       * (this->dataPtr->bladderVolume - this->dataPtr->neutralVolume);
   }
   ignition::gazebo::Link link(this->dataPtr->linkEntity);
-  link.AddWorldWrench(_ecm, {0, 0, forceMag}, {0, 0, 0});
+  link.AddWorldWrench(_ecm, {0, 0, zForce}, {0, 0, 0});
 }
 
 IGNITION_ADD_PLUGIN(

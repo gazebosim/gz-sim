@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Open Source Robotics Foundation
+ * Copyright (C) 2021 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,19 +24,18 @@
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Model.hh"
 
-
 #include "ignition/gazebo/test_config.hh"
 #include "../helpers/Relay.hh"
+#include "../helpers/EnvTestFixture.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
-class BuoyancyEngineTest : public InternalFixture<:::testing::Test>
+class BuoyancyEngineTest : public InternalFixture<::testing::Test>
 {
   // Documentation inherited
   protected: void SetUp() override
@@ -81,6 +80,7 @@ TEST_F(BuoyancyEngineTest, TestDownward)
       components::Model(), components::Name("buoyant_box"));
 
     auto submarineBuoyantPose = _ecm.Component<components::Pose>(buoyantBox);
+    EXPECT_NE(submarineBuoyantPose, nullptr);
     if (submarineBuoyantPose == nullptr)
     {
       ignerr << "Unable to get pose" <<std::endl;
@@ -128,6 +128,7 @@ TEST_F(BuoyancyEngineTest, TestUpward)
       components::Model(), components::Name("buoyant_box"));
 
     auto submarineBuoyantPose = _ecm.Component<components::Pose>(buoyantBox);
+    EXPECT_NE(submarineBuoyantPose, nullptr);
     if (submarineBuoyantPose == nullptr)
     {
       ignerr << "Unable to get pose" <<std::endl;
