@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2021 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_BALLAST_HH_
-#define IGNITION_GAZEBO_SYSTEMS_BALLAST_HH_
+#ifndef IGNITION_GAZEBO_SYSTEMS_BUOYANCYENGINE_HH_
+#define IGNITION_GAZEBO_SYSTEMS_BUOYANCYENGINE_HH_
 
 #include <ignition/gazebo/System.hh>
 
@@ -67,18 +67,18 @@ namespace systems
   /// ```
   /// Enter the following in a separate terminal:
   /// ```
-  /// ign topic -t  /model/tethys/buoyancy_engine/ -m ignition.msgs.Double \
+  /// ign topic -t  /model/buoyant_box/buoyancy_engine/ -m ignition.msgs.Double
   ///    -p "data: 0.003"
   /// ```
   /// To see the box float up.
   /// ```
-  /// ign topic -t  /model/tethys/buoyancy_engine/ -m ignition.msgs.Double \
+  /// ign topic -t  /model/buoyant_box/buoyancy_engine/ -m ignition.msgs.Double
   ///    -p "data: 0.001"
   /// ```
   /// To see the box go down.
   /// To see the current volume enter:
   /// ```
-  /// ign topic -t  /model/tethys/buoyancy_engine/current_volume -e
+  /// ign topic -t  /model/buoyant_box/buoyancy_engine/current_volume -e
   /// ```
   class BuoyancyEnginePlugin:
     public ignition::gazebo::System,
@@ -100,7 +100,6 @@ namespace systems
         const ignition::gazebo::UpdateInfo &_info,
         ignition::gazebo::EntityComponentManager &_ecm);
 
-    /// Inherits documentation from parent class
     private: std::unique_ptr<BuoyancyEnginePrivateData> dataPtr;
   };
 }
