@@ -133,6 +133,10 @@ void BuoyancyPrivate::GradedFluidDensity(
     math::Planed plane{math::Vector3d{0, 0, 1}, height - _pose.Pos().Z()};
     auto vol = _shape.VolumeBelow(plane);
 
+    // Short circuit.
+    if (vol <= 0)
+      continue;
+
     // Archimedes principal for this layer
     auto forceMag =  - (vol - prevLayerVol) * _gravity * prevLayerFluidDensity;
 
@@ -142,7 +146,8 @@ void BuoyancyPrivate::GradedFluidDensity(
     // Calculate point from which force is applied
     auto cov = _shape.CenterOfVolumeBelow(plane);
 
-    if(!cov.has_value()) continue;
+    if(!cov.has_value())
+      continue;
 
     auto cob = (cov.value() * vol - centerOfBuoyancy * prevLayerVol)
       / (vol - prevLayerVol);
@@ -160,11 +165,11 @@ void BuoyancyPrivate::GradedFluidDensity(
   // For the rest of the layers.
   auto vol = _shape.Volume();
 
+  // No force contributed by this layer.
+  if (abs(vol - prevLayerVol) < 1e-10) return;
+
   // Archimedes principal for this layer
   auto forceMag = - (vol - prevLayerVol) * _gravity * prevLayerFluidDensity;
-
-  // No force contributed by this layer.
-  if ((vol - prevLayerVol) == 0) return;
 
   // Calculate centre of buoyancy
   auto cov = math::Vector3d{0, 0, 0};
