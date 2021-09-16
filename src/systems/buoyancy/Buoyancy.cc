@@ -124,7 +124,7 @@ void BuoyancyPrivate::GradedFluidDensity(
   const math::Pose3d &_pose, const T &_shape, const math::Vector3d _gravity)
 {
   auto prevLayerFluidDensity = this->fluidDensity;
-  auto volsum = 0.0;
+  auto prevLayerVol = 0.0;
   auto centerOfBuoyancy = math::Vector3d{0, 0, 0};
 
   for(auto [height, currFluidDensity] : layers)
@@ -134,7 +134,7 @@ void BuoyancyPrivate::GradedFluidDensity(
     auto vol = _shape.VolumeBelow(plane);
 
     // Archimedes principal for this layer
-    auto forceMag =  - (vol - volsum) * _gravity * prevLayerFluidDensity;
+    auto forceMag =  - (vol - prevLayerVol) * _gravity * prevLayerFluidDensity;
 
     // Accumulate layers.
     prevLayerFluidDensity = currFluidDensity;
@@ -144,7 +144,8 @@ void BuoyancyPrivate::GradedFluidDensity(
 
     if(!cov.has_value()) continue;
 
-    auto cob = (cov.value() * vol - centerOfBuoyancy * volsum) / (vol - volsum);
+    auto cob = (cov.value() * vol - centerOfBuoyancy * prevLayerVol)
+      / (vol - prevLayerVol);
     centerOfBuoyancy = cov.value();
     auto buoyancyAction = BuoyancyActionPoint
     {
@@ -154,20 +155,21 @@ void BuoyancyPrivate::GradedFluidDensity(
     };
     buoyancyForces.push_back(buoyancyAction);
 
-    volsum = vol;
+    prevLayerVol = vol;
   }
   // For the rest of the layers.
   auto vol = _shape.Volume();
 
   // Archimedes principal for this layer
-  auto forceMag = - (vol - volsum) * _gravity * prevLayerFluidDensity;
+  auto forceMag = - (vol - prevLayerVol) * _gravity * prevLayerFluidDensity;
 
   // No force contributed by this layer.
-  if ((vol - volsum) == 0) return;
+  if ((vol - prevLayerVol) == 0) return;
 
   // Calculate centre of buoyancy
   auto cov = math::Vector3d{0, 0, 0};
-  auto cob = (cov * vol - centerOfBuoyancy * volsum) / (vol - volsum);
+  auto cob =
+    (cov * vol - centerOfBuoyancy * prevLayerVol) / (vol - prevLayerVol);
   centerOfBuoyancy = cov;
   auto buoyancyAction = BuoyancyActionPoint
   {
