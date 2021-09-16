@@ -78,12 +78,12 @@ class ignition::gazebo::systems::BuoyancyPrivate
   /// \param[in] _pose The pose of the shape.
   /// \param[in] _shape The collision mesh of a shape. Currently must
   /// be one of box, cylinder or sphere.
-  /// \return a pair containing {force, center_of_volume} to be applied on the
-  /// link.
+  /// Updates this->buoyancyForces containing {force, center_of_volume} to be
+  /// applied on the link.
   public:
   template<typename T>
   void GradedFluidDensity(
-    const math::Pose3d &_pose, const T &_shape, const math::Vector3d _gravity);
+    const math::Pose3d &_pose, const T &_shape, const math::Vector3d &_gravity);
 
   /// \brief Model interface
   public: Entity world{kNullEntity};
@@ -108,7 +108,7 @@ class ignition::gazebo::systems::BuoyancyPrivate
 
   public: std::vector<BuoyancyActionPoint> buoyancyForces;
 
-  public: std::pair<math::Vector3d, math::Vector3d> resolveForces(
+  public: std::pair<math::Vector3d, math::Vector3d> ResolveForces(
     const math::Pose3d &_pose);
 };
 
@@ -121,13 +121,13 @@ double BuoyancyPrivate::UniformFluidDensity(const math::Pose3d &/*_pose*/) const
 //////////////////////////////////////////////////
 template<typename T>
 void BuoyancyPrivate::GradedFluidDensity(
-  const math::Pose3d &_pose, const T &_shape, const math::Vector3d _gravity)
+  const math::Pose3d &_pose, const T &_shape, const math::Vector3d &_gravity)
 {
   auto prevLayerFluidDensity = this->fluidDensity;
   auto prevLayerVol = 0.0;
   auto centerOfBuoyancy = math::Vector3d{0, 0, 0};
 
-  for(auto [height, currFluidDensity] : layers)
+  for(auto [height, currFluidDensity] : this->layers)
   {
     // TODO(arjo): Transform plane and slice the shape
     math::Planed plane{math::Vector3d{0, 0, 1}, height - _pose.Pos().Z()};
@@ -181,7 +181,7 @@ void BuoyancyPrivate::GradedFluidDensity(
 }
 
 //////////////////////////////////////////////////
-std::pair<math::Vector3d, math::Vector3d> BuoyancyPrivate::resolveForces(
+std::pair<math::Vector3d, math::Vector3d> BuoyancyPrivate::ResolveForces(
   const math::Pose3d &_pose)
 {
   auto force = math::Vector3d{0, 0, 0};
@@ -456,13 +456,13 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
                 gravity->Data());
               break;
             default:
-              ignerr << "Only <box> and <sphere> collisions are supported by "
+              ignwarn << "Only <box> and <sphere> collisions are supported by "
                 << "the graded buoyancy option." << std::endl;
               break;
           }
         }
       }
-      auto [force, torque]= this->dataPtr->resolveForces(
+      auto [force, torque]= this->dataPtr->ResolveForces(
         link.WorldInertialPose(_ecm).value());
       // Apply the wrench to the link. This wrench is applied in the
       // Physics System.
