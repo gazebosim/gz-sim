@@ -5,6 +5,13 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
+## Ignition Math 6.8 to 6.9
+
+1. **SphericalCoordinates**: A bug related to the LOCAL frame was fixed. To
+   preserve behaviour, the `LOCAL` frame was left with the bug, and a new
+   `LOCAL2` frame was introduced, which can be used to get the correct
+   calculations.
+
 ## Ignition Math 4.X to 5.X
 
 ### Additions

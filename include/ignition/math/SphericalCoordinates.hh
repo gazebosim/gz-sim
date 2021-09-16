@@ -34,7 +34,6 @@ namespace ignition
     //
     class SphericalCoordinatesPrivate;
 
-    /// \class SphericalCoordinates SphericalCoordinates.hh commmon/common.hh
     /// \brief Convert spherical coordinates for planetary surfaces.
     class IGNITION_MATH_VISIBLE SphericalCoordinates
     {
@@ -61,7 +60,12 @@ namespace ignition
                 GLOBAL = 3,
 
                 /// \brief Heading-adjusted tangent plane (X, Y, Z)
-                LOCAL = 4
+                /// This has kept a bug for backwards compatibility, use
+                /// LOCAL2 for the correct behaviour.
+                LOCAL = 4,
+
+                /// \brief Heading-adjusted tangent plane (X, Y, Z)
+                LOCAL2 = 5
               };
 
       /// \brief Constructor.
@@ -91,7 +95,16 @@ namespace ignition
       public: ~SphericalCoordinates();
 
       /// \brief Convert a Cartesian position vector to geodetic coordinates.
-      /// \param[in] _xyz Cartesian position vector in the world frame.
+      /// This performs a `PositionTransform` from LOCAL to SPHERICAL.
+      ///
+      /// There's a known bug with this computation that can't be fixed on
+      /// version 6 to avoid behaviour changes. Directly call
+      /// `PositionTransform(_xyz, LOCAL2, SPHERICAL)` for correct results.
+      /// Note that `PositionTransform` returns spherical coordinates in
+      /// radians.
+      ///
+      /// \param[in] _xyz Cartesian position vector in the heading-adjusted
+      /// world frame.
       /// \return Cooordinates: geodetic latitude (deg), longitude (deg),
       ///         altitude above sea level (m).
       public: ignition::math::Vector3d SphericalFromLocalPosition(
@@ -99,7 +112,14 @@ namespace ignition
 
       /// \brief Convert a Cartesian velocity vector in the local frame
       ///        to a global Cartesian frame with components East, North, Up.
-      /// \param[in] _xyz Cartesian velocity vector in the world frame.
+      /// This is a wrapper around `VelocityTransform(_xyz, LOCAL, GLOBAL)`
+      ///
+      /// There's a known bug with this computation that can't be fixed on
+      /// version 6 to avoid behaviour changes. Directly call
+      /// `VelocityTransform(_xyz, LOCAL2, GLOBAL)` for correct results.
+      ///
+      /// \param[in] _xyz Cartesian velocity vector in the heading-adjusted
+      /// world frame.
       /// \return Rotated vector with components (x,y,z): (East, North, Up).
       public: ignition::math::Vector3d GlobalFromLocalVelocity(
                   const ignition::math::Vector3d &_xyz) const;
@@ -109,6 +129,11 @@ namespace ignition
       /// \param[in] _str String to convert.
       /// \return Conversion to SurfaceType.
       public: static SurfaceType Convert(const std::string &_str);
+
+      /// \brief Convert a SurfaceType to a string.
+      /// \param[in] _type Surface type
+      /// \return Type as string
+      public: static std::string Convert(SurfaceType _type);
 
       /// \brief Get the distance between two points expressed in geographic
       /// latitude and longitude. It assumes that both points are at sea level.
@@ -167,13 +192,16 @@ namespace ignition
       public: void SetHeadingOffset(const ignition::math::Angle &_angle);
 
       /// \brief Convert a geodetic position vector to Cartesian coordinates.
-      /// \param[in] _xyz Geodetic position in the planetary frame of reference
-      /// \return Cartesian position vector in the world frame
+      /// This performs a `PositionTransform` from SPHERICAL to LOCAL.
+      /// \param[in] _latLonEle Geodetic position in the planetary frame of
+      /// reference. X: latitude (deg), Y: longitude (deg), X: altitude.
+      /// \return Cartesian position vector in the heading-adjusted world frame.
       public: ignition::math::Vector3d LocalFromSphericalPosition(
-                  const ignition::math::Vector3d &_xyz) const;
+                  const ignition::math::Vector3d &_latLonEle) const;
 
       /// \brief Convert a Cartesian velocity vector with components East,
       /// North, Up to a local cartesian frame vector XYZ.
+      /// This is a wrapper around `VelocityTransform(_xyz, GLOBAL, LOCAL)`
       /// \param[in] _xyz Vector with components (x,y,z): (East, North, Up).
       /// \return Cartesian vector in the world frame.
       public: ignition::math::Vector3d LocalFromGlobalVelocity(
@@ -183,15 +211,17 @@ namespace ignition
       public: void UpdateTransformationMatrix();
 
       /// \brief Convert between positions in SPHERICAL/ECEF/LOCAL/GLOBAL frame
+      /// Spherical coordinates use radians, while the other frames use meters.
       /// \param[in] _pos Position vector in frame defined by parameter _in
       /// \param[in] _in  CoordinateType for input
       /// \param[in] _out CoordinateType for output
-      /// \return Transformed coordinate using cached orgin
+      /// \return Transformed coordinate using cached origin.
       public: ignition::math::Vector3d
               PositionTransform(const ignition::math::Vector3d &_pos,
                   const CoordinateType &_in, const CoordinateType &_out) const;
 
       /// \brief Convert between velocity in SPHERICAL/ECEF/LOCAL/GLOBAL frame
+      /// Spherical coordinates use radians, while the other frames use meters.
       /// \param[in] _vel Velocity vector in frame defined by parameter _in
       /// \param[in] _in  CoordinateType for input
       /// \param[in] _out CoordinateType for output
