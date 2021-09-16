@@ -137,9 +137,6 @@ void BuoyancyPrivate::GradedFluidDensity(
     if (vol <= 0)
       continue;
 
-    // Archimedes principal for this layer
-    auto forceMag =  - (vol - prevLayerVol) * _gravity * prevLayerFluidDensity;
-
     // Accumulate layers.
     prevLayerFluidDensity = currFluidDensity;
 
@@ -148,6 +145,9 @@ void BuoyancyPrivate::GradedFluidDensity(
 
     if(!cov.has_value())
       continue;
+
+    // Archimedes principal for this layer
+    auto forceMag =  - (vol - prevLayerVol) * _gravity * prevLayerFluidDensity;
 
     auto cob = (cov.value() * vol - centerOfBuoyancy * prevLayerVol)
       / (vol - prevLayerVol);
