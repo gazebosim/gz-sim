@@ -66,12 +66,13 @@ class ignition::gazebo::systems::JointPositionControllerPrivate
   public: unsigned int jointIndex = 0u;
 
   /// \brief Operation modes
-  enum OperationMode {
+  enum OperationMode
+  {
     /// \brief Use PID to achieve positional control
     PID,
     /// \brief Bypass PID completely. This means the joint will move to that
     /// position bypassing the physics engine.
-    ABSOLUTE
+    ABS
   };
 
   /// \brief Joint position mode
@@ -162,7 +163,7 @@ void JointPositionController::Configure(const Entity &_entity,
     if (useVelocityCommands)
     {
       this->dataPtr->mode =
-        JointPositionControllerPrivate::OperationMode::ABSOLUTE;
+        JointPositionControllerPrivate::OperationMode::ABS;
     }
   }
 
@@ -270,9 +271,9 @@ void JointPositionController::PreUpdate(
             this->dataPtr->jointPosCmd;
   }
 
-  // Check if the mode is ABSOLUTE
+  // Check if the mode is ABS
   if (this->dataPtr->mode ==
-    JointPositionControllerPrivate::OperationMode::ABSOLUTE)
+    JointPositionControllerPrivate::OperationMode::ABS)
   {
     // Calculate target velcity
     double targetVel = 0;
