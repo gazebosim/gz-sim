@@ -18,6 +18,8 @@
 #ifndef IGNITION_GUI_PLUGINS_ENTITY_CONTEXT_MENU_HH_
 #define IGNITION_GUI_PLUGINS_ENTITY_CONTEXT_MENU_HH_
 
+#include <memory>
+
 #include <ignition/common/MouseEvent.hh>
 
 #include <ignition/gui/Plugin.hh>
@@ -70,7 +72,8 @@ namespace gazebo
     /// \param[in] _entity Scoped name of entity.
     /// \param[in] _mouseX X coordinate of the right click
     /// \param[in] _mouseY Y coordinate of the right click
-    signals: void ContextMenuRequested(QString _entity, int _mouseX, int _mouseY);
+    signals: void ContextMenuRequested(
+      QString _entity, int _mouseX, int _mouseY);
   };
 
   /// \brief A QQUickItem that manages the render window
@@ -102,7 +105,8 @@ namespace gazebo
     /// \param[in] _entity Scoped name of entity.
     /// \param[in] _mouseX X coordinate of the right click
     /// \param[in] _mouseY Y coordinate of the right click
-    public slots: void OnContextMenuRequested(QString _entity, int _mouseX, int _mouseY);
+    public slots: void OnContextMenuRequested(
+      QString _entity, int _mouseX, int _mouseY);
   };
 }
 }

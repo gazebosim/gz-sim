@@ -17,7 +17,8 @@
 
 #include "EntityContextMenuPlugin.hh"
 
-#include <iostream>
+#include <memory>
+#include <utility>
 
 #include <QtQml>
 
@@ -150,16 +151,21 @@ EntityContextMenuItem::EntityContextMenuItem(QQuickItem *_parent)
 }
 
 /////////////////////////////////////////////////
-void EntityContextMenuItem::SetEntityContextMenuHanlder(EntityContextMenuHanlder &_entityContextMenuHanlder)
+void EntityContextMenuItem::SetEntityContextMenuHanlder(
+  EntityContextMenuHanlder &_entityContextMenuHanlder)
 {
   entityContextMenuHanlder = &_entityContextMenuHanlder;
-  this->connect(entityContextMenuHanlder,
-      &EntityContextMenuHanlder::ContextMenuRequested,
-      this, &EntityContextMenuItem::OnContextMenuRequested, Qt::QueuedConnection);
+  this->connect(
+    entityContextMenuHanlder,
+    &EntityContextMenuHanlder::ContextMenuRequested,
+    this,
+    &EntityContextMenuItem::OnContextMenuRequested,
+    Qt::QueuedConnection);
 }
 
 ///////////////////////////////////////////////////
-void EntityContextMenuItem::OnContextMenuRequested(QString _entity, int _mouseX, int _mouseY)
+void EntityContextMenuItem::OnContextMenuRequested(
+  QString _entity, int _mouseX, int _mouseY)
 {
   emit openContextMenu(std::move(_entity), _mouseX, _mouseY);
 }
@@ -169,8 +175,8 @@ EntityContextMenuHanlder::EntityContextMenuHanlder()
 {
 }
 
-void EntityContextMenuHanlder::HandleMouseContextMenu(const common::MouseEvent &_mouseEvent,
-  const rendering::CameraPtr &_camera)
+void EntityContextMenuHanlder::HandleMouseContextMenu(
+  const common::MouseEvent &_mouseEvent, const rendering::CameraPtr &_camera)
 {
   if (!_mouseEvent.Dragging() &&
       _mouseEvent.Type() == common::MouseEvent::RELEASE &&
@@ -183,7 +189,7 @@ void EntityContextMenuHanlder::HandleMouseContextMenu(const common::MouseEvent &
     if (dt.Length() > 5.0)
       return;
 
-    rendering::VisualPtr visual =_camera->Scene()->VisualAt(
+    rendering::VisualPtr visual = _camera->Scene()->VisualAt(
           _camera,
           _mouseEvent.Pos());
 
