@@ -93,8 +93,12 @@ if (PYTHONLIBS_FOUND)
       Kmeans_TEST
       Line2_TEST
       Line3_TEST
+      Matrix3_TEST
+      Matrix4_TEST
       PID_TEST
+      Pose3_TEST
       python_TEST
+      Quaternion_TEST
       Rand_TEST
       RollingMean_TEST
       SemanticVersion_TEST

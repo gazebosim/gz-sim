@@ -327,7 +327,7 @@ namespace ignition
       {
         // set the position to zero
         this->p.Set();
-        this->q = Quaterniond::Identity;
+        this->q = Quaternion<T>::Identity;
       }
 
       /// \brief Rotate vector part of a pose about the origin
