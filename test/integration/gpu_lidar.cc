@@ -28,6 +28,7 @@
 #include "ignition/gazebo/test_config.hh"
 
 #include "plugins/MockSystem.hh"
+#include "../helpers/EnvTestFixture.hh"
 
 #define LASER_TOL 1e-4
 
@@ -35,15 +36,8 @@ using namespace ignition;
 using namespace gazebo;
 
 /// \brief Test GpuLidarTest system
-class GpuLidarTest : public ::testing::Test
+class GpuLidarTest : public InternalFixture<::testing::Test>
 {
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    ignition::common::Console::SetVerbosity(4);
-    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
-  }
 };
 
 std::mutex mutex;

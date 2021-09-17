@@ -88,6 +88,14 @@ Item {
       }
     }
     MenuItem {
+      id: viewJointsMenu
+      text: "Joints"
+      onTriggered: {
+        menu.close()
+        context.OnRequest("view_joints", context.entity)
+      }
+    }
+    MenuItem {
       id: viewTransparentMenu
       text: "Transparent"
       onTriggered: {
@@ -116,6 +124,7 @@ Item {
     viewTransparentMenu.enabled = false;
     viewCOMMenu.enabled = false;
     viewInertiaMenu.enabled = false;
+    viewJointsMenu.enabled = false;
     viewWireframesMenu.enabled = false;
     viewCollisionsMenu.enabled = false;
 
@@ -140,6 +149,11 @@ Item {
       viewInertiaMenu.enabled = true;
       viewWireframesMenu.enabled = true;
       viewCollisionsMenu.enabled = true;
+    }
+
+    if (context.type == "model")
+    {
+      viewJointsMenu.enabled = true;
     }
 
     menu.open()

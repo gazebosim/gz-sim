@@ -134,6 +134,8 @@ void TreeModel::AddEntity(unsigned int _entity, const QString &_entityName,
 
   if (this->entityItems.find(_entity) != this->entityItems.end())
   {
+    ignwarn << "Internal error: Trying to create item for entity [" << _entity
+            << "], but entity already has an item." << std::endl;
     return;
   }
 
