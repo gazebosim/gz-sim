@@ -3,7 +3,7 @@
 This example shows you how to use the BuoyancyEngine system to
 control the buoyancy of an underwater glider. It uses Archimedes'
 principle to apply an upward force based on the volume of the bladder. It
-listens to the topic `buoyancy_engine` or 
+listens to the topic `buoyancy_engine` or
 /model/{namespace}/buoyancy_engine` topic for the volume of the bladder in
 *cubicmeters*.
 ## Parameters

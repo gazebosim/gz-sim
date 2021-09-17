@@ -88,9 +88,10 @@ namespace systems
     public ignition::gazebo::ISystemConfigure,
     public ignition::gazebo::ISystemPreUpdate
   {
+    /// \brief Constructor
     public: BuoyancyEnginePlugin();
 
-    /// Inherits documentation from parent class
+    // Documentation inherited
     public: void Configure(
         const ignition::gazebo::Entity &_entity,
         const std::shared_ptr<const sdf::Element> &_sdf,
@@ -98,11 +99,12 @@ namespace systems
         ignition::gazebo::EventManager &/*_eventMgr*/
     );
 
-    /// Inherits documentation from parent class
+    // Documentation inherited
     public: void PreUpdate(
         const ignition::gazebo::UpdateInfo &_info,
         ignition::gazebo::EntityComponentManager &_ecm);
 
+    /// \brief Private data pointer
     private: std::unique_ptr<BuoyancyEnginePrivateData> dataPtr;
   };
 }

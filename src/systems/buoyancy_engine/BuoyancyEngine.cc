@@ -37,18 +37,18 @@ using namespace systems;
 class ignition::gazebo::systems::BuoyancyEnginePrivateData
 {
   /// \brief Callback for incoming commands
-  /// \param[in] volumeSetPoint - ignition message containing the desired volume
-  /// (in m^3) to fill/drain bladder to.
+  /// \param[in] _volumeSetPoint - ignition message containing the desired
+  /// volume (in m^3) to fill/drain bladder to.
   public: void OnCmdBuoyancyEngine(
     const ignition::msgs::Double &_volumeSetPoint);
 
-  /// \brief current volume of bladder in m^3
+  /// \brief Current volume of bladder in m^3
   public: double bladderVolume = 3e-5;
 
   /// \brief Maximum inflation rate in m^3*s^-1
   public: double maxInflationRate = 3e-6;
 
-  /// \brief Set-point for volume
+  /// \brief Set-point for volume, in m^3
   public: double volumeSetPoint = 0.000030;
 
   /// \brief Minimum volume of bladder in m^3
@@ -58,10 +58,10 @@ class ignition::gazebo::systems::BuoyancyEnginePrivateData
   public: double maxVolume = 0.000990;
 
   /// \brief The link which the bladder is attached to
-  public: ignition::gazebo::Entity linkEntity;
+  public: ignition::gazebo::Entity linkEntity{kNullEntity};
 
-  /// \brief The world component
-  public: Entity world;
+  /// \brief The world entity
+  public: Entity world{kNullEntity};
 
   /// \brief The fluid density in kg*m^-3
   public: double fluidDensity = 1000;
@@ -72,7 +72,7 @@ class ignition::gazebo::systems::BuoyancyEnginePrivateData
   /// \brief Trasport node for control
   public: ignition::transport::Node node;
 
-  /// \brief Get bladder status
+  /// \brief Publishes bladder status
   public: ignition::transport::Node::Publisher statusPub;
 
   /// \brief mutex for protecting bladder volume and set point.
@@ -88,7 +88,6 @@ void BuoyancyEnginePrivateData::OnCmdBuoyancyEngine(
 
   std::lock_guard lock(this->mtx);
   this->volumeSetPoint = volume;
-  igndbg << "Updating volume " << volume <<"\n";
 }
 
 //////////////////////////////////////////////////
@@ -115,8 +114,8 @@ void BuoyancyEnginePlugin::Configure(
     model.LinkByName(_ecm, _sdf->Get<std::string>("link_name"));
   if (this->dataPtr->linkEntity == kNullEntity)
   {
-    ignerr << "link " << _sdf->Get<std::string>("link_name")
-      << "was not found in " << model.Name(_ecm) << std::endl;
+    ignerr << "Link [" << _sdf->Get<std::string>("link_name")
+      << "] was not found in model [" << model.Name(_ecm) << "]" << std::endl;
     return;
   }
 
@@ -147,8 +146,13 @@ void BuoyancyEnginePlugin::Configure(
     this->dataPtr->neutralVolume = _sdf->Get<double>("neutral_volume");
   }
 
+  if(_sdf->HasElement("max_inflation_rate"))
+  {
+    this->dataPtr->maxInflationRate = _sdf->Get<double>("max_inflation_rate");
+  }
+
   this->dataPtr->world = _ecm.EntityByComponents(components::World());
-  if(this->dataPtr->world == kNullEntity)
+  if (this->dataPtr->world == kNullEntity)
   {
     ignerr << "World entity not found" <<std::endl;
     return;
@@ -164,12 +168,6 @@ void BuoyancyEnginePlugin::Configure(
       "/model/" + _sdf->Get<std::string>("namespace")
       + "/buoyancy_engine/current_volume");
   }
-  igndbg << "listening on topic: " << cmdTopic <<std::endl;
-
-  if(_sdf->HasElement("max_inflation_rate"))
-  {
-    this->dataPtr->maxInflationRate = _sdf->Get<double>("max_inflation_rate");
-  }
 
   if(!this->dataPtr->node.Subscribe(cmdTopic,
     &BuoyancyEnginePrivateData::OnCmdBuoyancyEngine, this->dataPtr.get()))
@@ -179,6 +177,9 @@ void BuoyancyEnginePlugin::Configure(
 
   this->dataPtr->statusPub =
     this->dataPtr->node.Advertise<ignition::msgs::Double>(statusTopic);
+
+  igndbg << "Listening to commands on [" << cmdTopic
+         << "], publishing status on [" << statusTopic << "]" <<std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -196,7 +197,7 @@ void BuoyancyEnginePlugin::PreUpdate(
 
   const components::Gravity *gravity = _ecm.Component<components::Gravity>(
     this->dataPtr->world);
-  if(!gravity)
+  if (!gravity)
   {
     ignerr << "World has no gravity component" << std::endl;
     return;
@@ -205,21 +206,21 @@ void BuoyancyEnginePlugin::PreUpdate(
   math::Vector3d zForce;
   {
     std::lock_guard lock(this->dataPtr->mtx);
-    /// Adjust the bladder volume using the pump. Assume ability to pump at
-    /// max flow rate
+    // Adjust the bladder volume using the pump. Assume ability to pump at
+    // max flow rate
     if (this->dataPtr->bladderVolume < this->dataPtr->volumeSetPoint)
     {
       this->dataPtr->bladderVolume +=
         std::min(
-          dt*this->dataPtr->maxInflationRate,
+          dt * this->dataPtr->maxInflationRate,
           this->dataPtr->volumeSetPoint - this->dataPtr->bladderVolume
         );
     }
-    else if(this->dataPtr->bladderVolume > this->dataPtr->volumeSetPoint)
+    else if (this->dataPtr->bladderVolume > this->dataPtr->volumeSetPoint)
     {
       this->dataPtr->bladderVolume -=
         std::min(
-          dt*this->dataPtr->maxInflationRate,
+          dt * this->dataPtr->maxInflationRate,
           this->dataPtr->bladderVolume - this->dataPtr->volumeSetPoint
         );
     }

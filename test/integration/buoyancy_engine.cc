@@ -40,15 +40,15 @@ class BuoyancyEngineTest : public InternalFixture<::testing::Test>
   // Documentation inherited
   protected: void SetUp() override
   {
-    ignition::common::Console::SetVerbosity(4);
-    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-        (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
+    InternalFixture::SetUp();
     this->pub = this->node.Advertise<ignition::msgs::Double>(
       "/model/buoyant_box/buoyancy_engine/");
   }
 
+  /// \brief Node for communication
   public: ignition::transport::Node node;
 
+  /// \brief Publishes commands
   public: ignition::transport::Node::Publisher pub;
 };
 
@@ -56,8 +56,8 @@ class BuoyancyEngineTest : public InternalFixture<::testing::Test>
 TEST_F(BuoyancyEngineTest, TestDownward)
 {
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/buoyancy_engine.sdf";
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "buoyancy_engine.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);
@@ -78,6 +78,7 @@ TEST_F(BuoyancyEngineTest, TestDownward)
     // Check pose
     Entity buoyantBox = _ecm.EntityByComponents(
       components::Model(), components::Name("buoyant_box"));
+    EXPECT_NE(kNullEntity, buoyantBox);
 
     auto submarineBuoyantPose = _ecm.Component<components::Pose>(buoyantBox);
     EXPECT_NE(submarineBuoyantPose, nullptr);
@@ -95,9 +96,9 @@ TEST_F(BuoyancyEngineTest, TestDownward)
   this->pub.Publish(volume);
   server.Run(true, iterations, false);
 
-  ASSERT_LT(poses.rbegin()->Pos().Z(), poses.begin()->Pos().Z());
-  ASSERT_NEAR(poses.rbegin()->Pos().X(), poses.begin()->Pos().X(), 1e-3);
-  ASSERT_NEAR(poses.rbegin()->Pos().Y(), poses.begin()->Pos().Y(), 1e-3);
+  EXPECT_LT(poses.rbegin()->Pos().Z(), poses.begin()->Pos().Z());
+  EXPECT_NEAR(poses.rbegin()->Pos().X(), poses.begin()->Pos().X(), 1e-3);
+  EXPECT_NEAR(poses.rbegin()->Pos().Y(), poses.begin()->Pos().Y(), 1e-3);
 }
 
 /////////////////////////////////////////////////
@@ -126,6 +127,7 @@ TEST_F(BuoyancyEngineTest, TestUpward)
     // Check pose
     Entity buoyantBox = _ecm.EntityByComponents(
       components::Model(), components::Name("buoyant_box"));
+    EXPECT_NE(kNullEntity, buoyantBox);
 
     auto submarineBuoyantPose = _ecm.Component<components::Pose>(buoyantBox);
     EXPECT_NE(submarineBuoyantPose, nullptr);
@@ -143,8 +145,8 @@ TEST_F(BuoyancyEngineTest, TestUpward)
   this->pub.Publish(volume);
   server.Run(true, iterations, false);
 
-  ASSERT_GT(poses.rbegin()->Pos().Z(), poses.begin()->Pos().Z());
-  ASSERT_NEAR(poses.rbegin()->Pos().X(), poses.begin()->Pos().X(), 1e-3);
-  ASSERT_NEAR(poses.rbegin()->Pos().Y(), poses.begin()->Pos().Y(), 1e-3);
+  EXPECT_GT(poses.rbegin()->Pos().Z(), poses.begin()->Pos().Z());
+  EXPECT_NEAR(poses.rbegin()->Pos().X(), poses.begin()->Pos().X(), 1e-3);
+  EXPECT_NEAR(poses.rbegin()->Pos().Y(), poses.begin()->Pos().Y(), 1e-3);
 }
 
