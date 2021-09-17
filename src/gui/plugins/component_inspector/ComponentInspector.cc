@@ -41,6 +41,7 @@
 #include "ignition/gazebo/components/LinearVelocitySeed.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/MagneticField.hh"
+#include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
@@ -257,6 +258,39 @@ void ignition::gazebo::setData(QStandardItem *_item, const sdf::Physics &_data)
     QVariant(_data.MaxStepSize()),
     QVariant(_data.RealTimeFactor())
   }), ComponentsModel::RoleNames().key("data"));
+}
+
+//////////////////////////////////////////////////
+template<>
+void ignition::gazebo::setData(QStandardItem *_item,
+    const sdf::Material &_data)
+{
+  if (nullptr == _item)
+    return;
+
+  _item->setData(QString("Material"),
+      ComponentsModel::RoleNames().key("dataType"));
+  _item->setData(QList({
+    QVariant(_data.Ambient().R()),
+    QVariant(_data.Ambient().G()),
+    QVariant(_data.Ambient().B()),
+    QVariant(_data.Ambient().A()),
+    QVariant(_data.Diffuse().R()),
+    QVariant(_data.Diffuse().G()),
+    QVariant(_data.Diffuse().B()),
+    QVariant(_data.Diffuse().A()),
+    QVariant(_data.Specular().R()),
+    QVariant(_data.Specular().G()),
+    QVariant(_data.Specular().B()),
+    QVariant(_data.Specular().A()),
+    QVariant(_data.Emissive().R()),
+    QVariant(_data.Emissive().G()),
+    QVariant(_data.Emissive().B()),
+    QVariant(_data.Emissive().A())
+  }), ComponentsModel::RoleNames().key("data"));
+
+  // TODO(anyone) Only shows colors of material,
+  // need to add others (e.g., pbr)
 }
 
 //////////////////////////////////////////////////
@@ -702,6 +736,15 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, comp->Data());
     }
+    else if (typeId == components::Material::typeId)
+    {
+      auto comp = _ecm.Component<components::Material>(this->dataPtr->entity);
+      if (comp)
+      {
+        this->SetType("material");
+        setData(item, comp->Data());
+      }
+    }
   }
 
   // Remove components no longer present
@@ -909,6 +952,44 @@ void ComponentInspector::OnPhysics(double _stepSize, double _realTimeFactor)
     return;
   }
   this->dataPtr->node.Request(physicsCmdService, req, cb);
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::OnMaterialColor(
+  double _rAmbient, double _gAmbient, double _bAmbient, double _aAmbient,
+  double _rDiffuse, double _gDiffuse, double _bDiffuse, double _aDiffuse,
+  double _rSpecular, double _gSpecular, double _bSpecular, double _aSpecular,
+  double _rEmissive, double _gEmissive, double _bEmissive, double _aEmissive)
+{
+  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  {
+    if (!_result)
+      ignerr << "Error setting material color configuration"
+             << " on visual" << std::endl;
+  };
+
+  msgs::Visual req;
+  req.set_id(this->dataPtr->entity);
+
+  msgs::Set(req.mutable_material()->mutable_ambient(),
+            math::Color(_rAmbient, _gAmbient, _bAmbient, _aAmbient));
+  msgs::Set(req.mutable_material()->mutable_diffuse(),
+            math::Color(_rDiffuse, _gDiffuse, _bDiffuse, _aDiffuse));
+  msgs::Set(req.mutable_material()->mutable_specular(),
+            math::Color(_rSpecular, _gSpecular, _bSpecular, _aSpecular));
+  msgs::Set(req.mutable_material()->mutable_emissive(),
+            math::Color(_rEmissive, _gEmissive, _bEmissive, _aEmissive));
+
+  auto materialCmdService = "/world/" + this->dataPtr->worldName
+      + "/visual_config";
+  materialCmdService = transport::TopicUtils::AsValidTopic(materialCmdService);
+  if (materialCmdService.empty())
+  {
+    ignerr << "Invalid material command service topic provided" << std::endl;
+    return;
+  }
+  this->dataPtr->node.Request(materialCmdService, req, cb);
 }
 
 /////////////////////////////////////////////////

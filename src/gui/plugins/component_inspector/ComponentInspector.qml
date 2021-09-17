@@ -107,6 +107,20 @@ Rectangle {
     ComponentInspector.OnPhysics(_stepSize, _realTimeFactor)
   }
 
+  /**
+   * Forward material color changes to C++
+   */
+  function onMaterialColor(_rAmbient, _gAmbient, _bAmbient, _aAmbient,
+                           _rDiffuse, _gDiffuse, _bDiffuse, _aDiffuse,
+                           _rSpecular, _gSpecular, _bSpecular, _aSpecular,
+                           _rEmissive, _gEmissive, _bEmissive, _aEmissive) {
+    ComponentInspector.OnMaterialColor(
+        _rAmbient, _gAmbient, _bAmbient, _aAmbient,
+        _rDiffuse, _gDiffuse, _bDiffuse, _aDiffuse,
+        _rSpecular, _gSpecular, _bSpecular, _aSpecular,
+        _rEmissive, _gEmissive, _bEmissive, _aEmissive)
+  }
+
   Rectangle {
     id: header
     height: lockButton.height
