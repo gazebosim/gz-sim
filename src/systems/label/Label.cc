@@ -63,8 +63,9 @@ void Label::Configure(const Entity &_entity,
   const std::string parentName = _sdf->GetParent()->GetName();
 
   // Set the component to the visual to set its user data, but
-  // if the plugin is inside the <model> tag, get its visual child
-  if (_ecm.EntityHasComponentType(_entity, components::Visual::typeId))
+  // if the plugin is inside the <model> tag, get its visual child.
+  if (_ecm.EntityHasComponentType(_entity, components::Visual::typeId) ||
+      _ecm.EntityHasComponentType(_entity, components::Actor::typeId))
   {
     _ecm.CreateComponent(_entity, components::SemanticLabel(label));
   }
@@ -87,11 +88,6 @@ void Label::Configure(const Entity &_entity,
           components::SemanticLabel(label));
       }
     }
-  }
-  else if (_ecm.EntityHasComponentType(_entity, components::Actor::typeId))
-  {
-    std::cout << "actor " << _entity << " .. label " << label << std::endl;
-    _ecm.CreateComponent(_entity, components::SemanticLabel(label));
   }
   else
   {
