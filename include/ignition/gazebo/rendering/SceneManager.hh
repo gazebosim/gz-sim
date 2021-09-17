@@ -24,6 +24,7 @@
 
 #include <sdf/Geometry.hh>
 #include <sdf/Actor.hh>
+#include <sdf/Joint.hh>
 #include <sdf/Light.hh>
 #include <sdf/Link.hh>
 #include <sdf/Material.hh>
@@ -150,6 +151,16 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: rendering::VisualPtr CreateInertiaVisual(Entity _id,
         const math::Inertiald &_inertial, Entity _parentId = 0);
 
+    /// \brief Create a joint visual
+    /// \param[in] _id Unique visual id
+    /// \param[in] _joint Joint sdf dom
+    /// \param[in] _childId Joint child id
+    /// \param[in] _parentId Joint parent id
+    /// \return Visual (joint) object created from the sdf dom
+    public: rendering::VisualPtr CreateJointVisual(Entity _id,
+        const sdf::Joint &_joint, Entity _childId = 0,
+        Entity _parentId = 0);
+
     /// \brief Create a collision visual
     /// \param[in] _id Unique visual id
     /// \param[in] _collision Collision sdf dom
@@ -165,7 +176,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Create an actor
     /// \param[in] _id Unique actor id
-    /// \param[in] _visual Actor sdf dom
+    /// \param[in] _actor Actor sdf dom
     /// \param[in] _parentId Parent id
     /// \return Actor object created from the sdf dom
     public: rendering::VisualPtr CreateActor(Entity _id,
@@ -207,7 +218,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// the correct parent.
     /// \param[in] _gazeboId Entity in Gazebo
     /// \param[in] _sensorName Name of sensor node in Ignition Rendering.
-    /// \param[in] _parentId Parent Id on Gazebo.
+    /// \param[in] _parentGazeboId Parent Id on Gazebo.
     /// \return True if sensor is successfully handled
     public: bool AddSensor(Entity _gazeboId, const std::string &_sensorName,
         Entity _parentGazeboId = 0);
@@ -295,6 +306,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// false to set back to original transparency values (make more opaque)
     public: void UpdateTransparency(const rendering::NodePtr &_node,
         bool _makeTransparent);
+
+    /// \brief Updates the world pose of joint parent visual
+    /// according to its child.
+    /// \param[in] _jointId Joint visual id.
+    public: void UpdateJointParentPose(Entity _jointId);
 
     /// \internal
     /// \brief Pointer to private data class

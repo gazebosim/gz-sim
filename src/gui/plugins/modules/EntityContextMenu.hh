@@ -54,7 +54,6 @@ namespace gazebo
     public: ~EntityContextMenu() override;
 
     /// \brief Callback when a context menu item is invoked
-    /// \param[in] _request Request type
     /// \param[in] _data Request data
     /// \param[in] _type Entity type
     public: Q_INVOKABLE void OnRemove(

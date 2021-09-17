@@ -186,6 +186,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Target to view inertia
     public: std::string viewInertiaTarget;
 
+    /// \brief Target to view joints
+    public: std::string viewJointsTarget;
+
     /// \brief Target to view wireframes
     public: std::string viewWireframesTarget;
 
@@ -496,6 +499,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief View inertia service
     public: std::string viewInertiaService;
 
+    /// \brief View joints service
+    public: std::string viewJointsService;
+
     /// \brief View wireframes service
     public: std::string viewWireframesService;
 
@@ -635,7 +641,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
     // setting the size should cause the render texture to be rebuilt
     {
       IGN_PROFILE("IgnRenderer::Render Pre-render camera");
-      this->dataPtr->camera->PreRender();
+      this->dataPtr->camera->Update();
     }
     // mark mouse dirty to force update view projection in HandleMouseEvent
     this->dataPtr->mouseDirty = true;
@@ -1037,6 +1043,32 @@ void IgnRenderer::Render(RenderSync *_renderSync)
       }
 
       this->dataPtr->viewInertiaTarget.clear();
+    }
+  }
+
+  // View joints
+  {
+    IGN_PROFILE("IgnRenderer::Render ViewJoints");
+    if (!this->dataPtr->viewJointsTarget.empty())
+    {
+      rendering::NodePtr targetNode =
+          scene->NodeByName(this->dataPtr->viewJointsTarget);
+      auto targetVis = std::dynamic_pointer_cast<rendering::Visual>(targetNode);
+
+      if (targetVis)
+      {
+        Entity targetEntity =
+            std::get<int>(targetVis->UserData("gazebo-entity"));
+        this->dataPtr->renderUtil.ViewJoints(targetEntity);
+      }
+      else
+      {
+        ignerr << "Unable to find node name ["
+               << this->dataPtr->viewJointsTarget
+               << "] to view joints" << std::endl;
+      }
+
+      this->dataPtr->viewJointsTarget.clear();
     }
   }
 
@@ -2304,6 +2336,13 @@ void IgnRenderer::SetViewInertiaTarget(const std::string &_target)
 }
 
 /////////////////////////////////////////////////
+void IgnRenderer::SetViewJointsTarget(const std::string &_target)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->viewJointsTarget = _target;
+}
+
+/////////////////////////////////////////////////
 void IgnRenderer::SetViewWireframesTarget(const std::string &_target)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -3116,6 +3155,13 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   ignmsg << "View inertia service on ["
          << this->dataPtr->viewInertiaService << "]" << std::endl;
 
+  // view joints service
+  this->dataPtr->viewJointsService = "/gui/view/joints";
+  this->dataPtr->node.Advertise(this->dataPtr->viewJointsService,
+      &Scene3D::OnViewJoints, this);
+  ignmsg << "View joints service on ["
+         << this->dataPtr->viewJointsService << "]" << std::endl;
+
   // view wireframes service
   this->dataPtr->viewWireframesService = "/gui/view/wireframes";
   this->dataPtr->node.Advertise(this->dataPtr->viewWireframesService,
@@ -3336,6 +3382,18 @@ bool Scene3D::OnViewInertia(const msgs::StringMsg &_msg,
   auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
 
   renderWindow->SetViewInertiaTarget(_msg.data());
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool Scene3D::OnViewJoints(const msgs::StringMsg &_msg,
+  msgs::Boolean &_res)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+
+  renderWindow->SetViewJointsTarget(_msg.data());
 
   _res.set_data(true);
   return true;
@@ -3714,6 +3772,12 @@ void RenderWindowItem::SetViewCOMTarget(const std::string &_target)
 void RenderWindowItem::SetViewInertiaTarget(const std::string &_target)
 {
   this->dataPtr->renderThread->ignRenderer.SetViewInertiaTarget(_target);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetViewJointsTarget(const std::string &_target)
+{
+  this->dataPtr->renderThread->ignRenderer.SetViewJointsTarget(_target);
 }
 
 /////////////////////////////////////////////////
