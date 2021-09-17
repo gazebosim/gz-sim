@@ -30,6 +30,7 @@
 #include "GuiFileHandler.hh"
 #include "GuiRunner.hh"
 #include "PathManager.hh"
+#include "ClientSystem.hh"
 
 namespace ignition
 {
@@ -43,22 +44,11 @@ namespace gui
 //////////////////////////////////////////////////
 std::unique_ptr<ignition::gui::Application> createGui(
     int &_argc, char **_argv, const char *_guiConfig,
+    std::vector<std::shared_ptr<ignition::gazebo::System>>& runners,
     const char *_defaultGuiConfig,
     bool _loadPluginsFromSdf)
 {
-  EntityComponentManager ecm;
-  EventManager eventMgr;
-  return createGui(_argc, _argv, _guiConfig, ecm, eventMgr,
-    false, _defaultGuiConfig, _loadPluginsFromSdf);
-}
-
-//////////////////////////////////////////////////
-std::unique_ptr<ignition::gui::Application> createGui(
-    int &_argc, char **_argv, const char *_guiConfig,
-    EntityComponentManager &_ecm, EventManager &_eventMgr,
-    bool _sameProcess, const char *_defaultGuiConfig,
-    bool _loadPluginsFromSdf)
-{
+  runners.clear();
   ignition::common::SignalHandler sigHandler;
   bool sigKilled = false;
   sigHandler.AddCallback([&](const int /*_sig*/)
@@ -173,8 +163,6 @@ std::unique_ptr<ignition::gui::Application> createGui(
   if (!executed || !result || worldsMsg.data().empty())
     return nullptr;
 
-  std::size_t runnerCount = 0;
-
   // Configuration file from command line
   if (_guiConfig != nullptr && std::strlen(_guiConfig) > 0 &&
       std::string(_guiConfig) != "_playback_")
@@ -183,12 +171,14 @@ std::unique_ptr<ignition::gui::Application> createGui(
     // TODO(anyone) Most of ign-gazebo's transport API includes the world name,
     // which makes it complicated to mix configurations across worlds.
     // We could have a way to use world-agnostic topics like Gazebo-classic's ~
-    auto runner = new ignition::gazebo::GuiRunner(
-      worldsMsg.data(0), _ecm, _eventMgr, _sameProcess);
-    runner->connect(app.get(), &ignition::gui::Application::PluginAdded, runner,
-        &ignition::gazebo::GuiRunner::OnPluginAdded);
-    ++runnerCount;
-    runner->setParent(ignition::gui::App());
+    auto runner = std::make_shared<ignition::gazebo::ClientSystem>();
+    runner->WorldName(worldsMsg.data(0));
+    app->connect(app.get(), &ignition::gui::Application::PluginAdded,
+      [=](const QString &_objectName)
+      {
+        runner->OnPluginAdded(_objectName.toStdString());
+      });
+    runners.push_back(runner);
 
     // Load plugins after runner is up
     if (!app->LoadConfig(_guiConfig))
@@ -235,12 +225,14 @@ std::unique_ptr<ignition::gui::Application> createGui(
       }
 
       // GUI runner
-      auto runner = new ignition::gazebo::GuiRunner(
-        worldName, _ecm, _eventMgr, _sameProcess);
-      runner->connect(app.get(), &ignition::gui::Application::PluginAdded,
-                      runner, &ignition::gazebo::GuiRunner::OnPluginAdded);
-      runner->setParent(ignition::gui::App());
-      ++runnerCount;
+      auto runner = std::make_shared<ignition::gazebo::ClientSystem>();
+      runner->WorldName(worldsMsg.data(0));
+      app->connect(app.get(), &ignition::gui::Application::PluginAdded,
+        [=](const QString &_objectName)
+        {
+          runner->OnPluginAdded(_objectName.toStdString());
+        });
+      runners.push_back(runner);
 
       // Load plugins after creating GuiRunner, so they can access worldName
       if (_loadPluginsFromSdf)
@@ -263,7 +255,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
     mainWin->configChanged();
   }
 
-  if (0 == runnerCount)
+  if (runners.size() == 0)
   {
     ignerr << "Failed to start a GUI runner." << std::endl;
     return nullptr;
@@ -309,18 +301,11 @@ std::unique_ptr<ignition::gui::Application> createGui(
 
 //////////////////////////////////////////////////
 int runGui(int &_argc, char **_argv, const char *_guiConfig)
-{
-  EntityComponentManager ecm;
-  EventManager eventMgr;
-  return runGui(_argc, _argv, _guiConfig, ecm, eventMgr, false);
-}
 
-//////////////////////////////////////////////////
-int runGui(int &_argc, char **_argv, const char *_guiConfig,
-  EntityComponentManager &_ecm, EventManager &_eventMgr, bool _sameProcess)
 {
-  auto app = gazebo::gui::createGui(_argc, _argv, _guiConfig,
-    _ecm, _eventMgr, _sameProcess);
+  /*
+  auto app = gazebo::gui::createGui(_argc, _argv, _guiConfig);
+
   if (nullptr != app)
   {
     // Run main window.
@@ -331,6 +316,7 @@ int runGui(int &_argc, char **_argv, const char *_guiConfig,
   }
   else
     return -1;
+    */
 }
 }  // namespace gui
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE

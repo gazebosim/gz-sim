@@ -487,7 +487,10 @@ void SimulationRunner::AddSystemToRunner(SystemInternal _system)
   this->systems.push_back(_system);
 
   if (_system.preupdate)
+  {
+    igndbg << "Adding preupdate system" << std::endl;
     this->systemsPreupdate.push_back(_system.preupdate);
+  }
 
   if (_system.update)
     this->systemsUpdate.push_back(_system.update);
@@ -513,11 +516,6 @@ void SimulationRunner::ProcessSystemQueue()
     this->AddSystemToRunner(system);
   }
   this->pendingSystems.clear();
-
-  if (this->serverConfig.SameProcessAsGUI())
-  {
-    this->clientUpdateDoneBarrier = std::make_unique<Barrier>(1u);
-  }
 
   // If additional systems were added, recreate the worker threads.
   if (pending > 0)
@@ -563,6 +561,13 @@ void SimulationRunner::ProcessSystemQueue()
 void SimulationRunner::UpdateSystems()
 {
   IGN_PROFILE("SimulationRunner::UpdateSystems");
+
+  igndbg << "SimulationRunner::UpdateSystems " << 
+    this->systemsPreupdate.size() << " " <<
+    this->systemsUpdate.size() << " " <<
+    this->systemsPostupdate.size() << std::endl;
+
+
   // \todo(nkoenig)  Systems used to be updated in parallel using
   // an ignition::common::WorkerPool. There is overhead associated with
   // this, most notably the creation and destruction of WorkOrders (see
@@ -582,22 +587,6 @@ void SimulationRunner::UpdateSystems()
     IGN_PROFILE("Update");
     for (auto& system : this->systemsUpdate)
       system->Update(this->currentInfo, this->entityCompMgr);
-  }
-
-  // Call client updates before PostUpdate, with the assumption is that each
-  // client will spin a worker thread and won't block here too long. This way,
-  // client worker threads and server post updates can run in parallel.
-  if (this->serverConfig.SameProcessAsGUI())
-  {
-    // Client updates are called at the server's update rate. It's up to each
-    // client to throttle as needed.
-    IGN_PROFILE("ClientUpdate");
-    this->eventMgr.Emit<events::ClientUpdate>();
-
-    if (this->clientUpdateDoneBarrier)
-    {
-      this->clientUpdateDoneBarrier->Wait();
-    }
   }
 
   {

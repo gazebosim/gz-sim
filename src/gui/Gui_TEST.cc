@@ -90,10 +90,8 @@ TEST_F(GuiTest, IGN_UTILS_TEST_DISABLED_ON_MAC(PathManager))
   node.Advertise("/gazebo/resource_paths/get", pathsCb);
   igndbg << "Paths advertised" << std::endl;
 
-  ignition::gazebo::EntityComponentManager ecm;
-  ignition::gazebo::EventManager eventMgr;
-  auto app = ignition::gazebo::gui::createGui(
-    gg_argc, gg_argv, nullptr, ecm, eventMgr, false);
+  std::vector<std::shared_ptr<ignition::gazebo::System>> plugins;
+  auto app = ignition::gazebo::gui::createGui(gg_argc, gg_argv, nullptr, plugins);
   EXPECT_NE(nullptr, app);
   igndbg << "GUI created" << std::endl;
 

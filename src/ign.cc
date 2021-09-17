@@ -409,22 +409,7 @@ extern "C" int runCombined(const char *_sdfString,
   // Create the Gazebo server
   ignition::gazebo::Server server(serverConfig);
 
-  auto sharedEcm = server.SharedEntityComponentManager();
-  auto sharedEventManager = server.SharedEventManager();
-
-  if (!sharedEcm)
-  {
-    ignerr << "Unable to get a shared ECM\n";
-    return -1;
-  }
-  if (!sharedEventManager)
-  {
-    ignerr << "Unable to get a shared Event Manager\n";
-    return -1;
-  }
-
   // Run the server
-  server.Run(false, _iterations, _run == 0);
 
   // argc and argv are going to be passed to a QApplication. The Qt
   // documentation has a warning about these:
@@ -437,9 +422,40 @@ extern "C" int runCombined(const char *_sdfString,
   // It can only be converted to a const char *. The const cast is here to
   // prevent a warning since we do need to pass a char* to runGui
   char *argv = const_cast<char *>("ign-gazebo-gui");
-  return ignition::gazebo::gui::runGui(
-    argc, &argv, _guiConfig, (*sharedEcm).get(),
-    (*sharedEventManager).get(), true);
+
+  std::vector<std::shared_ptr<ignition::gazebo::System>> runners;
+  auto app = ignition::gazebo::gui::createGui(argc, &argv, _guiConfig, runners);
+
+  if (nullptr != app)
+  {
+    igndbg << "Found GUI runners: " << runners.size() << std::endl;
+    for (auto runner: runners)
+    {
+      auto config = dynamic_cast<ignition::gazebo::ISystemConfigure*>(runner.get());
+      if (config != nullptr) {
+        igndbg << "Config";
+      }
+
+      auto pre = dynamic_cast<ignition::gazebo::ISystemPreUpdate *>(runner.get());
+      if (pre != nullptr) {
+        igndbg << "Pre";
+      }
+
+      auto post = dynamic_cast<ignition::gazebo::ISystemPostUpdate *>(runner.get());
+      if (post != nullptr) {
+        igndbg << "Post";
+      }
+      server.AddSystem(runner);
+    }
+
+    server.Run(false, _iterations, _run == 0);
+    app->exec();
+    return 0;
+  }
+  else
+  {
+    return -1;
+  }
 }
 
 //////////////////////////////////////////////////
@@ -456,8 +472,5 @@ extern "C" int runGui(const char *_guiConfig)
   // be converted to a const char *. The const cast is here to prevent a warning
   // since we do need to pass a char* to runGui
   char *argv = const_cast<char *>("ign-gazebo-gui");
-  ignition::gazebo::v6::EntityComponentManager guiEcm;
-  ignition::gazebo::v6::EventManager guiEventEcm;
-  return ignition::gazebo::gui::runGui(
-    argc, &argv, _guiConfig, guiEcm, guiEventEcm, false);
+  return ignition::gazebo::gui::runGui(argc, &argv, _guiConfig);
 }
