@@ -19,8 +19,10 @@
 
 #include <ignition/plugin/Register.hh>
 #include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/SemanticLabel.hh"
 #include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Visual.hh"
 
 using namespace ignition;
@@ -62,11 +64,11 @@ void Label::Configure(const Entity &_entity,
 
   // Set the component to the visual to set its user data, but
   // if the plugin is inside the <model> tag, get its visual child
-  if (parentName == "visual")
+  if (_ecm.EntityHasComponentType(_entity, components::Visual::typeId))
   {
     _ecm.CreateComponent(_entity, components::SemanticLabel(label));
   }
-  else if (parentName == "model")
+  else if (_ecm.EntityHasComponentType(_entity, components::Model::typeId))
   {
     // Get link childern of parent model
     auto links = _ecm.ChildrenByComponents<components::Link>(
@@ -85,6 +87,11 @@ void Label::Configure(const Entity &_entity,
           components::SemanticLabel(label));
       }
     }
+  }
+  else if (_ecm.EntityHasComponentType(_entity, components::Actor::typeId))
+  {
+    std::cout << "actor " << _entity << " .. label " << label << std::endl;
+    _ecm.CreateComponent(_entity, components::SemanticLabel(label));
   }
   else
   {

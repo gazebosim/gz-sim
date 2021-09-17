@@ -58,7 +58,6 @@
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Geometry.hh"
-#include "ignition/gazebo/components/SemanticLabel.hh"
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/LaserRetro.hh"
 #include "ignition/gazebo/components/Light.hh"
@@ -73,6 +72,7 @@
 #include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/Scene.hh"
 #include "ignition/gazebo/components/SegmentationCamera.hh"
+#include "ignition/gazebo/components/SemanticLabel.hh"
 #include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/Temperature.hh"
 #include "ignition/gazebo/components/TemperatureRange.hh"
@@ -414,6 +414,7 @@ class ignition::gazebo::RenderUtilPrivate
   /// \param[in] _entityLabel Map with key visual entity id and value label
   public: void UpdateVisualLabels(
     const std::unordered_map<Entity, int> &_entityLabel);
+
   /// \brief A helper function that removes the sensor associated with an
   /// entity, if an associated sensor exists. This should be called in
   /// RenderUtil::Update.
@@ -455,8 +456,6 @@ class ignition::gazebo::RenderUtilPrivate
               const std::unordered_map<Entity, math::Pose3d> &_entityPoses,
               const std::unordered_map<Entity, math::Pose3d> &_trajectoryPoses);
 };
-
-
 
 //////////////////////////////////////////////////
 RenderUtil::RenderUtil() : dataPtr(std::make_unique<RenderUtilPrivate>())
@@ -1405,6 +1404,14 @@ void RenderUtilPrivate::CreateRenderingEntities(
         {
           this->newActors.push_back(
               std::make_tuple(_entity, _actor->Data(), _parent->Data()));
+
+          // set label
+          auto label = _ecm.Component<components::SemanticLabel>(_entity);
+          if (label != nullptr)
+          {
+            this->entityLabel[_entity] = label->Data();
+          }
+
           return true;
         });
 
@@ -1675,6 +1682,14 @@ void RenderUtilPrivate::CreateRenderingEntities(
         {
           this->newActors.push_back(
               std::make_tuple(_entity, _actor->Data(), _parent->Data()));
+
+          // set label
+          auto label = _ecm.Component<components::SemanticLabel>(_entity);
+          if (label != nullptr)
+          {
+            this->entityLabel[_entity] = label->Data();
+          }
+
           return true;
         });
 

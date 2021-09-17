@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!--
-  Demo of models being downloaded from http://app.ignitionrobotics.org/
+  Segmentation camera demo for visualizing the semantic & instance segmentation sensor output
 -->
 <sdf version="1.6">
   <world name="shapes">

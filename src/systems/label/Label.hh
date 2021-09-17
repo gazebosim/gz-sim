@@ -17,8 +17,6 @@
 #ifndef IGNITION_GAZEBO_SYSTEMS_LABEL_HH_
 #define IGNITION_GAZEBO_SYSTEMS_LABEL_HH_
 
-#include <memory>
-
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/System.hh"
 
