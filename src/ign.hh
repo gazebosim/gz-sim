@@ -67,8 +67,14 @@ extern "C" int runServer(const char *_sdfString,
 
 /// \brief External hook to run simulation GUI.
 /// \param[in] _guiConfig Path to Ignition GUI configuration file.
+/// \param[in] _renderEngineGui --render-engine-gui option
 /// \return 0 if successful, 1 if not.
-extern "C" int runGui(const char *_guiConfig);
+extern "C" int runGUI(const char *_guiConfig, const char *_renderEngineServer);
+
+/// \brief External hook to run simulation GUI.
+/// \param[in] _guiConfig Path to Ignition GUI configuration file.
+/// \return 0 if successful, 1 if not.
+extern "C" int IGN_DEPRECATED(6) runGui(const char *_guiConfig);
 
 /// \brief External hook to find or download a fuel world provided a URL.
 /// \param[in] _pathToResource Path to the fuel world resource, ie,

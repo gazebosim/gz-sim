@@ -358,7 +358,7 @@ extern "C" int runServer(const char *_sdfString,
 }
 
 //////////////////////////////////////////////////
-extern "C" int runGui(const char *_guiConfig)
+extern "C" int runGUI(const char *_guiConfig, const char *_renderEngineServer)
 {
   // argc and argv are going to be passed to a QApplication. The Qt
   // documentation has a warning about these:
@@ -371,5 +371,12 @@ extern "C" int runGui(const char *_guiConfig)
   // be converted to a const char *. The const cast is here to prevent a warning
   // since we do need to pass a char* to runGui
   char *argv = const_cast<char *>("ign-gazebo-gui");
-  return ignition::gazebo::gui::runGui(argc, &argv, _guiConfig);
+  return ignition::gazebo::gui::runGui(
+    argc, &argv, _guiConfig, _renderEngineServer);
+}
+
+//////////////////////////////////////////////////
+extern "C" int runGui(const char *_guiConfig)
+{
+  return runGUI(_guiConfig, "");
 }

@@ -39,10 +39,19 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace gui
 {
+//////////////////////////////////////////////////
+std::unique_ptr<ignition::gui::Application> createGui(
+    int &_argc, char **_argv, const char *_guiConfig,
+    const char *_defaultGuiConfig, bool _loadPluginsFromSdf)
+{
+  return createGui(
+    _argc, _argv, _guiConfig, "", _defaultGuiConfig, _loadPluginsFromSdf);
+}
 
 //////////////////////////////////////////////////
 std::unique_ptr<ignition::gui::Application> createGui(
     int &_argc, char **_argv, const char *_guiConfig,
+    const char *_renderEngineGui,
     const char *_defaultGuiConfig, bool _loadPluginsFromSdf)
 {
   ignition::common::SignalHandler sigHandler;
@@ -101,6 +110,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
 
   // Customize window
   auto mainWin = app->findChild<ignition::gui::MainWindow *>();
+  mainWin->SetRenderEngineGUI(_renderEngineGui);
   auto win = mainWin->QuickWindow();
   win->setProperty("title", "Gazebo");
 
@@ -290,7 +300,15 @@ std::unique_ptr<ignition::gui::Application> createGui(
 //////////////////////////////////////////////////
 int runGui(int &_argc, char **_argv, const char *_guiConfig)
 {
-  auto app = gazebo::gui::createGui(_argc, _argv, _guiConfig);
+  return runGui(_argc, _argv, _guiConfig, "");
+}
+
+//////////////////////////////////////////////////
+int runGui(int &_argc, char **_argv, const char *_guiConfig,
+  const char *_renderEngineGui)
+{
+  auto app = gazebo::gui::createGui(
+    _argc, _argv, _guiConfig, _renderEngineGui, nullptr, true);
   if (nullptr != app)
   {
     // Run main window.
