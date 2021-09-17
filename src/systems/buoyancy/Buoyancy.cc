@@ -99,15 +99,26 @@ class ignition::gazebo::systems::BuoyancyPrivate
   /// fluidDensity.
   public: std::map<double, double> layers;
 
+  /// \brief Point from where to apply the force
   public: struct BuoyancyActionPoint
   {
+    /// \brief The force to be applied
     math::Vector3d force;
+    
+    /// \brief The point from which the force will be applied
     math::Vector3d point;
+
+    /// \brief The pose of the link in question
     math::Pose3d pose;
   };
 
+  /// \brief List of points from where the forces act.
   public: std::vector<BuoyancyActionPoint> buoyancyForces;
 
+  /// \brief Resolve all forces as if they act as a Wrench from the give pose.
+  /// \param[in] _pose The point from which all poses are to be resolved.
+  /// \return A pair of {force, torque} describing the wrench to be applied
+  /// at _pose.
   public: std::pair<math::Vector3d, math::Vector3d> ResolveForces(
     const math::Pose3d &_pose);
 };
