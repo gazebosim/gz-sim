@@ -12,8 +12,11 @@
 %include Line3.i
 %include Matrix3.i
 %include Matrix4.i
+%include Filter.i
+%include MovingWindowFilter.i
 %include PID.i
 %include RollingMean.i
+%include RotationSpline.i
 %include SemanticVersion.i
 %include SignalStats.i
 %include Spline.i
