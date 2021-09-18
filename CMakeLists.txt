@@ -69,6 +69,7 @@ if (SWIG_FOUND)
 
   ########################################
   # Include python
+  find_package(PythonInterp 3 REQUIRED) # change to Python3 when Bionic is EOL
   find_package(PythonLibs QUIET)
   if (NOT PYTHONLIBS_FOUND)
     message (STATUS "Searching for Python - not found.")
