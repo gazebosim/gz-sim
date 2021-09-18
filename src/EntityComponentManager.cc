@@ -277,7 +277,7 @@ Entity EntityComponentManagerPrivate::CreateEntityImplementation(Entity _entity)
 }
 
 /////////////////////////////////////////////////
-Entity EntityComponentManager::Clone(const Entity _entity, const Entity _parent,
+Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
     const std::string &_name, bool _allowRename)
 {
   // During cloning, we populate two maps:
@@ -314,7 +314,7 @@ Entity EntityComponentManager::Clone(const Entity _entity, const Entity _parent,
   return clonedEntity;
 }
 
-Entity EntityComponentManager::Clone(const Entity _entity, const Entity _parent,
+Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
     const std::string &_name, bool _allowRename,
     std::unordered_map<Entity, Entity> &_oldModelCanonicalLink,
     std::unordered_map<Entity, Entity> &_oldToClonedCanonicalLink)
@@ -417,8 +417,14 @@ Entity EntityComponentManager::Clone(const Entity _entity, const Entity _parent,
   for (const auto &childEntity :
       this->EntitiesByComponents(components::ParentEntity(_entity)))
   {
-    this->Clone(childEntity, clonedEntity, "", true, _oldModelCanonicalLink,
-        _oldToClonedCanonicalLink);
+    auto clonedChild = this->Clone(childEntity, clonedEntity, "", true,
+        _oldModelCanonicalLink, _oldToClonedCanonicalLink);
+    if (kNullEntity == clonedChild)
+    {
+      ignerr << "Cloning child entity [" << childEntity << "] failed.\n";
+      this->RequestRemoveEntity(clonedEntity);
+      return kNullEntity;
+    }
   }
 
   return clonedEntity;

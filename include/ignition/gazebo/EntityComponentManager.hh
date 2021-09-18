@@ -104,7 +104,7 @@ namespace ignition
       /// exist, or if a unique name could not be generated for the entity to be
       /// cloned.
       /// \sa Clone
-      public: Entity Clone(const Entity _entity, const Entity _parent,
+      public: Entity Clone(Entity _entity, Entity _parent,
                   const std::string &_name, bool _allowRename);
 
       /// \brief Get the number of entities on the server.
@@ -380,7 +380,7 @@ namespace ignition
       /// entities to the cloned canonical link entities.
       /// \return The cloned entity. kNullEntity is returned if cloning failed.
       /// \sa Clone
-      private: Entity Clone(const Entity _entity, const Entity _parent,
+      private: Entity Clone(Entity _entity, Entity _parent,
                   const std::string &_name, bool _allowRename,
                   std::unordered_map<Entity, Entity> &_oldModelCanonicalLink,
                   std::unordered_map<Entity, Entity> &

@@ -725,14 +725,27 @@ bool CreateCommand::Execute()
     }
     case msgs::EntityFactory::kCloneName:
     {
+      auto validClone = false;
+      auto clonedEntity = kNullEntity;
       auto entityToClone = this->iface->ecm->EntityByComponents(
           components::Name(createMsg->clone_name()));
-      auto parentComp =
-        this->iface->ecm->Component<components::ParentEntity>(entityToClone);
-      auto parentEntity = parentComp ? parentComp->Data() : kNullEntity;
-      auto clonedEntity = this->iface->ecm->Clone(entityToClone, parentEntity,
-          createMsg->name(), createMsg->allow_renaming());
-      if (kNullEntity == clonedEntity)
+      if (kNullEntity != entityToClone)
+      {
+        auto parentComp =
+          this->iface->ecm->Component<components::ParentEntity>(entityToClone);
+
+        // TODO(anyone) add better support for creating non-top level entities.
+        // For now, we will only clone top level entities
+        if (parentComp && parentComp->Data() == this->iface->worldEntity)
+        {
+          auto parentEntity = parentComp->Data();
+          clonedEntity = this->iface->ecm->Clone(entityToClone,
+              parentEntity, createMsg->name(), createMsg->allow_renaming());
+          validClone = kNullEntity != clonedEntity;
+        }
+      }
+
+      if (!validClone)
       {
         ignerr << "Request to clone an entity named ["
           << createMsg->clone_name() << "] failed." << std::endl;
