@@ -73,6 +73,7 @@ namespace ignition::gazebo
   };
 }
 
+using namespace ignition;
 using namespace ignition::gazebo;
 using namespace ignition::gui;
 
