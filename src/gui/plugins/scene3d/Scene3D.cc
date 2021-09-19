@@ -107,6 +107,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Flag to indicate if hover event is dirty
     public: bool hoverDirty = false;
 
+    /// \brief Flag to indicate if we have to call
+    /// SceneManager::updateAllTransforms before rayQuery
+    public: bool rayQuerySceneDirty = true;
+
     /// \brief Mouse event
     public: common::MouseEvent mouseEvent;
 
@@ -659,6 +663,10 @@ void IgnRenderer::Render(RenderSync *_renderSync)
   this->dataPtr->renderUtil.SetTransformActive(
       this->dataPtr->transformControl.Active());
   this->dataPtr->renderUtil.Update();
+
+  // Every new frame we consider the whole scene dirty since
+  // that's very likely
+  this->dataPtr->rayQuerySceneDirty = true;
 
   // view control
   this->HandleMouseEvent();
@@ -2504,7 +2512,9 @@ math::Vector3d IgnRenderer::ScreenToScene(
   this->dataPtr->rayQuery->SetFromCamera(
       this->dataPtr->camera, math::Vector2d(nx, ny));
 
-  auto result = this->dataPtr->rayQuery->ClosestPoint();
+  auto result =
+    this->dataPtr->rayQuery->ClosestPoint(this->dataPtr->rayQuerySceneDirty);
+  this->dataPtr->rayQuerySceneDirty = false;
   if (result)
     return result.point;
 
