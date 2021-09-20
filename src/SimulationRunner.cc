@@ -116,12 +116,6 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
       std::bind(&SimulationRunner::LoadPlugins, this, std::placeholders::_1,
       std::placeholders::_2));
 
-  if (serverConfig.SameProcessAsGUI())
-  {
-  this->updateClientDoneConn = this->eventMgr.Connect<events::ClientUpdateDone>(
-    std::bind(&SimulationRunner::OnClientUpdateDone, this));
-  }
-
   // Create the level manager
   this->levelMgr = std::make_unique<LevelManager>(this, _config.UseLevels());
 
@@ -562,7 +556,7 @@ void SimulationRunner::UpdateSystems()
 {
   IGN_PROFILE("SimulationRunner::UpdateSystems");
 
-  igndbg << "SimulationRunner::UpdateSystems " << 
+  igndbg << "SimulationRunner::UpdateSystems " <<
     this->systemsPreupdate.size() << " " <<
     this->systemsUpdate.size() << " " <<
     this->systemsPostupdate.size() << std::endl;
@@ -617,12 +611,6 @@ void SimulationRunner::OnStop()
 }
 
 /////////////////////////////////////////////////
-void SimulationRunner::OnClientUpdateDone()
-{
-  this->clientUpdateDoneBarrier->Cancel();
-}
-
-/////////////////////////////////////////////////
 void SimulationRunner::StopWorkerThreads()
 {
   this->postUpdateThreadsRunning = false;
@@ -633,10 +621,6 @@ void SimulationRunner::StopWorkerThreads()
   if (this->postUpdateStopBarrier)
   {
     this->postUpdateStopBarrier->Cancel();
-  }
-  if (this->clientUpdateDoneBarrier)
-  {
-    this->clientUpdateDoneBarrier->Cancel();
   }
   for (auto &thread : this->postUpdateThreads)
   {

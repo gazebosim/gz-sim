@@ -304,7 +304,6 @@ void GuiRunner::Implementation::UpdatePluginsEvent()
     this->updateMutex.unlock();
     this->pool.WaitForResults();
     this->updateMutex.lock();
-    this->eventMgr.Emit<events::ClientUpdateDone>();
     this->updateMutex.unlock();
   }
 }

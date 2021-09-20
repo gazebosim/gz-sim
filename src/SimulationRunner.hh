@@ -172,10 +172,6 @@ namespace ignition
       /// \brief Internal method for handling stop event (to prevent recursion)
       private: void OnStop();
 
-      /// \brief Internal method to release the barrier to wait the server
-      /// udpates
-      private: void OnClientUpdateDone();
-
       /// \brief Stop and join all post update worker threads
       private: void StopWorkerThreads();
 
@@ -601,9 +597,6 @@ namespace ignition
 
       /// \brief Barrier to signal end of PostUpdate thread execution
       private: std::unique_ptr<Barrier> postUpdateStopBarrier;
-
-      /// \brief Barrier to signal end GUI updates
-      private: std::unique_ptr<Barrier> clientUpdateDoneBarrier;
 
       /// \brief Map from file paths to Fuel URIs.
       private: std::unordered_map<std::string, std::string> fuelUriMap;
