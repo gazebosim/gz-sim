@@ -148,17 +148,20 @@ void BuoyancyPrivate::GradedFluidDensity(
     if (vol <= 0)
       continue;
 
-    // Accumulate layers.
-    prevLayerFluidDensity = currFluidDensity;
-
     // Calculate point from which force is applied
     auto cov = _shape.CenterOfVolumeBelow(plane);
 
     if(!cov.has_value())
+    {
+      prevLayerFluidDensity = currFluidDensity;
       continue;
+    }
 
     // Archimedes principal for this layer
     auto forceMag =  - (vol - prevLayerVol) * _gravity * prevLayerFluidDensity;
+
+    // Accumulate layers.
+    prevLayerFluidDensity = currFluidDensity;
 
     auto cob = (cov.value() * vol - centerOfBuoyancy * prevLayerVol)
       / (vol - prevLayerVol);
