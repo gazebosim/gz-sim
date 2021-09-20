@@ -20,6 +20,7 @@
 #include <google/protobuf/message_lite.h>
 #include <ignition/msgs/double_v.pb.h>
 
+#include <array>
 #include <string>
 #include <vector>
 #include <sdf/Sensor.hh>
@@ -128,6 +129,43 @@ namespace serializers
       msg.ParseFromIstream(&_in);
 
       _vec = {msg.data().begin(), msg.data().end()};
+      return _in;
+    }
+  };
+  /// \brief Serializer for components that hold `std::array<double, N>`.
+  template <std::size_t N>
+  class ArrayDoubleSerializer
+  {
+    /// \brief Serialization
+    /// \param[in] _out Output stream.
+    /// \param[in] _arr Array to stream
+    /// \return The stream.
+    public: static std::ostream &Serialize(std::ostream &_out,
+                                           const std::array<double, N> &_arr)
+    {
+      ignition::msgs::Double_V msg;
+      *msg.mutable_data() = {_arr.begin(), _arr.end()};
+      msg.SerializeToOstream(&_out);
+      return _out;
+    }
+
+    /// \brief Deserialization
+    /// \param[in] _in Input stream.
+    /// \param[in] _arr Array to populate
+    /// \return The stream.
+    public: static std::istream &Deserialize(std::istream &_in,
+                                             std::array<double, N> &_arr)
+    {
+      ignition::msgs::Double_V msg;
+      msg.ParseFromIstream(&_in);
+      if (static_cast<std::size_t>(msg.data_size()) > N)
+      {
+        ignerr << "Size of input array exceeds " << N << ". Cannot deserialize"
+               << std::endl;
+        return _in;
+      }
+
+      std::copy(msg.data().begin(), msg.data().end(), _arr.begin());
       return _in;
     }
   };

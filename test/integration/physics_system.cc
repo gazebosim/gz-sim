@@ -44,6 +44,7 @@
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/JointConstraintWrench.hh"
 #include "ignition/gazebo/components/JointPosition.hh"
 #include "ignition/gazebo/components/JointPositionReset.hh"
 #include "ignition/gazebo/components/JointVelocity.hh"
@@ -1661,4 +1662,63 @@ TEST_F(PhysicsSystemFixture, Heightmap)
 
   EXPECT_TRUE(checked);
   EXPECT_EQ(1000, maxIt);
+}
+
+/////////////////////////////////////////////////
+// Joint force
+TEST_F(PhysicsSystemFixture, JointConstraintWrench)
+{
+  common::Console::SetVerbosity(4);
+  ignition::gazebo::ServerConfig serverConfig;
+
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/joint_constraints.sdf";
+
+  serverConfig.SetSdfFile(sdfFile);
+
+  gazebo::Server server(serverConfig);
+
+  server.SetUpdatePeriod(1us);
+
+  // Create a system that records the poses of the links after physics
+  test::Relay testSystem;
+
+  testSystem.OnPreUpdate(
+      [&](const gazebo::UpdateInfo &_info, gazebo::EntityComponentManager &_ecm)
+      {
+        if (_info.iterations == 1)
+        {
+          _ecm.Each<components::Joint>(
+              [&](const ignition::gazebo::Entity &_entity,
+                  const components::Joint *) -> bool
+              {
+                _ecm.CreateComponent(_entity,
+                                     components::JointConstraintWrench());
+                return true;
+              });
+        }
+      });
+
+  testSystem.OnPostUpdate(
+      [&](const gazebo::UpdateInfo &_info,
+          const gazebo::EntityComponentManager &_ecm)
+      {
+        _ecm.Each<components::Name, components::JointConstraintWrench>(
+            [&](const ignition::gazebo::Entity &, const components::Name *_name,
+                const components::JointConstraintWrench *_force) -> bool
+            {
+              std::cout << "Joint: " << _name->Data() << " "
+                        << _force->Data().size() << " " << _info.iterations
+                        << ": ";
+              for (const auto &jf : _force->Data())
+              {
+                std::cout << jf << " ";
+              }
+              std::cout << std::endl;
+              return true;
+            });
+      });
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 1800, false);
+  SUCCEED();
 }

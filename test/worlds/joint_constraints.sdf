@@ -1,0 +1,137 @@
+<?xml version="1.0" ?>
+<sdf version="1.7">
+  <world name="joint_constraints">
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+            <emissive>0.8 0.8 0.8 1</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="scale">
+      <pose>0 0 0.02   0 0 0</pose>
+      <link name="base">
+        <inertial>
+          <mass>2.0</mass>
+          <inertia>
+            <ixx>0.166933</ixx>
+            <iyy>0.166933</iyy>
+            <izz>0.333333</izz>
+          </inertia>
+        </inertial>
+        <visual name="v1">
+          <geometry>
+            <box>
+              <size>1 1 0.04</size>
+            </box>
+          </geometry>
+        </visual>
+        <collision name="c1">
+          <geometry>
+            <box>
+              <size>1 1 0.04</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+      <link name="sensor_plate">
+        <pose relative_to="base">0 0 0.03   0 0 0</pose>
+        <inertial>
+          <mass>0.2</mass>
+          <inertia>
+            <ixx>0.0166933</ixx>
+            <iyy>0.0166933</iyy>
+            <izz>0.0333333</izz>
+          </inertia>
+        </inertial>
+        <visual name="v1">
+          <geometry>
+            <box>
+              <size>0.9 0.9 0.01</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.2 0.2 1</ambient>
+            <diffuse>0.8 0.2 0.2 1</diffuse>
+            <specular>0.8 0.2 0.2 1</specular>
+          </material>
+        </visual>
+        <collision name="c1">
+          <geometry>
+            <box>
+              <size>0.9 0.9 0.01</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+
+      <joint name="sensor_joint" type="fixed">
+        <parent>base</parent>
+        <child>sensor_plate</child>
+      </joint>
+    </model>
+
+    <model name="weight">
+      <pose>0 0 0.5   0 0 0</pose>
+      <link name="base">
+        <inertial>
+          <mass>10</mass>
+        </inertial>
+        <visual name="v1">
+          <geometry>
+            <box>
+              <size>0.5 0.5 0.5</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.0 0.8 0.8 1</ambient>
+            <diffuse>0.0 0.8 0.8 1</diffuse>
+            <specular>0.0 0.8 0.8 1</specular>
+          </material>
+        </visual>
+        <collision name="c1">
+          <geometry>
+            <box>
+              <size>0.5 0.5 0.5</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+  </world>
+</sdf>
