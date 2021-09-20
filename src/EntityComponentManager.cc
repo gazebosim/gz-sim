@@ -29,11 +29,9 @@
 #include <ignition/common/Profiler.hh>
 #include <ignition/math/graph/GraphAlgorithms.hh>
 
-#include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 
@@ -296,19 +294,22 @@ Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
   auto clonedEntity = this->Clone(_entity, _parent, _name, _allowRename,
       oldModelCanonicalLink, oldToClonedCanonicalLink);
 
-  for (const auto &[clonedModel, oldCanonicalLink] : oldModelCanonicalLink)
+  if (kNullEntity != clonedEntity)
   {
-    auto iter = oldToClonedCanonicalLink.find(oldCanonicalLink);
-    if (iter == oldToClonedCanonicalLink.end())
+    for (const auto &[clonedModel, oldCanonicalLink] : oldModelCanonicalLink)
     {
-      ignerr << "Error: attempted to clone model(s) with canonical link(s), "
-        << "but entity [" << oldCanonicalLink << "] was not cloned as a "
-        << "canonical link." << std::endl;
-      continue;
+      auto iter = oldToClonedCanonicalLink.find(oldCanonicalLink);
+      if (iter == oldToClonedCanonicalLink.end())
+      {
+        ignerr << "Error: attempted to clone model(s) with canonical link(s), "
+          << "but entity [" << oldCanonicalLink << "] was not cloned as a "
+          << "canonical link." << std::endl;
+        continue;
+      }
+      const auto clonedCanonicalLink = iter->second;
+      this->SetComponentData<components::ModelCanonicalLink>(clonedModel,
+          clonedCanonicalLink);
     }
-    const auto clonedCanonicalLink = iter->second;
-    this->SetComponentData<components::ModelCanonicalLink>(clonedModel,
-        clonedCanonicalLink);
   }
 
   return clonedEntity;
@@ -379,21 +380,6 @@ Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
 
     auto originalComp = this->ComponentImplementation(_entity, type);
     auto clonedComp = originalComp->Clone();
-
-    if (type == components::Light::typeId)
-    {
-      // set the sdf::Light's name to clonedName
-      auto derivedComp =
-        static_cast<components::Light *>(clonedComp.get());
-      derivedComp->Data().SetName(clonedName);
-    }
-    else if (type == components::Actor::typeId)
-    {
-      // set the sdf::Actor's name to clonedName
-      auto derivedComp =
-        static_cast<components::Actor *>(clonedComp.get());
-      derivedComp->Data().SetName(clonedName);
-    }
 
     this->CreateComponentImplementation(clonedEntity, type, clonedComp.get());
   }
