@@ -116,6 +116,25 @@
       <direction>-0.5 0.1 -0.9</direction>
     </light>
 
+    <model name="water_plane">
+      <static>true</static>
+      <link name="link">
+        <visual name="water_plane">
+          <geometry>
+            <plane>
+              <size>100 100</size>
+              <normal>0 0 1</normal>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0 0 1 0.5</ambient>
+            <diffuse>0 0 1 0.5</diffuse>
+            <specular>0 0 1 0.5</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
     <!-- This sphere should bob up and down. -->
     <model name='ball_lighter_than_water'>
       <pose>0 0 0 0 0 0</pose>
@@ -190,6 +209,40 @@
       <link name='body'>
         <inertial>
           <mass>1000</mass>
+          <pose>0 0 0.1 0 0 0</pose>
+          <inertia>
+            <ixx>86.28907821859966</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>86.28907821859966</iyy>
+            <iyz>0</iyz>
+            <izz>5.026548245743671</izz>
+          </inertia>
+        </inertial>
+
+        <visual name='body_visual'>
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+        <collision name='body_collision'>
+          <geometry>
+             <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <!-- This box is negatively buoyant and therefore should sink -->
+    <model name='box_negative_buoyancy'>
+      <pose>0 -8 0 0 0 0</pose>
+      <link name='body'>
+        <inertial>
+          <mass>1050</mass>
           <pose>0 0 0.1 0 0 0</pose>
           <inertia>
             <ixx>86.28907821859966</ixx>
