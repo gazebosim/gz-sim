@@ -13,14 +13,15 @@ Features:
 * Grid config
 * Select entities
 * Transform controls
+* Spawn entities through GUI
+* View angles
+* View collisions, wireframe, transparent, CoM, etc
 
 Missing for parity with GzScene3D:
 
-* Spawn entities through GUI
 * Context menu
 * Record video
-* View angles
-* View collisions, wireframe, transparent, CoM, etc
+* Drag and drop from Fuel / meshes
 * ...
 
 -->
@@ -131,9 +132,21 @@ Missing for parity with GzScene3D:
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
-        <service>/world/buoyancy/control</service>
-        <stats_topic>/world/buoyancy/stats</stats_topic>
 
+      </plugin>
+
+      <plugin filename="VisualizationCapabilities" name="Visualization Capabilities">
+        <ignition-gui>
+          <anchors target="Select entities">
+            <line own="right" target="right"/>
+            <line own="top" target="top"/>
+          </anchors>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
       </plugin>
 
       <!-- World statistics -->
@@ -157,7 +170,20 @@ Missing for parity with GzScene3D:
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-        <topic>/world/buoyancy/stats</topic>
+      </plugin>
+
+      <plugin filename="Spawn" name="Spawn Entities">
+        <ignition-gui>
+          <anchors target="Select entities">
+            <line own="right" target="right"/>
+            <line own="top" target="top"/>
+          </anchors>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
       </plugin>
 
       <!-- Insert simple shapes -->
@@ -233,6 +259,16 @@ Missing for parity with GzScene3D:
           <property type="bool" key="showTitleBar">false</property>
           <property type="string" key="state">docked</property>
         </ignition-gui>
+      </plugin>
+
+      <!-- View angle -->
+      <plugin filename="ViewAngle" name="View angle">
+        <ignition-gui>
+          <property type="string" key="state">docked</property>
+        </ignition-gui>
+
+        <!-- disable legacy features used to connect this plugin to GzScene3D -->
+        <legacy>false</legacy>
       </plugin>
 
     </gui>

@@ -29,15 +29,17 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
+#include "../test/helpers/EnvTestFixture.hh"
+
 using namespace ignition;
 using namespace gazebo;
 
 //////////////////////////////////////////////////
-class ComponentTest : public ::testing::Test
+class ComponentTest : public InternalFixture<::testing::Test>
 {
   protected: void SetUp() override
   {
-    common::Console::SetVerbosity(4);
+    InternalFixture::SetUp();
     common::setenv("IGN_DEBUG_COMPONENT_FACTORY", "true");
   }
 };

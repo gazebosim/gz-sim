@@ -29,6 +29,7 @@
 #include "ignition/gazebo/test_config.hh"
 
 #include "plugins/MockSystem.hh"
+#include "../helpers/EnvTestFixture.hh"
 
 #define tol 10e-4
 
@@ -37,15 +38,8 @@ using namespace gazebo;
 using namespace std::chrono_literals;
 
 /// \brief Test FollowActor system
-class FollowActorTest : public ::testing::TestWithParam<int>
+class FollowActorTest : public InternalFixture<::testing::TestWithParam<int>>
 {
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    common::Console::SetVerbosity(4);
-    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
-  }
 };
 
 class Relay

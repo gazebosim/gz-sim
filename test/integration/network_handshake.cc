@@ -25,6 +25,8 @@
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
+#include "../helpers/EnvTestFixture.hh"
+
 using namespace ignition;
 using namespace gazebo;
 using namespace std::chrono_literals;
@@ -59,13 +61,8 @@ uint64_t testPaused(bool _paused)
 }
 
 /////////////////////////////////////////////////
-class NetworkHandshake : public ::testing::Test
+class NetworkHandshake : public InternalFixture<::testing::Test>
 {
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    common::Console::SetVerbosity(4);
-  }
 };
 
 /////////////////////////////////////////////////
