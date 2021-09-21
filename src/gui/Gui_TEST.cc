@@ -91,7 +91,7 @@ TEST_F(GuiTest, IGN_UTILS_TEST_DISABLED_ON_MAC(PathManager))
   igndbg << "Paths advertised" << std::endl;
 
   auto app = ignition::gazebo::gui::createGui(
-    gg_argc, gg_argv, nullptr, "", nullptr, false);
+    gg_argc, gg_argv, nullptr, nullptr, false, nullptr);
   EXPECT_NE(nullptr, app);
   igndbg << "GUI created" << std::endl;
 

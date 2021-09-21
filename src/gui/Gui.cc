@@ -42,17 +42,8 @@ namespace gui
 //////////////////////////////////////////////////
 std::unique_ptr<ignition::gui::Application> createGui(
     int &_argc, char **_argv, const char *_guiConfig,
-    const char *_defaultGuiConfig, bool _loadPluginsFromSdf)
-{
-  return createGui(
-    _argc, _argv, _guiConfig, "", _defaultGuiConfig, _loadPluginsFromSdf);
-}
-
-//////////////////////////////////////////////////
-std::unique_ptr<ignition::gui::Application> createGui(
-    int &_argc, char **_argv, const char *_guiConfig,
-    const char *_renderEngineGui,
-    const char *_defaultGuiConfig, bool _loadPluginsFromSdf)
+    const char *_defaultGuiConfig, bool _loadPluginsFromSdf,
+    const char *_renderEngine)
 {
   ignition::common::SignalHandler sigHandler;
   bool sigKilled = false;
@@ -110,7 +101,10 @@ std::unique_ptr<ignition::gui::Application> createGui(
 
   // Customize window
   auto mainWin = app->findChild<ignition::gui::MainWindow *>();
-  mainWin->SetRenderEngine(_renderEngineGui);
+  if (_renderEngine != nullptr)
+  {
+    mainWin->SetRenderEngine(_renderEngine);
+  }
   auto win = mainWin->QuickWindow();
   win->setProperty("title", "Gazebo");
 
@@ -298,17 +292,11 @@ std::unique_ptr<ignition::gui::Application> createGui(
 }
 
 //////////////////////////////////////////////////
-int runGui(int &_argc, char **_argv, const char *_guiConfig)
-{
-  return runGui(_argc, _argv, _guiConfig, "");
-}
-
-//////////////////////////////////////////////////
 int runGui(int &_argc, char **_argv, const char *_guiConfig,
-  const char *_renderEngineGui)
+  const char *_renderEngine)
 {
   auto app = gazebo::gui::createGui(
-    _argc, _argv, _guiConfig, _renderEngineGui, nullptr, true);
+    _argc, _argv, _guiConfig, nullptr, true, _renderEngine);
   if (nullptr != app)
   {
     // Run main window.
@@ -317,8 +305,8 @@ int runGui(int &_argc, char **_argv, const char *_guiConfig,
     igndbg << "Shutting down ign-gazebo-gui" << std::endl;
     return 0;
   }
-  else
-    return -1;
+
+  return -1;
 }
 }  // namespace gui
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
