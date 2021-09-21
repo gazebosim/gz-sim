@@ -53,6 +53,8 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
 
+#include "../test/helpers/EnvTestFixture.hh"
+
 using namespace ignition;
 using namespace gazebo;
 
@@ -66,12 +68,8 @@ class EntityCompMgrTest : public gazebo::EntityComponentManager
 };
 
 /////////////////////////////////////////////////
-class SdfEntityCreatorTest : public ::testing::Test
+class SdfEntityCreatorTest : public InternalFixture<::testing::Test>
 {
-  public: void SetUp() override
-  {
-    ignition::common::Console::SetVerbosity(4);
-  }
   public: EntityCompMgrTest ecm;
   public: EventManager evm;
 };

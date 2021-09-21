@@ -40,18 +40,14 @@
 
 #include "helpers/UniqueTestDirectoryEnv.hh"
 #include "plugins/MockSystem.hh"
+#include "../helpers/EnvTestFixture.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
 /////////////////////////////////////////////////
-class SdfGeneratorFixture : public ::testing::Test
+class SdfGeneratorFixture : public InternalFixture<::testing::Test>
 {
-  public: void SetUp() override
-  {
-    ignition::common::Console::SetVerbosity(4);
-  }
-
   public: void LoadWorld(const std::string &_path)
   {
     ServerConfig serverConfig;

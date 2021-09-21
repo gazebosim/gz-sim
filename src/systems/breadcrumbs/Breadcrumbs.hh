@@ -47,39 +47,40 @@ namespace systems
   /// get deployed/spawned at the location of the model to which this system is
   /// attached. Each breadcrumb is a complete sdf::Model. When deployed, the
   /// pose of the breadcrumb model is offset from the containing model by the
-  /// pose specified in the <pose> element of the breadcrumb model. A name is
+  /// pose specified in the `<pose>` element of the breadcrumb model. A name is
   /// generated for the breadcrumb by appending the current count of deployments
-  /// to the name specified in the breadcrumb <model> element. The model
-  /// specified in the <breadcrumb> parameter serves as a template for deploying
-  /// multiple breadcrumbs of the same type. Including models from Fuel is
-  /// accomplished by creating a <model> that includes the Fuel model using the
-  /// <include> tag. See the example in examples/worlds/breadcrumbs.sdf.
+  /// to the name specified in the breadcrumb `<model>` element. The model
+  /// specified in the `<breadcrumb>` parameter serves as a template for
+  /// deploying multiple breadcrumbs of the same type. Including models from
+  /// Fuel is accomplished by creating a `<model>` that includes the Fuel
+  /// model using the `<include>` tag.
+  /// See the example in examples/worlds/breadcrumbs.sdf.
   ///
   /// System Paramters
   ///
-  /// `<topic>`: Custom topic to be used to deploy breadcrumbs. If topic is not
-  /// set, the default topic with the following pattern would be used
-  /// "/model/<model_name>/breadcrumbs/<breadcrumb_name>/deploy". The topic type
-  /// is ignition.msgs.Empty
-  /// `<max_deployments>`: The maximum number of times this breadcrumb can be
-  /// deployed. Once this many are deployed, publishing on the deploy topic will
-  /// have no effect. If a negative number is set, the maximum deployment will
-  /// be unbounded. If a value of zero is used, then the breadcrumb system will
-  /// be disabled. A zero value is useful for situations where SDF files are
-  /// programmatically created. The remaining deployment count is available on
-  /// the `<topic>/remaining` topic.
-  /// `<disable_physics_time>`: The time in which the breadcrumb entity's
+  /// - `<topic>`: Custom topic to be used to deploy breadcrumbs. If topic is
+  /// not set, the default topic with the following pattern would be used
+  /// `/model/<model_name>/breadcrumbs/<breadcrumb_name>/deploy`. The topic
+  /// type is ignition.msgs.Empty
+  /// - `<max_deployments>`: The maximum number of times this breadcrumb can be
+  /// deployed. Once this many are deployed, publishing on the deploy topic
+  /// will have no effect. If a negative number is set, the maximum deployment
+  /// will be unbounded. If a value of zero is used, then the breadcrumb system
+  /// will be disabled. A zero value is useful for situations where SDF files
+  /// are programmatically created. The remaining deployment count is available
+  /// on the `<topic>/remaining` topic.
+  /// - `<disable_physics_time>`: The time in which the breadcrumb entity's
   /// dynamics remain enabled. After his specified time, the breadcrumb will
   /// be made static. If this value is <= 0 or the param is not specified, the
   /// breadcrumb model's dynamics will not be modified.
-  /// `<performer_volume>`: Geometry that represents the bounding volume of
+  /// - `<performer_volume>`: Geometry that represents the bounding volume of
   /// the performer. Only `<geometry><box>` is supported currently. When this
   /// parameter is present, the deployed models will be performers.
-  /// `<allow_renaming>`: If true, the deployed model will be renamed if another
-  /// model with the same name already exists in the world. If false and there
-  /// is another model with the same name, the breadcrumb will not be deployed.
-  /// Defaults to false.
-  /// `<breadcrumb>`: This is the model used as a template for deploying
+  /// - `<allow_renaming>`: If true, the deployed model will be renamed if
+  /// another model with the same name already exists in the world. If false
+  /// and there is another model with the same name, the breadcrumb will not
+  /// be deployed. Defaults to false.
+  /// - `<breadcrumb>`: This is the model used as a template for deploying
   /// breadcrumbs.
   /// `<topic_statistics>`: If true, then topic statistics are enabled on
   /// `<topic>` and error messages will be generated when messages are
@@ -181,4 +182,3 @@ namespace systems
 }
 
 #endif
-

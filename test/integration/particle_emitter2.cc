@@ -31,20 +31,14 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/test_config.hh"
 
+#include "helpers/EnvTestFixture.hh"
 #include "helpers/Relay.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
-class ParticleEmitter2Test : public ::testing::Test
+class ParticleEmitter2Test : public InternalFixture<::testing::Test>
 {
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    ignition::common::Console::SetVerbosity(4);
-    common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
-  }
   public: void LoadWorld(const std::string &_path, bool _useLevels = false)
   {
     this->serverConfig.SetSdfFile(
@@ -119,23 +113,9 @@ TEST_F(ParticleEmitter2Test, SDFLoad)
                 EXPECT_EQ("/path/to/dummy_image.png",
                     _emitter->Data().color_range_image().data());
 
-                // particle scatter ratio is temporarily stored in header
-                bool hasParticleScatterRatio = false;
-                for (int i = 0; i < _emitter->Data().header().data_size(); ++i)
-                {
-                  for (int j = 0;
-                      j < _emitter->Data().header().data(i).value_size(); ++j)
-                  {
-                    if (_emitter->Data().header().data(i).key() ==
-                        "particle_scatter_ratio")
-                    {
-                      EXPECT_DOUBLE_EQ(0.01, math::parseFloat(
-                          _emitter->Data().header().data(i).value(0)));
-                      hasParticleScatterRatio = true;
-                    }
-                  }
-                }
-                EXPECT_TRUE(hasParticleScatterRatio);
+                EXPECT_TRUE(_emitter->Data().has_particle_scatter_ratio());
+                EXPECT_FLOAT_EQ(0.01f,
+                    _emitter->Data().particle_scatter_ratio().data());
               }
               else
               {
