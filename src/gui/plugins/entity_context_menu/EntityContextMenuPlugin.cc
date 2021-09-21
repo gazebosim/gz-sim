@@ -79,7 +79,7 @@ void EntityContextMenuPrivate::OnRender()
         {
           this->camera = cam;
 
-          igndbg << "Spawn plugin is using camera ["
+          igndbg << "Entity context menu plugin is using camera ["
                  << this->camera->Name() << "]" << std::endl;
           break;
         }
@@ -110,7 +110,7 @@ void EntityContextMenu::LoadConfig(const tinyxml2::XMLElement *)
     return;
   }
 
-  renderWindowOverlay->SetEntityContextMenuHanlder(
+  renderWindowOverlay->SetEntityContextMenuHandler(
     this->dataPtr->entityContextMenuHanlder);
 
   if (this->title.empty())
@@ -151,12 +151,11 @@ EntityContextMenuItem::EntityContextMenuItem(QQuickItem *_parent)
 }
 
 /////////////////////////////////////////////////
-void EntityContextMenuItem::SetEntityContextMenuHanlder(
-  EntityContextMenuHanlder &_entityContextMenuHanlder)
+void EntityContextMenuItem::SetEntityContextMenuHandler(
+  const EntityContextMenuHanlder &_entityContextMenuHanlder)
 {
-  entityContextMenuHanlder = &_entityContextMenuHanlder;
   this->connect(
-    entityContextMenuHanlder,
+    &_entityContextMenuHanlder,
     &EntityContextMenuHanlder::ContextMenuRequested,
     this,
     &EntityContextMenuItem::OnContextMenuRequested,

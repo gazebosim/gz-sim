@@ -86,12 +86,9 @@ namespace gazebo
     public: explicit EntityContextMenuItem(QQuickItem *_parent = nullptr);
 
     /// \brief Set the entity context menu hanlder
-    /// \param[in] _EntityContextMenuHanlder Entity context menu hanlder
-    public: void SetEntityContextMenuHanlder(
-      EntityContextMenuHanlder &_EntityContextMenuHanlder);
-
-    /// \brief Entity context menu hanlder
-    public: EntityContextMenuHanlder *entityContextMenuHanlder;
+    /// \param[in] _entityContextMenuHandler Entity context menu hanlder
+    public: void SetEntityContextMenuHandler(
+      const EntityContextMenuHanlder &_entityContextMenuHandler);
 
     /// \brief Signal fired to open context menu
     /// Note that the function name needs to start with lowercase in order for
