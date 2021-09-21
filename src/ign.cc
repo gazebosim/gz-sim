@@ -123,7 +123,9 @@ int createServerConfig(ignition::gazebo::ServerConfig &_serverConfig,
     int _recordResources, int _logOverwrite, int _logCompress,
     const char *_playback, const char *_physicsEngine,
     const char *_renderEngineServer, const char *_renderEngineGui,
-    const char *_file, const char *_recordTopics, bool _sameProcessAsGUI)
+    const char *_file, const char *_recordTopics, bool _sameProcessAsGUI
+    const char *_file, const char *_recordTopics,
+    int _headless, bool _sameProcessAsGUI)
 {
   // Path for logs
   std::string recordPathMod = _serverConfig.LogRecordPath();
@@ -335,6 +337,8 @@ int createServerConfig(ignition::gazebo::ServerConfig &_serverConfig,
   {
     _serverConfig.SetPhysicsEngine(_physicsEngine);
   }
+
+  serverConfig.SetHeadlessRendering(_headless);
 
   if (_renderEngineServer != nullptr && std::strlen(_renderEngineServer) > 0)
   {
