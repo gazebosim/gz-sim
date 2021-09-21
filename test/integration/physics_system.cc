@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <cmath>
 #include <string>
 #include <vector>
 
@@ -36,6 +37,7 @@
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/Util.hh"
+#include "ignition/gazebo/components/PoseCmd.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
 #include "ignition/gazebo/components/AxisAlignedBox.hh"
@@ -44,7 +46,7 @@
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/JointConstraintWrench.hh"
+#include "ignition/gazebo/components/JointTransmittedWrench.hh"
 #include "ignition/gazebo/components/JointPosition.hh"
 #include "ignition/gazebo/components/JointPositionReset.hh"
 #include "ignition/gazebo/components/JointVelocity.hh"
@@ -1666,13 +1668,13 @@ TEST_F(PhysicsSystemFixture, Heightmap)
 
 /////////////////////////////////////////////////
 // Joint force
-TEST_F(PhysicsSystemFixture, JointConstraintWrench)
+TEST_F(PhysicsSystemFixture, JointTransmittedWrench)
 {
   common::Console::SetVerbosity(4);
   ignition::gazebo::ServerConfig serverConfig;
 
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/joint_constraints.sdf";
+    "/test/worlds/joint_transmitted_wrench.sdf";
 
   serverConfig.SetSdfFile(sdfFile);
 
@@ -1693,32 +1695,92 @@ TEST_F(PhysicsSystemFixture, JointConstraintWrench)
                   const components::Joint *) -> bool
               {
                 _ecm.CreateComponent(_entity,
-                                     components::JointConstraintWrench());
+                                     components::JointTransmittedWrench());
                 return true;
               });
         }
       });
 
+  const std::size_t totalIters = 1800;
+  std::vector<Wrench> wrenches;
+  wrenches.reserve(totalIters);
+  // Simply collect joint wrenches. We check the values later.
   testSystem.OnPostUpdate(
-      [&](const gazebo::UpdateInfo &_info,
+      [&](const gazebo::UpdateInfo &,
           const gazebo::EntityComponentManager &_ecm)
       {
-        _ecm.Each<components::Name, components::JointConstraintWrench>(
-            [&](const ignition::gazebo::Entity &, const components::Name *_name,
-                const components::JointConstraintWrench *_force) -> bool
-            {
-              std::cout << "Joint: " << _name->Data() << " "
-                        << _force->Data().size() << " " << _info.iterations
-                        << ": ";
-              for (const auto &jf : _force->Data())
-              {
-                std::cout << jf << " ";
-              }
-              std::cout << std::endl;
-              return true;
-            });
+        const auto sensorJointEntity = _ecm.EntityByComponents(
+            components::Joint(), components::Name("sensor_joint"));
+        const auto jointWrench =
+            _ecm.ComponentData<components::JointTransmittedWrench>(
+                sensorJointEntity);
+        if (jointWrench.has_value())
+        {
+          wrenches.push_back(*jointWrench);
+        }
       });
   server.AddSystem(testSystem.systemPtr);
-  server.Run(true, 1800, false);
-  SUCCEED();
+  server.Run(true, totalIters, false);
+
+  ASSERT_EQ(totalIters, wrenches.size());
+
+  const double kWeightScaleContactHeight = 0.05 + 0.25;
+  const double kSensorMass = 0.2;
+  const double kWeightMass = 10;
+  const double kGravity = 9.8;
+  const double kWeightInitialHeight = 0.5;
+  const double dt = 0.001;
+  const double timeOfContact = std::sqrt(
+      2 * (kWeightInitialHeight - kWeightScaleContactHeight) / kGravity);
+  std::size_t iterOfContact =
+      static_cast<std::size_t>(std::round(timeOfContact / dt));
+
+  for (std::size_t i = 0; i < iterOfContact - 10; ++i)
+  {
+    const auto &wrench = wrenches[i];
+    EXPECT_NEAR(0.0, wrench.force.X(), 1e-3);
+    EXPECT_NEAR(0.0, wrench.force.Y(), 1e-3);
+    EXPECT_NEAR(kGravity * kSensorMass, wrench.force.Z(), 1e-3);
+    EXPECT_EQ(math::Vector3d::Zero, wrench.torque);
+  }
+
+  // Wait 300 (determined empirically) iterations for values to stabilize.
+  for (std::size_t i = iterOfContact + 300; i < wrenches.size(); ++i)
+  {
+    const auto &wrench = wrenches[i];
+    EXPECT_NEAR(0.0, wrench.force.X(), 1e-3);
+    EXPECT_NEAR(0.0, wrench.force.Y(), 1e-3);
+    EXPECT_NEAR(kGravity * (kSensorMass + kWeightMass), wrench.force.Z(), 1e-3);
+    EXPECT_EQ(math::Vector3d::Zero, wrench.torque);
+  }
+
+  // Move the weight off center so it generates torque
+  testSystem.OnPreUpdate(
+      [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+      {
+        const auto weightEntity = _ecm.EntityByComponents(
+            components::Model(), components::Name("weight"));
+        _ecm.SetComponentData<components::WorldPoseCmd>(
+            weightEntity, math::Pose3d(0.2, 0.1, 0.5, 0, 0, 0));
+      });
+
+  server.RunOnce();
+  // Reset PreUpdate so it doesn't keep moving the weight
+  testSystem.OnPreUpdate({});
+  wrenches.clear();
+  server.Run(true, totalIters, false);
+  ASSERT_EQ(totalIters, wrenches.size());
+
+  // Wait 300 (determined empirically) iterations for values to stabilize.
+  for (std::size_t i = iterOfContact + 300; i < wrenches.size(); ++i)
+  {
+    const auto &wrench = wrenches[i];
+    EXPECT_NEAR(0.0, wrench.force.X(), 1e-3);
+    EXPECT_NEAR(0.0, wrench.force.Y(), 1e-3);
+    EXPECT_NEAR(kGravity * (kSensorMass + kWeightMass), wrench.force.Z(), 1e-3);
+
+    EXPECT_NEAR(0.1 * kGravity * kWeightMass, wrench.torque.X(), 1e-3);
+    EXPECT_NEAR(-0.2 * kGravity * kWeightMass, wrench.torque.Y(), 1e-3);
+    EXPECT_NEAR(0.0, wrench.torque.Z(), 1e-3);
+  }
 }

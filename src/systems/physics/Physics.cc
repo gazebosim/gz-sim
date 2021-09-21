@@ -26,6 +26,7 @@
 #include <algorithm>
 #include <iostream>
 #include <deque>
+#include <functional>
 #include <map>
 #include <string>
 #include <unordered_map>
@@ -117,7 +118,7 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
-#include "ignition/gazebo/components/JointConstraintWrench.hh"
+#include "ignition/gazebo/components/JointTransmittedWrench.hh"
 #include "ignition/gazebo/components/JointForceCmd.hh"
 #include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
@@ -421,10 +422,10 @@ class ignition::gazebo::systems::PhysicsPrivate
             physics::SetJointTransformFromParentFeature>{};
 
   //////////////////////////////////////////////////
-  // Joint constraint wrench
-  /// \brief Feature list for getting joint constraint wrenches.
-  public: struct JointGetConstraintWrenchFeatureList : physics::FeatureList<
-            physics::GetJointConstraintWrench>{};
+  // Joint transmitted wrench
+  /// \brief Feature list for getting joint transmitted wrenches.
+  public: struct JointGetTransmittedWrenchFeatureList : physics::FeatureList<
+            physics::GetJointTransmittedWrench>{};
 
   //////////////////////////////////////////////////
   // Collisions
@@ -570,7 +571,7 @@ class ignition::gazebo::systems::PhysicsPrivate
             JointFeatureList,
             DetachableJointFeatureList,
             JointVelocityCommandFeatureList,
-            JointGetConstraintWrenchFeatureList
+            JointGetTransmittedWrenchFeatureList
             >;
 
   /// \brief A map between joint entity ids in the ECM to Joint Entities in
@@ -2786,21 +2787,27 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
       });
   IGN_PROFILE_END();
 
-  // Update joint constraints
-  _ecm.Each<components::Joint, components::JointConstraintWrench>(
+  // Update joint transmitteds
+  _ecm.Each<components::Joint, components::JointTransmittedWrench>(
       [&](const Entity &_entity, components::Joint *,
-          components::JointConstraintWrench *_wrench) -> bool
+          components::JointTransmittedWrench *_wrench) -> bool
       {
         auto jointPhys =
             this->entityJointMap
-                .EntityCast<JointGetConstraintWrenchFeatureList>(_entity);
+                .EntityCast<JointGetTransmittedWrenchFeatureList>(_entity);
         if (jointPhys)
         {
-          const auto &jointWrench = jointPhys->GetConstraintWrench();
-          std::copy(jointWrench.data(), jointWrench.data() + jointWrench.size(),
-                    std::begin(_wrench->Data()));
-          _ecm.SetChanged(_entity, components::JointConstraintWrench::typeId,
-                          ComponentState::PeriodicChange);
+          const auto &jointWrench = jointPhys->GetTransmittedWrench();
+
+          gazebo::Wrench wrenchData;
+          wrenchData.torque = math::eigen3::convert(jointWrench.torque);
+          wrenchData.force = math::eigen3::convert(jointWrench.force);
+          const auto state =
+              _wrench->SetData(wrenchData, std::equal_to<gazebo::Wrench>())
+                  ? ComponentState::PeriodicChange
+                  : ComponentState::NoChange;
+          _ecm.SetChanged(_entity, components::JointTransmittedWrench::typeId,
+                          state);
         }
         else
         {
@@ -2808,9 +2815,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
           if (!informed)
           {
             igndbg
-                << "Attempting to get joint constraint wrenches, but the "
+                << "Attempting to get joint transmitted wrenches, but the "
                    "physics engine doesn't support this feature. Values in the "
-                   "JointConstraintWrench component will not be meaningful."
+                   "JointTransmittedWrench component will not be meaningful."
                 << std::endl;
             informed = true;
           }

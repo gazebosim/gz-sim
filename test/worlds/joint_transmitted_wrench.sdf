@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <sdf version="1.7">
-  <world name="joint_constraints">
+  <world name="joint_wrenches">
     <model name="ground_plane">
       <static>true</static>
       <link name="link">
@@ -61,10 +61,35 @@
           </geometry>
         </visual>
         <collision name="c1">
+          <pose>0.5 0.5 -0.01  0 0 0</pose>
           <geometry>
-            <box>
-              <size>1 1 0.04</size>
-            </box>
+            <sphere>
+              <radius>0.01</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <collision name="c2">
+          <pose>0.5 -0.5 -0.01  0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>0.01</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <collision name="c3">
+          <pose>-0.5 -0.5 -0.01  0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>0.01</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <collision name="c4">
+          <pose>-0.5 0.5 -0.01  0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>0.01</radius>
+            </sphere>
           </geometry>
         </collision>
       </link>
@@ -113,9 +138,9 @@
         </inertial>
         <visual name="v1">
           <geometry>
-            <box>
-              <size>0.5 0.5 0.5</size>
-            </box>
+            <sphere>
+              <radius>0.25</radius>
+            </sphere>
           </geometry>
           <material>
             <ambient>0.0 0.8 0.8 1</ambient>
@@ -125,9 +150,9 @@
         </visual>
         <collision name="c1">
           <geometry>
-            <box>
-              <size>0.5 0.5 0.5</size>
-            </box>
+            <sphere>
+              <radius>0.25</radius>
+            </sphere>
           </geometry>
         </collision>
       </link>
