@@ -123,7 +123,6 @@ int createServerConfig(ignition::gazebo::ServerConfig &_serverConfig,
     int _recordResources, int _logOverwrite, int _logCompress,
     const char *_playback, const char *_physicsEngine,
     const char *_renderEngineServer, const char *_renderEngineGui,
-    const char *_file, const char *_recordTopics, bool _sameProcessAsGUI
     const char *_file, const char *_recordTopics,
     int _headless, bool _sameProcessAsGUI)
 {
@@ -338,7 +337,7 @@ int createServerConfig(ignition::gazebo::ServerConfig &_serverConfig,
     _serverConfig.SetPhysicsEngine(_physicsEngine);
   }
 
-  serverConfig.SetHeadlessRendering(_headless);
+  _serverConfig.SetHeadlessRendering(_headless);
 
   if (_renderEngineServer != nullptr && std::strlen(_renderEngineServer) > 0)
   {
@@ -360,7 +359,8 @@ extern "C" int runServer(const char *_sdfString,
     int _recordResources, int _logOverwrite, int _logCompress,
     const char *_playback, const char *_physicsEngine,
     const char *_renderEngineServer, const char *_renderEngineGui,
-    const char *_file, const char *_recordTopics)
+    const char *_file, const char *_recordTopics,
+    int _headless)
 {
   // Create the Gazebo server
   ignition::gazebo::ServerConfig serverConfig;
@@ -370,7 +370,7 @@ extern "C" int runServer(const char *_sdfString,
           _networkSecondaries, _record, _recordPath,
           _recordResources, _logOverwrite, _logCompress,
           _playback, _physicsEngine, _renderEngineServer,
-          _renderEngineGui, _file, _recordTopics, false) == 0)
+          _renderEngineGui, _file, _recordTopics, _headless, false) == 0)
   {
     ignition::gazebo::Server server(serverConfig);
     // Run the server
@@ -395,12 +395,12 @@ extern "C" int runCombined(const char *_sdfString,
 {
   ignition::gazebo::ServerConfig serverConfig;
 
-  if (!createServerConfig(serverConfig,
+  if (createServerConfig(serverConfig,
         _sdfString, _hz, _levels, _networkRole,
         _networkSecondaries, _record, _recordPath,
         _recordResources, _logOverwrite, _logCompress,
         _playback, _physicsEngine, _renderEngineServer,
-        _renderEngineGui, _file, _recordTopics, true) == 0)
+        _renderEngineGui, _file, _recordTopics, false, true) != 0)
   {
     ignerr << "Unable to create server config\n";
     return -1;

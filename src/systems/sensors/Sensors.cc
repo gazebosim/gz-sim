@@ -477,6 +477,7 @@ void Sensors::Configure(const Entity &/*_id*/,
     {
       this->dataPtr->renderUtil.SetHeadlessRendering(
         renderEngineServerHeadlessComp->Data());
+    }
 
     // Check if the server and gui are running in the same process
     auto sameProcessComp =
