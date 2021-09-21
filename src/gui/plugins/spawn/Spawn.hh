@@ -28,8 +28,8 @@ namespace gazebo
 {
   class SpawnPrivate;
 
-  /// \brief Allows to spawn models and lights using the spawn gui events.
-  // TODO(anyone) Support drag and drop
+  /// \brief Allows to spawn models and lights using the spawn gui events or
+  /// drag and drop.
   class Spawn : public ignition::gui::Plugin
   {
     Q_OBJECT
