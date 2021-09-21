@@ -20,7 +20,6 @@
 #include <google/protobuf/message_lite.h>
 #include <ignition/msgs/double_v.pb.h>
 
-#include <array>
 #include <string>
 #include <vector>
 #include <sdf/Sensor.hh>

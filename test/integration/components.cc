@@ -18,6 +18,8 @@
 #include <gtest/gtest.h>
 
 #include <ignition/msgs/particle_emitter.pb.h>
+#include <ignition/msgs/wrench.pb.h>
+#include <ignition/msgs/Utility.hh>
 
 #include <chrono>
 
@@ -48,6 +50,7 @@
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
+#include "ignition/gazebo/components/JointTransmittedWrench.hh"
 #include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/JointVelocity.hh"
 #include "ignition/gazebo/components/JointVelocityCmd.hh"
@@ -1660,4 +1663,26 @@ TEST_F(ComponentsTest, ParticleEmitterCmd)
   comp3.Deserialize(istr);
   EXPECT_EQ(comp1.Data().emitting().data(), comp3.Data().emitting().data());
   EXPECT_EQ(comp1.Data().name(), comp3.Data().name());
+}
+
+//////////////////////////////////////////////////
+TEST_F(ComponentsTest, JointTransmittedWrench)
+{
+  msgs::Wrench wrench;
+  msgs::Set(wrench.mutable_torque(), {10, 20, 30});
+  msgs::Set(wrench.mutable_force(), {1, 2, 3});
+
+  // // Create components.
+  auto comp1 = components::JointTransmittedWrench(wrench);
+
+  // Stream operators.
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+
+  std::istringstream istr(ostr.str());
+  components::JointTransmittedWrench comp2;
+  comp2.Deserialize(istr);
+  EXPECT_EQ(msgs::Convert(comp2.Data().force()), msgs::Convert(wrench.force()));
+  EXPECT_EQ(msgs::Convert(comp2.Data().torque()),
+            msgs::Convert(wrench.torque()));
 }

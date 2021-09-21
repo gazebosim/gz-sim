@@ -22,11 +22,9 @@
 #include <ignition/msgs/entity.pb.h>
 #include <ignition/msgs/Utility.hh>
 
-#include <array>
 #include <algorithm>
 #include <iostream>
 #include <deque>
-#include <functional>
 #include <map>
 #include <string>
 #include <unordered_map>
@@ -382,6 +380,19 @@ class ignition::gazebo::systems::PhysicsPrivate
                       }
                       return true;
                     }};
+  /// \brief msgs::Contacts equality comparison function.
+  public: std::function<bool(const msgs::Wrench &, const msgs::Wrench &)>
+          wrenchEql{
+          [](const msgs::Wrench &_a, const msgs::Wrench &_b)
+          {
+            return math::equal(_a.torque().x(), _b.torque().x(), 1e-6) &&
+                   math::equal(_a.torque().y(), _b.torque().y(), 1e-6) &&
+                   math::equal(_a.torque().z(), _b.torque().z(), 1e-6) &&
+
+                   math::equal(_a.force().x(), _b.force().x(), 1e-6) &&
+                   math::equal(_a.force().y(), _b.force().y(), 1e-6) &&
+                   math::equal(_a.force().z(), _b.force().z(), 1e-6);
+          }};
 
   /// \brief Environment variable which holds paths to look for engine plugins
   public: std::string pluginPathEnv = "IGN_GAZEBO_PHYSICS_ENGINE_PATH";
@@ -2799,11 +2810,13 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
         {
           const auto &jointWrench = jointPhys->GetTransmittedWrench();
 
-          gazebo::Wrench wrenchData;
-          wrenchData.torque = math::eigen3::convert(jointWrench.torque);
-          wrenchData.force = math::eigen3::convert(jointWrench.force);
+          msgs::Wrench wrenchData;
+          msgs::Set(wrenchData.mutable_torque(),
+                    math::eigen3::convert(jointWrench.torque));
+          msgs::Set(wrenchData.mutable_force(),
+                    math::eigen3::convert(jointWrench.force));
           const auto state =
-              _wrench->SetData(wrenchData, std::equal_to<gazebo::Wrench>())
+              _wrench->SetData(wrenchData, this->wrenchEql)
                   ? ComponentState::PeriodicChange
                   : ComponentState::NoChange;
           _ecm.SetChanged(_entity, components::JointTransmittedWrench::typeId,

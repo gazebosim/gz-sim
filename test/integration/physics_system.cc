@@ -18,12 +18,12 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
-#include <cmath>
 #include <string>
 #include <vector>
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
+#include <ignition/msgs/Utility.hh>
 #include <sdf/Collision.hh>
 #include <sdf/Cylinder.hh>
 #include <sdf/Geometry.hh>
@@ -37,7 +37,6 @@
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/components/PoseCmd.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
 #include "ignition/gazebo/components/AxisAlignedBox.hh"
@@ -59,6 +58,7 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/PoseCmd.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -1702,7 +1702,7 @@ TEST_F(PhysicsSystemFixture, JointTransmittedWrench)
       });
 
   const std::size_t totalIters = 1800;
-  std::vector<Wrench> wrenches;
+  std::vector<msgs::Wrench> wrenches;
   wrenches.reserve(totalIters);
   // Simply collect joint wrenches. We check the values later.
   testSystem.OnPostUpdate(
@@ -1738,20 +1738,21 @@ TEST_F(PhysicsSystemFixture, JointTransmittedWrench)
   for (std::size_t i = 0; i < iterOfContact - 10; ++i)
   {
     const auto &wrench = wrenches[i];
-    EXPECT_NEAR(0.0, wrench.force.X(), 1e-3);
-    EXPECT_NEAR(0.0, wrench.force.Y(), 1e-3);
-    EXPECT_NEAR(kGravity * kSensorMass, wrench.force.Z(), 1e-3);
-    EXPECT_EQ(math::Vector3d::Zero, wrench.torque);
+    EXPECT_NEAR(0.0, wrench.force().x(), 1e-3);
+    EXPECT_NEAR(0.0, wrench.force().y(), 1e-3);
+    EXPECT_NEAR(kGravity * kSensorMass, wrench.force().z(), 1e-3);
+    EXPECT_EQ(math::Vector3d::Zero, msgs::Convert(wrench.torque()));
   }
 
   // Wait 300 (determined empirically) iterations for values to stabilize.
   for (std::size_t i = iterOfContact + 300; i < wrenches.size(); ++i)
   {
     const auto &wrench = wrenches[i];
-    EXPECT_NEAR(0.0, wrench.force.X(), 1e-3);
-    EXPECT_NEAR(0.0, wrench.force.Y(), 1e-3);
-    EXPECT_NEAR(kGravity * (kSensorMass + kWeightMass), wrench.force.Z(), 1e-3);
-    EXPECT_EQ(math::Vector3d::Zero, wrench.torque);
+    EXPECT_NEAR(0.0, wrench.force().x(), 1e-3);
+    EXPECT_NEAR(0.0, wrench.force().y(), 1e-3);
+    EXPECT_NEAR(kGravity * (kSensorMass + kWeightMass), wrench.force().z(),
+                1e-3);
+    EXPECT_EQ(math::Vector3d::Zero, msgs::Convert(wrench.torque()));
   }
 
   // Move the weight off center so it generates torque
@@ -1775,12 +1776,13 @@ TEST_F(PhysicsSystemFixture, JointTransmittedWrench)
   for (std::size_t i = iterOfContact + 300; i < wrenches.size(); ++i)
   {
     const auto &wrench = wrenches[i];
-    EXPECT_NEAR(0.0, wrench.force.X(), 1e-3);
-    EXPECT_NEAR(0.0, wrench.force.Y(), 1e-3);
-    EXPECT_NEAR(kGravity * (kSensorMass + kWeightMass), wrench.force.Z(), 1e-3);
+    EXPECT_NEAR(0.0, wrench.force().x(), 1e-3);
+    EXPECT_NEAR(0.0, wrench.force().y(), 1e-3);
+    EXPECT_NEAR(kGravity * (kSensorMass + kWeightMass), wrench.force().z(),
+                1e-3);
 
-    EXPECT_NEAR(0.1 * kGravity * kWeightMass, wrench.torque.X(), 1e-3);
-    EXPECT_NEAR(-0.2 * kGravity * kWeightMass, wrench.torque.Y(), 1e-3);
-    EXPECT_NEAR(0.0, wrench.torque.Z(), 1e-3);
+    EXPECT_NEAR(0.1 * kGravity * kWeightMass, wrench.torque().x(), 1e-3);
+    EXPECT_NEAR(-0.2 * kGravity * kWeightMass, wrench.torque().y(), 1e-3);
+    EXPECT_NEAR(0.0, wrench.torque().z(), 1e-3);
   }
 }
