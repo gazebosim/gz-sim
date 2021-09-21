@@ -83,10 +83,6 @@ namespace ignition::gazebo
     /// \brief Video recorder bitrate (bps)
     public: unsigned int bitrate = 2070000;
 
-    /// \brief Previous camera update time during video recording
-    /// only used in lockstep mode and recording in sim time.
-    public: std::chrono::steady_clock::time_point updateTime;
-
     /// \brief Start tiem of video recording
     public: std::chrono::steady_clock::time_point startTime;
 
@@ -181,21 +177,6 @@ void VideoRecorderPrivate::OnRender()
     return;
 
   this->Initialize();
-
-  // check if recording is in lockstep mode and if it is using sim time
-  // if so, there is no need to update camera if sim time has not advanced
-  if (this->lockstep &&
-      this->useSimTime &&
-      this->videoEncoder.IsEncoding())
-  {
-    std::chrono::steady_clock::time_point t =
-        std::chrono::steady_clock::time_point(
-        this->simTime);
-    if (t - this->updateTime != std::chrono::seconds(0))
-    {
-      this->updateTime = t;
-    }
-  }
 
   // record video is requested
   {
