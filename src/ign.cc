@@ -400,7 +400,7 @@ extern "C" int runCombined(const char *_sdfString,
         _networkSecondaries, _record, _recordPath,
         _recordResources, _logOverwrite, _logCompress,
         _playback, _physicsEngine, _renderEngineServer,
-        _renderEngineGui, _file, _recordTopics, true,_headless) == 0)
+        _renderEngineGui, _file, _recordTopics, true, _headless) == 0)
   {
     ignerr << "Unable to create server config\n";
     return -1;
