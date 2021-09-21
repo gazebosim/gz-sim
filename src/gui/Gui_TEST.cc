@@ -28,15 +28,21 @@
 #include "ignition/gazebo/gui/Gui.hh"
 #include "ignition/gazebo/test_config.hh"
 
+#include "../../test/helpers/EnvTestFixture.hh"
+
 int gg_argc = 1;
 char **gg_argv = new char *[gg_argc];
 
 using namespace ignition;
 using namespace gazebo;
 
+class GuiTest : public InternalFixture<::testing::Test>
+{
+};
+
 /////////////////////////////////////////////////
 // https://github.com/ignitionrobotics/ign-gazebo/issues/8
-TEST(GuiTest, IGN_UTILS_TEST_DISABLED_ON_MAC(PathManager))
+TEST_F(GuiTest, IGN_UTILS_TEST_DISABLED_ON_MAC(PathManager))
 {
   common::Console::SetVerbosity(4);
   igndbg << "Start test" << std::endl;

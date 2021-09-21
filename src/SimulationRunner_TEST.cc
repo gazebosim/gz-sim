@@ -56,6 +56,7 @@
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/config.hh"
+#include "../test/helpers/EnvTestFixture.hh"
 #include "SimulationRunner.hh"
 
 using namespace ignition;
@@ -81,16 +82,10 @@ IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.DoubleComponent",
 }
 }
 
-class SimulationRunnerTest : public ::testing::TestWithParam<int>
+/////////////////////////////////////////////////
+class SimulationRunnerTest
+  : public InternalFixture<::testing::TestWithParam<int>>
 {
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    common::Console::SetVerbosity(4);
-
-    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-      common::joinPaths(PROJECT_BINARY_PATH, "lib"));
-  }
 };
 
 std::vector<msgs::Clock> clockMsgs;

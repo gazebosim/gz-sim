@@ -75,6 +75,8 @@ COMMANDS = { 'gazebo' =>
   "                               enable console logging to a console.log          \n"\
   "                               file in the specified path.                      \n"\
   "\n"\
+  "  --headless-rendering         Run rendering in headless mode                   \n"\
+  "\n"\
   "  --record-resources           Implicitly invokes --record, and records         \n"\
   "                               meshes and material files, in addition to        \n"\
   "                               states and console messages.                     \n"\
@@ -221,7 +223,8 @@ class Cmd
       'gui_config' => '',
       'physics_engine' => '',
       'rendering_engine_gui' => '',
-      'rendering_engine_server' => ''
+      'rendering_engine_server' => '',
+      'headless-rendering' => 0
     }
 
     usage = COMMANDS[args[0]]
@@ -290,6 +293,9 @@ class Cmd
       end
       opts.on('--physics-engine [arg]', String) do |e|
         options['physics_engine'] = e
+      end
+      opts.on('--headless-rendering') do
+        options['headless-rendering'] = 1
       end
       opts.on('--render-engine-gui [arg]', String) do |g|
         options['render_engine_gui'] = g
@@ -431,7 +437,7 @@ has properly set the DYLD_LIBRARY_PATH environment variables."
                                const char *, int, int, const char *,
                                int, int, int, const char *, const char *,
                                const char *, const char *, const char *,
-                               const char *)'
+                               const char *, int)'
 
       # Import the runGui function
       Importer.extern 'int runGui(const char *)'
@@ -441,7 +447,7 @@ has properly set the DYLD_LIBRARY_PATH environment variables."
                                const char *, int, int, const char *,
                                int, int, int, const char *, const char *,
                                const char *, const char *, const char *,
-                               const char *, const char *)'
+                               const char *, const char *, int)'
 
       # If playback is specified, and the user has not specified a
       # custom gui config, set the gui config to load the playback
@@ -462,7 +468,7 @@ has properly set the DYLD_LIBRARY_PATH environment variables."
             options['playback'], options['physics_engine'],
             options['render_engine_server'], options['render_engine_gui'],
             options['file'], options['record-topics'].join(':'),
-            options['gui_config'])
+            options['gui_config'], options['headless-rendering'])
 
       # Neither the -s nor -g options were used, so run both the server
       # and gui.
@@ -484,7 +490,8 @@ See https://github.com/ignitionrobotics/ign-gazebo/issues/44 for more info."
             options['log-overwrite'], options['log-compress'],
             options['playback'], options['physics_engine'],
             options['render_engine_server'], options['render_engine_gui'],
-            options['file'], options['record-topics'].join(':'))
+            options['file'], options['record-topics'].join(':'),
+            options['headless-rendering'])
         end
 
         guiPid = Process.fork do
@@ -519,7 +526,8 @@ See https://github.com/ignitionrobotics/ign-gazebo/issues/44 for more info."
             options['log-overwrite'], options['log-compress'],
             options['playback'], options['physics_engine'],
             options['render_engine_server'], options['render_engine_gui'],
-            options['file'], options['record-topics'].join(':'))
+            options['file'], options['record-topics'].join(':'),
+            options['headless-rendering'])
       # Otherwise run the gui
       else options['gui']
         if plugin.end_with? ".dylib"

@@ -38,15 +38,13 @@
 #include <ignition/gazebo/SdfEntityCreator.hh>
 #include <ignition/gazebo/Link.hh>
 
+#include "../helpers/EnvTestFixture.hh"
+
 using namespace ignition;
 using namespace gazebo;
 
-class LinkIntegrationTest : public ::testing::Test
+class LinkIntegrationTest : public InternalFixture<::testing::Test>
 {
-  public: void SetUp() override
-  {
-    ignition::common::Console::SetVerbosity(4);
-  }
 };
 
 //////////////////////////////////////////////////

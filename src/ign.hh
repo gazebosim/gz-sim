@@ -54,7 +54,8 @@ extern "C" const char *worldInstallDir();
 /// \param[in] _file Path to file being loaded
 /// \param[in] _recordTopics Colon separated list of topics to record. Leave
 /// null to record the default topics.
-/// \return 0 if successful, -1 if not.
+/// \param[in] _headless True if server rendering should run headless
+/// \return 0 if successful, 1 if not.
 extern "C" int runServer(const char *_sdfString,
     int _iterations, int _run, float _hz, int _levels,
     const char *_networkRole, int _networkSecondaries, int _record,
@@ -62,7 +63,7 @@ extern "C" int runServer(const char *_sdfString,
     int _logCompress, const char *_playback,
     const char *_physicsEngine, const char *_renderEngineServer,
     const char *_renderEngineGui, const char *_file,
-    const char *_recordTopics);
+    const char *_recordTopics, int _headless);
 
 /// \brief External hook to run simulation GUI.
 /// \param[in] _guiConfig Path to Ignition GUI configuration file.
@@ -97,6 +98,7 @@ extern "C" const char *findFuelResource(
 /// \param[in] _recordTopics Colon separated list of topics to record. Leave
 /// null to record the default topics.
 /// \param[in] _guiConfig Path to Ignition GUI configuration file.
+/// \param[in] _headless True if server rendering should run headless
 /// \return 0 if successful, -1 if not.
 extern "C" int runCombined(const char *_sdfString,
     int _iterations, int _run, float _hz, int _levels, const char *_networkRole,
@@ -104,5 +106,6 @@ extern "C" int runCombined(const char *_sdfString,
     int _recordResources, int _logOverwrite, int _logCompress,
     const char *_playback, const char *_physicsEngine,
     const char *_renderEngineServer, const char *_renderEngineGui,
-    const char *_file, const char *_recordTopics, const char *_guiConfig);
+    const char *_file, const char *_recordTopics, const char *_guiConfig,
+    int _headless);
 #endif

@@ -123,7 +123,8 @@ int createServerConfig(ignition::gazebo::ServerConfig &_serverConfig,
     int _recordResources, int _logOverwrite, int _logCompress,
     const char *_playback, const char *_physicsEngine,
     const char *_renderEngineServer, const char *_renderEngineGui,
-    const char *_file, const char *_recordTopics, bool _sameProcessAsGUI)
+    const char *_file, const char *_recordTopics, bool _sameProcessAsGUI,
+    int _headless)
 {
   // Path for logs
   std::string recordPathMod = _serverConfig.LogRecordPath();
@@ -336,6 +337,8 @@ int createServerConfig(ignition::gazebo::ServerConfig &_serverConfig,
     _serverConfig.SetPhysicsEngine(_physicsEngine);
   }
 
+  _serverConfig.SetHeadlessRendering(_headless);
+
   if (_renderEngineServer != nullptr && std::strlen(_renderEngineServer) > 0)
   {
     _serverConfig.SetRenderEngineServer(_renderEngineServer);
@@ -356,7 +359,7 @@ extern "C" int runServer(const char *_sdfString,
     int _recordResources, int _logOverwrite, int _logCompress,
     const char *_playback, const char *_physicsEngine,
     const char *_renderEngineServer, const char *_renderEngineGui,
-    const char *_file, const char *_recordTopics)
+    const char *_file, const char *_recordTopics, int _headless)
 {
   // Create the Gazebo server
   ignition::gazebo::ServerConfig serverConfig;
@@ -366,7 +369,7 @@ extern "C" int runServer(const char *_sdfString,
           _networkSecondaries, _record, _recordPath,
           _recordResources, _logOverwrite, _logCompress,
           _playback, _physicsEngine, _renderEngineServer,
-          _renderEngineGui, _file, _recordTopics, false) == 0)
+          _renderEngineGui, _file, _recordTopics, false, _headless) == 0)
   {
     ignition::gazebo::Server server(serverConfig);
     // Run the server
@@ -387,7 +390,8 @@ extern "C" int runCombined(const char *_sdfString,
     int _recordResources, int _logOverwrite, int _logCompress,
     const char *_playback, const char *_physicsEngine,
     const char *_renderEngineServer, const char *_renderEngineGui,
-    const char *_file, const char *_recordTopics, const char *_guiConfig)
+    const char *_file, const char *_recordTopics, const char *_guiConfig,
+    int _headless)
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -396,7 +400,7 @@ extern "C" int runCombined(const char *_sdfString,
         _networkSecondaries, _record, _recordPath,
         _recordResources, _logOverwrite, _logCompress,
         _playback, _physicsEngine, _renderEngineServer,
-        _renderEngineGui, _file, _recordTopics, true) == 0)
+        _renderEngineGui, _file, _recordTopics, true,_headless) == 0)
   {
     ignerr << "Unable to create server config\n";
     return -1;

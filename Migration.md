@@ -7,6 +7,9 @@ release will remove the deprecated code.
 
 ## Ignition Gazebo 5.x to 6.x
 
+* The ParticleEmitter system is deprecated. Please use the ParticleEmitter2
+system.
+
 * Marker example has been moved to Ignition GUI.
 
 * Some GUI plugins have been moved to Ignition GUI. Gazebo users don't need to

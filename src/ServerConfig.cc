@@ -236,7 +236,8 @@ class ignition::gazebo::ServerConfigPrivate
             networkSecondaries(_cfg->networkSecondaries),
             seed(_cfg->seed),
             logRecordTopics(_cfg->logRecordTopics),
-            sameProcessAsGUI(_cfg->sameProcessAsGUI) { }
+            sameProcessAsGUI(_cfg->sameProcessAsGUI),
+            isHeadlessRendering(_cfg->isHeadlessRendering) { }
 
   // \brief The SDF file that the server should load
   public: std::string sdfFile = "";
@@ -301,6 +302,9 @@ class ignition::gazebo::ServerConfigPrivate
   /// \brief Boolean to define if the server and gui run in the same process
   /// True gui and server will run in the same process, False otherwise
   public: bool sameProcessAsGUI = false;
+
+  /// \brief is the headless mode active.
+  public: bool isHeadlessRendering;
 };
 
 //////////////////////////////////////////////////
@@ -536,6 +540,18 @@ const std::string &ServerConfig::RenderEngineServer() const
 void ServerConfig::SetRenderEngineServer(const std::string &_renderEngineServer)
 {
   this->dataPtr->renderEngineServer = _renderEngineServer;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetHeadlessRendering(const bool _headless)
+{
+  this->dataPtr->isHeadlessRendering = _headless;
+}
+
+/////////////////////////////////////////////////
+bool ServerConfig::HeadlessRendering() const
+{
+  return this->dataPtr->isHeadlessRendering;
 }
 
 /////////////////////////////////////////////////
