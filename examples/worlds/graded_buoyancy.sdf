@@ -49,7 +49,7 @@
         <scene>scene</scene>
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
-        <camera_pose>-6 0 6 0 0.5 0</camera_pose>
+        <camera_pose>-10 -2 5.6 0 0.5 0</camera_pose>
       </plugin>
 
       <!-- World control -->
@@ -164,6 +164,39 @@
             <sphere>
               <radius>0.2</radius>
             </sphere>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <!-- This box should float. -->
+    <model name='box_lighter_than_water'>
+      <pose>3 5 0 0.3 0.2 0.1</pose>
+      <link name='body'>
+        <inertial>
+          <mass>200</mass>
+          <inertia>
+            <ixx>33.33</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>33.33</iyy>
+            <iyz>0</iyz>
+            <izz>33.33</izz>
+          </inertia>
+        </inertial>
+
+        <visual name='body_visual'>
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+        <collision name='body_collision'>
+          <geometry>
+             <box>
+              <size>1 1 1</size>
+            </box>
           </geometry>
         </collision>
       </link>
