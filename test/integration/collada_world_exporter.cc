@@ -27,18 +27,14 @@
 #include "ignition/gazebo/test_config.hh"
 
 #include "helpers/UniqueTestDirectoryEnv.hh"
+#include "../helpers/EnvTestFixture.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
 /////////////////////////////////////////////////
-class ColladaWorldExporterFixture : public ::testing::Test
+class ColladaWorldExporterFixture : public InternalFixture<::testing::Test>
 {
-  public: void SetUp() override
-  {
-    ignition::common::Console::SetVerbosity(4);
-  }
-
   public: void LoadWorld(const std::string &_path)
   {
     ServerConfig serverConfig;
@@ -148,6 +144,27 @@ TEST_F(ColladaWorldExporterFixture, ExportWorldMadeFromObj)
 
   // Cleanup
   common::removeAll(outputPath);
+}
+
+TEST_F(ColladaWorldExporterFixture, ExportWorldWithLights)
+{
+  this->LoadWorld(common::joinPaths("test", "worlds",
+        "collada_world_exporter_lights.sdf"));
+
+  // Cleanup
+  common::removeAll("./collada_world_exporter_lights_test");
+
+  // The export directory shouldn't exist.
+  EXPECT_FALSE(common::exists("./collada_world_exporter_lights_test"));
+
+  // Run one iteration which should export the world.
+  server->Run(true, 1, false);
+
+  // The export directory should now exist.
+  EXPECT_TRUE(common::exists("./collada_world_exporter_lights_test"));
+
+  // Cleanup
+  common::removeAll("./collada_world_exporter_lights_test");
 }
 
 /////////////////////////////////////////////////

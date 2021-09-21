@@ -32,6 +32,7 @@
 #include "ignition/gazebo/test_config.hh"
 
 #include "../helpers/Relay.hh"
+#include "../helpers/EnvTestFixture.hh"
 
 #define TOL 1e-4
 
@@ -39,20 +40,14 @@ using namespace ignition;
 using namespace gazebo;
 
 /// \brief Test fixture for JointPositionController system
-class JointPositionControllerTestFixture : public ::testing::Test
+class JointPositionControllerTestFixture
+  : public InternalFixture<::testing::Test>
 {
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    ignition::common::Console::SetVerbosity(4);
-    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
-  }
 };
 
 /////////////////////////////////////////////////
 // Tests that the JointPositionController accepts joint position commands
-TEST_F(JointPositionControllerTestFixture, JointPositionCommand)
+TEST_F(JointPositionControllerTestFixture, JointPositionForceCommand)
 {
   using namespace std::chrono_literals;
 
@@ -60,6 +55,82 @@ TEST_F(JointPositionControllerTestFixture, JointPositionCommand)
   ServerConfig serverConfig;
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/joint_position_controller.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  server.SetUpdatePeriod(0ns);
+
+  const std::string jointName = "j1";
+
+  test::Relay testSystem;
+  std::vector<double> currentPosition;
+  testSystem.OnPreUpdate(
+      [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+      {
+        auto joint = _ecm.EntityByComponents(components::Joint(),
+                                             components::Name(jointName));
+        // Create a JointPosition component if it doesn't exist. This signals
+        // physics system to populate the component
+        if (nullptr == _ecm.Component<components::JointPosition>(joint))
+        {
+          _ecm.CreateComponent(joint, components::JointPosition());
+        }
+      });
+
+  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
+                              const gazebo::EntityComponentManager &_ecm)
+      {
+        _ecm.Each<components::Joint, components::Name,
+                  components::JointPosition>(
+            [&](const ignition::gazebo::Entity &,
+                const components::Joint *,
+                const components::Name *_name,
+                const components::JointPosition *_position) -> bool
+            {
+              EXPECT_EQ(_name->Data(), jointName);
+              currentPosition = _position->Data();
+              return true;
+            });
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+
+  const std::size_t initIters = 10;
+  server.Run(true, initIters, false);
+  EXPECT_NEAR(0, currentPosition.at(0), TOL);
+
+  // Publish command and check that the joint position is set
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Double>(
+      "/model/joint_position_controller_test/joint/j1/0/cmd_pos");
+
+  const double targetPosition{2.0};
+  msgs::Double msg;
+  msg.set_data(targetPosition);
+
+  pub.Publish(msg);
+  // Wait for the message to be published
+  std::this_thread::sleep_for(100ms);
+
+  const std::size_t testIters = 1000;
+  server.Run(true, testIters , false);
+
+  EXPECT_NEAR(targetPosition, currentPosition.at(0), TOL);
+}
+
+/////////////////////////////////////////////////
+// Tests that the JointPositionController accepts joint position commands
+TEST_F(JointPositionControllerTestFixture, JointPositonVelocityCommand)
+{
+  using namespace std::chrono_literals;
+
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/joint_position_controller_velocity.sdf";
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);

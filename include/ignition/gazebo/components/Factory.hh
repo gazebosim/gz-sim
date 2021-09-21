@@ -202,9 +202,9 @@ namespace components
 
     /// \brief Unregister a component so that the factory can't create instances
     /// of the component anymore.
-    /// \detail This function will not reset the `typeId` static variable within
-    /// the component type itself. Prefer using the templated `Unregister`
-    /// function when possible.
+    /// \details This function will not reset the `typeId` static variable
+    /// within the component type itself. Prefer using the templated
+    /// `Unregister` function when possible.
     /// \param[in] _typeId Type of component to unregister.
     public: void Unregister(ComponentTypeId _typeId)
     {
@@ -366,7 +366,7 @@ namespace components
   ///
   /// Use this macro to register components.
   ///
-  /// \detail Each time a plugin which uses a component is loaded, it tries to
+  /// \details Each time a plugin which uses a component is loaded, it tries to
   /// register the component again, so we prevent that.
   /// \param[in] _compType Component type name.
   /// \param[in] _classname Class name for component.

@@ -24,6 +24,7 @@
 #include <ignition/math/SemanticVersion.hh>
 
 #include "ignition/gazebo/test_config.hh"
+#include "../helpers/EnvTestFixture.hh"
 
 // File copied from
 // https://github.com/ignitionrobotics/ign-gui/raw/ign-gui3/test/integration/ExamplesBuild_TEST.cc
@@ -121,7 +122,8 @@ bool createAndSwitchToTempDir(std::string &_newTempPath)
 #endif
 
 //////////////////////////////////////////////////
-class ExamplesBuild : public ::testing::TestWithParam<const char*>
+class ExamplesBuild
+  : public InternalFixture<::testing::TestWithParam<const char*>>
 {
   /// \brief Build code in a temporary build folder.
   /// \param[in] _type Type of example to build (plugins, standalone).

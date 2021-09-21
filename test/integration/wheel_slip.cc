@@ -49,20 +49,14 @@
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/Relay.hh"
+#include "../helpers/EnvTestFixture.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
 /// \brief Test DiffDrive system
-class WheelSlipTest : public ::testing::Test
+class WheelSlipTest : public InternalFixture<::testing::Test>
 {
-  // Documentation inherited
-  protected: void SetUp() override
-             {
-               common::Console::SetVerbosity(4);
-               ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-                   (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
-             }
   /// \brief Class to hold parameters for tire tests.
   public: class WheelSlipState
   {
