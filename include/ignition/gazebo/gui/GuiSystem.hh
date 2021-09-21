@@ -55,6 +55,10 @@ namespace gazebo
     public: virtual void Update(const UpdateInfo &/*_info*/,
                                 EntityComponentManager &/*_ecm*/){}
 
+    public: virtual void PostUpdate(const UpdateInfo &/*_info*/,
+                                    const EntityComponentManager &/*_ecm*/){}
+
+
     /// \brief When running in the same process GUI and server we need to
     /// configure the gui system plugins with the event manager to listen
     /// ecm updates and set if we are running in the same process
