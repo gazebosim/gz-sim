@@ -184,7 +184,6 @@ void VideoRecorderPrivate::OnRender()
 
   // check if recording is in lockstep mode and if it is using sim time
   // if so, there is no need to update camera if sim time has not advanced
-  bool update = false;
   if (this->lockstep &&
       this->useSimTime &&
       this->videoEncoder.IsEncoding())
@@ -195,15 +194,7 @@ void VideoRecorderPrivate::OnRender()
     if (t - this->updateTime != std::chrono::seconds(0))
     {
       this->updateTime = t;
-      update = true;
     }
-  }
-
-  // Force a camera update
-  if (update)
-  {
-    IGN_PROFILE("VideoRecorder Update camera");
-    this->camera->Update();
   }
 
   // record video is requested
