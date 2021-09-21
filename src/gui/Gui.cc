@@ -110,7 +110,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
 
   // Customize window
   auto mainWin = app->findChild<ignition::gui::MainWindow *>();
-  mainWin->SetRenderEngineGUI(_renderEngineGui);
+  mainWin->SetRenderEngine(_renderEngineGui);
   auto win = mainWin->QuickWindow();
   win->setProperty("title", "Gazebo");
 
