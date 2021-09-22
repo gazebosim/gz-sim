@@ -298,7 +298,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: std::string createCmdService;
 
     // --------------------------------------------------------------
-    // TODO: ViewAngle
+    // ViewAngle
 
     /// \brief Flag for indicating whether we are in view angle mode or not
     public: bool viewAngle = false;
@@ -542,7 +542,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: RenderUtil *renderUtil = nullptr;
 
     // --------------------------------------------------------------
-    // TODO: ViewAngle
+    // ViewAngle
 
     /// \brief View angle service
     public: std::string viewAngleService;
