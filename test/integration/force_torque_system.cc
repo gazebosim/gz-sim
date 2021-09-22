@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2021 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,80 +29,67 @@
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"
 
-#include "../helpers/Relay.hh"
+#include "helpers/Relay.hh"
+#include "helpers/EnvTestFixture.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
-class ForceTorqueTest : public ::testing::Test
+class ForceTorqueTest : public InternalFixture<::testing::Test>
 {
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    ignition::common::Console::SetVerbosity(4);
-    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
-  }
 };
 
 /////////////////////////////////////////////////
-// The test checks the world pose and sensor readings of a falling imu
-TEST_F(ForceTorqueTest, Foo)
+TEST_F(ForceTorqueTest, MeasureWeight)
 {
-  double stepSize = 0.001;
-
+  using namespace std::chrono_literals;
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/force_torque.sdf";
+  const auto sdfFile =
+      std::string(PROJECT_SOURCE_PATH) + "/test/worlds/force_torque.sdf";
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
+  server.SetUpdatePeriod(1us);
 
   const std::string sensorName = "force_torque_sensor";
 
-  auto topic =
-      "world/imu_sensor/model/imu_model/link/link/sensor/imu_sensor/imu";
+  size_t iters = 1000u;
 
-  // Create a system that records imu data
-  test::Relay testSystem;
-
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-                              const gazebo::EntityComponentManager &_ecm)
+  std::vector<msgs::Wrench> wrenches;
+  wrenches.reserve(iters);
+  std::mutex wrenchMutex;
+  std::condition_variable cv;
+  auto wrenchCb = std::function<void(const msgs::Wrench &)>(
+      [&wrenchMutex, &wrenches, &cv, iters](const auto &_msg)
       {
-        std::cerr << "OnPostUpdate" << std::endl;
-        _ecm.Each<components::ForceTorque,
-                  components::Name>(
-                  
-            [&](const ignition::gazebo::Entity &_entity,
-                const components::ForceTorque *,
-                const components::Name *_name) -> bool
-            {
-              std::cerr << _name->Data() << std::endl;
-              EXPECT_EQ(_name->Data(), sensorName);
-
-              auto sensorComp = _ecm.Component<components::Sensor>(_entity);
-              EXPECT_NE(nullptr, sensorComp);
-
-              auto topicComp = _ecm.Component<components::SensorTopic>(_entity);
-              EXPECT_NE(nullptr, topicComp);
-              if (topicComp)
-              {
-                EXPECT_EQ(topic, topicComp->Data());
-              }
-
-              return true;
-            });
+        std::lock_guard lock(wrenchMutex);
+        wrenches.push_back(_msg);
+        if (wrenches.size() >= iters)
+        {
+          cv.notify_all();
+        }
       });
 
-  server.AddSystem(testSystem.systemPtr);
-
-  // subscribe to imu topic
   transport::Node node;
+  node.Subscribe("/force_torque", wrenchCb);
 
   // Run server
-  size_t iters200 = 200u;
-  server.Run(true, iters200, false);
+  server.Run(true, iters, false);
+  ASSERT_EQ(iters, *server.IterationCount());
+
+  {
+    std::unique_lock lock(wrenchMutex);
+    cv.wait_for(lock, 30s, [&] { return wrenches.size() >= iters; });
+    ASSERT_EQ(iters, wrenches.size());
+
+    const double kSensorMass = 0.2;
+    const double kWeightMass = 10;
+    const double kGravity = 9.8;
+    const auto &wrench = wrenches.back();
+    EXPECT_NEAR(kGravity * (kSensorMass + kWeightMass), wrench.force().z(),
+                1e-3);
+  }
 }

@@ -38,7 +38,8 @@ namespace components
   /// sdf::ForceTorque, information.
   using ForceTorque = Component<sdf::Sensor, class ForceTorqueTag,
       serializers::SensorSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.ForceTorque", ForceTorque)
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.ForceTorque",
+                                ForceTorque)
 }
 }
 }

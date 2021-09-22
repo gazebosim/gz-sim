@@ -41,7 +41,7 @@ namespace systems
     public ISystemPostUpdate
   {
     /// \brief Constructor
-    public: explicit ForceTorque();
+    public: ForceTorque();
 
     /// \brief Destructor
     public: ~ForceTorque() override;

@@ -33,8 +33,8 @@
 #include <ignition/sensors/ForceTorqueSensor.hh>
 
 #include "ignition/gazebo/components/ForceTorque.hh"
-#include "ignition/gazebo/components/JointForce.hh"
 #include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/JointTransmittedWrench.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
@@ -74,7 +74,8 @@ class ignition::gazebo::systems::ForceTorquePrivate
 };
 
 //////////////////////////////////////////////////
-ForceTorque::ForceTorque() : System(), dataPtr(std::make_unique<ForceTorquePrivate>())
+ForceTorque::ForceTorque()
+    : dataPtr(std::make_unique<ForceTorquePrivate>())
 {
 }
 
@@ -111,9 +112,7 @@ void ForceTorque::PostUpdate(const UpdateInfo &_info,
     for (auto &it : this->dataPtr->entitySensorMap)
     {
       // Update measurement time
-      auto time = math::durationToSecNsec(_info.simTime);
-      dynamic_cast<sensors::Sensor *>(it.second.get())->Update(
-          math::secNsecToDuration(time.first, time.second), false);
+      it.second->Update(_info.simTime);
     }
   }
 
@@ -153,7 +152,16 @@ void ForceTorquePrivate::CreateForceTorqueEntities(EntityComponentManager &_ecm)
 
         // Set topic
         _ecm.CreateComponent(_entity, components::SensorTopic(sensor->Topic()));
-        _ecm.CreateComponent(parentComp->Data(), components::JointForce());
+        // Parent has to be a joint
+        if (!_ecm.EntityHasComponentType(parentComp->Data(),
+                                         components::Joint::typeId))
+        {
+          ignerr << "Parent entity of sensor [" << sensorScopedName
+                 << "] must be a joint. Failed to create sensor." << std::endl;
+          return true;
+        }
+        _ecm.CreateComponent(parentComp->Data(),
+                             components::JointTransmittedWrench());
 
         this->entitySensorMap.insert(
             std::make_pair(_entity, std::move(sensor)));
@@ -167,23 +175,18 @@ void ForceTorquePrivate::Update(const EntityComponentManager &_ecm)
 {
   IGN_PROFILE("ForceTorquePrivate::Update");
   _ecm.Each<components::ForceTorque>(
-    [&](const Entity &_entity,
-        const components::ForceTorque *_forceTorque)->bool
+      [&](const Entity &_entity, const components::ForceTorque *) -> bool
       {
         auto it = this->entitySensorMap.find(_entity);
         if (it != this->entitySensorMap.end())
         {
           auto parentComp = _ecm.Component<components::ParentEntity>(_entity);
-          auto jointForce = _ecm.Component<components::JointForce>(parentComp->Data());
+          auto jointWrench = _ecm.Component<components::JointTransmittedWrench>(
+              parentComp->Data());
 
-          std::cout << jointForce->Data().size() << std::endl;
-          // Set the IMU angular velocity (defined in imu's local frame)
-          it->second->SetForce(ignition::math::Vector3d(jointForce->Data()[0], jointForce->Data()[1], jointForce->Data()[2]));
-
-          // // Set the IMU linear acceleration in the imu local frame
-          it->second->SetTorque(ignition::math::Vector3d(jointForce->Data()[0], jointForce->Data()[1], jointForce->Data()[2]));
-          // it->second->SetTorque(_torque);
-         }
+          it->second->SetForce(msgs::Convert(jointWrench->Data().force()));
+          it->second->SetTorque(msgs::Convert(jointWrench->Data().torque()));
+        }
         else
         {
           ignerr << "Failed to update Force/Torque Sensor: " << _entity << ". "
