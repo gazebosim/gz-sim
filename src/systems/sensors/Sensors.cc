@@ -31,6 +31,7 @@
 #include <ignition/math/Helpers.hh>
 
 #include <ignition/rendering/Scene.hh>
+#include <ignition/sensors/BoundingBoxCameraSensor.hh>
 #include <ignition/sensors/CameraSensor.hh>
 #include <ignition/sensors/DepthCameraSensor.hh>
 #include <ignition/sensors/GpuLidarSensor.hh>
@@ -573,6 +574,8 @@ std::string Sensors::CreateSensor(const Entity &_entity,
   }
   else if (_sdf.Type() == sdf::SensorType::BOUNDINGBOX_CAMERA)
   {
+    sensor = this->dataPtr->sensorManager.CreateSensor<
+      sensors::BoundingBoxCameraSensor>(_sdf);
   }
   else if (_sdf.Type() == sdf::SensorType::SEGMENTATION_CAMERA)
   {

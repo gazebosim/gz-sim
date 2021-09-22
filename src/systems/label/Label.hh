@@ -29,11 +29,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
 {
   /// \brief A label plugin that annotates models by setting the label
-  /// for the parent entity's visuals
+  /// for the parent entity's visuals. The plugin can be attached to models,
+  /// visuals, or actors.
   ///
-  /// Must contain exactly one <label> tag with a value of the label to
-  /// set it to the visuals's user data
-  /// Ex: "<label>1</label>" with a label = 1
+  /// Ex: "<label>1</label>" means the visual has a label of 1
   /// Label value must be in [0-255] range
   class Label:
     public System,

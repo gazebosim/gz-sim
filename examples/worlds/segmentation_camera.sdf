@@ -148,9 +148,9 @@
     <include>
       <name>Car1</name>
       <pose>-2 -2 0 0 0 0</pose>
-    <uri>
-      https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Hatchback blue
-    </uri>
+      <uri>
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Hatchback blue
+      </uri>
       <plugin filename="ignition-gazebo-label-system" name="ignition::gazebo::systems::Label">
         <label>40</label>
       </plugin>
@@ -159,9 +159,9 @@
     <include>
       <name>Car2</name>
       <pose>-3 -5 0 0 0 0</pose>
-    <uri>
-      https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Pickup
-    </uri>
+      <uri>
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Pickup
+      </uri>
       <plugin filename="ignition-gazebo-label-system" name="ignition::gazebo::systems::Label">
         <label>40</label>
       </plugin>
@@ -170,9 +170,9 @@
     <include>
       <name>Car3</name>
       <pose>-4 3 0 0 0 -1.57</pose>
-    <uri>
-      https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/SUV
-    </uri>
+      <uri>
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/SUV
+      </uri>
       <plugin filename="ignition-gazebo-label-system" name="ignition::gazebo::systems::Label">
         <label>40</label>
       </plugin>
@@ -182,9 +182,9 @@
     <include>
       <name>tree1</name>
       <pose>-2 5 0 0 0 0</pose>
-    <uri>
-      https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Pine Tree
-    </uri>
+      <uri>
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Pine Tree
+      </uri>
       <plugin filename="ignition-gazebo-label-system" name="ignition::gazebo::systems::Label">
         <label>30</label>
       </plugin>
@@ -193,9 +193,9 @@
     <include>
       <name>tree2</name>
       <pose>-7 2 0 0 0 0</pose>
-    <uri>
-      https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Pine Tree
-    </uri>
+      <uri>
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Pine Tree
+      </uri>
       <plugin filename="ignition-gazebo-label-system" name="ignition::gazebo::systems::Label">
         <label>30</label>
       </plugin>
@@ -204,17 +204,17 @@
     <include>
       <name>tree3</name>
       <pose>-7 -4 0 0 0 0</pose>
-    <uri>
-      https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Pine Tree
-    </uri>
+      <uri>
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Pine Tree
+      </uri>
       <plugin filename="ignition-gazebo-label-system" name="ignition::gazebo::systems::Label">
         <label>30</label>
       </plugin>
     </include>
 
-    <!-- Home, we didn't annotate(label) it, so it will be considered as background -->
+    <!-- Home, we didn't annotate (label) it, so it will be considered as background -->
     <include>
-      <name>Homee</name>
+      <name>home</name>
       <pose>-15 0 0 0 0 1.57</pose>
       <uri>
         https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Collapsed House
@@ -226,27 +226,29 @@
       <name>cone1</name>
       <pose>0 1 0 0 0 1.570796</pose>
       <uri>
-      https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Construction Cone
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Construction Cone
       </uri>
       <plugin filename="ignition-gazebo-label-system" name="ignition::gazebo::systems::Label">
         <label>20</label>
       </plugin>
     </include>
+
     <include>
       <name>cone2</name>
       <pose>0 4 0 0 0 1.570796</pose>
       <uri>
-      https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Construction Cone
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Construction Cone
       </uri>
       <plugin filename="ignition-gazebo-label-system" name="ignition::gazebo::systems::Label">
         <label>20</label>
       </plugin>
     </include>
+
     <include>
       <name>cone3</name>
       <pose>2 -2 0 0 0.0 1.57</pose>
       <uri>
-      https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Construction Cone
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Construction Cone
       </uri>
       <plugin filename="ignition-gazebo-label-system" name="ignition::gazebo::systems::Label">
         <label>20</label>
@@ -254,7 +256,7 @@
     </include>
 
     <!-- Instance / Panoptic Segmentation Camera Sensor -->
-    <model name="instnace_camera">
+    <model name="instance_camera">
       <pose>6 0 2.0 0 0.0 3.14</pose>
       <link name="link">
         <pose>0 0 0 0 0 0</pose>
@@ -294,10 +296,9 @@
               <near>0.1</near>
               <far>100</far>
             </clip>
-            <!-- Set the Dataset Path with your local path -->
-            <!-- <save enabled="true">
-              <path>/home/amrelsersy/Dataset/Instance</path>
-            </save> -->
+            <save enabled="true">
+              <path>segmentation_data/instance_camera</path>
+            </save>
           </camera>
           <always_on>1</always_on>
           <update_rate>30</update_rate>
@@ -346,10 +347,9 @@
               <near>0.1</near>
               <far>100</far>
             </clip>
-            <!-- Set the Dataset Path with your local path -->
-            <!-- <save enabled="true">
-              <path>/home/amrelsersy/Dataset/Semantic</path>
-            </save> -->
+            <save enabled="true">
+              <path>segmentation_data/semantic_camera</path>
+            </save>
           </camera>
           <always_on>1</always_on>
           <update_rate>30</update_rate>

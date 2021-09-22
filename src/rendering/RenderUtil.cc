@@ -234,7 +234,7 @@ class ignition::gazebo::RenderUtilPrivate
   public: std::map<Entity, std::tuple<float, float, std::string>> entityTemp;
 
   /// \brief A map of entity ids and label data for datasets annotations
-  public: std::unordered_map<Entity, int> entityLabel;
+  public: std::unordered_map<Entity, uint32_t> entityLabel;
 
   /// \brief A map of entity ids and wire boxes
   public: std::unordered_map<Entity, ignition::rendering::WireBoxPtr> wireBoxes;
@@ -452,7 +452,7 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief Update the visuals with label user data
   /// \param[in] _entityLabel Map with key visual entity id and value label
   public: void UpdateVisualLabels(
-    const std::unordered_map<Entity, int> &_entityLabel);
+    const std::unordered_map<Entity, uint32_t> &_entityLabel);
 
   /// \brief A helper function that removes the sensor associated with an
   /// entity, if an associated sensor exists. This should be called in
@@ -1204,6 +1204,7 @@ void RenderUtil::Update()
   }
 
   this->dataPtr->UpdateVisualLabels(entityLabel);
+
   // update joint parent visual poses
   {
     for (const auto &jointEntity : updateJointParentPoses)
@@ -2592,7 +2593,7 @@ void RenderUtil::SetTransformActive(bool _active)
 
 ////////////////////////////////////////////////
 void RenderUtilPrivate::UpdateVisualLabels(
-  const std::unordered_map<Entity, int> &_entityLabel)
+  const std::unordered_map<Entity, uint32_t> &_entityLabel)
 {
   // set visual label
   for (const auto &label : _entityLabel)

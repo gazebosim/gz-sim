@@ -15,14 +15,16 @@
  *
  */
 #include "Label.hh"
+
 #include <string>
 
 #include <ignition/plugin/Register.hh>
+
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/components/Actor.hh"
-#include "ignition/gazebo/components/SemanticLabel.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
+#include "ignition/gazebo/components/SemanticLabel.hh"
 #include "ignition/gazebo/components/Visual.hh"
 
 using namespace ignition;
@@ -60,10 +62,8 @@ void Label::Configure(const Entity &_entity,
     return;
   }
 
-  const std::string parentName = _sdf->GetParent()->GetName();
-
-  // Set the component to the visual to set its user data, but
-  // if the plugin is inside the <model> tag, get its visual child.
+  // Attach a semantic label component to the visual.
+  // If the plugin is inside the <model> tag, get its visual child.
   if (_ecm.EntityHasComponentType(_entity, components::Visual::typeId) ||
       _ecm.EntityHasComponentType(_entity, components::Actor::typeId))
   {
@@ -91,8 +91,8 @@ void Label::Configure(const Entity &_entity,
   }
   else
   {
-    ignerr << "Label plugin " + parentName + " is not a child of model or visual "
-      << "label will be ignored. \n";
+    ignerr << "Entity [" << _entity << "] is not a visual, actor, or model. "
+           << "Label will be ignored. \n";
     return;
   }
 }

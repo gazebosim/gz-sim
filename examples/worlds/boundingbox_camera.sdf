@@ -152,46 +152,6 @@
       </link>
     </model>
 
-    <model name="box2">
-      <plugin filename="ignition-gazebo-label-system" name="ignition::gazebo::systems::Label">
-        <label>10</label>
-      </plugin>
-      <pose>0 1 0.5 0 0 0</pose>
-      <link name="box_link2">
-        <inertial>
-          <inertia>
-            <ixx>1</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>1</iyy>
-            <iyz>0</iyz>
-            <izz>1</izz>
-          </inertia>
-          <mass>1.0</mass>
-        </inertial>
-        <collision name="box_collision2">
-          <geometry>
-            <box>
-              <size>1 1 1</size>
-            </box>
-          </geometry>
-        </collision>
-
-        <visual name="box_visual2">
-          <geometry>
-            <box>
-              <size>1 1 1</size>
-            </box>
-          </geometry>
-          <material>
-            <ambient>1 0 0 1</ambient>
-            <diffuse>0.8 0.2 0 1</diffuse>
-            <specular>0.8 0 0 1</specular>
-          </material>
-        </visual>
-      </link>
-    </model>
-
     <model name="box">
       <pose>0 -1 0.5 0 0 0</pose>
       <link name="box_link">
@@ -228,6 +188,46 @@
           <plugin filename="ignition-gazebo-label-system" name="ignition::gazebo::systems::Label">
             <label>10</label>
           </plugin>
+        </visual>
+      </link>
+    </model>
+
+    <model name="box2">
+      <plugin filename="ignition-gazebo-label-system" name="ignition::gazebo::systems::Label">
+        <label>10</label>
+      </plugin>
+      <pose>0 1 0.5 0 0 0</pose>
+      <link name="box_link2">
+        <inertial>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+          <mass>1.0</mass>
+        </inertial>
+        <collision name="box_collision2">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="box_visual2">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1 0 0 1</ambient>
+            <diffuse>0.8 0.2 0 1</diffuse>
+            <specular>0.8 0 0 1</specular>
+          </material>
         </visual>
       </link>
     </model>
@@ -302,9 +302,9 @@
               <near>0.1</near>
               <far>10</far>
             </clip>
-            <!-- <save enabled="true">
-              <path>/home/amrelsersy/CSE</path>
-            </save> -->
+            <save enabled="true">
+              <path>boundingBox_data</path>
+            </save>
           </camera>
           <always_on>1</always_on>
           <update_rate>30</update_rate>
