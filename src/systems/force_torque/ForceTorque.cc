@@ -38,9 +38,9 @@
 #include "ignition/gazebo/components/JointTransmittedWrench.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -275,7 +275,8 @@ void ForceTorquePrivate::Update(const EntityComponentManager &_ecm)
           // X_WP: Pose of parent link in world
           // X_WC: Pose of child link in world
           // X_WS: Pose of sensor in world
-          //
+          // X_SP: Pose of parent link in sensors frame
+          // X_SC: Pose of child link in sensors frame
           const auto X_WP =
               worldPose(jointLinkIt->second.jointParentLink, _ecm);
           const auto X_WC = worldPose(jointLinkIt->second.jointChildLink, _ecm);
