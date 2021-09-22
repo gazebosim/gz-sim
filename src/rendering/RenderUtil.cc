@@ -52,6 +52,7 @@
 #include <ignition/rendering/Scene.hh>
 
 #include "ignition/gazebo/components/Actor.hh"
+#include "ignition/gazebo/components/BoundingBoxCamera.hh"
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/CastShadows.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
@@ -1404,6 +1405,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
   const std::string thermalCameraSuffix{"/image"};
   const std::string gpuLidarSuffix{"/scan"};
   const std::string segmentationCameraSuffix{"/segmentation"};
+  const std::string boundingBoxCameraSuffix{"/boundingbox"};
 
   // Treat all pre-existent entities as new at startup
   // TODO(anyone) refactor Each and EachNew below to reduce duplicate code
@@ -1711,6 +1713,17 @@ void RenderUtilPrivate::CreateRenderingEntities(
           {
             addNewSensor(_entity, _segmentationCamera->Data(),
               _parent->Data(), segmentationCameraSuffix);
+            return true;
+          });
+
+      // Create bounding box cameras
+      _ecm.Each<components::BoundingBoxCamera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::BoundingBoxCamera *_boundingBoxCamera,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _boundingBoxCamera->Data(),
+              _parent->Data(), boundingBoxCameraSuffix);
             return true;
           });
     }
@@ -2021,6 +2034,17 @@ void RenderUtilPrivate::CreateRenderingEntities(
               _parent->Data(), segmentationCameraSuffix);
             return true;
           });
+
+      // Create bounding box cameras
+      _ecm.EachNew<components::BoundingBoxCamera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::BoundingBoxCamera *_boundingBoxCamera,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _boundingBoxCamera->Data(),
+              _parent->Data(), boundingBoxCameraSuffix);
+            return true;
+          });
     }
   }
 }
@@ -2182,6 +2206,16 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         this->entityPoses[_entity] = _pose->Data();
         return true;
       });
+
+  // Update bounding box cameras
+  _ecm.Each<components::BoundingBoxCamera, components::Pose>(
+      [&](const Entity &_entity,
+        const components::BoundingBoxCamera *,
+        const components::Pose *_pose)->bool
+      {
+        this->entityPoses[_entity] = _pose->Data();
+        return true;
+      });
 }
 
 //////////////////////////////////////////////////
@@ -2308,6 +2342,14 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   // segmentation cameras
   _ecm.EachRemoved<components::SegmentationCamera>(
     [&](const Entity &_entity, const components::SegmentationCamera *)->bool
+      {
+        this->removeEntities[_entity] = _info.iterations;
+        return true;
+      });
+
+  // bounding box cameras
+  _ecm.EachRemoved<components::BoundingBoxCamera>(
+    [&](const Entity &_entity, const components::BoundingBoxCamera *)->bool
       {
         this->removeEntities[_entity] = _info.iterations;
         return true;
