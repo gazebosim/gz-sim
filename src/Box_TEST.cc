@@ -114,6 +114,351 @@ TEST(BoxTest, VolumeAndDensity)
 }
 
 //////////////////////////////////////////////////
+TEST(BoxTest, Intersections)
+{
+  // No intersections
+  {
+    math::Boxd box(2.0, 2.0, 2.0);
+    math::Planed plane(math::Vector3d(0.0, 0.0, 1.0), -5.0);
+    EXPECT_EQ(box.Intersections(plane).size(), 0UL);
+  }
+
+  // Plane crosses 4 edges
+  {
+    math::Boxd box(2.0, 2.0, 2.0);
+    math::Planed plane(math::Vector3d(0.0, 0.0, 1.0), 0);
+
+    auto intersections = box.Intersections(plane);
+    ASSERT_EQ(4UL, intersections.size());
+    EXPECT_EQ(intersections.count(math::Vector3d(-1.0, -1.0, 0.0)), 1UL);
+    EXPECT_EQ(intersections.count(math::Vector3d(-1.0, 1.0, 0.0)), 1UL);
+    EXPECT_EQ(intersections.count(math::Vector3d(1.0, -1.0, 0.0)), 1UL);
+    EXPECT_EQ(intersections.count(math::Vector3d(1.0, 1.0, 0.0)), 1UL);
+  }
+
+  // Plane coincides with box's face
+  {
+    math::Boxd box(2.0, 2.0, 2.0);
+    math::Planed plane(math::Vector3d(0.0, 0.0, 1.0), 1.0);
+
+    auto intersections = box.Intersections(plane);
+    ASSERT_EQ(4UL, intersections.size());
+    EXPECT_EQ(intersections.count(math::Vector3d(-1.0, -1.0, 1.0)), 1UL);
+    EXPECT_EQ(intersections.count(math::Vector3d(-1.0, 1.0, 1.0)), 1UL);
+    EXPECT_EQ(intersections.count(math::Vector3d(1.0, -1.0, 1.0)), 1UL);
+    EXPECT_EQ(intersections.count(math::Vector3d(1.0, 1.0, 1.0)), 1UL);
+  }
+
+  // 3 intersections
+  {
+    math::Boxd box(2.0, 2.0, 2.0);
+    math::Planed plane(math::Vector3d(1.0, 1.0, 1.0), 1.0);
+
+    auto intersections = box.Intersections(plane);
+    ASSERT_EQ(3UL, intersections.size());
+    EXPECT_EQ(intersections.count(math::Vector3d(1.0, -1.0, 1.0)), 1UL);
+    EXPECT_EQ(intersections.count(math::Vector3d(-1.0, 1.0, 1.0)), 1UL);
+    EXPECT_EQ(intersections.count(math::Vector3d(1.0, 1.0, -1.0)), 1UL);
+  }
+
+  // 6 intersections
+  {
+    math::Boxd box(2.0, 2.0, 2.0);
+    math::Planed plane(math::Vector3d(1.0, 1.0, 1.0), 0.5);
+
+    auto intersections = box.Intersections(plane);
+    ASSERT_EQ(6UL, intersections.size());
+    EXPECT_EQ(intersections.count(math::Vector3d(-1.0, 1.0, 0.5)), 1UL);
+    EXPECT_EQ(intersections.count(math::Vector3d(-1.0, 0.5, 1.0)), 1UL);
+    EXPECT_EQ(intersections.count(math::Vector3d(1.0, -1.0, 0.5)), 1UL);
+    EXPECT_EQ(intersections.count(math::Vector3d(0.5, -1.0, 1.0)), 1UL);
+    EXPECT_EQ(intersections.count(math::Vector3d(1.0, 0.5, -1.0)), 1UL);
+    EXPECT_EQ(intersections.count(math::Vector3d(0.5, 1.0, -1.0)), 1UL);
+  }
+
+  // 5 intersections
+  // This is the plane above tilted further up
+  {
+    math::Boxd box(2.0, 2.0, 2.0);
+    math::Planed plane(math::Vector3d(1.0, 1.0, 2.0), 0.5);
+
+    auto intersections = box.Intersections(plane);
+    ASSERT_EQ(5UL, intersections.size());
+    EXPECT_EQ(intersections.count(math::Vector3d(-1.0, 1.0, 0.25)), 1UL);
+    EXPECT_EQ(intersections.count(math::Vector3d(-1.0, -0.5, 1.0)), 1UL);
+    EXPECT_EQ(intersections.count(math::Vector3d(1.0, -1.0, 0.25)), 1UL);
+    EXPECT_EQ(intersections.count(math::Vector3d(-0.5, -1.0, 1.0)), 1UL);
+    EXPECT_EQ(intersections.count(math::Vector3d(1.0, 1.0, -0.75)), 1UL);
+  }
+}
+
+//////////////////////////////////////////////////
+TEST(BoxTest, VolumeBelow)
+{
+  // Fully above
+  {
+    math::Boxd box(2.0, 2.0, 2.0);
+    math::Planed plane(math::Vector3d(0.0, 0.0, 1.0), -5.0);
+    EXPECT_DOUBLE_EQ(0.0, box.VolumeBelow(plane));
+  }
+  // Fully below
+  {
+    math::Boxd box(2.0, 2.0, 2.0);
+    math::Planed plane(math::Vector3d(0.0, 0.0, 1.0), 20.0);
+    EXPECT_DOUBLE_EQ(box.Volume(), box.VolumeBelow(plane));
+  }
+  // Fully below (because plane is rotated down)
+  {
+    math::Boxd box(2.0, 2.0, 2.0);
+    math::Planed plane(math::Vector3d(0.0, 0.0, -1.0), 20.0);
+    EXPECT_DOUBLE_EQ(box.Volume(), box.VolumeBelow(plane));
+  }
+  // Cut in half
+  {
+    math::Boxd box(2.0, 2.0, 2.0);
+    math::Planed plane(math::Vector3d(0, 0, 1.0), 0);
+
+    EXPECT_DOUBLE_EQ(box.Volume()/2, box.VolumeBelow(plane));
+  }
+  {
+    math::Boxd box(2.0, 2.0, 2.0);
+    math::Planed plane(math::Vector3d(0, 1, 0), 0);
+
+    EXPECT_DOUBLE_EQ(box.Volume()/2, box.VolumeBelow(plane));
+  }
+  {
+    math::Boxd box(2.0, 2.0, 2.0);
+    math::Planed plane(math::Vector3d(-1, 0, 0), 0);
+
+    EXPECT_DOUBLE_EQ(box.Volume()/2, box.VolumeBelow(plane));
+  }
+  {
+    math::Boxd box(2.0, 2.0, 2.0);
+    math::Planed plane(math::Vector3d(-1, -1, 0), 0);
+
+    EXPECT_DOUBLE_EQ(box.Volume()/2, box.VolumeBelow(plane));
+  }
+  {
+    math::Boxd box(2.0, 2.0, 2.0);
+    math::Planed plane(math::Vector3d(0, 1, 1), 0);
+
+    EXPECT_DOUBLE_EQ(box.Volume()/2, box.VolumeBelow(plane));
+  }
+  {
+    math::Boxd box(2.0, 2.0, 2.0);
+    math::Planed plane(math::Vector3d(1, 1, 1), 0);
+
+    EXPECT_DOUBLE_EQ(box.Volume()/2, box.VolumeBelow(plane));
+  }
+  // Cut in 3/4
+  {
+    math::Boxd box(2.0, 2.0, 2.0);
+    math::Planed plane(math::Vector3d(0, 0, 1.0), 0.5);
+
+    EXPECT_DOUBLE_EQ(3*box.Volume()/4, box.VolumeBelow(plane));
+  }
+  // Opposites add to the total volume
+  {
+    math::Boxd box(2.0, 2.0, 2.0);
+    math::Planed planeA(math::Vector3d(0, 0, 1.0), 0.5);
+    math::Planed planeB(math::Vector3d(0, 0, 1.0), -0.5);
+
+    EXPECT_DOUBLE_EQ(box.Volume(),
+        box.VolumeBelow(planeA) + box.VolumeBelow(planeB));
+  }
+  {
+    math::Boxd box(2.0, 2.0, 2.0);
+    math::Planed planeA(math::Vector3d(0, 1.0, 1.0), 0.5);
+    math::Planed planeB(math::Vector3d(0, 1.0, 1.0), -0.5);
+
+    EXPECT_DOUBLE_EQ(box.Volume(),
+        box.VolumeBelow(planeA) + box.VolumeBelow(planeB));
+  }
+  {
+    math::Boxd box(2.0, 2.0, 2.0);
+    math::Planed planeA(math::Vector3d(-1, 1.0, 1.0), 0.5);
+    math::Planed planeB(math::Vector3d(-1, 1.0, 1.0), -0.5);
+
+    EXPECT_DOUBLE_EQ(box.Volume(),
+        box.VolumeBelow(planeA) + box.VolumeBelow(planeB));
+  }
+}
+
+//////////////////////////////////////////////////
+TEST(BoxTest, CenterOfVolumeBelow)
+{
+  // Fully above
+  {
+    math::Boxd box(2.0, 2.0, 2.0);
+    math::Planed plane(math::Vector3d(0.0, 0.0, 1.0), -5.0);
+    EXPECT_FALSE(box.CenterOfVolumeBelow(plane).has_value());
+  }
+
+  // Fully below
+  {
+    math::Boxd box(2.0, 2.0, 2.0);
+    math::Planed plane(math::Vector3d(0.0, 0.0, 1.0), 5.0);
+    EXPECT_TRUE(box.CenterOfVolumeBelow(plane).has_value());
+    EXPECT_EQ(box.CenterOfVolumeBelow(plane), math::Vector3d(0, 0, 0));
+  }
+
+  // Cut in half
+  {
+    math::Boxd box(2.0, 2.0, 2.0);
+    math::Planed plane(math::Vector3d(0.0, 0.0, 1.0), 0);
+    EXPECT_TRUE(box.CenterOfVolumeBelow(plane).has_value());
+    EXPECT_EQ(box.CenterOfVolumeBelow(plane).value(),
+      math::Vector3d(0, 0, -0.5));
+  }
+
+  {
+    math::Boxd box(2.0, 2.0, 2.0);
+    math::Planed plane(math::Vector3d(0.0, 0.0, -1.0), 0);
+    EXPECT_TRUE(box.CenterOfVolumeBelow(plane).has_value());
+    EXPECT_EQ(box.CenterOfVolumeBelow(plane).value(),
+      math::Vector3d(0, 0, 0.5));
+  }
+}
+
+//////////////////////////////////////////////////
+TEST(BoxTest, VerticesBelow)
+{
+  math::Boxd box(2.0, 2.0, 2.0);
+  auto size = box.Size();
+
+  math::Vector3d pXpYpZ{ size.X()/2,  size.Y()/2,  size.Z()/2};
+  math::Vector3d nXpYpZ{-size.X()/2,  size.Y()/2,  size.Z()/2};
+  math::Vector3d pXnYpZ{ size.X()/2, -size.Y()/2,  size.Z()/2};
+  math::Vector3d nXnYpZ{-size.X()/2, -size.Y()/2,  size.Z()/2};
+  math::Vector3d pXpYnZ{ size.X()/2,  size.Y()/2, -size.Z()/2};
+  math::Vector3d nXpYnZ{-size.X()/2,  size.Y()/2, -size.Z()/2};
+  math::Vector3d pXnYnZ{ size.X()/2, -size.Y()/2, -size.Z()/2};
+  math::Vector3d nXnYnZ{-size.X()/2, -size.Y()/2, -size.Z()/2};
+
+  // Fully above
+  {
+    math::Planed plane(math::Vector3d(0.0, 0.0, 1.0), -5.0);
+    EXPECT_TRUE(box.VerticesBelow(plane).empty());
+  }
+  // Fully below
+  {
+    math::Planed plane(math::Vector3d(0.0, 0.0, 1.0), 20.0);
+    EXPECT_EQ(8u, box.VerticesBelow(plane).size());
+  }
+  // Fully below (because plane is rotated down)
+  {
+    math::Planed plane(math::Vector3d(0.0, 0.0, -1.0), 20.0);
+    EXPECT_EQ(8u, box.VerticesBelow(plane).size());
+  }
+  // 4 vertices
+  {
+    math::Planed plane(math::Vector3d(0, 0, 1.0), 0);
+
+    auto vertices = box.VerticesBelow(plane);
+    ASSERT_EQ(4u, vertices.size());
+
+    EXPECT_EQ(vertices.count(nXnYnZ), 1UL);
+    EXPECT_EQ(vertices.count(nXpYnZ), 1UL);
+    EXPECT_EQ(vertices.count(pXnYnZ), 1UL);
+    EXPECT_EQ(vertices.count(pXpYnZ), 1UL);
+  }
+  {
+    math::Planed plane(math::Vector3d(0, 1, 0), 0.5);
+
+    auto vertices = box.VerticesBelow(plane);
+    ASSERT_EQ(4u, vertices.size());
+
+    EXPECT_EQ(vertices.count(nXnYnZ), 1UL);
+    EXPECT_EQ(vertices.count(nXnYpZ), 1UL);
+    EXPECT_EQ(vertices.count(pXnYnZ), 1UL);
+    EXPECT_EQ(vertices.count(pXnYpZ), 1UL);
+  }
+  {
+    math::Planed plane(math::Vector3d(-1, 0, 0), -0.5);
+
+    auto vertices = box.VerticesBelow(plane);
+    ASSERT_EQ(4u, vertices.size());
+
+    EXPECT_EQ(vertices.count(pXnYnZ), 1UL);
+    EXPECT_EQ(vertices.count(pXnYpZ), 1UL);
+    EXPECT_EQ(vertices.count(pXpYnZ), 1UL);
+    EXPECT_EQ(vertices.count(pXpYpZ), 1UL);
+  }
+  {
+    math::Planed plane(math::Vector3d(1, 1, 1), 0.0);
+
+    auto vertices = box.VerticesBelow(plane);
+    ASSERT_EQ(4u, vertices.size());
+
+    EXPECT_EQ(vertices.count(nXnYnZ), 1UL);
+    EXPECT_EQ(vertices.count(nXnYpZ), 1UL);
+    EXPECT_EQ(vertices.count(nXpYnZ), 1UL);
+    EXPECT_EQ(vertices.count(pXnYnZ), 1UL);
+  }
+  // 6 vertices
+  {
+    math::Planed plane(math::Vector3d(-1, -1, 0), 0.3);
+
+    auto vertices = box.VerticesBelow(plane);
+    ASSERT_EQ(6u, vertices.size());
+
+    EXPECT_EQ(vertices.count(nXpYnZ), 1UL);
+    EXPECT_EQ(vertices.count(nXpYpZ), 1UL);
+    EXPECT_EQ(vertices.count(pXnYnZ), 1UL);
+    EXPECT_EQ(vertices.count(pXnYpZ), 1UL);
+    EXPECT_EQ(vertices.count(pXpYnZ), 1UL);
+    EXPECT_EQ(vertices.count(pXpYpZ), 1UL);
+  }
+  {
+    math::Planed plane(math::Vector3d(0, 1, 1), 0.9);
+
+    auto vertices = box.VerticesBelow(plane);
+    ASSERT_EQ(6u, vertices.size());
+
+    EXPECT_EQ(vertices.count(nXnYnZ), 1UL);
+    EXPECT_EQ(vertices.count(nXnYpZ), 1UL);
+    EXPECT_EQ(vertices.count(pXnYpZ), 1UL);
+    EXPECT_EQ(vertices.count(nXpYnZ), 1UL);
+    EXPECT_EQ(vertices.count(pXnYnZ), 1UL);
+    EXPECT_EQ(vertices.count(pXpYnZ), 1UL);
+  }
+  // 2 vertices
+  {
+    math::Planed plane(math::Vector3d(-1, -1, 0), -0.5);
+
+    auto vertices = box.VerticesBelow(plane);
+    ASSERT_EQ(2u, vertices.size());
+
+    EXPECT_EQ(vertices.count(pXpYnZ), 1UL);
+    EXPECT_EQ(vertices.count(pXpYpZ), 1UL);
+  }
+  // 7 vertices
+  {
+    math::Planed plane(math::Vector3d(1, 1, 1), 1.0);
+
+    auto vertices = box.VerticesBelow(plane);
+    ASSERT_EQ(7u, vertices.size());
+
+    EXPECT_EQ(vertices.count(nXnYnZ), 1UL);
+    EXPECT_EQ(vertices.count(nXnYpZ), 1UL);
+    EXPECT_EQ(vertices.count(pXnYpZ), 1UL);
+    EXPECT_EQ(vertices.count(nXpYnZ), 1UL);
+    EXPECT_EQ(vertices.count(nXpYpZ), 1UL);
+    EXPECT_EQ(vertices.count(pXnYnZ), 1UL);
+    EXPECT_EQ(vertices.count(pXpYnZ), 1UL);
+  }
+  // 1 vertex
+  {
+    math::Planed plane(math::Vector3d(1, 1, 1), -1.2);
+
+    auto vertices = box.VerticesBelow(plane);
+    ASSERT_EQ(1u, vertices.size());
+
+    EXPECT_EQ(vertices.count(nXnYnZ), 1UL);
+  }
+}
+
+//////////////////////////////////////////////////
 TEST(BoxTest, Mass)
 {
   double mass = 2.0;

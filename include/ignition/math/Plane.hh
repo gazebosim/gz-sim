@@ -21,6 +21,9 @@
 #include <ignition/math/Vector2.hh>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/config.hh>
+#include <ignition/math/Line2.hh>
+#include <ignition/math/Quaternion.hh>
+#include <optional>
 
 namespace ignition
 {
@@ -117,6 +120,52 @@ namespace ignition
       public: T Distance(const Vector3<T> &_point) const
       {
         return this->normal.Dot(_point) - this->d;
+      }
+
+      /// \brief Get the intersection of an infinite line with the plane,
+      /// given the line's gradient and a point in parametrized space.
+      /// \param[in] _point A point that lies on the line.
+      /// \param[in] _gradient The gradient of the line.
+      /// \param[in] _tolerance The tolerance for determining a line is
+      /// parallel to the plane. Optional, default=10^-16
+      /// \return The point of intersection. std::nullopt if the line is
+      /// parallel to the plane (including lines on the plane).
+      public: std::optional<Vector3<T>> Intersection(
+        const Vector3<T> &_point,
+        const Vector3<T> &_gradient,
+        const double &_tolerance = 1e-6) const
+      {
+        if (std::abs(this->Normal().Dot(_gradient)) < _tolerance)
+        {
+          return std::nullopt;
+        }
+        auto constant = this->Offset() - this->Normal().Dot(_point);
+        auto param = constant / this->Normal().Dot(_gradient);
+        auto intersection = _point + _gradient*param;
+
+        if (this->Size() == Vector2<T>(0, 0))
+          return intersection;
+
+        // Check if the point is within the size bounds
+        // To do this we create a Quaternion using Angle, Axis constructor and
+        // rotate the Y and X axis the same amount as the normal.
+        auto dotProduct = Vector3<T>::UnitZ.Dot(this->Normal());
+        auto angle = acos(dotProduct / this->Normal().Length());
+        auto axis = Vector3<T>::UnitZ.Cross(this->Normal().Normalized());
+        Quaternion<T> rotation(axis, angle);
+
+        Vector3<T> rotatedXAxis = rotation * Vector3<T>::UnitX;
+        Vector3<T> rotatedYAxis = rotation * Vector3<T>::UnitY;
+
+        auto xBasis = rotatedXAxis.Dot(intersection);
+        auto yBasis = rotatedYAxis.Dot(intersection);
+
+        if (std::abs(xBasis) < this->Size().X() / 2 &&
+            std::abs(yBasis) < this->Size().Y() / 2)
+        {
+          return intersection;
+        }
+        return std::nullopt;
       }
 
       /// \brief The side of the plane a point is on.
