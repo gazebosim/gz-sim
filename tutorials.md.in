@@ -34,6 +34,7 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage model_and_optimize_meshes  "Model and optimize meshes": Some recomendations when creating meshes  in blender for simulations.
 * \subpage model_command "Model Command": Use the CLI to get information about the models in a simulation.
 * \subpage test_fixture "Test Fixture": Writing automated CI tests
+* \subpage spherical_coordinates "Spherical coordinates": Working with latitude and longitude
 
 **Migration from Gazebo classic**
 

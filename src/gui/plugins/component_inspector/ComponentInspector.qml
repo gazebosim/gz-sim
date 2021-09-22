@@ -107,6 +107,14 @@ Rectangle {
     ComponentInspector.OnPhysics(_stepSize, _realTimeFactor)
   }
 
+  /*
+   * Forward spherical coordinate changes to C++
+   */
+  function onSphericalCoordinates(_surface, _lat, _lon, _elevation, _heading) {
+    ComponentInspector.OnSphericalCoordinates(_surface, _lat, _lon, _elevation,
+        _heading);
+  }
+
   Rectangle {
     id: header
     height: lockButton.height
