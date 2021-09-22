@@ -111,6 +111,7 @@ ign_find_package(ignition-sensors6 REQUIRED
     air_pressure
     altimeter
     imu
+    force_torque
     logical_camera
     magnetometer
 
