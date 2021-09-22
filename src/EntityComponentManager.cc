@@ -206,6 +206,24 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// by the multithreading functionality in `State()` to allocate work to
   /// each thread.
   public: bool componentTypeIndexDirty{true};
+
+  /// \brief During cloning, we populate two maps:
+  ///  - map of cloned model entities to the non-cloned model's canonical link
+  ///  - map of non-cloned canonical links to the cloned canonical link
+  /// After cloning is done, these maps can be used to update the cloned model's
+  /// canonical link to be the cloned canonical link instead of the original
+  /// model's canonical link. We populate maps during cloning and then update
+  /// canonical links after cloning since cloning is done top-down, and canonical
+  /// links are children of models (when a model is cloned, its canonical link
+  /// has not been cloned yet, so we have no way of knowing what to set the
+  /// cloned model's canonical link to until the canonical link has been cloned).
+  /// \TODO(anyone) We shouldn't be giving canonical links special treatment.
+  /// This may happen to any component that holds an Entity, so we should figure
+  /// out a way to generalize this for any such component.
+  std::unordered_map<Entity, Entity> oldModelCanonicalLink;
+
+  /// \brief See above
+  std::unordered_map<Entity, Entity> oldToClonedCanonicalLink;
 };
 
 //////////////////////////////////////////////////
@@ -278,28 +296,19 @@ Entity EntityComponentManagerPrivate::CreateEntityImplementation(Entity _entity)
 Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
     const std::string &_name, bool _allowRename)
 {
-  // During cloning, we populate two maps:
-  //  - map of cloned model entities to the non-cloned model's canonical link
-  //  - map of non-cloned canonical links to the cloned canonical link
-  // After cloning is done, these maps can be used to update the cloned model's
-  // canonical link to be the cloned canonical link instead of the original
-  // model's canonical link. We populate maps during cloning and then update
-  // canonical links after cloning since cloning is done top-down, and canonical
-  // links are children of models (when a model is cloned, its canonical link
-  // has not been cloned yet, so we have no way of knowing what to set the
-  // cloned model's canonical link to until the canonical link has been cloned).
-  std::unordered_map<Entity, Entity> oldModelCanonicalLink;
-  std::unordered_map<Entity, Entity> oldToClonedCanonicalLink;
+  // Clear maps so they're populated for the entity being cloned
+  this->dataPtr->oldToClonedCanonicalLink.clear();
+  this->dataPtr->oldModelCanonicalLink.clear();
 
-  auto clonedEntity = this->Clone(_entity, _parent, _name, _allowRename,
-      oldModelCanonicalLink, oldToClonedCanonicalLink);
+  auto clonedEntity = this->CloneImpl(_entity, _parent, _name, _allowRename);
 
   if (kNullEntity != clonedEntity)
   {
-    for (const auto &[clonedModel, oldCanonicalLink] : oldModelCanonicalLink)
+    for (const auto &[clonedModel, oldCanonicalLink] :
+         this->dataPtr->oldModelCanonicalLink)
     {
-      auto iter = oldToClonedCanonicalLink.find(oldCanonicalLink);
-      if (iter == oldToClonedCanonicalLink.end())
+      auto iter = this->dataPtr->oldToClonedCanonicalLink.find(oldCanonicalLink);
+      if (iter == this->dataPtr->oldToClonedCanonicalLink.end())
       {
         ignerr << "Error: attempted to clone model(s) with canonical link(s), "
           << "but entity [" << oldCanonicalLink << "] was not cloned as a "
@@ -315,10 +324,9 @@ Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
   return clonedEntity;
 }
 
-Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
-    const std::string &_name, bool _allowRename,
-    std::unordered_map<Entity, Entity> &_oldModelCanonicalLink,
-    std::unordered_map<Entity, Entity> &_oldToClonedCanonicalLink)
+/////////////////////////////////////////////////
+Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
+    const std::string &_name, bool _allowRename)
 {
   auto uniqueNameGenerated = false;
 
@@ -391,20 +399,19 @@ Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
   {
     // we're cloning a model, so we map the cloned model to the original
     // model's canonical link
-    _oldModelCanonicalLink[clonedEntity] = modelCanonLinkComp->Data();
+    this->dataPtr->oldModelCanonicalLink[clonedEntity] = modelCanonLinkComp->Data();
   }
   else if (this->Component<components::CanonicalLink>(clonedEntity))
   {
     // we're cloning a canonical link, so we map the original canonical link
     // to the cloned canonical link
-    _oldToClonedCanonicalLink[_entity] = clonedEntity;
+    this->dataPtr->oldToClonedCanonicalLink[_entity] = clonedEntity;
   }
 
   for (const auto &childEntity :
       this->EntitiesByComponents(components::ParentEntity(_entity)))
   {
-    auto clonedChild = this->Clone(childEntity, clonedEntity, "", true,
-        _oldModelCanonicalLink, _oldToClonedCanonicalLink);
+    auto clonedChild = this->CloneImpl(childEntity, clonedEntity, "", true);
     if (kNullEntity == clonedChild)
     {
       ignerr << "Cloning child entity [" << childEntity << "] failed.\n";

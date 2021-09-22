@@ -376,17 +376,10 @@ namespace ignition
       /// \param[in] _allowRename True if _name can be modified to be a unique
       /// name if it isn't already a unique name. False if _name cannot be
       /// modified to be a unique name.
-      /// \param[in] _oldModelCanonicalLink A map of cloned entities to their
-      /// original (non-cloned) entity's canonical link.
-      /// \param[in] _oldToClonedCanonicalLink A map of original canonical link
-      /// entities to the cloned canonical link entities.
       /// \return The cloned entity. kNullEntity is returned if cloning failed.
       /// \sa Clone
-      private: Entity Clone(Entity _entity, Entity _parent,
-                  const std::string &_name, bool _allowRename,
-                  std::unordered_map<Entity, Entity> &_oldModelCanonicalLink,
-                  std::unordered_map<Entity, Entity> &
-                    _oldToClonedCanonicalLink);
+      private: Entity CloneImpl(Entity _entity, Entity _parent,
+                  const std::string &_name, bool _allowRename);
 
       /// \brief A version of Each() that doesn't use a cache. The cached
       /// version, Each(), is preferred.
