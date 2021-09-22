@@ -16,6 +16,7 @@
  */
 #include "Label.hh"
 
+#include <memory>
 #include <string>
 
 #include <ignition/plugin/Register.hh>

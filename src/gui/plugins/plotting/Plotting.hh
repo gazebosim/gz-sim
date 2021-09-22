@@ -23,6 +23,7 @@
 #include <ignition/gazebo/gui/GuiSystem.hh>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Pose3.hh>
+#include <ignition/math/SphericalCoordinates.hh>
 #include <ignition/msgs/light.pb.h>
 
 #include "sdf/Physics.hh"
@@ -110,31 +111,37 @@ class Plotting : public ignition::gazebo::GuiSystem
   public: void Update(const ignition::gazebo::UpdateInfo &_info,
                       ignition::gazebo::EntityComponentManager &_ecm) override;
 
-  /// \brief Set the Component data of giving id to the giving vector
+  /// \brief Set the Component data of given id to the given vector
   /// \param [in] _Id Component Key of the components map
   /// \param [in] _vector Vector Data to be set to the component
   public: void SetData(std::string _Id,
                        const ignition::math::Vector3d &_vector);
 
-   /// \brief Set the Component data of giving id to the giving light
+   /// \brief Set the Component data of given id to the given light
    /// \param [in] _Id Component Key of the components map
    /// \param [in] _light Vector Data to be set to the component
    public: void SetData(std::string _Id,
                         const msgs::Light &_light);
 
-  /// \brief Set the Component data of giving id to the giving pose
+  /// \brief Set the Component data of given id to the given pose
   /// \param [in] _Id Component Key of the components map
   /// \param [in] _pose Position Data to be set to the component
   public: void SetData(std::string _Id,
                        const ignition::math::Pose3d &_pose);
 
-  /// \brief Set the Component data of giving id to the giving
+  /// \brief Set the Component data of given id to the given spherical
+  /// coordinates.
+  /// \param [in] _Id Component Key of the components map
+  /// \param [in] _sc Data to be set to the component
+  public: void SetData(std::string _Id, const math::SphericalCoordinates &_sc);
+
+  /// \brief Set the Component data of given id to the given
   /// physics properties
   /// \param [in] _Id Component Key of the components map
   /// \param [in] _value physics Data to be set to the component
   public: void SetData(std::string _Id, const sdf::Physics &_physics);
 
-  /// \brief Set the Component data of giving id to the giving number
+  /// \brief Set the Component data of given id to the given number
   /// \param [in] _Id Component Key of the components map
   /// \param [in] _value double Data to be set to the component
   /// valid for types (double, float, int, bool)
