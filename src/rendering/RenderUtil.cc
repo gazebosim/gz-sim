@@ -162,31 +162,33 @@ class ignition::gazebo::RenderUtilPrivate
       newModels;
 
   /// \brief New links to be created. The elements in the tuple are:
-  /// [0] entity id, [1], SDF DOM, [2] parent entity id
+  /// [0] entity id, [1] SDF DOM, [2] parent entity id
   public: std::vector<std::tuple<Entity, sdf::Link, Entity>> newLinks;
 
   /// \brief New visuals to be created. The elements in the tuple are:
-  /// [0] entity id, [1], SDF DOM, [2] parent entity id
+  /// [0] entity id, [1] SDF DOM, [2] parent entity id
   public: std::vector<std::tuple<Entity, sdf::Visual, Entity>> newVisuals;
 
   /// \brief New actors to be created. The elements in the tuple are:
-  /// [0] entity id, [1], SDF DOM, [2] parent entity id
-  public: std::vector<std::tuple<Entity, sdf::Actor, Entity>> newActors;
+  /// [0] entity id, [1] SDF DOM, [2] actor name, [3] parent entity id
+  public: std::vector<std::tuple<Entity, sdf::Actor, std::string, Entity>>
+          newActors;
 
   /// \brief New lights to be created. The elements in the tuple are:
-  /// [0] entity id, [1], SDF DOM, [2] parent entity id
-  public: std::vector<std::tuple<Entity, sdf::Light, Entity>> newLights;
+  /// [0] entity id, [1] SDF DOM, [2] light name, [3] parent entity id
+  public: std::vector<std::tuple<Entity, sdf::Light, std::string, Entity>>
+          newLights;
 
   /// \brief A map of entity light ids and light visuals
   public: std::map<Entity, Entity> matchLightWithVisuals;
 
   /// \brief New sensors to be created. The elements in the tuple are:
-  /// [0] entity id, [1], SDF DOM, [2] parent entity id
+  /// [0] entity id, [1] SDF DOM, [2] parent entity id
   public: std::vector<std::tuple<Entity, sdf::Sensor, Entity>>
       newSensors;
 
   /// \brief New particle emitter to be created. The elements in the tuple are:
-  /// [0] entity id, [1], particle emitter, [2] parent entity id
+  /// [0] entity id, [1] particle emitter, [2] parent entity id
   public: std::vector<std::tuple<Entity, msgs::ParticleEmitter, Entity>>
       newParticleEmitters;
 
@@ -1012,13 +1014,14 @@ void RenderUtil::Update()
     for (const auto &actor : newActors)
     {
       this->dataPtr->sceneManager.CreateActor(
-          std::get<0>(actor), std::get<1>(actor), std::get<2>(actor));
+          std::get<0>(actor), std::get<1>(actor), std::get<2>(actor),
+          std::get<3>(actor));
     }
 
     for (const auto &light : newLights)
     {
-      this->dataPtr->sceneManager.CreateLight(
-          std::get<0>(light), std::get<1>(light), std::get<2>(light));
+      this->dataPtr->sceneManager.CreateLight(std::get<0>(light),
+          std::get<1>(light), std::get<2>(light), std::get<3>(light));
 
       // TODO(anyone) This needs to be updated for when sensors and GUI use
       // the same scene
@@ -1033,7 +1036,7 @@ void RenderUtil::Update()
           {
             rendering::VisualPtr lightVisual =
               this->dataPtr->sceneManager.CreateLightVisual(
-                id, std::get<1>(light), std::get<0>(light));
+                id, std::get<1>(light), std::get<2>(light), std::get<0>(light));
             this->dataPtr->matchLightWithVisuals[std::get<0>(light)] = id;
             break;
           }
@@ -1421,9 +1424,8 @@ void RenderUtilPrivate::CreateRenderingEntities(
           sdf::Model model;
           model.SetName(_name->Data());
           model.SetRawPose(_pose->Data());
-          this->newModels.push_back(
-              std::make_tuple(_entity, model, _parent->Data(),
-              _info.iterations));
+          this->newModels.push_back(std::make_tuple(_entity, model,
+              _parent->Data(), _info.iterations));
           this->modelToModelEntities[_parent->Data()].push_back(_entity);
           return true;
         });
@@ -1490,9 +1492,8 @@ void RenderUtilPrivate::CreateRenderingEntities(
           if (auto temp = _ecm.Component<components::Temperature>(_entity))
           {
             // get the uniform temperature for the entity
-            this->entityTemp[_entity] =
-              std::make_tuple<float, float, std::string>(
-                  temp->Data().Kelvin(), 0.0, "");
+            this->entityTemp[_entity] = std::make_tuple
+                <float, float, std::string>(temp->Data().Kelvin(), 0.0, "");
           }
           else
           {
@@ -1520,24 +1521,26 @@ void RenderUtilPrivate::CreateRenderingEntities(
         });
 
     // actors
-    _ecm.Each<components::Actor, components::ParentEntity>(
+    _ecm.Each<components::Actor, components::Name, components::ParentEntity>(
         [&](const Entity &_entity,
             const components::Actor *_actor,
+            const components::Name *_name,
             const components::ParentEntity *_parent) -> bool
         {
-          this->newActors.push_back(
-              std::make_tuple(_entity, _actor->Data(), _parent->Data()));
+          this->newActors.push_back(std::make_tuple(_entity, _actor->Data(),
+              _name->Data(), _parent->Data()));
           return true;
         });
 
     // lights
-    _ecm.Each<components::Light, components::ParentEntity>(
+    _ecm.Each<components::Light, components::Name, components::ParentEntity>(
         [&](const Entity &_entity,
             const components::Light *_light,
+            const components::Name *_name,
             const components::ParentEntity *_parent) -> bool
         {
-          this->newLights.push_back(
-              std::make_tuple(_entity, _light->Data(), _parent->Data()));
+          this->newLights.push_back(std::make_tuple(_entity, _light->Data(),
+                _name->Data(), _parent->Data()));
           return true;
         });
 
@@ -1703,9 +1706,8 @@ void RenderUtilPrivate::CreateRenderingEntities(
           sdf::Model model;
           model.SetName(_name->Data());
           model.SetRawPose(_pose->Data());
-          this->newModels.push_back(
-              std::make_tuple(_entity, model, _parent->Data(),
-              _info.iterations));
+          this->newModels.push_back(std::make_tuple(_entity, model,
+              _parent->Data(), _info.iterations));
           this->modelToModelEntities[_parent->Data()].push_back(_entity);
           return true;
         });
@@ -1772,9 +1774,8 @@ void RenderUtilPrivate::CreateRenderingEntities(
           if (auto temp = _ecm.Component<components::Temperature>(_entity))
           {
             // get the uniform temperature for the entity
-            this->entityTemp[_entity] =
-              std::make_tuple<float, float, std::string>(
-                  temp->Data().Kelvin(), 0.0, "");
+            this->entityTemp[_entity] = std::make_tuple
+                <float, float, std::string>(temp->Data().Kelvin(), 0.0, "");
           }
           else
           {
@@ -1802,24 +1803,27 @@ void RenderUtilPrivate::CreateRenderingEntities(
         });
 
     // actors
-    _ecm.EachNew<components::Actor, components::ParentEntity>(
+    _ecm.EachNew<components::Actor, components::Name, components::ParentEntity>(
         [&](const Entity &_entity,
             const components::Actor *_actor,
+            const components::Name *_name,
             const components::ParentEntity *_parent) -> bool
         {
           this->newActors.push_back(
-              std::make_tuple(_entity, _actor->Data(), _parent->Data()));
+              std::make_tuple(_entity, _actor->Data(), _name->Data(),
+                _parent->Data()));
           return true;
         });
 
     // lights
-    _ecm.EachNew<components::Light, components::ParentEntity>(
+    _ecm.EachNew<components::Light, components::Name, components::ParentEntity>(
         [&](const Entity &_entity,
             const components::Light *_light,
+            const components::Name *_name,
             const components::ParentEntity *_parent) -> bool
         {
-          this->newLights.push_back(
-              std::make_tuple(_entity, _light->Data(), _parent->Data()));
+          this->newLights.push_back(std::make_tuple(_entity, _light->Data(),
+                _name->Data(), _parent->Data()));
           return true;
         });
 

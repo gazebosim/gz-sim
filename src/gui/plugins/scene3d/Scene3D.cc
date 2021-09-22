@@ -1274,12 +1274,10 @@ bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
     }
     this->dataPtr->spawnPreview =
       this->dataPtr->renderUtil.SceneManager().CreateLight(
-          lightId, light,
+          lightId, light, light.Name(),
           this->dataPtr->renderUtil.SceneManager().WorldId());
     this->dataPtr->renderUtil.SceneManager().CreateLightVisual(
-        lightVisualId, light, lightId);
-
-
+        lightVisualId, light, light.Name(), lightId);
 
     this->dataPtr->previewIds.push_back(lightId);
     this->dataPtr->previewIds.push_back(lightVisualId);

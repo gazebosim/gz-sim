@@ -450,9 +450,9 @@ bool SpawnPrivate::GeneratePreview(const sdf::Root &_sdf)
       return false;
     }
     this->spawnPreview = this->sceneManager.CreateLight(
-          lightId, light, this->sceneManager.WorldId());
+          lightId, light, light.Name(), this->sceneManager.WorldId());
     this->sceneManager.CreateLightVisual(
-        lightVisualId, light, lightId);
+        lightVisualId, light, light.Name(), lightId);
 
     this->previewIds.push_back(lightId);
     this->previewIds.push_back(lightVisualId);
