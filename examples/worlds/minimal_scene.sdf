@@ -11,6 +11,7 @@ Features:
 * Markers
 * Tape measure
 * Grid config
+* Video recording
 * Select entities
 * Transform controls
 * Spawn entities through GUI
@@ -20,7 +21,6 @@ Features:
 Missing for parity with GzScene3D:
 
 * Context menu
-* Record video
 * Drag and drop from Fuel / meshes
 * ...
 
@@ -245,26 +245,47 @@ Missing for parity with GzScene3D:
         </ignition-gui>
       </plugin>
 
+      <!-- Video recorder -->
+      <plugin filename="VideoRecorder" name="VideoRecorder">
+        <ignition-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="x" type="double">300</property>
+          <property key="y" type="double">50</property>
+          <property key="width" type="double">50</property>
+          <property key="height" type="double">50</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+          <property key="cardBackground" type="string">#777777</property>
+        </ignition-gui>
+
+        <record_video>
+          <use_sim_time>true</use_sim_time>
+          <lockstep>true</lockstep>
+          <bitrate>4000000</bitrate>
+        </record_video>
+
+        <!-- disable legacy features used to connect this plugin to GzScene3D -->
+        <legacy>false</legacy>
+      </plugin>
+
       <!-- Inspector -->
       <plugin filename="ComponentInspector" name="Component inspector">
         <ignition-gui>
-          <property type="bool" key="showTitleBar">false</property>
-          <property type="string" key="state">docked</property>
+          <property type="string" key="state">docked_collapsed</property>
         </ignition-gui>
       </plugin>
 
       <!-- Entity tree -->
       <plugin filename="EntityTree" name="Entity tree">
         <ignition-gui>
-          <property type="bool" key="showTitleBar">false</property>
-          <property type="string" key="state">docked</property>
+          <property type="string" key="state">docked_collapsed</property>
         </ignition-gui>
       </plugin>
 
       <!-- View angle -->
       <plugin filename="ViewAngle" name="View angle">
         <ignition-gui>
-          <property type="string" key="state">docked</property>
+          <property type="string" key="state">docked_collapsed</property>
         </ignition-gui>
 
         <!-- disable legacy features used to connect this plugin to GzScene3D -->
