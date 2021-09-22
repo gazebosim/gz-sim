@@ -146,7 +146,7 @@ TEST_F(ForceTorqueTest, SensorPoseOffset)
     const math::Vector3 expectedForce =
         math::Vector3d{0, 0, kGravity * (kSensorMass + kWeightMass)};
     EXPECT_EQ(expectedForce, msgs::Convert(wrench.force()));
-    EXPECT_NEAR(-kMomentArm * expectedForce.Z(), wrench.torque().y(), 1e-3);
+    EXPECT_NEAR(kMomentArm * expectedForce.Z(), wrench.torque().y(), 1e-3);
     wrenches.clear();
   }
 

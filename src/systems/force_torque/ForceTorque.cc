@@ -242,9 +242,16 @@ void ForceTorquePrivate::CreateForceTorqueEntities(EntityComponentManager &_ecm)
         sensorJointLinkEntry.jointChildLink = jointChildLinkEntity;
         this->sensorJointLinkMap[_entity] = sensorJointLinkEntry;
 
-        this->entitySensorMap.insert(
-            std::make_pair(_entity, std::move(sensor)));
+        auto sensorIt = this->entitySensorMap.insert(
+            std::make_pair(_entity, std::move(sensor))).first;
 
+        const auto X_WC = worldPose(jointChildLinkEntity, _ecm);
+        const auto X_CJ = _ecm.Component<components::Pose>(jointEntity)->Data();
+        const auto X_WJ = X_WC * X_CJ;
+        const auto X_JS = _ecm.Component<components::Pose>(_entity)->Data();
+        const auto X_WS = X_WJ * X_JS;
+        const auto X_SC = X_WS.Inverse() * X_WC;
+        sensorIt->second->SetRotationChildInSensor(X_SC.Rot());
         return true;
       });
 }
@@ -290,7 +297,6 @@ void ForceTorquePrivate::Update(const EntityComponentManager &_ecm)
           auto X_JS = _ecm.Component<components::Pose>(_entity)->Data();
           auto X_WS = X_WJ * X_JS;
           auto X_SP = X_WS.Inverse() * X_WP;
-          auto X_SC = X_WS.Inverse() * X_WC;
 
           // The joint wrench is computed at the joint frame. We need to
           // transform it the sensor frame.
@@ -299,13 +305,12 @@ void ForceTorquePrivate::Update(const EntityComponentManager &_ecm)
 
           math::Vector3d torque =
               X_JS.Rot().Inverse() *
-                  msgs::Convert(jointWrench->Data().torque()) +
+                  msgs::Convert(jointWrench->Data().torque()) -
               X_JS.Pos().Cross(force);
 
           it->second->SetForce(force);
           it->second->SetTorque(torque);
           it->second->SetRotationParentInSensor(X_SP.Rot());
-          it->second->SetRotationChildInSensor(X_SC.Rot());
         }
         else
         {
