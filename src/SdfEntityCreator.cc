@@ -35,6 +35,7 @@
 #include "ignition/gazebo/components/ContactSensor.hh"
 #include "ignition/gazebo/components/CustomSensor.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
+#include "ignition/gazebo/components/ForceTorque.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Gravity.hh"
@@ -599,6 +600,16 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint)
   this->dataPtr->ecm->CreateComponent(jointEntity,
       components::JointType(_joint->Type()));
 
+  // Sensors
+  for (uint64_t sensorIndex = 0; sensorIndex < _joint->SensorCount();
+      ++sensorIndex)
+  {
+    auto sensor = _joint->SensorByIndex(sensorIndex);
+    auto sensorEntity = this->CreateEntities(sensor);
+
+    this->SetParent(sensorEntity, jointEntity);
+  }
+
   if (_joint->Axis(0))
   {
     auto resolvedAxis = ResolveJointAxis(*_joint->Axis(0));
@@ -850,6 +861,11 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
             components::AngularVelocity(math::Vector3d::Zero));
     this->dataPtr->ecm->CreateComponent(sensorEntity,
             components::LinearAcceleration(math::Vector3d::Zero));
+  }
+  else if (_sensor->Type() == sdf::SensorType::FORCE_TORQUE)
+  {
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::ForceTorque(*_sensor));
   }
   else if (_sensor->Type() == sdf::SensorType::LOGICAL_CAMERA)
   {
