@@ -54,7 +54,60 @@ TEST_F(ForceTorqueTest, MeasureWeight)
   EXPECT_FALSE(*server.Running(0));
   server.SetUpdatePeriod(1us);
 
-  const std::string sensorName = "force_torque_sensor";
+  size_t iters = 1000u;
+
+  std::vector<msgs::Wrench> wrenches;
+  wrenches.reserve(iters);
+  std::mutex wrenchMutex;
+  std::condition_variable cv;
+  auto wrenchCb = std::function<void(const msgs::Wrench &)>(
+      [&wrenchMutex, &wrenches, &cv, iters](const auto &_msg)
+      {
+        std::lock_guard lock(wrenchMutex);
+        wrenches.push_back(_msg);
+        if (wrenches.size() >= iters)
+        {
+          cv.notify_all();
+        }
+      });
+
+  transport::Node node;
+  node.Subscribe("/force_torque1", wrenchCb);
+
+  // Run server
+  server.Run(true, iters, false);
+  ASSERT_EQ(iters, *server.IterationCount());
+
+  {
+    std::unique_lock lock(wrenchMutex);
+    cv.wait_for(lock, 30s, [&] { return wrenches.size() >= iters; });
+    ASSERT_EQ(iters, wrenches.size());
+
+    const double kSensorMass = 0.2;
+    const double kWeightMass = 10;
+    const double kGravity = 9.8;
+    const auto &wrench = wrenches.back();
+    const math::Vector3 expectedForce =
+        math::Vector3d{0, 0, kGravity * (kSensorMass + kWeightMass)};
+    EXPECT_EQ(expectedForce, msgs::Convert(wrench.force()));
+    EXPECT_EQ(math::Vector3d::Zero, msgs::Convert(wrench.torque()));
+  }
+}
+
+/////////////////////////////////////////////////
+TEST_F(ForceTorqueTest, SensorPoseOffset)
+{
+  using namespace std::chrono_literals;
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile =
+      std::string(PROJECT_SOURCE_PATH) + "/test/worlds/force_torque.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+  server.SetUpdatePeriod(1us);
 
   size_t iters = 1000u;
 
@@ -74,22 +127,45 @@ TEST_F(ForceTorqueTest, MeasureWeight)
       });
 
   transport::Node node;
-  node.Subscribe("/force_torque", wrenchCb);
+  node.Subscribe("/force_torque2", wrenchCb);
 
   // Run server
   server.Run(true, iters, false);
   ASSERT_EQ(iters, *server.IterationCount());
 
+  const double kSensorMass = 0.2;
+  const double kWeightMass = 10;
+  const double kGravity = 9.8;
   {
     std::unique_lock lock(wrenchMutex);
     cv.wait_for(lock, 30s, [&] { return wrenches.size() >= iters; });
     ASSERT_EQ(iters, wrenches.size());
 
-    const double kSensorMass = 0.2;
-    const double kWeightMass = 10;
-    const double kGravity = 9.8;
+    const double kMomentArm = 0.1;
     const auto &wrench = wrenches.back();
-    EXPECT_NEAR(kGravity * (kSensorMass + kWeightMass), wrench.force().z(),
-                1e-3);
+    const math::Vector3 expectedForce =
+        math::Vector3d{0, 0, kGravity * (kSensorMass + kWeightMass)};
+    EXPECT_EQ(expectedForce, msgs::Convert(wrench.force()));
+    EXPECT_NEAR(-kMomentArm * expectedForce.Z(), wrench.torque().y(), 1e-3);
+    wrenches.clear();
+  }
+
+  node.Unsubscribe("/force_torque2");
+  node.Subscribe("/force_torque3", wrenchCb);
+
+  server.Run(true, iters, false);
+  ASSERT_EQ(2 * iters, *server.IterationCount());
+  {
+    std::unique_lock lock(wrenchMutex);
+    cv.wait_for(lock, 30s, [&] { return wrenches.size() >= iters; });
+    ASSERT_EQ(iters, wrenches.size());
+
+    const auto &wrench = wrenches.back();
+
+    const math::Vector3 expectedForce =
+        math::Vector3d{0, 0, kGravity * (kSensorMass + kWeightMass)};
+    EXPECT_EQ(expectedForce, msgs::Convert(wrench.force()));
+    EXPECT_EQ(math::Vector3d::Zero, msgs::Convert(wrench.torque()));
+    wrenches.clear();
   }
 }
