@@ -20,6 +20,7 @@
 
 #include <memory>
 
+#include <ignition/gui/GuiEvents.hh>
 #include <ignition/gui/Plugin.hh>
 
 namespace ignition
@@ -28,11 +29,19 @@ namespace gazebo
 {
   class SpawnPrivate;
 
-  /// \brief Allows to spawn models and lights using the spawn gui events.
-  // TODO(anyone) Support drag and drop
+  /// \brief Allows to spawn models and lights using the spawn gui events or
+  /// drag and drop.
   class Spawn : public ignition::gui::Plugin
   {
     Q_OBJECT
+
+    /// \brief Text for popup error
+    Q_PROPERTY(
+      QString errorPopupText
+      READ ErrorPopupText
+      WRITE SetErrorPopupText
+      NOTIFY ErrorPopupTextChanged
+    )
 
     /// \brief Constructor
     public: Spawn();
@@ -43,8 +52,28 @@ namespace gazebo
     // Documentation inherited
     public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
+    /// \brief Handle drop events.
+    /// \param[in] _event Event with drop information.
+    public: void OnDropped(const ignition::gui::events::DropOnScene *_event);
+
+    /// \brief Get the text for the popup error message
+    /// \return The error text
+    public: Q_INVOKABLE QString ErrorPopupText() const;
+
+    /// \brief Set the text for the popup error message
+    /// \param[in] _errorTxt The error text
+    public: Q_INVOKABLE void SetErrorPopupText(const QString &_errorTxt);
+
     // Documentation inherited
     protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
+
+    /// \brief Notify the popup error text has changed
+    signals: void ErrorPopupTextChanged();
+
+    /// \brief Notify that an error has occurred (opens popup)
+    /// Note that the function name needs to start with lowercase in order for
+    /// the connection to work on the QML side
+    signals: void popupError();
 
     /// \internal
     /// \brief Pointer to private data.

@@ -15,34 +15,33 @@
  *
 */
 
-import QtQuick 2.9
-import QtQuick.Controls 2.2
-import QtQuick.Dialogs 1.0
+import QtQuick 2.0
+import QtQuick.Controls 2.0
 import QtQuick.Layouts 1.3
+import RenderWindowOverlay 1.0
+import IgnGazebo 1.0 as IgnGazebo
 
 Rectangle {
   visible: false
-  Layout.minimumWidth: 100
-  Layout.minimumHeight: 100
+  color: "transparent"
 
-  Connections {
-    target: Spawn
-    onPopupError: errorPopup.open()
+  RenderWindowOverlay {
+    id: renderWindowOverlay
+    objectName: "renderWindowOverlay"
+    anchors.fill: parent
+
+    Connections {
+      target: renderWindowOverlay
+      onOpenContextMenu:
+      {
+        entityContextMenu.open(_entity, "model",
+          _mouseX, _mouseY);
+      }
+    }
   }
 
-  Dialog {
-    id: errorPopup
-    parent: ApplicationWindow.overlay
-    modal: true
-    focus: true
-    width: 500
-    height: 200
-    x: (parent.width - width) / 2
-    y: (parent.height - height) / 2
-    title: "Error"
-    Text {
-      text: Spawn.errorPopupText
-    }
-    standardButtons: Dialog.Ok
+  IgnGazebo.EntityContextMenu {
+    id: entityContextMenu
+    anchors.fill: parent
   }
 }

@@ -27,6 +27,7 @@
 #include <vector>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/MeshManager.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/common/Uuid.hh>
 
@@ -43,6 +44,7 @@
 #include <ignition/rendering/Camera.hh>
 #include <ignition/rendering/RenderingIface.hh>
 #include <ignition/rendering/RayQuery.hh>
+#include <ignition/rendering/Utils.hh>
 #include <ignition/rendering/Visual.hh>
 #include <ignition/rendering/Scene.hh>
 
@@ -149,6 +151,9 @@ namespace ignition::gazebo
 
     /// \brief Name of the world
     public: std::string worldName;
+
+    /// \brief Text for popup error message
+    public: QString errorPopupText;
   };
 }
 
@@ -501,8 +506,119 @@ bool Spawn::eventFilter(QObject *_obj, QEvent *_event)
       this->dataPtr->escapeReleased = true;
     }
   }
+  else if (_event->type() == ignition::gui::events::DropOnScene::kType)
+  {
+    auto dropOnSceneEvent =
+      reinterpret_cast<ignition::gui::events::DropOnScene *>(_event);
+    if (dropOnSceneEvent)
+    {
+      this->OnDropped(dropOnSceneEvent);
+    }
+  }
 
   return QObject::eventFilter(_obj, _event);
+}
+
+/////////////////////////////////////////////////
+void Spawn::OnDropped(const ignition::gui::events::DropOnScene *_event)
+{
+  if (nullptr == _event || nullptr == this->dataPtr->camera ||
+      nullptr == this->dataPtr->rayQuery)
+  {
+    return;
+  }
+
+  if (_event->DropText().empty())
+  {
+    this->SetErrorPopupText("Dropped empty entity URI.");
+    return;
+  }
+
+  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+      [](const ignition::msgs::Boolean &_res, const bool _result)
+  {
+    if (!_result || !_res.data())
+      ignerr << "Error creating dropped entity." << std::endl;
+  };
+
+  math::Vector3d pos = ignition::rendering::screenToScene(
+    _event->Mouse(),
+    this->dataPtr->camera,
+    this->dataPtr->rayQuery);
+
+  msgs::EntityFactory req;
+  std::string dropStr = _event->DropText();
+
+  // Local meshes
+  if (QUrl(QString::fromStdString(dropStr)).isLocalFile())
+  {
+    // mesh to sdf model
+    common::rtrim(dropStr);
+
+    if (!common::MeshManager::Instance()->IsValidFilename(dropStr))
+    {
+      QString errTxt = QString::fromStdString("Invalid URI: " + dropStr +
+        "\nOnly Fuel URLs or mesh file types DAE, OBJ, and STL are supported.");
+      this->SetErrorPopupText(errTxt);
+      return;
+    }
+
+    // Fixes whitespace
+    dropStr = common::replaceAll(dropStr, "%20", " ");
+
+    std::string filename = common::basename(dropStr);
+    std::vector<std::string> splitName = common::split(filename, ".");
+
+    std::string sdf = "<?xml version='1.0'?>"
+      "<sdf version='" + std::string(SDF_PROTOCOL_VERSION) + "'>"
+        "<model name='" + splitName[0] + "'>"
+          "<link name='link'>"
+            "<visual name='visual'>"
+              "<geometry>"
+                "<mesh>"
+                  "<uri>" + dropStr + "</uri>"
+                "</mesh>"
+              "</geometry>"
+            "</visual>"
+            "<collision name='collision'>"
+              "<geometry>"
+                "<mesh>"
+                  "<uri>" + dropStr + "</uri>"
+                "</mesh>"
+              "</geometry>"
+            "</collision>"
+          "</link>"
+        "</model>"
+      "</sdf>";
+
+    req.set_sdf(sdf);
+  }
+  // Resource from fuel
+  else
+  {
+    req.set_sdf_filename(dropStr);
+  }
+
+  req.set_allow_renaming(true);
+  msgs::Set(req.mutable_pose(),
+      math::Pose3d(pos.X(), pos.Y(), pos.Z(), 1, 0, 0, 0));
+
+  this->dataPtr->node.Request("/world/" + this->dataPtr->worldName + "/create",
+      req, cb);
+}
+
+/////////////////////////////////////////////////
+QString Spawn::ErrorPopupText() const
+{
+  return this->dataPtr->errorPopupText;
+}
+
+/////////////////////////////////////////////////
+void Spawn::SetErrorPopupText(const QString &_errorTxt)
+{
+  this->dataPtr->errorPopupText = _errorTxt;
+  this->ErrorPopupTextChanged();
+  this->popupError();
 }
 
 // Register this plugin
