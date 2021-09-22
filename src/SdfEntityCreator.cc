@@ -27,7 +27,6 @@
 #include "ignition/gazebo/components/Altimeter.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/Atmosphere.hh"
-#include "ignition/gazebo/components/BoundingBoxCamera.hh"
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/CastShadows.hh"
@@ -810,11 +809,6 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
   {
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::SegmentationCamera(*_sensor));
-  }
-  else if (_sensor->Type() == sdf::SensorType::BOUNDINGBOX_CAMERA)
-  {
-    this->dataPtr->ecm->CreateComponent(sensorEntity,
-        components::BoundingBoxCamera(*_sensor));
   }
   else if (_sensor->Type() == sdf::SensorType::AIR_PRESSURE)
   {
