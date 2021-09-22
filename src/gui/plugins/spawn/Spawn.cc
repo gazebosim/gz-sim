@@ -63,10 +63,6 @@ namespace ignition::gazebo
     /// \brief Perform operations in the render thread.
     public: void OnRender();
 
-    /// \brief Handle drop events.
-    /// \param[in] _event Event with drop information.
-    public: void OnDropped(const ignition::gui::events::DropOnScene *_event);
-
     /// \brief Delete the visuals generated while an entity is being spawned.
     public: void TerminateSpawnPreview();
 
@@ -155,6 +151,9 @@ namespace ignition::gazebo
 
     /// \brief Name of the world
     public: std::string worldName;
+
+    /// \brief Text for popup error message
+    public: QString errorPopupText;
   };
 }
 
@@ -513,7 +512,7 @@ bool Spawn::eventFilter(QObject *_obj, QEvent *_event)
       reinterpret_cast<ignition::gui::events::DropOnScene *>(_event);
     if (dropOnSceneEvent)
     {
-      this->dataPtr->OnDropped(dropOnSceneEvent);
+      this->OnDropped(dropOnSceneEvent);
     }
   }
 
@@ -521,17 +520,17 @@ bool Spawn::eventFilter(QObject *_obj, QEvent *_event)
 }
 
 /////////////////////////////////////////////////
-void SpawnPrivate::OnDropped(const ignition::gui::events::DropOnScene *_event)
+void Spawn::OnDropped(const ignition::gui::events::DropOnScene *_event)
 {
-  if (nullptr == _event || nullptr == this->camera || nullptr == this->rayQuery)
+  if (nullptr == _event || nullptr == this->dataPtr->camera ||
+      nullptr == this->dataPtr->rayQuery)
   {
     return;
   }
 
   if (_event->DropText().empty())
   {
-    // TODO(chapulina) Add error popup
-    ignerr << "Dropped empty entity URI.\n";
+    this->SetErrorPopupText("Dropped empty entity URI.");
     return;
   }
 
@@ -544,8 +543,8 @@ void SpawnPrivate::OnDropped(const ignition::gui::events::DropOnScene *_event)
 
   math::Vector3d pos = ignition::rendering::screenToScene(
     _event->Mouse(),
-    this->camera,
-    this->rayQuery);
+    this->dataPtr->camera,
+    this->dataPtr->rayQuery);
 
   msgs::EntityFactory req;
   std::string dropStr = _event->DropText();
@@ -558,10 +557,9 @@ void SpawnPrivate::OnDropped(const ignition::gui::events::DropOnScene *_event)
 
     if (!common::MeshManager::Instance()->IsValidFilename(dropStr))
     {
-      // TODO(chapulina) popup
-      ignerr << "Invalid URI: " + dropStr +
-        "\nOnly Fuel URLs or mesh file types DAE, OBJ, and STL"
-        "are supported.";
+      QString errTxt = QString::fromStdString("Invalid URI: " + dropStr +
+        "\nOnly Fuel URLs or mesh file types DAE, OBJ, and STL are supported.");
+      this->SetErrorPopupText(errTxt);
       return;
     }
 
@@ -605,7 +603,22 @@ void SpawnPrivate::OnDropped(const ignition::gui::events::DropOnScene *_event)
   msgs::Set(req.mutable_pose(),
       math::Pose3d(pos.X(), pos.Y(), pos.Z(), 1, 0, 0, 0));
 
-  this->node.Request("/world/" + this->worldName + "/create", req, cb);
+  this->dataPtr->node.Request("/world/" + this->dataPtr->worldName + "/create",
+      req, cb);
+}
+
+/////////////////////////////////////////////////
+QString Spawn::ErrorPopupText() const
+{
+  return this->dataPtr->errorPopupText;
+}
+
+/////////////////////////////////////////////////
+void Spawn::SetErrorPopupText(const QString &_errorTxt)
+{
+  this->dataPtr->errorPopupText = _errorTxt;
+  this->ErrorPopupTextChanged();
+  this->popupError();
 }
 
 // Register this plugin
