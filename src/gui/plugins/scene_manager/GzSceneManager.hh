@@ -21,6 +21,7 @@
 #include <memory>
 
 #include <ignition/gazebo/gui/GuiSystem.hh>
+#include "ignition/gazebo/EventManager.hh"
 
 namespace ignition
 {
@@ -51,6 +52,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Documentation inherited
     public: void Update(const UpdateInfo &_info,
         EntityComponentManager &_ecm) override;
+
+    // Documentation inherited
+    public: void Configure(EventManager &_eventMgr, bool _sameProcess) override;
 
     // Documentation inherited
     private: bool eventFilter(QObject *_obj, QEvent *_event) override;

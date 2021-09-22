@@ -21,6 +21,7 @@
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/EntityComponentManager.hh>
+#include <ignition/gazebo/EventManager.hh>
 #include <ignition/gazebo/gui/Export.hh>
 #include <ignition/gui/Plugin.hh>
 
@@ -51,13 +52,17 @@ namespace gazebo
     /// \param[in] _info Current simulation information, such as time.
     /// \param[in] _ecm Mutable reference to the ECM, so the system can read
     /// and write entities and their components.
-    public: virtual void Update(const UpdateInfo &_info,
-                                EntityComponentManager &_ecm)
-    {
-      // This will avoid many doxygen warnings
-      (void)_info;
-      (void)_ecm;
-    }
+    public: virtual void Update(const UpdateInfo &/*_info*/,
+                                EntityComponentManager &/*_ecm*/){}
+
+    /// \brief When running in the same process GUI and server we need to
+    /// configure the gui system plugins with the event manager to listen
+    /// ecm updates and set if we are running in the same process
+    /// \param[in] _ecm Mutable event manager
+    /// \param[in] _sameProcess are the server and gui running in the same
+    /// process ?
+    public: virtual void Configure(
+      EventManager &/*_event*/, bool /*sameProcess*/){}
   };
 }
 }

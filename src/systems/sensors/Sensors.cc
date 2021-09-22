@@ -30,6 +30,7 @@
 
 #include <ignition/math/Helpers.hh>
 
+#include <ignition/rendering/RenderingIface.hh>
 #include <ignition/rendering/Scene.hh>
 #include <ignition/sensors/CameraSensor.hh>
 #include <ignition/sensors/DepthCameraSensor.hh>
@@ -46,6 +47,7 @@
 #include "ignition/gazebo/components/RenderEngineServerHeadless.hh"
 #include "ignition/gazebo/components/RenderEngineServerPlugin.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
+#include "ignition/gazebo/components/SameProcess.hh"
 #include "ignition/gazebo/components/ThermalCamera.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Events.hh"
@@ -123,6 +125,9 @@ class ignition::gazebo::systems::SensorsPrivate
   /// \brief Connection to events::Stop event, used to stop thread
   public: ignition::common::ConnectionPtr stopConn;
 
+  /// \brief Connection to events::Render event, used to render thread
+  public: ignition::common::ConnectionPtr renderConn;
+
   /// \brief Update time for the next rendering iteration
   public: std::chrono::steady_clock::duration updateTime;
 
@@ -138,6 +143,9 @@ class ignition::gazebo::systems::SensorsPrivate
 
   /// \brief Pointer to the event manager
   public: EventManager *eventManager{nullptr};
+
+  /// \brief Is the GUI and server running in the same process?
+  public: bool sameProcess = false;
 
   /// \brief Wait for initialization to happen
   private: void WaitForInit();
@@ -178,6 +186,9 @@ class ignition::gazebo::systems::SensorsPrivate
 
   /// \brief Stop the rendering thread
   public: void Stop();
+
+  /// \brief Start the rendering thread
+  public: void Render();
 };
 
 //////////////////////////////////////////////////
@@ -227,8 +238,11 @@ void SensorsPrivate::RunOnce()
 
   IGN_PROFILE("SensorsPrivate::RunOnce");
   {
-    IGN_PROFILE("Update");
-    this->renderUtil.Update();
+    if (!this->sameProcess)
+    {
+      IGN_PROFILE("Update");
+      this->renderUtil.Update();
+    }
   }
 
 
@@ -253,35 +267,36 @@ void SensorsPrivate::RunOnce()
     }
     this->sensorMaskMutex.unlock();
 
+    if (!this->sameProcess)
     {
-      IGN_PROFILE("PreRender");
-      this->eventManager->Emit<events::PreRender>();
-      // Update the scene graph manually to improve performance
-      // We only need to do this once per frame It is important to call
-      // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
-      // so we don't waste cycles doing one scene graph update per sensor
-      this->scene->PreRender();
-    }
+      {
+        IGN_PROFILE("PreRender");
+        this->eventManager->Emit<events::PreRender>();
+        // Update the scene graph manually to improve performance
+        // We only need to do this once per frame. It is important to call
+        // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
+        // so we don't waste cycles doing one scene graph update per sensor
+        this->scene->PreRender();
+      }
 
-    {
-      // publish data
-      IGN_PROFILE("RunOnce");
-      this->sensorManager.RunOnce(this->updateTime);
+      {
+        // publish data
+        IGN_PROFILE("RunOnce");
+        this->sensorManager.RunOnce(this->updateTime);
+        this->eventManager->Emit<events::PostRender>();
+      }
+      {
+        IGN_PROFILE("PostRender");
+        // Update the scene graph manually to improve performance
+        // We only need to do this once per frame It is important to call
+        // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
+        // so we don't waste cycles doing one scene graph update per sensor
+        this->scene->PostRender();
+        this->eventManager->Emit<events::PostRender>();
+      }
     }
-
-    {
-      IGN_PROFILE("PostRender");
-      // Update the scene graph manually to improve performance
-      // We only need to do this once per frame It is important to call
-      // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
-      // so we don't waste cycles doing one scene graph update per sensor
-      this->scene->PostRender();
-      this->eventManager->Emit<events::PostRender>();
-    }
-
     this->activeSensors.clear();
   }
-
   this->updateAvailable = false;
   lock.unlock();
   this->renderCv.notify_one();
@@ -315,6 +330,45 @@ void SensorsPrivate::Run()
   igndbg << "SensorsPrivate::Run" << std::endl;
   this->running = true;
   this->renderThread = std::thread(&SensorsPrivate::RenderThread, this);
+}
+
+//////////////////////////////////////////////////
+void SensorsPrivate::Render()
+{
+  if (!this->sameProcess || !this->running || !this->scene)
+    return;
+
+  IGN_PROFILE("SensorsPrivate::RunOnce");
+  {
+    IGN_PROFILE("Update");
+    this->renderUtil.Update();
+  }
+
+  {
+    IGN_PROFILE("PreRender");
+    this->eventManager->Emit<events::PreRender>();
+    // Update the scene graph manually to improve performance
+    // We only need to do this once per frame. It is important to call
+    // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
+    // so we don't waste cycles doing one scene graph update per sensor
+    this->scene->PreRender();
+  }
+
+  {
+    // publish data
+    IGN_PROFILE("RunOnce");
+    this->sensorManager.RunOnce(this->updateTime);
+    this->eventManager->Emit<events::PostRender>();
+  }
+  {
+    IGN_PROFILE("PostRender");
+    // Update the scene graph manually to improve performance
+    // We only need to do this once per frame It is important to call
+    // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
+    // so we don't waste cycles doing one scene graph update per sensor
+    this->scene->PostRender();
+    this->eventManager->Emit<events::PostRender>();
+  }
 }
 
 //////////////////////////////////////////////////
@@ -416,6 +470,23 @@ void Sensors::Configure(const Entity &/*_id*/,
       this->dataPtr->renderUtil.SetEngineName(renderEngineServerComp->Data());
     }
 
+    // Check if the server and gui are running in the same process
+    auto sameProcessComp =
+      _ecm.Component<components::SameProcess>(worldEntity);
+    if (sameProcessComp)
+    {
+      this->dataPtr->sameProcess = sameProcessComp->Data();
+
+      if (this->dataPtr->sameProcess)
+      {
+        this->dataPtr->renderUtil.SetEventManager(*this->dataPtr->eventManager);
+
+        this->dataPtr->renderConn =
+          _eventMgr.Connect<events::Render>(
+            std::bind(&SensorsPrivate::Render, this->dataPtr.get()));
+      }
+    }
+
     // Set headless mode if specified from command line
     auto renderEngineServerHeadlessComp =
       _ecm.Component<components::RenderEngineServerHeadless>(worldEntity);
@@ -467,10 +538,26 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
        _ecm.HasComponentType(components::RgbdCamera::typeId) ||
        _ecm.HasComponentType(components::ThermalCamera::typeId)))
   {
-    igndbg << "Initialization needed" << std::endl;
     std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
-    this->dataPtr->doInit = true;
-    this->dataPtr->renderCv.notify_one();
+
+    // This will allow to load first the scene3D
+    if (this->dataPtr->sameProcess)
+    {
+      if (rendering::loadedEngines().size())
+      {
+        igndbg << "Initialization needed" << std::endl;
+        this->dataPtr->eventManager->Emit
+          <ignition::gazebo::events::EnableSensors>(true);
+        this->dataPtr->doInit = true;
+        this->dataPtr->renderCv.notify_one();
+      }
+    }
+    else
+    {
+      igndbg << "Initialization needed" << std::endl;
+      this->dataPtr->doInit = true;
+      this->dataPtr->renderCv.notify_one();
+    }
   }
 
   if (this->dataPtr->running && this->dataPtr->initialized)

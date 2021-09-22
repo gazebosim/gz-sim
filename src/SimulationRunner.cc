@@ -570,6 +570,11 @@ void SimulationRunner::UpdateSystems()
       system->Update(this->currentInfo, this->entityCompMgr);
   }
 
+  if (this->serverConfig.SameProcessAsGUI())
+  {
+    this->eventMgr.Emit<events::UpdateSystems>();
+  }
+
   {
     IGN_PROFILE("PostUpdate");
     this->entityCompMgr.LockAddingEntitiesToViews(true);
@@ -1210,7 +1215,7 @@ bool SimulationRunner::Paused() const
 }
 
 /////////////////////////////////////////////////
-const EntityComponentManager &SimulationRunner::EntityCompMgr() const
+EntityComponentManager &SimulationRunner::EntityCompMgr()
 {
   return this->entityCompMgr;
 }

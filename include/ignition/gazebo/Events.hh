@@ -58,6 +58,31 @@ namespace ignition
       /// the entity, which may contain multiple `<plugin>` tags.
       using LoadPlugins = common::EventT<void(Entity, sdf::ElementPtr),
           struct LoadPluginsTag>;
+
+      /// \brief Event used to emit a render event when running in one process.
+      /// This is required because we have two RenderUtil classes when there
+      /// is a render sensor in the scene (camera, depth sensor, etc).
+      /// We could only have one thread updating the render scene, with this
+      /// signal we are able to call from the GzSceneManager the render calls
+      /// required by the sensor
+      ///
+      /// For example:
+      /// \code
+      /// eventManager.Emit<ignition::gazebo::events::Render>();
+      /// \endcode
+      using Render = ignition::common::EventT<void(void), struct RenderTag>;
+
+      /// \brief Event used to emit render event when running in one process
+      using EnableSensors =
+        ignition::common::EventT<void(bool), struct EnableSensorsTag>;
+
+      /// \brief Event used to emit a render event when running in one process.
+      /// Some remove events are lost because of the rate when running in the
+      /// same process without sensors. This event is launched in the Simulation
+      /// runner when there is any new entity or entity marked to be removed
+      /// to remove/add entities in the renderUtil
+      using UpdateSystems =
+        ignition::common::EventT<void(void), struct UpdateSystemsTag>;
       }
     }  // namespace events
   }  // namespace gazebo

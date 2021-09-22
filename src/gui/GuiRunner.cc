@@ -17,6 +17,7 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Profiler.hh>
+#include <ignition/common/WorkerPool.hh>
 #include <ignition/fuel_tools/Interface.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
@@ -26,6 +27,8 @@
 #include "ignition/gazebo/components/components.hh"
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/Events.hh"
+#include "ignition/gazebo/EventManager.hh"
 #include "ignition/gazebo/gui/GuiSystem.hh"
 
 #include "GuiRunner.hh"
@@ -36,11 +39,33 @@ using namespace gazebo;
 /////////////////////////////////////////////////
 class ignition::gazebo::GuiRunner::Implementation
 {
+  public: Implementation(gazebo::EntityComponentManager &_ecm,
+    gazebo::EventManager &_eventMgr)
+  : ecm(_ecm), eventMgr(_eventMgr)
+  {
+  }
+
   /// \brief Update the plugins.
   public: void UpdatePlugins();
 
+  /// \brief This method will be executed when a UpdatePlugins event is
+  /// received.
+  void UpdatePluginsEvent();
+
+  /// \brief This method will update the plugins in one of the worker threads
+  public: void UpdatePluginsFromEvent();
+
+  /// \brief Connection to the UpdatePlugins event.
+  public: ignition::common::ConnectionPtr UpdatePluginsConn;
+
   /// \brief Entity-component manager.
-  public: gazebo::EntityComponentManager ecm;
+  public: gazebo::EntityComponentManager &ecm;
+
+  /// \brief Event manager.
+  public: gazebo::EventManager &eventMgr;
+
+  /// \brief Is the GUI and server running in the same process?
+  public: bool sameProcess = false;
 
   /// \brief Transport node.
   public: transport::Node node{};
@@ -59,12 +84,26 @@ class ignition::gazebo::GuiRunner::Implementation
 
   /// \brief The plugin update thread..
   public: std::thread updateThread;
+
+  /// \brief A pool of worker threads.
+  public: common::WorkerPool pool;
 };
 
 /////////////////////////////////////////////////
-GuiRunner::GuiRunner(const std::string &_worldName)
-  : dataPtr(utils::MakeUniqueImpl<Implementation>())
+GuiRunner::GuiRunner(const std::string &_worldName,
+  EntityComponentManager &_ecm, gazebo::EventManager &_eventMgr,
+  bool _sameProcess)
+  : dataPtr(utils::MakeUniqueImpl<Implementation>(_ecm, _eventMgr))
 {
+  this->dataPtr->sameProcess = _sameProcess;
+
+  if (this->dataPtr->sameProcess)
+  {
+    this->dataPtr->UpdatePluginsConn =
+      _eventMgr.Connect<ignition::gazebo::events::UpdateSystems>(
+        std::bind(&Implementation::UpdatePluginsEvent, this->dataPtr.get()));
+  }
+
   this->setProperty("worldName", QString::fromStdString(_worldName));
 
   auto win = gui::App()->findChild<ignition::gui::MainWindow *>();
@@ -92,7 +131,6 @@ GuiRunner::GuiRunner(const std::string &_worldName)
   this->RequestState();
 
   // Periodically update the plugins
-  // \todo(anyone) Move the global variables to GuiRunner::Implementation on v5
   this->dataPtr->running = true;
   this->dataPtr->updateThread = std::thread([&]()
   {
@@ -151,10 +189,23 @@ void GuiRunner::RequestState()
 }
 
 /////////////////////////////////////////////////
-void GuiRunner::OnPluginAdded(const QString &)
+void GuiRunner::OnPluginAdded(const QString &_objectName)
 {
-  // This function used to call Update on the plugin, but that's no longer
-  // necessary. The function is left here for ABI compatibility.
+  auto plugin = gui::App()->PluginByName(_objectName.toStdString());
+  if (!plugin)
+  {
+    ignerr << "Failed to get plugin [" << _objectName.toStdString()
+           << "]" << std::endl;
+    return;
+  }
+
+  auto guiSystem = dynamic_cast<GuiSystem *>(plugin.get());
+
+  // Do nothing for pure ign-gui plugins
+  if (!guiSystem)
+    return;
+
+  guiSystem->Configure(this->dataPtr->eventMgr, this->dataPtr->sameProcess);
 }
 
 /////////////////////////////////////////////////
@@ -202,4 +253,23 @@ void GuiRunner::Implementation::UpdatePlugins()
     plugin->Update(this->updateInfo, this->ecm);
   }
   this->ecm.ClearRemovedComponents();
+}
+
+/////////////////////////////////////////////////
+void GuiRunner::Implementation::UpdatePluginsFromEvent()
+{
+  std::lock_guard<std::mutex> lock(this->updateMutex);
+  this->UpdatePlugins();
+}
+
+/////////////////////////////////////////////////
+void GuiRunner::Implementation::UpdatePluginsEvent()
+{
+  std::lock_guard<std::mutex> lock(this->updateMutex);
+  if (this->ecm.HasNewEntities() ||
+      this->ecm.HasEntitiesMarkedForRemoval())
+  {
+    pool.AddWork(std::bind(
+      &GuiRunner::Implementation::UpdatePluginsFromEvent, this));
+  }
 }

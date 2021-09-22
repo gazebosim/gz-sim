@@ -25,6 +25,8 @@
 #include <ignition/utils/ImplPtr.hh>
 
 #include "ignition/gazebo/config.hh"
+#include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/EventManager.hh"
 #include "ignition/gazebo/gui/Export.hh"
 
 namespace ignition
@@ -41,7 +43,15 @@ class IGNITION_GAZEBO_GUI_VISIBLE GuiRunner : public QObject
 
   /// \brief Constructor
   /// \param[in] _worldName World name.
-  public: explicit GuiRunner(const std::string &_worldName);
+  /// \param[in] _ecm Entity-component manager.
+  /// \param[in] _eventMgr Event manager
+  /// \param[in] _sameProcess are the server and gui running in the same
+  /// process ?
+  /// \todo Move to src/gui on v6.
+  public: GuiRunner(
+      const std::string &_worldName, EntityComponentManager &_ecm,
+      EventManager &_eventMgr,
+      bool _sameProcess);
 
   /// \brief Destructor
   public: ~GuiRunner() override;
