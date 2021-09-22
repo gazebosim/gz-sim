@@ -11,6 +11,7 @@ gz_add_system(sensors
     ignition-sensors${IGN_SENSORS_VER}::ignition-sensors${IGN_SENSORS_VER}
     ignition-sensors${IGN_SENSORS_VER}::lidar
     ignition-sensors${IGN_SENSORS_VER}::rgbd_camera
+    ignition-sensors${IGN_SENSORS_VER}::segmentation_camera
     ignition-sensors${IGN_SENSORS_VER}::thermal_camera
 )
 
