@@ -1424,9 +1424,8 @@ void RenderUtilPrivate::CreateRenderingEntities(
           sdf::Model model;
           model.SetName(_name->Data());
           model.SetRawPose(_pose->Data());
-          this->newModels.push_back(
-              std::make_tuple(_entity, model, _parent->Data(),
-              _info.iterations));
+          this->newModels.push_back(std::make_tuple(_entity, model,
+              _parent->Data(), _info.iterations));
           this->modelToModelEntities[_parent->Data()].push_back(_entity);
           return true;
         });
@@ -1493,9 +1492,8 @@ void RenderUtilPrivate::CreateRenderingEntities(
           if (auto temp = _ecm.Component<components::Temperature>(_entity))
           {
             // get the uniform temperature for the entity
-            this->entityTemp[_entity] =
-              std::make_tuple<float, float, std::string>(
-                  temp->Data().Kelvin(), 0.0, "");
+            this->entityTemp[_entity] = std::make_tuple
+                <float, float, std::string>(temp->Data().Kelvin(), 0.0, "");
           }
           else
           {
@@ -1529,9 +1527,8 @@ void RenderUtilPrivate::CreateRenderingEntities(
             const components::Name *_name,
             const components::ParentEntity *_parent) -> bool
         {
-          this->newActors.push_back(
-              std::make_tuple(_entity, _actor->Data(), _name->Data(),
-                _parent->Data()));
+          this->newActors.push_back(std::make_tuple(_entity, _actor->Data(),
+              _name->Data(), _parent->Data()));
           return true;
         });
 
@@ -1709,9 +1706,8 @@ void RenderUtilPrivate::CreateRenderingEntities(
           sdf::Model model;
           model.SetName(_name->Data());
           model.SetRawPose(_pose->Data());
-          this->newModels.push_back(
-              std::make_tuple(_entity, model, _parent->Data(),
-              _info.iterations));
+          this->newModels.push_back(std::make_tuple(_entity, model,
+              _parent->Data(), _info.iterations));
           this->modelToModelEntities[_parent->Data()].push_back(_entity);
           return true;
         });
@@ -1778,9 +1774,8 @@ void RenderUtilPrivate::CreateRenderingEntities(
           if (auto temp = _ecm.Component<components::Temperature>(_entity))
           {
             // get the uniform temperature for the entity
-            this->entityTemp[_entity] =
-              std::make_tuple<float, float, std::string>(
-                  temp->Data().Kelvin(), 0.0, "");
+            this->entityTemp[_entity] = std::make_tuple
+                <float, float, std::string>(temp->Data().Kelvin(), 0.0, "");
           }
           else
           {

@@ -213,10 +213,11 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// After cloning is done, these maps can be used to update the cloned model's
   /// canonical link to be the cloned canonical link instead of the original
   /// model's canonical link. We populate maps during cloning and then update
-  /// canonical links after cloning since cloning is done top-down, and canonical
-  /// links are children of models (when a model is cloned, its canonical link
-  /// has not been cloned yet, so we have no way of knowing what to set the
-  /// cloned model's canonical link to until the canonical link has been cloned).
+  /// canonical links after cloning since cloning is done top-down, and
+  /// canonical links are children of models (when a model is cloned, its
+  /// canonical link has not been cloned yet, so we have no way of knowing what
+  /// to set the cloned model's canonical link to until the canonical link has
+  /// been cloned).
   /// \TODO(anyone) We shouldn't be giving canonical links special treatment.
   /// This may happen to any component that holds an Entity, so we should figure
   /// out a way to generalize this for any such component.
@@ -307,7 +308,8 @@ Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
     for (const auto &[clonedModel, oldCanonicalLink] :
          this->dataPtr->oldModelCanonicalLink)
     {
-      auto iter = this->dataPtr->oldToClonedCanonicalLink.find(oldCanonicalLink);
+      auto iter = this->dataPtr->oldToClonedCanonicalLink.find(
+          oldCanonicalLink);
       if (iter == this->dataPtr->oldToClonedCanonicalLink.end())
       {
         ignerr << "Error: attempted to clone model(s) with canonical link(s), "
@@ -399,7 +401,8 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
   {
     // we're cloning a model, so we map the cloned model to the original
     // model's canonical link
-    this->dataPtr->oldModelCanonicalLink[clonedEntity] = modelCanonLinkComp->Data();
+    this->dataPtr->oldModelCanonicalLink[clonedEntity] =
+        modelCanonLinkComp->Data();
   }
   else if (this->Component<components::CanonicalLink>(clonedEntity))
   {
