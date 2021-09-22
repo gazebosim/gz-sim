@@ -2,6 +2,69 @@
 
 ## Ignition Math 6.x.x
 
+## Ignition Math 6.9.0 (2021-09-XX)
+
+1. Volume below a plane for spheres and boxes
+    * [Pull request #219](https://github.com/ignitionrobotics/ign-math/pull/219)
+
+1. 🌐 Spherical coordinates: bug fix, docs and sanity checks
+    * [Pull request #235](https://github.com/ignitionrobotics/ign-math/pull/235)
+
+1. Add Vector(2|3|4)<T>::NaN to easily create invalid vectors
+    * [Pull request #222](https://github.com/ignitionrobotics/ign-math/pull/222)
+
+1. Add options to install python/ruby in system standard paths
+    * [Pull request #236](https://github.com/ignitionrobotics/ign-math/pull/236)
+
+1. Add eigen utils to convert mesh 3d vertices to oriented box
+    * [Pull request #224](https://github.com/ignitionrobotics/ign-math/pull/224)
+
+1. Python interface
+
+    1. Adds python interface to RollingMean, Color and Spline
+        * [Pull request #218](https://github.com/ignitionrobotics/ign-math/pull/218)
+
+    1. Adds python interface for Kmeans and Vector3Stats
+        * [Pull request #232](https://github.com/ignitionrobotics/ign-math/pull/232)
+
+    1. Adds python interface to PID and SemanticVersion.
+        * [Pull request #229](https://github.com/ignitionrobotics/ign-math/pull/229)
+
+    1. Adds python interface to triangle.
+        * [Pull request #231](https://github.com/ignitionrobotics/ign-math/pull/231)
+
+    1. Adds Line2, Line3, SignalStats, Temperature python interface
+        * [Pull request #220](https://github.com/ignitionrobotics/ign-math/pull/220)
+
+    1. Python interface: Renames methods to match PEP8 style
+        * [Pull request #226](https://github.com/ignitionrobotics/ign-math/pull/226)
+
+    1. Adds python interface to Filter, MovingWindowFilter, RotationSpline.
+        * [Pull request #230](https://github.com/ignitionrobotics/ign-math/pull/230)
+
+    1. Adds python interface to Quaternion, Pose3, Matrix3 and Matrix4
+        * [Pull request #221](https://github.com/ignitionrobotics/ign-math/pull/221)
+
+    1. Basic setup for Python interface using SWIG
+        * [Pull request #216](https://github.com/ignitionrobotics/ign-math/pull/216)
+        * [Pull request #223](https://github.com/ignitionrobotics/ign-math/pull/223)
+        * [Pull request #208](https://github.com/ignitionrobotics/ign-math/pull/208)
+        * [Pull request #239](https://github.com/ignitionrobotics/ign-math/pull/239)
+
+1. 👩‍🌾 Don't use std::pow with integers in Vectors and handle sqrt
+    * [Pull request #207](https://github.com/ignitionrobotics/ign-math/pull/207)
+
+1. Relax expectations about zero in SpeedLimiter_TEST to make ARM happy
+    * [Pull request #204](https://github.com/ignitionrobotics/ign-math/pull/204)
+
+1. Infrastructure
+    * [Pull request #242](https://github.com/ignitionrobotics/ign-math/pull/242)
+    * [Pull request #217](https://github.com/ignitionrobotics/ign-math/pull/217)
+    * [Pull request #211](https://github.com/ignitionrobotics/ign-math/pull/211)
+    * [Pull request #209](https://github.com/ignitionrobotics/ign-math/pull/209)
+    * [Pull request #227](https://github.com/ignitionrobotics/ign-math/pull/227)
+    * [Pull request #225](https://github.com/ignitionrobotics/ign-math/pull/225)
+
 ## Ignition Math 6.8.0 (2021-03-30)
 
 1. Add speed limiter class
