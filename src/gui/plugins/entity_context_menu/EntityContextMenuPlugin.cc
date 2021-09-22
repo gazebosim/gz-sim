@@ -23,7 +23,6 @@
 #include <QtQml>
 
 #include <ignition/common/Console.hh>
-#include <ignition/common/MouseEvent.hh>
 
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/GuiEvents.hh>
@@ -32,7 +31,6 @@
 
 #include <ignition/plugin/Register.hh>
 
-#include <ignition/rendering/Camera.hh>
 #include <ignition/rendering/RenderingIface.hh>
 #include <ignition/rendering/Visual.hh>
 #include <ignition/rendering/Scene.hh>
@@ -50,8 +48,8 @@ namespace ignition::gazebo
     /// \brief User camera
     public: rendering::CameraPtr camera{nullptr};
 
-    /// \brief Entity context menu hanlder
-    public: EntityContextMenuHanlder entityContextMenuHanlder;
+    /// \brief Entity context menu handler
+    public: EntityContextMenuHandler entityContextMenuHandler;
   };
 }
 
@@ -111,7 +109,7 @@ void EntityContextMenu::LoadConfig(const tinyxml2::XMLElement *)
   }
 
   renderWindowOverlay->SetEntityContextMenuHandler(
-    this->dataPtr->entityContextMenuHanlder);
+    this->dataPtr->entityContextMenuHandler);
 
   if (this->title.empty())
     this->title = "EntityContextMenu";
@@ -133,7 +131,7 @@ bool EntityContextMenu::eventFilter(QObject *_obj, QEvent *_event)
       static_cast<ignition::gui::events::RightClickOnScene*>(_event);
     if (_e)
     {
-      this->dataPtr->entityContextMenuHanlder.HandleMouseContextMenu(
+      this->dataPtr->entityContextMenuHandler.HandleMouseContextMenu(
         _e->Mouse(), this->dataPtr->camera);
     }
   }
@@ -152,11 +150,11 @@ EntityContextMenuItem::EntityContextMenuItem(QQuickItem *_parent)
 
 /////////////////////////////////////////////////
 void EntityContextMenuItem::SetEntityContextMenuHandler(
-  const EntityContextMenuHanlder &_entityContextMenuHanlder)
+  const EntityContextMenuHandler &_entityContextMenuHandler)
 {
   this->connect(
-    &_entityContextMenuHanlder,
-    &EntityContextMenuHanlder::ContextMenuRequested,
+    &_entityContextMenuHandler,
+    &EntityContextMenuHandler::ContextMenuRequested,
     this,
     &EntityContextMenuItem::OnContextMenuRequested,
     Qt::QueuedConnection);
@@ -170,11 +168,11 @@ void EntityContextMenuItem::OnContextMenuRequested(
 }
 
 /////////////////////////////////////////////////
-EntityContextMenuHanlder::EntityContextMenuHanlder()
+EntityContextMenuHandler::EntityContextMenuHandler()
 {
 }
 
-void EntityContextMenuHanlder::HandleMouseContextMenu(
+void EntityContextMenuHandler::HandleMouseContextMenu(
   const common::MouseEvent &_mouseEvent, const rendering::CameraPtr &_camera)
 {
   if (!_mouseEvent.Dragging() &&

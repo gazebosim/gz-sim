@@ -57,7 +57,7 @@ since pose information is being logged in the `changed_state` topic.
       + `CameraTracking`: Move to, follow, set camera pose
       + `MarkerManager`: Enables the use of markers
       + `SelectEntities`: Select entities clicking on the scene
-      + `Spawn`: Functionality to sawn entities into the scene via GUI
+      + `Spawn`: Functionality to spawn entities into the scene via GUI
       + `VisualizationCapabilities`: View collisions, inertial, CoM, joints, etc.
 
     Moreover, legacy mode needs to be turned off for the following plugins

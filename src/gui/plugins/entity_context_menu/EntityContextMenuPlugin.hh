@@ -32,8 +32,8 @@ namespace gazebo
 {
   class EntityContextMenuPrivate;
 
-  /// \brief This plugin is in charge to show the entity context menu when the
-  /// right button is clicked on a visual.
+  /// \brief This plugin is in charge of showing the entity context menu when
+  /// the right button is clicked on a visual.
   class EntityContextMenu : public ignition::gui::Plugin
   {
     Q_OBJECT
@@ -55,12 +55,12 @@ namespace gazebo
     private: std::unique_ptr<EntityContextMenuPrivate> dataPtr;
   };
 
-  class EntityContextMenuHanlder : public QObject
+  class EntityContextMenuHandler : public QObject
   {
     Q_OBJECT
 
     ///  \brief Constructor
-    public: EntityContextMenuHanlder();
+    public: EntityContextMenuHandler();
 
     /// \brief Handle mouse event for context menu
     /// \param[in] _mouseEvent Right click mouse event
@@ -85,10 +85,10 @@ namespace gazebo
     /// \param[in] _parent Parent item
     public: explicit EntityContextMenuItem(QQuickItem *_parent = nullptr);
 
-    /// \brief Set the entity context menu hanlder
-    /// \param[in] _entityContextMenuHandler Entity context menu hanlder
+    /// \brief Set the entity context menu handler
+    /// \param[in] _entityContextMenuHandler Entity context menu handler
     public: void SetEntityContextMenuHandler(
-      const EntityContextMenuHanlder &_entityContextMenuHandler);
+      const EntityContextMenuHandler &_entityContextMenuHandler);
 
     /// \brief Signal fired to open context menu
     /// Note that the function name needs to start with lowercase in order for
