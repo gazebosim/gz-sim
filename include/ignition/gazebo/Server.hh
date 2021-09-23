@@ -19,6 +19,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <string>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/EntityComponentManager.hh>
@@ -74,34 +75,34 @@ namespace ignition
     /// ## Services
     ///
     /// The following are services provided by the Server.
-    /// The <world_name> in the service list is the name of the
+    /// The `<world_name>` in the service list is the name of the
     /// simulated world.
     ///
     /// List syntax: *service_name(request_msg_type) : response_msg_type*
     ///
-    ///   1. /world/<world_name>/scene/info(none) : ignition::msgs::Scene
+    ///   1. `/world/<world_name>/scene/info(none)` : ignition::msgs::Scene
     ///     + Returns the current scene information.
     ///
-    ///   2. /gazebo/resource_paths/get : ignition::msgs::StringMsg_V
+    ///   2. `/gazebo/resource_paths/get` : ignition::msgs::StringMsg_V
     ///     + Get list of resource paths.
     ///
-    ///   3. /gazebo/resource_paths/add : ignition::msgs::Empty
+    ///   3. `/gazebo/resource_paths/add` : ignition::msgs::Empty
     ///     + Add new resource paths.
     ///
     /// ## Topics
     ///
     /// The following are topics provided by the Server.
-    /// The <world_name> in the service list is the name of the
+    /// The `<world_name>` in the service list is the name of the
     /// simulated world.
     ///
     /// List syntax: *topic_name : published_msg_type*
     ///
-    /// 1. /world/<world_name>/clock : ignition::msgs::Clock
+    /// 1. `/world/<world_name>/clock` : ignition::msgs::Clock
     ///
-    /// 2. /world/<world_name>/stats : ignition::msgs::WorldStatistics
+    /// 2. `/world/<world_name>/stats` : ignition::msgs::WorldStatistics
     ///   + This topic is throttled to 5Hz.
     ///
-    /// 3. /gazebo/resource_paths : ignition::msgs::StringMsg_V
+    /// 3. `/gazebo/resource_paths` : ignition::msgs::StringMsg_V
     ///   + Updated list of resource paths.
     ///
     class IGNITION_GAZEBO_VISIBLE Server
@@ -216,6 +217,16 @@ namespace ignition
       /// if _worldIndex is invalid.
       public: std::optional<bool> AddSystem(
                   const SystemPluginPtr &_system,
+                  const unsigned int _worldIndex = 0);
+
+      /// \brief Add a System to the server. The server must not be running when
+      /// calling this.
+      /// \param[in] _system System to be added
+      /// \param[in] _worldIndex Index of the world to add to.
+      /// \return Whether the system was added successfully, or std::nullopt
+      /// if _worldIndex is invalid.
+      public: std::optional<bool> AddSystem(
+                  const std::shared_ptr<System> &_system,
                   const unsigned int _worldIndex = 0);
 
       /// \brief Get an Entity based on a name.

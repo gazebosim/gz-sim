@@ -79,17 +79,13 @@
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
-
+#include "../helpers/EnvTestFixture.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
-class ComponentsTest : public ::testing::Test
+class ComponentsTest : public InternalFixture<::testing::Test>
 {
-  protected: void SetUp() override
-  {
-    common::Console::SetVerbosity(4);
-  }
 };
 
 /////////////////////////////////////////////////

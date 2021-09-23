@@ -32,6 +32,7 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/WindMode.hh"
+#include "ignition/gazebo/Util.hh"
 
 #include "ignition/gazebo/Link.hh"
 
@@ -229,11 +230,37 @@ std::optional<math::Vector3d> Link::WorldAngularVelocity(
 }
 
 //////////////////////////////////////////////////
+void Link::EnableVelocityChecks(EntityComponentManager &_ecm, bool _enable)
+    const
+{
+  enableComponent<components::WorldLinearVelocity>(_ecm, this->dataPtr->id,
+      _enable);
+  enableComponent<components::WorldAngularVelocity>(_ecm, this->dataPtr->id,
+      _enable);
+  enableComponent<components::LinearVelocity>(_ecm, this->dataPtr->id,
+      _enable);
+  enableComponent<components::AngularVelocity>(_ecm, this->dataPtr->id,
+      _enable);
+  enableComponent<components::WorldPose>(_ecm, this->dataPtr->id,
+      _enable);
+}
+
+//////////////////////////////////////////////////
 std::optional<math::Vector3d> Link::WorldLinearAcceleration(
     const EntityComponentManager &_ecm) const
 {
   return _ecm.ComponentData<components::WorldLinearAcceleration>(
       this->dataPtr->id);
+}
+
+//////////////////////////////////////////////////
+void Link::EnableAccelerationChecks(EntityComponentManager &_ecm, bool _enable)
+    const
+{
+  enableComponent<components::WorldLinearAcceleration>(_ecm, this->dataPtr->id,
+      _enable);
+  enableComponent<components::LinearAcceleration>(_ecm, this->dataPtr->id,
+      _enable);
 }
 
 //////////////////////////////////////////////////

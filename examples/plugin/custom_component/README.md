@@ -9,7 +9,7 @@ See `CustomComponentPlugin.hh` for more information.
 From the root of the `ign-gazebo` repository, do the following to build the example:
 
 ~~~
-cd ign-gazebo/examples/plugins/custom_component
+cd examples/plugin/custom_component
 mkdir build
 cd build
 cmake ..
@@ -23,7 +23,7 @@ This will generate the `CustomComponent` library under `build`.
 Add the library to the path:
 
 ~~~
-cd ign-gazebo/examples/plugins/custom_component
+cd examples/plugin/custom_component
 export IGN_GAZEBO_SYSTEM_PLUGIN_PATH=`pwd`/build
 ~~~
 
