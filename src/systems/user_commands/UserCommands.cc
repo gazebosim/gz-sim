@@ -28,6 +28,7 @@
 #include <utility>
 #include <vector>
 
+#include <ignition/math/SphericalCoordinates.hh>
 #include <ignition/msgs/Utility.hh>
 
 #include <sdf/Physics.hh>
@@ -49,10 +50,12 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/PoseCmd.hh"
 #include "ignition/gazebo/components/PhysicsCmd.hh"
+#include "ignition/gazebo/components/SphericalCoordinates.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
+#include "ignition/gazebo/World.hh"
 #include "ignition/gazebo/components/ContactSensorData.hh"
 #include "ignition/gazebo/components/ContactSensor.hh"
 #include "ignition/gazebo/components/Sensor.hh"
@@ -68,6 +71,74 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
 {
+
+/// \brief Helper function to get an entity from an entity message.
+///
+/// \TODO(anyone) Move to Util.hh and generalize for all entities,
+/// not only top level
+///
+/// The message is used as follows:
+///
+///     if id not null
+///       use id
+///     else if name not null and type not null
+///       use name + type
+///     else
+///       error
+///     end
+/// \param[in] _ecm Entity component manager
+/// \param[in] _msg Entity message
+/// \return Entity ID, or kNullEntity if a matching entity couldn't be
+/// found.
+Entity topLevelEntityFromMessage(const EntityComponentManager &_ecm,
+    const msgs::Entity &_msg)
+{
+  if (_msg.id() != kNullEntity)
+  {
+    return _msg.id();
+  }
+
+  if (!_msg.name().empty() && _msg.type() != msgs::Entity::NONE)
+  {
+    Entity entity{kNullEntity};
+    if (_msg.type() == msgs::Entity::MODEL)
+    {
+      entity = _ecm.EntityByComponents(components::Model(),
+        components::Name(_msg.name()));
+    }
+    else if (_msg.type() == msgs::Entity::LIGHT)
+    {
+      entity = _ecm.EntityByComponents(
+        components::Name(_msg.name()));
+
+      auto lightComp = _ecm.Component<components::Light>(entity);
+      if (nullptr == lightComp)
+        entity = kNullEntity;
+    }
+    else
+    {
+      ignerr << "Failed to handle entity type [" << _msg.type() << "]"
+             << std::endl;
+    }
+    return entity;
+  }
+
+  ignerr << "Message missing either entity's ID or name + type" << std::endl;
+  return kNullEntity;
+}
+
+/// \brief Pose3d equality comparison function.
+/// \param[in] _a A pose to compare
+/// \param[in] _b Another pose to compare
+bool pose3Eql(const math::Pose3d &_a, const math::Pose3d &_b)
+{
+  return _a.Pos().Equal(_b.Pos(), 1e-6) &&
+    math::equal(_a.Rot().X(), _b.Rot().X(), 1e-6) &&
+    math::equal(_a.Rot().Y(), _b.Rot().Y(), 1e-6) &&
+    math::equal(_a.Rot().Z(), _b.Rot().Z(), 1e-6) &&
+    math::equal(_a.Rot().W(), _b.Rot().W(), 1e-6);
+}
+
 /// \brief This class is passed to every command and contains interfaces that
 /// can be shared among all commands. For example, all create and remove
 /// commands can use the `creator` object.
@@ -220,17 +291,6 @@ class PoseCommand : public UserCommandBase
 
   // Documentation inherited
   public: bool Execute() final;
-
-  /// \brief Pose3d equality comparison function.
-  public: std::function<bool(const math::Pose3d &, const math::Pose3d &)>
-          pose3Eql { [](const math::Pose3d &_a, const math::Pose3d &_b)
-                     {
-                       return _a.Pos().Equal(_b.Pos(), 1e-6) &&
-                         math::equal(_a.Rot().X(), _b.Rot().X(), 1e-6) &&
-                         math::equal(_a.Rot().Y(), _b.Rot().Y(), 1e-6) &&
-                         math::equal(_a.Rot().Z(), _b.Rot().Z(), 1e-6) &&
-                         math::equal(_a.Rot().W(), _b.Rot().W(), 1e-6);
-                     }};
 };
 
 /// \brief Command to modify the physics parameters of a simulation.
@@ -240,6 +300,19 @@ class PhysicsCommand : public UserCommandBase
   /// \param[in] _msg Message containing the new physics parameters.
   /// \param[in] _iface Pointer to user commands interface.
   public: PhysicsCommand(msgs::Physics *_msg,
+      std::shared_ptr<UserCommandsInterface> &_iface);
+
+  // Documentation inherited
+  public: bool Execute() final;
+};
+
+/// \brief Command to modify the spherical coordinates of a simulation.
+class SphericalCoordinatesCommand : public UserCommandBase
+{
+  /// \brief Constructor
+  /// \param[in] _msg Message containing the new coordinates.
+  /// \param[in] _iface Pointer to user commands interface.
+  public: SphericalCoordinatesCommand(msgs::SphericalCoordinates *_msg,
       std::shared_ptr<UserCommandsInterface> &_iface);
 
   // Documentation inherited
@@ -323,6 +396,14 @@ class ignition::gazebo::systems::UserCommandsPrivate
   /// It does not mean that the physics parameters will be successfully updated.
   /// \return True if successful.
   public: bool PhysicsService(const msgs::Physics &_req, msgs::Boolean &_res);
+
+  /// \brief Callback for spherical coordinates service
+  /// \param[in] _req Request containing updates to the spherical coordinates.
+  /// \param[in] _res True if message successfully received and queued.
+  /// It does not mean that the physics parameters will be successfully updated.
+  /// \return True if successful.
+  public: bool SphericalCoordinatesService(
+      const msgs::SphericalCoordinates &_req, msgs::Boolean &_res);
 
   /// \brief Callback for enable collision service
   /// \param[in] _req Request containing collision entity.
@@ -460,6 +541,15 @@ void UserCommands::Configure(const Entity &_entity,
       &UserCommandsPrivate::PhysicsService, this->dataPtr.get());
 
   ignmsg << "Physics service on [" << physicsService << "]" << std::endl;
+
+  // Spherical coordinates service
+  std::string sphericalCoordinatesService{"/world/" + validWorldName +
+      "/set_spherical_coordinates"};
+  this->dataPtr->node.Advertise(sphericalCoordinatesService,
+      &UserCommandsPrivate::SphericalCoordinatesService, this->dataPtr.get());
+
+  ignmsg << "SphericalCoordinates service on [" << sphericalCoordinatesService
+         << "]" << std::endl;
 
   // Enable collision service
   std::string enableCollisionService{
@@ -665,6 +755,24 @@ bool UserCommandsPrivate::PhysicsService(const msgs::Physics &_req,
 }
 
 //////////////////////////////////////////////////
+bool UserCommandsPrivate::SphericalCoordinatesService(
+    const msgs::SphericalCoordinates &_req, msgs::Boolean &_res)
+{
+  // Create command and push it to queue
+  auto msg = _req.New();
+  msg->CopyFrom(_req);
+  auto cmd = std::make_unique<SphericalCoordinatesCommand>(msg, this->iface);
+  // Push to pending
+  {
+    std::lock_guard<std::mutex> lock(this->pendingMutex);
+    this->pendingCmds.push_back(std::move(cmd));
+  }
+
+  _res.set_data(true);
+  return true;
+}
+
+//////////////////////////////////////////////////
 UserCommandBase::UserCommandBase(google::protobuf::Message *_msg,
     std::shared_ptr<UserCommandsInterface> &_iface)
     : msg(_msg), iface(_iface)
@@ -725,14 +833,27 @@ bool CreateCommand::Execute()
     }
     case msgs::EntityFactory::kCloneName:
     {
+      auto validClone = false;
+      auto clonedEntity = kNullEntity;
       auto entityToClone = this->iface->ecm->EntityByComponents(
           components::Name(createMsg->clone_name()));
-      auto parentComp =
-        this->iface->ecm->Component<components::ParentEntity>(entityToClone);
-      auto parentEntity = parentComp ? parentComp->Data() : kNullEntity;
-      auto clonedEntity = this->iface->ecm->Clone(entityToClone, parentEntity,
-          createMsg->name(), createMsg->allow_renaming());
-      if (kNullEntity == clonedEntity)
+      if (kNullEntity != entityToClone)
+      {
+        auto parentComp =
+          this->iface->ecm->Component<components::ParentEntity>(entityToClone);
+
+        // TODO(anyone) add better support for creating non-top level entities.
+        // For now, we will only clone top level entities
+        if (parentComp && parentComp->Data() == this->iface->worldEntity)
+        {
+          auto parentEntity = parentComp->Data();
+          clonedEntity = this->iface->ecm->Clone(entityToClone,
+              parentEntity, createMsg->name(), createMsg->allow_renaming());
+          validClone = kNullEntity != clonedEntity;
+        }
+      }
+
+      if (!validClone)
       {
         ignerr << "Request to clone an entity named ["
           << createMsg->clone_name() << "] failed." << std::endl;
@@ -880,6 +1001,35 @@ bool CreateCommand::Execute()
     auto poseComp = this->iface->ecm->Component<components::Pose>(entity);
     *poseComp = components::Pose(msgs::Convert(createMsg->pose()));
   }
+  // Spherical coordinates
+  else if (createMsg->has_spherical_coordinates())
+  {
+    auto scComp = this->iface->ecm->Component<components::SphericalCoordinates>(
+        this->iface->worldEntity);
+    if (nullptr == scComp)
+    {
+      ignwarn << "Trying to create entity [" << desiredName
+              << "] with spherical coordinates, but world's spherical "
+              << "coordinates aren't set. Entity will be created at the world "
+              << "origin." << std::endl;
+    }
+    else
+    {
+      // deg to rad
+      math::Vector3d latLonEle{
+          IGN_DTOR(createMsg->spherical_coordinates().latitude_deg()),
+          IGN_DTOR(createMsg->spherical_coordinates().longitude_deg()),
+          createMsg->spherical_coordinates().elevation()};
+
+      auto pos = scComp->Data().PositionTransform(latLonEle,
+          math::SphericalCoordinates::SPHERICAL,
+          math::SphericalCoordinates::LOCAL2);
+
+      auto poseComp = this->iface->ecm->Component<components::Pose>(entity);
+      *poseComp = components::Pose({pos.X(), pos.Y(), pos.Z(), 0, 0,
+          IGN_DTOR(createMsg->spherical_coordinates().heading_deg())});
+    }
+  }
 
   igndbg << "Created entity [" << entity << "] named [" << desiredName << "]"
          << std::endl;
@@ -904,42 +1054,7 @@ bool RemoveCommand::Execute()
     return false;
   }
 
-  Entity entity{kNullEntity};
-  if (removeMsg->id() != kNullEntity)
-  {
-    entity = removeMsg->id();
-  }
-  else if (!removeMsg->name().empty() &&
-      removeMsg->type() != msgs::Entity::NONE)
-  {
-    if (removeMsg->type() == msgs::Entity::MODEL)
-    {
-      entity = this->iface->ecm->EntityByComponents(components::Model(),
-        components::Name(removeMsg->name()));
-    }
-    else if (removeMsg->type() == msgs::Entity::LIGHT)
-    {
-      entity = this->iface->ecm->EntityByComponents(
-        components::Name(removeMsg->name()));
-
-      auto lightComp = this->iface->ecm->Component<components::Light>(entity);
-      if (nullptr == lightComp)
-        entity = kNullEntity;
-    }
-    else
-    {
-      ignerr << "Deleting entities of type [" << removeMsg->type()
-             << "] is not supported." << std::endl;
-      return false;
-    }
-  }
-  else
-  {
-    ignerr << "Remove command missing either entity's ID or name + type"
-           << std::endl;
-    return false;
-  }
-
+  auto entity = topLevelEntityFromMessage(*this->iface->ecm, *removeMsg);
   if (entity == kNullEntity)
   {
     ignerr << "Entity named [" << removeMsg->name() << "] of type ["
@@ -1105,7 +1220,7 @@ bool PoseCommand::Execute()
   else
   {
     /// \todo(anyone) Moving an object is not captured in a log file.
-    auto state = poseCmdComp->SetData(msgs::Convert(*poseMsg), this->pose3Eql) ?
+    auto state = poseCmdComp->SetData(msgs::Convert(*poseMsg), pose3Eql) ?
         ComponentState::OneTimeChange :
         ComponentState::NoChange;
     this->iface->ecm->SetChanged(entity, components::WorldPoseCmd::typeId,
@@ -1144,6 +1259,86 @@ bool PhysicsCommand::Execute()
   {
     this->iface->ecm->CreateComponent(worldEntity,
         components::PhysicsCmd(*physicsMsg));
+  }
+
+  return true;
+}
+
+//////////////////////////////////////////////////
+SphericalCoordinatesCommand::SphericalCoordinatesCommand(
+    msgs::SphericalCoordinates *_msg,
+    std::shared_ptr<UserCommandsInterface> &_iface)
+    : UserCommandBase(_msg, _iface)
+{
+}
+
+//////////////////////////////////////////////////
+bool SphericalCoordinatesCommand::Execute()
+{
+  auto sphericalCoordinatesMsg =
+      dynamic_cast<const msgs::SphericalCoordinates *>(this->msg);
+  if (nullptr == sphericalCoordinatesMsg)
+  {
+    ignerr << "Internal error, null SphericalCoordinates message" << std::endl;
+    return false;
+  }
+
+  // World
+  if (!sphericalCoordinatesMsg->has_entity())
+  {
+    World world(this->iface->worldEntity);
+    world.SetSphericalCoordinates(*this->iface->ecm,
+        msgs::Convert(*sphericalCoordinatesMsg));
+    return true;
+  }
+
+  // Entity
+  auto entity = topLevelEntityFromMessage(*this->iface->ecm,
+      sphericalCoordinatesMsg->entity());
+
+  if (!this->iface->ecm->HasEntity(entity))
+  {
+    ignerr << "Unable to update the pose for entity [" << entity
+           << "]: entity doesn't exist." << std::endl;
+    return false;
+  }
+
+  auto scComp = this->iface->ecm->Component<components::SphericalCoordinates>(
+      this->iface->worldEntity);
+  if (nullptr == scComp)
+  {
+    ignerr << "Trying to move entity [" << entity
+           << "] using spherical coordinates, but world's spherical "
+           << "coordinates aren't set." << std::endl;
+    return false;
+  }
+
+  // deg to rad
+  math::Vector3d latLonEle{
+      IGN_DTOR(sphericalCoordinatesMsg->latitude_deg()),
+      IGN_DTOR(sphericalCoordinatesMsg->longitude_deg()),
+      sphericalCoordinatesMsg->elevation()};
+
+  auto pos = scComp->Data().PositionTransform(latLonEle,
+      math::SphericalCoordinates::SPHERICAL,
+      math::SphericalCoordinates::LOCAL2);
+
+  math::Pose3d pose{pos.X(), pos.Y(), pos.Z(), 0, 0,
+          IGN_DTOR(sphericalCoordinatesMsg->heading_deg())};
+
+  auto poseCmdComp =
+    this->iface->ecm->Component<components::WorldPoseCmd>(entity);
+  if (!poseCmdComp)
+  {
+    this->iface->ecm->CreateComponent(entity, components::WorldPoseCmd(pose));
+  }
+  else
+  {
+    auto state = poseCmdComp->SetData(pose, pose3Eql) ?
+        ComponentState::OneTimeChange :
+        ComponentState::NoChange;
+    this->iface->ecm->SetChanged(entity, components::WorldPoseCmd::typeId,
+        state);
   }
 
   return true;

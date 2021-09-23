@@ -57,6 +57,7 @@
 #include "ignition/gazebo/components/SelfCollide.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/SourceFilePath.hh"
+#include "ignition/gazebo/components/SphericalCoordinates.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/WindMode.hh"
@@ -268,6 +269,26 @@ void ignition::gazebo::setData(QStandardItem *_item, const sdf::Physics &_data)
 }
 
 //////////////////////////////////////////////////
+template<>
+void ignition::gazebo::setData(QStandardItem *_item,
+    const math::SphericalCoordinates &_data)
+{
+  if (nullptr == _item)
+    return;
+
+  _item->setData(QString("SphericalCoordinates"),
+      ComponentsModel::RoleNames().key("dataType"));
+  _item->setData(QList({
+    QVariant(QString::fromStdString(math::SphericalCoordinates::Convert(
+        _data.Surface()))),
+    QVariant(_data.LatitudeReference().Degree()),
+    QVariant(_data.LongitudeReference().Degree()),
+    QVariant(_data.ElevationReference()),
+    QVariant(_data.HeadingOffset().Degree()),
+  }), ComponentsModel::RoleNames().key("data"));
+}
+
+//////////////////////////////////////////////////
 void ignition::gazebo::setUnit(QStandardItem *_item, const std::string &_unit)
 {
   if (nullptr == _item)
@@ -463,12 +484,6 @@ void ComponentInspector::Update(const UpdateInfo &,
     if (typeId == components::Level::typeId)
     {
       this->SetType("level");
-      continue;
-    }
-
-    if (typeId == components::Light::typeId)
-    {
-      this->SetType("light");
       continue;
     }
 
@@ -698,6 +713,13 @@ void ComponentInspector::Update(const UpdateInfo &,
     {
       auto comp =
           _ecm.Component<components::SourceFilePath>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::SphericalCoordinates::typeId)
+    {
+      auto comp = _ecm.Component<components::SphericalCoordinates>(
+          this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
@@ -958,6 +980,44 @@ void ComponentInspector::OnPhysics(double _stepSize, double _realTimeFactor)
     return;
   }
   this->dataPtr->node.Request(physicsCmdService, req, cb);
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::OnSphericalCoordinates(QString _surface,
+    double _latitude, double _longitude, double _elevation,
+    double _heading)
+{
+  if (_surface != QString("EARTH_WGS84"))
+  {
+    ignerr << "Surface [" << _surface.toStdString() << "] not supported."
+           << std::endl;
+    return;
+  }
+
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
+  {
+    if (!_result)
+      ignerr << "Error setting spherical coordinates." << std::endl;
+  };
+
+  msgs::SphericalCoordinates req;
+  req.set_surface_model(msgs::SphericalCoordinates::EARTH_WGS84);
+  req.set_latitude_deg(_latitude);
+  req.set_longitude_deg(_longitude);
+  req.set_elevation(_elevation);
+  req.set_heading_deg(_heading);
+
+  auto sphericalCoordsCmdService = "/world/" + this->dataPtr->worldName
+      + "/set_spherical_coordinates";
+  sphericalCoordsCmdService =
+      transport::TopicUtils::AsValidTopic(sphericalCoordsCmdService);
+  if (sphericalCoordsCmdService.empty())
+  {
+    ignerr << "Invalid spherical coordinates service" << std::endl;
+    return;
+  }
+  this->dataPtr->node.Request(sphericalCoordsCmdService, req, cb);
 }
 
 /////////////////////////////////////////////////

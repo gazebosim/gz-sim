@@ -238,6 +238,15 @@ namespace ignition
       return changed;
     }
 
+    /// \brief Get the spherical coordinates for an entity.
+    /// \param[in] _entity Entity whose coordinates we want.
+    /// \param[in] _ecm Entity component manager
+    /// \return The entity's latitude (deg), longitude (deg) and elevation (m).
+    /// If the entity doesn't have a pose, or the world's spherical coordinates
+    /// haven't been defined, this will return nullopt.
+    std::optional<math::Vector3d> IGNITION_GAZEBO_VISIBLE sphericalCoordinates(
+        Entity _entity, const EntityComponentManager &_ecm);
+
     /// \brief Environment variable holding resource paths.
     const std::string kResourcePathEnv{"IGN_GAZEBO_RESOURCE_PATH"};
 
@@ -245,7 +254,7 @@ namespace ignition
     /// `<include>`
     const std::string kSdfPathEnv{"SDF_PATH"};
 
-    /// \breif Environment variable holding server config paths.
+    /// \brief Environment variable holding server config paths.
     const std::string kServerConfigPathEnv{"IGN_GAZEBO_SERVER_CONFIG_PATH"};
 
     /// \brief Environment variable holding paths to custom rendering engine

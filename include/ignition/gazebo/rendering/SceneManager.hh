@@ -184,27 +184,31 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Create an actor
     /// \param[in] _id Unique actor id
-    /// \param[in] _visual Actor sdf dom
+    /// \param[in] _actor Actor sdf dom
+    /// \param[in] _name Actor's name
     /// \param[in] _parentId Parent id
     /// \return Actor object created from the sdf dom
     public: rendering::VisualPtr CreateActor(Entity _id,
-        const sdf::Actor &_actor, Entity _parentId = 0);
+        const sdf::Actor &_actor, const std::string &_name,
+        Entity _parentId = 0);
 
     /// \brief Create a light
     /// \param[in] _id Unique light id
     /// \param[in] _light Light sdf dom
+    /// \param[in] _name Light's name
     /// \param[in] _parentId Parent id
     /// \return Light object created from the sdf dom
     public: rendering::LightPtr CreateLight(Entity _id,
-        const sdf::Light &_light, Entity _parentId);
+        const sdf::Light &_light, const std::string &_name, Entity _parentId);
 
     /// \brief Create a light
     /// \param[in] _id Unique light id
     /// \param[in] _light Light sdf dom
+    /// \param[in] _name Light's name
     /// \param[in] _parentId Parent id
     /// \return Light object created from the sdf dom
     public: rendering::VisualPtr CreateLightVisual(Entity _id,
-        const sdf::Light &_light, Entity _parentId);
+        const sdf::Light &_light, const std::string &_name, Entity _parentId);
 
     /// \brief Create a particle emitter.
     /// \param[in] _id Unique particle emitter id
@@ -226,7 +230,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// the correct parent.
     /// \param[in] _gazeboId Entity in Gazebo
     /// \param[in] _sensorName Name of sensor node in Ignition Rendering.
-    /// \param[in] _parentId Parent Id on Gazebo.
+    /// \param[in] _parentGazeboId Parent Id on Gazebo.
     /// \return True if sensor is successfully handled
     public: bool AddSensor(Entity _gazeboId, const std::string &_sensorName,
         Entity _parentGazeboId = 0);

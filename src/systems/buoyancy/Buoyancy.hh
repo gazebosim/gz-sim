@@ -45,11 +45,24 @@ namespace systems
   ///
   /// ## System Parameters
   ///
-  /// * <uniform_fluid_density> sets the density of the fluid that surrounds
-  /// the buoyant object.
+  /// * `<uniform_fluid_density>` sets the density of the fluid that surrounds
+  /// the buoyant object. [Units: kgm^-3]
+  /// * `<graded_buoyancy>` allows you to define a world where the buoyancy
+  /// changes with height. An example of such a world could be if we are
+  /// simulating an open ocean with its surface and under water behaviour. This
+  /// mode slices the volume of the collision mesh according to where the water
+  /// line is set. When defining a `<graded_buoyancy>` tag, one must also define
+  /// `<default_density>` and `<density_change>` tags.
+  /// * `<default_density>` is the default fluid which the world should be
+  /// filled with. [Units: kgm^-3]
+  /// * `<density_change>` allows you to define a new layer.
+  /// * `<above_depth>` a child property of `<density_change>`. This determines
+  /// the height at which the next fluid layer should start. [Units: m]
+  /// * `<density>` the density of the fluid in this layer. [Units: kgm^-3]
   ///
-  /// ## Example
+  /// ## Examples
   ///
+  /// ### `uniform_fluid_density` world.
   /// The `buoyancy.sdf` SDF file contains three submarines. The first
   /// submarine is neutrally buoyant, the second sinks, and the third
   /// floats. To run:
@@ -57,6 +70,41 @@ namespace systems
   /// ```
   /// ign gazebo -v 4 buoyancy.sdf
   /// ```
+  ///
+  /// ### `graded_buoyancy` world
+  ///
+  /// Often when simulating a maritime environment one may need to simulate both
+  /// surface and underwater vessels. This means the buoyancy plugin needs to
+  /// take into account two different fluids. One being water with a density of
+  /// 1000kgm^-3 and another being air with a very light density of say 1kgm^-3.
+  /// An example for such a configuration may be found in the
+  /// `graded_buoyancy.sdf` world.
+  ///
+  /// ```
+  /// ign gazebo -v 4 graded_buoyancy.sdf
+  /// ```
+  ///
+  /// You should be able to see a sphere bobbing up and down undergoing simple
+  /// harmonic motion on the surface of the fluid (this is expected behaviour
+  /// as the SHM is usually damped by the hydrodynamic forces. See the hydro-
+  /// dynamics plugin for an example of how to use it). The key part of this is
+  ///
+  /// ```
+  /// <graded_buoyancy>
+  ///   <default_density>1000</default_density>
+  ///   <density_change>
+  ///     <above_depth>0</above_depth>
+  ///     <density>1</density>
+  ///   </density_change>
+  /// </graded_buoyancy>
+  /// ```
+  /// The default density tag says that by default the world has a fluid density
+  /// of 1000kgm^-3. This essentially states that by default the world is filled
+  /// with dihydrogen monoxide (aka water). The `<density_change>` tag
+  /// essentially establishes the fact that there is a nother fluid. The
+  /// `<above_depth>` tag says that above z=0 there is another fluid with a
+  /// different density. The density of that fluid is defined by the `<density>`
+  /// tag. We will be simulating air with a fluid density of 1kgm^-3.
   class Buoyancy
       : public System,
         public ISystemConfigure,

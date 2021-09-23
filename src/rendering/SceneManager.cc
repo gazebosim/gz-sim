@@ -357,7 +357,14 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
           double productAlpha = (1.0-_visual.Transparency()) *
               (1.0 - submeshMat->Transparency());
           submeshMat->SetTransparency(1 - productAlpha);
+
+          // unlike setting transparency above, the parent submesh are not
+          // notified about the the cast shadows changes. So we need to set
+          // the material back to the submesh.
+          // \todo(anyone) find way to propate cast shadows changes tos submesh
+          // in ign-rendering
           submeshMat->SetCastShadows(_visual.CastShadows());
+          submesh->SetMaterial(submeshMat);
         }
       }
     }
@@ -756,7 +763,7 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
 
 /////////////////////////////////////////////////
 rendering::VisualPtr SceneManager::CreateActor(Entity _id,
-    const sdf::Actor &_actor, Entity _parentId)
+    const sdf::Actor &_actor, const std::string &_name, Entity _parentId)
 {
   if (!this->dataPtr->scene)
     return rendering::VisualPtr();
@@ -772,9 +779,6 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
     return rendering::VisualPtr();
   }
 
-  std::string name = _actor.Name().empty() ? std::to_string(_id) :
-      _actor.Name();
-
   rendering::VisualPtr parent;
   if (_parentId != this->dataPtr->worldId)
   {
@@ -782,14 +786,15 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
     if (it == this->dataPtr->visuals.end())
     {
       ignerr << "Parent entity with Id: [" << _parentId << "] not found. "
-             << "Not adding actor with ID[" << _id
-             << "]  and name [" << name << "] to the rendering scene."
+             << "Not adding actor with ID [" << _id
+             << "] and name [" << _name << "] to the rendering scene."
              << std::endl;
       return rendering::VisualPtr();
     }
     parent = it->second;
   }
 
+  std::string name = _name;
   if (parent)
     name = parent->Name() +  "::" + name;
 
@@ -1062,7 +1067,7 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
 
 /////////////////////////////////////////////////
 rendering::VisualPtr SceneManager::CreateLightVisual(Entity _id,
-    const sdf::Light &_light, Entity _parentId)
+    const sdf::Light &_light, const std::string &_name, Entity _parentId)
 {
   if (!this->dataPtr->scene)
     return rendering::VisualPtr();
@@ -1074,9 +1079,6 @@ rendering::VisualPtr SceneManager::CreateLightVisual(Entity _id,
     return rendering::VisualPtr();
   }
 
-  std::string name = _light.Name().empty() ? std::to_string(_id) :
-      _light.Name();
-
   rendering::LightPtr lightParent;
   auto it = this->dataPtr->lights.find(_parentId);
   if (it != this->dataPtr->lights.end())
@@ -1086,13 +1088,13 @@ rendering::VisualPtr SceneManager::CreateLightVisual(Entity _id,
   else
   {
     ignerr << "Parent entity with Id: [" << _parentId << "] not found. "
-           << "Not adding light visual with ID[" << _id
-           << "]  and name [" << name << "] to the rendering scene."
+           << "Not adding light visual with ID [" << _id
+           << "] and name [" << _name << "] to the rendering scene."
            << std::endl;
     return rendering::VisualPtr();
   }
 
-  name = lightParent->Name() +  "::" + name + "Visual";
+  std::string name = lightParent->Name() +  "::" + _name + "Visual";
 
   if (this->dataPtr->scene->HasVisualName(name))
   {
@@ -1132,7 +1134,7 @@ rendering::VisualPtr SceneManager::CreateLightVisual(Entity _id,
 
 /////////////////////////////////////////////////
 rendering::LightPtr SceneManager::CreateLight(Entity _id,
-    const sdf::Light &_light, Entity _parentId)
+    const sdf::Light &_light, const std::string &_name, Entity _parentId)
 {
   if (!this->dataPtr->scene)
     return rendering::LightPtr();
@@ -1157,8 +1159,7 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
     parent = it->second;
   }
 
-  std::string name = _light.Name().empty() ? std::to_string(_id) :
-      _light.Name();
+  std::string name = _name;
   if (parent)
     name = parent->Name() +  "::" + name;
 

@@ -23,6 +23,7 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
+#include <ignition/msgs/Utility.hh>
 #include <sdf/Collision.hh>
 #include <sdf/Cylinder.hh>
 #include <sdf/Geometry.hh>
@@ -44,6 +45,7 @@
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/JointTransmittedWrench.hh"
 #include "ignition/gazebo/components/JointPosition.hh"
 #include "ignition/gazebo/components/JointPositionReset.hh"
 #include "ignition/gazebo/components/JointVelocity.hh"
@@ -56,25 +58,20 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/PoseCmd.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 
 #include "../helpers/Relay.hh"
+#include "../helpers/EnvTestFixture.hh"
 
 using namespace ignition;
 using namespace gazebo;
 using namespace std::chrono_literals;
 
-class PhysicsSystemFixture : public ::testing::Test
+class PhysicsSystemFixture : public InternalFixture<::testing::Test>
 {
-  protected: void SetUp() override
-  {
-    common::Console::SetVerbosity(4);
-    // Augment the system plugin path.  In SetUp to avoid test order issues.
-    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-      (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
-  }
 };
 
 /////////////////////////////////////////////////
@@ -1667,4 +1664,125 @@ TEST_F(PhysicsSystemFixture, Heightmap)
 
   EXPECT_TRUE(checked);
   EXPECT_EQ(1000, maxIt);
+}
+
+/////////////////////////////////////////////////
+// Joint force
+TEST_F(PhysicsSystemFixture, JointTransmittedWrench)
+{
+  common::Console::SetVerbosity(4);
+  ignition::gazebo::ServerConfig serverConfig;
+
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/joint_transmitted_wrench.sdf";
+
+  serverConfig.SetSdfFile(sdfFile);
+
+  gazebo::Server server(serverConfig);
+
+  server.SetUpdatePeriod(1us);
+
+  // Create a system that records the poses of the links after physics
+  test::Relay testSystem;
+
+  testSystem.OnPreUpdate(
+      [&](const gazebo::UpdateInfo &_info, gazebo::EntityComponentManager &_ecm)
+      {
+        if (_info.iterations == 1)
+        {
+          _ecm.Each<components::Joint>(
+              [&](const ignition::gazebo::Entity &_entity,
+                  const components::Joint *) -> bool
+              {
+                _ecm.CreateComponent(_entity,
+                                     components::JointTransmittedWrench());
+                return true;
+              });
+        }
+      });
+
+  const std::size_t totalIters = 1800;
+  std::vector<msgs::Wrench> wrenches;
+  wrenches.reserve(totalIters);
+  // Simply collect joint wrenches. We check the values later.
+  testSystem.OnPostUpdate(
+      [&](const gazebo::UpdateInfo &,
+          const gazebo::EntityComponentManager &_ecm)
+      {
+        const auto sensorJointEntity = _ecm.EntityByComponents(
+            components::Joint(), components::Name("sensor_joint"));
+        const auto jointWrench =
+            _ecm.ComponentData<components::JointTransmittedWrench>(
+                sensorJointEntity);
+        if (jointWrench.has_value())
+        {
+          wrenches.push_back(*jointWrench);
+        }
+      });
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, totalIters, false);
+
+  ASSERT_EQ(totalIters, wrenches.size());
+
+  const double kWeightScaleContactHeight = 0.05 + 0.25;
+  const double kSensorMass = 0.2;
+  const double kWeightMass = 10;
+  const double kGravity = 9.8;
+  const double kWeightInitialHeight = 0.5;
+  const double dt = 0.001;
+  const double timeOfContact = std::sqrt(
+      2 * (kWeightInitialHeight - kWeightScaleContactHeight) / kGravity);
+  std::size_t iterOfContact =
+      static_cast<std::size_t>(std::round(timeOfContact / dt));
+
+  for (std::size_t i = 0; i < iterOfContact - 10; ++i)
+  {
+    const auto &wrench = wrenches[i];
+    EXPECT_NEAR(0.0, wrench.force().x(), 1e-3);
+    EXPECT_NEAR(0.0, wrench.force().y(), 1e-3);
+    EXPECT_NEAR(kGravity * kSensorMass, wrench.force().z(), 1e-3);
+    EXPECT_EQ(math::Vector3d::Zero, msgs::Convert(wrench.torque()));
+  }
+
+  // Wait 300 (determined empirically) iterations for values to stabilize.
+  for (std::size_t i = iterOfContact + 300; i < wrenches.size(); ++i)
+  {
+    const auto &wrench = wrenches[i];
+    EXPECT_NEAR(0.0, wrench.force().x(), 1e-3);
+    EXPECT_NEAR(0.0, wrench.force().y(), 1e-3);
+    EXPECT_NEAR(kGravity * (kSensorMass + kWeightMass), wrench.force().z(),
+                1e-3);
+    EXPECT_EQ(math::Vector3d::Zero, msgs::Convert(wrench.torque()));
+  }
+
+  // Move the weight off center so it generates torque
+  testSystem.OnPreUpdate(
+      [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+      {
+        const auto weightEntity = _ecm.EntityByComponents(
+            components::Model(), components::Name("weight"));
+        _ecm.SetComponentData<components::WorldPoseCmd>(
+            weightEntity, math::Pose3d(0.2, 0.1, 0.5, 0, 0, 0));
+      });
+
+  server.RunOnce();
+  // Reset PreUpdate so it doesn't keep moving the weight
+  testSystem.OnPreUpdate({});
+  wrenches.clear();
+  server.Run(true, totalIters, false);
+  ASSERT_EQ(totalIters, wrenches.size());
+
+  // Wait 300 (determined empirically) iterations for values to stabilize.
+  for (std::size_t i = iterOfContact + 300; i < wrenches.size(); ++i)
+  {
+    const auto &wrench = wrenches[i];
+    EXPECT_NEAR(0.0, wrench.force().x(), 1e-3);
+    EXPECT_NEAR(0.0, wrench.force().y(), 1e-3);
+    EXPECT_NEAR(kGravity * (kSensorMass + kWeightMass), wrench.force().z(),
+                1e-3);
+
+    EXPECT_NEAR(0.1 * kGravity * kWeightMass, wrench.torque().x(), 1e-3);
+    EXPECT_NEAR(-0.2 * kGravity * kWeightMass, wrench.torque().y(), 1e-3);
+    EXPECT_NEAR(0.0, wrench.torque().z(), 1e-3);
+  }
 }

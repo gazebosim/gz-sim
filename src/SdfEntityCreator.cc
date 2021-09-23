@@ -35,6 +35,7 @@
 #include "ignition/gazebo/components/ContactSensor.hh"
 #include "ignition/gazebo/components/CustomSensor.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
+#include "ignition/gazebo/components/ForceTorque.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Gravity.hh"
@@ -63,9 +64,11 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/Scene.hh"
+#include "ignition/gazebo/components/SegmentationCamera.hh"
 #include "ignition/gazebo/components/SelfCollide.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/SourceFilePath.hh"
+#include "ignition/gazebo/components/SphericalCoordinates.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThermalCamera.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
@@ -235,6 +238,13 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
   {
     this->dataPtr->ecm->CreateComponent(worldEntity,
         components::Atmosphere(*_world->Atmosphere()));
+  }
+
+  // spherical coordinates
+  if (_world->SphericalCoordinates())
+  {
+    this->dataPtr->ecm->CreateComponent(worldEntity,
+        components::SphericalCoordinates(*_world->SphericalCoordinates()));
   }
 
   // Models
@@ -590,6 +600,16 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint)
   this->dataPtr->ecm->CreateComponent(jointEntity,
       components::JointType(_joint->Type()));
 
+  // Sensors
+  for (uint64_t sensorIndex = 0; sensorIndex < _joint->SensorCount();
+      ++sensorIndex)
+  {
+    auto sensor = _joint->SensorByIndex(sensorIndex);
+    auto sensorEntity = this->CreateEntities(sensor);
+
+    this->SetParent(sensorEntity, jointEntity);
+  }
+
   if (_joint->Axis(0))
   {
     auto resolvedAxis = ResolveJointAxis(*_joint->Axis(0));
@@ -804,6 +824,11 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::ThermalCamera(*_sensor));
   }
+  else if (_sensor->Type() == sdf::SensorType::SEGMENTATION_CAMERA)
+  {
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::SegmentationCamera(*_sensor));
+  }
   else if (_sensor->Type() == sdf::SensorType::AIR_PRESSURE)
   {
     this->dataPtr->ecm->CreateComponent(sensorEntity,
@@ -836,6 +861,11 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
             components::AngularVelocity(math::Vector3d::Zero));
     this->dataPtr->ecm->CreateComponent(sensorEntity,
             components::LinearAcceleration(math::Vector3d::Zero));
+  }
+  else if (_sensor->Type() == sdf::SensorType::FORCE_TORQUE)
+  {
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::ForceTorque(*_sensor));
   }
   else if (_sensor->Type() == sdf::SensorType::LOGICAL_CAMERA)
   {

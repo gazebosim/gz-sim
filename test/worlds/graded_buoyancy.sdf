@@ -1,0 +1,154 @@
+<?xml version="1.0" ?>
+<!--
+  Ignition Gazebo buoyancy plugin demo. This world demonstrates a graded
+  buoyancy world consisting of some basic shapes which should eventually float
+  up.
+-->
+<sdf version="1.6">
+  <world name="buoyancy">
+
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin
+      filename="ignition-gazebo-physics-system"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-user-commands-system"
+      name="ignition::gazebo::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-scene-broadcaster-system"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-buoyancy-system"
+      name="ignition::gazebo::systems::Buoyancy">
+      <graded_buoyancy>
+        <default_density>1000</default_density>
+        <density_change>
+          <above_depth>0</above_depth>
+          <density>1</density>
+        </density_change>
+      </graded_buoyancy>
+    </plugin>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <!-- This sphere should bob up and down. -->
+    <model name='ball_lighter_than_water'>
+      <pose>0 0 0 0 0 0</pose>
+      <link name='body'>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <mass>25</mass>
+          <inertia>
+            <ixx>86.28907821859966</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>86.28907821859966</iyy>
+            <iyz>0</iyz>
+            <izz>5.026548245743671</izz>
+          </inertia>
+        </inertial>
+
+        <visual name='body_visual'>
+          <geometry>
+            <sphere>
+              <radius>0.2</radius>
+            </sphere>
+          </geometry>
+        </visual>
+        <collision name='body_collision'>
+          <geometry>
+            <sphere>
+              <radius>0.2</radius>
+            </sphere>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <!-- This balloon should shoot up -->
+    <model name='balloon_lighter_than_air'>
+      <pose>0 -5 -3 0 0 0</pose>
+      <link name='body'>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <mass>0.1</mass>
+          <inertia>
+            <ixx>86.28907821859966</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>86.28907821859966</iyy>
+            <iyz>0</iyz>
+            <izz>5.026548245743671</izz>
+          </inertia>
+        </inertial>
+
+        <visual name='body_visual'>
+          <geometry>
+            <sphere>
+              <radius>0.2</radius>
+            </sphere>
+          </geometry>
+        </visual>
+        <collision name='body_collision'>
+          <geometry>
+            <sphere>
+              <radius>0.2</radius>
+            </sphere>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <!-- This box is neutrally buoyant and therefore should stay still -->
+    <model name='box_neutral_buoyancy'>
+      <pose>0 5 -3 0 0 0</pose>
+      <link name='body'>
+        <inertial>
+          <mass>1000</mass>
+          <pose>0 0 0.1 0 0 0</pose>
+          <inertia>
+            <ixx>86.28907821859966</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>86.28907821859966</iyy>
+            <iyz>0</iyz>
+            <izz>5.026548245743671</izz>
+          </inertia>
+        </inertial>
+
+        <visual name='body_visual'>
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+        <collision name='body_collision'>
+          <geometry>
+             <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+  </world>
+</sdf>
