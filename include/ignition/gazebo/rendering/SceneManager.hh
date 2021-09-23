@@ -24,6 +24,7 @@
 
 #include <sdf/Geometry.hh>
 #include <sdf/Actor.hh>
+#include <sdf/Joint.hh>
 #include <sdf/Light.hh>
 #include <sdf/Link.hh>
 #include <sdf/Material.hh>
@@ -134,6 +135,32 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: rendering::VisualPtr CreateVisual(Entity _id,
         const sdf::Visual &_visual, Entity _parentId = 0);
 
+    /// \brief Create a center of mass visual
+    /// \param[in] _id Unique visual id
+    /// \param[in] _inertial Inertial component of the link
+    /// \param[in] _parentId Parent id
+    /// \return Visual (center of mass) object created from the inertial
+    public: rendering::VisualPtr CreateCOMVisual(Entity _id,
+        const math::Inertiald &_inertial, Entity _parentId = 0);
+
+    /// \brief Create an inertia visual
+    /// \param[in] _id Unique visual id
+    /// \param[in] _inertial Inertial component of the link
+    /// \param[in] _parentId Parent id
+    /// \return Visual (inertia) object created from the inertial
+    public: rendering::VisualPtr CreateInertiaVisual(Entity _id,
+        const math::Inertiald &_inertial, Entity _parentId = 0);
+
+    /// \brief Create a joint visual
+    /// \param[in] _id Unique visual id
+    /// \param[in] _joint Joint sdf dom
+    /// \param[in] _childId Joint child id
+    /// \param[in] _parentId Joint parent id
+    /// \return Visual (joint) object created from the sdf dom
+    public: rendering::VisualPtr CreateJointVisual(Entity _id,
+        const sdf::Joint &_joint, Entity _childId = 0,
+        Entity _parentId = 0);
+
     /// \brief Create a collision visual
     /// \param[in] _id Unique visual id
     /// \param[in] _collision Collision sdf dom
@@ -150,26 +177,30 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Create an actor
     /// \param[in] _id Unique actor id
     /// \param[in] _actor Actor sdf dom
+    /// \param[in] _name Actor's name
     /// \param[in] _parentId Parent id
     /// \return Actor object created from the sdf dom
     public: rendering::VisualPtr CreateActor(Entity _id,
-        const sdf::Actor &_actor, Entity _parentId = 0);
+        const sdf::Actor &_actor, const std::string &_name,
+        Entity _parentId = 0);
 
     /// \brief Create a light
     /// \param[in] _id Unique light id
     /// \param[in] _light Light sdf dom
+    /// \param[in] _name Light's name
     /// \param[in] _parentId Parent id
     /// \return Light object created from the sdf dom
     public: rendering::LightPtr CreateLight(Entity _id,
-        const sdf::Light &_light, Entity _parentId);
+        const sdf::Light &_light, const std::string &_name, Entity _parentId);
 
     /// \brief Create a light
     /// \param[in] _id Unique light id
     /// \param[in] _light Light sdf dom
+    /// \param[in] _name Light's name
     /// \param[in] _parentId Parent id
     /// \return Light object created from the sdf dom
     public: rendering::VisualPtr CreateLightVisual(Entity _id,
-        const sdf::Light &_light, Entity _parentId);
+        const sdf::Light &_light, const std::string &_name, Entity _parentId);
 
     /// \brief Create a particle emitter.
     /// \param[in] _id Unique particle emitter id
@@ -216,17 +247,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Pointer to requested entity's skeleton
     public: common::SkeletonPtr ActorSkeletonById(Entity _id) const;
 
-    /// \brief Get the animation of actor mesh given an id
-    /// Use this function if you are animating the actor manually by its
-    /// skeleton node pose.
-    /// \param[in] _id Entity's unique id
-    /// \param[in] _time Simulation time
-    /// \return Map from the skeleton node name to transforms
-    /// \deprecated see ActorSkeletonTransformAt
-    public: std::map<std::string, math::Matrix4d> IGN_DEPRECATED(4.0)
-        ActorMeshAnimationAt(
-        Entity _id, std::chrono::steady_clock::duration _time) const;
-
     /// \brief Get the skeleton local transforms of actor mesh given an id.
     /// Use this function if you are animating the actor manually by its
     /// skeleton node pose.
@@ -249,14 +269,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Remove an entity by id
     /// \param[in] _id Entity's unique id
     public: void RemoveEntity(Entity _id);
-
-    /// \brief Get the entity for a given node.
-    /// \param[in] _node Node to get the entity for.
-    /// \return The entity for that node, or `kNullEntity` for no entity.
-    /// \todo(anyone) Deprecate in favour of
-    /// `ignition::rendering::Node::UserData` once that's available.
-    public: Entity IGN_DEPRECATED(4)
-        EntityFromNode(const rendering::NodePtr &_node) const;
 
     /// \brief Load a geometry
     /// \param[in] _geom Geometry sdf dom
@@ -288,6 +300,21 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Top level node containining this node
     public: rendering::NodePtr TopLevelNode(
         const rendering::NodePtr &_node) const;
+
+    /// \brief Updates the node to increase its transparency or reset
+    /// back to its original transparency value, an opaque call requires
+    /// a previous transparent call, otherwise, no action will be taken
+    /// Usually, this will be a link visual
+    /// \param[in] _node The node to update.
+    /// \param[in] _makeTransparent true if updating to increase transparency,
+    /// false to set back to original transparency values (make more opaque)
+    public: void UpdateTransparency(const rendering::NodePtr &_node,
+        bool _makeTransparent);
+
+    /// \brief Updates the world pose of joint parent visual
+    /// according to its child.
+    /// \param[in] _jointId Joint visual id.
+    public: void UpdateJointParentPose(Entity _jointId);
 
     /// \internal
     /// \brief Pointer to private data class

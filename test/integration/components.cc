@@ -18,6 +18,8 @@
 #include <gtest/gtest.h>
 
 #include <ignition/msgs/particle_emitter.pb.h>
+#include <ignition/msgs/wrench.pb.h>
+#include <ignition/msgs/Utility.hh>
 
 #include <chrono>
 
@@ -30,6 +32,7 @@
 #include <sdf/Material.hh>
 #include <sdf/Noise.hh>
 #include <sdf/Pbr.hh>
+#include <sdf/sdf.hh>
 #include <sdf/Sensor.hh>
 
 #include "ignition/gazebo/components/Actor.hh"
@@ -47,6 +50,7 @@
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
+#include "ignition/gazebo/components/JointTransmittedWrench.hh"
 #include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/JointVelocity.hh"
 #include "ignition/gazebo/components/JointVelocityCmd.hh"
@@ -1098,6 +1102,66 @@ TEST_F(ComponentsTest, Model)
 }
 
 /////////////////////////////////////////////////
+TEST_F(ComponentsTest, ModelSdf)
+{
+  std::ostringstream stream;
+  std::string version = SDF_VERSION;
+  stream
+    << "<?xml version=\"1.0\" ?>"
+    << "<sdf version='" << version << "'>"
+    << "  <world name=\"modelSDF\">"
+    << "    <physics name=\"1ms\" type=\"ode\">"
+    << "      <max_step_size>0.001</max_step_size>"
+    << "      <real_time_factor>1.0</real_time_factor>"
+    << "    </physics>"
+    << "    <plugin"
+    << "      filename=\"ignition-gazebo-physics-system\""
+    << "      name=\"ignition::gazebo::systems::Physics\">"
+    << "    </plugin>"
+    << "    <model name='my_model'>"
+    << "      <link name='link'>"
+    << "        <light type= 'point' name='my_light'>"
+    << "          <pose>0.1 0 0 0 0 0</pose>"
+    << "          <diffuse>0.2 0.3 0.4 1</diffuse>"
+    << "          <specular>0.3 0.4 0.5 1</specular>"
+    << "        </light>"
+    << "      </link>"
+    << "    </model>"
+    << "  </world>"
+    << "</sdf>";
+
+  sdf::SDFPtr sdfParsed(new sdf::SDF());
+  sdf::init(sdfParsed);
+  ASSERT_TRUE(sdf::readString(stream.str(), sdfParsed));
+
+  // model
+  EXPECT_TRUE(sdfParsed->Root()->HasElement("world"));
+  sdf::ElementPtr worldElem = sdfParsed->Root()->GetElement("world");
+  EXPECT_TRUE(worldElem->HasElement("model"));
+  sdf::ElementPtr modelElem = worldElem->GetElement("model");
+  EXPECT_TRUE(modelElem->HasAttribute("name"));
+  EXPECT_EQ(modelElem->Get<std::string>("name"), "my_model");
+
+  sdf::Model model;
+  model.Load(modelElem);
+  EXPECT_EQ("my_model", model.Name());
+
+  // Create components
+  auto comp1 = components::ModelSdf(model);
+  components::ModelSdf comp2;
+
+  // Stream operators
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+
+  std::istringstream istr(ostr.str());
+  comp2.Deserialize(istr);
+
+  EXPECT_EQ("my_model", comp2.Data().Name());
+  EXPECT_EQ(1u, comp2.Data().LinkCount());
+}
+
+/////////////////////////////////////////////////
 TEST_F(ComponentsTest, Name)
 {
   // Create components
@@ -1599,4 +1663,26 @@ TEST_F(ComponentsTest, ParticleEmitterCmd)
   comp3.Deserialize(istr);
   EXPECT_EQ(comp1.Data().emitting().data(), comp3.Data().emitting().data());
   EXPECT_EQ(comp1.Data().name(), comp3.Data().name());
+}
+
+//////////////////////////////////////////////////
+TEST_F(ComponentsTest, JointTransmittedWrench)
+{
+  msgs::Wrench wrench;
+  msgs::Set(wrench.mutable_torque(), {10, 20, 30});
+  msgs::Set(wrench.mutable_force(), {1, 2, 3});
+
+  // // Create components.
+  auto comp1 = components::JointTransmittedWrench(wrench);
+
+  // Stream operators.
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+
+  std::istringstream istr(ostr.str());
+  components::JointTransmittedWrench comp2;
+  comp2.Deserialize(istr);
+  EXPECT_EQ(msgs::Convert(comp2.Data().force()), msgs::Convert(wrench.force()));
+  EXPECT_EQ(msgs::Convert(comp2.Data().torque()),
+            msgs::Convert(wrench.torque()));
 }

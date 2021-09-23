@@ -24,11 +24,11 @@
 #include <ignition/gui/Plugin.hh>
 
 #include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/gui/GuiRunner.hh"
-
 #include "ignition/gazebo/gui/Gui.hh"
+
 #include "AboutDialogHandler.hh"
 #include "GuiFileHandler.hh"
+#include "GuiRunner.hh"
 #include "PathManager.hh"
 
 namespace ignition
@@ -39,11 +39,11 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace gui
 {
-
 //////////////////////////////////////////////////
 std::unique_ptr<ignition::gui::Application> createGui(
     int &_argc, char **_argv, const char *_guiConfig,
-    const char *_defaultGuiConfig, bool _loadPluginsFromSdf)
+    const char *_defaultGuiConfig, bool _loadPluginsFromSdf,
+    const char *_renderEngine)
 {
   ignition::common::SignalHandler sigHandler;
   bool sigKilled = false;
@@ -101,6 +101,10 @@ std::unique_ptr<ignition::gui::Application> createGui(
 
   // Customize window
   auto mainWin = app->findChild<ignition::gui::MainWindow *>();
+  if (_renderEngine != nullptr)
+  {
+    mainWin->SetRenderEngine(_renderEngine);
+  }
   auto win = mainWin->QuickWindow();
   win->setProperty("title", "Gazebo");
 
@@ -169,20 +173,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
     // TODO(anyone) Most of ign-gazebo's transport API includes the world name,
     // which makes it complicated to mix configurations across worlds.
     // We could have a way to use world-agnostic topics like Gazebo-classic's ~
-    // Remove warning suppression in v6
-#ifndef _WIN32
-# pragma GCC diagnostic push
-# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#else
-# pragma warning(push)
-# pragma warning(disable: 4996)
-#endif
     auto runner = new ignition::gazebo::GuiRunner(worldsMsg.data(0));
-#ifndef _WIN32
-# pragma GCC diagnostic pop
-#else
-# pragma warning(pop)
-#endif
     ++runnerCount;
     runner->setParent(ignition::gui::App());
 
@@ -231,20 +222,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
       }
 
       // GUI runner
-      // Remove warning suppression in v6
-#ifndef _WIN32
-# pragma GCC diagnostic push
-# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#else
-# pragma warning(push)
-# pragma warning(disable: 4996)
-#endif
       auto runner = new ignition::gazebo::GuiRunner(worldName);
-#ifndef _WIN32
-# pragma GCC diagnostic pop
-#else
-# pragma warning(pop)
-#endif
       runner->setParent(ignition::gui::App());
       ++runnerCount;
 
@@ -314,9 +292,11 @@ std::unique_ptr<ignition::gui::Application> createGui(
 }
 
 //////////////////////////////////////////////////
-int runGui(int &_argc, char **_argv, const char *_guiConfig)
+int runGui(int &_argc, char **_argv, const char *_guiConfig,
+  const char *_renderEngine)
 {
-  auto app = gazebo::gui::createGui(_argc, _argv, _guiConfig);
+  auto app = gazebo::gui::createGui(
+    _argc, _argv, _guiConfig, nullptr, true, _renderEngine);
   if (nullptr != app)
   {
     // Run main window.
@@ -325,8 +305,8 @@ int runGui(int &_argc, char **_argv, const char *_guiConfig)
     igndbg << "Shutting down ign-gazebo-gui" << std::endl;
     return 0;
   }
-  else
-    return -1;
+
+  return -1;
 }
 }  // namespace gui
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE

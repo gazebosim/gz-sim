@@ -25,9 +25,9 @@
 #include <ignition/gui/Plugin.hh>
 
 #include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/gui/GuiRunner.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/ServerConfig.hh"
+#include "gui/GuiRunner.hh"
 #include "ign.hh"
 
 //////////////////////////////////////////////////

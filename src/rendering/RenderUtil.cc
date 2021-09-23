@@ -26,6 +26,7 @@
 #include <sdf/Actor.hh>
 #include <sdf/Collision.hh>
 #include <sdf/Element.hh>
+#include <sdf/Joint.hh>
 #include <sdf/Light.hh>
 #include <sdf/Link.hh>
 #include <sdf/Model.hh>
@@ -53,10 +54,15 @@
 #include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/CastShadows.hh"
+#include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/Inertial.hh"
+#include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/JointAxis.hh"
+#include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/LaserRetro.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/LightCmd.hh"
@@ -65,10 +71,13 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/ParticleEmitter.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/Scene.hh"
+#include "ignition/gazebo/components/SegmentationCamera.hh"
+#include "ignition/gazebo/components/SemanticLabel.hh"
 #include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/Temperature.hh"
 #include "ignition/gazebo/components/TemperatureRange.hh"
@@ -96,7 +105,24 @@ class ignition::gazebo::RenderUtilPrivate
 
   /// \brief Create rendering entities
   /// \param[in] _ecm The entity-component manager
+  /// \param[in] _info Update information
   public: void CreateRenderingEntities(const EntityComponentManager &_ecm,
+      const UpdateInfo &_info);
+
+  /// \brief Create rendering entities during the first update. This
+  /// is called by CreateRenderingEntities. This calls _ecm.Each
+  /// \param[in] _ecm The entity-component manager
+  /// \param[in] _info Update information
+  /// \TODO(anyone) Combine with CreateEntitiesRuntime
+  public: void CreateEntitiesFirstUpdate(const EntityComponentManager &_ecm,
+      const UpdateInfo &_info);
+
+  /// \brief Create rendering entities during subsequent updates. This
+  /// is called by CreateRenderingEntities. This calls _ecm.EachNew
+  /// \param[in] _ecm The entity-component manager
+  /// \param[in] _info Update information
+  /// \TODO(anyone) Combine with CreateEntitiesFirstUpdate
+  public: void CreateEntitiesRuntime(const EntityComponentManager &_ecm,
       const UpdateInfo &_info);
 
   /// \brief Remove rendering entities
@@ -107,6 +133,17 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief Update rendering entities
   /// \param[in] _ecm The entity-component manager
   public: void UpdateRenderingEntities(const EntityComponentManager &_ecm);
+
+  /// \breif Helper function to add new sensors
+  /// \param[in] _ecm The entity-component manager
+  /// \param[in] _entity Sensor entity
+  /// \param[in] _sdfData Sensor data
+  /// \param[in] _parent Parent entity
+  /// \param[in] _topicSuffix Suffix for sensor topic
+  public: void AddNewSensor(
+      const EntityComponentManager &_ecm, Entity _entity,
+      const sdf::Sensor &_sdfData, Entity _parent,
+      const std::string &_topicSuffix);
 
   /// \brief Total time elapsed in simulation. This will not increase while
   /// paused.
@@ -146,37 +183,42 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief New scenes to be created
   public: std::vector<sdf::Scene> newScenes;
 
+  /// \brief is headless mode active
+  public: bool isHeadlessRendering = false;
+
   /// \brief New models to be created. The elements in the tuple are:
   /// [0] entity id, [1], SDF DOM, [2] parent entity id, [3] sim iteration
   public: std::vector<std::tuple<Entity, sdf::Model, Entity, uint64_t>>
       newModels;
 
   /// \brief New links to be created. The elements in the tuple are:
-  /// [0] entity id, [1], SDF DOM, [2] parent entity id
+  /// [0] entity id, [1] SDF DOM, [2] parent entity id
   public: std::vector<std::tuple<Entity, sdf::Link, Entity>> newLinks;
 
   /// \brief New visuals to be created. The elements in the tuple are:
-  /// [0] entity id, [1], SDF DOM, [2] parent entity id
+  /// [0] entity id, [1] SDF DOM, [2] parent entity id
   public: std::vector<std::tuple<Entity, sdf::Visual, Entity>> newVisuals;
 
   /// \brief New actors to be created. The elements in the tuple are:
-  /// [0] entity id, [1], SDF DOM, [2] parent entity id
-  public: std::vector<std::tuple<Entity, sdf::Actor, Entity>> newActors;
+  /// [0] entity id, [1] SDF DOM, [2] actor name, [3] parent entity id
+  public: std::vector<std::tuple<Entity, sdf::Actor, std::string, Entity>>
+          newActors;
 
   /// \brief New lights to be created. The elements in the tuple are:
-  /// [0] entity id, [1], SDF DOM, [2] parent entity id
-  public: std::vector<std::tuple<Entity, sdf::Light, Entity>> newLights;
+  /// [0] entity id, [1] SDF DOM, [2] light name, [3] parent entity id
+  public: std::vector<std::tuple<Entity, sdf::Light, std::string, Entity>>
+          newLights;
 
   /// \brief A map of entity light ids and light visuals
   public: std::map<Entity, Entity> matchLightWithVisuals;
 
   /// \brief New sensors to be created. The elements in the tuple are:
-  /// [0] entity id, [1], SDF DOM, [2] parent entity id
+  /// [0] entity id, [1] SDF DOM, [2] parent entity id
   public: std::vector<std::tuple<Entity, sdf::Sensor, Entity>>
       newSensors;
 
   /// \brief New particle emitter to be created. The elements in the tuple are:
-  /// [0] entity id, [1], particle emitter, [2] parent entity id
+  /// [0] entity id, [1] particle emitter, [2] parent entity id
   public: std::vector<std::tuple<Entity, msgs::ParticleEmitter, Entity>>
       newParticleEmitters;
 
@@ -219,6 +261,9 @@ class ignition::gazebo::RenderUtilPrivate
   ///
   /// All temperatures are in Kelvin.
   public: std::map<Entity, std::tuple<float, float, std::string>> entityTemp;
+
+  /// \brief A map of entity ids and label data for datasets annotations
+  public: std::unordered_map<Entity, int> entityLabel;
 
   /// \brief A map of entity ids and wire boxes
   public: std::unordered_map<Entity, ignition::rendering::WireBoxPtr> wireBoxes;
@@ -301,6 +346,105 @@ class ignition::gazebo::RenderUtilPrivate
   /// \param[in] _node Node to be restored.
   public: void LowlightNode(const rendering::NodePtr &_node);
 
+  /// \brief New joint visuals to be created
+  public: std::vector<Entity> newJoints;
+
+  /// \brief Finds the models (joint parent) that are used to create
+  /// joint visuals in RenderUtil::Update
+  /// \param[in] _ecm The entity-component manager
+  public: void FindJointModels(const EntityComponentManager &_ecm);
+
+  /// \brief A list of models used to create new joint visuals
+  public: std::vector<Entity> newJointModels;
+
+  /// \brief A map of joint entity ids and their SDF DOM
+  public: std::map<Entity, sdf::Joint> entityJoints;
+
+  /// \brief A map of model entities and their corresponding children links
+  public: std::map<Entity, std::vector<Entity>> modelToJointEntities;
+
+  /// \brief A map of created joint entities and if they are currently
+  /// visible
+  public: std::map<Entity, bool> viewingJoints;
+
+  /// \brief A list of joint visuals for which the parent visual poses
+  /// have to be updated.
+  public: std::vector<Entity> updateJointParentPoses;
+
+  /// \brief A map of models entities and link attributes used
+  /// to create joint visuals
+  public: std::map<Entity, std::map<std::string, Entity>>
+                           matchLinksWithEntities;
+
+  /// \brief New center of mass visuals to be created
+  public: std::vector<Entity> newCOMVisuals;
+
+  /// \brief A list of links used to create new center of mass visuals
+  public: std::vector<Entity> newCOMLinks;
+
+  /// \brief A map of link entities and if their center of mass visuals
+  /// are currently visible
+  public: std::map<Entity, bool> viewingCOM;
+
+  /// \brief New inertias to be created
+  public: std::vector<Entity> newInertias;
+
+  /// \brief A map of links and their center of mass visuals
+  public: std::map<Entity, Entity> linkToCOMVisuals;
+
+  /// \brief Finds the child links for given entity from the ECM
+  /// \param[in] _ecm The entity-component manager
+  /// \param[in] _entity Entity to find child links
+  /// \return A vector of child links found for the entity
+  public: std::vector<Entity> FindChildLinksFromECM(
+      const EntityComponentManager &_ecm, const Entity &_entity);
+
+  /// \brief Finds the links (inertial parent) that are used to create child
+  /// inertia and center of mass visuals in RenderUtil::Update
+  /// \param[in] _ecm The entity-component manager
+  public: void FindInertialLinks(const EntityComponentManager &_ecm);
+
+  /// \brief A list of links used to create new inertia visuals
+  public: std::vector<Entity> newInertiaLinks;
+
+  /// \brief A map of entity ids and their inertials
+  public: std::map<Entity, math::Inertiald> entityInertials;
+
+  /// \brief A map of link entities and if their inertias are currently
+  /// visible
+  public: std::map<Entity, bool> viewingInertias;
+
+  /// \brief A map of links and their inertia visuals
+  public: std::map<Entity, Entity> linkToInertiaVisuals;
+
+  /// \brief New wireframe visuals to be toggled
+  public: std::vector<Entity> newWireframes;
+
+  /// \brief New wireframe visuals to be toggled
+  public: std::vector<Entity> newTransparentEntities;
+
+  /// \brief Finds the links (visual parent) that are used to toggle wireframe
+  /// and transparent view for visuals in RenderUtil::Update
+  /// \param[in] _ecm The entity-component manager
+  public: void PopulateViewModeVisualLinks(const EntityComponentManager &_ecm);
+
+  /// \brief A list of links used to toggle wireframe mode for visuals
+  public: std::vector<Entity> newWireframeVisualLinks;
+
+  /// \brief A list of links used to toggle transparent mode for visuals
+  public: std::vector<Entity> newTransparentVisualLinks;
+
+  /// \brief A map of link entities and their corresponding children visuals
+  public: std::map<Entity, std::vector<Entity>> linkToVisualEntities;
+
+  /// \brief A map of created wireframe visuals and if they are currently
+  /// visible
+  public: std::map<Entity, bool> viewingWireframes;
+
+  /// \brief A map of created transparent visuals and if they are currently
+  /// visible
+  public: std::map<Entity, bool> viewingTransparent;
+
   /// \brief New collisions to be created
   public: std::vector<Entity> newCollisions;
 
@@ -333,6 +477,11 @@ class ignition::gazebo::RenderUtilPrivate
   /// <resolution, temperature range (min, max)>
   public: std::unordered_map<Entity,
       std::tuple<double, components::TemperatureRangeInfo>> thermalCameraData;
+
+  /// \brief Update the visuals with label user data
+  /// \param[in] _entityLabel Map with key visual entity id and value label
+  public: void UpdateVisualLabels(
+    const std::unordered_map<Entity, int> &_entityLabel);
 
   /// \brief A helper function that removes the sensor associated with an
   /// entity, if an associated sensor exists. This should be called in
@@ -509,7 +658,206 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
   this->dataPtr->UpdateRenderingEntities(_ecm);
   this->dataPtr->RemoveRenderingEntities(_ecm, _info);
   this->dataPtr->markerManager.SetSimTime(_info.simTime);
+  this->dataPtr->PopulateViewModeVisualLinks(_ecm);
+  this->dataPtr->FindInertialLinks(_ecm);
+  this->dataPtr->FindJointModels(_ecm);
   this->dataPtr->FindCollisionLinks(_ecm);
+}
+
+//////////////////////////////////////////////////
+std::vector<Entity> RenderUtilPrivate::FindChildLinksFromECM(
+    const EntityComponentManager &_ecm, const Entity &_entity)
+{
+  std::vector<Entity> links;
+  if (_ecm.EntityMatches(_entity,
+        std::set<ComponentTypeId>{components::Model::typeId}))
+  {
+    std::stack<Entity> modelStack;
+    modelStack.push(_entity);
+
+    std::vector<Entity> childLinks, childModels;
+    while (!modelStack.empty())
+    {
+      Entity model = modelStack.top();
+      modelStack.pop();
+
+      childLinks = _ecm.EntitiesByComponents(components::ParentEntity(model),
+                                             components::Link());
+      links.insert(links.end(),
+                   childLinks.begin(),
+                   childLinks.end());
+
+      childModels =
+          _ecm.EntitiesByComponents(components::ParentEntity(model),
+                                    components::Model());
+      for (const auto &childModel : childModels)
+      {
+          modelStack.push(childModel);
+      }
+    }
+  }
+  else if (_ecm.EntityMatches(_entity,
+              std::set<ComponentTypeId>{components::Link::typeId}))
+  {
+    links.push_back(_entity);
+  }
+  return links;
+}
+
+//////////////////////////////////////////////////
+void RenderUtilPrivate::FindInertialLinks(const EntityComponentManager &_ecm)
+{
+  for (const auto &entity : this->newInertias)
+  {
+    std::vector<Entity> links;
+    if (_ecm.EntityMatches(entity,
+          std::set<ComponentTypeId>{components::Model::typeId}) ||
+        _ecm.EntityMatches(entity,
+                std::set<ComponentTypeId>{components::Link::typeId}))
+    {
+      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
+    }
+    else
+    {
+      ignerr << "Entity [" << entity
+             << "] for viewing inertia must be a model or link"
+             << std::endl;
+      continue;
+    }
+
+    this->newInertiaLinks.insert(this->newInertiaLinks.end(),
+        links.begin(),
+        links.end());
+  }
+  this->newInertias.clear();
+
+  for (const auto &entity : this->newCOMVisuals)
+  {
+    std::vector<Entity> links;
+    if (_ecm.EntityMatches(entity,
+          std::set<ComponentTypeId>{components::Model::typeId}) ||
+        _ecm.EntityMatches(entity,
+                std::set<ComponentTypeId>{components::Link::typeId}))
+    {
+      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
+    }
+    else
+    {
+      ignerr << "Entity [" << entity
+             << "] for viewing center of mass must be a model or link"
+             << std::endl;
+      continue;
+    }
+
+    this->newCOMLinks.insert(this->newCOMLinks.end(),
+        links.begin(),
+        links.end());
+  }
+  this->newCOMVisuals.clear();
+}
+
+//////////////////////////////////////////////////
+void RenderUtilPrivate::FindJointModels(const EntityComponentManager &_ecm)
+{
+  if (this->newJoints.empty())
+  {
+    return;
+  }
+
+  for (const auto &entity : this->newJoints)
+  {
+    std::vector<Entity> models;
+    if (_ecm.EntityMatches(entity,
+          std::set<ComponentTypeId>{components::Model::typeId}))
+    {
+      std::stack<Entity> modelStack;
+      modelStack.push(entity);
+
+      std::vector<Entity> childLinks, childModels;
+      while (!modelStack.empty())
+      {
+        Entity model = modelStack.top();
+        modelStack.pop();
+        models.push_back(model);
+
+        childModels =
+            _ecm.EntitiesByComponents(components::ParentEntity(model),
+                                      components::Model());
+        for (const auto &childModel : childModels)
+        {
+            modelStack.push(childModel);
+        }
+      }
+    }
+    else
+    {
+      ignerr << "Entity [" << entity
+             << "] for viewing joints must be a model"
+             << std::endl;
+      continue;
+    }
+
+    this->newJointModels.insert(this->newJointModels.end(),
+        models.begin(),
+        models.end());
+  }
+  this->newJoints.clear();
+}
+
+//////////////////////////////////////////////////
+void RenderUtilPrivate::PopulateViewModeVisualLinks(
+                        const EntityComponentManager &_ecm)
+{
+  // Find links to toggle wireframes
+  for (const auto &entity : this->newWireframes)
+  {
+    std::vector<Entity> links;
+    if (_ecm.EntityMatches(entity,
+          std::set<ComponentTypeId>{components::Model::typeId}) ||
+        _ecm.EntityMatches(entity,
+                std::set<ComponentTypeId>{components::Link::typeId}))
+    {
+      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
+    }
+    else
+    {
+      ignerr << "Entity [" << entity
+             << "] for viewing wireframe must be a model or link"
+             << std::endl;
+      continue;
+    }
+
+    this->newWireframeVisualLinks.insert(this->newWireframeVisualLinks.end(),
+        links.begin(),
+        links.end());
+  }
+  this->newWireframes.clear();
+
+  // Find links to view as transparent
+  for (const auto &entity : this->newTransparentEntities)
+  {
+    std::vector<Entity> links;
+    if (_ecm.EntityMatches(entity,
+          std::set<ComponentTypeId>{components::Model::typeId}) ||
+        _ecm.EntityMatches(entity,
+                std::set<ComponentTypeId>{components::Link::typeId}))
+    {
+      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
+    }
+    else
+    {
+      ignerr << "Entity [" << entity
+             << "] for viewing as transparent must be a model or link"
+             << std::endl;
+      continue;
+    }
+
+    this->newTransparentVisualLinks.insert(
+        this->newTransparentVisualLinks.end(),
+        links.begin(),
+        links.end());
+  }
+  this->newTransparentEntities.clear();
 }
 
 //////////////////////////////////////////////////
@@ -522,36 +870,11 @@ void RenderUtilPrivate::FindCollisionLinks(const EntityComponentManager &_ecm)
   {
     std::vector<Entity> links;
     if (_ecm.EntityMatches(entity,
-          std::set<ComponentTypeId>{components::Model::typeId}))
-    {
-      std::stack<Entity> modelStack;
-      modelStack.push(entity);
-
-      std::vector<Entity> childLinks, childModels;
-      while (!modelStack.empty())
-      {
-        Entity model = modelStack.top();
-        modelStack.pop();
-
-        childLinks = _ecm.EntitiesByComponents(components::ParentEntity(model),
-                                               components::Link());
-        links.insert(links.end(),
-                     childLinks.begin(),
-                     childLinks.end());
-
-        childModels =
-            _ecm.EntitiesByComponents(components::ParentEntity(model),
-                                      components::Model());
-        for (const auto &childModel : childModels)
-        {
-            modelStack.push(childModel);
-        }
-      }
-    }
-    else if (_ecm.EntityMatches(entity,
+          std::set<ComponentTypeId>{components::Model::typeId}) ||
+        _ecm.EntityMatches(entity,
                 std::set<ComponentTypeId>{components::Link::typeId}))
     {
-      links.push_back(entity);
+      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
     }
     else
     {
@@ -606,10 +929,20 @@ void RenderUtil::Update()
   auto removeEntities = std::move(this->dataPtr->removeEntities);
   auto entityPoses = std::move(this->dataPtr->entityPoses);
   auto entityLights = std::move(this->dataPtr->entityLights);
+  auto updateJointParentPoses =
+    std::move(this->dataPtr->updateJointParentPoses);
   auto trajectoryPoses = std::move(this->dataPtr->trajectoryPoses);
   auto actorTransforms = std::move(this->dataPtr->actorTransforms);
   auto actorAnimationData = std::move(this->dataPtr->actorAnimationData);
   auto entityTemp = std::move(this->dataPtr->entityTemp);
+  auto entityLabel = std::move(this->dataPtr->entityLabel);
+  auto newTransparentVisualLinks =
+    std::move(this->dataPtr->newTransparentVisualLinks);
+  auto newInertiaLinks = std::move(this->dataPtr->newInertiaLinks);
+  auto newJointModels = std::move(this->dataPtr->newJointModels);
+  auto newCOMLinks = std::move(this->dataPtr->newCOMLinks);
+  auto newWireframeVisualLinks =
+    std::move(this->dataPtr->newWireframeVisualLinks);
   auto newCollisionLinks = std::move(this->dataPtr->newCollisionLinks);
   auto thermalCameraData = std::move(this->dataPtr->thermalCameraData);
 
@@ -624,10 +957,17 @@ void RenderUtil::Update()
   this->dataPtr->removeEntities.clear();
   this->dataPtr->entityPoses.clear();
   this->dataPtr->entityLights.clear();
+  this->dataPtr->updateJointParentPoses.clear();
   this->dataPtr->trajectoryPoses.clear();
   this->dataPtr->actorTransforms.clear();
   this->dataPtr->actorAnimationData.clear();
   this->dataPtr->entityTemp.clear();
+  this->dataPtr->entityLabel.clear();
+  this->dataPtr->newTransparentVisualLinks.clear();
+  this->dataPtr->newInertiaLinks.clear();
+  this->dataPtr->newJointModels.clear();
+  this->dataPtr->newCOMLinks.clear();
+  this->dataPtr->newWireframeVisualLinks.clear();
   this->dataPtr->newCollisionLinks.clear();
   this->dataPtr->thermalCameraData.clear();
 
@@ -714,13 +1054,14 @@ void RenderUtil::Update()
     for (const auto &actor : newActors)
     {
       this->dataPtr->sceneManager.CreateActor(
-          std::get<0>(actor), std::get<1>(actor), std::get<2>(actor));
+          std::get<0>(actor), std::get<1>(actor), std::get<2>(actor),
+          std::get<3>(actor));
     }
 
     for (const auto &light : newLights)
     {
-      this->dataPtr->sceneManager.CreateLight(
-          std::get<0>(light), std::get<1>(light), std::get<2>(light));
+      this->dataPtr->sceneManager.CreateLight(std::get<0>(light),
+          std::get<1>(light), std::get<2>(light), std::get<3>(light));
 
       // TODO(anyone) This needs to be updated for when sensors and GUI use
       // the same scene
@@ -735,7 +1076,7 @@ void RenderUtil::Update()
           {
             rendering::VisualPtr lightVisual =
               this->dataPtr->sceneManager.CreateLightVisual(
-                id, std::get<1>(light), std::get<0>(light));
+                id, std::get<1>(light), std::get<2>(light), std::get<0>(light));
             this->dataPtr->matchLightWithVisuals[std::get<0>(light)] = id;
             break;
           }
@@ -877,8 +1218,7 @@ void RenderUtil::Update()
     if (!node)
       continue;
 
-    auto visual =
-        std::dynamic_pointer_cast<rendering::Visual>(node);
+    auto visual = std::dynamic_pointer_cast<rendering::Visual>(node);
     if (!visual)
       continue;
 
@@ -890,6 +1230,139 @@ void RenderUtil::Update()
       visual->SetUserData("minTemp", std::get<0>(temp.second));
       visual->SetUserData("maxTemp", std::get<1>(temp.second));
       visual->SetUserData("temperature", heatSignature);
+    }
+  }
+
+  this->dataPtr->UpdateVisualLabels(entityLabel);
+
+  // update joint parent visual poses
+  {
+    for (const auto &jointEntity : updateJointParentPoses)
+    {
+      this->dataPtr->sceneManager.UpdateJointParentPose(jointEntity);
+    }
+  }
+
+  // create new transparent visuals
+  {
+    for (const auto &link : newTransparentVisualLinks)
+    {
+      std::vector<Entity> visEntities =
+          this->dataPtr->linkToVisualEntities[link];
+
+      for (const auto &visEntity : visEntities)
+      {
+        if (!this->dataPtr->viewingTransparent[visEntity])
+        {
+          auto vis = this->dataPtr->sceneManager.VisualById(visEntity);
+
+          this->dataPtr->sceneManager.UpdateTransparency(vis,
+              true /* transparent */);
+          this->dataPtr->viewingTransparent[visEntity] = true;
+        }
+      }
+    }
+  }
+
+  // create new inertia visuals
+  {
+    for (const auto &link : newInertiaLinks)
+    {
+      // create a new id for the inertia visual
+      auto attempts = 100000u;
+      for (auto i = 0u; i < attempts; ++i)
+      {
+        Entity id = std::numeric_limits<uint64_t>::max() - i;
+        if (!this->dataPtr->sceneManager.HasEntity(id) &&
+            !this->dataPtr->viewingInertias[link])
+        {
+          rendering::VisualPtr inrVisual =
+            this->dataPtr->sceneManager.CreateInertiaVisual(
+              id, this->dataPtr->entityInertials[link], link);
+          this->dataPtr->viewingInertias[link] = true;
+          this->dataPtr->linkToInertiaVisuals[link] = id;
+          break;
+        }
+      }
+    }
+  }
+
+  // create new joint visuals
+  {
+    for (const auto &model : newJointModels)
+    {
+      std::vector<Entity> jointEntities =
+          this->dataPtr->modelToJointEntities[model];
+
+      for (const auto &jointEntity : jointEntities)
+      {
+        if (!this->dataPtr->sceneManager.HasEntity(jointEntity))
+        {
+          std::string childLinkName =
+              this->dataPtr->entityJoints[jointEntity].ChildLinkName();
+          Entity childId =
+              this->dataPtr->matchLinksWithEntities[model][childLinkName];
+
+          std::string parentLinkName =
+              this->dataPtr->entityJoints[jointEntity].ParentLinkName();
+          Entity parentId =
+              this->dataPtr->matchLinksWithEntities[model][parentLinkName];
+
+          auto joint = this->dataPtr->entityJoints[jointEntity];
+
+          auto vis = this->dataPtr->sceneManager.CreateJointVisual(
+              jointEntity, joint, childId, parentId);
+          this->dataPtr->viewingJoints[jointEntity] = true;
+
+          // Update joint parent visual pose
+          if (joint.Axis(1))
+          {
+            this->dataPtr->updateJointParentPoses.push_back(jointEntity);
+          }
+        }
+      }
+    }
+  }
+
+  // create new center of mass visuals
+  {
+    for (const auto &link : newCOMLinks)
+    {
+      // create a new id for the center of mass visual
+      auto attempts = 100000u;
+      for (auto i = 0u; i < attempts; ++i)
+      {
+        Entity id = std::numeric_limits<uint64_t>::max() - i;
+        if (!this->dataPtr->sceneManager.HasEntity(id) &&
+            !this->dataPtr->viewingCOM[link])
+        {
+          rendering::VisualPtr inrVisual =
+            this->dataPtr->sceneManager.CreateCOMVisual(
+              id, this->dataPtr->entityInertials[link], link);
+          this->dataPtr->viewingCOM[link] = true;
+          this->dataPtr->linkToCOMVisuals[link] = id;
+          break;
+        }
+      }
+    }
+  }
+
+  // create new wireframe visuals
+  {
+    for (const auto &link : newWireframeVisualLinks)
+    {
+      std::vector<Entity> visEntities =
+          this->dataPtr->linkToVisualEntities[link];
+
+      for (const auto &visEntity : visEntities)
+      {
+        if (!this->dataPtr->viewingWireframes[visEntity])
+        {
+          auto vis = this->dataPtr->sceneManager.VisualById(visEntity);
+          vis->SetWireframe(true);
+          this->dataPtr->viewingWireframes[visEntity] = true;
+        }
+      }
     }
   }
 
@@ -938,489 +1411,673 @@ void RenderUtilPrivate::CreateRenderingEntities(
     const EntityComponentManager &_ecm, const UpdateInfo &_info)
 {
   IGN_PROFILE("RenderUtilPrivate::CreateRenderingEntities");
-  auto addNewSensor = [&_ecm, this](Entity _entity, const sdf::Sensor &_sdfData,
-                                    Entity _parent,
-                                    const std::string &_topicSuffix)
-  {
-    sdf::Sensor sdfDataCopy(_sdfData);
-    std::string sensorScopedName =
-        removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
-    sdfDataCopy.SetName(sensorScopedName);
-    // check topic
-    if (sdfDataCopy.Topic().empty())
-    {
-      sdfDataCopy.SetTopic(scopedName(_entity, _ecm) + _topicSuffix);
-    }
-    this->newSensors.push_back(
-        std::make_tuple(_entity, std::move(sdfDataCopy), _parent));
-    this->sensorEntities.insert(_entity);
-  };
 
+  // Treat all pre-existent entities as new at startup
+  // TODO(anyone) Combine the two CreateEntities functions below to reduce
+  // duplicate code
+  if (!this->initialized)
+  {
+    this->CreateEntitiesFirstUpdate(_ecm, _info);
+    this->initialized = true;
+  }
+  else
+  {
+    this->CreateEntitiesRuntime(_ecm, _info);
+  }
+}
+
+//////////////////////////////////////////////////
+void RenderUtilPrivate::AddNewSensor(const EntityComponentManager &_ecm,
+    Entity _entity, const sdf::Sensor &_sdfData, Entity _parent,
+    const std::string &_topicSuffix)
+{
+  sdf::Sensor sdfDataCopy(_sdfData);
+  std::string sensorScopedName =
+      removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
+  sdfDataCopy.SetName(sensorScopedName);
+  // check topic
+  if (sdfDataCopy.Topic().empty())
+  {
+    sdfDataCopy.SetTopic(scopedName(_entity, _ecm) + _topicSuffix);
+  }
+  this->newSensors.push_back(
+      std::make_tuple(_entity, std::move(sdfDataCopy), _parent));
+  this->sensorEntities.insert(_entity);
+}
+
+//////////////////////////////////////////////////
+void RenderUtilPrivate::CreateEntitiesFirstUpdate(
+    const EntityComponentManager &_ecm, const UpdateInfo &_info)
+{
   const std::string cameraSuffix{"/image"};
   const std::string depthCameraSuffix{"/depth_image"};
   const std::string rgbdCameraSuffix{""};
   const std::string thermalCameraSuffix{"/image"};
   const std::string gpuLidarSuffix{"/scan"};
+  const std::string segmentationCameraSuffix{"/segmentation"};
 
-  // Treat all pre-existent entities as new at startup
-  // TODO(anyone) refactor Each and EachNew below to reduce duplicate code
-  if (!this->initialized)
-  {
-    // Get all the new worlds
-    // TODO(anyone) Only one scene is supported for now
-    // extend the sensor system to support mutliple scenes in the future
-    _ecm.Each<components::World, components::Scene>(
-        [&](const Entity & _entity,
-          const components::World *,
-          const components::Scene *_scene)->bool
+  // Get all the new worlds
+  // TODO(anyone) Only one scene is supported for now
+  // extend the sensor system to support mutliple scenes in the future
+  _ecm.Each<components::World, components::Scene>(
+      [&](const Entity & _entity,
+        const components::World *,
+        const components::Scene *_scene)->bool
+      {
+        this->sceneManager.SetWorldId(_entity);
+        const sdf::Scene &sceneSdf = _scene->Data();
+        this->newScenes.push_back(sceneSdf);
+        return true;
+      });
+
+
+  _ecm.Each<components::Model, components::Name, components::Pose,
+            components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Model *,
+          const components::Name *_name,
+          const components::Pose *_pose,
+          const components::ParentEntity *_parent)->bool
+      {
+        sdf::Model model;
+        model.SetName(_name->Data());
+        model.SetRawPose(_pose->Data());
+        this->newModels.push_back(std::make_tuple(_entity, model,
+            _parent->Data(), _info.iterations));
+        this->modelToModelEntities[_parent->Data()].push_back(_entity);
+        return true;
+      });
+
+  _ecm.Each<components::Link, components::Name, components::Pose,
+            components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Link *,
+          const components::Name *_name,
+          const components::Pose *_pose,
+          const components::ParentEntity *_parent)->bool
+      {
+        sdf::Link link;
+        link.SetName(_name->Data());
+        link.SetRawPose(_pose->Data());
+        this->newLinks.push_back(
+            std::make_tuple(_entity, link, _parent->Data()));
+        // used for collsions
+        this->modelToLinkEntities[_parent->Data()].push_back(_entity);
+        // used for joints
+        this->matchLinksWithEntities[_parent->Data()][_name->Data()] =
+            _entity;
+        return true;
+      });
+
+  // visuals
+  _ecm.Each<components::Visual, components::Name, components::Pose,
+            components::Geometry,
+            components::CastShadows,
+            components::Transparency,
+            components::VisibilityFlags,
+            components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Visual *,
+          const components::Name *_name,
+          const components::Pose *_pose,
+          const components::Geometry *_geom,
+          const components::CastShadows *_castShadows,
+          const components::Transparency *_transparency,
+          const components::VisibilityFlags *_visibilityFlags,
+          const components::ParentEntity *_parent)->bool
+      {
+        sdf::Visual visual;
+        visual.SetName(_name->Data());
+        visual.SetRawPose(_pose->Data());
+        visual.SetGeom(_geom->Data());
+        visual.SetCastShadows(_castShadows->Data());
+        visual.SetTransparency(_transparency->Data());
+        visual.SetVisibilityFlags(_visibilityFlags->Data());
+
+        // Optional components
+        auto material = _ecm.Component<components::Material>(_entity);
+        if (material != nullptr)
         {
-          this->sceneManager.SetWorldId(_entity);
-          const sdf::Scene &sceneSdf = _scene->Data();
-          this->newScenes.push_back(sceneSdf);
-          return true;
-        });
+          visual.SetMaterial(material->Data());
+        }
 
-
-    _ecm.Each<components::Model, components::Name, components::Pose,
-              components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::Model *,
-            const components::Name *_name,
-            const components::Pose *_pose,
-            const components::ParentEntity *_parent)->bool
+        auto laserRetro = _ecm.Component<components::LaserRetro>(_entity);
+        if (laserRetro != nullptr)
         {
-          sdf::Model model;
-          model.SetName(_name->Data());
-          model.SetRawPose(_pose->Data());
-          this->newModels.push_back(
-              std::make_tuple(_entity, model, _parent->Data(),
-              _info.iterations));
-          this->modelToModelEntities[_parent->Data()].push_back(_entity);
-          return true;
-        });
+          visual.SetLaserRetro(laserRetro->Data());
+        }
 
-    _ecm.Each<components::Link, components::Name, components::Pose,
-              components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::Link *,
-            const components::Name *_name,
-            const components::Pose *_pose,
-            const components::ParentEntity *_parent)->bool
+        // set label
+        auto label = _ecm.Component<components::SemanticLabel>(_entity);
+        if (label != nullptr)
         {
-          sdf::Link link;
-          link.SetName(_name->Data());
-          link.SetRawPose(_pose->Data());
-          this->newLinks.push_back(
-              std::make_tuple(_entity, link, _parent->Data()));
-          // used for collsions
-          this->modelToLinkEntities[_parent->Data()].push_back(_entity);
-          return true;
-        });
+          this->entityLabel[_entity] = label->Data();
+        }
 
-    // visuals
-    _ecm.Each<components::Visual, components::Name, components::Pose,
-              components::Geometry,
-              components::CastShadows,
-              components::Transparency,
-              components::VisibilityFlags,
-              components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::Visual *,
-            const components::Name *_name,
-            const components::Pose *_pose,
-            const components::Geometry *_geom,
-            const components::CastShadows *_castShadows,
-            const components::Transparency *_transparency,
-            const components::VisibilityFlags *_visibilityFlags,
-            const components::ParentEntity *_parent)->bool
+        if (auto temp = _ecm.Component<components::Temperature>(_entity))
         {
-          sdf::Visual visual;
-          visual.SetName(_name->Data());
-          visual.SetRawPose(_pose->Data());
-          visual.SetGeom(_geom->Data());
-          visual.SetCastShadows(_castShadows->Data());
-          visual.SetTransparency(_transparency->Data());
-          visual.SetVisibilityFlags(_visibilityFlags->Data());
-
-          // Optional components
-          auto material = _ecm.Component<components::Material>(_entity);
-          if (material != nullptr)
+          // get the uniform temperature for the entity
+          this->entityTemp[_entity] = std::make_tuple
+              <float, float, std::string>(temp->Data().Kelvin(), 0.0, "");
+        }
+        else
+        {
+          // entity doesn't have a uniform temperature. Check if it has
+          // a heat signature with an associated temperature range
+          auto heatSignature =
+            _ecm.Component<components::SourceFilePath>(_entity);
+          auto tempRange =
+             _ecm.Component<components::TemperatureRange>(_entity);
+          if (heatSignature && tempRange)
           {
-            visual.SetMaterial(material->Data());
-          }
-
-          auto laserRetro = _ecm.Component<components::LaserRetro>(_entity);
-          if (laserRetro != nullptr)
-          {
-            visual.SetLaserRetro(laserRetro->Data());
-          }
-
-          if (auto temp = _ecm.Component<components::Temperature>(_entity))
-          {
-            // get the uniform temperature for the entity
             this->entityTemp[_entity] =
               std::make_tuple<float, float, std::string>(
-                  temp->Data().Kelvin(), 0.0, "");
+                  tempRange->Data().min.Kelvin(),
+                  tempRange->Data().max.Kelvin(),
+                  std::string(heatSignature->Data()));
           }
-          else
-          {
-            // entity doesn't have a uniform temperature. Check if it has
-            // a heat signature with an associated temperature range
-            auto heatSignature =
-              _ecm.Component<components::SourceFilePath>(_entity);
-            auto tempRange =
-               _ecm.Component<components::TemperatureRange>(_entity);
-            if (heatSignature && tempRange)
-            {
-              this->entityTemp[_entity] =
-                std::make_tuple<float, float, std::string>(
-                    tempRange->Data().min.Kelvin(),
-                    tempRange->Data().max.Kelvin(),
-                    std::string(heatSignature->Data()));
-            }
-          }
+        }
 
-          this->newVisuals.push_back(
-              std::make_tuple(_entity, visual, _parent->Data()));
-          return true;
-        });
+        this->newVisuals.push_back(
+            std::make_tuple(_entity, visual, _parent->Data()));
 
-    // actors
-    _ecm.Each<components::Actor, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::Actor *_actor,
-            const components::ParentEntity *_parent) -> bool
+        this->linkToVisualEntities[_parent->Data()].push_back(_entity);
+        return true;
+      });
+
+  // actors
+  _ecm.Each<components::Actor, components::Name, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Actor *_actor,
+          const components::Name *_name,
+          const components::ParentEntity *_parent) -> bool
+      {
+        this->newActors.push_back(std::make_tuple(_entity, _actor->Data(),
+            _name->Data(), _parent->Data()));
+
+        // set label
+        auto label = _ecm.Component<components::SemanticLabel>(_entity);
+        if (label != nullptr)
         {
-          this->newActors.push_back(
-              std::make_tuple(_entity, _actor->Data(), _parent->Data()));
-          return true;
-        });
+          this->entityLabel[_entity] = label->Data();
+        }
 
-    // lights
-    _ecm.Each<components::Light, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::Light *_light,
-            const components::ParentEntity *_parent) -> bool
+        return true;
+      });
+
+  // lights
+  _ecm.Each<components::Light, components::Name, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Light *_light,
+          const components::Name *_name,
+          const components::ParentEntity *_parent) -> bool
+      {
+        this->newLights.push_back(std::make_tuple(_entity, _light->Data(),
+              _name->Data(), _parent->Data()));
+        return true;
+      });
+
+  // inertials
+  _ecm.Each<components::Inertial, components::Pose>(
+      [&](const Entity &_entity,
+          const components::Inertial *_inrElement,
+          const components::Pose *) -> bool
+      {
+        this->entityInertials[_entity] = _inrElement->Data();
+        return true;
+      });
+
+  // collisions
+  _ecm.Each<components::Collision, components::Name, components::Pose,
+            components::Geometry, components::CollisionElement,
+            components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Collision *,
+          const components::Name *,
+          const components::Pose *,
+          const components::Geometry *,
+          const components::CollisionElement *_collElement,
+          const components::ParentEntity *_parent) -> bool
+      {
+        this->entityCollisions[_entity] = _collElement->Data();
+        this->linkToCollisionEntities[_parent->Data()].push_back(_entity);
+        return true;
+      });
+
+  // joints
+  _ecm.Each<components::Joint, components::Name, components::JointType,
+              components::Pose, components::ParentEntity,
+              components::ParentLinkName, components::ChildLinkName>(
+      [&](const Entity &_entity,
+          const components::Joint * /* _joint */,
+          const components::Name *_name,
+          const components::JointType *_jointType,
+          const components::Pose *_pose,
+          const components::ParentEntity *_parentModel,
+          const components::ParentLinkName *_parentLinkName,
+          const components::ChildLinkName *_childLinkName) -> bool
+      {
+        sdf::Joint joint;
+        joint.SetName(_name->Data());
+        joint.SetType(_jointType->Data());
+        joint.SetRawPose(_pose->Data());
+
+        joint.SetParentLinkName(_parentLinkName->Data());
+        joint.SetChildLinkName(_childLinkName->Data());
+
+        auto jointAxis = _ecm.Component<components::JointAxis>(_entity);
+        auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);
+
+        if (jointAxis)
         {
-          this->newLights.push_back(
-              std::make_tuple(_entity, _light->Data(), _parent->Data()));
-          return true;
-        });
-
-    // collisions
-    _ecm.Each<components::Collision, components::Name, components::Pose,
-              components::Geometry, components::CollisionElement,
-              components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::Collision *,
-            const components::Name *,
-            const components::Pose *,
-            const components::Geometry *,
-            const components::CollisionElement *_collElement,
-            const components::ParentEntity *_parent) -> bool
+          joint.SetAxis(0, jointAxis->Data());
+        }
+        if (jointAxis2)
         {
-          this->entityCollisions[_entity] = _collElement->Data();
-          this->linkToCollisionEntities[_parent->Data()].push_back(_entity);
-          return true;
-        });
+          joint.SetAxis(1, jointAxis2->Data());
+        }
 
-    // particle emitters
-    _ecm.Each<components::ParticleEmitter, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::ParticleEmitter *_emitter,
-            const components::ParentEntity *_parent) -> bool
+        this->entityJoints[_entity] = joint;
+        this->modelToJointEntities[_parentModel->Data()].push_back(_entity);
+        return true;
+      });
+
+  // particle emitters
+  _ecm.Each<components::ParticleEmitter, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::ParticleEmitter *_emitter,
+          const components::ParentEntity *_parent) -> bool
+      {
+        this->newParticleEmitters.push_back(
+            std::make_tuple(_entity, _emitter->Data(), _parent->Data()));
+        return true;
+      });
+
+  if (this->enableSensors)
+  {
+    // Create cameras
+    _ecm.Each<components::Camera, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Camera *_camera,
+          const components::ParentEntity *_parent)->bool
         {
-          this->newParticleEmitters.push_back(
-              std::make_tuple(_entity, _emitter->Data(), _parent->Data()));
+          this->AddNewSensor(_ecm, _entity, _camera->Data(), _parent->Data(),
+                       cameraSuffix);
           return true;
         });
 
-    if (this->enableSensors)
-    {
-      // Create cameras
-      _ecm.Each<components::Camera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::Camera *_camera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _camera->Data(), _parent->Data(),
-                         cameraSuffix);
-            return true;
-          });
+    // Create depth cameras
+    _ecm.Each<components::DepthCamera, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::DepthCamera *_depthCamera,
+          const components::ParentEntity *_parent)->bool
+        {
+          this->AddNewSensor(_ecm, _entity, _depthCamera->Data(),
+              _parent->Data(), depthCameraSuffix);
+          return true;
+        });
 
-      // Create depth cameras
-      _ecm.Each<components::DepthCamera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::DepthCamera *_depthCamera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _depthCamera->Data(), _parent->Data(),
-                         depthCameraSuffix);
-            return true;
-          });
+    // Create rgbd cameras
+    _ecm.Each<components::RgbdCamera, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::RgbdCamera *_rgbdCamera,
+          const components::ParentEntity *_parent)->bool
+        {
+          this->AddNewSensor(_ecm, _entity, _rgbdCamera->Data(),
+              _parent->Data(), rgbdCameraSuffix);
+          return true;
+        });
 
-      // Create rgbd cameras
-      _ecm.Each<components::RgbdCamera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::RgbdCamera *_rgbdCamera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _rgbdCamera->Data(), _parent->Data(),
-                         rgbdCameraSuffix);
-            return true;
-          });
+    // Create gpu lidar
+    _ecm.Each<components::GpuLidar, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::GpuLidar *_gpuLidar,
+          const components::ParentEntity *_parent)->bool
+        {
+          this->AddNewSensor(_ecm, _entity, _gpuLidar->Data(), _parent->Data(),
+                       gpuLidarSuffix);
+          return true;
+        });
 
-      // Create gpu lidar
-      _ecm.Each<components::GpuLidar, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::GpuLidar *_gpuLidar,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _gpuLidar->Data(), _parent->Data(),
-                         gpuLidarSuffix);
-            return true;
-          });
+    // Create thermal camera
+    _ecm.Each<components::ThermalCamera, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::ThermalCamera *_thermalCamera,
+          const components::ParentEntity *_parent)->bool
+        {
+          this->AddNewSensor(_ecm, _entity, _thermalCamera->Data(),
+              _parent->Data(), thermalCameraSuffix);
+          return true;
+        });
 
-      // Create thermal camera
-      _ecm.Each<components::ThermalCamera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::ThermalCamera *_thermalCamera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _thermalCamera->Data(), _parent->Data(),
-                         thermalCameraSuffix);
-            return true;
-          });
-    }
-    this->initialized = true;
+    // Create segmentation cameras
+    _ecm.Each<components::SegmentationCamera, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::SegmentationCamera *_segmentationCamera,
+          const components::ParentEntity *_parent)->bool
+        {
+          this->AddNewSensor(_ecm, _entity, _segmentationCamera->Data(),
+            _parent->Data(), segmentationCameraSuffix);
+          return true;
+        });
   }
-  else
-  {
-    // Get all the new worlds
-    // TODO(anyone) Only one scene is supported for now
-    // extend the sensor system to support mutliple scenes in the future
-    _ecm.EachNew<components::World, components::Scene>(
-        [&](const Entity & _entity,
-          const components::World *,
-          const components::Scene *_scene)->bool
-        {
-          this->sceneManager.SetWorldId(_entity);
-          const sdf::Scene &sceneSdf = _scene->Data();
-          this->newScenes.push_back(sceneSdf);
-          return true;
-        });
+}
 
-    _ecm.EachNew<components::Model, components::Name, components::Pose,
-              components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::Model *,
-            const components::Name *_name,
-            const components::Pose *_pose,
-            const components::ParentEntity *_parent)->bool
-        {
-          sdf::Model model;
-          model.SetName(_name->Data());
-          model.SetRawPose(_pose->Data());
-          this->newModels.push_back(
-              std::make_tuple(_entity, model, _parent->Data(),
-              _info.iterations));
-          this->modelToModelEntities[_parent->Data()].push_back(_entity);
-          return true;
-        });
+//////////////////////////////////////////////////
+void RenderUtilPrivate::CreateEntitiesRuntime(
+    const EntityComponentManager &_ecm, const UpdateInfo &_info)
+{
+  const std::string cameraSuffix{"/image"};
+  const std::string depthCameraSuffix{"/depth_image"};
+  const std::string rgbdCameraSuffix{""};
+  const std::string thermalCameraSuffix{"/image"};
+  const std::string gpuLidarSuffix{"/scan"};
+  const std::string segmentationCameraSuffix{"/segmentation"};
 
-    _ecm.EachNew<components::Link, components::Name, components::Pose,
-              components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::Link *,
-            const components::Name *_name,
-            const components::Pose *_pose,
-            const components::ParentEntity *_parent)->bool
-        {
-          sdf::Link link;
-          link.SetName(_name->Data());
-          link.SetRawPose(_pose->Data());
-          this->newLinks.push_back(
-              std::make_tuple(_entity, link, _parent->Data()));
-          // used for collsions
-          this->modelToLinkEntities[_parent->Data()].push_back(_entity);
-          return true;
-        });
+  // Get all the new worlds
+  // TODO(anyone) Only one scene is supported for now
+  // extend the sensor system to support mutliple scenes in the future
+  _ecm.EachNew<components::World, components::Scene>(
+      [&](const Entity & _entity,
+        const components::World *,
+        const components::Scene *_scene)->bool
+      {
+        this->sceneManager.SetWorldId(_entity);
+        const sdf::Scene &sceneSdf = _scene->Data();
+        this->newScenes.push_back(sceneSdf);
+        return true;
+      });
 
-    // visuals
-    _ecm.EachNew<components::Visual, components::Name, components::Pose,
-              components::Geometry,
-              components::CastShadows,
-              components::Transparency,
-              components::VisibilityFlags,
-              components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::Visual *,
-            const components::Name *_name,
-            const components::Pose *_pose,
-            const components::Geometry *_geom,
-            const components::CastShadows *_castShadows,
-            const components::Transparency *_transparency,
-            const components::VisibilityFlags *_visibilityFlags,
-            const components::ParentEntity *_parent)->bool
-        {
-          sdf::Visual visual;
-          visual.SetName(_name->Data());
-          visual.SetRawPose(_pose->Data());
-          visual.SetGeom(_geom->Data());
-          visual.SetCastShadows(_castShadows->Data());
-          visual.SetTransparency(_transparency->Data());
-          visual.SetVisibilityFlags(_visibilityFlags->Data());
+  _ecm.EachNew<components::Model, components::Name, components::Pose,
+            components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Model *,
+          const components::Name *_name,
+          const components::Pose *_pose,
+          const components::ParentEntity *_parent)->bool
+      {
+        sdf::Model model;
+        model.SetName(_name->Data());
+        model.SetRawPose(_pose->Data());
+        this->newModels.push_back(std::make_tuple(_entity, model,
+            _parent->Data(), _info.iterations));
+        this->modelToModelEntities[_parent->Data()].push_back(_entity);
+        return true;
+      });
 
-          // Optional components
-          auto material = _ecm.Component<components::Material>(_entity);
-          if (material != nullptr)
+  _ecm.EachNew<components::Link, components::Name, components::Pose,
+            components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Link *,
+          const components::Name *_name,
+          const components::Pose *_pose,
+          const components::ParentEntity *_parent)->bool
+      {
+        sdf::Link link;
+        link.SetName(_name->Data());
+        link.SetRawPose(_pose->Data());
+        this->newLinks.push_back(
+            std::make_tuple(_entity, link, _parent->Data()));
+        // used for collsions
+        this->modelToLinkEntities[_parent->Data()].push_back(_entity);
+        // used for joints
+        this->matchLinksWithEntities[_parent->Data()][_name->Data()] =
+            _entity;
+        return true;
+      });
+
+  // visuals
+  _ecm.EachNew<components::Visual, components::Name, components::Pose,
+            components::Geometry,
+            components::CastShadows,
+            components::Transparency,
+            components::VisibilityFlags,
+            components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Visual *,
+          const components::Name *_name,
+          const components::Pose *_pose,
+          const components::Geometry *_geom,
+          const components::CastShadows *_castShadows,
+          const components::Transparency *_transparency,
+          const components::VisibilityFlags *_visibilityFlags,
+          const components::ParentEntity *_parent)->bool
+      {
+        sdf::Visual visual;
+        visual.SetName(_name->Data());
+        visual.SetRawPose(_pose->Data());
+        visual.SetGeom(_geom->Data());
+        visual.SetCastShadows(_castShadows->Data());
+        visual.SetTransparency(_transparency->Data());
+        visual.SetVisibilityFlags(_visibilityFlags->Data());
+
+        // Optional components
+        auto material = _ecm.Component<components::Material>(_entity);
+        if (material != nullptr)
+        {
+          visual.SetMaterial(material->Data());
+        }
+
+        auto laserRetro = _ecm.Component<components::LaserRetro>(_entity);
+        if (laserRetro != nullptr)
+        {
+          visual.SetLaserRetro(laserRetro->Data());
+        }
+
+        // set label
+        auto label = _ecm.Component<components::SemanticLabel>(_entity);
+        if (label != nullptr)
+        {
+          this->entityLabel[_entity] = label->Data();
+        }
+
+        if (auto temp = _ecm.Component<components::Temperature>(_entity))
+        {
+          // get the uniform temperature for the entity
+          this->entityTemp[_entity] = std::make_tuple
+              <float, float, std::string>(temp->Data().Kelvin(), 0.0, "");
+        }
+        else
+        {
+          // entity doesn't have a uniform temperature. Check if it has
+          // a heat signature with an associated temperature range
+          auto heatSignature =
+            _ecm.Component<components::SourceFilePath>(_entity);
+          auto tempRange =
+             _ecm.Component<components::TemperatureRange>(_entity);
+          if (heatSignature && tempRange)
           {
-            visual.SetMaterial(material->Data());
-          }
-
-          auto laserRetro = _ecm.Component<components::LaserRetro>(_entity);
-          if (laserRetro != nullptr)
-          {
-            visual.SetLaserRetro(laserRetro->Data());
-          }
-
-          if (auto temp = _ecm.Component<components::Temperature>(_entity))
-          {
-            // get the uniform temperature for the entity
             this->entityTemp[_entity] =
               std::make_tuple<float, float, std::string>(
-                  temp->Data().Kelvin(), 0.0, "");
+                  tempRange->Data().min.Kelvin(),
+                  tempRange->Data().max.Kelvin(),
+                  std::string(heatSignature->Data()));
           }
-          else
-          {
-            // entity doesn't have a uniform temperature. Check if it has
-            // a heat signature with an associated temperature range
-            auto heatSignature =
-              _ecm.Component<components::SourceFilePath>(_entity);
-            auto tempRange =
-               _ecm.Component<components::TemperatureRange>(_entity);
-            if (heatSignature && tempRange)
-            {
-              this->entityTemp[_entity] =
-                std::make_tuple<float, float, std::string>(
-                    tempRange->Data().min.Kelvin(),
-                    tempRange->Data().max.Kelvin(),
-                    std::string(heatSignature->Data()));
-            }
-          }
+        }
 
-          this->newVisuals.push_back(
-              std::make_tuple(_entity, visual, _parent->Data()));
-          return true;
-        });
+        this->newVisuals.push_back(
+            std::make_tuple(_entity, visual, _parent->Data()));
 
-    // actors
-    _ecm.EachNew<components::Actor, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::Actor *_actor,
-            const components::ParentEntity *_parent) -> bool
+        this->linkToVisualEntities[_parent->Data()].push_back(_entity);
+        return true;
+      });
+
+  // actors
+  _ecm.EachNew<components::Actor, components::Name, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Actor *_actor,
+          const components::Name *_name,
+          const components::ParentEntity *_parent) -> bool
+      {
+        this->newActors.push_back(
+            std::make_tuple(_entity, _actor->Data(), _name->Data(),
+              _parent->Data()));
+
+        // set label
+        auto label = _ecm.Component<components::SemanticLabel>(_entity);
+        if (label != nullptr)
         {
-          this->newActors.push_back(
-              std::make_tuple(_entity, _actor->Data(), _parent->Data()));
-          return true;
-        });
+          this->entityLabel[_entity] = label->Data();
+        }
 
-    // lights
-    _ecm.EachNew<components::Light, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::Light *_light,
-            const components::ParentEntity *_parent) -> bool
+        return true;
+      });
+
+  // lights
+  _ecm.EachNew<components::Light, components::Name, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Light *_light,
+          const components::Name *_name,
+          const components::ParentEntity *_parent) -> bool
+      {
+        this->newLights.push_back(std::make_tuple(_entity, _light->Data(),
+              _name->Data(), _parent->Data()));
+        return true;
+      });
+
+  // inertials
+  _ecm.EachNew<components::Inertial, components::Pose>(
+      [&](const Entity &_entity,
+          const components::Inertial *_inrElement,
+          const components::Pose *) -> bool
+      {
+        this->entityInertials[_entity] = _inrElement->Data();
+        return true;
+      });
+
+  // collisions
+  _ecm.EachNew<components::Collision, components::Name, components::Pose,
+            components::Geometry, components::CollisionElement,
+            components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Collision *,
+          const components::Name *,
+          const components::Pose *,
+          const components::Geometry *,
+          const components::CollisionElement *_collElement,
+          const components::ParentEntity *_parent) -> bool
+      {
+        this->entityCollisions[_entity] = _collElement->Data();
+        this->linkToCollisionEntities[_parent->Data()].push_back(_entity);
+        return true;
+      });
+
+  // joints
+  _ecm.EachNew<components::Joint, components::Name, components::JointType,
+              components::Pose, components::ParentEntity,
+              components::ParentLinkName, components::ChildLinkName>(
+      [&](const Entity &_entity,
+          const components::Joint * /* _joint */,
+          const components::Name *_name,
+          const components::JointType *_jointType,
+          const components::Pose *_pose,
+          const components::ParentEntity *_parentModel,
+          const components::ParentLinkName *_parentLinkName,
+          const components::ChildLinkName *_childLinkName) -> bool
+      {
+        sdf::Joint joint;
+        joint.SetName(_name->Data());
+        joint.SetType(_jointType->Data());
+        joint.SetRawPose(_pose->Data());
+
+        joint.SetParentLinkName(_parentLinkName->Data());
+        joint.SetChildLinkName(_childLinkName->Data());
+
+        auto jointAxis = _ecm.Component<components::JointAxis>(_entity);
+        auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);
+
+        if (jointAxis)
         {
-          this->newLights.push_back(
-              std::make_tuple(_entity, _light->Data(), _parent->Data()));
-          return true;
-        });
-
-    // collisions
-    _ecm.EachNew<components::Collision, components::Name, components::Pose,
-              components::Geometry, components::CollisionElement,
-              components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::Collision *,
-            const components::Name *,
-            const components::Pose *,
-            const components::Geometry *,
-            const components::CollisionElement *_collElement,
-            const components::ParentEntity *_parent) -> bool
+          joint.SetAxis(0, jointAxis->Data());
+        }
+        if (jointAxis2)
         {
-          this->entityCollisions[_entity] = _collElement->Data();
-          this->linkToCollisionEntities[_parent->Data()].push_back(_entity);
-          return true;
-        });
+          joint.SetAxis(1, jointAxis2->Data());
+        }
 
-    // particle emitters
-    _ecm.EachNew<components::ParticleEmitter, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::ParticleEmitter *_emitter,
-            const components::ParentEntity *_parent) -> bool
+        this->entityJoints[_entity] = joint;
+        this->modelToJointEntities[_parentModel->Data()].push_back(_entity);
+        return true;
+      });
+
+  // particle emitters
+  _ecm.EachNew<components::ParticleEmitter, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::ParticleEmitter *_emitter,
+          const components::ParentEntity *_parent) -> bool
+      {
+        this->newParticleEmitters.push_back(
+            std::make_tuple(_entity, _emitter->Data(), _parent->Data()));
+        return true;
+      });
+
+  if (this->enableSensors)
+  {
+    // Create cameras
+    _ecm.EachNew<components::Camera, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Camera *_camera,
+          const components::ParentEntity *_parent)->bool
         {
-          this->newParticleEmitters.push_back(
-              std::make_tuple(_entity, _emitter->Data(), _parent->Data()));
+          this->AddNewSensor(_ecm, _entity, _camera->Data(), _parent->Data(),
+                       cameraSuffix);
           return true;
         });
 
-    if (this->enableSensors)
-    {
-      // Create cameras
-      _ecm.EachNew<components::Camera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::Camera *_camera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _camera->Data(), _parent->Data(),
-                         cameraSuffix);
-            return true;
-          });
+    // Create depth cameras
+    _ecm.EachNew<components::DepthCamera, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::DepthCamera *_depthCamera,
+          const components::ParentEntity *_parent)->bool
+        {
+          this->AddNewSensor(_ecm, _entity, _depthCamera->Data(),
+              _parent->Data(), depthCameraSuffix);
+          return true;
+        });
 
-      // Create depth cameras
-      _ecm.EachNew<components::DepthCamera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::DepthCamera *_depthCamera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _depthCamera->Data(), _parent->Data(),
-                         depthCameraSuffix);
-            return true;
-          });
+    // Create RGBD cameras
+    _ecm.EachNew<components::RgbdCamera, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::RgbdCamera *_rgbdCamera,
+          const components::ParentEntity *_parent)->bool
+        {
+          this->AddNewSensor(_ecm, _entity, _rgbdCamera->Data(),
+              _parent->Data(), rgbdCameraSuffix);
+          return true;
+        });
 
-      // Create RGBD cameras
-      _ecm.EachNew<components::RgbdCamera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::RgbdCamera *_rgbdCamera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _rgbdCamera->Data(), _parent->Data(),
-                         rgbdCameraSuffix);
-            return true;
-          });
+    // Create gpu lidar
+    _ecm.EachNew<components::GpuLidar, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::GpuLidar *_gpuLidar,
+          const components::ParentEntity *_parent)->bool
+        {
+          this->AddNewSensor(_ecm, _entity, _gpuLidar->Data(), _parent->Data(),
+                       gpuLidarSuffix);
+          return true;
+        });
 
-      // Create gpu lidar
-      _ecm.EachNew<components::GpuLidar, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::GpuLidar *_gpuLidar,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _gpuLidar->Data(), _parent->Data(),
-                         gpuLidarSuffix);
-            return true;
-          });
+    // Create thermal camera
+    _ecm.EachNew<components::ThermalCamera, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::ThermalCamera *_thermalCamera,
+          const components::ParentEntity *_parent)->bool
+        {
+          this->AddNewSensor(_ecm, _entity, _thermalCamera->Data(),
+              _parent->Data(), thermalCameraSuffix);
+          return true;
+        });
 
-      // Create thermal camera
-      _ecm.EachNew<components::ThermalCamera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::ThermalCamera *_thermalCamera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _thermalCamera->Data(), _parent->Data(),
-                         thermalCameraSuffix);
-            return true;
-          });
-    }
+    // Create segmentation cameras
+    _ecm.EachNew<components::SegmentationCamera, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::SegmentationCamera *_segmentationCamera,
+          const components::ParentEntity *_parent)->bool
+        {
+          this->AddNewSensor(_ecm, _entity, _segmentationCamera->Data(),
+            _parent->Data(), segmentationCameraSuffix);
+          return true;
+        });
   }
 }
 
@@ -1571,6 +2228,16 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         this->entityPoses[_entity] = _pose->Data();
         return true;
       });
+
+  // Update segmentation cameras
+  _ecm.Each<components::SegmentationCamera, components::Pose>(
+      [&](const Entity &_entity,
+        const components::SegmentationCamera *,
+        const components::Pose *_pose)->bool
+      {
+        this->entityPoses[_entity] = _pose->Data();
+        return true;
+      });
 }
 
 //////////////////////////////////////////////////
@@ -1584,6 +2251,7 @@ void RenderUtilPrivate::RemoveRenderingEntities(
         this->removeEntities[_entity] = _info.iterations;
         this->modelToLinkEntities.erase(_entity);
         this->modelToModelEntities.erase(_entity);
+        this->matchLinksWithEntities.erase(_entity);
         return true;
       });
 
@@ -1591,7 +2259,28 @@ void RenderUtilPrivate::RemoveRenderingEntities(
       [&](const Entity &_entity, const components::Link *)->bool
       {
         this->removeEntities[_entity] = _info.iterations;
+        this->linkToVisualEntities.erase(_entity);
         this->linkToCollisionEntities.erase(_entity);
+
+        if (this->linkToInertiaVisuals.find(_entity) !=
+            this->linkToInertiaVisuals.end())
+        {
+          this->removeEntities[this->linkToInertiaVisuals[_entity]] =
+            _info.iterations;
+        }
+
+        if (this->linkToCOMVisuals.find(_entity) !=
+            this->linkToCOMVisuals.end())
+        {
+          this->removeEntities[this->linkToCOMVisuals[_entity]] =
+            _info.iterations;
+        }
+
+        this->linkToInertiaVisuals.erase(_entity);
+        this->viewingInertias.erase(_entity);
+        this->linkToCOMVisuals.erase(_entity);
+        this->viewingCOM.erase(_entity);
+        this->entityInertials.erase(_entity);
         return true;
       });
 
@@ -1611,6 +2300,16 @@ void RenderUtilPrivate::RemoveRenderingEntities(
         this->removeEntities[matchLightWithVisuals[_entity]] =
           _info.iterations;
         matchLightWithVisuals.erase(_entity);
+        return true;
+      });
+
+  // joints
+  _ecm.EachRemoved<components::Joint>(
+      [&](const Entity &_entity, const components::Joint *)->bool
+      {
+        this->removeEntities[_entity] = _info.iterations;
+        this->entityJoints.erase(_entity);
+        this->viewingJoints.erase(_entity);
         return true;
       });
 
@@ -1662,6 +2361,14 @@ void RenderUtilPrivate::RemoveRenderingEntities(
         return true;
       });
 
+  // segmentation cameras
+  _ecm.EachRemoved<components::SegmentationCamera>(
+    [&](const Entity &_entity, const components::SegmentationCamera *)->bool
+      {
+        this->removeEntities[_entity] = _info.iterations;
+        return true;
+      });
+
   // collisions
   _ecm.EachRemoved<components::Collision>(
     [&](const Entity &_entity, const components::Collision *)->bool
@@ -1674,8 +2381,24 @@ void RenderUtilPrivate::RemoveRenderingEntities(
 }
 
 /////////////////////////////////////////////////
+void RenderUtil::SetHeadlessRendering(const bool &_headless)
+{
+  this->dataPtr->isHeadlessRendering = _headless;
+}
+
+/////////////////////////////////////////////////
+bool RenderUtil::HeadlessRendering() const
+{
+  return this->dataPtr->isHeadlessRendering;
+}
+
+/////////////////////////////////////////////////
 void RenderUtil::Init()
 {
+  // Already initialized
+  if (nullptr != this->dataPtr->scene)
+    return;
+
   ignition::common::SystemPaths pluginPath;
   pluginPath.SetPluginPathEnv(kRenderPluginPathEnv);
   rendering::setPluginPaths(pluginPath.PluginPaths());
@@ -1683,6 +2406,8 @@ void RenderUtil::Init()
   std::map<std::string, std::string> params;
   if (this->dataPtr->useCurrentGLContext)
     params["useCurrentGLContext"] = "1";
+  if (this->dataPtr->isHeadlessRendering)
+    params["headless"] = "1";
   this->dataPtr->engine = rendering::engine(this->dataPtr->engineName, params);
   if (!this->dataPtr->engine)
   {
@@ -1777,6 +2502,14 @@ void RenderUtil::SetSceneName(const std::string &_name)
 }
 
 /////////////////////////////////////////////////
+void RenderUtil::SetScene(const rendering::ScenePtr &_scene)
+{
+  this->dataPtr->scene = _scene;
+  this->dataPtr->sceneManager.SetScene(_scene);
+  this->dataPtr->engine = _scene == nullptr ? nullptr : _scene->Engine();
+}
+
+/////////////////////////////////////////////////
 std::string RenderUtil::SceneName() const
 {
   return this->dataPtr->sceneName;
@@ -1861,15 +2594,6 @@ void RenderUtil::DeselectAllEntities()
 }
 
 /////////////////////////////////////////////////
-rendering::NodePtr RenderUtil::SelectedEntity() const
-{
-  // Return most recently selected node
-  auto node = this->dataPtr->sceneManager.NodeById(
-      this->dataPtr->selectedEntities.back());
-  return node;
-}
-
-/////////////////////////////////////////////////
 const std::vector<Entity> &RenderUtil::SelectedEntities() const
 {
   return this->dataPtr->selectedEntities;
@@ -1879,6 +2603,25 @@ const std::vector<Entity> &RenderUtil::SelectedEntities() const
 void RenderUtil::SetTransformActive(bool _active)
 {
   this->dataPtr->transformActive = _active;
+}
+
+////////////////////////////////////////////////
+void RenderUtilPrivate::UpdateVisualLabels(
+  const std::unordered_map<Entity, int> &_entityLabel)
+{
+  // set visual label
+  for (const auto &label : _entityLabel)
+  {
+    auto node = this->sceneManager.NodeById(label.first);
+    if (!node)
+      continue;
+
+    auto visual = std::dynamic_pointer_cast<rendering::Visual>(node);
+    if (!visual)
+      continue;
+
+    visual->SetUserData("label", label.second);
+  }
 }
 
 ////////////////////////////////////////////////
@@ -2216,17 +2959,11 @@ void RenderUtilPrivate::UpdateAnimation(const std::unordered_map<Entity,
 }
 
 /////////////////////////////////////////////////
-void RenderUtil::ViewCollisions(const Entity &_entity)
+std::vector<Entity> RenderUtil::FindChildLinks(const Entity &_entity)
 {
-  std::vector<Entity> colEntities;
   std::vector<Entity> links;
 
-  if (this->dataPtr->linkToCollisionEntities.find(_entity) !=
-      this->dataPtr->linkToCollisionEntities.end())
-  {
-    colEntities = this->dataPtr->linkToCollisionEntities[_entity];
-  }
-  else if (this->dataPtr->modelToLinkEntities.find(_entity) !=
+  if (this->dataPtr->modelToLinkEntities.find(_entity) !=
            this->dataPtr->modelToLinkEntities.end())
   {
     links.insert(links.end(),
@@ -2258,14 +2995,392 @@ void RenderUtil::ViewCollisions(const Entity &_entity)
     }
   }
 
+  return links;
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::HideWireboxes(const Entity &_entity)
+{
+  auto wireBoxIt = this->dataPtr->wireBoxes.find(_entity);
+  if (wireBoxIt != this->dataPtr->wireBoxes.end())
+  {
+    ignition::rendering::WireBoxPtr wireBox = wireBoxIt->second;
+    auto visParent = wireBox->Parent();
+    if (visParent)
+      visParent->SetVisible(false);
+  }
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::ViewInertia(const Entity &_entity)
+{
+  std::vector<Entity> inertiaLinks = std::move(this->FindChildLinks(_entity));
+
+  // check if _entity has an inertial component (_entity is a link)
+  if (this->dataPtr->entityInertials.find(_entity) !=
+      this->dataPtr->entityInertials.end())
+    inertiaLinks.push_back(_entity);
+
+  // create and/or toggle inertia visuals
+  bool showInertia, showInertiaInit = false;
+  // first loop looks for new inertias
+  for (const auto &inertiaLink : inertiaLinks)
+  {
+    if (this->dataPtr->viewingInertias.find(inertiaLink) ==
+        this->dataPtr->viewingInertias.end())
+    {
+      this->dataPtr->newInertias.push_back(_entity);
+      showInertiaInit = showInertia = true;
+    }
+  }
+
+  // second loop toggles already created inertias
+  for (const auto &inertiaLink : inertiaLinks)
+  {
+    if (this->dataPtr->viewingInertias.find(inertiaLink) ==
+        this->dataPtr->viewingInertias.end())
+      continue;
+
+    // when viewing multiple inertias (e.g. _entity is a model),
+    // boolean for view inertias is based on first inrEntity in list
+    if (!showInertiaInit)
+    {
+      showInertia = !this->dataPtr->viewingInertias[inertiaLink];
+      showInertiaInit = true;
+    }
+
+    Entity inertiaVisualId = this->dataPtr->linkToInertiaVisuals[inertiaLink];
+    rendering::VisualPtr inertiaVisual =
+        this->dataPtr->sceneManager.VisualById(inertiaVisualId);
+    if (inertiaVisual == nullptr)
+    {
+      ignerr << "Could not find inertia visual for entity [" << inertiaLink
+             << "]" << std::endl;
+      continue;
+    }
+
+    this->dataPtr->viewingInertias[inertiaLink] = showInertia;
+    inertiaVisual->SetVisible(showInertia);
+
+    if (showInertia)
+    {
+      // turn off wireboxes for inertia visual entity
+      this->HideWireboxes(inertiaVisualId);
+    }
+  }
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::ViewCOM(const Entity &_entity)
+{
+  std::vector<Entity> inertiaLinks = std::move(this->FindChildLinks(_entity));
+
+  // check if _entity has an inertial component (_entity is a link)
+  if (this->dataPtr->entityInertials.find(_entity) !=
+      this->dataPtr->entityInertials.end())
+    inertiaLinks.push_back(_entity);
+
+  // create and/or toggle center of mass visuals
+  bool showCOM, showCOMInit = false;
+  // first loop looks for new center of mass visuals
+  for (const auto &inertiaLink : inertiaLinks)
+  {
+    if (this->dataPtr->viewingCOM.find(inertiaLink) ==
+        this->dataPtr->viewingCOM.end())
+    {
+      this->dataPtr->newCOMVisuals.push_back(_entity);
+      showCOMInit = showCOM = true;
+    }
+  }
+
+  // second loop toggles already created center of mass visuals
+  for (const auto &inertiaLink : inertiaLinks)
+  {
+    if (this->dataPtr->viewingCOM.find(inertiaLink) ==
+        this->dataPtr->viewingCOM.end())
+      continue;
+
+    // when viewing multiple center of mass visuals (e.g. _entity is a model),
+    // boolean for view center of mass is based on first inertiaEntity in list
+    if (!showCOMInit)
+    {
+      showCOM = !this->dataPtr->viewingCOM[inertiaLink];
+      showCOMInit = true;
+    }
+
+    Entity comVisualId = this->dataPtr->linkToCOMVisuals[inertiaLink];
+    rendering::VisualPtr comVisual =
+        this->dataPtr->sceneManager.VisualById(comVisualId);
+    if (comVisual == nullptr)
+    {
+      ignerr << "Could not find center of mass visual for entity ["
+             << inertiaLink
+             << "]" << std::endl;
+      continue;
+    }
+
+    this->dataPtr->viewingCOM[inertiaLink] = showCOM;
+    comVisual->SetVisible(showCOM);
+
+    if (showCOM)
+    {
+      // turn off wireboxes for CoM visual entity
+      this->HideWireboxes(comVisualId);
+    }
+  }
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::ViewJoints(const Entity &_entity)
+{
+  std::vector<Entity> jointEntities;
+  if (this->dataPtr->modelToJointEntities.find(_entity) !=
+           this->dataPtr->modelToJointEntities.end())
+  {
+    jointEntities.insert(jointEntities.end(),
+        this->dataPtr->modelToJointEntities[_entity].begin(),
+        this->dataPtr->modelToJointEntities[_entity].end());
+  }
+
+  if (this->dataPtr->modelToModelEntities.find(_entity) !=
+      this->dataPtr->modelToModelEntities.end())
+  {
+    std::stack<Entity> modelStack;
+    modelStack.push(_entity);
+
+    std::vector<Entity> childModels;
+    while (!modelStack.empty())
+    {
+      Entity model = modelStack.top();
+      modelStack.pop();
+
+      jointEntities.insert(jointEntities.end(),
+          this->dataPtr->modelToJointEntities[model].begin(),
+          this->dataPtr->modelToJointEntities[model].end());
+
+      childModels = this->dataPtr->modelToModelEntities[model];
+      for (const auto &childModel : childModels)
+      {
+        modelStack.push(childModel);
+      }
+    }
+  }
+
+  // Toggle joints
+  bool showJoint, showJointInit = false;
+
+  // first loop looks for new joints
+  for (const auto &jointEntity : jointEntities)
+  {
+    if (this->dataPtr->viewingJoints.find(jointEntity) ==
+        this->dataPtr->viewingJoints.end())
+    {
+      this->dataPtr->newJoints.push_back(_entity);
+      showJointInit = showJoint = true;
+    }
+  }
+
+  // second loop toggles joints
+  for (const auto &jointEntity : jointEntities)
+  {
+    if (this->dataPtr->viewingJoints.find(jointEntity) ==
+        this->dataPtr->viewingJoints.end())
+      continue;
+
+    // when viewing multiple joints (e.g. _entity is a model),
+    // boolean for view joints is based on first jointEntity in list
+    if (!showJointInit)
+    {
+      showJoint = !this->dataPtr->viewingJoints[jointEntity];
+      showJointInit = true;
+    }
+
+    rendering::VisualPtr jointVisual =
+        this->dataPtr->sceneManager.VisualById(jointEntity);
+    if (jointVisual == nullptr)
+    {
+      ignerr << "Could not find visual for entity [" << jointEntity
+             << "]" << std::endl;
+      continue;
+    }
+
+    this->dataPtr->viewingJoints[jointEntity] = showJoint;
+    jointVisual->SetVisible(showJoint);
+
+    if (showJoint)
+    {
+      // turn off wireboxes for joint visual entity
+      this->HideWireboxes(jointEntity);
+    }
+  }
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::ViewTransparent(const Entity &_entity)
+{
+  std::vector<Entity> visEntities;
+
+  if (this->dataPtr->linkToVisualEntities.find(_entity) !=
+      this->dataPtr->linkToVisualEntities.end())
+  {
+    visEntities = this->dataPtr->linkToVisualEntities[_entity];
+  }
+
+  // Find all existing child links for this entity
+  std::vector<Entity> links = std::move(this->FindChildLinks(_entity));
+
   for (const auto &link : links)
+  {
+    visEntities.insert(visEntities.end(),
+        this->dataPtr->linkToVisualEntities[link].begin(),
+        this->dataPtr->linkToVisualEntities[link].end());
+  }
+
+  // Toggle transparent mode
+  bool showTransparent, showTransparentInit = false;
+
+  // first loop looks for new transparent entities
+  for (const auto &visEntity : visEntities)
+  {
+    if (this->dataPtr->viewingTransparent.find(visEntity) ==
+        this->dataPtr->viewingTransparent.end())
+    {
+      this->dataPtr->newTransparentEntities.push_back(_entity);
+      showTransparentInit = showTransparent = true;
+    }
+  }
+
+  // second loop toggles transparent mode
+  for (const auto &visEntity : visEntities)
+  {
+    if (this->dataPtr->viewingTransparent.find(visEntity) ==
+        this->dataPtr->viewingTransparent.end())
+      continue;
+
+    // when viewing multiple transparent visuals (e.g. _entity is a model),
+    // boolean for view as transparent is based on first visEntity in list
+    if (!showTransparentInit)
+    {
+      showTransparent = !this->dataPtr->viewingTransparent[visEntity];
+      showTransparentInit = true;
+    }
+
+    rendering::VisualPtr transparentVisual =
+        this->dataPtr->sceneManager.VisualById(visEntity);
+    if (transparentVisual == nullptr)
+    {
+      ignerr << "Could not find visual for entity [" << visEntity
+             << "]" << std::endl;
+      continue;
+    }
+
+    this->dataPtr->viewingTransparent[visEntity] = showTransparent;
+
+    this->dataPtr->sceneManager.UpdateTransparency(transparentVisual,
+              showTransparent);
+
+    if (showTransparent)
+    {
+      // turn off wireboxes for visual entity
+      this->HideWireboxes(visEntity);
+    }
+  }
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::ViewWireframes(const Entity &_entity)
+{
+  std::vector<Entity> visEntities;
+
+  if (this->dataPtr->linkToVisualEntities.find(_entity) !=
+      this->dataPtr->linkToVisualEntities.end())
+  {
+    visEntities = this->dataPtr->linkToVisualEntities[_entity];
+  }
+
+  // Find all existing child links for this entity
+  std::vector<Entity> links = std::move(this->FindChildLinks(_entity));
+
+  for (const auto &link : links)
+  {
+    visEntities.insert(visEntities.end(),
+        this->dataPtr->linkToVisualEntities[link].begin(),
+        this->dataPtr->linkToVisualEntities[link].end());
+  }
+
+  // Toggle wireframes
+  bool showWireframe, showWireframeInit = false;
+
+  // first loop looks for new wireframes
+  for (const auto &visEntity : visEntities)
+  {
+    if (this->dataPtr->viewingWireframes.find(visEntity) ==
+        this->dataPtr->viewingWireframes.end())
+    {
+      this->dataPtr->newWireframes.push_back(_entity);
+      showWireframeInit = showWireframe = true;
+    }
+  }
+
+  // second loop toggles wireframes
+  for (const auto &visEntity : visEntities)
+  {
+    if (this->dataPtr->viewingWireframes.find(visEntity) ==
+        this->dataPtr->viewingWireframes.end())
+      continue;
+
+    // when viewing multiple wireframes (e.g. _entity is a model),
+    // boolean for view wireframe is based on first visEntity in list
+    if (!showWireframeInit)
+    {
+      showWireframe = !this->dataPtr->viewingWireframes[visEntity];
+      showWireframeInit = true;
+    }
+
+    rendering::VisualPtr wireframeVisual =
+        this->dataPtr->sceneManager.VisualById(visEntity);
+    if (wireframeVisual == nullptr)
+    {
+      ignerr << "Could not find visual for entity [" << visEntity
+             << "]" << std::endl;
+      continue;
+    }
+
+    this->dataPtr->viewingWireframes[visEntity] = showWireframe;
+    wireframeVisual->SetWireframe(showWireframe);
+
+    if (showWireframe)
+    {
+      // turn off wireboxes for visual entity
+      this->HideWireboxes(visEntity);
+    }
+  }
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::ViewCollisions(const Entity &_entity)
+{
+  std::vector<Entity> colEntities;
+
+  if (this->dataPtr->linkToCollisionEntities.find(_entity) !=
+      this->dataPtr->linkToCollisionEntities.end())
+  {
+    colEntities = this->dataPtr->linkToCollisionEntities[_entity];
+  }
+
+  // Find all existing child links for this entity
+  std::vector<Entity> links = std::move(this->FindChildLinks(_entity));
+
+  for (const auto &link : links)
+  {
     colEntities.insert(colEntities.end(),
         this->dataPtr->linkToCollisionEntities[link].begin(),
         this->dataPtr->linkToCollisionEntities[link].end());
+  }
 
   // create and/or toggle collision visuals
-
   bool showCol, showColInit = false;
+
   // first loop looks for new collisions
   for (const auto &colEntity : colEntities)
   {
@@ -2306,16 +3421,7 @@ void RenderUtil::ViewCollisions(const Entity &_entity)
 
     if (showCol)
     {
-      // turn off wireboxes for collision entity
-      if (this->dataPtr->wireBoxes.find(colEntity)
-            != this->dataPtr->wireBoxes.end())
-      {
-        ignition::rendering::WireBoxPtr wireBox =
-          this->dataPtr->wireBoxes[colEntity];
-        auto visParent = wireBox->Parent();
-        if (visParent)
-          visParent->SetVisible(false);
-      }
+      this->HideWireboxes(colEntity);
     }
   }
 }

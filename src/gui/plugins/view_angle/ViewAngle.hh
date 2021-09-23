@@ -34,6 +34,8 @@ namespace gazebo
   ///
   /// ## Configuration
   /// \<service\> : Set the service to receive view angle requests.
+  /// \<legacy\> : Set to true to use with GzScene3D, false to use with
+  /// MinimalScene. Defaults to true.
   class ViewAngle : public ignition::gui::Plugin
   {
     Q_OBJECT
@@ -54,6 +56,9 @@ namespace gazebo
     // Documentation inherited
     public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
+    // Documentation inherited
+    private: bool eventFilter(QObject *_obj, QEvent *_event) override;
+
     /// \brief Callback in Qt thread when angle mode changes.
     /// \param[in] _x The x component of the directional vector for the camera
     /// to assume.  All 0s for x, y, and z indicate the initial camera pose.
@@ -62,6 +67,10 @@ namespace gazebo
     /// \param[in] _z The z component of the directional vector for the camera
     /// to assume.  All 0s for x, y, and z indicate the initial camera pose.
     public slots: void OnAngleMode(int _x, int _y, int _z);
+
+    /// \brief Callback in Qt thread when camera view controller changes.
+    /// \param[in] _mode New camera view controller
+    public slots: void OnViewControl(const QString &_controller);
 
     /// \brief Get the current gui camera pose.
     public: Q_INVOKABLE QList<double> CamPose() const;
