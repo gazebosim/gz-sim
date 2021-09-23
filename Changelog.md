@@ -1,6 +1,6 @@
 ## Ignition Gazebo 4.x
 
-### Ignition Gazebo 4.11.x (202x-xx-xx)
+### Ignition Gazebo 4.11.x (2021-09-23)
 
 1. Support locked entities, and headless video recording using sim time.
     * [Pull Request 862](https://github.com/ignitionrobotics/ign-gazebo/pull/862)
