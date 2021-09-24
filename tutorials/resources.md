@@ -61,7 +61,7 @@ Ignition will look for GUI plugins on the following paths, in order:
 1. All paths set on the `IGN_GUI_PLUGIN_PATH` environment variable
 2. [GUI plugins that are installed with Ignition Gazebo](https://github.com/ignitionrobotics/ign-gazebo/tree/main/src/gui/plugins)
 3. Other paths added by calling `ignition::gui::App()->AddPluginPath`
-4. `~/.ignition/gui/plugins`
+4. `~/.ignition/gui/<#>/plugins`
 5. [Plugins which are installed with Ignition GUI](https://ignitionrobotics.org/api/gui/4.2/namespaceignition_1_1gui_1_1plugins.html)
 
 ### Physics engines
@@ -152,7 +152,7 @@ can come from the following, in order:
 
 1. The command line option `--gui-config <file path>`
 2. Plugins within SDF's `<world><gui>`
-3. `$HOME/.ignition/gazebo/gui.config` (if that file doesn't
+3. `$HOME/.ignition/gazebo/<#>/gui.config` (if that file doesn't
 exist, the default `gui.config` file that is installed with Ignition Gazebo
 will be copied to that location)
 

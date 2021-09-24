@@ -65,6 +65,9 @@ since pose information is being logged in the `changed_state` topic.
       + `TransformControl`: Translate and rotate
       + `ViewAndle`: Move camera to preset angles
 
+* The `gui.config` and `server.config` files are now located in a versioned
+  folder inside `$HOME/.ignition/gazebo`, i.e. `$HOME/.ignition/gazebo/6/gui.config`.
+
 ## Ignition Gazebo 4.x to 5.x
 
 * Use `cli` component of `ignition-utils1`.
