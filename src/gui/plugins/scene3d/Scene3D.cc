@@ -1232,7 +1232,7 @@ bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
     sdf::Model model = *(_sdf.Model());
     this->dataPtr->spawnPreviewPose = model.RawPose();
     model.SetName(ignition::common::Uuid().String());
-    Entity modelId = this->UniqueId();
+    Entity modelId = this->dataPtr->renderUtil.SceneManager().UniqueId();
     if (!modelId)
     {
       this->TerminateSpawnPreview();
@@ -1248,7 +1248,7 @@ bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
     {
       sdf::Link link = *(model.LinkByIndex(j));
       link.SetName(ignition::common::Uuid().String());
-      Entity linkId = this->UniqueId();
+      Entity linkId = this->dataPtr->renderUtil.SceneManager().UniqueId();
       if (!linkId)
       {
         this->TerminateSpawnPreview();
@@ -1261,7 +1261,7 @@ bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
       {
        sdf::Visual visual = *(link.VisualByIndex(k));
        visual.SetName(ignition::common::Uuid().String());
-       Entity visualId = this->UniqueId();
+       Entity visualId = this->dataPtr->renderUtil.SceneManager().UniqueId();
        if (!visualId)
        {
          this->TerminateSpawnPreview();
@@ -1279,13 +1279,13 @@ bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
     sdf::Light light = *(_sdf.Light());
     this->dataPtr->spawnPreviewPose = light.RawPose();
     light.SetName(ignition::common::Uuid().String());
-    Entity lightVisualId = this->UniqueId();
+    Entity lightVisualId = this->dataPtr->renderUtil.SceneManager().UniqueId();
     if (!lightVisualId)
     {
       this->TerminateSpawnPreview();
       return false;
     }
-    Entity lightId = this->UniqueId();
+    Entity lightId = this->dataPtr->renderUtil.SceneManager().UniqueId();
     if (!lightId)
     {
       this->TerminateSpawnPreview();
@@ -1310,17 +1310,34 @@ bool IgnRenderer::GeneratePreview(const std::string &_name)
   // Terminate any pre-existing spawned entities
   this->TerminateSpawnPreview();
 
-  Entity visualId = this->UniqueId();
+  Entity visualId = this->dataPtr->renderUtil.SceneManager().UniqueId();
   if (!visualId)
   {
     this->TerminateSpawnPreview();
     return false;
   }
 
-  this->dataPtr->spawnPreview =
+  auto visualChildrenPair =
     this->dataPtr->renderUtil.SceneManager().CopyVisual(visualId,
         _name, this->dataPtr->renderUtil.SceneManager().WorldId());
+  if (!visualChildrenPair.first)
+  {
+    ignerr << "Copying a visual named " << _name << "failed.\n";
+    return false;
+  }
+
+  this->dataPtr->spawnPreview = visualChildrenPair.first;
   this->dataPtr->spawnPreviewPose = this->dataPtr->spawnPreview->WorldPose();
+
+  // save the copied chiled IDs before saving the copied parent visual ID in
+  // order to ensure that the child visuals get deleted before the parent visual
+  // (since the SceneManager::RemoveEntity call in this->TerminateSpawnPreview()
+  // isn't recursive, deleting the parent visual before the child visuals could
+  // result in dangling child visuals)
+  const auto &visualChildIds = visualChildrenPair.second;
+  for (auto reverse_it = visualChildIds.rbegin();
+      reverse_it != visualChildIds.rend(); ++reverse_it)
+    this->dataPtr->previewIds.push_back(*reverse_it);
   this->dataPtr->previewIds.push_back(visualId);
 
   return true;
@@ -1333,19 +1350,6 @@ void IgnRenderer::TerminateSpawnPreview()
     this->dataPtr->renderUtil.SceneManager().RemoveEntity(_id);
   this->dataPtr->previewIds.clear();
   this->dataPtr->isPlacing = false;
-}
-
-/////////////////////////////////////////////////
-Entity IgnRenderer::UniqueId()
-{
-  auto timeout = 100000u;
-  for (auto i = 0u; i < timeout; ++i)
-  {
-    Entity id = std::numeric_limits<uint64_t>::max() - i;
-    if (!this->dataPtr->renderUtil.SceneManager().HasEntity(id))
-      return id;
-  }
-  return kNullEntity;
 }
 
 /////////////////////////////////////////////////

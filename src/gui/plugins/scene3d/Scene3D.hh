@@ -495,10 +495,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Broadcasts a right click within the scene
     private: void BroadcastRightClick();
 
-    /// \brief Generate a unique entity id.
-    /// \return The unique entity id
-    private: Entity UniqueId();
-
     /// \brief Generate a preview of a resource.
     /// \param[in] _sdf The SDF to be previewed.
     /// \return True on success, false if failure

@@ -77,6 +77,10 @@ class ignition::gazebo::SceneManagerPrivate
   //// \brief Pointer to the rendering scene
   public: rendering::ScenePtr scene;
 
+  // TODO(adlarkin) make these maps std::unordered_map for better performance?
+  // If so, this can probably be done in an earlier version and then
+  // forward-ported
+
   /// \brief Map of visual entity in Gazebo to visual pointers.
   public: std::map<Entity, rendering::VisualPtr> visuals;
 
@@ -402,17 +406,18 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
 }
 
 /////////////////////////////////////////////////
-rendering::VisualPtr SceneManager::CopyVisual(Entity _id,
-    const std::string &_visual, Entity _parentId)
+std::pair<rendering::VisualPtr, std::vector<Entity>> SceneManager::CopyVisual(
+    Entity _id, const std::string &_visual, Entity _parentId)
 {
+  std::pair<rendering::VisualPtr, std::vector<Entity>> result;
   if (!this->dataPtr->scene)
-    return rendering::VisualPtr();
+    return result;
 
   if (this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end())
   {
     ignerr << "Entity with Id: [" << _id << "] already exists in the scene"
            << std::endl;
-    return rendering::VisualPtr();
+    return result;
   }
 
   rendering::VisualPtr originalVisual =
@@ -422,7 +427,7 @@ rendering::VisualPtr SceneManager::CopyVisual(Entity _id,
   {
     ignerr << "Could not find a node with the name [" << _visual
            << "] in the scene." << std::endl;
-    return rendering::VisualPtr();
+    return result;
   }
 
   auto name = originalVisual->Name() + "::" + std::to_string(_id);
@@ -437,7 +442,7 @@ rendering::VisualPtr SceneManager::CopyVisual(Entity _id,
              << "Not adding visual with ID [" << _id
              << "] and name [" << name << "] to the rendering scene."
              << std::endl;
-      return rendering::VisualPtr();
+      return result;
     }
     parent = it->second;
   }
@@ -448,18 +453,71 @@ rendering::VisualPtr SceneManager::CopyVisual(Entity _id,
   if (this->dataPtr->scene->HasVisualName(name))
   {
     ignerr << "Visual: [" << name << "] already exists" << std::endl;
-    return rendering::VisualPtr();
+    return result;
   }
 
   auto clonedVisual = originalVisual->Clone(name, parent);
-  clonedVisual->SetUserData("gazebo-entity", static_cast<int>(_id));
-  clonedVisual->SetUserData("pause-update", static_cast<int>(0));
   this->dataPtr->visuals[_id] = clonedVisual;
 
-  if (!parent)
-    this->dataPtr->scene->RootVisual()->AddChild(clonedVisual);
+  // The Clone call above also clones any child visuals that exist, so we need
+  // to keep track of these new child visuals as well. We get a level order
+  // listing of all visuals associated with the newly copied visual
+  bool childrenTracked = true;
+  std::queue<Entity> remainingVisuals;
+  remainingVisuals.push(_id);
+  std::vector<Entity> childVisualIds;
+  while (!remainingVisuals.empty())
+  {
+    const auto topLevelId = remainingVisuals.front();
+    remainingVisuals.pop();
+    const auto visual = this->dataPtr->visuals[topLevelId];
+    for (auto i = 0u; i < visual->ChildCount(); ++i)
+    {
+      auto childId = this->UniqueId();
+      if (!childId)
+      {
+        ignerr << "Unable to create an entity ID for the copied visual's child, "
+               << "so the copied visual will be deleted.\n";
+        childrenTracked = false;
+        break;
+      }
+      auto childVisual = std::dynamic_pointer_cast<rendering::Visual>(
+          visual->ChildByIndex(i));
+      if (!childVisual)
+      {
+        ignerr << "Unable to retrieve a child visual of the copied visual, "
+               << "so the copied visual will be deleted.\n";
+        childrenTracked = false;
+        break;
+      }
 
-  return clonedVisual;
+      this->dataPtr->visuals[childId] = childVisual;
+      childVisual->SetUserData("gazebo-entity", static_cast<int>(childId));
+      childVisual->SetUserData("pause-update", static_cast<int>(0));
+      childVisualIds.push_back(childId);
+
+      remainingVisuals.push(childId);
+    }
+  }
+
+  if (!childrenTracked)
+  {
+    this->dataPtr->scene->DestroyVisual(clonedVisual, true);
+    for (const auto id : childVisualIds)
+      this->dataPtr->visuals.erase(id);
+  }
+  else
+  {
+    clonedVisual->SetUserData("gazebo-entity", static_cast<int>(_id));
+    clonedVisual->SetUserData("pause-update", static_cast<int>(0));
+
+    result = {clonedVisual, std::move(childVisualIds)};
+
+    if (!parent)
+      this->dataPtr->scene->RootVisual()->AddChild(clonedVisual);
+  }
+
+  return result;
 }
 
 /////////////////////////////////////////////////
@@ -1906,6 +1964,7 @@ void SceneManager::RemoveEntity(Entity _id)
       this->dataPtr->visuals.erase(it);
       return;
     }
+    ignerr << "failed to remove a visual with id of " << _id << "\n";
   }
 
   {
@@ -2083,6 +2142,20 @@ void SceneManager::UpdateJointParentPose(Entity _jointId)
     // scale parent axis visual to the child
     auto childScale = jointVisual->LocalScale();
     jointVisual->ParentAxisVisual()->SetLocalScale(childScale);
+  }
+}
+
+/////////////////////////////////////////////////
+Entity SceneManager::UniqueId() const
+{
+  auto id = std::numeric_limits<uint64_t>::max();
+  while (true)
+  {
+    if (!this->HasEntity(id))
+      return id;
+    else if (id == 0u)
+      return kNullEntity;
+    --id;
   }
 }
 

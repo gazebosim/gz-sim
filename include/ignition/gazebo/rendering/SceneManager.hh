@@ -131,9 +131,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _id Unique visual id of the copied visual
     /// \param[in] _visual Name of the visual to copy
     /// \param[in] _parentId Parent id of the copied visual
-    /// \return Copied visual object
-    public: rendering::VisualPtr CopyVisual(Entity _id,
-        const std::string &_visual, Entity _parentId = 0);
+    /// \return A pair with the first element being the copied visual object,
+    /// and the second element being a list of the entity IDs for the copied
+    /// visual's children, in level order. If copying the visual failed, the
+    /// first element will be nullptr. If the copied visual has no children, the
+    /// second element will be empty.
+    public: std::pair<rendering::VisualPtr, std::vector<Entity>> CopyVisual(
+                Entity _id, const std::string &_visual, Entity _parentId = 0);
 
     /// \brief Create a visual
     /// \param[in] _id Unique visual id
@@ -323,6 +327,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// according to its child.
     /// \param[in] _jointId Joint visual id.
     public: void UpdateJointParentPose(Entity _jointId);
+
+    /// \brief Create a unique entity ID
+    /// \return A unique entity ID. kNullEntity is returned if no unique entity
+    /// IDs are available
+    public: Entity UniqueId() const;
 
     /// \internal
     /// \brief Pointer to private data class
