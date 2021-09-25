@@ -71,16 +71,14 @@ void EntityContextMenuPrivate::OnRender()
     {
       auto cam = std::dynamic_pointer_cast<rendering::Camera>(
         this->scene->NodeByIndex(i));
-      if (cam)
+      if (cam && cam->HasUserData("user-camera") &&
+          std::get<bool>(cam->UserData("user-camera")))
       {
-        if (std::get<bool>(cam->UserData("user-camera")))
-        {
-          this->camera = cam;
+        this->camera = cam;
 
-          igndbg << "Entity context menu plugin is using camera ["
-                 << this->camera->Name() << "]" << std::endl;
-          break;
-        }
+        igndbg << "Entity context menu plugin is using camera ["
+               << this->camera->Name() << "]" << std::endl;
+        break;
       }
     }
   }
