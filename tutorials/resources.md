@@ -152,7 +152,7 @@ can come from the following, in order:
 
 1. The command line option `--gui-config <file path>`
 2. Plugins within SDF's `<world><gui>`
-3. `$HOME/.ignition/gazebo/gui.config` (if that file doesn't
+3. `$HOME/.ignition/gazebo/<#>/gui.config` (if that file doesn't
 exist, the default `gui.config` file that is installed with Ignition Gazebo
 will be copied to that location)
 
