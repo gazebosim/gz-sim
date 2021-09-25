@@ -13,7 +13,8 @@ There are a few places where the GUI configuration can come from:
 
 1. A file passed to the `--gui-config` command line argument
 2. A `<gui>` element inside an SDF file
-3. The default configuration file at `$HOME/.ignition/gazebo/gui.config` \*
+3. The default configuration file at `$HOME/.ignition/gazebo/<#>/gui.config` \*,
+   where `<#>` is Gazebo's major version.
 
 Each of the items above takes precedence over the ones below it. For example,
 if a user chooses a `--gui-config`, the SDF's `<gui>` element is ignored. And
@@ -21,7 +22,7 @@ the default configuration file is only loaded if no configuration is passed
 through the command line or the SDF file.
 
 > \* For log-playback, the default file is
-> `$HOME/.ignition/gazebo/playback_gui.config`
+> `$HOME/.ignition/gazebo/<#>/playback_gui.config`
 
 ## Try it out
 
@@ -39,7 +40,7 @@ You should see an empty world with several plugins loaded by default, such as th
 
 By default, you're loading this file:
 
-`$HOME/.ignition/gazebo/gui.config`
+`$HOME/.ignition/gazebo/<#>/gui.config`
 
 That file is created the first time you load Ignition Gazebo. Once it is
 created, Ignition will never write to it again unless you delete it. This
@@ -50,7 +51,7 @@ Let's try customizing it:
 
 1. Open this file with your favorite editor:
 
-    `$HOME/.ignition/gazebo/gui.config`
+    `$HOME/.ignition/gazebo/<#>/gui.config`
 
 2. Change `material_theme` from `Light` to `Dark`
 
@@ -67,7 +68,7 @@ provided by Ignition (when you update to a newer version for example). In
 that case, just delete that file, and the next time Gazebo is started a new file
 will be created with default values:
 
-`rm $HOME/.ignition/gazebo/gui.config`
+`rm $HOME/.ignition/gazebo/<#>/gui.config`
 
 ### SDF
 
@@ -168,7 +169,7 @@ hand, we'll create it from the UI.
 3. Gazebo should open with your custom layout.
 
 **Tip**: From the top-left menu, you can choose "Save client configuration" to
-save directly to `$HOME/.ignition/gazebo/gui.config`.
+save directly to `$HOME/.ignition/gazebo/<#>/gui.config`.
 
 @image html files/gui_config/cmd_line.png
 

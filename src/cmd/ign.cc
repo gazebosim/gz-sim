@@ -231,7 +231,7 @@ extern "C" int runGui(const char *_guiConfig)
   std::string defaultConfig;
   ignition::common::env(IGN_HOMEDIR, defaultConfig);
   defaultConfig = ignition::common::joinPaths(defaultConfig, ".ignition",
-      "gazebo", "gui.config");
+      "gazebo", IGNITION_GAZEBO_MAJOR_VERSION_STR, "gui.config");
   app.SetDefaultConfigPath(defaultConfig);
 
   // Customize window
@@ -418,7 +418,7 @@ extern "C" int runGui(const char *_guiConfig)
       }
     }
 
-    // Also set ~/.ignition/gazebo/gui.config as the default path
+    // Also set ~/.ignition/gazebo/ver/gui.config as the default path
     if (!app.LoadConfig(defaultConfig))
     {
       ignerr << "Failed to load config file[" << _guiConfig << "]."
