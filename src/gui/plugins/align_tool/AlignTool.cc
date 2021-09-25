@@ -365,7 +365,7 @@ void AlignTool::Align()
         continue;
 
       if (vis->HasUserData("gazebo-entity") &&
-          std::get<int>(vis->UserData("gazebo-entity")) == 
+          std::get<int>(vis->UserData("gazebo-entity")) ==
           static_cast<int>(entityId))
       {
         // Check here to see if visual is top level or not, continue if not
