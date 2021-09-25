@@ -528,6 +528,7 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     rendering::HeightmapDescriptor descriptor;
     descriptor.SetData(data);
     descriptor.SetSize(_geom.HeightmapShape()->Size());
+    descriptor.SetPosition(_geom.HeightmapShape()->Position());
     descriptor.SetSampling(_geom.HeightmapShape()->Sampling());
 
     for (uint64_t i = 0; i < _geom.HeightmapShape()->TextureCount(); ++i)
