@@ -536,10 +536,10 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
       auto textureSdf = _geom.HeightmapShape()->TextureByIndex(i);
       rendering::HeightmapTexture textureDesc;
       textureDesc.SetSize(textureSdf->Size());
-      textureDesc.SetDiffuse(asFullPath(textureSdf->Diffuse(),
-          _geom.HeightmapShape()->FilePath()));
-      textureDesc.SetNormal(asFullPath(textureSdf->Normal(),
-          _geom.HeightmapShape()->FilePath()));
+      textureDesc.SetDiffuse(common::findFile(asFullPath(textureSdf->Diffuse(),
+          _geom.HeightmapShape()->FilePath())));
+      textureDesc.SetNormal(common::findFile(asFullPath(textureSdf->Normal(),
+          _geom.HeightmapShape()->FilePath())));
       descriptor.AddTexture(textureDesc);
     }
 
