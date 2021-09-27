@@ -38,6 +38,9 @@ endif()
 # Search for project-specific dependencies
 #============================================================================
 
+# Setting this policy enables using the protobuf_MODULE_COMPATIBLE
+# set command in CMake versions older than 13.13
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 # This option is needed to use the PROTOBUF_GENERATE_CPP
 # in case protobuf is found with the CMake config files
 # It needs to be set before any find_package(...) call
