@@ -45,6 +45,13 @@ class ignition::gazebo::EntityComponentManagerPrivate
   public: void InsertEntityRecursive(Entity _entity,
       std::unordered_set<Entity> &_set);
 
+  /// \brief Recursively erase an entity and all its descendants from a given
+  /// set.
+  /// \param[in] _entity Entity to be erased.
+  /// \param[in, out] _set Set to erase from.
+  public: void EraseEntityRecursive(Entity _entity,
+      std::unordered_set<Entity> &_set);
+
   /// \brief Register a new component type.
   /// \param[in] _typeId Type if of the new component.
   /// \return True if created successfully.
@@ -156,6 +163,9 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// which belongs the component, and the value is the component being
   /// removed.
   std::unordered_multimap<Entity, ComponentKey> removedComponents;
+
+  /// \brief Set of entities that are prevented from removal.
+  public: std::unordered_set<Entity> pinnedEntities;
 };
 
 //////////////////////////////////////////////////
@@ -237,6 +247,17 @@ void EntityComponentManagerPrivate::InsertEntityRecursive(Entity _entity,
 }
 
 /////////////////////////////////////////////////
+void EntityComponentManagerPrivate::EraseEntityRecursive(Entity _entity,
+    std::unordered_set<Entity> &_set)
+{
+  for (const auto &vertex : this->entities.AdjacentsFrom(_entity))
+  {
+    this->EraseEntityRecursive(vertex.first, _set);
+  }
+  _set.erase(_entity);
+}
+
+/////////////////////////////////////////////////
 void EntityComponentManager::RequestRemoveEntity(Entity _entity,
     bool _recursive)
 {
@@ -250,6 +271,23 @@ void EntityComponentManager::RequestRemoveEntity(Entity _entity,
   else
   {
     this->dataPtr->InsertEntityRecursive(_entity, tmpToRemoveEntities);
+  }
+
+  // Remove entities from tmpToRemoveEntities that are marked as
+  // unremovable.
+  for (auto iter = tmpToRemoveEntities.begin();
+       iter != tmpToRemoveEntities.end();)
+  {
+    if (std::find(this->dataPtr->pinnedEntities.begin(),
+                  this->dataPtr->pinnedEntities.end(), *iter) !=
+               this->dataPtr->pinnedEntities.end())
+    {
+      iter = tmpToRemoveEntities.erase(iter);
+    }
+    else
+    {
+      ++iter;
+    }
   }
 
   {
@@ -267,11 +305,41 @@ void EntityComponentManager::RequestRemoveEntity(Entity _entity,
 /////////////////////////////////////////////////
 void EntityComponentManager::RequestRemoveEntities()
 {
+  if (this->dataPtr->pinnedEntities.empty())
   {
-    std::lock_guard<std::mutex> lock(this->dataPtr->entityRemoveMutex);
-    this->dataPtr->removeAllEntities = true;
+    {
+      std::lock_guard<std::mutex> lock(this->dataPtr->entityRemoveMutex);
+      this->dataPtr->removeAllEntities = true;
+    }
+    this->RebuildViews();
   }
-  this->RebuildViews();
+  else
+  {
+    std::unordered_set<Entity> tmpToRemoveEntities;
+
+    // Store the to-be-removed entities in a temporary set so we can call
+    // UpdateViews on each of them
+    for (const auto &vertex : this->dataPtr->entities.Vertices())
+    {
+      if (std::find(this->dataPtr->pinnedEntities.begin(),
+                    this->dataPtr->pinnedEntities.end(), vertex.first) ==
+          this->dataPtr->pinnedEntities.end())
+      {
+        tmpToRemoveEntities.insert(vertex.first);
+      }
+    }
+
+    {
+      std::lock_guard<std::mutex> lock(this->dataPtr->entityRemoveMutex);
+      this->dataPtr->toRemoveEntities.insert(tmpToRemoveEntities.begin(),
+          tmpToRemoveEntities.end());
+    }
+
+    for (const auto &removedEntity : tmpToRemoveEntities)
+    {
+      this->UpdateViews(removedEntity);
+    }
+  }
 }
 
 /////////////////////////////////////////////////
@@ -1501,4 +1569,38 @@ void EntityComponentManagerPrivate::AddModifiedComponent(const Entity &_entity)
   }
 
   this->modifiedComponents.insert(_entity);
+}
+
+/////////////////////////////////////////////////
+void EntityComponentManager::PinEntity(const Entity _entity, bool _recursive)
+{
+  if (_recursive)
+  {
+    this->dataPtr->InsertEntityRecursive(_entity,
+        this->dataPtr->pinnedEntities);
+  }
+  else
+  {
+    this->dataPtr->pinnedEntities.insert(_entity);
+  }
+}
+
+/////////////////////////////////////////////////
+void EntityComponentManager::UnpinEntity(const Entity _entity, bool _recursive)
+{
+  if (_recursive)
+  {
+    this->dataPtr->EraseEntityRecursive(_entity,
+        this->dataPtr->pinnedEntities);
+  }
+  else
+  {
+    this->dataPtr->pinnedEntities.erase(_entity);
+  }
+}
+
+/////////////////////////////////////////////////
+void EntityComponentManager::UnpinAllEntities()
+{
+  this->dataPtr->pinnedEntities.clear();
 }
