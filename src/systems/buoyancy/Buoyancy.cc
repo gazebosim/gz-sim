@@ -178,6 +178,7 @@ void BuoyancyPrivate::GradedFluidDensity(
     this->buoyancyForces.push_back(buoyancyAction);
 
     prevLayerVol = vol;
+
   }
   // For the rest of the layers.
   auto vol = _shape.Volume();
@@ -214,11 +215,15 @@ std::pair<math::Vector3d, math::Vector3d> BuoyancyPrivate::ResolveForces(
   {
     force += b.force;
     math::Pose3d localPoint{b.point, math::Quaterniond{1, 0, 0, 0}};
+    //igndbg << "center of buoyancy: " << b.point << ", link position" << b.pose << std::endl;
     auto globalPoint = b.pose * localPoint;
+    //igndbg << "global point: " << globalPoint.Pos() << ", inertial position" << _pose.Pos() << std::endl;
     auto offset = globalPoint.Pos() - _pose.Pos();
+    //igndbg << "moment arm: " << offset.Length() << "\n";  
     torque += force.Cross(offset);
   }
 
+  //igndbg << "Applying " << force << ", " << torque << "\n";
   return {force, torque};
 }
 
@@ -308,7 +313,8 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
            << std::endl;
     return;
   }
-
+  
+  std::unordered_set<Entity> justEnabled;
   // Compute the volume and center of volume for each new link
   _ecm.EachNew<components::Link, components::Inertial>(
       [&](const Entity &_entity,
@@ -324,8 +330,11 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       return true;
     }
 
-    enableComponent<components::Inertial>(_ecm, _entity);
-    enableComponent<components::WorldPose>(_ecm, _entity);
+    if(enableComponent<components::Inertial>(_ecm, _entity)
+      || enableComponent<components::WorldPose>(_ecm, _entity))
+    {
+      justEnabled.insert(_entity);
+    }
 
     Link link(_entity);
 
@@ -421,6 +430,11 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
           const components::Volume *_volume,
           const components::CenterOfVolume *_centerOfVolume) -> bool
     {
+      if(justEnabled.count(_entity))
+      {
+        // Poses have not yet been resolved wait one iteration before enabling.
+        return true;
+      }
       // World pose of the link.
       math::Pose3d linkWorldPose = worldPose(_entity, _ecm);
 
@@ -459,7 +473,6 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
         {
           const components::CollisionElement *coll =
             _ecm.Component<components::CollisionElement>(e);
-
           auto pose = worldPose(e, _ecm);
 
           if (!coll)
@@ -489,8 +502,10 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
           }
         }
       }
+
       auto [force, torque] = this->dataPtr->ResolveForces(
         link.WorldInertialPose(_ecm).value());
+
       // Apply the wrench to the link. This wrench is applied in the
       // Physics System.
       link.AddWorldWrench(_ecm, force, torque);
