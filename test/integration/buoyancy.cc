@@ -200,8 +200,8 @@ TEST_F(BuoyancyTest, GradedBuoyancy)
 {
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/graded_buoyancy.sdf";
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "graded_buoyancy.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);
@@ -228,20 +228,25 @@ TEST_F(BuoyancyTest, GradedBuoyancy)
     Entity heliumBalloon = _ecm.EntityByComponents(
         components::Model(), components::Name("balloon_lighter_than_air"));
 
+    Entity noBuoyancy = _ecm.EntityByComponents(
+        components::Model(), components::Name("box_no_buoyancy"));
+
     ASSERT_NE(neutralBox, kNullEntity);
     ASSERT_NE(bobbingBall, kNullEntity);
     ASSERT_NE(heliumBalloon, kNullEntity);
+    ASSERT_NE(noBuoyancy, kNullEntity);
 
     auto neutralBoxPose = _ecm.Component<components::Pose>(neutralBox);
     ASSERT_NE(neutralBoxPose, nullptr);
 
-    auto bobbingBallPose = _ecm.Component<components::Pose>(
-        bobbingBall);
+    auto bobbingBallPose = _ecm.Component<components::Pose>(bobbingBall);
     ASSERT_NE(bobbingBallPose , nullptr);
 
-    auto heliumBalloonPose = _ecm.Component<components::Pose>(
-        heliumBalloon);
+    auto heliumBalloonPose = _ecm.Component<components::Pose>(heliumBalloon);
     ASSERT_NE(heliumBalloonPose , nullptr);
+
+    auto noBuoyancyPose = _ecm.Component<components::Pose>(noBuoyancy);
+    ASSERT_NE(noBuoyancyPose , nullptr);
 
     // The "neutralBox" should stay in its starting location.
     EXPECT_NEAR(0, neutralBoxPose->Data().Pos().X(), 1e-1);
@@ -253,9 +258,14 @@ TEST_F(BuoyancyTest, GradedBuoyancy)
       // Helium balloon should float up
       EXPECT_GT(heliumBalloonPose->Data().Pos().Z(),
                 neutralBoxPose->Data().Pos().Z());
+
       // Bobbing ball should stay within a certain band.
       EXPECT_GT(bobbingBallPose->Data().Pos().Z(), -1.2);
       EXPECT_LT(bobbingBallPose->Data().Pos().Z(), 0.5);
+
+      // No buoyancy box should sink
+      EXPECT_LT(noBuoyancyPose->Data().Pos().Z(),
+                neutralBoxPose->Data().Pos().Z());
     }
 
     if (_info.iterations == iterations)

@@ -127,6 +127,13 @@ namespace systems
                 const ignition::gazebo::UpdateInfo &_info,
                 ignition::gazebo::EntityComponentManager &_ecm) override;
 
+    /// \brief Check if an entity is whitelisted or not.
+    /// \param[in] _entity Target entity
+    /// \param[in] _ecm Entity component manager
+    /// \return True if buoyancy should be applied.
+    public: bool IsWhiteListed(Entity _entity,
+        const EntityComponentManager &_ecm) const;
+
     /// \brief Private data pointer
     private: std::unique_ptr<BuoyancyPrivate> dataPtr;
   };

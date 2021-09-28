@@ -121,6 +121,9 @@ class ignition::gazebo::systems::BuoyancyPrivate
   /// at _pose.
   public: std::pair<math::Vector3d, math::Vector3d> ResolveForces(
     const math::Pose3d &_pose);
+
+  /// \brief
+  public: std::unordered_set<std::string> whiteList;
 };
 
 //////////////////////////////////////////////////
@@ -293,6 +296,16 @@ void Buoyancy::Configure(const Entity &_entity,
       argument = argument->GetNextElement();
     }
   }
+
+  if (_sdf->HasElement("white_list"))
+  {
+    for (auto whiteListElem = _sdf->FindElement("white_list");
+        whiteListElem != nullptr;
+        whiteListElem = whiteListElem->GetNextElement("white_list"))
+    {
+      this->dataPtr->whiteList.insert(whiteListElem->Get<std::string>());
+    }
+  }
 }
 
 //////////////////////////////////////////////////
@@ -320,6 +333,11 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
           components::CenterOfVolume().TypeId()) &&
         _ecm.EntityHasComponentType(_entity,
           components::Volume().TypeId()))
+    {
+      return true;
+    }
+
+    if (!this->IsWhiteListed(_entity, _ecm))
     {
       return true;
     }
@@ -483,9 +501,16 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
                 gravity->Data());
               break;
             default:
-              ignwarn << "Only <box> and <sphere> collisions are supported by "
-                << "the graded buoyancy option." << std::endl;
+            {
+              static bool warned{false};
+              if (!warned)
+              {
+                ignwarn << "Only <box> and <sphere> collisions are supported by "
+                  << "the graded buoyancy option." << std::endl;
+                warned = true;
+              }
               break;
+            }
           }
         }
       }
@@ -496,6 +521,29 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       link.AddWorldWrench(_ecm, force, torque);
       return true;
   });
+}
+
+//////////////////////////////////////////////////
+bool Buoyancy::IsWhiteListed(Entity _entity,
+    const EntityComponentManager &_ecm) const
+{
+  // If there's no whitelist, all entities are whitelisted
+  if (this->dataPtr->whiteList.empty())
+    return true;
+
+  auto model = topLevelModel(_entity, _ecm);
+  bool listed{false};
+  for (auto name : this->dataPtr->whiteList)
+  {
+    auto entities = entitiesFromScopedName(name, _ecm);
+    if (entities.find(model) != entities.end())
+    {
+      listed = true;
+      break;
+    }
+  }
+
+  return listed;
 }
 
 IGNITION_ADD_PLUGIN(Buoyancy,
