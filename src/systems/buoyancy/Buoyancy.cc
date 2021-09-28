@@ -178,7 +178,6 @@ void BuoyancyPrivate::GradedFluidDensity(
     this->buoyancyForces.push_back(buoyancyAction);
 
     prevLayerVol = vol;
-
   }
   // For the rest of the layers.
   auto vol = _shape.Volume();
@@ -219,6 +218,7 @@ std::pair<math::Vector3d, math::Vector3d> BuoyancyPrivate::ResolveForces(
     auto offset = globalPoint.Pos() - _pose.Pos();
     torque += force.Cross(offset);
   }
+
   return {force, torque};
 }
 
@@ -464,6 +464,7 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
         {
           const components::CollisionElement *coll =
             _ecm.Component<components::CollisionElement>(e);
+
           auto pose = worldPose(e, _ecm);
 
           if (!coll)
@@ -493,10 +494,8 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
           }
         }
       }
-
       auto [force, torque] = this->dataPtr->ResolveForces(
         link.WorldInertialPose(_ecm).value());
-
       // Apply the wrench to the link. This wrench is applied in the
       // Physics System.
       link.AddWorldWrench(_ecm, force, torque);
