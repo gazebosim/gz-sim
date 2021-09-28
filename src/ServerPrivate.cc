@@ -26,8 +26,6 @@
 
 #include <ignition/fuel_tools/Interface.hh>
 
-#include <ignition/gui/Application.hh>
-
 #include "ignition/gazebo/Util.hh"
 #include "SimulationRunner.hh"
 
