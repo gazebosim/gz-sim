@@ -125,6 +125,35 @@ namespace ignition
       public: void RequestRemoveEntity(const Entity _entity,
           bool _recursive = true);
 
+      /// \brief Prevent an entity and optionally its children from
+      /// being removed.
+      ///
+      /// This function can be useful when seek operations during log
+      /// playback are used in conjunciton with spawned entities. For
+      /// example, you may want to record a video based on a log file
+      /// using a headless simulation instance. This requires a
+      /// camera sensor which would be spawned during log playback. If
+      /// a seek backward in time is performed during log playback, then the
+      /// spawned camera would be removed. Use this function to prevent the
+      /// camera from automatic removal.
+      ///
+      /// \param[in] _entity Entity to be pinned.
+      /// \param[in] _recursive Whether to recursively pin all child
+      /// entities. True by default.
+      public: void PinEntity(const Entity _entity, bool _recursive = true);
+
+      /// \brief Allow an entity, and optionally its children, previously
+      /// marked as pinned to be removed.
+      /// \param[in] _entity Entity to be unpinned.
+      /// \param[in] _recursive Whether to recursively unpin all child
+      /// entities. True by default.
+      /// \sa void PinEntity(const Entity, bool)
+      public: void UnpinEntity(const Entity _entity, bool _recursive = true);
+
+      /// \brief Allow all previously pinned entities to be removed.
+      /// \sa void PinEntity(const Entity, bool)
+      public: void UnpinAllEntities();
+
       /// \brief Request to remove all entities. This will insert the request
       /// into a queue. The queue is processed toward the end of a simulation
       /// update step.
