@@ -76,31 +76,5 @@ ign service -s /world/spherical_coordinates/set_spherical_coordinates \
       <heading_deg>0</heading_deg>
     </spherical_coordinates>
 
-    <gui fullscreen="0">
-
-      <!-- 3D scene -->
-      <plugin filename="GzScene3D" name="3D View">
-        <ignition-gui>
-          <title>3D View</title>
-          <property type="bool" key="showTitleBar">false</property>
-          <property type="string" key="state">docked</property>
-        </ignition-gui>
-
-        <engine>ogre2</engine>
-        <scene>scene</scene>
-        <ambient_light>0.4 0.4 0.4</ambient_light>
-        <background_color>0.8 0.8 0.8</background_color>
-        <camera_pose>-6 0 6 0 0.5 0</camera_pose>
-      </plugin>
-
-      <!-- Component inspector -->
-      <plugin filename="ComponentInspector" name="Component Inspector">
-        <ignition-gui>
-          <property type="string" key="state">docked</property>
-        </ignition-gui>
-      </plugin>
-
-    </gui>
-
   </world>
 </sdf>
