@@ -122,7 +122,8 @@ class ignition::gazebo::systems::BuoyancyPrivate
   public: std::pair<math::Vector3d, math::Vector3d> ResolveForces(
     const math::Pose3d &_pose);
 
-  /// \brief
+  /// \brief Scoped names of entities that buoyancy should apply to. If empty,
+  /// all links will receive buoyancy.
   public: std::unordered_set<std::string> whiteList;
 };
 
