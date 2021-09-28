@@ -308,7 +308,7 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
            << std::endl;
     return;
   }
-  
+
   // Compute the volume and center of volume for each new link
   _ecm.EachNew<components::Link, components::Inertial>(
       [&](const Entity &_entity,
