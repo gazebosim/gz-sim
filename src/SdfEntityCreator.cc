@@ -449,7 +449,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
              << canonicalLinkPair.second << "\n";
     }
   }
-  else
+  else if(!isStatic)
   {
     ignerr << "Could not resolve the canonical link for " << _model->Name()
            << "\n";
