@@ -690,7 +690,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
           scene->NodeByName(this->viewCOMTarget);
       auto targetVis = std::dynamic_pointer_cast<rendering::Visual>(targetNode);
 
-      if (targetVis)
+      if (targetVis && targetVis->HasUserData("gazebo-entity"))
       {
         Entity targetEntity =
             std::get<int>(targetVis->UserData("gazebo-entity"));
@@ -716,7 +716,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
           scene->NodeByName(this->viewInertiaTarget);
       auto targetVis = std::dynamic_pointer_cast<rendering::Visual>(targetNode);
 
-      if (targetVis)
+      if (targetVis && targetVis->HasUserData("gazebo-entity"))
       {
         Entity targetEntity =
             std::get<int>(targetVis->UserData("gazebo-entity"));
@@ -742,7 +742,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
           this->scene->VisualByName(this->viewTransparentTarget);
       auto targetVis = std::dynamic_pointer_cast<rendering::Visual>(targetNode);
 
-      if (targetVis)
+      if (targetVis && targetVis->HasUserData("gazebo-entity"))
       {
         Entity targetEntity =
             std::get<int>(targetVis->UserData("gazebo-entity"));
@@ -768,7 +768,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
           scene->NodeByName(this->viewCollisionsTarget);
       auto targetVis = std::dynamic_pointer_cast<rendering::Visual>(targetNode);
 
-      if (targetVis)
+      if (targetVis && targetVis->HasUserData("gazebo-entity"))
       {
         Entity targetEntity =
             std::get<int>(targetVis->UserData("gazebo-entity"));
@@ -794,7 +794,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
           scene->NodeByName(this->viewJointsTarget);
       auto targetVis = std::dynamic_pointer_cast<rendering::Visual>(targetNode);
 
-      if (targetVis)
+      if (targetVis && targetVis->HasUserData("gazebo-entity"))
       {
         Entity targetEntity =
             std::get<int>(targetVis->UserData("gazebo-entity"));
@@ -820,7 +820,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
           scene->NodeByName(this->viewWireframesTarget);
       auto targetVis = std::dynamic_pointer_cast<rendering::Visual>(targetNode);
 
-      if (targetVis)
+      if (targetVis && targetVis->HasUserData("gazebo-entity"))
       {
         Entity targetEntity =
             std::get<int>(targetVis->UserData("gazebo-entity"));

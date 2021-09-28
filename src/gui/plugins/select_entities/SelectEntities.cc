@@ -441,15 +441,13 @@ void SelectEntitiesPrivate::Initialize()
     {
       auto cam = std::dynamic_pointer_cast<rendering::Camera>(
         scene->NodeByIndex(i));
-      if (cam)
+      if (cam && cam->HasUserData("user-camera") &&
+          std::get<bool>(cam->UserData("user-camera")))
       {
-        if (std::get<bool>(cam->UserData("user-camera")))
-        {
-          this->camera = cam;
-          igndbg << "TransformControl plugin is using camera ["
-                 << this->camera->Name() << "]" << std::endl;
-          break;
-        }
+        this->camera = cam;
+        igndbg << "SelectEntities plugin is using camera ["
+               << this->camera->Name() << "]" << std::endl;
+        break;
       }
     }
 
@@ -531,7 +529,8 @@ bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
           auto visual = this->dataPtr->scene->VisualByIndex(i);
 
           unsigned int entityId = kNullEntity;
-          try{
+          try
+          {
             entityId = std::get<int>(visual->UserData("gazebo-entity"));
           }
           catch(std::bad_variant_access &)

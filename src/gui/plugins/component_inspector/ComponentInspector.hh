@@ -21,14 +21,15 @@
 #include <map>
 #include <memory>
 #include <string>
+
+#include <sdf/Physics.hh>
+
 #include <ignition/math/Pose3.hh>
 #include <ignition/math/Vector3.hh>
 
 #include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/gui/GuiSystem.hh>
 #include <ignition/gazebo/Types.hh>
-
-#include "ignition/gazebo/components/Physics.hh"
 
 #include <ignition/msgs/light.pb.h>
 
@@ -90,6 +91,12 @@ namespace gazebo
   /// \param[in] _data Data to set.
   template<>
   void setData(QStandardItem *_item, const sdf::Physics &_data);
+
+  /// \brief Specialized to set Spherical Coordinates data.
+  /// \param[in] _item Item whose data will be set.
+  /// \param[in] _data Data to set.
+  template<>
+  void setData(QStandardItem *_item, const math::SphericalCoordinates &_data);
 
   /// \brief Specialized to set boolean data.
   /// \param[in] _item Item whose data will be set.
@@ -259,6 +266,16 @@ namespace gazebo
     /// \param[in] _realTimeFactor real time factor
     public: Q_INVOKABLE void OnPhysics(double _stepSize,
         double _realTimeFactor);
+
+    /// \brief Callback in Qt thread when spherical coordinates change.
+    /// \param[in] _surface Surface model
+    /// \param[in] _latitude Latitude in degrees
+    /// \param[in] _longitude Longitude in degrees
+    /// \param[in] _elevation Elevation in meters
+    /// \param[in] _heading Heading in degrees
+    public: Q_INVOKABLE void OnSphericalCoordinates(QString _surface,
+        double _latitude, double _longitude, double _elevation,
+        double _heading);
 
     /// \brief Get whether the entity is a nested model or not
     /// \return True if the entity is a nested model, false otherwise

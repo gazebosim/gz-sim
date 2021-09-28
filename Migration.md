@@ -47,6 +47,27 @@ since pose information is being logged in the `changed_state` topic.
       this type is discouraged (see the **Deprecated** section above for more
       information about how to replace usage of `ComponentKey`).
 
+* The `GzScene3D` GUI plugin is being deprecated in favor of `MinimalScene`. In
+  order to get the same functionality as `GzScene3D`, users need to add the
+  following plugins:
+      + `MinimalScene`: base rendering functionality
+      + `GzSceneManager`: adds / removes / moves entities in the scene
+      + `EntityContextMenuPlugin`: right-click menu
+      + `InteractiveViewControl`: orbit controls
+      + `CameraTracking`: Move to, follow, set camera pose
+      + `MarkerManager`: Enables the use of markers
+      + `SelectEntities`: Select entities clicking on the scene
+      + `Spawn`: Functionality to spawn entities into the scene via GUI
+      + `VisualizationCapabilities`: View collisions, inertial, CoM, joints, etc.
+
+    Moreover, legacy mode needs to be turned off for the following plugins
+    for them to work with `MinimalScene` (set `<legacy>false</legacy>`):
+      + `TransformControl`: Translate and rotate
+      + `ViewAndle`: Move camera to preset angles
+
+* The `gui.config` and `server.config` files are now located in a versioned
+  folder inside `$HOME/.ignition/gazebo`, i.e. `$HOME/.ignition/gazebo/6/gui.config`.
+
 ## Ignition Gazebo 4.x to 5.x
 
 * Use `cli` component of `ignition-utils1`.
