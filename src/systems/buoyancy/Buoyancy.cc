@@ -215,15 +215,10 @@ std::pair<math::Vector3d, math::Vector3d> BuoyancyPrivate::ResolveForces(
   {
     force += b.force;
     math::Pose3d localPoint{b.point, math::Quaterniond{1, 0, 0, 0}};
-    //igndbg << "center of buoyancy: " << b.point << ", link position" << b.pose << std::endl;
     auto globalPoint = b.pose * localPoint;
-    //igndbg << "global point: " << globalPoint.Pos() << ", inertial position" << _pose.Pos() << std::endl;
     auto offset = globalPoint.Pos() - _pose.Pos();
-    //igndbg << "moment arm: " << offset.Length() << "\n";  
     torque += force.Cross(offset);
   }
-
-  //igndbg << "Applying " << force << ", " << torque << "\n";
   return {force, torque};
 }
 
@@ -314,7 +309,6 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     return;
   }
   
-  std::unordered_set<Entity> justEnabled;
   // Compute the volume and center of volume for each new link
   _ecm.EachNew<components::Link, components::Inertial>(
       [&](const Entity &_entity,
@@ -328,12 +322,6 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
           components::Volume().TypeId()))
     {
       return true;
-    }
-
-    if(enableComponent<components::Inertial>(_ecm, _entity)
-      || enableComponent<components::WorldPose>(_ecm, _entity))
-    {
-      justEnabled.insert(_entity);
     }
 
     Link link(_entity);
@@ -430,11 +418,14 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
           const components::Volume *_volume,
           const components::CenterOfVolume *_centerOfVolume) -> bool
     {
-      if(justEnabled.count(_entity))
+      auto newPose = enableComponent<components::Inertial>(_ecm, _entity);
+      newPose |= enableComponent<components::WorldPose>(_ecm, _entity);
+      if(newPose)
       {
-        // Poses have not yet been resolved wait one iteration before enabling.
+        // Skip entity if WorldPose and inertial are not yet ready
         return true;
       }
+
       // World pose of the link.
       math::Pose3d linkWorldPose = worldPose(_entity, _ecm);
 
