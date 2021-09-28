@@ -420,7 +420,7 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     {
       auto newPose = enableComponent<components::Inertial>(_ecm, _entity);
       newPose |= enableComponent<components::WorldPose>(_ecm, _entity);
-      if(newPose)
+      if (newPose)
       {
         // Skip entity if WorldPose and inertial are not yet ready
         return true;
