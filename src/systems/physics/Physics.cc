@@ -2308,7 +2308,9 @@ void PhysicsPrivate::UpdateModelPose(const Entity _model,
       _ecm.Component<components::ModelCanonicalLink>(nestedModel);
     if (!nestedModelCanonicalLinkComp)
     {
-      ignerr << "Model [" << nestedModel << "] has no canonical link\n";
+      auto staticComp = _ecm.Component<components::Static>(nestedModel);
+      if (!staticComp || !staticComp->Data())
+        ignerr << "Model [" << nestedModel << "] has no canonical link\n";
       continue;
     }
 
