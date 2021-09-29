@@ -220,10 +220,10 @@ TEST_F(BuoyancyTest, GradedBuoyancy)
   {
     // Check pose
     Entity neutralBox = _ecm.EntityByComponents(
-        components::Model(), components::Name("box_neutral_buoyancy"));
+        components::Model(), components::Name("neutral_buoyancy"));
 
     Entity bobbingBall = _ecm.EntityByComponents(
-        components::Model(), components::Name("ball_lighter_than_water"));
+        components::Model(), components::Name("lighter_than_water"));
 
     Entity heliumBalloon = _ecm.EntityByComponents(
         components::Model(), components::Name("balloon_lighter_than_air"));

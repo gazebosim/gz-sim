@@ -33,10 +33,15 @@
           <density>1</density>
         </density_change>
       </graded_buoyancy>
-      <white_list>ball_lighter_than_water</white_list>
+
+      <!-- whitelist by link name -->
+      <white_list>lighter_than_water::ball::body</white_list>
+
+      <!-- whitelist by top level model name -->
       <white_list>balloon_lighter_than_air</white_list>
-      <white_list>box_neutral_buoyancy</white_list>
-      <white_list>box_negative_buoyancy</white_list>
+
+      <!-- whitelist by nested model name -->
+      <white_list>neutral_buoyancy::box</white_list>
     </plugin>
 
     <light type="directional" name="sun">
@@ -53,38 +58,40 @@
       <direction>-0.5 0.1 -0.9</direction>
     </light>
 
-    <!-- This sphere should bob up and down. -->
-    <model name='ball_lighter_than_water'>
+    <model name='lighter_than_water'>
       <pose>0 0 0 0 0 0</pose>
-      <link name='body'>
-        <pose>0 0 0 0 0 0</pose>
-        <inertial>
-          <mass>25</mass>
-          <inertia>
-            <ixx>86.28907821859966</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>86.28907821859966</iyy>
-            <iyz>0</iyz>
-            <izz>5.026548245743671</izz>
-          </inertia>
-        </inertial>
+      <!-- This sphere should bob up and down. -->
+      <model name="ball">
+        <link name='body'>
+          <pose>0 0 0 0 0 0</pose>
+          <inertial>
+            <mass>25</mass>
+            <inertia>
+              <ixx>86.28907821859966</ixx>
+              <ixy>0</ixy>
+              <ixz>0</ixz>
+              <iyy>86.28907821859966</iyy>
+              <iyz>0</iyz>
+              <izz>5.026548245743671</izz>
+            </inertia>
+          </inertial>
 
-        <visual name='body_visual'>
-          <geometry>
-            <sphere>
-              <radius>0.2</radius>
-            </sphere>
-          </geometry>
-        </visual>
-        <collision name='body_collision'>
-          <geometry>
-            <sphere>
-              <radius>0.2</radius>
-            </sphere>
-          </geometry>
-        </collision>
-      </link>
+          <visual name='body_visual'>
+            <geometry>
+              <sphere>
+                <radius>0.2</radius>
+              </sphere>
+            </geometry>
+          </visual>
+          <collision name='body_collision'>
+            <geometry>
+              <sphere>
+                <radius>0.2</radius>
+              </sphere>
+            </geometry>
+          </collision>
+        </link>
+      </model>
     </model>
 
     <!-- This balloon should shoot up -->
@@ -122,37 +129,40 @@
     </model>
 
     <!-- This box is neutrally buoyant and therefore should stay still -->
-    <model name='box_neutral_buoyancy'>
+    <model name='neutral_buoyancy'>
       <pose>0 5 -3 0 0 0</pose>
-      <link name='body'>
-        <inertial>
-          <mass>1000</mass>
-          <pose>0 0 0.1 0 0 0</pose>
-          <inertia>
-            <ixx>86.28907821859966</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>86.28907821859966</iyy>
-            <iyz>0</iyz>
-            <izz>5.026548245743671</izz>
-          </inertia>
-        </inertial>
+      <model name='box'>
+          <pose>0 0 0 0 0 0</pose>
+        <link name='body'>
+          <inertial>
+            <mass>1000</mass>
+            <pose>0 0 0.1 0 0 0</pose>
+            <inertia>
+              <ixx>86.28907821859966</ixx>
+              <ixy>0</ixy>
+              <ixz>0</ixz>
+              <iyy>86.28907821859966</iyy>
+              <iyz>0</iyz>
+              <izz>5.026548245743671</izz>
+            </inertia>
+          </inertial>
 
-        <visual name='body_visual'>
-          <geometry>
-            <box>
-              <size>1 1 1</size>
-            </box>
-          </geometry>
-        </visual>
-        <collision name='body_collision'>
-          <geometry>
-             <box>
-              <size>1 1 1</size>
-            </box>
-          </geometry>
-        </collision>
-      </link>
+          <visual name='body_visual'>
+            <geometry>
+              <box>
+                <size>1 1 1</size>
+              </box>
+            </geometry>
+          </visual>
+          <collision name='body_collision'>
+            <geometry>
+               <box>
+                <size>1 1 1</size>
+              </box>
+            </geometry>
+          </collision>
+        </link>
+      </model>
     </model>
 
     <!-- Not affected by buoyancy -->

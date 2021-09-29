@@ -41,6 +41,7 @@
 #include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Volume.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -537,19 +538,28 @@ bool Buoyancy::IsWhiteListed(Entity _entity,
   if (this->dataPtr->whiteList.empty())
     return true;
 
-  auto model = topLevelModel(_entity, _ecm);
-  bool listed{false};
-  for (auto name : this->dataPtr->whiteList)
+  auto entity = _entity;
+  while (entity != kNullEntity)
   {
-    auto entities = entitiesFromScopedName(name, _ecm);
-    if (entities.find(model) != entities.end())
-    {
-      listed = true;
-      break;
-    }
+    // Fully scoped name
+    auto name = scopedName(entity, _ecm, "::", false);
+
+    // Remove world name
+    name = removeParentScope(name, "::");
+
+    if (this->dataPtr->whiteList.find(name) != this->dataPtr->whiteList.end())
+      return true;
+
+    // Check parent
+    auto parentComp = _ecm.Component<components::ParentEntity>(entity);
+
+    if (nullptr == parentComp)
+      return false;
+
+    entity = parentComp->Data();
   }
 
-  return listed;
+  return false;
 }
 
 IGNITION_ADD_PLUGIN(Buoyancy,

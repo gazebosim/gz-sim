@@ -59,9 +59,11 @@ namespace systems
   /// * `<above_depth>` a child property of `<density_change>`. This determines
   /// the height at which the next fluid layer should start. [Units: m]
   /// * `<density>` the density of the fluid in this layer. [Units: kgm^-3]
-  /// * `<white_list>` used to indicate which models will receive buoyancy.
-  /// Add one white list element per model. If there are no white-listed models,
-  /// all models in simulation will be affected by buoyancy.
+  /// * `<white_list>` used to indicate which models will have buoyancy.
+  /// Add one white list element per model or link. This element accepts names
+  /// scoped from the top level model (i.e. `<model>::<nested_model>::<link>`).
+  /// If there are no white-listed entities, all models in simulation will be
+  /// affected by buoyancy.
   ///
   /// ## Examples
   ///
