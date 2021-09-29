@@ -228,10 +228,14 @@ extern "C" int runGui(const char *_guiConfig)
   app.Engine()->addImportPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
 
   // Set default config file for Gazebo
-  std::string defaultConfig;
-  ignition::common::env(IGN_HOMEDIR, defaultConfig);
-  defaultConfig = ignition::common::joinPaths(defaultConfig, ".ignition",
-      "gazebo", IGNITION_GAZEBO_MAJOR_VERSION_STR, "gui.config");
+  std::string defaultConfigDir;
+  ignition::common::env(IGN_HOMEDIR, defaultConfigDir);
+  defaultConfigDir = ignition::common::joinPaths(defaultConfig, ".ignition",
+      "gazebo", IGNITION_GAZEBO_MAJOR_VERSION_STR);
+
+  auto defaultConfig = ignition::common::joinPaths(defaultConfigDir,
+      "gui.config");
+
   app.SetDefaultConfigPath(defaultConfig);
 
   // Customize window
@@ -403,6 +407,23 @@ extern "C" int runGui(const char *_guiConfig)
     {
       auto installedConfig = ignition::common::joinPaths(
           IGNITION_GAZEBO_GUI_CONFIG_PATH, "gui.config");
+
+      if (!ignition::common::createDirectories(defaultConfigDir))
+      {
+        ignerr << "Failed to create directory [" << defaultConfigDir
+               << "]." << std::endl;
+        return -1;
+      }
+
+      if (!ignition::common::exists(installedConfig))
+      {
+        ignerr << "Failed to copy installed config [" << installedConfig
+               << "] to default config [" << defaultConfig << "]."
+               << "(file " << installedConfig << " doesn't exist)"
+               << std::endl;
+        return -1;
+      }
+
       if (!ignition::common::copyFile(installedConfig, defaultConfig))
       {
         ignerr << "Failed to copy installed config [" << installedConfig
