@@ -918,6 +918,76 @@ TEST_F(GenerateWorldFixture, ModelsInline)
 }
 
 /////////////////////////////////////////////////
+TEST_F(GenerateWorldFixture, PoseWithAttributes)
+{
+  const auto includeUri = std::string("file://") + PROJECT_SOURCE_PATH +
+                          "/test/worlds/models/relative_resource_uri";
+
+  std::string worldSdf = R"(
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <world name="test_pose_attributes">
+    <include>
+      <uri>)" + includeUri + R"(</uri>
+      <pose degrees="true">1 2 3 90 0 0</pose>
+      <name>model1</name>
+    </include>
+    <include>
+      <uri>)" + includeUri + R"(</uri>
+      <pose rotation_format="quat_xyzw">1 2 3 0 0 0 1</pose>
+      <name>model2</name>
+    </include>
+  </world>
+</sdf>
+  )";
+
+  this->LoadWorldString(worldSdf);
+  Entity worldEntity = this->ecm.EntityByComponents(components::World());
+
+  auto testPoses = [](const std::string &_worldStr)
+  {
+    sdf::Root newRoot;
+    sdf::Errors errors = newRoot.LoadSdfString(_worldStr);
+    EXPECT_TRUE(errors.empty()) << errors;
+    auto newWorld = newRoot.WorldByIndex(0);
+    ASSERT_NE(nullptr, newWorld);
+    {
+      auto model = newWorld->ModelByIndex(0);
+      ASSERT_NE(nullptr, model);
+      // Check that the generated element has the new pose
+      EXPECT_EQ(math::Pose3d(1, 2, 3, IGN_PI_2, 0, 0), model->RawPose());
+    }
+    {
+      auto model = newWorld->ModelByIndex(1);
+      ASSERT_NE(nullptr, model);
+      // Check that the generated element has the new pose
+      EXPECT_EQ(math::Pose3d(1, 2, 3, 0, 0, 0), model->RawPose());
+    }
+  };
+
+  // Test with models included models expanded
+  {
+    this->sdfGenConfig.mutable_global_entity_gen_config()
+      ->mutable_expand_include_tags()
+      ->set_data(true);
+
+    auto worldStr = sdf_generator::generateWorld(
+        this->ecm, worldEntity, this->includeUriMap, this->sdfGenConfig);
+    ASSERT_TRUE(worldStr.has_value());
+    SCOPED_TRACE("Included models expanded");
+    testPoses(*worldStr);
+  }
+
+  // Test with models included models not expanded
+  {
+    auto worldStr = sdf_generator::generateWorld(this->ecm, worldEntity);
+    ASSERT_TRUE(worldStr.has_value());
+    SCOPED_TRACE("Included models not expanded");
+    testPoses(*worldStr);
+  }
+}
+
+/////////////////////////////////////////////////
 /// Main
 int main(int _argc, char **_argv)
 {
