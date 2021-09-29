@@ -877,7 +877,7 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
   std::string defaultConfigDir;
   ignition::common::env(IGN_HOMEDIR, defaultConfigDir);
   defaultConfigDir = ignition::common::joinPaths(defaultConfigDir, ".ignition",
-    "gazebo");
+    "gazebo", IGNITION_GAZEBO_MAJOR_VERSION_STR);
 
   auto defaultConfig = ignition::common::joinPaths(defaultConfigDir,
       configFilename);

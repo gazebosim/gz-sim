@@ -190,10 +190,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// only used in lockstep mode and recording in sim time.
     public: std::chrono::steady_clock::time_point recordVideoUpdateTime;
 
-    /// \brief Start tiem of video recording
+    /// \brief Start time of video recording
     public: std::chrono::steady_clock::time_point recordStartTime;
 
-    /// \brief Camera pose publisher
+    /// \brief Video recording statistics publisher
     public: transport::Node::Publisher recorderStatsPub;
 
     /// \brief Image from user camera
@@ -1044,7 +1044,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
           scene->NodeByName(this->dataPtr->viewTransparentTarget);
       auto targetVis = std::dynamic_pointer_cast<rendering::Visual>(targetNode);
 
-      if (targetVis)
+      if (targetVis && targetVis->HasUserData("gazebo-entity"))
       {
         Entity targetEntity =
             std::get<int>(targetVis->UserData("gazebo-entity"));
@@ -1070,7 +1070,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
           scene->NodeByName(this->dataPtr->viewCOMTarget);
       auto targetVis = std::dynamic_pointer_cast<rendering::Visual>(targetNode);
 
-      if (targetVis)
+      if (targetVis && targetVis->HasUserData("gazebo-entity"))
       {
         Entity targetEntity =
             std::get<int>(targetVis->UserData("gazebo-entity"));
@@ -1096,7 +1096,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
           scene->NodeByName(this->dataPtr->viewInertiaTarget);
       auto targetVis = std::dynamic_pointer_cast<rendering::Visual>(targetNode);
 
-      if (targetVis)
+      if (targetVis && targetVis->HasUserData("gazebo-entity"))
       {
         Entity targetEntity =
             std::get<int>(targetVis->UserData("gazebo-entity"));
@@ -1122,7 +1122,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
           scene->NodeByName(this->dataPtr->viewJointsTarget);
       auto targetVis = std::dynamic_pointer_cast<rendering::Visual>(targetNode);
 
-      if (targetVis)
+      if (targetVis && targetVis->HasUserData("gazebo-entity"))
       {
         Entity targetEntity =
             std::get<int>(targetVis->UserData("gazebo-entity"));
@@ -1148,7 +1148,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
           scene->NodeByName(this->dataPtr->viewWireframesTarget);
       auto targetVis = std::dynamic_pointer_cast<rendering::Visual>(targetNode);
 
-      if (targetVis)
+      if (targetVis && targetVis->HasUserData("gazebo-entity"))
       {
         Entity targetEntity =
             std::get<int>(targetVis->UserData("gazebo-entity"));
@@ -1174,7 +1174,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
           scene->NodeByName(this->dataPtr->viewCollisionsTarget);
       auto targetVis = std::dynamic_pointer_cast<rendering::Visual>(targetNode);
 
-      if (targetVis)
+      if (targetVis && targetVis->HasUserData("gazebo-entity"))
       {
         Entity targetEntity =
             std::get<int>(targetVis->UserData("gazebo-entity"));

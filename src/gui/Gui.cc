@@ -90,7 +90,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
     }
     ignition::common::env(IGN_HOMEDIR, defaultConfig);
     defaultConfig = ignition::common::joinPaths(defaultConfig, ".ignition",
-        "gazebo", defaultGuiConfigName);
+        "gazebo", IGNITION_GAZEBO_MAJOR_VERSION_STR, defaultGuiConfigName);
   }
   else
   {
@@ -279,7 +279,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
       }
     }
 
-    // Also set ~/.ignition/gazebo/gui.config as the default path
+    // Also set ~/.ignition/gazebo/ver/gui.config as the default path
     if (!app->LoadConfig(defaultConfig))
     {
       ignerr << "Failed to load config file[" << defaultConfig << "]."

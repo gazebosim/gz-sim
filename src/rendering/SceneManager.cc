@@ -648,6 +648,7 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     rendering::HeightmapDescriptor descriptor;
     descriptor.SetData(data);
     descriptor.SetSize(_geom.HeightmapShape()->Size());
+    descriptor.SetPosition(_geom.HeightmapShape()->Position());
     descriptor.SetSampling(_geom.HeightmapShape()->Sampling());
 
     for (uint64_t i = 0; i < _geom.HeightmapShape()->TextureCount(); ++i)
@@ -655,10 +656,10 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
       auto textureSdf = _geom.HeightmapShape()->TextureByIndex(i);
       rendering::HeightmapTexture textureDesc;
       textureDesc.SetSize(textureSdf->Size());
-      textureDesc.SetDiffuse(asFullPath(textureSdf->Diffuse(),
-          _geom.HeightmapShape()->FilePath()));
-      textureDesc.SetNormal(asFullPath(textureSdf->Normal(),
-          _geom.HeightmapShape()->FilePath()));
+      textureDesc.SetDiffuse(common::findFile(asFullPath(textureSdf->Diffuse(),
+          _geom.HeightmapShape()->FilePath())));
+      textureDesc.SetNormal(common::findFile(asFullPath(textureSdf->Normal(),
+          _geom.HeightmapShape()->FilePath())));
       descriptor.AddTexture(textureDesc);
     }
 

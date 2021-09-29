@@ -507,15 +507,13 @@ void TransformControlPrivate::HandleTransform()
     {
       auto cam = std::dynamic_pointer_cast<rendering::Camera>(
         this->scene->NodeByIndex(i));
-      if (cam)
+      if (cam && cam->HasUserData("user-camera") &&
+          std::get<bool>(cam->UserData("user-camera")))
       {
-        if (std::get<bool>(cam->UserData("user-camera")))
-        {
-          this->camera = cam;
-          igndbg << "TransformControl plugin is using camera ["
-                 << this->camera->Name() << "]" << std::endl;
-          break;
-        }
+        this->camera = cam;
+        igndbg << "TransformControl plugin is using camera ["
+               << this->camera->Name() << "]" << std::endl;
+        break;
       }
     }
 
@@ -534,7 +532,8 @@ void TransformControlPrivate::HandleTransform()
   {
     if (this->transformControl.Node())
     {
-      try {
+      try
+      {
         this->transformControl.Node()->SetUserData(
           "pause-update", static_cast<int>(0));
       }
@@ -591,7 +590,8 @@ void TransformControlPrivate::HandleTransform()
           this->transformControl.SetActiveAxis(axis);
           this->transformControl.Start();
           if (this->transformControl.Node()){
-            try {
+            try
+            {
               this->transformControl.Node()->SetUserData(
                 "pause-update", static_cast<int>(1));
             }
@@ -623,7 +623,8 @@ void TransformControlPrivate::HandleTransform()
           {
             if (this->transformControl.Node())
             {
-              try {
+              try
+              {
                 this->transformControl.Node()->SetUserData(
                   "pause-update", static_cast<int>(0));
               }
@@ -712,7 +713,8 @@ void TransformControlPrivate::HandleTransform()
               if (topClickedNode == topClickedVisual)
               {
                 this->transformControl.Attach(topClickedVisual);
-                try {
+                try
+                {
                   topClickedVisual->SetUserData(
                     "pause-update", static_cast<int>(1));
                 }
@@ -724,7 +726,8 @@ void TransformControlPrivate::HandleTransform()
               else
               {
                 this->transformControl.Detach();
-                try {
+                try
+                {
                   topClickedVisual->SetUserData(
                     "pause-update", static_cast<int>(0));
                 }
@@ -746,7 +749,8 @@ void TransformControlPrivate::HandleTransform()
       && this->transformControl.Active())
   {
     if (this->transformControl.Node()){
-      try {
+      try
+      {
         this->transformControl.Node()->SetUserData(
           "pause-update", static_cast<int>(1));
       } catch (std::bad_variant_access &)
@@ -780,7 +784,8 @@ void TransformControlPrivate::HandleTransform()
       {
         auto visual = this->scene->VisualByIndex(i);
         auto entityId = kNullEntity;
-        try {
+        try
+        {
           entityId = static_cast<unsigned int>(
             std::get<int>(visual->UserData("gazebo-entity")));
         }
