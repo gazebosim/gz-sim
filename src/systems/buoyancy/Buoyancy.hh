@@ -59,10 +59,10 @@ namespace systems
   /// * `<above_depth>` a child property of `<density_change>`. This determines
   /// the height at which the next fluid layer should start. [Units: m]
   /// * `<density>` the density of the fluid in this layer. [Units: kgm^-3]
-  /// * `<white_list>` used to indicate which models will have buoyancy.
-  /// Add one white list element per model or link. This element accepts names
+  /// * `<enable>` used to indicate which models will have buoyancy.
+  /// Add one enable element per model or link. This element accepts names
   /// scoped from the top level model (i.e. `<model>::<nested_model>::<link>`).
-  /// If there are no white-listed entities, all models in simulation will be
+  /// If there are no enabled entities, all models in simulation will be
   /// affected by buoyancy.
   ///
   /// ## Examples
@@ -132,11 +132,11 @@ namespace systems
                 const ignition::gazebo::UpdateInfo &_info,
                 ignition::gazebo::EntityComponentManager &_ecm) override;
 
-    /// \brief Check if an entity is whitelisted or not.
+    /// \brief Check if an entity is enabled or not.
     /// \param[in] _entity Target entity
     /// \param[in] _ecm Entity component manager
     /// \return True if buoyancy should be applied.
-    public: bool IsWhiteListed(Entity _entity,
+    public: bool IsEnabled(Entity _entity,
         const EntityComponentManager &_ecm) const;
 
     /// \brief Private data pointer

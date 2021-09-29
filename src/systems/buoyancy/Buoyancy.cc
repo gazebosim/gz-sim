@@ -19,6 +19,7 @@
 #include <map>
 #include <mutex>
 #include <string>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -125,7 +126,7 @@ class ignition::gazebo::systems::BuoyancyPrivate
 
   /// \brief Scoped names of entities that buoyancy should apply to. If empty,
   /// all links will receive buoyancy.
-  public: std::unordered_set<std::string> whiteList;
+  public: std::unordered_set<std::string> enabled;
 };
 
 //////////////////////////////////////////////////
@@ -299,13 +300,13 @@ void Buoyancy::Configure(const Entity &_entity,
     }
   }
 
-  if (_sdf->HasElement("white_list"))
+  if (_sdf->HasElement("enable"))
   {
-    for (auto whiteListElem = _sdf->FindElement("white_list");
-        whiteListElem != nullptr;
-        whiteListElem = whiteListElem->GetNextElement("white_list"))
+    for (auto enableElem = _sdf->FindElement("enable");
+        enableElem != nullptr;
+        enableElem = enableElem->GetNextElement("enable"))
     {
-      this->dataPtr->whiteList.insert(whiteListElem->Get<std::string>());
+      this->dataPtr->enabled.insert(enableElem->Get<std::string>());
     }
   }
 }
@@ -339,7 +340,7 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       return true;
     }
 
-    if (!this->IsWhiteListed(_entity, _ecm))
+    if (!this->IsEnabled(_entity, _ecm))
     {
       return true;
     }
@@ -531,11 +532,11 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-bool Buoyancy::IsWhiteListed(Entity _entity,
+bool Buoyancy::IsEnabled(Entity _entity,
     const EntityComponentManager &_ecm) const
 {
-  // If there's no whitelist, all entities are whitelisted
-  if (this->dataPtr->whiteList.empty())
+  // If there's nothing enabled, all entities are enabled
+  if (this->dataPtr->enabled.empty())
     return true;
 
   auto entity = _entity;
@@ -547,7 +548,7 @@ bool Buoyancy::IsWhiteListed(Entity _entity,
     // Remove world name
     name = removeParentScope(name, "::");
 
-    if (this->dataPtr->whiteList.find(name) != this->dataPtr->whiteList.end())
+    if (this->dataPtr->enabled.find(name) != this->dataPtr->enabled.end())
       return true;
 
     // Check parent
