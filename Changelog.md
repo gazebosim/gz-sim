@@ -2,7 +2,7 @@
 
 ## Ignition Math 6.x.x
 
-## Ignition Math 6.9.0 (2021-09-XX)
+## Ignition Math 6.9.0 (2021-09-28)
 
 1. Volume below a plane for spheres and boxes
     * [Pull request #219](https://github.com/ignitionrobotics/ign-math/pull/219)
@@ -64,6 +64,8 @@
     * [Pull request #209](https://github.com/ignitionrobotics/ign-math/pull/209)
     * [Pull request #227](https://github.com/ignitionrobotics/ign-math/pull/227)
     * [Pull request #225](https://github.com/ignitionrobotics/ign-math/pull/225)
+    * [Pull request #252](https://github.com/ignitionrobotics/ign-math/pull/252)
+    * [Pull request #253](https://github.com/ignitionrobotics/ign-math/pull/253)
 
 ## Ignition Math 6.8.0 (2021-03-30)
 
