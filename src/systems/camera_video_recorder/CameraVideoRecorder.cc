@@ -108,6 +108,25 @@ class ignition::gazebo::systems::CameraVideoRecorderPrivate
 
   /// \brief Topic that the sensor publishes to
   public: std::string sensorTopic;
+
+  /// \brief Video recording statistics publisher
+  public: transport::Node::Publisher recorderStatsPub;
+
+  /// \brief Start time of video recording.
+  public: std::chrono::steady_clock::time_point recordStartTime;
+
+  /// \brief Current simulation time.
+  public: std::chrono::steady_clock::duration simTime{0};
+
+  /// \brief Use sim time as timestamp during video recording
+  /// By default (false), video encoding is done using real time.
+  public: bool recordVideoUseSimTime = false;
+
+  /// \brief Video recorder bitrate (bps)
+  public: unsigned int recordVideoBitrate = 2070000;
+
+  /// \brief Recording frames per second.
+  public: unsigned int fps = 25;
 };
 
 //////////////////////////////////////////////////
@@ -224,6 +243,23 @@ void CameraVideoRecorder::Configure(
     }
   }
   this->dataPtr->sensorTopic = topic;
+
+  // Get whether sim time should be used for recording.
+  this->dataPtr->recordVideoUseSimTime = _sdf->Get<bool>("use_sim_time",
+      this->dataPtr->recordVideoUseSimTime).first;
+
+  // Get video recoder bitrate param
+  this->dataPtr->recordVideoBitrate = _sdf->Get<unsigned int>("bitrate",
+      this->dataPtr->recordVideoBitrate).first;
+
+  this->dataPtr->fps = _sdf->Get<unsigned int>("fps", this->dataPtr->fps).first;
+
+  // recorder stats topic
+  std::string recorderStatsTopic = this->dataPtr->sensorTopic + "/stats";
+  this->dataPtr->recorderStatsPub =
+    this->dataPtr->node.Advertise<msgs::Time>(recorderStatsTopic);
+  ignmsg << "Camera Video recorder stats topic advertised on ["
+    << recorderStatsTopic << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -281,8 +317,36 @@ void CameraVideoRecorderPrivate::OnPostRender()
     if (this->videoEncoder.IsEncoding())
     {
       this->camera->Copy(this->cameraImage);
-      this->videoEncoder.AddFrame(
-          this->cameraImage.Data<unsigned char>(), width, height);
+      std::chrono::steady_clock::time_point t;
+        std::chrono::steady_clock::now();
+      if (this->recordVideoUseSimTime)
+        t = std::chrono::steady_clock::time_point(this->simTime);
+      else
+        t = std::chrono::steady_clock::now();
+
+      bool frameAdded = this->videoEncoder.AddFrame(
+          this->cameraImage.Data<unsigned char>(), width, height, t);
+
+      if (frameAdded)
+      {
+        // publish recorder stats
+        if (this->recordStartTime ==
+            std::chrono::steady_clock::time_point(
+              std::chrono::duration(std::chrono::seconds(0))))
+        {
+          // start time, i.e. time when first frame is added
+          this->recordStartTime = t;
+        }
+
+        std::chrono::steady_clock::duration dt;
+        dt = t - this->recordStartTime;
+        int64_t sec, nsec;
+        std::tie(sec, nsec) = ignition::math::durationToSecNsec(dt);
+        msgs::Time msg;
+        msg.set_sec(sec);
+        msg.set_nsec(nsec);
+        this->recorderStatsPub.Publish(msg);
+      }
     }
     // Video recorder is idle. Start recording.
     else
@@ -296,7 +360,11 @@ void CameraVideoRecorderPrivate::OnPostRender()
           &CameraVideoRecorderPrivate::OnImage, this);
 
       this->videoEncoder.Start(this->recordVideoFormat,
-          this->tmpVideoFilename, width, height);
+          this->tmpVideoFilename, width, height, this->fps,
+          this->recordVideoBitrate);
+
+      this->recordStartTime = std::chrono::steady_clock::time_point(
+            std::chrono::duration(std::chrono::seconds(0)));
 
       ignmsg << "Start video recording on [" << this->service << "]. "
              << "Encoding to tmp file: ["
@@ -331,9 +399,10 @@ void CameraVideoRecorderPrivate::OnPostRender()
 }
 
 //////////////////////////////////////////////////
-void CameraVideoRecorder::PostUpdate(const UpdateInfo &,
+void CameraVideoRecorder::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
+  this->dataPtr->simTime = _info.simTime;
   if (!this->dataPtr->cameraName.empty())
     return;
 
