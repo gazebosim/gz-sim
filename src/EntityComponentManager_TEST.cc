@@ -2880,6 +2880,64 @@ TEST_P(EntityComponentManagerFixture, Deprecated)
   IGN_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
 }
 
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, PinnedEntity)
+{
+  // Create some entities
+  auto e1 = manager.CreateEntity();
+  EXPECT_EQ(1u, e1);
+  EXPECT_TRUE(manager.HasEntity(e1));
+
+  auto e2 = manager.CreateEntity();
+  EXPECT_TRUE(manager.SetParentEntity(e2, e1));
+  EXPECT_EQ(2u, e2);
+  EXPECT_TRUE(manager.HasEntity(e2));
+
+  auto e3 = manager.CreateEntity();
+  EXPECT_EQ(3u, e3);
+  EXPECT_TRUE(manager.HasEntity(e3));
+
+  EXPECT_EQ(3u, manager.EntityCount());
+
+  // Mark e1 as unremovable, which should also lock its child entity e2
+  manager.PinEntity(e1);
+
+  // Try to remove e1, which is locked entity
+  manager.RequestRemoveEntity(e1);
+  EXPECT_EQ(3u, manager.EntityCount());
+  EXPECT_FALSE(manager.HasEntitiesMarkedForRemoval());
+  manager.ProcessEntityRemovals();
+  EXPECT_EQ(3u, manager.EntityCount());
+
+  // Try to remove e2, which has been locked recursively
+  manager.RequestRemoveEntity(e2);
+  EXPECT_EQ(3u, manager.EntityCount());
+  EXPECT_FALSE(manager.HasEntitiesMarkedForRemoval());
+  manager.ProcessEntityRemovals();
+  EXPECT_EQ(3u, manager.EntityCount());
+
+  // Try to remove all entities, which should leave just e1 and e2
+  manager.RequestRemoveEntities();
+  EXPECT_TRUE(manager.HasEntitiesMarkedForRemoval());
+  manager.ProcessEntityRemovals();
+  EXPECT_EQ(2u, manager.EntityCount());
+
+  // Unmark e2, and now it should be removable.
+  manager.UnpinEntity(e2);
+  manager.RequestRemoveEntity(e2);
+  EXPECT_EQ(2u, manager.EntityCount());
+  EXPECT_TRUE(manager.HasEntitiesMarkedForRemoval());
+  manager.ProcessEntityRemovals();
+  EXPECT_EQ(1u, manager.EntityCount());
+
+  // Unmark all entities, and now it should be removable.
+  manager.UnpinAllEntities();
+  manager.RequestRemoveEntities();
+  EXPECT_TRUE(manager.HasEntitiesMarkedForRemoval());
+  manager.ProcessEntityRemovals();
+  EXPECT_EQ(0u, manager.EntityCount());
+}
+
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
 INSTANTIATE_TEST_SUITE_P(EntityComponentManagerRepeat,

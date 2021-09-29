@@ -2078,7 +2078,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         math::AxisAlignedBox bbox =
             math::eigen3::convert(bbModel->GetAxisAlignedBoundingBox());
         auto state = _bbox->SetData(bbox, this->axisAlignedBoxEql) ?
-            ComponentState::OneTimeChange :
+            ComponentState::PeriodicChange :
             ComponentState::NoChange;
         _ecm.SetChanged(_entity, components::AxisAlignedBox::typeId, state);
 
@@ -2308,7 +2308,9 @@ void PhysicsPrivate::UpdateModelPose(const Entity _model,
       _ecm.Component<components::ModelCanonicalLink>(nestedModel);
     if (!nestedModelCanonicalLinkComp)
     {
-      ignerr << "Model [" << nestedModel << "] has no canonical link\n";
+      auto staticComp = _ecm.Component<components::Static>(nestedModel);
+      if (!staticComp || !staticComp->Data())
+        ignerr << "Model [" << nestedModel << "] has no canonical link\n";
       continue;
     }
 
@@ -2928,7 +2930,7 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
           // Clear the last contact data
           auto state = _contacts->SetData(contactsComp,
             this->contactsEql) ?
-            ComponentState::OneTimeChange :
+            ComponentState::PeriodicChange :
             ComponentState::NoChange;
           _ecm.SetChanged(
             _collEntity1, components::ContactSensorData::typeId, state);
@@ -2953,7 +2955,7 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
 
         auto state = _contacts->SetData(contactsComp,
           this->contactsEql) ?
-          ComponentState::OneTimeChange :
+          ComponentState::PeriodicChange :
           ComponentState::NoChange;
         _ecm.SetChanged(
           _collEntity1, components::ContactSensorData::typeId, state);

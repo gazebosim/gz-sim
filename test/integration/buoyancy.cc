@@ -57,7 +57,7 @@ TEST_F(BuoyancyTest, UniformWorldMovement)
   using namespace std::chrono_literals;
   server.SetUpdatePeriod(1ns);
 
-  std::size_t iterations = 1000;
+  std::size_t iterations = 1001;
 
   bool finished = false;
   test::Relay testSystem;
@@ -183,7 +183,7 @@ TEST_F(BuoyancyTest, UniformWorldMovement)
 
     if (_info.iterations == iterations)
     {
-      EXPECT_NEAR(-1.63, submarineSinkingPose->Data().Pos().Z(), 1e-2);
+      EXPECT_NEAR(-1.64, submarineSinkingPose->Data().Pos().Z(), 1e-2);
       EXPECT_NEAR(4.90, submarineBuoyantPose->Data().Pos().Z(), 1e-2);
       EXPECT_NEAR(171.4, duckPose->Data().Pos().Z(), 1e-2);
       finished = true;

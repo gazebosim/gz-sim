@@ -343,9 +343,6 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       return true;
     }
 
-    enableComponent<components::Inertial>(_ecm, _entity);
-    enableComponent<components::WorldPose>(_ecm, _entity);
-
     Link link(_entity);
 
     std::vector<Entity> collisions = _ecm.ChildrenByComponents(
@@ -440,6 +437,14 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
           const components::Volume *_volume,
           const components::CenterOfVolume *_centerOfVolume) -> bool
     {
+      auto newPose = enableComponent<components::Inertial>(_ecm, _entity);
+      newPose |= enableComponent<components::WorldPose>(_ecm, _entity);
+      if (newPose)
+      {
+        // Skip entity if WorldPose and inertial are not yet ready
+        return true;
+      }
+
       // World pose of the link.
       math::Pose3d linkWorldPose = worldPose(_entity, _ecm);
 
