@@ -7,6 +7,9 @@
 1. Avoid assertAlmostEqual for python strings
     * [Pull request #255](https://github.com/ignitionrobotics/ign-math/pull/255)
 
+1. Pose3_TEST.py: use 0.01 (not 0) in string test
+    * [Pull request #257](https://github.com/ignitionrobotics/ign-math/pull/257)
+
 ## Ignition Math 6.9.0 (2021-09-28)
 
 1. Volume below a plane for spheres and boxes
