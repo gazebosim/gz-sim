@@ -47,7 +47,7 @@ namespace gazebo
       override;
 
     // Documentation inherited
-    public: bool eventFilter(QObject *_obj, QEvent *_event);
+    public: bool eventFilter(QObject *_obj, QEvent *_event) override;
 
     /// \brief Callback when video record start request is received
     /// \param[in] _format Video encoding format
