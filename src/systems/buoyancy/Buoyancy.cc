@@ -513,8 +513,8 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
               static bool warned{false};
               if (!warned)
               {
-                ignwarn << "Only <box> and <sphere> collisions are supported by "
-                  << "the graded buoyancy option." << std::endl;
+                ignwarn << "Only <box> and <sphere> collisions are supported "
+                  << "by the graded buoyancy option." << std::endl;
                 warned = true;
               }
               break;
