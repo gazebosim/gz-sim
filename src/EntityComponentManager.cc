@@ -53,6 +53,13 @@ class ignition::gazebo::EntityComponentManagerPrivate
   public: void InsertEntityRecursive(Entity _entity,
       std::unordered_set<Entity> &_set);
 
+  /// \brief Recursively erase an entity and all its descendants from a given
+  /// set.
+  /// \param[in] _entity Entity to be erased.
+  /// \param[in, out] _set Set to erase from.
+  public: void EraseEntityRecursive(Entity _entity,
+      std::unordered_set<Entity> &_set);
+
   /// \brief Allots the work for multiple threads prior to running
   /// `AddEntityToMessage`.
   public: void CalculateStateThreadLoad();
@@ -221,10 +228,13 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// \TODO(anyone) We shouldn't be giving canonical links special treatment.
   /// This may happen to any component that holds an Entity, so we should figure
   /// out a way to generalize this for any such component.
-  std::unordered_map<Entity, Entity> oldModelCanonicalLink;
+  public: std::unordered_map<Entity, Entity> oldModelCanonicalLink;
 
   /// \brief See above
-  std::unordered_map<Entity, Entity> oldToClonedCanonicalLink;
+  public: std::unordered_map<Entity, Entity> oldToClonedCanonicalLink;
+
+  /// \brief Set of entities that are prevented from removal.
+  public: std::unordered_set<Entity> pinnedEntities;
 };
 
 //////////////////////////////////////////////////
@@ -457,6 +467,17 @@ void EntityComponentManagerPrivate::InsertEntityRecursive(Entity _entity,
 }
 
 /////////////////////////////////////////////////
+void EntityComponentManagerPrivate::EraseEntityRecursive(Entity _entity,
+    std::unordered_set<Entity> &_set)
+{
+  for (const auto &vertex : this->entities.AdjacentsFrom(_entity))
+  {
+    this->EraseEntityRecursive(vertex.first, _set);
+  }
+  _set.erase(_entity);
+}
+
+/////////////////////////////////////////////////
 void EntityComponentManager::RequestRemoveEntity(Entity _entity,
     bool _recursive)
 {
@@ -470,6 +491,23 @@ void EntityComponentManager::RequestRemoveEntity(Entity _entity,
   else
   {
     this->dataPtr->InsertEntityRecursive(_entity, tmpToRemoveEntities);
+  }
+
+  // Remove entities from tmpToRemoveEntities that are marked as
+  // unremovable.
+  for (auto iter = tmpToRemoveEntities.begin();
+       iter != tmpToRemoveEntities.end();)
+  {
+    if (std::find(this->dataPtr->pinnedEntities.begin(),
+                  this->dataPtr->pinnedEntities.end(), *iter) !=
+               this->dataPtr->pinnedEntities.end())
+    {
+      iter = tmpToRemoveEntities.erase(iter);
+    }
+    else
+    {
+      ++iter;
+    }
   }
 
   {
@@ -490,11 +528,44 @@ void EntityComponentManager::RequestRemoveEntity(Entity _entity,
 /////////////////////////////////////////////////
 void EntityComponentManager::RequestRemoveEntities()
 {
+  if (this->dataPtr->pinnedEntities.empty())
   {
-    std::lock_guard<std::mutex> lock(this->dataPtr->entityRemoveMutex);
-    this->dataPtr->removeAllEntities = true;
+    {
+      std::lock_guard<std::mutex> lock(this->dataPtr->entityRemoveMutex);
+      this->dataPtr->removeAllEntities = true;
+    }
+    this->RebuildViews();
   }
-  this->RebuildViews();
+  else
+  {
+    std::unordered_set<Entity> tmpToRemoveEntities;
+
+    // Store the to-be-removed entities in a temporary set so we can
+    // mark each of them to be removed from views that contain them.
+    for (const auto &vertex : this->dataPtr->entities.Vertices())
+    {
+      if (std::find(this->dataPtr->pinnedEntities.begin(),
+                    this->dataPtr->pinnedEntities.end(), vertex.first) ==
+          this->dataPtr->pinnedEntities.end())
+      {
+        tmpToRemoveEntities.insert(vertex.first);
+      }
+    }
+
+    {
+      std::lock_guard<std::mutex> lock(this->dataPtr->entityRemoveMutex);
+      this->dataPtr->toRemoveEntities.insert(tmpToRemoveEntities.begin(),
+          tmpToRemoveEntities.end());
+    }
+
+    for (const auto &removedEntity : tmpToRemoveEntities)
+    {
+      for (auto &view : this->dataPtr->views)
+      {
+        view.second.first->MarkEntityToRemove(removedEntity);
+      }
+    }
+  }
 }
 
 /////////////////////////////////////////////////
@@ -1759,4 +1830,38 @@ bool EntityComponentManagerPrivate::ComponentMarkedAsRemoved(
     return iter->second.find(_typeId) != iter->second.end();
 
   return false;
+}
+
+/////////////////////////////////////////////////
+void EntityComponentManager::PinEntity(const Entity _entity, bool _recursive)
+{
+  if (_recursive)
+  {
+    this->dataPtr->InsertEntityRecursive(_entity,
+        this->dataPtr->pinnedEntities);
+  }
+  else
+  {
+    this->dataPtr->pinnedEntities.insert(_entity);
+  }
+}
+
+/////////////////////////////////////////////////
+void EntityComponentManager::UnpinEntity(const Entity _entity, bool _recursive)
+{
+  if (_recursive)
+  {
+    this->dataPtr->EraseEntityRecursive(_entity,
+        this->dataPtr->pinnedEntities);
+  }
+  else
+  {
+    this->dataPtr->pinnedEntities.erase(_entity);
+  }
+}
+
+/////////////////////////////////////////////////
+void EntityComponentManager::UnpinAllEntities()
+{
+  this->dataPtr->pinnedEntities.clear();
 }

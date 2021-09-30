@@ -189,10 +189,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// only used in lockstep mode and recording in sim time.
     public: std::chrono::steady_clock::time_point recordVideoUpdateTime;
 
-    /// \brief Start tiem of video recording
+    /// \brief Start time of video recording
     public: std::chrono::steady_clock::time_point recordStartTime;
 
-    /// \brief Camera pose publisher
+    /// \brief Video recording statistics publisher
     public: transport::Node::Publisher recorderStatsPub;
 
     /// \brief Image from user camera
