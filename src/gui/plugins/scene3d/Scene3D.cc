@@ -2103,6 +2103,9 @@ void IgnRenderer::Initialize()
   if (this->initialized)
     return;
 
+  this->dataPtr->renderUtil.SetWinID(std::to_string(
+    ignition::gui::App()->findChild<ignition::gui::MainWindow *>()->
+      QuickWindow()->winId()));
   this->dataPtr->renderUtil.SetUseCurrentGLContext(true);
   this->dataPtr->renderUtil.Init();
 
