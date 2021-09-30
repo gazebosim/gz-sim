@@ -34,16 +34,16 @@
         </density_change>
       </graded_buoyancy>
 
-      <!-- whitelist by link name -->
-      <white_list>lighter_than_water::ball::body</white_list>
+      <!-- enable by link name -->
+      <enable>lighter_than_water::ball::body</enable>
 
-      <!-- whitelist by nested model name -->
-      <white_list>lighter_than_water::box</white_list>
+      <!-- enable by nested model name -->
+      <enable>lighter_than_water::box</enable>
 
-      <!-- whitelist by top level model name -->
-      <white_list>balloon_lighter_than_air</white_list>
-      <white_list>box_neutral_buoyancy</white_list>
-      <white_list>box_negative_buoyancy</white_list>
+      <!-- enable by top level model name -->
+      <enable>balloon_lighter_than_air</enable>
+      <enable>box_neutral_buoyancy</enable>
+      <enable>box_negative_buoyancy</enable>
     </plugin>
 
     <light type="directional" name="sun">
