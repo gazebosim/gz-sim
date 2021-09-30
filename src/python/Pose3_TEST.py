@@ -142,7 +142,7 @@ class TestPose3(unittest.TestCase):
 
     def test_stream_out(self):
         p = Pose3d(0.1, 1.2, 2.3, 0.0, 0.1, 1.0)
-        self.assertAlmostEqual(str(p), "0.1 1.2 2.3 0 0.1 1")
+        self.assertEqual(str(p), "0.1 1.2 2.3 0 0.1 1")
 
     def test_mutable_pose(self):
         pose = Pose3d(0, 1, 2, 0, 0, 0)
