@@ -2,6 +2,11 @@
 
 ## Ignition Math 6.x.x
 
+## Ignition Math 6.9.1 (2021-09-30)
+
+1. Avoid assertAlmostEqual for python strings
+    * [Pull request #255](https://github.com/ignitionrobotics/ign-math/pull/255)
+
 ## Ignition Math 6.9.0 (2021-09-28)
 
 1. Volume below a plane for spheres and boxes
