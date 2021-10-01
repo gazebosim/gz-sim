@@ -151,9 +151,13 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
       worldName = _ecm.Component<components::Name>(
           parentEntity->Data())->Data();
 
-      // if topic not set it will be empty, hence invalid
+      // if topic not set it will be empty
       std::vector<std::string> topics;
-      topics.push_back(this->topic);
+      // this helps avoid unecesarry invalid topic error
+      if (!this->topic.empty())
+      {
+        topics.push_back(this->topic);
+      }
       topics.push_back(std::string("/world/") + worldName + "/model/"
         + this->model.Name(_ecm) + "/joint_state");
       this->topic = validTopic(topics);
