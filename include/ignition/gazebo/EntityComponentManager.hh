@@ -89,6 +89,7 @@ namespace ignition
       ///      child links set to the cloned parent/child links.
       ///   5. Aside from the changes listed above, all other cloned components
       ///      remain unchanged.
+      /// Currently, cloning detachable joints is not supported.
       /// \param[in] _entity The entity to clone.
       /// \param[in] _parent The parent of the cloned entity. Set this to
       /// kNullEntity if the cloned entity should not have a parent.
