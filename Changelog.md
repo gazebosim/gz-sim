@@ -123,7 +123,7 @@
 1. Removed unused variable in Shapes plugin
     * [Pull request #984](https://github.com/ignitionrobotics/ign-gazebo/pull/984)
 
-1. Use root.Nodel()
+1. Use root.Model()
     * [Pull request #980](https://github.com/ignitionrobotics/ign-gazebo/pull/980)
 
 1. Add ModelSDF serializer
