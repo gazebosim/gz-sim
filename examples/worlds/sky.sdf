@@ -10,9 +10,10 @@ Currently only supported using ogre2 rendering engine plugin.
 
   <world name="sky">
 
-    <gui>
+    <gui fullscreen="0">
+
       <!-- 3D scene -->
-      <plugin filename="GzScene3D" name="3D View">
+      <plugin filename="MinimalScene" name="3D View">
         <ignition-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
@@ -23,11 +24,46 @@ Currently only supported using ogre2 rendering engine plugin.
         <scene>scene</scene>
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
-        <sky></sky>
-        <camera_pose>6 0 1.0 0 0.0 3.14</camera_pose>
+        <camera_pose>-6 0 6 0 0.5 0</camera_pose>
       </plugin>
 
-      <!-- Play / pause / step -->
+      <!-- Plugins that add functionality to the scene -->
+      <plugin filename="EntityContextMenuPlugin" name="Entity context menu">
+        <ignition-gui>
+          <property key="state" type="string">floating</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
+      <plugin filename="GzSceneManager" name="Scene Manager">
+        <ignition-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
+      <plugin filename="InteractiveViewControl" name="Interactive view control">
+        <ignition-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
+      <plugin filename="CameraTracking" name="Camera Tracking">
+        <ignition-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
+      <!-- World control -->
       <plugin filename="WorldControl" name="World control">
         <ignition-gui>
           <title>World control</title>
@@ -50,7 +86,7 @@ Currently only supported using ogre2 rendering engine plugin.
 
       </plugin>
 
-      <!-- Time / RTF -->
+      <!-- World statistics -->
       <plugin filename="WorldStats" name="World stats">
         <ignition-gui>
           <title>World stats</title>
@@ -71,20 +107,28 @@ Currently only supported using ogre2 rendering engine plugin.
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-
       </plugin>
 
       <plugin filename="ImageDisplay" name="Image Display">
         <ignition-gui>
-          <title>RGB camera</title>
-          <property type="double" key="width">350</property>
-          <property type="double" key="height">315</property>
+          <property key="state" type="string">docked</property>
         </ignition-gui>
-        <topic>camera</topic>
       </plugin>
 
-    </gui>
+      <!-- Inspector -->
+      <plugin filename="ComponentInspector" name="Component inspector">
+        <ignition-gui>
+          <property type="string" key="state">docked</property>
+        </ignition-gui>
+      </plugin>
 
+      <!-- Entity tree -->
+      <plugin filename="EntityTree" name="Entity tree">
+        <ignition-gui>
+          <property type="string" key="state">docked</property>
+        </ignition-gui>
+      </plugin>
+    </gui>
 
     <physics name="1ms" type="ignored">
       <max_step_size>0.001</max_step_size>
@@ -302,4 +346,3 @@ Currently only supported using ogre2 rendering engine plugin.
 
  </world>
 </sdf>
-
