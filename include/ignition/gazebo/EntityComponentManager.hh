@@ -85,7 +85,9 @@ namespace ignition
       ///      canonical link.
       ///   3. Child entities that are cloned will have their parent set to the
       ///      cloned parent entity.
-      ///   4. Aside from the changes listed above, all other cloned components
+      ///   4. Cloned joints with parent/child links will have their parent and
+      ///      child links set to the cloned parent/child links.
+      ///   5. Aside from the changes listed above, all other cloned components
       ///      remain unchanged.
       /// \param[in] _entity The entity to clone.
       /// \param[in] _parent The parent of the cloned entity. Set this to
