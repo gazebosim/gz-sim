@@ -19,6 +19,7 @@
 #include <map>
 #include <mutex>
 #include <string>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -41,6 +42,7 @@
 #include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Volume.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -121,6 +123,10 @@ class ignition::gazebo::systems::BuoyancyPrivate
   /// at _pose.
   public: std::pair<math::Vector3d, math::Vector3d> ResolveForces(
     const math::Pose3d &_pose);
+
+  /// \brief Scoped names of entities that buoyancy should apply to. If empty,
+  /// all links will receive buoyancy.
+  public: std::unordered_set<std::string> enabled;
 };
 
 //////////////////////////////////////////////////
@@ -293,6 +299,16 @@ void Buoyancy::Configure(const Entity &_entity,
       argument = argument->GetNextElement();
     }
   }
+
+  if (_sdf->HasElement("enable"))
+  {
+    for (auto enableElem = _sdf->FindElement("enable");
+        enableElem != nullptr;
+        enableElem = enableElem->GetNextElement("enable"))
+    {
+      this->dataPtr->enabled.insert(enableElem->Get<std::string>());
+    }
+  }
 }
 
 //////////////////////////////////////////////////
@@ -324,8 +340,10 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       return true;
     }
 
-    enableComponent<components::Inertial>(_ecm, _entity);
-    enableComponent<components::WorldPose>(_ecm, _entity);
+    if (!this->IsEnabled(_entity, _ecm))
+    {
+      return true;
+    }
 
     Link link(_entity);
 
@@ -421,6 +439,14 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
           const components::Volume *_volume,
           const components::CenterOfVolume *_centerOfVolume) -> bool
     {
+      auto newPose = enableComponent<components::Inertial>(_ecm, _entity);
+      newPose |= enableComponent<components::WorldPose>(_ecm, _entity);
+      if (newPose)
+      {
+        // Skip entity if WorldPose and inertial are not yet ready
+        return true;
+      }
+
       // World pose of the link.
       math::Pose3d linkWorldPose = worldPose(_entity, _ecm);
 
@@ -483,9 +509,16 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
                 gravity->Data());
               break;
             default:
-              ignwarn << "Only <box> and <sphere> collisions are supported by "
-                << "the graded buoyancy option." << std::endl;
+            {
+              static bool warned{false};
+              if (!warned)
+              {
+                ignwarn << "Only <box> and <sphere> collisions are supported "
+                  << "by the graded buoyancy option." << std::endl;
+                warned = true;
+              }
               break;
+            }
           }
         }
       }
@@ -496,6 +529,38 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       link.AddWorldWrench(_ecm, force, torque);
       return true;
   });
+}
+
+//////////////////////////////////////////////////
+bool Buoyancy::IsEnabled(Entity _entity,
+    const EntityComponentManager &_ecm) const
+{
+  // If there's nothing enabled, all entities are enabled
+  if (this->dataPtr->enabled.empty())
+    return true;
+
+  auto entity = _entity;
+  while (entity != kNullEntity)
+  {
+    // Fully scoped name
+    auto name = scopedName(entity, _ecm, "::", false);
+
+    // Remove world name
+    name = removeParentScope(name, "::");
+
+    if (this->dataPtr->enabled.find(name) != this->dataPtr->enabled.end())
+      return true;
+
+    // Check parent
+    auto parentComp = _ecm.Component<components::ParentEntity>(entity);
+
+    if (nullptr == parentComp)
+      return false;
+
+    entity = parentComp->Data();
+  }
+
+  return false;
 }
 
 IGNITION_ADD_PLUGIN(Buoyancy,

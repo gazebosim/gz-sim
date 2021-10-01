@@ -123,6 +123,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _enable True to use the current GL context
     public: void SetUseCurrentGLContext(bool _enable);
 
+    /// \brief Set the Window ID
+    /// \param[in] _winID Window ID
+    public: void SetWinID(const std::string &_winID);
+
     /// \brief Set whether to create rendering sensors
     /// \param[in] _enable True to create rendering sensors
     /// \param[in] _createSensorCb Callback function for creating the sensors
