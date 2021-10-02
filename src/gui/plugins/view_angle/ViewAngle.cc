@@ -310,6 +310,7 @@ void ViewAnglePrivate::OnRender()
         if (isUserCamera)
         {
           this->camera = cam;
+          this->moveToHelper.SetInitCameraPose(this->camera->WorldPose());
           igndbg << "ViewAngle plugin is moving camera ["
                  << this->camera->Name() << "]" << std::endl;
           break;
