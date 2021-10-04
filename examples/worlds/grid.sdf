@@ -28,20 +28,38 @@
     <gui fullscreen="0">
 
       <!-- 3D scene -->
-      <plugin filename="GzScene3D" name="3D View">
+      <plugin filename="MinimalScene" name="3D View">
         <ignition-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
           <property type="string" key="state">docked</property>
         </ignition-gui>
 
-        <engine>ogre</engine>
+        <engine>ogre2</engine>
         <scene>scene</scene>
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
       </plugin>
 
+      <plugin filename="GzSceneManager" name="Scene Manager">
+        <ignition-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
+      <plugin filename="InteractiveViewControl" name="Interactive view control">
+        <ignition-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
       <!-- World control -->
       <plugin filename="WorldControl" name="World control">
         <ignition-gui>
@@ -86,7 +104,6 @@
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-
       </plugin>
 
       <!-- Grid Config -->
@@ -95,11 +112,6 @@
           <title>Grid Config</title>
         </ignition-gui>
       </plugin>
-
-      <!-- Entity tree -->
-      <plugin filename="EntityTree" name="Entity tree">
-      </plugin>
-
     </gui>
 
     <light type="directional" name="sun">

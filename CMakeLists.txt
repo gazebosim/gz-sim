@@ -14,7 +14,7 @@ find_package(ignition-cmake2 2.8.0 REQUIRED)
 #============================================================================
 # Configure the project
 #============================================================================
-ign_configure_project(VERSION_SUFFIX pre1)
+ign_configure_project(VERSION_SUFFIX)
 
 #============================================================================
 # Set project-specific options
@@ -38,6 +38,9 @@ endif()
 # Search for project-specific dependencies
 #============================================================================
 
+# Setting this policy enables using the protobuf_MODULE_COMPATIBLE
+# set command in CMake versions older than 13.13
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 # This option is needed to use the PROTOBUF_GENERATE_CPP
 # in case protobuf is found with the CMake config files
 # It needs to be set before any find_package(...) call
@@ -111,6 +114,7 @@ ign_find_package(ignition-sensors6 REQUIRED
     air_pressure
     altimeter
     imu
+    force_torque
     logical_camera
     magnetometer
 
@@ -121,6 +125,7 @@ ign_find_package(ignition-sensors6 REQUIRED
 
     # cameras
     camera
+    segmentation_camera
     depth_camera
     rgbd_camera
     thermal_camera
@@ -134,7 +139,7 @@ set(IGN_RENDERING_VER ${ignition-rendering6_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-math
-ign_find_package(ignition-math6 REQUIRED COMPONENTS eigen3 VERSION 6.8)
+ign_find_package(ignition-math6 REQUIRED COMPONENTS eigen3 VERSION 6.9)
 set(IGN_MATH_VER ${ignition-math6_VERSION_MAJOR})
 
 #--------------------------------------

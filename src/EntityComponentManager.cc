@@ -20,6 +20,7 @@
 #include <map>
 #include <memory>
 #include <set>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -28,8 +29,11 @@
 #include <ignition/common/Profiler.hh>
 #include <ignition/math/graph/GraphAlgorithms.hh>
 
+#include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/components/Factory.hh"
+#include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/ParentEntity.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -47,6 +51,13 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// \param[in] _entity Entity to be inserted.
   /// \param[in, out] _set Set to be filled.
   public: void InsertEntityRecursive(Entity _entity,
+      std::unordered_set<Entity> &_set);
+
+  /// \brief Recursively erase an entity and all its descendants from a given
+  /// set.
+  /// \param[in] _entity Entity to be erased.
+  /// \param[in, out] _set Set to erase from.
+  public: void EraseEntityRecursive(Entity _entity,
       std::unordered_set<Entity> &_set);
 
   /// \brief Allots the work for multiple threads prior to running
@@ -202,6 +213,28 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// by the multithreading functionality in `State()` to allocate work to
   /// each thread.
   public: bool componentTypeIndexDirty{true};
+
+  /// \brief During cloning, we populate two maps:
+  ///  - map of cloned model entities to the non-cloned model's canonical link
+  ///  - map of non-cloned canonical links to the cloned canonical link
+  /// After cloning is done, these maps can be used to update the cloned model's
+  /// canonical link to be the cloned canonical link instead of the original
+  /// model's canonical link. We populate maps during cloning and then update
+  /// canonical links after cloning since cloning is done top-down, and
+  /// canonical links are children of models (when a model is cloned, its
+  /// canonical link has not been cloned yet, so we have no way of knowing what
+  /// to set the cloned model's canonical link to until the canonical link has
+  /// been cloned).
+  /// \TODO(anyone) We shouldn't be giving canonical links special treatment.
+  /// This may happen to any component that holds an Entity, so we should figure
+  /// out a way to generalize this for any such component.
+  public: std::unordered_map<Entity, Entity> oldModelCanonicalLink;
+
+  /// \brief See above
+  public: std::unordered_map<Entity, Entity> oldToClonedCanonicalLink;
+
+  /// \brief Set of entities that are prevented from removal.
+  public: std::unordered_set<Entity> pinnedEntities;
 };
 
 //////////////////////////////////////////////////
@@ -271,6 +304,139 @@ Entity EntityComponentManagerPrivate::CreateEntityImplementation(Entity _entity)
 }
 
 /////////////////////////////////////////////////
+Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
+    const std::string &_name, bool _allowRename)
+{
+  // Clear maps so they're populated for the entity being cloned
+  this->dataPtr->oldToClonedCanonicalLink.clear();
+  this->dataPtr->oldModelCanonicalLink.clear();
+
+  auto clonedEntity = this->CloneImpl(_entity, _parent, _name, _allowRename);
+
+  if (kNullEntity != clonedEntity)
+  {
+    for (const auto &[clonedModel, oldCanonicalLink] :
+         this->dataPtr->oldModelCanonicalLink)
+    {
+      auto iter = this->dataPtr->oldToClonedCanonicalLink.find(
+          oldCanonicalLink);
+      if (iter == this->dataPtr->oldToClonedCanonicalLink.end())
+      {
+        ignerr << "Error: attempted to clone model(s) with canonical link(s), "
+          << "but entity [" << oldCanonicalLink << "] was not cloned as a "
+          << "canonical link." << std::endl;
+        continue;
+      }
+      const auto clonedCanonicalLink = iter->second;
+      this->SetComponentData<components::ModelCanonicalLink>(clonedModel,
+          clonedCanonicalLink);
+    }
+  }
+
+  return clonedEntity;
+}
+
+/////////////////////////////////////////////////
+Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
+    const std::string &_name, bool _allowRename)
+{
+  auto uniqueNameGenerated = false;
+
+  // Before cloning, we should make sure that:
+  //  1. The entity to be cloned exists
+  //  2. We can generate a unique name for the cloned entity
+  if (!this->HasEntity(_entity))
+  {
+    ignerr << "Requested to clone entity [" << _entity
+      << "], but this entity does not exist." << std::endl;
+    return kNullEntity;
+  }
+  else if (!_name.empty() && !_allowRename)
+  {
+    if (kNullEntity != this->EntityByComponents(components::Name(_name)))
+    {
+      ignerr << "Requested to clone entity [" << _entity
+        << "] with a name of [" << _name << "], but another entity already "
+        << "has this name." << std::endl;
+      return kNullEntity;
+    }
+    uniqueNameGenerated = true;
+  }
+
+  auto clonedEntity = this->CreateEntity();
+
+  if (_parent != kNullEntity)
+  {
+    this->SetParentEntity(clonedEntity, _parent);
+    this->CreateComponent(clonedEntity, components::ParentEntity(_parent));
+  }
+
+  // make sure that the cloned entity has a unique name
+  auto clonedName = _name;
+  if (!uniqueNameGenerated)
+  {
+    if (clonedName.empty())
+    {
+      auto originalNameComp = this->Component<components::Name>(_entity);
+      clonedName =
+        originalNameComp ? originalNameComp->Data() : "cloned_entity";
+    }
+    uint64_t suffix = 1;
+    while (kNullEntity != this->EntityByComponents(
+          components::Name(clonedName + "_" + std::to_string(suffix))))
+      suffix++;
+    clonedName += "_" + std::to_string(suffix);
+  }
+  this->CreateComponent(clonedEntity, components::Name(clonedName));
+
+  // copy all components from _entity to clonedEntity
+  for (const auto &type : this->ComponentTypes(_entity))
+  {
+    // skip the Name and ParentEntity components since those were already
+    // handled above
+    if ((type == components::Name::typeId) ||
+        (type == components::ParentEntity::typeId))
+      continue;
+
+    auto originalComp = this->ComponentImplementation(_entity, type);
+    auto clonedComp = originalComp->Clone();
+
+    this->CreateComponentImplementation(clonedEntity, type, clonedComp.get());
+  }
+
+  // keep track of canonical link information (for clones of models, the cloned
+  // model should not share the same canonical link as the original model)
+  if (auto modelCanonLinkComp =
+      this->Component<components::ModelCanonicalLink>(clonedEntity))
+  {
+    // we're cloning a model, so we map the cloned model to the original
+    // model's canonical link
+    this->dataPtr->oldModelCanonicalLink[clonedEntity] =
+        modelCanonLinkComp->Data();
+  }
+  else if (this->Component<components::CanonicalLink>(clonedEntity))
+  {
+    // we're cloning a canonical link, so we map the original canonical link
+    // to the cloned canonical link
+    this->dataPtr->oldToClonedCanonicalLink[_entity] = clonedEntity;
+  }
+
+  for (const auto &childEntity :
+      this->EntitiesByComponents(components::ParentEntity(_entity)))
+  {
+    auto clonedChild = this->CloneImpl(childEntity, clonedEntity, "", true);
+    if (kNullEntity == clonedChild)
+    {
+      ignerr << "Cloning child entity [" << childEntity << "] failed.\n";
+      this->RequestRemoveEntity(clonedEntity);
+      return kNullEntity;
+    }
+  }
+
+  return clonedEntity;
+}
+
+/////////////////////////////////////////////////
 void EntityComponentManager::ClearNewlyCreatedEntities()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->entityCreatedMutex);
@@ -301,6 +467,17 @@ void EntityComponentManagerPrivate::InsertEntityRecursive(Entity _entity,
 }
 
 /////////////////////////////////////////////////
+void EntityComponentManagerPrivate::EraseEntityRecursive(Entity _entity,
+    std::unordered_set<Entity> &_set)
+{
+  for (const auto &vertex : this->entities.AdjacentsFrom(_entity))
+  {
+    this->EraseEntityRecursive(vertex.first, _set);
+  }
+  _set.erase(_entity);
+}
+
+/////////////////////////////////////////////////
 void EntityComponentManager::RequestRemoveEntity(Entity _entity,
     bool _recursive)
 {
@@ -314,6 +491,23 @@ void EntityComponentManager::RequestRemoveEntity(Entity _entity,
   else
   {
     this->dataPtr->InsertEntityRecursive(_entity, tmpToRemoveEntities);
+  }
+
+  // Remove entities from tmpToRemoveEntities that are marked as
+  // unremovable.
+  for (auto iter = tmpToRemoveEntities.begin();
+       iter != tmpToRemoveEntities.end();)
+  {
+    if (std::find(this->dataPtr->pinnedEntities.begin(),
+                  this->dataPtr->pinnedEntities.end(), *iter) !=
+               this->dataPtr->pinnedEntities.end())
+    {
+      iter = tmpToRemoveEntities.erase(iter);
+    }
+    else
+    {
+      ++iter;
+    }
   }
 
   {
@@ -334,11 +528,44 @@ void EntityComponentManager::RequestRemoveEntity(Entity _entity,
 /////////////////////////////////////////////////
 void EntityComponentManager::RequestRemoveEntities()
 {
+  if (this->dataPtr->pinnedEntities.empty())
   {
-    std::lock_guard<std::mutex> lock(this->dataPtr->entityRemoveMutex);
-    this->dataPtr->removeAllEntities = true;
+    {
+      std::lock_guard<std::mutex> lock(this->dataPtr->entityRemoveMutex);
+      this->dataPtr->removeAllEntities = true;
+    }
+    this->RebuildViews();
   }
-  this->RebuildViews();
+  else
+  {
+    std::unordered_set<Entity> tmpToRemoveEntities;
+
+    // Store the to-be-removed entities in a temporary set so we can
+    // mark each of them to be removed from views that contain them.
+    for (const auto &vertex : this->dataPtr->entities.Vertices())
+    {
+      if (std::find(this->dataPtr->pinnedEntities.begin(),
+                    this->dataPtr->pinnedEntities.end(), vertex.first) ==
+          this->dataPtr->pinnedEntities.end())
+      {
+        tmpToRemoveEntities.insert(vertex.first);
+      }
+    }
+
+    {
+      std::lock_guard<std::mutex> lock(this->dataPtr->entityRemoveMutex);
+      this->dataPtr->toRemoveEntities.insert(tmpToRemoveEntities.begin(),
+          tmpToRemoveEntities.end());
+    }
+
+    for (const auto &removedEntity : tmpToRemoveEntities)
+    {
+      for (auto &view : this->dataPtr->views)
+      {
+        view.second.first->MarkEntityToRemove(removedEntity);
+      }
+    }
+  }
 }
 
 /////////////////////////////////////////////////
@@ -1603,4 +1830,38 @@ bool EntityComponentManagerPrivate::ComponentMarkedAsRemoved(
     return iter->second.find(_typeId) != iter->second.end();
 
   return false;
+}
+
+/////////////////////////////////////////////////
+void EntityComponentManager::PinEntity(const Entity _entity, bool _recursive)
+{
+  if (_recursive)
+  {
+    this->dataPtr->InsertEntityRecursive(_entity,
+        this->dataPtr->pinnedEntities);
+  }
+  else
+  {
+    this->dataPtr->pinnedEntities.insert(_entity);
+  }
+}
+
+/////////////////////////////////////////////////
+void EntityComponentManager::UnpinEntity(const Entity _entity, bool _recursive)
+{
+  if (_recursive)
+  {
+    this->dataPtr->EraseEntityRecursive(_entity,
+        this->dataPtr->pinnedEntities);
+  }
+  else
+  {
+    this->dataPtr->pinnedEntities.erase(_entity);
+  }
+}
+
+/////////////////////////////////////////////////
+void EntityComponentManager::UnpinAllEntities()
+{
+  this->dataPtr->pinnedEntities.clear();
 }

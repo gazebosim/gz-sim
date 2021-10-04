@@ -84,6 +84,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Name of the rendering engine
     public: std::string EngineName() const;
 
+    /// \brief Set the headless mode
+    /// \param[in] _headless Set to true to enable headless mode.
+    public: void SetHeadlessRendering(const bool &_headless);
+
+    /// \brief Get the headless mode
+    /// \return True if headless mode is enable, false otherwise.
+    public: bool HeadlessRendering() const;
+
     /// \brief Set the scene to use
     /// \param[in] _sceneName Name of the engine.
     public: void SetSceneName(const std::string &_sceneName);
@@ -114,6 +122,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set whether to use the current GL context
     /// \param[in] _enable True to use the current GL context
     public: void SetUseCurrentGLContext(bool _enable);
+
+    /// \brief Set the Window ID
+    /// \param[in] _winID Window ID
+    public: void SetWinID(const std::string &_winID);
 
     /// \brief Set whether to create rendering sensors
     /// \param[in] _enable True to create rendering sensors

@@ -28,6 +28,7 @@
 #include <typeinfo>
 #include <type_traits>
 #include <unordered_set>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -74,6 +75,38 @@ namespace ignition
       /// \return An id for the Entity, or kNullEntity on failure.
       public: Entity CreateEntity();
 
+      /// \brief Clone an entity and its components. If the entity has any child
+      /// entities, they will also be cloned.
+      /// When cloning entities, the following rules apply:
+      ///   1. The name component of a cloned entity will consist of a unique
+      ///      name, since all entities should have a unique name.
+      ///   2. Cloned entities that have a canonical link will have their
+      ///      canonical link set to the cloned canonical link, not the original
+      ///      canonical link.
+      ///   3. Child entities that are cloned will have their parent set to the
+      ///      cloned parent entity.
+      ///   4. Aside from the changes listed above, all other cloned components
+      ///      remain unchanged.
+      /// \param[in] _entity The entity to clone.
+      /// \param[in] _parent The parent of the cloned entity. Set this to
+      /// kNullEntity if the cloned entity should not have a parent.
+      /// \param[in] _name The name that should be given to the cloned entity.
+      /// Set this to an empty string if the cloned entity name should be
+      /// auto-generated to something unique.
+      /// \param[in] _allowRename True if _name can be modified to be a unique
+      /// name if it isn't already a unique name. False if _name cannot be
+      /// modified to be a unique name. If _allowRename is set to False, and
+      /// _name is not unique, _entity will not be cloned. If _name is an
+      /// empty string, _allowRename is ignored since the cloned entity will
+      /// have an auto-generated unique name.
+      /// \return The cloned entity, which will have a unique name. kNullEntity
+      /// is returned if cloning failed. Failure could occur if _entity does not
+      /// exist, or if a unique name could not be generated for the entity to be
+      /// cloned.
+      /// \sa Clone
+      public: Entity Clone(Entity _entity, Entity _parent,
+                  const std::string &_name, bool _allowRename);
+
       /// \brief Get the number of entities on the server.
       /// \return Entity count.
       public: size_t EntityCount() const;
@@ -91,6 +124,35 @@ namespace ignition
       /// entities. True by default.
       public: void RequestRemoveEntity(const Entity _entity,
           bool _recursive = true);
+
+      /// \brief Prevent an entity and optionally its children from
+      /// being removed.
+      ///
+      /// This function can be useful when seek operations during log
+      /// playback are used in conjunciton with spawned entities. For
+      /// example, you may want to record a video based on a log file
+      /// using a headless simulation instance. This requires a
+      /// camera sensor which would be spawned during log playback. If
+      /// a seek backward in time is performed during log playback, then the
+      /// spawned camera would be removed. Use this function to prevent the
+      /// camera from automatic removal.
+      ///
+      /// \param[in] _entity Entity to be pinned.
+      /// \param[in] _recursive Whether to recursively pin all child
+      /// entities. True by default.
+      public: void PinEntity(const Entity _entity, bool _recursive = true);
+
+      /// \brief Allow an entity, and optionally its children, previously
+      /// marked as pinned to be removed.
+      /// \param[in] _entity Entity to be unpinned.
+      /// \param[in] _recursive Whether to recursively unpin all child
+      /// entities. True by default.
+      /// \sa void PinEntity(const Entity, bool)
+      public: void UnpinEntity(const Entity _entity, bool _recursive = true);
+
+      /// \brief Allow all previously pinned entities to be removed.
+      /// \sa void PinEntity(const Entity, bool)
+      public: void UnpinAllEntities();
 
       /// \brief Request to remove all entities. This will insert the request
       /// into a queue. The queue is processed toward the end of a simulation
@@ -332,6 +394,21 @@ namespace ignition
       /// why is this required?
       private: template <typename T>
                struct identity;  // NOLINT
+
+      /// \brief Helper function for cloning an entity and its children (this
+      /// includes cloning components attached to these entities). This method
+      /// should never be called directly - it is called internally from the
+      /// public Clone method.
+      /// \param[in] _entity The entity to clone.
+      /// \param[in] _parent The parent of the cloned entity.
+      /// \param[in] _name The name that should be given to the cloned entity.
+      /// \param[in] _allowRename True if _name can be modified to be a unique
+      /// name if it isn't already a unique name. False if _name cannot be
+      /// modified to be a unique name.
+      /// \return The cloned entity. kNullEntity is returned if cloning failed.
+      /// \sa Clone
+      private: Entity CloneImpl(Entity _entity, Entity _parent,
+                  const std::string &_name, bool _allowRename);
 
       /// \brief A version of Each() that doesn't use a cache. The cached
       /// version, Each(), is preferred.

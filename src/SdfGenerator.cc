@@ -411,10 +411,13 @@ namespace sdf_generator
     auto poseElem = _elem->GetElement("pose");
 
     // Remove all attributes of poseElem
-    sdf::ParamPtr relativeTo = poseElem->GetAttribute("relative_to");
-    if (nullptr != relativeTo)
+    for (const auto *attrName : {"relative_to", "degrees", "rotation_format"})
     {
-      relativeTo->Reset();
+      sdf::ParamPtr attr = poseElem->GetAttribute(attrName);
+      if (nullptr != attr)
+      {
+        attr->Reset();
+      }
     }
     poseElem->Set(poseComp->Data());
 
@@ -505,10 +508,13 @@ namespace sdf_generator
     auto poseElem = _elem->GetElement("pose");
 
     // Remove all attributes of poseElem
-    sdf::ParamPtr relativeTo = poseElem->GetAttribute("relative_to");
-    if (nullptr != relativeTo)
+    for (const auto *attrName : {"relative_to", "degrees", "rotation_format"})
     {
-      relativeTo->Reset();
+      sdf::ParamPtr attr = poseElem->GetAttribute(attrName);
+      if (nullptr != attr)
+      {
+        attr->Reset();
+      }
     }
     poseElem->Set(poseComp->Data());
     return true;

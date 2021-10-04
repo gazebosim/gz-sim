@@ -39,11 +39,11 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace gui
 {
-
 //////////////////////////////////////////////////
 std::unique_ptr<ignition::gui::Application> createGui(
     int &_argc, char **_argv, const char *_guiConfig,
-    const char *_defaultGuiConfig, bool _loadPluginsFromSdf)
+    const char *_defaultGuiConfig, bool _loadPluginsFromSdf,
+    const char *_renderEngine)
 {
   ignition::common::SignalHandler sigHandler;
   bool sigKilled = false;
@@ -90,7 +90,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
     }
     ignition::common::env(IGN_HOMEDIR, defaultConfig);
     defaultConfig = ignition::common::joinPaths(defaultConfig, ".ignition",
-        "gazebo", defaultGuiConfigName);
+        "gazebo", IGNITION_GAZEBO_MAJOR_VERSION_STR, defaultGuiConfigName);
   }
   else
   {
@@ -101,6 +101,10 @@ std::unique_ptr<ignition::gui::Application> createGui(
 
   // Customize window
   auto mainWin = app->findChild<ignition::gui::MainWindow *>();
+  if (_renderEngine != nullptr)
+  {
+    mainWin->SetRenderEngine(_renderEngine);
+  }
   auto win = mainWin->QuickWindow();
   win->setProperty("title", "Gazebo");
 
@@ -275,7 +279,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
       }
     }
 
-    // Also set ~/.ignition/gazebo/gui.config as the default path
+    // Also set ~/.ignition/gazebo/ver/gui.config as the default path
     if (!app->LoadConfig(defaultConfig))
     {
       ignerr << "Failed to load config file[" << defaultConfig << "]."
@@ -288,9 +292,11 @@ std::unique_ptr<ignition::gui::Application> createGui(
 }
 
 //////////////////////////////////////////////////
-int runGui(int &_argc, char **_argv, const char *_guiConfig)
+int runGui(int &_argc, char **_argv, const char *_guiConfig,
+  const char *_renderEngine)
 {
-  auto app = gazebo::gui::createGui(_argc, _argv, _guiConfig);
+  auto app = gazebo::gui::createGui(
+    _argc, _argv, _guiConfig, nullptr, true, _renderEngine);
   if (nullptr != app)
   {
     // Run main window.
@@ -299,8 +305,8 @@ int runGui(int &_argc, char **_argv, const char *_guiConfig)
     igndbg << "Shutting down ign-gazebo-gui" << std::endl;
     return 0;
   }
-  else
-    return -1;
+
+  return -1;
 }
 }  // namespace gui
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE

@@ -15,14 +15,34 @@
  *
 */
 
-import QtQuick 2.0
-import QtQuick.Controls 2.0
+import QtQuick 2.9
+import QtQuick.Controls 2.2
+import QtQuick.Dialogs 1.0
 import QtQuick.Layouts 1.3
 
-// TODO: remove invisible rectangle, see
-// https://github.com/ignitionrobotics/ign-gui/issues/220
 Rectangle {
   visible: false
   Layout.minimumWidth: 100
   Layout.minimumHeight: 100
+
+  Connections {
+    target: Spawn
+    onPopupError: errorPopup.open()
+  }
+
+  Dialog {
+    id: errorPopup
+    parent: ApplicationWindow.overlay
+    modal: true
+    focus: true
+    width: 500
+    height: 200
+    x: (parent.width - width) / 2
+    y: (parent.height - height) / 2
+    title: "Error"
+    Text {
+      text: Spawn.errorPopupText
+    }
+    standardButtons: Dialog.Ok
+  }
 }

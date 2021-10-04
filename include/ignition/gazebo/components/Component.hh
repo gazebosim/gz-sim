@@ -279,6 +279,10 @@ namespace components
     /// Factory registration and is guaranteed to be the same across compilers
     /// and runs.
     public: virtual ComponentTypeId TypeId() const = 0;
+
+    /// \brief Clone the component.
+    /// \return A pointer to the component.
+    public: virtual std::unique_ptr<BaseComponent> Clone() = 0;
   };
 
   /// \brief A component type that wraps any data type. The intention is for
@@ -341,6 +345,9 @@ namespace components
     /// \param[in] _component Component to compare to.
     /// \return True if different.
     public: bool operator!=(const Component &_component) const;
+
+    // Documentation inherited
+    public: std::unique_ptr<BaseComponent> Clone() override;
 
     // Documentation inherited
     public: ComponentTypeId TypeId() const override;
@@ -407,6 +414,9 @@ namespace components
     /// \return False.
     public: bool operator!=(const Component<NoData, Identifier,
                             Serializer> &_component) const;
+
+    // Documentation inherited
+    public: std::unique_ptr<BaseComponent> Clone() override;
 
     // Documentation inherited
     public: ComponentTypeId TypeId() const override;
@@ -492,6 +502,16 @@ namespace components
 
   //////////////////////////////////////////////////
   template <typename DataType, typename Identifier, typename Serializer>
+  std::unique_ptr<BaseComponent>
+  Component<DataType, Identifier, Serializer>::Clone()
+  {
+    Component<DataType, Identifier, Serializer> clonedComp(this->Data());
+    return std::make_unique<Component<DataType, Identifier, Serializer>>(
+        clonedComp);
+  }
+
+  //////////////////////////////////////////////////
+  template <typename DataType, typename Identifier, typename Serializer>
   ComponentTypeId Component<DataType, Identifier, Serializer>::TypeId() const
   {
     return typeId;
@@ -511,6 +531,14 @@ namespace components
       const Component<NoData, Identifier, Serializer> &) const
   {
     return false;
+  }
+
+  //////////////////////////////////////////////////
+  template <typename Identifier, typename Serializer>
+  std::unique_ptr<BaseComponent>
+  Component<NoData, Identifier, Serializer>::Clone()
+  {
+    return std::make_unique<Component<NoData, Identifier, Serializer>>();
   }
 
   //////////////////////////////////////////////////

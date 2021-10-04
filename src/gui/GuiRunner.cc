@@ -39,6 +39,10 @@ class ignition::gazebo::GuiRunner::Implementation
   /// \brief Update the plugins.
   public: void UpdatePlugins();
 
+  /// \brief Process new state information.
+  /// \param[in] _msg Message containing new state.
+  public: void ProcessState(const msgs::SerializedStepMap &_msg);
+
   /// \brief Entity-component manager.
   public: gazebo::EntityComponentManager ecm;
 
@@ -59,6 +63,9 @@ class ignition::gazebo::GuiRunner::Implementation
 
   /// \brief The plugin update thread..
   public: std::thread updateThread;
+
+  /// \brief True if the initial state has been received and processed.
+  public: bool receivedInitialState{false};
 };
 
 /////////////////////////////////////////////////
@@ -146,6 +153,10 @@ void GuiRunner::RequestState()
   ignition::msgs::StringMsg req;
   req.set_data(reqSrv);
 
+  // Subscribe to periodic updates.
+  this->dataPtr->node.Subscribe(this->dataPtr->stateTopic,
+      &GuiRunner::OnState, this);
+
   // send async state request
   this->dataPtr->node.Request(this->dataPtr->stateTopic + "_async", req);
 }
@@ -160,7 +171,8 @@ void GuiRunner::OnPluginAdded(const QString &)
 /////////////////////////////////////////////////
 void GuiRunner::OnStateAsyncService(const msgs::SerializedStepMap &_res)
 {
-  this->OnState(_res);
+  this->dataPtr->ProcessState(_res);
+  this->dataPtr->receivedInitialState = true;
 
   // todo(anyone) store reqSrv string in a member variable and use it here
   // and in RequestState()
@@ -168,29 +180,32 @@ void GuiRunner::OnStateAsyncService(const msgs::SerializedStepMap &_res)
   std::string reqSrv =
       this->dataPtr->node.Options().NameSpace() + "/" + id + "/state_async";
   this->dataPtr->node.UnadvertiseSrv(reqSrv);
-
-  // Only subscribe to periodic updates after receiving initial state
-  if (this->dataPtr->node.SubscribedTopics().empty())
-  {
-    this->dataPtr->node.Subscribe(this->dataPtr->stateTopic,
-        &GuiRunner::OnState, this);
-  }
 }
 
 /////////////////////////////////////////////////
 void GuiRunner::OnState(const msgs::SerializedStepMap &_msg)
 {
-  IGN_PROFILE_THREAD_NAME("GuiRunner::OnState");
+  // Only process state updates after initial state has been received.
+  if (!this->dataPtr->receivedInitialState)
+    return;
+  this->dataPtr->ProcessState(_msg);
+}
+
+/////////////////////////////////////////////////
+void GuiRunner::Implementation::ProcessState(
+    const msgs::SerializedStepMap &_msg)
+{
+  IGN_PROFILE_THREAD_NAME("GuiRunner::ProcessState");
   IGN_PROFILE("GuiRunner::Update");
 
-  std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
-  this->dataPtr->ecm.SetState(_msg.state());
+  std::lock_guard<std::mutex> lock(this->updateMutex);
+  this->ecm.SetState(_msg.state());
 
   // Update all plugins
-  this->dataPtr->updateInfo = convert<UpdateInfo>(_msg.stats());
-  this->dataPtr->UpdatePlugins();
-  this->dataPtr->ecm.ClearNewlyCreatedEntities();
-  this->dataPtr->ecm.ProcessRemoveEntityRequests();
+  this->updateInfo = convert<UpdateInfo>(_msg.stats());
+  this->UpdatePlugins();
+  this->ecm.ClearNewlyCreatedEntities();
+  this->ecm.ProcessRemoveEntityRequests();
 }
 
 /////////////////////////////////////////////////

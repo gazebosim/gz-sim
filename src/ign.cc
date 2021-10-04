@@ -121,7 +121,8 @@ extern "C" int runServer(const char *_sdfString,
     int _recordResources, int _logOverwrite, int _logCompress,
     const char *_playback, const char *_physicsEngine,
     const char *_renderEngineServer, const char *_renderEngineGui,
-    const char *_file, const char *_recordTopics)
+    const char *_file, const char *_recordTopics,
+    int _headless)
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -334,6 +335,8 @@ extern "C" int runServer(const char *_sdfString,
     serverConfig.SetPhysicsEngine(_physicsEngine);
   }
 
+  serverConfig.SetHeadlessRendering(_headless);
+
   if (_renderEngineServer != nullptr && std::strlen(_renderEngineServer) > 0)
   {
     serverConfig.SetRenderEngineServer(_renderEngineServer);
@@ -355,7 +358,7 @@ extern "C" int runServer(const char *_sdfString,
 }
 
 //////////////////////////////////////////////////
-extern "C" int runGui(const char *_guiConfig)
+extern "C" int runGui(const char *_guiConfig, const char *_renderEngine)
 {
   // argc and argv are going to be passed to a QApplication. The Qt
   // documentation has a warning about these:
@@ -368,5 +371,6 @@ extern "C" int runGui(const char *_guiConfig)
   // be converted to a const char *. The const cast is here to prevent a warning
   // since we do need to pass a char* to runGui
   char *argv = const_cast<char *>("ign-gazebo-gui");
-  return ignition::gazebo::gui::runGui(argc, &argv, _guiConfig);
+  return ignition::gazebo::gui::runGui(
+    argc, &argv, _guiConfig, _renderEngine);
 }

@@ -528,6 +528,7 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     rendering::HeightmapDescriptor descriptor;
     descriptor.SetData(data);
     descriptor.SetSize(_geom.HeightmapShape()->Size());
+    descriptor.SetPosition(_geom.HeightmapShape()->Position());
     descriptor.SetSampling(_geom.HeightmapShape()->Sampling());
 
     for (uint64_t i = 0; i < _geom.HeightmapShape()->TextureCount(); ++i)
@@ -535,10 +536,10 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
       auto textureSdf = _geom.HeightmapShape()->TextureByIndex(i);
       rendering::HeightmapTexture textureDesc;
       textureDesc.SetSize(textureSdf->Size());
-      textureDesc.SetDiffuse(asFullPath(textureSdf->Diffuse(),
-          _geom.HeightmapShape()->FilePath()));
-      textureDesc.SetNormal(asFullPath(textureSdf->Normal(),
-          _geom.HeightmapShape()->FilePath()));
+      textureDesc.SetDiffuse(common::findFile(asFullPath(textureSdf->Diffuse(),
+          _geom.HeightmapShape()->FilePath())));
+      textureDesc.SetNormal(common::findFile(asFullPath(textureSdf->Normal(),
+          _geom.HeightmapShape()->FilePath())));
       descriptor.AddTexture(textureDesc);
     }
 
@@ -701,7 +702,7 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
 
 /////////////////////////////////////////////////
 rendering::VisualPtr SceneManager::CreateActor(Entity _id,
-    const sdf::Actor &_actor, Entity _parentId)
+    const sdf::Actor &_actor, const std::string &_name, Entity _parentId)
 {
   if (!this->dataPtr->scene)
     return rendering::VisualPtr();
@@ -717,9 +718,6 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
     return rendering::VisualPtr();
   }
 
-  std::string name = _actor.Name().empty() ? std::to_string(_id) :
-      _actor.Name();
-
   rendering::VisualPtr parent;
   if (_parentId != this->dataPtr->worldId)
   {
@@ -727,14 +725,15 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
     if (it == this->dataPtr->visuals.end())
     {
       ignerr << "Parent entity with Id: [" << _parentId << "] not found. "
-             << "Not adding actor with ID[" << _id
-             << "]  and name [" << name << "] to the rendering scene."
+             << "Not adding actor with ID [" << _id
+             << "] and name [" << _name << "] to the rendering scene."
              << std::endl;
       return rendering::VisualPtr();
     }
     parent = it->second;
   }
 
+  std::string name = _name;
   if (parent)
     name = parent->Name() +  "::" + name;
 
@@ -1007,7 +1006,7 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
 
 /////////////////////////////////////////////////
 rendering::VisualPtr SceneManager::CreateLightVisual(Entity _id,
-    const sdf::Light &_light, Entity _parentId)
+    const sdf::Light &_light, const std::string &_name, Entity _parentId)
 {
   if (!this->dataPtr->scene)
     return rendering::VisualPtr();
@@ -1019,9 +1018,6 @@ rendering::VisualPtr SceneManager::CreateLightVisual(Entity _id,
     return rendering::VisualPtr();
   }
 
-  std::string name = _light.Name().empty() ? std::to_string(_id) :
-      _light.Name();
-
   rendering::LightPtr lightParent;
   auto it = this->dataPtr->lights.find(_parentId);
   if (it != this->dataPtr->lights.end())
@@ -1031,13 +1027,13 @@ rendering::VisualPtr SceneManager::CreateLightVisual(Entity _id,
   else
   {
     ignerr << "Parent entity with Id: [" << _parentId << "] not found. "
-           << "Not adding light visual with ID[" << _id
-           << "]  and name [" << name << "] to the rendering scene."
+           << "Not adding light visual with ID [" << _id
+           << "] and name [" << _name << "] to the rendering scene."
            << std::endl;
     return rendering::VisualPtr();
   }
 
-  name = lightParent->Name() +  "::" + name + "Visual";
+  std::string name = lightParent->Name() +  "::" + _name + "Visual";
 
   if (this->dataPtr->scene->HasVisualName(name))
   {
@@ -1077,7 +1073,7 @@ rendering::VisualPtr SceneManager::CreateLightVisual(Entity _id,
 
 /////////////////////////////////////////////////
 rendering::LightPtr SceneManager::CreateLight(Entity _id,
-    const sdf::Light &_light, Entity _parentId)
+    const sdf::Light &_light, const std::string &_name, Entity _parentId)
 {
   if (!this->dataPtr->scene)
     return rendering::LightPtr();
@@ -1102,8 +1098,7 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
     parent = it->second;
   }
 
-  std::string name = _light.Name().empty() ? std::to_string(_id) :
-      _light.Name();
+  std::string name = _name;
   if (parent)
     name = parent->Name() +  "::" + name;
 
