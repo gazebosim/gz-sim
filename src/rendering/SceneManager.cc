@@ -17,6 +17,7 @@
 
 
 #include <map>
+#include <unordered_map>
 
 #include <sdf/Box.hh>
 #include <sdf/Collision.hh>
@@ -58,23 +59,23 @@ class ignition::gazebo::SceneManagerPrivate
   public: rendering::ScenePtr scene;
 
   /// \brief Map of visual entity in Gazebo to visual pointers.
-  public: std::map<Entity, rendering::VisualPtr> visuals;
+  public: std::unordered_map<Entity, rendering::VisualPtr> visuals;
 
   /// \brief Map of actor entity in Gazebo to actor pointers.
-  public: std::map<Entity, rendering::MeshPtr> actors;
+  public: std::unordered_map<Entity, rendering::MeshPtr> actors;
 
   /// \brief Map of actor entity in Gazebo to actor animations.
-  public: std::map<Entity, common::SkeletonPtr> actorSkeletons;
+  public: std::unordered_map<Entity, common::SkeletonPtr> actorSkeletons;
 
   /// \brief Map of actor entity to the associated trajectories.
-  public: std::map<Entity, std::vector<common::TrajectoryInfo>>
+  public: std::unordered_map<Entity, std::vector<common::TrajectoryInfo>>
                     actorTrajectories;
 
   /// \brief Map of light entity in Gazebo to light pointers.
-  public: std::map<Entity, rendering::LightPtr> lights;
+  public: std::unordered_map<Entity, rendering::LightPtr> lights;
 
   /// \brief Map of sensor entity in Gazebo to sensor pointers.
-  public: std::map<Entity, rendering::SensorPtr> sensors;
+  public: std::unordered_map<Entity, rendering::SensorPtr> sensors;
 };
 
 
@@ -637,7 +638,7 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
   }
 
   unsigned int numAnims = 0;
-  std::map<std::string, unsigned int> mapAnimNameId;
+  std::unordered_map<std::string, unsigned int> mapAnimNameId;
   mapAnimNameId[descriptor.meshName] = numAnims++;
 
   rendering::VisualPtr actorVisual = this->dataPtr->scene->CreateVisual(name);
