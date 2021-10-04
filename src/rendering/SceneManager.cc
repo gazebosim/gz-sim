@@ -77,10 +77,6 @@ class ignition::gazebo::SceneManagerPrivate
   //// \brief Pointer to the rendering scene
   public: rendering::ScenePtr scene;
 
-  // TODO(adlarkin) make these maps std::unordered_map for better performance?
-  // If so, this can probably be done in an earlier version and then
-  // forward-ported
-
   /// \brief Map of visual entity in Gazebo to visual pointers.
   public: std::map<Entity, rendering::VisualPtr> visuals;
 
@@ -1965,7 +1961,6 @@ void SceneManager::RemoveEntity(Entity _id)
       this->dataPtr->visuals.erase(it);
       return;
     }
-    ignerr << "failed to remove a visual with id of " << _id << "\n";
   }
 
   {
