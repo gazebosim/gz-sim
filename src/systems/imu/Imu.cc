@@ -61,7 +61,7 @@ class ignition::gazebo::systems::ImuPrivate
   /// Defaults to zero, which is considered invalid by Ignition Gazebo.
   public: Entity worldEntity = kNullEntity;
 
-  /// True if the rendering component is initialized
+  /// \brief True if the rendering component is initialized
   public: bool initialize = false;
 
   /// \brief Create IMU sensor
@@ -72,8 +72,8 @@ class ignition::gazebo::systems::ImuPrivate
   /// \param[in] _ecm Immutable reference to ECM.
   public: void Update(const EntityComponentManager &_ecm);
 
-  /// create sensor
-  /// \param[in] _ecm Mmutable reference to ECM.
+  /// \brief Create sensor
+  /// \param[in] _ecm Mutable reference to ECM.
   /// \param[in] _entity Entity of the IMU
   /// \param[in] _imu IMU component.
   /// \param[in] _parent Parent entity component.
