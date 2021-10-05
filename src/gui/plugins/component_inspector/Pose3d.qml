@@ -78,6 +78,15 @@ Rectangle {
     );
   }
 
+  // Get decimals based on a width
+  function getDecimals(width) {
+    if (width<= 80)
+      return 2;
+    else if (width <= 100)
+      return 4;
+    return 6;
+  }
+ 
   FontMetrics {
     id: fontMetrics
     font.family: "Roboto"
@@ -93,7 +102,7 @@ Rectangle {
       value: writableSpin.activeFocus ? writableSpin.value : numberValue
       minimumValue: -spinMax
       maximumValue: spinMax
-      decimals: 6
+      decimals: getDecimals(writableSpin.width)
       onEditingFinished: {
         sendPose()
       }
@@ -111,7 +120,7 @@ Rectangle {
       horizontalAlignment: Text.AlignRight
       verticalAlignment: Text.AlignVCenter
       text: {
-        var decimals = numberText.width < 100 ? 2 : 6
+        var decimals = getDecimals(numberText.width)
         return numberValue.toFixed(decimals)
       }
     }
