@@ -21,6 +21,8 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include <sdf/Geometry.hh>
 #include <sdf/Actor.hh>

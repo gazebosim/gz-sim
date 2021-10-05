@@ -472,8 +472,8 @@ std::pair<rendering::VisualPtr, std::vector<Entity>> SceneManager::CopyVisual(
       auto childId = this->UniqueId();
       if (!childId)
       {
-        ignerr << "Unable to create an entity ID for the copied visual's child, "
-               << "so the copied visual will be deleted.\n";
+        ignerr << "Unable to create an entity ID for the copied visual's "
+               << "child, so the copied visual will be deleted.\n";
         childrenTracked = false;
         break;
       }
