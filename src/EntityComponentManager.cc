@@ -103,7 +103,7 @@ class ignition::gazebo::EntityComponentManagerPrivate
 
   /// \brief Set a cloned joint's parent or child link name.
   /// \param[in] _joint The cloned joint.
-  /// \param[in] _link The original joint's parent or child link.
+  /// \param[in] _originalLink The original joint's parent or child link.
   /// \param[in] _ecm Entity component manager.
   /// \tparam The component type, which must be either
   /// components::ParentLinkName or components::ChildLinkName
