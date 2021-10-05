@@ -24,7 +24,7 @@
     <gui fullscreen="0">
 
       <!-- 3D scene -->
-      <plugin filename="GzScene3D" name="3D View">
+      <plugin filename="MinimalScene" name="3D View">
         <ignition-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
@@ -38,6 +38,77 @@
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
       </plugin>
 
+      <!-- Plugins that add functionality to the scene -->
+      <plugin filename="EntityContextMenuPlugin" name="Entity context menu">
+        <ignition-gui>
+          <property key="state" type="string">floating</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
+      <plugin filename="GzSceneManager" name="Scene Manager">
+        <ignition-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
+      <plugin filename="InteractiveViewControl" name="Interactive view control">
+        <ignition-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
+      <plugin filename="CameraTracking" name="Camera Tracking">
+        <ignition-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
+      <!-- Translate / rotate -->
+      <plugin filename="TransformControl" name="Transform control">
+        <ignition-gui>
+          <title>Transform control</title>
+          <anchors target="3D View">
+            <line own="left" target="left"/>
+            <line own="top" target="top"/>
+          </anchors>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">230</property>
+          <property key="height" type="double">50</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+          <property key="cardBackground" type="string">#666666</property>
+        </ignition-gui>
+
+        <!-- disable legacy features used to connect this plugin to GzScene3D -->
+        <legacy>false</legacy>
+      </plugin>
+
+      <!-- Insert simple shapes -->
+      <plugin filename="Shapes" name="Shapes">
+        <ignition-gui>
+          <anchors target="Transform control">
+            <line own="left" target="right"/>
+            <line own="top" target="top"/>
+          </anchors>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">200</property>
+          <property key="height" type="double">50</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+          <property key="cardBackground" type="string">#666666</property>
+        </ignition-gui>
+      </plugin>
       <!-- World control -->
       <plugin filename="WorldControl" name="World control">
         <ignition-gui>
@@ -84,6 +155,15 @@
         <iterations>true</iterations>
       </plugin>
 
+      <plugin filename="ImageDisplay" name="Image Display">
+        <ignition-gui>
+          <title>Vehicle camera</title>
+          <property key="state" type="string">docked</property>
+        </ignition-gui>
+        <topic>camera</topic>
+        <topic_picker>false</topic_picker>
+      </plugin>
+
       <!-- Inspector -->
       <plugin filename="ComponentInspector" name="Component inspector">
         <ignition-gui>
@@ -97,49 +177,6 @@
           <property type="string" key="state">docked_collapsed</property>
         </ignition-gui>
       </plugin>
-
-      <plugin filename="ImageDisplay" name="Image Display">
-        <ignition-gui>
-          <title>Vehicle camera</title>
-          <property key="state" type="string">docked</property>
-        </ignition-gui>
-        <topic>camera</topic>
-        <topic_picker>false</topic_picker>
-      </plugin>
-
-      <!-- Translate / rotate -->
-      <plugin filename="TransformControl" name="Transform control">
-        <ignition-gui>
-          <title>Transform control</title>
-          <anchors target="3D View">
-            <line own="left" target="left"/>
-            <line own="top" target="top"/>
-          </anchors>
-          <property key="resizable" type="bool">false</property>
-          <property key="width" type="double">230</property>
-          <property key="height" type="double">50</property>
-          <property key="state" type="string">floating</property>
-          <property key="showTitleBar" type="bool">false</property>
-          <property key="cardBackground" type="string">#666666</property>
-        </ignition-gui>
-      </plugin>
-
-      <!-- Insert simple shapes -->
-      <plugin filename="Shapes" name="Shapes">
-        <ignition-gui>
-          <anchors target="Transform control">
-            <line own="left" target="right"/>
-            <line own="top" target="top"/>
-          </anchors>
-          <property key="resizable" type="bool">false</property>
-          <property key="width" type="double">200</property>
-          <property key="height" type="double">50</property>
-          <property key="state" type="string">floating</property>
-          <property key="showTitleBar" type="bool">false</property>
-          <property key="cardBackground" type="string">#666666</property>
-        </ignition-gui>
-      </plugin>
-
       <plugin filename="KeyPublisher" name="Key publisher">
         <ignition-gui>
           <anchors target="3D View">
@@ -154,6 +191,7 @@
         </ignition-gui>
       </plugin>
     </gui>
+
 
     <plugin
       filename="ignition-gazebo-physics-system"

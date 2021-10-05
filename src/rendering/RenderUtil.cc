@@ -180,6 +180,9 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief Flag to indicate if the current GL context should be used
   public: bool useCurrentGLContext = false;
 
+  /// \brief Window ID handle
+  public: std::string winID = "";
+
   /// \brief New scenes to be created
   public: std::vector<sdf::Scene> newScenes;
 
@@ -2408,6 +2411,7 @@ void RenderUtil::Init()
     params["useCurrentGLContext"] = "1";
   if (this->dataPtr->isHeadlessRendering)
     params["headless"] = "1";
+  params["winID"] = this->dataPtr->winID;
   this->dataPtr->engine = rendering::engine(this->dataPtr->engineName, params);
   if (!this->dataPtr->engine)
   {
@@ -2525,6 +2529,12 @@ void RenderUtil::SetSkyEnabled(bool _enabled)
 void RenderUtil::SetUseCurrentGLContext(bool _enable)
 {
   this->dataPtr->useCurrentGLContext = _enable;
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::SetWinID(const std::string &_winID)
+{
+  this->dataPtr->winID = _winID;
 }
 
 /////////////////////////////////////////////////

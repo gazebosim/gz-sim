@@ -59,6 +59,11 @@ namespace systems
   /// * `<above_depth>` a child property of `<density_change>`. This determines
   /// the height at which the next fluid layer should start. [Units: m]
   /// * `<density>` the density of the fluid in this layer. [Units: kgm^-3]
+  /// * `<enable>` used to indicate which models will have buoyancy.
+  /// Add one enable element per model or link. This element accepts names
+  /// scoped from the top level model (i.e. `<model>::<nested_model>::<link>`).
+  /// If there are no enabled entities, all models in simulation will be
+  /// affected by buoyancy.
   ///
   /// ## Examples
   ///
@@ -126,6 +131,13 @@ namespace systems
     public: void PreUpdate(
                 const ignition::gazebo::UpdateInfo &_info,
                 ignition::gazebo::EntityComponentManager &_ecm) override;
+
+    /// \brief Check if an entity is enabled or not.
+    /// \param[in] _entity Target entity
+    /// \param[in] _ecm Entity component manager
+    /// \return True if buoyancy should be applied.
+    public: bool IsEnabled(Entity _entity,
+        const EntityComponentManager &_ecm) const;
 
     /// \brief Private data pointer
     private: std::unique_ptr<BuoyancyPrivate> dataPtr;
