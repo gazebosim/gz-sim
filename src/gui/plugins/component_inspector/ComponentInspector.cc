@@ -28,8 +28,10 @@
 #include "ignition/gazebo/components/AngularAcceleration.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/CastShadows.hh"
+#include "ignition/gazebo/components/CenterOfVolume.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Collision.hh"
+#include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
 #include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/Joint.hh"
@@ -60,6 +62,7 @@
 #include "ignition/gazebo/components/SphericalCoordinates.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/Visual.hh"
+#include "ignition/gazebo/components/Volume.hh"
 #include "ignition/gazebo/components/WindMode.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -285,6 +288,25 @@ void ignition::gazebo::setData(QStandardItem *_item,
     QVariant(_data.LongitudeReference().Degree()),
     QVariant(_data.ElevationReference()),
     QVariant(_data.HeadingOffset().Degree()),
+  }), ComponentsModel::RoleNames().key("data"));
+}
+
+//////////////////////////////////////////////////
+template<>
+void ignition::gazebo::setData(QStandardItem *_item, const msgs::Wrench &_data)
+{
+  if (nullptr == _item)
+    return;
+
+  _item->setData(QString("Wrench"),
+      ComponentsModel::RoleNames().key("dataType"));
+  _item->setData(QList({
+    QVariant(_data.force().x()),
+    QVariant(_data.force().y()),
+    QVariant(_data.force().z()),
+    QVariant(_data.torque().x()),
+    QVariant(_data.torque().y()),
+    QVariant(_data.torque().z())
   }), ComponentsModel::RoleNames().key("data"));
 }
 
@@ -556,9 +578,23 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, comp->Data());
     }
+    else if (typeId == components::CenterOfVolume::typeId)
+    {
+      auto comp = _ecm.Component<components::CenterOfVolume>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
     else if (typeId == components::ChildLinkName::typeId)
     {
       auto comp = _ecm.Component<components::ChildLinkName>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::ExternalWorldWrenchCmd::typeId)
+    {
+      auto comp = _ecm.Component<components::ExternalWorldWrenchCmd>(
           this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
@@ -723,6 +759,16 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, comp->Data());
     }
+    else if (typeId == components::Volume::typeId)
+    {
+      auto comp = _ecm.Component<components::Volume>(
+          this->dataPtr->entity);
+      if (comp)
+      {
+        setData(item, comp->Data());
+        setUnit(item, "m\u00B3");
+      }
+    }
     else if (typeId == components::WindMode::typeId)
     {
       auto comp = _ecm.Component<components::WindMode>(this->dataPtr->entity);
@@ -737,6 +783,16 @@ void ComponentInspector::Update(const UpdateInfo &,
       {
         setData(item, comp->Data());
         setUnit(item, "rad/s\u00B2");
+      }
+    }
+    else if (typeId == components::WorldAngularVelocity::typeId)
+    {
+      auto comp = _ecm.Component<components::WorldAngularVelocity>(
+          this->dataPtr->entity);
+      if (comp)
+      {
+        setData(item, comp->Data());
+        setUnit(item, "rad/s");
       }
     }
     else if (typeId == components::WorldLinearVelocity::typeId)
