@@ -894,7 +894,7 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
                     static_cast<int>(point->Time()*1000)));
           waypoints[pointTp] = point->Pose();
         }
-        trajInfo.SetWaypoints(waypoints);
+        trajInfo.SetWaypoints(waypoints, trajSdf->Tension());
         // Animations are offset by 1 because index 0 is taken by the mesh name
         auto animation = _actor.AnimationByIndex(trajInfo.AnimIndex()-1);
 
