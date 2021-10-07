@@ -7,8 +7,8 @@ project(Hello_world)
 ign_find_package(ignition-plugin1 REQUIRED COMPONENTS register)
 set(IGN_PLUGIN_VER ${ignition-plugin1_VERSION_MAJOR})
 
-ign_find_package(ignition-gazebo6 REQUIRED)
-set(IGN_GAZEBO_VER ${ignition-gazebo6_VERSION_MAJOR})
+ign_find_package(ignition-gazebo7 REQUIRED)
+set(IGN_GAZEBO_VER ${ignition-gazebo7_VERSION_MAJOR})
 
 add_library(HelloWorld SHARED HelloWorld)
 set_property(TARGET HelloWorld PROPERTY CXX_STANDARD 17)

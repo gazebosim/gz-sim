@@ -1,3 +1,7 @@
+## Ignition Gazebo 7.x
+
+### Ignition Gazebo 7.X.X (20XX-XX-XX)
+
 ## Ignition Gazebo 6.x
 
 ### Ignition Gazebo 6.X.X (20XX-XX-XX)
