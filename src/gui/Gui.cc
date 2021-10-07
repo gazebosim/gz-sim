@@ -80,6 +80,10 @@ std::unique_ptr<ignition::gui::Application> createGui(
 
   // Set default config file for Gazebo
   std::string defaultConfig;
+
+  // Default config folder.
+  std::string defaultConfigFolder;
+
   if (nullptr == _defaultGuiConfig)
   {
     // The playback flag (and not the gui-config flag) was
@@ -89,6 +93,8 @@ std::unique_ptr<ignition::gui::Application> createGui(
       defaultGuiConfigName = "playback_gui.config";
     }
     ignition::common::env(IGN_HOMEDIR, defaultConfig);
+    defaultConfigFolder = ignition::common::joinPaths(defaultConfig, ".ignition",
+        "gazebo", IGNITION_GAZEBO_MAJOR_VERSION_STR);
     defaultConfig = ignition::common::joinPaths(defaultConfig, ".ignition",
         "gazebo", IGNITION_GAZEBO_MAJOR_VERSION_STR, defaultGuiConfigName);
   }
@@ -262,6 +268,15 @@ std::unique_ptr<ignition::gui::Application> createGui(
     // the installed file there first.
     if (!ignition::common::exists(defaultConfig))
     {
+      if (!ignition::common::exists(defaultConfigFolder))
+      {
+        if(!ignition::common::createDirectories(defaultConfigFolder))
+        {
+          ignerr << "Failed to create the default config folder"
+            << defaultConfigFolder << "\n";
+          return nullptr;
+        }
+      }
       auto installedConfig = ignition::common::joinPaths(
           IGNITION_GAZEBO_GUI_CONFIG_PATH, defaultGuiConfigName);
       if (!ignition::common::copyFile(installedConfig, defaultConfig))
