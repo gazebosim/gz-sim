@@ -21,6 +21,8 @@
 %include SignalStats.i
 %include Spline.i
 %include Temperature.i
+%include MaterialType.i
+%include Material.i
 %include Triangle.i
 %include Kmeans.i
 %include Vector3Stats.i
