@@ -273,8 +273,8 @@ std::unique_ptr<ignition::gui::Application> createGui(
       {
         if(!ignition::common::createDirectories(defaultConfigFolder))
         {
-          ignerr << "Failed to create the default config folder"
-            << defaultConfigFolder << "\n";
+          ignerr << "Failed to create the default config folder ["
+            << defaultConfigFolder << "]\n";
           return nullptr;
         }
       }
