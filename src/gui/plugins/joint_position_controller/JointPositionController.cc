@@ -59,6 +59,9 @@ namespace ignition::gazebo::gui
 
     /// \brief Whether the initial model set from XML has been setup.
     public: bool xmlModelInitialized{false};
+
+    /// \brief Mutex to protect jointsModel
+    public: QMutex mutex;
   };
 }
 
@@ -178,6 +181,8 @@ void JointPositionController::Update(const UpdateInfo &,
 {
   IGN_PROFILE("JointPositionController::Update");
 
+  QMutexLocker locker(&this->dataPtr->mutex);
+
   if (!this->dataPtr->xmlModelInitialized)
   {
     auto entity = _ecm.EntityByComponents(
@@ -241,10 +246,9 @@ void JointPositionController::Update(const UpdateInfo &,
     // Add joint to list
     else
     {
-      // TODO(louise) Blocking here is not the best idea
       QMetaObject::invokeMethod(&this->dataPtr->jointsModel,
           "AddJoint",
-          Qt::BlockingQueuedConnection,
+          Qt::DirectConnection,
           Q_RETURN_ARG(QStandardItem *, item),
           Q_ARG(Entity, jointEntity));
       newItem = true;

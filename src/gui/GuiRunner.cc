@@ -31,14 +31,8 @@ using namespace ignition;
 using namespace gazebo;
 
 /// \todo(anyone) Move to GuiRunner::Implementation when porting to v5
-/// \brief Flag used to end the gUpdateThread.
-static bool gRunning = false;
-
 /// \brief Mutex to protect the plugin update.
 static std::mutex gUpdateMutex;
-
-/// \brief The plugin update thread..
-static std::thread gUpdateThread;
 
 /////////////////////////////////////////////////
 GuiRunner::GuiRunner(const std::string &_worldName)
@@ -63,29 +57,13 @@ GuiRunner::GuiRunner(const std::string &_worldName)
   this->RequestState();
 
   // Periodically update the plugins
-  // \todo(anyone) Move the global variables to GuiRunner::Implementation on v5
-  gRunning = true;
-  gUpdateThread = std::thread([&]()
-  {
-    while (gRunning)
-    {
-      {
-        std::lock_guard<std::mutex> lock(gUpdateMutex);
-        this->UpdatePlugins();
-      }
-      // This is roughly a 30Hz update rate.
-      std::this_thread::sleep_for(std::chrono::milliseconds(33));
-    }
-  });
+  QPointer<QTimer> timer = new QTimer(this);
+  connect(timer, &QTimer::timeout, this, &GuiRunner::UpdatePlugins);
+  timer->start(33);
 }
 
 /////////////////////////////////////////////////
-GuiRunner::~GuiRunner()
-{
-  gRunning = false;
-  if (gUpdateThread.joinable())
-    gUpdateThread.join();
-}
+GuiRunner::~GuiRunner() = default;
 
 /////////////////////////////////////////////////
 void GuiRunner::RequestState()
