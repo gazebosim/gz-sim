@@ -22,6 +22,7 @@ import QtQuick.Layouts 1.3
 import QtQuick.Controls.Styles 1.4
 import IgnGazebo 1.0 as IgnGazebo
 
+
 Rectangle {
   id: componentInspector
   color: lightGrey
@@ -189,6 +190,27 @@ Rectangle {
         }
       }
 
+      ToolButton {
+        id: addButton
+        checkable: false
+        text: "Add entity"
+        visible: entityType == "model"
+        contentItem: Image {
+          fillMode: Image.Pad
+          horizontalAlignment: Image.AlignHCenter
+          verticalAlignment: Image.AlignVCenter
+          source: "qrc:/Gazebo/images/plus.png"
+          sourceSize.width: 18;
+          sourceSize.height: 18;
+        }
+        ToolTip.text: "Add entity"
+        ToolTip.visible: hovered
+        ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+        onClicked: {
+          addLinkMenu.open()
+        }
+      }
+
       Label {
         id: entityLabel
         text: 'Entity ' + ComponentInspector.entity
@@ -199,6 +221,89 @@ Rectangle {
       }
     }
   }
+
+  ListModel {
+    id: linkItems
+    ListElement {
+      text: "Box"
+      type: "Link"
+    }
+    ListElement {
+      text: "Cylinder"
+      type: "Link"
+    }
+    ListElement {
+      text: "Empty"
+      type: "Link"
+    }
+    ListElement {
+      text: "Mesh"
+      type: "Link"
+    }
+    ListElement {
+      text: "Sphere"
+      type: "Link"
+    }
+    ListElement {
+      text: "Ball"
+      type: "Light"
+    }
+    ListElement {
+      text: "Continuous"
+      type: "Light"
+    }
+    ListElement {
+      text: "Fixed"
+      type: "Light"
+    }
+     ListElement {
+      text: "Prismatic"
+      type: "Light"
+    }
+    ListElement {
+      text: "Revolute"
+      type: "Light"
+    }
+     ListElement {
+      text: "Universal"
+      type: "Light"
+    }
+  }
+  // The delegate for each section header
+  Component {
+    id: sectionHeading
+    Rectangle {
+      height: childrenRect.height
+
+      Text {
+          text: section
+          font.pointSize: 10
+          padding: 5
+      }
+    }
+  }
+
+  Menu {
+    id: addLinkMenu
+    ListView {
+      id: addLinkMenuListView
+      height: addLinkMenu.height
+      delegate: ItemDelegate {
+        width: parent.width
+        text: model.text
+        highlighted: ListView.isCurrentItem
+        onClicked: {
+          addLinkMenu.close()
+        }
+      }
+      model: linkItems
+      section.property: "type"
+      section.criteria: ViewSection.FullString
+      section.delegate: sectionHeading
+    }
+    // MenuItem { text: "Box" onTriggered: {} }
+  }
+
 
   ListView {
     anchors.top: header.bottom
