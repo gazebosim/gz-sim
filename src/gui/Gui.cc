@@ -93,7 +93,8 @@ std::unique_ptr<ignition::gui::Application> createGui(
       defaultGuiConfigName = "playback_gui.config";
     }
     ignition::common::env(IGN_HOMEDIR, defaultConfig);
-    defaultConfigFolder = ignition::common::joinPaths(defaultConfig, ".ignition",
+    defaultConfigFolder =
+      ignition::common::joinPaths(defaultConfig, ".ignition",
         "gazebo", IGNITION_GAZEBO_MAJOR_VERSION_STR);
     defaultConfig = ignition::common::joinPaths(defaultConfig, ".ignition",
         "gazebo", IGNITION_GAZEBO_MAJOR_VERSION_STR, defaultGuiConfigName);
