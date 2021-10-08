@@ -139,21 +139,21 @@ void DetachableJoint::PreUpdate(
       }
       else
       {
-        // If there is more than one entity with the same name, look for the 
+        // If there is more than one entity with the same name, look for the
         // entity with a parent component.
         for(auto entity : candidateEntities)
         {
-          // TODO: do we support grand children? Seems dicy
+          // TODO(arjo): do we support grand children? Seems dicy
           // what about if there are multiple children with the same name?
           auto models = this->model.Models(_ecm);
 
-          for (auto model: models)
+          for (auto model : models)
           {
             if (model == entity)
             {
               modelEntity = entity;
             }
-          } 
+          }
         }
       }
     }
