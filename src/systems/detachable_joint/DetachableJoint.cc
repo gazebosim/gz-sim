@@ -143,7 +143,7 @@ void DetachableJoint::PreUpdate(
         // entity with a parent component.
         for(auto entity : candidateEntities)
         {
-          // TODO(arjo): do we support grand children? Seems dicy
+          // TODO(arjo): do we want to support grand children?
           // what about if there are multiple children with the same name?
           auto models = this->model.Models(_ecm);
 

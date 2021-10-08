@@ -25,6 +25,7 @@
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"
+#include "ignition/gazebo/Util.hh"
 
 #include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
@@ -210,4 +211,75 @@ TEST_F(DetachableJointTest, LinksInSameModel)
   // Due integration error, we check that the travelled distance is greater than
   // the expected distance.
   EXPECT_GT(b2Poses.front().Pos().Z() - b2Poses.back().Pos().Z(), expDist);
+}
+
+/////////////////////////////////////////////////
+TEST_F(DetachableJointTest, NestedModelsWithSameName)
+{
+  using namespace std::chrono_literals;
+
+  this->StartServer("/test/worlds/detachable_joint.sdf");
+
+
+  std::vector<math::Pose3d> childM4Poses, childM5Poses;
+  test::Relay testSystem1;
+  testSystem1.OnPostUpdate([&childM4Poses, &childM5Poses](
+    const gazebo::UpdateInfo &,
+    const gazebo::EntityComponentManager &_ecm)
+  {
+    auto childModels = _ecm.EntitiesByComponents(
+      components::Model(), components::Name("child_model"));
+
+    auto entityM5 = _ecm.EntityByComponents(
+      components::Model(), components::Name("M5"));
+
+    Model modelM5(entityM5);
+    auto childModelsM5 = modelM5.Models(_ecm);
+
+    Entity childEntityM5{kNullEntity}, childEntityM4{kNullEntity};
+    for(auto entity : childModelsM5)
+    {
+      if (entity == childModels[0])
+      {
+        childEntityM5 = childModels[0];
+        childEntityM4 = childModels[1];
+      }
+      if (entity == childModels[1])
+      {
+        childEntityM5 = childModels[1];
+        childEntityM4 = childModels[0];
+      }
+    }
+
+    Model childModelM4(childEntityM4);
+    Model childModelM5(childEntityM5);
+
+    auto poseM4 = _ecm.Component<components::Pose>(childEntityM4);
+    auto poseM5 = _ecm.Component<components::Pose>(childEntityM5);
+
+    childM4Poses.push_back(poseM4->Data());
+    childM5Poses.push_back(poseM5->Data());
+  }
+  );
+
+  this->server->AddSystem(testSystem1.systemPtr);
+
+  const std::size_t nIters{20};
+  this->server->Run(true, nIters, false);
+
+  // Both children of model1 and model4 should not move as they are held
+  // in place
+  EXPECT_EQ(childM4Poses.front(), childM4Poses.back());
+  EXPECT_EQ(childM5Poses.front(), childM5Poses.back());
+
+  // Release M5's child only
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Empty>("/model/M5/detachable_joint/detach");
+  pub.Publish(msgs::Empty());
+  std::this_thread::sleep_for(250ms);
+
+  // Release M5's
+  this->server->Run(true, nIters, false);
+  EXPECT_LT(childM5Poses.back().Z(), childM4Poses.front().Z());
+  EXPECT_EQ(childM4Poses.front(), childM4Poses.back());
 }
