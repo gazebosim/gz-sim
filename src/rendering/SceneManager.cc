@@ -544,6 +544,7 @@ rendering::VisualPtr SceneManager::CreateCollision(Entity _id,
   visual.SetName(_collision.Name());
 
   rendering::VisualPtr collisionVis = CreateVisual(_id, visual, _parentId);
+  collisionVis->SetUserData("skip-visual-clone", static_cast<bool>(true));
   return collisionVis;
 }
 /////////////////////////////////////////////////
@@ -1311,6 +1312,7 @@ rendering::VisualPtr SceneManager::CreateInertiaVisual(Entity _id,
     std::dynamic_pointer_cast<rendering::Visual>(inertiaVisual);
   inertiaVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   inertiaVis->SetUserData("pause-update", static_cast<int>(0));
+  inertiaVis->SetUserData("skip-visual-clone", static_cast<bool>(true));
   this->dataPtr->visuals[_id] = inertiaVis;
 
   if (parent)
@@ -1443,6 +1445,7 @@ rendering::VisualPtr SceneManager::CreateJointVisual(
     std::dynamic_pointer_cast<rendering::Visual>(jointVisual);
   jointVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   jointVis->SetUserData("pause-update", static_cast<int>(0));
+  jointVis->SetUserData("skip-visual-clone", static_cast<bool>(true));
   jointVis->SetLocalPose(_joint.RawPose());
   this->dataPtr->visuals[_id] = jointVis;
   return jointVis;
@@ -1491,6 +1494,7 @@ rendering::VisualPtr SceneManager::CreateCOMVisual(Entity _id,
     std::dynamic_pointer_cast<rendering::Visual>(comVisual);
   comVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   comVis->SetUserData("pause-update", static_cast<int>(0));
+  comVis->SetUserData("skip-visual-clone", static_cast<bool>(true));
   this->dataPtr->visuals[_id] = comVis;
 
   return comVis;
