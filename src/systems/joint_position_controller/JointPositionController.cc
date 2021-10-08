@@ -19,6 +19,7 @@
 
 #include <ignition/msgs/double.pb.h>
 
+#include <set>
 #include <string>
 
 #include <ignition/common/Profiler.hh>
