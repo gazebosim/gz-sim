@@ -129,8 +129,33 @@ void DetachableJoint::PreUpdate(
     }
     else
     {
-      modelEntity = _ecm.EntityByComponents(
+      auto candidateEntities = _ecm.EntitiesByComponents(
           components::Model(), components::Name(this->childModelName));
+
+      if (candidateEntities.size() == 1)
+      {
+        // If there is one entity select that entity itself
+        modelEntity = candidateEntities[0];
+      }
+      else
+      {
+        // If there is more than one entity with the same name, look for the 
+        // entity with a parent component.
+        for(auto entity : candidateEntities)
+        {
+          // TODO: do we support grand children? Seems dicy
+          // what about if there are multiple children with the same name?
+          auto models = this->model.Models(_ecm);
+
+          for (auto model: models)
+          {
+            if (model == entity)
+            {
+              modelEntity = entity;
+            }
+          } 
+        }
+      }
     }
     if (kNullEntity != modelEntity)
     {
