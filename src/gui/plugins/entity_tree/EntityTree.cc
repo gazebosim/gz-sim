@@ -398,6 +398,204 @@ void EntityTree::DeselectAllEntities()
 }
 
 /////////////////////////////////////////////////
+void EntityTree::OnInsertEntity(const QString &_type)
+{
+  std::string modelSdfString = _type.toStdString();
+  std::transform(modelSdfString.begin(), modelSdfString.end(),
+                 modelSdfString.begin(), ::tolower);
+
+  if (modelSdfString == "box")
+  {
+    modelSdfString = std::string("<?xml version=\"1.0\"?>"
+                                 "<sdf version=\"1.6\">"
+                                   "<model name=\"box\">"
+                                     "<pose>0 0 0.5 0 0 0</pose>"
+                                     "<link name=\"box_link\">"
+                                       "<inertial>"
+                                         "<inertia>"
+                                           "<ixx>0.167</ixx>"
+                                           "<ixy>0</ixy>"
+                                           "<ixz>0</ixz>"
+                                           "<iyy>0.167</iyy>"
+                                           "<iyz>0</iyz>"
+                                           "<izz>0.167</izz>"
+                                         "</inertia>"
+                                         "<mass>1.0</mass>"
+                                       "</inertial>"
+                                       "<collision name=\"box_collision\">"
+                                         "<geometry>"
+                                           "<box>"
+                                             "<size>1 1 1</size>"
+                                           "</box>"
+                                         "</geometry>"
+                                       "</collision>"
+                                       "<visual name=\"box_visual\">"
+                                         "<geometry>"
+                                           "<box>"
+                                             "<size>1 1 1</size>"
+                                           "</box>"
+                                         "</geometry>"
+                                       "</visual>"
+                                     "</link>"
+                                   "</model>"
+                                 "</sdf>");
+  }
+  else if (modelSdfString == "sphere")
+  {
+    modelSdfString = std::string("<?xml version=\"1.0\"?>"
+                                 "<sdf version=\"1.6\">"
+                                   "<model name=\"sphere\">"
+                                     "<pose>0 0 0.5 0 0 0</pose>"
+                                     "<link name=\"sphere_link\">"
+                                       "<inertial>"
+                                         "<inertia>"
+                                           "<ixx>0.1</ixx>"
+                                           "<ixy>0</ixy>"
+                                           "<ixz>0</ixz>"
+                                           "<iyy>0.1</iyy>"
+                                           "<iyz>0</iyz>"
+                                           "<izz>0.1</izz>"
+                                         "</inertia>"
+                                         "<mass>1.0</mass>"
+                                       "</inertial>"
+                                       "<collision name=\"sphere_collision\">"
+                                         "<geometry>"
+                                           "<sphere>"
+                                             "<radius>0.5</radius>"
+                                           "</sphere>"
+                                         "</geometry>"
+                                       "</collision>"
+                                       "<visual name=\"sphere_visual\">"
+                                         "<geometry>"
+                                           "<sphere>"
+                                             "<radius>0.5</radius>"
+                                           "</sphere>"
+                                         "</geometry>"
+                                       "</visual>"
+                                     "</link>"
+                                   "</model>"
+                                 "</sdf>");
+  }
+  else if (modelSdfString == "cylinder")
+  {
+    modelSdfString = std::string("<?xml version=\"1.0\"?>"
+                                 "<sdf version=\"1.6\">"
+                                   "<model name=\"cylinder\">"
+                                     "<pose>0 0 0.5 0 0 0</pose>"
+                                     "<link name=\"cylinder_link\">"
+                                       "<inertial>"
+                                         "<inertia>"
+                                           "<ixx>0.146</ixx>"
+                                           "<ixy>0</ixy>"
+                                           "<ixz>0</ixz>"
+                                           "<iyy>0.146</iyy>"
+                                           "<iyz>0</iyz>"
+                                           "<izz>0.125</izz>"
+                                         "</inertia>"
+                                         "<mass>1.0</mass>"
+                                       "</inertial>"
+                                       "<collision name=\"cylinder_collision\">"
+                                         "<geometry>"
+                                           "<cylinder>"
+                                             "<radius>0.5</radius>"
+                                             "<length>1.0</length>"
+                                           "</cylinder>"
+                                         "</geometry>"
+                                       "</collision>"
+                                       "<visual name=\"cylinder_visual\">"
+                                         "<geometry>"
+                                           "<cylinder>"
+                                             "<radius>0.5</radius>"
+                                             "<length>1.0</length>"
+                                           "</cylinder>"
+                                         "</geometry>"
+                                       "</visual>"
+                                     "</link>"
+                                   "</model>"
+                                 "</sdf>");
+  }
+  else if (modelSdfString == "point")
+  {
+    modelSdfString = std::string("<?xml version=\"1.0\"?>"
+                                 "<sdf version=\"1.6\">"
+                                 "<light type='point' name='pointlight'>"
+                                   "<pose>0 0 2 0 0 0</pose>"
+                                   "<cast_shadows>false</cast_shadows>"
+                                   "<diffuse>0.5 0.5 0.5 1</diffuse>"
+                                   "<specular>0.5 0.5 0.5 1</specular>"
+                                   "<attenuation>"
+                                     "<range>4</range>"
+                                     "<constant>0.2</constant>"
+                                     "<linear>0.5</linear>"
+                                     "<quadratic>0.01</quadratic>"
+                                   "</attenuation>"
+                                 "</light>"
+                                 "</sdf>");
+  }
+  else if (modelSdfString == "directional")
+  {
+    modelSdfString = std::string("<?xml version=\"1.0\"?>"
+                                 "<sdf version=\"1.6\">"
+                                 "<light type='directional'"
+                                  "name='directionallight'>"
+                                   "<pose>0 0 2 0 0 0</pose>"
+                                   "<cast_shadows>true</cast_shadows>"
+                                   "<diffuse>0.8 0.8 0.8 1</diffuse>"
+                                   "<specular>0.2 0.2 0.2 1</specular>"
+                                   "<attenuation>"
+                                     "<range>1000</range>"
+                                     "<constant>0.9</constant>"
+                                     "<linear>0.01</linear>"
+                                     "<quadratic>0.001</quadratic>"
+                                   "</attenuation>"
+                                   "<direction>0 0 -1</direction>"
+                                 "</light>"
+                                 "</sdf>");
+  }
+  else if (modelSdfString == "spot")
+  {
+    modelSdfString = std::string("<?xml version=\"1.0\"?>"
+                                 "<sdf version=\"1.6\">"
+                                 "<light type='spot' name='spotlight'>"
+                                   "<pose>0 0 2 0 0 0</pose>"
+                                   "<cast_shadows>true</cast_shadows>"
+                                   "<diffuse>0.5 0.5 0.5 1</diffuse>"
+                                   "<specular>0.5 0.5 0.5 1</specular>"
+                                   "<attenuation>"
+                                     "<range>4</range>"
+                                     "<constant>0.2</constant>"
+                                     "<linear>0.5</linear>"
+                                     "<quadratic>0.01</quadratic>"
+                                   "</attenuation>"
+                                   "<direction>0 0 -1</direction>"
+                                   "<spot>"
+                                     "<inner_angle>0.1</inner_angle>"
+                                     "<outer_angle>0.5</outer_angle>"
+                                     "<falloff>0.8</falloff>"
+                                   "</spot>"
+                                 "</light>"
+                                 "</sdf>");
+  } 
+  else
+  {
+    ignwarn << "Invalid model string " << modelSdfString << "\n";
+    ignwarn << "The valid options are:\n";
+    ignwarn << " - box\n";
+    ignwarn << " - sphere\n";
+    ignwarn << " - cylinder\n";
+    ignwarn << " - point\n";
+    ignwarn << " - directional\n";
+    ignwarn << " - spot\n";
+    return;
+  }
+
+  gui::events::SpawnPreviewModel event(modelSdfString);
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      &event);
+}
+
+/////////////////////////////////////////////////
 bool EntityTree::eventFilter(QObject *_obj, QEvent *_event)
 {
   if (_event->type() == ignition::gazebo::gui::events::EntitiesSelected::kType)

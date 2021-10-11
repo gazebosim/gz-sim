@@ -129,6 +129,10 @@ namespace gazebo
     /// This should be called from QML.
     public: Q_INVOKABLE void DeselectAllEntities();
 
+    /// \brief Callback to insert a new entity
+    /// \param[in] _type Type of entity to insert
+    public:  Q_INVOKABLE void OnInsertEntity(const QString &_type);
+
     // Documentation inherited
     protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
 

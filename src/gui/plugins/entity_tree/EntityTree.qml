@@ -108,7 +108,97 @@ Rectangle {
       indentation: itemHeight * 0.75
 
       headerDelegate: Rectangle {
-        visible: false
+        visible: true 
+        ToolButton {
+          anchors.right: parent.right
+          id: addEntity
+          ToolTip.text: "Add Entity"
+          ToolTip.visible: hovered
+          contentItem: Image {
+            fillMode: Image.Pad
+            horizontalAlignment: Image.AlignHCenter
+            verticalAlignment: Image.AlignVCenter
+            source: "qrc:/Gazebo/images/plus.png"
+            sourceSize.width: 24;
+            sourceSize.height: 24;
+          }
+          onClicked: addEntityMenu.open()
+
+          Menu {
+            id: addEntityMenu
+
+            MenuItem
+            {
+              id: box
+              text: "Box"
+              onClicked: {
+                EntityTree.OnInsertEntity("box")
+              }
+            }
+
+            MenuItem
+            {
+              id: sphere 
+              text: "Sphere"
+              onClicked: {
+                EntityTree.OnInsertEntity("sphere")
+              }
+            }
+
+            MenuItem
+            {
+              id: cylinder
+              text: "Cylinder"
+              onClicked: {
+                EntityTree.OnInsertEntity("cylinder")
+              }
+            }
+
+            MenuItem
+            {
+              id: mesh 
+              text: "Mesh"
+            }
+
+            MenuSeparator {
+              padding: 0
+              topPadding: 12
+              bottomPadding: 12
+              contentItem: Rectangle {
+                implicitWidth: 200
+                implicitHeight: 1
+                color: "#1E000000"
+              }
+            }
+
+            MenuItem
+            {
+              id: directionalLight 
+              text: "Directional"
+              onClicked: {
+                EntityTree.OnInsertEntity("directional")
+              }
+            }
+
+            MenuItem
+            {
+              id: pointLight
+              text: "Point"
+              onClicked: {
+                EntityTree.OnInsertEntity("point")
+              }
+            }
+
+            MenuItem
+            {
+              id: spotLight 
+              text: "Spot"
+              onClicked: {
+                EntityTree.OnInsertEntity("spot")
+              }
+            }
+          }
+        }
       }
 
       branchDelegate: Rectangle {
