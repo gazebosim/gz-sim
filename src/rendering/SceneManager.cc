@@ -513,8 +513,22 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
     }
     else
     {
-      ignerr << "PBR material: currently only metal workflow is supported"
-             << std::endl;
+      const sdf::PbrWorkflow *specular=
+          pbr->Workflow(sdf::PbrWorkflowType::SPECULAR);
+      if (specular)
+      {
+        ignerr << "PBR material: currently only metal workflow is supported. "
+               << "Ignition Gazebo will try to render the material using "
+               << "metal workflow but without Roughness / Metalness settings."
+               << std::endl;
+      }
+      workflow = const_cast<sdf::PbrWorkflow *>(specular);
+    }
+
+    if (!workflow)
+    {
+      ignerr << "No valid PBR workflow found. " << std::endl;
+      return rendering::MaterialPtr();
     }
 
     // albedo map
