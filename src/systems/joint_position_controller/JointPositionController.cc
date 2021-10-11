@@ -19,7 +19,7 @@
 
 #include <ignition/msgs/double.pb.h>
 
-#include <set>
+#include <unordered_set>
 #include <string>
 
 #include <ignition/common/Profiler.hh>
@@ -215,7 +215,7 @@ void JointPositionController::PreUpdate(
   // Sanity check: Make sure that the joint index is valid.
   if (this->dataPtr->jointIndex >= jointPosComp->Data().size())
   {
-    static std::set<Entity> reported;
+    static std::unordered_set<Entity> reported;
     if (reported.find(this->dataPtr->jointEntity) == reported.end())
     {
       ignerr << "[JointPositionController]: Detected an invalid <joint_index> "
