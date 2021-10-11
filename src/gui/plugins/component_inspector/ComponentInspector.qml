@@ -293,6 +293,7 @@ Rectangle {
         text: model.text
         highlighted: ListView.isCurrentItem
         onClicked: {
+          ComponentInspector.OnAddEntity(model.text, "link");
           addLinkMenu.close()
         }
       }

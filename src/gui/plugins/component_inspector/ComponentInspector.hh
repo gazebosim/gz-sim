@@ -331,6 +331,11 @@ namespace gazebo
     /// \brief Notify that paused has changed.
     signals: void PausedChanged();
 
+    /// \brief Callback in Qt thread when an entity is to be added
+    /// \param[in] _entity Entity to add, e.g. box, sphere, cylinder, etc
+    /// \param[in] _type Entity type, e.g. link, visual, collision, etc
+    public: Q_INVOKABLE void OnAddEntity(QString _entity, QString _type);
+
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<ComponentInspectorPrivate> dataPtr;
