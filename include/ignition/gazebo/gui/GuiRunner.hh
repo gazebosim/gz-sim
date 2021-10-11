@@ -66,7 +66,7 @@ class IGNITION_GAZEBO_GUI_VISIBLE GuiRunner : public QObject
 
   /// \brief Update the plugins.
   /// \todo(anyone) Move to GuiRunner::Implementation when porting to v5
-  private: void UpdatePlugins();
+  private: Q_INVOKABLE void UpdatePlugins();
 
   /// \brief Entity-component manager.
   private: gazebo::EntityComponentManager ecm;

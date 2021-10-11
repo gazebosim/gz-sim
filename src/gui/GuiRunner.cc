@@ -115,7 +115,7 @@ void GuiRunner::OnState(const msgs::SerializedStepMap &_msg)
 
   // Update all plugins
   this->updateInfo = convert<UpdateInfo>(_msg.stats());
-  this->UpdatePlugins();
+  QMetaObject::invokeMethod(this, "UpdatePlugins", Qt::DirectConnection);
   this->ecm.ClearNewlyCreatedEntities();
   this->ecm.ProcessRemoveEntityRequests();
 }
