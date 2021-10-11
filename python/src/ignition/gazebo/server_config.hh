@@ -31,30 +31,6 @@ namespace gazebo
 {
 namespace python
 {
-
-class ServerConfig : public ignition::utils::python::Destroyable, public std::enable_shared_from_this<ServerConfig>
-{
-public:
-  ServerConfig();
-
-  ~ServerConfig();
-
-  bool SetSdfFile(const std::string &_file);
-
-  /// Force an early destruction of this object
-  void
-  destroy() override;
-
-  /// Get rcl_wait_set_t pointer
-  ignition::gazebo::ServerConfig * rcl_ptr() const
-  {
-    return server_config_.get();
-  }
-
-private:
-  std::shared_ptr<ignition::gazebo::ServerConfig> server_config_;
-};
-
 /// Define a pybind11 wrapper for an ignition::gazebo::ServerConfig
 /**
  * \param[in] module a pybind11 module to add the definition to

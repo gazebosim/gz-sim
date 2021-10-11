@@ -33,29 +33,29 @@ namespace gazebo
 namespace python
 {
 
-class Server : public ignition::utils::python::Destroyable, public std::enable_shared_from_this<Server>
-{
-public:
-  Server(ignition::gazebo::python::ServerConfig &_config);
-
-  ~Server();
-
-  bool Run(const bool _blocking = false,
-           const uint64_t _iterations = 0,
-           const bool _paused = true);
-
- bool IsRunning();
-
- public: bool HasEntity(const std::string &_name,
-                        const unsigned int _worldIndex = 0) const;
-
-  /// Force an early destruction of this object
-  void
-  destroy() override;
-
-private:
-  std::shared_ptr<ignition::gazebo::Server> server_;
-};
+// class Server : public ignition::utils::python::Destroyable, public std::enable_shared_from_this<Server>
+// {
+// public:
+//   Server(ignition::gazebo::python::ServerConfig &_config);
+//
+//   ~Server();
+//
+//   bool Run(const bool _blocking = false,
+//            const uint64_t _iterations = 0,
+//            const bool _paused = true);
+//
+//  bool IsRunning();
+//
+//  public: bool HasEntity(const std::string &_name,
+//                         const unsigned int _worldIndex = 0) const;
+//
+//   /// Force an early destruction of this object
+//   void
+//   destroy() override;
+//
+// private:
+//   std::shared_ptr<ignition::gazebo::Server> server_;
+// };
 
 /// Define a pybind11 wrapper for an ignition::gazebo::Server
 /**

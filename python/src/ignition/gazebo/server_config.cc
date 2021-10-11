@@ -24,36 +24,14 @@ namespace gazebo
 {
 namespace python
 {
-void
-ServerConfig::destroy()
-{
-  server_config_.reset();
-}
-
-ServerConfig::~ServerConfig()
-{
-
-}
-
-ServerConfig::ServerConfig()
-{
-  server_config_ = std::make_shared<ignition::gazebo::ServerConfig>();
-}
-
-bool ServerConfig::SetSdfFile(const std::string &_file)
-{
-  return server_config_->SetSdfFile(_file);
-}
-
 void define_server_config(py::object module)
 {
-  py::class_<ServerConfig, ignition::utils::python::Destroyable, std::shared_ptr<ServerConfig>>(module, "ServerConfig")
+  py::class_<ignition::gazebo::ServerConfig>(module, "ServerConfig")
   .def(py::init<>())
   .def(
-    "set_sdf_file", &ServerConfig::SetSdfFile,
+    "set_sdf_file", &ignition::gazebo::ServerConfig::SetSdfFile,
     "Set sdf file");
 }
-
 }  // namespace python
 }  // namespace gazebo
 }  // namespace ignition

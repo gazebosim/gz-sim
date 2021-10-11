@@ -24,52 +24,20 @@ namespace gazebo
 {
 namespace python
 {
-void
-Server::destroy()
-{
-  server_.reset();
-}
-
-Server::~Server()
-{
-
-}
-
-Server::Server(ignition::gazebo::python::ServerConfig &_config)
-{
-  server_ = std::make_shared<ignition::gazebo::Server>(*_config.rcl_ptr());
-}
-
-bool Server::Run(const bool _blocking, const uint64_t _iterations,
-  const bool _paused)
-{
-  return server_->Run(_blocking, _iterations, _paused);
-}
-
-bool Server::IsRunning()
-{
-  return server_->Running();
-}
-
-bool Server::HasEntity(const std::string &_name,
-                       const unsigned int _worldIndex) const
-{
-  return server_->HasEntity(_name, _worldIndex);
-}
-
 void define_gazebo_server(py::object module)
 {
-  py::class_<Server, ignition::utils::python::Destroyable, std::shared_ptr<Server>>(module, "Server")
-  .def(py::init<ignition::gazebo::python::ServerConfig &>())
+  py::class_<ignition::gazebo::Server>(module, "Server")
+  .def(py::init<ignition::gazebo::ServerConfig &>())
   .def(
-    "run", &Server::Run,
+    "run", &ignition::gazebo::Server::Run,
     "Run server")
   .def(
-    "has_entity", &Server::HasEntity,
+    "has_entity", &ignition::gazebo::Server::HasEntity,
     "Return true if the specified world has an entity with the provided name.")
   .def(
-    "is_running", &Server::IsRunning,
-    "");
+    "is_running", py::overload_cast<>(&ignition::gazebo::Server::Running, py::const_),
+    "empty");
+
 }
 
 }  // namespace python

@@ -50,26 +50,16 @@ public:
   void
   destroy() override;
 
-  void worker();
-
-  void PoseVCallback(const msgs::Pose_V &_msg);
-
   bool SubscribePoseV(
       const std::string &_topic,
       std::function<void(const ignition::msgs::python::PoseV &_msg)> &_cb);
-      // std::function<void(py::object &_msg)> &_cb);
-      // std::function<void(void)> &_cb);
 private:
   std::shared_ptr<ignition::transport::Node> node_;
 
-  // std::function<void(py::object &_msg)> cb_;
   std::function<void(const ignition::msgs::python::PoseV &_msg)> cb_;
-  // std::function<void(void)> cb_;
 
   std::mutex mutex;
-  std::vector<int> vectorPoses;
-  std::thread workerThread;
-  bool run = true;
+
 };
 
 /// Define a pybind11 wrapper for an ignition::gazebo::Node
