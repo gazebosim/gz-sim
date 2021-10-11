@@ -1,6 +1,7 @@
 %module "math"
 %include Angle.i
 %include GaussMarkovProcess.i
+%include Helpers.i
 %include Rand.i
 %include Vector2.i
 %include Vector3.i

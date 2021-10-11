@@ -91,6 +91,7 @@ if (PYTHONLIBS_FOUND)
       Color_TEST
       Filter_TEST
       GaussMarkovProcess_TEST
+      Helpers_TEST
       Kmeans_TEST
       Line2_TEST
       Line3_TEST
