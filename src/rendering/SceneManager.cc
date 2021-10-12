@@ -513,7 +513,7 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
     }
     else
     {
-      auto = pbr->Workflow(sdf::PbrWorkflowType::SPECULAR);
+      auto specular = pbr->Workflow(sdf::PbrWorkflowType::SPECULAR);
       if (specular)
       {
         ignerr << "PBR material: currently only metal workflow is supported. "
