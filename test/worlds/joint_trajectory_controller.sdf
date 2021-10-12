@@ -17,64 +17,6 @@
       <grid>false</grid>
     </scene>
 
-    <!--     -->
-    <!-- GUI -->
-    <!--     -->
-    <gui>
-      <!-- 3D scene -->
-      <plugin filename="GzScene3D" name="3D View">
-        <ignition-gui>
-          <title>3D View</title>
-          <property type="bool" key="showTitleBar">false</property>
-          <property type="string" key="state">docked</property>
-        </ignition-gui>
-        <engine>ogre</engine>
-        <scene>scene</scene>
-        <camera_pose>0 0 1 0 1.5708 0</camera_pose>
-      </plugin>
-
-      <!-- World control -->
-      <plugin filename="WorldControl" name="World control">
-        <ignition-gui>
-          <title>World control</title>
-          <property type="bool" key="showTitleBar">false</property>
-          <property type="bool" key="resizable">false</property>
-          <property type="double" key="height">50</property>
-          <property type="double" key="width">100</property>
-          <property type="double" key="z">1</property>
-          <property type="string" key="state">floating</property>
-          <anchors target="3D View">
-            <line own="left" target="left"/>
-            <line own="bottom" target="bottom"/>
-          </anchors>
-        </ignition-gui>
-        <play_pause>true</play_pause>
-        <step>true</step>
-        <start_paused>true</start_paused>
-      </plugin>
-
-      <!-- World stats -->
-      <plugin filename="WorldStats" name="World stats">
-        <ignition-gui>
-          <title>World stats</title>
-          <property type="bool" key="showTitleBar">false</property>
-          <property type="bool" key="resizable">false</property>
-          <property key="width" type="double">250</property>
-          <property key="height" type="double">110</property>
-          <property type="double" key="z">1</property>
-          <property type="string" key="state">floating</property>
-          <anchors target="3D View">
-            <line own="right" target="right"/>
-            <line own="bottom" target="bottom"/>
-          </anchors>
-        </ignition-gui>
-        <sim_time>true</sim_time>
-        <real_time>true</real_time>
-        <real_time_factor>true</real_time_factor>
-        <iterations>true</iterations>
-      </plugin>
-    </gui>
-
     <!--              -->
     <!-- Illumination -->
     <!--              -->
@@ -402,7 +344,7 @@
         <!-- Test custom topic name -->
         <topic>test_custom_topic/velocity_control</topic>
 
-        <!-- Test a case where joint names are omitted. These gains will cause the test to fail 
+        <!-- Test a case where joint names are omitted. These gains will cause the test to fail
         if they are applied in the reversed order -->
         <velocity_p_gain>0.6</velocity_p_gain>
         <velocity_i_gain>175</velocity_i_gain>

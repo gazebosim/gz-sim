@@ -117,7 +117,7 @@ namespace ignition::gazebo
 
     /// \brief Enable legacy features for plugin to work with GzScene3D.
     /// Disable them to work with the new MinimalScene plugin.
-    public: bool legacy{true};
+    public: bool legacy{false};
   };
 }
 
