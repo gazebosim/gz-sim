@@ -1,7 +1,5 @@
 \page install Installation
 
-Next Tutorial: \ref commandline
-
 # Install
 
 These instructions are for installing only Ignition Gazebo. If you're interested
@@ -32,7 +30,6 @@ installing Ignition Gazebo from source.
 
     ```sh
     sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
-    sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-prerelease `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-prerelease.list'
     wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
     sudo apt-get update
     ```
@@ -61,7 +58,6 @@ for dependency installation instructions for each supported operating system.
 
     ```sh
     sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
-    sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-prerelease `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-prerelease.list'
     wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
     sudo apt-get update
     ```
@@ -84,7 +80,7 @@ On macOS, add OSRF packages:
   brew tap osrf/simulation
   ```
 
-Install Ignition GUI:
+Install Ignition Gazebo:
   ```
   brew install ignition-gazebo<#>
   ```

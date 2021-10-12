@@ -78,7 +78,7 @@ introspection and control.
 
 # Install
 
-See the [installation tutorial](https://ignitionrobotics.org/api/gui/5.0/install.html).
+See the [installation tutorial](https://ignitionrobotics.org/api/gazebo/6.0/install.html).
 
 # Usage
 
@@ -125,11 +125,11 @@ This issue is tracked [here](https://github.com/ignitionrobotics/ign-tools/issue
 
 # Documentation
 
-See the [installation tutorial](https://ignitionrobotics.org/api/gui/5.0/install.html).
+See the [installation tutorial](https://ignitionrobotics.org/api/gazebo/6.0/install.html).
 
 # Testing
 
-See the [installation tutorial](https://ignitionrobotics.org/api/gui/5.0/install.html).
+See the [installation tutorial](https://ignitionrobotics.org/api/gazebo/6.0/install.html).
 
 See the [Writing Tests section of the contributor guide](https://github.com/ignitionrobotics/ign-gazebo/blob/main/CONTRIBUTING.md#writing-tests) for help creating or modifying tests.
 
