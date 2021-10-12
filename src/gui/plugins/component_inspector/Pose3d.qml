@@ -75,15 +75,6 @@ Rectangle {
     );
   }
 
-  // Get decimals based on a width
-  function getDecimals(width) {
-    if (width<= 80)
-      return 2;
-    else if (width <= 100)
-      return 4;
-    return 6;
-  }
-
   FontMetrics {
     id: fontMetrics
     font.family: "Roboto"
