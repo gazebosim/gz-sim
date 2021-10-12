@@ -19,8 +19,8 @@
 
 #include <ignition/msgs/double.pb.h>
 
-#include <unordered_set>
 #include <string>
+#include <unordered_set>
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/math/PID.hh>
