@@ -72,8 +72,8 @@ class ignition::gazebo::systems::ImuPrivate
   /// \param[in] _ecm Immutable reference to ECM.
   public: void Update(const EntityComponentManager &_ecm);
 
-  /// create sensor
-  /// \param[in] _ecm Mmutable reference to ECM.
+  /// \brief Create sensor
+  /// \param[in] _ecm Mutable reference to ECM.
   /// \param[in] _entity Entity of the IMU
   /// \param[in] _imu IMU component.
   /// \param[in] _parent Parent entity component.
