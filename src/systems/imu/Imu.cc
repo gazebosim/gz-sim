@@ -62,7 +62,7 @@ class ignition::gazebo::systems::ImuPrivate
   public: Entity worldEntity = kNullEntity;
 
   /// True if the rendering component is initialized
-  public: bool initialize = false;
+  public: bool initialized = false;
 
   /// \brief Create IMU sensor
   /// \param[in] _ecm Mutable reference to ECM.
@@ -206,7 +206,7 @@ void ImuPrivate::CreateImuEntities(EntityComponentManager &_ecm)
     return;
   }
 
-  if (!this->initialize)
+  if (!this->initialized)
   {
     // Create IMUs
     _ecm.Each<components::Imu, components::ParentEntity>(
@@ -217,7 +217,7 @@ void ImuPrivate::CreateImuEntities(EntityComponentManager &_ecm)
           addIMU(_ecm, _entity, _imu, _parent);
           return true;
         });
-      this->initialize = true;
+      this->initialized = true;
   }
   else
   {
