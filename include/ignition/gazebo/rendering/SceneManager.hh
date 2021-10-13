@@ -129,6 +129,18 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: rendering::VisualPtr CreateLink(Entity _id,
         const sdf::Link &_link, Entity _parentId = 0);
 
+    /// \brief Filter a node and its children according to specific criteria.
+    /// \param[in] _node The name of the node where filtering should start.
+    /// \param[in] _filter Callback function that defines how _node and its
+    /// children should be filtered. The function parameter is a node. The
+    /// callback returns true if the node should be filtered; false otherwise.
+    /// \return A list of filtered nodes in top level order. This list can
+    /// contain _node itself, or child nodes of _node. An empty list means no
+    /// nodes were filtered.
+    public: std::vector<rendering::NodePtr> Filter(const std::string &_node,
+                std::function<bool(
+                  const rendering::NodePtr _nodeToFilter)> _filter) const;
+
     /// \brief Copy a visual that currently exists in the scene
     /// \param[in] _id Unique visual id of the copied visual
     /// \param[in] _visual Name of the visual to copy

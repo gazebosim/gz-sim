@@ -2674,7 +2674,7 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
     wireBoxVis->SetInheritScale(false);
     wireBoxVis->AddGeometry(wireBox);
     wireBoxVis->SetMaterial(white, false);
-    wireBoxVis->SetUserData("skip-visual-clone", static_cast<bool>(true));
+    wireBoxVis->SetUserData("gui-only", static_cast<bool>(true));
     vis->AddChild(wireBoxVis);
 
     // Add wire box to map for setting visibility
