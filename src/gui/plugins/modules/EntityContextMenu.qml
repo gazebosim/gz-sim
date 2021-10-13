@@ -96,6 +96,14 @@ Item {
       }
     }
     MenuItem {
+      id: viewFramesMenu
+      text: "Frames"
+      onTriggered: {
+        menu.close()
+        context.OnRequest("view_frames", context.entity)
+      }
+    }
+    MenuItem {
       id: viewTransparentMenu
       text: "Transparent"
       onTriggered: {
@@ -127,6 +135,7 @@ Item {
     viewJointsMenu.enabled = false;
     viewWireframesMenu.enabled = false;
     viewCollisionsMenu.enabled = false;
+    viewFramesMenu.enabled = true;
 
     // enable / disable menu items
     if (context.type == "model" || context.type == "link" ||

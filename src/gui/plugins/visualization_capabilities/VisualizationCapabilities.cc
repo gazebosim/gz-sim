@@ -42,6 +42,7 @@
 
 #include <ignition/plugin/Register.hh>
 
+#include "ignition/rendering/AxisVisual.hh"
 #include "ignition/rendering/Capsule.hh"
 #include <ignition/rendering/COMVisual.hh>
 #include <ignition/rendering/Heightmap.hh>
@@ -128,16 +129,30 @@ namespace ignition::gazebo
     /// \return Pointer to requested visual
     public: ignition::rendering::VisualPtr VisualById(unsigned int _id);
 
+    /// \brief Create a visual from an SDF element. This is used to create
+    /// the collision visual.
+    /// \param[in] _id Entity which the visual corresponds to
+    /// \param[in] _visual SDF describing the visual.
+    /// \param[in] _parent Parent link's visual
+    /// \return Pointer to created visual
     public: rendering::VisualPtr CreateVisual(
-      ignition::gazebo::Entity _id,
-      const sdf::Visual &_visual,
-      rendering::VisualPtr &_parent);
+        ignition::gazebo::Entity _id,
+        const sdf::Visual &_visual,
+        rendering::VisualPtr &_parent);
 
-    public: rendering::GeometryPtr LoadGeometry(
+    /// \brief Create a geometry from an SDF element.
+    /// \param[in] _geom SDF describing the geometry.
+    /// \param[out] _scale Geometry's scale
+    /// \param[out] _localPose Geometry's local pose
+    /// \return Pointer to created geometry
+    public: rendering::GeometryPtr CreateGeometry(
         const sdf::Geometry &_geom, math::Vector3d &_scale,
         math::Pose3d &_localPose);
 
-    public: rendering::MaterialPtr LoadMaterial(
+    /// \brief Create a material from an SDF element.
+    /// \param[in] _material SDF describing the material.
+    /// \return Pointer to created material
+    public: rendering::MaterialPtr CreateMaterial(
         const sdf::Material &_material);
 
     /////////////////////////////////////////////////
@@ -184,7 +199,10 @@ namespace ignition::gazebo
     public: bool OnViewCollisions(const msgs::StringMsg &_msg,
         msgs::Boolean &_res);
 
-    /////////////////////////////////////////////////
+    /// \brief Create the collision visual
+    /// \param[in] _id Collision entity
+    /// \param[in] _collision SDF description of collision
+    /// \param[in] _parent Parent link's visual
     public: rendering::VisualPtr CreateCollision(
       ignition::gazebo::Entity _id,
       const sdf::Collision &_collision,
@@ -210,10 +228,11 @@ namespace ignition::gazebo
     /// \param[in] _inertial Inertial component of the link
     /// \param[in] _parent Visual parent
     /// \return Visual (center of mass) object created from the inertial
-    public: ignition::rendering::VisualPtr createCOMVisual(
+    public: ignition::rendering::VisualPtr CreateCOMVisual(
       ignition::gazebo::Entity _id,
       const math::Inertiald &_inertia,
       ignition::rendering::VisualPtr &_parent);
+
     /////////////////////////////////////////////////
     // Inertia
     /////////////////////////////////////////////////
@@ -268,6 +287,28 @@ namespace ignition::gazebo
     /// according to its child.
     /// \param[in] _jointId Joint visual id.
     public: void UpdateJointParentPose(Entity _jointId);
+
+    /////////////////////////////////////////////////
+    // Frames
+    /////////////////////////////////////////////////
+    /// \brief View frame of specified entity
+    /// \param[in] _entity Entity to view frame
+    public: void ViewFrames(const Entity &_entity);
+
+    /// \brief Callback for view frame request
+    /// \param[in] _msg Request message to set the target to view frame
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    public: bool OnViewFrames(const msgs::StringMsg &_msg,
+      msgs::Boolean &_res);
+
+    /// \brief Create a frame visual
+    /// \param[in] _id Unique visual id
+    /// \param[in] _parent Visual parent
+    /// \return Visual (frame) object created
+    public: ignition::rendering::VisualPtr CreateFrameVisual(
+      ignition::gazebo::Entity _id,
+      ignition::rendering::VisualPtr &_parent);
 
     /////////////////////////////////////////////////
     /// \brief Ignition communication node.
@@ -455,6 +496,28 @@ namespace ignition::gazebo
     public: std::map<Entity, std::map<std::string, Entity>>
                              matchLinksWithEntities;
 
+    /////////////////////////////////////////////////
+    // Frame
+    /////////////////////////////////////////////////
+
+    /// \brief New frame visuals to be created
+    public: std::vector<Entity> newFrameVisuals;
+
+    /// \brief A list of entities used to create new frame visuals
+    public: std::vector<Entity> newFrameEntities;
+
+    /// \brief A map of entities and whether their frame visuals
+    /// are currently visible
+    public: std::map<Entity, bool> viewingFrames;
+
+    /// \brief A map of entities and their frame visuals
+    public: std::map<Entity, Entity> entityToFrameVisuals;
+
+    /// \brief Target to view frame
+    public: std::string viewFramesTarget;
+
+    /// \brief View frame service
+    public: std::string viewFramesService;
   };
 }
 
@@ -617,7 +680,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
 
         if (existsVisual == nullptr && parentInertiaVisual != nullptr)
         {
-          this->createCOMVisual(id, this->entityInertials[link],
+          this->CreateCOMVisual(id, this->entityInertials[link],
             parentInertiaVisual);
         }
         else
@@ -680,6 +743,37 @@ void VisualizationCapabilitiesPrivate::OnRender()
     }
   }
   this->newCollisionLinks.clear();
+
+  // create new frame visuals
+  for (const auto &entity : this->newFrameEntities)
+  {
+    // create a new id for the visual
+    auto attempts = 100000u;
+    for (auto i = 0u; i < attempts; ++i)
+    {
+      Entity id = i;
+      if (!this->scene->HasNodeId(id) && !this->scene->HasLightId(id) &&
+          !this->scene->HasSensorId(id) && !this->scene->HasVisualId(id) &&
+          !this->viewingFrames[entity])
+      {
+        auto existsVisual = this->VisualById(id);
+        auto parentVisual = this->VisualById(entity);
+
+        if (existsVisual == nullptr && parentVisual != nullptr)
+        {
+          this->CreateFrameVisual(id, parentVisual);
+        }
+        else
+        {
+          continue;
+        }
+        this->viewingFrames[entity] = true;
+        this->entityToFrameVisuals[entity] = id;
+        break;
+      }
+    }
+  }
+  this->newFrameEntities.clear();
 
   // View center of mass
   {
@@ -834,6 +928,30 @@ void VisualizationCapabilitiesPrivate::OnRender()
       }
 
       this->viewWireframesTarget.clear();
+    }
+  }
+
+  // View frames
+  {
+    IGN_PROFILE("IgnRenderer::Render ViewFrames");
+    if (!this->viewFramesTarget.empty())
+    {
+      auto targetNode = this->scene->NodeByName(this->viewFramesTarget);
+      auto targetVis = std::dynamic_pointer_cast<rendering::Visual>(targetNode);
+
+      if (targetVis && targetVis->HasUserData("gazebo-entity"))
+      {
+        Entity targetEntity = std::get<int>(targetVis->UserData("gazebo-entity"));
+        this->ViewFrames(targetEntity);
+      }
+      else
+      {
+        ignerr << "Unable to find node name ["
+               << this->viewFramesTarget
+               << "] to view center of mass" << std::endl;
+      }
+
+      this->viewFramesTarget.clear();
     }
   }
 }
@@ -1022,12 +1140,12 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateCollision(
   visual.SetRawPose(_collision.RawPose());
   visual.SetName(_collision.Name());
 
-  rendering::VisualPtr collisionVis = CreateVisual(_id, visual, _parent);
+  rendering::VisualPtr collisionVis = this->CreateVisual(_id, visual, _parent);
   return collisionVis;
 }
 
 /////////////////////////////////////////////////
-rendering::GeometryPtr VisualizationCapabilitiesPrivate::LoadGeometry(
+rendering::GeometryPtr VisualizationCapabilitiesPrivate::CreateGeometry(
   const sdf::Geometry &_geom, math::Vector3d &_scale,
   math::Pose3d &_localPose)
 {
@@ -1167,7 +1285,7 @@ rendering::GeometryPtr VisualizationCapabilitiesPrivate::LoadGeometry(
 }
 
 /////////////////////////////////////////////////
-rendering::MaterialPtr VisualizationCapabilitiesPrivate::LoadMaterial(
+rendering::MaterialPtr VisualizationCapabilitiesPrivate::CreateMaterial(
     const sdf::Material &_material)
 {
   if (!this->scene)
@@ -1333,7 +1451,7 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateVisual(
   math::Vector3d scale = math::Vector3d::One;
   math::Pose3d localPose;
   rendering::GeometryPtr geom =
-      this->LoadGeometry(*_visual.Geom(), scale, localPose);
+      this->CreateGeometry(*_visual.Geom(), scale, localPose);
 
   if (geom)
   {
@@ -1363,7 +1481,7 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateVisual(
     }
     else if (_visual.Material())
     {
-      material = this->LoadMaterial(*_visual.Material());
+      material = this->CreateMaterial(*_visual.Material());
     }
     // Don't set a default material for meshes because they
     // may have their own
@@ -1435,7 +1553,7 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateVisual(
 }
 
 /////////////////////////////////////////////////
-rendering::VisualPtr VisualizationCapabilitiesPrivate::createCOMVisual(
+rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateCOMVisual(
   ignition::gazebo::Entity _id,
   const math::Inertiald &_inertia,
   rendering::VisualPtr &_parent)
@@ -1463,6 +1581,31 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::createCOMVisual(
   return comVis;
 }
 
+/////////////////////////////////////////////////
+rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateFrameVisual(
+  ignition::gazebo::Entity _id, rendering::VisualPtr &_parent)
+{
+  std::string name = "Frame_" + std::to_string(_id);
+  if (_parent)
+    name = _parent->Name() + "::" + name;
+
+  auto frameVisual = this->scene->CreateAxisVisual(name);
+
+  auto frameVis = std::dynamic_pointer_cast<rendering::Visual>(frameVisual);
+  frameVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  frameVis->SetUserData("pause-update", static_cast<int>(0));
+  this->visuals[_id] = frameVis;
+
+  if (_parent)
+  {
+    frameVis->RemoveParent();
+    _parent->AddChild(frameVis);
+  }
+
+  return frameVis;
+}
+
+/////////////////////////////////////////////////
 ignition::rendering::VisualPtr VisualizationCapabilitiesPrivate::VisualById(
   unsigned int _id)
 {
@@ -1542,6 +1685,16 @@ bool VisualizationCapabilitiesPrivate::OnViewCollisions(
   const msgs::StringMsg &_msg, msgs::Boolean &_res)
 {
   this->viewCollisionsTarget = _msg.data();
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool VisualizationCapabilitiesPrivate::OnViewFrames(
+    const msgs::StringMsg &_msg, msgs::Boolean &_res)
+{
+  this->viewFramesTarget = _msg.data();
 
   _res.set_data(true);
   return true;
@@ -1838,6 +1991,54 @@ void VisualizationCapabilitiesPrivate::ViewWireframes(const Entity &_entity)
     {
       this->viewingWireframes[visEntity] = showWireframe;
       wireframesVisual->SetWireframe(showWireframe);
+    }
+  }
+}
+
+/////////////////////////////////////////////////
+void VisualizationCapabilitiesPrivate::ViewFrames(const Entity &_entity)
+{
+  // TODO(chapulina) View frames for entities other than links
+  auto links = std::move(this->FindChildLinks(_entity));
+
+  this->newFrameEntities.insert(this->newFrameEntities.end(),
+      links.begin(),
+      links.end());
+
+  // create and/or toggle frame visuals
+  bool showFrames, showFramesInit = false;
+  // first loop looks for new frame visuals
+  for (const auto &link : links)
+  {
+    if (this->viewingFrames.find(link) ==
+        this->viewingFrames.end())
+    {
+      this->newFrameVisuals.push_back(_entity);
+      showFramesInit = showFrames = true;
+    }
+  }
+
+  // second loop toggles already created frame visuals
+  for (const auto &link : links)
+  {
+    if (this->viewingFrames.find(link) == this->viewingFrames.end())
+      continue;
+
+    // when viewing multiple frame visuals (e.g. _entity is a model),
+    // boolean for view frame is based on first entity in list
+    if (!showFramesInit)
+    {
+      showFrames = !this->viewingFrames[link];
+      showFramesInit = true;
+    }
+
+    Entity frameVisualId = this->entityToFrameVisuals[link];
+
+    auto frameVisual = this->VisualById(frameVisualId);
+    if (frameVisual)
+    {
+      this->viewingFrames[link] = showFrames;
+      frameVisual->SetVisible(showFrames);
     }
   }
 }
@@ -2516,13 +2717,20 @@ void VisualizationCapabilities::LoadConfig(const tinyxml2::XMLElement *)
    ignmsg << "View collisions service on ["
           << this->dataPtr->viewCollisionsService << "]" << std::endl;
 
-  // view collisions service
+  // view joints service
   this->dataPtr->viewJointsService = "/gui/view/joints";
   this->dataPtr->node.Advertise(this->dataPtr->viewJointsService,
       &VisualizationCapabilitiesPrivate::OnViewJoints,
       this->dataPtr.get());
   ignmsg << "View joints service on ["
          << this->dataPtr->viewJointsService << "]" << std::endl;
+
+  // view frames service
+  this->dataPtr->viewFramesService = "/gui/view/frames";
+  this->dataPtr->node.Advertise(this->dataPtr->viewFramesService,
+      &VisualizationCapabilitiesPrivate::OnViewFrames, this->dataPtr.get());
+  ignmsg << "View frames service on ["
+         << this->dataPtr->viewFramesService << "]" << std::endl;
 
   ignition::gui::App()->findChild
     <ignition::gui::MainWindow *>()->installEventFilter(this);
