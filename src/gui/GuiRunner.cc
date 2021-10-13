@@ -30,13 +30,15 @@
 using namespace ignition;
 using namespace gazebo;
 
-/// \todo(anyone) Move to GuiRunner::Implementation when porting to v5
-/// \brief Mutex to protect the plugin update.
-static std::mutex gUpdateMutex;
+// Register SerializedStepMap to the Qt meta type system so we can pass objects
+// of this type in QMetaObject::invokeMethod
+Q_DECLARE_METATYPE(msgs::SerializedStepMap)
 
 /////////////////////////////////////////////////
 GuiRunner::GuiRunner(const std::string &_worldName)
 {
+  qRegisterMetaType<msgs::SerializedStepMap>();
+
   this->setProperty("worldName", QString::fromStdString(_worldName));
 
   auto win = gui::App()->findChild<ignition::gui::MainWindow *>();
@@ -109,14 +111,24 @@ void GuiRunner::OnState(const msgs::SerializedStepMap &_msg)
 {
   IGN_PROFILE_THREAD_NAME("GuiRunner::OnState");
   IGN_PROFILE("GuiRunner::Update");
+  // Since this function may be called from a transport thread, we push the
+  // OnStateQt function to the queue so that its called from the Qt thread. This
+  // ensures that only one thread has access to the ecm and updateInfo
+  // variables.
+  QMetaObject::invokeMethod(this, "OnStateQt", Qt::QueuedConnection,
+                            Q_ARG(msgs::SerializedStepMap, _msg));
+}
 
-  std::lock_guard<std::mutex> lock(gUpdateMutex);
+/////////////////////////////////////////////////
+void GuiRunner::OnStateQt(const msgs::SerializedStepMap &_msg)
+{
+  IGN_PROFILE_THREAD_NAME("Qt thread");
+  IGN_PROFILE("GuiRunner::Update");
   this->ecm.SetState(_msg.state());
 
   // Update all plugins
   this->updateInfo = convert<UpdateInfo>(_msg.stats());
-  QMetaObject::invokeMethod(this, "UpdatePlugins",
-      Qt::BlockingQueuedConnection);
+  this->UpdatePlugins();
   this->ecm.ClearNewlyCreatedEntities();
   this->ecm.ProcessRemoveEntityRequests();
 }

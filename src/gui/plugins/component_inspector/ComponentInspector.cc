@@ -91,9 +91,6 @@ namespace ignition::gazebo
 
     /// \brief Transport node for making command requests
     public: transport::Node node;
-
-    /// \brief Mutex to protect componentsModel
-    public: QMutex mutex;
   };
 }
 
@@ -340,8 +337,6 @@ void ComponentInspector::Update(const UpdateInfo &,
   if (this->dataPtr->paused)
     return;
 
-  QMutexLocker locker(&this->dataPtr->mutex);
-
   auto componentTypes = _ecm.ComponentTypes(this->dataPtr->entity);
 
   // List all components
@@ -436,11 +431,7 @@ void ComponentInspector::Update(const UpdateInfo &,
     // Add component to list
     else
     {
-      QMetaObject::invokeMethod(&this->dataPtr->componentsModel,
-          "AddComponentType",
-          Qt::DirectConnection,
-          Q_RETURN_ARG(QStandardItem *, item),
-          Q_ARG(ignition::gazebo::ComponentTypeId, typeId));
+      item = this->dataPtr->componentsModel.AddComponentType(typeId);
     }
 
     if (nullptr == item)

@@ -60,9 +60,14 @@ class IGNITION_GAZEBO_GUI_VISIBLE GuiRunner : public QObject
   /// \param[in] _res Response containing new state.
   private: void OnStateAsyncService(const msgs::SerializedStepMap &_res);
 
-  /// \brief Callback when a new state is received from the server.
+  /// \brief Callback when a new state is received from the server. Actual
+  /// updating of the ECM is delegated to OnStateQt
   /// \param[in] _msg New state message.
   private: void OnState(const msgs::SerializedStepMap &_msg);
+
+  /// \brief Called by the Qt thread to update the ECM with new state
+  /// \param[in] _msg New state message.
+  private: Q_INVOKABLE void OnStateQt(const msgs::SerializedStepMap &_msg);
 
   /// \brief Update the plugins.
   /// \todo(anyone) Move to GuiRunner::Implementation when porting to v5
