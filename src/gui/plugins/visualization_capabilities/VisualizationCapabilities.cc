@@ -951,7 +951,7 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateJointVisual(
     std::dynamic_pointer_cast<rendering::Visual>(jointVisual);
   jointVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   jointVis->SetUserData("pause-update", static_cast<int>(0));
-  jointVis->SetUserData("skip-visual-clone", static_cast<bool>(true));
+  jointVis->SetUserData("gui-only", static_cast<bool>(true));
   jointVis->SetLocalPose(_joint.RawPose());
   this->visuals[_id] = jointVis;
   return jointVis;
@@ -996,7 +996,7 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateInertiaVisual(
     std::dynamic_pointer_cast<rendering::Visual>(inertiaVisual);
   inertiaVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   inertiaVis->SetUserData("pause-update", static_cast<int>(0));
-  inertiaVis->SetUserData("skip-visual-clone", static_cast<bool>(true));
+  inertiaVis->SetUserData("gui-only", static_cast<bool>(true));
   this->visuals[_id] = inertiaVis;
   if (_parent)
   {
@@ -1025,7 +1025,7 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateCollision(
   visual.SetName(_collision.Name());
 
   rendering::VisualPtr collisionVis = CreateVisual(_id, visual, _parent);
-  collisionVis->SetUserData("skip-visual-clone", static_cast<bool>(true));
+  collisionVis->SetUserData("gui-only", static_cast<bool>(true));
   return collisionVis;
 }
 
@@ -1455,7 +1455,7 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::createCOMVisual(
     std::dynamic_pointer_cast<rendering::Visual>(comVisual);
   comVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   comVis->SetUserData("pause-update", static_cast<int>(0));
-  comVis->SetUserData("skip-visual-clone", static_cast<bool>(true));
+  comVis->SetUserData("gui-only", static_cast<bool>(true));
   this->visuals[_id] = comVis;
 
   if (_parent)

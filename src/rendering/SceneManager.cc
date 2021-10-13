@@ -402,6 +402,39 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
 }
 
 /////////////////////////////////////////////////
+std::vector<rendering::NodePtr> SceneManager::Filter(const std::string &_node,
+    std::function<bool(const rendering::NodePtr _nodeToFilter)> _filter) const
+{
+  std::vector<rendering::NodePtr> filteredNodes;
+
+  // make sure there is a rendering node named _node
+  auto rootNode = this->dataPtr->scene->NodeByName(_node);
+  if (!rootNode)
+  {
+    ignerr << "Could not find a node with the name [" << _node
+           << "] in the scene." << std::endl;
+    return filteredNodes;
+  }
+
+  // go through _node and its children in top level order, applying _filter to
+  // each node
+  std::queue<rendering::NodePtr> remainingNodes;
+  remainingNodes.push(rootNode);
+  while (!remainingNodes.empty())
+  {
+    auto currentNode = remainingNodes.front();
+    remainingNodes.pop();
+    if (_filter(currentNode))
+      filteredNodes.push_back(currentNode);
+
+    for (auto i = 0u; i < currentNode->ChildCount(); ++i)
+      remainingNodes.push(currentNode->ChildByIndex(i));
+  }
+
+  return filteredNodes;
+}
+
+/////////////////////////////////////////////////
 std::pair<rendering::VisualPtr, std::vector<Entity>> SceneManager::CopyVisual(
     Entity _id, const std::string &_visual, Entity _parentId)
 {
@@ -452,8 +485,30 @@ std::pair<rendering::VisualPtr, std::vector<Entity>> SceneManager::CopyVisual(
     return result;
   }
 
+  // filter visuals that were created by the gui (these shouldn't be cloned)
+  auto filteredVisuals = this->Filter(_visual,
+      [](const rendering::NodePtr _node)
+      {
+        return _node->HasUserData("gui-only");
+      });
+
+  // temporarily detach filtered visuals, but keep track of the original parent
+  // so that the visuals can be re-attached later
+  std::unordered_map<rendering::NodePtr, rendering::NodePtr>
+    removedVisualToParent;
+  for (auto filteredVis : filteredVisuals)
+  {
+    removedVisualToParent[filteredVis] = filteredVis->Parent();
+    filteredVis->RemoveParent();
+  }
+
+  // clone the visual
   auto clonedVisual = originalVisual->Clone(name, parent);
   this->dataPtr->visuals[_id] = clonedVisual;
+
+  // re-attach filtered visuals now that cloning is complete
+  for (auto &[removedVisual, originalParent] : removedVisualToParent)
+    originalParent->AddChild(removedVisual);
 
   // The Clone call above also clones any child visuals that exist, so we need
   // to keep track of these new child visuals as well. We get a level order
@@ -544,7 +599,7 @@ rendering::VisualPtr SceneManager::CreateCollision(Entity _id,
   visual.SetName(_collision.Name());
 
   rendering::VisualPtr collisionVis = CreateVisual(_id, visual, _parentId);
-  collisionVis->SetUserData("skip-visual-clone", static_cast<bool>(true));
+  collisionVis->SetUserData("gui-only", static_cast<bool>(true));
   return collisionVis;
 }
 /////////////////////////////////////////////////
@@ -1312,7 +1367,7 @@ rendering::VisualPtr SceneManager::CreateInertiaVisual(Entity _id,
     std::dynamic_pointer_cast<rendering::Visual>(inertiaVisual);
   inertiaVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   inertiaVis->SetUserData("pause-update", static_cast<int>(0));
-  inertiaVis->SetUserData("skip-visual-clone", static_cast<bool>(true));
+  inertiaVis->SetUserData("gui-only", static_cast<bool>(true));
   this->dataPtr->visuals[_id] = inertiaVis;
 
   if (parent)
@@ -1445,7 +1500,7 @@ rendering::VisualPtr SceneManager::CreateJointVisual(
     std::dynamic_pointer_cast<rendering::Visual>(jointVisual);
   jointVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   jointVis->SetUserData("pause-update", static_cast<int>(0));
-  jointVis->SetUserData("skip-visual-clone", static_cast<bool>(true));
+  jointVis->SetUserData("gui-only", static_cast<bool>(true));
   jointVis->SetLocalPose(_joint.RawPose());
   this->dataPtr->visuals[_id] = jointVis;
   return jointVis;
@@ -1494,7 +1549,7 @@ rendering::VisualPtr SceneManager::CreateCOMVisual(Entity _id,
     std::dynamic_pointer_cast<rendering::Visual>(comVisual);
   comVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   comVis->SetUserData("pause-update", static_cast<int>(0));
-  comVis->SetUserData("skip-visual-clone", static_cast<bool>(true));
+  comVis->SetUserData("gui-only", static_cast<bool>(true));
   this->dataPtr->visuals[_id] = comVis;
 
   return comVis;
