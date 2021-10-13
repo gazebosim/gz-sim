@@ -59,9 +59,6 @@ namespace ignition::gazebo::gui
 
     /// \brief Whether the initial model set from XML has been setup.
     public: bool xmlModelInitialized{false};
-
-    /// \brief Mutex to protect jointsModel
-    public: QMutex mutex;
   };
 }
 
@@ -181,8 +178,6 @@ void JointPositionController::Update(const UpdateInfo &,
 {
   IGN_PROFILE("JointPositionController::Update");
 
-  QMutexLocker locker(&this->dataPtr->mutex);
-
   if (!this->dataPtr->xmlModelInitialized)
   {
     auto entity = _ecm.EntityByComponents(
@@ -246,11 +241,7 @@ void JointPositionController::Update(const UpdateInfo &,
     // Add joint to list
     else
     {
-      QMetaObject::invokeMethod(&this->dataPtr->jointsModel,
-          "AddJoint",
-          Qt::DirectConnection,
-          Q_RETURN_ARG(QStandardItem *, item),
-          Q_ARG(Entity, jointEntity));
+      item = this->dataPtr->jointsModel.AddJoint(jointEntity);
       newItem = true;
     }
 
