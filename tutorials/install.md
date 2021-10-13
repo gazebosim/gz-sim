@@ -42,6 +42,22 @@ installing Ignition Gazebo from source.
 
     Where `<#>` is the desired version number, like 3 or 4.
 
+### macOS
+
+1. On macOS, add OSRF packages:
+  ```
+  ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+  brew tap osrf/simulation
+  ```
+
+2. Install Ignition Gazebo:
+  ```
+  brew install ignition-gazebo<#>
+  ```
+
+Be sure to replace `<#>` with a number value, such as 5 or 6, depending on
+which version you need.
+
 ### Source Install
 
 Install from source if you're interested in changing the source code or need a
@@ -70,23 +86,6 @@ for dependency installation instructions for each supported operating system.
     sudo apt -y install \
       $(sort -u $(find . -iname 'packages-'$SYSTEM_VERSION'.apt' -o -iname 'packages.apt') | tr '\n' ' ')
     ```
-
-
-### macOS
-
-On macOS, add OSRF packages:
-  ```
-  ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-  brew tap osrf/simulation
-  ```
-
-Install Ignition Gazebo:
-  ```
-  brew install ignition-gazebo<#>
-  ```
-
-Be sure to replace `<#>` with a number value, such as 5 or 6, depending on
-which version you need.
 
 ## Building from source
 
