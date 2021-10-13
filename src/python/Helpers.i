@@ -87,28 +87,49 @@ namespace ignition
   /// \brief Math classes and function useful in robot applications.
   namespace math
   {
+  %rename(clamp) clamp;
   template<typename T>
   T clamp(T _v, T _min, T _max);
+
+  %rename(sgn) sgn;
   template<typename T>
   int sgn(T _value);
+
+  %rename(signum) signum;
   template<typename T>
   int signum(T _value);
+
+  %rename(mean) mean;
   template<typename T>
   T mean(const std::vector<T> &_values);
+
+  %rename(variance) variance;
   template<typename T>
   T variance(const std::vector<T> &_values);
+
+  %rename(max) max;
   template<typename T>
   T max(const std::vector<T> &_values);
+
+  %rename(min) min;
   template<typename T>
   T min(const std::vector<T> &_values);
+
+  %rename(equal) equal;
   template<typename T>
   bool equal(const T &_a, const T &_b,
              const T &_epsilon = T(1e-6));
+
+  %rename(precision) precision;
   template<typename T>
   T precision(const T &_a, const unsigned int &_precision);
+
+  %rename(less_or_near_equal) lessOrNearEqual;
   template<typename T>
   bool lessOrNearEqual(const T &_a, const T &_b,
                        const T &_epsilon = 1e-6);
+
+  %rename(greater_or_near_equal) greaterOrNearEqual;
   template<typename T>
   bool greaterOrNearEqual(const T &_a, const T &_b,
                           const T &_epsilon = 1e-6);
@@ -120,21 +141,17 @@ namespace ignition
   %template(signum) signum<float>;
   %template(signum) signum<int>;
   %template(mean) mean<float>;
-  %template(mean) mean<int>;
   %template(variance) variance<float>;
-  %template(variance) variance<int>;
   %template(max) max<float>;
-  %template(max) max<int>;
   %template(min) min<float>;
-  %template(min) min<int>;
   %template(precision) precision<float>;
   %template(precision) precision<int>;
   %template(equal) equal<float>;
   %template(equal) equal<int>;
-  %template(lessOrNearEqual) lessOrNearEqual<float>;
-  %template(lessOrNearEqual) lessOrNearEqual<int>;
-  %template(greaterOrNearEqual) greaterOrNearEqual<float>;
-  %template(greaterOrNearEqual) greaterOrNearEqual<int>;
+  %template(less_or_near_equal) lessOrNearEqual<float>;
+  %template(less_or_near_equal) lessOrNearEqual<int>;
+  %template(greater_or_near_equal) greaterOrNearEqual<float>;
+  %template(greater_or_near_equal) greaterOrNearEqual<int>;
   }
 }
 

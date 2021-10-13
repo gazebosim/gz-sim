@@ -17,8 +17,8 @@ import unittest
 
 from ignition.math import (ign_box_volume, ign_box_volume_v, ign_cylinder_volume,
                            IGN_PI, ign_sphere_volume, NAN_I, Vector3d, equal, fixnan,
-                           greaterOrNearEqual, is_even, is_odd, is_power_of_two, isnan,
-                           lessOrNearEqual, max, mean, min,
+                           greater_or_near_equal, is_even, is_odd, is_power_of_two, isnan,
+                           less_or_near_equal, max, mean, min,
                            parse_float, parse_int, precision, round_up_multiple,
                            round_up_power_of_two, signum, sort2, sort3, variance)
 
@@ -47,12 +47,12 @@ class TestHelpers(unittest.TestCase):
         self.assertTrue(equal(.012345, parse_float('1.2345e-002'), 1e-2))
         self.assertTrue(equal(1.2345, parse_float('1.2345e+'), 1e-2))
         self.assertTrue(equal(1.2345, parse_float('1.2345e-'), 1e-2))
-        self.assertTrue(lessOrNearEqual(1.0, 2.0, 1e-2))
-        self.assertTrue(lessOrNearEqual(1.0, 1.0 - 9e-3, 1e-2))
-        self.assertFalse(lessOrNearEqual(1.0, 1.0 - 1.1e-2, 1e-2))
-        self.assertTrue(greaterOrNearEqual(1.0, 0.5, 1e-2))
-        self.assertTrue(greaterOrNearEqual(1.0, 1.0 + 9e-3, 1e-2))
-        self.assertFalse(greaterOrNearEqual(1.0, 1.0 + 1.1e-2, 1e-2))
+        self.assertTrue(less_or_near_equal(1.0, 2.0, 1e-2))
+        self.assertTrue(less_or_near_equal(1.0, 1.0 - 9e-3, 1e-2))
+        self.assertFalse(less_or_near_equal(1.0, 1.0 - 1.1e-2, 1e-2))
+        self.assertTrue(greater_or_near_equal(1.0, 0.5, 1e-2))
+        self.assertTrue(greater_or_near_equal(1.0, 1.0 + 9e-3, 1e-2))
+        self.assertFalse(greater_or_near_equal(1.0, 1.0 + 1.1e-2, 1e-2))
         self.assertEqual(1.2345, parse_float('1.2345e+0'))
         self.assertEqual(23.0, parse_float('23ab67'))
 
