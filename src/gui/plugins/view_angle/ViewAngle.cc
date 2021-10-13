@@ -92,7 +92,7 @@ namespace ignition::gazebo
 
     /// \brief Enable legacy features for plugin to work with GzScene3D.
     /// Disable them to work with the new MinimalScene plugin.
-    public: bool legacy{true};
+    public: bool legacy{false};
   };
 }
 
@@ -310,6 +310,7 @@ void ViewAnglePrivate::OnRender()
         if (isUserCamera)
         {
           this->camera = cam;
+          this->moveToHelper.SetInitCameraPose(this->camera->WorldPose());
           igndbg << "ViewAngle plugin is moving camera ["
                  << this->camera->Name() << "]" << std::endl;
           break;
