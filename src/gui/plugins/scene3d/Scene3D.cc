@@ -2966,7 +2966,8 @@ void Scene3D::Update(const UpdateInfo &_info,
         auto visualEntities = _ecm.EntitiesByComponents(components::Visual(),
           components::ParentEntity(linkEntity));
 
-        auto collisionEntities = _ecm.EntitiesByComponents(components::Collision(),
+        auto collisionEntities =
+           _ecm.EntitiesByComponents(components::Collision(),
           components::ParentEntity(linkEntity));
 
         for (auto visualEntity : visualEntities)
