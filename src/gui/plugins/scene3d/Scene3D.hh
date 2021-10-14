@@ -457,8 +457,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Helper function that traverses the node tree to decide whether
     /// the associated model is scalable.
     /// \param[in] _node Root node.
-    /// \return True when the node tree is scalable.
-    private: bool IsScalable(const rendering::NodePtr &_node) const;
+    /// \return The first scalable visual when the node tree is scalable or
+    /// nullptr otherwise.
+    private: rendering::VisualPtr IsScalable(
+        const rendering::NodePtr &_node) const;
 
     /// \brief Signal fired when context menu event is triggered
     signals: void ContextMenuRequested(QString _entity);

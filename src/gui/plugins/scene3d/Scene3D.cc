@@ -1377,9 +1377,11 @@ void IgnRenderer::XYZConstraint(math::Vector3d &_axis)
 }
 
 /////////////////////////////////////////////////
-bool IgnRenderer::IsScalable(const rendering::NodePtr &_node) const
+rendering::VisualPtr IgnRenderer::IsScalable(
+    const rendering::NodePtr &_node) const
 {
   std::queue<rendering::NodePtr> q;
+  rendering::VisualPtr visual;
   unsigned int visualCount = 0u;
   unsigned int simpleShapesCount = 0u;
 
@@ -1414,6 +1416,8 @@ bool IgnRenderer::IsScalable(const rendering::NodePtr &_node) const
                 userData == static_cast<int>(sdf::GeometryType::SPHERE))
             {
               ++simpleShapesCount;
+              if (!visual)
+                visual = v;
             }
           }
         }
@@ -1431,7 +1435,10 @@ bool IgnRenderer::IsScalable(const rendering::NodePtr &_node) const
   // ToDo(anyone): For now, we only allow to scale simple unit shapes
   // (unit box, unit cylinder and unit sphere). Update this function when
   // we allow more complex models to be scaled.
-  return visualCount == 3u && simpleShapesCount == 1u;
+  if (visualCount == 3u && simpleShapesCount == 1u)
+    return visual;
+  else
+    return nullptr;
 }
 
 /////////////////////////////////////////////////
@@ -1594,7 +1601,8 @@ void IgnRenderer::HandleMouseTransformControl()
             this->UpdateSelectedEntity(topVis, true);
 
             // Enable/disable scale button.
-            bool scaleEnabled = this->IsScalable(topVis);
+            auto scaleVisual = this->IsScalable(topVis);
+            bool scaleEnabled = scaleVisual != nullptr;
 
             gui::events::ScaleMode event(scaleEnabled);
             ignition::gui::App()->sendEvent(
@@ -1727,14 +1735,13 @@ void IgnRenderer::HandleMouseTransformControl()
         rendering::TransformMode::TM_SCALE)
     {
       // Check if the model that we're trying to scale looks like a simple shape
-      // auto node = this->dataPtr->transformControl.Node();
-      // auto v = std::dynamic_pointer_cast<ignition::rendering::Visual>(node);
+      auto modelNode = this->dataPtr->transformControl.Node();
+      auto modelVisual =
+        std::dynamic_pointer_cast<ignition::rendering::Visual>(modelNode);
+      auto visualToScale =
+        this->IsScalable(this->dataPtr->transformControl.Node());
 
-      auto node = this->dataPtr->transformControl.Node();
-      auto v = std::dynamic_pointer_cast<ignition::rendering::Visual>(node);
-
-      int userData = std::get<int>(v->UserData("geometry-type"));
-      igndbg << "Userdata: " << userData << std::endl;
+      int userData = std::get<int>(visualToScale->UserData("geometry-type"));
       sdf::GeometryType geomType = static_cast<sdf::GeometryType>(userData);
 
       this->XYZConstraint(axis);
@@ -1790,9 +1797,9 @@ void IgnRenderer::HandleMouseTransformControl()
       this->dataPtr->transformControl.Scale(scale);
 
       // Update the bounding box.
-      if (v)
+      if (modelVisual)
       {
-        Entity entityId = std::get<int>(v->UserData("gazebo-entity"));
+        Entity entityId = std::get<int>(modelVisual->UserData("gazebo-entity"));
 
         // Update the bounding box.
         auto s = this->dataPtr->transformControl.Node()->LocalScale();
