@@ -268,7 +268,10 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
 
   auto geometry = _visual.Geom();
   if (geometry)
+  {
+    igndbg << "type:" << static_cast<int>(geometry->Type())<< std::endl;
     visualVis->SetUserData("geometry-type", static_cast<int>(geometry->Type()));
+  }
 
   visualVis->SetLocalPose(_visual.RawPose());
 
