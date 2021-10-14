@@ -210,6 +210,31 @@ namespace events
     /// \brief The path of SDF file to be previewed.
     std::string filePath;
   };
+
+  /// \brief Event called to enable/disable scale mode for the current
+  /// selected model.
+  class ScaleMode : public QEvent
+  {
+    /// \brief Constructor
+    /// \param[in] _enabled Whether scale mode should be enabled or not.
+    public: explicit ScaleMode(bool _enabled)
+        : QEvent(kType), enabled(_enabled)
+    {
+    }
+
+    /// \brief Unique type for this event.
+    static const QEvent::Type kType = QEvent::Type(QEvent::User + 6);
+
+    /// \brief Get the path of the SDF file.
+    /// \return The file path.
+    public: bool Enabled() const
+    {
+      return this->enabled;
+    }
+
+    /// \brief Is scale mode enabled?
+    bool enabled;
+  };
 }  // namespace events
 }
 }  // namespace gui

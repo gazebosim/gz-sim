@@ -258,6 +258,22 @@ bool TransformControl::eventFilter(QObject *_obj, QEvent *_event)
       this->activateSelect();
     }
   }
+  else if (_event->type() == ignition::gazebo::gui::events::ScaleMode::kType)
+  {
+    igndbg << "Received event" << std::endl;
+    ignition::gazebo::gui::events::ScaleMode *scaleEvent =
+      static_cast<ignition::gazebo::gui::events::ScaleMode*>(_event);
+    if (scaleEvent->Enabled())
+    {
+      igndbg << "Activate scale" << std::endl;
+      this->activateScale();
+    }
+    else
+    {
+      igndbg << "Deactivate scale" << std::endl;
+      this->deactivateScale();
+    }
+  }
 
   return QObject::eventFilter(_obj, _event);
 }

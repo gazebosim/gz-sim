@@ -43,6 +43,8 @@
 
 #include <ignition/gazebo/gui/GuiSystem.hh>
 
+#include <sdf/Geometry.hh>
+
 #include "ignition/gui/qt.h"
 
 
@@ -162,12 +164,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: bool OnViewCollisions(const msgs::StringMsg &_msg,
         msgs::Boolean &_res);
 
-    /// \brief Update the geometry of an SDF element.
+    /// \brief Scale an SDF Geometry.
     /// \param[in] _scale The scaling factor.
-    /// \param[in out] _modelPtr The SDF element to update.
+    /// \param[in out] _geometry The SDF Geometry to update.
     /// \return True if the scaling was successful or false otherwise.
     private: bool UpdateGeomSize(const ignition::math::Vector3d &_scale,
-        sdf::ElementPtr &_modelPtr);
+        sdf::Geometry &_geometry);
 
     /// \internal
     /// \brief Pointer to private data.

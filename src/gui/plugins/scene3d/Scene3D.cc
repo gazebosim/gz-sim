@@ -62,10 +62,15 @@
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
 
+#include "ignition/gazebo/components/Collision.hh"
+#include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/RenderEngineGuiPlugin.hh"
 #include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 #include "ignition/gazebo/rendering/RenderUtil.hh"
@@ -1377,6 +1382,8 @@ rendering::VisualPtr IgnRenderer::ContainsSimpleShape(
 {
   std::queue<rendering::NodePtr> q;
 
+  igndbg << "Size: " << q.size() << std::endl;
+
   // Adding the root node.
   q.push(_node);
 
@@ -1390,6 +1397,7 @@ rendering::VisualPtr IgnRenderer::ContainsSimpleShape(
       auto v = std::dynamic_pointer_cast<ignition::rendering::Visual>(n);
       if (v)
       {
+        igndbg << v->Name() << std::endl;
         try
         {
           int userData = std::get<int>(v->UserData("geometry-type"));
@@ -1504,6 +1512,7 @@ void IgnRenderer::HandleMouseTransformControl()
               ss << scale;
 
               // Fire the event to trigger the SDF sync on Scene::Update().
+              igndbg << "Emiting event" << std::endl;
               emit this->UpdateSdfGeometry(entity, ss.str());
             }
 
@@ -1575,6 +1584,18 @@ void IgnRenderer::HandleMouseTransformControl()
           {
             // Highlight entity and notify other widgets
             this->UpdateSelectedEntity(topVis, true);
+
+            // Enable/disable scale mode.
+            igndbg << "Object selected" << std::endl;
+
+            auto node = this->dataPtr->transformControl.Node();
+            rendering::VisualPtr visualSimple = this->ContainsSimpleShape(topVis);
+            bool scaleEnabled = visualSimple != nullptr;
+
+            gui::events::ScaleMode event(scaleEnabled);
+            ignition::gui::App()->sendEvent(
+                ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+                &event);
 
             this->dataPtr->mouseDirty = false;
             return;
@@ -1770,6 +1791,7 @@ void IgnRenderer::HandleMouseTransformControl()
       if (v)
       {
         Entity entityId = std::get<int>(v->UserData("gazebo-entity"));
+        igndbg << "Entity id: " << entityId << std::endl;
 
         // Update the bounding box.
         auto s = this->dataPtr->transformControl.Node()->LocalScale();
@@ -2001,6 +2023,8 @@ void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node,
       this->dataPtr->transformControl.Detach();
     }
   }
+  else
+    igndbg << "Transform mode is NONE" << std::endl;
 
   // Select new entity
   this->dataPtr->renderUtil.SetSelectedEntity(_node);
@@ -2587,11 +2611,15 @@ void RenderWindowItem::OnContextMenuRequested(QString _entity)
 ///////////////////////////////////////////////////
 void RenderWindowItem::OnEntityScaled(Entity _entity, const std::string &_scale)
 {
+  igndbg << "Receiving event" << std::endl;
   math::Vector3d scale;
   std::istringstream is(_scale);
   is >> scale;
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->scaledEntities[_entity] = scale;
+
+  igndbg << "scaledEntities size: " << this->dataPtr->scaledEntities.size()
+         << std::endl;
 }
 
 ///////////////////////////////////////////////////
@@ -2926,30 +2954,43 @@ void Scene3D::Update(const UpdateInfo &_info,
   auto scaledEntities = renderWindow->ScaledEntities();
   if (!scaledEntities.empty())
   {
-    _ecm.Each<components::Model, components::ModelSdf>(
-        [&](const Entity &_modelEntity, const components::Model *,
-            const components::ModelSdf *_modelSdf)
+    igndbg << "Processing scale" << std::endl;
+    for (const auto & [modelEntity, scale] : scaledEntities)
+    {
+      // testing caguero
+      auto linkEntities = _ecm.EntitiesByComponents(components::Link(),
+        components::ParentEntity(modelEntity));
+
+      for (auto linkEntity : linkEntities)
+      {
+        igndbg << "Link id: " << linkEntity << std::endl;
+
+        auto visualEntities = _ecm.EntitiesByComponents(components::Visual(),
+          components::ParentEntity(linkEntity));
+
+        auto collisionEntities = _ecm.EntitiesByComponents(components::Collision(),
+          components::ParentEntity(linkEntity));
+
+        for (auto visualEntity : visualEntities)
         {
-          if (scaledEntities.find(_modelEntity) != scaledEntities.end())
-          {
-            sdf::ElementPtr modelElem = _modelSdf->Data().Element();
+          igndbg << "Getting geometry component for [" << visualEntity << "]"
+                 << std::endl;
+          auto geomComp = _ecm.Component<components::Geometry>(visualEntity);
+          this->UpdateGeomSize(scale, geomComp->Data());
+          _ecm.SetChanged(visualEntity, components::Geometry::typeId);
+        }
 
-            /// \brief TODO(anyone) Remove debug statements when code goes
-            /// into production.
-            igndbg << "Updating SDF for entity " << _modelEntity << std::endl;
-            igndbg << "Before:" << std::endl;
-            igndbg << _modelSdf->Data().Element()->ToString("");
-            if (!this->UpdateGeomSize(scaledEntities[_modelEntity], modelElem))
-            {
-              ignerr << "Unable to update geometry size: "
-                     << _modelSdf->Data().Element()->ToString("") << std::endl;
-            }
-            igndbg << "After:" << std::endl;
-            igndbg << _modelSdf->Data().Element()->ToString("");
-          }
+        for (auto collisionEntity : collisionEntities)
+        {
+          igndbg << "Getting geometry component for [" << collisionEntity << "]"
+                 << std::endl;
+          auto geomComp = _ecm.Component<components::Geometry>(collisionEntity);
+          this->UpdateGeomSize(scale, geomComp->Data());
+          _ecm.SetChanged(collisionEntity, components::Geometry::typeId);
+        }
+      }
+    }
 
-          return true;
-        });
     renderWindow->SetScaledEntities({});
   }
 
@@ -3076,63 +3117,53 @@ bool Scene3D::OnViewCollisions(const msgs::StringMsg &_msg,
 
 /////////////////////////////////////////////////
 bool Scene3D::UpdateGeomSize(const ignition::math::Vector3d &_scale,
-  sdf::ElementPtr &_modelElem)
+  sdf::Geometry &_geometry)
 {
-  if (!_modelElem->HasElement("link"))
-    return false;
-
-  sdf::ElementPtr linkElem = _modelElem->GetElement("link");
-
-  bool scaled = false;
-  for (auto label : {"visual", "collision"})
+  auto type = _geometry.Type();
+  if (type == sdf::GeometryType::BOX)
   {
-    if (!linkElem->HasElement(label))
-      continue;
+    igndbg << "Geometry: BOX" << std::endl;
 
-    sdf::ElementPtr elem = linkElem->GetElement(label);
+    const sdf::Box *currentBox = _geometry.BoxShape();
+    if (!currentBox)
+      return false;
 
-    if (!elem->HasElement("geometry"))
-      continue;
+    sdf::Box newBox;
+    newBox.SetSize(currentBox->Size() * _scale);
+    _geometry.SetBoxShape(newBox);
+  }
+  else if (type == sdf::GeometryType::CYLINDER)
+  {
+    igndbg << "Geometry: CYLINDER" << std::endl;
 
-    sdf::ElementPtr geomElem = elem->GetElement("geometry");
-    if (geomElem->HasElement("box"))
-    {
-      ignition::math::Vector3d size =
-          geomElem->GetElement("box")->Get<ignition::math::Vector3d>("size");
-      ignition::math::Vector3d geomBoxSize = _scale * size;
+    const sdf::Cylinder *currentCylinder = _geometry.CylinderShape();
+    if (!currentCylinder)
+      return false;
 
-      geomElem->GetElement("box")->GetElement("size")->Set(geomBoxSize);
-      scaled = true;
-    }
-    else if (geomElem->HasElement("sphere"))
-    {
-      // update radius the same way as collision shapes
-      double radius = geomElem->GetElement("sphere")->Get<double>("radius");
-      double newRadius = _scale.Max();
-      double geomRadius = newRadius * radius;
-      geomElem->GetElement("sphere")->GetElement("radius")->Set(geomRadius);
-      scaled = true;
-    }
-    else if (geomElem->HasElement("cylinder"))
-    {
-      // update radius the same way as collision shapes
-      double radius = geomElem->GetElement("cylinder")->Get<double>("radius");
-      double newRadius = std::max(_scale.X(), _scale.Y());
-      double length = geomElem->GetElement("cylinder")->Get<double>("length");
-      double geomRadius = newRadius * radius;
-      double geomLength = _scale.Z() * length;
-      geomElem->GetElement("cylinder")->GetElement("radius")->Set(geomRadius);
-      geomElem->GetElement("cylinder")->GetElement("length")->Set(geomLength);
-      scaled = true;
-    }
-    else if (geomElem->HasElement("mesh"))
-    {
-      geomElem->GetElement("mesh")->GetElement("scale")->Set(_scale);
-      scaled = true;
-    }
+    sdf::Cylinder newCylinder;
+    newCylinder.SetRadius(
+      currentCylinder->Radius() * std::max(_scale.X(), _scale.Y()));
+    newCylinder.SetLength(currentCylinder->Length() * _scale.Z());
+    _geometry.SetCylinderShape(newCylinder);
+  }
+  else if (type == sdf::GeometryType::SPHERE)
+  {
+    igndbg << "Geometry: SPHERE" << std::endl;
+
+    const sdf::Sphere *currentSphere = _geometry.SphereShape();
+    if (!currentSphere)
+      return false;
+
+    sdf::Sphere newSphere;
+    newSphere.SetRadius(currentSphere->Radius() * _scale.Max());
+  }
+  else
+  {
+    // Unsupported geometry.
+    return false;
   }
 
-  return scaled;
+  return true;
 }
 
 /////////////////////////////////////////////////

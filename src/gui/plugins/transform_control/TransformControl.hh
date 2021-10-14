@@ -145,6 +145,9 @@ namespace gazebo
     /// \brief Notify that scale has been activated
     signals: void activateScale();
 
+    /// \brief Notify that scale has been deactivated
+    signals: void deactivateScale();
+
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<TransformControlPrivate> dataPtr;
