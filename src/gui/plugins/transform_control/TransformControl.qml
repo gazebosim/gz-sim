@@ -34,9 +34,12 @@ ToolBar {
     TransformControl.OnMode("scale");
   }
 
-  function deactivateScale() {
+  function enableScaleButton() {
+    scale.enabled = true;
+  }
+
+  function disableScaleButtib() {
     scale.enabled = false;
-    scale.checked = false;
   }
 
   property color snapTitle: (Material.theme == Material.Light) ?
@@ -118,7 +121,12 @@ ToolBar {
 
   Connections {
     target: TransformControl
-    onDeactivateScale: deactivateScale();
+    onEnableScaleButton: enableScaleButton();
+  }
+
+  Connections {
+    target: TransformControl
+    onDisableScaleButton: disableScaleButton();
   }
 
   RowLayout {

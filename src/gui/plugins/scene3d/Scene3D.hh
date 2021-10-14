@@ -454,14 +454,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// when the deselection is initiated from this plugin.
     private: void DeselectAllEntities(bool _sendEvent);
 
-    /// \brief Helper function that traverses the node tree looking for any
-    /// child with the "geometry-type" user data. If found, the function also
-    /// checks if the value is a simple shape (box, cylinder or sphere).
+    /// \brief Helper function that traverses the node tree to decide whether
+    /// the associated model is scalable.
     /// \param[in] _node Root node.
-    /// \return The visual pointer to the simple shape if found or nullptr
-    /// otherwise.
-    private: rendering::VisualPtr ContainsSimpleShape(
-        const rendering::NodePtr &_node) const;
+    /// \return True when the node tree is scalable.
+    private: bool IsScalable(const rendering::NodePtr &_node) const;
 
     /// \brief Signal fired when context menu event is triggered
     signals: void ContextMenuRequested(QString _entity);

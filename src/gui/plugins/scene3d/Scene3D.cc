@@ -372,7 +372,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: math::Vector3d scaleSnap = math::Vector3d::One;
 
     /// \brief The entities scaled that need to update their associated
-    /// ModelSDF components. The key is the entity Id and the value is the
+    /// components. The key is the entity Id and the value is the
     /// scaled applied to that entity.
     public: std::map<Entity, math::Vector3d> scaledEntities;
   };
@@ -390,7 +390,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: bool rendererInit = false;
 
     /// \brief The entities scaled that need to update their associated
-    /// ModelSDF components. The key is the entity Id and the value is the
+    /// components. The key is the entity Id and the value is the
     /// scaled applied to that entity.
     public: std::map<Entity, math::Vector3d> scaledEntities;
 
@@ -1377,12 +1377,11 @@ void IgnRenderer::XYZConstraint(math::Vector3d &_axis)
 }
 
 /////////////////////////////////////////////////
-rendering::VisualPtr IgnRenderer::ContainsSimpleShape(
-    const rendering::NodePtr &_node) const
+bool IgnRenderer::IsScalable(const rendering::NodePtr &_node) const
 {
   std::queue<rendering::NodePtr> q;
-
-  igndbg << "Size: " << q.size() << std::endl;
+  unsigned int visualCount = 0u;
+  unsigned int simpleShapesCount = 0u;
 
   // Adding the root node.
   q.push(_node);
@@ -1397,18 +1396,25 @@ rendering::VisualPtr IgnRenderer::ContainsSimpleShape(
       auto v = std::dynamic_pointer_cast<ignition::rendering::Visual>(n);
       if (v)
       {
-        igndbg << v->Name() << std::endl;
         try
         {
-          int userData = std::get<int>(v->UserData("geometry-type"));
-
-          /// \TODO(anyone) Consider sdf::GeometryType::CAPSULE and
-          /// sdf::GeometryType::ELLIPSOID in Edifice.
-          if (userData == static_cast<int>(sdf::GeometryType::BOX)      ||
-              userData == static_cast<int>(sdf::GeometryType::CYLINDER) ||
-              userData == static_cast<int>(sdf::GeometryType::SPHERE))
+          // Ignore visuals containing the gui-only tag as they are visual
+          // gizmos, etc.
+          int guiOnlyVisual = std::get<int>(v->UserData("gui-only"));
+          if (!guiOnlyVisual)
           {
-            return v;
+            ++visualCount;
+
+            int userData = std::get<int>(v->UserData("geometry-type"));
+
+            /// \TODO(anyone) Consider sdf::GeometryType::CAPSULE and
+            /// sdf::GeometryType::ELLIPSOID in Edifice.
+            if (userData == static_cast<int>(sdf::GeometryType::BOX)      ||
+                userData == static_cast<int>(sdf::GeometryType::CYLINDER) ||
+                userData == static_cast<int>(sdf::GeometryType::SPHERE))
+            {
+              ++simpleShapesCount;
+            }
           }
         }
         catch (const std::bad_variant_access& ex)
@@ -1422,7 +1428,10 @@ rendering::VisualPtr IgnRenderer::ContainsSimpleShape(
     }
   }
 
-  return nullptr;
+  // ToDo(anyone): For now, we only allow to scale simple unit shapes
+  // (unit box, unit cylinder and unit sphere). Update this function when
+  // we allow more complex models to be scaled.
+  return visualCount == 3u && simpleShapesCount == 1u;
 }
 
 /////////////////////////////////////////////////
@@ -1511,8 +1520,7 @@ void IgnRenderer::HandleMouseTransformControl()
               std::ostringstream ss;
               ss << scale;
 
-              // Fire the event to trigger the SDF sync on Scene::Update().
-              igndbg << "Emiting event" << std::endl;
+              // Fire the event to trigger the ECM sync on Scene::Update().
               emit this->UpdateSdfGeometry(entity, ss.str());
             }
 
@@ -1585,12 +1593,8 @@ void IgnRenderer::HandleMouseTransformControl()
             // Highlight entity and notify other widgets
             this->UpdateSelectedEntity(topVis, true);
 
-            // Enable/disable scale mode.
-            igndbg << "Object selected" << std::endl;
-
-            auto node = this->dataPtr->transformControl.Node();
-            rendering::VisualPtr visualSimple = this->ContainsSimpleShape(topVis);
-            bool scaleEnabled = visualSimple != nullptr;
+            // Enable/disable scale button.
+            bool scaleEnabled = this->IsScalable(topVis);
 
             gui::events::ScaleMode event(scaleEnabled);
             ignition::gui::App()->sendEvent(
@@ -1723,16 +1727,14 @@ void IgnRenderer::HandleMouseTransformControl()
         rendering::TransformMode::TM_SCALE)
     {
       // Check if the model that we're trying to scale looks like a simple shape
+      // auto node = this->dataPtr->transformControl.Node();
+      // auto v = std::dynamic_pointer_cast<ignition::rendering::Visual>(node);
+
       auto node = this->dataPtr->transformControl.Node();
       auto v = std::dynamic_pointer_cast<ignition::rendering::Visual>(node);
-      rendering::VisualPtr visualSimple = this->ContainsSimpleShape(node);
-      if (!visualSimple)
-      {
-        ignwarn << "Scaling not supported for this visual type." << std::endl;
-        return;
-      }
 
       int userData = std::get<int>(v->UserData("geometry-type"));
+      igndbg << "Userdata: " << userData << std::endl;
       sdf::GeometryType geomType = static_cast<sdf::GeometryType>(userData);
 
       this->XYZConstraint(axis);
@@ -1791,14 +1793,13 @@ void IgnRenderer::HandleMouseTransformControl()
       if (v)
       {
         Entity entityId = std::get<int>(v->UserData("gazebo-entity"));
-        igndbg << "Entity id: " << entityId << std::endl;
 
         // Update the bounding box.
         auto s = this->dataPtr->transformControl.Node()->LocalScale();
         this->dataPtr->renderUtil.SetWireBoxScale(entityId, s);
 
         // Set the entity that has been scaled. Scene3D will update the
-        // associated ModelSdf component in a separate thread.
+        // associated components in a separate thread.
         this->dataPtr->scaledEntities[entityId] = scale;
       }
     }
@@ -2023,8 +2024,6 @@ void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node,
       this->dataPtr->transformControl.Detach();
     }
   }
-  else
-    igndbg << "Transform mode is NONE" << std::endl;
 
   // Select new entity
   this->dataPtr->renderUtil.SetSelectedEntity(_node);
@@ -2611,15 +2610,11 @@ void RenderWindowItem::OnContextMenuRequested(QString _entity)
 ///////////////////////////////////////////////////
 void RenderWindowItem::OnEntityScaled(Entity _entity, const std::string &_scale)
 {
-  igndbg << "Receiving event" << std::endl;
   math::Vector3d scale;
   std::istringstream is(_scale);
   is >> scale;
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->scaledEntities[_entity] = scale;
-
-  igndbg << "scaledEntities size: " << this->dataPtr->scaledEntities.size()
-         << std::endl;
 }
 
 ///////////////////////////////////////////////////
@@ -2951,20 +2946,17 @@ void Scene3D::Update(const UpdateInfo &_info,
     }
   }
 
+  // Update the ECM if a model has been scaled.
   auto scaledEntities = renderWindow->ScaledEntities();
   if (!scaledEntities.empty())
   {
-    igndbg << "Processing scale" << std::endl;
     for (const auto & [modelEntity, scale] : scaledEntities)
     {
-      // testing caguero
       auto linkEntities = _ecm.EntitiesByComponents(components::Link(),
         components::ParentEntity(modelEntity));
 
       for (auto linkEntity : linkEntities)
       {
-        igndbg << "Link id: " << linkEntity << std::endl;
-
         auto visualEntities = _ecm.EntitiesByComponents(components::Visual(),
           components::ParentEntity(linkEntity));
 
@@ -2973,20 +2965,16 @@ void Scene3D::Update(const UpdateInfo &_info,
 
         for (auto visualEntity : visualEntities)
         {
-          igndbg << "Getting geometry component for [" << visualEntity << "]"
-                 << std::endl;
           auto geomComp = _ecm.Component<components::Geometry>(visualEntity);
-          this->UpdateGeomSize(scale, geomComp->Data());
-          _ecm.SetChanged(visualEntity, components::Geometry::typeId);
+          if (this->UpdateGeomSize(scale, geomComp->Data()))
+            _ecm.SetChanged(visualEntity, components::Geometry::typeId);
         }
 
         for (auto collisionEntity : collisionEntities)
         {
-          igndbg << "Getting geometry component for [" << collisionEntity << "]"
-                 << std::endl;
           auto geomComp = _ecm.Component<components::Geometry>(collisionEntity);
-          this->UpdateGeomSize(scale, geomComp->Data());
-          _ecm.SetChanged(collisionEntity, components::Geometry::typeId);
+          if (this->UpdateGeomSize(scale, geomComp->Data()))
+            _ecm.SetChanged(collisionEntity, components::Geometry::typeId);
         }
       }
     }
@@ -3122,8 +3110,6 @@ bool Scene3D::UpdateGeomSize(const ignition::math::Vector3d &_scale,
   auto type = _geometry.Type();
   if (type == sdf::GeometryType::BOX)
   {
-    igndbg << "Geometry: BOX" << std::endl;
-
     const sdf::Box *currentBox = _geometry.BoxShape();
     if (!currentBox)
       return false;
@@ -3134,8 +3120,6 @@ bool Scene3D::UpdateGeomSize(const ignition::math::Vector3d &_scale,
   }
   else if (type == sdf::GeometryType::CYLINDER)
   {
-    igndbg << "Geometry: CYLINDER" << std::endl;
-
     const sdf::Cylinder *currentCylinder = _geometry.CylinderShape();
     if (!currentCylinder)
       return false;
@@ -3148,8 +3132,6 @@ bool Scene3D::UpdateGeomSize(const ignition::math::Vector3d &_scale,
   }
   else if (type == sdf::GeometryType::SPHERE)
   {
-    igndbg << "Geometry: SPHERE" << std::endl;
-
     const sdf::Sphere *currentSphere = _geometry.SphereShape();
     if (!currentSphere)
       return false;

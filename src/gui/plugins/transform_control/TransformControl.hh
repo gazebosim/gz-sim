@@ -145,8 +145,11 @@ namespace gazebo
     /// \brief Notify that scale has been activated
     signals: void activateScale();
 
-    /// \brief Notify that scale has been deactivated
-    signals: void deactivateScale();
+    /// \brief Notify that scale icon should be enabled
+    signals: void enableScaleButton();
+
+    /// \brief Notify that scale button should be disabled
+    signals: void disableScaleButton();
 
     /// \internal
     /// \brief Pointer to private data.
