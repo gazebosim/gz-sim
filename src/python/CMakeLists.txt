@@ -109,6 +109,7 @@ if (PYTHONLIBS_FOUND)
       SemanticVersion_TEST
       SignalStats_TEST
       Spline_TEST
+      StopWatch_TEST
       Temperature_TEST
       Triangle_TEST
       Triangle3_TEST
