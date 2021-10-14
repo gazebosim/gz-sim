@@ -194,7 +194,8 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->node = std::make_unique<transport::Node>(opts);
 
   // TODO(louise) Combine both messages into one.
-  this->node->Advertise("control", &SimulationRunner::OnWorldControl, this);
+  this->node->Advertise("control", &SimulationRunner::OnWorldStateControl,
+      this);
   this->node->Advertise("playback/control",
       &SimulationRunner::OnPlaybackControl, this);
 
@@ -1130,6 +1131,58 @@ bool SimulationRunner::OnWorldControl(const msgs::WorldControl &_req,
   }
 
   this->worldControls.push_back(control);
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool SimulationRunner::OnWorldStateControl(const msgs::WorldControlState &_req,
+    msgs::Boolean &_res)
+{
+  std::lock_guard<std::mutex> lock(this->msgBufferMutex);
+
+  WorldControl control;
+  control.pause = _req.worldcontrol().pause();
+
+  if (_req.worldcontrol().multi_step() != 0)
+    control.multiStep = _req.worldcontrol().multi_step();
+  else if (_req.worldcontrol().step())
+    control.multiStep = 1;
+
+  if (_req.worldcontrol().has_reset())
+  {
+    control.rewind = _req.worldcontrol().reset().all() ||
+      _req.worldcontrol().reset().time_only();
+
+    if (_req.worldcontrol().reset().model_only())
+    {
+      ignwarn << "Model only reset is not supported." << std::endl;
+    }
+  }
+
+  if (_req.worldcontrol().seed() != 0)
+  {
+    ignwarn << "Changing seed is not supported." << std::endl;
+  }
+
+  if (_req.worldcontrol().has_run_to_sim_time())
+  {
+    control.runToSimTime = std::chrono::seconds(
+        _req.worldcontrol().run_to_sim_time().sec()) +
+        std::chrono::nanoseconds(_req.worldcontrol().run_to_sim_time().nsec());
+  }
+
+  this->worldControls.push_back(control);
+
+  // update the server ECM if the GUI ECM was updated
+  const auto &allGuiEcmUpdates = _req.state();
+  for (int i = 0; i < allGuiEcmUpdates.state_size(); ++i)
+  {
+    this->entityCompMgr.SetState(allGuiEcmUpdates.state(i));
+  }
+  // TODO(anyone) notify server systems of changes made to the ECM, if there
+  // were any?
 
   _res.set_data(true);
   return true;
