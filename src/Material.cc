@@ -29,7 +29,7 @@ static const std::map<MaterialType, Material> kMaterials = []()
 {
   std::map<MaterialType, Material> matMap;
 
-  for (const std::pair<MaterialType, MaterialData> &mat : kMaterialData)
+  for (const std::pair<const MaterialType, MaterialData> &mat : kMaterialData)
   {
     matMap[mat.first].SetType(mat.first);
     matMap[mat.first].SetName(mat.second.name);
@@ -79,7 +79,7 @@ Material::Material(const std::string &_typename)
   std::string material = _typename;
   std::transform(material.begin(), material.end(), material.begin(), ::tolower);
 
-  for (const std::pair<MaterialType, Material> &mat : kMaterials)
+  for (const std::pair<const MaterialType, Material> &mat : kMaterials)
   {
     if (mat.second.Name() == material)
     {
@@ -198,7 +198,7 @@ void Material::SetToNearestDensity(const double _value, const double _epsilon)
   double min = MAX_D;
   Material result;
 
-  for (const std::pair<MaterialType, Material> &mat : kMaterials)
+  for (const std::pair<const MaterialType, Material> &mat : kMaterials)
   {
     double diff = std::fabs(mat.second.Density() - _value);
     if (diff < min && diff < _epsilon)
