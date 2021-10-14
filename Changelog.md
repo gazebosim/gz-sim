@@ -2,6 +2,29 @@
 
 ## Ignition Math 6.x.x
 
+## Ignition Math 6.9.2 (2021-10-14)
+
+1. Added StopWatch Python Interface
+    * [Pull request #264](https://github.com/ignitionrobotics/ign-math/pull/264)
+
+1. Fix clang warnings.
+    * [Pull request #267](https://github.com/ignitionrobotics/ign-math/pull/267)
+
+1. Fixed Helpers Python templates
+    * [Pull request #266](https://github.com/ignitionrobotics/ign-math/pull/266)
+
+1. Add Helpers Python interface
+    * [Pull request #251](https://github.com/ignitionrobotics/ign-math/pull/251)
+
+1. Add Python interface to Triangle3
+    * [Pull request #247](https://github.com/ignitionrobotics/ign-math/pull/247)
+
+1. Adds python interface to MaterialType and Material.
+    * [Pull request #234](https://github.com/ignitionrobotics/ign-math/pull/234)
+
+1. Remove Cylinder::SetLength const method
+    * [Pull request #259](https://github.com/ignitionrobotics/ign-math/pull/259)
+
 ## Ignition Math 6.9.1 (2021-09-30)
 
 1. Avoid assertAlmostEqual for python strings
