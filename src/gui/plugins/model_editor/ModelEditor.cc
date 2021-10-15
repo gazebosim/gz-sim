@@ -53,12 +53,14 @@ namespace ignition::gazebo
         const std::string &_entityType, const std::string &/*_parent*/);
 
     public: std::string GeomSDFString(
-        const std::string &_geomType,
-        const math::Vector3d &_size = math::Vector3d::One) const;
+        const std::string &_geomType) const;
+
+    public: std::string LightSDFString(
+        const std::string &_geomType) const;
+
 
     public: std::string LinkSDFString(
-        const std::string &_geomType,
-        const math::Vector3d &_size = math::Vector3d::One) const;
+        const std::string &_geomType) const;
 
     /// \brief Generate a unique entity id.
     /// \return The unique entity id
@@ -148,7 +150,7 @@ void ModelEditor::Update(const UpdateInfo &,
        continue;
     }
 
-    // generate link name
+    // generate unique link name
     std::string linkName = "link";
     Entity linkEnt = _ecm.EntityByComponents(
           components::Link(), components::ParentEntity(parent),
@@ -157,7 +159,7 @@ void ModelEditor::Update(const UpdateInfo &,
     while (linkEnt)
     {
       linkName = std::string("link") + "_" + std::to_string(++counter);
-      _ecm.EntityByComponents(
+      linkEnt = _ecm.EntityByComponents(
           components::Link(), components::ParentEntity(parent),
           components::Name(linkName));
     }
@@ -232,58 +234,155 @@ void ModelEditorPrivate::Initialize()
 //  return kNullEntity;
 //}
 
+/////////////////////////////////////////////////
+std::string ModelEditorPrivate::LightSDFString(
+    const std::string &_lightType) const
+{
+  std::stringstream lightStr;
+  lightStr << "<light name='light' type='" << _lightType << "'>";
+
+  if (_lightType == "directional")
+  {
+    lightStr
+        << "<cast_shadows>false</cast_shadows>"
+        << "<diffuse>1.0 1.0 1.0 1</diffuse>"
+        << "<specular>0.5 0.5 0.5 1</specular>";
+  }
+  else if (_lightType == "spot")
+  {
+    lightStr
+        << "<cast_shadows>false</cast_shadows>"
+        << "<diffuse>1.0 1.0 1.0 1</diffuse>"
+        << "<specular>0.5 0.5 0.5 1</specular>"
+        << "<attenuation>"
+        <<   "<range>4</range>"
+        <<   "<constant>0.2</constant>"
+        <<   "<linear>0.5</linear>"
+        <<   "<quadratic>0.01</quadratic>"
+        << "</attenuation>"
+        << "<direction>0 0 -1</direction>"
+        << "<spot>"
+        <<   "<inner_angle>0.1</inner_angle>"
+        <<   "<outer_angle>0.5</outer_angle>"
+        <<   "<falloff>0.8</falloff>"
+        << "</spot>";
+  }
+  else if (_lightType == "point")
+  {
+    lightStr
+        << "<cast_shadows>false</cast_shadows>"
+        << "<diffuse>1.0 1.0 1.0 1</diffuse>"
+        << "<specular>0.5 0.5 0.5 1</specular>"
+        << "<attenuation>"
+        <<   "<range>4</range>"
+        <<   "<constant>0.2</constant>"
+        <<   "<linear>0.5</linear>"
+        <<   "<quadratic>0.01</quadratic>"
+        << "</attenuation>";
+  }
+  else
+  {
+    ignwarn << "Light type not supported: " << _lightType << std::endl;
+    return std::string();
+  }
+
+  lightStr << "</light>";
+  return lightStr.str();
+}
 
 /////////////////////////////////////////////////
 std::string ModelEditorPrivate::GeomSDFString(
-    const std::string &_geomType,
-    const math::Vector3d &_size) const
+    const std::string &_geomType) const
 {
+  math::Vector3d size = math::Vector3d::One;
   std::stringstream geomStr;
   geomStr << "<geometry>";
   if (_geomType == "box")
   {
     geomStr
       << "<box>"
-      << "  <size>" << _size << "</size>"
+      << "  <size>" << size << "</size>"
       << "</box>";
   }
   else if (_geomType == "sphere")
   {
     geomStr
       << "<sphere>"
-      << "  <radius>" << _size.X() * 0.5 << "</radius>"
+      << "  <radius>" << size.X() * 0.5 << "</radius>"
       << "</sphere>";
   }
   else if (_geomType == "cylinder")
   {
     geomStr
       << "<cylinder>"
-      << "  <radius>" << _size.X() * 0.5 << "</radius>"
-      << "  <length>" << _size.Z() << "</length>"
+      << "  <radius>" << size.X() * 0.5 << "</radius>"
+      << "  <length>" << size.Z() << "</length>"
       << "</cylinder>";
   }
+  else if (_geomType == "capsule")
+  {
+    geomStr
+      << "<capsule>"
+      << "  <radius>" << size.X() * 0.5 << "</radius>"
+      << "  <length>" << size.Z() << "</length>"
+      << "</capsule>";
+  }
+  else if (_geomType == "ellipsoid")
+  {
+    geomStr
+      << "<ellipsoid>"
+      << "  <radii>" << size.X() * 0.5 << "</radii>"
+      << "</ellipsoid>";
+  }
+  else
+  {
+    ignwarn << "Geometry type not supported: " << _geomType << std::endl;
+    return std::string();
+  }
+
+
   geomStr << "</geometry>";
   return geomStr.str();
 }
 
 /////////////////////////////////////////////////
 std::string ModelEditorPrivate::LinkSDFString(
-    const std::string &_geomType,
-    const math::Vector3d &_size) const
+    const std::string &_geomOrLightType) const
 {
-  std::string geomStr = this->GeomSDFString(_geomType, _size);
+
   std::stringstream linkStr;
-  linkStr
-      << "<sdf version='" << SDF_VERSION <<"'>"
-      << "  <link name='link'>"
-      << "  <visual name='visual'>"
-      << geomStr
-      << "  </visual>"
-      << "  <collision name='collision'>"
-      << geomStr
-      << "  </collision>"
-      << "  </link>"
-      << "</sdf>";
+  if (_geomOrLightType == "empty")
+  {
+    linkStr << "<link name='link'/>";
+    return linkStr.str();
+  }
+
+  std::string geomOrLightStr;
+  if (_geomOrLightType == "spot" || geomOrLightType == "directional" ||
+       geomOrLightType == "point")
+  {
+    geomOrLightStr = this->LightSDFString(_geomOrLightType);
+    linkStr
+        << "<link name='link'>"
+        << geomOrLightStr
+        << "</link>";
+  }
+  else
+  {
+    geomOrLightStr = this->GeomSDFString(_geomOrLightType);
+    linkStr
+        << "<link name='link'>"
+        << "  <visual name='visual'>"
+        << geomOrLightStr
+        << "  </visual>"
+        << "  <collision name='collision'>"
+        << geomOrLightStr
+        << "  </collision>"
+        << "</link>";
+  }
+
+  if (geomOrLightStr.empty())
+    return std::string();
 
   return linkStr.str();
 }
@@ -322,15 +421,21 @@ void ModelEditorPrivate::HandleAddEntity(const std::string &_geomOrLightType,
 
     // create an sdf::Link to it can be added to the ECM throught the
     // CreateEntities call
-    sdf::ElementPtr linkElem(new sdf::Element);
-    sdf::initFile("link.sdf", linkElem);
-    sdf::readString(this->LinkSDFString(geomLightType), linkElem);
-    // std::cerr  << this->LinkSDFString("new_entity", geomLightType) << std::endl;
-    sdf::Link linkSdf;
-    linkSdf.Load(linkElem);
+    std::string linkSDFStr = this->LinkSDFString(geomLightType);
+    if (!linkSDFStr.empty())
+    {
+      linkSDFStr = std::string("<sdf version='") + SDF_VERSION + "'>" +
+          linkSDFStr + "</sdf>";
 
-    std::lock_guard<std::mutex> lock(this->mutex);
-    this->linksToAdd.push_back(linkSdf);
+      sdf::ElementPtr linkElem(new sdf::Element);
+      sdf::initFile("link.sdf", linkElem);
+      sdf::readString(linkSDFStr, linkElem);
+      sdf::Link linkSdf;
+      linkSdf.Load(linkElem);
+
+      std::lock_guard<std::mutex> lock(this->mutex);
+      this->linksToAdd.push_back(linkSdf);
+    }
   }
 }
 
