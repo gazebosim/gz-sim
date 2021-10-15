@@ -30,10 +30,14 @@
 #include <ignition/math/graph/GraphAlgorithms.hh>
 
 #include "ignition/gazebo/components/CanonicalLink.hh"
+#include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/components/Factory.hh"
+#include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/ParentLinkName.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -96,6 +100,22 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// removed. False otherwise
   public: bool ComponentMarkedAsRemoved(const Entity _entity,
               const ComponentTypeId _typeId) const;
+
+  /// \brief Set a cloned joint's parent or child link name.
+  /// \param[in] _joint The cloned joint.
+  /// \param[in] _originalLink The original joint's parent or child link.
+  /// \param[in] _ecm Entity component manager.
+  /// \tparam The component type, which must be either
+  /// components::ParentLinkName or components::ChildLinkName
+  /// \return True if _joint's parent or child link name was set.
+  /// False otherwise
+  /// \note This method should only be called in EntityComponentManager::Clone.
+  /// This is a temporary workaround until we find a way to clone entites and
+  /// components that don't require special treatment for particular component
+  /// types.
+  public: template<typename ComponentTypeT>
+          bool ClonedJointLinkName(Entity _joint, Entity _originalLink,
+              EntityComponentManager *_ecm);
 
   /// \brief All component types that have ever been created.
   public: std::unordered_set<ComponentTypeId> createdCompTypes;
@@ -233,6 +253,24 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// \brief See above
   public: std::unordered_map<Entity, Entity> oldToClonedCanonicalLink;
 
+  /// \brief During cloning, we populate two maps:
+  ///  - map of link entities to their cloned link
+  ///  - map of cloned joint entities to the original joint entity's parent and
+  ///    child links
+  /// After cloning is done, these maps can be used to update the cloned joint
+  /// entity's parent and child links to the cloned parent and child links.
+  /// \TODO(anyone) We shouldn't be giving joints special treatment.
+  /// We should figure out a way to update a joint's parent/child links without
+  /// having to explicitly search/track for the cloned links.
+  public: std::unordered_map<Entity, Entity> originalToClonedLink;
+
+  /// \brief See above
+  /// The key is the cloned joint entity, and the value is a pair where the
+  /// first element is the original joint's parent link, and the second element
+  /// is the original joint's child link
+  public: std::unordered_map<Entity, std::pair<Entity, Entity>>
+          clonedToOriginalJointLinks;
+
   /// \brief Set of entities that are prevented from removal.
   public: std::unordered_set<Entity> pinnedEntities;
 };
@@ -310,11 +348,15 @@ Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
   // Clear maps so they're populated for the entity being cloned
   this->dataPtr->oldToClonedCanonicalLink.clear();
   this->dataPtr->oldModelCanonicalLink.clear();
+  this->dataPtr->originalToClonedLink.clear();
+  this->dataPtr->clonedToOriginalJointLinks.clear();
 
   auto clonedEntity = this->CloneImpl(_entity, _parent, _name, _allowRename);
 
   if (kNullEntity != clonedEntity)
   {
+    // make sure that cloned models have their canonical link updated to the
+    // cloned canonical link
     for (const auto &[clonedModel, oldCanonicalLink] :
          this->dataPtr->oldModelCanonicalLink)
     {
@@ -330,6 +372,30 @@ Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
       const auto clonedCanonicalLink = iter->second;
       this->SetComponentData<components::ModelCanonicalLink>(clonedModel,
           clonedCanonicalLink);
+    }
+
+    // make sure that cloned joints have their parent/child links
+    // updated to the cloned parent/child links
+    for (const auto &[clonedJoint, originalJointLinks] :
+        this->dataPtr->clonedToOriginalJointLinks)
+    {
+      auto originalParentLink = originalJointLinks.first;
+      if (!this->dataPtr->ClonedJointLinkName<components::ParentLinkName>(
+            clonedJoint, originalParentLink, this))
+      {
+        ignerr << "Error updating the cloned parent link name for cloned "
+               << "joint [" << clonedJoint << "]\n";
+        continue;
+      }
+
+      auto originalChildLink = originalJointLinks.second;
+      if (!this->dataPtr->ClonedJointLinkName<components::ChildLinkName>(
+            clonedJoint, originalChildLink, this))
+      {
+        ignerr << "Error updating the cloned child link name for cloned "
+               << "joint [" << clonedJoint << "]\n";
+        continue;
+      }
     }
   }
 
@@ -419,6 +485,48 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
     // we're cloning a canonical link, so we map the original canonical link
     // to the cloned canonical link
     this->dataPtr->oldToClonedCanonicalLink[_entity] = clonedEntity;
+  }
+
+  // keep track of all joints and links that have been cloned so that cloned
+  // joints can be updated to their cloned parent/child links
+  if (this->Component<components::Joint>(clonedEntity))
+  {
+    // this is a joint, so we need to find the original joint's parent and child
+    // link entities
+    Entity originalParentLink = kNullEntity;
+    Entity originalChildLink = kNullEntity;
+
+    const auto &parentName =
+      this->Component<components::ParentLinkName>(_entity);
+    if (parentName)
+    {
+      originalParentLink = this->EntityByComponents<components::Name>(
+          components::Name(parentName->Data()));
+    }
+
+    const auto &childName = this->Component<components::ChildLinkName>(_entity);
+    if (childName)
+    {
+      originalChildLink = this->EntityByComponents<components::Name>(
+          components::Name(childName->Data()));
+    }
+
+    if (!originalParentLink || !originalChildLink)
+    {
+      ignerr << "The cloned joint entity [" << clonedEntity << "] was unable "
+        << "to find the original joint entity's parent and/or child link.\n";
+      this->RequestRemoveEntity(clonedEntity);
+      return kNullEntity;
+    }
+
+    this->dataPtr->clonedToOriginalJointLinks[clonedEntity] =
+      {originalParentLink, originalChildLink};
+  }
+  else if (this->Component<components::Link>(clonedEntity) ||
+      this->Component<components::CanonicalLink>(clonedEntity))
+  {
+    // save a mapping between the original link and the cloned link
+    this->dataPtr->originalToClonedLink[_entity] = clonedEntity;
   }
 
   for (const auto &childEntity :
@@ -1830,6 +1938,40 @@ bool EntityComponentManagerPrivate::ComponentMarkedAsRemoved(
     return iter->second.find(_typeId) != iter->second.end();
 
   return false;
+}
+
+/////////////////////////////////////////////////
+template<typename ComponentTypeT>
+bool EntityComponentManagerPrivate::ClonedJointLinkName(Entity _joint,
+    Entity _originalLink, EntityComponentManager *_ecm)
+{
+  if (ComponentTypeT::typeId != components::ParentLinkName::typeId &&
+      ComponentTypeT::typeId != components::ChildLinkName::typeId)
+  {
+    ignerr << "Template type is invalid. Must be either "
+           << "components::ParentLinkName or components::ChildLinkName\n";
+    return false;
+  }
+
+  auto iter = this->originalToClonedLink.find(_originalLink);
+  if (iter == this->originalToClonedLink.end())
+  {
+    ignerr << "Error: attempted to clone links, but link ["
+           << _originalLink << "] was never cloned.\n";
+    return false;
+  }
+  auto clonedLink = iter->second;
+
+  auto name = _ecm->Component<components::Name>(clonedLink);
+  if (!name)
+  {
+    ignerr << "Link [" << _originalLink << "] was cloned, but its clone has no "
+           << "name.\n";
+    return false;
+  }
+
+  _ecm->SetComponentData<ComponentTypeT>(_joint, name->Data());
+  return true;
 }
 
 /////////////////////////////////////////////////
