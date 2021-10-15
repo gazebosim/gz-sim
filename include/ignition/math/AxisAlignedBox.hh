@@ -244,7 +244,9 @@ namespace ignition
       /// greater than zero.
       /// \return Density of the cylinder in kg/m^3. A negative value is
       /// returned if radius, length or _mass is <= 0.
-      public: double DensityFromMass(const double _mass) const;
+      /// \deprecated Unimplemented
+      public: double IGN_DEPRECATED(6.0) DensityFromMass(
+        const double _mass) const;
 
       /// \brief Set the density of this box based on a mass value.
       /// Density is computed using
@@ -258,15 +260,21 @@ namespace ignition
       /// \return True if the density was set. False is returned if the
       /// box's size or the _mass value are <= 0.
       /// \sa double DensityFromMass(const double _mass) const
-      public: bool SetDensityFromMass(const double _mass);
+      /// \deprecated Unimplemented
+      public: bool IGN_DEPRECATED(6.0) SetDensityFromMass(
+        const double _mass);
 
       /// \brief Get the material associated with this box.
       /// \return The material assigned to this box.
-      public: const ignition::math::Material &Material() const;
+      /// \deprecated Unimplemented
+      public: const ignition::math::Material IGN_DEPRECATED(6.0)
+        &Material() const;
 
       /// \brief Set the material associated with this box.
       /// \param[in] _mat The material assigned to this box
-      public: void SetMaterial(const ignition::math::Material &_mat);
+      /// \deprecated Unimplemented
+      public: void IGN_DEPRECATED(6.0) SetMaterial(
+        const ignition::math::Material &_mat);
 
       /// \brief Get the mass matrix for this box. This function
       /// is only meaningful if the box's size and material
@@ -275,7 +283,9 @@ namespace ignition
       /// here.
       /// \return False if computation of the mass matrix failed, which
       /// could be due to an invalid size (<=0) or density (<=0).
-      public: bool MassMatrix(MassMatrix3d &_massMat) const;
+      /// \deprecated Unimplemented
+      public: bool IGN_DEPRECATED(6.0) MassMatrix(
+        MassMatrix3d &_massMat) const;
 
       /// \brief Clip a line to a dimension of the box.
       /// This is a helper function to Intersects
