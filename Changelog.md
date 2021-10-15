@@ -29,7 +29,7 @@
 1. Fixed IMU system plugin
     * [Pull request #1043](https://github.com/ignitionrobotics/ign-gazebo/pull/1043)
 
-1. use QTimer to update plugins
+1. Use QTimer to update plugins in the Qt thread
     * [Pull request #1095](https://github.com/ignitionrobotics/ign-gazebo/pull/1095)
 
 ### Ignition Gazebo 3.9.0 (2021-08-16)
