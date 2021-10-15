@@ -1,6 +1,6 @@
 ## Ignition Gazebo 3.x
 
-### Ignition Gazebo 3.10.0 (2021-10-11)
+### Ignition Gazebo 3.10.0 (2021-10-15)
 
 1. Performance: use std::unordered_map where possible in SceneManager
     * [Pull request #1083](https://github.com/ignitionrobotics/ign-gazebo/pull/1083)
@@ -19,6 +19,18 @@
 
 1. Improved doxygen
     * [Pull request #996](https://github.com/ignitionrobotics/ign-gazebo/pull/996)
+
+1. JointPositionController: Improve misleading error message
+    * [Pull request #1098](https://github.com/ignitionrobotics/ign-gazebo/pull/1098)
+
+1. Adjust pose decimals based on element width
+    * [Pull request #1089](https://github.com/ignitionrobotics/ign-gazebo/pull/1089)
+
+1. Fixed IMU system plugin
+    * [Pull request #1043](https://github.com/ignitionrobotics/ign-gazebo/pull/1043)
+
+1. use QTimer to update plugins
+    * [Pull request #1095](https://github.com/ignitionrobotics/ign-gazebo/pull/1095)
 
 ### Ignition Gazebo 3.9.0 (2021-08-16)
 
