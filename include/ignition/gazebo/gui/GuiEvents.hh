@@ -225,8 +225,8 @@ namespace events
     /// \brief Unique type for this event.
     static const QEvent::Type kType = QEvent::Type(QEvent::User + 6);
 
-    /// \brief Get the path of the SDF file.
-    /// \return The file path.
+    /// \brief Is scale mode enabled?
+    /// \return True when scale mode is enabled or false otherwise.
     public: bool Enabled() const
     {
       return this->enabled;
