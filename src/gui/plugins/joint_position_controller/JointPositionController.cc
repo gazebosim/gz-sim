@@ -240,12 +240,7 @@ void JointPositionController::Update(const UpdateInfo &,
     // Add joint to list
     else
     {
-      // TODO(louise) Blocking here is not the best idea
-      QMetaObject::invokeMethod(&this->dataPtr->jointsModel,
-          "AddJoint",
-          Qt::BlockingQueuedConnection,
-          Q_RETURN_ARG(QStandardItem *, item),
-          Q_ARG(Entity, jointEntity));
+      item = this->dataPtr->jointsModel.AddJoint(jointEntity);
       newItem = true;
     }
 

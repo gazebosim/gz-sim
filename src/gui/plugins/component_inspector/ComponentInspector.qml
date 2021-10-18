@@ -78,6 +78,15 @@ Rectangle {
     return _model.dataType + '.qml'
   }
 
+  // Get number of decimal digits based on a widget's width
+  function getDecimals(_width) {
+    if (_width <= 80)
+      return 2;
+    else if (_width <= 100)
+      return 4;
+    return 6;
+  }
+
   /**
    * Forward pose changes to C++
    */
