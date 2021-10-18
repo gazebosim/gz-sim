@@ -18,6 +18,11 @@
 #include "../utils/exceptions.hh"
 #include "server_config.hh"
 #include "server.hh"
+#include "entity_component_manager.hh"
+#include "event_manager.hh"
+#include "helper_system.hh"
+#include "update_info.hh"
+#include "world.hh"
 
 namespace py = pybind11;
 
@@ -31,4 +36,9 @@ PYBIND11_MODULE(ignition_gazebo, m) {
 
   ignition::gazebo::python::define_server_config(m);
   ignition::gazebo::python::define_gazebo_server(m);
+  ignition::gazebo::python::define_gazebo_entity_component_manager(m);
+  ignition::gazebo::python::define_gazebo_event_manager(m);
+  ignition::gazebo::python::define_gazebo_helper_fixture(m);
+  ignition::gazebo::python::define_gazebo_world(m);
+  ignition::gazebo::python::define_gazebo_update_info(m);
 }

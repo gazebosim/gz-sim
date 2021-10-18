@@ -53,8 +53,13 @@ endfunction()
 pybind11_add_module(ignition_gazebo SHARED
   src/ignition/gazebo/_ignition_gazebo_pybind11.cc
   src/ignition/utils/destroyable.cc
+  src/ignition/gazebo/entity_component_manager
+  src/ignition/gazebo/event_manager.cc
+  src/ignition/gazebo/helper_system.cc
   src/ignition/gazebo/server_config.cc
   src/ignition/gazebo/server.cc
+  src/ignition/gazebo/update_info.cc
+  src/ignition/gazebo/world.cc
 )
 
 target_link_libraries(ignition_gazebo PRIVATE
@@ -103,3 +108,5 @@ target_link_libraries(ignition_msgs PRIVATE
   ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
   sdformat${SDF_VER}::sdformat${SDF_VER}
 )
+
+add_subdirectory(swig)

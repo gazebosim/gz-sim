@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCLPY__NODE_HPP_
-#define RCLPY__NODE_HPP_
+#ifndef IGNITION_GAZEBO_PYTHON__NODE_HPP_
+#define IGNITION_GAZEBO_PYTHON__NODE_HPP_
 
 #include <pybind11/pybind11.h>
 #include <pybind11/functional.h>
@@ -73,4 +73,4 @@ define_transport_node(py::object module);
 }  // namespace gazebo
 }  // namespace ignition
 
-#endif  // RCLPY__NODE_HPP_
+#endif  // IGNITION_GAZEBO_PYTHON__NODE_HPP_

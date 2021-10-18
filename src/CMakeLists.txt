@@ -49,6 +49,7 @@ set (sources
   BaseView.cc
   Conversions.cc
   EntityComponentManager.cc
+  HelperFixture.cc
   LevelManager.cc
   Link.cc
   Model.cc
@@ -104,10 +105,14 @@ if (MSVC)
   set_source_files_properties(${sources} ${gtest_sources} COMPILE_FLAGS "/wd4251 /wd4146")
 endif()
 
+# find_package(PythonInterp 3 REQUIRED) # change to Python3 when Bionic is EOL
+# find_package(PythonLibs REQUIRED)
+
 # Create the library target
 ign_create_core_library(SOURCES ${sources} CXX_STANDARD 17)
 target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
+  ${PYTHON_LIBRARIES}
   ignition-math${IGN_MATH_VER}
   ignition-plugin${IGN_PLUGIN_VER}::core
   ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
@@ -128,6 +133,7 @@ endif()
 target_include_directories(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  /usr/include/python3.8/
 )
 
 add_dependencies(${PROJECT_LIBRARY_TARGET_NAME}
@@ -191,4 +197,3 @@ endforeach()
 if(NOT WIN32)
   add_subdirectory(cmd)
 endif()
-

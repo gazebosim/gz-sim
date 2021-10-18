@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCLPY__POSE_V_HPP_
-#define RCLPY__POSE_V_HPP_
+#ifndef IGNITION_GAZEBO_PYTHON__POSE_V_HPP_
+#define IGNITION_GAZEBO_PYTHON__POSE_V_HPP_
 
 #include <pybind11/pybind11.h>
 
@@ -22,7 +22,6 @@
 #include <ignition/math/Vector3.hh>
 
 #include "../utils/destroyable.hh"
-#include "swig.hh"
 
 namespace py = pybind11;
 
@@ -32,6 +31,101 @@ namespace msgs
 {
 namespace python
 {
+
+typedef void *(*swig_converter_func)(void *, int *);
+typedef struct swig_type_info *(*swig_dycast_func)(void **);
+/* Structure to store information on one type */
+typedef struct swig_type_info {
+  const char             *name;			/* mangled name of this type */
+  const char             *str;			/* human readable name of this type */
+  swig_dycast_func        dcast;		/* dynamic cast function down a hierarchy */
+  struct swig_cast_info  *cast;			/* linked list of types that can cast into this type */
+  void                   *clientdata;		/* language specific type data */
+  int                    owndata;		/* flag if the structure owns the clientdata */
+} swig_type_info;
+
+/* Structure to store a type and conversion function used for casting */
+typedef struct swig_cast_info {
+  swig_type_info         *type;			/* pointer to type that is equivalent to this type */
+  swig_converter_func     converter;		/* function to cast the void pointers */
+  struct swig_cast_info  *next;			/* pointer to next cast in linked list */
+  struct swig_cast_info  *prev;			/* pointer to the previous cast */
+} swig_cast_info;
+
+
+typedef struct {
+  PyObject_HEAD
+  void *ptr;
+  swig_type_info *ty;
+  int own;
+  PyObject *next;
+#ifdef SWIGPYTHON_BUILTIN
+  PyObject *dict;
+#endif
+} SwigPyObject;
+
+typedef struct {
+  PyObject *klass;
+  PyObject *newraw;
+  PyObject *newargs;
+  PyObject *destroy;
+  int delargs;
+  int implicitconv;
+  PyTypeObject *pytype;
+} SwigPyClientData;
+#define SWIG_POINTER_OWN           0x1
+#define SWIG_Python_CallFunctor(functor, obj)	        PyObject_CallFunctionObjArgs(functor, obj, NULL);
+PyObject * SwigPyObject_richcompare(SwigPyObject *v, SwigPyObject *w, int op);
+
+#ifdef __cplusplus
+#define SWIG_STATIC_POINTER(var)  var
+#else
+#define SWIG_STATIC_POINTER(var)  var = 0; if (!var) var
+#endif
+
+PyObject * SWIG_Py_Void(void);
+
+PyTypeObject * SwigPyObject_type(void);
+
+PyObject *
+SwigPyObject_New(void *ptr, swig_type_info *ty, int own);
+
+PyObject*
+SwigPyObject_append(PyObject* v, PyObject* next);
+
+PyObject*
+SwigPyObject_disown(PyObject* v, PyObject *args);
+
+PyObject*
+SwigPyObject_next(PyObject* v, PyObject *args);
+
+PyObject*
+SwigPyObject_acquire(PyObject* v, PyObject *args);
+
+PyObject *
+SwigPyObject_repr2(PyObject *v, PyObject *args);
+
+PyObject*
+SwigPyObject_own(PyObject *v, PyObject *args);
+
+int SwigPyObject_Check(PyObject *op);
+
+static PyMethodDef
+swigobject_methods[] = {
+  {"disown",  SwigPyObject_disown,  METH_NOARGS,  "releases ownership of the pointer"},
+  {"acquire", SwigPyObject_acquire, METH_NOARGS,  "acquires ownership of the pointer"},
+  {"own",     SwigPyObject_own,     METH_VARARGS, "returns/sets ownership of the pointer"},
+  {"append",  SwigPyObject_append,  METH_O,       "appends another 'this' object"},
+  {"next",    SwigPyObject_next,    METH_NOARGS,  "returns the next 'this' object"},
+  {"__repr__",SwigPyObject_repr2,   METH_NOARGS,  "returns object representation"},
+  {0, 0, 0, 0}
+};
+
+/* TODO: I don't know how to implement the fast getset in Python 3 right now */
+#if PY_VERSION_HEX>=0x03000000
+#define SWIG_PYTHON_SLOW_GETSET_THIS
+#endif
+
 class PoseV : public ignition::utils::python::Destroyable, public std::enable_shared_from_this<PoseV>
 {
 public:
@@ -44,9 +138,10 @@ public:
 
   std::vector<std::string> GetNames();
   int GetSize();
-  std::vector<ignition::math::Vector3d> GetPoses();
-  py::object Pose();
-  void SetPose(py::object _v);
+
+  void SetPose(py::object _pyobject);
+
+  py::list Pose();
 
   /// Force an early destruction of this object
   void

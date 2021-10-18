@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCLPY__SERVER_CONFIG_HPP_
-#define RCLPY__SERVER_CONFIG_HPP_
+#ifndef IGNITION_GAZEBO_PYTHON__SERVER_CONFIG_HPP_
+#define IGNITION_GAZEBO_PYTHON__SERVER_CONFIG_HPP_
 
 #include <pybind11/pybind11.h>
 
@@ -41,4 +41,4 @@ define_server_config(py::object module);
 }  // namespace gazebo
 }  // namespace ignition
 
-#endif  // RCLPY__SERVER_CONFIG_HPP_
+#endif  // IGNITION_GAZEBO_PYTHON__SERVER_CONFIG_HPP_

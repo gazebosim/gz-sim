@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCLPY__SERVER_HPP_
-#define RCLPY__SERVER_HPP_
+#ifndef IGNITION_GAZEBO_PYTHON__SERVER_HPP_
+#define IGNITION_GAZEBO_PYTHON__SERVER_HPP_
 
 #include <pybind11/pybind11.h>
 
@@ -32,31 +32,6 @@ namespace gazebo
 {
 namespace python
 {
-
-// class Server : public ignition::utils::python::Destroyable, public std::enable_shared_from_this<Server>
-// {
-// public:
-//   Server(ignition::gazebo::python::ServerConfig &_config);
-//
-//   ~Server();
-//
-//   bool Run(const bool _blocking = false,
-//            const uint64_t _iterations = 0,
-//            const bool _paused = true);
-//
-//  bool IsRunning();
-//
-//  public: bool HasEntity(const std::string &_name,
-//                         const unsigned int _worldIndex = 0) const;
-//
-//   /// Force an early destruction of this object
-//   void
-//   destroy() override;
-//
-// private:
-//   std::shared_ptr<ignition::gazebo::Server> server_;
-// };
-
 /// Define a pybind11 wrapper for an ignition::gazebo::Server
 /**
  * \param[in] module a pybind11 module to add the definition to
@@ -68,4 +43,4 @@ define_gazebo_server(py::object module);
 }  // namespace gazebo
 }  // namespace ignition
 
-#endif  // RCLPY__SERVER_CONFIG_HPP_
+#endif  // IGNITION_GAZEBO_PYTHON__SERVER_CONFIG_HPP_

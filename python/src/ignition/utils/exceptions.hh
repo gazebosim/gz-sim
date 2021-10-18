@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCLPY__EXCEPTIONS_HPP_
-#define RCLPY__EXCEPTIONS_HPP_
+#ifndef IGNITION_GAZEBO_PYTHON__EXCEPTIONS_HPP_
+#define IGNITION_GAZEBO_PYTHON__EXCEPTIONS_HPP_
 
 #include <stdexcept>
 #include <string>
@@ -32,4 +32,4 @@ class InvalidHandle : public std::runtime_error
 }  // namespace gazebo
 }  // namespace ignition
 
-#endif  // RCLPY__EXCEPTIONS_HPP_
+#endif  // IGNITION_GAZEBO_PYTHON__EXCEPTIONS_HPP_

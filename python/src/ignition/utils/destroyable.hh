@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCLPY__DESTROYABLE_HPP_
-#define RCLPY__DESTROYABLE_HPP_
+#ifndef IGNITION_GAZEBO_PYTHON__DESTROYABLE_HPP_
+#define IGNITION_GAZEBO_PYTHON__DESTROYABLE_HPP_
 
 #include <pybind11/pybind11.h>
 
@@ -68,4 +68,4 @@ void define_destroyable(py::object module);
 }  // namespace python
 }  // namespace ignition
 }  // namespace gazebo
-#endif  // RCLPY__DESTROYABLE_HPP_
+#endif  // IGNITION_GAZEBO_PYTHON__DESTROYABLE_HPP_
