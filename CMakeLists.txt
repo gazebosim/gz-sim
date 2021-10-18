@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo4 VERSION 4.9.1)
+project(ignition-gazebo4 VERSION 4.11.0)
 
 #============================================================================
 # Find ignition-cmake
@@ -178,6 +178,7 @@ if (NOT APPLE)
     API_MAINPAGE_MD "${CMAKE_BINARY_DIR}/api.md"
     TUTORIALS_MAINPAGE_MD "${CMAKE_BINARY_DIR}/tutorials.md"
     ADDITIONAL_INPUT_DIRS "${CMAKE_SOURCE_DIR}/src/systems ${CMAKE_SOURCE_DIR}/src/gui/plugins"
+    IMAGE_PATH_DIRS "${CMAKE_SOURCE_DIR}/tutorials/files"
     TAGFILES
      "${IGNITION-MATH_DOXYGEN_TAGFILE} = ${IGNITION-MATH_API_URL}"
      "${IGNITION-MSGS_DOXYGEN_TAGFILE} = ${IGNITION-MSGS_API_URL}"

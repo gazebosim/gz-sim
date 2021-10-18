@@ -125,7 +125,7 @@ class ignition::gazebo::systems::CameraVideoRecorderPrivate
   public: bool recordVideoUseSimTime = false;
 
   /// \brief Video recorder bitrate (bps)
-  public: unsigned int recordVideoBitrate = 10070000;
+  public: unsigned int recordVideoBitrate = 2070000;
 
   /// \brief Recording frames per second.
   public: unsigned int fps = 25;

@@ -186,6 +186,13 @@ void ImuPrivate::CreateImuEntities(EntityComponentManager &_ecm)
         // Set topic
         _ecm.CreateComponent(_entity, components::SensorTopic(sensor->Topic()));
 
+        // Set whether orientation is enabled
+        if (data.ImuSensor())
+        {
+          sensor->SetOrientationEnabled(
+              data.ImuSensor()->OrientationEnabled());
+        }
+
         this->entitySensorMap.insert(
             std::make_pair(_entity, std::move(sensor)));
 

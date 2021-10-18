@@ -1808,7 +1808,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         math::AxisAlignedBox bbox =
             math::eigen3::convert(bbModel->GetAxisAlignedBoundingBox());
         auto state = _bbox->SetData(bbox, this->axisAlignedBoxEql) ?
-            ComponentState::OneTimeChange :
+            ComponentState::PeriodicChange :
             ComponentState::NoChange;
         _ecm.SetChanged(_entity, components::AxisAlignedBox::typeId, state);
 
@@ -2465,7 +2465,7 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
           // Clear the last contact data
           auto state = _contacts->SetData(contactsComp,
             this->contactsEql) ?
-            ComponentState::OneTimeChange :
+            ComponentState::PeriodicChange :
             ComponentState::NoChange;
           _ecm.SetChanged(
             _collEntity1, components::ContactSensorData::typeId, state);
@@ -2490,7 +2490,7 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
 
         auto state = _contacts->SetData(contactsComp,
           this->contactsEql) ?
-          ComponentState::OneTimeChange :
+          ComponentState::PeriodicChange :
           ComponentState::NoChange;
         _ecm.SetChanged(
           _collEntity1, components::ContactSensorData::typeId, state);

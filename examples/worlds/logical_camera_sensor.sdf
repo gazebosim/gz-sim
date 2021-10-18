@@ -141,6 +141,7 @@
           <alwaysOn>1</alwaysOn>
           <visualize>true</visualize>
           <topic>logical_camera</topic>
+          <enable_metrics>true</enable_metrics>
         </sensor>
       </link>
     </model>
