@@ -30,19 +30,15 @@
 using namespace ignition;
 using namespace gazebo;
 
-/// \todo(anyone) Move to GuiRunner::Implementation when porting to v5
-/// \brief Flag used to end the gUpdateThread.
-static bool gRunning = false;
-
-/// \brief Mutex to protect the plugin update.
-static std::mutex gUpdateMutex;
-
-/// \brief The plugin update thread..
-static std::thread gUpdateThread;
+// Register SerializedStepMap to the Qt meta type system so we can pass objects
+// of this type in QMetaObject::invokeMethod
+Q_DECLARE_METATYPE(msgs::SerializedStepMap)
 
 /////////////////////////////////////////////////
 GuiRunner::GuiRunner(const std::string &_worldName)
 {
+  qRegisterMetaType<msgs::SerializedStepMap>();
+
   this->setProperty("worldName", QString::fromStdString(_worldName));
 
   auto win = gui::App()->findChild<ignition::gui::MainWindow *>();
@@ -70,29 +66,13 @@ GuiRunner::GuiRunner(const std::string &_worldName)
   this->RequestState();
 
   // Periodically update the plugins
-  // \todo(anyone) Move the global variables to GuiRunner::Implementation on v5
-  gRunning = true;
-  gUpdateThread = std::thread([&]()
-  {
-    while (gRunning)
-    {
-      {
-        std::lock_guard<std::mutex> lock(gUpdateMutex);
-        this->UpdatePlugins();
-      }
-      // This is roughly a 30Hz update rate.
-      std::this_thread::sleep_for(std::chrono::milliseconds(33));
-    }
-  });
+  QPointer<QTimer> timer = new QTimer(this);
+  connect(timer, &QTimer::timeout, this, &GuiRunner::UpdatePlugins);
+  timer->start(33);
 }
 
 /////////////////////////////////////////////////
-GuiRunner::~GuiRunner()
-{
-  gRunning = false;
-  if (gUpdateThread.joinable())
-    gUpdateThread.join();
-}
+GuiRunner::~GuiRunner() = default;
 
 /////////////////////////////////////////////////
 void GuiRunner::RequestState()
@@ -156,8 +136,19 @@ void GuiRunner::OnState(const msgs::SerializedStepMap &_msg)
 {
   IGN_PROFILE_THREAD_NAME("GuiRunner::OnState");
   IGN_PROFILE("GuiRunner::Update");
+  // Since this function may be called from a transport thread, we push the
+  // OnStateQt function to the queue so that its called from the Qt thread. This
+  // ensures that only one thread has access to the ecm and updateInfo
+  // variables.
+  QMetaObject::invokeMethod(this, "OnStateQt", Qt::QueuedConnection,
+                            Q_ARG(msgs::SerializedStepMap, _msg));
+}
 
-  std::lock_guard<std::mutex> lock(gUpdateMutex);
+/////////////////////////////////////////////////
+void GuiRunner::OnStateQt(const msgs::SerializedStepMap &_msg)
+{
+  IGN_PROFILE_THREAD_NAME("Qt thread");
+  IGN_PROFILE("GuiRunner::Update");
   this->ecm.SetState(_msg.state());
 
   // Update all plugins
