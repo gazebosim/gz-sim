@@ -285,7 +285,7 @@ class VisualCommand : public UserCommandBase
 
   /// \brief Visual equality comparision function
   /// TODO(anyone) Currently only checks for material colors equality,
-  /// extend to others
+  /// need to extend to others
   public: std::function<bool(const msgs::Visual &, const msgs::Visual &)>
           visualEql { [](const msgs::Visual &_a, const msgs::Visual &_b)
             {
@@ -1329,8 +1329,6 @@ VisualCommand::VisualCommand(msgs::Visual *_msg,
 }
 
 //////////////////////////////////////////////////
-// TODO(anyone) only handles material colors of visuals,
-// need to extend to others
 bool VisualCommand::Execute()
 {
   auto visualMsg = dynamic_cast<const msgs::Visual *>(this->msg);
