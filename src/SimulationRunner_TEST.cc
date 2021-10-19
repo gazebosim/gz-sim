@@ -20,6 +20,7 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
+#include <ignition/msgs.hh>
 #include <ignition/transport/Node.hh>
 #include <sdf/Box.hh>
 #include <sdf/Capsule.hh>
@@ -1566,6 +1567,190 @@ TEST_P(SimulationRunnerTest, GenerateWorldSdf)
 
   const auto* world = newRoot.WorldByIndex(0);
   EXPECT_EQ(5u, world->ModelCount());
+}
+
+/////////////////////////////////////////////////
+TEST_P(SimulationRunnerTest, UpdateECM)
+{
+  // Load SDF file
+  sdf::Root root;
+  root.Load(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes.sdf"));
+
+  ASSERT_EQ(1u, root.WorldCount());
+
+  // Create simulation runner
+  auto systemLoader = std::make_shared<SystemLoader>();
+  SimulationRunner runner(root.WorldByIndex(0), systemLoader);
+
+  // make sure that the simulation runner is advertising the service
+  // that updates its ECM
+  const std::string updateECMService = "/world/default/control";
+  transport::Node node;
+  std::vector<std::string> advertisedServices;
+  node.ServiceList(advertisedServices);
+  bool foundService = false;
+  for (const auto &service : advertisedServices)
+  {
+    if (service == updateECMService)
+    {
+      foundService = true;
+      break;
+    }
+  }
+  ASSERT_TRUE(foundService);
+
+  // create a mechanism for sharing changes made to otherECM, and ensure that
+  // simulation runner received the change information
+  std::function<void(msgs::SerializedState_V &)> shareECMChanges =
+    [&updateECMService, &node](msgs::SerializedState_V &_changes)
+    {
+      msgs::Boolean resp;
+      bool serviceResult = false;
+      msgs::WorldControlState req;
+
+      for (int i = 0; i < _changes.state_size(); ++i)
+      {
+        auto ecmState = req.mutable_state()->add_state();
+        ecmState->CopyFrom(_changes.state(i));
+      }
+      node.Request(updateECMService, req, 10000, resp, serviceResult);
+
+      EXPECT_TRUE(resp.data());
+      EXPECT_TRUE(serviceResult);
+      _changes.Clear();
+    };
+
+  // helper function for adding a state message to a msgs::SerializedState_V
+  std::function<void(msgs::SerializedState_V &,
+      const EntityComponentManager &)> saveEcmState =
+    [](msgs::SerializedState_V &_allStates, const EntityComponentManager &_ecm)
+    {
+      auto nextEcmChange = _allStates.add_state();
+      nextEcmChange->CopyFrom(_ecm.State());
+    };
+
+  // create another ECM that will be modified and then shared with
+  // the simulation runner's ECM. The simulation runner's ECM should
+  // have the contents of this ECM once it's shared
+  EntityComponentManager otherECM;
+  msgs::SerializedState_V ecmChangesMsg;
+
+  // add an entity with a components::IntComponent to otherECM
+  EXPECT_EQ(0u, otherECM.EntityCount());
+  auto entity = otherECM.CreateEntity();
+  otherECM.CreateComponent<components::IntComponent>(entity,
+      components::IntComponent(1));
+  EXPECT_EQ(1u, otherECM.EntityCount());
+  EXPECT_TRUE(otherECM.EntityHasComponentType(entity,
+        components::IntComponent::typeId));
+
+  // make sure simulation runner's ECM has no entities with a
+  // components::IntComponent of a data of 1
+  EXPECT_TRUE(runner.EntityCompMgr().EntitiesByComponents(
+      components::IntComponent(1)).empty());
+
+  // share this new entity with the simulation runner's ECM
+  saveEcmState(ecmChangesMsg, otherECM);
+  shareECMChanges(ecmChangesMsg);
+
+  // make sure the simulation runner's ECM has the changes made to otherECM
+  int foundEntities = 0;
+  runner.EntityCompMgr().EachNew<components::IntComponent>(
+      [&foundEntities](const Entity &, const components::IntComponent *_int)
+      {
+        foundEntities++;
+        EXPECT_EQ(1, _int->Data());
+        return true;
+      });
+  EXPECT_EQ(1, foundEntities);
+
+  // perform a simulation step, which should clear the new entity state of
+  // the simulation runner's ECM
+  UpdateInfo updateInfo;
+  EXPECT_TRUE(runner.EntityCompMgr().HasNewEntities());
+  runner.Step(updateInfo);
+  EXPECT_FALSE(runner.EntityCompMgr().HasNewEntities());
+
+  // perform multiple updates to otherECM before sharing it with the
+  // simulation runner's ECM:
+  //  1: modify an existing component
+  //  2: create a new component
+  otherECM.SetComponentData<components::IntComponent>(entity, 2);
+  saveEcmState(ecmChangesMsg, otherECM);
+  otherECM.CreateComponent(entity, components::DoubleComponent(1.0));
+  saveEcmState(ecmChangesMsg, otherECM);
+  // (make sure each change is registered as a separate state in order to test
+  // updating simulation runner's ECM with multiple state changes)
+  EXPECT_EQ(2, ecmChangesMsg.state_size());
+
+  // share the new updates with simulation runner and make sure that simulation
+  // runner's ECM reflects these updates
+  //
+  // TODO(adlarkin) figure out why serialized state processing doesn't seem to
+  // pick up component updates (the check for modified int component data fails,
+  // along with the check later on for an entity with an int component of 2).
+  // Looking at the ECM unit tests, it looks like this was never tested
+  // (so, perhaps it's existing buggy behavior?). Looking at the ECM code/tests
+  // makes me think that updates work for msgs::SerializedStateMap (this
+  // scenario seems to be tested), so what's wrong with msgs::SerializedState?
+  shareECMChanges(ecmChangesMsg);
+  EXPECT_FALSE(runner.EntityCompMgr().HasNewEntities());
+  foundEntities = 0;
+  runner.EntityCompMgr().Each<components::IntComponent,
+    components::DoubleComponent>(
+        [&foundEntities](const Entity &, const components::IntComponent *_int,
+          const components::DoubleComponent *_double)
+        {
+          foundEntities++;
+          EXPECT_EQ(2, _int->Data());
+          EXPECT_DOUBLE_EQ(1.0, _double->Data());
+          return true;
+        });
+  EXPECT_EQ(1, foundEntities);
+
+  // test removing a component to make sure that the simulation runner's ECM
+  // mirrors the component removal
+  EXPECT_TRUE(otherECM.RemoveComponent(entity,
+        components::DoubleComponent::typeId));
+  saveEcmState(ecmChangesMsg, otherECM);
+  shareECMChanges(ecmChangesMsg);
+  EXPECT_EQ(1u, runner.EntityCompMgr().EntitiesByComponents(
+        components::IntComponent(2)).size());
+  // (Each is used to verify no entities have a DoubleComponent b/c searching
+  // via EntitiesByComponents could be flaky due to floating point precision)
+  foundEntities = 0;
+  runner.EntityCompMgr().Each<components::DoubleComponent>(
+      [&](const Entity &, const components::DoubleComponent *)
+      {
+        foundEntities++;
+        return true;
+      });
+  EXPECT_EQ(0, foundEntities);
+
+  // test removing an entity
+  otherECM.RequestRemoveEntity(entity);
+  saveEcmState(ecmChangesMsg, otherECM);
+  shareECMChanges(ecmChangesMsg);
+  foundEntities = 0;
+  runner.EntityCompMgr().EachRemoved<components::IntComponent>(
+      [&](const Entity &, const components::IntComponent *)
+      {
+        foundEntities++;
+        return true;
+      });
+  EXPECT_EQ(1, foundEntities);
+  // (step the simulation runner to actually remove the entity)
+  updateInfo.realTime++;
+  runner.Step(updateInfo);
+  foundEntities = 0;
+  runner.EntityCompMgr().Each<components::IntComponent>(
+      [&](const Entity &, const components::IntComponent *)
+      {
+        foundEntities++;
+        return true;
+      });
+  EXPECT_EQ(0, foundEntities);
 }
 
 // Run multiple times. We want to make sure that static globals don't cause
