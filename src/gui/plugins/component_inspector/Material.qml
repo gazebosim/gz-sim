@@ -107,35 +107,6 @@ Rectangle {
     }
   }
 
-  Component {
-    id: plotIcon
-    Image {
-      property string componentInfo: ""
-      source: "plottable_icon.svg"
-      anchors.top: parent.top
-      anchors.left: parent.left
-
-      Drag.mimeData: { "text/plain" : (model === null) ? "" :
-      "Component," + model.entity + "," + model.typeId + "," +
-                     model.dataType + "," + componentInfo + "," + model.shortName
-      }
-      Drag.dragType: Drag.Automatic
-      Drag.supportedActions : Qt.CopyAction
-      Drag.active: dragMouse.drag.active
-      // a point to drag from
-      Drag.hotSpot.x: 0
-      Drag.hotSpot.y: y
-      MouseArea {
-        id: dragMouse
-        anchors.fill: parent
-        drag.target: (model === null) ? null : parent
-        onPressed: parent.grabToImage(function(result) {parent.Drag.imageSource = result.url })
-        onReleased: parent.Drag.drop();
-        cursorShape: Qt.DragCopyCursor
-     }
-    }
-  }
-
   Column {
     anchors.fill: parent
 
@@ -220,15 +191,6 @@ Rectangle {
             color: "transparent"
             height: 40
             Layout.preferredWidth: rAmbientText.width + indentation*3
-            Loader {
-              id: loaderAmbientR
-              width: iconWidth
-              height: iconHeight
-              y: 10
-              sourceComponent: plotIcon
-            }
-            Component.onCompleted: loaderAmbientR.item.componentInfo = "ambientR"
-
             Text {
               id: rAmbientText
               text: " R"
@@ -256,15 +218,6 @@ Rectangle {
             color: "transparent"
             height: 40
             Layout.preferredWidth: gAmbientText.width + indentation*3
-            Loader {
-              id: loaderAmbientG
-              width: iconWidth
-              height: iconHeight
-              y: 10
-              sourceComponent: plotIcon
-            }
-            Component.onCompleted: loaderAmbientG.item.componentInfo = "ambientG"
-
             Text {
               id: gAmbientText
               text: " G"
@@ -294,15 +247,6 @@ Rectangle {
             color: "transparent"
             height: 40
             Layout.preferredWidth: bAmbientText.width + indentation*3
-            Loader {
-              id: loaderAmbientB
-              width: iconWidth
-              height: iconHeight
-              y: 10
-              sourceComponent: plotIcon
-            }
-            Component.onCompleted: loaderAmbientB.item.componentInfo = "ambientB"
-
             Text {
               id: bAmbientText
               text: " B"
@@ -330,15 +274,6 @@ Rectangle {
             color: "transparent"
             height: 40
             Layout.preferredWidth: aAmbientText.width + indentation*3
-            Loader {
-              id: loaderAmbientA
-              width: iconWidth
-              height: iconHeight
-              y: 10
-              sourceComponent: plotIcon
-            }
-            Component.onCompleted: loaderAmbientA.item.componentInfo = "ambientA"
-
             Text {
               id: aAmbientText
               text: " A"
@@ -407,15 +342,6 @@ Rectangle {
             color: "transparent"
             height: 40
             Layout.preferredWidth: rDiffuseText.width + indentation*3
-            Loader {
-              id: loaderDiffuseR
-              width: iconWidth
-              height: iconHeight
-              y: 10
-              sourceComponent: plotIcon
-            }
-            Component.onCompleted: loaderDiffuseR.item.componentInfo = "DiffuseR"
-
             Text {
               id: rDiffuseText
               text: " R"
@@ -443,15 +369,6 @@ Rectangle {
             color: "transparent"
             height: 40
             Layout.preferredWidth: gDiffuseText.width + indentation*3
-            Loader {
-              id: loaderDiffuseG
-              width: iconWidth
-              height: iconHeight
-              y: 10
-              sourceComponent: plotIcon
-            }
-            Component.onCompleted: loaderDiffuseG.item.componentInfo = "diffuseG"
-
             Text {
               id: gDiffuseText
               text: " G"
@@ -481,15 +398,6 @@ Rectangle {
             color: "transparent"
             height: 40
             Layout.preferredWidth: bDiffuseText.width + indentation*3
-            Loader {
-              id: loaderDiffuseB
-              width: iconWidth
-              height: iconHeight
-              y: 10
-              sourceComponent: plotIcon
-            }
-            Component.onCompleted: loaderDiffuseB.item.componentInfo = "diffuseB"
-
             Text {
               id: bDiffuseText
               text: " B"
@@ -517,15 +425,6 @@ Rectangle {
             color: "transparent"
             height: 40
             Layout.preferredWidth: aDiffuseText.width + indentation*3
-            Loader {
-              id: loaderDiffuseA
-              width: iconWidth
-              height: iconHeight
-              y: 10
-              sourceComponent: plotIcon
-            }
-            Component.onCompleted: loaderDiffuseA.item.componentInfo = "diffuseA"
-
             Text {
               id: aDiffuseText
               text: " A"
@@ -595,15 +494,6 @@ Rectangle {
             color: "transparent"
             height: 40
             Layout.preferredWidth: rSpecularText.width + indentation*3
-            Loader {
-              id: loaderSpecularR
-              width: iconWidth
-              height: iconHeight
-              y: 10
-              sourceComponent: plotIcon
-            }
-            Component.onCompleted: loaderSpecularR.item.componentInfo = "specularR"
-
             Text {
               id: rSpecularText
               text: " R"
@@ -631,15 +521,6 @@ Rectangle {
             color: "transparent"
             height: 40
             Layout.preferredWidth: gSpecularText.width + indentation*3
-            Loader {
-              id: loaderSpecularG
-              width: iconWidth
-              height: iconHeight
-              y: 10
-              sourceComponent: plotIcon
-            }
-            Component.onCompleted: loaderSpecularG.item.componentInfo = "specularG"
-
             Text {
               id: gSpecularText
               text: " G"
@@ -669,15 +550,6 @@ Rectangle {
             color: "transparent"
             height: 40
             Layout.preferredWidth: bSpecularText.width + indentation*3
-            Loader {
-              id: loaderSpecularB
-              width: iconWidth
-              height: iconHeight
-              y: 10
-              sourceComponent: plotIcon
-            }
-            Component.onCompleted: loaderSpecularB.item.componentInfo = "specularB"
-
             Text {
               id: bSpecularText
               text: " B"
@@ -705,15 +577,6 @@ Rectangle {
             color: "transparent"
             height: 40
             Layout.preferredWidth: aSpecularText.width + indentation*3
-            Loader {
-              id: loaderSpecularA
-              width: iconWidth
-              height: iconHeight
-              y: 10
-              sourceComponent: plotIcon
-            }
-            Component.onCompleted: loaderSpecularA.item.componentInfo = "specularA"
-
             Text {
               id: aSpecularText
               text: " A"
@@ -782,15 +645,6 @@ Rectangle {
             color: "transparent"
             height: 40
             Layout.preferredWidth: rEmissiveText.width + indentation*3
-            Loader {
-              id: loaderEmissiveR
-              width: iconWidth
-              height: iconHeight
-              y: 10
-              sourceComponent: plotIcon
-            }
-            Component.onCompleted: loaderEmissiveR.item.componentInfo = "emissiveR"
-
             Text {
               id: rEmissiveText
               text: " R"
@@ -818,15 +672,6 @@ Rectangle {
             color: "transparent"
             height: 40
             Layout.preferredWidth: gEmissiveText.width + indentation*3
-            Loader {
-              id: loaderEmissiveG
-              width: iconWidth
-              height: iconHeight
-              y: 10
-              sourceComponent: plotIcon
-            }
-            Component.onCompleted: loaderEmissiveG.item.componentInfo = "emissiveG"
-
             Text {
               id: gEmissiveText
               text: " G"
@@ -856,15 +701,6 @@ Rectangle {
             color: "transparent"
             height: 40
             Layout.preferredWidth: bEmissiveText.width + indentation*3
-            Loader {
-              id: loaderEmissiveB
-              width: iconWidth
-              height: iconHeight
-              y: 10
-              sourceComponent: plotIcon
-            }
-            Component.onCompleted: loaderEmissiveB.item.componentInfo = "emissiveB"
-
             Text {
               id: bEmissiveText
               text: " B"
@@ -892,15 +728,6 @@ Rectangle {
             color: "transparent"
             height: 40
             Layout.preferredWidth: aEmissiveText.width + indentation*3
-            Loader {
-              id: loaderEmissiveA
-              width: iconWidth
-              height: iconHeight
-              y: 10
-              sourceComponent: plotIcon
-            }
-            Component.onCompleted: loaderEmissiveA.item.componentInfo = "emissiveA"
-
             Text {
               id: aEmissiveText
               text: " A"
