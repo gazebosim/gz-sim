@@ -482,12 +482,7 @@ void ComponentInspector::Update(const UpdateInfo &,
     // Add component to list
     else
     {
-      // TODO(louise) Blocking here is not the best idea
-      QMetaObject::invokeMethod(&this->dataPtr->componentsModel,
-          "AddComponentType",
-          Qt::BlockingQueuedConnection,
-          Q_RETURN_ARG(QStandardItem *, item),
-          Q_ARG(ignition::gazebo::ComponentTypeId, typeId));
+      item = this->dataPtr->componentsModel.AddComponentType(typeId);
     }
 
     item->setData(QString::number(this->dataPtr->entity),

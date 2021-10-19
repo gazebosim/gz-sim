@@ -32,12 +32,13 @@
 using namespace ignition;
 using namespace gazebo;
 
+// Register SerializedStepMap to the Qt meta type system so we can pass objects
+// of this type in QMetaObject::invokeMethod
+Q_DECLARE_METATYPE(msgs::SerializedStepMap)
+
 /////////////////////////////////////////////////
 class ignition::gazebo::GuiRunner::Implementation
 {
-  /// \brief Update the plugins.
-  public: void UpdatePlugins();
-
   /// \brief Entity-component manager.
   public: gazebo::EntityComponentManager ecm;
 
@@ -64,6 +65,8 @@ class ignition::gazebo::GuiRunner::Implementation
 GuiRunner::GuiRunner(const std::string &_worldName)
   : dataPtr(utils::MakeUniqueImpl<Implementation>())
 {
+  qRegisterMetaType<msgs::SerializedStepMap>();
+
   this->setProperty("worldName", QString::fromStdString(_worldName));
 
   auto win = gui::App()->findChild<ignition::gui::MainWindow *>();
@@ -91,29 +94,13 @@ GuiRunner::GuiRunner(const std::string &_worldName)
   this->RequestState();
 
   // Periodically update the plugins
-  // \todo(anyone) Move the global variables to GuiRunner::Implementation on v5
-  this->dataPtr->running = true;
-  this->dataPtr->updateThread = std::thread([&]()
-  {
-    while (this->dataPtr->running)
-    {
-      {
-        std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
-        this->dataPtr->UpdatePlugins();
-      }
-      // This is roughly a 30Hz update rate.
-      std::this_thread::sleep_for(std::chrono::milliseconds(33));
-    }
-  });
+  QPointer<QTimer> timer = new QTimer(this);
+  connect(timer, &QTimer::timeout, this, &GuiRunner::UpdatePlugins);
+  timer->start(33);
 }
 
 /////////////////////////////////////////////////
-GuiRunner::~GuiRunner()
-{
-  this->dataPtr->running = false;
-  if (this->dataPtr->updateThread.joinable())
-    this->dataPtr->updateThread.join();
-}
+GuiRunner::~GuiRunner() = default;
 
 /////////////////////////////////////////////////
 void GuiRunner::RequestState()
@@ -181,24 +168,35 @@ void GuiRunner::OnState(const msgs::SerializedStepMap &_msg)
 {
   IGN_PROFILE_THREAD_NAME("GuiRunner::OnState");
   IGN_PROFILE("GuiRunner::Update");
+  // Since this function may be called from a transport thread, we push the
+  // OnStateQt function to the queue so that its called from the Qt thread. This
+  // ensures that only one thread has access to the ecm and updateInfo
+  // variables.
+  QMetaObject::invokeMethod(this, "OnStateQt", Qt::QueuedConnection,
+                            Q_ARG(msgs::SerializedStepMap, _msg));
+}
 
-  std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
+/////////////////////////////////////////////////
+void GuiRunner::OnStateQt(const msgs::SerializedStepMap &_msg)
+{
+  IGN_PROFILE_THREAD_NAME("Qt thread");
+  IGN_PROFILE("GuiRunner::Update");
   this->dataPtr->ecm.SetState(_msg.state());
 
   // Update all plugins
   this->dataPtr->updateInfo = convert<UpdateInfo>(_msg.stats());
-  this->dataPtr->UpdatePlugins();
+  this->UpdatePlugins();
   this->dataPtr->ecm.ClearNewlyCreatedEntities();
   this->dataPtr->ecm.ProcessRemoveEntityRequests();
 }
 
 /////////////////////////////////////////////////
-void GuiRunner::Implementation::UpdatePlugins()
+void GuiRunner::UpdatePlugins()
 {
   auto plugins = gui::App()->findChildren<GuiSystem *>();
   for (auto plugin : plugins)
   {
-    plugin->Update(this->updateInfo, this->ecm);
+    plugin->Update(this->dataPtr->updateInfo, this->dataPtr->ecm);
   }
-  this->ecm.ClearRemovedComponents();
+  this->dataPtr->ecm.ClearRemovedComponents();
 }
