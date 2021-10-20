@@ -124,7 +124,12 @@ class ignition::gazebo::systems::CameraVideoRecorderPrivate
   /// By default (false), video encoding is done using real time.
   public: bool recordVideoUseSimTime = false;
 
-  /// \brief Video recorder bitrate (bps)
+  /// \brief Video recorder bitrate (bps). This is rougly 2Mbps which
+  /// produces decent video quality while not generating overly large
+  /// video files.
+  ///
+  /// Another point of reference is at:
+  /// https://support.google.com/youtube/answer/1722171?hl=en#zippy=%2Cbitrate
   public: unsigned int recordVideoBitrate = 2070000;
 
   /// \brief Recording frames per second.
