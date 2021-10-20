@@ -442,6 +442,7 @@ void Sensors::Update(const UpdateInfo &_info,
                      EntityComponentManager &_ecm)
 {
   IGN_PROFILE("Sensors::Update");
+  std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
   if (this->dataPtr->running && this->dataPtr->initialized)
   {
     this->dataPtr->renderUtil.UpdateECM(_info, _ecm);
@@ -462,19 +463,21 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
         << "s]. System may not work properly." << std::endl;
   }
 
-  if (!this->dataPtr->initialized &&
-      (_ecm.HasComponentType(components::Camera::typeId) ||
-       _ecm.HasComponentType(components::DepthCamera::typeId) ||
-       _ecm.HasComponentType(components::GpuLidar::typeId) ||
-       _ecm.HasComponentType(components::RgbdCamera::typeId) ||
-       _ecm.HasComponentType(components::ThermalCamera::typeId) ||
-       _ecm.HasComponentType(components::SegmentationCamera::typeId)
-       ))
+
   {
-    igndbg << "Initialization needed" << std::endl;
     std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
-    this->dataPtr->doInit = true;
-    this->dataPtr->renderCv.notify_one();
+    if (!this->dataPtr->initialized &&
+        (_ecm.HasComponentType(components::Camera::typeId) ||
+         _ecm.HasComponentType(components::DepthCamera::typeId) ||
+         _ecm.HasComponentType(components::GpuLidar::typeId) ||
+         _ecm.HasComponentType(components::RgbdCamera::typeId) ||
+         _ecm.HasComponentType(components::ThermalCamera::typeId) ||
+         _ecm.HasComponentType(components::SegmentationCamera::typeId))) 
+    {
+      igndbg << "Initialization needed" << std::endl;
+      this->dataPtr->doInit = true;
+      this->dataPtr->renderCv.notify_one();
+    }
   }
 
   if (this->dataPtr->running && this->dataPtr->initialized)
