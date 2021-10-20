@@ -24,9 +24,13 @@
 #include <ignition/utils/SuppressWarning.hh>
 
 #include "ignition/gazebo/components/CanonicalLink.hh"
+#include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Factory.hh"
+#include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/config.hh"
@@ -2790,8 +2794,66 @@ TEST_P(EntityComponentManagerFixture, CloneEntities)
   EXPECT_EQ(10u, manager.EntityCount());
   EXPECT_EQ(kNullEntity, failedClonedEntity);
 
+  // create a joint with a parent and child link
+  const std::string parentLinkEntityName = "parentLinkEntity";
+  const std::string childLinkEntityName = "childLinkEntity";
+  Entity parentLinkEntity = manager.CreateEntity();
+  manager.CreateComponent(parentLinkEntity,
+      components::Name(parentLinkEntityName));
+  manager.CreateComponent(parentLinkEntity, components::CanonicalLink());
+  Entity jointEntity = manager.CreateEntity();
+  manager.CreateComponent(jointEntity,
+      components::ParentEntity(parentLinkEntity));
+  manager.CreateComponent(jointEntity, components::Name("jointEntity"));
+  manager.CreateComponent(jointEntity, components::Joint());
+  manager.CreateComponent(jointEntity,
+      components::ParentLinkName(parentLinkEntityName));
+  manager.CreateComponent(jointEntity,
+      components::ChildLinkName(childLinkEntityName));
+  Entity childLinkEntity = manager.CreateEntity();
+  manager.CreateComponent(childLinkEntity,
+      components::ParentEntity(jointEntity));
+  manager.CreateComponent(childLinkEntity,
+      components::Name(childLinkEntityName));
+  manager.CreateComponent(childLinkEntity, components::Link());
+  EXPECT_EQ(13u, manager.EntityCount());
+
+  // clone a joint that has a parent and child link.
+  auto clonedParentLinkEntity = manager.Clone(parentLinkEntity, kNullEntity,
+      "", true);
+  ASSERT_NE(kNullEntity, clonedParentLinkEntity);
+  EXPECT_EQ(16u, manager.EntityCount());
+  clonedEntities.insert(clonedParentLinkEntity);
+  auto clonedJoints = manager.EntitiesByComponents(
+      components::ParentEntity(clonedParentLinkEntity));
+  ASSERT_EQ(1u, clonedJoints.size());
+  clonedEntities.insert(clonedJoints[0]);
+  auto clonedChildLinks = manager.EntitiesByComponents(
+      components::ParentEntity(clonedJoints[0]));
+  ASSERT_EQ(1u, clonedChildLinks.size());
+  clonedEntities.insert(clonedChildLinks[0]);
+
+  // The cloned joint should have the cloned parent/child link names attached to
+  // it, not the original parent/child link names
+  auto clonedJointParentLinkName =
+    manager.Component<components::ParentLinkName>(clonedJoints[0]);
+  ASSERT_NE(nullptr, clonedJointParentLinkName);
+  EXPECT_NE(clonedJointParentLinkName->Data(), parentLinkEntityName);
+  auto clonedJointChildLinkName =
+    manager.Component<components::ChildLinkName>(clonedJoints[0]);
+  ASSERT_NE(nullptr, clonedJointChildLinkName);
+  EXPECT_NE(clonedJointChildLinkName->Data(), childLinkEntityName);
+  auto clonedParentLinkName =
+    manager.Component<components::Name>(clonedParentLinkEntity);
+  ASSERT_NE(nullptr, clonedParentLinkName);
+  EXPECT_EQ(clonedParentLinkName->Data(), clonedJointParentLinkName->Data());
+  auto clonedChildLinkName =
+    manager.Component<components::Name>(clonedChildLinks[0]);
+  ASSERT_NE(nullptr, clonedChildLinkName);
+  EXPECT_EQ(clonedJointChildLinkName->Data(), clonedChildLinkName->Data());
+
   // make sure that the name given to each cloned entity is unique
-  EXPECT_EQ(5u, clonedEntities.size());
+  EXPECT_EQ(8u, clonedEntities.size());
   for (const auto &entity : clonedEntities)
   {
     auto nameComp = manager.Component<components::Name>(entity);
@@ -2802,7 +2864,7 @@ TEST_P(EntityComponentManagerFixture, CloneEntities)
   // try to clone an entity that does not exist
   EXPECT_EQ(kNullEntity, manager.Clone(kNullEntity, topLevelEntity, "",
         allowRename));
-  EXPECT_EQ(10u, manager.EntityCount());
+  EXPECT_EQ(16u, manager.EntityCount());
 }
 
 /////////////////////////////////////////////////
