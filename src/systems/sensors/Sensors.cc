@@ -472,7 +472,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
          _ecm.HasComponentType(components::GpuLidar::typeId) ||
          _ecm.HasComponentType(components::RgbdCamera::typeId) ||
          _ecm.HasComponentType(components::ThermalCamera::typeId) ||
-         _ecm.HasComponentType(components::SegmentationCamera::typeId))) 
+         _ecm.HasComponentType(components::SegmentationCamera::typeId)))
     {
       igndbg << "Initialization needed" << std::endl;
       this->dataPtr->doInit = true;
