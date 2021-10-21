@@ -776,7 +776,7 @@ void RenderUtilPrivate::FindJointModels(const EntityComponentManager &_ecm)
       std::stack<Entity> modelStack;
       modelStack.push(entity);
 
-      std::vector<Entity> childLinks, childModels;
+      std::vector<Entity> childModels;
       while (!modelStack.empty())
       {
         Entity model = modelStack.top();
