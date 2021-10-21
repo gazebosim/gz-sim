@@ -171,6 +171,13 @@ void LogPlayback::Configure(const Entity &,
   // (Otherwise assume it is a directory containing recorded files.)
   if (common::isFile(this->dataPtr->logPath))
   {
+    std::string extension = common::lowercase(this->dataPtr->logPath.substr(
+        this->dataPtr->logPath.find_last_of(".") + 1));
+    if (extension != "zip") 
+    {
+      ignerr << "Please specify a zip file.\n";
+      return;
+    } 
     if (!this->dataPtr->ExtractStateAndResources())
     {
       ignerr << "Cannot play back files.\n";
