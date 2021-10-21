@@ -3014,11 +3014,20 @@ TEST_P(EntityComponentManagerFixture, StateMsgUpdateComponent)
   auto entity = originalECMStateMap.CreateEntity();
   originalECMStateMap.CreateComponent(entity, components::IntComponent(1));
 
+  int foundEntities = 0;
+  otherECMStateMap.Each<components::IntComponent>(
+      [&](const Entity &, const components::IntComponent *)
+      {
+        foundEntities++;
+        return true;
+      });
+  EXPECT_EQ(0, foundEntities);
+
   // update the other ECM to have the new entity and component
   msgs::SerializedStateMap stateMapMsg;
   originalECMStateMap.State(stateMapMsg);
   otherECMStateMap.SetState(stateMapMsg);
-  int foundEntities = 0;
+  foundEntities = 0;
   otherECMStateMap.Each<components::IntComponent>(
       [&](const Entity &, const components::IntComponent *_intComp)
       {
@@ -3047,6 +3056,15 @@ TEST_P(EntityComponentManagerFixture, StateMsgUpdateComponent)
   // instead of a msgs::SerializedStateMap
   EntityComponentManager originalECMState;
   EntityComponentManager otherECMState;
+
+  foundEntities = 0;
+  otherECMState.Each<components::IntComponent>(
+      [&](const Entity &, const components::IntComponent *)
+      {
+        foundEntities++;
+        return true;
+      });
+  EXPECT_EQ(0, foundEntities);
 
   entity = originalECMState.CreateEntity();
   originalECMState.CreateComponent(entity, components::IntComponent(1));

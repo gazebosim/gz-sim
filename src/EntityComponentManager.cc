@@ -1667,6 +1667,12 @@ void EntityComponentManager::SetState(
       if (nullptr == comp)
       {
         auto newComp = components::Factory::Instance()->New(type);
+        if (nullptr == newComp)
+        {
+          ignerr << "Failed to create component type ["
+            << compMsg.type() << "]" << std::endl;
+          continue;
+        }
         std::istringstream istr(compMsg.component());
         newComp->Deserialize(istr);
         this->CreateComponentImplementation(entity, type, newComp.get());
