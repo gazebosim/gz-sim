@@ -1686,14 +1686,6 @@ TEST_P(SimulationRunnerTest, UpdateECM)
 
   // share the new updates with simulation runner and make sure that simulation
   // runner's ECM reflects these updates
-  //
-  // TODO(adlarkin) figure out why serialized state processing doesn't seem to
-  // pick up component updates (the check for modified int component data fails,
-  // along with the check later on for an entity with an int component of 2).
-  // Looking at the ECM unit tests, it looks like this was never tested
-  // (so, perhaps it's existing buggy behavior?). Looking at the ECM code/tests
-  // makes me think that updates work for msgs::SerializedStateMap (this
-  // scenario seems to be tested), so what's wrong with msgs::SerializedState?
   shareECMChanges(ecmChangesMsg);
   EXPECT_FALSE(runner.EntityCompMgr().HasNewEntities());
   foundEntities = 0;
