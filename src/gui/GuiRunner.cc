@@ -73,6 +73,15 @@ GuiRunner::GuiRunner(const std::string &_worldName)
 
   this->setProperty("worldName", QString::fromStdString(_worldName));
 
+  // Allow for creation of entities on GUI side.
+  // Note we have to start the entity id at an offset so it does not conflict
+  // with the ones on the server. The log playback starts at max / 2
+  // On the gui side, we will start entity id at an offset of max / 4
+  // todo(anyone) address
+  // https://github.com/ignitionrobotics/ign-gazebo/issues/1134
+  // so that an offset is not required
+  this->dataPtr->ecm.SetEntityCreateOffset(math::MAX_I64 / 4);
+
   auto win = gui::App()->findChild<ignition::gui::MainWindow *>();
   auto winWorldNames = win->property("worldNames").toStringList();
   winWorldNames.append(QString::fromStdString(_worldName));
@@ -198,8 +207,6 @@ void GuiRunner::OnStateQt(const msgs::SerializedStepMap &_msg)
   // Update all plugins
   this->dataPtr->updateInfo = convert<UpdateInfo>(_msg.stats());
   this->UpdatePlugins();
-  this->dataPtr->ecm.ClearNewlyCreatedEntities();
-  this->dataPtr->ecm.ProcessRemoveEntityRequests();
 }
 
 /////////////////////////////////////////////////
@@ -211,4 +218,6 @@ void GuiRunner::UpdatePlugins()
     plugin->Update(this->dataPtr->updateInfo, this->dataPtr->ecm);
   }
   this->dataPtr->ecm.ClearRemovedComponents();
+  this->dataPtr->ecm.ClearNewlyCreatedEntities();
+  this->dataPtr->ecm.ProcessRemoveEntityRequests();
 }
