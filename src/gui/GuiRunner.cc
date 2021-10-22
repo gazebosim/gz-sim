@@ -78,7 +78,9 @@ GuiRunner::GuiRunner(const std::string &_worldName)
   // Note we have to start the entity id at an offset so it does not conflict
   // with the ones on the server. The log playback starts at max / 2
   // On the gui side, we will start entity id at an offset of max / 4
-  // todo(anyone) set a better entity create offset
+  // todo(anyone) address
+  // https://github.com/ignitionrobotics/ign-gazebo/issues/1134
+  // so that an offset is not required
   this->dataPtr->ecm.SetEntityCreateOffset(math::MAX_I64 / 4);
 
   auto win = gui::App()->findChild<ignition::gui::MainWindow *>();
