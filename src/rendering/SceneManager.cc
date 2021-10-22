@@ -17,6 +17,7 @@
 
 
 #include <map>
+#include <unordered_map>
 
 #include <sdf/Box.hh>
 #include <sdf/Capsule.hh>
@@ -77,27 +78,27 @@ class ignition::gazebo::SceneManagerPrivate
   public: rendering::ScenePtr scene;
 
   /// \brief Map of visual entity in Gazebo to visual pointers.
-  public: std::map<Entity, rendering::VisualPtr> visuals;
+  public: std::unordered_map<Entity, rendering::VisualPtr> visuals;
 
   /// \brief Map of actor entity in Gazebo to actor pointers.
-  public: std::map<Entity, rendering::MeshPtr> actors;
+  public: std::unordered_map<Entity, rendering::MeshPtr> actors;
 
   /// \brief Map of actor entity in Gazebo to actor animations.
-  public: std::map<Entity, common::SkeletonPtr> actorSkeletons;
+  public: std::unordered_map<Entity, common::SkeletonPtr> actorSkeletons;
 
   /// \brief Map of actor entity to the associated trajectories.
-  public: std::map<Entity, std::vector<common::TrajectoryInfo>>
+  public: std::unordered_map<Entity, std::vector<common::TrajectoryInfo>>
                     actorTrajectories;
 
   /// \brief Map of light entity in Gazebo to light pointers.
-  public: std::map<Entity, rendering::LightPtr> lights;
+  public: std::unordered_map<Entity, rendering::LightPtr> lights;
 
   /// \brief Map of particle emitter entity in Gazebo to particle emitter
   /// rendering pointers.
   public: std::map<Entity, rendering::ParticleEmitterPtr> particleEmitters;
 
   /// \brief Map of sensor entity in Gazebo to sensor pointers.
-  public: std::map<Entity, rendering::SensorPtr> sensors;
+  public: std::unordered_map<Entity, rendering::SensorPtr> sensors;
 
   /// \brief The map of the original transparency values for the nodes.
   public: std::map<std::string, double> originalTransparency;
@@ -623,8 +624,21 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
     }
     else
     {
-      ignerr << "PBR material: currently only metal workflow is supported"
-             << std::endl;
+      auto specular = pbr->Workflow(sdf::PbrWorkflowType::SPECULAR);
+      if (specular)
+      {
+        ignerr << "PBR material: currently only metal workflow is supported. "
+               << "Ignition Gazebo will try to render the material using "
+               << "metal workflow but without Roughness / Metalness settings."
+               << std::endl;
+      }
+      workflow = const_cast<sdf::PbrWorkflow *>(specular);
+    }
+
+    if (!workflow)
+    {
+      ignerr << "No valid PBR workflow found. " << std::endl;
+      return rendering::MaterialPtr();
     }
 
     // albedo map
@@ -759,7 +773,7 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
   }
 
   unsigned int numAnims = 0;
-  std::map<std::string, unsigned int> mapAnimNameId;
+  std::unordered_map<std::string, unsigned int> mapAnimNameId;
   mapAnimNameId[descriptor.meshName] = numAnims++;
 
   // Load all animations
@@ -894,7 +908,7 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
                     static_cast<int>(point->Time()*1000)));
           waypoints[pointTp] = point->Pose();
         }
-        trajInfo.SetWaypoints(waypoints);
+        trajInfo.SetWaypoints(waypoints, trajSdf->Tension());
         // Animations are offset by 1 because index 0 is taken by the mesh name
         auto animation = _actor.AnimationByIndex(trajInfo.AnimIndex()-1);
 

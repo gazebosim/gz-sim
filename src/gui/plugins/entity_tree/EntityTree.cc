@@ -18,6 +18,8 @@
 #include "EntityTree.hh"
 
 #include <iostream>
+#include <mutex>
+#include <set>
 #include <vector>
 
 #include <ignition/common/Console.hh>
@@ -54,6 +56,16 @@ namespace ignition::gazebo
 
     /// \brief World entity
     public: Entity worldEntity{kNullEntity};
+
+    /// \brief List of new entities from a gui event
+    public: std::set<Entity> newEntities;
+
+    /// \brief List of removed entities from a gui event
+    public: std::set<Entity> removedEntities;
+
+    /// \brief Mutex to protect gui event and system upate call race conditions
+    /// for newEntities and removedEntities
+    public: std::mutex newRemovedEntityMutex;
   };
 }
 
@@ -376,6 +388,55 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
         Q_ARG(unsigned int, _entity));
     return true;
   });
+
+  {
+    // update the entity tree with new/removed entities from gui events
+    std::lock_guard<std::mutex> lock(this->dataPtr->newRemovedEntityMutex);
+
+    for (auto entity : this->dataPtr->newEntities)
+    {
+      // make sure the entity to be added has a name and parent
+      auto nameComp = _ecm.Component<components::Name>(entity);
+      if (!nameComp)
+      {
+        ignerr << "Could not add entity [" << entity << "] to the entity tree "
+               << "because it does not have a name component.\n";
+        continue;
+      }
+      auto parentComp = _ecm.Component<components::ParentEntity>(entity);
+      if (!parentComp)
+      {
+        ignerr << "Could not add entity [" << entity << "] to the entity tree "
+               << "because it does not have a parent entity component.\n";
+        continue;
+      }
+
+      // World children are top-level
+      auto parentEntity = parentComp->Data();
+      if (this->dataPtr->worldEntity != kNullEntity &&
+          parentEntity == this->dataPtr->worldEntity)
+      {
+        parentEntity = kNullEntity;
+      }
+
+      QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddEntity",
+          Qt::QueuedConnection,
+          Q_ARG(unsigned int, entity),
+          Q_ARG(QString, QString::fromStdString(nameComp->Data())),
+          Q_ARG(unsigned int, parentEntity),
+          Q_ARG(QString, entityType(entity, _ecm)));
+    }
+
+    for (auto entity : this->dataPtr->removedEntities)
+    {
+      QMetaObject::invokeMethod(&this->dataPtr->treeModel, "RemoveEntity",
+          Qt::QueuedConnection,
+          Q_ARG(unsigned int, entity));
+    }
+
+    this->dataPtr->newEntities.clear();
+    this->dataPtr->removedEntities.clear();
+  }
 }
 
 /////////////////////////////////////////////////
@@ -426,6 +487,21 @@ bool EntityTree::eventFilter(QObject *_obj, QEvent *_event)
     {
       QMetaObject::invokeMethod(this->PluginItem(), "deselectAllEntities",
           Qt::QueuedConnection);
+    }
+  }
+  else if (_event->type() ==
+           ignition::gazebo::gui::events::AddedRemovedEntities::kType)
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->newRemovedEntityMutex);
+    auto addedRemovedEvent =
+        reinterpret_cast<gui::events::AddedRemovedEntities *>(_event);
+    if (addedRemovedEvent)
+    {
+      for (auto entity : addedRemovedEvent->NewEntities())
+        this->dataPtr->newEntities.insert(entity);
+
+      for (auto entity : addedRemovedEvent->RemovedEntities())
+        this->dataPtr->removedEntities.insert(entity);
     }
   }
 
