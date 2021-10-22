@@ -96,6 +96,7 @@ if (PYTHONLIBS_FOUND)
       Kmeans_TEST
       Line2_TEST
       Line3_TEST
+      MassMatrix3_TEST
       Material_TEST
       Matrix3_TEST
       Matrix4_TEST
