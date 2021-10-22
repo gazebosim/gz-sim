@@ -68,7 +68,7 @@ set(IGN_MSGS_VER ${ignition-msgs8_VERSION_MAJOR})
 #--------------------------------------
 # Find ignition-common
 # Always use the profiler component to get the headers, regardless of status.
-ign_find_package(ignition-common4 VERSION 4.2
+ign_find_package(ignition-common4 VERSION 4.4
   COMPONENTS
     profiler
     events
