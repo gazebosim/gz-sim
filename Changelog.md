@@ -489,6 +489,13 @@
 
 ## Ignition Gazebo 3.x
 
+### Ignition Gazebo 3.11.0 (2021-10-21)
+
+1. Updates to camera video record from subt.
+    * [Pull request #1117](https://github.com/ignitionrobotics/ign-gazebo/pull/1117)
+1. Fix performance level test flakiness.
+    * [Pull request #1129](https://github.com/ignitionrobotics/ign-gazebo/pull/1129)
+
 ### Ignition Gazebo 3.10.0 (2021-10-15)
 
 1. Performance: use std::unordered_map where possible in SceneManager
