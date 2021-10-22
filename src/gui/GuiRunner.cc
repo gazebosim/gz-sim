@@ -217,7 +217,7 @@ void GuiRunner::UpdatePlugins()
   {
     plugin->Update(this->dataPtr->updateInfo, this->dataPtr->ecm);
   }
-  this->ecm.ClearRemovedComponents();
-  this->ecm.ClearNewlyCreatedEntities();
-  this->ecm.ProcessRemoveEntityRequests();
+  this->dataPtr->ecm.ClearRemovedComponents();
+  this->dataPtr->ecm.ClearNewlyCreatedEntities();
+  this->dataPtr->ecm.ProcessRemoveEntityRequests();
 }
