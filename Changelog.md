@@ -20,9 +20,6 @@
 1. Prevent crash when using <specular> workflow PBR material.
     * [Pull Request 1099](https://github.com/ignitionrobotics/ign-gazebo/pull/1099)
 
-1. Cache top level and static to speed up physics system.
-    * [Pull Request 656](https://github.com/ignitionrobotics/ign-gazebo/pull/656)
-
 1. JointPositionController: Improve misleading error message.
     * [Pull Request 1098](https://github.com/ignitionrobotics/ign-gazebo/pull/1098)
 
