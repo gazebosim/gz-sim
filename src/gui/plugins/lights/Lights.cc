@@ -32,6 +32,7 @@
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/Publisher.hh>
 
+#include <ignition/gazebo/gui/GuiUtils.hh>
 #include "ignition/gazebo/EntityComponentManager.hh"
 
 namespace ignition::gazebo
@@ -64,71 +65,23 @@ void Lights::LoadConfig(const tinyxml2::XMLElement *)
 /////////////////////////////////////////////////
 void Lights::OnNewLightClicked(const QString &_sdfString)
 {
+  using PrimitiveLight = ignition::gazebo::gui::PrimitiveLight;
+
   std::string modelSdfString = _sdfString.toStdString();
   std::transform(modelSdfString.begin(), modelSdfString.end(),
                  modelSdfString.begin(), ::tolower);
 
   if (modelSdfString == "point")
   {
-    modelSdfString = std::string("<?xml version=\"1.0\"?>"
-                                 "<sdf version=\"1.6\">"
-                                 "<light type='point' name='pointlight'>"
-                                   "<pose>0 0 2 0 0 0</pose>"
-                                   "<cast_shadows>false</cast_shadows>"
-                                   "<diffuse>0.5 0.5 0.5 1</diffuse>"
-                                   "<specular>0.5 0.5 0.5 1</specular>"
-                                   "<attenuation>"
-                                     "<range>4</range>"
-                                     "<constant>0.2</constant>"
-                                     "<linear>0.5</linear>"
-                                     "<quadratic>0.01</quadratic>"
-                                   "</attenuation>"
-                                 "</light>"
-                                 "</sdf>");
+    modelSdfString = gui::getPrimitiveLight(PrimitiveLight::kPoint);
   }
   else if (modelSdfString == "directional")
   {
-    modelSdfString = std::string("<?xml version=\"1.0\"?>"
-                                 "<sdf version=\"1.6\">"
-                                 "<light type='directional'"
-                                  "name='directionallight'>"
-                                   "<pose>0 0 2 0 0 0</pose>"
-                                   "<cast_shadows>true</cast_shadows>"
-                                   "<diffuse>0.8 0.8 0.8 1</diffuse>"
-                                   "<specular>0.2 0.2 0.2 1</specular>"
-                                   "<attenuation>"
-                                     "<range>1000</range>"
-                                     "<constant>0.9</constant>"
-                                     "<linear>0.01</linear>"
-                                     "<quadratic>0.001</quadratic>"
-                                   "</attenuation>"
-                                   "<direction>0 0 -1</direction>"
-                                 "</light>"
-                                 "</sdf>");
+    modelSdfString = gui::getPrimitiveLight(PrimitiveLight::kDirectional);
   }
   else if (modelSdfString == "spot")
   {
-    modelSdfString = std::string("<?xml version=\"1.0\"?>"
-                                 "<sdf version=\"1.6\">"
-                                 "<light type='spot' name='spotlight'>"
-                                   "<pose>0 0 2 0 0 0</pose>"
-                                   "<cast_shadows>true</cast_shadows>"
-                                   "<diffuse>0.5 0.5 0.5 1</diffuse>"
-                                   "<specular>0.5 0.5 0.5 1</specular>"
-                                   "<attenuation>"
-                                     "<range>4</range>"
-                                     "<constant>0.2</constant>"
-                                     "<linear>0.5</linear>"
-                                     "<quadratic>0.01</quadratic>"
-                                   "</attenuation>"
-                                   "<direction>0 0 -1</direction>"
-                                   "<spot>"
-                                     "<inner_angle>0.1</inner_angle>"
-                                     "<outer_angle>0.5</outer_angle>"
-                                     "<falloff>0.8</falloff>"
-                                   "</spot>"
-                                 "</light>"
-                                 "</sdf>");
+    modelSdfString = gui::getPrimitiveLight(PrimitiveLight::kSpot);
   }
   else
   {
