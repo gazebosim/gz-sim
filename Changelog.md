@@ -1,11 +1,49 @@
 ## Ignition Gazebo 4.x
 
-### Ignition Gazebo 4.11.x (2021-09-23)
+### Ignition Gazebo 4.12.0 (2021-10-22)
+
+1. Fix performance issue with contact data and AABB updates.
+    * [Pull Request 1048](https://github.com/ignitionrobotics/ign-gazebo/pull/1048)
+
+1. Enable new CMake policy to fix protobuf compilation
+    * [Pull Request 1059](https://github.com/ignitionrobotics/ign-gazebo/pull/1059)
+
+1. Parse new param for enabling / disabling IMU orientation output.
+    * [Pull Request 899](https://github.com/ignitionrobotics/ign-gazebo/pull/899)
+
+1. Fix light control standalone example.
+    * [Pull Request 1077](https://github.com/ignitionrobotics/ign-gazebo/pull/1077)
+
+1. Performance: use std::unordered_map where possible in SceneManager.
+    * [Pull Request 1083](https://github.com/ignitionrobotics/ign-gazebo/pull/1083)
+
+1. Prevent crash when using <specular> workflow PBR material.
+    * [Pull Request 1099](https://github.com/ignitionrobotics/ign-gazebo/pull/1099)
+
+1. Cache top level and static to speed up physics system.
+    * [Pull Request 656](https://github.com/ignitionrobotics/ign-gazebo/pull/656)
+
+1. JointPositionController: Improve misleading error message.
+    * [Pull Request 1098](https://github.com/ignitionrobotics/ign-gazebo/pull/1098)
+
+1. Adjust pose decimals based on element width.
+    * [Pull Request 1089](https://github.com/ignitionrobotics/ign-gazebo/pull/1089)
+
+1. Better protect this->dataPtr->initialized with renderMutex.
+    * [Pull Request 1119](https://github.com/ignitionrobotics/ign-gazebo/pull/1089)
+
+1. Updates to camera video record from subt.
+    * [Pull Request 1117](https://github.com/ignitionrobotics/ign-gazebo/pull/1117)
+
+1. Fix performance level test flakiness.
+    * [Pull Request 1129](https://github.com/ignitionrobotics/ign-gazebo/pull/1129)
+
+### Ignition Gazebo 4.11.0 (2021-09-23)
 
 1. Support locked entities, and headless video recording using sim time.
     * [Pull Request 862](https://github.com/ignitionrobotics/ign-gazebo/pull/862)
 
-### Ignition Gazebo 4.10.x (2021-09-15)
+### Ignition Gazebo 4.10.0 (2021-09-15)
 
 1. Fixed GUI's ComponentInspector light parameter
     * [Pull Request 1018](https://github.com/ignitionrobotics/ign-gazebo/pull/1018)
