@@ -158,30 +158,6 @@
 1. 3 to 4
     * [Pull request #933](https://github.com/ignitionrobotics/ign-gazebo/pull/933)
 
-1. Add a convenience function for getting possibly non-existing components.
-    * [Pull request #629](https://github.com/ignitionrobotics/ign-gazebo/pull/629)
-
-1. Fix topLevelModel method
-    * [Pull request #600](https://github.com/ignitionrobotics/ign-gazebo/pull/600)
-
-1. World exporter
-    * [Pull request #474](https://github.com/ignitionrobotics/ign-gazebo/pull/474)
-
-1. Fix finding PBR materials
-    * [Pull request #575](https://github.com/ignitionrobotics/ign-gazebo/pull/575)
-
-1. [FIX] Handle multiple logical cameras
-    * [Pull request #539](https://github.com/ignitionrobotics/ign-gazebo/pull/539)
-
-1. Make some tests more robust
-    * [Pull request #314](https://github.com/ignitionrobotics/ign-gazebo/pull/314)
-
-1. Fix codecheck
-    * [Pull request #887](https://github.com/ignitionrobotics/ign-gazebo/pull/887)
-
-1. Hello world plugin added
-    * [Pull request #699](https://github.com/ignitionrobotics/ign-gazebo/pull/699)
-
 1. Model info CLI `ign model`
     * [Pull request #893](https://github.com/ignitionrobotics/ign-gazebo/pull/893)
 
