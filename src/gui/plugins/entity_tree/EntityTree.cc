@@ -122,8 +122,6 @@ void TreeModel::AddEntity(unsigned int _entity, const QString &_entityName,
   IGN_PROFILE("TreeModel::AddEntity");
   QStandardItem *parentItem{nullptr};
 
-  std::cerr << "add entity " << _entity << " " << _entityName.toStdString() << std::endl;
-
   // Root
   if (_parentEntity == kNullEntity)
   {
@@ -396,7 +394,6 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
     std::lock_guard<std::mutex> lock(this->dataPtr->newRemovedEntityMutex);
     for (auto entity : this->dataPtr->newEntities)
     {
-      std::cerr << "entity tree ent: " << entity <<  std::endl;
       // make sure the entity to be added has a name and parent
       auto nameComp = _ecm.Component<components::Name>(entity);
       if (!nameComp)
