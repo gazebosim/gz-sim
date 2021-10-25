@@ -106,7 +106,7 @@ namespace events
     /// \brief Constructor
     /// \param[in] _newEntities Set of newly created entities
     /// \param[in] _removedEntities Set of recently removed entities
-    public: AddedRemovedEntities(const std::set<Entity> _newEntities,
+    public: AddedRemovedEntities(const std::set<Entity> &_newEntities,
                 const std::set<Entity> &_removedEntities)
         : QEvent(kType), newEntities(_newEntities),
           removedEntities(_removedEntities)

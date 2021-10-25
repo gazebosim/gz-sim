@@ -115,8 +115,8 @@ TreeModel::TreeModel() : QStandardItemModel()
 }
 
 /////////////////////////////////////////////////
-void TreeModel::AddEntity(unsigned int _entity, const QString &_entityName,
-    unsigned int _parentEntity, const QString &_type)
+void TreeModel::AddEntity(Entity _entity, const QString &_entityName,
+    Entity _parentEntity, const QString &_type)
 {
   IGN_PROFILE_THREAD_NAME("Qt thread");
   IGN_PROFILE("TreeModel::AddEntity");
@@ -177,7 +177,7 @@ void TreeModel::AddEntity(unsigned int _entity, const QString &_entityName,
 }
 
 /////////////////////////////////////////////////
-void TreeModel::RemoveEntity(unsigned int _entity)
+void TreeModel::RemoveEntity(Entity _entity)
 {
   IGN_PROFILE("TreeModel::RemoveEntity");
   QStandardItem *item{nullptr};
@@ -259,7 +259,7 @@ QString TreeModel::ScopedName(const QModelIndex &_index) const
 }
 
 /////////////////////////////////////////////////
-unsigned int TreeModel::EntityId(const QModelIndex &_index) const
+Entity TreeModel::EntityId(const QModelIndex &_index) const
 {
   Entity entity{kNullEntity};
   QStandardItem *item = this->itemFromIndex(_index);
@@ -341,9 +341,9 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
 
       QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddEntity",
           Qt::QueuedConnection,
-          Q_ARG(unsigned int, _entity),
+          Q_ARG(Entity, _entity),
           Q_ARG(QString, QString::fromStdString(_name->Data())),
-          Q_ARG(unsigned int, parentEntity),
+          Q_ARG(Entity, parentEntity),
           Q_ARG(QString, entityType(_entity, _ecm)));
       return true;
     });
@@ -371,9 +371,9 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
 
       QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddEntity",
           Qt::QueuedConnection,
-          Q_ARG(unsigned int, _entity),
+          Q_ARG(Entity, _entity),
           Q_ARG(QString, QString::fromStdString(_name->Data())),
-          Q_ARG(unsigned int, parentEntity),
+          Q_ARG(Entity, parentEntity),
           Q_ARG(QString, entityType(_entity, _ecm)));
       return true;
     });
@@ -385,7 +385,7 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
   {
     QMetaObject::invokeMethod(&this->dataPtr->treeModel, "RemoveEntity",
         Qt::QueuedConnection,
-        Q_ARG(unsigned int, _entity));
+        Q_ARG(Entity, _entity));
     return true;
   });
 
@@ -420,9 +420,9 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
 
       QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddEntity",
           Qt::QueuedConnection,
-          Q_ARG(unsigned int, entity),
+          Q_ARG(Entity, entity),
           Q_ARG(QString, QString::fromStdString(nameComp->Data())),
-          Q_ARG(unsigned int, parentEntity),
+          Q_ARG(Entity, parentEntity),
           Q_ARG(QString, entityType(entity, _ecm)));
     }
 
@@ -430,7 +430,7 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
     {
       QMetaObject::invokeMethod(&this->dataPtr->treeModel, "RemoveEntity",
           Qt::QueuedConnection,
-          Q_ARG(unsigned int, entity));
+          Q_ARG(Entity, entity));
     }
 
     this->dataPtr->newEntities.clear();
@@ -439,7 +439,7 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
 }
 
 /////////////////////////////////////////////////
-void EntityTree::OnEntitySelectedFromQml(unsigned int _entity)
+void EntityTree::OnEntitySelectedFromQml(Entity _entity)
 {
   std::vector<Entity> entitySet {_entity};
   gui::events::EntitiesSelected event(entitySet, true);
@@ -473,7 +473,7 @@ bool EntityTree::eventFilter(QObject *_obj, QEvent *_event)
 
         QMetaObject::invokeMethod(this->PluginItem(), "onEntitySelectedFromCpp",
             Qt::QueuedConnection, Q_ARG(QVariant,
-            QVariant(static_cast<unsigned int>(entity))));
+            QVariant(static_cast<qulonglong>(entity))));
       }
     }
   }
