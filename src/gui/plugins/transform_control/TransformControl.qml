@@ -38,7 +38,7 @@ ToolBar {
     scale.enabled = true;
   }
 
-  function disableScaleButtib() {
+  function disableScaleButton() {
     scale.enabled = false;
   }
 
