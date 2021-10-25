@@ -136,7 +136,7 @@ void LogicalCamera::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-void AddLogicalCamera(
+void LogicalCameraPrivate::AddLogicalCamera(
   EntityComponentManager &_ecm,
   const Entity _entity,
   const components::LogicalCamera *_logicalCamera,
