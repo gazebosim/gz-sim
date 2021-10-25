@@ -131,7 +131,7 @@ void ModelEditor::Update(const UpdateInfo &,
     // with the ones on the server. The log playback starts at max / 2
     // On the gui side, we will start entity id at an offset of max / 4
     // todo(anyone) set a better entity create offset
-    _ecm.SetEntityCreateOffset(math::MAX_I64 / 4);
+//    _ecm.SetEntityCreateOffset(math::MAX_I64 / 4);
     this->dataPtr->entityCreator = std::make_unique<SdfEntityCreator>(
         _ecm, this->dataPtr->eventMgr);
   }
@@ -139,6 +139,7 @@ void ModelEditor::Update(const UpdateInfo &,
 
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   // add link entities to the ECM
+  std::set<Entity> newEntities;
   for (auto & linkSdf : this->dataPtr->linksToAdd)
   {
     Entity parent = _ecm.EntityByComponents(
@@ -164,11 +165,41 @@ void ModelEditor::Update(const UpdateInfo &,
           components::Name(linkName));
     }
 
-    std::cerr << "creating entity in ecm " << linkName << std::endl;
     linkSdf.SetName(linkName);
     auto entity = this->dataPtr->entityCreator->CreateEntities(&linkSdf);
     this->dataPtr->entityCreator->SetParent(entity, parent);
+
+    // traverse the tree and add all new entities created by the entity creator
+    // to the set
+    std::list<Entity> entities;
+    entities.push_back(entity);
+    while (!entities.empty())
+    {
+      Entity ent = entities.front();
+      entities.pop_front();
+
+      // add new entity created
+      newEntities.insert(ent);
+
+      auto childEntities = _ecm.EntitiesByComponents(
+          components::ParentEntity(ent));
+      for (const auto &child : childEntities)
+        entities.push_back(child);
+    }
   }
+
+  for (const auto & ent: newEntities)
+      std::cerr << "creating entity in ecm " << ent << std::endl;
+
+  // use tmp AddedRemovedEntities event to update other gui plugins
+  // note this event will be removed in Ignition Garden
+  std::set<Entity> removedEntities;
+  ignition::gazebo::gui::events::AddedRemovedEntities event(
+      newEntities, removedEntities);
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      &event);
+
   this->dataPtr->linksToAdd.clear();
 }
 

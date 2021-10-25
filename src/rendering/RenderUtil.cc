@@ -1499,6 +1499,7 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
           const components::Pose *_pose,
           const components::ParentEntity *_parent)->bool
       {
+        std::cerr << "new link first udpate " << _entity << " " << _name->Data() << std::endl;
         sdf::Link link;
         link.SetName(_name->Data());
         link.SetRawPose(_pose->Data());
@@ -1816,6 +1817,7 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
           const components::Pose *_pose,
           const components::ParentEntity *_parent)->bool
       {
+        std::cerr << "got new link " << _entity << " " << _name->Data() << std::endl;
         sdf::Link link;
         link.SetName(_name->Data());
         link.SetRawPose(_pose->Data());
