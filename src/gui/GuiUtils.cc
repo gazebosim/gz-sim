@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Open Source Robotics Foundation
+ * Copyright (C) 2021 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  *
 */
 
+#include <ignition/common/Util.hh>
+#include <ignition/common/Console.hh>
 #include "ignition/gazebo/gui/GuiUtils.hh"
 
 namespace ignition
@@ -26,7 +28,7 @@ namespace gui
 
 /////////////////////////////////////////////////
 constexpr const char * kBoxSdf = R"(<?xml version="1.0"?>
-<sdf version="1.8">
+<sdf version="1.9">
   <model name="box">
     <pose>0 0 0.5 0 0 0</pose>
     <link name="box_link">
@@ -54,6 +56,11 @@ constexpr const char * kBoxSdf = R"(<?xml version="1.0"?>
             <size>1 1 1</size>
           </box>
         </geometry>
+        <material>
+          <ambient>0.8 0.8 0.8 1</ambient>
+          <diffuse>0.8 0.8 0.8 1</diffuse>
+          <specular>0.8 0.8 0.8 1</specular>
+        </material>
      </visual>
     </link>
   </model>
@@ -62,7 +69,7 @@ constexpr const char * kBoxSdf = R"(<?xml version="1.0"?>
 
 /////////////////////////////////////////////////
 constexpr const char * kSphereSdf = R"(<?xml version="1.0"?>
-<sdf version="1.8">
+<sdf version="1.9">
   <model name="sphere">
     <pose>0 0 0.5 0 0 0</pose>
     <link name="sphere_link">
@@ -90,6 +97,11 @@ constexpr const char * kSphereSdf = R"(<?xml version="1.0"?>
             <radius>0.5</radius>
           </sphere>
         </geometry>
+        <material>
+          <ambient>0.8 0.8 0.8 1</ambient>
+          <diffuse>0.8 0.8 0.8 1</diffuse>
+          <specular>0.8 0.8 0.8 1</specular>
+        </material>
      </visual>
     </link>
   </model>
@@ -98,7 +110,7 @@ constexpr const char * kSphereSdf = R"(<?xml version="1.0"?>
 
 /////////////////////////////////////////////////
 constexpr const char * kCylinderSdf = R"(<?xml version="1.0"?>
-<sdf version="1.8">
+<sdf version="1.9">
   <model name="cylinder">
     <pose>0 0 0.5 0 0 0</pose>
     <link name="cylinder_link">
@@ -128,6 +140,11 @@ constexpr const char * kCylinderSdf = R"(<?xml version="1.0"?>
             <length>1.0</length>
           </cylinder>
         </geometry>
+        <material>
+          <ambient>0.8 0.8 0.8 1</ambient>
+          <diffuse>0.8 0.8 0.8 1</diffuse>
+          <specular>0.8 0.8 0.8 1</specular>
+        </material>
      </visual>
     </link>
   </model>
@@ -136,7 +153,7 @@ constexpr const char * kCylinderSdf = R"(<?xml version="1.0"?>
 
 /////////////////////////////////////////////////
 constexpr const char * kCapsuleSdf = R"(<?xml version="1.0"?>
-<sdf version="1.8">
+<sdf version="1.9">
   <model name="capsule">
     <pose>0 0 0.5 0 0 0</pose>
     <link name="capsule_link">
@@ -166,6 +183,11 @@ constexpr const char * kCapsuleSdf = R"(<?xml version="1.0"?>
             <length>0.6</length>
           </capsule>
         </geometry>
+        <material>
+          <ambient>0.8 0.8 0.8 1</ambient>
+          <diffuse>0.8 0.8 0.8 1</diffuse>
+          <specular>0.8 0.8 0.8 1</specular>
+        </material>
      </visual>
     </link>
   </model>
@@ -174,7 +196,7 @@ constexpr const char * kCapsuleSdf = R"(<?xml version="1.0"?>
 
 /////////////////////////////////////////////////
 constexpr const char *kEllipsoidSdf = R"(<?xml version="1.0"?>
-<sdf version="1.8">
+<sdf version="1.9">
   <model name="ellipsoid">
     <pose>0 0 0.5 0 0 0</pose>
     <link name="ellipsoid_link">
@@ -202,6 +224,11 @@ constexpr const char *kEllipsoidSdf = R"(<?xml version="1.0"?>
             <radii>0.2 0.3 0.5</radii>
           </ellipsoid>
         </geometry>
+        <material>
+          <ambient>0.8 0.8 0.8 1</ambient>
+          <diffuse>0.8 0.8 0.8 1</diffuse>
+          <specular>0.8 0.8 0.8 1</specular>
+        </material>
      </visual>
     </link>
   </model>
@@ -210,7 +237,7 @@ constexpr const char *kEllipsoidSdf = R"(<?xml version="1.0"?>
 
 /////////////////////////////////////////////////
 constexpr const char *kDirectionalSdf = R"(<?xml version="1.0"?>
-<sdf version="1.8">
+<sdf version="1.9">
   <light type='directional' name='directionallight'>
     <pose>0 0 2 0 0 0</pose>
     <cast_shadows>true</cast_shadows>
@@ -229,7 +256,7 @@ constexpr const char *kDirectionalSdf = R"(<?xml version="1.0"?>
 
 /////////////////////////////////////////////////
 constexpr const char *kPointSdf = R"(<?xml version="1.0"?>
-<sdf version="1.8">
+<sdf version="1.9">
   <light type='point' name='pointlight'>
     <pose>0 0 2 0 0 0</pose>
     <cast_shadows>false</cast_shadows>
@@ -247,7 +274,7 @@ constexpr const char *kPointSdf = R"(<?xml version="1.0"?>
 
 /////////////////////////////////////////////////
 constexpr const char *kSpotSdf = R"(<?xml version="1.0"?>
-<sdf version="1.8">
+<sdf version="1.9">
   <light type='spot' name='spotlight'>
     <pose>0 0 2 0 0 0</pose>
     <cast_shadows>true</cast_shadows>
@@ -290,6 +317,39 @@ std::string getPrimitiveShape(const PrimitiveShape &_type)
 }
 
 /////////////////////////////////////////////////
+std::string getPrimitive(const std::string &_typeName)
+{
+  std::string type = common::lowercase(_typeName);
+
+  if (type == "box")
+    return gui::getPrimitiveShape(PrimitiveShape::kBox);
+  else if (type == "sphere")
+    return gui::getPrimitiveShape(PrimitiveShape::kSphere);
+  else if (type == "cylinder")
+    return gui::getPrimitiveShape(PrimitiveShape::kCylinder);
+  else if (type == "capsule")
+    return gui::getPrimitiveShape(PrimitiveShape::kCapsule);
+  else if (type == "ellipsoid")
+    return gui::getPrimitiveShape(PrimitiveShape::kEllipsoid);
+  else if (type == "point")
+    return gui::getPrimitiveLight(PrimitiveLight::kPoint);
+  else if (type == "directional")
+    return gui::getPrimitiveLight(PrimitiveLight::kDirectional);
+  else if (type == "spot")
+    return gui::getPrimitiveLight(PrimitiveLight::kSpot);
+
+  ignwarn << "Invalid model string " << type << "\n";
+  ignwarn << "The valid options are:\n";
+  ignwarn << " - box\n";
+  ignwarn << " - sphere\n";
+  ignwarn << " - cylinder\n";
+  ignwarn << " - point\n";
+  ignwarn << " - directional\n";
+  ignwarn << " - spot\n";
+  return "";
+}
+
+/////////////////////////////////////////////////
 std::string getPrimitiveLight(const PrimitiveLight &_type)
 {
   switch(_type)
@@ -308,4 +368,3 @@ std::string getPrimitiveLight(const PrimitiveLight &_type)
 }  // namespace gui
 }  // namespace gazebo
 }  // namespace ignition
-

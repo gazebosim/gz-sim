@@ -404,59 +404,7 @@ void EntityTree::DeselectAllEntities()
 /////////////////////////////////////////////////
 void EntityTree::OnInsertEntity(const QString &_type)
 {
-  using PrimitiveShape = ignition::gazebo::gui::PrimitiveShape;
-  using PrimitiveLight = ignition::gazebo::gui::PrimitiveLight;
-
-  std::string modelSdfString = _type.toStdString();
-  std::transform(modelSdfString.begin(), modelSdfString.end(),
-                 modelSdfString.begin(), ::tolower);
-
-  if (modelSdfString == "box")
-  {
-    modelSdfString = gui::getPrimitiveShape(PrimitiveShape::kBox);
-  }
-  else if (modelSdfString == "sphere")
-  {
-    modelSdfString = gui::getPrimitiveShape(PrimitiveShape::kSphere);
-  }
-  else if (modelSdfString == "cylinder")
-  {
-    modelSdfString = gui::getPrimitiveShape(PrimitiveShape::kCylinder);
-  }
-  else if (modelSdfString == "capsule")
-  {
-    modelSdfString = gui::getPrimitiveShape(PrimitiveShape::kCapsule);
-  }
-  else if (modelSdfString == "ellipsoid")
-  {
-    modelSdfString = gui::getPrimitiveShape(PrimitiveShape::kEllipsoid);
-  }
-  else if (modelSdfString == "point")
-  {
-    modelSdfString = gui::getPrimitiveLight(PrimitiveLight::kPoint);
-  }
-  else if (modelSdfString == "directional")
-  {
-    modelSdfString = gui::getPrimitiveLight(PrimitiveLight::kDirectional);
-  }
-  else if (modelSdfString == "spot")
-  {
-    modelSdfString = gui::getPrimitiveLight(PrimitiveLight::kSpot);
-  }
-
-  else
-  {
-    ignwarn << "Invalid model string " << modelSdfString << "\n";
-    ignwarn << "The valid options are:\n";
-    ignwarn << " - box\n";
-    ignwarn << " - sphere\n";
-    ignwarn << " - cylinder\n";
-    ignwarn << " - point\n";
-    ignwarn << " - directional\n";
-    ignwarn << " - spot\n";
-    return;
-  }
-
+  std::string modelSdfString = gui::getPrimitive(_type.toStdString());
   ignition::gui::events::SpawnFromDescription event(modelSdfString);
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
