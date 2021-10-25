@@ -1,7 +1,43 @@
 ## Ignition Gazebo 3.x
 
-### Ignition Gazebo 3.X.X (202X-XX-XX)
+### Ignition Gazebo 3.11.0 (2021-10-21)
 
+1. Updates to camera video record from subt.
+    * [Pull request #1117](https://github.com/ignitionrobotics/ign-gazebo/pull/1117)
+1. Fix performance level test flakiness.
+    * [Pull request #1129](https://github.com/ignitionrobotics/ign-gazebo/pull/1129)
+
+### Ignition Gazebo 3.10.0 (2021-10-15)
+
+1. Performance: use std::unordered_map where possible in SceneManager
+    * [Pull request #1083](https://github.com/ignitionrobotics/ign-gazebo/pull/1083)
+
+1. Enable new CMake policy to fix protobuf compilation
+    * [Pull request #1059](https://github.com/ignitionrobotics/ign-gazebo/pull/1059)
+
+1. Fix setting cast_shadows for visuals without material
+    * [Pull request #1015](https://github.com/ignitionrobotics/ign-gazebo/pull/1015)
+
+1. Remove duplicate XML tag in pendulum_links example world
+    * [Pull request #1002](https://github.com/ignitionrobotics/ign-gazebo/pull/1002)
+
+1. Enable sensor metrics on example worlds
+    * [Pull request #982](https://github.com/ignitionrobotics/ign-gazebo/pull/982)
+
+1. Improved doxygen
+    * [Pull request #996](https://github.com/ignitionrobotics/ign-gazebo/pull/996)
+
+1. JointPositionController: Improve misleading error message
+    * [Pull request #1098](https://github.com/ignitionrobotics/ign-gazebo/pull/1098)
+
+1. Adjust pose decimals based on element width
+    * [Pull request #1089](https://github.com/ignitionrobotics/ign-gazebo/pull/1089)
+
+1. Fixed IMU system plugin
+    * [Pull request #1043](https://github.com/ignitionrobotics/ign-gazebo/pull/1043)
+
+1. Use QTimer to update plugins in the Qt thread
+    * [Pull request #1095](https://github.com/ignitionrobotics/ign-gazebo/pull/1095)
 
 ### Ignition Gazebo 3.9.0 (2021-08-16)
 

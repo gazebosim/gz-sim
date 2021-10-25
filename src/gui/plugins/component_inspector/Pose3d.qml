@@ -90,7 +90,7 @@ Rectangle {
       value: writableSpin.activeFocus ? writableSpin.value : numberValue
       minimumValue: -spinMax
       maximumValue: spinMax
-      decimals: 6
+      decimals: getDecimals(writableSpin.width)
       onEditingFinished: {
         sendPose()
       }
@@ -108,7 +108,7 @@ Rectangle {
       horizontalAlignment: Text.AlignRight
       verticalAlignment: Text.AlignVCenter
       text: {
-        var decimals = numberText.width < 100 ? 2 : 6
+        var decimals = getDecimals(numberText.width)
         return numberValue.toFixed(decimals)
       }
     }

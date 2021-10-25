@@ -2207,8 +2207,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
         if (auto jointPhys = this->entityJointMap.Get(_entity))
         {
           _jointPos->Data().resize(jointPhys->GetDegreesOfFreedom());
-          for (std::size_t i = 0; i < jointPhys->GetDegreesOfFreedom();
-               ++i)
+          for (std::size_t i = 0; i < jointPhys->GetDegreesOfFreedom(); ++i)
           {
             _jointPos->Data()[i] = jointPhys->GetPosition(i);
           }
