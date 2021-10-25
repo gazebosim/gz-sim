@@ -35,6 +35,7 @@
 #include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/JointPosition.hh"
 #include "ignition/gazebo/components/Level.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/LightCmd.hh"
@@ -601,6 +602,17 @@ void ComponentInspector::Update(const UpdateInfo &,
       {
         setData(item, comp->Data());
         setUnit(item, "m/s\u00B2");
+      }
+    }
+    else if (typeId == components::JointPosition::typeId)
+    {
+      auto comp = _ecm.Component<components::JointPosition>(this->dataPtr->entity);
+      if (comp)
+      {
+        // TODO(louise) support any number of axes
+        setData(item, comp->Data()[0]);
+        // TODO(louise) choose unit based on joint type
+        // setUnit(item, "rad");
       }
     }
     else if (typeId == components::LinearAcceleration::typeId)

@@ -60,7 +60,7 @@ Rectangle {
       value: model.data
       minimumValue: -spinMax
       maximumValue: spinMax
-      decimals: xSpin.width < 100 ? 2 : 6
+      decimals: content.width < 100 ? 2 : 6
       Layout.fillWidth: true
     }
 
