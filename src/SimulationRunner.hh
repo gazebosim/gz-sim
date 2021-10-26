@@ -26,6 +26,7 @@
 #include <functional>
 #include <list>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -38,7 +39,6 @@
 #include <ignition/common/Event.hh>
 #include <ignition/common/WorkerPool.hh>
 #include <ignition/math/Stopwatch.hh>
-#include <ignition/msgs.hh>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/config.hh"
@@ -368,17 +368,7 @@ namespace ignition
       /// and multistep.
       /// \param[out] _res Response to client, true if successful.
       /// \return True for success
-      private: bool IGN_DEPRECATED(6) OnWorldControl(
-                   const msgs::WorldControl &_req, msgs::Boolean &_res);
-
-      /// \brief World control service callback. This function stores the
-      /// the request which will then be processed by the ProcessMessages
-      /// function.
-      /// \param[in] _req Request from client, currently handling play / pause
-      /// and multistep.
-      /// \param[out] _res Response to client, true if successful.
-      /// \return True for success
-      private: bool OnWorldStateControl(const msgs::WorldControlState &_req,
+      private: bool OnWorldControl(const msgs::WorldControl &_req,
                                          msgs::Boolean &_res);
 
       /// \brief World control service callback. This function stores the
@@ -611,6 +601,13 @@ namespace ignition
 
       /// \brief True if Server::RunOnce triggered a blocking paused step
       private: bool blockingPausedStepPending{false};
+
+      /// \brief Flag that indicates whether the server ECM needs to be updated
+      /// to match the GUI ECM
+      private: bool matchGuiEcm{false};
+
+      /// \brief Mutex used for reading/writing the gui ECM flag above
+      private: std::mutex guiServerEcmMutex;
 
       friend class LevelManager;
     };

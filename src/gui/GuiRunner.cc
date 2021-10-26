@@ -20,6 +20,7 @@
 #include <ignition/fuel_tools/Interface.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
+#include <ignition/msgs.hh>
 #include <ignition/transport/Node.hh>
 
 // Include all components so they have first-class support
@@ -101,6 +102,26 @@ GuiRunner::GuiRunner(const std::string &_worldName)
   QPointer<QTimer> timer = new QTimer(this);
   connect(timer, &QTimer::timeout, this, &GuiRunner::UpdatePlugins);
   timer->start(33);
+
+  // Advertise a service that shares the changed state of the GUI's ECM.
+  // "Changed" in this context means the changes that took place since the last
+  // simulation step
+  const std::string changedGuiEcmService = "/changedGuiEcm";
+  std::function<bool(msgs::SerializedState &)> cb =
+    [this](msgs::SerializedState &_resp)
+    {
+      // since GUI plugins may update the GUI's ECM, make sure that no GUI
+      // plugins are updated while getting the ECM's changed state
+      std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
+
+      _resp.CopyFrom(this->dataPtr->ecm.State());
+      return true;
+    };
+  if (!this->dataPtr->node.Advertise(changedGuiEcmService, cb))
+  {
+    ignerr << "failed to advertise the [" << changedGuiEcmService
+           << "] service.\n";
+  }
 }
 
 /////////////////////////////////////////////////

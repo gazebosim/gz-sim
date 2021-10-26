@@ -18,10 +18,12 @@
 #include "SimulationRunner.hh"
 
 #include <algorithm>
+#include <mutex>
 
+#include <ignition/common/Profiler.hh>
+#include <ignition/msgs.hh>
 #include <sdf/Root.hh>
 
-#include "ignition/common/Profiler.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Sensor.hh"
@@ -194,8 +196,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->node = std::make_unique<transport::Node>(opts);
 
   // TODO(louise) Combine both messages into one.
-  this->node->Advertise("control", &SimulationRunner::OnWorldStateControl,
-      this);
+  this->node->Advertise("control", &SimulationRunner::OnWorldControl, this);
   this->node->Advertise("playback/control",
       &SimulationRunner::OnPlaybackControl, this);
 
@@ -805,6 +806,43 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 void SimulationRunner::Step(const UpdateInfo &_info)
 {
   IGN_PROFILE("SimulationRunner::Step");
+
+  {
+    std::lock_guard<std::mutex> lock(this->guiServerEcmMutex);
+    if (this->matchGuiEcm)
+    {
+      // Update the server's ECM to match any changes that took place in the
+      // GUI's ECM during the most recent pause interval. We do this before
+      // processing WorldControl msgs to ensure that GUI ECM changes aren't
+      // lost (if the GUI and server modified the same entities/components
+      // while paused, the GUI changes will overwrite the server changes)
+      const std::string guiEcmService = "/changedGuiEcm";
+      msgs::SerializedState guiChanges;
+      bool result;
+      if (this->node->Request(guiEcmService, 500, guiChanges, result))
+      {
+        if (!result)
+          ignerr << "Error processing the [" << guiEcmService << "] service.\n";
+        else
+        {
+          igndbg << "Syncing server's ECM state with gui's ECM state.\n";
+          this->entityCompMgr.SetState(guiChanges);
+        }
+      }
+      else
+      {
+        ignerr << "Unable to receive any changes that occurred in the GUI "
+               << "while paused.\n";
+      }
+      // TODO(anyone) notify server systems of changes made to the ECM,
+      // if there were any? Server systems are updated later in this method,
+      // so depending on how a server system is written/implemented, the system
+      // may automatically detect changes made to the ECM
+
+      this->matchGuiEcm = false;
+    }
+  }
+
   this->currentInfo = _info;
 
   // Publish info
@@ -1101,6 +1139,13 @@ bool SimulationRunner::OnWorldControl(const msgs::WorldControl &_req,
 {
   std::lock_guard<std::mutex> lock(this->msgBufferMutex);
 
+  {
+    std::lock_guard<std::mutex> ecmLock(this->guiServerEcmMutex);
+    // if we are going from pause to play, we need to update the server ECM
+    // with any changes that occurred to the GUI ECM while paused.
+    this->matchGuiEcm = this->Paused() && !_req.pause();
+  }
+
   WorldControl control;
   control.pause = _req.pause();
 
@@ -1131,58 +1176,6 @@ bool SimulationRunner::OnWorldControl(const msgs::WorldControl &_req,
   }
 
   this->worldControls.push_back(control);
-
-  _res.set_data(true);
-  return true;
-}
-
-/////////////////////////////////////////////////
-bool SimulationRunner::OnWorldStateControl(const msgs::WorldControlState &_req,
-    msgs::Boolean &_res)
-{
-  std::lock_guard<std::mutex> lock(this->msgBufferMutex);
-
-  WorldControl control;
-  control.pause = _req.worldcontrol().pause();
-
-  if (_req.worldcontrol().multi_step() != 0)
-    control.multiStep = _req.worldcontrol().multi_step();
-  else if (_req.worldcontrol().step())
-    control.multiStep = 1;
-
-  if (_req.worldcontrol().has_reset())
-  {
-    control.rewind = _req.worldcontrol().reset().all() ||
-      _req.worldcontrol().reset().time_only();
-
-    if (_req.worldcontrol().reset().model_only())
-    {
-      ignwarn << "Model only reset is not supported." << std::endl;
-    }
-  }
-
-  if (_req.worldcontrol().seed() != 0)
-  {
-    ignwarn << "Changing seed is not supported." << std::endl;
-  }
-
-  if (_req.worldcontrol().has_run_to_sim_time())
-  {
-    control.runToSimTime = std::chrono::seconds(
-        _req.worldcontrol().run_to_sim_time().sec()) +
-        std::chrono::nanoseconds(_req.worldcontrol().run_to_sim_time().nsec());
-  }
-
-  this->worldControls.push_back(control);
-
-  // update the server ECM if the GUI ECM was updated
-  const auto &allGuiEcmUpdates = _req.state();
-  for (int i = 0; i < allGuiEcmUpdates.state_size(); ++i)
-  {
-    this->entityCompMgr.SetState(allGuiEcmUpdates.state(i));
-  }
-  // TODO(anyone) notify server systems of changes made to the ECM, if there
-  // were any?
 
   _res.set_data(true);
   return true;
