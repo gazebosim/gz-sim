@@ -1,6 +1,54 @@
 ## Ignition Gazebo 6.x
 
-### Ignition Gazebo 6.X.X (20XX-XX-XX)
+### Ignition Gazebo 6.1.0 (2021-10-25)
+
+1. Updates to camera video record from subt
+    * [Pull request #1117](https://github.com/ignitionrobotics/ign-gazebo/pull/1117)
+
+1. Use the actor tension parameter
+    * [Pull request #1091](https://github.com/ignitionrobotics/ign-gazebo/pull/1091)
+
+1. Better protect this->dataPtr->initialized with renderMutex.
+    * [Pull request #1119](https://github.com/ignitionrobotics/ign-gazebo/pull/1119)
+
+1. Use QTimer to update plugins in the Qt thread
+    * [Pull request #1095](https://github.com/ignitionrobotics/ign-gazebo/pull/1095)
+
+1. Adjust pose decimals based on element width
+    * [Pull request #1089](https://github.com/ignitionrobotics/ign-gazebo/pull/1089)
+
+1. JointPositionController: Improve misleading error message
+    * [Pull request #1098](https://github.com/ignitionrobotics/ign-gazebo/pull/1098)
+
+1. Fixed IMU system plugin
+    * [Pull request #1043](https://github.com/ignitionrobotics/ign-gazebo/pull/1043)
+
+1. Prevent crash and print error
+    * [Pull request #1099](https://github.com/ignitionrobotics/ign-gazebo/pull/1099)
+
+1. Create GUI config folder before copying config
+    * [Pull request #1092](https://github.com/ignitionrobotics/ign-gazebo/pull/1092)
+
+1. Add support for configuring point size in Visualize Lidar GUI plugin
+    * [Pull request #1021](https://github.com/ignitionrobotics/ign-gazebo/pull/1021)
+
+1. Set a cloned joint's parent/child link names to the cloned parent/child link names
+    * [Pull request #1075](https://github.com/ignitionrobotics/ign-gazebo/pull/1075)
+
+1. Performance: use std::unordered_map where possible in SceneManager
+    * [Pull request #1083](https://github.com/ignitionrobotics/ign-gazebo/pull/1083)
+
+1. Fix transform controls
+    * [Pull request #1081](https://github.com/ignitionrobotics/ign-gazebo/pull/1081)
+
+1. Fix View Angle's home button
+    * [Pull request #1082](https://github.com/ignitionrobotics/ign-gazebo/pull/1082)
+
+1. Fix light control standalone example
+    * [Pull request #1077](https://github.com/ignitionrobotics/ign-gazebo/pull/1077)
+
+1. Parse new param for enabling / disabling IMU orientation output
+    * [Pull request #899](https://github.com/ignitionrobotics/ign-gazebo/pull/899)
 
 ### Ignition Gazebo 6.0.0 (2021-10-01)
 
