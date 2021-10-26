@@ -674,7 +674,7 @@ namespace ignition
       ///
       /// \param[in] _entity Entity id to mark as new
       /// \return True to mark it as new, false to mark it as not new
-      public: void MarkEntityAsNew(const Entity _entity, bool _new = true);
+      // public: void MarkEntityAsNew(const Entity _entity, bool _new = true);
 
       /// \brief Clear the list of newly added entities so that a call to
       /// EachAdded after this will have no entities to iterate. This function

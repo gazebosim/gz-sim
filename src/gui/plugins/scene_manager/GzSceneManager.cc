@@ -92,25 +92,27 @@ void GzSceneManager::Update(const UpdateInfo &_info,
 
   this->dataPtr->renderUtil.UpdateECM(_info, _ecm);
 
-  std::set<Entity> tmpNewEntities;
+//  std::set<Entity> tmpNewEntities;
   std::lock_guard<std::mutex> lock(this->dataPtr->newRemovedEntityMutex);
   {
-    for (const auto &ent : this->dataPtr->newEntities)
-    {
-      if (!_ecm.IsNewEntity(ent))
-        _ecm.MarkEntityAsNew(ent, true);
-      else
-        tmpNewEntities.insert(ent);
-    }
+    this->dataPtr->renderUtil.CreateVisualsForEntities(_ecm,
+        this->dataPtr->newEntities);
+    // for (const auto &ent : this->dataPtr->newEntities)
+    // {
+    //   if (!_ecm.IsNewEntity(ent))
+    //     _ecm.MarkEntityAsNew(ent, true);
+    //   else
+    //     tmpNewEntities.insert(ent);
+    // }
     this->dataPtr->newEntities.clear();
   }
 
   this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
 
-  for (const auto &ent : tmpNewEntities)
-  {
-    _ecm.MarkEntityAsNew(ent, false);
-  }
+//  for (const auto &ent : tmpNewEntities)
+//  {
+//    _ecm.MarkEntityAsNew(ent, false);
+//  }
 
 }
 
