@@ -30,10 +30,10 @@ namespace gui
 enum class PrimitiveShape
 {
   kBox,
-  kSphere,
-  kCylinder,
   kCapsule,
+  kCylinder,
   kEllipsoid,
+  kSphere,
 };
 
 /// \brief Enumeration of available primitive light types
@@ -47,12 +47,23 @@ enum class PrimitiveLight
 /// \brief Return an SDF string of one of the avilable primitive shape types
 /// \param[in] _type Type of shape to retrieve
 /// \return String containing SDF description of primitive shape
+/// Empty string if the _type is not supported.
 std::string getPrimitiveShape(const PrimitiveShape &_type);
 
 /// \brief Return an SDF string of one of the avilable primitive light types
 /// \param[in] _type Type of light to retrieve
 /// \return String containing SDF description of primitive light
+/// Empty string if the _type is not supported.
 std::string getPrimitiveLight(const PrimitiveLight &_type);
+
+/// \brief Return an SDF string of one of the avilable primitive shape or
+/// light types.
+/// \param[in] _typeName Type name of the of shape or light to retrieve.
+/// Must be one of: box, sphere, cylinder, capsule, ellipsoid, directional,
+/// point, or spot.
+/// \return String containing SDF description of primitive shape or light.
+/// Empty string if the _typeName is invalid.
+std::string getPrimitive(const std::string &_typeName);
 
 }  // namespace gui
 }  // namespace gazebo
