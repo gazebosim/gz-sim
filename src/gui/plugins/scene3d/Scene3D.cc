@@ -1434,6 +1434,10 @@ rendering::VisualPtr IgnRenderer::IsScalable(
   // ToDo(anyone): For now, we only allow to scale simple unit shapes
   // (unit box, unit cylinder and unit sphere). Update this function when
   // we allow more complex models to be scaled.
+  // In order to accept a model as a simple shape, we traverse its node tree
+  // and we discard gui-only visuals (e.g.: a visual gizmo). After filtering,
+  // a simple unit shape always has exactly tree visuals (model, link and
+  // visual) and one of them will contain a simple shape geometry.
   if (visualCount == 3u && simpleShapesCount == 1u)
     return visual;
   else
@@ -1607,6 +1611,12 @@ void IgnRenderer::HandleMouseTransformControl()
             ignition::gui::App()->sendEvent(
                 ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
                 &event);
+
+            if (this->dataPtr->transformMode ==
+              rendering::TransformMode::TM_SCALE && !scaleEnabled)
+            {
+              this->dataPtr->transformMode = rendering::TransformMode::TM_NONE;
+            }
 
             this->dataPtr->mouseDirty = false;
             return;
@@ -3114,6 +3124,7 @@ bool Scene3D::OnViewCollisions(const msgs::StringMsg &_msg,
 bool Scene3D::UpdateGeomSize(const ignition::math::Vector3d &_scale,
   sdf::Geometry &_geometry)
 {
+  // todo(anoyone): Add support for capsules and ellipsoids.
   auto type = _geometry.Type();
   if (type == sdf::GeometryType::BOX)
   {

@@ -69,6 +69,9 @@ namespace ignition::gazebo
 
     /// \brief The scale snap values held for snap to grid.
     public: math::Vector3d scaleSnapVals{1.0, 1.0, 1.0};
+
+    /// \brief Whether scale is enabled or not.
+    public: bool scaleEnabled = false;
   };
 }
 
@@ -245,7 +248,7 @@ bool TransformControl::eventFilter(QObject *_obj, QEvent *_event)
     {
       this->activateRotate();
     }
-    else if (keyEvent->key() == Qt::Key_S)
+    else if (keyEvent->key() == Qt::Key_S && this->dataPtr->scaleEnabled)
     {
       this->activateScale();
     }
@@ -262,7 +265,8 @@ bool TransformControl::eventFilter(QObject *_obj, QEvent *_event)
   {
     ignition::gazebo::gui::events::ScaleMode *scaleEvent =
       static_cast<ignition::gazebo::gui::events::ScaleMode*>(_event);
-    if (scaleEvent->Enabled())
+    this->dataPtr->scaleEnabled = scaleEvent->Enabled();
+    if (this->dataPtr->scaleEnabled)
       this->enableScaleButton();
     else
       this->disableScaleButton();
