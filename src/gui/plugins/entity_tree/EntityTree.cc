@@ -112,6 +112,7 @@ QString entityType(Entity _entity,
 /////////////////////////////////////////////////
 TreeModel::TreeModel() : QStandardItemModel()
 {
+  qRegisterMetaType<Entity>("Entity");
 }
 
 /////////////////////////////////////////////////
