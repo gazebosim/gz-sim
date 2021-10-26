@@ -27,12 +27,15 @@
 #include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/AngularAcceleration.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
+#include "ignition/gazebo/components/BatterySoC.hh"
 #include "ignition/gazebo/components/CastShadows.hh"
+#include "ignition/gazebo/components/CenterOfVolume.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/LaserRetro.hh"
 #include "ignition/gazebo/components/Level.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/LinearAcceleration.hh"
@@ -53,7 +56,10 @@
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/Static.hh"
+#include "ignition/gazebo/components/ThreadPitch.hh"
+#include "ignition/gazebo/components/Transparency.hh"
 #include "ignition/gazebo/components/Visual.hh"
+#include "ignition/gazebo/components/Volume.hh"
 #include "ignition/gazebo/components/WindMode.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -182,6 +188,13 @@ void ignition::gazebo::setData(QStandardItem *_item, const int &_data)
   _item->setData(QString("Integer"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(_data, ComponentsModel::RoleNames().key("data"));
+}
+
+//////////////////////////////////////////////////
+template<>
+void ignition::gazebo::setData(QStandardItem *_item, const Entity &_data)
+{
+  setData(_item, static_cast<int>(_data));
 }
 
 //////////////////////////////////////////////////
@@ -462,12 +475,29 @@ void ComponentInspector::Update(const UpdateInfo &,
         setUnit(item, "rad/s");
       }
     }
+    else if (typeId == components::BatterySoC::typeId)
+    {
+      auto comp = _ecm.Component<components::BatterySoC>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
     else if (typeId == components::CastShadows::typeId)
     {
       auto comp = _ecm.Component<components::CastShadows>(
           this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
+    }
+    else if (typeId == components::CenterOfVolume::typeId)
+    {
+      auto comp = _ecm.Component<components::CenterOfVolume>(
+          this->dataPtr->entity);
+      if (comp)
+      {
+        setData(item, comp->Data());
+        setUnit(item, "m");
+      }
     }
     else if (typeId == components::ChildLinkName::typeId)
     {
@@ -484,6 +514,12 @@ void ComponentInspector::Update(const UpdateInfo &,
         setData(item, comp->Data());
         setUnit(item, "m/s\u00B2");
       }
+    }
+    else if (typeId == components::LaserRetro::typeId)
+    {
+      auto comp = _ecm.Component<components::LaserRetro>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
     }
     else if (typeId == components::LinearAcceleration::typeId)
     {
@@ -584,6 +620,33 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, comp->Data());
     }
+    else if (typeId == components::ThreadPitch::typeId)
+    {
+      auto comp = _ecm.Component<components::ThreadPitch>(
+          this->dataPtr->entity);
+      if (comp)
+      {
+        setData(item, comp->Data());
+        setUnit(item, "m");
+      }
+    }
+    else if (typeId == components::Transparency::typeId)
+    {
+      auto comp = _ecm.Component<components::Transparency>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::Volume::typeId)
+    {
+      auto comp = _ecm.Component<components::Volume>(
+          this->dataPtr->entity);
+      if (comp)
+      {
+        setData(item, comp->Data());
+        setUnit(item, "m\u00B3");
+      }
+    }
     else if (typeId == components::WindMode::typeId)
     {
       auto comp = _ecm.Component<components::WindMode>(this->dataPtr->entity);
@@ -598,6 +661,16 @@ void ComponentInspector::Update(const UpdateInfo &,
       {
         setData(item, comp->Data());
         setUnit(item, "rad/s\u00B2");
+      }
+    }
+    else if (typeId == components::WorldAngularVelocity::typeId)
+    {
+      auto comp = _ecm.Component<components::WorldAngularVelocity>(
+          this->dataPtr->entity);
+      if (comp)
+      {
+        setData(item, comp->Data());
+        setUnit(item, "rad/s");
       }
     }
     else if (typeId == components::WorldLinearVelocity::typeId)
