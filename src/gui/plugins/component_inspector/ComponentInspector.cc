@@ -17,6 +17,7 @@
 
 #include <iostream>
 #include <regex>
+#include <QColorDialog>
 #include <ignition/common/Console.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/gui/Application.hh>
@@ -954,8 +955,57 @@ void ComponentInspector::OnMaterialColor(
   double _rAmbient, double _gAmbient, double _bAmbient, double _aAmbient,
   double _rDiffuse, double _gDiffuse, double _bDiffuse, double _aDiffuse,
   double _rSpecular, double _gSpecular, double _bSpecular, double _aSpecular,
-  double _rEmissive, double _gEmissive, double _bEmissive, double _aEmissive)
+  double _rEmissive, double _gEmissive, double _bEmissive, double _aEmissive,
+  QString _type, QColor _currColor)
 {
+
+  // when type is not empty, open qt color dialog
+  std::string type = _type.toStdString();
+  if (!type.empty())
+  {
+    QColor newColor = QColorDialog::getColor(
+        _currColor, nullptr, "Pick a color",
+        {QColorDialog::DontUseNativeDialog, QColorDialog::ShowAlphaChannel});
+
+    // returns if the user hits cancel
+    if (!newColor.isValid())
+      return;
+
+    if (type == "ambient")
+    {
+      _rAmbient = newColor.redF();
+      _gAmbient = newColor.greenF();
+      _bAmbient = newColor.blueF();
+      _aAmbient = newColor.alphaF();
+    }
+    else if (type == "diffuse")
+    {
+      _rDiffuse = newColor.redF();
+      _gDiffuse = newColor.greenF();
+      _bDiffuse = newColor.blueF();
+      _aDiffuse = newColor.alphaF();
+    }
+    else if (type == "specular")
+    {
+      _rSpecular = newColor.redF();
+      _gSpecular = newColor.greenF();
+      _bSpecular = newColor.blueF();
+      _aSpecular = newColor.alphaF();
+    }
+    else if (type == "emissive")
+    {
+      _rEmissive = newColor.redF();
+      _gEmissive = newColor.greenF();
+      _bEmissive = newColor.blueF();
+      _aEmissive = newColor.alphaF();
+    }
+    else
+    {
+      ignerr << "Invalid material type: " << type << std::endl;
+      return;
+    }
+  }
+
   std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
       [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
   {

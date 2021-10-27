@@ -283,13 +283,17 @@ namespace gazebo
     /// \param[in] _gEmissive emissive green
     /// \param[in] _bEmissive emissive blue
     /// \param[in] _aEmissive emissive alpha
+    /// \param[in] _type if type is not empty, opens QColorDialog.
+    /// The possible types are ambient, diffuse, specular, or emissive.
+    /// \param[in] _currColor used for QColorDialog to show the current color
+    /// in the open dialog.
     public: Q_INVOKABLE void OnMaterialColor(
       double _rAmbient, double _gAmbient, double _bAmbient,
       double _aAmbient, double _rDiffuse, double _gDiffuse,
       double _bDiffuse, double _aDiffuse, double _rSpecular,
       double _gSpecular, double _bSpecular, double _aSpecular,
-      double _rEmissive, double _gEmissive, double _bEmissive, double _aEmissive
-    );
+      double _rEmissive, double _gEmissive, double _bEmissive,
+      double _aEmissive, QString _type, QColor _currColor);
 
     /// \brief Get whether the entity is a nested model or not
     /// \return True if the entity is a nested model, false otherwise
