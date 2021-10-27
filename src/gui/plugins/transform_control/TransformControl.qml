@@ -29,8 +29,17 @@ ToolBar {
   Layout.minimumHeight: 100
 
   function activateScale() {
+    scale.enabled = true;
     scale.checked = true;
     TransformControl.OnMode("scale");
+  }
+
+  function enableScaleButton() {
+    scale.enabled = true;
+  }
+
+  function disableScaleButton() {
+    scale.enabled = false;
   }
 
   property color snapTitle: (Material.theme == Material.Light) ?
@@ -108,6 +117,16 @@ ToolBar {
   Connections {
     target: TransformControl
     onActivateScale: activateScale();
+  }
+
+  Connections {
+    target: TransformControl
+    onEnableScaleButton: enableScaleButton();
+  }
+
+  Connections {
+    target: TransformControl
+    onDisableScaleButton: disableScaleButton();
   }
 
   RowLayout {

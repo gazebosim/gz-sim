@@ -404,6 +404,7 @@ rendering::VisualPtr SceneManager::CreateCollision(Entity _id,
   visual.SetName(_collision.Name());
 
   rendering::VisualPtr collisionVis = CreateVisual(_id, visual, _parentId);
+  collisionVis->SetUserData("gui-only", static_cast<bool>(true));
   return collisionVis;
 }
 /////////////////////////////////////////////////

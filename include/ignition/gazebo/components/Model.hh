@@ -74,7 +74,7 @@ namespace serializers
         return _in;
       }
 
-      _model.Load(root.Element()->GetElement("model"));
+      _model = *root.ModelByIndex(0);
       return _in;
     }
   };
