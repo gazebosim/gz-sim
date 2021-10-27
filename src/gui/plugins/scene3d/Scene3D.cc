@@ -1436,7 +1436,7 @@ rendering::VisualPtr IgnRenderer::IsScalable(
   // we allow more complex models to be scaled.
   // In order to accept a model as a simple shape, we traverse its node tree
   // and we discard gui-only visuals (e.g.: a visual gizmo). After filtering,
-  // a simple unit shape always has exactly tree visuals (model, link and
+  // a simple unit shape always has exactly three visuals (model, link and
   // visual) and one of them will contain a simple shape geometry.
   if (visualCount == 3u && simpleShapesCount == 1u)
     return visual;
