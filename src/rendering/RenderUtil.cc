@@ -104,11 +104,15 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief Name of scene
   public: std::string sceneName = "scene";
 
-  /// \brief Scene background color
-  public: math::Color backgroundColor = math::Color::Black;
+  /// \brief Scene background color. This is optional because a <scene> is
+  /// always present, which has a default background color value. This
+  /// backgroundColor variable is used to override the <scene> value.
+  public: std::optional<math::Color> backgroundColor;
 
-  /// \brief Ambient color
-  public: math::Color ambientLight = math::Color(1.0, 1.0, 1.0, 1.0);
+  /// \brief Ambient color. This is optional because an <scene> is always
+  /// present, which has a default ambient light value. This ambientLight
+  /// variable is used to override the <scene> value.
+  public: std::optional<math::Color> ambientLight;
 
   /// \brief Scene manager
   public: SceneManager sceneManager;
@@ -355,8 +359,16 @@ void RenderUtil::Update()
   // extend the sensor system to support mutliple scenes in the future
   for (auto &scene : newScenes)
   {
-    this->dataPtr->scene->SetAmbientLight(scene.Ambient());
-    this->dataPtr->scene->SetBackgroundColor(scene.Background());
+    // Only set the ambient color if the RenderUtil::SetBackgroundColor
+    // was not called.
+    if (!this->dataPtr->ambientLight)
+      this->dataPtr->scene->SetAmbientLight(scene.Ambient());
+
+    // Only set the background color if the RenderUtil::SetBackgroundColor
+    // was not called.
+    if (!this->dataPtr->backgroundColor)
+      this->dataPtr->scene->SetBackgroundColor(scene.Background());
+
     if (scene.Grid() && !this->dataPtr->enableSensors)
       this->ShowGrid();
     // only one scene so break
@@ -1203,8 +1215,17 @@ void RenderUtil::Init()
         this->dataPtr->engine->CreateScene(this->dataPtr->sceneName);
     if (this->dataPtr->scene)
     {
-      this->dataPtr->scene->SetAmbientLight(this->dataPtr->ambientLight);
-      this->dataPtr->scene->SetBackgroundColor(this->dataPtr->backgroundColor);
+      if (this->dataPtr->ambientLight)
+      {
+        this->dataPtr->scene->SetAmbientLight(
+            *this->dataPtr->ambientLight);
+      }
+
+      if (this->dataPtr->backgroundColor)
+      {
+        this->dataPtr->scene->SetBackgroundColor(
+            *this->dataPtr->backgroundColor);
+      }
     }
   }
   this->dataPtr->sceneManager.SetScene(this->dataPtr->scene);

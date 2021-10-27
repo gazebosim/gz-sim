@@ -164,6 +164,9 @@ class ignition::gazebo::systems::SensorsPrivate
 
   /// \brief Stop the rendering thread
   public: void Stop();
+
+  /// \brief Use to optionally set the background color.
+  public: std::optional<math::Color> backgroundColor;
 };
 
 //////////////////////////////////////////////////
@@ -184,6 +187,8 @@ void SensorsPrivate::WaitForInit()
     {
       // Only initialize if there are rendering sensors
       igndbg << "Initializing render context" << std::endl;
+      if (this->backgroundColor)
+        this->renderUtil.SetBackgroundColor(*this->backgroundColor);
       this->renderUtil.Init();
       this->scene = this->renderUtil.Scene();
       this->initialized = true;
@@ -331,9 +336,14 @@ void Sensors::Configure(const Entity &/*_id*/,
     EventManager &_eventMgr)
 {
   igndbg << "Configuring Sensors system" << std::endl;
+
   // Setup rendering
   std::string engineName =
       _sdf->Get<std::string>("render_engine", "ogre2").first;
+
+  // Get the background color, if specified.
+  if (_sdf->HasElement("background_color"))
+    this->dataPtr->backgroundColor = _sdf->Get<math::Color>("background_color");
 
   this->dataPtr->renderUtil.SetEngineName(engineName);
   this->dataPtr->renderUtil.SetEnableSensors(true,
