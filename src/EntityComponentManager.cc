@@ -1006,15 +1006,6 @@ bool EntityComponentManager::CreateComponentImplementation(
   }
   else
   {
-    // if the pre-existing component is marked as removed, this means that the
-    // component was added to the entity previously, but later removed. In this
-    // case, a re-addition of the component is occuring. If the pre-existing
-    // component is not marked as removed, this means that the component was
-    // added to the entity previously and never removed. In this case, we are
-    // simply modifying the data of the pre-existing component (the modification
-    // of the data is done externally in a templated ECM method call, because we
-    // need the derived component class in order to update the derived component
-    // data)
     auto existingCompPtr = entityCompIter->second.at(compIdxIter->second).get();
     if (!existingCompPtr)
     {
@@ -1024,7 +1015,20 @@ bool EntityComponentManager::CreateComponentImplementation(
         << std::endl;
       return false;
     }
-    else if (this->dataPtr->ComponentMarkedAsRemoved(_entity, _componentTypeId))
+
+    // if the pre-existing component is marked as removed, this means that the
+    // component was added to the entity previously, but later removed. In this
+    // case, a re-addition of the component is occuring. If the pre-existing
+    // component is not marked as removed, this means that the component was
+    // added to the entity previously and never removed. In this case, we are
+    // simply modifying the data of the pre-existing component
+    // (modifying component data is done through serialize/deserialize to ensure
+    // that no derived component data is lost)
+    std::ostringstream ostr;
+    newComp->Serialize(ostr);
+    std::istringstream istr(ostr.str());
+    existingCompPtr->Deserialize(istr);
+    if (this->dataPtr->ComponentMarkedAsRemoved(_entity, _componentTypeId))
     {
       this->dataPtr->componentsMarkedAsRemoved[_entity].erase(_componentTypeId);
 

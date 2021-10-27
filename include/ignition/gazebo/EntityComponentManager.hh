@@ -705,7 +705,17 @@ namespace ignition
       /// \param[in] _componentTypeId Id of the component type.
       /// \param[in] _data Data used to construct the component.
       /// \return True if the component's data needs to be set externally; false
-      /// otherwise.
+      /// otherwise (this return type should be ignored - see todo note below)
+      /// TODO(adlarkin) update this method to return the actual component
+      /// (components::BaseComponent *) in ign-gazebo7. This method has
+      /// been updated in ign-gazebo6 to call BaseComponent::Deserialize in the
+      /// implementation, so the component data is now set correctly and does
+      /// not need to be set in the calling template method. Once this method
+      /// returns the actual component, the template method that calls this
+      /// (EntityComponentManager::CreateComponnt) can cast this returned
+      /// component to the derived component directly instead of having to do an
+      /// additional templated EntityComponentManager::Component lookup to get
+      /// the derived component
       private: bool CreateComponentImplementation(
                    const Entity _entity,
                    const ComponentTypeId _componentTypeId,

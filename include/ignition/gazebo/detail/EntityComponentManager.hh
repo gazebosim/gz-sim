@@ -87,21 +87,8 @@ template<typename ComponentTypeT>
 ComponentTypeT *EntityComponentManager::CreateComponent(const Entity _entity,
             const ComponentTypeT &_data)
 {
-  auto updateData = this->CreateComponentImplementation(_entity,
-      ComponentTypeT::typeId, &_data);
-  auto comp = this->Component<ComponentTypeT>(_entity);
-  if (updateData)
-  {
-    if (!comp)
-    {
-      ignerr << "Internal error. Failure to create a component of type "
-        << ComponentTypeT::typeId << " for entity " << _entity
-        << ". This should never happen!\n";
-      return comp;
-    }
-    *comp = _data;
-  }
-  return comp;
+  this->CreateComponentImplementation(_entity, ComponentTypeT::typeId, &_data);
+  return this->Component<ComponentTypeT>(_entity);
 }
 
 //////////////////////////////////////////////////
