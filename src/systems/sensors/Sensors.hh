@@ -41,9 +41,12 @@ namespace systems
   /// ## System Parameters
   ///
   /// - `<render_engine>` Name of the render engine, such as 'ogre' or 'ogre2'.
-  /// - `<background_color>` Color used for the scene background. This
+  /// - `<background_color>` Color used for the scene's background. This
   /// will override the background color specified in a world's SDF <scene>
   /// element. This background color is used by sensors, not the GUI.
+  /// - `<ambient_light>` Color used for the scene's ambient light. This
+  /// will override the ambient value specified in a world's SDF <scene>
+  /// element. This ambient light is used by sensors, not the GUI.
   ///
   /// \TODO(louise) Have one system for all sensors, or one per
   /// sensor / sensor type?

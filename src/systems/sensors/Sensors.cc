@@ -167,6 +167,9 @@ class ignition::gazebo::systems::SensorsPrivate
 
   /// \brief Use to optionally set the background color.
   public: std::optional<math::Color> backgroundColor;
+
+  /// \brief Use to optionally set the ambient light.
+  public: std::optional<math::Color> ambientLight;
 };
 
 //////////////////////////////////////////////////
@@ -189,6 +192,8 @@ void SensorsPrivate::WaitForInit()
       igndbg << "Initializing render context" << std::endl;
       if (this->backgroundColor)
         this->renderUtil.SetBackgroundColor(*this->backgroundColor);
+      if (this->ambientLight)
+        this->renderUtil.SetAmbientLight(*this->ambientLight);
       this->renderUtil.Init();
       this->scene = this->renderUtil.Scene();
       this->initialized = true;
@@ -344,6 +349,10 @@ void Sensors::Configure(const Entity &/*_id*/,
   // Get the background color, if specified.
   if (_sdf->HasElement("background_color"))
     this->dataPtr->backgroundColor = _sdf->Get<math::Color>("background_color");
+
+  // Get the ambient light, if specified.
+  if (_sdf->HasElement("ambient_light"))
+    this->dataPtr->ambientLight = _sdf->Get<math::Color>("ambient_light");
 
   this->dataPtr->renderUtil.SetEngineName(engineName);
   this->dataPtr->renderUtil.SetEnableSensors(true,
