@@ -322,6 +322,7 @@ ComponentInspector::ComponentInspector()
   : GuiSystem(), dataPtr(std::make_unique<ComponentInspectorPrivate>())
 {
   qRegisterMetaType<ignition::gazebo::ComponentTypeId>();
+  qRegisterMetaType<Entity>("Entity");
 }
 
 /////////////////////////////////////////////////
@@ -752,13 +753,13 @@ bool ComponentInspector::eventFilter(QObject *_obj, QEvent *_event)
 }
 
 /////////////////////////////////////////////////
-int ComponentInspector::Entity() const
+Entity ComponentInspector::GetEntity() const
 {
   return this->dataPtr->entity;
 }
 
 /////////////////////////////////////////////////
-void ComponentInspector::SetEntity(const int &_entity)
+void ComponentInspector::SetEntity(const Entity &_entity)
 {
   // If nothing is selected, display world properties
   if (_entity == kNullEntity)
