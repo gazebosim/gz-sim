@@ -17,15 +17,15 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_VISUALCMD_HH_
 #define IGNITION_GAZEBO_COMPONENTS_VISUALCMD_HH_
 
-#include <sdf/Visual.hh>
-
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
+#include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Serialization.hh>
 
 #include <ignition/msgs/visual.pb.h>
+
+#include <sdf/Visual.hh>
 
 namespace ignition
 {

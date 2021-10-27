@@ -1362,7 +1362,6 @@ bool VisualCommand::Execute()
   return true;
 }
 
-
 IGNITION_ADD_PLUGIN(UserCommands, System,
   UserCommands::ISystemConfigure,
   UserCommands::ISystemPreUpdate
