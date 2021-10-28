@@ -286,6 +286,11 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
   rendering::VisualPtr visualVis = this->dataPtr->scene->CreateVisual(name);
   visualVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   visualVis->SetUserData("pause-update", static_cast<int>(0));
+
+  auto geometry = _visual.Geom();
+  if (geometry)
+    visualVis->SetUserData("geometry-type", static_cast<int>(geometry->Type()));
+
   visualVis->SetLocalPose(_visual.RawPose());
 
   if (_visual.HasLaserRetro())
@@ -431,6 +436,7 @@ rendering::VisualPtr SceneManager::CreateCollision(Entity _id,
   visual.SetName(_collision.Name());
 
   rendering::VisualPtr collisionVis = CreateVisual(_id, visual, _parentId);
+  collisionVis->SetUserData("gui-only", static_cast<bool>(true));
   return collisionVis;
 }
 /////////////////////////////////////////////////

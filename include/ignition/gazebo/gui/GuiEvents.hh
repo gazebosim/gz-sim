@@ -158,6 +158,31 @@ namespace events
     /// \brief True if a transform mode is active.
     private: bool tranformModeActive;
   };
+
+  /// \brief Event called to enable/disable scale mode for the current
+  /// selected model.
+  class ScaleMode : public QEvent
+  {
+    /// \brief Constructor
+    /// \param[in] _enabled Whether scale mode should be enabled or not.
+    public: explicit ScaleMode(bool _enabled)
+        : QEvent(kType), enabled(_enabled)
+    {
+    }
+
+    /// \brief Unique type for this event.
+    static const QEvent::Type kType = QEvent::Type(QEvent::User + 6);
+
+    /// \brief Is scale mode enabled?
+    /// \return True when scale mode is enabled or false otherwise.
+    public: bool Enabled() const
+    {
+      return this->enabled;
+    }
+
+    /// \brief Is scale mode enabled?
+    bool enabled;
+  };
 }  // namespace events
 }
 }  // namespace gui

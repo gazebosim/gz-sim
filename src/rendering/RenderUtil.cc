@@ -2674,6 +2674,7 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
     wireBoxVis->SetInheritScale(false);
     wireBoxVis->AddGeometry(wireBox);
     wireBoxVis->SetMaterial(white, false);
+    wireBoxVis->SetUserData("gui-only", static_cast<bool>(true));
     vis->AddChild(wireBoxVis);
 
     // Add wire box to map for setting visibility
@@ -2708,6 +2709,39 @@ void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
     if (visParent)
       visParent->SetVisible(false);
   }
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::SetWireBoxScale(const Entity &_entityId,
+    const math::Vector3d &_scale)
+{
+  /// \TODO(anyone) Consider to use this->dataPtr->sceneManager.NodeById()
+  /// when WireBoxes are tracked in the scene manager.
+  if (this->dataPtr->wireBoxes.find(_entityId) ==
+          this->dataPtr->wireBoxes.end())
+  {
+    ignerr << "Trying to scale a wirebox with unknown id [" << _entityId
+           << "]" << std::endl;
+    return;
+  }
+
+  ignition::rendering::WireBoxPtr wireBox = this->dataPtr->wireBoxes[_entityId];
+  if (!wireBox)
+  {
+    ignerr << "Null wirebox associated to id [" << _entityId
+           << "]" << std::endl;
+    return;
+  }
+
+  auto visParent = wireBox->Parent();
+  if (!visParent)
+  {
+    ignerr << "Trying to scale a wirebox with null parent [" << _entityId
+           << "]" << std::endl;
+    return;
+  }
+
+  visParent->SetLocalScale(_scale);
 }
 
 /////////////////////////////////////////////////

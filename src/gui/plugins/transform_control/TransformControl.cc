@@ -117,6 +117,9 @@ namespace ignition::gazebo
     /// \brief The scale snap values held for snap to grid.
     public: math::Vector3d scaleSnapVals{1.0, 1.0, 1.0};
 
+    /// \brief Whether scale is enabled or not.
+    public: bool scaleEnabled = false;
+
     /// \brief Transform mode: none, translation, rotation, or scale
     public: rendering::TransformMode transformMode =
         rendering::TransformMode::TM_NONE;
@@ -413,6 +416,11 @@ bool TransformControl::eventFilter(QObject *_obj, QEvent *_event)
     {
       this->activateRotate();
     }
+    else if (this->dataPtr->keyEvent.Key() == Qt::Key_S &&
+             this->dataPtr->scaleEnabled)
+    {
+      this->activateScale();
+    }
   }
   else if (_event->type() == ignition::gui::events::KeyReleaseOnScene::kType)
   {
@@ -437,6 +445,10 @@ bool TransformControl::eventFilter(QObject *_obj, QEvent *_event)
       else if (keyEvent->key() == Qt::Key_R)
       {
         this->activateRotate();
+      }
+      else if (keyEvent->key() == Qt::Key_S && this->dataPtr->scaleEnabled)
+      {
+        this->activateScale();
       }
     }
     else if (_event->type() == QEvent::KeyRelease)
