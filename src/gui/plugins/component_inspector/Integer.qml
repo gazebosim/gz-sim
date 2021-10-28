@@ -38,7 +38,10 @@ Rectangle {
   // Maximum spinbox value
   property double spinMax: 1000000
 
-  Row {
+  // Unit
+  property string unit: model && model.unit != undefined ? model.unit : ''
+
+  RowLayout {
     anchors.fill: parent
 
     Item {
@@ -55,12 +58,19 @@ Rectangle {
       id: typeHeader
     }
 
-    IgnSpinBox {
+    // TODO(anyone) Support write mode
+    Text {
       id: content
-      value: model.data
-      minimumValue: -spinMax
-      maximumValue: spinMax
       Layout.fillWidth: true
+      horizontalAlignment: Text.AlignRight
+      color: Material.theme == Material.Light ? "black" : "white"
+      font.pointSize: 12
+      text: {
+        var valueText = model.data
+        if (unit !== '')
+          valueText += ' ' + unit
+        return valueText
+      }
     }
 
     Item {
