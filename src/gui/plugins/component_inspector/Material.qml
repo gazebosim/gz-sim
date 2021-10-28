@@ -65,24 +65,23 @@ Rectangle {
 
   // send new material color data to C++
   function sendMaterialColor(_type, _currColor) {
-    // TODO(anyone) There's a loss of precision when these values get to C++
     componentInspector.onMaterialColor(
-      rAmbientItem.value / 255,
-      gAmbientItem.value / 255,
-      bAmbientItem.value / 255,
-      aAmbientItem.value / 255,
-      rDiffuseItem.value / 255,
-      gDiffuseItem.value / 255,
-      bDiffuseItem.value / 255,
-      aDiffuseItem.value / 255,
-      rSpecularItem.value / 255,
-      gSpecularItem.value / 255,
-      bSpecularItem.value / 255,
-      aSpecularItem.value / 255,
-      rEmissiveItem.value / 255,
-      gEmissiveItem.value / 255,
-      bEmissiveItem.value / 255,
-      aEmissiveItem.value / 255,
+      rAmbientItem.value,
+      gAmbientItem.value,
+      bAmbientItem.value,
+      aAmbientItem.value,
+      rDiffuseItem.value,
+      gDiffuseItem.value,
+      bDiffuseItem.value,
+      aDiffuseItem.value,
+      rSpecularItem.value,
+      gSpecularItem.value,
+      bSpecularItem.value,
+      aSpecularItem.value,
+      rEmissiveItem.value,
+      gEmissiveItem.value,
+      bEmissiveItem.value,
+      aEmissiveItem.value,
       _type,
       _currColor
     );
@@ -120,7 +119,7 @@ Rectangle {
     id: spinBoxMaterialColor
     IgnSpinBox {
       id: writableSpin
-      value: writableSpin.activeFocus ? writableSpin.value : (numberValue * 255)
+      value: writableSpin.activeFocus ? writableSpin.value : numberValue
       minimumValue: 0
       maximumValue: 255
       decimals: 0
