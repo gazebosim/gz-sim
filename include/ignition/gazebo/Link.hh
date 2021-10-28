@@ -22,6 +22,7 @@
 #include <string>
 #include <vector>
 
+#include <ignition/math/Color.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/math/Quaternion.hh>
 #include <ignition/math/Vector3.hh>
@@ -271,6 +272,12 @@ namespace ignition
       public: void AddWorldWrench(EntityComponentManager &_ecm,
                                  const math::Vector3d &_force,
                                  const math::Vector3d &_torque) const;
+
+      public: void AddAndVisualizeWorldWrench(EntityComponentManager &_ecm,
+                         const math::Vector3d &_force,
+                         const math::Vector3d &_torque,
+                         const std::string &_pluginName,
+                         const math::Color &_color) const;
 
       /// \brief Pointer to private data.
       private: std::unique_ptr<LinkPrivate> dataPtr;

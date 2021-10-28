@@ -16,6 +16,9 @@
  */
 
 #include <ignition/msgs/Utility.hh>
+#include <ignition/msgs/marker.pb.h>
+
+#include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
@@ -350,4 +353,43 @@ void Link::AddWorldWrench(EntityComponentManager &_ecm,
     msgs::Set(linkWrenchComp->Data().mutable_torque(),
               msgs::Convert(linkWrenchComp->Data().torque()) + _torque);
   }
+}
+
+//////////////////////////////////////////////////
+void Link::AddAndVisualizeWorldWrench(EntityComponentManager &_ecm,
+                         const math::Vector3d &_force,
+                         const math::Vector3d &_torque,
+                         const std::string &_pluginName,
+                         const math::Color &_color) const
+{
+  static transport::Node node;
+
+  msgs::Marker marker;
+  
+
+  auto ns = "force/" + (this->Name(_ecm).has_value()? this->Name(_ecm).value() : "link") + "/" + _pluginName;
+  marker.set_ns(ns);
+  marker.set_id(1);
+  marker.set_action(msgs::Marker::ADD_MODIFY);
+  marker.set_type(msgs::Marker::CYLINDER);
+
+  marker.set_visibility(msgs::Marker::GUI);
+
+  ignition::msgs::Set(marker.mutable_material()->mutable_ambient(), _color);
+  ignition::msgs::Set(marker.mutable_material()->mutable_diffuse(), _color);
+
+  if (this->WorldPose(_ecm).has_value())
+  {
+    auto linkPose = this->WorldPose(_ecm).value();
+
+    math::Quaterniond qt;
+    qt.From2Axes(math::Vector3d::UnitZ, _force.Normalized());
+    math::Pose3d arrowPose(linkPose.Pos(), qt);
+    ignition::msgs::Set(marker.mutable_pose(), arrowPose);
+    ignition::msgs::Set(marker.mutable_scale(), math::Vector3d(0.1, 0.1, _force.Length()));
+
+    node.Request("/marker", marker);
+  }
+  
+  this->AddWorldWrench(_ecm, _force, _torque);
 }
