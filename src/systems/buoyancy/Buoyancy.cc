@@ -572,7 +572,7 @@ void Buoyancy::PreUpdate(const UpdateInfo &_info,
 
         // Apply the wrench to the link. This wrench is applied in the
         // Physics System.
-        link.AddWorldWrench(_ecm, buoyancy, torque);
+        link.AddAndVisualizeWorldWrench(_ecm, buoyancy, torque, "BuoyancyPlugin", math::Color(1,0,0));
       }
       else if (this->dataPtr->buoyancyType
         == BuoyancyPrivate::BuoyancyType::GRADED_BUOYANCY)
