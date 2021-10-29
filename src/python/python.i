@@ -6,6 +6,7 @@
 %include StopWatch.i
 %include Vector2.i
 %include Vector3.i
+%include SphericalCoordinates.i
 %include Vector4.i
 %include Color.i
 %include Pose3.i
