@@ -19,6 +19,7 @@
 #include <ignition/common/Profiler.hh>
 #include <ignition/fuel_tools/Interface.hh>
 #include <ignition/gui/Application.hh>
+#include <ignition/gui/GuiEvents.hh>
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/msgs.hh>
 #include <ignition/transport/Node.hh>
@@ -64,6 +65,9 @@ class ignition::gazebo::GuiRunner::Implementation
 
   /// \brief True if the initial state has been received and processed.
   public: bool receivedInitialState{false};
+
+  /// \brief Name of WorldControl service
+  public: std::string controlService;
 };
 
 /////////////////////////////////////////////////
@@ -112,29 +116,46 @@ GuiRunner::GuiRunner(const std::string &_worldName)
   connect(timer, &QTimer::timeout, this, &GuiRunner::UpdatePlugins);
   timer->start(33);
 
-  // Advertise a service that shares the changed state of the GUI's ECM.
-  // "Changed" in this context means the changes that took place since the last
-  // simulation step
-  const std::string changedGuiEcmService = "/changedGuiEcm";
-  std::function<bool(msgs::SerializedState &)> cb =
-    [this](msgs::SerializedState &_resp)
-    {
-      // since GUI plugins may update the GUI's ECM, make sure that no GUI
-      // plugins are updated while getting the ECM's changed state
-      std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
+  this->dataPtr->controlService = "/world/" + _worldName + "/control";
 
-      _resp.CopyFrom(this->dataPtr->ecm.State());
-      return true;
-    };
-  if (!this->dataPtr->node.Advertise(changedGuiEcmService, cb))
-  {
-    ignerr << "failed to advertise the [" << changedGuiEcmService
-           << "] service.\n";
-  }
+  ignition::gui::App()->findChild<
+      ignition::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
 GuiRunner::~GuiRunner() = default;
+
+/////////////////////////////////////////////////
+bool GuiRunner::eventFilter(QObject *_obj, QEvent *_event)
+{
+  if (_event->type() == ignition::gui::events::WorldControl::kType)
+  {
+    auto worldControlEvent =
+      reinterpret_cast<gui::events::WorldControl *>(_event);
+    if (worldControlEvent)
+    {
+      msgs::WorldControlState req;
+      req.mutable_world_control()->CopyFrom(
+          worldControlEvent->WorldControlInfo());
+
+      // If a user presses play, send the GUI's ECM state to the server
+      // in case the GUI's ECM was modified while paused
+      if (worldControlEvent->Play())
+        req.mutable_state()->CopyFrom(this->dataPtr->ecm.State());
+
+      std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+          [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+          {
+            if (!_result)
+              ignerr << "Error sharing WorldControl info with the server.\n";
+          };
+      this->dataPtr->node.Request(this->dataPtr->controlService, req, cb);
+    }
+  }
+
+  // Standard event processing
+  return QObject::eventFilter(_obj, _event);
+}
 
 /////////////////////////////////////////////////
 void GuiRunner::RequestState()

@@ -18,12 +18,10 @@
 #include "SimulationRunner.hh"
 
 #include <algorithm>
-#include <mutex>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/msgs.hh>
 #include <sdf/Root.hh>
 
+#include "ignition/common/Profiler.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Sensor.hh"
@@ -196,7 +194,8 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->node = std::make_unique<transport::Node>(opts);
 
   // TODO(louise) Combine both messages into one.
-  this->node->Advertise("control", &SimulationRunner::OnWorldControl, this);
+  this->node->Advertise("control", &SimulationRunner::OnWorldControlState,
+      this);
   this->node->Advertise("playback/control",
       &SimulationRunner::OnPlaybackControl, this);
 
@@ -806,43 +805,6 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 void SimulationRunner::Step(const UpdateInfo &_info)
 {
   IGN_PROFILE("SimulationRunner::Step");
-
-  {
-    std::lock_guard<std::mutex> lock(this->guiServerEcmMutex);
-    if (this->matchGuiEcm)
-    {
-      // Update the server's ECM to match any changes that took place in the
-      // GUI's ECM during the most recent pause interval. We do this before
-      // processing WorldControl msgs to ensure that GUI ECM changes aren't
-      // lost (if the GUI and server modified the same entities/components
-      // while paused, the GUI changes will overwrite the server changes)
-      const std::string guiEcmService = "/changedGuiEcm";
-      msgs::SerializedState guiChanges;
-      bool result;
-      if (this->node->Request(guiEcmService, 500, guiChanges, result))
-      {
-        if (!result)
-          ignerr << "Error processing the [" << guiEcmService << "] service.\n";
-        else
-        {
-          igndbg << "Syncing server's ECM state with gui's ECM state.\n";
-          this->entityCompMgr.SetState(guiChanges);
-        }
-      }
-      else
-      {
-        ignerr << "Unable to receive any changes that occurred in the GUI "
-               << "while paused.\n";
-      }
-      // TODO(anyone) notify server systems of changes made to the ECM,
-      // if there were any? Server systems are updated later in this method,
-      // so depending on how a server system is written/implemented, the system
-      // may automatically detect changes made to the ECM
-
-      this->matchGuiEcm = false;
-    }
-  }
-
   this->currentInfo = _info;
 
   // Publish info
@@ -1134,45 +1096,46 @@ void SimulationRunner::SetRunToSimTime(
 }
 
 /////////////////////////////////////////////////
-bool SimulationRunner::OnWorldControl(const msgs::WorldControl &_req,
+bool SimulationRunner::OnWorldControlState(const msgs::WorldControlState &_req,
     msgs::Boolean &_res)
 {
   std::lock_guard<std::mutex> lock(this->msgBufferMutex);
 
-  {
-    std::lock_guard<std::mutex> ecmLock(this->guiServerEcmMutex);
-    // if we are going from pause to play, we need to update the server ECM
-    // with any changes that occurred to the GUI ECM while paused.
-    this->matchGuiEcm = this->Paused() && !_req.pause();
-  }
+  // update the server ECM if the request contains SerializedState information
+  if (_req.has_state())
+    this->entityCompMgr.SetState(_req.state());
+  // TODO(anyone) notify server systems of changes made to the ECM, if there
+  // were any?
 
   WorldControl control;
-  control.pause = _req.pause();
+  control.pause = _req.world_control().pause();
 
-  if (_req.multi_step() != 0)
-    control.multiStep = _req.multi_step();
-  else if (_req.step())
+  if (_req.world_control().multi_step() != 0)
+    control.multiStep = _req.world_control().multi_step();
+  else if (_req.world_control().step())
     control.multiStep = 1;
 
-  if (_req.has_reset())
+  if (_req.world_control().has_reset())
   {
-    control.rewind = _req.reset().all() || _req.reset().time_only();
+    control.rewind = _req.world_control().reset().all() ||
+      _req.world_control().reset().time_only();
 
-    if (_req.reset().model_only())
+    if (_req.world_control().reset().model_only())
     {
       ignwarn << "Model only reset is not supported." << std::endl;
     }
   }
 
-  if (_req.seed() != 0)
+  if (_req.world_control().seed() != 0)
   {
     ignwarn << "Changing seed is not supported." << std::endl;
   }
 
-  if (_req.has_run_to_sim_time())
+  if (_req.world_control().has_run_to_sim_time())
   {
-    control.runToSimTime = std::chrono::seconds(_req.run_to_sim_time().sec()) +
-                   std::chrono::nanoseconds(_req.run_to_sim_time().nsec());
+    control.runToSimTime = std::chrono::seconds(
+        _req.world_control().run_to_sim_time().sec()) +
+        std::chrono::nanoseconds(_req.world_control().run_to_sim_time().nsec());
   }
 
   this->worldControls.push_back(control);
