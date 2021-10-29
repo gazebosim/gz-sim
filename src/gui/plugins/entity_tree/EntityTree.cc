@@ -42,9 +42,10 @@
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
-#include "ignition/gazebo/gui/GuiUtils.hh"
+
+#include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/Primitives.hh"
 
 namespace ignition::gazebo
 {
@@ -404,7 +405,7 @@ void EntityTree::DeselectAllEntities()
 /////////////////////////////////////////////////
 void EntityTree::OnInsertEntity(const QString &_type)
 {
-  std::string modelSdfString = gui::getPrimitive(_type.toStdString());
+  std::string modelSdfString = getPrimitive(_type.toStdString());
   ignition::gui::events::SpawnFromDescription event(modelSdfString);
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),

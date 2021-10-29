@@ -17,14 +17,14 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/gazebo/gui/GuiUtils.hh>
+#include <ignition/gazebo/Primitives.hh>
 #include <sdf/Root.hh>
 
-using PrimitiveShape = ignition::gazebo::gui::PrimitiveShape;
-using PrimitiveLight = ignition::gazebo::gui::PrimitiveLight;
+using PrimitiveShape = ignition::gazebo::PrimitiveShape;
+using PrimitiveLight = ignition::gazebo::PrimitiveLight;
 
 /////////////////////////////////////////////////
-TEST(GuiUtilsTest, shapes)
+TEST(Primitives, shapes)
 {
   auto primitives  = {
     PrimitiveShape::kBox,
@@ -36,7 +36,7 @@ TEST(GuiUtilsTest, shapes)
 
   for (auto prim : primitives)
   {
-    auto sdfString = ignition::gazebo::gui::getPrimitiveShape(prim);
+    auto sdfString = ignition::gazebo::getPrimitiveShape(prim);
     ASSERT_FALSE(sdfString.empty());
 
     /// Verify that string contains valid SDF
@@ -47,7 +47,7 @@ TEST(GuiUtilsTest, shapes)
 }
 
 /////////////////////////////////////////////////
-TEST(GuiUtilsTest, lights)
+TEST(Primitives, lights)
 {
   auto primitives  = {
     PrimitiveLight::kDirectional,
@@ -57,7 +57,7 @@ TEST(GuiUtilsTest, lights)
 
   for (auto prim : primitives)
   {
-    auto sdfString = ignition::gazebo::gui::getPrimitiveLight(prim);
+    auto sdfString = ignition::gazebo::getPrimitiveLight(prim);
     ASSERT_FALSE(sdfString.empty());
 
     /// Verify that string contains valid SDF
@@ -67,3 +67,29 @@ TEST(GuiUtilsTest, lights)
   }
 }
 
+/////////////////////////////////////////////////
+TEST(Primitives, invalid)
+{
+  auto sdfString = ignition::gazebo::getPrimitive("foobar");
+  ASSERT_TRUE(sdfString.empty());
+}
+
+/////////////////////////////////////////////////
+TEST(Primitives, strings)
+{
+  auto primitives = {
+    "box", "sphere", "cylinder", "capsule", "ellipsoid",
+    "point", "directional", "spot"
+  };
+
+  for (auto prim : primitives)
+  {
+    auto sdfString = ignition::gazebo::getPrimitive(prim);
+    ASSERT_FALSE(sdfString.empty());
+
+    /// Verify that string contains valid SDF
+    sdf::Root root;
+    auto errors = root.LoadSdfString(sdfString);
+    EXPECT_TRUE(errors.empty()) << sdfString;
+  }
+}

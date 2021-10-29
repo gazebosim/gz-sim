@@ -32,8 +32,8 @@
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/Publisher.hh>
 
-#include <ignition/gazebo/gui/GuiUtils.hh>
 #include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/Primitives.hh"
 
 namespace ignition::gazebo
 {
@@ -65,38 +65,16 @@ void Lights::LoadConfig(const tinyxml2::XMLElement *)
 /////////////////////////////////////////////////
 void Lights::OnNewLightClicked(const QString &_sdfString)
 {
-  using PrimitiveLight = ignition::gazebo::gui::PrimitiveLight;
-
   std::string modelSdfString = _sdfString.toStdString();
-  std::transform(modelSdfString.begin(), modelSdfString.end(),
-                 modelSdfString.begin(), ::tolower);
+  modelSdfString = getPrimitive(modelSdfString);
 
-  if (modelSdfString == "point")
+  if (!modelSdfString.empty())
   {
-    modelSdfString = gui::getPrimitiveLight(PrimitiveLight::kPoint);
+    ignition::gui::events::SpawnFromDescription event(modelSdfString);
+    ignition::gui::App()->sendEvent(
+          ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+          &event);
   }
-  else if (modelSdfString == "directional")
-  {
-    modelSdfString = gui::getPrimitiveLight(PrimitiveLight::kDirectional);
-  }
-  else if (modelSdfString == "spot")
-  {
-    modelSdfString = gui::getPrimitiveLight(PrimitiveLight::kSpot);
-  }
-  else
-  {
-    ignwarn << "Invalid model string " << modelSdfString << "\n";
-    ignwarn << "The valid options are:\n";
-    ignwarn << " - point\n";
-    ignwarn << " - directional\n";
-    ignwarn << " - spot\n";
-    return;
-  }
-
-  ignition::gui::events::SpawnFromDescription event(modelSdfString);
-  ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-        &event);
 }
 
 // Register this plugin

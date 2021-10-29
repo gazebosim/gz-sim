@@ -27,11 +27,12 @@
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/GuiEvents.hh>
-#include <ignition/gazebo/gui/GuiUtils.hh>
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/Publisher.hh>
+
+#include <ignition/gazebo/Primitives.hh>
 
 namespace ignition::gazebo
 {
@@ -72,48 +73,16 @@ void Shapes::LoadConfig(const tinyxml2::XMLElement *)
 /////////////////////////////////////////////////
 void Shapes::OnMode(const QString &_mode)
 {
-  using PrimitiveShape = ignition::gazebo::gui::PrimitiveShape;
-
   std::string modelSdfString = _mode.toStdString();
-  std::transform(modelSdfString.begin(), modelSdfString.end(),
-                 modelSdfString.begin(), ::tolower);
+  modelSdfString = getPrimitive(modelSdfString);
 
-  if (modelSdfString == "box")
+  if (!modelSdfString.empty())
   {
-    modelSdfString = gui::getPrimitiveShape(PrimitiveShape::kBox);
+    ignition::gui::events::SpawnFromDescription event(modelSdfString);
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        &event);
   }
-  else if (modelSdfString == "sphere")
-  {
-    modelSdfString = gui::getPrimitiveShape(PrimitiveShape::kSphere);
-  }
-  else if (modelSdfString == "cylinder")
-  {
-    modelSdfString = gui::getPrimitiveShape(PrimitiveShape::kCylinder);
-  }
-  else if (modelSdfString == "capsule")
-  {
-    modelSdfString = gui::getPrimitiveShape(PrimitiveShape::kCapsule);
-  }
-  else if (modelSdfString == "ellipsoid")
-  {
-    modelSdfString = gui::getPrimitiveShape(PrimitiveShape::kEllipsoid);
-  }
-  else
-  {
-    ignwarn << "Invalid model string " << modelSdfString << "\n";
-    ignwarn << "The valid options are:\n";
-    ignwarn << " - box\n";
-    ignwarn << " - sphere\n";
-    ignwarn << " - capsule\n";
-    ignwarn << " - cylinder\n";
-    ignwarn << " - ellipsoid\n";
-    return;
-  }
-
-  ignition::gui::events::SpawnFromDescription event(modelSdfString);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-      &event);
 }
 
 // Register this plugin

@@ -3,13 +3,11 @@ set (gui_sources
   Gui.cc
   GuiFileHandler.cc
   GuiRunner.cc
-  GuiUtils.cc
   PathManager.cc
 )
 
 set (gtest_sources
   Gui_TEST.cc
-  GuiUtils_TEST.cc
 )
 
 add_subdirectory(plugins)

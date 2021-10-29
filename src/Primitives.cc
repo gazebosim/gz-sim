@@ -17,14 +17,10 @@
 
 #include <ignition/common/Util.hh>
 #include <ignition/common/Console.hh>
-#include "ignition/gazebo/gui/GuiUtils.hh"
+#include "ignition/gazebo/Primitives.hh"
 
-namespace ignition
-{
-namespace gazebo
-{
-namespace gui
-{
+using namespace ignition;
+using namespace gazebo;
 
 /////////////////////////////////////////////////
 constexpr const char * kBoxSdf = R"(<?xml version="1.0"?>
@@ -297,7 +293,7 @@ constexpr const char *kSpotSdf = R"(<?xml version="1.0"?>
 )";
 
 /////////////////////////////////////////////////
-std::string getPrimitiveShape(const PrimitiveShape &_type)
+std::string ignition::gazebo::getPrimitiveShape(const PrimitiveShape &_type)
 {
   switch(_type)
   {
@@ -317,40 +313,7 @@ std::string getPrimitiveShape(const PrimitiveShape &_type)
 }
 
 /////////////////////////////////////////////////
-std::string getPrimitive(const std::string &_typeName)
-{
-  std::string type = common::lowercase(_typeName);
-
-  if (type == "box")
-    return gui::getPrimitiveShape(PrimitiveShape::kBox);
-  else if (type == "sphere")
-    return gui::getPrimitiveShape(PrimitiveShape::kSphere);
-  else if (type == "cylinder")
-    return gui::getPrimitiveShape(PrimitiveShape::kCylinder);
-  else if (type == "capsule")
-    return gui::getPrimitiveShape(PrimitiveShape::kCapsule);
-  else if (type == "ellipsoid")
-    return gui::getPrimitiveShape(PrimitiveShape::kEllipsoid);
-  else if (type == "point")
-    return gui::getPrimitiveLight(PrimitiveLight::kPoint);
-  else if (type == "directional")
-    return gui::getPrimitiveLight(PrimitiveLight::kDirectional);
-  else if (type == "spot")
-    return gui::getPrimitiveLight(PrimitiveLight::kSpot);
-
-  ignwarn << "Invalid model string " << type << "\n";
-  ignwarn << "The valid options are:\n";
-  ignwarn << " - box\n";
-  ignwarn << " - sphere\n";
-  ignwarn << " - cylinder\n";
-  ignwarn << " - point\n";
-  ignwarn << " - directional\n";
-  ignwarn << " - spot\n";
-  return "";
-}
-
-/////////////////////////////////////////////////
-std::string getPrimitiveLight(const PrimitiveLight &_type)
+std::string ignition::gazebo::getPrimitiveLight(const PrimitiveLight &_type)
 {
   switch(_type)
   {
@@ -365,6 +328,37 @@ std::string getPrimitiveLight(const PrimitiveLight &_type)
   }
 }
 
-}  // namespace gui
-}  // namespace gazebo
-}  // namespace ignition
+/////////////////////////////////////////////////
+std::string ignition::gazebo::getPrimitive(const std::string &_typeName)
+{
+  std::string type = common::lowercase(_typeName);
+
+  if (type == "box")
+    return getPrimitiveShape(PrimitiveShape::kBox);
+  else if (type == "sphere")
+    return getPrimitiveShape(PrimitiveShape::kSphere);
+  else if (type == "cylinder")
+    return getPrimitiveShape(PrimitiveShape::kCylinder);
+  else if (type == "capsule")
+    return getPrimitiveShape(PrimitiveShape::kCapsule);
+  else if (type == "ellipsoid")
+    return getPrimitiveShape(PrimitiveShape::kEllipsoid);
+  else if (type == "point")
+    return getPrimitiveLight(PrimitiveLight::kPoint);
+  else if (type == "directional")
+    return getPrimitiveLight(PrimitiveLight::kDirectional);
+  else if (type == "spot")
+    return getPrimitiveLight(PrimitiveLight::kSpot);
+
+  ignwarn << "Invalid model string " << type << "\n";
+  ignwarn << "The valid options are:\n";
+  ignwarn << " - box\n";
+  ignwarn << " - sphere\n";
+  ignwarn << " - cylinder\n";
+  ignwarn << " - capsule\n";
+  ignwarn << " - ellipsoid\n";
+  ignwarn << " - point\n";
+  ignwarn << " - directional\n";
+  ignwarn << " - spot\n";
+  return "";
+}
