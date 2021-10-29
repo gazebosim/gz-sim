@@ -75,6 +75,7 @@
 #include "ignition/gazebo/components/Transparency.hh"
 #include "ignition/gazebo/components/Visibility.hh"
 #include "ignition/gazebo/components/Visual.hh"
+#include "ignition/gazebo/components/VisualCmd.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
@@ -194,6 +195,25 @@ class ignition::gazebo::RenderUtilPrivate
 
   /// \brief A map of entity ids and light updates.
   public: std::vector<Entity> entityLightsCmdToDelete;
+
+  /// \brief A map of entity ids and visual updates.
+  public: std::map<Entity, msgs::Visual> entityVisuals;
+
+  /// \brief A vector of entity ids of VisualCmds to delete
+  public: std::vector<Entity> entityVisualsCmdToDelete;
+
+  /// \brief Visual material equality comparision function
+  /// TODO(anyone) Currently only checks for material colors equality,
+  /// need to extend to others (e.g., PbrMaterial)
+  public: std::function<bool(const sdf::Material &, const sdf::Material &)>
+          materialEql { [](const sdf::Material &_a, const sdf::Material &_b)
+            {
+              return
+                _a.Ambient() == _b.Ambient() &&
+                _a.Diffuse() == _b.Diffuse() &&
+                _a.Specular() == _b.Specular() &&
+                _a.Emissive() == _b.Emissive();
+            }};
 
   /// \brief A map of entity ids and actor transforms.
   public: std::map<Entity, std::map<std::string, math::Matrix4d>>
@@ -485,6 +505,41 @@ void RenderUtil::UpdateECM(const UpdateInfo &/*_info*/,
         }
         return true;
       });
+
+  // visual commands
+  {
+    auto olderEntityVisualsCmdToDelete
+        = std::move(this->dataPtr->entityVisualsCmdToDelete);
+    this->dataPtr->entityVisualsCmdToDelete.clear();
+
+    // TODO(anyone) Currently only updates material colors,
+    // need to extend to others
+    _ecm.Each<components::VisualCmd>(
+      [&](const Entity &_entity,
+          const components::VisualCmd *_visualCmd) -> bool
+      {
+        this->dataPtr->entityVisuals[_entity] = _visualCmd->Data();
+        this->dataPtr->entityVisualsCmdToDelete.push_back(_entity);
+
+        auto materialComp = _ecm.Component<components::Material>(_entity);
+        if (materialComp)
+        {
+          msgs::Material materialMsg = _visualCmd->Data().material();
+          sdf::Material sdfMaterial = convert<sdf::Material>(materialMsg);
+
+          auto state =
+              materialComp->SetData(sdfMaterial, this->dataPtr->materialEql) ?
+              ComponentState::OneTimeChange : ComponentState::NoChange;
+          _ecm.SetChanged(_entity, components::Material::typeId, state);
+        }
+        return true;
+      });
+
+    for (const auto entity : olderEntityVisualsCmdToDelete)
+    {
+      _ecm.RemoveComponent<components::VisualCmd>(entity);
+    }
+  }
 }
 
 //////////////////////////////////////////////////
@@ -575,6 +630,7 @@ void RenderUtil::Update()
   auto removeEntities = std::move(this->dataPtr->removeEntities);
   auto entityPoses = std::move(this->dataPtr->entityPoses);
   auto entityLights = std::move(this->dataPtr->entityLights);
+  auto entityVisuals = std::move(this->dataPtr->entityVisuals);
   auto trajectoryPoses = std::move(this->dataPtr->trajectoryPoses);
   auto actorTransforms = std::move(this->dataPtr->actorTransforms);
   auto actorAnimationData = std::move(this->dataPtr->actorAnimationData);
@@ -593,6 +649,7 @@ void RenderUtil::Update()
   this->dataPtr->removeEntities.clear();
   this->dataPtr->entityPoses.clear();
   this->dataPtr->entityLights.clear();
+  this->dataPtr->entityVisuals.clear();
   this->dataPtr->trajectoryPoses.clear();
   this->dataPtr->actorTransforms.clear();
   this->dataPtr->actorAnimationData.clear();
@@ -875,6 +932,66 @@ void RenderUtil::Update()
   }
 
   this->dataPtr->UpdateThermalCamera(thermalCameraData);
+
+  // update visuals
+  // TODO(anyone) currently updates material colors of visual only,
+  // need to extend to other updates
+  {
+    IGN_PROFILE("RenderUtil::Update Visuals");
+    for (const auto &visual : entityVisuals)
+    {
+      if (!visual.second.has_material())
+        continue;
+
+      auto node = this->dataPtr->sceneManager.NodeById(visual.first);
+      if (!node)
+        continue;
+
+      auto vis = std::dynamic_pointer_cast<rendering::Visual>(node);
+      if (vis)
+      {
+        msgs::Material matMsg = visual.second.material();
+
+        // Geometry material
+        for (auto g = 0u; g < vis->GeometryCount(); ++g)
+        {
+          rendering::GeometryPtr geom = vis->GeometryByIndex(g);
+          rendering::MaterialPtr geomMat = geom->Material();
+          if (!geomMat)
+            continue;
+
+          math::Color color;
+          if (matMsg.has_ambient())
+          {
+            color = msgs::Convert(matMsg.ambient());
+            if (geomMat->Ambient() != color)
+              geomMat->SetAmbient(color);
+          }
+
+          if (matMsg.has_diffuse())
+          {
+            color = msgs::Convert(matMsg.diffuse());
+            if (geomMat->Diffuse() != color)
+              geomMat->SetDiffuse(color);
+          }
+
+          if (matMsg.has_specular())
+          {
+            color = msgs::Convert(matMsg.specular());
+            if (geomMat->Specular() != color)
+              geomMat->SetSpecular(color);
+          }
+
+          if (matMsg.has_emissive())
+          {
+            color = msgs::Convert(matMsg.emissive());
+            if (geomMat->Emissive() != color)
+              geomMat->SetEmissive(color);
+          }
+        }
+      }
+    }
+  }
 }
 
 //////////////////////////////////////////////////
