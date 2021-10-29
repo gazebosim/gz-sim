@@ -23,6 +23,7 @@
 #include <string>
 
 #include <sdf/Physics.hh>
+#include <sdf/Sensor.hh>
 
 #include <ignition/math/Pose3.hh>
 #include <ignition/math/Vector3.hh>
@@ -121,6 +122,12 @@ namespace gazebo
   /// \param[in] _data Data to set.
   template<>
   void setData(QStandardItem *_item, const std::ostream &_data);
+
+  /// \brief Specialized to set camera data.
+  /// \param[in] _item Item whose data will be set.
+  /// \param[in] _data Data to set.
+  template<>
+  void setData(QStandardItem *_item, const sdf::Sensor &_data);
 
   /// \brief Set the unit of a given item.
   /// \param[in] _item Item whose unit will be set.
@@ -230,6 +237,15 @@ namespace gazebo
     public: Q_INVOKABLE void OnPose(double _x, double _y, double _z,
         double _roll, double _pitch, double _yaw);
 
+    /// \brief Callback in Qt thread when a camera changes.
+    /// \param[in] _hfov Horizontal field of view in degrees.
+    /// \param[in] _imageWidth Image width in pixels.
+    /// \param[in] _imageHeight Image height in pixels.
+    /// \param[in] _nearClip Near clip value in meters.
+    /// \param[in] _farClip Far clip value in meters.
+    public: Q_INVOKABLE void OnCameraUpdate(double _hfov, int _imageWidth,
+                int _imageHeight, double _nearClip, double _farClip);
+
     /// \brief Callback in Qt thread when specular changes.
     /// \param[in] _rSpecular specular red
     /// \param[in] _gSpecular specular green
@@ -335,6 +351,11 @@ namespace gazebo
     /// \param[in] _entity Entity to add, e.g. box, sphere, cylinder, etc
     /// \param[in] _type Entity type, e.g. link, visual, collision, etc
     public: Q_INVOKABLE void OnAddEntity(QString _entity, QString _type);
+
+    /// \brief Callback in Qt thread when a sensor is to be added
+    /// \param[in] _entity Entity to add, e.g. box, sphere, cylinder, etc
+    /// \param[in] _type Sensor type, e.g. contact, gps, etc
+    public: Q_INVOKABLE void OnAddSensor(QString _entity, QString _type);
 
     /// \internal
     /// \brief Pointer to private data.

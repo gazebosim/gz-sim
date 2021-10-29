@@ -4,4 +4,5 @@ gz_add_gui_plugin(ModelEditor
   PUBLIC_LINK_LIBS
    ignition-rendering${IGN_RENDERING_VER}::ignition-rendering${IGN_RENDERING_VER}
    ${PROJECT_LIBRARY_TARGET_NAME}-rendering
+  sdformat${SDF_VER}::sdformat${SDF_VER}
 )

@@ -17,6 +17,9 @@
 
 #include <iostream>
 #include <regex>
+
+#include <sdf/Camera.hh>
+
 #include <ignition/common/Console.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/gui/Application.hh>
@@ -27,6 +30,7 @@
 #include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/AngularAcceleration.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
+#include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/CastShadows.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Collision.hh"
@@ -100,6 +104,9 @@ namespace ignition::gazebo
 
     /// \brief Transport node for making command requests
     public: transport::Node node;
+
+    public: std::vector<
+            std::function<void(EntityComponentManager &)>> updateCallbacks;
   };
 }
 
@@ -289,6 +296,26 @@ void ignition::gazebo::setData(QStandardItem *_item,
 }
 
 //////////////////////////////////////////////////
+template<>
+void ignition::gazebo::setData(QStandardItem *_item, const sdf::Sensor &_data)
+{
+  if (nullptr == _item)
+    return;
+
+  const sdf::Camera *cam = _data.CameraSensor();
+
+  _item->setData(QString("Camera"),
+      ComponentsModel::RoleNames().key("dataType"));
+  _item->setData(QList({
+    QVariant(cam->HorizontalFov().Degree()),
+    QVariant(cam->ImageWidth()),
+    QVariant(cam->ImageHeight()),
+    QVariant(cam->NearClip()),
+    QVariant(cam->FarClip()),
+  }), ComponentsModel::RoleNames().key("data"));
+}
+
+//////////////////////////////////////////////////
 void ignition::gazebo::setUnit(QStandardItem *_item, const std::string &_unit)
 {
   if (nullptr == _item)
@@ -411,9 +438,6 @@ void ComponentInspector::Update(const UpdateInfo &,
     EntityComponentManager &_ecm)
 {
   IGN_PROFILE("ComponentInspector::Update");
-
-  if (this->dataPtr->paused)
-    return;
 
   auto componentTypes = _ecm.ComponentTypes(this->dataPtr->entity);
 
@@ -767,6 +791,12 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, comp->Data());
     }
+    else if (typeId == components::Camera::typeId)
+    {
+      auto comp = _ecm.Component<components::Camera>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
   }
 
   // Remove components no longer present
@@ -781,6 +811,10 @@ void ComponentInspector::Update(const UpdateInfo &,
           Q_ARG(ignition::gazebo::ComponentTypeId, typeId));
     }
   }
+
+  for (auto cb : this->dataPtr->updateCallbacks)
+    cb(_ecm);
+  this->dataPtr->updateCallbacks.clear();
 }
 
 /////////////////////////////////////////////////
@@ -821,6 +855,7 @@ int ComponentInspector::Entity() const
 /////////////////////////////////////////////////
 void ComponentInspector::SetEntity(const int &_entity)
 {
+  std::cout << "SetEntity\n";
   // If nothing is selected, display world properties
   if (_entity == kNullEntity)
   {
@@ -870,6 +905,37 @@ void ComponentInspector::SetPaused(bool _paused)
 {
   this->dataPtr->paused = _paused;
   this->PausedChanged();
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::OnCameraUpdate(
+    double _hfov, int _imageWidth, int _imageHeight, double _nearClip,
+    double _farClip)
+{
+  std::function<void(EntityComponentManager &)> cb =
+      [this, _hfov](EntityComponentManager &_ecm)
+  {
+    auto comp = _ecm.Component<components::Camera>(this->dataPtr->entity);
+    if (comp)
+    {
+      sdf::Camera *cam = comp->Data().CameraSensor();
+      if (cam)
+      {
+        cam->SetHorizontalFov(math::Angle(IGN_DTOR(_hfov)));
+        cam->SetImageWidth(_imageWidth);
+        cam->SetImageHeight(_imageHeight);
+        cam->SetNearClip(_nearClip);
+        cam->SetFarClip(_farClip);
+      }
+      else
+        ignerr << "Unable to get the camera data.\n";
+    }
+    else
+    {
+      ignerr << "Unable to get the camera data.\n";
+    }
+  };
+  this->dataPtr->updateCallbacks.push_back(cb);
 }
 
 /////////////////////////////////////////////////
@@ -1024,10 +1090,11 @@ bool ComponentInspector::NestedModel() const
 /////////////////////////////////////////////////
 void ComponentInspector::OnAddEntity(QString _entity, QString _type)
 {
+  std::cout << "Entity[" << _entity.toStdString() << "] Type[" << _type.toStdString() << "] Name[" << this->dataPtr->entityName.c_str() << "]\n";
   // currently just assumes parent is the model
   // todo(anyone) support adding visuals / collisions / sensors to links
   ignition::gazebo::gui::events::ModelEditorAddEntity addEntityEvent(
-      _entity, _type, QString(this->dataPtr->entityName.c_str()));
+      _entity, _type, this->dataPtr->entity);
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
       &addEntityEvent);
