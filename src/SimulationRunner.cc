@@ -194,7 +194,8 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->node = std::make_unique<transport::Node>(opts);
 
   // TODO(louise) Combine both messages into one.
-  this->node->Advertise("control", &SimulationRunner::OnWorldControl, this);
+  this->node->Advertise("control", &SimulationRunner::OnWorldControlState,
+      this);
   this->node->Advertise("playback/control",
       &SimulationRunner::OnPlaybackControl, this);
 
@@ -1095,38 +1096,46 @@ void SimulationRunner::SetRunToSimTime(
 }
 
 /////////////////////////////////////////////////
-bool SimulationRunner::OnWorldControl(const msgs::WorldControl &_req,
+bool SimulationRunner::OnWorldControlState(const msgs::WorldControlState &_req,
     msgs::Boolean &_res)
 {
   std::lock_guard<std::mutex> lock(this->msgBufferMutex);
 
-  WorldControl control;
-  control.pause = _req.pause();
+  // update the server ECM if the request contains SerializedState information
+  if (_req.has_state())
+    this->entityCompMgr.SetState(_req.state());
+  // TODO(anyone) notify server systems of changes made to the ECM, if there
+  // were any?
 
-  if (_req.multi_step() != 0)
-    control.multiStep = _req.multi_step();
-  else if (_req.step())
+  WorldControl control;
+  control.pause = _req.world_control().pause();
+
+  if (_req.world_control().multi_step() != 0)
+    control.multiStep = _req.world_control().multi_step();
+  else if (_req.world_control().step())
     control.multiStep = 1;
 
-  if (_req.has_reset())
+  if (_req.world_control().has_reset())
   {
-    control.rewind = _req.reset().all() || _req.reset().time_only();
+    control.rewind = _req.world_control().reset().all() ||
+      _req.world_control().reset().time_only();
 
-    if (_req.reset().model_only())
+    if (_req.world_control().reset().model_only())
     {
       ignwarn << "Model only reset is not supported." << std::endl;
     }
   }
 
-  if (_req.seed() != 0)
+  if (_req.world_control().seed() != 0)
   {
     ignwarn << "Changing seed is not supported." << std::endl;
   }
 
-  if (_req.has_run_to_sim_time())
+  if (_req.world_control().has_run_to_sim_time())
   {
-    control.runToSimTime = std::chrono::seconds(_req.run_to_sim_time().sec()) +
-                   std::chrono::nanoseconds(_req.run_to_sim_time().nsec());
+    control.runToSimTime = std::chrono::seconds(
+        _req.world_control().run_to_sim_time().sec()) +
+        std::chrono::nanoseconds(_req.world_control().run_to_sim_time().nsec());
   }
 
   this->worldControls.push_back(control);

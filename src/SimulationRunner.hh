@@ -38,6 +38,7 @@
 #include <ignition/common/Event.hh>
 #include <ignition/common/WorkerPool.hh>
 #include <ignition/math/Stopwatch.hh>
+#include <ignition/msgs.hh>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/config.hh"
@@ -364,10 +365,10 @@ namespace ignition
       /// the request which will then be processed by the ProcessMessages
       /// function.
       /// \param[in] _req Request from client, currently handling play / pause
-      /// and multistep.
+      /// and multistep. This also may contain SerializedState information.
       /// \param[out] _res Response to client, true if successful.
       /// \return True for success
-      private: bool OnWorldControl(const msgs::WorldControl &_req,
+      private: bool OnWorldControlState(const msgs::WorldControlState &_req,
                                          msgs::Boolean &_res);
 
       /// \brief World control service callback. This function stores the

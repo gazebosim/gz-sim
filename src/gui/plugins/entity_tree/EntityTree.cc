@@ -393,6 +393,7 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
   {
     // update the entity tree with new/removed entities from gui events
     std::lock_guard<std::mutex> lock(this->dataPtr->newRemovedEntityMutex);
+
     for (auto entity : this->dataPtr->newEntities)
     {
       // make sure the entity to be added has a name and parent
