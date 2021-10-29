@@ -25,6 +25,7 @@
 #include <vector>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/MeshManager.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/GuiEvents.hh>
@@ -472,6 +473,55 @@ void EntityTree::OnInsertEntity(const QString &_type)
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
       &event);
+}
+
+/////////////////////////////////////////////////
+void EntityTree::OnLoadMesh(const QString &_mesh)
+{
+  std::string meshStr = _mesh.toStdString();
+  if (QUrl(_mesh).isLocalFile())
+  {
+    // mesh to sdf model
+    common::rtrim(meshStr);
+
+    if (!common::MeshManager::Instance()->IsValidFilename(meshStr))
+    {
+      QString errTxt = QString::fromStdString("Invalid URI: " + meshStr +
+        "\nOnly mesh file types DAE, OBJ, and STL are supported.");
+      return;
+    }
+
+    std::string filename = common::basename(meshStr);
+    std::vector<std::string> splitName = common::split(filename, ".");
+
+    std::string sdf = "<?xml version='1.0'?>"
+      "<sdf version='" + std::string(SDF_PROTOCOL_VERSION) + "'>"
+        "<model name='" + splitName[0] + "'>"
+          "<link name='link'>"
+            "<visual name='visual'>"
+              "<geometry>"
+                "<mesh>"
+                  "<uri>" + meshStr + "</uri>"
+                "</mesh>"
+              "</geometry>"
+            "</visual>"
+            "<collision name='collision'>"
+              "<geometry>"
+                "<mesh>"
+                  "<uri>" + meshStr + "</uri>"
+                "</mesh>"
+              "</geometry>"
+            "</collision>"
+          "</link>"
+        "</model>"
+      "</sdf>";
+    
+    ignition::gui::events::SpawnFromDescription event(sdf);
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        &event);
+
+  }
 }
 
 /////////////////////////////////////////////////

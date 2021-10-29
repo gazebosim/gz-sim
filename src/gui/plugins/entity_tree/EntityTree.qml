@@ -21,6 +21,7 @@ import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
 import QtQuick.Layouts 1.3
 import QtQuick.Controls.Styles 1.4
+import QtQuick.Dialogs 1.0
 import IgnGazebo 1.0 as IgnGazebo
 
 Rectangle {
@@ -137,6 +138,18 @@ Rectangle {
         }
         onClicked: addEntityMenu.open()
 
+        FileDialog {
+          id: loadFileDialog
+          title: "Load mesh"
+          folder: shortcuts.home
+          nameFilters: [ "Collada files (*.dae)", "(*.stl)", "(*.obj)" ]
+          selectMultiple: false
+          selectExisting: true
+          onAccepted: {
+            EntityTree.OnLoadMesh(fileUrl)
+          }
+        }
+
         Menu {
           id: addEntityMenu
 
@@ -189,6 +202,9 @@ Rectangle {
           {
             id: mesh 
             text: "Mesh"
+            onClicked: {
+              loadFileDialog.open()
+            }
           }
 
           MenuSeparator {
