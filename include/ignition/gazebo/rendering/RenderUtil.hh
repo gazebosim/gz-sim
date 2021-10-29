@@ -86,11 +86,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Name of the rendering scene.
     public: std::string SceneName() const;
 
-    /// \brief Set background color of render window
+    /// \brief Set background color of render window. This will override
+    /// other sources, such as from SDF.
     /// \param[in] _color Color of render window background
     public: void SetBackgroundColor(const math::Color &_color);
 
-    /// \brief Set ambient light of render window
+    /// \brief Set ambient light of render window. This will override
+    /// other sources, such as from SDF.
     /// \param[in] _ambient Color of ambient light
     public: void SetAmbientLight(const math::Color &_ambient);
 
