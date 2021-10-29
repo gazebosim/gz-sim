@@ -368,8 +368,8 @@ void SelectEntitiesPrivate::SetSelectedEntity(
     return;
 
   this->selectedEntities.push_back(entityId);
-  this->selectedEntitiesID.push_back(_visual->Id());
-  this->HighlightNode(_visual);
+  this->selectedEntitiesID.push_back(topLevelVisual->Id());
+  this->HighlightNode(topLevelVisual);
   ignition::gazebo::gui::events::EntitiesSelected entitiesSelected(
     this->selectedEntities);
   ignition::gui::App()->sendEvent(
