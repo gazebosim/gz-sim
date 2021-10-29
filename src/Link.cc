@@ -378,14 +378,18 @@ void Link::AddAndVisualizeWorldWrench(EntityComponentManager &_ecm,
   ignition::msgs::Set(marker.mutable_material()->mutable_ambient(), _color);
   ignition::msgs::Set(marker.mutable_material()->mutable_diffuse(), _color);
 
-  if (this->WorldPose(_ecm).has_value())
+  if (this->WorldPose(_ecm).has_value() && std::abs(_force.Length()) > 1e-5)
   {
     auto linkPose = this->WorldPose(_ecm).value();
 
     math::Quaterniond qt;
     qt.From2Axes(math::Vector3d::UnitZ, _force.Normalized());
-    math::Pose3d arrowPose(linkPose.Pos(), qt);
-    ignition::msgs::Set(marker.mutable_pose(), arrowPose);
+
+    // translate cylinder up
+    math::Pose3d translateCylinder(math::Vector3d(0, 0, _force.Length()/2), math::Quaterniond());
+    math::Pose3d rotation(math::Vector3d(0, 0, 0), qt);
+    math::Pose3d arrowPose(linkPose.Pos(), math::Quaterniond());
+    ignition::msgs::Set(marker.mutable_pose(), arrowPose * rotation * translateCylinder);
     ignition::msgs::Set(marker.mutable_scale(), math::Vector3d(0.1, 0.1, _force.Length()));
 
     node.Request("/marker", marker);
