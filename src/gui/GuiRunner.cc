@@ -80,12 +80,17 @@ GuiRunner::GuiRunner(const std::string &_worldName)
 
   // Allow for creation of entities on GUI side.
   // Note we have to start the entity id at an offset so it does not conflict
-  // with the ones on the server. The log playback starts at max / 2
-  // On the gui side, we will start entity id at an offset of max / 4
+  // with the ones on the server. The log playback starts at max 64bit int / 2
+  // On the gui side, we will start entity id at an offset of max 32bit int / 4
+  // because currently many plugins cast entity ids to a 32 bit signed/unsigned
+  // int.
+  // todo(anyone) fix all gui plugins to use 64bit unsigned int for Entity ids
+  // and add support for accepting uint64_t data in ign-rendering Node's
+  // UserData object.
   // todo(anyone) address
   // https://github.com/ignitionrobotics/ign-gazebo/issues/1134
   // so that an offset is not required
-  this->dataPtr->ecm.SetEntityCreateOffset(math::MAX_I64 / 4);
+  this->dataPtr->ecm.SetEntityCreateOffset(math::MAX_I32 / 2);
 
   auto win = gui::App()->findChild<ignition::gui::MainWindow *>();
   auto winWorldNames = win->property("worldNames").toStringList();

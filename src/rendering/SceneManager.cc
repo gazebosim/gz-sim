@@ -191,6 +191,8 @@ rendering::VisualPtr SceneManager::CreateModel(Entity _id,
   }
 
   rendering::VisualPtr modelVis = this->dataPtr->scene->CreateVisual(name);
+
+  // \todo(anyone) change to uint64_t once UserData supports this type
   modelVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   modelVis->SetUserData("pause-update", static_cast<int>(0));
   modelVis->SetLocalPose(_model.RawPose());
