@@ -20,6 +20,7 @@
 #include <map>
 #include <memory>
 #include <set>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -1652,53 +1653,36 @@ void EntityComponentManager::SetState(
         continue;
       }
 
-      // Create component
-      auto newComp = components::Factory::Instance()->New(compMsg.type());
-
-      if (nullptr == newComp)
-      {
-        ignerr << "Failed to deserialize component of type [" << compMsg.type()
-               << "]" << std::endl;
-        continue;
-      }
-
-      std::istringstream istr(compMsg.component());
-      newComp->Deserialize(istr);
-
-      // Get type id
-      auto typeId = newComp->TypeId();
-
-      // TODO(louise) Move into if, see TODO below
-      this->RemoveComponent(entity, typeId);
-
       // Remove component
       if (compMsg.remove())
       {
+        this->RemoveComponent(entity, type);
         continue;
       }
 
       // Get Component
-      auto comp = this->ComponentImplementation(entity, typeId);
+      auto comp = this->ComponentImplementation(entity, type);
 
       // Create if new
       if (nullptr == comp)
       {
-        this->CreateComponentImplementation(entity, typeId, newComp.get());
+        auto newComp = components::Factory::Instance()->New(type);
+        if (nullptr == newComp)
+        {
+          ignerr << "Failed to create component type ["
+            << compMsg.type() << "]" << std::endl;
+          continue;
+        }
+        std::istringstream istr(compMsg.component());
+        newComp->Deserialize(istr);
+        this->CreateComponentImplementation(entity, type, newComp.get());
       }
       // Update component value
       else
       {
-        ignerr << "Internal error" << std::endl;
-        // TODO(louise) We're shortcutting above and always  removing the
-        // component so that we don't get here, gotta figure out why this
-        // doesn't update the component. The following line prints the correct
-        // values.
-        // igndbg << *comp << "  " << *newComp.get() << std::endl;
-        // *comp = *newComp.get();
-
-        // When above TODO is addressed, uncomment AddModifiedComponent below
-        // unless calling SetChanged (which already calls AddModifiedComponent)
-        // this->dataPtr->AddModifiedComponent(entity);
+        std::istringstream istr(compMsg.component());
+        comp->Deserialize(istr);
+        this->dataPtr->AddModifiedComponent(entity);
       }
     }
   }

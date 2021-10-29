@@ -19,6 +19,8 @@
 
 #include <algorithm>
 #include <iostream>
+#include <mutex>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -59,6 +61,16 @@ namespace ignition::gazebo
 
     /// \brief World entity
     public: Entity worldEntity{kNullEntity};
+
+    /// \brief List of new entities from a gui event
+    public: std::set<Entity> newEntities;
+
+    /// \brief List of removed entities from a gui event
+    public: std::set<Entity> removedEntities;
+
+    /// \brief Mutex to protect gui event and system upate call race conditions
+    /// for newEntities and removedEntities
+    public: std::mutex newRemovedEntityMutex;
   };
 }
 
@@ -105,11 +117,12 @@ QString entityType(Entity _entity,
 /////////////////////////////////////////////////
 TreeModel::TreeModel() : QStandardItemModel()
 {
+  qRegisterMetaType<Entity>("Entity");
 }
 
 /////////////////////////////////////////////////
-void TreeModel::AddEntity(unsigned int _entity, const QString &_entityName,
-    unsigned int _parentEntity, const QString &_type)
+void TreeModel::AddEntity(Entity _entity, const QString &_entityName,
+    Entity _parentEntity, const QString &_type)
 {
   IGN_PROFILE_THREAD_NAME("Qt thread");
   IGN_PROFILE("TreeModel::AddEntity");
@@ -170,7 +183,7 @@ void TreeModel::AddEntity(unsigned int _entity, const QString &_entityName,
 }
 
 /////////////////////////////////////////////////
-void TreeModel::RemoveEntity(unsigned int _entity)
+void TreeModel::RemoveEntity(Entity _entity)
 {
   IGN_PROFILE("TreeModel::RemoveEntity");
   QStandardItem *item{nullptr};
@@ -252,7 +265,7 @@ QString TreeModel::ScopedName(const QModelIndex &_index) const
 }
 
 /////////////////////////////////////////////////
-unsigned int TreeModel::EntityId(const QModelIndex &_index) const
+Entity TreeModel::EntityId(const QModelIndex &_index) const
 {
   Entity entity{kNullEntity};
   QStandardItem *item = this->itemFromIndex(_index);
@@ -334,9 +347,9 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
 
       QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddEntity",
           Qt::QueuedConnection,
-          Q_ARG(unsigned int, _entity),
+          Q_ARG(Entity, _entity),
           Q_ARG(QString, QString::fromStdString(_name->Data())),
-          Q_ARG(unsigned int, parentEntity),
+          Q_ARG(Entity, parentEntity),
           Q_ARG(QString, entityType(_entity, _ecm)));
       return true;
     });
@@ -364,9 +377,9 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
 
       QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddEntity",
           Qt::QueuedConnection,
-          Q_ARG(unsigned int, _entity),
+          Q_ARG(Entity, _entity),
           Q_ARG(QString, QString::fromStdString(_name->Data())),
-          Q_ARG(unsigned int, parentEntity),
+          Q_ARG(Entity, parentEntity),
           Q_ARG(QString, entityType(_entity, _ecm)));
       return true;
     });
@@ -378,13 +391,62 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
   {
     QMetaObject::invokeMethod(&this->dataPtr->treeModel, "RemoveEntity",
         Qt::QueuedConnection,
-        Q_ARG(unsigned int, _entity));
+        Q_ARG(Entity, _entity));
     return true;
   });
+
+  {
+    // update the entity tree with new/removed entities from gui events
+    std::lock_guard<std::mutex> lock(this->dataPtr->newRemovedEntityMutex);
+
+    for (auto entity : this->dataPtr->newEntities)
+    {
+      // make sure the entity to be added has a name and parent
+      auto nameComp = _ecm.Component<components::Name>(entity);
+      if (!nameComp)
+      {
+        ignerr << "Could not add entity [" << entity << "] to the entity tree "
+               << "because it does not have a name component.\n";
+        continue;
+      }
+      auto parentComp = _ecm.Component<components::ParentEntity>(entity);
+      if (!parentComp)
+      {
+        ignerr << "Could not add entity [" << entity << "] to the entity tree "
+               << "because it does not have a parent entity component.\n";
+        continue;
+      }
+
+      // World children are top-level
+      auto parentEntity = parentComp->Data();
+      if (this->dataPtr->worldEntity != kNullEntity &&
+          parentEntity == this->dataPtr->worldEntity)
+      {
+        parentEntity = kNullEntity;
+      }
+
+      QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddEntity",
+          Qt::QueuedConnection,
+          Q_ARG(Entity, entity),
+          Q_ARG(QString, QString::fromStdString(nameComp->Data())),
+          Q_ARG(Entity, parentEntity),
+          Q_ARG(QString, entityType(entity, _ecm)));
+    }
+
+    for (auto entity : this->dataPtr->removedEntities)
+    {
+      QMetaObject::invokeMethod(&this->dataPtr->treeModel, "RemoveEntity",
+          Qt::QueuedConnection,
+          Q_ARG(Entity, entity));
+    }
+
+    this->dataPtr->newEntities.clear();
+    this->dataPtr->removedEntities.clear();
+  }
 }
 
 /////////////////////////////////////////////////
-void EntityTree::OnEntitySelectedFromQml(unsigned int _entity)
+void EntityTree::OnEntitySelectedFromQml(Entity _entity)
 {
   std::vector<Entity> entitySet {_entity};
   gui::events::EntitiesSelected event(entitySet, true);
@@ -428,7 +490,7 @@ bool EntityTree::eventFilter(QObject *_obj, QEvent *_event)
 
         QMetaObject::invokeMethod(this->PluginItem(), "onEntitySelectedFromCpp",
             Qt::QueuedConnection, Q_ARG(QVariant,
-            QVariant(static_cast<unsigned int>(entity))));
+            QVariant(static_cast<qulonglong>(entity))));
       }
     }
   }
@@ -441,6 +503,21 @@ bool EntityTree::eventFilter(QObject *_obj, QEvent *_event)
     {
       QMetaObject::invokeMethod(this->PluginItem(), "deselectAllEntities",
           Qt::QueuedConnection);
+    }
+  }
+  else if (_event->type() ==
+           ignition::gazebo::gui::events::AddedRemovedEntities::kType)
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->newRemovedEntityMutex);
+    auto addedRemovedEvent =
+        reinterpret_cast<gui::events::AddedRemovedEntities *>(_event);
+    if (addedRemovedEvent)
+    {
+      for (auto entity : addedRemovedEvent->NewEntities())
+        this->dataPtr->newEntities.insert(entity);
+
+      for (auto entity : addedRemovedEvent->RemovedEntities())
+        this->dataPtr->removedEntities.insert(entity);
     }
   }
 
