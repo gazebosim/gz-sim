@@ -236,7 +236,7 @@ void BuoyancyEnginePlugin::PreUpdate(
       * (this->dataPtr->bladderVolume - this->dataPtr->neutralVolume);
   }
   ignition::gazebo::Link link(this->dataPtr->linkEntity);
-  link.AddWorldWrench(_ecm, zForce, {0, 0, 0});
+  link.AddAndVisualizeWorldWrench(_ecm, zForce, {0, 0, 0}, "BuoyancyEngine", math::Color(1, 1, 0));
 }
 
 IGNITION_ADD_PLUGIN(
