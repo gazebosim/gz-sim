@@ -31,5 +31,6 @@
 %include Kmeans.i
 %include Vector3Stats.i
 %include AxisAlignedBox.i
+%include Plane.i
 %include MassMatrix3.i
 %include Cylinder.i
