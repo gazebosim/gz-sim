@@ -34,3 +34,4 @@
 %include Plane.i
 %include MassMatrix3.i
 %include Cylinder.i
+%include Sphere.i
