@@ -56,6 +56,28 @@ struct Commands
   Commands() {}
 };
 
+// TODO(peci1): try to backport this function from ign-gazebo4
+//////////////////////////////////////////////////
+std::string validTopic(const std::vector<std::string> &_topics)
+{
+  for (const auto &topic : _topics)
+  {
+    auto validTopic = transport::TopicUtils::AsValidTopic(topic);
+    if (validTopic.empty())
+    {
+      ignerr << "Topic [" << topic << "] is invalid, ignoring." << std::endl;
+      continue;
+    }
+    if (validTopic != topic)
+    {
+      igndbg << "Topic [" << topic << "] changed to valid topic ["
+             << validTopic << "]" << std::endl;
+    }
+    return validTopic;
+  }
+  return std::string();
+}
+
 class ignition::gazebo::systems::TrackedVehiclePrivate
 {
   /// \brief Callback for velocity subscription
