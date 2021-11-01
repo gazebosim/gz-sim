@@ -64,7 +64,7 @@ class ignition::gazebo::systems::TrackControllerPrivate
   public: void OnCenterOfRotation(const msgs::Vector3d& _msg);
 
   public: using P = physics::FeaturePolicy3d;
-  public: using F = physics::SetContactJointPropertiesCallbackFeature;
+  public: using F = physics::SetContactPropertiesCallbackFeature;
 
   /// \brief The callback for CollectContactSurfaceProperties - all the magic
   /// happens here.
@@ -194,7 +194,7 @@ void TrackController::Configure(const Entity &_entity,
   this->dataPtr->linkName = _sdf->Get<std::string>("link");
 
   using P = physics::FeaturePolicy3d;
-  using F = physics::SetContactJointPropertiesCallbackFeature;
+  using F = physics::SetContactPropertiesCallbackFeature;
 
   this->dataPtr->eventConnection = this->dataPtr->eventManager->
     Connect<events::CollectContactSurfaceProperties>(

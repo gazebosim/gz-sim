@@ -21,7 +21,7 @@
 
 #include <ignition/common/Event.hh>
 
-#include <ignition/physics/ContactJointProperties.hh>
+#include <ignition/physics/ContactProperties.hh>
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Entity.hh"
@@ -53,7 +53,7 @@ namespace ignition
           const std::optional<math::Vector3d> /* normal */,
           const std::optional<double> /* depth */,
           const size_t /* numContactsOnCollision */,
-          physics::SetContactJointPropertiesCallbackFeature::
+          physics::SetContactPropertiesCallbackFeature::
             ContactSurfaceParams<Policy>& /* params */
         ),
         struct CollectContactSurfacePropertiesTag>;

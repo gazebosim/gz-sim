@@ -43,7 +43,7 @@
 #include <ignition/physics/RequestEngine.hh>
 
 #include <ignition/physics/BoxShape.hh>
-#include <ignition/physics/ContactJointProperties.hh>
+#include <ignition/physics/ContactProperties.hh>
 #include <ignition/physics/CylinderShape.hh>
 #include <ignition/physics/ForwardStep.hh>
 #include <ignition/physics/FrameSemantics.hh>
@@ -321,10 +321,10 @@ class ignition::gazebo::systems::PhysicsPrivate
             ignition::physics::GetContactsFromLastStepFeature>{};
 
   /// \brief Feature list to change contacts before they are applied to physics.
-  public: struct SetContactJointPropertiesCallbackFeatureList :
+  public: struct SetContactPropertiesCallbackFeatureList :
             ignition::physics::FeatureList<
               ContactFeatureList,
-              ignition::physics::SetContactJointPropertiesCallbackFeature>{};
+              ignition::physics::SetContactPropertiesCallbackFeature>{};
 
   /// \brief Collision type with collision features.
   public: using ShapePtrType = ignition::physics::ShapePtr<
@@ -395,7 +395,7 @@ class ignition::gazebo::systems::PhysicsPrivate
           MinimumFeatureList,
           CollisionFeatureList,
           ContactFeatureList,
-          SetContactJointPropertiesCallbackFeatureList,
+          SetContactPropertiesCallbackFeatureList,
           NestedModelFeatureList>;
 
   /// \brief A map between world entity ids in the ECM to World Entities in
@@ -2448,25 +2448,24 @@ physics::FrameData3d PhysicsPrivate::LinkFrameDataAtOffset(
 void PhysicsPrivate::EnableContactSurfaceCustomization(const Entity &_world)
 {
   // allow customization of contact joint surface parameters
-  auto setContactJointPropertiesCallbackFeature =
+  auto setContactPropertiesCallbackFeature =
     this->entityWorldMap.EntityCast<
-      SetContactJointPropertiesCallbackFeatureList>(_world);
-  if (!setContactJointPropertiesCallbackFeature)
+      SetContactPropertiesCallbackFeatureList>(_world);
+  if (!setContactPropertiesCallbackFeature)
     return;
 
   using Policy = physics::FeaturePolicy3d;
-  using Feature = physics::SetContactJointPropertiesCallbackFeature;
-  using FeatureList = SetContactJointPropertiesCallbackFeatureList;
-  using FeatureWorld = Feature::World<Policy, FeatureList>;
+  using Feature = physics::SetContactPropertiesCallbackFeature;
+  using FeatureList = SetContactPropertiesCallbackFeatureList;
   using GCFeature = physics::GetContactsFromLastStepFeature;
   using GCFeatureWorld = GCFeature::World<Policy, FeatureList>;
   using ContactPoint = GCFeatureWorld::ContactPoint;
   using ExtraContactData = GCFeature::ExtraContactDataT<Policy>;
 
   const auto callbackID = "ignition::gazebo::systems::Physics";
-  setContactJointPropertiesCallbackFeature->AddContactJointPropertiesCallback(
+  setContactPropertiesCallbackFeature->AddContactPropertiesCallback(
     callbackID,
-    [&, _world](const FeatureWorld::Contact &_contact,
+    [&, _world](const GCFeatureWorld::Contact &_contact,
       const size_t _numContactsOnCollision,
       Feature::ContactSurfaceParams<Policy> &_params)
       {
@@ -2523,14 +2522,14 @@ void PhysicsPrivate::DisableContactSurfaceCustomization(const Entity &_world)
     return;
   }
 
-  auto setContactJointPropertiesCallbackFeature =
+  auto setContactPropertiesCallbackFeature =
     this->entityWorldMap.EntityCast<
-      SetContactJointPropertiesCallbackFeatureList>(_world);
-  if (!setContactJointPropertiesCallbackFeature)
+      SetContactPropertiesCallbackFeatureList>(_world);
+  if (!setContactPropertiesCallbackFeature)
     return;
 
-  setContactJointPropertiesCallbackFeature->
-   RemoveContactJointPropertiesCallback(this->worldContactCallbackIDs[_world]);
+  setContactPropertiesCallbackFeature->
+   RemoveContactPropertiesCallback(this->worldContactCallbackIDs[_world]);
 
   ignmsg << "Disabled contact surface customization for world entity ["
          << _world << "]" << std::endl;

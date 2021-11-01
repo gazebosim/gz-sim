@@ -37,15 +37,19 @@ using namespace ignition;
 using namespace gazebo;
 using namespace std::chrono_literals;
 
+#define EXPECT_ANGLE_NEAR(a1, a2, tol) \
+  EXPECT_LT(std::abs(math::Angle((a1) - (a2)).Normalized().Radian()), (tol)) \
+    << (a1) << " vs. " << (a2)
+
 // Verify that a model's world pose is near a specified pose.
 void verifyPose(const math::Pose3d& pose1, const math::Pose3d& pose2)
 {
   EXPECT_NEAR(pose1.Pos().X(), pose2.Pos().X(), 1e-1);
   EXPECT_NEAR(pose1.Pos().Y(), pose2.Pos().Y(), 1e-1);
   EXPECT_NEAR(pose1.Pos().Z(), pose2.Pos().Z(), 1e-2);
-  EXPECT_NEAR(pose1.Rot().Roll(), pose2.Rot().Roll(), 1e-2);
-  EXPECT_NEAR(pose1.Rot().Pitch(), pose2.Rot().Pitch(), 1e-2);
-  EXPECT_NEAR(pose1.Rot().Yaw(), pose2.Rot().Yaw(), 1e-1);
+  EXPECT_ANGLE_NEAR(pose1.Rot().Roll(), pose2.Rot().Roll(), 1e-2);
+  EXPECT_ANGLE_NEAR(pose1.Rot().Pitch(), pose2.Rot().Pitch(), 1e-2);
+  EXPECT_ANGLE_NEAR(pose1.Rot().Yaw(), pose2.Rot().Yaw(), 1e-1);
 }
 
 /// \brief Test TrackedVehicle system. This test drives a tracked robot over a
@@ -208,9 +212,10 @@ class TrackedVehicleTest : public ::testing::TestWithParam<int>
     EXPECT_NEAR(poses.back().Pos().X(), startPose.Pos().X() + linearSpeed, 0.1);
     EXPECT_NEAR(poses.back().Pos().Y(), startPose.Pos().Y(), 1e-1);
     EXPECT_NEAR(poses.back().Pos().Z(), startPose.Pos().Z(), 1e-2);
-    EXPECT_NEAR(poses.back().Rot().Roll(), startPose.Rot().Roll(), 1e-2);
-    EXPECT_NEAR(poses.back().Rot().Pitch(), startPose.Rot().Pitch(), 1e-2);
-    EXPECT_NEAR(poses.back().Rot().Yaw(), startPose.Rot().Yaw(), 1e-1);
+    EXPECT_ANGLE_NEAR(poses.back().Rot().Roll(), startPose.Rot().Roll(), 1e-2);
+    EXPECT_ANGLE_NEAR(
+      poses.back().Rot().Pitch(), startPose.Rot().Pitch(), 1e-2);
+    EXPECT_ANGLE_NEAR(poses.back().Rot().Yaw(), startPose.Rot().Yaw(), 1e-1);
 
     // Test rotation in place - 1 sec rotation, should turn 0.25 rad.
 
@@ -227,10 +232,11 @@ class TrackedVehicleTest : public ::testing::TestWithParam<int>
     EXPECT_NEAR(poses.back().Pos().X(), middlePose.Pos().X(), 1e-1);
     EXPECT_NEAR(poses.back().Pos().Y(), middlePose.Pos().Y(), 1e-1);
     EXPECT_NEAR(poses.back().Pos().Z(), middlePose.Pos().Z(), 1e-2);
-    EXPECT_NEAR(poses.back().Rot().Roll(), middlePose.Rot().Roll(), 1e-2);
-    EXPECT_NEAR(poses.back().Rot().Pitch(), middlePose.Rot().Pitch(), 1e-2);
-    EXPECT_NEAR(poses.back().Rot().Yaw(),
-                middlePose.Rot().Yaw() + rotationSpeed, 1e-1);
+    EXPECT_ANGLE_NEAR(poses.back().Rot().Roll(), middlePose.Rot().Roll(), 1e-2);
+    EXPECT_ANGLE_NEAR(
+      poses.back().Rot().Pitch(), middlePose.Rot().Pitch(), 1e-2);
+    EXPECT_ANGLE_NEAR(poses.back().Rot().Yaw(),
+                      middlePose.Rot().Yaw() + rotationSpeed, 1e-1);
 
     // Test following a circular path.
 
@@ -244,9 +250,10 @@ class TrackedVehicleTest : public ::testing::TestWithParam<int>
     EXPECT_NEAR(poses.back().Pos().X(), lastPose.Pos().X() + 0.4, 1e-1);
     EXPECT_NEAR(poses.back().Pos().Y(), lastPose.Pos().Y() + 0.15, 1e-1);
     EXPECT_NEAR(poses.back().Pos().Z(), lastPose.Pos().Z(), 1e-2);
-    EXPECT_NEAR(poses.back().Rot().Roll(), lastPose.Rot().Roll(), 1e-2);
-    EXPECT_NEAR(poses.back().Rot().Pitch(), lastPose.Rot().Pitch(), 1e-2);
-    EXPECT_NEAR(poses.back().Rot().Yaw(), lastPose.Rot().Yaw() + 0.2, 1e-1);
+    EXPECT_ANGLE_NEAR(poses.back().Rot().Roll(), lastPose.Rot().Roll(), 1e-2);
+    EXPECT_ANGLE_NEAR(poses.back().Rot().Pitch(), lastPose.Rot().Pitch(), 1e-2);
+    EXPECT_ANGLE_NEAR(
+      poses.back().Rot().Yaw(), lastPose.Rot().Yaw() + 0.2, 1e-1);
 
     // Test driving on staircase - should climb to its middle part.
 
@@ -266,9 +273,10 @@ class TrackedVehicleTest : public ::testing::TestWithParam<int>
     EXPECT_NEAR(poses.back().Pos().X(), beforeStairsPose.X() + 3.5, 0.15);
     EXPECT_LE(poses.back().Pos().Y(), 0.7);
     EXPECT_GT(poses.back().Pos().Z(), 0.6);
-    EXPECT_NEAR(poses.back().Rot().Roll(), 0.0, 1e-1);
-    EXPECT_NEAR(poses.back().Rot().Pitch(), -0.4, 1e-1);
-    EXPECT_NEAR(poses.back().Rot().Yaw(), beforeStairsPose.Rot().Yaw(), 1e-1);
+    EXPECT_ANGLE_NEAR(poses.back().Rot().Roll(), 0.0, 1e-1);
+    EXPECT_ANGLE_NEAR(poses.back().Rot().Pitch(), -0.4, 1e-1);
+    EXPECT_ANGLE_NEAR(
+      poses.back().Rot().Yaw(), beforeStairsPose.Rot().Yaw(), 1e-1);
 
     // Test driving over a cylinder
 
@@ -288,13 +296,14 @@ class TrackedVehicleTest : public ::testing::TestWithParam<int>
     // The cylinder is at (0, 0, 0), we start at (0, 1, 0), and want to pass
     // at least a bit behind the cylinder (0, -1, 0). The driving is a bit wild,
     // so we don't care much about the end Y position and yaw.
-    EXPECT_LT(poses.back().Pos().X(), -1);  // The driving is wild
+    EXPECT_LT(poses.back().Pos().X(), -0.99);  // The driving is wild
     EXPECT_NEAR(poses.back().Pos().Y(), 0, 0.5);
     EXPECT_NEAR(poses.back().Pos().Z(), 0.0, 1e-1);
-    EXPECT_NEAR(poses.back().Rot().Roll(), 0.0, 1e-1);
-    EXPECT_NEAR(poses.back().Rot().Pitch(), 0.0, 1e-1);
+    EXPECT_ANGLE_NEAR(poses.back().Rot().Roll(), 0.0, 1e-1);
+    EXPECT_ANGLE_NEAR(poses.back().Rot().Pitch(), 0.0, 1e-1);
     // The driving is wild
-    EXPECT_NEAR(poses.back().Rot().Yaw(), beforeCylinderPose.Rot().Yaw(), 0.5);
+    EXPECT_ANGLE_NEAR(
+      poses.back().Rot().Yaw(), beforeCylinderPose.Rot().Yaw(), 0.5);
 
     // Test driving over an obstacle that requires flippers. Without them, the
     // robot would get stuck in front of the obstacle.
@@ -318,10 +327,11 @@ class TrackedVehicleTest : public ::testing::TestWithParam<int>
     EXPECT_GT(poses.back().Pos().X(), 3.5);
     EXPECT_NEAR(poses.back().Pos().Y(), 2, 0.1);  // The driving is wild
     EXPECT_NEAR(poses.back().Pos().Z(), 0.0, 1e-1);
-    EXPECT_NEAR(poses.back().Rot().Roll(), 0.0, 1e-1);
-    EXPECT_NEAR(poses.back().Rot().Pitch(), 0.0, 1e-1);
+    EXPECT_ANGLE_NEAR(poses.back().Rot().Roll(), 0.0, 1e-1);
+    EXPECT_ANGLE_NEAR(poses.back().Rot().Pitch(), 0.0, 1e-1);
     // The driving is wild
-    EXPECT_NEAR(poses.back().Rot().Yaw(), beforeBoxPose.Rot().Yaw(), 0.25);
+    EXPECT_ANGLE_NEAR(
+      poses.back().Rot().Yaw(), beforeBoxPose.Rot().Yaw(), 0.25);
     // And we go back, which is a somewhat easier way
 
     msgs::Set(msg.mutable_linear(), math::Vector3d(linearSpeed, 0, 0));
@@ -334,10 +344,11 @@ class TrackedVehicleTest : public ::testing::TestWithParam<int>
     EXPECT_LT(poses.back().Pos().X(), 1);
     EXPECT_NEAR(poses.back().Pos().Y(), 2, 0.1);  // The driving is wild
     EXPECT_NEAR(poses.back().Pos().Z(), 0.0, 1e-1);
-    EXPECT_NEAR(poses.back().Rot().Roll(), 0.0, 1e-1);
-    EXPECT_NEAR(poses.back().Rot().Pitch(), 0.0, 1e-1);
+    EXPECT_ANGLE_NEAR(poses.back().Rot().Roll(), 0.0, 1e-1);
+    EXPECT_ANGLE_NEAR(poses.back().Rot().Pitch(), 0.0, 1e-1);
     // The driving is wild
-    EXPECT_NEAR(poses.back().Rot().Yaw(), beforeBoxPose.Rot().Yaw(), 0.25);
+    EXPECT_ANGLE_NEAR(
+      poses.back().Rot().Yaw(), beforeBoxPose.Rot().Yaw(), 0.25);
   }
 };
 
