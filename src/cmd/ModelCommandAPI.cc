@@ -49,6 +49,7 @@
 #include <ignition/gazebo/components/ParentEntity.hh>
 #include <ignition/gazebo/components/ParentLinkName.hh>
 #include <ignition/gazebo/components/Pose.hh>
+#include <ignition/gazebo/components/RgbdCamera.hh>
 #include <ignition/gazebo/components/Sensor.hh>
 #include <ignition/gazebo/components/World.hh>
 #include <ignition/transport/Node.hh>
@@ -166,18 +167,18 @@ void printPose(const uint64_t _entity, const EntityComponentManager &_ecm,
 /// \param[in] _spaces Number of spaces to indent for every line.
 void printNoise(const sdf::Noise &_noise, int _spaces)
 {
-  std::cout << std::string(_spaces, ' ') << "- Mean:" << _noise.Mean() << "\n"
-    << std::string(_spaces, ' ') << "- Bias mean:"
+  std::cout << std::string(_spaces, ' ') << "- Mean: " << _noise.Mean() << "\n"
+    << std::string(_spaces, ' ') << "- Bias mean: "
     << _noise.BiasMean() << "\n"
-    << std::string(_spaces, ' ') << "- Standard deviation:"
+    << std::string(_spaces, ' ') << "- Standard deviation: "
     << _noise.StdDev() << "\n"
-    << std::string(_spaces, ' ') << "- Bias standard deviation:"
+    << std::string(_spaces, ' ') << "- Bias standard deviation: "
     << _noise.BiasStdDev() << "\n"
-    << std::string(_spaces, ' ') << "- Precision:"
+    << std::string(_spaces, ' ') << "- Precision: "
     << _noise.Precision() << "\n"
-    << std::string(_spaces, ' ') << "- Dynamic bias standard deviation:"
+    << std::string(_spaces, ' ') << "- Dynamic bias standard deviation: "
     << _noise.DynamicBiasStdDev() << "\n"
-    << std::string(_spaces, ' ') << "- Dynamic bias correlation time:"
+    << std::string(_spaces, ' ') << "- Dynamic bias correlation time: "
     << _noise.DynamicBiasCorrelationTime() << std::endl;
 }
 
@@ -207,6 +208,152 @@ void printAltimeter(const uint64_t _entity, const EntityComponentManager &_ecm,
 }
 
 //////////////////////////////////////////////////
+/// \brief Print info about an SDF camera.
+/// \param[in] _camera The camera to output
+void printCamera(const sdf::Camera *_camera, int _spaces)
+{
+  std::cout << std::string(_spaces, ' ')
+    << "- Horizontal field of view (rad): " << _camera->HorizontalFov()
+    << std::endl;
+  std::cout << std::string(_spaces, ' ')
+    << "- Image width (px): " << _camera->ImageWidth()
+    << std::endl;
+  std::cout << std::string(_spaces, ' ')
+    << "- Image height (px): " << _camera->ImageHeight()
+    << std::endl;
+  std::cout << std::string(_spaces, ' ')
+    << "- Near clip (m): " << _camera->NearClip()
+    << std::endl;
+  std::cout << std::string(_spaces, ' ')
+    << "- Far clip (m): " << _camera->FarClip()
+    << std::endl;
+  std::cout << std::string(_spaces, ' ')
+    << "- Pixel format: " << _camera->PixelFormatStr()
+    << std::endl;
+
+  if (_camera->HasDepthCamera())
+  {
+    std::cout << std::string(_spaces, ' ')
+      << "- Depth near clip (m): " << _camera->DepthNearClip()
+      << std::endl;
+    std::cout << std::string(_spaces, ' ')
+      << "- Depth far clip (m): " << _camera->DepthFarClip()
+      << std::endl;
+  }
+
+  if (_camera->HasSegmentationType())
+  {
+    std::cout << std::string(_spaces, ' ')
+      << "- Segmentation type: " << _camera->SegmentationType()
+      << std::endl;
+  }
+
+  if (_camera->HasBoundingBoxType())
+  {
+    std::cout << std::string(_spaces, ' ')
+      << "- Bounding box type: " << _camera->BoundingBoxType()
+      << std::endl;
+  }
+
+  std::cout << std::string(_spaces, ' ')
+    << "- Save frames: " << _camera->SaveFrames()
+    << std::endl;
+  std::cout << std::string(_spaces, ' ')
+    << "- Save frames path: " << _camera->SaveFramesPath()
+    << std::endl;
+
+  std::cout << std::string(_spaces, ' ')
+    << "- Image noise:\n";
+  printNoise(_camera->ImageNoise(), _spaces + 2);
+
+  std::cout << std::string(_spaces, ' ')
+    << "- Distortion K1: " << _camera->DistortionK1()
+    << std::endl;
+  std::cout << std::string(_spaces, ' ')
+    << "- Distortion K2: " << _camera->DistortionK2()
+    << std::endl;
+  std::cout << std::string(_spaces, ' ')
+    << "- Distortion K3: " << _camera->DistortionK3()
+    << std::endl;
+  std::cout << std::string(_spaces, ' ')
+    << "- Distortion P1: " << _camera->DistortionP1()
+    << std::endl;
+  std::cout << std::string(_spaces, ' ')
+    << "- Distortion P2: " << _camera->DistortionP2()
+    << std::endl;
+  std::cout << std::string(_spaces, ' ')
+    << "- Distortion center: " << _camera->DistortionCenter()
+    << std::endl;
+  std::cout << std::string(_spaces, ' ')
+    << "- Lens type: " << _camera->LensType()
+    << std::endl;
+  std::cout << std::string(_spaces, ' ')
+    << "- Lens scale to horizontal field of view (rad): "
+    << _camera->LensScaleToHfov()
+    << std::endl;
+  std::cout << std::string(_spaces, ' ')
+    << "- Lens C1: " << _camera->LensC1()
+    << std::endl;
+  std::cout << std::string(_spaces, ' ')
+    << "- Lens C2: " << _camera->LensC2()
+    << std::endl;
+  std::cout << std::string(_spaces, ' ')
+    << "- Lens C3: " << _camera->LensC3()
+    << std::endl;
+  std::cout << std::string(_spaces, ' ')
+    << "- Lens focal length (m): " << _camera->LensFocalLength()
+    << std::endl;
+  std::cout << std::string(_spaces, ' ')
+    << "- Lens function: " << _camera->LensFunction()
+    << std::endl;
+  std::cout << std::string(_spaces, ' ')
+    << "- Lens cutoff angle (rad): " << _camera->LensCutoffAngle()
+    << std::endl;
+  std::cout << std::string(_spaces, ' ')
+    << "- Lens texture size: " << _camera->LensEnvironmentTextureSize()
+    << std::endl;
+  std::cout << std::string(_spaces, ' ')
+    << "- Lens intrinsics Fx: " << _camera->LensIntrinsicsFx()
+    << std::endl;
+  std::cout << std::string(_spaces, ' ')
+    << "- Lens intrinsics Fy: " << _camera->LensIntrinsicsFy()
+    << std::endl;
+  std::cout << std::string(_spaces, ' ')
+    << "- Lens intrinsics Cx: " << _camera->LensIntrinsicsCx()
+    << std::endl;
+  std::cout << std::string(_spaces, ' ')
+    << "- Lens intrinsics Cy: " << _camera->LensIntrinsicsCy()
+    << std::endl;
+  std::cout << std::string(_spaces, ' ')
+    << "- Lens intrinsics skew: " << _camera->LensIntrinsicsSkew()
+    << std::endl;
+  std::cout << std::string(_spaces, ' ')
+    << "- Visibility mask: " << _camera->VisibilityMask()
+    << std::endl;
+}
+
+//////////////////////////////////////////////////
+/// \brief Print info about a camera sensor.
+/// \param[in] _entity Entity to print information for. Nothing is
+/// printed if the entity is not a camera.
+/// \param[in] _ecm The entity component manager.
+/// \param[in] _spaces Number of spaces to indent for every line
+void printRgbdCamera(const uint64_t _entity, const EntityComponentManager &_ecm,
+    int _spaces)
+{
+  // Get the type and return if the _entity does not have the correct
+  // component.
+  auto comp = _ecm.Component<components::RgbdCamera>(_entity);
+  if (!comp)
+    return;
+
+  const sdf::Sensor &sensor = comp->Data();
+  const sdf::Camera *camera = sensor.CameraSensor();
+
+  printCamera(camera, _spaces);
+}
+
+//////////////////////////////////////////////////
 /// \brief Print info about a camera sensor.
 /// \param[in] _entity Entity to print information for. Nothing is
 /// printed if the entity is not a camera.
@@ -224,21 +371,7 @@ void printCamera(const uint64_t _entity, const EntityComponentManager &_ecm,
   const sdf::Sensor &sensor = comp->Data();
   const sdf::Camera *camera = sensor.CameraSensor();
 
-  std::cout << std::string(_spaces, ' ')
-    << "- Horizontal field of view (rad): " << camera->HorizontalFov()
-    << std::endl;
-  std::cout << std::string(_spaces, ' ')
-    << "- Image width (px): " << camera->ImageWidth()
-    << std::endl;
-  std::cout << std::string(_spaces, ' ')
-    << "- Image height (px): " << camera->ImageHeight()
-    << std::endl;
-  std::cout << std::string(_spaces, ' ')
-    << "- Near clip (m): " << camera->NearClip()
-    << std::endl;
-  std::cout << std::string(_spaces, ' ')
-    << "- Far clip (m): " << camera->FarClip()
-    << std::endl;
+  printCamera(camera, _spaces);
 }
 
 //////////////////////////////////////////////////
@@ -467,9 +600,12 @@ void printLinks(const uint64_t _modelEntity,
         << "- Parent: " << entityInfo(_modelEntity, _ecm) << std::endl;
       printPose(sensor, _ecm, spaces + 2);
 
+      // Run through all the sensor print statements. Each function will
+      // exit early if the the sensor is the wrong type.
       printAltimeter(sensor, _ecm, spaces + 2);
       printCamera(sensor, _ecm, spaces + 2);
       printImu(sensor, _ecm, spaces + 2);
+      printRgbdCamera(sensor, _ecm, spaces + 2);
     }
   }
 }
@@ -507,20 +643,21 @@ void printJoints(const uint64_t _modelEntity,
     if (_jointName.length() && _jointName != nameComp->Data())
       continue;
 
+    int spaces = _spaces;
     std::cout << std::string(_spaces, ' ')
       << "- Joint [" << entity << "]" << std::endl;
-    _spaces += 2;
+    spaces += 2;
 
-    std::cout << std::string(_spaces, ' ')
+    std::cout << std::string(spaces, ' ')
       << "- Name: " << nameComp->Data() << std::endl
-      << std::string(_spaces, ' ')
+      << std::string(spaces, ' ')
       << "- Parent: " << entityInfo(_modelEntity, _ecm)
       << std::endl;
 
     const auto jointTypeComp = _ecm.Component<components::JointType>(entity);
     if (jointTypeComp)
     {
-      std::cout << std::string(_spaces, ' ')
+      std::cout << std::string(spaces, ' ')
         << "- Type: " << jointTypes.at(jointTypeComp->Data()) << std::endl;
     }
 
@@ -531,27 +668,26 @@ void printJoints(const uint64_t _modelEntity,
 
     if (childLinkComp && parentLinkComp)
     {
-      std::cout << std::string(_spaces, ' ') << "- Parent Link: "
+      std::cout << std::string(spaces, ' ') << "- Parent Link: "
                 << entityInfo(parentLinkComp->Data(), _ecm) << "\n"
-                << std::string(_spaces, ' ') << "- Child Link: "
+                << std::string(spaces, ' ') << "- Child Link: "
                 << entityInfo(childLinkComp->Data(), _ecm) << "\n";
     }
 
     const auto poseComp = _ecm.Component<components::Pose>(entity);
     if (poseComp)
     {
-      std::cout << std::string(_spaces, ' ')
+      std::cout << std::string(spaces, ' ')
         << "- Pose [ XYZ (m) ] [ RPY (rad) ]:" << std::endl
-        << poseInfo(poseComp->Data(), _spaces + 2) << std::endl;
+        << poseInfo(poseComp->Data(), spaces + 2) << std::endl;
     }
 
     const auto axisComp = _ecm.Component<components::JointAxis>(entity);
     if (axisComp)
     {
-      std::cout << std::string(_spaces, ' ') << "- Axis unit vector [ XYZ ]:\n"
-        << std::string(_spaces + 4, ' ') << "[" << axisComp->Data().Xyz().X()
-        << " " << axisComp->Data().Xyz().Y() << " "
-        << axisComp->Data().Xyz().Z() << "]\n";
+      std::cout << std::string(spaces, ' ') << "- Axis unit vector [ XYZ ]:\n"
+        << std::string(spaces + 2, ' ') << "[" << axisComp->Data().Xyz()
+        << "]\n";
     }
   }
 }
