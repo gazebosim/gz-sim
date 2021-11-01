@@ -21,12 +21,19 @@
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/gazebo/components/PoseCmd.hh>
+#include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
 #include <ignition/gazebo/Model.hh>
+#include <ignition/physics/ContactProperties.hh>
+#include <ignition/physics/FeatureList.hh>
+#include <ignition/physics/FeaturePolicy.hh>
+#include <ignition/physics/config.hh>
+#include <ignition/plugin/Loader.hh>
 
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/Server.hh"
+#include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/test_config.hh"
 
 #include "../helpers/Relay.hh"
@@ -64,6 +71,50 @@ class TrackedVehicleTest : public ::testing::TestWithParam<int>
            (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
   }
 
+  public: void SkipTestIfNotSupported(const EntityComponentManager &_ecm,
+                                      bool &_shouldSkip)
+  {
+    _shouldSkip = false;
+    auto pluginLib =
+        _ecm.ComponentData<components::PhysicsEnginePlugin>(worldEntity(_ecm));
+    ASSERT_TRUE(pluginLib.has_value())
+        << "PhysicsEnginePlugin component not found";
+
+    // Find physics plugin (copied from the Physics system with some
+    // modifications)
+    common::SystemPaths systemPaths;
+    systemPaths.SetPluginPathEnv("IGN_GAZEBO_PHYSICS_ENGINE_PATH");
+    systemPaths.AddPluginPaths({IGNITION_PHYSICS_ENGINE_INSTALL_DIR});
+
+    auto pathToLib = systemPaths.FindSharedLibrary(*pluginLib);
+    ASSERT_FALSE(pathToLib.empty())
+        << "Failed to find plugin [" << *pluginLib << "]";
+
+    // Load engine plugin
+    ignition::plugin::Loader pluginLoader;
+    auto plugins = pluginLoader.LoadLib(pathToLib);
+    ASSERT_FALSE(plugins.empty())
+        << "Unable to load the [" << pathToLib << "] library";
+
+    // Check that we do have a valid physics engine. Otherwise, this should be a
+    // failure not a skip.
+    auto classNames = pluginLoader.PluginsImplementing<
+        physics::ForwardStep::Implementation<
+            physics::FeaturePolicy3d>>();
+    ASSERT_FALSE(classNames.empty())
+        << "No physics plugins found in library [" << pathToLib << "]";
+
+    // Check if there are any plugins implementing
+    // SetContactPropertiesCallbackFeature. If not, skip the test.
+    auto contactProperties = pluginLoader.PluginsImplementing<
+        physics::SetContactPropertiesCallbackFeature::Implementation<
+            physics::FeaturePolicy3d>>();
+    if (contactProperties.empty())
+    {
+      _shouldSkip = true;
+    }
+  }
+
   /// \param[in] _sdfFile SDF file to load.
   /// \param[in] _cmdVelTopic Command velocity topic.
   /// \param[in] _odomTopic Odometry topic.
@@ -80,9 +131,29 @@ class TrackedVehicleTest : public ::testing::TestWithParam<int>
     EXPECT_FALSE(*server.Running(0));
 
     // Create a system that records the vehicle poses
-    test::Relay testSystem;
     test::Relay ecmGetterSystem;
+    EntityComponentManager* ecm {nullptr};
+    ecmGetterSystem.OnPreUpdate([&ecm](const gazebo::UpdateInfo &,
+      gazebo::EntityComponentManager &_ecm)
+      {
+        if (ecm == nullptr)
+          ecm = &_ecm;
+      });
+    server.AddSystem(ecmGetterSystem.systemPtr);
+    // Get ECM
+    server.Run(true, 1, false);
 
+    ASSERT_NE(nullptr, ecm);
+    bool shouldSkipTest = false;
+    this->SkipTestIfNotSupported(*ecm, shouldSkipTest);
+    if (shouldSkipTest)
+    {
+      // Skip test if the ContactProperties feature is not available
+      GTEST_SKIP() << "Skipping test because physics engine does not support "
+        "SetContactPropertiesCallbackFeature";
+    }
+
+    test::Relay testSystem;
     Entity modelEntity {kNullEntity};
     std::vector<math::Pose3d> poses;
     testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
@@ -99,15 +170,6 @@ class TrackedVehicleTest : public ::testing::TestWithParam<int>
         poses.push_back(poseComp->Data());
       });
     server.AddSystem(testSystem.systemPtr);
-
-    EntityComponentManager* ecm {nullptr};
-    ecmGetterSystem.OnPreUpdate([&ecm](const gazebo::UpdateInfo &,
-      gazebo::EntityComponentManager &_ecm)
-      {
-        if (ecm == nullptr)
-          ecm = &_ecm;
-      });
-    server.AddSystem(ecmGetterSystem.systemPtr);
 
     // Run server and check that vehicle didn't move
     server.Run(true, 1000, false);

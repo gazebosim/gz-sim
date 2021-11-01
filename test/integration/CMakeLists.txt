@@ -83,3 +83,11 @@ ign_build_tests(TYPE INTEGRATION
   LIB_DEPS
     ${EXTRA_TEST_LIB_DEPS}
 )
+
+target_link_libraries(INTEGRATION_tracked_vehicle_system
+  ignition-physics${IGN_PHYSICS_VER}::core
+  ignition-plugin${IGN_PLUGIN_VER}::loader
+)
+# The default timeout (240s) doesn't seem to be enough for this test.
+set_tests_properties(INTEGRATION_tracked_vehicle_system PROPERTIES TIMEOUT 300)
+
