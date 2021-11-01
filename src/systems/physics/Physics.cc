@@ -1204,7 +1204,7 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
       [&](const Entity &_entity, const components::Model *
           /* _model */) -> bool
       {
-        const auto world = _ecm.EntityByComponents(components::World());
+        const auto world = worldEntity(_ecm);
         // Remove model if found
         if (auto modelPtrPhys = this->entityModelMap.Get(_entity))
         {
