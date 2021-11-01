@@ -2465,7 +2465,7 @@ void PhysicsPrivate::EnableContactSurfaceCustomization(const Entity &_world)
   const auto callbackID = "ignition::gazebo::systems::Physics";
   setContactPropertiesCallbackFeature->AddContactPropertiesCallback(
     callbackID,
-    [&, _world](const GCFeatureWorld::Contact &_contact,
+    [this, _world](const GCFeatureWorld::Contact &_contact,
       const size_t _numContactsOnCollision,
       Feature::ContactSurfaceParams<Policy> &_params)
       {
