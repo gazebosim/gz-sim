@@ -175,6 +175,21 @@ namespace ignition
         const Entity &_entity,
         const EntityComponentManager &_ecm);
 
+    /// \brief Helper function to generate a valid transport topic, given
+    /// a list of topics ordered by preference. The generated topic will be,
+    /// in this order:
+    ///
+    /// 1. The first topic unchanged, if valid.
+    /// 2. A valid version of the first topic, if possible.
+    /// 3. The second topic unchanged, if valid.
+    /// 4. A valid version of the second topic, if possible.
+    /// 5. ...
+    /// 6. If no valid topics could be generated, return an empty string.
+    ///
+    /// \param[in] _topics Topics ordered by preference.
+    std::string IGNITION_GAZEBO_VISIBLE validTopic(
+        const std::vector<std::string> &_topics);
+
     /// \brief Helper function to "enable" a component (i.e. create it if it
     /// doesn't exist) or "disable" a component (i.e. remove it if it exists).
     /// \param[in] _ecm Mutable reference to the ECM
