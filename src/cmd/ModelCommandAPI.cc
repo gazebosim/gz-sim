@@ -21,23 +21,35 @@
 #include <vector>
 #include <map>
 
+#include <sdf/Altimeter.hh>
+#include <sdf/Camera.hh>
+#include <sdf/Imu.hh>
+#include <sdf/Magnetometer.hh>
+#include <sdf/Noise.hh>
+#include <sdf/Sensor.hh>
+
 #include <ignition/msgs/serialized.pb.h>
 #include <ignition/msgs/stringmsg.pb.h>
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Filesystem.hh>
 #include <ignition/gazebo/EntityComponentManager.hh>
+#include <ignition/gazebo/components/Altimeter.hh>
+#include <ignition/gazebo/components/Camera.hh>
 #include <ignition/gazebo/components/ChildLinkName.hh>
+#include <ignition/gazebo/components/Imu.hh>
 #include <ignition/gazebo/components/Inertial.hh>
 #include <ignition/gazebo/components/Joint.hh>
 #include <ignition/gazebo/components/JointAxis.hh>
 #include <ignition/gazebo/components/JointType.hh>
 #include <ignition/gazebo/components/Link.hh>
+#include <ignition/gazebo/components/Magnetometer.hh>
 #include <ignition/gazebo/components/Model.hh>
 #include <ignition/gazebo/components/Name.hh>
 #include <ignition/gazebo/components/ParentEntity.hh>
 #include <ignition/gazebo/components/ParentLinkName.hh>
 #include <ignition/gazebo/components/Pose.hh>
+#include <ignition/gazebo/components/Sensor.hh>
 #include <ignition/gazebo/components/World.hh>
 #include <ignition/transport/Node.hh>
 
@@ -117,17 +129,194 @@ std::string entityInfo(const std::string &_name,
 //////////////////////////////////////////////////
 /// \brief Get pose info in a standard way
 /// \param[in] _pose Pose to print
-/// \param[in] _prefix Indentation prefix for every line
+/// \param[in] _spaces Number of spaces to indent for every line
 /// \return Pose formatted in a standard way
-std::string poseInfo(math::Pose3d _pose, const std::string &_prefix)
+std::string poseInfo(math::Pose3d _pose, int _spaces)
 {
   return
-    _prefix + "[" + std::to_string(_pose.X()) + " | "
-                  + std::to_string(_pose.Y()) + " | "
+    std::string(_spaces, ' ') + "[" + std::to_string(_pose.X()) + " "
+                  + std::to_string(_pose.Y()) + " "
                   + std::to_string(_pose.Z()) + "]\n" +
-    _prefix + "[" + std::to_string(_pose.Roll()) + " | "
-                  + std::to_string(_pose.Pitch()) + " | "
+    std::string(_spaces, ' ') + "[" + std::to_string(_pose.Roll()) + " "
+                  + std::to_string(_pose.Pitch()) + " "
                   + std::to_string(_pose.Yaw()) + "]";
+}
+
+//////////////////////////////////////////////////
+/// \brief Print pose info about an entity.
+/// \param[in] _entity Entity to print pose information for. Nothing is
+/// printed if the entity lack a pose component.
+/// \param[in] _ecm The entity component manager.
+/// \param[in] _spaces Number of spaces to indent for every line
+void printPose(const uint64_t _entity, const EntityComponentManager &_ecm,
+    int _spaces)
+{
+  const auto poseComp = _ecm.Component<components::Pose>(_entity);
+  if (poseComp)
+  {
+    std::cout << std::string(_spaces, ' ')
+      << "- Pose [ XYZ (m) ] [ RPY (rad) ]:" << std::endl
+      << poseInfo(poseComp->Data(), _spaces + 2) << std::endl;
+  }
+}
+
+//////////////////////////////////////////////////
+/// \brief Print noise information.
+/// \param[in] _noise Noise to print.
+/// \param[in] _spaces Number of spaces to indent for every line.
+void printNoise(const sdf::Noise &_noise, int _spaces)
+{
+  std::cout << std::string(_spaces, ' ') << "- Mean:" << _noise.Mean() << "\n"
+    << std::string(_spaces, ' ') << "- Bias mean:"
+    << _noise.BiasMean() << "\n"
+    << std::string(_spaces, ' ') << "- Standard deviation:"
+    << _noise.StdDev() << "\n"
+    << std::string(_spaces, ' ') << "- Bias standard deviation:"
+    << _noise.BiasStdDev() << "\n"
+    << std::string(_spaces, ' ') << "- Precision:"
+    << _noise.Precision() << "\n"
+    << std::string(_spaces, ' ') << "- Dynamic bias standard deviation:"
+    << _noise.DynamicBiasStdDev() << "\n"
+    << std::string(_spaces, ' ') << "- Dynamic bias correlation time:"
+    << _noise.DynamicBiasCorrelationTime() << std::endl;
+}
+
+//////////////////////////////////////////////////
+/// \brief Print info about an altimeter sensor.
+/// \param[in] _entity Entity to print information for. Nothing is
+/// printed if the entity is not an altimeter.
+/// \param[in] _ecm The entity component manager.
+/// \param[in] _spaces Number of spaces to indent for every line
+void printAltimeter(const uint64_t _entity, const EntityComponentManager &_ecm,
+    int _spaces)
+{
+  // Get the type and return if the _entity does not have the correct
+  // component.
+  auto comp = _ecm.Component<components::Altimeter>(_entity);
+  if (!comp)
+    return;
+
+  const sdf::Sensor &sensor = comp->Data();
+  const sdf::Altimeter *altimeter = sensor.AltimeterSensor();
+
+  std::cout << std::string(_spaces, ' ') << "- Vertical position noise:\n";
+  printNoise(altimeter->VerticalPositionNoise(), _spaces + 2);
+
+  std::cout << std::string(_spaces, ' ') << "- Vertical velocity noise:\n";
+  printNoise(altimeter->VerticalVelocityNoise(), _spaces + 2);
+}
+
+//////////////////////////////////////////////////
+/// \brief Print info about a camera sensor.
+/// \param[in] _entity Entity to print information for. Nothing is
+/// printed if the entity is not a camera.
+/// \param[in] _ecm The entity component manager.
+/// \param[in] _spaces Number of spaces to indent for every line
+void printCamera(const uint64_t _entity, const EntityComponentManager &_ecm,
+    int _spaces)
+{
+  // Get the type and return if the _entity does not have the correct
+  // component.
+  auto comp = _ecm.Component<components::Camera>(_entity);
+  if (!comp)
+    return;
+
+  const sdf::Sensor &sensor = comp->Data();
+  const sdf::Camera *camera = sensor.CameraSensor();
+
+  std::cout << std::string(_spaces, ' ')
+    << "- Horizontal field of view (rad): " << camera->HorizontalFov()
+    << std::endl;
+  std::cout << std::string(_spaces, ' ')
+    << "- Image width (px): " << camera->ImageWidth()
+    << std::endl;
+  std::cout << std::string(_spaces, ' ')
+    << "- Image height (px): " << camera->ImageHeight()
+    << std::endl;
+  std::cout << std::string(_spaces, ' ')
+    << "- Near clip (m): " << camera->NearClip()
+    << std::endl;
+  std::cout << std::string(_spaces, ' ')
+    << "- Far clip (m): " << camera->FarClip()
+    << std::endl;
+}
+
+//////////////////////////////////////////////////
+/// \brief Print info about an imu sensor.
+/// \param[in] _entity Entity to print information for. Nothing is
+/// printed if the entity is not an IMU.
+/// \param[in] _ecm The entity component manager.
+/// \param[in] _spaces Number of spaces to indent for every line
+void printImu(const uint64_t _entity, const EntityComponentManager &_ecm,
+    int _spaces)
+{
+  // Get the type and return if the _entity does not have the correct
+  // component.
+  auto comp = _ecm.Component<components::Imu>(_entity);
+  if (!comp)
+    return;
+
+  const sdf::Sensor &sensor = comp->Data();
+  const sdf::Imu *imu = sensor.ImuSensor();
+
+  std::cout << std::string(_spaces, ' ')
+    << "- Linear acceleration X-axis noise:\n";
+  printNoise(imu->LinearAccelerationXNoise(), _spaces + 2);
+  std::cout << std::string(_spaces, ' ')
+    << "- Linear acceleration Y-axis noise:\n";
+  printNoise(imu->LinearAccelerationYNoise(), _spaces + 2);
+  std::cout << std::string(_spaces, ' ')
+    << "- Linear acceleration Z-axis noise:\n";
+  printNoise(imu->LinearAccelerationZNoise(), _spaces + 2);
+
+  std::cout << std::string(_spaces, ' ')
+    << "- Angular velocity X-axis noise:\n";
+  printNoise(imu->AngularVelocityXNoise(), _spaces + 2);
+  std::cout << std::string(_spaces, ' ')
+    << "- Angular velocity Y-axis noise:\n";
+  printNoise(imu->AngularVelocityYNoise(), _spaces + 2);
+  std::cout << std::string(_spaces, ' ')
+    << "- Angular velocity Z-axis noise:\n";
+  printNoise(imu->AngularVelocityZNoise(), _spaces + 2);
+
+  std::cout << std::string(_spaces, ' ')
+    << "- Gravity direction X [XYZ]: "
+    << imu->GravityDirX() << std::endl;
+  std::cout << std::string(_spaces, ' ')
+    << "- Gravity direction X parent frame:" << imu->GravityDirXParentFrame()
+    << std::endl;
+
+  std::cout << std::string(_spaces, ' ')
+    << "- Localization:" << imu->Localization() << std::endl;
+
+  std::cout << std::string(_spaces, ' ')
+    << "- Custom RPY: " << imu->CustomRpy() << std::endl;
+  std::cout << std::string(_spaces, ' ')
+    << "- Custom RPY parent frame:" << imu->CustomRpyParentFrame() << std::endl;
+
+  std::cout << std::string(_spaces, ' ')
+    << "- Orientation enabled:" << imu->OrientationEnabled() << std::endl;
+}
+
+//////////////////////////////////////////////////
+void printMagnetometer(const uint64_t _entity,
+    const EntityComponentManager &_ecm, int _spaces)
+{
+  // Get the type and return if the _entity does not have the correct
+  // component.
+  auto comp = _ecm.Component<components::Magnetometer>(_entity);
+  if (!comp)
+    return;
+
+  const sdf::Sensor &sensor = comp->Data();
+  const sdf::Magnetometer *mag = sensor.MagnetometerSensor();
+
+  std::cout << std::string(_spaces, ' ') << "- X-axis noise:\n";
+  printNoise(mag->XNoise(), _spaces + 2);
+  std::cout << std::string(_spaces, ' ') << "- Y-axis noise:\n";
+  printNoise(mag->YNoise(), _spaces + 2);
+  std::cout << std::string(_spaces, ' ') << "- Z-axis noise:\n";
+  printNoise(mag->ZNoise(), _spaces + 2);
 }
 
 //////////////////////////////////////////////////
@@ -189,9 +378,8 @@ void printModelInfo(const uint64_t _entity,
   if (poseComp && nameComp)
   {
     std::cout << "Model: [" << _entity << "]" << std::endl
-              << "  - Name: " << nameComp->Data() << std::endl
-              << "  - Pose [ XYZ (m) ] [ RPY (rad) ]:" << std::endl
-              << poseInfo(poseComp->Data(), "      ") << std::endl;
+              << "  - Name: " << nameComp->Data() << std::endl;
+    printPose(_entity, _ecm, 2);
   }
 }
 
@@ -202,7 +390,9 @@ void printModelInfo(const uint64_t _entity,
 // \param[in] _linkName Link to be printed, if empty, print all links.
 void printLinks(const uint64_t _modelEntity,
                 const EntityComponentManager &_ecm,
-                const std::string &_linkName)
+                const std::string &_linkName,
+                const std::string &_sensorName,
+                int _spaces)
 {
   const auto links = _ecm.EntitiesByComponents(
       components::ParentEntity(_modelEntity), components::Link());
@@ -210,46 +400,76 @@ void printLinks(const uint64_t _modelEntity,
   {
     const auto nameComp = _ecm.Component<components::Name>(entity);
 
+    int spaces = _spaces;
+
     if (_linkName.length() && _linkName != nameComp->Data())
         continue;
 
-    std::cout << "  - Link [" << entity << "]" << std::endl
-              << "    - Name: " << nameComp->Data() << std::endl
-              << "    - Parent: " << entityInfo(_modelEntity, _ecm)
-              << std::endl;
-
-    const auto inertialComp = _ecm.Component<components::Inertial>(entity);
-
-    if (inertialComp)
+    if (_sensorName.empty())
     {
-      const auto inertialMatrix = inertialComp->Data().MassMatrix();
-      const auto mass = inertialComp->Data().MassMatrix().Mass();
+      std::cout << std::string(spaces, ' ')
+        << "- Link [" << entity << "]" << std::endl
+        << std::string(spaces + 2, ' ')
+        << "- Name: " << nameComp->Data() << std::endl
+        << std::string(spaces + 2, ' ')
+        << "- Parent: " << entityInfo(_modelEntity, _ecm)
+        << std::endl;
 
-      const std::string massInfo = "[" + std::to_string(mass) + "]";
-      const std::string inertialInfo =
-            "\n        [" + std::to_string(inertialMatrix.Ixx()) + " | "
-                          + std::to_string(inertialMatrix.Ixy()) + " | "
-                          + std::to_string(inertialMatrix.Ixz()) + "]\n"
-              "        [" + std::to_string(inertialMatrix.Ixy()) + " | "
-                          + std::to_string(inertialMatrix.Iyy()) + " | "
-                          + std::to_string(inertialMatrix.Iyz()) + "]\n"
-              "        [" + std::to_string(inertialMatrix.Ixz()) + " | "
-                          + std::to_string(inertialMatrix.Iyz()) + " | "
-                          + std::to_string(inertialMatrix.Izz()) + "]";
-      std::cout << "    - Mass (kg): " << massInfo << std::endl
-                << "    - Inertial Pose [ XYZ (m) ] [ RPY (rad) ]:"
-                << std::endl
-                << poseInfo(inertialComp->Data().Pose(), "        ")
-                << std::endl
-                << "    - Inertial Matrix (kg.m^2):"
-                << inertialInfo << std::endl;
+      const auto inertialComp = _ecm.Component<components::Inertial>(entity);
+
+      if (inertialComp)
+      {
+        const auto inertialMatrix = inertialComp->Data().MassMatrix();
+        const auto mass = inertialComp->Data().MassMatrix().Mass();
+
+        std::cout << std::string(spaces + 2, ' ')
+          << "- Mass (kg): " << std::to_string(mass) << std::endl
+          << std::string(spaces + 2, ' ')
+          << "- Inertial Pose [ XYZ (m) ] [ RPY (rad) ]:"
+          << std::endl
+          << poseInfo(inertialComp->Data().Pose(), spaces + 4)
+          << std::endl
+          << std::string(spaces + 2, ' ')
+          << "- Inertial Matrix (kg.m^2):\n"
+          << std::string(spaces + 4, ' ') << "["
+          << std::to_string(inertialMatrix.Ixx()) << " "
+          << std::to_string(inertialMatrix.Ixy()) << " "
+          << std::to_string(inertialMatrix.Ixz()) << "]\n"
+          << std::string(spaces + 4, ' ') << "["
+          << std::to_string(inertialMatrix.Ixy()) << " "
+          << std::to_string(inertialMatrix.Iyy()) << " "
+          << std::to_string(inertialMatrix.Iyz()) << "]\n"
+          << std::string(spaces + 4, ' ') << "["
+          << std::to_string(inertialMatrix.Ixz()) << " "
+          << std::to_string(inertialMatrix.Iyz()) << " "
+          << std::to_string(inertialMatrix.Izz()) << "]"
+          << std::endl;
+      }
+
+      printPose(entity, _ecm, spaces + 2);
+
+      spaces += 2;
     }
 
-    const auto poseComp = _ecm.Component<components::Pose>(entity);
-    if (poseComp)
+    const auto sensors = _ecm.EntitiesByComponents(
+      components::ParentEntity(entity), components::Sensor());
+    for (const auto &sensor : sensors)
     {
-      std::cout << "    - Pose [ XYZ (m) ] [ RPY (rad) ]:" << std::endl
-                << poseInfo(poseComp->Data(), "        ") << std::endl;
+      const auto sensorNameComp = _ecm.Component<components::Name>(sensor);
+      if (!_sensorName.empty() && _sensorName != sensorNameComp->Data())
+        continue;
+
+      std::cout << std::string(spaces, ' ')
+        << "- Sensor [" << sensor << "]\n";
+      std::cout << std::string(spaces + 2, ' ')
+        << "- Name: " << sensorNameComp->Data() << "\n"
+        << std::string(spaces + 2, ' ')
+        << "- Parent: " << entityInfo(_modelEntity, _ecm) << std::endl;
+      printPose(sensor, _ecm, spaces + 2);
+
+      printAltimeter(sensor, _ecm, spaces + 2);
+      printCamera(sensor, _ecm, spaces + 2);
+      printImu(sensor, _ecm, spaces + 2);
     }
   }
 }
@@ -261,7 +481,8 @@ void printLinks(const uint64_t _modelEntity,
 // \param[in] _jointName Joint to be printed, if nullptr, print all joints.
 void printJoints(const uint64_t _modelEntity,
                 const EntityComponentManager &_ecm,
-                const std::string &_jointName)
+                const std::string &_jointName,
+                int _spaces)
 {
   static const std::map<sdf::JointType, std::string> jointTypes =
   {
@@ -286,16 +507,21 @@ void printJoints(const uint64_t _modelEntity,
     if (_jointName.length() && _jointName != nameComp->Data())
       continue;
 
-    std::cout << "  - Joint [" << entity << "]" << std::endl
-              << "    - Name: " << nameComp->Data() << std::endl
-              << "    - Parent: " << entityInfo(_modelEntity, _ecm)
-              << std::endl;
+    std::cout << std::string(_spaces, ' ')
+      << "- Joint [" << entity << "]" << std::endl;
+    _spaces += 2;
+
+    std::cout << std::string(_spaces, ' ')
+      << "- Name: " << nameComp->Data() << std::endl
+      << std::string(_spaces, ' ')
+      << "- Parent: " << entityInfo(_modelEntity, _ecm)
+      << std::endl;
 
     const auto jointTypeComp = _ecm.Component<components::JointType>(entity);
     if (jointTypeComp)
     {
-      std::cout << "    - Type: " << jointTypes.at(jointTypeComp->Data())
-                << std::endl;
+      std::cout << std::string(_spaces, ' ')
+        << "- Type: " << jointTypes.at(jointTypeComp->Data()) << std::endl;
     }
 
     const auto childLinkComp =
@@ -305,26 +531,27 @@ void printJoints(const uint64_t _modelEntity,
 
     if (childLinkComp && parentLinkComp)
     {
-      std::cout << "    - Parent Link: "
+      std::cout << std::string(_spaces, ' ') << "- Parent Link: "
                 << entityInfo(parentLinkComp->Data(), _ecm) << "\n"
-                << "    - Child Link: "
+                << std::string(_spaces, ' ') << "- Child Link: "
                 << entityInfo(childLinkComp->Data(), _ecm) << "\n";
     }
 
     const auto poseComp = _ecm.Component<components::Pose>(entity);
     if (poseComp)
     {
-      std::cout << "    - Pose [ XYZ (m) ] [ RPY (rad) ]:" << std::endl
-                << poseInfo(poseComp->Data(), "        ") << std::endl;
+      std::cout << std::string(_spaces, ' ')
+        << "- Pose [ XYZ (m) ] [ RPY (rad) ]:" << std::endl
+        << poseInfo(poseComp->Data(), _spaces + 2) << std::endl;
     }
 
     const auto axisComp = _ecm.Component<components::JointAxis>(entity);
     if (axisComp)
     {
-      std::cout << "    - Axis unit vector [ XYZ ]:\n"
-                   "        [" << axisComp->Data().Xyz().X() << " | "
-                               << axisComp->Data().Xyz().Y() << " | "
-                               << axisComp->Data().Xyz().Z() << "]\n";
+      std::cout << std::string(_spaces, ' ') << "- Axis unit vector [ XYZ ]:\n"
+        << std::string(_spaces + 4, ' ') << "[" << axisComp->Data().Xyz().X()
+        << " " << axisComp->Data().Xyz().Y() << " "
+        << axisComp->Data().Xyz().Z() << "]\n";
     }
   }
 }
@@ -366,7 +593,7 @@ extern "C" void cmdModelList()
 //////////////////////////////////////////////////
 extern "C" void cmdModelInfo(
     const char *_modelName, int _pose, const char *_linkName,
-    const char *_jointName)
+    const char *_jointName, const char *_sensorName)
 {
   std::string linkName{""};
   if (_linkName)
@@ -374,8 +601,11 @@ extern "C" void cmdModelInfo(
   std::string jointName{""};
   if (_jointName)
     jointName = _jointName;
+  std::string sensorName{""};
+  if (_sensorName)
+    sensorName = _sensorName;
   bool printAll{false};
-  if (!_pose && !_linkName && !_jointName)
+  if (!_pose && !_linkName && !_jointName && !_sensorName)
     printAll = true;
 
   if (!_modelName)
@@ -395,15 +625,19 @@ extern "C" void cmdModelInfo(
   if (entity == kNullEntity)
     std::cout << "No model named <" << _modelName << "> was found" << std::endl;
 
+  int spaces = 0;
   // Get the pose of the model
-  if (printAll | _pose)
+  if (printAll || _pose)
+  {
     printModelInfo(entity, ecm);
+    spaces += 2;
+  }
 
   // Get the links information
-  if (printAll | (_linkName != nullptr))
-    printLinks(entity, ecm, linkName);
+  if (printAll || _linkName != nullptr || _sensorName != nullptr)
+    printLinks(entity, ecm, linkName, sensorName, spaces);
 
   // Get the joints information
-  if (printAll | (_jointName != nullptr))
-    printJoints(entity, ecm, jointName);
+  if (printAll || (_jointName != nullptr))
+    printJoints(entity, ecm, jointName, spaces);
 }
