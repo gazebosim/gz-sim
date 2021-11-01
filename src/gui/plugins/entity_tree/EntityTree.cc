@@ -515,7 +515,7 @@ void EntityTree::OnLoadMesh(const QString &_mesh)
           "</link>"
         "</model>"
       "</sdf>";
-    
+
     ignition::gui::events::SpawnFromDescription event(sdf);
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
