@@ -569,6 +569,30 @@ TEST_F(UtilTest, TopLevelModel)
 }
 
 /////////////////////////////////////////////////
+TEST_F(UtilTest, ValidTopic)
+{
+  std::string good{"good"};
+  std::string fixable{"not bad~"};
+  std::string invalid{"@~@~@~"};
+
+  EXPECT_EQ("good", validTopic({good}));
+  EXPECT_EQ("not_bad", validTopic({fixable}));
+  EXPECT_EQ("", validTopic({invalid}));
+
+  EXPECT_EQ("good", validTopic({good, fixable}));
+  EXPECT_EQ("not_bad", validTopic({fixable, good}));
+
+  EXPECT_EQ("good", validTopic({good, invalid}));
+  EXPECT_EQ("good", validTopic({invalid, good}));
+
+  EXPECT_EQ("not_bad", validTopic({fixable, invalid}));
+  EXPECT_EQ("not_bad", validTopic({invalid, fixable}));
+
+  EXPECT_EQ("not_bad", validTopic({fixable, invalid, good}));
+  EXPECT_EQ("good", validTopic({invalid, good, fixable}));
+}
+
+/////////////////////////////////////////////////
 TEST_F(UtilTest, EnableComponent)
 {
   EntityComponentManager ecm;
