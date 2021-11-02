@@ -154,14 +154,14 @@ void ModelEditor::Update(const UpdateInfo &,
     // generate unique link name
     std::string linkName = "link";
     Entity linkEnt = _ecm.EntityByComponents(
-          components::Link(), components::ParentEntity(parent),
+          /*components::Link(),*/ components::ParentEntity(parent),
           components::Name(linkName));
     int64_t counter = 0;
     while (linkEnt)
     {
       linkName = std::string("link") + "_" + std::to_string(++counter);
       linkEnt = _ecm.EntityByComponents(
-          components::Link(), components::ParentEntity(parent),
+          /*components::Link(),*/ components::ParentEntity(parent),
           components::Name(linkName));
     }
 
