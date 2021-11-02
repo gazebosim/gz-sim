@@ -37,6 +37,7 @@
 #include "ignition/gazebo/test_config.hh"
 
 #include "../helpers/Relay.hh"
+#include "../helpers/EnvTestFixture.hh"
 
 #define tol 10e-4
 
@@ -61,16 +62,8 @@ void verifyPose(const math::Pose3d& pose1, const math::Pose3d& pose2)
 
 /// \brief Test TrackedVehicle system. This test drives a tracked robot over a
 /// course of obstacles and verifies that it is able to climb on/over them.
-class TrackedVehicleTest : public ::testing::TestWithParam<int>
+class TrackedVehicleTest : public InternalFixture<::testing::Test>
 {
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    common::Console::SetVerbosity(4);
-    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
-  }
-
   public: void SkipTestIfNotSupported(const EntityComponentManager &_ecm,
                                       bool &_shouldSkip)
   {
@@ -415,15 +408,11 @@ class TrackedVehicleTest : public ::testing::TestWithParam<int>
 };
 
 /////////////////////////////////////////////////
-TEST_P(TrackedVehicleTest, PublishCmd)
+TEST_F(TrackedVehicleTest, PublishCmd)
 {
-  TestPublishCmd(
+  this->TestPublishCmd(
     std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/tracked_vehicle_simple.sdf",
     "/model/simple_tracked/cmd_vel",
     "/model/simple_tracked/odometry");
 }
-
-// Run multiple times
-INSTANTIATE_TEST_SUITE_P(ServerRepeat, TrackedVehicleTest,
-    ::testing::Range(1, 2));
