@@ -3,14 +3,14 @@ libfreeimage-dev
 libglew-dev
 libignition-cmake2-dev
 libignition-common4-dev
-libignition-gui6-dev
+libignition-gui7-dev
 libignition-fuel-tools7-dev
 libignition-math6-eigen3-dev
 libignition-msgs8-dev
 libignition-physics5-dev
 libignition-plugin-dev
-libignition-rendering6-dev
-libignition-sensors6-dev
+libignition-rendering7-dev
+libignition-sensors7-dev
 libignition-tools-dev
 libignition-transport11-dev
 libignition-utils1-cli-dev
@@ -18,7 +18,7 @@ libogre-1.9-dev
 libogre-2.1-dev
 libprotobuf-dev
 libprotoc-dev
-libsdformat12-dev
+libsdformat13-dev
 libtinyxml2-dev
 libxi-dev
 libxmu-dev

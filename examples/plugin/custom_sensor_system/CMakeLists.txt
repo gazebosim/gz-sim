@@ -10,8 +10,8 @@ set(IGN_PLUGIN_VER ${ignition-plugin1_VERSION_MAJOR})
 ign_find_package(ignition-gazebo7 REQUIRED)
 set(IGN_GAZEBO_VER ${ignition-gazebo7_VERSION_MAJOR})
 
-find_package(ignition-sensors6 REQUIRED)
-set(IGN_SENSORS_VER ${ignition-sensors6_VERSION_MAJOR})
+find_package(ignition-sensors7 REQUIRED)
+set(IGN_SENSORS_VER ${ignition-sensors7_VERSION_MAJOR})
 
 # Fetch the custom sensor example from ign-sensors
 # Users won't commonly use this to fetch their sensors. The sensor may be part

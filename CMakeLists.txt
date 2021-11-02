@@ -47,8 +47,8 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 # as protobuf could be find transitively by any dependency
 set(protobuf_MODULE_COMPATIBLE TRUE)
 
-ign_find_package(sdformat12 REQUIRED)
-set(SDF_VER ${sdformat12_VERSION_MAJOR})
+ign_find_package(sdformat13 REQUIRED)
+set(SDF_VER ${sdformat13_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-plugin
@@ -84,8 +84,8 @@ set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools7_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-gui
-ign_find_package(ignition-gui6 REQUIRED)
-set(IGN_GUI_VER ${ignition-gui6_VERSION_MAJOR})
+ign_find_package(ignition-gui7 REQUIRED)
+set(IGN_GUI_VER ${ignition-gui7_VERSION_MAJOR})
 ign_find_package (Qt5
   COMPONENTS
     Core
@@ -107,7 +107,7 @@ set(IGN_PHYSICS_VER ${ignition-physics5_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-sensors
-ign_find_package(ignition-sensors6 REQUIRED
+ign_find_package(ignition-sensors7 REQUIRED
   # component order is important
   COMPONENTS
     # non-rendering
@@ -130,12 +130,12 @@ ign_find_package(ignition-sensors6 REQUIRED
     rgbd_camera
     thermal_camera
 )
-set(IGN_SENSORS_VER ${ignition-sensors6_VERSION_MAJOR})
+set(IGN_SENSORS_VER ${ignition-sensors7_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-rendering
-ign_find_package(ignition-rendering6 REQUIRED)
-set(IGN_RENDERING_VER ${ignition-rendering6_VERSION_MAJOR})
+ign_find_package(ignition-rendering7 REQUIRED)
+set(IGN_RENDERING_VER ${ignition-rendering7_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-math
