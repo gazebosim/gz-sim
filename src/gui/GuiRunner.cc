@@ -121,7 +121,7 @@ GuiRunner::GuiRunner(const std::string &_worldName)
   connect(timer, &QTimer::timeout, this, &GuiRunner::UpdatePlugins);
   timer->start(33);
 
-  this->dataPtr->controlService = "/world/" + _worldName + "/control";
+  this->dataPtr->controlService = "/world/" + _worldName + "/control/state";
 
   ignition::gui::App()->findChild<
       ignition::gui::MainWindow *>()->installEventFilter(this);
@@ -143,9 +143,14 @@ bool GuiRunner::eventFilter(QObject *_obj, QEvent *_event)
       req.mutable_world_control()->CopyFrom(
           worldControlEvent->WorldControlInfo());
 
-      // If a user presses play, send the GUI's ECM state to the server
-      // in case the GUI's ECM was modified while paused
-      if (worldControlEvent->Play())
+      // share the GUI's ECM with the server if:
+      //  1. Play was pressed
+      //  2. Step was pressed while paused
+      const auto &info = worldControlEvent->WorldControlInfo();
+      const bool pressedStep = info.multi_step() > 0u;
+      const bool pressedPlay = !info.pause() && !pressedStep;
+      const bool pressedStepWhilePaused = info.pause() && pressedStep;
+      if (pressedPlay || pressedStepWhilePaused)
         req.mutable_state()->CopyFrom(this->dataPtr->ecm.State());
 
       std::function<void(const ignition::msgs::Boolean &, const bool)> cb =

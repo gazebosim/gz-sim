@@ -194,14 +194,17 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->node = std::make_unique<transport::Node>(opts);
 
   // TODO(louise) Combine both messages into one.
-  this->node->Advertise("control", &SimulationRunner::OnWorldControlState,
+  // TODO(anyone) remove the control service in ign-gazebo7 (only keep the
+  // control/state service in ign-gazebo7)
+  this->node->Advertise("control", &SimulationRunner::OnWorldControl, this);
+  this->node->Advertise("control/state", &SimulationRunner::OnWorldControlState,
       this);
   this->node->Advertise("playback/control",
       &SimulationRunner::OnPlaybackControl, this);
 
   ignmsg << "Serving world controls on [" << opts.NameSpace()
-         << "/control] and [" << opts.NameSpace() << "/playback/control]"
-         << std::endl;
+         << "/control], [" << opts.NameSpace() << "/control/state] and ["
+         << opts.NameSpace() << "/playback/control]" << std::endl;
 
   // Publish empty GUI messages for worlds that have no GUI in the beginning.
   // In the future, support modifying GUI from the server at runtime.
@@ -1093,6 +1096,55 @@ void SimulationRunner::SetRunToSimTime(
   {
     this->requestedRunToSimTime = std::chrono::seconds(-1);
   }
+}
+
+/////////////////////////////////////////////////
+bool SimulationRunner::OnWorldControl(const msgs::WorldControl &_req,
+    msgs::Boolean &_res)
+{
+  static bool firstTime = true;
+  if (firstTime)
+  {
+    ignwarn << "Calling the control service, which is deprecated. "
+      << "Call the control/state service instead.\n";
+    firstTime = false;
+  }
+
+  std::lock_guard<std::mutex> lock(this->msgBufferMutex);
+
+  WorldControl control;
+  control.pause = _req.pause();
+
+  if (_req.multi_step() != 0)
+    control.multiStep = _req.multi_step();
+  else if (_req.step())
+    control.multiStep = 1;
+
+  if (_req.has_reset())
+  {
+    control.rewind = _req.reset().all() || _req.reset().time_only();
+
+    if (_req.reset().model_only())
+    {
+      ignwarn << "Model only reset is not supported." << std::endl;
+    }
+  }
+
+  if (_req.seed() != 0)
+  {
+    ignwarn << "Changing seed is not supported." << std::endl;
+  }
+
+  if (_req.has_run_to_sim_time())
+  {
+    control.runToSimTime = std::chrono::seconds(_req.run_to_sim_time().sec()) +
+                   std::chrono::nanoseconds(_req.run_to_sim_time().nsec());
+  }
+
+  this->worldControls.push_back(control);
+
+  _res.set_data(true);
+  return true;
 }
 
 /////////////////////////////////////////////////
