@@ -209,7 +209,8 @@ void printAltimeter(const uint64_t _entity, const EntityComponentManager &_ecm,
 
 //////////////////////////////////////////////////
 /// \brief Print info about an SDF camera.
-/// \param[in] _camera The camera to output
+/// \param[in] _camera The camera to output.
+/// \param[in] _spaces Number of spaces to indent for every line.
 void printCamera(const sdf::Camera *_camera, int _spaces)
 {
   std::cout << std::string(_spaces, ' ')
@@ -333,9 +334,9 @@ void printCamera(const sdf::Camera *_camera, int _spaces)
 }
 
 //////////////////////////////////////////////////
-/// \brief Print info about a camera sensor.
+/// \brief Print info about an RGBD camera sensor.
 /// \param[in] _entity Entity to print information for. Nothing is
-/// printed if the entity is not a camera.
+/// printed if the entity is not an RGBD camera.
 /// \param[in] _ecm The entity component manager.
 /// \param[in] _spaces Number of spaces to indent for every line
 void printRgbdCamera(const uint64_t _entity, const EntityComponentManager &_ecm,
