@@ -1110,41 +1110,10 @@ bool SimulationRunner::OnWorldControl(const msgs::WorldControl &_req,
     firstTime = false;
   }
 
-  std::lock_guard<std::mutex> lock(this->msgBufferMutex);
+  msgs::WorldControlState req;
+  req.mutable_world_control()->CopyFrom(_req);
 
-  WorldControl control;
-  control.pause = _req.pause();
-
-  if (_req.multi_step() != 0)
-    control.multiStep = _req.multi_step();
-  else if (_req.step())
-    control.multiStep = 1;
-
-  if (_req.has_reset())
-  {
-    control.rewind = _req.reset().all() || _req.reset().time_only();
-
-    if (_req.reset().model_only())
-    {
-      ignwarn << "Model only reset is not supported." << std::endl;
-    }
-  }
-
-  if (_req.seed() != 0)
-  {
-    ignwarn << "Changing seed is not supported." << std::endl;
-  }
-
-  if (_req.has_run_to_sim_time())
-  {
-    control.runToSimTime = std::chrono::seconds(_req.run_to_sim_time().sec()) +
-                   std::chrono::nanoseconds(_req.run_to_sim_time().nsec());
-  }
-
-  this->worldControls.push_back(control);
-
-  _res.set_data(true);
-  return true;
+  return this->OnWorldControlState(req, _res);
 }
 
 /////////////////////////////////////////////////
