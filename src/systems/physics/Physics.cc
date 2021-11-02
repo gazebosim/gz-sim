@@ -121,7 +121,7 @@
 #include "ignition/gazebo/components/World.hh"
 
 // Events
-#include "ignition/gazebo/PhysicsEvents.hh"
+#include "ignition/gazebo/physics/Events.hh"
 
 #include "EntityFeatureMap.hh"
 

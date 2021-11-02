@@ -19,7 +19,7 @@
 
 #include <memory>
 #include <ignition/gazebo/System.hh>
-#include <ignition/gazebo/PhysicsEvents.hh>
+#include "ignition/gazebo/physics/Events.hh"
 
 namespace ignition
 {
