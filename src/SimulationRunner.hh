@@ -292,6 +292,17 @@ namespace ignition
       /// \return True if the simulation runner is paused, false otherwise.
       public: bool Paused() const;
 
+      /// \brief Set if the simulation runner is stepping based on WorldControl
+      /// info
+      /// \param[in] _step True if stepping based on WorldControl info, false
+      /// otherwise
+      public: void SetStepping(bool _step);
+
+      /// \brief Get if the simulation runner is stepping based on WorldControl
+      /// info
+      /// \return True if stepping based on WorldControl info, false otherwise
+      public: bool Stepping() const;
+
       /// \brief Set the run to simulation time.
       /// \param[in] _time A simulation time in the future to run to and then
       /// pause. A negative number or a time less than the current simulation
@@ -613,6 +624,10 @@ namespace ignition
 
       /// \brief True if Server::RunOnce triggered a blocking paused step
       private: bool blockingPausedStepPending{false};
+
+      /// \brief Whether the simulation runner is currently stepping based on
+      /// WorldControl info (true) or not (false)
+      private: bool stepping{false};
 
       friend class LevelManager;
     };

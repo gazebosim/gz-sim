@@ -414,6 +414,12 @@ void SimulationRunner::PublishStats()
 
   msg.set_paused(this->currentInfo.paused);
 
+  if (this->Stepping())
+  {
+    auto headerData = msg.mutable_header()->add_data();
+    headerData->set_key("step");
+  }
+
   // Publish the stats message. The stats message is throttled.
   this->statsPub.Publish(msg);
 
@@ -1084,6 +1090,18 @@ void SimulationRunner::SetPaused(const bool _paused)
 }
 
 /////////////////////////////////////////////////
+void SimulationRunner::SetStepping(bool _stepping)
+{
+  this->stepping = _stepping;
+}
+
+/////////////////////////////////////////////////
+bool SimulationRunner::Stepping() const
+{
+  return this->stepping;
+}
+
+/////////////////////////////////////////////////
 void SimulationRunner::SetRunToSimTime(
     const std::chrono::steady_clock::duration &_time)
 {
@@ -1205,6 +1223,10 @@ void SimulationRunner::ProcessMessages()
 void SimulationRunner::ProcessWorldControl()
 {
   IGN_PROFILE("SimulationRunner::ProcessWorldControl");
+
+  // assume no stepping unless WorldControl msgs say otherwise
+  this->SetStepping(false);
+
   for (const auto &control : this->worldControls)
   {
     // Play / pause
@@ -1216,6 +1238,7 @@ void SimulationRunner::ProcessWorldControl()
       this->pendingSimIterations += control.multiStep;
       // Unpause so that stepping can occur.
       this->SetPaused(false);
+      this->SetStepping(true);
     }
 
     // Rewind / reset
