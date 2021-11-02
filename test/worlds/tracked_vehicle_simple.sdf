@@ -1613,11 +1613,6 @@
                 </visual>
             </link>
         </model>
-        <include>
-            <name>pallet</name>
-            <pose>2 -2 0.1 0 0 0</pose>
-            <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Euro pallet</uri>
-        </include>
 
         <gravity>0 0 -9.8</gravity>
         <magnetic_field>6e-06 2.3e-05 -4.2e-05</magnetic_field>
