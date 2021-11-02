@@ -51,6 +51,12 @@ Rectangle {
   property bool nestedModel : ComponentInspector.nestedModel
 
   /**
+   * Get if simulation is paused or not
+   */
+  property bool paused : ComponentInspector.paused
+
+
+  /**
    * Light grey according to theme
    */
   property color lightGrey: (Material.theme == Material.Light) ?

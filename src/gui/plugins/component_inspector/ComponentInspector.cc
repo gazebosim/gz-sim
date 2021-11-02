@@ -100,7 +100,7 @@ namespace ignition::gazebo
     public: bool locked{false};
 
     /// \brief Whether updates are currently paused.
-    public: bool paused{false};
+    public: bool paused{true};
 
     /// \brief Transport node for making command requests
     public: transport::Node node;
@@ -434,9 +434,10 @@ void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
 }
 
 //////////////////////////////////////////////////
-void ComponentInspector::Update(const UpdateInfo &,
+void ComponentInspector::Update(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
+  this->SetPaused(_info.paused);
   IGN_PROFILE("ComponentInspector::Update");
 
   auto componentTypes = _ecm.ComponentTypes(this->dataPtr->entity);
@@ -855,7 +856,6 @@ int ComponentInspector::Entity() const
 /////////////////////////////////////////////////
 void ComponentInspector::SetEntity(const int &_entity)
 {
-  std::cout << "SetEntity\n";
   // If nothing is selected, display world properties
   if (_entity == kNullEntity)
   {
@@ -903,8 +903,11 @@ bool ComponentInspector::Paused() const
 /////////////////////////////////////////////////
 void ComponentInspector::SetPaused(bool _paused)
 {
-  this->dataPtr->paused = _paused;
-  this->PausedChanged();
+  if (this->dataPtr->paused != _paused)
+  {
+    this->dataPtr->paused = _paused;
+    this->PausedChanged();
+  }
 }
 
 /////////////////////////////////////////////////
@@ -913,7 +916,7 @@ void ComponentInspector::OnCameraUpdate(
     double _farClip)
 {
   std::function<void(EntityComponentManager &)> cb =
-      [this, _hfov](EntityComponentManager &_ecm)
+      [=](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::Camera>(this->dataPtr->entity);
     if (comp)
@@ -942,20 +945,37 @@ void ComponentInspector::OnCameraUpdate(
 void ComponentInspector::OnPose(double _x, double _y, double _z, double _roll,
     double _pitch, double _yaw)
 {
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  std::cout << "OnPose\n\n";
+  std::function<void(EntityComponentManager &)> cb =
+      [=](EntityComponentManager &_ecm)
   {
-    if (!_result)
-        ignerr << "Error setting pose" << std::endl;
+    auto comp = _ecm.Component<components::Pose>(this->dataPtr->entity);
+    if (comp)
+    {
+      comp->Data().Set(_x, _y, _z, _roll, _pitch, _yaw);
+    }
+    else
+    {
+      ignerr << "Unable to set the pose of entity["
+        << this->dataPtr->entity << "]\n";
+    }
   };
+  this->dataPtr->updateCallbacks.push_back(cb);
 
-  ignition::msgs::Pose req;
-  req.set_id(this->dataPtr->entity);
-  msgs::Set(req.mutable_position(), math::Vector3d(_x, _y, _z));
-  msgs::Set(req.mutable_orientation(), math::Quaterniond(_roll, _pitch, _yaw));
-  auto poseCmdService = "/world/" + this->dataPtr->worldName
-      + "/set_pose";
-  this->dataPtr->node.Request(poseCmdService, req, cb);
+//  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+//      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+//  {
+//    if (!_result)
+//        ignerr << "Error setting pose" << std::endl;
+//  };
+//
+//  ignition::msgs::Pose req;
+//  req.set_id(this->dataPtr->entity);
+//  msgs::Set(req.mutable_position(), math::Vector3d(_x, _y, _z));
+//  msgs::Set(req.mutable_orientation(), math::Quaterniond(_roll, _pitch, _yaw));
+//  auto poseCmdService = "/world/" + this->dataPtr->worldName
+//      + "/set_pose";
+//  this->dataPtr->node.Request(poseCmdService, req, cb);
 }
 
 /////////////////////////////////////////////////
