@@ -136,10 +136,7 @@ void ForceTorque::PostUpdate(const UpdateInfo &_info,
 
     for (auto &it : this->dataPtr->entitySensorMap)
     {
-      // Update measurement time
-      auto time = math::durationToSecNsec(_info.simTime);
-      static_cast<sensors::Sensor *>(it.second.get())->Update(
-          math::secNsecToDuration(time.first, time.second), false);
+      it.second.get()->sensors::Sensor::Update(_info.simTime, false);
     }
   }
 
