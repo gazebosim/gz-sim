@@ -92,6 +92,8 @@ void CopyPaste::LoadConfig(const tinyxml2::XMLElement *)
 
   ignition::gui::App()->findChild<
       ignition::gui::MainWindow *>()->installEventFilter(this);
+  ignition::gui::App()->findChild<
+      ignition::gui::MainWindow *>()->QuickWindow()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
@@ -139,6 +141,18 @@ bool CopyPaste::eventFilter(QObject *_obj, QEvent *_event)
         reinterpret_cast<gui::events::EntitiesSelected *>(_event);
     if (selectedEvent && (selectedEvent->Data().size() == 1u))
       this->dataPtr->selectedEntity = selectedEvent->Data()[0];
+  }
+  if (_event->type() == QEvent::KeyPress)
+  {
+    QKeyEvent *keyEvent = static_cast<QKeyEvent *>(_event);
+    if (keyEvent && keyEvent->matches(QKeySequence::Copy))
+    {
+      this->OnCopy();
+    }
+    else if (keyEvent && keyEvent->matches(QKeySequence::Paste))
+    {
+      this->OnPaste();
+    }
   }
 
   // Standard event processing
