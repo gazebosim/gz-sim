@@ -47,6 +47,13 @@ namespace gazebo
       NOTIFY CamPoseChanged
     )
 
+    /// \brief gui camera near/far clipping distance (QList order is near, far)
+    Q_PROPERTY(
+      QList<double> camClipDist
+      READ CamClipDist
+      NOTIFY CamClipDistChanged
+    )
+
     /// \brief Constructor
     public: ViewAngle();
 
@@ -87,6 +94,17 @@ namespace gazebo
     /// \brief Callback for retrieving gui camera pose
     /// \param[in] _msg Pose message
     public: void CamPoseCb(const msgs::Pose &_msg);
+
+    /// \brief Get the current gui camera's near and far clipping distances
+    public: Q_INVOKABLE QList<double> CamClipDist() const;
+
+    /// \brief Notify that the gui camera's near/far clipping distances changed
+    signals: void CamClipDistChanged();
+
+    /// \brief Updates gui camera's near/far clipping distances
+    /// \param[in] _near Near clipping plane distance
+    /// \param[in] _far Far clipping plane distance
+    public slots: void SetCamClipDist(double _near, double _far);
 
     /// \internal
     /// \brief Pointer to private data.
