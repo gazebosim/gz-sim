@@ -125,7 +125,7 @@ installing Ignition Gazebo from source.
     sudo apt-get install libignition-gazebo<#>-dev
     ```
 
-    Where `<#>` is the desired version number, to check all the versions available see our [releases page](https://ignitionrobotics.org/docs/all/releases).
+    Where `<#>` is the desired version number, to check all the versions available see our [release features page](https://ignitionrobotics.org/docs/all/release-features). You should enter only the major version number, like 3 for Citadel or 6 for Fortress. 
 
 ## Source Install
 
