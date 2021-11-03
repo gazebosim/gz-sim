@@ -658,6 +658,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
           {
             continue;
           }
+          vis->SetUserData("gui-only", static_cast<bool>(true));
 
           this->viewingCollisions[colEntity] = true;
 
@@ -1025,7 +1026,6 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateCollision(
   visual.SetName(_collision.Name());
 
   rendering::VisualPtr collisionVis = CreateVisual(_id, visual, _parent);
-  collisionVis->SetUserData("gui-only", static_cast<bool>(true));
   return collisionVis;
 }
 

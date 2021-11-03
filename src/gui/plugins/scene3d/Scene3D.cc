@@ -22,7 +22,6 @@
 #include <condition_variable>
 #include <limits>
 #include <map>
-#include <memory>
 #include <mutex>
 #include <sstream>
 #include <string>
@@ -284,15 +283,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Path of an SDF file, to be used with plugins that spawn entities.
     public: std::string spawnSdfPath;
 
-    /// \brief The name of a resource to clone
-    public: std::string spawnCloneName;
-
     /// \brief The pose of the spawn preview.
     public: ignition::math::Pose3d spawnPreviewPose =
             ignition::math::Pose3d::Zero;
 
-    /// \brief The visual generated from spawnSdfString, spawnSdfPath, or
-    /// spawnCloneName
+    /// \brief The visual generated from the spawnSdfString / spawnSdfPath
     public: rendering::NodePtr spawnPreview = nullptr;
 
     /// \brief A record of the ids currently used by the entity spawner
@@ -991,8 +986,6 @@ void IgnRenderer::Render(RenderSync *_renderSync)
     IGN_PROFILE("IgnRenderer::Render Shapes");
     if (this->dataPtr->isSpawning)
     {
-      bool cloningResource = false;
-
       // Generate spawn preview
       rendering::VisualPtr rootVis = scene->RootVisual();
       sdf::Root root;
@@ -1004,22 +997,11 @@ void IgnRenderer::Render(RenderSync *_renderSync)
       {
         root.Load(this->dataPtr->spawnSdfPath);
       }
-      else if (!this->dataPtr->spawnCloneName.empty())
-      {
-        this->dataPtr->isPlacing =
-          this->GeneratePreview(this->dataPtr->spawnCloneName);
-        cloningResource = true;
-      }
       else
       {
-        ignwarn << "Failed to spawn: no SDF string, path, or name of resource "
-                << "to clone" << std::endl;
+        ignwarn << "Failed to spawn: no SDF string or path" << std::endl;
       }
-
-      if (!cloningResource)
-      {
-        this->dataPtr->isPlacing = this->GeneratePreview(root);
-      }
+      this->dataPtr->isPlacing = this->GeneratePreview(root);
       this->dataPtr->isSpawning = false;
     }
   }
@@ -1220,8 +1202,7 @@ bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
 
   if (nullptr == _sdf.Model() && nullptr == _sdf.Light())
   {
-    ignwarn << "Only model and light entities can be spawned at the moment."
-            << std::endl;
+    ignwarn << "Only model entities can be spawned at the moment." << std::endl;
     this->TerminateSpawnPreview();
     return false;
   }
@@ -1232,7 +1213,7 @@ bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
     sdf::Model model = *(_sdf.Model());
     this->dataPtr->spawnPreviewPose = model.RawPose();
     model.SetName(ignition::common::Uuid().String());
-    Entity modelId = this->dataPtr->renderUtil.SceneManager().UniqueId();
+    Entity modelId = this->UniqueId();
     if (!modelId)
     {
       this->TerminateSpawnPreview();
@@ -1248,7 +1229,7 @@ bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
     {
       sdf::Link link = *(model.LinkByIndex(j));
       link.SetName(ignition::common::Uuid().String());
-      Entity linkId = this->dataPtr->renderUtil.SceneManager().UniqueId();
+      Entity linkId = this->UniqueId();
       if (!linkId)
       {
         this->TerminateSpawnPreview();
@@ -1261,7 +1242,7 @@ bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
       {
        sdf::Visual visual = *(link.VisualByIndex(k));
        visual.SetName(ignition::common::Uuid().String());
-       Entity visualId = this->dataPtr->renderUtil.SceneManager().UniqueId();
+       Entity visualId = this->UniqueId();
        if (!visualId)
        {
          this->TerminateSpawnPreview();
@@ -1279,13 +1260,13 @@ bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
     sdf::Light light = *(_sdf.Light());
     this->dataPtr->spawnPreviewPose = light.RawPose();
     light.SetName(ignition::common::Uuid().String());
-    Entity lightVisualId = this->dataPtr->renderUtil.SceneManager().UniqueId();
+    Entity lightVisualId = this->UniqueId();
     if (!lightVisualId)
     {
       this->TerminateSpawnPreview();
       return false;
     }
-    Entity lightId = this->dataPtr->renderUtil.SceneManager().UniqueId();
+    Entity lightId = this->UniqueId();
     if (!lightId)
     {
       this->TerminateSpawnPreview();
@@ -1305,51 +1286,25 @@ bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
 }
 
 /////////////////////////////////////////////////
-bool IgnRenderer::GeneratePreview(const std::string &_name)
-{
-  // Terminate any pre-existing spawned entities
-  this->TerminateSpawnPreview();
-
-  Entity visualId = this->dataPtr->renderUtil.SceneManager().UniqueId();
-  if (!visualId)
-  {
-    this->TerminateSpawnPreview();
-    return false;
-  }
-
-  auto visualChildrenPair =
-    this->dataPtr->renderUtil.SceneManager().CopyVisual(visualId,
-        _name, this->dataPtr->renderUtil.SceneManager().WorldId());
-  if (!visualChildrenPair.first)
-  {
-    ignerr << "Copying a visual named " << _name << "failed.\n";
-    return false;
-  }
-
-  this->dataPtr->spawnPreview = visualChildrenPair.first;
-  this->dataPtr->spawnPreviewPose = this->dataPtr->spawnPreview->WorldPose();
-
-  // save the copied chiled IDs before saving the copied parent visual ID in
-  // order to ensure that the child visuals get deleted before the parent visual
-  // (since the SceneManager::RemoveEntity call in this->TerminateSpawnPreview()
-  // isn't recursive, deleting the parent visual before the child visuals could
-  // result in dangling child visuals)
-  const auto &visualChildIds = visualChildrenPair.second;
-  for (auto reverse_it = visualChildIds.rbegin();
-      reverse_it != visualChildIds.rend(); ++reverse_it)
-    this->dataPtr->previewIds.push_back(*reverse_it);
-  this->dataPtr->previewIds.push_back(visualId);
-
-  return true;
-}
-
-/////////////////////////////////////////////////
 void IgnRenderer::TerminateSpawnPreview()
 {
   for (auto _id : this->dataPtr->previewIds)
     this->dataPtr->renderUtil.SceneManager().RemoveEntity(_id);
   this->dataPtr->previewIds.clear();
   this->dataPtr->isPlacing = false;
+}
+
+/////////////////////////////////////////////////
+Entity IgnRenderer::UniqueId()
+{
+  auto timeout = 100000u;
+  for (auto i = 0u; i < timeout; ++i)
+  {
+    Entity id = std::numeric_limits<uint64_t>::max() - i;
+    if (!this->dataPtr->renderUtil.SceneManager().HasEntity(id))
+      return id;
+  }
+  return kNullEntity;
 }
 
 /////////////////////////////////////////////////
@@ -1612,10 +1567,6 @@ void IgnRenderer::HandleModelPlacement()
     {
       req.set_sdf_filename(this->dataPtr->spawnSdfPath);
     }
-    else if (!this->dataPtr->spawnCloneName.empty())
-    {
-      req.set_clone_name(this->dataPtr->spawnCloneName);
-    }
     else
     {
       ignwarn << "Failed to find SDF string or file path" << std::endl;
@@ -1642,7 +1593,6 @@ void IgnRenderer::HandleModelPlacement()
     this->dataPtr->mouseDirty = false;
     this->dataPtr->spawnSdfString.clear();
     this->dataPtr->spawnSdfPath.clear();
-    this->dataPtr->spawnCloneName.clear();
   }
 }
 
@@ -2344,15 +2294,6 @@ void IgnRenderer::SetModelPath(const std::string &_filePath)
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->isSpawning = true;
   this->dataPtr->spawnSdfPath = _filePath;
-}
-
-
-/////////////////////////////////////////////////
-void IgnRenderer::SetCloneName(const std::string &_cloneName)
-{
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  this->dataPtr->isSpawning = true;
-  this->dataPtr->spawnCloneName = _cloneName;
 }
 
 /////////////////////////////////////////////////
@@ -3774,16 +3715,6 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
       renderWindow->SetModelPath(spawnPreviewPathEvent->FilePath());
     }
   }
-  else if (_event->type() == ignition::gui::events::SpawnCloneFromName::kType)
-  {
-    auto spawnCloneEvent =
-      reinterpret_cast<ignition::gui::events::SpawnCloneFromName *>(_event);
-    if (spawnCloneEvent)
-    {
-      auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
-      renderWindow->SetCloneName(spawnCloneEvent->Name());
-    }
-  }
   else if (_event->type() ==
       ignition::gui::events::DropdownMenuEnabled::kType)
   {
@@ -3825,12 +3756,6 @@ void RenderWindowItem::SetModel(const std::string &_model)
 void RenderWindowItem::SetModelPath(const std::string &_filePath)
 {
   this->dataPtr->renderThread->ignRenderer.SetModelPath(_filePath);
-}
-
-/////////////////////////////////////////////////
-void RenderWindowItem::SetCloneName(const std::string &_name)
-{
-  this->dataPtr->renderThread->ignRenderer.SetCloneName(_name);
 }
 
 /////////////////////////////////////////////////
