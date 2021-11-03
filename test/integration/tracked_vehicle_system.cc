@@ -67,6 +67,10 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
   public: void SkipTestIfNotSupported(const EntityComponentManager &_ecm,
                                       bool &_shouldSkip)
   {
+#if __APPLE__
+    // until https://github.com/ignitionrobotics/ign-gazebo/issues/806 is fixed
+    _shouldSkip = true;
+#else
     _shouldSkip = false;
     auto pluginLib =
         _ecm.ComponentData<components::PhysicsEnginePlugin>(worldEntity(_ecm));
@@ -106,6 +110,7 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
     {
       _shouldSkip = true;
     }
+#endif
   }
 
   /// \param[in] _sdfFile SDF file to load.
