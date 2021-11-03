@@ -85,6 +85,7 @@
 #include "ignition/gazebo/components/Transparency.hh"
 #include "ignition/gazebo/components/Visibility.hh"
 #include "ignition/gazebo/components/Visual.hh"
+#include "ignition/gazebo/components/WideAngleCamera.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
@@ -1458,6 +1459,7 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
   const std::string thermalCameraSuffix{"/image"};
   const std::string gpuLidarSuffix{"/scan"};
   const std::string segmentationCameraSuffix{"/segmentation"};
+  const std::string wideAngleCameraSuffix{"/image"};
 
   // Get all the new worlds
   // TODO(anyone) Only one scene is supported for now
@@ -1763,6 +1765,17 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
             _parent->Data(), segmentationCameraSuffix);
           return true;
         });
+
+    // Create wide angle cameras
+    _ecm.Each<components::WideAngleCamera, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::WideAngleCamera *_wideAngleCamera,
+          const components::ParentEntity *_parent)->bool
+        {
+          this->AddNewSensor(_ecm, _entity, _wideAngleCamera->Data(),
+            _parent->Data(), wideAngleCameraSuffix);
+          return true;
+        });
   }
 }
 
@@ -1776,6 +1789,7 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
   const std::string thermalCameraSuffix{"/image"};
   const std::string gpuLidarSuffix{"/scan"};
   const std::string segmentationCameraSuffix{"/segmentation"};
+  const std::string wideAngleCameraSuffix{"/image"};
 
   // Get all the new worlds
   // TODO(anyone) Only one scene is supported for now
@@ -2081,6 +2095,17 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
             _parent->Data(), segmentationCameraSuffix);
           return true;
         });
+
+    // Create wide angle cameras
+    _ecm.EachNew<components::WideAngleCamera, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::WideAngleCamera *_wideAngleCamera,
+          const components::ParentEntity *_parent)->bool
+        {
+          this->AddNewSensor(_ecm, _entity, _wideAngleCamera->Data(),
+            _parent->Data(), wideAngleCameraSuffix);
+          return true;
+        });
   }
 }
 
@@ -2241,6 +2266,16 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         this->entityPoses[_entity] = _pose->Data();
         return true;
       });
+
+  // Update wide angle cameras
+  _ecm.Each<components::WideAngleCamera, components::Pose>(
+      [&](const Entity &_entity,
+        const components::WideAngleCamera *,
+        const components::Pose *_pose)->bool
+      {
+        this->entityPoses[_entity] = _pose->Data();
+        return true;
+      });
 }
 
 //////////////////////////////////////////////////
@@ -2367,6 +2402,14 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   // segmentation cameras
   _ecm.EachRemoved<components::SegmentationCamera>(
     [&](const Entity &_entity, const components::SegmentationCamera *)->bool
+      {
+        this->removeEntities[_entity] = _info.iterations;
+        return true;
+      });
+
+  // wide angle cameras
+  _ecm.EachRemoved<components::WideAngleCamera>(
+    [&](const Entity &_entity, const components::WideAngleCamera *)->bool
       {
         this->removeEntities[_entity] = _info.iterations;
         return true;

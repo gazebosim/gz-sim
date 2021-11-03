@@ -38,6 +38,7 @@
 #include <ignition/sensors/RgbdCameraSensor.hh>
 #include <ignition/sensors/ThermalCameraSensor.hh>
 #include <ignition/sensors/SegmentationCameraSensor.hh>
+#include <ignition/sensors/WideAngleCameraSensor.hh>
 #include <ignition/sensors/Manager.hh>
 
 #include "ignition/gazebo/components/Atmosphere.hh"
@@ -49,6 +50,7 @@
 #include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/SegmentationCamera.hh"
 #include "ignition/gazebo/components/ThermalCamera.hh"
+#include "ignition/gazebo/components/WideAngleCamera.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -468,7 +470,8 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
        _ecm.HasComponentType(components::GpuLidar::typeId) ||
        _ecm.HasComponentType(components::RgbdCamera::typeId) ||
        _ecm.HasComponentType(components::ThermalCamera::typeId) ||
-       _ecm.HasComponentType(components::SegmentationCamera::typeId)
+       _ecm.HasComponentType(components::SegmentationCamera::typeId) ||
+       _ecm.HasComponentType(components::WideAngleCamera::typeId)
        ))
   {
     igndbg << "Initialization needed" << std::endl;
@@ -573,6 +576,11 @@ std::string Sensors::CreateSensor(const Entity &_entity,
   {
     sensor = this->dataPtr->sensorManager.CreateSensor<
       sensors::SegmentationCameraSensor>(_sdf);
+  }
+  else if (_sdf.Type() == sdf::SensorType::WIDE_ANGLE_CAMERA)
+  {
+    sensor = this->dataPtr->sensorManager.CreateSensor<
+      sensors::WideAngleCameraSensor>(_sdf);
   }
 
   if (nullptr == sensor)
