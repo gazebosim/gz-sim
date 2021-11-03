@@ -24,7 +24,10 @@
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
+#include <sdf/Altimeter.hh>
+
 #include "ignition/gazebo/components/Actor.hh"
+#include "ignition/gazebo/components/Altimeter.hh"
 #include "ignition/gazebo/components/AngularAcceleration.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/CastShadows.hh"
@@ -65,6 +68,7 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
+#include "Altimeter.hh"
 #include "ComponentInspector.hh"
 
 namespace ignition::gazebo
@@ -100,6 +104,10 @@ namespace ignition::gazebo
 
     /// \brief Transport node for making command requests
     public: transport::Node node;
+
+    /// \brief Set of callbacks to execture during the Update function.
+    public: std::vector<
+            std::function<void(EntityComponentManager &)>> updateCallbacks;
   };
 }
 
@@ -411,9 +419,6 @@ void ComponentInspector::Update(const UpdateInfo &,
     EntityComponentManager &_ecm)
 {
   IGN_PROFILE("ComponentInspector::Update");
-
-  if (this->dataPtr->paused)
-    return;
 
   auto componentTypes = _ecm.ComponentTypes(this->dataPtr->entity);
 
@@ -767,6 +772,14 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, comp->Data());
     }
+    else if (typeId == components::Altimeter::typeId)
+    {
+      auto comp = _ecm.Component<components::Altimeter>(this->dataPtr->entity);
+      if (comp)
+      {
+        setData(item, *(comp->Data().AltimeterSensor()));
+      }
+    }
   }
 
   // Remove components no longer present
@@ -781,6 +794,11 @@ void ComponentInspector::Update(const UpdateInfo &,
           Q_ARG(ignition::gazebo::ComponentTypeId, typeId));
     }
   }
+
+  // Process all of the update callbacks
+  for (auto cb : this->dataPtr->updateCallbacks)
+    cb(_ecm);
+  this->dataPtr->updateCallbacks.clear();
 }
 
 /////////////////////////////////////////////////
@@ -870,6 +888,30 @@ void ComponentInspector::SetPaused(bool _paused)
 {
   this->dataPtr->paused = _paused;
   this->PausedChanged();
+}
+
+/////////////////////////////////////////////////
+Q_INVOKABLE void ComponentInspector::OnAltimeterPositionNoise(
+    double _mean, double _meanBias, double _stdDev,
+    double _stdDevBias, double _dynamicBiasStdDev,
+    double _dynamicBiasCorrelationTime)
+{
+  this->dataPtr->updateCallbacks.push_back(
+      onAltimeterPositionNoise(this->dataPtr->entity,
+        _mean, _meanBias, _stdDev, _stdDevBias,
+        _dynamicBiasStdDev, _dynamicBiasCorrelationTime));
+}
+
+/////////////////////////////////////////////////
+Q_INVOKABLE void ComponentInspector::OnAltimeterVelocityNoise(
+    double _mean, double _meanBias, double _stdDev,
+    double _stdDevBias, double _dynamicBiasStdDev,
+    double _dynamicBiasCorrelationTime)
+{
+  this->dataPtr->updateCallbacks.push_back(
+      onAltimeterVelocityNoise(this->dataPtr->entity,
+        _mean, _meanBias, _stdDev, _stdDevBias,
+        _dynamicBiasStdDev, _dynamicBiasCorrelationTime));
 }
 
 /////////////////////////////////////////////////

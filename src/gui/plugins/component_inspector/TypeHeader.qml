@@ -23,11 +23,17 @@ import QtQuick.Controls.Styles 1.4
 
 Rectangle {
   id: typeHeader
-  height: headerText.height
-  width: headerText.width
+  height: headerTextId.height
+  width: headerTextId.width
   color: "transparent"
+  property string headerText: ""
+  property string headerToolTip: ""
 
   function tooltipText(_model) {
+    if (headerToolTip !== undefined && headerToolTip !== "" ) {
+      return headerToolTip
+    }
+
     if (model === null)
       return "Unknown component"
 
@@ -42,8 +48,14 @@ Rectangle {
   }
 
   Text {
-    id: headerText
-    text: model && model.shortName ? model.shortName : ''
+    id: headerTextId
+    text: {
+      if (headerText === undefined || headerText === "") {
+        model && model.shortName ? model.shortName : ''
+      } else {
+        headerText
+      }
+    }
     color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
     font.pointSize: 12
 
