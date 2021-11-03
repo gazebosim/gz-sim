@@ -125,7 +125,7 @@ installing Ignition Gazebo from source.
     sudo apt-get install libignition-gazebo<#>-dev
     ```
 
-    Where `<#>` is the desired version number, like 3 or 4.
+    Where `<#>` is the desired version number, to check all the versions available see our [releases page](https://ignitionrobotics.org/docs/all/releases).
 
 ## Source Install
 
