@@ -197,7 +197,7 @@ void AirPressurePrivate::CreateAirPressureEntities(EntityComponentManager &_ecm)
   }
   else
   {
-    // Create IMUs
+    // Create air pressure sensors
     _ecm.EachNew<components::AirPressureSensor, components::ParentEntity>(
       [&](const Entity &_entity,
           const components::AirPressureSensor *_airPressure,
