@@ -194,8 +194,6 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->node = std::make_unique<transport::Node>(opts);
 
   // TODO(louise) Combine both messages into one.
-  // TODO(anyone) remove the control service in ign-gazebo7 (only keep the
-  // control/state service in ign-gazebo7)
   this->node->Advertise("control", &SimulationRunner::OnWorldControl, this);
   this->node->Advertise("control/state", &SimulationRunner::OnWorldControlState,
       this);
@@ -1120,14 +1118,6 @@ void SimulationRunner::SetRunToSimTime(
 bool SimulationRunner::OnWorldControl(const msgs::WorldControl &_req,
     msgs::Boolean &_res)
 {
-  static bool firstTime = true;
-  if (firstTime)
-  {
-    ignwarn << "Calling the control service, which is deprecated. "
-      << "Call the control/state service instead.\n";
-    firstTime = false;
-  }
-
   msgs::WorldControlState req;
   req.mutable_world_control()->CopyFrom(_req);
 
