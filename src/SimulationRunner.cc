@@ -661,7 +661,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   if (!this->statsPub.Valid())
   {
     transport::AdvertiseMessageOptions advertOpts;
-    advertOpts.SetMsgsPerSec(5);
+    advertOpts.SetMsgsPerSec(10);
     this->statsPub = this->node->Advertise<ignition::msgs::WorldStatistics>(
         "stats", advertOpts);
   }
