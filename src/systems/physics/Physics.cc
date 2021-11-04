@@ -1158,15 +1158,17 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         return true;
       });
 
-  _ecm.EachNew<components::EnableContactSurfaceCustomization,
-               components::Collision, components::Name>(
+  // The components are removed after each update, so we want to process all
+  // components in every update.
+  _ecm.Each<components::EnableContactSurfaceCustomization,
+            components::Collision, components::Name>(
       [&](const Entity & _entity,
           const components::EnableContactSurfaceCustomization *_enable,
           const components::Collision */*_collision*/,
           const components::Name *_name) -> bool
       {
         const auto world = worldEntity(_entity, _ecm);
-        if (_enable)
+        if (_enable->Data())
         {
           if (this->customContactSurfaceEntities[world].empty())
           {
@@ -1178,12 +1180,14 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         }
         else
         {
-          this->customContactSurfaceEntities[world].erase(_entity);
-          ignmsg << "Disabling contact surface customization for collision ["
-                 << _name->Data() << "]" << std::endl;
-          if (this->customContactSurfaceEntities[world].empty())
+          if (this->customContactSurfaceEntities[world].erase(_entity) > 0)
           {
-            this->DisableContactSurfaceCustomization(world);
+            ignmsg << "Disabling contact surface customization for collision ["
+                   << _name->Data() << "]" << std::endl;
+            if (this->customContactSurfaceEntities[world].empty())
+            {
+              this->DisableContactSurfaceCustomization(world);
+            }
           }
         }
         return true;
@@ -1217,7 +1221,16 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
             {
               this->entityCollisionMap.Remove(childCollision);
               this->topLevelModelMap.erase(childCollision);
-              this->customContactSurfaceEntities[world].erase(childCollision);
+              if (this->customContactSurfaceEntities[world].erase(
+                childCollision))
+              {
+                // if this was the last collision with contact customization,
+                // disable the whole feature in the physics engine
+                if (this->customContactSurfaceEntities[world].empty())
+                {
+                  this->DisableContactSurfaceCustomization(world);
+                }
+              }
             }
             this->entityLinkMap.Remove(childLink);
             this->topLevelModelMap.erase(childLink);

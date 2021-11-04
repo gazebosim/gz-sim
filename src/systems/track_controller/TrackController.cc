@@ -46,7 +46,7 @@ using namespace systems;
 
 class ignition::gazebo::systems::TrackControllerPrivate
 {
-  public : virtual ~TrackControllerPrivate() {}
+  public : ~TrackControllerPrivate() {}
   /// \brief Register a collision entity to work with this system (e.g. enable
   /// custom collision processing).
   /// \param[in] _ecm Entity Component Manager
@@ -228,8 +228,8 @@ void TrackController::Configure(const Entity &_entity,
     "/link/" + this->dataPtr->linkName;
 
   const auto kDefaultVelTopic = topicPrefix + "/track_cmd_vel";
-  const auto velTopic = _sdf->Get<std::string>(
-    "velocity_topic", kDefaultVelTopic).first;
+  const auto velTopic = validTopic({_sdf->Get<std::string>(
+    "velocity_topic", kDefaultVelTopic).first, kDefaultVelTopic});
   if (!this->dataPtr->node.Subscribe(
     velTopic, &TrackControllerPrivate::OnCmdVel, this->dataPtr.get()))
   {
@@ -241,8 +241,8 @@ void TrackController::Configure(const Entity &_entity,
          << "commands." << std::endl;
 
   const auto kDefaultCorTopic = topicPrefix + "/track_cmd_center_of_rotation";
-  const auto corTopic = _sdf->Get<std::string>(
-    "center_of_rotation_topic", kDefaultCorTopic).first;
+  const auto corTopic = validTopic({_sdf->Get<std::string>(
+    "center_of_rotation_topic", kDefaultCorTopic).first, kDefaultCorTopic});
   if (!this->dataPtr->node.Subscribe(
     corTopic, &TrackControllerPrivate::OnCenterOfRotation,
     this->dataPtr.get()))
@@ -552,9 +552,6 @@ void TrackControllerPrivate::RegisterCollision(EntityComponentManager& _ecm,
 
   _ecm.SetComponentData<components::EnableContactSurfaceCustomization>(
     _entity, true);
-
-  if (!_ecm.Component<components::WorldPose>(_entity))
-    _ecm.SetComponentData<components::WorldPose>(_entity, math::Pose3d::Zero);
 }
 
 //////////////////////////////////////////////////

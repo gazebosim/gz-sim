@@ -254,13 +254,13 @@ void TrackedVehicle::Configure(const Entity &_entity,
   {
     const auto prefix = "/model/" + modelName + "/link/" + linkName;
 
-    auto topic = elem->Get<std::string>(
-      "velocity_topic", prefix + "/track_cmd_vel").first;
+    auto topic = validTopic({elem->Get<std::string>(
+      "velocity_topic", prefix + "/track_cmd_vel").first});
     this->dataPtr->velPublishers[linkName] =
       this->dataPtr->node.Advertise<msgs::Double>(topic);
 
-    topic = elem->Get<std::string>("center_of_rotation_topic",
-      prefix + "/track_cmd_center_of_rotation").first;
+    topic = validTopic({elem->Get<std::string>("center_of_rotation_topic",
+      prefix + "/track_cmd_center_of_rotation").first});
     this->dataPtr->corPublishers[linkName] =
       this->dataPtr->node.Advertise<msgs::Vector3d>(topic);
   }
@@ -362,47 +362,34 @@ void TrackedVehicle::Configure(const Entity &_entity,
   // Subscribe to commands
   const auto topicPrefix = "/model/" + this->dataPtr->model.Name(_ecm);
 
-  std::vector<std::string> topics;
-  if (_sdf->HasElement("topic"))
-  {
-    topics.push_back(_sdf->Get<std::string>("topic"));
-  }
-  topics.push_back(topicPrefix + "/cmd_vel");
-  const auto topic = validTopic(topics);
+  const auto kDefaultCmdVelTopic {topicPrefix + "/cmd_vel"};
+  const auto topic = validTopic({
+    _sdf->Get<std::string>("topic", kDefaultCmdVelTopic).first,
+    kDefaultCmdVelTopic});
 
   this->dataPtr->node.Subscribe(topic, &TrackedVehiclePrivate::OnCmdVel,
       this->dataPtr.get());
 
-  std::vector<std::string> odomTopics;
-  if (_sdf->HasElement("odom_topic"))
-  {
-    odomTopics.push_back(_sdf->Get<std::string>("odom_topic"));
-  }
-  odomTopics.push_back(topicPrefix + "/odometry");
-  const auto odomTopic = validTopic(odomTopics);
+  const auto kDefaultOdomTopic {topicPrefix + "/odometry"};
+  const auto odomTopic = validTopic({
+    _sdf->Get<std::string>("odom_topic", kDefaultOdomTopic).first,
+    kDefaultOdomTopic});
 
   this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
       odomTopic);
 
-  std::vector<std::string> tfTopics;
-  if (_sdf->HasElement("tf_topic"))
-  {
-    tfTopics.push_back(_sdf->Get<std::string>("tf_topic"));
-  }
-  tfTopics.push_back(topicPrefix + "/tf");
-  const auto tfTopic = validTopic(tfTopics);
+  const auto kDefaultTfTopic {topicPrefix + "/tf"};
+  const auto tfTopic = validTopic({
+    _sdf->Get<std::string>("tf_topic", kDefaultTfTopic).first,
+    kDefaultTfTopic});
 
   this->dataPtr->tfPub = this->dataPtr->node.Advertise<msgs::Pose_V>(
       tfTopic);
 
-  std::vector<std::string> seTopics;
-  if (_sdf->HasElement("steering_efficiency_topic"))
-  {
-    seTopics.push_back(
-      _sdf->Get<std::string>("steering_efficiency_topic"));
-  }
-  seTopics.push_back(topicPrefix + "/steering_efficiency");
-  const auto seTopic = validTopic(seTopics);
+  const auto kDefaultSeTopic {topicPrefix + "/steering_efficiency"};
+  const auto seTopic = validTopic({
+    _sdf->Get<std::string>("steering_efficiency_topic", kDefaultSeTopic).first,
+    kDefaultSeTopic});
 
   this->dataPtr->node.Subscribe(seTopic,
     &TrackedVehiclePrivate::OnSteeringEfficiency, this->dataPtr.get());

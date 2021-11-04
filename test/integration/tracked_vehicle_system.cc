@@ -20,6 +20,7 @@
 #include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/gazebo/components/Collision.hh>
 #include <ignition/gazebo/components/PoseCmd.hh>
 #include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
 #include <ignition/gazebo/Model.hh>
@@ -409,6 +410,32 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
     // The driving is wild
     EXPECT_ANGLE_NEAR(
       poses.back().Rot().Yaw(), beforeBoxPose.Rot().Yaw(), 0.25);
+
+    // Test that disabling the contact surface customization makes the vehicle
+    // immobile
+
+    ecm->Each<components::Collision>(
+      [&](const Entity & _entity,
+          const components::Collision */*_collision*/) -> bool
+      {
+        ecm->SetComponentData<components::EnableContactSurfaceCustomization>(
+          _entity, false);
+        return true;
+      });
+
+    model.SetWorldPoseCmd(*ecm, beforeCylinderPose);
+
+    // Let the model settle down.
+    server.Run(true, 300, false);
+
+    msgs::Set(msg.mutable_linear(), math::Vector3d(linearSpeed, 0, 0));
+    msgs::Set(msg.mutable_angular(), math::Vector3d(0, 0, 0));
+    pub.Publish(msg);
+    server.Run(true, 500, false);
+
+    // Verify that the vehicle did not move
+    poses.back().SetZ(beforeCylinderPose.Pos().Z());  // ignore Z offset
+    verifyPose(poses.back(), beforeCylinderPose);
   }
 };
 

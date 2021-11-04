@@ -329,22 +329,22 @@
                 </ignition-gui>
             </plugin>
 
-            <!-- Visualize Contacts -->
-            <plugin filename="VisualizeContacts" name="Visualize Contacts">
-                <ignition-gui>
-                    <title>Visualize Contacts</title>
-                    <anchors target="3D View">
-                        <line own="right" target="right"/>
-                        <line own="top" target="top"/>
-                    </anchors>
-                    <property key="resizable" type="bool">false</property>
-                    <property key="width" type="double">230</property>
-                    <property key="height" type="double">50</property>
-                    <property key="state" type="string">floating</property>
-                    <property key="showTitleBar" type="bool">false</property>
-                    <property key="cardBackground" type="string">#ffffff</property>
-                </ignition-gui>
-            </plugin>
+            <!-- Visualize Contacts TODO(peci1) uncomment in Dome -->
+<!--            <plugin filename="VisualizeContacts" name="Visualize Contacts">-->
+<!--                <ignition-gui>-->
+<!--                    <title>Visualize Contacts</title>-->
+<!--                    <anchors target="3D View">-->
+<!--                        <line own="right" target="right"/>-->
+<!--                        <line own="top" target="top"/>-->
+<!--                    </anchors>-->
+<!--                    <property key="resizable" type="bool">false</property>-->
+<!--                    <property key="width" type="double">230</property>-->
+<!--                    <property key="height" type="double">50</property>-->
+<!--                    <property key="state" type="string">floating</property>-->
+<!--                    <property key="showTitleBar" type="bool">false</property>-->
+<!--                    <property key="cardBackground" type="string">#ffffff</property>-->
+<!--                </ignition-gui>-->
+<!--            </plugin>-->
         </gui>
     </world>
 </sdf>
