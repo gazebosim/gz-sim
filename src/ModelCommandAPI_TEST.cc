@@ -90,8 +90,8 @@ TEST(ModelCommandAPI, Commands)
   ignition::gazebo::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
   serverConfig.SetSdfFile(
-      ignition::common::joinPaths(std::string(PROJECT_SOURCE_PATH) +
-                          "/test/worlds/static_diff_drive_vehicle.sdf"));
+      ignition::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+        "/test/worlds/static_diff_drive_vehicle.sdf"));
 
   ignition::gazebo::Server server(serverConfig);
   // Run at least one iteration before continuing to guarantee correctly set up.
@@ -390,7 +390,7 @@ TEST(ModelCommandAPI, AltimeterSensor)
   ignition::gazebo::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
   serverConfig.SetSdfFile(
-      ignition::common::joinPaths(std::string(PROJECT_SOURCE_PATH) +
+      ignition::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
                           "/test/worlds/altimeter_with_pose.sdf"));
 
   ignition::gazebo::Server server(serverConfig);
@@ -440,7 +440,7 @@ TEST(ModelCommandAPI, MagnetometerSensor)
   ignition::gazebo::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
   serverConfig.SetSdfFile(
-      ignition::common::joinPaths(std::string(PROJECT_SOURCE_PATH) +
+      ignition::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
         "/test/worlds/magnetometer.sdf"));
 
   ignition::gazebo::Server server(serverConfig);
@@ -474,8 +474,8 @@ TEST(ModelCommandAPI, RgbdCameraSensor)
   ignition::gazebo::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
   serverConfig.SetSdfFile(
-      ignition::common::joinPaths(std::string(PROJECT_SOURCE_PATH) +
-                          "/test/worlds/rgbd_camera_sensor.sdf"));
+      ignition::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+        "/test/worlds/rgbd_camera_sensor.sdf"));
 
   ignition::gazebo::Server server(serverConfig);
   // Run at least one iteration before continuing to guarantee correctly set up.
