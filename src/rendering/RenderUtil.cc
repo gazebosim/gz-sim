@@ -179,6 +179,19 @@ class ignition::gazebo::RenderUtilPrivate
       const components::VisibilityFlags *_visibilityFlags,
       const components::ParentEntity *_parent);
 
+  /// \brief Helper function to create a visual for a light entity
+  /// \param[in] _ecm The entity-component manager
+  /// \param[in] _entity Entity to create the visual for
+  /// \param[in] _light Light component
+  /// \param[in] _name Name component
+  /// \param[in] _parent ParentEntity component
+  public: void CreateLight(
+      const EntityComponentManager &_ecm,
+      const Entity &_entity,
+      const components::Light *_light,
+      const components::Name *_name,
+      const components::ParentEntity *_parent);
+
   /// \brief Total time elapsed in simulation. This will not increase while
   /// paused.
   public: std::chrono::steady_clock::duration simTime{0};
@@ -1534,18 +1547,6 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
           const components::ParentEntity *_parent)->bool
       {
         this->CreateLink(_ecm, _entity, _name, _pose, _parent);
-
-        // sdf::Link link;
-        // link.SetName(_name->Data());
-        // link.SetRawPose(_pose->Data());
-        // this->newLinks.push_back(
-        //     std::make_tuple(_entity, link, _parent->Data()));
-        // // used for collsions
-        // this->modelToLinkEntities[_parent->Data()].push_back(_entity);
-        // // used for joints
-        // this->matchLinksWithEntities[_parent->Data()][_name->Data()] =
-        //     _entity;
-
         return true;
       });
 
@@ -1568,63 +1569,6 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
       {
         this->CreateVisual(_ecm, _entity, _name, _pose, _geom, _castShadows,
             _transparency, _visibilityFlags, _parent);
-
-        // sdf::Visual visual;
-        // visual.SetName(_name->Data());
-        // visual.SetRawPose(_pose->Data());
-        // visual.SetGeom(_geom->Data());
-        // visual.SetCastShadows(_castShadows->Data());
-        // visual.SetTransparency(_transparency->Data());
-        // visual.SetVisibilityFlags(_visibilityFlags->Data());
-
-        // // Optional components
-        // auto material = _ecm.Component<components::Material>(_entity);
-        // if (material != nullptr)
-        // {
-        //   visual.SetMaterial(material->Data());
-        // }
-
-        // auto laserRetro = _ecm.Component<components::LaserRetro>(_entity);
-        // if (laserRetro != nullptr)
-        // {
-        //   visual.SetLaserRetro(laserRetro->Data());
-        // }
-
-        // // set label
-        // auto label = _ecm.Component<components::SemanticLabel>(_entity);
-        // if (label != nullptr)
-        // {
-        //   this->entityLabel[_entity] = label->Data();
-        // }
-
-        // if (auto temp = _ecm.Component<components::Temperature>(_entity))
-        // {
-        //   // get the uniform temperature for the entity
-        //   this->entityTemp[_entity] = std::make_tuple
-        //       <float, float, std::string>(temp->Data().Kelvin(), 0.0, "");
-        // }
-        // else
-        // {
-        //   // entity doesn't have a uniform temperature. Check if it has
-        //   // a heat signature with an associated temperature range
-        //   auto heatSignature =
-        //     _ecm.Component<components::SourceFilePath>(_entity);
-        //   auto tempRange =
-        //      _ecm.Component<components::TemperatureRange>(_entity);
-        //   if (heatSignature && tempRange)
-        //   {
-        //     this->entityTemp[_entity] =
-        //       std::make_tuple<float, float, std::string>(
-        //           tempRange->Data().min.Kelvin(),
-        //           tempRange->Data().max.Kelvin(),
-        //           std::string(heatSignature->Data()));
-        //   }
-        // }
-
-        // this->newVisuals.push_back(
-        //     std::make_tuple(_entity, visual, _parent->Data()));
-
-        // this->linkToVisualEntities[_parent->Data()].push_back(_entity);
         return true;
       });
 
@@ -1655,8 +1599,7 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
           const components::Name *_name,
           const components::ParentEntity *_parent) -> bool
       {
-        this->newLights.push_back(std::make_tuple(_entity, _light->Data(),
-              _name->Data(), _parent->Data()));
+        this->CreateLight(_ecm, _entity, _light, _name, _parent);
         return true;
       });
 
@@ -1967,8 +1910,7 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
           const components::Name *_name,
           const components::ParentEntity *_parent) -> bool
       {
-        this->newLights.push_back(std::make_tuple(_entity, _light->Data(),
-              _name->Data(), _parent->Data()));
+        this->CreateLight(_ecm, _entity, _light, _name, _parent);
         return true;
       });
 
@@ -3500,6 +3442,15 @@ void RenderUtil::CreateVisualsForEntities(
           _ecm.Component<components::ParentEntity>(ent));
       continue;
     }
+    auto lightComp = _ecm.Component<components::Light>(ent);
+    if (lightComp)
+    {
+      this->dataPtr->CreateLight(_ecm, ent,
+        _ecm.Component<components::Light>(ent),
+        _ecm.Component<components::Name>(ent),
+        _ecm.Component<components::ParentEntity>(ent));
+      continue;
+    }
   }
 }
 
@@ -3593,3 +3544,14 @@ void RenderUtilPrivate::CreateVisual(
   this->linkToVisualEntities[_parent->Data()].push_back(_entity);
 }
 
+/////////////////////////////////////////////////
+void RenderUtilPrivate::CreateLight(
+    const EntityComponentManager &/*_ecm*/,
+    const Entity &_entity,
+    const components::Light *_light,
+    const components::Name *_name,
+    const components::ParentEntity *_parent)
+{
+  this->newLights.push_back(std::make_tuple(_entity, _light->Data(),
+      _name->Data(), _parent->Data()));
+}

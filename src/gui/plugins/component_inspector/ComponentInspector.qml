@@ -250,6 +250,14 @@ Rectangle {
       type: "Link"
     }
     ListElement {
+      text: "Capsule"
+      type: "Link"
+    }
+    ListElement {
+      text: "Ellipsoid"
+      type: "Link"
+    }
+    ListElement {
       text: "Directional"
       type: "Light"
     }
