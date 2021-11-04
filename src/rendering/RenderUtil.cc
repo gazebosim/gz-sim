@@ -1822,63 +1822,6 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
       {
         this->CreateVisual(_ecm, _entity, _name, _pose, _geom, _castShadows,
             _transparency, _visibilityFlags, _parent);
-
-        // sdf::Visual visual;
-        // visual.SetName(_name->Data());
-        // visual.SetRawPose(_pose->Data());
-        // visual.SetGeom(_geom->Data());
-        // visual.SetCastShadows(_castShadows->Data());
-        // visual.SetTransparency(_transparency->Data());
-        // visual.SetVisibilityFlags(_visibilityFlags->Data());
-
-        // // Optional components
-        // auto material = _ecm.Component<components::Material>(_entity);
-        // if (material != nullptr)
-        // {
-        //   visual.SetMaterial(material->Data());
-        // }
-
-        // auto laserRetro = _ecm.Component<components::LaserRetro>(_entity);
-        // if (laserRetro != nullptr)
-        // {
-        //   visual.SetLaserRetro(laserRetro->Data());
-        // }
-
-        // // set label
-        // auto label = _ecm.Component<components::SemanticLabel>(_entity);
-        // if (label != nullptr)
-        // {
-        //   this->entityLabel[_entity] = label->Data();
-        // }
-
-        // if (auto temp = _ecm.Component<components::Temperature>(_entity))
-        // {
-        //   // get the uniform temperature for the entity
-        //   this->entityTemp[_entity] = std::make_tuple
-        //       <float, float, std::string>(temp->Data().Kelvin(), 0.0, "");
-        // }
-        // else
-        // {
-        //   // entity doesn't have a uniform temperature. Check if it has
-        //   // a heat signature with an associated temperature range
-        //   auto heatSignature =
-        //     _ecm.Component<components::SourceFilePath>(_entity);
-        //   auto tempRange =
-        //      _ecm.Component<components::TemperatureRange>(_entity);
-        //   if (heatSignature && tempRange)
-        //   {
-        //     this->entityTemp[_entity] =
-        //       std::make_tuple<float, float, std::string>(
-        //           tempRange->Data().min.Kelvin(),
-        //           tempRange->Data().max.Kelvin(),
-        //           std::string(heatSignature->Data()));
-        //   }
-        // }
-
-        // this->newVisuals.push_back(
-        //     std::make_tuple(_entity, visual, _parent->Data()));
-
-        // this->linkToVisualEntities[_parent->Data()].push_back(_entity);
         return true;
       });
 

@@ -669,13 +669,6 @@ namespace ignition
       /// \param[in] _offset Offset value.
       public: void SetEntityCreateOffset(uint64_t _offset);
 
-      /// \internal
-      /// \brief Mark whether or not an entity is a newly created entity.
-      ///
-      /// \param[in] _entity Entity id to mark as new
-      /// \return True to mark it as new, false to mark it as not new
-      // public: void MarkEntityAsNew(const Entity _entity, bool _new = true);
-
       /// \brief Clear the list of newly added entities so that a call to
       /// EachAdded after this will have no entities to iterate. This function
       /// is protected to facilitate testing.
