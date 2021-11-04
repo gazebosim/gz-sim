@@ -699,7 +699,7 @@ namespace ignition
       /// call to ClearNewlyCreatedEntities
       /// \param[in] _entity Entity id to check.
       /// \return True if the Entity is new.
-      public: bool IsNewEntity(const Entity _entity) const;
+      private: bool IsNewEntity(const Entity _entity) const;
 
       /// \brief Get whether an Entity has been marked to be removed.
       /// \param[in] _entity Entity id to check.

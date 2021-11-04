@@ -804,26 +804,6 @@ bool EntityComponentManager::EntityHasComponentType(const Entity _entity,
 }
 
 /////////////////////////////////////////////////
-// void EntityComponentManager::MarkEntityAsNew(const Entity _entity, bool _new)
-// {
-//   std::lock_guard<std::mutex> lock(this->dataPtr->entityCreatedMutex);
-//   if (_new)
-//   {
-//     this->dataPtr->newlyCreatedEntities.insert(_entity);
-//   }
-//   else
-//   {
-//     this->dataPtr->newlyCreatedEntities.erase(_entity);
-//   }
-//
-//   for (auto &viewPair : this->dataPtr->views)
-//   {
-//     auto &view = viewPair.second.first;
-//     view->MarkEntityAsNew(_entity, _new);
-//   }
-// }
-
-/////////////////////////////////////////////////
 bool EntityComponentManager::IsNewEntity(const Entity _entity) const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->entityCreatedMutex);
