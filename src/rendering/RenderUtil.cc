@@ -1533,8 +1533,6 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
           const components::Pose *_pose,
           const components::ParentEntity *_parent)->bool
       {
-        std::cerr << "new link first udpate " << _entity << " " << _name->Data() << std::endl;
-
         this->CreateLink(_ecm, _entity, _name, _pose, _parent);
 
         // sdf::Link link;
@@ -1858,17 +1856,6 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
           const components::Pose *_pose,
           const components::ParentEntity *_parent)->bool
       {
-        // std::cerr << "got new link " << _entity << " " << _name->Data() << std::endl;
-        // sdf::Link link;
-        // link.SetName(_name->Data());
-        // link.SetRawPose(_pose->Data());
-        // this->newLinks.push_back(
-        //     std::make_tuple(_entity, link, _parent->Data()));
-        // // used for collsions
-        // this->modelToLinkEntities[_parent->Data()].push_back(_entity);
-        // // used for joints
-        // this->matchLinksWithEntities[_parent->Data()][_name->Data()] =
-        //     _entity;
         this->CreateLink(_ecm, _entity, _name, _pose, _parent);
         return true;
       });
@@ -3524,7 +3511,6 @@ void RenderUtilPrivate::CreateLink(
     const components::Pose *_pose,
     const components::ParentEntity *_parent)
 {
-   std::cerr << "create link " << _entity << " " << _name << std::endl;
    sdf::Link link;
    link.SetName(_name->Data());
    link.SetRawPose(_pose->Data());
@@ -3549,7 +3535,6 @@ void RenderUtilPrivate::CreateVisual(
     const components::VisibilityFlags *_visibilityFlags,
     const components::ParentEntity *_parent)
 {
-   std::cerr << "create visual " << _entity << " " << _name << std::endl;
   sdf::Visual visual;
   visual.SetName(_name->Data());
   visual.SetRawPose(_pose->Data());
