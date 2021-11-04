@@ -1,5 +1,6 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource prefix="ComponentInspector/">
+  <file>AirPressure.qml</file>
   <file>Altimeter.qml</file>
   <file>Boolean.qml</file>
   <file>ComponentInspector.qml</file>

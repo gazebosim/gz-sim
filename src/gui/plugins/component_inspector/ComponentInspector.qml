@@ -108,6 +108,23 @@ Rectangle {
   }
 
   /**
+   * Forward air pressure noise changes to C++
+   */
+  function onAirPressureNoise(_mean, _meanBias, _stdDev, _stdDevBias,
+      _dynamicBiasStdDev, _dynamicBiasCorrelationTime) {
+    ComponentInspector.OnAirPressureNoise(
+        _mean, _meanBias, _stdDev, _stdDevBias,
+        _dynamicBiasStdDev, _dynamicBiasCorrelationTime);
+  }
+
+  /**
+   * Forward air pressure reference altitude changes to C++
+   */
+  function onAirPressureReferenceAltitude(_referenceAltitude) {
+    ComponentInspector.OnAirPressureReferenceAltitude(_referenceAltitude);
+  }
+
+  /**
    * Forward pose changes to C++
    */
   function onPose(_x, _y, _z, _roll, _pitch, _yaw) {

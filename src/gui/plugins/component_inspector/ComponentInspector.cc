@@ -24,9 +24,11 @@
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
+#include <sdf/AirPressure.hh>
 #include <sdf/Altimeter.hh>
 
 #include "ignition/gazebo/components/Actor.hh"
+#include "ignition/gazebo/components/AirPressureSensor.hh"
 #include "ignition/gazebo/components/Altimeter.hh"
 #include "ignition/gazebo/components/AngularAcceleration.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
@@ -69,6 +71,7 @@
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
 #include "Altimeter.hh"
+#include "AirPressure.hh"
 #include "ComponentInspector.hh"
 
 namespace ignition::gazebo
@@ -780,6 +783,15 @@ void ComponentInspector::Update(const UpdateInfo &,
         setData(item, *(comp->Data().AltimeterSensor()));
       }
     }
+    else if (typeId == components::AirPressureSensor::typeId)
+    {
+      auto comp = _ecm.Component<components::AirPressureSensor>(
+          this->dataPtr->entity);
+      if (comp)
+      {
+        setData(item, *(comp->Data().AirPressureSensor()));
+      }
+    }
   }
 
   // Remove components no longer present
@@ -910,6 +922,27 @@ Q_INVOKABLE void ComponentInspector::OnAltimeterVelocityNoise(
 {
   this->dataPtr->updateCallbacks.push_back(
       onAltimeterVelocityNoise(this->dataPtr->entity,
+        _mean, _meanBias, _stdDev, _stdDevBias,
+        _dynamicBiasStdDev, _dynamicBiasCorrelationTime));
+}
+
+/////////////////////////////////////////////////
+Q_INVOKABLE void ComponentInspector::OnAirPressureReferenceAltitude(
+    double _referenceAltitude)
+{
+  this->dataPtr->updateCallbacks.push_back(
+      onAirPressureReferenceAltitude(this->dataPtr->entity,
+        _referenceAltitude));
+}
+
+/////////////////////////////////////////////////
+Q_INVOKABLE void ComponentInspector::OnAirPressureNoise(
+    double _mean, double _meanBias, double _stdDev,
+    double _stdDevBias, double _dynamicBiasStdDev,
+    double _dynamicBiasCorrelationTime)
+{
+  this->dataPtr->updateCallbacks.push_back(
+      onAirPressureNoise(this->dataPtr->entity,
         _mean, _meanBias, _stdDev, _stdDevBias,
         _dynamicBiasStdDev, _dynamicBiasCorrelationTime));
 }

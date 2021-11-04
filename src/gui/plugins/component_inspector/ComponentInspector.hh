@@ -176,6 +176,16 @@ namespace gazebo
                 double _stdDevBias, double _dynamicBiasStdDev,
                 double _dynamicBiasCorrelationTime);
 
+    /// \brief Callback in Qt thread when air pressure noise changes.
+    public: Q_INVOKABLE void OnAirPressureReferenceAltitude(
+                double _referenceAltitude);
+
+    /// \brief Callback in Qt thread when air pressure noise changes.
+    public: Q_INVOKABLE void OnAirPressureNoise(
+                double _mean, double _meanBias, double _stdDev,
+                double _stdDevBias, double _dynamicBiasStdDev,
+                double _dynamicBiasCorrelationTime);
+
     /// \brief Callback in Qt thread when pose changes.
     /// \param[in] _x X
     /// \param[in] _y Y
