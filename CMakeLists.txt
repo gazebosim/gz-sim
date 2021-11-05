@@ -34,6 +34,9 @@ else()
   set (EXTRA_TEST_LIB_DEPS)
 endif()
 
+include(test/find_dri.cmake)
+FindDRI()
+
 #============================================================================
 # Search for project-specific dependencies
 #============================================================================
