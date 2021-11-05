@@ -16,6 +16,7 @@
 */
 
 #include <iostream>
+#include <list>
 #include <regex>
 #include <ignition/common/Console.hh>
 #include <ignition/common/Profiler.hh>
