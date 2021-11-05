@@ -1603,6 +1603,8 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateFrameVisual(
 
   auto frameVisual = this->scene->CreateAxisVisual(name);
 
+  // TODO(louise) Scale according to parent size
+  // TODO(louise) Write frame name
   auto frameVis = std::dynamic_pointer_cast<rendering::Visual>(frameVisual);
   frameVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   frameVis->SetUserData("pause-update", static_cast<int>(0));
@@ -2041,8 +2043,7 @@ void VisualizationCapabilitiesPrivate::ViewFrames(const Entity &_entity)
     }
 
     this->viewingFrames[descendant] = showFrames;
-    // TODO(louise) Fix crash
-    // frameVisual->SetVisible(showFrames);
+    frameVisual->SetVisible(showFrames);
   }
 }
 
