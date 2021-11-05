@@ -78,7 +78,6 @@ set (gtest_sources
   EventManager_TEST.cc
   Link_TEST.cc
   Model_TEST.cc
-  ModelCommandAPI_TEST.cc
   SdfEntityCreator_TEST.cc
   SdfGenerator_TEST.cc
   ServerConfig_TEST.cc
@@ -94,6 +93,24 @@ set (gtest_sources
   network/PeerTracker_TEST.cc
   network/NetworkManager_TEST.cc
 )
+
+# Tests that require a valid display
+set(tests_needing_display
+  ModelCommandAPI_TEST.cc
+)
+
+# Add systems that need a valid display here.
+# \todo(anyone) Find a way to run these tests with a virtual display such Xvfb
+# or Xdummy instead of skipping them
+if(VALID_DISPLAY AND VALID_DRI_DISPLAY)
+  list(APPEND gtest_sources ${tests_needing_display})
+else()
+  message(STATUS
+    "Skipping these UNIT tests because a valid display was not found:")
+  foreach(test ${tests_needing_display})
+    message(STATUS " ${test}")
+  endforeach(test)
+endif()
 
 if (MSVC)
   # Warning #4251 is the "dll-interface" warning that tells you when types used
