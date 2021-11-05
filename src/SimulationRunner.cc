@@ -1243,7 +1243,8 @@ void SimulationRunner::ProcessRecreateEntitiesCreate()
   for (auto & ent : this->entitiesToRecreate)
   {
     auto nameComp = this->entityCompMgr.Component<components::Name>(ent);
-    auto parentComp = this->entityCompMgr.Component<components::ParentEntity>(ent);
+    auto parentComp =
+        this->entityCompMgr.Component<components::ParentEntity>(ent);
     // set allowRenaming to false so the entities keep their original name
     Entity clonedEntity = this->entityCompMgr.Clone(ent,
        parentComp->Data(), nameComp->Data(), false);

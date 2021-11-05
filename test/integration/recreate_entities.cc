@@ -84,7 +84,6 @@ TEST_F(RecreateEntitiesFixture, RecreateEntities)
             {
               // add a components::Recreate to indicate that this entity
               // needs to be recreated
-              std::cerr << "creating recreate component " << _entity << std::endl;
               _ecm.CreateComponent(_entity, components::Recreate());
               return true;
             });

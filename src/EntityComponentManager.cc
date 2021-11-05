@@ -545,7 +545,8 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
       auto nameComp = this->Component<components::Name>(childEntity);
       name = nameComp->Data();
     }
-    auto clonedChild = this->CloneImpl(childEntity, clonedEntity, name, _allowRename);
+    auto clonedChild = this->CloneImpl(childEntity, clonedEntity, name,
+        _allowRename);
     if (kNullEntity == clonedChild)
     {
       ignerr << "Cloning child entity [" << childEntity << "] failed.\n";
