@@ -165,27 +165,6 @@ namespace gazebo
     // Documentation inherited
     public: void Update(const UpdateInfo &, EntityComponentManager &) override;
 
-    /// \brief Callback in Qt thread when altimeter changes.
-    public: Q_INVOKABLE void OnAltimeterPositionNoise(
-                double _mean, double _meanBias, double _stdDev,
-                double _stdDevBias, double _dynamicBiasStdDev,
-                double _dynamicBiasCorrelationTime);
-
-    public: Q_INVOKABLE void OnAltimeterVelocityNoise(
-                double _mean, double _meanBias, double _stdDev,
-                double _stdDevBias, double _dynamicBiasStdDev,
-                double _dynamicBiasCorrelationTime);
-
-    /// \brief Callback in Qt thread when air pressure noise changes.
-    public: Q_INVOKABLE void OnAirPressureReferenceAltitude(
-                double _referenceAltitude);
-
-    /// \brief Callback in Qt thread when air pressure noise changes.
-    public: Q_INVOKABLE void OnAirPressureNoise(
-                double _mean, double _meanBias, double _stdDev,
-                double _stdDevBias, double _dynamicBiasStdDev,
-                double _dynamicBiasCorrelationTime);
-
     /// \brief Callback in Qt thread when pose changes.
     /// \param[in] _x X
     /// \param[in] _y Y
@@ -296,6 +275,20 @@ namespace gazebo
 
     /// \brief Notify that paused has changed.
     signals: void PausedChanged();
+
+    /// \brief Add a callback that will be executed during the next Update.
+    /// \param[in] _cb The callback to run.
+    public: void AddUpdateCallback(UpdateCallback _cb);
+
+    /// \brief Register a component creator. A component creator is
+    /// responsible for selecting the correct QML and setting the
+    /// appropriate data for a ComponentTypeId.
+    /// \param[in] _id The component type id to associate with the creation
+    /// function.
+    /// \param[in] _creatorFn Function to call in order to create the QML
+    /// component.
+    public: void RegisterComponentCreator(ComponentTypeId _id,
+                ComponentCreator _creatorFn);
 
     /// \internal
     /// \brief Pointer to private data.

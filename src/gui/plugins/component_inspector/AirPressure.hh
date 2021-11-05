@@ -18,39 +18,43 @@
 #define IGNITION_GAZEBO_GUI_COMPONENTINSPECTOR_AIRPRESSURE_HH_
 
 #include <ignition/gazebo/gui/GuiSystem.hh>
-#include <ignition/gazebo/Entity.hh>
-#include <sdf/AirPressure.hh>
-
-#include "Types.hh"
 
 namespace ignition
 {
 namespace gazebo
 {
-  /// \brief Specialized to set altimetere data.
-  /// This function is called from ComponentInspector::Update. It is used to
-  /// insert the Altimeter QML components into the component inspector.
-  /// \param[in] _item Item whose data will be set.
-  /// \param[in] _data Data to set.
-  template<>
-    void ignition::gazebo::setData(QStandardItem *_item,
-        const sdf::AirPressure &_altimeter);
+  class ComponentInspector;
 
-  /// \brief This function is called when a user changes values in the altimeter
-  /// sensor.
-  /// \param[in] _mean Mean value
-  /// \param[in] _meanBias Bias mean value
-  /// \param[in] _stdDev Standard deviation value
-  /// \param[in] _stdDevBias Bias standard deviation value
-  /// \param[in] _dynamicBiasStdDev Dynamic bias standard deviation value
-  /// \param[in] _dynamicBiasCorrelationTime Dynamic bias correlation time value
-  ignition::gazebo::UpdateCallback onAirPressureNoise(Entity _entity,
-      double _mean, double _meanBias, double _stdDev,
-      double _stdDevBias, double _dynamicBiasStdDev,
-      double _dynamicBiasCorrelationTime);
+  /// \brief A class that handles air pressure changes.
+  class AirPressure : public QObject
+  {
+    Q_OBJECT
 
-  ignition::gazebo::UpdateCallback onAirPressureReferenceAltitude(
-      Entity _entity, double _referenceAltitude);
+    /// \brief Constructor
+    /// \param[in] _inspector The component inspector.
+    public: AirPressure(ComponentInspector *_inspector);
+
+    /// \brief This function is called when a user changes values in the
+    /// air pressure sensor.
+    /// \param[in] _mean Mean value
+    /// \param[in] _meanBias Bias mean value
+    /// \param[in] _stdDev Standard deviation value
+    /// \param[in] _stdDevBias Bias standard deviation value
+    /// \param[in] _dynamicBiasStdDev Dynamic bias standard deviation value
+    /// \param[in] _dynamicBiasCorrelationTime Dynamic bias correlation time
+    /// value
+    public: Q_INVOKABLE void OnAirPressureNoise(
+                double _mean, double _meanBias, double _stdDev,
+                double _stdDevBias, double _dynamicBiasStdDev,
+                double _dynamicBiasCorrelationTime);
+
+    public: Q_INVOKABLE void OnAirPressureReferenceAltitude(
+                double _referenceAltitude);
+
+    /// \brief Pointer to the component inspector. This is used to add
+    /// update callbacks that modify the ECM.
+    private: ComponentInspector *inspector{nullptr};
+  };
 }
 }
 #endif

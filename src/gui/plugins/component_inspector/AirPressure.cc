@@ -14,42 +14,61 @@
  * limitations under the License.
  *
 */
+#include <sdf/AirPressure.hh>
 
 #include <ignition/common/Console.hh>
 #include <ignition/gazebo/components/AirPressureSensor.hh>
 #include <ignition/gazebo/EntityComponentManager.hh>
+
+#include "ComponentInspector.hh"
+#include "Types.hh"
 #include "AirPressure.hh"
 
-//////////////////////////////////////////////////
-template<>
-void ignition::gazebo::setData(QStandardItem *_item,
-    const sdf::AirPressure &_airpressure)
-{
-  if (nullptr == _item)
-    return;
+using namespace ignition;
+using namespace gazebo;
 
-  _item->setData(QString("AirPressure"),
-      ComponentsModel::RoleNames().key("dataType"));
-  _item->setData(QList({
-    QVariant(_airpressure.PressureNoise().Mean()),
-    QVariant(_airpressure.PressureNoise().BiasMean()),
-    QVariant(_airpressure.PressureNoise().StdDev()),
-    QVariant(_airpressure.PressureNoise().BiasStdDev()),
-    QVariant(_airpressure.PressureNoise().DynamicBiasStdDev()),
-    QVariant(_airpressure.PressureNoise().DynamicBiasCorrelationTime()),
-  }), ComponentsModel::RoleNames().key("data"));
+/////////////////////////////////////////////////
+AirPressure::AirPressure(ComponentInspector *_inspector)
+{
+  _inspector->Context()->setContextProperty("AirPressure", this);
+  this->inspector = _inspector;
+
+  ComponentCreator creator =
+    [=](EntityComponentManager &_ecm, Entity _entity, QStandardItem *_item)
+  {
+    auto comp = _ecm.Component<components::AirPressureSensor>(_entity);
+    if (nullptr == _item || nullptr == comp)
+      return;
+    const sdf::AirPressure *air = comp->Data().AirPressureSensor();
+
+    _item->setData(QString("AirPressure"),
+        ComponentsModel::RoleNames().key("dataType"));
+    _item->setData(QList({
+      QVariant(air->ReferenceAltitude()),
+      QVariant(air->PressureNoise().Mean()),
+      QVariant(air->PressureNoise().BiasMean()),
+      QVariant(air->PressureNoise().StdDev()),
+      QVariant(air->PressureNoise().BiasStdDev()),
+      QVariant(air->PressureNoise().DynamicBiasStdDev()),
+      QVariant(air->PressureNoise().DynamicBiasCorrelationTime()),
+    }), ComponentsModel::RoleNames().key("data"));
+  };
+
+  this->inspector->RegisterComponentCreator(
+      components::AirPressureSensor::typeId, creator);
 }
 
 /////////////////////////////////////////////////
-ignition::gazebo::UpdateCallback ignition::gazebo::onAirPressureNoise(
-    Entity _entity, double _mean, double _meanBias, double _stdDev,
-      double _stdDevBias, double _dynamicBiasStdDev,
-      double _dynamicBiasCorrelationTime)
+Q_INVOKABLE void AirPressure::OnAirPressureNoise(
+    double _mean, double _meanBias, double _stdDev,
+    double _stdDevBias, double _dynamicBiasStdDev,
+    double _dynamicBiasCorrelationTime)
 {
   ignition::gazebo::UpdateCallback cb =
       [=](EntityComponentManager &_ecm)
   {
-    auto comp = _ecm.Component<components::AirPressureSensor>(_entity);
+    auto comp = _ecm.Component<components::AirPressureSensor>(
+        this->inspector->Entity());
     if (comp)
     {
       sdf::AirPressure *airpressure = comp->Data().AirPressureSensor();
@@ -70,18 +89,18 @@ ignition::gazebo::UpdateCallback ignition::gazebo::onAirPressureNoise(
       ignerr << "Unable to get the air pressure component.\n";
     }
   };
-  return cb;
+  this->inspector->AddUpdateCallback(cb);
 }
 
 /////////////////////////////////////////////////
-ignition::gazebo::UpdateCallback
-ignition::gazebo::onAirPressureReferenceAltitude(
-    Entity _entity, double _referenceAltitude)
+Q_INVOKABLE void AirPressure::OnAirPressureReferenceAltitude(
+    double _referenceAltitude)
 {
   ignition::gazebo::UpdateCallback cb =
       [=](EntityComponentManager &_ecm)
   {
-    auto comp = _ecm.Component<components::AirPressureSensor>(_entity);
+    auto comp = _ecm.Component<components::AirPressureSensor>(
+        this->inspector->Entity());
     if (comp)
     {
       sdf::AirPressure *airpressure = comp->Data().AirPressureSensor();
@@ -97,6 +116,5 @@ ignition::gazebo::onAirPressureReferenceAltitude(
       ignerr << "Unable to get the air pressure component.\n";
     }
   };
-  return cb;
+  this->inspector->AddUpdateCallback(cb);
 }
-

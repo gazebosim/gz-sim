@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_GUI_COMPONENTINSPECTOR_ALTIMETER_HH_
-#define IGNITION_GAZEBO_GUI_COMPONENTINSPECTOR_ALTIMETER_HH_
+#ifndef IGNITION_GAZEBO_GUI_COMPONENTINSPECTOR_MAGNETOMETER_HH_
+#define IGNITION_GAZEBO_GUI_COMPONENTINSPECTOR_MAGNETOMETER_HH_
 
 #include <ignition/gazebo/gui/GuiSystem.hh>
 
@@ -25,17 +25,17 @@ namespace gazebo
 {
   class ComponentInspector;
 
-  /// \brief A class that handles altimeter changes.
-  class Altimeter : public QObject
+  /// \brief A class that handles magnetometer changes.
+  class Magnetometer : public QObject
   {
     Q_OBJECT
 
     /// \brief Constructor
     /// \param[in] _inspector The component inspector.
-    public: Altimeter(ComponentInspector *_inspector);
+    public: Magnetometer(ComponentInspector *_inspector);
 
     /// \brief This function is called when a user changes values in the
-    /// altimeter sensor.
+    /// x noise elements
     /// \param[in] _mean Mean value
     /// \param[in] _meanBias Bias mean value
     /// \param[in] _stdDev Standard deviation value
@@ -43,13 +43,13 @@ namespace gazebo
     /// \param[in] _dynamicBiasStdDev Dynamic bias standard deviation value
     /// \param[in] _dynamicBiasCorrelationTime Dynamic bias correlation time
     /// value
-      public: Q_INVOKABLE void OnAltimeterPositionNoise(
-                  double _mean, double _meanBias, double _stdDev,
-                  double _stdDevBias, double _dynamicBiasStdDev,
-                  double _dynamicBiasCorrelationTime);
+    public: Q_INVOKABLE void OnMagnetometerXNoise(
+        double _mean, double _meanBias, double _stdDev,
+        double _stdDevBias, double _dynamicBiasStdDev,
+        double _dynamicBiasCorrelationTime);
 
     /// \brief This function is called when a user changes values in the
-    /// altimeter sensor's velocity noise.
+    /// y noise elements
     /// \param[in] _mean Mean value
     /// \param[in] _meanBias Bias mean value
     /// \param[in] _stdDev Standard deviation value
@@ -57,10 +57,24 @@ namespace gazebo
     /// \param[in] _dynamicBiasStdDev Dynamic bias standard deviation value
     /// \param[in] _dynamicBiasCorrelationTime Dynamic bias correlation time
     /// value
-    public: Q_INVOKABLE void OnAltimeterVelocityNoise(
-                double _mean, double _meanBias, double _stdDev,
-                double _stdDevBias, double _dynamicBiasStdDev,
-                double _dynamicBiasCorrelationTime);
+    public: Q_INVOKABLE void OnMagnetometerYNoise(
+        double _mean, double _meanBias, double _stdDev,
+        double _stdDevBias, double _dynamicBiasStdDev,
+        double _dynamicBiasCorrelationTime);
+
+    /// \brief This function is called when a user changes values in the
+    /// z noise elements
+    /// \param[in] _mean Mean value
+    /// \param[in] _meanBias Bias mean value
+    /// \param[in] _stdDev Standard deviation value
+    /// \param[in] _stdDevBias Bias standard deviation value
+    /// \param[in] _dynamicBiasStdDev Dynamic bias standard deviation value
+    /// \param[in] _dynamicBiasCorrelationTime Dynamic bias correlation time
+    /// value
+    public: Q_INVOKABLE void OnMagnetometerZNoise(
+        double _mean, double _meanBias, double _stdDev,
+        double _stdDevBias, double _dynamicBiasStdDev,
+        double _dynamicBiasCorrelationTime);
 
     /// \brief Pointer to the component inspector. This is used to add
     /// update callbacks that modify the ECM.

@@ -31,9 +31,27 @@ namespace ignition
 {
 namespace gazebo
 {
+  /// \brief UpdateCallback is a function defition that is used by a
+  /// component to manage ECM changes.
+  /// \sa void ComponentInspector::AddUpdateCallback(UpdateCallback _cb)
   using UpdateCallback = std::function<void(EntityComponentManager &)>;
 
+  // ComponentCreator is a function definition that a component can use
+  // to create the appropriate UI elements for an Entity based on
+  // a ComponentTypeId.
+  /// \sa void ComponentInspector::RegisterComponentCreator(UpdateCallback _cb)
+  using ComponentCreator = std::function<void(EntityComponentManager &,
+      Entity, QStandardItem *)>;
+
+  /// \brief Helper function that will set all noise properties.
   /// \param[out] _noise Noise to set
+  /// \param[in] _mean Mean value
+  /// \param[in] _meanBias Bias mean value
+  /// \param[in] _stdDev Standard deviation value
+  /// \param[in] _stdDevBias Bias standard deviation value
+  /// \param[in] _dynamicBiasStdDev Dynamic bias standard deviation value
+  /// \param[in] _dynamicBiasCorrelationTime Dynamic bias correlation time
+  /// value
   void setNoise(sdf::Noise &_noise,
       double _mean, double _meanBias, double _stdDev,
       double _stdDevBias, double _dynamicBiasStdDev,

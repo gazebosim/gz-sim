@@ -24,12 +24,8 @@
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
-#include <sdf/AirPressure.hh>
-#include <sdf/Altimeter.hh>
-
 #include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/AirPressureSensor.hh"
-#include "ignition/gazebo/components/Altimeter.hh"
 #include "ignition/gazebo/components/AngularAcceleration.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/CastShadows.hh"
@@ -72,6 +68,7 @@
 
 #include "Altimeter.hh"
 #include "AirPressure.hh"
+#include "Magnetometer.hh"
 #include "ComponentInspector.hh"
 
 namespace ignition::gazebo
@@ -108,9 +105,21 @@ namespace ignition::gazebo
     /// \brief Transport node for making command requests
     public: transport::Node node;
 
+    /// \brief Altimeter sensor inspector elements
+    public: std::unique_ptr<ignition::gazebo::Altimeter> altimeter;
+
+    /// \brief Air pressure sensor inspector elements
+    public: std::unique_ptr<ignition::gazebo::AirPressure> airPressure;
+
+    /// \brief Magnetometer inspector elements
+    public: std::unique_ptr<ignition::gazebo::Magnetometer> magnetometer;
+
     /// \brief Set of callbacks to execture during the Update function.
     public: std::vector<
             std::function<void(EntityComponentManager &)>> updateCallbacks;
+
+    /// \brief A map of component type to creation functions.
+    public: std::map<ComponentTypeId, ComponentCreator> componentCreators;
   };
 }
 
@@ -415,6 +424,15 @@ void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
   // Connect model
   this->Context()->setContextProperty(
       "ComponentsModel", &this->dataPtr->componentsModel);
+
+  // Create air pressure
+  this->dataPtr->airPressure = std::make_unique<AirPressure>(this);
+
+  // Create altimeter
+  this->dataPtr->altimeter = std::make_unique<Altimeter>(this);
+
+  // Create the magnetometer
+  this->dataPtr->magnetometer = std::make_unique<Magnetometer>(this);
 }
 
 //////////////////////////////////////////////////
@@ -775,15 +793,7 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, comp->Data());
     }
-    else if (typeId == components::Altimeter::typeId)
-    {
-      auto comp = _ecm.Component<components::Altimeter>(this->dataPtr->entity);
-      if (comp)
-      {
-        setData(item, *(comp->Data().AltimeterSensor()));
-      }
-    }
-    else if (typeId == components::AirPressureSensor::typeId)
+    /*else if (typeId == components::AirPressureSensor::typeId)
     {
       auto comp = _ecm.Component<components::AirPressureSensor>(
           this->dataPtr->entity);
@@ -791,6 +801,12 @@ void ComponentInspector::Update(const UpdateInfo &,
       {
         setData(item, *(comp->Data().AirPressureSensor()));
       }
+    }*/
+    else if (this->dataPtr->componentCreators.find(typeId) !=
+          this->dataPtr->componentCreators.end())
+    {
+      this->dataPtr->componentCreators[typeId](
+          _ecm, this->dataPtr->entity, item);
     }
   }
 
@@ -811,6 +827,18 @@ void ComponentInspector::Update(const UpdateInfo &,
   for (auto cb : this->dataPtr->updateCallbacks)
     cb(_ecm);
   this->dataPtr->updateCallbacks.clear();
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::AddUpdateCallback(UpdateCallback _cb)
+{
+  this->dataPtr->updateCallbacks.push_back(_cb);
+}
+/////////////////////////////////////////////////
+void ComponentInspector::RegisterComponentCreator(ComponentTypeId _id,
+    ComponentCreator _creatorFn)
+{
+  this->dataPtr->componentCreators[_id] = _creatorFn;
 }
 
 /////////////////////////////////////////////////
@@ -900,51 +928,6 @@ void ComponentInspector::SetPaused(bool _paused)
 {
   this->dataPtr->paused = _paused;
   this->PausedChanged();
-}
-
-/////////////////////////////////////////////////
-Q_INVOKABLE void ComponentInspector::OnAltimeterPositionNoise(
-    double _mean, double _meanBias, double _stdDev,
-    double _stdDevBias, double _dynamicBiasStdDev,
-    double _dynamicBiasCorrelationTime)
-{
-  this->dataPtr->updateCallbacks.push_back(
-      onAltimeterPositionNoise(this->dataPtr->entity,
-        _mean, _meanBias, _stdDev, _stdDevBias,
-        _dynamicBiasStdDev, _dynamicBiasCorrelationTime));
-}
-
-/////////////////////////////////////////////////
-Q_INVOKABLE void ComponentInspector::OnAltimeterVelocityNoise(
-    double _mean, double _meanBias, double _stdDev,
-    double _stdDevBias, double _dynamicBiasStdDev,
-    double _dynamicBiasCorrelationTime)
-{
-  this->dataPtr->updateCallbacks.push_back(
-      onAltimeterVelocityNoise(this->dataPtr->entity,
-        _mean, _meanBias, _stdDev, _stdDevBias,
-        _dynamicBiasStdDev, _dynamicBiasCorrelationTime));
-}
-
-/////////////////////////////////////////////////
-Q_INVOKABLE void ComponentInspector::OnAirPressureReferenceAltitude(
-    double _referenceAltitude)
-{
-  this->dataPtr->updateCallbacks.push_back(
-      onAirPressureReferenceAltitude(this->dataPtr->entity,
-        _referenceAltitude));
-}
-
-/////////////////////////////////////////////////
-Q_INVOKABLE void ComponentInspector::OnAirPressureNoise(
-    double _mean, double _meanBias, double _stdDev,
-    double _stdDevBias, double _dynamicBiasStdDev,
-    double _dynamicBiasCorrelationTime)
-{
-  this->dataPtr->updateCallbacks.push_back(
-      onAirPressureNoise(this->dataPtr->entity,
-        _mean, _meanBias, _stdDev, _stdDevBias,
-        _dynamicBiasStdDev, _dynamicBiasCorrelationTime));
 }
 
 /////////////////////////////////////////////////

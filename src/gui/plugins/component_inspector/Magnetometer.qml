@@ -24,7 +24,7 @@ import QtQuick.Controls.Styles 1.4
 import "qrc:/ComponentInspector"
 import "qrc:/qml"
 
-// Item displaying altimeter noise information.
+// Item displaying magnetometerr noise information.
 Rectangle {
   height: header.height + content.height
   width: componentInspector.width
@@ -40,8 +40,8 @@ Rectangle {
 
       // Set the 'expandingHeaderText' value to override the default header
       // values, which is based on the model.
-      expandingHeaderText: "Altimeter noise"
-      expandingHeaderToolTip: "Altimeter noise properties" 
+      expandingHeaderText: "Magnetometer noise"
+      expandingHeaderToolTip: "Magnetometer noise properties" 
     }
 
     // This is the content that will be expanded/contracted using the
@@ -66,9 +66,9 @@ Rectangle {
         id: layout
         width: parent.width
 
-        // Space out the section header.
+        // Space out the section header for x-axis noise.
         Rectangle {
-          id: verticalPositionNoiseTextRect
+          id: xaxisNoiseTextRect
           width: parent.width
           height: childrenRect.height
           Layout.leftMargin: 10
@@ -76,16 +76,16 @@ Rectangle {
           color: "transparent"
 
           Text {
-            id: verticalPositionNoiseText
-            text: "Vertical Position Noise"
+            id: xaxisNoiseText
+            text: "X-axis Noise"
             color: "dimgrey"
             font.pointSize: 12
           }
         }
 
-        // Show the position noise values.
+        // Show the x-axis noise values.
         Noise {
-          id: verticalPositionNoise
+          id: xaxisNoise
           Layout.fillWidth: true
           Layout.leftMargin: 20
 
@@ -98,14 +98,14 @@ Rectangle {
 
           // Connect to the onNoiseUpdate signal in Noise.qml
           Component.onCompleted: {
-            verticalPositionNoise.onNoiseUpdate.connect(
-                componentInspector.onAltimeterPositionNoise)
+            xaxisNoise.onNoiseUpdate.connect(
+                componentInspector.onMagnetometerXNoise)
           }
         }
 
-        // Space out the section header.
+        // Space out the section header for y-axis noise.
         Rectangle {
-          id: verticalVelocityNoiseTextRect
+          id: yaxisNoiseTextRect
           width: parent.width
           height: childrenRect.height
           Layout.leftMargin: 10
@@ -113,15 +113,16 @@ Rectangle {
           color: "transparent"
 
           Text {
-            text: "Vertical Velocity Noise"
+            id: yaxisNoiseText
+            text: "Y-axis Noise"
             color: "dimgrey"
             font.pointSize: 12
           }
         }
 
-        // Show the velocity noise values.
+        // Show the y-axis noise values.
         Noise {
-          id: verticalVelocityNoise
+          id: yaxisNoise
           Layout.fillWidth: true
           Layout.leftMargin: 20
 
@@ -134,8 +135,45 @@ Rectangle {
 
           // Connect to the onNoiseUpdate signal in Noise.qml
           Component.onCompleted: {
-            verticalVelocityNoise.onNoiseUpdate.connect(
-                componentInspector.onAltimeterVelocityNoise)
+            yaxisNoise.onNoiseUpdate.connect(
+                componentInspector.onMagnetometerYNoise)
+          }
+        }
+
+        // Space out the section header for z-axis noise.
+        Rectangle {
+          id: zaxisNoiseTextRect
+          width: parent.width
+          height: childrenRect.height
+          Layout.leftMargin: 10
+          Layout.topMargin: 10
+          color: "transparent"
+
+          Text {
+            id: zaxisNoiseText
+            text: "Z-axis Noise"
+            color: "dimgrey"
+            font.pointSize: 12
+          }
+        }
+
+        // Show the y-axis noise values.
+        Noise {
+          id: zaxisNoise
+          Layout.fillWidth: true
+          Layout.leftMargin: 20
+
+          meanValue: model.data[12]
+          meanBias: model.data[13]
+          stdDevValue: model.data[14]
+          stdDevBias: model.data[15]
+          dynamicBiasStdDev: model.data[16]
+          dynamicBiasCorrelationTime: model.data[17]
+
+          // Connect to the onNoiseUpdate signal in Noise.qml
+          Component.onCompleted: {
+            zaxisNoise.onNoiseUpdate.connect(
+                componentInspector.onMagnetometerZNoise)
           }
         }
       }

@@ -29,6 +29,7 @@ Rectangle {
   id: noise
   height: noiseContent.height
   color: "transparent"
+  objectName: "NoiseQML"
 
   // Mean value
   property double meanValue: 0.0
@@ -48,9 +49,11 @@ Rectangle {
   // Dynamic bias correlation time
   property double dynamicBiasCorrelationTime: 0.0
 
-  // Dummy function that a user of this component can overload 
-  function onNoiseUpdate(_mean, _meanBias, _stdDev, _stdDevBias,
-      _dynamicBiasStdDev, _dynamicBiasCorrelationTime) { }
+  // Signal that a user of this component can connect to in order to receive
+  // noise updates 
+  signal onNoiseUpdate(double _mean, double _meanBias, double _stdDev,
+      double _stdDevBias, double _dynamicBiasStdDev,
+      double _dynamicBiasCorrelationTime)
 
   // Display the main content
   Column {

@@ -14,14 +14,20 @@
  * limitations under the License.
  *
 */
+#include <sdf/Altimeter.hh>
 
 #include <ignition/common/Console.hh>
-#include "ignition/gazebo/components/Altimeter.hh"
-#include <ignition/gazebo/EntityComponentManager.hh>
+#include <ignition/gazebo/components/Altimeter.hh>
+
+#include "ComponentInspector.hh"
+#include "Types.hh"
 #include "Altimeter.hh"
 
+using namespace ignition;
+using namespace gazebo;
+
 //////////////////////////////////////////////////
-template<>
+/*template<>
 void ignition::gazebo::setData(QStandardItem *_item,
     const sdf::Altimeter &_altimeter)
 {
@@ -45,18 +51,55 @@ void ignition::gazebo::setData(QStandardItem *_item,
     QVariant(_altimeter.VerticalVelocityNoise().DynamicBiasStdDev()),
     QVariant(_altimeter.VerticalVelocityNoise().DynamicBiasCorrelationTime()),
   }), ComponentsModel::RoleNames().key("data"));
-}
+}*/
 
 /////////////////////////////////////////////////
-ignition::gazebo::UpdateCallback ignition::gazebo::onAltimeterPositionNoise(
-    Entity _entity, double _mean, double _meanBias, double _stdDev,
-      double _stdDevBias, double _dynamicBiasStdDev,
-      double _dynamicBiasCorrelationTime)
+Altimeter::Altimeter(ComponentInspector *_inspector)
+{
+  _inspector->Context()->setContextProperty("Altimeter", this);
+  this->inspector = _inspector;
+
+  ComponentCreator creator =
+    [=](EntityComponentManager &_ecm, Entity _entity, QStandardItem *_item)
+  {
+    auto comp = _ecm.Component<components::Altimeter>(_entity);
+    if (nullptr == _item || nullptr == comp)
+      return;
+    const sdf::Altimeter *alt = comp->Data().AltimeterSensor();
+
+    _item->setData(QString("Altimeter"),
+        ComponentsModel::RoleNames().key("dataType"));
+    _item->setData(QList({
+      QVariant(alt->VerticalPositionNoise().Mean()),
+      QVariant(alt->VerticalPositionNoise().BiasMean()),
+      QVariant(alt->VerticalPositionNoise().StdDev()),
+      QVariant(alt->VerticalPositionNoise().BiasStdDev()),
+      QVariant(alt->VerticalPositionNoise().DynamicBiasStdDev()),
+      QVariant(alt->VerticalPositionNoise().DynamicBiasCorrelationTime()),
+
+      QVariant(alt->VerticalVelocityNoise().Mean()),
+      QVariant(alt->VerticalVelocityNoise().BiasMean()),
+      QVariant(alt->VerticalVelocityNoise().StdDev()),
+      QVariant(alt->VerticalVelocityNoise().BiasStdDev()),
+      QVariant(alt->VerticalVelocityNoise().DynamicBiasStdDev()),
+      QVariant(alt->VerticalVelocityNoise().DynamicBiasCorrelationTime()),
+    }), ComponentsModel::RoleNames().key("data"));
+  };
+
+  this->inspector->RegisterComponentCreator(
+      components::Altimeter::typeId, creator);
+}
+/////////////////////////////////////////////////
+Q_INVOKABLE void Altimeter::OnAltimeterPositionNoise(
+    double _mean, double _meanBias, double _stdDev,
+    double _stdDevBias, double _dynamicBiasStdDev,
+    double _dynamicBiasCorrelationTime)
 {
   ignition::gazebo::UpdateCallback cb =
       [=](EntityComponentManager &_ecm)
   {
-    auto comp = _ecm.Component<components::Altimeter>(_entity);
+    auto comp = _ecm.Component<components::Altimeter>(
+        this->inspector->Entity());
     if (comp)
     {
       sdf::Altimeter *altimeter = comp->Data().AltimeterSensor();
@@ -77,19 +120,20 @@ ignition::gazebo::UpdateCallback ignition::gazebo::onAltimeterPositionNoise(
       ignerr << "Unable to get the altimeter component.\n";
     }
   };
-  return cb;
+  this->inspector->AddUpdateCallback(cb);
 }
 
 /////////////////////////////////////////////////
-ignition::gazebo::UpdateCallback ignition::gazebo::onAltimeterVelocityNoise(
-    Entity _entity, double _mean, double _meanBias, double _stdDev,
-      double _stdDevBias, double _dynamicBiasStdDev,
-      double _dynamicBiasCorrelationTime)
+Q_INVOKABLE void Altimeter::OnAltimeterVelocityNoise(
+    double _mean, double _meanBias, double _stdDev,
+    double _stdDevBias, double _dynamicBiasStdDev,
+    double _dynamicBiasCorrelationTime)
 {
   ignition::gazebo::UpdateCallback cb =
       [=](EntityComponentManager &_ecm)
   {
-    auto comp = _ecm.Component<components::Altimeter>(_entity);
+    auto comp = _ecm.Component<components::Altimeter>(
+        this->inspector->Entity());
     if (comp)
     {
       sdf::Altimeter *altimeter = comp->Data().AltimeterSensor();
@@ -110,5 +154,5 @@ ignition::gazebo::UpdateCallback ignition::gazebo::onAltimeterVelocityNoise(
       ignerr << "Unable to get the altimeter component.\n";
     }
   };
-  return cb;
+  this->inspector->AddUpdateCallback(cb);
 }

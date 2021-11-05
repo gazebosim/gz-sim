@@ -92,7 +92,7 @@ Rectangle {
    */
   function onAltimeterPositionNoise(_mean, _meanBias, _stdDev, _stdDevBias,
       _dynamicBiasStdDev, _dynamicBiasCorrelationTime) {
-    ComponentInspector.OnAltimeterPositionNoise(
+    Altimeter.OnAltimeterPositionNoise(
         _mean, _meanBias, _stdDev, _stdDevBias,
         _dynamicBiasStdDev, _dynamicBiasCorrelationTime);
   }
@@ -102,7 +102,37 @@ Rectangle {
    */
   function onAltimeterVelocityNoise(_mean, _meanBias, _stdDev, _stdDevBias,
       _dynamicBiasStdDev, _dynamicBiasCorrelationTime) {
-    ComponentInspector.OnAltimeterVelocityNoise(
+    Altimeter.OnAltimeterVelocityNoise(
+        _mean, _meanBias, _stdDev, _stdDevBias,
+        _dynamicBiasStdDev, _dynamicBiasCorrelationTime);
+  }
+
+  /**
+   * Forward magentometer x-noise data to C++
+   */
+  function onMagnetometerXNoise(_mean, _meanBias, _stdDev, _stdDevBias,
+      _dynamicBiasStdDev, _dynamicBiasCorrelationTime) {
+    Magnetometer.OnMagnetometerXNoise(
+        _mean, _meanBias, _stdDev, _stdDevBias,
+        _dynamicBiasStdDev, _dynamicBiasCorrelationTime);
+  }
+
+  /**
+   * Forward magentometer y-noise data to C++
+   */
+  function onMagnetometerYNoise(_mean, _meanBias, _stdDev, _stdDevBias,
+      _dynamicBiasStdDev, _dynamicBiasCorrelationTime) {
+    Magnetometer.OnMagnetometerYNoise(
+        _mean, _meanBias, _stdDev, _stdDevBias,
+        _dynamicBiasStdDev, _dynamicBiasCorrelationTime);
+  }
+
+  /**
+   * Forward magentometer z-noise data to C++
+   */
+  function onMagnetometerZNoise(_mean, _meanBias, _stdDev, _stdDevBias,
+      _dynamicBiasStdDev, _dynamicBiasCorrelationTime) {
+    Magnetometer.OnMagnetometerZNoise(
         _mean, _meanBias, _stdDev, _stdDevBias,
         _dynamicBiasStdDev, _dynamicBiasCorrelationTime);
   }
@@ -112,16 +142,16 @@ Rectangle {
    */
   function onAirPressureNoise(_mean, _meanBias, _stdDev, _stdDevBias,
       _dynamicBiasStdDev, _dynamicBiasCorrelationTime) {
-    ComponentInspector.OnAirPressureNoise(
+    AirPressure.OnAirPressureNoise(
         _mean, _meanBias, _stdDev, _stdDevBias,
         _dynamicBiasStdDev, _dynamicBiasCorrelationTime);
   }
-
+ 
   /**
    * Forward air pressure reference altitude changes to C++
    */
   function onAirPressureReferenceAltitude(_referenceAltitude) {
-    ComponentInspector.OnAirPressureReferenceAltitude(_referenceAltitude);
+    AirPressure.OnAirPressureReferenceAltitude(_referenceAltitude);
   }
 
   /**
