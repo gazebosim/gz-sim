@@ -27,8 +27,10 @@
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/PhysicsCmd.hh"
+#include "ignition/gazebo/components/Recreate.hh"
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
 #include "ignition/gazebo/Util.hh"
@@ -817,6 +819,9 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   // Handle pending systems
   this->ProcessSystemQueue();
 
+  // Recreate any entities that have the Recreate component
+  this->RecreateEntities();
+
   // Update all the systems.
   this->UpdateSystems();
 
@@ -1201,6 +1206,49 @@ void SimulationRunner::ProcessWorldControl()
   }
 
   this->worldControls.clear();
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::RecreateEntities()
+{
+  IGN_PROFILE("SimulationRunner::RecreateEntities");
+  std::cerr << "sim runner recreate starting " << std::endl;
+
+  // recreate entities by cloning the original one first then removing it
+  // assume only models can be recreated
+  std::set<Entity> entities;
+  std::set<Entity> clonedEntities;
+  this->entityCompMgr.Each<components::Model,
+                           components::Recreate,
+                           components::Name,
+                           components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Model *,
+          const components::Recreate *,
+          const components::Name *_name,
+          const components::ParentEntity *_parent)->bool
+      {
+        // For now, we will only clone top level entities
+        Entity clonedEntity = this->entityCompMgr.Clone(_entity,
+              _parent->Data(), _name->Data(), true);
+        entities.insert(_entity);
+        clonedEntities.insert(clonedEntity);
+
+        std::cerr << "sim runner recreate: " << _entity << " vs " << clonedEntity << std::endl;
+        return true;
+      });
+
+  // remove the recreate component from the cloned entities
+  for (auto &ent : clonedEntities)
+  {
+    this->entityCompMgr.RemoveComponent<components::Recreate>(ent);
+  }
+
+  // remove the original entities
+  for (auto &ent : entities)
+  {
+    this->entityCompMgr.RequestRemoveEntity(ent, true);
+  }
 }
 
 /////////////////////////////////////////////////

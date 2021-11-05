@@ -444,6 +444,9 @@ namespace ignition
         std::optional<Entity> _entity = std::nullopt,
         std::optional<std::shared_ptr<const sdf::Element>> _sdf = std::nullopt);
 
+      /// \brief Recreate entities that have the components::Recreate component
+      private: void RecreateEntities();
+
       /// \brief This is used to indicate that a stop event has been received.
       private: std::atomic<bool> stopReceived{false};
 

@@ -56,6 +56,8 @@
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/config.hh"
+#include "ignition/gazebo/test_config.hh"
+
 #include "../test/helpers/EnvTestFixture.hh"
 #include "SimulationRunner.hh"
 
@@ -1567,6 +1569,11 @@ TEST_P(SimulationRunnerTest, GenerateWorldSdf)
   const auto* world = newRoot.WorldByIndex(0);
   EXPECT_EQ(5u, world->ModelCount());
 }
+
+///////////////////////////////////////////////////
+//TEST_P(SimulationRunnerTest, ReCreateEntities)
+//{
+//}
 
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
