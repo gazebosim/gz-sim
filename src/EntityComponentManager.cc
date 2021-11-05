@@ -39,6 +39,7 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
+#include "ignition/gazebo/components/Recreate.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -420,7 +421,12 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
   }
   else if (!_name.empty() && !_allowRename)
   {
-    if (kNullEntity != this->EntityByComponents(components::Name(_name)))
+    // if there is an entity with the same name and user indicated renaming is
+    // not allowed then return null entity.
+    // If the entity has a Recreate component then carry on since the ECM
+    // is supposed to create a new entity with the same name.
+    auto ent = this->EntityByComponents(components::Name(_name));
+    if (kNullEntity != ent && !this->Component<components::Recreate>(ent))
     {
       ignerr << "Requested to clone entity [" << _entity
         << "] with a name of [" << _name << "], but another entity already "
@@ -533,7 +539,13 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
   for (const auto &childEntity :
       this->EntitiesByComponents(components::ParentEntity(_entity)))
   {
-    auto clonedChild = this->CloneImpl(childEntity, clonedEntity, "", true);
+    std::string name;
+    if (!_allowRename)
+    {
+      auto nameComp = this->Component<components::Name>(childEntity);
+      name = nameComp->Data();
+    }
+    auto clonedChild = this->CloneImpl(childEntity, clonedEntity, name, _allowRename);
     if (kNullEntity == clonedChild)
     {
       ignerr << "Cloning child entity [" << childEntity << "] failed.\n";

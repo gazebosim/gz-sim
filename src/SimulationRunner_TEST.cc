@@ -1570,11 +1570,6 @@ TEST_P(SimulationRunnerTest, GenerateWorldSdf)
   EXPECT_EQ(5u, world->ModelCount());
 }
 
-///////////////////////////////////////////////////
-//TEST_P(SimulationRunnerTest, ReCreateEntities)
-//{
-//}
-
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
 INSTANTIATE_TEST_SUITE_P(ServerRepeat, SimulationRunnerTest,

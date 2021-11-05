@@ -80,7 +80,7 @@ TEST_F(RecreateEntitiesFixture, RecreateEntities)
       {
         _ecm.Each<components::Model>(
             [&](const ignition::gazebo::Entity &_entity,
-                const components::Model *_model) -> bool
+                const components::Model *) -> bool
             {
               // add a components::Recreate to indicate that this entity
               // needs to be recreated
@@ -101,8 +101,34 @@ TEST_F(RecreateEntitiesFixture, RecreateEntities)
   EXPECT_NE(nullptr, ecm);
 
 
+  // model entity ids
+  Entity boxModelEntity = kNullEntity;
+  Entity cylModelEntity = kNullEntity;
+  Entity sphModelEntity = kNullEntity;
+  Entity capModelEntity = kNullEntity;
+  Entity ellipModelEntity = kNullEntity;
+
+  // link entity ids
+  Entity boxLinkEntity = kNullEntity;
+  Entity cylLinkEntity = kNullEntity;
+  Entity sphLinkEntity = kNullEntity;
+  Entity capLinkEntity = kNullEntity;
+  Entity ellipLinkEntity = kNullEntity;
+
   auto validateEntities = [&]()
   {
+    boxModelEntity = kNullEntity;
+    cylModelEntity = kNullEntity;
+    sphModelEntity = kNullEntity;
+    capModelEntity = kNullEntity;
+    ellipModelEntity = kNullEntity;
+
+    boxLinkEntity = kNullEntity;
+    cylLinkEntity = kNullEntity;
+    sphLinkEntity = kNullEntity;
+    capLinkEntity = kNullEntity;
+    ellipLinkEntity = kNullEntity;
+
     // Check entities
     // 1 x world + 1 x (default) level + 1 x wind + 5 x model + 5 x link + 5 x
     // collision + 5 x visual + 1 x light
@@ -114,11 +140,6 @@ TEST_F(RecreateEntitiesFixture, RecreateEntities)
 
     // Check models
     unsigned int modelCount{0};
-    Entity boxModelEntity = kNullEntity;
-    Entity cylModelEntity = kNullEntity;
-    Entity sphModelEntity = kNullEntity;
-    Entity capModelEntity = kNullEntity;
-    Entity ellipModelEntity = kNullEntity;
     ecm->Each<components::Model,
                               components::Pose,
                               components::ParentEntity,
@@ -184,15 +205,10 @@ TEST_F(RecreateEntitiesFixture, RecreateEntities)
 
     // Check links
     unsigned int linkCount{0};
-    Entity boxLinkEntity = kNullEntity;
-    Entity cylLinkEntity = kNullEntity;
-    Entity sphLinkEntity = kNullEntity;
-    Entity capLinkEntity = kNullEntity;
-    Entity ellipLinkEntity = kNullEntity;
     ecm->Each<components::Link,
-                              components::Pose,
-                              components::ParentEntity,
-                              components::Name>(
+              components::Pose,
+              components::ParentEntity,
+              components::Name>(
       [&](const Entity &_entity,
           const components::Link *_link,
           const components::Pose *_pose,
@@ -257,7 +273,20 @@ TEST_F(RecreateEntitiesFixture, RecreateEntities)
     EXPECT_NE(kNullEntity, ellipLinkEntity);
   };
 
+  // validate initial state
   validateEntities();
+
+  // store the original entity ids
+  Entity originalboxModelEntity = boxModelEntity;
+  Entity originalcylModelEntity = cylModelEntity;
+  Entity originalsphModelEntity = sphModelEntity;
+  Entity originalcapModelEntity = capModelEntity;
+  Entity originalellipModelEntity = ellipModelEntity;
+  Entity originalboxLinkEntity = boxLinkEntity;
+  Entity originalcylLinkEntity = cylLinkEntity;
+  Entity originalsphLinkEntity = sphLinkEntity;
+  Entity originalcapLinkEntity = capLinkEntity;
+  Entity originalellipLinkEntity = ellipLinkEntity;
 
   // Run once to let the test relay system creates the components::Recreate
   server.Run(true, 1, false);
@@ -265,4 +294,18 @@ TEST_F(RecreateEntitiesFixture, RecreateEntities)
   // Run again so that entities get recreated in the ECM
   server.Run(true, 1, false);
 
+  // validate that the entities are recreated
+  validateEntities();
+
+  // check that the newly recreated entities should have a different entity id
+  EXPECT_NE(originalboxModelEntity, boxModelEntity);
+  EXPECT_NE(originalcylModelEntity, cylModelEntity);
+  EXPECT_NE(originalsphModelEntity, sphModelEntity);
+  EXPECT_NE(originalcapModelEntity, capModelEntity);
+  EXPECT_NE(originalellipModelEntity, ellipModelEntity);
+  EXPECT_NE(originalboxLinkEntity, boxLinkEntity);
+  EXPECT_NE(originalcylLinkEntity, cylLinkEntity);
+  EXPECT_NE(originalsphLinkEntity, sphLinkEntity);
+  EXPECT_NE(originalcapLinkEntity, capLinkEntity);
+  EXPECT_NE(originalellipLinkEntity, ellipLinkEntity);
 }

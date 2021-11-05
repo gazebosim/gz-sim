@@ -819,11 +819,18 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   // Handle pending systems
   this->ProcessSystemQueue();
 
-  // Recreate any entities that have the Recreate component
-  this->RecreateEntities();
+  // Handle entities that need to be recreated.
+  // Put in a request to mark them as removed so that in the UpdateSystem call
+  // the systems can remove them first before new ones are created. This is
+  // so that we can recreate entities with the same name.
+  this->ProcessRecreateEntitiesRemove();
 
   // Update all the systems.
   this->UpdateSystems();
+
+  // Recreate any entities that have the Recreate component
+  // The entities will have different Entity ids but keep the same name
+  this->ProcessRecreateEntitiesCreate();
 
   if (!this->Paused() &&
        this->requestedRunToSimTime >
@@ -1209,46 +1216,48 @@ void SimulationRunner::ProcessWorldControl()
 }
 
 /////////////////////////////////////////////////
-void SimulationRunner::RecreateEntities()
+void SimulationRunner::ProcessRecreateEntitiesRemove()
 {
-  IGN_PROFILE("SimulationRunner::RecreateEntities");
-  std::cerr << "sim runner recreate starting " << std::endl;
+  IGN_PROFILE("SimulationRunner::ProcessRecreateEntitiesRemove");
 
-  // recreate entities by cloning the original one first then removing it
-  // assume only models can be recreated
-  std::set<Entity> entities;
-  std::set<Entity> clonedEntities;
+  // store the original entities to recreate and put in request to remove them
   this->entityCompMgr.Each<components::Model,
-                           components::Recreate,
-                           components::Name,
-                           components::ParentEntity>(
+                           components::Recreate>(
       [&](const Entity &_entity,
           const components::Model *,
-          const components::Recreate *,
-          const components::Name *_name,
-          const components::ParentEntity *_parent)->bool
+          const components::Recreate *)->bool
       {
-        // For now, we will only clone top level entities
-        Entity clonedEntity = this->entityCompMgr.Clone(_entity,
-              _parent->Data(), _name->Data(), true);
-        entities.insert(_entity);
-        clonedEntities.insert(clonedEntity);
-
-        std::cerr << "sim runner recreate: " << _entity << " vs " << clonedEntity << std::endl;
+        this->entitiesToRecreate.insert(_entity);
+        this->entityCompMgr.RequestRemoveEntity(_entity, true);
         return true;
       });
+}
 
-  // remove the recreate component from the cloned entities
+/////////////////////////////////////////////////
+void SimulationRunner::ProcessRecreateEntitiesCreate()
+{
+  IGN_PROFILE("SimulationRunner::ProcessRecreateEntitiesCreate");
+
+  // clone the original entities
+  std::set<Entity> clonedEntities;
+  for (auto & ent : this->entitiesToRecreate)
+  {
+    auto nameComp = this->entityCompMgr.Component<components::Name>(ent);
+    auto parentComp = this->entityCompMgr.Component<components::ParentEntity>(ent);
+    // set allowRenaming to false so the entities keep their original name
+    Entity clonedEntity = this->entityCompMgr.Clone(ent,
+       parentComp->Data(), nameComp->Data(), false);
+    clonedEntities.insert(clonedEntity);
+
+  }
+  // remove the Recreate component so they do not get recreated again in the
+  // next iteration
   for (auto &ent : clonedEntities)
   {
     this->entityCompMgr.RemoveComponent<components::Recreate>(ent);
   }
 
-  // remove the original entities
-  for (auto &ent : entities)
-  {
-    this->entityCompMgr.RequestRemoveEntity(ent, true);
-  }
+  this->entitiesToRecreate.clear();
 }
 
 /////////////////////////////////////////////////
