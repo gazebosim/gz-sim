@@ -106,3 +106,7 @@ ign_build_tests(TYPE INTEGRATION
   LIB_DEPS
     ${EXTRA_TEST_LIB_DEPS}
 )
+
+if(TARGET INTEGRATION_examples_build)
+  set_tests_properties(INTEGRATION_examples_build PROPERTIES TIMEOUT 320)
+endif()

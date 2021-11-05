@@ -21,9 +21,11 @@ extern "C" void cmdModelList();
 /// \brief External hook to dump model information.
 /// \param[in] _modelName Model name.
 /// \param[in] _pose --pose option.
-/// \param[in] _link_name Link name.
-/// \param[in] _joint_name Joint name.
+/// \param[in] _linkName Link name.
+/// \param[in] _jointName Joint name.
+/// \param[in] _sensorName Sensor name.
 extern "C" void cmdModelInfo(
     const char *_modelName, int _pose, const char *_linkName,
-    const char *_jointName);
+    const char *_jointName,
+    const char *_sensorName);
 
