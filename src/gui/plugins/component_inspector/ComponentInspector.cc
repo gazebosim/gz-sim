@@ -769,17 +769,24 @@ void ComponentInspector::Update(const UpdateInfo &,
     }
   }
 
-  // Remove components no longer present
+  // Remove components no longer present - list items to remove
+  std::list<ignition::gazebo::ComponentTypeId> itemsToRemove;
   for (auto itemIt : this->dataPtr->componentsModel.items)
   {
     auto typeId = itemIt.first;
     if (componentTypes.find(typeId) == componentTypes.end())
     {
-      QMetaObject::invokeMethod(&this->dataPtr->componentsModel,
-          "RemoveComponentType",
-          Qt::QueuedConnection,
-          Q_ARG(ignition::gazebo::ComponentTypeId, typeId));
+      itemsToRemove.push_back(typeId);
     }
+  }
+
+  // Remove components in list
+  for (auto typeId : itemsToRemove)
+  {
+    QMetaObject::invokeMethod(&this->dataPtr->componentsModel,
+        "RemoveComponentType",
+        Qt::QueuedConnection,
+        Q_ARG(ignition::gazebo::ComponentTypeId, typeId));
   }
 }
 
