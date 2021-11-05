@@ -5,6 +5,17 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 project(ignition-gazebo7 VERSION 7.0.0)
 
+# According to https://github.com/ignitionrobotics/ign-gazebo/pull/957
+# This section of code should be made BEFORE any call to find_package
+# Setting this policy enables using the protobuf_MODULE_COMPATIBLE
+# set command in CMake versions older than 13.13
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+# This option is needed to use the PROTOBUF_GENERATE_CPP
+# in case protobuf is found with the CMake config files
+# It needs to be set before any find_package(...) call
+# as protobuf could be find transitively by any dependency
+set(protobuf_MODULE_COMPATIBLE TRUE)
+
 #============================================================================
 # Find ignition-cmake
 #============================================================================
@@ -37,15 +48,6 @@ endif()
 #============================================================================
 # Search for project-specific dependencies
 #============================================================================
-
-# Setting this policy enables using the protobuf_MODULE_COMPATIBLE
-# set command in CMake versions older than 13.13
-set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
-# This option is needed to use the PROTOBUF_GENERATE_CPP
-# in case protobuf is found with the CMake config files
-# It needs to be set before any find_package(...) call
-# as protobuf could be find transitively by any dependency
-set(protobuf_MODULE_COMPATIBLE TRUE)
 
 ign_find_package(sdformat12 REQUIRED)
 set(SDF_VER ${sdformat12_VERSION_MAJOR})
