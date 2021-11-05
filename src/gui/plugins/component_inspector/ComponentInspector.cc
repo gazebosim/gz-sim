@@ -25,7 +25,6 @@
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/components/Actor.hh"
-#include "ignition/gazebo/components/AirPressureSensor.hh"
 #include "ignition/gazebo/components/AngularAcceleration.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/CastShadows.hh"
@@ -793,15 +792,6 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, comp->Data());
     }
-    /*else if (typeId == components::AirPressureSensor::typeId)
-    {
-      auto comp = _ecm.Component<components::AirPressureSensor>(
-          this->dataPtr->entity);
-      if (comp)
-      {
-        setData(item, *(comp->Data().AirPressureSensor()));
-      }
-    }*/
     else if (this->dataPtr->componentCreators.find(typeId) !=
           this->dataPtr->componentCreators.end())
     {

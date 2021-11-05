@@ -26,33 +26,6 @@
 using namespace ignition;
 using namespace gazebo;
 
-//////////////////////////////////////////////////
-/*template<>
-void ignition::gazebo::setData(QStandardItem *_item,
-    const sdf::Altimeter &_altimeter)
-{
-  if (nullptr == _item)
-    return;
-
-  _item->setData(QString("Altimeter"),
-      ComponentsModel::RoleNames().key("dataType"));
-  _item->setData(QList({
-    QVariant(_altimeter.VerticalPositionNoise().Mean()),
-    QVariant(_altimeter.VerticalPositionNoise().BiasMean()),
-    QVariant(_altimeter.VerticalPositionNoise().StdDev()),
-    QVariant(_altimeter.VerticalPositionNoise().BiasStdDev()),
-    QVariant(_altimeter.VerticalPositionNoise().DynamicBiasStdDev()),
-    QVariant(_altimeter.VerticalPositionNoise().DynamicBiasCorrelationTime()),
-
-    QVariant(_altimeter.VerticalVelocityNoise().Mean()),
-    QVariant(_altimeter.VerticalVelocityNoise().BiasMean()),
-    QVariant(_altimeter.VerticalVelocityNoise().StdDev()),
-    QVariant(_altimeter.VerticalVelocityNoise().BiasStdDev()),
-    QVariant(_altimeter.VerticalVelocityNoise().DynamicBiasStdDev()),
-    QVariant(_altimeter.VerticalVelocityNoise().DynamicBiasCorrelationTime()),
-  }), ComponentsModel::RoleNames().key("data"));
-}*/
-
 /////////////////////////////////////////////////
 Altimeter::Altimeter(ComponentInspector *_inspector)
 {

@@ -88,7 +88,7 @@ Rectangle {
   }
 
   /**
-   * Forward altimeter posiition noise changes to C++
+   * Forward altimeter position noise changes to C++
    */
   function onAltimeterPositionNoise(_mean, _meanBias, _stdDev, _stdDevBias,
       _dynamicBiasStdDev, _dynamicBiasCorrelationTime) {
@@ -118,7 +118,7 @@ Rectangle {
   }
 
   /**
-   * Forward magentometer y-noise data to C++
+   * Forward magnetometer y-noise data to C++
    */
   function onMagnetometerYNoise(_mean, _meanBias, _stdDev, _stdDevBias,
       _dynamicBiasStdDev, _dynamicBiasCorrelationTime) {
