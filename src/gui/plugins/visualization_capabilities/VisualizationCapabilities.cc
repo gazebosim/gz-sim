@@ -51,6 +51,7 @@
 #include <ignition/rendering/Visual.hh>
 #include <ignition/rendering/RenderingIface.hh>
 #include <ignition/rendering/Scene.hh>
+#include <ignition/rendering/Text.hh>
 #include <ignition/rendering/WireBox.hh>
 
 #include <ignition/transport/Node.hh>
@@ -131,10 +132,11 @@ namespace ignition::gazebo
     /// \param[in] _ecm The entity-component manager
     public: void FindInertialLinks(const EntityComponentManager &_ecm);
 
-    /// \brief Retrieve visual
-    /// \param[in] _id Unique visual (entity) id
-    /// \return Pointer to requested visual
-    public: ignition::rendering::VisualPtr VisualById(unsigned int _id);
+    /// \brief Retrieve visual based on its Gazebo entity. Note that this is
+    /// different from ign-rendering's internal ID for the visual.
+    /// \param[in] _entity Gazebo entity
+    /// \return Pointer to requested visual, null if not found.
+    public: rendering::VisualPtr VisualByEntity(Entity _entity);
 
     /// \brief Create a collision visual from an SDF visual element.
     /// \param[in] _id Entity which the visual corresponds to
@@ -309,12 +311,13 @@ namespace ignition::gazebo
       msgs::Boolean &_res);
 
     /// \brief Create a frame visual
-    /// \param[in] _id Unique visual id
+    /// \param[in] _id Unique visual id to be used internally by ign-rendering.
+    /// This is NOT a Gazebo Entity ID.
     /// \param[in] _parent Visual parent
     /// \return Visual (frame) object created
-    public: ignition::rendering::VisualPtr CreateFrameVisual(
-      ignition::gazebo::Entity _id,
-      ignition::rendering::VisualPtr &_parent);
+    public: rendering::VisualPtr CreateFrameVisual(
+      unsigned int _id,
+      rendering::VisualPtr &_parent);
 
     /////////////////////////////////////////////////
     /// \brief Ignition communication node.
@@ -506,22 +509,21 @@ namespace ignition::gazebo
     // Frame
     /////////////////////////////////////////////////
 
-    /// \brief New frame visuals to be created
-    public: std::vector<Entity> newFrameVisuals;
-
-    /// \brief A list of entities used to create new frame visuals
+    /// \brief A list of entities that need frame visuals. Once the frame visual
+    /// is created, the entity is removed from the list.
     public: std::vector<Entity> newFrameEntities;
 
     /// \brief Entities that have a pose. The key is the entity, the value its
-    /// parent entity.
+    /// parent entity. Note that not all entities with pose will have frames
+    /// displayed at the moment.
     public: std::unordered_map<Entity, Entity> entitiesWithPose;
 
     /// \brief A map of entities and whether their frame visuals
     /// are currently visible
     public: std::map<Entity, bool> viewingFrames;
 
-    /// \brief A map of entities and their frame visuals
-    public: std::map<Entity, Entity> entityToFrameVisuals;
+    /// \brief A map of entities and the ign-rendering ID of their frame visuals
+    public: std::map<Entity, unsigned int> entityToFrameVisuals;
 
     /// \brief Target to view frame
     public: std::string viewFramesTarget;
@@ -557,7 +559,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
     {
       if (!this->viewingWireframes[visEntity])
       {
-        auto wireframeVisual = this->VisualById(visEntity);
+        auto wireframeVisual = this->VisualByEntity(visEntity);
         if (wireframeVisual)
         {
           wireframeVisual->SetWireframe(true);
@@ -587,7 +589,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
     {
       if (!this->viewingTransparent[visEntity])
       {
-        auto transparencyVisual = this->VisualById(visEntity);
+        auto transparencyVisual = this->VisualByEntity(visEntity);
         if (transparencyVisual)
         {
           this->sceneManager.UpdateTransparency(transparencyVisual,
@@ -611,8 +613,8 @@ void VisualizationCapabilitiesPrivate::OnRender()
           !this->scene->HasSensorId(id) && !this->scene->HasVisualId(id) &&
           !this->viewingInertias[link])
       {
-        auto existsVisual = this->VisualById(id);
-        auto parentInertiaVisual = this->VisualById(link);
+        auto existsVisual = this->VisualByEntity(id);
+        auto parentInertiaVisual = this->VisualByEntity(link);
 
         if (existsVisual == nullptr && parentInertiaVisual != nullptr)
         {
@@ -685,8 +687,8 @@ void VisualizationCapabilitiesPrivate::OnRender()
           !this->scene->HasSensorId(id) && !this->scene->HasVisualId(id) &&
           !this->viewingCOM[link])
       {
-        auto existsVisual = this->VisualById(id);
-        auto parentInertiaVisual = this->VisualById(link);
+        auto existsVisual = this->VisualByEntity(id);
+        auto parentInertiaVisual = this->VisualByEntity(link);
 
         if (existsVisual == nullptr && parentInertiaVisual != nullptr)
         {
@@ -719,7 +721,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
           !this->scene->HasVisualId(colEntity) &&
           !this->viewingCollisions[link])
       {
-        auto parentCollisionVisual = this->VisualById(link);
+        auto parentCollisionVisual = this->VisualByEntity(link);
         if (parentCollisionVisual != nullptr)
         {
           auto vis = this->CreateCollision(
@@ -755,16 +757,16 @@ void VisualizationCapabilitiesPrivate::OnRender()
   this->newCollisionLinks.clear();
 
   // create new frame visuals
-  for (const auto &entity : this->newFrameVisuals)
+  for (const auto &entity : this->newFrameEntities)
   {
     if (this->viewingFrames[entity])
       continue;
 
-    auto parentVisual = this->VisualById(entity);
+    auto parentVisual = this->VisualByEntity(entity);
     if (parentVisual == nullptr)
     {
-      ignwarn << "Entity [" << entity << "] has no visual, failed to view frame."
-              << std::endl;
+      // Entities without specific visuals, like collisions and sensors,
+      // aren't supported yet.
       continue;
     }
 
@@ -773,8 +775,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
     for (Entity id = 0u; id < attempts; ++id)
     {
       if (this->scene->HasNodeId(id) || this->scene->HasLightId(id) ||
-          this->scene->HasSensorId(id) || this->scene->HasVisualId(id) ||
-          this->VisualById(id) != nullptr)
+          this->scene->HasSensorId(id) || this->scene->HasVisualId(id))
       {
         continue;
       }
@@ -785,7 +786,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
       break;
     }
   }
-  this->newFrameVisuals.clear();
+  this->newFrameEntities.clear();
 
   // View center of mass
   {
@@ -986,7 +987,7 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateJointVisual(
   rendering::VisualPtr parent;
   if (_childId != this->worldId)
   {
-    parent = this->VisualById(_childId);
+    parent = this->VisualByEntity(_childId);
   }
 
   // Name.
@@ -1090,7 +1091,7 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateJointVisual(
 void VisualizationCapabilitiesPrivate::UpdateJointParentPose(Entity _jointId)
 {
   auto visual =
-      this->VisualById(_jointId);
+      this->VisualByEntity(_jointId);
 
   rendering::JointVisualPtr jointVisual =
       std::dynamic_pointer_cast<rendering::JointVisual>(visual);
@@ -1595,20 +1596,41 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateCOMVisual(
 
 /////////////////////////////////////////////////
 rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateFrameVisual(
-  ignition::gazebo::Entity _id, rendering::VisualPtr &_parent)
+  unsigned int _id, rendering::VisualPtr &_parent)
 {
   std::string name = "Frame_" + std::to_string(_id);
   if (_parent)
     name = _parent->Name() + "::" + name;
 
-  auto frameVisual = this->scene->CreateAxisVisual(name);
+  auto frameVisual = this->scene->CreateAxisVisual(_id, name);
 
-  // TODO(louise) Scale according to parent size
-  // TODO(louise) Write frame name
   auto frameVis = std::dynamic_pointer_cast<rendering::Visual>(frameVisual);
-  frameVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   frameVis->SetUserData("pause-update", static_cast<int>(0));
-  this->visuals[_id] = frameVis;
+
+  // Scale w.r.t. parent
+  double parentSize = std::max(0.1, _parent->BoundingBox().Size().Length());
+  auto scale = parentSize * 0.2;
+  frameVis->SetInheritScale(false);
+  frameVis->SetLocalScale(scale);
+
+  // Add frame name
+  auto textGeom = this->scene->CreateText();
+  // Ogre 2 doesn't support Text, see
+  // https://github.com/ignitionrobotics/ign-rendering/issues/487
+  if (nullptr != textGeom)
+  {
+    textGeom->SetFontName("Liberation Sans");
+    textGeom->SetTextString(_parent->Name());
+    textGeom->SetShowOnTop(true);
+    textGeom->SetTextAlignment(rendering::TextHorizontalAlign::CENTER,
+                               rendering::TextVerticalAlign::BOTTOM);
+    auto textVis = this->scene->CreateVisual();
+    textVis->AddGeometry(textGeom);
+    textVis->SetLocalPosition(0, 0, scale * 0.5);
+    textVis->SetLocalScale(scale * 0.5);
+
+    frameVis->AddChild(textVis);
+  }
 
   if (_parent)
   {
@@ -1620,18 +1642,18 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateFrameVisual(
 }
 
 /////////////////////////////////////////////////
-ignition::rendering::VisualPtr VisualizationCapabilitiesPrivate::VisualById(
-  unsigned int _id)
+rendering::VisualPtr VisualizationCapabilitiesPrivate::VisualByEntity(
+  Entity _entity)
 {
   for (unsigned int i = 0; i < this->scene->VisualCount(); ++i)
   {
     auto visual = this->scene->VisualByIndex(i);
 
-    try {
-      Entity visualEntity =
-          std::get<int>(visual->UserData("gazebo-entity"));
+    try
+    {
+      Entity visualEntity = std::get<int>(visual->UserData("gazebo-entity"));
 
-      if (visualEntity == _id)
+      if (visualEntity == _entity)
       {
         return visual;
       }
@@ -1764,7 +1786,7 @@ void VisualizationCapabilitiesPrivate::ViewCollisions(const Entity &_entity)
       showColInit = true;
     }
 
-    auto colVisual = this->VisualById(colEntity);
+    auto colVisual = this->VisualByEntity(colEntity);
     if (colVisual)
     {
       this->viewingCollisions[colEntity] = showCol;
@@ -1813,7 +1835,7 @@ void VisualizationCapabilitiesPrivate::ViewInertia(const Entity &_entity)
 
     Entity inertiaVisualId = this->linkToInertiaVisuals[inertiaLink];
 
-    auto inertiaVisual = this->VisualById(inertiaVisualId);
+    auto inertiaVisual = this->VisualByEntity(inertiaVisualId);
     if (inertiaVisual)
     {
       this->viewingInertias[inertiaLink] = showInertia;
@@ -1888,7 +1910,7 @@ void VisualizationCapabilitiesPrivate::ViewJoints(const Entity &_entity)
     }
 
     rendering::VisualPtr jointVisual =
-        this->VisualById(jointEntity);
+        this->VisualByEntity(jointEntity);
     if (jointVisual == nullptr)
     {
       ignerr << "Could not find visual for entity [" << jointEntity
@@ -1941,7 +1963,7 @@ void VisualizationCapabilitiesPrivate::ViewCOM(const Entity &_entity)
 
     Entity comVisualId = this->linkToCOMVisuals[inertiaLink];
 
-    auto comVisual = this->VisualById(comVisualId);
+    auto comVisual = this->VisualByEntity(comVisualId);
     if (comVisual)
     {
       this->viewingCOM[inertiaLink] = showCOM;
@@ -2000,7 +2022,7 @@ void VisualizationCapabilitiesPrivate::ViewWireframes(const Entity &_entity)
       showWireframeInit = true;
     }
 
-    auto wireframesVisual = this->VisualById(visEntity);
+    auto wireframesVisual = this->VisualByEntity(visEntity);
     if (wireframesVisual)
     {
       this->viewingWireframes[visEntity] = showWireframe;
@@ -2018,27 +2040,23 @@ void VisualizationCapabilitiesPrivate::ViewFrames(const Entity &_entity)
 
   auto descendants = std::move(this->FindChildFrames(_entity));
 
-//  this->newFrameEntities.insert(this->newFrameEntities.end(),
-//      descendants.begin(),
-//      descendants.end());
-
   for (const auto &descendant : descendants)
   {
-    // Add new descendants to newFrameVisuals so their visuals are created in
+    // Add new descendants to newFrameEntities so their visuals are created in
     // the next render callback
     if (this->viewingFrames.find(descendant) == this->viewingFrames.end())
     {
-      this->newFrameVisuals.push_back(descendant);
+      this->newFrameEntities.push_back(descendant);
       continue;
     }
 
-    Entity frameVisualId = this->entityToFrameVisuals[descendant];
+    auto frameVisualId = this->entityToFrameVisuals[descendant];
 
-    auto frameVisual = this->VisualById(frameVisualId);
+    auto frameVisual = this->scene->VisualById(frameVisualId);
     if (frameVisual == nullptr)
     {
-      ignerr << "Failed to find frame visual for entity [" << descendant << "]"
-             << std::endl;
+      ignerr << "Failed to find frame visual with ID [" << frameVisualId
+             << "] for entity [" << descendant << "]" << std::endl;
       continue;
     }
 
@@ -2097,7 +2115,7 @@ void VisualizationCapabilitiesPrivate::ViewTransparent(const Entity &_entity)
       showTransparentInit = true;
     }
 
-    auto transparentVisual = this->VisualById(visEntity);
+    auto transparentVisual = this->VisualByEntity(visEntity);
     if (transparentVisual)
     {
       this->viewingTransparent[visEntity] = showTransparent;

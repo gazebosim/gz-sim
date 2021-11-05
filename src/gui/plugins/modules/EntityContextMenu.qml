@@ -165,9 +165,9 @@ Item {
       viewJointsMenu.enabled = true;
     }
 
+    // TODO(chapulina) Support collision, sensor, etc.
     if (context.type == "model" || context.type == "link" ||
-        context.type == "visual" || context.type == "light" ||
-        context.type == "collision" || context.type == "sensor")
+        context.type == "visual")
     {
       viewFramesMenu.enabled = true
     }
