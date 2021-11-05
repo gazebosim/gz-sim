@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo6 VERSION 6.0.0)
+project(ignition-gazebo6 VERSION 6.1.0)
 
 #============================================================================
 # Find ignition-cmake
@@ -68,7 +68,7 @@ set(IGN_MSGS_VER ${ignition-msgs8_VERSION_MAJOR})
 #--------------------------------------
 # Find ignition-common
 # Always use the profiler component to get the headers, regardless of status.
-ign_find_package(ignition-common4 VERSION 4.2
+ign_find_package(ignition-common4 VERSION 4.4
   COMPONENTS
     profiler
     events
