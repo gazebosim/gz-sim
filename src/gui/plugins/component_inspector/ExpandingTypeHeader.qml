@@ -34,9 +34,6 @@ Rectangle {
   // Left indentation
   property int indentation: 10
 
-  property string expandingHeaderText: ""
-  property string expandingHeaderToolTip: ""
-
   RowLayout {
     anchors.fill: parent
     Item {
@@ -53,8 +50,6 @@ Rectangle {
     }
     TypeHeader {
       id: typeHeader
-      headerText: expandingHeaderText
-      headerToolTip: expandingHeaderToolTip
     }
     Item {
       Layout.fillWidth: true
