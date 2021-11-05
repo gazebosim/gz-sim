@@ -135,7 +135,7 @@ Item {
     viewJointsMenu.enabled = false;
     viewWireframesMenu.enabled = false;
     viewCollisionsMenu.enabled = false;
-    viewFramesMenu.enabled = true;
+    viewFramesMenu.enabled = false;
 
     // enable / disable menu items
     if (context.type == "model" || context.type == "link" ||
@@ -163,6 +163,13 @@ Item {
     if (context.type == "model")
     {
       viewJointsMenu.enabled = true;
+    }
+
+    if (context.type == "model" || context.type == "link" ||
+        context.type == "visual" || context.type == "light" ||
+        context.type == "collision" || context.type == "sensor")
+    {
+      viewFramesMenu.enabled = true
     }
 
     menu.open()

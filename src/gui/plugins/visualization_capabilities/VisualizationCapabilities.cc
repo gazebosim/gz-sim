@@ -100,6 +100,13 @@ namespace ignition::gazebo
     public: std::vector<ignition::gazebo::Entity>
       FindChildLinks(const ignition::gazebo::Entity &_entity);
 
+    /// \brief Helper function to get all children of an entity that have a
+    /// pose.
+    /// \param[in] _entity Entity to find children
+    /// \return Vector of children found for the parent entity
+    public: std::unordered_set<ignition::gazebo::Entity>
+      FindChildFrames(const ignition::gazebo::Entity &_entity);
+
     /// \brief Finds the links (collision parent) that are used to create child
     /// collision visuals in RenderUtil::Update
     /// \param[in] _ecm The entity-component manager
@@ -129,13 +136,12 @@ namespace ignition::gazebo
     /// \return Pointer to requested visual
     public: ignition::rendering::VisualPtr VisualById(unsigned int _id);
 
-    /// \brief Create a visual from an SDF element. This is used to create
-    /// the collision visual.
+    /// \brief Create a collision visual from an SDF visual element.
     /// \param[in] _id Entity which the visual corresponds to
     /// \param[in] _visual SDF describing the visual.
     /// \param[in] _parent Parent link's visual
     /// \return Pointer to created visual
-    public: rendering::VisualPtr CreateVisual(
+    public: rendering::VisualPtr CreateCollisionVisual(
         ignition::gazebo::Entity _id,
         const sdf::Visual &_visual,
         rendering::VisualPtr &_parent);
@@ -506,6 +512,10 @@ namespace ignition::gazebo
     /// \brief A list of entities used to create new frame visuals
     public: std::vector<Entity> newFrameEntities;
 
+    /// \brief Entities that have a pose. The key is the entity, the value its
+    /// parent entity.
+    public: std::unordered_map<Entity, Entity> entitiesWithPose;
+
     /// \brief A map of entities and whether their frame visuals
     /// are currently visible
     public: std::map<Entity, bool> viewingFrames;
@@ -745,35 +755,37 @@ void VisualizationCapabilitiesPrivate::OnRender()
   this->newCollisionLinks.clear();
 
   // create new frame visuals
-  for (const auto &entity : this->newFrameEntities)
+  for (const auto &entity : this->newFrameVisuals)
   {
+    if (this->viewingFrames[entity])
+      continue;
+
+    auto parentVisual = this->VisualById(entity);
+    if (parentVisual == nullptr)
+    {
+      ignwarn << "Entity [" << entity << "] has no visual, failed to view frame."
+              << std::endl;
+      continue;
+    }
+
     // create a new id for the visual
     auto attempts = 100000u;
-    for (auto i = 0u; i < attempts; ++i)
+    for (Entity id = 0u; id < attempts; ++id)
     {
-      Entity id = i;
-      if (!this->scene->HasNodeId(id) && !this->scene->HasLightId(id) &&
-          !this->scene->HasSensorId(id) && !this->scene->HasVisualId(id) &&
-          !this->viewingFrames[entity])
+      if (this->scene->HasNodeId(id) || this->scene->HasLightId(id) ||
+          this->scene->HasSensorId(id) || this->scene->HasVisualId(id) ||
+          this->VisualById(id) != nullptr)
       {
-        auto existsVisual = this->VisualById(id);
-        auto parentVisual = this->VisualById(entity);
-
-        if (existsVisual == nullptr && parentVisual != nullptr)
-        {
-          this->CreateFrameVisual(id, parentVisual);
-        }
-        else
-        {
-          continue;
-        }
-        this->viewingFrames[entity] = true;
-        this->entityToFrameVisuals[entity] = id;
-        break;
+        continue;
       }
+
+      this->CreateFrameVisual(id, parentVisual);
+      this->viewingFrames[entity] = true;
+      this->entityToFrameVisuals[entity] = id;
+      break;
     }
   }
-  this->newFrameEntities.clear();
+  this->newFrameVisuals.clear();
 
   // View center of mass
   {
@@ -948,7 +960,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
       {
         ignerr << "Unable to find node name ["
                << this->viewFramesTarget
-               << "] to view center of mass" << std::endl;
+               << "] to view frame" << std::endl;
       }
 
       this->viewFramesTarget.clear();
@@ -1140,7 +1152,7 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateCollision(
   visual.SetRawPose(_collision.RawPose());
   visual.SetName(_collision.Name());
 
-  rendering::VisualPtr collisionVis = this->CreateVisual(_id, visual, _parent);
+  auto collisionVis = this->CreateCollisionVisual(_id, visual, _parent);
   return collisionVis;
 }
 
@@ -1417,7 +1429,7 @@ rendering::MaterialPtr VisualizationCapabilitiesPrivate::CreateMaterial(
 }
 
 /////////////////////////////////////////////////
-rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateVisual(
+rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateCollisionVisual(
   ignition::gazebo::Entity _id,
   const sdf::Visual &_visual,
   rendering::VisualPtr &_parent)
@@ -1998,48 +2010,39 @@ void VisualizationCapabilitiesPrivate::ViewWireframes(const Entity &_entity)
 /////////////////////////////////////////////////
 void VisualizationCapabilitiesPrivate::ViewFrames(const Entity &_entity)
 {
-  // TODO(chapulina) View frames for entities other than links
-  auto links = std::move(this->FindChildLinks(_entity));
+  // Show if currently hidden and vice-versa
+  bool showFrames = (this->viewingFrames.find(_entity) ==
+        this->viewingFrames.end()) || !this->viewingFrames[_entity];
 
-  this->newFrameEntities.insert(this->newFrameEntities.end(),
-      links.begin(),
-      links.end());
+  auto descendants = std::move(this->FindChildFrames(_entity));
 
-  // create and/or toggle frame visuals
-  bool showFrames, showFramesInit = false;
-  // first loop looks for new frame visuals
-  for (const auto &link : links)
+//  this->newFrameEntities.insert(this->newFrameEntities.end(),
+//      descendants.begin(),
+//      descendants.end());
+
+  for (const auto &descendant : descendants)
   {
-    if (this->viewingFrames.find(link) ==
-        this->viewingFrames.end())
+    // Add new descendants to newFrameVisuals so their visuals are created in
+    // the next render callback
+    if (this->viewingFrames.find(descendant) == this->viewingFrames.end())
     {
-      this->newFrameVisuals.push_back(_entity);
-      showFramesInit = showFrames = true;
-    }
-  }
-
-  // second loop toggles already created frame visuals
-  for (const auto &link : links)
-  {
-    if (this->viewingFrames.find(link) == this->viewingFrames.end())
+      this->newFrameVisuals.push_back(descendant);
       continue;
-
-    // when viewing multiple frame visuals (e.g. _entity is a model),
-    // boolean for view frame is based on first entity in list
-    if (!showFramesInit)
-    {
-      showFrames = !this->viewingFrames[link];
-      showFramesInit = true;
     }
 
-    Entity frameVisualId = this->entityToFrameVisuals[link];
+    Entity frameVisualId = this->entityToFrameVisuals[descendant];
 
     auto frameVisual = this->VisualById(frameVisualId);
-    if (frameVisual)
+    if (frameVisual == nullptr)
     {
-      this->viewingFrames[link] = showFrames;
-      frameVisual->SetVisible(showFrames);
+      ignerr << "Failed to find frame visual for entity [" << descendant << "]"
+             << std::endl;
+      continue;
     }
+
+    this->viewingFrames[descendant] = showFrames;
+    // TODO(louise) Fix crash
+    // frameVisual->SetVisible(showFrames);
   }
 }
 
@@ -2143,6 +2146,34 @@ std::vector<Entity> VisualizationCapabilitiesPrivate::FindChildLinks(
   }
 
   return links;
+}
+
+/////////////////////////////////////////////////
+std::unordered_set<Entity> VisualizationCapabilitiesPrivate::FindChildFrames(
+  const Entity &_entity)
+{
+  std::unordered_set<Entity> descendants;
+
+  // Display own frame
+  if (this->entitiesWithPose.find(_entity) != this->entitiesWithPose.end())
+  {
+    descendants.insert(_entity);
+  }
+
+  // Recursively add descendants
+  for (auto entityAndParent : this->entitiesWithPose)
+  {
+    // Not my child
+    if (entityAndParent.second != _entity)
+    {
+      continue;
+    }
+
+    auto grandChildren = this->FindChildFrames(entityAndParent.first);
+    descendants.insert(grandChildren.begin(), grandChildren.end());
+  }
+
+  return descendants;
 }
 
 //////////////////////////////////////////////////
@@ -2515,6 +2546,17 @@ void VisualizationCapabilities::Update(const UpdateInfo &,
           .push_back(_entity);
         return true;
       });
+
+    // entities with pose
+    _ecm.Each<components::Pose, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Pose *,
+          const components::ParentEntity *_parent) -> bool
+      {
+        this->dataPtr->entitiesWithPose[_entity] = _parent->Data();
+        return true;
+      });
+
     this->dataPtr->initialized = true;
   }
   else
@@ -2643,6 +2685,16 @@ void VisualizationCapabilities::Update(const UpdateInfo &,
           .push_back(_entity);
         return true;
       });
+
+    // entities with pose
+    _ecm.EachNew<components::Pose, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Pose *,
+          const components::ParentEntity *_parent) -> bool
+      {
+        this->dataPtr->entitiesWithPose[_entity] = _parent->Data();
+        return true;
+      });
   }
 
   _ecm.EachRemoved<components::Model>(
@@ -2666,6 +2718,15 @@ void VisualizationCapabilities::Update(const UpdateInfo &,
     [&](const Entity &_entity, const components::Link *)->bool
     {
       this->dataPtr->linkToVisualEntities.erase(_entity);
+      return true;
+    });
+
+  // entities with pose
+  _ecm.EachRemoved<components::Pose>(
+    [&](const Entity &_entity,
+        const components::Pose *) -> bool
+    {
+      this->dataPtr->entitiesWithPose.erase(_entity);
       return true;
     });
 
