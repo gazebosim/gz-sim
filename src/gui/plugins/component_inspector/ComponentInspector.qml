@@ -125,6 +125,36 @@ Rectangle {
   }
 
   /**
+   * Forward magentometer x-noise data to C++
+   */
+  function onMagnetometerXNoise(_mean, _meanBias, _stdDev, _stdDevBias,
+      _dynamicBiasStdDev, _dynamicBiasCorrelationTime) {
+    Magnetometer.OnMagnetometerXNoise(
+        _mean, _meanBias, _stdDev, _stdDevBias,
+        _dynamicBiasStdDev, _dynamicBiasCorrelationTime);
+  }
+
+  /**
+   * Forward magnetometer y-noise data to C++
+   */
+  function onMagnetometerYNoise(_mean, _meanBias, _stdDev, _stdDevBias,
+      _dynamicBiasStdDev, _dynamicBiasCorrelationTime) {
+    Magnetometer.OnMagnetometerYNoise(
+        _mean, _meanBias, _stdDev, _stdDevBias,
+        _dynamicBiasStdDev, _dynamicBiasCorrelationTime);
+  }
+
+  /**
+   * Forward magentometer z-noise data to C++
+   */
+  function onMagnetometerZNoise(_mean, _meanBias, _stdDev, _stdDevBias,
+      _dynamicBiasStdDev, _dynamicBiasCorrelationTime) {
+    Magnetometer.OnMagnetometerZNoise(
+        _mean, _meanBias, _stdDev, _stdDevBias,
+        _dynamicBiasStdDev, _dynamicBiasCorrelationTime);
+  }
+
+  /**
    * Forward pose changes to C++
    */
   function onPose(_x, _y, _z, _roll, _pitch, _yaw) {

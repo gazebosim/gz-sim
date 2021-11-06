@@ -3,10 +3,12 @@ gz_add_gui_plugin(ComponentInspector
     AirPressure.cc
     Altimeter.cc
     ComponentInspector.cc
+    Magnetometer.cc
     Types.cc
   QT_HEADERS
     AirPressure.hh
     Altimeter.hh
     ComponentInspector.hh
+    Magnetometer.hh
     Types.hh
 )
