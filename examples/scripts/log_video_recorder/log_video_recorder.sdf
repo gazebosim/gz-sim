@@ -88,6 +88,7 @@
         <start_paused>true</start_paused>
         <service>/world/default/control</service>
         <stats_topic>/world/default/stats</stats_topic>
+        <use_event>true</use_event>
       </plugin>
       <plugin filename='WorldStats' name='World stats'>
         <ignition-gui>
