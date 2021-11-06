@@ -105,6 +105,26 @@ Rectangle {
   }
 
   /**
+   * Forward altimeter position noise changes to C++
+   */
+  function onAltimeterPositionNoise(_mean, _meanBias, _stdDev, _stdDevBias,
+      _dynamicBiasStdDev, _dynamicBiasCorrelationTime) {
+    Altimeter.OnAltimeterPositionNoise(
+        _mean, _meanBias, _stdDev, _stdDevBias,
+        _dynamicBiasStdDev, _dynamicBiasCorrelationTime);
+  }
+
+  /**
+   * Forward altimeter velocity noise changes to C++
+   */
+  function onAltimeterVelocityNoise(_mean, _meanBias, _stdDev, _stdDevBias,
+      _dynamicBiasStdDev, _dynamicBiasCorrelationTime) {
+    Altimeter.OnAltimeterVelocityNoise(
+        _mean, _meanBias, _stdDev, _stdDevBias,
+        _dynamicBiasStdDev, _dynamicBiasCorrelationTime);
+  }
+
+  /**
    * Forward pose changes to C++
    */
   function onPose(_x, _y, _z, _roll, _pitch, _yaw) {
