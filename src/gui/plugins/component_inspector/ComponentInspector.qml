@@ -248,6 +248,140 @@ Rectangle {
         }
       }
 
+      ToolButton {
+        id: addSensorButton
+        checkable: false
+        text: "Add sensor"
+        visible: entityType == "link"
+        contentItem: Image {
+          fillMode: Image.Pad
+          horizontalAlignment: Image.AlignHCenter
+          verticalAlignment: Image.AlignVCenter
+          source: "qrc:/Gazebo/images/plus.png"
+          sourceSize.width: 18;
+          sourceSize.height: 18;
+        }
+        ToolTip.text: "Add sensor"
+        ToolTip.visible: hovered
+        ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+        onClicked: {
+          addSensorMenu.open()
+        }
+
+        Menu {
+          id: addSensorMenu
+          MenuItem {
+            id: airPressure
+            text: "Air pressure"
+            onTriggered: {
+              addSensorMenu.close()
+              ComponentInspector.OnAddEntity(contact.text, "sensor");
+            }
+          }
+      
+          MenuItem {
+            id: altimeter
+            text: "Altimeter"
+            onTriggered: {
+              addSensorMenu.close()
+              ComponentInspector.OnAddEntity(altimeter.text, "sensor");
+            }
+          }
+      
+          MenuItem {
+            id: cameraSensorMenu
+            text: "Camera >"
+            MouseArea {
+              id: viewSubCameraArea
+              anchors.fill: parent
+              hoverEnabled: true
+              onEntered: secondCameraMenu.open()
+            }
+          }
+      
+          MenuItem {
+            id: contact
+            text: "Contact"
+            onTriggered: {
+              addSensorMenu.close()
+              ComponentInspector.OnAddEntity(contact.text, "sensor");
+            }
+          }
+      
+          MenuItem {
+            id: forceTorque
+            text: "Force torque"
+            onTriggered: {
+              addSensorMenu.close()
+              ComponentInspector.OnAddEntity(forceTorque.text, "sensor");
+            }
+          }
+      
+          MenuItem {
+            id: gps
+            text: "GPS"
+            onTriggered: {
+              addSensorMenu.close()
+              ComponentInspector.OnAddEntity(gps.text, "sensor");
+            }
+          }
+      
+          MenuItem {
+            id: imu
+            text: "IMU"
+            onTriggered: {
+              addSensorMenu.close()
+              ComponentInspector.OnAddEntity(imu.text, "sensor");
+            }
+          }
+      
+          MenuItem {
+            id: lidar
+            text: "Lidar"
+          }
+      
+          MenuItem {
+            id: magnetometer
+            text: "magnetometer"
+            onTriggered: {
+              addSensorMenu.close()
+              ComponentInspector.OnAddEntity(magnetometer.text, "sensor");
+            }
+          }
+        }
+      
+        Menu {
+          id: secondCameraMenu
+          x: addSensorMenu.x + addSensorMenu.width
+          y: addSensorMenu.y + cameraSensorMenu.y
+          MenuItem {
+            id: depth
+            text: "Depth"
+          }
+          MenuItem {
+            id: logical
+            text: "Logical"
+          }
+          MenuItem {
+            id: monocular
+            text: "Monocular"
+          }
+          MenuItem {
+            id: multicamera
+            text: "Multicamera"
+          }
+          MenuItem {
+            id: rgbd
+            text: "RGBD"
+          }
+          MenuItem {
+            id: thermal
+            text: "Thermal"
+          }
+        }
+      }
+
+
       Label {
         id: entityLabel
         text: 'Entity ' + ComponentInspector.entity

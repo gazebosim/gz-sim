@@ -294,7 +294,7 @@ void ignition::gazebo::setData(QStandardItem *_item,
 }
 
 //////////////////////////////////////////////////
-template<>
+/*template<>
 void ignition::gazebo::setData(QStandardItem *_item, const sdf::Sensor &_data)
 {
   if (nullptr == _item)
@@ -311,7 +311,7 @@ void ignition::gazebo::setData(QStandardItem *_item, const sdf::Sensor &_data)
     QVariant(cam->NearClip()),
     QVariant(cam->FarClip()),
   }), ComponentsModel::RoleNames().key("data"));
-}
+}*/
 
 //////////////////////////////////////////////////
 void ignition::gazebo::setUnit(QStandardItem *_item, const std::string &_unit)
@@ -909,7 +909,7 @@ void ComponentInspector::SetPaused(bool _paused)
 }
 
 /////////////////////////////////////////////////
-void ComponentInspector::OnCameraUpdate(
+/*void ComponentInspector::OnCameraUpdate(
     double _hfov, int _imageWidth, int _imageHeight, double _nearClip,
     double _farClip)
 {
@@ -937,7 +937,7 @@ void ComponentInspector::OnCameraUpdate(
     }
   };
   this->dataPtr->updateCallbacks.push_back(cb);
-}
+}*/
 
 /////////////////////////////////////////////////
 void ComponentInspector::OnPose(double _x, double _y, double _z, double _roll,

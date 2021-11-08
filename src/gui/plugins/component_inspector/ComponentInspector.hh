@@ -126,8 +126,9 @@ namespace gazebo
   /// \brief Specialized to set camera data.
   /// \param[in] _item Item whose data will be set.
   /// \param[in] _data Data to set.
-  template<>
+  /*template<>
   void setData(QStandardItem *_item, const sdf::Sensor &_data);
+  */
 
   /// \brief Set the unit of a given item.
   /// \param[in] _item Item whose unit will be set.
@@ -243,8 +244,9 @@ namespace gazebo
     /// \param[in] _imageHeight Image height in pixels.
     /// \param[in] _nearClip Near clip value in meters.
     /// \param[in] _farClip Far clip value in meters.
-    public: Q_INVOKABLE void OnCameraUpdate(double _hfov, int _imageWidth,
+    /*public: Q_INVOKABLE void OnCameraUpdate(double _hfov, int _imageWidth,
                 int _imageHeight, double _nearClip, double _farClip);
+                */
 
     /// \brief Callback in Qt thread when specular changes.
     /// \param[in] _rSpecular specular red
