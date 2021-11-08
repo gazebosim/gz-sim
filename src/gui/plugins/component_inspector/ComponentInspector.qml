@@ -52,12 +52,6 @@ Rectangle {
   property bool nestedModel : ComponentInspector.nestedModel
 
   /**
-   * Get if simulation is paused or not
-   */
-  property bool paused : ComponentInspector.paused
-
-
-  /**
    * Light grey according to theme
    */
   property color lightGrey: (Material.theme == Material.Light) ?
@@ -93,13 +87,6 @@ Rectangle {
     else if (_width <= 100)
       return 4;
     return 6;
-  }
-
-  /**
-   * Forward camera changes to C++
-   */
-  function onCameraUpdate(_hfov, _width, _height, _near, _far) {
-    ComponentInspector.OnCameraUpdate(_hfov, _width, _height, _near, _far)
   }
 
   /**

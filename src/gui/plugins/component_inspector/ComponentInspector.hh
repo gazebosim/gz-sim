@@ -23,7 +23,6 @@
 #include <string>
 
 #include <sdf/Physics.hh>
-#include <sdf/Sensor.hh>
 
 #include <ignition/math/Pose3.hh>
 #include <ignition/math/Vector3.hh>
@@ -122,13 +121,6 @@ namespace gazebo
   /// \param[in] _data Data to set.
   template<>
   void setData(QStandardItem *_item, const std::ostream &_data);
-
-  /// \brief Specialized to set camera data.
-  /// \param[in] _item Item whose data will be set.
-  /// \param[in] _data Data to set.
-  /*template<>
-  void setData(QStandardItem *_item, const sdf::Sensor &_data);
-  */
 
   /// \brief Set the unit of a given item.
   /// \param[in] _item Item whose unit will be set.
@@ -361,11 +353,6 @@ namespace gazebo
     /// \param[in] _mesh Mesh file to load.
     public: Q_INVOKABLE void OnLoadMesh(const QString &_entity,
                 const QString &_type, const QString &_mesh);
-
-    /// \brief Callback in Qt thread when a sensor is to be added
-    /// \param[in] _entity Entity to add, e.g. box, sphere, cylinder, etc
-    /// \param[in] _type Sensor type, e.g. contact, gps, etc
-    public: Q_INVOKABLE void OnAddSensor(QString _entity, QString _type);
 
     /// \internal
     /// \brief Pointer to private data.

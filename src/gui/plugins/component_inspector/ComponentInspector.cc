@@ -102,9 +102,6 @@ namespace ignition::gazebo
 
     /// \brief Transport node for making command requests
     public: transport::Node node;
-
-    public: std::vector<
-            std::function<void(EntityComponentManager &)>> updateCallbacks;
   };
 }
 
@@ -790,12 +787,6 @@ void ComponentInspector::Update(const UpdateInfo &_info,
       if (comp)
         setData(item, comp->Data());
     }
-    else if (typeId == components::Camera::typeId)
-    {
-      auto comp = _ecm.Component<components::Camera>(this->dataPtr->entity);
-      if (comp)
-        setData(item, comp->Data());
-    }
   }
 
   // Remove components no longer present
@@ -810,10 +801,6 @@ void ComponentInspector::Update(const UpdateInfo &_info,
           Q_ARG(ignition::gazebo::ComponentTypeId, typeId));
     }
   }
-
-  for (auto cb : this->dataPtr->updateCallbacks)
-    cb(_ecm);
-  this->dataPtr->updateCallbacks.clear();
 }
 
 /////////////////////////////////////////////////
@@ -909,71 +896,23 @@ void ComponentInspector::SetPaused(bool _paused)
 }
 
 /////////////////////////////////////////////////
-/*void ComponentInspector::OnCameraUpdate(
-    double _hfov, int _imageWidth, int _imageHeight, double _nearClip,
-    double _farClip)
-{
-  std::function<void(EntityComponentManager &)> cb =
-      [=](EntityComponentManager &_ecm)
-  {
-    auto comp = _ecm.Component<components::Camera>(this->dataPtr->entity);
-    if (comp)
-    {
-      sdf::Camera *cam = comp->Data().CameraSensor();
-      if (cam)
-      {
-        cam->SetHorizontalFov(math::Angle(IGN_DTOR(_hfov)));
-        cam->SetImageWidth(_imageWidth);
-        cam->SetImageHeight(_imageHeight);
-        cam->SetNearClip(_nearClip);
-        cam->SetFarClip(_farClip);
-      }
-      else
-        ignerr << "Unable to get the camera data.\n";
-    }
-    else
-    {
-      ignerr << "Unable to get the camera data.\n";
-    }
-  };
-  this->dataPtr->updateCallbacks.push_back(cb);
-}*/
-
-/////////////////////////////////////////////////
 void ComponentInspector::OnPose(double _x, double _y, double _z, double _roll,
     double _pitch, double _yaw)
 {
-  std::cout << "OnPose\n\n";
-  std::function<void(EntityComponentManager &)> cb =
-      [=](EntityComponentManager &_ecm)
+  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
   {
-    auto comp = _ecm.Component<components::Pose>(this->dataPtr->entity);
-    if (comp)
-    {
-      comp->Data().Set(_x, _y, _z, _roll, _pitch, _yaw);
-    }
-    else
-    {
-      ignerr << "Unable to set the pose of entity["
-        << this->dataPtr->entity << "]\n";
-    }
+    if (!_result)
+        ignerr << "Error setting pose" << std::endl;
   };
-  this->dataPtr->updateCallbacks.push_back(cb);
 
-//  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-//      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
-//  {
-//    if (!_result)
-//        ignerr << "Error setting pose" << std::endl;
-//  };
-//
-//  ignition::msgs::Pose req;
-//  req.set_id(this->dataPtr->entity);
-//  msgs::Set(req.mutable_position(), math::Vector3d(_x, _y, _z));
-//  msgs::Set(req.mutable_orientation(), math::Quaterniond(_roll, _pitch, _yaw));
-//  auto poseCmdService = "/world/" + this->dataPtr->worldName
-//      + "/set_pose";
-//  this->dataPtr->node.Request(poseCmdService, req, cb);
+  ignition::msgs::Pose req;
+  req.set_id(this->dataPtr->entity);
+  msgs::Set(req.mutable_position(), math::Vector3d(_x, _y, _z));
+  msgs::Set(req.mutable_orientation(), math::Quaterniond(_roll, _pitch, _yaw));
+  auto poseCmdService = "/world/" + this->dataPtr->worldName
+      + "/set_pose";
+  this->dataPtr->node.Request(poseCmdService, req, cb);
 }
 
 /////////////////////////////////////////////////
