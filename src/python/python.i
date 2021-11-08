@@ -37,3 +37,4 @@
 %include Box.i
 %include Cylinder.i
 %include Sphere.i
+%include Inertial.i

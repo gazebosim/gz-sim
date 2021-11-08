@@ -96,6 +96,7 @@ if (PYTHONLIBS_FOUND)
       Filter_TEST
       GaussMarkovProcess_TEST
       Helpers_TEST
+      Inertial_TEST
       Kmeans_TEST
       Line2_TEST
       Line3_TEST
