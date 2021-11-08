@@ -213,6 +213,7 @@ ColumnLayout {
     Layout.fillWidth: true
     color: Material.Grey
     leftPadding: 5
+    font.bold: true
   }
 
   GridLayout {
@@ -333,6 +334,60 @@ ColumnLayout {
       decimals: 6
       stepSize: 0.01
       onEditingFinished: ViewAngle.SetCamPose(x.value, y.value, z.value, roll.value, pitch.value, yaw.value)
+    }
+  }
+
+  // Set camera's near/far clipping distance
+  Text {
+    text: "Camera's clipping plane distance"
+    Layout.fillWidth: true
+    color: Material.Grey
+    leftPadding: 5
+    topPadding: 10
+    font.bold: true
+  }
+
+  GridLayout {
+    width: parent.width
+    columns: 4
+
+    Text {
+      text: "Near (m)"
+      color: "dimgrey"
+      Layout.row: 0
+      Layout.column: 0
+      leftPadding: 5
+    }
+    IgnSpinBox {
+      id: nearClip
+      Layout.fillWidth: true
+      Layout.row: 0
+      Layout.column: 1
+      value: ViewAngle.camClipDist[0]
+      maximumValue: farClip.value
+      minimumValue: 0.000001
+      decimals: 6
+      stepSize: 0.01
+      onEditingFinished: ViewAngle.SetCamClipDist(nearClip.value, farClip.value)
+    }
+    Text {
+      text: "Far (m)"
+      color: "dimgrey"
+      Layout.row: 0
+      Layout.column: 2
+      leftPadding: 5
+    }
+    IgnSpinBox {
+      id: farClip
+      Layout.fillWidth: true
+      Layout.row: 0
+      Layout.column: 3
+      value: ViewAngle.camClipDist[1]
+      maximumValue: 1000000
+      minimumValue: nearClip.value
+      decimals: 6
+      stepSize: 0.01
+      onEditingFinished: ViewAngle.SetCamClipDist(nearClip.value, farClip.value)
     }
   }
 
