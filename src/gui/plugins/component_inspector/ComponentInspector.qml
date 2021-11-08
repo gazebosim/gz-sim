@@ -18,6 +18,7 @@ import QtQuick 2.9
 import QtQuick.Controls 1.4
 import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
+import QtQuick.Dialogs 1.0
 import QtQuick.Layouts 1.3
 import QtQuick.Controls.Styles 1.4
 import IgnGazebo 1.0 as IgnGazebo
@@ -125,6 +126,20 @@ Rectangle {
         _heading);
   }
 
+  // The component for a menu section header
+  Component {
+    id: menuSectionHeading
+    Rectangle {
+      height: childrenRect.height
+
+      Text {
+          text: sectionText 
+          font.pointSize: 10
+          padding: 5
+      }
+    }
+  }
+
   Rectangle {
     id: header
     height: lockButton.height
@@ -218,6 +233,138 @@ Rectangle {
         onClicked: {
           addLinkMenu.open()
         }
+
+        FileDialog {
+          id: loadFileDialog
+          title: "Load mesh"
+          folder: shortcuts.home
+          nameFilters: [ "Collada files (*.dae)", "(*.stl)", "(*.obj)" ]
+          selectMultiple: false
+          selectExisting: true
+          onAccepted: {
+            ComponentInspector.OnLoadMesh("mesh", "link", fileUrl)
+          }
+        }
+      
+        Menu {
+          id: addLinkMenu
+      
+          Item {
+            Layout.fillWidth: true
+            height: childrenRect.height
+            Loader { 
+              property string sectionText: "Link"
+              sourceComponent: menuSectionHeading
+            }
+          }
+      
+          MenuItem {
+            id: boxLink
+            text: "Box"
+            onClicked: {
+              ComponentInspector.OnAddEntity("box", "link");
+              addLinkMenu.close()
+            }
+          }
+      
+          MenuItem {
+            id: capsuleLink
+            text: "Capsule"
+            onClicked: {
+              ComponentInspector.OnAddEntity("capsule", "link");
+              addLinkMenu.close()
+            }
+          }
+      
+          MenuItem {
+            id: cylinderLink
+            text: "Cylinder"
+            onClicked: {
+              ComponentInspector.OnAddEntity("cylinder", "link");
+            }
+          }
+      
+          MenuItem {
+            id: ellipsoidLink
+            text: "Ellipsoid"
+            onClicked: {
+              ComponentInspector.OnAddEntity("ellipsoid", "link");
+            }
+          }
+      
+          MenuItem {
+            id: emptyLink
+            text: "Empty"
+            onClicked: {
+              ComponentInspector.OnAddEntity("empty", "link");
+            }
+          }
+      
+          MenuItem {
+            id: meshLink
+            text: "Mesh"
+            onClicked: {
+              loadFileDialog.open()
+            }
+          }
+      
+          MenuItem {
+            id: sphereLink
+            text: "Sphere"
+            onClicked: {
+              ComponentInspector.OnAddEntity("sphere", "link");
+            }
+          }
+      
+          MenuSeparator {
+            padding: 0
+            topPadding: 12
+            bottomPadding: 12
+            contentItem: Rectangle {
+              implicitWidth: 200
+              implicitHeight: 1
+              color: "#1E000000"
+            }
+          }
+      
+          Item {
+            Layout.fillWidth: true
+            height: childrenRect.height
+            Loader { 
+              property string sectionText: "Light"
+              sourceComponent: menuSectionHeading
+            }
+          }
+      
+          MenuItem {
+            id: directionalLink
+            text: "Directional"
+            onClicked: {
+              ComponentInspector.OnAddEntity("directional", "light");
+              addLinkMenu.close()
+            }
+          }
+      
+          MenuItem {
+            id: pointLink
+            text: "Point"
+            onClicked: {
+              ComponentInspector.OnAddEntity("point", "light");
+              addLinkMenu.close()
+            }
+          }
+      
+          MenuItem {
+            id: spotLink
+            text: "Spot"
+            onClicked: {
+              ComponentInspector.OnAddEntity("spot", "light");
+              addLinkMenu.close()
+            }
+          }
+      
+          // \todo(anyone) Add joints
+        } 
       }
 
       Label {
@@ -228,110 +375,6 @@ Rectangle {
         font.pointSize: 12
         padding: 5
       }
-    }
-  }
-
-  ListModel {
-    id: linkItems
-    ListElement {
-      text: "Box"
-      type: "Link"
-    }
-    ListElement {
-      text: "Cylinder"
-      type: "Link"
-    }
-    ListElement {
-      text: "Empty"
-      type: "Link"
-    }
-    ListElement {
-      text: "Sphere"
-      type: "Link"
-    }
-    ListElement {
-      text: "Capsule"
-      type: "Link"
-    }
-    ListElement {
-      text: "Ellipsoid"
-      type: "Link"
-    }
-    ListElement {
-      text: "Directional"
-      type: "Light"
-    }
-    ListElement {
-      text: "Spot"
-      type: "Light"
-    }
-    ListElement {
-      text: "Point"
-      type: "Light"
-    }
-
-    // \todo Uncomment the following items once they are supported
-    // ListElement {
-    //   text: "Mesh"
-    //   type: "Link"
-    // }
-    // ListElement {
-    //   text: "Ball"
-    //   type: "Joint"
-    // }
-    // ListElement {
-    //   text: "Continuous"
-    //   type: "Joint"
-    // }
-    // ListElement {
-    //   text: "Fixed"
-    //   type: "Joint"
-    // }
-    //  ListElement {
-    //   text: "Prismatic"
-    //   type: "Joint"
-    // }
-    // ListElement {
-    //   text: "Revolute"
-    //   type: "Joint"
-    // }
-    //  ListElement {
-    //   text: "Universal"
-    //   type: "Joint"
-    // }
-  }
-  // The delegate for each section header
-  Component {
-    id: sectionHeading
-    Rectangle {
-      height: childrenRect.height
-
-      Text {
-          text: section
-          font.pointSize: 10
-          padding: 5
-      }
-    }
-  }
-
-  Menu {
-    id: addLinkMenu
-    ListView {
-      id: addLinkMenuListView
-      height: addLinkMenu.height
-      delegate: ItemDelegate {
-        width: parent.width
-        text: model.text
-        highlighted: ListView.isCurrentItem
-        onClicked: {
-          ComponentInspector.OnAddEntity(model.text, "link");
-          addLinkMenu.close()
-        }
-      }
-      model: linkItems
-      section.property: "type"
-      section.criteria: ViewSection.FullString
-      section.delegate: sectionHeading
     }
   }
 

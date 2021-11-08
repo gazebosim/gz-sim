@@ -101,6 +101,20 @@ Rectangle {
     }
   }
 
+  // The component for a menu section header
+  Component {
+    id: menuSectionHeading
+    Rectangle {
+      height: childrenRect.height
+
+      Text {
+          text: sectionText 
+          font.pointSize: 10
+          padding: 5
+      }
+    }
+  }
+
   Rectangle {
     id: header
     visible: true 
@@ -152,6 +166,15 @@ Rectangle {
 
         Menu {
           id: addEntityMenu
+
+          Item {
+            Layout.fillWidth: true
+            height: childrenRect.height
+            Loader { 
+              property string sectionText: "Model"
+              sourceComponent: menuSectionHeading
+            }
+          }
 
           MenuItem
           {
@@ -215,6 +238,15 @@ Rectangle {
               implicitWidth: 200
               implicitHeight: 1
               color: "#1E000000"
+            }
+          }
+
+          Item {
+            Layout.fillWidth: true
+            height: childrenRect.height
+            Loader { 
+              property string sectionText: "Light"
+              sourceComponent: menuSectionHeading
             }
           }
 

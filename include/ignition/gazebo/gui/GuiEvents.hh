@@ -165,8 +165,8 @@ namespace events
     /// \brief Constructor
     /// \param[in] _tranformModeActive is the transform control mode active
     public: explicit ModelEditorAddEntity(QString _entity, QString _type,
-        QString _parent) : QEvent(kType), entity(_entity), type(_type),
-        parent(_parent)
+                QString _parent, QString _uri) :
+      QEvent(kType), entity(_entity), type(_type), parent(_parent), uri(_uri)
     {
     }
 
@@ -174,6 +174,12 @@ namespace events
     public: QString Entity() const
     {
       return this->entity;
+    }
+
+    /// \brief Get the URI, if any, associated with the entity to add
+    public: QString Uri() const
+    {
+      return this->uri;
     }
 
     /// \brief Get the entity type
@@ -194,6 +200,7 @@ namespace events
     private: QString entity;
     private: QString type;
     private: QString parent;
+    private: QString uri;
   };
 
 }  // namespace events
