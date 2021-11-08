@@ -17,6 +17,8 @@
 
 #include <iostream>
 #include <regex>
+#include <vector>
+
 #include <ignition/common/Console.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/gui/Application.hh>
