@@ -162,12 +162,9 @@ void ModelEditor::Update(const UpdateInfo &,
       {
         continue;
       }
-      Entity parent = _ecm.EntityByComponents(
-          components::Model(), components::Name(eta.parentName));
-      if (parent == kNullEntity)
+      if (eta.parentEntity == kNullEntity)
       {
-        ignerr << "Unable to find " << eta.parentName << " in the ECM. "
-               << std::endl;
+        ignerr << "Parent entity not specified." << std::endl;
          continue;
       }
 
@@ -176,20 +173,20 @@ void ModelEditor::Update(const UpdateInfo &,
       // a crash on exit, see issue #1158
       std::string linkName = "link";
       Entity linkEnt = _ecm.EntityByComponents(
-            /*components::Link(),*/ components::ParentEntity(parent),
-            components::Name(linkName));
+          components::ParentEntity(eta.parentEntity),
+          components::Name(linkName));
       int64_t counter = 0;
       while (linkEnt)
       {
         linkName = std::string("link") + "_" + std::to_string(++counter);
         linkEnt = _ecm.EntityByComponents(
-            /*components::Link(),*/ components::ParentEntity(parent),
+            components::ParentEntity(eta.parentEntity),
             components::Name(linkName));
       }
 
       linkSdf.SetName(linkName);
       auto entity = this->dataPtr->entityCreator->CreateEntities(&linkSdf);
-      this->dataPtr->entityCreator->SetParent(entity, parent);
+      this->dataPtr->entityCreator->SetParent(entity, eta.parentEntity);
 
       // traverse the tree and add all new entities created by the entity creator
       // to the set

@@ -379,22 +379,10 @@ namespace ignition
       /// and multistep.
       /// \param[out] _res Response to client, true if successful.
       /// \return True for success
-      /// \TODO(anyone) remove this in ign-gazebo7. It's being replaced by
-      /// OnWorldControlState
       private: bool OnWorldControl(const msgs::WorldControl &_req,
                                          msgs::Boolean &_res);
 
       /// \brief World control state service callback. This function stores the
-      /// the request which will then be processed by the ProcessMessages
-      /// function.
-      /// \param[in] _req Request from client, currently handling play / pause
-      /// and multistep. This also may contain SerializedState information.
-      /// \param[out] _res Response to client, true if successful.
-      /// \return True for success
-      private: bool OnWorldControlState(const msgs::WorldControlState &_req,
-                                         msgs::Boolean &_res);
-
-      /// \brief World control service callback. This function stores the
       /// the request which will then be processed by the ProcessMessages
       /// function.
       /// \param[in] _req Request from client, currently handling play / pause
