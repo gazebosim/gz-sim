@@ -233,6 +233,138 @@ Rectangle {
         onClicked: {
           addLinkMenu.open()
         }
+
+        FileDialog {
+          id: loadFileDialog
+          title: "Load mesh"
+          folder: shortcuts.home
+          nameFilters: [ "Collada files (*.dae)", "(*.stl)", "(*.obj)" ]
+          selectMultiple: false
+          selectExisting: true
+          onAccepted: {
+            ComponentInspector.OnLoadMesh("mesh", "link", fileUrl)
+          }
+        }
+      
+        Menu {
+          id: addLinkMenu
+      
+          Item {
+            Layout.fillWidth: true
+            height: childrenRect.height
+            Loader { 
+              property string sectionText: "Link"
+              sourceComponent: menuSectionHeading
+            }
+          }
+      
+          MenuItem {
+            id: boxLink
+            text: "Box"
+            onClicked: {
+              ComponentInspector.OnAddEntity("box", "link");
+              addLinkMenu.close()
+            }
+          }
+      
+          MenuItem {
+            id: capsuleLink
+            text: "Capsule"
+            onClicked: {
+              ComponentInspector.OnAddEntity("capsule", "link");
+              addLinkMenu.close()
+            }
+          }
+      
+          MenuItem {
+            id: cylinderLink
+            text: "Cylinder"
+            onClicked: {
+              ComponentInspector.OnAddEntity("cylinder", "link");
+            }
+          }
+      
+          MenuItem {
+            id: ellipsoidLink
+            text: "Ellipsoid"
+            onClicked: {
+              ComponentInspector.OnAddEntity("ellipsoid", "link");
+            }
+          }
+      
+          MenuItem {
+            id: emptyLink
+            text: "Empty"
+            onClicked: {
+              ComponentInspector.OnAddEntity("empty", "link");
+            }
+          }
+      
+          MenuItem {
+            id: meshLink
+            text: "Mesh"
+            onClicked: {
+              loadFileDialog.open()
+            }
+          }
+      
+          MenuItem {
+            id: sphereLink
+            text: "Sphere"
+            onClicked: {
+              ComponentInspector.OnAddEntity("sphere", "link");
+            }
+          }
+      
+          MenuSeparator {
+            padding: 0
+            topPadding: 12
+            bottomPadding: 12
+            contentItem: Rectangle {
+              implicitWidth: 200
+              implicitHeight: 1
+              color: "#1E000000"
+            }
+          }
+      
+          Item {
+            Layout.fillWidth: true
+            height: childrenRect.height
+            Loader { 
+              property string sectionText: "Light"
+              sourceComponent: menuSectionHeading
+            }
+          }
+      
+          MenuItem {
+            id: directionalLink
+            text: "Directional"
+            onClicked: {
+              ComponentInspector.OnAddEntity("directional", "light");
+              addLinkMenu.close()
+            }
+          }
+      
+          MenuItem {
+            id: pointLink
+            text: "Point"
+            onClicked: {
+              ComponentInspector.OnAddEntity("point", "light");
+              addLinkMenu.close()
+            }
+          }
+      
+          MenuItem {
+            id: spotLink
+            text: "Spot"
+            onClicked: {
+              ComponentInspector.OnAddEntity("spot", "light");
+              addLinkMenu.close()
+            }
+          }
+      
+          // \todo(anyone) Add joints
+        }
       }
 
       ToolButton {

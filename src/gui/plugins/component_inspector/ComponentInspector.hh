@@ -230,16 +230,6 @@ namespace gazebo
     public: Q_INVOKABLE void OnPose(double _x, double _y, double _z,
         double _roll, double _pitch, double _yaw);
 
-    /// \brief Callback in Qt thread when a camera changes.
-    /// \param[in] _hfov Horizontal field of view in degrees.
-    /// \param[in] _imageWidth Image width in pixels.
-    /// \param[in] _imageHeight Image height in pixels.
-    /// \param[in] _nearClip Near clip value in meters.
-    /// \param[in] _farClip Far clip value in meters.
-    /*public: Q_INVOKABLE void OnCameraUpdate(double _hfov, int _imageWidth,
-                int _imageHeight, double _nearClip, double _farClip);
-                */
-
     /// \brief Callback in Qt thread when specular changes.
     /// \param[in] _rSpecular specular red
     /// \param[in] _gSpecular specular green

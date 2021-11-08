@@ -28,7 +28,6 @@
 #include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/AngularAcceleration.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
-#include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/CastShadows.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Collision.hh"
@@ -289,26 +288,6 @@ void ignition::gazebo::setData(QStandardItem *_item,
     QVariant(_data.HeadingOffset().Degree()),
   }), ComponentsModel::RoleNames().key("data"));
 }
-
-//////////////////////////////////////////////////
-/*template<>
-void ignition::gazebo::setData(QStandardItem *_item, const sdf::Sensor &_data)
-{
-  if (nullptr == _item)
-    return;
-
-  const sdf::Camera *cam = _data.CameraSensor();
-
-  _item->setData(QString("Camera"),
-      ComponentsModel::RoleNames().key("dataType"));
-  _item->setData(QList({
-    QVariant(cam->HorizontalFov().Degree()),
-    QVariant(cam->ImageWidth()),
-    QVariant(cam->ImageHeight()),
-    QVariant(cam->NearClip()),
-    QVariant(cam->FarClip()),
-  }), ComponentsModel::RoleNames().key("data"));
-}*/
 
 //////////////////////////////////////////////////
 void ignition::gazebo::setUnit(QStandardItem *_item, const std::string &_unit)
