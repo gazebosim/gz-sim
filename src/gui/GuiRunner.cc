@@ -19,7 +19,9 @@
 #include <ignition/common/Profiler.hh>
 #include <ignition/fuel_tools/Interface.hh>
 #include <ignition/gui/Application.hh>
+#include <ignition/gui/GuiEvents.hh>
 #include <ignition/gui/MainWindow.hh>
+#include <ignition/msgs.hh>
 #include <ignition/transport/Node.hh>
 
 // Include all components so they have first-class support
@@ -63,6 +65,9 @@ class ignition::gazebo::GuiRunner::Implementation
 
   /// \brief True if the initial state has been received and processed.
   public: bool receivedInitialState{false};
+
+  /// \brief Name of WorldControl service
+  public: std::string controlService;
 };
 
 /////////////////////////////////////////////////
@@ -115,10 +120,52 @@ GuiRunner::GuiRunner(const std::string &_worldName)
   QPointer<QTimer> timer = new QTimer(this);
   connect(timer, &QTimer::timeout, this, &GuiRunner::UpdatePlugins);
   timer->start(33);
+
+  this->dataPtr->controlService = "/world/" + _worldName + "/control/state";
+
+  ignition::gui::App()->findChild<
+      ignition::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
 GuiRunner::~GuiRunner() = default;
+
+/////////////////////////////////////////////////
+bool GuiRunner::eventFilter(QObject *_obj, QEvent *_event)
+{
+  if (_event->type() == ignition::gui::events::WorldControl::kType)
+  {
+    auto worldControlEvent =
+      reinterpret_cast<gui::events::WorldControl *>(_event);
+    if (worldControlEvent)
+    {
+      msgs::WorldControlState req;
+      req.mutable_world_control()->CopyFrom(
+          worldControlEvent->WorldControlInfo());
+
+      // share the GUI's ECM with the server if:
+      //  1. Play was pressed
+      //  2. Step was pressed while paused
+      const auto &info = worldControlEvent->WorldControlInfo();
+      const bool pressedStep = info.multi_step() > 0u;
+      const bool pressedPlay = !info.pause() && !pressedStep;
+      const bool pressedStepWhilePaused = info.pause() && pressedStep;
+      if (pressedPlay || pressedStepWhilePaused)
+        req.mutable_state()->CopyFrom(this->dataPtr->ecm.State());
+
+      std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+          [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+          {
+            if (!_result)
+              ignerr << "Error sharing WorldControl info with the server.\n";
+          };
+      this->dataPtr->node.Request(this->dataPtr->controlService, req, cb);
+    }
+  }
+
+  // Standard event processing
+  return QObject::eventFilter(_obj, _event);
+}
 
 /////////////////////////////////////////////////
 void GuiRunner::RequestState()
