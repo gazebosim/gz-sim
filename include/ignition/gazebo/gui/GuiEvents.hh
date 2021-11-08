@@ -165,8 +165,8 @@ namespace events
     /// \brief Constructor
     /// \param[in] _tranformModeActive is the transform control mode active
     public: explicit ModelEditorAddEntity(QString _entity, QString _type,
-        uint64_t _parent) : QEvent(kType), entity(_entity), type(_type),
-        parent(_parent)
+        ignition::gazebo::Entity _parent, QString _uri) : QEvent(kType), entity(_entity),
+        type(_type), parent(_parent), uri(_uri)
     {
     }
 
@@ -176,6 +176,12 @@ namespace events
       return this->entity;
     }
 
+    /// \brief Get the URI, if any, associated with the entity to add
+    public: QString Uri() const
+    {
+      return this->uri;
+    }
+
     /// \brief Get the entity type
     public: QString EntityType() const
     {
@@ -183,7 +189,7 @@ namespace events
     }
 
     /// \brief Get the parent entity to add the entity to
-    public: gazebo::Entity ParentEntity() const
+    public: ignition::gazebo::Entity ParentEntity() const
     {
       return this->parent;
     }
@@ -193,7 +199,8 @@ namespace events
 
     private: QString entity;
     private: QString type;
-    private: gazebo::Entity parent;
+    private: ignition::gazebo::Entity parent;
+    private: QString uri;
   };
 
 }  // namespace events

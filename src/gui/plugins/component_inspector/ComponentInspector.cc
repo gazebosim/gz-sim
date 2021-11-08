@@ -17,10 +17,8 @@
 
 #include <iostream>
 #include <regex>
-
-#include <sdf/Camera.hh>
-
 #include <ignition/common/Console.hh>
+#include <ignition/common/MeshManager.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
@@ -1108,16 +1106,41 @@ bool ComponentInspector::NestedModel() const
 }
 
 /////////////////////////////////////////////////
-void ComponentInspector::OnAddEntity(QString _entity, QString _type)
+void ComponentInspector::OnAddEntity(const QString &_entity,
+    const QString &_type)
 {
-  std::cout << "Entity[" << _entity.toStdString() << "] Type[" << _type.toStdString() << "] Name[" << this->dataPtr->entityName.c_str() << "]\n";
   // currently just assumes parent is the model
   // todo(anyone) support adding visuals / collisions / sensors to links
   ignition::gazebo::gui::events::ModelEditorAddEntity addEntityEvent(
-      _entity, _type, this->dataPtr->entity);
+      _entity, _type, this->dataPtr->entity, QString(""));
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
       &addEntityEvent);
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::OnLoadMesh(const QString &_entity,
+    const QString &_type, const QString &_mesh)
+{
+  std::string meshStr = _mesh.toStdString();
+  if (QUrl(_mesh).isLocalFile())
+  {
+    // mesh to sdf model
+    common::rtrim(meshStr);
+
+    if (!common::MeshManager::Instance()->IsValidFilename(meshStr))
+    {
+      QString errTxt = QString::fromStdString("Invalid URI: " + meshStr +
+        "\nOnly mesh file types DAE, OBJ, and STL are supported.");
+      return;
+    }
+
+    ignition::gazebo::gui::events::ModelEditorAddEntity addEntityEvent(
+        _entity, _type, this->dataPtr->entity, QString(meshStr.c_str()));
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        &addEntityEvent);
+  }
 }
 
 // Register this plugin

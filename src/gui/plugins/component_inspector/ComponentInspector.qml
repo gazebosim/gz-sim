@@ -18,6 +18,7 @@ import QtQuick 2.9
 import QtQuick.Controls 1.4
 import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
+import QtQuick.Dialogs 1.0
 import QtQuick.Layouts 1.3
 import QtQuick.Controls.Styles 1.4
 import IgnGazebo 1.0 as IgnGazebo
@@ -138,6 +139,20 @@ Rectangle {
         _heading);
   }
 
+  // The component for a menu section header
+  Component {
+    id: menuSectionHeading
+    Rectangle {
+      height: childrenRect.height
+
+      Text {
+          text: sectionText 
+          font.pointSize: 10
+          padding: 5
+      }
+    }
+  }
+
   Rectangle {
     id: header
     height: lockButton.height
@@ -233,26 +248,6 @@ Rectangle {
         }
       }
 
-      ToolButton {
-        id: addSensorButton
-        checkable: false
-        text: "Add sensor"
-        visible: entityType == "link"
-        contentItem: Image {
-          fillMode: Image.Pad
-          horizontalAlignment: Image.AlignHCenter
-          verticalAlignment: Image.AlignVCenter
-          source: "qrc:/Gazebo/images/plus.png"
-          sourceSize.width: 18;
-          sourceSize.height: 18;
-        }
-        ToolTip.text: "Add sensor"
-        ToolTip.visible: hovered
-        ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
-        onClicked: {
-          addSensorMenu.open()
-        }
-      }
       Label {
         id: entityLabel
         text: 'Entity ' + ComponentInspector.entity
@@ -261,223 +256,6 @@ Rectangle {
         font.pointSize: 12
         padding: 5
       }
-    }
-  }
-
-  ListModel {
-    id: linkItems
-    ListElement {
-      text: "Box"
-      type: "Link"
-    }
-    ListElement {
-      text: "Cylinder"
-      type: "Link"
-    }
-    ListElement {
-      text: "Empty"
-      type: "Link"
-    }
-    ListElement {
-      text: "Sphere"
-      type: "Link"
-    }
-    ListElement {
-      text: "Capsule"
-      type: "Link"
-    }
-    ListElement {
-      text: "Ellipsoid"
-      type: "Link"
-    }
-    ListElement {
-      text: "Directional"
-      type: "Light"
-    }
-    ListElement {
-      text: "Spot"
-      type: "Light"
-    }
-    ListElement {
-      text: "Point"
-      type: "Light"
-    }
-
-    // \todo Uncomment the following items once they are supported
-    // ListElement {
-    //   text: "Mesh"
-    //   type: "Link"
-    // }
-    // ListElement {
-    //   text: "Ball"
-    //   type: "Joint"
-    // }
-    // ListElement {
-    //   text: "Continuous"
-    //   type: "Joint"
-    // }
-    // ListElement {
-    //   text: "Fixed"
-    //   type: "Joint"
-    // }
-    //  ListElement {
-    //   text: "Prismatic"
-    //   type: "Joint"
-    // }
-    // ListElement {
-    //   text: "Revolute"
-    //   type: "Joint"
-    // }
-    //  ListElement {
-    //   text: "Universal"
-    //   type: "Joint"
-    // }
-  }
-
-  // The delegate for each section header
-  Component {
-    id: sectionHeading
-    Rectangle {
-      height: childrenRect.height
-
-      Text {
-          text: section
-          font.pointSize: 10
-          padding: 5
-      }
-    }
-  }
-
-  Menu {
-    id: addLinkMenu
-    ListView {
-      id: addLinkMenuListView
-      height: addLinkMenu.height
-      delegate: ItemDelegate {
-        width: parent.width
-        text: model.text
-        highlighted: ListView.isCurrentItem
-        onClicked: {
-          ComponentInspector.OnAddEntity(model.text, "link");
-          addLinkMenu.close()
-        }
-      }
-      model: linkItems
-      section.property: "type"
-      section.criteria: ViewSection.FullString
-      section.delegate: sectionHeading
-    }
-  }
-
-  Menu {
-    id: addSensorMenu
-    MenuItem {
-      id: airPressure
-      text: "Air pressure"
-      onTriggered: {
-        addSensorMenu.close()
-        ComponentInspector.OnAddEntity(contact.text, "sensor");
-      }
-    }
-
-    MenuItem {
-      id: altimeter
-      text: "Altimeter"
-      onTriggered: {
-        addSensorMenu.close()
-        ComponentInspector.OnAddEntity(altimeter.text, "sensor");
-      }
-    }
-
-    MenuItem {
-      id: cameraSensorMenu
-      text: "Camera >"
-      MouseArea {
-        id: viewSubCameraArea
-        anchors.fill: parent
-        hoverEnabled: true
-        onEntered: secondCameraMenu.open()
-      }
-    }
-
-    MenuItem {
-      id: contact
-      text: "Contact"
-      onTriggered: {
-        addSensorMenu.close()
-        ComponentInspector.OnAddEntity(contact.text, "sensor");
-      }
-    }
-
-    MenuItem {
-      id: forceTorque
-      text: "Force torque"
-      onTriggered: {
-        addSensorMenu.close()
-        ComponentInspector.OnAddEntity(forceTorque.text, "sensor");
-      }
-    }
-
-    MenuItem {
-      id: gps
-      text: "GPS"
-      onTriggered: {
-        addSensorMenu.close()
-        ComponentInspector.OnAddEntity(gps.text, "sensor");
-      }
-    }
-
-    MenuItem {
-      id: imu
-      text: "IMU"
-      onTriggered: {
-        addSensorMenu.close()
-        ComponentInspector.OnAddEntity(imu.text, "sensor");
-      }
-    }
-
-    MenuItem {
-      id: lidar
-      text: "Lidar"
-    }
-
-    MenuItem {
-      id: magnetometer
-      text: "magnetometer"
-      onTriggered: {
-        addSensorMenu.close()
-        ComponentInspector.OnAddEntity(magnetometer.text, "sensor");
-      }
-    }
-  }
-
-  Menu {
-    id: secondCameraMenu
-    x: addSensorMenu.x + addSensorMenu.width
-    y: addSensorMenu.y + cameraSensorMenu.y
-    MenuItem {
-      id: depth
-      text: "Depth"
-    }
-    MenuItem {
-      id: logical
-      text: "Logical"
-    }
-    MenuItem {
-      id: monocular
-      text: "Monocular"
-    }
-    MenuItem {
-      id: multicamera
-      text: "Multicamera"
-    }
-    MenuItem {
-      id: rgbd
-      text: "RGBD"
-    }
-    MenuItem {
-      id: thermal
-      text: "Thermal"
     }
   }
 
