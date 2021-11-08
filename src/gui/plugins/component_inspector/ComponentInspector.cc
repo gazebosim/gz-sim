@@ -1029,8 +1029,7 @@ void ComponentInspector::OnAddEntity(const QString &_entity,
   // currently just assumes parent is the model
   // todo(anyone) support adding visuals / collisions / sensors to links
   ignition::gazebo::gui::events::ModelEditorAddEntity addEntityEvent(
-      _entity, _type, QString(this->dataPtr->entityName.c_str()),
-      QString(""));
+      _entity, _type, this->dataPtr->entity, QString(""));
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
       &addEntityEvent);
@@ -1054,8 +1053,7 @@ void ComponentInspector::OnLoadMesh(const QString &_entity,
     }
 
     ignition::gazebo::gui::events::ModelEditorAddEntity addEntityEvent(
-        _entity, _type, QString(this->dataPtr->entityName.c_str()),
-        QString(meshStr.c_str()));
+        _entity, _type, this->dataPtr->entity, QString(meshStr.c_str()));
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
         &addEntityEvent);
