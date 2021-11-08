@@ -47,8 +47,8 @@ namespace ignition::gazebo
     /// \brief Type of entity to add
     public: std::string entityType;
 
-    /// \brief Name of parent entity to add the entity to
-    public: std::string parentName;
+    /// \brief Parent entity to add the entity to
+    public: Entity parentEntity;
   };
 
   class ModelEditorPrivate
@@ -56,9 +56,9 @@ namespace ignition::gazebo
     /// \brief Handle entity addition
     /// \param[in] _geomOrLightType Geometry or light type, e.g. sphere, directional, etc
     /// \param[in] _entityType Type of entity: link, visual, collision, etc
-    /// \param[in] _parentName Name of parent entity
+    /// \param[in] _parentEntity Name of parent entity
     public: void HandleAddEntity(const std::string &_geomOrLightType,
-        const std::string &_entityType, const std::string &_parentName);
+        const std::string &_entityType, Entity _parentEntity);
 
     /// \brief Get a SDF string of a geometry
     /// \param[in] _geomType Type of geometry
@@ -153,12 +153,9 @@ void ModelEditor::Update(const UpdateInfo &,
       {
         continue;
       }
-      Entity parent = _ecm.EntityByComponents(
-          components::Model(), components::Name(eta.parentName));
-      if (parent == kNullEntity)
+      if (eta.parentEntity == kNullEntity)
       {
-        ignerr << "Unable to find " << eta.parentName << " in the ECM. "
-               << std::endl;
+        ignerr << "Parent entity not defined." << std::endl;
          continue;
       }
 
@@ -167,20 +164,20 @@ void ModelEditor::Update(const UpdateInfo &,
       // a crash on exit, see issue #1158
       std::string linkName = "link";
       Entity linkEnt = _ecm.EntityByComponents(
-            /*components::Link(),*/ components::ParentEntity(parent),
-            components::Name(linkName));
+          components::ParentEntity(eta.parentEntity),
+          components::Name(linkName));
       int64_t counter = 0;
       while (linkEnt)
       {
         linkName = std::string("link") + "_" + std::to_string(++counter);
         linkEnt = _ecm.EntityByComponents(
-            /*components::Link(),*/ components::ParentEntity(parent),
+            components::ParentEntity(eta.parentEntity),
             components::Name(linkName));
       }
 
       linkSdf.SetName(linkName);
       auto entity = this->dataPtr->entityCreator->CreateEntities(&linkSdf);
-      this->dataPtr->entityCreator->SetParent(entity, parent);
+      this->dataPtr->entityCreator->SetParent(entity, eta.parentEntity);
 
       // traverse the tree and add all new entities created by the entity creator
       // to the set
@@ -224,7 +221,7 @@ bool ModelEditor::eventFilter(QObject *_obj, QEvent *_event)
     {
       this->dataPtr->HandleAddEntity(event->Entity().toStdString(),
           event->EntityType().toStdString(),
-          event->ParentEntity().toStdString());
+          event->ParentEntity());
     }
   }
 
@@ -387,7 +384,7 @@ std::string ModelEditorPrivate::LinkSDFString(
 
 /////////////////////////////////////////////////
 void ModelEditorPrivate::HandleAddEntity(const std::string &_geomOrLightType,
-  const std::string &_type, const std::string &_parentName)
+  const std::string &_type, Entity _parentEntity)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
   std::string entType = common::lowercase(_type);
@@ -396,7 +393,7 @@ void ModelEditorPrivate::HandleAddEntity(const std::string &_geomOrLightType,
   EntityToAdd eta;
   eta.entityType = entType;
   eta.geomOrLightType = geomLightType;
-  eta.parentName = _parentName;
+  eta.parentEntity = _parentEntity;
   this->entitiesToAdd.push_back(eta);
 }
 
