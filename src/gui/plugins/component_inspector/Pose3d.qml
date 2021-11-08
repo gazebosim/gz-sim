@@ -38,6 +38,12 @@ Rectangle {
   // Maximum spinbox value
   property double spinMax: 1000000
 
+  // Read-only / write
+  property bool readOnly: {
+    var isModel = entityType == "model"
+    return !(isModel) || nestedModel
+  }
+
   property int iconWidth: 20
   property int iconHeight: 20
 
@@ -58,8 +64,6 @@ Rectangle {
 
   // Loaded item for yaw
   property var yawItem: {}
-
-
 
   // Send new pose to C++
   function sendPose() {
@@ -211,8 +215,7 @@ Rectangle {
             id: xLoader
             anchors.fill: parent
             property double numberValue: model.data[0]
-            sourceComponent: writableNumber
-            active: paused
+            sourceComponent: readOnly ? readOnlyNumber : writableNumber
             onLoaded: {
               xItem = xLoader.item
             }
@@ -249,7 +252,7 @@ Rectangle {
             id: rollLoader
             anchors.fill: parent
             property double numberValue: model.data[3]
-            sourceComponent: paused ? writableNumber : readOnlyNumber
+            sourceComponent: readOnly ? readOnlyNumber : writableNumber
             onLoaded: {
               rollItem = rollLoader.item
             }
@@ -292,7 +295,7 @@ Rectangle {
             id: yLoader
             anchors.fill: parent
             property double numberValue: model.data[1]
-            sourceComponent: paused ? writableNumber : readOnlyNumber
+            sourceComponent: readOnly ? readOnlyNumber : writableNumber
             onLoaded: {
               yItem = yLoader.item
             }
@@ -328,7 +331,7 @@ Rectangle {
             id: pitchLoader
             anchors.fill: parent
             property double numberValue: model.data[4]
-            sourceComponent: paused ? writableNumber : readOnlyNumber
+            sourceComponent: readOnly ? readOnlyNumber : writableNumber
             onLoaded: {
               pitchItem = pitchLoader.item
             }
@@ -364,7 +367,7 @@ Rectangle {
             id: zLoader
             anchors.fill: parent
             property double numberValue: model.data[2]
-            sourceComponent: paused ? writableNumber : readOnlyNumber
+            sourceComponent: readOnly ? readOnlyNumber : writableNumber
             onLoaded: {
               zItem = zLoader.item
             }
@@ -400,7 +403,7 @@ Rectangle {
             id: yawLoader
             anchors.fill: parent
             property double numberValue: model.data[5]
-            sourceComponent: paused ? writableNumber : readOnlyNumber
+            sourceComponent: readOnly ? readOnlyNumber : writableNumber
             onLoaded: {
               yawItem = yawLoader.item
             }
