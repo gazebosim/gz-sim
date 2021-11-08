@@ -18,6 +18,7 @@ import QtQuick 2.9
 import QtQuick.Controls 2.1
 import QtQuick.Controls.Material 2.1
 import QtQuick.Layouts 1.3
+import QtQuick.Dialogs 1.3
 import IgnGazebo 1.0 as IgnGazebo
 
 Rectangle {
@@ -42,7 +43,7 @@ Rectangle {
     Material.color(Material.Grey, Material.Shade900)
 
 
-  ListModel {
+  /*ListModel {
       id: forceModel
 
       ListElement {
@@ -63,7 +64,19 @@ Rectangle {
           arrowColor: "#00ff00"
           isVisible: true
       }
+  }*/
+
+  ColorDialog {
+    id: colorDialog
+    title: "Please choose a color"
+    onAccepted: {
+        console.log("You chose: " + colorDialog.color)
+    }
+    onRejected: {
+        console.log("Canceled")
+    }
   }
+
 
   Component {
     id: forceDelegate
@@ -77,7 +90,7 @@ Rectangle {
         text: link
         background: Rectangle
         {
-            color: (index % 2 == 0)? even : odd
+          color: (index % 2 == 0)? even : odd
         }
       }
       Label {
@@ -86,9 +99,9 @@ Rectangle {
         Layout.preferredHeight: implicitHeight
         Layout.preferredWidth: 200
         text: plugin
-         background: Rectangle
+        background: Rectangle
         {
-            color: (index % 2 == 0)? even : odd
+          color: (index % 2 == 0)? even : odd
         }
       }
       
@@ -97,19 +110,22 @@ Rectangle {
         height: 20
         color: arrowColor
 
-         MouseArea {
+        MouseArea {
           anchors.fill: parent
           hoverEnabled: true
           propagateComposedEvents: true
           onClicked: {
             mouse.accepted = true
-            console.log("Color change not supported " + index)
+            colorDialog.open()
           }
         }
       }
       CheckBox {
         checked: isVisible
         text: (isVisible) ? "visible" : "hidden"
+        nextCheckState: function() {
+          // Update model.
+        }
         background: Rectangle
         {
           color: (index % 2 == 0)? even : odd
@@ -121,7 +137,7 @@ Rectangle {
   ListView {
     id: tree
     anchors.fill: parent
-    model: forceModel
+    model: ForceListModel
     delegate: forceDelegate
   }
 }
