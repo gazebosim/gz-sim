@@ -279,11 +279,15 @@ Rectangle {
       type: "Link"
     }
     ListElement {
-      text: "Mesh"
+      text: "Sphere"
       type: "Link"
     }
     ListElement {
-      text: "Sphere"
+      text: "Capsule"
+      type: "Link"
+    }
+    ListElement {
+      text: "Ellipsoid"
       type: "Link"
     }
     ListElement {
@@ -298,30 +302,36 @@ Rectangle {
       text: "Point"
       type: "Light"
     }
-    ListElement {
-      text: "Ball"
-      type: "Joint"
-    }
-    ListElement {
-      text: "Continuous"
-      type: "Joint"
-    }
-    ListElement {
-      text: "Fixed"
-      type: "Joint"
-    }
-     ListElement {
-      text: "Prismatic"
-      type: "Joint"
-    }
-    ListElement {
-      text: "Revolute"
-      type: "Joint"
-    }
-     ListElement {
-      text: "Universal"
-      type: "Joint"
-    }
+
+    // \todo Uncomment the following items once they are supported
+    // ListElement {
+    //   text: "Mesh"
+    //   type: "Link"
+    // }
+    // ListElement {
+    //   text: "Ball"
+    //   type: "Joint"
+    // }
+    // ListElement {
+    //   text: "Continuous"
+    //   type: "Joint"
+    // }
+    // ListElement {
+    //   text: "Fixed"
+    //   type: "Joint"
+    // }
+    //  ListElement {
+    //   text: "Prismatic"
+    //   type: "Joint"
+    // }
+    // ListElement {
+    //   text: "Revolute"
+    //   type: "Joint"
+    // }
+    //  ListElement {
+    //   text: "Universal"
+    //   type: "Joint"
+    // }
   }
 
   // The delegate for each section header
@@ -357,7 +367,6 @@ Rectangle {
       section.criteria: ViewSection.FullString
       section.delegate: sectionHeading
     }
-    // MenuItem { text: "Box" onTriggered: {} }
   }
 
   Menu {

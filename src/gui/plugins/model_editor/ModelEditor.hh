@@ -37,13 +37,15 @@ namespace gazebo
 
   /// \brief
   ///
-  /// ## Configuration
-  /// None
+  /// Model Editor gui plugin
   class ModelEditor : public gazebo::GuiSystem
   {
     Q_OBJECT
 
+    /// \brief Constructor
     public: ModelEditor();
+
+    /// \brief Destructor
     public: ~ModelEditor() override;
 
     // Documentation inherited

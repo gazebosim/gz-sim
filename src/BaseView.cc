@@ -45,27 +45,6 @@ bool BaseView::MarkEntityToAdd(const Entity _entity, bool _new)
   return true;
 }
 
-// //////////////////////////////////////////////////
-// bool BaseView::MarkEntityAsNew(const Entity _entity, bool _new)
-// {
-//   return this->MarkEntityToAdd(_entity, _new);
-// //  if (_new)
-// //    this->newEntities.insert(_entity);
-// //  else
-// //    this->newEntities.erase(_entity);
-//
-//   // this->MarkEntityToAdd(_entity, _new);
-// //  this->toAddEntities[_entity] = _new;
-//
-// //  auto it = toAddEntities.find(_entity);
-// //  if (it != toAddEntities.end())
-// //    it->second = _new;
-//
-//
-//
-//   return true;
-// }
-
 //////////////////////////////////////////////////
 bool BaseView::RequiresComponent(const ComponentTypeId _typeId) const
 {

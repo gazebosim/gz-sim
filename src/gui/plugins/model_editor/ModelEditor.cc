@@ -16,27 +16,20 @@
 */
 
 #include <iostream>
-#include <regex>
+#include <vector>
 #include <ignition/common/Console.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/GuiEvents.hh>
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
 
-#include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/Scene.hh>
-
-#include <sdf/Types.hh>
 #include <sdf/Link.hh>
 #include <sdf/Sensor.hh>
 #include <sdf/AirPressure.hh>
 #include <sdf/Altimeter.hh>
 #include <sdf/parser.hh>
 
-
-#include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
@@ -49,40 +42,43 @@
 
 namespace ignition::gazebo
 {
-  class ModelEditorPrivate
+  class EntityToAdd
   {
-    public: void Initialize();
-
-    public: void HandleAddEntity(const std::string &_geomOrLightType,
-        const std::string &_entityType, const Entity /*_parent*/);
-
-    public: std::string GeomSDFString(
-        const std::string &_geomType) const;
-
-    public: std::string LightSDFString(
-        const std::string &_geomType) const;
-
-
-    public: std::string LinkSDFString(
-        const std::string &_geomType) const;
-
-    public: sdf::Sensor CreateSensor(const std::string &_type) const;
-
-    /// \brief Generate a unique entity id.
-    /// \return The unique entity id
-    // public: Entity UniqueId() const;
-
-    //// \brief Pointer to the rendering scene
-    public: rendering::ScenePtr scene = nullptr;
-
     /// \brief Entity to add to the model editor
     public: std::string geomOrLightType;
 
     /// \brief Type of entity to add
     public: std::string entityType;
 
-    /// \brief Parent entity to add the entity to
+    /// \brief Name of parent entity to add the entity to
     public: Entity parentEntity;
+  };
+
+  class ModelEditorPrivate
+  {
+    /// \brief Handle entity addition
+    /// \param[in] _geomOrLightType Geometry or light type, e.g. sphere, directional, etc
+    /// \param[in] _entityType Type of entity: link, visual, collision, etc
+    /// \param[in] _parentEntity Parent entity
+    public: void HandleAddEntity(const std::string &_geomOrLightType,
+        const std::string &_entityType, Entity _parentEntity);
+
+    /// \brief Get a SDF string of a geometry
+    /// \param[in] _geomType Type of geometry
+    public: std::string GeomSDFString(
+        const std::string &_geomType) const;
+
+    /// \brief Get a SDF string of a light
+    /// \param[in] _lightType Type of light
+    public: std::string LightSDFString(
+        const std::string &_lightType) const;
+
+    /// \brief Get a SDF string of a link
+    /// \param[in] _geomOrLightType Type of light or geometry
+    public: std::string LinkSDFString(
+        const std::string &_geomOrLightType) const;
+
+    public: sdf::Sensor CreateSensor(const std::string &_type) const;
 
     /// \brief Entity Creator API.
     public: std::unique_ptr<SdfEntityCreator> entityCreator{nullptr};
@@ -94,8 +90,10 @@ namespace ignition::gazebo
     /// \brief Mutex to protect the entity sdf list
     public: std::mutex mutex;
 
-    /// \brief Links to add to the ECM
-    public: std::vector<sdf::Link> linksToAdd;
+    /// \brief A map of links to add to the ECM and the parent entity names
+    // public: std::vector<std::pair<sdf::Link, std::string>> linksToAdd;
+    public: std::vector<EntityToAdd> entitiesToAdd;
+
 
     /// \brief Sensors to add to the ECM
     public: std::vector<sdf::Sensor> sensorsToAdd;
@@ -135,73 +133,83 @@ void ModelEditor::Update(const UpdateInfo &,
 
   if (!this->dataPtr->entityCreator)
   {
-    // create entities in ECM on the GUI side.
-    // Note we have to start the entity id at an offset so it does not conflict
-    // with the ones on the server. The log playback starts at max / 2
-    // On the gui side, we will start entity id at an offset of max / 4
-    // todo(anyone) set a better entity create offset
-//    _ecm.SetEntityCreateOffset(math::MAX_I64 / 4);
     this->dataPtr->entityCreator = std::make_unique<SdfEntityCreator>(
         _ecm, this->dataPtr->eventMgr);
   }
 
-
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   // add link entities to the ECM
   std::set<Entity> newEntities;
-  for (auto & linkSdf : this->dataPtr->linksToAdd)
+  for (auto & eta: this->dataPtr->entitiesToAdd)
   {
-    /*Entity parent = _ecm.EntityByComponents(
-        components::Model(), components::Name(this->dataPtr->parentEntity));
-    if (parent == kNullEntity)
+    sdf::Link linkSdf;
+    if (eta.entityType == "link")
     {
-      ignerr << "Unable to find " << this->dataPtr->parentEntity
-             << " in the ECM. " << std::endl;
-       continue;
-    }*/
+      // create an sdf::Link to it can be added to the ECM throught the
+      // CreateEntities call
+      std::string linkSDFStr = this->dataPtr->LinkSDFString(eta.geomOrLightType);
+      if (!linkSDFStr.empty())
+      {
+        linkSDFStr = std::string("<sdf version='") + SDF_VERSION + "'>" +
+            linkSDFStr + "</sdf>";
 
-    // generate unique link name
-    std::string linkName = "link";
-    Entity linkEnt = _ecm.EntityByComponents(
-          components::Link(),
-          components::ParentEntity(this->dataPtr->parentEntity),
-          components::Name(linkName));
-    int64_t counter = 0;
-    while (linkEnt)
-    {
-      linkName = std::string("link") + "_" + std::to_string(++counter);
-      linkEnt = _ecm.EntityByComponents(
-          components::Link(),
-          components::ParentEntity(this->dataPtr->parentEntity),
-          components::Name(linkName));
-    }
+        sdf::ElementPtr linkElem(new sdf::Element);
+        sdf::initFile("link.sdf", linkElem);
+        sdf::readString(linkSDFStr, linkElem);
+        linkSdf.Load(linkElem);
+      }
+      else
+      {
+        continue;
+      }
+      Entity parent = _ecm.EntityByComponents(
+          components::Model(), components::Name(eta.parentName));
+      if (parent == kNullEntity)
+      {
+        ignerr << "Unable to find " << eta.parentName << " in the ECM. "
+               << std::endl;
+         continue;
+      }
 
-    linkSdf.SetName(linkName);
-    auto entity = this->dataPtr->entityCreator->CreateEntities(&linkSdf);
-    this->dataPtr->entityCreator->SetParent(entity,
-        this->dataPtr->parentEntity);
+      // generate unique link name
+      // note passing components::Link() as arg to EntityByComponents causes
+      // a crash on exit, see issue #1158
+      std::string linkName = "link";
+      Entity linkEnt = _ecm.EntityByComponents(
+            /*components::Link(),*/ components::ParentEntity(parent),
+            components::Name(linkName));
+      int64_t counter = 0;
+      while (linkEnt)
+      {
+        linkName = std::string("link") + "_" + std::to_string(++counter);
+        linkEnt = _ecm.EntityByComponents(
+            /*components::Link(),*/ components::ParentEntity(parent),
+            components::Name(linkName));
+      }
 
-    // traverse the tree and add all new entities created by the entity creator
-    // to the set
-    std::list<Entity> entities;
-    entities.push_back(entity);
-    while (!entities.empty())
-    {
-      Entity ent = entities.front();
-      entities.pop_front();
+      linkSdf.SetName(linkName);
+      auto entity = this->dataPtr->entityCreator->CreateEntities(&linkSdf);
+      this->dataPtr->entityCreator->SetParent(entity, parent);
 
-      // add new entity created
-      newEntities.insert(ent);
+      // traverse the tree and add all new entities created by the entity creator
+      // to the set
+      std::list<Entity> entities;
+      entities.push_back(entity);
+      while (!entities.empty())
+      {
+        Entity ent = entities.front();
+        entities.pop_front();
 
-      auto childEntities = _ecm.EntitiesByComponents(
-          components::ParentEntity(ent));
-      for (const auto &child : childEntities)
-        entities.push_back(child);
+        // add new entity created
+        newEntities.insert(ent);
+
+        auto childEntities = _ecm.EntitiesByComponents(
+            components::ParentEntity(ent));
+        for (const auto &child : childEntities)
+          entities.push_back(child);
+      }
     }
   }
-
-  for (const auto & ent: newEntities)
-      std::cerr << "creating entity in ecm " << ent << std::endl;
 
   // use tmp AddedRemovedEntities event to update other gui plugins
   // note this event will be removed in Ignition Garden
@@ -212,7 +220,7 @@ void ModelEditor::Update(const UpdateInfo &,
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
       &event);
 
-  this->dataPtr->linksToAdd.clear();
+  this->dataPtr->entitiesToAdd.clear();
 }
 
 /////////////////////////////////////////////////
@@ -223,59 +231,15 @@ bool ModelEditor::eventFilter(QObject *_obj, QEvent *_event)
     auto event = reinterpret_cast<gui::events::ModelEditorAddEntity *>(_event);
     if (event)
     {
-      this->dataPtr->geomOrLightType = event->Entity().toStdString();
-      this->dataPtr->entityType = event->EntityType().toStdString();
-      this->dataPtr->parentEntity = event->ParentEntity();
-
-      std::cerr << "model editor add entity event " << event->EntityType().toStdString()
-                << " " << this->dataPtr->geomOrLightType << std::endl;
-
-      this->dataPtr->HandleAddEntity(this->dataPtr->geomOrLightType,
-          this->dataPtr->entityType,
-          this->dataPtr->parentEntity);
-
+      this->dataPtr->HandleAddEntity(event->Entity().toStdString(),
+          event->EntityType().toStdString(),
+          event->ParentEntity());
     }
   }
-  else if (_event->type() == ignition::gui::events::Render::kType)
-  {
-    // initialize rendering
-    this->dataPtr->Initialize();
-
-    // do something in rendering thread
-
-  }
-
 
   // Standard event processing
   return QObject::eventFilter(_obj, _event);
 }
-
-/////////////////////////////////////////////////
-void ModelEditorPrivate::Initialize()
-{
-  if (nullptr == this->scene)
-  {
-    this->scene = rendering::sceneFromFirstRenderEngine();
-    if (nullptr == this->scene)
-    {
-      return;
-    }
-//    this->sceneManager.SetScene(this->scene);
-  }
-}
-
-/////////////////////////////////////////////////
-//Entity ModelEditorPrivate::UniqueId()
-//{
-//  auto timeout = 100000u;
-//  for (auto i = 0u; i < timeout; ++i)
-//  {
-//    Entity id = std::numeric_limits<uint64_t>::max() - i;
-//    if (!this->sceneManager.HasEntity(id))
-//      return id;
-//  }
-//  return kNullEntity;
-//}
 
 /////////////////////////////////////////////////
 std::string ModelEditorPrivate::LightSDFString(
@@ -401,8 +365,8 @@ std::string ModelEditorPrivate::LinkSDFString(
   }
 
   std::string geomOrLightStr;
-  if (_geomOrLightType == "spot" || geomOrLightType == "directional" ||
-       geomOrLightType == "point")
+  if (_geomOrLightType == "spot" || _geomOrLightType == "directional" ||
+      _geomOrLightType == "point")
   {
     geomOrLightStr = this->LightSDFString(_geomOrLightType);
     linkStr
@@ -462,63 +426,17 @@ sdf::Sensor ModelEditorPrivate::CreateSensor(const std::string &_type) const
 
 /////////////////////////////////////////////////
 void ModelEditorPrivate::HandleAddEntity(const std::string &_geomOrLightType,
-  const std::string &_type, const Entity /*_parentEntity*/)
+  const std::string &_type, const Entity _parentEntity)
 {
+  std::lock_guard<std::mutex> lock(this->mutex);
   std::string entType = common::lowercase(_type);
   std::string geomLightType = common::lowercase(_geomOrLightType);
-  if (entType == "link")
-  {
-    // auto model = this->scene->VisualByName(parentEntity);
-    // if (!model)
-    // {
-    //   ignerr << "Unable to add link to model. "
-    //          << "Parent entity: '" << parentEntity << "' not found. "
-    //          << std::endl;
-    // }
 
-    // auto link = this->scene->CreateVisual();
-    // auto visual = this->scene->CreateVisual();
-
-    // rendering::GeometryPtr geom;
-    // if (entity == "box")
-    //   geom = this->scene->CreateBox();
-    // else if (entity == "cylinder")
-    //   geom = this->scene->CreateCylinder();
-    // else if (entity == "sphere")
-    //   geom = this->scene->CreateSphere();
-
-    // visual->AddGeometry(geom);
-    // link->AddChild(visual);
-    // model->AddChild(link);
-
-    // create an sdf::Link to it can be added to the ECM throught the
-    // CreateEntities call
-    std::string linkSDFStr = this->LinkSDFString(geomLightType);
-    if (!linkSDFStr.empty())
-    {
-      linkSDFStr = std::string("<sdf version='") + SDF_VERSION + "'>" +
-          linkSDFStr + "</sdf>";
-
-      sdf::ElementPtr linkElem(new sdf::Element);
-      sdf::initFile("link.sdf", linkElem);
-      sdf::readString(linkSDFStr, linkElem);
-      sdf::Link linkSdf;
-      linkSdf.Load(linkElem);
-
-      std::lock_guard<std::mutex> lock(this->mutex);
-      this->linksToAdd.push_back(linkSdf);
-    }
-  }
-  else if (entType == "sensor")
-  {
-    std::cout << "Adding a sensor\n";
-    sdf::Sensor sensor = this->CreateSensor(geomLightType);
-    if (sensor.Type() != sdf::SensorType::NONE)
-    {
-      std::lock_guard<std::mutex> lock(this->mutex);
-      this->sensorsToAdd.push_back(sensor);
-    }
-  }
+  EntityToAdd eta;
+  eta.entityType = entType;
+  eta.geomOrLightType = geomLightType;
+  eta.parentEntity = _parentEntity;
+  this->entitiesToAdd.push_back(eta);
 }
 
 // Register this plugin

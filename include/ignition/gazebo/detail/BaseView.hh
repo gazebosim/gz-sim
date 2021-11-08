@@ -99,13 +99,6 @@ class IGNITION_GAZEBO_VISIBLE BaseView
   /// \sa HasEntity, IsEntityMarkedForAddition
   public: bool MarkEntityToAdd(const Entity _entity, bool _new = false);
 
-  /// \internal
-  /// \brief Mark whether or not an entity is a newly created entity.
-  ///
-  /// \param[in] _entity Entity id to mark as new
-  /// \return True to mark it as new, false to mark it as not new
-  // public: bool MarkEntityAsNew(const Entity _entity, bool _new = false);
-
   /// \brief See if the view requires a particular component type
   /// \param[in] _typeId The component type
   /// \return true if the view requires components of type _typeId, false
