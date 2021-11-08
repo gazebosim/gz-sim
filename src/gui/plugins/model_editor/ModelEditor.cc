@@ -60,7 +60,8 @@ namespace ignition::gazebo
   class ModelEditorPrivate
   {
     /// \brief Handle entity addition
-    /// \param[in] _geomOrLightType Geometry or light type, e.g. sphere, directional, etc
+    /// \param[in] _geomOrLightType Geometry or light type, e.g. sphere,
+    /// directional, etc
     /// \param[in] _entityType Type of entity: link, visual, collision, etc
     /// \param[in] _parentEntity Parent entity
     /// \param[in] _uri URI associated with the entity, needed for mesh
@@ -81,7 +82,17 @@ namespace ignition::gazebo
     /// \param[in] _eta Entity to add.
     public: std::string LinkSDFString(const EntityToAdd &_eta) const;
 
-    public: sdf::Sensor CreateSensor(const std::string &_type) const;
+    /// \brief Create a link
+    /// \param[in] _eta Entity to add.
+    public: std::optional<sdf::Link> CreateLink(
+                const EntityToAdd &_eta,
+                EntityComponentManager &_ecm) const;
+
+    /// \brief Create a sensor
+    /// \param[in] _eta Entity to add.
+    public: std::optional<sdf::Sensor> CreateSensor(
+                const EntityToAdd &_eta,
+                EntityComponentManager &_ecm) const;
 
     /// \brief Entity Creator API.
     public: std::unique_ptr<SdfEntityCreator> entityCreator{nullptr};
@@ -143,56 +154,34 @@ void ModelEditor::Update(const UpdateInfo &,
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   // add link entities to the ECM
   std::set<Entity> newEntities;
-  for (auto & eta: this->dataPtr->entitiesToAdd)
+  for (const auto &eta: this->dataPtr->entitiesToAdd)
   {
-    sdf::Link linkSdf;
+    Entity entity = kNullEntity;
+
     if (eta.entityType == "link")
     {
-      // create an sdf::Link to it can be added to the ECM throught the
-      // CreateEntities call
-      std::string linkSDFStr = this->dataPtr->LinkSDFString(eta);
-      if (!linkSDFStr.empty())
+      std::optional<sdf::Link> link = this->dataPtr->CreateLink(eta, _ecm);
+      if (link)
       {
-        linkSDFStr = std::string("<sdf version='") + SDF_VERSION + "'>" +
-            linkSDFStr + "</sdf>";
-
-        sdf::ElementPtr linkElem(new sdf::Element);
-        sdf::initFile("link.sdf", linkElem);
-        sdf::readString(linkSDFStr, linkElem);
-        linkSdf.Load(linkElem);
+        entity = this->dataPtr->entityCreator->CreateEntities(&(*link));
+        this->dataPtr->entityCreator->SetParent(entity, eta.parentEntity);
       }
-      else
+    }
+    else if (eta.entityType == "sensor")
+    {
+      std::optional<sdf::Sensor> sensor =
+        this->dataPtr->CreateSensor(eta, _ecm);
+      if (sensor)
       {
-        continue;
+        entity = this->dataPtr->entityCreator->CreateEntities(&(*sensor));
+        this->dataPtr->entityCreator->SetParent(entity, eta.parentEntity);
       }
-      if (eta.parentEntity == kNullEntity)
-      {
-        ignerr << "Parent entity not defined." << std::endl;
-         continue;
-      }
+    }
 
-      // generate unique link name
-      // note passing components::Link() as arg to EntityByComponents causes
-      // a crash on exit, see issue #1158
-      std::string linkName = "link";
-      Entity linkEnt = _ecm.EntityByComponents(
-          components::ParentEntity(eta.parentEntity),
-          components::Name(linkName));
-      int64_t counter = 0;
-      while (linkEnt)
-      {
-        linkName = std::string("link") + "_" + std::to_string(++counter);
-        linkEnt = _ecm.EntityByComponents(
-            components::ParentEntity(eta.parentEntity),
-            components::Name(linkName));
-      }
-
-      linkSdf.SetName(linkName);
-      auto entity = this->dataPtr->entityCreator->CreateEntities(&linkSdf);
-      this->dataPtr->entityCreator->SetParent(entity, eta.parentEntity);
-
-      // traverse the tree and add all new entities created by the entity creator
-      // to the set
+    // If an entity was created, then traverse the tree and add all new
+    // entities created by the entity creator to the set
+    if (entity != kNullEntity)
+    {
       std::list<Entity> entities;
       entities.push_back(entity);
       while (!entities.empty())
@@ -402,17 +391,73 @@ std::string ModelEditorPrivate::LinkSDFString(const EntityToAdd &_eta) const
 }
 
 /////////////////////////////////////////////////
-sdf::Sensor ModelEditorPrivate::CreateSensor(const std::string &_type) const
+std::optional<sdf::Link> ModelEditorPrivate::CreateLink(
+    const EntityToAdd &_eta, EntityComponentManager &_ecm) const
 {
+  sdf::Link linkSdf;
+  if (_eta.parentEntity == kNullEntity)
+  {
+    ignerr << "Parent entity not defined." << std::endl;
+    return std::nullopt;
+  }
+
+  // create an sdf::Link to it can be added to the ECM throught the
+  // CreateEntities call
+  std::string linkSDFStr = this->LinkSDFString(_eta);
+  if (!linkSDFStr.empty())
+  {
+    linkSDFStr = std::string("<sdf version='") + SDF_VERSION + "'>" +
+      linkSDFStr + "</sdf>";
+
+    sdf::ElementPtr linkElem(new sdf::Element);
+    sdf::initFile("link.sdf", linkElem);
+    sdf::readString(linkSDFStr, linkElem);
+    linkSdf.Load(linkElem);
+  }
+  else
+  {
+    return std::nullopt;
+  }
+
+  // generate unique link name
+  // note passing components::Link() as arg to EntityByComponents causes
+  // a crash on exit, see issue #1158
+  std::string linkName = "link";
+  Entity linkEnt = _ecm.EntityByComponents(
+      components::ParentEntity(_eta.parentEntity),
+      components::Name(linkName));
+  int64_t counter = 0;
+  while (linkEnt)
+  {
+    linkName = std::string("link") + "_" + std::to_string(++counter);
+    linkEnt = _ecm.EntityByComponents(
+        components::ParentEntity(_eta.parentEntity),
+        components::Name(linkName));
+  }
+
+  linkSdf.SetName(linkName);
+  return linkSdf;
+}
+
+/////////////////////////////////////////////////
+std::optional<sdf::Sensor> ModelEditorPrivate::CreateSensor(
+    const EntityToAdd &_eta, EntityComponentManager &_ecm) const
+{
+  // Exit early if there is no parent entity
+  if (_eta.parentEntity == kNullEntity)
+  {
+    ignerr << "Parent entity not defined." << std::endl;
+    return std::nullopt;
+  }
+
   sdf::Sensor sensor;
 
   std::string type;
 
   // Replace spaces with underscores.
-  common::replaceAll(type, _type, " ", "_");
+  common::replaceAll(type, _eta.geomOrLightType, " ", "_");
 
-  sensor.SetName("default");
-  sensor.SetType(_type);
+  sensor.SetType(_eta.geomOrLightType);
   if (type == "air_pressure")
   {
     sdf::AirPressure airpressure;
@@ -425,8 +470,26 @@ sdf::Sensor ModelEditorPrivate::CreateSensor(const std::string &_type) const
   }
   else
   {
-    ignerr << "Unable to create sensor type[" << _type << "]\n";
+    ignerr << "Unable to create sensor type[" << _eta.geomOrLightType << "]\n";
+    return std::nullopt;
   }
+
+  // generate unique sensor name
+  // note passing components::Link() as arg to EntityByComponents causes
+  // a crash on exit, see issue #1158
+  std::string sensorName = type;
+  Entity sensorEnt = _ecm.EntityByComponents(
+      components::ParentEntity(_eta.parentEntity),
+      components::Name(sensorName));
+  int64_t counter = 0;
+  while (sensorEnt)
+  {
+    sensorName = type + "_" + std::to_string(++counter);
+    sensorEnt = _ecm.EntityByComponents(
+        components::ParentEntity(_eta.parentEntity),
+        components::Name(sensorName));
+  }
+  sensor.SetName(sensorName);
 
   return sensor;
 }

@@ -393,7 +393,7 @@ Rectangle {
             id: airPressure
             text: "Air pressure"
             onTriggered: {
-              ComponentInspector.OnAddEntity(contact.text, "sensor");
+              ComponentInspector.OnAddEntity(airPressure.text, "sensor");
             }
           }
       
@@ -421,7 +421,6 @@ Rectangle {
             id: contact
             text: "Contact"
             onTriggered: {
-              addSensorMenu.close()
               ComponentInspector.OnAddEntity(contact.text, "sensor");
             }
           }
@@ -430,7 +429,6 @@ Rectangle {
             id: forceTorque
             text: "Force torque"
             onTriggered: {
-              addSensorMenu.close()
               ComponentInspector.OnAddEntity(forceTorque.text, "sensor");
             }
           }
@@ -439,7 +437,6 @@ Rectangle {
             id: gps
             text: "GPS"
             onTriggered: {
-              addSensorMenu.close()
               ComponentInspector.OnAddEntity(gps.text, "sensor");
             }
           }
@@ -448,7 +445,6 @@ Rectangle {
             id: imu
             text: "IMU"
             onTriggered: {
-              addSensorMenu.close()
               ComponentInspector.OnAddEntity(imu.text, "sensor");
             }
           }
@@ -462,7 +458,6 @@ Rectangle {
             id: magnetometer
             text: "magnetometer"
             onTriggered: {
-              addSensorMenu.close()
               ComponentInspector.OnAddEntity(magnetometer.text, "sensor");
             }
           }
@@ -498,7 +493,6 @@ Rectangle {
           }
         }
       }
-
 
       Label {
         id: entityLabel
