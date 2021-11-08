@@ -43,8 +43,68 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
   /// \brief Private data class for VisualizeForces
   class VisualizeForcesPrivate
   {
-    
+    public: ForceListModel model; 
   };
+
+  ForceListModel::ForceListModel()
+  {
+    arrows = {
+      ForceArrow{
+        "be", "buoyancyEngine", "#440044", false
+      },
+      ForceArrow{
+        "be", "buoyancyEngine", "#004444", false
+      },
+      ForceArrow{
+        "be", "buoyancyEngine", "#444400", false
+      },
+    };
+  }
+
+  QVariant ForceListModel::data(
+    const QModelIndex &index, int role) const
+  {
+    if (index.row() < 0 || index.row() > arrows.size())
+      return QVariant();
+
+    if (role == ArrowRoles::LinkRole)
+    {
+      return QString::fromStdString(arrows[index.row()].linkName);
+    }
+
+    if (role == ArrowRoles::PluginRole)
+    {
+      return QString::fromStdString(arrows[index.row()].pluginName);
+    }
+
+    if (role == ArrowRoles::ColorRole)
+    {
+      return QString::fromStdString(arrows[index.row()].color);
+    }
+
+    if (role == ArrowRoles::VisibleRole)
+    {
+      return arrows[index.row()].visible;
+    }
+
+    return QVariant();
+  }
+
+  int ForceListModel::rowCount(const QModelIndex &parent) const
+  {
+    return arrows.size();
+  }
+  
+  QHash<int,QByteArray> ForceListModel::roleNames() const
+  {
+    return {
+      std::pair(ArrowRoles::LinkRole, "link"),
+      std::pair(ArrowRoles::PluginRole, "plugin"),
+      std::pair(ArrowRoles::ColorRole, "arrowColor"),
+      std::pair(ArrowRoles::VisibleRole, "isVisible")
+    };
+  }
+ 
 }
 }
 }
@@ -56,6 +116,8 @@ using namespace gazebo;
 VisualizeForces::VisualizeForces()
   : GuiSystem(), dataPtr(new VisualizeForcesPrivate)
 {
+  ignition::gui::App()->Engine()->rootContext()->setContextProperty(
+     "ForceListModel", &this->dataPtr->model);
 }
 
 /////////////////////////////////////////////////

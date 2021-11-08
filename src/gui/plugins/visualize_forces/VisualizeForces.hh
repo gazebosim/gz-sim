@@ -22,6 +22,8 @@
 
 #include <ignition/gazebo/gui/GuiSystem.hh>
 
+ #include <QAbstractListModel> 
+
 #include "ignition/gui/qt.h"
 
 namespace ignition
@@ -32,6 +34,38 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 {
   class VisualizeForcesPrivate;
+
+  /// \brief Model for incoming arrows
+  class ForceListModel: public QAbstractListModel
+  {
+    Q_OBJECT
+
+    public:
+      enum ArrowRoles {
+        LinkRole = Qt::UserRole + 1,
+        PluginRole,
+        ColorRole,
+        VisibleRole
+      };
+
+      struct ForceArrow
+      {
+        std::string linkName;
+        std::string pluginName;
+        std::string color;
+        bool visible;
+      };
+      ForceListModel();
+
+      ~ForceListModel() override = default;
+
+      QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
+      int rowCount(const QModelIndex &parent = QModelIndex()) const;
+      QHash<int,QByteArray> roleNames() const;
+
+    private:
+      std::vector<ForceArrow> arrows;
+  };
 
   /// \brief Visualize Force markers
   class VisualizeForces : public ignition::gazebo::GuiSystem
