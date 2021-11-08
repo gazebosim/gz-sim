@@ -274,7 +274,6 @@ Rectangle {
             id: airPressure
             text: "Air pressure"
             onTriggered: {
-              addSensorMenu.close()
               ComponentInspector.OnAddEntity(contact.text, "sensor");
             }
           }
@@ -283,7 +282,6 @@ Rectangle {
             id: altimeter
             text: "Altimeter"
             onTriggered: {
-              addSensorMenu.close()
               ComponentInspector.OnAddEntity(altimeter.text, "sensor");
             }
           }
@@ -296,6 +294,7 @@ Rectangle {
               anchors.fill: parent
               hoverEnabled: true
               onEntered: secondCameraMenu.open()
+              onExited:secondCameraMenu.close()
             }
           }
       
