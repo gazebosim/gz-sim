@@ -34,6 +34,9 @@ else()
   set (EXTRA_TEST_LIB_DEPS)
 endif()
 
+include(test/find_dri.cmake)
+FindDRI()
+
 #============================================================================
 # Search for project-specific dependencies
 #============================================================================
@@ -84,7 +87,7 @@ set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools7_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-gui
-ign_find_package(ignition-gui6 REQUIRED)
+ign_find_package(ignition-gui6 REQUIRED VERSION 6.1)
 set(IGN_GUI_VER ${ignition-gui6_VERSION_MAJOR})
 ign_find_package (Qt5
   COMPONENTS

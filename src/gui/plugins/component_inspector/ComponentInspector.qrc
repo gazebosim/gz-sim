@@ -3,6 +3,7 @@
   <file>Boolean.qml</file>
   <file>Camera.qml</file>
   <file>ComponentInspector.qml</file>
+  <file>ExpandingTypeHeader.qml</file>
   <file>Light.qml</file>
   <file>NoData.qml</file>
   <file>Physics.qml</file>
