@@ -1325,6 +1325,8 @@ void EntityComponentManager::SetState(
       // Get Component
       auto comp = this->ComponentImplementation(entity, type);
 
+      std::istringstream istr(compMsg.component());
+
       // Create if new
       if (nullptr == comp)
       {
@@ -1335,13 +1337,13 @@ void EntityComponentManager::SetState(
             << compMsg.type() << "]" << std::endl;
           continue;
         }
-        std::istringstream istr(compMsg.component());
         newComp->Deserialize(istr);
         this->CreateComponentImplementation(entity, type, newComp.get());
       }
       // Update component value
       else
       {
+        comp->Deserialize(istr);
         this->dataPtr->AddModifiedComponent(entity);
       }
     }
