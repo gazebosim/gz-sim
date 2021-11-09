@@ -30,23 +30,6 @@ Rectangle {
   width: componentInspector.width
   color: index % 2 == 0 ? lightGrey : darkGrey
 
-  /**
-   * Forward air pressure noise changes to C++
-   */
-  function onAirPressureNoise(_mean, _meanBias, _stdDev, _stdDevBias,
-      _dynamicBiasStdDev, _dynamicBiasCorrelationTime) {
-    AirPressureImpl.OnAirPressureNoise(
-        _mean, _meanBias, _stdDev, _stdDevBias,
-        _dynamicBiasStdDev, _dynamicBiasCorrelationTime);
-  }
-
-  /**
-   * Forward air pressure reference altitude changes to C++
-   */
-  function onAirPressureReferenceAltitude(_referenceAltitude) {
-    AirPressureImpl.OnAirPressureReferenceAltitude(_referenceAltitude);
-  }
-
   Column {
     anchors.fill: parent
 
@@ -107,7 +90,7 @@ Rectangle {
             stepSize: 0.1
             onEditingFinished: {
               refAltitude = referenceAltitudeSpin.value
-              onAirPressureReferenceAltitude(refAltitude);
+              AirPressureImpl.OnAirPressureReferenceAltitude(refAltitude);
             }
           }
         }
@@ -144,7 +127,7 @@ Rectangle {
           // Connect to the onNoiseUpdate signal in Noise.qml
           Component.onCompleted: {
             pressureNoise.onNoiseUpdate.connect(
-                onAirPressureNoise)
+                AirPressureImpl.OnAirPressureNoise)
           }
         }
       }

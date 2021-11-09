@@ -133,7 +133,6 @@ Rectangle {
           decimals: componentInspector.getDecimalsAdjustValue(meanSpin, meanValue) 
           stepSize: 0.1
           onEditingFinished: {
-            console.log("Width", meanSpin.width);
             meanValue = meanSpin.value;
             onNoiseUpdate(meanValue, meanBias, stdDevValue, stdDevBias,
                 dynamicBiasStdDev, dynamicBiasCorrelationTime);
