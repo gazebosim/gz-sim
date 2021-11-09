@@ -17,6 +17,8 @@
 
 #include <map>
 #include <set>
+#include <sstream>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -1106,49 +1108,51 @@ void EntityComponentManager::SetState(
         continue;
       }
 
-      // Create component
-      auto newComp = components::Factory::Instance()->New(compMsg.type());
-
-      if (nullptr == newComp)
-      {
-        ignerr << "Failed to deserialize component of type [" << compMsg.type()
-               << "]" << std::endl;
-        continue;
-      }
-
-      std::istringstream istr(compMsg.component());
-      newComp->Deserialize(istr);
-
-      // Get type id
-      auto typeId = newComp->TypeId();
-
-      // TODO(louise) Move into if, see TODO below
-      this->RemoveComponent(entity, typeId);
-
       // Remove component
       if (compMsg.remove())
       {
+        this->RemoveComponent(entity, type);
         continue;
       }
 
       // Get Component
-      auto comp = this->ComponentImplementation(entity, typeId);
+      auto comp = this->ComponentImplementation(entity, type);
 
       // Create if new
       if (nullptr == comp)
       {
-        this->CreateComponentImplementation(entity, typeId, newComp.get());
+        auto newComp = components::Factory::Instance()->New(type);
+        if (nullptr == newComp)
+        {
+          ignerr << "Failed to create component type ["
+            << compMsg.type() << "]" << std::endl;
+          continue;
+        }
+        std::istringstream istr(compMsg.component());
+        newComp->Deserialize(istr);
+        this->CreateComponentImplementation(entity, type, newComp.get());
       }
       // Update component value
       else
       {
-        ignerr << "Internal error" << std::endl;
-        // TODO(louise) We're shortcutting above and always  removing the
-        // component so that we don't get here, gotta figure out why this
-        // doesn't update the component. The following line prints the correct
-        // values.
-        // igndbg << *comp << "  " << *newComp.get() << std::endl;
-        // *comp = *newComp.get();
+        std::istringstream istr(compMsg.component());
+        comp->Deserialize(istr);
+        // note on merging forward:
+        // `AddModifiedComponent` method is available/used in ign-gazebo4, so we
+        // don't need this header patch when merging forward
+        auto flag = ComponentState::PeriodicChange;
+        for (int i = 0; i < _stateMsg.header().data_size(); ++i)
+        {
+          if (_stateMsg.header().data(i).key() ==
+              "has_one_time_component_changes")
+          {
+            int v = stoi(_stateMsg.header().data(i).value(0));
+            if (v)
+              flag = ComponentState::OneTimeChange;
+            break;
+          }
+        }
+        this->SetChanged(entity, type, flag);
       }
     }
   }
