@@ -417,7 +417,7 @@ TEST_P(OdometryPublisherTest, Movement3d)
 {
   TestMovement3d(
       ignition::common::joinPaths(PROJECT_SOURCE_PATH,
-      "/test/worlds/odometry_publisher_3d.sdf"),
+      "test", "worlds", "odometry_publisher_3d.sdf"),
       "/model/X3/odometry");
 }
 
