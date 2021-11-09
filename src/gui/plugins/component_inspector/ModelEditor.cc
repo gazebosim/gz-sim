@@ -78,8 +78,12 @@ namespace ignition::gazebo
 
     /// \brief Get a SDF string of a link
     /// \param[in] _eta Entity to add.
+    /// \return SDF string
     public: std::string LinkSDFString(const EntityToAdd &_eta) const;
 
+    /// \brief Create a sensor based on a type.
+    /// \param[in] _type Sensor type.
+    /// \return SDF sensor object.
     public: sdf::Sensor CreateSensor(const std::string &_type) const;
 
     /// \brief Entity Creator API.
@@ -400,29 +404,49 @@ std::string ModelEditorPrivate::LinkSDFString(const EntityToAdd &_eta) const
 /////////////////////////////////////////////////
 sdf::Sensor ModelEditorPrivate::CreateSensor(const std::string &_type) const
 {
+  // Exit early if there is no parent entity
+  if (_eta.parentEntity == kNullEntity)
+  {
+    ignerr << "Parent entity not defined." << std::endl;
+    return std::nullopt;
+  }
+
   sdf::Sensor sensor;
 
   std::string type;
 
   // Replace spaces with underscores.
-  common::replaceAll(type, _type, " ", "_");
+  common::replaceAll(type, _eta.geomOrLightType, " ", "_");
 
-  sensor.SetName("default");
-  sensor.SetType(_type);
-  if (type == "air_pressure")
+  std::ostringstream stream;
+  stream << "<sdf version='" << SDF_VERSION << "'>"
+    << "<sensor name='" << type << "' type='" << type << "'>"
+    << "<" << type << "></" << type << "></sensor></sdf>";
+
+  auto sdfStr = stream.str();
+  sdf::ElementPtr sensorElem(new sdf::Element);
+  sdf::initFile("sensor.sdf", sensorElem);
+  sdf::readString(sdfStr, sensorElem);
+  sensor.Load(sensorElem);
+
+  // generate unique sensor name
+  // note passing components::Link() as arg to EntityByComponents causes
+  // a crash on exit, see issue #1158
+  std::string sensorName = type;
+  Entity sensorEnt = _ecm.EntityByComponents(
+      components::ParentEntity(_eta.parentEntity),
+      components::Name(sensorName));
+  int64_t counter = 0;
+  while (sensorEnt)
   {
-    sdf::AirPressure airpressure;
-    sensor.SetAirPressureSensor(airpressure);
+    sensorName = type + "_" + std::to_string(++counter);
+    sensorEnt = _ecm.EntityByComponents(
+        components::ParentEntity(_eta.parentEntity),
+        components::Name(sensorName));
   }
-  else if (type == "altimeter")
-  {
-    sdf::Altimeter altimeter;
-    sensor.SetAltimeterSensor(altimeter);
-  }
-  else
-  {
-    ignerr << "Unable to create sensor type[" << _type << "]\n";
-  }
+  sensor.SetName(sensorName);
+
+  sensor.SetTopic("/" + sensorName);
 
   return sensor;
 }

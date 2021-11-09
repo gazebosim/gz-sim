@@ -380,7 +380,7 @@ Rectangle {
           sourceSize.width: 18;
           sourceSize.height: 18;
         }
-        ToolTip.text: "Add sensor"
+        ToolTip.text: "Add a sensor to a link"
         ToolTip.visible: hovered
         ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
         onClicked: {
