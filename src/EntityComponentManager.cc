@@ -430,7 +430,8 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
     Entity recreateEnt = ent;
     while (recreateEnt != kNullEntity && !hasRecreateComp)
     {
-      hasRecreateComp = this->Component<components::Recreate>(recreateEnt) != nullptr;
+      hasRecreateComp = this->Component<components::Recreate>(recreateEnt) !=
+        nullptr;
       auto parentComp = this->Component<components::ParentEntity>(recreateEnt);
       recreateEnt = parentComp ? parentComp->Data() : kNullEntity;
     }
