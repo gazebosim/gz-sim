@@ -310,6 +310,8 @@ class ignition::gazebo::systems::UserCommandsPrivate
   /// \return True if successful.
   public: bool LightService(const msgs::Light &_req, msgs::Boolean &_res);
 
+  public: void OnCmdLight(const msgs::Light &_msg);
+
   /// \brief Callback for pose service
   /// \param[in] _req Request containing pose update of an entity.
   /// \param[in] _res True if message successfully received and queued.
@@ -454,6 +456,10 @@ void UserCommands::Configure(const Entity &_entity,
   ignmsg << "Light configuration service on [" << lightService << "]"
     << std::endl;
 
+  std::string lightTopic{"/world/" + validWorldName + "/light_config"};
+  this->dataPtr->node.Subscribe(lightTopic, &UserCommandsPrivate::OnCmdLight,
+                                this->dataPtr.get());
+
   // Physics service
   std::string physicsService{"/world/" + validWorldName + "/set_physics"};
   this->dataPtr->node.Advertise(physicsService,
@@ -588,6 +594,21 @@ bool UserCommandsPrivate::LightService(const msgs::Light &_req,
   _res.set_data(true);
   return true;
 }
+
+//////////////////////////////////////////////////
+void UserCommandsPrivate::OnCmdLight(const msgs::Light &_msg)
+{
+  auto msg = _msg.New();
+  msg->CopyFrom(_msg);
+  auto cmd = std::make_unique<LightCommand>(msg, this->iface);
+
+  // Push to pending
+  {
+    std::lock_guard<std::mutex> lock(this->pendingMutex);
+    this->pendingCmds.push_back(std::move(cmd));
+  }
+}
+
 
 //////////////////////////////////////////////////
 bool UserCommandsPrivate::PoseService(const msgs::Pose &_req,
