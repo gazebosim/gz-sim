@@ -263,7 +263,7 @@ The C++ classes are available in Ruby code by interface files (`.i`) used by swi
 
 The interfaces and Ruby test codes are in the `src` folder. To use a C++ class in Ruby you need to:
 
-1. Create an interface file describing the class as in Swig and Ruby reference at [The Ruby-to-C/C++ Mapping](http://www.swig.org/D      oc1.3/Ruby.html#Ruby_nn11)
+1. Create an interface file describing the class as in Swig and Ruby reference at [The Ruby-to-C/C++ Mapping](http://www.swig.org/Doc1.3/Ruby.html#Ruby_nn11)
 
 2. Include the interface file in `/src/ing_math.i`
 
