@@ -2629,6 +2629,102 @@ TEST_P(EntityComponentManagerFixture, PinnedEntity)
   EXPECT_EQ(0u, manager.EntityCount());
 }
 
+//////////////////////////////////////////////////
+/// \brief Test using msgs::SerializedStateMap and msgs::SerializedState
+/// to update existing component data between multiple ECMs
+TEST_P(EntityComponentManagerFixture, StateMsgUpdateComponent)
+{
+  // create 2 ECMs: one will be modified directly, and the other should be
+  // updated to match the first via msgs::SerializedStateMap
+  EntityComponentManager originalECMStateMap;
+  EntityComponentManager otherECMStateMap;
+
+  // create an entity and component
+  auto entity = originalECMStateMap.CreateEntity();
+  originalECMStateMap.CreateComponent(entity, components::IntComponent(1));
+
+  int foundEntities = 0;
+  otherECMStateMap.Each<components::IntComponent>(
+      [&](const Entity &, const components::IntComponent *)
+      {
+        foundEntities++;
+        return true;
+      });
+  EXPECT_EQ(0, foundEntities);
+
+  // update the other ECM to have the new entity and component
+  msgs::SerializedStateMap stateMapMsg;
+  originalECMStateMap.State(stateMapMsg);
+  otherECMStateMap.SetState(stateMapMsg);
+  foundEntities = 0;
+  otherECMStateMap.Each<components::IntComponent>(
+      [&](const Entity &, const components::IntComponent *_intComp)
+      {
+        foundEntities++;
+        EXPECT_EQ(1, _intComp->Data());
+        return true;
+      });
+  EXPECT_EQ(1, foundEntities);
+
+  // modify a component and then share the update with the other ECM
+  stateMapMsg.Clear();
+  originalECMStateMap.SetComponentData<components::IntComponent>(entity, 2);
+  originalECMStateMap.State(stateMapMsg);
+  otherECMStateMap.SetState(stateMapMsg);
+  foundEntities = 0;
+  otherECMStateMap.Each<components::IntComponent>(
+      [&](const Entity &, const components::IntComponent *_intComp)
+      {
+        foundEntities++;
+        EXPECT_EQ(2, _intComp->Data());
+        return true;
+      });
+  EXPECT_EQ(1, foundEntities);
+
+  // Run the same test as above, but this time, use a msgs::SerializedState
+  // instead of a msgs::SerializedStateMap
+  EntityComponentManager originalECMState;
+  EntityComponentManager otherECMState;
+
+  foundEntities = 0;
+  otherECMState.Each<components::IntComponent>(
+      [&](const Entity &, const components::IntComponent *)
+      {
+        foundEntities++;
+        return true;
+      });
+  EXPECT_EQ(0, foundEntities);
+
+  entity = originalECMState.CreateEntity();
+  originalECMState.CreateComponent(entity, components::IntComponent(1));
+
+  auto stateMsg = originalECMState.State();
+  otherECMState.SetState(stateMsg);
+  foundEntities = 0;
+  otherECMState.Each<components::IntComponent>(
+      [&](const Entity &, const components::IntComponent *_intComp)
+      {
+        foundEntities++;
+        EXPECT_EQ(1, _intComp->Data());
+        return true;
+      });
+  EXPECT_EQ(1, foundEntities);
+
+  stateMsg.Clear();
+  originalECMState.SetComponentData<components::IntComponent>(entity, 2);
+  stateMsg = originalECMState.State();
+  otherECMState.SetState(stateMsg);
+  foundEntities = 0;
+  otherECMState.Each<components::IntComponent>(
+      [&](const Entity &, const components::IntComponent *_intComp)
+      {
+        foundEntities++;
+        EXPECT_EQ(2, _intComp->Data());
+        return true;
+      });
+  EXPECT_EQ(1, foundEntities);
+}
+
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
 INSTANTIATE_TEST_SUITE_P(EntityComponentManagerRepeat,

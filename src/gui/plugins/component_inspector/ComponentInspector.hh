@@ -171,8 +171,8 @@ namespace gazebo
 
     /// \brief Entity
     Q_PROPERTY(
-      int entity
-      READ Entity
+      Entity entity
+      READ GetEntity
       WRITE SetEntity
       NOTIFY EntityChanged
     )
@@ -307,11 +307,11 @@ namespace gazebo
 
     /// \brief Get the entity currently inspected.
     /// \return Entity ID.
-    public: Q_INVOKABLE int Entity() const;
+    public: Q_INVOKABLE Entity GetEntity() const;
 
     /// \brief Set the entity currently inspected.
     /// \param[in] _entity Entity ID.
-    public: Q_INVOKABLE void SetEntity(const int &_entity);
+    public: Q_INVOKABLE void SetEntity(const Entity &_entity);
 
     /// \brief Notify that entity has changed.
     signals: void EntityChanged();
