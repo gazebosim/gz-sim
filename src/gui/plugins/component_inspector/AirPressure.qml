@@ -30,6 +30,23 @@ Rectangle {
   width: componentInspector.width
   color: index % 2 == 0 ? lightGrey : darkGrey
 
+  /**
+   * Forward air pressure noise changes to C++
+   */
+  function onAirPressureNoise(_mean, _meanBias, _stdDev, _stdDevBias,
+      _dynamicBiasStdDev, _dynamicBiasCorrelationTime) {
+    AirPressureImpl.OnAirPressureNoise(
+        _mean, _meanBias, _stdDev, _stdDevBias,
+        _dynamicBiasStdDev, _dynamicBiasCorrelationTime);
+  }
+
+  /**
+   * Forward air pressure reference altitude changes to C++
+   */
+  function onAirPressureReferenceAltitude(_referenceAltitude) {
+    AirPressureImpl.OnAirPressureReferenceAltitude(_referenceAltitude);
+  }
+
   Column {
     anchors.fill: parent
 
@@ -41,7 +58,7 @@ Rectangle {
       // Set the 'expandingHeaderText' value to override the default header
       // values, which is based on the model.
       expandingHeaderText: "Air pressure"
-      expandingHeaderToolTip: "Air pressure properties" 
+      expandingHeaderToolTip: "Air pressure properties"
     }
 
     // This is the content that will be expanded/contracted using the
@@ -82,15 +99,15 @@ Rectangle {
             Layout.fillWidth: true
             height: 40
             property double refAltitude: model.data[0]
-            value: referenceAltitudeSpin.activeFocus ? referenceAltitudeSpin.value : refAltitude 
+            value: referenceAltitudeSpin.activeFocus ? referenceAltitudeSpin.value : refAltitude
 
-            minimumValue: 0 
-            maximumValue: 100000 
-            decimals:4 
+            minimumValue: 0
+            maximumValue: 100000
+            decimals:4
             stepSize: 0.1
             onEditingFinished: {
               refAltitude = referenceAltitudeSpin.value
-              componentInspector.onAirPressureReferenceAltitude(refAltitude);
+              onAirPressureReferenceAltitude(refAltitude);
             }
           }
         }
@@ -127,7 +144,7 @@ Rectangle {
           // Connect to the onNoiseUpdate signal in Noise.qml
           Component.onCompleted: {
             pressureNoise.onNoiseUpdate.connect(
-                componentInspector.onAirPressureNoise)
+                onAirPressureNoise)
           }
         }
       }

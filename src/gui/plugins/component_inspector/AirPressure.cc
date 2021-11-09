@@ -30,7 +30,7 @@ using namespace gazebo;
 /////////////////////////////////////////////////
 AirPressure::AirPressure(ComponentInspector *_inspector)
 {
-  _inspector->Context()->setContextProperty("AirPressure", this);
+  _inspector->Context()->setContextProperty("AirPressureImpl", this);
   this->inspector = _inspector;
 
   ComponentCreator creator =
