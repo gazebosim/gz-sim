@@ -1046,6 +1046,7 @@ void ComponentInspector::OnAddEntity(const QString &_entity,
   // todo(anyone) support adding visuals / collisions / sensors to links
   ignition::gazebo::gui::events::ModelEditorAddEntity addEntityEvent(
       _entity, _type, this->dataPtr->entity, QString(""));
+
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
       &addEntityEvent);
