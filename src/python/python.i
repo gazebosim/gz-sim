@@ -34,6 +34,7 @@
 %include AxisAlignedBox.i
 %include Plane.i
 %include MassMatrix3.i
+%include OrientedBox.i
 %include Box.i
 %include Cylinder.i
 %include Sphere.i
