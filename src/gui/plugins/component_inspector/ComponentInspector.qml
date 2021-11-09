@@ -413,7 +413,7 @@ Rectangle {
               id: viewSubCameraArea
               anchors.fill: parent
               hoverEnabled: true
-              onEntered: secondCameraMenu.open()
+              onEntered: cameraSubmenu.open()
             }
           }
       
@@ -450,10 +450,17 @@ Rectangle {
           }
       
           MenuItem {
-            id: lidar
-            text: "Lidar"
+            id: lidarSensorMenu
+            text: "Lidar >"
+
+            MouseArea {
+              id: viewSubLidarArea
+              anchors.fill: parent
+              hoverEnabled: true
+              onEntered: cameraSubmenu.open()
+            }
           }
-      
+     
           MenuItem {
             id: magnetometer
             text: "magnetometer"
@@ -464,15 +471,9 @@ Rectangle {
         }
       
         Menu {
-          id: secondCameraMenu
+          id: cameraSubmenu
           x: addSensorMenu.x - addSensorMenu.width
           y: addSensorMenu.y + cameraSensorMenu.y
-          MouseArea {
-            id: viewSubCameraAreaExit
-            anchors.fill: parent
-            hoverEnabled: true
-            onExited: secondCameraMenu.close()
-          }
 
           MenuItem {
             id: depth
@@ -514,6 +515,44 @@ Rectangle {
             text: "Thermal"
              onTriggered: {
               ComponentInspector.OnAddEntity("thermal_camera", "sensor");
+            }
+          }
+        }
+
+        Menu {
+          id: lidarSubmenu
+          x: addSensorMenu.x - addSensorMenu.width
+          y: addSensorMenu.y + lidarSensorMenu.y
+
+          MenuItem {
+            id: cpuLidar
+            text: "CPU Lidar"
+             onTriggered: {
+              ComponentInspector.OnAddEntity("cpu_lidar", "sensor");
+            }
+          }
+
+          MenuItem {
+            id: cpuRay
+            text: "CPU Ray"
+             onTriggered: {
+              ComponentInspector.OnAddEntity("cpu_ray", "sensor");
+            }
+          }
+
+          MenuItem {
+            id: gpuLidar
+            text: "GPU Lidar"
+             onTriggered: {
+              ComponentInspector.OnAddEntity("gpu_lidar", "sensor");
+            }
+          }
+
+          MenuItem {
+            id: gpuRay
+            text: "GPU Ray"
+             onTriggered: {
+              ComponentInspector.OnAddEntity("gpu_ray", "sensor");
             }
           }
         }
