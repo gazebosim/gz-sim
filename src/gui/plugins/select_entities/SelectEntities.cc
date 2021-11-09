@@ -300,6 +300,7 @@ void SelectEntitiesPrivate::HighlightNode(const rendering::VisualPtr &_visual)
     wireBoxVis->SetInheritScale(false);
     wireBoxVis->AddGeometry(wireBox);
     wireBoxVis->SetMaterial(white, false);
+    wireBoxVis->SetUserData("gui-only", static_cast<bool>(true));
     _visual->AddChild(wireBoxVis);
 
     // Add wire box to map for setting visibility
