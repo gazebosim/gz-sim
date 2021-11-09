@@ -17,7 +17,10 @@
 
 #include <iostream>
 #include <list>
+#include <map>
 #include <regex>
+#include <vector>
+
 #include <ignition/common/Console.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/gui/Application.hh>
@@ -66,6 +69,7 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
+#include "AirPressure.hh"
 #include "ComponentInspector.hh"
 
 namespace ignition::gazebo
@@ -101,6 +105,16 @@ namespace ignition::gazebo
 
     /// \brief Transport node for making command requests
     public: transport::Node node;
+
+    /// \brief Air pressure sensor inspector elements
+    public: std::unique_ptr<ignition::gazebo::AirPressure> airPressure;
+
+    /// \brief Set of callbacks to execute during the Update function.
+    public: std::vector<
+            std::function<void(EntityComponentManager &)>> updateCallbacks;
+
+    /// \brief A map of component type to creation functions.
+    public: std::map<ComponentTypeId, ComponentCreator> componentCreators;
   };
 }
 
@@ -405,6 +419,9 @@ void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
   // Connect model
   this->Context()->setContextProperty(
       "ComponentsModel", &this->dataPtr->componentsModel);
+
+  // Create air pressure
+  this->dataPtr->airPressure = std::make_unique<AirPressure>(this);
 }
 
 //////////////////////////////////////////////////
@@ -412,9 +429,6 @@ void ComponentInspector::Update(const UpdateInfo &,
     EntityComponentManager &_ecm)
 {
   IGN_PROFILE("ComponentInspector::Update");
-
-  if (this->dataPtr->paused)
-    return;
 
   auto componentTypes = _ecm.ComponentTypes(this->dataPtr->entity);
 
@@ -768,6 +782,12 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, comp->Data());
     }
+    else if (this->dataPtr->componentCreators.find(typeId) !=
+          this->dataPtr->componentCreators.end())
+    {
+      this->dataPtr->componentCreators[typeId](
+          _ecm, this->dataPtr->entity, item);
+    }
   }
 
   // Remove components no longer present - list items to remove
@@ -789,6 +809,24 @@ void ComponentInspector::Update(const UpdateInfo &,
         Qt::QueuedConnection,
         Q_ARG(ignition::gazebo::ComponentTypeId, typeId));
   }
+
+  // Process all of the update callbacks
+  for (auto cb : this->dataPtr->updateCallbacks)
+    cb(_ecm);
+  this->dataPtr->updateCallbacks.clear();
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::AddUpdateCallback(UpdateCallback _cb)
+{
+  this->dataPtr->updateCallbacks.push_back(_cb);
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::RegisterComponentCreator(ComponentTypeId _id,
+    ComponentCreator _creatorFn)
+{
+  this->dataPtr->componentCreators[_id] = _creatorFn;
 }
 
 /////////////////////////////////////////////////

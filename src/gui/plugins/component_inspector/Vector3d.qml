@@ -58,7 +58,7 @@ Rectangle {
       value: numberValue
       minimumValue: -spinMax
       maximumValue: spinMax
-      decimals: getDecimals(writableSpin.width)
+      decimals: getDecimalsAdjustValue(writableSpin, numberValue)
     }
   }
 
@@ -73,7 +73,7 @@ Rectangle {
       horizontalAlignment: Text.AlignRight
       verticalAlignment: Text.AlignVCenter
       text: {
-        var decimals = getDecimals(numberText.width)
+        var decimals = getDecimals(numberText)
         return numberValue.toFixed(decimals)
       }
     }
