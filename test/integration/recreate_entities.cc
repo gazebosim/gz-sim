@@ -99,7 +99,6 @@ TEST_F(RecreateEntitiesFixture, RecreateEntities)
   server.Run(true, 1, false);
   EXPECT_NE(nullptr, ecm);
 
-
   // model entity ids
   Entity boxModelEntity = kNullEntity;
   Entity cylModelEntity = kNullEntity;

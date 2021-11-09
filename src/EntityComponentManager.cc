@@ -423,10 +423,19 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
   {
     // if there is an entity with the same name and user indicated renaming is
     // not allowed then return null entity.
-    // If the entity has a Recreate component then carry on since the ECM
-    // is supposed to create a new entity with the same name.
-    auto ent = this->EntityByComponents(components::Name(_name));
-    if (kNullEntity != ent && !this->Component<components::Recreate>(ent))
+    // If the entity or one of its ancestor has a Recreate component then carry
+    // on since the ECM is supposed to create a new entity with the same name.
+    Entity ent = this->EntityByComponents(components::Name(_name));
+    bool hasRecreateComp = false;
+    Entity recreateEnt = ent;
+    while (recreateEnt != kNullEntity && !hasRecreateComp)
+    {
+      hasRecreateComp = this->Component<components::Recreate>(recreateEnt) != nullptr;
+      auto parentComp = this->Component<components::ParentEntity>(recreateEnt);
+      recreateEnt = parentComp ? parentComp->Data() : kNullEntity;
+    }
+
+    if (kNullEntity != ent && !hasRecreateComp)
     {
       ignerr << "Requested to clone entity [" << _entity
         << "] with a name of [" << _name << "], but another entity already "
