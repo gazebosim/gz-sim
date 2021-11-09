@@ -17,6 +17,7 @@
 
 
 #include <map>
+#include <memory>
 #include <unordered_map>
 
 #include <sdf/Box.hh>
@@ -404,6 +405,176 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
 }
 
 /////////////////////////////////////////////////
+std::vector<rendering::NodePtr> SceneManager::Filter(const std::string &_node,
+    std::function<bool(const rendering::NodePtr _nodeToFilter)> _filter) const
+{
+  std::vector<rendering::NodePtr> filteredNodes;
+
+  // make sure there is a rendering node named _node
+  auto rootNode = this->dataPtr->scene->NodeByName(_node);
+  if (!rootNode)
+  {
+    ignerr << "Could not find a node with the name [" << _node
+           << "] in the scene." << std::endl;
+    return filteredNodes;
+  }
+
+  // go through _node and its children in top level order, applying _filter to
+  // each node
+  std::queue<rendering::NodePtr> remainingNodes;
+  remainingNodes.push(rootNode);
+  while (!remainingNodes.empty())
+  {
+    auto currentNode = remainingNodes.front();
+    remainingNodes.pop();
+    if (_filter(currentNode))
+      filteredNodes.push_back(currentNode);
+
+    for (auto i = 0u; i < currentNode->ChildCount(); ++i)
+      remainingNodes.push(currentNode->ChildByIndex(i));
+  }
+
+  return filteredNodes;
+}
+
+/////////////////////////////////////////////////
+std::pair<rendering::VisualPtr, std::vector<Entity>> SceneManager::CopyVisual(
+    Entity _id, const std::string &_visual, Entity _parentId)
+{
+  std::pair<rendering::VisualPtr, std::vector<Entity>> result;
+  if (!this->dataPtr->scene)
+    return result;
+
+  if (this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end())
+  {
+    ignerr << "Entity with Id: [" << _id << "] already exists in the scene"
+           << std::endl;
+    return result;
+  }
+
+  rendering::VisualPtr originalVisual =
+    std::dynamic_pointer_cast<rendering::Visual>(
+        this->dataPtr->scene->NodeByName(_visual));
+  if (!originalVisual)
+  {
+    ignerr << "Could not find a node with the name [" << _visual
+           << "] in the scene." << std::endl;
+    return result;
+  }
+
+  auto name = originalVisual->Name() + "::" + std::to_string(_id);
+
+  rendering::VisualPtr parent;
+  if (_parentId != this->dataPtr->worldId)
+  {
+    auto it = this->dataPtr->visuals.find(_parentId);
+    if (it == this->dataPtr->visuals.end())
+    {
+      ignerr << "Parent entity with Id: [" << _parentId << "] not found. "
+             << "Not adding visual with ID [" << _id
+             << "] and name [" << name << "] to the rendering scene."
+             << std::endl;
+      return result;
+    }
+    parent = it->second;
+  }
+
+  if (parent)
+    name = parent->Name() + "::" + name;
+
+  if (this->dataPtr->scene->HasVisualName(name))
+  {
+    ignerr << "Visual: [" << name << "] already exists" << std::endl;
+    return result;
+  }
+
+  // filter visuals that were created by the gui (these shouldn't be cloned)
+  auto filteredVisuals = this->Filter(_visual,
+      [](const rendering::NodePtr _node)
+      {
+        return _node->HasUserData("gui-only");
+      });
+
+  // temporarily detach filtered visuals, but keep track of the original parent
+  // so that the visuals can be re-attached later
+  std::unordered_map<rendering::NodePtr, rendering::NodePtr>
+    removedVisualToParent;
+  for (auto filteredVis : filteredVisuals)
+  {
+    removedVisualToParent[filteredVis] = filteredVis->Parent();
+    filteredVis->RemoveParent();
+  }
+
+  // clone the visual
+  auto clonedVisual = originalVisual->Clone(name, parent);
+  this->dataPtr->visuals[_id] = clonedVisual;
+
+  // re-attach filtered visuals now that cloning is complete
+  for (auto &[removedVisual, originalParent] : removedVisualToParent)
+    originalParent->AddChild(removedVisual);
+
+  // The Clone call above also clones any child visuals that exist, so we need
+  // to keep track of these new child visuals as well. We get a level order
+  // listing of all visuals associated with the newly copied visual
+  bool childrenTracked = true;
+  std::queue<Entity> remainingVisuals;
+  remainingVisuals.push(_id);
+  std::vector<Entity> childVisualIds;
+  while (!remainingVisuals.empty())
+  {
+    const auto topLevelId = remainingVisuals.front();
+    remainingVisuals.pop();
+    const auto visual = this->dataPtr->visuals[topLevelId];
+    for (auto i = 0u; i < visual->ChildCount(); ++i)
+    {
+      auto childId = this->UniqueId();
+      if (!childId)
+      {
+        ignerr << "Unable to create an entity ID for the copied visual's "
+               << "child, so the copied visual will be deleted.\n";
+        childrenTracked = false;
+        break;
+      }
+      auto childVisual = std::dynamic_pointer_cast<rendering::Visual>(
+          visual->ChildByIndex(i));
+      if (!childVisual)
+      {
+        ignerr << "Unable to retrieve a child visual of the copied visual, "
+               << "so the copied visual will be deleted.\n";
+        childrenTracked = false;
+        break;
+      }
+
+      this->dataPtr->visuals[childId] = childVisual;
+      childVisual->SetUserData("gazebo-entity", static_cast<int>(childId));
+      childVisual->SetUserData("pause-update", static_cast<int>(0));
+      childVisualIds.push_back(childId);
+
+      remainingVisuals.push(childId);
+    }
+  }
+
+  if (!childrenTracked)
+  {
+    this->dataPtr->scene->DestroyVisual(clonedVisual, true);
+    for (const auto id : childVisualIds)
+      this->dataPtr->visuals.erase(id);
+  }
+  else
+  {
+    clonedVisual->SetUserData("gazebo-entity", static_cast<int>(_id));
+    clonedVisual->SetUserData("pause-update", static_cast<int>(0));
+
+    result = {clonedVisual, std::move(childVisualIds)};
+
+    if (!parent)
+      this->dataPtr->scene->RootVisual()->AddChild(clonedVisual);
+  }
+
+  return result;
+}
+
+/////////////////////////////////////////////////
 rendering::VisualPtr SceneManager::VisualById(Entity _id)
 {
   if (this->dataPtr->visuals.find(_id) == this->dataPtr->visuals.end())
@@ -431,6 +602,7 @@ rendering::VisualPtr SceneManager::CreateCollision(Entity _id,
   visual.SetName(_collision.Name());
 
   rendering::VisualPtr collisionVis = CreateVisual(_id, visual, _parentId);
+  collisionVis->SetUserData("gui-only", static_cast<bool>(true));
   return collisionVis;
 }
 /////////////////////////////////////////////////
@@ -1211,6 +1383,7 @@ rendering::VisualPtr SceneManager::CreateInertiaVisual(Entity _id,
     std::dynamic_pointer_cast<rendering::Visual>(inertiaVisual);
   inertiaVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   inertiaVis->SetUserData("pause-update", static_cast<int>(0));
+  inertiaVis->SetUserData("gui-only", static_cast<bool>(true));
   this->dataPtr->visuals[_id] = inertiaVis;
 
   if (parent)
@@ -1343,6 +1516,7 @@ rendering::VisualPtr SceneManager::CreateJointVisual(
     std::dynamic_pointer_cast<rendering::Visual>(jointVisual);
   jointVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   jointVis->SetUserData("pause-update", static_cast<int>(0));
+  jointVis->SetUserData("gui-only", static_cast<bool>(true));
   jointVis->SetLocalPose(_joint.RawPose());
   this->dataPtr->visuals[_id] = jointVis;
   return jointVis;
@@ -1391,6 +1565,7 @@ rendering::VisualPtr SceneManager::CreateCOMVisual(Entity _id,
     std::dynamic_pointer_cast<rendering::Visual>(comVisual);
   comVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   comVis->SetUserData("pause-update", static_cast<int>(0));
+  comVis->SetUserData("gui-only", static_cast<bool>(true));
   this->dataPtr->visuals[_id] = comVis;
 
   return comVis;
@@ -2038,6 +2213,20 @@ void SceneManager::UpdateJointParentPose(Entity _jointId)
     // scale parent axis visual to the child
     auto childScale = jointVisual->LocalScale();
     jointVisual->ParentAxisVisual()->SetLocalScale(childScale);
+  }
+}
+
+/////////////////////////////////////////////////
+Entity SceneManager::UniqueId() const
+{
+  auto id = std::numeric_limits<uint64_t>::max();
+  while (true)
+  {
+    if (!this->HasEntity(id))
+      return id;
+    else if (id == 0u)
+      return kNullEntity;
+    --id;
   }
 }
 
