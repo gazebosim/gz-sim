@@ -350,7 +350,6 @@ std::string ModelEditorPrivate::GeomSDFString(const EntityToAdd &_eta) const
 /////////////////////////////////////////////////
 std::string ModelEditorPrivate::LinkSDFString(const EntityToAdd &_eta) const
 {
-
   std::stringstream linkStr;
   if (_eta.geomOrLightType == "empty")
   {
