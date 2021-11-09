@@ -42,30 +42,6 @@ Rectangle {
     Material.color(Material.Grey, Material.Shade200) :
     Material.color(Material.Grey, Material.Shade900)
 
-
-  /*ListModel {
-      id: forceModel
-
-      ListElement {
-          link: ""
-          plugin: "BuoyancyEngine"
-          arrowColor: "#ff0000"
-          isVisible: false
-      }
-      ListElement {
-          link: "Buoyancy"
-          plugin: 3.25
-          arrowColor: "#0000ff"
-          isVisible: false
-      }
-      ListElement {
-          link: "Thruster"
-          plugin: 1.95
-          arrowColor: "#00ff00"
-          isVisible: true
-      }
-  }*/
-
   ColorDialog {
     id: colorDialog
     title: "Please choose a color"
@@ -82,12 +58,14 @@ Rectangle {
     id: forceDelegate
     RowLayout {
       spacing: 0
+      Layout.alignment: Qt.AlignVCenter
       Label { 
         Layout.fillHeight: true
         Layout.fillWidth: true
         Layout.preferredHeight: implicitHeight
         Layout.preferredWidth: 100
         text: link
+        verticalAlignment: VerticalAlignment.Center
         background: Rectangle
         {
           color: (index % 2 == 0)? even : odd
@@ -98,6 +76,7 @@ Rectangle {
         Layout.fillWidth: true
         Layout.preferredHeight: implicitHeight
         Layout.preferredWidth: 200
+        verticalAlignment: VerticalAlignment.Center
         text: plugin
         background: Rectangle
         {

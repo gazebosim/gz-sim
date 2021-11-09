@@ -572,8 +572,10 @@ void Buoyancy::PreUpdate(const UpdateInfo &_info,
 
         // Apply the wrench to the link. This wrench is applied in the
         // Physics System.
-        //link.AddAndVisualizeWorldWrench(_ecm, buoyancy, torque, "BuoyancyPlugin", math::Color(1,0,0));
-        link.AddWorldWrench(_ecm, buoyancy, torque);
+        link.AddAndVisualizeWorldWrench(_ecm, buoyancy, torque, "BuoyancyPlugin", math::Color(1,0,0));
+        //igndbg << "Torque " << torque << std::endl;
+        //link.AddWorldWrench(_ecm, buoyancy, torque);
+        return true;
       }
       else if (this->dataPtr->buoyancyType
         == BuoyancyPrivate::BuoyancyType::GRADED_BUOYANCY)
@@ -627,7 +629,14 @@ void Buoyancy::PreUpdate(const UpdateInfo &_info,
         // Physics System.
         link.AddWorldWrench(_ecm, force, torque);
       }
+      auto [force, torque] = this->dataPtr->ResolveForces(
+        link.WorldInertialPose(_ecm).value());
+      // Apply the wrench to the link. This wrench is applied in the
+      // Physics System.
+      
 
+      link.AddAndVisualizeWorldWrench(
+        _ecm, force, torque, "BuoyancyPlugin", math::Color(0,0,1));
       return true;
   });
 }
