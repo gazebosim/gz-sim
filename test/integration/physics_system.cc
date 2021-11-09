@@ -20,6 +20,9 @@
 #include <algorithm>
 #include <vector>
 
+#ifdef HAVE_DART
+#include <dart/config.hpp>
+#endif
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
 #include <sdf/Collision.hh>
@@ -70,6 +73,20 @@ using namespace std::chrono_literals;
 
 class PhysicsSystemFixture : public InternalFixture<::testing::Test>
 {
+};
+
+class PhysicsSystemFixtureWithDart6_10 : public PhysicsSystemFixture
+{
+  protected: void SetUp() override
+  {
+#ifndef HAVE_DART
+    GTEST_SKIP();
+#elif !DART_VERSION_AT_LEAST(6, 10, 0)
+    GTEST_SKIP();
+#endif
+
+    PhysicsSystemFixture::SetUp();
+  }
 };
 
 /////////////////////////////////////////////////
@@ -813,7 +830,7 @@ TEST_F(PhysicsSystemFixture, ResetVelocityComponent)
 
 /////////////////////////////////////////////////
 /// Test joint position limit command component
-TEST_F(PhysicsSystemFixture, JointPositionLimitsCommandComponent)
+TEST_F(PhysicsSystemFixtureWithDart6_10, JointPositionLimitsCommandComponent)
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -936,7 +953,7 @@ TEST_F(PhysicsSystemFixture, JointPositionLimitsCommandComponent)
 
 /////////////////////////////////////////////////
 /// Test joint velocity limit command component
-TEST_F(PhysicsSystemFixture, JointVelocityLimitsCommandComponent)
+TEST_F(PhysicsSystemFixtureWithDart6_10, JointVelocityLimitsCommandComponent)
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -1060,7 +1077,7 @@ TEST_F(PhysicsSystemFixture, JointVelocityLimitsCommandComponent)
 
 /////////////////////////////////////////////////
 /// Test joint effort limit command component
-TEST_F(PhysicsSystemFixture, JointEffortLimitsCommandComponent)
+TEST_F(PhysicsSystemFixtureWithDart6_10, JointEffortLimitsCommandComponent)
 {
   ignition::gazebo::ServerConfig serverConfig;
 
