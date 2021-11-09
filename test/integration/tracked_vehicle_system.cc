@@ -437,6 +437,129 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
     poses.back().SetZ(beforeCylinderPose.Pos().Z());  // ignore Z offset
     verifyPose(poses.back(), beforeCylinderPose);
   }
+
+  /// \param[in] _sdfFile SDF file to load.
+  /// \param[in] _cmdVelTopic Command velocity topic.
+  protected: void TestConveyor(const std::string &_sdfFile,
+                               const std::string &_cmdVelTopic)
+  {
+    // Start server
+    ServerConfig serverConfig;
+    serverConfig.SetSdfFile(_sdfFile);
+
+    Server server(serverConfig);
+    EXPECT_FALSE(server.Running());
+    EXPECT_FALSE(*server.Running(0));
+
+    // Create a system that records the vehicle poses
+    test::Relay ecmGetterSystem;
+    EntityComponentManager* ecm {nullptr};
+    ecmGetterSystem.OnPreUpdate([&ecm](const gazebo::UpdateInfo &,
+      gazebo::EntityComponentManager &_ecm)
+      {
+        if (ecm == nullptr)
+          ecm = &_ecm;
+      });
+    server.AddSystem(ecmGetterSystem.systemPtr);
+    // Get ECM
+    server.Run(true, 1, false);
+
+    ASSERT_NE(nullptr, ecm);
+    bool shouldSkipTest = false;
+    this->SkipTestIfNotSupported(*ecm, shouldSkipTest);
+    if (shouldSkipTest)
+    {
+      // Skip test if the ContactProperties feature is not available
+      GTEST_SKIP() << "Skipping test because physics engine does not support "
+        "SetContactPropertiesCallbackFeature";
+    }
+
+    test::Relay testSystem;
+    Entity boxEntity {kNullEntity};
+    std::vector<math::Pose3d> poses;
+    testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
+      const gazebo::EntityComponentManager &_ecm)
+      {
+        boxEntity = _ecm.EntityByComponents(
+          components::Model(),
+          components::Name("box"));
+        EXPECT_NE(kNullEntity, boxEntity);
+
+        auto poseComp = _ecm.Component<components::Pose>(boxEntity);
+        ASSERT_NE(nullptr, poseComp);
+
+        poses.push_back(poseComp->Data());
+      });
+    server.AddSystem(testSystem.systemPtr);
+
+    server.Run(true, 1000, false);
+
+    // Poses for 1s
+    ASSERT_EQ(1000u, poses.size());
+
+    // check that the box has not moved in X and Y directions (it will move in
+    // Z as it falls down on the conveyor)
+    EXPECT_NEAR(poses[0].Pos().X(), poses.back().Pos().X(), 1e-6);
+    EXPECT_NEAR(poses[0].Pos().Y(), poses.back().Pos().Y(), 1e-6);
+    EXPECT_ANGLE_NEAR(poses.back().Rot().Roll(), 0, 1e-3);
+    EXPECT_ANGLE_NEAR(poses.back().Rot().Pitch(), 0, 1e-3);
+    EXPECT_ANGLE_NEAR(poses.back().Rot().Yaw(), 0, 1e-3);
+
+    poses.clear();
+
+    // Publish command and check that vehicle moved
+    transport::Node node;
+    auto pub = node.Advertise<msgs::Double>(_cmdVelTopic);
+
+    // In this test, there is a long conveyor and a small box at its center.
+    // The conveyor has max_velocity 0.5, max_acceleration 0.25 and command
+    // timeout 2 seconds. So we expect the box will move slowly in the first
+    // second, it will reach 0.5 meters in 2 seconds, and it will slow down
+    // for the third second (deceleration is limited even for command timeout).
+
+    msgs::Double msg;
+    msg.set_data(1.0);
+
+    pub.Publish(msg);
+
+    server.Run(true, 1000, false);
+
+    // Poses for 1s
+    ASSERT_EQ(1000u, poses.size());
+
+    EXPECT_NEAR(0.125, poses.back().Pos().X(), 1e-1);
+    EXPECT_NEAR(poses[0].Pos().Y(), poses.back().Pos().Y(), 1e-2);
+    EXPECT_NEAR(poses[0].Pos().Z(), poses.back().Pos().Z(), 1e-2);
+    EXPECT_ANGLE_NEAR(poses.back().Rot().Roll(), 0, 1e-3);
+    EXPECT_ANGLE_NEAR(poses.back().Rot().Pitch(), 0, 1e-3);
+    EXPECT_ANGLE_NEAR(poses.back().Rot().Yaw(), 0, 1e-3);
+
+    server.Run(true, 1000, false);
+
+    // Poses for 2s
+    ASSERT_EQ(2000u, poses.size());
+
+    EXPECT_NEAR(0.5, poses.back().Pos().X(), 1e-1);
+    EXPECT_NEAR(poses[0].Pos().Y(), poses.back().Pos().Y(), 1e-2);
+    EXPECT_NEAR(poses[0].Pos().Z(), poses.back().Pos().Z(), 1e-2);
+    EXPECT_ANGLE_NEAR(poses.back().Rot().Roll(), 0, 1e-3);
+    EXPECT_ANGLE_NEAR(poses.back().Rot().Pitch(), 0, 1e-3);
+    EXPECT_ANGLE_NEAR(poses.back().Rot().Yaw(), 0, 1e-3);
+
+    server.Run(true, 1000, false);
+
+    // Poses for 3s
+    ASSERT_EQ(3000u, poses.size());
+
+    EXPECT_NEAR(0.875, poses.back().Pos().X(), 1e-1);
+    EXPECT_NEAR(poses[0].Pos().Y(), poses.back().Pos().Y(), 1e-2);
+    EXPECT_NEAR(poses[0].Pos().Z(), poses.back().Pos().Z(), 1e-2);
+    EXPECT_ANGLE_NEAR(poses.back().Rot().Roll(), 0, 1e-3);
+    EXPECT_ANGLE_NEAR(poses.back().Rot().Pitch(), 0, 1e-3);
+    EXPECT_ANGLE_NEAR(poses.back().Rot().Yaw(), 0, 1e-3);
+
+    poses.clear();
+  }
 };
 
 /////////////////////////////////////////////////
@@ -447,4 +570,13 @@ TEST_F(TrackedVehicleTest, PublishCmd)
     "/test/worlds/tracked_vehicle_simple.sdf",
     "/model/simple_tracked/cmd_vel",
     "/model/simple_tracked/odometry");
+}
+
+/////////////////////////////////////////////////
+TEST_F(TrackedVehicleTest, Conveyor)
+{
+  this->TestConveyor(
+    std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/conveyor.sdf",
+    "/model/conveyor/link/base_link/track_cmd_vel");
 }

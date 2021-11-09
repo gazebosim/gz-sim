@@ -153,17 +153,17 @@ class ignition::gazebo::systems::TrackControllerPrivate
   public: math::Vector3d centerOfRotation {math::Vector3d::Zero * math::INF_D};
   /// \brief protects velocity and centerOfRotation
   public: std::mutex cmdMutex;
-  
+
   /// \brief Maximum age of a command in seconds. If a command is older, the
   /// track automatically sets a zero velocity. Set this to max() to denote
-  /// commands do not time out. 
+  /// commands do not time out.
   public: std::chrono::steady_clock::duration maxCommandAge
     {std::chrono::steady_clock::duration::max()};
 
   /// \brief This variable is set to true each time a new command arrives.
   /// It is intended to be set to false after the command is processed.
   public: bool hasNewCommand{false};
-  
+
   /// \brief The time at which the last command has been received.
   public: std::chrono::steady_clock::duration lastCommandTime;
 
@@ -270,7 +270,7 @@ void TrackController::Configure(const Entity &_entity,
 
   this->dataPtr->trackOrientation = _sdf->Get<math::Quaterniond>(
     "track_orientation", math::Quaterniond::Identity).first;
-  
+
   if (_sdf->HasElement("max_command_age"))
   {
     const auto seconds = _sdf->Get<double>("max_command_age");
@@ -410,13 +410,13 @@ void TrackController::PreUpdate(
     // Compute limited velocity command
     this->dataPtr->limitedVelocity = this->dataPtr->velocity;
   }
-  
+
   if (this->dataPtr->maxCommandAge != std::chrono::steady_clock::duration::max()
     && (_info.simTime - lastCommandTimeCopy) > this->dataPtr->maxCommandAge)
   {
     this->dataPtr->limitedVelocity = 0;
   }
-  
+
   this->dataPtr->limiter.Limit(
     this->dataPtr->limitedVelocity,  // in-out parameter
     this->dataPtr->prevVelocity,
