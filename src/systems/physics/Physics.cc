@@ -1883,7 +1883,8 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
         return true;
       });
-}
+}  // NOLINT readability/fn_size
+// TODO (azeey) Reduce size of function and remove the NOLINT above
 
 //////////////////////////////////////////////////
 void PhysicsPrivate::Step(const std::chrono::steady_clock::duration &_dt)
