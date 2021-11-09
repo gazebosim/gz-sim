@@ -92,10 +92,6 @@
 #include "ignition/gazebo/rendering/SceneManager.hh"
 #include "ignition/gazebo/rendering/MarkerManager.hh"
 
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/MainWindow.hh>
-#include "ignition/gazebo/gui/GuiEvents.hh"
-
 #include "ignition/gazebo/Util.hh"
 
 using namespace ignition;
@@ -1008,7 +1004,6 @@ void RenderUtil::Update()
   // remove existing entities
   {
     IGN_PROFILE("RenderUtil::Update Remove");
-    std::vector<Entity> removed;
     for (auto &entity : removeEntities)
     {
       auto node = this->dataPtr->sceneManager.NodeById(entity.first);
@@ -1020,15 +1015,6 @@ void RenderUtil::Update()
 
       this->dataPtr->RemoveSensor(entity.first);
       this->dataPtr->RemoveBoundingBox(entity.first);
-      removed.push_back(entity.first);
-    }
-
-    if (removed.size())
-    {
-      ignition::gazebo::gui::events::RemovedEntities removedEvent(removed);
-      ignition::gui::App()->sendEvent(
-          ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-          &removedEvent);
     }
   }
 
