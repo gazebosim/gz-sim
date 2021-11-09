@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_RENDERUTIL_HH_
 
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -82,7 +83,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _ecm Const reference to the entity component manager
     /// \param[in] _entities Entities to create visuals for.
     public: void CreateVisualsForEntities(const EntityComponentManager &_ecm,
-                                          const std::set<Entity> &_entities);
+                const std::set<Entity> &_entities);
 
     /// \brief Set the rendering engine to use
     /// \param[in] _engineName Name of the rendering engine.

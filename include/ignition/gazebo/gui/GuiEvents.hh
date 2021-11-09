@@ -167,8 +167,8 @@ namespace events
     /// \brief Constructor
     /// \param[in] _tranformModeActive is the transform control mode active
     public: explicit ModelEditorAddEntity(QString _entity, QString _type,
-        ignition::gazebo::Entity _parent, QString _uri) : QEvent(kType), entity(_entity),
-        type(_type), parent(_parent), uri(_uri)
+                ignition::gazebo::Entity _parent, QString _uri) :
+      QEvent(kType), entity(_entity), type(_type), parent(_parent), uri(_uri)
     {
     }
 

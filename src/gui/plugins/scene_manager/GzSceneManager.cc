@@ -14,6 +14,7 @@
  * limitations under the License.
  *
 */
+#include <set>
 
 #include "GzSceneManager.hh"
 

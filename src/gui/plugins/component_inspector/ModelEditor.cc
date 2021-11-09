@@ -16,6 +16,9 @@
 */
 
 #include <iostream>
+#include <list>
+#include <set>
+#include <string>
 #include <vector>
 #include <ignition/common/Console.hh>
 #include <ignition/common/Profiler.hh>
@@ -56,7 +59,8 @@ namespace ignition::gazebo
   class ModelEditorPrivate
   {
     /// \brief Handle entity addition
-    /// \param[in] _geomOrLightType Geometry or light type, e.g. sphere, directional, etc
+    /// \param[in] _geomOrLightType Geometry or light type, e.g. sphere,
+    /// directional, etc
     /// \param[in] _entityType Type of entity: link, visual, collision, etc
     /// \param[in] _parentEntity Name of parent entity
     /// \param[in] _uri URI associated with the entity, needed for mesh
@@ -130,7 +134,7 @@ void ModelEditor::Update(const UpdateInfo &,
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   // add link entities to the ECM
   std::set<Entity> newEntities;
-  for (auto & eta: this->dataPtr->entitiesToAdd)
+  for (const auto &eta : this->dataPtr->entitiesToAdd)
   {
     sdf::Link linkSdf;
     if (eta.entityType == "link")
@@ -178,8 +182,8 @@ void ModelEditor::Update(const UpdateInfo &,
       auto entity = this->dataPtr->entityCreator->CreateEntities(&linkSdf);
       this->dataPtr->entityCreator->SetParent(entity, eta.parentEntity);
 
-      // traverse the tree and add all new entities created by the entity creator
-      // to the set
+      // traverse the tree and add all new entities created by the entity
+      // creator to the set
       std::list<Entity> entities;
       entities.push_back(entity);
       while (!entities.empty())
