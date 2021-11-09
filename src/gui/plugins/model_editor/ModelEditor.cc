@@ -329,7 +329,7 @@ std::string ModelEditorPrivate::GeomSDFString(const EntityToAdd &_eta) const
   {
     geomStr
       << "<ellipsoid>"
-      << "  <radii>" << size.X() * 0.5 << "</radii>"
+      << "  <radii>" << size * 0.5 << "</radii>"
       << "</ellipsoid>";
   }
   else if (_eta.geomOrLightType == "mesh")
