@@ -78,7 +78,7 @@ introspection and control.
 
 # Install
 
-See the [installation tutorial](https://ignitionrobotics.org/api/gazebo/6.0/install.html).
+See the [installation tutorial](https://ignitionrobotics.org/api/gazebo/6.1/install.html).
 
 # Usage
 
