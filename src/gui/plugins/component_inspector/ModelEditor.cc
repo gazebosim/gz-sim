@@ -22,7 +22,6 @@
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/GuiEvents.hh>
 #include <ignition/gui/MainWindow.hh>
-#include <ignition/plugin/Register.hh>
 
 #include <sdf/Link.hh>
 #include <sdf/Sensor.hh>
@@ -80,6 +79,7 @@ namespace ignition::gazebo
 
     /// \brief Get a SDF string of a link
     /// \param[in] _eta Entity to add.
+    /// \return SDF string
     public: std::string LinkSDFString(const EntityToAdd &_eta) const;
 
     /// \brief Create a link
@@ -122,7 +122,7 @@ using namespace gazebo;
 
 /////////////////////////////////////////////////
 ModelEditor::ModelEditor()
-  : GuiSystem(), dataPtr(std::make_unique<ModelEditorPrivate>())
+  : dataPtr(std::make_unique<ModelEditorPrivate>())
 {
 }
 
@@ -130,11 +130,8 @@ ModelEditor::ModelEditor()
 ModelEditor::~ModelEditor() = default;
 
 /////////////////////////////////////////////////
-void ModelEditor::LoadConfig(const tinyxml2::XMLElement *)
+void ModelEditor::Load()
 {
-  if (this->title.empty())
-    this->title = "Model editor";
-
   ignition::gui::App()->findChild<
       ignition::gui::MainWindow *>()->installEventFilter(this);
 }
@@ -327,7 +324,7 @@ std::string ModelEditorPrivate::GeomSDFString(const EntityToAdd &_eta) const
   {
     geomStr
       << "<ellipsoid>"
-      << "  <radii>" << size.X() * 0.5 << "</radii>"
+      << "  <radii>" << size * 0.5 << "</radii>"
       << "</ellipsoid>";
   }
   else if (_eta.geomOrLightType == "mesh")
@@ -434,6 +431,7 @@ std::optional<sdf::Link> ModelEditorPrivate::CreateLink(
         components::ParentEntity(_eta.parentEntity),
         components::Name(linkName));
   }
+  sensor.SetName(sensorName);
 
   linkSdf.SetName(linkName);
   return linkSdf;
@@ -506,7 +504,3 @@ void ModelEditorPrivate::HandleAddEntity(const std::string &_geomOrLightType,
   eta.uri = _uri;
   this->entitiesToAdd.push_back(eta);
 }
-
-// Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::ModelEditor,
-                    ignition::gui::Plugin)

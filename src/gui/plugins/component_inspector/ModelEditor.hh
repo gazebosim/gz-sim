@@ -18,15 +18,10 @@
 #ifndef IGNITION_GAZEBO_GUI_MODELEDITOR_HH_
 #define IGNITION_GAZEBO_GUI_MODELEDITOR_HH_
 
-#include <map>
 #include <memory>
-#include <string>
 
-#include <ignition/math/Pose3.hh>
-#include <ignition/math/Vector3.hh>
+#include <QtCore>
 
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/gui/GuiSystem.hh>
 #include <ignition/gazebo/Types.hh>
 
 namespace ignition
@@ -35,10 +30,8 @@ namespace gazebo
 {
   class ModelEditorPrivate;
 
-  /// \brief
-  ///
-  /// Model Editor gui plugin
-  class ModelEditor : public gazebo::GuiSystem
+  /// \brief Model Editor
+  class ModelEditor : public QObject
   {
     Q_OBJECT
 
@@ -46,13 +39,15 @@ namespace gazebo
     public: ModelEditor();
 
     /// \brief Destructor
-    public: ~ModelEditor() override;
+    public: ~ModelEditor();
 
-    // Documentation inherited
-    public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
+    /// \brief Load the model editor
+    public: void Load();
 
-    // Documentation inherited
-    public: void Update(const UpdateInfo &, EntityComponentManager &) override;
+    /// \brief Update the model editor with data from ECM
+    /// \param[in] _info Simulator update info
+    /// \param[in] _ecm Reference to Entity Component Manager
+    public: void Update(const UpdateInfo &_info, EntityComponentManager &_ecm);
 
     // Documentation inherited
     protected: bool eventFilter(QObject *_obj, QEvent *_event) override;

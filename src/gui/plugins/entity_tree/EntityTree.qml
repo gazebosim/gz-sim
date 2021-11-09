@@ -140,7 +140,7 @@ Rectangle {
       ToolButton {
         anchors.right: parent.right
         id: addEntity
-        ToolTip.text: "Add Entity"
+        ToolTip.text: "Add an entity to the world"
         ToolTip.visible: hovered
         contentItem: Image {
           fillMode: Image.Pad
