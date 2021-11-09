@@ -22,7 +22,9 @@
 #
 require 'ignition/math'
 
+#! [constant]
 printf("PI in degrees = %f\n", Ignition::Math::Angle.Pi.Degree)
+#! [constant]
 
 a1 = Ignition::Math::Angle.new(1.5707)
 a2 = Ignition::Math::Angle.new(0.7854)

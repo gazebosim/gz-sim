@@ -69,13 +69,18 @@ int main(int argc, char **argv)
           IGN_RTOD(pitch),
           IGN_RTOD(yaw));
 
+//![constructor]
   ignition::math::Quaterniond q(roll, pitch, yaw);
   ignition::math::Matrix3d m(q);
+//![constructor]
 
   std::cout << "\nto Quaternion\n";
+//! [access quaterion]
   printf(" W % .6f\n X % .6f\n Y % .6f\n Z % .6f\n",
         q.W(), q.X(), q.Y(), q.Z());
+//! [access quaterion]
 
+//! [rotation matrix]
   std::cout << "\nto Rotation matrix\n";
   printf("   % .6f  % .6f  % .6f\n"
          "   % .6f  % .6f  % .6f\n"
@@ -83,4 +88,5 @@ int main(int argc, char **argv)
           m(0, 0), m(0, 1), m(0, 2),
           m(1, 0), m(1, 1), m(1, 2),
           m(2, 0), m(2, 1), m(2, 2));
+//! [rotation matrix]
 }
