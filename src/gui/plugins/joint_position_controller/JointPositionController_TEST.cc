@@ -41,6 +41,7 @@
 #include "ignition/gazebo/gui/GuiRunner.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/test_config.hh"
+#include "../../../../test/helpers/EnvTestFixture.hh"
 
 #include "JointPositionController.hh"
 
@@ -50,13 +51,8 @@ char **g_argv;
 using namespace ignition;
 
 /// \brief Tests for the joint position controller GUI plugin
-class JointPositionControllerGui : public ::testing::Test
+class JointPositionControllerGui : public InternalFixture<::testing::Test>
 {
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    common::Console::SetVerbosity(4);
-  }
 };
 
 /////////////////////////////////////////////////

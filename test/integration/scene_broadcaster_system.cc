@@ -27,18 +27,14 @@
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"
 
+#include "../helpers/EnvTestFixture.hh"
+
 using namespace ignition;
 
 /// \brief Test SceneBroadcaster system
-class SceneBroadcasterTest : public ::testing::TestWithParam<int>
+class SceneBroadcasterTest
+  : public InternalFixture<::testing::TestWithParam<int>>
 {
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    common::Console::SetVerbosity(4);
-    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
-  }
 };
 
 /////////////////////////////////////////////////

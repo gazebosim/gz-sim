@@ -30,6 +30,7 @@
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
 #include "../helpers/Relay.hh"
+#include "../helpers/EnvTestFixture.hh"
 
 using namespace ignition;
 using namespace std::chrono_literals;
@@ -38,14 +39,8 @@ using IntComponent = gazebo::components::Component<int, class IntComponentTag>;
 IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.IntComponent",
     IntComponent)
 
-class EachNewRemovedFixture : public ::testing::Test
+class EachNewRemovedFixture : public InternalFixture<::testing::Test>
 {
-  protected: void SetUp() override
-  {
-    // Augment the system plugin path.  In SetUp to avoid test order issues.
-    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-      (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
-  }
 };
 
 /////////////////////////////////////////////////

@@ -149,7 +149,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Create an actor
     /// \param[in] _id Unique actor id
-    /// \param[in] _visual Actor sdf dom
+    /// \param[in] _actor Actor sdf dom
     /// \param[in] _parentId Parent id
     /// \return Actor object created from the sdf dom
     public: rendering::VisualPtr CreateActor(Entity _id,
@@ -191,7 +191,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// the correct parent.
     /// \param[in] _gazeboId Entity in Gazebo
     /// \param[in] _sensorName Name of sensor node in Ignition Rendering.
-    /// \param[in] _parentId Parent Id on Gazebo.
+    /// \param[in] _parentGazeboId Parent Id on Gazebo.
     /// \return True if sensor is successfully handled
     public: bool AddSensor(Entity _gazeboId, const std::string &_sensorName,
         Entity _parentGazeboId = 0);

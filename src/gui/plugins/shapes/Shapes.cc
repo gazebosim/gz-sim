@@ -42,9 +42,6 @@ namespace ignition::gazebo
     /// \brief Ignition communication node.
     public: transport::Node node;
 
-    /// \brief Mutex to protect mode
-    public: std::mutex mutex;
-
     /// \brief Transform control service name
     public: std::string service;
   };
