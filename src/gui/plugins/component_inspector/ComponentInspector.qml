@@ -227,7 +227,7 @@ Rectangle {
           sourceSize.width: 18;
           sourceSize.height: 18;
         }
-        ToolTip.text: "Add entity"
+        ToolTip.text: "Add an entity to a model"
         ToolTip.visible: hovered
         ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
         onClicked: {
