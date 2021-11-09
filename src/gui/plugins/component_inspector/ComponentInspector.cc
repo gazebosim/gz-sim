@@ -107,7 +107,7 @@ namespace ignition::gazebo
     /// \brief Air pressure sensor inspector elements
     public: std::unique_ptr<ignition::gazebo::AirPressure> airPressure;
 
-    /// \brief Set of callbacks to execture during the Update function.
+    /// \brief Set of callbacks to execute during the Update function.
     public: std::vector<
             std::function<void(EntityComponentManager &)>> updateCallbacks;
 

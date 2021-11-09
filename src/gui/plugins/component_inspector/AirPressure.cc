@@ -20,9 +20,9 @@
 #include <ignition/gazebo/components/AirPressureSensor.hh>
 #include <ignition/gazebo/EntityComponentManager.hh>
 
+#include "AirPressure.hh"
 #include "ComponentInspector.hh"
 #include "Types.hh"
-#include "AirPressure.hh"
 
 using namespace ignition;
 using namespace gazebo;

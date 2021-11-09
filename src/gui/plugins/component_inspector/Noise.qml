@@ -130,9 +130,10 @@ Rectangle {
 
           minimumValue: 0 
           maximumValue: 100000 
-          decimals:4 
+          decimals: componentInspector.getDecimalsAdjustValue(meanSpin, meanValue) 
           stepSize: 0.1
           onEditingFinished: {
+            console.log("Width", meanSpin.width);
             meanValue = meanSpin.value;
             onNoiseUpdate(meanValue, meanBias, stdDevValue, stdDevBias,
                 dynamicBiasStdDev, dynamicBiasCorrelationTime);
@@ -177,7 +178,7 @@ Rectangle {
 
           minimumValue: 0 
           maximumValue: 100000 
-          decimals:4 
+          decimals: componentInspector.getDecimalsAdjustValue(meanBiasSpin, meanBias) 
           stepSize: 0.1
           onEditingFinished: {
             meanBias = meanBiasSpin.value;
@@ -239,7 +240,7 @@ Rectangle {
 
           minimumValue: 0 
           maximumValue: 100000 
-          decimals:4 
+          decimals: componentInspector.getDecimalsAdjustValue(stddevSpin, stdDevValue) 
           stepSize: 0.1
           onEditingFinished: {
             stdDevValue = stddevSpin.value;
@@ -286,7 +287,7 @@ Rectangle {
 
           minimumValue: 0 
           maximumValue: 100000 
-          decimals:4 
+          decimals: componentInspector.getDecimalsAdjustValue(stddevBiasSpin, stdDevBias) 
           stepSize: 0.1
           onEditingFinished: {
             stdDevBias = stddevBiasSpin.value;
@@ -349,7 +350,7 @@ Rectangle {
 
           minimumValue: 0 
           maximumValue: 100000 
-          decimals:4 
+          decimals: componentInspector.getDecimalsAdjustValue(dynamicBiasStdDevSpin, dynamicBiasStdDev) 
           stepSize: 0.1
           onEditingFinished: {
             dynamicBiasStdDev = dynamicBiasStdDevSpin.value;
@@ -397,7 +398,7 @@ Rectangle {
 
           minimumValue: 0 
           maximumValue: 100000 
-          decimals:4 
+          decimals: componentInspector.getDecimalsAdjustValue(dynamicBiasCorrelationTimeSpin, dynamicBiasCorrelationTime) 
           stepSize: 0.1
           onEditingFinished: {
             dynamicBiasCorrelationTime = dynamicBiasCorrelationTimeSpin.value;

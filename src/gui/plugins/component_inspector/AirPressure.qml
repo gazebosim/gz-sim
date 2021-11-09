@@ -103,7 +103,7 @@ Rectangle {
 
             minimumValue: 0
             maximumValue: 100000
-            decimals:4
+            decimals: componentInspector.getDecimalsAdjustValue(referenceAltitudeSpin, refAltitude)
             stepSize: 0.1
             onEditingFinished: {
               refAltitude = referenceAltitudeSpin.value
