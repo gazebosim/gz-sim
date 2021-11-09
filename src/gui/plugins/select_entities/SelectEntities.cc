@@ -168,7 +168,7 @@ void SelectEntitiesPrivate::HandleEntitySelection()
 
       this->selectedEntitiesID.push_back(this->selectedEntitiesIDNew[i]);
 
-      unsigned int entityId = kNullEntity;
+      Entity entityId = kNullEntity;
       try
       {
         entityId = std::get<int>(visualToHighLight->UserData("gazebo-entity"));
@@ -208,7 +208,7 @@ void SelectEntitiesPrivate::HandleEntitySelection()
     return;
   }
 
-  unsigned int entityId = kNullEntity;
+  Entity entityId = kNullEntity;
   try
   {
     entityId = std::get<int>(visual->UserData("gazebo-entity"));
@@ -267,7 +267,7 @@ void SelectEntitiesPrivate::HighlightNode(const rendering::VisualPtr &_visual)
     return;
   }
 
-  int entityId = kNullEntity;
+  Entity entityId = kNullEntity;
   try
   {
     entityId = std::get<int>(_visual->UserData("gazebo-entity"));
@@ -368,8 +368,8 @@ void SelectEntitiesPrivate::SetSelectedEntity(
     return;
 
   this->selectedEntities.push_back(entityId);
-  this->selectedEntitiesID.push_back(_visual->Id());
-  this->HighlightNode(_visual);
+  this->selectedEntitiesID.push_back(topLevelVisual->Id());
+  this->HighlightNode(topLevelVisual);
   ignition::gazebo::gui::events::EntitiesSelected entitiesSelected(
     this->selectedEntities);
   ignition::gui::App()->sendEvent(
@@ -528,7 +528,7 @@ bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
         {
           auto visual = this->dataPtr->scene->VisualByIndex(i);
 
-          unsigned int entityId = kNullEntity;
+          Entity entityId = kNullEntity;
           try
           {
             entityId = std::get<int>(visual->UserData("gazebo-entity"));

@@ -19,7 +19,9 @@
 #include <ignition/common/Profiler.hh>
 #include <ignition/fuel_tools/Interface.hh>
 #include <ignition/gui/Application.hh>
+#include <ignition/gui/GuiEvents.hh>
 #include <ignition/gui/MainWindow.hh>
+#include <ignition/msgs.hh>
 #include <ignition/transport/Node.hh>
 
 // Include all components so they have first-class support
@@ -63,6 +65,9 @@ class ignition::gazebo::GuiRunner::Implementation
 
   /// \brief True if the initial state has been received and processed.
   public: bool receivedInitialState{false};
+
+  /// \brief Name of WorldControl service
+  public: std::string controlService;
 };
 
 /////////////////////////////////////////////////
@@ -75,12 +80,17 @@ GuiRunner::GuiRunner(const std::string &_worldName)
 
   // Allow for creation of entities on GUI side.
   // Note we have to start the entity id at an offset so it does not conflict
-  // with the ones on the server. The log playback starts at max / 2
-  // On the gui side, we will start entity id at an offset of max / 4
+  // with the ones on the server. The log playback starts at max 64bit int / 2
+  // On the gui side, we will start entity id at an offset of max 32bit int / 4
+  // because currently many plugins cast entity ids to a 32 bit signed/unsigned
+  // int.
+  // todo(anyone) fix all gui plugins to use 64bit unsigned int for Entity ids
+  // and add support for accepting uint64_t data in ign-rendering Node's
+  // UserData object.
   // todo(anyone) address
   // https://github.com/ignitionrobotics/ign-gazebo/issues/1134
   // so that an offset is not required
-  this->dataPtr->ecm.SetEntityCreateOffset(math::MAX_I64 / 4);
+  this->dataPtr->ecm.SetEntityCreateOffset(math::MAX_I32 / 2);
 
   auto win = gui::App()->findChild<ignition::gui::MainWindow *>();
   auto winWorldNames = win->property("worldNames").toStringList();
@@ -110,10 +120,52 @@ GuiRunner::GuiRunner(const std::string &_worldName)
   QPointer<QTimer> timer = new QTimer(this);
   connect(timer, &QTimer::timeout, this, &GuiRunner::UpdatePlugins);
   timer->start(33);
+
+  this->dataPtr->controlService = "/world/" + _worldName + "/control/state";
+
+  ignition::gui::App()->findChild<
+      ignition::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
 GuiRunner::~GuiRunner() = default;
+
+/////////////////////////////////////////////////
+bool GuiRunner::eventFilter(QObject *_obj, QEvent *_event)
+{
+  if (_event->type() == ignition::gui::events::WorldControl::kType)
+  {
+    auto worldControlEvent =
+      reinterpret_cast<gui::events::WorldControl *>(_event);
+    if (worldControlEvent)
+    {
+      msgs::WorldControlState req;
+      req.mutable_world_control()->CopyFrom(
+          worldControlEvent->WorldControlInfo());
+
+      // share the GUI's ECM with the server if:
+      //  1. Play was pressed
+      //  2. Step was pressed while paused
+      const auto &info = worldControlEvent->WorldControlInfo();
+      const bool pressedStep = info.multi_step() > 0u;
+      const bool pressedPlay = !info.pause() && !pressedStep;
+      const bool pressedStepWhilePaused = info.pause() && pressedStep;
+      if (pressedPlay || pressedStepWhilePaused)
+        req.mutable_state()->CopyFrom(this->dataPtr->ecm.State());
+
+      std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+          [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+          {
+            if (!_result)
+              ignerr << "Error sharing WorldControl info with the server.\n";
+          };
+      this->dataPtr->node.Request(this->dataPtr->controlService, req, cb);
+    }
+  }
+
+  // Standard event processing
+  return QObject::eventFilter(_obj, _event);
+}
 
 /////////////////////////////////////////////////
 void GuiRunner::RequestState()
