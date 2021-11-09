@@ -8,6 +8,7 @@ set(tests
   battery_plugin.cc
   breadcrumbs.cc
   buoyancy.cc
+  buoyancy_engine.cc
   collada_world_exporter.cc
   components.cc
   contact_system.cc
@@ -18,6 +19,7 @@ set(tests
   events.cc
   examples_build.cc
   follow_actor_system.cc
+  force_torque_system.cc
   fuel_cached_server.cc
   halt_motion.cc
   imu_system.cc
@@ -49,6 +51,7 @@ set(tests
   scene_broadcaster_system.cc
   sdf_frame_semantics.cc
   sdf_include.cc
+  spherical_coordinates.cc
   touch_plugin.cc
   triggered_publisher.cc
   user_commands.cc
@@ -102,3 +105,7 @@ ign_build_tests(TYPE INTEGRATION
   LIB_DEPS
     ${EXTRA_TEST_LIB_DEPS}
 )
+
+if(TARGET INTEGRATION_examples_build)
+  set_tests_properties(INTEGRATION_examples_build PROPERTIES TIMEOUT 320)
+endif()

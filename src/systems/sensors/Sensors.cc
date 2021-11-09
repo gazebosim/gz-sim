@@ -32,16 +32,22 @@
 
 #include <ignition/rendering/Scene.hh>
 #include <ignition/sensors/CameraSensor.hh>
+#include <ignition/sensors/DepthCameraSensor.hh>
+#include <ignition/sensors/GpuLidarSensor.hh>
 #include <ignition/sensors/RenderingSensor.hh>
+#include <ignition/sensors/RgbdCameraSensor.hh>
 #include <ignition/sensors/ThermalCameraSensor.hh>
+#include <ignition/sensors/SegmentationCameraSensor.hh>
 #include <ignition/sensors/Manager.hh>
 
 #include "ignition/gazebo/components/Atmosphere.hh"
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
+#include "ignition/gazebo/components/RenderEngineServerHeadless.hh"
 #include "ignition/gazebo/components/RenderEngineServerPlugin.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
+#include "ignition/gazebo/components/SegmentationCamera.hh"
 #include "ignition/gazebo/components/ThermalCamera.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Events.hh"
@@ -196,6 +202,7 @@ void SensorsPrivate::WaitForInit()
       igndbg << "Initializing render context" << std::endl;
       this->renderUtil.Init();
       this->scene = this->renderUtil.Scene();
+      this->scene->SetCameraPassCountPerGpuFlush(6u);
       this->initialized = true;
     }
 
@@ -262,6 +269,15 @@ void SensorsPrivate::RunOnce()
       // publish data
       IGN_PROFILE("RunOnce");
       this->sensorManager.RunOnce(this->updateTime);
+    }
+
+    {
+      IGN_PROFILE("PostRender");
+      // Update the scene graph manually to improve performance
+      // We only need to do this once per frame It is important to call
+      // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
+      // so we don't waste cycles doing one scene graph update per sensor
+      this->scene->PostRender();
       this->eventManager->Emit<events::PostRender>();
     }
 
@@ -401,6 +417,15 @@ void Sensors::Configure(const Entity &/*_id*/,
     {
       this->dataPtr->renderUtil.SetEngineName(renderEngineServerComp->Data());
     }
+
+    // Set headless mode if specified from command line
+    auto renderEngineServerHeadlessComp =
+      _ecm.Component<components::RenderEngineServerHeadless>(worldEntity);
+    if (renderEngineServerHeadlessComp)
+    {
+      this->dataPtr->renderUtil.SetHeadlessRendering(
+        renderEngineServerHeadlessComp->Data());
+    }
   }
 
   this->dataPtr->eventManager = &_eventMgr;
@@ -446,7 +471,9 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
          _ecm.HasComponentType(components::DepthCamera::typeId) ||
          _ecm.HasComponentType(components::GpuLidar::typeId) ||
          _ecm.HasComponentType(components::RgbdCamera::typeId) ||
-         _ecm.HasComponentType(components::ThermalCamera::typeId))) {
+         _ecm.HasComponentType(components::ThermalCamera::typeId) ||
+         _ecm.HasComponentType(components::SegmentationCamera::typeId)))
+    {
       igndbg << "Initialization needed" << std::endl;
       this->dataPtr->doInit = true;
       this->dataPtr->renderCv.notify_one();
@@ -519,24 +546,52 @@ std::string Sensors::CreateSensor(const Entity &_entity,
   }
 
   // Create within ign-sensors
-  auto sensorId = this->dataPtr->sensorManager.CreateSensor(_sdf);
-  auto sensor = this->dataPtr->sensorManager.Sensor(sensorId);
+  sensors::Sensor *sensor{nullptr};
+  if (_sdf.Type() == sdf::SensorType::CAMERA)
+  {
+    sensor = this->dataPtr->sensorManager.CreateSensor<
+      sensors::CameraSensor>(_sdf);
+  }
+  else if (_sdf.Type() == sdf::SensorType::DEPTH_CAMERA)
+  {
+    sensor = this->dataPtr->sensorManager.CreateSensor<
+      sensors::DepthCameraSensor>(_sdf);
+  }
+  else if (_sdf.Type() == sdf::SensorType::GPU_LIDAR)
+  {
+    sensor = this->dataPtr->sensorManager.CreateSensor<
+      sensors::GpuLidarSensor>(_sdf);
+  }
+  else if (_sdf.Type() == sdf::SensorType::RGBD_CAMERA)
+  {
+    sensor = this->dataPtr->sensorManager.CreateSensor<
+      sensors::RgbdCameraSensor>(_sdf);
+  }
+  else if (_sdf.Type() == sdf::SensorType::THERMAL_CAMERA)
+  {
+    sensor = this->dataPtr->sensorManager.CreateSensor<
+      sensors::ThermalCameraSensor>(_sdf);
+  }
+  else if (_sdf.Type() == sdf::SensorType::SEGMENTATION_CAMERA)
+  {
+    sensor = this->dataPtr->sensorManager.CreateSensor<
+      sensors::SegmentationCameraSensor>(_sdf);
+  }
 
-  // Add to sensorID -> entity map
-  this->dataPtr->entityToIdMap.insert({_entity, sensorId});
-
-  if (nullptr == sensor || sensors::NO_SENSOR == sensor->Id())
+  if (nullptr == sensor)
   {
     ignerr << "Failed to create sensor [" << _sdf.Name()
-           << "]" << std::endl;
+           << "]." << std::endl;
     return std::string();
   }
 
+  // Store sensor ID
+  auto sensorId = sensor->Id();
+  this->dataPtr->entityToIdMap.insert({_entity, sensorId});
   this->dataPtr->sensorIds.insert(sensorId);
 
   // Set the scene so it can create the rendering sensor
-  auto renderingSensor =
-      dynamic_cast<sensors::RenderingSensor *>(sensor);
+  auto renderingSensor = dynamic_cast<sensors::RenderingSensor *>(sensor);
   renderingSensor->SetScene(this->dataPtr->scene);
   renderingSensor->SetParent(_parentName);
   renderingSensor->SetManualSceneUpdate(true);

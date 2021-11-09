@@ -42,9 +42,7 @@
 #include "ignition/gazebo/test_config.hh"
 #include "../../../../test/helpers/EnvTestFixture.hh"
 
-// Use this when forward-porting to v6
-// #include "../../GuiRunner.hh"
-#include "ignition/gazebo/gui/GuiRunner.hh"
+#include "../../GuiRunner.hh"
 
 #include "Plot3D.hh"
 

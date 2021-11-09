@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_GUI_GUIEVENTS_HH_
 
 #include <QEvent>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -36,56 +37,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 /// more information about events.
 namespace events
 {
-  /// \brief The class for sending and receiving custom snap value events.
-  class IGN_DEPRECATED(5) SnapIntervals : public QEvent
-  {
-    /// \brief Constructor
-    /// \param[in] _xyz XYZ snapping values.
-    /// \param[in] _rpy RPY snapping values.
-    /// \param[in] _scale Scale snapping values.
-    public: SnapIntervals(
-                const math::Vector3d &_xyz,
-                const math::Vector3d &_rpy,
-                const math::Vector3d &_scale)
-    : QEvent(kType), xyz(_xyz), rpy(_rpy), scale(_scale)
-    {
-    }
-
-    /// \brief Get the XYZ snapping values.
-    /// \return The XYZ snapping values.
-    public: math::Vector3d XYZ() const
-    {
-      return this->xyz;
-    }
-
-    /// \brief Get the RPY snapping values.
-    /// \return The RPY snapping values.
-    public: math::Vector3d RPY() const
-    {
-      return this->rpy;
-    }
-
-    /// \brief Get the scale snapping values.
-    /// \return The scale snapping values.
-    public: math::Vector3d Scale() const
-    {
-      return this->scale;
-    }
-
-    /// \brief The QEvent representing a snap event occurrence.
-    static const QEvent::Type kType = QEvent::Type(QEvent::User);
-
-    /// \brief XYZ snapping values in meters, these values must be positive.
-    private: math::Vector3d xyz;
-
-    /// \brief RPY snapping values in degrees, these values must be positive.
-    private: math::Vector3d rpy;
-
-    /// \brief Scale snapping values - a multiplier of the current size,
-    /// these values must be positive.
-    private: math::Vector3d scale;
-  };
-
   /// \brief Event that notifies when new entities have been selected.
   class EntitiesSelected : public QEvent
   {
@@ -149,66 +100,63 @@ namespace events
     private: bool fromUser{false};
   };
 
-  /// \brief Event called in the render thread of a 3D scene.
-  /// It's safe to make rendering calls in this event's callback.
-  class IGN_DEPRECATED(5) Render : public QEvent
+  /// \brief Event that contains newly created and removed entities
+  class AddedRemovedEntities : public QEvent
   {
-    public: Render()
-        : QEvent(kType)
+    /// \brief Constructor
+    /// \param[in] _newEntities Set of newly created entities
+    /// \param[in] _removedEntities Set of recently removed entities
+    public: AddedRemovedEntities(const std::set<Entity> &_newEntities,
+                const std::set<Entity> &_removedEntities)
+        : QEvent(kType), newEntities(_newEntities),
+          removedEntities(_removedEntities)
     {
     }
+
+    /// \brief Get the set of newly created entities
+    public: const std::set<Entity> &NewEntities() const
+    {
+      return this->newEntities;
+    }
+
+    /// \brief Get the set of recently removed entities
+    public: const std::set<Entity> &RemovedEntities() const
+    {
+      return this->removedEntities;
+    }
+
     /// \brief Unique type for this event.
     static const QEvent::Type kType = QEvent::Type(QEvent::User + 3);
+
+    /// \brief Set of newly created entities
+    private: std::set<Entity> newEntities;
+
+    /// \brief Set of recently removed entities
+    private: std::set<Entity> removedEntities;
   };
 
-  /// \brief Event called to spawn a preview model.
-  /// Used by plugins that spawn models.
-  class IGN_DEPRECATED(5) SpawnPreviewModel : public QEvent
+  /// \brief True if a transform control is currently active (translate /
+  /// rotate / scale). False if we're in selection mode.
+  class TransformControlModeActive : public QEvent
   {
     /// \brief Constructor
-    /// \param[in] _modelSdfString The model's SDF file as a string.
-    public: explicit SpawnPreviewModel(const std::string &_modelSdfString)
-        : QEvent(kType), modelSdfString(_modelSdfString)
+    /// \param[in] _tranformModeActive is the transform control mode active
+    public: explicit TransformControlModeActive(const bool _tranformModeActive)
+        : QEvent(kType), tranformModeActive(_tranformModeActive)
     {
     }
 
     /// \brief Unique type for this event.
-    static const QEvent::Type kType = QEvent::Type(QEvent::User + 4);
+    static const QEvent::Type kType = QEvent::Type(QEvent::User + 6);
 
-    /// \brief Get the sdf string of the model.
-    /// \return The model sdf string
-    public: std::string ModelSdfString() const
+    /// \brief Get the event's value.
+    public: bool TransformControlActive()
     {
-      return this->modelSdfString;
+      return this->tranformModeActive;
     }
 
-    /// \brief The sdf string of the model to be previewed.
-    std::string modelSdfString;
-  };
-
-  /// \brief Event called to spawn a preview resource, which takes the path
-  /// to the SDF file. Used by plugins that spawn resources.
-  class IGN_DEPRECATED(5) SpawnPreviewPath : public QEvent
-  {
-    /// \brief Constructor
-    /// \param[in] _filePath The path to an SDF file.
-    public: explicit SpawnPreviewPath(const std::string &_filePath)
-        : QEvent(kType), filePath(_filePath)
-    {
-    }
-
-    /// \brief Unique type for this event.
-    static const QEvent::Type kType = QEvent::Type(QEvent::User + 5);
-
-    /// \brief Get the path of the SDF file.
-    /// \return The file path.
-    public: std::string FilePath() const
-    {
-      return this->filePath;
-    }
-
-    /// \brief The path of SDF file to be previewed.
-    std::string filePath;
+    /// \brief True if a transform mode is active.
+    private: bool tranformModeActive;
   };
 }  // namespace events
 }

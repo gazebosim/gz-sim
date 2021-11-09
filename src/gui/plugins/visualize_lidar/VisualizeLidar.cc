@@ -365,6 +365,13 @@ void VisualizeLidar::UpdateType(int _type)
 }
 
 //////////////////////////////////////////////////
+void VisualizeLidar::UpdateSize(int _size)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+  this->dataPtr->lidar->SetSize(_size);
+}
+
+//////////////////////////////////////////////////
 void VisualizeLidar::OnTopic(const QString &_topicName)
 {
   std::lock_guard<std::mutex>(this->dataPtr->serviceMutex);

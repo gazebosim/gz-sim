@@ -34,14 +34,8 @@ timestamped directory where the `record_one_run.bash` is in.
 
 ## Changing camera follow behavior
 
-The camera follow behavior can be configured by setting the `<camera_follow>`
-parameters in the GzScene3d GUI plugin in `log_video_recorder.sdf`, i.e.
-
-        <camera_follow>
-          <p_gain>0.01</p_gain>
-          <world_frame>true</world_frame>
-          <offset>-1.0 0 2.5</offset>
-        </camera_follow>
+> This feature hasn't been ported to Fortress yet, see
+> https://github.com/ignitionrobotics/ign-gui/issues/298
 
 ## Troubleshooting
 

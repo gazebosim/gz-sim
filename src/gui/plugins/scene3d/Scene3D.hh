@@ -169,6 +169,43 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: bool OnMoveToPose(const msgs::GUICamera &_msg,
                  msgs::Boolean &_res);
 
+    /// \brief Callback for view as transparent request
+    /// \param[in] _msg Request message to set the target to view as
+    /// transparent
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnViewTransparent(const msgs::StringMsg &_msg,
+                 msgs::Boolean &_res);
+
+    /// \brief Callback for view center of mass request
+    /// \param[in] _msg Request message to set the target to view center of
+    /// mass
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnViewCOM(const msgs::StringMsg &_msg,
+        msgs::Boolean &_res);
+
+    /// \brief Callback for view inertia request
+    /// \param[in] _msg Request message to set the target to view inertia
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnViewInertia(const msgs::StringMsg &_msg,
+        msgs::Boolean &_res);
+
+    /// \brief Callback for view joints request
+    /// \param[in] _msg Request message to set the target to view joints
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnViewJoints(const msgs::StringMsg &_msg,
+        msgs::Boolean &_res);
+
+    /// \brief Callback for view wireframes request
+    /// \param[in] _msg Request message to set the target to view wireframes
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnViewWireframes(const msgs::StringMsg &_msg,
+        msgs::Boolean &_res);
+
     /// \brief Callback for view collisions request
     /// \param[in] _msg Request message to set the target to view collisions
     /// \param[in] _res Response data
@@ -191,6 +228,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// Note that the function name needs to start with lowercase in order for
     /// the connection to work on the QML side
     signals: void popupError();
+
+    /// \brief Callback for camera view controller request
+    /// \param[in] _msg Request message to set the camera view controller
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnViewControl(const msgs::StringMsg &_msg,
+        msgs::Boolean &_res);
 
     /// \internal
     /// \brief Pointer to private data.
@@ -287,9 +331,33 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _pose The world pose to set the camera to.
     public: void SetMoveToPose(const math::Pose3d &_pose);
 
+    /// \brief View the specified target as transparent
+    /// \param[in] _target Target to view as transparent
+    public: void SetViewTransparentTarget(const std::string &_target);
+
+    /// \brief View center of mass of the specified target
+    /// \param[in] _target Target to view center of mass
+    public: void SetViewCOMTarget(const std::string &_target);
+
+    /// \brief View inertia of the specified target
+    /// \param[in] _target Target to view inertia
+    public: void SetViewInertiaTarget(const std::string &_target);
+
+    /// \brief View joints of the specified target
+    /// \param[in] _target Target to view joints
+    public: void SetViewJointsTarget(const std::string &_target);
+
+    /// \brief View wireframes of the specified target
+    /// \param[in] _target Target to view wireframes
+    public: void SetViewWireframesTarget(const std::string &_target);
+
     /// \brief View collisions of the specified target
     /// \param[in] _target Target to view collisions
     public: void SetViewCollisionsTarget(const std::string &_target);
+
+    /// \brief Set camera view controller
+    /// \param[in] _viewController. Values are "orbit", and "ortho"
+    public: void SetViewController(const std::string &_viewController);
 
     /// \brief Set the p gain for the camera follow movement
     /// \param[in] _gain Camera follow p gain.
@@ -638,9 +706,33 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _pose The new camera pose in the world frame.
     public: void SetMoveToPose(const math::Pose3d &_pose);
 
+    /// \brief View the specified target as transparent
+    /// \param[in] _target Target to view as transparent
+    public: void SetViewTransparentTarget(const std::string &_target);
+
+    /// \brief View center of mass of the specified target
+    /// \param[in] _target Target to view center of mass
+    public: void SetViewCOMTarget(const std::string &_target);
+
+    /// \brief View inertia of the specified target
+    /// \param[in] _target Target to view inertia
+    public: void SetViewInertiaTarget(const std::string &_target);
+
+    /// \brief View joints of the specified target
+    /// \param[in] _target Target to view joints
+    public: void SetViewJointsTarget(const std::string &_target);
+
+    /// \brief View wireframes of the specified target
+    /// \param[in] _target Target to view wireframes
+    public: void SetViewWireframesTarget(const std::string &_target);
+
     /// \brief View collisions of the specified target
     /// \param[in] _target Target to view collisions
     public: void SetViewCollisionsTarget(const std::string &_target);
+
+    /// \brief Set camera view controller
+    /// \param[in] _viewController. Values are "orbit", and "ortho"
+    public: void SetViewController(const std::string &_viewController);
 
     /// \brief Set the p gain for the camera follow movement
     /// \param[in] _gain Camera follow p gain.
