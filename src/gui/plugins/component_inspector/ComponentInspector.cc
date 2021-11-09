@@ -16,6 +16,7 @@
 */
 
 #include <iostream>
+#include <list>
 #include <regex>
 #include <ignition/common/Console.hh>
 #include <ignition/common/MeshManager.hh>
@@ -67,6 +68,7 @@
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
 #include "ComponentInspector.hh"
+#include "ModelEditor.hh"
 
 namespace ignition::gazebo
 {
@@ -101,6 +103,9 @@ namespace ignition::gazebo
 
     /// \brief Transport node for making command requests
     public: transport::Node node;
+
+    /// \brief Transport node for making command requests
+    public: ModelEditor modelEditor;
   };
 }
 
@@ -405,6 +410,8 @@ void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
   // Connect model
   this->Context()->setContextProperty(
       "ComponentsModel", &this->dataPtr->componentsModel);
+
+  this->dataPtr->modelEditor.Load();
 }
 
 //////////////////////////////////////////////////
@@ -768,18 +775,27 @@ void ComponentInspector::Update(const UpdateInfo &_info,
     }
   }
 
-  // Remove components no longer present
+  // Remove components no longer present - list items to remove
+  std::list<ignition::gazebo::ComponentTypeId> itemsToRemove;
   for (auto itemIt : this->dataPtr->componentsModel.items)
   {
     auto typeId = itemIt.first;
     if (componentTypes.find(typeId) == componentTypes.end())
     {
-      QMetaObject::invokeMethod(&this->dataPtr->componentsModel,
-          "RemoveComponentType",
-          Qt::QueuedConnection,
-          Q_ARG(ignition::gazebo::ComponentTypeId, typeId));
+      itemsToRemove.push_back(typeId);
     }
   }
+
+  // Remove components in list
+  for (auto typeId : itemsToRemove)
+  {
+    QMetaObject::invokeMethod(&this->dataPtr->componentsModel,
+        "RemoveComponentType",
+        Qt::QueuedConnection,
+        Q_ARG(ignition::gazebo::ComponentTypeId, typeId));
+  }
+
+  this->dataPtr->modelEditor.Update(_info, _ecm);
 }
 
 /////////////////////////////////////////////////

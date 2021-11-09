@@ -18,6 +18,8 @@
 #define IGNITION_GAZEBO_GUI_GUIEVENTS_HH_
 
 #include <QEvent>
+#include <QString>
+
 #include <set>
 #include <string>
 #include <utility>
