@@ -457,22 +457,16 @@ std::optional<sdf::Sensor> ModelEditorPrivate::CreateSensor(
   // Replace spaces with underscores.
   common::replaceAll(type, _eta.geomOrLightType, " ", "_");
 
-  sensor.SetType(_eta.geomOrLightType);
-  if (type == "air_pressure")
-  {
-    sdf::AirPressure airpressure;
-    sensor.SetAirPressureSensor(airpressure);
-  }
-  else if (type == "altimeter")
-  {
-    sdf::Altimeter altimeter;
-    sensor.SetAltimeterSensor(altimeter);
-  }
-  else
-  {
-    ignerr << "Unable to create sensor type[" << _eta.geomOrLightType << "]\n";
-    return std::nullopt;
-  }
+  std::ostringstream stream;
+  stream << "<sdf version='" << SDF_VERSION << "'>"
+    << "<sensor name='" << type << "' type='" << type << "'>"
+    << "<" << type << "></" << type << "></sensor></sdf>";
+
+  auto sdfStr = stream.str();
+  sdf::ElementPtr sensorElem(new sdf::Element);
+  sdf::initFile("sensor.sdf", sensorElem);
+  sdf::readString(sdfStr, sensorElem);
+  sensor.Load(sensorElem);
 
   // generate unique sensor name
   // note passing components::Link() as arg to EntityByComponents causes
@@ -490,6 +484,8 @@ std::optional<sdf::Sensor> ModelEditorPrivate::CreateSensor(
         components::Name(sensorName));
   }
   sensor.SetName(sensorName);
+
+  sensor.SetTopic("/" + sensorName);
 
   return sensor;
 }

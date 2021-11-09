@@ -408,12 +408,12 @@ Rectangle {
           MenuItem {
             id: cameraSensorMenu
             text: "Camera >"
+
             MouseArea {
               id: viewSubCameraArea
               anchors.fill: parent
               hoverEnabled: true
               onEntered: secondCameraMenu.open()
-              onExited:secondCameraMenu.close()
             }
           }
       
@@ -465,8 +465,15 @@ Rectangle {
       
         Menu {
           id: secondCameraMenu
-          x: addSensorMenu.x + addSensorMenu.width
+          x: addSensorMenu.x - addSensorMenu.width
           y: addSensorMenu.y + cameraSensorMenu.y
+          MouseArea {
+            id: viewSubCameraAreaExit
+            anchors.fill: parent
+            hoverEnabled: true
+            onExited: secondCameraMenu.close()
+          }
+
           MenuItem {
             id: depth
             text: "Depth"
