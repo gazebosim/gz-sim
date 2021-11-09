@@ -173,6 +173,10 @@ class ignition::gazebo::systems::TrackedVehiclePrivate
   /// \brief Last target velocity requested.
   public: msgs::Twist targetVel;
 
+  /// \brief This variable is set to true each time a new command arrives.
+  /// It is intended to be set to false after the command is processed.
+  public: bool hasNewCommand{false};
+
   /// \brief A mutex to protect the target velocity command.
   public: std::mutex mutex;
 
@@ -634,11 +638,14 @@ void TrackedVehiclePrivate::UpdateVelocity(
   double linVel;
   double angVel;
   double steeringEfficiencyCopy;
+  bool hadNewCommand;
   {
     std::lock_guard<std::mutex> lock(this->mutex);
     linVel = this->targetVel.linear().x();
     angVel = this->targetVel.angular().z();
     steeringEfficiencyCopy = this->steeringEfficiency;
+    hadNewCommand = this->hasNewCommand;
+    this->hasNewCommand = false;
   }
 
   const auto dt = std::chrono::duration<double>(_info.dt).count();
@@ -649,65 +656,91 @@ void TrackedVehiclePrivate::UpdateVelocity(
   this->limiterAng->Limit(
     angVel, this->last0Cmd.ang, this->last1Cmd.ang, _info.dt);
 
+  // decide whether commands to tracks should be sent
+  bool sendCommandsToTracks{hadNewCommand};
+  if (!hadNewCommand)
+  {
+    // if the speed limiter has been limiting the speed (or acceleration),
+    // we let it saturate first and will stop publishing to tracks after that
+    if (std::abs(linVel - this->last0Cmd.lin) > 1e-6)
+    {
+      sendCommandsToTracks = true;
+    }
+    else if (std::abs(angVel - this->last0Cmd.ang) > 1e-6)
+    {
+      sendCommandsToTracks = true;
+    }
+  }
+
   // Update history of commands.
   this->last1Cmd = last0Cmd;
   this->last0Cmd.lin = linVel;
   this->last0Cmd.ang = angVel;
 
-  // Convert the target velocities to track velocities.
-  this->rightSpeed =
-    (linVel + angVel * this->tracksSeparation / (2.0 * steeringEfficiencyCopy));
-  this->leftSpeed =
-    (linVel - angVel * this->tracksSeparation / (2.0 * steeringEfficiencyCopy));
+  // only update and publish the following values when tracks should be
+  // commanded with updated commands; none of these values changes when
+  // linVel and angVel stay the same
+  if (sendCommandsToTracks)
+  {
+    // Convert the target velocities to track velocities.
+    this->rightSpeed = (linVel + angVel * this->tracksSeparation /
+      (2.0 * steeringEfficiencyCopy));
+    this->leftSpeed = (linVel - angVel * this->tracksSeparation /
+      (2.0 * steeringEfficiencyCopy));
+
+    // radius of the turn the robot is doing
+    this->desiredRotationRadiusSigned =
+      (fabs(angVel) < 0.1) ?
+      // is driving straight
+      math::INF_D :
+      (
+        (fabs(linVel) < 0.1) ?
+        // is rotating about a single point
+        0 :
+        // general movement
+        linVel / angVel);
+
+    const auto bodyPose = worldPose(this->bodyLink, _ecm);
+    const auto bodyYAxisGlobal =
+      bodyPose.Rot().RotateVector(ignition::math::Vector3d(0, 1, 0));
+    // centerOfRotation may be +inf
+    this->centerOfRotation =
+      (bodyYAxisGlobal * desiredRotationRadiusSigned) + bodyPose.Pos();
+
+    for (const auto& track : this->leftTrackNames)
+    {
+      msgs::Double vel;
+      vel.set_data(this->leftSpeed);
+      this->velPublishers[track].Publish(vel);
+
+      this->corPublishers[track].Publish(
+        msgs::Convert(this->centerOfRotation));
+    }
+
+    for (const auto& track : this->rightTrackNames)
+    {
+      msgs::Double vel;
+      vel.set_data(this->rightSpeed);
+      this->velPublishers[track].Publish(vel);
+
+      this->corPublishers[track].Publish(
+        msgs::Convert(this->centerOfRotation));
+    }
+  }
 
   // Odometry is computed as if the vehicle were a diff-drive vehicle with
   // wheels as high as the tracks are.
   this->odomLeftWheelPos += this->leftSpeed / (this->trackHeight / 2) * dt;
   this->odomRightWheelPos += this->rightSpeed / (this->trackHeight / 2) * dt;
 
-  // radius of the turn the robot is doing
-  this->desiredRotationRadiusSigned =
-    (fabs(angVel) < 0.1) ?
-      // is driving straight
-      math::INF_D :
-      (
-        (fabs(linVel) < 0.1) ?
-          // is rotating about a single point
-          0 :
-          // general movement
-          linVel / angVel);
-
-  const auto bodyPose = worldPose(this->bodyLink, _ecm);
-  const auto bodyYAxisGlobal =
-    bodyPose.Rot().RotateVector(ignition::math::Vector3d(0, 1, 0));
-  // centerOfRotation may be +inf
-  this->centerOfRotation =
-    (bodyYAxisGlobal * desiredRotationRadiusSigned) + bodyPose.Pos();
-
-  for (const auto& track : this->leftTrackNames)
-  {
-    msgs::Double vel;
-    vel.set_data(this->leftSpeed);
-    this->velPublishers[track].Publish(vel);
-
-    this->corPublishers[track].Publish(msgs::Convert(this->centerOfRotation));
-  }
-
-  for (const auto& track : this->rightTrackNames)
-  {
-    msgs::Double vel;
-    vel.set_data(this->rightSpeed);
-    this->velPublishers[track].Publish(vel);
-
-    this->corPublishers[track].Publish(msgs::Convert(this->centerOfRotation));
-  }
-
   if (this->debug)
   {
     igndbg << "Tracked Vehicle " << this->model.Name(_ecm) << ":" << std::endl;
-    igndbg << "- cmd vel v=" << linVel << ", w=" << angVel << std::endl;
-    igndbg << "- left v=" << this->leftSpeed << ", right v=" << this->rightSpeed
-           << std::endl;
+    igndbg << "- cmd vel v=" << linVel << ", w=" << angVel
+           << (hadNewCommand ? " (new command)" : "") << std::endl;
+    igndbg << "- left v=" << this->leftSpeed
+           << ", right v=" << this->rightSpeed
+           << (sendCommandsToTracks ? " (sent to tracks)" : "") << std::endl;
 
     ignition::msgs::Set(this->debugMarker.mutable_pose(), math::Pose3d(
       this->centerOfRotation.X(),
@@ -723,6 +756,7 @@ void TrackedVehiclePrivate::OnCmdVel(const msgs::Twist &_msg)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
   this->targetVel = _msg;
+  this->hasNewCommand = true;
 }
 
 //////////////////////////////////////////////////
@@ -731,6 +765,7 @@ void TrackedVehiclePrivate::OnSteeringEfficiency(
 {
   std::lock_guard<std::mutex> lock(this->mutex);
   this->steeringEfficiency = _msg.data();
+  this->hasNewCommand = true;
 }
 
 IGNITION_ADD_PLUGIN(TrackedVehicle,

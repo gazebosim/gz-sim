@@ -78,6 +78,10 @@ namespace systems
   ///   of rotation commands. Defaults to
   ///   `/model/${model_name}/link/${link_name}/track_cmd_center_of_rotation`.
   ///
+  /// `<max_command_age>` If this parameter is set, each velocity or center of
+  ///   rotation command will only act for the given number of seconds and the
+  ///   track will be stopped if no command arrives before this timeout.
+  ///
   /// `<min_velocity>`/`<max_velocity>` Min/max velocity of the track (m/s).
   ///   If not specified, the velocity is not limited (however the physics will,
   ///   in the end, have some implicit limit).

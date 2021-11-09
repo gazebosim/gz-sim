@@ -153,6 +153,19 @@ class ignition::gazebo::systems::TrackControllerPrivate
   public: math::Vector3d centerOfRotation {math::Vector3d::Zero * math::INF_D};
   /// \brief protects velocity and centerOfRotation
   public: std::mutex cmdMutex;
+  
+  /// \brief Maximum age of a command in seconds. If a command is older, the
+  /// track automatically sets a zero velocity. Set this to max() to denote
+  /// commands do not time out. 
+  public: std::chrono::steady_clock::duration maxCommandAge
+    {std::chrono::steady_clock::duration::max()};
+
+  /// \brief This variable is set to true each time a new command arrives.
+  /// It is intended to be set to false after the command is processed.
+  public: bool hasNewCommand{false};
+  
+  /// \brief The time at which the last command has been received.
+  public: std::chrono::steady_clock::duration lastCommandTime;
 
   /// \brief Limiter of the commanded velocity.
   public: math::SpeedLimiter limiter;
@@ -257,6 +270,16 @@ void TrackController::Configure(const Entity &_entity,
 
   this->dataPtr->trackOrientation = _sdf->Get<math::Quaterniond>(
     "track_orientation", math::Quaterniond::Identity).first;
+  
+  if (_sdf->HasElement("max_command_age"))
+  {
+    const auto seconds = _sdf->Get<double>("max_command_age");
+    this->dataPtr->maxCommandAge =
+      std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+        std::chrono::duration<double>(seconds));
+    igndbg << "Track commands will time out after " << seconds << " seconds"
+           << std::endl;
+  }
 
   auto hasVelocityLimits = false;
   auto hasAccelerationLimits = false;
@@ -374,11 +397,26 @@ void TrackController::PreUpdate(
   for (auto& entityPose : this->dataPtr->collisionsWorldPose)
     entityPose.second = worldPose(entityPose.first, _ecm);
 
-  // Compute limited velocity command
+  std::chrono::steady_clock::duration lastCommandTimeCopy;
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->cmdMutex);
+    if (this->dataPtr->hasNewCommand)
+    {
+      this->dataPtr->lastCommandTime = _info.simTime;
+      this->dataPtr->hasNewCommand = false;
+    }
+    lastCommandTimeCopy = this->dataPtr->lastCommandTime;
+
+    // Compute limited velocity command
     this->dataPtr->limitedVelocity = this->dataPtr->velocity;
   }
+  
+  if (this->dataPtr->maxCommandAge != std::chrono::steady_clock::duration::max()
+    && (_info.simTime - lastCommandTimeCopy) > this->dataPtr->maxCommandAge)
+  {
+    this->dataPtr->limitedVelocity = 0;
+  }
+  
   this->dataPtr->limiter.Limit(
     this->dataPtr->limitedVelocity,  // in-out parameter
     this->dataPtr->prevVelocity,
@@ -559,6 +597,7 @@ void TrackControllerPrivate::OnCmdVel(const msgs::Double& _msg)
 {
   std::lock_guard<std::mutex> lock(this->cmdMutex);
   this->velocity = _msg.data();
+  this->hasNewCommand = true;
 }
 
 /////////////////////////////////////////////////
@@ -566,6 +605,7 @@ void TrackControllerPrivate::OnCenterOfRotation(const msgs::Vector3d& _msg)
 {
   std::lock_guard<std::mutex> lock(this->cmdMutex);
   this->centerOfRotation = msgs::Convert(_msg);
+  this->hasNewCommand = true;
 }
 
 IGNITION_ADD_PLUGIN(TrackController,
