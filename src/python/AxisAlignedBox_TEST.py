@@ -65,9 +65,9 @@ class TestAxisAlignedBox(unittest.TestCase):
 
     def test_length(self):
         box = AxisAlignedBox(Vector3d(0, -1, 2), Vector3d(1, -2, 3))
-        self.assertEqual(box.xlength(), 1)
-        self.assertEqual(box.ylength(), 1)
-        self.assertEqual(box.zlength(), 1)
+        self.assertEqual(box.x_length(), 1)
+        self.assertEqual(box.y_length(), 1)
+        self.assertEqual(box.z_length(), 1)
 
     def test_size(self):
         box = AxisAlignedBox(Vector3d(0, -1, 2), Vector3d(1, -2, 3))
@@ -92,9 +92,9 @@ class TestAxisAlignedBox(unittest.TestCase):
 
         self.assertEqual(defaultAxisAlignedBox1.size(), Vector3d(0, 0, 0))
 
-        self.assertEqual(defaultAxisAlignedBox1.xlength(), 0)
-        self.assertEqual(defaultAxisAlignedBox1.ylength(), 0)
-        self.assertEqual(defaultAxisAlignedBox1.zlength(), 0)
+        self.assertEqual(defaultAxisAlignedBox1.x_length(), 0)
+        self.assertEqual(defaultAxisAlignedBox1.y_length(), 0)
+        self.assertEqual(defaultAxisAlignedBox1.z_length(), 0)
 
         self.assertEqual(defaultAxisAlignedBox1.center(), Vector3d(0, 0, 0))
 

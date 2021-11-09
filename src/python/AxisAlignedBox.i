@@ -65,10 +65,13 @@ namespace ignition
 
       public: virtual ~AxisAlignedBox();
 
+      %rename(x_length) XLength;
       public: double XLength() const;
 
+      %rename(y_length) YLength;
       public: double YLength() const;
 
+      %rename(z_length) ZLength;
       public: double ZLength() const;
 
       public: math::Vector3<double> Size() const;
