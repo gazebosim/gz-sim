@@ -1,5 +1,0 @@
-<!DOCTYPE RCC><RCC version="1.0">
-<qresource prefix="ModelEditor/">
-  <file>ModelEditor.qml</file>
-</qresource>
-</RCC>

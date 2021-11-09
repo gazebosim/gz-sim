@@ -22,7 +22,6 @@
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/GuiEvents.hh>
 #include <ignition/gui/MainWindow.hh>
-#include <ignition/plugin/Register.hh>
 
 #include <sdf/Link.hh>
 #include <sdf/parser.hh>
@@ -102,7 +101,7 @@ using namespace gazebo;
 
 /////////////////////////////////////////////////
 ModelEditor::ModelEditor()
-  : GuiSystem(), dataPtr(std::make_unique<ModelEditorPrivate>())
+  : dataPtr(std::make_unique<ModelEditorPrivate>())
 {
 }
 
@@ -110,11 +109,8 @@ ModelEditor::ModelEditor()
 ModelEditor::~ModelEditor() = default;
 
 /////////////////////////////////////////////////
-void ModelEditor::LoadConfig(const tinyxml2::XMLElement *)
+void ModelEditor::Load()
 {
-  if (this->title.empty())
-    this->title = "Model editor";
-
   ignition::gui::App()->findChild<
       ignition::gui::MainWindow *>()->installEventFilter(this);
 }
@@ -408,7 +404,3 @@ void ModelEditorPrivate::HandleAddEntity(const std::string &_geomOrLightType,
   eta.uri = _uri;
   this->entitiesToAdd.push_back(eta);
 }
-
-// Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::ModelEditor,
-                    ignition::gui::Plugin)

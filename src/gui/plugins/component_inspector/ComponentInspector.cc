@@ -67,6 +67,7 @@
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
 #include "ComponentInspector.hh"
+#include "ModelEditor.hh"
 
 namespace ignition::gazebo
 {
@@ -101,6 +102,9 @@ namespace ignition::gazebo
 
     /// \brief Transport node for making command requests
     public: transport::Node node;
+
+    /// \brief Transport node for making command requests
+    public: ModelEditor modelEditor;
   };
 }
 
@@ -405,10 +409,12 @@ void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
   // Connect model
   this->Context()->setContextProperty(
       "ComponentsModel", &this->dataPtr->componentsModel);
+
+  this->dataPtr->modelEditor.Load();
 }
 
 //////////////////////////////////////////////////
-void ComponentInspector::Update(const UpdateInfo &,
+void ComponentInspector::Update(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
   IGN_PROFILE("ComponentInspector::Update");
@@ -782,6 +788,9 @@ void ComponentInspector::Update(const UpdateInfo &,
           Q_ARG(ignition::gazebo::ComponentTypeId, typeId));
     }
   }
+
+
+  this->dataPtr->modelEditor.Update(_info, _ecm);
 }
 
 /////////////////////////////////////////////////
