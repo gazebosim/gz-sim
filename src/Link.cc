@@ -17,6 +17,7 @@
 
 #include <ignition/msgs/Utility.hh>
 #include <ignition/msgs/marker.pb.h>
+#include <ignition/msgs/wrench_stamped.pb.h>
 
 #include <ignition/transport/Node.hh>
 
@@ -363,37 +364,13 @@ void Link::AddAndVisualizeWorldWrench(EntityComponentManager &_ecm,
                          const math::Color &_color) const
 {
   static transport::Node node;
+  static auto pub = node.Advertise<msgs::WrenchStamped>("/force_viz");
 
-  msgs::Marker marker;
-  
-
-  auto ns = "force/" + (this->Name(_ecm).has_value()? this->Name(_ecm).value() : "link") + "/" + _pluginName;
-  marker.set_ns(ns);
-  marker.set_id(1);
-  marker.set_action(msgs::Marker::ADD_MODIFY);
-  marker.set_type(msgs::Marker::CYLINDER);
-
-  marker.set_visibility(msgs::Marker::GUI);
-
-  ignition::msgs::Set(marker.mutable_material()->mutable_ambient(), _color);
-  ignition::msgs::Set(marker.mutable_material()->mutable_diffuse(), _color);
-
-  if (this->WorldPose(_ecm).has_value() && std::abs(_force.Length()) > 1e-5)
-  {
-    auto linkPose = this->WorldPose(_ecm).value();
-
-    math::Quaterniond qt;
-    qt.From2Axes(math::Vector3d::UnitZ, _force.Normalized());
-
-    // translate cylinder up
-    math::Pose3d translateCylinder(math::Vector3d(0, 0, _force.Length()/2), math::Quaterniond());
-    math::Pose3d rotation(math::Vector3d(0, 0, 0), qt);
-    math::Pose3d arrowPose(linkPose.Pos(), math::Quaterniond());
-    ignition::msgs::Set(marker.mutable_pose(), arrowPose * rotation * translateCylinder);
-    ignition::msgs::Set(marker.mutable_scale(), math::Vector3d(0.1, 0.1, _force.Length()));
-
-    node.Request("/marker", marker);
-  }
-  
+  msgs::WrenchStamped wrenchStamp;
+  wrenchStamp.set_plugin(_pluginName);
+  wrenchStamp.set_entity(this->dataPtr->id);
+  msgs::Set(wrenchStamp.mutable_wrench()->mutable_force(), _force);
+  msgs::Set(wrenchStamp.mutable_wrench()->mutable_torque(), _torque);
+  pub.Publish(wrenchStamp);
   this->AddWorldWrench(_ecm, _force, _torque);
 }

@@ -20,9 +20,12 @@
 
 #include <memory>
 
+#include <ignition/math/Color.hh>
+#include <ignition/msgs/wrench_stamped.pb.h>
+
 #include <ignition/gazebo/gui/GuiSystem.hh>
 
- #include <QAbstractListModel> 
+#include <QAbstractListModel> 
 
 #include "ignition/gui/qt.h"
 
@@ -52,7 +55,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
       {
         std::string linkName;
         std::string pluginName;
-        std::string color;
         bool visible;
       };
       ForceListModel();
@@ -63,8 +65,19 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
       int rowCount(const QModelIndex &parent = QModelIndex()) const;
       QHash<int,QByteArray> roleNames() const;
 
+      std::optional<math::Color> getRenderColor(msgs::WrenchStamped _wrench);
     private:
       std::vector<ForceArrow> arrows;
+      std::unordered_map<std::string, math::Color> colors;
+      
+      struct ArrowInfo
+      {
+        std::size_t index;
+      };
+      std::unordered_map<Entity, std::unordered_map<std::string, ArrowInfo>> arrow_mapping;
+
+      math::Color retrieveOrAssignColor(std::string _pluginname);
+
   };
 
   /// \brief Visualize Force markers
