@@ -25,8 +25,6 @@
 
 #include <sdf/Link.hh>
 #include <sdf/Sensor.hh>
-#include <sdf/AirPressure.hh>
-#include <sdf/Altimeter.hh>
 #include <sdf/parser.hh>
 
 #include "ignition/gazebo/components/Model.hh"
@@ -431,7 +429,6 @@ std::optional<sdf::Link> ModelEditorPrivate::CreateLink(
         components::ParentEntity(_eta.parentEntity),
         components::Name(linkName));
   }
-  sensor.SetName(sensorName);
 
   linkSdf.SetName(linkName);
   return linkSdf;

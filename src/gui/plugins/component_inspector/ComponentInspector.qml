@@ -477,26 +477,44 @@ Rectangle {
           MenuItem {
             id: depth
             text: "Depth"
+             onTriggered: {
+              ComponentInspector.OnAddEntity("depth_camera", "sensor");
+            }
           }
           MenuItem {
             id: logical
             text: "Logical"
+             onTriggered: {
+              ComponentInspector.OnAddEntity("logical_camera", "sensor");
+            }
           }
           MenuItem {
             id: monocular
             text: "Monocular"
+             onTriggered: {
+              ComponentInspector.OnAddEntity("camera", "sensor");
+            }
           }
           MenuItem {
             id: multicamera
             text: "Multicamera"
+             onTriggered: {
+              ComponentInspector.OnAddEntity("multicamera", "sensor");
+            }
           }
           MenuItem {
             id: rgbd
             text: "RGBD"
+             onTriggered: {
+              ComponentInspector.OnAddEntity("rgbd_camera", "sensor");
+            }
           }
           MenuItem {
             id: thermal
             text: "Thermal"
+             onTriggered: {
+              ComponentInspector.OnAddEntity("thermal_camera", "sensor");
+            }
           }
         }
       }
