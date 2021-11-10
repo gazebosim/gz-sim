@@ -29,7 +29,6 @@ Rectangle {
   id: noise
   height: noiseContent.height
   color: "transparent"
-  objectName: "NoiseQML"
 
   // Mean value
   property double meanValue: 0.0
@@ -54,6 +53,42 @@ Rectangle {
   signal onNoiseUpdate(double _mean, double _meanBias, double _stdDev,
       double _stdDevBias, double _dynamicBiasStdDev,
       double _dynamicBiasCorrelationTime)
+
+  function onMean(_value) {
+    meanValue = _value;
+    onNoiseUpdate(meanValue, meanBias, stdDevValue, stdDevBias,
+        dynamicBiasStdDev, dynamicBiasCorrelationTime);
+  }
+
+  function onMeanBias(_value) {
+    meanBias = _value;
+    onNoiseUpdate(meanValue, meanBias, stdDevValue, stdDevBias,
+        dynamicBiasStdDev, dynamicBiasCorrelationTime);
+  }
+
+  function onStdDev(_value) {
+    stdDevValue = _value;
+    onNoiseUpdate(meanValue, meanBias, stdDevValue, stdDevBias,
+        dynamicBiasStdDev, dynamicBiasCorrelationTime);
+  }
+
+  function onStdDevBias(_value) {
+    stdDevBias = _value;
+    onNoiseUpdate(meanValue, meanBias, stdDevValue, stdDevBias,
+        dynamicBiasStdDev, dynamicBiasCorrelationTime);
+  }
+
+  function onDynamicBiasStdDev(_value) {
+    dynamicBiasStdDev = _value;
+    onNoiseUpdate(meanValue, meanBias, stdDevValue, stdDevBias,
+        dynamicBiasStdDev, dynamicBiasCorrelationTime);
+  }
+
+  function onDynamicBiasCorrelationTime(_value) {
+    dynamicBiasCorrelationTime = _value;
+    onNoiseUpdate(meanValue, meanBias, stdDevValue, stdDevBias,
+        dynamicBiasStdDev, dynamicBiasCorrelationTime);
+  }
 
   // Display the main content
   Column {
@@ -122,20 +157,17 @@ Rectangle {
             }
           }
         }
-        IgnSpinBox {
+        StateAwareSpin {
           id: meanSpin
           Layout.fillWidth: true
           height: 40
-          value: meanSpin.activeFocus ? meanSpin.value : meanValue 
-
-          minimumValue: 0 
-          maximumValue: 100000 
-          decimals: componentInspector.getDecimalsAdjustValue(meanSpin, meanValue) 
-          stepSize: 0.1
-          onEditingFinished: {
-            meanValue = meanSpin.value;
-            onNoiseUpdate(meanValue, meanBias, stdDevValue, stdDevBias,
-                dynamicBiasStdDev, dynamicBiasCorrelationTime);
+          numberValue: meanValue
+          minValue: -100000
+          maxValue: 100000
+          stepValue: 0.1
+          // Connect to the onNoiseUpdate signal in Noise.qml
+          Component.onCompleted: {
+            meanSpin.onChange.connect(onMean)
           }
         }
         // End of mean
@@ -168,21 +200,17 @@ Rectangle {
             }
           }
         }
-        IgnSpinBox {
+        StateAwareSpin {
           id: meanBiasSpin
           Layout.fillWidth: true
           height: 40
-          property double numberValue: meanBias 
-          value: meanBiasSpin.activeFocus ? meanBiasSpin.value : numberValue
-
-          minimumValue: 0 
-          maximumValue: 100000 
-          decimals: componentInspector.getDecimalsAdjustValue(meanBiasSpin, meanBias) 
-          stepSize: 0.1
-          onEditingFinished: {
-            meanBias = meanBiasSpin.value;
-            onNoiseUpdate(meanValue, meanBias, stdDevValue, stdDevBias,
-                dynamicBiasStdDev, dynamicBiasCorrelationTime);
+          numberValue: meanBias
+          minValue: -100000
+          maxValue: 100000
+          stepValue: 0.1
+          // Connect to the onNoiseUpdate signal in Noise.qml
+          Component.onCompleted: {
+            meanBiasSpin.onChange.connect(onMeanBias)
           }
         }
         // End of mean bias
@@ -230,21 +258,17 @@ Rectangle {
             }
           }
         }
-        IgnSpinBox {
+        StateAwareSpin {
           id: stddevSpin
           Layout.fillWidth: true
           height: 40
-          property double numberValue: stdDevValue
-          value: stddevSpin.activeFocus ? stddevSpin.value : numberValue
-
-          minimumValue: 0 
-          maximumValue: 100000 
-          decimals: componentInspector.getDecimalsAdjustValue(stddevSpin, stdDevValue) 
-          stepSize: 0.1
-          onEditingFinished: {
-            stdDevValue = stddevSpin.value;
-            onNoiseUpdate(meanValue, meanBias, stdDevValue, stdDevBias,
-                dynamicBiasStdDev, dynamicBiasCorrelationTime);
+          numberValue: stdDevValue
+          minValue: 0
+          maxValue: 100000
+          stepValue: 0.1
+          // Connect to the onNoiseUpdate signal in Noise.qml
+          Component.onCompleted: {
+            stddevSpin.onChange.connect(onStdDev)
           }
         }
         // End of stddev
@@ -277,21 +301,17 @@ Rectangle {
             }
           }
         }
-        IgnSpinBox {
+        StateAwareSpin {
           id: stddevBiasSpin
           Layout.fillWidth: true
           height: 40
-          property double numberValue: stdDevBias
-          value: stddevBiasSpin.activeFocus ? stddevBiasSpin.value : numberValue
-
-          minimumValue: 0 
-          maximumValue: 100000 
-          decimals: componentInspector.getDecimalsAdjustValue(stddevBiasSpin, stdDevBias) 
-          stepSize: 0.1
-          onEditingFinished: {
-            stdDevBias = stddevBiasSpin.value;
-            onNoiseUpdate(meanValue, meanBias, stdDevValue, stdDevBias,
-                dynamicBiasStdDev, dynamicBiasCorrelationTime);
+          numberValue: stdDevBias
+          minValue: 0
+          maxValue: 100000
+          stepValue: 0.1
+          // Connect to the onNoiseUpdate signal in Noise.qml
+          Component.onCompleted: {
+            stddevBiasSpin.onChange.connect(onStdDevBias)
           }
         }
         // End of stddev bias
@@ -340,21 +360,17 @@ Rectangle {
 
           }
         }
-        IgnSpinBox {
+        StateAwareSpin {
           id: dynamicBiasStdDevSpin
           Layout.fillWidth: true
           height: 40
-          property double numberValue: dynamicBiasStdDev
-          value: dynamicBiasStdDevSpin.activeFocus ? dynamicBiasStdDevSpin.value : numberValue
-
-          minimumValue: 0 
-          maximumValue: 100000 
-          decimals: componentInspector.getDecimalsAdjustValue(dynamicBiasStdDevSpin, dynamicBiasStdDev) 
-          stepSize: 0.1
-          onEditingFinished: {
-            dynamicBiasStdDev = dynamicBiasStdDevSpin.value;
-            onNoiseUpdate(meanValue, meanBias, stdDevValue, stdDevBias,
-                dynamicBiasStdDev, dynamicBiasCorrelationTime);
+          numberValue: dynamicBiasStdDev
+          minValue: 0
+          maxValue: 100000
+          stepValue: 0.1
+          // Connect to the onNoiseUpdate signal in Noise.qml
+          Component.onCompleted: {
+            dynamicBiasStdDevSpin.onChange.connect(onDynamicBiasStdDev)
           }
         }
         // End of dynamic bias stddev
@@ -388,21 +404,17 @@ Rectangle {
             }
           }
         }
-        IgnSpinBox {
+        StateAwareSpin {
           id: dynamicBiasCorrelationTimeSpin
           Layout.fillWidth: true
           height: 40
-          property double numberValue: dynamicBiasCorrelationTime
-          value: dynamicBiasCorrelationTimeSpin.activeFocus ? dynamicBiasCorrelationTimeSpin.value : numberValue
-
-          minimumValue: 0 
-          maximumValue: 100000 
-          decimals: componentInspector.getDecimalsAdjustValue(dynamicBiasCorrelationTimeSpin, dynamicBiasCorrelationTime) 
-          stepSize: 0.1
-          onEditingFinished: {
-            dynamicBiasCorrelationTime = dynamicBiasCorrelationTimeSpin.value;
-            onNoiseUpdate(meanValue, meanBias, stdDevValue, stdDevBias,
-                dynamicBiasStdDev, dynamicBiasCorrelationTime);
+          numberValue: dynamicBiasCorrelationTime
+          minValue: 0
+          maxValue: 100000
+          stepValue: 0.1
+          // Connect to the onNoiseUpdate signal in Noise.qml
+          Component.onCompleted: {
+            dynamicBiasCorrelationTimeSpin.onChange.connect(onDynamicBiasCorrelationTime)
           }
         }
         // End of dynamic bias correlation time stddev bias

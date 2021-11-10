@@ -146,6 +146,13 @@ namespace gazebo
       NOTIFY PausedChanged
     )
 
+    /// \brief Simulation paused
+    Q_PROPERTY(
+      bool simPaused
+      READ SimPaused
+      NOTIFY SimPausedChanged
+    )
+
     /// \brief Nested Model
     Q_PROPERTY(
       bool nestedModel
@@ -264,6 +271,17 @@ namespace gazebo
 
     /// \brief Notify that locked has changed.
     signals: void LockedChanged();
+
+    /// \brief Get whether simulation is currently paused.
+    /// \return True for paused.
+    public: Q_INVOKABLE bool SimPaused() const;
+
+    /// \brief Notify that simulation paused state has changed.
+    signals: void SimPausedChanged();
+
+    /// \brief Set whether simulation is currently paused.
+    /// \param[in] _paused True for paused.
+    public: void SetSimPaused(bool _paused);
 
     /// \brief Get whether the inspector is currently paused for updates.
     /// \return True for paused.

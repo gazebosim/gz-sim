@@ -78,6 +78,11 @@ Rectangle {
     return _model.dataType + '.qml'
   }
 
+  function getSimPaused() {
+    console.log("Is paused:",ComponentInspector.simPaused)
+    return ComponentInspector.simPaused
+  }
+
   // Get number of decimal digits based on a width value
   // \param[in] _width Pixel width
   // \return Number of decimals that fit with the provided width.
@@ -85,12 +90,12 @@ Rectangle {
     // Use full decimals if the width is <= 0, which allows the value
     // to appear correctly.
     if (_width <= 0 || _width > 110)
-      return 6;
+      return 6
 
     if (_width <= 80)
-      return 2;
+      return 2
 
-    return 4;
+    return 4
   }
 
   // Get number of decimal digits based on a widget's width, and adjust the
@@ -102,8 +107,8 @@ Rectangle {
   function getDecimalsAdjustValue(_widgetId, _value) {
     // Make sure to update the value, otherwise zeros are used intead of 
     // the actual values.
-    _widgetId.value = _widgetId.activeFocus ? _widgetId.value : _value;
-    return getDecimals(_widgetId.width);
+    _widgetId.value = _widgetId.activeFocus ? _widgetId.value : _value
+    return getDecimals(_widgetId.width)
   }
 
   /**

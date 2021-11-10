@@ -77,20 +77,18 @@ Rectangle {
             color: "dimgrey"
             font.pointSize: 12
           }
-          IgnSpinBox {
+          StateAwareSpin {
             id: referenceAltitudeSpin
             Layout.fillWidth: true
             height: 40
-            property double refAltitude: model.data[0]
-            value: referenceAltitudeSpin.activeFocus ? referenceAltitudeSpin.value : refAltitude
-
-            minimumValue: 0
-            maximumValue: 100000
-            decimals: componentInspector.getDecimalsAdjustValue(referenceAltitudeSpin, refAltitude)
-            stepSize: 0.1
-            onEditingFinished: {
-              refAltitude = referenceAltitudeSpin.value
-              AirPressureImpl.OnAirPressureReferenceAltitude(refAltitude);
+            numberValue: model.data[0]
+            minValue: 0
+            maxValue: 100000
+            stepValue: 0.1
+            // Connect to the onNoiseUpdate signal in Noise.qml
+            Component.onCompleted: {
+              referenceAltitudeSpin.onChange.connect(
+                  AirPressureImpl.OnAirPressureReferenceAltitude)
             }
           }
         }

@@ -103,6 +103,9 @@ namespace ignition::gazebo
     /// \brief Whether updates are currently paused.
     public: bool paused{false};
 
+    /// \brief Whether simulation is currently paused.
+    public: bool simPaused{true};
+
     /// \brief Transport node for making command requests
     public: transport::Node node;
 
@@ -425,10 +428,12 @@ void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
 }
 
 //////////////////////////////////////////////////
-void ComponentInspector::Update(const UpdateInfo &,
+void ComponentInspector::Update(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
   IGN_PROFILE("ComponentInspector::Update");
+
+  this->SetSimPaused(_info.paused);
 
   auto componentTypes = _ecm.ComponentTypes(this->dataPtr->entity);
 
@@ -903,6 +908,22 @@ void ComponentInspector::SetLocked(bool _locked)
 {
   this->dataPtr->locked = _locked;
   this->LockedChanged();
+}
+
+/////////////////////////////////////////////////
+bool ComponentInspector::SimPaused() const
+{
+  return this->dataPtr->simPaused;
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::SetSimPaused(bool _paused)
+{
+  if (_paused != this->dataPtr->simPaused)
+  {
+    this->dataPtr->simPaused = _paused;
+    this->SimPausedChanged();
+  }
 }
 
 /////////////////////////////////////////////////
