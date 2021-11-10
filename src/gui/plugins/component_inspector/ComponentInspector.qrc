@@ -1,12 +1,10 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource prefix="ComponentInspector/">
-  <file>AirPressure.qml</file>
   <file>Boolean.qml</file>
   <file>ComponentInspector.qml</file>
   <file>ExpandingTypeHeader.qml</file>
   <file>Light.qml</file>
   <file>NoData.qml</file>
-  <file>Noise.qml</file>
   <file>Physics.qml</file>
   <file>Pose3d.qml</file>
   <file>SphericalCoordinates.qml</file>
