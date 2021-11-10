@@ -38,7 +38,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 {
   class VisualizeForcesPrivate;
 
-  /// \brief Model for incoming arrows
+  /// \brief Qt AbstactListModel for incoming arrows
   class ForceListModel: public QAbstractListModel
   {
     Q_OBJECT
@@ -66,6 +66,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
       QHash<int,QByteArray> roleNames() const;
 
       std::optional<math::Color> getRenderColor(msgs::WrenchStamped _wrench);
+
+      Q_INVOKABLE void setVisibility(int index, bool visible);
+      Q_INVOKABLE void setColor(int index, QColor color);
+
     private:
       std::vector<ForceArrow> arrows;
       std::unordered_map<std::string, math::Color> colors;
