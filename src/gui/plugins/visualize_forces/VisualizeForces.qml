@@ -42,14 +42,15 @@ Rectangle {
     Material.color(Material.Grey, Material.Shade200) :
     Material.color(Material.Grey, Material.Shade900)
 
+  property int selectedIndex: 0
+
   ColorDialog {
     id: colorDialog
     title: "Please choose a color"
     onAccepted: {
-        console.log("You chose: " + colorDialog.color)
+      ForceListModel.setColor(selectedIndex, colorDialog.color)
     }
     onRejected: {
-        console.log("Canceled")
     }
   }
 
@@ -95,6 +96,7 @@ Rectangle {
           propagateComposedEvents: true
           onClicked: {
             mouse.accepted = true
+            selectedIndex = index 
             colorDialog.open()
           }
         }
@@ -102,8 +104,9 @@ Rectangle {
       CheckBox {
         checked: isVisible
         text: (isVisible) ? "visible" : "hidden"
-        nextCheckState: function() {
+        onClicked: function() {
           // Update model.
+          ForceListModel.setVisibility(index, checked);
         }
         background: Rectangle
         {

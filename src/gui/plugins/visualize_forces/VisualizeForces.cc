@@ -56,6 +56,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \brief queue for incoming messages
     public: std::queue<msgs::WrenchStamped> queue;
 
+    /// \brief queue lock
+    public: std::mutex mtx;
+
+    /// \brief Set of markers already drawn.
+    public: std::unordered_set<std::string> onScreenMarkers;
+
     /// \brief Default constructors
     public: VisualizeForcesPrivate()
     {
@@ -68,6 +74,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \param _stamped - The incoming message
     public: void VisualizeCallback(const msgs::WrenchStamped& _stamped)
     {
+      std::lock_guard<std::mutex> lock(mtx);
       queue.push(_stamped);
     }
 
@@ -75,20 +82,44 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \param _ecm - The ecm
     public: void RenderForces(EntityComponentManager &_ecm)
     {
-      while (!this->queue.empty())
+      while (true)
       {
-        auto wrenchMsg = this->queue.front();
-        queue.pop();
-
+        // Get all messages off the queue
+        msgs::WrenchStamped wrenchMsg; 
+        {
+          std::lock_guard<std::mutex> lock(mtx);
+          if(this->queue.empty())
+          {
+            return;
+          }
+          wrenchMsg = this->queue.front();
+          queue.pop();
+        }
+        // Check if we should render the force based on user's settings.
         auto color = this->model.getRenderColor(wrenchMsg);
 
-        if (!color.has_value())
-          continue;
+        // Namespace markers
+        auto ns = "force/" + std::to_string(wrenchMsg.entity()) + "/" + wrenchMsg.plugin();
 
+        // Marker color if marker is on screen.
+        if (!color.has_value())
+        {
+          // If the marker is already on screen delete it
+          if (this->onScreenMarkers.count(ns))
+          {
+            this->onScreenMarkers.erase(ns);
+            msgs::Marker marker;
+            marker.set_ns(ns);
+            marker.set_id(1);
+            marker.set_action(msgs::Marker::DELETE_MARKER);
+            this->node.Request("/marker", marker);
+          }
+          continue;
+        }
         msgs::Marker marker;
         auto _force = msgs::Convert(wrenchMsg.wrench().force());
 
-        auto ns = "force/" + std::to_string(wrenchMsg.entity()) + "/" + wrenchMsg.plugin();
+        this->onScreenMarkers.insert(ns);
         marker.set_ns(ns);
         marker.set_id(1);
         marker.set_action(msgs::Marker::ADD_MODIFY);
@@ -103,6 +134,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 
         if (link.WorldInertialPose(_ecm).has_value() && std::abs(_force.Length()) > 1e-5)
         {
+          // Get the center of mass from where the force will be exerted.
           auto linkPose = link.WorldInertialPose(_ecm).value();
 
           math::Quaterniond qt;
@@ -135,7 +167,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     if (pluginList == this->arrow_mapping.end())
     {
       auto color = retrieveOrAssignColor(_wrench.plugin());
-      beginInsertRows( QModelIndex(), arrows.size(), arrows.size());
+      beginInsertRows( QModelIndex(), this->arrows.size(), this->arrows.size());
       arrows.push_back(
         {
           std::to_string(_wrench.entity()),
@@ -144,31 +176,29 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
         }
       );
 
-      arrow_mapping[_wrench.entity()][_wrench.plugin()] = {arrows.size() -1};
+      arrow_mapping[_wrench.entity()][_wrench.plugin()] =
+        {this->arrows.size() -1};
       endInsertRows();
-      ignerr << _wrench.entity() << ", " <<_wrench.plugin() << "\n";
       return color;
     }
 
     if(pluginList->second.count(_wrench.plugin()) == 0)
     {
       auto color = retrieveOrAssignColor(_wrench.plugin());
-      beginInsertRows( QModelIndex(), arrows.size(),  arrows.size());
-      arrows.push_back(
+      beginInsertRows( QModelIndex(), this->arrows.size(),  this->arrows.size());
+      this->arrows.push_back(
         {
           std::to_string(_wrench.entity()),
           _wrench.plugin(),
           true
         }
       );
-      pluginList->second[_wrench.plugin()] = {arrows.size() -1};
-            ignerr << _wrench.entity() << ", " <<_wrench.plugin() << "\n";
-
+      pluginList->second[_wrench.plugin()] = {this->arrows.size() -1};
       endInsertRows();
       return color;
     }
 
-    const auto arrow = arrows[pluginList->second[_wrench.plugin()].index];
+    const auto arrow = this->arrows[pluginList->second[_wrench.plugin()].index];
     
     if (!arrow.visible)
       return std::nullopt;
@@ -177,18 +207,48 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
   }
 
   /////////////////////////////////////////////////
+  void ForceListModel::setVisibility(int index, bool visible)
+  {
+    if (index < 0 || index > this->arrows.size())
+      return;
+
+    this->arrows[index].visible = visible;
+    auto modelIndex = createIndex(index, 0);
+    dataChanged(modelIndex, modelIndex, {ArrowRoles::VisibleRole});
+  }
+
+  /////////////////////////////////////////////////
+  void ForceListModel::setColor(int index, QColor color)
+  {
+    if (index < 0 || index > this->arrows.size())
+      return;
+
+    
+    auto plugin = this->arrows[index].pluginName;
+
+    double r, g, b;
+    color.getRgbF(&r, &g, &b);
+    auto ignColor = math::Color{r, g, b};
+    this->colors[plugin] = ignColor;
+
+    auto start = createIndex(0, 0);
+    auto end = createIndex(this->arrows.size() - 1, 0);
+    dataChanged(start, end, {ArrowRoles::ColorRole});
+  }
+
+  /////////////////////////////////////////////////
   math::Color ForceListModel::retrieveOrAssignColor(std::string _pluginname)
   {
-    auto color = colors.find(_pluginname);
+    auto color = this->colors.find(_pluginname);
     
-    if (color == colors.end())
+    if (color == this->colors.end())
     {
       float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
       float g = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
       float b = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 
       auto col = math::Color{r, g, b};
-      colors[_pluginname] = col;
+      this->colors[_pluginname] = col;
       return col;
     }
 
