@@ -2,8 +2,11 @@
 <qresource prefix="ComponentInspector/">
   <file>Boolean.qml</file>
   <file>ComponentInspector.qml</file>
+  <file>Float.qml</file>
+  <file>Integer.qml</file>
   <file>Light.qml</file>
   <file>NoData.qml</file>
+  <file>Material.qml</file>
   <file>Physics.qml</file>
   <file>Pose3d.qml</file>
   <file>String.qml</file>
