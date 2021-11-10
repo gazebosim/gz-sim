@@ -26,12 +26,17 @@
 #include <ignition/common/URI.hh>
 
 #include "ignition/gazebo/Util.hh"
+#include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Light.hh"
+#include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/SourceFilePath.hh"
+#include "ignition/gazebo/components/SelfCollide.hh"
+#include "ignition/gazebo/components/Static.hh"
+#include "ignition/gazebo/components/WindMode.hh"
 #include "ignition/gazebo/components/World.hh"
 
 
@@ -397,10 +402,12 @@ namespace sdf_generator
     if (!copySdf(_ecm.Component<components::ModelSdf>(_entity), _elem))
       return false;
 
-    // Update sdf based current components. Here are the list of components to
-    // be updated:
+    // Update sdf based on current components. Here are the list of components
+    // to be updated:
     // - Name
     // - Pose
+    // - Static
+    // - SelfCollide
     // This list is to be updated as other components become updateable during
     // simulation
     auto *nameComp = _ecm.Component<components::Name>(_entity);
@@ -421,16 +428,152 @@ namespace sdf_generator
     }
     poseElem->Set(poseComp->Data());
 
+    // static
+    auto *staticComp = _ecm.Component<components::Static>(_entity);
+    if (staticComp)
+      _elem->GetElement("static")->Set<bool>(staticComp->Data());
+
+    // self collide
+    auto *selfCollideComp = _ecm.Component<components::SelfCollide>(_entity);
+    if (selfCollideComp)
+      _elem->GetElement("self_collide")->Set<bool>(selfCollideComp->Data());
+
     const auto *pathComp =
       _ecm.Component<components::SourceFilePath>(_entity);
 
-    if (_elem->HasElement("link") && nullptr != pathComp)
+    if (_elem->HasElement("link"))
     {
-      // Update relative URIs to use absolute paths. Relative URIs work fine in
-      // included models, but they have to be converted to absolute URIs when
-      // the included model is expanded.
-      relativeToAbsoluteUri(_elem, common::parentPath(pathComp->Data()));
+      if (nullptr != pathComp)
+      {
+        // Update relative URIs to use absolute paths. Relative URIs work fine in
+        // included models, but they have to be converted to absolute URIs when
+        // the included model is expanded.
+        relativeToAbsoluteUri(_elem, common::parentPath(pathComp->Data()));
+      }
+
+      // update links
+      sdf::ElementPtr linkElem = _elem->GetElement("link");
+      while (linkElem)
+      {
+        std::string linkName = linkElem->Get<std::string>("name");
+        std::cerr << "link name " << linkName << std::endl;
+        auto linkEnt = _ecm.EntityByComponents(
+            components::ParentEntity(_entity), components::Name(linkName));
+        if (linkEnt != kNullEntity)
+          updateLinkElement(linkElem, _ecm, linkEnt);
+        linkElem = linkElem->GetNextElement("link");
+      }
     }
+
+    return true;
+  }
+
+  /////////////////////////////////////////////////
+  bool updateLinkElement(const sdf::ElementPtr &_elem,
+                          const EntityComponentManager &_ecm,
+                          const Entity &_entity)
+  {
+    // Update sdf based on current components. Here are the list of components
+    // to be updated:
+    // - Name
+    // - Pose
+    // - Inertial
+    // - WindMode
+    // This list is to be updated as other components become updateable during
+    // simulation
+    auto *nameComp = _ecm.Component<components::Name>(_entity);
+    _elem->GetAttribute("name")->Set(nameComp->Data());
+
+    auto *poseComp = _ecm.Component<components::Pose>(_entity);
+
+    auto poseElem = _elem->GetElement("pose");
+
+    // Remove all attributes of poseElem
+    for (const auto *attrName : {"relative_to", "degrees", "rotation_format"})
+    {
+      sdf::ParamPtr attr = poseElem->GetAttribute(attrName);
+      if (nullptr != attr)
+      {
+        attr->Reset();
+      }
+    }
+    poseElem->Set(poseComp->Data());
+
+    // inertial
+    auto inertialComp = _ecm.Component<components::Inertial>(_entity);
+    if (inertialComp)
+    {
+      math::Inertiald inertial = inertialComp->Data();
+      sdf::ElementPtr inertialElem = _elem->GetElement("inertial");
+      inertialElem->GetElement("pose")->Set<math::Pose3d>(inertial.Pose());
+      const math::MassMatrix3d &massMatrix = inertial.MassMatrix();
+      inertialElem->GetElement("mass")->Set<double>(massMatrix.Mass());
+      sdf::ElementPtr inertiaElem = inertialElem->GetElement("inertia");
+      inertiaElem->GetElement("ixx")->Set<double>(massMatrix.Ixx());
+      inertiaElem->GetElement("ixy")->Set<double>(massMatrix.Ixy());
+      inertiaElem->GetElement("ixz")->Set<double>(massMatrix.Ixy());
+      inertiaElem->GetElement("iyy")->Set<double>(massMatrix.Ixy());
+      inertiaElem->GetElement("iyz")->Set<double>(massMatrix.Ixy());
+      inertiaElem->GetElement("izz")->Set<double>(massMatrix.Ixy());
+    }
+
+    // wind mode
+    auto windModeComp = _ecm.Component<components::WindMode>(_entity);
+    if (windModeComp)
+    {
+      bool windMode = windModeComp->Data();
+      _elem->GetElement("enable_wind")->Set<bool>(windMode);
+    }
+
+    // update sensors
+    if (_elem->HasElement("sensor"))
+    {
+      sdf::ElementPtr sensorElem = _elem->GetElement("sensor");
+      while (sensorElem)
+      {
+        std::string sensorName = sensorElem->Get<std::string>("name");
+        std::cerr << "sensor name " << sensorName << std::endl;
+        auto sensorEnt = _ecm.EntityByComponents(
+            components::ParentEntity(_entity), components::Name(sensorName));
+        if (sensorEnt != kNullEntity)
+          updateSensorElement(sensorElem, _ecm, sensorEnt);
+        sensorElem = sensorElem->GetNextElement("sensor");
+      }
+    }
+
+    return true;
+  }
+
+  /////////////////////////////////////////////////
+  bool updateSensorElement(const sdf::ElementPtr &_elem,
+                           const EntityComponentManager &_ecm,
+                           const Entity &_entity)
+  {
+    // Update sdf based on current components. Here are the list of components
+    // to be updated:
+    // - Name
+    // - Pose
+    // This list is to be updated as other components become updateable during
+    // simulation
+    auto *nameComp = _ecm.Component<components::Name>(_entity);
+    _elem->GetAttribute("name")->Set(nameComp->Data());
+
+    std::cerr << "update sensor elem " << nameComp->Data() << std::endl;
+
+    auto *poseComp = _ecm.Component<components::Pose>(_entity);
+
+    auto poseElem = _elem->GetElement("pose");
+
+    // Remove all attributes of poseElem
+    for (const auto *attrName : {"relative_to", "degrees", "rotation_format"})
+    {
+      sdf::ParamPtr attr = poseElem->GetAttribute(attrName);
+      if (nullptr != attr)
+      {
+        attr->Reset();
+      }
+    }
+    poseElem->Set(poseComp->Data());
     return true;
   }
 
