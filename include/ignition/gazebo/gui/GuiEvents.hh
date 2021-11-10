@@ -135,6 +135,30 @@ namespace events
     private: std::set<Entity> removedEntities;
   };
 
+  /// \brief Event that notifies when new entities have been removed.
+  class RemovedEntities : public QEvent
+  {
+    /// \brief Constructor
+    /// \param[in] _entities All the removed entities
+    public: explicit RemovedEntities(const std::vector<Entity> &_entities)
+        : QEvent(kType), entities(_entities)
+    {
+    }
+
+    /// \brief Get the data sent with the event.
+    /// \return The entities being removed.
+    public: std::vector<Entity> Data() const
+    {
+      return this->entities;
+    }
+
+    /// \brief Unique type for this event.
+    static const QEvent::Type kType = QEvent::Type(QEvent::User + 4);
+
+    /// \brief The removed entities.
+    private: std::vector<Entity> entities;
+  };
+
   /// \brief True if a transform control is currently active (translate /
   /// rotate / scale). False if we're in selection mode.
   class TransformControlModeActive : public QEvent
