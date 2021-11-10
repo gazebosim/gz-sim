@@ -78,7 +78,6 @@ void Shapes::OnMode(const QString &_mode)
   std::transform(modelSdfString.begin(), modelSdfString.end(),
                  modelSdfString.begin(), ::tolower);
 
-  // TODO(anyone) when porting to v5 add <material> tag to capsule & ellipsoid
   if (modelSdfString == "box")
   {
     modelSdfString = std::string("<?xml version=\"1.0\"?>"
@@ -237,6 +236,11 @@ void Shapes::OnMode(const QString &_mode)
                                              "<length>0.6</length>"
                                            "</capsule>"
                                          "</geometry>"
+                                         "<material>"
+                                           "<ambient>0.3 0.3 0.3 1</ambient>"
+                                           "<diffuse>0.7 0.7 0.7 1</diffuse>"
+                                           "<specular>1 1 1 1</specular>"
+                                         "</material>"
                                        "</visual>"
                                      "</link>"
                                    "</model>"
@@ -273,6 +277,11 @@ void Shapes::OnMode(const QString &_mode)
                                              "<radii>0.2 0.3 0.5</radii>"
                                            "</ellipsoid>"
                                          "</geometry>"
+                                         "<material>"
+                                           "<ambient>0.3 0.3 0.3 1</ambient>"
+                                           "<diffuse>0.7 0.7 0.7 1</diffuse>"
+                                           "<specular>1 1 1 1</specular>"
+                                         "</material>"
                                        "</visual>"
                                      "</link>"
                                    "</model>"
