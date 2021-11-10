@@ -18,9 +18,11 @@ import QtQuick 2.9
 import QtQuick.Controls 1.4
 import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
+import QtQuick.Dialogs 1.0
 import QtQuick.Layouts 1.3
 import QtQuick.Controls.Styles 1.4
 import IgnGazebo 1.0 as IgnGazebo
+
 
 Rectangle {
   id: componentInspector
@@ -148,6 +150,20 @@ Rectangle {
         _heading);
   }
 
+  // The component for a menu section header
+  Component {
+    id: menuSectionHeading
+    Rectangle {
+      height: childrenRect.height
+
+      Text {
+          text: sectionText 
+          font.pointSize: 10
+          padding: 5
+      }
+    }
+  }
+
   Rectangle {
     id: header
     height: lockButton.height
@@ -222,6 +238,159 @@ Rectangle {
         }
       }
 
+      ToolButton {
+        id: addButton
+        checkable: false
+        text: "Add entity"
+        visible: entityType == "model"
+        contentItem: Image {
+          fillMode: Image.Pad
+          horizontalAlignment: Image.AlignHCenter
+          verticalAlignment: Image.AlignVCenter
+          source: "qrc:/Gazebo/images/plus.png"
+          sourceSize.width: 18;
+          sourceSize.height: 18;
+        }
+        ToolTip.text: "Add an entity to a model"
+        ToolTip.visible: hovered
+        ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+        onClicked: {
+          addLinkMenu.open()
+        }
+
+        FileDialog {
+          id: loadFileDialog
+          title: "Load mesh"
+          folder: shortcuts.home
+          nameFilters: [ "Collada files (*.dae)", "(*.stl)", "(*.obj)" ]
+          selectMultiple: false
+          selectExisting: true
+          onAccepted: {
+            ComponentInspector.OnLoadMesh("mesh", "link", fileUrl)
+          }
+        }
+
+        Menu {
+          id: addLinkMenu
+
+          Item {
+            Layout.fillWidth: true
+            height: childrenRect.height
+            Loader {
+              property string sectionText: "Link"
+              sourceComponent: menuSectionHeading
+            }
+          }
+
+          MenuItem {
+            id: boxLink
+            text: "Box"
+            onClicked: {
+              ComponentInspector.OnAddEntity("box", "link");
+              addLinkMenu.close()
+            }
+          }
+
+          MenuItem {
+            id: capsuleLink
+            text: "Capsule"
+            onClicked: {
+              ComponentInspector.OnAddEntity("capsule", "link");
+              addLinkMenu.close()
+            }
+          }
+
+          MenuItem {
+            id: cylinderLink
+            text: "Cylinder"
+            onClicked: {
+              ComponentInspector.OnAddEntity("cylinder", "link");
+            }
+          }
+
+          MenuItem {
+            id: ellipsoidLink
+            text: "Ellipsoid"
+            onClicked: {
+              ComponentInspector.OnAddEntity("ellipsoid", "link");
+            }
+          }
+
+          MenuItem {
+            id: emptyLink
+            text: "Empty"
+            onClicked: {
+              ComponentInspector.OnAddEntity("empty", "link");
+            }
+          }
+
+          MenuItem {
+            id: meshLink
+            text: "Mesh"
+            onClicked: {
+              loadFileDialog.open()
+            }
+          }
+
+          MenuItem {
+            id: sphereLink
+            text: "Sphere"
+            onClicked: {
+              ComponentInspector.OnAddEntity("sphere", "link");
+            }
+          }
+
+          MenuSeparator {
+            padding: 0
+            topPadding: 12
+            bottomPadding: 12
+            contentItem: Rectangle {
+              implicitWidth: 200
+              implicitHeight: 1
+              color: "#1E000000"
+            }
+          }
+
+          Item {
+            Layout.fillWidth: true
+            height: childrenRect.height
+            Loader {
+              property string sectionText: "Light"
+              sourceComponent: menuSectionHeading
+            }
+          }
+
+          MenuItem {
+            id: directionalLink
+            text: "Directional"
+            onClicked: {
+              ComponentInspector.OnAddEntity("directional", "link");
+              addLinkMenu.close()
+            }
+          }
+
+          MenuItem {
+            id: pointLink
+            text: "Point"
+            onClicked: {
+              ComponentInspector.OnAddEntity("point", "link");
+              addLinkMenu.close()
+            }
+          }
+
+          MenuItem {
+            id: spotLink
+            text: "Spot"
+            onClicked: {
+              ComponentInspector.OnAddEntity("spot", "link");
+              addLinkMenu.close()
+            }
+          }
+
+          // \todo(anyone) Add joints
+        }
+      }
+
       Label {
         id: entityLabel
         text: 'Entity ' + ComponentInspector.entity
@@ -232,6 +401,7 @@ Rectangle {
       }
     }
   }
+
 
   ListView {
     anchors.top: header.bottom

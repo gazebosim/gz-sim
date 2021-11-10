@@ -22,6 +22,7 @@
 #include <vector>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/MeshManager.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
@@ -71,6 +72,7 @@
 
 #include "AirPressure.hh"
 #include "ComponentInspector.hh"
+#include "ModelEditor.hh"
 
 namespace ignition::gazebo
 {
@@ -108,6 +110,9 @@ namespace ignition::gazebo
 
     /// \brief Transport node for making command requests
     public: transport::Node node;
+
+    /// \brief Transport node for making command requests
+    public: ModelEditor modelEditor;
 
     /// \brief Air pressure sensor inspector elements
     public: std::unique_ptr<ignition::gazebo::AirPressure> airPressure;
@@ -422,6 +427,8 @@ void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
   // Connect model
   this->Context()->setContextProperty(
       "ComponentsModel", &this->dataPtr->componentsModel);
+
+  this->dataPtr->modelEditor.Load();
 
   // Create air pressure
   this->dataPtr->airPressure = std::make_unique<AirPressure>(this);
@@ -815,6 +822,8 @@ void ComponentInspector::Update(const UpdateInfo &_info,
         Q_ARG(ignition::gazebo::ComponentTypeId, typeId));
   }
 
+  this->dataPtr->modelEditor.Update(_info, _ecm);
+
   // Process all of the update callbacks
   for (auto cb : this->dataPtr->updateCallbacks)
     cb(_ecm);
@@ -1086,6 +1095,45 @@ void ComponentInspector::OnSphericalCoordinates(QString _surface,
 bool ComponentInspector::NestedModel() const
 {
   return this->dataPtr->nestedModel;
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::OnAddEntity(const QString &_entity,
+    const QString &_type)
+{
+  // currently just assumes parent is the model
+  // todo(anyone) support adding visuals / collisions / sensors to links
+  ignition::gazebo::gui::events::ModelEditorAddEntity addEntityEvent(
+      _entity, _type, this->dataPtr->entity, QString(""));
+
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      &addEntityEvent);
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::OnLoadMesh(const QString &_entity,
+    const QString &_type, const QString &_mesh)
+{
+  std::string meshStr = _mesh.toStdString();
+  if (QUrl(_mesh).isLocalFile())
+  {
+    // mesh to sdf model
+    common::rtrim(meshStr);
+
+    if (!common::MeshManager::Instance()->IsValidFilename(meshStr))
+    {
+      QString errTxt = QString::fromStdString("Invalid URI: " + meshStr +
+        "\nOnly mesh file types DAE, OBJ, and STL are supported.");
+      return;
+    }
+
+    ignition::gazebo::gui::events::ModelEditorAddEntity addEntityEvent(
+        _entity, _type, this->dataPtr->entity, QString(meshStr.c_str()));
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        &addEntityEvent);
+  }
 }
 
 // Register this plugin

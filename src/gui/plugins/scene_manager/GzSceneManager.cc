@@ -14,6 +14,7 @@
  * limitations under the License.
  *
 */
+#include <set>
 
 #include "GzSceneManager.hh"
 
@@ -49,6 +50,16 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Rendering utility
     public: RenderUtil renderUtil;
+
+    /// \brief List of new entities from a gui event
+    public: std::set<Entity> newEntities;
+
+    /// \brief List of removed entities from a gui event
+    public: std::set<Entity> removedEntities;
+
+    /// \brief Mutex to protect gui event and system upate call race conditions
+    /// for newEntities and removedEntities
+    public: std::mutex newRemovedEntityMutex;
   };
 }
 }
@@ -83,6 +94,14 @@ void GzSceneManager::Update(const UpdateInfo &_info,
   IGN_PROFILE("GzSceneManager::Update");
 
   this->dataPtr->renderUtil.UpdateECM(_info, _ecm);
+
+  std::lock_guard<std::mutex> lock(this->dataPtr->newRemovedEntityMutex);
+  {
+    this->dataPtr->renderUtil.CreateVisualsForEntities(_ecm,
+        this->dataPtr->newEntities);
+    this->dataPtr->newEntities.clear();
+  }
+
   this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
 
   // Emit entities removed event
@@ -106,6 +125,21 @@ bool GzSceneManager::eventFilter(QObject *_obj, QEvent *_event)
   if (_event->type() == ignition::gui::events::Render::kType)
   {
     this->dataPtr->OnRender();
+  }
+  else if (_event->type() ==
+           ignition::gazebo::gui::events::AddedRemovedEntities::kType)
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->newRemovedEntityMutex);
+    auto addedRemovedEvent =
+        reinterpret_cast<gui::events::AddedRemovedEntities *>(_event);
+    if (addedRemovedEvent)
+    {
+      for (auto entity : addedRemovedEvent->NewEntities())
+        this->dataPtr->newEntities.insert(entity);
+
+      for (auto entity : addedRemovedEvent->RemovedEntities())
+        this->dataPtr->removedEntities.insert(entity);
+    }
   }
 
   // Standard event processing
