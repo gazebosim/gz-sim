@@ -122,6 +122,7 @@
 #include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/PoseCmd.hh"
+#include "ignition/gazebo/components/Recreate.hh"
 #include "ignition/gazebo/components/SelfCollide.hh"
 #include "ignition/gazebo/components/SlipComplianceCmd.hh"
 #include "ignition/gazebo/components/Static.hh"
@@ -879,6 +880,9 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm)
           const components::Pose *_pose,
           const components::ParentEntity *_parent)->bool
       {
+        if (_ecm.EntityHasComponentType(_entity, components::Recreate::typeId))
+          return true;
+
         // Check if model already exists
         if (this->entityModelMap.HasEntity(_entity))
         {
@@ -1011,6 +1015,12 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm)
         const components::Pose *_pose,
         const components::ParentEntity *_parent)->bool
       {
+        if (_ecm.EntityHasComponentType(_parent->Data(),
+              components::Recreate::typeId))
+        {
+          return true;
+        }
+
         // Check if link already exists
         if (this->entityLinkMap.HasEntity(_entity))
         {
@@ -1072,6 +1082,12 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm)
           const components::CollisionElement *_collElement,
           const components::ParentEntity *_parent) -> bool
       {
+        if (_ecm.EntityHasComponentType(_parent->Data(),
+              components::Recreate::typeId))
+        {
+          return true;
+        }
+
         if (this->entityCollisionMap.HasEntity(_entity))
         {
            ignwarn << "Collision entity [" << _entity
@@ -2182,8 +2198,11 @@ std::map<Entity, physics::FrameData3d> PhysicsPrivate::ChangedLinks(
     _ecm.Each<components::Link>(
       [&](const Entity &_entity, components::Link *) -> bool
       {
-        if (this->staticEntities.find(_entity) != this->staticEntities.end())
+        if (this->staticEntities.find(_entity) != this->staticEntities.end() ||
+            _ecm.EntityHasComponentType(_entity, components::Recreate::typeId))
+        {
           return true;
+        }
 
         auto linkPhys = this->entityLinkMap.Get(_entity);
         if (nullptr == linkPhys)
@@ -2436,8 +2455,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
       auto parentModelPoseIt = this->modelWorldPoses.find(parentEntity);
       if (parentModelPoseIt == this->modelWorldPoses.end())
       {
-        ignerr << "Internal error: parent model [" << parentEntity
-              << "] does not have a world pose available" << std::endl;
+        ignerr << "Internal error: parent model [" << parentName->Data()
+              << "] does not have a world pose available for child entity["
+              << entityName << "]" << std::endl;
         continue;
       }
       const math::Pose3d &parentWorldPose = parentModelPoseIt->second;
