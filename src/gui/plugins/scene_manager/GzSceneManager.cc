@@ -14,8 +14,11 @@
  * limitations under the License.
  *
 */
+#include <set>
 
 #include "GzSceneManager.hh"
+
+#include <vector>
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/gui/Application.hh>
@@ -100,6 +103,20 @@ void GzSceneManager::Update(const UpdateInfo &_info,
   }
 
   this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
+
+  // Emit entities removed event
+  std::vector<Entity> removed;
+  _ecm.EachRemoved<components::Name>(
+      [&](const Entity &_entity, const components::Name *)->bool
+      {
+        removed.push_back(_entity);
+        return true;
+      });
+
+  ignition::gazebo::gui::events::RemovedEntities removedEvent(removed);
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      &removedEvent);
 }
 
 /////////////////////////////////////////////////

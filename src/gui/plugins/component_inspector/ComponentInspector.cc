@@ -99,7 +99,7 @@ namespace ignition::gazebo
     public: bool locked{false};
 
     /// \brief Whether updates are currently paused.
-    public: bool paused{true};
+    public: bool paused{false};
 
     /// \brief Transport node for making command requests
     public: transport::Node node;
@@ -418,7 +418,6 @@ void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
 void ComponentInspector::Update(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
-  this->SetPaused(_info.paused);
   IGN_PROFILE("ComponentInspector::Update");
 
   auto componentTypes = _ecm.ComponentTypes(this->dataPtr->entity);
@@ -883,11 +882,8 @@ bool ComponentInspector::Paused() const
 /////////////////////////////////////////////////
 void ComponentInspector::SetPaused(bool _paused)
 {
-  if (this->dataPtr->paused != _paused)
-  {
-    this->dataPtr->paused = _paused;
-    this->PausedChanged();
-  }
+  this->dataPtr->paused = _paused;
+  this->PausedChanged();
 }
 
 /////////////////////////////////////////////////
@@ -1047,6 +1043,7 @@ void ComponentInspector::OnAddEntity(const QString &_entity,
   // todo(anyone) support adding visuals / collisions / sensors to links
   ignition::gazebo::gui::events::ModelEditorAddEntity addEntityEvent(
       _entity, _type, this->dataPtr->entity, QString(""));
+
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
       &addEntityEvent);

@@ -245,19 +245,19 @@ Rectangle {
             ComponentInspector.OnLoadMesh("mesh", "link", fileUrl)
           }
         }
-      
+
         Menu {
           id: addLinkMenu
-      
+
           Item {
             Layout.fillWidth: true
             height: childrenRect.height
-            Loader { 
+            Loader {
               property string sectionText: "Link"
               sourceComponent: menuSectionHeading
             }
           }
-      
+
           MenuItem {
             id: boxLink
             text: "Box"
@@ -266,7 +266,7 @@ Rectangle {
               addLinkMenu.close()
             }
           }
-      
+
           MenuItem {
             id: capsuleLink
             text: "Capsule"
@@ -275,7 +275,7 @@ Rectangle {
               addLinkMenu.close()
             }
           }
-      
+
           MenuItem {
             id: cylinderLink
             text: "Cylinder"
@@ -283,7 +283,7 @@ Rectangle {
               ComponentInspector.OnAddEntity("cylinder", "link");
             }
           }
-      
+
           MenuItem {
             id: ellipsoidLink
             text: "Ellipsoid"
@@ -291,7 +291,7 @@ Rectangle {
               ComponentInspector.OnAddEntity("ellipsoid", "link");
             }
           }
-      
+
           MenuItem {
             id: emptyLink
             text: "Empty"
@@ -299,7 +299,7 @@ Rectangle {
               ComponentInspector.OnAddEntity("empty", "link");
             }
           }
-      
+
           MenuItem {
             id: meshLink
             text: "Mesh"
@@ -307,7 +307,7 @@ Rectangle {
               loadFileDialog.open()
             }
           }
-      
+
           MenuItem {
             id: sphereLink
             text: "Sphere"
@@ -315,7 +315,7 @@ Rectangle {
               ComponentInspector.OnAddEntity("sphere", "link");
             }
           }
-      
+
           MenuSeparator {
             padding: 0
             topPadding: 12
@@ -326,39 +326,39 @@ Rectangle {
               color: "#1E000000"
             }
           }
-      
+
           Item {
             Layout.fillWidth: true
             height: childrenRect.height
-            Loader { 
+            Loader {
               property string sectionText: "Light"
               sourceComponent: menuSectionHeading
             }
           }
-      
+
           MenuItem {
             id: directionalLink
             text: "Directional"
             onClicked: {
-              ComponentInspector.OnAddEntity("directional", "light");
+              ComponentInspector.OnAddEntity("directional", "link");
               addLinkMenu.close()
             }
           }
-      
+
           MenuItem {
             id: pointLink
             text: "Point"
             onClicked: {
-              ComponentInspector.OnAddEntity("point", "light");
+              ComponentInspector.OnAddEntity("point", "link");
               addLinkMenu.close()
             }
           }
-      
+
           MenuItem {
             id: spotLink
             text: "Spot"
             onClicked: {
-              ComponentInspector.OnAddEntity("spot", "light");
+              ComponentInspector.OnAddEntity("spot", "link");
               addLinkMenu.close()
             }
           }

@@ -135,7 +135,7 @@ namespace gazebo
     public: Q_INVOKABLE void OnInsertEntity(const QString &_type);
 
     /// \brief Callback to insert a new entity
-    /// \param[in] _file Mesh file to create a model from.
+    /// \param[in] _mesh Mesh file to create a model from.
     public: Q_INVOKABLE void OnLoadMesh(const QString &_mesh);
 
     // Documentation inherited

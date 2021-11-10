@@ -16,6 +16,9 @@
 */
 
 #include <iostream>
+#include <list>
+#include <set>
+#include <string>
 #include <vector>
 #include <ignition/common/Console.hh>
 #include <ignition/common/Profiler.hh>
@@ -105,7 +108,6 @@ namespace ignition::gazebo
     /// \brief A map of links to add to the ECM and the parent entity names
     // public: std::vector<std::pair<sdf::Link, std::string>> linksToAdd;
     public: std::vector<EntityToAdd> entitiesToAdd;
-
 
     /// \brief Sensors to add to the ECM
     public: std::vector<sdf::Sensor> sensorsToAdd;
@@ -347,7 +349,6 @@ std::string ModelEditorPrivate::GeomSDFString(const EntityToAdd &_eta) const
 /////////////////////////////////////////////////
 std::string ModelEditorPrivate::LinkSDFString(const EntityToAdd &_eta) const
 {
-
   std::stringstream linkStr;
   if (_eta.geomOrLightType == "empty")
   {

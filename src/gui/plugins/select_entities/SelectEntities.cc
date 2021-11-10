@@ -573,6 +573,25 @@ bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
       this->dataPtr->isSpawning = false;
     }
   }
+  else if (_event->type() ==
+           ignition::gazebo::gui::events::RemovedEntities::kType)
+  {
+    if (!this->dataPtr->wireBoxes.empty())
+    {
+      auto removedEvent =
+          reinterpret_cast<gui::events::RemovedEntities *>(_event);
+      for (auto &entity : removedEvent->Data())
+      {
+        auto wireBoxIt = this->dataPtr->wireBoxes.find(entity);
+        if (wireBoxIt != this->dataPtr->wireBoxes.end())
+        {
+          this->dataPtr->scene->DestroyVisual(wireBoxIt->second->Parent());
+          this->dataPtr->wireBoxes.erase(wireBoxIt);
+        }
+      }
+
+    }
+  }
 
   // Standard event processing
   return QObject::eventFilter(_obj, _event);

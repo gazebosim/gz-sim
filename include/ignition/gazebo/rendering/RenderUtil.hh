@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_RENDERUTIL_HH_
 
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
