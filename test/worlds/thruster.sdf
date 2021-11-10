@@ -1,0 +1,104 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="thruster">
+
+    <!-- TODO(louise) Update parameters to rouder numbers -->
+
+    <!-- prevent sinking -->
+    <gravity>0 0 0</gravity>
+
+    <plugin
+      filename="ignition-gazebo-physics-system"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-scene-broadcaster-system"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="sub">
+
+      <link name="body">
+        <inertial>
+          <mass>147.8671</mass>
+          <inertia>
+            <ixx>3.000000</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>41.980233</iyy>
+            <iyz>0</iyz>
+            <izz>41.980233</izz>
+          </inertia>
+        </inertial>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>2 0.3 0.246445166667</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+
+      <link name="propeller">
+        <pose>1.43162 0 0 0 0 0</pose>
+        <inertial>
+          <mass>0.09</mass>
+          <inertia>
+            <ixx>0.000143971303</ixx>
+            <ixy>0.000000000008</ixy>
+            <ixz>-0.000000000224</ixz>
+            <iyy>0.000140915448</iyy>
+            <iyz>-0.000025236433</iyz>
+            <izz>0.000033571862</izz>
+          </inertia>
+        </inertial>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.03 0.1 0.03</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+
+      <joint name="propeller_joint" type="revolute">
+        <pose>0 0 0 0 0 0</pose>
+        <parent>body</parent>
+        <child>propeller</child>
+        <axis>
+          <xyz>1 0 0</xyz>
+          <limit>
+            <lower>-1e+12</lower>
+            <upper>1e+12</upper>
+            <effort>-1</effort>
+            <velocity>-1</velocity>
+          </limit>
+        </axis>
+      </joint>
+
+      <plugin
+        filename="ignition-gazebo-thruster-system"
+        name="ignition::gazebo::systems::Thruster">
+        <joint_name>propeller_joint</joint_name>
+        <thrust_coefficient>0.004422</thrust_coefficient>
+        <fluid_density>1000</fluid_density>
+        <propeller_diameter>0.2</propeller_diameter>
+      </plugin>
+    </model>
+
+  </world>
+</sdf>

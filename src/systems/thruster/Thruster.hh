@@ -32,45 +32,55 @@ namespace systems
   // Forward declaration
   class ThrusterPrivateData;
 
-  /// \brief This class provides a class that simulates a maritime thruster for
+  /// \brief This plugin simulates a maritime thruster for
   /// boats and underwater vehicles. It uses the equations described in Fossen's
   /// "Guidance and Control of Ocean Vehicles" in page 246. This plugin takes in
   /// force in Newtons and applies it to the thruster. It also calculates the
-  /// theoretical RPM of the blades and spins them at that RPM. The rationale
-  /// for directly using force
+  /// theoretical RPM of the blades and spins them at that RPM.
   ///
   /// ## System Parameters
-  /// <namespace> - The namespace in which the robot exists. The plugin will
-  ///   listen on the topic `/model/{namespace}/joint/{joint_name}/cmd_pos`.
+  /// - <namespace> - The namespace in which the robot exists. The plugin will
+  ///   listen on the topic `/model/{namespace}/joint/{joint_name}/cmd_thrust`.
   ///   [Optional]
-  /// <joint_name> - This is the joint in the model which corresponds to the
+  /// - <joint_name> - This is the joint in the model which corresponds to the
   ///   propeller. [Required]
-  /// <thrust_coefficient> - This is the coefficient which relates the RPM to
-  ///   actual thrust. [Required, no units]
-  /// <fluid_density> - The fluid density of the liquid in which the thruster
-  ///   is operating in. [Required, kgm^-3]
-  /// <propeller_diameter> - The propeller diameter is the diameter of the prop
-  ///   in meters. [Required, m]
+  /// - <fluid_density> - The fluid density of the liquid in which the thruster
+  ///   is operating in. [Optional, kg/m^3, defaults to 1000 kg/m^3]
+  /// - <propeller_diameter> - The diameter of the propeller in meters.
+  ///   [Required, m]
+  /// - <thrust_coefficient> - This is the coefficient which relates the angular
+  ///   velocity to actual thrust. [Required, no units]
   ///
-  /// # Example
-  /// An example configuration is provided in the examples folder. The example
+  ///      omega = sqrt(thrust /
+  ///          (fluid_density * thrust_coefficient * propeller_diameter ^ 4))
+  ///
+  ///   Where omega is the propeller's angular velocity in rad/s.
+  /// - <p_gain> - Proportional gain for joint PID controller. [Optional,
+  ///              no units, defaults to 0.1]
+  /// - <i_gain> - Integral gain for joint PID controller. [Optional,
+  ///              no units, defaults to 0.0]
+  /// - <d_gain> - Derivative gain for joint PID controller. [Optional,
+  ///              no units, defaults to 0.0]
+  ///
+  /// ## Example
+  /// An example configuration is installed with Gazebo. The example
   /// uses the LiftDrag plugin to apply steering controls. It also uses the
   /// thruster plugin to propell the craft and the buoyancy plugin for buoyant
-  /// force. To run th example run.
+  /// force. To run the example:
   /// ```
   /// ign gazebo auv_controls.sdf
   /// ```
-  /// To control the rudder of the craft run the following
+  /// To control the rudder of the craft run the following:
   /// ```
   /// ign topic -t /model/tethys/joint/vertical_fins_joint/0/cmd_pos
   ///    -m ignition.msgs.Double -p 'data: -0.17'
   /// ```
-  /// To apply a thrust you may run the following command
-  /// The vehicle should move in a circle.
+  /// To apply a thrust you may run the following command:
   /// ```
   /// ign topic -t /model/tethys/joint/propeller_joint/cmd_pos
   /// -m ignition.msgs.Double -p 'data: -31'
   /// ```
+  /// The vehicle should move in a circle.
   class Thruster:
     public ignition::gazebo::System,
     public ignition::gazebo::ISystemConfigure,
