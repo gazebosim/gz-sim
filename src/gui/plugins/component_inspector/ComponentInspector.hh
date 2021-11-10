@@ -61,7 +61,6 @@ namespace gazebo
               << _item->text().toStdString() << "]" << std::endl;
     }
   }
-
   /// \brief Specialized to set string data.
   /// \param[in] _item Item whose data will be set.
   /// \param[in] _data Data to set.

@@ -27,6 +27,7 @@
 #include <list>
 #include <memory>
 #include <optional>
+#include <set>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -466,6 +467,14 @@ namespace ignition
         std::optional<Entity> _entity = std::nullopt,
         std::optional<std::shared_ptr<const sdf::Element>> _sdf = std::nullopt);
 
+      /// \brief Process entities with the components::Recreate component.
+      /// Put in a request to make them as removed
+      private: void ProcessRecreateEntitiesRemove();
+
+      /// \brief Process entities with the components::Recreate component.
+      /// Reccreate the entities by cloning from the original ones.
+      private: void ProcessRecreateEntitiesCreate();
+
       /// \brief This is used to indicate that a stop event has been received.
       private: std::atomic<bool> stopReceived{false};
 
@@ -626,6 +635,9 @@ namespace ignition
       /// \brief Whether the simulation runner is currently stepping based on
       /// WorldControl info (true) or not (false)
       private: bool stepping{false};
+
+      /// \brief A set of entities that need to be recreated
+      private: std::set<Entity> entitiesToRecreate;
 
       friend class LevelManager;
     };
