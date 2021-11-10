@@ -94,11 +94,14 @@
 #include "ignition/gazebo/components/DetachableJoint.hh"
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
+#include "ignition/gazebo/components/JointEffortLimitsCmd.hh"
 #include "ignition/gazebo/components/JointPosition.hh"
+#include "ignition/gazebo/components/JointPositionLimitsCmd.hh"
 #include "ignition/gazebo/components/JointPositionReset.hh"
 #include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/JointVelocity.hh"
 #include "ignition/gazebo/components/JointVelocityCmd.hh"
+#include "ignition/gazebo/components/JointVelocityLimitsCmd.hh"
 #include "ignition/gazebo/components/JointVelocityReset.hh"
 #include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
@@ -337,6 +340,28 @@ class ignition::gazebo::systems::PhysicsPrivate
   public: struct JointVelocityCommandFeatureList : physics::FeatureList<
             physics::SetJointVelocityCommandFeature>{};
 
+
+  //////////////////////////////////////////////////
+  // Joint position limits command
+  /// \brief Feature list for setting joint position limits.
+  public: struct JointPositionLimitsCommandFeatureList : physics::FeatureList<
+            physics::SetJointPositionLimitsFeature>{};
+
+
+  //////////////////////////////////////////////////
+  // Joint velocity limits command
+  /// \brief Feature list for setting joint velocity limits.
+  public: struct JointVelocityLimitsCommandFeatureList : physics::FeatureList<
+            physics::SetJointVelocityLimitsFeature>{};
+
+
+  //////////////////////////////////////////////////
+  // Joint effort limits command
+  /// \brief Feature list for setting joint effort limits.
+  public: struct JointEffortLimitsCommandFeatureList : physics::FeatureList<
+            physics::SetJointEffortLimitsFeature>{};
+
+
   //////////////////////////////////////////////////
   // World velocity command
   public: struct WorldVelocityCommandFeatureList :
@@ -404,7 +429,10 @@ class ignition::gazebo::systems::PhysicsPrivate
             physics::Joint,
             JointFeatureList,
             DetachableJointFeatureList,
-            JointVelocityCommandFeatureList
+            JointVelocityCommandFeatureList,
+            JointPositionLimitsCommandFeatureList,
+            JointVelocityLimitsCommandFeatureList,
+            JointEffortLimitsCommandFeatureList
             >;
 
   /// \brief A map between joint entity ids in the ECM to Joint Entities in
@@ -1227,6 +1255,18 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         if (nullptr == jointPhys)
           return true;
 
+        auto jointPosLimitsFeature =
+          this->entityJointMap.EntityCast<JointPositionLimitsCommandFeatureList>
+              (_entity);
+
+        auto jointVelLimitsFeature =
+          this->entityJointMap.EntityCast<JointVelocityLimitsCommandFeatureList>
+              (_entity);
+
+        auto jointEffLimitsFeature =
+          this->entityJointMap.EntityCast<JointEffortLimitsCommandFeatureList>(
+              _entity);
+
         // Model is out of battery
         if (this->entityOffMap[_ecm.ParentEntity(_entity)])
         {
@@ -1236,6 +1276,99 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
             jointPhys->SetForce(i, 0);
           }
           return true;
+        }
+
+        auto posLimits = _ecm.Component<components::JointPositionLimitsCmd>(
+            _entity);
+        if (posLimits && !posLimits->Data().empty())
+        {
+          const auto& limits = posLimits->Data();
+
+          if (limits.size() != jointPhys->GetDegreesOfFreedom())
+          {
+            ignwarn << "There is a mismatch in the degrees of freedom "
+            << "between Joint [" << _name->Data() << "(Entity="
+            << _entity << ")] and its JointPositionLimitsCmd "
+            << "component. The joint has "
+            << jointPhys->GetDegreesOfFreedom()
+            << " while the component has "
+            << limits.size() << ".\n";
+          }
+
+          if (jointPosLimitsFeature)
+          {
+            std::size_t nDofs = std::min(
+              limits.size(),
+              jointPhys->GetDegreesOfFreedom());
+
+            for (std::size_t i = 0; i < nDofs; ++i)
+            {
+              jointPosLimitsFeature->SetMinPosition(i, limits[i].X());
+              jointPosLimitsFeature->SetMaxPosition(i, limits[i].Y());
+            }
+          }
+        }
+
+        auto velLimits = _ecm.Component<components::JointVelocityLimitsCmd>(
+            _entity);
+        if (velLimits && !velLimits->Data().empty())
+        {
+          const auto& limits = velLimits->Data();
+
+          if (limits.size() != jointPhys->GetDegreesOfFreedom())
+          {
+            ignwarn << "There is a mismatch in the degrees of freedom "
+            << "between Joint [" << _name->Data() << "(Entity="
+            << _entity << ")] and its JointVelocityLimitsCmd "
+            << "component. The joint has "
+            << jointPhys->GetDegreesOfFreedom()
+            << " while the component has "
+            << limits.size() << ".\n";
+          }
+
+          if (jointVelLimitsFeature)
+          {
+            std::size_t nDofs = std::min(
+              limits.size(),
+              jointPhys->GetDegreesOfFreedom());
+
+            for (std::size_t i = 0; i < nDofs; ++i)
+            {
+              jointVelLimitsFeature->SetMinVelocity(i, limits[i].X());
+              jointVelLimitsFeature->SetMaxVelocity(i, limits[i].Y());
+            }
+          }
+        }
+
+        auto effLimits = _ecm.Component<components::JointEffortLimitsCmd>(
+            _entity);
+        if (effLimits && !effLimits->Data().empty())
+        {
+          const auto& limits = effLimits->Data();
+
+          if (limits.size() != jointPhys->GetDegreesOfFreedom())
+          {
+            ignwarn << "There is a mismatch in the degrees of freedom "
+            << "between Joint [" << _name->Data() << "(Entity="
+            << _entity << ")] and its JointEffortLimitsCmd "
+            << "component. The joint has "
+            << jointPhys->GetDegreesOfFreedom()
+            << " while the component has "
+            << limits.size() << ".\n";
+          }
+
+          if (jointEffLimitsFeature)
+          {
+            std::size_t nDofs = std::min(
+              limits.size(),
+              jointPhys->GetDegreesOfFreedom());
+
+            for (std::size_t i = 0; i < nDofs; ++i)
+            {
+              jointEffLimitsFeature->SetMinEffort(i, limits[i].X());
+              jointEffLimitsFeature->SetMaxEffort(i, limits[i].Y());
+            }
+          }
         }
 
         auto posReset = _ecm.Component<components::JointPositionReset>(
@@ -1750,7 +1883,8 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
         return true;
       });
-}
+}  // NOLINT readability/fn_size
+// TODO (azeey) Reduce size of function and remove the NOLINT above
 
 //////////////////////////////////////////////////
 void PhysicsPrivate::Step(const std::chrono::steady_clock::duration &_dt)
@@ -2166,6 +2300,27 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
       [&](const Entity &, components::ExternalWorldWrenchCmd *_wrench) -> bool
       {
         _wrench->Data().Clear();
+        return true;
+      });
+
+  _ecm.Each<components::JointPositionLimitsCmd>(
+      [&](const Entity &, components::JointPositionLimitsCmd *_limits) -> bool
+      {
+        _limits->Data().clear();
+        return true;
+      });
+
+  _ecm.Each<components::JointVelocityLimitsCmd>(
+      [&](const Entity &, components::JointVelocityLimitsCmd *_limits) -> bool
+      {
+        _limits->Data().clear();
+        return true;
+      });
+
+  _ecm.Each<components::JointEffortLimitsCmd>(
+      [&](const Entity &, components::JointEffortLimitsCmd *_limits) -> bool
+      {
+        _limits->Data().clear();
         return true;
       });
 
