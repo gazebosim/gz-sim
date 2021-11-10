@@ -23,7 +23,7 @@ RUN apt-get update \
     libignition-gui7-dev \
     libignition-msgs8-dev \
     libignition-sensors7-dev \
-    libsdformat13-dev
+    libsdformat12-dev
 
 COPY . ign-gazebo
 RUN cd ign-gazebo \

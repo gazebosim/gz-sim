@@ -18,7 +18,7 @@ libogre-1.9-dev
 libogre-2.1-dev
 libprotobuf-dev
 libprotoc-dev
-libsdformat13-dev
+libsdformat12-dev
 libtinyxml2-dev
 libxi-dev
 libxmu-dev
