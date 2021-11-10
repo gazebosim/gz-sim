@@ -394,8 +394,9 @@ void TrackController::PreUpdate(
 
   // Cache poses
   this->dataPtr->linkWorldPose = worldPose(this->dataPtr->linkEntity, _ecm);
-  for (auto& entityPose : this->dataPtr->collisionsWorldPose)
-    entityPose.second = worldPose(entityPose.first, _ecm);
+  for (auto& collisionEntity : this->dataPtr->trackCollisions)
+    this->dataPtr->collisionsWorldPose[collisionEntity] =
+      worldPose(collisionEntity, _ecm);
 
   std::chrono::steady_clock::duration lastCommandTimeCopy;
   {
@@ -466,6 +467,10 @@ void TrackControllerPrivate::ComputeSurfaceProperties(
 
   auto contactNormal = _normal.value();
 
+  // In case we have not yet cached the collision pose, skip this iteration
+  if (this->collisionsWorldPose.find(trackCollision) ==
+      this->collisionsWorldPose.end())
+    return;
   const auto& collisionPose = this->collisionsWorldPose[trackCollision];
 
   // Flip the contact normal if it points outside the track collision

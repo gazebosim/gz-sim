@@ -231,11 +231,11 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
     EXPECT_EQ(50u, odomPoses.size());
 
     EXPECT_LT(poses[0].Pos().X(), poses[999].Pos().X());
-    EXPECT_LT(poses[0].Pos().Y(), poses[999].Pos().Y());
+    EXPECT_NEAR(poses[0].Pos().Y(), poses[999].Pos().Y(), tol);
     EXPECT_NEAR(poses[0].Pos().Z(), poses[999].Pos().Z(), tol);
-    EXPECT_NEAR(poses[0].Rot().X(), poses[999].Rot().X(), tol);
-    EXPECT_NEAR(poses[0].Rot().Y(), poses[999].Rot().Y(), tol);
-    EXPECT_LT(poses[0].Rot().Z(), poses[999].Rot().Z());
+    EXPECT_ANGLE_NEAR(poses[0].Rot().X(), poses[999].Rot().X(), tol);
+    EXPECT_ANGLE_NEAR(poses[0].Rot().Y(), poses[999].Rot().Y(), tol);
+    EXPECT_ANGLE_NEAR(poses[0].Rot().Z(), poses[999].Rot().Z(), tol);
 
     // The robot starts at (3,0,0), so odom will have this shift.
     EXPECT_NEAR(poses[0].Pos().X(), odomPoses[0].Pos().X() + 3.0, 3e-2);
