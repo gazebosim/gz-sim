@@ -129,6 +129,12 @@ void TreeModel::AddEntity(Entity _entity, const QString &_entityName,
   IGN_PROFILE("TreeModel::AddEntity");
   QStandardItem *parentItem{nullptr};
 
+  // check if entity has already been added or not.
+  // This could happen because we get new and removed entity updates from both
+  // the ECM and GUI events.
+  if (this->entityItems.find(_entity) != this->entityItems.end())
+    return;
+
   // Root
   if (_parentEntity == kNullEntity)
   {
@@ -148,13 +154,6 @@ void TreeModel::AddEntity(Entity _entity, const QString &_entityName,
   {
     this->pendingEntities.push_back(
       {_entity, _entityName, _parentEntity, _type});
-    return;
-  }
-
-  if (this->entityItems.find(_entity) != this->entityItems.end())
-  {
-    ignwarn << "Internal error: Trying to create item for entity [" << _entity
-            << "], but entity already has an item." << std::endl;
     return;
   }
 

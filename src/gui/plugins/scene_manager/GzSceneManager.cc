@@ -14,8 +14,11 @@
  * limitations under the License.
  *
 */
+#include <set>
 
 #include "GzSceneManager.hh"
+
+#include <vector>
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/gui/Application.hh>
@@ -28,6 +31,7 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/gui/GuiEvents.hh"
 #include "ignition/gazebo/rendering/RenderUtil.hh"
 
 namespace ignition
@@ -46,6 +50,16 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Rendering utility
     public: RenderUtil renderUtil;
+
+    /// \brief List of new entities from a gui event
+    public: std::set<Entity> newEntities;
+
+    /// \brief List of removed entities from a gui event
+    public: std::set<Entity> removedEntities;
+
+    /// \brief Mutex to protect gui event and system upate call race conditions
+    /// for newEntities and removedEntities
+    public: std::mutex newRemovedEntityMutex;
   };
 }
 }
@@ -80,15 +94,52 @@ void GzSceneManager::Update(const UpdateInfo &_info,
   IGN_PROFILE("GzSceneManager::Update");
 
   this->dataPtr->renderUtil.UpdateECM(_info, _ecm);
+
+  std::lock_guard<std::mutex> lock(this->dataPtr->newRemovedEntityMutex);
+  {
+    this->dataPtr->renderUtil.CreateVisualsForEntities(_ecm,
+        this->dataPtr->newEntities);
+    this->dataPtr->newEntities.clear();
+  }
+
   this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
+
+  // Emit entities removed event
+  std::vector<Entity> removed;
+  _ecm.EachRemoved<components::Name>(
+      [&](const Entity &_entity, const components::Name *)->bool
+      {
+        removed.push_back(_entity);
+        return true;
+      });
+
+  ignition::gazebo::gui::events::RemovedEntities removedEvent(removed);
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      &removedEvent);
 }
 
 /////////////////////////////////////////////////
 bool GzSceneManager::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == gui::events::Render::kType)
+  if (_event->type() == ignition::gui::events::Render::kType)
   {
     this->dataPtr->OnRender();
+  }
+  else if (_event->type() ==
+           ignition::gazebo::gui::events::AddedRemovedEntities::kType)
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->newRemovedEntityMutex);
+    auto addedRemovedEvent =
+        reinterpret_cast<gui::events::AddedRemovedEntities *>(_event);
+    if (addedRemovedEvent)
+    {
+      for (auto entity : addedRemovedEvent->NewEntities())
+        this->dataPtr->newEntities.insert(entity);
+
+      for (auto entity : addedRemovedEvent->RemovedEntities())
+        this->dataPtr->removedEntities.insert(entity);
+    }
   }
 
   // Standard event processing
