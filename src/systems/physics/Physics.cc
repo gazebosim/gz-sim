@@ -2204,9 +2204,13 @@ std::map<Entity, physics::FrameData3d> PhysicsPrivate::ChangedLinks(
           return true;
         }
 
+        // This `once` variable is here to aid in debuggin, make sure to
+        // remove it.
+        static bool once = false;
         auto linkPhys = this->entityLinkMap.Get(_entity);
-        if (nullptr == linkPhys)
+        if (nullptr == linkPhys && !once)
         {
+          once = true;
           ignerr << "Internal error: link [" << _entity
                  << "] not in entity map" << std::endl;
           return true;

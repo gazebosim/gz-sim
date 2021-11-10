@@ -1298,6 +1298,7 @@ void SimulationRunner::ProcessRecreateEntitiesRemove()
           const components::Model *,
           const components::Recreate *)->bool
       {
+        std::cout << "Adding entity for recreation[" << _entity << "]\n";
         this->entitiesToRecreate.insert(_entity);
         this->entityCompMgr.RequestRemoveEntity(_entity, true);
         return true;
@@ -1326,6 +1327,8 @@ void SimulationRunner::ProcessRecreateEntitiesCreate()
   // next iteration
   for (auto &ent : clonedEntities)
   {
+
+    std::cout << "Removing recreate component from entity[" << ent << "]\n";
     if (!this->entityCompMgr.RemoveComponent<components::Recreate>(ent))
     {
       ignerr << "Failed to remove Recreate component from entity["
