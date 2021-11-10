@@ -1254,7 +1254,6 @@ void SimulationRunner::ProcessWorldControl()
 {
   IGN_PROFILE("SimulationRunner::ProcessWorldControl");
 
-
   // assume no stepping unless WorldControl msgs say otherwise
   this->SetStepping(false);
 

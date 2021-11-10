@@ -421,7 +421,7 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
   }
   else if (!_name.empty() && !_allowRename)
   {
-    // Get the entitie's original parent. This is used to make sure we get
+    // Get the entity's original parent. This is used to make sure we get
     // the correct entity. For example, two different models may have a
     // child with the name "link".
     auto origParentComp =

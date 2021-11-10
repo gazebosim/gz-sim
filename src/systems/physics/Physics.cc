@@ -2455,9 +2455,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
       auto parentModelPoseIt = this->modelWorldPoses.find(parentEntity);
       if (parentModelPoseIt == this->modelWorldPoses.end())
       {
-        ignerr << "Internal error: parent model [" << parentName->Data()
+        ignerr << "Internal error: parent model [" << parentEntity
               << "] does not have a world pose available for child entity["
-              << entityName << "]" << std::endl;
+              << entity << "]" << std::endl;
         continue;
       }
       const math::Pose3d &parentWorldPose = parentModelPoseIt->second;
