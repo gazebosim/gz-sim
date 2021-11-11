@@ -80,6 +80,7 @@ Rectangle {
     return _model.dataType + '.qml'
   }
 
+  /// \brief Get whether simulation is paused
   function getSimPaused() {
     return ComponentInspector.simPaused
   }
