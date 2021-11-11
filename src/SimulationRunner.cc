@@ -1292,7 +1292,7 @@ void SimulationRunner::ProcessRecreateEntitiesRemove()
   IGN_PROFILE("SimulationRunner::ProcessRecreateEntitiesRemove");
 
   // store the original entities to recreate and put in request to remove them
-  this->entityCompMgr.EachNoCache<components::Model,
+  this->entityCompMgr.Each<components::Model,
                            components::Recreate>(
       [&](const Entity &_entity,
           const components::Model *,
@@ -1321,6 +1321,7 @@ void SimulationRunner::ProcessRecreateEntitiesCreate()
     Entity clonedEntity = this->entityCompMgr.Clone(ent,
        parentComp->Data(), nameComp->Data(), false);
     entitiesToRemoveRecreateComp.insert(clonedEntity);
+    entitiesToRemoveRecreateComp.insert(ent);
   }
 
   // remove the Recreate component so they do not get recreated again in the
