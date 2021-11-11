@@ -953,7 +953,7 @@ TEST_P(SimulationRunnerTest, Time)
   EXPECT_EQ(0u, runner.CurrentInfo().iterations);
   EXPECT_EQ(0ms, runner.CurrentInfo().simTime);
   EXPECT_EQ(0ms, runner.CurrentInfo().dt);
-  EXPECT_EQ(1ms, runner.UpdatePeriod());
+  EXPECT_EQ(0ms, runner.UpdatePeriod());
   EXPECT_EQ(1ms, runner.StepSize());
 
   runner.SetPaused(false);
@@ -966,7 +966,7 @@ TEST_P(SimulationRunnerTest, Time)
   EXPECT_EQ(100u, runner.CurrentInfo().iterations);
   EXPECT_EQ(100ms, runner.CurrentInfo().simTime);
   EXPECT_EQ(1ms, runner.CurrentInfo().dt);
-  EXPECT_EQ(1ms, runner.UpdatePeriod());
+  EXPECT_EQ(0ms, runner.UpdatePeriod());
   EXPECT_EQ(1ms, runner.StepSize());
 
   int sleep = 0;
@@ -987,7 +987,7 @@ TEST_P(SimulationRunnerTest, Time)
   EXPECT_EQ(200u, runner.CurrentInfo().iterations);
   EXPECT_EQ(300ms, runner.CurrentInfo().simTime);
   EXPECT_EQ(2ms, runner.CurrentInfo().dt);
-  EXPECT_EQ(1ms, runner.UpdatePeriod());
+  EXPECT_EQ(0ms, runner.UpdatePeriod());
   EXPECT_EQ(2ms, runner.StepSize());
 
   sleep = 0;
@@ -1007,7 +1007,7 @@ TEST_P(SimulationRunnerTest, Time)
   EXPECT_EQ(200u, runner.CurrentInfo().iterations);
   EXPECT_EQ(300ms, runner.CurrentInfo().simTime);
   EXPECT_EQ(2ms, runner.CurrentInfo().dt);
-  EXPECT_EQ(1ms, runner.UpdatePeriod());
+  EXPECT_EQ(0ms, runner.UpdatePeriod());
   EXPECT_EQ(2ms, runner.StepSize());
 
   // Verify info published to /clock topic
@@ -1025,7 +1025,7 @@ TEST_P(SimulationRunnerTest, Time)
   EXPECT_EQ(500ms, runner.CurrentInfo().simTime)
     << runner.CurrentInfo().simTime.count();
   EXPECT_EQ(2ms, runner.CurrentInfo().dt);
-  EXPECT_EQ(1ms, runner.UpdatePeriod());
+  EXPECT_EQ(0ms, runner.UpdatePeriod());
   EXPECT_EQ(2ms, runner.StepSize());
 
   sleep = 0;

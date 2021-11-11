@@ -704,7 +704,7 @@ TEST_F(UserCommandsTest, Physics)
   auto physicsComp = ecm->Component<components::Physics>(worldEntity);
   ASSERT_NE(nullptr, physicsComp);
   EXPECT_DOUBLE_EQ(0.001, physicsComp->Data().MaxStepSize());
-  EXPECT_DOUBLE_EQ(1.0, physicsComp->Data().RealTimeFactor());
+  EXPECT_DOUBLE_EQ(0.0, physicsComp->Data().RealTimeFactor());
 
   // Set physics properties
   msgs::Physics req;
