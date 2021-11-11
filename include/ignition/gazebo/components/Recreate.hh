@@ -29,7 +29,15 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief A component that identifies an entity needs to be recreated
+  /// \brief A component that identifies an entity needs to be recreated.
+  /// Currently, only Models will be processed for recreation by the
+  /// SimulationRunner in the ProcessRecreateEntitiesRemove and
+  /// ProcessRecreateEntitiesCreate functions.
+  ///
+  /// The GUI ModelEditor contains example code on how to use this
+  /// component. For example, the ModelEditor allows a user to add a link to an
+  /// existing model. The existing model is tagged with this component so
+  /// that it can be recreated by the server.
   using Recreate = Component<NoData, class RecreateTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Recreate", Recreate)
 }

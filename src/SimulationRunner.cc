@@ -1312,27 +1312,47 @@ void SimulationRunner::ProcessRecreateEntitiesCreate()
   IGN_PROFILE("SimulationRunner::ProcessRecreateEntitiesCreate");
 
   // clone the original entities
-  std::set<Entity> entitiesToRemoveRecreateComp;
   for (auto & ent : this->entitiesToRecreate)
   {
     auto nameComp = this->entityCompMgr.Component<components::Name>(ent);
     auto parentComp =
         this->entityCompMgr.Component<components::ParentEntity>(ent);
-    // set allowRenaming to false so the entities keep their original name
-    Entity clonedEntity = this->entityCompMgr.Clone(ent,
-       parentComp->Data(), nameComp->Data(), false);
-    entitiesToRemoveRecreateComp.insert(clonedEntity);
-    entitiesToRemoveRecreateComp.insert(ent);
-  }
-
-  // remove the Recreate component so they do not get recreated again in the
-  // next iteration
-  for (auto &ent : entitiesToRemoveRecreateComp)
-  {
-    if (!this->entityCompMgr.RemoveComponent<components::Recreate>(ent))
+    if (nameComp  && parentComp)
     {
-      ignerr << "Failed to remove Recreate component from entity["
-        << ent << "]" << std::endl;
+      // set allowRenaming to false so the entities keep their original name
+      Entity clonedEntity = this->entityCompMgr.Clone(ent,
+         parentComp->Data(), nameComp->Data(), false);
+
+      // remove the Recreate component so they do not get recreated again in the
+      // next iteration
+      if (!this->entityCompMgr.RemoveComponent<components::Recreate>(ent))
+      {
+        ignerr << "Failed to remove Recreate component from entity["
+          << ent << "]" << std::endl;
+      }
+
+      if (!this->entityCompMgr.RemoveComponent<components::Recreate>(
+            clonedEntity))
+      {
+        ignerr << "Failed to remove Recreate component from entity["
+          << clonedEntity << "]" << std::endl;
+      }
+    }
+    else
+    {
+      if (!nameComp)
+      {
+        ignerr << "Missing name component for entity[" << ent << "]. "
+          << "The entity will not be cloned during the recreation process."
+          << std::endl;
+      }
+
+      if (!parentComp)
+      {
+        ignerr << "Missing parent component for entity[" << ent << "]. "
+          << "The entity will not be cloned during the recreation process."
+          << std::endl;
+      }
     }
   }
 
