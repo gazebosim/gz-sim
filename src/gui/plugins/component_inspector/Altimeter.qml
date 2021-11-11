@@ -99,7 +99,7 @@ Rectangle {
           // Connect to the onNoiseUpdate signal in Noise.qml
           Component.onCompleted: {
             verticalPositionNoise.onNoiseUpdate.connect(
-                componentInspector.onAltimeterPositionNoise)
+                AltimeterImpl.OnAltimeterPositionNoise)
           }
         }
 
@@ -135,7 +135,7 @@ Rectangle {
           // Connect to the onNoiseUpdate signal in Noise.qml
           Component.onCompleted: {
             verticalVelocityNoise.onNoiseUpdate.connect(
-                componentInspector.onAltimeterVelocityNoise)
+                AltimeterImpl.OnAltimeterVelocityNoise)
           }
         }
       }

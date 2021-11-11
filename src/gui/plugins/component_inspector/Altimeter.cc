@@ -29,7 +29,7 @@ using namespace gazebo;
 /////////////////////////////////////////////////
 Altimeter::Altimeter(ComponentInspector *_inspector)
 {
-  _inspector->Context()->setContextProperty("Altimeter", this);
+  _inspector->Context()->setContextProperty("AltimeterImpl", this);
   this->inspector = _inspector;
 
   ComponentCreator creator =
