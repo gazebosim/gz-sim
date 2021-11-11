@@ -36,7 +36,7 @@ namespace systems
   /// boats and underwater vehicles. It uses the equations described in Fossen's
   /// "Guidance and Control of Ocean Vehicles" in page 246. This plugin takes in
   /// force in Newtons and applies it to the thruster. It also calculates the
-  /// theoretical RPM of the blades and spins them at that RPM.
+  /// theoretical angular velocity of the blades and spins them accordingly.
   ///
   /// ## System Parameters
   /// - <namespace> - The namespace in which the robot exists. The plugin will
@@ -47,14 +47,17 @@ namespace systems
   /// - <fluid_density> - The fluid density of the liquid in which the thruster
   ///   is operating in. [Optional, kg/m^3, defaults to 1000 kg/m^3]
   /// - <propeller_diameter> - The diameter of the propeller in meters.
-  ///   [Required, m]
+  ///   [Optional, m, defaults to 0.02m]
   /// - <thrust_coefficient> - This is the coefficient which relates the angular
-  ///   velocity to actual thrust. [Required, no units]
+  ///   velocity to actual thrust. [Optional, no units, defaults to 1.0]
   ///
   ///      omega = sqrt(thrust /
   ///          (fluid_density * thrust_coefficient * propeller_diameter ^ 4))
   ///
   ///   Where omega is the propeller's angular velocity in rad/s.
+  /// - <velocity_control> - If true, use joint velocity commands to rotate the
+  ///   propeller. If false, use a PID controller to apply wrenches directly to
+  ///   the propeller link instead. [Optional, defaults to false].
   /// - <p_gain> - Proportional gain for joint PID controller. [Optional,
   ///              no units, defaults to 0.1]
   /// - <i_gain> - Integral gain for joint PID controller. [Optional,
@@ -88,9 +91,6 @@ namespace systems
   {
     /// \brief Constructor
     public: Thruster();
-
-    /// \brief Destructor
-    public: ~Thruster() override;
 
     /// Documentation inherited
     public: void Configure(

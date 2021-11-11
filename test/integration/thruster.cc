@@ -39,16 +39,26 @@ using namespace gazebo;
 
 class ThrusterTest : public InternalFixture<::testing::Test>
 {
+  /// \brief Test a world file
+  /// \param[in] _world Path to world file
+  /// \param[in] _namespace Namespace for topic
+  /// \param[in] _coefficient Thrust coefficient
+  /// \param[in] _density Fluid density
+  /// \param[in] _diameter Propeller diameter
+  /// \param[in] _baseTol Base tolerance for most quantities
+  public: void TestWorld(const std::string &_world,
+      const std::string &_namespace, double _coefficient, double _density,
+      double _diameter, double _baseTol);
 };
 
-/////////////////////////////////////////////////
-TEST_F(ThrusterTest, UniformWorldMovement)
+//////////////////////////////////////////////////
+void ThrusterTest::TestWorld(const std::string &_world,
+    const std::string &_namespace, double _coefficient, double _density,
+    double _diameter, double _baseTol)
 {
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-    "test", "worlds", "thruster.sdf");
-  serverConfig.SetSdfFile(sdfFile);
+  serverConfig.SetSdfFile(_world);
 
   TestFixture fixture(serverConfig);
 
@@ -113,7 +123,7 @@ TEST_F(ThrusterTest, UniformWorldMovement)
   // Publish command and check that vehicle moved
   transport::Node node;
   auto pub = node.Advertise<msgs::Double>(
-      "/model/sub/joint/propeller_joint/cmd_thrust");
+      "/model/" + _namespace + "/joint/propeller_joint/cmd_thrust");
 
   int sleep{0};
   int maxSleep{30};
@@ -147,23 +157,28 @@ TEST_F(ThrusterTest, UniformWorldMovement)
   // F = m * 2 * s / t^2
   // s = F * t^2 / 2m
   double mass{100.1};
-  double tightTol{1e-6};
   double xTol{1e-2};
   for (unsigned int i = 0; i < modelPoses.size(); ++i)
   {
     auto pose = modelPoses[i];
     auto time = dt * i;
     EXPECT_NEAR(force * time * time / (2 * mass), pose.Pos().X(), xTol);
-    EXPECT_NEAR(0.0, pose.Pos().Y(), tightTol);
-    EXPECT_NEAR(0.0, pose.Pos().Z(), tightTol);
-    EXPECT_NEAR(0.0, pose.Rot().Roll(), tightTol);
-    EXPECT_NEAR(0.0, pose.Rot().Pitch(), tightTol);
-    EXPECT_NEAR(0.0, pose.Rot().Yaw(), tightTol);
+    EXPECT_NEAR(0.0, pose.Pos().Y(), _baseTol);
+    EXPECT_NEAR(0.0, pose.Pos().Z(), _baseTol);
+    EXPECT_NEAR(0.0, pose.Rot().Pitch(), _baseTol);
+    EXPECT_NEAR(0.0, pose.Rot().Yaw(), _baseTol);
+
+    // The joint velocity command adds some roll to the body which the PID
+    // wrench doesn't
+    if (_namespace == "custom")
+      EXPECT_NEAR(0.0, pose.Rot().Roll(), 0.1);
+    else
+      EXPECT_NEAR(0.0, pose.Rot().Roll(), _baseTol);
   }
 
   // omega = sqrt(thrust /
   //     (fluid_density * thrust_coefficient * propeller_diameter ^ 4))
-  auto omega = sqrt(force / (1000 * 0.004 * pow(0.2, 4)));
+  auto omega = sqrt(force / (_density * _coefficient * pow(_diameter, 4)));
   double omegaTol{1e-1};
   for (unsigned int i = 0; i < propellerAngVels.size(); ++i)
   {
@@ -173,8 +188,25 @@ TEST_F(ThrusterTest, UniformWorldMovement)
     {
       EXPECT_NEAR(omega, angVel.X(), omegaTol) << i;
     }
-    EXPECT_NEAR(0.0, angVel.Y(), omegaTol);
-    EXPECT_NEAR(0.0, angVel.Z(), omegaTol);
+    EXPECT_NEAR(0.0, angVel.Y(), _baseTol);
+    EXPECT_NEAR(0.0, angVel.Z(), _baseTol);
   }
+}
+
+/////////////////////////////////////////////////
+TEST_F(ThrusterTest, PIDControl)
+{
+  auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "thruster_pid.sdf");
+  this->TestWorld(world, "sub", 0.004, 1000, 0.2, 1e-6);
+}
+
+/////////////////////////////////////////////////
+TEST_F(ThrusterTest, VelocityControl)
+{
+  // TODO: check why fail
+  auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "thruster_vel_cmd.sdf");
+  this->TestWorld(world, "custom", 0.005, 950, 0.25, 1e-2);
 }
 

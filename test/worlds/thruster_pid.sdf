@@ -2,6 +2,11 @@
 <sdf version="1.6">
   <world name="thruster">
 
+    <physics name="fast" type="none">
+      <!-- Zero to run as fast as possible -->
+      <real_time_factor>0</real_time_factor>
+    </physics>
+
     <!-- prevent sinking -->
     <gravity>0 0 0</gravity>
 
