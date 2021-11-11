@@ -64,6 +64,7 @@ set(tests
 
 # Tests that require a valid display
 set(tests_needing_display
+  camera_sensor_background.cc
   camera_video_record_system.cc
   depth_camera.cc
   gpu_lidar.cc

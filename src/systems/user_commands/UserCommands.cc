@@ -23,6 +23,7 @@
 #include <ignition/msgs/light.pb.h>
 #include <ignition/msgs/pose.pb.h>
 #include <ignition/msgs/physics.pb.h>
+#include <ignition/msgs/visual.pb.h>
 
 #include <string>
 #include <utility>
@@ -59,6 +60,7 @@
 #include "ignition/gazebo/components/ContactSensorData.hh"
 #include "ignition/gazebo/components/ContactSensor.hh"
 #include "ignition/gazebo/components/Sensor.hh"
+#include "ignition/gazebo/components/VisualCmd.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -344,6 +346,64 @@ class DisableCollisionCommand : public UserCommandBase
   // Documentation inherited
   public: bool Execute() final;
 };
+
+
+/// \brief Command to modify a visual entity from simulation.
+class VisualCommand : public UserCommandBase
+{
+  /// \brief Constructor
+  /// \param[in] _msg Message containing the visual parameters.
+  /// \param[in] _iface Pointer to user commands interface.
+  public: VisualCommand(msgs::Visual *_msg,
+      std::shared_ptr<UserCommandsInterface> &_iface);
+
+  // Documentation inherited
+  public: bool Execute() final;
+
+  /// \brief Visual equality comparision function
+  /// TODO(anyone) Currently only checks for material colors equality,
+  /// need to extend to others
+  public: std::function<bool(const msgs::Visual &, const msgs::Visual &)>
+          visualEql { [](const msgs::Visual &_a, const msgs::Visual &_b)
+            {
+              auto aMaterial = _a.material(), bMaterial = _b.material();
+              return
+                _a.name() == _b.name() &&
+                _a.id() == _b.id() &&
+                math::equal(
+                  aMaterial.ambient().r(), bMaterial.ambient().r(), 1e-6f) &&
+                math::equal(
+                  aMaterial.ambient().g(), bMaterial.ambient().g(), 1e-6f) &&
+                math::equal(
+                  aMaterial.ambient().b(), bMaterial.ambient().b(), 1e-6f) &&
+                math::equal(
+                  aMaterial.ambient().a(), bMaterial.ambient().a(), 1e-6f) &&
+                math::equal(
+                  aMaterial.diffuse().r(), bMaterial.diffuse().r(), 1e-6f) &&
+                math::equal(
+                  aMaterial.diffuse().g(), bMaterial.diffuse().g(), 1e-6f) &&
+                math::equal(
+                  aMaterial.diffuse().b(), bMaterial.diffuse().b(), 1e-6f) &&
+                math::equal(
+                  aMaterial.diffuse().a(), bMaterial.diffuse().a(), 1e-6f) &&
+                math::equal(
+                  aMaterial.specular().r(), bMaterial.specular().r(), 1e-6f) &&
+                math::equal(
+                  aMaterial.specular().g(), bMaterial.specular().g(), 1e-6f) &&
+                math::equal(
+                  aMaterial.specular().b(), bMaterial.specular().b(), 1e-6f) &&
+                math::equal(
+                  aMaterial.specular().a(), bMaterial.specular().a(), 1e-6f) &&
+                math::equal(
+                  aMaterial.emissive().r(), bMaterial.emissive().r(), 1e-6f) &&
+                math::equal(
+                  aMaterial.emissive().g(), bMaterial.emissive().g(), 1e-6f) &&
+                math::equal(
+                  aMaterial.emissive().b(), bMaterial.emissive().b(), 1e-6f) &&
+                math::equal(
+                  aMaterial.emissive().a(), bMaterial.emissive().a(), 1e-6f);
+            }};
+};
 }
 }
 }
@@ -354,7 +414,7 @@ class ignition::gazebo::systems::UserCommandsPrivate
 {
   /// \brief Callback for create service
   /// \param[in] _req Request containing entity description.
-  /// \param[in] _res True if message successfully received and queued.
+  /// \param[out] _res True if message successfully received and queued.
   /// It does not mean that the entity will be successfully spawned.
   /// \return True if successful.
   public: bool CreateService(const msgs::EntityFactory &_req,
@@ -362,7 +422,7 @@ class ignition::gazebo::systems::UserCommandsPrivate
 
   /// \brief Callback for multiple create service
   /// \param[in] _req Request containing one or more entity descriptions.
-  /// \param[in] _res True if message successfully received and queued.
+  /// \param[out] _res True if message successfully received and queued.
   /// It does not mean that the entities will be successfully spawned.
   /// \return True if successful.
   public: bool CreateServiceMultiple(
@@ -370,7 +430,7 @@ class ignition::gazebo::systems::UserCommandsPrivate
 
   /// \brief Callback for remove service
   /// \param[in] _req Request containing identification of entity to be removed.
-  /// \param[in] _res True if message successfully received and queued.
+  /// \param[out] _res True if message successfully received and queued.
   /// It does not mean that the entity will be successfully removed.
   /// \return True if successful.
   public: bool RemoveService(const msgs::Entity &_req,
@@ -378,21 +438,21 @@ class ignition::gazebo::systems::UserCommandsPrivate
 
   /// \brief Callback for light service
   /// \param[in] _req Request containing light update of an entity.
-  /// \param[in] _res True if message successfully received and queued.
+  /// \param[out] _res True if message successfully received and queued.
   /// It does not mean that the light will be successfully updated.
   /// \return True if successful.
   public: bool LightService(const msgs::Light &_req, msgs::Boolean &_res);
 
   /// \brief Callback for pose service
   /// \param[in] _req Request containing pose update of an entity.
-  /// \param[in] _res True if message successfully received and queued.
+  /// \param[out] _res True if message successfully received and queued.
   /// It does not mean that the entity will be successfully moved.
   /// \return True if successful.
   public: bool PoseService(const msgs::Pose &_req, msgs::Boolean &_res);
 
   /// \brief Callback for physics service
   /// \param[in] _req Request containing updates to the physics parameters.
-  /// \param[in] _res True if message successfully received and queued.
+  /// \param[out] _res True if message successfully received and queued.
   /// It does not mean that the physics parameters will be successfully updated.
   /// \return True if successful.
   public: bool PhysicsService(const msgs::Physics &_req, msgs::Boolean &_res);
@@ -407,7 +467,7 @@ class ignition::gazebo::systems::UserCommandsPrivate
 
   /// \brief Callback for enable collision service
   /// \param[in] _req Request containing collision entity.
-  /// \param[in] _res True if message successfully received and queued.
+  /// \param[out] _res True if message successfully received and queued.
   /// It does not mean that the collision will be successfully enabled.
   /// \return True if successful.
   public: bool EnableCollisionService(
@@ -415,11 +475,18 @@ class ignition::gazebo::systems::UserCommandsPrivate
 
   /// \brief Callback for disable collision service
   /// \param[in] _req Request containing collision entity.
-  /// \param[in] _res True if message successfully received and queued.
+  /// \param[out] _res True if message successfully received and queued.
   /// It does not mean that the collision will be successfully disabled.
   /// \return True if successful.
   public: bool DisableCollisionService(
       const msgs::Entity &_req, msgs::Boolean &_res);
+
+  /// \brief Callback for visual service
+  /// \param[in] _req Request containing visual updates of an entity
+  /// \param[out] _res True if message sucessfully received and queued.
+  /// It does not mean that the viusal will be successfully updated
+  /// \return True if successful.
+  public: bool VisualService(const msgs::Visual &_req, msgs::Boolean &_res);
 
   /// \brief Queue of commands pending execution.
   public: std::vector<std::unique_ptr<UserCommandBase>> pendingCmds;
@@ -568,6 +635,14 @@ void UserCommands::Configure(const Entity &_entity,
 
   ignmsg << "Disable collision service on [" << disableCollisionService << "]"
     << std::endl;
+
+  // Visual service
+  std::string visualService
+      {"/world/" + worldName + "/visual_config"};
+  this->dataPtr->node.Advertise(visualService,
+      &UserCommandsPrivate::VisualService, this->dataPtr.get());
+
+  ignmsg << "Material service on [" << visualService << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -744,6 +819,24 @@ bool UserCommandsPrivate::PhysicsService(const msgs::Physics &_req,
   auto msg = _req.New();
   msg->CopyFrom(_req);
   auto cmd = std::make_unique<PhysicsCommand>(msg, this->iface);
+  // Push to pending
+  {
+    std::lock_guard<std::mutex> lock(this->pendingMutex);
+    this->pendingCmds.push_back(std::move(cmd));
+  }
+
+  _res.set_data(true);
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool UserCommandsPrivate::VisualService(const msgs::Visual &_req,
+    msgs::Boolean &_res)
+{
+  // Create command and push it to queue
+  auto msg = _req.New();
+  msg->CopyFrom(_req);
+  auto cmd = std::make_unique<VisualCommand>(msg, this->iface);
   // Push to pending
   {
     std::lock_guard<std::mutex> lock(this->pendingMutex);
@@ -1443,6 +1536,47 @@ bool DisableCollisionCommand::Execute()
 
   igndbg << "Disabled collision [" << entityMsg->id() << "]" << std::endl;
 
+  return true;
+}
+
+//////////////////////////////////////////////////
+VisualCommand::VisualCommand(msgs::Visual *_msg,
+    std::shared_ptr<UserCommandsInterface> &_iface)
+    : UserCommandBase(_msg, _iface)
+{
+}
+
+//////////////////////////////////////////////////
+bool VisualCommand::Execute()
+{
+  auto visualMsg = dynamic_cast<const msgs::Visual *>(this->msg);
+  if (nullptr == visualMsg)
+  {
+    ignerr << "Internal error, null visual message" << std::endl;
+    return false;
+  }
+
+  if (visualMsg->id() == kNullEntity)
+  {
+    ignerr << "Failed to find visual entity" << std::endl;
+    return false;
+  }
+
+  Entity visualEntity = visualMsg->id();
+  auto visualCmdComp =
+      this->iface->ecm->Component<components::VisualCmd>(visualEntity);
+  if (!visualCmdComp)
+  {
+    this->iface->ecm->CreateComponent(
+        visualEntity, components::VisualCmd(*visualMsg));
+  }
+  else
+  {
+    auto state = visualCmdComp->SetData(*visualMsg, this->visualEql) ?
+        ComponentState::OneTimeChange : ComponentState::NoChange;
+    this->iface->ecm->SetChanged(
+        visualEntity, components::VisualCmd::typeId, state);
+  }
   return true;
 }
 
