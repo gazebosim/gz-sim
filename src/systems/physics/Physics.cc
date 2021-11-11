@@ -613,6 +613,13 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// \brief A map between collision entity ids in the ECM to FreeGroup Entities
   /// in ign-physics.
   public: EntityFreeGroupMap entityFreeGroupMap;
+
+  /// \brief Set of links that were added to an existing model. This set
+  /// is used to track links that were added to an existing model, such as
+  /// through the GUI model editor, so that we can avoid premature creation
+  /// of links and collision elements. This also lets us suppress some
+  /// invalid error messages.
+  public: std::set<Entity> linkAddedToModel;
 };
 
 //////////////////////////////////////////////////
@@ -779,6 +786,9 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 {
+  // Clear the set of links that were added to a model.
+  this->linkAddedToModel.clear();
+
   this->CreateWorldEntities(_ecm);
   this->CreateModelEntities(_ecm);
   this->CreateLinkEntities(_ecm);
@@ -1015,9 +1025,15 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm)
         const components::Pose *_pose,
         const components::ParentEntity *_parent)->bool
       {
+        // If the parent model is scheduled for recreation, then do not
+        // try to create a new link. This situation can occur when a link
+        // is added to a model from the GUI model editor.
         if (_ecm.EntityHasComponentType(_parent->Data(),
               components::Recreate::typeId))
         {
+          // Add this entity to the set of newly added links to existing
+          // models.
+          this->linkAddedToModel.insert(_entity);
           return true;
         }
 
@@ -1082,8 +1098,10 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm)
           const components::CollisionElement *_collElement,
           const components::ParentEntity *_parent) -> bool
       {
-        if (_ecm.EntityHasComponentType(_parent->Data(),
-              components::Recreate::typeId))
+        // Check to see if this collision's parent is a link that was
+        // not created because the parent model is marked for recreation.
+        if (this->linkAddedToModel.find(_parent->Data()) !=
+            this->linkAddedToModel.end())
         {
           return true;
         }
@@ -2204,15 +2222,17 @@ std::map<Entity, physics::FrameData3d> PhysicsPrivate::ChangedLinks(
           return true;
         }
 
-        // This `once` variable is here to aid in debuggin, make sure to
+        // This `once` variable is here to aid in debugging, make sure to
         // remove it.
-        static bool once = false;
         auto linkPhys = this->entityLinkMap.Get(_entity);
-        if (nullptr == linkPhys && !once)
+        if (nullptr == linkPhys)
         {
-          once = true;
-          ignerr << "Internal error: link [" << _entity
-                 << "] not in entity map" << std::endl;
+          if (this->linkAddedToModel.find(_entity) ==
+              this->linkAddedToModel.end())
+          {
+            ignerr << "Internal error: link [" << _entity
+              << "] not in entity map" << std::endl;
+          }
           return true;
         }
 
@@ -2362,8 +2382,12 @@ bool PhysicsPrivate::GetFrameDataRelativeToWorld(const Entity _entity,
   auto entityPhys = this->entityLinkMap.Get(_entity);
   if (nullptr == entityPhys)
   {
-    ignerr << "Internal error: entity [" << _entity
-           << "] not in entity map" << std::endl;
+    // Suppress error message if the link has just been added to the model.
+    if (this->linkAddedToModel.find(_entity) == this->linkAddedToModel.end())
+    {
+      ignerr << "Internal error: entity [" << _entity
+        << "] not in entity map" << std::endl;
+    }
     return false;
   }
 

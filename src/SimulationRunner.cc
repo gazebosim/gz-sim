@@ -846,10 +846,6 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   // Update all the systems.
   this->UpdateSystems();
 
-  // Recreate any entities that have the Recreate component
-  // The entities will have different Entity ids but keep the same name
-  this->ProcessRecreateEntitiesCreate();
-
   if (!this->Paused() &&
        this->requestedRunToSimTime >
        std::chrono::steady_clock::duration::zero() &&
@@ -876,6 +872,12 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 
   // Clear all new entities
   this->entityCompMgr.ClearNewlyCreatedEntities();
+
+  // Recreate any entities that have the Recreate component
+  // The entities will have different Entity ids but keep the same name
+  // Make sure this happens after ClearNewlyCreatedEntities, otherwise the
+  // cloned entities will loose their "New" state.
+  this->ProcessRecreateEntitiesCreate();
 
   // Process entity removals.
   this->entityCompMgr.ProcessRemoveEntityRequests();
@@ -1298,7 +1300,6 @@ void SimulationRunner::ProcessRecreateEntitiesRemove()
           const components::Model *,
           const components::Recreate *)->bool
       {
-        std::cout << "Adding entity for recreation[" << _entity << "]\n";
         this->entitiesToRecreate.insert(_entity);
         this->entityCompMgr.RequestRemoveEntity(_entity, true);
         return true;
@@ -1328,7 +1329,6 @@ void SimulationRunner::ProcessRecreateEntitiesCreate()
   // next iteration
   for (auto &ent : entitiesToRemoveRecreateComp)
   {
-    std::cout << "Removing recreate component from entity[" << ent << "]\n";
     if (!this->entityCompMgr.RemoveComponent<components::Recreate>(ent))
     {
       ignerr << "Failed to remove Recreate component from entity["
