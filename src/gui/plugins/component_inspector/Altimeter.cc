@@ -19,9 +19,9 @@
 #include <ignition/common/Console.hh>
 #include <ignition/gazebo/components/Altimeter.hh>
 
+#include "Altimeter.hh"
 #include "ComponentInspector.hh"
 #include "Types.hh"
-#include "Altimeter.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -29,7 +29,7 @@ using namespace gazebo;
 /////////////////////////////////////////////////
 Altimeter::Altimeter(ComponentInspector *_inspector)
 {
-  _inspector->Context()->setContextProperty("Altimeter", this);
+  _inspector->Context()->setContextProperty("AltimeterImpl", this);
   this->inspector = _inspector;
 
   ComponentCreator creator =

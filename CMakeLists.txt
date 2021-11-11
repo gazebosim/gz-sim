@@ -50,7 +50,7 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 # as protobuf could be find transitively by any dependency
 set(protobuf_MODULE_COMPATIBLE TRUE)
 
-ign_find_package(sdformat12 REQUIRED)
+ign_find_package(sdformat12 REQUIRED VERSION 12.1)
 set(SDF_VER ${sdformat12_VERSION_MAJOR})
 
 #--------------------------------------
@@ -87,7 +87,7 @@ set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools7_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-gui
-ign_find_package(ignition-gui6 REQUIRED)
+ign_find_package(ignition-gui6 REQUIRED VERSION 6.1)
 set(IGN_GUI_VER ${ignition-gui6_VERSION_MAJOR})
 ign_find_package (Qt5
   COMPONENTS

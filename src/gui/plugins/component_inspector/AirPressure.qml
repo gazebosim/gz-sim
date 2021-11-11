@@ -41,7 +41,7 @@ Rectangle {
       // Set the 'expandingHeaderText' value to override the default header
       // values, which is based on the model.
       expandingHeaderText: "Air pressure"
-      expandingHeaderToolTip: "Air pressure properties" 
+      expandingHeaderToolTip: "Air pressure properties"
     }
 
     // This is the content that will be expanded/contracted using the
@@ -77,20 +77,18 @@ Rectangle {
             color: "dimgrey"
             font.pointSize: 12
           }
-          IgnSpinBox {
+          StateAwareSpin {
             id: referenceAltitudeSpin
             Layout.fillWidth: true
             height: 40
-            property double refAltitude: model.data[0]
-            value: referenceAltitudeSpin.activeFocus ? referenceAltitudeSpin.value : refAltitude 
-
-            minimumValue: 0 
-            maximumValue: 100000 
-            decimals:4 
-            stepSize: 0.1
-            onEditingFinished: {
-              refAltitude = referenceAltitudeSpin.value
-              componentInspector.onAirPressureReferenceAltitude(refAltitude);
+            numberValue: model.data[0]
+            minValue: 0
+            maxValue: 100000
+            stepValue: 0.1
+            // Connect to the onNoiseUpdate signal in Noise.qml
+            Component.onCompleted: {
+              referenceAltitudeSpin.onChange.connect(
+                  AirPressureImpl.OnAirPressureReferenceAltitude)
             }
           }
         }
@@ -127,7 +125,7 @@ Rectangle {
           // Connect to the onNoiseUpdate signal in Noise.qml
           Component.onCompleted: {
             pressureNoise.onNoiseUpdate.connect(
-                componentInspector.onAirPressureNoise)
+                AirPressureImpl.OnAirPressureNoise)
           }
         }
       }

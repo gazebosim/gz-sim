@@ -1,0 +1,8 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+  <qresource prefix="CopyPaste/">
+    <file>CopyPaste.qml</file>
+    <file>copy_object.png</file>
+    <file>paste_object.png</file>
+  </qresource>
+</RCC>

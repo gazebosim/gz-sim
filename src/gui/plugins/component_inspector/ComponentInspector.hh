@@ -146,6 +146,13 @@ namespace gazebo
       NOTIFY PausedChanged
     )
 
+    /// \brief Simulation paused
+    Q_PROPERTY(
+      bool simPaused
+      READ SimPaused
+      NOTIFY SimPausedChanged
+    )
+
     /// \brief Nested Model
     Q_PROPERTY(
       bool nestedModel
@@ -265,6 +272,17 @@ namespace gazebo
     /// \brief Notify that locked has changed.
     signals: void LockedChanged();
 
+    /// \brief Get whether simulation is currently paused.
+    /// \return True for paused.
+    public: Q_INVOKABLE bool SimPaused() const;
+
+    /// \brief Notify that simulation paused state has changed.
+    signals: void SimPausedChanged();
+
+    /// \brief Set whether simulation is currently paused.
+    /// \param[in] _paused True for paused.
+    public: void SetSimPaused(bool _paused);
+
     /// \brief Get whether the inspector is currently paused for updates.
     /// \return True for paused.
     public: Q_INVOKABLE bool Paused() const;
@@ -275,6 +293,20 @@ namespace gazebo
 
     /// \brief Notify that paused has changed.
     signals: void PausedChanged();
+
+    /// \brief Callback in Qt thread when an entity is to be added
+    /// \param[in] _entity Entity to add, e.g. box, sphere, cylinder, etc
+    /// \param[in] _type Entity type, e.g. link, visual, collision, etc
+    public: Q_INVOKABLE void OnAddEntity(const QString &_entity,
+                const QString &_type);
+
+    /// \brief Callback to insert a new entity
+    /// \param[in] _entity Entity to add, e.g. box, sphere, cylinder, etc
+    /// \param[in] _type Entity type, e.g. link, visual, collision, etc
+    /// \param[in] _mesh Mesh file to load.
+    public: Q_INVOKABLE void OnLoadMesh(const QString &_entity,
+                const QString &_type, const QString &_mesh);
+
 
     /// \brief Add a callback that will be executed during the next Update.
     /// \param[in] _cb The callback to run.

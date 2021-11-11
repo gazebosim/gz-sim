@@ -99,7 +99,7 @@ Rectangle {
           // Connect to the onNoiseUpdate signal in Noise.qml
           Component.onCompleted: {
             xaxisNoise.onNoiseUpdate.connect(
-                componentInspector.onMagnetometerXNoise)
+                MagnetometerImpl.OnMagnetometerXNoise)
           }
         }
 
@@ -136,7 +136,7 @@ Rectangle {
           // Connect to the onNoiseUpdate signal in Noise.qml
           Component.onCompleted: {
             yaxisNoise.onNoiseUpdate.connect(
-                componentInspector.onMagnetometerYNoise)
+                MagnetometerImpl.OnMagnetometerYNoise)
           }
         }
 
@@ -173,7 +173,7 @@ Rectangle {
           // Connect to the onNoiseUpdate signal in Noise.qml
           Component.onCompleted: {
             zaxisNoise.onNoiseUpdate.connect(
-                componentInspector.onMagnetometerZNoise)
+                MagnetometerImpl.OnMagnetometerZNoise)
           }
         }
       }

@@ -4,11 +4,13 @@ gz_add_gui_plugin(ComponentInspector
     Altimeter.cc
     ComponentInspector.cc
     Magnetometer.cc
+    ModelEditor.cc
     Types.cc
   QT_HEADERS
     AirPressure.hh
     Altimeter.hh
     ComponentInspector.hh
     Magnetometer.hh
+    ModelEditor.hh
     Types.hh
 )

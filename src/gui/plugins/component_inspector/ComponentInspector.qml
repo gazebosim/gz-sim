@@ -18,9 +18,11 @@ import QtQuick 2.9
 import QtQuick.Controls 1.4
 import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
+import QtQuick.Dialogs 1.0
 import QtQuick.Layouts 1.3
 import QtQuick.Controls.Styles 1.4
 import IgnGazebo 1.0 as IgnGazebo
+
 
 Rectangle {
   id: componentInspector
@@ -78,30 +80,37 @@ Rectangle {
     return _model.dataType + '.qml'
   }
 
-  // Get number of decimal digits based on a widget's width
-  function getDecimals(_width) {
-    if (_width <= 80)
-      return 2;
-    else if (_width <= 100)
-      return 4;
-    return 6;
+  /// \brief Get whether simulation is paused
+  function getSimPaused() {
+    return ComponentInspector.simPaused
   }
 
-  /**
-   * Forward air pressure noise changes to C++
-   */
-  function onAirPressureNoise(_mean, _meanBias, _stdDev, _stdDevBias,
-      _dynamicBiasStdDev, _dynamicBiasCorrelationTime) {
-    AirPressure.OnAirPressureNoise(
-        _mean, _meanBias, _stdDev, _stdDevBias,
-        _dynamicBiasStdDev, _dynamicBiasCorrelationTime);
+  // Get number of decimal digits based on a width value
+  // \param[in] _width Pixel width
+  // \return Number of decimals that fit with the provided width.
+  function getDecimals(_width) {
+    // Use full decimals if the width is <= 0, which allows the value
+    // to appear correctly.
+    if (_width <= 0 || _width > 110)
+      return 6
+
+    if (_width <= 80)
+      return 2
+
+    return 4
   }
- 
-  /**
-   * Forward air pressure reference altitude changes to C++
-   */
-  function onAirPressureReferenceAltitude(_referenceAltitude) {
-    AirPressure.OnAirPressureReferenceAltitude(_referenceAltitude);
+
+  // Get number of decimal digits based on a widget's width, and adjust the
+  // widget's value to prevent zero padding.
+  // \param[in, out] _widgetId The widget id that will display the value. This
+  // widget's width attribute is used to determine the number of decimals.
+  // \param[in] _value The value that should be used to set the _widgetId's
+  // value attribute.
+  function getDecimalsAdjustValue(_widgetId, _value) {
+    // Make sure to update the value, otherwise zeros are used intead of 
+    // the actual values.
+    _widgetId.value = _widgetId.activeFocus ? _widgetId.value : _value
+    return getDecimals(_widgetId.width)
   }
 
   /**
@@ -191,6 +200,20 @@ Rectangle {
         _heading);
   }
 
+  // The component for a menu section header
+  Component {
+    id: menuSectionHeading
+    Rectangle {
+      height: childrenRect.height
+
+      Text {
+          text: sectionText 
+          font.pointSize: 10
+          padding: 5
+      }
+    }
+  }
+
   Rectangle {
     id: header
     height: lockButton.height
@@ -265,6 +288,159 @@ Rectangle {
         }
       }
 
+      ToolButton {
+        id: addButton
+        checkable: false
+        text: "Add entity"
+        visible: entityType == "model"
+        contentItem: Image {
+          fillMode: Image.Pad
+          horizontalAlignment: Image.AlignHCenter
+          verticalAlignment: Image.AlignVCenter
+          source: "qrc:/Gazebo/images/plus.png"
+          sourceSize.width: 18;
+          sourceSize.height: 18;
+        }
+        ToolTip.text: "Add an entity to a model"
+        ToolTip.visible: hovered
+        ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+        onClicked: {
+          addLinkMenu.open()
+        }
+
+        FileDialog {
+          id: loadFileDialog
+          title: "Load mesh"
+          folder: shortcuts.home
+          nameFilters: [ "Collada files (*.dae)", "(*.stl)", "(*.obj)" ]
+          selectMultiple: false
+          selectExisting: true
+          onAccepted: {
+            ComponentInspector.OnLoadMesh("mesh", "link", fileUrl)
+          }
+        }
+
+        Menu {
+          id: addLinkMenu
+
+          Item {
+            Layout.fillWidth: true
+            height: childrenRect.height
+            Loader {
+              property string sectionText: "Link"
+              sourceComponent: menuSectionHeading
+            }
+          }
+
+          MenuItem {
+            id: boxLink
+            text: "Box"
+            onClicked: {
+              ComponentInspector.OnAddEntity("box", "link");
+              addLinkMenu.close()
+            }
+          }
+
+          MenuItem {
+            id: capsuleLink
+            text: "Capsule"
+            onClicked: {
+              ComponentInspector.OnAddEntity("capsule", "link");
+              addLinkMenu.close()
+            }
+          }
+
+          MenuItem {
+            id: cylinderLink
+            text: "Cylinder"
+            onClicked: {
+              ComponentInspector.OnAddEntity("cylinder", "link");
+            }
+          }
+
+          MenuItem {
+            id: ellipsoidLink
+            text: "Ellipsoid"
+            onClicked: {
+              ComponentInspector.OnAddEntity("ellipsoid", "link");
+            }
+          }
+
+          MenuItem {
+            id: emptyLink
+            text: "Empty"
+            onClicked: {
+              ComponentInspector.OnAddEntity("empty", "link");
+            }
+          }
+
+          MenuItem {
+            id: meshLink
+            text: "Mesh"
+            onClicked: {
+              loadFileDialog.open()
+            }
+          }
+
+          MenuItem {
+            id: sphereLink
+            text: "Sphere"
+            onClicked: {
+              ComponentInspector.OnAddEntity("sphere", "link");
+            }
+          }
+
+          MenuSeparator {
+            padding: 0
+            topPadding: 12
+            bottomPadding: 12
+            contentItem: Rectangle {
+              implicitWidth: 200
+              implicitHeight: 1
+              color: "#1E000000"
+            }
+          }
+
+          Item {
+            Layout.fillWidth: true
+            height: childrenRect.height
+            Loader {
+              property string sectionText: "Light"
+              sourceComponent: menuSectionHeading
+            }
+          }
+
+          MenuItem {
+            id: directionalLink
+            text: "Directional"
+            onClicked: {
+              ComponentInspector.OnAddEntity("directional", "link");
+              addLinkMenu.close()
+            }
+          }
+
+          MenuItem {
+            id: pointLink
+            text: "Point"
+            onClicked: {
+              ComponentInspector.OnAddEntity("point", "link");
+              addLinkMenu.close()
+            }
+          }
+
+          MenuItem {
+            id: spotLink
+            text: "Spot"
+            onClicked: {
+              ComponentInspector.OnAddEntity("spot", "link");
+              addLinkMenu.close()
+            }
+          }
+
+          // \todo(anyone) Add joints
+        }
+      }
+
       Label {
         id: entityLabel
         text: 'Entity ' + ComponentInspector.entity
@@ -275,6 +451,7 @@ Rectangle {
       }
     }
   }
+
 
   ListView {
     anchors.top: header.bottom

@@ -20,9 +20,9 @@
 #include <ignition/gazebo/components/AirPressureSensor.hh>
 #include <ignition/gazebo/EntityComponentManager.hh>
 
+#include "AirPressure.hh"
 #include "ComponentInspector.hh"
 #include "Types.hh"
-#include "AirPressure.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -30,7 +30,7 @@ using namespace gazebo;
 /////////////////////////////////////////////////
 AirPressure::AirPressure(ComponentInspector *_inspector)
 {
-  _inspector->Context()->setContextProperty("AirPressure", this);
+  _inspector->Context()->setContextProperty("AirPressureImpl", this);
   this->inspector = _inspector;
 
   ComponentCreator creator =

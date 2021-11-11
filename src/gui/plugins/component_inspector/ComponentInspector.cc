@@ -16,8 +16,13 @@
 */
 
 #include <iostream>
+#include <list>
+#include <map>
 #include <regex>
+#include <vector>
+
 #include <ignition/common/Console.hh>
+#include <ignition/common/MeshManager.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
@@ -69,6 +74,7 @@
 #include "AirPressure.hh"
 #include "Magnetometer.hh"
 #include "ComponentInspector.hh"
+#include "ModelEditor.hh"
 
 namespace ignition::gazebo
 {
@@ -101,8 +107,14 @@ namespace ignition::gazebo
     /// \brief Whether updates are currently paused.
     public: bool paused{false};
 
+    /// \brief Whether simulation is currently paused.
+    public: bool simPaused{true};
+
     /// \brief Transport node for making command requests
     public: transport::Node node;
+
+    /// \brief Transport node for making command requests
+    public: ModelEditor modelEditor;
 
     /// \brief Altimeter sensor inspector elements
     public: std::unique_ptr<ignition::gazebo::Altimeter> altimeter;
@@ -113,7 +125,10 @@ namespace ignition::gazebo
     /// \brief Magnetometer inspector elements
     public: std::unique_ptr<ignition::gazebo::Magnetometer> magnetometer;
 
-    /// \brief Set of callbacks to execture during the Update function.
+    /// \brief Altimeter sensor inspector elements
+    public: std::unique_ptr<ignition::gazebo::Altimeter> altimeter;
+
+    /// \brief Set of callbacks to execute during the Update function.
     public: std::vector<
             std::function<void(EntityComponentManager &)>> updateCallbacks;
 
@@ -424,6 +439,8 @@ void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
   this->Context()->setContextProperty(
       "ComponentsModel", &this->dataPtr->componentsModel);
 
+  this->dataPtr->modelEditor.Load();
+
   // Create air pressure
   this->dataPtr->airPressure = std::make_unique<AirPressure>(this);
 
@@ -435,10 +452,12 @@ void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
 }
 
 //////////////////////////////////////////////////
-void ComponentInspector::Update(const UpdateInfo &,
+void ComponentInspector::Update(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
   IGN_PROFILE("ComponentInspector::Update");
+
+  this->SetSimPaused(_info.paused);
 
   auto componentTypes = _ecm.ComponentTypes(this->dataPtr->entity);
 
@@ -800,18 +819,27 @@ void ComponentInspector::Update(const UpdateInfo &,
     }
   }
 
-  // Remove components no longer present
+  // Remove components no longer present - list items to remove
+  std::list<ignition::gazebo::ComponentTypeId> itemsToRemove;
   for (auto itemIt : this->dataPtr->componentsModel.items)
   {
     auto typeId = itemIt.first;
     if (componentTypes.find(typeId) == componentTypes.end())
     {
-      QMetaObject::invokeMethod(&this->dataPtr->componentsModel,
-          "RemoveComponentType",
-          Qt::QueuedConnection,
-          Q_ARG(ignition::gazebo::ComponentTypeId, typeId));
+      itemsToRemove.push_back(typeId);
     }
   }
+
+  // Remove components in list
+  for (auto typeId : itemsToRemove)
+  {
+    QMetaObject::invokeMethod(&this->dataPtr->componentsModel,
+        "RemoveComponentType",
+        Qt::QueuedConnection,
+        Q_ARG(ignition::gazebo::ComponentTypeId, typeId));
+  }
+
+  this->dataPtr->modelEditor.Update(_info, _ecm);
 
   // Process all of the update callbacks
   for (auto cb : this->dataPtr->updateCallbacks)
@@ -824,6 +852,7 @@ void ComponentInspector::AddUpdateCallback(UpdateCallback _cb)
 {
   this->dataPtr->updateCallbacks.push_back(_cb);
 }
+
 /////////////////////////////////////////////////
 void ComponentInspector::RegisterComponentCreator(ComponentTypeId _id,
     ComponentCreator _creatorFn)
@@ -905,6 +934,22 @@ void ComponentInspector::SetLocked(bool _locked)
 {
   this->dataPtr->locked = _locked;
   this->LockedChanged();
+}
+
+/////////////////////////////////////////////////
+bool ComponentInspector::SimPaused() const
+{
+  return this->dataPtr->simPaused;
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::SetSimPaused(bool _paused)
+{
+  if (_paused != this->dataPtr->simPaused)
+  {
+    this->dataPtr->simPaused = _paused;
+    this->SimPausedChanged();
+  }
 }
 
 /////////////////////////////////////////////////
@@ -1067,6 +1112,45 @@ void ComponentInspector::OnSphericalCoordinates(QString _surface,
 bool ComponentInspector::NestedModel() const
 {
   return this->dataPtr->nestedModel;
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::OnAddEntity(const QString &_entity,
+    const QString &_type)
+{
+  // currently just assumes parent is the model
+  // todo(anyone) support adding visuals / collisions / sensors to links
+  ignition::gazebo::gui::events::ModelEditorAddEntity addEntityEvent(
+      _entity, _type, this->dataPtr->entity, QString(""));
+
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      &addEntityEvent);
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::OnLoadMesh(const QString &_entity,
+    const QString &_type, const QString &_mesh)
+{
+  std::string meshStr = _mesh.toStdString();
+  if (QUrl(_mesh).isLocalFile())
+  {
+    // mesh to sdf model
+    common::rtrim(meshStr);
+
+    if (!common::MeshManager::Instance()->IsValidFilename(meshStr))
+    {
+      QString errTxt = QString::fromStdString("Invalid URI: " + meshStr +
+        "\nOnly mesh file types DAE, OBJ, and STL are supported.");
+      return;
+    }
+
+    ignition::gazebo::gui::events::ModelEditorAddEntity addEntityEvent(
+        _entity, _type, this->dataPtr->entity, QString(meshStr.c_str()));
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        &addEntityEvent);
+  }
 }
 
 // Register this plugin

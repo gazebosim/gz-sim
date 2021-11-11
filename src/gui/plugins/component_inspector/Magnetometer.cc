@@ -20,8 +20,8 @@
 #include <ignition/gazebo/components/Magnetometer.hh>
 
 #include "ComponentInspector.hh"
-#include "Types.hh"
 #include "Magnetometer.hh"
+#include "Types.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -29,7 +29,7 @@ using namespace gazebo;
 /////////////////////////////////////////////////
 Magnetometer::Magnetometer(ComponentInspector *_inspector)
 {
-  _inspector->Context()->setContextProperty("Magnetometer", this);
+  _inspector->Context()->setContextProperty("MagnetometerImpl", this);
   this->inspector = _inspector;
 
   ComponentCreator creator =
