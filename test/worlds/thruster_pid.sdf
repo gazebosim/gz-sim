@@ -81,10 +81,13 @@
       </link>
 
       <joint name="propeller_joint" type="revolute">
+        <!-- flips X to -X -->
+        <pose>0 0 0  0 3.14159265 0</pose>
         <parent>body</parent>
         <child>propeller</child>
         <axis>
-          <xyz>1 0 0</xyz>
+          <!-- flips -X back to X -->
+          <xyz>-1 0 0</xyz>
           <limit>
             <lower>-1e+12</lower>
             <upper>1e+12</upper>

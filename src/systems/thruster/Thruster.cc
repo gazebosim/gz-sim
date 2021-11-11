@@ -57,8 +57,13 @@ class ignition::gazebo::systems::ThrusterPrivateData
   /// \brief The link entity which will spin
   public: ignition::gazebo::Entity linkEntity;
 
-  /// \brief Axis along which the propeller spins
+  /// \brief Axis along which the propeller spins. Expressed in the joint
+  /// frame. Addume this doesn't change during simulation.
   public: ignition::math::Vector3d jointAxis;
+
+  /// \brief Joint pose in the child link frame. Assume this doesn't change
+  /// during the simulation.
+  public: math::Pose3d jointPose;
 
   /// \brief Propeller koint entity
   public: ignition::gazebo::Entity jointEntity;
@@ -164,6 +169,9 @@ void Thruster::Configure(
   this->dataPtr->jointAxis =
     _ecm.Component<ignition::gazebo::components::JointAxis>(
     this->dataPtr->jointEntity)->Data().Xyz();
+
+  this->dataPtr->jointPose = _ecm.Component<components::Pose>(
+      this->dataPtr->jointEntity)->Data();
 
   // Keeping cmd_pos for backwards compatibility
   // TODO(chapulina) Deprecate cmd_pos, because the commands aren't positions
@@ -285,8 +293,11 @@ void Thruster::PreUpdate(
   auto pose = worldPose(this->dataPtr->linkEntity, _ecm);
 
   // TODO(arjo129): add logic for custom coordinate frame
-  auto unitVector = pose.Rot().RotateVector(
-    this->dataPtr->jointAxis.Normalize());
+  // Convert joint axis to the world frame
+  const auto linkWorldPose = worldPose(this->dataPtr->linkEntity, _ecm);
+  auto jointWorldPose = linkWorldPose * this->dataPtr->jointPose;
+  auto unitVector =
+      jointWorldPose.Rot().RotateVector(this->dataPtr->jointAxis).Normalize();
 
   double desiredThrust;
   double desiredPropellerAngVel;

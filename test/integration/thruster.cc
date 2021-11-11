@@ -198,7 +198,10 @@ TEST_F(ThrusterTest, PIDControl)
 {
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "thruster_pid.sdf");
-  this->TestWorld(world, "sub", 0.004, 1000, 0.2, 1e-6);
+
+  // Tolerance could be lower (1e-6) if the joint pose had a precise 180
+  // rotation
+  this->TestWorld(world, "sub", 0.004, 1000, 0.2, 1e-4);
 }
 
 /////////////////////////////////////////////////
@@ -206,6 +209,8 @@ TEST_F(ThrusterTest, VelocityControl)
 {
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "thruster_vel_cmd.sdf");
+
+  // Tolerance is high because the joint command disturbs the vehicle body
   this->TestWorld(world, "custom", 0.005, 950, 0.25, 1e-2);
 }
 
