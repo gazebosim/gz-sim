@@ -52,7 +52,7 @@ TEST_F(UserCommandsTest, Create)
   // Start server
   ServerConfig serverConfig;
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/examples/worlds/empty.sdf";
+    "/test/worlds/empty.sdf";
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);
