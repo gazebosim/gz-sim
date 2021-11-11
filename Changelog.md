@@ -4,6 +4,9 @@
 
 ### Ignition Gazebo 3.12.0 (2021-11-11)
 
+1. Prevent creation of spurious `<plugin>` elements when saving worlds
+    * [Pull request #1192](https://github.com/ignitionrobotics/ign-gazebo/pull/1192)
+
 1. Added support for tracked vehicles
     * [Pull request #869](https://github.com/ignitionrobotics/ign-gazebo/pull/869)
 
