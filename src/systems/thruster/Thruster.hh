@@ -77,7 +77,7 @@ namespace systems
   /// ```
   /// To apply a thrust you may run the following command:
   /// ```
-  /// ign topic -t /model/tethys/joint/propeller_joint/cmd_pos
+  /// ign topic -t /model/tethys/joint/propeller_joint/cmd_thrust
   /// -m ignition.msgs.Double -p 'data: -31'
   /// ```
   /// The vehicle should move in a circle.

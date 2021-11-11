@@ -23,16 +23,15 @@
 #include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
 
+#include "ignition/gazebo/Link.hh"
+#include "ignition/gazebo/Model.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Model.hh"
+#include "ignition/gazebo/TestFixture.hh"
+#include "ignition/gazebo/Util.hh"
+#include "ignition/gazebo/World.hh"
 
 #include "ignition/gazebo/test_config.hh"
-#include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace ignition;
@@ -51,52 +50,65 @@ TEST_F(ThrusterTest, UniformWorldMovement)
     "test", "worlds", "thruster.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
-  Server server(serverConfig);
-  EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
+  TestFixture fixture(serverConfig);
 
+  Model model;
+  Link propeller;
   std::vector<math::Pose3d> modelPoses;
-  std::vector<math::Pose3d> linkPoses;
-  test::Relay testSystem;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-                             const gazebo::EntityComponentManager &_ecm)
-  {
-    // Model
-    Entity sub = _ecm.EntityByComponents(
-        components::Model(), components::Name("sub"));
-    ASSERT_NE(sub, kNullEntity);
+  std::vector<math::Vector3d> propellerAngVels;
+  double dt{0.0};
+  fixture.
+  OnConfigure(
+    [&](const ignition::gazebo::Entity &_worldEntity,
+      const std::shared_ptr<const sdf::Element> &/*_sdf*/,
+      ignition::gazebo::EntityComponentManager &_ecm,
+      ignition::gazebo::EventManager &/*_eventMgr*/)
+    {
+      World world(_worldEntity);
 
-    auto modelPose = _ecm.Component<components::Pose>(sub);
-    ASSERT_NE(modelPose , nullptr);
-    modelPoses.push_back(modelPose->Data());
+      auto modelEntity = world.ModelByName(_ecm, "sub");
+      EXPECT_NE(modelEntity, kNullEntity);
+      model = Model(modelEntity);
 
-    // Link
-    auto subLink = _ecm.EntityByComponents(
-      components::ParentEntity(sub),
-      components::Name("body"),
-      components::Link());
+      auto propellerEntity = model.LinkByName(_ecm, "propeller");
+      EXPECT_NE(propellerEntity, kNullEntity);
 
-    ASSERT_NE(subLink, kNullEntity);
+      propeller = Link(propellerEntity);
+      propeller.EnableVelocityChecks(_ecm);
+    }).
+  OnPostUpdate([&](const gazebo::UpdateInfo &_info,
+                            const gazebo::EntityComponentManager &_ecm)
+    {
+      dt = std::chrono::duration_cast<std::chrono::nanoseconds>(_info.dt).count()
+          * 1e-9;
 
-    auto linkPose = _ecm.Component<components::Pose>(sub);
-    ASSERT_NE(linkPose , nullptr);
-    linkPoses.push_back(linkPose->Data());
-  });
-  server.AddSystem(testSystem.systemPtr);
+      auto modelPose = worldPose(model.Entity(), _ecm);
+      modelPoses.push_back(modelPose);
+
+      auto propellerAngVel = propeller.WorldAngularVelocity(_ecm);
+      ASSERT_TRUE(propellerAngVel);
+      propellerAngVels.push_back(propellerAngVel.value());
+    }).
+  Finalize();
 
   // Check initial position
-  server.Run(true, 100, false);
+  fixture.Server()->Run(true, 100, false);
   EXPECT_EQ(100u, modelPoses.size());
-  EXPECT_EQ(100u, linkPoses.size());
+  EXPECT_EQ(100u, propellerAngVels.size());
+
+  EXPECT_NE(model.Entity(), kNullEntity);
+  EXPECT_NE(propeller.Entity(), kNullEntity);
 
   for (const auto &pose : modelPoses)
   {
     EXPECT_EQ(math::Pose3d(), pose);
   }
-  for (const auto &pose : linkPoses)
+  modelPoses.clear();
+  for (const auto &vel : propellerAngVels)
   {
-    EXPECT_EQ(math::Pose3d(), pose);
+    EXPECT_EQ(math::Vector3d::Zero, vel);
   }
+  propellerAngVels.clear();
 
   // Publish command and check that vehicle moved
   transport::Node node;
@@ -112,8 +124,9 @@ TEST_F(ThrusterTest, UniformWorldMovement)
   EXPECT_LT(sleep, maxSleep);
   EXPECT_TRUE(pub.HasConnections());
 
+  double force{300.0};
   msgs::Double msg;
-  msg.set_data(300);
+  msg.set_data(force);
   pub.Publish(msg);
 
   // Check movement
@@ -121,24 +134,47 @@ TEST_F(ThrusterTest, UniformWorldMovement)
       ++sleep)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    server.Run(true, 100, false);
+    fixture.Server()->Run(true, 100, false);
   }
-  EXPECT_LT(sleep, maxSleep) << modelPoses.back().Pos().X();
+  EXPECT_LT(sleep, maxSleep);
+  EXPECT_LT(5.0, modelPoses.back().Pos().X());
 
-  EXPECT_EQ(100u * (sleep + 1), modelPoses.size());
-  EXPECT_EQ(100u * (sleep + 1), linkPoses.size());
+  EXPECT_EQ(100u * sleep, modelPoses.size());
+  EXPECT_EQ(100u * sleep, propellerAngVels.size());
 
   // F = m * a
-  // F = m * v * t^2 / 2
-  // F = m * s * t * t^2 / 2
-  // TODO(louise) Add expectations based on applied force
-  for (const auto &pose : modelPoses)
+  // s = a * t^2 / 2
+  // F = m * 2 * s / t^2
+  // s = F * t^2 / 2m
+  double mass{100.1};
+  double tightTol{1e-6};
+  double xTol{1e-2};
+  for (unsigned int i = 0; i < modelPoses.size(); ++i)
   {
-//    EXPECT_EQ(math::Pose3d(), pose);
+    auto pose = modelPoses[i];
+    auto time = dt * i;
+    EXPECT_NEAR(force * time * time / (2 * mass), pose.Pos().X(), xTol);
+    EXPECT_NEAR(0.0, pose.Pos().Y(), tightTol);
+    EXPECT_NEAR(0.0, pose.Pos().Z(), tightTol);
+    EXPECT_NEAR(0.0, pose.Rot().Roll(), tightTol);
+    EXPECT_NEAR(0.0, pose.Rot().Pitch(), tightTol);
+    EXPECT_NEAR(0.0, pose.Rot().Yaw(), tightTol);
   }
-  for (const auto &pose : linkPoses)
+
+  // omega = sqrt(thrust /
+  //     (fluid_density * thrust_coefficient * propeller_diameter ^ 4))
+  auto omega = sqrt(force / (1000 * 0.004 * pow(0.2, 4)));
+  double omegaTol{1e-1};
+  for (unsigned int i = 0; i < propellerAngVels.size(); ++i)
   {
-//    EXPECT_EQ(math::Pose3d(), pose);
+    auto angVel = propellerAngVels[i];
+    // It takes a few iterations to reach the speed
+    if (i > 25)
+    {
+      EXPECT_NEAR(omega, angVel.X(), omegaTol) << i;
+    }
+    EXPECT_NEAR(0.0, angVel.Y(), omegaTol);
+    EXPECT_NEAR(0.0, angVel.Z(), omegaTol);
   }
 }
 

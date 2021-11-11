@@ -2,8 +2,6 @@
 <sdf version="1.6">
   <world name="thruster">
 
-    <!-- TODO(louise) Update parameters to rouder numbers -->
-
     <!-- prevent sinking -->
     <gravity>0 0 0</gravity>
 
@@ -33,50 +31,51 @@
     <model name="sub">
 
       <link name="body">
+        <pose>0 0 0   0 1.57 0</pose>
         <inertial>
-          <mass>147.8671</mass>
+          <mass>100</mass>
           <inertia>
-            <ixx>3.000000</ixx>
+            <ixx>33.89</ixx>
             <ixy>0</ixy>
             <ixz>0</ixz>
-            <iyy>41.980233</iyy>
+            <iyy>33.89</iyy>
             <iyz>0</iyz>
-            <izz>41.980233</izz>
+            <izz>1.125</izz>
           </inertia>
         </inertial>
         <visual name="visual">
           <geometry>
-            <box>
-              <size>2 0.3 0.246445166667</size>
-            </box>
+            <cylinder>
+              <length>2</length>
+              <radius>0.15</radius>
+            </cylinder>
           </geometry>
         </visual>
       </link>
 
       <link name="propeller">
-        <pose>1.43162 0 0 0 0 0</pose>
+        <pose>-1.05 0 0 0 0 0</pose>
         <inertial>
-          <mass>0.09</mass>
+          <mass>0.1</mass>
           <inertia>
-            <ixx>0.000143971303</ixx>
-            <ixy>0.000000000008</ixy>
-            <ixz>-0.000000000224</ixz>
-            <iyy>0.000140915448</iyy>
-            <iyz>-0.000025236433</iyz>
-            <izz>0.000033571862</izz>
+            <ixx>0.000354167</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.000021667</iyy>
+            <iyz>0</iyz>
+            <izz>0.000334167</izz>
           </inertia>
         </inertial>
         <visual name="visual">
           <geometry>
             <box>
-              <size>0.03 0.1 0.03</size>
+              <size>0.01 0.2 0.05</size>
             </box>
           </geometry>
         </visual>
       </link>
 
       <joint name="propeller_joint" type="revolute">
-        <pose>0 0 0 0 0 0</pose>
         <parent>body</parent>
         <child>propeller</child>
         <axis>
@@ -94,7 +93,7 @@
         filename="ignition-gazebo-thruster-system"
         name="ignition::gazebo::systems::Thruster">
         <joint_name>propeller_joint</joint_name>
-        <thrust_coefficient>0.004422</thrust_coefficient>
+        <thrust_coefficient>0.004</thrust_coefficient>
         <fluid_density>1000</fluid_density>
         <propeller_diameter>0.2</propeller_diameter>
       </plugin>

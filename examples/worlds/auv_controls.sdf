@@ -10,7 +10,7 @@
   * JointPositionController: controls the vertical and horizontal fins
   * LiftDrag: generates forces on the vertical and horizontal fins
   * Thruster: propels the vehicle
-  * Hydrodynamics: applies forcess such as added mass
+  * Hydrodynamics: applies forces such as added mass, drag and coriolis
 
   Example commands for the vehicle to move in a circle:
 

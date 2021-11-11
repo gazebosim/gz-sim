@@ -85,7 +85,7 @@ class ignition::gazebo::systems::ThrusterPrivateData
 
   /// \brief function which computes rpm from thrust
   /// \param[in] _thrust Thrust in N
-  /// \return Angular velocity in RPM.
+  /// \return Angular velocity in rad/s
   public: double ThrustToAngularVec(double _thrust);
 };
 
@@ -295,3 +295,4 @@ IGNITION_ADD_PLUGIN(
   Thruster::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(Thruster, "ignition::gazebo::systems::Thruster")
+
