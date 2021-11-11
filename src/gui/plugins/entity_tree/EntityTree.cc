@@ -17,14 +17,18 @@
 
 #include "EntityTree.hh"
 
+#include <algorithm>
 #include <iostream>
 #include <mutex>
 #include <set>
+#include <string>
 #include <vector>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/MeshManager.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/gui/Application.hh>
+#include <ignition/gui/GuiEvents.hh>
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
 
@@ -41,8 +45,10 @@
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
+
+#include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/Primitives.hh"
 
 namespace ignition::gazebo
 {
@@ -123,6 +129,12 @@ void TreeModel::AddEntity(Entity _entity, const QString &_entityName,
   IGN_PROFILE("TreeModel::AddEntity");
   QStandardItem *parentItem{nullptr};
 
+  // check if entity has already been added or not.
+  // This could happen because we get new and removed entity updates from both
+  // the ECM and GUI events.
+  if (this->entityItems.find(_entity) != this->entityItems.end())
+    return;
+
   // Root
   if (_parentEntity == kNullEntity)
   {
@@ -142,13 +154,6 @@ void TreeModel::AddEntity(Entity _entity, const QString &_entityName,
   {
     this->pendingEntities.push_back(
       {_entity, _entityName, _parentEntity, _type});
-    return;
-  }
-
-  if (this->entityItems.find(_entity) != this->entityItems.end())
-  {
-    ignwarn << "Internal error: Trying to create item for entity [" << _entity
-            << "], but entity already has an item." << std::endl;
     return;
   }
 
@@ -457,6 +462,65 @@ void EntityTree::DeselectAllEntities()
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
       &event);
+}
+
+/////////////////////////////////////////////////
+void EntityTree::OnInsertEntity(const QString &_type)
+{
+  std::string modelSdfString = getPrimitive(_type.toStdString());
+  ignition::gui::events::SpawnFromDescription event(modelSdfString);
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      &event);
+}
+
+/////////////////////////////////////////////////
+void EntityTree::OnLoadMesh(const QString &_mesh)
+{
+  std::string meshStr = _mesh.toStdString();
+  if (QUrl(_mesh).isLocalFile())
+  {
+    // mesh to sdf model
+    common::rtrim(meshStr);
+
+    if (!common::MeshManager::Instance()->IsValidFilename(meshStr))
+    {
+      QString errTxt = QString::fromStdString("Invalid URI: " + meshStr +
+        "\nOnly mesh file types DAE, OBJ, and STL are supported.");
+      return;
+    }
+
+    std::string filename = common::basename(meshStr);
+    std::vector<std::string> splitName = common::split(filename, ".");
+
+    std::string sdf = "<?xml version='1.0'?>"
+      "<sdf version='" + std::string(SDF_PROTOCOL_VERSION) + "'>"
+        "<model name='" + splitName[0] + "'>"
+          "<link name='link'>"
+            "<visual name='visual'>"
+              "<geometry>"
+                "<mesh>"
+                  "<uri>" + meshStr + "</uri>"
+                "</mesh>"
+              "</geometry>"
+            "</visual>"
+            "<collision name='collision'>"
+              "<geometry>"
+                "<mesh>"
+                  "<uri>" + meshStr + "</uri>"
+                "</mesh>"
+              "</geometry>"
+            "</collision>"
+          "</link>"
+        "</model>"
+      "</sdf>";
+
+    ignition::gui::events::SpawnFromDescription event(sdf);
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        &event);
+
+  }
 }
 
 /////////////////////////////////////////////////

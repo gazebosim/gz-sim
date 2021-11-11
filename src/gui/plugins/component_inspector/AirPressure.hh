@@ -32,7 +32,7 @@ namespace gazebo
 
     /// \brief Constructor
     /// \param[in] _inspector The component inspector.
-    public: AirPressure(ComponentInspector *_inspector);
+    public: explicit AirPressure(ComponentInspector *_inspector);
 
     /// \brief This function is called when a user changes values in the
     /// air pressure sensor.
@@ -48,6 +48,9 @@ namespace gazebo
                 double _stdDevBias, double _dynamicBiasStdDev,
                 double _dynamicBiasCorrelationTime);
 
+    /// \brief This function is called when a user changes the air pressure
+    /// reference altitude.
+    /// \param[in] _referenceAltitude New reference altitude value.
     public: Q_INVOKABLE void OnAirPressureReferenceAltitude(
                 double _referenceAltitude);
 

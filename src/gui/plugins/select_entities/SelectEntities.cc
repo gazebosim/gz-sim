@@ -300,6 +300,7 @@ void SelectEntitiesPrivate::HighlightNode(const rendering::VisualPtr &_visual)
     wireBoxVis->SetInheritScale(false);
     wireBoxVis->AddGeometry(wireBox);
     wireBoxVis->SetMaterial(white, false);
+    wireBoxVis->SetUserData("gui-only", static_cast<bool>(true));
     _visual->AddChild(wireBoxVis);
 
     // Add wire box to map for setting visibility
@@ -570,6 +571,25 @@ bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
       this->dataPtr->mouseDirty = true;
       this->dataPtr->selectionHelper.deselectAll = true;
       this->dataPtr->isSpawning = false;
+    }
+  }
+  else if (_event->type() ==
+           ignition::gazebo::gui::events::RemovedEntities::kType)
+  {
+    if (!this->dataPtr->wireBoxes.empty())
+    {
+      auto removedEvent =
+          reinterpret_cast<gui::events::RemovedEntities *>(_event);
+      for (auto &entity : removedEvent->Data())
+      {
+        auto wireBoxIt = this->dataPtr->wireBoxes.find(entity);
+        if (wireBoxIt != this->dataPtr->wireBoxes.end())
+        {
+          this->dataPtr->scene->DestroyVisual(wireBoxIt->second->Parent());
+          this->dataPtr->wireBoxes.erase(wireBoxIt);
+        }
+      }
+
     }
   }
 

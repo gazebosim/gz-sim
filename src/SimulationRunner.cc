@@ -195,12 +195,14 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 
   // TODO(louise) Combine both messages into one.
   this->node->Advertise("control", &SimulationRunner::OnWorldControl, this);
+  this->node->Advertise("control/state", &SimulationRunner::OnWorldControlState,
+      this);
   this->node->Advertise("playback/control",
       &SimulationRunner::OnPlaybackControl, this);
 
   ignmsg << "Serving world controls on [" << opts.NameSpace()
-         << "/control] and [" << opts.NameSpace() << "/playback/control]"
-         << std::endl;
+         << "/control], [" << opts.NameSpace() << "/control/state] and ["
+         << opts.NameSpace() << "/playback/control]" << std::endl;
 
   // Publish empty GUI messages for worlds that have no GUI in the beginning.
   // In the future, support modifying GUI from the server at runtime.
@@ -409,6 +411,12 @@ void SimulationRunner::PublishStats()
   msg.set_iterations(this->currentInfo.iterations);
 
   msg.set_paused(this->currentInfo.paused);
+
+  if (this->Stepping())
+  {
+    auto headerData = msg.mutable_header()->add_data();
+    headerData->set_key("step");
+  }
 
   // Publish the stats message. The stats message is throttled.
   this->statsPub.Publish(msg);
@@ -661,7 +669,13 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   if (!this->statsPub.Valid())
   {
     transport::AdvertiseMessageOptions advertOpts;
-    advertOpts.SetMsgsPerSec(5);
+    // publish 10 world statistics msgs/second. A smaller number isn't used
+    // because the GUI listens to these msgs to receive confirmation that
+    // pause/play GUI requests have been processed by the server, so we want to
+    // make sure that GUI requests are acknowledged quickly (see
+    // https://github.com/ignitionrobotics/ign-gui/pull/306 and
+    // https://github.com/ignitionrobotics/ign-gazebo/pull/1163)
+    advertOpts.SetMsgsPerSec(10);
     this->statsPub = this->node->Advertise<ignition::msgs::WorldStatistics>(
         "stats", advertOpts);
   }
@@ -1080,6 +1094,18 @@ void SimulationRunner::SetPaused(const bool _paused)
 }
 
 /////////////////////////////////////////////////
+void SimulationRunner::SetStepping(bool _stepping)
+{
+  this->stepping = _stepping;
+}
+
+/////////////////////////////////////////////////
+bool SimulationRunner::Stepping() const
+{
+  return this->stepping;
+}
+
+/////////////////////////////////////////////////
 void SimulationRunner::SetRunToSimTime(
     const std::chrono::steady_clock::duration &_time)
 {
@@ -1098,35 +1124,53 @@ void SimulationRunner::SetRunToSimTime(
 bool SimulationRunner::OnWorldControl(const msgs::WorldControl &_req,
     msgs::Boolean &_res)
 {
+  msgs::WorldControlState req;
+  req.mutable_world_control()->CopyFrom(_req);
+
+  return this->OnWorldControlState(req, _res);
+}
+
+/////////////////////////////////////////////////
+bool SimulationRunner::OnWorldControlState(const msgs::WorldControlState &_req,
+    msgs::Boolean &_res)
+{
   std::lock_guard<std::mutex> lock(this->msgBufferMutex);
 
-  WorldControl control;
-  control.pause = _req.pause();
+  // update the server ECM if the request contains SerializedState information
+  if (_req.has_state())
+    this->entityCompMgr.SetState(_req.state());
+  // TODO(anyone) notify server systems of changes made to the ECM, if there
+  // were any?
 
-  if (_req.multi_step() != 0)
-    control.multiStep = _req.multi_step();
-  else if (_req.step())
+  WorldControl control;
+  control.pause = _req.world_control().pause();
+
+  if (_req.world_control().multi_step() != 0)
+    control.multiStep = _req.world_control().multi_step();
+  else if (_req.world_control().step())
     control.multiStep = 1;
 
-  if (_req.has_reset())
+  if (_req.world_control().has_reset())
   {
-    control.rewind = _req.reset().all() || _req.reset().time_only();
+    control.rewind = _req.world_control().reset().all() ||
+      _req.world_control().reset().time_only();
 
-    if (_req.reset().model_only())
+    if (_req.world_control().reset().model_only())
     {
       ignwarn << "Model only reset is not supported." << std::endl;
     }
   }
 
-  if (_req.seed() != 0)
+  if (_req.world_control().seed() != 0)
   {
     ignwarn << "Changing seed is not supported." << std::endl;
   }
 
-  if (_req.has_run_to_sim_time())
+  if (_req.world_control().has_run_to_sim_time())
   {
-    control.runToSimTime = std::chrono::seconds(_req.run_to_sim_time().sec()) +
-                   std::chrono::nanoseconds(_req.run_to_sim_time().nsec());
+    control.runToSimTime = std::chrono::seconds(
+        _req.world_control().run_to_sim_time().sec()) +
+        std::chrono::nanoseconds(_req.world_control().run_to_sim_time().nsec());
   }
 
   this->worldControls.push_back(control);
@@ -1175,6 +1219,10 @@ void SimulationRunner::ProcessMessages()
 void SimulationRunner::ProcessWorldControl()
 {
   IGN_PROFILE("SimulationRunner::ProcessWorldControl");
+
+  // assume no stepping unless WorldControl msgs say otherwise
+  this->SetStepping(false);
+
   for (const auto &control : this->worldControls)
   {
     // Play / pause
@@ -1186,6 +1234,7 @@ void SimulationRunner::ProcessWorldControl()
       this->pendingSimIterations += control.multiStep;
       // Unpause so that stepping can occur.
       this->SetPaused(false);
+      this->SetStepping(true);
     }
 
     // Rewind / reset

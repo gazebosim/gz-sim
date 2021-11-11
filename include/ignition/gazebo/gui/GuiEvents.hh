@@ -18,6 +18,8 @@
 #define IGNITION_GAZEBO_GUI_GUIEVENTS_HH_
 
 #include <QEvent>
+#include <QString>
+
 #include <set>
 #include <string>
 #include <utility>
@@ -135,6 +137,30 @@ namespace events
     private: std::set<Entity> removedEntities;
   };
 
+  /// \brief Event that notifies when new entities have been removed.
+  class RemovedEntities : public QEvent
+  {
+    /// \brief Constructor
+    /// \param[in] _entities All the removed entities
+    public: explicit RemovedEntities(const std::vector<Entity> &_entities)
+        : QEvent(kType), entities(_entities)
+    {
+    }
+
+    /// \brief Get the data sent with the event.
+    /// \return The entities being removed.
+    public: std::vector<Entity> Data() const
+    {
+      return this->entities;
+    }
+
+    /// \brief Unique type for this event.
+    static const QEvent::Type kType = QEvent::Type(QEvent::User + 4);
+
+    /// \brief The removed entities.
+    private: std::vector<Entity> entities;
+  };
+
   /// \brief True if a transform control is currently active (translate /
   /// rotate / scale). False if we're in selection mode.
   class TransformControlModeActive : public QEvent
@@ -158,6 +184,51 @@ namespace events
     /// \brief True if a transform mode is active.
     private: bool tranformModeActive;
   };
+
+  /// \brief Event that notifies an entity is to be added to the model editor
+  class ModelEditorAddEntity : public QEvent
+  {
+    /// \brief Constructor
+    /// \param[in] _tranformModeActive is the transform control mode active
+    public: explicit ModelEditorAddEntity(QString _entity, QString _type,
+                ignition::gazebo::Entity _parent, QString _uri) :
+      QEvent(kType), entity(_entity), type(_type), parent(_parent), uri(_uri)
+    {
+    }
+
+    /// \brief Get the entity to add
+    public: QString Entity() const
+    {
+      return this->entity;
+    }
+
+    /// \brief Get the URI, if any, associated with the entity to add
+    public: QString Uri() const
+    {
+      return this->uri;
+    }
+
+    /// \brief Get the entity type
+    public: QString EntityType() const
+    {
+      return this->type;
+    }
+
+    /// \brief Get the parent entity to add the entity to
+    public: ignition::gazebo::Entity ParentEntity() const
+    {
+      return this->parent;
+    }
+
+    /// \brief Unique type for this event.
+    static const QEvent::Type kType = QEvent::Type(QEvent::User + 7);
+
+    private: QString entity;
+    private: QString type;
+    private: ignition::gazebo::Entity parent;
+    private: QString uri;
+  };
+
 }  // namespace events
 }
 }  // namespace gui
