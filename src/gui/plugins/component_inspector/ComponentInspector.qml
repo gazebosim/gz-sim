@@ -81,7 +81,6 @@ Rectangle {
   }
 
   function getSimPaused() {
-    console.log("Is paused:",ComponentInspector.simPaused)
     return ComponentInspector.simPaused
   }
 
