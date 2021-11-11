@@ -5,6 +5,11 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
+## Ignition Gazebo 5.2 to 5.3
+
+* If no `<namespace>` is given to the `Thruster` plugin, the namespace now
+  defaults to the model name, instead of an empty string.
+
 ## Ignition Gazebo 4.x to 5.x
 
 * Use `cli` component of `ignition-utils1`.
