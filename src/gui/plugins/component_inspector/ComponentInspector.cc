@@ -116,17 +116,14 @@ namespace ignition::gazebo
     /// \brief Transport node for making command requests
     public: ModelEditor modelEditor;
 
-    /// \brief Altimeter sensor inspector elements
-    public: std::unique_ptr<ignition::gazebo::Altimeter> altimeter;
-
     /// \brief Air pressure sensor inspector elements
     public: std::unique_ptr<ignition::gazebo::AirPressure> airPressure;
 
-    /// \brief Magnetometer inspector elements
-    public: std::unique_ptr<ignition::gazebo::Magnetometer> magnetometer;
-
     /// \brief Altimeter sensor inspector elements
     public: std::unique_ptr<ignition::gazebo::Altimeter> altimeter;
+
+    /// \brief Magnetometer inspector elements
+    public: std::unique_ptr<ignition::gazebo::Magnetometer> magnetometer;
 
     /// \brief Set of callbacks to execute during the Update function.
     public: std::vector<
