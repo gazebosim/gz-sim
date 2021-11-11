@@ -162,8 +162,8 @@ void Thruster::Configure(
   }
 
   this->dataPtr->jointAxis =
-    _ecm.Component<ignition::gazebo::components::JointAxis>(this->dataPtr->jointEntity)
-      ->Data().Xyz();
+    _ecm.Component<ignition::gazebo::components::JointAxis>(
+    this->dataPtr->jointEntity)->Data().Xyz();
 
   // Keeping cmd_pos for backwards compatibility
   // TODO(chapulina) Deprecate cmd_pos, because the commands aren't positions
@@ -189,7 +189,8 @@ void Thruster::Configure(
 
   // Get link entity
   auto childLink =
-    _ecm.Component<ignition::gazebo::components::ChildLinkName>(this->dataPtr->jointEntity);
+      _ecm.Component<ignition::gazebo::components::ChildLinkName>(
+      this->dataPtr->jointEntity);
   this->dataPtr->linkEntity = model.LinkByName(_ecm, childLink->Data());
 
   // Create necessary components if not present.
@@ -197,7 +198,6 @@ void Thruster::Configure(
   enableComponent<components::WorldAngularVelocity>(_ecm,
       this->dataPtr->linkEntity);
 
-  // TODO
   if (_sdf->HasElement("velocity_control"))
   {
     this->dataPtr->velocityControl = _sdf->Get<bool>("velocity_control");
@@ -303,7 +303,10 @@ void Thruster::PreUpdate(
     auto currentAngular = (link.WorldAngularVelocity(_ecm))->Dot(unitVector);
     auto angularError = currentAngular - desiredPropellerAngVel;
     if (abs(angularError) > 0.1)
-      torque = this->dataPtr->propellerController.Update(angularError, _info.dt);
+    {
+      torque = this->dataPtr->propellerController.Update(angularError,
+          _info.dt);
+    }
   }
   // Velocity control
   else

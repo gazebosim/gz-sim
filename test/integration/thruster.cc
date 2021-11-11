@@ -89,8 +89,8 @@ void ThrusterTest::TestWorld(const std::string &_world,
   OnPostUpdate([&](const gazebo::UpdateInfo &_info,
                             const gazebo::EntityComponentManager &_ecm)
     {
-      dt = std::chrono::duration_cast<std::chrono::nanoseconds>(_info.dt).count()
-          * 1e-9;
+      dt = std::chrono::duration_cast<std::chrono::nanoseconds>(
+          _info.dt).count() * 1e-9;
 
       auto modelPose = worldPose(model.Entity(), _ecm);
       modelPoses.push_back(modelPose);
@@ -204,7 +204,6 @@ TEST_F(ThrusterTest, PIDControl)
 /////////////////////////////////////////////////
 TEST_F(ThrusterTest, VelocityControl)
 {
-  // TODO: check why fail
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "thruster_vel_cmd.sdf");
   this->TestWorld(world, "custom", 0.005, 950, 0.25, 1e-2);
