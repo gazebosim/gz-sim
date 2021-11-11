@@ -475,6 +475,10 @@ namespace ignition
       /// Reccreate the entities by cloning from the original ones.
       private: void ProcessRecreateEntitiesCreate();
 
+      /// \brief Process the new world state message, if it is present.
+      /// See the newWorldControlState variable below.
+      private: void ProcessNewWorldControlState();
+
       /// \brief This is used to indicate that a stop event has been received.
       private: std::atomic<bool> stopReceived{false};
 
@@ -638,6 +642,10 @@ namespace ignition
 
       /// \brief A set of entities that need to be recreated
       private: std::set<Entity> entitiesToRecreate;
+
+      /// \brief Holds new world state information so that it can processed
+      /// at the appropriate time.
+      private: msgs::WorldControlState *newWorldControlState{nullptr};
 
       friend class LevelManager;
     };

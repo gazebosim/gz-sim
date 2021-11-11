@@ -90,6 +90,7 @@ TEST_F(RecreateEntitiesFixture, RecreateEntities)
 
         // recreate entities only once so set it back to false
         recreateEntities = false;
+        return;
       }
     });
   server.AddSystem(testSystem.systemPtr);
@@ -306,4 +307,12 @@ TEST_F(RecreateEntitiesFixture, RecreateEntities)
   EXPECT_NE(originalsphLinkEntity, sphLinkEntity);
   EXPECT_NE(originalcapLinkEntity, capLinkEntity);
   EXPECT_NE(originalellipLinkEntity, ellipLinkEntity);
+
+  // Run again to make sure the recreate components are removed and no
+  // entities to to be recreated
+  server.Run(true, 1, false);
+
+  auto entities = ecm->EntitiesByComponents(components::Model(),
+      components::Recreate());
+  EXPECT_TRUE(entities.empty());
 }

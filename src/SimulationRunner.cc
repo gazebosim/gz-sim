@@ -822,6 +822,10 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   IGN_PROFILE("SimulationRunner::Step");
   this->currentInfo = _info;
 
+  // Process new ECM state information, typically sent from the GUI after
+  // a change was made to the GUI's ECM.
+  this->ProcessNewWorldControlState();
+
   // Publish info
   this->PublishStats();
 
@@ -841,10 +845,6 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 
   // Update all the systems.
   this->UpdateSystems();
-
-  // Recreate any entities that have the Recreate component
-  // The entities will have different Entity ids but keep the same name
-  this->ProcessRecreateEntitiesCreate();
 
   if (!this->Paused() &&
        this->requestedRunToSimTime >
@@ -872,6 +872,12 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 
   // Clear all new entities
   this->entityCompMgr.ClearNewlyCreatedEntities();
+
+  // Recreate any entities that have the Recreate component
+  // The entities will have different Entity ids but keep the same name
+  // Make sure this happens after ClearNewlyCreatedEntities, otherwise the
+  // cloned entities will loose their "New" state.
+  this->ProcessRecreateEntitiesCreate();
 
   // Process entity removals.
   this->entityCompMgr.ProcessRemoveEntityRequests();
@@ -1148,11 +1154,13 @@ bool SimulationRunner::OnWorldControlState(const msgs::WorldControlState &_req,
 {
   std::lock_guard<std::mutex> lock(this->msgBufferMutex);
 
-  // update the server ECM if the request contains SerializedState information
+  // Copy the state information if it exists
   if (_req.has_state())
-    this->entityCompMgr.SetState(_req.state());
-  // TODO(anyone) notify server systems of changes made to the ECM, if there
-  // were any?
+  {
+    if (this->newWorldControlState == nullptr)
+      this->newWorldControlState = _req.New();
+    this->newWorldControlState->CopyFrom(_req);
+  }
 
   WorldControl control;
   control.pause = _req.world_control().pause();
@@ -1182,13 +1190,29 @@ bool SimulationRunner::OnWorldControlState(const msgs::WorldControlState &_req,
   {
     control.runToSimTime = std::chrono::seconds(
         _req.world_control().run_to_sim_time().sec()) +
-        std::chrono::nanoseconds(_req.world_control().run_to_sim_time().nsec());
+      std::chrono::nanoseconds(_req.world_control().run_to_sim_time().nsec());
   }
 
   this->worldControls.push_back(control);
 
   _res.set_data(true);
   return true;
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::ProcessNewWorldControlState()
+{
+  std::lock_guard<std::mutex> lock(this->msgBufferMutex);
+  // update the server ECM if the request contains SerializedState information
+  if (this->newWorldControlState && this->newWorldControlState->has_state())
+  {
+    this->entityCompMgr.SetState(this->newWorldControlState->state());
+
+    delete this->newWorldControlState;
+    this->newWorldControlState = nullptr;
+  }
+  // TODO(anyone) notify server systems of changes made to the ECM, if there
+  // were any?
 }
 
 /////////////////////////////////////////////////
@@ -1288,7 +1312,7 @@ void SimulationRunner::ProcessRecreateEntitiesCreate()
   IGN_PROFILE("SimulationRunner::ProcessRecreateEntitiesCreate");
 
   // clone the original entities
-  std::set<Entity> clonedEntities;
+  std::set<Entity> entitiesToRemoveRecreateComp;
   for (auto & ent : this->entitiesToRecreate)
   {
     auto nameComp = this->entityCompMgr.Component<components::Name>(ent);
@@ -1297,14 +1321,19 @@ void SimulationRunner::ProcessRecreateEntitiesCreate()
     // set allowRenaming to false so the entities keep their original name
     Entity clonedEntity = this->entityCompMgr.Clone(ent,
        parentComp->Data(), nameComp->Data(), false);
-    clonedEntities.insert(clonedEntity);
-
+    entitiesToRemoveRecreateComp.insert(clonedEntity);
+    entitiesToRemoveRecreateComp.insert(ent);
   }
+
   // remove the Recreate component so they do not get recreated again in the
   // next iteration
-  for (auto &ent : clonedEntities)
+  for (auto &ent : entitiesToRemoveRecreateComp)
   {
-    this->entityCompMgr.RemoveComponent<components::Recreate>(ent);
+    if (!this->entityCompMgr.RemoveComponent<components::Recreate>(ent))
+    {
+      ignerr << "Failed to remove Recreate component from entity["
+        << ent << "]" << std::endl;
+    }
   }
 
   this->entitiesToRecreate.clear();
