@@ -19,9 +19,9 @@
 #include <ignition/common/Console.hh>
 #include <ignition/gazebo/components/Altimeter.hh>
 
+#include "Altimeter.hh"
 #include "ComponentInspector.hh"
 #include "Types.hh"
-#include "Altimeter.hh"
 
 using namespace ignition;
 using namespace gazebo;
