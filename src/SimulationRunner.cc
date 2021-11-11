@@ -1292,7 +1292,7 @@ void SimulationRunner::ProcessRecreateEntitiesRemove()
   IGN_PROFILE("SimulationRunner::ProcessRecreateEntitiesRemove");
 
   // store the original entities to recreate and put in request to remove them
-  this->entityCompMgr.Each<components::Model,
+  this->entityCompMgr.EachNoCache<components::Model,
                            components::Recreate>(
       [&](const Entity &_entity,
           const components::Model *,
@@ -1311,7 +1311,7 @@ void SimulationRunner::ProcessRecreateEntitiesCreate()
   IGN_PROFILE("SimulationRunner::ProcessRecreateEntitiesCreate");
 
   // clone the original entities
-  std::set<Entity> clonedEntities;
+  std::set<Entity> entitiesToRemoveRecreateComp;
   for (auto & ent : this->entitiesToRecreate)
   {
     auto nameComp = this->entityCompMgr.Component<components::Name>(ent);
@@ -1320,14 +1320,13 @@ void SimulationRunner::ProcessRecreateEntitiesCreate()
     // set allowRenaming to false so the entities keep their original name
     Entity clonedEntity = this->entityCompMgr.Clone(ent,
        parentComp->Data(), nameComp->Data(), false);
-    clonedEntities.insert(clonedEntity);
+    entitiesToRemoveRecreateComp.insert(clonedEntity);
   }
 
   // remove the Recreate component so they do not get recreated again in the
   // next iteration
-  for (auto &ent : clonedEntities)
+  for (auto &ent : entitiesToRemoveRecreateComp)
   {
-
     std::cout << "Removing recreate component from entity[" << ent << "]\n";
     if (!this->entityCompMgr.RemoveComponent<components::Recreate>(ent))
     {

@@ -63,6 +63,7 @@ TEST_F(RecreateEntitiesFixture, RecreateEntities)
 
   EntityComponentManager *ecm = nullptr;
   bool recreateEntities = false;
+  bool doneRecreate = false;
 
   // Create a system that adds a recreate component to models
   test::Relay testSystem;
@@ -90,6 +91,17 @@ TEST_F(RecreateEntitiesFixture, RecreateEntities)
 
         // recreate entities only once so set it back to false
         recreateEntities = false;
+        doneRecreate = true;
+        return;
+      }
+
+      // there should not be any more entities with recreate components
+      if (doneRecreate)
+      {
+        auto entities = _ecm.EntitiesByComponents(components::Model(),
+            components::Recreate());
+        // \todo(iche033) fix component removal in views
+        // EXPECT_TRUE(entities.empty());
       }
     });
   server.AddSystem(testSystem.systemPtr);
@@ -306,4 +318,8 @@ TEST_F(RecreateEntitiesFixture, RecreateEntities)
   EXPECT_NE(originalsphLinkEntity, sphLinkEntity);
   EXPECT_NE(originalcapLinkEntity, capLinkEntity);
   EXPECT_NE(originalellipLinkEntity, ellipLinkEntity);
+
+  // Run again to make sure the recreate components are removed
+  server.Run(true, 1, false);
+  server.Run(true, 1, false);
 }
