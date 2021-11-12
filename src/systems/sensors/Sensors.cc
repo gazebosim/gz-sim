@@ -361,6 +361,17 @@ void Sensors::RemoveSensor(const Entity &_entity)
         this->dataPtr->activeSensors.erase(activeSensorIt);
       }
     }
+
+    // update cameras list
+    for (auto &it : this->dataPtr->cameras)
+    {
+      if (it.second->Id() == idIter->second)
+      {
+        this->dataPtr->cameras.erase(it.first);
+        break;
+      }
+    }
+
     this->dataPtr->sensorIds.erase(idIter->second);
     this->dataPtr->sensorManager.Remove(idIter->second);
     this->dataPtr->entityToIdMap.erase(idIter);
