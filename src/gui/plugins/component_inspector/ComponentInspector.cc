@@ -38,6 +38,7 @@
 #include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/Level.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/LightCmd.hh"
@@ -274,6 +275,39 @@ void ignition::gazebo::setData(QStandardItem *_item, const double &_data)
   _item->setData(QString("Float"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(_data, ComponentsModel::RoleNames().key("data"));
+}
+
+//////////////////////////////////////////////////
+template<>
+void ignition::gazebo::setData(QStandardItem *_item, const sdf::JointType &_data)
+{
+  if (nullptr == _item)
+    return;
+
+  _item->setData(QString("JointType"),
+      ComponentsModel::RoleNames().key("dataType"));
+
+  QString jointType;
+  if (_data == sdf::JointType::BALL)
+    jointType = "Ball";
+  else if (_data == sdf::JointType::CONTINUOUS)
+    jointType = "Continuous";
+  else if (_data == sdf::JointType::FIXED)
+    jointType = "Fixed";
+  else if (_data == sdf::JointType::GEARBOX)
+    jointType = "Gearbox";
+  else if (_data == sdf::JointType::PRISMATIC)
+    jointType = "Prismatic";
+  else if (_data == sdf::JointType::REVOLUTE)
+    jointType = "Revolute";
+  else if (_data == sdf::JointType::REVOLUTE2)
+    jointType = "Revolute2";
+  else if (_data == sdf::JointType::SCREW)
+    jointType = "Screw";
+  else if (_data == sdf::JointType::UNIVERSAL)
+    jointType = "Univeral";
+
+  _item->setData(jointType, ComponentsModel::RoleNames().key("data"));
 }
 
 //////////////////////////////////////////////////
@@ -593,6 +627,13 @@ void ComponentInspector::Update(const UpdateInfo &_info,
         setData(item, comp->Data());
         setUnit(item, "m/s\u00B2");
       }
+    }
+    else if (typeId == components::JointType::typeId)
+    {
+      auto comp = _ecm.Component<components::JointType>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
     }
     else if (typeId == components::LinearAcceleration::typeId)
     {
@@ -1089,6 +1130,42 @@ void ComponentInspector::OnSphericalCoordinates(QString _surface,
     return;
   }
   this->dataPtr->node.Request(sphericalCoordsCmdService, req, cb);
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::OnJointType(QString _jointType)
+{
+  auto entity = this->Entity();
+
+  ignition::gazebo::UpdateCallback cb =
+    [=](EntityComponentManager &_ecm)
+    {
+      components::JointType *comp =
+        _ecm.Component<components::JointType>(entity);
+
+      if (comp)
+      {
+        if (_jointType == "Ball")
+          comp->Data() = sdf::JointType::BALL;
+        else if (_jointType == "Continuous")
+          comp->Data() = sdf::JointType::CONTINUOUS;
+        else if (_jointType == "Fixed")
+          comp->Data() = sdf::JointType::FIXED;
+        else if (_jointType == "Gearbox")
+          comp->Data() = sdf::JointType::GEARBOX;
+        else if (_jointType == "Prismatic")
+          comp->Data() = sdf::JointType::PRISMATIC;
+        else if (_jointType == "Revolute")
+          comp->Data() = sdf::JointType::REVOLUTE;
+        else if (_jointType == "Revolute2")
+          comp->Data() = sdf::JointType::REVOLUTE2;
+        else if (_jointType == "Screw")
+          comp->Data() = sdf::JointType::SCREW;
+        else if (_jointType == "Universal")
+          comp->Data() = sdf::JointType::UNIVERSAL;
+      }
+    };
+  this->AddUpdateCallback(cb);
 }
 
 /////////////////////////////////////////////////

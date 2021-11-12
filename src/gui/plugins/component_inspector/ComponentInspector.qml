@@ -121,6 +121,14 @@ Rectangle {
   }
 
   /**
+   * Forward pose changes to C++
+   */
+  function onJointType(_jointType) {
+    console.log(_jointType)
+    ComponentInspector.OnJointType(_jointType)
+  }
+
+  /**
    * Forward light changes to C++
    */
   function onLight(_rSpecular, _gSpecular, _bSpecular, _aSpecular,

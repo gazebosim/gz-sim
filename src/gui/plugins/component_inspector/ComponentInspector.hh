@@ -23,6 +23,7 @@
 #include <string>
 
 #include <sdf/Physics.hh>
+#include <sdf/Joint.hh>
 
 #include <ignition/math/Pose3.hh>
 #include <ignition/math/Vector3.hh>
@@ -64,6 +65,12 @@ namespace gazebo
   /// \param[in] _data Data to set.
   template<>
   void setData(QStandardItem *_item, const math::Vector3d &_data);
+
+  /// \brief Specialized to set Joint Type data.
+  /// \param[in] _item Item whose data will be set.
+  /// \param[in] _data Data to set.
+  template<>
+  void setData(QStandardItem *_item, const sdf::JointType &_data);
 
   /// \brief Specialized to set Physics data.
   /// \param[in] _item Item whose data will be set.
@@ -228,6 +235,10 @@ namespace gazebo
     public: Q_INVOKABLE void OnSphericalCoordinates(QString _surface,
         double _latitude, double _longitude, double _elevation,
         double _heading);
+
+    /// \brief Callback in Qt thread when joint type changes.
+    /// \param[in] _surface Surface model
+    public: Q_INVOKABLE void OnJointType(QString _jointType);
 
     /// \brief Get whether the entity is a nested model or not
     /// \return True if the entity is a nested model, false otherwise
