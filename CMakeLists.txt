@@ -110,7 +110,7 @@ set(IGN_PHYSICS_VER ${ignition-physics5_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-sensors
-ign_find_package(ignition-sensors6 REQUIRED
+ign_find_package(ignition-sensors6 REQUIRED VERSION 6.1
   # component order is important
   COMPONENTS
     # non-rendering
