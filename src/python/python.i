@@ -33,6 +33,7 @@
 %include Vector3Stats.i
 %include AxisAlignedBox.i
 %include Plane.i
+%include Frustum.i
 %include MassMatrix3.i
 %include OrientedBox.i
 %include Box.i

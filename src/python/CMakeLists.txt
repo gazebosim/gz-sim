@@ -94,6 +94,7 @@ if (PYTHONLIBS_FOUND)
       Cylinder_TEST
       DiffDriveOdometry_TEST
       Filter_TEST
+      Frustum_TEST
       GaussMarkovProcess_TEST
       Helpers_TEST
       Inertial_TEST
