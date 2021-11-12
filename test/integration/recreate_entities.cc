@@ -25,6 +25,7 @@
 #include <sdf/World.hh>
 
 #include "ignition/gazebo/components/Factory.hh"
+#include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
@@ -316,3 +317,161 @@ TEST_F(RecreateEntitiesFixture, RecreateEntities)
       components::Recreate());
   EXPECT_TRUE(entities.empty());
 }
+
+/////////////////////////////////////////////////
+TEST_F(RecreateEntitiesFixture, RecreateEntities_Joints)
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/double_pendulum.sdf");
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  EntityComponentManager *ecm = nullptr;
+  bool recreateEntities = false;
+
+  // Create a system that adds a recreate component to models
+  test::Relay testSystem;
+  testSystem.OnUpdate([&](const gazebo::UpdateInfo &,
+    gazebo::EntityComponentManager &_ecm)
+    {
+      if (!ecm)
+      {
+        ecm = &_ecm;
+        recreateEntities = true;
+        return;
+      }
+
+      if (recreateEntities)
+      {
+        _ecm.Each<components::Model>(
+            [&](const ignition::gazebo::Entity &_entity,
+                const components::Model *) -> bool
+            {
+              // add a components::Recreate to indicate that this entity
+              // needs to be recreated
+              _ecm.CreateComponent(_entity, components::Recreate());
+              return true;
+            });
+
+        // recreate entities only once so set it back to false
+        recreateEntities = false;
+        return;
+      }
+    });
+  server.AddSystem(testSystem.systemPtr);
+
+  // Run server and check we have the ECM
+  EXPECT_EQ(nullptr, ecm);
+  server.Run(true, 1, false);
+  EXPECT_NE(nullptr, ecm);
+
+  auto validateEntities = [&]()
+  {
+    // Check entities
+    // 1 x world + 1 x (default) level + 1 x wind + 5 x model + 5 x link + 5 x
+    // collision + 5 x visual + 1 x light
+    EXPECT_EQ(48u, ecm->EntityCount());
+
+    Entity worldEntity =
+        ecm->EntityByComponents(components::World());
+    EXPECT_NE(kNullEntity, worldEntity);
+
+    // Check models
+    unsigned int modelCount{0};
+    ecm->Each<components::Model,
+                              components::Pose,
+                              components::ParentEntity,
+                              components::Name>(
+      [&](const Entity &_entity,
+          const components::Model *_model,
+          const components::Pose *_pose,
+          const components::ParentEntity *_parent,
+          const components::Name *_name)->bool
+      {
+        EXPECT_NE(nullptr, _model);
+        EXPECT_NE(nullptr, _pose);
+        EXPECT_NE(nullptr, _parent);
+        EXPECT_NE(nullptr, _name);
+
+        modelCount++;
+
+        EXPECT_EQ(worldEntity, _parent->Data());
+        return true;
+      });
+
+    EXPECT_EQ(3u, modelCount);
+
+    // Check links
+    unsigned int linkCount{0};
+    ecm->Each<components::Link,
+              components::Pose,
+              components::ParentEntity,
+              components::Name>(
+      [&](const Entity &_entity,
+          const components::Link *_link,
+          const components::Pose *_pose,
+          const components::ParentEntity *_parent,
+          const components::Name *_name)->bool
+      {
+        EXPECT_NE(nullptr, _link);
+        EXPECT_NE(nullptr, _pose);
+        EXPECT_NE(nullptr, _parent);
+        EXPECT_NE(nullptr, _name);
+
+        linkCount++;
+
+        return true;
+      });
+
+    EXPECT_EQ(7u, linkCount);
+
+    // Check links
+    unsigned int jointCount{0};
+    ecm->Each<components::Joint,
+              components::Pose,
+              components::ParentEntity,
+              components::Name>(
+      [&](const Entity &_entity,
+          const components::Joint *_joint,
+          const components::Pose *_pose,
+          const components::ParentEntity *_parent,
+          const components::Name *_name)->bool
+      {
+        EXPECT_NE(nullptr, _joint);
+        EXPECT_NE(nullptr, _pose);
+        EXPECT_NE(nullptr, _parent);
+        EXPECT_NE(nullptr, _name);
+
+        jointCount++;
+
+        return true;
+      });
+
+    EXPECT_EQ(4u, jointCount);
+  };
+
+  // validate initial state
+  validateEntities();
+
+  // Run once to let the test relay system creates the components::Recreate
+  server.Run(true, 1, false);
+
+  // Run again so that entities get recreated in the ECM
+  server.Run(true, 1, false);
+
+  // validate that the entities are recreated
+  validateEntities();
+
+  // Run again to make sure the recreate components are removed and no
+  // entities to to be recreated
+  server.Run(true, 1, false);
+
+  auto entities = ecm->EntitiesByComponents(components::Model(),
+      components::Recreate());
+  EXPECT_TRUE(entities.empty());
+}
+
