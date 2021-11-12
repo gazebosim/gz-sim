@@ -1,0 +1,11 @@
+gz_add_system(track-controller
+  SOURCES
+    TrackController.cc
+  PUBLIC_LINK_LIBS
+    ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
+    ignition-physics${IGN_PHYSICS_VER}::ignition-physics${IGN_PHYSICS_VER}
+    ignition-msgs${IGN_MSGS_VER}::ignition-msgs${IGN_MSGS_VER}
+    ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER}
+    ignition-plugin${IGN_PLUGIN_VER}::ignition-plugin${IGN_PLUGIN_VER}
+    ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
+)

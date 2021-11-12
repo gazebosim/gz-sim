@@ -96,7 +96,7 @@ ign_find_package (Qt5
 
 #--------------------------------------
 # Find ignition-physics
-ign_find_package(ignition-physics4
+ign_find_package(ignition-physics4 VERSION 4.3
   COMPONENTS
     heightmap
     mesh

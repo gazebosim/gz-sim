@@ -47,6 +47,9 @@
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
+#include "ignition/gazebo/components/JointEffortLimitsCmd.hh"
+#include "ignition/gazebo/components/JointPositionLimitsCmd.hh"
+#include "ignition/gazebo/components/JointVelocityLimitsCmd.hh"
 #include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/JointVelocity.hh"
 #include "ignition/gazebo/components/JointVelocityCmd.hh"
@@ -589,6 +592,121 @@ TEST_F(ComponentsTest, JointAxis)
   EXPECT_DOUBLE_EQ(0.5, comp3.Data().Effort());
   EXPECT_DOUBLE_EQ(0.6, comp3.Data().MaxVelocity());
   EXPECT_EQ(comp3.Data().XyzExpressedIn(), "__model__");
+}
+
+/////////////////////////////////////////////////
+TEST_F(ComponentsTest, JointEffortLimitsCmd)
+{
+  // Create components
+  auto comp1 = components::JointEffortLimitsCmd();
+  auto comp2 = components::JointEffortLimitsCmd();
+
+  // Equality operators
+  EXPECT_EQ(comp1, comp2);
+  EXPECT_TRUE(comp1 == comp2);
+  EXPECT_FALSE(comp1 != comp2);
+
+  // Stream operators
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+  EXPECT_EQ("0", ostr.str());
+
+  comp2.Data().push_back(math::Vector2d(-1.0, 1.0));
+
+  std::ostringstream ostr2;
+  comp2.Serialize(ostr2);
+  EXPECT_EQ("1 -1 1", ostr2.str());
+
+  comp2.Data().push_back(math::Vector2d(-2.5, 2.5));
+
+  std::ostringstream ostr3;
+  comp2.Serialize(ostr3);
+  EXPECT_EQ("2 -1 1 -2.5 2.5", ostr3.str());
+
+  std::istringstream istr("ignored");
+  components::JointEffortLimitsCmd comp3;
+  comp3.Deserialize(istr);
+}
+
+/////////////////////////////////////////////////
+TEST_F(ComponentsTest, JointPositionLimitsCmd)
+{
+  // Create components
+  auto comp1 = components::JointPositionLimitsCmd();
+  auto comp2 = components::JointPositionLimitsCmd();
+  components::JointPositionLimitsCmd comp3;
+
+  // Equality operators
+  EXPECT_EQ(comp1, comp2);
+  EXPECT_TRUE(comp1 == comp2);
+  EXPECT_FALSE(comp1 != comp2);
+
+  // Stream operators
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+  EXPECT_EQ("0", ostr.str());
+
+  auto istr = std::istringstream(ostr.str());
+  comp3.Deserialize(istr);
+  EXPECT_EQ(comp1, comp3);
+
+  comp2.Data().push_back(math::Vector2d(-1.0, 1.0));
+
+  std::ostringstream ostr2;
+  comp2.Serialize(ostr2);
+  EXPECT_EQ("1 -1 1", ostr2.str());
+
+  istr = std::istringstream(ostr2.str());
+  comp3.Deserialize(istr);
+  EXPECT_EQ(comp2, comp3);
+
+  comp2.Data().push_back(math::Vector2d(-2.5, 2.5));
+
+  std::ostringstream ostr3;
+  comp2.Serialize(ostr3);
+  EXPECT_EQ("2 -1 1 -2.5 2.5", ostr3.str());
+
+  istr = std::istringstream(ostr3.str());
+  comp3.Deserialize(istr);
+  EXPECT_EQ(comp2, comp3);
+
+  istr = std::istringstream("ignored");
+  comp3.Deserialize(istr);
+  EXPECT_EQ(comp1, comp3);
+}
+
+/////////////////////////////////////////////////
+TEST_F(ComponentsTest, JointVelocityLimitsCmd)
+{
+  // Create components
+  auto comp1 = components::JointVelocityLimitsCmd();
+  auto comp2 = components::JointVelocityLimitsCmd();
+
+  // Equality operators
+  EXPECT_EQ(comp1, comp2);
+  EXPECT_TRUE(comp1 == comp2);
+  EXPECT_FALSE(comp1 != comp2);
+
+  // Stream operators
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+  EXPECT_EQ("0", ostr.str());
+
+  comp2.Data().push_back(math::Vector2d(-1.0, 1.0));
+
+  std::ostringstream ostr2;
+  comp2.Serialize(ostr2);
+  EXPECT_EQ("1 -1 1", ostr2.str());
+
+  comp2.Data().push_back(math::Vector2d(-2.5, 2.5));
+
+  std::ostringstream ostr3;
+  comp2.Serialize(ostr3);
+  EXPECT_EQ("2 -1 1 -2.5 2.5", ostr3.str());
+
+  std::istringstream istr("ignored");
+  components::JointVelocityLimitsCmd comp3;
+  comp3.Deserialize(istr);
 }
 
 /////////////////////////////////////////////////

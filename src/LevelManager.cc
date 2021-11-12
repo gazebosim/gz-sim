@@ -186,7 +186,7 @@ void LevelManager::ReadLevelPerformerInfo()
 
   sdf::ElementPtr pluginElem;
   // Get the ignition::gazebo plugin element
-  for (auto plugin = worldElem->GetElement("plugin"); plugin;
+  for (auto plugin = worldElem->FindElement("plugin"); plugin;
        plugin = plugin->GetNextElement("plugin"))
   {
     if (plugin->Get<std::string>("name") == kPluginName)
