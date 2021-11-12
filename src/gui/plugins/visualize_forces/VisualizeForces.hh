@@ -21,7 +21,7 @@
 #include <memory>
 
 #include <ignition/math/Color.hh>
-#include <ignition/msgs/wrench_stamped.pb.h>
+#include <ignition/msgs/wrench_visual.pb.h>
 
 #include <ignition/gazebo/gui/GuiSystem.hh>
 
@@ -65,7 +65,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
       int rowCount(const QModelIndex &parent = QModelIndex()) const;
       QHash<int,QByteArray> roleNames() const;
 
-      std::optional<math::Color> getRenderColor(msgs::WrenchStamped _wrench);
+      std::optional<math::Color> getRenderColor(msgs::WrenchVisual &_wrench);
 
       Q_INVOKABLE void setVisibility(int index, bool visible);
       Q_INVOKABLE void setColor(int index, QColor color);

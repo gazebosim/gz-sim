@@ -27,7 +27,7 @@
 #include <ignition/math/Vector3.hh>
 
 #include <ignition/msgs/marker.pb.h>
-#include <ignition/msgs/wrench_stamped.pb.h>
+#include <ignition/msgs/wrench_visual.pb.h>
 
 #include <ignition/transport/Node.hh>
 
@@ -54,7 +54,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     public: transport::Node node;
 
     /// \brief queue for incoming messages
-    public: std::queue<msgs::WrenchStamped> queue;
+    public: std::queue<msgs::WrenchVisual> queue;
 
     /// \brief queue lock
     public: std::mutex mtx;
@@ -72,7 +72,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \brief Handler for when we have to visuallize stuff. Simply enqueues
     /// items to be 
     /// \param _stamped - The incoming message
-    public: void VisualizeCallback(const msgs::WrenchStamped& _stamped)
+    public: void VisualizeCallback(const msgs::WrenchVisual& _stamped)
     {
       std::lock_guard<std::mutex> lock(mtx);
       queue.push(_stamped);
@@ -85,7 +85,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
       while (true)
       {
         // Get all messages off the queue
-        msgs::WrenchStamped wrenchMsg; 
+        msgs::WrenchVisual wrenchMsg; 
         {
           std::lock_guard<std::mutex> lock(mtx);
           if(this->queue.empty())
@@ -99,7 +99,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
         auto color = this->model.getRenderColor(wrenchMsg);
 
         // Namespace markers
-        auto ns = "force/" + std::to_string(wrenchMsg.entity()) + "/" + wrenchMsg.plugin();
+        auto ns = "force/" + std::to_string(wrenchMsg.entity().id())
+          + "/" + wrenchMsg.label();
 
         // Marker color if marker is on screen.
         if (!color.has_value())
@@ -130,7 +131,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
         ignition::msgs::Set(marker.mutable_material()->mutable_ambient(), color.value());
         ignition::msgs::Set(marker.mutable_material()->mutable_diffuse(), color.value());
 
-        Link link(wrenchMsg.entity());
+        Link link(wrenchMsg.entity().id());
 
         if (link.WorldInertialPose(_ecm).has_value() && std::abs(_force.Length()) > 1e-5)
         {
@@ -141,11 +142,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
           qt.From2Axes(math::Vector3d::UnitZ, _force.Normalized());
 
           // translate cylinder up
-          math::Pose3d translateCylinder(math::Vector3d(0, 0, _force.Length()/2), math::Quaterniond());
+          math::Pose3d translateCylinder(
+            math::Vector3d(0, 0, _force.Length()/2), math::Quaterniond());
           math::Pose3d rotation(math::Vector3d(0, 0, 0), qt);
           math::Pose3d arrowPose(linkPose.Pos(), math::Quaterniond());
-          ignition::msgs::Set(marker.mutable_pose(), arrowPose * rotation * translateCylinder);
-          ignition::msgs::Set(marker.mutable_scale(), math::Vector3d(0.1, 0.1, _force.Length()));
+          ignition::msgs::Set(
+            marker.mutable_pose(), arrowPose * rotation * translateCylinder);
+          ignition::msgs::Set(
+            marker.mutable_scale(), math::Vector3d(0.1, 0.1, _force.Length()));
 
           this->node.Request("/marker", marker);
         }
@@ -160,50 +164,50 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
   }
 
   /////////////////////////////////////////////////
-  std::optional<math::Color> ForceListModel::getRenderColor(msgs::WrenchStamped _wrench)
+  std::optional<math::Color> ForceListModel::getRenderColor(msgs::WrenchVisual &_wrench)
   {
-    auto pluginList = this->arrow_mapping.find(_wrench.entity());
+    auto pluginList = this->arrow_mapping.find(_wrench.entity().id());
 
     if (pluginList == this->arrow_mapping.end())
     {
-      auto color = retrieveOrAssignColor(_wrench.plugin());
+      auto color = retrieveOrAssignColor(_wrench.label());
       beginInsertRows( QModelIndex(), this->arrows.size(), this->arrows.size());
       arrows.push_back(
         {
-          std::to_string(_wrench.entity()),
-          _wrench.plugin(),
+          _wrench.entity().name() + " (" + std::to_string(_wrench.entity().id()) +")",
+          _wrench.label(),
           true
         }
       );
 
-      arrow_mapping[_wrench.entity()][_wrench.plugin()] =
+      arrow_mapping[_wrench.entity().id()][_wrench.label()] =
         {this->arrows.size() -1};
       endInsertRows();
       return color;
     }
 
-    if(pluginList->second.count(_wrench.plugin()) == 0)
+    if(pluginList->second.count(_wrench.label()) == 0)
     {
-      auto color = retrieveOrAssignColor(_wrench.plugin());
-      beginInsertRows( QModelIndex(), this->arrows.size(),  this->arrows.size());
+      auto color = retrieveOrAssignColor(_wrench.label());
+      beginInsertRows(QModelIndex(), this->arrows.size(),  this->arrows.size());
       this->arrows.push_back(
         {
-          std::to_string(_wrench.entity()),
-          _wrench.plugin(),
+          _wrench.entity().name() + " (" + std::to_string(_wrench.entity().id()) +")",
+          _wrench.label(),
           true
         }
       );
-      pluginList->second[_wrench.plugin()] = {this->arrows.size() -1};
+      pluginList->second[_wrench.label()] = {this->arrows.size() -1};
       endInsertRows();
       return color;
     }
 
-    const auto arrow = this->arrows[pluginList->second[_wrench.plugin()].index];
+    const auto arrow = this->arrows[pluginList->second[_wrench.label()].index];
     
     if (!arrow.visible)
       return std::nullopt;
   
-    return retrieveOrAssignColor(_wrench.plugin());
+    return retrieveOrAssignColor(_wrench.label());
   }
 
   /////////////////////////////////////////////////
@@ -318,7 +322,7 @@ VisualizeForces::VisualizeForces()
   : GuiSystem(), dataPtr(new VisualizeForcesPrivate)
 {
   ignition::gui::App()->Engine()->rootContext()->setContextProperty(
-     "ForceListModel", &this->dataPtr->model);
+    "ForceListModel", &this->dataPtr->model);
 }
 
 /////////////////////////////////////////////////

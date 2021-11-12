@@ -17,7 +17,7 @@
 
 #include <ignition/msgs/Utility.hh>
 #include <ignition/msgs/marker.pb.h>
-#include <ignition/msgs/wrench_stamped.pb.h>
+#include <ignition/msgs/wrench_visual.pb.h>
 
 #include <ignition/transport/Node.hh>
 
@@ -364,13 +364,16 @@ void Link::AddAndVisualizeWorldWrench(EntityComponentManager &_ecm,
                          const math::Color &_color) const
 {
   static transport::Node node;
-  static auto pub = node.Advertise<msgs::WrenchStamped>("/force_viz");
+  static auto pub = node.Advertise<msgs::WrenchVisual>("/force_viz");
 
-  msgs::WrenchStamped wrenchStamp;
-  wrenchStamp.set_plugin(_pluginName);
-  wrenchStamp.set_entity(this->dataPtr->id);
-  msgs::Set(wrenchStamp.mutable_wrench()->mutable_force(), _force);
-  msgs::Set(wrenchStamp.mutable_wrench()->mutable_torque(), _torque);
-  pub.Publish(wrenchStamp);
+  msgs::WrenchVisual wrenchVisual;
+  wrenchVisual.set_label(_pluginName);
+  wrenchVisual.mutable_entity()->set_id(this->Entity());
+  if(this->Name(_ecm).has_value())
+    wrenchVisual.mutable_entity()->set_name(this->Name(_ecm).value());
+  wrenchVisual.mutable_entity()->set_type(msgs::Entity_Type_LINK); 
+  msgs::Set(wrenchVisual.mutable_wrench()->mutable_force(), _force);
+  msgs::Set(wrenchVisual.mutable_wrench()->mutable_torque(), _torque);
+  pub.Publish(wrenchVisual);
   this->AddWorldWrench(_ecm, _force, _torque);
 }
