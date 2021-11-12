@@ -187,8 +187,8 @@ namespace gazebo
 
     /// \brief Type
     Q_PROPERTY(
-      QStringList modelLinks 
-      READ ModelLinks 
+      QStringList modelLinks
+      READ ModelLinks
       WRITE SetModelLinks
       NOTIFY ModelLinksChanged
     )
