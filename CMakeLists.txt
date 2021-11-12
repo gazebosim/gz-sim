@@ -96,7 +96,7 @@ ign_find_package (Qt5
 
 #--------------------------------------
 # Find ignition-physics
-ign_find_package(ignition-physics3 VERSION 3.2
+ign_find_package(ignition-physics3 VERSION 3.4
   COMPONENTS
     mesh
     sdf
