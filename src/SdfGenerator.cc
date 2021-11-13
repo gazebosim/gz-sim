@@ -26,16 +26,29 @@
 #include <ignition/common/URI.hh>
 
 #include "ignition/gazebo/Util.hh"
+#include "ignition/gazebo/components/AirPressureSensor.hh"
+#include "ignition/gazebo/components/Altimeter.hh"
+#include "ignition/gazebo/components/Camera.hh"
+#include "ignition/gazebo/components/ContactSensor.hh"
+#include "ignition/gazebo/components/DepthCamera.hh"
+#include "ignition/gazebo/components/ForceTorque.hh"
+#include "ignition/gazebo/components/GpuLidar.hh"
+#include "ignition/gazebo/components/Imu.hh"
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/LogicalCamera.hh"
+#include "ignition/gazebo/components/Magnetometer.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/SourceFilePath.hh"
+#include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/SelfCollide.hh"
+#include "ignition/gazebo/components/SourceFilePath.hh"
+#include "ignition/gazebo/components/SegmentationCamera.hh"
 #include "ignition/gazebo/components/Static.hh"
+#include "ignition/gazebo/components/ThermalCamera.hh"
 #include "ignition/gazebo/components/WindMode.hh"
 #include "ignition/gazebo/components/World.hh"
 
@@ -445,9 +458,9 @@ namespace sdf_generator
     {
       if (nullptr != pathComp)
       {
-        // Update relative URIs to use absolute paths. Relative URIs work fine in
-        // included models, but they have to be converted to absolute URIs when
-        // the included model is expanded.
+        // Update relative URIs to use absolute paths. Relative URIs work fine
+        // in included models, but they have to be converted to absolute URIs
+        // when the included model is expanded.
         relativeToAbsoluteUri(_elem, common::parentPath(pathComp->Data()));
       }
 
@@ -456,7 +469,6 @@ namespace sdf_generator
       while (linkElem)
       {
         std::string linkName = linkElem->Get<std::string>("name");
-        std::cerr << "link name " << linkName << std::endl;
         auto linkEnt = _ecm.EntityByComponents(
             components::ParentEntity(_entity), components::Name(linkName));
         if (linkEnt != kNullEntity)
@@ -511,10 +523,10 @@ namespace sdf_generator
       sdf::ElementPtr inertiaElem = inertialElem->GetElement("inertia");
       inertiaElem->GetElement("ixx")->Set<double>(massMatrix.Ixx());
       inertiaElem->GetElement("ixy")->Set<double>(massMatrix.Ixy());
-      inertiaElem->GetElement("ixz")->Set<double>(massMatrix.Ixy());
-      inertiaElem->GetElement("iyy")->Set<double>(massMatrix.Ixy());
-      inertiaElem->GetElement("iyz")->Set<double>(massMatrix.Ixy());
-      inertiaElem->GetElement("izz")->Set<double>(massMatrix.Ixy());
+      inertiaElem->GetElement("ixz")->Set<double>(massMatrix.Ixz());
+      inertiaElem->GetElement("iyy")->Set<double>(massMatrix.Iyy());
+      inertiaElem->GetElement("iyz")->Set<double>(massMatrix.Iyz());
+      inertiaElem->GetElement("izz")->Set<double>(massMatrix.Izz());
     }
 
     // wind mode
@@ -532,7 +544,6 @@ namespace sdf_generator
       while (sensorElem)
       {
         std::string sensorName = sensorElem->Get<std::string>("name");
-        std::cerr << "sensor name " << sensorName << std::endl;
         auto sensorEnt = _ecm.EntityByComponents(
             components::ParentEntity(_entity), components::Name(sensorName));
         if (sensorEnt != kNullEntity)
@@ -545,23 +556,111 @@ namespace sdf_generator
   }
 
   /////////////////////////////////////////////////
-  bool updateSensorElement(const sdf::ElementPtr &_elem,
+  bool updateSensorElement(sdf::ElementPtr _elem,
                            const EntityComponentManager &_ecm,
                            const Entity &_entity)
   {
-    // Update sdf based on current components. Here are the list of components
-    // to be updated:
-    // - Name
-    // - Pose
+    // Update sdf based on current components.
     // This list is to be updated as other components become updateable during
     // simulation
+
+    // camera
+    auto camComp = _ecm.Component<components::Camera>(_entity);
+    if (camComp)
+    {
+      const sdf::Sensor &sensor = camComp->Data();
+      sdf::convertSensorDomToElement(_elem, sensor);
+    }
+    // depth camera
+    auto depthCamComp = _ecm.Component<components::DepthCamera>(_entity);
+    if (depthCamComp)
+    {
+      const sdf::Sensor &sensor = depthCamComp->Data();
+      sdf::convertSensorDomToElement(_elem, sensor);
+    }
+    // thermal camera
+    auto thermalCamComp = _ecm.Component<components::ThermalCamera>(_entity);
+    if (thermalCamComp)
+    {
+      const sdf::Sensor &sensor = thermalCamComp->Data();
+      sdf::convertSensorDomToElement(_elem, sensor);
+    }
+    // logical camera
+    auto logicalCamComp = _ecm.Component<components::LogicalCamera>(_entity);
+    if (logicalCamComp)
+    {
+      // components::LogicalCamera holds an sdf::ElementPtr instead of an
+      // sdf::Sensor
+      _elem = logicalCamComp->Data();
+    }
+    // segmentation camera
+    auto segmentationCamComp =
+        _ecm.Component<components::SegmentationCamera>(_entity);
+    if (segmentationCamComp)
+    {
+      const sdf::Sensor &sensor = segmentationCamComp->Data();
+      sdf::convertSensorDomToElement(_elem, sensor);
+    }
+
+    // gpu lidar
+    auto gpuLidarComp = _ecm.Component<components::GpuLidar>(_entity);
+    if (gpuLidarComp)
+    {
+      const sdf::Sensor &sensor = gpuLidarComp->Data();
+      sdf::convertSensorDomToElement(_elem, sensor);
+    }
+    // altimeter
+    auto altimeterComp = _ecm.Component<components::Altimeter>(_entity);
+    if (altimeterComp)
+    {
+      const sdf::Sensor &sensor = altimeterComp->Data();
+      sdf::convertSensorDomToElement(_elem, sensor);
+    }
+    // contact
+    auto contactComp = _ecm.Component<components::ContactSensor>(_entity);
+    if (contactComp)
+    {
+      // components::ContactSensor holds an sdf::ElementPtr instead of an
+      // sdf::Sensor
+      _elem = contactComp->Data();
+    }
+    // air pressure
+    auto airPressureComp =
+        _ecm.Component<components::AirPressureSensor>(_entity);
+    if (airPressureComp)
+    {
+      const sdf::Sensor &sensor = airPressureComp->Data();
+      sdf::convertSensorDomToElement(_elem, sensor);
+
+    }
+    // force torque
+    auto forceTorqueComp = _ecm.Component<components::ForceTorque>(_entity);
+    if (forceTorqueComp)
+    {
+      const sdf::Sensor &sensor = forceTorqueComp->Data();
+      sdf::convertSensorDomToElement(_elem, sensor);
+    }
+    // imu
+    auto imuComp = _ecm.Component<components::Imu>(_entity);
+    if (imuComp)
+    {
+      const sdf::Sensor &sensor = imuComp->Data();
+      sdf::convertSensorDomToElement(_elem, sensor);
+    }
+    // magnetometer
+    auto magnetometerComp =
+        _ecm.Component<components::Magnetometer>(_entity);
+    if (magnetometerComp)
+    {
+      const sdf::Sensor &sensor = magnetometerComp->Data();
+      sdf::convertSensorDomToElement(_elem, sensor);
+    }
+
+    // override name and pose sdf element using values from ECM
     auto *nameComp = _ecm.Component<components::Name>(_entity);
     _elem->GetAttribute("name")->Set(nameComp->Data());
 
-    std::cerr << "update sensor elem " << nameComp->Data() << std::endl;
-
     auto *poseComp = _ecm.Component<components::Pose>(_entity);
-
     auto poseElem = _elem->GetElement("pose");
 
     // Remove all attributes of poseElem
@@ -574,6 +673,7 @@ namespace sdf_generator
       }
     }
     poseElem->Set(poseComp->Data());
+
     return true;
   }
 

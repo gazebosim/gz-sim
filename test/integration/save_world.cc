@@ -20,10 +20,18 @@
 #include <sstream>
 #include <tinyxml2.h>
 
+#include <sdf/AirPressure.hh>
+#include <sdf/Altimeter.hh>
+#include <sdf/Camera.hh>
 #include <sdf/Collision.hh>
+#include <sdf/ForceTorque.hh>
+#include <sdf/Imu.hh>
+#include <sdf/Magnetometer.hh>
 #include <sdf/Model.hh>
+#include <sdf/Lidar.hh>
 #include <sdf/Link.hh>
 #include <sdf/Root.hh>
+#include <sdf/Sensor.hh>
 #include <sdf/Visual.hh>
 #include <sdf/World.hh>
 
@@ -426,6 +434,314 @@ TEST_F(SdfGeneratorFixture, ModelWithNestedIncludes)
   sdf::Root root;
   sdf::Errors err = root.LoadSdfString(worldGenSdfRes);
   EXPECT_TRUE(err.empty());
+}
+
+/////////////////////////////////////////////////
+TEST_F(SdfGeneratorFixture, WorldWithSensors)
+{
+  this->LoadWorld("test/worlds/non_rendering_sensors.sdf");
+
+  const std::string worldGenSdfRes =
+      this->RequestGeneratedSdf("non_rendering_sensors");
+
+  sdf::Root root;
+  sdf::Errors err = root.LoadSdfString(worldGenSdfRes);
+  EXPECT_TRUE(err.empty());
+  auto *world = root.WorldByIndex(0);
+  ASSERT_NE(nullptr, world);
+
+  EXPECT_TRUE(world->ModelNameExists("model"));
+  auto *model = world->ModelByName("model");
+  ASSERT_NE(nullptr, model);
+  auto *link = model->LinkByName("link");
+  ASSERT_NE(nullptr, link);
+
+  // altimeter
+  {
+    auto *sensor = link->SensorByName("altimeter_sensor");
+    ASSERT_NE(nullptr, sensor);
+    const sdf::Altimeter *altimeter = sensor->AltimeterSensor();
+    ASSERT_NE(nullptr, altimeter);
+    const sdf::Noise &posNoise = altimeter->VerticalPositionNoise();
+    EXPECT_EQ(sdf::NoiseType::GAUSSIAN, posNoise.Type());
+    EXPECT_DOUBLE_EQ(0.1, posNoise.Mean());
+    EXPECT_DOUBLE_EQ(0.2, posNoise.StdDev());
+
+    const sdf::Noise &velNoise = altimeter->VerticalVelocityNoise();
+    EXPECT_EQ(sdf::NoiseType::GAUSSIAN, velNoise.Type());
+    EXPECT_DOUBLE_EQ(2.3, velNoise.Mean());
+    EXPECT_DOUBLE_EQ(4.5, velNoise.StdDev());
+  }
+
+  // contact sensor
+  {
+    // contact sensor does not have an SDF DOM class
+    auto *sensor = link->SensorByName("contact_sensor");
+    ASSERT_NE(nullptr, sensor);
+    EXPECT_EQ(math::Pose3d(4, 5, 6, 0, 0, 0), sensor->RawPose());
+    EXPECT_EQ(sdf::SensorType::CONTACT, sensor->Type());
+  }
+
+  // force torque
+  {
+    auto *sensor = link->SensorByName("force_torque_sensor");
+    ASSERT_NE(nullptr, sensor);
+    EXPECT_EQ(math::Pose3d(10, 11, 12, 0, 0, 0), sensor->RawPose());
+    const sdf::ForceTorque *forceTorque = sensor->ForceTorqueSensor();
+    ASSERT_NE(nullptr, forceTorque);
+    EXPECT_EQ(sdf::ForceTorqueFrame::CHILD, forceTorque->Frame());
+    EXPECT_EQ(sdf::ForceTorqueMeasureDirection::PARENT_TO_CHILD,
+        forceTorque->MeasureDirection());
+    const sdf::Noise &forceXNoise = forceTorque->ForceXNoise();
+    EXPECT_EQ(sdf::NoiseType::GAUSSIAN_QUANTIZED, forceXNoise.Type());
+    EXPECT_DOUBLE_EQ(0.02, forceXNoise.Mean());
+    EXPECT_DOUBLE_EQ(0.0005, forceXNoise.StdDev());
+     const sdf::Noise &torqueYNoise = forceTorque->TorqueYNoise();
+    EXPECT_EQ(sdf::NoiseType::GAUSSIAN, torqueYNoise.Type());
+    EXPECT_DOUBLE_EQ(0.009, torqueYNoise.Mean());
+    EXPECT_DOUBLE_EQ(0.0000985, torqueYNoise.StdDev());
+  }
+
+  // imu
+  {
+    auto *sensor = link->SensorByName("imu_sensor");
+    ASSERT_NE(nullptr, sensor);
+    EXPECT_EQ(math::Pose3d(4, 5, 6, 0, 0, 0), sensor->RawPose());
+    const sdf::Imu *imu = sensor->ImuSensor();
+    ASSERT_NE(nullptr, imu);
+    const sdf::Noise &linAccXNoise = imu->LinearAccelerationXNoise();
+    EXPECT_EQ(sdf::NoiseType::GAUSSIAN, linAccXNoise.Type());
+    EXPECT_DOUBLE_EQ(0.0, linAccXNoise.Mean());
+    EXPECT_DOUBLE_EQ(0.1, linAccXNoise.StdDev());
+    EXPECT_DOUBLE_EQ(0.2, linAccXNoise.DynamicBiasStdDev());
+    EXPECT_DOUBLE_EQ(1.0, linAccXNoise.DynamicBiasCorrelationTime());
+    const sdf::Noise &linAccYNoise = imu->LinearAccelerationYNoise();
+    EXPECT_EQ(sdf::NoiseType::GAUSSIAN, linAccYNoise.Type());
+    EXPECT_DOUBLE_EQ(1.0, linAccYNoise.Mean());
+    EXPECT_DOUBLE_EQ(1.1, linAccYNoise.StdDev());
+    EXPECT_DOUBLE_EQ(1.2, linAccYNoise.DynamicBiasStdDev());
+    EXPECT_DOUBLE_EQ(2.0, linAccYNoise.DynamicBiasCorrelationTime());
+    const sdf::Noise &linAccZNoise = imu->LinearAccelerationZNoise();
+    EXPECT_EQ(sdf::NoiseType::GAUSSIAN, linAccZNoise.Type());
+    EXPECT_DOUBLE_EQ(2.0, linAccZNoise.Mean());
+    EXPECT_DOUBLE_EQ(2.1, linAccZNoise.StdDev());
+    EXPECT_DOUBLE_EQ(2.2, linAccZNoise.DynamicBiasStdDev());
+    EXPECT_DOUBLE_EQ(3.0, linAccZNoise.DynamicBiasCorrelationTime());
+    const sdf::Noise &angVelXNoise = imu->AngularVelocityXNoise();
+    EXPECT_EQ(sdf::NoiseType::GAUSSIAN, angVelXNoise.Type());
+    EXPECT_DOUBLE_EQ(3.0, angVelXNoise.Mean());
+    EXPECT_DOUBLE_EQ(3.1, angVelXNoise.StdDev());
+    EXPECT_DOUBLE_EQ(4.2, angVelXNoise.DynamicBiasStdDev());
+    EXPECT_DOUBLE_EQ(4.0, angVelXNoise.DynamicBiasCorrelationTime());
+    const sdf::Noise &angVelYNoise = imu->AngularVelocityYNoise();
+    EXPECT_EQ(sdf::NoiseType::GAUSSIAN, angVelYNoise.Type());
+    EXPECT_DOUBLE_EQ(4.0, angVelYNoise.Mean());
+    EXPECT_DOUBLE_EQ(4.1, angVelYNoise.StdDev());
+    EXPECT_DOUBLE_EQ(5.2, angVelYNoise.DynamicBiasStdDev());
+    EXPECT_DOUBLE_EQ(5.0, angVelYNoise.DynamicBiasCorrelationTime());
+    const sdf::Noise &angVelZNoise = imu->AngularVelocityZNoise();
+    EXPECT_EQ(sdf::NoiseType::GAUSSIAN, angVelZNoise.Type());
+    EXPECT_DOUBLE_EQ(5.0, angVelZNoise.Mean());
+    EXPECT_DOUBLE_EQ(5.1, angVelZNoise.StdDev());
+    EXPECT_DOUBLE_EQ(6.2, angVelZNoise.DynamicBiasStdDev());
+    EXPECT_DOUBLE_EQ(6.0, angVelZNoise.DynamicBiasCorrelationTime());
+
+    EXPECT_EQ("ENU", imu->Localization());
+    EXPECT_EQ("linka", imu->CustomRpyParentFrame());
+    EXPECT_EQ(math::Vector3d::UnitY, imu->CustomRpy());
+    EXPECT_EQ("linkb", imu->GravityDirXParentFrame());
+    EXPECT_EQ(math::Vector3d::UnitZ, imu->GravityDirX());
+    EXPECT_FALSE(imu->OrientationEnabled());
+  }
+
+  // logical camera
+  {
+    // logical camera sensor does not have an SDF DOM class
+    auto *sensor = link->SensorByName("logical_camera_sensor");
+    ASSERT_NE(nullptr, sensor);
+    EXPECT_EQ(math::Pose3d(7, 8, 9, 0, 0, 0), sensor->RawPose());
+    EXPECT_EQ(sdf::SensorType::LOGICAL_CAMERA, sensor->Type());
+  }
+
+  // magnetometer
+  {
+    auto *sensor = link->SensorByName("magnetometer_sensor");
+    ASSERT_NE(nullptr, sensor);
+    EXPECT_EQ(math::Pose3d(10, 11, 12, 0, 0, 0), sensor->RawPose());
+    const sdf::Magnetometer *magnetometer = sensor->MagnetometerSensor();
+    ASSERT_NE(nullptr, magnetometer);
+    const sdf::Noise &xNoise = magnetometer->XNoise();
+    EXPECT_EQ(sdf::NoiseType::GAUSSIAN, xNoise.Type());
+    EXPECT_DOUBLE_EQ(0.1, xNoise.Mean());
+    EXPECT_DOUBLE_EQ(0.2, xNoise.StdDev());
+    const sdf::Noise &yNoise = magnetometer->YNoise();
+    EXPECT_EQ(sdf::NoiseType::GAUSSIAN, yNoise.Type());
+    EXPECT_DOUBLE_EQ(1.2, yNoise.Mean());
+    EXPECT_DOUBLE_EQ(2.3, yNoise.StdDev());
+    const sdf::Noise &zNoise = magnetometer->ZNoise();
+    EXPECT_EQ(sdf::NoiseType::GAUSSIAN, zNoise.Type());
+    EXPECT_DOUBLE_EQ(3.4, zNoise.Mean());
+    EXPECT_DOUBLE_EQ(5.6, zNoise.StdDev());
+  }
+
+  // air pressure
+  {
+    auto *sensor = link->SensorByName("air_pressure_sensor");
+    ASSERT_NE(nullptr, sensor);
+    EXPECT_EQ(math::Pose3d(10, 20, 30, 0, 0, 0), sensor->RawPose());
+    const sdf::AirPressure *airPressure = sensor->AirPressureSensor();
+    ASSERT_NE(nullptr, airPressure);
+    EXPECT_DOUBLE_EQ(123.4, airPressure->ReferenceAltitude());
+    const sdf::Noise &noise = airPressure->PressureNoise();
+    EXPECT_EQ(sdf::NoiseType::GAUSSIAN, noise.Type());
+    EXPECT_DOUBLE_EQ(3.4, noise.Mean());
+    EXPECT_DOUBLE_EQ(5.6, noise.StdDev());
+  }
+
+  tinyxml2::XMLDocument genSdfDoc;
+  genSdfDoc.Parse(worldGenSdfRes.c_str());
+  ASSERT_NE(nullptr, genSdfDoc.RootElement());
+  auto genWorld = genSdfDoc.RootElement()->FirstChildElement("world");
+  ASSERT_NE(nullptr, genWorld);
+}
+
+/////////////////////////////////////////////////
+TEST_F(SdfGeneratorFixture, WorldWithRenderingSensors)
+{
+  this->LoadWorld("test/worlds/sensor.sdf");
+
+  const std::string worldGenSdfRes =
+      this->RequestGeneratedSdf("camera_sensor");
+
+  sdf::Root root;
+  sdf::Errors err = root.LoadSdfString(worldGenSdfRes);
+  EXPECT_TRUE(err.empty());
+  auto *world = root.WorldByIndex(0);
+  ASSERT_NE(nullptr, world);
+
+  // camera
+  {
+    EXPECT_TRUE(world->ModelNameExists("camera"));
+    auto *model = world->ModelByName("camera");
+    ASSERT_NE(nullptr, model);
+    EXPECT_EQ(1u, model->LinkCount());
+
+    auto *link = model->LinkByName("link");
+    ASSERT_NE(nullptr, link);
+    math::MassMatrix3d massMatrix(0.1,
+       math::Vector3d( 0.000166667, 0.000166667, 0.000166667),
+       math::Vector3d::Zero);
+    math::Inertiald inertial(massMatrix, math::Pose3d::Zero);
+    EXPECT_EQ(inertial, link->Inertial());
+
+    auto *cameraSensor = link->SensorByName("camera");
+    ASSERT_NE(nullptr, cameraSensor);
+    EXPECT_EQ("camera", cameraSensor->Topic());
+    const sdf::Camera *camera = cameraSensor->CameraSensor();
+    ASSERT_NE(nullptr, camera);
+    EXPECT_DOUBLE_EQ(1.047, camera->HorizontalFov().Radian());
+    EXPECT_EQ(320u, camera->ImageWidth());
+    EXPECT_EQ(240u, camera->ImageHeight());
+    EXPECT_DOUBLE_EQ(0.1, camera->NearClip());
+    EXPECT_DOUBLE_EQ(100, camera->FarClip());
+    const sdf::Noise &noise = camera->ImageNoise();
+    EXPECT_EQ(sdf::NoiseType::GAUSSIAN_QUANTIZED, noise.Type());
+    EXPECT_DOUBLE_EQ(0.01, noise.Mean());
+    EXPECT_DOUBLE_EQ(0.0002, noise.StdDev());
+  }
+
+  EXPECT_TRUE(world->ModelNameExists("default_topics"));
+  auto *model = world->ModelByName("default_topics");
+  ASSERT_NE(nullptr, model);
+  // gpu lidar
+  {
+    auto *gpuLidarLink = model->LinkByName("gpu_lidar_link");
+    ASSERT_NE(nullptr, gpuLidarLink);
+    auto *gpuLidarSensor = gpuLidarLink->SensorByName("gpu_lidar");
+    const sdf::Lidar *lidar = gpuLidarSensor->LidarSensor();
+    EXPECT_EQ(640u, lidar->HorizontalScanSamples());
+    EXPECT_DOUBLE_EQ(1.0, lidar->HorizontalScanResolution());
+    EXPECT_NEAR(-1.396263, lidar->HorizontalScanMinAngle().Radian(), 1e-5);
+    EXPECT_NEAR(1.396263, lidar->HorizontalScanMaxAngle().Radian(), 1e-5);
+    EXPECT_EQ(1u, lidar->VerticalScanSamples());
+    EXPECT_DOUBLE_EQ(0.01, lidar->VerticalScanResolution());
+    EXPECT_DOUBLE_EQ(0.0, lidar->VerticalScanMinAngle().Radian());
+    EXPECT_DOUBLE_EQ(0.0, lidar->VerticalScanMaxAngle().Radian());
+    EXPECT_DOUBLE_EQ(0.08, lidar->RangeMin());
+    EXPECT_DOUBLE_EQ(10.0, lidar->RangeMax());
+    EXPECT_DOUBLE_EQ(0.01, lidar->RangeResolution());
+  }
+
+  // depth camera
+  {
+    auto *depthLink = model->LinkByName("depth_camera_link");
+    ASSERT_NE(nullptr, depthLink);
+    auto *depthSensor = depthLink->SensorByName("depth_camera");
+    ASSERT_NE(nullptr, depthSensor);
+    const sdf::Camera *camera = depthSensor->CameraSensor();
+    ASSERT_NE(nullptr, camera);
+    EXPECT_DOUBLE_EQ(1.05, camera->HorizontalFov().Radian());
+    EXPECT_EQ(256u, camera->ImageWidth());
+    EXPECT_EQ(256u, camera->ImageHeight());
+    EXPECT_EQ("R_FLOAT32", camera->PixelFormatStr());
+    EXPECT_DOUBLE_EQ(0.1, camera->NearClip());
+    EXPECT_DOUBLE_EQ(10, camera->FarClip());
+    EXPECT_DOUBLE_EQ(0.05, camera->DepthNearClip());
+    EXPECT_DOUBLE_EQ(9.0, camera->DepthFarClip());
+  }
+
+  // rgbd camera
+  {
+    auto *rgbdLink = model->LinkByName("rgbd_camera_link");
+    ASSERT_NE(nullptr, rgbdLink);
+    auto *rgbdSensor = rgbdLink->SensorByName("rgbd_camera");
+    ASSERT_NE(nullptr, rgbdSensor);
+    const sdf::Camera *camera = rgbdSensor->CameraSensor();
+    ASSERT_NE(nullptr, camera);
+    EXPECT_DOUBLE_EQ(1.05, camera->HorizontalFov().Radian());
+    EXPECT_EQ(256u, camera->ImageWidth());
+    EXPECT_EQ(256u, camera->ImageHeight());
+    EXPECT_DOUBLE_EQ(0.1, camera->NearClip());
+    EXPECT_DOUBLE_EQ(10, camera->FarClip());
+  }
+
+  // thermal camera
+  {
+    auto *thermalLink = model->LinkByName("thermal_camera_link");
+    ASSERT_NE(nullptr, thermalLink);
+    auto *thermalSensor = thermalLink->SensorByName("thermal_camera");
+    ASSERT_NE(nullptr, thermalSensor);
+    const sdf::Camera *camera = thermalSensor->CameraSensor();
+    ASSERT_NE(nullptr, camera);
+    EXPECT_DOUBLE_EQ(1.15, camera->HorizontalFov().Radian());
+    EXPECT_EQ(300u, camera->ImageWidth());
+    EXPECT_EQ(200u, camera->ImageHeight());
+    EXPECT_DOUBLE_EQ(0.14, camera->NearClip());
+    EXPECT_DOUBLE_EQ(120.0, camera->FarClip());
+  }
+
+  // segmentation camera
+  {
+    auto *segmentationLink = model->LinkByName("segmentation_camera_link");
+    ASSERT_NE(nullptr, segmentationLink);
+    auto *segmentationSensor =
+        segmentationLink->SensorByName("segmentation_camera");
+    ASSERT_NE(nullptr, segmentationSensor);
+    const sdf::Camera *camera = segmentationSensor->CameraSensor();
+    ASSERT_NE(nullptr, camera);
+    EXPECT_DOUBLE_EQ(1.0, camera->HorizontalFov().Radian());
+    EXPECT_EQ(320u, camera->ImageWidth());
+    EXPECT_EQ(240u, camera->ImageHeight());
+    EXPECT_DOUBLE_EQ(0.11, camera->NearClip());
+    EXPECT_DOUBLE_EQ(20.0, camera->FarClip());
+    EXPECT_EQ("panoptic", camera->SegmentationType());
+  }
+
+  tinyxml2::XMLDocument genSdfDoc;
+  genSdfDoc.Parse(worldGenSdfRes.c_str());
+  ASSERT_NE(nullptr, genSdfDoc.RootElement());
+  auto genWorld = genSdfDoc.RootElement()->FirstChildElement("world");
+  ASSERT_NE(nullptr, genWorld);
 }
 
 /////////////////////////////////////////////////

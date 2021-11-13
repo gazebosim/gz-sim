@@ -117,7 +117,7 @@ namespace sdf_generator
   /// \input[in] _entity Sensor entity
   /// \returns true if update succeeded.
   IGNITION_GAZEBO_VISIBLE
-  bool updateSensorElement(const sdf::ElementPtr &_elem,
+  bool updateSensorElement(sdf::ElementPtr _elem,
                            const EntityComponentManager &_ecm,
                            const Entity &_entity);
 }  // namespace sdf_generator
