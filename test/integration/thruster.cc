@@ -89,8 +89,7 @@ void ThrusterTest::TestWorld(const std::string &_world,
   OnPostUpdate([&](const gazebo::UpdateInfo &_info,
                             const gazebo::EntityComponentManager &_ecm)
     {
-      dt = std::chrono::duration_cast<std::chrono::nanoseconds>(
-          _info.dt).count() * 1e-9;
+      dt = std::chrono::duration<double>(_info.dt).count();
 
       auto modelPose = worldPose(model.Entity(), _ecm);
       modelPoses.push_back(modelPose);
@@ -176,6 +175,7 @@ void ThrusterTest::TestWorld(const std::string &_world,
       EXPECT_NEAR(0.0, pose.Rot().Roll(), _baseTol);
   }
 
+  // See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 246
   // omega = sqrt(thrust /
   //     (fluid_density * thrust_coefficient * propeller_diameter ^ 4))
   auto omega = sqrt(force / (_density * _coefficient * pow(_diameter, 4)));
