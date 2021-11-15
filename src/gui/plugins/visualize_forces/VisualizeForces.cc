@@ -133,6 +133,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 
         Link link(wrenchMsg.entity().id());
 
+        double scale = 10;
+
         if (link.WorldInertialPose(_ecm).has_value() && std::abs(_force.Length()) > 1e-5)
         {
           // Get the center of mass from where the force will be exerted.
@@ -143,13 +145,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 
           // translate cylinder up
           math::Pose3d translateCylinder(
-            math::Vector3d(0, 0, _force.Length()/2), math::Quaterniond());
+            math::Vector3d(0, 0, _force.Length() * scale/2), math::Quaterniond());
           math::Pose3d rotation(math::Vector3d(0, 0, 0), qt);
           math::Pose3d arrowPose(linkPose.Pos(), math::Quaterniond());
           ignition::msgs::Set(
             marker.mutable_pose(), arrowPose * rotation * translateCylinder);
           ignition::msgs::Set(
-            marker.mutable_scale(), math::Vector3d(0.1, 0.1, _force.Length()));
+            marker.mutable_scale(), math::Vector3d(0.1, 0.1, _force.Length() * scale));
 
           this->node.Request("/marker", marker);
         }
