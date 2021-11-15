@@ -31,6 +31,7 @@
 #include "ignition/gazebo/components/JointVelocity.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/Util.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -89,6 +90,14 @@ void JointStatePublisher::Configure(
       this->CreateComponents(_ecm, joint);
     }
   }
+
+  // Advertise the state topic
+  // Sets to provided topic if available
+  if (_sdf->HasElement("topic"))
+  {
+    this->topic = _sdf->Get<std::string>("topic");
+  }
+
 }
 
 //////////////////////////////////////////////////
@@ -142,11 +151,26 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
       worldName = _ecm.Component<components::Name>(
           parentEntity->Data())->Data();
 
-      // Advertise the state topic
-      std::string topic = std::string("/world/") + worldName + "/model/"
-        + this->model.Name(_ecm) + "/joint_state";
+      // if topic not set it will be empty
+      std::vector<std::string> topics;
+      // this helps avoid unecesarry invalid topic error
+      if (!this->topic.empty())
+      {
+        topics.push_back(this->topic);
+      }
+      topics.push_back(std::string("/world/") + worldName + "/model/"
+        + this->model.Name(_ecm) + "/joint_state");
+
+      this->topic = validTopic(topics);
+      if (this->topic.empty())
+      {
+        ignerr << "No valid topics for JointStatePublisher could be found."
+          << "Make sure World/Model name does'nt contain invalid characters.\n";
+        return;
+      }
+
       this->modelPub = std::make_unique<transport::Node::Publisher>(
-          this->node.Advertise<msgs::Model>(topic));
+          this->node.Advertise<msgs::Model>(this->topic));
     }
   }
 
