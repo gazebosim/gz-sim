@@ -49,6 +49,7 @@ set(tests
   scene_broadcaster_system.cc
   sdf_frame_semantics.cc
   sdf_include.cc
+  thruster.cc
   touch_plugin.cc
   tracked_vehicle_system.cc
   triggered_publisher.cc
