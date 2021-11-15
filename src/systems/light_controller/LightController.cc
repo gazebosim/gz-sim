@@ -199,7 +199,30 @@ void LightController::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 void LightControllerPrivate::LightCallback(
     const ignition::msgs::Light &_msg)
 {
-  if (_msg.name() == "diffuse")
+  if (_msg.name() == "pose")
+  {
+    this->lightData.mutable_pose()->mutable_position()->set_x(
+        _msg.pose().position().x());
+
+    this->lightData.mutable_pose()->mutable_position()->set_y(
+        _msg.pose().position().y());
+
+    this->lightData.mutable_pose()->mutable_position()->set_z(
+        _msg.pose().position().z());
+
+    this->lightData.mutable_pose()->mutable_orientation()->set_x(
+        _msg.pose().orientation().x());
+
+    this->lightData.mutable_pose()->mutable_orientation()->set_y(
+        _msg.pose().orientation().y());
+
+    this->lightData.mutable_pose()->mutable_orientation()->set_z(
+        _msg.pose().orientation().z());
+
+    this->lightData.mutable_pose()->mutable_orientation()->set_w(
+        _msg.pose().orientation().w());
+  }
+  else if (_msg.name() == "diffuse")
   {
     this->lightData.mutable_diffuse()->set_r(_msg.diffuse().r());
     this->lightData.mutable_diffuse()->set_g(_msg.diffuse().g());
@@ -212,6 +235,44 @@ void LightControllerPrivate::LightCallback(
     this->lightData.mutable_specular()->set_g(_msg.specular().g());
     this->lightData.mutable_specular()->set_b(_msg.specular().b());
     this->lightData.mutable_specular()->set_a(_msg.specular().a());
+  }
+  else if (_msg.name() == "attenuation_constant")
+  {
+    this->lightData.set_attenuation_constant(_msg.attenuation_constant());
+  }
+  else if (_msg.name() == "attenuation_linear")
+  {
+    this->lightData.set_attenuation_linear(_msg.attenuation_linear());
+  }
+  else if (_msg.name() == "attenuation_quadratic")
+  {
+    this->lightData.set_attenuation_quadratic(_msg.attenuation_quadratic());
+  }
+  else if (_msg.name() == "direction")
+  {
+    this->lightData.mutable_direction()->set_x(_msg.direction().x());
+    this->lightData.mutable_direction()->set_y(_msg.direction().y());
+    this->lightData.mutable_direction()->set_z(_msg.direction().z());
+  }
+  else if (_msg.name() == "range")
+  {
+    this->lightData.set_range(_msg.range());
+  }
+  else if (_msg.name() == "spot_inner_angle")
+  {
+    this->lightData.set_spot_inner_angle(_msg.spot_inner_angle());
+  }
+  else if (_msg.name() == "spot_outer_angle")
+  {
+    this->lightData.set_spot_outer_angle(_msg.spot_outer_angle());
+  }
+  else if (_msg.name() == "spot_falloff")
+  {
+    this->lightData.set_spot_falloff(_msg.spot_falloff());
+  }
+  else if (_msg.name() == "intensity")
+  {
+    this->lightData.set_intensity(_msg.intensity());
   }
   else
   {
