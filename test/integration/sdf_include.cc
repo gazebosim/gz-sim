@@ -32,7 +32,8 @@ class SdfInclude : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(SdfInclude, DownloadFromFuel)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(SdfInclude, IGN_UTILS_TEST_DISABLED_ON_WIN32(DownloadFromFuel))
 {
   std::string path = common::cwd() + "/test_cache";
 

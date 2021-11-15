@@ -135,7 +135,8 @@ class SdfFrameSemanticsTest : public InternalFixture<::testing::Test>
   public: std::unique_ptr<SdfEntityCreator> creator;
 };
 
-TEST_F(SdfFrameSemanticsTest, LinkRelativeTo)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(SdfFrameSemanticsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LinkRelativeTo))
 {
   const std::string modelSdf = R"sdf(
   <sdf version="1.7">
@@ -496,7 +497,8 @@ TEST_F(SdfFrameSemanticsTest, NestedModelsRelativeTo)
   EXPECT_EQ(link2ExpectedPose, this->GetPose(link2));
 }
 
-TEST_F(SdfFrameSemanticsTest, IncludeNestedModelsRelativeToTPE)
+TEST_F(SdfFrameSemanticsTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(IncludeNestedModelsRelativeToTPE))
 {
   std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
   ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH", path.c_str());
@@ -558,7 +560,8 @@ TEST_F(SdfFrameSemanticsTest, IncludeNestedModelsRelativeToTPE)
   EXPECT_EQ(nestedModelsLink01ExpectedPose, this->GetPose(nestedModelsLink01));
 }
 
-TEST_F(SdfFrameSemanticsTest, IncludeNestedModelsRelativeToDartsim)
+TEST_F(SdfFrameSemanticsTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(IncludeNestedModelsRelativeToDartsim))
 {
   std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
   ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH", path.c_str());

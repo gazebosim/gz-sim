@@ -103,7 +103,8 @@ class WheelSlipTest : public InternalFixture<::testing::Test>
   };
 };
 
-TEST_F(WheelSlipTest, TireDrum)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(WheelSlipTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TireDrum))
 {
   const double metersPerMile = 1609.34;
   const double secondsPerHour = 3600.0;
@@ -369,7 +370,7 @@ TEST_F(WheelSlipTest, TireDrum)
   server.Run(true, 250, false);
 }
 
-TEST_F(WheelSlipTest, TricyclesUphill)
+TEST_F(WheelSlipTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TricyclesUphill))
 {
   ServerConfig serverConfig;
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +

@@ -230,7 +230,8 @@ class VelocityControlTest
 };
 
 /////////////////////////////////////////////////
-TEST_P(VelocityControlTest, PublishCmd)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_P(VelocityControlTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 {
   TestPublishCmd(
       std::string(PROJECT_SOURCE_PATH) + "/test/worlds/velocity_control.sdf",
@@ -238,7 +239,7 @@ TEST_P(VelocityControlTest, PublishCmd)
 }
 
 /////////////////////////////////////////////////
-TEST_P(VelocityControlTest, PublishLinkCmd)
+TEST_P(VelocityControlTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishLinkCmd))
 {
   TestPublishLinkCmd(
       std::string(PROJECT_SOURCE_PATH) + "/test/worlds/velocity_control.sdf",
