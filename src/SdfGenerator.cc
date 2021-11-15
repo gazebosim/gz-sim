@@ -569,21 +569,21 @@ namespace sdf_generator
     if (camComp)
     {
       const sdf::Sensor &sensor = camComp->Data();
-      sdf::convertSensorDomToElement(_elem, sensor);
+      sensor.PopulateElement(_elem);
     }
     // depth camera
     auto depthCamComp = _ecm.Component<components::DepthCamera>(_entity);
     if (depthCamComp)
     {
       const sdf::Sensor &sensor = depthCamComp->Data();
-      sdf::convertSensorDomToElement(_elem, sensor);
+      sensor.PopulateElement(_elem);
     }
     // thermal camera
     auto thermalCamComp = _ecm.Component<components::ThermalCamera>(_entity);
     if (thermalCamComp)
     {
       const sdf::Sensor &sensor = thermalCamComp->Data();
-      sdf::convertSensorDomToElement(_elem, sensor);
+      sensor.PopulateElement(_elem);
     }
     // logical camera
     auto logicalCamComp = _ecm.Component<components::LogicalCamera>(_entity);
@@ -599,7 +599,7 @@ namespace sdf_generator
     if (segmentationCamComp)
     {
       const sdf::Sensor &sensor = segmentationCamComp->Data();
-      sdf::convertSensorDomToElement(_elem, sensor);
+      sensor.PopulateElement(_elem);
     }
 
     // gpu lidar
@@ -607,14 +607,14 @@ namespace sdf_generator
     if (gpuLidarComp)
     {
       const sdf::Sensor &sensor = gpuLidarComp->Data();
-      sdf::convertSensorDomToElement(_elem, sensor);
+      sensor.PopulateElement(_elem);
     }
     // altimeter
     auto altimeterComp = _ecm.Component<components::Altimeter>(_entity);
     if (altimeterComp)
     {
       const sdf::Sensor &sensor = altimeterComp->Data();
-      sdf::convertSensorDomToElement(_elem, sensor);
+      sensor.PopulateElement(_elem);
     }
     // contact
     auto contactComp = _ecm.Component<components::ContactSensor>(_entity);
@@ -630,22 +630,21 @@ namespace sdf_generator
     if (airPressureComp)
     {
       const sdf::Sensor &sensor = airPressureComp->Data();
-      sdf::convertSensorDomToElement(_elem, sensor);
-
+      sensor.PopulateElement(_elem);
     }
     // force torque
     auto forceTorqueComp = _ecm.Component<components::ForceTorque>(_entity);
     if (forceTorqueComp)
     {
       const sdf::Sensor &sensor = forceTorqueComp->Data();
-      sdf::convertSensorDomToElement(_elem, sensor);
+      sensor.PopulateElement(_elem);
     }
     // imu
     auto imuComp = _ecm.Component<components::Imu>(_entity);
     if (imuComp)
     {
       const sdf::Sensor &sensor = imuComp->Data();
-      sdf::convertSensorDomToElement(_elem, sensor);
+      sensor.PopulateElement(_elem);
     }
     // magnetometer
     auto magnetometerComp =
@@ -653,7 +652,7 @@ namespace sdf_generator
     if (magnetometerComp)
     {
       const sdf::Sensor &sensor = magnetometerComp->Data();
-      sdf::convertSensorDomToElement(_elem, sensor);
+      sensor.PopulateElement(_elem);
     }
 
     // override name and pose sdf element using values from ECM
