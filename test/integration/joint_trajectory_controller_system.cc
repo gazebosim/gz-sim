@@ -52,8 +52,9 @@ class JointTrajectoryControllerTestFixture
 /////////////////////////////////////////////////
 // Tests that JointTrajectoryController accepts position-controlled joint
 // trajectory
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
 TEST_F(JointTrajectoryControllerTestFixture,
-       JointTrajectoryControllerPositionControl)
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(JointTrajectoryControllerPositionControl))
 {
   using namespace std::chrono_literals;
 
@@ -229,7 +230,7 @@ TEST_F(JointTrajectoryControllerTestFixture,
 // Tests that JointTrajectoryController accepts velocity-controlled joint
 // trajectory
 TEST_F(JointTrajectoryControllerTestFixture,
-       JointTrajectoryControllerVelocityControl)
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(JointTrajectoryControllerVelocityControl))
 {
   using namespace std::chrono_literals;
 

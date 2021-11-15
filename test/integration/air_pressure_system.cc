@@ -41,7 +41,8 @@ class AirPressureTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(AirPressureTest, AirPressure)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(AirPressureTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(AirPressure))
 {
   // Start server
   ServerConfig serverConfig;

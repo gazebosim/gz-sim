@@ -44,7 +44,9 @@ class EachNewRemovedFixture : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(EachNewRemovedFixture, EachNewEachRemovedInSystem)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(EachNewRemovedFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(EachNewEachRemovedInSystem))
 {
   ignition::gazebo::ServerConfig serverConfig;
 

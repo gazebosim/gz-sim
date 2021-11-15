@@ -59,7 +59,8 @@ class ParticleEmitterTest : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 // Load an SDF with a particle emitter and verify its properties.
-TEST_F(ParticleEmitterTest, SDFLoad)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(ParticleEmitterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SDFLoad))
 {
   bool updateCustomChecked{false};
   bool updateDefaultChecked{false};

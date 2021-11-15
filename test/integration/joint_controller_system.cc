@@ -46,7 +46,9 @@ class JointControllerTestFixture : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 // Tests that the JointController accepts joint velocity commands
-TEST_F(JointControllerTestFixture, JointVelocityCommand)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(JointControllerTestFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(JointVelocityCommand))
 {
   using namespace std::chrono_literals;
 
@@ -143,7 +145,8 @@ TEST_F(JointControllerTestFixture, JointVelocityCommand)
 
 /////////////////////////////////////////////////
 // Tests the JointController using joint force commands
-TEST_F(JointControllerTestFixture, JointVelocityCommandWithForce)
+TEST_F(JointControllerTestFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(JointVelocityCommandWithForce))
 {
   using namespace std::chrono_literals;
 

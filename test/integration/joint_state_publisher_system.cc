@@ -35,7 +35,9 @@ class JointStatePublisherTest
 };
 
 /////////////////////////////////////////////////
-TEST_F(JointStatePublisherTest, DefaultPublisher)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(JointStatePublisherTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(DefaultPublisher))
 {
   // Start server
   ServerConfig serverConfig;
@@ -86,7 +88,8 @@ TEST_F(JointStatePublisherTest, DefaultPublisher)
 }
 
 /////////////////////////////////////////////////
-TEST_F(JointStatePublisherTest, LimitedPublisher)
+TEST_F(JointStatePublisherTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(LimitedPublisher))
 {
   // Start server
   ServerConfig serverConfig;

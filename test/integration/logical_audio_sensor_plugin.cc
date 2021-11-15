@@ -49,7 +49,9 @@ class LogicalAudioTest : public InternalFixture<::testing::Test>
 {
 };
 
-TEST_F(LogicalAudioTest, LogicalAudioDetections)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(LogicalAudioTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(LogicalAudioDetections))
 {
   ServerConfig serverConfig;
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +

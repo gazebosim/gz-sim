@@ -47,7 +47,9 @@ class JointPositionControllerTestFixture
 
 /////////////////////////////////////////////////
 // Tests that the JointPositionController accepts joint position commands
-TEST_F(JointPositionControllerTestFixture, JointPositionCommand)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(JointPositionControllerTestFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(JointPositionCommand))
 {
   using namespace std::chrono_literals;
 

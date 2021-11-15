@@ -179,7 +179,8 @@ void ExamplesBuild::Build(const std::string &_type)
 }
 
 //////////////////////////////////////////////////
-TEST_P(ExamplesBuild, Build)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_P(ExamplesBuild, IGN_UTILS_TEST_DISABLED_ON_WIN32(Build))
 {
   Build(GetParam());
 }

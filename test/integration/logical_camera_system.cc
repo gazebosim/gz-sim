@@ -66,7 +66,8 @@ void logicalCamera2Cb(const msgs::LogicalCameraImage &_msg)
 /////////////////////////////////////////////////
 // This test checks that both logical cameras in the world can see a box
 // at the correct relative pose.
-TEST_F(LogicalCameraTest, LogicalCameraBox)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(LogicalCameraTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogicalCameraBox))
 {
   // Start server
   ServerConfig serverConfig;

@@ -396,7 +396,8 @@ class OdometryPublisherTest
 };
 
 /////////////////////////////////////////////////
-TEST_P(OdometryPublisherTest, Movement)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_P(OdometryPublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Movement))
 {
   TestMovement(
       std::string(PROJECT_SOURCE_PATH) + "/test/worlds/odometry_publisher.sdf",
@@ -404,7 +405,8 @@ TEST_P(OdometryPublisherTest, Movement)
 }
 
 /////////////////////////////////////////////////
-TEST_P(OdometryPublisherTest, MovementCustomTopic)
+TEST_P(OdometryPublisherTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(MovementCustomTopic))
 {
   TestMovement(
       std::string(PROJECT_SOURCE_PATH) +
@@ -422,7 +424,7 @@ TEST_P(OdometryPublisherTest, Movement3d)
 }
 
 /////////////////////////////////////////////////
-TEST_P(OdometryPublisherTest, OdomFrameId)
+TEST_P(OdometryPublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
 {
   TestPublishCmd(
       std::string(PROJECT_SOURCE_PATH) + "/test/worlds/odometry_publisher.sdf",
@@ -432,7 +434,8 @@ TEST_P(OdometryPublisherTest, OdomFrameId)
 }
 
 /////////////////////////////////////////////////
-TEST_P(OdometryPublisherTest, OdomCustomFrameId)
+TEST_P(OdometryPublisherTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(OdomCustomFrameId))
 {
   TestPublishCmd(
       std::string(PROJECT_SOURCE_PATH) +
