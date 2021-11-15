@@ -137,10 +137,11 @@ void LightController::Configure(const Entity &_entity,
 
   this->dataPtr->lightEntity = entity;
 
-  // auto component =
-  //   _ecm.Component<components::Light>(this->dataPtr->lightEntity);
+  auto component =
+    _ecm.Component<components::Light>(this->dataPtr->lightEntity);
 
-  // this->dataPtr->lightData = component->Data();
+  sdf::Light lightSDF = component->Data();
+  this->dataPtr->lightData = convert<msgs::Light>(lightSDF);
 
   // Subscribe to light commands
   auto lightTopic = _sdf->Get<std::string>("topic");
@@ -198,7 +199,25 @@ void LightController::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 void LightControllerPrivate::LightCallback(
     const ignition::msgs::Light &_msg)
 {
-  this->lightData = _msg;
+  if (_msg.name() == "diffuse")
+  {
+    this->lightData.mutable_diffuse()->set_r(_msg.diffuse().r());
+    this->lightData.mutable_diffuse()->set_g(_msg.diffuse().g());
+    this->lightData.mutable_diffuse()->set_b(_msg.diffuse().b());
+    this->lightData.mutable_diffuse()->set_a(_msg.diffuse().a());
+  }
+  else if (_msg.name() == "specular")
+  {
+    this->lightData.mutable_specular()->set_r(_msg.specular().r());
+    this->lightData.mutable_specular()->set_g(_msg.specular().g());
+    this->lightData.mutable_specular()->set_b(_msg.specular().b());
+    this->lightData.mutable_specular()->set_a(_msg.specular().a());
+  }
+  else
+  {
+    this->lightData = _msg;
+  }
+
   this->isUpdateRequired = true;
 }
 
