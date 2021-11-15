@@ -1,5 +1,45 @@
 ## Ignition Gazebo 5.x
 
+### Ignition Gazebo 5.X.X (202X-XX-XX)
+
+### Ignition Gazebo 5.3.0 (2021-11-12)
+
+1. Prevent creation of spurious <plugin> elements when saving worlds
+    * [Pull request #1192](https://github.com/ignitionrobotics/ign-gazebo/pull/1192)
+
+1. Added support for tracked vehicles
+    * [Pull request #869](https://github.com/ignitionrobotics/ign-gazebo/pull/869)
+
+1. Add components to dynamically set joint limits
+    * [Pull request #847](https://github.com/ignitionrobotics/ign-gazebo/pull/847)
+
+1. Fix updating component from state
+    * [Pull request #1181](https://github.com/ignitionrobotics/ign-gazebo/pull/1181)
+
+1.  Extend odom publisher to allow 3D
+    * [Pull request #1180](https://github.com/ignitionrobotics/ign-gazebo/pull/1180)
+
+1. Fix updating a component's data via SerializedState msg
+    * [Pull request #1131](https://github.com/ignitionrobotics/ign-gazebo/pull/1131)
+
+1. Sensor systems work if loaded after sensors
+    * [Pull request #1104](https://github.com/ignitionrobotics/ign-gazebo/pull/1104)
+
+1. Fix generation of systems library symlinks in build directory
+    * [Pull request #1160](https://github.com/ignitionrobotics/ign-gazebo/pull/1160)
+
+1. Edit material colors in component inspector
+    * [Pull request #1123](https://github.com/ignitionrobotics/ign-gazebo/pull/1123)
+
+1. Support setting the background color for sensors
+    * [Pull request #1147](https://github.com/ignitionrobotics/ign-gazebo/pull/1147)
+
+1. Use `uint64_t` for ComponentInspector Entity IDs
+    * [Pull request #1144](https://github.com/ignitionrobotics/ign-gazebo/pull/1144)
+
+1. Fix integers and floats on component inspector
+    * [Pull request #1143](https://github.com/ignitionrobotics/ign-gazebo/pull/1143)
+
 ### Ignition Gazebo 5.2.0 (2021-10-22)
 
 1. Fix performance level test flakiness
@@ -170,7 +210,7 @@
 1. Fix blender sdf export script and remove .material file from collada light export test
     * [Pull request #923](https://github.com/ignitionrobotics/ign-gazebo/pull/923)
 
-1. Heightmap physics (with DART) 
+1. Heightmap physics (with DART)
     * [Pull request #661](https://github.com/ignitionrobotics/ign-gazebo/pull/661)
 
 1. Adds Mesh Tutorial
