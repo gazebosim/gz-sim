@@ -92,7 +92,8 @@ class EntityFeatureMapFixture: public InternalFixture<::testing::Test>
   public: EnginePtrType engine;
 };
 
-TEST_F(EntityFeatureMapFixture, AddCastRemoveEntity)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(EntityFeatureMapFixture, IGN_UTILS_TEST_ENABLE_ONLY_LINUX(AddCastRemoveEntity))
 {
   struct TestOptionalFeatures1
       : physics::FeatureList<physics::LinkFrameSemantics>

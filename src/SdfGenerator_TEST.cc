@@ -795,7 +795,9 @@ TEST_F(ElementUpdateFixture, WorldWithModelsExpandedWithOneIncluded)
 }
 
 /////////////////////////////////////////////////
-TEST_F(ElementUpdateFixture, WorldWithModelsUsingRelativeResourceURIs)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(ElementUpdateFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(WorldWithModelsUsingRelativeResourceURIs))
 {
   const auto includeUri = std::string("file://") + PROJECT_SOURCE_PATH +
                           "/test/worlds/models/relative_resource_uri";

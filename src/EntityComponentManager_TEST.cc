@@ -172,7 +172,9 @@ TEST_P(EntityComponentManagerFixture, AdjacentMemorySingleComponentType)
 }
 
 /////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, AdjacentMemoryTwoComponentTypes)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_P(EntityComponentManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(AdjacentMemoryTwoComponentTypes))
 {
   common::setenv("IGN_DEBUG_COMPONENT_FACTORY", "true");
 
