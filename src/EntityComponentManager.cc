@@ -521,19 +521,26 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
     Entity originalParentLink = kNullEntity;
     Entity originalChildLink = kNullEntity;
 
+    auto origParentComp =
+        this->Component<components::ParentEntity>(_entity);
+
     const auto &parentName =
       this->Component<components::ParentLinkName>(_entity);
     if (parentName)
     {
-      originalParentLink = this->EntityByComponents<components::Name>(
-          components::Name(parentName->Data()));
+      originalParentLink =
+        this->EntityByComponents<components::Name, components::ParentEntity>(
+          components::Name(parentName->Data()),
+          components::ParentEntity(origParentComp->Data()));
     }
 
     const auto &childName = this->Component<components::ChildLinkName>(_entity);
     if (childName)
     {
-      originalChildLink = this->EntityByComponents<components::Name>(
-          components::Name(childName->Data()));
+      originalChildLink =
+        this->EntityByComponents<components::Name, components::ParentEntity>(
+          components::Name(childName->Data()),
+          components::ParentEntity(origParentComp->Data()));
     }
 
     if (!originalParentLink || !originalChildLink)
@@ -1968,6 +1975,7 @@ template<typename ComponentTypeT>
 bool EntityComponentManagerPrivate::ClonedJointLinkName(Entity _joint,
     Entity _originalLink, EntityComponentManager *_ecm)
 {
+
   if (ComponentTypeT::typeId != components::ParentLinkName::typeId &&
       ComponentTypeT::typeId != components::ChildLinkName::typeId)
   {
