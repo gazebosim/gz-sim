@@ -160,7 +160,14 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
       }
       topics.push_back(std::string("/world/") + worldName + "/model/"
         + this->model.Name(_ecm) + "/joint_state");
+
       this->topic = validTopic(topics);
+      if (this->topic.empty())
+      {
+        ignerr << "No valid topics for JointStatePublisher could be found."
+          << "Make sure World/Model name does'nt contain invalid characters.\n";
+        return;
+      }
 
       this->modelPub = std::make_unique<transport::Node::Publisher>(
           this->node.Advertise<msgs::Model>(this->topic));
