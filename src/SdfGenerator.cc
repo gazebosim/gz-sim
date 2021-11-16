@@ -295,7 +295,7 @@ namespace sdf_generator
     // First remove child entities of <world> whose names can be changed during
     // simulation (eg. models). Then we add them back from the data in the
     // ECM.
-    // TODO(addisu) Remove actors and lights
+    // TODO(addisu) Remove actors
     std::vector<sdf::ElementPtr> toRemove;
     if (_elem->HasElement("model"))
     {
@@ -305,6 +305,15 @@ namespace sdf_generator
         toRemove.push_back(modelElem);
       }
     }
+    if (_elem->HasElement("light"))
+    {
+      for (auto lightElem = _elem->GetElement("light"); lightElem;
+           lightElem = lightElem->GetNextElement("light"))
+      {
+        toRemove.push_back(lightElem);
+      }
+    }
+
     for (const auto &e : toRemove)
     {
       _elem->RemoveChild(e);
@@ -312,6 +321,7 @@ namespace sdf_generator
 
     auto worldDir = common::parentPath(worldSdf->Data().Element()->FilePath());
 
+    // models
     _ecm.Each<components::Model, components::ModelSdf>(
         [&](const Entity &_modelEntity, const components::Model *,
             const components::ModelSdf *_modelSdf)
@@ -401,6 +411,21 @@ namespace sdf_generator
             const std::string uri = "file://" + modelDir;
             updateIncludeElement(includeElem, _ecm, _modelEntity, uri);
           }
+          return true;
+        });
+
+    // lights
+    _ecm.Each<components::Light, components::ParentEntity>(
+        [&](const Entity &_lightEntity,
+            const components::Light *,
+            const components::ParentEntity *_parent) -> bool
+        {
+          if (_parent->Data() != _entity)
+            return true;
+
+           auto lightElem = _elem->AddElement("light");
+           updateLightElement(lightElem, _ecm, _lightEntity);
+
           return true;
         });
 
@@ -552,6 +577,21 @@ namespace sdf_generator
       }
     }
 
+    // update lights
+    if (_elem->HasElement("light"))
+    {
+      sdf::ElementPtr lightElem = _elem->GetElement("light");
+      while (lightElem)
+      {
+        std::string lightName = lightElem->Get<std::string>("name");
+        auto lightEnt = _ecm.EntityByComponents(
+            components::ParentEntity(_entity), components::Name(lightName));
+        if (lightEnt != kNullEntity)
+          updateLightElement(lightElem, _ecm, lightEnt);
+        lightElem = lightElem->GetNextElement("light");
+      }
+    }
+
     return true;
   }
 
@@ -689,6 +729,45 @@ namespace sdf_generator
       return updateSensorNameAndPose();
     }
 
+    return true;
+  }
+
+  /////////////////////////////////////////////////
+  bool updateLightElement(sdf::ElementPtr _elem,
+                          const EntityComponentManager &_ecm,
+                          const Entity &_entity)
+  {
+    // Update sdf based on the light component
+    auto updateLightNameAndPose = [&]
+    {
+      // override name and pose sdf element using values from ECM
+      auto *nameComp = _ecm.Component<components::Name>(_entity);
+      _elem->GetAttribute("name")->Set(nameComp->Data());
+
+      auto *poseComp = _ecm.Component<components::Pose>(_entity);
+      auto poseElem = _elem->GetElement("pose");
+
+      // Remove all attributes of poseElem
+      for (const auto *attrName : {"relative_to", "degrees", "rotation_format"})
+      {
+        sdf::ParamPtr attr = poseElem->GetAttribute(attrName);
+        if (nullptr != attr)
+        {
+          attr->Reset();
+        }
+      }
+      poseElem->Set(poseComp->Data());
+      return true;
+    };
+
+    // light
+    auto lightComp = _ecm.Component<components::Light>(_entity);
+    if (lightComp)
+    {
+      const sdf::Light &light = lightComp->Data();
+      light.PopulateElement(_elem);
+      return updateLightNameAndPose();
+    }
     return true;
   }
 

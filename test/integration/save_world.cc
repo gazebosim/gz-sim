@@ -29,6 +29,7 @@
 #include <sdf/Magnetometer.hh>
 #include <sdf/Model.hh>
 #include <sdf/Lidar.hh>
+#include <sdf/Light.hh>
 #include <sdf/Link.hh>
 #include <sdf/Root.hh>
 #include <sdf/Sensor.hh>
@@ -735,6 +736,116 @@ TEST_F(SdfGeneratorFixture, WorldWithRenderingSensors)
     EXPECT_DOUBLE_EQ(0.11, camera->NearClip());
     EXPECT_DOUBLE_EQ(20.0, camera->FarClip());
     EXPECT_EQ("panoptic", camera->SegmentationType());
+  }
+
+  tinyxml2::XMLDocument genSdfDoc;
+  genSdfDoc.Parse(worldGenSdfRes.c_str());
+  ASSERT_NE(nullptr, genSdfDoc.RootElement());
+  auto genWorld = genSdfDoc.RootElement()->FirstChildElement("world");
+  ASSERT_NE(nullptr, genWorld);
+}
+
+/////////////////////////////////////////////////
+TEST_F(SdfGeneratorFixture, WorldWithLights)
+{
+  this->LoadWorld("test/worlds/lights.sdf");
+
+  const std::string worldGenSdfRes =
+      this->RequestGeneratedSdf("lights");
+
+  sdf::Root root;
+  sdf::Errors err = root.LoadSdfString(worldGenSdfRes);
+  EXPECT_TRUE(err.empty());
+  auto *world = root.WorldByIndex(0);
+  ASSERT_NE(nullptr, world);
+
+  // directional light in the world
+  {
+    const sdf::Light *light = world->LightByIndex(0u);
+    EXPECT_EQ("directional", light->Name());
+    EXPECT_EQ(sdf::LightType::DIRECTIONAL, light->Type());
+    EXPECT_EQ(ignition::math::Pose3d(0, 0, 10, 0, 0, 0),
+        light->RawPose());
+    EXPECT_EQ(std::string(), light->PoseRelativeTo());
+    EXPECT_TRUE(light->CastShadows());
+    EXPECT_EQ(ignition::math::Color(0.8f, 0.8f, 0.8f, 1),
+        light->Diffuse());
+    EXPECT_EQ(ignition::math::Color(0.2f, 0.2f, 0.2f, 1),
+        light->Specular());
+    EXPECT_DOUBLE_EQ(100, light->AttenuationRange());
+    EXPECT_DOUBLE_EQ(0.9, light->ConstantAttenuationFactor());
+    EXPECT_DOUBLE_EQ(0.01, light->LinearAttenuationFactor());
+    EXPECT_DOUBLE_EQ(0.001, light->QuadraticAttenuationFactor());
+    EXPECT_EQ(ignition::math::Vector3d(0.5, 0.2, -0.9),
+        light->Direction());
+  }
+  // point light in the world
+  {
+    const sdf::Light *light = world->LightByIndex(1u);
+    EXPECT_EQ("point", light->Name());
+    EXPECT_EQ(sdf::LightType::POINT, light->Type());
+    EXPECT_EQ(ignition::math::Pose3d(0, -1.5, 3, 0, 0, 0),
+        light->RawPose());
+    EXPECT_FALSE(light->CastShadows());
+    EXPECT_EQ(ignition::math::Color(1.0f, 0.0f, 0.0f, 1),
+        light->Diffuse());
+    EXPECT_EQ(ignition::math::Color(0.1f, 0.1f, 0.1f, 1),
+        light->Specular());
+    EXPECT_DOUBLE_EQ(4, light->AttenuationRange());
+    EXPECT_DOUBLE_EQ(0.2, light->ConstantAttenuationFactor());
+    EXPECT_DOUBLE_EQ(0.5, light->LinearAttenuationFactor());
+    EXPECT_DOUBLE_EQ(0.01, light->QuadraticAttenuationFactor());
+  }
+  // spot light in the world
+  {
+    const sdf::Light *light = world->LightByIndex(2u);
+    EXPECT_EQ("spot", light->Name());
+    EXPECT_EQ(sdf::LightType::SPOT, light->Type());
+    EXPECT_EQ(ignition::math::Pose3d(0, 1.5, 3, 0, 0, 0),
+        light->RawPose());
+    EXPECT_EQ(std::string(), light->PoseRelativeTo());
+    EXPECT_FALSE(light->CastShadows());
+    EXPECT_EQ(ignition::math::Color(0.0f, 1.0f, 0.0f, 1),
+        light->Diffuse());
+    EXPECT_EQ(ignition::math::Color(0.2f, 0.2f, 0.2f, 1),
+        light->Specular());
+    EXPECT_DOUBLE_EQ(5, light->AttenuationRange());
+    EXPECT_DOUBLE_EQ(0.3, light->ConstantAttenuationFactor());
+    EXPECT_DOUBLE_EQ(0.4, light->LinearAttenuationFactor());
+    EXPECT_DOUBLE_EQ(0.001, light->QuadraticAttenuationFactor());
+    EXPECT_EQ(ignition::math::Vector3d(0.0, 0.0, -1.0),
+        light->Direction());
+    EXPECT_DOUBLE_EQ(0.1, light->SpotInnerAngle().Radian());
+    EXPECT_DOUBLE_EQ(0.5, light->SpotOuterAngle().Radian());
+    EXPECT_DOUBLE_EQ(0.8, light->SpotFalloff());
+  }
+
+  // get model
+  EXPECT_TRUE(world->ModelNameExists("sphere"));
+  auto *model = world->ModelByName("sphere");
+  ASSERT_NE(nullptr, model);
+  EXPECT_EQ(1u, model->LinkCount());
+
+  // get link
+  auto *link = model->LinkByName("sphere_link");
+  ASSERT_NE(nullptr, link);
+
+  // light attached to link
+  {
+    const sdf::Light *light = link->LightByName("link_light_point");
+    EXPECT_EQ("link_light_point", light->Name());
+    EXPECT_EQ(ignition::math::Pose3d(0.0, 0.0, 1.0, 0, 0, 0),
+        light->RawPose());
+    EXPECT_EQ(sdf::LightType::POINT, light->Type());
+    EXPECT_FALSE(light->CastShadows());
+    EXPECT_EQ(ignition::math::Color(0.0f, 0.0f, 1.0f, 1),
+        light->Diffuse());
+    EXPECT_EQ(ignition::math::Color(0.1f, 0.1f, 0.1f, 1),
+        light->Specular());
+    EXPECT_DOUBLE_EQ(2, light->AttenuationRange());
+    EXPECT_DOUBLE_EQ(0.05, light->ConstantAttenuationFactor());
+    EXPECT_DOUBLE_EQ(0.02, light->LinearAttenuationFactor());
+    EXPECT_DOUBLE_EQ(0.01, light->QuadraticAttenuationFactor());
   }
 
   tinyxml2::XMLDocument genSdfDoc;
