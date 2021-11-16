@@ -102,6 +102,7 @@ Contacts will be visualized as blue spheres and green cylinders.
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
+        <use_event>true</use_event>
 
       </plugin>
 
