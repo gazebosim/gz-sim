@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo6 VERSION 6.0.0)
+project(ignition-gazebo6 VERSION 6.1.0)
 
 #============================================================================
 # Find ignition-cmake
@@ -33,6 +33,9 @@ if (UNIX AND NOT APPLE)
 else()
   set (EXTRA_TEST_LIB_DEPS)
 endif()
+
+include(test/find_dri.cmake)
+FindDRI()
 
 #============================================================================
 # Search for project-specific dependencies
@@ -68,7 +71,7 @@ set(IGN_MSGS_VER ${ignition-msgs8_VERSION_MAJOR})
 #--------------------------------------
 # Find ignition-common
 # Always use the profiler component to get the headers, regardless of status.
-ign_find_package(ignition-common4 VERSION 4.2
+ign_find_package(ignition-common4 VERSION 4.4
   COMPONENTS
     profiler
     events
@@ -84,7 +87,7 @@ set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools7_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-gui
-ign_find_package(ignition-gui6 REQUIRED)
+ign_find_package(ignition-gui6 REQUIRED VERSION 6.1)
 set(IGN_GUI_VER ${ignition-gui6_VERSION_MAJOR})
 ign_find_package (Qt5
   COMPONENTS
@@ -96,7 +99,7 @@ ign_find_package (Qt5
 
 #--------------------------------------
 # Find ignition-physics
-ign_find_package(ignition-physics5
+ign_find_package(ignition-physics5 VERSION 5.1
   COMPONENTS
     heightmap
     mesh

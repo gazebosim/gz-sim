@@ -52,7 +52,9 @@ set(tests
   sdf_frame_semantics.cc
   sdf_include.cc
   spherical_coordinates.cc
+  thruster.cc
   touch_plugin.cc
+  tracked_vehicle_system.cc
   triggered_publisher.cc
   user_commands.cc
   velocity_control_system.cc
@@ -64,6 +66,7 @@ set(tests
 
 # Tests that require a valid display
 set(tests_needing_display
+  camera_sensor_background.cc
   camera_video_record_system.cc
   depth_camera.cc
   gpu_lidar.cc
@@ -105,3 +108,25 @@ ign_build_tests(TYPE INTEGRATION
   LIB_DEPS
     ${EXTRA_TEST_LIB_DEPS}
 )
+
+
+# For INTEGRATION_physics_system, we need to check what version of DART is
+# available so that we can disable tests that are unsupported by the particular
+# version of physics engine
+ign_find_package(DART QUIET)
+if (DART_FOUND)
+  # Only adding include directories, no need to link against DART to check version
+  target_include_directories(INTEGRATION_physics_system SYSTEM PRIVATE ${DART_INCLUDE_DIRS})
+  target_compile_definitions(INTEGRATION_physics_system PRIVATE HAVE_DART)
+endif()
+
+target_link_libraries(INTEGRATION_tracked_vehicle_system
+  ignition-physics${IGN_PHYSICS_VER}::core
+  ignition-plugin${IGN_PLUGIN_VER}::loader
+)
+# The default timeout (240s) doesn't seem to be enough for this test.
+set_tests_properties(INTEGRATION_tracked_vehicle_system PROPERTIES TIMEOUT 300)
+
+if(TARGET INTEGRATION_examples_build)
+  set_tests_properties(INTEGRATION_examples_build PROPERTIES TIMEOUT 320)
+endif()

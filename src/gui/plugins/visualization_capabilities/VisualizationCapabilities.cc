@@ -658,6 +658,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
           {
             continue;
           }
+          vis->SetUserData("gui-only", static_cast<bool>(true));
 
           this->viewingCollisions[colEntity] = true;
 
@@ -951,6 +952,7 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateJointVisual(
     std::dynamic_pointer_cast<rendering::Visual>(jointVisual);
   jointVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   jointVis->SetUserData("pause-update", static_cast<int>(0));
+  jointVis->SetUserData("gui-only", static_cast<bool>(true));
   jointVis->SetLocalPose(_joint.RawPose());
   this->visuals[_id] = jointVis;
   return jointVis;
@@ -995,6 +997,7 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateInertiaVisual(
     std::dynamic_pointer_cast<rendering::Visual>(inertiaVisual);
   inertiaVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   inertiaVis->SetUserData("pause-update", static_cast<int>(0));
+  inertiaVis->SetUserData("gui-only", static_cast<bool>(true));
   this->visuals[_id] = inertiaVis;
   if (_parent)
   {
@@ -1452,6 +1455,7 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::createCOMVisual(
     std::dynamic_pointer_cast<rendering::Visual>(comVisual);
   comVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   comVis->SetUserData("pause-update", static_cast<int>(0));
+  comVis->SetUserData("gui-only", static_cast<bool>(true));
   this->visuals[_id] = comVis;
 
   if (_parent)
@@ -1962,7 +1966,7 @@ void VisualizationCapabilitiesPrivate::FindJointModels(
       std::stack<Entity> modelStack;
       modelStack.push(entity);
 
-      std::vector<Entity> childLinks, childModels;
+      std::vector<Entity> childModels;
       while (!modelStack.empty())
       {
         Entity model = modelStack.top();

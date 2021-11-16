@@ -168,7 +168,7 @@ void SelectEntitiesPrivate::HandleEntitySelection()
 
       this->selectedEntitiesID.push_back(this->selectedEntitiesIDNew[i]);
 
-      unsigned int entityId = kNullEntity;
+      Entity entityId = kNullEntity;
       try
       {
         entityId = std::get<int>(visualToHighLight->UserData("gazebo-entity"));
@@ -208,7 +208,7 @@ void SelectEntitiesPrivate::HandleEntitySelection()
     return;
   }
 
-  unsigned int entityId = kNullEntity;
+  Entity entityId = kNullEntity;
   try
   {
     entityId = std::get<int>(visual->UserData("gazebo-entity"));
@@ -267,7 +267,7 @@ void SelectEntitiesPrivate::HighlightNode(const rendering::VisualPtr &_visual)
     return;
   }
 
-  int entityId = kNullEntity;
+  Entity entityId = kNullEntity;
   try
   {
     entityId = std::get<int>(_visual->UserData("gazebo-entity"));
@@ -300,6 +300,7 @@ void SelectEntitiesPrivate::HighlightNode(const rendering::VisualPtr &_visual)
     wireBoxVis->SetInheritScale(false);
     wireBoxVis->AddGeometry(wireBox);
     wireBoxVis->SetMaterial(white, false);
+    wireBoxVis->SetUserData("gui-only", static_cast<bool>(true));
     _visual->AddChild(wireBoxVis);
 
     // Add wire box to map for setting visibility
@@ -368,8 +369,8 @@ void SelectEntitiesPrivate::SetSelectedEntity(
     return;
 
   this->selectedEntities.push_back(entityId);
-  this->selectedEntitiesID.push_back(_visual->Id());
-  this->HighlightNode(_visual);
+  this->selectedEntitiesID.push_back(topLevelVisual->Id());
+  this->HighlightNode(topLevelVisual);
   ignition::gazebo::gui::events::EntitiesSelected entitiesSelected(
     this->selectedEntities);
   ignition::gui::App()->sendEvent(
@@ -528,7 +529,7 @@ bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
         {
           auto visual = this->dataPtr->scene->VisualByIndex(i);
 
-          unsigned int entityId = kNullEntity;
+          Entity entityId = kNullEntity;
           try
           {
             entityId = std::get<int>(visual->UserData("gazebo-entity"));
@@ -570,6 +571,25 @@ bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
       this->dataPtr->mouseDirty = true;
       this->dataPtr->selectionHelper.deselectAll = true;
       this->dataPtr->isSpawning = false;
+    }
+  }
+  else if (_event->type() ==
+           ignition::gazebo::gui::events::RemovedEntities::kType)
+  {
+    if (!this->dataPtr->wireBoxes.empty())
+    {
+      auto removedEvent =
+          reinterpret_cast<gui::events::RemovedEntities *>(_event);
+      for (auto &entity : removedEvent->Data())
+      {
+        auto wireBoxIt = this->dataPtr->wireBoxes.find(entity);
+        if (wireBoxIt != this->dataPtr->wireBoxes.end())
+        {
+          this->dataPtr->scene->DestroyVisual(wireBoxIt->second->Parent());
+          this->dataPtr->wireBoxes.erase(wireBoxIt);
+        }
+      }
+
     }
   }
 

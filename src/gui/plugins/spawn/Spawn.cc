@@ -71,6 +71,11 @@ namespace ignition::gazebo
     /// \return True on success, false if failure
     public: bool GeneratePreview(const sdf::Root &_sdf);
 
+    /// \brief Generate a preview of a resource.
+    /// \param[in] _sdf The name of the resource to be previewed.
+    /// \return True on success, false if failure
+    public: bool GeneratePreview(const std::string &_name);
+
     /// \brief Handle placement requests
     public: void HandlePlacement();
 
@@ -86,10 +91,6 @@ namespace ignition::gazebo
       const rendering::CameraPtr &_camera,
       const rendering::RayQueryPtr &_rayQuery,
       const float offset = 0.0);
-
-    /// \brief Generate a unique entity id.
-    /// \return The unique entity id
-    Entity UniqueId();
 
     /// \brief Ignition communication node.
     public: transport::Node node;
@@ -107,6 +108,9 @@ namespace ignition::gazebo
 
     /// \brief Path of an SDF file, to be used with plugins that spawn entities.
     public: std::string spawnSdfPath;
+
+    /// \brief The name of a resource to clone
+    public: std::string spawnCloneName;
 
     /// \brief Pointer to the rendering scene
     public: rendering::ScenePtr scene{nullptr};
@@ -253,6 +257,10 @@ void SpawnPrivate::HandlePlacement()
     {
       req.set_sdf_filename(this->spawnSdfPath);
     }
+    else if (!this->spawnCloneName.empty())
+    {
+      req.set_clone_name(this->spawnCloneName);
+    }
     else
     {
       ignwarn << "Failed to find SDF string or file path" << std::endl;
@@ -279,20 +287,8 @@ void SpawnPrivate::HandlePlacement()
     this->mouseDirty = false;
     this->spawnSdfString.clear();
     this->spawnSdfPath.clear();
+    this->spawnCloneName.clear();
   }
-}
-
-/////////////////////////////////////////////////
-Entity SpawnPrivate::UniqueId()
-{
-  auto timeout = 100000u;
-  for (auto i = 0u; i < timeout; ++i)
-  {
-    Entity id = std::numeric_limits<uint64_t>::max() - i;
-    if (!this->sceneManager.HasEntity(id))
-      return id;
-  }
-  return kNullEntity;
 }
 
 /////////////////////////////////////////////////
@@ -330,6 +326,8 @@ void SpawnPrivate::OnRender()
   IGN_PROFILE("IgnRenderer::Render Spawn");
   if (this->generatePreview)
   {
+    bool cloningResource = false;
+
     // Generate spawn preview
     rendering::VisualPtr rootVis = this->scene->RootVisual();
     sdf::Root root;
@@ -341,11 +339,20 @@ void SpawnPrivate::OnRender()
     {
       root.Load(this->spawnSdfPath);
     }
+    else if (!this->spawnCloneName.empty())
+    {
+      this->isPlacing = this->GeneratePreview(this->spawnCloneName);
+      cloningResource = true;
+    }
     else
     {
-      ignwarn << "Failed to spawn: no SDF string or path" << std::endl;
+      ignwarn << "Failed to spawn: no SDF string, path, or name of resource "
+              << "to clone" << std::endl;
     }
-    this->isPlacing = this->GeneratePreview(root);
+
+    if (!cloningResource)
+      this->isPlacing = this->GeneratePreview(root);
+
     this->generatePreview = false;
   }
 
@@ -392,7 +399,7 @@ bool SpawnPrivate::GeneratePreview(const sdf::Root &_sdf)
     sdf::Model model = *(_sdf.Model());
     this->spawnPreviewPose = model.RawPose();
     model.SetName(common::Uuid().String());
-    Entity modelId = this->UniqueId();
+    Entity modelId = this->sceneManager.UniqueId();
     if (kNullEntity == modelId)
     {
       this->TerminateSpawnPreview();
@@ -406,7 +413,7 @@ bool SpawnPrivate::GeneratePreview(const sdf::Root &_sdf)
     {
       sdf::Link link = *(model.LinkByIndex(j));
       link.SetName(common::Uuid().String());
-      Entity linkId = this->UniqueId();
+      Entity linkId = this->sceneManager.UniqueId();
       if (!linkId)
       {
         this->TerminateSpawnPreview();
@@ -418,7 +425,7 @@ bool SpawnPrivate::GeneratePreview(const sdf::Root &_sdf)
       {
         sdf::Visual visual = *(link.VisualByIndex(k));
         visual.SetName(common::Uuid().String());
-        Entity visualId = this->UniqueId();
+        Entity visualId = this->sceneManager.UniqueId();
         if (!visualId)
         {
           this->TerminateSpawnPreview();
@@ -435,13 +442,13 @@ bool SpawnPrivate::GeneratePreview(const sdf::Root &_sdf)
     sdf::Light light = *(_sdf.Light());
     this->spawnPreviewPose = light.RawPose();
     light.SetName(common::Uuid().String());
-    Entity lightVisualId = this->UniqueId();
+    Entity lightVisualId = this->sceneManager.UniqueId();
     if (!lightVisualId)
     {
       this->TerminateSpawnPreview();
       return false;
     }
-    Entity lightId = this->UniqueId();
+    Entity lightId = this->sceneManager.UniqueId();
     if (!lightId)
     {
       this->TerminateSpawnPreview();
@@ -455,6 +462,44 @@ bool SpawnPrivate::GeneratePreview(const sdf::Root &_sdf)
     this->previewIds.push_back(lightId);
     this->previewIds.push_back(lightVisualId);
   }
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool SpawnPrivate::GeneratePreview(const std::string &_name)
+{
+  // Terminate any pre-existing spawned entities
+  this->TerminateSpawnPreview();
+
+  Entity visualId = this->sceneManager.UniqueId();
+  if (!visualId)
+  {
+    this->TerminateSpawnPreview();
+    return false;
+  }
+
+  auto visualChildrenPair = this->sceneManager.CopyVisual(visualId, _name,
+      this->sceneManager.WorldId());
+  if (!visualChildrenPair.first)
+  {
+    ignerr << "Copying a visual named " << _name << "failed.\n";
+    return false;
+  }
+
+  this->spawnPreview = visualChildrenPair.first;
+  this->spawnPreviewPose = this->spawnPreview->WorldPose();
+
+  // save the copied chiled IDs before saving the copied parent visual ID in
+  // order to ensure that the child visuals get deleted before the parent visual
+  // (since the SceneManager::RemoveEntity call in this->TerminateSpawnPreview()
+  // isn't recursive, deleting the parent visual before the child visuals could
+  // result in dangling child visuals)
+  const auto &visualChildIds = visualChildrenPair.second;
+  for (auto reverse_it = visualChildIds.rbegin();
+      reverse_it != visualChildIds.rend(); ++reverse_it)
+    this->previewIds.push_back(*reverse_it);
+  this->previewIds.push_back(visualId);
+
   return true;
 }
 
@@ -494,6 +539,16 @@ bool Spawn::eventFilter(QObject *_obj, QEvent *_event)
       reinterpret_cast<ignition::gui::events::SpawnFromPath *>(_event);
     this->dataPtr->spawnSdfPath = spawnPreviewPathEvent->FilePath();
     this->dataPtr->generatePreview = true;
+  }
+  else if (_event->type() == ignition::gui::events::SpawnCloneFromName::kType)
+  {
+    auto spawnCloneEvent =
+      reinterpret_cast<ignition::gui::events::SpawnCloneFromName *>(_event);
+    if (spawnCloneEvent)
+    {
+      this->dataPtr->spawnCloneName = spawnCloneEvent->Name();
+      this->dataPtr->generatePreview = true;
+    }
   }
   else if (_event->type() == ignition::gui::events::KeyReleaseOnScene::kType)
   {

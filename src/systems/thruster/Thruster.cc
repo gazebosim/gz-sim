@@ -18,18 +18,19 @@
 #include <mutex>
 #include <string>
 
+#include <ignition/msgs/double.pb.h>
+
 #include <ignition/math/Helpers.hh>
 
 #include <ignition/plugin/Register.hh>
 
 #include <ignition/transport/Node.hh>
 
-#include <ignition/msgs.hh>
-
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
+#include "ignition/gazebo/components/JointVelocityCmd.hh"
+#include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Link.hh"
@@ -50,26 +51,44 @@ class ignition::gazebo::systems::ThrusterPrivateData
   /// \brief Thrust output by propeller in N
   public: double thrust = 0.0;
 
+  /// \brief Desired propeller angular velocity in rad / s
+  public: double propellerAngVel = 0.0;
+
   /// \brief The link entity which will spin
   public: ignition::gazebo::Entity linkEntity;
 
-  /// \brief Axis along which the propeller spins
+  /// \brief Axis along which the propeller spins. Expressed in the joint
+  /// frame. Addume this doesn't change during simulation.
   public: ignition::math::Vector3d jointAxis;
+
+  /// \brief Joint pose in the child link frame. Assume this doesn't change
+  /// during the simulation.
+  public: math::Pose3d jointPose;
+
+  /// \brief Propeller koint entity
+  public: ignition::gazebo::Entity jointEntity;
 
   /// \brief ignition node for handling transport
   public: ignition::transport::Node node;
 
-  /// \brief The PID which controls the rpm
-  public: ignition::math::PID rpmController;
+  /// \brief The PID which controls the propeller. This isn't used if
+  /// velocityControl is true.
+  public: ignition::math::PID propellerController;
 
-  /// \brief maximum input force [N], default: 1000N
+  /// \brief Velocity Control mode - this disables the propellerController
+  /// and writes the angular velocity directly to the joint. default: false
+  public: bool velocityControl = false;
+
+  /// \brief Maximum input force [N] for the propellerController, default: 1000N
+  /// TODO(chapulina) Make it configurable from SDF.
   public: double cmdMax = 1000;
 
-  /// \brief minimum input force [N], default: 1000N
+  /// \brief Minimum input force [N] for the propellerController, default: 1000N
+  /// TODO(chapulina) Make it configurable from SDF.
   public: double cmdMin = -1000;
 
-  /// \brief Thrust coefficient relating the
-  /// propeller rpm to the thrust
+  /// \brief Thrust coefficient relating the propeller angular velocity to the
+  /// thrust
   public: double thrustCoefficient = 1;
 
   /// \brief Density of fluid in kgm^-3, default: 1000kgm^-3
@@ -81,19 +100,17 @@ class ignition::gazebo::systems::ThrusterPrivateData
   /// \brief callback for handling thrust update
   public: void OnCmdThrust(const ignition::msgs::Double &_msg);
 
-  /// \brief function which computes rpm from thrust
-  public: double ThrustToAngularVec(double thrust);
+  /// \brief function which computes angular velocity from thrust
+  /// \param[in] _thrust Thrust in N
+  /// \return Angular velocity in rad/s
+  public: double ThrustToAngularVec(double _thrust);
 };
 
 /////////////////////////////////////////////////
-Thruster::Thruster()
+Thruster::Thruster():
+  dataPtr(std::make_unique<ThrusterPrivateData>())
 {
-  this->dataPtr = std::make_unique<ThrusterPrivateData>();
-}
-
-/////////////////////////////////////////////////
-Thruster::~Thruster()
-{
+  // do nothing
 }
 
 /////////////////////////////////////////////////
@@ -103,8 +120,12 @@ void Thruster::Configure(
   ignition::gazebo::EntityComponentManager &_ecm,
   ignition::gazebo::EventManager &/*_eventMgr*/)
 {
+  // Create model object, to access convenient functions
+  auto model = ignition::gazebo::Model(_entity);
+  auto modelName = model.Name(_ecm);
+
   // Get namespace
-  std::string ns {""};
+  std::string ns = modelName;
   if (_sdf->HasElement("namespace"))
   {
     ns = _sdf->Get<std::string>("namespace");
@@ -113,102 +134,123 @@ void Thruster::Configure(
   // Get joint name
   if (!_sdf->HasElement("joint_name"))
   {
-    ignerr << "No joint to treat as propeller found \n";
+    ignerr << "Missing <joint_name>. Plugin won't be initialized."
+           << std::endl;
     return;
   }
   auto jointName = _sdf->Get<std::string>("joint_name");
 
   // Get thrust coefficient
-  if (!_sdf->HasElement("thrust_coefficient"))
+  if (_sdf->HasElement("thrust_coefficient"))
   {
-    ignerr << "Failed to get thrust_coefficient" << "\n";
-    return;
+    this->dataPtr->thrustCoefficient = _sdf->Get<double>("thrust_coefficient");
   }
-  this->dataPtr->thrustCoefficient = _sdf->Get<double>("thrust_coefficient");
 
   // Get propeller diameter
-  if (!_sdf->HasElement("propeller_diameter"))
+  if (_sdf->HasElement("propeller_diameter"))
   {
-    ignerr << "Failed to get propeller_diameter \n";
+    this->dataPtr->propellerDiameter = _sdf->Get<double>("propeller_diameter");
   }
-  this->dataPtr->propellerDiameter = _sdf->Get<double>("propeller_diameter");
 
   // Get fluid density, default to water otherwise
   if (_sdf->HasElement("fluid_density"))
   {
     this->dataPtr->fluidDensity = _sdf->Get<double>("fluid_density");
   }
-  igndbg << "Setting fluid density to: " << this->dataPtr->fluidDensity << "\n";
 
-  // Create model object, to access convenient functions
-  auto model = ignition::gazebo::Model(_entity);
-
-  auto jointEntity = model.JointByName(_ecm, jointName);
-  auto childLink =
-    _ecm.Component<ignition::gazebo::components::ChildLinkName>(jointEntity);
+  this->dataPtr->jointEntity = model.JointByName(_ecm, jointName);
+  if (kNullEntity == this->dataPtr->jointEntity)
+  {
+    ignerr << "Failed to find joint [" << jointName << "] in model ["
+           << modelName << "]. Plugin not initialized." << std::endl;
+    return;
+  }
 
   this->dataPtr->jointAxis =
-    _ecm.Component<ignition::gazebo::components::JointAxis>(jointEntity)
-      ->Data().Xyz();
+    _ecm.Component<ignition::gazebo::components::JointAxis>(
+    this->dataPtr->jointEntity)->Data().Xyz();
 
-  std::string thrusterTopic = ignition::transport::TopicUtils::AsValidTopic(
+  this->dataPtr->jointPose = _ecm.Component<components::Pose>(
+      this->dataPtr->jointEntity)->Data();
+
+  // Keeping cmd_pos for backwards compatibility
+  // TODO(chapulina) Deprecate cmd_pos, because the commands aren't positions
+  std::string thrusterTopicOld = ignition::transport::TopicUtils::AsValidTopic(
     "/model/" + ns + "/joint/" + jointName + "/cmd_pos");
+
+  this->dataPtr->node.Subscribe(
+    thrusterTopicOld,
+    &ThrusterPrivateData::OnCmdThrust,
+    this->dataPtr.get());
+
+  // Subscribe to force commands
+  std::string thrusterTopic = ignition::transport::TopicUtils::AsValidTopic(
+    "/model/" + ns + "/joint/" + jointName + "/cmd_thrust");
 
   this->dataPtr->node.Subscribe(
     thrusterTopic,
     &ThrusterPrivateData::OnCmdThrust,
     this->dataPtr.get());
 
+  ignmsg << "Thruster listening to commands in [" << thrusterTopic << "]"
+         << std::endl;
+
   // Get link entity
+  auto childLink =
+      _ecm.Component<ignition::gazebo::components::ChildLinkName>(
+      this->dataPtr->jointEntity);
   this->dataPtr->linkEntity = model.LinkByName(_ecm, childLink->Data());
 
-  // Create an angular velocity component if one is not present.
-  if (!_ecm.Component<ignition::gazebo::components::AngularVelocity>(
-      this->dataPtr->linkEntity))
+  // Create necessary components if not present.
+  enableComponent<components::AngularVelocity>(_ecm, this->dataPtr->linkEntity);
+  enableComponent<components::WorldAngularVelocity>(_ecm,
+      this->dataPtr->linkEntity);
+
+  if (_sdf->HasElement("velocity_control"))
   {
-    _ecm.CreateComponent(this->dataPtr->linkEntity,
-      ignition::gazebo::components::AngularVelocity());
+    this->dataPtr->velocityControl = _sdf->Get<bool>("velocity_control");
   }
 
-    // Create an angular velocity component if one is not present.
-  if (!_ecm.Component<ignition::gazebo::components::WorldAngularVelocity>(
-      this->dataPtr->linkEntity))
+  if (!this->dataPtr->velocityControl)
   {
-    _ecm.CreateComponent(this->dataPtr->linkEntity,
-      ignition::gazebo::components::WorldAngularVelocity());
-  }
+    igndbg << "Using PID controller for propeller joint." << std::endl;
 
-  double p         =  0.1;
-  double i         =  0;
-  double d         =  0;
-  double iMax      =  1;
-  double iMin      = -1;
-  double cmdMax    = this->dataPtr->ThrustToAngularVec(this->dataPtr->cmdMax);
-  double cmdMin    = this->dataPtr->ThrustToAngularVec(this->dataPtr->cmdMin);
-  double cmdOffset =  0;
+    double p         =  0.1;
+    double i         =  0;
+    double d         =  0;
+    double iMax      =  1;
+    double iMin      = -1;
+    double cmdMax    = this->dataPtr->ThrustToAngularVec(this->dataPtr->cmdMax);
+    double cmdMin    = this->dataPtr->ThrustToAngularVec(this->dataPtr->cmdMin);
+    double cmdOffset =  0;
 
-  if (_sdf->HasElement("p_gain"))
-  {
-    p = _sdf->Get<double>("p_gain");
-  }
-  if (!_sdf->HasElement("i_gain"))
-  {
-    i = _sdf->Get<double>("i_gain");
-  }
-  if (!_sdf->HasElement("d_gain"))
-  {
-    d = _sdf->Get<double>("d_gain");
-  }
+    if (_sdf->HasElement("p_gain"))
+    {
+      p = _sdf->Get<double>("p_gain");
+    }
+    if (!_sdf->HasElement("i_gain"))
+    {
+      i = _sdf->Get<double>("i_gain");
+    }
+    if (!_sdf->HasElement("d_gain"))
+    {
+      d = _sdf->Get<double>("d_gain");
+    }
 
-  this->dataPtr->rpmController.Init(
-    p,
-    i,
-    d,
-    iMax,
-    iMin,
-    cmdMax,
-    cmdMin,
-    cmdOffset);
+    this->dataPtr->propellerController.Init(
+      p,
+      i,
+      d,
+      iMax,
+      iMin,
+      cmdMax,
+      cmdMin,
+      cmdOffset);
+  }
+  else
+  {
+    igndbg << "Using velocity control for propeller joint." << std::endl;
+  }
 }
 
 /////////////////////////////////////////////////
@@ -217,6 +259,10 @@ void ThrusterPrivateData::OnCmdThrust(const ignition::msgs::Double &_msg)
   std::lock_guard<std::mutex> lock(mtx);
   this->thrust = ignition::math::clamp(ignition::math::fixnan(_msg.data()),
     this->cmdMin, this->cmdMax);
+
+  // Thrust is proportional to the Rotation Rate squared
+  // See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 246
+  this->propellerAngVel = this->ThrustToAngularVec(this->thrust);
 }
 
 /////////////////////////////////////////////////
@@ -247,27 +293,54 @@ void Thruster::PreUpdate(
   auto pose = worldPose(this->dataPtr->linkEntity, _ecm);
 
   // TODO(arjo129): add logic for custom coordinate frame
-  auto unitVector = pose.Rot().RotateVector(
-    this->dataPtr->jointAxis.Normalize());
+  // Convert joint axis to the world frame
+  const auto linkWorldPose = worldPose(this->dataPtr->linkEntity, _ecm);
+  auto jointWorldPose = linkWorldPose * this->dataPtr->jointPose;
+  auto unitVector =
+      jointWorldPose.Rot().RotateVector(this->dataPtr->jointAxis).Normalize();
 
   double desiredThrust;
+  double desiredPropellerAngVel;
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->mtx);
     desiredThrust = this->dataPtr->thrust;
+    desiredPropellerAngVel = this->dataPtr->propellerAngVel;
   }
-  // Thrust is proportional to the Rotation Rate squared
-  // See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 246
-  auto desiredPropellerAngVel =
-      this->dataPtr->ThrustToAngularVec(desiredThrust);
-  auto currentAngular = (link.WorldAngularVelocity(_ecm))->Dot(unitVector);
-  auto angularError = currentAngular - desiredPropellerAngVel;
-  double torque = 0.0;
-  if (abs(angularError) > 0.1)
-    torque = this->dataPtr->rpmController.Update(angularError, _info.dt);
 
+  // PID control
+  double torque = 0.0;
+  if (!this->dataPtr->velocityControl)
+  {
+    auto currentAngular = (link.WorldAngularVelocity(_ecm))->Dot(unitVector);
+    auto angularError = currentAngular - desiredPropellerAngVel;
+    if (abs(angularError) > 0.1)
+    {
+      torque = this->dataPtr->propellerController.Update(angularError,
+          _info.dt);
+    }
+  }
+  // Velocity control
+  else
+  {
+    auto velocityComp =
+    _ecm.Component<ignition::gazebo::components::JointVelocityCmd>(
+      this->dataPtr->jointEntity);
+    if (velocityComp == nullptr)
+    {
+      _ecm.CreateComponent(this->dataPtr->jointEntity,
+        components::JointVelocityCmd({desiredPropellerAngVel}));
+    }
+    else
+    {
+      velocityComp->Data()[0] = desiredPropellerAngVel;
+    }
+  }
+
+  // Force: thrust
+  // Torque: propeller rotation, if using PID
   link.AddWorldWrench(
     _ecm,
-    unitVector * this->dataPtr->thrust,
+    unitVector * desiredThrust,
     unitVector * torque);
 }
 
@@ -277,3 +350,4 @@ IGNITION_ADD_PLUGIN(
   Thruster::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(Thruster, "ignition::gazebo::systems::Thruster")
+
