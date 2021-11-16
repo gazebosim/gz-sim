@@ -1,0 +1,349 @@
+<?xml version="1.0" ?>
+<sdf version="1.7">
+    <world name="default">
+        <!--
+            A demo world for conveyor belt using the TrackController system.
+
+            Drive the belt by keyboard using W/S/X or by publishing Double message to
+            /model/conveyor/link/base_link/track_cmd_vel .
+
+            The interesting part with plugin definition starts around line 146.
+        -->
+        <physics name="4ms" type="ignored">
+            <max_step_size>0.004</max_step_size>
+            <real_time_factor>1.0</real_time_factor>
+        </physics>
+        <plugin
+                filename="ignition-gazebo-physics-system"
+                name="ignition::gazebo::systems::Physics">
+        </plugin>
+        <plugin
+                filename="ignition-gazebo-user-commands-system"
+                name="ignition::gazebo::systems::UserCommands">
+        </plugin>
+        <plugin
+                filename="ignition-gazebo-scene-broadcaster-system"
+                name="ignition::gazebo::systems::SceneBroadcaster">
+        </plugin>
+
+        <scene>
+            <ambient>1.0 1.0 1.0</ambient>
+            <background>0.8 0.8 0.8</background>
+        </scene>
+
+        <light type="directional" name="sun">
+            <cast_shadows>true</cast_shadows>
+            <pose>0 0 10 0 0 0</pose>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+            <attenuation>
+                <range>1000</range>
+                <constant>0.9</constant>
+                <linear>0.01</linear>
+                <quadratic>0.001</quadratic>
+            </attenuation>
+            <direction>-0.5 0.1 -0.9</direction>
+        </light>
+
+        <model name="conveyor">
+<!--            <pose>0 0 0 0 0 -1.0</pose>-->
+            <static>1</static>
+            <link name='base_link'>
+                <pose relative_to='__model__'>0 0 0 0 0 0</pose>
+                <inertial>
+                    <mass>6.06</mass>
+                    <inertia>
+                        <ixx>0.002731</ixx>
+                        <ixy>0</ixy>
+                        <ixz>0</ixz>
+                        <iyy>0.032554</iyy>
+                        <iyz>1.5e-05</iyz>
+                        <izz>0.031391</izz>
+                    </inertia>
+                </inertial>
+                <collision name='main_collision'>
+                    <pose relative_to='base_link'>0 0 0 0 0 0</pose>
+                    <geometry>
+                        <box>
+                            <size>5 0.2 0.1</size>
+                        </box>
+                    </geometry>
+                    <surface>
+                        <friction>
+                            <ode>
+                                <mu>0.7</mu>
+                                <mu2>150</mu2>
+                                <fdir1>0 1 0</fdir1>
+                            </ode>
+                        </friction>
+                    </surface>
+                </collision>
+                <collision name='collision_1'>
+                    <pose relative_to='base_link'>2.5 0 0 -1.570796327 0 0</pose>
+                    <geometry>
+                        <cylinder>
+                            <length>0.2</length>
+                            <radius>0.05</radius>
+                        </cylinder>
+                    </geometry>
+                    <surface>
+                        <friction>
+                            <ode>
+                                <mu>0.7</mu>
+                                <mu2>150</mu2>
+                                <fdir1>0 1 0</fdir1>
+                            </ode>
+                        </friction>
+                    </surface>
+                </collision>
+                <collision name='collision_2'>
+                    <pose relative_to='base_link'>-2.5 0 0 -1.570796327 0 0</pose>
+                    <geometry>
+                        <cylinder>
+                            <length>0.2</length>
+                            <radius>0.05</radius>
+                        </cylinder>
+                    </geometry>
+                    <surface>
+                        <friction>
+                            <ode>
+                                <mu>0.7</mu>
+                                <mu2>150</mu2>
+                                <fdir1>0 1 0</fdir1>
+                            </ode>
+                        </friction>
+                    </surface>
+                </collision>
+                <visual name='main_visual'>
+                    <pose relative_to='base_link'>0 0 0 0 0 0</pose>
+                    <geometry>
+                        <box>
+                            <size>5 0.2 0.1</size>
+                        </box>
+                    </geometry>
+                </visual>
+                <visual name='visual_1'>
+                    <pose relative_to='base_link'>2.5 0 0 -1.570796327 0 0</pose>
+                    <geometry>
+                        <cylinder>
+                            <length>0.2</length>
+                            <radius>0.05</radius>
+                        </cylinder>
+                    </geometry>
+                </visual>
+                <visual name='visual_2'>
+                    <pose relative_to='base_link'>-2.5 0 0 -1.570796327 0 0</pose>
+                    <geometry>
+                        <cylinder>
+                            <length>0.2</length>
+                            <radius>0.05</radius>
+                        </cylinder>
+                    </geometry>
+                </visual>
+                <gravity>1</gravity>
+                <kinematic>0</kinematic>
+            </link>
+
+            <plugin filename="libignition-gazebo-track-controller-system.so"
+                    name="ignition::gazebo::systems::TrackController">
+                <link>base_link</link>
+                <!--debug>true</debug-->
+            </plugin>
+
+            <!-- Moving Forward: W -->
+            <plugin filename="libignition-gazebo-triggered-publisher-system.so"
+                    name="ignition::gazebo::systems::TriggeredPublisher">
+                <input type="ignition.msgs.Int32" topic="/keyboard/keypress">
+                    <match field="data">87</match>
+                </input>
+                <output type="ignition.msgs.Double" topic="/model/conveyor/link/base_link/track_cmd_vel">
+                    data: 10.0
+                </output>
+            </plugin>
+
+            <!-- Moving Backward: X -->
+            <plugin filename="libignition-gazebo-triggered-publisher-system.so"
+                    name="ignition::gazebo::systems::TriggeredPublisher">
+                <input type="ignition.msgs.Int32" topic="/keyboard/keypress">
+                    <match field="data">88</match>
+                </input>
+                <output type="ignition.msgs.Double" topic="/model/conveyor/link/base_link/track_cmd_vel">
+                    data: -1.0
+                </output>
+            </plugin>
+
+            <!-- Stop: S -->
+            <plugin filename="libignition-gazebo-triggered-publisher-system.so"
+                    name="ignition::gazebo::systems::TriggeredPublisher">
+                <input type="ignition.msgs.Int32" topic="/keyboard/keypress">
+                    <match field="data">83</match>
+                </input>
+                <output type="ignition.msgs.Double" topic="/model/conveyor/link/base_link/track_cmd_vel">
+                    data: 0.0
+                </output>
+            </plugin>
+        </model>
+
+        <model name='box'>
+            <pose frame=''>0 0 1 0 0 0</pose>
+            <link name='base_link'>
+                <inertial>
+                    <mass>1.06</mass>
+                    <inertia>
+                        <ixx>0.01</ixx>
+                        <ixy>0</ixy>
+                        <ixz>0</ixz>
+                        <iyy>0.01</iyy>
+                        <iyz>0</iyz>
+                        <izz>0.01</izz>
+                    </inertia>
+                </inertial>
+                <visual name='main_visual'>
+                    <pose relative_to='base_link'>0 0 0 0 0 0</pose>
+                    <geometry>
+                        <box>
+                            <size>0.1 0.1 0.1</size>
+                        </box>
+                    </geometry>
+                    <material>
+                        <ambient>1 1 1 1</ambient>
+                    </material>
+                </visual>
+                <collision name='main_collision'>
+                    <geometry>
+                        <box>
+                            <size>0.1 0.1 0.1</size>
+                        </box>
+                    </geometry>
+                    <pose relative_to='base_link'>0 0 0 0 0 0</pose>
+                </collision>
+            </link>
+        </model>
+
+        <gui fullscreen="0">
+            <!-- 3D scene -->
+            <plugin filename="GzScene3D" name="3D View">
+                <ignition-gui>
+                    <title>3D View</title>
+                    <property type="bool" key="showTitleBar">false</property>
+                    <property type="string" key="state">docked</property>
+                </ignition-gui>
+
+                <engine>ogre2</engine>
+                <scene>scene</scene>
+                <ambient_light>0.4 0.4 0.4</ambient_light>
+                <background_color>0.8 0.8 0.8</background_color>
+                <camera_pose>-6 0 6 0 0.5 0</camera_pose>
+            </plugin>
+
+            <!-- World control -->
+            <plugin filename="WorldControl" name="World control">
+                <ignition-gui>
+                    <title>World control</title>
+                    <property type="bool" key="showTitleBar">false</property>
+                    <property type="bool" key="resizable">false</property>
+                    <property type="double" key="height">72</property>
+                    <property type="double" key="width">121</property>
+                    <property type="double" key="z">1</property>
+
+                    <property type="string" key="state">floating</property>
+                    <anchors target="3D View">
+                        <line own="left" target="left"/>
+                        <line own="bottom" target="bottom"/>
+                    </anchors>
+                </ignition-gui>
+
+                <play_pause>true</play_pause>
+                <step>true</step>
+                <start_paused>true</start_paused>
+
+            </plugin>
+
+            <!-- World statistics -->
+            <plugin filename="WorldStats" name="World stats">
+                <ignition-gui>
+                    <title>World stats</title>
+                    <property type="bool" key="showTitleBar">false</property>
+                    <property type="bool" key="resizable">false</property>
+                    <property type="double" key="height">110</property>
+                    <property type="double" key="width">290</property>
+                    <property type="double" key="z">1</property>
+
+                    <property type="string" key="state">floating</property>
+                    <anchors target="3D View">
+                        <line own="right" target="right"/>
+                        <line own="bottom" target="bottom"/>
+                    </anchors>
+                </ignition-gui>
+
+                <sim_time>true</sim_time>
+                <real_time>true</real_time>
+                <real_time_factor>true</real_time_factor>
+                <iterations>true</iterations>
+            </plugin>
+
+            <!-- Translate / rotate -->
+            <plugin filename="TransformControl" name="Transform control">
+                <ignition-gui>
+                    <title>Transform control</title>
+                    <anchors target="3D View">
+                        <line own="left" target="left"/>
+                        <line own="top" target="top"/>
+                    </anchors>
+                    <property key="resizable" type="bool">false</property>
+                    <property key="width" type="double">230</property>
+                    <property key="height" type="double">50</property>
+                    <property key="state" type="string">floating</property>
+                    <property key="showTitleBar" type="bool">false</property>
+                    <property key="cardBackground" type="string">#666666</property>
+                </ignition-gui>
+            </plugin>
+
+            <!-- Insert simple shapes -->
+            <plugin filename="Shapes" name="Shapes">
+                <ignition-gui>
+                    <anchors target="Transform control">
+                        <line own="left" target="right"/>
+                        <line own="top" target="top"/>
+                    </anchors>
+                    <property key="resizable" type="bool">false</property>
+                    <property key="width" type="double">200</property>
+                    <property key="height" type="double">50</property>
+                    <property key="state" type="string">floating</property>
+                    <property key="showTitleBar" type="bool">false</property>
+                    <property key="cardBackground" type="string">#666666</property>
+                </ignition-gui>
+            </plugin>
+
+            <plugin filename="KeyPublisher" name="Key publisher">
+                <ignition-gui>
+                    <anchors target="3D View">
+                        <line own="right" target="right"/>
+                        <line own="top" target="top"/>
+                    </anchors>
+                    <property key="resizable" type="bool">false</property>
+                    <property key="width" type="double">5</property>
+                    <property key="height" type="double">5</property>
+                    <property key="state" type="string">floating</property>
+                    <property key="showTitleBar" type="bool">false</property>
+                </ignition-gui>
+            </plugin>
+
+            <plugin filename="VisualizeContacts" name="Visualize Contacts">
+                <ignition-gui>
+                    <title>Visualize Contacts</title>
+                    <anchors target="3D View">
+                        <line own="right" target="right"/>
+                        <line own="top" target="top"/>
+                    </anchors>
+                    <property key="resizable" type="bool">false</property>
+                    <property key="width" type="double">230</property>
+                    <property key="height" type="double">50</property>
+                    <property key="state" type="string">floating</property>
+                    <property key="showTitleBar" type="bool">false</property>
+                    <property key="cardBackground" type="string">#ffffff</property>
+                </ignition-gui>
+            </plugin>
+        </gui>
+    </world>
+</sdf>
