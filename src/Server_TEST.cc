@@ -210,7 +210,8 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigRealPlugin))
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigSensorPlugin))
+TEST_P(ServerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigSensorPlugin))
 {
   // Start server
   ServerConfig serverConfig;
