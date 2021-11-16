@@ -133,7 +133,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 
         Link link(wrenchMsg.entity().id());
 
-        double scale = 10;
+        double scale = 1;
 
         if (link.WorldInertialPose(_ecm).has_value() && std::abs(_force.Length()) > 1e-5)
         {
