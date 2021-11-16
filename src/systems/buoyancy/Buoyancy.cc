@@ -441,11 +441,7 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     {
       auto newPose = enableComponent<components::Inertial>(_ecm, _entity);
       newPose |= enableComponent<components::WorldPose>(_ecm, _entity);
-      if (newPose)
-      {
-        // Skip entity if WorldPose and inertial are not yet ready
-        return true;
-      }
+      
 
       // World pose of the link.
       math::Pose3d linkWorldPose = worldPose(_entity, _ecm);
@@ -477,6 +473,13 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       else if (this->dataPtr->buoyancyType
         == BuoyancyPrivate::BuoyancyType::GRADED_BUOYANCY)
       {
+        if (newPose)
+        {
+          // Skip entity if WorldPose and inertial are not yet ready
+          // TODO(arjo): Find a way of disabling gravity effects for
+          // this first iteration.
+          return true;
+        }
         std::vector<Entity> collisions = _ecm.ChildrenByComponents(
           _entity, components::Collision());
         this->dataPtr->buoyancyForces.clear();
@@ -521,12 +524,13 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
             }
           }
         }
-      }
-      auto [force, torque] = this->dataPtr->ResolveForces(
+        auto [force, torque] = this->dataPtr->ResolveForces(
         link.WorldInertialPose(_ecm).value());
-      // Apply the wrench to the link. This wrench is applied in the
-      // Physics System.
-      link.AddWorldWrench(_ecm, force, torque);
+        // Apply the wrench to the link. This wrench is applied in the
+        // Physics System.
+        link.AddWorldWrench(_ecm, force, torque);
+      }
+      
       return true;
   });
 }
