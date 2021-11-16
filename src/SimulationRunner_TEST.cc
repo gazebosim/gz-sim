@@ -1183,7 +1183,7 @@ TEST_P(SimulationRunnerTest, Time)
 
 /////////////////////////////////////////////////
 // See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
-TEST_P(SimulationRunnerTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadPlugins))
+TEST_P(SimulationRunnerTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadPlugins) )
 {
   // Load SDF file
   sdf::Root root;
@@ -1271,7 +1271,7 @@ TEST_P(SimulationRunnerTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadPlugins))
 
 /////////////////////////////////////////////////
 TEST_P(SimulationRunnerTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadServerNoPlugins))
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadServerNoPlugins) )
 {
   sdf::Root rootWithout;
   rootWithout.Load(common::joinPaths(PROJECT_SOURCE_PATH,
@@ -1294,7 +1294,7 @@ TEST_P(SimulationRunnerTest,
 
 /////////////////////////////////////////////////
 TEST_P(SimulationRunnerTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadServerConfigPlugins))
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadServerConfigPlugins) )
 {
   sdf::Root rootWithout;
   rootWithout.Load(common::joinPaths(PROJECT_SOURCE_PATH,
@@ -1395,7 +1395,7 @@ TEST_P(SimulationRunnerTest,
 
 /////////////////////////////////////////////////
 TEST_P(SimulationRunnerTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadPluginsDefault))
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadPluginsDefault) )
 {
   sdf::Root rootWithout;
   rootWithout.Load(common::joinPaths(PROJECT_SOURCE_PATH,
@@ -1416,7 +1416,8 @@ TEST_P(SimulationRunnerTest,
 }
 
 /////////////////////////////////////////////////
-TEST_P(SimulationRunnerTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadPluginsEvent))
+TEST_P(SimulationRunnerTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadPluginsEvent) )
 {
   // Load SDF file without plugins
   sdf::Root rootWithout;
