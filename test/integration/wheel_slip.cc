@@ -23,6 +23,7 @@
 #include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include <sdf/Sphere.hh>
 #include <sdf/Cylinder.hh>

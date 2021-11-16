@@ -19,6 +19,7 @@
 #include <sdf/sdf.hh>
 #include <ignition/common/Filesystem.hh>
 #include <ignition/fuel_tools.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 

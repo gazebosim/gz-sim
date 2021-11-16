@@ -26,6 +26,7 @@
 #endif
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 #include <sdf/Collision.hh>
 #include <sdf/Cylinder.hh>
 #include <sdf/Geometry.hh>

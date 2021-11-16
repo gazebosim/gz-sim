@@ -29,6 +29,7 @@
 #include <ignition/physics/RemoveEntities.hh>
 #include <ignition/physics/config.hh>
 #include <ignition/plugin/Loader.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "../../../test/helpers/EnvTestFixture.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"

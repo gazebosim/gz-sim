@@ -19,6 +19,8 @@
 #include <chrono>
 #include <condition_variable>
 
+#include <ignition/utilities/ExtraTestMacros.hh>
+
 #include "ignition/msgs/world_control.pb.h"
 #include "ignition/msgs/world_stats.pb.h"
 #include "ignition/transport/Node.hh"

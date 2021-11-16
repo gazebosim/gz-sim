@@ -23,6 +23,7 @@
 
 #include <ignition/math/Color.hh>
 #include <ignition/msgs/Utility.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/Server.hh"

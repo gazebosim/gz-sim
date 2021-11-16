@@ -22,6 +22,7 @@
 #include <ignition/common/Util.hh>
 #include <ignition/common/Filesystem.hh>
 #include <ignition/math/SemanticVersion.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
