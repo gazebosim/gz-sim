@@ -27,39 +27,41 @@ using namespace gui;
 /////////////////////////////////////////////////
 TEST(GuiEventsTest, GuiNewRemovedEntities)
 {
-  events::GuiNewRemovedEntities event({1, 2, 3}, {4, 5, 6});
+  events::GuiNewRemovedEntities event({1, 2, 3}, {4, 5});
 
   EXPECT_LT(QEvent::User, event.type());
 
   auto addedEntities = event.NewEntities();
+  EXPECT_EQ(3u, addedEntities.size());
   EXPECT_NE(addedEntities.find(1), addedEntities.end());
   EXPECT_NE(addedEntities.find(2), addedEntities.end());
   EXPECT_NE(addedEntities.find(3), addedEntities.end());
   EXPECT_EQ(addedEntities.find(100), addedEntities.end());
 
   auto removedEntities = event.RemovedEntities();
+  EXPECT_EQ(2u, removedEntities.size());
   EXPECT_NE(removedEntities.find(4), removedEntities.end());
   EXPECT_NE(removedEntities.find(5), removedEntities.end());
-  EXPECT_NE(removedEntities.find(6), removedEntities.end());
-  EXPECT_EQ(removedEntities.find(7), removedEntities.end());
+  EXPECT_EQ(removedEntities.find(6), removedEntities.end());
 }
 
 /////////////////////////////////////////////////
 TEST(GuiEventsTest, NewRemovedEntities)
 {
-  events::NewRemovedEntities event({1, 2, 3}, {4, 5, 6});
+  events::NewRemovedEntities event({1, 2, 3}, {4, 5});
 
   EXPECT_LT(QEvent::User, event.type());
 
   auto addedEntities = event.NewEntities();
+  EXPECT_EQ(3u, addedEntities.size());
   EXPECT_NE(addedEntities.find(1), addedEntities.end());
   EXPECT_NE(addedEntities.find(2), addedEntities.end());
   EXPECT_NE(addedEntities.find(3), addedEntities.end());
   EXPECT_EQ(addedEntities.find(100), addedEntities.end());
 
   auto removedEntities = event.RemovedEntities();
+  EXPECT_EQ(2u, removedEntities.size());
   EXPECT_NE(removedEntities.find(4), removedEntities.end());
   EXPECT_NE(removedEntities.find(5), removedEntities.end());
-  EXPECT_NE(removedEntities.find(6), removedEntities.end());
-  EXPECT_EQ(removedEntities.find(7), removedEntities.end());
+  EXPECT_EQ(removedEntities.find(6), removedEntities.end());
 }
