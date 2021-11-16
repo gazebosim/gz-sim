@@ -102,7 +102,7 @@ namespace events
     private: bool fromUser{false};
   };
 
-  /// \brief Event that contains entities newly created and removed from the
+  /// \brief Event that contains entities newly created or removed from the
   /// GUI, but that aren't present on the server yet.
   /// \sa NewRemovedEntities
   class IGNITION_GAZEBO_GUI_VISIBLE GuiNewRemovedEntities : public QEvent
@@ -127,7 +127,7 @@ namespace events
     IGN_UTILS_IMPL_PTR(dataPtr)
   };
 
-  /// \brief Event that notifies when new entities have been created and removed
+  /// \brief Event that notifies when new entities have been created or removed
   /// on the server. This is a duplication of what `GuiSystem`s would get from
   /// `EachNew` / `EachRemoved` ECM calls.
   /// \sa GuiNewRemovedEntities
