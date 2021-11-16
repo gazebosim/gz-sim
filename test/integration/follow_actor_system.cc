@@ -85,7 +85,8 @@ class Relay
 
 /////////////////////////////////////////////////
 // See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
-TEST_P(FollowActorTest, IGN_UTILS_TEST_ENABLE_ONLY_LINUX(PublishCmd))
+TEST_P(FollowActorTest,
+       IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PublishCmd))
 {
   // Start server
   ServerConfig serverConfig;
