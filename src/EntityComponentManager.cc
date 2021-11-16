@@ -526,7 +526,7 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
 
     const auto &parentName =
       this->Component<components::ParentLinkName>(_entity);
-    if (parentName)
+    if (parentName && origParentComp)
     {
       originalParentLink =
         this->EntityByComponents<components::Name, components::ParentEntity>(
@@ -535,7 +535,7 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
     }
 
     const auto &childName = this->Component<components::ChildLinkName>(_entity);
-    if (childName)
+    if (childName && origParentComp)
     {
       originalChildLink =
         this->EntityByComponents<components::Name, components::ParentEntity>(
