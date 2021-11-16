@@ -46,6 +46,9 @@ class IGNITION_GAZEBO_GUI_VISIBLE GuiRunner : public QObject
   /// \brief Destructor
   public: ~GuiRunner() override;
 
+  // Documentation inherited
+  protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
+
   /// \brief Callback when a plugin has been added.
   /// This function has no effect and is left here for ABI compatibility.
   /// \param[in] _objectName Plugin's object name.

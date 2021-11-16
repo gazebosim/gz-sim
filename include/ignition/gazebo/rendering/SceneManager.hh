@@ -21,6 +21,8 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include <sdf/Geometry.hh>
 #include <sdf/Actor.hh>
@@ -126,6 +128,30 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Link visual created from the sdf dom
     public: rendering::VisualPtr CreateLink(Entity _id,
         const sdf::Link &_link, Entity _parentId = 0);
+
+    /// \brief Filter a node and its children according to specific criteria.
+    /// \param[in] _node The name of the node where filtering should start.
+    /// \param[in] _filter Callback function that defines how _node and its
+    /// children should be filtered. The function parameter is a node. The
+    /// callback returns true if the node should be filtered; false otherwise.
+    /// \return A list of filtered nodes in top level order. This list can
+    /// contain _node itself, or child nodes of _node. An empty list means no
+    /// nodes were filtered.
+    public: std::vector<rendering::NodePtr> Filter(const std::string &_node,
+                std::function<bool(
+                  const rendering::NodePtr _nodeToFilter)> _filter) const;
+
+    /// \brief Copy a visual that currently exists in the scene
+    /// \param[in] _id Unique visual id of the copied visual
+    /// \param[in] _visual Name of the visual to copy
+    /// \param[in] _parentId Parent id of the copied visual
+    /// \return A pair with the first element being the copied visual object,
+    /// and the second element being a list of the entity IDs for the copied
+    /// visual's children, in level order. If copying the visual failed, the
+    /// first element will be nullptr. If the copied visual has no children, the
+    /// second element will be empty.
+    public: std::pair<rendering::VisualPtr, std::vector<Entity>> CopyVisual(
+                Entity _id, const std::string &_visual, Entity _parentId = 0);
 
     /// \brief Create a visual
     /// \param[in] _id Unique visual id
@@ -315,6 +341,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// according to its child.
     /// \param[in] _jointId Joint visual id.
     public: void UpdateJointParentPose(Entity _jointId);
+
+    /// \brief Create a unique entity ID
+    /// \return A unique entity ID. kNullEntity is returned if no unique entity
+    /// IDs are available
+    public: Entity UniqueId() const;
 
     /// \internal
     /// \brief Pointer to private data class

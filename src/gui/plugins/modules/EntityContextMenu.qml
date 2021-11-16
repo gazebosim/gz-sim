@@ -37,6 +37,18 @@ Item {
       text: "Remove"
       onTriggered: context.OnRemove(context.entity, context.type)
     }
+    MenuItem {
+      id: copyMenu
+      text: "Copy"
+      onTriggered: context.OnRequest("copy", context.entity)
+    }
+    MenuItem {
+      id: pasteMenu
+      text: "Paste"
+      // no data needs to be passed along to the paste request, so an empty
+      // string is sent
+      onTriggered: context.OnRequest("paste", "")
+    }
     //   // cascading submenu only works in Qt 5.10+ on focal
     //   Menu {
     //     id: viewSubmenu

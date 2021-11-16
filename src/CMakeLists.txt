@@ -52,6 +52,7 @@ set (sources
   LevelManager.cc
   Link.cc
   Model.cc
+  Primitives.cc
   SdfEntityCreator.cc
   SdfGenerator.cc
   Server.cc
@@ -78,6 +79,7 @@ set (gtest_sources
   EventManager_TEST.cc
   Link_TEST.cc
   Model_TEST.cc
+  Primitives_TEST.cc
   SdfEntityCreator_TEST.cc
   SdfGenerator_TEST.cc
   ServerConfig_TEST.cc

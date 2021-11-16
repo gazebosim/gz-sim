@@ -20,6 +20,7 @@
 
 #include <memory>
 #include <set>
+#include <string>
 #include <ignition/gazebo/Model.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/gazebo/System.hh>
@@ -82,6 +83,9 @@ namespace systems
 
     /// \brief The joints that will be published.
     private: std::set<Entity> joints;
+
+    /// \brief The topic
+    private: std::string topic;
   };
   }
 }
