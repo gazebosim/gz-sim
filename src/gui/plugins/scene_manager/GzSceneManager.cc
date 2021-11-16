@@ -17,7 +17,7 @@
 
 #include "GzSceneManager.hh"
 
-#include <vector>
+#include <set>
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/gui/Application.hh>
