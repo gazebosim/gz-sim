@@ -125,7 +125,7 @@ namespace sdf_generator
   /// Intended for internal use.
   /// \input[in, out] _elem sdf::Element to update
   /// \input[in] _ecm Immutable reference to the Entity Component Manager
-  /// \input[in] _entity Sensor entity
+  /// \input[in] _entity Light entity
   /// \returns true if update succeeded.
   IGNITION_GAZEBO_VISIBLE
   bool updateLightElement(sdf::ElementPtr _elem,
