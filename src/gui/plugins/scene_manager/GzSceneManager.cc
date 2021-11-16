@@ -85,16 +85,25 @@ void GzSceneManager::Update(const UpdateInfo &_info,
   this->dataPtr->renderUtil.UpdateECM(_info, _ecm);
   this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
 
-  // Emit entities removed event
-  std::vector<Entity> removed;
+  // Emit entities created / removed event for gui::Plugins which don't have
+  // direct access to the ECM.
+  std::set<Entity> created;
+  _ecm.EachNew<components::Name>(
+      [&](const Entity &_entity, const components::Name *)->bool
+      {
+        created.insert(_entity);
+        return true;
+      });
+  std::set<Entity> removed;
   _ecm.EachRemoved<components::Name>(
       [&](const Entity &_entity, const components::Name *)->bool
       {
-        removed.push_back(_entity);
+        removed.insert(_entity);
         return true;
       });
 
-  ignition::gazebo::gui::events::RemovedEntities removedEvent(removed);
+  ignition::gazebo::gui::events::NewRemovedEntities removedEvent(
+      created, removed);
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
       &removedEvent);

@@ -23,6 +23,7 @@
 #include <utility>
 #include <vector>
 #include <ignition/math/Vector3.hh>
+#include <ignition/utils/ImplPtr.hh>
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/config.hh"
 
@@ -100,63 +101,55 @@ namespace events
     private: bool fromUser{false};
   };
 
-  /// \brief Event that contains newly created and removed entities
-  class AddedRemovedEntities : public QEvent
+  /// \brief Event that contains entities newly created and removed from the
+  /// GUI, but that aren't present on the server yet.
+  /// \sa NewRemovedEntities
+  class GuiNewRemovedEntities : public QEvent
   {
     /// \brief Constructor
     /// \param[in] _newEntities Set of newly created entities
     /// \param[in] _removedEntities Set of recently removed entities
-    public: AddedRemovedEntities(const std::set<Entity> &_newEntities,
-                const std::set<Entity> &_removedEntities)
-        : QEvent(kType), newEntities(_newEntities),
-          removedEntities(_removedEntities)
-    {
-    }
+    public: GuiNewRemovedEntities(const std::set<Entity> &_newEntities,
+                const std::set<Entity> &_removedEntities);
 
     /// \brief Get the set of newly created entities
-    public: const std::set<Entity> &NewEntities() const
-    {
-      return this->newEntities;
-    }
+    public: const std::set<Entity> &NewEntities() const;
 
     /// \brief Get the set of recently removed entities
-    public: const std::set<Entity> &RemovedEntities() const
-    {
-      return this->removedEntities;
-    }
+    public: const std::set<Entity> &RemovedEntities() const;
 
     /// \brief Unique type for this event.
     static const QEvent::Type kType = QEvent::Type(QEvent::User + 3);
 
-    /// \brief Set of newly created entities
-    private: std::set<Entity> newEntities;
-
-    /// \brief Set of recently removed entities
-    private: std::set<Entity> removedEntities;
+    /// \internal
+    /// \brief Private data pointer
+    IGN_UTILS_IMPL_PTR(dataPtr)
   };
 
-  /// \brief Event that notifies when new entities have been removed.
-  class RemovedEntities : public QEvent
+  /// \brief Event that notifies when new entities have been created and removed
+  /// on the server. This is a duplication of what `GuiSystem`s would get from
+  /// `EachNew` / `EachRemoved` ECM calls.
+  /// \sa GuiNewRemovedEntities
+  class NewRemovedEntities : public QEvent
   {
     /// \brief Constructor
-    /// \param[in] _entities All the removed entities
-    public: explicit RemovedEntities(const std::vector<Entity> &_entities)
-        : QEvent(kType), entities(_entities)
-    {
-    }
+    /// \param[in] _newEntities Set of newly created entities
+    /// \param[in] _removedEntities Set of recently removed entities
+    public: NewRemovedEntities(const std::set<Entity> &_newEntities,
+                const std::set<Entity> &_removedEntities);
 
-    /// \brief Get the data sent with the event.
-    /// \return The entities being removed.
-    public: std::vector<Entity> Data() const
-    {
-      return this->entities;
-    }
+    /// \brief Get the set of newly created entities
+    public: const std::set<Entity> &NewEntities() const;
+
+    /// \brief Get the set of recently removed entities
+    public: const std::set<Entity> &RemovedEntities() const;
 
     /// \brief Unique type for this event.
     static const QEvent::Type kType = QEvent::Type(QEvent::User + 4);
 
-    /// \brief The removed entities.
-    private: std::vector<Entity> entities;
+    /// \internal
+    /// \brief Private data pointer
+    IGN_UTILS_IMPL_PTR(dataPtr)
   };
 
   /// \brief True if a transform control is currently active (translate /
