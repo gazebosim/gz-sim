@@ -23,6 +23,7 @@
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Entity.hh"
+#include "ignition/gazebo/EntityComponentManager.hh"
 
 namespace ignition
 {
@@ -58,6 +59,12 @@ namespace ignition
       /// the entity, which may contain multiple `<plugin>` tags.
       using LoadPlugins = common::EventT<void(Entity, sdf::ElementPtr),
           struct LoadPluginsTag>;
+
+      /// \brief Event used to indicate that an entity was recreated. The
+      /// first entity is the entity that was marked for recreation, and will be
+      /// removed. The second entity is the new entity that was created.
+      using EntityRecreated = common::EventT<void(Entity, Entity,
+          const EntityComponentManager &), struct EntityRecreatedTag>;
       }
     }  // namespace events
   }  // namespace gazebo

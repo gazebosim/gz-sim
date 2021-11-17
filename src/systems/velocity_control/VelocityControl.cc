@@ -28,6 +28,7 @@
 
 #include "ignition/gazebo/components/AngularVelocityCmd.hh"
 #include "ignition/gazebo/components/LinearVelocityCmd.hh"
+#include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/Model.hh"
 #include "ignition/gazebo/Util.hh"
 
@@ -94,6 +95,9 @@ class ignition::gazebo::systems::VelocityControlPrivate
 
   /// \brief All link velocites
   public: std::unordered_map<std::string, msgs::Twist> linkVels;
+
+  /// \brief Connection to the recreated entity event.
+  public: common::ConnectionPtr recreatedEntityConn;
 };
 
 //////////////////////////////////////////////////
@@ -102,12 +106,19 @@ VelocityControl::VelocityControl()
 {
 }
 
+
 //////////////////////////////////////////////////
 void VelocityControl::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm,
-    EventManager &/*_eventMgr*/)
+    EventManager &_eventMgr)
 {
+  // Connect to the recreated event.
+  this->dataPtr->recreatedEntityConn =
+    _eventMgr.Connect<ignition::gazebo::events::EntityRecreated>(
+        std::bind(&VelocityControl::EntityRecreated, this,
+          std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+
   this->dataPtr->model = Model(_entity);
 
   if (!this->dataPtr->model.Valid(_ecm))
@@ -370,6 +381,23 @@ void VelocityControlPrivate::OnLinkCmdVel(const msgs::Twist &_msg,
     {
       this->linkVels.insert({linkName, _msg});
       break;
+    }
+  }
+}
+
+//////////////////////////////////////////////////
+void VelocityControl::EntityRecreated(Entity _origEntity, Entity _newEntity,
+    const EntityComponentManager &_ecm)
+{
+  // Update the model if it was recreated
+  if (_origEntity == this->dataPtr->model.Entity())
+  {
+    this->dataPtr->model = Model(_newEntity);
+
+    // Update links which can be needed if the model was recreated.
+    for (auto &link : this->dataPtr->links)
+    {
+      link.second = this->dataPtr->model.LinkByName(_ecm, link.first);
     }
   }
 }

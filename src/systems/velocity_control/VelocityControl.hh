@@ -72,6 +72,13 @@ namespace systems
                 const UpdateInfo &_info,
                 const EntityComponentManager &_ecm) override;
 
+    /// \brief Callback for the EntityRecreated event.
+    /// \param[in] _origEntity The entity that was marked for recreation.
+    /// \param[in] _newEntity The new entity that was created.
+    /// \param[in] _ecm The entity component manager.
+    private: void EntityRecreated(Entity _origEntity, Entity _newEntity,
+                 const EntityComponentManager &_ecm);
+
     /// \brief Private data pointer
     private: std::unique_ptr<VelocityControlPrivate> dataPtr;
   };

@@ -1317,7 +1317,7 @@ void SimulationRunner::ProcessRecreateEntitiesCreate()
     auto nameComp = this->entityCompMgr.Component<components::Name>(ent);
     auto parentComp =
         this->entityCompMgr.Component<components::ParentEntity>(ent);
-    if (nameComp  && parentComp)
+    if (nameComp && parentComp)
     {
       // set allowRenaming to false so the entities keep their original name
       Entity clonedEntity = this->entityCompMgr.Clone(ent,
@@ -1337,6 +1337,11 @@ void SimulationRunner::ProcessRecreateEntitiesCreate()
         ignerr << "Failed to remove Recreate component from entity["
           << clonedEntity << "]" << std::endl;
       }
+
+      std::cout << "Recreation event[" << ent << "   " << clonedEntity << "]\n";
+      // Emit the recreated event.
+      this->eventMgr.Emit<events::EntityRecreated>(ent, clonedEntity,
+          this->entityCompMgr);
     }
     else
     {
