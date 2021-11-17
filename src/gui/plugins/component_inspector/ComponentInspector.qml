@@ -114,26 +114,6 @@ Rectangle {
   }
 
   /**
-   * Forward altimeter position noise changes to C++
-   */
-  function onAltimeterPositionNoise(_mean, _meanBias, _stdDev, _stdDevBias,
-      _dynamicBiasStdDev, _dynamicBiasCorrelationTime) {
-    Altimeter.OnAltimeterPositionNoise(
-        _mean, _meanBias, _stdDev, _stdDevBias,
-        _dynamicBiasStdDev, _dynamicBiasCorrelationTime);
-  }
-
-  /**
-   * Forward altimeter velocity noise changes to C++
-   */
-  function onAltimeterVelocityNoise(_mean, _meanBias, _stdDev, _stdDevBias,
-      _dynamicBiasStdDev, _dynamicBiasCorrelationTime) {
-    Altimeter.OnAltimeterVelocityNoise(
-        _mean, _meanBias, _stdDev, _stdDevBias,
-        _dynamicBiasStdDev, _dynamicBiasCorrelationTime);
-  }
-
-  /**
    * Forward pose changes to C++
    */
   function onPose(_x, _y, _z, _roll, _pitch, _yaw) {
@@ -275,7 +255,20 @@ Rectangle {
         ToolTip.visible: hovered
         ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
         onClicked: {
-          addLinkMenu.open()
+          getSimPaused() ? addLinkMenu.open() : pausePopup.open()
+        }
+        Popup {
+          id: pausePopup
+          modal: true
+          focus: true
+          x: parent.width - popupContentText.width
+          y: parent.height + popupContentText.height
+          contentItem: Text {
+            id: popupContentText
+            padding: 10
+            text: "Pause simulation to add an entity"
+          }
+          closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
         }
 
         FileDialog {
