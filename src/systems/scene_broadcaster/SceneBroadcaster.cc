@@ -19,8 +19,10 @@
 
 #include <ignition/msgs/scene.pb.h>
 
+#include <algorithm>
 #include <chrono>
 #include <condition_variable>
+#include <map>
 #include <string>
 #include <unordered_set>
 
