@@ -1,4 +1,12 @@
 gz_add_gui_plugin(ComponentInspector
-  SOURCES ComponentInspector.cc ModelEditor.cc
-  QT_HEADERS ComponentInspector.hh ModelEditor.hh
+  SOURCES
+    AirPressure.cc
+    ComponentInspector.cc
+    ModelEditor.cc
+    Types.cc
+  QT_HEADERS
+    AirPressure.hh
+    ComponentInspector.hh
+    ModelEditor.hh
+    Types.hh
 )

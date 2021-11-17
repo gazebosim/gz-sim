@@ -80,13 +80,37 @@ Rectangle {
     return _model.dataType + '.qml'
   }
 
-  // Get number of decimal digits based on a widget's width
+  /// \brief Get whether simulation is paused
+  function getSimPaused() {
+    return ComponentInspector.simPaused
+  }
+
+  // Get number of decimal digits based on a width value
+  // \param[in] _width Pixel width
+  // \return Number of decimals that fit with the provided width.
   function getDecimals(_width) {
+    // Use full decimals if the width is <= 0, which allows the value
+    // to appear correctly.
+    if (_width <= 0 || _width > 110)
+      return 6
+
     if (_width <= 80)
-      return 2;
-    else if (_width <= 100)
-      return 4;
-    return 6;
+      return 2
+
+    return 4
+  }
+
+  // Get number of decimal digits based on a widget's width, and adjust the
+  // widget's value to prevent zero padding.
+  // \param[in, out] _widgetId The widget id that will display the value. This
+  // widget's width attribute is used to determine the number of decimals.
+  // \param[in] _value The value that should be used to set the _widgetId's
+  // value attribute.
+  function getDecimalsAdjustValue(_widgetId, _value) {
+    // Make sure to update the value, otherwise zeros are used intead of 
+    // the actual values.
+    _widgetId.value = _widgetId.activeFocus ? _widgetId.value : _value
+    return getDecimals(_widgetId.width)
   }
 
   /**
@@ -231,7 +255,20 @@ Rectangle {
         ToolTip.visible: hovered
         ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
         onClicked: {
-          addLinkMenu.open()
+          getSimPaused() ? addLinkMenu.open() : pausePopup.open()
+        }
+        Popup {
+          id: pausePopup
+          modal: true
+          focus: true
+          x: parent.width - popupContentText.width
+          y: parent.height + popupContentText.height
+          contentItem: Text {
+            id: popupContentText
+            padding: 10
+            text: "Pause simulation to add an entity"
+          }
+          closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
         }
 
         FileDialog {

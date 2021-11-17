@@ -93,7 +93,7 @@ Rectangle {
       value: writableSpin.activeFocus ? writableSpin.value : numberValue
       minimumValue: -spinMax
       maximumValue: spinMax
-      decimals: getDecimals(writableSpin.width)
+      decimals: getDecimalsAdjustValue(writableSpin, numberValue)
       onEditingFinished: {
         sendPose()
       }

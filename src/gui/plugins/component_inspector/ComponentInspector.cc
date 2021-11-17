@@ -17,7 +17,9 @@
 
 #include <iostream>
 #include <list>
+#include <map>
 #include <regex>
+#include <vector>
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/MeshManager.hh>
@@ -68,6 +70,7 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
+#include "AirPressure.hh"
 #include "ComponentInspector.hh"
 #include "ModelEditor.hh"
 
@@ -102,11 +105,24 @@ namespace ignition::gazebo
     /// \brief Whether updates are currently paused.
     public: bool paused{false};
 
+    /// \brief Whether simulation is currently paused.
+    public: bool simPaused{true};
+
     /// \brief Transport node for making command requests
     public: transport::Node node;
 
     /// \brief Transport node for making command requests
     public: ModelEditor modelEditor;
+
+    /// \brief Air pressure sensor inspector elements
+    public: std::unique_ptr<ignition::gazebo::AirPressure> airPressure;
+
+    /// \brief Set of callbacks to execute during the Update function.
+    public: std::vector<
+            std::function<void(EntityComponentManager &)>> updateCallbacks;
+
+    /// \brief A map of component type to creation functions.
+    public: std::map<ComponentTypeId, ComponentCreator> componentCreators;
   };
 }
 
@@ -413,6 +429,9 @@ void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
       "ComponentsModel", &this->dataPtr->componentsModel);
 
   this->dataPtr->modelEditor.Load();
+
+  // Create air pressure
+  this->dataPtr->airPressure = std::make_unique<AirPressure>(this);
 }
 
 //////////////////////////////////////////////////
@@ -421,8 +440,7 @@ void ComponentInspector::Update(const UpdateInfo &_info,
 {
   IGN_PROFILE("ComponentInspector::Update");
 
-  if (this->dataPtr->paused)
-    return;
+  this->SetSimPaused(_info.paused);
 
   auto componentTypes = _ecm.ComponentTypes(this->dataPtr->entity);
 
@@ -776,6 +794,12 @@ void ComponentInspector::Update(const UpdateInfo &_info,
       if (comp)
         setData(item, comp->Data());
     }
+    else if (this->dataPtr->componentCreators.find(typeId) !=
+          this->dataPtr->componentCreators.end())
+    {
+      this->dataPtr->componentCreators[typeId](
+          _ecm, this->dataPtr->entity, item);
+    }
   }
 
   // Remove components no longer present - list items to remove
@@ -799,6 +823,24 @@ void ComponentInspector::Update(const UpdateInfo &_info,
   }
 
   this->dataPtr->modelEditor.Update(_info, _ecm);
+
+  // Process all of the update callbacks
+  for (auto cb : this->dataPtr->updateCallbacks)
+    cb(_ecm);
+  this->dataPtr->updateCallbacks.clear();
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::AddUpdateCallback(UpdateCallback _cb)
+{
+  this->dataPtr->updateCallbacks.push_back(_cb);
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::RegisterComponentCreator(ComponentTypeId _id,
+    ComponentCreator _creatorFn)
+{
+  this->dataPtr->componentCreators[_id] = _creatorFn;
 }
 
 /////////////////////////////////////////////////
@@ -875,6 +917,22 @@ void ComponentInspector::SetLocked(bool _locked)
 {
   this->dataPtr->locked = _locked;
   this->LockedChanged();
+}
+
+/////////////////////////////////////////////////
+bool ComponentInspector::SimPaused() const
+{
+  return this->dataPtr->simPaused;
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::SetSimPaused(bool _paused)
+{
+  if (_paused != this->dataPtr->simPaused)
+  {
+    this->dataPtr->simPaused = _paused;
+    this->SimPausedChanged();
+  }
 }
 
 /////////////////////////////////////////////////
