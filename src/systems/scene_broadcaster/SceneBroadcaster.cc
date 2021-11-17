@@ -210,10 +210,6 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
       statePublishPeriod{{false, std::chrono::milliseconds(1000/60)},
                          {true,  std::chrono::milliseconds(1000/30)}};
 
-  /// \brief Period to publish state, defaults to 60 Hz.
-  public: std::chrono::duration<int64_t, std::ratio<1, 1000>>
-      statePublishPeriodPaused{std::chrono::milliseconds(1000/30)};
-
   /// \brief Flag used to indicate if the state service was called.
   public: bool stateServiceRequest{false};
 
