@@ -280,6 +280,10 @@ template<typename ...ComponentTypeTs>
 bool View<ComponentTypeTs...>::NotifyComponentRemoval(const Entity _entity,
     const ComponentTypeId _typeId)
 {
+  // if entity is still marked as to add, remove from the view
+  if (this->RequiresComponent(_typeId))
+    this->toAddEntities.erase(_entity);
+
   // make sure that _typeId is a type required by the view and that _entity is
   // already a part of the view
   if (!this->RequiresComponent(_typeId) ||
