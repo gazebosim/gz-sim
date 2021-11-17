@@ -180,6 +180,12 @@ class ignition::gazebo::systems::SensorsPrivate
 
   /// \brief Stop the rendering thread
   public: void Stop();
+
+  /// \brief Use to optionally set the background color.
+  public: std::optional<math::Color> backgroundColor;
+
+  /// \brief Use to optionally set the ambient light.
+  public: std::optional<math::Color> ambientLight;
 };
 
 //////////////////////////////////////////////////
@@ -200,6 +206,10 @@ void SensorsPrivate::WaitForInit()
     {
       // Only initialize if there are rendering sensors
       igndbg << "Initializing render context" << std::endl;
+      if (this->backgroundColor)
+        this->renderUtil.SetBackgroundColor(*this->backgroundColor);
+      if (this->ambientLight)
+        this->renderUtil.SetAmbientLight(*this->ambientLight);
       this->renderUtil.Init();
       this->scene = this->renderUtil.Scene();
       this->scene->SetCameraPassCountPerGpuFlush(6u);
@@ -385,9 +395,18 @@ void Sensors::Configure(const Entity &/*_id*/,
     EventManager &_eventMgr)
 {
   igndbg << "Configuring Sensors system" << std::endl;
+
   // Setup rendering
   std::string engineName =
       _sdf->Get<std::string>("render_engine", "ogre2").first;
+
+  // Get the background color, if specified.
+  if (_sdf->HasElement("background_color"))
+    this->dataPtr->backgroundColor = _sdf->Get<math::Color>("background_color");
+
+  // Get the ambient light, if specified.
+  if (_sdf->HasElement("ambient_light"))
+    this->dataPtr->ambientLight = _sdf->Get<math::Color>("ambient_light");
 
   this->dataPtr->renderUtil.SetEngineName(engineName);
   this->dataPtr->renderUtil.SetEnableSensors(true,
@@ -442,6 +461,7 @@ void Sensors::Update(const UpdateInfo &_info,
                      EntityComponentManager &_ecm)
 {
   IGN_PROFILE("Sensors::Update");
+  std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
   if (this->dataPtr->running && this->dataPtr->initialized)
   {
     this->dataPtr->renderUtil.UpdateECM(_info, _ecm);
@@ -462,19 +482,21 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
         << "s]. System may not work properly." << std::endl;
   }
 
-  if (!this->dataPtr->initialized &&
-      (_ecm.HasComponentType(components::Camera::typeId) ||
-       _ecm.HasComponentType(components::DepthCamera::typeId) ||
-       _ecm.HasComponentType(components::GpuLidar::typeId) ||
-       _ecm.HasComponentType(components::RgbdCamera::typeId) ||
-       _ecm.HasComponentType(components::ThermalCamera::typeId) ||
-       _ecm.HasComponentType(components::SegmentationCamera::typeId)
-       ))
+
   {
-    igndbg << "Initialization needed" << std::endl;
     std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
-    this->dataPtr->doInit = true;
-    this->dataPtr->renderCv.notify_one();
+    if (!this->dataPtr->initialized &&
+        (_ecm.HasComponentType(components::Camera::typeId) ||
+         _ecm.HasComponentType(components::DepthCamera::typeId) ||
+         _ecm.HasComponentType(components::GpuLidar::typeId) ||
+         _ecm.HasComponentType(components::RgbdCamera::typeId) ||
+         _ecm.HasComponentType(components::ThermalCamera::typeId) ||
+         _ecm.HasComponentType(components::SegmentationCamera::typeId)))
+    {
+      igndbg << "Initialization needed" << std::endl;
+      this->dataPtr->doInit = true;
+      this->dataPtr->renderCv.notify_one();
+    }
   }
 
   if (this->dataPtr->running && this->dataPtr->initialized)

@@ -137,7 +137,7 @@ int main(int argc, char **argv)
       m = std::sqrt(r*r + b*b + g*g);
     }
     r /= m;
-    b /= m;
+    g /= m;
     b /= m;
 //! [random numbers]
 

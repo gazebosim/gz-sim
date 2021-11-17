@@ -17,6 +17,8 @@
 
 #include "GzSceneManager.hh"
 
+#include <vector>
+
 #include <ignition/common/Profiler.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/GuiEvents.hh>
@@ -28,6 +30,7 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/gui/GuiEvents.hh"
 #include "ignition/gazebo/rendering/RenderUtil.hh"
 
 namespace ignition
@@ -81,12 +84,26 @@ void GzSceneManager::Update(const UpdateInfo &_info,
 
   this->dataPtr->renderUtil.UpdateECM(_info, _ecm);
   this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
+
+  // Emit entities removed event
+  std::vector<Entity> removed;
+  _ecm.EachRemoved<components::Name>(
+      [&](const Entity &_entity, const components::Name *)->bool
+      {
+        removed.push_back(_entity);
+        return true;
+      });
+
+  ignition::gazebo::gui::events::RemovedEntities removedEvent(removed);
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      &removedEvent);
 }
 
 /////////////////////////////////////////////////
 bool GzSceneManager::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == gui::events::Render::kType)
+  if (_event->type() == ignition::gui::events::Render::kType)
   {
     this->dataPtr->OnRender();
   }

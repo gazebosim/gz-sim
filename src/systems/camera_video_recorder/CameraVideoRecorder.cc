@@ -30,7 +30,9 @@
 #include <ignition/rendering/RenderingIface.hh>
 #include <ignition/rendering/Scene.hh>
 
+#include "ignition/gazebo/rendering/RenderUtil.hh"
 #include "ignition/gazebo/rendering/Events.hh"
+#include "ignition/gazebo/rendering/MarkerManager.hh"
 
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/Model.hh"
@@ -122,11 +124,19 @@ class ignition::gazebo::systems::CameraVideoRecorderPrivate
   /// By default (false), video encoding is done using real time.
   public: bool recordVideoUseSimTime = false;
 
-  /// \brief Video recorder bitrate (bps)
+  /// \brief Video recorder bitrate (bps). This is rougly 2Mbps which
+  /// produces decent video quality while not generating overly large
+  /// video files.
+  ///
+  /// Another point of reference is at:
+  /// https://support.google.com/youtube/answer/1722171?hl=en#zippy=%2Cbitrate
   public: unsigned int recordVideoBitrate = 2070000;
 
   /// \brief Recording frames per second.
   public: unsigned int fps = 25;
+
+  /// \brief Marker manager
+  public: MarkerManager markerManager;
 };
 
 //////////////////////////////////////////////////
@@ -269,6 +279,8 @@ void CameraVideoRecorderPrivate::OnPostRender()
   if (!this->scene)
   {
     this->scene = rendering::sceneFromFirstRenderEngine();
+    this->markerManager.SetTopic(this->sensorTopic + "/marker");
+    this->markerManager.Init(this->scene);
   }
 
   // return if scene not ready or no sensors available.
@@ -300,6 +312,9 @@ void CameraVideoRecorderPrivate::OnPostRender()
   }
 
   std::lock_guard<std::mutex> lock(this->updateMutex);
+
+  this->markerManager.SetSimTime(this->simTime);
+  this->markerManager.Update();
 
   // record video
   if (this->recordVideo)
@@ -380,18 +395,31 @@ void CameraVideoRecorderPrivate::OnPostRender()
     // stop encoding
     this->videoEncoder.Stop();
 
-    // move the tmp video file to user specified path
+    ignmsg << "Stop video recording on [" << this->service << "]." << std::endl;
+
     if (common::exists(this->tmpVideoFilename))
     {
-      common::moveFile(this->tmpVideoFilename,
-          this->recordVideoSavePath);
+      std::string parentPath = common::parentPath(this->recordVideoSavePath);
 
-      // Remove old temp file, if it exists.
-      std::remove(this->tmpVideoFilename.c_str());
+      // move the tmp video file to user specified path
+      if (parentPath != this->recordVideoSavePath &&
+          !common::exists(parentPath) && !common::createDirectory(parentPath))
+      {
+        ignerr << "Unable to create directory[" << parentPath
+          << "]. Video file[" << this->tmpVideoFilename
+          << "] will not be moved." << std::endl;
+      }
+      else
+      {
+        common::moveFile(this->tmpVideoFilename, this->recordVideoSavePath);
+
+        // Remove old temp file, if it exists.
+        std::remove(this->tmpVideoFilename.c_str());
+
+        ignmsg << "Saving tmp video[" << this->tmpVideoFilename << "] file to ["
+               << this->recordVideoSavePath << "]" << std::endl;
+      }
     }
-    ignmsg << "Stop video recording on [" << this->service << "]. "
-           << "Saving file to: [" << this->recordVideoSavePath << "]"
-           << std::endl;
 
     // reset the event connection to prevent unnecessary render callbacks
     this->postRenderConn.reset();
