@@ -46,6 +46,17 @@ TEST(LevelManagerPerfrormance, LevelVsNoLevel)
 
   const std::size_t iters = 5000;
 
+
+  // Reduce potential startup costs by running the server once before
+  // measuring time differences between levels and no levels.
+  {
+    serverConfig.SetUseLevels(true);
+    gazebo::Server server(serverConfig);
+    server.SetUpdatePeriod(1ns);
+
+    server.Run(true, 1, false);
+  }
+
   // Server with levels
   {
     serverConfig.SetUseLevels(true);
