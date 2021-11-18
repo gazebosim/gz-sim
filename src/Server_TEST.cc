@@ -335,7 +335,8 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigLogRecord))
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, ServerConfigLogRecordCompress)
+TEST_P(ServerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigLogRecordCompress))
 {
   auto logPath = common::joinPaths(
       std::string(PROJECT_BINARY_PATH), "test_log_path");

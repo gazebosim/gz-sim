@@ -207,7 +207,7 @@ TEST_F(LogicalAudioTest,
       "world/logical_audio_sensor/model/source_model/sensor/source_1");
 }
 
-TEST_F(LogicalAudioTest, LogicalAudioServices)
+TEST_F(LogicalAudioTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogicalAudioServices))
 {
   ServerConfig serverConfig;
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +

@@ -416,7 +416,7 @@ TEST_P(OdometryPublisherTest,
 }
 
 /////////////////////////////////////////////////
-TEST_P(OdometryPublisherTest, Movement3d)
+TEST_P(OdometryPublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Movement3d))
 {
   TestMovement3d(
       ignition::common::joinPaths(PROJECT_SOURCE_PATH,

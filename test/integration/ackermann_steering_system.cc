@@ -212,7 +212,7 @@ TEST_P(AckermannSteeringTest,
 }
 
 /////////////////////////////////////////////////
-TEST_P(AckermannSteeringTest, SkidPublishCmd)
+TEST_P(AckermannSteeringTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SkidPublishCmd))
 {
   // Start server
   ServerConfig serverConfig;
@@ -310,7 +310,7 @@ TEST_P(AckermannSteeringTest, SkidPublishCmd)
 }
 
 /////////////////////////////////////////////////
-TEST_P(AckermannSteeringTest, OdomFrameId)
+TEST_P(AckermannSteeringTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
 {
   // Start server
   ServerConfig serverConfig;
@@ -368,7 +368,8 @@ TEST_P(AckermannSteeringTest, OdomFrameId)
 }
 
 /////////////////////////////////////////////////
-TEST_P(AckermannSteeringTest, OdomCustomFrameId)
+TEST_P(AckermannSteeringTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(OdomCustomFrameId))
 {
   // Start server
   ServerConfig serverConfig;

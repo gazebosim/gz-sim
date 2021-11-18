@@ -102,7 +102,7 @@ TEST(CmdLine, IGN_UTILS_TEST_DISABLED_ON_WIN32(CachedFuelWorld))
 }
 
 /////////////////////////////////////////////////
-TEST(CmdLine, GazeboServer)
+TEST(CmdLine, IGN_UTILS_TEST_DISABLED_ON_WIN32(GazeboServer))
 {
   std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 " +
     std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf";
