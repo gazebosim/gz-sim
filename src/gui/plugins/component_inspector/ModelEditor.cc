@@ -32,6 +32,7 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/Recreate.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
 
@@ -181,6 +182,9 @@ void ModelEditor::Update(const UpdateInfo &,
       linkSdf.SetName(linkName);
       auto entity = this->dataPtr->entityCreator->CreateEntities(&linkSdf);
       this->dataPtr->entityCreator->SetParent(entity, eta.parentEntity);
+      // Make sure to mark the parent as needing recreation. This will
+      // tell the server to rebuild the model with the new link.
+      _ecm.CreateComponent(eta.parentEntity, components::Recreate());
 
       // traverse the tree and add all new entities created by the entity
       // creator to the set

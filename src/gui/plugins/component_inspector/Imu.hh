@@ -118,7 +118,6 @@ namespace gazebo
                 double _stdDevBias, double _dynamicBiasStdDev,
                 double _dynamicBiasCorrelationTime);
 
-
     /// \brief Pointer to the component inspector. This is used to add
     /// update callbacks that modify the ECM.
     private: ComponentInspector *inspector{nullptr};
