@@ -72,8 +72,8 @@
 
 #include "AirPressure.hh"
 #include "Altimeter.hh"
-#include "Magnetometer.hh"
 #include "ComponentInspector.hh"
+#include "Magnetometer.hh"
 #include "ModelEditor.hh"
 
 namespace ignition::gazebo
