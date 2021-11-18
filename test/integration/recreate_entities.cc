@@ -387,7 +387,7 @@ TEST_F(RecreateEntitiesFixture, RecreateEntities_Joints)
                               components::Pose,
                               components::ParentEntity,
                               components::Name>(
-      [&](const Entity &_entity,
+      [&](const Entity &/*_entity*/,
           const components::Model *_model,
           const components::Pose *_pose,
           const components::ParentEntity *_parent,
@@ -412,7 +412,7 @@ TEST_F(RecreateEntitiesFixture, RecreateEntities_Joints)
               components::Pose,
               components::ParentEntity,
               components::Name>(
-      [&](const Entity &_entity,
+      [&](const Entity &/*_entity*/,
           const components::Link *_link,
           const components::Pose *_pose,
           const components::ParentEntity *_parent,
@@ -436,7 +436,7 @@ TEST_F(RecreateEntitiesFixture, RecreateEntities_Joints)
               components::Pose,
               components::ParentEntity,
               components::Name>(
-      [&](const Entity &_entity,
+      [&](const Entity &/*_entity*/,
           const components::Joint *_joint,
           const components::Pose *_pose,
           const components::ParentEntity *_parent,
@@ -544,7 +544,7 @@ TEST_F(RecreateEntitiesFixture, RecreateEntities_WorldJoint)
                               components::Pose,
                               components::ParentEntity,
                               components::Name>(
-      [&](const Entity &_entity,
+      [&](const Entity &/*_entity*/,
           const components::Model *_model,
           const components::Pose *_pose,
           const components::ParentEntity *_parent,
@@ -569,7 +569,7 @@ TEST_F(RecreateEntitiesFixture, RecreateEntities_WorldJoint)
               components::Pose,
               components::ParentEntity,
               components::Name>(
-      [&](const Entity &_entity,
+      [&](const Entity &/*_entity*/,
           const components::Link *_link,
           const components::Pose *_pose,
           const components::ParentEntity *_parent,
@@ -594,7 +594,7 @@ TEST_F(RecreateEntitiesFixture, RecreateEntities_WorldJoint)
               components::ParentEntity,
               components::Name,
               components::ParentLinkName>(
-      [&](const Entity &_entity,
+      [&](const Entity &/*_entity*/,
           const components::Joint *_joint,
           const components::Pose *_pose,
           const components::ParentEntity *_parent,
