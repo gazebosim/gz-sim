@@ -2302,7 +2302,7 @@ TEST_P(EntityComponentManagerFixture, SetEntityCreateOffset)
 //////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(
-           SerializedStateMapMsgAfterRemoveComponent)
+           SerializedStateMapMsgAfterRemoveComponent))
 {
   // Create entity
   Entity e1 = manager.CreateEntity();
