@@ -70,8 +70,9 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
-#include "Altimeter.hh"
 #include "AirPressure.hh"
+#include "Altimeter.hh"
+#include "Camera.hh"
 #include "Imu.hh"
 #include "Lidar.hh"
 #include "Magnetometer.hh"
@@ -123,6 +124,9 @@ namespace ignition::gazebo
 
     /// \brief Altimeter sensor inspector elements
     public: std::unique_ptr<ignition::gazebo::Altimeter> altimeter;
+
+    /// \brief Camera sensor inspector elements
+    public: std::unique_ptr<ignition::gazebo::Camera> camera;
 
     /// \brief Imu inspector elements
     public: std::unique_ptr<ignition::gazebo::Imu> imu;
@@ -451,6 +455,9 @@ void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
 
   // Create altimeter
   this->dataPtr->altimeter = std::make_unique<Altimeter>(this);
+
+  // Create camera
+  this->dataPtr->camera = std::make_unique<Camera>(this);
 
   // Create the imu
   this->dataPtr->imu = std::make_unique<Imu>(this);

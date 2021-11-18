@@ -377,6 +377,7 @@ void printRgbdCamera(const uint64_t _entity, const EntityComponentManager &_ecm,
   if (!comp)
     return;
 
+  std::cout << "Printing RGBD Camera\n";
   const sdf::Sensor &sensor = comp->Data();
   const sdf::Camera *camera = sensor.CameraSensor();
 
@@ -398,6 +399,7 @@ void printCamera(const uint64_t _entity, const EntityComponentManager &_ecm,
   if (!comp)
     return;
 
+  std::cout << "Printing Camera Camera\n";
   const sdf::Sensor &sensor = comp->Data();
   const sdf::Camera *camera = sensor.CameraSensor();
 

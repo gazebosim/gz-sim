@@ -3,6 +3,7 @@
   <file>AirPressure.qml</file>
   <file>Altimeter.qml</file>
   <file>Boolean.qml</file>
+  <file>Camera.qml</file>
   <file>ComponentInspector.qml</file>
   <file>ExpandingTypeHeader.qml</file>
   <file>Imu.qml</file>
@@ -12,6 +13,7 @@
   <file>Magnetometer.qml</file>
   <file>NoData.qml</file>
   <file>Noise.qml</file>
+  <file>NoiseSimple.qml</file>
   <file>Physics.qml</file>
   <file>Pose3d.qml</file>
   <file>SphericalCoordinates.qml</file>

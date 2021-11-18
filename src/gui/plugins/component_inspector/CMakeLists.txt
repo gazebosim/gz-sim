@@ -2,6 +2,7 @@ gz_add_gui_plugin(ComponentInspector
   SOURCES
     AirPressure.cc
     Altimeter.cc
+    Camera.cc
     ComponentInspector.cc
     Imu.cc
     Lidar.cc
@@ -11,6 +12,7 @@ gz_add_gui_plugin(ComponentInspector
   QT_HEADERS
     AirPressure.hh
     Altimeter.hh
+    Camera.hh
     ComponentInspector.hh
     Imu.hh
     Lidar.hh

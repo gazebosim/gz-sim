@@ -1057,6 +1057,9 @@ msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
       dist->set_k3(sdfCam->DistortionK3());
       dist->set_p1(sdfCam->DistortionP1());
       dist->set_p2(sdfCam->DistortionP2());
+      ignition::gazebo::set(sensor->mutable_image_noise(),
+            _sdfCam->ImageNoise());
+
     }
     else
     {
