@@ -33,6 +33,7 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/Recreate.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
 

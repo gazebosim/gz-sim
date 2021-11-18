@@ -51,6 +51,14 @@ Rectangle {
     Material.color(Material.Grey, Material.Shade800)
 
   /**
+   * Highlight color
+   */
+  property color highlightColor: Qt.rgba(
+    Material.accent.r,
+    Material.accent.g,
+    Material.accent.b, 0.3)
+
+  /**
    * Height of each item in pixels
    */
   property int itemHeight: 30
@@ -316,7 +324,7 @@ Rectangle {
       branchDelegate: Rectangle {
         height: itemHeight
         width: itemHeight * 0.75
-        color:  lightGrey
+        color:  "transparent"
         Image {
           id: icon
           sourceSize.height: itemHeight * 0.4
@@ -325,7 +333,7 @@ Rectangle {
           anchors.verticalCenter: parent.verticalCenter
           anchors.right: parent.right
           source: styleData.isExpanded ?
-              "qrc:/Gazebo/images/minus.png" : "qrc:/Gazebo/images/plus.png"
+              "qrc:/Gazebo/images/chevron-down.svg" : "qrc:/Gazebo/images/chevron-right.svg"
         }
         MouseArea {
           anchors.fill: parent
@@ -347,7 +355,7 @@ Rectangle {
       rowDelegate: Rectangle {
         visible: styleData.row !== undefined
         height: itemHeight
-        color: styleData.selected ? Material.accent : (styleData.row % 2 == 0) ? even : odd
+        color: styleData.selected ? highlightColor : (styleData.row % 2 == 0) ? even : odd
         MouseArea {
           anchors.fill: parent
           hoverEnabled: true
@@ -366,7 +374,7 @@ Rectangle {
 
       itemDelegate: Rectangle {
         id: itemDel
-        color: styleData.selected ? Material.accent : (styleData.row % 2 == 0) ? even : odd
+        color: "transparent"
         height: itemHeight
 
 

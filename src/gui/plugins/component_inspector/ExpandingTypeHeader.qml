@@ -34,6 +34,9 @@ Rectangle {
   // Left indentation
   property int indentation: 10
 
+  property string expandingHeaderText: ""
+  property string expandingHeaderToolTip: ""
+
   RowLayout {
     anchors.fill: parent
     Item {
@@ -46,10 +49,12 @@ Rectangle {
       fillMode: Image.Pad
       Layout.alignment : Qt.AlignVCenter
       source: content.show ?
-          "qrc:/Gazebo/images/minus.png" : "qrc:/Gazebo/images/plus.png"
+          "qrc:/Gazebo/images/chevron-down.svg" : "qrc:/Gazebo/images/chevron-right.svg"
     }
     TypeHeader {
       id: typeHeader
+      headerText: expandingHeaderText
+      headerToolTip: expandingHeaderToolTip
     }
     Item {
       Layout.fillWidth: true

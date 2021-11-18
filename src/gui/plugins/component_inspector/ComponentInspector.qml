@@ -80,13 +80,37 @@ Rectangle {
     return _model.dataType + '.qml'
   }
 
-  // Get number of decimal digits based on a widget's width
+  /// \brief Get whether simulation is paused
+  function getSimPaused() {
+    return ComponentInspector.simPaused
+  }
+
+  // Get number of decimal digits based on a width value
+  // \param[in] _width Pixel width
+  // \return Number of decimals that fit with the provided width.
   function getDecimals(_width) {
+    // Use full decimals if the width is <= 0, which allows the value
+    // to appear correctly.
+    if (_width <= 0 || _width > 110)
+      return 6
+
     if (_width <= 80)
-      return 2;
-    else if (_width <= 100)
-      return 4;
-    return 6;
+      return 2
+
+    return 4
+  }
+
+  // Get number of decimal digits based on a widget's width, and adjust the
+  // widget's value to prevent zero padding.
+  // \param[in, out] _widgetId The widget id that will display the value. This
+  // widget's width attribute is used to determine the number of decimals.
+  // \param[in] _value The value that should be used to set the _widgetId's
+  // value attribute.
+  function getDecimalsAdjustValue(_widgetId, _value) {
+    // Make sure to update the value, otherwise zeros are used intead of 
+    // the actual values.
+    _widgetId.value = _widgetId.activeFocus ? _widgetId.value : _value
+    return getDecimals(_widgetId.width)
   }
 
   /**
@@ -223,15 +247,28 @@ Rectangle {
           fillMode: Image.Pad
           horizontalAlignment: Image.AlignHCenter
           verticalAlignment: Image.AlignVCenter
-          source: "qrc:/Gazebo/images/plus.png"
+          source: "qrc:/Gazebo/images/plus-link.png"
           sourceSize.width: 18;
           sourceSize.height: 18;
         }
-        ToolTip.text: "Add an entity to a model"
+        ToolTip.text: "Add a link or light to a model"
         ToolTip.visible: hovered
         ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
         onClicked: {
-          addLinkMenu.open()
+          getSimPaused() ? addLinkMenu.open() : linkAddPausePopup.open()
+        }
+        Popup {
+          id: linkAddPausePopup
+          modal: true
+          focus: true
+          x: parent.width - linkAdPopupContentText.width
+          y: parent.height + linkAdPopupContentText.height
+          contentItem: Text {
+            id: linkAdPopupContentText
+            padding: 10
+            text: "Pause simulation to add a link or light"
+          }
+          closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
         }
 
         FileDialog {
@@ -376,7 +413,7 @@ Rectangle {
           fillMode: Image.Pad
           horizontalAlignment: Image.AlignHCenter
           verticalAlignment: Image.AlignVCenter
-          source: "qrc:/Gazebo/images/plus.png"
+          source: "qrc:/Gazebo/images/plus-sensor.png"
           sourceSize.width: 18;
           sourceSize.height: 18;
         }
@@ -384,7 +421,20 @@ Rectangle {
         ToolTip.visible: hovered
         ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
         onClicked: {
-          addSensorMenu.open()
+          getSimPaused() ? addSensorMenu.open() : sensorAddPausePopup.open()
+        }
+        Popup {
+          id: sensorAddPausePopup
+          modal: true
+          focus: true
+          x: parent.width - sensorAddPopupContentText.width
+          y: parent.height + sensorAddPopupContentText.height
+          contentItem: Text {
+            id: sensorAddPopupContentText
+            padding: 10
+            text: "Pause simulation to add a sensor"
+          }
+          closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
         }
 
         Menu {

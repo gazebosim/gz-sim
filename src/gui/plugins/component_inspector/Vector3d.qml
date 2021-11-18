@@ -58,7 +58,7 @@ Rectangle {
       value: numberValue
       minimumValue: -spinMax
       maximumValue: spinMax
-      decimals: getDecimals(writableSpin.width)
+      decimals: getDecimalsAdjustValue(writableSpin, numberValue)
     }
   }
 

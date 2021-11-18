@@ -50,7 +50,7 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 # as protobuf could be find transitively by any dependency
 set(protobuf_MODULE_COMPATIBLE TRUE)
 
-ign_find_package(sdformat12 REQUIRED)
+ign_find_package(sdformat12 REQUIRED VERSION 12.1)
 set(SDF_VER ${sdformat12_VERSION_MAJOR})
 
 #--------------------------------------
@@ -110,7 +110,7 @@ set(IGN_PHYSICS_VER ${ignition-physics5_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-sensors
-ign_find_package(ignition-sensors6 REQUIRED
+ign_find_package(ignition-sensors6 REQUIRED VERSION 6.0.1
   # component order is important
   COMPONENTS
     # non-rendering

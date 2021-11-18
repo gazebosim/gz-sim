@@ -33,6 +33,7 @@
 
 #include <ignition/msgs/light.pb.h>
 
+#include "Types.hh"
 Q_DECLARE_METATYPE(ignition::gazebo::ComponentTypeId)
 
 namespace ignition
@@ -61,7 +62,6 @@ namespace gazebo
               << _item->text().toStdString() << "]" << std::endl;
     }
   }
-
   /// \brief Specialized to set string data.
   /// \param[in] _item Item whose data will be set.
   /// \param[in] _data Data to set.
@@ -201,6 +201,13 @@ namespace gazebo
       NOTIFY PausedChanged
     )
 
+    /// \brief Simulation paused
+    Q_PROPERTY(
+      bool simPaused
+      READ SimPaused
+      NOTIFY SimPausedChanged
+    )
+
     /// \brief Nested Model
     Q_PROPERTY(
       bool nestedModel
@@ -320,6 +327,17 @@ namespace gazebo
     /// \brief Notify that locked has changed.
     signals: void LockedChanged();
 
+    /// \brief Get whether simulation is currently paused.
+    /// \return True for paused.
+    public: Q_INVOKABLE bool SimPaused() const;
+
+    /// \brief Notify that simulation paused state has changed.
+    signals: void SimPausedChanged();
+
+    /// \brief Set whether simulation is currently paused.
+    /// \param[in] _paused True for paused.
+    public: void SetSimPaused(bool _paused);
+
     /// \brief Get whether the inspector is currently paused for updates.
     /// \return True for paused.
     public: Q_INVOKABLE bool Paused() const;
@@ -343,6 +361,21 @@ namespace gazebo
     /// \param[in] _mesh Mesh file to load.
     public: Q_INVOKABLE void OnLoadMesh(const QString &_entity,
                 const QString &_type, const QString &_mesh);
+
+
+    /// \brief Add a callback that will be executed during the next Update.
+    /// \param[in] _cb The callback to run.
+    public: void AddUpdateCallback(UpdateCallback _cb);
+
+    /// \brief Register a component creator. A component creator is
+    /// responsible for selecting the correct QML and setting the
+    /// appropriate data for a ComponentTypeId.
+    /// \param[in] _id The component type id to associate with the creation
+    /// function.
+    /// \param[in] _creatorFn Function to call in order to create the QML
+    /// component.
+    public: void RegisterComponentCreator(ComponentTypeId _id,
+                ComponentCreator _creatorFn);
 
     /// \internal
     /// \brief Pointer to private data.
