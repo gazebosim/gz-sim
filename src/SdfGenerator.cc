@@ -765,7 +765,7 @@ namespace sdf_generator
     if (lightComp)
     {
       const sdf::Light &light = lightComp->Data();
-      light.PopulateElement(_elem);
+      _elem->Copy(light.ToElement());
       return updateLightNameAndPose();
     }
     return true;
