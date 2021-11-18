@@ -70,8 +70,8 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
-#include "Altimeter.hh"
 #include "AirPressure.hh"
+#include "Altimeter.hh"
 #include "Magnetometer.hh"
 #include "ComponentInspector.hh"
 #include "ModelEditor.hh"
