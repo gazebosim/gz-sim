@@ -71,6 +71,7 @@
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
 #include "AirPressure.hh"
+#include "Altimeter.hh"
 #include "ComponentInspector.hh"
 #include "ModelEditor.hh"
 
@@ -116,6 +117,9 @@ namespace ignition::gazebo
 
     /// \brief Air pressure sensor inspector elements
     public: std::unique_ptr<ignition::gazebo::AirPressure> airPressure;
+
+    /// \brief Altimeter sensor inspector elements
+    public: std::unique_ptr<ignition::gazebo::Altimeter> altimeter;
 
     /// \brief Set of callbacks to execute during the Update function.
     public: std::vector<
@@ -432,6 +436,9 @@ void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
 
   // Create air pressure
   this->dataPtr->airPressure = std::make_unique<AirPressure>(this);
+
+  // Create altimeter
+  this->dataPtr->altimeter = std::make_unique<Altimeter>(this);
 }
 
 //////////////////////////////////////////////////
