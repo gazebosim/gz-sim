@@ -193,7 +193,7 @@
           <property type="double" key="width">350</property>
           <property type="double" key="height">315</property>
         </ignition-gui>
-        <topic>wideanglecamera</topic>
+        <topic>wide_angle_camera</topic>
         <topic_picker>false</topic_picker>
       </plugin>
 
@@ -339,7 +339,7 @@
           </camera>
           <always_on>1</always_on>
           <update_rate>30</update_rate>
-          <topic>wideanglecamera</topic>
+          <topic>wide_angle_camera</topic>
         </sensor>
       </link>
     </model>
