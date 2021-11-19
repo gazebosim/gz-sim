@@ -17,12 +17,12 @@ RUN apt-get update \
     libignition-math6-eigen3-dev \
     libignition-plugin-dev \
     libignition-physics5-dev \
-    libignition-rendering6-dev \
+    libignition-rendering7-dev \
     libignition-tools-dev \
     libignition-transport11-dev \
-    libignition-gui6-dev \
+    libignition-gui7-dev \
     libignition-msgs8-dev \
-    libignition-sensors6-dev \
+    libignition-sensors7-dev \
     libsdformat12-dev
 
 COPY . ign-gazebo

@@ -757,7 +757,7 @@ find_package(ignition-gazebo7-all REQUIRED)
 find_package(ignition-math6-all REQUIRED)
 find_package(ignition-msgs8-all REQUIRED)
 find_package(ignition-physics5-all REQUIRED)
-find_package(ignition-sensors6-all REQUIRED)
+find_package(ignition-sensors7-all REQUIRED)
 find_package(ignition-transport11-all REQUIRED)
 ```
 
