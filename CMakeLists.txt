@@ -15,6 +15,7 @@ find_package(ignition-cmake2 2.8.0 REQUIRED)
 # Configure the project
 #============================================================================
 ign_configure_project(VERSION_SUFFIX)
+set (CMAKE_CXX_STANDARD 17)
 
 #============================================================================
 # Set project-specific options
@@ -185,6 +186,8 @@ add_subdirectory(examples)
 # Create package information
 #============================================================================
 ign_create_packages()
+
+add_subdirectory(python)
 
 #============================================================================
 # Configure documentation
