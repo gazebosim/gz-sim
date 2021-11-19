@@ -26,6 +26,7 @@
 #endif
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 #include <sdf/Collision.hh>
 #include <sdf/Cylinder.hh>
 #include <sdf/Geometry.hh>
@@ -114,8 +115,9 @@ TEST_F(PhysicsSystemFixture, CreatePhysicsWorld)
   // TODO(addisu) add useful EXPECT calls
 }
 
-/////////////////////////////////////////////////
-TEST_F(PhysicsSystemFixture, FallingObject)
+////////////////////////////////////////////////
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(FallingObject))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -184,7 +186,7 @@ TEST_F(PhysicsSystemFixture, FallingObject)
 // This tests whether links with fixed joints keep their relative transforms
 // after physics. For that to work properly, the canonical link implementation
 // must be correct.
-TEST_F(PhysicsSystemFixture, CanonicalLink)
+TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(CanonicalLink))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -255,7 +257,8 @@ TEST_F(PhysicsSystemFixture, CanonicalLink)
 
 /////////////////////////////////////////////////
 // Same as the CanonicalLink test, but with a non-default canonical link
-TEST_F(PhysicsSystemFixture, NonDefaultCanonicalLink)
+TEST_F(PhysicsSystemFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(NonDefaultCanonicalLink))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -310,7 +313,7 @@ TEST_F(PhysicsSystemFixture, NonDefaultCanonicalLink)
 
 /////////////////////////////////////////////////
 // Test physics integration with revolute joints
-TEST_F(PhysicsSystemFixture, RevoluteJoint)
+TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(RevoluteJoint))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -389,7 +392,7 @@ TEST_F(PhysicsSystemFixture, RevoluteJoint)
 }
 
 /////////////////////////////////////////////////
-TEST_F(PhysicsSystemFixture, CreateRuntime)
+TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(CreateRuntime))
 {
   ignition::gazebo::ServerConfig serverConfig;
   gazebo::Server server(serverConfig);
@@ -472,7 +475,8 @@ TEST_F(PhysicsSystemFixture, CreateRuntime)
 }
 
 /////////////////////////////////////////////////
-TEST_F(PhysicsSystemFixture, SetFrictionCoefficient)
+TEST_F(PhysicsSystemFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(SetFrictionCoefficient))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -557,7 +561,8 @@ TEST_F(PhysicsSystemFixture, SetFrictionCoefficient)
 
 /////////////////////////////////////////////////
 /// Test that joint position reported by the physics system include all axes
-TEST_F(PhysicsSystemFixture, MultiAxisJointPosition)
+TEST_F(PhysicsSystemFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(MultiAxisJointPosition))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -636,7 +641,8 @@ TEST_F(PhysicsSystemFixture, MultiAxisJointPosition)
 
 /////////////////////////////////////////////////
 /// Test joint position reset component
-TEST_F(PhysicsSystemFixture, ResetPositionComponent)
+TEST_F(PhysicsSystemFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(ResetPositionComponent))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -735,7 +741,8 @@ TEST_F(PhysicsSystemFixture, ResetPositionComponent)
 
 /////////////////////////////////////////////////
 /// Test joint veocity reset component
-TEST_F(PhysicsSystemFixture, ResetVelocityComponent)
+TEST_F(PhysicsSystemFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(ResetVelocityComponent))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -1207,7 +1214,7 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointEffortLimitsCommandComponent)
 }
 
 /////////////////////////////////////////////////
-TEST_F(PhysicsSystemFixture, GetBoundingBox)
+TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(GetBoundingBox))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -1278,7 +1285,7 @@ TEST_F(PhysicsSystemFixture, GetBoundingBox)
 
 /////////////////////////////////////////////////
 // This tests whether nested models can be loaded correctly
-TEST_F(PhysicsSystemFixture, NestedModel)
+TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(NestedModel))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -1383,7 +1390,8 @@ TEST_F(PhysicsSystemFixture, NestedModel)
 }
 
 // This tests whether nested models can be loaded correctly
-TEST_F(PhysicsSystemFixture, IncludeNestedModelDartsim)
+TEST_F(PhysicsSystemFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(IncludeNestedModelDartsim))
 {
   std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
   ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH", path.c_str());
@@ -1525,7 +1533,8 @@ TEST_F(PhysicsSystemFixture, IncludeNestedModelDartsim)
 }
 
 // This tests whether nested models can be loaded correctly
-TEST_F(PhysicsSystemFixture, IncludeNestedModelTPE)
+TEST_F(PhysicsSystemFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(IncludeNestedModelTPE))
 {
   std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
   ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH", path.c_str());
@@ -1667,7 +1676,8 @@ TEST_F(PhysicsSystemFixture, IncludeNestedModelTPE)
 }
 
 // This tests whether the poses of nested models are updated correctly
-TEST_F(PhysicsSystemFixture, NestedModelIndividualCanonicalLinks)
+TEST_F(PhysicsSystemFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(NestedModelIndividualCanonicalLinks))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -1768,7 +1778,8 @@ TEST_F(PhysicsSystemFixture, NestedModelIndividualCanonicalLinks)
 }
 
 /////////////////////////////////////////////////
-TEST_F(PhysicsSystemFixture, DefaultPhysicsOptions)
+TEST_F(PhysicsSystemFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(DefaultPhysicsOptions))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -1854,7 +1865,8 @@ TEST_F(PhysicsSystemFixture, PhysicsOptions)
 /////////////////////////////////////////////////
 // This tests whether pose updates are correct for a model whose canonical link
 // changes, but other links do not
-TEST_F(PhysicsSystemFixture, MovingCanonicalLinkOnly)
+TEST_F(PhysicsSystemFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(MovingCanonicalLinkOnly))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -1981,7 +1993,7 @@ TEST_F(PhysicsSystemFixture, MovingCanonicalLinkOnly)
 }
 
 /////////////////////////////////////////////////
-TEST_F(PhysicsSystemFixture, Heightmap)
+TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(Heightmap))
 {
   ignition::gazebo::ServerConfig serverConfig;
 

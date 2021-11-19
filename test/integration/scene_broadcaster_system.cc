@@ -23,6 +23,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"
@@ -38,7 +39,8 @@ class SceneBroadcasterTest
 };
 
 /////////////////////////////////////////////////
-TEST_P(SceneBroadcasterTest, PoseInfo)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PoseInfo))
 {
   // Start server
   ignition::gazebo::ServerConfig serverConfig;
@@ -88,7 +90,7 @@ TEST_P(SceneBroadcasterTest, PoseInfo)
 }
 
 /////////////////////////////////////////////////
-TEST_P(SceneBroadcasterTest, SceneInfo)
+TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneInfo))
 {
   // Start server
   ignition::gazebo::ServerConfig serverConfig;
@@ -134,7 +136,7 @@ TEST_P(SceneBroadcasterTest, SceneInfo)
 }
 
 /////////////////////////////////////////////////
-TEST_P(SceneBroadcasterTest, SceneGraph)
+TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneGraph))
 {
   // Start server
   ignition::gazebo::ServerConfig serverConfig;
@@ -174,7 +176,7 @@ TEST_P(SceneBroadcasterTest, SceneGraph)
 
 /////////////////////////////////////////////////
 /// Test whether the scene topic is published only when new entities are added
-TEST_P(SceneBroadcasterTest, SceneTopic)
+TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneTopic))
 {
   // Start server
   ignition::gazebo::ServerConfig serverConfig;
@@ -218,7 +220,8 @@ TEST_P(SceneBroadcasterTest, SceneTopic)
 
 /////////////////////////////////////////////////
 /// Test whether the scene topic is published only when new entities are added
-TEST_P(SceneBroadcasterTest, SceneTopicSensors)
+TEST_P(SceneBroadcasterTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneTopicSensors))
 {
   // Start server
   ignition::gazebo::ServerConfig serverConfig;
@@ -269,7 +272,7 @@ TEST_P(SceneBroadcasterTest, SceneTopicSensors)
 
 /////////////////////////////////////////////////
 /// Test whether the scene topic is published only when new entities are added
-TEST_P(SceneBroadcasterTest, DeletedTopic)
+TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(DeletedTopic))
 {
   // Start server
   ignition::gazebo::ServerConfig serverConfig;
@@ -329,7 +332,7 @@ TEST_P(SceneBroadcasterTest, DeletedTopic)
 
 /////////////////////////////////////////////////
 /// Test whether the scene is updated when a model is spawned.
-TEST_P(SceneBroadcasterTest, SpawnedModel)
+TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SpawnedModel))
 {
   // Start server
   ignition::gazebo::ServerConfig serverConfig;
@@ -399,7 +402,7 @@ TEST_P(SceneBroadcasterTest, SpawnedModel)
 }
 
 /////////////////////////////////////////////////
-TEST_P(SceneBroadcasterTest, State)
+TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(State))
 {
   // Start server
   ignition::gazebo::ServerConfig serverConfig;
@@ -510,7 +513,7 @@ TEST_P(SceneBroadcasterTest, State)
 }
 
 /////////////////////////////////////////////////
-TEST_P(SceneBroadcasterTest, StateStatic)
+TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StateStatic))
 {
   // Start server
   ignition::gazebo::ServerConfig serverConfig;

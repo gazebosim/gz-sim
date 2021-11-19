@@ -22,6 +22,7 @@
 #include <ignition/common/Util.hh>
 #include <ignition/math/Color.hh>
 #include <ignition/msgs/Utility.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/Server.hh"
@@ -58,7 +59,8 @@ class ParticleEmitter2Test : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 // Load an SDF with a particle emitter and verify its properties.
-TEST_F(ParticleEmitter2Test, SDFLoad)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(ParticleEmitter2Test, IGN_UTILS_TEST_DISABLED_ON_WIN32(SDFLoad))
 {
   bool updateCustomChecked{false};
   bool updateDefaultChecked{false};

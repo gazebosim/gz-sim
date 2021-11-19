@@ -23,6 +23,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/common/Filesystem.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
@@ -70,8 +71,9 @@ class BatteryPluginTest : public InternalFixture<::testing::Test>
 
 
 /////////////////////////////////////////////////
-// Single model consuming single battery
-TEST_F(BatteryPluginTest, SingleBattery)
+// Single model consuming single batter
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(BatteryPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SingleBattery))
 {
   const auto sdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "battery.sdf");

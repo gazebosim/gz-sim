@@ -23,6 +23,7 @@
 #include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/Gravity.hh"
@@ -62,7 +63,8 @@ void imuCb(const msgs::IMU &_msg)
 
 /////////////////////////////////////////////////
 // The test checks the world pose and sensor readings of a falling imu
-TEST_F(ImuTest, ModelFalling)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
 {
   double z = 3;
   // TODO(anyone): get step size from sdf
@@ -209,7 +211,7 @@ TEST_F(ImuTest, ModelFalling)
 
 /////////////////////////////////////////////////
 // The test checks to make sure orientation is not published if it is deabled
-TEST_F(ImuTest, OrientationDisabled)
+TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OrientationDisabled))
 {
   imuMsgs.clear();
 

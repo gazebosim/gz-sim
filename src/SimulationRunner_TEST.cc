@@ -21,6 +21,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 #include <sdf/Box.hh>
 #include <sdf/Capsule.hh>
 #include <sdf/Cylinder.hh>
@@ -1182,7 +1183,8 @@ TEST_P(SimulationRunnerTest, Time)
 }
 
 /////////////////////////////////////////////////
-TEST_P(SimulationRunnerTest, LoadPlugins)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_P(SimulationRunnerTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadPlugins) )
 {
   // Load SDF file
   sdf::Root root;
@@ -1269,7 +1271,8 @@ TEST_P(SimulationRunnerTest, LoadPlugins)
 }
 
 /////////////////////////////////////////////////
-TEST_P(SimulationRunnerTest, LoadServerNoPlugins)
+TEST_P(SimulationRunnerTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadServerNoPlugins) )
 {
   sdf::Root rootWithout;
   rootWithout.Load(common::joinPaths(PROJECT_SOURCE_PATH,
@@ -1291,7 +1294,8 @@ TEST_P(SimulationRunnerTest, LoadServerNoPlugins)
 }
 
 /////////////////////////////////////////////////
-TEST_P(SimulationRunnerTest, LoadServerConfigPlugins)
+TEST_P(SimulationRunnerTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadServerConfigPlugins) )
 {
   sdf::Root rootWithout;
   rootWithout.Load(common::joinPaths(PROJECT_SOURCE_PATH,
@@ -1391,7 +1395,8 @@ TEST_P(SimulationRunnerTest, LoadServerConfigPlugins)
 }
 
 /////////////////////////////////////////////////
-TEST_P(SimulationRunnerTest, LoadPluginsDefault)
+TEST_P(SimulationRunnerTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadPluginsDefault) )
 {
   sdf::Root rootWithout;
   rootWithout.Load(common::joinPaths(PROJECT_SOURCE_PATH,
@@ -1412,7 +1417,8 @@ TEST_P(SimulationRunnerTest, LoadPluginsDefault)
 }
 
 /////////////////////////////////////////////////
-TEST_P(SimulationRunnerTest, LoadPluginsEvent)
+TEST_P(SimulationRunnerTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadPluginsEvent) )
 {
   // Load SDF file without plugins
   sdf::Root rootWithout;

@@ -29,6 +29,7 @@
 #include <ignition/physics/FeaturePolicy.hh>
 #include <ignition/physics/config.hh>
 #include <ignition/plugin/Loader.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Model.hh"
@@ -563,7 +564,8 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(TrackedVehicleTest, PublishCmd)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(TrackedVehicleTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 {
   this->TestPublishCmd(
     std::string(PROJECT_SOURCE_PATH) +
@@ -573,7 +575,7 @@ TEST_F(TrackedVehicleTest, PublishCmd)
 }
 
 /////////////////////////////////////////////////
-TEST_F(TrackedVehicleTest, Conveyor)
+TEST_F(TrackedVehicleTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Conveyor))
 {
   this->TestConveyor(
     std::string(PROJECT_SOURCE_PATH) +

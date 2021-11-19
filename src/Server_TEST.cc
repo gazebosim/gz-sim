@@ -22,6 +22,7 @@
 #include <ignition/common/Util.hh>
 #include <ignition/math/Rand.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 #include <sdf/Mesh.hh>
 
 #include "ignition/gazebo/components/AxisAlignedBox.hh"
@@ -50,7 +51,8 @@ class ServerFixture : public InternalFixture<::testing::TestWithParam<int>>
 };
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, DefaultServerConfig)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(DefaultServerConfig))
 {
   ignition::gazebo::ServerConfig serverConfig;
   EXPECT_TRUE(serverConfig.SdfFile().empty());
@@ -158,7 +160,7 @@ TEST_P(ServerFixture, ServerConfigPluginInfo)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, ServerConfigRealPlugin)
+TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigRealPlugin))
 {
   // Start server
   ServerConfig serverConfig;
@@ -209,7 +211,8 @@ TEST_P(ServerFixture, ServerConfigRealPlugin)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, ServerConfigSensorPlugin)
+TEST_P(ServerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigSensorPlugin))
 {
   // Start server
   ServerConfig serverConfig;
@@ -260,7 +263,7 @@ TEST_P(ServerFixture, ServerConfigSensorPlugin)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, SdfServerConfig)
+TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(SdfServerConfig))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -293,7 +296,7 @@ TEST_P(ServerFixture, SdfServerConfig)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, ServerConfigLogRecord)
+TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigLogRecord))
 {
   auto logPath = common::joinPaths(
       std::string(PROJECT_BINARY_PATH), "test_log_path");
@@ -332,7 +335,8 @@ TEST_P(ServerFixture, ServerConfigLogRecord)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, ServerConfigLogRecordCompress)
+TEST_P(ServerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigLogRecordCompress))
 {
   auto logPath = common::joinPaths(
       std::string(PROJECT_BINARY_PATH), "test_log_path");
@@ -483,7 +487,7 @@ TEST_P(ServerFixture, RunNonBlocking)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, RunOnceUnpaused)
+TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(RunOnceUnpaused))
 {
   gazebo::Server server;
   EXPECT_FALSE(server.Running());
@@ -530,7 +534,7 @@ TEST_P(ServerFixture, RunOnceUnpaused)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, RunOncePaused)
+TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(RunOncePaused))
 {
   gazebo::Server server;
   EXPECT_FALSE(server.Running());
@@ -620,7 +624,7 @@ TEST_P(ServerFixture, SigInt)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, AddSystemWhileRunning)
+TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(AddSystemWhileRunning))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -668,7 +672,7 @@ TEST_P(ServerFixture, AddSystemWhileRunning)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, AddSystemAfterLoad)
+TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(AddSystemAfterLoad))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -742,7 +746,7 @@ TEST_P(ServerFixture, Seed)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, ResourcePath)
+TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
 {
   ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
          (std::string(PROJECT_SOURCE_PATH) + "/test/worlds:" +
