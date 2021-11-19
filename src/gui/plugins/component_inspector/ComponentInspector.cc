@@ -73,6 +73,7 @@
 #include "AirPressure.hh"
 #include "Altimeter.hh"
 #include "ComponentInspector.hh"
+#include "Magnetometer.hh"
 #include "ModelEditor.hh"
 
 namespace ignition::gazebo
@@ -120,6 +121,9 @@ namespace ignition::gazebo
 
     /// \brief Altimeter sensor inspector elements
     public: std::unique_ptr<ignition::gazebo::Altimeter> altimeter;
+
+    /// \brief Magnetometer inspector elements
+    public: std::unique_ptr<ignition::gazebo::Magnetometer> magnetometer;
 
     /// \brief Set of callbacks to execute during the Update function.
     public: std::vector<
@@ -439,6 +443,9 @@ void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
 
   // Create altimeter
   this->dataPtr->altimeter = std::make_unique<Altimeter>(this);
+
+  // Create the magnetometer
+  this->dataPtr->magnetometer = std::make_unique<Magnetometer>(this);
 }
 
 //////////////////////////////////////////////////

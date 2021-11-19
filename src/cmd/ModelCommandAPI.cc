@@ -634,6 +634,7 @@ void printLinks(const uint64_t _modelEntity,
       printAltimeter(sensor, _ecm, spaces + 2);
       printCamera(sensor, _ecm, spaces + 2);
       printImu(sensor, _ecm, spaces + 2);
+      printMagnetometer(sensor, _ecm, spaces + 2);
       printRgbdCamera(sensor, _ecm, spaces + 2);
     }
   }
