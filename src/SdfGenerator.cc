@@ -29,12 +29,16 @@
 #include "ignition/gazebo/components/AirPressureSensor.hh"
 #include "ignition/gazebo/components/Altimeter.hh"
 #include "ignition/gazebo/components/Camera.hh"
+#include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/ContactSensor.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/ForceTorque.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Imu.hh"
 #include "ignition/gazebo/components/Inertial.hh"
+#include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/JointAxis.hh"
+#include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/LogicalCamera.hh"
@@ -42,13 +46,16 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/SelfCollide.hh"
+#include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/SegmentationCamera.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThermalCamera.hh"
+#include "ignition/gazebo/components/ThreadPitch.hh"
 #include "ignition/gazebo/components/WindMode.hh"
 #include "ignition/gazebo/components/World.hh"
 
@@ -502,6 +509,21 @@ namespace sdf_generator
       }
     }
 
+    if (_elem->HasElement("joint"))
+    {
+      // update joints
+      sdf::ElementPtr jointElem = _elem->GetElement("joint");
+      while (jointElem)
+      {
+        std::string jointName = jointElem->Get<std::string>("name");
+        auto jointEnt = _ecm.EntityByComponents(
+            components::ParentEntity(_entity), components::Name(jointName));
+        if (jointEnt != kNullEntity)
+          updateJointElement(jointElem, _ecm, jointEnt);
+        jointElem = jointElem->GetNextElement("joint");
+      }
+    }
+
     return true;
   }
 
@@ -603,7 +625,6 @@ namespace sdf_generator
     // Update sdf based on current components.
     // This list is to be updated as other components become updateable during
     // simulation
-
     auto updateSensorNameAndPose = [&]
     {
       // override name and pose sdf element using values from ECM
@@ -769,6 +790,144 @@ namespace sdf_generator
       return updateLightNameAndPose();
     }
     return true;
+  }
+
+  /////////////////////////////////////////////////
+  bool updateJointElement(sdf::ElementPtr _elem,
+                          const EntityComponentManager &_ecm,
+                          const Entity &_entity)
+  {
+    // Update sdf based on the joint component
+    auto updateJointNameAndPose = [&]
+    {
+      // override name and pose sdf element using values from ECM
+      auto *nameComp = _ecm.Component<components::Name>(_entity);
+      _elem->GetAttribute("name")->Set(nameComp->Data());
+
+      auto *poseComp = _ecm.Component<components::Pose>(_entity);
+      auto poseElem = _elem->GetElement("pose");
+
+      // Remove all attributes of poseElem
+      for (const auto *attrName : {"relative_to", "degrees", "rotation_format"})
+      {
+        sdf::ParamPtr attr = poseElem->GetAttribute(attrName);
+        if (nullptr != attr)
+        {
+          attr->Reset();
+        }
+      }
+      poseElem->Set(poseComp->Data());
+      return true;
+    };
+
+    // joint
+    auto jointComp = _ecm.Component<components::Joint>(_entity);
+    if (!jointComp)
+    {
+      return false;
+    }
+
+    // joint type
+    auto jointTypeComp = _ecm.Component<components::JointType>(_entity);
+    if (jointTypeComp)
+    {
+      sdf::JointType jointType = jointTypeComp->Data();
+      std::string jointTypeStr = "invalid";
+      switch (jointType)
+      {
+        case sdf::JointType::BALL:
+          jointTypeStr = "ball";
+          break;
+        case sdf::JointType::CONTINUOUS:
+          jointTypeStr = "continuous";
+          break;
+        case sdf::JointType::FIXED:
+          jointTypeStr = "fixed";
+          break;
+        case sdf::JointType::PRISMATIC:
+          jointTypeStr = "prismatic";
+          break;
+        case sdf::JointType::GEARBOX:
+          jointTypeStr = "gearbox";
+          break;
+        case sdf::JointType::REVOLUTE:
+          jointTypeStr = "revolute";
+          break;
+        case sdf::JointType::REVOLUTE2:
+          jointTypeStr = "revolute2";
+          break;
+        case sdf::JointType::SCREW:
+          jointTypeStr = "screw";
+          break;
+        case sdf::JointType::UNIVERSAL:
+          jointTypeStr = "universal";
+          break;
+        default:
+          break;
+      }
+      _elem->GetAttribute("type")->Set<std::string>(jointTypeStr);
+    }
+
+    // parent
+    auto parentLinkNameComp =
+        _ecm.Component<components::ParentLinkName>(_entity);
+    if (parentLinkNameComp)
+    {
+      _elem->GetElement("parent")->Set<std::string>(parentLinkNameComp->Data());
+    }
+    // child
+    auto childLinkNameComp = _ecm.Component<components::ChildLinkName>(_entity);
+    if (childLinkNameComp)
+    {
+      _elem->GetElement("child")->Set<std::string>(childLinkNameComp->Data());
+    }
+    // thread pitch
+    auto threadPitchComp = _ecm.Component<components::ThreadPitch>(_entity);
+    if (threadPitchComp)
+    {
+      _elem->GetElement("thread_pitch")->Set<double>(threadPitchComp->Data());
+    }
+    // axis
+    auto jointAxisComp = _ecm.Component<components::JointAxis>(_entity);
+    if (jointAxisComp)
+    {
+      const sdf::JointAxis axis = jointAxisComp->Data();
+      _elem->GetElement("axis")->Copy(axis.ToElement());
+    }
+    // axis2
+    auto jointAxis2Comp = _ecm.Component<components::JointAxis2>(_entity);
+    if (jointAxis2Comp)
+    {
+      const sdf::JointAxis axis2 = jointAxis2Comp->Data();
+      _elem->GetElement("axis2")->Copy(axis2.ToElement(1u));
+    }
+
+    // sensors
+    // remove existing ones in sdf element and add new ones from ECM.
+    std::vector<sdf::ElementPtr> toRemove;
+    if (_elem->HasElement("sensor"))
+    {
+      for (auto sensorElem = _elem->GetElement("sensor"); sensorElem;
+           sensorElem = sensorElem->GetNextElement("sensor"))
+      {
+        toRemove.push_back(sensorElem);
+      }
+    }
+    for (const auto &e : toRemove)
+    {
+      _elem->RemoveChild(e);
+    }
+
+    auto sensorEntities = _ecm.EntitiesByComponents(
+        components::ParentEntity(_entity), components::Sensor());
+
+    for (const auto &sensorEnt : sensorEntities)
+    {
+      sdf::ElementPtr sensorElem = _elem->AddElement("sensor");
+      updateSensorElement(sensorElem, _ecm, sensorEnt);
+    }
+
+    return updateJointNameAndPose();
   }
 
   /////////////////////////////////////////////////
