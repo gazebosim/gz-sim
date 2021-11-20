@@ -631,7 +631,7 @@ namespace sdf_generator
     if (camComp)
     {
       const sdf::Sensor &sensor = camComp->Data();
-      sensor.PopulateElement(_elem);
+      _elem->Copy(sensor.ToElement());
       return updateSensorNameAndPose();
     }
     // depth camera
@@ -639,7 +639,7 @@ namespace sdf_generator
     if (depthCamComp)
     {
       const sdf::Sensor &sensor = depthCamComp->Data();
-      sensor.PopulateElement(_elem);
+      _elem->Copy(sensor.ToElement());
       return updateSensorNameAndPose();
     }
     // thermal camera
@@ -647,7 +647,7 @@ namespace sdf_generator
     if (thermalCamComp)
     {
       const sdf::Sensor &sensor = thermalCamComp->Data();
-      sensor.PopulateElement(_elem);
+      _elem->Copy(sensor.ToElement());
       return updateSensorNameAndPose();
     }
     // logical camera
@@ -665,7 +665,7 @@ namespace sdf_generator
     if (segmentationCamComp)
     {
       const sdf::Sensor &sensor = segmentationCamComp->Data();
-      sensor.PopulateElement(_elem);
+      _elem->Copy(sensor.ToElement());
       return updateSensorNameAndPose();
     }
 
@@ -674,7 +674,7 @@ namespace sdf_generator
     if (gpuLidarComp)
     {
       const sdf::Sensor &sensor = gpuLidarComp->Data();
-      sensor.PopulateElement(_elem);
+      _elem->Copy(sensor.ToElement());
       return updateSensorNameAndPose();
     }
     // altimeter
@@ -682,7 +682,7 @@ namespace sdf_generator
     if (altimeterComp)
     {
       const sdf::Sensor &sensor = altimeterComp->Data();
-      sensor.PopulateElement(_elem);
+      _elem->Copy(sensor.ToElement());
       return updateSensorNameAndPose();
     }
     // contact
@@ -700,7 +700,7 @@ namespace sdf_generator
     if (airPressureComp)
     {
       const sdf::Sensor &sensor = airPressureComp->Data();
-      sensor.PopulateElement(_elem);
+      _elem->Copy(sensor.ToElement());
       return updateSensorNameAndPose();
     }
     // force torque
@@ -708,7 +708,7 @@ namespace sdf_generator
     if (forceTorqueComp)
     {
       const sdf::Sensor &sensor = forceTorqueComp->Data();
-      sensor.PopulateElement(_elem);
+      _elem->Copy(sensor.ToElement());
       return updateSensorNameAndPose();
     }
     // imu
@@ -716,7 +716,7 @@ namespace sdf_generator
     if (imuComp)
     {
       const sdf::Sensor &sensor = imuComp->Data();
-      sensor.PopulateElement(_elem);
+      _elem->Copy(sensor.ToElement());
       return updateSensorNameAndPose();
     }
     // magnetometer
@@ -725,7 +725,7 @@ namespace sdf_generator
     if (magnetometerComp)
     {
       const sdf::Sensor &sensor = magnetometerComp->Data();
-      sensor.PopulateElement(_elem);
+      _elem->Copy(sensor.ToElement());
       return updateSensorNameAndPose();
     }
 
