@@ -145,7 +145,7 @@ Rectangle {
               visible: meanMa.containsMouse
               delay: tooltipDelay
               text: "Mean value"
-              y: noise.y - 30
+              y: meanText.y + 30
               enter: null
               exit: null
             }
@@ -188,7 +188,7 @@ Rectangle {
               visible: meanBiasMa.containsMouse
               delay: tooltipDelay
               text: "Mean bias"
-              y: noise.y - 30
+              y: meanBiasText.y + 30
               enter: null
               exit: null
             }
@@ -246,7 +246,7 @@ Rectangle {
               visible: stdDevMa.containsMouse
               delay: tooltipDelay
               text: "Standard deviation value"
-              y: noise.y - 30
+              y: stddevText.y + 30
               enter: null
               exit: null
             }
@@ -289,7 +289,7 @@ Rectangle {
               visible: stddevBiasTextMa.containsMouse
               delay: tooltipDelay
               text: "Standard deviation bias"
-              y: noise.y - 30
+              y: stddevBiasText.y + 30
               enter: null
               exit: null
             }
@@ -347,7 +347,7 @@ Rectangle {
               visible: dynamicBiasStddevTextMa.containsMouse
               delay: tooltipDelay
               text: "Standard deviation"
-              y: noise.y - 30
+              y: dynamicBiasStddevText.y + 30
               enter: null
               exit: null
             }
@@ -392,7 +392,7 @@ Rectangle {
               visible: dynamicBiasCorrelationTimeTextMa.containsMouse
               delay: tooltipDelay
               text: "Correlation time in seconds."
-              y: noise.y - 30
+              y: dynamicBiasCorrelationTimeText.y + 30
               enter: null
               exit: null
             }

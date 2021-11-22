@@ -74,6 +74,7 @@
 #include "Altimeter.hh"
 #include "ComponentInspector.hh"
 #include "Imu.hh"
+#include "Lidar.hh"
 #include "Magnetometer.hh"
 #include "ModelEditor.hh"
 
@@ -125,6 +126,9 @@ namespace ignition::gazebo
 
     /// \brief Imu inspector elements
     public: std::unique_ptr<ignition::gazebo::Imu> imu;
+
+    /// \brief Lidar inspector elements
+    public: std::unique_ptr<ignition::gazebo::Lidar> lidar;
 
     /// \brief Magnetometer inspector elements
     public: std::unique_ptr<ignition::gazebo::Magnetometer> magnetometer;
@@ -450,6 +454,9 @@ void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
 
   // Create the imu
   this->dataPtr->imu = std::make_unique<Imu>(this);
+
+  // Create the lidar
+  this->dataPtr->lidar = std::make_unique<Lidar>(this);
 
   // Create the magnetometer
   this->dataPtr->magnetometer = std::make_unique<Magnetometer>(this);
