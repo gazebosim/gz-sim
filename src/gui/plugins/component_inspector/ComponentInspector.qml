@@ -507,7 +507,7 @@ Rectangle {
               id: viewSubLidarArea
               anchors.fill: parent
               hoverEnabled: true
-              onEntered: cameraSubmenu.open()
+              onEntered: lidarSubmenu.open()
             }
           }
      
