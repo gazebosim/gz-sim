@@ -64,6 +64,11 @@ class DoorState : public boost::msm::front::state<>
   {
   }
 
+  /// \brief Destructor
+  public: virtual ~DoorState()
+  {
+  }
+
   /// \brief Sends the opening or closing command to the door joint of the
   /// target floor and configures the monitor that checks the joint state
   /// \param[in] _fsm State machine to which the state belongs
@@ -110,10 +115,12 @@ class DoorState : public boost::msm::front::state<>
 };
 
 /// \brief State at which the elevator is opening a door.
-class OpenDoorState : public DoorState<DoorOpenEvent>
+class OpenDoorState : public DoorState<events::DoorOpen>
 {
   /// \brief Constructor
-  public: OpenDoorState() : DoorState(5e-2) {}
+  public: OpenDoorState() : DoorState(5e-2)
+  {
+  }
 
   // Documentation inherited
   private: virtual std::string Report(
@@ -132,10 +139,12 @@ class OpenDoorState : public DoorState<DoorOpenEvent>
 };
 
 /// \brief State at which the elevator is closing a door.
-class CloseDoorState : public DoorState<DoorClosedEvent>
+class CloseDoorState : public DoorState<events::DoorClosed>
 {
   /// \brief Constructor
-  public: CloseDoorState() : DoorState(2e-2) {}
+  public: CloseDoorState() : DoorState(2e-2)
+  {
+  }
 
   // Documentation inherited
   private: virtual std::string Report(
@@ -157,7 +166,7 @@ class CloseDoorState : public DoorState<DoorClosedEvent>
 class WaitState : public boost::msm::front::state<>
 {
   /// \brief This state defers EnqueueNewTargetEvent events
-  public: using deferred_events = boost::mpl::vector<EnqueueNewTargetEvent>;
+  public: using deferred_events = boost::mpl::vector<events::EnqueueNewTarget>;
 
   /// \brief Starts the timer that keeps the door at the target floor level open
   /// \param[in] _fsm State machine to which the state belongs
@@ -168,7 +177,7 @@ class WaitState : public boost::msm::front::state<>
     ignmsg << "The elevator is waiting to close door " << data->system->state
            << std::endl;
 
-    this->triggerEvent = [&_fsm] { _fsm.enqueue_event(TimeoutEvent()); };
+    this->triggerEvent = [&_fsm] { _fsm.enqueue_event(events::Timeout()); };
     data->system->StartDoorTimer(data->system->state,
                                  std::bind(&WaitState::OnTimeout, this));
   }
@@ -184,7 +193,7 @@ class WaitState : public boost::msm::front::state<>
 class MoveCabinState : public boost::msm::front::state<>
 {
   /// \brief This state defers EnqueueNewTargetEvent events
-  public: using deferred_events = boost::mpl::vector<EnqueueNewTargetEvent>;
+  public: using deferred_events = boost::mpl::vector<events::EnqueueNewTarget>;
 
   /// \brief Constructor
   /// \param[in] _posEps Position tolerance when checking if the cabin has
@@ -209,7 +218,7 @@ class MoveCabinState : public boost::msm::front::state<>
 
     double jointTarget = data->system->cabinTargets[floorTarget];
     data->SendCmd(data->system->cabinJointCmdPub, jointTarget);
-    this->triggerEvent = [&_fsm] { _fsm.enqueue_event(CabinAtTargetEvent()); };
+    this->triggerEvent = [&_fsm] { _fsm.enqueue_event(events::CabinAtTarget()); };
     data->system->SetCabinMonitor(
         floorTarget, jointTarget, this->posEps, this->velEps,
         std::bind(&MoveCabinState::OnJointTargetReached, this));

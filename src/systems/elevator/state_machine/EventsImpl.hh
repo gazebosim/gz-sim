@@ -29,45 +29,48 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 {
 namespace systems
 {
+namespace events
+{
 /// \brief Event that signifies there is a new target that needs to be enqueued.
-class EnqueueNewTargetEvent
+struct EnqueueNewTarget
 {
   /// \brief Constructor
   /// \param[in] _target New target
-  public: EnqueueNewTargetEvent(double _target) : target(_target) {}
+  public: EnqueueNewTarget(double _target) : target(_target) {}
 
   /// \brief target New target
   public: double target;
 };
 
 /// \brief Event that signifies a new target will be processed.
-class NewTargetEvent
+struct NewTarget
 {
 };
 
 /// \brief Event that signifies the door at the target floor level has been
 /// opened.
-class DoorOpenEvent
+struct DoorOpen
 {
 };
 
 /// \brief Event that signifies the door at the target floor level has been
 /// closed.
-class DoorClosedEvent
+struct DoorClosed
 {
 };
 
 /// \brief Event that signifies the door at the target floor level has remained
 /// open for the required amount of time.
-class TimeoutEvent
+struct Timeout
 {
 };
 
 /// \brief Event that signifies the cabin has reached the target floor level.
-class CabinAtTargetEvent
+struct CabinAtTarget
 {
 };
 
+}  // namespace events
 }  // namespace systems
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 }  // namespace gazebo

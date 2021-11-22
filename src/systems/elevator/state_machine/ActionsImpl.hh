@@ -31,11 +31,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 {
 namespace systems
 {
+namespace actions
+{
 /// \brief Action that enqueues a new target in the target queue.
 /// \details After the new target has been added in the queue, depending on the
-/// template parameter, a NewTargetEvent is triggered.
+/// template parameter, an events::NewTarget is triggered.
 template <bool trigger>
-class EnqueueNewTargetAction
+struct EnqueueNewTarget
 {
   /// \brief Function call operator
   /// \param[in] _event Event that triggered the action
@@ -46,13 +48,13 @@ class EnqueueNewTargetAction
   {
     const auto &data = _fsm.Data();
     data->EnqueueNewTarget(_event.target);
-    if (trigger) _fsm.process_event(NewTargetEvent());
+    if (trigger) _fsm.process_event(events::NewTarget());
   }
 };
 
 /// \brief Action that cleans up the target queue when a new target is
 /// processed.
-class NewTargetAction
+struct NewTarget
 {
   /// \brief Function call operator
   /// \param[in] _fsm State machine with which the action is associated
@@ -68,7 +70,7 @@ class NewTargetAction
 
 /// \brief Action that cleans up the target queue when the cabin reaches the
 /// target floor level.
-class CabinAtTargetAction
+struct CabinAtTarget
 {
   /// \brief Function call operator
   /// \param[in] _fsm State machine with which the action is associated
@@ -82,6 +84,7 @@ class CabinAtTargetAction
   }
 };
 
+}  // namespace actions
 }  // namespace systems
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 }  // namespace gazebo

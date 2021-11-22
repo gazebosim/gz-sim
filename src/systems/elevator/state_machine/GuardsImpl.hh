@@ -31,10 +31,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 {
 namespace systems
 {
+namespace guards
+{
 /// \brief Guard that checks whether the cabin is at the target floor level.
 /// \note The template parameter can invert the result if set to true.
 template <bool invert>
-class CabinAtTargetGuard
+struct CabinAtTarget
 {
   /// \brief Function call operator
   /// \param[in] _fsm State machine with which the guard is associated
@@ -52,7 +54,7 @@ class CabinAtTargetGuard
 /// \brief Guard that checks whether the target queue is empty.
 /// \note The template parameter can invert the result if set to true.
 template <bool invert>
-class NoTargetGuard
+struct NoQueuedTarget
 {
   /// \brief Function call operator
   /// \param[in] _fsm State machine with which the guard is associated
@@ -66,6 +68,7 @@ class NoTargetGuard
   }
 };
 
+}  // namespace guards
 }  // namespace systems
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 }  // namespace gazebo

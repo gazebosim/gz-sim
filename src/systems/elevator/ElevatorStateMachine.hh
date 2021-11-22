@@ -46,12 +46,15 @@ class ElevatorCommonPrivate;
 class ElevatorStateMachinePrivate;
 
 // Event forward declarations
-class EnqueueNewTargetEvent;
-class NewTargetEvent;
-class DoorOpenEvent;
-class DoorClosedEvent;
-class TimeoutEvent;
-class CabinAtTargetEvent;
+namespace events
+{
+  struct EnqueueNewTarget;
+  struct NewTarget;
+  struct DoorOpen;
+  struct DoorClosed;
+  struct Timeout;
+  struct CabinAtTarget;
+}  // namespace events
 
 // State forward declarations
 class IdleState;
@@ -61,16 +64,22 @@ class CloseDoorState;
 class MoveCabinState;
 
 // Action forward declarations
-template <bool>
-class EnqueueNewTargetAction;
-class NewTargetAction;
-class CabinAtTargetAction;
+namespace actions
+{
+  template <bool>
+  struct EnqueueNewTarget;
+  struct NewTarget;
+  struct CabinAtTarget;
+}  // namespace actions
 
 // Guard forward declarations
-template <bool>
-class CabinAtTargetGuard;
-template <bool>
-class NoTargetGuard;
+namespace guards
+{
+  template <typename TargetState>
+  struct IsInState;
+  struct CabinAtTarget;
+  struct NoQueuedTarget;
+}  // namespace guards
 
 /// \brief Elevator state machine frontend. Defines the transition table and
 /// initial state of the state machine.
