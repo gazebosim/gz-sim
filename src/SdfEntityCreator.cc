@@ -593,7 +593,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint)
 }
 
 //////////////////////////////////////////////////
-Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint, bool resolved)
+Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint,
+    bool _resolved)
 {
   IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Joint)");
 
@@ -653,7 +654,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint, bool resolved)
 
 
   std::string resolvedParentLinkName;
-  if (resolved)
+  if (_resolved)
   {
     resolvedParentLinkName = _joint->ParentLinkName();
   }
@@ -679,7 +680,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint, bool resolved)
       jointEntity, components::ParentLinkName(resolvedParentLinkName));
 
   std::string resolvedChildLinkName;
-  if (resolved)
+  if (_resolved)
   {
     resolvedChildLinkName = _joint->ChildLinkName();
   }

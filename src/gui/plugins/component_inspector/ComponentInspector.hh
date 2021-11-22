@@ -371,8 +371,12 @@ namespace gazebo
                 const QString &_parentLink,
                 const QString &_childLink);
 
+    /// \brief Return the list of availabe links if a model is selected.
+    /// \return List of available links.
     public: Q_INVOKABLE QStringList ModelLinks() const;
 
+    /// \brief Set the list of availabe links when a model is selected.
+    /// \param[in] _modelLinks List of available links.
     public: Q_INVOKABLE void SetModelLinks(const QStringList &_modelLinks);
 
     /// \brief Notify that locked has changed.

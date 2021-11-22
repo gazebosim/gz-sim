@@ -500,12 +500,13 @@ void ComponentInspector::Update(const UpdateInfo &_info,
       }
       this->NestedModelChanged();
 
+      // Get available links for the model.
       this->dataPtr->modelLinks.clear();
       this->dataPtr->modelLinks.append("world");
       _ecm.EachNoCache<
         components::Name,
         components::Link,
-        components::ParentEntity>([&]( const ignition::gazebo::Entity &,
+        components::ParentEntity>([&](const ignition::gazebo::Entity &,
               const components::Name *_name,
               const components::Link *,
               const components::ParentEntity *_parent) -> bool
