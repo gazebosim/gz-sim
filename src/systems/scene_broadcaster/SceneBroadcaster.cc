@@ -19,8 +19,10 @@
 
 #include <ignition/msgs/scene.pb.h>
 
+#include <algorithm>
 #include <chrono>
 #include <condition_variable>
+#include <map>
 #include <string>
 #include <unordered_set>
 
@@ -199,9 +201,14 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   public: std::chrono::time_point<std::chrono::system_clock>
       lastStatePubTime{std::chrono::system_clock::now()};
 
-  /// \brief Period to publish state, defaults to 60 Hz.
-  public: std::chrono::duration<int64_t, std::ratio<1, 1000>>
-      statePublishPeriod{std::chrono::milliseconds(1000/60)};
+  /// \brief Period to publish state while paused and running. The key for
+  /// the map is used to store the publish period when paused and not
+  /// paused. The not-paused (a.ka. running) period has a key=false and a
+  /// default update rate of 60Hz. The paused period has a key=true and a
+  /// default update rate of 30Hz.
+  public: std::map<bool, std::chrono::duration<int64_t, std::ratio<1, 1000>>>
+      statePublishPeriod{{false, std::chrono::milliseconds(1000/60)},
+                         {true,  std::chrono::milliseconds(1000/30)}};
 
   /// \brief Flag used to indicate if the state service was called.
   public: bool stateServiceRequest{false};
@@ -237,9 +244,15 @@ void SceneBroadcaster::Configure(
   this->dataPtr->dyPoseHertz = readHertz.first;
 
   auto stateHerz = _sdf->Get<int>("state_hertz", 60);
-  this->dataPtr->statePublishPeriod =
+  this->dataPtr->statePublishPeriod[false] =
       std::chrono::duration<int64_t, std::ratio<1, 1000>>(
       std::chrono::milliseconds(1000/stateHerz.first));
+
+  // Set the paused update rate to half of the running update rate.
+  this->dataPtr->statePublishPeriod[true] =
+      std::chrono::duration<int64_t, std::ratio<1, 1000>>(
+      std::chrono::milliseconds(1000 /
+        static_cast<int>(std::max(stateHerz.first * 0.5, 1.0))));
 
   // Add to graph
   {
@@ -286,8 +299,8 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     _manager.HasNewEntities() || _manager.HasOneTimeComponentChanges() ||
     jumpBackInTime;
   auto now = std::chrono::system_clock::now();
-  bool itsPubTime = !_info.paused && (now - this->dataPtr->lastStatePubTime >
-       this->dataPtr->statePublishPeriod);
+  bool itsPubTime = (now - this->dataPtr->lastStatePubTime >
+       this->dataPtr->statePublishPeriod[_info.paused]);
   auto shouldPublish = this->dataPtr->statePub.HasConnections() &&
        (changeEvent || itsPubTime);
 

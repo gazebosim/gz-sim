@@ -21,6 +21,7 @@
 #include <vector>
 #include <map>
 
+#include <sdf/AirPressure.hh>
 #include <sdf/Altimeter.hh>
 #include <sdf/Camera.hh>
 #include <sdf/Imu.hh>
@@ -34,6 +35,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/Filesystem.hh>
 #include <ignition/gazebo/EntityComponentManager.hh>
+#include <ignition/gazebo/components/AirPressureSensor.hh>
 #include <ignition/gazebo/components/Altimeter.hh>
 #include <ignition/gazebo/components/Camera.hh>
 #include <ignition/gazebo/components/ChildLinkName.hh>
@@ -180,6 +182,31 @@ void printNoise(const sdf::Noise &_noise, int _spaces)
     << _noise.DynamicBiasStdDev() << "\n"
     << std::string(_spaces, ' ') << "- Dynamic bias correlation time: "
     << _noise.DynamicBiasCorrelationTime() << std::endl;
+}
+
+//////////////////////////////////////////////////
+/// \brief Print info about an air pressure sensor.
+/// \param[in] _entity Entity to print information for. Nothing is
+/// printed if the entity is not an air pressure sensor.
+/// \param[in] _ecm The entity component manager.
+/// \param[in] _spaces Number of spaces to indent for every line
+void printAirPressure(const uint64_t _entity,
+    const EntityComponentManager &_ecm, int _spaces)
+{
+  // Get the type and return if the _entity does not have the correct
+  // component.
+  auto comp = _ecm.Component<components::AirPressureSensor>(_entity);
+  if (!comp)
+    return;
+
+  const sdf::Sensor &sensor = comp->Data();
+  const sdf::AirPressure *air = sensor.AirPressureSensor();
+
+  std::cout << std::string(_spaces, ' ') << "- Reference altitude: "
+    << air->ReferenceAltitude() << "\n";
+
+  std::cout << std::string(_spaces, ' ') << "- Pressure noise:\n";
+  printNoise(air->PressureNoise(), _spaces + 2);
 }
 
 //////////////////////////////////////////////////
@@ -603,9 +630,11 @@ void printLinks(const uint64_t _modelEntity,
 
       // Run through all the sensor print statements. Each function will
       // exit early if the the sensor is the wrong type.
+      printAirPressure(sensor, _ecm, spaces + 2);
       printAltimeter(sensor, _ecm, spaces + 2);
       printCamera(sensor, _ecm, spaces + 2);
       printImu(sensor, _ecm, spaces + 2);
+      printMagnetometer(sensor, _ecm, spaces + 2);
       printRgbdCamera(sensor, _ecm, spaces + 2);
     }
   }

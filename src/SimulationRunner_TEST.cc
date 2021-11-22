@@ -56,6 +56,7 @@
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/config.hh"
+
 #include "../test/helpers/EnvTestFixture.hh"
 #include "SimulationRunner.hh"
 
