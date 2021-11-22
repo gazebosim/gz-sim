@@ -70,12 +70,13 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
+#include "AirPressure.hh"
 #include "Altimeter.hh"
 #include "AirPressure.hh"
+#include "ComponentInspector.hh"
 #include "Imu.hh"
 #include "Lidar.hh"
 #include "Magnetometer.hh"
-#include "ComponentInspector.hh"
 #include "ModelEditor.hh"
 
 namespace ignition::gazebo
