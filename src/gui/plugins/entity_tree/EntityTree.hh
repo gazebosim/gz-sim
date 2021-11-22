@@ -82,6 +82,7 @@ namespace gazebo
     struct EntityInfo
     {
       /// \brief Entity ID
+      // cppcheck-suppress unmatchedSuppression
       // cppcheck-suppress unusedStructMember
       Entity entity;
 
@@ -89,6 +90,7 @@ namespace gazebo
       QString name;
 
       /// \brief Parent ID
+      // cppcheck-suppress unmatchedSuppression
       // cppcheck-suppress unusedStructMember
       Entity parentEntity;
 

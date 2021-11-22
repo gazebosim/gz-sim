@@ -32,7 +32,7 @@ namespace gazebo
 
     /// \brief Constructor
     /// \param[in] _inspector The component inspector.
-    public: Altimeter(ComponentInspector *_inspector);
+    public: explicit Altimeter(ComponentInspector *_inspector);
 
     /// \brief This function is called when a user changes values in the
     /// altimeter sensor's position noise.

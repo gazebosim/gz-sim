@@ -105,6 +105,7 @@ namespace serializers
                                            const DataType &_data)
     {
       MsgType msg;
+      // cppcheck-suppress syntaxError
       if constexpr (traits::HasGazeboConvert<DataType, MsgType>::value)
       {
         msg = ignition::gazebo::convert<MsgType>(_data);

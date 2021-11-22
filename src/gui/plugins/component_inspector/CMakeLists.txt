@@ -3,6 +3,7 @@ gz_add_gui_plugin(ComponentInspector
     AirPressure.cc
     Altimeter.cc
     ComponentInspector.cc
+    Imu.cc
     Magnetometer.cc
     ModelEditor.cc
     Types.cc
@@ -10,6 +11,7 @@ gz_add_gui_plugin(ComponentInspector
     AirPressure.hh
     Altimeter.hh
     ComponentInspector.hh
+    Imu.hh
     Magnetometer.hh
     ModelEditor.hh
     Types.hh
