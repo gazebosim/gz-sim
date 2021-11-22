@@ -247,26 +247,26 @@ Rectangle {
           fillMode: Image.Pad
           horizontalAlignment: Image.AlignHCenter
           verticalAlignment: Image.AlignVCenter
-          source: "qrc:/Gazebo/images/plus.png"
+          source: "qrc:/Gazebo/images/plus-link.png"
           sourceSize.width: 18;
           sourceSize.height: 18;
         }
-        ToolTip.text: "Add an entity to a model"
+        ToolTip.text: "Add a link or light to a model"
         ToolTip.visible: hovered
         ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
         onClicked: {
-          getSimPaused() ? addLinkMenu.open() : pausePopup.open()
+          getSimPaused() ? addLinkMenu.open() : linkAddPausePopup.open()
         }
         Popup {
-          id: pausePopup
+          id: linkAddPausePopup
           modal: true
           focus: true
-          x: parent.width - popupContentText.width
-          y: parent.height + popupContentText.height
+          x: parent.width - linkAdPopupContentText.width
+          y: parent.height + linkAdPopupContentText.height
           contentItem: Text {
-            id: popupContentText
+            id: linkAdPopupContentText
             padding: 10
-            text: "Pause simulation to add an entity"
+            text: "Pause simulation to add a link or light"
           }
           closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
         }
@@ -413,7 +413,7 @@ Rectangle {
           fillMode: Image.Pad
           horizontalAlignment: Image.AlignHCenter
           verticalAlignment: Image.AlignVCenter
-          source: "qrc:/Gazebo/images/plus.png"
+          source: "qrc:/Gazebo/images/plus-sensor.png"
           sourceSize.width: 18;
           sourceSize.height: 18;
         }
@@ -421,7 +421,20 @@ Rectangle {
         ToolTip.visible: hovered
         ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
         onClicked: {
-          addSensorMenu.open()
+          getSimPaused() ? addSensorMenu.open() : sensorAddPausePopup.open()
+        }
+        Popup {
+          id: sensorAddPausePopup
+          modal: true
+          focus: true
+          x: parent.width - sensorAddPopupContentText.width
+          y: parent.height + sensorAddPopupContentText.height
+          contentItem: Text {
+            id: sensorAddPopupContentText
+            padding: 10
+            text: "Pause simulation to add a sensor"
+          }
+          closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
         }
 
         Menu {
