@@ -72,7 +72,6 @@
 
 #include "AirPressure.hh"
 #include "Altimeter.hh"
-#include "AirPressure.hh"
 #include "ComponentInspector.hh"
 #include "Imu.hh"
 #include "Lidar.hh"
