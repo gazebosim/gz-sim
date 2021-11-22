@@ -1,11 +1,14 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource prefix="ComponentInspector/">
   <file>AirPressure.qml</file>
+  <file>Altimeter.qml</file>
   <file>Boolean.qml</file>
   <file>ComponentInspector.qml</file>
   <file>ExpandingTypeHeader.qml</file>
+  <file>Imu.qml</file>
   <file>JointType.qml</file>
   <file>Light.qml</file>
+  <file>Magnetometer.qml</file>
   <file>NoData.qml</file>
   <file>Noise.qml</file>
   <file>Physics.qml</file>

@@ -35,6 +35,7 @@
 #include <ignition/msgs/light.pb.h>
 
 #include "Types.hh"
+Q_DECLARE_METATYPE(ignition::gazebo::ComponentTypeId)
 
 namespace ignition
 {
@@ -42,6 +43,26 @@ namespace gazebo
 {
   class ComponentInspectorPrivate;
 
+  /// \brief Generic function to set data.
+  /// \param[in] _item Item whose data will be set.
+  /// \param[in] _data Data to set.
+  template <class DataType>
+  void setData(QStandardItem *_item, const DataType &_data)
+  {
+    // cppcheck-suppress syntaxError
+    // cppcheck-suppress unmatchedSuppression
+    if constexpr (traits::IsOutStreamable<std::ostream, DataType>::value)
+    {
+      std::stringstream ss;
+      ss << _data;
+      setData(_item, ss.str());
+    }
+    else
+    {
+      ignwarn << "Attempting to set unsupported data type to item ["
+              << _item->text().toStdString() << "]" << std::endl;
+    }
+  }
   /// \brief Specialized to set string data.
   /// \param[in] _item Item whose data will be set.
   /// \param[in] _data Data to set.
@@ -112,6 +133,40 @@ namespace gazebo
   /// \param[in] _item Item whose unit will be set.
   /// \param[in] _unit Unit to be displayed, such as 'm' for meters.
   void setUnit(QStandardItem *_item, const std::string &_unit);
+
+  /// \brief Model holding information about components, such as their type
+  /// and data.
+  class ComponentsModel : public QStandardItemModel
+  {
+    Q_OBJECT
+
+    /// \brief Constructor
+    public: explicit ComponentsModel();
+
+    /// \brief Destructor
+    public: ~ComponentsModel() override = default;
+
+    // Documentation inherited
+    public: QHash<int, QByteArray> roleNames() const override;
+
+    /// \brief Static version of roleNames
+    /// \return A hash connecting a unique identifier to a role name.
+    public: static QHash<int, QByteArray> RoleNames();
+
+    /// \brief Add a component type to the inspector.
+    /// \param[in] _typeId Type of component to be added.
+    /// \return Newly created item.
+    public slots: QStandardItem *AddComponentType(
+        ignition::gazebo::ComponentTypeId _typeId);
+
+    /// \brief Remove a component type from the inspector.
+    /// \param[in] _typeId Type of component to be removed.
+    public slots: void RemoveComponentType(
+        ignition::gazebo::ComponentTypeId _typeId);
+
+    /// \brief Keep track of items in the tree, according to type ID.
+    public: std::map<ComponentTypeId, QStandardItem *> items;
+  };
 
   /// \brief Displays a tree view with all the entities in the world.
   ///
