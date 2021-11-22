@@ -20,8 +20,8 @@
 #include <ignition/gazebo/components/Imu.hh>
 #include <ignition/gazebo/EntityComponentManager.hh>
 
-#include "Imu.hh"
 #include "ComponentInspector.hh"
+#include "Imu.hh"
 #include "Types.hh"
 
 using namespace ignition;

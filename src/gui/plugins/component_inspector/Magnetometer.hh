@@ -32,7 +32,7 @@ namespace gazebo
 
     /// \brief Constructor
     /// \param[in] _inspector The component inspector.
-    public: Magnetometer(ComponentInspector *_inspector);
+    public: explicit Magnetometer(ComponentInspector *_inspector);
 
     /// \brief This function is called when a user changes values in the
     /// x noise elements

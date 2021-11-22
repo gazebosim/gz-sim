@@ -71,6 +71,7 @@ TEST_F(RecreateEntitiesFixture, RecreateEntities)
   testSystem.OnUpdate([&](const gazebo::UpdateInfo &,
     gazebo::EntityComponentManager &_ecm)
     {
+      // cppcheck-suppress knownConditionTrueFalse
       if (!ecm)
       {
         ecm = &_ecm;
@@ -339,6 +340,7 @@ TEST_F(RecreateEntitiesFixture, RecreateEntities_Joints)
   testSystem.OnUpdate([&](const gazebo::UpdateInfo &,
     gazebo::EntityComponentManager &_ecm)
     {
+      // cppcheck-suppress knownConditionTrueFalse
       if (!ecm)
       {
         ecm = &_ecm;
@@ -496,6 +498,7 @@ TEST_F(RecreateEntitiesFixture, RecreateEntities_WorldJoint)
   testSystem.OnUpdate([&](const gazebo::UpdateInfo &,
     gazebo::EntityComponentManager &_ecm)
     {
+      // cppcheck-suppress knownConditionTrueFalse
       if (!ecm)
       {
         ecm = &_ecm;
