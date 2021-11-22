@@ -546,13 +546,13 @@ Rectangle {
               ComponentInspector.OnAddEntity("camera", "sensor");
             }
           }
-          MenuItem {
+          /*MenuItem {
             id: multicamera
             text: "Multicamera"
              onTriggered: {
               ComponentInspector.OnAddEntity("multicamera", "sensor");
             }
-          }
+          }*/
           MenuItem {
             id: rgbd
             text: "RGBD"
@@ -574,7 +574,7 @@ Rectangle {
           x: addSensorMenu.x - addSensorMenu.width
           y: addSensorMenu.y + lidarSensorMenu.y
 
-          MenuItem {
+          /*MenuItem {
             id: cpuLidar
             text: "CPU Lidar"
              onTriggered: {
@@ -588,7 +588,7 @@ Rectangle {
              onTriggered: {
               ComponentInspector.OnAddEntity("cpu_ray", "sensor");
             }
-          }
+          }*/
 
           MenuItem {
             id: gpuLidar
