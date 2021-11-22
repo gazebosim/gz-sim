@@ -152,7 +152,7 @@ void ModelEditor::Update(const UpdateInfo &,
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   // add link entities to the ECM
   std::set<Entity> newEntities;
-  for (const auto &eta: this->dataPtr->entitiesToAdd)
+  for (const auto &eta : this->dataPtr->entitiesToAdd)
   {
     Entity entity = kNullEntity;
 
