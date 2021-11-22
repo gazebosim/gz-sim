@@ -562,6 +562,13 @@ Rectangle {
           }
           MenuItem {
             id: thermal
+            text: "Segmentation"
+             onTriggered: {
+              ComponentInspector.OnAddEntity("segmentation_camera", "sensor");
+            }
+          }
+          MenuItem {
+            id: thermal
             text: "Thermal"
              onTriggered: {
               ComponentInspector.OnAddEntity("thermal_camera", "sensor");
