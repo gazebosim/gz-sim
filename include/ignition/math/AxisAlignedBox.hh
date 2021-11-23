@@ -17,7 +17,7 @@
 #ifndef IGNITION_MATH_AXISALIGNEDBOX_HH_
 #define IGNITION_MATH_AXISALIGNEDBOX_HH_
 
-#include <iostream>
+#include <ostream>
 #include <tuple>
 #include <ignition/math/config.hh>
 #include <ignition/math/Helpers.hh>

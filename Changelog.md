@@ -24,6 +24,9 @@
 1. Prevent -0 with out stream operator
     * [Pull request 206](https://github.com/ignitionrobotics/ign-math/pull/206)
 
+1. Use <ostream> and <istream> narrower includes, not <iostream>
+    * [Pull request 287](https://github.com/ignitionrobotics/ign-math/pull/287)
+
 ## Ignition Math 6.x
 
 ### Ignition Math 6.x.x

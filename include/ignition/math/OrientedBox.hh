@@ -17,7 +17,7 @@
 #ifndef IGNITION_MATH_ORIENTEDBOX_HH_
 #define IGNITION_MATH_ORIENTEDBOX_HH_
 
-#include <iostream>
+#include <ostream>
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/MassMatrix3.hh>
 #include <ignition/math/Material.hh>

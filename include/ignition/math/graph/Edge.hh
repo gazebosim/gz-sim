@@ -20,8 +20,8 @@
 // uint64_t
 #include <cstdint>
 #include <functional>
-#include <iostream>
 #include <map>
+#include <ostream>
 #include <set>
 
 #include <ignition/math/config.hh>

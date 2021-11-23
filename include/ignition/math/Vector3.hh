@@ -17,10 +17,10 @@
 #ifndef IGNITION_MATH_VECTOR3_HH_
 #define IGNITION_MATH_VECTOR3_HH_
 
-#include <iostream>
-#include <fstream>
-#include <cmath>
 #include <algorithm>
+#include <cmath>
+#include <istream>
+#include <ostream>
 
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/config.hh>

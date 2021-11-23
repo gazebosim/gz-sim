@@ -14,6 +14,7 @@
  * limitations under the License.
  *
 */
+#include <iostream>
 #include <string>
 
 #include "ignition/math/Matrix3.hh"

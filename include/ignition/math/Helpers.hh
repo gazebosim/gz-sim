@@ -22,7 +22,7 @@
 #include <cmath>
 #include <cstdint>
 #include <iomanip>
-#include <iostream>
+#include <ostream>
 #include <limits>
 #include <regex>
 #include <sstream>

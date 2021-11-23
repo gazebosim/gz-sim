@@ -17,8 +17,9 @@
 #ifndef IGNITION_MATH_TEMPERATURE_HH_
 #define IGNITION_MATH_TEMPERATURE_HH_
 
-#include <iostream>
+#include <istream>
 #include <memory>
+#include <ostream>
 
 #include <ignition/math/config.hh>
 #include "ignition/math/Helpers.hh"

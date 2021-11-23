@@ -17,7 +17,8 @@
 #ifndef IGNITION_MATH_ANGLE_HH_
 #define IGNITION_MATH_ANGLE_HH_
 
-#include <iostream>
+#include <istream>
+#include <ostream>
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/config.hh>
 
