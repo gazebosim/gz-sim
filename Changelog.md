@@ -27,6 +27,9 @@
 1. Use <ostream> and <istream> narrower includes, not <iostream>
     * [Pull request 287](https://github.com/ignitionrobotics/ign-math/pull/287)
 
+1. Evict large function definitions from the Helpers.hh header file.
+    * [Pull request 288](https://github.com/ignitionrobotics/ign-math/pull/288)
+
 ## Ignition Math 6.x
 
 ### Ignition Math 6.x.x

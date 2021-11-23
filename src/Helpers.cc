@@ -16,12 +16,243 @@
 */
 #include "ignition/math/Helpers.hh"
 
+#include <iomanip>
+#include <regex>
+#include <sstream>
+
 namespace ignition
 {
   namespace math
   {
     inline namespace IGNITION_MATH_VERSION_NAMESPACE
     {
+
+    /////////////////////////////////////////////
+    std::string timePointToString(
+        const std::chrono::steady_clock::time_point &_point)
+    {
+      auto duration = _point - secNsecToTimePoint(0, 0);
+      auto cleanDuration = breakDownDurations<days,
+                                              std::chrono::hours,
+                                              std::chrono::minutes,
+                                              std::chrono::seconds,
+                                              std::chrono::milliseconds>(
+                                                duration);
+      std::ostringstream output_string;
+      output_string << std::setw(2) << std::setfill('0')
+                    << std::get<0>(cleanDuration).count() << " "
+                    << std::setw(2) << std::setfill('0')
+                    << std::get<1>(cleanDuration).count() << ":"
+                    << std::setw(2) << std::setfill('0')
+                    << std::get<2>(cleanDuration).count() << ":"
+                    << std::setfill('0') << std::setw(6)
+                    << std::fixed << std::setprecision(3)
+                    << std::get<3>(cleanDuration).count() +
+                       std::get<4>(cleanDuration).count()/1000.0;
+      return output_string.str();
+    }
+
+    /////////////////////////////////////////////
+    std::string durationToString(
+        const std::chrono::steady_clock::duration &_duration)
+    {
+      auto cleanDuration = breakDownDurations<days,
+                                              std::chrono::hours,
+                                              std::chrono::minutes,
+                                              std::chrono::seconds,
+                                              std::chrono::milliseconds>(
+                                                _duration);
+      std::ostringstream outputString;
+      outputString << std::setw(2) << std::setfill('0')
+                    << std::get<0>(cleanDuration).count() << " "
+                    << std::setw(2) << std::setfill('0')
+                    << std::get<1>(cleanDuration).count() << ":"
+                    << std::setw(2) << std::setfill('0')
+                    << std::get<2>(cleanDuration).count() << ":"
+                    << std::setfill('0') << std::setw(6)
+                    << std::fixed << std::setprecision(3)
+                    << std::get<3>(cleanDuration).count() +
+                       std::get<4>(cleanDuration).count()/1000.0;
+      return outputString.str();
+    }
+
+    // The following regex takes a time string in the general format of
+    // "dd hh:mm:ss.nnn" where n is milliseconds, if just one number is
+    // provided, it is assumed to be seconds
+    static const std::regex time_regex(
+        "^([0-9]+ ){0,1}"                       // day:
+                                                // Any positive integer
+
+        "(?:([1-9]:|[0-1][0-9]:|2[0-3]:){0,1}"  // hour:
+                                                // 1 - 9:
+                                                // 01 - 19:
+                                                // 20 - 23:
+
+        "([0-9]:|[0-5][0-9]:)){0,1}"            // minute:
+                                                // 0 - 9:
+                                                // 00 - 59:
+
+        "(?:([0-9]|[0-5][0-9]){0,1}"            // second:
+                                                // 0 - 9
+                                                // 00 - 59
+
+        "(\\.[0-9]{1,3}){0,1})$");              // millisecond:
+                                                // .0 - .9
+                                                // .00 - .99
+                                                // .000 - 0.999
+
+
+    /////////////////////////////////////////////
+    bool splitTimeBasedOnTimeRegex(
+        const std::string &_timeString,
+        uint64_t & numberDays, uint64_t & numberHours,
+        uint64_t & numberMinutes, uint64_t & numberSeconds,
+        uint64_t & numberMilliseconds)
+    {
+      std::smatch matches;
+
+      // `matches` should always be a size of 6 as there are 6 matching
+      // groups in the regex.
+      // 1. The whole regex
+      // 2. The days
+      // 3. The hours
+      // 4. The minutes
+      // 5. The seconds
+      // 6. The milliseconds
+      // We can also index them as such below.
+      // Note that the space will remain in the day match, the colon
+      // will remain in the hour and minute matches, and the period will
+      // remain in the millisecond match
+      if (!std::regex_search(_timeString, matches, time_regex) ||
+          matches.size() != 6)
+        return false;
+
+      std::string dayString = matches[1];
+      std::string hourString = matches[2];
+      std::string minuteString = matches[3];
+      std::string secondString = matches[4];
+      std::string millisecondString = matches[5];
+
+      // Days are the only unbounded number, so check first to see if stoi
+      // runs successfully
+      if (!dayString.empty())
+      {
+        // Erase the space
+        dayString.erase(dayString.length() - 1);
+        try
+        {
+          numberDays = std::stoi(dayString);
+        }
+        catch (const std::out_of_range &)
+        {
+          return false;
+        }
+      }
+
+      if (!hourString.empty())
+      {
+        // Erase the colon
+        hourString.erase(hourString.length() - 1);
+        numberHours = std::stoi(hourString);
+      }
+
+      if (!minuteString.empty())
+      {
+        // Erase the colon
+        minuteString.erase(minuteString.length() - 1);
+        numberMinutes = std::stoi(minuteString);
+      }
+
+      if (!secondString.empty())
+      {
+        numberSeconds = std::stoi(secondString);
+      }
+
+      if (!millisecondString.empty())
+      {
+        // Erase the period
+        millisecondString.erase(0, 1);
+
+        // Multiplier because "4" = 400 ms, "04" = 40 ms, and "004" = 4 ms
+        numberMilliseconds = std::stoi(millisecondString) *
+          static_cast<uint64_t>(1000 / pow(10, millisecondString.length()));
+      }
+      return true;
+    }
+
+    /////////////////////////////////////////////
+    std::chrono::steady_clock::duration stringToDuration(
+        const std::string &_timeString)
+    {
+      using namespace std::chrono_literals;
+      std::chrono::steady_clock::duration duration{
+        std::chrono::steady_clock::duration::zero()};
+
+      if (_timeString.empty())
+        return duration;
+
+      uint64_t numberDays = 0;
+      uint64_t numberHours = 0;
+      uint64_t numberMinutes = 0;
+      uint64_t numberSeconds = 0;
+      uint64_t numberMilliseconds = 0;
+
+      if (!splitTimeBasedOnTimeRegex(_timeString, numberDays, numberHours,
+                                     numberMinutes, numberSeconds,
+                                     numberMilliseconds))
+      {
+        return duration;
+      }
+
+      // TODO(anyone): Replace below day conversion with std::chrono::days.
+      /// This will exist in C++-20
+      duration = std::chrono::steady_clock::duration::zero();
+      auto delta = std::chrono::milliseconds(numberMilliseconds) +
+        std::chrono::seconds(numberSeconds) +
+        std::chrono::minutes(numberMinutes) +
+        std::chrono::hours(numberHours) +
+        std::chrono::hours(24 * numberDays);
+      duration += delta;
+
+      return duration;
+    }
+
+    /////////////////////////////////////////////
+    std::chrono::steady_clock::time_point stringToTimePoint(
+        const std::string &_timeString)
+    {
+      using namespace std::chrono_literals;
+      std::chrono::steady_clock::time_point timePoint{-1s};
+
+      if (_timeString.empty())
+        return timePoint;
+
+      uint64_t numberDays = 0;
+      uint64_t numberHours = 0;
+      uint64_t numberMinutes = 0;
+      uint64_t numberSeconds = 0;
+      uint64_t numberMilliseconds = 0;
+
+      if (!splitTimeBasedOnTimeRegex(_timeString, numberDays, numberHours,
+                                     numberMinutes, numberSeconds,
+                                     numberMilliseconds))
+      {
+        return timePoint;
+      }
+
+      // TODO(anyone): Replace below day conversion with std::chrono::days.
+      /// This will exist in C++-20
+      timePoint = math::secNsecToTimePoint(0, 0);
+      auto duration = std::chrono::milliseconds(numberMilliseconds) +
+        std::chrono::seconds(numberSeconds) +
+        std::chrono::minutes(numberMinutes) +
+        std::chrono::hours(numberHours) +
+        std::chrono::hours(24 * numberDays);
+      timePoint += duration;
+
+      return timePoint;
+    }
+
     /////////////////////////////////////////////
     PairOutput Pair(const PairInput _a, const PairInput _b)
     {
