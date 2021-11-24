@@ -441,7 +441,6 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     {
       auto newPose = enableComponent<components::Inertial>(_ecm, _entity);
       newPose |= enableComponent<components::WorldPose>(_ecm, _entity);
-      
 
       // World pose of the link.
       math::Pose3d linkWorldPose = worldPose(_entity, _ecm);
@@ -530,7 +529,7 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
         // Physics System.
         link.AddWorldWrench(_ecm, force, torque);
       }
-      
+
       return true;
   });
 }
