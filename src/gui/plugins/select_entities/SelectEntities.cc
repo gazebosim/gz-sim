@@ -574,13 +574,13 @@ bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-           ignition::gazebo::gui::events::RemovedEntities::kType)
+           ignition::gazebo::gui::events::NewRemovedEntities::kType)
   {
     if (!this->dataPtr->wireBoxes.empty())
     {
-      auto removedEvent =
-          reinterpret_cast<gui::events::RemovedEntities *>(_event);
-      for (auto &entity : removedEvent->Data())
+      auto event =
+          reinterpret_cast<gui::events::NewRemovedEntities *>(_event);
+      for (auto &entity : event->RemovedEntities())
       {
         auto wireBoxIt = this->dataPtr->wireBoxes.find(entity);
         if (wireBoxIt != this->dataPtr->wireBoxes.end())
