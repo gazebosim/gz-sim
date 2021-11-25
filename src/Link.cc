@@ -370,7 +370,7 @@ void Link::AddAndVisualizeWorldWrench(EntityComponentManager &_ecm,
   wrenchVisual.mutable_entity()->set_id(this->Entity());
   if(this->Name(_ecm).has_value())
     wrenchVisual.mutable_entity()->set_name(this->Name(_ecm).value());
-  wrenchVisual.mutable_entity()->set_type(msgs::Entity_Type_LINK); 
+  wrenchVisual.mutable_entity()->set_type(msgs::Entity_Type_LINK);
   msgs::Set(wrenchVisual.mutable_wrench()->mutable_force(), _force);
   msgs::Set(wrenchVisual.mutable_wrench()->mutable_torque(), _torque);
   pub.Publish(wrenchVisual);

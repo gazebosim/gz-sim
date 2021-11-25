@@ -237,7 +237,6 @@ void BuoyancyEnginePlugin::PreUpdate(
   }
   ignition::gazebo::Link link(this->dataPtr->linkEntity);
   link.AddAndVisualizeWorldWrench(_ecm, zForce, {0, 0, 0}, "Buoyancy Engine");
-  //link.AddWorldWrench(_ecm, zForce, {0, 0, 0});
 }
 
 IGNITION_ADD_PLUGIN(

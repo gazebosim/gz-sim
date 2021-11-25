@@ -15,9 +15,11 @@
  *
 */
 
+#include <queue>
+#include <random>
 #include <string>
+#include <unordered_set>
 #include <vector>
-
 
 #include <ignition/common/Profiler.hh>
 
@@ -69,8 +71,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
         &VisualizeForcesPrivate::VisualizeCallback, this);
     }
 
-    /// \brief Handler for when we have to visuallize stuff. Simply enqueues
-    /// items to be 
+    /// \brief Handler for when we have to visualize stuff. Simply enqueues
+    /// items to be visualized
     /// \param _stamped - The incoming message
     public: void VisualizeCallback(const msgs::WrenchVisual& _stamped)
     {
@@ -85,7 +87,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
       while (true)
       {
         // Get all messages off the queue
-        msgs::WrenchVisual wrenchMsg; 
+        msgs::WrenchVisual wrenchMsg;
         {
           std::lock_guard<std::mutex> lock(mtx);
           if(this->queue.empty())
@@ -128,14 +130,18 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 
         marker.set_visibility(msgs::Marker::GUI);
 
-        ignition::msgs::Set(marker.mutable_material()->mutable_ambient(), color.value());
-        ignition::msgs::Set(marker.mutable_material()->mutable_diffuse(), color.value());
+        ignition::msgs::Set(marker.mutable_material()->mutable_ambient(),
+          color.value());
+        ignition::msgs::Set(marker.mutable_material()->mutable_diffuse(),
+          color.value());
 
         Link link(wrenchMsg.entity().id());
 
         double scale = 1;
 
-        if (link.WorldInertialPose(_ecm).has_value() && std::abs(_force.Length()) > 1e-5)
+        if (
+          link.WorldInertialPose(_ecm).has_value()
+          && std::abs(_force.Length()) > 1e-5)
         {
           // Get the center of mass from where the force will be exerted.
           auto linkPose = link.WorldInertialPose(_ecm).value();
@@ -145,18 +151,20 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 
           // translate cylinder up
           math::Pose3d translateCylinder(
-            math::Vector3d(0, 0, _force.Length() * scale/2), math::Quaterniond());
+            math::Vector3d(0, 0, _force.Length() * scale/2),
+            math::Quaterniond());
           math::Pose3d rotation(math::Vector3d(0, 0, 0), qt);
           math::Pose3d arrowPose(linkPose.Pos(), math::Quaterniond());
           ignition::msgs::Set(
             marker.mutable_pose(), arrowPose * rotation * translateCylinder);
           ignition::msgs::Set(
-            marker.mutable_scale(), math::Vector3d(0.1, 0.1, _force.Length() * scale));
+            marker.mutable_scale(),
+            math::Vector3d(0.1, 0.1, _force.Length() * scale));
 
           this->node.Request("/marker", marker);
         }
       }
-    }  
+    }
   };
 
   /////////////////////////////////////////////////
@@ -166,7 +174,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
   }
 
   /////////////////////////////////////////////////
-  std::optional<math::Color> ForceListModel::getRenderColor(msgs::WrenchVisual &_wrench)
+  std::optional<math::Color> ForceListModel::getRenderColor(
+    msgs::WrenchVisual &_wrench)
   {
     auto pluginList = this->arrow_mapping.find(_wrench.entity().id());
 
@@ -176,7 +185,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
       beginInsertRows( QModelIndex(), this->arrows.size(), this->arrows.size());
       arrows.push_back(
         {
-          _wrench.entity().name() + " (" + std::to_string(_wrench.entity().id()) +")",
+          _wrench.entity().name() + " (" +
+          std::to_string(_wrench.entity().id()) +")",
           _wrench.label(),
           true
         }
@@ -194,7 +204,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
       beginInsertRows(QModelIndex(), this->arrows.size(),  this->arrows.size());
       this->arrows.push_back(
         {
-          _wrench.entity().name() + " (" + std::to_string(_wrench.entity().id()) +")",
+          _wrench.entity().name() + " (" +
+            std::to_string(_wrench.entity().id()) +")",
           _wrench.label(),
           true
         }
@@ -205,10 +216,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     }
 
     const auto arrow = this->arrows[pluginList->second[_wrench.label()].index];
-    
+
     if (!arrow.visible)
       return std::nullopt;
-  
+
     return retrieveOrAssignColor(_wrench.label());
   }
 
@@ -229,7 +240,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     if (index < 0 || index > this->arrows.size())
       return;
 
-    
     auto plugin = this->arrows[index].pluginName;
 
     double r, g, b;
@@ -246,12 +256,15 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
   math::Color ForceListModel::retrieveOrAssignColor(std::string _pluginname)
   {
     auto color = this->colors.find(_pluginname);
-    
+
     if (color == this->colors.end())
     {
-      float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-      float g = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-      float b = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+      static std::default_random_engine e;
+      static std::uniform_real_distribution<float> colorPicker(0.0f, 1.0f);
+
+      float r = colorPicker(e);
+      float g = colorPicker(e);
+      float b = colorPicker(e);
 
       auto col = math::Color{r, g, b};
       this->colors[_pluginname] = col;
@@ -302,7 +315,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
   }
 
   /////////////////////////////////////////////////
-  QHash<int,QByteArray> ForceListModel::roleNames() const
+  QHash<int, QByteArray> ForceListModel::roleNames() const
   {
     return {
       std::pair(ArrowRoles::LinkRole, "link"),
@@ -311,7 +324,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
       std::pair(ArrowRoles::VisibleRole, "isVisible")
     };
   }
- 
 }
 }
 }
