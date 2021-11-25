@@ -28,9 +28,9 @@ namespace python
 /////////////////////////////////////////////////
 void HelperSystem::Configure(
                 const Entity &_entity,
-                const std::shared_ptr<const sdf::Element> &_sdf,
+                const std::shared_ptr<const sdf::Element> &/*_sdf*/,
                 ignition::gazebo::EntityComponentManager &_ecm,
-                EventManager &_eventMgr)
+                EventManager &/*_eventMgr*/)
 {
   if (this->configureCallback_internal)
   {
@@ -110,7 +110,7 @@ HelperFixture::~HelperFixture()
 }
 
 void
-HelperFixture::destroy()
+HelperFixture::Destroy()
 {
   dataPtr.reset();
 }

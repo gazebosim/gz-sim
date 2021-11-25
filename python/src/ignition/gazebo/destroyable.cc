@@ -35,7 +35,7 @@ Destroyable::Destroyable(const Destroyable &)
 }
 
 void
-Destroyable::enter()
+Destroyable::Enter()
 {
   if (please_destroy_) {
     throw InvalidHandle("cannot use Destroyable because destruction was requested");
@@ -44,7 +44,7 @@ Destroyable::enter()
 }
 
 void
-Destroyable::exit(pybind11::object, pybind11::object, pybind11::object)
+Destroyable::Exit(pybind11::object, pybind11::object, pybind11::object)
 {
   if (0u == use_count) {
     throw std::runtime_error("Internal error: "
@@ -53,12 +53,12 @@ Destroyable::exit(pybind11::object, pybind11::object, pybind11::object)
 
   --use_count;
   if (please_destroy_ && 0u == use_count) {
-    destroy();
+    Destroy();
   }
 }
 
 void
-Destroyable::destroy()
+Destroyable::Destroy()
 {
   // Normally would be pure virtual, but then pybind11 can't
   // create bindings for this class
@@ -67,7 +67,7 @@ Destroyable::destroy()
 }
 
 void
-Destroyable::destroy_when_not_in_use()
+Destroyable::DestroyWhenNotInUse()
 {
   if (please_destroy_) {
     // already asked to destroy
@@ -75,7 +75,7 @@ Destroyable::destroy_when_not_in_use()
   }
   please_destroy_ = true;
   if (0u == use_count) {
-    destroy();
+    Destroy();
   }
 }
 
@@ -84,11 +84,11 @@ define_destroyable(pybind11::object module)
 {
   pybind11::class_<Destroyable, std::shared_ptr<Destroyable>>(
     module, "Destroyable")
-  .def("__enter__", &Destroyable::enter)
-  .def("__exit__", &Destroyable::exit)
+  .def("__enter__", &Destroyable::Enter)
+  .def("__exit__", &Destroyable::Exit)
   .def(
     "destroy_when_not_in_use",
-    &Destroyable::destroy_when_not_in_use,
+    &Destroyable::DestroyWhenNotInUse,
     "Forcefully destroy the rcl object as soon as it's not actively "
     "being used");
 }

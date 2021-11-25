@@ -58,7 +58,7 @@ namespace python
 
     /// Force an early destruction of this object
     void
-    destroy() override;
+    Destroy() override;
 
     /// \brief Wrapper around a system's pre-update callback
     /// \param[in] _cb Function to be called every pre-update

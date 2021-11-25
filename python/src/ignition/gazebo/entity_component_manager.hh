@@ -47,7 +47,7 @@ namespace python
 
     /// Force an early destruction of this object
     void
-    destroy() override;
+    Destroy() override;
 
     /// Get rcl_client_t pointer
     ignition::gazebo::EntityComponentManager *

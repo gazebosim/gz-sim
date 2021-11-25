@@ -43,7 +43,7 @@ EntityComponentManager::~EntityComponentManager()
 }
 
 /////////////////////////////////////////////////
-void EntityComponentManager::destroy()
+void EntityComponentManager::Destroy()
 {
 }
 

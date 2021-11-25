@@ -55,7 +55,7 @@ class World : public ignition::gazebo::python::Destroyable,
     std::string _name);
 
   /// Force an early destruction of this object
-  void destroy() override;
+  void Destroy() override;
 
 private:
   std::shared_ptr<ignition::gazebo::World> _world;

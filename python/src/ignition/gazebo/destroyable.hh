@@ -25,7 +25,9 @@ namespace gazebo
 {
 namespace python
 {
-/// This class blocks destruction when in use
+/// This class blocks destruction when in use.
+/// This class is required to handle the lifecycle of the
+/// object.
 class Destroyable
 {
 public:
@@ -37,22 +39,22 @@ public:
 
   /// Context manager __enter__ - block destruction
   void
-  enter();
+  Enter();
 
   /// Context manager __exit__ - unblock destruction
   void
-  exit(pybind11::object pytype,
+  Exit(pybind11::object pytype,
     pybind11::object pyvalue,
     pybind11::object pytraceback);
 
   /// Signal that the object should be destroyed as soon as it's not in use
   void
-  destroy_when_not_in_use();
+  DestroyWhenNotInUse();
 
   /// Override this to destroy an object
   virtual
   void
-  destroy();
+  Destroy();
 
   virtual
   ~Destroyable() = default;

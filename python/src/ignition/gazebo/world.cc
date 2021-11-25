@@ -36,7 +36,7 @@ World::~World()
 {
 }
 
-void World::destroy()
+void World::Destroy()
 {
   _world.reset();
 }
