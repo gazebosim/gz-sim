@@ -574,8 +574,6 @@ void Buoyancy::PreUpdate(const UpdateInfo &_info,
         // Physics System.
         link.AddAndVisualizeWorldWrench(_ecm,
           buoyancy, torque, "BuoyancyPlugin");
-        //igndbg << "Torque " << torque << std::endl;
-        //link.AddWorldWrench(_ecm, buoyancy, torque);
         return true;
       }
       else if (this->dataPtr->buoyancyType
@@ -634,8 +632,6 @@ void Buoyancy::PreUpdate(const UpdateInfo &_info,
         link.WorldInertialPose(_ecm).value());
       // Apply the wrench to the link. This wrench is applied in the
       // Physics System.
-      
-
       link.AddAndVisualizeWorldWrench(
         _ecm, force, torque, "BuoyancyPlugin");
       return true;

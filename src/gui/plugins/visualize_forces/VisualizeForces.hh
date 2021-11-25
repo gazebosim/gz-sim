@@ -19,13 +19,16 @@
 #define IGNITION_GAZEBO_GUI_VISUALIZECONTACTS_HH_
 
 #include <memory>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 #include <ignition/math/Color.hh>
 #include <ignition/msgs/wrench_visual.pb.h>
 
 #include <ignition/gazebo/gui/GuiSystem.hh>
 
-#include <QAbstractListModel> 
+#include <QAbstractListModel>
 
 #include "ignition/gui/qt.h"
 
@@ -63,7 +66,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 
       QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
       int rowCount(const QModelIndex &parent = QModelIndex()) const;
-      QHash<int,QByteArray> roleNames() const;
+      QHash<int, QByteArray> roleNames() const;
 
       std::optional<math::Color> getRenderColor(msgs::WrenchVisual &_wrench);
 
@@ -73,15 +76,17 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     private:
       std::vector<ForceArrow> arrows;
       std::unordered_map<std::string, math::Color> colors;
-      
+
       struct ArrowInfo
       {
         std::size_t index;
       };
-      std::unordered_map<Entity, std::unordered_map<std::string, ArrowInfo>> arrow_mapping;
+      std::unordered_map<Entity, std::unordered_map<std::string, ArrowInfo>>
+        arrow_mapping;
 
+      /// \brief Retrieve the color assigned to a plugin
+      /// \param[in] _pluginname - Name of plugin.
       math::Color retrieveOrAssignColor(std::string _pluginname);
-
   };
 
   /// \brief Visualize Force markers
