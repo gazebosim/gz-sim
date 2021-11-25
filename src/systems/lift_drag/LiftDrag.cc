@@ -468,7 +468,7 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   // positions
   const auto totalTorque = torque + cpWorld.Cross(force);
   Link link(this->linkEntity);
-  link.AddAndVisualizeWorldWrench(_ecm, force, totalTorque, "LiftDrag", math::Color(0, 0, 1));
+  link.AddAndVisualizeWorldWrench(_ecm, force, totalTorque, "LiftDrag");
 
   // Debug
   // auto linkName = _ecm.Component<components::Name>(this->linkEntity)->Data();

@@ -572,7 +572,8 @@ void Buoyancy::PreUpdate(const UpdateInfo &_info,
 
         // Apply the wrench to the link. This wrench is applied in the
         // Physics System.
-        link.AddAndVisualizeWorldWrench(_ecm, buoyancy, torque, "BuoyancyPlugin", math::Color(1,0,0));
+        link.AddAndVisualizeWorldWrench(_ecm,
+          buoyancy, torque, "BuoyancyPlugin");
         //igndbg << "Torque " << torque << std::endl;
         //link.AddWorldWrench(_ecm, buoyancy, torque);
         return true;
@@ -636,7 +637,7 @@ void Buoyancy::PreUpdate(const UpdateInfo &_info,
       
 
       link.AddAndVisualizeWorldWrench(
-        _ecm, force, torque, "BuoyancyPlugin", math::Color(0,0,1));
+        _ecm, force, torque, "BuoyancyPlugin");
       return true;
   });
 }
