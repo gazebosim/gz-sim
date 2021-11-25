@@ -17,11 +17,9 @@
 
 #include <pybind11/pybind11.h>
 
-namespace py = pybind11;
-
 namespace ignition
 {
-namespace utils
+namespace gazebo
 {
 namespace python
 {
@@ -41,7 +39,9 @@ public:
 
   /// Context manager __exit__ - unblock destruction
   void
-  exit(py::object pytype, py::object pyvalue, py::object pytraceback);
+  exit(pybind11::object pytype,
+    pybind11::object pyvalue,
+    pybind11::object pytraceback);
 
   /// Signal that the object should be destroyed as soon as it's not in use
   void
@@ -60,11 +60,11 @@ private:
   bool please_destroy_ = false;
 };
 
-/// Define a pybind11 wrapper for an rclpy::Destroyable
+/// Define a pybind11 wrapper for an rclpybind11::Destroyable
 /**
  * \param[in] module a pybind11 module to add the definition to
  */
-void define_destroyable(py::object module);
+void define_destroyable(pybind11::object module);
 }  // namespace python
 }  // namespace ignition
 }  // namespace gazebo

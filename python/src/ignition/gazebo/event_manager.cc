@@ -25,10 +25,10 @@ namespace gazebo
 namespace python
 {
 /////////////////////////////////////////////////
-void define_gazebo_event_manager(py::object module)
+void define_gazebo_event_manager(pybind11::object module)
 {
-  py::class_<ignition::gazebo::EventManager>(module, "EventManager")
-  .def(py::init<>());
+  pybind11::class_<ignition::gazebo::EventManager>(module, "EventManager")
+  .def(pybind11::init<>());
 }
 }  // namespace python
 }  // namespace gazebo

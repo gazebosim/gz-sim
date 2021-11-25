@@ -24,14 +24,12 @@
 #include "update_info.hh"
 #include "world.hh"
 
-namespace py = pybind11;
-
 PYBIND11_MODULE(gazebo, m) {
   m.doc() = "Ignition Gazebo Python Library.";
 
-  ignition::utils::python::define_destroyable(m);
+  ignition::gazebo::python::define_destroyable(m);
 
-  py::register_exception<ignition::utils::python::InvalidHandle>(
+  pybind11::register_exception<ignition::gazebo::python::InvalidHandle>(
     m, "InvalidHandle", PyExc_RuntimeError);
 
   ignition::gazebo::python::define_gazebo_entity_component_manager(m);

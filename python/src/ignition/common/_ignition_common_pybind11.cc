@@ -16,8 +16,6 @@
 
 #include "console.hh"
 
-namespace py = pybind11;
-
 PYBIND11_MODULE(common, m) {
   m.doc() = "Ignition Common Python Library.";
 

@@ -14,6 +14,9 @@
 
 #include <pybind11/pybind11.h>
 
+#include <ignition/gazebo/Server.hh>
+#include <ignition/gazebo/ServerConfig.hh>
+
 #include "server.hh"
 
 namespace ignition
@@ -22,10 +25,10 @@ namespace gazebo
 {
 namespace python
 {
-void define_gazebo_server(py::object module)
+void define_gazebo_server(pybind11::object module)
 {
-  py::class_<ignition::gazebo::Server>(module, "Server")
-  .def(py::init<ignition::gazebo::ServerConfig &>())
+  pybind11::class_<ignition::gazebo::Server>(module, "Server")
+  .def(pybind11::init<ignition::gazebo::ServerConfig &>())
   .def(
     "run", &ignition::gazebo::Server::Run,
     "Run the server. By default this is a non-blocking call, "
@@ -37,7 +40,7 @@ void define_gazebo_server(py::object module)
     "Return true if the specified world has an entity with the provided name.")
   .def(
     "is_running",
-    py::overload_cast<>(&ignition::gazebo::Server::Running, py::const_),
+    pybind11::overload_cast<>(&ignition::gazebo::Server::Running, pybind11::const_),
     "Get whether the server is running.");
 }
 

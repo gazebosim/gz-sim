@@ -21,7 +21,7 @@
 
 namespace ignition
 {
-namespace utils
+namespace gazebo
 {
 namespace python
 {
@@ -43,10 +43,11 @@ Destroyable::enter()
 }
 
 void
-Destroyable::exit(py::object, py::object, py::object)
+Destroyable::exit(pybind11::object, pybind11::object, pybind11::object)
 {
   if (0u == use_count) {
-    throw std::runtime_error("Internal error: Destroyable use_count would be negative");
+    throw std::runtime_error("Internal error: "
+      "Destroyable use_count would be negative");
   }
 
   --use_count;
@@ -58,8 +59,10 @@ Destroyable::exit(py::object, py::object, py::object)
 void
 Destroyable::destroy()
 {
-  // Normally would be pure virtual, but then pybind11 can't create bindings for this class
-  throw std::runtime_error("Internal error: Destroyable subclass didn't override destroy()");
+  // Normally would be pure virtual, but then pybind11 can't
+  // create bindings for this class
+  throw std::runtime_error("Internal error : "
+    "Destroyable subclass didn't override destroy()");
 }
 
 void
@@ -76,14 +79,17 @@ Destroyable::destroy_when_not_in_use()
 }
 
 void
-define_destroyable(py::object module)
+define_destroyable(pybind11::object module)
 {
-  py::class_<Destroyable, std::shared_ptr<Destroyable>>(module, "Destroyable")
+  pybind11::class_<Destroyable, std::shared_ptr<Destroyable>>(
+    module, "Destroyable")
   .def("__enter__", &Destroyable::enter)
   .def("__exit__", &Destroyable::exit)
   .def(
-    "destroy_when_not_in_use", &Destroyable::destroy_when_not_in_use,
-    "Forcefully destroy the rcl object as soon as it's not actively being used");
+    "destroy_when_not_in_use",
+    &Destroyable::destroy_when_not_in_use,
+    "Forcefully destroy the rcl object as soon as it's not actively "
+    "being used");
 }
 }  // namespace python
 }  // namespace utils

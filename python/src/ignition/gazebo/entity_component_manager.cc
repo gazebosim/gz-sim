@@ -23,13 +23,15 @@ namespace gazebo
 namespace python
 {
 /////////////////////////////////////////////////
-EntityComponentManager::EntityComponentManager(const ignition::gazebo::EntityComponentManager &_ecm)
+EntityComponentManager::EntityComponentManager(
+  const ignition::gazebo::EntityComponentManager &_ecm)
 {
   _entity_component_manager = &_ecm;
 }
 
 /////////////////////////////////////////////////
-EntityComponentManager::EntityComponentManager(ignition::gazebo::EntityComponentManager &_ecm)
+EntityComponentManager::EntityComponentManager(
+  ignition::gazebo::EntityComponentManager &_ecm)
 {
   _entity_component_manager_no_const = &_ecm;
 }
@@ -45,12 +47,13 @@ void EntityComponentManager::destroy()
 }
 
 /////////////////////////////////////////////////
-void define_gazebo_entity_component_manager(py::object module)
+void define_gazebo_entity_component_manager(pybind11::object module)
 {
-  py::class_<ignition::gazebo::python::EntityComponentManager,
-             ignition::utils::python::Destroyable,
-             std::shared_ptr<ignition::gazebo::python::EntityComponentManager>>(module, "EntityComponentManager")
-  .def(py::init<const ignition::gazebo::EntityComponentManager &>());
+  pybind11::class_<ignition::gazebo::python::EntityComponentManager,
+    ignition::gazebo::python::Destroyable,
+    std::shared_ptr<ignition::gazebo::python::EntityComponentManager>>(
+      module, "EntityComponentManager")
+  .def(pybind11::init<const ignition::gazebo::EntityComponentManager &>());
 }
 }  // namespace python
 }  // namespace gazebo

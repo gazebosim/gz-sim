@@ -15,7 +15,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/chrono.h>
 
-#include <iostream>
+#include <ignition/gazebo/World.hh>
 
 #include "update_info.hh"
 
@@ -25,10 +25,10 @@ namespace gazebo
 {
 namespace python
 {
-void define_gazebo_update_info(py::object module)
+void define_gazebo_update_info(pybind11::object module)
 {
-  py::class_<ignition::gazebo::UpdateInfo>(module, "UpdateInfo")
-  .def(py::init<>())
+  pybind11::class_<ignition::gazebo::UpdateInfo>(module, "UpdateInfo")
+  .def(pybind11::init<>())
   .def_readwrite("sim_time", &ignition::gazebo::UpdateInfo::simTime)
   .def_readwrite("real_time", &ignition::gazebo::UpdateInfo::realTime)
   .def_readwrite("dt", &ignition::gazebo::UpdateInfo::dt)

@@ -17,8 +17,6 @@
 
 #include <pybind11/pybind11.h>
 
-namespace py = pybind11;
-
 namespace ignition
 {
 namespace gazebo
@@ -30,7 +28,7 @@ namespace python
  * \param[in] module a pybind11 module to add the definition to
  */
 void
-define_gazebo_event_manager(py::object module);
+define_gazebo_event_manager(pybind11::object module);
 
 }  // namespace python
 }  // namespace gazebo

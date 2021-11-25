@@ -20,7 +20,7 @@
 
 namespace ignition
 {
-namespace utils
+namespace gazebo
 {
 namespace python
 {

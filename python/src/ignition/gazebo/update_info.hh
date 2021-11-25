@@ -17,12 +17,6 @@
 
 #include <pybind11/pybind11.h>
 
-#include <ignition/gazebo/World.hh>
-
-#include <memory>
-
-namespace py = pybind11;
-
 namespace ignition
 {
 namespace gazebo
@@ -34,7 +28,7 @@ namespace python
  * \param[in] module a pybind11 module to add the definition to
  */
 void
-define_gazebo_update_info(py::object module);
+define_gazebo_update_info(pybind11::object module);
 
 }  // namespace python
 }  // namespace gazebo

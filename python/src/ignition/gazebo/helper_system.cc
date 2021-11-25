@@ -66,7 +66,8 @@ void HelperSystem::PostUpdate(const UpdateInfo &_info,
     const ignition::gazebo::EntityComponentManager &_ecm)
 {
   if (this->postUpdateCallback_internal)
-    this->postUpdateCallback_internal(_info, ignition::gazebo::python::EntityComponentManager(_ecm));
+    this->postUpdateCallback_internal(_info,
+      ignition::gazebo::python::EntityComponentManager(_ecm));
 }
 
 //////////////////////////////////////////////////
@@ -149,7 +150,7 @@ HelperFixture &HelperFixture::OnConfigure(std::function<void(
 
 //////////////////////////////////////////////////
 HelperFixture &HelperFixture::OnPreUpdate(std::function<void(
-          const UpdateInfo &, ignition::gazebo::python::EntityComponentManager &)> _cb)
+  const UpdateInfo &, ignition::gazebo::python::EntityComponentManager &)> _cb)
 {
   if (nullptr != this->dataPtr->helperSystem)
     this->dataPtr->helperSystem->preUpdateCallback_internal = std::move(_cb);
@@ -158,7 +159,7 @@ HelperFixture &HelperFixture::OnPreUpdate(std::function<void(
 
 //////////////////////////////////////////////////
 HelperFixture &HelperFixture::OnUpdate(std::function<void(
-          const UpdateInfo &, ignition::gazebo::python::EntityComponentManager &)> _cb)
+  const UpdateInfo &, ignition::gazebo::python::EntityComponentManager &)> _cb)
 {
   if (nullptr != this->dataPtr->helperSystem)
     this->dataPtr->helperSystem->updateCallback_internal = std::move(_cb);
@@ -167,7 +168,8 @@ HelperFixture &HelperFixture::OnUpdate(std::function<void(
 
 //////////////////////////////////////////////////
 HelperFixture &HelperFixture::OnPostUpdate(std::function<void(
-          const UpdateInfo &, const ignition::gazebo::python::EntityComponentManager &)> _cb)
+  const UpdateInfo &,
+  const ignition::gazebo::python::EntityComponentManager &)> _cb)
 {
   if (nullptr != this->dataPtr->helperSystem)
     this->dataPtr->helperSystem->postUpdateCallback_internal = std::move(_cb);
@@ -181,12 +183,12 @@ std::shared_ptr<gazebo::Server> HelperFixture::Server() const
 }
 
 void
-define_gazebo_helper_fixture(py::object module)
+define_gazebo_helper_fixture(pybind11::object module)
 {
-  py::class_<HelperFixture,
-             ignition::utils::python::Destroyable,
+  pybind11::class_<HelperFixture,
+             ignition::gazebo::python::Destroyable,
              std::shared_ptr<HelperFixture>>(module, "HelperFixture")
-  .def(py::init<const std::string &>())
+  .def(pybind11::init<const std::string &>())
   .def(
     "server", &HelperFixture::Server,
     "Get pointer to underlying server."

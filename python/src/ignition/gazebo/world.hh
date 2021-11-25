@@ -24,15 +24,13 @@
 
 #include <memory>
 
-namespace py = pybind11;
-
 namespace ignition
 {
 namespace gazebo
 {
 namespace python
 {
-class World : public ignition::utils::python::Destroyable,
+class World : public ignition::gazebo::python::Destroyable,
               public std::enable_shared_from_this<World>
 {
   public: World(ignition::gazebo::Entity _entity = kNullEntity);
@@ -66,7 +64,7 @@ private:
  * \param[in] module a pybind11 module to add the definition to
  */
 void
-define_gazebo_world(py::object module);
+define_gazebo_world(pybind11::object module);
 
 }  // namespace python
 }  // namespace gazebo

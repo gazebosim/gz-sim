@@ -38,9 +38,11 @@ void World::destroy()
   _world.reset();
 }
 
-ignition::math::Vector3<double> World::Gravity(const EntityComponentManager &_ecm)
+ignition::math::Vector3<double> World::Gravity(
+  const EntityComponentManager &_ecm)
 {
-  std::optional<ignition::math::Vector3d> gravity = _world->Gravity(*_ecm.rcl_ptr());
+  std::optional<ignition::math::Vector3d> gravity =
+    _world->Gravity(*_ecm.rcl_ptr());
   if (gravity.has_value())
   {
     return gravity.value();
@@ -55,12 +57,12 @@ ignition::gazebo::Entity World::ModelByName(
   return _world->ModelByName(*_ecm.rcl_ptr(), _name);
 }
 
-void define_gazebo_world(py::object module)
+void define_gazebo_world(pybind11::object module)
 {
-  py::class_<ignition::gazebo::python::World,
-             ignition::utils::python::Destroyable,
+  pybind11::class_<ignition::gazebo::python::World,
+             ignition::gazebo::python::Destroyable,
              std::shared_ptr<ignition::gazebo::python::World>>(module, "World")
-  .def(py::init<ignition::gazebo::Entity>())
+  .def(pybind11::init<ignition::gazebo::Entity>())
   .def(
     "model_by_name", &ignition::gazebo::python::World::ModelByName,
     "Get the ID of a model entity which is an immediate child of "
