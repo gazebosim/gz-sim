@@ -360,8 +360,7 @@ void Link::AddWorldWrench(EntityComponentManager &_ecm,
 void Link::AddAndVisualizeWorldWrench(EntityComponentManager &_ecm,
                          const math::Vector3d &_force,
                          const math::Vector3d &_torque,
-                         const std::string &_pluginName,
-                         const math::Color &_color) const
+                         const std::string &_pluginName) const
 {
   static transport::Node node;
   static auto pub = node.Advertise<msgs::WrenchVisual>("/force_viz");
