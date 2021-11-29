@@ -163,9 +163,9 @@ namespace ignition
       /// \return the result
       public: Vector3 Round()
       {
-        this->data[0] = nearbyint(this->data[0]);
-        this->data[1] = nearbyint(this->data[1]);
-        this->data[2] = nearbyint(this->data[2]);
+        this->data[0] = std::nearbyint(this->data[0]);
+        this->data[1] = std::nearbyint(this->data[1]);
+        this->data[2] = std::nearbyint(this->data[2]);
         return *this;
       }
 
@@ -237,7 +237,7 @@ namespace ignition
       /// \return an orthogonal vector
       public: Vector3 Perpendicular() const
       {
-        static const T sqrZero = 1e-06 * 1e-06;
+        static const T sqrZero = static_cast<T>(1e-06 * 1e-06);
 
         Vector3<T> perp = this->Cross(Vector3(1, 0, 0));
 
