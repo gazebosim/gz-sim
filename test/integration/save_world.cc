@@ -860,7 +860,8 @@ TEST_F(SdfGeneratorFixture, WorldWithLights)
 /////////////////////////////////////////////////
 TEST_F(SdfGeneratorFixture, ModelWithJoints)
 {
-  this->LoadWorld("test/worlds/joint_sensor.sdf");
+  this->LoadWorld(ignition::common::joinPaths("test", "worlds",
+      "joint_sensor.sdf"));
 
   const std::string worldGenSdfRes =
       this->RequestGeneratedSdf("joint_sensor");
