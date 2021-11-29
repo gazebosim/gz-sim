@@ -68,6 +68,7 @@
 #include <ignition/physics/sdf/ConstructModel.hh>
 #include <ignition/physics/sdf/ConstructNestedModel.hh>
 #include <ignition/physics/sdf/ConstructWorld.hh>
+#include <ignition/physics/sdf/ConstructMultibody.hh>
 #include <ignition/plugin/Loader.hh>
 #include <ignition/plugin/PluginPtr.hh>
 #include <ignition/plugin/Register.hh>
@@ -212,6 +213,10 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// \brief Create Battery entities
   /// \param[in] _ecm Constant reference to ECM.
   public: void CreateBatteryEntities(const EntityComponentManager &_ecm);
+
+  /// \brief Create multibodies for entities
+  /// \param[in] _ecm Constant reference to ECM.
+  public: void CreateMultibodies(const EntityComponentManager &_ecm);
 
   /// \brief Remove physics entities if they are removed from the ECM
   /// \param[in] _ecm Constant reference to ECM.
@@ -581,6 +586,10 @@ class ignition::gazebo::systems::PhysicsPrivate
             MinimumFeatureList,
             ignition::physics::sdf::ConstructSdfNestedModel>{};
 
+  /// \brief Feature list to construct multibodies
+  public: struct MultibodyFeatureList : ignition::physics::FeatureList<
+            ignition::physics::sdf::ConstructSdfMultibody>{};
+
   //////////////////////////////////////////////////
   /// \brief World EntityFeatureMap
   public: using WorldEntityMap = EntityFeatureMap3d<
@@ -603,7 +612,8 @@ class ignition::gazebo::systems::PhysicsPrivate
             MinimumFeatureList,
             JointFeatureList,
             BoundingBoxFeatureList,
-            NestedModelFeatureList>;
+            NestedModelFeatureList,
+            MultibodyFeatureList>;
 
   /// \brief A map between model entity ids in the ECM to Model Entities in
   /// ign-physics.
@@ -847,6 +857,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
   this->CreateCollisionEntities(_ecm);
   this->CreateJointEntities(_ecm);
   this->CreateBatteryEntities(_ecm);
+  this->CreateMultibodies(_ecm);
 }
 
 //////////////////////////////////////////////////
@@ -1308,6 +1319,20 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm)
         this->topLevelModelMap.insert(std::make_pair(_entity,
             topLevelModel(_entity, _ecm)));
         return true;
+      });
+}
+
+//////////////////////////////////////////////////
+void PhysicsPrivate::CreateMultibodies(const EntityComponentManager &_ecm)
+{
+    _ecm.EachNew<components::Model>(
+      [&](const Entity &_entity,
+          const components::Model *) -> bool {
+          auto multibodyModelFeature = this->entityModelMap.EntityCast<MultibodyFeatureList>(_entity);
+          if (multibodyModelFeature) {
+            multibodyModelFeature->ConstructMultibody();
+          }
+          return true;
       });
 }
 
