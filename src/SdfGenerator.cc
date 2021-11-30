@@ -829,9 +829,9 @@ namespace sdf_generator
 
     // joint type
     auto jointTypeComp = _ecm.Component<components::JointType>(_entity);
+    sdf::JointType jointType = jointTypeComp->Data();
     if (jointTypeComp)
     {
-      sdf::JointType jointType = jointTypeComp->Data();
       std::string jointTypeStr = "invalid";
       switch (jointType)
       {
@@ -883,7 +883,7 @@ namespace sdf_generator
     }
     // thread pitch
     auto threadPitchComp = _ecm.Component<components::ThreadPitch>(_entity);
-    if (threadPitchComp)
+    if (threadPitchComp && jointType == sdf::JointType::SCREW)
     {
       _elem->GetElement("thread_pitch")->Set<double>(threadPitchComp->Data());
     }
