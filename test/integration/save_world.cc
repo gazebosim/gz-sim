@@ -26,6 +26,8 @@
 #include <sdf/Collision.hh>
 #include <sdf/ForceTorque.hh>
 #include <sdf/Imu.hh>
+#include <sdf/Joint.hh>
+#include <sdf/JointAxis.hh>
 #include <sdf/Magnetometer.hh>
 #include <sdf/Model.hh>
 #include <sdf/Lidar.hh>
@@ -853,6 +855,105 @@ TEST_F(SdfGeneratorFixture, WorldWithLights)
   ASSERT_NE(nullptr, genSdfDoc.RootElement());
   auto genWorld = genSdfDoc.RootElement()->FirstChildElement("world");
   ASSERT_NE(nullptr, genWorld);
+}
+
+/////////////////////////////////////////////////
+TEST_F(SdfGeneratorFixture, ModelWithJoints)
+{
+  this->LoadWorld(ignition::common::joinPaths("test", "worlds",
+      "joint_sensor.sdf"));
+
+  const std::string worldGenSdfRes =
+      this->RequestGeneratedSdf("joint_sensor");
+
+  sdf::Root root;
+  sdf::Errors err = root.LoadSdfString(worldGenSdfRes);
+  EXPECT_TRUE(err.empty());
+  auto *world = root.WorldByIndex(0);
+  ASSERT_NE(nullptr, world);
+  EXPECT_EQ(1u, world->ModelCount());
+
+  EXPECT_TRUE(world->ModelNameExists("model"));
+  auto *model = world->ModelByName("model");
+  ASSERT_NE(nullptr, model);
+  EXPECT_EQ(2u, model->LinkCount());
+  auto *link1 = model->LinkByName("link1");
+  ASSERT_NE(nullptr, link1);
+  auto *link2 = model->LinkByName("link2");
+  ASSERT_NE(nullptr, link2);
+  EXPECT_EQ(1u, model->JointCount());
+  auto *joint = model->JointByName("joint");
+  ASSERT_NE(nullptr, joint);
+
+  EXPECT_EQ("link1", joint->ParentLinkName());
+  EXPECT_EQ("link2", joint->ChildLinkName());
+  EXPECT_EQ(sdf::JointType::REVOLUTE2, joint->Type());
+
+  // Get the first axis
+  const sdf::JointAxis *axis = joint->Axis();
+  ASSERT_NE(nullptr, axis);
+  ASSERT_NE(nullptr, axis->Element());
+
+  // Get the second axis
+  const sdf::JointAxis *axis2 = joint->Axis(1);
+  ASSERT_NE(nullptr, axis2);
+
+  EXPECT_EQ(ignition::math::Vector3d::UnitZ, axis->Xyz());
+  EXPECT_EQ(ignition::math::Vector3d::UnitY, axis2->Xyz());
+
+  EXPECT_EQ("__model__", axis->XyzExpressedIn());
+  EXPECT_TRUE(axis2->XyzExpressedIn().empty());
+
+  EXPECT_DOUBLE_EQ(-0.5, axis->Lower());
+  EXPECT_DOUBLE_EQ(0.5, axis->Upper());
+  EXPECT_DOUBLE_EQ(-1.0, axis2->Lower());
+  EXPECT_DOUBLE_EQ(1.0, axis2->Upper());
+
+  EXPECT_DOUBLE_EQ(123.4, axis->Effort());
+  EXPECT_DOUBLE_EQ(0.5, axis2->Effort());
+
+  EXPECT_DOUBLE_EQ(12.0, axis->MaxVelocity());
+  EXPECT_DOUBLE_EQ(200.0, axis2->MaxVelocity());
+
+  EXPECT_DOUBLE_EQ(0.1, axis->Damping());
+  EXPECT_DOUBLE_EQ(0.0, axis2->Damping());
+
+  EXPECT_DOUBLE_EQ(0.2, axis->Friction());
+  EXPECT_DOUBLE_EQ(0.0, axis2->Friction());
+
+  EXPECT_DOUBLE_EQ(1.3, axis->SpringReference());
+  EXPECT_DOUBLE_EQ(0.0, axis2->SpringReference());
+
+  EXPECT_DOUBLE_EQ(10.6, axis->SpringStiffness());
+  EXPECT_DOUBLE_EQ(0.0, axis2->SpringStiffness());
+
+  // sensor
+  const sdf::Sensor *forceTorqueSensor =
+    joint->SensorByName("force_torque_sensor");
+  ASSERT_NE(nullptr, forceTorqueSensor);
+  EXPECT_EQ("force_torque_sensor", forceTorqueSensor->Name());
+  EXPECT_EQ(sdf::SensorType::FORCE_TORQUE, forceTorqueSensor->Type());
+  EXPECT_EQ(ignition::math::Pose3d(10, 11, 12, 0, 0, 0),
+      forceTorqueSensor->RawPose());
+  auto forceTorqueSensorObj = forceTorqueSensor->ForceTorqueSensor();
+  ASSERT_NE(nullptr, forceTorqueSensorObj);
+  EXPECT_EQ(sdf::ForceTorqueFrame::PARENT, forceTorqueSensorObj->Frame());
+  EXPECT_EQ(sdf::ForceTorqueMeasureDirection::PARENT_TO_CHILD,
+      forceTorqueSensorObj->MeasureDirection());
+
+  EXPECT_DOUBLE_EQ(0.0, forceTorqueSensorObj->ForceXNoise().Mean());
+  EXPECT_DOUBLE_EQ(0.1, forceTorqueSensorObj->ForceXNoise().StdDev());
+  EXPECT_DOUBLE_EQ(1.0, forceTorqueSensorObj->ForceYNoise().Mean());
+  EXPECT_DOUBLE_EQ(1.1, forceTorqueSensorObj->ForceYNoise().StdDev());
+  EXPECT_DOUBLE_EQ(2.0, forceTorqueSensorObj->ForceZNoise().Mean());
+  EXPECT_DOUBLE_EQ(2.1, forceTorqueSensorObj->ForceZNoise().StdDev());
+
+  EXPECT_DOUBLE_EQ(3.0, forceTorqueSensorObj->TorqueXNoise().Mean());
+  EXPECT_DOUBLE_EQ(3.1, forceTorqueSensorObj->TorqueXNoise().StdDev());
+  EXPECT_DOUBLE_EQ(4.0, forceTorqueSensorObj->TorqueYNoise().Mean());
+  EXPECT_DOUBLE_EQ(4.1, forceTorqueSensorObj->TorqueYNoise().StdDev());
+  EXPECT_DOUBLE_EQ(5.0, forceTorqueSensorObj->TorqueZNoise().Mean());
+  EXPECT_DOUBLE_EQ(5.1, forceTorqueSensorObj->TorqueZNoise().StdDev());
 }
 
 /////////////////////////////////////////////////
