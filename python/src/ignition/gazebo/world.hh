@@ -42,7 +42,7 @@ class World : public ignition::gazebo::python::Destroyable,
   /// \param[in] _ecm Entity-component manager.
   /// \return Gravity vector or nullopt if the entity does not
   /// have a components::Gravity component.
-  public: ignition::math::Vector3<double>
+  public: std::optional<ignition::math::Vector3<double>>
     Gravity(const EntityComponentManager &_ecm);
 
   /// \brief Get the ID of a model entity which is an immediate child of

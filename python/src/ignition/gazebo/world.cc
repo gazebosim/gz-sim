@@ -16,6 +16,7 @@
 
 
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 #include <iostream>
 
@@ -41,16 +42,12 @@ void World::Destroy()
   _world.reset();
 }
 
-ignition::math::Vector3<double> World::Gravity(
+std::optional<ignition::math::Vector3<double>> World::Gravity(
   const EntityComponentManager &_ecm)
 {
   std::optional<ignition::math::Vector3d> gravity =
     _world->Gravity(*_ecm.rcl_ptr());
-  if (gravity.has_value())
-  {
-    return gravity.value();
-  }
-  return ignition::math::Vector3d::NaN;
+  return gravity;
 }
 
 ignition::gazebo::Entity World::ModelByName(
