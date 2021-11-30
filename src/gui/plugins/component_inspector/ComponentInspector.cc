@@ -1209,7 +1209,9 @@ void ComponentInspector::OnLoadMesh(const QString &_entity,
 
     ignition::gazebo::gui::events::ModelEditorAddEntity addEntityEvent(
         _entity, _type, this->dataPtr->entity);
-    addEntityEvent.data["uri"] = QString(meshStr.c_str());
+
+    addEntityEvent.data.insert("uri", QString(meshStr.c_str()));
+
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
         &addEntityEvent);
