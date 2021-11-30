@@ -168,6 +168,22 @@ Rectangle {
     id: jointDialog
     modal: true
     focus: true
+    header: ColumnLayout {
+      id: jointAddHeader
+      Text {
+        text:"Add joint"
+        font.pointSize: 14
+        padding: 20
+      }
+
+      Text {
+        text:"Select the parent and child links"
+        font.pointSize: 12
+        leftPadding: 20
+        rightPadding: 20
+        bottomPadding: 20
+      }
+    }
 
     standardButtons: Dialog.Ok | Dialog.Cancel
 
