@@ -64,12 +64,10 @@ namespace ignition
 
       /// \brief Copy constructor.
       /// \param[in] _inertial Inertial element to copy
-      public: Inertial(const Inertial<T> &_inertial)
-      : massMatrix(_inertial.MassMatrix()), pose(_inertial.Pose())
-      {}
+      public: Inertial(const Inertial<T> &_inertial) = default;
 
       /// \brief Destructor.
-      public: virtual ~Inertial() {}
+      public: ~Inertial() = default;
 
       /// \brief Set the mass and inertia matrix.
       ///
@@ -166,13 +164,7 @@ namespace ignition
       /// \brief Equal operator.
       /// \param[in] _inertial Inertial to copy.
       /// \return Reference to this object.
-      public: Inertial &operator=(const Inertial<T> &_inertial)
-      {
-        this->massMatrix = _inertial.MassMatrix();
-        this->pose = _inertial.Pose();
-
-        return *this;
-      }
+      public: Inertial &operator=(const Inertial<T> &_inertial) = default;
 
       /// \brief Equality comparison operator.
       /// \param[in] _inertial Inertial to copy.

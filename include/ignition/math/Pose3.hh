@@ -118,13 +118,10 @@ namespace ignition
 
       /// \brief Copy constructor.
       /// \param[in] _pose Pose3<T> to copy
-      public: Pose3(const Pose3<T> &_pose)
-      : p(_pose.p), q(_pose.q)
-      {
-      }
+      public: Pose3(const Pose3<T> &_pose) = default;
 
       /// \brief Destructor.
-      public: ~Pose3() {}
+      public: ~Pose3() = default;
 
       /// \brief Set the pose from a Vector3<T> and a Quaternion<T>
       /// \param[in] _pos The position.
@@ -280,12 +277,7 @@ namespace ignition
 
       /// \brief Assignment operator
       /// \param[in] _pose Pose3<T> to copy
-      public: Pose3<T> &operator=(const Pose3<T> &_pose)
-      {
-        this->p = _pose.p;
-        this->q = _pose.q;
-        return *this;
-      }
+      public: Pose3<T> &operator=(const Pose3<T> &_pose) = default;
 
       /// \brief Add one point to a vector: result = this + pos.
       /// \param[in] _pos Position to add to this pose

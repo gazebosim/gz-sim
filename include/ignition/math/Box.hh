@@ -84,10 +84,10 @@ namespace ignition
 
       /// \brief Copy Constructor.
       /// \param[in]  _b Box to copy.
-      public: Box(const Box<Precision> &_b);
+      public: Box(const Box<Precision> &_b) = default;
 
       /// \brief Destructor.
-      public: virtual ~Box() = default;
+      public: ~Box() = default;
 
       /// \brief Get the size of the box.
       /// \return Size of the box in meters.

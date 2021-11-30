@@ -91,7 +91,7 @@ namespace ignition
       public: Frustum(const Frustum &_p);
 
       /// \brief Destructor
-      public: virtual ~Frustum();
+      public: ~Frustum();
 
       /// \brief Get the near distance. This is the distance from the
       /// frustum's vertex to the closest plane.

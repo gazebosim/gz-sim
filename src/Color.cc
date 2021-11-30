@@ -44,16 +44,10 @@ Color::Color(const float _r, const float _g, const float _b, const float _a)
 }
 
 //////////////////////////////////////////////////
-Color::Color(const Color &_pt)
-: r(_pt.r), g(_pt.g), b(_pt.b), a(_pt.a)
-{
-  this->Clamp();
-}
+Color::Color(const Color &_pt) = default;
 
 //////////////////////////////////////////////////
-Color::~Color()
-{
-}
+Color::~Color() = default;
 
 //////////////////////////////////////////////////
 void Color::Reset()

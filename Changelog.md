@@ -30,6 +30,9 @@
 1. Evict large function definitions from the Helpers.hh header file.
     * [Pull request 288](https://github.com/ignitionrobotics/ign-math/pull/288)
 
+1. Remove virtual from destructors of copyable classes.
+    * [Pull request 293](https://github.com/ignitionrobotics/ign-math/pull/293)
+
 ## Ignition Math 6.x
 
 ### Ignition Math 6.x.x

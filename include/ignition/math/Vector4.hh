@@ -62,16 +62,10 @@ namespace ignition
 
       /// \brief Copy constructor
       /// \param[in] _v vector
-      public: Vector4(const Vector4<T> &_v)
-      {
-        this->data[0] = _v[0];
-        this->data[1] = _v[1];
-        this->data[2] = _v[2];
-        this->data[3] = _v[3];
-      }
+      public: Vector4(const Vector4<T> &_v) = default;
 
       /// \brief Destructor
-      public: virtual ~Vector4() {}
+      public: ~Vector4() = default;
 
       /// \brief Calc distance to the given point
       /// \param[in] _pt the point
@@ -264,15 +258,7 @@ namespace ignition
       /// \brief Assignment operator
       /// \param[in] _v the vector
       /// \return a reference to this vector
-      public: Vector4<T> &operator=(const Vector4<T> &_v)
-      {
-        this->data[0] = _v[0];
-        this->data[1] = _v[1];
-        this->data[2] = _v[2];
-        this->data[3] = _v[3];
-
-        return *this;
-      }
+      public: Vector4<T> &operator=(const Vector4<T> &_v) = default;
 
       /// \brief Assignment operator
       /// \param[in] _value

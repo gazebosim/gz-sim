@@ -71,7 +71,7 @@ namespace ignition
       public: AxisAlignedBox(const AxisAlignedBox &_b);
 
       /// \brief Destructor
-      public: virtual ~AxisAlignedBox();
+      public: ~AxisAlignedBox();
 
       /// \brief Get the length along the x dimension
       /// \return Double value of the length in the x dimension

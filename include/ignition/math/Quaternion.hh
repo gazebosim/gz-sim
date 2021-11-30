@@ -146,28 +146,14 @@ namespace ignition
       /// \brief Copy constructor. This constructor does not normalize the
       /// quaternion.
       /// \param[in] _qt Quaternion<T> to copy
-      public: Quaternion(const Quaternion<T> &_qt)
-      {
-        this->qw = _qt.qw;
-        this->qx = _qt.qx;
-        this->qy = _qt.qy;
-        this->qz = _qt.qz;
-      }
+      public: Quaternion(const Quaternion<T> &_qt) = default;
 
       /// \brief Destructor
-      public: ~Quaternion() {}
+      public: ~Quaternion() = default;
 
       /// \brief Assignment operator
       /// \param[in] _qt Quaternion<T> to copy
-      public: Quaternion<T> &operator=(const Quaternion<T> &_qt)
-      {
-        this->qw = _qt.qw;
-        this->qx = _qt.qx;
-        this->qy = _qt.qy;
-        this->qz = _qt.qz;
-
-        return *this;
-      }
+      public: Quaternion<T> &operator=(const Quaternion<T> &_qt) = default;
 
       /// \brief Invert the quaternion. The quaternion is first normalized,
       /// then inverted.

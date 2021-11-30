@@ -75,15 +75,10 @@ namespace ignition
 
       /// \brief Copy constructor
       /// \param[in] _v a vector
-      public: Vector3(const Vector3<T> &_v)
-      {
-        this->data[0] = _v[0];
-        this->data[1] = _v[1];
-        this->data[2] = _v[2];
-      }
+      public: Vector3(const Vector3<T> &_v) = default;
 
       /// \brief Destructor
-      public: virtual ~Vector3() {}
+      public: ~Vector3() = default;
 
       /// \brief Return the sum of the values
       /// \return the sum
@@ -330,14 +325,7 @@ namespace ignition
       /// \brief Assignment operator
       /// \param[in] _v a new value
       /// \return this
-      public: Vector3 &operator=(const Vector3<T> &_v)
-      {
-        this->data[0] = _v[0];
-        this->data[1] = _v[1];
-        this->data[2] = _v[2];
-
-        return *this;
-      }
+      public: Vector3 &operator=(const Vector3<T> &_v) = default;
 
       /// \brief Assignment operator
       /// \param[in] _v assigned to all elements

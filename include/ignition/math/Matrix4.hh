@@ -51,10 +51,7 @@ namespace ignition
 
       /// \brief Copy constructor
       /// \param _m Matrix to copy
-      public: Matrix4(const Matrix4<T> &_m)
-      {
-        memcpy(this->data, _m.data, sizeof(this->data[0][0])*16);
-      }
+      public: Matrix4(const Matrix4<T> &_m) = default;
 
       /// \brief Constructor
       /// \param[in] _v00 Row 0, Col 0 value
@@ -116,7 +113,7 @@ namespace ignition
       }
 
       /// \brief Destructor
-      public: virtual ~Matrix4() {}
+      public: ~Matrix4() = default;
 
       /// \brief Change the values
       /// \param[in] _v00 Row 0, Col 0 value
@@ -547,11 +544,7 @@ namespace ignition
       /// \brief Equal operator. this = _mat
       /// \param _mat Incoming matrix
       /// \return itself
-      public: Matrix4<T> &operator=(const Matrix4<T> &_mat)
-      {
-        memcpy(this->data, _mat.data, sizeof(this->data[0][0])*16);
-        return *this;
-      }
+      public: Matrix4<T> &operator=(const Matrix4<T> &_mat) = default;
 
       /// \brief Equal operator for 3x3 matrix
       /// \param _mat Incoming matrix

@@ -61,13 +61,10 @@ namespace ignition
 
       /// \brief Copy constructor.
       /// \param[in] _m MassMatrix3 element to copy
-      public: MassMatrix3(const MassMatrix3<T> &_m)
-      : mass(_m.Mass()), Ixxyyzz(_m.DiagonalMoments()),
-        Ixyxzyz(_m.OffDiagonalMoments())
-      {}
+      public: MassMatrix3(const MassMatrix3<T> &_m) = default;
 
       /// \brief Destructor.
-      public: virtual ~MassMatrix3() {}
+      public: ~MassMatrix3() = default;
 
       /// \brief Set the mass.
       /// \param[in] _m New mass value.
@@ -259,13 +256,7 @@ namespace ignition
       /// \param[in] _massMatrix MassMatrix3 to copy.
       /// \return Reference to this object.
       public: MassMatrix3 &operator=(const MassMatrix3<T> &_massMatrix)
-      {
-        this->mass = _massMatrix.Mass();
-        this->Ixxyyzz = _massMatrix.DiagonalMoments();
-        this->Ixyxzyz = _massMatrix.OffDiagonalMoments();
-
-        return *this;
-      }
+        = default;
 
       /// \brief Equality comparison operator.
       /// \param[in] _m MassMatrix3 to copy.

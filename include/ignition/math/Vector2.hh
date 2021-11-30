@@ -58,14 +58,10 @@ namespace ignition
 
       /// \brief Copy constructor
       /// \param[in] _v the value
-      public: Vector2(const Vector2<T> &_v)
-      {
-        this->data[0] = _v[0];
-        this->data[1] = _v[1];
-      }
+      public: constexpr Vector2(const Vector2<T> &_v) = default;
 
       /// \brief Destructor
-      public: virtual ~Vector2() {}
+      public: ~Vector2() = default;
 
       /// \brief Return the sum of the values
       /// \return the sum
@@ -222,13 +218,7 @@ namespace ignition
       /// \brief Assignment operator
       /// \param[in] _v a value for x and y element
       /// \return this
-      public: Vector2 &operator=(const Vector2 &_v)
-      {
-        this->data[0] = _v[0];
-        this->data[1] = _v[1];
-
-        return *this;
-      }
+      public: Vector2 &operator=(const Vector2 &_v) = default;
 
       /// \brief Assignment operator
       /// \param[in] _v the value for x and y element

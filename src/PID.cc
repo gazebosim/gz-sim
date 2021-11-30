@@ -51,27 +51,7 @@ void PID::Init(const double _p, const double _i, const double _d,
 }
 
 /////////////////////////////////////////////////
-PID &PID::operator=(const PID &_p)
-{
-  if (this == &_p)
-    return *this;
-
-  this->pGain = _p.pGain;
-  this->iGain = _p.iGain;
-  this->dGain = _p.dGain;
-  this->iMax = _p.iMax;
-  this->iMin = _p.iMin;
-  this->cmdMax = _p.cmdMax;
-  this->cmdMin = _p.cmdMin;
-  this->cmdOffset = _p.cmdOffset;
-  this->pErrLast = _p.pErrLast;
-  this->pErr = _p.pErr;
-  this->iErr = _p.iErr;
-  this->dErr = _p.dErr;
-  this->cmd = _p.cmd;
-
-  return *this;
-}
+PID &PID::operator=(const PID &_p) = default;
 
 /////////////////////////////////////////////////
 void PID::SetPGain(const double _p)

@@ -80,12 +80,10 @@ namespace ignition
 
       /// \brief Copy constructor
       /// \param[in] _plane Plane to copy
-      public: Plane(const Plane &_plane)
-      : normal(_plane.normal), size(_plane.size), d(_plane.d)
-      {}
+      public: Plane(const Plane &_plane) = default;
 
       /// \brief Destructor
-      public: virtual ~Plane() {}
+      public: ~Plane() = default;
 
       /// \brief Set the plane
       /// \param[in] _normal The plane normal
@@ -213,14 +211,7 @@ namespace ignition
       /// \brief Equal operator
       /// \param _p another plane
       /// \return itself
-      public: Plane<T> &operator=(const Plane<T> &_p)
-      {
-        this->normal = _p.normal;
-        this->size = _p.size;
-        this->d = _p.d;
-
-        return *this;
-      }
+      public: Plane<T> &operator=(const Plane<T> &_p) = default;
 
       /// \brief Plane normal
       private: Vector3<T> normal;

@@ -83,15 +83,10 @@ namespace ignition
 
       /// \brief Copy constructor.
       /// \param[in] _b OrientedBox to copy.
-      public: OrientedBox(const OrientedBox<T> &_b)
-          : size(_b.size), pose(_b.pose), material(_b.material)
-      {
-      }
+      public: OrientedBox(const OrientedBox<T> &_b) = default;
 
       /// \brief Destructor
-      public: virtual ~OrientedBox()
-      {
-      }
+      public: ~OrientedBox() = default;
 
       /// \brief Get the length along the x dimension
       /// \return Value of the length in the x dimension
@@ -147,13 +142,7 @@ namespace ignition
       /// \brief Assignment operator. Set this box to the parameter
       /// \param[in]  _b OrientedBox to copy
       /// \return The new box.
-      public: OrientedBox &operator=(const OrientedBox<T> &_b)
-      {
-        this->size = _b.size;
-        this->pose = _b.pose;
-        this->material = _b.material;
-        return *this;
-      }
+      public: OrientedBox &operator=(const OrientedBox<T> &_b) = default;
 
       /// \brief Equality test operator
       /// \param[in] _b OrientedBox to test

@@ -86,7 +86,7 @@ namespace ignition
       public: Color(const Color &_clr);
 
       /// \brief Destructor
-      public: virtual ~Color();
+      public: ~Color();
 
       /// \brief Reset the color to default values to red=0, green=0,
       /// blue=0, alpha=1.

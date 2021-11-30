@@ -72,7 +72,7 @@ namespace ignition
       public: Stopwatch(Stopwatch &&_watch) noexcept;
 
       /// \brief Destructor.
-      public: virtual ~Stopwatch();
+      public: ~Stopwatch();
 
       /// \brief Start the stopwatch.
       /// \param[in] _reset If true the stopwatch is reset first.
