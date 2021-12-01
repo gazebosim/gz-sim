@@ -5,6 +5,11 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
+## Ignition Gazebo 6.1 to 6.2
+
+* If no `<namespace>` is given to the `Thruster` plugin, the namespace now
+  defaults to the model name, instead of an empty string.
+
 ## Ignition Gazebo 5.x to 6.x
 
 * The ParticleEmitter system is deprecated. Please use the ParticleEmitter2
@@ -67,6 +72,11 @@ since pose information is being logged in the `changed_state` topic.
 
 * The `gui.config` and `server.config` files are now located in a versioned
   folder inside `$HOME/.ignition/gazebo`, i.e. `$HOME/.ignition/gazebo/6/gui.config`.
+
+## Ignition Gazebo 5.2 to 5.3
+
+* If no `<namespace>` is given to the `Thruster` plugin, the namespace now
+  defaults to the model name, instead of an empty string.
 
 ## Ignition Gazebo 4.x to 5.x
 

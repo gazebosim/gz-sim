@@ -36,6 +36,10 @@
       name="ignition::gazebo::systems::Magnetometer">
     </plugin>
     <plugin
+      filename="ignition-gazebo-forcetorque-system"
+      name="ignition::gazebo::systems::ForceTorque">
+    </plugin>
+    <plugin
       filename="ignition-gazebo-user-commands-system"
       name="ignition::gazebo::systems::UserCommands">
     </plugin>
@@ -210,5 +214,71 @@
       </link>
     </model>
 
+    <model name="force_torque_demo">
+      <link name="base_plate">
+        <static>true</static>
+      </link>
+
+      <link name="link_1">
+        <pose> 0 0 2.0 0 0 0</pose>
+        <inertial>
+          <inertia>
+            <ixx>0.100000</ixx>
+            <ixy>0.000000</ixy>
+            <ixz>0.000000</ixz>
+            <iyy>0.100000</iyy>
+            <iyz>0.000000</iyz>
+            <izz>0.100000</izz>
+          </inertia>
+          <mass>10.000000</mass>
+        </inertial>
+        <visual name="visual_sphere">
+          <geometry>
+            <sphere>
+              <radius>0.100000</radius>
+            </sphere>
+          </geometry>
+        </visual>
+        <visual name="visual_cylinder">
+          <pose>0 0 -0.75 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.0100000</radius>
+              <length>1.5</length>
+            </cylinder>
+          </geometry>
+        </visual>
+        <collision name="collision_sphere">
+          <geometry>
+            <sphere>
+              <radius>0.100000</radius>
+            </sphere>
+          </geometry>
+        </collision>
+      </link>
+      <joint name="joint_00" type="fixed">
+        <parent>world</parent>
+        <child>base_plate</child>
+      </joint>
+      <joint name="joint_01" type="revolute">
+        <parent>base_plate</parent>
+        <child>link_1</child>
+        <pose>0 0 -1.5 0 0 0</pose>
+        <axis>
+          <limit>
+            <lower>-1.57079</lower>
+            <upper>1.57079</upper>
+          </limit>
+          <dynamics>
+            <damping>0.000000</damping>
+            <friction>0.000000</friction>
+          </dynamics>
+          <xyz>1.000000 0.000000 0.000000</xyz>
+        </axis>
+        <sensor name="force_torque" type="force_torque">
+          <update_rate>10</update_rate>
+        </sensor>
+      </joint>
+    </model>
   </world>
 </sdf>

@@ -1,0 +1,176 @@
+<?xml version="1.0" ?>
+<sdf version="1.7">
+  <world name="non_rendering_sensors">
+    <plugin
+      filename="ignition-gazebo-sensors-system"
+      name="ignition::gazebo::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-scene-broadcaster-system"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+
+    <model name="model">
+      <link name="link">
+        <pose> 0 0 3  0 0 0</pose>
+        <sensor name="altimeter_sensor" type="altimeter">
+          <altimeter>
+            <vertical_position>
+              <noise type="gaussian">
+                <mean>0.1</mean>
+                <stddev>0.2</stddev>
+              </noise>
+            </vertical_position>
+            <vertical_velocity>
+              <noise type="gaussian">
+                <mean>2.3</mean>
+                <stddev>4.5</stddev>
+              </noise>
+            </vertical_velocity>
+          </altimeter>
+        </sensor>
+
+       <sensor name="contact_sensor" type="contact">
+          <pose relative_to="__model__">4 5 6 0 0 0</pose>
+          <enable_metrics>true</enable_metrics>
+        </sensor>
+
+        <sensor name="force_torque_sensor" type="force_torque">
+          <pose>10 11 12 0 0 0</pose>
+          <force_torque>
+            <frame>child</frame>
+            <measure_direction>parent_to_child</measure_direction>
+            <force>
+              <x>
+                <noise type="gaussian_quantized">
+                  <mean>0.02</mean>
+                  <stddev>0.0005</stddev>
+                </noise>
+              </x>
+             </force>
+            <torque>
+              <y>
+                <noise type="gaussian">
+                  <mean>0.009</mean>
+                  <stddev>0.0000985</stddev>
+                </noise>
+              </y>
+             </torque>
+          </force_torque>
+        </sensor>
+
+        <sensor name="imu_sensor" type="imu">
+          <pose>4 5 6 0 0 0</pose>
+          <imu>
+            <linear_acceleration>
+              <x>
+                <noise type="gaussian">
+                  <mean>0</mean>
+                  <stddev>0.1</stddev>
+                  <dynamic_bias_stddev>0.2</dynamic_bias_stddev>
+                  <dynamic_bias_correlation_time>1</dynamic_bias_correlation_time>
+                </noise>
+              </x>
+              <y>
+                <noise type="gaussian">
+                  <mean>1</mean>
+                  <stddev>1.1</stddev>
+                  <dynamic_bias_stddev>1.2</dynamic_bias_stddev>
+                  <dynamic_bias_correlation_time>2</dynamic_bias_correlation_time>
+                </noise>
+              </y>
+              <z>
+                <noise type="gaussian">
+                  <mean>2</mean>
+                  <stddev>2.1</stddev>
+                  <dynamic_bias_stddev>2.2</dynamic_bias_stddev>
+                  <dynamic_bias_correlation_time>3</dynamic_bias_correlation_time>
+                </noise>
+              </z>
+            </linear_acceleration>
+            <angular_velocity>
+              <x>
+                <noise type="gaussian">
+                  <mean>3</mean>
+                  <stddev>3.1</stddev>
+                  <dynamic_bias_stddev>4.2</dynamic_bias_stddev>
+                  <dynamic_bias_correlation_time>4</dynamic_bias_correlation_time>
+                </noise>
+              </x>
+              <y>
+                <noise type="gaussian">
+                  <mean>4</mean>
+                  <stddev>4.1</stddev>
+                  <dynamic_bias_stddev>5.2</dynamic_bias_stddev>
+                  <dynamic_bias_correlation_time>5</dynamic_bias_correlation_time>
+                </noise>
+              </y>
+              <z>
+                <noise type="gaussian">
+                  <mean>5</mean>
+                  <stddev>5.1</stddev>
+                  <dynamic_bias_stddev>6.2</dynamic_bias_stddev>
+                  <dynamic_bias_correlation_time>6</dynamic_bias_correlation_time>
+                </noise>
+              </z>
+            </angular_velocity>
+            <orientation_reference_frame>
+              <localization>ENU</localization>
+              <custom_rpy parent_frame="linka">0 1 0</custom_rpy>
+              <grav_dir_x parent_frame="linkb">0 0 1</grav_dir_x>
+            </orientation_reference_frame>
+            <enable_orientation>false</enable_orientation>
+          </imu>
+        </sensor>
+
+        <sensor name="logical_camera_sensor" type="logical_camera">
+          <pose>7 8 9 0 0 0</pose>
+          <logical_camera>
+            <near>0.1</near>
+            <far>100.1</far>
+            <aspect_ratio>1.33</aspect_ratio>
+            <horizontal_fov>1.234</horizontal_fov>
+          </logical_camera>
+        </sensor>
+
+        <sensor name="magnetometer_sensor" type="magnetometer">
+          <pose>10 11 12 0 0 0</pose>
+          <magnetometer>
+            <x>
+              <noise type="gaussian">
+                <mean>0.1</mean>
+                <stddev>0.2</stddev>
+              </noise>
+            </x>
+            <y>
+              <noise type="gaussian">
+                <mean>1.2</mean>
+                <stddev>2.3</stddev>
+              </noise>
+            </y>
+            <z>
+              <noise type="gaussian">
+                <mean>3.4</mean>
+                <stddev>5.6</stddev>
+              </noise>
+            </z>
+          </magnetometer>
+        </sensor>
+
+        <sensor name="air_pressure_sensor" type="air_pressure">
+          <pose>10 20 30 0 0 0</pose>
+          <air_pressure>
+            <reference_altitude>123.4</reference_altitude>
+            <pressure>
+              <noise type="gaussian">
+                <mean>3.4</mean>
+                <stddev>5.6</stddev>
+              </noise>
+            </pressure>
+          </air_pressure>
+        </sensor>
+      </link>
+    </model>
+  </world>
+</sdf>
