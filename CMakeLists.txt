@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo6 VERSION 6.1.0)
+project(ignition-gazebo6 VERSION 6.2.0)
 
 #============================================================================
 # Find ignition-cmake
@@ -50,7 +50,7 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 # as protobuf could be find transitively by any dependency
 set(protobuf_MODULE_COMPATIBLE TRUE)
 
-ign_find_package(sdformat12 REQUIRED)
+ign_find_package(sdformat12 REQUIRED VERSION 12.2)
 set(SDF_VER ${sdformat12_VERSION_MAJOR})
 
 #--------------------------------------
@@ -99,7 +99,7 @@ ign_find_package (Qt5
 
 #--------------------------------------
 # Find ignition-physics
-ign_find_package(ignition-physics5
+ign_find_package(ignition-physics5 VERSION 5.1
   COMPONENTS
     heightmap
     mesh
