@@ -64,6 +64,11 @@
               <near>0.1</near>
               <far>100</far>
             </clip>
+            <noise>
+              <type>gaussian_quantized</type>
+              <mean>0.01</mean>
+              <stddev>0.0002</stddev>
+            </noise>
           </camera>
           <always_on>1</always_on>
           <update_rate>30</update_rate>
@@ -131,6 +136,12 @@
               <near>0.1</near>
               <far>10.0</far>
             </clip>
+            <depth_camera>
+              <clip>
+                <near>0.05</near>
+                <far>9.0</far>
+              </clip>
+            </depth_camera>
           </camera>
         </sensor>
       </link>
@@ -150,6 +161,40 @@
           </camera>
         </sensor>
       </link>
+
+      <link name="thermal_camera_link">
+        <sensor name="thermal_camera" type="thermal_camera">
+          <camera>
+            <horizontal_fov>1.15</horizontal_fov>
+            <image>
+              <width>300</width>
+              <height>200</height>
+            </image>
+            <clip>
+              <near>0.14</near>
+              <far>120.0</far>
+            </clip>
+          </camera>
+        </sensor>
+      </link>
+
+      <link name="segmentation_camera_link">
+        <sensor name="segmentation_camera" type="segmentation_camera">
+          <camera>
+            <horizontal_fov>1.0</horizontal_fov>
+            <image>
+              <width>320</width>
+              <height>240</height>
+            </image>
+            <clip>
+              <near>0.11</near>
+              <far>20.0</far>
+            </clip>
+            <segmentation_type>panoptic</segmentation_type>
+          </camera>
+        </sensor>
+      </link>
+
     </model>
   </world>
 </sdf>
