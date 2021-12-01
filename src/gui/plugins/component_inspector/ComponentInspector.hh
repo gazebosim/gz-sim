@@ -185,6 +185,14 @@ namespace gazebo
       NOTIFY TypeChanged
     )
 
+    /// \brief Type
+    Q_PROPERTY(
+      QStringList modelLinks
+      READ ModelLinks
+      WRITE SetModelLinks
+      NOTIFY ModelLinksChanged
+    )
+
     /// \brief Locked
     Q_PROPERTY(
       bool locked
@@ -354,6 +362,25 @@ namespace gazebo
     /// \param[in] _type Entity type, e.g. link, visual, collision, etc
     public: Q_INVOKABLE void OnAddEntity(const QString &_entity,
                 const QString &_type);
+
+    /// \brief Callback in Qt thread when a joint is to be added
+    /// \param[in] _jointType Type of joint to add (revolute, fixed, etc)
+    /// \param[in] _parentLink Name of the link to be the parent link
+    /// \param[in] _childLink Name of the link to be the child link
+    public: Q_INVOKABLE void OnAddJoint(const QString &_jointType,
+                const QString &_parentLink,
+                const QString &_childLink);
+
+    /// \brief Return the list of availabe links if a model is selected.
+    /// \return List of available links.
+    public: Q_INVOKABLE QStringList ModelLinks() const;
+
+    /// \brief Set the list of availabe links when a model is selected.
+    /// \param[in] _modelLinks List of available links.
+    public: Q_INVOKABLE void SetModelLinks(const QStringList &_modelLinks);
+
+    /// \brief Notify that locked has changed.
+    signals: void ModelLinksChanged();
 
     /// \brief Callback to insert a new entity
     /// \param[in] _entity Entity to add, e.g. box, sphere, cylinder, etc

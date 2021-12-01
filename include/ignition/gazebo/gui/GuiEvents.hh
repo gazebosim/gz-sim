@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_GUI_GUIEVENTS_HH_
 
 #include <QEvent>
+#include <QMap>
 #include <QString>
 
 #include <set>
@@ -191,8 +192,8 @@ namespace events
     /// \brief Constructor
     /// \param[in] _tranformModeActive is the transform control mode active
     public: explicit ModelEditorAddEntity(QString _entity, QString _type,
-                ignition::gazebo::Entity _parent, QString _uri) :
-      QEvent(kType), entity(_entity), type(_type), parent(_parent), uri(_uri)
+                ignition::gazebo::Entity _parent) :
+      QEvent(kType), entity(_entity), type(_type), parent(_parent)
     {
     }
 
@@ -200,12 +201,6 @@ namespace events
     public: QString Entity() const
     {
       return this->entity;
-    }
-
-    /// \brief Get the URI, if any, associated with the entity to add
-    public: QString Uri() const
-    {
-      return this->uri;
     }
 
     /// \brief Get the entity type
@@ -220,13 +215,12 @@ namespace events
       return this->parent;
     }
 
-    /// \brief Unique type for this event.
     static const QEvent::Type kType = QEvent::Type(QEvent::User + 7);
 
+    public : QMap<QString, QString> data;
     private: QString entity;
     private: QString type;
     private: ignition::gazebo::Entity parent;
-    private: QString uri;
   };
 
 }  // namespace events

@@ -74,6 +74,7 @@
 #include "Altimeter.hh"
 #include "ComponentInspector.hh"
 #include "Imu.hh"
+#include "Lidar.hh"
 #include "Magnetometer.hh"
 #include "ModelEditor.hh"
 
@@ -102,6 +103,9 @@ namespace ignition::gazebo
     /// \brief Nested model or not
     public: bool nestedModel = false;
 
+    /// \brief If a model, keep track of available links
+    public: QStringList modelLinks = {};
+
     /// \brief Whether currently locked on a given entity
     public: bool locked{false};
 
@@ -125,6 +129,9 @@ namespace ignition::gazebo
 
     /// \brief Imu inspector elements
     public: std::unique_ptr<ignition::gazebo::Imu> imu;
+
+    /// \brief Lidar inspector elements
+    public: std::unique_ptr<ignition::gazebo::Lidar> lidar;
 
     /// \brief Magnetometer inspector elements
     public: std::unique_ptr<ignition::gazebo::Magnetometer> magnetometer;
@@ -451,6 +458,9 @@ void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
   // Create the imu
   this->dataPtr->imu = std::make_unique<Imu>(this);
 
+  // Create the lidar
+  this->dataPtr->lidar = std::make_unique<Lidar>(this);
+
   // Create the magnetometer
   this->dataPtr->magnetometer = std::make_unique<Magnetometer>(this);
 }
@@ -490,6 +500,25 @@ void ComponentInspector::Update(const UpdateInfo &_info,
       }
       this->NestedModelChanged();
 
+      // Get available links for the model.
+      this->dataPtr->modelLinks.clear();
+      this->dataPtr->modelLinks.append("world");
+      _ecm.EachNoCache<
+        components::Name,
+        components::Link,
+        components::ParentEntity>([&](const ignition::gazebo::Entity &,
+              const components::Name *_name,
+              const components::Link *,
+              const components::ParentEntity *_parent) -> bool
+            {
+              if (_parent->Data() == this->dataPtr->entity)
+              {
+                this->dataPtr->modelLinks.push_back(
+                    QString::fromStdString(_name->Data()));
+              }
+              return true;
+            });
+      this->ModelLinksChanged();
       continue;
     }
 
@@ -1119,13 +1148,42 @@ bool ComponentInspector::NestedModel() const
 }
 
 /////////////////////////////////////////////////
+void ComponentInspector::SetModelLinks(const QStringList &_modelLinks)
+{
+  this->dataPtr->modelLinks = _modelLinks;
+  this->ModelLinksChanged();
+}
+
+/////////////////////////////////////////////////
+QStringList ComponentInspector::ModelLinks() const
+{
+  return this->dataPtr->modelLinks;
+}
+
+/////////////////////////////////////////////////
 void ComponentInspector::OnAddEntity(const QString &_entity,
     const QString &_type)
 {
   // currently just assumes parent is the model
   // todo(anyone) support adding visuals / collisions / sensors to links
   ignition::gazebo::gui::events::ModelEditorAddEntity addEntityEvent(
-      _entity, _type, this->dataPtr->entity, QString(""));
+      _entity, _type, this->dataPtr->entity);
+
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      &addEntityEvent);
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::OnAddJoint(const QString &_jointType,
+                                    const QString &_parentLink,
+                                    const QString &_childLink)
+{
+  ignition::gazebo::gui::events::ModelEditorAddEntity addEntityEvent(
+      _jointType, "joint", this->dataPtr->entity);
+
+  addEntityEvent.data.insert("parent_link", _parentLink);
+  addEntityEvent.data.insert("child_link", _childLink);
 
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
@@ -1150,7 +1208,10 @@ void ComponentInspector::OnLoadMesh(const QString &_entity,
     }
 
     ignition::gazebo::gui::events::ModelEditorAddEntity addEntityEvent(
-        _entity, _type, this->dataPtr->entity, QString(meshStr.c_str()));
+        _entity, _type, this->dataPtr->entity);
+
+    addEntityEvent.data.insert("uri", QString(meshStr.c_str()));
+
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
         &addEntityEvent);

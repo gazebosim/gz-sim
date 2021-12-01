@@ -157,10 +157,61 @@ Rectangle {
       height: childrenRect.height
 
       Text {
-          text: sectionText 
+          text: sectionText
           font.pointSize: 10
           padding: 5
       }
+    }
+  }
+
+  Dialog {
+    id: jointDialog
+    modal: true
+    focus: true
+    header: ColumnLayout {
+      id: jointAddHeader
+      Text {
+        text:"Add joint"
+        font.pointSize: 14
+        padding: 20
+      }
+
+      Text {
+        text:"Select the parent and child links"
+        font.pointSize: 12
+        leftPadding: 20
+        rightPadding: 20
+        bottomPadding: 20
+      }
+    }
+
+    standardButtons: Dialog.Ok | Dialog.Cancel
+
+    property string jointType: "empty"
+
+    contentItem: ColumnLayout {
+      Text {
+        id: parentBoxText
+        text: "Parent Link"
+      }
+      ComboBox {
+        id: parentBox
+        model: ComponentInspector.modelLinks
+        currentIndex: 0
+      }
+      Text {
+        id: childBoxText
+        text: "Child Link"
+      }
+      ComboBox {
+        id: childBox
+        model: ComponentInspector.modelLinks
+        currentIndex: 1
+      }
+    }
+
+    onAccepted: {
+      ComponentInspector.OnAddJoint(jointType, parentBox.currentText, childBox.currentText)
     }
   }
 
@@ -399,8 +450,116 @@ Rectangle {
               addLinkMenu.close()
             }
           }
-      
-          // \todo(anyone) Add joints
+
+          MenuSeparator {
+            padding: 0
+            topPadding: 12
+            bottomPadding: 12
+            contentItem: Rectangle {
+              implicitWidth: 200
+              implicitHeight: 1
+              color: "#1E000000"
+            }
+          }
+
+          Item {
+            Layout.fillWidth: true
+            height: childrenRect.height
+            Loader {
+              property string sectionText: "Joint"
+              sourceComponent: menuSectionHeading
+            }
+          }
+
+          MenuItem {
+            id: revoluteJoint
+            text: "Revolute"
+            onClicked: {
+              jointDialog.jointType = "revolute"
+              jointDialog.open()
+              addLinkMenu.close()
+            }
+          }
+
+          MenuItem {
+            id: ballJoint
+            text: "Ball"
+            onClicked: {
+              jointDialog.jointType = "ball"
+              jointDialog.open()
+              addLinkMenu.close()
+            }
+          }
+
+          MenuItem {
+            id: continuousJoint
+            text: "Continuous"
+            onClicked: {
+              jointDialog.jointType = "continuous"
+              jointDialog.open()
+              addLinkMenu.close()
+            }
+          }
+
+          MenuItem {
+            id: fixedJoint
+            text: "Fixed"
+            onClicked: {
+              jointDialog.jointType = "fixed"
+              jointDialog.open()
+              addLinkMenu.close()
+            }
+          }
+
+          MenuItem {
+            id: gearboxJoint
+            text: "Gearbox"
+            onClicked: {
+              jointDialog.jointType = "gearbox"
+              jointDialog.open()
+              addLinkMenu.close()
+            }
+          }
+
+          MenuItem {
+            id: prismaticJoint
+            text: "Prismatic"
+            onClicked: {
+              jointDialog.jointType = "prismatic"
+              jointDialog.open()
+              addLinkMenu.close()
+            }
+          }
+
+          MenuItem {
+            id: revolute2Joint
+            text: "Revolute2"
+            onClicked: {
+              jointDialog.jointType = "revolute2"
+              jointDialog.open()
+              addLinkMenu.close()
+            }
+          }
+
+          MenuItem {
+            id: screwJoint
+            text: "Screw"
+            onClicked: {
+              jointDialog.jointType = "screw"
+              jointDialog.open()
+              addLinkMenu.close()
+            }
+          }
+
+          MenuItem {
+            id: universalJoint
+            text: "Universal"
+            onClicked: {
+              jointDialog.jointType = "universal"
+              jointDialog.open()
+              addLinkMenu.close()
+            }
+          }
         }
       }
 

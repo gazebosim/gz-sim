@@ -56,7 +56,7 @@ Rectangle {
       stepSize: stepValue
       decimals: {
         writableSpin.value = writableSpin.activeFocus ? writableSpin.value : numberValue
-        componentInspector.getDecimals(writableSpin.width)
+        stepSize == 1 ? 0 : componentInspector.getDecimals(writableSpin.width)
       }
       onEditingFinished: {
         numberValue = writableSpin.value
