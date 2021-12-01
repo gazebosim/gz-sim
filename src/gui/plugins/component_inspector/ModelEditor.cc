@@ -218,10 +218,9 @@ void ModelEditor::Update(const UpdateInfo &,
             components::Name(jointName));
       }
 
-      jointElem->SetName(jointName);
-
       sdf::Joint jointSdf;
       jointSdf.Load(jointElem);
+      jointSdf.SetName(jointName);
       auto entity =
         this->dataPtr->entityCreator->CreateEntities(&jointSdf, true);
       this->dataPtr->entityCreator->SetParent(entity, eta.parentEntity);
