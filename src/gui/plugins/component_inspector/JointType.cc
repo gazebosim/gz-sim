@@ -18,6 +18,8 @@
 
 #include <ignition/common/Console.hh>
 #include "ignition/gazebo/components/JointType.hh"
+#include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/Recreate.hh"
 #include <ignition/gazebo/EntityComponentManager.hh>
 
 #include "JointType.hh"
@@ -80,7 +82,11 @@ Q_INVOKABLE void JointType::OnJointType(QString _jointType)
   {
     components::JointType *comp =
       _ecm.Component<components::JointType>(this->inspector->Entity());
-    if (comp)
+
+    components::ParentEntity *parentComp =
+      _ecm.Component<components::ParentEntity>(this->inspector->Entity());
+
+    if (comp && parentComp)
     {
       if (_jointType == "Ball")
         comp->Data() = sdf::JointType::BALL;
@@ -100,10 +106,18 @@ Q_INVOKABLE void JointType::OnJointType(QString _jointType)
         comp->Data() = sdf::JointType::SCREW;
       else if (_jointType == "Universal")
         comp->Data() = sdf::JointType::UNIVERSAL;
+
+      // Make sure to mark the parent as needing recreation. This will
+      // tell the server to rebuild the model with the new link.
+      _ecm.CreateComponent(parentComp->Data(), components::Recreate());
+    }
+    else if (!comp)
+    {
+      ignerr << "Unable to get the joint type component.\n";
     }
     else
     {
-      ignerr << "Unable to get the joint type component.\n";
+      ignerr << "Unable to get the joint's parent entity component.\n";
     }
   };
   this->inspector->AddUpdateCallback(cb);

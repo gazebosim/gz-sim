@@ -7,6 +7,8 @@
   <file>ExpandingTypeHeader.qml</file>
   <file>Imu.qml</file>
   <file>JointType.qml</file>
+  <file>Lidar.qml</file>
+  <file>LidarScan.qml</file>
   <file>Light.qml</file>
   <file>Magnetometer.qml</file>
   <file>NoData.qml</file>

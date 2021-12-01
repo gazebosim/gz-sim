@@ -25,6 +25,7 @@
 #include <sdf/Altimeter.hh>
 #include <sdf/Camera.hh>
 #include <sdf/Imu.hh>
+#include <sdf/Lidar.hh>
 #include <sdf/Magnetometer.hh>
 #include <sdf/Noise.hh>
 #include <sdf/Sensor.hh>
@@ -39,6 +40,7 @@
 #include <ignition/gazebo/components/Altimeter.hh>
 #include <ignition/gazebo/components/Camera.hh>
 #include <ignition/gazebo/components/ChildLinkName.hh>
+#include <ignition/gazebo/components/GpuLidar.hh>
 #include <ignition/gazebo/components/Imu.hh>
 #include <ignition/gazebo/components/Inertial.hh>
 #include <ignition/gazebo/components/Joint.hh>
@@ -460,6 +462,51 @@ void printImu(const uint64_t _entity, const EntityComponentManager &_ecm,
 }
 
 //////////////////////////////////////////////////
+void printGpuLidar(const uint64_t _entity,
+    const EntityComponentManager &_ecm, int _spaces)
+{
+  // Get the type and return if the _entity does not have the correct
+  // component.
+  auto comp = _ecm.Component<components::GpuLidar>(_entity);
+  if (!comp)
+    return;
+
+  const sdf::Sensor &sensor = comp->Data();
+  const sdf::Lidar *lidar = sensor.LidarSensor();
+
+  std::cout << std::string(_spaces, ' ') << "- Range:\n";
+  std::cout << std::string(_spaces+2, ' ') << "- Min: "
+    << lidar->RangeMin() << std::endl;
+  std::cout << std::string(_spaces+2, ' ') << "- Max: "
+    << lidar->RangeMax() << std::endl;
+  std::cout << std::string(_spaces+2, ' ') << "- Resolution: "
+    << lidar->RangeResolution() << std::endl;
+
+  std::cout << std::string(_spaces, ' ') << "- Horizontal scan:\n";
+  std::cout << std::string(_spaces+2, ' ') << "- Samples: "
+    << lidar->HorizontalScanSamples() << std::endl;
+  std::cout << std::string(_spaces+2, ' ') << "- Resolution: "
+    << lidar->HorizontalScanResolution() << std::endl;
+  std::cout << std::string(_spaces+2, ' ') << "- Min angle: "
+    << lidar->HorizontalScanMinAngle() << std::endl;
+  std::cout << std::string(_spaces+2, ' ') << "- Max angle: "
+    << lidar->HorizontalScanMaxAngle() << std::endl;
+
+  std::cout << std::string(_spaces, ' ') << "- Vertical scan:\n";
+  std::cout << std::string(_spaces+2, ' ') << "- Samples: "
+    << lidar->VerticalScanSamples() << std::endl;
+  std::cout << std::string(_spaces+2, ' ') << "- Resolution: "
+    << lidar->VerticalScanResolution() << std::endl;
+  std::cout << std::string(_spaces+2, ' ') << "- Min angle: "
+    << lidar->VerticalScanMinAngle() << std::endl;
+  std::cout << std::string(_spaces+2, ' ') << "- Max angle: "
+    << lidar->VerticalScanMaxAngle() << std::endl;
+
+  std::cout << std::string(_spaces, ' ') << "- Noise:\n";
+  printNoise(lidar->LidarNoise(), _spaces + 2);
+}
+
+//////////////////////////////////////////////////
 void printMagnetometer(const uint64_t _entity,
     const EntityComponentManager &_ecm, int _spaces)
 {
@@ -633,6 +680,7 @@ void printLinks(const uint64_t _modelEntity,
       printAirPressure(sensor, _ecm, spaces + 2);
       printAltimeter(sensor, _ecm, spaces + 2);
       printCamera(sensor, _ecm, spaces + 2);
+      printGpuLidar(sensor, _ecm, spaces + 2);
       printImu(sensor, _ecm, spaces + 2);
       printMagnetometer(sensor, _ecm, spaces + 2);
       printRgbdCamera(sensor, _ecm, spaces + 2);

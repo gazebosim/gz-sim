@@ -19,7 +19,10 @@
 #include <list>
 #include <set>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
+
 #include <ignition/common/Console.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/gui/Application.hh>
@@ -53,8 +56,8 @@ namespace ignition::gazebo
     /// \brief Parent entity to add the entity to
     public: Entity parentEntity;
 
-    /// \brief Entity URI, such as a URI for a mesh.
-    public: std::string uri;
+    /// \brief Additional entity-specific data needed
+    public: std::unordered_map<std::string, std::string> data;
   };
 
   class ModelEditorPrivate
@@ -64,11 +67,10 @@ namespace ignition::gazebo
     /// directional, etc
     /// \param[in] _entityType Type of entity: link, visual, collision, etc
     /// \param[in] _parentEntity Name of parent entity
-    /// \param[in] _uri URI associated with the entity, needed for mesh
-    /// types.
+    /// \param[in] _data Additional variable data for specific instances
     public: void HandleAddEntity(const std::string &_geomOrLightType,
         const std::string &_entityType, Entity _parentEntity,
-        const std::string &_uri);
+        const std::unordered_map<std::string, std::string> &_data);
 
     /// \brief Get a SDF string of a geometry
     /// \param[in] _eta Entity to add.
@@ -81,6 +83,10 @@ namespace ignition::gazebo
     /// \brief Get a SDF string of a link
     /// \param[in] _eta Entity to add.
     public: std::string LinkSDFString(const EntityToAdd &_eta) const;
+
+    /// \brief Get a SDF string of a link
+    /// \param[in] _eta Entity to add.
+    public: sdf::ElementPtr JointSDF(const EntityToAdd &_eta) const;
 
     /// \brief Entity Creator API.
     public: std::unique_ptr<SdfEntityCreator> entityCreator{nullptr};
@@ -134,12 +140,20 @@ void ModelEditor::Update(const UpdateInfo &,
 
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   // add link entities to the ECM
+  std::list<Entity> entities;
   std::set<Entity> newEntities;
+
   for (const auto &eta : this->dataPtr->entitiesToAdd)
   {
-    sdf::Link linkSdf;
+    if (eta.parentEntity == kNullEntity)
+    {
+      ignerr << "Parent entity not defined." << std::endl;
+       continue;
+    }
+
     if (eta.entityType == "link")
     {
+      sdf::Link linkSdf;
       // create an sdf::Link to it can be added to the ECM throught the
       // CreateEntities call
       std::string linkSDFStr = this->dataPtr->LinkSDFString(eta);
@@ -156,11 +170,6 @@ void ModelEditor::Update(const UpdateInfo &,
       else
       {
         continue;
-      }
-      if (eta.parentEntity == kNullEntity)
-      {
-        ignerr << "Parent entity not defined." << std::endl;
-         continue;
       }
 
       // generate unique link name
@@ -188,22 +197,52 @@ void ModelEditor::Update(const UpdateInfo &,
 
       // traverse the tree and add all new entities created by the entity
       // creator to the set
-      std::list<Entity> entities;
       entities.push_back(entity);
-      while (!entities.empty())
-      {
-        Entity ent = entities.front();
-        entities.pop_front();
-
-        // add new entity created
-        newEntities.insert(ent);
-
-        auto childEntities = _ecm.EntitiesByComponents(
-            components::ParentEntity(ent));
-        for (const auto &child : childEntities)
-          entities.push_back(child);
-      }
     }
+    else if (eta.entityType == "joint")
+    {
+      sdf::ElementPtr jointElem = this->dataPtr->JointSDF(eta);
+      if (nullptr == jointElem)
+        continue;
+
+      std::string jointName = "joint";
+      Entity jointEnt = _ecm.EntityByComponents(
+          components::ParentEntity(eta.parentEntity),
+          components::Name(jointName));
+      int64_t counter = 0;
+      while (jointEnt)
+      {
+        jointName = std::string("joint") + "_" + std::to_string(++counter);
+        jointEnt = _ecm.EntityByComponents(
+            components::ParentEntity(eta.parentEntity),
+            components::Name(jointName));
+      }
+
+      jointElem->SetName(jointName);
+
+      sdf::Joint jointSdf;
+      jointSdf.Load(jointElem);
+      auto entity =
+        this->dataPtr->entityCreator->CreateEntities(&jointSdf, true);
+      this->dataPtr->entityCreator->SetParent(entity, eta.parentEntity);
+      entities.push_back(entity);
+    }
+  }
+
+  // traverse the tree and add all new entities created by the entity
+  // creator to the set
+  while (!entities.empty())
+  {
+    Entity ent = entities.front();
+    entities.pop_front();
+
+    // add new entity created
+    newEntities.insert(ent);
+
+    auto childEntities = _ecm.EntitiesByComponents(
+        components::ParentEntity(ent));
+    for (const auto &child : childEntities)
+      entities.push_back(child);
   }
 
   // use tmp AddedRemovedEntities event to update other gui plugins
@@ -226,10 +265,16 @@ bool ModelEditor::eventFilter(QObject *_obj, QEvent *_event)
     auto event = reinterpret_cast<gui::events::ModelEditorAddEntity *>(_event);
     if (event)
     {
+      // Convert to an unordered map of STL strings for convenience
+      std::unordered_map<std::string, std::string> data;
+      for (auto key : event->data.toStdMap())
+      {
+        data[key.first.toStdString()] = key.second.toStdString();
+      }
+
       this->dataPtr->HandleAddEntity(event->Entity().toStdString(),
           event->EntityType().toStdString(),
-          event->ParentEntity(),
-          event->Uri().toStdString());
+          event->ParentEntity(), data);
     }
   }
 
@@ -340,7 +385,7 @@ std::string ModelEditorPrivate::GeomSDFString(const EntityToAdd &_eta) const
   {
     geomStr
       << "<mesh>"
-      << "  <uri>" << _eta.uri << "</uri>"
+      << "  <uri>" << _eta.data.at("uri") << "</uri>"
       << "</mesh>";
   }
   else
@@ -353,6 +398,31 @@ std::string ModelEditorPrivate::GeomSDFString(const EntityToAdd &_eta) const
 
   geomStr << "</geometry>";
   return geomStr.str();
+}
+
+/////////////////////////////////////////////////
+sdf::ElementPtr ModelEditorPrivate::JointSDF(const EntityToAdd &_eta) const
+{
+  std::unordered_set<std::string> validJointTypes = {
+    "revolute", "ball", "continuous", "fixed", "gearbox", "prismatic",
+    "revolute2", "screw", "universal"};
+
+  if (validJointTypes.count(_eta.geomOrLightType) == 0)
+  {
+    ignwarn << "Joint type not supported: "
+      << _eta.geomOrLightType << std::endl;
+    return nullptr;
+  }
+
+  auto joint = std::make_shared<sdf::Element>();
+  sdf::initFile("joint.sdf", joint);
+
+  joint->GetAttribute("name")->Set("joint");
+  joint->GetAttribute("type")->Set(_eta.geomOrLightType);
+  joint->GetElement("parent")->Set(_eta.data.at("parent_link"));
+  joint->GetElement("child")->Set(_eta.data.at("child_link"));
+
+  return joint;
 }
 
 /////////////////////////////////////////////////
@@ -398,7 +468,7 @@ std::string ModelEditorPrivate::LinkSDFString(const EntityToAdd &_eta) const
 /////////////////////////////////////////////////
 void ModelEditorPrivate::HandleAddEntity(const std::string &_geomOrLightType,
   const std::string &_type, Entity _parentEntity,
-  const std::string &_uri)
+  const std::unordered_map<std::string, std::string> &_data)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
   std::string entType = common::lowercase(_type);
@@ -408,6 +478,7 @@ void ModelEditorPrivate::HandleAddEntity(const std::string &_geomOrLightType,
   eta.entityType = entType;
   eta.geomOrLightType = geomLightType;
   eta.parentEntity = _parentEntity;
-  eta.uri = _uri;
+  eta.data = _data;
+
   this->entitiesToAdd.push_back(eta);
 }

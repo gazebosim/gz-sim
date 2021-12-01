@@ -621,6 +621,12 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// of links and collision elements. This also lets us suppress some
   /// invalid error messages.
   public: std::set<Entity> linkAddedToModel;
+
+  /// \brief Set of joints that were added to an existing model. This set
+  /// is used to track joints that were added to an existing model, such as
+  /// through the GUI model editor, so that we can avoid premature creation
+  /// of joints. This also lets us suppress some invalid error messages.
+  public: std::set<Entity> jointAddedToModel;
 };
 
 //////////////////////////////////////////////////
@@ -789,6 +795,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 {
   // Clear the set of links that were added to a model.
   this->linkAddedToModel.clear();
+  this->jointAddedToModel.clear();
 
   this->CreateWorldEntities(_ecm);
   this->CreateModelEntities(_ecm);
@@ -1301,6 +1308,18 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm)
           const components::ParentLinkName *_parentLinkName,
           const components::ChildLinkName *_childLinkName) -> bool
       {
+        // If the parent model is scheduled for recreation, then do not
+        // try to create a new link. This situation can occur when a link
+        // is added to a model from the GUI model editor.
+        if (_ecm.EntityHasComponentType(_parentModel->Data(),
+              components::Recreate::typeId))
+        {
+          // Add this entity to the set of newly added links to existing
+          // models.
+          this->jointAddedToModel.insert(_entity);
+          return true;
+        }
+
         // Check if joint already exists
         if (this->entityJointMap.HasEntity(_entity))
         {
