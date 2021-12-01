@@ -471,9 +471,7 @@ std::optional<sdf::Joint> ModelEditorPrivate::CreateJoint(
 {
   sdf::Joint joint;
 
-  if (_eta.geomOrLightType == "revolute")
-    joint.SetType(sdf::JointType::REVOLUTE);
-  else if (_eta.geomOrLightType == "ball")
+  if (_eta.geomOrLightType == "ball")
     joint.SetType(sdf::JointType::BALL);
   else if (_eta.geomOrLightType == "continuous")
     joint.SetType(sdf::JointType::CONTINUOUS);
