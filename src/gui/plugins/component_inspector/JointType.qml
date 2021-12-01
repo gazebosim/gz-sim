@@ -23,7 +23,7 @@ import QtQuick.Controls.Styles 1.4
 import "qrc:/ComponentInspector"
 import "qrc:/qml"
 
-// Item displaying 3D pose information.
+// Item displaying joint type information.
 Rectangle {
   id: jointTypeComponent
   height: jointType.height
@@ -31,7 +31,7 @@ Rectangle {
   color: index % 2 == 0 ? lightGrey : darkGrey
 
   // Left indentation
-  property int indentation: 0
+  property int indentation: 10
 
   // Horizontal margins
   property int margin: 5
@@ -56,7 +56,7 @@ Rectangle {
       {
         if (jointTypes.get(i).type === _model.data)
         {
-          return i;
+          return i
         }
       }
     }
@@ -68,72 +68,40 @@ Rectangle {
     font.family: "Roboto"
   }
 
-  Column {
+  RowLayout {
     anchors.fill: parent
 
-    ExpandingTypeHeader {
-      id: header 
-      // Using the default header text values.
+    Item {
+      height: parent.height
+      width: margin + indentation
     }
 
-    // Content
-    Rectangle {
-      id: content
-      property bool show: false
-      width: parent.width
-      height: show ? grid.height : 0
-      clip: true
-      color: "transparent"
+    TypeHeader {
+      id: typeHeader
+    }
 
-      Behavior on height {
-        NumberAnimation {
-          duration: 200;
-          easing.type: Easing.InOutQuad
-        }
+    QtObject{
+      // Workaround to keep from using the ListModel as model
+      id: indexObj
+      property int index: indexFromModel(model)
+    }
+
+    ComboBox {
+      id: jointType
+      padding: 0
+      textRole: "type"
+      model: jointTypes
+      currentIndex: indexObj.index
+      Layout.alignment: Qt.AlignRight
+      background: Rectangle {
+        color: "transparent"
+        implicitWidth: 140
+        border.width: 1
+        border.color: "#dedede"
       }
-
-      RowLayout {
-        id: grid
-        width: parent.width
-
-        Rectangle {
-          color: "transparent"
-          height: 40
-          Layout.preferredWidth: jointTypeText.width + indentation * 3
-
-          Text {
-            id : jointTypeText 
-            text: ' Joint Type'
-            leftPadding: 5
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            font.pointSize: 12
-            anchors.centerIn: parent
-          }
-        }
-
-        QtObject{
-          // Workaround to keep from using the ListModel as model
-          id: indexObj
-          property int index: indexFromModel(model)
-        }
-
-        Rectangle {
-          Layout.fillWidth: true
-          Layout.columnSpan: 4
-          Layout.alignment: Qt.AlignRight
-
-          height: 40
-          ComboBox {
-            id: jointType
-            textRole: "type"
-            model: jointTypes
-            currentIndex: indexObj.index
-            enabled: componentInspector.getSimPaused()
-            onActivated: (index) => {
-              componentInspector.onJointType(currentText);
-            }
-          }
-        }
+      enabled: componentInspector.getSimPaused()
+      onActivated: {
+        JointTypeImpl.OnJointType(currentText)
       }
     }
   }

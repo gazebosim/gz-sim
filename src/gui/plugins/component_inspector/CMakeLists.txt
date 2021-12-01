@@ -4,6 +4,7 @@ gz_add_gui_plugin(ComponentInspector
     Altimeter.cc
     ComponentInspector.cc
     Imu.cc
+    JointType.cc
     Magnetometer.cc
     ModelEditor.cc
     Types.cc
@@ -12,6 +13,7 @@ gz_add_gui_plugin(ComponentInspector
     Altimeter.hh
     ComponentInspector.hh
     Imu.hh
+    JointType.hh
     Magnetometer.hh
     ModelEditor.hh
     Types.hh
