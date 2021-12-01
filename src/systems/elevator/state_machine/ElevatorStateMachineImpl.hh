@@ -113,18 +113,18 @@ void ElevatorStateMachinePrivate::SendCmd(transport::Node::Publisher &_pub,
 }
 
 //////////////////////////////////////////////////
-ElevatorStateMachine_::ElevatorStateMachine_(
+ElevatorStateMachineDef::ElevatorStateMachineDef(
     const std::shared_ptr<ElevatorCommonPrivate> &_system)
     : dataPtr(std::make_unique<ElevatorStateMachinePrivate>(_system))
 {
 }
 
 //////////////////////////////////////////////////
-ElevatorStateMachine_::~ElevatorStateMachine_() = default;
+ElevatorStateMachineDef::~ElevatorStateMachineDef() = default;
 
 //////////////////////////////////////////////////
 const std::unique_ptr<ElevatorStateMachinePrivate>
-    &ElevatorStateMachine_::Data() const
+    &ElevatorStateMachineDef::Data() const
 {
   return this->dataPtr;
 }

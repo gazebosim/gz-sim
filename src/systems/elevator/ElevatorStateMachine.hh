@@ -25,12 +25,10 @@
 
 #include <memory>
 
-#include <boost/msm/back/state_machine.hpp>
-#include <boost/msm/front/functor_row.hpp>
-#include <boost/msm/front/state_machine_def.hpp>
-
 #include <ignition/gazebo/Entity.hh>
 #include <ignition/transport/Node.hh>
+
+#include "afsm/fsm.hpp"
 
 namespace ignition
 {
@@ -56,13 +54,6 @@ namespace events
   struct CabinAtTarget;
 }  // namespace events
 
-// State forward declarations
-class IdleState;
-class OpenDoorState;
-class WaitState;
-class CloseDoorState;
-class MoveCabinState;
-
 // Action forward declarations
 namespace actions
 {
@@ -83,15 +74,24 @@ namespace guards
 
 /// \brief Elevator state machine frontend. Defines the transition table and
 /// initial state of the state machine.
-class ElevatorStateMachine_
-    : public boost::msm::front::state_machine_def<ElevatorStateMachine_>
+class ElevatorStateMachineDef
+    : public ::afsm::def::state_machine<ElevatorStateMachineDef>
 {
+  // State forward declarations
+  struct IdleState;
+  template <typename E>
+  struct DoorState;
+  struct OpenDoorState;
+  struct CloseDoorState;
+  struct WaitState;
+  struct MoveCabinState;
+
   /// \brief Constructor
-  public: ElevatorStateMachine_(
+  public: ElevatorStateMachineDef(
       const std::shared_ptr<ElevatorCommonPrivate> &_system);
 
   /// \brief Destructor
-  public: ~ElevatorStateMachine_();
+  public: ~ElevatorStateMachineDef();
 
   /// \brief Gives access to the private data of the state machine. Used by the
   /// states
@@ -99,49 +99,43 @@ class ElevatorStateMachine_
   public: const std::unique_ptr<ElevatorStateMachinePrivate> &Data() const;
 
   /// \brief Initial state of the state machine
-  public: using initial_state = boost::mpl::vector<IdleState>;
+  public: using initial_state = IdleState;
 
-  /// \brief Alias to make transition table cleaner
-  private: template <typename S, typename E, typename T, typename A, typename G>
-  using Row = boost::msm::front::Row<S, E, T, A, G>;
-
-  /// \brief Alias to make transition table cleaner
-  private: using none = boost::msm::front::none;
+  /// \brief Transition transition table
+  public: using internal_transitions = transition_table <
+            in<events::EnqueueNewTarget, actions::EnqueueNewTarget<true>,
+               guards::IsInState<IdleState> >,
+            in<events::EnqueueNewTarget, actions::EnqueueNewTarget<false>,
+               guards::IsInState<CloseDoorState> >
+   >;
 
   /// \brief Transition table
-  public: struct transition_table
-      : boost::mpl::vector<
+  public: using transitions = transition_table<
             // +--------------------------------------------------------------+
-            Row<IdleState, EnqueueNewTargetEvent, none,
-                EnqueueNewTargetAction<true>, none>,
-            Row<IdleState, NewTargetEvent, OpenDoorState, NewTargetAction,
-                CabinAtTargetGuard<false> >,
-            Row<IdleState, NewTargetEvent, MoveCabinState, NewTargetAction,
-                CabinAtTargetGuard<true> >,
+            tr<IdleState, events::NewTarget, OpenDoorState, actions::NewTarget,
+               guards::CabinAtTarget>,
+            tr<IdleState, events::NewTarget, MoveCabinState, actions::NewTarget,
+               not_<guards::CabinAtTarget> >,
             // +--------------------------------------------------------------+
-            Row<OpenDoorState, DoorOpenEvent, WaitState, none, none>,
+            tr<OpenDoorState, events::DoorOpen, WaitState, none, none>,
             // +--------------------------------------------------------------+
-            Row<WaitState, TimeoutEvent, CloseDoorState, none, none>,
+            tr<WaitState, events::Timeout, CloseDoorState, none, none>,
             // +--------------------------------------------------------------+
-            Row<CloseDoorState, EnqueueNewTargetEvent, none,
-                EnqueueNewTargetAction<false>, none>,
-            Row<CloseDoorState, DoorClosedEvent, IdleState, none,
-                NoTargetGuard<false> >,
-            Row<CloseDoorState, DoorClosedEvent, MoveCabinState, none,
-                NoTargetGuard<true> >,
+            tr<CloseDoorState, events::DoorClosed, IdleState, none,
+               guards::NoQueuedTarget>,
+            tr<CloseDoorState, events::DoorClosed, MoveCabinState, none,
+               not_<guards::NoQueuedTarget> >,
             // +--------------------------------------------------------------+
-            Row<MoveCabinState, CabinAtTargetEvent, OpenDoorState,
-                CabinAtTargetAction, none> >
-  {
-  };
+            tr<MoveCabinState, events::CabinAtTarget, OpenDoorState,
+               actions::CabinAtTarget, none>
+   >;
 
   /// \brief Private data pointer
   private: std::unique_ptr<ElevatorStateMachinePrivate> dataPtr;
 };
 
 /// \brief Elevator state machine backend
-using ElevatorStateMachine =
-    boost::msm::back::state_machine<ElevatorStateMachine_>;
+using ElevatorStateMachine = ::afsm::state_machine<ElevatorStateMachineDef>;
 
 }  // namespace systems
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE

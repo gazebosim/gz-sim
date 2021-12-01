@@ -37,11 +37,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 namespace systems
 {
 /// \brief State at which the elevator is idling.
-class IdleState : public boost::msm::front::state<>
+struct ElevatorStateMachineDef::IdleState : state<IdleState>
 {
   /// \brief Logs the entry to the state
   public: template <typename Event, typename FSM>
-  void on_entry(const Event &, FSM &)
+  void on_enter(const Event &, FSM &)
   {
     ignmsg << "The elevator is idling" << std::endl;
   }
@@ -49,11 +49,8 @@ class IdleState : public boost::msm::front::state<>
 
 /// \brief Virtual state at which the elevator is opening or closing a door.
 template <typename E>
-class DoorState : public boost::msm::front::state<>
+struct ElevatorStateMachineDef::DoorState : state<DoorState<E>>
 {
-  /// \brief This state defers EnqueueNewTargetEvent events
-  public: using deferred_events = boost::mpl::vector<EnqueueNewTargetEvent>;
-
   /// \brief Constructor
   /// \param[in] _posEps Position tolerance when checking if a door has opened
   /// or closed
@@ -73,7 +70,7 @@ class DoorState : public boost::msm::front::state<>
   /// target floor and configures the monitor that checks the joint state
   /// \param[in] _fsm State machine to which the state belongs
   public: template <typename Event, typename FSM>
-  void on_entry(const Event &, FSM &_fsm)
+  void on_enter(const Event &, FSM &_fsm)
   {
     const auto &data = _fsm.Data();
     int32_t floorTarget = data->system->state;
@@ -81,7 +78,7 @@ class DoorState : public boost::msm::front::state<>
 
     double jointTarget = this->JointTarget(data, floorTarget);
     data->SendCmd(data->system->doorJointCmdPubs[floorTarget], jointTarget);
-    this->triggerEvent = [&_fsm] { _fsm.enqueue_event(E()); };
+    this->triggerEvent = [&_fsm] { _fsm.process_event(E()); };
     data->system->SetDoorMonitor(
         floorTarget, jointTarget, this->posEps, this->velEps,
         std::bind(&DoorState::OnJointTargetReached, this));
@@ -105,18 +102,21 @@ class DoorState : public boost::msm::front::state<>
   private: void OnJointTargetReached() { this->triggerEvent(); }
 
   /// \brief Positiion tolerance
-  private: const double posEps;
+  private: double posEps;
 
   /// \brief Velocity tolerance
-  private: const double velEps;
+  private: double velEps;
 
   /// \brief Triggers the exit event
   private: std::function<void()> triggerEvent;
 };
 
 /// \brief State at which the elevator is opening a door.
-class OpenDoorState : public DoorState<events::DoorOpen>
+struct ElevatorStateMachineDef::OpenDoorState : DoorState<events::DoorOpen>
 {
+  /// \brief This state defers EnqueueNewTargetEvent events
+  public: using deferred_events = type_tuple<events::EnqueueNewTarget>;
+
   /// \brief Constructor
   public: OpenDoorState() : DoorState(5e-2)
   {
@@ -139,7 +139,7 @@ class OpenDoorState : public DoorState<events::DoorOpen>
 };
 
 /// \brief State at which the elevator is closing a door.
-class CloseDoorState : public DoorState<events::DoorClosed>
+struct ElevatorStateMachineDef::CloseDoorState : DoorState<events::DoorClosed>
 {
   /// \brief Constructor
   public: CloseDoorState() : DoorState(2e-2)
@@ -163,21 +163,21 @@ class CloseDoorState : public DoorState<events::DoorClosed>
 };
 
 /// \brief State at which the elevator is waiting with a door open.
-class WaitState : public boost::msm::front::state<>
+struct ElevatorStateMachineDef::WaitState : state<WaitState>
 {
   /// \brief This state defers EnqueueNewTargetEvent events
-  public: using deferred_events = boost::mpl::vector<events::EnqueueNewTarget>;
+  public: using deferred_events = type_tuple<events::EnqueueNewTarget>;
 
   /// \brief Starts the timer that keeps the door at the target floor level open
   /// \param[in] _fsm State machine to which the state belongs
   public: template <typename Event, typename FSM>
-  void on_entry(const Event &, FSM &_fsm)
+  void on_enter(const Event &, FSM &_fsm)
   {
     const auto &data = _fsm.Data();
     ignmsg << "The elevator is waiting to close door " << data->system->state
            << std::endl;
 
-    this->triggerEvent = [&_fsm] { _fsm.enqueue_event(events::Timeout()); };
+    this->triggerEvent = [&_fsm] { _fsm.process_event(events::Timeout()); };
     data->system->StartDoorTimer(data->system->state,
                                  std::bind(&WaitState::OnTimeout, this));
   }
@@ -190,10 +190,10 @@ class WaitState : public boost::msm::front::state<>
 };
 
 /// \brief State at which the elevator is moving the cabin to the target floor.
-class MoveCabinState : public boost::msm::front::state<>
+struct ElevatorStateMachineDef::MoveCabinState : state<MoveCabinState>
 {
   /// \brief This state defers EnqueueNewTargetEvent events
-  public: using deferred_events = boost::mpl::vector<events::EnqueueNewTarget>;
+  public: using deferred_events = type_tuple<events::EnqueueNewTarget>;
 
   /// \brief Constructor
   /// \param[in] _posEps Position tolerance when checking if the cabin has
@@ -209,7 +209,7 @@ class MoveCabinState : public boost::msm::front::state<>
   /// and configures the monitor that checks the joint state
   /// \param[in] _fsm State machine to which the state belongs
   public: template <typename Event, typename FSM>
-  void on_entry(const Event &, FSM &_fsm)
+  void on_enter(const Event &, FSM &_fsm)
   {
     const auto &data = _fsm.Data();
     int32_t floorTarget = data->targets.front();
@@ -218,7 +218,9 @@ class MoveCabinState : public boost::msm::front::state<>
 
     double jointTarget = data->system->cabinTargets[floorTarget];
     data->SendCmd(data->system->cabinJointCmdPub, jointTarget);
-    this->triggerEvent = [&_fsm] { _fsm.enqueue_event(events::CabinAtTarget()); };
+    this->triggerEvent = [&_fsm] {
+      _fsm.process_event(events::CabinAtTarget());
+    };
     data->system->SetCabinMonitor(
         floorTarget, jointTarget, this->posEps, this->velEps,
         std::bind(&MoveCabinState::OnJointTargetReached, this));
@@ -228,10 +230,10 @@ class MoveCabinState : public boost::msm::front::state<>
   private: void OnJointTargetReached() { this->triggerEvent(); }
 
   /// \brief Positiion tolerance
-  private: const double posEps;
+  private: double posEps;
 
   /// \brief Velocity tolerance
-  private: const double velEps;
+  private: double velEps;
 
   /// \brief Triggers the exit event
   private: std::function<void()> triggerEvent;

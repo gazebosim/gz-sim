@@ -33,38 +33,47 @@ namespace systems
 {
 namespace guards
 {
+/// \brief Guard that checks whether the state machine is in a given state.
+/// \note The template parameter generalizes the target state.
+template <typename TargetState>
+struct IsInState
+{
+  /// \brief Function call operator
+  /// \param[in] _fsm State machine with which the guard is associated
+  public: template <typename Fsm, typename State>
+  bool operator()(const Fsm &_fsm, const State &)
+  {
+    // NOTE Mind the inversion; the internal transition table needs
+    // the guard to return false in order to trigger a transition
+    return !_fsm.template is_in_state<TargetState()>();
+  }
+};
+
 /// \brief Guard that checks whether the cabin is at the target floor level.
-/// \note The template parameter can invert the result if set to true.
-template <bool invert>
 struct CabinAtTarget
 {
   /// \brief Function call operator
   /// \param[in] _fsm State machine with which the guard is associated
-  public: template <typename Event, typename Fsm, typename Source,
-                    typename Target>
-  bool operator()(const Event &, Fsm &_fsm, Source &, Target &)
+  public: template <typename Fsm, typename State>
+  bool operator()(const Fsm &_fsm, const State &)
   {
     const auto &data = _fsm.Data();
-    std::lock_guard<std::mutex> lock(data->system->mutex);
-    bool at_target = data->targets.front() == data->system->state;
-    return at_target ^ invert;
+    std::lock_guard<std::recursive_mutex> lock(data->system->mutex);
+    return data->targets.front() == data->system->state;
   }
 };
 
 /// \brief Guard that checks whether the target queue is empty.
-/// \note The template parameter can invert the result if set to true.
-template <bool invert>
 struct NoQueuedTarget
 {
   /// \brief Function call operator
   /// \param[in] _fsm State machine with which the guard is associated
-  public: template <typename Event, typename Fsm, typename Source,
-                    typename Target>
-  bool operator()(const Event &, Fsm &_fsm, Source &, Target &)
+  public: template <typename Fsm, typename State>
+  bool operator()(const Fsm &_fsm, const State &)
   {
     const auto &data = _fsm.Data();
-    std::lock_guard<std::mutex> lock(data->system->mutex);
-    return data->targets.empty() ^ invert;
+    std::lock_guard<std::recursive_mutex> lock(data->system->mutex);
+    return data->targets.empty();
   }
 };
 

@@ -88,7 +88,7 @@ class ElevatorCommonPrivate
   public: int32_t state{0};
 
   /// \brief A mutex to protect access to targets and state
-  public: std::mutex mutex;
+  public: std::recursive_mutex mutex;
 };
 
 }  // namespace systems

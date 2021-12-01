@@ -63,7 +63,7 @@ struct NewTarget
   void operator()(const Event &, Fsm &_fsm, Source &, Target &)
   {
     const auto &data = _fsm.Data();
-    std::lock_guard<std::mutex> lock(data->system->mutex);
+    std::lock_guard<std::recursive_mutex> lock(data->system->mutex);
     if (data->targets.front() == data->system->state) data->targets.pop_front();
   }
 };
@@ -79,7 +79,7 @@ struct CabinAtTarget
   void operator()(const Event &, Fsm &_fsm, Source &, Target &)
   {
     const auto &data = _fsm.Data();
-    std::lock_guard<std::mutex> lock(data->system->mutex);
+    std::lock_guard<std::recursive_mutex> lock(data->system->mutex);
     data->targets.pop_front();
   }
 };

@@ -222,7 +222,6 @@ void Elevator::Configure(const Entity &_entity,
   // Initialize state machine
   this->dataPtr->stateMachine =
       std::make_unique<ElevatorStateMachine>(this->dataPtr);
-  this->dataPtr->stateMachine->start();
 
   // Subscribe to command topic
   std::string cmdTopicName =
@@ -247,9 +246,7 @@ void Elevator::PostUpdate(const UpdateInfo &_info,
     return;
   this->dataPtr->lastUpdateTime = _info.simTime;
 
-  this->dataPtr->stateMachine->execute_queued_events();
-
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   this->dataPtr->UpdateState(_info, _ecm);
   this->dataPtr->doorTimer.Update(
       _info, _ecm, this->dataPtr->isDoorwayBlockedStates[this->dataPtr->state]);
@@ -258,7 +255,9 @@ void Elevator::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-ElevatorPrivate::~ElevatorPrivate() { this->stateMachine->stop(); }
+ElevatorPrivate::~ElevatorPrivate()
+{
+}
 
 //////////////////////////////////////////////////
 bool ElevatorPrivate::InitCabin(const std::string &_cabinJointName,
@@ -366,7 +365,7 @@ bool ElevatorPrivate::InitDoors(const std::string &_doorJointPrefix,
 void ElevatorPrivate::StartDoorTimer(
     int32_t /*_floorTarget*/, const std::function<void()> &_timeoutCallback)
 {
-  std::lock_guard<std::mutex> lock(this->mutex);
+  std::lock_guard<std::recursive_mutex> lock(this->mutex);
   this->doorTimer.Configure(this->lastUpdateTime, _timeoutCallback);
 }
 
@@ -375,7 +374,7 @@ void ElevatorPrivate::SetDoorMonitor(
     int32_t _floorTarget, double _jointTarget, double _posEps, double _velEps,
     const std::function<void()> &_jointTargetReachedCallback)
 {
-  std::lock_guard<std::mutex> lock(this->mutex);
+  std::lock_guard<std::recursive_mutex> lock(this->mutex);
   this->doorJointMonitor.Configure(this->doorJoints[_floorTarget], _jointTarget,
                                    _posEps, _velEps,
                                    _jointTargetReachedCallback);
@@ -386,7 +385,7 @@ void ElevatorPrivate::SetCabinMonitor(
     int32_t /*_floorTarget*/, double _jointTarget, double _posEps,
     double _velEps, const std::function<void()> &_jointTargetReachedCallback)
 {
-  std::lock_guard<std::mutex> lock(this->mutex);
+  std::lock_guard<std::recursive_mutex> lock(this->mutex);
   this->cabinJointMonitor.Configure(this->cabinJoint, _jointTarget, _posEps,
                                     _velEps, _jointTargetReachedCallback);
 }
@@ -422,7 +421,7 @@ void ElevatorPrivate::OnLidarMsg(size_t _floorLevel,
 {
   bool isDoorwayBlocked = _msg.ranges(0) < _msg.range_max() - 0.005;
   if (isDoorwayBlocked == this->isDoorwayBlockedStates[_floorLevel]) return;
-  std::lock_guard<std::mutex> lock(this->mutex);
+  std::lock_guard<std::recursive_mutex> lock(this->mutex);
   this->isDoorwayBlockedStates[_floorLevel] = isDoorwayBlocked;
 }
 
@@ -436,7 +435,7 @@ void ElevatorPrivate::OnCmdMsg(const msgs::Int32 &_msg)
             << this->cabinTargets.size() << ")" << std::endl;
     return;
   }
-  this->stateMachine->enqueue_event(EnqueueNewTargetEvent(_msg.data()));
+  this->stateMachine->process_event(events::EnqueueNewTarget(_msg.data()));
 }
 
 IGNITION_ADD_PLUGIN(Elevator, System, Elevator::ISystemConfigure,
