@@ -225,6 +225,12 @@ void ModelEditor::Update(const UpdateInfo &,
       auto entity =
         this->dataPtr->entityCreator->CreateEntities(&jointSdf, true);
       this->dataPtr->entityCreator->SetParent(entity, eta.parentEntity);
+      // Make sure to mark the parent as needing recreation. This will
+      // tell the server to rebuild the model with the new link.
+      _ecm.CreateComponent(eta.parentEntity, components::Recreate());
+
+      // traverse the tree and add all new entities created by the entity
+      // creator to the set
       entities.push_back(entity);
     }
   }
