@@ -39,6 +39,8 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
+#include "ignition/gazebo/components/Recreate.hh"
+#include "ignition/gazebo/components/World.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -420,7 +422,30 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
   }
   else if (!_name.empty() && !_allowRename)
   {
-    if (kNullEntity != this->EntityByComponents(components::Name(_name)))
+    // Get the entity's original parent. This is used to make sure we get
+    // the correct entity. For example, two different models may have a
+    // child with the name "link".
+    auto origParentComp =
+        this->Component<components::ParentEntity>(_entity);
+
+    // If there is an entity with the same name and user indicated renaming is
+    // not allowed then return null entity.
+    // If the entity or one of its ancestor has a Recreate component then carry
+    // on since the ECM is supposed to create a new entity with the same name.
+    Entity ent = this->EntityByComponents(components::Name(_name),
+        components::ParentEntity(origParentComp->Data()));
+
+    bool hasRecreateComp = false;
+    Entity recreateEnt = ent;
+    while (recreateEnt != kNullEntity && !hasRecreateComp)
+    {
+      hasRecreateComp = this->Component<components::Recreate>(recreateEnt) !=
+        nullptr;
+      auto parentComp = this->Component<components::ParentEntity>(recreateEnt);
+      recreateEnt = parentComp ? parentComp->Data() : kNullEntity;
+    }
+
+    if (kNullEntity != ent && !hasRecreateComp)
     {
       ignerr << "Requested to clone entity [" << _entity
         << "] with a name of [" << _name << "], but another entity already "
@@ -497,19 +522,35 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
     Entity originalParentLink = kNullEntity;
     Entity originalChildLink = kNullEntity;
 
+    auto origParentComp =
+        this->Component<components::ParentEntity>(_entity);
+
     const auto &parentName =
       this->Component<components::ParentLinkName>(_entity);
-    if (parentName)
+    if (parentName && origParentComp)
     {
-      originalParentLink = this->EntityByComponents<components::Name>(
-          components::Name(parentName->Data()));
+      // CHangel the case where the parent link name is the world.
+      if (common::lowercase(parentName->Data()) == "world")
+      {
+        originalParentLink = this->Component<components::ParentEntity>(
+            origParentComp->Data())->Data();
+      }
+      else
+      {
+      originalParentLink =
+        this->EntityByComponents<components::Name, components::ParentEntity>(
+              components::Name(parentName->Data()),
+              components::ParentEntity(origParentComp->Data()));
+      }
     }
 
     const auto &childName = this->Component<components::ChildLinkName>(_entity);
-    if (childName)
+    if (childName && origParentComp)
     {
-      originalChildLink = this->EntityByComponents<components::Name>(
-          components::Name(childName->Data()));
+      originalChildLink =
+        this->EntityByComponents<components::Name, components::ParentEntity>(
+          components::Name(childName->Data()),
+          components::ParentEntity(origParentComp->Data()));
     }
 
     if (!originalParentLink || !originalChildLink)
@@ -533,7 +574,14 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
   for (const auto &childEntity :
       this->EntitiesByComponents(components::ParentEntity(_entity)))
   {
-    auto clonedChild = this->CloneImpl(childEntity, clonedEntity, "", true);
+    std::string name;
+    if (!_allowRename)
+    {
+      auto nameComp = this->Component<components::Name>(childEntity);
+      name = nameComp->Data();
+    }
+    auto clonedChild = this->CloneImpl(childEntity, clonedEntity, name,
+        _allowRename);
     if (kNullEntity == clonedChild)
     {
       ignerr << "Cloning child entity [" << childEntity << "] failed.\n";
@@ -1037,6 +1085,14 @@ bool EntityComponentManager::CreateComponentImplementation(
   }
 
   this->dataPtr->createdCompTypes.insert(_componentTypeId);
+
+  // If the component is a components::ParentEntity, then make sure to
+  // update the entities graph.
+  if (_componentTypeId == components::ParentEntity::typeId)
+  {
+    auto parentComp = this->Component<components::ParentEntity>(_entity);
+    this->SetParentEntity(_entity, parentComp->Data());
+  }
 
   return updateData;
 }
@@ -1663,6 +1719,8 @@ void EntityComponentManager::SetState(
       // Get Component
       auto comp = this->ComponentImplementation(entity, type);
 
+      std::istringstream istr(compMsg.component());
+
       // Create if new
       if (nullptr == comp)
       {
@@ -1673,14 +1731,12 @@ void EntityComponentManager::SetState(
             << compMsg.type() << "]" << std::endl;
           continue;
         }
-        std::istringstream istr(compMsg.component());
         newComp->Deserialize(istr);
         this->CreateComponentImplementation(entity, type, newComp.get());
       }
       // Update component value
       else
       {
-        std::istringstream istr(compMsg.component());
         comp->Deserialize(istr);
         this->dataPtr->AddModifiedComponent(entity);
       }
@@ -1937,24 +1993,38 @@ bool EntityComponentManagerPrivate::ClonedJointLinkName(Entity _joint,
     return false;
   }
 
-  auto iter = this->originalToClonedLink.find(_originalLink);
-  if (iter == this->originalToClonedLink.end())
-  {
-    ignerr << "Error: attempted to clone links, but link ["
-           << _originalLink << "] was never cloned.\n";
-    return false;
-  }
-  auto clonedLink = iter->second;
+  Entity clonedLink = kNullEntity;
 
-  auto name = _ecm->Component<components::Name>(clonedLink);
-  if (!name)
+
+  std::string name;
+  // Handle the case where the link coule have been the world.
+  if (_ecm->Component<components::World>(_originalLink) != nullptr)
   {
-    ignerr << "Link [" << _originalLink << "] was cloned, but its clone has no "
-           << "name.\n";
-    return false;
+    // Use the special identifier "world".
+    name = "world";
+  }
+  else
+  {
+    auto iter = this->originalToClonedLink.find(_originalLink);
+    if (iter == this->originalToClonedLink.end())
+    {
+      ignerr << "Error: attempted to clone links, but link ["
+        << _originalLink << "] was never cloned.\n";
+      return false;
+    }
+    clonedLink = iter->second;
+
+    auto nameComp = _ecm->Component<components::Name>(clonedLink);
+    if (!nameComp)
+    {
+      ignerr << "Link [" << _originalLink
+        << "] was cloned, but its clone has no name.\n";
+      return false;
+    }
+    name = nameComp->Data();
   }
 
-  _ecm->SetComponentData<ComponentTypeT>(_joint, name->Data());
+  _ecm->SetComponentData<ComponentTypeT>(_joint, name);
   return true;
 }
 

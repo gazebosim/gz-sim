@@ -158,7 +158,7 @@ Rectangle {
             minValue: 0.1
             maxValue: 6.283186
             stepValue: 0.1
-            // Connect to the onChange signal in Noise.qml
+            // Connect to the onChange signal
             Component.onCompleted: {
               hfovSpin.onChange.connect(onHFov)
             }
@@ -237,7 +237,7 @@ Rectangle {
               minValue: 1
               maxValue: 100000
               stepValue: 1
-              // Connect to the onChange signal in Noise.qml
+              // Connect to the onChange signal
               Component.onCompleted: {
                 imageWidthSpin.onChange.connect(onImageWidth)
               }
@@ -280,7 +280,7 @@ Rectangle {
               minValue: 1
               maxValue: 100000
               stepValue: 1
-              // Connect to the onChange signal in Noise.qml
+              // Connect to the onChange signal
               Component.onCompleted: {
                 imageHeightSpin.onChange.connect(onImageHeight)
               }
@@ -363,7 +363,7 @@ Rectangle {
               minValue: 0
               maxValue: 100000
               stepValue: 0.1
-              // Connect to the onChange signal in Noise.qml
+              // Connect to the onChange signal
               Component.onCompleted: {
                 nearClipSpin.onChange.connect(onNearClip)
               }
@@ -406,7 +406,7 @@ Rectangle {
               minValue: 0.1
               maxValue: 100000
               stepValue: 0.1
-              // Connect to the onChange signal in Noise.qml
+              // Connect to the onChange signal
               Component.onCompleted: {
                 farClipSpin.onChange.connect(onFarClip)
               }
@@ -419,6 +419,7 @@ Rectangle {
  
        
         // Image noise section header.
+        /* \todo (nkoenig) Enable this in Ignition Garden
         Rectangle {
           id: verticalPositionNoiseTextRect
           width: parent.width
@@ -449,7 +450,7 @@ Rectangle {
             imageNoise.onNoiseUpdate.connect(
                 CameraImpl.OnImageNoise)
           }
-        }
+        }*/
       }
     }
   }

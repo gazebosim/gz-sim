@@ -84,11 +84,11 @@ Camera::Camera(ComponentInspector *_inspector)
 /////////////////////////////////////////////////
 Q_INVOKABLE void Camera::OnImageNoise(double _mean, double _stdDev)
 {
-  std::cout << "On Image noise\n";
   ignition::gazebo::UpdateCallback cb =
       [=](EntityComponentManager &_ecm)
   {
-    auto comp = _ecm.Component<components::Camera>(this->inspector->Entity());
+    auto comp = _ecm.Component<components::Camera>(
+        this->inspector->GetEntity());
     if (comp)
     {
       sdf::Camera *camera = comp->Data().CameraSensor();
@@ -100,7 +100,6 @@ Q_INVOKABLE void Camera::OnImageNoise(double _mean, double _stdDev)
             noise.DynamicBiasStdDev(), noise.DynamicBiasCorrelationTime());
 
         camera->SetImageNoise(noise);
-        std::cout << "New Image Mean[" << camera->ImageNoise().Mean() << "]\n";
       }
       else
         ignerr << "Unable to get the camera image noise data.\n";
@@ -119,7 +118,8 @@ Q_INVOKABLE void Camera::OnImageSizeChange(int _width, int _height)
   ignition::gazebo::UpdateCallback cb =
       [=](EntityComponentManager &_ecm)
   {
-    auto comp = _ecm.Component<components::Camera>(this->inspector->Entity());
+    auto comp = _ecm.Component<components::Camera>(
+        this->inspector->GetEntity());
     if (comp)
     {
       sdf::Camera *camera = comp->Data().CameraSensor();
@@ -145,7 +145,8 @@ Q_INVOKABLE void Camera::OnClipChange(double _near, double _far)
   ignition::gazebo::UpdateCallback cb =
       [=](EntityComponentManager &_ecm)
   {
-    auto comp = _ecm.Component<components::Camera>(this->inspector->Entity());
+    auto comp = _ecm.Component<components::Camera>(
+        this->inspector->GetEntity());
     if (comp)
     {
       sdf::Camera *camera = comp->Data().CameraSensor();
@@ -171,7 +172,8 @@ Q_INVOKABLE void Camera::OnHorizontalFovChange(double _hov)
   ignition::gazebo::UpdateCallback cb =
       [=](EntityComponentManager &_ecm)
   {
-    auto comp = _ecm.Component<components::Camera>(this->inspector->Entity());
+    auto comp = _ecm.Component<components::Camera>(
+        this->inspector->GetEntity());
     if (comp)
     {
       sdf::Camera *camera = comp->Data().CameraSensor();

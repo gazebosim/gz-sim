@@ -5,6 +5,7 @@ gz_add_gui_plugin(ComponentInspector
     Camera.cc
     ComponentInspector.cc
     Imu.cc
+    JointType.cc
     Lidar.cc
     Magnetometer.cc
     ModelEditor.cc
@@ -15,6 +16,7 @@ gz_add_gui_plugin(ComponentInspector
     Camera.hh
     ComponentInspector.hh
     Imu.hh
+    JointType.hh
     Lidar.hh
     Magnetometer.hh
     ModelEditor.hh

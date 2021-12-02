@@ -32,10 +32,10 @@ namespace gazebo
 
     /// \brief Constructor
     /// \param[in] _inspector The component inspector.
-    public: Altimeter(ComponentInspector *_inspector);
+    public: explicit Altimeter(ComponentInspector *_inspector);
 
     /// \brief This function is called when a user changes values in the
-    /// altimeter sensor.
+    /// altimeter sensor's position noise.
     /// \param[in] _mean Mean value
     /// \param[in] _meanBias Bias mean value
     /// \param[in] _stdDev Standard deviation value

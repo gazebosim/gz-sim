@@ -220,6 +220,7 @@ class ignition::gazebo::ServerConfigPrivate
   public: explicit ServerConfigPrivate(
               const std::unique_ptr<ServerConfigPrivate> &_cfg)
           : sdfFile(_cfg->sdfFile),
+            sdfString(_cfg->sdfString),
             updateRate(_cfg->updateRate),
             useLevels(_cfg->useLevels),
             useLogRecord(_cfg->useLogRecord),

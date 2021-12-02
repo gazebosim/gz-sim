@@ -72,7 +72,7 @@ Q_INVOKABLE void Altimeter::OnAltimeterPositionNoise(
       [=](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::Altimeter>(
-        this->inspector->Entity());
+        this->inspector->GetEntity());
     if (comp)
     {
       sdf::Altimeter *altimeter = comp->Data().AltimeterSensor();
@@ -106,7 +106,7 @@ Q_INVOKABLE void Altimeter::OnAltimeterVelocityNoise(
       [=](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::Altimeter>(
-        this->inspector->Entity());
+        this->inspector->GetEntity());
     if (comp)
     {
       sdf::Altimeter *altimeter = comp->Data().AltimeterSensor();

@@ -18,8 +18,6 @@
 
 #include "GzSceneManager.hh"
 
-#include <vector>
-
 #include <ignition/common/Profiler.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/GuiEvents.hh>
@@ -104,16 +102,25 @@ void GzSceneManager::Update(const UpdateInfo &_info,
 
   this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
 
-  // Emit entities removed event
-  std::vector<Entity> removed;
+  // Emit entities created / removed event for gui::Plugins which don't have
+  // direct access to the ECM.
+  std::set<Entity> created;
+  _ecm.EachNew<components::Name>(
+      [&](const Entity &_entity, const components::Name *)->bool
+      {
+        created.insert(_entity);
+        return true;
+      });
+  std::set<Entity> removed;
   _ecm.EachRemoved<components::Name>(
       [&](const Entity &_entity, const components::Name *)->bool
       {
-        removed.push_back(_entity);
+        removed.insert(_entity);
         return true;
       });
 
-  ignition::gazebo::gui::events::RemovedEntities removedEvent(removed);
+  ignition::gazebo::gui::events::NewRemovedEntities removedEvent(
+      created, removed);
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
       &removedEvent);
@@ -127,11 +134,11 @@ bool GzSceneManager::eventFilter(QObject *_obj, QEvent *_event)
     this->dataPtr->OnRender();
   }
   else if (_event->type() ==
-           ignition::gazebo::gui::events::AddedRemovedEntities::kType)
+           ignition::gazebo::gui::events::GuiNewRemovedEntities::kType)
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->newRemovedEntityMutex);
     auto addedRemovedEvent =
-        reinterpret_cast<gui::events::AddedRemovedEntities *>(_event);
+        reinterpret_cast<gui::events::GuiNewRemovedEntities *>(_event);
     if (addedRemovedEvent)
     {
       for (auto entity : addedRemovedEvent->NewEntities())

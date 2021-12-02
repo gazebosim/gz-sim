@@ -82,7 +82,7 @@ Q_INVOKABLE void Lidar::OnLidarNoise(
       [=](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::GpuLidar>(
-        this->inspector->Entity());
+        this->inspector->GetEntity());
     if (comp)
     {
       sdf::Lidar *lidar = comp->Data().LidarSensor();
@@ -120,7 +120,7 @@ Q_INVOKABLE void Lidar::OnLidarChange(
       [=](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::GpuLidar>(
-        this->inspector->Entity());
+        this->inspector->GetEntity());
     if (comp)
     {
       sdf::Lidar *lidar = comp->Data().LidarSensor();

@@ -91,7 +91,6 @@ class ignition::gazebo::systems::SensorsPrivate
   /// \brief Keep track of cameras, in case we need to handle stereo cameras.
   /// Key: Camera's parent scoped name
   /// Value: Pointer to camera
-  // TODO(anyone) Remove element when sensor is deleted
   public: std::map<std::string, sensors::CameraSensor *> cameras;
 
   /// \brief Maps gazebo entity to its matching sensor ID
@@ -180,6 +179,12 @@ class ignition::gazebo::systems::SensorsPrivate
 
   /// \brief Stop the rendering thread
   public: void Stop();
+
+  /// \brief Use to optionally set the background color.
+  public: std::optional<math::Color> backgroundColor;
+
+  /// \brief Use to optionally set the ambient light.
+  public: std::optional<math::Color> ambientLight;
 };
 
 //////////////////////////////////////////////////
@@ -200,6 +205,10 @@ void SensorsPrivate::WaitForInit()
     {
       // Only initialize if there are rendering sensors
       igndbg << "Initializing render context" << std::endl;
+      if (this->backgroundColor)
+        this->renderUtil.SetBackgroundColor(*this->backgroundColor);
+      if (this->ambientLight)
+        this->renderUtil.SetAmbientLight(*this->ambientLight);
       this->renderUtil.Init();
       this->scene = this->renderUtil.Scene();
       this->scene->SetCameraPassCountPerGpuFlush(6u);
@@ -361,6 +370,17 @@ void Sensors::RemoveSensor(const Entity &_entity)
         this->dataPtr->activeSensors.erase(activeSensorIt);
       }
     }
+
+    // update cameras list
+    for (auto &it : this->dataPtr->cameras)
+    {
+      if (it.second->Id() == idIter->second)
+      {
+        this->dataPtr->cameras.erase(it.first);
+        break;
+      }
+    }
+
     this->dataPtr->sensorIds.erase(idIter->second);
     this->dataPtr->sensorManager.Remove(idIter->second);
     this->dataPtr->entityToIdMap.erase(idIter);
@@ -385,9 +405,18 @@ void Sensors::Configure(const Entity &/*_id*/,
     EventManager &_eventMgr)
 {
   igndbg << "Configuring Sensors system" << std::endl;
+
   // Setup rendering
   std::string engineName =
       _sdf->Get<std::string>("render_engine", "ogre2").first;
+
+  // Get the background color, if specified.
+  if (_sdf->HasElement("background_color"))
+    this->dataPtr->backgroundColor = _sdf->Get<math::Color>("background_color");
+
+  // Get the ambient light, if specified.
+  if (_sdf->HasElement("ambient_light"))
+    this->dataPtr->ambientLight = _sdf->Get<math::Color>("ambient_light");
 
   this->dataPtr->renderUtil.SetEngineName(engineName);
   this->dataPtr->renderUtil.SetEnableSensors(true,
