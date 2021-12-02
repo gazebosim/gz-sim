@@ -38,83 +38,79 @@ Rectangle {
   // Maximum spinbox value
   property double spinMax: 1000000
 
-  // Read-only / write
-  property bool readOnly: {
-    var isModel = entityType == "model"
-    return !(isModel) || nestedModel
-  }
-
   property int iconWidth: 20
   property int iconHeight: 20
 
   // Loaded item for X
-  property var xItem: {}
+  property var xItem: model.data[0]
 
   // Loaded item for Y
-  property var yItem: {}
+  property var yItem: model.data[1]
 
   // Loaded item for Z
-  property var zItem: {}
+  property var zItem: model.data[2]
 
   // Loaded item for roll
-  property var rollItem: {}
+  property var rollItem: model.data[3]
 
   // Loaded item for pitch
-  property var pitchItem: {}
+  property var pitchItem: model.data[4]
 
   // Loaded item for yaw
-  property var yawItem: {}
+  property var yawItem: model.data[5]
+
+  // Callback when x value is changed
+  function onXChange(_value) {
+    xItem = _value
+    sendPose()
+  }
+
+  // Callback when y value is changed
+  function onYChange(_value) {
+    yItem = _value
+    sendPose()
+  }
+
+  // Callback when z value is changed
+  function onZChange(_value) {
+    zItem = _value
+    sendPose()
+  }
+
+  // Callback when roll value is changed
+  function onRollChange(_value) {
+    rollItem = _value
+    sendPose()
+  }
+
+  // Callback when pitch value is changed
+  function onPitchChange(_value) {
+    pitchItem = _value
+    sendPose()
+  }
+
+  // Callback when yaw value is changed
+  function onYawChange(_value) {
+    yawItem = _value
+    sendPose()
+  }
 
   // Send new pose to C++
   function sendPose() {
     // TODO(anyone) There's a loss of precision when these values get to C++
     componentInspector.onPose(
-      xItem.value,
-      yItem.value,
-      zItem.value,
-      rollItem.value,
-      pitchItem.value,
-      yawItem.value
+      xItem,
+      yItem,
+      zItem,
+      rollItem,
+      pitchItem,
+      yawItem
     );
   }
 
   FontMetrics {
     id: fontMetrics
     font.family: "Roboto"
-  }
-
-  /**
-   * Used to create a spin box
-   */
-  Component {
-    id: writableNumber
-    IgnSpinBox {
-      id: writableSpin
-      value: writableSpin.activeFocus ? writableSpin.value : numberValue
-      minimumValue: -spinMax
-      maximumValue: spinMax
-      decimals: getDecimalsAdjustValue(writableSpin, numberValue)
-      onEditingFinished: {
-        sendPose()
-      }
-    }
-  }
-
-  /**
-   * Used to create a read-only number
-   */
-  Component {
-    id: readOnlyNumber
-    Text {
-      id: numberText
-      anchors.fill: parent
-      horizontalAlignment: Text.AlignRight
-      verticalAlignment: Text.AlignVCenter
-      text: {
-        var decimals = getDecimals(numberText.width)
-        return numberValue.toFixed(decimals)
-      }
-    }
   }
 
   Column {
@@ -206,19 +202,18 @@ Rectangle {
             font.pointSize: 12
             anchors.centerIn: parent
           }
-      }
+        }
 
-        Item {
+        StateAwareSpin {
+          id: xSpin
           Layout.fillWidth: true
           height: 40
-          Loader {
-            id: xLoader
-            anchors.fill: parent
-            property double numberValue: model.data[0]
-            sourceComponent: readOnly ? readOnlyNumber : writableNumber
-            onLoaded: {
-              xItem = xLoader.item
-            }
+          numberValue: xItem
+          minValue: -100000
+          maxValue: 100000
+          stepValue: 0.1
+          Component.onCompleted: {
+            xSpin.onChange.connect(onXChange)
           }
         }
 
@@ -245,17 +240,16 @@ Rectangle {
           }
         }
 
-        Item {
+        StateAwareSpin {
+          id: rollSpin
           Layout.fillWidth: true
           height: 40
-          Loader {
-            id: rollLoader
-            anchors.fill: parent
-            property double numberValue: model.data[3]
-            sourceComponent: readOnly ? readOnlyNumber : writableNumber
-            onLoaded: {
-              rollItem = rollLoader.item
-            }
+          numberValue: rollItem
+          minValue: -100000
+          maxValue: 100000
+          stepValue: 0.1
+          Component.onCompleted: {
+            rollSpin.onChange.connect(onRollChange)
           }
         }
 
@@ -288,17 +282,16 @@ Rectangle {
           }
         }
 
-        Item {
+        StateAwareSpin {
+          id: ySpin
           Layout.fillWidth: true
           height: 40
-          Loader {
-            id: yLoader
-            anchors.fill: parent
-            property double numberValue: model.data[1]
-            sourceComponent: readOnly ? readOnlyNumber : writableNumber
-            onLoaded: {
-              yItem = yLoader.item
-            }
+          numberValue: yItem
+          minValue: -100000
+          maxValue: 100000
+          stepValue: 0.1
+          Component.onCompleted: {
+            ySpin.onChange.connect(onYChange)
           }
         }
 
@@ -324,17 +317,16 @@ Rectangle {
           }
         }
 
-        Item {
+        StateAwareSpin {
+          id: pitchSpin
           Layout.fillWidth: true
           height: 40
-          Loader {
-            id: pitchLoader
-            anchors.fill: parent
-            property double numberValue: model.data[4]
-            sourceComponent: readOnly ? readOnlyNumber : writableNumber
-            onLoaded: {
-              pitchItem = pitchLoader.item
-            }
+          numberValue: pitchItem
+          minValue: -100000
+          maxValue: 100000
+          stepValue: 0.1
+          Component.onCompleted: {
+            pitchSpin.onChange.connect(onPitchChange)
           }
         }
 
@@ -360,17 +352,16 @@ Rectangle {
           }
         }
 
-        Item {
+        StateAwareSpin {
+          id: zSpin
           Layout.fillWidth: true
           height: 40
-          Loader {
-            id: zLoader
-            anchors.fill: parent
-            property double numberValue: model.data[2]
-            sourceComponent: readOnly ? readOnlyNumber : writableNumber
-            onLoaded: {
-              zItem = zLoader.item
-            }
+          numberValue: zItem 
+          minValue: -100000
+          maxValue: 100000
+          stepValue: 0.1
+          Component.onCompleted: {
+            zSpin.onChange.connect(onZChange)
           }
         }
 
@@ -396,17 +387,16 @@ Rectangle {
           }
         }
 
-        Item {
+        StateAwareSpin {
+          id: yawSpin
           Layout.fillWidth: true
           height: 40
-          Loader {
-            id: yawLoader
-            anchors.fill: parent
-            property double numberValue: model.data[5]
-            sourceComponent: readOnly ? readOnlyNumber : writableNumber
-            onLoaded: {
-              yawItem = yawLoader.item
-            }
+          numberValue: yawItem
+          minValue: -100000
+          maxValue: 100000
+          stepValue: 0.1
+          Component.onCompleted: {
+            yawSpin.onChange.connect(onYawChange)
           }
         }
       }

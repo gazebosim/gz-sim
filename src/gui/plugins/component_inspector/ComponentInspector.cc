@@ -1127,8 +1127,8 @@ void ComponentInspector::SetPaused(bool _paused)
 void ComponentInspector::OnPose(double _x, double _y, double _z, double _roll,
     double _pitch, double _yaw)
 {
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  /*std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+      [](const ignition::msgs::Boolean &_rep, const bool _result)
   {
     if (!_result)
         ignerr << "Error setting pose" << std::endl;
@@ -1141,6 +1141,18 @@ void ComponentInspector::OnPose(double _x, double _y, double _z, double _roll,
   auto poseCmdService = "/world/" + this->dataPtr->worldName
       + "/set_pose";
   this->dataPtr->node.Request(poseCmdService, req, cb);
+  */
+
+  ignition::gazebo::UpdateCallback cb =
+      [=](EntityComponentManager &_ecm)
+  {
+    auto comp = _ecm.Component<components::Pose>(this->GetEntity());
+    if (comp)
+      comp->Data().Set(_x, _y, _z, _roll, _pitch, _yaw);
+    else
+      ignerr << "Unable to get the pose component.\n";
+  };
+  this->AddUpdateCallback(cb);
 }
 
 /////////////////////////////////////////////////
