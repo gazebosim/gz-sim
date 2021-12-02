@@ -18,7 +18,6 @@
 #include <gtest/gtest.h>
 #include <csignal>
 #include <vector>
-#include <ignition/common/Console.hh>
 #include <ignition/common/StringUtils.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/math/Rand.hh>
@@ -63,7 +62,6 @@ TEST_P(ServerFixture, DefaultServerConfig)
   EXPECT_TRUE(serverConfig.NetworkRole().empty());
   EXPECT_FALSE(serverConfig.UseLogRecord());
   EXPECT_FALSE(serverConfig.LogRecordPath().empty());
-  EXPECT_FALSE(serverConfig.LogIgnoreSdfPath());
   EXPECT_TRUE(serverConfig.LogPlaybackPath().empty());
   EXPECT_FALSE(serverConfig.LogRecordResources());
   EXPECT_TRUE(serverConfig.LogRecordCompressPath().empty());
@@ -281,13 +279,15 @@ TEST_P(ServerFixture, SdfServerConfig)
   EXPECT_FALSE(*server.Running(0));
   EXPECT_TRUE(*server.Paused());
   EXPECT_EQ(0u, *server.IterationCount());
-  EXPECT_EQ(16u, *server.EntityCount());
+  EXPECT_EQ(24u, *server.EntityCount());
   EXPECT_EQ(3u, *server.SystemCount());
 
   EXPECT_TRUE(server.HasEntity("box"));
   EXPECT_FALSE(server.HasEntity("box", 1));
   EXPECT_TRUE(server.HasEntity("sphere"));
   EXPECT_TRUE(server.HasEntity("cylinder"));
+  EXPECT_TRUE(server.HasEntity("capsule"));
+  EXPECT_TRUE(server.HasEntity("ellipsoid"));
   EXPECT_FALSE(server.HasEntity("bad", 0));
   EXPECT_FALSE(server.HasEntity("bad", 1));
 }
@@ -620,79 +620,6 @@ TEST_P(ServerFixture, SigInt)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, TwoServersNonBlocking)
-{
-  ignition::gazebo::ServerConfig serverConfig;
-  serverConfig.SetSdfString(TestWorldSansPhysics::World());
-
-  gazebo::Server server1(serverConfig);
-  gazebo::Server server2(serverConfig);
-  EXPECT_FALSE(server1.Running());
-  EXPECT_FALSE(*server1.Running(0));
-  EXPECT_FALSE(server2.Running());
-  EXPECT_FALSE(*server2.Running(0));
-  EXPECT_EQ(0u, *server1.IterationCount());
-  EXPECT_EQ(0u, *server2.IterationCount());
-
-  // Make the servers run fast.
-  server1.SetUpdatePeriod(1ns);
-  server2.SetUpdatePeriod(1ns);
-
-  // Start non-blocking
-  const size_t iters1 = 9999;
-  EXPECT_TRUE(server1.Run(false, iters1, false));
-
-  // Expect that we can't start another instance.
-  EXPECT_FALSE(server1.Run(true, 10, false));
-
-  // It's okay to start another server
-  EXPECT_TRUE(server2.Run(false, 500, false));
-
-  while (*server1.IterationCount() < iters1 || *server2.IterationCount() < 500)
-    IGN_SLEEP_MS(100);
-
-  EXPECT_EQ(iters1, *server1.IterationCount());
-  EXPECT_EQ(500u, *server2.IterationCount());
-  EXPECT_FALSE(server1.Running());
-  EXPECT_FALSE(*server1.Running(0));
-  EXPECT_FALSE(server2.Running());
-  EXPECT_FALSE(*server2.Running(0));
-}
-
-/////////////////////////////////////////////////
-TEST_P(ServerFixture, TwoServersMixedBlocking)
-{
-  ignition::gazebo::ServerConfig serverConfig;
-  serverConfig.SetSdfString(TestWorldSansPhysics::World());
-
-  gazebo::Server server1(serverConfig);
-  gazebo::Server server2(serverConfig);
-  EXPECT_FALSE(server1.Running());
-  EXPECT_FALSE(*server1.Running(0));
-  EXPECT_FALSE(server2.Running());
-  EXPECT_FALSE(*server2.Running(0));
-  EXPECT_EQ(0u, *server1.IterationCount());
-  EXPECT_EQ(0u, *server2.IterationCount());
-
-  // Make the servers run fast.
-  server1.SetUpdatePeriod(1ns);
-  server2.SetUpdatePeriod(1ns);
-
-  server1.Run(false, 10, false);
-  server2.Run(true, 1000, false);
-
-  while (*server1.IterationCount() < 10)
-    IGN_SLEEP_MS(100);
-
-  EXPECT_EQ(10u, *server1.IterationCount());
-  EXPECT_EQ(1000u, *server2.IterationCount());
-  EXPECT_FALSE(server1.Running());
-  EXPECT_FALSE(*server1.Running(0));
-  EXPECT_FALSE(server2.Running());
-  EXPECT_FALSE(*server2.Running(0));
-}
-
-/////////////////////////////////////////////////
 TEST_P(ServerFixture, AddSystemWhileRunning)
 {
   ignition::gazebo::ServerConfig serverConfig;
@@ -930,32 +857,6 @@ TEST_P(ServerFixture, GetResourcePaths)
   EXPECT_EQ(2, res.data_size());
   EXPECT_EQ("/tmp/some/path", res.data(0));
   EXPECT_EQ("/home/user/another_path", res.data(1));
-}
-
-/////////////////////////////////////////////////
-TEST_P(ServerFixture, CachedFuelWorld)
-{
-  auto cachedWorldPath =
-    common::joinPaths(std::string(PROJECT_SOURCE_PATH), "test", "worlds");
-  ignition::common::setenv("IGN_FUEL_CACHE_PATH", cachedWorldPath.c_str());
-
-  ServerConfig serverConfig;
-  auto fuelWorldURL =
-    "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/worlds/Test%20world";
-  EXPECT_TRUE(serverConfig.SetSdfFile(fuelWorldURL));
-
-  EXPECT_EQ(fuelWorldURL, serverConfig.SdfFile());
-  EXPECT_TRUE(serverConfig.SdfString().empty());
-
-  // Check that world was loaded
-  auto server = Server(serverConfig);
-  EXPECT_NE(std::nullopt, server.Running(0));
-  EXPECT_FALSE(*server.Running(0));
-
-  server.Run(true /*blocking*/, 1, false/*paused*/);
-
-  EXPECT_NE(std::nullopt, server.Running(0));
-  EXPECT_FALSE(*server.Running(0));
 }
 
 /////////////////////////////////////////////////

@@ -95,10 +95,49 @@ Rectangle {
   }
 
   /**
+   * Forward light changes to C++
+   */
+  function onLight(_rSpecular, _gSpecular, _bSpecular, _aSpecular,
+                   _rDiffuse, _gDiffuse, _bDiffuse, _aDiffuse,
+                   _attRange, _attLinear, _attConstant, _attQuadratic,
+                   _castShadows, _directionX, _directionY, _directionZ,
+                   _innerAngle, _outerAngle, _falloff, _intensity, _type) {
+    ComponentInspector.OnLight(_rSpecular, _gSpecular, _bSpecular, _aSpecular,
+                               _rDiffuse, _gDiffuse, _bDiffuse, _aDiffuse,
+                               _attRange, _attLinear, _attConstant, _attQuadratic,
+                               _castShadows, _directionX, _directionY, _directionZ,
+                               _innerAngle, _outerAngle, _falloff, _intensity, _type)
+  }
+
+  /*
    * Forward physics changes to C++
    */
   function onPhysics(_stepSize, _realTimeFactor) {
     ComponentInspector.OnPhysics(_stepSize, _realTimeFactor)
+  }
+
+  /**
+   * Forward material color changes to C++
+   */
+  function onMaterialColor(_rAmbient, _gAmbient, _bAmbient, _aAmbient,
+                           _rDiffuse, _gDiffuse, _bDiffuse, _aDiffuse,
+                           _rSpecular, _gSpecular, _bSpecular, _aSpecular,
+                           _rEmissive, _gEmissive, _bEmissive, _aEmissive,
+                           _type, _currColor) {
+    ComponentInspector.OnMaterialColor(
+        _rAmbient, _gAmbient, _bAmbient, _aAmbient,
+        _rDiffuse, _gDiffuse, _bDiffuse, _aDiffuse,
+        _rSpecular, _gSpecular, _bSpecular, _aSpecular,
+        _rEmissive, _gEmissive, _bEmissive, _aEmissive,
+        _type, _currColor)
+  }
+
+  /*
+   * Forward spherical coordinate changes to C++
+   */
+  function onSphericalCoordinates(_surface, _lat, _lon, _elevation, _heading) {
+    ComponentInspector.OnSphericalCoordinates(_surface, _lat, _lon, _elevation,
+        _heading);
   }
 
   Rectangle {

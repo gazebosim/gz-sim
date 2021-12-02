@@ -220,11 +220,11 @@ class ignition::gazebo::ServerConfigPrivate
   public: explicit ServerConfigPrivate(
               const std::unique_ptr<ServerConfigPrivate> &_cfg)
           : sdfFile(_cfg->sdfFile),
+            sdfString(_cfg->sdfString),
             updateRate(_cfg->updateRate),
             useLevels(_cfg->useLevels),
             useLogRecord(_cfg->useLogRecord),
             logRecordPath(_cfg->logRecordPath),
-            logIgnoreSdfPath(_cfg->logIgnoreSdfPath),
             logPlaybackPath(_cfg->logPlaybackPath),
             logRecordResources(_cfg->logRecordResources),
             logRecordCompressPath(_cfg->logRecordCompressPath),
@@ -236,7 +236,8 @@ class ignition::gazebo::ServerConfigPrivate
             networkRole(_cfg->networkRole),
             networkSecondaries(_cfg->networkSecondaries),
             seed(_cfg->seed),
-            logRecordTopics(_cfg->logRecordTopics) { }
+            logRecordTopics(_cfg->logRecordTopics),
+            isHeadlessRendering(_cfg->isHeadlessRendering) { }
 
   // \brief The SDF file that the server should load
   public: std::string sdfFile = "";
@@ -255,10 +256,6 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// \brief Path to place recorded states
   public: std::string logRecordPath = "";
-
-  /// TODO(anyone) Deprecate in public APIs in Ignition-D, remove in Ignition-E
-  /// \brief Whether log record path is specified from command line
-  public: bool logIgnoreSdfPath{false};
 
   /// \brief Path to recorded states to play back using logging system
   public: std::string logPlaybackPath = "";
@@ -301,6 +298,9 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// \brief Topics to record.
   public: std::vector<std::string> logRecordTopics;
+
+  /// \brief is the headless mode active.
+  public: bool isHeadlessRendering{false};
 };
 
 //////////////////////////////////////////////////
@@ -442,18 +442,6 @@ void ServerConfig::SetLogRecordPath(const std::string &_recordPath)
 }
 
 /////////////////////////////////////////////////
-bool ServerConfig::LogIgnoreSdfPath() const
-{
-  return this->dataPtr->logIgnoreSdfPath;
-}
-
-/////////////////////////////////////////////////
-void ServerConfig::SetLogIgnoreSdfPath(bool _ignore)
-{
-  this->dataPtr->logIgnoreSdfPath = _ignore;
-}
-
-/////////////////////////////////////////////////
 const std::string ServerConfig::LogPlaybackPath() const
 {
   return this->dataPtr->logPlaybackPath;
@@ -539,6 +527,18 @@ void ServerConfig::SetRenderEngineServer(const std::string &_renderEngineServer)
 }
 
 /////////////////////////////////////////////////
+void ServerConfig::SetHeadlessRendering(const bool _headless)
+{
+  this->dataPtr->isHeadlessRendering = _headless;
+}
+
+/////////////////////////////////////////////////
+bool ServerConfig::HeadlessRendering() const
+{
+  return this->dataPtr->isHeadlessRendering;
+}
+
+/////////////////////////////////////////////////
 const std::string &ServerConfig::RenderEngineGui() const
 {
   return this->dataPtr->renderEngineGui;
@@ -572,9 +572,9 @@ ServerConfig::LogPlaybackPlugin() const
   if (!this->LogPlaybackPath().empty())
   {
     sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
-    pathElem->SetName("path");
+    pathElem->SetName("playback_path");
     playbackElem->AddElementDescription(pathElem);
-    pathElem = playbackElem->GetElement("path");
+    pathElem = playbackElem->GetElement("playback_path");
     pathElem->AddValue("string", "", false, "");
     pathElem->Set<std::string>(this->LogPlaybackPath());
   }
@@ -593,20 +593,21 @@ ServerConfig::LogRecordPlugin() const
   auto entityName = "*";
   auto entityType = "world";
   auto pluginName = "ignition::gazebo::systems::LogRecord";
-  auto pluginFilename = std::string("ignition-gazebo") +
-    IGNITION_GAZEBO_MAJOR_VERSION_STR + "-log-system";
+  auto pluginFilename = "ignition-gazebo-log-system";
 
   sdf::ElementPtr recordElem;
 
   recordElem = std::make_shared<sdf::Element>();
   recordElem->SetName("plugin");
 
+  igndbg << "Generating LogRecord SDF:" << std::endl;
+
   if (!this->LogRecordPath().empty())
   {
     sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
-    pathElem->SetName("path");
+    pathElem->SetName("record_path");
     recordElem->AddElementDescription(pathElem);
-    pathElem = recordElem->GetElement("path");
+    pathElem = recordElem->GetElement("record_path");
     pathElem->AddValue("string", "", false, "");
     pathElem->Set<std::string>(this->LogRecordPath());
   }
@@ -619,22 +620,24 @@ ServerConfig::LogRecordPlugin() const
   resourceElem->AddValue("bool", "false", false, "");
   resourceElem->Set<bool>(this->LogRecordResources() ? true : false);
 
-  // Set whether to compress
-  sdf::ElementPtr compressElem = std::make_shared<sdf::Element>();
-  compressElem->SetName("compress");
-  recordElem->AddElementDescription(compressElem);
-  compressElem = recordElem->GetElement("compress");
-  compressElem->AddValue("bool", "false", false, "");
-  compressElem->Set<bool>(this->LogRecordCompressPath().empty() ? false :
-    true);
+  if (!this->LogRecordCompressPath().empty())
+  {
+    // Set whether to compress
+    sdf::ElementPtr compressElem = std::make_shared<sdf::Element>();
+    compressElem->SetName("compress");
+    recordElem->AddElementDescription(compressElem);
+    compressElem = recordElem->GetElement("compress");
+    compressElem->AddValue("bool", "false", false, "");
+    compressElem->Set<bool>(true);
 
   // Set compress path
-  sdf::ElementPtr cPathElem = std::make_shared<sdf::Element>();
-  cPathElem->SetName("compress_path");
-  recordElem->AddElementDescription(cPathElem);
-  cPathElem = recordElem->GetElement("compress_path");
-  cPathElem->AddValue("string", "", false, "");
-  cPathElem->Set<std::string>(this->LogRecordCompressPath());
+    sdf::ElementPtr cPathElem = std::make_shared<sdf::Element>();
+    cPathElem->SetName("compress_path");
+    recordElem->AddElementDescription(cPathElem);
+    cPathElem = recordElem->GetElement("compress_path");
+    cPathElem->AddValue("string", "", false, "");
+    cPathElem->Set<std::string>(this->LogRecordCompressPath());
+  }
 
   // If record topics specified, add in SDF
   for (const std::string &topic : this->LogRecordTopics())
@@ -646,6 +649,8 @@ ServerConfig::LogRecordPlugin() const
     topicElem->AddValue("string", "false", false, "");
     topicElem->Set<std::string>(topic);
   }
+
+  igndbg << recordElem->ToString("") << std::endl;
 
   return ServerConfig::PluginInfo(entityName,
       entityType,
@@ -873,7 +878,7 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
   std::string defaultConfigDir;
   ignition::common::env(IGN_HOMEDIR, defaultConfigDir);
   defaultConfigDir = ignition::common::joinPaths(defaultConfigDir, ".ignition",
-    "gazebo");
+    "gazebo", IGNITION_GAZEBO_MAJOR_VERSION_STR);
 
   auto defaultConfig = ignition::common::joinPaths(defaultConfigDir,
       configFilename);
@@ -928,4 +933,3 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
 
   return ret;
 }
-

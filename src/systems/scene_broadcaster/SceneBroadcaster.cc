@@ -460,8 +460,16 @@ void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
 //////////////////////////////////////////////////
 void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
 {
+  auto ns = transport::TopicUtils::AsValidTopic("/world/" + _worldName);
+  if (ns.empty())
+  {
+    ignerr << "Failed to create valid namespace for world [" << _worldName
+           << "]" << std::endl;
+    return;
+  }
+
   transport::NodeOptions opts;
-  opts.SetNameSpace("/world/" + _worldName);
+  opts.SetNameSpace(ns);
   this->node = std::make_unique<transport::Node>(opts);
 
   // Scene info service
@@ -503,7 +511,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
          << stateAsyncService << "]" << std::endl;
 
   // Scene info topic
-  std::string sceneTopic{"/world/" + _worldName + "/scene/info"};
+  std::string sceneTopic{ns + "/scene/info"};
 
   this->scenePub = this->node->Advertise<ignition::msgs::Scene>(sceneTopic);
 
@@ -511,7 +519,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
          << "]" << std::endl;
 
   // Entity deletion publisher
-  std::string deletionTopic{"/world/" + _worldName + "/scene/deletion"};
+  std::string deletionTopic{ns + "/scene/deletion"};
 
   this->deletionPub =
       this->node->Advertise<ignition::msgs::UInt32_V>(deletionTopic);
@@ -520,7 +528,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
          << std::endl;
 
   // State topic
-  std::string stateTopic{"/world/" + _worldName + "/state"};
+  std::string stateTopic{ns + "/state"};
 
   this->statePub =
       this->node->Advertise<ignition::msgs::SerializedStepMap>(stateTopic);

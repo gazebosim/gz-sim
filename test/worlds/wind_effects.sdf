@@ -35,7 +35,7 @@
     </plugin>
 
     <wind>
-      <linear_velocity>1 0 1</linear_velocity>
+      <linear_velocity>10 0 10</linear_velocity>
     </wind>
 
     <model name="wind_test1">

@@ -22,8 +22,9 @@
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
-#include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/Component.hh"
+#include "ignition/gazebo/components/Factory.hh"
+#include "ignition/gazebo/components/Serialization.hh"
 
 namespace ignition
 {
@@ -35,7 +36,8 @@ namespace components
 {
   /// \brief This component holds the address of the distributed secondary that
   /// this performer is associated with.
-  using PerformerAffinity = Component<std::string, class PerformerAffinityTag>;
+  using PerformerAffinity = Component<std::string, class PerformerAffinityTag,
+      serializers::StringSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.PerformerAffinity",
       PerformerAffinity)
 }

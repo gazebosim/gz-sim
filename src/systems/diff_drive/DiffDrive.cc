@@ -21,6 +21,7 @@
 
 #include <limits>
 #include <mutex>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -36,6 +37,7 @@
 #include "ignition/gazebo/components/JointVelocityCmd.hh"
 #include "ignition/gazebo/Link.hh"
 #include "ignition/gazebo/Model.hh"
+#include "ignition/gazebo/Util.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -258,24 +260,39 @@ void DiffDrive::Configure(const Entity &_entity,
       this->dataPtr->wheelRadius, this->dataPtr->wheelRadius);
 
   // Subscribe to commands
-  std::string topic{"/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel"};
+  std::vector<std::string> topics;
   if (_sdf->HasElement("topic"))
-    topic = _sdf->Get<std::string>("topic");
+  {
+    topics.push_back(_sdf->Get<std::string>("topic"));
+  }
+  topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel");
+  auto topic = validTopic(topics);
+
   this->dataPtr->node.Subscribe(topic, &DiffDrivePrivate::OnCmdVel,
       this->dataPtr.get());
 
   // Subscribe to enable/disable
-  std::string enableTopic{"/model/" + this->dataPtr->model.Name(_ecm) +
-      "/enable"};
+  std::vector<std::string> enableTopics;
+  enableTopics.push_back(
+    "/model/" + this->dataPtr->model.Name(_ecm) + "/enable");
+  auto enableTopic = validTopic(enableTopics);
 
-  this->dataPtr->node.Subscribe(enableTopic, &DiffDrivePrivate::OnEnable,
-      this->dataPtr.get());
+  if (!enableTopic.empty())
+  {
+    this->dataPtr->node.Subscribe(enableTopic, &DiffDrivePrivate::OnEnable,
+        this->dataPtr.get());
+  }
   this->dataPtr->enabled = true;
 
-  std::string odomTopic{"/model/" + this->dataPtr->model.Name(_ecm) +
-    "/odometry"};
+  std::vector<std::string> odomTopics;
   if (_sdf->HasElement("odom_topic"))
-    odomTopic = _sdf->Get<std::string>("odom_topic");
+  {
+    odomTopics.push_back(_sdf->Get<std::string>("odom_topic"));
+  }
+  odomTopics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
+      "/odometry");
+  auto odomTopic = validTopic(odomTopics);
+
   this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
       odomTopic);
 
@@ -311,14 +328,23 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   }
 
   // If the joints haven't been identified yet, look for them
+  static std::set<std::string> warnedModels;
+  auto modelName = this->dataPtr->model.Name(_ecm);
   if (this->dataPtr->leftJoints.empty() ||
       this->dataPtr->rightJoints.empty())
   {
+    bool warned{false};
     for (const std::string &name : this->dataPtr->leftJointNames)
     {
       Entity joint = this->dataPtr->model.JointByName(_ecm, name);
       if (joint != kNullEntity)
         this->dataPtr->leftJoints.push_back(joint);
+      else if (warnedModels.find(modelName) == warnedModels.end())
+      {
+        ignwarn << "Failed to find left joint [" << name << "] for model ["
+                << modelName << "]" << std::endl;
+        warned = true;
+      }
     }
 
     for (const std::string &name : this->dataPtr->rightJointNames)
@@ -326,11 +352,28 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       Entity joint = this->dataPtr->model.JointByName(_ecm, name);
       if (joint != kNullEntity)
         this->dataPtr->rightJoints.push_back(joint);
+      else if (warnedModels.find(modelName) == warnedModels.end())
+      {
+        ignwarn << "Failed to find right joint [" << name << "] for model ["
+                << modelName << "]" << std::endl;
+        warned = true;
+      }
+    }
+    if (warned)
+    {
+      warnedModels.insert(modelName);
     }
   }
 
   if (this->dataPtr->leftJoints.empty() || this->dataPtr->rightJoints.empty())
     return;
+
+  if (warnedModels.find(modelName) != warnedModels.end())
+  {
+    ignmsg << "Found joints for model [" << modelName
+           << "], plugin will start working." << std::endl;
+    warnedModels.erase(modelName);
+  }
 
   // Nothing left to do if paused.
   if (_info.paused)
@@ -419,6 +462,9 @@ void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
     this->odom.Init(std::chrono::steady_clock::time_point(_info.simTime));
     return;
   }
+
+  if (this->leftJoints.empty() || this->rightJoints.empty())
+    return;
 
   // Get the first joint positions for the left and right side.
   auto leftPos = _ecm.Component<components::JointPosition>(this->leftJoints[0]);

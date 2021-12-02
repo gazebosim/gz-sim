@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.11.0 FATAL_ERROR)
 project(GTestSetup)
 
 # Find Gazebo
-set(IGN_GAZEBO_VER 3)
+set(IGN_GAZEBO_VER 6)
 find_package(ignition-gazebo${IGN_GAZEBO_VER} REQUIRED)
 
 # Fetch and configure GTest

@@ -43,9 +43,12 @@ namespace serializers
     public: static std::ostream &Serialize(std::ostream &_out,
                                            const std::set<std::string> &_set)
     {
+      // Character to separate level names. It's the "Unit separator".
+      const char sep = 31;
+
       for (const auto &entity : _set)
       {
-        _out << entity << " ";
+        _out << entity << sep;
       }
       return _out;
     }
@@ -57,14 +60,13 @@ namespace serializers
     public: static std::istream &Deserialize(std::istream &_in,
                                              std::set<std::string> &_set)
     {
-      _in.setf(std::ios_base::skipws);
-
       _set.clear();
 
-      for (auto it = std::istream_iterator<std::string>(_in);
-           it != std::istream_iterator<std::string>(); ++it)
+      const char sep = 31;
+      std::string level;
+      while (std::getline(_in, level, sep))
       {
-        _set.insert(*it);
+        _set.insert(level);
       }
       return _in;
     }

@@ -18,6 +18,8 @@
 #include <gtest/gtest.h>
 
 #include <ignition/msgs/entity_factory.pb.h>
+#include <ignition/msgs/light.pb.h>
+#include <ignition/msgs/physics.pb.h>
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
@@ -105,8 +107,6 @@ TEST_F(UserCommandsTest, Create)
   auto lightsStr = std::string("<?xml version='1.0' ?>") +
       "<sdf version='1.6'>" +
       "<light name='accepted_light' type='directional'>" +
-      "</light>" +
-      "<light name='ignored_light' type='directional'>" +
       "</light>" +
       "</sdf>";
 
@@ -216,6 +216,25 @@ TEST_F(UserCommandsTest, Create)
   entityCount = ecm->EntityCount();
 
   auto light = ecm->EntityByComponents(components::Name("spawned_light"));
+  EXPECT_NE(kNullEntity, light);
+
+  EXPECT_NE(nullptr, ecm->Component<components::Light>(light));
+
+  // Request entity spawn
+  req.Clear();
+  req.mutable_light()->set_name("light_test");
+  req.mutable_light()->set_parent_id(1);
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Run an iteration and check it was created
+  server.Run(true, 1, false);
+
+  EXPECT_EQ(entityCount + 1, ecm->EntityCount());
+  entityCount = ecm->EntityCount();
+
+  light = ecm->EntityByComponents(components::Name("light_test"));
   EXPECT_NE(kNullEntity, light);
 
   EXPECT_NE(nullptr, ecm->Component<components::Light>(light));
@@ -342,9 +361,9 @@ TEST_F(UserCommandsTest, Remove)
   EXPECT_NE(nullptr, ecm);
 
   // Check entities
-  // 1 x world + 1 x (default) level + 1 x wind + 3 x model + 3 x link + 3 x
-  // collision + 3 x visual + 1 x light
-  EXPECT_EQ(16u, ecm->EntityCount());
+  // 1 x world + 1 x (default) level + 1 x wind + 5 x model + 5 x link + 5 x
+  // collision + 5 x visual + 1 x light
+  EXPECT_EQ(24u, ecm->EntityCount());
 
   // Entity remove by name
   msgs::Entity req;
@@ -367,7 +386,7 @@ TEST_F(UserCommandsTest, Remove)
 
   // Run an iteration and check it was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(12u, ecm->EntityCount());
+  EXPECT_EQ(20u, ecm->EntityCount());
 
   EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
       components::Name("box")));
@@ -390,7 +409,7 @@ TEST_F(UserCommandsTest, Remove)
 
   // Run an iteration and check it was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(8u, ecm->EntityCount());
+  EXPECT_EQ(16u, ecm->EntityCount());
 
   EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
       components::Name("sphere")));
@@ -409,7 +428,7 @@ TEST_F(UserCommandsTest, Remove)
 
   // Run an iteration and check it was not removed
   server.Run(true, 1, false);
-  EXPECT_EQ(8u, ecm->EntityCount());
+  EXPECT_EQ(16u, ecm->EntityCount());
 
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Link(),
       components::Name("cylinder_link")));
@@ -430,7 +449,7 @@ TEST_F(UserCommandsTest, Remove)
 
   // Run an iteration and check cylinder was removed and light wasn't
   server.Run(true, 1, false);
-  EXPECT_EQ(4u, ecm->EntityCount());
+  EXPECT_EQ(12u, ecm->EntityCount());
 
   EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
       components::Name("cylinder")));
@@ -449,7 +468,7 @@ TEST_F(UserCommandsTest, Remove)
 
   // Run an iteration and check nothing was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(4u, ecm->EntityCount());
+  EXPECT_EQ(12u, ecm->EntityCount());
 
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Name("sun")));
 
@@ -463,7 +482,7 @@ TEST_F(UserCommandsTest, Remove)
 
   // Run an iteration and check nothing was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(4u, ecm->EntityCount());
+  EXPECT_EQ(12u, ecm->EntityCount());
 
   // Unsupported type - fails to remove
   req.Clear();
@@ -476,7 +495,7 @@ TEST_F(UserCommandsTest, Remove)
 
   // Run an iteration and check nothing was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(4u, ecm->EntityCount());
+  EXPECT_EQ(12u, ecm->EntityCount());
 
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Name("sun")));
 
@@ -491,7 +510,7 @@ TEST_F(UserCommandsTest, Remove)
 
   // Run an iteration and check it was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(3u, ecm->EntityCount());
+  EXPECT_EQ(11u, ecm->EntityCount());
 
   EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Name("sun")));
 }
@@ -670,6 +689,239 @@ TEST_F(UserCommandsTest, Pose)
 }
 
 /////////////////////////////////////////////////
+TEST_F(UserCommandsTest, Light)
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = ignition::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "lights_render.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Create a system just to get the ECM
+  EntityComponentManager *ecm{nullptr};
+  test::Relay testSystem;
+  testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
+                             gazebo::EntityComponentManager &_ecm)
+      {
+        ecm = &_ecm;
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+
+  // Run server and check we have the ECM
+  EXPECT_EQ(nullptr, ecm);
+  server.Run(true, 1, false);
+  EXPECT_NE(nullptr, ecm);
+
+  msgs::Light req;
+  msgs::Boolean res;
+  transport::Node node;
+  bool result;
+  unsigned int timeout = 1000;
+  std::string service{"/world/lights_command/light_config"};
+
+  // Point light
+  auto pointLightEntity = ecm->EntityByComponents(components::Name("point"));
+  EXPECT_NE(kNullEntity, pointLightEntity);
+
+  // Check point light entity has not been edited yet - Initial values
+  auto pointLightComp = ecm->Component<components::Light>(pointLightEntity);
+  ASSERT_NE(nullptr, pointLightComp);
+  EXPECT_EQ(
+    math::Pose3d(0, -1.5, 3, 0, 0, 0), pointLightComp->Data().RawPose());
+  EXPECT_EQ(math::Color(1.0f, 0.0f, 0.0f, 1.0f),
+      pointLightComp->Data().Diffuse());
+  EXPECT_EQ(math::Color(0.1f, 0.1f, 0.1f, 1.0f),
+      pointLightComp->Data().Specular());
+  EXPECT_NEAR(4.0, pointLightComp->Data().AttenuationRange(), 0.1);
+  EXPECT_NEAR(0.5, pointLightComp->Data().LinearAttenuationFactor(), 0.1);
+  EXPECT_NEAR(0.2, pointLightComp->Data().ConstantAttenuationFactor(), 0.1);
+  EXPECT_NEAR(0.01, pointLightComp->Data().QuadraticAttenuationFactor(), 0.1);
+  EXPECT_FALSE(pointLightComp->Data().CastShadows());
+
+  req.Clear();
+  ignition::msgs::Set(req.mutable_diffuse(),
+    ignition::math::Color(0.0f, 1.0f, 1.0f, 0.0f));
+  ignition::msgs::Set(req.mutable_specular(),
+    ignition::math::Color(0.2f, 0.2f, 0.2f, 0.2f));
+  req.set_range(2.6f);
+  req.set_name("point");
+  req.set_type(ignition::msgs::Light::POINT);
+  req.set_attenuation_linear(0.7f);
+  req.set_attenuation_constant(0.6f);
+  req.set_attenuation_quadratic(0.001f);
+  req.set_cast_shadows(true);
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  server.Run(true, 100, false);
+  // Sleep for a small duration to allow Run thread to start
+  IGN_SLEEP_MS(10);
+
+  // Check point light entity has been edited using the service
+  pointLightComp = ecm->Component<components::Light>(pointLightEntity);
+  ASSERT_NE(nullptr, pointLightComp);
+
+  EXPECT_EQ(math::Color(0.0f, 1.0f, 1.0f, 0.0f),
+      pointLightComp->Data().Diffuse());
+  EXPECT_EQ(math::Color(0.2f, 0.2f, 0.2f, 0.2f),
+      pointLightComp->Data().Specular());
+  EXPECT_NEAR(2.6, pointLightComp->Data().AttenuationRange(), 0.1);
+  EXPECT_NEAR(0.7, pointLightComp->Data().LinearAttenuationFactor(), 0.1);
+  EXPECT_NEAR(0.6, pointLightComp->Data().ConstantAttenuationFactor(), 0.1);
+  EXPECT_NEAR(0.001, pointLightComp->Data().QuadraticAttenuationFactor(), 0.1);
+  EXPECT_TRUE(pointLightComp->Data().CastShadows());
+  EXPECT_EQ(sdf::LightType::POINT, pointLightComp->Data().Type());
+
+  // Check directional light entity has not been edited yet - Initial values
+  auto directionalLightEntity = ecm->EntityByComponents(
+      components::Name("directional"));
+  EXPECT_NE(kNullEntity, directionalLightEntity);
+
+  auto directionalLightComp =
+    ecm->Component<components::Light>(directionalLightEntity);
+  ASSERT_NE(nullptr, directionalLightComp);
+
+  EXPECT_EQ(
+    math::Pose3d(0, 0, 10, 0, 0, 0), directionalLightComp->Data().RawPose());
+  EXPECT_EQ(math::Color(0.8f, 0.8f, 0.8f, 1.0f),
+    directionalLightComp->Data().Diffuse());
+  EXPECT_EQ(math::Color(0.2f, 0.2f, 0.2f, 1.0f),
+    directionalLightComp->Data().Specular());
+  EXPECT_NEAR(100, directionalLightComp->Data().AttenuationRange(), 0.1);
+  EXPECT_NEAR(
+    0.01, directionalLightComp->Data().LinearAttenuationFactor(), 0.01);
+  EXPECT_NEAR(
+    0.9, directionalLightComp->Data().ConstantAttenuationFactor(), 0.1);
+  EXPECT_NEAR(
+    0.001, directionalLightComp->Data().QuadraticAttenuationFactor(), 0.001);
+  EXPECT_EQ(
+    math::Vector3d(0.5, 0.2, -0.9), directionalLightComp->Data().Direction());
+  EXPECT_TRUE(directionalLightComp->Data().CastShadows());
+  EXPECT_EQ(sdf::LightType::POINT, pointLightComp->Data().Type());
+
+  req.Clear();
+  ignition::msgs::Set(req.mutable_diffuse(),
+    ignition::math::Color(0.0f, 1.0f, 1.0f, 0.0f));
+  ignition::msgs::Set(req.mutable_specular(),
+    ignition::math::Color(0.3f, 0.3f, 0.3f, 0.3f));
+  req.set_range(2.6f);
+  req.set_name("directional");
+  req.set_type(ignition::msgs::Light::DIRECTIONAL);
+  req.set_attenuation_linear(0.7f);
+  req.set_attenuation_constant(0.6f);
+  req.set_attenuation_quadratic(1.0f);
+  req.set_cast_shadows(false);
+  ignition::msgs::Set(req.mutable_direction(),
+    ignition::math::Vector3d(1, 2, 3));
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  server.Run(true, 100, false);
+  // Sleep for a small duration to allow Run thread to start
+  IGN_SLEEP_MS(10);
+
+  // Check directional light entity has been edited using the service
+  directionalLightComp =
+    ecm->Component<components::Light>(directionalLightEntity);
+  ASSERT_NE(nullptr, directionalLightComp);
+
+  EXPECT_EQ(math::Color(0.0f, 1.0f, 1.0f, 0.0f),
+    directionalLightComp->Data().Diffuse());
+  EXPECT_EQ(math::Color(0.3f, 0.3f, 0.3f, 0.3f),
+    directionalLightComp->Data().Specular());
+  EXPECT_NEAR(2.6, directionalLightComp->Data().AttenuationRange(), 0.1);
+  EXPECT_NEAR(
+    0.7, directionalLightComp->Data().LinearAttenuationFactor(), 0.1);
+  EXPECT_NEAR(
+    0.6, directionalLightComp->Data().ConstantAttenuationFactor(), 0.1);
+  EXPECT_NEAR(
+    1, directionalLightComp->Data().QuadraticAttenuationFactor(), 0.1);
+  EXPECT_EQ(math::Vector3d(1, 2, 3), directionalLightComp->Data().Direction());
+  EXPECT_FALSE(directionalLightComp->Data().CastShadows());
+  EXPECT_EQ(sdf::LightType::DIRECTIONAL,
+    directionalLightComp->Data().Type());
+
+  // spot light
+  auto spotLightEntity = ecm->EntityByComponents(
+      components::Name("spot"));
+  EXPECT_NE(kNullEntity, spotLightEntity);
+
+  // Check spot light entity has not been edited yet - Initial values
+  auto spotLightComp =
+    ecm->Component<components::Light>(spotLightEntity);
+  ASSERT_NE(nullptr, spotLightComp);
+
+  EXPECT_EQ(math::Pose3d(0, 1.5, 3, 0, 0, 0), spotLightComp->Data().RawPose());
+  EXPECT_EQ(math::Color(0.0f, 1.0f, 0.0f, 1.0f),
+    spotLightComp->Data().Diffuse());
+  EXPECT_EQ(math::Color(0.2f, 0.2f, 0.2f, 1.0f),
+    spotLightComp->Data().Specular());
+  EXPECT_NEAR(5, spotLightComp->Data().AttenuationRange(), 0.1);
+  EXPECT_NEAR(0.4, spotLightComp->Data().LinearAttenuationFactor(), 0.01);
+  EXPECT_NEAR(0.3, spotLightComp->Data().ConstantAttenuationFactor(), 0.1);
+  EXPECT_NEAR(
+    0.001, spotLightComp->Data().QuadraticAttenuationFactor(), 0.001);
+  EXPECT_EQ(math::Vector3d(0, 0, -1), spotLightComp->Data().Direction());
+  EXPECT_FALSE(spotLightComp->Data().CastShadows());
+  EXPECT_EQ(sdf::LightType::SPOT, spotLightComp->Data().Type());
+  EXPECT_NEAR(0.1, spotLightComp->Data().SpotInnerAngle().Radian(), 0.1);
+  EXPECT_NEAR(0.5, spotLightComp->Data().SpotOuterAngle().Radian(), 0.1);
+  EXPECT_NEAR(0.8, spotLightComp->Data().SpotFalloff(), 0.1);
+
+  req.Clear();
+  ignition::msgs::Set(req.mutable_diffuse(),
+    ignition::math::Color(1.0f, 0.0f, 1.0f, 0.0f));
+  ignition::msgs::Set(req.mutable_specular(),
+    ignition::math::Color(0.3f, 0.3f, 0.3f, 0.3f));
+  req.set_range(2.6f);
+  req.set_name("spot");
+  req.set_type(ignition::msgs::Light::SPOT);
+  req.set_attenuation_linear(0.7f);
+  req.set_attenuation_constant(0.6f);
+  req.set_attenuation_quadratic(1.0f);
+  req.set_cast_shadows(true);
+  ignition::msgs::Set(req.mutable_direction(),
+    ignition::math::Vector3d(1, 2, 3));
+  req.set_spot_inner_angle(1.5f);
+  req.set_spot_outer_angle(0.3f);
+  req.set_spot_falloff(0.9f);
+
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  server.Run(true, 100, false);
+  // Sleep for a small duration to allow Run thread to start
+  IGN_SLEEP_MS(10);
+
+  // Check spot light entity has been edited using the service
+  spotLightComp = ecm->Component<components::Light>(spotLightEntity);
+  ASSERT_NE(nullptr, spotLightComp);
+
+  EXPECT_EQ(math::Color(1.0f, 0.0f, 1.0f, 0.0f),
+    spotLightComp->Data().Diffuse());
+  EXPECT_EQ(math::Color(0.3f, 0.3f, 0.3f, 0.3f),
+    spotLightComp->Data().Specular());
+  EXPECT_NEAR(2.6, spotLightComp->Data().AttenuationRange(), 0.1);
+  EXPECT_NEAR(0.7, spotLightComp->Data().LinearAttenuationFactor(), 0.1);
+  EXPECT_NEAR(0.6, spotLightComp->Data().ConstantAttenuationFactor(), 0.1);
+  EXPECT_NEAR(1, spotLightComp->Data().QuadraticAttenuationFactor(), 0.1);
+  EXPECT_EQ(math::Vector3d(1, 2, 3), spotLightComp->Data().Direction());
+  EXPECT_TRUE(spotLightComp->Data().CastShadows());
+  EXPECT_EQ(sdf::LightType::SPOT, spotLightComp->Data().Type());
+  EXPECT_NEAR(1.5, spotLightComp->Data().SpotInnerAngle().Radian(), 0.1);
+  EXPECT_NEAR(0.3, spotLightComp->Data().SpotOuterAngle().Radian(), 0.1);
+  EXPECT_NEAR(0.9, spotLightComp->Data().SpotFalloff(), 0.1);
+}
+
+/////////////////////////////////////////////////
 TEST_F(UserCommandsTest, Physics)
 {
   // Start server
@@ -717,6 +969,23 @@ TEST_F(UserCommandsTest, Physics)
   std::string service{"/world/default/set_physics"};
 
   transport::Node node;
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Run two iterations, in the first one the PhysicsCmd component is created
+  // in the second one it is processed
+  server.Run(true, 2, false);
+
+  // Check updated physics properties
+  physicsComp = ecm->Component<components::Physics>(worldEntity);
+  EXPECT_DOUBLE_EQ(0.123, physicsComp->Data().MaxStepSize());
+  EXPECT_DOUBLE_EQ(4.567, physicsComp->Data().RealTimeFactor());
+
+  // Send invalid values (not > 0) and make sure they are not updated
+  req.set_max_step_size(0.0);
+  req.set_real_time_factor(0.0);
+
   EXPECT_TRUE(node.Request(service, req, timeout, res, result));
   EXPECT_TRUE(result);
   EXPECT_TRUE(res.data());

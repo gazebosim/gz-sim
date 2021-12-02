@@ -40,7 +40,7 @@ docker run -it \
   -v "/etc/localtime:/etc/localtime:ro" \
   -v "/dev/input:/dev/input" \
   --rm \
-  --runtime=nvidia \
+  --gpus all \
   --security-opt seccomp=unconfined \
   $IMG \
   ${@:2}

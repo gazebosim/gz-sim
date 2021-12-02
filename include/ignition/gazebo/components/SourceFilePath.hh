@@ -20,6 +20,7 @@
 #include <string>
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
+#include <ignition/gazebo/components/Serialization.hh>
 #include <ignition/gazebo/config.hh>
 
 namespace ignition
@@ -33,7 +34,8 @@ namespace components
   /// \brief This component holds the filepath to the source from which an
   /// entity is created. For example, it can be used to store the file path of a
   /// model's SDFormat file.
-  using SourceFilePath = Component<std::string, class SourceFilePathTag>;
+  using SourceFilePath = Component<std::string, class SourceFilePathTag,
+      serializers::StringSerializer>;
 
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.SourceFilePath",
                                 SourceFilePath)

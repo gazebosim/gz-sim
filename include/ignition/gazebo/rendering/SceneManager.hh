@@ -21,9 +21,12 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include <sdf/Geometry.hh>
 #include <sdf/Actor.hh>
+#include <sdf/Joint.hh>
 #include <sdf/Light.hh>
 #include <sdf/Link.hh>
 #include <sdf/Material.hh>
@@ -31,6 +34,10 @@
 #include <sdf/Visual.hh>
 
 #include <ignition/common/KeyFrame.hh>
+#include <ignition/common/Animation.hh>
+#include <ignition/common/graphics/Types.hh>
+
+#include <ignition/msgs/particle_emitter.pb.h>
 
 #include <ignition/rendering/RenderTypes.hh>
 
@@ -46,6 +53,40 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   // Forward declaration
   class SceneManagerPrivate;
+
+  /// \brief Data structure for updating skeleton animations
+  class AnimationUpdateData
+  {
+    /// \brief Timepoint in the animation.
+    /// Note that animation time is different from sim time. An actor can
+    /// have multiple animations. Animation time is associated with
+    /// current animation that is being played. This value is also adjusted if
+    /// interpolate_x is enabled
+    public: std::chrono::steady_clock::duration time;
+
+    /// \brief True if animation is looped
+    public: bool loop = false;
+
+    /// \brief True if trajectory animation is on
+    public: bool followTrajectory = false;
+
+    /// \brief Trajectory to be followed
+    public: common::TrajectoryInfo trajectory;
+
+    /// \brief Name of animation to play. This field is set only if the actor
+    /// is not animated by manually using skeleton transforms
+    public: std::string animationName;
+
+    /// \brief Transform of the root node in the skeleton. The actor's
+    /// skeleton's root node transform needs to be set if trajectory
+    /// animation is enabled. This field is set only if the actor
+    /// is not animated by manually using skeleton transforms
+    public: math::Matrix4d rootTransform;
+
+    /// \brief True if this animation update data is valid. If false, this
+    /// update data should be ignored
+    public: bool valid = false;
+  };
 
   /// \brief Scene manager class for loading and managing objects in the scene
   class IGNITION_GAZEBO_RENDERING_VISIBLE SceneManager
@@ -88,6 +129,30 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: rendering::VisualPtr CreateLink(Entity _id,
         const sdf::Link &_link, Entity _parentId = 0);
 
+    /// \brief Filter a node and its children according to specific criteria.
+    /// \param[in] _node The name of the node where filtering should start.
+    /// \param[in] _filter Callback function that defines how _node and its
+    /// children should be filtered. The function parameter is a node. The
+    /// callback returns true if the node should be filtered; false otherwise.
+    /// \return A list of filtered nodes in top level order. This list can
+    /// contain _node itself, or child nodes of _node. An empty list means no
+    /// nodes were filtered.
+    public: std::vector<rendering::NodePtr> Filter(const std::string &_node,
+                std::function<bool(
+                  const rendering::NodePtr _nodeToFilter)> _filter) const;
+
+    /// \brief Copy a visual that currently exists in the scene
+    /// \param[in] _id Unique visual id of the copied visual
+    /// \param[in] _visual Name of the visual to copy
+    /// \param[in] _parentId Parent id of the copied visual
+    /// \return A pair with the first element being the copied visual object,
+    /// and the second element being a list of the entity IDs for the copied
+    /// visual's children, in level order. If copying the visual failed, the
+    /// first element will be nullptr. If the copied visual has no children, the
+    /// second element will be empty.
+    public: std::pair<rendering::VisualPtr, std::vector<Entity>> CopyVisual(
+                Entity _id, const std::string &_visual, Entity _parentId = 0);
+
     /// \brief Create a visual
     /// \param[in] _id Unique visual id
     /// \param[in] _visual Visual sdf dom
@@ -95,6 +160,32 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Visual object created from the sdf dom
     public: rendering::VisualPtr CreateVisual(Entity _id,
         const sdf::Visual &_visual, Entity _parentId = 0);
+
+    /// \brief Create a center of mass visual
+    /// \param[in] _id Unique visual id
+    /// \param[in] _inertial Inertial component of the link
+    /// \param[in] _parentId Parent id
+    /// \return Visual (center of mass) object created from the inertial
+    public: rendering::VisualPtr CreateCOMVisual(Entity _id,
+        const math::Inertiald &_inertial, Entity _parentId = 0);
+
+    /// \brief Create an inertia visual
+    /// \param[in] _id Unique visual id
+    /// \param[in] _inertial Inertial component of the link
+    /// \param[in] _parentId Parent id
+    /// \return Visual (inertia) object created from the inertial
+    public: rendering::VisualPtr CreateInertiaVisual(Entity _id,
+        const math::Inertiald &_inertial, Entity _parentId = 0);
+
+    /// \brief Create a joint visual
+    /// \param[in] _id Unique visual id
+    /// \param[in] _joint Joint sdf dom
+    /// \param[in] _childId Joint child id
+    /// \param[in] _parentId Joint parent id
+    /// \return Visual (joint) object created from the sdf dom
+    public: rendering::VisualPtr CreateJointVisual(Entity _id,
+        const sdf::Joint &_joint, Entity _childId = 0,
+        Entity _parentId = 0);
 
     /// \brief Create a collision visual
     /// \param[in] _id Unique visual id
@@ -112,18 +203,45 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Create an actor
     /// \param[in] _id Unique actor id
     /// \param[in] _actor Actor sdf dom
+    /// \param[in] _name Actor's name
     /// \param[in] _parentId Parent id
     /// \return Actor object created from the sdf dom
     public: rendering::VisualPtr CreateActor(Entity _id,
-        const sdf::Actor &_actor, Entity _parentId = 0);
+        const sdf::Actor &_actor, const std::string &_name,
+        Entity _parentId = 0);
 
     /// \brief Create a light
     /// \param[in] _id Unique light id
     /// \param[in] _light Light sdf dom
+    /// \param[in] _name Light's name
     /// \param[in] _parentId Parent id
     /// \return Light object created from the sdf dom
     public: rendering::LightPtr CreateLight(Entity _id,
-        const sdf::Light &_light, Entity _parentId);
+        const sdf::Light &_light, const std::string &_name, Entity _parentId);
+
+    /// \brief Create a light
+    /// \param[in] _id Unique light id
+    /// \param[in] _light Light sdf dom
+    /// \param[in] _name Light's name
+    /// \param[in] _parentId Parent id
+    /// \return Light object created from the sdf dom
+    public: rendering::VisualPtr CreateLightVisual(Entity _id,
+        const sdf::Light &_light, const std::string &_name, Entity _parentId);
+
+    /// \brief Create a particle emitter.
+    /// \param[in] _id Unique particle emitter id
+    /// \param[in] _emitter Particle emitter data
+    /// \param[in] _parentId Parent id
+    /// \return Default particle emitter object created
+    public: rendering::ParticleEmitterPtr CreateParticleEmitter(
+        Entity _id, const msgs::ParticleEmitter &_emitter, Entity _parentId);
+
+    /// \brief Update an existing particle emitter
+    /// \brief _id Emitter id to update
+    /// \brief _emitter Data to update the particle emitter
+    /// \return Particle emitter updated
+    public: rendering::ParticleEmitterPtr UpdateParticleEmitter(Entity _id,
+        const msgs::ParticleEmitter &_emitter);
 
     /// \brief Ignition sensors is the one responsible for adding sensors
     /// to the scene. Here we just keep track of it and make sure it has
@@ -150,23 +268,33 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Pointer to requested entity's mesh
     public: rendering::MeshPtr ActorMeshById(Entity _id) const;
 
-    /// \brief Get the animation of actor mesh given an id
+    /// \brief Get a skeleton given an id
+    /// \param[in] _id Actor entity's unique id
+    /// \return Pointer to requested entity's skeleton
+    public: common::SkeletonPtr ActorSkeletonById(Entity _id) const;
+
+    /// \brief Get the skeleton local transforms of actor mesh given an id.
+    /// Use this function if you are animating the actor manually by its
+    /// skeleton node pose.
     /// \param[in] _id Entity's unique id
-    /// \param[in] _time Timepoint for the animation
+    /// \param[in] _time SimulationTime
     /// \return Map from the skeleton node name to transforms
-    public: std::map<std::string, math::Matrix4d> ActorMeshAnimationAt(
+    public: std::map<std::string, math::Matrix4d> ActorSkeletonTransformsAt(
+        Entity _id, std::chrono::steady_clock::duration _time) const;
+
+    /// \brief Get the actor animation update data given an id.
+    /// Use this function to let the render engine handle the actor animation.
+    /// by setting the animation name to be played.
+    /// \param[in] _id Entity's unique id
+    /// \param[in] _time Simulation time
+    /// \return Data needed to update the animation, including the name and
+    /// time of animation to play, and trajectory animation info.
+    public: AnimationUpdateData ActorAnimationAt(
         Entity _id, std::chrono::steady_clock::duration _time) const;
 
     /// \brief Remove an entity by id
     /// \param[in] _id Entity's unique id
     public: void RemoveEntity(Entity _id);
-
-    /// \brief Get the entity for a given node.
-    /// \param[in] _node Node to get the entity for.
-    /// \return The entity for that node, or `kNullEntity` for no entity.
-    /// \todo(anyone) Deprecate in favour of
-    /// `ignition::rendering::Node::UserData` once that's available.
-    public: Entity EntityFromNode(const rendering::NodePtr &_node) const;
 
     /// \brief Load a geometry
     /// \param[in] _geom Geometry sdf dom
@@ -188,10 +316,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// Usually, this will be a model or a light.
     /// \param[in] _visual Child visual
     /// \return Top level visual containining this visual
-    /// TODO(anyone) Make it const ref when merging forward
     public: rendering::VisualPtr TopLevelVisual(
-        // NOLINTNEXTLINE
-        rendering::VisualPtr _visual) const;
+        const rendering::VisualPtr &_visual) const;
 
     /// \brief Get the top level node for the given node, which
     /// is the ancestor which is a direct child to the root visual.
@@ -200,6 +326,26 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Top level node containining this node
     public: rendering::NodePtr TopLevelNode(
         const rendering::NodePtr &_node) const;
+
+    /// \brief Updates the node to increase its transparency or reset
+    /// back to its original transparency value, an opaque call requires
+    /// a previous transparent call, otherwise, no action will be taken
+    /// Usually, this will be a link visual
+    /// \param[in] _node The node to update.
+    /// \param[in] _makeTransparent true if updating to increase transparency,
+    /// false to set back to original transparency values (make more opaque)
+    public: void UpdateTransparency(const rendering::NodePtr &_node,
+        bool _makeTransparent);
+
+    /// \brief Updates the world pose of joint parent visual
+    /// according to its child.
+    /// \param[in] _jointId Joint visual id.
+    public: void UpdateJointParentPose(Entity _jointId);
+
+    /// \brief Create a unique entity ID
+    /// \return A unique entity ID. kNullEntity is returned if no unique entity
+    /// IDs are available
+    public: Entity UniqueId() const;
 
     /// \internal
     /// \brief Pointer to private data class

@@ -21,6 +21,10 @@
 #include <map>
 #include <memory>
 #include <string>
+
+#include <sdf/Material.hh>
+#include <sdf/Physics.hh>
+
 #include <ignition/math/Pose3.hh>
 #include <ignition/math/Vector3.hh>
 
@@ -28,7 +32,7 @@
 #include <ignition/gazebo/gui/GuiSystem.hh>
 #include <ignition/gazebo/Types.hh>
 
-#include "ignition/gazebo/components/Physics.hh"
+#include <ignition/msgs/light.pb.h>
 
 Q_DECLARE_METATYPE(ignition::gazebo::ComponentTypeId)
 
@@ -71,6 +75,12 @@ namespace gazebo
   template<>
   void setData(QStandardItem *_item, const math::Pose3d &_data);
 
+  /// \brief Specialized to set light data.
+  /// \param[in] _item Item whose data will be set.
+  /// \param[in] _data Data to set.
+  template<>
+  void setData(QStandardItem *_item, const msgs::Light &_data);
+
   /// \brief Specialized to set vector data.
   /// \param[in] _item Item whose data will be set.
   /// \param[in] _data Data to set.
@@ -82,6 +92,12 @@ namespace gazebo
   /// \param[in] _data Data to set.
   template<>
   void setData(QStandardItem *_item, const sdf::Physics &_data);
+
+  /// \brief Specialized to set Spherical Coordinates data.
+  /// \param[in] _item Item whose data will be set.
+  /// \param[in] _data Data to set.
+  template<>
+  void setData(QStandardItem *_item, const math::SphericalCoordinates &_data);
 
   /// \brief Specialized to set boolean data.
   /// \param[in] _item Item whose data will be set.
@@ -106,6 +122,13 @@ namespace gazebo
   /// \param[in] _data Data to set.
   template<>
   void setData(QStandardItem *_item, const std::ostream &_data);
+
+  /// \brief Specialized to set material data.
+  /// \param[in] _item Item whose data will be set.
+  /// \param[in] _data Data to set.
+  template<>
+  void setData(QStandardItem *_item, const sdf::Material &_data);
+
 
   /// \brief Set the unit of a given item.
   /// \param[in] _item Item whose unit will be set.
@@ -215,11 +238,81 @@ namespace gazebo
     public: Q_INVOKABLE void OnPose(double _x, double _y, double _z,
         double _roll, double _pitch, double _yaw);
 
+    /// \brief Callback in Qt thread when specular changes.
+    /// \param[in] _rSpecular specular red
+    /// \param[in] _gSpecular specular green
+    /// \param[in] _bSpecular specular blue
+    /// \param[in] _aSpecular specular alpha
+    /// \param[in] _rDiffuse Diffuse red
+    /// \param[in] _gDiffuse Diffuse green
+    /// \param[in] _bDiffuse Diffuse blue
+    /// \param[in] _aDiffuse Diffuse alpha
+    /// \param[in] _attRange Range attenuation
+    /// \param[in] _attLinear Linear attenuation
+    /// \param[in] _attConstant Constant attenuation
+    /// \param[in] _attQuadratic Quadratic attenuation
+    /// \param[in] _castShadows Specify if this light should cast shadows
+    /// \param[in] _directionX X direction of the light
+    /// \param[in] _directionY Y direction of the light
+    /// \param[in] _directionZ Z direction of the light
+    /// \param[in] _innerAngle Inner angle of the spotlight
+    /// \param[in] _outerAngle Outer angle of the spotlight
+    /// \param[in] _falloff Falloff of the spotlight
+    /// \param[in] _intensity Intensity of the light
+    /// \param[in] _type light type
+    public: Q_INVOKABLE void OnLight(
+      double _rSpecular, double _gSpecular, double _bSpecular,
+      double _aSpecular, double _rDiffuse, double _gDiffuse,
+      double _bDiffuse, double _aDiffuse, double _attRange,
+      double _attLinear, double _attConstant, double _attQuadratic,
+      bool _castShadows, double _directionX, double _directionY,
+      double _directionZ, double _innerAngle, double _outerAngle,
+      double _falloff, double _intensity, int _type);
+
     /// \brief Callback in Qt thread when physics' properties change.
     /// \param[in] _stepSize step size
     /// \param[in] _realTimeFactor real time factor
     public: Q_INVOKABLE void OnPhysics(double _stepSize,
         double _realTimeFactor);
+
+    // \brief Callback in Qt thread when material color changes for a visual
+    /// \param[in] _rAmbient ambient red
+    /// \param[in] _gAmbient ambient green
+    /// \param[in] _bAmbient ambient blue
+    /// \param[in] _aAmbient ambient alpha
+    /// \param[in] _rDiffuse diffuse red
+    /// \param[in] _gDiffuse diffuse green
+    /// \param[in] _bDiffuse diffuse blue
+    /// \param[in] _aDiffuse diffuse alpha
+    /// \param[in] _rSpecular specular red
+    /// \param[in] _gSpecular specular green
+    /// \param[in] _bSpecular specular blue
+    /// \param[in] _aSpecular specular alpha
+    /// \param[in] _rEmissive emissive red
+    /// \param[in] _gEmissive emissive green
+    /// \param[in] _bEmissive emissive blue
+    /// \param[in] _aEmissive emissive alpha
+    /// \param[in] _type if type is not empty, opens QColorDialog.
+    /// The possible types are ambient, diffuse, specular, or emissive.
+    /// \param[in] _currColor used for QColorDialog to show the current color
+    /// in the open dialog.
+    public: Q_INVOKABLE void OnMaterialColor(
+      double _rAmbient, double _gAmbient, double _bAmbient,
+      double _aAmbient, double _rDiffuse, double _gDiffuse,
+      double _bDiffuse, double _aDiffuse, double _rSpecular,
+      double _gSpecular, double _bSpecular, double _aSpecular,
+      double _rEmissive, double _gEmissive, double _bEmissive,
+      double _aEmissive, QString _type, QColor _currColor);
+
+    /// \brief Callback in Qt thread when spherical coordinates change.
+    /// \param[in] _surface Surface model
+    /// \param[in] _latitude Latitude in degrees
+    /// \param[in] _longitude Longitude in degrees
+    /// \param[in] _elevation Elevation in meters
+    /// \param[in] _heading Heading in degrees
+    public: Q_INVOKABLE void OnSphericalCoordinates(QString _surface,
+        double _latitude, double _longitude, double _elevation,
+        double _heading);
 
     /// \brief Get whether the entity is a nested model or not
     /// \return True if the entity is a nested model, false otherwise

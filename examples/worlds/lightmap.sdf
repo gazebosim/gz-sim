@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+<!--
+
+A world demonstrating an indoor environment model that uses a lightmap.
+There are no dynamic lights or shadows in the scene.
+
+-->
+
+<sdf version="1.7">
+  <world name="lightmap">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <scene>
+      <ambient>1.0 1.0 1.0</ambient>
+      <background>0.8 0.8 0.8</background>
+        <grid>false</grid>
+    </scene>
+
+    <include>
+      <static>true</static>
+      <name>Indoor Lightmap</name>
+      <pose>0 0 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Indoor Lightmap</uri>
+    </include>
+
+  </world>
+</sdf>

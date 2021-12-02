@@ -35,7 +35,7 @@ namespace ignition
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \class NetworkManagerPrivate NetworkManagerPrivate.hh
     /// ignition/gazebo/NetworkManagerPrivate.hh
-    class NetworkManagerPrivate
+    class IGNITION_GAZEBO_VISIBLE NetworkManagerPrivate
     {
       /// \brief Network Configuration
       public: NetworkConfig config;

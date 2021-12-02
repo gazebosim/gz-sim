@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!--
-  Demo world consisting of a thermal camera sensor and 3 models with
+  Demo world consisting of a thermal camera sensor and several models with
   different temperatures specified via the thermal system plugin.
 -->
 
@@ -31,7 +31,7 @@
     <gui fullscreen="0">
 
       <!-- 3D scene -->
-      <plugin filename="GzScene3D" name="3D View">
+      <plugin filename="MinimalScene" name="3D View">
         <ignition-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
@@ -45,6 +45,42 @@
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
       </plugin>
 
+      <!-- Plugins that add functionality to the scene -->
+      <plugin filename="EntityContextMenuPlugin" name="Entity context menu">
+        <ignition-gui>
+          <property key="state" type="string">floating</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
+      <plugin filename="GzSceneManager" name="Scene Manager">
+        <ignition-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
+      <plugin filename="InteractiveViewControl" name="Interactive view control">
+        <ignition-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
+      <plugin filename="CameraTracking" name="Camera Tracking">
+        <ignition-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
       <!-- World control -->
       <plugin filename="WorldControl" name="World control">
         <ignition-gui>
@@ -65,8 +101,7 @@
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
-        <service>/world/thermal_camera/control</service>
-        <stats_topic>/world/thermal_camera/stats</stats_topic>
+        <use_event>true</use_event>
 
       </plugin>
 
@@ -91,7 +126,20 @@
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-        <topic>/world/thermal_camera/stats</topic>
+      </plugin>
+
+      <!-- Inspector -->
+      <plugin filename="ComponentInspector" name="Component inspector">
+        <ignition-gui>
+          <property type="string" key="state">docked</property>
+        </ignition-gui>
+      </plugin>
+
+      <!-- Entity tree -->
+      <plugin filename="EntityTree" name="Entity tree">
+        <ignition-gui>
+          <property type="string" key="state">docked</property>
+        </ignition-gui>
       </plugin>
 
       <plugin filename="ImageDisplay" name="Image Display">
@@ -104,6 +152,18 @@
         <topic>thermal_camera</topic>
         <topic_picker>false</topic_picker>
       </plugin>
+      <plugin filename="ImageDisplay" name="Image Display 8 Bit">
+        <ignition-gui>
+          <title>Thermal camera 8 Bit</title>
+          <property key="state" type="string">floating</property>
+          <property type="double" key="width">350</property>
+          <property type="double" key="height">315</property>
+          <property type="double" key="x">500</property>
+        </ignition-gui>
+        <topic>thermal_camera_8bit/image</topic>
+        <topic_picker>false</topic_picker>
+      </plugin>
+
     </gui>
 
     <light type="directional" name="sun">
@@ -121,7 +181,14 @@
     </light>
 
     <atmosphere type="adiabatic">
-      <temperature>310</temperature>
+      <temperature>300</temperature>
+      <!--
+        This is a more exaggerated temperature gradient, which produces a
+        temperature range of ~11.5 kelvin for objects in the thermal camera
+        view. Typical temperature gradient is -0.0065 K/m which produces a
+        temperature range of 0.75 kelvin
+      -->
+      <temperature_gradient>0.1</temperature_gradient>
     </atmosphere>
 
     <model name="ground_plane">
@@ -158,7 +225,7 @@
     </model>
 
     <model name="box">
-      <pose>0 0 0.5 0 0 0</pose>
+      <pose>-1 1 0.5 0 0 0</pose>
       <link name="box_link">
         <inertial>
           <inertia>
@@ -193,93 +260,7 @@
           <plugin
             filename="ignition-gazebo-thermal-system"
             name="ignition::gazebo::systems::Thermal">
-            <temperature>200.0</temperature>
-          </plugin>
-        </visual>
-      </link>
-    </model>
-
-    <model name="sphere">
-      <pose>0 1.5 0.5 0 0 0</pose>
-      <link name="sphere_link">
-        <inertial>
-          <inertia>
-            <ixx>3</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>3</iyy>
-            <iyz>0</iyz>
-            <izz>3</izz>
-          </inertia>
-          <mass>3.0</mass>
-        </inertial>
-        <collision name="sphere_collision">
-          <geometry>
-            <sphere>
-              <radius>0.5</radius>
-            </sphere>
-          </geometry>
-        </collision>
-
-        <visual name="sphere_visual">
-          <geometry>
-            <sphere>
-              <radius>0.5</radius>
-            </sphere>
-          </geometry>
-          <material>
-            <ambient>0 0 1 1</ambient>
-            <diffuse>0 0 1 1</diffuse>
-            <specular>0 0 1 1</specular>
-          </material>
-          <plugin
-            filename="ignition-gazebo-thermal-system"
-            name="ignition::gazebo::systems::Thermal">
-            <temperature>600.0</temperature>
-          </plugin>
-        </visual>
-      </link>
-    </model>
-
-    <model name="cylinder">
-      <pose>0 -1.5 0.5 0 0 0</pose>
-      <link name="cylinder_link">
-        <inertial>
-          <inertia>
-            <ixx>2</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>2</iyy>
-            <iyz>0</iyz>
-            <izz>2</izz>
-          </inertia>
-          <mass>2.0</mass>
-        </inertial>
-        <collision name="cylinder_collision">
-          <geometry>
-            <cylinder>
-              <radius>0.5</radius>
-              <length>1.0</length>
-            </cylinder>
-          </geometry>
-        </collision>
-
-        <visual name="cylinder_visual">
-          <geometry>
-            <cylinder>
-              <radius>0.5</radius>
-              <length>1.0</length>
-            </cylinder>
-          </geometry>
-          <material>
-            <ambient>0 1 0 1</ambient>
-            <diffuse>0 1 0 1</diffuse>
-            <specular>0 1 0 1</specular>
-          </material>
-          <plugin
-            filename="ignition-gazebo-thermal-system"
-            name="ignition::gazebo::systems::Thermal">
-            <temperature>400.0</temperature>
+            <temperature>285.0</temperature>
           </plugin>
         </visual>
       </link>
@@ -309,6 +290,7 @@
             <image>
               <width>320</width>
               <height>240</height>
+              <format>L16</format>
             </image>
             <clip>
               <near>0.1</near>
@@ -323,6 +305,73 @@
       </link>
       <static>true</static>
     </model>
+
+    <model name="thermal_camera_8bit">
+      <pose>4.5 0 0.5 0.0 0.0 3.14</pose>
+      <link name="link">
+        <pose>0.05 0.05 0.05 0 0 0</pose>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </visual>
+        <sensor name="thermal_camera_8bit" type="thermal">
+          <camera>
+            <horizontal_fov>1.047</horizontal_fov>
+            <image>
+              <width>320</width>
+              <height>240</height>
+              <format>L8</format>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>100</far>
+            </clip>
+          </camera>
+          <always_on>1</always_on>
+          <update_rate>30</update_rate>
+          <visualize>true</visualize>
+          <topic>thermal_camera_8bit/image</topic>
+          <plugin
+            filename="ignition-gazebo-thermal-sensor-system"
+            name="ignition::gazebo::systems::ThermalSensor">
+            <min_temp>253.15</min_temp>
+            <max_temp>673.15</max_temp>
+            <resolution>3.0</resolution>
+          </plugin>
+
+        </sensor>
+      </link>
+      <static>true</static>
+    </model>
+
+
+    <include>
+      <pose>1 0 0 0 0 1.570796</pose>
+      <name>rescue_randy</name>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Rescue Randy</uri>
+    </include>
+
+    <include>
+      <pose>2.25 .5 .1 0 0 1.570796</pose>
+      <name>phone</name>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Samsung J8 Black</uri>
+    </include>
+
+    <include>
+      <pose>2.25 -.5 .1 0 0 1.570796</pose>
+      <name>backpack</name>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack</uri>
+    </include>
 
   </world>
 </sdf>

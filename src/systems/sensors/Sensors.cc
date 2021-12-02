@@ -19,6 +19,7 @@
 
 #include <map>
 #include <set>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -27,21 +28,26 @@
 
 #include <sdf/Sensor.hh>
 
-#include <ignition/common/Time.hh>
 #include <ignition/math/Helpers.hh>
 
 #include <ignition/rendering/Scene.hh>
 #include <ignition/sensors/CameraSensor.hh>
+#include <ignition/sensors/DepthCameraSensor.hh>
+#include <ignition/sensors/GpuLidarSensor.hh>
 #include <ignition/sensors/RenderingSensor.hh>
+#include <ignition/sensors/RgbdCameraSensor.hh>
 #include <ignition/sensors/ThermalCameraSensor.hh>
+#include <ignition/sensors/SegmentationCameraSensor.hh>
 #include <ignition/sensors/Manager.hh>
 
 #include "ignition/gazebo/components/Atmosphere.hh"
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
+#include "ignition/gazebo/components/RenderEngineServerHeadless.hh"
 #include "ignition/gazebo/components/RenderEngineServerPlugin.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
+#include "ignition/gazebo/components/SegmentationCamera.hh"
 #include "ignition/gazebo/components/ThermalCamera.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Events.hh"
@@ -68,7 +74,6 @@ class ignition::gazebo::systems::SensorsPrivate
   public: RenderUtil renderUtil;
 
   /// \brief Unique set of sensor ids
-  // TODO(anyone) Remove element when sensor is deleted
   public: std::set<sensors::SensorId> sensorIds;
 
   /// \brief rendering scene to be managed by the scene manager and used to
@@ -79,11 +84,21 @@ class ignition::gazebo::systems::SensorsPrivate
   /// sea level
   public: double ambientTemperature = 288.15;
 
+  /// \brief Temperature gradient with respect to increasing altitude at sea
+  /// level in units of K/m.
+  public: double ambientTemperatureGradient = -0.0065;
+
   /// \brief Keep track of cameras, in case we need to handle stereo cameras.
   /// Key: Camera's parent scoped name
   /// Value: Pointer to camera
   // TODO(anyone) Remove element when sensor is deleted
   public: std::map<std::string, sensors::CameraSensor *> cameras;
+
+  /// \brief Maps gazebo entity to its matching sensor ID
+  ///
+  /// Useful for detecting when a sensor Entity has been deleted and trigger
+  /// the destruction of the corresponding ignition::sensors Sensor object
+  public: std::unordered_map<Entity, sensors::SensorId> entityToIdMap;
 
   /// \brief Flag to indicate if worker threads are running
   public: std::atomic<bool> running { false };
@@ -111,7 +126,7 @@ class ignition::gazebo::systems::SensorsPrivate
   public: ignition::common::ConnectionPtr stopConn;
 
   /// \brief Update time for the next rendering iteration
-  public: ignition::common::Time updateTime;
+  public: std::chrono::steady_clock::duration updateTime;
 
   /// \brief Sensors to include in the next rendering iteration
   public: std::vector<sensors::RenderingSensor *> activeSensors;
@@ -120,7 +135,8 @@ class ignition::gazebo::systems::SensorsPrivate
   public: std::mutex sensorMaskMutex;
 
   /// \brief Mask sensor updates for sensors currently being rendered
-  public: std::map<sensors::SensorId, ignition::common::Time> sensorMask;
+  public: std::map<sensors::SensorId,
+    std::chrono::steady_clock::duration> sensorMask;
 
   /// \brief Pointer to the event manager
   public: EventManager *eventManager{nullptr};
@@ -196,6 +212,7 @@ void SensorsPrivate::WaitForInit()
         this->renderUtil.SetAmbientLight(*this->ambientLight);
       this->renderUtil.Init();
       this->scene = this->renderUtil.Scene();
+      this->scene->SetCameraPassCountPerGpuFlush(6u);
       this->initialized = true;
     }
 
@@ -242,7 +259,8 @@ void SensorsPrivate::RunOnce()
     for (const auto & sensor : this->activeSensors)
     {
       // 90% of update delta (1/UpdateRate());
-      ignition::common::Time delta(0.9 / sensor->UpdateRate());
+      auto delta = std::chrono::duration_cast< std::chrono::milliseconds>(
+        std::chrono::duration< double >(0.9 / sensor->UpdateRate()));
       this->sensorMask[sensor->Id()] = this->updateTime + delta;
     }
     this->sensorMaskMutex.unlock();
@@ -261,6 +279,15 @@ void SensorsPrivate::RunOnce()
       // publish data
       IGN_PROFILE("RunOnce");
       this->sensorManager.RunOnce(this->updateTime);
+    }
+
+    {
+      IGN_PROFILE("PostRender");
+      // Update the scene graph manually to improve performance
+      // We only need to do this once per frame It is important to call
+      // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
+      // so we don't waste cycles doing one scene graph update per sensor
+      this->scene->PostRender();
       this->eventManager->Emit<events::PostRender>();
     }
 
@@ -287,7 +314,8 @@ void SensorsPrivate::RenderThread()
     this->RunOnce();
   }
 
-  for (auto id : this->sensorIds)
+  // clean up before exiting
+  for (const auto id : this->sensorIds)
     this->sensorManager.Remove(id);
 
   igndbg << "SensorsPrivate::RenderThread stopped" << std::endl;
@@ -320,6 +348,32 @@ void SensorsPrivate::Stop()
   if (this->renderThread.joinable())
   {
     this->renderThread.join();
+  }
+}
+
+//////////////////////////////////////////////////
+void Sensors::RemoveSensor(const Entity &_entity)
+{
+  auto idIter = this->dataPtr->entityToIdMap.find(_entity);
+  if (idIter != this->dataPtr->entityToIdMap.end())
+  {
+    // Remove from active sensors as well
+    // Locking mutex to make sure the vector is not being changed while
+    // the rendering thread is iterating over it
+    {
+      std::unique_lock<std::mutex> lock(this->dataPtr->sensorMaskMutex);
+      sensors::Sensor *s = this->dataPtr->sensorManager.Sensor(idIter->second);
+      auto rs = dynamic_cast<sensors::RenderingSensor *>(s);
+      auto activeSensorIt = std::find(this->dataPtr->activeSensors.begin(),
+          this->dataPtr->activeSensors.end(), rs);
+      if (activeSensorIt != this->dataPtr->activeSensors.end())
+      {
+        this->dataPtr->activeSensors.erase(activeSensorIt);
+      }
+    }
+    this->dataPtr->sensorIds.erase(idIter->second);
+    this->dataPtr->sensorManager.Remove(idIter->second);
+    this->dataPtr->entityToIdMap.erase(idIter);
   }
 }
 
@@ -357,7 +411,9 @@ void Sensors::Configure(const Entity &/*_id*/,
   this->dataPtr->renderUtil.SetEngineName(engineName);
   this->dataPtr->renderUtil.SetEnableSensors(true,
       std::bind(&Sensors::CreateSensor, this,
-      std::placeholders::_1, std::placeholders::_2));
+      std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    this->dataPtr->renderUtil.SetRemoveSensorCb(
+      std::bind(&Sensors::RemoveSensor, this, std::placeholders::_1));
 
   // parse sensor-specific data
   auto worldEntity = _ecm.EntityByComponents(components::World());
@@ -369,6 +425,8 @@ void Sensors::Configure(const Entity &/*_id*/,
     {
       auto atmosphereSdf = atmosphere->Data();
       this->dataPtr->ambientTemperature = atmosphereSdf.Temperature().Kelvin();
+      this->dataPtr->ambientTemperatureGradient =
+          atmosphereSdf.TemperatureGradient();
     }
 
     // Set render engine if specified from command line
@@ -377,6 +435,15 @@ void Sensors::Configure(const Entity &/*_id*/,
     if (renderEngineServerComp && !renderEngineServerComp->Data().empty())
     {
       this->dataPtr->renderUtil.SetEngineName(renderEngineServerComp->Data());
+    }
+
+    // Set headless mode if specified from command line
+    auto renderEngineServerHeadlessComp =
+      _ecm.Component<components::RenderEngineServerHeadless>(worldEntity);
+    if (renderEngineServerHeadlessComp)
+    {
+      this->dataPtr->renderUtil.SetHeadlessRendering(
+        renderEngineServerHeadlessComp->Data());
     }
   }
 
@@ -387,6 +454,18 @@ void Sensors::Configure(const Entity &/*_id*/,
 
   // Kick off worker thread
   this->dataPtr->Run();
+}
+
+//////////////////////////////////////////////////
+void Sensors::Update(const UpdateInfo &_info,
+                     EntityComponentManager &_ecm)
+{
+  IGN_PROFILE("Sensors::Update");
+  std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
+  if (this->dataPtr->running && this->dataPtr->initialized)
+  {
+    this->dataPtr->renderUtil.UpdateECM(_info, _ecm);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -403,17 +482,21 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
         << "s]. System may not work properly." << std::endl;
   }
 
-  if (!this->dataPtr->initialized &&
-      (_ecm.HasComponentType(components::Camera::typeId) ||
-       _ecm.HasComponentType(components::DepthCamera::typeId) ||
-       _ecm.HasComponentType(components::GpuLidar::typeId) ||
-       _ecm.HasComponentType(components::RgbdCamera::typeId) ||
-       _ecm.HasComponentType(components::ThermalCamera::typeId)))
+
   {
-    igndbg << "Initialization needed" << std::endl;
     std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
-    this->dataPtr->doInit = true;
-    this->dataPtr->renderCv.notify_one();
+    if (!this->dataPtr->initialized &&
+        (_ecm.HasComponentType(components::Camera::typeId) ||
+         _ecm.HasComponentType(components::DepthCamera::typeId) ||
+         _ecm.HasComponentType(components::GpuLidar::typeId) ||
+         _ecm.HasComponentType(components::RgbdCamera::typeId) ||
+         _ecm.HasComponentType(components::ThermalCamera::typeId) ||
+         _ecm.HasComponentType(components::SegmentationCamera::typeId)))
+    {
+      igndbg << "Initialization needed" << std::endl;
+      this->dataPtr->doInit = true;
+      this->dataPtr->renderCv.notify_one();
+    }
   }
 
   if (this->dataPtr->running && this->dataPtr->initialized)
@@ -421,7 +504,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
     this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
 
     auto time = math::durationToSecNsec(_info.simTime);
-    auto t = common::Time(time.first, time.second);
+    auto t = math::secNsecToDuration(time.first, time.second);
 
     std::vector<sensors::RenderingSensor *> activeSensors;
 
@@ -444,7 +527,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
         }
       }
 
-      if (rs && rs->NextUpdateTime() <= t)
+      if (rs && rs->NextDataUpdateTime() <= t)
       {
         activeSensors.push_back(rs);
       }
@@ -472,8 +555,8 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-std::string Sensors::CreateSensor(const sdf::Sensor &_sdf,
-    const std::string &_parentName)
+std::string Sensors::CreateSensor(const Entity &_entity,
+    const sdf::Sensor &_sdf, const std::string &_parentName)
 {
   if (_sdf.Type() == sdf::SensorType::NONE)
   {
@@ -482,21 +565,52 @@ std::string Sensors::CreateSensor(const sdf::Sensor &_sdf,
   }
 
   // Create within ign-sensors
-  auto sensorId = this->dataPtr->sensorManager.CreateSensor(_sdf);
-  auto sensor = this->dataPtr->sensorManager.Sensor(sensorId);
+  sensors::Sensor *sensor{nullptr};
+  if (_sdf.Type() == sdf::SensorType::CAMERA)
+  {
+    sensor = this->dataPtr->sensorManager.CreateSensor<
+      sensors::CameraSensor>(_sdf);
+  }
+  else if (_sdf.Type() == sdf::SensorType::DEPTH_CAMERA)
+  {
+    sensor = this->dataPtr->sensorManager.CreateSensor<
+      sensors::DepthCameraSensor>(_sdf);
+  }
+  else if (_sdf.Type() == sdf::SensorType::GPU_LIDAR)
+  {
+    sensor = this->dataPtr->sensorManager.CreateSensor<
+      sensors::GpuLidarSensor>(_sdf);
+  }
+  else if (_sdf.Type() == sdf::SensorType::RGBD_CAMERA)
+  {
+    sensor = this->dataPtr->sensorManager.CreateSensor<
+      sensors::RgbdCameraSensor>(_sdf);
+  }
+  else if (_sdf.Type() == sdf::SensorType::THERMAL_CAMERA)
+  {
+    sensor = this->dataPtr->sensorManager.CreateSensor<
+      sensors::ThermalCameraSensor>(_sdf);
+  }
+  else if (_sdf.Type() == sdf::SensorType::SEGMENTATION_CAMERA)
+  {
+    sensor = this->dataPtr->sensorManager.CreateSensor<
+      sensors::SegmentationCameraSensor>(_sdf);
+  }
 
-  if (nullptr == sensor || sensors::NO_SENSOR == sensor->Id())
+  if (nullptr == sensor)
   {
     ignerr << "Failed to create sensor [" << _sdf.Name()
-           << "]" << std::endl;
+           << "]." << std::endl;
     return std::string();
   }
 
+  // Store sensor ID
+  auto sensorId = sensor->Id();
+  this->dataPtr->entityToIdMap.insert({_entity, sensorId});
   this->dataPtr->sensorIds.insert(sensorId);
 
   // Set the scene so it can create the rendering sensor
-  auto renderingSensor =
-      dynamic_cast<sensors::RenderingSensor *>(sensor);
+  auto renderingSensor = dynamic_cast<sensors::RenderingSensor *>(sensor);
   renderingSensor->SetScene(this->dataPtr->scene);
   renderingSensor->SetParent(_parentName);
   renderingSensor->SetManualSceneUpdate(true);
@@ -544,6 +658,27 @@ std::string Sensors::CreateSensor(const sdf::Sensor &_sdf,
   if (nullptr != thermalSensor)
   {
     thermalSensor->SetAmbientTemperature(this->dataPtr->ambientTemperature);
+
+    // temperature gradient is in kelvin per meter - typically change in
+    // temperature over change in altitude. However the implementation of
+    // thermal sensor in ign-sensors varies temperature for all objects in its
+    // view. So we will do an approximation based on camera view's vertical
+    // distance.
+    auto camSdf = _sdf.CameraSensor();
+    double farClip = camSdf->FarClip();
+    double angle = camSdf->HorizontalFov().Radian();
+    double aspect = camSdf->ImageWidth() / camSdf->ImageHeight();
+    double vfov = 2.0 * atan(tan(angle / 2.0) / aspect);
+    double height = tan(vfov / 2.0) * farClip * 2.0;
+    double tempRange =
+        std::fabs(this->dataPtr->ambientTemperatureGradient * height);
+    thermalSensor->SetAmbientTemperatureRange(tempRange);
+
+    ignmsg << "Setting ambient temperature to "
+           << this->dataPtr->ambientTemperature << " Kelvin and gradient to "
+           << this->dataPtr->ambientTemperatureGradient << " K/m. "
+           << "The resulting temperature range is: " << tempRange
+           << " Kelvin." << std::endl;
   }
 
   return sensor->Name();
@@ -551,6 +686,7 @@ std::string Sensors::CreateSensor(const sdf::Sensor &_sdf,
 
 IGNITION_ADD_PLUGIN(Sensors, System,
   Sensors::ISystemConfigure,
+  Sensors::ISystemUpdate,
   Sensors::ISystemPostUpdate
 )
 

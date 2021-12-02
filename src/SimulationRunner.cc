@@ -176,26 +176,33 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 
   // World control
   transport::NodeOptions opts;
+  std::string ns{"/world/" + this->worldName};
   if (this->networkMgr)
   {
-    opts.SetNameSpace(this->networkMgr->Namespace() +
-                      "/world/" + this->worldName);
+    ns = this->networkMgr->Namespace() + ns;
   }
-  else
+
+  auto validNs = transport::TopicUtils::AsValidTopic(ns);
+  if (validNs.empty())
   {
-    opts.SetNameSpace("/world/" + this->worldName);
+    ignerr << "Invalid namespace [" << ns
+           << "], not initializing runner transport." << std::endl;
+    return;
   }
+  opts.SetNameSpace(validNs);
 
   this->node = std::make_unique<transport::Node>(opts);
 
   // TODO(louise) Combine both messages into one.
   this->node->Advertise("control", &SimulationRunner::OnWorldControl, this);
+  this->node->Advertise("control/state", &SimulationRunner::OnWorldControlState,
+      this);
   this->node->Advertise("playback/control",
       &SimulationRunner::OnPlaybackControl, this);
 
   ignmsg << "Serving world controls on [" << opts.NameSpace()
-         << "/control] and [" << opts.NameSpace() << "/playback/control]"
-         << std::endl;
+         << "/control], [" << opts.NameSpace() << "/control/state] and ["
+         << opts.NameSpace() << "/playback/control]" << std::endl;
 
   // Publish empty GUI messages for worlds that have no GUI in the beginning.
   // In the future, support modifying GUI from the server at runtime.
@@ -350,20 +357,32 @@ void SimulationRunner::UpdatePhysicsParams()
   if (newStepSize != this->stepSize ||
       std::abs(newRTF - this->desiredRtf) > eps)
   {
-    this->SetStepSize(
-      std::chrono::duration_cast<std::chrono::steady_clock::duration>(
-        newStepSize));
-    this->desiredRtf = newRTF;
-    this->updatePeriod = std::chrono::nanoseconds(
-        static_cast<int>(this->stepSize.count() / this->desiredRtf));
-
-    this->simTimes.clear();
-    this->realTimes.clear();
-    // Update physics components
-    physicsComp->Data().SetMaxStepSize(physicsParams.max_step_size());
-    physicsComp->Data().SetRealTimeFactor(newRTF);
-    this->entityCompMgr.SetChanged(worldEntity, components::Physics::typeId,
-        ComponentState::OneTimeChange);
+    bool updated = false;
+    // Make sure the values are valid before setting them
+    if (newStepSize.count() > 0.0)
+    {
+      this->SetStepSize(
+        std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+          newStepSize));
+      physicsComp->Data().SetMaxStepSize(physicsParams.max_step_size());
+      updated = true;
+    }
+    if (newRTF > 0.0)
+    {
+      this->desiredRtf = newRTF;
+      this->updatePeriod = std::chrono::nanoseconds(
+          static_cast<int>(this->stepSize.count() / this->desiredRtf));
+      physicsComp->Data().SetRealTimeFactor(newRTF);
+      updated = true;
+    }
+    if (updated)
+    {
+      this->simTimes.clear();
+      this->realTimes.clear();
+      // Set as OneTimeChange to make sure the update is not missed
+      this->entityCompMgr.SetChanged(worldEntity, components::Physics::typeId,
+          ComponentState::OneTimeChange);
+    }
   }
   this->entityCompMgr.RemoveComponent<components::PhysicsCmd>(worldEntity);
 }
@@ -392,6 +411,12 @@ void SimulationRunner::PublishStats()
   msg.set_iterations(this->currentInfo.iterations);
 
   msg.set_paused(this->currentInfo.paused);
+
+  if (this->Stepping())
+  {
+    auto headerData = msg.mutable_header()->add_data();
+    headerData->set_key("step");
+  }
 
   // Publish the stats message. The stats message is throttled.
   this->statsPub.Publish(msg);
@@ -555,6 +580,7 @@ void SimulationRunner::UpdateSystems()
 
   {
     IGN_PROFILE("PostUpdate");
+    this->entityCompMgr.LockAddingEntitiesToViews(true);
     // If no systems implementing PostUpdate have been added, then
     // the barriers will be uninitialized, so guard against that condition.
     if (this->postUpdateStartBarrier && this->postUpdateStopBarrier)
@@ -562,6 +588,7 @@ void SimulationRunner::UpdateSystems()
       this->postUpdateStartBarrier->Wait();
       this->postUpdateStopBarrier->Wait();
     }
+    this->entityCompMgr.LockAddingEntitiesToViews(false);
   }
 }
 
@@ -642,7 +669,13 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   if (!this->statsPub.Valid())
   {
     transport::AdvertiseMessageOptions advertOpts;
-    advertOpts.SetMsgsPerSec(5);
+    // publish 10 world statistics msgs/second. A smaller number isn't used
+    // because the GUI listens to these msgs to receive confirmation that
+    // pause/play GUI requests have been processed by the server, so we want to
+    // make sure that GUI requests are acknowledged quickly (see
+    // https://github.com/ignitionrobotics/ign-gui/pull/306 and
+    // https://github.com/ignitionrobotics/ign-gazebo/pull/1163)
+    advertOpts.SetMsgsPerSec(10);
     this->statsPub = this->node->Advertise<ignition::msgs::WorldStatistics>(
         "stats", advertOpts);
   }
@@ -801,6 +834,15 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   // Update all the systems.
   this->UpdateSystems();
 
+  if (!this->Paused() &&
+       this->requestedRunToSimTime >
+       std::chrono::steady_clock::duration::zero() &&
+       this->currentInfo.simTime >= this->requestedRunToSimTime)
+  {
+    this->SetPaused(true);
+    this->requestedRunToSimTime = std::chrono::steady_clock::duration{-1};
+  }
+
   if (!this->Paused() && this->pendingSimIterations > 0)
   {
     // Decrement the pending sim iterations, if there are any.
@@ -821,6 +863,9 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 
   // Process entity removals.
   this->entityCompMgr.ProcessRemoveEntityRequests();
+
+  // Process components removals
+  this->entityCompMgr.ClearRemovedComponents();
 
   // Each network manager takes care of marking its components as unchanged
   if (!this->networkMgr)
@@ -1048,32 +1093,83 @@ void SimulationRunner::SetPaused(const bool _paused)
 }
 
 /////////////////////////////////////////////////
+void SimulationRunner::SetStepping(bool _stepping)
+{
+  this->stepping = _stepping;
+}
+
+/////////////////////////////////////////////////
+bool SimulationRunner::Stepping() const
+{
+  return this->stepping;
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::SetRunToSimTime(
+    const std::chrono::steady_clock::duration &_time)
+{
+  if (_time >= std::chrono::steady_clock::duration::zero() &&
+      _time > this->currentInfo.simTime)
+  {
+    this->requestedRunToSimTime = _time;
+  }
+  else
+  {
+    this->requestedRunToSimTime = std::chrono::seconds(-1);
+  }
+}
+
+/////////////////////////////////////////////////
 bool SimulationRunner::OnWorldControl(const msgs::WorldControl &_req,
+    msgs::Boolean &_res)
+{
+  msgs::WorldControlState req;
+  req.mutable_world_control()->CopyFrom(_req);
+
+  return this->OnWorldControlState(req, _res);
+}
+
+/////////////////////////////////////////////////
+bool SimulationRunner::OnWorldControlState(const msgs::WorldControlState &_req,
     msgs::Boolean &_res)
 {
   std::lock_guard<std::mutex> lock(this->msgBufferMutex);
 
-  WorldControl control;
-  control.pause = _req.pause();
+  // update the server ECM if the request contains SerializedState information
+  if (_req.has_state())
+    this->entityCompMgr.SetState(_req.state());
+  // TODO(anyone) notify server systems of changes made to the ECM, if there
+  // were any?
 
-  if (_req.multi_step() != 0)
-    control.multiStep = _req.multi_step();
-  else if (_req.step())
+  WorldControl control;
+  control.pause = _req.world_control().pause();
+
+  if (_req.world_control().multi_step() != 0)
+    control.multiStep = _req.world_control().multi_step();
+  else if (_req.world_control().step())
     control.multiStep = 1;
 
-  if (_req.has_reset())
+  if (_req.world_control().has_reset())
   {
-    control.rewind = _req.reset().all() || _req.reset().time_only();
+    control.rewind = _req.world_control().reset().all() ||
+      _req.world_control().reset().time_only();
 
-    if (_req.reset().model_only())
+    if (_req.world_control().reset().model_only())
     {
       ignwarn << "Model only reset is not supported." << std::endl;
     }
   }
 
-  if (_req.seed() != 0)
+  if (_req.world_control().seed() != 0)
   {
     ignwarn << "Changing seed is not supported." << std::endl;
+  }
+
+  if (_req.world_control().has_run_to_sim_time())
+  {
+    control.runToSimTime = std::chrono::seconds(
+        _req.world_control().run_to_sim_time().sec()) +
+        std::chrono::nanoseconds(_req.world_control().run_to_sim_time().nsec());
   }
 
   this->worldControls.push_back(control);
@@ -1122,6 +1218,10 @@ void SimulationRunner::ProcessMessages()
 void SimulationRunner::ProcessWorldControl()
 {
   IGN_PROFILE("SimulationRunner::ProcessWorldControl");
+
+  // assume no stepping unless WorldControl msgs say otherwise
+  this->SetStepping(false);
+
   for (const auto &control : this->worldControls)
   {
     // Play / pause
@@ -1133,6 +1233,7 @@ void SimulationRunner::ProcessWorldControl()
       this->pendingSimIterations += control.multiStep;
       // Unpause so that stepping can occur.
       this->SetPaused(false);
+      this->SetStepping(true);
     }
 
     // Rewind / reset
@@ -1143,6 +1244,8 @@ void SimulationRunner::ProcessWorldControl()
     {
       this->requestedSeek = control.seek;
     }
+
+    this->SetRunToSimTime(control.runToSimTime);
   }
 
   this->worldControls.clear();

@@ -29,7 +29,6 @@
 #include <sdf/Joint.hh>
 
 #include <ignition/common/Profiler.hh>
-#include <ignition/common/Time.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>

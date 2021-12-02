@@ -29,6 +29,7 @@
 #include "ignition/gazebo/components/AngularVelocityCmd.hh"
 #include "ignition/gazebo/components/LinearVelocityCmd.hh"
 #include "ignition/gazebo/Model.hh"
+#include "ignition/gazebo/Util.hh"
 
 #include "VelocityControl.hh"
 
@@ -136,12 +137,14 @@ void VelocityControl::Configure(const Entity &_entity,
   }
 
   // Subscribe to model commands
-  std::string modelTopic{
-      "/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel"};
+  std::vector<std::string> modelTopics;
   if (_sdf->HasElement("topic"))
-    modelTopic = _sdf->Get<std::string>("topic");
-  modelTopic = transport::TopicUtils::AsValidTopic(modelTopic);
-
+  {
+    modelTopics.push_back(_sdf->Get<std::string>("topic"));
+  }
+  modelTopics.push_back(
+    "/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel");
+  auto modelTopic = validTopic(modelTopics);
   this->dataPtr->node.Subscribe(
     modelTopic, &VelocityControlPrivate::OnCmdVel, this->dataPtr.get());
   ignmsg << "VelocityControl subscribing to twist messages on ["

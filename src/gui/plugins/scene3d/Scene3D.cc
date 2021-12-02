@@ -49,6 +49,7 @@
 
 #include <ignition/rendering/Image.hh>
 #include <ignition/rendering/OrbitViewController.hh>
+#include <ignition/rendering/OrthoViewController.hh>
 #include <ignition/rendering/MoveToHelper.hh>
 #include <ignition/rendering/RayQuery.hh>
 #include <ignition/rendering/RenderEngine.hh>
@@ -76,6 +77,7 @@
 std::condition_variable g_renderCv;
 
 Q_DECLARE_METATYPE(std::string)
+Q_DECLARE_METATYPE(ignition::gazebo::RenderSync*)
 
 namespace ignition
 {
@@ -84,6 +86,7 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   /// \brief Helper to store selection requests to be handled in the render
   /// thread by `IgnRenderer::HandleEntitySelection`.
+  // SelectEntities
   struct SelectionHelper
   {
     /// \brief Entity to be selected
@@ -99,29 +102,36 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   /// \brief Private data class for IgnRenderer
   class IgnRendererPrivate
   {
-    /// \brief Flag to indicate if mouse event is dirty
-    public: bool mouseDirty = false;
+    // --------------------------------------------------------------
+    // InteractiveViewControl
 
-    /// \brief Flag to indicate if hover event is dirty
-    public: bool hoverDirty = false;
+    /// \brief Orbit view controller
+    public: rendering::OrbitViewController orbitViewControl;
 
-    /// \brief Mouse event
-    public: common::MouseEvent mouseEvent;
+    /// \brief Ortho view controller
+    public: rendering::OrthoViewController orthoViewControl;
 
-    /// \brief Key event
-    public: common::KeyEvent keyEvent;
+    /// \brief Camera view controller
+    public: rendering::ViewController *viewControl{nullptr};
 
-    /// \brief Mouse move distance since last event.
-    public: math::Vector2d drag;
+    /// \brief View controller
+    public: std::string viewController{"orbit"};
 
-    /// \brief Mutex to protect mouse events
-    public: std::mutex mutex;
+    /// \brief View control focus target
+    public: math::Vector3d target = math::Vector3d(
+        math::INF_D, math::INF_D, math::INF_D);
 
-    /// \brief User camera
-    public: rendering::CameraPtr camera;
+    // --------------------------------------------------------------
+    // TransformControl
 
-    /// \brief Camera orbit controller
-    public: rendering::OrbitViewController viewControl;
+    /// \brief The xyz values by which to snap the object.
+    public: math::Vector3d xyzSnap = math::Vector3d::One;
+
+    /// \brief The rpy values by which to snap the object.
+    public: math::Vector3d rpySnap = {45, 45, 45};
+
+    /// \brief The scale values by which to snap the object.
+    public: math::Vector3d scaleSnap = math::Vector3d::One;
 
     /// \brief Transform controller for models
     public: rendering::TransformController transformControl;
@@ -133,6 +143,28 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Transform mode: none, translation, rotation, or scale
     public: rendering::TransformMode transformMode =
         rendering::TransformMode::TM_NONE;
+
+    /// \brief Name of service for setting entity pose
+    public: std::string poseCmdService;
+
+    /// \brief Flag to indicate whether the x key is currently being pressed
+    public: bool xPressed = false;
+
+    /// \brief Flag to indicate whether the y key is currently being pressed
+    public: bool yPressed = false;
+
+    /// \brief Flag to indicate whether the z key is currently being pressed
+    public: bool zPressed = false;
+
+    /// \brief The starting world pose of a clicked visual.
+    public: ignition::math::Vector3d startWorldPos = math::Vector3d::Zero;
+
+    /// \brief Flag to keep track of world pose setting used
+    /// for button translating.
+    public: bool isStartWorldPosSet = false;
+
+    // --------------------------------------------------------------
+    // VideoRecorder
 
     /// \brief True to record a video from the user camera
     public: bool recordVideo = false;
@@ -157,11 +189,20 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// only used in lockstep mode and recording in sim time.
     public: std::chrono::steady_clock::time_point recordVideoUpdateTime;
 
-    /// \brief Start tiem of video recording
+    /// \brief Start time of video recording
     public: std::chrono::steady_clock::time_point recordStartTime;
 
-    /// \brief Camera pose publisher
+    /// \brief Video recording statistics publisher
     public: transport::Node::Publisher recorderStatsPub;
+
+    /// \brief Image from user camera
+    public: rendering::Image cameraImage;
+
+    /// \brief Video encoder
+    public: common::VideoEncoder videoEncoder;
+
+    // --------------------------------------------------------------
+    // CameraTracking
 
     /// \brief Target to move the user camera to
     public: std::string moveToTarget;
@@ -169,24 +210,20 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Helper object to move user camera
     public: ignition::rendering::MoveToHelper moveToHelper;
 
-    /// \brief Target to view collisions
-    public: std::string viewCollisionsTarget;
-
-    /// \brief Helper object to select entities. Only the latest selection
-    /// request is kept.
-    public: SelectionHelper selectionHelper;
-
     /// \brief Target to follow
     public: std::string followTarget;
 
     /// \brief Wait for follow target
     public: bool followTargetWait = false;
 
-    /// \brief Offset of camera from taget being followed
+    /// \brief Offset of camera from target being followed
     public: math::Vector3d followOffset = math::Vector3d(-5, 0, 3);
 
     /// \brief Flag to indicate the follow offset needs to be updated
     public: bool followOffsetDirty = false;
+
+    /// \brief Flag to indicate the follow offset has been updated
+    public: bool newFollowOffset = true;
 
     /// \brief Follow P gain
     public: double followPGain = 0.01;
@@ -195,8 +232,42 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// false to follow in target's local frame
     public: bool followWorldFrame = false;
 
-    /// \brief Flag for indicating whether we are in view angle mode or not
-    public: bool viewAngle = false;
+    /// \brief The pose set from the move to pose service.
+    public: std::optional<math::Pose3d> moveToPoseValue;
+
+    /// \brief Last move to animation time
+    public: std::chrono::time_point<std::chrono::system_clock> prevMoveToTime;
+
+    // --------------------------------------------------------------
+    // VisualizationCapabilities
+
+    /// \brief Target to view as transparent
+    public: std::string viewTransparentTarget;
+
+    /// \brief Target to view center of mass
+    public: std::string viewCOMTarget;
+
+    /// \brief Target to view inertia
+    public: std::string viewInertiaTarget;
+
+    /// \brief Target to view joints
+    public: std::string viewJointsTarget;
+
+    /// \brief Target to view wireframes
+    public: std::string viewWireframesTarget;
+
+    /// \brief Target to view collisions
+    public: std::string viewCollisionsTarget;
+
+    // --------------------------------------------------------------
+    // SelectEntities
+
+    /// \brief Helper object to select entities. Only the latest selection
+    /// request is kept.
+    public: SelectionHelper selectionHelper;
+
+    // --------------------------------------------------------------
+    // Spawn
 
     /// \brief Flag for indicating whether we are spawning or not.
     public: bool isSpawning = false;
@@ -204,10 +275,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Flag for indicating whether the user is currently placing a
     /// resource with the shapes plugin or not
     public: bool isPlacing = false;
-
-    /// \brief Atomic bool indicating whether the dropdown menu
-    /// is currently enabled or disabled.
-    public: std::atomic_bool dropdownMenuEnabled = true;
 
     /// \brief The SDF string of the resource to be used with plugins that spawn
     /// entities.
@@ -220,15 +287,21 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: ignition::math::Pose3d spawnPreviewPose =
             ignition::math::Pose3d::Zero;
 
-    /// \brief The currently hovered mouse position in screen coordinates
-    public: math::Vector2i mouseHoverPos = math::Vector2i::Zero;
-
     /// \brief The visual generated from the spawnSdfString / spawnSdfPath
-    public: rendering::VisualPtr spawnPreview = nullptr;
+    public: rendering::NodePtr spawnPreview = nullptr;
 
     /// \brief A record of the ids currently used by the entity spawner
     /// for easy deletion of visuals later
     public: std::vector<Entity> previewIds;
+
+    /// \brief Name of service for creating entity
+    public: std::string createCmdService;
+
+    // --------------------------------------------------------------
+    // ViewAngle
+
+    /// \brief Flag for indicating whether we are in view angle mode or not
+    public: bool viewAngle = false;
 
     /// \brief The pose set during a view angle button press that holds
     /// the pose the camera should assume relative to the entit(y/ies).
@@ -236,24 +309,39 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// pose originally loaded from the sdf.
     public: math::Vector3d viewAngleDirection = math::Vector3d::Zero;
 
-    /// \brief The pose set from the move to pose service.
-    public: std::optional<math::Pose3d> moveToPoseValue;
+    // --------------------------------------------------------------
+    // Common to various plugins
 
-    /// \brief Last move to animation time
-    public: std::chrono::time_point<std::chrono::system_clock> prevMoveToTime;
+    /// \brief Flag to indicate if mouse event is dirty
+    public: bool mouseDirty = false;
 
-    /// \brief Image from user camera
-    public: rendering::Image cameraImage;
+    /// \brief Flag to indicate if hover event is dirty
+    public: bool hoverDirty = false;
 
-    /// \brief Video encoder
-    public: common::VideoEncoder videoEncoder;
+    /// \brief Mouse event
+    public: common::MouseEvent mouseEvent;
+
+    /// \brief Key event
+    public: common::KeyEvent keyEvent;
+
+    /// \brief Mouse move distance since last event.
+    public: math::Vector2d drag;
+
+    /// \brief Mutex to protect mouse events
+    public: std::mutex mutex;
+
+    /// \brief User camera
+    public: rendering::CameraPtr camera;
+
+    /// \brief Atomic bool indicating whether the dropdown menu
+    /// is currently enabled or disabled.
+    public: std::atomic_bool dropdownMenuEnabled = true;
+
+    /// \brief The currently hovered mouse position in screen coordinates
+    public: math::Vector2i mouseHoverPos = math::Vector2i::Zero;
 
     /// \brief Ray query for mouse clicks
     public: rendering::RayQueryPtr rayQuery;
-
-    /// \brief View control focus target
-    public: math::Vector3d target = math::Vector3d(
-        math::INF_D, math::INF_D, math::INF_D);
 
     /// \brief Rendering utility
     public: RenderUtil renderUtil;
@@ -261,47 +349,99 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Transport node for making transform control requests
     public: transport::Node node;
 
-    /// \brief Name of service for setting entity pose
-    public: std::string poseCmdService;
-
-    /// \brief Name of service for creating entity
-    public: std::string createCmdService;
-
-    /// \brief The starting world pose of a clicked visual.
-    public: ignition::math::Vector3d startWorldPos = math::Vector3d::Zero;
-
-    /// \brief Flag to keep track of world pose setting used
-    /// for button translating.
-    public: bool isStartWorldPosSet = false;
-
     /// \brief Where the mouse left off - used to continue translating
     /// smoothly when switching axes through keybinding and clicking
     /// Updated on an x, y, or z, press or release and a mouse press
     public: math::Vector2i mousePressPos = math::Vector2i::Zero;
-
-    /// \brief Flag to indicate whether the x key is currently being pressed
-    public: bool xPressed = false;
-
-    /// \brief Flag to indicate whether the y key is currently being pressed
-    public: bool yPressed = false;
-
-    /// \brief Flag to indicate whether the z key is currently being pressed
-    public: bool zPressed = false;
 
     /// \brief Flag to indicate whether the escape key has been released.
     public: bool escapeReleased = false;
 
     /// \brief ID of thread where render calls can be made.
     public: std::thread::id renderThreadId;
+  };
 
-    /// \brief The xyz values by which to snap the object.
-    public: math::Vector3d xyzSnap = math::Vector3d::One;
+  /// \brief Qt and Ogre rendering is happening in different threads
+  /// The original sample 'textureinthread' from Qt used a double-buffer
+  /// scheme so that the worker (Ogre) thread write to FBO A, while
+  /// Qt is displaying FBO B.
+  ///
+  /// However Qt's implementation doesn't handle all the edge cases
+  /// (like resizing a window), and also it increases our VRAM
+  /// consumption in multiple ways (since we have to double other
+  /// resources as well or re-architect certain parts of the code
+  /// to avoid it)
+  ///
+  /// Thus we just serialize both threads so that when Qt reaches
+  /// drawing preparation, it halts and Ogre worker thread starts rendering,
+  /// then resumes when Ogre is done.
+  ///
+  /// This code is admitedly more complicated than it should be
+  /// because Qt's synchronization using signals and slots causes
+  /// deadlocks when other means of synchronization are introduced.
+  /// The whole threaded loop should be rewritten.
+  ///
+  /// All RenderSync does is conceptually:
+  ///
+  /// \code
+  ///   TextureNode::PrepareNode()
+  ///   {
+  ///     renderSync.WaitForWorkerThread(); // Qt thread
+  ///       // WaitForQtThreadAndBlock();
+  ///       // Now worker thread begins executing what's between
+  ///       // ReleaseQtThreadFromBlock();
+  ///     continue with qt code...
+  ///   }
+  /// \endcode
+  ///
+  ///
+  /// For more info see
+  /// https://github.com/ignitionrobotics/ign-rendering/issues/304
+  class RenderSync
+  {
+    /// \brief Cond. variable to synchronize rendering on specific events
+    /// (e.g. texture resize) or for debugging (e.g. keep
+    /// all API calls sequential)
+    public: std::mutex mutex;
 
-    /// \brief The rpy values by which to snap the object.
-    public: math::Vector3d rpySnap = {45, 45, 45};
+    /// \brief Cond. variable to synchronize rendering on specific events
+    /// (e.g. texture resize) or for debugging (e.g. keep
+    /// all API calls sequential)
+    public: std::condition_variable cv;
 
-    /// \brief The scale values by which to snap the object.
-    public: math::Vector3d scaleSnap = math::Vector3d::One;
+    public: enum class RenderStallState
+            {
+              /// Qt is stuck inside WaitForWorkerThread
+              /// Worker thread can proceed
+              WorkerCanProceed,
+              /// Qt is stuck inside WaitForWorkerThread
+              /// Worker thread is between WaitForQtThreadAndBlock
+              /// and ReleaseQtThreadFromBlock
+              WorkerIsProceeding,
+              /// Worker is stuck inside WaitForQtThreadAndBlock
+              /// Qt can proceed
+              QtCanProceed,
+              /// Do not block
+              ShuttingDown,
+            };
+
+    /// \brief See TextureNode::RenderSync::RenderStallState
+    public: RenderStallState renderStallState =
+        RenderStallState::QtCanProceed /*GUARDED_BY(sharedRenderMutex)*/;
+
+    /// \brief Must be called from worker thread when we want to block
+    /// \param[in] lock Acquired lock. Must be based on this->mutex
+    public: void WaitForQtThreadAndBlock(std::unique_lock<std::mutex> &_lock);
+
+    /// \brief Must be called from worker thread when we are done
+    /// \param[in] lock Acquired lock. Must be based on this->mutex
+    public: void ReleaseQtThreadFromBlock(std::unique_lock<std::mutex> &_lock);
+
+    /// \brief Must be called from Qt thread periodically
+    public: void WaitForWorkerThread();
+
+    /// \brief Must be called from GUI thread when shutting down
+    public: void Shutdown();
   };
 
   /// \brief Private data class for RenderWindowItem
@@ -313,6 +453,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Render thread
     public : RenderThread *renderThread = nullptr;
 
+    /// \brief See RenderSync
+    public: RenderSync renderSync;
+
     //// \brief Set to true after the renderer is initialized
     public: bool rendererInit = false;
 
@@ -323,41 +466,17 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   /// \brief Private data class for Scene3D
   class Scene3DPrivate
   {
-    /// \brief Transport node
-    public: transport::Node node;
-
-    /// \brief Name of the world
-    public: std::string worldName;
-
-    /// \brief Rendering utility
-    public: RenderUtil *renderUtil = nullptr;
+    // --------------------------------------------------------------
+    // TransformControl
 
     /// \brief Transform mode service
     public: std::string transformModeService;
 
+    // --------------------------------------------------------------
+    // VideoRecorder
+
     /// \brief Record video service
     public: std::string recordVideoService;
-
-    /// \brief Move to service
-    public: std::string moveToService;
-
-    /// \brief Follow service
-    public: std::string followService;
-
-    /// \brief View angle service
-    public: std::string viewAngleService;
-
-    /// \brief Move to pose service
-    public: std::string moveToPoseService;
-
-    /// \brief Shapes service
-    public: std::string shapesService;
-
-    /// \brief Camera pose topic
-    public: std::string cameraPoseTopic;
-
-    /// \brief Camera pose publisher
-    public: transport::Node::Publisher cameraPosePub;
 
     /// \brief lockstep ECM updates with rendering
     public: bool recordVideoLockstep = false;
@@ -368,12 +487,78 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief mutex to protect the recording variable
     public: std::mutex recordMutex;
 
-    /// \brief mutex to protect the render condition variable
-    /// Used when recording in lockstep mode.
-    public: std::mutex renderMutex;
+    // --------------------------------------------------------------
+    // CameraTracking
+
+    /// \brief Move to service
+    public: std::string moveToService;
+
+    /// \brief Follow service
+    public: std::string followService;
+
+    /// \brief Follow offset service
+    public: std::string followOffsetService;
+
+    /// \brief Move to pose service
+    public: std::string moveToPoseService;
+
+    /// \brief Camera pose topic
+    public: std::string cameraPoseTopic;
+
+    /// \brief Camera pose publisher
+    public: transport::Node::Publisher cameraPosePub;
+
+    // --------------------------------------------------------------
+    // VisualizationCapabilities
+
+    /// \brief View transparent service
+    public: std::string viewTransparentService;
+
+    /// \brief View center of mass service
+    public: std::string viewCOMService;
+
+    /// \brief View inertia service
+    public: std::string viewInertiaService;
+
+    /// \brief View joints service
+    public: std::string viewJointsService;
+
+    /// \brief View wireframes service
+    public: std::string viewWireframesService;
 
     /// \brief View collisions service
     public: std::string viewCollisionsService;
+
+    // --------------------------------------------------------------
+    // InteractiveViewControl
+
+    /// \brief Camera view control service
+    public: std::string cameraViewControlService;
+
+    // --------------------------------------------------------------
+    // GzSceneManager
+
+    /// \brief Rendering utility
+    public: RenderUtil *renderUtil = nullptr;
+
+    // --------------------------------------------------------------
+    // ViewAngle
+
+    /// \brief View angle service
+    public: std::string viewAngleService;
+
+    // --------------------------------------------------------------
+    // Common to various plugins
+
+    /// \brief Transport node
+    public: transport::Node node;
+
+    /// \brief Name of the world
+    public: std::string worldName;
+
+    /// \brief mutex to protect the render condition variable
+    /// Used when recording in lockstep mode.
+    public: std::mutex renderMutex;
 
     /// \brief Text for popup error message
     public: QString errorPopupText;
@@ -386,6 +571,64 @@ using namespace ignition;
 using namespace gazebo;
 
 QList<QThread *> RenderWindowItemPrivate::threads;
+
+/////////////////////////////////////////////////
+void RenderSync::WaitForQtThreadAndBlock(std::unique_lock<std::mutex> &_lock)
+{
+  this->cv.wait(_lock, [this]
+  { return this->renderStallState == RenderStallState::WorkerCanProceed ||
+           this->renderStallState == RenderStallState::ShuttingDown; });
+
+  this->renderStallState = RenderStallState::WorkerIsProceeding;
+}
+
+/////////////////////////////////////////////////
+void RenderSync::ReleaseQtThreadFromBlock(std::unique_lock<std::mutex> &_lock)
+{
+  this->renderStallState = RenderStallState::QtCanProceed;
+  _lock.unlock();
+  this->cv.notify_one();
+}
+
+/////////////////////////////////////////////////
+void RenderSync::WaitForWorkerThread()
+{
+  std::unique_lock<std::mutex> lock(this->mutex);
+
+  // Wait until we're clear to go
+  this->cv.wait( lock, [this]
+  {
+    return this->renderStallState == RenderStallState::QtCanProceed ||
+           this->renderStallState == RenderStallState::ShuttingDown;
+  } );
+
+  // Worker thread asked us to wait!
+  this->renderStallState = RenderStallState::WorkerCanProceed;
+  lock.unlock();
+  // Wake up worker thread
+  this->cv.notify_one();
+  lock.lock();
+
+  // Wait until we're clear to go
+  this->cv.wait( lock, [this]
+  {
+    return this->renderStallState == RenderStallState::QtCanProceed ||
+           this->renderStallState == RenderStallState::ShuttingDown;
+  } );
+}
+
+/////////////////////////////////////////////////
+void RenderSync::Shutdown()
+{
+  {
+    std::unique_lock<std::mutex> lock(this->mutex);
+
+    this->renderStallState = RenderStallState::ShuttingDown;
+
+    lock.unlock();
+    this->cv.notify_one();
+  }
+}
 
 /////////////////////////////////////////////////
 IgnRenderer::IgnRenderer()
@@ -412,7 +655,7 @@ RenderUtil *IgnRenderer::RenderUtil() const
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::Render()
+void IgnRenderer::Render(RenderSync *_renderSync)
 {
   rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
   if (!scene)
@@ -426,8 +669,20 @@ void IgnRenderer::Render()
 
   IGN_PROFILE_THREAD_NAME("RenderThread");
   IGN_PROFILE("IgnRenderer::Render");
+
+  std::unique_lock<std::mutex> lock(_renderSync->mutex);
+  _renderSync->WaitForQtThreadAndBlock(lock);
+
   if (this->textureDirty)
   {
+    // TODO(anyone) If SwapFromThread gets implemented,
+    // then we only need to lock when texture is dirty
+    // (but we still need to lock the whole routine if
+    // debugging from RenderDoc or if user is not willing
+    // to sacrifice VRAM)
+    //
+    // std::unique_lock<std::mutex> lock(renderSync->mutex);
+    // _renderSync->WaitForQtThreadAndBlock(lock);
     this->dataPtr->camera->SetImageWidth(this->textureSize.width());
     this->dataPtr->camera->SetImageHeight(this->textureSize.height());
     this->dataPtr->camera->SetAspectRatio(this->textureSize.width() /
@@ -435,9 +690,15 @@ void IgnRenderer::Render()
     // setting the size should cause the render texture to be rebuilt
     {
       IGN_PROFILE("IgnRenderer::Render Pre-render camera");
-      this->dataPtr->camera->PreRender();
+      this->dataPtr->camera->Update();
     }
+    // mark mouse dirty to force update view projection in HandleMouseEvent
+    this->dataPtr->mouseDirty = true;
+
     this->textureDirty = false;
+
+    // TODO(anyone) See SwapFromThread comments
+    // _renderSync->ReleaseQtThreadFromBlock(lock);
   }
 
   // texture id could change so get the value in every render update
@@ -627,7 +888,10 @@ void IgnRenderer::Render()
   {
     IGN_PROFILE("IgnRenderer::Render Follow");
     if (!this->dataPtr->moveToTarget.empty())
+    {
+      _renderSync->ReleaseQtThreadFromBlock(lock);
       return;
+    }
     rendering::NodePtr followTarget = this->dataPtr->camera->FollowTarget();
     if (!this->dataPtr->followTarget.empty())
     {
@@ -635,7 +899,8 @@ void IgnRenderer::Render()
           this->dataPtr->followTarget);
       if (target)
       {
-        if (!followTarget || target != followTarget)
+        if (!followTarget || target != followTarget
+              || this->dataPtr->newFollowOffset)
         {
           this->dataPtr->camera->SetFollowTarget(target,
               this->dataPtr->followOffset,
@@ -645,6 +910,7 @@ void IgnRenderer::Render()
           this->dataPtr->camera->SetTrackTarget(target);
           // found target, no need to wait anymore
           this->dataPtr->followTargetWait = false;
+          this->dataPtr->newFollowOffset = false;
         }
         else if (this->dataPtr->followOffsetDirty)
         {
@@ -679,7 +945,7 @@ void IgnRenderer::Render()
     {
       if (this->dataPtr->moveToHelper.Idle())
       {
-        std::vector<Entity> selectedEntities =
+        const std::vector<Entity> &selectedEntities =
           this->dataPtr->renderUtil.SelectedEntities();
 
         // Look at the origin if no entities are selected
@@ -751,6 +1017,136 @@ void IgnRenderer::Render()
     }
   }
 
+  // View as transparent
+  {
+    IGN_PROFILE("IgnRenderer::Render ViewTransparent");
+    if (!this->dataPtr->viewTransparentTarget.empty())
+    {
+      rendering::NodePtr targetNode =
+          scene->NodeByName(this->dataPtr->viewTransparentTarget);
+      auto targetVis = std::dynamic_pointer_cast<rendering::Visual>(targetNode);
+
+      if (targetVis && targetVis->HasUserData("gazebo-entity"))
+      {
+        Entity targetEntity =
+            std::get<int>(targetVis->UserData("gazebo-entity"));
+        this->dataPtr->renderUtil.ViewTransparent(targetEntity);
+      }
+      else
+      {
+        ignerr << "Unable to find node name ["
+               << this->dataPtr->viewTransparentTarget
+               << "] to view as transparent" << std::endl;
+      }
+
+      this->dataPtr->viewTransparentTarget.clear();
+    }
+  }
+
+  // View center of mass
+  {
+    IGN_PROFILE("IgnRenderer::Render ViewCOM");
+    if (!this->dataPtr->viewCOMTarget.empty())
+    {
+      rendering::NodePtr targetNode =
+          scene->NodeByName(this->dataPtr->viewCOMTarget);
+      auto targetVis = std::dynamic_pointer_cast<rendering::Visual>(targetNode);
+
+      if (targetVis && targetVis->HasUserData("gazebo-entity"))
+      {
+        Entity targetEntity =
+            std::get<int>(targetVis->UserData("gazebo-entity"));
+        this->dataPtr->renderUtil.ViewCOM(targetEntity);
+      }
+      else
+      {
+        ignerr << "Unable to find node name ["
+               << this->dataPtr->viewCOMTarget
+               << "] to view center of mass" << std::endl;
+      }
+
+      this->dataPtr->viewCOMTarget.clear();
+    }
+  }
+
+  // View inertia
+  {
+    IGN_PROFILE("IgnRenderer::Render ViewInertia");
+    if (!this->dataPtr->viewInertiaTarget.empty())
+    {
+      rendering::NodePtr targetNode =
+          scene->NodeByName(this->dataPtr->viewInertiaTarget);
+      auto targetVis = std::dynamic_pointer_cast<rendering::Visual>(targetNode);
+
+      if (targetVis && targetVis->HasUserData("gazebo-entity"))
+      {
+        Entity targetEntity =
+            std::get<int>(targetVis->UserData("gazebo-entity"));
+        this->dataPtr->renderUtil.ViewInertia(targetEntity);
+      }
+      else
+      {
+        ignerr << "Unable to find node name ["
+               << this->dataPtr->viewInertiaTarget
+               << "] to view inertia" << std::endl;
+      }
+
+      this->dataPtr->viewInertiaTarget.clear();
+    }
+  }
+
+  // View joints
+  {
+    IGN_PROFILE("IgnRenderer::Render ViewJoints");
+    if (!this->dataPtr->viewJointsTarget.empty())
+    {
+      rendering::NodePtr targetNode =
+          scene->NodeByName(this->dataPtr->viewJointsTarget);
+      auto targetVis = std::dynamic_pointer_cast<rendering::Visual>(targetNode);
+
+      if (targetVis && targetVis->HasUserData("gazebo-entity"))
+      {
+        Entity targetEntity =
+            std::get<int>(targetVis->UserData("gazebo-entity"));
+        this->dataPtr->renderUtil.ViewJoints(targetEntity);
+      }
+      else
+      {
+        ignerr << "Unable to find node name ["
+               << this->dataPtr->viewJointsTarget
+               << "] to view joints" << std::endl;
+      }
+
+      this->dataPtr->viewJointsTarget.clear();
+    }
+  }
+
+  // View wireframes
+  {
+    IGN_PROFILE("IgnRenderer::Render ViewWireframes");
+    if (!this->dataPtr->viewWireframesTarget.empty())
+    {
+      rendering::NodePtr targetNode =
+          scene->NodeByName(this->dataPtr->viewWireframesTarget);
+      auto targetVis = std::dynamic_pointer_cast<rendering::Visual>(targetNode);
+
+      if (targetVis && targetVis->HasUserData("gazebo-entity"))
+      {
+        Entity targetEntity =
+            std::get<int>(targetVis->UserData("gazebo-entity"));
+        this->dataPtr->renderUtil.ViewWireframes(targetEntity);
+      }
+      else
+      {
+        ignerr << "Unable to find node name ["
+               << this->dataPtr->viewWireframesTarget
+               << "] to view wireframes" << std::endl;
+      }
+
+      this->dataPtr->viewWireframesTarget.clear();
+    }
+  }
+
   // View collisions
   {
     IGN_PROFILE("IgnRenderer::Render ViewCollisions");
@@ -758,11 +1154,12 @@ void IgnRenderer::Render()
     {
       rendering::NodePtr targetNode =
           scene->NodeByName(this->dataPtr->viewCollisionsTarget);
+      auto targetVis = std::dynamic_pointer_cast<rendering::Visual>(targetNode);
 
-      if (targetNode)
+      if (targetVis && targetVis->HasUserData("gazebo-entity"))
       {
         Entity targetEntity =
-            this->dataPtr->renderUtil.SceneManager().EntityFromNode(targetNode);
+            std::get<int>(targetVis->UserData("gazebo-entity"));
         this->dataPtr->renderUtil.ViewCollisions(targetEntity);
       }
       else
@@ -782,17 +1179,19 @@ void IgnRenderer::Render()
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
         &event);
-
-    // This will be deprecated on v5 and removed on v6
-    ignition::gazebo::gui::events::Render oldEvent;
-    ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-        &oldEvent);
   }
 
   // only has an effect in video recording lockstep mode
   // this notifes ECM to continue updating the scene
   g_renderCv.notify_one();
+
+  // TODO(anyone) implement a SwapFromThread for parallel command generation
+  // See https://github.com/ignitionrobotics/ign-rendering/issues/304
+  // if( bForcedSerialization )
+  //   this->dataPtr->camera->SwapFromThread();
+  // else
+  //  _renderSync->ReleaseQtThreadFromBlock(lock);
+  _renderSync->ReleaseQtThreadFromBlock(lock);
 }
 
 /////////////////////////////////////////////////
@@ -801,56 +1200,87 @@ bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
   // Terminate any pre-existing spawned entities
   this->TerminateSpawnPreview();
 
-  if (!_sdf.ModelCount())
+  if (nullptr == _sdf.Model() && nullptr == _sdf.Light())
   {
     ignwarn << "Only model entities can be spawned at the moment." << std::endl;
     this->TerminateSpawnPreview();
     return false;
   }
 
-  // Only preview first model
-  sdf::Model model = *(_sdf.ModelByIndex(0));
-  this->dataPtr->spawnPreviewPose = model.RawPose();
-  model.SetName(ignition::common::Uuid().String());
-  Entity modelId = this->UniqueId();
-  if (!modelId)
+  if (_sdf.Model())
   {
-    this->TerminateSpawnPreview();
-    return false;
-  }
-  this->dataPtr->spawnPreview =
-    this->dataPtr->renderUtil.SceneManager().CreateModel(
-        modelId, model,
-        this->dataPtr->renderUtil.SceneManager().WorldId());
-
-  this->dataPtr->previewIds.push_back(modelId);
-  for (auto j = 0u; j < model.LinkCount(); j++)
-  {
-    sdf::Link link = *(model.LinkByIndex(j));
-    link.SetName(ignition::common::Uuid().String());
-    Entity linkId = this->UniqueId();
-    if (!linkId)
+    // Only preview first model
+    sdf::Model model = *(_sdf.Model());
+    this->dataPtr->spawnPreviewPose = model.RawPose();
+    model.SetName(ignition::common::Uuid().String());
+    Entity modelId = this->UniqueId();
+    if (!modelId)
     {
       this->TerminateSpawnPreview();
       return false;
     }
-    this->dataPtr->renderUtil.SceneManager().CreateLink(
-        linkId, link, modelId);
-    this->dataPtr->previewIds.push_back(linkId);
-    for (auto k = 0u; k < link.VisualCount(); k++)
+    this->dataPtr->spawnPreview =
+      this->dataPtr->renderUtil.SceneManager().CreateModel(
+          modelId, model,
+          this->dataPtr->renderUtil.SceneManager().WorldId());
+
+    this->dataPtr->previewIds.push_back(modelId);
+    for (auto j = 0u; j < model.LinkCount(); j++)
     {
-     sdf::Visual visual = *(link.VisualByIndex(k));
-     visual.SetName(ignition::common::Uuid().String());
-     Entity visualId = this->UniqueId();
-     if (!visualId)
-     {
-       this->TerminateSpawnPreview();
-       return false;
-     }
-     this->dataPtr->renderUtil.SceneManager().CreateVisual(
-         visualId, visual, linkId);
-     this->dataPtr->previewIds.push_back(visualId);
+      sdf::Link link = *(model.LinkByIndex(j));
+      link.SetName(ignition::common::Uuid().String());
+      Entity linkId = this->UniqueId();
+      if (!linkId)
+      {
+        this->TerminateSpawnPreview();
+        return false;
+      }
+      this->dataPtr->renderUtil.SceneManager().CreateLink(
+          linkId, link, modelId);
+      this->dataPtr->previewIds.push_back(linkId);
+      for (auto k = 0u; k < link.VisualCount(); k++)
+      {
+       sdf::Visual visual = *(link.VisualByIndex(k));
+       visual.SetName(ignition::common::Uuid().String());
+       Entity visualId = this->UniqueId();
+       if (!visualId)
+       {
+         this->TerminateSpawnPreview();
+         return false;
+       }
+       this->dataPtr->renderUtil.SceneManager().CreateVisual(
+           visualId, visual, linkId);
+       this->dataPtr->previewIds.push_back(visualId);
+      }
     }
+  }
+  else if (_sdf.Light())
+  {
+    // Only preview first model
+    sdf::Light light = *(_sdf.Light());
+    this->dataPtr->spawnPreviewPose = light.RawPose();
+    light.SetName(ignition::common::Uuid().String());
+    Entity lightVisualId = this->UniqueId();
+    if (!lightVisualId)
+    {
+      this->TerminateSpawnPreview();
+      return false;
+    }
+    Entity lightId = this->UniqueId();
+    if (!lightId)
+    {
+      this->TerminateSpawnPreview();
+      return false;
+    }
+    this->dataPtr->spawnPreview =
+      this->dataPtr->renderUtil.SceneManager().CreateLight(
+          lightId, light, light.Name(),
+          this->dataPtr->renderUtil.SceneManager().WorldId());
+    this->dataPtr->renderUtil.SceneManager().CreateLightVisual(
+        lightVisualId, light, light.Name(), lightId);
+
+    this->dataPtr->previewIds.push_back(lightId);
+    this->dataPtr->previewIds.push_back(lightVisualId);
   }
   return true;
 }
@@ -1149,6 +1579,15 @@ void IgnRenderer::HandleModelPlacement()
       this->dataPtr->createCmdService = "/world/" + this->worldName
           + "/create";
     }
+    this->dataPtr->createCmdService = transport::TopicUtils::AsValidTopic(
+        this->dataPtr->createCmdService);
+    if (this->dataPtr->createCmdService.empty())
+    {
+      ignerr << "Failed to create valid create command service for world ["
+             << this->worldName <<"]" << std::endl;
+      return;
+    }
+
     this->dataPtr->node.Request(this->dataPtr->createCmdService, req, cb);
     this->dataPtr->isPlacing = false;
     this->dataPtr->mouseDirty = false;
@@ -1190,7 +1629,7 @@ void IgnRenderer::DeselectAllEntities(bool _sendEvent)
 
   if (_sendEvent)
   {
-    gui::events::DeselectAllEntities deselectEvent;
+    ignition::gazebo::gui::events::DeselectAllEntities deselectEvent;
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
         &deselectEvent);
@@ -1366,6 +1805,14 @@ void IgnRenderer::HandleMouseTransformControl()
           {
             this->dataPtr->poseCmdService = "/world/" + this->worldName
                 + "/set_pose";
+          }
+          this->dataPtr->poseCmdService = transport::TopicUtils::AsValidTopic(
+              this->dataPtr->poseCmdService);
+          if (this->dataPtr->poseCmdService.empty())
+          {
+            ignerr << "Failed to create valid pose command service for world ["
+                   << this->worldName <<"]" << std::endl;
+            return;
           }
           this->dataPtr->node.Request(this->dataPtr->poseCmdService, req, cb);
         }
@@ -1565,21 +2012,35 @@ void IgnRenderer::HandleMouseViewControl()
             << std::endl;
   }
 
-  math::Vector3d camWorldPos;
   if (!this->dataPtr->followTarget.empty())
     this->dataPtr->camera->WorldPosition();
 
-  this->dataPtr->viewControl.SetCamera(this->dataPtr->camera);
+  if (this->dataPtr->viewController == "ortho")
+  {
+    this->dataPtr->viewControl = &this->dataPtr->orthoViewControl;
+  }
+  else if (this->dataPtr->viewController == "orbit")
+  {
+    this->dataPtr->viewControl = &this->dataPtr->orbitViewControl;
+  }
+  else
+  {
+    ignerr << "Unknown view controller: " << this->dataPtr->viewController
+           << ". Defaulting to orbit view controller" << std::endl;
+    this->dataPtr->viewController = "orbit";
+    this->dataPtr->viewControl = &this->dataPtr->orbitViewControl;
+  }
+  this->dataPtr->viewControl->SetCamera(this->dataPtr->camera);
 
   if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::SCROLL)
   {
     this->dataPtr->target =
         this->ScreenToScene(this->dataPtr->mouseEvent.Pos());
-    this->dataPtr->viewControl.SetTarget(this->dataPtr->target);
+    this->dataPtr->viewControl->SetTarget(this->dataPtr->target);
     double distance = this->dataPtr->camera->WorldPosition().Distance(
         this->dataPtr->target);
     double amount = -this->dataPtr->drag.Y() * distance / 5.0;
-    this->dataPtr->viewControl.Zoom(amount);
+    this->dataPtr->viewControl->Zoom(amount);
   }
   else
   {
@@ -1594,7 +2055,7 @@ void IgnRenderer::HandleMouseViewControl()
     {
       this->dataPtr->target = this->ScreenToScene(
           this->dataPtr->mouseEvent.PressPos());
-      this->dataPtr->viewControl.SetTarget(this->dataPtr->target);
+      this->dataPtr->viewControl->SetTarget(this->dataPtr->target);
     }
     // unset the target on release (by setting to inf)
     else if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE)
@@ -1606,14 +2067,14 @@ void IgnRenderer::HandleMouseViewControl()
     if (this->dataPtr->mouseEvent.Buttons() & common::MouseEvent::LEFT)
     {
       if (Qt::ShiftModifier == QGuiApplication::queryKeyboardModifiers())
-        this->dataPtr->viewControl.Orbit(this->dataPtr->drag);
+        this->dataPtr->viewControl->Orbit(this->dataPtr->drag);
       else
-        this->dataPtr->viewControl.Pan(this->dataPtr->drag);
+        this->dataPtr->viewControl->Pan(this->dataPtr->drag);
     }
     // Orbit with middle button
     else if (this->dataPtr->mouseEvent.Buttons() & common::MouseEvent::MIDDLE)
     {
-      this->dataPtr->viewControl.Orbit(this->dataPtr->drag);
+      this->dataPtr->viewControl->Orbit(this->dataPtr->drag);
     }
     else if (this->dataPtr->mouseEvent.Buttons() & common::MouseEvent::RIGHT)
     {
@@ -1625,7 +2086,7 @@ void IgnRenderer::HandleMouseViewControl()
       double amount = ((-this->dataPtr->drag.Y() /
           static_cast<double>(this->dataPtr->camera->ImageHeight()))
           * distance * tan(vfov/2.0) * 6.0);
-      this->dataPtr->viewControl.Zoom(amount);
+      this->dataPtr->viewControl->Zoom(amount);
     }
   }
   this->dataPtr->drag = 0;
@@ -1633,13 +2094,7 @@ void IgnRenderer::HandleMouseViewControl()
 
 
   if (!this->dataPtr->followTarget.empty())
-  {
-    math::Vector3d dPos = this->dataPtr->camera->WorldPosition() - camWorldPos;
-    if (dPos != math::Vector3d::Zero)
-    {
-      this->dataPtr->followOffsetDirty = true;
-    }
-  }
+    this->dataPtr->followOffsetDirty = true;
 }
 
 /////////////////////////////////////////////////
@@ -1648,6 +2103,9 @@ void IgnRenderer::Initialize()
   if (this->initialized)
     return;
 
+  this->dataPtr->renderUtil.SetWinID(std::to_string(
+    ignition::gui::App()->findChild<ignition::gui::MainWindow *>()->
+      QuickWindow()->winId()));
   this->dataPtr->renderUtil.SetUseCurrentGLContext(true);
   this->dataPtr->renderUtil.Init();
 
@@ -1657,14 +2115,18 @@ void IgnRenderer::Initialize()
 
   auto root = scene->RootVisual();
 
+  scene->SetCameraPassCountPerGpuFlush(6u);
+
   // Camera
   this->dataPtr->camera = scene->CreateCamera();
+  this->dataPtr->camera->SetUserData("user-camera", true);
   root->AddChild(this->dataPtr->camera);
   this->dataPtr->camera->SetLocalPose(this->cameraPose);
   this->dataPtr->camera->SetImageWidth(this->textureSize.width());
   this->dataPtr->camera->SetImageHeight(this->textureSize.height());
   this->dataPtr->camera->SetAntiAliasing(8);
   this->dataPtr->camera->SetHFOV(M_PI * 0.5);
+  this->dataPtr->camera->SetVisibilityMask(this->visibilityMask);
   // setting the size and calling PreRender should cause the render texture to
   //  be rebuilt
   this->dataPtr->camera->PreRender();
@@ -1787,7 +2249,7 @@ void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node,
   // Notify other widgets of the currently selected entities
   if (_sendEvent || deselectedAll)
   {
-    gui::events::EntitiesSelected selectEvent(
+    ignition::gazebo::gui::events::EntitiesSelected selectEvent(
         this->dataPtr->renderUtil.SelectedEntities());
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
@@ -1903,10 +2365,56 @@ void IgnRenderer::SetMoveToPose(const math::Pose3d &_pose)
 }
 
 /////////////////////////////////////////////////
+void IgnRenderer::SetViewTransparentTarget(const std::string &_target)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->viewTransparentTarget = _target;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetViewCOMTarget(const std::string &_target)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->viewCOMTarget = _target;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetViewInertiaTarget(const std::string &_target)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->viewInertiaTarget = _target;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetViewJointsTarget(const std::string &_target)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->viewJointsTarget = _target;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetViewWireframesTarget(const std::string &_target)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->viewWireframesTarget = _target;
+}
+
+/////////////////////////////////////////////////
 void IgnRenderer::SetViewCollisionsTarget(const std::string &_target)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->viewCollisionsTarget = _target;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetViewController(const std::string &_controller)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->viewController = _controller;
+
+  // mark mouse dirty to trigger HandleMouseEvent call and
+  // set up a new view controller
+  this->dataPtr->mouseDirty = true;
 }
 
 /////////////////////////////////////////////////
@@ -1942,6 +2450,9 @@ void IgnRenderer::SetFollowOffset(const math::Vector3d &_offset)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->followOffset = _offset;
+
+  if (!this->dataPtr->followTarget.empty())
+    this->dataPtr->newFollowOffset = true;
 }
 
 /////////////////////////////////////////////////
@@ -2064,10 +2575,11 @@ RenderThread::RenderThread()
 {
   RenderWindowItemPrivate::threads << this;
   qRegisterMetaType<std::string>();
+  qRegisterMetaType<RenderSync*>("RenderSync*");
 }
 
 /////////////////////////////////////////////////
-void RenderThread::RenderNext()
+void RenderThread::RenderNext(RenderSync *_renderSync)
 {
   this->context->makeCurrent(this->surface);
 
@@ -2084,7 +2596,7 @@ void RenderThread::RenderNext()
     return;
   }
 
-  this->ignRenderer.Render();
+  this->ignRenderer.Render(_renderSync);
 
   emit TextureReady(this->ignRenderer.textureId, this->ignRenderer.textureSize);
 }
@@ -2103,6 +2615,7 @@ void RenderThread::ShutDown()
   this->surface->deleteLater();
 
   // Stop event processing, move the thread to GUI and make sure it is deleted.
+  this->exit();
   this->moveToThread(QGuiApplication::instance()->thread());
 }
 
@@ -2125,8 +2638,8 @@ void RenderThread::SizeChanged()
 }
 
 /////////////////////////////////////////////////
-TextureNode::TextureNode(QQuickWindow *_window)
-    : window(_window)
+TextureNode::TextureNode(QQuickWindow *_window, RenderSync &_renderSync)
+    : renderSync(_renderSync), window(_window)
 {
   // Our texture node must have a texture, so use the default 0 texture.
 #if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
@@ -2147,7 +2660,7 @@ TextureNode::~TextureNode()
 }
 
 /////////////////////////////////////////////////
-void TextureNode::NewTexture(int _id, const QSize &_size)
+void TextureNode::NewTexture(uint _id, const QSize &_size)
 {
   this->mutex.lock();
   this->id = _id;
@@ -2163,7 +2676,7 @@ void TextureNode::NewTexture(int _id, const QSize &_size)
 void TextureNode::PrepareNode()
 {
   this->mutex.lock();
-  int newId = this->id;
+  uint newId = this->id;
   QSize sz = this->size;
   this->id = 0;
   this->mutex.unlock();
@@ -2195,8 +2708,32 @@ void TextureNode::PrepareNode()
 
     // This will notify the rendering thread that the texture is now being
     // rendered and it can start rendering to the other one.
-    emit TextureInUse();
+    // emit TextureInUse(&this->renderSync); See comment below
   }
+
+  // NOTE: The original code from Qt samples only emitted when
+  // newId is not null.
+  //
+  // This is correct... for their case.
+  // However we need to synchronize the threads when resolution changes,
+  // and we're also currently doing everything in lockstep (i.e. both Qt
+  // and worker thread are serialized,
+  // see https://github.com/ignitionrobotics/ign-rendering/issues/304 )
+  //
+  // We need to emit even if newId == 0 because it's safe as long as both
+  // threads are forcefully serialized and otherwise we may get a
+  // deadlock (this func. called twice in a row with the worker thread still
+  // finishing the 1st iteration, may result in a deadlock for newer versions
+  // of Qt; as WaitForWorkerThread will be called with no corresponding
+  // WaitForQtThreadAndBlock as the worker thread thinks there are
+  // no more jobs to do.
+  //
+  // If we want these to run in worker thread and stay resolution-synchronized,
+  // we probably should use a different method of signals and slots
+  // to send work to the worker thread and get results back
+  emit TextureInUse(&this->renderSync);
+
+  this->renderSync.WaitForWorkerThread();
 }
 
 /////////////////////////////////////////////////
@@ -2219,7 +2756,15 @@ RenderWindowItem::RenderWindowItem(QQuickItem *_parent)
 }
 
 /////////////////////////////////////////////////
-RenderWindowItem::~RenderWindowItem() = default;
+RenderWindowItem::~RenderWindowItem()
+{
+  this->dataPtr->renderSync.Shutdown();
+  QMetaObject::invokeMethod(this->dataPtr->renderThread,
+                            "ShutDown",
+                            Qt::QueuedConnection);
+
+  this->dataPtr->renderThread->wait();
+}
 
 /////////////////////////////////////////////////
 void RenderWindowItem::Ready()
@@ -2241,10 +2786,6 @@ void RenderWindowItem::Ready()
       this, &RenderWindowItem::SetFollowTarget, Qt::QueuedConnection);
 
   this->dataPtr->renderThread->moveToThread(this->dataPtr->renderThread);
-
-  this->connect(this, &QObject::destroyed,
-      this->dataPtr->renderThread, &RenderThread::ShutDown,
-      Qt::QueuedConnection);
 
   this->connect(this, &QQuickItem::widthChanged,
       this->dataPtr->renderThread, &RenderThread::SizeChanged);
@@ -2308,7 +2849,7 @@ QSGNode *RenderWindowItem::updatePaintNode(QSGNode *_node,
 
   if (!node)
   {
-    node = new TextureNode(this->window());
+    node = new TextureNode(this->window(), this->dataPtr->renderSync);
 
     // Set up connections to get the production of render texture in sync with
     // vsync on the rendering thread.
@@ -2338,7 +2879,8 @@ QSGNode *RenderWindowItem::updatePaintNode(QSGNode *_node,
 
     // Get the production of FBO textures started..
     QMetaObject::invokeMethod(this->dataPtr->renderThread, "RenderNext",
-        Qt::QueuedConnection);
+                              Qt::QueuedConnection,
+                              Q_ARG( RenderSync*, &node->renderSync ));
   }
 
   node->setRect(this->boundingRect());
@@ -2368,9 +2910,11 @@ RenderUtil *RenderWindowItem::RenderUtil() const
 Scene3D::Scene3D()
   : GuiSystem(), dataPtr(new Scene3DPrivate)
 {
+  ignwarn << "The GzScene3D plugin is deprecated on v6 and will be removed on "
+          << "v7. Use MinimalScene together with other plugins as needed."
+          << std::endl;
   qmlRegisterType<RenderWindowItem>("RenderWindow", 1, 0, "RenderWindow");
 }
-
 
 /////////////////////////////////////////////////
 Scene3D::~Scene3D() = default;
@@ -2445,6 +2989,13 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       colorStr << std::string(elem->GetText());
       colorStr >> bgColor;
       this->dataPtr->renderUtil->SetBackgroundColor(bgColor);
+    }
+
+    if (auto elem = _pluginElem->FirstChildElement("sky"))
+    {
+      this->dataPtr->renderUtil->SetSkyEnabled(true);
+      if (!elem->NoChildren())
+        ignwarn << "Child elements of <sky> are not supported yet" << std::endl;
     }
 
     if (auto elem = _pluginElem->FirstChildElement("camera_pose"))
@@ -2559,6 +3110,20 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
           <ignition::gui::MainWindow *>()->QuickWindow()->showFullScreen();
       }
     }
+
+    if (auto elem = _pluginElem->FirstChildElement("visibility_mask"))
+    {
+      uint32_t visibilityMask = 0xFFFFFFFFu;
+      std::stringstream visibilityMaskStr;
+      visibilityMaskStr << std::string(elem->GetText());
+      bool isHex = common::lowercase(
+          visibilityMaskStr.str()).compare(0, 2, "0x") == 0;
+      if (isHex)
+        visibilityMaskStr >> std::hex >> visibilityMask;
+      else
+        visibilityMaskStr >> visibilityMask;
+      renderWindow->SetVisibilityMask(visibilityMask);
+    }
   }
 
   // transform mode
@@ -2591,6 +3156,13 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   ignmsg << "Follow service on ["
          << this->dataPtr->followService << "]" << std::endl;
 
+  // follow offset
+  this->dataPtr->followOffsetService = "/gui/follow/offset";
+  this->dataPtr->node.Advertise(this->dataPtr->followOffsetService,
+      &Scene3D::OnFollowOffset, this);
+  ignmsg << "Follow offset service on ["
+         << this->dataPtr->followOffsetService << "]" << std::endl;
+
   // view angle
   this->dataPtr->viewAngleService =
       "/gui/view_angle";
@@ -2614,12 +3186,54 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   ignmsg << "Camera pose topic advertised on ["
          << this->dataPtr->cameraPoseTopic << "]" << std::endl;
 
+  // view as transparent service
+  this->dataPtr->viewTransparentService = "/gui/view/transparent";
+  this->dataPtr->node.Advertise(this->dataPtr->viewTransparentService,
+      &Scene3D::OnViewTransparent, this);
+  ignmsg << "View as transparent service on ["
+         << this->dataPtr->viewTransparentService << "]" << std::endl;
+
+  // view center of mass service
+  this->dataPtr->viewCOMService = "/gui/view/com";
+  this->dataPtr->node.Advertise(this->dataPtr->viewCOMService,
+      &Scene3D::OnViewCOM, this);
+  ignmsg << "View center of mass service on ["
+         << this->dataPtr->viewCOMService << "]" << std::endl;
+
+  // view inertia service
+  this->dataPtr->viewInertiaService = "/gui/view/inertia";
+  this->dataPtr->node.Advertise(this->dataPtr->viewInertiaService,
+      &Scene3D::OnViewInertia, this);
+  ignmsg << "View inertia service on ["
+         << this->dataPtr->viewInertiaService << "]" << std::endl;
+
+  // view joints service
+  this->dataPtr->viewJointsService = "/gui/view/joints";
+  this->dataPtr->node.Advertise(this->dataPtr->viewJointsService,
+      &Scene3D::OnViewJoints, this);
+  ignmsg << "View joints service on ["
+         << this->dataPtr->viewJointsService << "]" << std::endl;
+
+  // view wireframes service
+  this->dataPtr->viewWireframesService = "/gui/view/wireframes";
+  this->dataPtr->node.Advertise(this->dataPtr->viewWireframesService,
+      &Scene3D::OnViewWireframes, this);
+  ignmsg << "View wireframes service on ["
+         << this->dataPtr->viewWireframesService << "]" << std::endl;
+
   // view collisions service
   this->dataPtr->viewCollisionsService = "/gui/view/collisions";
   this->dataPtr->node.Advertise(this->dataPtr->viewCollisionsService,
       &Scene3D::OnViewCollisions, this);
   ignmsg << "View collisions service on ["
          << this->dataPtr->viewCollisionsService << "]" << std::endl;
+
+  // camera view control mode
+  this->dataPtr->cameraViewControlService = "/gui/camera/view_control";
+  this->dataPtr->node.Advertise(this->dataPtr->cameraViewControlService,
+      &Scene3D::OnViewControl, this);
+  ignmsg << "Camera view controller topic advertised on ["
+         << this->dataPtr->cameraViewControlService << "]" << std::endl;
 
   ignition::gui::App()->findChild<
       ignition::gui::MainWindow *>()->QuickWindow()->installEventFilter(this);
@@ -2639,29 +3253,31 @@ void Scene3D::Update(const UpdateInfo &_info,
   if (this->dataPtr->worldName.empty())
   {
     // TODO(anyone) Only one scene is supported for now
+    Entity worldEntity;
     _ecm.Each<components::World, components::Name>(
-        [&](const Entity &/*_entity*/,
+        [&](const Entity &_entity,
           const components::World * /* _world */ ,
           const components::Name *_name)->bool
         {
           this->dataPtr->worldName = _name->Data();
+          worldEntity = _entity;
           return true;
         });
 
-    renderWindow->SetWorldName(this->dataPtr->worldName);
-    auto worldEntity =
-      _ecm.EntityByComponents(components::Name(this->dataPtr->worldName),
-        components::World());
-    auto renderEngineGuiComp =
-      _ecm.Component<components::RenderEngineGuiPlugin>(worldEntity);
-    if (renderEngineGuiComp && !renderEngineGuiComp->Data().empty())
+    if (!this->dataPtr->worldName.empty())
     {
-      this->dataPtr->renderUtil->SetEngineName(renderEngineGuiComp->Data());
-    }
-    else
-    {
-      igndbg << "RenderEngineGuiPlugin component not found, "
-        "render engine won't be set from the ECM" << std::endl;
+      renderWindow->SetWorldName(this->dataPtr->worldName);
+      auto renderEngineGuiComp =
+        _ecm.Component<components::RenderEngineGuiPlugin>(worldEntity);
+      if (renderEngineGuiComp && !renderEngineGuiComp->Data().empty())
+      {
+        this->dataPtr->renderUtil->SetEngineName(renderEngineGuiComp->Data());
+      }
+      else
+      {
+        igndbg << "RenderEngineGuiPlugin component not found, "
+          "render engine won't be set from the ECM " << std::endl;
+      }
     }
   }
 
@@ -2670,6 +3286,7 @@ void Scene3D::Update(const UpdateInfo &_info,
     msgs::Pose poseMsg = msgs::Convert(renderWindow->CameraPose());
     this->dataPtr->cameraPosePub.Publish(poseMsg);
   }
+  this->dataPtr->renderUtil->UpdateECM(_info, _ecm);
   this->dataPtr->renderUtil->UpdateFromECM(_info, _ecm);
 
   // check if video recording is enabled and if we need to lock step
@@ -2735,6 +3352,19 @@ bool Scene3D::OnFollow(const msgs::StringMsg &_msg,
 }
 
 /////////////////////////////////////////////////
+bool Scene3D::OnFollowOffset(const msgs::Vector3d &_msg,
+  msgs::Boolean &_res)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+
+  math::Vector3d offset = msgs::Convert(_msg);
+  renderWindow->SetFollowOffset(offset);
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
 bool Scene3D::OnViewAngle(const msgs::Vector3d &_msg,
   msgs::Boolean &_res)
 {
@@ -2774,6 +3404,66 @@ bool Scene3D::OnMoveToPose(const msgs::GUICamera &_msg, msgs::Boolean &_res)
 }
 
 /////////////////////////////////////////////////
+bool Scene3D::OnViewTransparent(const msgs::StringMsg &_msg,
+  msgs::Boolean &_res)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+
+  renderWindow->SetViewTransparentTarget(_msg.data());
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool Scene3D::OnViewCOM(const msgs::StringMsg &_msg,
+  msgs::Boolean &_res)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+
+  renderWindow->SetViewCOMTarget(_msg.data());
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool Scene3D::OnViewInertia(const msgs::StringMsg &_msg,
+  msgs::Boolean &_res)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+
+  renderWindow->SetViewInertiaTarget(_msg.data());
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool Scene3D::OnViewJoints(const msgs::StringMsg &_msg,
+  msgs::Boolean &_res)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+
+  renderWindow->SetViewJointsTarget(_msg.data());
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool Scene3D::OnViewWireframes(const msgs::StringMsg &_msg,
+  msgs::Boolean &_res)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+
+  renderWindow->SetViewWireframesTarget(_msg.data());
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
 bool Scene3D::OnViewCollisions(const msgs::StringMsg &_msg,
   msgs::Boolean &_res)
 {
@@ -2784,6 +3474,19 @@ bool Scene3D::OnViewCollisions(const msgs::StringMsg &_msg,
   _res.set_data(true);
   return true;
 }
+
+/////////////////////////////////////////////////
+bool Scene3D::OnViewControl(const msgs::StringMsg &_msg,
+  msgs::Boolean &_res)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+
+  renderWindow->SetViewController(_msg.data());
+
+  _res.set_data(true);
+  return true;
+}
+
 
 /////////////////////////////////////////////////
 void Scene3D::OnHovered(int _mouseX, int _mouseY)
@@ -2934,7 +3637,8 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
       ignition::gazebo::gui::events::EntitiesSelected::kType)
   {
     auto selectedEvent =
-        reinterpret_cast<gui::events::EntitiesSelected *>(_event);
+        reinterpret_cast<ignition::gazebo::gui::events::EntitiesSelected *>(
+        _event);
     if (selectedEvent)
     {
       for (const auto &entity : selectedEvent->Data())
@@ -2967,7 +3671,8 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
            ignition::gazebo::gui::events::DeselectAllEntities::kType)
   {
     auto deselectEvent =
-        reinterpret_cast<gui::events::DeselectAllEntities *>(_event);
+        reinterpret_cast<ignition::gazebo::gui::events::DeselectAllEntities *>(
+        _event);
 
     // If the event is from the user, update render util state
     if (deselectEvent && deselectEvent->FromUser())
@@ -2977,33 +3682,33 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-      ignition::gazebo::gui::events::SnapIntervals::kType)
+      ignition::gui::events::SnapIntervals::kType)
   {
-    auto snapEvent = reinterpret_cast<gui::events::SnapIntervals *>(_event);
+    auto snapEvent = reinterpret_cast<ignition::gui::events::SnapIntervals *>(
+        _event);
     if (snapEvent)
     {
       auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
-      renderWindow->SetXYZSnap(snapEvent->XYZ());
-      renderWindow->SetRPYSnap(snapEvent->RPY());
+      renderWindow->SetXYZSnap(snapEvent->Position());
+      renderWindow->SetRPYSnap(snapEvent->Rotation());
       renderWindow->SetScaleSnap(snapEvent->Scale());
     }
   }
   else if (_event->type() ==
-      ignition::gazebo::gui::events::SpawnPreviewModel::kType)
+      ignition::gui::events::SpawnFromDescription::kType)
   {
-    auto spawnPreviewEvent =
-      reinterpret_cast<gui::events::SpawnPreviewModel *>(_event);
+    auto spawnPreviewEvent = reinterpret_cast<
+        ignition::gui::events::SpawnFromDescription *>(_event);
     if (spawnPreviewEvent)
     {
       auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
-      renderWindow->SetModel(spawnPreviewEvent->ModelSdfString());
+      renderWindow->SetModel(spawnPreviewEvent->Description());
     }
   }
-  else if (_event->type() ==
-      ignition::gazebo::gui::events::SpawnPreviewPath::kType)
+  else if (_event->type() == ignition::gui::events::SpawnFromPath::kType)
   {
     auto spawnPreviewPathEvent =
-      reinterpret_cast<gui::events::SpawnPreviewPath *>(_event);
+      reinterpret_cast<ignition::gui::events::SpawnFromPath *>(_event);
     if (spawnPreviewPathEvent)
     {
       auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
@@ -3104,9 +3809,45 @@ void RenderWindowItem::SetMoveToPose(const math::Pose3d &_pose)
 }
 
 /////////////////////////////////////////////////
+void RenderWindowItem::SetViewTransparentTarget(const std::string &_target)
+{
+  this->dataPtr->renderThread->ignRenderer.SetViewTransparentTarget(_target);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetViewCOMTarget(const std::string &_target)
+{
+  this->dataPtr->renderThread->ignRenderer.SetViewCOMTarget(_target);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetViewInertiaTarget(const std::string &_target)
+{
+  this->dataPtr->renderThread->ignRenderer.SetViewInertiaTarget(_target);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetViewJointsTarget(const std::string &_target)
+{
+  this->dataPtr->renderThread->ignRenderer.SetViewJointsTarget(_target);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetViewWireframesTarget(const std::string &_target)
+{
+  this->dataPtr->renderThread->ignRenderer.SetViewWireframesTarget(_target);
+}
+
+/////////////////////////////////////////////////
 void RenderWindowItem::SetViewCollisionsTarget(const std::string &_target)
 {
   this->dataPtr->renderThread->ignRenderer.SetViewCollisionsTarget(_target);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetViewController(const std::string &_controller)
+{
+  this->dataPtr->renderThread->ignRenderer.SetViewController(_controller);
 }
 
 /////////////////////////////////////////////////
@@ -3172,6 +3913,12 @@ void RenderWindowItem::SetRecordVideoBitrate(unsigned int _bitrate)
 {
   this->dataPtr->renderThread->ignRenderer.SetRecordVideoBitrate(
       _bitrate);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetVisibilityMask(uint32_t _mask)
+{
+  this->dataPtr->renderThread->ignRenderer.visibilityMask = _mask;
 }
 
 /////////////////////////////////////////////////

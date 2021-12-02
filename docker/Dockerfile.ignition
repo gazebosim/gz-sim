@@ -3,8 +3,8 @@
 #   This docker file is used by build.bash and run.bash to build and run
 #   an Ignition distribution based on binaries. See the README.md file.
 
-# Ubuntu 18.04 with nvidia-docker2 beta opengl support
-FROM nvidia/opengl:1.0-glvnd-devel-ubuntu18.04
+# Ubuntu 20.04 with nvidia opengl support
+FROM nvidia/opengl:1.2-glvnd-devel-ubuntu20.04
 
 # Name of the Ignition distribution
 ARG ign_distribution

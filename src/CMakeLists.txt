@@ -46,23 +46,22 @@ target_link_libraries(${ign_lib_target}
 
 set (sources
   Barrier.cc
+  BaseView.cc
   Conversions.cc
   EntityComponentManager.cc
-  EventManager.cc
   LevelManager.cc
   Link.cc
   Model.cc
+  Primitives.cc
   SdfEntityCreator.cc
   SdfGenerator.cc
   Server.cc
   ServerConfig.cc
   ServerPrivate.cc
   SimulationRunner.cc
-  System.cc
   SystemLoader.cc
   TestFixture.cc
   Util.cc
-  View.cc
   World.cc
   cmd/ModelCommandAPI.cc
   ${PROTO_PRIVATE_SRC}
@@ -72,29 +71,57 @@ set (sources
 set (gtest_sources
   ${gtest_sources}
   Barrier_TEST.cc
-  Component_TEST.cc
+  BaseView_TEST.cc
   ComponentFactory_TEST.cc
+  Component_TEST.cc
   Conversions_TEST.cc
   EntityComponentManager_TEST.cc
   EventManager_TEST.cc
-  ign_TEST.cc
   Link_TEST.cc
   Model_TEST.cc
-  ModelCommandAPI_TEST.cc
+  Primitives_TEST.cc
   SdfEntityCreator_TEST.cc
   SdfGenerator_TEST.cc
-  Server_TEST.cc
   ServerConfig_TEST.cc
+  Server_TEST.cc
   SimulationRunner_TEST.cc
-  System_TEST.cc
   SystemLoader_TEST.cc
+  System_TEST.cc
   TestFixture_TEST.cc
   Util_TEST.cc
   World_TEST.cc
+  ign_TEST.cc
   network/NetworkConfig_TEST.cc
   network/PeerTracker_TEST.cc
   network/NetworkManager_TEST.cc
 )
+
+# Tests that require a valid display
+set(tests_needing_display
+  ModelCommandAPI_TEST.cc
+)
+
+# Add systems that need a valid display here.
+# \todo(anyone) Find a way to run these tests with a virtual display such Xvfb
+# or Xdummy instead of skipping them
+if(VALID_DISPLAY AND VALID_DRI_DISPLAY)
+  list(APPEND gtest_sources ${tests_needing_display})
+else()
+  message(STATUS
+    "Skipping these UNIT tests because a valid display was not found:")
+  foreach(test ${tests_needing_display})
+    message(STATUS " ${test}")
+  endforeach(test)
+endif()
+
+if (MSVC)
+  # Warning #4251 is the "dll-interface" warning that tells you when types used
+  # by a class are not being exported. These generated source files have private
+  # members that don't get exported, so they trigger this warning. However, the
+  # warning is not important since those members do not need to be interfaced
+  # with.
+  set_source_files_properties(${sources} ${gtest_sources} COMPILE_FLAGS "/wd4251 /wd4146")
+endif()
 
 # Create the library target
 ign_create_core_library(SOURCES ${sources} CXX_STANDARD 17)
@@ -112,7 +139,7 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PRIVATE
   ignition-plugin${IGN_PLUGIN_VER}::loader
 )
-if (NOT APPLE)
+if (UNIX AND NOT APPLE)
   target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
     PRIVATE stdc++fs)
 endif()

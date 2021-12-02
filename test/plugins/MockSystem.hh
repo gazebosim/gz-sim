@@ -23,13 +23,15 @@
 
 namespace ignition {
   namespace gazebo {
-    class IGNITION_GAZEBO_VISIBLE MockSystem :
+    class MockSystem :
       public gazebo::System,
       public gazebo::ISystemConfigure,
       public gazebo::ISystemPreUpdate,
       public gazebo::ISystemUpdate,
       public gazebo::ISystemPostUpdate
     {
+      public: MockSystem() = default;
+      public: ~MockSystem() = default;
       public: size_t configureCallCount {0};
       public: size_t preUpdateCallCount {0};
       public: size_t updateCallCount {0};

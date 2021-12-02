@@ -17,6 +17,10 @@
 
 #include <gtest/gtest.h>
 
+#include <ignition/msgs/particle_emitter.pb.h>
+#include <ignition/msgs/wrench.pb.h>
+#include <ignition/msgs/Utility.hh>
+
 #include <chrono>
 
 #include <sdf/Cylinder.hh>
@@ -28,6 +32,7 @@
 #include <sdf/Material.hh>
 #include <sdf/Noise.hh>
 #include <sdf/Pbr.hh>
+#include <sdf/sdf.hh>
 #include <sdf/Sensor.hh>
 
 #include "ignition/gazebo/components/Actor.hh"
@@ -47,6 +52,7 @@
 #include "ignition/gazebo/components/JointAxis.hh"
 #include "ignition/gazebo/components/JointEffortLimitsCmd.hh"
 #include "ignition/gazebo/components/JointPositionLimitsCmd.hh"
+#include "ignition/gazebo/components/JointTransmittedWrench.hh"
 #include "ignition/gazebo/components/JointVelocityLimitsCmd.hh"
 #include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/JointVelocity.hh"
@@ -65,12 +71,17 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
+#include "ignition/gazebo/components/ParticleEmitter.hh"
 #include "ignition/gazebo/components/Performer.hh"
+#include "ignition/gazebo/components/PerformerAffinity.hh"
 #include "ignition/gazebo/components/PerformerLevels.hh"
+#include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Scene.hh"
 #include "ignition/gazebo/components/Sensor.hh"
+#include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/Static.hh"
+#include "ignition/gazebo/components/TemperatureRange.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -110,6 +121,60 @@ TEST_F(ComponentsTest, Actor)
   EXPECT_EQ("abc", comp3.Data().Name());
   EXPECT_EQ("def", comp3.Data().SkinFilename());
   EXPECT_EQ(ignition::math::Pose3d(3, 2, 1, 0, 0, 0), comp3.Data().RawPose());
+}
+
+/////////////////////////////////////////////////
+TEST_F(ComponentsTest, AnimationName)
+{
+  // Create components
+  auto comp11 = components::AnimationName("comp1");
+  auto comp12 = components::AnimationName("comp1");
+  auto comp2 = components::AnimationName("comp2");
+
+  // Equality operators
+  EXPECT_EQ(comp11, comp12);
+  EXPECT_NE(comp11, comp2);
+  EXPECT_TRUE(comp11 == comp12);
+  EXPECT_TRUE(comp11 != comp2);
+  EXPECT_FALSE(comp11 == comp2);
+  EXPECT_FALSE(comp11 != comp12);
+
+  // Stream operators
+  std::ostringstream ostr;
+  comp11.Serialize(ostr);
+  EXPECT_EQ("comp1", ostr.str());
+
+  std::istringstream istr("comp3");
+  components::AnimationName comp3;
+  comp3.Deserialize(istr);
+  EXPECT_EQ("comp3", comp3.Data());
+}
+
+/////////////////////////////////////////////////
+TEST_F(ComponentsTest, AnimationTime)
+{
+  auto start = std::chrono::steady_clock::now();
+  auto end1 = start + std::chrono::seconds(5);
+  auto end2 = start + std::chrono::seconds(10);
+
+  // Create components
+  auto comp1 = components::AnimationTime(end1 - start);
+  auto comp2 = components::AnimationTime(end2 - start);
+
+  // Equality operators
+  EXPECT_NE(comp1, comp2);
+  EXPECT_FALSE(comp1 == comp2);
+  EXPECT_TRUE(comp1 != comp2);
+
+  // Stream operators
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+  EXPECT_EQ("5000000000", ostr.str());
+
+  std::istringstream istr(ostr.str());
+  components::AnimationTime comp3;
+  comp3.Deserialize(istr);
+  EXPECT_EQ(comp1, comp3);
 }
 
 /////////////////////////////////////////////////
@@ -497,7 +562,7 @@ TEST_F(ComponentsTest, Joint)
 TEST_F(ComponentsTest, JointAxis)
 {
   auto data1 = sdf::JointAxis();
-  data1.SetXyz(math::Vector3d(1, 2, 3));
+  EXPECT_TRUE(data1.SetXyz(math::Vector3d(1, 2, 3)).empty());
   data1.SetXyzExpressedIn("__model__");
   data1.SetDamping(0.1);
   data1.SetFriction(0.2);
@@ -523,7 +588,7 @@ TEST_F(ComponentsTest, JointAxis)
   components::JointAxis comp3;
   comp3.Deserialize(istr);
 
-  EXPECT_EQ(math::Vector3d(1, 2, 3), comp3.Data().Xyz());
+  EXPECT_EQ(math::Vector3d(1, 2, 3).Normalized(), comp3.Data().Xyz());
   EXPECT_DOUBLE_EQ(0.1, comp3.Data().Damping());
   EXPECT_DOUBLE_EQ(0.2, comp3.Data().Friction());
   EXPECT_DOUBLE_EQ(0.3, comp3.Data().Lower());
@@ -781,9 +846,9 @@ TEST_F(ComponentsTest, LevelEntityNames)
   // Stream operators
   std::ostringstream ostr;
   comp11.Serialize(ostr);
-  EXPECT_EQ("level1 level2 ", ostr.str());
+  EXPECT_EQ("level1\x1Flevel2\x1F", ostr.str());
 
-  std::istringstream istr("level3 level4");
+  std::istringstream istr("level3\x1Flevel4");
   components::LevelEntityNames comp3;
   comp3.Deserialize(istr);
 
@@ -809,6 +874,7 @@ TEST_F(ComponentsTest, Light)
   data1.SetSpotInnerAngle(math::Angle(0.3));
   data1.SetSpotOuterAngle(math::Angle(2.3));
   data1.SetSpotFalloff(5.15);
+  data1.SetIntensity(1.55);
 
   auto data2 = sdf::Light();
 
@@ -831,14 +897,15 @@ TEST_F(ComponentsTest, Light)
   EXPECT_EQ(math::Color(1, 0, 0, 1), comp3.Data().Diffuse());
   EXPECT_EQ(math::Color(0, 1, 0, 1), comp3.Data().Specular());
   EXPECT_TRUE(comp3.Data().CastShadows());
-  EXPECT_FLOAT_EQ(1.3, comp3.Data().AttenuationRange());
-  EXPECT_FLOAT_EQ(0.3, comp3.Data().LinearAttenuationFactor());
-  EXPECT_FLOAT_EQ(0.1, comp3.Data().QuadraticAttenuationFactor());
-  EXPECT_FLOAT_EQ(0.05, comp3.Data().ConstantAttenuationFactor());
+  EXPECT_FLOAT_EQ(1.3f, comp3.Data().AttenuationRange());
+  EXPECT_FLOAT_EQ(0.3f, comp3.Data().LinearAttenuationFactor());
+  EXPECT_FLOAT_EQ(0.1f, comp3.Data().QuadraticAttenuationFactor());
+  EXPECT_FLOAT_EQ(0.05f, comp3.Data().ConstantAttenuationFactor());
   EXPECT_EQ(math::Angle(0.3), comp3.Data().SpotInnerAngle());
   EXPECT_EQ(math::Angle(2.3), comp3.Data().SpotOuterAngle());
-  EXPECT_FLOAT_EQ(5.15, comp3.Data().SpotFalloff());
+  EXPECT_FLOAT_EQ(5.15f, comp3.Data().SpotFalloff());
   EXPECT_EQ(math::Vector3d(2, 3, 4), comp3.Data().Direction());
+  EXPECT_FLOAT_EQ(1.55f, comp3.Data().Intensity());
 }
 
 /////////////////////////////////////////////////
@@ -1113,10 +1180,9 @@ TEST_F(ComponentsTest, Material)
   EXPECT_EQ(math::Color(1, 1, 1, 1), comp3.Data().Emissive());
   EXPECT_FALSE(comp3.Data().Lighting());
 
-  sdf::Pbr *newPbrMaterial = comp3.Data().PbrMaterial();
+  auto newPbrMaterial = comp3.Data().PbrMaterial();
   ASSERT_NE(nullptr, newPbrMaterial);
-  sdf::PbrWorkflow *newWorkflow =
-      newPbrMaterial->Workflow(sdf::PbrWorkflowType::METAL);
+  auto newWorkflow = newPbrMaterial->Workflow(sdf::PbrWorkflowType::METAL);
   ASSERT_NE(nullptr, newWorkflow);
   EXPECT_EQ("albedo_map.png", newWorkflow->AlbedoMap());
   EXPECT_EQ("normal_map.png", newWorkflow->NormalMap());
@@ -1154,6 +1220,66 @@ TEST_F(ComponentsTest, Model)
 }
 
 /////////////////////////////////////////////////
+TEST_F(ComponentsTest, ModelSdf)
+{
+  std::ostringstream stream;
+  std::string version = SDF_VERSION;
+  stream
+    << "<?xml version=\"1.0\" ?>"
+    << "<sdf version='" << version << "'>"
+    << "  <world name=\"modelSDF\">"
+    << "    <physics name=\"1ms\" type=\"ode\">"
+    << "      <max_step_size>0.001</max_step_size>"
+    << "      <real_time_factor>1.0</real_time_factor>"
+    << "    </physics>"
+    << "    <plugin"
+    << "      filename=\"ignition-gazebo-physics-system\""
+    << "      name=\"ignition::gazebo::systems::Physics\">"
+    << "    </plugin>"
+    << "    <model name='my_model'>"
+    << "      <link name='link'>"
+    << "        <light type= 'point' name='my_light'>"
+    << "          <pose>0.1 0 0 0 0 0</pose>"
+    << "          <diffuse>0.2 0.3 0.4 1</diffuse>"
+    << "          <specular>0.3 0.4 0.5 1</specular>"
+    << "        </light>"
+    << "      </link>"
+    << "    </model>"
+    << "  </world>"
+    << "</sdf>";
+
+  sdf::SDFPtr sdfParsed(new sdf::SDF());
+  sdf::init(sdfParsed);
+  ASSERT_TRUE(sdf::readString(stream.str(), sdfParsed));
+
+  // model
+  EXPECT_TRUE(sdfParsed->Root()->HasElement("world"));
+  sdf::ElementPtr worldElem = sdfParsed->Root()->GetElement("world");
+  EXPECT_TRUE(worldElem->HasElement("model"));
+  sdf::ElementPtr modelElem = worldElem->GetElement("model");
+  EXPECT_TRUE(modelElem->HasAttribute("name"));
+  EXPECT_EQ(modelElem->Get<std::string>("name"), "my_model");
+
+  sdf::Model model;
+  model.Load(modelElem);
+  EXPECT_EQ("my_model", model.Name());
+
+  // Create components
+  auto comp1 = components::ModelSdf(model);
+  components::ModelSdf comp2;
+
+  // Stream operators
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+
+  std::istringstream istr(ostr.str());
+  comp2.Deserialize(istr);
+
+  EXPECT_EQ("my_model", comp2.Data().Name());
+  EXPECT_EQ(1u, comp2.Data().LinkCount());
+}
+
+/////////////////////////////////////////////////
 TEST_F(ComponentsTest, Name)
 {
   // Create components
@@ -1170,14 +1296,26 @@ TEST_F(ComponentsTest, Name)
   EXPECT_FALSE(comp11 != comp12);
 
   // Stream operators
-  std::ostringstream ostr;
-  comp11.Serialize(ostr);
-  EXPECT_EQ("comp1", ostr.str());
+  for (auto str : {
+      "boring",
+      "snake_case",
+      "camelCase",
+      "with s p a c e s 123",
+      "with/slash",
+      "tópico",
+      "トピック"
+    })
+  {
+    auto compA = components::Name(str);
+    std::ostringstream ostr;
+    compA.Serialize(ostr);
+    EXPECT_EQ(str, ostr.str());
 
-  std::istringstream istr("comp3");
-  components::Name comp3;
-  comp3.Deserialize(istr);
-  EXPECT_EQ("comp3", comp3.Data());
+    std::istringstream istr(str);
+    components::Name compB;
+    compB.Deserialize(istr);
+    EXPECT_EQ(str, compB.Data());
+  }
 }
 
 /////////////////////////////////////////////////
@@ -1257,6 +1395,33 @@ TEST_F(ComponentsTest, Performer)
 }
 
 /////////////////////////////////////////////////
+TEST_F(ComponentsTest, PerformerAffinity)
+{
+  // Create components
+  auto comp11 = components::PerformerAffinity("comp1");
+  auto comp12 = components::PerformerAffinity("comp1");
+  auto comp2 = components::PerformerAffinity("comp2");
+
+  // Equality operators
+  EXPECT_EQ(comp11, comp12);
+  EXPECT_NE(comp11, comp2);
+  EXPECT_TRUE(comp11 == comp12);
+  EXPECT_TRUE(comp11 != comp2);
+  EXPECT_FALSE(comp11 == comp2);
+  EXPECT_FALSE(comp11 != comp12);
+
+  // Stream operators
+  std::ostringstream ostr;
+  comp11.Serialize(ostr);
+  EXPECT_EQ("comp1", ostr.str());
+
+  std::istringstream istr("comp3");
+  components::PerformerAffinity comp3;
+  comp3.Deserialize(istr);
+  EXPECT_EQ("comp3", comp3.Data());
+}
+
+/////////////////////////////////////////////////
 TEST_F(ComponentsTest, PerformerLevels)
 {
   // Create components
@@ -1280,6 +1445,27 @@ TEST_F(ComponentsTest, PerformerLevels)
   EXPECT_EQ(1u, comp3.Data().count(9));
   EXPECT_EQ(1u, comp3.Data().count(10));
   EXPECT_EQ(0u, comp3.Data().count(1));
+}
+
+/////////////////////////////////////////////////
+TEST_F(ComponentsTest, PhysicsEnginePlugin)
+{
+  // Create components
+  auto comp11 = components::PhysicsEnginePlugin("engine-plugin");
+  auto comp12 = components::PhysicsEnginePlugin("engine-plugin");
+  auto comp2 = components::PhysicsEnginePlugin("another-engine-plugin");
+
+  // TODO(anyone) Equality operators
+
+  // Stream operators
+  std::ostringstream ostr;
+  comp11.Serialize(ostr);
+  EXPECT_EQ("engine-plugin", ostr.str());
+
+  std::istringstream istr("libengine-plugin.so");
+  components::PhysicsEnginePlugin comp3;
+  comp3.Deserialize(istr);
+  EXPECT_EQ("libengine-plugin.so", comp3.Data());
 }
 
 /////////////////////////////////////////////////
@@ -1332,6 +1518,33 @@ TEST_F(ComponentsTest, Sensor)
 }
 
 /////////////////////////////////////////////////
+TEST_F(ComponentsTest, SourceFilePath)
+{
+  // Create components
+  auto comp11 = components::SourceFilePath("comp1");
+  auto comp12 = components::SourceFilePath("comp1");
+  auto comp2 = components::SourceFilePath("comp2");
+
+  // Equality operators
+  EXPECT_EQ(comp11, comp12);
+  EXPECT_NE(comp11, comp2);
+  EXPECT_TRUE(comp11 == comp12);
+  EXPECT_TRUE(comp11 != comp2);
+  EXPECT_FALSE(comp11 == comp2);
+  EXPECT_FALSE(comp11 != comp12);
+
+  // Stream operators
+  std::ostringstream ostr;
+  comp11.Serialize(ostr);
+  EXPECT_EQ("comp1", ostr.str());
+
+  std::istringstream istr("comp3");
+  components::SourceFilePath comp3;
+  comp3.Deserialize(istr);
+  EXPECT_EQ("comp3", comp3.Data());
+}
+
+/////////////////////////////////////////////////
 TEST_F(ComponentsTest, Static)
 {
   // Create components
@@ -1346,6 +1559,45 @@ TEST_F(ComponentsTest, Static)
   EXPECT_TRUE(comp11 != comp2);
   EXPECT_FALSE(comp11 == comp2);
   EXPECT_FALSE(comp11 != comp12);
+}
+
+/////////////////////////////////////////////////
+TEST_F(ComponentsTest, TemperatureRange)
+{
+  // TODO(adlarkin) make sure min can't be >= max?
+  components::TemperatureRangeInfo range1;
+  range1.min = math::Temperature(125.0);
+  range1.max = math::Temperature(300.0);
+
+  components::TemperatureRangeInfo range2;
+  range2.min = math::Temperature(140.0);
+  range2.max = math::Temperature(200.0);
+
+  components::TemperatureRangeInfo range3;
+  range3.min = math::Temperature(125.0);
+  range3.max = math::Temperature(300.0);
+
+  // Create components
+  auto comp1 = components::TemperatureRange(range1);
+  auto comp2 = components::TemperatureRange(range2);
+  auto comp3 = components::TemperatureRange(range3);
+
+  // Equality operators
+  EXPECT_EQ(comp1, comp3);
+  EXPECT_NE(comp1, comp2);
+  EXPECT_NE(comp2, comp3);
+  EXPECT_FALSE(comp1 == comp2);
+  EXPECT_TRUE(comp1 != comp2);
+
+  // Stream operators
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+  EXPECT_EQ("125 300", ostr.str());
+
+  std::istringstream istr(ostr.str());
+  components::TemperatureRange comp4;
+  comp4.Deserialize(istr);
+  EXPECT_EQ(comp1, comp4);
 }
 
 /////////////////////////////////////////////////
@@ -1437,4 +1689,118 @@ TEST_F(ComponentsTest, Scene)
   EXPECT_TRUE(comp3.Data().Shadows());
   EXPECT_FALSE(comp3.Data().Grid());
   EXPECT_TRUE(comp3.Data().OriginVisual());
+}
+
+//////////////////////////////////////////////////
+TEST_F(ComponentsTest, ParticleEmitter)
+{
+  msgs::ParticleEmitter emitter1;
+  emitter1.set_name("emitter1");
+  emitter1.set_id(0);
+  emitter1.set_type(ignition::msgs::ParticleEmitter_EmitterType_BOX);
+  emitter1.mutable_size()->set_x(1);
+  emitter1.mutable_size()->set_y(2);
+  emitter1.mutable_size()->set_z(3);
+  emitter1.mutable_rate()->set_data(4.0);
+  emitter1.mutable_duration()->set_data(5.0);
+  emitter1.mutable_emitting()->set_data(false);
+  emitter1.mutable_particle_size()->set_x(0.1);
+  emitter1.mutable_particle_size()->set_y(0.2);
+  emitter1.mutable_particle_size()->set_z(0.3);
+  emitter1.mutable_lifetime()->set_data(6.0);
+  emitter1.mutable_min_velocity()->set_data(7.0);
+  emitter1.mutable_max_velocity()->set_data(8.0);
+  emitter1.mutable_color_start()->set_r(1.0);
+  emitter1.mutable_color_start()->set_g(0);
+  emitter1.mutable_color_start()->set_b(0);
+  emitter1.mutable_color_start()->set_a(0);
+  emitter1.mutable_color_end()->set_r(1.0);
+  emitter1.mutable_color_end()->set_g(1.0);
+  emitter1.mutable_color_end()->set_b(1.0);
+  emitter1.mutable_color_end()->set_a(0);
+  emitter1.mutable_scale_rate()->set_data(9.0);
+  emitter1.mutable_color_range_image()->set_data("path_to_texture");
+
+  msgs::ParticleEmitter emitter2;
+  emitter2.set_name("emitter2");
+  emitter2.set_id(1);
+  emitter2.set_type(ignition::msgs::ParticleEmitter_EmitterType_BOX);
+  emitter2.mutable_size()->set_x(1);
+  emitter2.mutable_size()->set_y(2);
+  emitter2.mutable_size()->set_z(3);
+  emitter2.mutable_rate()->set_data(4.0);
+  emitter2.mutable_duration()->set_data(5.0);
+  emitter2.mutable_emitting()->set_data(false);
+  emitter2.mutable_particle_size()->set_x(0.1);
+  emitter2.mutable_particle_size()->set_y(0.2);
+  emitter2.mutable_particle_size()->set_z(0.3);
+  emitter2.mutable_lifetime()->set_data(6.0);
+  emitter2.mutable_min_velocity()->set_data(7.0);
+  emitter2.mutable_max_velocity()->set_data(8.0);
+  emitter2.mutable_color_start()->set_r(1.0);
+  emitter2.mutable_color_start()->set_g(0);
+  emitter2.mutable_color_start()->set_b(0);
+  emitter2.mutable_color_start()->set_a(0);
+  emitter2.mutable_color_end()->set_r(1.0);
+  emitter2.mutable_color_end()->set_g(1.0);
+  emitter2.mutable_color_end()->set_b(1.0);
+  emitter2.mutable_color_end()->set_a(0);
+  emitter2.mutable_scale_rate()->set_data(9.0);
+  emitter2.mutable_color_range_image()->set_data("path_to_texture");
+
+  // Create components.
+  auto comp1 = components::ParticleEmitter(emitter1);
+  auto comp2 = components::ParticleEmitter(emitter2);
+
+  // Stream operators.
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+
+  std::istringstream istr(ostr.str());
+  components::ParticleEmitter comp3;
+  comp3.Deserialize(istr);
+  EXPECT_EQ(comp1.Data().id(), comp3.Data().id());
+}
+
+//////////////////////////////////////////////////
+TEST_F(ComponentsTest, ParticleEmitterCmd)
+{
+  msgs::ParticleEmitter emitter1;
+  emitter1.set_name("emitter1");
+  emitter1.mutable_emitting()->set_data(true);
+
+  // Create components.
+  auto comp1 = components::ParticleEmitterCmd(emitter1);
+
+  // Stream operators.
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+
+  std::istringstream istr(ostr.str());
+  components::ParticleEmitter comp3;
+  comp3.Deserialize(istr);
+  EXPECT_EQ(comp1.Data().emitting().data(), comp3.Data().emitting().data());
+  EXPECT_EQ(comp1.Data().name(), comp3.Data().name());
+}
+
+//////////////////////////////////////////////////
+TEST_F(ComponentsTest, JointTransmittedWrench)
+{
+  msgs::Wrench wrench;
+  msgs::Set(wrench.mutable_torque(), {10, 20, 30});
+  msgs::Set(wrench.mutable_force(), {1, 2, 3});
+
+  // // Create components.
+  auto comp1 = components::JointTransmittedWrench(wrench);
+
+  // Stream operators.
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+
+  std::istringstream istr(ostr.str());
+  components::JointTransmittedWrench comp2;
+  comp2.Deserialize(istr);
+  EXPECT_EQ(msgs::Convert(comp2.Data().force()), msgs::Convert(wrench.force()));
+  EXPECT_EQ(msgs::Convert(comp2.Data().torque()),
+            msgs::Convert(wrench.torque()));
 }

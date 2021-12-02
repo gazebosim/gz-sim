@@ -20,6 +20,7 @@
 #include <ignition/msgs/sdf_generator_config.pb.h>
 
 #include <sdf/Element.hh>
+#include <optional>
 #include <string>
 #include <unordered_map>
 
@@ -75,6 +76,17 @@ namespace sdf_generator
                           const EntityComponentManager &_ecm,
                           const Entity &_entity);
 
+  /// \brief Update a sdf::Element model to use //include instead of expanded
+  /// model (to be used when expand_include_tags is disabled)
+  /// \input[in, out] _elem sdf::Element to update
+  /// \input[in] _saveFuelVersion True if "Save Fuel model versions" is enabled
+  /// \input[in] _includeUriMap Map from file paths to URIs used to preserve
+  /// included Fuel models
+  IGNITION_GAZEBO_VISIBLE
+  void updateModelElementWithNestedInclude(sdf::ElementPtr &_elem,
+                                           const bool _saveFuelVersion,
+                                           const IncludeUriMap &_includeUriMap);
+
   /// \brief Update a sdf::Element of an included resource.
   /// Intended for internal use.
   /// \input[in, out] _elem sdf::Element to update
@@ -87,6 +99,49 @@ namespace sdf_generator
                             const EntityComponentManager &_ecm,
                             const Entity &_entity, const std::string &_uri);
 
+  /// \brief Update an sdf::Element of a link.
+  /// Intended for internal use.
+  /// \input[in, out] _elem sdf::Element to update
+  /// \input[in] _ecm Immutable reference to the Entity Component Manager
+  /// \input[in] _entity Link entity
+  /// \returns true if update succeeded.
+  IGNITION_GAZEBO_VISIBLE
+  bool updateLinkElement(const sdf::ElementPtr &_elem,
+                         const EntityComponentManager &_ecm,
+                         const Entity &_entity);
+
+  /// \brief Update an sdf::Element of a sensor.
+  /// Intended for internal use.
+  /// \input[in, out] _elem sdf::Element to update
+  /// \input[in] _ecm Immutable reference to the Entity Component Manager
+  /// \input[in] _entity Sensor entity
+  /// \returns true if update succeeded.
+  IGNITION_GAZEBO_VISIBLE
+  bool updateSensorElement(sdf::ElementPtr _elem,
+                           const EntityComponentManager &_ecm,
+                           const Entity &_entity);
+
+  /// \brief Update an sdf::Element of a light.
+  /// Intended for internal use.
+  /// \input[in, out] _elem sdf::Element to update
+  /// \input[in] _ecm Immutable reference to the Entity Component Manager
+  /// \input[in] _entity Light entity
+  /// \returns true if update succeeded.
+  IGNITION_GAZEBO_VISIBLE
+  bool updateLightElement(sdf::ElementPtr _elem,
+                           const EntityComponentManager &_ecm,
+                           const Entity &_entity);
+
+  /// \brief Update an sdf::Element of a joint.
+  /// Intended for internal use.
+  /// \input[in, out] _elem sdf::Element to update
+  /// \input[in] _ecm Immutable reference to the Entity Component Manager
+  /// \input[in] _entity joint entity
+  /// \returns true if update succeeded.
+  IGNITION_GAZEBO_VISIBLE
+  bool updateJointElement(sdf::ElementPtr _elem,
+                           const EntityComponentManager &_ecm,
+                           const Entity &_entity);
 }  // namespace sdf_generator
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 }  // namespace gazebo

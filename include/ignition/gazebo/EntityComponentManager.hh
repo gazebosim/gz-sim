@@ -22,11 +22,13 @@
 
 #include <map>
 #include <memory>
+#include <optional>
 #include <set>
 #include <string>
 #include <typeinfo>
 #include <type_traits>
 #include <unordered_set>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -73,6 +75,41 @@ namespace ignition
       /// \return An id for the Entity, or kNullEntity on failure.
       public: Entity CreateEntity();
 
+      /// \brief Clone an entity and its components. If the entity has any child
+      /// entities, they will also be cloned.
+      /// When cloning entities, the following rules apply:
+      ///   1. The name component of a cloned entity will consist of a unique
+      ///      name, since all entities should have a unique name.
+      ///   2. Cloned entities that have a canonical link will have their
+      ///      canonical link set to the cloned canonical link, not the original
+      ///      canonical link.
+      ///   3. Child entities that are cloned will have their parent set to the
+      ///      cloned parent entity.
+      ///   4. Cloned joints with parent/child links will have their parent and
+      ///      child links set to the cloned parent/child links.
+      ///   5. Aside from the changes listed above, all other cloned components
+      ///      remain unchanged.
+      /// Currently, cloning detachable joints is not supported.
+      /// \param[in] _entity The entity to clone.
+      /// \param[in] _parent The parent of the cloned entity. Set this to
+      /// kNullEntity if the cloned entity should not have a parent.
+      /// \param[in] _name The name that should be given to the cloned entity.
+      /// Set this to an empty string if the cloned entity name should be
+      /// auto-generated to something unique.
+      /// \param[in] _allowRename True if _name can be modified to be a unique
+      /// name if it isn't already a unique name. False if _name cannot be
+      /// modified to be a unique name. If _allowRename is set to False, and
+      /// _name is not unique, _entity will not be cloned. If _name is an
+      /// empty string, _allowRename is ignored since the cloned entity will
+      /// have an auto-generated unique name.
+      /// \return The cloned entity, which will have a unique name. kNullEntity
+      /// is returned if cloning failed. Failure could occur if _entity does not
+      /// exist, or if a unique name could not be generated for the entity to be
+      /// cloned.
+      /// \sa Clone
+      public: Entity Clone(Entity _entity, Entity _parent,
+                  const std::string &_name, bool _allowRename);
+
       /// \brief Get the number of entities on the server.
       /// \return Entity count.
       public: size_t EntityCount() const;
@@ -90,6 +127,35 @@ namespace ignition
       /// entities. True by default.
       public: void RequestRemoveEntity(const Entity _entity,
           bool _recursive = true);
+
+      /// \brief Prevent an entity and optionally its children from
+      /// being removed.
+      ///
+      /// This function can be useful when seek operations during log
+      /// playback are used in conjunciton with spawned entities. For
+      /// example, you may want to record a video based on a log file
+      /// using a headless simulation instance. This requires a
+      /// camera sensor which would be spawned during log playback. If
+      /// a seek backward in time is performed during log playback, then the
+      /// spawned camera would be removed. Use this function to prevent the
+      /// camera from automatic removal.
+      ///
+      /// \param[in] _entity Entity to be pinned.
+      /// \param[in] _recursive Whether to recursively pin all child
+      /// entities. True by default.
+      public: void PinEntity(const Entity _entity, bool _recursive = true);
+
+      /// \brief Allow an entity, and optionally its children, previously
+      /// marked as pinned to be removed.
+      /// \param[in] _entity Entity to be unpinned.
+      /// \param[in] _recursive Whether to recursively unpin all child
+      /// entities. True by default.
+      /// \sa void PinEntity(const Entity, bool)
+      public: void UnpinEntity(const Entity _entity, bool _recursive = true);
+
+      /// \brief Allow all previously pinned entities to be removed.
+      /// \sa void PinEntity(const Entity, bool)
+      public: void UnpinAllEntities();
 
       /// \brief Request to remove all entities. This will insert the request
       /// into a queue. The queue is processed toward the end of a simulation
@@ -130,7 +196,7 @@ namespace ignition
       /// \param[in] _entity The entity to check.
       /// \param[in] _key The component to check.
       /// \return True if the component key belongs to the entity.
-      public: bool EntityHasComponent(const Entity _entity,
+      public: bool IGN_DEPRECATED(6) EntityHasComponent(const Entity _entity,
                   const ComponentKey &_key) const;
 
       /// \brief Check whether an entity has a specific component type.
@@ -153,7 +219,7 @@ namespace ignition
       /// \param[in] _key A key that uniquely identifies a component.
       /// \return True if the entity and component existed and the component was
       ///  removed.
-      public: bool RemoveComponent(
+      public: bool IGN_DEPRECATED(6) RemoveComponent(
                   const Entity _entity, const ComponentKey &_key);
 
       /// \brief Remove a component from an entity based on a type id.
@@ -181,9 +247,12 @@ namespace ignition
       /// \param[in] _entity The entity that will be associated with
       /// the component.
       /// \param[in] _data Data used to construct the component.
-      /// \return Key that uniquely identifies the component.
+      /// \return A pointer to the component that was created. nullptr is
+      /// returned if the component was not able to be created. If _entity
+      /// does not exist, nullptr will be returned.
       public: template<typename ComponentTypeT>
-              ComponentKey CreateComponent(const Entity _entity,
+              ComponentTypeT *CreateComponent(
+                  const Entity _entity,
                   const ComponentTypeT &_data);
 
       /// \brief Get a component assigned to an entity based on a
@@ -207,14 +276,16 @@ namespace ignition
       /// \return The component associated with the key, or nullptr if the
       /// component could not be found.
       public: template<typename ComponentTypeT>
-              const ComponentTypeT *Component(const ComponentKey &_key) const;
+              const ComponentTypeT IGN_DEPRECATED(6) * Component(
+              const ComponentKey &_key) const;
 
       /// \brief Get a mutable component based on a key.
       /// \param[in] _key A key that uniquely identifies a component.
       /// \return The component associated with the key, or nullptr if the
       /// component could not be found.
       public: template<typename ComponentTypeT>
-              ComponentTypeT *Component(const ComponentKey &_key);
+              ComponentTypeT IGN_DEPRECATED(6) * Component(
+              const ComponentKey &_key);
 
       /// \brief Get a mutable component assigned to an entity based on a
       /// component type. If the component doesn't exist, create it and
@@ -223,7 +294,7 @@ namespace ignition
       /// \param[in] _default The value that should be used to construct
       /// the component in case the component doesn't exist.
       /// \return The component of the specified type assigned to the specified
-      /// entity.
+      /// entity. If _entity does not exist, nullptr is returned.
       public: template<typename ComponentTypeT>
               ComponentTypeT *ComponentDefault(Entity _entity,
               const typename ComponentTypeT::Type &_default =
@@ -262,20 +333,20 @@ namespace ignition
           Entity _entity) const;
 
       /// \brief The first component instance of the specified type.
-      /// \return First component instance of the specified type, or nullptr
-      /// if the type does not exist.
+      /// This function is now deprecated, and will always return nullptr.
+      /// \return nullptr.
       public: template<typename ComponentTypeT>
-              const ComponentTypeT *First() const;
+              const ComponentTypeT IGN_DEPRECATED(6) * First() const;
 
       /// \brief The first component instance of the specified type.
-      /// \return First component instance of the specified type, or nullptr
-      /// if the type does not exist.
+      /// This function is now deprecated, and will always return nullptr.
+      /// \return nullptr.
       public: template<typename ComponentTypeT>
-              ComponentTypeT *First();
+              ComponentTypeT IGN_DEPRECATED(6) * First();
 
       /// \brief Get an entity which matches the value of all the given
       /// components. For example, the following will return the entity which
-      /// has an name component equal to "name" and has a model component:
+      /// has a name component equal to "name" and has a model component:
       ///
       ///  auto entity = EntityByComponents(components::Name("name"),
       ///    components::Model());
@@ -326,6 +397,21 @@ namespace ignition
       /// why is this required?
       private: template <typename T>
                struct identity;  // NOLINT
+
+      /// \brief Helper function for cloning an entity and its children (this
+      /// includes cloning components attached to these entities). This method
+      /// should never be called directly - it is called internally from the
+      /// public Clone method.
+      /// \param[in] _entity The entity to clone.
+      /// \param[in] _parent The parent of the cloned entity.
+      /// \param[in] _name The name that should be given to the cloned entity.
+      /// \param[in] _allowRename True if _name can be modified to be a unique
+      /// name if it isn't already a unique name. False if _name cannot be
+      /// modified to be a unique name.
+      /// \return The cloned entity. kNullEntity is returned if cloning failed.
+      /// \sa Clone
+      private: Entity CloneImpl(Entity _entity, Entity _parent,
+                  const std::string &_name, bool _allowRename);
 
       /// \brief A version of Each() that doesn't use a cache. The cached
       /// version, Each(), is preferred.
@@ -480,11 +566,9 @@ namespace ignition
       /// \brief Get a message with the serialized state of all entities and
       /// components that are changing in the current iteration
       ///
-      /// Currently supported:
+      /// This includes:
       /// * New entities and all of their components
       /// * Removed entities and all of their components
-      ///
-      /// Future work:
       /// * Entities which had a component added
       /// * Entities which had a component removed
       /// * Entities which had a component modified
@@ -526,7 +610,7 @@ namespace ignition
       /// and components.
       /// \details The header of the message will not be populated, it is the
       /// responsibility of the caller to timestamp it before use.
-      /// \param[in] _state serialized state
+      /// \param[out] _state The serialized state message to populate.
       /// \param[in] _entities Entities to be serialized. Leave empty to get
       /// all entities.
       /// \param[in] _types Type ID of components to be serialized. Leave empty
@@ -542,11 +626,9 @@ namespace ignition
       /// \brief Get a message with the serialized state of all entities and
       /// components that are changing in the current iteration
       ///
-      /// Currently supported:
+      /// This includes:
       /// * New entities and all of their components
       /// * Removed entities and all of their components
-      ///
-      /// Future work:
       /// * Entities which had a component added
       /// * Entities which had a component removed
       /// * Entities which had a component modified
@@ -592,6 +674,10 @@ namespace ignition
       /// is protected to facilitate testing.
       protected: void ClearNewlyCreatedEntities();
 
+      /// \brief Clear the list of removed components so that a call to
+      /// RemoveComponent doesn't make the list grow indefinitely.
+      protected: void ClearRemovedComponents();
+
       /// \brief Process all entity remove requests. This will remove
       /// entities and their components. This function is protected to
       /// facilitate testing.
@@ -613,24 +699,14 @@ namespace ignition
       /// \return True if the Entity has been marked to be removed.
       private: bool IsMarkedForRemoval(const Entity _entity) const;
 
-      /// \brief Delete an existing Entity.
-      /// \param[in] _entity The entity to remove.
-      /// \returns True if the Entity existed and was deleted.
-      private: bool RemoveEntity(const Entity _entity);
-
-      /// \brief The first component instance of the specified type.
-      /// \return First component instance of the specified type, or nullptr
-      /// if the type does not exist.
-      private: components::BaseComponent *First(
-                   const ComponentTypeId _componentTypeId);
-
       /// \brief Implementation of CreateComponent.
       /// \param[in] _entity The entity that will be associated with
       /// the component.
       /// \param[in] _componentTypeId Id of the component type.
       /// \param[in] _data Data used to construct the component.
-      /// \return Key that uniquely identifies the component.
-      private: ComponentKey CreateComponentImplementation(
+      /// \return True if the component's data needs to be set externally; false
+      /// otherwise.
+      private: bool CreateComponentImplementation(
                    const Entity _entity,
                    const ComponentTypeId _componentTypeId,
                    const components::BaseComponent *_data);
@@ -653,79 +729,31 @@ namespace ignition
                    const Entity _entity,
                    const ComponentTypeId _type);
 
-      /// \brief Get a component based on a key.
-      /// \param[in] _key A key that uniquely identifies a component.
-      /// \return The component associated with the key, or nullptr if the
-      /// component could not be found.
-      private: const components::BaseComponent *ComponentImplementation(
-                   const ComponentKey &_key) const;
-
-      /// \brief Get a mutable component based on a key.
-      /// \param[in] _key A key that uniquely identifies a component.
-      /// \return The component associated with the key, or nullptr if the
-      /// component could not be found.
-      private: components::BaseComponent *ComponentImplementation(
-                   const ComponentKey &_key);
-
-      /// \brief End of the AddComponentToView recursion. This function is
-      /// called when Rest is empty.
-      /// \param[in, out] _view The FirstComponent will be added to the
-      /// _view.
-      /// \param[in] _entity The entity.
-      private: template<typename FirstComponent,
-                        typename ...RemainingComponents,
-                        typename std::enable_if<
-                          sizeof...(RemainingComponents) == 0, int>::type = 0>
-          void AddComponentsToView(detail::View &_view,
-               const Entity _entity) const;
-
-      /// \brief Recursively add components to a view. This function is
-      /// called when Rest is NOT empty.
-      /// \param[in, out] _view The FirstComponent will be added to the
-      /// _view.
-      /// \param[in] _entity The entity.
-      private: template<typename FirstComponent,
-                        typename ...RemainingComponents,
-                        typename std::enable_if<
-                          sizeof...(RemainingComponents) != 0, int>::type = 0>
-          void AddComponentsToView(detail::View &_view,
-              const Entity _entity) const;
-
       /// \brief Find a View that matches the set of ComponentTypeIds. If
       /// a match is not found, then a new view is created.
       /// \tparam ComponentTypeTs All the component types that define a view.
-      /// \return A reference to the view.
+      /// \return A pointer to the view.
       private: template<typename ...ComponentTypeTs>
-          detail::View &FindView() const;
+          detail::View<ComponentTypeTs...> *FindView() const;
 
       /// \brief Find a view based on the provided component type ids.
       /// \param[in] _types The component type ids that serve as a key into
       /// a map of views.
-      /// \param[out] _iter Iterator to the found element in the view map.
-      /// Check the return value to see if this iterator is valid.
-      /// \return True if the view was found, false otherwise.
-      private: bool FindView(const std::set<ComponentTypeId> &_types,
-          std::map<detail::ComponentTypeKey,
-          detail::View>::iterator &_iter) const;  // NOLINT
+      /// \return A pair containing a the view itself and a mutex that can be
+      /// used for locking the view while entities are being added to it.
+      /// If a view defined by _types does not exist, the pair will contain
+      /// nullptrs.
+      private: std::pair<detail::BaseView *, std::mutex *> FindView(
+                   const std::vector<ComponentTypeId> &_types) const;
 
       /// \brief Add a new view to the set of stored views.
-      /// \param[in] _types The set of component type ids that is the key
+      /// \param[in] _types The set of component type ids that act as the key
       /// for the view.
       /// \param[in] _view The view to add.
-      /// \return An iterator to the view.
-      private: std::map<detail::ComponentTypeKey, detail::View>::iterator
-          AddView(const std::set<ComponentTypeId> &_types,
-              detail::View &&_view) const;
-
-      /// \brief Update views that contain the provided entity.
-      /// \param[in] _entity The entity.
-      private: void UpdateViews(const Entity _entity);
-
-      /// \brief Get a component ID based on an entity and the component's type.
-      /// \param[in] _entity The entity.
-      /// \param[in] _type Component type ID.
-      private: ComponentId EntityComponentIdFromType(
-          const Entity _entity, const ComponentTypeId _type) const;
+      /// \return A pointer to the view.
+      private: detail::BaseView *AddView(
+                   const detail::ComponentTypeKey &_types,
+                   std::unique_ptr<detail::BaseView> _view) const;
 
       /// \brief Add an entity and its components to a serialized state message.
       /// \param[out] _msg The state message.
@@ -753,6 +781,22 @@ namespace ignition
           const std::unordered_set<ComponentTypeId> &_types = {},
           bool _full = false) const;
 
+      /// \brief Set whether views should be locked when entities are being
+      /// added to them. This can be used to prevent race conditions in
+      /// system PostUpdates, since these are run in parallel (entities are
+      /// added to views when the view is used, so if two systems try to access
+      /// the same view in PostUpdate, we run the risk of multiple threads
+      /// reading/writing from the same data).
+      /// \param[in] _lock Whether the views should lock while entities are
+      /// being added to them (true) or not (false).
+      private: void LockAddingEntitiesToViews(bool _lock);
+
+      /// \brief Get whether views should be locked when entities are being
+      /// added to them.
+      /// \return True if views should be locked during entitiy addition, false
+      /// otherwise.
+      private: bool LockAddingEntitiesToViews() const;
+
       // Make runners friends so that they can manage entity creation and
       // removal. This should be safe since runners are internal
       // to Gazebo.
@@ -763,10 +807,6 @@ namespace ignition
       // states. Like the runners, the managers are internal.
       friend class NetworkManagerPrimary;
       friend class NetworkManagerSecondary;
-
-      // Make View a friend so that it can access components.
-      // This should be safe since View is internal to Gazebo.
-      friend class detail::View;
     };
     }
   }

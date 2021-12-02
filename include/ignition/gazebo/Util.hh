@@ -190,6 +190,26 @@ namespace ignition
     std::string IGNITION_GAZEBO_VISIBLE validTopic(
         const std::vector<std::string> &_topics);
 
+    /// \brief Helper function that returns a valid Ignition Transport topic
+    /// consisting of the scoped name for the provided entity.
+    ///
+    /// For example, if the provided entity has a scoped name of
+    /// `my_model::my_link::my_sensor` then the resulting topic name will
+    /// be `/model/my_model/link/my_link/sensor/my_sensor`. If _excludeWorld
+    /// is false, then the topic name will be prefixed by `/world/WORLD_NAME/`,
+    /// where `WORLD_NAME` is the name of the world.
+    ///
+    /// \param[in] _entity The entity to generate the topic name for.
+    /// \param[in] _ecm The entity component manager.
+    /// \param[in] _excludeWorld True to exclude the world name from the topic.
+    /// \return An Ignition Transport topic name based on the scoped name of
+    /// the provided entity, or empty string if a topic name could not be
+    /// generated.
+    std::string IGNITION_GAZEBO_VISIBLE topicFromScopedName(
+        const Entity &_entity,
+        const EntityComponentManager &_ecm,
+        bool _excludeWorld = true);
+
     /// \brief Helper function to "enable" a component (i.e. create it if it
     /// doesn't exist) or "disable" a component (i.e. remove it if it exists).
     /// \param[in] _ecm Mutable reference to the ECM
@@ -217,6 +237,15 @@ namespace ignition
       }
       return changed;
     }
+
+    /// \brief Get the spherical coordinates for an entity.
+    /// \param[in] _entity Entity whose coordinates we want.
+    /// \param[in] _ecm Entity component manager
+    /// \return The entity's latitude (deg), longitude (deg) and elevation (m).
+    /// If the entity doesn't have a pose, or the world's spherical coordinates
+    /// haven't been defined, this will return nullopt.
+    std::optional<math::Vector3d> IGNITION_GAZEBO_VISIBLE sphericalCoordinates(
+        Entity _entity, const EntityComponentManager &_ecm);
 
     /// \brief Environment variable holding resource paths.
     const std::string kResourcePathEnv{"IGN_GAZEBO_RESOURCE_PATH"};

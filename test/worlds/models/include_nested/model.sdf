@@ -1,0 +1,44 @@
+<?xml version='1.0'?>
+<sdf version='1.8'>
+  <!-- Note: The meshes in this file do not actually exist.
+  This file is used for testing relative URIs -->
+  <model name='include_nested'>
+    <include>
+      <name>nested_models_new_name</name>
+      <uri>nested_models</uri>
+      <!-- No pose added, check explicit pose in nested model -->
+    </include>
+    <frame name="include_nested_frame_00">
+      <pose relative_to="nested_models_new_name::model_00::frame_00">
+        0 0 0 0 0 0
+      </pose>
+    </frame>
+    <frame name="include_nested_frame_01">
+      <pose relative_to="nested_models_new_name::model_00::model_01::frame_01">
+        0 0 0 0 0 0
+      </pose>
+    </frame>
+
+    <!-- Same names as nested_models links to check for name collisions -->
+    <link name="link_00">
+      <pose relative_to="include_nested_frame_00">0 0 0 0 0 0</pose>
+      <collision name="collision_00">
+        <geometry>
+          <sphere>
+            <radius>0.5</radius>
+          </sphere>
+        </geometry>
+      </collision>
+      <visual name="visual_00">
+        <geometry>
+          <sphere>
+            <radius>0.5</radius>
+          </sphere>
+        </geometry>
+      </visual>
+    </link>
+    <link name="link_01">
+      <pose relative_to="include_nested_frame_01">0 0 0 0 0 0</pose>
+    </link>
+  </model>
+</sdf>

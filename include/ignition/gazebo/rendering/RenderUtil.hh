@@ -66,6 +66,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Pointer to the scene
     public: rendering::ScenePtr Scene() const;
 
+    /// \brief Helper Update function for updating the scene
+    /// \param[in] _info Sim update info
+    /// \param[in] _ecm Mutable reference to the entity component manager
+    public: void UpdateECM(const UpdateInfo &_info,
+                           EntityComponentManager &_ecm);
+
     /// \brief Helper PostUpdate function for updating the scene
     public: void UpdateFromECM(const UpdateInfo &_info,
                                const EntityComponentManager &_ecm);
@@ -78,6 +84,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Name of the rendering engine
     public: std::string EngineName() const;
 
+    /// \brief Set the headless mode
+    /// \param[in] _headless Set to true to enable headless mode.
+    public: void SetHeadlessRendering(const bool &_headless);
+
+    /// \brief Get the headless mode
+    /// \return True if headless mode is enable, false otherwise.
+    public: bool HeadlessRendering() const;
+
     /// \brief Set the scene to use
     /// \param[in] _sceneName Name of the engine.
     public: void SetSceneName(const std::string &_sceneName);
@@ -85,6 +99,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Get the name of the rendering scene used
     /// \return Name of the rendering scene.
     public: std::string SceneName() const;
+
+    /// \brief Set the scene to use.
+    /// \param[in] _scene Pointer to the scene.
+    public: void SetScene(const rendering::ScenePtr &_scene);
 
     /// \brief Set background color of render window. This will override
     /// other sources, such as from SDF.
@@ -96,6 +114,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _ambient Color of ambient light
     public: void SetAmbientLight(const math::Color &_ambient);
 
+    /// \brief Set whether to enable sky in the scene
+    /// \param[in] _enabled True to enable sky, false to disable sky
+    public: void SetSkyEnabled(bool _enabled);
+
     /// \brief Show grid view in the scene
     public: void ShowGrid();
 
@@ -103,14 +125,44 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _enable True to use the current GL context
     public: void SetUseCurrentGLContext(bool _enable);
 
+    /// \brief Set the Window ID
+    /// \param[in] _winID Window ID
+    public: void SetWinID(const std::string &_winID);
+
     /// \brief Set whether to create rendering sensors
     /// \param[in] _enable True to create rendering sensors
     /// \param[in] _createSensorCb Callback function for creating the sensors
-    /// The callback function args are: sensor sdf, and parent name, and
-    /// returns the name of the rendering sensor created.
+    /// The callback function args are: sensor entity, sensor sdf
+    /// and parent name, it returns the name of the rendering sensor created.
     public: void SetEnableSensors(bool _enable, std::function<
-        std::string(const sdf::Sensor &, const std::string &)>
-        _createSensorCb = {});
+        std::string(const gazebo::Entity &, const sdf::Sensor &,
+          const std::string &)> _createSensorCb = {});
+
+    /// \brief Set the callback function for removing the sensors
+    /// \param[in] _removeSensorCb Callback function for removing the sensors
+    /// The callback function arg is the sensor entity to remove
+    public : void SetRemoveSensorCb(
+        std::function<void(const gazebo::Entity &)> _removeSensorCb);
+
+    /// \brief View an entity as transparent
+    /// \param[in] _entity Entity to view as transparent
+    public: void ViewTransparent(const Entity &_entity);
+
+    /// \brief View center of mass of specified entity
+    /// \param[in] _entity Entity to view center of mass
+    public: void ViewCOM(const Entity &_entity);
+
+    /// \brief View inertia of specified entity
+    /// \param[in] _entity Entity to view inertia
+    public: void ViewInertia(const Entity &_entity);
+
+    /// \brief View joints of specified entity
+    /// \param[in] _entity Entity to view joints
+    public: void ViewJoints(const Entity &_entity);
+
+    /// \brief View wireframes of specified entity
+    /// \param[in] _entity Entity to view wireframes
+    public: void ViewWireframes(const Entity &_entity);
 
     /// \brief View collisions of specified entity which are shown in orange
     /// \param[in] _entity Entity to view collisions
@@ -131,28 +183,23 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Set the entity being selected
     /// \param[in] _node Node representing the selected entity
-    /// TODO(anyone) Make const ref when merging forward
-    // NOLINTNEXTLINE
-    public: void SetSelectedEntity(rendering::NodePtr _node);
-
-    /// \brief Get the entity for a given node.
-    /// \param[in] _node Node to get the entity for.
-    /// \return The entity for that node, or `kNullEntity` for no entity.
-    /// \deprecated Use `ignition::rendering::Visual::UserData` instead.
-    public: Entity IGN_DEPRECATED(3)
-        EntityFromNode(const rendering::NodePtr &_node);
-
-    /// \brief Get the entity being selected. This will only return the
-    /// last entity selected.
-    /// TODO(anyone) Deprecate in favour of SelectedEntities
-    public: rendering::NodePtr SelectedEntity() const;
+    public: void SetSelectedEntity(const rendering::NodePtr &_node);
 
     /// \brief Get the entities currently selected, in order of selection.
     /// \return Vector of currently selected entities
-    public: std::vector<Entity> SelectedEntities() const;
+    public: const std::vector<Entity> &SelectedEntities() const;
 
     /// \brief Clears the set of selected entities and lowlights all of them.
     public: void DeselectAllEntities();
+
+    /// \brief Helper function to get all child links of a model entity.
+    /// \param[in] _entity Entity to find child links
+    /// \return Vector of child links found for the parent entity
+    private: std::vector<Entity> FindChildLinks(const Entity &_entity);
+
+    /// \brief Helper function to hide wireboxes for an entity
+    /// \param[in] _entity Entity to hide wireboxes
+    private: void HideWireboxes(const Entity &_entity);
 
     /// \brief Set whether the transform controls are currently being dragged.
     /// \param[in] _active True if active.

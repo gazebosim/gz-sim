@@ -75,8 +75,8 @@ TEST_F(CameraSensorBackgroundFixture,
 {
   // Start server
   gazebo::ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/camera_sensor_empty_scene.sdf";
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "camera_sensor_empty_scene.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   gazebo::Server server(serverConfig);
@@ -95,7 +95,7 @@ TEST_F(CameraSensorBackgroundFixture,
   int i = 0;
   while (i < 100 && cbCount <= 0)
   {
-    common::Time::Sleep(common::Time(0.1));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     i++;
   }
 

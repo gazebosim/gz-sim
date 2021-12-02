@@ -17,11 +17,15 @@
 
 
 #include <map>
+#include <memory>
 #include <unordered_map>
 
 #include <sdf/Box.hh>
+#include <sdf/Capsule.hh>
 #include <sdf/Collision.hh>
 #include <sdf/Cylinder.hh>
+#include <sdf/Ellipsoid.hh>
+#include <sdf/Heightmap.hh>
 #include <sdf/Mesh.hh>
 #include <sdf/Pbr.hh>
 #include <sdf/Plane.hh>
@@ -29,23 +33,39 @@
 
 #include <ignition/common/Animation.hh>
 #include <ignition/common/Console.hh>
+#include <ignition/common/HeightmapData.hh>
+#include <ignition/common/ImageHeightmap.hh>
 #include <ignition/common/KeyFrame.hh>
+#include <ignition/common/MeshManager.hh>
 #include <ignition/common/Skeleton.hh>
 #include <ignition/common/SkeletonAnimation.hh>
-#include <ignition/common/MeshManager.hh>
 
+#include <ignition/msgs/Utility.hh>
+
+#include "ignition/rendering/Capsule.hh"
+#include <ignition/rendering/COMVisual.hh>
 #include <ignition/rendering/Geometry.hh>
+#include <ignition/rendering/Heightmap.hh>
+#include <ignition/rendering/HeightmapDescriptor.hh>
+#include <ignition/rendering/InertiaVisual.hh>
+#include <ignition/rendering/JointVisual.hh>
 #include <ignition/rendering/Light.hh>
+#include <ignition/rendering/LightVisual.hh>
 #include <ignition/rendering/Material.hh>
+#include <ignition/rendering/ParticleEmitter.hh>
 #include <ignition/rendering/Scene.hh>
 #include <ignition/rendering/Visual.hh>
+#include <ignition/rendering/WireBox.hh>
 
+#include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/rendering/SceneManager.hh"
 
 using namespace ignition;
 using namespace gazebo;
 using namespace std::chrono_literals;
+
+using TP = std::chrono::steady_clock::time_point;
 
 /// \brief Private data class.
 class ignition::gazebo::SceneManagerPrivate
@@ -74,8 +94,26 @@ class ignition::gazebo::SceneManagerPrivate
   /// \brief Map of light entity in Gazebo to light pointers.
   public: std::unordered_map<Entity, rendering::LightPtr> lights;
 
+  /// \brief Map of particle emitter entity in Gazebo to particle emitter
+  /// rendering pointers.
+  public: std::map<Entity, rendering::ParticleEmitterPtr> particleEmitters;
+
   /// \brief Map of sensor entity in Gazebo to sensor pointers.
   public: std::unordered_map<Entity, rendering::SensorPtr> sensors;
+
+  /// \brief The map of the original transparency values for the nodes.
+  public: std::map<std::string, double> originalTransparency;
+
+  /// \brief The map of the original depth write values for the nodes.
+  public: std::map<std::string, bool> originalDepthWrite;
+
+  /// \brief Helper function to compute actor trajectory at specified tiime
+  /// \param[in] _id Actor entity's unique id
+  /// \param[in] _time Simulation time
+  /// \return AnimationUpdateData with trajectory related fields filled. It
+  /// also sets the time point in which the animation should be played
+  public: AnimationUpdateData ActorTrajectoryAt(
+      Entity _id, const std::chrono::steady_clock::duration &_time) const;
 };
 
 
@@ -154,6 +192,8 @@ rendering::VisualPtr SceneManager::CreateModel(Entity _id,
   }
 
   rendering::VisualPtr modelVis = this->dataPtr->scene->CreateVisual(name);
+
+  // \todo(anyone) change to uint64_t once UserData supports this type
   modelVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   modelVis->SetUserData("pause-update", static_cast<int>(0));
   modelVis->SetLocalPose(_model.RawPose());
@@ -281,7 +321,11 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
 
     // set material
     rendering::MaterialPtr material{nullptr};
-    if (_visual.Material())
+    if (_visual.Geom()->Type() == sdf::GeometryType::HEIGHTMAP)
+    {
+      // Heightmap's material is loaded together with it.
+    }
+    else if (_visual.Material())
     {
       material = this->LoadMaterial(*_visual.Material());
     }
@@ -298,8 +342,8 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
         material->SetAmbient(0.3, 0.3, 0.3);
         material->SetDiffuse(0.7, 0.7, 0.7);
         material->SetSpecular(1.0, 1.0, 1.0);
-        material->SetRoughness(0.2);
-        material->SetMetalness(1.0);
+        material->SetRoughness(0.2f);
+        material->SetMetalness(1.0f);
       }
     }
     else
@@ -350,11 +394,184 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
            << std::endl;
   }
 
+  // visibility flags
+  visualVis->SetVisibilityFlags(_visual.VisibilityFlags());
+
   this->dataPtr->visuals[_id] = visualVis;
   if (parent)
     parent->AddChild(visualVis);
 
   return visualVis;
+}
+
+/////////////////////////////////////////////////
+std::vector<rendering::NodePtr> SceneManager::Filter(const std::string &_node,
+    std::function<bool(const rendering::NodePtr _nodeToFilter)> _filter) const
+{
+  std::vector<rendering::NodePtr> filteredNodes;
+
+  // make sure there is a rendering node named _node
+  auto rootNode = this->dataPtr->scene->NodeByName(_node);
+  if (!rootNode)
+  {
+    ignerr << "Could not find a node with the name [" << _node
+           << "] in the scene." << std::endl;
+    return filteredNodes;
+  }
+
+  // go through _node and its children in top level order, applying _filter to
+  // each node
+  std::queue<rendering::NodePtr> remainingNodes;
+  remainingNodes.push(rootNode);
+  while (!remainingNodes.empty())
+  {
+    auto currentNode = remainingNodes.front();
+    remainingNodes.pop();
+    if (_filter(currentNode))
+      filteredNodes.push_back(currentNode);
+
+    for (auto i = 0u; i < currentNode->ChildCount(); ++i)
+      remainingNodes.push(currentNode->ChildByIndex(i));
+  }
+
+  return filteredNodes;
+}
+
+/////////////////////////////////////////////////
+std::pair<rendering::VisualPtr, std::vector<Entity>> SceneManager::CopyVisual(
+    Entity _id, const std::string &_visual, Entity _parentId)
+{
+  std::pair<rendering::VisualPtr, std::vector<Entity>> result;
+  if (!this->dataPtr->scene)
+    return result;
+
+  if (this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end())
+  {
+    ignerr << "Entity with Id: [" << _id << "] already exists in the scene"
+           << std::endl;
+    return result;
+  }
+
+  rendering::VisualPtr originalVisual =
+    std::dynamic_pointer_cast<rendering::Visual>(
+        this->dataPtr->scene->NodeByName(_visual));
+  if (!originalVisual)
+  {
+    ignerr << "Could not find a node with the name [" << _visual
+           << "] in the scene." << std::endl;
+    return result;
+  }
+
+  auto name = originalVisual->Name() + "::" + std::to_string(_id);
+
+  rendering::VisualPtr parent;
+  if (_parentId != this->dataPtr->worldId)
+  {
+    auto it = this->dataPtr->visuals.find(_parentId);
+    if (it == this->dataPtr->visuals.end())
+    {
+      ignerr << "Parent entity with Id: [" << _parentId << "] not found. "
+             << "Not adding visual with ID [" << _id
+             << "] and name [" << name << "] to the rendering scene."
+             << std::endl;
+      return result;
+    }
+    parent = it->second;
+  }
+
+  if (parent)
+    name = parent->Name() + "::" + name;
+
+  if (this->dataPtr->scene->HasVisualName(name))
+  {
+    ignerr << "Visual: [" << name << "] already exists" << std::endl;
+    return result;
+  }
+
+  // filter visuals that were created by the gui (these shouldn't be cloned)
+  auto filteredVisuals = this->Filter(_visual,
+      [](const rendering::NodePtr _node)
+      {
+        return _node->HasUserData("gui-only");
+      });
+
+  // temporarily detach filtered visuals, but keep track of the original parent
+  // so that the visuals can be re-attached later
+  std::unordered_map<rendering::NodePtr, rendering::NodePtr>
+    removedVisualToParent;
+  for (auto filteredVis : filteredVisuals)
+  {
+    removedVisualToParent[filteredVis] = filteredVis->Parent();
+    filteredVis->RemoveParent();
+  }
+
+  // clone the visual
+  auto clonedVisual = originalVisual->Clone(name, parent);
+  this->dataPtr->visuals[_id] = clonedVisual;
+
+  // re-attach filtered visuals now that cloning is complete
+  for (auto &[removedVisual, originalParent] : removedVisualToParent)
+    originalParent->AddChild(removedVisual);
+
+  // The Clone call above also clones any child visuals that exist, so we need
+  // to keep track of these new child visuals as well. We get a level order
+  // listing of all visuals associated with the newly copied visual
+  bool childrenTracked = true;
+  std::queue<Entity> remainingVisuals;
+  remainingVisuals.push(_id);
+  std::vector<Entity> childVisualIds;
+  while (!remainingVisuals.empty())
+  {
+    const auto topLevelId = remainingVisuals.front();
+    remainingVisuals.pop();
+    const auto visual = this->dataPtr->visuals[topLevelId];
+    for (auto i = 0u; i < visual->ChildCount(); ++i)
+    {
+      auto childId = this->UniqueId();
+      if (!childId)
+      {
+        ignerr << "Unable to create an entity ID for the copied visual's "
+               << "child, so the copied visual will be deleted.\n";
+        childrenTracked = false;
+        break;
+      }
+      auto childVisual = std::dynamic_pointer_cast<rendering::Visual>(
+          visual->ChildByIndex(i));
+      if (!childVisual)
+      {
+        ignerr << "Unable to retrieve a child visual of the copied visual, "
+               << "so the copied visual will be deleted.\n";
+        childrenTracked = false;
+        break;
+      }
+
+      this->dataPtr->visuals[childId] = childVisual;
+      childVisual->SetUserData("gazebo-entity", static_cast<int>(childId));
+      childVisual->SetUserData("pause-update", static_cast<int>(0));
+      childVisualIds.push_back(childId);
+
+      remainingVisuals.push(childId);
+    }
+  }
+
+  if (!childrenTracked)
+  {
+    this->dataPtr->scene->DestroyVisual(clonedVisual, true);
+    for (const auto id : childVisualIds)
+      this->dataPtr->visuals.erase(id);
+  }
+  else
+  {
+    clonedVisual->SetUserData("gazebo-entity", static_cast<int>(_id));
+    clonedVisual->SetUserData("pause-update", static_cast<int>(0));
+
+    result = {clonedVisual, std::move(childVisualIds)};
+
+    if (!parent)
+      this->dataPtr->scene->RootVisual()->AddChild(clonedVisual);
+  }
+
+  return result;
 }
 
 /////////////////////////////////////////////////
@@ -373,8 +590,8 @@ rendering::VisualPtr SceneManager::CreateCollision(Entity _id,
     const sdf::Collision &_collision, Entity _parentId)
 {
   sdf::Material material;
-  material.SetAmbient(math::Color(1, 0.5088, 0.0468, 0.7));
-  material.SetDiffuse(math::Color(1, 0.5088, 0.0468, 0.7));
+  material.SetAmbient(math::Color(1.0f, 0.5088f, 0.0468f, 0.7f));
+  material.SetDiffuse(math::Color(1.0f, 0.5088f, 0.0468f, 0.7f));
 
   sdf::Visual visual;
   visual.SetGeom(*_collision.Geom());
@@ -385,6 +602,7 @@ rendering::VisualPtr SceneManager::CreateCollision(Entity _id,
   visual.SetName(_collision.Name());
 
   rendering::VisualPtr collisionVis = CreateVisual(_id, visual, _parentId);
+  collisionVis->SetUserData("gui-only", static_cast<bool>(true));
   return collisionVis;
 }
 /////////////////////////////////////////////////
@@ -402,12 +620,26 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     geom = this->dataPtr->scene->CreateBox();
     scale = _geom.BoxShape()->Size();
   }
+  else if (_geom.Type() == sdf::GeometryType::CAPSULE)
+  {
+    auto capsule = this->dataPtr->scene->CreateCapsule();
+    capsule->SetRadius(_geom.CapsuleShape()->Radius());
+    capsule->SetLength(_geom.CapsuleShape()->Length());
+    geom = capsule;
+  }
   else if (_geom.Type() == sdf::GeometryType::CYLINDER)
   {
     geom = this->dataPtr->scene->CreateCylinder();
     scale.X() = _geom.CylinderShape()->Radius() * 2;
     scale.Y() = scale.X();
     scale.Z() = _geom.CylinderShape()->Length();
+  }
+  else if (_geom.Type() == sdf::GeometryType::ELLIPSOID)
+  {
+    geom = this->dataPtr->scene->CreateSphere();
+    scale.X() = _geom.EllipsoidShape()->Radii().X() * 2;
+    scale.Y() = _geom.EllipsoidShape()->Radii().Y() * 2;
+    scale.Z() = _geom.EllipsoidShape()->Radii().Z() * 2;
   }
   else if (_geom.Type() == sdf::GeometryType::PLANE)
   {
@@ -450,6 +682,58 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     geom = this->dataPtr->scene->CreateMesh(descriptor);
     scale = _geom.MeshShape()->Scale();
   }
+  else if (_geom.Type() == sdf::GeometryType::HEIGHTMAP)
+  {
+    auto fullPath = asFullPath(_geom.HeightmapShape()->Uri(),
+        _geom.HeightmapShape()->FilePath());
+    if (fullPath.empty())
+    {
+      ignerr << "Heightmap geometry missing URI" << std::endl;
+      return geom;
+    }
+
+    auto data = std::make_shared<common::ImageHeightmap>();
+    if (data->Load(fullPath) < 0)
+    {
+      ignerr << "Failed to load heightmap image data from [" << fullPath << "]"
+             << std::endl;
+      return geom;
+    }
+
+    rendering::HeightmapDescriptor descriptor;
+    descriptor.SetData(data);
+    descriptor.SetSize(_geom.HeightmapShape()->Size());
+    descriptor.SetPosition(_geom.HeightmapShape()->Position());
+    descriptor.SetSampling(_geom.HeightmapShape()->Sampling());
+
+    for (uint64_t i = 0; i < _geom.HeightmapShape()->TextureCount(); ++i)
+    {
+      auto textureSdf = _geom.HeightmapShape()->TextureByIndex(i);
+      rendering::HeightmapTexture textureDesc;
+      textureDesc.SetSize(textureSdf->Size());
+      textureDesc.SetDiffuse(common::findFile(asFullPath(textureSdf->Diffuse(),
+          _geom.HeightmapShape()->FilePath())));
+      textureDesc.SetNormal(common::findFile(asFullPath(textureSdf->Normal(),
+          _geom.HeightmapShape()->FilePath())));
+      descriptor.AddTexture(textureDesc);
+    }
+
+    for (uint64_t i = 0; i < _geom.HeightmapShape()->BlendCount(); ++i)
+    {
+      auto blendSdf = _geom.HeightmapShape()->BlendByIndex(i);
+      rendering::HeightmapBlend blendDesc;
+      blendDesc.SetMinHeight(blendSdf->MinHeight());
+      blendDesc.SetFadeDistance(blendSdf->FadeDistance());
+      descriptor.AddBlend(blendDesc);
+    }
+
+    geom = this->dataPtr->scene->CreateHeightmap(descriptor);
+    if (nullptr == geom)
+    {
+      ignerr << "Failed to create heightmap [" << fullPath << "]" << std::endl;
+    }
+    scale = _geom.HeightmapShape()->Size();
+  }
   else
   {
     ignerr << "Unsupported geometry type" << std::endl;
@@ -471,6 +755,7 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
   material->SetDiffuse(_material.Diffuse());
   material->SetSpecular(_material.Specular());
   material->SetEmissive(_material.Emissive());
+  material->SetRenderOrder(_material.RenderOrder());
 
   // parse PBR params
   const sdf::Pbr *pbr = _material.PbrMaterial();
@@ -539,6 +824,8 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
       if (!fullPath.empty())
       {
         material->SetTexture(fullPath);
+        // Use alpha channel for transparency
+        material->SetAlphaFromTexture(true, 0.5, _material.DoubleSided());
       }
       else
         ignerr << "Unable to find file [" << albedoMap << "]\n";
@@ -580,13 +867,30 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
       else
         ignerr << "Unable to find file [" << emissiveMap << "]\n";
     }
+
+    // light map
+    std::string lightMap = workflow->LightMap();
+    if (!lightMap.empty())
+    {
+      std::string fullPath = common::findFile(
+          asFullPath(lightMap, _material.FilePath()));
+      if (!fullPath.empty())
+      {
+        unsigned int uvSet = workflow->LightMapTexCoordSet();
+        material->SetLightMap(fullPath, uvSet);
+      }
+      else
+      {
+        ignerr << "Unable to find file [" << lightMap << "]\n";
+      }
+    }
   }
   return material;
 }
 
 /////////////////////////////////////////////////
 rendering::VisualPtr SceneManager::CreateActor(Entity _id,
-    const sdf::Actor &_actor, Entity _parentId)
+    const sdf::Actor &_actor, const std::string &_name, Entity _parentId)
 {
   if (!this->dataPtr->scene)
     return rendering::VisualPtr();
@@ -602,9 +906,6 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
     return rendering::VisualPtr();
   }
 
-  std::string name = _actor.Name().empty() ? std::to_string(_id) :
-      _actor.Name();
-
   rendering::VisualPtr parent;
   if (_parentId != this->dataPtr->worldId)
   {
@@ -612,14 +913,15 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
     if (it == this->dataPtr->visuals.end())
     {
       ignerr << "Parent entity with Id: [" << _parentId << "] not found. "
-             << "Not adding actor with ID[" << _id
-             << "]  and name [" << name << "] to the rendering scene."
+             << "Not adding actor with ID [" << _id
+             << "] and name [" << _name << "] to the rendering scene."
              << std::endl;
       return rendering::VisualPtr();
     }
     parent = it->second;
   }
 
+  std::string name = _name;
   if (parent)
     name = parent->Name() +  "::" + name;
 
@@ -634,6 +936,8 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
     return rendering::VisualPtr();
   }
 
+  // todo(anyone) create a copy of meshSkel so we don't modify the original
+  // when adding animations!
   common::SkeletonPtr meshSkel = descriptor.mesh->MeshSkeleton();
   if (nullptr == meshSkel)
   {
@@ -642,26 +946,9 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
     return rendering::VisualPtr();
   }
 
-  rendering::MeshPtr actorMesh = this->dataPtr->scene->CreateMesh(descriptor);
-  if (nullptr == actorMesh)
-  {
-    ignerr << "Actor skin file [" << descriptor.meshName << "] not found."
-           << std::endl;
-    return rendering::VisualPtr();
-  }
-
   unsigned int numAnims = 0;
   std::unordered_map<std::string, unsigned int> mapAnimNameId;
   mapAnimNameId[descriptor.meshName] = numAnims++;
-
-  rendering::VisualPtr actorVisual = this->dataPtr->scene->CreateVisual(name);
-  actorVisual->SetLocalPose(_actor.RawPose());
-  actorVisual->SetUserData("gazebo-entity", static_cast<int>(_id));
-  actorVisual->SetUserData("pause-update", static_cast<int>(0));
-  actorVisual->AddGeometry(actorMesh);
-
-  this->dataPtr->visuals[_id] = actorVisual;
-  this->dataPtr->actors[_id] = actorMesh;
 
   // Load all animations
   for (unsigned i = 0; i < _actor.AnimationCount(); ++i)
@@ -670,6 +957,7 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
     std::string animFilename = asFullPath(
         _actor.AnimationByIndex(i)->Filename(),
         _actor.AnimationByIndex(i)->FilePath());
+
     double animScale = _actor.AnimationByIndex(i)->Scale();
 
     std::string extension = animFilename.substr(animFilename.rfind('.') + 1,
@@ -679,21 +967,38 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
 
     if (extension == "bvh")
     {
-      meshSkel->AddBvhAnimation(animFilename, animScale);
+      // do not add duplicate animation
+      // start checking from index 1 since index 0 is reserved by skin mesh
+      bool addAnim = true;
+      for (unsigned int a = 1; a < meshSkel->AnimationCount(); ++a)
+      {
+        if (meshSkel->Animation(a)->Name() == animFilename)
+        {
+          addAnim = false;
+          break;
+        }
+      }
+      if (addAnim)
+        meshSkel->AddBvhAnimation(animFilename, animScale);
       mapAnimNameId[animName] = numAnims++;
     }
     else if (extension == "dae")
     {
-      common::MeshManager::Instance()->Load(animFilename);
-      auto animMesh = common::MeshManager::Instance()->MeshByName(animFilename);
+      // Load the mesh if it has not been loaded before
+      const common::Mesh *animMesh = nullptr;
+      if (!meshManager->HasMesh(animFilename))
+      {
+        animMesh = meshManager->Load(animFilename);
+        if (animMesh->MeshSkeleton()->AnimationCount() > 1)
+        {
+          ignwarn << "File [" << animFilename
+              << "] has more than one animation, but only the 1st one is used."
+              << std::endl;
+        }
+      }
+      animMesh = meshManager->MeshByName(animFilename);
 
       // add the first animation
-      if (animMesh->MeshSkeleton()->AnimationCount() > 1)
-      {
-        ignwarn << "File [" << animFilename
-            << "] has more than one animation, but only the 1st one is used."
-            << std::endl;
-      }
       auto firstAnim = animMesh->MeshSkeleton()->Animation(0);
       if (nullptr == firstAnim)
       {
@@ -701,13 +1006,53 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
                 << "]" << std::endl;
         return nullptr;
       }
-      meshSkel->AddAnimation(firstAnim);
+      // do not add duplicate animation
+      // start checking from index 1 since index 0 is reserved by skin mesh
+      bool addAnim = true;
+      for (unsigned int a = 1; a < meshSkel->AnimationCount(); ++a)
+      {
+        if (meshSkel->Animation(a)->Name() == animName)
+        {
+          addAnim = false;
+          break;
+        }
+      }
+      if (addAnim)
+      {
+        // collada loader loads animations with name that defaults to
+        // "animation0", "animation"1", etc causing conflicts in names
+        // when multiple animations are added to meshSkel.
+        // We have to clone the skeleton animation before giving it a unique
+        // name otherwise if mulitple instances of the same animation were added
+        // to meshSkel, changing the name that would also change the name of
+        // other instances of the animation
+        // todo(anyone) cloning is inefficient and error-prone. We should
+        // add a copy constructor to animation classes in ign-common.
+        // The proper fix is probably to update ign-rendering to allow it to
+        // load multiple animations of the same name
+        common::SkeletonAnimation *skelAnim =
+            new common::SkeletonAnimation(animName);
+        for (unsigned int j = 0; j < meshSkel->NodeCount(); ++j)
+        {
+          common::SkeletonNode *node = meshSkel->NodeByHandle(j);
+          common::NodeAnimation *nodeAnim = firstAnim->NodeAnimationByName(
+              node->Name());
+          if (!nodeAnim)
+            continue;
+          for (unsigned int k = 0; k < nodeAnim->FrameCount(); ++k)
+          {
+            std::pair<double, math::Matrix4d> keyFrame = nodeAnim->KeyFrame(k);
+            skelAnim->AddKeyFrame(
+                node->Name(), keyFrame.first, keyFrame.second);
+          }
+        }
+
+        meshSkel->AddAnimation(skelAnim);
+      }
       mapAnimNameId[animName] = numAnims++;
     }
   }
   this->dataPtr->actorSkeletons[_id] = meshSkel;
-
-  using TP = std::chrono::steady_clock::time_point;
 
   std::vector<common::TrajectoryInfo> trajectories;
   if (_actor.TrajectoryCount() != 0)
@@ -737,7 +1082,39 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
                     static_cast<int>(point->Time()*1000)));
           waypoints[pointTp] = point->Pose();
         }
-        trajInfo.SetWaypoints(waypoints);
+        trajInfo.SetWaypoints(waypoints, trajSdf->Tension());
+        // Animations are offset by 1 because index 0 is taken by the mesh name
+        auto animation = _actor.AnimationByIndex(trajInfo.AnimIndex()-1);
+
+        if (animation && animation->InterpolateX())
+        {
+          // warn if no x displacement can be interpolated
+          // warn only once per mesh
+          static std::unordered_set<std::string> animInterpolateCheck;
+          if (animInterpolateCheck.count(animation->Filename()) == 0)
+          {
+            std::string rootNodeName = meshSkel->RootNode()->Name();
+            common::SkeletonAnimation *skelAnim =
+                meshSkel->Animation(trajInfo.AnimIndex());
+            common::NodeAnimation *rootNode = skelAnim->NodeAnimationByName(
+                rootNodeName);
+            math::Matrix4d lastPos = rootNode->KeyFrame(
+                rootNode->FrameCount() - 1).second;
+            math::Matrix4d firstPos = rootNode->KeyFrame(0).second;
+            if (!math::equal(firstPos.Translation().X(),
+                lastPos.Translation().X()))
+            {
+              trajInfo.Waypoints()->SetInterpolateX(animation->InterpolateX());
+            }
+            else
+            {
+              ignwarn << "Animation has no x displacement. "
+                      << "Ignoring <interpolate_x> for the animation in '"
+                      << animation->Filename() << "'." << std::endl;
+            }
+            animInterpolateCheck.insert(animation->Filename());
+          }
+        }
       }
       else
       {
@@ -787,6 +1164,26 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
 
   this->dataPtr->actorTrajectories[_id] = trajectories;
 
+  // create mesh with animations
+  rendering::MeshPtr actorMesh = this->dataPtr->scene->CreateMesh(
+      descriptor);
+  if (nullptr == actorMesh)
+  {
+    ignerr << "Actor skin file [" << descriptor.meshName << "] not found."
+           << std::endl;
+    return rendering::VisualPtr();
+  }
+
+  rendering::VisualPtr actorVisual = this->dataPtr->scene->CreateVisual(name);
+  actorVisual->SetLocalPose(_actor.RawPose());
+  actorVisual->AddGeometry(actorMesh);
+  actorVisual->SetUserData("gazebo-entity", static_cast<int>(_id));
+  actorVisual->SetUserData("pause-update", static_cast<int>(0));
+
+  this->dataPtr->visuals[_id] = actorVisual;
+  this->dataPtr->actors[_id] = actorMesh;
+
+
   if (parent)
     parent->AddChild(actorVisual);
   else
@@ -796,8 +1193,75 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
 }
 
 /////////////////////////////////////////////////
+rendering::VisualPtr SceneManager::CreateLightVisual(Entity _id,
+    const sdf::Light &_light, const std::string &_name, Entity _parentId)
+{
+  if (!this->dataPtr->scene)
+    return rendering::VisualPtr();
+
+  if (this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end())
+  {
+    ignerr << "Entity with Id: [" << _id << "] already exists in the scene"
+           << std::endl;
+    return rendering::VisualPtr();
+  }
+
+  rendering::LightPtr lightParent;
+  auto it = this->dataPtr->lights.find(_parentId);
+  if (it != this->dataPtr->lights.end())
+  {
+    lightParent = it->second;
+  }
+  else
+  {
+    ignerr << "Parent entity with Id: [" << _parentId << "] not found. "
+           << "Not adding light visual with ID [" << _id
+           << "] and name [" << _name << "] to the rendering scene."
+           << std::endl;
+    return rendering::VisualPtr();
+  }
+
+  std::string name = lightParent->Name() +  "::" + _name + "Visual";
+
+  if (this->dataPtr->scene->HasVisualName(name))
+  {
+    ignerr << "Visual: [" << name << "] already exists" << std::endl;
+    return rendering::VisualPtr();
+  }
+
+  rendering::LightVisualPtr lightVisual =
+    this->dataPtr->scene->CreateLightVisual(name);
+  if (_light.Type() == sdf::LightType::POINT)
+  {
+    lightVisual->SetType(rendering::LightVisualType::LVT_POINT);
+  }
+  else if (_light.Type() == sdf::LightType::DIRECTIONAL)
+  {
+    lightVisual->SetType(rendering::LightVisualType::LVT_DIRECTIONAL);
+  }
+  else if (_light.Type() == sdf::LightType::SPOT)
+  {
+    lightVisual->SetType(rendering::LightVisualType::LVT_SPOT);
+    lightVisual->SetInnerAngle(_light.SpotInnerAngle().Radian());
+    lightVisual->SetOuterAngle(_light.SpotOuterAngle().Radian());
+  }
+  rendering::VisualPtr lightVis = std::dynamic_pointer_cast<rendering::Visual>(
+    lightVisual);
+  lightVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  lightVis->SetUserData("pause-update", static_cast<int>(0));
+  this->dataPtr->visuals[_id] = lightVis;
+
+  if (lightParent)
+  {
+    lightVis->RemoveParent();
+    lightParent->AddChild(lightVis);
+  }
+  return lightVis;
+}
+
+/////////////////////////////////////////////////
 rendering::LightPtr SceneManager::CreateLight(Entity _id,
-    const sdf::Light &_light, Entity _parentId)
+    const sdf::Light &_light, const std::string &_name, Entity _parentId)
 {
   if (!this->dataPtr->scene)
     return rendering::LightPtr();
@@ -822,8 +1286,7 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
     parent = it->second;
   }
 
-  std::string name = _light.Name().empty() ? std::to_string(_id) :
-      _light.Name();
+  std::string name = _name;
   if (parent)
     name = parent->Name() +  "::" + name;
 
@@ -841,6 +1304,7 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
       spotLight->SetInnerAngle(_light.SpotInnerAngle());
       spotLight->SetOuterAngle(_light.SpotOuterAngle());
       spotLight->SetFalloff(_light.SpotFalloff());
+      spotLight->SetDirection(_light.Direction());
       break;
     }
     case sdf::LightType::DIRECTIONAL:
@@ -868,13 +1332,414 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
   light->SetAttenuationRange(_light.AttenuationRange());
 
   light->SetCastShadows(_light.CastShadows());
+  light->SetIntensity(_light.Intensity());
 
   this->dataPtr->lights[_id] = light;
 
   if (parent)
     parent->AddChild(light);
+  else
+    this->dataPtr->scene->RootVisual()->AddChild(light);
 
   return light;
+}
+
+/////////////////////////////////////////////////
+rendering::VisualPtr SceneManager::CreateInertiaVisual(Entity _id,
+    const math::Inertiald &_inertia, Entity _parentId)
+{
+  if (!this->dataPtr->scene)
+    return rendering::VisualPtr();
+
+  if (this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end())
+  {
+    ignerr << "Entity with Id: [" << _id << "] already exists in the scene"
+           << std::endl;
+    return rendering::VisualPtr();
+  }
+
+  rendering::VisualPtr parent;
+  if (_parentId != this->dataPtr->worldId)
+  {
+    auto it = this->dataPtr->visuals.find(_parentId);
+    if (it == this->dataPtr->visuals.end())
+    {
+      // It is possible to get here if the model entity is created then
+      // removed in between render updates.
+      return rendering::VisualPtr();
+    }
+    parent = it->second;
+  }
+
+  std::string name = std::to_string(_id);
+  if (parent)
+    name = parent->Name() + "::" + name;
+
+  rendering::InertiaVisualPtr inertiaVisual =
+    this->dataPtr->scene->CreateInertiaVisual(name);
+  inertiaVisual->SetInertial(_inertia);
+
+  rendering::VisualPtr inertiaVis =
+    std::dynamic_pointer_cast<rendering::Visual>(inertiaVisual);
+  inertiaVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  inertiaVis->SetUserData("pause-update", static_cast<int>(0));
+  inertiaVis->SetUserData("gui-only", static_cast<bool>(true));
+  this->dataPtr->visuals[_id] = inertiaVis;
+
+  if (parent)
+  {
+    inertiaVis->RemoveParent();
+    parent->AddChild(inertiaVis);
+  }
+  return inertiaVis;
+}
+
+/////////////////////////////////////////////////
+rendering::VisualPtr SceneManager::CreateJointVisual(
+    Entity _id, const sdf::Joint &_joint,
+    Entity _childId, Entity _parentId)
+{
+  if (!this->dataPtr->scene)
+  {
+    return rendering::VisualPtr();
+  }
+
+  if (this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end())
+  {
+    ignerr << "Entity with Id: [" << _id << "] already exists in the scene"
+           << std::endl;
+    return rendering::VisualPtr();
+  }
+
+  rendering::VisualPtr parent;
+  if (_childId != this->dataPtr->worldId)
+  {
+    auto it = this->dataPtr->visuals.find(_childId);
+    if (it == this->dataPtr->visuals.end())
+    {
+      // It is possible to get here if the model entity is created then
+      // removed in between render updates.
+      return rendering::VisualPtr();
+    }
+    parent = it->second;
+  }
+
+  // Name.
+  std::string name = _joint.Name().empty() ? std::to_string(_id) :
+    _joint.Name();
+  if (parent)
+  {
+    name = parent->Name() +  "::" + name;
+  }
+
+  rendering::JointVisualPtr jointVisual =
+    this->dataPtr->scene->CreateJointVisual(name);
+
+  switch (_joint.Type())
+  {
+    case sdf::JointType::REVOLUTE:
+      jointVisual->SetType(rendering::JointVisualType::JVT_REVOLUTE);
+      break;
+    case sdf::JointType::REVOLUTE2:
+      jointVisual->SetType(rendering::JointVisualType::JVT_REVOLUTE2);
+      break;
+    case sdf::JointType::PRISMATIC:
+      jointVisual->SetType(rendering::JointVisualType::JVT_PRISMATIC);
+      break;
+    case sdf::JointType::UNIVERSAL:
+      jointVisual->SetType(rendering::JointVisualType::JVT_UNIVERSAL);
+      break;
+    case sdf::JointType::BALL:
+      jointVisual->SetType(rendering::JointVisualType::JVT_BALL);
+      break;
+    case sdf::JointType::SCREW:
+      jointVisual->SetType(rendering::JointVisualType::JVT_SCREW);
+      break;
+    case sdf::JointType::GEARBOX:
+      jointVisual->SetType(rendering::JointVisualType::JVT_GEARBOX);
+      break;
+    case sdf::JointType::FIXED:
+      jointVisual->SetType(rendering::JointVisualType::JVT_FIXED);
+      break;
+    default:
+      jointVisual->SetType(rendering::JointVisualType::JVT_NONE);
+      break;
+  }
+
+  if (parent)
+  {
+    jointVisual->RemoveParent();
+    parent->AddChild(jointVisual);
+  }
+
+  if (_joint.Axis(1) &&
+      (_joint.Type() == sdf::JointType::REVOLUTE2 ||
+       _joint.Type() == sdf::JointType::UNIVERSAL
+      ))
+  {
+    auto axis1 = _joint.Axis(0)->Xyz();
+    auto axis2 = _joint.Axis(1)->Xyz();
+    auto axis1UseParentFrame = _joint.Axis(0)->XyzExpressedIn() == "__model__";
+    auto axis2UseParentFrame = _joint.Axis(1)->XyzExpressedIn() == "__model__";
+
+    jointVisual->SetAxis(axis2, axis2UseParentFrame);
+
+    auto it = this->dataPtr->visuals.find(_parentId);
+    if (it != this->dataPtr->visuals.end())
+    {
+      auto parentName = it->second->Name();
+      jointVisual->SetParentAxis(
+          axis1, parentName, axis1UseParentFrame);
+    }
+  }
+  else if (_joint.Axis(0) &&
+      (_joint.Type() == sdf::JointType::REVOLUTE ||
+       _joint.Type() == sdf::JointType::PRISMATIC
+      ))
+  {
+    auto axis1 = _joint.Axis(0)->Xyz();
+    auto axis1UseParentFrame = _joint.Axis(0)->XyzExpressedIn() == "__model__";
+
+    jointVisual->SetAxis(axis1, axis1UseParentFrame);
+  }
+  else
+  {
+    // For fixed joint type, scale joint visual to the joint child link
+    double childSize =
+        std::max(0.1, parent->BoundingBox().Size().Length());
+    auto scale = ignition::math::Vector3d(childSize * 0.2,
+        childSize * 0.2, childSize * 0.2);
+    jointVisual->SetLocalScale(scale);
+  }
+
+  rendering::VisualPtr jointVis =
+    std::dynamic_pointer_cast<rendering::Visual>(jointVisual);
+  jointVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  jointVis->SetUserData("pause-update", static_cast<int>(0));
+  jointVis->SetUserData("gui-only", static_cast<bool>(true));
+  jointVis->SetLocalPose(_joint.RawPose());
+  this->dataPtr->visuals[_id] = jointVis;
+  return jointVis;
+}
+
+/////////////////////////////////////////////////
+rendering::VisualPtr SceneManager::CreateCOMVisual(Entity _id,
+    const math::Inertiald &_inertia, Entity _parentId)
+{
+  if (!this->dataPtr->scene)
+    return rendering::VisualPtr();
+
+  if (this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end())
+  {
+    ignerr << "Entity with Id: [" << _id << "] already exists in the scene"
+           << std::endl;
+    return rendering::VisualPtr();
+  }
+
+  rendering::VisualPtr parent;
+  if (_parentId != this->dataPtr->worldId)
+  {
+    auto it = this->dataPtr->visuals.find(_parentId);
+    if (it == this->dataPtr->visuals.end())
+    {
+      // It is possible to get here if the model entity is created then
+      // removed in between render updates.
+      return rendering::VisualPtr();
+    }
+    parent = it->second;
+  }
+
+  if (!parent)
+    return rendering::VisualPtr();
+
+  std::string name = std::to_string(_id);
+  name = parent->Name() + "::" + name;
+
+  rendering::COMVisualPtr comVisual =
+      this->dataPtr->scene->CreateCOMVisual(name);
+  comVisual->RemoveParent();
+  parent->AddChild(comVisual);
+  comVisual->SetInertial(_inertia);
+
+  rendering::VisualPtr comVis =
+    std::dynamic_pointer_cast<rendering::Visual>(comVisual);
+  comVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  comVis->SetUserData("pause-update", static_cast<int>(0));
+  comVis->SetUserData("gui-only", static_cast<bool>(true));
+  this->dataPtr->visuals[_id] = comVis;
+
+  return comVis;
+}
+
+/////////////////////////////////////////////////
+rendering::ParticleEmitterPtr SceneManager::CreateParticleEmitter(
+    Entity _id, const msgs::ParticleEmitter &_emitter, Entity _parentId)
+{
+  if (!this->dataPtr->scene)
+    return rendering::ParticleEmitterPtr();
+
+  if (this->dataPtr->particleEmitters.find(_id) !=
+     this->dataPtr->particleEmitters.end())
+  {
+    ignerr << "Particle emitter with Id: [" << _id << "] already exists in the "
+           <<" scene" << std::endl;
+    return rendering::ParticleEmitterPtr();
+  }
+
+  rendering::VisualPtr parent;
+  if (_parentId != this->dataPtr->worldId)
+  {
+    auto it = this->dataPtr->visuals.find(_parentId);
+    if (it == this->dataPtr->visuals.end())
+    {
+      // It is possible to get here if the model entity is created then
+      // removed in between render updates.
+      return rendering::ParticleEmitterPtr();
+    }
+    parent = it->second;
+  }
+
+  // Name.
+  std::string name = _emitter.name().empty() ? std::to_string(_id) :
+    _emitter.name();
+  if (parent)
+    name = parent->Name() +  "::" + name;
+
+  rendering::ParticleEmitterPtr emitter;
+  emitter = this->dataPtr->scene->CreateParticleEmitter(name);
+
+  this->dataPtr->particleEmitters[_id] = emitter;
+
+  if (parent)
+    parent->AddChild(emitter);
+
+  this->UpdateParticleEmitter(_id, _emitter);
+
+  return emitter;
+}
+
+/////////////////////////////////////////////////
+rendering::ParticleEmitterPtr SceneManager::UpdateParticleEmitter(Entity _id,
+    const msgs::ParticleEmitter &_emitter)
+{
+  if (!this->dataPtr->scene)
+    return rendering::ParticleEmitterPtr();
+
+  // Sanity check: Make sure that the id exists.
+  auto emitterIt = this->dataPtr->particleEmitters.find(_id);
+  if (emitterIt == this->dataPtr->particleEmitters.end())
+  {
+    ignerr << "Particle emitter with Id: [" << _id << "] not found in the "
+           << "scene" << std::endl;
+    return rendering::ParticleEmitterPtr();
+  }
+  auto emitter = emitterIt->second;
+
+  // Type.
+  switch (_emitter.type())
+  {
+    case ignition::msgs::ParticleEmitter_EmitterType_BOX:
+    {
+      emitter->SetType(ignition::rendering::EmitterType::EM_BOX);
+      break;
+    }
+    case ignition::msgs::ParticleEmitter_EmitterType_CYLINDER:
+    {
+      emitter->SetType(ignition::rendering::EmitterType::EM_CYLINDER);
+      break;
+    }
+    case ignition::msgs::ParticleEmitter_EmitterType_ELLIPSOID:
+    {
+      emitter->SetType(ignition::rendering::EmitterType::EM_ELLIPSOID);
+      break;
+    }
+    default:
+    {
+      // Do nothing if type is not set.
+    }
+  }
+
+  // Emitter size.
+  if (_emitter.has_size())
+    emitter->SetEmitterSize(ignition::msgs::Convert(_emitter.size()));
+
+  // Rate.
+  if (_emitter.has_rate())
+    emitter->SetRate(_emitter.rate().data());
+
+  // Duration.
+  if (_emitter.has_duration())
+    emitter->SetDuration(_emitter.duration().data());
+
+  // Emitting.
+  if (_emitter.has_emitting()) {
+    emitter->SetEmitting(_emitter.emitting().data());
+  }
+
+  // Particle size.
+  if (_emitter.has_particle_size())
+  {
+    emitter->SetParticleSize(
+        ignition::msgs::Convert(_emitter.particle_size()));
+  }
+
+  // Lifetime.
+  if (_emitter.has_lifetime())
+    emitter->SetLifetime(_emitter.lifetime().data());
+
+  // Material.
+  if (_emitter.has_material())
+  {
+    ignition::rendering::MaterialPtr material =
+      this->LoadMaterial(convert<sdf::Material>(_emitter.material()));
+    emitter->SetMaterial(material);
+  }
+
+  // Velocity range.
+  if (_emitter.has_min_velocity() && _emitter.has_max_velocity())
+  {
+    emitter->SetVelocityRange(_emitter.min_velocity().data(),
+        _emitter.max_velocity().data());
+  }
+
+  // Color range image.
+  if (_emitter.has_color_range_image() &&
+      !_emitter.color_range_image().data().empty())
+  {
+    emitter->SetColorRangeImage(_emitter.color_range_image().data());
+  }
+  // Color range.
+  else if (_emitter.has_color_start() && _emitter.has_color_end())
+  {
+    emitter->SetColorRange(
+      ignition::msgs::Convert(_emitter.color_start()),
+      ignition::msgs::Convert(_emitter.color_end()));
+  }
+
+  // Scale rate.
+  if (_emitter.has_scale_rate())
+    emitter->SetScaleRate(_emitter.scale_rate().data());
+
+  // pose
+  if (_emitter.has_pose())
+    emitter->SetLocalPose(msgs::Convert(_emitter.pose()));
+
+  // particle scatter ratio
+  if (_emitter.has_header())
+  {
+    for (int i = 0; i < _emitter.header().data_size(); ++i)
+    {
+      const auto &data = _emitter.header().data(i);
+      const std::string key = "particle_scatter_ratio";
+      if (data.key() == "particle_scatter_ratio" && data.value_size() > 0)
+      {
+        emitter->SetParticleScatterRatio(math::parseFloat(data.value(0)));
+        break;
+      }
+    }
+  }
+
+  return emitter;
 }
 
 /////////////////////////////////////////////////
@@ -927,6 +1792,8 @@ bool SceneManager::HasEntity(Entity _id) const
   return this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end() ||
       this->dataPtr->actors.find(_id) != this->dataPtr->actors.end() ||
       this->dataPtr->lights.find(_id) != this->dataPtr->lights.end() ||
+      this->dataPtr->particleEmitters.find(_id) !=
+      this->dataPtr->particleEmitters.end() ||
       this->dataPtr->sensors.find(_id) != this->dataPtr->sensors.end();
 }
 
@@ -938,22 +1805,22 @@ rendering::NodePtr SceneManager::NodeById(Entity _id) const
   {
     return vIt->second;
   }
-  else
+  auto lIt = this->dataPtr->lights.find(_id);
+  if (lIt != this->dataPtr->lights.end())
   {
-    auto lIt = this->dataPtr->lights.find(_id);
-    if (lIt != this->dataPtr->lights.end())
-    {
-      return lIt->second;
-    }
-    else
-    {
-      auto sIt = this->dataPtr->sensors.find(_id);
-      if (sIt != this->dataPtr->sensors.end())
-      {
-        return sIt->second;
-      }
-    }
+    return lIt->second;
   }
+  auto sIt = this->dataPtr->sensors.find(_id);
+  if (sIt != this->dataPtr->sensors.end())
+  {
+    return sIt->second;
+  }
+  auto pIt = this->dataPtr->particleEmitters.find(_id);
+  if (pIt != this->dataPtr->particleEmitters.end())
+  {
+    return pIt->second;
+  }
+
   return rendering::NodePtr();
 }
 
@@ -969,74 +1836,114 @@ rendering::MeshPtr SceneManager::ActorMeshById(Entity _id) const
 }
 
 /////////////////////////////////////////////////
-std::map<std::string, math::Matrix4d> SceneManager::ActorMeshAnimationAt(
+common::SkeletonPtr SceneManager::ActorSkeletonById(Entity _id) const
+{
+  auto it = this->dataPtr->actorSkeletons.find(_id);
+  if (it != this->dataPtr->actorSkeletons.end())
+    return it->second;
+
+  return common::SkeletonPtr();
+}
+
+/////////////////////////////////////////////////
+AnimationUpdateData SceneManager::ActorAnimationAt(
+    Entity _id, std::chrono::steady_clock::duration _time) const
+{
+  AnimationUpdateData animData;
+  auto trajIt = this->dataPtr->actorTrajectories.find(_id);
+  if (trajIt == this->dataPtr->actorTrajectories.end())
+    return animData;
+
+  auto skelIt = this->dataPtr->actorSkeletons.find(_id);
+  if (skelIt == this->dataPtr->actorSkeletons.end())
+    return animData;
+
+  animData = this->dataPtr->ActorTrajectoryAt(_id, _time);
+
+  auto skel = skelIt->second;
+  unsigned int animIndex = animData.trajectory.AnimIndex();
+  animData.animationName = skel->Animation(animIndex)->Name();
+
+  std::string rootNodeName = skel->RootNode()->Name();
+  double distance = animData.trajectory.DistanceSoFar(animData.time);
+  if (animData.followTrajectory)
+  {
+    math::Matrix4d rawFrame;
+    if (animData.trajectory.Waypoints()->InterpolateX() &&
+        !math::equal(distance, 0.0))
+    {
+      // logic here is mostly taken from
+      // common::SkeletonAnimation::PoseAtX
+      // We should consider refactoring part of that function to return
+      // PoseAtX for only one skeleton node in addition to the current
+      // function that computes PoseAtX for all skeleton nodes
+      common::NodeAnimation *rootNode =
+          skel->Animation(animIndex)->NodeAnimationByName(rootNodeName);
+      math::Matrix4d lastPos = rootNode->KeyFrame(
+          rootNode->FrameCount() - 1).second;
+      math::Matrix4d firstPos = rootNode->KeyFrame(0).second;
+      double x = distance;
+      if (x < firstPos.Translation().X())
+        x = firstPos.Translation().X();
+      double lastX = lastPos.Translation().X();
+      if (x > lastX && !animData.loop)
+        x = lastX;
+      while (x > lastX)
+        x -= lastX;
+
+      // update animation timepoint for root node
+      // this should be the time that is used in the
+      // SkeletonAnimationEnabled call
+      double time = rootNode->TimeAtX(x);
+
+      // get raw skeleton transform for root node. Needed to keep skeleton
+      // animation in sync with trajectory animation
+      rawFrame = rootNode->FrameAt(time, animData.loop);
+      animData.time = std::chrono::duration_cast<
+        std::chrono::steady_clock::duration>(
+        std::chrono::duration<double>(time));
+    }
+    else
+    {
+      double timeSeconds = std::chrono::duration<double>(animData.time).count();
+      rawFrame = skel->Animation(animIndex)->NodePoseAt(
+          rootNodeName, timeSeconds, animData.loop);
+    }
+
+    math::Matrix4d skinTf = skel->AlignTranslation(animIndex, rootNodeName)
+            * rawFrame * skel->AlignRotation(animIndex, rootNodeName);
+
+    // zero out translation since we only need rotation to sync with actor
+    // trajectory animation
+    skinTf.SetTranslation(math::Vector3d::Zero);
+    animData.rootTransform = skinTf;
+  }
+
+  return animData;
+}
+
+/////////////////////////////////////////////////
+std::map<std::string, math::Matrix4d> SceneManager::ActorSkeletonTransformsAt(
     Entity _id, std::chrono::steady_clock::duration _time) const
 {
   std::map<std::string, math::Matrix4d> allFrames;
 
-  if (this->dataPtr->actorTrajectories.find(_id)
-      == this->dataPtr->actorTrajectories.end())
+  auto trajIt = this->dataPtr->actorTrajectories.find(_id);
+  if (trajIt == this->dataPtr->actorTrajectories.end())
   {
     return allFrames;
   }
 
-  auto trajs = this->dataPtr->actorTrajectories[_id];
-  bool followTraj = true;
-  if (1 == trajs.size() && nullptr == trajs[0].Waypoints())
-  {
-    followTraj = false;
-  }
+  // get the trajectory at input time
+  AnimationUpdateData animData = this->dataPtr->ActorTrajectoryAt(_id, _time);
+  bool followTraj = animData.followTrajectory;
+  bool noLoop = animData.loop;
+  common::TrajectoryInfo traj = animData.trajectory;
+  auto time = animData.time;
 
-  auto firstTraj = trajs.begin();
-  auto poseFrame = common::PoseKeyFrame(0.0);
-
-  common::TrajectoryInfo traj = trajs[0];
-
-  using TP = std::chrono::steady_clock::time_point;
-  auto totalTime = trajs.rbegin()->EndTime() - trajs.begin()->StartTime();
-
-  // delay start
-  if (_time < (trajs.begin()->StartTime() - TP(0ms)))
-  {
-    _time = std::chrono::steady_clock::duration(0);
-  }
-  else
-  {
-    _time -= trajs.begin()->StartTime() - TP(0ms);
-  }
-
-  bool noLoop = trajs.rbegin()->StartTime() != TP(0ms)
-            && trajs.rbegin()->StartTime() == trajs.rbegin()->EndTime();
-
-  if (_time >= totalTime && noLoop)
-  {
-    _time = totalTime;
-  }
-
-  if (!noLoop || _time <= totalTime)
-  {
-    while (_time > totalTime)
-    {
-      _time = _time - totalTime;
-    }
-    if (followTraj)
-    {
-      for (auto &trajectory : trajs)
-      {
-        if (trajectory.StartTime() - firstTraj->StartTime() <= _time
-            && trajectory.EndTime() - firstTraj->StartTime() >= _time)
-        {
-          traj = trajectory;
-          _time -= traj.StartTime() - firstTraj->StartTime();
-
-          traj.Waypoints()->Time(std::chrono::duration<double>(_time).count());
-          traj.Waypoints()->InterpolatedKeyFrame(poseFrame);
-          break;
-        }
-      }
-    }
-  }
-
+  common::PoseKeyFrame poseFrame(0.0);
+  if (followTraj)
+    traj.Waypoints()->InterpolatedKeyFrame(poseFrame);
   math::Matrix4d rootTf(poseFrame.Rotation());
   rootTf.SetTranslation(poseFrame.Translation());
 
@@ -1047,19 +1954,23 @@ std::map<std::string, math::Matrix4d> SceneManager::ActorMeshAnimationAt(
     unsigned int animIndex = traj.AnimIndex();
     std::map<std::string, math::Matrix4d> rawFrames;
 
-    double timeSeconds = std::chrono::duration<double>(_time).count();
+    double timeSeconds = std::chrono::duration<double>(time).count();
 
     if (followTraj)
     {
-      double distance = traj.DistanceSoFar(_time);
-      if (distance < 0.1)
-      {
-        rawFrames = skel->Animation(animIndex)->PoseAt(timeSeconds, !noLoop);
-      }
-      else
+      double distance = traj.DistanceSoFar(time);
+      // check interpolate x.
+      // todo(anyone) there is a problem with PoseAtX that causes
+      // it to go into an infinite loop if the animation has no x displacement
+      // e.g. a person standing that does not move in x direction
+      if (traj.Waypoints()->InterpolateX() && !math::equal(distance, 0.0))
       {
         rawFrames = skel->Animation(animIndex)->PoseAtX(distance,
                                         skel->RootNode()->Name());
+      }
+      else
+      {
+        rawFrames = skel->Animation(animIndex)->PoseAt(timeSeconds, !noLoop);
       }
     }
     else
@@ -1108,6 +2019,19 @@ void SceneManager::RemoveEntity(Entity _id)
     auto it = this->dataPtr->visuals.find(_id);
     if (it != this->dataPtr->visuals.end())
     {
+      // Remove visual's original transparency from map
+      rendering::VisualPtr vis = it->second;
+      this->dataPtr->originalTransparency.erase(vis->Name());
+      // Remove visual's original depth write value from map
+      this->dataPtr->originalDepthWrite.erase(vis->Name());
+
+      for (auto g = 0u; g < vis->GeometryCount(); ++g)
+      {
+        auto geom = vis->GeometryByIndex(g);
+        this->dataPtr->originalTransparency.erase(geom->Name());
+        this->dataPtr->originalDepthWrite.erase(geom->Name());
+      }
+
       this->dataPtr->scene->DestroyVisual(it->second);
       this->dataPtr->visuals.erase(it);
       return;
@@ -1120,6 +2044,16 @@ void SceneManager::RemoveEntity(Entity _id)
     {
       this->dataPtr->scene->DestroyLight(it->second);
       this->dataPtr->lights.erase(it);
+      return;
+    }
+  }
+
+  {
+    auto it = this->dataPtr->particleEmitters.find(_id);
+    if (it != this->dataPtr->particleEmitters.end())
+    {
+      this->dataPtr->scene->DestroyVisual(it->second);
+      this->dataPtr->particleEmitters.erase(it);
       return;
     }
   }
@@ -1138,8 +2072,7 @@ void SceneManager::RemoveEntity(Entity _id)
 
 /////////////////////////////////////////////////
 rendering::VisualPtr SceneManager::TopLevelVisual(
-// NOLINTNEXTLINE
-    rendering::VisualPtr _visual) const
+    const rendering::VisualPtr &_visual) const
 {
   auto node = this->TopLevelNode(_visual);
   return std::dynamic_pointer_cast<rendering::Visual>(node);
@@ -1165,41 +2098,204 @@ rendering::NodePtr SceneManager::TopLevelNode(
   return node;
 }
 
-/////////////////////////////////////////////////
-Entity SceneManager::EntityFromNode(const rendering::NodePtr &_node) const
+////////////////////////////////////////////////
+void SceneManager::UpdateTransparency(const rendering::NodePtr &_node,
+    bool _makeTransparent)
 {
-  // TODO(anyone) On Dome, set entity ID into node with SetUserData
-  auto visual = std::dynamic_pointer_cast<rendering::Visual>(_node);
-  if (visual)
-  {
-    auto found = std::find_if(std::begin(this->dataPtr->visuals),
-        std::end(this->dataPtr->visuals),
-        [&](const std::pair<Entity, rendering::VisualPtr> &_item)
-    {
-      return _item.second == visual;
-    });
+  if (!_node)
+    return;
 
-    if (found != this->dataPtr->visuals.end())
+  for (auto n = 0u; n < _node->ChildCount(); ++n)
+  {
+    auto child = _node->ChildByIndex(n);
+    this->UpdateTransparency(child, _makeTransparent);
+  }
+
+  auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
+  if (nullptr == vis)
+    return;
+
+  // Visual material
+  auto visMat = vis->Material();
+  if (nullptr != visMat)
+  {
+    auto visTransparency =
+        this->dataPtr->originalTransparency.find(vis->Name());
+    auto visDepthWrite =
+        this->dataPtr->originalDepthWrite.find(vis->Name());
+    if (_makeTransparent)
     {
-      return found->first;
+      if (visTransparency == this->dataPtr->originalTransparency.end())
+      {
+        this->dataPtr->originalTransparency[vis->Name()] =
+          visMat->Transparency();
+      }
+      visMat->SetTransparency(1.0 - ((1.0 - visMat->Transparency()) * 0.5));
+
+      if (visDepthWrite == this->dataPtr->originalDepthWrite.end())
+      {
+        this->dataPtr->originalDepthWrite[vis->Name()] =
+          visMat->DepthWriteEnabled();
+      }
+      visMat->SetDepthWriteEnabled(false);
+    }
+    else
+    {
+      if (visTransparency != this->dataPtr->originalTransparency.end())
+      {
+        visMat->SetTransparency(visTransparency->second);
+      }
+      if (visDepthWrite != this->dataPtr->originalDepthWrite.end())
+      {
+        visMat->SetDepthWriteEnabled(visDepthWrite->second);
+      }
     }
   }
 
-  auto light = std::dynamic_pointer_cast<rendering::Light>(_node);
-  if (light)
+  for (auto g = 0u; g < vis->GeometryCount(); ++g)
   {
-    auto found = std::find_if(std::begin(this->dataPtr->lights),
-        std::end(this->dataPtr->lights),
-        [&](const std::pair<Entity, rendering::LightPtr> &_item)
-    {
-      return _item.second == light;
-    });
+    auto geom = vis->GeometryByIndex(g);
 
-    if (found != this->dataPtr->lights.end())
+    // Geometry material
+    auto geomMat = geom->Material();
+    if (nullptr == geomMat || visMat == geomMat)
+      continue;
+    auto geomTransparency =
+        this->dataPtr->originalTransparency.find(geom->Name());
+    auto geomDepthWrite =
+        this->dataPtr->originalDepthWrite.find(geom->Name());
+
+    if (_makeTransparent)
     {
-      return found->first;
+      if (geomTransparency == this->dataPtr->originalTransparency.end())
+      {
+        this->dataPtr->originalTransparency[geom->Name()] =
+            geomMat->Transparency();
+      }
+      geomMat->SetTransparency(1.0 - ((1.0 - geomMat->Transparency()) * 0.5));
+
+      if (geomDepthWrite == this->dataPtr->originalDepthWrite.end())
+      {
+        this->dataPtr->originalDepthWrite[geom->Name()] =
+            geomMat->DepthWriteEnabled();
+      }
+      geomMat->SetDepthWriteEnabled(false);
+    }
+    else
+    {
+      if (geomTransparency != this->dataPtr->originalTransparency.end())
+      {
+        geomMat->SetTransparency(geomTransparency->second);
+      }
+      if (geomDepthWrite != this->dataPtr->originalDepthWrite.end())
+      {
+        geomMat->SetDepthWriteEnabled(geomDepthWrite->second);
+      }
+    }
+  }
+}
+
+////////////////////////////////////////////////
+void SceneManager::UpdateJointParentPose(Entity _jointId)
+{
+  auto visual =
+      this->VisualById(_jointId);
+
+  rendering::JointVisualPtr jointVisual =
+      std::dynamic_pointer_cast<rendering::JointVisual>(visual);
+
+  auto childPose = jointVisual->WorldPose();
+
+  if (jointVisual->ParentAxisVisual())
+  {
+    jointVisual->ParentAxisVisual()->SetWorldPose(childPose);
+
+    // scale parent axis visual to the child
+    auto childScale = jointVisual->LocalScale();
+    jointVisual->ParentAxisVisual()->SetLocalScale(childScale);
+  }
+}
+
+/////////////////////////////////////////////////
+Entity SceneManager::UniqueId() const
+{
+  auto id = std::numeric_limits<uint64_t>::max();
+  while (true)
+  {
+    if (!this->HasEntity(id))
+      return id;
+    else if (id == 0u)
+      return kNullEntity;
+    --id;
+  }
+}
+
+/////////////////////////////////////////////////
+AnimationUpdateData SceneManagerPrivate::ActorTrajectoryAt(
+    Entity _id,
+    const std::chrono::steady_clock::duration &_time) const
+{
+  AnimationUpdateData animData;
+  auto trajIt = this->actorTrajectories.find(_id);
+  if (trajIt == this->actorTrajectories.end())
+    return animData;
+
+  auto trajs = trajIt->second;
+  bool followTraj = true;
+  if (1 == trajs.size() && nullptr == trajs[0].Waypoints())
+    followTraj = false;
+
+  auto firstTraj = trajs.begin();
+  common::TrajectoryInfo traj = trajs[0];
+  auto totalTime = trajs.rbegin()->EndTime() - trajs.begin()->StartTime();
+
+  // delay start
+  auto time = _time;
+  if (time < (trajs.begin()->StartTime() - TP(0ms)))
+  {
+    time = std::chrono::steady_clock::duration(0);
+  }
+  else
+  {
+    time -= trajs.begin()->StartTime() - TP(0ms);
+  }
+
+  bool noLoop = trajs.rbegin()->StartTime() != TP(0ms)
+            && trajs.rbegin()->StartTime() == trajs.rbegin()->EndTime();
+
+  if (time >= totalTime && noLoop)
+  {
+    time = totalTime;
+  }
+
+  if (!noLoop || time <= totalTime)
+  {
+    while (time > totalTime)
+    {
+      time = time - totalTime;
+    }
+    if (followTraj)
+    {
+      for (auto &trajectory : trajs)
+      {
+        if (trajectory.StartTime() - firstTraj->StartTime() <= time
+            && trajectory.EndTime() - firstTraj->StartTime() >= time)
+        {
+          traj = trajectory;
+          time -= traj.StartTime() - firstTraj->StartTime();
+
+          traj.Waypoints()->Time(std::chrono::duration<double>(time).count());
+          break;
+        }
+      }
     }
   }
 
-  return kNullEntity;
+  // return time;
+  animData.time = time;
+  animData.loop = !noLoop;
+  animData.followTrajectory = followTraj;
+  animData.trajectory = traj;
+  animData.valid = true;
+  return animData;
 }

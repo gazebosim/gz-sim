@@ -26,6 +26,7 @@
 #include <ignition/msgs/inertial.pb.h>
 #include <ignition/msgs/light.pb.h>
 #include <ignition/msgs/material.pb.h>
+#include <ignition/msgs/particle_emitter.pb.h>
 #include <ignition/msgs/physics.pb.h>
 #include <ignition/msgs/scene.pb.h>
 #include <ignition/msgs/sensor.pb.h>
@@ -47,6 +48,7 @@
 #include <sdf/Light.hh>
 #include <sdf/Material.hh>
 #include <sdf/Noise.hh>
+#include <sdf/ParticleEmitter.hh>
 #include <sdf/Physics.hh>
 #include <sdf/Scene.hh>
 #include <sdf/Sensor.hh>
@@ -226,6 +228,12 @@ namespace ignition
     template<>
     msgs::Light convert(const sdf::Light &_in);
 
+    /// \brief Generic conversion from a SDF light type to string.
+    /// \param[in] _in SDF light type.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    std::string IGNITION_GAZEBO_VISIBLE
+    convert(const sdf::LightType &_in);
 
     /// \brief Generic conversion from a light message to another type.
     /// \param[in] _in Light message.
@@ -244,6 +252,12 @@ namespace ignition
     /// \return Light SDF object.
     template<>
     sdf::Light convert(const msgs::Light &_in);
+
+    /// \brief Specialized conversion from a string to a sdf light type
+    /// \param[in] _in String with the light type.
+    /// \return Light type emun SDF object.
+    sdf::LightType IGNITION_GAZEBO_VISIBLE
+    convert(const std::string &_in);
 
     /// \brief Generic conversion from an SDF gui to another type.
     /// \param[in] _in SDF gui.
@@ -659,6 +673,42 @@ namespace ignition
     /// \return Axis aligned box object.
     template<>
     math::AxisAlignedBox convert(const msgs::AxisAlignedBox &_in);
+
+    /// \brief Generic conversion from a particle emitter SDF object to another
+    /// type.
+    /// \param[in] _in Particle emitter SDF object.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const sdf::ParticleEmitter &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from a particle emitter SDF object to
+    /// a particle emitter message object.
+    /// \param[in] _in Particle emitter SDF object.
+    /// \return Particle emitter message.
+    template<>
+    msgs::ParticleEmitter convert(const sdf::ParticleEmitter &_in);
+
+    /// \brief Generic conversion from a particle emitter SDF object to another
+    /// type.
+    /// \param[in] _in Particle emitter SDF object.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const msgs::ParticleEmitter &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from a particle emitter SDF object to
+    /// a particle emitter message object.
+    /// \param[in] _in Particle emitter SDF object.
+    /// \return Particle emitter message.
+    template<>
+    sdf::ParticleEmitter convert(const msgs::ParticleEmitter &_in);
     }
   }
 }

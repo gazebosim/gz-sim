@@ -38,11 +38,11 @@ the [GUI Configuration](gui_config.html) tutorial for more information.
 If you launched Ignition Gazebo with the
 `video_record_dbl_pendulum.sdf` demo world, the GUI configurations are embedded
 in the world SDF file so you will need to download a copy of the
-[sdf file](https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/ign-gazebo3/examples/worlds/video_record_dbl_pendulum.sdf).
+[sdf file](https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/main/examples/worlds/video_record_dbl_pendulum.sdf).
 and modify the GUI configuration in that file. On the other hand, if you
 launched Ignition Gazebo with a world file that does not have GUI
 configurations, you will need to specify the settings in
-`$HOME/.ignition/gazebo/gui.config`.
+`$HOME/.ignition/gazebo/<#>/gui.config`.
 
 Recall that videos are recorded from the 3D scene, we will to set the video
 configurations in the 3D scene plugin. Here is an example of the
@@ -105,3 +105,10 @@ going to the world SDF file, locate the
 
 * **bitrate**: Video encoding bitrate in bps. This affects the quality of the
 generated video. The default bitrate is 2Mbps.
+
+## Hardware-accelerated encoding
+
+Since Ignition Common 3.10.2, there is support for utilizing the power of GPUs
+to speed up the video encoding process. See the
+[Hardware-accelerated Video Encoding tutorial](https://ignitionrobotics.org/api/common/3.10/hw-encoding.html)
+for more details.

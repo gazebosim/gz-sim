@@ -20,6 +20,7 @@
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/config.hh>
+#include <ignition/gazebo/Entity.hh>
 
 namespace ignition
 {
@@ -33,6 +34,12 @@ namespace components
   using CanonicalLink = Component<NoData, class CanonicalLinkTag>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.CanonicalLink", CanonicalLink)
+
+  /// \brief A component that contains a reference to the canonical link entity
+  /// of a model.
+  using ModelCanonicalLink = Component<Entity, class ModelCanonicalLinkTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT(
+      "ign_gazebo_components.ModelCanonicalLink", ModelCanonicalLink)
 }
 }
 }

@@ -38,6 +38,7 @@
 #include <ignition/common/Event.hh>
 #include <ignition/common/WorkerPool.hh>
 #include <ignition/math/Stopwatch.hh>
+#include <ignition/msgs.hh>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/config.hh"
@@ -82,6 +83,10 @@ namespace ignition
       /// real time and iterations.
       // cppcheck-suppress unusedStructMember
       bool rewind{false};  // NOLINT
+
+      /// \brief A simulation time in the future to run to and then pause.
+      /// A negative number indicates that this variable it not being used.
+      std::chrono::steady_clock::duration runToSimTime{-1};  // NOLINT
 
       /// \brief Sim time to jump to. A negative value means don't seek.
       /// Seeking changes sim time but doesn't affect real time.
@@ -287,6 +292,24 @@ namespace ignition
       /// \return True if the simulation runner is paused, false otherwise.
       public: bool Paused() const;
 
+      /// \brief Set if the simulation runner is stepping based on WorldControl
+      /// info
+      /// \param[in] _step True if stepping based on WorldControl info, false
+      /// otherwise
+      public: void SetStepping(bool _step);
+
+      /// \brief Get if the simulation runner is stepping based on WorldControl
+      /// info
+      /// \return True if stepping based on WorldControl info, false otherwise
+      public: bool Stepping() const;
+
+      /// \brief Set the run to simulation time.
+      /// \param[in] _time A simulation time in the future to run to and then
+      /// pause. A negative number or a time less than the current simulation
+      /// time disables the run-to feature.
+      public: void SetRunToSimTime(
+                  const std::chrono::steady_clock::duration &_time);
+
       /// \brief Get the EntityComponentManager
       /// \return Reference to the entity component manager.
       public: const EntityComponentManager &EntityCompMgr() const;
@@ -357,6 +380,16 @@ namespace ignition
       /// \param[out] _res Response to client, true if successful.
       /// \return True for success
       private: bool OnWorldControl(const msgs::WorldControl &_req,
+                                         msgs::Boolean &_res);
+
+      /// \brief World control state service callback. This function stores the
+      /// the request which will then be processed by the ProcessMessages
+      /// function.
+      /// \param[in] _req Request from client, currently handling play / pause
+      /// and multistep. This also may contain SerializedState information.
+      /// \param[out] _res Response to client, true if successful.
+      /// \return True for success
+      private: bool OnWorldControlState(const msgs::WorldControlState &_req,
                                          msgs::Boolean &_res);
 
       /// \brief World control service callback. This function stores the
@@ -553,6 +586,10 @@ namespace ignition
       /// time.s A negative value means there's no request from the user.
       private: std::chrono::steady_clock::duration requestedSeek{-1};
 
+      /// \brief A simulation time in the future to run to and then pause.
+      /// A negative number indicates that this variable it not being used.
+      private: std::chrono::steady_clock::duration requestedRunToSimTime{-1};
+
       /// \brief Keeps the latest simulation info.
       private: UpdateInfo currentInfo;
 
@@ -585,6 +622,10 @@ namespace ignition
 
       /// \brief True if Server::RunOnce triggered a blocking paused step
       private: bool blockingPausedStepPending{false};
+
+      /// \brief Whether the simulation runner is currently stepping based on
+      /// WorldControl info (true) or not (false)
+      private: bool stepping{false};
 
       friend class LevelManager;
     };

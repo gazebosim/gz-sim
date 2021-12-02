@@ -21,6 +21,7 @@
 #include <ignition/plugin/Register.hh>
 
 #include <ignition/gazebo/components/Geometry.hh>
+#include <ignition/gazebo/components/Light.hh>
 #include <ignition/gazebo/components/Link.hh>
 #include <ignition/gazebo/components/Material.hh>
 #include <ignition/gazebo/components/Model.hh>
@@ -33,9 +34,10 @@
 #include <ignition/gazebo/EntityComponentManager.hh>
 #include <ignition/gazebo/Util.hh>
 
-#include <sdf/Visual.hh>
+#include <sdf/Light.hh>
 #include <sdf/Mesh.hh>
 #include <sdf/Model.hh>
+#include <sdf/Visual.hh>
 
 #include <ignition/common/Material.hh>
 #include <ignition/common/MeshManager.hh>
@@ -112,12 +114,26 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
       ignition::common::MeshManager *meshManager =
           ignition::common::MeshManager::Instance();
 
-      auto addSubmeshFunc = [&](int i) {
-          subm = worldMesh.AddSubMesh(
-              *mesh->SubMeshByIndex(0).lock().get());
-          subm.lock()->SetMaterialIndex(i);
-          subm.lock()->Scale(scale);
-          subMeshMatrix.push_back(matrix);
+      auto addSubmeshFunc = [&](int _matIndex)
+      {
+        int newMatIndex = 0;
+        if (_matIndex != -1)
+        {
+          auto m = mesh->MaterialByIndex(_matIndex);
+          newMatIndex = worldMesh.IndexOfMaterial(m.get());
+          if (newMatIndex < 0)
+          {
+            newMatIndex = worldMesh.AddMaterial(m);
+          }
+        }
+        else
+        {
+          newMatIndex = worldMesh.AddMaterial(mat);
+        }
+
+        subm.lock()->SetMaterialIndex(newMatIndex);
+        subm.lock()->Scale(scale);
+        subMeshMatrix.push_back(matrix);
       };
 
       if (_geom->Data().Type() == sdf::GeometryType::BOX)
@@ -126,9 +142,10 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
         {
           mesh = meshManager->MeshByName("unit_box");
           scale = _geom->Data().BoxShape()->Size();
-          int i = worldMesh.AddMaterial(mat);
+          subm = worldMesh.AddSubMesh(
+              *mesh->SubMeshByIndex(0).lock().get());
 
-          addSubmeshFunc(i);
+          addSubmeshFunc(-1);
         }
       }
       else if (_geom->Data().Type() == sdf::GeometryType::CYLINDER)
@@ -139,10 +156,10 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
           scale.X() = _geom->Data().CylinderShape()->Radius() * 2;
           scale.Y() = scale.X();
           scale.Z() = _geom->Data().CylinderShape()->Length();
+          subm = worldMesh.AddSubMesh(
+              *mesh->SubMeshByIndex(0).lock().get());
 
-          int i = worldMesh.AddMaterial(mat);
-
-          addSubmeshFunc(i);
+          addSubmeshFunc(-1);
         }
       }
       else if (_geom->Data().Type() == sdf::GeometryType::PLANE)
@@ -164,9 +181,10 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
           worldPose.Rot() = worldPose.Rot() * normalRot;
 
           matrix = math::Matrix4d(worldPose);
+          subm = worldMesh.AddSubMesh(
+              *mesh->SubMeshByIndex(0).lock().get());
 
-          int i = worldMesh.AddMaterial(mat);
-          addSubmeshFunc(i);
+          addSubmeshFunc(-1);
         }
       }
       else if (_geom->Data().Type() == sdf::GeometryType::SPHERE)
@@ -179,9 +197,10 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
           scale.Y() = scale.X();
           scale.Z() = scale.X();
 
-          int i = worldMesh.AddMaterial(mat);
+          subm = worldMesh.AddSubMesh(
+              *mesh->SubMeshByIndex(0).lock().get());
 
-          addSubmeshFunc(i);
+          addSubmeshFunc(-1);
         }
       }
       else if (_geom->Data().Type() == sdf::GeometryType::MESH)
@@ -201,28 +220,22 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
           return true;
         }
 
-        for (unsigned int k = 0; k < mesh->SubMeshCount(); k++)
+        const auto subMeshName = _geom->Data().MeshShape()->Submesh();
+        scale = _geom->Data().MeshShape()->Scale();
+        if(subMeshName == "")
         {
-          auto subMeshLock = mesh->SubMeshByIndex(k).lock();
-          int j = subMeshLock->MaterialIndex();
-
-          int i = 0;
-          if (j != -1)
+          for (unsigned int k = 0; k < mesh->SubMeshCount(); k++)
           {
-            i = worldMesh.IndexOfMaterial(mesh->MaterialByIndex(j).get());
-            if (i < 0)
-            {
-              i = worldMesh.AddMaterial(mesh->MaterialByIndex(j));
-            }
+            auto subMeshLock = mesh->SubMeshByIndex(k).lock();
+            subm = worldMesh.AddSubMesh(*subMeshLock.get());
+            addSubmeshFunc(subMeshLock->MaterialIndex());
           }
-          else
-          {
-            i = worldMesh.AddMaterial(mat);
-          }
-
-          scale = _geom->Data().MeshShape()->Scale();
-
-          addSubmeshFunc(i);
+        }
+        else
+        {
+          auto subMeshLock = mesh->SubMeshByName(subMeshName).lock();
+          subm = worldMesh.AddSubMesh(*subMeshLock.get());
+          addSubmeshFunc(subMeshLock->MaterialIndex());
         }
       }
       else
@@ -233,9 +246,55 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
       return true;
     });
 
+    std::vector<common::ColladaLight> lights;
+    _ecm.Each<components::Light,
+              components::Name>(
+    [&](const Entity &/*_entity*/,
+        const components::Light *_light,
+        const components::Name *_name)->bool
+    {
+      std::string name = _name->Data();
+      const auto& sdfLight = _light->Data();
+
+      common::ColladaLight p;
+      p.name = name;
+      if (sdfLight.Type() == sdf::LightType::POINT)
+      {
+        p.type = "point";
+      }
+      else if (sdfLight.Type() == sdf::LightType::SPOT)
+      {
+        p.type = "spot";
+      }
+      else if (sdfLight.Type() == sdf::LightType::DIRECTIONAL)
+      {
+        p.type = "directional";
+      }
+      else
+      {
+        p.type = "invalid";
+      }
+
+      p.position = sdfLight.RawPose().Pos();
+      p.direction = sdfLight.RawPose().Rot().RotateVector(sdfLight.Direction());
+      p.diffuse = sdfLight.Diffuse();
+
+      p.constantAttenuation = sdfLight.ConstantAttenuationFactor();
+      p.linearAttenuation = sdfLight.LinearAttenuationFactor();
+      p.quadraticAttenuation = sdfLight.QuadraticAttenuationFactor();
+
+      // Falloff angle is treated as the outer angle in blender
+      // https://community.khronos.org/t/spotlight-properties/7111/7
+      p.falloffAngleDeg = sdfLight.SpotOuterAngle().Degree();
+      p.falloffExponent = sdfLight.SpotFalloff();
+
+      lights.push_back(p);
+      return true;
+    });
+
     common::ColladaExporter exporter;
     exporter.Export(&worldMesh, "./" + worldMesh.Name(), true,
-                    subMeshMatrix);
+                    subMeshMatrix, lights);
     ignmsg << "The world has been exported into the "
            << "./" + worldMesh.Name() << " directory." << std::endl;
     this->exported = true;

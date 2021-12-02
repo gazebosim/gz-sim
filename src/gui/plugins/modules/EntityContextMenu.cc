@@ -15,6 +15,7 @@
  *
 */
 
+#include "../../GuiRunner.hh"
 #include "EntityContextMenu.hh"
 
 #include <ignition/msgs/boolean.pb.h>
@@ -25,7 +26,6 @@
 #include <string>
 
 #include <ignition/common/Console.hh>
-#include <ignition/gazebo/gui/GuiRunner.hh>
 #include <ignition/gazebo/Conversions.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/transport/Node.hh>
@@ -47,8 +47,29 @@ namespace ignition::gazebo
     /// \brief Remove service name
     public: std::string removeService;
 
+    /// \brief View as transparent service name
+    public: std::string viewTransparentService;
+
+    /// \brief View center of mass service name
+    public: std::string viewCOMService;
+
+    /// \brief View inertia service name
+    public: std::string viewInertiaService;
+
+    /// \brief View joints service name
+    public: std::string viewJointsService;
+
+    /// \brief View wireframes service name
+    public: std::string viewWireframesService;
+
     /// \brief View collisions service name
     public: std::string viewCollisionsService;
+
+    /// \brief Copy service name
+    public: std::string copyService;
+
+    /// \brief Paste service name
+    public: std::string pasteService;
 
     /// \brief Name of world.
     public: std::string worldName;
@@ -79,8 +100,29 @@ EntityContextMenu::EntityContextMenu()
   // For remove service requests
   this->dataPtr->removeService = "/world/default/remove";
 
+  // For view transparent service requests
+  this->dataPtr->viewTransparentService = "/gui/view/transparent";
+
+  // For view center of mass service requests
+  this->dataPtr->viewCOMService = "/gui/view/com";
+
+  // For view inertia service requests
+  this->dataPtr->viewInertiaService = "/gui/view/inertia";
+
+  // For view joints service requests
+  this->dataPtr->viewJointsService = "/gui/view/joints";
+
+  // For view wireframes service requests
+  this->dataPtr->viewWireframesService = "/gui/view/wireframes";
+
   // For view collisions service requests
   this->dataPtr->viewCollisionsService = "/gui/view/collisions";
+
+  // For copy service requests
+  this->dataPtr->copyService = "/gui/copy";
+
+  // For paste service requests
+  this->dataPtr->pasteService = "/gui/paste";
 }
 
 /////////////////////////////////////////////////
@@ -152,11 +194,52 @@ void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->followService, req, cb);
   }
+  else if (request == "view_transparent")
+  {
+    ignition::msgs::StringMsg req;
+    req.set_data(_data.toStdString());
+    this->dataPtr->node.Request(this->dataPtr->viewTransparentService, req, cb);
+  }
+  else if (request == "view_com")
+  {
+    ignition::msgs::StringMsg req;
+    req.set_data(_data.toStdString());
+    this->dataPtr->node.Request(this->dataPtr->viewCOMService, req, cb);
+  }
+  else if (request == "view_inertia")
+  {
+    ignition::msgs::StringMsg req;
+    req.set_data(_data.toStdString());
+    this->dataPtr->node.Request(this->dataPtr->viewInertiaService, req, cb);
+  }
+  else if (request == "view_joints")
+  {
+    ignition::msgs::StringMsg req;
+    req.set_data(_data.toStdString());
+    this->dataPtr->node.Request(this->dataPtr->viewJointsService, req, cb);
+  }
+  else if (request == "view_wireframes")
+  {
+    ignition::msgs::StringMsg req;
+    req.set_data(_data.toStdString());
+    this->dataPtr->node.Request(this->dataPtr->viewWireframesService, req, cb);
+  }
   else if (request == "view_collisions")
   {
     ignition::msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->viewCollisionsService, req, cb);
+  }
+  else if (request == "copy")
+  {
+    ignition::msgs::StringMsg req;
+    req.set_data(_data.toStdString());
+    this->dataPtr->node.Request(this->dataPtr->copyService, req, cb);
+  }
+  else if (request == "paste")
+  {
+    ignition::msgs::Empty req;
+    this->dataPtr->node.Request(this->dataPtr->pasteService, req, cb);
   }
   else
   {

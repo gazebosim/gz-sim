@@ -1,0 +1,52 @@
+<?xml version='1.0'?>
+<sdf version='1.8'>
+
+  <model name="connected_nested_models">
+    <model name="model_00">
+      <link name="link_00">
+        <pose>0 0 3 0 0 0</pose>
+        <collision name="collision_00">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual_00">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+      <link name="link_01">
+        <pose relative_to="link_00">0 2 0 0 0 0</pose>
+        <collision name="collision_01">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual_01">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+
+      </link>
+      <joint name="joint_01" type="revolute">
+        <pose relative_to="link_00">0 0 0 0 0 0</pose>
+        <parent>link_00</parent>
+        <child>link_01</child>
+        <axis>
+          <xyz>1 0 0</xyz>
+        </axis>
+      </joint>
+
+    </model>
+  </model>
+</sdf>

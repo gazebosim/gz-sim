@@ -25,8 +25,8 @@
 #endif
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
-#include <ignition/gui/Plugin.hh>
 #include <ignition/gui/MainWindow.hh>
+#include <ignition/gui/Plugin.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/utilities/ExtraTestMacros.hh>
 
@@ -37,11 +37,11 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/gui/GuiRunner.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/test_config.hh"
 #include "../../../../test/helpers/EnvTestFixture.hh"
 
+#include "../../GuiRunner.hh"
 #include "JointPositionController.hh"
 
 int g_argc = 1;

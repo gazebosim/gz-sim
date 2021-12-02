@@ -53,6 +53,7 @@ namespace systems
   class Sensors:
     public System,
     public ISystemConfigure,
+    public ISystemUpdate,
     public ISystemPostUpdate
   {
     /// \brief Constructor
@@ -68,15 +69,25 @@ namespace systems
                            EventManager &_eventMgr) final;
 
     // Documentation inherited
+    public: void Update(const UpdateInfo &_info,
+                        EntityComponentManager &_ecm) final;
+
+    // Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
                             const EntityComponentManager &_ecm) final;
 
     /// \brief Create a rendering sensor from sdf
+    /// \param[in] _entity Entity of the sensor
     /// \param[in] _sdf SDF description of the sensor
     /// \param[in] _parentName Name of parent that the sensor is attached to
     /// \return Sensor name
-    private : std::string CreateSensor(const sdf::Sensor &_sdf,
-        const std::string &_parentName);
+    private : std::string CreateSensor(const Entity &_entity,
+                                       const sdf::Sensor &_sdf,
+                                       const std::string &_parentName);
+
+    /// \brief Removes a rendering sensor
+    /// \param[in] _entity Entity of the sensor
+    private : void RemoveSensor(const Entity &_entity);
 
     /// \brief Private data pointer.
     private: std::unique_ptr<SensorsPrivate> dataPtr;

@@ -1,0 +1,95 @@
+<?xml version="1.0" ?>
+
+<!-- NOTE: This world uses a particle emitter that is implemented as
+     a plugin. We recommend using particle emitters based on the SDF
+     specification. See the test/worlds/particle_emitter2.sdf example.
+-->
+
+<!--
+  Launch this example with:
+
+      ign gazebo -r particle_emitter.sdf
+
+  Try modifying some parameters of the emitter:
+
+    To disable the particle emitter:
+
+      ign topic -t /model/smoke_generator/particle_emitter/smoke_generator -m ignition.msgs.ParticleEmitter -p 'name: "smoke_generator" pose { position { } orientation { w: 1 } } size { x: 1 y: 1 z: 1 } rate: 10 emitting: false particle_size { x: 1 y: 1 z: 1 } lifetime: 2 material { header { data { key: "double_sided" value: "0" } } ambient { a: 1 } diffuse { r: 0.7 g: 0.7 b: 0.7 a: 1 } specular { a: 1 } emissive { a: 1 } lighting: true pbr { type: METAL albedo_map: "/home/caguero/.ignition/fuel/fuel.ignitionrobotics.org/caguero/models/smoke_generator/2/materials/textures/smoke.png" metalness: 0.5 roughness: 0.5 } } min_velocity: 10 max_velocity: 20 color_start { r: 1 g: 1 b: 1 a: 1 } color_end { r: 1 g: 1 b: 1 a: 1 } scale_rate: 10 color_range_image: "/home/caguero/.ignition/fuel/fuel.ignitionrobotics.org/caguero/models/smoke_generator/2/materials/textures/smokecolors.png"'
+
+    Enable back the particle emitter:
+
+      ign topic -t /model/smoke_generator/particle_emitter/smoke_generator -m ignition.msgs.ParticleEmitter -p 'name: "smoke_generator" pose { position { } orientation { w: 1 } } size { x: 1 y: 1 z: 1 } rate: 10 emitting: true particle_size { x: 1 y: 1 z: 1 } lifetime: 2 material { header { data { key: "double_sided" value: "0" } } ambient { a: 1 } diffuse { r: 0.7 g: 0.7 b: 0.7 a: 1 } specular { a: 1 } emissive { a: 1 } lighting: true pbr { type: METAL albedo_map: "/home/caguero/.ignition/fuel/fuel.ignitionrobotics.org/caguero/models/smoke_generator/2/materials/textures/smoke.png" metalness: 0.5 roughness: 0.5 } } min_velocity: 10 max_velocity: 20 color_start { r: 1 g: 1 b: 1 a: 1 } color_end { r: 1 g: 1 b: 1 a: 1 } scale_rate: 10 color_range_image: "/home/caguero/.ignition/fuel/fuel.ignitionrobotics.org/caguero/models/smoke_generator/2/materials/textures/smokecolors.png"'
+
+    Then, change the particle rate:
+
+      ign topic -t /model/smoke_generator/particle_emitter/smoke_generator -m ignition.msgs.ParticleEmitter -p 'name: "smoke_generator" pose { position { } orientation { w: 1 } } size { x: 1 y: 1 z: 1 } rate: 100 emitting: true particle_size { x: 1 y: 1 z: 1 } lifetime: 2 material { header { data { key: "double_sided" value: "0" } } ambient { a: 1 } diffuse { r: 0.7 g: 0.7 b: 0.7 a: 1 } specular { a: 1 } emissive { a: 1 } lighting: true pbr { type: METAL albedo_map: "/home/caguero/.ignition/fuel/fuel.ignitionrobotics.org/caguero/models/smoke_generator/2/materials/textures/smoke.png" metalness: 0.5 roughness: 0.5 } } min_velocity: 10 max_velocity: 20 color_start { r: 1 g: 1 b: 1 a: 1 } color_end { r: 1 g: 1 b: 1 a: 1 } scale_rate: 10 color_range_image: "/home/caguero/.ignition/fuel/fuel.ignitionrobotics.org/caguero/models/smoke_generator/2/materials/textures/smokecolors.png"'
+-->
+
+<sdf version="1.6">
+  <world name="particle_emitters">
+
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin
+      filename="ignition-gazebo-physics-system"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-user-commands-system"
+      name="ignition::gazebo::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-scene-broadcaster-system"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <include>
+      <uri>https://fuel.ignitionrobotics.org/1.0/caguero/models/smoke_generator</uri>
+    </include>
+
+  </world>
+</sdf>
+
+

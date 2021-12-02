@@ -37,6 +37,11 @@ using namespace gazebo;
 //////////////////////////////////////////////////
 class ComponentTest : public InternalFixture<::testing::Test>
 {
+  protected: void SetUp() override
+  {
+    InternalFixture::SetUp();
+    common::setenv("IGN_DEBUG_COMPONENT_FACTORY", "true");
+  }
 };
 
 //////////////////////////////////////////////////
@@ -64,8 +69,7 @@ TEST_F(ComponentTest, DataByMove)
   using CustomComponent =
       components::Component<std::shared_ptr<int>, class CustomComponentTag>;
   factory->Register<CustomComponent>("ign_gazebo_components.MyCustom",
-     new components::ComponentDescriptor<CustomComponent>(),
-     new components::StorageDescriptor<CustomComponent>());
+     new components::ComponentDescriptor<CustomComponent>());
 
   EntityComponentManager ecm;
   Entity entity = ecm.CreateEntity();
@@ -172,6 +176,11 @@ class NoSerialize : public components::BaseComponent
   public: ComponentTypeId TypeId() const override
   {
     return 0;
+  }
+
+  public: std::unique_ptr<BaseComponent> Clone() override
+  {
+    return nullptr;
   }
 };
 
@@ -544,5 +553,42 @@ TEST_F(ComponentTest, TypeName)
     Custom comp;
 
     EXPECT_EQ("123456", comp.typeName);
+  }
+}
+
+//////////////////////////////////////////////////
+TEST_F(ComponentTest, Clone)
+{
+  // Component with data
+  {
+    using Custom = components::Component<int, class CustomTag>;
+
+    // create a component and a clone of it. The clone should initially have the
+    // same data as the original component
+    Custom comp(5);
+    auto clonedComp = comp.Clone();
+    auto derivedClone = static_cast<Custom *>(clonedComp.get());
+    EXPECT_EQ(comp, *derivedClone);
+
+    // modify the data of the cloned component, and make sure that only the
+    // cloned component is modified, not the original component
+    derivedClone->Data() = 10;
+    EXPECT_NE(comp, *derivedClone);
+    EXPECT_EQ(5, comp.Data());
+    EXPECT_EQ(10, derivedClone->Data());
+  }
+
+  // Component without data
+  {
+    using Custom = components::Component<components::NoData, class CustomTag>;
+
+    Custom comp;
+    auto clonedComp = comp.Clone();
+    auto derivedClone = static_cast<Custom *>(clonedComp.get());
+
+    // since this component has no data, we cannot do the same check as we did
+    // above for a component with data. However, we can make sure that the
+    // pointers for the components are different
+    EXPECT_NE(&comp, derivedClone);
   }
 }
