@@ -34,6 +34,9 @@ else()
   set (EXTRA_TEST_LIB_DEPS)
 endif()
 
+include(test/find_dri.cmake)
+FindDRI()
+
 #============================================================================
 # Search for project-specific dependencies
 #============================================================================
@@ -68,7 +71,7 @@ set(IGN_MSGS_VER ${ignition-msgs8_VERSION_MAJOR})
 #--------------------------------------
 # Find ignition-common
 # Always use the profiler component to get the headers, regardless of status.
-ign_find_package(ignition-common4 VERSION 4.2
+ign_find_package(ignition-common4 VERSION 4.4
   COMPONENTS
     profiler
     events
@@ -96,7 +99,7 @@ ign_find_package (Qt5
 
 #--------------------------------------
 # Find ignition-physics
-ign_find_package(ignition-physics5
+ign_find_package(ignition-physics5 VERSION 5.1
   COMPONENTS
     heightmap
     mesh

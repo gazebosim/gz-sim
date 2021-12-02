@@ -385,6 +385,20 @@ bool TransformControl::eventFilter(QObject *_obj, QEvent *_event)
     this->dataPtr->mouseEvent = _e->Mouse();
     this->dataPtr->mouseDirty = true;
   }
+  else if (_event->type() == ignition::gui::events::MousePressOnScene::kType)
+  {
+    auto event =
+        static_cast<ignition::gui::events::MousePressOnScene *>(_event);
+    this->dataPtr->mouseEvent = event->Mouse();
+    this->dataPtr->mouseDirty = true;
+  }
+  else if (_event->type() == ignition::gui::events::DragOnScene::kType)
+  {
+    auto event =
+        static_cast<ignition::gui::events::DragOnScene *>(_event);
+    this->dataPtr->mouseEvent = event->Mouse();
+    this->dataPtr->mouseDirty = true;
+  }
   else if (_event->type() == ignition::gui::events::KeyPressOnScene::kType)
   {
     ignition::gui::events::KeyPressOnScene *_e =
@@ -589,7 +603,8 @@ void TransformControlPrivate::HandleTransform()
           // start the transform process
           this->transformControl.SetActiveAxis(axis);
           this->transformControl.Start();
-          if (this->transformControl.Node()){
+          if (this->transformControl.Node())
+          {
             try
             {
               this->transformControl.Node()->SetUserData(

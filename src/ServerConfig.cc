@@ -220,6 +220,7 @@ class ignition::gazebo::ServerConfigPrivate
   public: explicit ServerConfigPrivate(
               const std::unique_ptr<ServerConfigPrivate> &_cfg)
           : sdfFile(_cfg->sdfFile),
+            sdfString(_cfg->sdfString),
             updateRate(_cfg->updateRate),
             useLevels(_cfg->useLevels),
             useLogRecord(_cfg->useLogRecord),
@@ -299,7 +300,7 @@ class ignition::gazebo::ServerConfigPrivate
   public: std::vector<std::string> logRecordTopics;
 
   /// \brief is the headless mode active.
-  public: bool isHeadlessRendering;
+  public: bool isHeadlessRendering{false};
 };
 
 //////////////////////////////////////////////////

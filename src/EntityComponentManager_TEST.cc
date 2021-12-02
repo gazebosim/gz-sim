@@ -24,9 +24,13 @@
 #include <ignition/utils/SuppressWarning.hh>
 
 #include "ignition/gazebo/components/CanonicalLink.hh"
+#include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Factory.hh"
+#include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/config.hh"
@@ -2790,8 +2794,66 @@ TEST_P(EntityComponentManagerFixture, CloneEntities)
   EXPECT_EQ(10u, manager.EntityCount());
   EXPECT_EQ(kNullEntity, failedClonedEntity);
 
+  // create a joint with a parent and child link
+  const std::string parentLinkEntityName = "parentLinkEntity";
+  const std::string childLinkEntityName = "childLinkEntity";
+  Entity parentLinkEntity = manager.CreateEntity();
+  manager.CreateComponent(parentLinkEntity,
+      components::Name(parentLinkEntityName));
+  manager.CreateComponent(parentLinkEntity, components::CanonicalLink());
+  Entity jointEntity = manager.CreateEntity();
+  manager.CreateComponent(jointEntity,
+      components::ParentEntity(parentLinkEntity));
+  manager.CreateComponent(jointEntity, components::Name("jointEntity"));
+  manager.CreateComponent(jointEntity, components::Joint());
+  manager.CreateComponent(jointEntity,
+      components::ParentLinkName(parentLinkEntityName));
+  manager.CreateComponent(jointEntity,
+      components::ChildLinkName(childLinkEntityName));
+  Entity childLinkEntity = manager.CreateEntity();
+  manager.CreateComponent(childLinkEntity,
+      components::ParentEntity(jointEntity));
+  manager.CreateComponent(childLinkEntity,
+      components::Name(childLinkEntityName));
+  manager.CreateComponent(childLinkEntity, components::Link());
+  EXPECT_EQ(13u, manager.EntityCount());
+
+  // clone a joint that has a parent and child link.
+  auto clonedParentLinkEntity = manager.Clone(parentLinkEntity, kNullEntity,
+      "", true);
+  ASSERT_NE(kNullEntity, clonedParentLinkEntity);
+  EXPECT_EQ(16u, manager.EntityCount());
+  clonedEntities.insert(clonedParentLinkEntity);
+  auto clonedJoints = manager.EntitiesByComponents(
+      components::ParentEntity(clonedParentLinkEntity));
+  ASSERT_EQ(1u, clonedJoints.size());
+  clonedEntities.insert(clonedJoints[0]);
+  auto clonedChildLinks = manager.EntitiesByComponents(
+      components::ParentEntity(clonedJoints[0]));
+  ASSERT_EQ(1u, clonedChildLinks.size());
+  clonedEntities.insert(clonedChildLinks[0]);
+
+  // The cloned joint should have the cloned parent/child link names attached to
+  // it, not the original parent/child link names
+  auto clonedJointParentLinkName =
+    manager.Component<components::ParentLinkName>(clonedJoints[0]);
+  ASSERT_NE(nullptr, clonedJointParentLinkName);
+  EXPECT_NE(clonedJointParentLinkName->Data(), parentLinkEntityName);
+  auto clonedJointChildLinkName =
+    manager.Component<components::ChildLinkName>(clonedJoints[0]);
+  ASSERT_NE(nullptr, clonedJointChildLinkName);
+  EXPECT_NE(clonedJointChildLinkName->Data(), childLinkEntityName);
+  auto clonedParentLinkName =
+    manager.Component<components::Name>(clonedParentLinkEntity);
+  ASSERT_NE(nullptr, clonedParentLinkName);
+  EXPECT_EQ(clonedParentLinkName->Data(), clonedJointParentLinkName->Data());
+  auto clonedChildLinkName =
+    manager.Component<components::Name>(clonedChildLinks[0]);
+  ASSERT_NE(nullptr, clonedChildLinkName);
+  EXPECT_EQ(clonedJointChildLinkName->Data(), clonedChildLinkName->Data());
+
   // make sure that the name given to each cloned entity is unique
-  EXPECT_EQ(5u, clonedEntities.size());
+  EXPECT_EQ(8u, clonedEntities.size());
   for (const auto &entity : clonedEntities)
   {
     auto nameComp = manager.Component<components::Name>(entity);
@@ -2802,7 +2864,7 @@ TEST_P(EntityComponentManagerFixture, CloneEntities)
   // try to clone an entity that does not exist
   EXPECT_EQ(kNullEntity, manager.Clone(kNullEntity, topLevelEntity, "",
         allowRename));
-  EXPECT_EQ(10u, manager.EntityCount());
+  EXPECT_EQ(16u, manager.EntityCount());
 }
 
 /////////////////////////////////////////////////
@@ -2936,6 +2998,102 @@ TEST_P(EntityComponentManagerFixture, PinnedEntity)
   EXPECT_TRUE(manager.HasEntitiesMarkedForRemoval());
   manager.ProcessEntityRemovals();
   EXPECT_EQ(0u, manager.EntityCount());
+}
+
+//////////////////////////////////////////////////
+/// \brief Test using msgs::SerializedStateMap and msgs::SerializedState
+/// to update existing component data between multiple ECMs
+TEST_P(EntityComponentManagerFixture, StateMsgUpdateComponent)
+{
+  // create 2 ECMs: one will be modified directly, and the other should be
+  // updated to match the first via msgs::SerializedStateMap
+  EntityComponentManager originalECMStateMap;
+  EntityComponentManager otherECMStateMap;
+
+  // create an entity and component
+  auto entity = originalECMStateMap.CreateEntity();
+  originalECMStateMap.CreateComponent(entity, components::IntComponent(1));
+
+  int foundEntities = 0;
+  otherECMStateMap.Each<components::IntComponent>(
+      [&](const Entity &, const components::IntComponent *)
+      {
+        foundEntities++;
+        return true;
+      });
+  EXPECT_EQ(0, foundEntities);
+
+  // update the other ECM to have the new entity and component
+  msgs::SerializedStateMap stateMapMsg;
+  originalECMStateMap.State(stateMapMsg);
+  otherECMStateMap.SetState(stateMapMsg);
+  foundEntities = 0;
+  otherECMStateMap.Each<components::IntComponent>(
+      [&](const Entity &, const components::IntComponent *_intComp)
+      {
+        foundEntities++;
+        EXPECT_EQ(1, _intComp->Data());
+        return true;
+      });
+  EXPECT_EQ(1, foundEntities);
+
+  // modify a component and then share the update with the other ECM
+  stateMapMsg.Clear();
+  originalECMStateMap.SetComponentData<components::IntComponent>(entity, 2);
+  originalECMStateMap.State(stateMapMsg);
+  otherECMStateMap.SetState(stateMapMsg);
+  foundEntities = 0;
+  otherECMStateMap.Each<components::IntComponent>(
+      [&](const Entity &, const components::IntComponent *_intComp)
+      {
+        foundEntities++;
+        EXPECT_EQ(2, _intComp->Data());
+        return true;
+      });
+  EXPECT_EQ(1, foundEntities);
+
+  // Run the same test as above, but this time, use a msgs::SerializedState
+  // instead of a msgs::SerializedStateMap
+  EntityComponentManager originalECMState;
+  EntityComponentManager otherECMState;
+
+  foundEntities = 0;
+  otherECMState.Each<components::IntComponent>(
+      [&](const Entity &, const components::IntComponent *)
+      {
+        foundEntities++;
+        return true;
+      });
+  EXPECT_EQ(0, foundEntities);
+
+  entity = originalECMState.CreateEntity();
+  originalECMState.CreateComponent(entity, components::IntComponent(1));
+
+  auto stateMsg = originalECMState.State();
+  otherECMState.SetState(stateMsg);
+  foundEntities = 0;
+  otherECMState.Each<components::IntComponent>(
+      [&](const Entity &, const components::IntComponent *_intComp)
+      {
+        foundEntities++;
+        EXPECT_EQ(1, _intComp->Data());
+        return true;
+      });
+  EXPECT_EQ(1, foundEntities);
+
+  stateMsg.Clear();
+  originalECMState.SetComponentData<components::IntComponent>(entity, 2);
+  stateMsg = originalECMState.State();
+  otherECMState.SetState(stateMsg);
+  foundEntities = 0;
+  otherECMState.Each<components::IntComponent>(
+      [&](const Entity &, const components::IntComponent *_intComp)
+      {
+        foundEntities++;
+        EXPECT_EQ(2, _intComp->Data());
+        return true;
+      });
+  EXPECT_EQ(1, foundEntities);
 }
 
 // Run multiple times. We want to make sure that static globals don't cause

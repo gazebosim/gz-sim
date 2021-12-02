@@ -85,6 +85,7 @@
 #include "ignition/gazebo/components/Transparency.hh"
 #include "ignition/gazebo/components/Visibility.hh"
 #include "ignition/gazebo/components/Visual.hh"
+#include "ignition/gazebo/components/VisualCmd.hh"
 #include "ignition/gazebo/components/WideAngleCamera.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -159,11 +160,15 @@ class ignition::gazebo::RenderUtilPrivate
   //// \brief True to enable sky in the scene
   public: bool skyEnabled = false;
 
-  /// \brief Scene background color
-  public: math::Color backgroundColor = math::Color::Black;
+  /// \brief Scene background color. This is optional because a <scene> is
+  /// always present, which has a default background color value. This
+  /// backgroundColor variable is used to override the <scene> value.
+  public: std::optional<math::Color> backgroundColor = math::Color::Black;
 
-  /// \brief Ambient color
-  public: math::Color ambientLight = math::Color(1.0, 1.0, 1.0, 1.0);
+  /// \brief Ambient color. This is optional because an <scene> is always
+  /// present, which has a default ambient light value. This ambientLight
+  /// variable is used to override the <scene> value.
+  public: std::optional<math::Color> ambientLight;
 
   /// \brief Scene manager
   public: SceneManager sceneManager;
@@ -247,6 +252,25 @@ class ignition::gazebo::RenderUtilPrivate
 
   /// \brief A map of entity ids and light updates.
   public: std::vector<Entity> entityLightsCmdToDelete;
+
+  /// \brief A map of entity ids and visual updates.
+  public: std::map<Entity, msgs::Visual> entityVisuals;
+
+  /// \brief A vector of entity ids of VisualCmds to delete
+  public: std::vector<Entity> entityVisualsCmdToDelete;
+
+  /// \brief Visual material equality comparision function
+  /// TODO(anyone) Currently only checks for material colors equality,
+  /// need to extend to others (e.g., PbrMaterial)
+  public: std::function<bool(const sdf::Material &, const sdf::Material &)>
+          materialEql { [](const sdf::Material &_a, const sdf::Material &_b)
+            {
+              return
+                _a.Ambient() == _b.Ambient() &&
+                _a.Diffuse() == _b.Diffuse() &&
+                _a.Specular() == _b.Specular() &&
+                _a.Emissive() == _b.Emissive();
+            }};
 
   /// \brief A map of entity ids and actor transforms.
   public: std::map<Entity, std::map<std::string, math::Matrix4d>>
@@ -648,6 +672,41 @@ void RenderUtil::UpdateECM(const UpdateInfo &/*_info*/,
         }
         return true;
       });
+
+  // visual commands
+  {
+    auto olderEntityVisualsCmdToDelete
+        = std::move(this->dataPtr->entityVisualsCmdToDelete);
+    this->dataPtr->entityVisualsCmdToDelete.clear();
+
+    // TODO(anyone) Currently only updates material colors,
+    // need to extend to others
+    _ecm.Each<components::VisualCmd>(
+      [&](const Entity &_entity,
+          const components::VisualCmd *_visualCmd) -> bool
+      {
+        this->dataPtr->entityVisuals[_entity] = _visualCmd->Data();
+        this->dataPtr->entityVisualsCmdToDelete.push_back(_entity);
+
+        auto materialComp = _ecm.Component<components::Material>(_entity);
+        if (materialComp)
+        {
+          msgs::Material materialMsg = _visualCmd->Data().material();
+          sdf::Material sdfMaterial = convert<sdf::Material>(materialMsg);
+
+          auto state =
+              materialComp->SetData(sdfMaterial, this->dataPtr->materialEql) ?
+              ComponentState::OneTimeChange : ComponentState::NoChange;
+          _ecm.SetChanged(_entity, components::Material::typeId, state);
+        }
+        return true;
+      });
+
+    for (const auto entity : olderEntityVisualsCmdToDelete)
+    {
+      _ecm.RemoveComponent<components::VisualCmd>(entity);
+    }
+  }
 }
 
 //////////////////////////////////////////////////
@@ -777,7 +836,7 @@ void RenderUtilPrivate::FindJointModels(const EntityComponentManager &_ecm)
       std::stack<Entity> modelStack;
       modelStack.push(entity);
 
-      std::vector<Entity> childLinks, childModels;
+      std::vector<Entity> childModels;
       while (!modelStack.empty())
       {
         Entity model = modelStack.top();
@@ -933,6 +992,7 @@ void RenderUtil::Update()
   auto removeEntities = std::move(this->dataPtr->removeEntities);
   auto entityPoses = std::move(this->dataPtr->entityPoses);
   auto entityLights = std::move(this->dataPtr->entityLights);
+  auto entityVisuals = std::move(this->dataPtr->entityVisuals);
   auto updateJointParentPoses =
     std::move(this->dataPtr->updateJointParentPoses);
   auto trajectoryPoses = std::move(this->dataPtr->trajectoryPoses);
@@ -961,6 +1021,7 @@ void RenderUtil::Update()
   this->dataPtr->removeEntities.clear();
   this->dataPtr->entityPoses.clear();
   this->dataPtr->entityLights.clear();
+  this->dataPtr->entityVisuals.clear();
   this->dataPtr->updateJointParentPoses.clear();
   this->dataPtr->trajectoryPoses.clear();
   this->dataPtr->actorTransforms.clear();
@@ -989,8 +1050,16 @@ void RenderUtil::Update()
   // extend the sensor system to support mutliple scenes in the future
   for (auto &scene : newScenes)
   {
-    this->dataPtr->scene->SetAmbientLight(scene.Ambient());
-    this->dataPtr->scene->SetBackgroundColor(scene.Background());
+    // Only set the ambient color if the RenderUtil::SetBackgroundColor
+    // was not called.
+    if (!this->dataPtr->ambientLight)
+      this->dataPtr->scene->SetAmbientLight(scene.Ambient());
+
+    // Only set the background color if the RenderUtil::SetBackgroundColor
+    // was not called.
+    if (!this->dataPtr->backgroundColor)
+      this->dataPtr->scene->SetBackgroundColor(scene.Background());
+
     if (scene.Grid() && !this->dataPtr->enableSensors)
       this->ShowGrid();
     if (scene.Sky())
@@ -1408,6 +1477,66 @@ void RenderUtil::Update()
   }
 
   this->dataPtr->UpdateThermalCamera(thermalCameraData);
+
+  // update visuals
+  // TODO(anyone) currently updates material colors of visual only,
+  // need to extend to other updates
+  {
+    IGN_PROFILE("RenderUtil::Update Visuals");
+    for (const auto &visual : entityVisuals)
+    {
+      if (!visual.second.has_material())
+        continue;
+
+      auto node = this->dataPtr->sceneManager.NodeById(visual.first);
+      if (!node)
+        continue;
+
+      auto vis = std::dynamic_pointer_cast<rendering::Visual>(node);
+      if (vis)
+      {
+        msgs::Material matMsg = visual.second.material();
+
+        // Geometry material
+        for (auto g = 0u; g < vis->GeometryCount(); ++g)
+        {
+          rendering::GeometryPtr geom = vis->GeometryByIndex(g);
+          rendering::MaterialPtr geomMat = geom->Material();
+          if (!geomMat)
+            continue;
+
+          math::Color color;
+          if (matMsg.has_ambient())
+          {
+            color = msgs::Convert(matMsg.ambient());
+            if (geomMat->Ambient() != color)
+              geomMat->SetAmbient(color);
+          }
+
+          if (matMsg.has_diffuse())
+          {
+            color = msgs::Convert(matMsg.diffuse());
+            if (geomMat->Diffuse() != color)
+              geomMat->SetDiffuse(color);
+          }
+
+          if (matMsg.has_specular())
+          {
+            color = msgs::Convert(matMsg.specular());
+            if (geomMat->Specular() != color)
+              geomMat->SetSpecular(color);
+          }
+
+          if (matMsg.has_emissive())
+          {
+            color = msgs::Convert(matMsg.emissive());
+            if (geomMat->Emissive() != color)
+              geomMat->SetEmissive(color);
+          }
+        }
+      }
+    }
+  }
 }
 
 //////////////////////////////////////////////////
@@ -2473,8 +2602,17 @@ void RenderUtil::Init()
         this->dataPtr->engine->CreateScene(this->dataPtr->sceneName);
     if (this->dataPtr->scene)
     {
-      this->dataPtr->scene->SetAmbientLight(this->dataPtr->ambientLight);
-      this->dataPtr->scene->SetBackgroundColor(this->dataPtr->backgroundColor);
+      if (this->dataPtr->ambientLight)
+      {
+        this->dataPtr->scene->SetAmbientLight(
+            *this->dataPtr->ambientLight);
+      }
+
+      if (this->dataPtr->backgroundColor)
+      {
+        this->dataPtr->scene->SetBackgroundColor(
+            *this->dataPtr->backgroundColor);
+      }
       this->dataPtr->scene->SetSkyEnabled(this->dataPtr->skyEnabled);
     }
   }
@@ -2717,6 +2855,7 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
     wireBoxVis->SetInheritScale(false);
     wireBoxVis->AddGeometry(wireBox);
     wireBoxVis->SetMaterial(white, false);
+    wireBoxVis->SetUserData("gui-only", static_cast<bool>(true));
     vis->AddChild(wireBoxVis);
 
     // Add wire box to map for setting visibility

@@ -165,5 +165,59 @@
       </link>
     </model>
 
+    <actor name="actor_walking">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="walk">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <delay_start>0.000000</delay_start>
+        <auto_start>true</auto_start>
+        <trajectory id="0" type="walk" tension="0.6">
+          <waypoint>
+            <time>0</time>
+            <pose>3 4 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>2</time>
+            <pose>5 4 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>2.5</time>
+            <pose>5 4 1.0 0 0 1.57</pose>
+          </waypoint>
+          <waypoint>
+            <time>4</time>
+            <pose>5 6 1.0 0 0 1.57</pose>
+          </waypoint>
+          <waypoint>
+            <time>4.5</time>
+            <pose>5 6 1.0 0 0 3.142</pose>
+          </waypoint>
+          <waypoint>
+            <time>6</time>
+            <pose>3 6 1 0 0 3.142</pose>
+          </waypoint>
+          <waypoint>
+            <time>6.5</time>
+            <pose>3 6 1 0 0 -1.57</pose>
+          </waypoint>
+          <waypoint>
+            <time>8</time>
+            <pose>3 4 1.0 0 0 -1.57</pose>
+          </waypoint>
+          <waypoint>
+            <time>8.5</time>
+            <pose>3 4 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
   </world>
 </sdf>
