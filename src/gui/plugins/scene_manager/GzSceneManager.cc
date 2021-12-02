@@ -18,8 +18,6 @@
 
 #include "GzSceneManager.hh"
 
-#include <set>
-
 #include <ignition/common/Profiler.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/GuiEvents.hh>
