@@ -114,13 +114,6 @@ Rectangle {
   }
 
   /**
-   * Forward pose changes to C++
-   */
-  function onPose(_x, _y, _z, _roll, _pitch, _yaw) {
-    ComponentInspector.OnPose(_x, _y, _z, _roll, _pitch, _yaw)
-  }
-
-  /**
    * Forward light changes to C++
    */
   function onLight(_rSpecular, _gSpecular, _bSpecular, _aSpecular,

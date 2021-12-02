@@ -26,7 +26,6 @@
 #include <sdf/Physics.hh>
 #include <sdf/Joint.hh>
 
-#include <ignition/math/Pose3.hh>
 #include <ignition/math/Vector3.hh>
 
 #include <ignition/gazebo/components/Component.hh>
@@ -69,12 +68,6 @@ namespace gazebo
   /// \param[in] _data Data to set.
   template<>
   void setData(QStandardItem *_item, const std::string &_data);
-
-  /// \brief Specialized to set pose data.
-  /// \param[in] _item Item whose data will be set.
-  /// \param[in] _data Data to set.
-  template<>
-  void setData(QStandardItem *_item, const math::Pose3d &_data);
 
   /// \brief Specialized to set light data.
   /// \param[in] _item Item whose data will be set.
@@ -243,16 +236,6 @@ namespace gazebo
 
     // Documentation inherited
     public: void Update(const UpdateInfo &, EntityComponentManager &) override;
-
-    /// \brief Callback in Qt thread when pose changes.
-    /// \param[in] _x X
-    /// \param[in] _y Y
-    /// \param[in] _z Z
-    /// \param[in] _roll Roll
-    /// \param[in] _pitch Pitch
-    /// \param[in] _yaw Yaw
-    public: Q_INVOKABLE void OnPose(double _x, double _y, double _z,
-        double _roll, double _pitch, double _yaw);
 
     /// \brief Callback in Qt thread when specular changes.
     /// \param[in] _rSpecular specular red

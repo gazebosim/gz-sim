@@ -29,6 +29,20 @@ Rectangle {
   width: componentInspector.width
   color: index % 2 == 0 ? lightGrey : darkGrey
 
+  Connections {
+    target: Pose3dImpl
+    onPoseChanged: {
+      // Update the spinner to show to correct values when the pose component
+      // has changed, such as when a new entity is selected.
+      xSpin.numberValue = model.data[0]
+      ySpin.numberValue = model.data[1]
+      zSpin.numberValue = model.data[2]
+      rollSpin.numberValue = model.data[3]
+      pitchSpin.numberValue = model.data[4]
+      yawSpin.numberValue = model.data[5]
+    }
+  }
+
   // Left indentation
   property int indentation: 10
 
@@ -41,70 +55,15 @@ Rectangle {
   property int iconWidth: 20
   property int iconHeight: 20
 
-  // Loaded item for X
-  property var xItem: model.data[0]
-
-  // Loaded item for Y
-  property var yItem: model.data[1]
-
-  // Loaded item for Z
-  property var zItem: model.data[2]
-
-  // Loaded item for roll
-  property var rollItem: model.data[3]
-
-  // Loaded item for pitch
-  property var pitchItem: model.data[4]
-
-  // Loaded item for yaw
-  property var yawItem: model.data[5]
-
-  // Callback when x value is changed
-  function onXChange(_value) {
-    xItem = _value
-    sendPose()
-  }
-
-  // Callback when y value is changed
-  function onYChange(_value) {
-    yItem = _value
-    sendPose()
-  }
-
-  // Callback when z value is changed
-  function onZChange(_value) {
-    zItem = _value
-    sendPose()
-  }
-
-  // Callback when roll value is changed
-  function onRollChange(_value) {
-    rollItem = _value
-    sendPose()
-  }
-
-  // Callback when pitch value is changed
-  function onPitchChange(_value) {
-    pitchItem = _value
-    sendPose()
-  }
-
-  // Callback when yaw value is changed
-  function onYawChange(_value) {
-    yawItem = _value
-    sendPose()
-  }
-
   // Send new pose to C++
-  function sendPose() {
-    // TODO(anyone) There's a loss of precision when these values get to C++
-    componentInspector.onPose(
-      xItem,
-      yItem,
-      zItem,
-      rollItem,
-      pitchItem,
-      yawItem
+  function sendPose(_value) {
+    Pose3dImpl.PoseUpdate(
+      xSpin.numberValue,
+      ySpin.numberValue,
+      zSpin.numberValue,
+      rollSpin.numberValue,
+      pitchSpin.numberValue,
+      yawSpin.numberValue
     );
   }
 
@@ -208,12 +167,12 @@ Rectangle {
           id: xSpin
           Layout.fillWidth: true
           height: 40
-          numberValue: xItem
+          numberValue: model.data[0]
           minValue: -100000
           maxValue: 100000
           stepValue: 0.1
           Component.onCompleted: {
-            xSpin.onChange.connect(onXChange)
+            xSpin.onChange.connect(sendPose)
           }
         }
 
@@ -244,12 +203,12 @@ Rectangle {
           id: rollSpin
           Layout.fillWidth: true
           height: 40
-          numberValue: rollItem
+          numberValue: model.data[3]
           minValue: -100000
           maxValue: 100000
           stepValue: 0.1
           Component.onCompleted: {
-            rollSpin.onChange.connect(onRollChange)
+            rollSpin.onChange.connect(sendPose)
           }
         }
 
@@ -286,12 +245,12 @@ Rectangle {
           id: ySpin
           Layout.fillWidth: true
           height: 40
-          numberValue: yItem
+          numberValue: model.data[1]
           minValue: -100000
           maxValue: 100000
           stepValue: 0.1
           Component.onCompleted: {
-            ySpin.onChange.connect(onYChange)
+            ySpin.onChange.connect(sendPose)
           }
         }
 
@@ -321,12 +280,12 @@ Rectangle {
           id: pitchSpin
           Layout.fillWidth: true
           height: 40
-          numberValue: pitchItem
+          numberValue: model.data[4]
           minValue: -100000
           maxValue: 100000
           stepValue: 0.1
           Component.onCompleted: {
-            pitchSpin.onChange.connect(onPitchChange)
+            pitchSpin.onChange.connect(sendPose)
           }
         }
 
@@ -356,12 +315,12 @@ Rectangle {
           id: zSpin
           Layout.fillWidth: true
           height: 40
-          numberValue: zItem 
+          numberValue: model.data[2] 
           minValue: -100000
           maxValue: 100000
           stepValue: 0.1
           Component.onCompleted: {
-            zSpin.onChange.connect(onZChange)
+            zSpin.onChange.connect(sendPose)
           }
         }
 
@@ -391,12 +350,12 @@ Rectangle {
           id: yawSpin
           Layout.fillWidth: true
           height: 40
-          numberValue: yawItem
+          numberValue: model.data[5]
           minValue: -100000
           maxValue: 100000
           stepValue: 0.1
           Component.onCompleted: {
-            yawSpin.onChange.connect(onYawChange)
+            yawSpin.onChange.connect(sendPose)
           }
         }
       }

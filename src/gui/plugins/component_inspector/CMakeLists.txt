@@ -8,6 +8,7 @@ gz_add_gui_plugin(ComponentInspector
     Lidar.cc
     Magnetometer.cc
     ModelEditor.cc
+    Pose3d.cc
     Types.cc
   QT_HEADERS
     AirPressure.hh
@@ -18,5 +19,6 @@ gz_add_gui_plugin(ComponentInspector
     Lidar.hh
     Magnetometer.hh
     ModelEditor.hh
+    Pose3d.hh
     Types.hh
 )
