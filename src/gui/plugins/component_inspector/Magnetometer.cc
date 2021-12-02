@@ -81,7 +81,7 @@ Q_INVOKABLE void Magnetometer::OnMagnetometerXNoise(
       [=](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::Magnetometer>(
-        this->inspector->Entity());
+        this->inspector->GetEntity());
     if (comp)
     {
       sdf::Magnetometer *mag = comp->Data().MagnetometerSensor();
@@ -115,7 +115,7 @@ Q_INVOKABLE void Magnetometer::OnMagnetometerYNoise(
       [=](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::Magnetometer>(
-        this->inspector->Entity());
+        this->inspector->GetEntity());
     if (comp)
     {
       sdf::Magnetometer *mag = comp->Data().MagnetometerSensor();
@@ -149,7 +149,7 @@ Q_INVOKABLE void Magnetometer::OnMagnetometerZNoise(
       [=](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::Magnetometer>(
-        this->inspector->Entity());
+        this->inspector->GetEntity());
     if (comp)
     {
       sdf::Magnetometer *mag = comp->Data().MagnetometerSensor();

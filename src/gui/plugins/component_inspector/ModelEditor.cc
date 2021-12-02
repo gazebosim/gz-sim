@@ -233,10 +233,10 @@ void ModelEditor::Update(const UpdateInfo &,
       entities.push_back(child);
   }
 
-  // use tmp AddedRemovedEntities event to update other gui plugins
+  // use GuiNewRemovedEntities event to update other gui plugins
   // note this event will be removed in Ignition Garden
   std::set<Entity> removedEntities;
-  ignition::gazebo::gui::events::AddedRemovedEntities event(
+  ignition::gazebo::gui::events::GuiNewRemovedEntities event(
       newEntities, removedEntities);
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),

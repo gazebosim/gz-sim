@@ -103,7 +103,7 @@ Q_INVOKABLE void Imu::OnLinearAccelerationXNoise(
       [=](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::Imu>(
-        this->inspector->Entity());
+        this->inspector->GetEntity());
     if (comp)
     {
       sdf::Imu *imu = comp->Data().ImuSensor();
@@ -137,7 +137,7 @@ Q_INVOKABLE void Imu::OnLinearAccelerationYNoise(
       [=](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::Imu>(
-        this->inspector->Entity());
+        this->inspector->GetEntity());
     if (comp)
     {
       sdf::Imu *imu = comp->Data().ImuSensor();
@@ -171,7 +171,7 @@ Q_INVOKABLE void Imu::OnLinearAccelerationZNoise(
       [=](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::Imu>(
-        this->inspector->Entity());
+        this->inspector->GetEntity());
     if (comp)
     {
       sdf::Imu *imu = comp->Data().ImuSensor();
@@ -205,7 +205,7 @@ Q_INVOKABLE void Imu::OnAngularVelocityXNoise(
       [=](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::Imu>(
-        this->inspector->Entity());
+        this->inspector->GetEntity());
     if (comp)
     {
       sdf::Imu *imu = comp->Data().ImuSensor();
@@ -239,7 +239,7 @@ Q_INVOKABLE void Imu::OnAngularVelocityYNoise(
       [=](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::Imu>(
-        this->inspector->Entity());
+        this->inspector->GetEntity());
     if (comp)
     {
       sdf::Imu *imu = comp->Data().ImuSensor();
@@ -273,7 +273,7 @@ Q_INVOKABLE void Imu::OnAngularVelocityZNoise(
       [=](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::Imu>(
-        this->inspector->Entity());
+        this->inspector->GetEntity());
     if (comp)
     {
       sdf::Imu *imu = comp->Data().ImuSensor();

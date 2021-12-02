@@ -68,7 +68,7 @@ Q_INVOKABLE void AirPressure::OnAirPressureNoise(
       [=](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::AirPressureSensor>(
-        this->inspector->Entity());
+        this->inspector->GetEntity());
     if (comp)
     {
       sdf::AirPressure *airpressure = comp->Data().AirPressureSensor();
@@ -100,7 +100,7 @@ Q_INVOKABLE void AirPressure::OnAirPressureReferenceAltitude(
       [=](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::AirPressureSensor>(
-        this->inspector->Entity());
+        this->inspector->GetEntity());
     if (comp)
     {
       sdf::AirPressure *airpressure = comp->Data().AirPressureSensor();

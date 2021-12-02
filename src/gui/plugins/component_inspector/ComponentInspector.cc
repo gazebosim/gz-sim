@@ -1054,7 +1054,7 @@ Entity ComponentInspector::GetEntity() const
 }
 
 /////////////////////////////////////////////////
-void ComponentInspector::SetEntity(const Entity &_entity)
+void ComponentInspector::SetEntity(const gazebo::Entity &_entity)
 {
   // If nothing is selected, display world properties
   if (_entity == kNullEntity)
