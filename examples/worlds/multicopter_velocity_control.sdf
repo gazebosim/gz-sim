@@ -12,6 +12,10 @@ You can use the velocity controller and command linear velocity and yaw angular 
 
     ign topic -t "/X3/gazebo/command/twist" -m ignition.msgs.Twist -p " "
 
+  Listen to odometry:
+
+    ign topic -e -t "/model/x3/odometry"
+
 
   Send commands to the hexacopter to go straight up:
 
@@ -20,6 +24,11 @@ You can use the velocity controller and command linear velocity and yaw angular 
   To hover
 
     ign topic -t "/X4/gazebo/command/twist" -m ignition.msgs.Twist -p " "
+
+  Listen to odometry:
+
+    ign topic -e -t "/model/X4/odometry"
+
 -->
 
 <sdf version="1.6">
@@ -210,6 +219,11 @@ You can use the velocity controller and command linear velocity and yaw angular 
           </rotor>
         </rotorConfiguration>
       </plugin>
+      <plugin
+        filename="ignition-gazebo-odometry-publisher-system"
+        name="ignition::gazebo::systems::OdometryPublisher">
+        <dimensions>3</dimensions>
+      </plugin>
     </include>
     <include>
       <pose>0 3 1 0 0 0</pose>
@@ -399,6 +413,11 @@ You can use the velocity controller and command linear velocity and yaw angular 
             <direction>-1</direction>
           </rotor>
         </rotorConfiguration>
+      </plugin>
+      <plugin
+        filename="ignition-gazebo-odometry-publisher-system"
+        name="ignition::gazebo::systems::OdometryPublisher">
+        <dimensions>3</dimensions>
       </plugin>
     </include>
   </world>

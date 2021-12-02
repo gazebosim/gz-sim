@@ -51,6 +51,15 @@ namespace components
     serializers::CollisionElementSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.CollisionElement",
                                 CollisionElement)
+
+  /// \brief A component used to enable customization of contact surface for a
+  /// collision. The customization itself is done in callback of event
+  /// CollectContactSurfaceProperties from PhysicsEvents.
+  using EnableContactSurfaceCustomization =
+    Component<bool, class EnableContactSurfaceCustomizationTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT(
+    "ign_gazebo_components.EnableContactSurfaceCustomization",
+    EnableContactSurfaceCustomization)
 }
 }
 }

@@ -56,6 +56,20 @@ class ignition::gazebo::systems::AirPressurePrivate
   /// \brief Ign-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
 
+  /// True if the rendering component is initialized
+  public: bool initialized = false;
+
+  /// \brief Create sensor
+  /// \param[in] _ecm Mutable reference to ECM.
+  /// \param[in] _entity Entity of the IMU
+  /// \param[in] _airPressure AirPressureSensor component.
+  /// \param[in] _parent Parent entity component.
+  public: void AddAirPressure(
+    EntityComponentManager &_ecm,
+    const Entity _entity,
+    const components::AirPressureSensor *_airPressure,
+    const components::ParentEntity *_parent);
+
   /// \brief Create air pressure sensor
   /// \param[in] _ecm Mutable reference to ECM.
   public: void CreateAirPressureEntities(EntityComponentManager &_ecm);
@@ -119,55 +133,80 @@ void AirPressure::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
+void AirPressurePrivate::AddAirPressure(
+  EntityComponentManager &_ecm,
+  const Entity _entity,
+  const components::AirPressureSensor *_airPressure,
+  const components::ParentEntity *_parent)
+{
+  // create sensor
+  std::string sensorScopedName =
+      removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
+  sdf::Sensor data = _airPressure->Data();
+  data.SetName(sensorScopedName);
+  // check topic
+  if (data.Topic().empty())
+  {
+    std::string topic = scopedName(_entity, _ecm) + "/air_pressure";
+    data.SetTopic(topic);
+  }
+  std::unique_ptr<sensors::AirPressureSensor> sensor =
+      this->sensorFactory.CreateSensor<
+      sensors::AirPressureSensor>(data);
+  if (nullptr == sensor)
+  {
+    ignerr << "Failed to create sensor [" << sensorScopedName << "]"
+           << std::endl;
+    return;
+  }
+
+  // set sensor parent
+  std::string parentName = _ecm.Component<components::Name>(
+      _parent->Data())->Data();
+  sensor->SetParent(parentName);
+
+  // The WorldPose component was just created and so it's empty
+  // We'll compute the world pose manually here
+  // set sensor world pose
+  math::Pose3d sensorWorldPose = worldPose(_entity, _ecm);
+  sensor->SetPose(sensorWorldPose);
+
+  // Set topic
+  _ecm.CreateComponent(_entity, components::SensorTopic(sensor->Topic()));
+
+  this->entitySensorMap.insert(
+      std::make_pair(_entity, std::move(sensor)));
+}
+
+//////////////////////////////////////////////////
 void AirPressurePrivate::CreateAirPressureEntities(EntityComponentManager &_ecm)
 {
   IGN_PROFILE("AirPressurePrivate::CreateAirPressureEntities");
-  // Create air pressure sensors
-  _ecm.EachNew<components::AirPressureSensor, components::ParentEntity>(
-    [&](const Entity &_entity,
-        const components::AirPressureSensor *_airPressure,
-        const components::ParentEntity *_parent)->bool
-      {
-        // create sensor
-        std::string sensorScopedName =
-            removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
-        sdf::Sensor data = _airPressure->Data();
-        data.SetName(sensorScopedName);
-        // check topic
-        if (data.Topic().empty())
+  if (!this->initialized)
+  {
+    // Create air pressure sensors
+    _ecm.Each<components::AirPressureSensor, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::AirPressureSensor *_airPressure,
+          const components::ParentEntity *_parent)->bool
         {
-          std::string topic = scopedName(_entity, _ecm) + "/air_pressure";
-          data.SetTopic(topic);
-        }
-        std::unique_ptr<sensors::AirPressureSensor> sensor =
-            this->sensorFactory.CreateSensor<
-            sensors::AirPressureSensor>(data);
-        if (nullptr == sensor)
-        {
-          ignerr << "Failed to create sensor [" << sensorScopedName << "]"
-                 << std::endl;
+          AddAirPressure(_ecm, _entity, _airPressure, _parent);
           return true;
-        }
-
-        // set sensor parent
-        std::string parentName = _ecm.Component<components::Name>(
-            _parent->Data())->Data();
-        sensor->SetParent(parentName);
-
-        // The WorldPose component was just created and so it's empty
-        // We'll compute the world pose manually here
-        // set sensor world pose
-        math::Pose3d sensorWorldPose = worldPose(_entity, _ecm);
-        sensor->SetPose(sensorWorldPose);
-
-        // Set topic
-        _ecm.CreateComponent(_entity, components::SensorTopic(sensor->Topic()));
-
-        this->entitySensorMap.insert(
-            std::make_pair(_entity, std::move(sensor)));
-
-        return true;
-      });
+        });
+    this->initialized = true;
+  }
+  else
+  {
+    // Create air pressure sensors
+    _ecm.EachNew<components::AirPressureSensor, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::AirPressureSensor *_airPressure,
+          const components::ParentEntity *_parent)->bool
+        {
+          AddAirPressure(_ecm, _entity, _airPressure, _parent);
+          return true;
+        });
+  }
 }
 
 //////////////////////////////////////////////////

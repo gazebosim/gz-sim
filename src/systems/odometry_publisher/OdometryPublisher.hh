@@ -33,7 +33,7 @@ namespace systems
   class OdometryPublisherPrivate;
 
   /// \brief Odometry Publisher which can be attached to any entity in
-  /// order to periodically publish 2D odometry data in the form of
+  /// order to periodically publish 2D or 3D odometry data in the form of
   /// ignition::msgs::Odometry messages.
   ///
   /// # System Parameters
@@ -52,6 +52,10 @@ namespace systems
   /// `<odom_topic>`: Custom topic on which this system will publish odometry
   /// messages. This element is optional, and the default value is
   /// `/model/{name_of_model}/odometry`.
+  ///
+  /// `<dimensions>`: Number of dimensions to represent odometry. Only 2 and 3
+  /// dimensional spaces are supported. This element is optional, and the
+  /// default value is 2.
   class OdometryPublisher
       : public System,
         public ISystemConfigure,

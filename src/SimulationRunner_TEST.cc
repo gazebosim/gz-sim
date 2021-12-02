@@ -1569,6 +1569,52 @@ TEST_P(SimulationRunnerTest, GenerateWorldSdf)
   EXPECT_EQ(5u, world->ModelCount());
 }
 
+/////////////////////////////////////////////////
+/// Helper function to recursively check for plugins with filename and name
+/// attributes set to "__default__"
+testing::AssertionResult checkForSpuriousPlugins(sdf::ElementPtr _elem)
+{
+  auto plugin = _elem->FindElement("plugin");
+  if (nullptr != plugin &&
+      plugin->Get<std::string>("filename") == "__default__" &&
+      plugin->Get<std::string>("name") == "__default__")
+  {
+    return testing::AssertionFailure() << _elem->ToString("");
+  }
+  for (auto child = _elem->GetFirstElement(); child;
+       child = child->GetNextElement())
+  {
+    auto result = checkForSpuriousPlugins(child);
+    if (!result)
+      return result;
+  }
+  return testing::AssertionSuccess();
+}
+
+/////////////////////////////////////////////////
+TEST_P(SimulationRunnerTest, GeneratedSdfHasNoSpuriousPlugins)
+{
+  // Load SDF file
+  sdf::Root root;
+  root.Load(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes.sdf"));
+
+  ASSERT_EQ(1u, root.WorldCount());
+
+  // Create simulation runner
+  auto systemLoader = std::make_shared<SystemLoader>();
+  SimulationRunner runner(root.WorldByIndex(0), systemLoader);
+
+  msgs::SdfGeneratorConfig req;
+  msgs::StringMsg genWorldSdf;
+  EXPECT_TRUE(runner.GenerateWorldSdf(req, genWorldSdf));
+  EXPECT_FALSE(genWorldSdf.data().empty());
+
+  sdf::Root newRoot;
+  newRoot.LoadSdfString(genWorldSdf.data());
+  EXPECT_TRUE(checkForSpuriousPlugins(newRoot.Element()));
+}
+
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
 INSTANTIATE_TEST_SUITE_P(ServerRepeat, SimulationRunnerTest,

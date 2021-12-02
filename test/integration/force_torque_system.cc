@@ -54,18 +54,21 @@ TEST_F(ForceTorqueTest, MeasureWeight)
   EXPECT_FALSE(*server.Running(0));
   server.SetUpdatePeriod(1us);
 
-  size_t iters = 1000u;
+  // Having iters exactly in sync with update rate can lead to a race condition
+  // in the test between simulation and transport
+  size_t iters = 999u;
+  size_t updates = 100u;
 
   std::vector<msgs::Wrench> wrenches;
-  wrenches.reserve(iters);
+  wrenches.reserve(updates);
   std::mutex wrenchMutex;
   std::condition_variable cv;
   auto wrenchCb = std::function<void(const msgs::Wrench &)>(
-      [&wrenchMutex, &wrenches, &cv, iters](const auto &_msg)
+      [&wrenchMutex, &wrenches, &cv, updates](const auto &_msg)
       {
         std::lock_guard lock(wrenchMutex);
         wrenches.push_back(_msg);
-        if (wrenches.size() >= iters)
+        if (wrenches.size() >= updates)
         {
           cv.notify_all();
         }
@@ -80,8 +83,8 @@ TEST_F(ForceTorqueTest, MeasureWeight)
 
   {
     std::unique_lock lock(wrenchMutex);
-    cv.wait_for(lock, 30s, [&] { return wrenches.size() >= iters; });
-    ASSERT_EQ(iters, wrenches.size());
+    cv.wait_for(lock, 30s, [&] { return wrenches.size() >= updates; });
+    ASSERT_EQ(updates, wrenches.size());
 
     const double kSensorMass = 0.2;
     const double kWeightMass = 10;
@@ -109,18 +112,21 @@ TEST_F(ForceTorqueTest, SensorPoseOffset)
   EXPECT_FALSE(*server.Running(0));
   server.SetUpdatePeriod(1us);
 
-  size_t iters = 1000u;
+  // Having iters exactly in sync with update rate can lead to a race condition
+  // in the test between simulation and transport
+  size_t iters = 999u;
+  size_t updates = 100u;
 
   std::vector<msgs::Wrench> wrenches;
-  wrenches.reserve(iters);
+  wrenches.reserve(updates);
   std::mutex wrenchMutex;
   std::condition_variable cv;
   auto wrenchCb = std::function<void(const msgs::Wrench &)>(
-      [&wrenchMutex, &wrenches, &cv, iters](const auto &_msg)
+      [&wrenchMutex, &wrenches, &cv, updates](const auto &_msg)
       {
         std::lock_guard lock(wrenchMutex);
         wrenches.push_back(_msg);
-        if (wrenches.size() >= iters)
+        if (wrenches.size() >= updates)
         {
           cv.notify_all();
         }
@@ -138,8 +144,8 @@ TEST_F(ForceTorqueTest, SensorPoseOffset)
   const double kGravity = 9.8;
   {
     std::unique_lock lock(wrenchMutex);
-    cv.wait_for(lock, 30s, [&] { return wrenches.size() >= iters; });
-    ASSERT_EQ(iters, wrenches.size());
+    cv.wait_for(lock, 30s, [&] { return wrenches.size() >= updates; });
+    ASSERT_EQ(updates, wrenches.size());
 
     const double kMomentArm = 0.1;
     const auto &wrench = wrenches.back();
@@ -157,8 +163,8 @@ TEST_F(ForceTorqueTest, SensorPoseOffset)
   ASSERT_EQ(2 * iters, *server.IterationCount());
   {
     std::unique_lock lock(wrenchMutex);
-    cv.wait_for(lock, 30s, [&] { return wrenches.size() >= iters; });
-    ASSERT_EQ(iters, wrenches.size());
+    cv.wait_for(lock, 30s, [&] { return wrenches.size() >= updates; });
+    ASSERT_EQ(updates, wrenches.size());
 
     const auto &wrench = wrenches.back();
 
