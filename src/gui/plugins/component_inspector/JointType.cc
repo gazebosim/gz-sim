@@ -81,10 +81,10 @@ Q_INVOKABLE void JointType::OnJointType(QString _jointType)
       [=](EntityComponentManager &_ecm)
   {
     components::JointType *comp =
-      _ecm.Component<components::JointType>(this->inspector->Entity());
+      _ecm.Component<components::JointType>(this->inspector->GetEntity());
 
     components::ParentEntity *parentComp =
-      _ecm.Component<components::ParentEntity>(this->inspector->Entity());
+      _ecm.Component<components::ParentEntity>(this->inspector->GetEntity());
 
     if (comp && parentComp)
     {

@@ -49,7 +49,7 @@ Rectangle {
       fillMode: Image.Pad
       Layout.alignment : Qt.AlignVCenter
       source: content.show ?
-          "qrc:/Gazebo/images/minus.png" : "qrc:/Gazebo/images/plus.png"
+          "qrc:/Gazebo/images/chevron-down.svg" : "qrc:/Gazebo/images/chevron-right.svg"
     }
     TypeHeader {
       id: typeHeader

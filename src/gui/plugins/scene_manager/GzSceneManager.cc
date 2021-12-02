@@ -18,8 +18,6 @@
 
 #include "GzSceneManager.hh"
 
-#include <set>
-
 #include <ignition/common/Profiler.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/GuiEvents.hh>
@@ -136,11 +134,11 @@ bool GzSceneManager::eventFilter(QObject *_obj, QEvent *_event)
     this->dataPtr->OnRender();
   }
   else if (_event->type() ==
-           ignition::gazebo::gui::events::AddedRemovedEntities::kType)
+           ignition::gazebo::gui::events::GuiNewRemovedEntities::kType)
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->newRemovedEntityMutex);
     auto addedRemovedEvent =
-        reinterpret_cast<gui::events::AddedRemovedEntities *>(_event);
+        reinterpret_cast<gui::events::GuiNewRemovedEntities *>(_event);
     if (addedRemovedEvent)
     {
       for (auto entity : addedRemovedEvent->NewEntities())

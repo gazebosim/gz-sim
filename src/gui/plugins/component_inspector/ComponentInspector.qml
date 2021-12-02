@@ -306,7 +306,7 @@ Rectangle {
       }
 
       ToolButton {
-        id: addButton
+        id: addLinkButton
         checkable: false
         text: "Add entity"
         visible: entityType == "model"
@@ -314,26 +314,26 @@ Rectangle {
           fillMode: Image.Pad
           horizontalAlignment: Image.AlignHCenter
           verticalAlignment: Image.AlignVCenter
-          source: "qrc:/Gazebo/images/plus.png"
+          source: "qrc:/Gazebo/images/plus-link.png"
           sourceSize.width: 18;
           sourceSize.height: 18;
         }
-        ToolTip.text: "Add an entity to a model"
+        ToolTip.text: "Add a link or light to a model"
         ToolTip.visible: hovered
         ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
         onClicked: {
-          getSimPaused() ? addLinkMenu.open() : pausePopup.open()
+          getSimPaused() ? addLinkMenu.open() : linkAddPausePopup.open()
         }
         Popup {
-          id: pausePopup
+          id: linkAddPausePopup
           modal: true
           focus: true
-          x: parent.width - popupContentText.width
-          y: parent.height + popupContentText.height
+          x: parent.width - linkAdPopupContentText.width
+          y: parent.height + linkAdPopupContentText.height
           contentItem: Text {
-            id: popupContentText
+            id: linkAdPopupContentText
             padding: 10
-            text: "Pause simulation to add an entity"
+            text: "Pause simulation to add a link or light"
           }
           closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
         }
@@ -349,7 +349,6 @@ Rectangle {
             ComponentInspector.OnLoadMesh("mesh", "link", fileUrl)
           }
         }
-
 
         Menu {
           id: addLinkMenu
@@ -577,7 +576,175 @@ Rectangle {
               addLinkMenu.close()
             }
           }
+        }
+      }
 
+      ToolButton {
+        id: addSensorButton
+        checkable: false
+        text: "Add sensor"
+        visible: entityType == "link"
+        contentItem: Image {
+          fillMode: Image.Pad
+          horizontalAlignment: Image.AlignHCenter
+          verticalAlignment: Image.AlignVCenter
+          source: "qrc:/Gazebo/images/plus-sensor.png"
+          sourceSize.width: 18;
+          sourceSize.height: 18;
+        }
+        ToolTip.text: "Add a sensor to a link"
+        ToolTip.visible: hovered
+        ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+        onClicked: {
+          getSimPaused() ? addSensorMenu.open() : sensorAddPausePopup.open()
+        }
+        Popup {
+          id: sensorAddPausePopup
+          modal: true
+          focus: true
+          x: parent.width - sensorAddPopupContentText.width
+          y: parent.height + sensorAddPopupContentText.height
+          contentItem: Text {
+            id: sensorAddPopupContentText
+            padding: 10
+            text: "Pause simulation to add a sensor"
+          }
+          closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
+        }
+
+        Menu {
+          id: addSensorMenu
+          MenuItem {
+            id: airPressure
+            text: "Air pressure"
+            onTriggered: {
+              ComponentInspector.OnAddEntity(airPressure.text, "sensor");
+            }
+          }
+      
+          MenuItem {
+            id: altimeter
+            text: "Altimeter"
+            onTriggered: {
+              ComponentInspector.OnAddEntity(altimeter.text, "sensor");
+            }
+          }
+      
+          MenuItem {
+            id: cameraSensorMenu
+            text: "Camera >"
+
+            MouseArea {
+              id: viewSubCameraArea
+              anchors.fill: parent
+              hoverEnabled: true
+              onEntered: cameraSubmenu.open()
+            }
+          }
+      
+          MenuItem {
+            id: contact
+            text: "Contact"
+            onTriggered: {
+              ComponentInspector.OnAddEntity(contact.text, "sensor");
+            }
+          }
+      
+          MenuItem {
+            id: forceTorque
+            text: "Force torque"
+            onTriggered: {
+              ComponentInspector.OnAddEntity(forceTorque.text, "sensor");
+            }
+          }
+
+          /*MenuItem {
+            id: gps
+            text: "GPS"
+            onTriggered: {
+              ComponentInspector.OnAddEntity(gps.text, "sensor");
+            }
+          }*/
+
+          MenuItem {
+            id: gpuLidar
+            text: "GPU Lidar"
+             onTriggered: {
+              ComponentInspector.OnAddEntity("gpu_lidar", "sensor");
+            }
+          }
+
+          MenuItem {
+            id: imu
+            text: "IMU"
+            onTriggered: {
+              ComponentInspector.OnAddEntity(imu.text, "sensor");
+            }
+          }
+      
+          MenuItem {
+            id: magnetometer
+            text: "Magnetometer"
+            onTriggered: {
+              ComponentInspector.OnAddEntity(magnetometer.text, "sensor");
+            }
+          }
+        }
+      
+        Menu {
+          id: cameraSubmenu
+          x: addSensorMenu.x - addSensorMenu.width
+          y: addSensorMenu.y + cameraSensorMenu.y
+
+          MenuItem {
+            id: depth
+            text: "Depth"
+             onTriggered: {
+              ComponentInspector.OnAddEntity("depth_camera", "sensor");
+            }
+          }
+          MenuItem {
+            id: logical
+            text: "Logical"
+             onTriggered: {
+              ComponentInspector.OnAddEntity("logical_camera", "sensor");
+            }
+          }
+          MenuItem {
+            id: monocular
+            text: "Monocular"
+             onTriggered: {
+              ComponentInspector.OnAddEntity("camera", "sensor");
+            }
+          }
+          /*MenuItem {
+            id: multicamera
+            text: "Multicamera"
+             onTriggered: {
+              ComponentInspector.OnAddEntity("multicamera", "sensor");
+            }
+          }*/
+          MenuItem {
+            id: rgbd
+            text: "RGBD"
+             onTriggered: {
+              ComponentInspector.OnAddEntity("rgbd_camera", "sensor");
+            }
+          }
+          MenuItem {
+            id: segmentation
+            text: "Segmentation"
+             onTriggered: {
+              ComponentInspector.OnAddEntity("segmentation_camera", "sensor");
+            }
+          }
+          MenuItem {
+            id: thermal
+            text: "Thermal"
+             onTriggered: {
+              ComponentInspector.OnAddEntity("thermal_camera", "sensor");
+            }
+          }
         }
       }
 
@@ -591,7 +758,6 @@ Rectangle {
       }
     }
   }
-
 
   ListView {
     anchors.top: header.bottom

@@ -346,7 +346,7 @@ namespace gazebo
 
     /// \brief Set the entity currently inspected.
     /// \param[in] _entity Entity ID.
-    public: Q_INVOKABLE void SetEntity(const Entity &_entity);
+    public: Q_INVOKABLE void SetEntity(const gazebo::Entity &_entity);
 
     /// \brief Notify that entity has changed.
     signals: void EntityChanged();
