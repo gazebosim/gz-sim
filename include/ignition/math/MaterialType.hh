@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_MATERIALTYPES_HH_
-#define IGNITION_MATH_MATERIALTYPES_HH_
+#ifndef IGNITION_MATH_MATERIALTYPE_HH_
+#define IGNITION_MATH_MATERIALTYPE_HH_
 
 #include <ignition/math/Export.hh>
 #include <ignition/math/config.hh>

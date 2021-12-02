@@ -32,12 +32,15 @@
 
 1. Defer regex construction to avoid static initialization.
     * [Pull request 289](https://github.com/ignitionrobotics/ign-math/pull/289)
+                       
+1. Defer Material::Predefined construction to avoid static initialization.
+    * [Pull request 290](https://github.com/ignitionrobotics/ign-math/pull/290)
+
+1. Resolve cppcheck errors by adding explicit constructors and consts.
+    * [Pull request 291](https://github.com/ignitionrobotics/ign-math/pull/291)
                    
 1. Remove virtual from destructors of copyable classes.
     * [Pull request 293](https://github.com/ignitionrobotics/ign-math/pull/293)
-  
-1. Resolve cppcheck errors by adding explicit constructors and consts.
-    * [Pull request 291](https://github.com/ignitionrobotics/ign-math/pull/291)
 
 ## Ignition Math 6.x
 

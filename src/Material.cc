@@ -16,6 +16,10 @@
 */
 
 #include "ignition/math/Material.hh"
+
+#include <algorithm>
+#include <memory>
+
 #include "ignition/math/Helpers.hh"
 
 // Placing the kMaterialData in a separate file for conveniece and clarity.
@@ -24,24 +28,17 @@
 using namespace ignition;
 using namespace math;
 
-// Initialize the static map of Material objects based on the kMaterialData.
-static const std::map<MaterialType, Material> kMaterials = []()
-{
-  std::map<MaterialType, Material> matMap;
-
-  for (const std::pair<MaterialType, MaterialData> &mat : kMaterialData)
-  {
-    matMap[mat.first].SetType(mat.first);
-    matMap[mat.first].SetName(mat.second.name);
-    matMap[mat.first].SetDensity(mat.second.density);
-  }
-
-  return matMap;
-}();
-
 // Private data for the Material class
 class ignition::math::MaterialPrivate
 {
+  /// \brief Set from a kMaterialData constant.
+  public: void SetFrom(const std::pair<MaterialType, MaterialData>& _input)
+  {
+    type = _input.first;
+    name = _input.second.name;
+    density = _input.second.density;
+  }
+
   /// \brief The material type.
   public: MaterialType type = MaterialType::UNKNOWN_MATERIAL;
 
@@ -63,11 +60,13 @@ Material::Material()
 Material::Material(const MaterialType _type)
 : dataPtr(new MaterialPrivate)
 {
-  if (kMaterials.find(_type) != kMaterials.end())
+  auto iter = std::find_if(std::begin(kMaterialData), std::end(kMaterialData),
+                           [_type](const auto& item) {
+                             return item.first == _type;
+                           });
+  if (iter != std::end(kMaterialData))
   {
-    this->dataPtr->type = _type;
-    this->dataPtr->name = kMaterials.at(_type).Name();
-    this->dataPtr->density = kMaterials.at(_type).Density();
+    this->dataPtr->SetFrom(*iter);
   }
 }
 
@@ -79,12 +78,13 @@ Material::Material(const std::string &_typename)
   std::string material = _typename;
   std::transform(material.begin(), material.end(), material.begin(), ::tolower);
 
-  for (const std::pair<MaterialType, Material> &mat : kMaterials)
+  auto iter = std::find_if(std::begin(kMaterialData), std::end(kMaterialData),
+                           [&material](const auto& item) {
+                             return item.second.name == material;
+                           });
+  if (iter != std::end(kMaterialData))
   {
-    if (mat.second.Name() == material)
-    {
-      *this = mat.second;
-    }
+    this->dataPtr->SetFrom(*iter);
   }
 }
 
@@ -121,7 +121,24 @@ Material::~Material()
 ///////////////////////////////
 const std::map<MaterialType, Material> &Material::Predefined()
 {
-  return kMaterials;
+  using Map = std::map<MaterialType, Material>;
+
+  // Initialize the static map of Material objects based on the kMaterialData.
+  // We construct upon first use and never destroy it, in order to avoid the
+  // [Static Initialization Order Fiasco](https://en.cppreference.com/w/cpp/language/siof).
+  static const Map * const kMaterials = []()
+  {
+    auto temporary = std::make_unique<Map>();
+    for (const auto &item : kMaterialData)
+    {
+      MaterialType type = item.first;
+      Material& material = (*temporary)[type];
+      material.dataPtr->SetFrom(item);
+    }
+    return temporary.release();
+  }();
+
+  return *kMaterials;
 }
 
 ///////////////////////////////
@@ -198,13 +215,13 @@ void Material::SetToNearestDensity(const double _value, const double _epsilon)
   double min = MAX_D;
   Material result;
 
-  for (const std::pair<MaterialType, Material> &mat : kMaterials)
+  for (const auto &item : kMaterialData)
   {
-    double diff = std::fabs(mat.second.Density() - _value);
+    double diff = std::fabs(item.second.density - _value);
     if (diff < min && diff < _epsilon)
     {
       min = diff;
-      result = mat.second;
+      result.dataPtr->SetFrom(item);
     }
   }
 

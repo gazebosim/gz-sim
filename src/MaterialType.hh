@@ -14,11 +14,11 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATERIAL_HH_
-#define IGNITION_MATERIAL_HH_
+#ifndef IGNITION_MATH_SRC_MATERIAL_TYPE_HH_
+#define IGNITION_MATH_SRC_MATERIAL_TYPE_HH_
 
-#include <map>
-#include <string>
+#include <array>
+#include <utility>
 
 using namespace ignition;
 using namespace math;
@@ -27,17 +27,19 @@ using namespace math;
 struct MaterialData
 {
   // Name of the material
-  std::string name;
+  // cppcheck-suppress unusedStructMember
+  const char * const name;
 
   // Density of the material
   // cppcheck-suppress unusedStructMember
-  double density;
+  const double density;
 };
 
 // The mapping of material type to name and density values.
 // If you modify this map, make sure to also modify the MaterialType enum in
-// include/ignition/math/MaterialTypes.hh
-static std::map<MaterialType, MaterialData> kMaterialData =
+// include/ignition/math/MaterialTypes.hh. The compiler will also complain if
+// you forget to change the std::array<..., N> compile-time size constant.
+constexpr std::array<std::pair<MaterialType, MaterialData>, 13> kMaterialData =
 {{
   {MaterialType::STYROFOAM, {"styrofoam", 75.0}},
   {MaterialType::PINE, {"pine", 373.0}},
