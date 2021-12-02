@@ -48,7 +48,10 @@ TEST(KmeansTest, Kmeans)
 
   // ::SetObservations()
   for (auto &elem : obsCopy)
+  {
+    // cppcheck-suppress useStlAlgorithm
     elem += math::Vector3d(0.1, 0.2, 0.0);
+  }
 
   EXPECT_TRUE(kmeans.Observations(obsCopy));
 

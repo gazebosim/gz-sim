@@ -156,6 +156,7 @@ bool Frustum::Contains(const Vector3d &_p) const
   // visible.
   for (auto const &plane : this->dataPtr->planes)
   {
+    // cppcheck-suppress useStlAlgorithm
     if (plane.Side(_p) == Planed::NEGATIVE_SIDE)
       return false;
   }

@@ -126,7 +126,7 @@ namespace ignition
       /// \brief Set the box size.
       /// \param[in] _size Box size, in its own coordinate frame. Its absolute
       /// value will be taken, so the size is non-negative.
-      public: void Size(Vector3<T> &_size)
+      public: void Size(const Vector3<T> &_size)
       {
         // Enforce non-negative size
         this->size = _size.Abs();
@@ -134,7 +134,7 @@ namespace ignition
 
       /// \brief Set the box pose.
       /// \param[in] _pose Box pose.
-      public: void Pose(Pose3<T> &_pose)
+      public: void Pose(const Pose3<T> &_pose)
       {
         this->pose = _pose;
       }

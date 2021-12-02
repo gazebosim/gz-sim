@@ -47,6 +47,7 @@ namespace graph
     /// \param[in] _vertices The vertices of the edge.
     /// \param[in] _data The data stored in the edge.
     /// \param[in] _weight The weight (cost) of the edge.
+    // cppcheck-suppress noExplicitConstructor
     EdgeInitializer(const VertexId_P &_vertices,
                     const E &_data = E(),
                     const double _weight = 1)

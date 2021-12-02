@@ -63,11 +63,11 @@ namespace ignition
       /// \param[in] _patch The patch number
       /// \param[in] _prerelease The prerelease string
       /// \param[in] _build The build metadata string
-      public: SemanticVersion(const unsigned int _major,
-                              const unsigned int _minor = 0,
-                              const unsigned int _patch = 0,
-                              const std::string &_prerelease = "",
-                              const std::string &_build = "");
+      public: explicit SemanticVersion(const unsigned int _major,
+                                       const unsigned int _minor = 0,
+                                       const unsigned int _patch = 0,
+                                       const std::string &_prerelease = "",
+                                       const std::string &_build = "");
 
       /// \brief Destructor
       public: ~SemanticVersion();

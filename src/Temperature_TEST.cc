@@ -97,7 +97,6 @@ TEST(TemperatureTest, Operators)
   EXPECT_NEAR(temp(), 30, 1e-6);
 
   Temperature temp2 = temp;
-  // cppcheck-suppress knownConditionTrueFalse
   EXPECT_TRUE(temp == temp2);
 
   EXPECT_NEAR((temp + temp2).Kelvin(), 60, 1e-6);

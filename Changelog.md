@@ -32,6 +32,9 @@
 
 1. Remove virtual from destructors of copyable classes.
     * [Pull request 293](https://github.com/ignitionrobotics/ign-math/pull/293)
+  
+1. Resolve cppcheck errors by adding explicit constructors and consts.
+    * [Pull request 291](https://github.com/ignitionrobotics/ign-math/pull/291)
 
 ## Ignition Math 6.x
 

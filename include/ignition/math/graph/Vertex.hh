@@ -60,6 +60,7 @@ namespace graph
     /// \param[in] _name Non-unique vertex name.
     /// \param[in] _data User information.
     /// \param[in] _id Optional unique id.
+    // cppcheck-suppress noExplicitConstructor
     public: Vertex(const std::string &_name,
                    const V &_data = V(),
                    const VertexId _id = kNullId)

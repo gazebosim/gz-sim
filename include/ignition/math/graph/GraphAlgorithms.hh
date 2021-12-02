@@ -340,6 +340,7 @@ namespace graph
     // Add all vertices.
     for (auto const &vPair : _graph.Vertices())
     {
+      // cppcheck-suppress useStlAlgorithm
       vertices.push_back(vPair.second.get());
     }
 
