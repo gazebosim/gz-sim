@@ -187,30 +187,6 @@
             </z>
           </magnetometer>
         </sensor>
-        <sensor name="laser" type="gpu_ray">
-          <pose>0.43 0 0.26 0 0 0</pose>
-          <update_rate>20</update_rate>
-          <lidar>
-            <scan>
-              <horizontal>
-                <samples>720</samples>
-                <resolution>1</resolution>
-                <min_angle>-2.3562</min_angle>
-                <max_angle>2.3562</max_angle>
-              </horizontal>
-            </scan>
-            <range>
-              <min>0.04</min>
-              <max>5</max>
-              <resolution>0.01</resolution>
-            </range>
-            <noise>
-              <type>gaussian</type>
-              <mean>0</mean>
-              <stddev>0.01</stddev>
-            </noise>
-          </lidar>
-        </sensor>
       </link>
     </model>
 
