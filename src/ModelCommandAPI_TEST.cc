@@ -462,7 +462,32 @@ TEST(ModelCommandAPI, MagnetometerSensor)
       "  - Parent: magnetometer_model [8]\n"
       "  - Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
       "    [0.000000 0.000000 0.000000]\n"
-      "    [0.000000 0.000000 0.000000]\n";
+      "    [0.000000 0.000000 0.000000]\n"
+      "  - X-axis noise:\n"
+      "    - Mean: 0\n"
+      "    - Bias mean: 0\n"
+      "    - Standard deviation: 0\n"
+      "    - Bias standard deviation: 0\n"
+      "    - Precision: 0\n"
+      "    - Dynamic bias standard deviation: 0\n"
+      "    - Dynamic bias correlation time: 0\n"
+      "  - Y-axis noise:\n"
+      "    - Mean: 0\n"
+      "    - Bias mean: 0\n"
+      "    - Standard deviation: 0\n"
+      "    - Bias standard deviation: 0\n"
+      "    - Precision: 0\n"
+      "    - Dynamic bias standard deviation: 0\n"
+      "    - Dynamic bias correlation time: 0\n"
+      "  - Z-axis noise:\n"
+      "    - Mean: 0\n"
+      "    - Bias mean: 0\n"
+      "    - Standard deviation: 0\n"
+      "    - Bias standard deviation: 0\n"
+      "    - Precision: 0\n"
+      "    - Dynamic bias standard deviation: 0\n"
+      "    - Dynamic bias correlation time: 0\n";
+
       EXPECT_EQ(expectedOutput, output);
   }
 }
