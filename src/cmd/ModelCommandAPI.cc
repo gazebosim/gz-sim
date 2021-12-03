@@ -204,7 +204,7 @@ void printAirPressure(const uint64_t _entity,
   const sdf::Sensor &sensor = comp->Data();
   const sdf::AirPressure *air = sensor.AirPressureSensor();
 
-  std::cout << std::string(_spaces, ' ') << "- Reference altitude: "
+  std::cout << std::string(_spaces, ' ') << "- Reference altitude (m): "
     << air->ReferenceAltitude() << "\n";
 
   std::cout << std::string(_spaces, ' ') << "- Pressure noise:\n";

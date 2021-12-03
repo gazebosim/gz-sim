@@ -255,7 +255,7 @@ bool ModelEditor::eventFilter(QObject *_obj, QEvent *_event)
     {
       // Convert to an unordered map of STL strings for convenience
       std::unordered_map<std::string, std::string> data;
-      for (auto key : event->data.toStdMap())
+      for (auto key : event->Data().toStdMap())
       {
         data[key.first.toStdString()] = key.second.toStdString();
       }

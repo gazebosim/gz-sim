@@ -326,7 +326,7 @@ Rectangle {
           contentItem: Text {
             id: linkAdPopupContentText
             padding: 10
-            text: "Pause simulation to add a link or light"
+            text: "Pause simulation to add a link, light, or joint"
           }
           closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
         }

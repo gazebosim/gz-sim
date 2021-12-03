@@ -1353,8 +1353,8 @@ void ComponentInspector::OnAddJoint(const QString &_jointType,
   ignition::gazebo::gui::events::ModelEditorAddEntity addEntityEvent(
       _jointType, "joint", this->dataPtr->entity);
 
-  addEntityEvent.data.insert("parent_link", _parentLink);
-  addEntityEvent.data.insert("child_link", _childLink);
+  addEntityEvent.Data().insert("parent_link", _parentLink);
+  addEntityEvent.Data().insert("child_link", _childLink);
 
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
@@ -1381,7 +1381,7 @@ void ComponentInspector::OnLoadMesh(const QString &_entity,
     ignition::gazebo::gui::events::ModelEditorAddEntity addEntityEvent(
         _entity, _type, this->dataPtr->entity);
 
-    addEntityEvent.data.insert("uri", QString(meshStr.c_str()));
+    addEntityEvent.Data().insert("uri", QString(meshStr.c_str()));
 
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
