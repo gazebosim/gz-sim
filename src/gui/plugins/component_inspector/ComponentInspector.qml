@@ -481,16 +481,6 @@ Rectangle {
           }
 
           MenuItem {
-            id: revoluteJoint
-            text: "Revolute"
-            onClicked: {
-              jointDialog.jointType = "revolute"
-              jointDialog.open()
-              addLinkMenu.close()
-            }
-          }
-
-          MenuItem {
             id: ballJoint
             text: "Ball"
             onClicked: {
@@ -535,6 +525,16 @@ Rectangle {
             text: "Prismatic"
             onClicked: {
               jointDialog.jointType = "prismatic"
+              jointDialog.open()
+              addLinkMenu.close()
+            }
+          }
+
+          MenuItem {
+            id: revoluteJoint
+            text: "Revolute"
+            onClicked: {
+              jointDialog.jointType = "revolute"
               jointDialog.open()
               addLinkMenu.close()
             }
