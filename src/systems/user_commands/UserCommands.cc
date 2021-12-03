@@ -24,6 +24,7 @@
 #include <ignition/msgs/pose.pb.h>
 #include <ignition/msgs/physics.pb.h>
 #include <ignition/msgs/visual.pb.h>
+#include <ignition/msgs/wheel_slip.pb.h>
 
 #include <string>
 #include <utility>
@@ -58,6 +59,7 @@
 #include "ignition/gazebo/components/ContactSensor.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/VisualCmd.hh"
+#include "ignition/gazebo/components/WheelSlipCmd.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -374,6 +376,32 @@ class VisualCommand : public UserCommandBase
                   aMaterial.emissive().a(), bMaterial.emissive().a(), 1e-6f);
             }};
 };
+
+/// \brief Command to modify a wheel entity from simulation.
+class WheelSlipCommand : public UserCommandBase
+{
+  /// \brief Constructor
+  /// \param[in] _msg Message containing the wheel slip parameters.
+  /// \param[in] _iface Pointer to user commands interface.
+  public: WheelSlipCommand(msgs::WheelSlip *_msg,
+      std::shared_ptr<UserCommandsInterface> &_iface);
+
+  // Documentation inherited
+  public: bool Execute() final;
+
+  /// \brief WheelSlip equality comparision function
+  public: std::function<bool(const msgs::WheelSlip &, const msgs::WheelSlip &)>
+          wheelSlipEql { [](const msgs::WheelSlip &_a, const msgs::WheelSlip &_b)
+            {
+              return
+                _a.name() == _b.name() &&
+                _a.id() == _b.id() &&
+                math::equal(
+                  _a.slip_compliance_lateral(), _b.slip_compliance_lateral(), 1e-6) &&
+                math::equal(
+                  _a.slip_compliance_longitudinal(), _b.slip_compliance_longitudinal(), 1e-6);
+            }};
+};
 }
 }
 }
@@ -449,6 +477,13 @@ class ignition::gazebo::systems::UserCommandsPrivate
   /// It does not mean that the viusal will be successfully updated
   /// \return True if successful.
   public: bool VisualService(const msgs::Visual &_req, msgs::Boolean &_res);
+
+  /// \brief Callback for wheel slip service
+  /// \param[in] _req Request containing wheel slip parameter updates of an entity
+  /// \param[out] _res True if message sucessfully received and queued.
+  /// It does not mean that the wheel slip parameters will be successfully updated
+  /// \return True if successful.
+  public: bool WheelSlipService(const msgs::WheelSlip &_req, msgs::Boolean &_res);
 
   /// \brief Queue of commands pending execution.
   public: std::vector<std::unique_ptr<UserCommandBase>> pendingCmds;
@@ -596,6 +631,14 @@ void UserCommands::Configure(const Entity &_entity,
       &UserCommandsPrivate::VisualService, this->dataPtr.get());
 
   ignmsg << "Material service on [" << visualService << "]" << std::endl;
+
+  // Wheel slip service
+  std::string wheelSlipService
+      {"/world/" + worldName + "/wheel_slip"};
+  this->dataPtr->node.Advertise(wheelSlipService,
+      &UserCommandsPrivate::WheelSlipService, this->dataPtr.get());
+
+  ignmsg << "Material service on [" << wheelSlipService << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -790,6 +833,24 @@ bool UserCommandsPrivate::VisualService(const msgs::Visual &_req,
   auto msg = _req.New();
   msg->CopyFrom(_req);
   auto cmd = std::make_unique<VisualCommand>(msg, this->iface);
+  // Push to pending
+  {
+    std::lock_guard<std::mutex> lock(this->pendingMutex);
+    this->pendingCmds.push_back(std::move(cmd));
+  }
+
+  _res.set_data(true);
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool UserCommandsPrivate::WheelSlipService(const msgs::WheelSlip &_req,
+    msgs::Boolean &_res)
+{
+  // Create command and push it to queue
+  auto msg = _req.New();
+  msg->CopyFrom(_req);
+  auto cmd = std::make_unique<WheelSlipCommand>(msg, this->iface);
   // Push to pending
   {
     std::lock_guard<std::mutex> lock(this->pendingMutex);
@@ -1405,6 +1466,47 @@ bool VisualCommand::Execute()
         ComponentState::OneTimeChange : ComponentState::NoChange;
     this->iface->ecm->SetChanged(
         visualEntity, components::VisualCmd::typeId, state);
+  }
+  return true;
+}
+
+//////////////////////////////////////////////////
+WheelSlipCommand::WheelSlipCommand(msgs::WheelSlip *_msg,
+    std::shared_ptr<UserCommandsInterface> &_iface)
+    : UserCommandBase(_msg, _iface)
+{
+}
+
+//////////////////////////////////////////////////
+bool WheelSlipCommand::Execute()
+{
+  auto wheelSlipMsg = dynamic_cast<const msgs::WheelSlip *>(this->msg);
+  if (nullptr == wheelSlipMsg)
+  {
+    ignerr << "Internal error, null wheel slip message" << std::endl;
+    return false;
+  }
+
+  if (wheelSlipMsg->id() == kNullEntity)
+  {
+    ignerr << "Failed to find wheel entity" << std::endl;
+    return false;
+  }
+
+  Entity wheelSlipCmdEntity = wheelSlipMsg->id();
+  auto wheelSlipCmdComp =
+      this->iface->ecm->Component<components::WheelSlipCmd>(wheelSlipCmdEntity);
+  if (!wheelSlipCmdComp)
+  {
+    this->iface->ecm->CreateComponent(
+        wheelSlipCmdEntity, components::WheelSlipCmd(*wheelSlipMsg));
+  }
+  else
+  {
+    auto state = wheelSlipCmdComp->SetData(*wheelSlipMsg, this->wheelSlipEql) ?
+        ComponentState::OneTimeChange : ComponentState::NoChange;
+    this->iface->ecm->SetChanged(
+        wheelSlipCmdEntity, components::WheelSlipCmd::typeId, state);
   }
   return true;
 }
