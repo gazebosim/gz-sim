@@ -46,7 +46,6 @@ Rectangle {
   // Read-only / write
   property bool writeable: {
     var isModel = entityType == "model"
-    console.log(entityType, isModel)
     return isModel || componentInspector.getSimPaused()
   }
 
