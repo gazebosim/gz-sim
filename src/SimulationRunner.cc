@@ -1157,7 +1157,7 @@ bool SimulationRunner::OnWorldControlState(const msgs::WorldControlState &_req,
   if (_req.has_state())
   {
     if (this->newWorldControlState == nullptr)
-      this->newWorldControlState = _req.New();
+      this->newWorldControlState.reset(_req.New());
     this->newWorldControlState->CopyFrom(_req);
   }
 
@@ -1207,8 +1207,7 @@ void SimulationRunner::ProcessNewWorldControlState()
   {
     this->entityCompMgr.SetState(this->newWorldControlState->state());
 
-    delete this->newWorldControlState;
-    this->newWorldControlState = nullptr;
+    this->newWorldControlState.reset();
   }
   // TODO(anyone) notify server systems of changes made to the ECM, if there
   // were any?
@@ -1337,21 +1336,17 @@ void SimulationRunner::ProcessRecreateEntitiesCreate()
           << clonedEntity << "]" << std::endl;
       }
     }
-    else
+    else if (!nameComp)
     {
-      if (!nameComp)
-      {
-        ignerr << "Missing name component for entity[" << ent << "]. "
-          << "The entity will not be cloned during the recreation process."
-          << std::endl;
-      }
-
-      if (!parentComp)
-      {
-        ignerr << "Missing parent component for entity[" << ent << "]. "
-          << "The entity will not be cloned during the recreation process."
-          << std::endl;
-      }
+      ignerr << "Missing name component for entity[" << ent << "]. "
+        << "The entity will not be cloned during the recreation process."
+        << std::endl;
+    }
+    else if (!parentComp)
+    {
+      ignerr << "Missing parent component for entity[" << ent << "]. "
+        << "The entity will not be cloned during the recreation process."
+         << std::endl;
     }
   }
 

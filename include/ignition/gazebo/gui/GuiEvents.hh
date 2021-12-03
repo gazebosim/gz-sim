@@ -184,7 +184,9 @@ namespace events
   class ModelEditorAddEntity : public QEvent
   {
     /// \brief Constructor
-    /// \param[in] _tranformModeActive is the transform control mode active
+    /// \param[in] _entity Entity added
+    /// \param[in] _type Entity type
+    /// \param[in] _parent Parent entity.
     public: explicit ModelEditorAddEntity(QString _entity, QString _type,
                 ignition::gazebo::Entity _parent);
 

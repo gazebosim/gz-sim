@@ -643,9 +643,9 @@ namespace ignition
       /// \brief A set of entities that need to be recreated
       private: std::set<Entity> entitiesToRecreate;
 
-      /// \brief Holds new world state information so that it can processed
+      /// \brief Holds new world state information so that it can be processed
       /// at the appropriate time.
-      private: msgs::WorldControlState *newWorldControlState{nullptr};
+      private: std::unique_ptr<msgs::WorldControlState> newWorldControlState;
 
       friend class LevelManager;
     };

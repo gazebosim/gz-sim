@@ -475,9 +475,9 @@ void printGpuLidar(const uint64_t _entity,
   const sdf::Lidar *lidar = sensor.LidarSensor();
 
   std::cout << std::string(_spaces, ' ') << "- Range:\n";
-  std::cout << std::string(_spaces+2, ' ') << "- Min: "
+  std::cout << std::string(_spaces+2, ' ') << "- Min (m): "
     << lidar->RangeMin() << std::endl;
-  std::cout << std::string(_spaces+2, ' ') << "- Max: "
+  std::cout << std::string(_spaces+2, ' ') << "- Max (m): "
     << lidar->RangeMax() << std::endl;
   std::cout << std::string(_spaces+2, ' ') << "- Resolution: "
     << lidar->RangeResolution() << std::endl;
@@ -487,9 +487,9 @@ void printGpuLidar(const uint64_t _entity,
     << lidar->HorizontalScanSamples() << std::endl;
   std::cout << std::string(_spaces+2, ' ') << "- Resolution: "
     << lidar->HorizontalScanResolution() << std::endl;
-  std::cout << std::string(_spaces+2, ' ') << "- Min angle: "
+  std::cout << std::string(_spaces+2, ' ') << "- Min angle (r): "
     << lidar->HorizontalScanMinAngle() << std::endl;
-  std::cout << std::string(_spaces+2, ' ') << "- Max angle: "
+  std::cout << std::string(_spaces+2, ' ') << "- Max angle (r): "
     << lidar->HorizontalScanMaxAngle() << std::endl;
 
   std::cout << std::string(_spaces, ' ') << "- Vertical scan:\n";
@@ -497,9 +497,9 @@ void printGpuLidar(const uint64_t _entity,
     << lidar->VerticalScanSamples() << std::endl;
   std::cout << std::string(_spaces+2, ' ') << "- Resolution: "
     << lidar->VerticalScanResolution() << std::endl;
-  std::cout << std::string(_spaces+2, ' ') << "- Min angle: "
+  std::cout << std::string(_spaces+2, ' ') << "- Min angle (r): "
     << lidar->VerticalScanMinAngle() << std::endl;
-  std::cout << std::string(_spaces+2, ' ') << "- Max angle: "
+  std::cout << std::string(_spaces+2, ' ') << "- Max angle (r): "
     << lidar->VerticalScanMaxAngle() << std::endl;
 
   std::cout << std::string(_spaces, ' ') << "- Noise:\n";

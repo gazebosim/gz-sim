@@ -104,9 +104,9 @@ ModelEditorAddEntity::ModelEditorAddEntity(QString _entity, QString _type,
     ignition::gazebo::Entity _parent) :
   QEvent(kType), dataPtr(utils::MakeImpl<Implementation>())
 {
- this->dataPtr->entity = _entity;
- this->dataPtr->type = _type;
- this->dataPtr->parent = _parent;
+  this->dataPtr->entity = _entity;
+  this->dataPtr->type = _type;
+  this->dataPtr->parent = _parent;
 }
 
 /////////////////////////////////////////////////
