@@ -253,16 +253,9 @@ bool ModelEditor::eventFilter(QObject *_obj, QEvent *_event)
     auto event = reinterpret_cast<gui::events::ModelEditorAddEntity *>(_event);
     if (event)
     {
-      // Convert to an unordered map of STL strings for convenience
-      std::unordered_map<std::string, std::string> data;
-      for (auto key : event->data.toStdMap())
-      {
-        data[key.first.toStdString()] = key.second.toStdString();
-      }
-
       this->dataPtr->HandleAddEntity(event->Entity().toStdString(),
           event->EntityType().toStdString(),
-          event->ParentEntity(), data);
+          event->ParentEntity(), event->Data());
     }
   }
 

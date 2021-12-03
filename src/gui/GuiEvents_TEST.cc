@@ -65,3 +65,30 @@ TEST(GuiEventsTest, NewRemovedEntities)
   EXPECT_NE(removedEntities.find(5), removedEntities.end());
   EXPECT_EQ(removedEntities.find(6), removedEntities.end());
 }
+
+/////////////////////////////////////////////////
+TEST(GuiEventsTest, ModelEditorAddEntity)
+{
+  events::ModelEditorAddEntity event("joint_1", "fixed", 1u);
+
+  event.SetData("parent", "link_1");
+  event.SetData("child", "link_2");
+
+  EXPECT_LT(QEvent::User, event.type());
+
+
+  EXPECT_EQ("joint_1", event.Entity());
+  EXPECT_EQ("fixed", event.EntityType());
+  EXPECT_EQ(1u, event.ParentEntity());
+
+  EXPECT_TRUE(event.HasData("parent"));
+  EXPECT_TRUE(event.HasData("child"));
+  EXPECT_FALSE(event.HasData("foobar"));
+
+  EXPECT_EQ("link_1", event.Data("parent"));
+  EXPECT_EQ("link_2", event.Data("child"));
+
+  auto data = event.Data();
+  EXPECT_EQ(2u, data.size());
+}
+

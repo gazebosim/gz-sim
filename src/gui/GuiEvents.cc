@@ -17,6 +17,8 @@
 
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
+#include <QMap>
+
 class ignition::gazebo::gui::events::GuiNewRemovedEntities::Implementation
 {
   /// \brief Set of newly created entities
@@ -33,6 +35,21 @@ class ignition::gazebo::gui::events::NewRemovedEntities::Implementation
 
   /// \brief Set of recently removed entities
   public: std::set<Entity> removedEntities;
+};
+
+class ignition::gazebo::gui::events::ModelEditorAddEntity::Implementation
+{
+  /// \brief Name of entity to add
+  public: QString entity;
+
+  /// \brief Type of entity to add
+  public: QString type;
+
+  /// \brief parent of entity to add
+  public: ignition::gazebo::Entity parent;
+
+  /// \brief Additional data needed to create specific entities
+  public: QMap<QString, QString> data;
 };
 
 using namespace ignition;
@@ -82,4 +99,62 @@ const std::set<Entity> &NewRemovedEntities::NewEntities() const
 const std::set<Entity> &NewRemovedEntities::RemovedEntities() const
 {
   return this->dataPtr->removedEntities;
+}
+
+/////////////////////////////////////////////////
+ModelEditorAddEntity::ModelEditorAddEntity(
+    QString _entity, QString _type, ignition::gazebo::Entity _parent)
+    : QEvent(kType), dataPtr(utils::MakeImpl<Implementation>())
+{
+  this->dataPtr->entity = _entity;
+  this->dataPtr->type = _type;
+  this->dataPtr->parent = _parent;
+}
+
+/////////////////////////////////////////////////
+QString ModelEditorAddEntity::Entity() const
+{
+  return this->dataPtr->entity;
+}
+
+/////////////////////////////////////////////////
+QString ModelEditorAddEntity::EntityType() const
+{
+  return this->dataPtr->type;
+}
+
+/////////////////////////////////////////////////
+ignition::gazebo::Entity ModelEditorAddEntity::ParentEntity() const
+{
+  return this->dataPtr->parent;
+}
+
+/////////////////////////////////////////////////
+bool ModelEditorAddEntity::HasData(const QString &_key) const
+{
+  return this->dataPtr->data.contains(_key);
+}
+
+/////////////////////////////////////////////////
+std::unordered_map<std::string, std::string>
+ModelEditorAddEntity::Data() const
+{
+    std::unordered_map<std::string, std::string> data;
+    for (auto key : this->dataPtr->data.toStdMap())
+    {
+      data[key.first.toStdString()] = key.second.toStdString();
+    }
+    return data;
+}
+
+/////////////////////////////////////////////////
+QString ModelEditorAddEntity::Data(const QString &_key) const
+{
+  return this->dataPtr->data[_key];
+}
+
+/////////////////////////////////////////////////
+void ModelEditorAddEntity::SetData(const QString &_key, const QString &_value)
+{
+  this->dataPtr->data[_key] = _value;
 }
