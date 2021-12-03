@@ -61,7 +61,7 @@
 #include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
 #include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/PoseCmd.hh"
+#include "ignition/gazebo/components/Recreate.hh"
 #include "ignition/gazebo/components/RenderEngineGuiPlugin.hh"
 #include "ignition/gazebo/components/RenderEngineServerPlugin.hh"
 #include "ignition/gazebo/components/SelfCollide.hh"
@@ -77,6 +77,7 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
+#include "ignition/gazebo/Util.hh"
 
 #include "AirPressure.hh"
 #include "Altimeter.hh"
@@ -86,6 +87,7 @@
 #include "Lidar.hh"
 #include "Magnetometer.hh"
 #include "ModelEditor.hh"
+#include "Pose3d.hh"
 
 namespace ignition::gazebo
 {
@@ -148,6 +150,9 @@ namespace ignition::gazebo
     /// \brief Magnetometer inspector elements
     public: std::unique_ptr<ignition::gazebo::Magnetometer> magnetometer;
 
+    /// \brief Pose inspector elements
+    public: std::unique_ptr<ignition::gazebo::Pose3d> pose3d;
+
     /// \brief Set of callbacks to execute during the Update function.
     public: std::vector<
             std::function<void(EntityComponentManager &)>> updateCallbacks;
@@ -159,25 +164,6 @@ namespace ignition::gazebo
 
 using namespace ignition;
 using namespace gazebo;
-
-//////////////////////////////////////////////////
-template<>
-void ignition::gazebo::setData(QStandardItem *_item, const math::Pose3d &_data)
-{
-  if (nullptr == _item)
-    return;
-
-  _item->setData(QString("Pose3d"),
-      ComponentsModel::RoleNames().key("dataType"));
-  _item->setData(QList({
-    QVariant(_data.Pos().X()),
-    QVariant(_data.Pos().Y()),
-    QVariant(_data.Pos().Z()),
-    QVariant(_data.Rot().Roll()),
-    QVariant(_data.Rot().Pitch()),
-    QVariant(_data.Rot().Yaw())
-  }), ComponentsModel::RoleNames().key("data"));
-}
 
 //////////////////////////////////////////////////
 template<>
@@ -519,6 +505,9 @@ void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
 
   // Create the magnetometer
   this->dataPtr->magnetometer = std::make_unique<Magnetometer>(this);
+
+  // Create the pose3d
+  this->dataPtr->pose3d = std::make_unique<Pose3d>(this);
 }
 
 //////////////////////////////////////////////////
@@ -820,12 +809,6 @@ void ComponentInspector::Update(const UpdateInfo &_info,
       if (comp)
         setData(item, comp->Data());
     }
-    else if (typeId == components::Pose::typeId)
-    {
-      auto comp = _ecm.Component<components::Pose>(this->dataPtr->entity);
-      if (comp)
-        setData(item, comp->Data());
-    }
     else if (typeId == components::RenderEngineGuiPlugin::typeId)
     {
       auto comp = _ecm.Component<components::RenderEngineGuiPlugin>(
@@ -950,13 +933,6 @@ void ComponentInspector::Update(const UpdateInfo &_info,
     else if (typeId == components::WorldPose::typeId)
     {
       auto comp = _ecm.Component<components::WorldPose>(this->dataPtr->entity);
-      if (comp)
-        setData(item, comp->Data());
-    }
-    else if (typeId == components::WorldPoseCmd::typeId)
-    {
-      auto comp = _ecm.Component<components::WorldPoseCmd>(
-          this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
@@ -1121,26 +1097,6 @@ void ComponentInspector::SetPaused(bool _paused)
 {
   this->dataPtr->paused = _paused;
   this->PausedChanged();
-}
-
-/////////////////////////////////////////////////
-void ComponentInspector::OnPose(double _x, double _y, double _z, double _roll,
-    double _pitch, double _yaw)
-{
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
-  {
-    if (!_result)
-        ignerr << "Error setting pose" << std::endl;
-  };
-
-  ignition::msgs::Pose req;
-  req.set_id(this->dataPtr->entity);
-  msgs::Set(req.mutable_position(), math::Vector3d(_x, _y, _z));
-  msgs::Set(req.mutable_orientation(), math::Quaterniond(_roll, _pitch, _yaw));
-  auto poseCmdService = "/world/" + this->dataPtr->worldName
-      + "/set_pose";
-  this->dataPtr->node.Request(poseCmdService, req, cb);
 }
 
 /////////////////////////////////////////////////
