@@ -43,6 +43,13 @@ Rectangle {
 
   signal onChange(double _value)
 
+  // Read-only / write
+  property bool writeable: {
+    var isModel = entityType == "model"
+    console.log(entityType, isModel)
+    return isModel || componentInspector.getSimPaused()
+  }
+
   /**
    * Used to create a spin box
    */
@@ -102,7 +109,7 @@ Rectangle {
         id: stateAwareSpinContentLoader
         width: parent.width
         Layout.fillWidth: true
-        sourceComponent: componentInspector.getSimPaused() ? writableNumber : readOnlyNumber
+        sourceComponent: writeable ? writableNumber : readOnlyNumber
       }
     }
   }
