@@ -529,7 +529,7 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
       this->Component<components::ParentLinkName>(_entity);
     if (parentName && origParentComp)
     {
-      // CHangel the case where the parent link name is the world.
+      // Handle the case where the parent link name is the world.
       if (common::lowercase(parentName->Data()) == "world")
       {
         originalParentLink = this->Component<components::ParentEntity>(
@@ -537,8 +537,8 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
       }
       else
       {
-      originalParentLink =
-        this->EntityByComponents<components::Name, components::ParentEntity>(
+        originalParentLink =
+          this->EntityByComponents<components::Name, components::ParentEntity>(
               components::Name(parentName->Data()),
               components::ParentEntity(origParentComp->Data()));
       }
@@ -1997,7 +1997,7 @@ bool EntityComponentManagerPrivate::ClonedJointLinkName(Entity _joint,
 
 
   std::string name;
-  // Handle the case where the link coule have been the world.
+  // Handle the case where the link could have been the world.
   if (_ecm->Component<components::World>(_originalLink) != nullptr)
   {
     // Use the special identifier "world".
