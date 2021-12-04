@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Open Source Robotics Foundation
+ * Copyright (C) 2020 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,58 +15,42 @@
  *
 */
 import QtQuick 2.9
-import QtQuick.Controls 1.4
 import QtQuick.Controls 2.2
-import QtQuick.Controls.Material 2.1
 import QtQuick.Layouts 1.3
-import QtQuick.Controls.Styles 1.4
+import "qrc:/ComponentInspectorEditor"
 
-// Header
 Rectangle {
-  id: header
-  width: parent.width
+  id: stringComponent
   height: typeHeader.height
-  color: "transparent"
-
-  // Horizontal margins
-  property int margin: 5
+  width: componentInspectorEditor.width
+  color: index % 2 == 0 ? lightGrey : darkGrey
 
   // Left indentation
   property int indentation: 10
 
+  // Horizontal margins
+  property int margin: 5
+
   RowLayout {
     anchors.fill: parent
+
     Item {
+      height: parent.height
       width: margin
     }
-    Image {
-      id: icon
-      sourceSize.height: indentation
-      sourceSize.width: indentation
-      fillMode: Image.Pad
-      Layout.alignment : Qt.AlignVCenter
-      source: content.show ?
-          "qrc:/Gazebo/images/minus.png" : "qrc:/Gazebo/images/plus.png"
+
+    Item {
+      height: parent.height
+      width: indentation
     }
+
     TypeHeader {
       id: typeHeader
     }
+
     Item {
+      height: parent.height
       Layout.fillWidth: true
-    }
-  }
-  MouseArea {
-    anchors.fill: parent
-    hoverEnabled: true
-    cursorShape: Qt.PointingHandCursor
-    onClicked: {
-      content.show = !content.show
-    }
-    onEntered: {
-      header.color = highlightColor
-    }
-    onExited: {
-      header.color = "transparent"
     }
   }
 }

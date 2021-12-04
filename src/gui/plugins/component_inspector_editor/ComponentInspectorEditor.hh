@@ -24,8 +24,8 @@
 
 #include <sdf/Material.hh>
 #include <sdf/Physics.hh>
+#include <sdf/Joint.hh>
 
-#include <ignition/math/Pose3.hh>
 #include <ignition/math/Vector3.hh>
 
 #include <ignition/gazebo/components/Component.hh>
@@ -34,13 +34,14 @@
 
 #include <ignition/msgs/light.pb.h>
 
+#include "Types.hh"
 Q_DECLARE_METATYPE(ignition::gazebo::ComponentTypeId)
 
 namespace ignition
 {
 namespace gazebo
 {
-  class ComponentInspectorPrivate;
+  class ComponentInspectorEditorPrivate;
 
   /// \brief Generic function to set data.
   /// \param[in] _item Item whose data will be set.
@@ -62,18 +63,11 @@ namespace gazebo
               << _item->text().toStdString() << "]" << std::endl;
     }
   }
-
   /// \brief Specialized to set string data.
   /// \param[in] _item Item whose data will be set.
   /// \param[in] _data Data to set.
   template<>
   void setData(QStandardItem *_item, const std::string &_data);
-
-  /// \brief Specialized to set pose data.
-  /// \param[in] _item Item whose data will be set.
-  /// \param[in] _data Data to set.
-  template<>
-  void setData(QStandardItem *_item, const math::Pose3d &_data);
 
   /// \brief Specialized to set light data.
   /// \param[in] _item Item whose data will be set.
@@ -173,7 +167,7 @@ namespace gazebo
   ///
   /// ## Configuration
   /// None
-  class ComponentInspector : public gazebo::GuiSystem
+  class ComponentInspectorEditor : public gazebo::GuiSystem
   {
     Q_OBJECT
 
@@ -193,6 +187,14 @@ namespace gazebo
       NOTIFY TypeChanged
     )
 
+    /// \brief Type
+    Q_PROPERTY(
+      QStringList modelLinks
+      READ ModelLinks
+      WRITE SetModelLinks
+      NOTIFY ModelLinksChanged
+    )
+
     /// \brief Locked
     Q_PROPERTY(
       bool locked
@@ -209,6 +211,13 @@ namespace gazebo
       NOTIFY PausedChanged
     )
 
+    /// \brief Simulation paused
+    Q_PROPERTY(
+      bool simPaused
+      READ SimPaused
+      NOTIFY SimPausedChanged
+    )
+
     /// \brief Nested Model
     Q_PROPERTY(
       bool nestedModel
@@ -217,26 +226,16 @@ namespace gazebo
     )
 
     /// \brief Constructor
-    public: ComponentInspector();
+    public: ComponentInspectorEditor();
 
     /// \brief Destructor
-    public: ~ComponentInspector() override;
+    public: ~ComponentInspectorEditor() override;
 
     // Documentation inherited
     public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
     // Documentation inherited
     public: void Update(const UpdateInfo &, EntityComponentManager &) override;
-
-    /// \brief Callback in Qt thread when pose changes.
-    /// \param[in] _x X
-    /// \param[in] _y Y
-    /// \param[in] _z Z
-    /// \param[in] _roll Roll
-    /// \param[in] _pitch Pitch
-    /// \param[in] _yaw Yaw
-    public: Q_INVOKABLE void OnPose(double _x, double _y, double _z,
-        double _roll, double _pitch, double _yaw);
 
     /// \brief Callback in Qt thread when specular changes.
     /// \param[in] _rSpecular specular red
@@ -330,7 +329,7 @@ namespace gazebo
 
     /// \brief Set the entity currently inspected.
     /// \param[in] _entity Entity ID.
-    public: Q_INVOKABLE void SetEntity(const Entity &_entity);
+    public: Q_INVOKABLE void SetEntity(const gazebo::Entity &_entity);
 
     /// \brief Notify that entity has changed.
     signals: void EntityChanged();
@@ -357,6 +356,17 @@ namespace gazebo
     /// \brief Notify that locked has changed.
     signals: void LockedChanged();
 
+    /// \brief Get whether simulation is currently paused.
+    /// \return True for paused.
+    public: Q_INVOKABLE bool SimPaused() const;
+
+    /// \brief Notify that simulation paused state has changed.
+    signals: void SimPausedChanged();
+
+    /// \brief Set whether simulation is currently paused.
+    /// \param[in] _paused True for paused.
+    public: void SetSimPaused(bool _paused);
+
     /// \brief Get whether the inspector is currently paused for updates.
     /// \return True for paused.
     public: Q_INVOKABLE bool Paused() const;
@@ -368,9 +378,56 @@ namespace gazebo
     /// \brief Notify that paused has changed.
     signals: void PausedChanged();
 
+    /// \brief Callback in Qt thread when an entity is to be added
+    /// \param[in] _entity Entity to add, e.g. box, sphere, cylinder, etc
+    /// \param[in] _type Entity type, e.g. link, visual, collision, etc
+    public: Q_INVOKABLE void OnAddEntity(const QString &_entity,
+                const QString &_type);
+
+    /// \brief Callback in Qt thread when a joint is to be added
+    /// \param[in] _jointType Type of joint to add (revolute, fixed, etc)
+    /// \param[in] _parentLink Name of the link to be the parent link
+    /// \param[in] _childLink Name of the link to be the child link
+    public: Q_INVOKABLE void OnAddJoint(const QString &_jointType,
+                const QString &_parentLink,
+                const QString &_childLink);
+
+    /// \brief Return the list of availabe links if a model is selected.
+    /// \return List of available links.
+    public: Q_INVOKABLE QStringList ModelLinks() const;
+
+    /// \brief Set the list of availabe links when a model is selected.
+    /// \param[in] _modelLinks List of available links.
+    public: Q_INVOKABLE void SetModelLinks(const QStringList &_modelLinks);
+
+    /// \brief Notify that locked has changed.
+    signals: void ModelLinksChanged();
+
+    /// \brief Callback to insert a new entity
+    /// \param[in] _entity Entity to add, e.g. box, sphere, cylinder, etc
+    /// \param[in] _type Entity type, e.g. link, visual, collision, etc
+    /// \param[in] _mesh Mesh file to load.
+    public: Q_INVOKABLE void OnLoadMesh(const QString &_entity,
+                const QString &_type, const QString &_mesh);
+
+
+    /// \brief Add a callback that will be executed during the next Update.
+    /// \param[in] _cb The callback to run.
+    public: void AddUpdateCallback(UpdateCallback _cb);
+
+    /// \brief Register a component creator. A component creator is
+    /// responsible for selecting the correct QML and setting the
+    /// appropriate data for a ComponentTypeId.
+    /// \param[in] _id The component type id to associate with the creation
+    /// function.
+    /// \param[in] _creatorFn Function to call in order to create the QML
+    /// component.
+    public: void RegisterComponentCreator(ComponentTypeId _id,
+                ComponentCreator _creatorFn);
+
     /// \internal
     /// \brief Pointer to private data.
-    private: std::unique_ptr<ComponentInspectorPrivate> dataPtr;
+    private: std::unique_ptr<ComponentInspectorEditorPrivate> dataPtr;
   };
 }
 }

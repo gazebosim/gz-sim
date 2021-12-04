@@ -20,14 +20,28 @@ import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
 import QtQuick.Layouts 1.3
 import QtQuick.Controls.Styles 1.4
-import "qrc:/ComponentInspector"
+import "qrc:/ComponentInspectorEditor"
 import "qrc:/qml"
 
 // Item displaying 3D pose information.
 Rectangle {
   height: header.height + content.height
-  width: componentInspector.width
+  width: componentInspectorEditor.width
   color: index % 2 == 0 ? lightGrey : darkGrey
+
+  Connections {
+    target: Pose3dImpl
+    onPoseChanged: {
+      // Update the spinner to show to correct values when the pose component
+      // has changed, such as when a new entity is selected.
+      xSpin.numberValue = model.data[0]
+      ySpin.numberValue = model.data[1]
+      zSpin.numberValue = model.data[2]
+      rollSpin.numberValue = model.data[3]
+      pitchSpin.numberValue = model.data[4]
+      yawSpin.numberValue = model.data[5]
+    }
+  }
 
   // Left indentation
   property int indentation: 10
@@ -38,83 +52,24 @@ Rectangle {
   // Maximum spinbox value
   property double spinMax: 1000000
 
-  // Read-only / write
-  property bool readOnly: {
-    var isModel = entityType == "model"
-    return !(isModel) || nestedModel
-  }
-
   property int iconWidth: 20
   property int iconHeight: 20
 
-  // Loaded item for X
-  property var xItem: {}
-
-  // Loaded item for Y
-  property var yItem: {}
-
-  // Loaded item for Z
-  property var zItem: {}
-
-  // Loaded item for roll
-  property var rollItem: {}
-
-  // Loaded item for pitch
-  property var pitchItem: {}
-
-  // Loaded item for yaw
-  property var yawItem: {}
-
   // Send new pose to C++
-  function sendPose() {
-    // TODO(anyone) There's a loss of precision when these values get to C++
-    componentInspector.onPose(
-      xItem.value,
-      yItem.value,
-      zItem.value,
-      rollItem.value,
-      pitchItem.value,
-      yawItem.value
+  function sendPose(_value) {
+    Pose3dImpl.PoseUpdate(
+      xSpin.numberValue,
+      ySpin.numberValue,
+      zSpin.numberValue,
+      rollSpin.numberValue,
+      pitchSpin.numberValue,
+      yawSpin.numberValue
     );
   }
 
   FontMetrics {
     id: fontMetrics
     font.family: "Roboto"
-  }
-
-  /**
-   * Used to create a spin box
-   */
-  Component {
-    id: writableNumber
-    IgnSpinBox {
-      id: writableSpin
-      value: writableSpin.activeFocus ? writableSpin.value : numberValue
-      minimumValue: -spinMax
-      maximumValue: spinMax
-      decimals: getDecimals(writableSpin.width)
-      onEditingFinished: {
-        sendPose()
-      }
-    }
-  }
-
-  /**
-   * Used to create a read-only number
-   */
-  Component {
-    id: readOnlyNumber
-    Text {
-      id: numberText
-      anchors.fill: parent
-      horizontalAlignment: Text.AlignRight
-      verticalAlignment: Text.AlignVCenter
-      text: {
-        var decimals = getDecimals(numberText.width)
-        return numberValue.toFixed(decimals)
-      }
-    }
   }
 
   Column {
@@ -206,19 +161,18 @@ Rectangle {
             font.pointSize: 12
             anchors.centerIn: parent
           }
-      }
+        }
 
-        Item {
+        StateAwareSpin {
+          id: xSpin
           Layout.fillWidth: true
           height: 40
-          Loader {
-            id: xLoader
-            anchors.fill: parent
-            property double numberValue: model.data[0]
-            sourceComponent: readOnly ? readOnlyNumber : writableNumber
-            onLoaded: {
-              xItem = xLoader.item
-            }
+          numberValue: model.data[0]
+          minValue: -100000
+          maxValue: 100000
+          stepValue: 0.1
+          Component.onCompleted: {
+            xSpin.onChange.connect(sendPose)
           }
         }
 
@@ -245,17 +199,16 @@ Rectangle {
           }
         }
 
-        Item {
+        StateAwareSpin {
+          id: rollSpin
           Layout.fillWidth: true
           height: 40
-          Loader {
-            id: rollLoader
-            anchors.fill: parent
-            property double numberValue: model.data[3]
-            sourceComponent: readOnly ? readOnlyNumber : writableNumber
-            onLoaded: {
-              rollItem = rollLoader.item
-            }
+          numberValue: model.data[3]
+          minValue: -100000
+          maxValue: 100000
+          stepValue: 0.1
+          Component.onCompleted: {
+            rollSpin.onChange.connect(sendPose)
           }
         }
 
@@ -288,17 +241,16 @@ Rectangle {
           }
         }
 
-        Item {
+        StateAwareSpin {
+          id: ySpin
           Layout.fillWidth: true
           height: 40
-          Loader {
-            id: yLoader
-            anchors.fill: parent
-            property double numberValue: model.data[1]
-            sourceComponent: readOnly ? readOnlyNumber : writableNumber
-            onLoaded: {
-              yItem = yLoader.item
-            }
+          numberValue: model.data[1]
+          minValue: -100000
+          maxValue: 100000
+          stepValue: 0.1
+          Component.onCompleted: {
+            ySpin.onChange.connect(sendPose)
           }
         }
 
@@ -324,17 +276,16 @@ Rectangle {
           }
         }
 
-        Item {
+        StateAwareSpin {
+          id: pitchSpin
           Layout.fillWidth: true
           height: 40
-          Loader {
-            id: pitchLoader
-            anchors.fill: parent
-            property double numberValue: model.data[4]
-            sourceComponent: readOnly ? readOnlyNumber : writableNumber
-            onLoaded: {
-              pitchItem = pitchLoader.item
-            }
+          numberValue: model.data[4]
+          minValue: -100000
+          maxValue: 100000
+          stepValue: 0.1
+          Component.onCompleted: {
+            pitchSpin.onChange.connect(sendPose)
           }
         }
 
@@ -360,17 +311,16 @@ Rectangle {
           }
         }
 
-        Item {
+        StateAwareSpin {
+          id: zSpin
           Layout.fillWidth: true
           height: 40
-          Loader {
-            id: zLoader
-            anchors.fill: parent
-            property double numberValue: model.data[2]
-            sourceComponent: readOnly ? readOnlyNumber : writableNumber
-            onLoaded: {
-              zItem = zLoader.item
-            }
+          numberValue: model.data[2] 
+          minValue: -100000
+          maxValue: 100000
+          stepValue: 0.1
+          Component.onCompleted: {
+            zSpin.onChange.connect(sendPose)
           }
         }
 
@@ -396,17 +346,16 @@ Rectangle {
           }
         }
 
-        Item {
+        StateAwareSpin {
+          id: yawSpin
           Layout.fillWidth: true
           height: 40
-          Loader {
-            id: yawLoader
-            anchors.fill: parent
-            property double numberValue: model.data[5]
-            sourceComponent: readOnly ? readOnlyNumber : writableNumber
-            onLoaded: {
-              yawItem = yawLoader.item
-            }
+          numberValue: model.data[5]
+          minValue: -100000
+          maxValue: 100000
+          stepValue: 0.1
+          Component.onCompleted: {
+            yawSpin.onChange.connect(sendPose)
           }
         }
       }

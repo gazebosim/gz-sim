@@ -17,9 +17,13 @@
 
 #include <iostream>
 #include <list>
+#include <map>
 #include <regex>
+#include <vector>
+
 #include <QColorDialog>
 #include <ignition/common/Console.hh>
+#include <ignition/common/MeshManager.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
@@ -57,7 +61,7 @@
 #include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
 #include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/PoseCmd.hh"
+#include "ignition/gazebo/components/Recreate.hh"
 #include "ignition/gazebo/components/RenderEngineGuiPlugin.hh"
 #include "ignition/gazebo/components/RenderEngineServerPlugin.hh"
 #include "ignition/gazebo/components/SelfCollide.hh"
@@ -73,12 +77,21 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
+#include "ignition/gazebo/Util.hh"
 
-#include "ComponentInspector.hh"
+#include "AirPressure.hh"
+#include "Altimeter.hh"
+#include "ComponentInspectorEditor.hh"
+#include "Imu.hh"
+#include "JointType.hh"
+#include "Lidar.hh"
+#include "Magnetometer.hh"
+#include "ModelEditor.hh"
+#include "Pose3d.hh"
 
 namespace ignition::gazebo
 {
-  class ComponentInspectorPrivate
+  class ComponentInspectorEditorPrivate
   {
     /// \brief Model holding all the current components.
     public: ComponentsModel componentsModel;
@@ -101,38 +114,56 @@ namespace ignition::gazebo
     /// \brief Nested model or not
     public: bool nestedModel = false;
 
+    /// \brief If a model, keep track of available links
+    public: QStringList modelLinks = {};
+
     /// \brief Whether currently locked on a given entity
     public: bool locked{false};
 
     /// \brief Whether updates are currently paused.
     public: bool paused{false};
 
+    /// \brief Whether simulation is currently paused.
+    public: bool simPaused{true};
+
     /// \brief Transport node for making command requests
     public: transport::Node node;
+
+    /// \brief Transport node for making command requests
+    public: ModelEditor modelEditor;
+
+    /// \brief Air pressure sensor inspector elements
+    public: std::unique_ptr<ignition::gazebo::AirPressure> airPressure;
+
+    /// \brief Altimeter sensor inspector elements
+    public: std::unique_ptr<ignition::gazebo::Altimeter> altimeter;
+
+    /// \brief Imu inspector elements
+    public: std::unique_ptr<ignition::gazebo::Imu> imu;
+
+    /// \brief Joint inspector elements
+    public: std::unique_ptr<ignition::gazebo::JointType> joint;
+
+    /// \brief Lidar inspector elements
+    public: std::unique_ptr<ignition::gazebo::Lidar> lidar;
+
+    /// \brief Magnetometer inspector elements
+    public: std::unique_ptr<ignition::gazebo::Magnetometer> magnetometer;
+
+    /// \brief Pose inspector elements
+    public: std::unique_ptr<ignition::gazebo::Pose3d> pose3d;
+
+    /// \brief Set of callbacks to execute during the Update function.
+    public: std::vector<
+            std::function<void(EntityComponentManager &)>> updateCallbacks;
+
+    /// \brief A map of component type to creation functions.
+    public: std::map<ComponentTypeId, ComponentCreator> componentCreators;
   };
 }
 
 using namespace ignition;
 using namespace gazebo;
-
-//////////////////////////////////////////////////
-template<>
-void ignition::gazebo::setData(QStandardItem *_item, const math::Pose3d &_data)
-{
-  if (nullptr == _item)
-    return;
-
-  _item->setData(QString("Pose3d"),
-      ComponentsModel::RoleNames().key("dataType"));
-  _item->setData(QList({
-    QVariant(_data.Pos().X()),
-    QVariant(_data.Pos().Y()),
-    QVariant(_data.Pos().Z()),
-    QVariant(_data.Rot().Roll()),
-    QVariant(_data.Rot().Pitch()),
-    QVariant(_data.Rot().Yaw())
-  }), ComponentsModel::RoleNames().key("data"));
-}
 
 //////////////////////////////////////////////////
 template<>
@@ -432,18 +463,18 @@ QHash<int, QByteArray> ComponentsModel::RoleNames()
 }
 
 /////////////////////////////////////////////////
-ComponentInspector::ComponentInspector()
-  : GuiSystem(), dataPtr(std::make_unique<ComponentInspectorPrivate>())
+ComponentInspectorEditor::ComponentInspectorEditor()
+  : GuiSystem(), dataPtr(std::make_unique<ComponentInspectorEditorPrivate>())
 {
   qRegisterMetaType<ignition::gazebo::ComponentTypeId>();
   qRegisterMetaType<Entity>("Entity");
 }
 
 /////////////////////////////////////////////////
-ComponentInspector::~ComponentInspector() = default;
+ComponentInspectorEditor::~ComponentInspectorEditor() = default;
 
 /////////////////////////////////////////////////
-void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
+void ComponentInspectorEditor::LoadConfig(const tinyxml2::XMLElement *)
 {
   if (this->title.empty())
     this->title = "Component inspector";
@@ -454,16 +485,38 @@ void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
   // Connect model
   this->Context()->setContextProperty(
       "ComponentsModel", &this->dataPtr->componentsModel);
+
+  this->dataPtr->modelEditor.Load();
+
+  // Create air pressure
+  this->dataPtr->airPressure = std::make_unique<AirPressure>(this);
+
+  // Create altimeter
+  this->dataPtr->altimeter = std::make_unique<Altimeter>(this);
+
+  // Create the imu
+  this->dataPtr->imu = std::make_unique<Imu>(this);
+
+  // Create the joint
+  this->dataPtr->joint = std::make_unique<JointType>(this);
+
+  // Create the lidar
+  this->dataPtr->lidar = std::make_unique<Lidar>(this);
+
+  // Create the magnetometer
+  this->dataPtr->magnetometer = std::make_unique<Magnetometer>(this);
+
+  // Create the pose3d
+  this->dataPtr->pose3d = std::make_unique<Pose3d>(this);
 }
 
 //////////////////////////////////////////////////
-void ComponentInspector::Update(const UpdateInfo &,
+void ComponentInspectorEditor::Update(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ComponentInspector::Update");
+  IGN_PROFILE("ComponentInspectorEditor::Update");
 
-  if (this->dataPtr->paused)
-    return;
+  this->SetSimPaused(_info.paused);
 
   auto componentTypes = _ecm.ComponentTypes(this->dataPtr->entity);
 
@@ -492,6 +545,25 @@ void ComponentInspector::Update(const UpdateInfo &,
       }
       this->NestedModelChanged();
 
+      // Get available links for the model.
+      this->dataPtr->modelLinks.clear();
+      this->dataPtr->modelLinks.append("world");
+      _ecm.EachNoCache<
+        components::Name,
+        components::Link,
+        components::ParentEntity>([&](const ignition::gazebo::Entity &,
+              const components::Name *_name,
+              const components::Link *,
+              const components::ParentEntity *_parent) -> bool
+            {
+              if (_parent->Data() == this->dataPtr->entity)
+              {
+                this->dataPtr->modelLinks.push_back(
+                    QString::fromStdString(_name->Data()));
+              }
+              return true;
+            });
+      this->ModelLinksChanged();
       continue;
     }
 
@@ -737,12 +809,6 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, comp->Data());
     }
-    else if (typeId == components::Pose::typeId)
-    {
-      auto comp = _ecm.Component<components::Pose>(this->dataPtr->entity);
-      if (comp)
-        setData(item, comp->Data());
-    }
     else if (typeId == components::RenderEngineGuiPlugin::typeId)
     {
       auto comp = _ecm.Component<components::RenderEngineGuiPlugin>(
@@ -870,13 +936,6 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, comp->Data());
     }
-    else if (typeId == components::WorldPoseCmd::typeId)
-    {
-      auto comp = _ecm.Component<components::WorldPoseCmd>(
-          this->dataPtr->entity);
-      if (comp)
-        setData(item, comp->Data());
-    }
     else if (typeId == components::Material::typeId)
     {
       auto comp = _ecm.Component<components::Material>(this->dataPtr->entity);
@@ -885,6 +944,12 @@ void ComponentInspector::Update(const UpdateInfo &,
         this->SetType("material");
         setData(item, comp->Data());
       }
+    }
+    else if (this->dataPtr->componentCreators.find(typeId) !=
+          this->dataPtr->componentCreators.end())
+    {
+      this->dataPtr->componentCreators[typeId](
+          _ecm, this->dataPtr->entity, item);
     }
   }
 
@@ -907,10 +972,30 @@ void ComponentInspector::Update(const UpdateInfo &,
         Qt::QueuedConnection,
         Q_ARG(ignition::gazebo::ComponentTypeId, typeId));
   }
+
+  this->dataPtr->modelEditor.Update(_info, _ecm);
+
+  // Process all of the update callbacks
+  for (auto cb : this->dataPtr->updateCallbacks)
+    cb(_ecm);
+  this->dataPtr->updateCallbacks.clear();
 }
 
 /////////////////////////////////////////////////
-bool ComponentInspector::eventFilter(QObject *_obj, QEvent *_event)
+void ComponentInspectorEditor::AddUpdateCallback(UpdateCallback _cb)
+{
+  this->dataPtr->updateCallbacks.push_back(_cb);
+}
+
+/////////////////////////////////////////////////
+void ComponentInspectorEditor::RegisterComponentCreator(ComponentTypeId _id,
+    ComponentCreator _creatorFn)
+{
+  this->dataPtr->componentCreators[_id] = _creatorFn;
+}
+
+/////////////////////////////////////////////////
+bool ComponentInspectorEditor::eventFilter(QObject *_obj, QEvent *_event)
 {
   if (!this->dataPtr->locked)
   {
@@ -939,13 +1024,13 @@ bool ComponentInspector::eventFilter(QObject *_obj, QEvent *_event)
 }
 
 /////////////////////////////////////////////////
-Entity ComponentInspector::GetEntity() const
+Entity ComponentInspectorEditor::GetEntity() const
 {
   return this->dataPtr->entity;
 }
 
 /////////////////////////////////////////////////
-void ComponentInspector::SetEntity(const Entity &_entity)
+void ComponentInspectorEditor::SetEntity(const gazebo::Entity &_entity)
 {
   // If nothing is selected, display world properties
   if (_entity == kNullEntity)
@@ -960,66 +1045,62 @@ void ComponentInspector::SetEntity(const Entity &_entity)
 }
 
 /////////////////////////////////////////////////
-QString ComponentInspector::Type() const
+QString ComponentInspectorEditor::Type() const
 {
   return this->dataPtr->type;
 }
 
 /////////////////////////////////////////////////
-void ComponentInspector::SetType(const QString &_type)
+void ComponentInspectorEditor::SetType(const QString &_type)
 {
   this->dataPtr->type = _type;
   this->TypeChanged();
 }
 
 /////////////////////////////////////////////////
-bool ComponentInspector::Locked() const
+bool ComponentInspectorEditor::Locked() const
 {
   return this->dataPtr->locked;
 }
 
 /////////////////////////////////////////////////
-void ComponentInspector::SetLocked(bool _locked)
+void ComponentInspectorEditor::SetLocked(bool _locked)
 {
   this->dataPtr->locked = _locked;
   this->LockedChanged();
 }
 
 /////////////////////////////////////////////////
-bool ComponentInspector::Paused() const
+bool ComponentInspectorEditor::SimPaused() const
+{
+  return this->dataPtr->simPaused;
+}
+
+/////////////////////////////////////////////////
+void ComponentInspectorEditor::SetSimPaused(bool _paused)
+{
+  if (_paused != this->dataPtr->simPaused)
+  {
+    this->dataPtr->simPaused = _paused;
+    this->SimPausedChanged();
+  }
+}
+
+/////////////////////////////////////////////////
+bool ComponentInspectorEditor::Paused() const
 {
   return this->dataPtr->paused;
 }
 
 /////////////////////////////////////////////////
-void ComponentInspector::SetPaused(bool _paused)
+void ComponentInspectorEditor::SetPaused(bool _paused)
 {
   this->dataPtr->paused = _paused;
   this->PausedChanged();
 }
 
 /////////////////////////////////////////////////
-void ComponentInspector::OnPose(double _x, double _y, double _z, double _roll,
-    double _pitch, double _yaw)
-{
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
-  {
-    if (!_result)
-        ignerr << "Error setting pose" << std::endl;
-  };
-
-  ignition::msgs::Pose req;
-  req.set_id(this->dataPtr->entity);
-  msgs::Set(req.mutable_position(), math::Vector3d(_x, _y, _z));
-  msgs::Set(req.mutable_orientation(), math::Quaterniond(_roll, _pitch, _yaw));
-  auto poseCmdService = "/world/" + this->dataPtr->worldName
-      + "/set_pose";
-  this->dataPtr->node.Request(poseCmdService, req, cb);
-}
-
-/////////////////////////////////////////////////
-void ComponentInspector::OnLight(
+void ComponentInspectorEditor::OnLight(
   double _rSpecular, double _gSpecular, double _bSpecular, double _aSpecular,
   double _rDiffuse, double _gDiffuse, double _bDiffuse, double _aDiffuse,
   double _attRange, double _attLinear, double _attConstant,
@@ -1080,7 +1161,7 @@ void ComponentInspector::OnLight(
 }
 
 /////////////////////////////////////////////////
-void ComponentInspector::OnPhysics(double _stepSize, double _realTimeFactor)
+void ComponentInspectorEditor::OnPhysics(double _stepSize, double _realTimeFactor)
 {
   std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
       [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
@@ -1104,7 +1185,7 @@ void ComponentInspector::OnPhysics(double _stepSize, double _realTimeFactor)
 }
 
 /////////////////////////////////////////////////
-void ComponentInspector::OnMaterialColor(
+void ComponentInspectorEditor::OnMaterialColor(
   double _rAmbient, double _gAmbient, double _bAmbient, double _aAmbient,
   double _rDiffuse, double _gDiffuse, double _bDiffuse, double _aDiffuse,
   double _rSpecular, double _gSpecular, double _bSpecular, double _aSpecular,
@@ -1194,7 +1275,7 @@ void ComponentInspector::OnMaterialColor(
 }
 
 /////////////////////////////////////////////////
-void ComponentInspector::OnSphericalCoordinates(QString _surface,
+void ComponentInspectorEditor::OnSphericalCoordinates(QString _surface,
     double _latitude, double _longitude, double _elevation,
     double _heading)
 {
@@ -1232,11 +1313,82 @@ void ComponentInspector::OnSphericalCoordinates(QString _surface,
 }
 
 /////////////////////////////////////////////////
-bool ComponentInspector::NestedModel() const
+bool ComponentInspectorEditor::NestedModel() const
 {
   return this->dataPtr->nestedModel;
 }
 
+/////////////////////////////////////////////////
+void ComponentInspectorEditor::SetModelLinks(const QStringList &_modelLinks)
+{
+  this->dataPtr->modelLinks = _modelLinks;
+  this->ModelLinksChanged();
+}
+
+/////////////////////////////////////////////////
+QStringList ComponentInspectorEditor::ModelLinks() const
+{
+  return this->dataPtr->modelLinks;
+}
+
+/////////////////////////////////////////////////
+void ComponentInspectorEditor::OnAddEntity(const QString &_entity,
+    const QString &_type)
+{
+  // currently just assumes parent is the model
+  // todo(anyone) support adding visuals / collisions / sensors to links
+  ignition::gazebo::gui::events::ModelEditorAddEntity addEntityEvent(
+      _entity, _type, this->dataPtr->entity);
+
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      &addEntityEvent);
+}
+
+/////////////////////////////////////////////////
+void ComponentInspectorEditor::OnAddJoint(const QString &_jointType,
+                                    const QString &_parentLink,
+                                    const QString &_childLink)
+{
+  ignition::gazebo::gui::events::ModelEditorAddEntity addEntityEvent(
+      _jointType, "joint", this->dataPtr->entity);
+
+  addEntityEvent.Data().insert("parent_link", _parentLink);
+  addEntityEvent.Data().insert("child_link", _childLink);
+
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      &addEntityEvent);
+}
+
+/////////////////////////////////////////////////
+void ComponentInspectorEditor::OnLoadMesh(const QString &_entity,
+    const QString &_type, const QString &_mesh)
+{
+  std::string meshStr = _mesh.toStdString();
+  if (QUrl(_mesh).isLocalFile())
+  {
+    // mesh to sdf model
+    common::rtrim(meshStr);
+
+    if (!common::MeshManager::Instance()->IsValidFilename(meshStr))
+    {
+      QString errTxt = QString::fromStdString("Invalid URI: " + meshStr +
+        "\nOnly mesh file types DAE, OBJ, and STL are supported.");
+      return;
+    }
+
+    ignition::gazebo::gui::events::ModelEditorAddEntity addEntityEvent(
+        _entity, _type, this->dataPtr->entity);
+
+    addEntityEvent.Data().insert("uri", QString(meshStr.c_str()));
+
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        &addEntityEvent);
+  }
+}
+
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::ComponentInspector,
+IGNITION_ADD_PLUGIN(ignition::gazebo::ComponentInspectorEditor,
                     ignition::gui::Plugin)

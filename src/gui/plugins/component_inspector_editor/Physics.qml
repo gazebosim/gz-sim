@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Open Source Robotics Foundation
+ * Copyright (C) 2021 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,66 +18,72 @@ import QtQuick 2.9
 import QtQuick.Controls 1.4
 import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
+import QtQuick.Dialogs 1.0
 import QtQuick.Layouts 1.3
 import QtQuick.Controls.Styles 1.4
-import "qrc:/ComponentInspector"
+import "qrc:/ComponentInspectorEditor"
 import "qrc:/qml"
 
-// Item displaying 3D vector information.
+// Item displaying physics information.
 Rectangle {
   height: header.height + content.height
-  width: componentInspector.width
+  width: componentInspectorEditor.width
   color: index % 2 == 0 ? lightGrey : darkGrey
 
   // Left indentation
   property int indentation: 10
 
-  // icon size
-  property int iconWidth: 20
-  property int iconHeight: 20
+  // Minimum parameter value, step size and RTF must be strictly positive
+  property double minPhysParam: 0.000001
+
+  // Maximum parameter value
+  property double maxPhysParam: 100000
 
   // Horizontal margins
   property int margin: 5
 
-  // Maximum spinbox value
-  property double spinMax: 1000000
+  property int iconWidth: 20
+  property int iconHeight: 20
 
-  // Units, defaults to meters.
-  property string unit: model && model.unit != undefined ? model.unit : 'm'
+  // Loaded item for physics step size
+  property var stepSizeItem: {}
 
-  // Readn-only / write
-  property bool readOnly: true
+  // Loaded item for real time factor
+  property var realTimeFactorItem: {}
+
+  // Send new physics data to C++
+  function sendPhysics() {
+    // TODO(anyone) There's a loss of precision when these values get to C++
+    componentInspectorEditor.onPhysics(
+      stepSizeItem.value,
+      realTimeFactorItem.value
+    );
+  }
+
+  FontMetrics {
+    id: fontMetrics
+    font.family: "Roboto"
+  }
 
   /**
    * Used to create a spin box
    */
+
   Component {
-    id: writableNumber
+    id: writablePositiveNumber
     IgnSpinBox {
       id: writableSpin
-      value: numberValue
-      minimumValue: -spinMax
-      maximumValue: spinMax
-      decimals: getDecimals(writableSpin.width)
-    }
-  }
-
-  /**
-   * Used to create a read-only number
-   */
-  Component {
-    id: readOnlyNumber
-    Text {
-      id: numberText
-      anchors.fill: parent
-      horizontalAlignment: Text.AlignRight
-      verticalAlignment: Text.AlignVCenter
-      text: {
-        var decimals = getDecimals(numberText.width)
-        return numberValue.toFixed(decimals)
+      value: writableSpin.activeFocus ? writableSpin.value : numberValue
+      minimumValue: minPhysParam
+      maximumValue: maxPhysParam
+      decimals: 6
+      stepSize: 0.001
+      onEditingFinished: {
+        sendPhysics()
       }
     }
   }
+
   Component {
     id: plotIcon
     Image {
@@ -136,7 +142,7 @@ Rectangle {
       GridLayout {
         id: grid
         width: parent.width
-        columns: 4
+        columns: 3
 
         // Left spacer
         Item {
@@ -147,19 +153,19 @@ Rectangle {
         Rectangle {
           color: "transparent"
           height: 40
-          Layout.preferredWidth: xText.width + indentation*3
+          Layout.preferredWidth: stepSizeText.width + indentation*3
           Loader {
-            id: loaderX
+            id: loaderStepSize
             width: iconWidth
             height: iconHeight
             y:10
             sourceComponent: plotIcon
           }
-          Component.onCompleted: loaderX.item.componentInfo = "x"
+          Component.onCompleted: loaderStepSize.item.componentInfo = "stepSize"
 
           Text {
-            id: xText
-            text: ' X (' + unit + ')'
+            id : stepSizeText
+            text: ' Step Size (s)'
             leftPadding: 5
             color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
             font.pointSize: 12
@@ -170,79 +176,48 @@ Rectangle {
           Layout.fillWidth: true
           height: 40
           Loader {
+            id: stepSizeLoader
             anchors.fill: parent
             property double numberValue: model.data[0]
-            sourceComponent: readOnly ? readOnlyNumber : writableNumber
+            sourceComponent: writablePositiveNumber
+            onLoaded: {
+              stepSizeItem = stepSizeLoader.item
+            }
           }
         }
-
-        // Right spacer
-        Item {
-          Layout.rowSpan: 3
-          width: margin + indentation
-        }
-
         Rectangle {
           color: "transparent"
           height: 40
-          Layout.preferredWidth: xText.width + indentation*3
+          Layout.preferredWidth: realTimeFactorText.width + indentation*3
           Loader {
-            id: loaderY
+            id: loaderRealTimeFactor
             width: iconWidth
             height: iconHeight
             y:10
             sourceComponent: plotIcon
           }
-          Component.onCompleted: loaderY.item.componentInfo = "y"
+          Component.onCompleted: loaderRealTimeFactor.item.componentInfo = "realTimeFactor"
 
           Text {
-            text: ' Y (' + unit + ')'
+            id : realTimeFactorText
+            text: ' Real time factor'
             leftPadding: 5
             color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
             font.pointSize: 12
             anchors.centerIn: parent
           }
         }
-
         Item {
           Layout.fillWidth: true
           height: 40
           Loader {
+            id: realTimeFactorLoader
             anchors.fill: parent
             property double numberValue: model.data[1]
-            sourceComponent: readOnly ? readOnlyNumber : writableNumber
-          }
-        }
-
-        Rectangle {
-          color: "transparent"
-          height: 40
-          Layout.preferredWidth: xText.width + indentation*3
-          Loader {
-            id: loaderZ
-            width: iconWidth
-            height: iconHeight
-            y:10
-            sourceComponent: plotIcon
-          }
-          Component.onCompleted: loaderZ.item.componentInfo = "z"
-
-          Text {
-            text: ' Z (' + unit + ')'
-            leftPadding: 5
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            font.pointSize: 12
-            anchors.centerIn: parent
-          }
-        }
-
-        Item {
-          Layout.fillWidth: true
-          height: 40
-          Loader {
-            anchors.fill: parent
-            property double numberValue: model.data[2]
-            sourceComponent: readOnly ? readOnlyNumber : writableNumber
+            sourceComponent: writablePositiveNumber
+            onLoaded: {
+              realTimeFactorItem = realTimeFactorLoader.item
+            }
           }
         }
       }

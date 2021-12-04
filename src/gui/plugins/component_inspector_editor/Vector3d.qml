@@ -20,13 +20,13 @@ import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
 import QtQuick.Layouts 1.3
 import QtQuick.Controls.Styles 1.4
-import "qrc:/ComponentInspector"
+import "qrc:/ComponentInspectorEditor"
 import "qrc:/qml"
 
 // Item displaying 3D vector information.
 Rectangle {
   height: header.height + content.height
-  width: componentInspector.width
+  width: componentInspectorEditor.width
   color: index % 2 == 0 ? lightGrey : darkGrey
 
   // Left indentation
@@ -58,7 +58,7 @@ Rectangle {
       value: numberValue
       minimumValue: -spinMax
       maximumValue: spinMax
-      decimals: getDecimals(writableSpin.width)
+      decimals: getDecimalsAdjustValue(writableSpin, numberValue)
     }
   }
 
