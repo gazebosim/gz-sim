@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 # joystick currently works only on linux
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-  find_package(ignition-transport11 QUIET REQUIRED OPTIONAL_COMPONENTS log)
-  set(IGN_TRANSPORT_VER ${ignition-transport11_VERSION_MAJOR})
+  find_package(ignition-transport12 QUIET REQUIRED OPTIONAL_COMPONENTS log)
+  set(IGN_TRANSPORT_VER ${ignition-transport12_VERSION_MAJOR})
 
   find_package(sdformat12 REQUIRED)
   set(SDF_VER ${sdformat12_VERSION_MAJOR})
