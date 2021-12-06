@@ -26,7 +26,7 @@ import "qrc:/qml"
 // Item displaying joint type information.
 Rectangle {
   id: jointTypeComponent
-  height: jointType.height
+  height: typeHeader.height
   width: componentInspectorEditor.width
   color: index % 2 == 0 ? lightGrey : darkGrey
 
@@ -73,11 +73,21 @@ Rectangle {
 
     Item {
       height: parent.height
-      width: margin + indentation
+      width: margin
+    }
+
+    Item {
+      height: parent.height
+      width: indentation
     }
 
     TypeHeader {
       id: typeHeader
+    }
+
+    Item {
+      height: parent.height
+      Layout.fillWidth: true
     }
 
     QtObject{
@@ -93,15 +103,21 @@ Rectangle {
       model: jointTypes
       currentIndex: indexObj.index
       Layout.alignment: Qt.AlignRight
+      font.pointSize: 12
       background: Rectangle {
         color: "transparent"
         implicitWidth: 140
-        implicitHeight: 20
+        implicitHeight: typeHeader.height
       }
       enabled: componentInspectorEditor.getSimPaused()
       onActivated: {
         JointTypeImpl.OnJointType(currentText)
       }
+    }
+
+    Item {
+      height: parent.height
+      width: margin
     }
   }
 }
