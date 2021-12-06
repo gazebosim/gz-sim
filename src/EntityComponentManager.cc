@@ -558,6 +558,13 @@ void EntityComponentManager::ClearNewlyCreatedEntities()
 }
 
 /////////////////////////////////////////////////
+bool EntityComponentManager::HasRemovedComponents() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->removedComponentsMutex);
+  return !this->dataPtr->removedComponents.empty();
+}
+
+/////////////////////////////////////////////////
 void EntityComponentManager::ClearRemovedComponents()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->removedComponentsMutex);
