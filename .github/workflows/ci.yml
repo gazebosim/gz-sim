@@ -23,3 +23,6 @@ jobs:
       - name: Compile and test
         id: ci
         uses: ignition-tooling/action-ignition-ci@focal
+        with:
+          cpplint-enabled: true
+          cppcheck-enabled: true
