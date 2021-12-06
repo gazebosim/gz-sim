@@ -316,8 +316,8 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     {
       _manager.State(*this->dataPtr->stepMsg.mutable_state(), {}, {}, true);
     }
-    // Otherwise publish just periodic change components
-    else
+    // Otherwise publish just periodic change components when running
+    else if (!_info.paused)
     {
       IGN_PROFILE("SceneBroadcast::PostUpdate UpdateState");
       auto periodicComponents = _manager.ComponentTypesWithPeriodicChanges();
