@@ -33,6 +33,7 @@
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointVelocity.hh"
 #include "ignition/gazebo/components/SlipComplianceCmd.hh"
+#include "ignition/gazebo/components/WheelSlipCmd.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -242,9 +243,24 @@ bool WheelSlipPrivate::Load(const EntityComponentManager &_ecm,
 /////////////////////////////////////////////////
 void WheelSlipPrivate::Update(EntityComponentManager &_ecm)
 {
-  for (const auto &linkSurface : this->mapLinkSurfaceParams)
+  for (auto &linkSurface : this->mapLinkSurfaceParams)
   {
-    const auto &params = linkSurface.second;
+    auto &params = linkSurface.second;
+    const auto * wheelSlipCmdComp =
+      _ecm.Component<components::WheelSlipCmd>(linkSurface.first);
+    if (wheelSlipCmdComp) {
+      const auto & wheelSlipCmdParams = wheelSlipCmdComp->Data();
+      bool changed = math::equal(
+          params.slipComplianceLateral, wheelSlipCmdParams.slip_compliance_lateral(), 1e-6) &&
+        math::equal(
+          params.slipComplianceLongitudinal, wheelSlipCmdParams.slip_compliance_longitudinal(), 1e-6);
+
+      if (changed) {
+        _ecm.RemoveComponent<components::WheelSlipCmd>(linkSurface.first);
+        params.slipComplianceLateral = wheelSlipCmdParams.slip_compliance_lateral();
+        params.slipComplianceLongitudinal = wheelSlipCmdParams.slip_compliance_longitudinal();
+      }
+    }
 
     // get user-defined normal force constant
     double force = params.wheelNormalForce;

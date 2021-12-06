@@ -1487,26 +1487,59 @@ bool WheelSlipCommand::Execute()
     return false;
   }
 
-  if (wheelSlipMsg->id() == kNullEntity)
+  Entity wheelSlipEntity{wheelSlipMsg->id()};
+
+  if (kNullEntity == wheelSlipEntity && !wheelSlipMsg->name().empty())
   {
-    ignerr << "Failed to find wheel entity" << std::endl;
+    Entity wheelSlipParentEntity{wheelSlipMsg->parent_id()};
+    if (kNullEntity != wheelSlipParentEntity)
+    {
+      wheelSlipEntity = this->iface->ecm->EntityByComponents(
+        components::Name(wheelSlipMsg->name()),
+        components::ParentEntity(wheelSlipParentEntity));
+    }
+    else if (!wheelSlipMsg->parent_name().empty())
+    {
+      auto possible_parents = this->iface->ecm->EntitiesByComponents(
+        components::Name(wheelSlipMsg->parent_name()));
+      for (const auto possible_parent : possible_parents)
+      {
+        wheelSlipEntity = this->iface->ecm->EntityByComponents(
+          components::Name(wheelSlipMsg->name()),
+          components::ParentEntity(possible_parent));
+        if (kNullEntity != wheelSlipEntity) {
+          break;
+        }
+      }
+    }
+    else
+    {
+      wheelSlipEntity = this->iface->ecm->EntityByComponents(
+        components::Name(wheelSlipMsg->name()));
+    }
+  }
+  if (kNullEntity == wheelSlipEntity)
+  {
+    ignerr << "Failed to find wheel slip with name [" << wheelSlipMsg->name()
+           << "], ID [" << wheelSlipMsg->id() << "], parent ID ["
+           << wheelSlipMsg->parent_id() << "] and parent name ["
+           << wheelSlipMsg->parent_name() << "]." << std::endl;
     return false;
   }
 
-  Entity wheelSlipCmdEntity = wheelSlipMsg->id();
   auto wheelSlipCmdComp =
-      this->iface->ecm->Component<components::WheelSlipCmd>(wheelSlipCmdEntity);
+      this->iface->ecm->Component<components::WheelSlipCmd>(wheelSlipEntity);
   if (!wheelSlipCmdComp)
   {
     this->iface->ecm->CreateComponent(
-        wheelSlipCmdEntity, components::WheelSlipCmd(*wheelSlipMsg));
+        wheelSlipEntity, components::WheelSlipCmd(*wheelSlipMsg));
   }
   else
   {
     auto state = wheelSlipCmdComp->SetData(*wheelSlipMsg, this->wheelSlipEql) ?
         ComponentState::OneTimeChange : ComponentState::NoChange;
     this->iface->ecm->SetChanged(
-        wheelSlipCmdEntity, components::WheelSlipCmd::typeId, state);
+        wheelSlipEntity, components::WheelSlipCmd::typeId, state);
   }
   return true;
 }
