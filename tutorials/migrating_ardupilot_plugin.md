@@ -755,10 +755,10 @@ find_package(sdformat12 REQUIRED)
 find_package(ignition-common4-all REQUIRED)
 find_package(ignition-gazebo7-all REQUIRED)
 find_package(ignition-math6-all REQUIRED)
-find_package(ignition-msgs8-all REQUIRED)
+find_package(ignition-msgs9-all REQUIRED)
 find_package(ignition-physics5-all REQUIRED)
 find_package(ignition-sensors7-all REQUIRED)
-find_package(ignition-transport11-all REQUIRED)
+find_package(ignition-transport12-all REQUIRED)
 ```
 
 In the old code we need only refer to the build configuration retrieved from the Gazebo package:
