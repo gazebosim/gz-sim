@@ -96,8 +96,7 @@ Rectangle {
       background: Rectangle {
         color: "transparent"
         implicitWidth: 140
-        border.width: 1
-        border.color: "#dedede"
+        implicitHeight: 20
       }
       enabled: componentInspectorEditor.getSimPaused()
       onActivated: {
