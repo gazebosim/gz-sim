@@ -1292,7 +1292,7 @@ void SimulationRunner::ProcessRecreateEntitiesRemove()
   IGN_PROFILE("SimulationRunner::ProcessRecreateEntitiesRemove");
 
   // store the original entities to recreate and put in request to remove them
-  this->entityCompMgr.Each<components::Model,
+  this->entityCompMgr.EachNoCache<components::Model,
                            components::Recreate>(
       [&](const Entity &_entity,
           const components::Model *,
