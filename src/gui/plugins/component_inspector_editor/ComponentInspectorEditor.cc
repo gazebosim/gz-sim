@@ -1161,7 +1161,8 @@ void ComponentInspectorEditor::OnLight(
 }
 
 /////////////////////////////////////////////////
-void ComponentInspectorEditor::OnPhysics(double _stepSize, double _realTimeFactor)
+void ComponentInspectorEditor::OnPhysics(double _stepSize,
+    double _realTimeFactor)
 {
   std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
       [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
