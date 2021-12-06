@@ -24,6 +24,10 @@
       filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
+    <plugin
+      filename='ignition-gazebo-sensors-system'
+      name='ignition::gazebo::systems::Sensors'>
+    </plugin>
 
     <light type="directional" name="sun">
       <cast_shadows>true</cast_shadows>

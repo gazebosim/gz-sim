@@ -57,7 +57,7 @@ TEST_F(BuoyancyTest, UniformWorldMovement)
   using namespace std::chrono_literals;
   server.SetUpdatePeriod(1ns);
 
-  std::size_t iterations = 1001;
+  std::size_t iterations = 1000;
 
   bool finished = false;
   test::Relay testSystem;
