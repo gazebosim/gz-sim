@@ -78,7 +78,7 @@ namespace ignition
       }
 
       /// \brief Constructor
-      /// \param[in] _rpy euler angles
+      /// \param[in] _rpy euler angles, in radians
       public: explicit Quaternion(const Vector3<T> &_rpy)
       {
         this->Euler(_rpy);
