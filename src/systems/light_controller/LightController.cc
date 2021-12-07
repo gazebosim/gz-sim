@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2021 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ class ignition::gazebo::systems::LightControllerPrivate
         _a.type() == _b.type() &&
         _a.name() == _b.name() &&
         math::equal(
-           _a.diffuse().a(), _b.diffuse().a(), 1e-6f) &&
+          _a.diffuse().a(), _b.diffuse().a(), 1e-6f) &&
         math::equal(
           _a.diffuse().r(), _b.diffuse().r(), 1e-6f) &&
         math::equal(
@@ -284,8 +284,6 @@ void LightControllerPrivate::LightCallback(
       }
     }
   }
-
-
 
   this->isUpdateRequired = true;
 }

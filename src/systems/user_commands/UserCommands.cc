@@ -310,6 +310,8 @@ class ignition::gazebo::systems::UserCommandsPrivate
   /// \return True if successful.
   public: bool LightService(const msgs::Light &_req, msgs::Boolean &_res);
 
+  /// \brief Callback for light subscription
+  /// \param[in] _msg Light message
   public: void OnCmdLight(const msgs::Light &_msg);
 
   /// \brief Callback for pose service
