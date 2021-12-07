@@ -78,6 +78,15 @@ Rectangle {
     return _model.dataType + '.qml'
   }
 
+  // Get number of decimal digits based on a widget's width
+  function getDecimals(_width) {
+    if (_width <= 80)
+      return 2;
+    else if (_width <= 100)
+      return 4;
+    return 6;
+  }
+
   /**
    * Forward pose changes to C++
    */
@@ -105,6 +114,30 @@ Rectangle {
    */
   function onPhysics(_stepSize, _realTimeFactor) {
     ComponentInspector.OnPhysics(_stepSize, _realTimeFactor)
+  }
+
+  /**
+   * Forward material color changes to C++
+   */
+  function onMaterialColor(_rAmbient, _gAmbient, _bAmbient, _aAmbient,
+                           _rDiffuse, _gDiffuse, _bDiffuse, _aDiffuse,
+                           _rSpecular, _gSpecular, _bSpecular, _aSpecular,
+                           _rEmissive, _gEmissive, _bEmissive, _aEmissive,
+                           _type, _currColor) {
+    ComponentInspector.OnMaterialColor(
+        _rAmbient, _gAmbient, _bAmbient, _aAmbient,
+        _rDiffuse, _gDiffuse, _bDiffuse, _aDiffuse,
+        _rSpecular, _gSpecular, _bSpecular, _aSpecular,
+        _rEmissive, _gEmissive, _bEmissive, _aEmissive,
+        _type, _currColor)
+  }
+
+  /*
+   * Forward spherical coordinate changes to C++
+   */
+  function onSphericalCoordinates(_surface, _lat, _lon, _elevation, _heading) {
+    ComponentInspector.OnSphericalCoordinates(_surface, _lat, _lon, _elevation,
+        _heading);
   }
 
   Rectangle {

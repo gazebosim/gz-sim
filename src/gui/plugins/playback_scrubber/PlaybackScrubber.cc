@@ -38,7 +38,6 @@
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/components/LogPlaybackStatistics.hh"
-#include "ignition/gazebo/gui/GuiEvents.hh"
 
 namespace ignition::gazebo
 {

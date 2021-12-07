@@ -259,8 +259,8 @@ and [xacro](http://wiki.ros.org/xacro) to generate SDF files with the correct pl
 
 Ignition Gazebo is more modular than Gazebo classic, so most features are optional.
 For example, by default, Ignition will load all the system plugins defined on
-the `~/.ignition/gazebo/server.config` file and all GUI plugins defined on the
-`~/.ignition/gazebo/gui.config` file. But the user can always remove plugins from
+the `~/.ignition/gazebo/<#>/server.config` file and all GUI plugins defined on the
+`~/.ignition/gazebo/<#>/gui.config` file. But the user can always remove plugins from
 those files, or choose different ones by adding `<plugin>` tags to the SDF file.
 (For more details, see the [Server configuration tutorial](server_config.html)
 and the [GUI configuration tutorial](gui_config.html)).

@@ -49,6 +49,12 @@ namespace components
     /// \brief Create an instance of a Component.
     /// \return Pointer to a component.
     public: virtual std::unique_ptr<BaseComponent> Create() const = 0;
+
+    /// \brief Create an instance of a Component, populated with specific data.
+    /// \param[in] _data The data to populate the component with.
+    /// \return Pointer to a component.
+    public: virtual std::unique_ptr<BaseComponent> Create(
+                const components::BaseComponent *_data) const = 0;
   };
 
   /// \brief A class for an object responsible for creating components.
@@ -57,17 +63,27 @@ namespace components
   class ComponentDescriptor
     : public ComponentDescriptorBase
   {
-    /// \brief Create an instance of a ComponentTypeT Component.
-    /// \return Pointer to a component.
+    /// \brief Documentation inherited
     public: std::unique_ptr<BaseComponent> Create() const override
     {
       return std::make_unique<ComponentTypeT>();
+    }
+
+    /// \brief Documentation inherited
+    public: virtual std::unique_ptr<BaseComponent> Create(
+                const components::BaseComponent *_data) const override
+    {
+      ComponentTypeT comp(*static_cast<const ComponentTypeT *>(_data));
+      return std::make_unique<ComponentTypeT>(comp);
     }
   };
 
   /// \brief A base class for an object responsible for creating storages.
   class StorageDescriptorBase
   {
+    /// \brief Constructor
+    public: IGN_DEPRECATED(6) StorageDescriptorBase() = default;
+
     /// \brief Destructor
     public: virtual ~StorageDescriptorBase() = default;
 
@@ -82,6 +98,9 @@ namespace components
   class StorageDescriptor
     : public StorageDescriptorBase
   {
+    /// \brief Constructor
+    public: IGN_DEPRECATED(6) StorageDescriptor() = default;
+
     /// \brief Create an instance of a storage that holds ComponentTypeT
     /// components.
     /// \return Pointer to a component.
@@ -100,12 +119,25 @@ namespace components
     /// \param[in] _type Type of component to register.
     /// \param[in] _compDesc Object to manage the creation of ComponentTypeT
     ///  objects.
-    /// \param[in] _storageDesc Object to manage the creation of storages for
-    /// objects of type ComponentTypeT.
+    /// \param[in] _storageDesc Ignored.
+    /// \tparam ComponentTypeT Type of component to register.
+    /// \deprecated See function that doesn't accept a storage
+    public: template<typename ComponentTypeT>
+    void IGN_DEPRECATED(6) Register(const std::string &_type,
+        ComponentDescriptorBase *_compDesc,
+        StorageDescriptorBase * /*_storageDesc*/)
+    {
+      this->Register<ComponentTypeT>(_type, _compDesc);
+    }
+
+    /// \brief Register a component so that the factory can create instances
+    /// of the component based on an ID.
+    /// \param[in] _type Type of component to register.
+    /// \param[in] _compDesc Object to manage the creation of ComponentTypeT
+    ///  objects.
     /// \tparam ComponentTypeT Type of component to register.
     public: template<typename ComponentTypeT>
-    void Register(const std::string &_type, ComponentDescriptorBase *_compDesc,
-      StorageDescriptorBase *_storageDesc)
+    void Register(const std::string &_type, ComponentDescriptorBase *_compDesc)
     {
       // Every time a plugin which uses a component type is loaded, it attempts
       // to register it again, so we skip it.
@@ -153,13 +185,12 @@ namespace components
 
       // Keep track of all types
       this->compsById[ComponentTypeT::typeId] = _compDesc;
-      this->storagesById[ComponentTypeT::typeId] = _storageDesc;
       namesById[ComponentTypeT::typeId] = ComponentTypeT::typeName;
       runtimeNamesById[ComponentTypeT::typeId] = runtimeName;
     }
 
     /// \brief Unregister a component so that the factory can't create instances
-    /// of the component or its storage anymore.
+    /// of the component anymore.
     /// \tparam ComponentTypeT Type of component to unregister.
     public: template<typename ComponentTypeT>
     void Unregister()
@@ -170,7 +201,7 @@ namespace components
     }
 
     /// \brief Unregister a component so that the factory can't create instances
-    /// of the component or its storage anymore.
+    /// of the component anymore.
     /// \details This function will not reset the `typeId` static variable
     /// within the component type itself. Prefer using the templated
     /// `Unregister` function when possible.
@@ -189,15 +220,6 @@ namespace components
         {
           delete it->second;
           this->compsById.erase(it);
-        }
-      }
-
-      {
-        auto it = this->storagesById.find(_typeId);
-        if (it != this->storagesById.end())
-        {
-          delete it->second;
-          this->storagesById.erase(it);
         }
       }
 
@@ -245,19 +267,45 @@ namespace components
       return comp;
     }
 
+    /// \brief Create a new instance of a component, initialized with particular
+    /// data.
+    /// \param[in] _type Component id to create.
+    /// \param[in] _data The data to populate the component instance with.
+    /// \return Pointer to a component. Null if the component
+    /// type could not be handled.
+    public: std::unique_ptr<components::BaseComponent> New(
+        const ComponentTypeId &_type, const components::BaseComponent *_data)
+    {
+      std::unique_ptr<components::BaseComponent> comp;
+
+      if (nullptr == _data)
+      {
+        ignerr << "Requested to create a new component instance with null "
+          << "data." << std::endl;
+      }
+      else if (_type != _data->TypeId())
+      {
+        ignerr << "The typeID of _type [" << _type << "] does not match the "
+          << "typeID of _data [" << _data->TypeId() << "]." << std::endl;
+      }
+      else
+      {
+        auto it = this->compsById.find(_type);
+        if (it != this->compsById.end() && nullptr != it->second)
+          comp = it->second->Create(_data);
+      }
+
+      return comp;
+    }
+
     /// \brief Create a new instance of a component storage.
     /// \param[in] _typeId Type of component which the storage will hold.
-    /// \return Pointer to a storage. Null if the component type could not be
-    /// handled.
-    public: std::unique_ptr<ComponentStorageBase> NewStorage(
-        const ComponentTypeId &_typeId)
+    /// \return Always returns nullptr.
+    /// \deprecated Storages aren't necessary anymore.
+    public: std::unique_ptr<ComponentStorageBase> IGN_DEPRECATED(6) NewStorage(
+        const ComponentTypeId & /*_typeId*/)
     {
-      std::unique_ptr<ComponentStorageBase> storage;
-      auto it = this->storagesById.find(_typeId);
-      if (it != this->storagesById.end() && nullptr != it->second)
-        storage = it->second->Create();
-
-      return storage;
+      return nullptr;
     }
 
     /// \brief Get all the registered component types by ID.
@@ -305,10 +353,6 @@ namespace components
     /// we just keep a pointer, which will dangle until the program is shutdown.
     private: std::map<ComponentTypeId, ComponentDescriptorBase *> compsById;
 
-    /// \brief A list of registered storages where the key is its component's
-    /// type id.
-    private: std::map<ComponentTypeId, StorageDescriptorBase *> storagesById;
-
     /// \brief A list of IDs and their equivalent names.
     public: std::map<ComponentTypeId, std::string> namesById;
 
@@ -335,9 +379,8 @@ namespace components
         return; \
       using namespace ignition;\
       using Desc = gazebo::components::ComponentDescriptor<_classname>; \
-      using StorageDesc = gazebo::components::StorageDescriptor<_classname>; \
       gazebo::components::Factory::Instance()->Register<_classname>(\
-        _compType, new Desc(), new StorageDesc());\
+        _compType, new Desc());\
     } \
   }; \
   static IgnGazeboComponents##_classname\

@@ -147,10 +147,13 @@ void ExamplesBuild::Build(const std::string &_type)
     auto base = ignition::common::basename(*dirIter);
 
     math::SemanticVersion cmakeVersion{std::string(CMAKE_VERSION)};
-    if (base == "gtest_setup" && cmakeVersion < math::SemanticVersion(3, 11, 0))
+    if (cmakeVersion < math::SemanticVersion(3, 11, 0) &&
+        (base == "custom_sensor_system" ||
+         base == "gtest_setup"))
     {
-      igndbg << "Skipping [gtest_setup] test, which requires CMake version >= "
-             << "3.11.0. Currently using CMake " << cmakeVersion << std::endl;
+      igndbg << "Skipping [" << base << "] test, which requires CMake version "
+             << ">= 3.11.0. Currently using CMake " << cmakeVersion
+             << std::endl;
       continue;
     }
 

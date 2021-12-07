@@ -13,6 +13,21 @@
       filename="ignition-gazebo-user-commands-system"
       name="ignition::gazebo::systems::UserCommands">
     </plugin>
+    <gravity>0 0 -9.8</gravity>
+    <magnetic_field>5.5645e-6 22.8758e-6 -42.3884e-6</magnetic_field>
+    <atmosphere type='adiabatic'/>
+
+   <scene>
+     <ambient>0.4 0.4 0.4 1.0</ambient>
+     <background>.7 .7 .7 1</background>
+     <shadows>true</shadows>
+   </scene>
+
+   <physics type='ode'>
+     <max_step_size>0.001</max_step_size>
+     <real_time_factor>1.0</real_time_factor>
+     <real_time_update_rate>1000</real_time_update_rate>
+   </physics>
 
     <model name="inlineM1">
       <pose>10 0 0 0 0 0</pose>

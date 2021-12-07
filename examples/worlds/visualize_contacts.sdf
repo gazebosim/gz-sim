@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <!--
 This is an example demonstrating the use of the Visualize Contacts GUI plugin.
-The plugin requires that the Contact system be loaded and contact sensors be placed in 
+The plugin requires that the Contact system be loaded and contact sensors be placed in
 the links whose contacts need to be visualized.
 
 Use the checkbox to turn visualization on or off and spin boxes to change the
@@ -30,21 +30,58 @@ Contacts will be visualized as blue spheres and green cylinders.
     </plugin>
 
     <gui fullscreen="0">
+
       <!-- 3D scene -->
-      <plugin filename="GzScene3D" name="3D View">
+      <plugin filename="MinimalScene" name="3D View">
         <ignition-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
           <property type="string" key="state">docked</property>
         </ignition-gui>
 
-        <engine>ogre</engine>
+        <engine>ogre2</engine>
         <scene>scene</scene>
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
       </plugin>
 
+      <!-- Plugins that add functionality to the scene -->
+      <plugin filename="EntityContextMenuPlugin" name="Entity context menu">
+        <ignition-gui>
+          <property key="state" type="string">floating</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
+      <plugin filename="GzSceneManager" name="Scene Manager">
+        <ignition-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
+      <plugin filename="InteractiveViewControl" name="Interactive view control">
+        <ignition-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
+      <plugin filename="CameraTracking" name="Camera Tracking">
+        <ignition-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
       <!-- World control -->
       <plugin filename="WorldControl" name="World control">
         <ignition-gui>
@@ -65,8 +102,7 @@ Contacts will be visualized as blue spheres and green cylinders.
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
-        <service>/world/visualize_contacts/control</service>
-        <stats_topic>/world/visualize_contacts/stats</stats_topic>
+        <use_event>true</use_event>
 
       </plugin>
 
@@ -91,21 +127,16 @@ Contacts will be visualized as blue spheres and green cylinders.
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-        <topic>/world/visualize_contacts/stats</topic>
-
       </plugin>
 
-      <!-- Transform Control -->
-      <plugin filename="TransformControl" name="Transform Control">
-      <ignition-gui>
-        <property key="x" type="double">0</property>
-        <property key="y" type="double">0</property>
-        <property key="width" type="double">263</property>
-        <property key="height" type="double">50</property>
-        <property key="state" type="string">floating</property>
-        <property key="showTitleBar" type="bool">false</property>
-        <property key="cardBackground" type="string">#03a9f4</property>
-      </ignition-gui>
+      <plugin filename="MarkerManager" name="Marker manager">
+        <ignition-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
       </plugin>
 
       <!-- Visualize Contacts -->

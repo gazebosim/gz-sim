@@ -1,14 +1,15 @@
 set (gui_sources
   AboutDialogHandler.cc
   Gui.cc
+  GuiEvents.cc
   GuiFileHandler.cc
   GuiRunner.cc
   PathManager.cc
-  TmpIface.cc
 )
 
 set (gtest_sources
   Gui_TEST.cc
+  GuiEvents_TEST.cc
 )
 
 add_subdirectory(plugins)
@@ -25,10 +26,6 @@ set(CMAKE_AUTORCC ON)
 # no need to add entries for Qt header files in `src/gui/`.
 qt5_wrap_cpp(gui_sources
   ${PROJECT_SOURCE_DIR}/include/ignition/gazebo/gui/GuiSystem.hh
-  # TODO (anyone) Remove when GuiRunner.hh is moved to `src`
-  ${PROJECT_SOURCE_DIR}/include/ignition/gazebo/gui/GuiRunner.hh
-  # TODO (anyone) Remove in v6
-  ${PROJECT_SOURCE_DIR}/include/ignition/gazebo/gui/TmpIface.hh
 )
 
 if (MSVC)

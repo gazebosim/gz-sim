@@ -58,7 +58,7 @@ Rectangle {
       value: numberValue
       minimumValue: -spinMax
       maximumValue: spinMax
-      decimals: writableSpin.width < 100 ? 2 : 6
+      decimals: getDecimals(writableSpin.width)
     }
   }
 
@@ -73,7 +73,7 @@ Rectangle {
       horizontalAlignment: Text.AlignRight
       verticalAlignment: Text.AlignVCenter
       text: {
-        var decimals = numberText.width < 100 ? 2 : 6
+        var decimals = getDecimals(numberText.width)
         return numberValue.toFixed(decimals)
       }
     }
@@ -110,48 +110,11 @@ Rectangle {
   Column {
     anchors.fill: parent
 
-    // Header
-    Rectangle {
+    // The expanding header. Make sure that the content to expand has an id set
+    // to the value "content".
+    ExpandingTypeHeader {
       id: header
-      width: parent.width
-      height: typeHeader.height
-      color: "transparent"
-
-      RowLayout {
-        anchors.fill: parent
-        Item {
-          width: margin
-        }
-        Image {
-          id: icon
-          sourceSize.height: indentation
-          sourceSize.width: indentation
-          fillMode: Image.Pad
-          Layout.alignment : Qt.AlignVCenter
-          source: content.show ?
-              "qrc:/Gazebo/images/minus.png" : "qrc:/Gazebo/images/plus.png"
-        }
-        TypeHeader {
-          id: typeHeader
-        }
-        Item {
-          Layout.fillWidth: true
-        }
-      }
-      MouseArea {
-        anchors.fill: parent
-        hoverEnabled: true
-        cursorShape: Qt.PointingHandCursor
-        onClicked: {
-          content.show = !content.show
-        }
-        onEntered: {
-          header.color = highlightColor
-        }
-        onExited: {
-          header.color = "transparent"
-        }
-      }
+      // Using the default header text values.
     }
 
     // Content

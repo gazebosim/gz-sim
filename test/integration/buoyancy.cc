@@ -42,7 +42,7 @@ class BuoyancyTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(BuoyancyTest, Movement)
+TEST_F(BuoyancyTest, UniformWorldMovement)
 {
   // Start server
   ServerConfig serverConfig;
@@ -183,9 +183,93 @@ TEST_F(BuoyancyTest, Movement)
 
     if (_info.iterations == iterations)
     {
-      EXPECT_NEAR(-1.63, submarineSinkingPose->Data().Pos().Z(), 1e-2);
+      EXPECT_NEAR(-1.64, submarineSinkingPose->Data().Pos().Z(), 1e-2);
       EXPECT_NEAR(4.90, submarineBuoyantPose->Data().Pos().Z(), 1e-2);
       EXPECT_NEAR(171.4, duckPose->Data().Pos().Z(), 1e-2);
+      finished = true;
+    }
+  });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, iterations, false);
+  EXPECT_TRUE(finished);
+}
+
+/////////////////////////////////////////////////
+TEST_F(BuoyancyTest, GradedBuoyancy)
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "graded_buoyancy.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  using namespace std::chrono_literals;
+  server.SetUpdatePeriod(1ns);
+
+  std::size_t iterations = 1000;
+
+  bool finished = false;
+  test::Relay testSystem;
+  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
+                             const gazebo::EntityComponentManager &_ecm)
+  {
+    // Check pose
+    Entity neutralBox = _ecm.EntityByComponents(
+        components::Model(), components::Name("neutral_buoyancy"));
+
+    Entity bobbingBall = _ecm.EntityByComponents(
+        components::Model(), components::Name("lighter_than_water"));
+
+    Entity heliumBalloon = _ecm.EntityByComponents(
+        components::Model(), components::Name("balloon_lighter_than_air"));
+
+    Entity noBuoyancy = _ecm.EntityByComponents(
+        components::Model(), components::Name("box_no_buoyancy"));
+
+    ASSERT_NE(neutralBox, kNullEntity);
+    ASSERT_NE(bobbingBall, kNullEntity);
+    ASSERT_NE(heliumBalloon, kNullEntity);
+    ASSERT_NE(noBuoyancy, kNullEntity);
+
+    auto neutralBoxPose = _ecm.Component<components::Pose>(neutralBox);
+    ASSERT_NE(neutralBoxPose, nullptr);
+
+    auto bobbingBallPose = _ecm.Component<components::Pose>(bobbingBall);
+    ASSERT_NE(bobbingBallPose , nullptr);
+
+    auto heliumBalloonPose = _ecm.Component<components::Pose>(heliumBalloon);
+    ASSERT_NE(heliumBalloonPose , nullptr);
+
+    auto noBuoyancyPose = _ecm.Component<components::Pose>(noBuoyancy);
+    ASSERT_NE(noBuoyancyPose , nullptr);
+
+    // The "neutralBox" should stay in its starting location.
+    EXPECT_NEAR(0, neutralBoxPose->Data().Pos().X(), 1e-1);
+    EXPECT_NEAR(5, neutralBoxPose->Data().Pos().Y(), 1e-1);
+    EXPECT_NEAR(-3, neutralBoxPose->Data().Pos().Z(), 1e-1);
+
+    if (_info.iterations > 10)
+    {
+      // Helium balloon should float up
+      EXPECT_GT(heliumBalloonPose->Data().Pos().Z(),
+                neutralBoxPose->Data().Pos().Z());
+
+      // Bobbing ball should stay within a certain band.
+      EXPECT_GT(bobbingBallPose->Data().Pos().Z(), -1.2);
+      EXPECT_LT(bobbingBallPose->Data().Pos().Z(), 0.5);
+
+      // No buoyancy box should sink
+      EXPECT_LT(noBuoyancyPose->Data().Pos().Z(),
+                neutralBoxPose->Data().Pos().Z());
+    }
+
+    if (_info.iterations == iterations)
+    {
       finished = true;
     }
   });
