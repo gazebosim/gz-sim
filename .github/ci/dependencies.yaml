@@ -1,0 +1,10 @@
+---
+repositories:
+  ign-rendering:
+    type: git
+    url: https://github.com/ignitionrobotics/ign-rendering
+    version: wide_angle_camera_ogre
+  ign-sensors:
+    type: git
+    url: https://github.com/ignitionrobotics/ign-sensors
+    version: wide_angle_camera
