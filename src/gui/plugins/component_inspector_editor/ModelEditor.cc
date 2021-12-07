@@ -47,6 +47,7 @@
 #include "ignition/gazebo/SdfEntityCreator.hh"
 
 #include "ignition/gazebo/gui/GuiEvents.hh"
+#include "ignition/gazebo/Util.hh"
 
 #include "ModelEditor.hh"
 
@@ -197,7 +198,8 @@ void ModelEditor::Update(const UpdateInfo &,
         this->dataPtr->entityCreator->SetParent(entity, eta.parentEntity);
         // Make sure to mark the parent as needing recreation. This will
         // tell the server to rebuild the model with the new link.
-        _ecm.CreateComponent(eta.parentEntity, components::Recreate());
+        _ecm.CreateComponent(topLevelModel(eta.parentEntity, _ecm),
+                             components::Recreate());
         entities.push_back(entity);
       }
     }
