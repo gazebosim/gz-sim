@@ -477,7 +477,7 @@ ComponentInspectorEditor::~ComponentInspectorEditor() = default;
 void ComponentInspectorEditor::LoadConfig(const tinyxml2::XMLElement *)
 {
   if (this->title.empty())
-    this->title = "Component inspector";
+    this->title = "Component inspector editor";
 
   ignition::gui::App()->findChild<
       ignition::gui::MainWindow *>()->installEventFilter(this);
