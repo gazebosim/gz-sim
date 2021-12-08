@@ -125,6 +125,7 @@ TEST_P(EntityComponentManagerFixture, InvalidComponentType)
   EXPECT_EQ(2u, manager.CreateEntity());
   EXPECT_TRUE(manager.HasEntity(2));
   EXPECT_FALSE(manager.RemoveComponent(2, IntComponent::typeId));
+  EXPECT_FALSE(manager.HasRemovedComponents());
 
   // We should get a nullptr if the component type doesn't exist.
   EXPECT_TRUE(manager.HasEntity(1u));
@@ -182,6 +183,7 @@ TEST_P(EntityComponentManagerFixture, RemoveComponent)
   EXPECT_FALSE(manager.EntityHasComponentType(eInt, IntComponent::typeId));
   EXPECT_TRUE(manager.ComponentTypes(eInt).empty());
   EXPECT_EQ(nullptr, manager.Component<IntComponent>(eInt));
+  EXPECT_TRUE(manager.HasRemovedComponents());
 
   EXPECT_TRUE(manager.RemoveComponent(eDouble, DoubleComponent::typeId));
   EXPECT_FALSE(manager.EntityHasComponentType(eDouble,

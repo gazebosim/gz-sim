@@ -22,12 +22,16 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
+#include "ignition/gazebo/components/Model.hh"
+#include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/Pose.hh"
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"
 
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/Relay.hh"
 
 using namespace ignition;
 
@@ -610,6 +614,127 @@ TEST_P(SceneBroadcasterTest, StateStatic)
   while (!received && sleep++ < maxSleep)
     IGN_SLEEP_MS(100);
   EXPECT_TRUE(received);
+}
+
+/////////////////////////////////////////////////
+/// Test whether the scene topic is published when a component is removed.
+TEST_P(SceneBroadcasterTest, RemovedComponent)
+{
+  // Start server
+  ignition::gazebo::ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+                          "/test/worlds/shapes.sdf");
+
+  gazebo::Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Create a system that removes a component
+  ignition::gazebo::test::Relay testSystem;
+
+  testSystem.OnUpdate([](const gazebo::UpdateInfo &_info,
+    gazebo::EntityComponentManager &_ecm)
+    {
+      if (_info.iterations > 1)
+      {
+        _ecm.Each<ignition::gazebo::components::Model,
+                  ignition::gazebo::components::Name,
+                  ignition::gazebo::components::Pose>(
+          [&](const ignition::gazebo::Entity &_entity,
+              const ignition::gazebo::components::Model *,
+              const ignition::gazebo::components::Name *_name,
+              const ignition::gazebo::components::Pose *)->bool
+          {
+            if (_name->Data() == "box")
+            {
+              _ecm.RemoveComponent<ignition::gazebo::components::Pose>(_entity);
+            }
+            return true;
+          });
+      }
+    });
+  server.AddSystem(testSystem.systemPtr);
+
+  bool received = false;
+  bool hasState = false;
+  std::function<void(const msgs::SerializedStepMap &)> cb =
+      [&](const msgs::SerializedStepMap &_res)
+  {
+    hasState = _res.has_state();
+    // Check the received state.
+    if (hasState)
+    {
+      ignition::gazebo::EntityComponentManager localEcm;
+      localEcm.SetState(_res.state());
+      bool hasBox = false;
+      localEcm.Each<ignition::gazebo::components::Model,
+                  ignition::gazebo::components::Name>(
+          [&](const ignition::gazebo::Entity &_entity,
+              const ignition::gazebo::components::Model *,
+              const ignition::gazebo::components::Name *_name)->bool
+          {
+            if (_name->Data() == "box")
+            {
+              hasBox = true;
+              if (_res.stats().iterations() > 1)
+              {
+                // The pose component should be gone
+                EXPECT_FALSE(localEcm.EntityHasComponentType(
+                      _entity, ignition::gazebo::components::Pose::typeId));
+              }
+              else
+              {
+                // The pose component should exist
+                EXPECT_TRUE(localEcm.EntityHasComponentType(
+                      _entity, ignition::gazebo::components::Pose::typeId));
+              }
+            }
+            return true;
+          });
+      EXPECT_TRUE(hasBox);
+    }
+    received = true;
+  };
+
+  transport::Node node;
+  EXPECT_TRUE(node.Subscribe("/world/default/state", cb));
+
+  unsigned int sleep = 0u;
+  unsigned int maxSleep = 30u;
+
+  // Run server once. The first time should send the state message
+  server.RunOnce(true);
+  // cppcheck-suppress unmatchedSuppression
+  // cppcheck-suppress knownConditionTrueFalse
+  while (!received && sleep++ < maxSleep)
+    IGN_SLEEP_MS(100);
+  EXPECT_TRUE(received);
+  EXPECT_TRUE(hasState);
+
+  // Run server again. The second time shouldn't send the state message.
+  sleep = 0u;
+  received = false;
+  hasState = false;
+  server.RunOnce(true);
+  // cppcheck-suppress unmatchedSuppression
+  // cppcheck-suppress knownConditionTrueFalse
+  while (!received && sleep++ < maxSleep)
+    IGN_SLEEP_MS(100);
+  EXPECT_FALSE(received);
+  EXPECT_FALSE(hasState);
+
+  // Run server again. The third time should send the state message because
+  // the test system removed a component.
+  sleep = 0u;
+  received = false;
+  hasState = false;
+  server.RunOnce(true);
+  // cppcheck-suppress unmatchedSuppression
+  // cppcheck-suppress knownConditionTrueFalse
+  while (!received && sleep++ < maxSleep)
+    IGN_SLEEP_MS(100);
+  EXPECT_TRUE(received);
+  EXPECT_TRUE(hasState);
 }
 
 // Run multiple times

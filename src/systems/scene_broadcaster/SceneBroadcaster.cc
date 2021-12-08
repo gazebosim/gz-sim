@@ -297,7 +297,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   bool jumpBackInTime = _info.dt < std::chrono::steady_clock::duration::zero();
   bool changeEvent = _manager.HasEntitiesMarkedForRemoval() ||
     _manager.HasNewEntities() || _manager.HasOneTimeComponentChanges() ||
-    jumpBackInTime;
+    jumpBackInTime || _manager.HasRemovedComponents();
   auto now = std::chrono::system_clock::now();
   bool itsPubTime = (now - this->dataPtr->lastStatePubTime >
        this->dataPtr->statePublishPeriod[_info.paused]);
