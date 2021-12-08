@@ -162,8 +162,8 @@ Rectangle {
           Layout.fillWidth: true
           height: 40
           numberValue: meanValue
-          minValue: -100000
-          maxValue: 100000
+          minValue: -Number.MAX_VALUE
+          maxValue: Number.MAX_VALUE
           stepValue: 0.1
           // Connect to the onNoiseUpdate signal in Noise.qml
           Component.onCompleted: {
@@ -205,8 +205,8 @@ Rectangle {
           Layout.fillWidth: true
           height: 40
           numberValue: meanBias
-          minValue: -100000
-          maxValue: 100000
+          minValue: -Number.MAX_VALUE
+          maxValue: Number.MAX_VALUE
           stepValue: 0.1
           // Connect to the onNoiseUpdate signal in Noise.qml
           Component.onCompleted: {
@@ -264,7 +264,7 @@ Rectangle {
           height: 40
           numberValue: stdDevValue
           minValue: 0
-          maxValue: 100000
+          maxValue: Number.MAX_VALUE
           stepValue: 0.1
           // Connect to the onNoiseUpdate signal in Noise.qml
           Component.onCompleted: {
@@ -307,7 +307,7 @@ Rectangle {
           height: 40
           numberValue: stdDevBias
           minValue: 0
-          maxValue: 100000
+          maxValue: Number.MAX_VALUE
           stepValue: 0.1
           // Connect to the onNoiseUpdate signal in Noise.qml
           Component.onCompleted: {
@@ -366,7 +366,7 @@ Rectangle {
           height: 40
           numberValue: dynamicBiasStdDev
           minValue: 0
-          maxValue: 100000
+          maxValue: Number.MAX_VALUE
           stepValue: 0.1
           // Connect to the onNoiseUpdate signal in Noise.qml
           Component.onCompleted: {
@@ -410,7 +410,7 @@ Rectangle {
           height: 40
           numberValue: dynamicBiasCorrelationTime
           minValue: 0
-          maxValue: 100000
+          maxValue: Number.MAX_VALUE
           stepValue: 0.1
           // Connect to the onNoiseUpdate signal in Noise.qml
           Component.onCompleted: {

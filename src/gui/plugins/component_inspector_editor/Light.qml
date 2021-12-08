@@ -168,7 +168,7 @@ Rectangle {
       id: writableSpin
       value: writableSpin.activeFocus ? writableSpin.value : numberValue
       minimumValue: 0
-      maximumValue: 1000000
+      maximumValue: Number.MAX_VALUE
       decimals: 6
       onEditingFinished: {
         sendLight()
@@ -180,8 +180,8 @@ Rectangle {
     IgnSpinBox {
       id: writableSpin
       value: writableSpin.activeFocus ? writableSpin.value : numberValue
-      minimumValue: -100000
-      maximumValue: 100000
+      minimumValue: -Number.MAX_VALUE
+      maximumValue: Number.MAX_VALUE
       decimals: 6
       onEditingFinished: {
         sendLight()

@@ -240,7 +240,7 @@ Rectangle {
               height: 40
               numberValue: rangeMin
               minValue: 0
-              maxValue: 100000
+              maxValue: Number.MAX_VALUE
               stepValue: 0.1
               // Connect to the onLidarUpdate signal in Noise.qml
               Component.onCompleted: {
@@ -283,7 +283,7 @@ Rectangle {
               height: 40
               numberValue: rangeMax
               minValue: 0
-              maxValue: 100000
+              maxValue: Number.MAX_VALUE
               stepValue: 0.1
               // Connect to the onNoiseUpdate signal in Noise.qml
               Component.onCompleted: {
@@ -326,7 +326,7 @@ Rectangle {
               height: 40
               numberValue: rangeResolution
               minValue: 0 
-              maxValue: 100000
+              maxValue: Number.MAX_VALUE
               stepValue: 0.1
               // Connect to the onLidarUpdate signal in Noise.qml
               Component.onCompleted: {

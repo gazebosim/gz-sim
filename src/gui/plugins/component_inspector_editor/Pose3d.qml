@@ -50,7 +50,7 @@ Rectangle {
   property int margin: 5
 
   // Maximum spinbox value
-  property double spinMax: 1000000
+  property double spinMax: Number.MAX_VALUE
 
   property int iconWidth: 20
   property int iconHeight: 20
@@ -168,8 +168,8 @@ Rectangle {
           Layout.fillWidth: true
           height: 40
           numberValue: model.data[0]
-          minValue: -100000
-          maxValue: 100000
+          minValue: -Number.MAX_VALUE
+          maxValue: Number.MAX_VALUE
           stepValue: 0.1
           Component.onCompleted: {
             xSpin.onChange.connect(sendPose)
@@ -204,8 +204,8 @@ Rectangle {
           Layout.fillWidth: true
           height: 40
           numberValue: model.data[3]
-          minValue: -100000
-          maxValue: 100000
+          minValue: -Number.MAX_VALUE
+          maxValue: Number.MAX_VALUE
           stepValue: 0.1
           Component.onCompleted: {
             rollSpin.onChange.connect(sendPose)
@@ -246,8 +246,8 @@ Rectangle {
           Layout.fillWidth: true
           height: 40
           numberValue: model.data[1]
-          minValue: -100000
-          maxValue: 100000
+          minValue: -Number.MAX_VALUE
+          maxValue: Number.MAX_VALUE
           stepValue: 0.1
           Component.onCompleted: {
             ySpin.onChange.connect(sendPose)
@@ -281,8 +281,8 @@ Rectangle {
           Layout.fillWidth: true
           height: 40
           numberValue: model.data[4]
-          minValue: -100000
-          maxValue: 100000
+          minValue: -Number.MAX_VALUE
+          maxValue: Number.MAX_VALUE
           stepValue: 0.1
           Component.onCompleted: {
             pitchSpin.onChange.connect(sendPose)
@@ -316,8 +316,8 @@ Rectangle {
           Layout.fillWidth: true
           height: 40
           numberValue: model.data[2] 
-          minValue: -100000
-          maxValue: 100000
+          minValue: -Number.MAX_VALUE
+          maxValue: Number.MAX_VALUE
           stepValue: 0.1
           Component.onCompleted: {
             zSpin.onChange.connect(sendPose)
@@ -351,8 +351,8 @@ Rectangle {
           Layout.fillWidth: true
           height: 40
           numberValue: model.data[5]
-          minValue: -100000
-          maxValue: 100000
+          minValue: -Number.MAX_VALUE
+          maxValue: Number.MAX_VALUE
           stepValue: 0.1
           Component.onCompleted: {
             yawSpin.onChange.connect(sendPose)

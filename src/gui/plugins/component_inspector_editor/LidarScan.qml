@@ -104,7 +104,7 @@ Rectangle {
       height: 40
       numberValue: sampleValue
       minValue: 0
-      maxValue: 100000
+      maxValue: Number.MAX_VALUE
       stepValue: 1
       // Send the change signal
       Component.onCompleted: {
@@ -147,7 +147,7 @@ Rectangle {
       height: 40
       numberValue: resolutionValue
       minValue: 0
-      maxValue: 100000
+      maxValue: Number.MAX_VALUE
       stepValue: 0.1
       // Send the change signal
       Component.onCompleted: {

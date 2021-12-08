@@ -37,7 +37,7 @@ Rectangle {
   property double minPhysParam: 0.000001
 
   // Maximum parameter value
-  property double maxPhysParam: 100000
+  property double maxPhysParam: Number.MAX_VALUE
 
   // Horizontal margins
   property int margin: 5

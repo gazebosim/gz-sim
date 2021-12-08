@@ -83,7 +83,7 @@ Rectangle {
             height: 40
             numberValue: model.data[0]
             minValue: 0
-            maxValue: 100000
+            maxValue: Number.MAX_VALUE
             stepValue: 0.1
             // Connect to the onNoiseUpdate signal in Noise.qml
             Component.onCompleted: {

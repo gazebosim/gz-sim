@@ -36,7 +36,7 @@ Rectangle {
   property int margin: 5
 
   // Maximum spinbox value
-  property double spinMax: 1000000
+  property double spinMax: Number.MAX_VALUE
 
   // Unit
   property string unit: model && model.unit != undefined ? model.unit : ''

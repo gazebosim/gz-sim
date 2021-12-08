@@ -261,8 +261,8 @@ Rectangle {
           height: 40
           property double numberValue: model.data[3]
           value: elevationSpin.activeFocus ? elevationSpin.value : numberValue
-          minimumValue: -100000
-          maximumValue: 100000
+          minimumValue: -Number.MAX_VALUE
+          maximumValue: Number.MAX_VALUE
           decimals: 12
           stepSize: 0.1
           onEditingFinished: {
