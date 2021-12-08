@@ -419,6 +419,19 @@ void ServerPrivate::SetupTransport()
     ignerr << "Something went wrong, failed to advertise [" << pathTopic
            << "]" << std::endl;
   }
+
+  std::string serverControlService{"/server_control"};
+  if (this->node.Advertise(serverControlService,
+                           &ServerPrivate::ServerControlService, this))
+  {
+    ignmsg << "Server control service on [" << serverControlService << "]."
+           << std::endl;
+  }
+  else
+  {
+    ignerr << "Something went wrong, failed to advertise ["
+           << serverControlService << "]" << std::endl;
+  }
 }
 
 //////////////////////////////////////////////////
@@ -431,6 +444,42 @@ bool ServerPrivate::WorldsService(ignition::msgs::StringMsg_V &_res)
   for (const auto &name : this->worldNames)
   {
     _res.add_data(name);
+  }
+
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool ServerPrivate::ServerControlService(
+  const ignition::msgs::ServerControl &_req, msgs::Boolean &_res)
+{
+  _res.set_data(false);
+
+  if (_req.stop())
+  {
+    this->Stop();
+    _res.set_data(true);
+  }
+
+  // TODO(anyone): implement world cloning
+  if (_req.clone() || _req.new_port() != 0 || !_req.save_world_name().empty())
+  {
+    ignerr << "ServerControl::clone is not implemented" << std::endl;
+    _res.set_data(false);
+  }
+
+  // TODO(anyone): implement adding a new world
+  if (_req.new_world())
+  {
+    ignerr << "ServerControl::new_world is not implemented" << std::endl;
+    _res.set_data(false);
+  }
+
+  // TODO(anyone): implement loading a world
+  if (!_req.open_filename().empty())
+  {
+    ignerr << "ServerControl::open_filename is not implemented" << std::endl;
+    _res.set_data(false);
   }
 
   return true;
