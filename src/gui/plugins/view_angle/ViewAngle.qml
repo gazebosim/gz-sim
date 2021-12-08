@@ -24,7 +24,7 @@ import "qrc:/qml"
 
 ColumnLayout {
   Layout.minimumWidth: 320
-  Layout.minimumHeight: 380
+  Layout.minimumHeight: 530
   anchors.fill: parent
 
   ToolBar {
