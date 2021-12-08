@@ -648,7 +648,7 @@ TEST_P(SceneBroadcasterTest, RemovedComponent)
             if (_name->Data() == "box")
             {
               _ecm.RemoveComponent<ignition::gazebo::components::Pose>(_entity);
-              }
+            }
             return true;
           });
       }
@@ -660,8 +660,40 @@ TEST_P(SceneBroadcasterTest, RemovedComponent)
   std::function<void(const msgs::SerializedStepMap &)> cb =
       [&](const msgs::SerializedStepMap &_res)
   {
-    received = true;
     hasState = _res.has_state();
+    // Check the received state.
+    if (hasState)
+    {
+      ignition::gazebo::EntityComponentManager localEcm;
+      localEcm.SetState(_res.state());
+      bool hasBox = false;
+      localEcm.Each<ignition::gazebo::components::Model,
+                  ignition::gazebo::components::Name>(
+          [&](const ignition::gazebo::Entity &_entity,
+              const ignition::gazebo::components::Model *,
+              const ignition::gazebo::components::Name *_name)->bool
+          {
+            if (_name->Data() == "box")
+            {
+              hasBox = true;
+              if (_res.stats().iterations() > 1)
+              {
+                // The pose component should be gone
+                EXPECT_FALSE(localEcm.EntityHasComponentType(
+                      _entity, ignition::gazebo::components::Pose::typeId));
+              }
+              else
+              {
+                // The pose component should exist
+                EXPECT_TRUE(localEcm.EntityHasComponentType(
+                      _entity, ignition::gazebo::components::Pose::typeId));
+              }
+            }
+            return true;
+          });
+      EXPECT_TRUE(hasBox);
+    }
+    received = true;
   };
 
   transport::Node node;
