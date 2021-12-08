@@ -233,8 +233,8 @@ ColumnLayout {
       Layout.row: 0
       Layout.column: 1
       value: ViewAngle.camPose[0]
-      maximumValue: 1000000
-      minimumValue: -1000000
+      maximumValue: Number.MAX_VALUE
+      minimumValue: -Number.MAX_VALUE
       decimals: 6
       stepSize: 0.01
       onEditingFinished: ViewAngle.SetCamPose(x.value, y.value, z.value, roll.value, pitch.value, yaw.value)
@@ -252,8 +252,8 @@ ColumnLayout {
       Layout.row: 1
       Layout.column: 1
       value: ViewAngle.camPose[1]
-      maximumValue: 1000000
-      minimumValue: -1000000
+      maximumValue: Number.MAX_VALUE
+      minimumValue: -Number.MAX_VALUE
       decimals: 6
       stepSize: 0.01
       onEditingFinished: ViewAngle.SetCamPose(x.value, y.value, z.value, roll.value, pitch.value, yaw.value)
@@ -271,8 +271,8 @@ ColumnLayout {
       Layout.row: 2
       Layout.column: 1
       value: ViewAngle.camPose[2]
-      maximumValue: 1000000
-      minimumValue: -1000000
+      maximumValue: Number.MAX_VALUE
+      minimumValue: -Number.MAX_VALUE
       decimals: 6
       stepSize: 0.01
       onEditingFinished: ViewAngle.SetCamPose(x.value, y.value, z.value, roll.value, pitch.value, yaw.value)
@@ -383,7 +383,7 @@ ColumnLayout {
       Layout.row: 0
       Layout.column: 3
       value: ViewAngle.camClipDist[1]
-      maximumValue: 1000000
+      maximumValue: Number.MAX_VALUE
       minimumValue: nearClip.value
       decimals: 6
       stepSize: 0.01
