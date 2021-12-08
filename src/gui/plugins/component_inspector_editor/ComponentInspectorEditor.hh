@@ -189,9 +189,15 @@ namespace gazebo
 
     /// \brief Type
     Q_PROPERTY(
-      QStringList modelLinks
-      READ ModelLinks
-      WRITE SetModelLinks
+      QStringList modelParentLinks
+      READ ModelParentLinks
+      NOTIFY ModelLinksChanged
+    )
+
+    /// \brief Type
+    Q_PROPERTY(
+      QStringList modelChildLinks
+      READ ModelChildLinks
       NOTIFY ModelLinksChanged
     )
 
@@ -392,9 +398,15 @@ namespace gazebo
                 const QString &_parentLink,
                 const QString &_childLink);
 
-    /// \brief Return the list of availabe links if a model is selected.
+    /// \brief Return the list of availabe links that are suitable for
+    /// parent links in joints if a model is selected.
     /// \return List of available links.
-    public: Q_INVOKABLE QStringList ModelLinks() const;
+    public: Q_INVOKABLE QStringList ModelParentLinks() const;
+
+    /// \brief Return the list of availabe links that are suitable for
+    /// child links in joints if a model is selected.
+    /// \return List of available links.
+    public: Q_INVOKABLE QStringList ModelChildLinks() const;
 
     /// \brief Set the list of availabe links when a model is selected.
     /// \param[in] _modelLinks List of available links.

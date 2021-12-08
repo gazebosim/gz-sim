@@ -547,7 +547,6 @@ void ComponentInspectorEditor::Update(const UpdateInfo &_info,
 
       // Get available links for the model.
       this->dataPtr->modelLinks.clear();
-      this->dataPtr->modelLinks.append("world");
       _ecm.EachNoCache<
         components::Name,
         components::Link,
@@ -1327,7 +1326,15 @@ void ComponentInspectorEditor::SetModelLinks(const QStringList &_modelLinks)
 }
 
 /////////////////////////////////////////////////
-QStringList ComponentInspectorEditor::ModelLinks() const
+QStringList ComponentInspectorEditor::ModelParentLinks() const
+{
+  QStringList result = this->dataPtr->modelLinks;
+  result.append("world");
+  return result;
+}
+
+/////////////////////////////////////////////////
+QStringList ComponentInspectorEditor::ModelChildLinks() const
 {
   return this->dataPtr->modelLinks;
 }

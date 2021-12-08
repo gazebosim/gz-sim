@@ -205,7 +205,7 @@ Rectangle {
       }
       ComboBox {
         id: parentBox
-        model: ComponentInspectorEditor.modelLinks
+        model: ComponentInspectorEditor.modelParentLinks
         currentIndex: 0
       }
       Text {
@@ -214,7 +214,7 @@ Rectangle {
       }
       ComboBox {
         id: childBox
-        model: ComponentInspectorEditor.modelLinks
+        model: ComponentInspectorEditor.modelChildLinks
         currentIndex: 1
       }
     }
