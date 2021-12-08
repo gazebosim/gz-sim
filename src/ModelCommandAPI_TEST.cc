@@ -384,6 +384,49 @@ TEST(ModelCommandAPI, Commands)
 }
 
 /////////////////////////////////////////////////
+// Tests `ign model -s` command with an airpressure sensor.
+TEST(ModelCommandAPI, AirPressureSensor)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+  // Using an static model to avoid any movements in the simulation.
+  serverConfig.SetSdfFile(
+      ignition::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+        "test", "worlds", "air_pressure.sdf"));
+
+  ignition::gazebo::Server server(serverConfig);
+  // Run at least one iteration before continuing to guarantee correctly set up.
+  ASSERT_TRUE(server.Run(true, 5, false));
+  // Run without blocking.
+  server.Run(false, 0, false);
+
+  // Tested command: ign model -m altimeter_mode -l link -s altimeter_sensor
+  {
+    const std::string cmd = kIgnModelCommand
+      + "-m air_pressure_model -l link -s air_pressure_sensor";
+    std::string output = customExecStr(cmd);
+    ReplaceNegativeZeroValues(output);
+    const std::string expectedOutput =
+      "\nRequesting state for world [air_pressure_sensor]...\n\n"
+      "- Sensor [8]\n"
+      "  - Name: air_pressure_sensor\n"
+      "  - Parent: air_pressure_model [4]\n"
+      "  - Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
+      "    [0.000000 0.000000 0.000000]\n"
+      "    [0.000000 0.000000 0.000000]\n"
+      "  - Reference altitude (m): 123\n"
+      "  - Pressure noise:\n"
+      "    - Mean: 0\n"
+      "    - Bias mean: 0\n"
+      "    - Standard deviation: 0\n"
+      "    - Bias standard deviation: 0\n"
+      "    - Precision: 0\n"
+      "    - Dynamic bias standard deviation: 0\n"
+      "    - Dynamic bias correlation time: 0\n";
+    EXPECT_EQ(expectedOutput, output);
+  }
+}
+
+/////////////////////////////////////////////////
 // Tests `ign model -s` command with an altimeter.
 TEST(ModelCommandAPI, AltimeterSensor)
 {
