@@ -1,8 +1,4 @@
 <?xml version="1.0" ?>
-<!--
-  Note: For now, this file must be loaded from ign-gazebo's root folder so the
-  mesh's relative path is correct.
--->
 <sdf version="1.6">
   <world name="gpu_lidar_sensor">
     <physics name="1ms" type="ode">
