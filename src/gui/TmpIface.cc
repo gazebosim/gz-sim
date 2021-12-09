@@ -29,8 +29,8 @@ TmpIface::TmpIface()
 
 
 /////////////////////////////////////////////////
-bool TmpIface::OnServerControl(const msgs::ServerControl &_req,
-                                     msgs::Boolean &_res)
+bool TmpIface::OnServerControl(const msgs::ServerControl &/*_req*/,
+                                     msgs::Boolean &/*_res*/)
 {
   ignerr << "Called wrong /server_control callback. Call the one in "
          << "ServerPrivate instead." << std::endl;
