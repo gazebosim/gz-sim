@@ -501,9 +501,13 @@ TEST(HelpersTest, Pair)
 
 #if !defined _MSC_VER && !defined __arm__
     // Iterate over large numbers, and check for unique keys.
-    for (math::PairInput a = math::MAX_UI32-5000; a < math::MAX_UI32; a++)
+    for (math::PairInput a = math::MAX_UI32 - 10000;
+         a < math::MAX_UI32 - 500;
+         a += math::Rand::IntUniform(100, 500))
     {
-      for (math::PairInput b = math::MAX_UI32-5000; b < math::MAX_UI32; b++)
+      for (math::PairInput b = math::MAX_UI32 - 10000;
+           b < math::MAX_UI32 - 500;
+           b += math::Rand::IntUniform(100, 500))
       {
         math::PairOutput key = math::Pair(a, b);
         std::tie(c, d) = math::Unpair(key);
