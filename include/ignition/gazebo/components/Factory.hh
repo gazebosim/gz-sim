@@ -22,6 +22,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <ignition/common/SingletonT.hh>
@@ -155,6 +156,7 @@ namespace components
       this->compsById[ComponentTypeT::typeId] = _compDesc;
       this->storagesById[ComponentTypeT::typeId] = _storageDesc;
       namesById[ComponentTypeT::typeId] = ComponentTypeT::typeName;
+      idsByName[ComponentTypeT::typeName] = ComponentTypeT::typeId;
       runtimeNamesById[ComponentTypeT::typeId] = runtimeName;
     }
 
@@ -205,6 +207,7 @@ namespace components
         auto it = namesById.find(_typeId);
         if (it != namesById.end())
         {
+          idsByName.erase(it->second);
           namesById.erase(it);
         }
       }
@@ -290,6 +293,17 @@ namespace components
       return "";
     }
 
+    /// \brief Get a component's type Id given its type name.
+    /// \return Component id.
+    public: ComponentTypeId Id(const std::string & _name) const
+    {
+      auto it = this->idsByName.find(_name);
+      if (it != this->idsByName.end()) {
+        return it->second;
+      }
+      return kComponentIdInvalid;
+    }
+
     /// \brief A list of registered components where the key is its id.
     ///
     /// Note about compsByName and compsById. The maps store pointers as the
@@ -311,6 +325,9 @@ namespace components
 
     /// \brief A list of IDs and their equivalent names.
     public: std::map<ComponentTypeId, std::string> namesById;
+
+    /// \brief A list of names and their equivalent IDs
+    public: std::unordered_map<std::string, ComponentTypeId> idsByName;
 
     /// \brief Keep track of the runtime names for types and warn the user if
     /// they try to register different types with the same typeName.
