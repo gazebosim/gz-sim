@@ -461,21 +461,21 @@ bool ServerPrivate::ServerControlService(
     _res.set_data(true);
   }
 
-  // TODO(anyone): implement world cloning
+  // TODO(chapulina): implement world cloning
   if (_req.clone() || _req.new_port() != 0 || !_req.save_world_name().empty())
   {
     ignerr << "ServerControl::clone is not implemented" << std::endl;
     _res.set_data(false);
   }
 
-  // TODO(anyone): implement adding a new world
+  // TODO(chapulina): implement adding a new world
   if (_req.new_world())
   {
     ignerr << "ServerControl::new_world is not implemented" << std::endl;
     _res.set_data(false);
   }
 
-  // TODO(anyone): implement loading a world
+  // TODO(chapulina): implement loading a world
   if (!_req.open_filename().empty())
   {
     ignerr << "ServerControl::open_filename is not implemented" << std::endl;
