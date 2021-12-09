@@ -99,6 +99,49 @@ namespace sdf_generator
                             const EntityComponentManager &_ecm,
                             const Entity &_entity, const std::string &_uri);
 
+  /// \brief Update an sdf::Element of a link.
+  /// Intended for internal use.
+  /// \input[in, out] _elem sdf::Element to update
+  /// \input[in] _ecm Immutable reference to the Entity Component Manager
+  /// \input[in] _entity Link entity
+  /// \returns true if update succeeded.
+  IGNITION_GAZEBO_VISIBLE
+  bool updateLinkElement(const sdf::ElementPtr &_elem,
+                         const EntityComponentManager &_ecm,
+                         const Entity &_entity);
+
+  /// \brief Update an sdf::Element of a sensor.
+  /// Intended for internal use.
+  /// \input[in, out] _elem sdf::Element to update
+  /// \input[in] _ecm Immutable reference to the Entity Component Manager
+  /// \input[in] _entity Sensor entity
+  /// \returns true if update succeeded.
+  IGNITION_GAZEBO_VISIBLE
+  bool updateSensorElement(sdf::ElementPtr _elem,
+                           const EntityComponentManager &_ecm,
+                           const Entity &_entity);
+
+  /// \brief Update an sdf::Element of a light.
+  /// Intended for internal use.
+  /// \input[in, out] _elem sdf::Element to update
+  /// \input[in] _ecm Immutable reference to the Entity Component Manager
+  /// \input[in] _entity Light entity
+  /// \returns true if update succeeded.
+  IGNITION_GAZEBO_VISIBLE
+  bool updateLightElement(sdf::ElementPtr _elem,
+                           const EntityComponentManager &_ecm,
+                           const Entity &_entity);
+
+  /// \brief Update an sdf::Element of a joint.
+  /// Intended for internal use.
+  /// \input[in, out] _elem sdf::Element to update
+  /// \input[in] _ecm Immutable reference to the Entity Component Manager
+  /// \input[in] _entity joint entity
+  /// \returns true if update succeeded.
+  IGNITION_GAZEBO_VISIBLE
+  bool updateJointElement(sdf::ElementPtr _elem,
+                           const EntityComponentManager &_ecm,
+                           const Entity &_entity);
 }  // namespace sdf_generator
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 }  // namespace gazebo

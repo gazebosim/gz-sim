@@ -556,13 +556,15 @@ bool EntityTree::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-           ignition::gazebo::gui::events::AddedRemovedEntities::kType)
+           ignition::gazebo::gui::events::GuiNewRemovedEntities::kType)
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->newRemovedEntityMutex);
     auto addedRemovedEvent =
-        reinterpret_cast<gui::events::AddedRemovedEntities *>(_event);
+        reinterpret_cast<gui::events::GuiNewRemovedEntities *>(_event);
     if (addedRemovedEvent)
     {
+      // TODO(chapulina) Make these entities visually different from entities
+      // created from the server.
       for (auto entity : addedRemovedEvent->NewEntities())
         this->dataPtr->newEntities.insert(entity);
 
