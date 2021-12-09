@@ -712,7 +712,8 @@ TEST_P(SceneBroadcasterTest, RemovedComponent)
   EXPECT_TRUE(hasState);
 
   // Run server again. The second time shouldn't have state info. The
-  // $message can still.
+  // message can still arrive due the passage of time (see `itsPubTime` in
+  // SceneBroadcaster::PostUpdate.
   sleep = 0u;
   received = false;
   hasState = false;
