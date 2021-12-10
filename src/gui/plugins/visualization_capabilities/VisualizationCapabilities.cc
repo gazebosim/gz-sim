@@ -26,6 +26,8 @@
 #include <set>
 #include <stack>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -791,7 +793,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
 
   // View center of mass
   {
-    IGN_PROFILE("IgnRenderer::Render ViewCOM");
+    IGN_PROFILE("VisualizationCapabilitiesPrivate::OnRender ViewCOM");
     if (!this->viewCOMTarget.empty())
     {
       rendering::NodePtr targetNode =
@@ -817,7 +819,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
 
   // View inertia
   {
-    IGN_PROFILE("IgnRenderer::Render ViewInertia");
+    IGN_PROFILE("VisualizationCapabilitiesPrivate::OnRender ViewInertia");
     if (!this->viewInertiaTarget.empty())
     {
       rendering::NodePtr targetNode =
@@ -843,7 +845,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
 
   // view Transparent
   {
-    IGN_PROFILE("IgnRenderer::Render ViewTransparent");
+    IGN_PROFILE("VisualizationCapabilitiesPrivate::OnRender ViewTransparent");
     if (!this->viewTransparentTarget.empty())
     {
       rendering::NodePtr targetNode =
@@ -869,7 +871,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
 
   // View collisions
   {
-    IGN_PROFILE("IgnRenderer::Render ViewCollisions");
+    IGN_PROFILE("VisualizationCapabilitiesPrivate::OnRender ViewCollisions");
     if (!this->viewCollisionsTarget.empty())
     {
       rendering::NodePtr targetNode =
@@ -895,7 +897,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
 
   // View joints
   {
-    IGN_PROFILE("IgnRenderer::Render ViewJoints");
+    IGN_PROFILE("VisualizationCapabilitiesPrivate::OnRender ViewJoints");
     if (!this->viewJointsTarget.empty())
     {
       rendering::NodePtr targetNode =
@@ -921,7 +923,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
 
   // View wireframes
   {
-    IGN_PROFILE("IgnRenderer::Render ViewWireframes");
+    IGN_PROFILE("VisualizationCapabilitiesPrivate::OnRender ViewWireframes");
     if (!this->viewWireframesTarget.empty())
     {
       rendering::NodePtr targetNode =
@@ -947,7 +949,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
 
   // View frames
   {
-    IGN_PROFILE("IgnRenderer::Render ViewFrames");
+    IGN_PROFILE("VisualizationCapabilitiesPrivate::OnRender ViewFrames");
     if (!this->viewFramesTarget.empty())
     {
       auto targetNode = this->scene->NodeByName(this->viewFramesTarget);
@@ -955,7 +957,8 @@ void VisualizationCapabilitiesPrivate::OnRender()
 
       if (targetVis && targetVis->HasUserData("gazebo-entity"))
       {
-        Entity targetEntity = std::get<int>(targetVis->UserData("gazebo-entity"));
+        Entity targetEntity =
+            std::get<int>(targetVis->UserData("gazebo-entity"));
         this->ViewFrames(targetEntity);
       }
       else
