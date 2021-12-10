@@ -122,6 +122,13 @@ namespace ignition
       /// \return Joint entity.
       public: Entity CreateEntities(const sdf::Joint *_joint);
 
+      /// \brief Create all entities that exist in the sdf::Joint object and
+      /// load their plugins.
+      /// \param[in] _joint SDF joint object.
+      /// \param[in] _resolved True if all frames are already resolved
+      /// \return Joint entity.
+      public: Entity CreateEntities(const sdf::Joint *_joint, bool _resolved);
+
       /// \brief Create all entities that exist in the sdf::Visual object and
       /// load their plugins.
       /// \param[in] _visual SDF visual object.

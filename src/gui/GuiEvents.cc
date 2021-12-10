@@ -35,6 +35,21 @@ class ignition::gazebo::gui::events::NewRemovedEntities::Implementation
   public: std::set<Entity> removedEntities;
 };
 
+class ignition::gazebo::gui::events::ModelEditorAddEntity::Implementation
+{
+  /// \brief Custom data map
+  public: QMap<QString, QString> data;
+
+  /// \breif Entity added.
+  public: QString entity;
+
+  /// \breif Entity type.
+  public: QString type;
+
+  /// \breif Parent entity.
+  public: ignition::gazebo::Entity parent;
+};
+
 using namespace ignition;
 using namespace gazebo;
 using namespace gui;
@@ -82,4 +97,38 @@ const std::set<Entity> &NewRemovedEntities::NewEntities() const
 const std::set<Entity> &NewRemovedEntities::RemovedEntities() const
 {
   return this->dataPtr->removedEntities;
+}
+
+/////////////////////////////////////////////////
+ModelEditorAddEntity::ModelEditorAddEntity(QString _entity, QString _type,
+    ignition::gazebo::Entity _parent) :
+  QEvent(kType), dataPtr(utils::MakeImpl<Implementation>())
+{
+  this->dataPtr->entity = _entity;
+  this->dataPtr->type = _type;
+  this->dataPtr->parent = _parent;
+}
+
+/////////////////////////////////////////////////
+QString ModelEditorAddEntity::Entity() const
+{
+  return this->dataPtr->entity;
+}
+
+/////////////////////////////////////////////////
+QString ModelEditorAddEntity::EntityType() const
+{
+  return this->dataPtr->type;
+}
+
+/////////////////////////////////////////////////
+ignition::gazebo::Entity ModelEditorAddEntity::ParentEntity() const
+{
+  return this->dataPtr->parent;
+}
+
+/////////////////////////////////////////////////
+QMap<QString, QString> &ModelEditorAddEntity::Data()
+{
+  return this->dataPtr->data;
 }
