@@ -711,7 +711,9 @@ TEST_P(SceneBroadcasterTest, RemovedComponent)
   EXPECT_TRUE(received);
   EXPECT_TRUE(hasState);
 
-  // Run server again. The second time shouldn't send the state message.
+  // Run server again. The second time shouldn't have state info. The
+  // message can still arrive due the passage of time (see `itsPubTime` in
+  // SceneBroadcaster::PostUpdate.
   sleep = 0u;
   received = false;
   hasState = false;
@@ -720,7 +722,6 @@ TEST_P(SceneBroadcasterTest, RemovedComponent)
   // cppcheck-suppress knownConditionTrueFalse
   while (!received && sleep++ < maxSleep)
     IGN_SLEEP_MS(100);
-  EXPECT_FALSE(received);
   EXPECT_FALSE(hasState);
 
   // Run server again. The third time should send the state message because

@@ -2797,15 +2797,21 @@ TEST_P(EntityComponentManagerFixture, CloneEntities)
   EXPECT_EQ(kNullEntity, failedClonedEntity);
 
   // create a joint with a parent and child link
+  const std::string parentModelEntityName = "parentModelEntity";
   const std::string parentLinkEntityName = "parentLinkEntity";
   const std::string childLinkEntityName = "childLinkEntity";
+  Entity parentModelEntity = manager.CreateEntity();
+  manager.CreateComponent(parentModelEntity,
+      components::Name(parentModelEntityName));
   Entity parentLinkEntity = manager.CreateEntity();
   manager.CreateComponent(parentLinkEntity,
       components::Name(parentLinkEntityName));
   manager.CreateComponent(parentLinkEntity, components::CanonicalLink());
+  manager.CreateComponent(parentLinkEntity,
+      components::ParentEntity(parentModelEntity));
   Entity jointEntity = manager.CreateEntity();
   manager.CreateComponent(jointEntity,
-      components::ParentEntity(parentLinkEntity));
+      components::ParentEntity(parentModelEntity));
   manager.CreateComponent(jointEntity, components::Name("jointEntity"));
   manager.CreateComponent(jointEntity, components::Joint());
   manager.CreateComponent(jointEntity,
@@ -2814,26 +2820,33 @@ TEST_P(EntityComponentManagerFixture, CloneEntities)
       components::ChildLinkName(childLinkEntityName));
   Entity childLinkEntity = manager.CreateEntity();
   manager.CreateComponent(childLinkEntity,
-      components::ParentEntity(jointEntity));
+      components::ParentEntity(parentModelEntity));
   manager.CreateComponent(childLinkEntity,
       components::Name(childLinkEntityName));
   manager.CreateComponent(childLinkEntity, components::Link());
-  EXPECT_EQ(13u, manager.EntityCount());
+  EXPECT_EQ(14u, manager.EntityCount());
 
   // clone a joint that has a parent and child link.
-  auto clonedParentLinkEntity = manager.Clone(parentLinkEntity, kNullEntity,
+  auto clonedParentModelEntity = manager.Clone(parentModelEntity, kNullEntity,
       "", true);
-  ASSERT_NE(kNullEntity, clonedParentLinkEntity);
-  EXPECT_EQ(16u, manager.EntityCount());
-  clonedEntities.insert(clonedParentLinkEntity);
+  ASSERT_NE(kNullEntity, clonedParentModelEntity);
+  // We just cloned a model with two links and a joint, a total of 4 new
+  // entities.
+  EXPECT_EQ(18u, manager.EntityCount());
+  clonedEntities.insert(clonedParentModelEntity);
   auto clonedJoints = manager.EntitiesByComponents(
-      components::ParentEntity(clonedParentLinkEntity));
+      components::ParentEntity(clonedParentModelEntity), components::Joint());
   ASSERT_EQ(1u, clonedJoints.size());
   clonedEntities.insert(clonedJoints[0]);
   auto clonedChildLinks = manager.EntitiesByComponents(
-      components::ParentEntity(clonedJoints[0]));
+      components::ParentEntity(clonedParentModelEntity), components::Link());
   ASSERT_EQ(1u, clonedChildLinks.size());
   clonedEntities.insert(clonedChildLinks[0]);
+  auto clonedChildCanonicalLinks = manager.EntitiesByComponents(
+      components::ParentEntity(clonedParentModelEntity),
+      components::CanonicalLink());
+  ASSERT_EQ(1u, clonedChildCanonicalLinks.size());
+  clonedEntities.insert(clonedChildCanonicalLinks[0]);
 
   // The cloned joint should have the cloned parent/child link names attached to
   // it, not the original parent/child link names
@@ -2845,17 +2858,19 @@ TEST_P(EntityComponentManagerFixture, CloneEntities)
     manager.Component<components::ChildLinkName>(clonedJoints[0]);
   ASSERT_NE(nullptr, clonedJointChildLinkName);
   EXPECT_NE(clonedJointChildLinkName->Data(), childLinkEntityName);
-  auto clonedParentLinkName =
-    manager.Component<components::Name>(clonedParentLinkEntity);
-  ASSERT_NE(nullptr, clonedParentLinkName);
-  EXPECT_EQ(clonedParentLinkName->Data(), clonedJointParentLinkName->Data());
+  auto clonedParentModelName =
+    manager.Component<components::Name>(clonedParentModelEntity);
+  ASSERT_NE(nullptr, clonedParentModelName);
+  auto clonedJointParentModelName = manager.Component<components::Name>(
+    manager.Component<components::ParentEntity>(clonedJoints[0])->Data());
+  EXPECT_EQ(clonedParentModelName->Data(), clonedJointParentModelName->Data());
   auto clonedChildLinkName =
     manager.Component<components::Name>(clonedChildLinks[0]);
   ASSERT_NE(nullptr, clonedChildLinkName);
   EXPECT_EQ(clonedJointChildLinkName->Data(), clonedChildLinkName->Data());
 
   // make sure that the name given to each cloned entity is unique
-  EXPECT_EQ(8u, clonedEntities.size());
+  EXPECT_EQ(9u, clonedEntities.size());
   for (const auto &entity : clonedEntities)
   {
     auto nameComp = manager.Component<components::Name>(entity);
@@ -2866,7 +2881,7 @@ TEST_P(EntityComponentManagerFixture, CloneEntities)
   // try to clone an entity that does not exist
   EXPECT_EQ(kNullEntity, manager.Clone(kNullEntity, topLevelEntity, "",
         allowRename));
-  EXPECT_EQ(16u, manager.EntityCount());
+  EXPECT_EQ(18u, manager.EntityCount());
 }
 
 /////////////////////////////////////////////////
