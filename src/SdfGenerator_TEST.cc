@@ -117,6 +117,43 @@ static testing::AssertionResult isSubset(const sdf::ElementPtr &_elemA,
                  << "'";
         }
       }
+      else if (valA->GetTypeName() == "double")
+      {
+        double dblA, dblB;
+        valA->Get(dblA);
+        valB->Get(dblB);
+        if (!math::equal(dblA, dblB))
+        {
+          return testing::AssertionFailure()
+                 << "Mismatch in value as double: '" << dblA << "' vs '"
+                 << dblB << "'";
+        }
+      }
+      else if (valA->GetTypeName() == "float")
+      {
+        float fltA, fltB;
+        valA->Get(fltA);
+        valB->Get(fltB);
+        if (!math::equal(fltA, fltB))
+        {
+          return testing::AssertionFailure()
+                 << "Mismatch in value as float: '" << fltA << "' vs '"
+                 << fltB << "'";
+        }
+      }
+      else if (valA->GetTypeName() == "bool")
+      {
+        bool boolA, boolB;
+        valA->Get(boolA);
+        valB->Get(boolB);
+        if (boolA != boolB)
+        {
+          return testing::AssertionFailure()
+                 << "Mismatch in value as bool: '" << boolA << "' vs '"
+                 << boolB << "'";
+        }
+
+      }
       else if (valA->GetAsString() != valB->GetAsString())
       {
         return testing::AssertionFailure()
@@ -148,6 +185,27 @@ static testing::AssertionResult isSubset(const sdf::ElementPtr &_elemA,
 
     if (!result)
     {
+      // Ignore missing pose values if the pose is zero.
+      sdf::ParamPtr childValA = childElemA->GetValue();
+      if (childValA->GetTypeName() == "pose")
+      {
+        math::Pose3d childValPose;
+        childValA->Get(childValPose);
+        if (childValPose == math::Pose3d::Zero)
+          return testing::AssertionSuccess();
+      }
+      else if (childValA->GetTypeName() == "bool")
+      {
+        bool childValBool;
+        childValA->Get(childValBool);
+        if (!childValBool && (childElemA->GetName() == "static" ||
+            childElemA->GetName() == "self_collide" ||
+            childElemA->GetName() == "enable_wind" ))
+        {
+          return testing::AssertionSuccess();
+        }
+      }
+
       return testing::AssertionFailure()
              << "No matching child element in element B for child element '"
              << childElemA->GetName() << "' in element A";
@@ -163,15 +221,15 @@ TEST(CompareElements, CompareWithDuplicateElements)
   const std::string m1Sdf = R"(
   <sdf version="1.7">
     <model name="M1">
-      <pose>0 0 0 0 0 0</pose>
+      <pose>1 0 0 0 0 0</pose>
     </model>
   </sdf>
   )";
   const std::string m1CompTestSdf = R"(
   <sdf version="1.7">
     <model name="M1">
-      <pose>0 0 0 0 0 0</pose>
-      <pose>0 0 0 0 0 0</pose>
+      <pose>1 0 0 0 0 0</pose>
+      <pose>0 1 0 0 0 0</pose>
     </model>
   </sdf>
   )";
@@ -271,7 +329,7 @@ class ModelElementFixture : public ElementUpdateFixture
 
     auto elem = std::make_shared<sdf::Element>();
     sdf::initFile("model.sdf", elem);
-    updateModelElement(elem, this->ecm, model);
+    EXPECT_TRUE(updateModelElement(elem, this->ecm, model));
     return elem;
   }
 

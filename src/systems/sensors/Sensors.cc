@@ -91,7 +91,6 @@ class ignition::gazebo::systems::SensorsPrivate
   /// \brief Keep track of cameras, in case we need to handle stereo cameras.
   /// Key: Camera's parent scoped name
   /// Value: Pointer to camera
-  // TODO(anyone) Remove element when sensor is deleted
   public: std::map<std::string, sensors::CameraSensor *> cameras;
 
   /// \brief Maps gazebo entity to its matching sensor ID
@@ -371,6 +370,17 @@ void Sensors::RemoveSensor(const Entity &_entity)
         this->dataPtr->activeSensors.erase(activeSensorIt);
       }
     }
+
+    // update cameras list
+    for (auto &it : this->dataPtr->cameras)
+    {
+      if (it.second->Id() == idIter->second)
+      {
+        this->dataPtr->cameras.erase(it.first);
+        break;
+      }
+    }
+
     this->dataPtr->sensorIds.erase(idIter->second);
     this->dataPtr->sensorManager.Remove(idIter->second);
     this->dataPtr->entityToIdMap.erase(idIter);
