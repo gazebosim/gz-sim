@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_PYTHON__HELPER_SYSTEM_HPP_
-#define IGNITION_GAZEBO_PYTHON__HELPER_SYSTEM_HPP_
+#ifndef IGNITION_GAZEBO_PYTHON__HELPER_SYSTEM_HH_
+#define IGNITION_GAZEBO_PYTHON__HELPER_SYSTEM_HH_
 
 #include <pybind11/pybind11.h>
 #include <pybind11/functional.h>
@@ -162,4 +162,4 @@ defineGazeboHelperFixture(pybind11::object module);
 }
 }
 
-#endif
+#endif  // IGNITION_GAZEBO_PYTHON__HELPER_SYSTEM_HH_

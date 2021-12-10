@@ -15,8 +15,8 @@
  */
 
 
-#ifndef IGNITION_GAZEBO_PYTHON__EXCEPTIONS_HPP_
-#define IGNITION_GAZEBO_PYTHON__EXCEPTIONS_HPP_
+#ifndef IGNITION_GAZEBO_PYTHON__EXCEPTIONS_HH_
+#define IGNITION_GAZEBO_PYTHON__EXCEPTIONS_HH_
 
 #include <stdexcept>
 #include <string>
@@ -35,4 +35,4 @@ class InvalidHandle : public std::runtime_error
 }  // namespace gazebo
 }  // namespace ignition
 
-#endif  // IGNITION_GAZEBO_PYTHON__EXCEPTIONS_HPP_
+#endif  // IGNITION_GAZEBO_PYTHON__EXCEPTIONS_HH_

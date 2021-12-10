@@ -15,8 +15,8 @@
  */
 
 
-#ifndef IGNITION_GAZEBO_PYTHON__UPDATE_INFO_HPP_
-#define IGNITION_GAZEBO_PYTHON__UPDATE_INFO_HPP_
+#ifndef IGNITION_GAZEBO_PYTHON__UPDATE_INFO_HH_
+#define IGNITION_GAZEBO_PYTHON__UPDATE_INFO_HH_
 
 #include <pybind11/pybind11.h>
 
@@ -36,4 +36,4 @@ defineGazeboUpdateInfo(pybind11::object module);
 }  // namespace gazebo
 }  // namespace ignition
 
-#endif  // IGNITION_GAZEBO_PYTHON__SERVER_CONFIG_HPP_
+#endif  // IGNITION_GAZEBO_PYTHON__UPDATE_INFO_HH_

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef IGNITION_GAZEBO_PYTHON__CONSOLE_HPP_
-#define IGNITION_GAZEBO_PYTHON__CONSOLE_HPP_
+#ifndef IGNITION_GAZEBO_PYTHON__CONSOLE_HH_
+#define IGNITION_GAZEBO_PYTHON__CONSOLE_HH_
 
 #include <pybind11/pybind11.h>
 

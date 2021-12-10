@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef IGNITION_GAZEBO_PYTHON__DESTROYABLE_HPP_
-#define IGNITION_GAZEBO_PYTHON__DESTROYABLE_HPP_
+#ifndef IGNITION_GAZEBO_PYTHON__DESTROYABLE_HH_
+#define IGNITION_GAZEBO_PYTHON__DESTROYABLE_HH_
 
 #include <pybind11/pybind11.h>
 
@@ -72,4 +72,4 @@ void defineDestroyable(pybind11::object module);
 }  // namespace python
 }  // namespace ignition
 }  // namespace gazebo
-#endif  // IGNITION_GAZEBO_PYTHON__DESTROYABLE_HPP_
+#endif  // IGNITION_GAZEBO_PYTHON__DESTROYABLE_HH_
