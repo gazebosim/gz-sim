@@ -15,7 +15,7 @@
  */
 #include <pybind11/pybind11.h>
 
-#include "entity_component_manager.hh"
+#include "EntityComponentManager.hh"
 
 namespace ignition
 {
@@ -48,7 +48,7 @@ void EntityComponentManager::Destroy()
 }
 
 /////////////////////////////////////////////////
-void define_gazebo_entity_component_manager(pybind11::object module)
+void defineGazeboEntityComponentManager(pybind11::object module)
 {
   pybind11::class_<ignition::gazebo::python::EntityComponentManager,
     ignition::gazebo::python::Destroyable,

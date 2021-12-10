@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-
-#ifndef IGNITION_GAZEBO_PYTHON__SERVER_HPP_
-#define IGNITION_GAZEBO_PYTHON__SERVER_HPP_
-
 #include <pybind11/pybind11.h>
+
+#include "ignition/gazebo/EventManager.hh"
+
+#include "EventManager.hh"
 
 namespace ignition
 {
@@ -26,15 +26,12 @@ namespace gazebo
 {
 namespace python
 {
-/// Define a pybind11 wrapper for an ignition::gazebo::Server
-/**
- * \param[in] module a pybind11 module to add the definition to
- */
-void
-define_gazebo_server(pybind11::object module);
-
+/////////////////////////////////////////////////
+void defineGazeboEventManager(pybind11::object module)
+{
+  pybind11::class_<ignition::gazebo::EventManager>(module, "EventManager")
+  .def(pybind11::init<>());
+}
 }  // namespace python
 }  // namespace gazebo
 }  // namespace ignition
-
-#endif  // IGNITION_GAZEBO_PYTHON__SERVER_CONFIG_HPP_

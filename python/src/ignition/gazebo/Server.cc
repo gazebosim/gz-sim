@@ -20,7 +20,7 @@
 #include <ignition/gazebo/Server.hh>
 #include <ignition/gazebo/ServerConfig.hh>
 
-#include "server.hh"
+#include "Server.hh"
 
 namespace ignition
 {
@@ -28,7 +28,7 @@ namespace gazebo
 {
 namespace python
 {
-void define_gazebo_server(pybind11::object module)
+void defineGazeboServer(pybind11::object module)
 {
   pybind11::class_<ignition::gazebo::Server>(module, "Server")
   .def(pybind11::init<ignition::gazebo::ServerConfig &>())
@@ -46,7 +46,6 @@ void define_gazebo_server(pybind11::object module)
     pybind11::overload_cast<>(&ignition::gazebo::Server::Running, pybind11::const_),
     "Get whether the server is running.");
 }
-
 }  // namespace python
 }  // namespace gazebo
 }  // namespace ignition

@@ -14,7 +14,7 @@
 
 #include <ignition/common/Console.hh>
 
-#include "console.hh"
+#include "Console.hh"
 
 namespace ignition
 {

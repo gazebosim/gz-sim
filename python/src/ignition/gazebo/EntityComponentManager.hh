@@ -21,7 +21,7 @@
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 
-#include "destroyable.hh"
+#include "Destroyable.hh"
 
 namespace ignition
 {
@@ -67,8 +67,7 @@ namespace python
  * \param[in] module a pybind11 module to add the definition to
  */
 void
-define_gazebo_entity_component_manager(pybind11::object module);
-
+defineGazeboEntityComponentManager(pybind11::object module);
 }  // namespace python
 }  // namespace gazebo
 }  // namespace ignition

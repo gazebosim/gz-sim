@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
+
 #include <pybind11/pybind11.h>
+#include <pybind11/chrono.h>
 
-#include "ignition/gazebo/EventManager.hh"
+#include <ignition/gazebo/World.hh>
 
-#include "event_manager.hh"
+#include "UpdateInfo.hh"
 
 namespace ignition
 {
@@ -26,11 +28,15 @@ namespace gazebo
 {
 namespace python
 {
-/////////////////////////////////////////////////
-void define_gazebo_event_manager(pybind11::object module)
+void defineGazeboUpdateInfo(pybind11::object module)
 {
-  pybind11::class_<ignition::gazebo::EventManager>(module, "EventManager")
-  .def(pybind11::init<>());
+  pybind11::class_<ignition::gazebo::UpdateInfo>(module, "UpdateInfo")
+  .def(pybind11::init<>())
+  .def_readwrite("sim_time", &ignition::gazebo::UpdateInfo::simTime)
+  .def_readwrite("real_time", &ignition::gazebo::UpdateInfo::realTime)
+  .def_readwrite("dt", &ignition::gazebo::UpdateInfo::dt)
+  .def_readwrite("paused", &ignition::gazebo::UpdateInfo::paused)
+  .def_readwrite("iterations", &ignition::gazebo::UpdateInfo::iterations);
 }
 }  // namespace python
 }  // namespace gazebo

@@ -67,14 +67,14 @@ if (${pybind11_FOUND})
 
   pybind11_add_module(gazebo SHARED
     src/ignition/gazebo/_ignition_gazebo_pybind11.cc
-    src/ignition/gazebo/destroyable.cc
-    src/ignition/gazebo/entity_component_manager
-    src/ignition/gazebo/event_manager.cc
-    src/ignition/gazebo/helper_system.cc
-    src/ignition/gazebo/server_config.cc
-    src/ignition/gazebo/server.cc
-    src/ignition/gazebo/update_info.cc
-    src/ignition/gazebo/world.cc
+    src/ignition/gazebo/Destroyable.cc
+    src/ignition/gazebo/EntityComponentManager
+    src/ignition/gazebo/EventManager.cc
+    src/ignition/gazebo/HelperSystem.cc
+    src/ignition/gazebo/Server.cc
+		src/ignition/gazebo/ServerConfig.cc
+    src/ignition/gazebo/UpdateInfo.cc
+    src/ignition/gazebo/World.cc
   )
 
   target_link_libraries(gazebo PRIVATE
@@ -86,7 +86,7 @@ if (${pybind11_FOUND})
   # TODO(ahcorde): Move this module to ign-common
   pybind11_add_module(common SHARED
     src/ignition/common/_ignition_common_pybind11.cc
-    src/ignition/common/console.cc
+    src/ignition/common/Console.cc
   )
 
   target_link_libraries(common PRIVATE

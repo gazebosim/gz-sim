@@ -15,12 +15,10 @@
  */
 
 
+#ifndef IGNITION_GAZEBO_PYTHON__SERVER_HPP_
+#define IGNITION_GAZEBO_PYTHON__SERVER_HPP_
+
 #include <pybind11/pybind11.h>
-#include <pybind11/chrono.h>
-
-#include <ignition/gazebo/World.hh>
-
-#include "update_info.hh"
 
 namespace ignition
 {
@@ -28,17 +26,14 @@ namespace gazebo
 {
 namespace python
 {
-void define_gazebo_update_info(pybind11::object module)
-{
-  pybind11::class_<ignition::gazebo::UpdateInfo>(module, "UpdateInfo")
-  .def(pybind11::init<>())
-  .def_readwrite("sim_time", &ignition::gazebo::UpdateInfo::simTime)
-  .def_readwrite("real_time", &ignition::gazebo::UpdateInfo::realTime)
-  .def_readwrite("dt", &ignition::gazebo::UpdateInfo::dt)
-  .def_readwrite("paused", &ignition::gazebo::UpdateInfo::paused)
-  .def_readwrite("iterations", &ignition::gazebo::UpdateInfo::iterations);
-}
-
+/// Define a pybind11 wrapper for an ignition::gazebo::Server
+/**
+ * \param[in] module a pybind11 module to add the definition to
+ */
+void
+defineGazeboServer(pybind11::object module);
 }  // namespace python
 }  // namespace gazebo
 }  // namespace ignition
+
+#endif  // IGNITION_GAZEBO_PYTHON__SERVER_CONFIG_HPP_

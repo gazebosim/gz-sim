@@ -22,7 +22,7 @@
 #include <ignition/gazebo/World.hh>
 #include <ignition/gazebo/EntityComponentManager.hh>
 
-#include "entity_component_manager.hh"
+#include "EntityComponentManager.hh"
 
 #include <memory>
 
@@ -66,8 +66,7 @@ private:
  * \param[in] module a pybind11 module to add the definition to
  */
 void
-define_gazebo_world(pybind11::object module);
-
+defineGazeboWorld(pybind11::object module);
 }  // namespace python
 }  // namespace gazebo
 }  // namespace ignition

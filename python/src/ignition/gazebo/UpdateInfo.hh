@@ -15,8 +15,8 @@
  */
 
 
-#ifndef IGNITION_GAZEBO_PYTHON__EVENT_MANAGER_HPP_
-#define IGNITION_GAZEBO_PYTHON__EVENT_MANAGER_HPP_
+#ifndef IGNITION_GAZEBO_PYTHON__UPDATE_INFO_HPP_
+#define IGNITION_GAZEBO_PYTHON__UPDATE_INFO_HPP_
 
 #include <pybind11/pybind11.h>
 
@@ -26,15 +26,14 @@ namespace gazebo
 {
 namespace python
 {
-/// Define a pybind11 wrapper for an ignition::gazebo::EventManager
+/// Define a pybind11 wrapper for an ignition::gazebo::UpdateInfo
 /**
  * \param[in] module a pybind11 module to add the definition to
  */
 void
-define_gazebo_event_manager(pybind11::object module);
-
+defineGazeboUpdateInfo(pybind11::object module);
 }  // namespace python
 }  // namespace gazebo
 }  // namespace ignition
 
-#endif  // IGNITION_GAZEBO_PYTHON__EVENT_MANAGER_HPP_
+#endif  // IGNITION_GAZEBO_PYTHON__SERVER_CONFIG_HPP_

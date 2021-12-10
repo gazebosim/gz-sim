@@ -30,8 +30,8 @@
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/ServerConfig.hh"
 
-#include "destroyable.hh"
-#include "entity_component_manager.hh"
+#include "Destroyable.hh"
+#include "EntityComponentManager.hh"
 
 namespace ignition
 {
@@ -157,7 +157,7 @@ class HelperSystem :
  * \param[in] module a pybind11 module to add the definition to
  */
 void
-define_gazebo_helper_fixture(pybind11::object module);
+defineGazeboHelperFixture(pybind11::object module);
 }
 }
 }

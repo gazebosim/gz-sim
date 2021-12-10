@@ -17,8 +17,8 @@
 
 #include <memory>
 
-#include "destroyable.hh"
-#include "exceptions.hh"
+#include "Destroyable.hh"
+#include "Exceptions.hh"
 
 namespace ignition
 {
@@ -80,7 +80,7 @@ Destroyable::DestroyWhenNotInUse()
 }
 
 void
-define_destroyable(pybind11::object module)
+defineDestroyable(pybind11::object module)
 {
   pybind11::class_<Destroyable, std::shared_ptr<Destroyable>>(
     module, "Destroyable")

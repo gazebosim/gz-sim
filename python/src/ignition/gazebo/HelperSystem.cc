@@ -17,7 +17,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/functional.h>
 
-#include "helper_system.hh"
+#include "HelperSystem.hh"
 
 namespace ignition
 {
@@ -183,7 +183,7 @@ std::shared_ptr<gazebo::Server> HelperFixture::Server() const
 }
 
 void
-define_gazebo_helper_fixture(pybind11::object module)
+defineGazeboHelperFixture(pybind11::object module)
 {
   pybind11::class_<HelperFixture,
              ignition::gazebo::python::Destroyable,

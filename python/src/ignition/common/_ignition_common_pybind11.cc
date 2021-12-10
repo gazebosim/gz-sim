@@ -14,7 +14,7 @@
 
 #include <pybind11/pybind11.h>
 
-#include "console.hh"
+#include "Console.hh"
 
 PYBIND11_MODULE(common, m) {
   m.doc() = "Ignition Common Python Library.";

@@ -15,11 +15,10 @@
  */
 
 
+#ifndef IGNITION_GAZEBO_PYTHON__SERVER_CONFIG_HPP_
+#define IGNITION_GAZEBO_PYTHON__SERVER_CONFIG_HPP_
+
 #include <pybind11/pybind11.h>
-
-#include <ignition/gazebo/ServerConfig.hh>
-
-#include "server_config.hh"
 
 namespace ignition
 {
@@ -27,14 +26,14 @@ namespace gazebo
 {
 namespace python
 {
-void define_server_config(pybind11::object module)
-{
-  pybind11::class_<ignition::gazebo::ServerConfig>(module, "ServerConfig")
-  .def(pybind11::init<>())
-  .def(
-    "set_sdf_file", &ignition::gazebo::ServerConfig::SetSdfFile,
-    "Set an SDF file to be used with the server.");
-}
+/// Define a pybind11 wrapper for an ignition::gazebo::ServerConfig
+/**
+ * \param[in] module a pybind11 module to add the definition to
+ */
+void
+defineGazeboServerConfig(pybind11::object module);
 }  // namespace python
 }  // namespace gazebo
 }  // namespace ignition
+
+#endif  // IGNITION_GAZEBO_PYTHON__SERVER_CONFIG_HPP_

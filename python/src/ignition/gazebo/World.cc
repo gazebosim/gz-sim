@@ -20,7 +20,7 @@
 
 #include <iostream>
 
-#include "world.hh"
+#include "World.hh"
 
 namespace ignition
 {
@@ -57,7 +57,7 @@ ignition::gazebo::Entity World::ModelByName(
   return _world->ModelByName(*_ecm.rcl_ptr(), _name);
 }
 
-void define_gazebo_world(pybind11::object module)
+void defineGazeboWorld(pybind11::object module)
 {
   pybind11::class_<ignition::gazebo::python::World,
              ignition::gazebo::python::Destroyable,
@@ -71,7 +71,6 @@ void define_gazebo_world(pybind11::object module)
     "gravity", &ignition::gazebo::python::World::Gravity,
     "Get the gravity in m/s^2.");
 }
-
 }  // namespace python
 }  // namespace gazebo
 }  // namespace ignition

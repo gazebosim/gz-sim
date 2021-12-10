@@ -68,7 +68,7 @@ private:
 /**
  * \param[in] module a pybind11 module to add the definition to
  */
-void define_destroyable(pybind11::object module);
+void defineDestroyable(pybind11::object module);
 }  // namespace python
 }  // namespace ignition
 }  // namespace gazebo
