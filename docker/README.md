@@ -1,7 +1,7 @@
 # Ignition Gazebo Dockerfiles
 
 This directory contains a few Dockerfiles and supporting scripts. See each
-section below for usage information about 
+section below for usage information about
 
 1. [Dockerfile.ignition](#Ignition-Gazebo-Using-Debians-In-Docker)
 1. [Dockerfile.nightly](#Build-Ignition-Gazebo-Using-Nightly-Debians)
@@ -73,21 +73,21 @@ distribution using debians.
    image of Ignition Fortress:
 
     ```
-    ./build.bash ignition-fortress ./Dockerfile.ignition
+    ./build.bash ignition-garden ./Dockerfile.ignition
     ```
 
 2. Run the docker image using `run.bash`, and pass in the name of the docker
    image (first argument to the build.bash script).
 
     ```
-    ./run.bash ignition-fortress
+    ./run.bash ignition-garden
     ```
 
 3. You can pass arguments to Ignition Gazebo by appending them the
    `run.bash` command. For example, to load the shapes.sdf file:
 
     ```
-    ./run.bash ignition-fortress -f shapes.sdf
+    ./run.bash ignition-garden -f shapes.sdf
     ```
 
 ## Appendix
@@ -148,7 +148,7 @@ Docker has two available versions: Community Edition (CE) and Enterprise Edition
 
         sudo apt-get install -y nvidia-docker2
 
-1. Restart the Docker daemon 
+1. Restart the Docker daemon
 
         sudo service docker restart
 
