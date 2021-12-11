@@ -2,6 +2,36 @@
 
 ### Ignition Gazebo 6.X.X (202X-XX-XX)
 
+### Ignition Gazebo 6.3.0 (2021-12-10)
+
+1. View entity frames from the GUI
+    * [Pull request #1105](https://github.com/ignitionrobotics/ign-gazebo/pull/1105)
+
+1. Model editor
+    * [Pull request #1231](https://github.com/ignitionrobotics/ign-gazebo/pull/1231)
+
+1. Send state message when components are removed
+    * [Pull request #1235](https://github.com/ignitionrobotics/ign-gazebo/pull/1235)
+
+1. Docker fixes for Fortress
+    * [Pull request #1238](https://github.com/ignitionrobotics/ign-gazebo/pull/1238)
+
+1. Added sensor plugin to be able to visualize camera in `plane_propeller_demo.sdf`
+    * [Pull request #1226](https://github.com/ignitionrobotics/ign-gazebo/pull/1226)
+
+1. Update SdfGenerator to save link and sensor data to file
+    * [Pull request #1201](https://github.com/ignitionrobotics/ign-gazebo/pull/1201)
+
+1. Fix buoyancy not being applied for one iteration
+    * [Pull request #1211](https://github.com/ignitionrobotics/ign-gazebo/pull/1211)
+
+1. Increase maximum values in ViewAngle widget and increase its size
+    * [Pull request #1221](https://github.com/ignitionrobotics/ign-gazebo/pull/1221)
+    * [Pull request #1239](https://github.com/ignitionrobotics/ign-gazebo/pull/1239)
+
+1. Fix the force-torque sensor update rate
+    * [Pull request #1159](https://github.com/ignitionrobotics/ign-gazebo/pull/1159)
+
 ### Ignition Gazebo 6.2.0 (2021-11-16)
 
 1. Configurable joint state publisher's topic
