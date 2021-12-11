@@ -21,9 +21,11 @@
 #include <vector>
 #include <map>
 
+#include <sdf/AirPressure.hh>
 #include <sdf/Altimeter.hh>
 #include <sdf/Camera.hh>
 #include <sdf/Imu.hh>
+#include <sdf/Lidar.hh>
 #include <sdf/Magnetometer.hh>
 #include <sdf/Noise.hh>
 #include <sdf/Sensor.hh>
@@ -34,9 +36,11 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/Filesystem.hh>
 #include <ignition/gazebo/EntityComponentManager.hh>
+#include <ignition/gazebo/components/AirPressureSensor.hh>
 #include <ignition/gazebo/components/Altimeter.hh>
 #include <ignition/gazebo/components/Camera.hh>
 #include <ignition/gazebo/components/ChildLinkName.hh>
+#include <ignition/gazebo/components/GpuLidar.hh>
 #include <ignition/gazebo/components/Imu.hh>
 #include <ignition/gazebo/components/Inertial.hh>
 #include <ignition/gazebo/components/Joint.hh>
@@ -165,21 +169,53 @@ void printPose(const uint64_t _entity, const EntityComponentManager &_ecm,
 /// \brief Print noise information.
 /// \param[in] _noise Noise to print.
 /// \param[in] _spaces Number of spaces to indent for every line.
-void printNoise(const sdf::Noise &_noise, int _spaces)
+void printNoise(const sdf::Noise &_noise, int _spaces,
+    const std::string &_units)
 {
-  std::cout << std::string(_spaces, ' ') << "- Mean: " << _noise.Mean() << "\n"
-    << std::string(_spaces, ' ') << "- Bias mean: "
+  std::string units = "";
+  if (!_units.empty())
+    units = std::string(" (") + _units + ")";
+
+  std::cout << std::string(_spaces, ' ') << "- Mean" << units << ": "
+    << _noise.Mean() << "\n"
+    << std::string(_spaces, ' ') << "- Bias mean" << units << ": "
     << _noise.BiasMean() << "\n"
-    << std::string(_spaces, ' ') << "- Standard deviation: "
+    << std::string(_spaces, ' ') << "- Standard deviation" << units << ": "
     << _noise.StdDev() << "\n"
-    << std::string(_spaces, ' ') << "- Bias standard deviation: "
+    << std::string(_spaces, ' ') << "- Bias standard deviation" << units << ": "
     << _noise.BiasStdDev() << "\n"
     << std::string(_spaces, ' ') << "- Precision: "
     << _noise.Precision() << "\n"
-    << std::string(_spaces, ' ') << "- Dynamic bias standard deviation: "
+    << std::string(_spaces, ' ') << "- Dynamic bias standard deviation"
+    << units << ": "
     << _noise.DynamicBiasStdDev() << "\n"
-    << std::string(_spaces, ' ') << "- Dynamic bias correlation time: "
+    << std::string(_spaces, ' ') << "- Dynamic bias correlation time (s): "
     << _noise.DynamicBiasCorrelationTime() << std::endl;
+}
+
+//////////////////////////////////////////////////
+/// \brief Print info about an air pressure sensor.
+/// \param[in] _entity Entity to print information for. Nothing is
+/// printed if the entity is not an air pressure sensor.
+/// \param[in] _ecm The entity component manager.
+/// \param[in] _spaces Number of spaces to indent for every line
+void printAirPressure(const uint64_t _entity,
+    const EntityComponentManager &_ecm, int _spaces)
+{
+  // Get the type and return if the _entity does not have the correct
+  // component.
+  auto comp = _ecm.Component<components::AirPressureSensor>(_entity);
+  if (!comp)
+    return;
+
+  const sdf::Sensor &sensor = comp->Data();
+  const sdf::AirPressure *air = sensor.AirPressureSensor();
+
+  std::cout << std::string(_spaces, ' ') << "- Reference altitude (m): "
+    << air->ReferenceAltitude() << "\n";
+
+  std::cout << std::string(_spaces, ' ') << "- Pressure noise:\n";
+  printNoise(air->PressureNoise(), _spaces + 2, "Pa");
 }
 
 //////////////////////////////////////////////////
@@ -201,10 +237,10 @@ void printAltimeter(const uint64_t _entity, const EntityComponentManager &_ecm,
   const sdf::Altimeter *altimeter = sensor.AltimeterSensor();
 
   std::cout << std::string(_spaces, ' ') << "- Vertical position noise:\n";
-  printNoise(altimeter->VerticalPositionNoise(), _spaces + 2);
+  printNoise(altimeter->VerticalPositionNoise(), _spaces + 2, "m");
 
   std::cout << std::string(_spaces, ' ') << "- Vertical velocity noise:\n";
-  printNoise(altimeter->VerticalVelocityNoise(), _spaces + 2);
+  printNoise(altimeter->VerticalVelocityNoise(), _spaces + 2, "m/s");
 }
 
 //////////////////////////////////////////////////
@@ -265,7 +301,7 @@ void printCamera(const sdf::Camera *_camera, int _spaces)
 
   std::cout << std::string(_spaces, ' ')
     << "- Image noise:\n";
-  printNoise(_camera->ImageNoise(), _spaces + 2);
+  printNoise(_camera->ImageNoise(), _spaces + 2, "");
 
   std::cout << std::string(_spaces, ' ')
     << "- Distortion K1: " << _camera->DistortionK1()
@@ -395,23 +431,23 @@ void printImu(const uint64_t _entity, const EntityComponentManager &_ecm,
 
   std::cout << std::string(_spaces, ' ')
     << "- Linear acceleration X-axis noise:\n";
-  printNoise(imu->LinearAccelerationXNoise(), _spaces + 2);
+  printNoise(imu->LinearAccelerationXNoise(), _spaces + 2, "m/s^2");
   std::cout << std::string(_spaces, ' ')
     << "- Linear acceleration Y-axis noise:\n";
-  printNoise(imu->LinearAccelerationYNoise(), _spaces + 2);
+  printNoise(imu->LinearAccelerationYNoise(), _spaces + 2, "m/s^2");
   std::cout << std::string(_spaces, ' ')
     << "- Linear acceleration Z-axis noise:\n";
-  printNoise(imu->LinearAccelerationZNoise(), _spaces + 2);
+  printNoise(imu->LinearAccelerationZNoise(), _spaces + 2, "m/s^2");
 
   std::cout << std::string(_spaces, ' ')
     << "- Angular velocity X-axis noise:\n";
-  printNoise(imu->AngularVelocityXNoise(), _spaces + 2);
+  printNoise(imu->AngularVelocityXNoise(), _spaces + 2, "rad/s");
   std::cout << std::string(_spaces, ' ')
     << "- Angular velocity Y-axis noise:\n";
-  printNoise(imu->AngularVelocityYNoise(), _spaces + 2);
+  printNoise(imu->AngularVelocityYNoise(), _spaces + 2, "rad/s");
   std::cout << std::string(_spaces, ' ')
     << "- Angular velocity Z-axis noise:\n";
-  printNoise(imu->AngularVelocityZNoise(), _spaces + 2);
+  printNoise(imu->AngularVelocityZNoise(), _spaces + 2, "rad/s");
 
   std::cout << std::string(_spaces, ' ')
     << "- Gravity direction X [XYZ]: "
@@ -433,6 +469,51 @@ void printImu(const uint64_t _entity, const EntityComponentManager &_ecm,
 }
 
 //////////////////////////////////////////////////
+void printGpuLidar(const uint64_t _entity,
+    const EntityComponentManager &_ecm, int _spaces)
+{
+  // Get the type and return if the _entity does not have the correct
+  // component.
+  auto comp = _ecm.Component<components::GpuLidar>(_entity);
+  if (!comp)
+    return;
+
+  const sdf::Sensor &sensor = comp->Data();
+  const sdf::Lidar *lidar = sensor.LidarSensor();
+
+  std::cout << std::string(_spaces, ' ') << "- Range:\n";
+  std::cout << std::string(_spaces+2, ' ') << "- Min (m): "
+    << lidar->RangeMin() << std::endl;
+  std::cout << std::string(_spaces+2, ' ') << "- Max (m): "
+    << lidar->RangeMax() << std::endl;
+  std::cout << std::string(_spaces+2, ' ') << "- Resolution: "
+    << lidar->RangeResolution() << std::endl;
+
+  std::cout << std::string(_spaces, ' ') << "- Horizontal scan:\n";
+  std::cout << std::string(_spaces+2, ' ') << "- Samples: "
+    << lidar->HorizontalScanSamples() << std::endl;
+  std::cout << std::string(_spaces+2, ' ') << "- Resolution: "
+    << lidar->HorizontalScanResolution() << std::endl;
+  std::cout << std::string(_spaces+2, ' ') << "- Min angle (rad): "
+    << lidar->HorizontalScanMinAngle() << std::endl;
+  std::cout << std::string(_spaces+2, ' ') << "- Max angle (rad): "
+    << lidar->HorizontalScanMaxAngle() << std::endl;
+
+  std::cout << std::string(_spaces, ' ') << "- Vertical scan:\n";
+  std::cout << std::string(_spaces+2, ' ') << "- Samples: "
+    << lidar->VerticalScanSamples() << std::endl;
+  std::cout << std::string(_spaces+2, ' ') << "- Resolution: "
+    << lidar->VerticalScanResolution() << std::endl;
+  std::cout << std::string(_spaces+2, ' ') << "- Min angle (rad): "
+    << lidar->VerticalScanMinAngle() << std::endl;
+  std::cout << std::string(_spaces+2, ' ') << "- Max angle (rad): "
+    << lidar->VerticalScanMaxAngle() << std::endl;
+
+  std::cout << std::string(_spaces, ' ') << "- Noise:\n";
+  printNoise(lidar->LidarNoise(), _spaces + 2, "m");
+}
+
+//////////////////////////////////////////////////
 void printMagnetometer(const uint64_t _entity,
     const EntityComponentManager &_ecm, int _spaces)
 {
@@ -446,11 +527,11 @@ void printMagnetometer(const uint64_t _entity,
   const sdf::Magnetometer *mag = sensor.MagnetometerSensor();
 
   std::cout << std::string(_spaces, ' ') << "- X-axis noise:\n";
-  printNoise(mag->XNoise(), _spaces + 2);
+  printNoise(mag->XNoise(), _spaces + 2, "T");
   std::cout << std::string(_spaces, ' ') << "- Y-axis noise:\n";
-  printNoise(mag->YNoise(), _spaces + 2);
+  printNoise(mag->YNoise(), _spaces + 2, "T");
   std::cout << std::string(_spaces, ' ') << "- Z-axis noise:\n";
-  printNoise(mag->ZNoise(), _spaces + 2);
+  printNoise(mag->ZNoise(), _spaces + 2, "T");
 }
 
 //////////////////////////////////////////////////
@@ -603,9 +684,12 @@ void printLinks(const uint64_t _modelEntity,
 
       // Run through all the sensor print statements. Each function will
       // exit early if the the sensor is the wrong type.
+      printAirPressure(sensor, _ecm, spaces + 2);
       printAltimeter(sensor, _ecm, spaces + 2);
       printCamera(sensor, _ecm, spaces + 2);
+      printGpuLidar(sensor, _ecm, spaces + 2);
       printImu(sensor, _ecm, spaces + 2);
+      printMagnetometer(sensor, _ecm, spaces + 2);
       printRgbdCamera(sensor, _ecm, spaces + 2);
     }
   }
