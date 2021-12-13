@@ -232,7 +232,7 @@ TEST_P(ServerFixture, ServerConfigSensorPlugin)
 
   // The simulation runner should not be running.
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(2u, *server.SystemCount());
+  EXPECT_EQ(3u, *server.SystemCount());
 
   // Run the server
   igndbg << "Run server" << std::endl;

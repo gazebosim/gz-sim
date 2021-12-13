@@ -27,8 +27,10 @@
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/PhysicsCmd.hh"
+#include "ignition/gazebo/components/Recreate.hh"
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
 #include "ignition/gazebo/Util.hh"
@@ -820,6 +822,10 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   IGN_PROFILE("SimulationRunner::Step");
   this->currentInfo = _info;
 
+  // Process new ECM state information, typically sent from the GUI after
+  // a change was made to the GUI's ECM.
+  this->ProcessNewWorldControlState();
+
   // Publish info
   this->PublishStats();
 
@@ -830,6 +836,12 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 
   // Handle pending systems
   this->ProcessSystemQueue();
+
+  // Handle entities that need to be recreated.
+  // Put in a request to mark them as removed so that in the UpdateSystem call
+  // the systems can remove them first before new ones are created. This is
+  // so that we can recreate entities with the same name.
+  this->ProcessRecreateEntitiesRemove();
 
   // Update all the systems.
   this->UpdateSystems();
@@ -860,6 +872,12 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 
   // Clear all new entities
   this->entityCompMgr.ClearNewlyCreatedEntities();
+
+  // Recreate any entities that have the Recreate component
+  // The entities will have different Entity ids but keep the same name
+  // Make sure this happens after ClearNewlyCreatedEntities, otherwise the
+  // cloned entities will loose their "New" state.
+  this->ProcessRecreateEntitiesCreate();
 
   // Process entity removals.
   this->entityCompMgr.ProcessRemoveEntityRequests();
@@ -1135,11 +1153,13 @@ bool SimulationRunner::OnWorldControlState(const msgs::WorldControlState &_req,
 {
   std::lock_guard<std::mutex> lock(this->msgBufferMutex);
 
-  // update the server ECM if the request contains SerializedState information
+  // Copy the state information if it exists
   if (_req.has_state())
-    this->entityCompMgr.SetState(_req.state());
-  // TODO(anyone) notify server systems of changes made to the ECM, if there
-  // were any?
+  {
+    if (this->newWorldControlState == nullptr)
+      this->newWorldControlState.reset(_req.New());
+    this->newWorldControlState->CopyFrom(_req);
+  }
 
   WorldControl control;
   control.pause = _req.world_control().pause();
@@ -1169,13 +1189,28 @@ bool SimulationRunner::OnWorldControlState(const msgs::WorldControlState &_req,
   {
     control.runToSimTime = std::chrono::seconds(
         _req.world_control().run_to_sim_time().sec()) +
-        std::chrono::nanoseconds(_req.world_control().run_to_sim_time().nsec());
+      std::chrono::nanoseconds(_req.world_control().run_to_sim_time().nsec());
   }
 
   this->worldControls.push_back(control);
 
   _res.set_data(true);
   return true;
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::ProcessNewWorldControlState()
+{
+  std::lock_guard<std::mutex> lock(this->msgBufferMutex);
+  // update the server ECM if the request contains SerializedState information
+  if (this->newWorldControlState && this->newWorldControlState->has_state())
+  {
+    this->entityCompMgr.SetState(this->newWorldControlState->state());
+
+    this->newWorldControlState.reset();
+  }
+  // TODO(anyone) notify server systems of changes made to the ECM, if there
+  // were any?
 }
 
 /////////////////////////////////////////////////
@@ -1249,6 +1284,73 @@ void SimulationRunner::ProcessWorldControl()
   }
 
   this->worldControls.clear();
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::ProcessRecreateEntitiesRemove()
+{
+  IGN_PROFILE("SimulationRunner::ProcessRecreateEntitiesRemove");
+
+  // store the original entities to recreate and put in request to remove them
+  this->entityCompMgr.EachNoCache<components::Model,
+                           components::Recreate>(
+      [&](const Entity &_entity,
+          const components::Model *,
+          const components::Recreate *)->bool
+      {
+        this->entitiesToRecreate.insert(_entity);
+        this->entityCompMgr.RequestRemoveEntity(_entity, true);
+        return true;
+      });
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::ProcessRecreateEntitiesCreate()
+{
+  IGN_PROFILE("SimulationRunner::ProcessRecreateEntitiesCreate");
+
+  // clone the original entities
+  for (auto & ent : this->entitiesToRecreate)
+  {
+    auto nameComp = this->entityCompMgr.Component<components::Name>(ent);
+    auto parentComp =
+        this->entityCompMgr.Component<components::ParentEntity>(ent);
+    if (nameComp  && parentComp)
+    {
+      // set allowRenaming to false so the entities keep their original name
+      Entity clonedEntity = this->entityCompMgr.Clone(ent,
+         parentComp->Data(), nameComp->Data(), false);
+
+      // remove the Recreate component so they do not get recreated again in the
+      // next iteration
+      if (!this->entityCompMgr.RemoveComponent<components::Recreate>(ent))
+      {
+        ignerr << "Failed to remove Recreate component from entity["
+          << ent << "]" << std::endl;
+      }
+
+      if (!this->entityCompMgr.RemoveComponent<components::Recreate>(
+            clonedEntity))
+      {
+        ignerr << "Failed to remove Recreate component from entity["
+          << clonedEntity << "]" << std::endl;
+      }
+    }
+    else if (!nameComp)
+    {
+      ignerr << "Missing name component for entity[" << ent << "]. "
+        << "The entity will not be cloned during the recreation process."
+        << std::endl;
+    }
+    else if (!parentComp)
+    {
+      ignerr << "Missing parent component for entity[" << ent << "]. "
+        << "The entity will not be cloned during the recreation process."
+         << std::endl;
+    }
+  }
+
+  this->entitiesToRecreate.clear();
 }
 
 /////////////////////////////////////////////////

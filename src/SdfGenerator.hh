@@ -124,6 +124,28 @@ namespace sdf_generator
                            const EntityComponentManager &_ecm,
                            const Entity &_entity);
 
+  /// \brief Update an sdf::Element of a light.
+  /// Intended for internal use.
+  /// \input[in, out] _elem sdf::Element to update
+  /// \input[in] _ecm Immutable reference to the Entity Component Manager
+  /// \input[in] _entity Light entity
+  /// \returns true if update succeeded.
+  IGNITION_GAZEBO_VISIBLE
+  bool updateLightElement(sdf::ElementPtr _elem,
+                           const EntityComponentManager &_ecm,
+                           const Entity &_entity);
+
+  /// \brief Update an sdf::Element of a joint.
+  /// Intended for internal use.
+  /// \input[in, out] _elem sdf::Element to update
+  /// \input[in] _ecm Immutable reference to the Entity Component Manager
+  /// \input[in] _entity joint entity
+  /// \returns true if update succeeded.
+  IGNITION_GAZEBO_VISIBLE
+  bool updateJointElement(sdf::ElementPtr _elem,
+                           const EntityComponentManager &_ecm,
+                           const Entity &_entity);
+
   /// \brief Generate the SDFormat DOM representation of a world
   /// \input[in] _ecm Immutable reference to the Entity Component Manager
   /// \input[in] _entity World entity
