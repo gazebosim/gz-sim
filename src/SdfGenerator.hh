@@ -124,6 +124,19 @@ namespace sdf_generator
                            const EntityComponentManager &_ecm,
                            const Entity &_entity);
 
+  /// \brief Generate the SDFormat DOM representation of a world
+  /// \input[in] _ecm Immutable reference to the Entity Component Manager
+  /// \input[in] _entity World entity
+  /// \input[in] _includeUriMap Map from file paths to URIs used to preserve
+  /// included Fuel models
+  /// \input[in] _config Configuration for the world generator
+  /// \returns Generated world DOM if generation succeeded.
+  /// Otherwise, nullopt
+  std::optional<sdf::World> generateWorldSdf(
+      const EntityComponentManager &_ecm, const Entity &_entity,
+      const IncludeUriMap &_includeUriMap,
+      const msgs::SdfGeneratorConfig &_config);
+
   std::optional<sdf::Model> generateModelSdf(const EntityComponentManager &_ecm,
       const Entity &_entity);
 

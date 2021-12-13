@@ -38,6 +38,7 @@
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/Light.hh"
+#include "ignition/gazebo/components/LightType.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/LogicalCamera.hh"
 #include "ignition/gazebo/components/Magnetometer.hh"
@@ -1033,7 +1034,8 @@ namespace sdf_generator
     for (Entity &collision : collisions)
     {
       auto comp = _ecm.Component<components::CollisionElement>(collision);
-      link.AddCollision(comp->Data());
+      if (comp)
+        link.AddCollision(comp->Data());
     }
 
     // Update visuals
@@ -1044,18 +1046,20 @@ namespace sdf_generator
     for (Entity &visual : visuals)
     {
       auto comp = _ecm.Component<components::VisualElement>(visual);
-      link.AddVisual(comp->Data());
+      if (comp)
+        link.AddVisual(comp->Data());
     }
 
     // Update lights
     std::vector<Entity> lights = _ecm.EntitiesByComponents(
-      components::ParentEntity(_entity), components::Light());
+      components::ParentEntity(_entity), components::LightType());
 
     link.ClearLights();
     for (Entity &light : lights)
     {
       auto comp = _ecm.Component<components::Light>(light);
-      link.AddLight(comp->Data());
+      if (comp)
+        link.AddLight(comp->Data());
     }
 
     return link;
