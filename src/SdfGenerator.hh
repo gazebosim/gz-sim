@@ -23,6 +23,9 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <sdf/Model.hh>
+#include <sdf/World.hh>
+#include <sdf/Sensor.hh>
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 
@@ -120,6 +123,15 @@ namespace sdf_generator
   bool updateSensorElement(sdf::ElementPtr _elem,
                            const EntityComponentManager &_ecm,
                            const Entity &_entity);
+
+  std::optional<sdf::Model> generateModelSdf(const EntityComponentManager &_ecm,
+      const Entity &_entity);
+
+  std::optional<sdf::Link> generateLinkSdf(const EntityComponentManager &_ecm,
+      const Entity &_entity);
+
+  std::optional<sdf::Sensor> generateSensorSdf(
+      const EntityComponentManager &_ecm, const Entity &_entity);
 }  // namespace sdf_generator
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 }  // namespace gazebo
