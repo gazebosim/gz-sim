@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
-  <world name="gps_sensor">
+  <world name="navsat_sensor">
     <physics name="1ms" type="ode">
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
@@ -10,8 +10,8 @@
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-gps-system"
-      name="ignition::gazebo::systems::Gps">
+      filename="ignition-gazebo-navsat-system"
+      name="ignition::gazebo::systems::NavSat">
     </plugin>
 
     <model name="ground_plane">
@@ -40,7 +40,7 @@
       </link>
     </model>
 
-    <model name="gps_model">
+    <model name="navsat_model">
       <pose>4 0 3.0 0 0.0 3.14</pose>
       <link name="link">
         <pose>0.05 0.05 0.05 0 0 0</pose>
@@ -66,7 +66,7 @@
             </box>
           </geometry>
         </visual>
-        <sensor name="gps_sensor" type="gps">
+        <sensor name="navsat_sensor" type="navsat">
           <always_on>1</always_on>
           <update_rate>30</update_rate>
           <visualize>true</visualize>

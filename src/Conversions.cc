@@ -56,12 +56,12 @@
 #include <sdf/Gui.hh>
 #include <sdf/Heightmap.hh>
 #include <sdf/Imu.hh>
-#include <sdf/Gps.hh>
 #include <sdf/Lidar.hh>
 #include <sdf/Light.hh>
 #include <sdf/Magnetometer.hh>
 #include <sdf/Material.hh>
 #include <sdf/Mesh.hh>
+#include <sdf/NavSat.hh>
 #include <sdf/Pbr.hh>
 #include <sdf/Plane.hh>
 #include <sdf/Sphere.hh>
@@ -1066,31 +1066,41 @@ msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
         << "sensor pointer is null.\n";
     }
   }
-  else if (_in.Type() == sdf::SensorType::GPS)
+  else if (_in.Type() == sdf::SensorType::GPS ||
+           _in.Type() == sdf::SensorType::NAVSAT)
   {
-    if (_in.GpsSensor())
+    if (_in.NavSatSensor())
     {
-      msgs::GPSSensor *sensor = out.mutable_gps();
+      auto sdfSensor = _in.NavSatSensor();
 
-      if (_in.GpsSensor()->PositionNoise().Type() != sdf::NoiseType::NONE)
+      // \TODO(chapulina) Update to navsat on Garden
+      auto sensor = out.mutable_gps();
+
+      if (sdfSensor->HorizontalPositionNoise().Type() != sdf::NoiseType::NONE)
       {
         ignition::gazebo::set(sensor->mutable_position()->mutable_horizontal_noise(),
-            _in.GpsSensor()->PositionNoise());
+            sdfSensor->HorizontalPositionNoise());
+      }
+      if (sdfSensor->VerticalPositionNoise().Type() != sdf::NoiseType::NONE)
+      {
         ignition::gazebo::set(sensor->mutable_position()->mutable_vertical_noise(),
-            _in.GpsSensor()->PositionNoise());
+            sdfSensor->VerticalPositionNoise());
 
       }
-      if (_in.GpsSensor()->VelocityNoise().Type() != sdf::NoiseType::NONE)
+      if (sdfSensor->HorizontalVelocityNoise().Type() != sdf::NoiseType::NONE)
       {
         ignition::gazebo::set(sensor->mutable_velocity()->mutable_horizontal_noise(),
-            _in.GpsSensor()->VelocityNoise());
+            sdfSensor->HorizontalVelocityNoise());
+      }
+      if (sdfSensor->VerticalVelocityNoise().Type() != sdf::NoiseType::NONE)
+      {
         ignition::gazebo::set(sensor->mutable_velocity()->mutable_vertical_noise(),
-            _in.GpsSensor()->VelocityNoise());
+            sdfSensor->VerticalVelocityNoise());
       }
     }
     else
     {
-      ignerr << "Attempting to convert a GPS SDF sensor, but the "
+      ignerr << "Attempting to convert a NavSat SDF sensor, but the "
         << "sensor pointer is null.\n";
     }
   }

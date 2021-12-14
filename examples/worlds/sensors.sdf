@@ -8,6 +8,7 @@
     Imu: ign topic -e -t /imu
     Magnetometer: ign topic -e -t /magnetometer
     Air pressure: ign topic -e -t /air_pressure
+    NavSat: ign topic -e -t /navsat
 -->
 <sdf version="1.6">
   <world name="sensors">
@@ -28,10 +29,6 @@
       name="ignition::gazebo::systems::Altimeter">
     </plugin>
     <plugin
-      filename="ignition-gazebo-gps-system"
-      name="ignition::gazebo::systems::Gps">
-    </plugin>
-    <plugin
       filename="ignition-gazebo-imu-system"
       name="ignition::gazebo::systems::Imu">
     </plugin>
@@ -42,6 +39,10 @@
     <plugin
       filename="ignition-gazebo-forcetorque-system"
       name="ignition::gazebo::systems::ForceTorque">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-navsat-system"
+      name="ignition::gazebo::systems::NavSat">
     </plugin>
     <plugin
       filename="ignition-gazebo-user-commands-system"
@@ -157,11 +158,11 @@
           </air_pressure>
         </sensor>
 
-        <sensor name="gps" type="gps">
+        <sensor name="navsat" type="navsat">
           <always_on>1</always_on>
           <update_rate>1</update_rate>
           <visualize>true</visualize>
-          <topic>gps</topic>
+          <topic>navsat</topic>
         </sensor>
 
         <sensor name="imu" type="imu">

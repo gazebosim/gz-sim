@@ -17,14 +17,14 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/gps.pb.h>
+#include <ignition/msgs/navsat.pb.h>
 #include <mutex>
 
 #include <ignition/common/Console.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
 
-#include "ignition/gazebo/components/Gps.hh"
+#include "ignition/gazebo/components/NavSat.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
@@ -39,8 +39,8 @@
 using namespace ignition;
 using namespace gazebo;
 
-/// \brief Test GpsTest system
-class GpsTest : public ::testing::Test
+/// \brief Test NavSatTest system
+class NavSatTest : public ::testing::Test
 {
   // Documentation inherited
   protected: void SetUp() override
@@ -52,46 +52,46 @@ class GpsTest : public ::testing::Test
 };
 
 std::mutex mutex;
-std::vector<msgs::GPS> gpsMsgs;
+std::vector<msgs::NavSat> navSatMsgs;
 
 /////////////////////////////////////////////////
-void gpsCb(const msgs::GPS &_msg)
+void navsatCb(const msgs::NavSat &_msg)
 {
   mutex.lock();
-  gpsMsgs.push_back(_msg);
+  navSatMsgs.push_back(_msg);
   mutex.unlock();
 }
 
 /////////////////////////////////////////////////
-// The test checks the world pose and sensor readings of a falling gps
-TEST_F(GpsTest, ModelFalling)
+// The test checks the world pose and sensor readings of a falling navsat
+TEST_F(NavSatTest, ModelFalling)
 {
   // Start server
   ServerConfig serverConfig;
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/gps.sdf";
+    "/test/worlds/navsat.sdf";
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  const std::string sensorName = "gps_sensor";
+  const std::string sensorName = "navsat_sensor";
 
-  auto topic = "world/gps_sensor/"
-      "model/gps_model/link/link/sensor/gps_sensor/gps";
+  auto topic = "world/navsat_sensor/"
+      "model/navsat_model/link/link/sensor/navsat_sensor/navsat";
 
-  // Create a system that records gps data
+  // Create a system that records navsat data
   test::Relay testSystem;
   std::vector<math::Pose3d> poses;
   std::vector<math::Vector3d> velocities;
   testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
                               const gazebo::EntityComponentManager &_ecm)
       {
-        _ecm.Each<components::Gps, components::Name,
+        _ecm.Each<components::NavSat, components::Name,
                   components::WorldPose>(
             [&](const ignition::gazebo::Entity &_entity,
-                const components::Gps *,
+                const components::NavSat *,
                 const components::Name *_name,
                 const components::WorldPose *_worldPose) -> bool
             {
@@ -116,9 +116,9 @@ TEST_F(GpsTest, ModelFalling)
 
   server.AddSystem(testSystem.systemPtr);
 
-  // subscribe to gps topic
+  // subscribe to navsat topic
   transport::Node node;
-  node.Subscribe(topic, &gpsCb);
+  node.Subscribe(topic, &navsatCb);
 
   // Run server
   size_t iters100 = 100u;
@@ -134,7 +134,7 @@ TEST_F(GpsTest, ModelFalling)
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     mutex.lock();
-    bool received = gpsMsgs.size() == waitForMsgs;
+    bool received = navsatMsgs.size() == waitForMsgs;
     mutex.unlock();
 
     if (received)
@@ -142,24 +142,24 @@ TEST_F(GpsTest, ModelFalling)
   }
 
   mutex.lock();
-  EXPECT_EQ(gpsMsgs.size(), waitForMsgs);
-  auto firstMsg = gpsMsgs.front();
-  auto lastMsg = gpsMsgs.back();
+  EXPECT_EQ(navsatMsgs.size(), waitForMsgs);
+  auto firstMsg = navsatMsgs.front();
+  auto lastMsg = navsatMsgs.back();
   mutex.unlock();
 
-  // check gps world pose
-  // verify the gps model z pos is decreasing
+  // check navsat world pose
+  // verify the navsat model z pos is decreasing
   EXPECT_GT(poses.front().Pos().Z(), poses.back().Pos().Z());
   EXPECT_GT(poses.back().Pos().Z(), 0.0);
   // velocity should be negative in z
   //EXPECT_GT(velocities.front().Z(), velocities.back().Z());
   //EXPECT_LT(velocities.back().Z(), 0.0);
 
-  // check gps sensor data
+  // check navsat sensor data
 
   /*
   // vertical position = world position - intial position
-  // so since gps is falling, vertical position should be negative
+  // so since navsat is falling, vertical position should be negative
   EXPECT_GT(firstMsg.vertical_position(),
       lastMsg.vertical_position());
   EXPECT_LT(lastMsg.vertical_position(), 0.0);
@@ -168,7 +168,7 @@ TEST_F(GpsTest, ModelFalling)
       lastMsg.vertical_velocity());
   EXPECT_LT(lastMsg.vertical_velocity(), 0.0);
   */
-  // Run server for longer period of time so the gps falls then rests
+  // Run server for longer period of time so the navsat falls then rests
   // on the ground plane
   size_t iters1000 = 1000u;
   server.Run(true, iters1000, false);
@@ -181,7 +181,7 @@ TEST_F(GpsTest, ModelFalling)
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     mutex.lock();
-    bool received = gpsMsgs.size() == waitForMsgs;
+    bool received = navsatMsgs.size() == waitForMsgs;
     mutex.unlock();
 
     if (received)
@@ -189,20 +189,20 @@ TEST_F(GpsTest, ModelFalling)
   }
 
   mutex.lock();
-  EXPECT_EQ(gpsMsgs.size(), waitForMsgs);
-  lastMsg = gpsMsgs.back();
+  EXPECT_EQ(navsatMsgs.size(), waitForMsgs);
+  lastMsg = navsatMsgs.back();
   mutex.unlock();
 
-  // check gps world pose
-  // gps should be on the ground
-  // note that gps's parent link is at an 0.05 offset
+  // check navsat world pose
+  // navsat should be on the ground
+  // note that navsat's parent link is at an 0.05 offset
   // set high tol due to instablity
   EXPECT_NEAR(poses.back().Pos().Z(), 0.05, 1e-2);
   // velocity should now be zero as the model is resting on the ground
   //EXPECT_NEAR(velocities.back().Z(), 0u, 1e-3);
 
-  // check gps sensor data
-  // gps vertical position = 0.05 (world pos) - 3.05 (initial position)
+  // check navsat sensor data
+  // navsat vertical position = 0.05 (world pos) - 3.05 (initial position)
   //EXPECT_LT(lastMsg.vertical_position(), -3.0);
   // velocity should be zero
   //EXPECT_NEAR(lastMsg.vertical_velocity(), 0u, 1e-3);

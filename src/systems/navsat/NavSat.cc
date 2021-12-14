@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2021 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,9 @@
  *
  */
 
-#include "Gps.hh"
+#include "NavSat.hh"
 
-#include <ignition/msgs/gps.pb.h>
+#include <ignition/msgs/navsat.pb.h>
 
 #include <string>
 #include <unordered_map>
@@ -32,9 +32,9 @@
 #include <ignition/transport/Node.hh>
 
 #include <ignition/sensors/SensorFactory.hh>
-#include <ignition/sensors/GpsSensor.hh>
+#include <ignition/sensors/NavSatSensor.hh>
 
-#include "ignition/gazebo/components/Gps.hh"
+#include "ignition/gazebo/components/NavSat.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
@@ -48,51 +48,51 @@ using namespace ignition;
 using namespace gazebo;
 using namespace systems;
 
-/// \brief Private Gps data class.
-class ignition::gazebo::systems::GpsPrivate
+/// \brief Private NavSat data class.
+class ignition::gazebo::systems::NavSatPrivate
 {
-  /// \brief A map of gps entity to its vertical reference
+  /// \brief A map of NavSat entity to its vertical reference
   public: std::unordered_map<Entity,
-      std::unique_ptr<sensors::GpsSensor>> entitySensorMap;
+      std::unique_ptr<sensors::NavSatSensor>> entitySensorMap;
 
   /// \brief Ign-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
 
-  /// \brief Create gps sensor
+  /// \brief Create NavSat sensor
   /// \param[in] _ecm Mutable reference to ECM.
-  public: void CreateGpsEntities(EntityComponentManager &_ecm);
+  public: void CreateNavSatEntities(EntityComponentManager &_ecm);
 
-  /// \brief Update gps sensor data based on physics data
+  /// \brief Update NavSat sensor data based on physics data
   /// \param[in] _ecm Immutable reference to ECM.
-  public: void UpdateGps(const EntityComponentManager &_ecm);
+  public: void UpdateNavSat(const EntityComponentManager &_ecm);
 
-  /// \brief Remove gps sensors if their entities have been removed from
+  /// \brief Remove NavSat sensors if their entities have been removed from
   /// simulation.
   /// \param[in] _ecm Immutable reference to ECM.
-  public: void RemoveGpsEntities(const EntityComponentManager &_ecm);
+  public: void RemoveNavSatEntities(const EntityComponentManager &_ecm);
 };
 
 //////////////////////////////////////////////////
-Gps::Gps() : System(), dataPtr(std::make_unique<GpsPrivate>())
+NavSat::NavSat() : System(), dataPtr(std::make_unique<NavSatPrivate>())
 {
 }
 
 //////////////////////////////////////////////////
-Gps::~Gps() = default;
+NavSat::~NavSat() = default;
 
 //////////////////////////////////////////////////
-void Gps::PreUpdate(const UpdateInfo &/*_info*/,
+void NavSat::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Gps::PreUpdate");
-  this->dataPtr->CreateGpsEntities(_ecm);
+  IGN_PROFILE("NavSat::PreUpdate");
+  this->dataPtr->CreateNavSatEntities(_ecm);
 }
 
 //////////////////////////////////////////////////
-void Gps::PostUpdate(const UpdateInfo &_info,
+void NavSat::PostUpdate(const UpdateInfo &_info,
                            const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Gps::PostUpdate");
+  IGN_PROFILE("NavSat::PostUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
@@ -105,7 +105,7 @@ void Gps::PostUpdate(const UpdateInfo &_info,
   // Only update and publish if not paused.
   if (!_info.paused)
   {
-    this->dataPtr->UpdateGps(_ecm);
+    this->dataPtr->UpdateNavSat(_ecm);
 
     for (auto &it : this->dataPtr->entitySensorMap)
     {
@@ -116,33 +116,33 @@ void Gps::PostUpdate(const UpdateInfo &_info,
     }
   }
 
-  this->dataPtr->RemoveGpsEntities(_ecm);
+  this->dataPtr->RemoveNavSatEntities(_ecm);
 }
 
 //////////////////////////////////////////////////
-void GpsPrivate::CreateGpsEntities(EntityComponentManager &_ecm)
+void NavSatPrivate::CreateNavSatEntities(EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Gps::CreateGpsEntities");
-  // Create gps
-  _ecm.EachNew<components::Gps, components::ParentEntity>(
+  IGN_PROFILE("NavSat::CreateNavSatEntities");
+  // Create NavSat
+  _ecm.EachNew<components::NavSat, components::ParentEntity>(
     [&](const Entity &_entity,
-        const components::Gps *_gps,
+        const components::NavSat *_navsat,
         const components::ParentEntity *_parent)->bool
       {
         // create sensor
         std::string sensorScopedName =
             removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
-        sdf::Sensor data = _gps->Data();
+        sdf::Sensor data = _navsat->Data();
         data.SetName(sensorScopedName);
         // check topic
         if (data.Topic().empty())
         {
-          std::string topic = scopedName(_entity, _ecm) + "/gps";
+          std::string topic = scopedName(_entity, _ecm) + "/navsat";
           data.SetTopic(topic);
         }
-        std::unique_ptr<sensors::GpsSensor> sensor =
+        std::unique_ptr<sensors::NavSatSensor> sensor =
             this->sensorFactory.CreateSensor<
-            sensors::GpsSensor>(data);
+            sensors::NavSatSensor>(data);
         if (nullptr == sensor)
         {
           ignerr << "Failed to create sensor [" << sensorScopedName << "]"
@@ -161,34 +161,34 @@ void GpsPrivate::CreateGpsEntities(EntityComponentManager &_ecm)
         this->entitySensorMap.insert(
             std::make_pair(_entity, std::move(sensor)));
 
-        igndbg << "Creating GPS Entity" << std::endl;
+        igndbg << "Creating NavSat Entity" << std::endl;
 
         return true;
       });
 }
 
 //////////////////////////////////////////////////
-void GpsPrivate::UpdateGps(const EntityComponentManager &_ecm)
+void NavSatPrivate::UpdateNavSat(const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Gps::UpdateGps");
+  IGN_PROFILE("NavSat::UpdateNavSat");
 
-  _ecm.Each<components::Gps, components::WorldPose,
+  _ecm.Each<components::NavSat, components::WorldPose,
    components::WorldLinearVelocity>(
     [&](const Entity &_entity,
-        const components::Gps * /*_gps*/,
+        const components::NavSat * /*_navsat*/,
         const components::WorldPose *_worldPose,
         const components::WorldLinearVelocity *_worldLinearVel
         )->bool
       {
         auto it = this->entitySensorMap.find(_entity);
-        
+
         if (it != this->entitySensorMap.end())
         {
           math::Vector3d worldCoords;
           math::SphericalCoordinates sphericalCoords;
           math::Vector3d worldvel = _worldLinearVel->Data();
 
-          worldCoords = sphericalCoords.PositionTransform(_worldPose->Data().Pos(), 
+          worldCoords = sphericalCoords.PositionTransform(_worldPose->Data().Pos(),
           math::SphericalCoordinates::GLOBAL,
           math::SphericalCoordinates::SPHERICAL);
 
@@ -199,7 +199,7 @@ void GpsPrivate::UpdateGps(const EntityComponentManager &_ecm)
         }
         else
         {
-          ignerr << "Failed to update gps: " << _entity << ". "
+          ignerr << "Failed to update NavSat: " << _entity << ". "
                  << "Entity not found." << std::endl;
         }
 
@@ -208,19 +208,19 @@ void GpsPrivate::UpdateGps(const EntityComponentManager &_ecm)
 }
 
 //////////////////////////////////////////////////
-void GpsPrivate::RemoveGpsEntities(
+void NavSatPrivate::RemoveNavSatEntities(
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Gps::RemoveGpsEntities");
-  _ecm.EachRemoved<components::Gps>(
+  IGN_PROFILE("NavSat::RemoveNavSatEntities");
+  _ecm.EachRemoved<components::NavSat>(
     [&](const Entity &_entity,
-        const components::Gps *)->bool
+        const components::NavSat *)->bool
       {
-        igndbg << "Removing GPS entity" << std::endl;
+        igndbg << "Removing NavSat entity" << std::endl;
         auto sensorId = this->entitySensorMap.find(_entity);
         if (sensorId == this->entitySensorMap.end())
         {
-          ignerr << "Internal error, missing gps sensor for entity ["
+          ignerr << "Internal error, missing NavSat sensor for entity ["
                  << _entity << "]" << std::endl;
           return true;
         }
@@ -231,9 +231,9 @@ void GpsPrivate::RemoveGpsEntities(
       });
 }
 
-IGNITION_ADD_PLUGIN(Gps, System,
-  Gps::ISystemPreUpdate,
-  Gps::ISystemPostUpdate
+IGNITION_ADD_PLUGIN(NavSat, System,
+  NavSat::ISystemPreUpdate,
+  NavSat::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(Gps, "ignition::gazebo::systems::Gps")
+IGNITION_ADD_PLUGIN_ALIAS(NavSat, "ignition::gazebo::systems::NavSat")

@@ -1,9 +1,9 @@
-gz_add_system(gps
+gz_add_system(navsat
   SOURCES
-    Gps.cc
+    NavSat.cc
   PUBLIC_LINK_LIBS
     ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
   PRIVATE_LINK_LIBS
-    ignition-sensors${IGN_SENSORS_VER}::gps
+    ignition-sensors${IGN_SENSORS_VER}::navsat
 )
 

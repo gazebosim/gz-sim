@@ -121,6 +121,7 @@ ign_find_package(ignition-sensors6 REQUIRED VERSION 6.0.1
     gps
     logical_camera
     magnetometer
+    navsat
 
     # rendering
     rendering
