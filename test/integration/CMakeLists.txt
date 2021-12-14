@@ -47,6 +47,7 @@ set(tests
   physics_system.cc
   play_pause.cc
   pose_publisher_system.cc
+  recreate_entities.cc
   save_world.cc
   scene_broadcaster_system.cc
   sdf_frame_semantics.cc
@@ -62,6 +63,7 @@ set(tests
   wheel_slip.cc
   wind_effects.cc
   world.cc
+  world_control_state.cc
 )
 
 # Tests that require a valid display
