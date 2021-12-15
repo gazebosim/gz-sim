@@ -46,6 +46,76 @@
 
 ### Ignition Math 6.x.x
 
+## Ignition Math 6.8.0 (2021-03-30)
+
+1. Add speed limiter class
+    * [Pull request #194](https://github.com/ignitionrobotics/ign-math/pull/194)
+
+1. Bazel Updates for math6
+    * [Pull request #171](https://github.com/ignitionrobotics/ign-math/pull/171)
+
+1. Add Equal tolerance method to Quaternion
+    * [Pull request #196](https://github.com/ignitionrobotics/ign-math/pull/196)
+
+1. Fix broken link in MassMatrix3.hh
+    * [Pull request #197](https://github.com/ignitionrobotics/ign-math/pull/197)
+
+1. Add instructions to build and run examples
+    * [Pull request #192](https://github.com/ignitionrobotics/ign-math/pull/192)
+
+1. Infrastructure and documentation
+    * [Pull request #189](https://github.com/ignitionrobotics/ign-math/pull/189)
+    * [Pull request #193](https://github.com/ignitionrobotics/ign-math/pull/193)
+    * [Pull request #195](https://github.com/ignitionrobotics/ign-math/pull/195)
+    * [Pull request #201](https://github.com/ignitionrobotics/ign-math/pull/201)
+
+1. Remove unnecessary copy constructor declaration from Box
+    * [Pull request 187](https://github.com/ignitionrobotics/ign-math/pull/187)
+
+1. Windows installation via conda-forge
+    * [Pull request 185](https://github.com/ignitionrobotics/ign-math/pull/185)
+
+1.  Add rule-of-five members for Angle
+    * [Pull request 186](https://github.com/ignitionrobotics/ign-math/pull/186)
+
+1. Ellipsoid: new shape class with inertia calculation method
+    * [Pull request 182](https://github.com/ignitionrobotics/ign-math/pull/182)
+
+1. Avoid moving a return value, it might prevent (N)RVO
+    * [Pull request 183](https://github.com/ignitionrobotics/ign-math/pull/183)
+
+1. Properly handle stream errors when reading math objects
+    * [Pull request 180](https://github.com/ignitionrobotics/ign-math/pull/180)
+    * [Pull request 181](https://github.com/ignitionrobotics/ign-math/pull/181)
+
+## Ignition Math 6.7.0 (2020-11-23)
+
+1. Capsule: new shape class with inertia calculation method
+    * [Pull request 163](https://github.com/ignitionrobotics/ign-math/pull/163)
+
+1. Add missing header to Color.hh
+    * [Pull request 162](https://github.com/ignitionrobotics/ign-math/pull/162)
+
+1. Improve tests of `Vector2`, `Vector3`, `Vector4`, `Quaternion`, and `Pose3`
+    * [Pull request 172](https://github.com/ignitionrobotics/ign-math/pull/172)
+    * [Pull request 173](https://github.com/ignitionrobotics/ign-math/pull/173)
+    * [Pull request 174](https://github.com/ignitionrobotics/ign-math/pull/174)
+    * [Issue 76](https://github.com/ignitionrobotics/ign-math/issues/76)
+
+1. Pose3: document `operator*`
+    * [Pull request 170](https://github.com/ignitionrobotics/ign-math/pull/170)
+
+1. Quaternion: add Normalized() method
+    * [Pull request 169](https://github.com/ignitionrobotics/ign-math/pull/169)
+
+1. Vector2: add Round(), Rounded() methods
+    * [Pull request 166](https://github.com/ignitionrobotics/ign-math/pull/166)
+    * [Issue 71](https://github.com/ignitionrobotics/ign-math/issues/71)
+
+1. Add test for printing `inf` `Vector3`
+    * [Pull request 168](https://github.com/ignitionrobotics/ign-math/pull/168)
+    * [Issue 64](https://github.com/ignitionrobotics/ign-math/issues/64)
+
 ## Ignition Math 6.6.0 (2020-09-16)
 
 1. Add chrono duration helper functions

@@ -9,10 +9,10 @@
 
 Build | Status
 -- | --
-Test coverage | [![codecov](https://codecov.io/gh/ignitionrobotics/ign-math/branch/master/graph/badge.svg)](https://codecov.io/gh/ignitionrobotics/ign-math)
-Ubuntu Bionic | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-master-bionic-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-master-bionic-amd64)
-Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-master-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-master-homebrew-amd64)
-Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-master-windows7-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-master-windows7-amd64)
+Test coverage | [![codecov](https://codecov.io/gh/ignitionrobotics/ign-math/branch/ign-math6/graph/badge.svg)](https://codecov.io/gh/ignitionrobotics/ign-math)
+Ubuntu Bionic | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-ign-math6-bionic-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-ign-math6-bionic-amd64)
+Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-ign-math6-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-ign-math6-homebrew-amd64)
+Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-ign-math6-windows7-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-ign-math6-windows7-amd64)
 
 Ignition Math, a component of [Ignition
 Robotics](https://ignitionrobotics.org), provides general purpose math
@@ -25,10 +25,6 @@ classes and functions designed for robotic applications.
 [Install](#install)
 
 [Usage](#usage)
-
-[Documentation](#documentation)
-
-[Testing](#testing)
 
 [Folder Structure](#folder-structure)
 
@@ -52,81 +48,11 @@ Math types.
 
 # Install
 
-See the [installation tutorial](https://ignitionrobotics.org/api/math/6.6/install.html).
+See the [installation tutorial](https://ignitionrobotics.org/api/math/6.8/install.html).
 
 # Usage
 
-Please refer to the [examples directory](https://github.com/ignitionrobotics/ign-math/raw/master/examples/).
-
-# Documentation
-
-API and tutorials can be found at [https://ignitionrobotics.org/libs/math](https://ignitionrobotics.org/libs/math).
-
-You can also generate the documentation from a clone of this repository by following these steps.
-
-1. You will need Doxygen. On Ubuntu Doxygen can be installed using
-
-    ```
-    sudo apt-get install doxygen
-    ```
-
-2. Clone the repository
-
-    ```
-    git clone https://github.com/ignitionrobotics/ign-math
-    ```
-
-3. Configure and build the documentation.
-
-    ```
-    cd ign-math; mkdir build; cd build; cmake ../; make doc
-    ```
-
-4. View the documentation by running the following command from the build directory.
-
-    ```
-    firefox doxygen/html/index.html
-    ```
-
-# Testing
-
-Follow these steps to run tests and static code analysis in your clone of this repository.
-
-1. Follow the [source install instruction](https://ignitionrobotics.org/libs/math#source-install).
-
-2. Run tests.
-
-    ```
-    make test
-    ```
-
-3. Static code checker.
-
-    ```
-    make codecheck
-    ```
-
-## Ruby Tests
-
-### Usage
-
-The C++ classes are available in Ruby code by interface files (`.i`) used by swig to build a C++ extension module.
-
-The interfaces and Ruby test codes are in the `src` folder. To use a C++ class in Ruby you need to:
-
-1. Create an interface file describing the class as in Swig and Ruby reference at [The Ruby-to-C/C++ Mapping](http://www.swig.org/Doc1.3/Ruby.html#Ruby_nn11)
-
-2. Include the interface file in `/src/ing_math.i`
-
-3. Create the Ruby file and import the class as in Swig and Ruby reference at [C++ Classes](http://www.swig.org/Doc1.3/Ruby.html#Ruby_nn18)
-
-### Tests
-
-`make test` already runs all tests, including the ones made in Ruby, but you can run a Ruby test individually using
-
-```
-ctest -R Ruby_TEST.rb
-```
+Please refer to the [examples directory](https://github.com/ignitionrobotics/ign-math/raw/ign-math6/examples/).
 
 # Folder Structure
 
@@ -150,12 +76,12 @@ ign-math
 # Contributing
 
 Please see
-[CONTRIBUTING.md](https://github.com/ignitionrobotics/ign-gazebo/blob/master/CONTRIBUTING.md).
+[CONTRIBUTING.md](https://github.com/ignitionrobotics/ign-gazebo/blob/main/CONTRIBUTING.md).
 
 # Code of Conduct
 
 Please see
-[CODE_OF_CONDUCT.md](https://github.com/ignitionrobotics/ign-gazebo/blob/master/CODE_OF_CONDUCT.md).
+[CODE_OF_CONDUCT.md](https://github.com/ignitionrobotics/ign-gazebo/blob/main/CODE_OF_CONDUCT.md).
 
 # Versioning
 
@@ -163,4 +89,4 @@ This library uses [Semantic Versioning](https://semver.org/). Additionally, this
 
 # License
 
-This library is licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0). See also the [LICENSE](https://github.com/ignitionrobotics/ign-math/blob/master/LICENSE) file.
+This library is licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0). See also the [LICENSE](https://github.com/ignitionrobotics/ign-math/blob/main/LICENSE) file.

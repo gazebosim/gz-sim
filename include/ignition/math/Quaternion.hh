@@ -818,10 +818,7 @@ namespace ignition
       /// tolerance of 0.001 of its counterpart.
       public: bool operator==(const Quaternion<T> &_qt) const
       {
-        return equal(this->qx, _qt.qx, static_cast<T>(0.001)) &&
-               equal(this->qy, _qt.qy, static_cast<T>(0.001)) &&
-               equal(this->qz, _qt.qz, static_cast<T>(0.001)) &&
-               equal(this->qw, _qt.qw, static_cast<T>(0.001));
+        return this->Equal(_qt, static_cast<T>(0.001));
       }
 
       /// \brief Not equal to operator. A tolerance of 0.001 is used
@@ -832,10 +829,7 @@ namespace ignition
       /// the tolerance of 0.001 of its counterpart.
       public: bool operator!=(const Quaternion<T> &_qt) const
       {
-        return !equal(this->qx, _qt.qx, static_cast<T>(0.001)) ||
-               !equal(this->qy, _qt.qy, static_cast<T>(0.001)) ||
-               !equal(this->qz, _qt.qz, static_cast<T>(0.001)) ||
-               !equal(this->qw, _qt.qw, static_cast<T>(0.001));
+        return !(*this == _qt);
       }
 
       /// \brief Unary minus operator.
@@ -1223,7 +1217,10 @@ namespace ignition
         _in.setf(std::ios_base::skipws);
         _in >> roll >> pitch >> yaw;
 
-        _q.SetFromEuler(Vector3<T>(*roll, *pitch, *yaw));
+        if (!_in.fail())
+        {
+          _q.SetFromEuler(Vector3<T>(*roll, *pitch, *yaw));
+        }
 
         return _in;
       }
