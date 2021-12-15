@@ -139,6 +139,9 @@ namespace ignition
       /// \brief Thread that executes systems.
       public: std::thread runThread;
 
+      /// \brief Thread that shuts down the system.
+      public: std::shared_ptr<std::thread> stopThread;
+
       /// \brief Our signal handler.
       public: ignition::common::SignalHandler sigHandler;
 

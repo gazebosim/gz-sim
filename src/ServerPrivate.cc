@@ -100,6 +100,10 @@ ServerPrivate::~ServerPrivate()
   {
     this->runThread.join();
   }
+  if (this->stopThread && this->stopThread->joinable())
+  {
+    this->stopThread->join();
+  }
 }
 
 //////////////////////////////////////////////////
@@ -457,7 +461,14 @@ bool ServerPrivate::ServerControlService(
 
   if (_req.stop())
   {
-    this->Stop();
+    if (!this->stopThread)
+    {
+      this->stopThread.reset(new std::thread([this]{
+        ignlog << "Stopping Gazebo" << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        this->Stop();
+      }));
+    }
     _res.set_data(true);
   }
 
