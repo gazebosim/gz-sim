@@ -268,6 +268,23 @@ TEST(Vector4dTest, EqualTolerance)
 }
 
 /////////////////////////////////////////////////
+TEST(Vector4dTest, Distance)
+{
+  math::Vector4d vec1(0, 0, 0, 0);
+  math::Vector4d vec2(1, 2, 3, 4);
+
+  double dist = vec1.Distance(vec2);
+  EXPECT_NEAR(dist, 5.477225, 1e-6);
+
+  double dist2 = vec1.Distance(1, 2, 3, 4);
+  EXPECT_DOUBLE_EQ(dist, dist2);
+
+  math::Vector4i vecInt(0, 0, 0, 0);
+  int distInt = vecInt.Distance({1, 1, 1, 1});
+  EXPECT_EQ(distInt, 2);
+}
+
+/////////////////////////////////////////////////
 TEST(Vector4dTest, Sum)
 {
   math::Vector4d vec1(1.5, 2.5, 3.5, -4.5);
@@ -420,5 +437,9 @@ TEST(Vector4dTest, Length)
   math::Vector4d v(0.1, -4.2, 2.5, 1.0);
   EXPECT_NEAR(v.Length(), 4.98998997995, 1e-10);
   EXPECT_DOUBLE_EQ(v.SquaredLength(), 24.9);
+
+  // Integer vector
+  EXPECT_EQ(math::Vector4i::One.Length(), 2);
+  EXPECT_EQ(math::Vector4i::One.SquaredLength(), 4);
 }
 
