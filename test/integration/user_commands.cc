@@ -24,6 +24,7 @@
 #include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Link.hh"
@@ -37,20 +38,14 @@
 #include "ignition/gazebo/test_config.hh"
 
 #include "../helpers/Relay.hh"
+#include "../helpers/EnvTestFixture.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
 //////////////////////////////////////////////////
-class UserCommandsTest : public ::testing::Test
+class UserCommandsTest : public InternalFixture<::testing::Test>
 {
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    ignition::common::Console::SetVerbosity(4);
-    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
-  }
 };
 
 /////////////////////////////////////////////////
@@ -696,7 +691,8 @@ TEST_F(UserCommandsTest, Pose)
 }
 
 /////////////////////////////////////////////////
-TEST_F(UserCommandsTest, Light)
+// https://github.com/ignitionrobotics/ign-gazebo/issues/634
+TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_MAC(Light))
 {
   // Start server
   ServerConfig serverConfig;
