@@ -14,6 +14,7 @@ jobs:
         uses: ignition-tooling/action-ignition-ci@bionic
         with:
           codecov-enabled: true
+          doxygen-enabled: true
   focal-ci:
     runs-on: ubuntu-latest
     name: Ubuntu Focal CI

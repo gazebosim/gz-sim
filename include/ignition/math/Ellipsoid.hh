@@ -57,7 +57,7 @@ namespace ignition
       public: Vector3<Precision> Radii() const;
 
       /// \brief Set the radius in meters.
-      /// \param[in] _radius The radius of the ellipsoid in meters.
+      /// \param[in] _radii The radii of the ellipsoid in meters.
       public: void SetRadii(const Vector3<Precision> &_radii);
 
       /// \brief Get the material associated with this ellipsoid.

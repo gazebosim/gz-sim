@@ -43,7 +43,7 @@ if (NOT SWIG_FOUND)
   IGN_BUILD_WARNING("Swig is missing: Language interfaces are disabled.")
   message (STATUS "Searching for swig - not found.")
 else()
-  message (STATUS "Searching for swig - found.")
+  message (STATUS "Searching for swig - found version ${SWIG_VERSION}.")
 endif()
 
 # Include other languages if swig was found
@@ -55,9 +55,22 @@ if (SWIG_FOUND)
     IGN_BUILD_WARNING("Ruby is missing: Install ruby-dev to enable ruby interface to ignition math.")
     message (STATUS "Searching for Ruby - not found.")
   else()
-    message (STATUS "Searching for Ruby - found.")
+    message (STATUS "Searching for Ruby - found version ${RUBY_VERSION}.")
+  endif()
+
+  ########################################
+  # Include python
+  find_package(PythonLibs QUIET)
+  if (NOT PYTHONLIBS_FOUND)
+    message (STATUS "Searching for Python - not found.")
+  else()
+    message (STATUS "Searching for Python - found version ${PYTHONLIBS_VERSION_STRING}.")
   endif()
 endif()
+
+# Location of "fake install folder" used in tests
+# Defined here at root scope so it is available for tests in src and test folders
+set(FAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/fake/install")
 
 #============================================================================
 # Configure the build
