@@ -190,7 +190,7 @@ void Spawn::LoadConfig(const tinyxml2::XMLElement *)
 }
 
 
-// TODO(ahcorde): Replace this when this function is on ign-rendering7
+// TODO(ahcorde): Replace this when this function is on ign-rendering6
 /////////////////////////////////////////////////
 math::Vector3d SpawnPrivate::ScreenToPlane(
     const math::Vector2i &_screenPos,
