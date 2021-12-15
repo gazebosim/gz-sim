@@ -34,6 +34,10 @@ namespace ignition
     /// \class Color Color.hh ignition/math/Color.hh
     /// \brief Defines a color using a red (R), green (G), blue (B), and alpha
     /// (A) component. Each color component is in the range [0..1].
+    ///
+    /// ## Example
+    ///
+    /// \snippet examples/color_example.cc complete
     class IGNITION_MATH_VISIBLE Color
     {
       /// \brief (1, 1, 1)
@@ -55,18 +59,38 @@ namespace ignition
 
       /// \typedef RGBA
       /// \brief A RGBA packed value as an unsigned int
+      /// Each 8 bits corresponds to a channel.
+      ///
+      /// \code
+      /// RGBA a = 0xFF0000FF; // (1, 0, 0, 1) for RGBA, i.e. red.
+      /// \endcode
       public: typedef unsigned int RGBA;
 
       /// \typedef BGRA
       /// \brief A BGRA packed value as an unsigned int
+      /// Each 8 bits corresponds to a channel.
+      ///
+      /// \code
+      /// BGRA a = 0xFF0000FF; // (0, 0, 1, 1) for RGBA, i.e. blue.
+      /// \endcode
       public: typedef unsigned int BGRA;
 
       /// \typedef ARGB
       /// \brief A ARGB packed value as an unsigned int
+      /// Each 8 bits corresponds to a channel.
+      ///
+      /// \code
+      /// ARGB a = 0xFF0000FF; // (0, 0, 1, 1) for RGBA, i.e. blue.
+      /// \endcode
       public: typedef unsigned int ARGB;
 
       /// \typedef ABGR
       /// \brief A ABGR packed value as an unsigned int
+      /// Each 8 bits corresponds to a channel.
+      ///
+      /// \code
+      /// ABGR a = 0xFF0000FF; // (1, 0, 0, 1) for RGBA, i.e. red.
+      /// \endcode
       public: typedef unsigned int ABGR;
 
       /// \brief Constructor

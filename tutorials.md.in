@@ -13,6 +13,7 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 4. \subpage angle "Angle example"
 5. \subpage triangle "Triangle example"
 6. \subpage rotation "Rotation example"
+7. \subpage color "Color example"
 
 ## License
 
