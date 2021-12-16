@@ -479,7 +479,7 @@ namespace ignition
     /// \brief Append a number to a stream, specialized for int.
     /// \param[out] _out Output stream.
     /// \param[in] _number Number to append.
-    /// \param[in] _precision Not used for int.
+    //  _precision Not used for int.
     template<>
     inline void appendToStream(std::ostream &_out, int _number, int)
     {
