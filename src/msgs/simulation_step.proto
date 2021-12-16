@@ -35,7 +35,6 @@ message SimulationStep
   /// affinity changes.
   repeated PerformerAffinity affinity = 2;
 
-  /// \brief How far the secondaries can move ahead.
+  /// \brief How many iterations the secondaries can step ahead.
   uint64 max_iterations = 3;
 }
-
