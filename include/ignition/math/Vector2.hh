@@ -18,6 +18,8 @@
 #define IGNITION_MATH_VECTOR2_HH_
 
 #include <algorithm>
+#include <istream>
+#include <ostream>
 
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/config.hh>
@@ -83,15 +85,16 @@ namespace ignition
       /// \return The length
       public: T Length() const
       {
-        return sqrt(this->SquaredLength());
+        return static_cast<T>(sqrt(this->SquaredLength()));
       }
 
       /// \brief Returns the square of the length (magnitude) of the vector
       /// \return The squared length
       public: T SquaredLength() const
       {
-        return std::pow(this->data[0], 2)
-             + std::pow(this->data[1], 2);
+        return
+          this->data[0] * this->data[0] +
+          this->data[1] * this->data[1];
       }
 
       /// \brief Normalize the vector length

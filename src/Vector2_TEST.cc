@@ -436,5 +436,10 @@ TEST(Vector2Test, Length)
   math::Vector2d v(0.1, -4.2);
   EXPECT_NEAR(v.Length(), 4.20119030752, 1e-10);
   EXPECT_DOUBLE_EQ(v.SquaredLength(), 17.65);
+
+  // Integer vector
+  math::Vector2i vi(3, 4);
+  EXPECT_EQ(vi.Length(), 5);
+  EXPECT_EQ(vi.SquaredLength(), 25);
 }
 

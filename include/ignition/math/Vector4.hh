@@ -72,10 +72,11 @@ namespace ignition
       /// \return the distance
       public: T Distance(const Vector4<T> &_pt) const
       {
-        return sqrt((this->data[0]-_pt[0])*(this->data[0]-_pt[0]) +
+        return static_cast<T>(sqrt(
+                    (this->data[0]-_pt[0])*(this->data[0]-_pt[0]) +
                     (this->data[1]-_pt[1])*(this->data[1]-_pt[1]) +
                     (this->data[2]-_pt[2])*(this->data[2]-_pt[2]) +
-                    (this->data[3]-_pt[3])*(this->data[3]-_pt[3]));
+                    (this->data[3]-_pt[3])*(this->data[3]-_pt[3])));
       }
 
       /// \brief Calc distance to the given point
@@ -93,17 +94,18 @@ namespace ignition
       /// \return The length
       public: T Length() const
       {
-        return sqrt(this->SquaredLength());
+        return static_cast<T>(sqrt(this->SquaredLength()));
       }
 
       /// \brief Return the square of the length (magnitude) of the vector
       /// \return the length
       public: T SquaredLength() const
       {
-        return std::pow(this->data[0], 2)
-             + std::pow(this->data[1], 2)
-             + std::pow(this->data[2], 2)
-             + std::pow(this->data[3], 2);
+        return
+          this->data[0] * this->data[0] +
+          this->data[1] * this->data[1] +
+          this->data[2] * this->data[2] +
+          this->data[3] * this->data[3];
       }
 
       /// \brief Round to near whole number.
