@@ -18,6 +18,8 @@
 #define IGNITION_MATH_VECTOR2_HH_
 
 #include <algorithm>
+#include <istream>
+#include <ostream>
 
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/config.hh>
