@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-import unittest
+import copy
 import math
+import unittest
+
 from ignition.math import Vector4d
 from ignition.math import Vector4f
 
@@ -132,7 +133,7 @@ class TestVector4(unittest.TestCase):
         vec1 = Vector4d(0.1, 0.2, 0.4, 0.8)
         vec2 = Vector4d(1.1, 2.2, 3.4, 4.3)
 
-        vec3 = vec1
+        vec3 = copy.deepcopy(vec1)
         vec3 += vec2
 
         self.assertEqual(vec1 + vec2, Vector4d(1.2, 2.4, 3.8, 5.1))
@@ -164,7 +165,7 @@ class TestVector4(unittest.TestCase):
         vec1 = Vector4d(0.1, 0.2, 0.4, 0.8)
         vec2 = Vector4d(1.1, 2.2, 3.4, 4.3)
 
-        vec3 = vec2
+        vec3 = copy.deepcopy(vec2)
         vec3 -= vec1
 
         self.assertEqual(vec2 - vec1, Vector4d(1.0, 2.0, 3.0, 3.5))

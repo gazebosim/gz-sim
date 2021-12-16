@@ -158,9 +158,9 @@ namespace ignition
       /// \return the result
       public: Vector3 Round()
       {
-        this->data[0] = nearbyint(this->data[0]);
-        this->data[1] = nearbyint(this->data[1]);
-        this->data[2] = nearbyint(this->data[2]);
+        this->data[0] = static_cast<T>(std::nearbyint(this->data[0]));
+        this->data[1] = static_cast<T>(std::nearbyint(this->data[1]));
+        this->data[2] = static_cast<T>(std::nearbyint(this->data[2]));
         return *this;
       }
 
