@@ -438,6 +438,10 @@ void LinearBatteryPlugin::PreUpdate(
   ignition::gazebo::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("LinearBatteryPlugin::PreUpdate");
+
+  // \todo(anyone) Add in the ability to stop the battery from draining
+  // after it has been started by a topic. See this comment:
+  // https://github.com/ignitionrobotics/ign-gazebo/pull/1255#discussion_r770223092
   this->dataPtr->startDraining = this->dataPtr->startDrainingFromTopics;
   // Start draining the battery if the robot has started moving
   if (!this->dataPtr->startDraining)

@@ -61,7 +61,8 @@ namespace systems
   /// - `<power_draining_topic>` A topic that is used to start battery
   /// discharge. Any message on the specified topic will cause the batter to
   /// start draining. This element can be specified multiple times if
-  /// multiple topics should be monitored.
+  /// multiple topics should be monitored. Note that this mechanism will
+  /// start the battery draining, and once started will keep drainig.
   class LinearBatteryPlugin
       : public System,
         public ISystemConfigure,
