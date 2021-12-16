@@ -138,7 +138,7 @@ namespace ignition
       public: void Set(const Vector3<T> &_pos, const Vector3<T> &_rpy)
       {
         this->p = _pos;
-        this->q.Euler(_rpy);
+        this->q.SetFromEuler(_rpy);
       }
 
       /// \brief Set the pose from a six tuple consisting of
@@ -152,7 +152,7 @@ namespace ignition
       public: void Set(T _x, T _y, T _z, T _roll, T _pitch, T _yaw)
       {
         this->p.Set(_x, _y, _z);
-        this->q.Euler(math::Vector3<T>(_roll, _pitch, _yaw));
+        this->q.SetFromEuler(math::Vector3<T>(_roll, _pitch, _yaw));
       }
 
       /// \brief See if a pose is finite (e.g., not nan)
