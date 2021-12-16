@@ -129,8 +129,8 @@ namespace ignition
       /// \return the result
       public: Vector2 Round()
       {
-        this->data[0] = std::nearbyint(this->data[0]);
-        this->data[1] = std::nearbyint(this->data[1]);
+        this->data[0] = static_cast<T>(std::nearbyint(this->data[0]));
+        this->data[1] = static_cast<T>(std::nearbyint(this->data[1]));
         return *this;
       }
 

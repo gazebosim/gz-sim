@@ -15,6 +15,7 @@ find_package(ignition-cmake2 2.8.0 REQUIRED)
 # Configure the project
 #============================================================================
 set (c++standard 17)
+set (CMAKE_CXX_STANDARD 17)
 ign_configure_project(VERSION_SUFFIX)
 
 #============================================================================

@@ -122,10 +122,10 @@ namespace ignition
       /// \brief Round to near whole number.
       public: void Round()
       {
-        this->data[0] = std::nearbyint(this->data[0]);
-        this->data[1] = std::nearbyint(this->data[1]);
-        this->data[2] = std::nearbyint(this->data[2]);
-        this->data[3] = std::nearbyint(this->data[3]);
+        this->data[0] = static_cast<T>(std::nearbyint(this->data[0]));
+        this->data[1] = static_cast<T>(std::nearbyint(this->data[1]));
+        this->data[2] = static_cast<T>(std::nearbyint(this->data[2]));
+        this->data[3] = static_cast<T>(std::nearbyint(this->data[3]));
       }
 
       /// \brief Get a rounded version of this vector
