@@ -4,6 +4,10 @@
 -->
 <sdf version="1.6">
   <world name="collada_world_exporter_submesh_test">
+    <physics name="fast" type="ignored">
+      <real_time_factor>0</real_time_factor>
+    </physics>
+
     <plugin
       filename="libignition-gazebo-physics-system.so"
       name="ignition::gazebo::systems::Physics">
