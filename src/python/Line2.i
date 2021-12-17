@@ -17,6 +17,7 @@
 
 %module line2
 %{
+#include <sstream>
 #include <ignition/math/Line2.hh>
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/Vector2.hh>

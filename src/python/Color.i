@@ -17,6 +17,7 @@
 
 %module Color
 %{
+#include <sstream>
 #include <ignition/math/Color.hh>
 #include <ignition/math/config.hh>
 #include <ignition/math/Helpers.hh>

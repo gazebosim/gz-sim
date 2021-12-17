@@ -17,6 +17,7 @@
 
 %module temperature
 %{
+#include <sstream>
 #include <ignition/math/Temperature.hh>
 %}
 

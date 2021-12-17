@@ -17,6 +17,7 @@
 
 %module semanticversion
 %{
+  #include <sstream>
 	#include <ignition/math/SemanticVersion.hh>
 %}
 
