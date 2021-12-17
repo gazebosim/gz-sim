@@ -62,7 +62,17 @@ if (RUBY_FOUND)
     ignition-math${PROJECT_VERSION_MAJOR}
   )
   target_compile_features(math PUBLIC ${IGN_CXX_${c++standard}_FEATURES})
-  install(TARGETS math DESTINATION ${IGN_LIB_INSTALL_DIR}/ruby/ignition)
+
+  if(USE_SYSTEM_PATHS_FOR_RUBY_INSTALLATION)
+    execute_process(
+      COMMAND ${RUBY_EXECUTABLE} -r rbconfig -e "print RbConfig::CONFIG['vendordir']"
+      OUTPUT_VARIABLE IGN_RUBY_INSTALL_PATH
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+  else()
+      set(IGN_RUBY_INSTALL_PATH ${IGN_LIB_INSTALL_DIR}/ruby)
+  endif()
+  set(IGN_RUBY_INSTALL_PATH "${IGN_RUBY_INSTALL_PATH}/ignition")
+  install(TARGETS math DESTINATION ${IGN_RUBY_INSTALL_PATH})
 
   # Add the ruby tests
   foreach (test ${ruby_tests})

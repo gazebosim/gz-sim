@@ -15,6 +15,7 @@
 import unittest
 import math
 from ignition.math import Vector2d
+from ignition.math import Vector2f
 
 
 class TestVector2(unittest.TestCase):
@@ -295,6 +296,24 @@ class TestVector2(unittest.TestCase):
         self.assertAlmostEqual(v.length(), 5)
         self.assertAlmostEqual(v.squared_length(), 25)
 
+    def test_nan(self):
+        nanVec = Vector2d.NAN
+        self.assertFalse(nanVec.is_finite())
+        self.assertTrue(math.isnan(nanVec.x()))
+        self.assertTrue(math.isnan(nanVec.y()))
+
+        nanVec.correct()
+        self.assertEqual(Vector2d.ZERO, nanVec)
+        self.assertTrue(nanVec.is_finite())
+
+        nanVecF = Vector2f.NAN
+        self.assertFalse(nanVecF.is_finite())
+        self.assertTrue(math.isnan(nanVecF.x()))
+        self.assertTrue(math.isnan(nanVecF.y()))
+
+        nanVecF.correct()
+        self.assertEqual(Vector2f.ZERO, nanVecF)
+        self.assertTrue(nanVecF.is_finite())
 
 if __name__ == '__main__':
     unittest.main()
