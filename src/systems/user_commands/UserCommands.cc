@@ -1089,13 +1089,14 @@ bool CreateCommand::Execute()
   this->iface->creator->SetParent(entity, this->iface->worldEntity);
 
   // Pose
+  math::Pose3d createPose;
   if (createMsg->has_pose())
   {
-    auto poseComp = this->iface->ecm->Component<components::Pose>(entity);
-    *poseComp = components::Pose(msgs::Convert(createMsg->pose()));
+    createPose = msgs::Convert(createMsg->pose());
   }
+
   // Spherical coordinates
-  else if (createMsg->has_spherical_coordinates())
+  if (createMsg->has_spherical_coordinates())
   {
     auto scComp = this->iface->ecm->Component<components::SphericalCoordinates>(
         this->iface->worldEntity);
@@ -1118,11 +1119,20 @@ bool CreateCommand::Execute()
           math::SphericalCoordinates::SPHERICAL,
           math::SphericalCoordinates::LOCAL2);
 
-      auto poseComp = this->iface->ecm->Component<components::Pose>(entity);
-      *poseComp = components::Pose({pos.X(), pos.Y(), pos.Z(), 0, 0,
-          IGN_DTOR(createMsg->spherical_coordinates().heading_deg())});
+      // Override pos and add to yaw
+      createPose.SetX(pos.X());
+      createPose.SetY(pos.Y());
+      createPose.SetZ(pos.Z());
+      createPose.Rot().Euler(
+          createPose.Rot().Roll(),
+          createPose.Rot().Pitch(),
+          createPose.Rot().Yaw() +
+            IGN_DTOR(createMsg->spherical_coordinates().heading_deg()));
     }
   }
+
+  auto poseComp = this->iface->ecm->Component<components::Pose>(entity);
+  *poseComp = components::Pose(createPose);
 
   igndbg << "Created entity [" << entity << "] named [" << desiredName << "]"
          << std::endl;
