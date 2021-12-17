@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_RENDERUTIL_HH_
 
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -76,6 +77,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void UpdateFromECM(const UpdateInfo &_info,
                                const EntityComponentManager &_ecm);
 
+    /// \brief Helper function to create visuals for new entities created in
+    /// ECM. This function is intended to be used by other GUI plugins when
+    /// new entities are created on the GUI side.
+    /// \param[in] _ecm Const reference to the entity component manager
+    /// \param[in] _entities Entities to create visuals for.
+    public: void CreateVisualsForEntities(const EntityComponentManager &_ecm,
+                                          const std::set<Entity> &_entities);
+
     /// \brief Set the rendering engine to use
     /// \param[in] _engineName Name of the rendering engine.
     public: void SetEngineName(const std::string &_engineName);
@@ -104,11 +113,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _scene Pointer to the scene.
     public: void SetScene(const rendering::ScenePtr &_scene);
 
-    /// \brief Set background color of render window
+    /// \brief Set background color of render window. This will override
+    /// other sources, such as from SDF.
     /// \param[in] _color Color of render window background
     public: void SetBackgroundColor(const math::Color &_color);
 
-    /// \brief Set ambient light of render window
+    /// \brief Set ambient light of render window. This will override
+    /// other sources, such as from SDF.
     /// \param[in] _ambient Color of ambient light
     public: void SetAmbientLight(const math::Color &_ambient);
 

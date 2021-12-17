@@ -5,6 +5,10 @@
       filename="ignition-gazebo-air-pressure-system"
       name="ignition::gazebo::systems::AirPressure">
     </plugin>
+    <plugin
+      filename="libignition-gazebo-scene-broadcaster-system.so"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
 
     <model name="air_pressure_model">
       <static>true</static>

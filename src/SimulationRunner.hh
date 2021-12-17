@@ -27,6 +27,7 @@
 #include <list>
 #include <memory>
 #include <optional>
+#include <set>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -38,6 +39,7 @@
 #include <ignition/common/Event.hh>
 #include <ignition/common/WorkerPool.hh>
 #include <ignition/math/Stopwatch.hh>
+#include <ignition/msgs.hh>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/config.hh"
@@ -291,6 +293,17 @@ namespace ignition
       /// \return True if the simulation runner is paused, false otherwise.
       public: bool Paused() const;
 
+      /// \brief Set if the simulation runner is stepping based on WorldControl
+      /// info
+      /// \param[in] _step True if stepping based on WorldControl info, false
+      /// otherwise
+      public: void SetStepping(bool _step);
+
+      /// \brief Get if the simulation runner is stepping based on WorldControl
+      /// info
+      /// \return True if stepping based on WorldControl info, false otherwise
+      public: bool Stepping() const;
+
       /// \brief Set the run to simulation time.
       /// \param[in] _time A simulation time in the future to run to and then
       /// pause. A negative number or a time less than the current simulation
@@ -370,6 +383,16 @@ namespace ignition
       private: bool OnWorldControl(const msgs::WorldControl &_req,
                                          msgs::Boolean &_res);
 
+      /// \brief World control state service callback. This function stores the
+      /// the request which will then be processed by the ProcessMessages
+      /// function.
+      /// \param[in] _req Request from client, currently handling play / pause
+      /// and multistep. This also may contain SerializedState information.
+      /// \param[out] _res Response to client, true if successful.
+      /// \return True for success
+      private: bool OnWorldControlState(const msgs::WorldControlState &_req,
+                                         msgs::Boolean &_res);
+
       /// \brief World control service callback. This function stores the
       /// the request which will then be processed by the ProcessMessages
       /// function.
@@ -443,6 +466,18 @@ namespace ignition
       private: void AddSystemImpl(SystemInternal _system,
         std::optional<Entity> _entity = std::nullopt,
         std::optional<std::shared_ptr<const sdf::Element>> _sdf = std::nullopt);
+
+      /// \brief Process entities with the components::Recreate component.
+      /// Put in a request to make them as removed
+      private: void ProcessRecreateEntitiesRemove();
+
+      /// \brief Process entities with the components::Recreate component.
+      /// Reccreate the entities by cloning from the original ones.
+      private: void ProcessRecreateEntitiesCreate();
+
+      /// \brief Process the new world state message, if it is present.
+      /// See the newWorldControlState variable below.
+      private: void ProcessNewWorldControlState();
 
       /// \brief This is used to indicate that a stop event has been received.
       private: std::atomic<bool> stopReceived{false};
@@ -600,6 +635,17 @@ namespace ignition
 
       /// \brief True if Server::RunOnce triggered a blocking paused step
       private: bool blockingPausedStepPending{false};
+
+      /// \brief Whether the simulation runner is currently stepping based on
+      /// WorldControl info (true) or not (false)
+      private: bool stepping{false};
+
+      /// \brief A set of entities that need to be recreated
+      private: std::set<Entity> entitiesToRecreate;
+
+      /// \brief Holds new world state information so that it can be processed
+      /// at the appropriate time.
+      private: std::unique_ptr<msgs::WorldControlState> newWorldControlState;
 
       friend class LevelManager;
     };

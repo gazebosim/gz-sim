@@ -129,6 +129,7 @@
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
+        <use_event>true</use_event>
 
       </plugin>
 

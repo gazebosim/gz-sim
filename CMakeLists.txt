@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo6 VERSION 6.1.0)
+project(ignition-gazebo6 VERSION 6.3.0)
 
 #============================================================================
 # Find ignition-cmake
@@ -34,6 +34,9 @@ else()
   set (EXTRA_TEST_LIB_DEPS)
 endif()
 
+include(test/find_dri.cmake)
+FindDRI()
+
 #============================================================================
 # Search for project-specific dependencies
 #============================================================================
@@ -47,7 +50,7 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 # as protobuf could be find transitively by any dependency
 set(protobuf_MODULE_COMPATIBLE TRUE)
 
-ign_find_package(sdformat12 REQUIRED)
+ign_find_package(sdformat12 REQUIRED VERSION 12.3)
 set(SDF_VER ${sdformat12_VERSION_MAJOR})
 
 #--------------------------------------
@@ -84,7 +87,7 @@ set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools7_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-gui
-ign_find_package(ignition-gui6 REQUIRED)
+ign_find_package(ignition-gui6 REQUIRED VERSION 6.1)
 set(IGN_GUI_VER ${ignition-gui6_VERSION_MAJOR})
 ign_find_package (Qt5
   COMPONENTS
@@ -96,7 +99,7 @@ ign_find_package (Qt5
 
 #--------------------------------------
 # Find ignition-physics
-ign_find_package(ignition-physics5
+ign_find_package(ignition-physics5 VERSION 5.1
   COMPONENTS
     heightmap
     mesh
@@ -107,7 +110,7 @@ set(IGN_PHYSICS_VER ${ignition-physics5_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-sensors
-ign_find_package(ignition-sensors6 REQUIRED
+ign_find_package(ignition-sensors6 REQUIRED VERSION 6.0.1
   # component order is important
   COMPONENTS
     # non-rendering
