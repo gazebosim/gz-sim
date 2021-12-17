@@ -257,6 +257,28 @@ class Vector2_TEST < Test::Unit::TestCase
     assert((v.SquaredLength() - 17.65).abs < 1e-8,
            "Squared length of v should be near 17.65")
   end
+
+  def test_nan
+    nanVec = Ignition::Math::Vector2d.NaN
+    assert(!nanVec.IsFinite(),
+           "NaN vector shouldn't be finite")
+    assert(nanVec.X().nan?, "X should be NaN")
+    assert(nanVec.Y().nan?, "Y should be NaN")
+
+    nanVec.Correct()
+    assert(Ignition::Math::Vector2d.Zero == nanVec,
+           "Corrected vector should equal zero")
+
+    nanVecF = Ignition::Math::Vector2f.NaN
+    assert(!nanVecF.IsFinite(),
+           "NaN vector shouldn't be finite")
+    assert(nanVecF.X().nan?, "X should be NaN")
+    assert(nanVecF.Y().nan?, "Y should be NaN")
+
+    nanVecF.Correct()
+    assert(Ignition::Math::Vector2f.Zero == nanVecF,
+           "Corrected vector should equal zero")
+  end
 end
 
 exit Test::Unit::UI::Console::TestRunner.run(Vector2_TEST).passed? ? 0 : -1

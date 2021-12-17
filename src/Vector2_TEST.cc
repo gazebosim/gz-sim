@@ -443,3 +443,25 @@ TEST(Vector2Test, Length)
   EXPECT_EQ(vi.SquaredLength(), 25);
 }
 
+/////////////////////////////////////////////////
+TEST(Vector2Test, NaN)
+{
+  auto nanVec = math::Vector2d::NaN;
+  EXPECT_FALSE(nanVec.IsFinite());
+  EXPECT_TRUE(math::isnan(nanVec.X()));
+  EXPECT_TRUE(math::isnan(nanVec.Y()));
+
+  nanVec.Correct();
+  EXPECT_EQ(math::Vector2d::Zero, nanVec);
+  EXPECT_TRUE(nanVec.IsFinite());
+
+  auto nanVecF = math::Vector2f::NaN;
+  EXPECT_FALSE(nanVecF.IsFinite());
+  EXPECT_TRUE(math::isnan(nanVecF.X()));
+  EXPECT_TRUE(math::isnan(nanVecF.Y()));
+
+  nanVecF.Correct();
+  EXPECT_EQ(math::Vector2f::Zero, nanVecF);
+  EXPECT_TRUE(nanVecF.IsFinite());
+}
+

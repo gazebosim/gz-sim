@@ -295,6 +295,32 @@ class Vector4_TEST < Test::Unit::TestCase
 
     assert(vec1.IsFinite(), "Vector4 vec1 should be be finite")
   end
+
+  def test_nan
+    nanVec = Ignition::Math::Vector4d.NaN
+    assert(!nanVec.IsFinite(),
+           "NaN vector shouldn't be finite")
+    assert(nanVec.X().nan?, "X should be NaN")
+    assert(nanVec.Y().nan?, "Y should be NaN")
+    assert(nanVec.Z().nan?, "Z should be NaN")
+    assert(nanVec.W().nan?, "W should be NaN")
+
+    nanVec.Correct()
+    assert(Ignition::Math::Vector4d.Zero == nanVec,
+           "Corrected vector should equal zero")
+
+    nanVecF = Ignition::Math::Vector4f.NaN
+    assert(!nanVecF.IsFinite(),
+           "NaN vector shouldn't be finite")
+    assert(nanVecF.X().nan?, "X should be NaN")
+    assert(nanVecF.Y().nan?, "Y should be NaN")
+    assert(nanVecF.Z().nan?, "Z should be NaN")
+    assert(nanVecF.W().nan?, "W should be NaN")
+
+    nanVecF.Correct()
+    assert(Ignition::Math::Vector4f.Zero == nanVecF,
+           "Corrected vector should equal zero")
+  end
 end
 
 exit Test::Unit::UI::Console::TestRunner.run(Vector4_TEST).passed? ? 0 : -1

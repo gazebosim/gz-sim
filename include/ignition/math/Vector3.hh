@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <cmath>
 #include <istream>
+#include <limits>
 #include <ostream>
 
 #include <ignition/math/Helpers.hh>
@@ -53,6 +54,9 @@ namespace ignition
 
       /// \brief math::Vector3(0, 0, 1)
       public: static const Vector3 UnitZ;
+
+      /// \brief math::Vector3(NaN, NaN, NaN)
+      public: static const Vector3 NaN;
 
       /// \brief Constructor
       public: Vector3()
@@ -769,6 +773,10 @@ namespace ignition
     template<typename T> const Vector3<T> Vector3<T>::UnitX(1, 0, 0);
     template<typename T> const Vector3<T> Vector3<T>::UnitY(0, 1, 0);
     template<typename T> const Vector3<T> Vector3<T>::UnitZ(0, 0, 1);
+    template<typename T> const Vector3<T> Vector3<T>::NaN(
+        std::numeric_limits<T>::quiet_NaN(),
+        std::numeric_limits<T>::quiet_NaN(),
+        std::numeric_limits<T>::quiet_NaN());
 
     typedef Vector3<int> Vector3i;
     typedef Vector3<double> Vector3d;

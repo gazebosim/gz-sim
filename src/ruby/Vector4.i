@@ -35,6 +35,7 @@ namespace ignition
     {
       public: static const Vector4 Zero;
       public: static const Vector4 One;
+      public: static const Vector4 NaN;
       public: Vector4();
       public: Vector4(const T &_x, const T &_y, const T &_z, const T &_w);
       public: Vector4(const Vector4<T> &_v);
@@ -56,6 +57,7 @@ namespace ignition
       public: bool operator==(const Vector4<T> &_v) const;
       public: bool Equal(const Vector4 &_v, const T &_tol) const;
       public: bool IsFinite() const;
+      public: inline void Correct();
       public: inline T X() const;
       public: inline T Y() const;
       public: inline T Z() const;
