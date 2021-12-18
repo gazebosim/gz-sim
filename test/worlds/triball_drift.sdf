@@ -2,6 +2,9 @@
 
 <sdf version="1.6">
   <world name="triball_drift">
+    <physics name="fast" type="ignored">
+      <real_time_factor>0</real_time_factor>
+    </physics>
     <gravity>1 0 -9.8</gravity>
     <plugin
       filename="libignition-gazebo-physics-system.so"

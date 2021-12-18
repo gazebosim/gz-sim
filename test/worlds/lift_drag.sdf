@@ -2,6 +2,10 @@
 <!-- Adapted from osrf/gazebo/test/worlds/lift_drag_plugin.world  -->
 <sdf version="1.6">
   <world name="default">
+    <physics name="fast" type="ignored">
+      <real_time_factor>0</real_time_factor>
+    </physics>
+
 
     <plugin
       filename="ignition-gazebo-physics-system"
