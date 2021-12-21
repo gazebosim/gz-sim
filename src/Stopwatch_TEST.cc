@@ -46,10 +46,10 @@ void runTimer(math::Stopwatch &_time)
             _time.ElapsedStopTime());
 
   // Wait for some time...
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  std::this_thread::sleep_for(std::chrono::milliseconds(50));
   // Now the elapsed time should be greater than or equal to the time slept.
   EXPECT_GE(_time.ElapsedRunTime() + handleSteadyClock,
-      std::chrono::milliseconds(1000));
+      std::chrono::milliseconds(50));
 
   // Stop the timer.
   EXPECT_TRUE(_time.Stop());
@@ -59,17 +59,17 @@ void runTimer(math::Stopwatch &_time)
   EXPECT_GT(_time.StopTime(), _time.StartTime());
   // The elapsed time should still be greater than the time slept.
   EXPECT_GE(_time.ElapsedRunTime() + handleSteadyClock,
-      std::chrono::milliseconds(1000));
+      std::chrono::milliseconds(50));
 
   // Save the elapsed time.
   auto elapsedTime = _time.ElapsedRunTime();
 
   // The timer is now stopped, let's sleep some more.
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  std::this_thread::sleep_for(std::chrono::milliseconds(50));
   // The elapsed stop time should be greater than or equal to the time
   // slept.
   EXPECT_GE(_time.ElapsedStopTime() + handleSteadyClock,
-      std::chrono::milliseconds(1000));
+      std::chrono::milliseconds(50));
   // The elapsed time should be the same.
   EXPECT_EQ(elapsedTime, _time.ElapsedRunTime());
 
@@ -80,7 +80,7 @@ void runTimer(math::Stopwatch &_time)
   // The timer should be running.
   EXPECT_TRUE(_time.Running());
   // Sleep for some time.
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  std::this_thread::sleep_for(std::chrono::milliseconds(50));
   // The elapsed stop time should remain the same
   EXPECT_EQ(elapsedStopTime, _time.ElapsedStopTime());
   // The elapsed time should be greater than the previous elapsed time.
@@ -88,7 +88,7 @@ void runTimer(math::Stopwatch &_time)
   // The elapsed time should be greater than or equal to the the previous
   // two sleep times.
   EXPECT_GE(_time.ElapsedRunTime() + handleSteadyClock,
-      std::chrono::milliseconds(2000));
+      std::chrono::milliseconds(100));
 }
 
 /////////////////////////////////////////////////
