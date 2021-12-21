@@ -53,6 +53,7 @@
 
 #include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/Camera.hh"
+#include "ignition/gazebo/components/CustomSensor.hh"
 #include "ignition/gazebo/components/CastShadows.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Collision.hh"
@@ -1582,6 +1583,7 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
     const EntityComponentManager &_ecm, const UpdateInfo &_info)
 {
   const std::string cameraSuffix{"/image"};
+  const std::string customSensorSuffix{"/image"};
   const std::string depthCameraSuffix{"/depth_image"};
   const std::string rgbdCameraSuffix{""};
   const std::string thermalCameraSuffix{"/image"};
@@ -1827,6 +1829,17 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
 
   if (this->enableSensors)
   {
+    // Create custom sensors
+    _ecm.Each<components::CustomSensor, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::CustomSensor *_customSensor,
+          const components::ParentEntity *_parent)->bool
+        {
+          this->AddNewSensor(_ecm, _entity, _customSensor->Data(), _parent->Data(),
+                       customSensorSuffix);
+          return true;
+        });
+
     // Create cameras
     _ecm.Each<components::Camera, components::ParentEntity>(
       [&](const Entity &_entity,
@@ -1900,6 +1913,7 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
     const EntityComponentManager &_ecm, const UpdateInfo &_info)
 {
   const std::string cameraSuffix{"/image"};
+  const std::string customSensorSuffix{"/image"};
   const std::string depthCameraSuffix{"/depth_image"};
   const std::string rgbdCameraSuffix{""};
   const std::string thermalCameraSuffix{"/image"};
@@ -2145,6 +2159,17 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
 
   if (this->enableSensors)
   {
+    // Create custom sensors
+    _ecm.EachNew<components::CustomSensor, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::CustomSensor *_customSensor,
+          const components::ParentEntity *_parent)->bool
+        {
+          this->AddNewSensor(_ecm, _entity, _customSensor->Data(), _parent->Data(),
+                       customSensorSuffix);
+          return true;
+        });
+
     // Create cameras
     _ecm.EachNew<components::Camera, components::ParentEntity>(
       [&](const Entity &_entity,
@@ -2311,6 +2336,16 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         return true;
       });
 
+  // Update custom sensors
+  _ecm.Each<components::CustomSensor, components::Pose>(
+      [&](const Entity &_entity,
+        const components::CustomSensor *,
+        const components::Pose *_pose)->bool
+      {
+        this->entityPoses[_entity] = _pose->Data();
+        return true;
+      });
+
   // Update cameras
   _ecm.Each<components::Camera, components::Pose>(
       [&](const Entity &_entity,
@@ -2448,6 +2483,14 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   // particle emitters
   _ecm.EachRemoved<components::ParticleEmitter>(
       [&](const Entity &_entity, const components::ParticleEmitter *)->bool
+      {
+        this->removeEntities[_entity] = _info.iterations;
+        return true;
+      });
+
+  // custom sensors
+  _ecm.EachRemoved<components::CustomSensor>(
+    [&](const Entity &_entity, const components::CustomSensor *)->bool
       {
         this->removeEntities[_entity] = _info.iterations;
         return true;
