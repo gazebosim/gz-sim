@@ -626,6 +626,7 @@ void Buoyancy::PreUpdate(const UpdateInfo &_info,
         auto [force, torque] = this->dataPtr->ResolveForces(linkWorldPose);
         // Apply the wrench to the link. This wrench is applied in the
         // Physics System.
+        link.SetVisualizationLabel("Buoyancy");
         link.AddWorldWrench(_ecm, force, torque);
       }
       auto [force, torque] = this->dataPtr->ResolveForces(

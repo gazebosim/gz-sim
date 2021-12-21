@@ -272,7 +272,8 @@ void BuoyancyEnginePlugin::PreUpdate(
       - this->dataPtr->fluidDensity * this->dataPtr->neutralVolume);
   }
   gz::sim::Link link(this->dataPtr->linkEntity);
-  link.AddAndVisualizeWorldWrench(_ecm, zForce, {0, 0, 0}, "Buoyancy Engine");
+  link.SetVisualizationLabel("Buoyancy Engine");
+  link.AddWorldWrench(_ecm, zForce, {0, 0, 0});
 }
 
 GZ_ADD_PLUGIN(
