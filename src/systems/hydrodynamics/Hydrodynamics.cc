@@ -394,6 +394,7 @@ void Hydrodynamics::PreUpdate(
   ignition::math::Vector3d
     totalTorque(-kTotalWrench(3), -kTotalWrench(4), -kTotalWrench(5));
 
+  baseLink.SetVisualizationLabel("Hydrodynamics");
   baseLink.AddWorldWrench(
     _ecm,
     pose->Rot()*(totalForce),

@@ -22,7 +22,6 @@
 #include <string>
 #include <vector>
 
-#include <ignition/math/Color.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/math/Quaternion.hh>
 #include <ignition/math/Vector3.hh>
@@ -273,17 +272,9 @@ namespace ignition
                                  const math::Vector3d &_force,
                                  const math::Vector3d &_torque) const;
 
-      /// \brief Add a wrench expressed in world coordinates and applied to
-      /// the link at the link's origin. This wrench is applied for one
-      /// simulation step.
-      /// \param[in] _ecm Mutable Entity-component manager.
-      /// \param[in] _force Force to be applied expressed in world coordinates
-      /// \param[in] _torque Torque to be applied expressed in world coordinates
-      /// \param[in] _pluginName The name of the wrench being applied
-      public: void AddAndVisualizeWorldWrench(EntityComponentManager &_ecm,
-                         const math::Vector3d &_force,
-                         const math::Vector3d &_torque,
-                         const std::string &_pluginName) const;
+      /// \brief Sets the visualization label used by the force visualization.
+      /// \param[in] _label The label used for force visualizations.
+      public: void SetVisualizationLabel(const std::string &_label);
 
       /// \brief Pointer to private data.
       private: std::unique_ptr<LinkPrivate> dataPtr;

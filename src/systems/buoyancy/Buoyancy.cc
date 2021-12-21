@@ -529,8 +529,8 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
         link.WorldInertialPose(_ecm).value());
         // Apply the wrench to the link. This wrench is applied in the
         // Physics System.
-        link.AddAndVisualizeWorldWrench(
-          _ecm, force, torque, "BuoyancyPlugin");
+        link.SetVisualizationLabel("Buoyancy");
+        link.AddWorldWrench(_ecm, force, torque);
       }
 
       return true;
