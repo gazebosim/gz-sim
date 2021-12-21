@@ -271,6 +271,7 @@ TEST_F(SphericalCoordinatesTest, CreateEntity)
   Entity modelEntity{kNullEntity};
   math::SphericalCoordinates worldLatLon;
   math::Vector3d modelLatLon;
+  math::Pose3d modelPose;
   fixture.OnPostUpdate(
     [&](
       const ignition::gazebo::UpdateInfo &,
@@ -289,6 +290,8 @@ TEST_F(SphericalCoordinatesTest, CreateEntity)
         auto modelCoord = sphericalCoordinates(modelEntity, _ecm);
         EXPECT_TRUE(modelCoord);
         modelLatLon = modelCoord.value();
+
+        modelPose = worldPose(modelEntity, _ecm);
       }
 
       iterations++;
@@ -305,9 +308,15 @@ TEST_F(SphericalCoordinatesTest, CreateEntity)
 
   double desiredLat{-23.0};
   double desiredLon{-43.3};
+  double desiredRoll{0.1};
+  double desiredPitch{0.2};
+  double desiredYaw{0.3};
 
   msgs::EntityFactory req;
   req.set_sdf(modelStr);
+
+  msgs::Set(req.mutable_pose(),
+      {0, 0, 0, desiredRoll, desiredPitch, desiredYaw});
 
   auto scMsg = req.mutable_spherical_coordinates();
   scMsg->set_latitude_deg(desiredLat);
@@ -336,4 +345,7 @@ TEST_F(SphericalCoordinatesTest, CreateEntity)
   EXPECT_NE(kNullEntity, modelEntity);
   EXPECT_NEAR(modelLatLon.X(), desiredLat, 1e-6);
   EXPECT_NEAR(modelLatLon.Y(), desiredLon, 1e-6);
+  EXPECT_DOUBLE_EQ(modelPose.Rot().Roll(), desiredRoll);
+  EXPECT_DOUBLE_EQ(modelPose.Rot().Pitch(), desiredPitch);
+  EXPECT_DOUBLE_EQ(modelPose.Rot().Yaw(), desiredYaw);
 }
