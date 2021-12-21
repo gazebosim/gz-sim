@@ -518,7 +518,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StateStatic))
   // Start server
   ignition::gazebo::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/examples/worlds/empty.sdf");
+      "/test/worlds/empty.sdf");
 
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());

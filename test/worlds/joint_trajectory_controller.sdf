@@ -2,6 +2,9 @@
 <sdf version="1.6">
   <world name="default">
     <!-- Physics -->
+    <physics name="fast" type="ignored">
+      <real_time_factor>0</real_time_factor>
+    </physics>
     <plugin
       filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
@@ -402,7 +405,7 @@
         <!-- Test custom topic name -->
         <topic>test_custom_topic/velocity_control</topic>
 
-        <!-- Test a case where joint names are omitted. These gains will cause the test to fail 
+        <!-- Test a case where joint names are omitted. These gains will cause the test to fail
         if they are applied in the reversed order -->
         <velocity_p_gain>0.6</velocity_p_gain>
         <velocity_i_gain>175</velocity_i_gain>
