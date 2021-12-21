@@ -71,14 +71,14 @@ set(IGN_MSGS_VER ${ignition-msgs9_VERSION_MAJOR})
 #--------------------------------------
 # Find ignition-common
 # Always use the profiler component to get the headers, regardless of status.
-ign_find_package(ignition-common4 VERSION 4.4
+ign_find_package(ignition-common5 VERSION 5.0
   COMPONENTS
     profiler
     events
     av
   REQUIRED
 )
-set(IGN_COMMON_VER ${ignition-common4_VERSION_MAJOR})
+set(IGN_COMMON_VER ${ignition-common5_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-fuel_tools
@@ -99,14 +99,14 @@ ign_find_package (Qt5
 
 #--------------------------------------
 # Find ignition-physics
-ign_find_package(ignition-physics5 VERSION 5.1
+ign_find_package(ignition-physics6
   COMPONENTS
     heightmap
     mesh
     sdf
   REQUIRED
 )
-set(IGN_PHYSICS_VER ${ignition-physics5_VERSION_MAJOR})
+set(IGN_PHYSICS_VER ${ignition-physics6_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-sensors

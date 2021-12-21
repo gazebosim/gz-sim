@@ -32,10 +32,12 @@
 #include <vector>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/Dem.hh>
 #include <ignition/common/HeightmapData.hh>
 #include <ignition/common/ImageHeightmap.hh>
 #include <ignition/common/MeshManager.hh>
 #include <ignition/common/Profiler.hh>
+#include <ignition/common/StringUtils.hh>
 
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/GuiEvents.hh>
@@ -1253,12 +1255,33 @@ rendering::GeometryPtr VisualizationCapabilitiesPrivate::CreateGeometry(
       return geom;
     }
 
-    auto data = std::make_shared<common::ImageHeightmap>();
-    if (data->Load(fullPath) < 0)
+    std::shared_ptr<common::HeightmapData> data;
+    std::string lowerFullPath = common::lowercase(fullPath);
+    // check if heightmap is an image
+    if (common::EndsWith(lowerFullPath, ".png")
+        || common::EndsWith(lowerFullPath, ".jpg")
+        || common::EndsWith(lowerFullPath, ".jpeg"))
     {
-      ignerr << "Failed to load heightmap image data from [" << fullPath << "]"
-             << std::endl;
-      return geom;
+      auto img = std::make_shared<common::ImageHeightmap>();
+      if (img->Load(fullPath) < 0)
+      {
+        ignerr << "Failed to load heightmap image data from ["
+               << fullPath << "]" << std::endl;
+        return geom;
+      }
+      data = img;
+    }
+    // DEM
+    else
+    {
+      auto dem = std::make_shared<common::Dem>();
+      if (dem->Load(fullPath) < 0)
+      {
+        ignerr << "Failed to load heightmap dem data from ["
+               << fullPath << "]" << std::endl;
+        return geom;
+      }
+      data = dem;
     }
 
     rendering::HeightmapDescriptor descriptor;
