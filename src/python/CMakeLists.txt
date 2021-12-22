@@ -87,7 +87,6 @@ if (PYTHONLIBS_FOUND)
   if (BUILD_TESTING)
     # Add the Python tests
     set(python_tests
-      Angle_TEST
       AxisAlignedBox_TEST
       Box_TEST
       Color_TEST
