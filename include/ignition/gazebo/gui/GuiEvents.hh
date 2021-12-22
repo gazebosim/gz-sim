@@ -181,7 +181,7 @@ namespace events
   };
 
   /// \brief Event that notifies an entity is to be added to the model editor
-  class ModelEditorAddEntity : public QEvent
+  class IGNITION_GAZEBO_GUI_VISIBLE ModelEditorAddEntity : public QEvent
   {
     /// \brief Constructor
     /// \param[in] _entity Entity added
