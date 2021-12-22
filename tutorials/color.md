@@ -28,7 +28,7 @@ The alpha value of a should be 1: 1
 The RGBA value of a: 0.6 0.7 0.8 1
 Check if a is Blue: 1
 The RGB value of a should be (0, 0, 1): 0, 0, 1
-The HSV value of a: 4 1 1
+The HSV value of a: 240 1 1
 The RGBA value of a should be (0, 0, 1, 1): 0 0 1 1
 ```
 

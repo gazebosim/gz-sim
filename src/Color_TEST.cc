@@ -151,7 +151,7 @@ TEST(Color, Color)
   EXPECT_FLOAT_EQ(0.5f, clr.B());
   EXPECT_FLOAT_EQ(1.0f, clr.A());
 
-  EXPECT_TRUE(clr.HSV() == math::Vector3f(6, 0.5, 1));
+  EXPECT_TRUE(clr.HSV() == math::Vector3f(360, 0.5, 1));
 
   clr.SetFromHSV(60, 0.0, 1.0);
   EXPECT_FLOAT_EQ(1.0f, clr.R());
@@ -379,19 +379,19 @@ TEST(Color, HSV)
 {
   math::Color clr;
   math::Vector3f hsv = clr.HSV();
-  EXPECT_FLOAT_EQ(hsv.X(), -1.0f);
+  EXPECT_FLOAT_EQ(hsv.X(), 0.0f);
   EXPECT_FLOAT_EQ(hsv.Y(), 0.0f);
   EXPECT_FLOAT_EQ(hsv.Z(), 0.0f);
 
   clr.Set(0.1f, 0.2f, 0.3f, 1.0f);
   hsv = clr.HSV();
-  EXPECT_NEAR(hsv.X(), 3.5f, 1e-3);
+  EXPECT_NEAR(hsv.X(), 210.0f, 1e-3);
   EXPECT_NEAR(hsv.Y(), 0.666667f, 1e-3);
   EXPECT_NEAR(hsv.Z(), 0.3f, 1e-3);
 
   clr.Set(0.3f, 0.2f, 0.1f, 1.0f);
   hsv = clr.HSV();
-  EXPECT_NEAR(hsv.X(), 0.5f, 1e-3);
+  EXPECT_NEAR(hsv.X(), 30.0f, 1e-3);
   EXPECT_NEAR(hsv.Y(), 0.666667f, 1e-3);
   EXPECT_NEAR(hsv.Z(), 0.3f, 1e-3);
 
