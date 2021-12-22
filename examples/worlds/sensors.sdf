@@ -8,7 +8,7 @@
     Imu: ign topic -e -t /imu
     Magnetometer: ign topic -e -t /magnetometer
     Air pressure: ign topic -e -t /air_pressure
-    NavSat: ign topic -e -t /navsat
+    NavSat (GPS): ign topic -e -t /navsat
 -->
 <sdf version="1.6">
   <world name="sensors">

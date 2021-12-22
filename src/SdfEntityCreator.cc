@@ -40,7 +40,6 @@
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/Imu.hh"
-#include "ignition/gazebo/components/NavSat.hh"
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
@@ -58,6 +57,7 @@
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/NavSat.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include <ignition/gazebo/components/ParticleEmitter.hh>
@@ -884,8 +884,6 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
             components::NavSat(*_sensor));
 
     // Create components to be filled by physics.
-    // Even though the sensor doesn't use WorldPose, that's required to fill
-    // WorldLinearVelocity
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::WorldLinearVelocity(math::Vector3d::Zero));
   }

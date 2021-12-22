@@ -156,9 +156,6 @@ void NavSat::Implementation::CreateNavSatEntities(EntityComponentManager &_ecm)
 
         this->entitySensorMap.insert(
             std::make_pair(_entity, std::move(sensor)));
-
-        igndbg << "Creating NavSat Entity" << std::endl;
-
         return true;
       });
 }
@@ -212,7 +209,6 @@ void NavSat::Implementation::RemoveNavSatEntities(
     [&](const Entity &_entity,
         const components::NavSat *)->bool
       {
-        igndbg << "Removing NavSat entity" << std::endl;
         auto sensorId = this->entitySensorMap.find(_entity);
         if (sensorId == this->entitySensorMap.end())
         {
