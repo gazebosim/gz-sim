@@ -200,7 +200,7 @@
                 <mean>0.0</mean>
                 <stddev>0.1</stddev>
               </noise>
-	    </y>
+            </y>
             <z>
               <noise type="gaussian">
                 <mean>0.0</mean>

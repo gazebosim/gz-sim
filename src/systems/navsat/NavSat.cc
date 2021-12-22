@@ -23,10 +23,10 @@
 #include <unordered_map>
 #include <utility>
 
+#include <sdf/Sensor.hh>
+
 #include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
-
-#include <sdf/Sensor.hh>
 
 #include <ignition/math/Helpers.hh>
 #include <ignition/transport/Node.hh>
@@ -38,9 +38,6 @@
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Util.hh"
 
