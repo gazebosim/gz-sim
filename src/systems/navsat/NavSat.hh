@@ -17,7 +17,8 @@
 #ifndef IGNITION_GAZEBO_SYSTEMS_NAVSAT_HH_
 #define IGNITION_GAZEBO_SYSTEMS_NAVSAT_HH_
 
-#include <memory>
+#include <ignition/utils/ImplPtr.hh>
+
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
@@ -30,13 +31,14 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
 {
-  // Forward declarations.
-  class NavSatPrivate;
-
   /// \class NavSat NavSat.hh ignition/gazebo/systems/NavSat.hh
   /// \brief System that handles navigation satellite sensors, such as GPS,
   /// that reports position and velocity in spherical coordinates (latitude /
   /// longitude) over Ignition Transport.
+  ///
+  /// The NavSat sensors rely on the world origin's spherical coordinates
+  /// being set, for example through SDF's `<spherical_coordinates>` tag
+  /// or the `/world/world_name/set_spherical_coordinates` service.
   class IGNITION_GAZEBO_VISIBLE NavSat:
     public System,
     public ISystemPreUpdate,
@@ -44,9 +46,6 @@ namespace systems
   {
     /// \brief Constructor
     public: explicit NavSat();
-
-    // \brief Destructor
-    public: ~NavSat() override;
 
     // Documentation inherited
     public: void PreUpdate(const UpdateInfo &_info,
@@ -58,7 +57,7 @@ namespace systems
                             const EntityComponentManager &_ecm) final;
 
     /// \brief Private data pointer.
-    private: std::unique_ptr<NavSatPrivate> dataPtr;
+    IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)
   };
   }
 }

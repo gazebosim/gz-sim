@@ -1078,23 +1078,23 @@ msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
 
       if (sdfSensor->HorizontalPositionNoise().Type() != sdf::NoiseType::NONE)
       {
-        ignition::gazebo::set(sensor->mutable_position()->mutable_horizontal_noise(),
+        gazebo::set(sensor->mutable_position()->mutable_horizontal_noise(),
             sdfSensor->HorizontalPositionNoise());
       }
       if (sdfSensor->VerticalPositionNoise().Type() != sdf::NoiseType::NONE)
       {
-        ignition::gazebo::set(sensor->mutable_position()->mutable_vertical_noise(),
+        gazebo::set(sensor->mutable_position()->mutable_vertical_noise(),
             sdfSensor->VerticalPositionNoise());
 
       }
       if (sdfSensor->HorizontalVelocityNoise().Type() != sdf::NoiseType::NONE)
       {
-        ignition::gazebo::set(sensor->mutable_velocity()->mutable_horizontal_noise(),
+        gazebo::set(sensor->mutable_velocity()->mutable_horizontal_noise(),
             sdfSensor->HorizontalVelocityNoise());
       }
       if (sdfSensor->VerticalVelocityNoise().Type() != sdf::NoiseType::NONE)
       {
-        ignition::gazebo::set(sensor->mutable_velocity()->mutable_vertical_noise(),
+        gazebo::set(sensor->mutable_velocity()->mutable_vertical_noise(),
             sdfSensor->VerticalVelocityNoise());
       }
     }

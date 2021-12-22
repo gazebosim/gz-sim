@@ -883,12 +883,11 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
     this->dataPtr->ecm->CreateComponent(sensorEntity,
             components::NavSat(*_sensor));
 
-    // create components to be filled by physics
+    // Create components to be filled by physics.
+    // Even though the sensor doesn't use WorldPose, that's required to fill
+    // WorldLinearVelocity
     this->dataPtr->ecm->CreateComponent(sensorEntity,
-            components::WorldPose(math::Pose3d::Zero));
-
-    this->dataPtr->ecm->CreateComponent(sensorEntity,
-            components::WorldLinearVelocity(math::Vector3d::Zero));
+        components::WorldLinearVelocity(math::Vector3d::Zero));
   }
   else if (_sensor->Type() == sdf::SensorType::IMU)
   {

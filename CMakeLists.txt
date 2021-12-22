@@ -118,7 +118,6 @@ ign_find_package(ignition-sensors6 REQUIRED VERSION 6.0.1
     altimeter
     imu
     force_torque
-    gps
     logical_camera
     magnetometer
     navsat

@@ -49,7 +49,7 @@ using namespace gazebo;
 using namespace systems;
 
 /// \brief Private NavSat data class.
-class ignition::gazebo::systems::NavSatPrivate
+class ignition::gazebo::systems::NavSat::Implementation
 {
   /// \brief A map of NavSat entity to its vertical reference
   public: std::unordered_map<Entity,
@@ -73,12 +73,9 @@ class ignition::gazebo::systems::NavSatPrivate
 };
 
 //////////////////////////////////////////////////
-NavSat::NavSat() : System(), dataPtr(std::make_unique<NavSatPrivate>())
+NavSat::NavSat() : System(), dataPtr(utils::MakeUniqueImpl<Implementation>())
 {
 }
-
-//////////////////////////////////////////////////
-NavSat::~NavSat() = default;
 
 //////////////////////////////////////////////////
 void NavSat::PreUpdate(const UpdateInfo &/*_info*/,
@@ -120,7 +117,7 @@ void NavSat::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-void NavSatPrivate::CreateNavSatEntities(EntityComponentManager &_ecm)
+void NavSat::Implementation::CreateNavSatEntities(EntityComponentManager &_ecm)
 {
   IGN_PROFILE("NavSat::CreateNavSatEntities");
   // Create NavSat
@@ -150,7 +147,6 @@ void NavSatPrivate::CreateNavSatEntities(EntityComponentManager &_ecm)
           return true;
         }
 
-
         // set sensor parent
         std::string parentName = _ecm.Component<components::Name>(
             _parent->Data())->Data();
@@ -168,47 +164,47 @@ void NavSatPrivate::CreateNavSatEntities(EntityComponentManager &_ecm)
 }
 
 //////////////////////////////////////////////////
-void NavSatPrivate::UpdateNavSat(const EntityComponentManager &_ecm)
+void NavSat::Implementation::UpdateNavSat(const EntityComponentManager &_ecm)
 {
   IGN_PROFILE("NavSat::UpdateNavSat");
 
-  _ecm.Each<components::NavSat, components::WorldPose,
-   components::WorldLinearVelocity>(
+  _ecm.Each<components::NavSat, components::WorldLinearVelocity>(
     [&](const Entity &_entity,
         const components::NavSat * /*_navsat*/,
-        const components::WorldPose *_worldPose,
         const components::WorldLinearVelocity *_worldLinearVel
         )->bool
       {
         auto it = this->entitySensorMap.find(_entity);
 
-        if (it != this->entitySensorMap.end())
+        if (it == this->entitySensorMap.end())
         {
-          math::Vector3d worldCoords;
-          math::SphericalCoordinates sphericalCoords;
-          math::Vector3d worldvel = _worldLinearVel->Data();
-
-          worldCoords = sphericalCoords.PositionTransform(_worldPose->Data().Pos(),
-          math::SphericalCoordinates::GLOBAL,
-          math::SphericalCoordinates::SPHERICAL);
-
-          it->second->SetLatitude(worldCoords.X());
-          it->second->SetLongitude(worldCoords.Y());
-          it->second->SetAltitude(worldCoords.Z());
-          it->second->SetVelocity(worldvel);
+          ignerr << "Failed to update NavSat sensor entity [" << _entity
+                 << "]. Entity not found." << std::endl;
+          return true;
         }
-        else
+
+        // Position
+        auto latLonEle = sphericalCoordinates(_entity, _ecm);
+        if (!latLonEle)
         {
-          ignerr << "Failed to update NavSat: " << _entity << ". "
-                 << "Entity not found." << std::endl;
+          ignwarn << "Failed to update NavSat sensor enity [" << _entity
+                  << "]. Spherical coordinates not set." << std::endl;
+          return true;
         }
+
+        it->second->SetLatitude(IGN_DTOR(latLonEle.value().X()));
+        it->second->SetLongitude(IGN_DTOR(latLonEle.value().Y()));
+        it->second->SetAltitude(latLonEle.value().Z());
+
+        // Velocity in ENU frame
+        it->second->SetVelocity(_worldLinearVel->Data());
 
         return true;
       });
 }
 
 //////////////////////////////////////////////////
-void NavSatPrivate::RemoveNavSatEntities(
+void NavSat::Implementation::RemoveNavSatEntities(
     const EntityComponentManager &_ecm)
 {
   IGN_PROFILE("NavSat::RemoveNavSatEntities");

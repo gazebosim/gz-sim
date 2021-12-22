@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2021 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,23 +32,18 @@
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
+#include "ignition/gazebo/TestFixture.hh"
 #include "ignition/gazebo/test_config.hh"
 
+#include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
 /// \brief Test NavSatTest system
-class NavSatTest : public ::testing::Test
+class NavSatTest : public InternalFixture<::testing::Test>
 {
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    ignition::common::Console::SetVerbosity(4);
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
-  }
 };
 
 std::mutex mutex;
@@ -66,144 +61,67 @@ void navsatCb(const msgs::NavSat &_msg)
 // The test checks the world pose and sensor readings of a falling navsat
 TEST_F(NavSatTest, ModelFalling)
 {
-  // Start server
-  ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/navsat.sdf";
-  serverConfig.SetSdfFile(sdfFile);
-
-  Server server(serverConfig);
-  EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
-
-  const std::string sensorName = "navsat_sensor";
+  TestFixture fixture(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "navsat.sdf"));
 
   auto topic = "world/navsat_sensor/"
       "model/navsat_model/link/link/sensor/navsat_sensor/navsat";
 
-  // Create a system that records navsat data
-  test::Relay testSystem;
-  std::vector<math::Pose3d> poses;
-  std::vector<math::Vector3d> velocities;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-                              const gazebo::EntityComponentManager &_ecm)
-      {
-        _ecm.Each<components::NavSat, components::Name,
-                  components::WorldPose>(
-            [&](const ignition::gazebo::Entity &_entity,
-                const components::NavSat *,
-                const components::Name *_name,
-                const components::WorldPose *_worldPose) -> bool
-            {
-              EXPECT_EQ(_name->Data(), sensorName);
+  bool checkedComponents{false};
+  fixture.OnPostUpdate(
+    [&](
+      const gazebo::UpdateInfo &,
+      const gazebo::EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Sensor, components::NavSat, components::Name,
+                components::SensorTopic>(
+          [&](const ignition::gazebo::Entity &,
+              const components::Sensor *,
+              const components::NavSat *,
+              const components::Name *_name,
+              const components::SensorTopic *_topic) -> bool
+          {
+            EXPECT_EQ(_name->Data(), "navsat_sensor");
+            EXPECT_EQ(topic, _topic->Data());
 
-              poses.push_back(_worldPose->Data());
-              //velocities.push_back(_worldLinearVel->Data());
-
-              auto sensorComp = _ecm.Component<components::Sensor>(_entity);
-              EXPECT_NE(nullptr, sensorComp);
-
-              auto topicComp = _ecm.Component<components::SensorTopic>(_entity);
-              EXPECT_NE(nullptr, topicComp);
-              if (topicComp)
-              {
-                EXPECT_EQ(topic, topicComp->Data());
-              }
-
-              return true;
-            });
-      });
-
-  server.AddSystem(testSystem.systemPtr);
+            checkedComponents = true;
+            return true;
+          });
+    }).Finalize();
 
   // subscribe to navsat topic
   transport::Node node;
   node.Subscribe(topic, &navsatCb);
 
   // Run server
-  size_t iters100 = 100u;
-  server.Run(true, iters100, false);
-  EXPECT_EQ(iters100, poses.size());
+  fixture.Server()->Run(true, 300u, false);
+  EXPECT_TRUE(checkedComponents);
 
   // Wait for messages to be received
-  double updateRate = 30;
-  double stepSize = 0.001;
-  size_t waitForMsgs = poses.size() * stepSize * updateRate + 1;
-  for (int sleep = 0; sleep < 30; ++sleep)
+  int sleep{0};
+  int maxSleep{30};
+  for (; navSatMsgs.size() < 10 && sleep < maxSleep; ++sleep)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-    mutex.lock();
-    bool received = navsatMsgs.size() == waitForMsgs;
-    mutex.unlock();
-
-    if (received)
-      break;
   }
+  EXPECT_LT(sleep, maxSleep);
+  EXPECT_LE(10u, navSatMsgs.size());
 
   mutex.lock();
-  EXPECT_EQ(navsatMsgs.size(), waitForMsgs);
-  auto firstMsg = navsatMsgs.front();
-  auto lastMsg = navsatMsgs.back();
+  auto lastMsg = navSatMsgs.back();
   mutex.unlock();
 
-  // check navsat world pose
-  // verify the navsat model z pos is decreasing
-  EXPECT_GT(poses.front().Pos().Z(), poses.back().Pos().Z());
-  EXPECT_GT(poses.back().Pos().Z(), 0.0);
-  // velocity should be negative in z
-  //EXPECT_GT(velocities.front().Z(), velocities.back().Z());
-  //EXPECT_LT(velocities.back().Z(), 0.0);
+  EXPECT_EQ("navsat_model::link::navsat_sensor", lastMsg.frame_id());
 
-  // check navsat sensor data
+  // Located at world origin
+  EXPECT_DOUBLE_EQ(-22.9, lastMsg.latitude_deg());
+  EXPECT_DOUBLE_EQ(-43.2, lastMsg.longitude_deg());
 
-  /*
-  // vertical position = world position - intial position
-  // so since navsat is falling, vertical position should be negative
-  EXPECT_GT(firstMsg.vertical_position(),
-      lastMsg.vertical_position());
-  EXPECT_LT(lastMsg.vertical_position(), 0.0);
-  // vertical velocity should be negative
-  EXPECT_GT(firstMsg.vertical_velocity(),
-      lastMsg.vertical_velocity());
-  EXPECT_LT(lastMsg.vertical_velocity(), 0.0);
-  */
-  // Run server for longer period of time so the navsat falls then rests
-  // on the ground plane
-  size_t iters1000 = 1000u;
-  server.Run(true, iters1000, false);
-  EXPECT_EQ(iters100 + iters1000, poses.size());
+  // Not moving horizontally
+  EXPECT_DOUBLE_EQ(0.0, lastMsg.velocity_east());
+  EXPECT_DOUBLE_EQ(0.0, lastMsg.velocity_north());
 
-  // Wait for messages to be received
-  waitForMsgs = poses.size() * stepSize * updateRate + 1;
-  for (int sleep = 0; sleep < 30; ++sleep)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-    mutex.lock();
-    bool received = navsatMsgs.size() == waitForMsgs;
-    mutex.unlock();
-
-    if (received)
-      break;
-  }
-
-  mutex.lock();
-  EXPECT_EQ(navsatMsgs.size(), waitForMsgs);
-  lastMsg = navsatMsgs.back();
-  mutex.unlock();
-
-  // check navsat world pose
-  // navsat should be on the ground
-  // note that navsat's parent link is at an 0.05 offset
-  // set high tol due to instablity
-  EXPECT_NEAR(poses.back().Pos().Z(), 0.05, 1e-2);
-  // velocity should now be zero as the model is resting on the ground
-  //EXPECT_NEAR(velocities.back().Z(), 0u, 1e-3);
-
-  // check navsat sensor data
-  // navsat vertical position = 0.05 (world pos) - 3.05 (initial position)
-  //EXPECT_LT(lastMsg.vertical_position(), -3.0);
-  // velocity should be zero
-  //EXPECT_NEAR(lastMsg.vertical_velocity(), 0u, 1e-3);
+  // Falling due to gravity
+  EXPECT_GT(0.0, lastMsg.altitude());
+  EXPECT_GT(0.0, lastMsg.velocity_up());
 }
