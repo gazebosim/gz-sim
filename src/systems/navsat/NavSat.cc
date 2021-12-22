@@ -38,6 +38,7 @@
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Util.hh"
 
@@ -55,18 +56,32 @@ class ignition::gazebo::systems::NavSat::Implementation
   /// \brief Ign-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
 
-  /// \brief Create NavSat sensor
+  /// When the system is just loaded, we loop over all entities to create
+  /// sensors. After this initialization, we only check inserted entities.
+  public: bool initialized = false;
+
+  /// \brief Create sensors in ign-sensors
   /// \param[in] _ecm Mutable reference to ECM.
-  public: void CreateNavSatEntities(EntityComponentManager &_ecm);
+  public: void CreateSensors(EntityComponentManager &_ecm);
 
-  /// \brief Update NavSat sensor data based on physics data
+  /// \brief Update sensor data based on physics data
   /// \param[in] _ecm Immutable reference to ECM.
-  public: void UpdateNavSat(const EntityComponentManager &_ecm);
+  public: void Update(const EntityComponentManager &_ecm);
 
-  /// \brief Remove NavSat sensors if their entities have been removed from
-  /// simulation.
+  /// \brief Remove sensors if their entities have been removed from simulation.
   /// \param[in] _ecm Immutable reference to ECM.
-  public: void RemoveNavSatEntities(const EntityComponentManager &_ecm);
+  public: void RemoveSensors(const EntityComponentManager &_ecm);
+
+  /// \brief Create sensor
+  /// \param[in] _ecm Mutable reference to ECM.
+  /// \param[in] _entity Sensor entity
+  /// \param[in] _navsat NavSat component.
+  /// \param[in] _parent Parent entity component.
+  public: void AddSensor(
+    EntityComponentManager &_ecm,
+    const Entity _entity,
+    const components::NavSat *_navSat,
+    const components::ParentEntity *_parent);
 };
 
 //////////////////////////////////////////////////
@@ -79,7 +94,7 @@ void NavSat::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
   IGN_PROFILE("NavSat::PreUpdate");
-  this->dataPtr->CreateNavSatEntities(_ecm);
+  this->dataPtr->CreateSensors(_ecm);
 }
 
 //////////////////////////////////////////////////
@@ -99,7 +114,7 @@ void NavSat::PostUpdate(const UpdateInfo &_info,
   // Only update and publish if not paused.
   if (!_info.paused)
   {
-    this->dataPtr->UpdateNavSat(_ecm);
+    this->dataPtr->Update(_ecm);
 
     for (auto &it : this->dataPtr->entitySensorMap)
     {
@@ -110,57 +125,81 @@ void NavSat::PostUpdate(const UpdateInfo &_info,
     }
   }
 
-  this->dataPtr->RemoveNavSatEntities(_ecm);
+  this->dataPtr->RemoveSensors(_ecm);
 }
 
 //////////////////////////////////////////////////
-void NavSat::Implementation::CreateNavSatEntities(EntityComponentManager &_ecm)
+void NavSat::Implementation::AddSensor(
+  EntityComponentManager &_ecm,
+  const Entity _entity,
+  const components::NavSat *_navsat,
+  const components::ParentEntity *_parent)
 {
-  IGN_PROFILE("NavSat::CreateNavSatEntities");
-  // Create NavSat
-  _ecm.EachNew<components::NavSat, components::ParentEntity>(
-    [&](const Entity &_entity,
-        const components::NavSat *_navsat,
-        const components::ParentEntity *_parent)->bool
-      {
-        // create sensor
-        std::string sensorScopedName =
-            removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
-        sdf::Sensor data = _navsat->Data();
-        data.SetName(sensorScopedName);
-        // check topic
-        if (data.Topic().empty())
+  // create sensor
+  std::string sensorScopedName =
+      removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
+  sdf::Sensor data = _navsat->Data();
+  data.SetName(sensorScopedName);
+  // check topic
+  if (data.Topic().empty())
+  {
+    std::string topic = scopedName(_entity, _ecm) + "/navsat";
+    data.SetTopic(topic);
+  }
+  std::unique_ptr<sensors::NavSatSensor> sensor =
+      this->sensorFactory.CreateSensor<
+      sensors::NavSatSensor>(data);
+  if (nullptr == sensor)
+  {
+    ignerr << "Failed to create sensor [" << sensorScopedName << "]"
+           << std::endl;
+    return;
+  }
+
+  // set sensor parent
+  std::string parentName = _ecm.Component<components::Name>(
+      _parent->Data())->Data();
+  sensor->SetParent(parentName);
+  // Set topic
+  _ecm.CreateComponent(_entity, components::SensorTopic(sensor->Topic()));
+
+  this->entitySensorMap.insert(
+      std::make_pair(_entity, std::move(sensor)));
+}
+
+//////////////////////////////////////////////////
+void NavSat::Implementation::CreateSensors(EntityComponentManager &_ecm)
+{
+  IGN_PROFILE("NavSat::CreateSensors");
+  if (!this->initialized)
+  {
+    _ecm.Each<components::NavSat, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::NavSat *_navSat,
+          const components::ParentEntity *_parent)->bool
         {
-          std::string topic = scopedName(_entity, _ecm) + "/navsat";
-          data.SetTopic(topic);
-        }
-        std::unique_ptr<sensors::NavSatSensor> sensor =
-            this->sensorFactory.CreateSensor<
-            sensors::NavSatSensor>(data);
-        if (nullptr == sensor)
-        {
-          ignerr << "Failed to create sensor [" << sensorScopedName << "]"
-                 << std::endl;
+          this->AddSensor(_ecm, _entity, _navSat, _parent);
           return true;
-        }
-
-        // set sensor parent
-        std::string parentName = _ecm.Component<components::Name>(
-            _parent->Data())->Data();
-        sensor->SetParent(parentName);
-        // Set topic
-        _ecm.CreateComponent(_entity, components::SensorTopic(sensor->Topic()));
-
-        this->entitySensorMap.insert(
-            std::make_pair(_entity, std::move(sensor)));
-        return true;
+        });
+      this->initialized = true;
+  }
+  else
+  {
+    _ecm.EachNew<components::NavSat, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::NavSat *_navSat,
+          const components::ParentEntity *_parent)->bool
+        {
+          this->AddSensor(_ecm, _entity, _navSat, _parent);
+          return true;
       });
+  }
 }
 
 //////////////////////////////////////////////////
-void NavSat::Implementation::UpdateNavSat(const EntityComponentManager &_ecm)
+void NavSat::Implementation::Update(const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("NavSat::UpdateNavSat");
+  IGN_PROFILE("NavSat::Update");
 
   _ecm.Each<components::NavSat, components::WorldLinearVelocity>(
     [&](const Entity &_entity,
@@ -198,10 +237,9 @@ void NavSat::Implementation::UpdateNavSat(const EntityComponentManager &_ecm)
 }
 
 //////////////////////////////////////////////////
-void NavSat::Implementation::RemoveNavSatEntities(
-    const EntityComponentManager &_ecm)
+void NavSat::Implementation::RemoveSensors(const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("NavSat::RemoveNavSatEntities");
+  IGN_PROFILE("NavSat::RemoveSensors");
   _ecm.EachRemoved<components::NavSat>(
     [&](const Entity &_entity,
         const components::NavSat *)->bool
