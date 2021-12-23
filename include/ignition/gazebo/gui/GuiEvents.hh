@@ -25,6 +25,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <sdf/Element.hh>
 #include <ignition/math/Vector3.hh>
 #include <ignition/utils/ImplPtr.hh>
 #include "ignition/gazebo/gui/Export.hh"
@@ -210,6 +211,30 @@ namespace events
     /// \brief Private data pointer
     IGN_UTILS_IMPL_PTR(dataPtr)
   };
+
+  /// \brief Event that notifies a visual plugin is to be loaded
+  class IGNITION_GAZEBO_GUI_VISIBLE VisualPlugin: public QEvent
+  {
+    /// \brief Constructor
+    /// \param[in] _entity Entity added
+    /// \param[in] _type Entity type
+    /// \param[in] _parent Parent entity.
+    public: explicit VisualPlugin(ignition::gazebo::Entity _entity,
+                const sdf::ElementPtr &_elem);
+
+    /// \brief Get the entity to load the visual plugin for
+    public: ignition::gazebo::Entity Entity() const;
+
+    /// \brief Get the sdf element of the visual plugin
+    public: sdf::ElementPtr Element() const;
+
+    static const QEvent::Type kType = QEvent::Type(QEvent::User + 8);
+
+    /// \internal
+    /// \brief Private data pointer
+    IGN_UTILS_IMPL_PTR(dataPtr)
+  };
+
 
 }  // namespace events
 }

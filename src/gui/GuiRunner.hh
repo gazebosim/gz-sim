@@ -74,6 +74,12 @@ class IGNITION_GAZEBO_GUI_VISIBLE GuiRunner : public QObject
   /// \todo(anyone) Move to GuiRunner::Implementation when porting to v5
   private: Q_INVOKABLE void UpdatePlugins();
 
+  /// \brief Load systems
+  private: void LoadSystems();
+
+  /// \brief Update systems
+  private: void UpdateSystems();
+
   /// \brief Pointer to private data.
   IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)
 };
