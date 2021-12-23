@@ -20,6 +20,7 @@
 #include "Line2.hh"
 #include "Rand.hh"
 #include "RollingMean.hh"
+#include "StopWatch.hh"
 #include "Vector2.hh"
 #include "Vector3.hh"
 #include "Vector4.hh"
@@ -39,6 +40,8 @@ PYBIND11_MODULE(math, m)
   ignition::math::python::defineMathRand(m, "Rand");
 
   ignition::math::python::defineMathRollingMean(m, "RollingMean");
+
+  ignition::math::python::defineMathStopwatch(m, "Stopwatch");
 
   ignition::math::python::defineMathVector2<double>(m, "Vector2d");
   ignition::math::python::defineMathVector2<int>(m, "Vector2i");

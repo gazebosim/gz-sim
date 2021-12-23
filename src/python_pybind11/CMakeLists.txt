@@ -19,6 +19,7 @@ if (${pybind11_FOUND})
     src/Helpers.cc
     src/Rand.cc
     src/RollingMean.cc
+    src/StopWatch.cc
   )
 
   target_link_libraries(math PRIVATE
@@ -77,6 +78,7 @@ if (${pybind11_FOUND})
       Line2_TEST
       Rand_TEST
       RollingMean_TEST
+      StopWatch_TEST
       Vector2_TEST
       Vector3_TEST
       Vector4_TEST

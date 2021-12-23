@@ -22,7 +22,7 @@ from ignition.math import Stopwatch
 class TestBox(unittest.TestCase):
     # Helper function that runs a few tests
     def runTimer(self, _time):
-        handleSteadyClock = 0
+        handleSteadyClock = timedelta(0)
 
         # Start the timer
         self.assertTrue(_time.start())
@@ -31,12 +31,12 @@ class TestBox(unittest.TestCase):
         # The start time should be greater than the stop time.
         self.assertGreater(_time.start_time(), _time.stop_time())
         # The elapsed stop time should still be zero.
-        self.assertEqual(0, _time.elapsed_stop_time())
+        self.assertEqual(timedelta(0), _time.elapsed_stop_time())
 
         # Wait for some time...
         time.sleep(1)
         # Now the elapsed time should be greater than or equal to the time slept.
-        self.assertGreaterEqual(_time.elapsed_run_time() + handleSteadyClock, 1000)
+        self.assertGreaterEqual(_time.elapsed_run_time() + handleSteadyClock, timedelta(seconds=1))
 
         # Stop the timer.
         self.assertTrue(_time.stop())
@@ -45,7 +45,7 @@ class TestBox(unittest.TestCase):
         # The stop time should be greater than the start time.
         self.assertGreater(_time.stop_time(), _time.start_time())
         # The elapsed time should still be greater than the time slept.
-        self.assertGreaterEqual(_time.elapsed_run_time() + handleSteadyClock, 1000)
+        self.assertGreaterEqual(_time.elapsed_run_time() + handleSteadyClock, timedelta(seconds=1))
 
         # Save the elapsed time.
         elapsedTime = _time.elapsed_run_time()
@@ -54,7 +54,7 @@ class TestBox(unittest.TestCase):
         time.sleep(1)
         # The elapsed stop time should be greater than or equal to the time
         # slept.
-        self.assertGreaterEqual(_time.elapsed_stop_time() + handleSteadyClock, 1000)
+        self.assertGreaterEqual(_time.elapsed_stop_time() + handleSteadyClock, timedelta(seconds=1))
         # The elapsed time should be the same.
         self.assertEqual(elapsedTime, _time.elapsed_run_time())
 
@@ -72,15 +72,15 @@ class TestBox(unittest.TestCase):
         self.assertGreater(_time.elapsed_run_time(), elapsedTime)
         # The elapsed time should be greater than or equal to the the previous
         # two sleep times.
-        self.assertGreaterEqual(_time.elapsed_run_time() + handleSteadyClock, 2000)
+        self.assertGreaterEqual(_time.elapsed_run_time() + handleSteadyClock, timedelta(seconds=2))
 
     def test_constructor(self):
         watch = Stopwatch()
 
         self.assertFalse(watch.running())
         self.assertEqual(watch.stop_time(), watch.start_time())
-        self.assertEqual(0, watch.elapsed_run_time())
-        self.assertEqual(0, watch.elapsed_stop_time())
+        self.assertEqual(timedelta(0), watch.elapsed_run_time())
+        self.assertEqual(timedelta(0), watch.elapsed_stop_time())
 
         self.runTimer(watch)
 
@@ -119,8 +119,8 @@ class TestBox(unittest.TestCase):
 
         self.assertFalse(watch.running())
         self.assertEqual(watch.stop_time(), watch.start_time())
-        self.assertEqual(0, watch.elapsed_run_time())
-        self.assertEqual(0, watch.elapsed_stop_time())
+        self.assertEqual(timedelta(0), watch.elapsed_run_time())
+        self.assertEqual(timedelta(0), watch.elapsed_stop_time())
 
         self.runTimer(watch)
 
@@ -129,8 +129,8 @@ class TestBox(unittest.TestCase):
         watch.start(True)
         self.assertTrue(watch.running())
         self.assertLess(watch.stop_time(), watch.start_time())
-        self.assertNotEqual(0, watch.elapsed_run_time())
-        self.assertEqual(0, watch.elapsed_stop_time())
+        self.assertNotEqual(timedelta(0), watch.elapsed_run_time())
+        self.assertEqual(timedelta(0), watch.elapsed_stop_time())
 
     def test_fail_start_stop(self):
         watch = Stopwatch()
