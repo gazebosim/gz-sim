@@ -15,6 +15,7 @@ if (${pybind11_FOUND})
   pybind11_add_module(math SHARED
     src/_ignition_math_pybind11.cc
     src/Angle.cc
+    src/Rand.cc
   )
 
   target_link_libraries(math PRIVATE
@@ -68,6 +69,7 @@ if (${pybind11_FOUND})
     # Add the Python tests
     set(python_tests
       Angle_TEST
+      Rand_TEST
       Vector2_TEST
       Vector3_TEST
       Vector4_TEST

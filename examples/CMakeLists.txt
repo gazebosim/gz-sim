@@ -22,6 +22,9 @@ target_link_libraries(quaternion_to_euler ignition-math${IGN_MATH_VER}::ignition
 add_executable(quaternion_from_euler quaternion_from_euler.cc)
 target_link_libraries(quaternion_from_euler ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
 
+add_executable(rand_example rand_example.cc)
+target_link_libraries(rand_example ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
+
 add_executable(graph_example graph_example.cc)
 target_link_libraries(graph_example ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
 
