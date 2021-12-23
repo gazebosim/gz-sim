@@ -89,7 +89,6 @@ if (PYTHONLIBS_FOUND)
     set(python_tests
       AxisAlignedBox_TEST
       Box_TEST
-      Color_TEST
       Cylinder_TEST
       DiffDriveOdometry_TEST
       Filter_TEST

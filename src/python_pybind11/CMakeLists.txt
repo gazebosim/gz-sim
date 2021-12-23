@@ -15,6 +15,7 @@ if (${pybind11_FOUND})
   pybind11_add_module(math SHARED
     src/_ignition_math_pybind11.cc
     src/Angle.cc
+    src/Color.cc
     src/Helpers.cc
     src/Rand.cc
   )
@@ -70,6 +71,7 @@ if (${pybind11_FOUND})
     # Add the Python tests
     set(python_tests
       Angle_TEST
+      Color_TEST
       Helpers_TEST
       Rand_TEST
       Vector2_TEST
