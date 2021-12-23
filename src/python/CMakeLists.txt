@@ -108,7 +108,6 @@ if (PYTHONLIBS_FOUND)
       Pose3_TEST
       python_TEST
       Quaternion_TEST
-      RollingMean_TEST
       RotationSpline_TEST
       SemanticVersion_TEST
       SignalStats_TEST
