@@ -56,7 +56,7 @@ struct ElevatorStateMachineDef::DoorState : state<DoorState<E>>
   /// or closed
   /// \param[in] _velEps Velocity tolerance when checking if a door has opened
   /// or closed
-  public: DoorState(double _posEps = 5e-2, double _velEps = 1e-2)
+  public: DoorState(double _posEps = 2e-2, double _velEps = 1e-2)
       : posEps(_posEps), velEps(_velEps)
   {
   }
@@ -72,7 +72,7 @@ struct ElevatorStateMachineDef::DoorState : state<DoorState<E>>
   public: template <typename Event, typename FSM>
   void on_enter(const Event &, FSM &_fsm)
   {
-    const auto &data = _fsm.Data();
+    const auto &data = _fsm.dataPtr;
     int32_t floorTarget = data->system->state;
     ignmsg << "The elevator is " << this->Report(data) << std::endl;
 
@@ -99,7 +99,10 @@ struct ElevatorStateMachineDef::DoorState : state<DoorState<E>>
       int32_t _floorTarget) const = 0;
 
   /// \brief Method that gets called when a door joint reaches its target
-  private: void OnJointTargetReached() { this->triggerEvent(); }
+  private: void OnJointTargetReached()
+  {
+    this->triggerEvent();
+  }
 
   /// \brief Positiion tolerance
   private: double posEps;
@@ -118,9 +121,7 @@ struct ElevatorStateMachineDef::OpenDoorState : DoorState<events::DoorOpen>
   public: using deferred_events = type_tuple<events::EnqueueNewTarget>;
 
   /// \brief Constructor
-  public: OpenDoorState() : DoorState(5e-2)
-  {
-  }
+  public: OpenDoorState() = default;
 
   // Documentation inherited
   private: virtual std::string Report(
@@ -142,9 +143,7 @@ struct ElevatorStateMachineDef::OpenDoorState : DoorState<events::DoorOpen>
 struct ElevatorStateMachineDef::CloseDoorState : DoorState<events::DoorClosed>
 {
   /// \brief Constructor
-  public: CloseDoorState() : DoorState(2e-2)
-  {
-  }
+  public: CloseDoorState() = default;
 
   // Documentation inherited
   private: virtual std::string Report(
@@ -173,7 +172,7 @@ struct ElevatorStateMachineDef::WaitState : state<WaitState>
   public: template <typename Event, typename FSM>
   void on_enter(const Event &, FSM &_fsm)
   {
-    const auto &data = _fsm.Data();
+    const auto &data = _fsm.dataPtr;
     ignmsg << "The elevator is waiting to close door " << data->system->state
            << std::endl;
 
@@ -183,7 +182,10 @@ struct ElevatorStateMachineDef::WaitState : state<WaitState>
   }
 
   /// \brief Method that gets called upon timeout
-  private: void OnTimeout() { this->triggerEvent(); }
+  private: void OnTimeout()
+  {
+    this->triggerEvent();
+  }
 
   /// \brief Triggers the exit event
   private: std::function<void()> triggerEvent;
@@ -211,7 +213,7 @@ struct ElevatorStateMachineDef::MoveCabinState : state<MoveCabinState>
   public: template <typename Event, typename FSM>
   void on_enter(const Event &, FSM &_fsm)
   {
-    const auto &data = _fsm.Data();
+    const auto &data = _fsm.dataPtr;
     int32_t floorTarget = data->targets.front();
     ignmsg << "The elevator is moving the cabin [ " << data->system->state
            << " -> " << floorTarget << " ]" << std::endl;
@@ -227,7 +229,10 @@ struct ElevatorStateMachineDef::MoveCabinState : state<MoveCabinState>
   }
 
   /// \brief Method that gets called when the cabin joint reaches its target
-  private: void OnJointTargetReached() { this->triggerEvent(); }
+  private: void OnJointTargetReached()
+  {
+    this->triggerEvent();
+  }
 
   /// \brief Positiion tolerance
   private: double posEps;

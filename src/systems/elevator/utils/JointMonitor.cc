@@ -79,10 +79,10 @@ void JointMonitor::Configure(
 }
 
 //////////////////////////////////////////////////
-void JointMonitor::Update(const UpdateInfo & /*_info*/,
-                          const EntityComponentManager &_ecm)
+void JointMonitor::Update(const EntityComponentManager &_ecm)
 {
-  if (!this->dataPtr->isActive) return;
+  if (!this->dataPtr->isActive)
+    return;
   double pos =
       _ecm.ComponentData<components::JointPosition>(this->dataPtr->joint)
           ->front();

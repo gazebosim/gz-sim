@@ -49,14 +49,11 @@ class DoorTimerPrivate;
 class DoorTimer
 {
   /// \brief Constructor
-  public: DoorTimer();
+  /// \param[in] _waitDuration Duration
+  public: DoorTimer(const std::chrono::steady_clock::duration &_waitDuration);
 
   /// \brief Destructor
   public: ~DoorTimer();
-
-  /// \brief Sets the default wait duration
-  /// \param[in] _waitDuration Duration
-  public: void SetWaitDuration(double _waitDuration);
 
   /// \brief Starts the timer and sets the timeout time based on the given
   /// start time
@@ -67,12 +64,9 @@ class DoorTimer
 
   /// \brief Checks whether the timer has timed out
   /// \param[in] _info Current simulation step info
-  /// \param[in] _ecm Entity component manager
   /// \param[in] _isDoorwayBlocked Flag that indicates whether the doorway is
   /// blocked
-  public: void Update(
-      const UpdateInfo &_info, const EntityComponentManager &_ecm,
-      bool _isDoorwayBlocked);
+  public: void Update(const UpdateInfo &_info, bool _isDoorwayBlocked);
 
   /// \brief Private data pointer
   private: std::unique_ptr<DoorTimerPrivate> dataPtr;

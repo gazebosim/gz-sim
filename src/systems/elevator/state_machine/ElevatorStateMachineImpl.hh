@@ -77,7 +77,8 @@ void ElevatorStateMachinePrivate::EnqueueNewTarget(double _target)
 {
   // Ignore duplicate targets
   auto it = std::find(this->targets.cbegin(), this->targets.cend(), _target);
-  if (it != this->targets.cend()) return;
+  if (it != this->targets.cend())
+    return;
 
   // Prioritize target in the queue
   bool enqueued = false;
@@ -95,7 +96,8 @@ void ElevatorStateMachinePrivate::EnqueueNewTarget(double _target)
     }
     prevTarget = *it;
   }
-  if (!enqueued) this->targets.push_back(_target);
+  if (!enqueued)
+    this->targets.push_back(_target);
 
   std::ostringstream ss;
   ss << "The elevator enqueued target " << _target << " [ ";
@@ -121,13 +123,6 @@ ElevatorStateMachineDef::ElevatorStateMachineDef(
 
 //////////////////////////////////////////////////
 ElevatorStateMachineDef::~ElevatorStateMachineDef() = default;
-
-//////////////////////////////////////////////////
-const std::unique_ptr<ElevatorStateMachinePrivate>
-    &ElevatorStateMachineDef::Data() const
-{
-  return this->dataPtr;
-}
 
 }  // namespace systems
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE

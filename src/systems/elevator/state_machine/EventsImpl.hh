@@ -36,7 +36,9 @@ struct EnqueueNewTarget
 {
   /// \brief Constructor
   /// \param[in] _target New target
-  public: EnqueueNewTarget(double _target) : target(_target) {}
+  public: EnqueueNewTarget(double _target) : target(_target)
+  {
+  }
 
   /// \brief target New target
   public: double target;

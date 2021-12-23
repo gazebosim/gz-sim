@@ -64,10 +64,8 @@ class JointMonitor
 
   /// \brief Checks whether the position and velocity of the joint are within
   /// the configured tolerances
-  /// \param[in] _info Current simulation step info
   /// \param[in] _ecm Entity component manager
-  public: void Update(const UpdateInfo &_info,
-                      const EntityComponentManager &_ecm);
+  public: void Update(const EntityComponentManager &_ecm);
 
   /// \brief Private data pointer
   private: std::unique_ptr<JointMonitorPrivate> dataPtr;

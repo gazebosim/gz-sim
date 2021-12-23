@@ -71,7 +71,8 @@ class ElevatorPrivate;
 /// ## System Parameters
 ///
 /// `<update_rate>`: System update rate. This element is optional and the
-/// default value is 10Hz.
+/// default value is 10Hz. A value of zero gets translated to the simulation
+/// rate (no throttling for the system).
 ///
 /// `<floor_link_prefix>`: Prefix in the names of the links that function as
 /// a reference for each floor level. When the elevator is requested to move

@@ -87,16 +87,13 @@ class ElevatorStateMachineDef
   struct MoveCabinState;
 
   /// \brief Constructor
+  /// \param[in] _system Data that are common to both the system and the state
+  /// machine.
   public: ElevatorStateMachineDef(
       const std::shared_ptr<ElevatorCommonPrivate> &_system);
 
   /// \brief Destructor
   public: ~ElevatorStateMachineDef();
-
-  /// \brief Gives access to the private data of the state machine. Used by the
-  /// states
-  /// \return Pointer to the private data of the state machine
-  public: const std::unique_ptr<ElevatorStateMachinePrivate> &Data() const;
 
   /// \brief Initial state of the state machine
   public: using initial_state = IdleState;
@@ -130,8 +127,8 @@ class ElevatorStateMachineDef
                actions::CabinAtTarget, none>
    >;
 
-  /// \brief Private data pointer
-  private: std::unique_ptr<ElevatorStateMachinePrivate> dataPtr;
+  /// \brief Public data pointer
+  public: std::unique_ptr<ElevatorStateMachinePrivate> dataPtr;
 };
 
 /// \brief Elevator state machine backend

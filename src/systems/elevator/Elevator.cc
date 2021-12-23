@@ -132,7 +132,7 @@ class ElevatorPrivate : public ElevatorCommonPrivate
   public: std::vector<bool> isDoorwayBlockedStates;
 
   /// \brief Timer that keeps the door at the target floor level open
-  public: DoorTimer doorTimer;
+  public: std::unique_ptr<DoorTimer> doorTimer;
 
   /// \brief Monitor that checks whether the door at the target floor level has
   /// been opened or closed
@@ -199,11 +199,14 @@ void Elevator::Configure(const Entity &_entity,
                                 _ecm))
     return;
 
-  if (!this->dataPtr->InitDoors(doorJointPrefix, topicPrefix, _ecm)) return;
+  if (!this->dataPtr->InitDoors(doorJointPrefix, topicPrefix, _ecm))
+    return;
 
   // Initialize door timer
   double duration = _sdf->Get<double>("open_door_wait_duration", 5.0).first;
-  this->dataPtr->doorTimer.SetWaitDuration(duration);
+  this->dataPtr->doorTimer = std::make_unique<DoorTimer>(
+      std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+          std::chrono::duration<double>(duration)));
 
   // Initialize state publisher
   std::string stateTopicName =
@@ -213,7 +216,7 @@ void Elevator::Configure(const Entity &_entity,
       this->dataPtr->node.Advertise<msgs::Int32>(stateTopicName);
 
   // Initialize state publish period
-  double stateRate = _sdf->Get<double>("state_publish_rate", 5).first;
+  double stateRate = _sdf->Get<double>("state_publish_rate", 5.0).first;
   std::chrono::duration<double> statePeriod{stateRate > 0 ? 1 / stateRate : 0};
   this->dataPtr->statePubPeriod =
       std::chrono::duration_cast<std::chrono::steady_clock::duration>(
@@ -248,10 +251,10 @@ void Elevator::PostUpdate(const UpdateInfo &_info,
 
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->mutex);
   this->dataPtr->UpdateState(_info, _ecm);
-  this->dataPtr->doorTimer.Update(
-      _info, _ecm, this->dataPtr->isDoorwayBlockedStates[this->dataPtr->state]);
-  this->dataPtr->doorJointMonitor.Update(_info, _ecm);
-  this->dataPtr->cabinJointMonitor.Update(_info, _ecm);
+  this->dataPtr->doorTimer->Update(
+      _info, this->dataPtr->isDoorwayBlockedStates[this->dataPtr->state]);
+  this->dataPtr->doorJointMonitor.Update(_ecm);
+  this->dataPtr->cabinJointMonitor.Update(_ecm);
 }
 
 //////////////////////////////////////////////////
@@ -366,7 +369,7 @@ void ElevatorPrivate::StartDoorTimer(
     int32_t /*_floorTarget*/, const std::function<void()> &_timeoutCallback)
 {
   std::lock_guard<std::recursive_mutex> lock(this->mutex);
-  this->doorTimer.Configure(this->lastUpdateTime, _timeoutCallback);
+  this->doorTimer->Configure(this->lastUpdateTime, _timeoutCallback);
 }
 
 //////////////////////////////////////////////////
@@ -402,7 +405,7 @@ void ElevatorPrivate::UpdateState(const ignition::gazebo::UpdateInfo &_info,
                  diffs.begin(),
                  [&pos](auto target) { return std::fabs(target - pos); });
   auto it = std::min_element(diffs.begin(), diffs.end());
-  this->state = std::distance(diffs.begin(), it);
+  this->state = static_cast<int32_t>(std::distance(diffs.begin(), it));
 
   // Throttle publish rate
   auto elapsed = _info.simTime - this->lastStatePubTime;

@@ -35,6 +35,11 @@ namespace systems
 {
 class DoorTimerPrivate
 {
+  /// \brief Constructor
+  /// \param[in] _waitDuration Duration
+  public: DoorTimerPrivate(
+       const std::chrono::steady_clock::duration &_waitDuration);
+
   /// \brief Wait duration
   public: std::chrono::steady_clock::duration waitDuration;
 
@@ -53,18 +58,20 @@ class DoorTimerPrivate
 };
 
 //////////////////////////////////////////////////
-DoorTimer::DoorTimer() : dataPtr(std::make_unique<DoorTimerPrivate>()) {}
+DoorTimerPrivate::DoorTimerPrivate(
+    const std::chrono::steady_clock::duration &_waitDuration)
+    : waitDuration(_waitDuration)
+{
+}
+
+//////////////////////////////////////////////////
+DoorTimer::DoorTimer(const std::chrono::steady_clock::duration &_waitDuration)
+    : dataPtr(std::make_unique<DoorTimerPrivate>(_waitDuration))
+{
+}
 
 //////////////////////////////////////////////////
 DoorTimer::~DoorTimer() = default;
-
-//////////////////////////////////////////////////
-void DoorTimer::SetWaitDuration(double _waitDuration)
-{
-  std::chrono::duration<double> duration(_waitDuration);
-  this->dataPtr->waitDuration =
-      std::chrono::duration_cast<std::chrono::steady_clock::duration>(duration);
-}
 
 //////////////////////////////////////////////////
 void DoorTimer::Configure(const std::chrono::steady_clock::duration &_startTime,
@@ -77,9 +84,7 @@ void DoorTimer::Configure(const std::chrono::steady_clock::duration &_startTime,
 }
 
 //////////////////////////////////////////////////
-void DoorTimer::Update(const UpdateInfo &_info,
-                       const EntityComponentManager & /*_ecm*/,
-                       bool _isDoorwayBlocked)
+void DoorTimer::Update(const UpdateInfo &_info, bool _isDoorwayBlocked)
 {
   // Reset timeout time when doorway gets unblocked
   if (!_isDoorwayBlocked && this->dataPtr->wasDoorwayBlocked)

@@ -42,13 +42,16 @@ struct EnqueueNewTarget
   /// \brief Function call operator
   /// \param[in] _event Event that triggered the action
   /// \param[in] _fsm State machine with which the action is associated
+  /// \param[in] _source Source state
+  /// \param[in] _target Target state
   public: template <typename Event, typename Fsm, typename Source,
                     typename Target>
-  void operator()(const Event &_event, Fsm &_fsm, Source &, Target &)
+   void operator()(const Event &_event, Fsm &_fsm, Source & /*_source*/,
+                   Target & /*_target*/)
   {
-    const auto &data = _fsm.Data();
-    data->EnqueueNewTarget(_event.target);
-    if (trigger) _fsm.process_event(events::NewTarget());
+    _fsm.dataPtr->EnqueueNewTarget(_event.target);
+    if (trigger)
+      _fsm.process_event(events::NewTarget());
   }
 };
 
@@ -57,14 +60,18 @@ struct EnqueueNewTarget
 struct NewTarget
 {
   /// \brief Function call operator
+  /// \param[in] _event Event that triggered the action
   /// \param[in] _fsm State machine with which the action is associated
+  /// \param[in] _source Source state
+  /// \param[in] _target Target state
   public: template <typename Event, typename Fsm, typename Source,
                     typename Target>
-  void operator()(const Event &, Fsm &_fsm, Source &, Target &)
+  void operator()(const Event & /*_event*/, Fsm &_fsm, Source & /*_source*/,
+                  Target & /*_target*/)
   {
-    const auto &data = _fsm.Data();
-    std::lock_guard<std::recursive_mutex> lock(data->system->mutex);
-    if (data->targets.front() == data->system->state) data->targets.pop_front();
+    std::lock_guard<std::recursive_mutex> lock(_fsm.dataPtr->system->mutex);
+    if (_fsm.dataPtr->targets.front() == _fsm.dataPtr->system->state)
+      _fsm.dataPtr->targets.pop_front();
   }
 };
 
@@ -73,14 +80,17 @@ struct NewTarget
 struct CabinAtTarget
 {
   /// \brief Function call operator
+  /// \param[in] _event Event that triggered the action
   /// \param[in] _fsm State machine with which the action is associated
+  /// \param[in] _source Source state
+  /// \param[in] _target Target state
   public: template <typename Event, typename Fsm, typename Source,
                     typename Target>
-  void operator()(const Event &, Fsm &_fsm, Source &, Target &)
+  void operator()(const Event & /*_event*/, Fsm &_fsm, Source & /*_source*/,
+                  Target & /*_target*/)
   {
-    const auto &data = _fsm.Data();
-    std::lock_guard<std::recursive_mutex> lock(data->system->mutex);
-    data->targets.pop_front();
+    std::lock_guard<std::recursive_mutex> lock(_fsm.dataPtr->system->mutex);
+    _fsm.dataPtr->targets.pop_front();
   }
 };
 

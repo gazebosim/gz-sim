@@ -57,9 +57,8 @@ struct CabinAtTarget
   public: template <typename Fsm, typename State>
   bool operator()(const Fsm &_fsm, const State &)
   {
-    const auto &data = _fsm.Data();
-    std::lock_guard<std::recursive_mutex> lock(data->system->mutex);
-    return data->targets.front() == data->system->state;
+    std::lock_guard<std::recursive_mutex> lock(_fsm.dataPtr->system->mutex);
+    return _fsm.dataPtr->targets.front() == _fsm.dataPtr->system->state;
   }
 };
 
@@ -71,9 +70,8 @@ struct NoQueuedTarget
   public: template <typename Fsm, typename State>
   bool operator()(const Fsm &_fsm, const State &)
   {
-    const auto &data = _fsm.Data();
-    std::lock_guard<std::recursive_mutex> lock(data->system->mutex);
-    return data->targets.empty();
+    std::lock_guard<std::recursive_mutex> lock(_fsm.dataPtr->system->mutex);
+    return _fsm.dataPtr->targets.empty();
   }
 };
 
