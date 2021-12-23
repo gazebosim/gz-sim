@@ -14,8 +14,10 @@
 
 import math
 import unittest
-from ignition.math import Matrix3d
-from ignition.math import Matrix4d
+# TODO(ahcorde): Enable the corresponding tests when these classes
+# are ported
+# from ignition.math import Matrix3d
+# from ignition.math import Matrix4d
 from ignition.math import Quaterniond
 from ignition.math import Quaternionf
 from ignition.math import Quaternioni
@@ -342,22 +344,24 @@ class TestQuaternion(unittest.TestCase):
         self.assertTrue(-q == Quaterniond(-0.891007, -0.121334,
                                           -0.242668, -0.364002))
 
-        self.assertTrue(Matrix3d(q) == Matrix3d(
-                    0.617229, -0.589769, 0.52077,
-                    0.707544, 0.705561, -0.0395554,
-                    -0.344106, 0.392882, 0.85278))
-
-        matFromQ = Matrix3d(q)
-        self.assertTrue(matFromQ == Matrix3d(
-                    0.617229, -0.589769, 0.52077,
-                    0.707544, 0.705561, -0.0395554,
-                    -0.344106, 0.392882, 0.85278))
-
-        self.assertTrue(Matrix4d(q) == Matrix4d(
-                    0.617229, -0.589769, 0.52077, 0,
-                    0.707544, 0.705561, -0.0395554, 0,
-                    -0.344106, 0.392882, 0.85278, 0,
-                    0, 0, 0, 1))
+        # TODO(ahcorde): Enable the corresponding tests when these classes
+        # are ported
+        # self.assertTrue(Matrix3d(q) == Matrix3d(
+        #             0.617229, -0.589769, 0.52077,
+        #             0.707544, 0.705561, -0.0395554,
+        #             -0.344106, 0.392882, 0.85278))
+        #
+        # matFromQ = Matrix3d(q)
+        # self.assertTrue(matFromQ == Matrix3d(
+        #             0.617229, -0.589769, 0.52077,
+        #             0.707544, 0.705561, -0.0395554,
+        #             -0.344106, 0.392882, 0.85278))
+        #
+        # self.assertTrue(Matrix4d(q) == Matrix4d(
+        #             0.617229, -0.589769, 0.52077, 0,
+        #             0.707544, 0.705561, -0.0395554, 0,
+        #             -0.344106, 0.392882, 0.85278, 0,
+        #             0, 0, 0, 1))
 
     def test_stream_out(self):
         q = Quaterniond(0.1, 1.2, 2.3)

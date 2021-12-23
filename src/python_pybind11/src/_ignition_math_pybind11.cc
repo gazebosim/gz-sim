@@ -18,6 +18,7 @@
 #include "Color.hh"
 #include "Helpers.hh"
 #include "Line2.hh"
+#include "Quaternion.hh"
 #include "Rand.hh"
 #include "RollingMean.hh"
 #include "StopWatch.hh"
@@ -58,4 +59,8 @@ PYBIND11_MODULE(math, m)
   ignition::math::python::defineMathLine2<int>(m, "Line2i");
   ignition::math::python::defineMathLine2<double>(m, "Line2d");
   ignition::math::python::defineMathLine2<float>(m, "Line2f");
+
+  ignition::math::python::defineMathQuaternion<int>(m, "Quaternioni");
+  ignition::math::python::defineMathQuaternion<double>(m, "Quaterniond");
+  ignition::math::python::defineMathQuaternion<float>(m, "Quaternionf");
 }
