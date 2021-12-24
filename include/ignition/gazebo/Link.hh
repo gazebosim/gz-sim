@@ -262,6 +262,16 @@ namespace ignition
       public: void AddWorldForce(EntityComponentManager &_ecm,
                                  const math::Vector3d &_force) const;
 
+      /// \brief Add a force expressed in world coordinates and applied at the
+      /// center of mass of the link.
+      /// \param[in] _ecm Mutable Entity-component manager.
+      /// \param[in] _force Force to be applied expressed in world coordinates
+      /// \param[in] _position The point of application of the force expressed
+      /// in the link-fixed frame.
+      public: void AddWorldForce(EntityComponentManager &_ecm,
+                                 const math::Vector3d &_force,
+                                 const math::Vector3d &_position) const;
+
       /// \brief Add a wrench expressed in world coordinates and applied to
       /// the link at the link's origin. This wrench is applied for one
       /// simulation step.
@@ -270,6 +280,19 @@ namespace ignition
       /// \param[in] _torque Torque to be applied expressed in world coordinates
       public: void AddWorldWrench(EntityComponentManager &_ecm,
                                  const math::Vector3d &_force,
+                                 const math::Vector3d &_torque) const;
+
+      /// \brief Add a wrench expressed in world coordinates and applied to
+      /// the link at the link's origin. This wrench is applied for one
+      /// simulation step.
+      /// \param[in] _ecm Mutable Entity-component manager.
+      /// \param[in] _force Force to be applied expressed in world coordinates
+      /// \param[in] _position The point of application of the force expressed
+      /// in the link-fixed frame.
+      /// \param[in] _torque Torque to be applied expressed in world coordinates
+      public: void AddWorldWrench(EntityComponentManager &_ecm,
+                                 const math::Vector3d &_force,
+                                 const math::Vector3d &_position,
                                  const math::Vector3d &_torque) const;
 
       /// \brief Pointer to private data.

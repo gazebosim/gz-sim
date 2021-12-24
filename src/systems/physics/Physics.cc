@@ -1940,8 +1940,11 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         }
 
         math::Vector3 force = msgs::Convert(_wrenchComp->Data().force());
+        math::Vector3 position =
+          msgs::Convert(_wrenchComp->Data().force_offset());
         math::Vector3 torque = msgs::Convert(_wrenchComp->Data().torque());
-        linkForceFeature->AddExternalForce(math::eigen3::convert(force));
+        linkForceFeature->AddExternalForce(
+          math::eigen3::convert(force), math::eigen3::convert(position));
         linkForceFeature->AddExternalTorque(math::eigen3::convert(torque));
 
         return true;
