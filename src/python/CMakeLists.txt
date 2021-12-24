@@ -100,7 +100,6 @@ if (PYTHONLIBS_FOUND)
       Material_TEST
       Matrix3_TEST
       Matrix4_TEST
-      MovingWindowFilter_TEST
       OrientedBox_TEST
       PID_TEST
       Plane_TEST
