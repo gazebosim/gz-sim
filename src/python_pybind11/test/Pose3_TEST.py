@@ -114,7 +114,6 @@ class TestPose3(unittest.TestCase):
 
         pose.pos().set(5, 6, 7)
         pose.rot().euler(Vector3d(.4, .6, 0))
-
         self.assertTrue(pose.coord_position_add(Vector3d(1, 2, 3)) ==
                         Vector3d(7.82531, 6.67387, 9.35871))
 

@@ -101,7 +101,6 @@ if (PYTHONLIBS_FOUND)
       OrientedBox_TEST
       PID_TEST
       Plane_TEST
-      Pose3_TEST
       python_TEST
       RotationSpline_TEST
       SignalStats_TEST

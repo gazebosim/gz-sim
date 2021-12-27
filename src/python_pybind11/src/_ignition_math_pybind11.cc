@@ -22,6 +22,7 @@
 #include "Line3.hh"
 #include "Matrix3.hh"
 #include "MovingWindowFilter.hh"
+#include "Pose3.hh"
 #include "Quaternion.hh"
 #include "Rand.hh"
 #include "RollingMean.hh"
@@ -93,6 +94,10 @@ PYBIND11_MODULE(math, m)
   ignition::math::python::defineMathQuaternion<int>(m, "Quaternioni");
   ignition::math::python::defineMathQuaternion<double>(m, "Quaterniond");
   ignition::math::python::defineMathQuaternion<float>(m, "Quaternionf");
+
+  ignition::math::python::defineMathPose3<int>(m, "Pose3i");
+  ignition::math::python::defineMathPose3<double>(m, "Pose3d");
+  ignition::math::python::defineMathPose3<float>(m, "Pose3f");
 
   ignition::math::python::defineMathFilter<int>(m, "Filteri");
   ignition::math::python::defineMathFilter<float>(m, "Filterf");
