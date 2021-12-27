@@ -4,14 +4,14 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   find_package(ignition-transport12 QUIET REQUIRED OPTIONAL_COMPONENTS log)
   set(IGN_TRANSPORT_VER ${ignition-transport12_VERSION_MAJOR})
 
-  find_package(sdformat12 REQUIRED)
-  set(SDF_VER ${sdformat12_VERSION_MAJOR})
+  find_package(sdformat13 REQUIRED)
+  set(SDF_VER ${sdformat13_VERSION_MAJOR})
 
   find_package(ignition-msgs9 REQUIRED)
   set(IGN_MSGS_VER ${ignition-msgs9_VERSION_MAJOR})
 
-  find_package(ignition-common4 REQUIRED)
-  set(IGN_COMMON_VER ${ignition-common4_VERSION_MAJOR})
+  find_package(ignition-common5 REQUIRED)
+  set(IGN_COMMON_VER ${ignition-common5_VERSION_MAJOR})
 
   add_executable(keyboard keyboard.cc)
   target_link_libraries(keyboard
