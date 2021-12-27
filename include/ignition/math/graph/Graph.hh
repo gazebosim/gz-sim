@@ -18,6 +18,7 @@
 #define IGNITION_MATH_GRAPH_GRAPH_HH_
 
 #include <cassert>
+#include <iostream>
 #include <map>
 #include <ostream>
 #include <set>
