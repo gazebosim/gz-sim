@@ -306,7 +306,7 @@ class TestMatrix3(unittest.TestCase):
     def test_to_quaternion(self):
         q = Quaterniond(math.pi/2.0, math.pi/2.0, 0)
         matFromQuat = Matrix3d(q)
-        quatFromMat = matFromQuat.to_quaternion()
+        quatFromMat = Quaterniond(matFromQuat)
         self.assertTrue(q == quatFromMat)
 
         # test the cases where matrix trace is negative
@@ -315,21 +315,21 @@ class TestMatrix3(unittest.TestCase):
         mat = Matrix3d(-1,  0, 0,
                        0, -1, 0,
                        0,  0, 1)
-        q2 = mat.to_quaternion()
+        q2 = Quaterniond(mat)
         self.assertTrue(q == q2)
 
         q = Quaterniond(0, 0, 1, 0)
         mat = Matrix3d(-1,  0,  0,
                        0,  1,  0,
                        0,  0, -1)
-        q2 = mat.to_quaternion()
+        q2 = Quaterniond(mat)
         self.assertTrue(q == q2)
 
         q = Quaterniond(0, 1, 0, 0)
         mat = Matrix3d(1,  0,  0,
                        0, -1,  0,
                        0,  0, -1)
-        q2 = mat.to_quaternion()
+        q2 = Quaterniond(mat)
         self.assertTrue(q == q2)
 
 
