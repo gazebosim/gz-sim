@@ -259,7 +259,7 @@ namespace ignition
         return n.Normalize();
       }
 
-      /// \brief Get distance to a line
+      /// \brief Get distance to an infinite line defined by 2 points.
       /// \param[in] _pt1 first point on the line
       /// \param[in] _pt2 second point on the line
       /// \return the minimum distance from this point to the line

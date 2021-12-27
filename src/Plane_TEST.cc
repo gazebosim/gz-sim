@@ -150,3 +150,64 @@ TEST(PlaneTest, SideAxisAlignedBox)
     EXPECT_EQ(plane.Side(box), Planed::BOTH_SIDE);
   }
 }
+
+/////////////////////////////////////////////////
+TEST(PlaneTest, Intersection)
+{
+  Planed plane(Vector3d(0.5, 0, 1), 1);
+  {
+    auto intersect = plane.Intersection(Vector3d(0, 0, 0), Vector3d(1, 0, 1));
+    EXPECT_TRUE(intersect.has_value());
+    EXPECT_NEAR(intersect->Dot(plane.Normal()), plane.Offset(), 1e-6);
+  }
+
+  plane.Set(Vector3d(1, 0, 0), 2);
+  {
+    auto intersect = plane.Intersection(Vector3d(0, 0, 0), Vector3d(1, 0, 0));
+    EXPECT_TRUE(intersect.has_value());
+    EXPECT_EQ(intersect.value(), Vector3d(2, 0, 0));
+  }
+  {
+    auto intersect = plane.Intersection(Vector3d(1, 1, 0), Vector3d(-1, -1, 0));
+    EXPECT_TRUE(intersect.has_value());
+    EXPECT_EQ(intersect.value(), Vector3d(2, 2, 0));
+  }
+  // Lines on plane
+  {
+    auto intersect = plane.Intersection(Vector3d(2, 0, 0), Vector3d(0, 1, 0));
+    EXPECT_FALSE(intersect.has_value());
+  }
+  {
+    auto intersect = plane.Intersection(Vector3d(2, 0, 0), Vector3d(0, 0, 1));
+    EXPECT_FALSE(intersect.has_value());
+  }
+  {
+    auto intersect = plane.Intersection(Vector3d(2, 0, 0), Vector3d(0, 1, 1));
+    EXPECT_FALSE(intersect.has_value());
+  }
+  // Lines parallel to plane
+  {
+    auto intersect = plane.Intersection(Vector3d(0, 0, 0), Vector3d(0, 1, 0));
+    EXPECT_FALSE(intersect.has_value());
+  }
+  {
+    auto intersect = plane.Intersection(Vector3d(0, 0, 0), Vector3d(0, 0, 1));
+    EXPECT_FALSE(intersect.has_value());
+  }
+  {
+    auto intersect = plane.Intersection(Vector3d(0, 0, 0), Vector3d(0, 1, 1));
+    EXPECT_FALSE(intersect.has_value());
+  }
+
+  // Bounded plane
+  {
+    Planed planeBounded(Vector3d(0, 0, 1), Vector2d(0.5, 0.5), 0);
+    auto intersect1 =
+      planeBounded.Intersection(Vector3d(0, 0, 0), Vector3d(0, 0, 1));
+    EXPECT_TRUE(intersect1.has_value());
+    EXPECT_EQ(intersect1.value(), Vector3d(0, 0, 0));
+    auto intersect2 =
+      planeBounded.Intersection(Vector3d(20, 20, 0), Vector3d(0, 0, 1));
+    EXPECT_FALSE(intersect2.has_value());
+  }
+}

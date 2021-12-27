@@ -32,7 +32,7 @@ TEST(Matrix4dTest, Construct)
   {
     for (int j = 0; j < 4; ++j)
     {
-      EXPECT_DOUBLE_EQ(mat(i, i), 0.0);
+      EXPECT_DOUBLE_EQ(mat(i, j), 0.0);
     }
   }
 
@@ -41,17 +41,16 @@ TEST(Matrix4dTest, Construct)
   {
     for (int j = 0; j < 4; ++j)
     {
-      EXPECT_DOUBLE_EQ(mat2(i, i), 0.0);
+      EXPECT_DOUBLE_EQ(mat2(i, j), 0.0);
     }
   }
   EXPECT_TRUE(mat2 == mat);
 
-
   // Set individual values.
   math::Matrix4d mat3(0.0, 1.0, 2.0, 3.0,
-                     4.0, 5.0, 6.0, 7.0,
-                     8.0, 9.0, 10.0, 11.0,
-                     12.0, 13.0, 14.0, 15.0);
+                      4.0, 5.0, 6.0, 7.0,
+                      8.0, 9.0, 10.0, 11.0,
+                      12.0, 13.0, 14.0, 15.0);
 
   math::Matrix4d mat4;
   mat4 = mat3;
@@ -126,7 +125,7 @@ TEST(Matrix4dTest, ConstructFromPose3d)
   // Rotate pitch by pi/2 so yaw coincides with roll causing a gimbal lock
   {
     math::Vector3d trans(3, 2, 1);
-    math::Quaterniond qt(0, IGN_PI/2, 0);
+    math::Quaterniond qt(0, IGN_PI / 2, 0);
     math::Pose3d pose(trans, qt);
     math::Matrix4d mat(pose);
 
@@ -138,9 +137,9 @@ TEST(Matrix4dTest, ConstructFromPose3d)
 
   {
     // setup a ZXZ rotation to ensure non-commutative rotations
-    math::Pose3d pose1(1, -2, 3, 0, 0, IGN_PI/4);
-    math::Pose3d pose2(0, 1, -1, -IGN_PI/4, 0, 0);
-    math::Pose3d pose3(-1, 0, 0, 0, 0, -IGN_PI/4);
+    math::Pose3d pose1(1, -2, 3, 0, 0, IGN_PI / 4);
+    math::Pose3d pose2(0, 1, -1, -IGN_PI / 4, 0, 0);
+    math::Pose3d pose3(-1, 0, 0, 0, 0, -IGN_PI / 4);
 
     math::Matrix4d m1(pose1);
     math::Matrix4d m2(pose2);
@@ -238,7 +237,7 @@ TEST(Matrix4dTest, MultiplyV)
   {
     for (int j = 0; j < 4; ++j)
     {
-      mat(i, j) = i-j;
+      mat(i, j) = i - j;
     }
   }
 
@@ -254,8 +253,8 @@ TEST(Matrix4dTest, Multiply4)
   {
     for (int j = 0; j < 4; ++j)
     {
-      mat(i, j) = i-j;
-      mat1(j, i) = i+j;
+      mat(i, j) = i - j;
+      mat1(j, i) = i + j;
     }
   }
 
@@ -277,28 +276,28 @@ TEST(Matrix4dTest, Multiply4)
 TEST(Matrix4dTest, Inverse)
 {
   math::Matrix4d mat(2, 3, 1, 5,
-                    1, 0, 3, 1,
-                    0, 2, -3, 2,
-                    0, 2, 3, 1);
+                     1, 0, 3, 1,
+                     0, 2, -3, 2,
+                     0, 2, 3, 1);
 
   math::Matrix4d mat1 = mat.Inverse();
   EXPECT_EQ(mat1, math::Matrix4d(18, -35, -28, 1,
-                               9, -18, -14, 1,
-                               -2, 4, 3, 0,
-                               -12, 24, 19, -1));
+                                 9, -18, -14, 1,
+                                 -2, 4, 3, 0,
+                                 -12, 24, 19, -1));
 }
 
 /////////////////////////////////////////////////
 TEST(Matrix4dTest, GetAsPose3d)
 {
   math::Matrix4d mat(2, 3, 1, 5,
-                    1, 0, 3, 1,
-                    0, 2, -3, 2,
-                    0, 2, 3, 1);
+                     1, 0, 3, 1,
+                     0, 2, -3, 2,
+                     0, 2, 3, 1);
   math::Pose3d pose = mat.Pose();
 
   EXPECT_EQ(pose,
-      math::Pose3d(5, 1, 2, -0.204124, 1.22474, 0.816497, 0.204124));
+            math::Pose3d(5, 1, 2, -0.204124, 1.22474, 0.816497, 0.204124));
 }
 
 /////////////////////////////////////////////////
@@ -408,7 +407,6 @@ TEST(Matrix4dTest, RotationDiagLessThanZero)
     EXPECT_EQ(euler, math::Vector3d(-1.5708, 4.26136, -1.3734));
   }
 
-
   {
     mat(0, 0) = -0.1;
     mat(1, 1) = -0.2;
@@ -427,7 +425,6 @@ TEST(Matrix4dTest, RotationDiagLessThanZero)
     EXPECT_EQ(euler, math::Vector3d(-1.5708, 4.26136, -1.3734));
   }
 }
-
 
 /////////////////////////////////////////////////
 TEST(Matrix4dTest, Rotation)
@@ -632,14 +629,14 @@ TEST(Matrix4dTest, Transpose)
   EXPECT_EQ(math::Matrix4d::Identity, math::Matrix4d::Identity.Transposed());
 
   // Matrix and expected transpose
-  math::Matrix4d m(-2, 4,  0, -3.5,
-                  0.1, 9, 55,  1.2,
+  math::Matrix4d m(-2, 4, 0, -3.5,
+                   0.1, 9, 55, 1.2,
                    -7, 1, 26, 11.5,
                    .2, 3, -5, -0.1);
-  math::Matrix4d mT(-2, 0.1,   -7, .2,
-                     4,   9,    1, 3,
-                     0,  55,   26, -5,
-                  -3.5, 1.2, 11.5, -0.1);
+  math::Matrix4d mT(-2, 0.1, -7, .2,
+                    4, 9, 1, 3,
+                    0, 55, 26, -5,
+                    -3.5, 1.2, 11.5, -0.1);
   EXPECT_NE(m, mT);
   EXPECT_EQ(m.Transposed(), mT);
   EXPECT_DOUBLE_EQ(m.Determinant(), m.Transposed().Determinant());
@@ -652,19 +649,23 @@ TEST(Matrix4dTest, Transpose)
 TEST(Matrix4dTest, LookAt)
 {
   EXPECT_EQ(math::Matrix4d::LookAt(-math::Vector3d::UnitX,
-                                    math::Vector3d::Zero).Pose(),
+                                   math::Vector3d::Zero)
+                .Pose(),
             math::Pose3d(-1, 0, 0, 0, 0, 0));
 
   EXPECT_EQ(math::Matrix4d::LookAt(math::Vector3d(3, 2, 0),
-                                   math::Vector3d(0, 2, 0)).Pose(),
+                                   math::Vector3d(0, 2, 0))
+                .Pose(),
             math::Pose3d(3, 2, 0, 0, 0, IGN_PI));
 
   EXPECT_EQ(math::Matrix4d::LookAt(math::Vector3d(1, 6, 1),
-                                   math::Vector3d::One).Pose(),
+                                   math::Vector3d::One)
+                .Pose(),
             math::Pose3d(1, 6, 1, 0, 0, -IGN_PI_2));
 
   EXPECT_EQ(math::Matrix4d::LookAt(math::Vector3d(-1, -1, 0),
-                                   math::Vector3d(1, 1, 0)).Pose(),
+                                   math::Vector3d(1, 1, 0))
+                .Pose(),
             math::Pose3d(-1, -1, 0, 0, 0, IGN_PI_4));
 
   // Default up is Z
@@ -711,12 +712,13 @@ TEST(Matrix4dTest, LookAt)
   // Different ups
   EXPECT_EQ(math::Matrix4d::LookAt(math::Vector3d::One,
                                    math::Vector3d(0, 1, 1),
-                                   math::Vector3d::UnitY).Pose(),
+                                   math::Vector3d::UnitY)
+                .Pose(),
             math::Pose3d(1, 1, 1, IGN_PI_2, 0, IGN_PI));
 
   EXPECT_EQ(math::Matrix4d::LookAt(math::Vector3d::One,
                                    math::Vector3d(0, 1, 1),
-                                   math::Vector3d(0, 1, 1)).Pose(),
+                                   math::Vector3d(0, 1, 1))
+                .Pose(),
             math::Pose3d(1, 1, 1, IGN_PI_4, 0, IGN_PI));
 }
-

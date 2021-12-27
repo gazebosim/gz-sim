@@ -20,7 +20,12 @@
 #include <ignition/math/config.hh>
 #include <ignition/math/MassMatrix3.hh>
 #include <ignition/math/Material.hh>
+#include <ignition/math/Plane.hh>
 #include <ignition/math/Vector3.hh>
+
+#include "ignition/math/detail/WellOrderedVector.hh"
+
+#include <set>
 
 namespace ignition
 {
@@ -28,7 +33,11 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
-    //
+    /// \brief This is the type used for deduplicating and returning the set of
+    /// intersections.
+    template<typename T>
+    using IntersectionPoints = std::set<Vector3<T>, WellOrderedVectors<T>>;
+
     /// \class Box Box.hh ignition/math/Box.hh
     /// \brief A representation of a box. All units are in meters.
     ///
@@ -132,6 +141,28 @@ namespace ignition
       /// \return Volume of the box in m^3.
       public: Precision Volume() const;
 
+      /// \brief Get the volume of the box below a plane.
+      /// \param[in] _plane The plane which cuts the box, expressed in the box's
+      /// frame.
+      /// \return Volume below the plane in m^3.
+      public: Precision VolumeBelow(const Plane<Precision> &_plane) const;
+
+      /// \brief Center of volume below the plane. This is useful when
+      /// calculating where buoyancy should be applied, for example.
+      /// \param[in] _plane The plane which cuts the box, expressed in the box's
+      /// frame.
+      /// \return Center of volume, in box's frame.
+      public: std::optional<Vector3<Precision>>
+        CenterOfVolumeBelow(const Plane<Precision> &_plane) const;
+
+      /// \brief All the vertices which are on or below the plane.
+      /// \param[in] _plane The plane which cuts the box, expressed in the box's
+      /// frame.
+      /// \return Box vertices which are below the plane, expressed in the box's
+      /// frame.
+      public: IntersectionPoints<Precision>
+        VerticesBelow(const Plane<Precision> &_plane) const;
+
       /// \brief Compute the box's density given a mass value. The
       /// box is assumed to be solid with uniform density. This
       /// function requires the box's size to be set to
@@ -164,6 +195,14 @@ namespace ignition
       /// \return False if computation of the mass matrix failed, which
       /// could be due to an invalid size (<=0) or density (<=0).
       public: bool MassMatrix(MassMatrix3<Precision> &_massMat) const;
+
+      /// \brief Get intersection between a plane and the box's edges.
+      /// Edges contained on the plane are ignored.
+      /// \param[in] _plane The plane against which we are testing intersection.
+      /// \returns A list of points along the edges of the box where the
+      /// intersection occurs.
+      public: IntersectionPoints<Precision> Intersections(
+        const Plane<Precision> &_plane) const;
 
       /// \brief Size of the box.
       private: Vector3<Precision> size = Vector3<Precision>::Zero;

@@ -97,6 +97,60 @@ T Sphere<T>::Volume() const
 
 //////////////////////////////////////////////////
 template<typename T>
+T Sphere<T>::VolumeBelow(const Plane<T> &_plane) const
+{
+  auto r = this->radius;
+  // get nearest point to center on plane
+  auto dist = _plane.Distance(Vector3d(0, 0, 0));
+
+  if (dist < -r)
+  {
+    // sphere is below plane.
+    return Volume();
+  }
+  else if (dist > r)
+  {
+    // sphere is completely above plane
+    return 0.0;
+  }
+
+  auto h = r - dist;
+  return IGN_PI * h * h * (3 * r - h) / 3;
+}
+
+//////////////////////////////////////////////////
+template<typename T>
+std::optional<Vector3<T>>
+ Sphere<T>::CenterOfVolumeBelow(const Plane<T> &_plane) const
+{
+  auto r = this->radius;
+  // get nearest point to center on plane
+  auto dist = _plane.Distance(Vector3d(0, 0, 0));
+
+  if (dist < -r)
+  {
+    // sphere is completely below plane
+    return Vector3<T>{0, 0, 0};
+  }
+  else if (dist > r)
+  {
+    // sphere is completely above plane
+    return std::nullopt;
+  }
+
+  // Get the height of the spherical cap
+  auto h = r - dist;
+
+  // Formula for geometric centorid:
+  // https://mathworld.wolfram.com/SphericalCap.html
+  auto numerator = 2 * r - h;
+
+  auto z = 3 * numerator * numerator / (4 * (3 * r - h));
+  return - z * _plane.Normal().Normalized();
+}
+
+//////////////////////////////////////////////////
+template<typename T>
 bool Sphere<T>::SetDensityFromMass(const T _mass)
 {
   T newDensity = this->DensityFromMass(_mass);

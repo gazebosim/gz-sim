@@ -89,14 +89,21 @@ if (PYTHONLIBS_FOUND)
     set(python_tests
       Angle_TEST
       Color_TEST
+      Filter_TEST
       GaussMarkovProcess_TEST
       Kmeans_TEST
       Line2_TEST
       Line3_TEST
+      Matrix3_TEST
+      Matrix4_TEST
+      MovingWindowFilter_TEST
       PID_TEST
+      Pose3_TEST
       python_TEST
+      Quaternion_TEST
       Rand_TEST
       RollingMean_TEST
+      RotationSpline_TEST
       SemanticVersion_TEST
       SignalStats_TEST
       Spline_TEST
@@ -110,7 +117,7 @@ if (PYTHONLIBS_FOUND)
 
     foreach (test ${python_tests})
       add_test(NAME ${test}.py COMMAND
-        python3 ${CMAKE_SOURCE_DIR}/src/python/${test}.py)
+        "${PYTHON_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/src/python/${test}.py")
 
       set(_env_vars)
       list(APPEND _env_vars "PYTHONPATH=${FAKE_INSTALL_PREFIX}/lib/python/")

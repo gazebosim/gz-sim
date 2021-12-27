@@ -64,6 +64,8 @@ ign-math
 ├── include/ignition/math    Header files.
 ├── src                      Source files and unit tests.
 │   └── graph                Source files for the graph classes.
+│   └── python               SWIG Python interfaces.
+│   └── ruby                 SWIG Ruby interfaces.
 ├── eigen3                   Files for Eigen component.
 ├── test
 │    ├── integration         Integration tests.
