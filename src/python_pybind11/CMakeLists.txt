@@ -75,6 +75,7 @@ if (${pybind11_FOUND})
     set(python_tests
       Angle_TEST
       Color_TEST
+      Filter_TEST
       Helpers_TEST
       Line2_TEST
       Line3_TEST

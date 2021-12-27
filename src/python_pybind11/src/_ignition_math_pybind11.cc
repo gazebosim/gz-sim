@@ -16,6 +16,7 @@
 
 #include "Angle.hh"
 #include "Color.hh"
+#include "Filter.hh"
 #include "Helpers.hh"
 #include "Line2.hh"
 #include "Line3.hh"
@@ -84,4 +85,24 @@ PYBIND11_MODULE(math, m)
   ignition::math::python::defineMathQuaternion<int>(m, "Quaternioni");
   ignition::math::python::defineMathQuaternion<double>(m, "Quaterniond");
   ignition::math::python::defineMathQuaternion<float>(m, "Quaternionf");
+
+  ignition::math::python::defineMathFilter<int>(m, "Filteri");
+  ignition::math::python::defineMathFilter<float>(m, "Filterf");
+  ignition::math::python::defineMathFilter<double>(m, "Filterd");
+
+  ignition::math::python::defineMathBiQuad<int>(m, "BiQuadi");
+  ignition::math::python::defineMathBiQuad<float>(m, "BiQuadf");
+  ignition::math::python::defineMathBiQuad<double>(m, "BiQuadd");
+
+  ignition::math::python::defineMathBiQuadVector3(
+    m, "BiQuadVector3");
+
+  ignition::math::python::defineMathOnePole<int>(m, "OnePolei");
+  ignition::math::python::defineMathOnePole<float>(m, "OnePolef");
+  ignition::math::python::defineMathOnePole<double>(m, "OnePoled");
+
+  ignition::math::python::defineMathOnePoleQuaternion(
+    m, "OnePoleQuaternion");
+  ignition::math::python::defineMathOnePoleVector3(
+    m, "OnePoleVector3");
 }
