@@ -88,6 +88,7 @@ if (${pybind11_FOUND})
       SemanticVersion_TEST
       Spline_TEST
       StopWatch_TEST
+      Triangle_TEST
       Vector2_TEST
       Vector3_TEST
       Vector4_TEST

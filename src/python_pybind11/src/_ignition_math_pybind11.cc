@@ -28,6 +28,7 @@
 #include "SemanticVersion.hh"
 #include "Spline.hh"
 #include "StopWatch.hh"
+#include "Triangle.hh"
 #include "Vector2.hh"
 #include "Vector3.hh"
 #include "Vector4.hh"
@@ -84,6 +85,10 @@ PYBIND11_MODULE(math, m)
   ignition::math::python::defineMathMatrix3<int>(m, "Matrix3i");
   ignition::math::python::defineMathMatrix3<double>(m, "Matrix3d");
   ignition::math::python::defineMathMatrix3<float>(m, "Matrix3f");
+
+  ignition::math::python::defineMathTriangle<int>(m, "Trianglei");
+  ignition::math::python::defineMathTriangle<double>(m, "Triangled");
+  ignition::math::python::defineMathTriangle<float>(m, "Trianglef");
 
   ignition::math::python::defineMathQuaternion<int>(m, "Quaternioni");
   ignition::math::python::defineMathQuaternion<double>(m, "Quaterniond");
