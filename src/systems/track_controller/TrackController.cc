@@ -525,7 +525,7 @@ void TrackControllerPrivate::ComputeSurfaceProperties(
     this->debugMarker.set_id(++this->markerId);
 
     math::Quaterniond rot;
-    rot.From2Axes(math::Vector3d::UnitX, frictionDirection);
+    rot.SetFrom2Axes(math::Vector3d::UnitX, frictionDirection);
     math::Vector3d p = _point;
     p += rot.RotateVector(
       math::Vector3d::UnitX * this->debugMarker.scale().x() / 2);
