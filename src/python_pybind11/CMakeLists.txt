@@ -90,6 +90,7 @@ if (${pybind11_FOUND})
       Line3_TEST
       Material_TEST
       Matrix3_TEST
+      MassMatrix3_TEST
       MovingWindowFilter_TEST
       Pose3_TEST
       Quaternion_TEST

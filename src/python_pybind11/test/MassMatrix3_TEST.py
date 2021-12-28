@@ -16,9 +16,9 @@ import sys
 import unittest
 import math
 
-import ignition.math
-
+from ignition.math import sort3
 from ignition.math import MassMatrix3d
+from ignition.math import Material
 from ignition.math import Vector3d
 from ignition.math import Matrix3d
 from ignition.math import Quaterniond
@@ -356,7 +356,7 @@ class TestMassMatrix(unittest.TestCase):
         m0 = _moments.x()
         m1 = _moments.y()
         m2 = _moments.z()
-        m0, m1, m2 = ignition.math.sort3(m0, m1, m2)
+        m0, m1, m2 = sort3(m0, m1, m2)
         sortedMoments.set(m0, m1, m2)
         tolerance = -1e-6
         self.assertEqual(m.principal_moments(tolerance), sortedMoments)
@@ -664,7 +664,7 @@ class TestMassMatrix(unittest.TestCase):
         self.assertEqual(m, m2)
 
         density = mass / (sizeTrue.x() * sizeTrue.y() * sizeTrue.z())
-        mat = ignition.math.Material(density)
+        mat = Material(density)
         self.assertEqual(density, mat.density())
         m3 = MassMatrix3d()
         self.assertTrue(m3.set_from_box(mat, sizeTrue, rotTrue))
@@ -779,10 +779,10 @@ class TestMassMatrix(unittest.TestCase):
         self.assertEqual(m.off_diagonal_moments(), Vector3d.ZERO)
 
         density = mass / (IGN_PI * radius * radius * length)
-        mat = ignition.math.Material(density)
+        mat = Material(density)
         self.assertEqual(density, mat.density())
         m1 = MassMatrix3d()
-        # self.assertFalse(m1.set_from_cylinder_z(ignition.math.Material(0), length, radius))
+        # self.assertFalse(m1.set_from_cylinder_z(Material(0), length, radius))
         self.assertTrue(m1.set_from_cylinder_z(mat, length, radius))
         self.assertEqual(m, m1)
 
@@ -814,11 +814,11 @@ class TestMassMatrix(unittest.TestCase):
         self.assertEqual(m.off_diagonal_moments(), Vector3d.ZERO)
 
         density = mass / ((4.0/3.0) * IGN_PI * math.pow(radius, 3))
-        mat = ignition.math.Material(density)
+        mat = Material(density)
         self.assertEqual(density, mat.density())
         m1 = MassMatrix3d()
         self.assertFalse(m1.set_from_sphere(mat, 0))
-        self.assertFalse(m1.set_from_sphere(ignition.math.Material(0), 0))
+        self.assertFalse(m1.set_from_sphere(Material(0), 0))
         self.assertTrue(m1.set_from_sphere(mat, radius))
         self.assertEqual(m, m1)
 
