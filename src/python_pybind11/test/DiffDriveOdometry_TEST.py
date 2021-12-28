@@ -16,7 +16,7 @@ import datetime
 import math
 import unittest
 
-from ignition.math import Angle, DiffDriveOdometry, IGN_PI
+from ignition.math import Angle, DiffDriveOdometry
 
 
 class TestDiffDriveOdometry(unittest.TestCase):
@@ -31,7 +31,7 @@ class TestDiffDriveOdometry(unittest.TestCase):
 
         wheelSeparation = 2.0
         wheelRadius = 0.5
-        wheelCircumference = 2 * IGN_PI * wheelRadius
+        wheelCircumference = 2 * math.pi * wheelRadius
 
         # This is the linear distance traveled per degree of wheel rotation.
         distPerDegree = wheelCircumference / 360.0
@@ -39,14 +39,14 @@ class TestDiffDriveOdometry(unittest.TestCase):
         # Setup the wheel parameters, and initialize
         odom.set_wheel_params(wheelSeparation, wheelRadius, wheelRadius)
         startTime = datetime.datetime.now()
-        odom.init(int(startTime.timestamp() * 1000))
+        odom.init(datetime.timedelta())
 
         # Sleep for a little while, then update the odometry with the new wheel
         # position.
         time1 = startTime + datetime.timedelta(milliseconds=100)
-        odom.update(Angle(1.0 * IGN_PI / 180),
-                    Angle(1.0 * IGN_PI / 180),
-                    int(time1.timestamp() * 1000))
+        odom.update(Angle(1.0 * math.pi / 180),
+                    Angle(1.0 * math.pi / 180),
+                    time1 - startTime)
         self.assertEqual(0.0, odom.heading().radian())
         self.assertEqual(distPerDegree, odom.x())
         self.assertEqual(0.0, odom.y())
@@ -58,9 +58,9 @@ class TestDiffDriveOdometry(unittest.TestCase):
 
         # Sleep again, then update the odometry with the new wheel position.
         time2 = time1 + datetime.timedelta(milliseconds=100)
-        odom.update(Angle(2.0 * IGN_PI / 180),
-                    Angle(2.0 * IGN_PI / 180),
-                    int(time2.timestamp() * 1000))
+        odom.update(Angle(2.0 * math.pi / 180),
+                    Angle(2.0 * math.pi / 180),
+                    time2 - startTime)
         self.assertEqual(0.0, odom.heading().radian())
         self.assertAlmostEqual(distPerDegree * 2.0, odom.x(), delta=3e-6)
         self.assertEqual(0.0, odom.y())
@@ -72,7 +72,7 @@ class TestDiffDriveOdometry(unittest.TestCase):
 
         # Initialize again, and odom values should be reset.
         startTime = datetime.datetime.now()
-        odom.init(int(startTime.timestamp() * 1000))
+        odom.init(datetime.timedelta())
         self.assertEqual(0.0, odom.heading().radian())
         self.assertEqual(0.0, odom.x())
         self.assertEqual(0.0, odom.y())
@@ -81,9 +81,9 @@ class TestDiffDriveOdometry(unittest.TestCase):
 
         # Sleep again, this time move 2 degrees in 100ms.
         time1 = startTime + datetime.timedelta(milliseconds=100)
-        odom.update(Angle(2.0 * IGN_PI / 180),
-                    Angle(2.0 * IGN_PI / 180),
-                    int(time1.timestamp() * 1000))
+        odom.update(Angle(2.0 * math.pi / 180),
+                    Angle(2.0 * math.pi / 180),
+                    time1 - startTime)
         self.assertEqual(0.0, odom.heading().radian())
         self.assertAlmostEqual(distPerDegree * 2.0, odom.x(), delta=3e-6)
         self.assertEqual(0.0, odom.y())
@@ -95,9 +95,9 @@ class TestDiffDriveOdometry(unittest.TestCase):
 
         # Sleep again, this time rotate the right wheel by 1 degree.
         time2 = time1 + datetime.timedelta(milliseconds=100)
-        odom.update(Angle(2.0 * IGN_PI / 180),
-                    Angle(3.0 * IGN_PI / 180),
-                    int(time2.timestamp() * 1000))
+        odom.update(Angle(2.0 * math.pi / 180),
+                    Angle(3.0 * math.pi / 180),
+                    time2 - startTime)
         # The heading should be the arc tangent of the linear distance traveled
         # by the right wheel (the left wheel was stationary) divided by the
         # wheel separation.

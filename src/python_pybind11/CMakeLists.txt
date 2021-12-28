@@ -17,6 +17,7 @@ if (${pybind11_FOUND})
     src/Angle.cc
     src/AxisAlignedBox.cc
     src/Color.cc
+    src/DiffDriveOdometry.cc
     src/GaussMarkovProcess.cc
     src/Helpers.cc
     src/Kmeans.cc
@@ -82,6 +83,7 @@ if (${pybind11_FOUND})
       Angle_TEST
       AxisAlignedBox_TEST
       Color_TEST
+      DiffDriveOdometry_TEST
       Filter_TEST
       GaussMarkovProcess_TEST
       Helpers_TEST

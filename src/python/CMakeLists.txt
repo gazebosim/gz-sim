@@ -89,7 +89,6 @@ if (PYTHONLIBS_FOUND)
     set(python_tests
       Box_TEST
       Cylinder_TEST
-      DiffDriveOdometry_TEST
       Frustum_TEST
       Inertial_TEST
       Matrix4_TEST
