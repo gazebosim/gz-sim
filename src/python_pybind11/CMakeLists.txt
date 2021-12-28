@@ -16,6 +16,7 @@ if (${pybind11_FOUND})
     src/_ignition_math_pybind11.cc
     src/Angle.cc
     src/Color.cc
+    src/GaussMarkovProcess.cc
     src/Helpers.cc
     src/Kmeans.cc
     src/Material.cc
@@ -80,6 +81,7 @@ if (${pybind11_FOUND})
       Angle_TEST
       Color_TEST
       Filter_TEST
+      GaussMarkovProcess_TEST
       Helpers_TEST
       Kmeans_TEST
       Line2_TEST
