@@ -41,31 +41,31 @@ class TestPose3(unittest.TestCase):
         # A is the transform from O to P specified in frame O
         # B is the transform from P to Q specified in frame P
         # then, B + A is the transform from O to Q specified in frame O
-        self.assertAlmostEqual((B + A).pos().x(), 1.0 + 1.0/math.sqrt(2))
-        self.assertAlmostEqual((B + A).pos().y(), 1.0/math.sqrt(2))
-        self.assertAlmostEqual((B + A).pos().z(), 0.0)
-        self.assertAlmostEqual((B + A).rot().euler().x(), 0.0)
-        self.assertAlmostEqual((B + A).rot().euler().y(), 0.0)
-        self.assertAlmostEqual((B + A).rot().euler().z(), 3.0*math.pi/4.0)
+        self.assertAlmostEqual((B + A).x(), 1.0 + 1.0/math.sqrt(2))
+        self.assertAlmostEqual((B + A).y(), 1.0/math.sqrt(2))
+        self.assertAlmostEqual((B + A).z(), 0.0)
+        self.assertAlmostEqual((B + A).roll(), 0.0)
+        self.assertAlmostEqual((B + A).pitch(), 0.0)
+        self.assertAlmostEqual((B + A).yaw(), 3.0*math.pi/4.0)
 
         # If:
         # A is the transform from O to P in frame O
         # B is the transform from O to Q in frame O
         # then -A is transform from P to O specified in frame P
-        self.assertAlmostEqual((Pose3d() - A).pos().x(), -1.0/math.sqrt(2))
-        self.assertAlmostEqual((Pose3d() - A).pos().y(), 1.0/math.sqrt(2))
-        self.assertAlmostEqual((Pose3d() - A).pos().z(), 0.0)
-        self.assertAlmostEqual((Pose3d() - A).rot().euler().x(),  0.0)
-        self.assertAlmostEqual((Pose3d() - A).rot().euler().y(),  0.0)
-        self.assertAlmostEqual((Pose3d() - A).rot().euler().z(), -math.pi/4)
+        self.assertAlmostEqual((Pose3d() - A).x(), -1.0/math.sqrt(2))
+        self.assertAlmostEqual((Pose3d() - A).y(), 1.0/math.sqrt(2))
+        self.assertAlmostEqual((Pose3d() - A).z(), 0.0)
+        self.assertAlmostEqual((Pose3d() - A).roll(),  0.0)
+        self.assertAlmostEqual((Pose3d() - A).pitch(),  0.0)
+        self.assertAlmostEqual((Pose3d() - A).yaw(), -math.pi/4)
 
         # test negation operator
-        self.assertAlmostEqual((-A).pos().x(), -1.0/math.sqrt(2))
-        self.assertAlmostEqual((-A).pos().y(), 1.0/math.sqrt(2))
-        self.assertAlmostEqual((-A).pos().z(), 0.0)
-        self.assertAlmostEqual((-A).rot().euler().x(), 0.0)
-        self.assertAlmostEqual((-A).rot().euler().y(), 0.0)
-        self.assertAlmostEqual((-A).rot().euler().z(), -math.pi/4.0)
+        self.assertAlmostEqual((-A).x(), -1.0/math.sqrt(2))
+        self.assertAlmostEqual((-A).y(), 1.0/math.sqrt(2))
+        self.assertAlmostEqual((-A).z(), 0.0)
+        self.assertAlmostEqual((-A).roll(), 0.0)
+        self.assertAlmostEqual((-A).pitch(), 0.0)
+        self.assertAlmostEqual((-A).yaw(), -math.pi/4.0)
 
         # If:
         # A is the transform from O to P in frame O
@@ -73,12 +73,12 @@ class TestPose3(unittest.TestCase):
         # B - A is the transform from P to Q in frame P
         B = Pose3d(Vector3d(1, 1, 0),
                    Quaterniond(0, 0, math.pi/2.0))
-        self.assertAlmostEqual((B - A).pos().x(), 1.0/math.sqrt(2))
-        self.assertAlmostEqual((B - A).pos().y(), 1.0/math.sqrt(2))
-        self.assertAlmostEqual((B - A).pos().z(), 0.0)
-        self.assertAlmostEqual((B - A).rot().euler().x(), 0.0)
-        self.assertAlmostEqual((B - A).rot().euler().y(), 0.0)
-        self.assertAlmostEqual((B - A).rot().euler().z(), math.pi/4.0)
+        self.assertAlmostEqual((B - A).x(), 1.0/math.sqrt(2))
+        self.assertAlmostEqual((B - A).y(), 1.0/math.sqrt(2))
+        self.assertAlmostEqual((B - A).z(), 0.0)
+        self.assertAlmostEqual((B - A).roll(), 0.0)
+        self.assertAlmostEqual((B - A).pitch(), 0.0)
+        self.assertAlmostEqual((B - A).yaw(), math.pi/4.0)
 
         pose = Pose3d()
         self.assertTrue(pose.pos() == Vector3d(0, 0, 0))
@@ -113,7 +113,7 @@ class TestPose3(unittest.TestCase):
         self.assertTrue(pose == Pose3d(0, 0, 0, 0, 0, 0))
 
         pose.pos().set(5, 6, 7)
-        pose.rot().euler(Vector3d(.4, .6, 0))
+        pose.rot().set_from_euler(Vector3d(.4, .6, 0))
 
         self.assertTrue(pose.coord_position_add(Vector3d(1, 2, 3)) ==
                         Vector3d(7.82531, 6.67387, 9.35871))
@@ -158,11 +158,17 @@ class TestPose3(unittest.TestCase):
     def test_pose_elements(self):
         pose = Pose3d(0, 1, 2, 1, 1, 2)
         self.assertAlmostEqual(pose.x(), 0)
+        self.assertAlmostEqual(pose.x(), pose.pos().x())
         self.assertAlmostEqual(pose.y(), 1)
+        self.assertAlmostEqual(pose.y(), pose.pos().y())
         self.assertAlmostEqual(pose.z(), 2)
+        self.assertAlmostEqual(pose.z(), pose.pos().z())
         self.assertAlmostEqual(pose.roll(), 1)
+        self.assertAlmostEqual(pose.roll(), pose.rot().euler().x())
         self.assertAlmostEqual(pose.pitch(), 1)
+        self.assertAlmostEqual(pose.pitch(), pose.rot().euler().y())
         self.assertAlmostEqual(pose.yaw(), 2)
+        self.assertAlmostEqual(pose.yaw(), pose.rot().euler().z())
 
     def test_set_pose_element(self):
         pose = Pose3d(1, 2, 3, 1.57, 1, 2)

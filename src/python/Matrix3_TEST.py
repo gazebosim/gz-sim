@@ -32,17 +32,17 @@ class TestMatrix3(unittest.TestCase):
         self.assertAlmostEqual(matrix1, Matrix3d(1, 2, 3, 4, 5, 6, 7, 8, 9))
 
         matrix = Matrix3d()
-        matrix.axes(Vector3d(1, 1, 1), Vector3d(2, 2, 2),
+        matrix.set_axes(Vector3d(1, 1, 1), Vector3d(2, 2, 2),
                     Vector3d(3, 3, 3))
         self.assertAlmostEqual(matrix, Matrix3d(1, 2, 3, 1, 2, 3, 1, 2, 3))
 
-        matrix.axis(Vector3d(1, 1, 1), math.pi)
+        matrix.set_from_axis_angle(Vector3d(1, 1, 1), math.pi)
         self.assertAlmostEqual(matrix, Matrix3d(1, 2, 2, 2, 1, 2, 2, 2, 1))
 
-        matrix.col(0, Vector3d(3, 4, 5))
+        matrix.set_col(0, Vector3d(3, 4, 5))
         self.assertAlmostEqual(matrix, Matrix3d(3, 2, 2, 4, 1, 2, 5, 2, 1))
 
-        matrix.col(3, Vector3d(1, 1, 1))
+        matrix.set_col(3, Vector3d(1, 1, 1))
         self.assertAlmostEqual(matrix, Matrix3d(3, 2, 1, 4, 1, 1, 5, 2, 1))
 
     def test_sub(self):
@@ -240,10 +240,10 @@ class TestMatrix3(unittest.TestCase):
         v2 = Vector3d(0.0, 1.0, 0.0)
 
         m1 = Matrix3d()
-        m1.from_2_axes(v1, v2)
+        m1.set_from_2_axes(v1, v2)
 
         m2 = Matrix3d()
-        m2.from_2_axes(v2, v1)
+        m2.set_from_2_axes(v2, v1)
 
         m1Correct = Matrix3d(0, -1, 0,
                              1, 0, 0,
@@ -261,7 +261,7 @@ class TestMatrix3(unittest.TestCase):
         # rotation about 45 degrees
         v1.set(1.0, 0.0, 0.0)
         v2.set(1.0, 1.0, 0.0)
-        m2.from_2_axes(v1, v2)
+        m2.set_from_2_axes(v1, v2)
         # m1 is 90 degrees rotation
         self.assertAlmostEqual(m1, m2*m2)
 
@@ -269,8 +269,8 @@ class TestMatrix3(unittest.TestCase):
         v1.set(0.5, 0.5, 0)
         v2.set(-0.5, 0.5, 0)
 
-        m1.from_2_axes(v1, v2)
-        m2.from_2_axes(v2, v1)
+        m1.set_from_2_axes(v1, v2)
+        m2.set_from_2_axes(v2, v1)
 
         self.assertNotEqual(m1, m2)
         self.assertAlmostEqual(m1Correct, m1)
@@ -282,25 +282,25 @@ class TestMatrix3(unittest.TestCase):
         # For zero-length vectors, a unit matrix is returned
         v1.set(0, 0, 0)
         v2.set(-0.5, 0.5, 0)
-        m1.from_2_axes(v1, v2)
+        m1.set_from_2_axes(v1, v2)
         self.assertAlmostEqual(Matrix3d.IDENTITY, m1)
 
         # For zero-length vectors, a unit matrix is returned
         v1.set(-0.5, 0.5, 0)
         v2.set(0, 0, 0)
-        m1.from_2_axes(v1, v2)
+        m1.set_from_2_axes(v1, v2)
         self.assertAlmostEqual(Matrix3d.IDENTITY, m1)
 
         # Parallel vectors
         v1.set(1, 0, 0)
         v2.set(2, 0, 0)
-        m1.from_2_axes(v1, v2)
+        m1.set_from_2_axes(v1, v2)
         self.assertAlmostEqual(Matrix3d.IDENTITY, m1)
 
         # Opposite vectors
         v1.set(1, 0, 0)
         v2.set(-2, 0, 0)
-        m1.from_2_axes(v1, v2)
+        m1.set_from_2_axes(v1, v2)
         self.assertAlmostEqual(Matrix3d.ZERO - Matrix3d.IDENTITY, m1)
 
     def test_to_quaternion(self):

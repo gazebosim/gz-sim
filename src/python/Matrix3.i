@@ -49,13 +49,13 @@ namespace ignition
       public: void Set(T _v00, T _v01, T _v02,
                        T _v10, T _v11, T _v12,
                        T _v20, T _v21, T _v22);
-      public: void Axes(const Vector3<T> &_xAxis,
+      public: void SetAxes(const Vector3<T> &_xAxis,
                         const Vector3<T> &_yAxis,
                         const Vector3<T> &_zAxis);
-      public: void Axis(const Vector3<T> &_axis, T _angle);
-      %rename(from_2_axes) From2Axes;
-      public: void From2Axes(const Vector3<T> &_v1, const Vector3<T> &_v2);
-      public: void Col(unsigned int _c, const Vector3<T> &_v);
+      public: void SetFromAxisAngle(const Vector3<T> &_axis, T _angle);
+      %rename(set_from_2_axes) SetFrom2Axes;
+      public: void SetFrom2Axes(const Vector3<T> &_v1, const Vector3<T> &_v2);
+      public: void SetCol(unsigned int _c, const Vector3<T> &_v);
       public: Matrix3<T> operator-(const Matrix3<T> &_m) const;
       public: Matrix3<T> operator+(const Matrix3<T> &_m) const;
       public: Matrix3<T> operator*(const T &_s) const;

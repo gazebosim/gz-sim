@@ -27,7 +27,7 @@
 
 %inline %{
   template<typename D>
-  struct ToAxisOutput {
+  struct AxisAngleOutput {
     ignition::math::Vector3<D> axis;
     D angle;
   };
@@ -46,32 +46,34 @@ namespace ignition
       public: static const Quaternion Identity;
       public: static const Quaternion Zero;
 
-      public: Quaternion();
-      public: Quaternion(const T &_w, const T &_x, const T &_y, const T &_z);
+      public: Quaternion()
+      : qw(1), qx(0), qy(0), qz(0);
+      public: Quaternion(const T &_w, const T &_x, const T &_y, const T &_z)
+      : qw(_w), qx(_x), qy(_y), qz(_z);
       public: Quaternion(const T &_roll, const T &_pitch, const T &_yaw);
       public: Quaternion(const Vector3<T> &_axis, const T &_angle);
       public: explicit Quaternion(const Vector3<T> &_rpy);
-      public: Quaternion(const Quaternion<T> &_qt);
-      public: ~Quaternion();
+      public: Quaternion(const Quaternion<T> &_qt) = default;
+      public: ~Quaternion() = default;
       public: void Invert();
       public: inline Quaternion<T> Inverse() const;
       public: Quaternion<T> Log() const;
       public: Quaternion<T> Exp() const;
       public: void Normalize();
       public: Quaternion<T> Normalized() const;
-      public: void Axis(T _ax, T _ay, T _az, T _aa);
-      public: void Axis(const Vector3<T> &_axis, T _a);
+      public: void SetFromAxisAngle(T _ax, T _ay, T _az, T _aa);
+      public: void SetFromAxisAngle(const Vector3<T> &_axis, T _a);
       public: void Set(T _w, T _x, T _y, T _z);
-      public: void Euler(const Vector3<T> &_vec);
-      public: void Euler(T _roll, T _pitch, T _yaw);
+      public: void SetFromEuler(const Vector3<T> &_vec);
+      public: void SetFromEuler(T _roll, T _pitch, T _yaw);
       public: Vector3<T> Euler() const;
       public: static Quaternion<T> EulerToQuaternion(const Vector3<T> &_vec);
       public: static Quaternion<T> EulerToQuaternion(T _x, T _y, T _z);
       public: T Roll() const;
       public: T Pitch() const;
       public: T Yaw() const;
-      %rename(from_2_axes) From2Axes;
-      public: void From2Axes(const Vector3<T> &_v1, const Vector3<T> &_v2);
+      %rename(set_from_2_axes) SetFrom2Axes;
+      public: void SetFrom2Axes(const Vector3<T> &_v1, const Vector3<T> &_v2);
       public: void Scale(T _scale);
       public: Quaternion<T> operator+(const Quaternion<T> &_qt) const;
       public: Quaternion<T> operator+=(const Quaternion<T> &_qt);
@@ -107,24 +109,24 @@ namespace ignition
       public: Quaternion<T> Integrate(const Vector3<T> &_angularVelocity,
                                       const T _deltaT) const;
 
-      public: inline void X(T _v);
-      public: inline void Y(T _v);
-      public: inline void Z(T _v);
-      public: inline void W(T _v);
+      public: inline void SetX(T _v);
+      public: inline void SetY(T _v);
+      public: inline void SetZ(T _v);
+      public: inline void SetW(T _v);
 
       %pythoncode %{
-      def to_axis(self):
-          to_axis_output = self._to_axis()
-          return [to_axis_output.axis, to_axis_output.angle]
+      def axis_angle(self):
+          axis_angle_output = self._axis_angle()
+          return [axis_angle_output.axis, axis_angle_output.angle]
       %}
     };
 
     %extend Quaternion{
-        inline ToAxisOutput<T> _to_axis() {
+        inline AxisAngleOutput<T> _axis_angle() {
           ignition::math::Vector3<T> axis;
           T angle;
-          (*$self).ToAxis(axis, angle);
-          ToAxisOutput<T> output;
+          (*$self).AxisAngle(axis, angle);
+          AxisAngleOutput<T> output;
           output.axis = axis;
           output.angle = angle;
           return output;
@@ -161,11 +163,9 @@ namespace ignition
         }
     }
 
-    %template(Quaternioni) Quaternion<int>;
     %template(Quaterniond) Quaternion<double>;
     %template(Quaternionf) Quaternion<float>;
   }
 }
-    %template(ToAxisOutputi) ToAxisOutput<int>;
-    %template(ToAxisOutputd) ToAxisOutput<double>;
-    %template(ToAxisOutputf) ToAxisOutput<float>;
+    %template(AxisAngleOutputd) AxisAngleOutput<double>;
+    %template(AxisAngleOutputf) AxisAngleOutput<float>;

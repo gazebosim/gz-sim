@@ -36,19 +36,18 @@ namespace ignition
     {
       %rename("%(undercase)s", %$isfunction, %$ismember, %$not %$isconstructor) "";
       %rename("%(uppercase)s", %$isstatic, %$isvariable) "";
-      
+
       public: static const Pose3<T> Zero;
 
-      public: Pose3() : p(0, 0, 0), q(1, 0, 0, 0);
+      public: Pose3() = default;
       public: Pose3(const Vector3<T> &_pos, const Quaternion<T> &_rot)
       : p(_pos), q(_rot);
       public: Pose3(T _x, T _y, T _z, T _roll, T _pitch, T _yaw)
       : p(_x, _y, _z), q(_roll, _pitch, _yaw);
       public: Pose3(T _x, T _y, T _z, T _qw, T _qx, T _qy, T _qz)
       : p(_x, _y, _z), q(_qw, _qx, _qy, _qz);
-      public: Pose3(const Pose3<T> &_pose)
-      : p(_pose.p), q(_pose.q);
-      public: virtual ~Pose3();
+      public: Pose3(const Pose3<T> &_pose) = default;
+      public: ~Pose3() = default;
       public: void Set(const Vector3<T> &_pos, const Quaternion<T> &_rot);
       public: void Set(const Vector3<T> &_pos, const Vector3<T> &_rpy);
       public: void Set(T _x, T _y, T _z, T _roll, T _pitch, T _yaw);
@@ -74,6 +73,7 @@ namespace ignition
       public: void Reset();
       public: Pose3<T> RotatePositionAboutOrigin(const Quaternion<T> &_q) const;
       public: void Round(int _precision);
+      public: inline const Vector3<T> &Pos() const;
       public: inline Vector3<T> &Pos();
       public: inline const T X() const;
       public: inline void SetX(T x);
@@ -81,10 +81,12 @@ namespace ignition
       public: inline void SetY(T y);
       public: inline const T Z() const;
       public: inline void SetZ(T z);
+      public: inline const Quaternion<T> &Rot() const;
       public: inline Quaternion<T> &Rot();
       public: inline const T Roll() const;
       public: inline const T Pitch() const;
       public: inline const T Yaw() const;
+      public: bool Equal(const Pose3 &_p, const T &_tol) const;
     };
 
     %extend Pose3 {
@@ -95,7 +97,6 @@ namespace ignition
         }
     }
 
-    %template(Pose3i) Pose3<int>;
     %template(Pose3d) Pose3<double>;
     %template(Pose3f) Pose3<float>;
   }
