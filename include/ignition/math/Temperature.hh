@@ -154,6 +154,16 @@ namespace ignition
       /// \brief Addition operator
       /// \param[in] _temp Temperature in Kelvin
       /// \return Resulting temperature
+      public: Temperature operator+(const double _temp) const;
+
+      /// \brief Addition operator
+      /// \param[in] _temp Temperature object
+      /// \return Resulting temperature
+      public: Temperature operator+(const Temperature &_temp) const;
+
+      /// \brief Addition operator
+      /// \param[in] _temp Temperature in Kelvin
+      /// \return Resulting temperature
       public: Temperature operator+(const double _temp);
 
       /// \brief Addition operator
@@ -190,6 +200,16 @@ namespace ignition
       /// \return Resulting temperature
       public: Temperature operator-(const Temperature &_temp);
 
+      /// \brief Subtraction operator
+      /// \param[in] _temp Temperature in Kelvin
+      /// \return Resulting temperature
+      public: Temperature operator-(const double _temp) const;
+
+      /// \brief Subtraction operator
+      /// \param[in] _temp Temperature object
+      /// \return Resulting temperature
+      public: Temperature operator-(const Temperature &_temp) const;
+
       /// \brief Subtraction operator for double type.
       /// \param[in] _t Temperature in kelvin
       /// \param[in] _temp Temperature object
@@ -219,6 +239,16 @@ namespace ignition
       /// \return Resulting temperature
       public: Temperature operator*(const Temperature &_temp);
 
+      /// \brief Multiplication operator
+      /// \param[in] _temp Temperature in Kelvin
+      /// \return Resulting temperature
+      public: Temperature operator*(const double _temp) const;
+
+      /// \brief Multiplication operator
+      /// \param[in] _temp Temperature object
+      /// \return Resulting temperature
+      public: Temperature operator*(const Temperature &_temp) const;
+
       /// \brief Multiplication operator for double type.
       /// \param[in] _t Temperature in kelvin
       /// \param[in] _temp Temperature object
@@ -247,6 +277,16 @@ namespace ignition
       /// \param[in] _temp Temperature object
       /// \return Resulting temperature
       public: Temperature operator/(const Temperature &_temp);
+
+      /// \brief Division operator
+      /// \param[in] _temp Temperature in Kelvin
+      /// \return Resulting temperature
+      public: Temperature operator/(const double _temp) const;
+
+      /// \brief Division operator
+      /// \param[in] _temp Temperature object
+      /// \return Resulting temperature
+      public: Temperature operator/(const Temperature &_temp) const;
 
       /// \brief Division operator for double type.
       /// \param[in] _t Temperature in kelvin

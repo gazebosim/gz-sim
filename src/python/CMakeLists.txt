@@ -99,7 +99,6 @@ if (PYTHONLIBS_FOUND)
       SignalStats_TEST
       Sphere_TEST
       SphericalCoordinates_TEST
-      Temperature_TEST
       Vector3Stats_TEST
     )
 

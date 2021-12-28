@@ -36,6 +36,7 @@
 #include "SemanticVersion.hh"
 #include "Spline.hh"
 #include "StopWatch.hh"
+#include "Temperature.hh"
 #include "Triangle.hh"
 #include "Triangle3.hh"
 #include "Vector2.hh"
@@ -84,6 +85,8 @@ PYBIND11_MODULE(math, m)
   ignition::math::python::defineMathSpline(m, "Spline");
 
   ignition::math::python::defineMathStopwatch(m, "Stopwatch");
+
+  ignition::math::python::defineMathTemperature(m, "Temperature");
 
   ignition::math::python::defineMathVector2<double>(m, "Vector2d");
   ignition::math::python::defineMathVector2<int>(m, "Vector2i");

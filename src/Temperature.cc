@@ -161,6 +161,18 @@ Temperature Temperature::operator+(const Temperature &_temp)
 }
 
 /////////////////////////////////////////////////
+Temperature Temperature::operator+(const double _temp) const
+{
+  return this->dataPtr->kelvin + _temp;
+}
+
+/////////////////////////////////////////////////
+Temperature Temperature::operator+(const Temperature &_temp) const
+{
+  return this->dataPtr->kelvin + _temp;
+}
+
+/////////////////////////////////////////////////
 const Temperature &Temperature::operator+=(const double _temp)
 {
   this->dataPtr->kelvin += _temp;
@@ -182,6 +194,18 @@ Temperature Temperature::operator-(const double _temp)
 
 /////////////////////////////////////////////////
 Temperature Temperature::operator-(const Temperature &_temp)
+{
+  return this->dataPtr->kelvin - _temp.Kelvin();
+}
+
+/////////////////////////////////////////////////
+Temperature Temperature::operator-(const double _temp) const
+{
+  return this->dataPtr->kelvin - _temp;
+}
+
+/////////////////////////////////////////////////
+Temperature Temperature::operator-(const Temperature &_temp) const
 {
   return this->dataPtr->kelvin - _temp.Kelvin();
 }
@@ -213,6 +237,18 @@ Temperature Temperature::operator*(const Temperature &_temp)
 }
 
 /////////////////////////////////////////////////
+Temperature Temperature::operator*(const double _temp) const
+{
+  return Temperature(this->dataPtr->kelvin * _temp);
+}
+
+/////////////////////////////////////////////////
+Temperature Temperature::operator*(const Temperature &_temp) const
+{
+  return Temperature(this->dataPtr->kelvin * _temp.Kelvin());
+}
+
+/////////////////////////////////////////////////
 const Temperature &Temperature::operator*=(const double _temp)
 {
   this->dataPtr->kelvin *= _temp;
@@ -234,6 +270,18 @@ Temperature Temperature::operator/(const double _temp)
 
 /////////////////////////////////////////////////
 Temperature Temperature::operator/(const Temperature &_temp)
+{
+  return Temperature(this->dataPtr->kelvin / _temp.Kelvin());
+}
+
+/////////////////////////////////////////////////
+Temperature Temperature::operator/(const double _temp) const
+{
+  return Temperature(this->dataPtr->kelvin / _temp);
+}
+
+/////////////////////////////////////////////////
+Temperature Temperature::operator/(const Temperature &_temp) const
 {
   return Temperature(this->dataPtr->kelvin / _temp.Kelvin());
 }
