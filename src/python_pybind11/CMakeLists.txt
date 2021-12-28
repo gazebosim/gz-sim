@@ -90,6 +90,7 @@ if (${pybind11_FOUND})
       Spline_TEST
       StopWatch_TEST
       Triangle_TEST
+      Triangle3_TEST
       Vector2_TEST
       Vector3_TEST
       Vector4_TEST

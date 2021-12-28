@@ -30,6 +30,7 @@
 #include "Spline.hh"
 #include "StopWatch.hh"
 #include "Triangle.hh"
+#include "Triangle3.hh"
 #include "Vector2.hh"
 #include "Vector3.hh"
 #include "Vector4.hh"
@@ -90,6 +91,10 @@ PYBIND11_MODULE(math, m)
   ignition::math::python::defineMathTriangle<int>(m, "Trianglei");
   ignition::math::python::defineMathTriangle<double>(m, "Triangled");
   ignition::math::python::defineMathTriangle<float>(m, "Trianglef");
+
+  ignition::math::python::defineMathTriangle3<int>(m, "Triangle3i");
+  ignition::math::python::defineMathTriangle3<double>(m, "Triangle3d");
+  ignition::math::python::defineMathTriangle3<float>(m, "Triangle3f");
 
   ignition::math::python::defineMathQuaternion<int>(m, "Quaternioni");
   ignition::math::python::defineMathQuaternion<double>(m, "Quaterniond");
