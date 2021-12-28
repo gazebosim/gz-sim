@@ -15,7 +15,6 @@
 import unittest
 from ignition.math import Kmeans
 from ignition.math import Vector3d
-from ignition.math import vector_vector3d
 
 
 class TestKmeans(unittest.TestCase):
@@ -128,13 +127,13 @@ class TestKmeans(unittest.TestCase):
 
         kmeans.append_observations(obs2)
 
-        obs_copy = vector_vector3d(kmeans.observations())
+        obs_copy = kmeans.observations()
 
-        for i in range(obs_copy.size()):
+        for i in range(len(obs_copy)):
             self.assertEqual(obs_total[i], obs_copy[i])
 
         # Append an empty vector.
-        emptyVector = vector_vector3d()
+        emptyVector = []
         self.assertFalse(kmeans.append_observations(emptyVector))
 
 
