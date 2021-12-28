@@ -130,7 +130,8 @@ namespace ignition
       /// \param[in] _leftWheelRadius Radius of the left wheel.
       /// \param[in] _rightWheelRadius Radius of the right wheel.
       public: void SetWheelParams(double _wheelSeparation,
-                      double _leftWheelRadius, double _rightWheelRadius);
+                      double _leftWheelRadius,
+                      double _rightWheelRadius);
 
       /// \brief Set the velocity rolling window size.
       /// \param[in] _size The Velocity rolling window size.

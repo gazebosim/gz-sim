@@ -130,7 +130,7 @@ namespace graph
 
     /// \brief Set the cost of the edge.
     /// \param[in] _newWeight The new cost.
-    public: void SetWeight(const double _newWeight)
+    public: void SetWeight(double _newWeight)
     {
       this->weight = _newWeight;
     }
@@ -214,7 +214,7 @@ namespace graph
     /// \param[in] _id Optional unique id.
     public: explicit UndirectedEdge(const VertexId_P &_vertices,
                                     const E &_data,
-                                    const double _weight,
+                                    double _weight,
                                     const EdgeId &_id = kNullId)
       : Edge<E>(_vertices, _data, _weight, _id)
     {
@@ -277,7 +277,7 @@ namespace graph
     /// \param[in] _id Optional unique id.
     public: explicit DirectedEdge(const VertexId_P &_vertices,
                                   const E &_data,
-                                  const double _weight,
+                                  double _weight,
                                   const EdgeId &_id = kNullId)
       : Edge<E>(_vertices, _data, _weight, _id)
     {

@@ -80,10 +80,10 @@ namespace ignition
       /// by height of the near or far planes.
       /// \param[in] _pose Pose of the frustum, which is the vertex (top of
       /// the pyramid).
-      public: Frustum(const double _near,
-                      const double _far,
+      public: Frustum(double _near,
+                      double _far,
                       const math::Angle &_fov,
-                      const double _aspectRatio,
+                      double _aspectRatio,
                       const math::Pose3d &_pose = math::Pose3d::Zero);
 
       /// \brief Copy Constructor
@@ -103,7 +103,7 @@ namespace ignition
       /// frustum's vertex to the closest plane.
       /// \param[in] _near Near distance.
       /// \sa Near
-      public: void SetNear(const double _near);
+      public: void SetNear(double _near);
 
       /// \brief Get the far distance. This is the distance from the
       /// frustum's vertex to the farthest plane.
@@ -115,7 +115,7 @@ namespace ignition
       /// frustum's vertex to the farthest plane.
       /// \param[in] _far Far distance.
       /// \sa Far
-      public: void SetFar(const double _far);
+      public: void SetFar(double _far);
 
       /// \brief Get the horizontal field of view. The field of view is the
       /// angle between the frustum's vertex and the edges of the near or far
@@ -141,7 +141,7 @@ namespace ignition
       /// of the near or far planes.
       /// \param[in] _aspectRatio The frustum's aspect ratio.
       /// \sa AspectRatio
-      public: void SetAspectRatio(const double _aspectRatio);
+      public: void SetAspectRatio(double _aspectRatio);
 
       /// \brief Get a plane of the frustum.
       /// \param[in] _plane The plane to return.
