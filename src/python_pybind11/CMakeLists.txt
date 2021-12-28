@@ -18,6 +18,7 @@ if (${pybind11_FOUND})
     src/Color.cc
     src/Helpers.cc
     src/Kmeans.cc
+    src/Material.cc
     src/Rand.cc
     src/RollingMean.cc
     src/SemanticVersion.cc
@@ -82,6 +83,7 @@ if (${pybind11_FOUND})
       Kmeans_TEST
       Line2_TEST
       Line3_TEST
+      Material_TEST
       Matrix3_TEST
       MovingWindowFilter_TEST
       Pose3_TEST

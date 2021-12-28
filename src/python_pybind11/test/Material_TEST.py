@@ -26,32 +26,34 @@ class TestMaterial(unittest.TestCase):
 
         # Make sure that the number of elements in the MaterialType enum matches
         # the number of elements in the MaterialDensity::materials map.
-        self.assertEqual(ignition.math.MaterialType_UNKNOWN_MATERIAL, len(mats))
+        self.assertEqual(ignition.math.MaterialType.UNKNOWN_MATERIAL,
+                         ignition.math.MaterialType(len(mats)))
 
         # Iterate over each element in the enum. Check the that enum value
         # matches the type value in the mats map.
-        for i in range(ignition.math.MaterialType_UNKNOWN_MATERIAL):
+        for i in range(ignition.math.MaterialType.UNKNOWN_MATERIAL):
             # Get the type of the material for MaterialType i.
-            self.assertEqual(i, next(iter(mats.find(i)))[1].type())
+            self.assertEqual(ignition.math.MaterialType(i),
+                             mats[ignition.math.MaterialType(i)].type())
 
             # The name should not be empty
-            self.assertTrue(next(iter(mats.find(i)))[1].name())
+            self.assertTrue(mats[ignition.math.MaterialType(i)].name())
 
             # The density should be less than the max double value and greater than
             # zero.
-            self.assertLess(next(iter(mats.find(i)))[1].density(), sys.float_info.max)
-            self.assertGreater(next(iter(mats.find(i)))[1].density(), 0.0)
+            self.assertLess(mats[ignition.math.MaterialType(i)].density(), sys.float_info.max)
+            self.assertGreater(mats[ignition.math.MaterialType(i)].density(), 0.0)
 
-        malicious = ignition.math.Material(42)
+        malicious = ignition.math.Material(ignition.math.MaterialType(42))
         self.assertEqual(-1.0, malicious.density())
         self.assertEqual('', malicious.name())
 
         byDensity = ignition.math.Material(42.2)
         self.assertEqual(42.2, byDensity.density())
-        self.assertEqual(ignition.math.MaterialType_UNKNOWN_MATERIAL, byDensity.type())
+        self.assertEqual(ignition.math.MaterialType.UNKNOWN_MATERIAL, byDensity.type())
 
     def test_comparison(self):
-        aluminum = ignition.math.Material(ignition.math.MaterialType_ALUMINUM)
+        aluminum = ignition.math.Material(ignition.math.MaterialType.ALUMINUM)
 
         modified = ignition.math.Material(aluminum)
         self.assertEqual(modified, aluminum)
@@ -62,14 +64,14 @@ class TestMaterial(unittest.TestCase):
         modified = ignition.math.Material(aluminum)
         self.assertEqual(modified, aluminum)
 
-        modified.set_type(ignition.math.MaterialType_PINE)
+        modified.set_type(ignition.math.MaterialType.PINE)
         self.assertNotEqual(modified, aluminum)
 
     def test_accessors(self):
 
         mat = ignition.math.Material("Aluminum")
         mat1 = ignition.math.Material("aluminum")
-        mat2 = ignition.math.Material(ignition.math.MaterialType_ALUMINUM)
+        mat2 = ignition.math.Material(ignition.math.MaterialType.ALUMINUM)
         mat3 = ignition.math.Material(mat2)
 
         self.assertAlmostEqual(2700.0, mat.density())
@@ -86,23 +88,23 @@ class TestMaterial(unittest.TestCase):
 
         mat = ignition.math.Material("Notfoundium")
         self.assertGreater(0.0, mat.density())
-        self.assertEqual(ignition.math.MaterialType_UNKNOWN_MATERIAL,
+        self.assertEqual(ignition.math.MaterialType.UNKNOWN_MATERIAL,
                          mat.type())
         self.assertFalse(mat.name())
 
         material = ignition.math.Material()
         material.set_to_nearest_density(19300.0)
-        self.assertEqual(ignition.math.MaterialType_TUNGSTEN, material.type())
+        self.assertEqual(ignition.math.MaterialType.TUNGSTEN, material.type())
         self.assertAlmostEqual(19300.0, material.density())
 
         material = ignition.math.Material()
         material.set_to_nearest_density(1001001.001, 1e-3)
-        self.assertEqual(ignition.math.MaterialType_UNKNOWN_MATERIAL,
+        self.assertEqual(ignition.math.MaterialType.UNKNOWN_MATERIAL,
                          material.type())
         self.assertGreater(0.0, material.density())
         material = ignition.math.Material()
         material.set_to_nearest_density(1001001.001)
-        self.assertEqual(ignition.math.MaterialType_TUNGSTEN, material.type())
+        self.assertEqual(ignition.math.MaterialType.TUNGSTEN, material.type())
         self.assertAlmostEqual(19300, material.density())
 
 

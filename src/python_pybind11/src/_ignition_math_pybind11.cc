@@ -21,6 +21,7 @@
 #include "Kmeans.hh"
 #include "Line2.hh"
 #include "Line3.hh"
+#include "Material.hh"
 #include "Matrix3.hh"
 #include "MovingWindowFilter.hh"
 #include "Pose3.hh"
@@ -49,6 +50,8 @@ PYBIND11_MODULE(math, m)
   ignition::math::python::defineMathHelpers(m);
 
   ignition::math::python::defineMathKmeans(m, "Kmeans");
+
+  ignition::math::python::defineMathMaterial(m, "Material");
 
   ignition::math::python::defineMathMovingWindowFilter<int>(
     m, "MovingWindowFilteri");
