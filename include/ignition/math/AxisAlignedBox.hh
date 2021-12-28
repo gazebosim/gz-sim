@@ -132,6 +132,16 @@ namespace ignition
       /// \return The new box
       public: AxisAlignedBox operator+(const Vector3d &_v);
 
+      /// \brief Subtract a vector from the min and max values
+      /// \param _v The vector to use during subtraction
+      /// \return The new box
+      public: AxisAlignedBox operator-(const Vector3d &_v) const;
+
+      /// \brief Add a vector to the min and max values
+      /// \param _v The vector to use during addition
+      /// \return The new box
+      public: AxisAlignedBox operator+(const Vector3d &_v) const;
+
       /// \brief Output operator
       /// \param[in] _out Output stream
       /// \param[in] _b AxisAlignedBox to output to the stream

@@ -15,16 +15,15 @@
 import math
 import unittest
 
-from ignition.math import AxisAlignedBox, Line3d, Vector3d
-from ignition.math import IGN_SQRT2, LOW_D, MAX_D
+from ignition.math import AxisAlignedBox, Helpers, Line3d, Vector3d
 
 
 class TestAxisAlignedBox(unittest.TestCase):
 
     def test_empty_constructor(self):
         box = AxisAlignedBox()
-        self.assertEqual(Vector3d(MAX_D, MAX_D, MAX_D), box.min())
-        self.assertEqual(Vector3d(LOW_D, LOW_D, LOW_D), box.max())
+        self.assertEqual(Vector3d(Helpers.MAX_D, Helpers.MAX_D, Helpers.MAX_D), box.min())
+        self.assertEqual(Vector3d(Helpers.LOW_D, Helpers.LOW_D, Helpers.LOW_D), box.max())
 
     def test_constructor(self):
         box = AxisAlignedBox(Vector3d(0, -1, 2), Vector3d(1, -2, 3))
@@ -82,8 +81,8 @@ class TestAxisAlignedBox(unittest.TestCase):
         box2 = AxisAlignedBox()
         box1.merge(box2)
 
-        self.assertEqual(Vector3d(MAX_D, MAX_D, MAX_D), box1.min())
-        self.assertEqual(Vector3d(LOW_D, LOW_D, LOW_D), box1.max())
+        self.assertEqual(Vector3d(Helpers.MAX_D, Helpers.MAX_D, Helpers.MAX_D), box1.min())
+        self.assertEqual(Vector3d(Helpers.LOW_D, Helpers.LOW_D, Helpers.LOW_D), box1.max())
 
     def test_default_constructor(self):
         defaultAxisAlignedBox1 = AxisAlignedBox()
@@ -125,12 +124,12 @@ class TestAxisAlignedBox(unittest.TestCase):
         box2 = AxisAlignedBox()
         box1 += box2
 
-        self.assertEqual(Vector3d(MAX_D, MAX_D, MAX_D), box1.min())
-        self.assertEqual(Vector3d(LOW_D, LOW_D, LOW_D), box1.max())
+        self.assertEqual(Vector3d(Helpers.MAX_D, Helpers.MAX_D, Helpers.MAX_D), box1.min())
+        self.assertEqual(Vector3d(Helpers.LOW_D, Helpers.LOW_D, Helpers.LOW_D), box1.max())
 
         box3 = box2 + box1
-        self.assertEqual(Vector3d(MAX_D, MAX_D, MAX_D), box3.min())
-        self.assertEqual(Vector3d(LOW_D, LOW_D, LOW_D), box3.max())
+        self.assertEqual(Vector3d(Helpers.MAX_D, Helpers.MAX_D, Helpers.MAX_D), box3.min())
+        self.assertEqual(Vector3d(Helpers.LOW_D, Helpers.LOW_D, Helpers.LOW_D), box3.max())
 
     def test_merge(self):
         box = AxisAlignedBox(Vector3d(0, -1, 2), Vector3d(1, -2, 3))
@@ -259,7 +258,7 @@ class TestAxisAlignedBox(unittest.TestCase):
         self.assertTrue(intersect)
         self.assertTrue(b.intersect_check(Vector3d(2, 2, 0),
                                           Vector3d(-1, -1, 0), 0, 1000))
-        self.assertEqual(dist, IGN_SQRT2)
+        self.assertEqual(dist, math.sqrt(2))
         self.assertEqual(b.intersect_dist(Vector3d(2, 2, 0),
                                           Vector3d(-1, -1, 0), 0, 1000)[1], dist)
         self.assertEqual(pt, Vector3d(1, 1, 0))
@@ -279,7 +278,7 @@ class TestAxisAlignedBox(unittest.TestCase):
         self.assertTrue(intersect)
         self.assertTrue(b.intersect_check(Vector3d(-1, -2, 0),
                                           Vector3d(1, 1, 0), 0, 1000))
-        self.assertEqual(dist, 2*IGN_SQRT2)
+        self.assertEqual(dist, 2*math.sqrt(2))
         self.assertEqual(b.intersect_dist(Vector3d(-1, -2, 0),
                                           Vector3d(1, 1, 0), 0, 1000)[1], dist)
         self.assertEqual(pt, Vector3d(1, 0, 0))
@@ -289,7 +288,7 @@ class TestAxisAlignedBox(unittest.TestCase):
         self.assertTrue(intersect)
         self.assertTrue(b.intersect_check(Vector3d(2, 1, 0),
                                           Vector3d(-1, -1, 0), 0, 1000))
-        self.assertEqual(dist, IGN_SQRT2)
+        self.assertEqual(dist, math.sqrt(2))
         self.assertEqual(b.intersect_dist(Vector3d(2, 1, 0),
                                           Vector3d(-1, -1, 0), 0, 1000)[1], dist)
         self.assertEqual(pt, Vector3d(1, 0, 0))

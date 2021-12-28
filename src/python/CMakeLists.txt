@@ -87,7 +87,6 @@ if (PYTHONLIBS_FOUND)
   if (BUILD_TESTING)
     # Add the Python tests
     set(python_tests
-      AxisAlignedBox_TEST
       Box_TEST
       Cylinder_TEST
       DiffDriveOdometry_TEST

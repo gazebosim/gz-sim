@@ -15,6 +15,7 @@
 #include <pybind11/pybind11.h>
 
 #include "Angle.hh"
+#include "AxisAlignedBox.hh"
 #include "Color.hh"
 #include "Filter.hh"
 #include "GaussMarkovProcess.hh"
@@ -46,6 +47,8 @@ PYBIND11_MODULE(math, m)
   m.doc() = "Ignition Math Python Library.";
 
   ignition::math::python::defineMathAngle(m, "Angle");
+
+  ignition::math::python::defineMathAxisAlignedBox(m, "AxisAlignedBox");
 
   ignition::math::python::defineMathColor(m, "Color");
 
