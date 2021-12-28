@@ -693,8 +693,8 @@ TEST_F(UserCommandsTest, Light)
 {
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/lights_render.sdf";
+  const auto sdfFile = ignition::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "lights_render.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);
@@ -928,7 +928,7 @@ TEST_F(UserCommandsTest, Light)
   ignition::msgs::Set(lightMsg.mutable_diffuse(),
     ignition::math::Color(1.0f, 1.0f, 1.0f, 1.0f));
 
-  // Publish joint trajectory
+  // Publish light config
   auto pub = node.Advertise<msgs::Light>(lightTopic);
   pub.Publish(lightMsg);
 
