@@ -21,6 +21,7 @@ if (${pybind11_FOUND})
     src/Material.cc
     src/Rand.cc
     src/RollingMean.cc
+    src/RotationSpline.cc
     src/SemanticVersion.cc
     src/Spline.cc
     src/StopWatch.cc
@@ -90,6 +91,7 @@ if (${pybind11_FOUND})
       Quaternion_TEST
       Rand_TEST
       RollingMean_TEST
+      RotationSpline_TEST
       SemanticVersion_TEST
       Spline_TEST
       StopWatch_TEST

@@ -100,7 +100,6 @@ if (PYTHONLIBS_FOUND)
       PID_TEST
       Plane_TEST
       python_TEST
-      RotationSpline_TEST
       SignalStats_TEST
       Sphere_TEST
       SphericalCoordinates_TEST
