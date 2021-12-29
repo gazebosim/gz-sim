@@ -21,6 +21,7 @@
 #include "Cylinder.hh"
 #include "DiffDriveOdometry.hh"
 #include "Filter.hh"
+#include "Frustum.hh"
 #include "GaussMarkovProcess.hh"
 #include "Helpers.hh"
 #include "Inertial.hh"
@@ -154,6 +155,8 @@ PYBIND11_MODULE(math, m)
   ignition::math::python::defineMathCylinder<double>(m, "Cylinderd");
 
   ignition::math::python::defineMathInertial<double>(m, "Inertiald");
+
+  ignition::math::python::defineMathFrustum(m, "Frustum");
 
   ignition::math::python::defineMathFilter<int>(m, "Filteri");
   ignition::math::python::defineMathFilter<float>(m, "Filterf");

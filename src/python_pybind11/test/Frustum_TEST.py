@@ -15,7 +15,7 @@
 import math
 import unittest
 
-from ignition.math import Angle, AxisAlignedBox, Frustum, IGN_PI, Planed, Pose3d, Vector3d
+from ignition.math import Angle, AxisAlignedBox, Frustum, FrustumPlane, Planed, Pose3d, Vector3d
 
 
 class TestFrustrum(unittest.TestCase):
@@ -25,7 +25,7 @@ class TestFrustrum(unittest.TestCase):
 
         self.assertEqual(frustum.near(), 0.0)
         self.assertEqual(frustum.far(), 1.0)
-        self.assertEqual(frustum.fov().radian(), 45 * IGN_PI / 180.0)
+        self.assertEqual(frustum.fov().radian(), 45 * math.pi / 180.0)
         self.assertEqual(frustum.aspect_ratio(), 1.0)
         self.assertEqual(frustum.pose(), Pose3d.ZERO)
 
@@ -38,7 +38,7 @@ class TestFrustrum(unittest.TestCase):
           # Far distance
           10,
           # Field of view
-          Angle(45 * IGN_PI / 180.0),
+          Angle(45 * math.pi / 180.0),
           # Aspect ratio
           320.0 / 240.0,
           # Pose
@@ -52,23 +52,23 @@ class TestFrustrum(unittest.TestCase):
         self.assertEqual(frustum.aspect_ratio(), frustum2.aspect_ratio())
         self.assertEqual(frustum.aspect_ratio(), frustum2.aspect_ratio())
 
-        self.assertEqual(frustum.plane(Frustum.FRUSTUM_PLANE_NEAR).normal(),
-                         frustum2.plane(Frustum.FRUSTUM_PLANE_NEAR).normal())
+        self.assertEqual(frustum.plane(FrustumPlane.FRUSTUM_PLANE_NEAR).normal(),
+                         frustum2.plane(FrustumPlane.FRUSTUM_PLANE_NEAR).normal())
 
-        self.assertEqual(frustum.plane(Frustum.FRUSTUM_PLANE_FAR).normal(),
-                         frustum2.plane(Frustum.FRUSTUM_PLANE_FAR).normal())
+        self.assertEqual(frustum.plane(FrustumPlane.FRUSTUM_PLANE_FAR).normal(),
+                         frustum2.plane(FrustumPlane.FRUSTUM_PLANE_FAR).normal())
 
-        self.assertEqual(frustum.plane(Frustum.FRUSTUM_PLANE_LEFT).normal(),
-                         frustum2.plane(Frustum.FRUSTUM_PLANE_LEFT).normal())
+        self.assertEqual(frustum.plane(FrustumPlane.FRUSTUM_PLANE_LEFT).normal(),
+                         frustum2.plane(FrustumPlane.FRUSTUM_PLANE_LEFT).normal())
 
-        self.assertEqual(frustum.plane(Frustum.FRUSTUM_PLANE_RIGHT).normal(),
-                         frustum2.plane(Frustum.FRUSTUM_PLANE_RIGHT).normal())
+        self.assertEqual(frustum.plane(FrustumPlane.FRUSTUM_PLANE_RIGHT).normal(),
+                         frustum2.plane(FrustumPlane.FRUSTUM_PLANE_RIGHT).normal())
 
-        self.assertEqual(frustum.plane(Frustum.FRUSTUM_PLANE_TOP).normal(),
-                         frustum2.plane(Frustum.FRUSTUM_PLANE_TOP).normal())
+        self.assertEqual(frustum.plane(FrustumPlane.FRUSTUM_PLANE_TOP).normal(),
+                         frustum2.plane(FrustumPlane.FRUSTUM_PLANE_TOP).normal())
 
-        self.assertEqual(frustum.plane(Frustum.FRUSTUM_PLANE_BOTTOM).normal(),
-                         frustum2.plane(Frustum.FRUSTUM_PLANE_BOTTOM).normal())
+        self.assertEqual(frustum.plane(FrustumPlane.FRUSTUM_PLANE_BOTTOM).normal(),
+                         frustum2.plane(FrustumPlane.FRUSTUM_PLANE_BOTTOM).normal())
 
     def test_assignment_operator(self):
         # Frustum pointing to the +X+Y diagonal
@@ -78,11 +78,11 @@ class TestFrustrum(unittest.TestCase):
           # Far distance
           10,
           # Field of view
-          Angle(45 * IGN_PI / 180.0),
+          Angle(45 * math.pi / 180.0),
           # Aspect ratio
           320.0/240.0,
           # Pose
-          Pose3d(0, 0, 0, 0, 0, 45 * IGN_PI / 180.0))
+          Pose3d(0, 0, 0, 0, 0, 45 * math.pi / 180.0))
 
         frustum2 = Frustum()
         frustum2 = frustum
@@ -93,23 +93,23 @@ class TestFrustrum(unittest.TestCase):
         self.assertEqual(frustum.aspect_ratio(), frustum2.aspect_ratio())
         self.assertEqual(frustum.aspect_ratio(), frustum2.aspect_ratio())
 
-        self.assertEqual(frustum.plane(Frustum.FRUSTUM_PLANE_NEAR).normal(),
-                         frustum2.plane(Frustum.FRUSTUM_PLANE_NEAR).normal())
+        self.assertEqual(frustum.plane(FrustumPlane.FRUSTUM_PLANE_NEAR).normal(),
+                         frustum2.plane(FrustumPlane.FRUSTUM_PLANE_NEAR).normal())
 
-        self.assertEqual(frustum.plane(Frustum.FRUSTUM_PLANE_FAR).normal(),
-                         frustum2.plane(Frustum.FRUSTUM_PLANE_FAR).normal())
+        self.assertEqual(frustum.plane(FrustumPlane.FRUSTUM_PLANE_FAR).normal(),
+                         frustum2.plane(FrustumPlane.FRUSTUM_PLANE_FAR).normal())
 
-        self.assertEqual(frustum.plane(Frustum.FRUSTUM_PLANE_LEFT).normal(),
-                         frustum2.plane(Frustum.FRUSTUM_PLANE_LEFT).normal())
+        self.assertEqual(frustum.plane(FrustumPlane.FRUSTUM_PLANE_LEFT).normal(),
+                         frustum2.plane(FrustumPlane.FRUSTUM_PLANE_LEFT).normal())
 
-        self.assertEqual(frustum.plane(Frustum.FRUSTUM_PLANE_RIGHT).normal(),
-                         frustum2.plane(Frustum.FRUSTUM_PLANE_RIGHT).normal())
+        self.assertEqual(frustum.plane(FrustumPlane.FRUSTUM_PLANE_RIGHT).normal(),
+                         frustum2.plane(FrustumPlane.FRUSTUM_PLANE_RIGHT).normal())
 
-        self.assertEqual(frustum.plane(Frustum.FRUSTUM_PLANE_TOP).normal(),
-                         frustum2.plane(Frustum.FRUSTUM_PLANE_TOP).normal())
+        self.assertEqual(frustum.plane(FrustumPlane.FRUSTUM_PLANE_TOP).normal(),
+                         frustum2.plane(FrustumPlane.FRUSTUM_PLANE_TOP).normal())
 
-        self.assertEqual(frustum.plane(Frustum.FRUSTUM_PLANE_BOTTOM).normal(),
-                         frustum2.plane(Frustum.FRUSTUM_PLANE_BOTTOM).normal())
+        self.assertEqual(frustum.plane(FrustumPlane.FRUSTUM_PLANE_BOTTOM).normal(),
+                         frustum2.plane(FrustumPlane.FRUSTUM_PLANE_BOTTOM).normal())
 
     def test_pyramid_x_axis_pos(self):
         # Frustum pointing down the +x axis
@@ -119,7 +119,7 @@ class TestFrustrum(unittest.TestCase):
           # Far distance
           10,
           # Field of view
-          Angle(45 * IGN_PI / 180.0),
+          Angle(45 * math.pi / 180.0),
           # Aspect ratio
           320.0/240.0,
           # Pose
@@ -145,11 +145,11 @@ class TestFrustrum(unittest.TestCase):
           # Far distance
           10,
           # Field of view
-          Angle(45 * IGN_PI / 180.0),
+          Angle(45 * math.pi / 180.0),
           # Aspect ratio
           320.0/240.0,
           # Pose
-          Pose3d(0, 0, 0, 0, 0, IGN_PI))
+          Pose3d(0, 0, 0, 0, 0, math.pi))
 
         self.assertFalse(frustum.contains(Vector3d(0, 0, 0)))
         self.assertFalse(frustum.contains(Vector3d(-0.5, 0, 0)))
@@ -172,11 +172,11 @@ class TestFrustrum(unittest.TestCase):
           # Far distance
           5,
           # Field of view
-          Angle(45 * IGN_PI / 180.0),
+          Angle(45 * math.pi / 180.0),
           # Aspect ratio
           1.0,
           # Pose
-          Pose3d(0, 0, 0, 0, 0, IGN_PI*0.5))
+          Pose3d(0, 0, 0, 0, 0, math.pi*0.5))
 
         self.assertFalse(frustum.contains(Vector3d(0, 0, 0)))
         self.assertFalse(frustum.contains(Vector3d(1, 0, 0)))
@@ -199,11 +199,11 @@ class TestFrustrum(unittest.TestCase):
           # Far distance
           10,
           # Field of view
-          Angle(45 * IGN_PI / 180.0),
+          Angle(45 * math.pi / 180.0),
           # Aspect ratio
           1.0,
           # Pose
-          Pose3d(0, 0, 0, 0, IGN_PI*0.5, 0))
+          Pose3d(0, 0, 0, 0, math.pi*0.5, 0))
 
         self.assertFalse(frustum.contains(Vector3d(0, 0, 0)))
         self.assertFalse(frustum.contains(Vector3d(0, 0, -0.9)))
@@ -227,11 +227,11 @@ class TestFrustrum(unittest.TestCase):
           # Far distance
           10,
           # Field of view
-          Angle(45 * IGN_PI / 180.0),
+          Angle(45 * math.pi / 180.0),
           # Aspect ratio
           1.0,
           # Pose
-          Pose3d(0, 0, 0, 0, IGN_PI*0.5, 0))
+          Pose3d(0, 0, 0, 0, math.pi*0.5, 0))
 
         self.assertEqual(frustum.near(), 1.0)
         self.assertEqual(frustum.far(), 10.0)
@@ -249,13 +249,13 @@ class TestFrustrum(unittest.TestCase):
           # Far distance
           10,
           # Field of view
-          Angle(45 * IGN_PI / 180.0),
+          Angle(45 * math.pi / 180.0),
           # Aspect ratio
           1.0,
           # Pose
-          Pose3d(0, 0, 0, 0, IGN_PI*0.5, 0))
+          Pose3d(0, 0, 0, 0, math.pi*0.5, 0))
 
-        self.assertEqual(frustum.fov(), Angle(45 * IGN_PI / 180.0))
+        self.assertEqual(frustum.fov(), Angle(45 * math.pi / 180.0))
 
         frustum.set_fov(Angle(1.5707))
 
@@ -268,11 +268,11 @@ class TestFrustrum(unittest.TestCase):
           # Far distance
           10,
           # Field of view
-          Angle(45 * IGN_PI / 180.0),
+          Angle(45 * math.pi / 180.0),
           # Aspect ratio
           1.0,
           # Pose
-          Pose3d(0, 0, 0, 0, IGN_PI*0.5, 0))
+          Pose3d(0, 0, 0, 0, math.pi*0.5, 0))
 
         self.assertEqual(frustum.aspect_ratio(), 1)
 
@@ -288,17 +288,17 @@ class TestFrustrum(unittest.TestCase):
           # Far distance
           10,
           # Field of view
-          Angle(45 * IGN_PI / 180.0),
+          Angle(45 * math.pi / 180.0),
           # Aspect ratio
           1.0,
           # Pose
-          Pose3d(0, 0, 0, 0, IGN_PI*0.5, 0))
+          Pose3d(0, 0, 0, 0, math.pi*0.5, 0))
 
-        self.assertEqual(frustum.pose(), Pose3d(0, 0, 0, 0, IGN_PI*0.5, 0))
+        self.assertEqual(frustum.pose(), Pose3d(0, 0, 0, 0, math.pi*0.5, 0))
 
-        frustum.set_pose(Pose3d(1, 2, 3, IGN_PI, 0, 0))
+        frustum.set_pose(Pose3d(1, 2, 3, math.pi, 0, 0))
 
-        self.assertEqual(frustum.pose(), Pose3d(1, 2, 3, IGN_PI, 0, 0))
+        self.assertEqual(frustum.pose(), Pose3d(1, 2, 3, math.pi, 0, 0))
 
     def test_pose_contains(self):
         frustum = Frustum(
@@ -307,11 +307,11 @@ class TestFrustrum(unittest.TestCase):
           # Far distance
           10,
           # Field of view
-          Angle(60 * IGN_PI / 180.0),
+          Angle(60 * math.pi / 180.0),
           # Aspect ratio
           1920.0/1080.0,
           # Pose
-          Pose3d(0, -5, 0, 0, 0, IGN_PI*0.5))
+          Pose3d(0, -5, 0, 0, 0, math.pi*0.5))
 
         # Test the near clip boundary
         self.assertFalse(frustum.contains(Vector3d(0, -4.01, 0)))
@@ -330,44 +330,44 @@ class TestFrustrum(unittest.TestCase):
 
         # Compute near clip points
         nearTopLeft = Vector3d(
-          -math.tan(30 * IGN_PI / 180.0) + offset,
+          -math.tan(30 * math.pi / 180.0) + offset,
           frustum.pose().pos().y() + frustum.near() + offset,
-          math.tan(30 * IGN_PI / 180.0) / frustum.aspect_ratio() - offset)
+          math.tan(30 * math.pi / 180.0) / frustum.aspect_ratio() - offset)
 
         nearTopLeftBad = Vector3d(
-          -math.tan(30 * IGN_PI / 180.0) - offset,
+          -math.tan(30 * math.pi / 180.0) - offset,
           frustum.pose().pos().y() + frustum.near() - offset,
-          math.tan(30 * IGN_PI / 180.0) / frustum.aspect_ratio() + offset)
+          math.tan(30 * math.pi / 180.0) / frustum.aspect_ratio() + offset)
 
         nearTopRight = Vector3d(
-          math.tan(30 * IGN_PI / 180.0) - offset,
+          math.tan(30 * math.pi / 180.0) - offset,
           frustum.pose().pos().y() + frustum.near() + offset,
-          math.tan(30 * IGN_PI / 180.0) / frustum.aspect_ratio() - offset)
+          math.tan(30 * math.pi / 180.0) / frustum.aspect_ratio() - offset)
 
         nearTopRightBad = Vector3d(
-          math.tan(30 * IGN_PI / 180.0) + offset,
+          math.tan(30 * math.pi / 180.0) + offset,
           frustum.pose().pos().y() + frustum.near() - offset,
-          math.tan(30 * IGN_PI / 180.0) / frustum.aspect_ratio() + offset)
+          math.tan(30 * math.pi / 180.0) / frustum.aspect_ratio() + offset)
 
         nearBottomLeft = Vector3d(
-          -math.tan(30 * IGN_PI / 180.0) + offset,
+          -math.tan(30 * math.pi / 180.0) + offset,
           frustum.pose().pos().y() + frustum.near() + offset,
-          -math.tan(30 * IGN_PI / 180.0) / frustum.aspect_ratio() + offset)
+          -math.tan(30 * math.pi / 180.0) / frustum.aspect_ratio() + offset)
 
         nearBottomLeftBad = Vector3d(
-          -math.tan(30 * IGN_PI / 180.0) - offset,
+          -math.tan(30 * math.pi / 180.0) - offset,
           frustum.pose().pos().y() + frustum.near() - offset,
-          -math.tan(30 * IGN_PI / 180.0) / frustum.aspect_ratio() - offset)
+          -math.tan(30 * math.pi / 180.0) / frustum.aspect_ratio() - offset)
 
         nearBottomRight = Vector3d(
-          math.tan(30 * IGN_PI / 180.0) - offset,
+          math.tan(30 * math.pi / 180.0) - offset,
           frustum.pose().pos().y() + frustum.near() + offset,
-          -math.tan(30 * IGN_PI / 180.0) / frustum.aspect_ratio() + offset)
+          -math.tan(30 * math.pi / 180.0) / frustum.aspect_ratio() + offset)
 
         nearBottomRightBad = Vector3d(
-          math.tan(30 * IGN_PI / 180.0) + offset,
+          math.tan(30 * math.pi / 180.0) + offset,
           frustum.pose().pos().y() + frustum.near() - offset,
-          -math.tan(30 * IGN_PI / 180.0) / frustum.aspect_ratio() - offset)
+          -math.tan(30 * math.pi / 180.0) / frustum.aspect_ratio() - offset)
 
         # Test near clip corners
         self.assertTrue(frustum.contains(nearTopLeft))
@@ -384,44 +384,44 @@ class TestFrustrum(unittest.TestCase):
 
         # Compute far clip points
         farTopLeft = Vector3d(
-          -math.tan(30 * IGN_PI / 180.0) * frustum.far() + offset,
+          -math.tan(30 * math.pi / 180.0) * frustum.far() + offset,
           frustum.pose().pos().y() + frustum.far() - offset,
-          (math.tan(30 * IGN_PI / 180.0) * frustum.far()) / frustum.aspect_ratio() - offset)
+          (math.tan(30 * math.pi / 180.0) * frustum.far()) / frustum.aspect_ratio() - offset)
 
         farTopLeftBad = Vector3d(
-          -math.tan(30 * IGN_PI / 180.0)*frustum.far() - offset,
+          -math.tan(30 * math.pi / 180.0)*frustum.far() - offset,
           frustum.pose().pos().y() + frustum.far() + offset,
-          (math.tan(30 * IGN_PI / 180.0 * frustum.far())) / frustum.aspect_ratio() + offset)
+          (math.tan(30 * math.pi / 180.0 * frustum.far())) / frustum.aspect_ratio() + offset)
 
         farTopRight = Vector3d(
-          math.tan(30 * IGN_PI / 180.0)*frustum.far() - offset,
+          math.tan(30 * math.pi / 180.0)*frustum.far() - offset,
           frustum.pose().pos().y() + frustum.far() - offset,
-          (math.tan(30 * IGN_PI / 180.0) * frustum.far()) / frustum.aspect_ratio() - offset)
+          (math.tan(30 * math.pi / 180.0) * frustum.far()) / frustum.aspect_ratio() - offset)
 
         farTopRightBad = Vector3d(
-          math.tan(30 * IGN_PI / 180.0)*frustum.far() + offset,
+          math.tan(30 * math.pi / 180.0)*frustum.far() + offset,
           frustum.pose().pos().y() + frustum.far() + offset,
-          (math.tan(30 * IGN_PI / 180.0) * frustum.far()) / frustum.aspect_ratio() + offset)
+          (math.tan(30 * math.pi / 180.0) * frustum.far()) / frustum.aspect_ratio() + offset)
 
         farBottomLeft = Vector3d(
-          -math.tan(30 * IGN_PI / 180.0)*frustum.far() + offset,
+          -math.tan(30 * math.pi / 180.0)*frustum.far() + offset,
           frustum.pose().pos().y() + frustum.far() - offset,
-          (-math.tan(30 * IGN_PI / 180.0) * frustum.far()) / frustum.aspect_ratio() + offset)
+          (-math.tan(30 * math.pi / 180.0) * frustum.far()) / frustum.aspect_ratio() + offset)
 
         farBottomLeftBad = Vector3d(
-          -math.tan(30 * IGN_PI / 180.0)*frustum.far() - offset,
+          -math.tan(30 * math.pi / 180.0)*frustum.far() - offset,
           frustum.pose().pos().y() + frustum.far() + offset,
-          (-math.tan(30 * IGN_PI / 180.0) * frustum.far()) / frustum.aspect_ratio() - offset)
+          (-math.tan(30 * math.pi / 180.0) * frustum.far()) / frustum.aspect_ratio() - offset)
 
         farBottomRight = Vector3d(
-          math.tan(30 * IGN_PI / 180.0)*frustum.far() - offset,
+          math.tan(30 * math.pi / 180.0)*frustum.far() - offset,
           frustum.pose().pos().y() + frustum.far() - offset,
-          (-math.tan(30 * IGN_PI / 180.0) * frustum.far()) / frustum.aspect_ratio() + offset)
+          (-math.tan(30 * math.pi / 180.0) * frustum.far()) / frustum.aspect_ratio() + offset)
 
         farBottomRightBad = Vector3d(
-          math.tan(30 * IGN_PI / 180.0)*frustum.far() + offset,
+          math.tan(30 * math.pi / 180.0)*frustum.far() + offset,
           frustum.pose().pos().y() + frustum.far() + offset,
-          (-math.tan(30 * IGN_PI / 180.0) * frustum.far()) / frustum.aspect_ratio() - offset)
+          (-math.tan(30 * math.pi / 180.0) * frustum.far()) / frustum.aspect_ratio() - offset)
 
         # Test far clip corners
         self.assertTrue(frustum.contains(farTopLeft))
@@ -437,7 +437,7 @@ class TestFrustrum(unittest.TestCase):
         self.assertFalse(frustum.contains(farBottomRightBad))
 
         # Adjust to 45 degrees rotation
-        frustum.set_pose(Pose3d(1, 1, 0, 0, 0, -IGN_PI*0.25))
+        frustum.set_pose(Pose3d(1, 1, 0, 0, 0, -math.pi*0.25))
         self.assertTrue(frustum.contains(Vector3d(2, -1, 0)))
         self.assertFalse(frustum.contains(Vector3d(0, 0, 0)))
         self.assertFalse(frustum.contains(Vector3d(1, 1, 0)))
