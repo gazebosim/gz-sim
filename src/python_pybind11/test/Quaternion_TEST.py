@@ -15,9 +15,7 @@
 import math
 import unittest
 from ignition.math import Matrix3d
-# TODO(ahcorde): Enable the corresponding tests when these classes
-# are ported
-# from ignition.math import Matrix4d
+from ignition.math import Matrix4d
 from ignition.math import Quaterniond
 from ignition.math import Quaternionf
 from ignition.math import Quaternioni
@@ -355,13 +353,11 @@ class TestQuaternion(unittest.TestCase):
                     0.707544, 0.705561, -0.0395554,
                     -0.344106, 0.392882, 0.85278))
 
-        # TODO(ahcorde): Enable the corresponding tests when these classes
-        # are ported
-        # self.assertTrue(Matrix4d(q) == Matrix4d(
-        #             0.617229, -0.589769, 0.52077, 0,
-        #             0.707544, 0.705561, -0.0395554, 0,
-        #             -0.344106, 0.392882, 0.85278, 0,
-        #             0, 0, 0, 1))
+        self.assertTrue(Matrix4d(q) == Matrix4d(
+                    0.617229, -0.589769, 0.52077, 0,
+                    0.707544, 0.705561, -0.0395554, 0,
+                    -0.344106, 0.392882, 0.85278, 0,
+                    0, 0, 0, 1))
 
     def test_stream_out(self):
         q = Quaterniond(0.1, 1.2, 2.3)

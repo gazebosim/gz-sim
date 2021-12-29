@@ -94,6 +94,7 @@ if (${pybind11_FOUND})
       Line3_TEST
       Material_TEST
       Matrix3_TEST
+      Matrix4_TEST
       MassMatrix3_TEST
       MovingWindowFilter_TEST
       PID_TEST

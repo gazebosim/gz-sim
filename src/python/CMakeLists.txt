@@ -91,7 +91,6 @@ if (PYTHONLIBS_FOUND)
       Cylinder_TEST
       Frustum_TEST
       Inertial_TEST
-      Matrix4_TEST
       OrientedBox_TEST
       Plane_TEST
       python_TEST
