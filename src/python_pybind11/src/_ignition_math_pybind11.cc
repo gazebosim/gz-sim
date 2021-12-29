@@ -30,6 +30,7 @@
 #include "Matrix3.hh"
 #include "Matrix4.hh"
 #include "MovingWindowFilter.hh"
+#include "OrientedBox.hh"
 #include "PID.hh"
 #include "Pose3.hh"
 #include "Quaternion.hh"
@@ -132,6 +133,8 @@ PYBIND11_MODULE(math, m)
   ignition::math::python::defineMathQuaternion<int>(m, "Quaternioni");
   ignition::math::python::defineMathQuaternion<double>(m, "Quaterniond");
   ignition::math::python::defineMathQuaternion<float>(m, "Quaternionf");
+
+  ignition::math::python::defineMathOrientedBox<double>(m, "OrientedBoxd");
 
   ignition::math::python::defineMathPose3<int>(m, "Pose3i");
   ignition::math::python::defineMathPose3<double>(m, "Pose3d");

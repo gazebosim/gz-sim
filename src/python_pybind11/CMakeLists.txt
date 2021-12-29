@@ -98,6 +98,7 @@ if (${pybind11_FOUND})
       Matrix4_TEST
       MassMatrix3_TEST
       MovingWindowFilter_TEST
+      OrientedBox_TEST
       PID_TEST
       Pose3_TEST
       Quaternion_TEST

@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import math
 import unittest
 
-from ignition.math import IGN_PI, OrientedBoxd, MassMatrix3d, Material, Pose3d, Vector3d
+from ignition.math import OrientedBoxd, MassMatrix3d, Material, Pose3d, Vector3d
 
 g_tolerance = 1e-6
 
@@ -205,7 +206,7 @@ class TestOrientedBox(unittest.TestCase):
 
     def test_contains_oriented_rotation(self):
         # Rotate PI/2 about +x: swap Z and Y
-        box = OrientedBoxd(Vector3d(1, 2, 3), Pose3d(0, 0, 0, IGN_PI*0.5, 0, 0))
+        box = OrientedBoxd(Vector3d(1, 2, 3), Pose3d(0, 0, 0, math.pi*0.5, 0, 0))
 
         # Doesn't contain non-rotated vertices
         self.assertFalse(box.contains(Vector3d(-0.5, -1.0, -1.5)))
