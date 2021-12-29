@@ -16,7 +16,7 @@ import copy
 import math
 import unittest
 
-from ignition.math import IGN_PI, IGN_PI_2, IGN_PI_4, Inertiald, Quaterniond, Pose3d, Matrix3d, MassMatrix3d, Vector3d
+from ignition.math import Inertiald, Quaterniond, Pose3d, Matrix3d, MassMatrix3d, Vector3d
 
 
 class TestInertial(unittest.TestCase):
@@ -45,7 +45,7 @@ class TestInertial(unittest.TestCase):
         m = MassMatrix3d(mass, Ixxyyzz, Ixyxzyz)
         self.assertTrue(m.is_positive())
         self.assertTrue(m.is_valid())
-        pose = Pose3d(1, 2, 3, IGN_PI/6, 0, 0)
+        pose = Pose3d(1, 2, 3, math.pi/6, 0, 0)
         inertial = Inertiald(m, pose)
 
         # Should not match simple constructor
@@ -83,7 +83,7 @@ class TestInertial(unittest.TestCase):
         m = MassMatrix3d(mass, Ixxyyzz, Ixyxzyz)
         self.assertTrue(m.is_positive())
         self.assertTrue(m.is_valid())
-        pose = Pose3d(1, 2, 3, IGN_PI/6, 0, 0)
+        pose = Pose3d(1, 2, 3, math.pi/6, 0, 0)
         inertial = Inertiald()
 
         # Initially valid
@@ -114,28 +114,28 @@ class TestInertial(unittest.TestCase):
         self.assertEqual(inertial.moi(), m.moi())
 
         # 90 deg rotation about X axis, expect different MOI
-        pose = Pose3d(0, 0, 0, IGN_PI_2, 0, 0)
+        pose = Pose3d(0, 0, 0, math.pi/2, 0, 0)
         expectedMOI = Matrix3d(2, 0, 0, 0, 4, 0, 0, 0, 3)
         inertial = Inertiald(m, pose)
         self.assertNotEqual(inertial.moi(), m.moi())
         self.assertEqual(inertial.moi(), expectedMOI)
 
         # 90 deg rotation about Y axis, expect different MOI
-        pose = Pose3d(0, 0, 0, 0, IGN_PI_2, 0)
+        pose = Pose3d(0, 0, 0, 0, math.pi/2, 0)
         expectedMOI = Matrix3d(4, 0, 0, 0, 3, 0, 0, 0, 2)
         inertial = Inertiald(m, pose)
         self.assertNotEqual(inertial.moi(), m.moi())
         self.assertEqual(inertial.moi(), expectedMOI)
 
         # 90 deg rotation about Z axis, expect different MOI
-        pose = Pose3d(0, 0, 0, 0, 0, IGN_PI_2)
+        pose = Pose3d(0, 0, 0, 0, 0, math.pi/2)
         expectedMOI = Matrix3d(3, 0, 0, 0, 2, 0, 0, 0, 4)
         inertial = Inertiald(m, pose)
         self.assertNotEqual(inertial.moi(), m.moi())
         self.assertEqual(inertial.moi(), expectedMOI)
 
         # 45 deg rotation about Z axis, expect different MOI
-        pose = Pose3d(0, 0, 0, 0, 0, IGN_PI_4)
+        pose = Pose3d(0, 0, 0, 0, 0, math.pi/4)
         expectedMOI = Matrix3d(2.5, -0.5, 0, -0.5, 2.5, 0, 0, 0, 4)
         inertial = Inertiald(m, pose)
         self.assertNotEqual(inertial.moi(), m.moi())
@@ -161,18 +161,18 @@ class TestInertial(unittest.TestCase):
 
         rotations = [
             Quaterniond.IDENTITY,
-            Quaterniond(IGN_PI, 0, 0),
-            Quaterniond(0, IGN_PI, 0),
-            Quaterniond(0, 0, IGN_PI),
-            Quaterniond(IGN_PI_2, 0, 0),
-            Quaterniond(0, IGN_PI_2, 0),
-            Quaterniond(0, 0, IGN_PI_2),
-            Quaterniond(IGN_PI_4, 0, 0),
-            Quaterniond(0, IGN_PI_4, 0),
-            Quaterniond(0, 0, IGN_PI_4),
-            Quaterniond(IGN_PI/6, 0, 0),
-            Quaterniond(0, IGN_PI/6, 0),
-            Quaterniond(0, 0, IGN_PI/6),
+            Quaterniond(math.pi, 0, 0),
+            Quaterniond(0, math.pi, 0),
+            Quaterniond(0, 0, math.pi),
+            Quaterniond(math.pi/2, 0, 0),
+            Quaterniond(0, math.pi/2, 0),
+            Quaterniond(0, 0, math.pi/2),
+            Quaterniond(math.pi/4, 0, 0),
+            Quaterniond(0, math.pi/4, 0),
+            Quaterniond(0, 0, math.pi/4),
+            Quaterniond(math.pi/6, 0, 0),
+            Quaterniond(0, math.pi/6, 0),
+            Quaterniond(0, 0, math.pi/6),
             Quaterniond(0.1, 0.2, 0.3),
             Quaterniond(-0.1, 0.2, -0.3),
             Quaterniond(0.4, 0.2, 0.5),
@@ -323,12 +323,12 @@ class TestInertial(unittest.TestCase):
         size = Vector3d(1, 1, 1)
         cubeMM3 = MassMatrix3d()
         self.assertTrue(cubeMM3.set_from_box(mass, size))
-        cube = Inertiald(cubeMM3, Pose3d(0, 0, 0, IGN_PI_4, 0, 0))
+        cube = Inertiald(cubeMM3, Pose3d(0, 0, 0, math.pi/4, 0, 0))
 
         half = MassMatrix3d()
         self.assertTrue(half.set_from_box(0.5*mass, Vector3d(0.5, 1, 1)))
-        left = Inertiald(half, Pose3d(-0.25, 0, 0, IGN_PI_4, 0, 0))
-        right = Inertiald(half, Pose3d(0.25, 0, 0, IGN_PI_4, 0, 0))
+        left = Inertiald(half, Pose3d(-0.25, 0, 0, math.pi/4, 0, 0))
+        right = Inertiald(half, Pose3d(0.25, 0, 0, math.pi/4, 0, 0))
 
         # objects won't match exactly
         # since inertia matrices will all be in base frame
@@ -367,12 +367,12 @@ class TestInertial(unittest.TestCase):
         self.assertTrue(cubeMM3.set_from_box(mass, size))
         addedCube = Inertiald(
           Inertiald(cubeMM3, Pose3d(-0.5, -0.5, -0.5, 0, 0, 0)) +
-          Inertiald(cubeMM3, Pose3d(-0.5,  0.5, -0.5, IGN_PI_2, 0, 0)) +
-          Inertiald(cubeMM3, Pose3d(0.5,  -0.5, -0.5, 0, IGN_PI_2, 0)) +
-          Inertiald(cubeMM3, Pose3d(0.5,   0.5, -0.5, 0, 0, IGN_PI_2)) +
-          Inertiald(cubeMM3, Pose3d(-0.5, -0.5, 0.5, IGN_PI, 0, 0)) +
-          Inertiald(cubeMM3, Pose3d(-0.5,  0.5, 0.5, 0, IGN_PI, 0)) +
-          Inertiald(cubeMM3, Pose3d(0.5,  -0.5, 0.5, 0, 0, IGN_PI)) +
+          Inertiald(cubeMM3, Pose3d(-0.5,  0.5, -0.5, math.pi/2, 0, 0)) +
+          Inertiald(cubeMM3, Pose3d(0.5,  -0.5, -0.5, 0, math.pi/2, 0)) +
+          Inertiald(cubeMM3, Pose3d(0.5,   0.5, -0.5, 0, 0, math.pi/2)) +
+          Inertiald(cubeMM3, Pose3d(-0.5, -0.5, 0.5, math.pi, 0, 0)) +
+          Inertiald(cubeMM3, Pose3d(-0.5,  0.5, 0.5, 0, math.pi, 0)) +
+          Inertiald(cubeMM3, Pose3d(0.5,  -0.5, 0.5, 0, 0, math.pi)) +
           Inertiald(cubeMM3, Pose3d(0.5,   0.5, 0.5, 0, 0, 0)))
 
         trueCubeMM3 = MassMatrix3d()

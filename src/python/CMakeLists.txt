@@ -90,7 +90,6 @@ if (PYTHONLIBS_FOUND)
       Box_TEST
       Cylinder_TEST
       Frustum_TEST
-      Inertial_TEST
       OrientedBox_TEST
       Plane_TEST
       python_TEST
