@@ -16,7 +16,7 @@ import math
 import unittest
 
 import ignition
-from ignition.math import Cylinderd, IGN_PI, MassMatrix3d, Material, Quaterniond
+from ignition.math import Cylinderd, MassMatrix3d, Material, Quaterniond
 
 
 class TestCylinder(unittest.TestCase):
@@ -54,14 +54,14 @@ class TestCylinder(unittest.TestCase):
         self.assertEqual(cylinder, cylinder2)
 
         # Length, radius, mat and rot constructor
-        cylinder = Cylinderd(1.0, 2.0, Material(ignition.math.MaterialType_WOOD),
+        cylinder = Cylinderd(1.0, 2.0, Material(ignition.math.MaterialType.WOOD),
                              Quaterniond(0.1, 0.2, 0.3))
         self.assertEqual(1.0, cylinder.length())
         self.assertEqual(2.0, cylinder.radius())
         self.assertEqual(Quaterniond(0.1, 0.2, 0.3), cylinder.rotational_offset())
-        self.assertEqual(Material(ignition.math.MaterialType_WOOD), cylinder.mat())
+        self.assertEqual(Material(ignition.math.MaterialType.WOOD), cylinder.mat())
 
-        cylinder2 = Cylinderd(1.0, 2.0, Material(ignition.math.MaterialType_WOOD),
+        cylinder2 = Cylinderd(1.0, 2.0, Material(ignition.math.MaterialType.WOOD),
                               Quaterniond(0.1, 0.2, 0.3))
         self.assertEqual(cylinder, cylinder2)
 
@@ -75,17 +75,17 @@ class TestCylinder(unittest.TestCase):
         cylinder.set_length(100.1)
         cylinder.set_radius(.123)
         cylinder.set_rotational_offset(Quaterniond(1.2, 2.3, 3.4))
-        cylinder.set_mat(Material(ignition.math.MaterialType_PINE))
+        cylinder.set_mat(Material(ignition.math.MaterialType.PINE))
 
         self.assertEqual(100.1, cylinder.length())
         self.assertEqual(.123, cylinder.radius())
         self.assertEqual(Quaterniond(1.2, 2.3, 3.4), cylinder.rotational_offset())
-        self.assertEqual(Material(ignition.math.MaterialType_PINE), cylinder.mat())
+        self.assertEqual(Material(ignition.math.MaterialType.PINE), cylinder.mat())
 
     def test_volume_and_density(self):
         mass = 1.0
         cylinder = Cylinderd(1.0, 0.001)
-        expectedVolume = (IGN_PI * math.pow(0.001, 2) * 1.0)
+        expectedVolume = (math.pi * math.pow(0.001, 2) * 1.0)
         self.assertEqual(expectedVolume, cylinder.volume())
 
         expectedDensity = mass / expectedVolume

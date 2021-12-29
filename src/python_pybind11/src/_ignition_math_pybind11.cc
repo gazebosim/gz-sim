@@ -16,6 +16,7 @@
 
 #include "Angle.hh"
 #include "AxisAlignedBox.hh"
+#include "Cylinder.hh"
 #include "Color.hh"
 #include "DiffDriveOdometry.hh"
 #include "Filter.hh"
@@ -142,6 +143,8 @@ PYBIND11_MODULE(math, m)
 
   ignition::math::python::defineMathMassMatrix3<double>(m, "MassMatrix3d");
   ignition::math::python::defineMathMassMatrix3<float>(m, "MassMatrix3f");
+
+  ignition::math::python::defineMathCylinder<double>(m, "Cylinderd");
 
   ignition::math::python::defineMathInertial<double>(m, "Inertiald");
 
