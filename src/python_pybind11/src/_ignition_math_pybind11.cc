@@ -16,8 +16,9 @@
 
 #include "Angle.hh"
 #include "AxisAlignedBox.hh"
-#include "Cylinder.hh"
+#include "Box.hh"
 #include "Color.hh"
+#include "Cylinder.hh"
 #include "DiffDriveOdometry.hh"
 #include "Filter.hh"
 #include "GaussMarkovProcess.hh"
@@ -33,6 +34,7 @@
 #include "MovingWindowFilter.hh"
 #include "OrientedBox.hh"
 #include "PID.hh"
+#include "Plane.hh"
 #include "Pose3.hh"
 #include "Quaternion.hh"
 #include "Rand.hh"
@@ -102,6 +104,11 @@ PYBIND11_MODULE(math, m)
   ignition::math::python::defineMathVector3<double>(m, "Vector3d");
   ignition::math::python::defineMathVector3<int>(m, "Vector3i");
   ignition::math::python::defineMathVector3<float>(m, "Vector3f");
+
+  ignition::math::python::defineMathPlane<double>(m, "Planed");
+
+  ignition::math::python::defineMathBox<double>(m, "Boxd");
+  ignition::math::python::defineMathBox<float>(m, "Boxf");
 
   ignition::math::python::defineMathVector4<double>(m, "Vector4d");
   ignition::math::python::defineMathVector4<int>(m, "Vector4i");

@@ -87,9 +87,7 @@ if (PYTHONLIBS_FOUND)
   if (BUILD_TESTING)
     # Add the Python tests
     set(python_tests
-      Box_TEST
       Frustum_TEST
-      Plane_TEST
       python_TEST
       SignalStats_TEST
       Sphere_TEST

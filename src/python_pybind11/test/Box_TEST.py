@@ -46,30 +46,30 @@ class TestBox(unittest.TestCase):
         self.assertEqual(box, box2)
 
         # Dimension and mat constructor
-        box = Boxd(1.0, 2.0, 5.0, Material(ignition.math.MaterialType_WOOD))
+        box = Boxd(1.0, 2.0, 5.0, Material(ignition.math.MaterialType.WOOD))
         self.assertEqual(Vector3d(1.0, 2.0, 5.0), box.size())
-        self.assertEqual(Material(ignition.math.MaterialType_WOOD), box.material())
+        self.assertEqual(Material(ignition.math.MaterialType.WOOD), box.material())
 
-        box2 = Boxd(1.0, 2.0, 5.0, Material(ignition.math.MaterialType_WOOD))
+        box2 = Boxd(1.0, 2.0, 5.0, Material(ignition.math.MaterialType.WOOD))
         self.assertEqual(box, box2)
 
         # Vector Dimension and mat constructor
-        box = Boxd(Vector3d(2.2, 2.0, 10.0), Material(ignition.math.MaterialType_WOOD))
+        box = Boxd(Vector3d(2.2, 2.0, 10.0), Material(ignition.math.MaterialType.WOOD))
         self.assertEqual(Vector3d(2.2, 2.0, 10.0), box.size())
-        self.assertEqual(Material(ignition.math.MaterialType_WOOD), box.material())
+        self.assertEqual(Material(ignition.math.MaterialType.WOOD), box.material())
 
-        box2 = Boxd(Vector3d(2.2, 2.0, 10.0), Material(ignition.math.MaterialType_WOOD))
+        box2 = Boxd(Vector3d(2.2, 2.0, 10.0), Material(ignition.math.MaterialType.WOOD))
         self.assertEqual(box, box2)
 
     def test_mutators(self):
         box = Boxd()
         box.set_size(100.1, 2.3, 5.6)
-        box.set_material(Material(ignition.math.MaterialType_PINE))
+        box.set_material(Material(ignition.math.MaterialType.PINE))
 
         self.assertEqual(100.1, box.size().x())
         self.assertEqual(2.3, box.size().y())
         self.assertEqual(5.6, box.size().z())
-        self.assertEqual(Material(ignition.math.MaterialType_PINE), box.material())
+        self.assertEqual(Material(ignition.math.MaterialType.PINE), box.material())
 
         box.set_size(Vector3d(3.4, 1.2, 0.5))
         self.assertEqual(3.4, box.size().x())
@@ -93,14 +93,14 @@ class TestBox(unittest.TestCase):
         # No intersections
         box = Boxd(2.0, 2.0, 2.0)
         plane = Planed(Vector3d(0.0, 0.0, 1.0), -5.0)
-        self.assertEqual(0, box.intersections(plane).size())
+        self.assertEqual(0, len(box.intersections(plane)))
 
         # Plane crosses 4 edges
         box = Boxd(2.0, 2.0, 2.0)
-        plane = Planed(Vector3d(0.0, 0.0, 1.0), 0)
+        plane = Planed(Vector3d(0.0, 0.0, 1.0), 0.0)
 
         intersections = box.intersections(plane)
-        self.assertEqual(4, intersections.size())
+        self.assertEqual(4, len(intersections))
         self.assertEqual(intersections.count(Vector3d(-1.0, -1.0, 0.0)), 1)
         self.assertEqual(intersections.count(Vector3d(-1.0, 1.0, 0.0)), 1)
         self.assertEqual(intersections.count(Vector3d(1.0, -1.0, 0.0)), 1)
@@ -111,7 +111,7 @@ class TestBox(unittest.TestCase):
         plane = Planed(Vector3d(0.0, 0.0, 1.0), 1.0)
 
         intersections = box.intersections(plane)
-        self.assertEqual(4, intersections.size())
+        self.assertEqual(4, len(intersections))
         self.assertEqual(intersections.count(Vector3d(-1.0, -1.0, 1.0)), 1)
         self.assertEqual(intersections.count(Vector3d(-1.0, 1.0, 1.0)), 1)
         self.assertEqual(intersections.count(Vector3d(1.0, -1.0, 1.0)), 1)
@@ -122,7 +122,7 @@ class TestBox(unittest.TestCase):
         plane = Planed(Vector3d(1.0, 1.0, 1.0), 1.0)
 
         intersections = box.intersections(plane)
-        self.assertEqual(3, intersections.size())
+        self.assertEqual(3, len(intersections))
         self.assertEqual(intersections.count(Vector3d(1.0, -1.0, 1.0)), 1)
         self.assertEqual(intersections.count(Vector3d(-1.0, 1.0, 1.0)), 1)
         self.assertEqual(intersections.count(Vector3d(1.0, 1.0, -1.0)), 1)
@@ -132,7 +132,7 @@ class TestBox(unittest.TestCase):
         plane = Planed(Vector3d(1.0, 1.0, 1.0), 0.5)
 
         intersections = box.intersections(plane)
-        self.assertEqual(6, intersections.size())
+        self.assertEqual(6, len(intersections))
         self.assertEqual(intersections.count(Vector3d(-1.0, 1.0, 0.5)), 1)
         self.assertEqual(intersections.count(Vector3d(-1.0, 0.5, 1.0)), 1)
         self.assertEqual(intersections.count(Vector3d(1.0, -1.0, 0.5)), 1)
@@ -146,7 +146,7 @@ class TestBox(unittest.TestCase):
         plane = Planed(Vector3d(1.0, 1.0, 2.0), 0.5)
 
         intersections = box.intersections(plane)
-        self.assertEqual(5, intersections.size())
+        self.assertEqual(5, len(intersections))
         self.assertEqual(intersections.count(Vector3d(-1.0, 1.0, 0.25)), 1)
         self.assertEqual(intersections.count(Vector3d(-1.0, -0.5, 1.0)), 1)
         self.assertEqual(intersections.count(Vector3d(1.0, -1.0, 0.25)), 1)
@@ -269,24 +269,25 @@ class TestBox(unittest.TestCase):
 
         # Fully above
         plane = Planed(Vector3d(0.0, 0.0, 1.0), -5.0)
-        self.assertTrue(box.vertices_below(plane).empty())
+        self.assertTrue(len(box.vertices_below(plane)) == 0)
 
         # Fully below
 
         plane = Planed(Vector3d(0.0, 0.0, 1.0), 20.0)
-        self.assertEqual(8, box.vertices_below(plane).size())
+        vertices = box.vertices_below(plane)
+        self.assertEqual(8, len(vertices))
 
         # Fully below (because plane is rotated down)
 
         plane = Planed(Vector3d(0.0, 0.0, -1.0), 20.0)
-        self.assertEqual(8, box.vertices_below(plane).size())
+        self.assertEqual(8, len(box.vertices_below(plane)))
 
         # 4 vertices
 
         plane = Planed(Vector3d(0, 0, 1.0), 0)
 
         vertices = box.vertices_below(plane)
-        self.assertEqual(4, vertices.size())
+        self.assertEqual(4, len(vertices))
 
         self.assertEqual(vertices.count(nXnYnZ), 1)
         self.assertEqual(vertices.count(nXpYnZ), 1)
@@ -296,7 +297,7 @@ class TestBox(unittest.TestCase):
         plane = Planed(Vector3d(0, 1, 0), 0.5)
 
         vertices = box.vertices_below(plane)
-        self.assertEqual(4, vertices.size())
+        self.assertEqual(4, len(vertices))
 
         self.assertEqual(vertices.count(nXnYnZ), 1)
         self.assertEqual(vertices.count(nXnYpZ), 1)
@@ -306,7 +307,7 @@ class TestBox(unittest.TestCase):
         plane = Planed(Vector3d(-1, 0, 0), -0.5)
 
         vertices = box.vertices_below(plane)
-        self.assertEqual(4, vertices.size())
+        self.assertEqual(4, len(vertices))
 
         self.assertEqual(vertices.count(pXnYnZ), 1)
         self.assertEqual(vertices.count(pXnYpZ), 1)
@@ -316,7 +317,7 @@ class TestBox(unittest.TestCase):
         plane = Planed(Vector3d(1, 1, 1), 0.0)
 
         vertices = box.vertices_below(plane)
-        self.assertEqual(4, vertices.size())
+        self.assertEqual(4, len(vertices))
 
         self.assertEqual(vertices.count(nXnYnZ), 1)
         self.assertEqual(vertices.count(nXnYpZ), 1)
@@ -327,7 +328,7 @@ class TestBox(unittest.TestCase):
         plane = Planed(Vector3d(-1, -1, 0), 0.3)
 
         vertices = box.vertices_below(plane)
-        self.assertEqual(6, vertices.size())
+        self.assertEqual(6, len(vertices))
 
         self.assertEqual(vertices.count(nXpYnZ), 1)
         self.assertEqual(vertices.count(nXpYpZ), 1)
@@ -339,7 +340,7 @@ class TestBox(unittest.TestCase):
         plane = Planed(Vector3d(0, 1, 1), 0.9)
 
         vertices = box.vertices_below(plane)
-        self.assertEqual(6, vertices.size())
+        self.assertEqual(6, len(vertices))
 
         self.assertEqual(vertices.count(nXnYnZ), 1)
         self.assertEqual(vertices.count(nXnYpZ), 1)
@@ -352,7 +353,7 @@ class TestBox(unittest.TestCase):
         plane = Planed(Vector3d(-1, -1, 0), -0.5)
 
         vertices = box.vertices_below(plane)
-        self.assertEqual(2, vertices.size())
+        self.assertEqual(2, len(vertices))
 
         self.assertEqual(vertices.count(pXpYnZ), 1)
         self.assertEqual(vertices.count(pXpYpZ), 1)
@@ -361,7 +362,7 @@ class TestBox(unittest.TestCase):
         plane = Planed(Vector3d(1, 1, 1), 1.0)
 
         vertices = box.vertices_below(plane)
-        self.assertEqual(7, vertices.size())
+        self.assertEqual(7, len(vertices))
 
         self.assertEqual(vertices.count(nXnYnZ), 1)
         self.assertEqual(vertices.count(nXnYpZ), 1)
@@ -375,7 +376,7 @@ class TestBox(unittest.TestCase):
         plane = Planed(Vector3d(1, 1, 1), -1.2)
 
         vertices = box.vertices_below(plane)
-        self.assertEqual(1, vertices.size())
+        self.assertEqual(1, len(vertices))
 
         self.assertEqual(vertices.count(nXnYnZ), 1)
 

@@ -14,7 +14,7 @@
 
 import unittest
 
-from ignition.math import AxisAlignedBox, Planed, Vector2d, Vector3d
+from ignition.math import AxisAlignedBox, Planed, PlaneSide, Vector2d, Vector3d
 
 
 class TestPlane(unittest.TestCase):
@@ -76,46 +76,46 @@ class TestPlane(unittest.TestCase):
 
         # On the negative side of the plane (below the plane)
         point = Vector3d(0, 0, 0)
-        self.assertEqual(plane.side(point), Planed.NEGATIVE_SIDE)
+        self.assertEqual(plane.side(point), PlaneSide.NEGATIVE_SIDE)
 
         # Still on the negative side of the plane (below the plane)
         point.set(1, 1, 0)
-        self.assertEqual(plane.side(point), Planed.NEGATIVE_SIDE)
+        self.assertEqual(plane.side(point), PlaneSide.NEGATIVE_SIDE)
 
         # Above the plane (positive side)
         point.set(1, 1, 2)
-        self.assertEqual(plane.side(point), Planed.POSITIVE_SIDE)
+        self.assertEqual(plane.side(point), PlaneSide.POSITIVE_SIDE)
 
         # On the plane
         point.set(0, 0, 1)
-        self.assertEqual(plane.side(point), Planed.NO_SIDE)
+        self.assertEqual(plane.side(point), PlaneSide.NO_SIDE)
 
         # Change the plane, but the point is still on the negative side
         plane.set(Vector3d(1, 0, 0), 4)
-        self.assertEqual(plane.side(point), Planed.NEGATIVE_SIDE)
+        self.assertEqual(plane.side(point), PlaneSide.NEGATIVE_SIDE)
 
         # Point is now on the positive side
         point.set(4.1, 0, 1)
-        self.assertEqual(plane.side(point), Planed.POSITIVE_SIDE)
+        self.assertEqual(plane.side(point), PlaneSide.POSITIVE_SIDE)
 
     def test_side__axis_aligned_box(self):
         plane = Planed(Vector3d(0, 0, 1), 1)
 
         # On the negative side of the plane (below the plane)
         box = AxisAlignedBox(Vector3d(-.5, -.5, -.5), Vector3d(.5, .5, .5))
-        self.assertEqual(plane.side(box), Planed.NEGATIVE_SIDE)
+        self.assertEqual(plane.side(box), PlaneSide.NEGATIVE_SIDE)
 
         # Still on the negative side of the plane (below the plane)
         box = AxisAlignedBox(Vector3d(-10, -10, -10), Vector3d(.9, .9, .9))
-        self.assertEqual(plane.side(box), Planed.NEGATIVE_SIDE)
+        self.assertEqual(plane.side(box), PlaneSide.NEGATIVE_SIDE)
 
         # Above the plane (positive side)
         box = AxisAlignedBox(Vector3d(2, 2, 2), Vector3d(3, 3, 3))
-        self.assertEqual(plane.side(box), Planed.POSITIVE_SIDE)
+        self.assertEqual(plane.side(box), PlaneSide.POSITIVE_SIDE)
 
         # On both sides the plane
         box = AxisAlignedBox(Vector3d(0, 0, 0), Vector3d(3, 3, 3))
-        self.assertEqual(plane.side(box), Planed.BOTH_SIDE)
+        self.assertEqual(plane.side(box), PlaneSide.BOTH_SIDE)
 
     def test_intersection(self):
         plane = Planed(Vector3d(0.5, 0, 1), 1)
