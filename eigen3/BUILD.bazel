@@ -10,9 +10,9 @@ package(
 
 licenses(["notice"])
 
-public_headers = [
-    "include/ignition/math/eigen3/Conversions.hh",
-]
+public_headers = glob([
+    "include/ignition/math/eigen3/*.hh",
+])
 
 cc_library(
     name = "eigen3",

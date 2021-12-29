@@ -47,7 +47,7 @@ namespace ignition
       public: Vector3();
       public: Vector3(const T &_x, const T &_y, const T &_z);
       public: Vector3(const Vector3<T> &_v);
-      public: virtual ~Vector3();
+      public: ~Vector3() = default;
       public: T Sum() const;
       public: T Distance(const Vector3<T> &_pt) const;
       public: T Distance(T _x, T _y, T _z) const;
@@ -70,6 +70,8 @@ namespace ignition
       public: void Min(const Vector3<T> &_v);
       public: T Max() const;
       public: T Min() const;
+      public: T MaxAbs() const;
+      public: T MinAbs() const;
       public: Vector3 operator+(const Vector3<T> &_v) const;
       public: inline Vector3<T> operator+(const T _s) const;
       public: inline Vector3 operator-() const;

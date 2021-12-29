@@ -526,3 +526,33 @@ TEST(Vector3dTest, NaN)
   EXPECT_EQ(math::Vector3f::Zero, nanVecF);
   EXPECT_TRUE(nanVecF.IsFinite());
 }
+
+/////////////////////////////////////////////////
+TEST(Vector3dTest, DistToLine)
+{
+  // Line on horizontal plane
+  math::Vector3d pointA{0, -1, 0};
+  math::Vector3d pointB{0, 1, 0};
+
+  // Point on the line
+  {
+    math::Vector3d point(0, 0.5, 0);
+    EXPECT_DOUBLE_EQ(point.DistToLine(pointA, pointB), 0.0);
+  }
+
+  // Points projected onto the line
+  {
+    math::Vector3d point(5, 0, 0);
+    EXPECT_DOUBLE_EQ(point.DistToLine(pointA, pointB), 5);
+  }
+  {
+    math::Vector3d point(-1, -1, 0);
+    EXPECT_DOUBLE_EQ(point.DistToLine(pointA, pointB), 1);
+  }
+
+  // Point projected beyond the segment's ends
+  {
+    math::Vector3d point(0, 2, 0);
+    EXPECT_DOUBLE_EQ(point.DistToLine(pointA, pointB), 0);
+  }
+}
