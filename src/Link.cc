@@ -341,7 +341,7 @@ void Link::AddWorldForce(EntityComponentManager &_ecm,
   // We want the force to be applied at the center of mass, but
   // ExternalWorldWrenchCmd applies the force at the link origin so we need to
   // compute the resulting force and torque on the link origin.
-  auto posComWorldCoord =
+  auto posComWorldCoord = _position +
       worldPose->Data().Rot().RotateVector(inertial->Data().Pose().Pos());
 
   math::Vector3d torque = posComWorldCoord.Cross(_force);

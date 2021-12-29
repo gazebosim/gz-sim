@@ -223,15 +223,15 @@ void Surface::PreUpdate(const ignition::gazebo::UpdateInfo &/*_info*/,
 
       // Buoyancy force at grid point
       const float kBuoyForce =
-        CircleSegment(this->dataPtr->hullRadius, deltaZ) *
-        this->dataPtr->vehicleLength /
-        (static_cast<float>(this->dataPtr->numSamples)) *
-        this->dataPtr->gravity.Z() * this->dataPtr->fluidDensity;
+        this->CircleSegment(this->dataPtr->hullRadius, deltaZ) *
+          this->dataPtr->vehicleLength /
+          (static_cast<float>(this->dataPtr->numSamples)) *
+          this->dataPtr->gravity.Z() * this->dataPtr->fluidDensity;
 
       // Apply force at grid point
       // Position is in the link frame and force is in world frame.
       this->dataPtr->link.AddWorldForce(_ecm,
-        ignition::math::Vector3d(0, 0, kBuoyForce),
+        ignition::math::Vector3d(0, 0, abs(kBuoyForce)),
         bpnt);
 
       // Debug output:
