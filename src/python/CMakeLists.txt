@@ -93,7 +93,6 @@ if (PYTHONLIBS_FOUND)
       Inertial_TEST
       Matrix4_TEST
       OrientedBox_TEST
-      PID_TEST
       Plane_TEST
       python_TEST
       SignalStats_TEST

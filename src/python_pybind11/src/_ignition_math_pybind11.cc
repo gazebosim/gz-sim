@@ -28,6 +28,7 @@
 #include "Material.hh"
 #include "Matrix3.hh"
 #include "MovingWindowFilter.hh"
+#include "PID.hh"
 #include "Pose3.hh"
 #include "Quaternion.hh"
 #include "Rand.hh"
@@ -73,6 +74,8 @@ PYBIND11_MODULE(math, m)
     m, "MovingWindowFilterd");
   ignition::math::python::defineMathMovingWindowFilter
     <ignition::math::Vector3d>(m, "MovingWindowFilterv3");
+
+  ignition::math::python::defineMathPID(m, "PID");
 
   ignition::math::python::defineMathRand(m, "Rand");
 

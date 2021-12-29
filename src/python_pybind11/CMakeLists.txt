@@ -22,6 +22,7 @@ if (${pybind11_FOUND})
     src/Helpers.cc
     src/Kmeans.cc
     src/Material.cc
+    src/PID.cc
     src/Rand.cc
     src/RollingMean.cc
     src/RotationSpline.cc
@@ -95,6 +96,7 @@ if (${pybind11_FOUND})
       Matrix3_TEST
       MassMatrix3_TEST
       MovingWindowFilter_TEST
+      PID_TEST
       Pose3_TEST
       Quaternion_TEST
       Rand_TEST
