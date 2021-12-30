@@ -15,8 +15,8 @@
 import unittest
 
 import ignition
-from ignition.math import Angle, IGN_PI, SphericalCoordinates, Vector3d
-
+from ignition.math import Angle, SphericalCoordinates, Vector3d
+import math
 
 class TestSphericalCoordinates(unittest.TestCase):
 
@@ -269,8 +269,8 @@ class TestSphericalCoordinates(unittest.TestCase):
 
     def test_bad_set_surface(self):
         sc = SphericalCoordinates()
-        sc.set_surface(2)
-        self.assertEqual(sc.surface(), 2)
+        sc.set_surface(SphericalCoordinates.SurfaceType(2))
+        self.assertEqual(sc.surface(), SphericalCoordinates.SurfaceType(2))
 
     def test_transform(self):
         sc = SphericalCoordinates()
@@ -297,11 +297,15 @@ class TestSphericalCoordinates(unittest.TestCase):
     def test_bad_coordinate_type(self):
         sc = SphericalCoordinates()
         pos = Vector3d(1, 2, -4)
-        result = sc.position_transform(pos, 7, 6)
+        result = sc.position_transform(pos,
+                                       SphericalCoordinates.CoordinateType(7),
+                                       SphericalCoordinates.CoordinateType(6))
 
         self.assertEqual(result, pos)
 
-        result = sc.position_transform(pos, 4, 6)
+        result = sc.position_transform(pos,
+                                       SphericalCoordinates.CoordinateType(4),
+                                       SphericalCoordinates.CoordinateType(6))
 
         self.assertEqual(result, pos)
 
@@ -317,10 +321,14 @@ class TestSphericalCoordinates(unittest.TestCase):
             SphericalCoordinates.SPHERICAL)
         self.assertEqual(result, pos)
 
-        result = sc.velocity_transform(pos, 7, SphericalCoordinates.ECEF)
+        result = sc.velocity_transform(pos,
+                                       SphericalCoordinates.CoordinateType(7),
+                                       SphericalCoordinates.ECEF)
         self.assertEqual(result, pos)
 
-        result = sc.velocity_transform(pos, SphericalCoordinates.ECEF, 7)
+        result = sc.velocity_transform(pos,
+                                       SphericalCoordinates.ECEF,
+                                       SphericalCoordinates.CoordinateType(7))
         self.assertEqual(result, pos)
 
     def test_equality_ops(self):
@@ -363,8 +371,8 @@ class TestSphericalCoordinates(unittest.TestCase):
     def test_no_heading(self):
         # Default heading
         st = SphericalCoordinates.EARTH_WGS84
-        lat = Angle(-22.9 * IGN_PI / 180.0)
-        lon = Angle(-43.2 * IGN_PI / 180.0)
+        lat = Angle(-22.9 * math.pi / 180.0)
+        lon = Angle(-43.2 * math.pi / 180.0)
         heading = Angle(0.0)
         elev = 0
         sc = SphericalCoordinates(st, lat, lon, elev, heading)
@@ -446,9 +454,9 @@ class TestSphericalCoordinates(unittest.TestCase):
     def test_with_heading(self):
         # Heading 90 deg: X == North, Y == West , Z == Up
         st = SphericalCoordinates.EARTH_WGS84
-        lat = Angle(-22.9 * IGN_PI / 180.0)
-        lon = Angle(-43.2 * IGN_PI / 180.0)
-        heading = Angle(90.0 * IGN_PI / 180.0)
+        lat = Angle(-22.9 * math.pi / 180.0)
+        lon = Angle(-43.2 * math.pi / 180.0)
+        heading = Angle(90.0 * math.pi / 180.0)
         elev = 0
         sc = SphericalCoordinates(st, lat, lon, elev, heading)
 

@@ -44,6 +44,7 @@
 #include "SemanticVersion.hh"
 #include "SignalStats.hh"
 #include "Sphere.hh"
+#include "SphericalCoordinates.hh"
 #include "Spline.hh"
 #include "StopWatch.hh"
 #include "Temperature.hh"
@@ -107,6 +108,9 @@ PYBIND11_MODULE(math, m)
   ignition::math::python::defineMathVector3Stats(m, "Vector3Stats");
 
   ignition::math::python::defineMathSemanticVersion(m, "SemanticVersion");
+
+  ignition::math::python::defineMathSphericalCoordinates(
+    m, "SphericalCoordinates");
 
   ignition::math::python::defineMathSpline(m, "Spline");
 

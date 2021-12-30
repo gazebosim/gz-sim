@@ -88,7 +88,6 @@ if (PYTHONLIBS_FOUND)
     # Add the Python tests
     set(python_tests
       python_TEST
-      SphericalCoordinates_TEST
     )
 
     foreach (test ${python_tests})
