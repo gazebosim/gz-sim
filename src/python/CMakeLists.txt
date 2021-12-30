@@ -89,7 +89,6 @@ if (PYTHONLIBS_FOUND)
     set(python_tests
       python_TEST
       SphericalCoordinates_TEST
-      Vector3Stats_TEST
     )
 
     foreach (test ${python_tests})

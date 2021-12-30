@@ -36,10 +36,10 @@ class TestVector3Stats(unittest.TestCase):
     def test_vector3stats_constructor(self):
         # Constructor
         v3stats = Vector3Stats()
-        self.assertTrue(v3stats.x().map().empty())
-        self.assertTrue(v3stats.y().map().empty())
-        self.assertTrue(v3stats.z().map().empty())
-        self.assertTrue(v3stats.mag().map().empty())
+        self.assertTrue(len(v3stats.x().map()) == 0)
+        self.assertTrue(len(v3stats.y().map()) == 0)
+        self.assertTrue(len(v3stats.z().map()) == 0)
+        self.assertTrue(len(v3stats.mag().map()) == 0)
         self.assertAlmostEqual(v3stats.x().count(), 0)
         self.assertAlmostEqual(v3stats.y().count(), 0)
         self.assertAlmostEqual(v3stats.z().count(), 0)
@@ -47,10 +47,10 @@ class TestVector3Stats(unittest.TestCase):
 
         # Reset
         v3stats.reset()
-        self.assertTrue(v3stats.x().map().empty())
-        self.assertTrue(v3stats.y().map().empty())
-        self.assertTrue(v3stats.z().map().empty())
-        self.assertTrue(v3stats.mag().map().empty())
+        self.assertTrue(len(v3stats.x().map()) == 0)
+        self.assertTrue(len(v3stats.y().map()) == 0)
+        self.assertTrue(len(v3stats.z().map()) == 0)
+        self.assertTrue(len(v3stats.mag().map()) == 0)
         self.assertAlmostEqual(v3stats.x().count(), 0)
         self.assertAlmostEqual(v3stats.y().count(), 0)
         self.assertAlmostEqual(v3stats.z().count(), 0)
@@ -58,35 +58,36 @@ class TestVector3Stats(unittest.TestCase):
 
         # InsertStatistics
         v3stats = Vector3Stats()
-        self.assertTrue(v3stats.x().map().empty())
-        self.assertTrue(v3stats.y().map().empty())
-        self.assertTrue(v3stats.z().map().empty())
-        self.assertTrue(v3stats.mag().map().empty())
+        self.assertTrue(len(v3stats.x().map()) == 0)
+        self.assertTrue(len(v3stats.y().map()) == 0)
+        self.assertTrue(len(v3stats.z().map()) == 0)
+        self.assertTrue(len(v3stats.mag().map()) == 0)
 
         self.assertTrue(v3stats.insert_statistics("maxAbs"))
         self.assertFalse(v3stats.insert_statistics("maxAbs"))
         self.assertFalse(v3stats.insert_statistic("maxAbs"))
-        self.assertFalse(v3stats.x().map().empty())
-        self.assertFalse(v3stats.y().map().empty())
-        self.assertFalse(v3stats.z().map().empty())
-        self.assertFalse(v3stats.mag().map().empty())
+        self.assertFalse(len(v3stats.x().map()) == 0)
+        self.assertFalse(len(v3stats.y().map()) == 0)
+        self.assertFalse(len(v3stats.z().map()) == 0)
+        self.assertFalse(len(v3stats.mag().map()) == 0)
 
         # Map with no data
         map = v3stats.x().map()
-        self.assertAlmostEqual(map.size(), 1)
-        self.assertAlmostEqual(map.count("maxAbs"), 1)
+
+        self.assertAlmostEqual(len(map), 1)
+        self.assertTrue("maxAbs" in map, 1)
 
         map = v3stats.y().map()
-        self.assertAlmostEqual(map.size(), 1)
-        self.assertAlmostEqual(map.count("maxAbs"), 1)
+        self.assertAlmostEqual(len(map), 1)
+        self.assertTrue("maxAbs" in map, 1)
 
         map = v3stats.z().map()
-        self.assertAlmostEqual(map.size(), 1)
-        self.assertAlmostEqual(map.count("maxAbs"), 1)
+        self.assertAlmostEqual(len(map), 1)
+        self.assertTrue("maxAbs" in map, 1)
 
         map = v3stats.mag().map()
-        self.assertAlmostEqual(map.size(), 1)
-        self.assertAlmostEqual(map.count("maxAbs"), 1)
+        self.assertAlmostEqual(len(map), 1)
+        self.assertTrue("maxAbs" in map, 1)
 
         # Insert some data
         self.assertAlmostEqual(v3stats.x().count(), 0)
@@ -110,10 +111,10 @@ class TestVector3Stats(unittest.TestCase):
 
     def test_vector3stats_const_accessor(self):
         # Const accessors
-        self.assertTrue(self.stats.x().map().empty())
-        self.assertTrue(self.stats.y().map().empty())
-        self.assertTrue(self.stats.z().map().empty())
-        self.assertTrue(self.stats.mag().map().empty())
+        self.assertTrue(len(self.stats.x().map()) == 0)
+        self.assertTrue(len(self.stats.y().map()) == 0)
+        self.assertTrue(len(self.stats.z().map()) == 0)
+        self.assertTrue(len(self.stats.mag().map()) == 0)
 
         name = "maxAbs"
         self.assertTrue(self.stats.insert_statistics(name))
