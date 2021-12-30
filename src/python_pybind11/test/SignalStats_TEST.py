@@ -372,7 +372,7 @@ class TestSignalStats(unittest.TestCase):
     def test_signal_stats_constructor(self):
         # Constructor
         stats = SignalStats()
-        self.assertTrue(stats.map().empty())
+        self.assertTrue(len(stats.map()) == 0)
         self.assertEqual(stats.count(), 0)
 
         stats2 = SignalStats(stats)
@@ -380,110 +380,111 @@ class TestSignalStats(unittest.TestCase):
 
         # reset
         stats.reset()
-        self.assertTrue(stats.map().empty())
+        self.assertTrue(len(stats.map()) == 0)
         self.assertEqual(stats.count(), 0)
 
     def test_01_signal_stats_intern_statistic(self):
         # insert static
         stats = SignalStats()
-        self.assertTrue(stats.map().empty())
+        self.assertTrue(len(stats.map()) == 0)
 
         self.assertTrue(stats.insert_statistic("max"))
         self.assertFalse(stats.insert_statistic("max"))
-        self.assertFalse(stats.map().empty())
+        self.assertFalse(len(stats.map()) == 0)
 
         self.assertTrue(stats.insert_statistic("maxAbs"))
         self.assertFalse(stats.insert_statistic("maxAbs"))
-        self.assertFalse(stats.map().empty())
+        self.assertFalse(len(stats.map()) == 0)
 
         self.assertTrue(stats.insert_statistic("mean"))
         self.assertFalse(stats.insert_statistic("mean"))
-        self.assertFalse(stats.map().empty())
+        self.assertFalse(len(stats.map()) == 0)
 
         self.assertTrue(stats.insert_statistic("min"))
         self.assertFalse(stats.insert_statistic("min"))
-        self.assertFalse(stats.map().empty())
+        self.assertFalse(len(stats.map()) == 0)
 
         self.assertTrue(stats.insert_statistic("rms"))
         self.assertFalse(stats.insert_statistic("rms"))
-        self.assertFalse(stats.map().empty())
+        self.assertFalse(len(stats.map()) == 0)
 
         self.assertTrue(stats.insert_statistic("var"))
         self.assertFalse(stats.insert_statistic("var"))
-        self.assertFalse(stats.map().empty())
+        self.assertFalse(len(stats.map()) == 0)
 
         self.assertFalse(stats.insert_statistic("FakeStatistic"))
 
         # map with no data
         map = stats.map()
-        self.assertFalse(map.empty())
-        self.assertEqual(map.size(), 6)
-        self.assertEqual(map.count("max"), 1)
-        self.assertEqual(map.count("maxAbs"), 1)
-        self.assertEqual(map.count("mean"), 1)
-        self.assertEqual(map.count("min"), 1)
-        self.assertEqual(map.count("rms"), 1)
-        self.assertEqual(map.count("var"), 1)
-        self.assertEqual(map.count("FakeStatistic"), 0)
+        self.assertFalse(len(map) == 0)
+        self.assertEqual(len(map), 6)
+
+        self.assertEqual("max" in map.keys(), 1)
+        self.assertEqual("maxAbs" in map.keys(), 1)
+        self.assertEqual("mean" in map.keys(), 1)
+        self.assertEqual("min" in map.keys(), 1)
+        self.assertEqual("rms" in map.keys(), 1)
+        self.assertEqual("var" in map.keys(), 1)
+        self.assertEqual("FakeStatistic" in map.keys(), 0)
 
         stats2 = SignalStats(stats)
         map2 = stats2.map()
-        self.assertFalse(map2.empty())
-        self.assertEqual(map.size(), map2.size())
-        self.assertEqual(map.count("max"), map2.count("max"))
-        self.assertEqual(map.count("maxAbs"), map2.count("maxAbs"))
-        self.assertEqual(map.count("mean"), map2.count("mean"))
-        self.assertEqual(map.count("min"), map2.count("min"))
-        self.assertEqual(map.count("rms"), map2.count("rms"))
-        self.assertEqual(map.count("var"), map2.count("var"))
-        self.assertEqual(map.count("FakeStatistic"),
-                         map2.count("FakeStatistic"))
+        self.assertFalse(len(map2) == 0)
+        self.assertEqual(len(map), len(map2))
+        self.assertEqual("max" in map.keys(), "max" in map2.keys())
+        self.assertEqual("maxAbs" in map.keys(), "maxAbs" in map2.keys())
+        self.assertEqual("mean" in map.keys(), "mean" in map2.keys())
+        self.assertEqual("min" in map.keys(), "min" in map2.keys())
+        self.assertEqual("rms" in map.keys(), "rms" in map2.keys())
+        self.assertEqual("var" in map.keys(), "var" in map2.keys())
+        self.assertEqual("FakeStatistic" in map.keys(),
+                         "FakeStatistic" in map2.keys())
 
     def test_02_signal_stats_intern_statistic(self):
         # insert statics
         stats = SignalStats()
         self.assertFalse(stats.insert_statistics(""))
-        self.assertTrue(stats.map().empty())
+        self.assertTrue(len(stats.map()) == 0)
 
         self.assertTrue(stats.insert_statistics("maxAbs,rms"))
-        self.assertEqual(stats.map().size(), 2)
+        self.assertEqual(len(stats.map()), 2)
         self.assertFalse(stats.insert_statistics("maxAbs,rms"))
         self.assertFalse(stats.insert_statistics("maxAbs"))
         self.assertFalse(stats.insert_statistics("rms"))
-        self.assertEqual(stats.map().size(), 2)
+        self.assertEqual(len(stats.map()), 2)
 
         self.assertFalse(stats.insert_statistics("mean,FakeStatistic"))
-        self.assertEqual(stats.map().size(), 3)
+        self.assertEqual(len(stats.map()), 3)
 
         self.assertFalse(stats.insert_statistics("var,FakeStatistic"))
-        self.assertEqual(stats.map().size(), 4)
+        self.assertEqual(len(stats.map()), 4)
 
         self.assertFalse(stats.insert_statistics("max,FakeStatistic"))
-        self.assertEqual(stats.map().size(), 5)
+        self.assertEqual(len(stats.map()), 5)
 
         self.assertFalse(stats.insert_statistics("min,FakeStatistic"))
-        self.assertEqual(stats.map().size(), 6)
+        self.assertEqual(len(stats.map()), 6)
 
         self.assertFalse(stats.insert_statistics("FakeStatistic"))
-        self.assertEqual(stats.map().size(), 6)
+        self.assertEqual(len(stats.map()), 6)
 
         # map with no data
         map = stats.map()
-        self.assertFalse(map.empty())
-        self.assertEqual(map.size(), 6)
-        self.assertEqual(map.count("max"), 1)
-        self.assertEqual(map.count("maxAbs"), 1)
-        self.assertEqual(map.count("mean"), 1)
-        self.assertEqual(map.count("min"), 1)
-        self.assertEqual(map.count("rms"), 1)
-        self.assertEqual(map.count("var"), 1)
-        self.assertEqual(map.count("FakeStatistic"), 0)
+        self.assertFalse(len(map) == 0)
+        self.assertEqual(len(map), 6)
+        self.assertEqual("max" in map.keys(), 1)
+        self.assertEqual("maxAbs" in map.keys(), 1)
+        self.assertEqual("mean" in map.keys(), 1)
+        self.assertEqual("min" in map.keys(), 1)
+        self.assertEqual("rms" in map.keys(), 1)
+        self.assertEqual("var" in map.keys(), 1)
+        self.assertEqual("FakeStatistic" in map.keys(), 0)
 
     def test_signal_stats_alternating_values(self):
         # Add some statistics
         stats = SignalStats()
         self.assertTrue(stats.insert_statistics("max,maxAbs,mean,min,rms"))
-        self.assertEqual(stats.map().size(), 5)
+        self.assertEqual(len(stats.map()), 5)
 
         # No data yet
         self.assertEqual(stats.count(), 0)
@@ -505,7 +506,7 @@ class TestSignalStats(unittest.TestCase):
         copy = SignalStats(stats)
         self.assertEqual(copy.count(), 2)
         map = stats.map()
-        self.assertEqual(map.size(), 5)
+        self.assertEqual(len(map), 5)
         self.assertAlmostEqual(map["max"], value)
         self.assertAlmostEqual(map["maxAbs"], value)
         self.assertAlmostEqual(map["min"], -value)
@@ -513,7 +514,7 @@ class TestSignalStats(unittest.TestCase):
         self.assertAlmostEqual(map["mean"], 0.0)
 
         stats.reset()
-        self.assertEqual(stats.map().size(), 5)
+        self.assertEqual(len(stats.map()), 5)
         self.assertEqual(stats.count(), 0)
         map = stats.map()
         self.assertAlmostEqual(map["max"], 0.0)

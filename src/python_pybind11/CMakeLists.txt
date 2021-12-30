@@ -28,6 +28,7 @@ if (${pybind11_FOUND})
     src/RollingMean.cc
     src/RotationSpline.cc
     src/SemanticVersion.cc
+    src/SignalStats.cc
     src/Spline.cc
     src/StopWatch.cc
     src/Temperature.cc
@@ -111,6 +112,7 @@ if (${pybind11_FOUND})
       RollingMean_TEST
       RotationSpline_TEST
       SemanticVersion_TEST
+      SignalStats_TEST
       Sphere_TEST
       Spline_TEST
       StopWatch_TEST

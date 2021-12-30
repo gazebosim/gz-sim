@@ -88,7 +88,6 @@ if (PYTHONLIBS_FOUND)
     # Add the Python tests
     set(python_tests
       python_TEST
-      SignalStats_TEST
       SphericalCoordinates_TEST
       Vector3Stats_TEST
     )
