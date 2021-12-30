@@ -304,7 +304,7 @@ TEST_F(WheelSlipTest, TireDrum)
   {
     WheelSlipState state = state0;
     state.description = "Zero slip";
-    state.steer.Degree(0.0);
+    state.steer.SetDegree(0.0);
     state.axelForceLateral = 0.0;
     state.axelForceLongitudinal = 0.0;
     states.push_back(state);
@@ -312,7 +312,7 @@ TEST_F(WheelSlipTest, TireDrum)
   {
     WheelSlipState state = state0;
     state.description = "Lateral slip: low";
-    state.steer.Degree(3.0);
+    state.steer.SetDegree(3.0);
     state.wheelSlipComplianceLateral = 0.1;
     state.axelForceLateral = -state.suspForce *
         sin(state.steer.Radian()) / state.wheelSlipComplianceLateral;
@@ -322,7 +322,7 @@ TEST_F(WheelSlipTest, TireDrum)
   {
     WheelSlipState state = state0;
     state.description = "Lateral slip: high";
-    state.steer.Degree(10);
+    state.steer.SetDegree(10);
     state.wheelSpeed *= cos(state.steer.Radian());
     state.axelForceLateral = -state.suspForce;
     state.axelForceLongitudinal = 0.0;
@@ -333,7 +333,7 @@ TEST_F(WheelSlipTest, TireDrum)
     state.description = "Longitudinal torque control: low";
     state.wheelSpeed = -1.055 * state.drumSpeed * drumRadius / wheelRadius;
     state.wheelTorque = 0.25 * state.suspForce * wheelRadius;
-    state.steer.Degree(0.0);
+    state.steer.SetDegree(0.0);
     state.wheelSlipComplianceLateral = 0.1;
     state.axelForceLateral = 0.0;
     state.axelForceLongitudinal = -250.0;
@@ -344,7 +344,7 @@ TEST_F(WheelSlipTest, TireDrum)
     state.description = "Longitudinal torque control: moderate";
     state.wheelSpeed = -1.12 * state.drumSpeed * drumRadius / wheelRadius;
     state.wheelTorque = 0.5 * state.suspForce * wheelRadius;
-    state.steer.Degree(0.0);
+    state.steer.SetDegree(0.0);
     state.wheelSlipComplianceLateral = 0.1;
     state.axelForceLateral = 0.0;
     state.axelForceLongitudinal = -600.0;

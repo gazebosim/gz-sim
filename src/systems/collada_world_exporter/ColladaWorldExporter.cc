@@ -177,7 +177,7 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
           // // normal, which are both expressed in the local (Visual) frame.
           math::Vector3d normal = _geom->Data().PlaneShape()->Normal();
           math::Quaterniond normalRot;
-          normalRot.From2Axes(math::Vector3d::UnitZ, normal.Normalized());
+          normalRot.SetFrom2Axes(math::Vector3d::UnitZ, normal.Normalized());
           worldPose.Rot() = worldPose.Rot() * normalRot;
 
           matrix = math::Matrix4d(worldPose);

@@ -56,7 +56,9 @@ set(tests
   thruster.cc
   touch_plugin.cc
   tracked_vehicle_system.cc
-  triggered_publisher.cc
+  # TODO(chapulina) Re-enable this test when parsing `type` attributes is fixed
+  # See https://github.com/ignitionrobotics/sdformat/pull/809
+  # triggered_publisher.cc
   user_commands.cc
   velocity_control_system.cc
   log_system.cc
