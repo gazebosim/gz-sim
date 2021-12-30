@@ -97,25 +97,26 @@ if (${pybind11_FOUND})
       Kmeans_TEST
       Line2_TEST
       Line3_TEST
+      MassMatrix3_TEST
       Material_TEST
       Matrix3_TEST
       Matrix4_TEST
-      MassMatrix3_TEST
       MovingWindowFilter_TEST
       OrientedBox_TEST
-      Plane_TEST
       PID_TEST
+      Plane_TEST
       Pose3_TEST
       Quaternion_TEST
       Rand_TEST
       RollingMean_TEST
       RotationSpline_TEST
       SemanticVersion_TEST
+      Sphere_TEST
       Spline_TEST
       StopWatch_TEST
       Temperature_TEST
-      Triangle_TEST
       Triangle3_TEST
+      Triangle_TEST
       Vector2_TEST
       Vector3_TEST
       Vector4_TEST

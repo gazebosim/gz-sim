@@ -16,7 +16,7 @@ import math
 import unittest
 
 import ignition
-from ignition.math import IGN_PI, MassMatrix3d, Material, Planed, Sphered, Vector2d, Vector3d
+from ignition.math import MassMatrix3d, Material, Planed, Sphered, Vector2d, Vector3d
 
 
 class TestSphere(unittest.TestCase):
@@ -39,28 +39,28 @@ class TestSphere(unittest.TestCase):
         self.assertEqual(sphere, sphere2)
 
         # Radius and mat
-        sphere = Sphered(1.0, Material(ignition.math.MaterialType_WOOD))
+        sphere = Sphered(1.0, Material(ignition.math.MaterialType.WOOD))
         self.assertEqual(1.0, sphere.radius())
-        self.assertEqual(Material(ignition.math.MaterialType_WOOD), sphere.material())
+        self.assertEqual(Material(ignition.math.MaterialType.WOOD), sphere.material())
 
-        sphere2 = Sphered(1.0, Material(ignition.math.MaterialType_WOOD))
+        sphere2 = Sphered(1.0, Material(ignition.math.MaterialType.WOOD))
         self.assertEqual(sphere, sphere2)
 
     def test_comparison(self):
-        wood = Sphered(0.1, Material(ignition.math.MaterialType_WOOD))
+        wood = Sphered(0.1, Material(ignition.math.MaterialType.WOOD))
 
         modified = wood
         self.assertEqual(wood, modified)
 
         modified.set_radius(1.0)
-        wood = Sphered(0.1, Material(ignition.math.MaterialType_WOOD))
+        wood = Sphered(0.1, Material(ignition.math.MaterialType.WOOD))
         self.assertNotEqual(wood, modified)
 
         modified = wood
-        wood = Sphered(0.1, Material(ignition.math.MaterialType_WOOD))
+        wood = Sphered(0.1, Material(ignition.math.MaterialType.WOOD))
         self.assertEqual(wood, modified)
 
-        modified.set_material(Material(ignition.math.MaterialType_PINE))
+        modified.set_material(Material(ignition.math.MaterialType.PINE))
         self.assertNotEqual(wood, modified)
 
     def test_mutators(self):
@@ -69,15 +69,15 @@ class TestSphere(unittest.TestCase):
         self.assertEqual(Material(), sphere.material())
 
         sphere.set_radius(.123)
-        sphere.set_material(Material(ignition.math.MaterialType_PINE))
+        sphere.set_material(Material(ignition.math.MaterialType.PINE))
 
         self.assertEqual(.123, sphere.radius())
-        self.assertEqual(Material(ignition.math.MaterialType_PINE), sphere.material())
+        self.assertEqual(Material(ignition.math.MaterialType.PINE), sphere.material())
 
     def test_volume_and_density(self):
         mass = 1.0
         sphere = Sphered(0.001)
-        expectedVolume = (4.0/3.0) * IGN_PI * math.pow(0.001, 3)
+        expectedVolume = (4.0/3.0) * math.pi * math.pow(0.001, 3)
         self.assertEqual(expectedVolume, sphere.volume())
 
         expectedDensity = mass / expectedVolume
