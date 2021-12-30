@@ -168,6 +168,8 @@ void Surface::PreUpdate(const ignition::gazebo::UpdateInfo &/*_info*/,
 
   // Vehicle frame transform
   const auto kPose = this->dataPtr->link.WorldPose(_ecm);
+  // std::optional<ignition::math::Pose3d> kPose;
+  // *kPose = {-532, 162, -0.008054, 0, 0, 1};
   if (!kPose)
   {
     ignerr << "Unable to get world pose from link ["
@@ -226,12 +228,12 @@ void Surface::PreUpdate(const ignition::gazebo::UpdateInfo &/*_info*/,
         this->CircleSegment(this->dataPtr->hullRadius, deltaZ) *
           this->dataPtr->vehicleLength /
           (static_cast<float>(this->dataPtr->numSamples)) *
-          this->dataPtr->gravity.Z() * this->dataPtr->fluidDensity;
+          -this->dataPtr->gravity.Z() * this->dataPtr->fluidDensity;
 
       // Apply force at grid point
       // Position is in the link frame and force is in world frame.
       this->dataPtr->link.AddWorldForce(_ecm,
-        ignition::math::Vector3d(0, 0, abs(kBuoyForce)),
+        ignition::math::Vector3d(0, 0, kBuoyForce),
         bpnt);
 
       // Debug output:
@@ -243,6 +245,11 @@ void Surface::PreUpdate(const ignition::gazebo::UpdateInfo &/*_info*/,
       igndbg << "dz: " << dz << std::endl;
       igndbg << "kDdz: " << kDdz << std::endl;
       igndbg << "deltaZ: " << deltaZ << std::endl;
+      igndbg << "hull radius: " << this->dataPtr->hullRadius << std::endl;
+      igndbg << "vehicle length: " << this->dataPtr->vehicleLength << std::endl;
+      igndbg << "num samples: " << this->dataPtr->numSamples << std::endl;
+      igndbg << "gravity z: " << -this->dataPtr->gravity.Z() << std::endl;
+      igndbg << "fluid density: " << this->dataPtr->fluidDensity << std::endl;
       igndbg << "Force: " << kBuoyForce << std::endl << std::endl;
     }
   }
@@ -251,6 +258,7 @@ void Surface::PreUpdate(const ignition::gazebo::UpdateInfo &/*_info*/,
 //////////////////////////////////////////////////
 double Surface::CircleSegment(double _r, double _h) const
 {
+  ignerr << "R: " << _r << " h: " << _h << std::endl;
   return _r * _r * acos((_r -_h) / _r ) -
     (_r - _h) * sqrt(2 * _r * _h - _h * _h);
 }
