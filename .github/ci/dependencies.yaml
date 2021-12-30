@@ -2,4 +2,4 @@ repositories:
   sdformat:
     type: git
     url: https://github.com/ignitionrobotics/sdformat
-    version: sdf12
+    version: chapulina/12/plugin_type
