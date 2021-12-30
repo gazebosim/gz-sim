@@ -13,6 +13,5 @@ ign_build_tests(TYPE UNIT SOURCES ${gtest_sources})
 add_subdirectory(graph)
 
 # Bindings subdirectories
-add_subdirectory(python)
 add_subdirectory(python_pybind11)
 add_subdirectory(ruby)
