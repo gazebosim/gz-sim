@@ -28,47 +28,16 @@ namespace gazebo
 {
 namespace python
 {
-World::World(ignition::gazebo::Entity _entity)
-{
-  _world = std::make_shared<ignition::gazebo::World>(_entity);
-}
-
-World::~World()
-{
-}
-
-void World::Destroy()
-{
-  _world.reset();
-}
-
-std::optional<ignition::math::Vector3<double>> World::Gravity(
-  const EntityComponentManager &_ecm)
-{
-  std::optional<ignition::math::Vector3d> gravity =
-    _world->Gravity(*_ecm.rcl_ptr());
-  return gravity;
-}
-
-ignition::gazebo::Entity World::ModelByName(
-  ignition::gazebo::python::EntityComponentManager &_ecm,
-  std::string _name)
-{
-  return _world->ModelByName(*_ecm.rcl_ptr(), _name);
-}
-
 void defineGazeboWorld(pybind11::object module)
 {
-  pybind11::class_<ignition::gazebo::python::World,
-             ignition::gazebo::python::Destroyable,
-             std::shared_ptr<ignition::gazebo::python::World>>(module, "World")
+  pybind11::class_<ignition::gazebo::World>(module, "World")
   .def(pybind11::init<ignition::gazebo::Entity>())
   .def(
-    "model_by_name", &ignition::gazebo::python::World::ModelByName,
+    "model_by_name", &ignition::gazebo::World::ModelByName,
     "Get the ID of a model entity which is an immediate child of "
     " this world.")
   .def(
-    "gravity", &ignition::gazebo::python::World::Gravity,
+    "gravity", &ignition::gazebo::World::Gravity,
     "Get the gravity in m/s^2.");
 }
 }  // namespace python

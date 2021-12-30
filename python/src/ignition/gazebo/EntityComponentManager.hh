@@ -29,42 +29,10 @@ namespace gazebo
 {
 namespace python
 {
-
-  class EntityComponentManager :
-    public ignition::gazebo::python::Destroyable,
-    public std::enable_shared_from_this<EntityComponentManager>
-  {
-    /// \brief Constructor
-    public: EntityComponentManager(
-      const ignition::gazebo::EntityComponentManager &_ecm);
-
-    /// \brief Constructor
-    public: EntityComponentManager(
-      ignition::gazebo::EntityComponentManager &_ecm);
-
-    /// \brief Destructor
-    public: ~EntityComponentManager();
-
-    /// Force an early destruction of this object
-    void
-    Destroy() override;
-
-    /// Get rcl_client_t pointer
-    ignition::gazebo::EntityComponentManager *
-    rcl_ptr() const
-    {
-      return _entity_component_manager_no_const;
-    }
-
-  private:
-    const ignition::gazebo::EntityComponentManager * _entity_component_manager;
-    ignition::gazebo::EntityComponentManager *
-      _entity_component_manager_no_const;
-  };
-
 /// Define a pybind11 wrapper for an ignition::gazebo::EntityComponentManager
 /**
  * \param[in] module a pybind11 module to add the definition to
+ * \param[in] typestr name of the type used by Python
  */
 void
 defineGazeboEntityComponentManager(pybind11::object module);

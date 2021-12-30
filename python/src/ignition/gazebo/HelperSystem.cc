@@ -34,8 +34,7 @@ void HelperSystem::Configure(
 {
   if (this->configureCallback_internal)
   {
-    auto ecm = ignition::gazebo::python::EntityComponentManager(_ecm);
-    this->configureCallback_internal(_entity, ecm);
+    this->configureCallback_internal(_entity, &_ecm);
   }
 }
 
@@ -45,8 +44,7 @@ void HelperSystem::PreUpdate(const UpdateInfo &_info,
 {
   if (this->preUpdateCallback_internal)
   {
-    auto ecm = ignition::gazebo::python::EntityComponentManager(_ecm);
-    this->preUpdateCallback_internal(_info, ecm);
+    this->preUpdateCallback_internal(_info, &_ecm);
   }
 }
 
@@ -56,8 +54,7 @@ void HelperSystem::Update(const UpdateInfo &_info,
 {
   if (this->updateCallback_internal)
   {
-    auto ecm = ignition::gazebo::python::EntityComponentManager(_ecm);
-    this->updateCallback_internal(_info, ecm);
+    this->updateCallback_internal(_info, &_ecm);
   }
 }
 
@@ -66,8 +63,7 @@ void HelperSystem::PostUpdate(const UpdateInfo &_info,
     const ignition::gazebo::EntityComponentManager &_ecm)
 {
   if (this->postUpdateCallback_internal)
-    this->postUpdateCallback_internal(_info,
-      ignition::gazebo::python::EntityComponentManager(_ecm));
+    this->postUpdateCallback_internal(_info, &_ecm);
 }
 
 //////////////////////////////////////////////////
@@ -123,57 +119,52 @@ void HelperFixturePrivate::Init(const ServerConfig &_config)
 }
 
 //////////////////////////////////////////////////
-HelperFixture &HelperFixture::Finalize()
+void HelperFixture::Finalize()
 {
   if (this->dataPtr->finalized)
   {
     ignwarn << "Fixture has already been finalized, this only needs to be done"
             << " once." << std::endl;
-    return *this;
   }
-
+  std::cerr << "AddSystem1" << '\n';
   this->dataPtr->server->AddSystem(this->dataPtr->helperSystem);
+  std::cerr << "AddSystem2" << '\n';
 
   this->dataPtr->finalized = true;
-  return *this;
 }
 
 //////////////////////////////////////////////////
-HelperFixture &HelperFixture::OnConfigure(std::function<void(
+void HelperFixture::OnConfigure(std::function<void(
           const Entity &_entity,
-          ignition::gazebo::python::EntityComponentManager &_ecm)> _cb)
+          ignition::gazebo::EntityComponentManager *_ecm)> _cb)
 {
   if (nullptr != this->dataPtr->helperSystem)
     this->dataPtr->helperSystem->configureCallback_internal = std::move(_cb);
-  return *this;
 }
 
 //////////////////////////////////////////////////
-HelperFixture &HelperFixture::OnPreUpdate(std::function<void(
-  const UpdateInfo &, ignition::gazebo::python::EntityComponentManager &)> _cb)
+void HelperFixture::OnPreUpdate(std::function<void(
+  const UpdateInfo &, ignition::gazebo::EntityComponentManager *)> _cb)
 {
   if (nullptr != this->dataPtr->helperSystem)
     this->dataPtr->helperSystem->preUpdateCallback_internal = std::move(_cb);
-  return *this;
 }
 
 //////////////////////////////////////////////////
-HelperFixture &HelperFixture::OnUpdate(std::function<void(
-  const UpdateInfo &, ignition::gazebo::python::EntityComponentManager &)> _cb)
+void HelperFixture::OnUpdate(std::function<void(
+  const UpdateInfo &, ignition::gazebo::EntityComponentManager *)> _cb)
 {
   if (nullptr != this->dataPtr->helperSystem)
     this->dataPtr->helperSystem->updateCallback_internal = std::move(_cb);
-  return *this;
 }
 
 //////////////////////////////////////////////////
-HelperFixture &HelperFixture::OnPostUpdate(std::function<void(
+void HelperFixture::OnPostUpdate(std::function<void(
   const UpdateInfo &,
-  const ignition::gazebo::python::EntityComponentManager &)> _cb)
+  const ignition::gazebo::EntityComponentManager *)> _cb)
 {
   if (nullptr != this->dataPtr->helperSystem)
     this->dataPtr->helperSystem->postUpdateCallback_internal = std::move(_cb);
-  return *this;
 }
 
 //////////////////////////////////////////////////

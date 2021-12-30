@@ -24,37 +24,11 @@ namespace gazebo
 namespace python
 {
 /////////////////////////////////////////////////
-EntityComponentManager::EntityComponentManager(
-  const ignition::gazebo::EntityComponentManager &_ecm)
-{
-  _entity_component_manager = &_ecm;
-}
-
-/////////////////////////////////////////////////
-EntityComponentManager::EntityComponentManager(
-  ignition::gazebo::EntityComponentManager &_ecm)
-{
-  _entity_component_manager_no_const = &_ecm;
-}
-
-/////////////////////////////////////////////////
-EntityComponentManager::~EntityComponentManager()
-{
-}
-
-/////////////////////////////////////////////////
-void EntityComponentManager::Destroy()
-{
-}
-
-/////////////////////////////////////////////////
 void defineGazeboEntityComponentManager(pybind11::object module)
 {
-  pybind11::class_<ignition::gazebo::python::EntityComponentManager,
-    ignition::gazebo::python::Destroyable,
-    std::shared_ptr<ignition::gazebo::python::EntityComponentManager>>(
+  pybind11::class_<ignition::gazebo::EntityComponentManager>(
       module, "EntityComponentManager")
-  .def(pybind11::init<const ignition::gazebo::EntityComponentManager &>());
+  .def(pybind11::init<>());
 }
 }  // namespace python
 }  // namespace gazebo

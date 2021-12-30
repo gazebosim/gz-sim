@@ -64,36 +64,36 @@ namespace python
     /// \param[in] _cb Function to be called every pre-update
     /// The _entity and _sdf will correspond to the world entity.
     /// \return Reference to self.
-    public: HelperFixture &OnConfigure(std::function<void(
+    public: void OnConfigure(std::function<void(
         const Entity &_entity,
-        ignition::gazebo::python::EntityComponentManager &_ecm)> _cb);
+        ignition::gazebo::EntityComponentManager *_ecm)> _cb);
 
     /// \brief Wrapper around a system's pre-update callback
     /// \param[in] _cb Function to be called every pre-update
     /// \return Reference to self.
-    public: HelperFixture &OnPreUpdate(std::function<void(
+    public: void OnPreUpdate(std::function<void(
         const UpdateInfo &,
-        ignition::gazebo::python::EntityComponentManager &)> _cb);
+        ignition::gazebo::EntityComponentManager *)> _cb);
 
     /// \brief Wrapper around a system's update callback
     /// \param[in] _cb Function to be called every update
     /// \return Reference to self.
-    public: HelperFixture &OnUpdate(std::function<void(
+    public: void OnUpdate(std::function<void(
         const UpdateInfo &,
-        ignition::gazebo::python::EntityComponentManager &)> _cb);
+        ignition::gazebo::EntityComponentManager *)> _cb);
 
     /// \brief Wrapper around a system's post-update callback
     /// \param[in] _cb Function to be called every post-update
     /// \return Reference to self.
-    public: HelperFixture &OnPostUpdate(std::function<void(
+    public: void OnPostUpdate(std::function<void(
         const UpdateInfo &,
-        const ignition::gazebo::python::EntityComponentManager &)> _cb);
+        const ignition::gazebo::EntityComponentManager *)> _cb);
 
     /// \brief Finalize all the functions and add fixture to server.
     /// Finalize must be called before running the server, otherwise none of
     /// the `On*` functions will be called.
     /// The `OnConfigure` callback is called immediately on finalize.
-    public: HelperFixture &Finalize();
+    public: void Finalize();
 
     /// \brief Get pointer to underlying server.
     public: std::shared_ptr<ignition::gazebo::Server> Server() const;
@@ -133,28 +133,29 @@ class HelperSystem :
 
   /// \brief Function to call every time  we configure a world
   public: std::function<void(const Entity &_entity,
-    ignition::gazebo::python::EntityComponentManager &_ecm)>
+    ignition::gazebo::EntityComponentManager *_ecm)>
       configureCallback_internal;
 
   /// \brief Function to call every pre-update
   public: std::function<void(const UpdateInfo &,
-    ignition::gazebo::python::EntityComponentManager &)>
+    ignition::gazebo::EntityComponentManager *)>
       preUpdateCallback_internal;
 
   /// \brief Function to call every update
   public: std::function<void(const UpdateInfo &,
-    ignition::gazebo::python::EntityComponentManager &)>
+    ignition::gazebo::EntityComponentManager *)>
       updateCallback_internal;
 
   /// \brief Function to call every post-update
   public: std::function<void(const UpdateInfo &,
-      const ignition::gazebo::python::EntityComponentManager &)>
+      const ignition::gazebo::EntityComponentManager *)>
         postUpdateCallback_internal;
 };
 
 /// Define a pybind11 wrapper for an ignition::gazebo::HelperFixture
 /**
  * \param[in] module a pybind11 module to add the definition to
+ * \param[in] typestr name of the type used by Python
  */
 void
 defineGazeboHelperFixture(pybind11::object module);

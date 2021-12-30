@@ -57,12 +57,12 @@ def on_udpate_cb(_info, _ecm):
     iterations += 1
 
 
-helper = helper.on_post_update(on_post_udpate_cb)
-helper = helper.on_update(on_udpate_cb)
-helper = helper.on_pre_update(on_pre_udpate_cb)
-helper = helper.on_configure(on_configure_cb)
+helper.on_post_update(on_post_udpate_cb)
+helper.on_update(on_udpate_cb)
+helper.on_pre_update(on_pre_udpate_cb)
+helper.on_configure(on_configure_cb)
 
-helper = helper.finalize()
+helper.finalize()
 
 server = helper.server()
 server.run(False, 1000, False)
