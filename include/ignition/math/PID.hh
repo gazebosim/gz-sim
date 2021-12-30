@@ -100,7 +100,7 @@ namespace ignition
       /// \param[in] _i integral gain value
       public: void SetIGain(const double _i);
 
-      /// \brief Set the derivtive Gain.
+      /// \brief Set the derivative Gain.
       /// \param[in] _d derivative gain value
       public: void SetDGain(const double _d);
 
@@ -149,7 +149,7 @@ namespace ignition
       /// \return The maximum value
       public: double CmdMax() const;
 
-      /// \brief Get the maximum value for the command.
+      /// \brief Get the minimun value for the command.
       /// \return The maximum value
       public: double CmdMin() const;
 

@@ -58,13 +58,13 @@ namespace ignition
       /// \return arc length or INF on error.
       public: double ArcLength() const;
 
-      /// \brief Gets spline arc length up to
+      /// \brief Sets spline arc length up to
       /// a given parameter value \p _t.
       /// \param[in] _t parameter value (range 0 to 1).
       /// \return arc length up to \p _t or INF on error.
       public: double ArcLength(const double _t) const;
 
-      /// \brief Gets a spline segment arc length.
+      /// \brief Sets a spline segment arc length.
       /// \param[in] _index of the spline segment.
       /// \param[in] _t parameter value (range 0 to 1).
       /// \return arc length of a given segment up to

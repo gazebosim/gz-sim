@@ -449,8 +449,8 @@ namespace ignition
       }
 
       /// \brief Return rotation as axis and angle
-      /// \param[in] _axis rotation axis
-      /// \param[in] _angle ccw angle in radians
+      /// \param[out] _axis rotation axis
+      /// \param[out] _angle ccw angle in radians
       public: void ToAxis(Vector3<T> &_axis, T &_angle) const
       {
         T len = this->qx*this->qx + this->qy*this->qy + this->qz*this->qz;
@@ -590,7 +590,7 @@ namespace ignition
         }
       }
 
-      /// \brief Scale a Quaternion<T>ion
+      /// \brief Scale a Quaternion<T>
       /// \param[in] _scale Amount to scale this rotation
       public: void Scale(T _scale)
       {
