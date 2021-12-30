@@ -91,9 +91,11 @@ if (PYTHONLIBS_FOUND)
       Color_TEST
       Filter_TEST
       GaussMarkovProcess_TEST
+      Helpers_TEST
       Kmeans_TEST
       Line2_TEST
       Line3_TEST
+      Material_TEST
       Matrix3_TEST
       Matrix4_TEST
       MovingWindowFilter_TEST
@@ -107,8 +109,10 @@ if (PYTHONLIBS_FOUND)
       SemanticVersion_TEST
       SignalStats_TEST
       Spline_TEST
+      StopWatch_TEST
       Temperature_TEST
       Triangle_TEST
+      Triangle3_TEST
       Vector2_TEST
       Vector3_TEST
       Vector3Stats_TEST

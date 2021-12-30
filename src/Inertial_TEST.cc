@@ -231,7 +231,7 @@ void SetRotation(const double _mass,
     math::Quaterniond(-0.1, 0.2, -0.3),
     math::Quaterniond(0.4, 0.2, 0.5),
     math::Quaterniond(-0.1, 0.7, -0.7)};
-  for (const auto rot : rotations)
+  for (const auto &rot : rotations)
   {
     {
       auto inertial = inertialRef;

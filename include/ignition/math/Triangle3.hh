@@ -130,11 +130,12 @@ namespace ignition
       public: bool Contains(const Vector3<T> &_pt) const
       {
         // Make sure the point is on the same plane as the triangle
-        if (Planed(this->Normal()).Side(_pt) == Planed::NO_SIDE)
+        if (Planed(this->Normal()).Side(Vector3d(_pt[0], _pt[1], _pt[2]))
+          == Planed::NO_SIDE)
         {
-          Vector3d v0 = this->pts[2] - this->pts[0];
-          Vector3d v1 = this->pts[1] - this->pts[0];
-          Vector3d v2 = _pt - this->pts[0];
+          Vector3<T> v0 = this->pts[2] - this->pts[0];
+          Vector3<T> v1 = this->pts[1] - this->pts[0];
+          Vector3<T> v2 = _pt - this->pts[0];
 
           double dot00 = v0.Dot(v0);
           double dot01 = v0.Dot(v1);
@@ -150,17 +151,17 @@ namespace ignition
           // Check if point is in triangle
           return (u >= 0) && (v >= 0) && (u + v <= 1);
         }
-        else
-        {
-          return false;
-        }
+        return false;
       }
 
       /// \brief Get the triangle's normal vector.
       /// \return The normal vector for the triangle.
       public: Vector3d Normal() const
       {
-         return Vector3d::Normal(this->pts[0], this->pts[1], this->pts[2]);
+        return math::Vector3d::Normal(
+          Vector3d(this->pts[0][0], this->pts[0][1], this->pts[0][2]),
+          Vector3d(this->pts[1][0], this->pts[1][1], this->pts[1][2]),
+          Vector3d(this->pts[2][0], this->pts[2][1], this->pts[2][2]));
       }
 
       /// \brief Get whether the given line intersects an edge of this triangle.
@@ -179,22 +180,24 @@ namespace ignition
       /// \param[out] _ipt1 Return value of the first intersection point,
       /// only valid if the return value of the function is true.
       /// \return True if the given line intersects this triangle.
-      public: bool Intersects(const Line3<T> &_line, Vector3<T> &_ipt1) const
+      public: bool Intersects(
+        const Line3<T> &_line, Vector3<T> &_ipt1) const
       {
         // Triangle normal
         Vector3d norm = this->Normal();
 
         // Ray direction to intersect with triangle
-        Vector3d dir = (_line[1] - _line[0]).Normalize();
+        Vector3<T> dir = (_line[1] - _line[0]).Normalize();
 
-        double denom = norm.Dot(dir);
+        double denom = norm.Dot(Vector3d(dir[0], dir[1], dir[2]));
 
         // Handle the case when the line is not co-planar with the triangle
         if (!math::equal(denom, 0.0))
         {
           // Distance from line start to triangle intersection
+          Vector3<T> diff = _line[0] - this->pts[0];
           double intersection =
-            -norm.Dot(_line[0] - this->pts[0]) / denom;
+            -norm.Dot(Vector3d(diff[0], diff[1], diff[2])) / denom;
 
           // Make sure the ray intersects the triangle
           if (intersection < 1.0 || intersection > _line.Length())

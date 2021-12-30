@@ -100,10 +100,6 @@ namespace ignition
       public: void SetRotationalOffset(
                   const Quaternion<Precision> &_rotOffset);
 
-      /// \brief Set the length in meters.
-      /// \param[in] _length The length of the cylinder in meters.
-      public: void SetLength(const Precision _length) const;
-
       /// \brief Get the material associated with this cylinder.
       /// \return The material assigned to this cylinder
       public: const Material &Mat() const;

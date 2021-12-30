@@ -314,6 +314,26 @@ TEST(HelpersTest, Signum)
 }
 
 /////////////////////////////////////////////////
+TEST(HelpersTest, Stats)
+{
+  {
+    const std::vector<int> valuesI{0, 10, 20};
+    EXPECT_EQ(20, math::max(valuesI));
+    EXPECT_EQ(0, math::min(valuesI));
+    EXPECT_EQ(10, math::mean(valuesI));
+    EXPECT_EQ(66, math::variance(valuesI));
+  }
+
+  {
+    const std::vector<double> valuesD{0., 10., 20.};
+    EXPECT_DOUBLE_EQ(20., math::max(valuesD));
+    EXPECT_DOUBLE_EQ(0., math::min(valuesD));
+    EXPECT_DOUBLE_EQ(10., math::mean(valuesD));
+    EXPECT_DOUBLE_EQ(66.666666666666671, math::variance(valuesD));
+  }
+}
+
+/////////////////////////////////////////////////
 TEST(HelpersTest, Sort)
 {
   {

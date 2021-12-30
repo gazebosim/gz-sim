@@ -296,7 +296,7 @@ class TestColor(unittest.TestCase):
 
     def test_stream_out(self):
         c = Color(0.1, 0.2, 0.3, 0.5)
-        self.assertAlmostEqual(str(c), "0.1 0.2 0.3 0.5")
+        self.assertEqual(str(c), "0.1 0.2 0.3 0.5")
 
     def test_HSV(self):
         clr = Color()
