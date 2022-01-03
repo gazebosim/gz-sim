@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Open Source Robotics Foundation
+ * Copyright (C) 2022 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \brief Model used to synchronize with the GUI
     public: ForceListModel model;
 
-    /// \brief Node for recieving incoming requests.
+    /// \brief Node for receiving incoming requests.
     public: transport::Node node;
 
     /// \brief queue for incoming messages
@@ -67,22 +67,21 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \brief Default constructors
     public: VisualizeForcesPrivate()
     {
-      this->node.Subscribe("/force_viz",
+      this->node.Subscribe("/world/force_viz",
         &VisualizeForcesPrivate::VisualizeCallback, this);
     }
 
     /// \brief Handler for when we have to visualize stuff. Simply enqueues
     /// items to be visualized
     /// \param _stamped - The incoming message
-    public: void VisualizeCallback(const msgs::WrenchVisual& _stamped)
+    public: void VisualizeCallback(const msgs::WrenchVisual &_stamped)
     {
       std::lock_guard<std::mutex> lock(mtx);
       queue.push(_stamped);
     }
 
-    /// \brief Render the forces
-    /// \param _ecm - The ecm
-    public: void RenderForces(EntityComponentManager &_ecm)
+    /// \brief Publish the force markers
+    public: void PublishMarkers()
     {
       while (true)
       {
@@ -120,7 +119,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
           continue;
         }
         msgs::Marker marker;
-        auto _force = msgs::Convert(wrenchMsg.wrench().force());
+        auto force = msgs::Convert(wrenchMsg.wrench().force());
 
         this->onScreenMarkers.insert(ns);
         marker.set_ns(ns);
@@ -135,31 +134,24 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
         ignition::msgs::Set(marker.mutable_material()->mutable_diffuse(),
           color.value());
 
-        Link link(wrenchMsg.entity().id());
-
-        double scale = 1;
-
-        if (
-          link.WorldInertialPose(_ecm).has_value()
-          && std::abs(_force.Length()) > 1e-5)
+        if (std::abs(force.Length()) > 1e-5)
         {
-          // Get the center of mass from where the force will be exerted.
-          auto linkPose = link.WorldInertialPose(_ecm).value();
 
           math::Quaterniond qt;
-          qt.From2Axes(math::Vector3d::UnitZ, _force.Normalized());
+          qt.From2Axes(math::Vector3d::UnitZ, force.Normalized());
 
           // translate cylinder up
           math::Pose3d translateCylinder(
-            math::Vector3d(0, 0, _force.Length() * scale/2),
+            math::Vector3d(0, 0, force.Length() / 2),
             math::Quaterniond());
           math::Pose3d rotation(math::Vector3d(0, 0, 0), qt);
-          math::Pose3d arrowPose(linkPose.Pos(), math::Quaterniond());
+          math::Pose3d arrowPose(
+            msgs::Convert(wrenchMsg.pos()), math::Quaterniond());
           ignition::msgs::Set(
             marker.mutable_pose(), arrowPose * rotation * translateCylinder);
           ignition::msgs::Set(
             marker.mutable_scale(),
-            math::Vector3d(0.1, 0.1, _force.Length() * scale));
+            math::Vector3d(0.1, 0.1, force.Length()));
 
           this->node.Request("/marker", marker);
         }
@@ -226,7 +218,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
   /////////////////////////////////////////////////
   void ForceListModel::setVisibility(int index, bool visible)
   {
-    if (index < 0 || index > this->arrows.size())
+    if (index < 0 || static_cast<std::size_t>(index) > this->arrows.size())
       return;
 
     this->arrows[index].visible = visible;
@@ -237,14 +229,18 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
   /////////////////////////////////////////////////
   void ForceListModel::setColor(int index, QColor color)
   {
-    if (index < 0 || index > this->arrows.size())
+    if (index < 0 || static_cast<std::size_t>(index) > this->arrows.size())
       return;
 
     auto plugin = this->arrows[index].pluginName;
 
     double r, g, b;
     color.getRgbF(&r, &g, &b);
-    auto ignColor = math::Color{r, g, b};
+    auto ignColor = math::Color{
+      static_cast<float>(r),
+      static_cast<float>(g),
+      static_cast<float>(b)
+    };
     this->colors[plugin] = ignColor;
 
     auto start = createIndex(0, 0);
@@ -278,7 +274,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
   QVariant ForceListModel::data(
     const QModelIndex &index, int role) const
   {
-    if (index.row() < 0 || index.row() > this->arrows.size())
+    if (index.row() < 0 ||
+      static_cast<std::size_t>(index.row()) > this->arrows.size())
       return QVariant();
 
     if (role == ArrowRoles::LinkRole)
@@ -309,7 +306,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
   }
 
   /////////////////////////////////////////////////
-  int ForceListModel::rowCount(const QModelIndex &parent) const
+  int ForceListModel::rowCount(const QModelIndex &/*unused*/) const
   {
     return arrows.size();
   }
@@ -345,14 +342,16 @@ VisualizeForces::~VisualizeForces() = default;
 /////////////////////////////////////////////////
 void VisualizeForces::LoadConfig(const tinyxml2::XMLElement *)
 {
-
+  if (this->title.empty())
+    this->title = "Visualize forces";
 }
 
 //////////////////////////////////////////////////
-void VisualizeForces::Update(const UpdateInfo &_info,
-    EntityComponentManager &_ecm)
+void VisualizeForces::Update(const UpdateInfo &/*unused*/,
+    EntityComponentManager &/*unused*/)
 {
-  this->dataPtr->RenderForces(_ecm);
+  
+  this->dataPtr->PublishMarkers();
 }
 
 
