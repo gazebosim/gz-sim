@@ -612,7 +612,7 @@ void UserCommands::Configure(const Entity &_entity,
 
   // Wheel slip service
   std::string wheelSlipService
-      {"/world/" + worldName + "/wheel_slip"};
+      {"/world/" + validWorldName + "/wheel_slip"};
   this->dataPtr->node.Advertise(wheelSlipService,
       &UserCommandsPrivate::WheelSlipService, this->dataPtr.get());
 
