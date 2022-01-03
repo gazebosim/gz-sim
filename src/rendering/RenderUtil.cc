@@ -1835,8 +1835,8 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
           const components::CustomSensor *_customSensor,
           const components::ParentEntity *_parent)->bool
         {
-          this->AddNewSensor(_ecm, _entity, _customSensor->Data(), _parent->Data(),
-                       customSensorSuffix);
+          this->AddNewSensor(_ecm, _entity, _customSensor->Data(),
+                       _parent->Data(), customSensorSuffix);
           return true;
         });
 
@@ -2165,8 +2165,8 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
           const components::CustomSensor *_customSensor,
           const components::ParentEntity *_parent)->bool
         {
-          this->AddNewSensor(_ecm, _entity, _customSensor->Data(), _parent->Data(),
-                       customSensorSuffix);
+          this->AddNewSensor(_ecm, _entity, _customSensor->Data(),
+                       _parent->Data(), customSensorSuffix);
           return true;
         });
 
