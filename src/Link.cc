@@ -16,7 +16,6 @@
  */
 
 #include <ignition/msgs/Utility.hh>
-#include <ignition/msgs/marker.pb.h>
 #include <ignition/msgs/wrench_visual.pb.h>
 
 #include <ignition/transport/Node.hh>
