@@ -241,6 +241,7 @@ void Thruster::Configure(
   }
   else
   {
+    igndbg << "Using angular velocity mode" << std::endl;
     // Subscribe to angvel commands
     std::string thrusterTopic = ignition::transport::TopicUtils::AsValidTopic(
       "/model/" + ns + "/joint/" + jointName + "/cmd_vel");
