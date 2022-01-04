@@ -45,6 +45,16 @@ using namespace systems;
 
 class ignition::gazebo::systems::ThrusterPrivateData
 {
+  /// \brief The mode of operation
+  public: enum OperationMode {
+    /// \brief Takes in a force commmand and spins the propeller at an
+    /// appropriate rate.
+    ForceCmd = 0,
+    /// \brief Takes in angular velocity commands in radians per second and
+    /// calculates the appropriate force.
+    AngVelCmd
+  } opmode;
+
   /// \brief Mutex for read/write access to class
   public: std::mutex mtx;
 
@@ -55,25 +65,28 @@ class ignition::gazebo::systems::ThrusterPrivateData
   public: double propellerAngVel = 0.0;
 
   /// \brief The link entity which will spin
-  public: ignition::gazebo::Entity linkEntity;
+  public: Entity linkEntity;
 
   /// \brief Axis along which the propeller spins. Expressed in the joint
   /// frame. Addume this doesn't change during simulation.
-  public: ignition::math::Vector3d jointAxis;
+  public: math::Vector3d jointAxis;
 
   /// \brief Joint pose in the child link frame. Assume this doesn't change
   /// during the simulation.
   public: math::Pose3d jointPose;
 
   /// \brief Propeller koint entity
-  public: ignition::gazebo::Entity jointEntity;
+  public: Entity jointEntity;
 
   /// \brief ignition node for handling transport
-  public: ignition::transport::Node node;
+  public: transport::Node node;
+
+  /// \brief Publisher for feedback of data
+  public: transport::Node::Publisher pub;
 
   /// \brief The PID which controls the propeller. This isn't used if
   /// velocityControl is true.
-  public: ignition::math::PID propellerController;
+  public: math::PID propellerController;
 
   /// \brief Velocity Control mode - this disables the propellerController
   /// and writes the angular velocity directly to the joint. default: false
@@ -104,6 +117,11 @@ class ignition::gazebo::systems::ThrusterPrivateData
   /// \param[in] _thrust Thrust in N
   /// \return Angular velocity in rad/s
   public: double ThrustToAngularVec(double _thrust);
+
+  /// \brief function which computers thrust from angular velocity
+  /// \param[in] _angVel Angular Velocity in rad/s
+  /// \return Thrust in Newtowns
+  public: double AngularVelToThrust(double _angVel);
 };
 
 /////////////////////////////////////////////////
@@ -195,6 +213,12 @@ void Thruster::Configure(
   ignmsg << "Thruster listening to commands in [" << thrusterTopic << "]"
          << std::endl;
 
+  std::string feedbackTopic = ignition::transport::TopicUtils::AsValidTopic(
+    "/model/" + ns + "/joint/" + jointName + "/ang_vel");
+  this->dataPtr->pub = this->dataPtr->node.Advertise<msgs::Double>(
+    feedbackTopic
+  );
+
   // Get link entity
   auto childLink =
       _ecm.Component<ignition::gazebo::components::ChildLinkName>(
@@ -281,6 +305,15 @@ double ThrusterPrivateData::ThrustToAngularVec(double _thrust)
 }
 
 /////////////////////////////////////////////////
+double ThrusterPrivateData::AngularVelToThrust(double _angVel)
+{
+  // Thrust is proportional to the Rotation Rate squared
+  // See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 246
+  return this->thrustCoefficient * pow(this->propellerDiameter, 4)
+    * abs(_angVel) * _angVel;
+}
+
+/////////////////////////////////////////////////
 void Thruster::PreUpdate(
   const ignition::gazebo::UpdateInfo &_info,
   ignition::gazebo::EntityComponentManager &_ecm)
@@ -307,6 +340,7 @@ void Thruster::PreUpdate(
     desiredPropellerAngVel = this->dataPtr->propellerAngVel;
   }
 
+  msgs::Double angvel;
   // PID control
   double torque = 0.0;
   if (!this->dataPtr->velocityControl)
@@ -318,6 +352,7 @@ void Thruster::PreUpdate(
       torque = this->dataPtr->propellerController.Update(angularError,
           _info.dt);
     }
+    angvel.set_data(currentAngular);
   }
   // Velocity control
   else
@@ -334,7 +369,9 @@ void Thruster::PreUpdate(
     {
       velocityComp->Data()[0] = desiredPropellerAngVel;
     }
+    angvel.set_data(desiredPropellerAngVel);
   }
+  this->dataPtr->pub.Publish(angvel);
 
   // Force: thrust
   // Torque: propeller rotation, if using PID
