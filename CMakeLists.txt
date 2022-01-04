@@ -50,8 +50,8 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 # as protobuf could be find transitively by any dependency
 set(protobuf_MODULE_COMPATIBLE TRUE)
 
-ign_find_package(sdformat12 REQUIRED VERSION 12.3)
-set(SDF_VER ${sdformat12_VERSION_MAJOR})
+ign_find_package(sdformat13 REQUIRED)
+set(SDF_VER ${sdformat13_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-plugin
@@ -71,14 +71,14 @@ set(IGN_MSGS_VER ${ignition-msgs9_VERSION_MAJOR})
 #--------------------------------------
 # Find ignition-common
 # Always use the profiler component to get the headers, regardless of status.
-ign_find_package(ignition-common4 VERSION 4.4
+ign_find_package(ignition-common5
   COMPONENTS
     profiler
     events
     av
   REQUIRED
 )
-set(IGN_COMMON_VER ${ignition-common4_VERSION_MAJOR})
+set(IGN_COMMON_VER ${ignition-common5_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-fuel_tools
@@ -99,14 +99,14 @@ ign_find_package (Qt5
 
 #--------------------------------------
 # Find ignition-physics
-ign_find_package(ignition-physics5 VERSION 5.1
+ign_find_package(ignition-physics6
   COMPONENTS
     heightmap
     mesh
     sdf
   REQUIRED
 )
-set(IGN_PHYSICS_VER ${ignition-physics5_VERSION_MAJOR})
+set(IGN_PHYSICS_VER ${ignition-physics6_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-sensors
@@ -143,8 +143,8 @@ set(IGN_RENDERING_VER ${ignition-rendering7_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-math
-ign_find_package(ignition-math6 REQUIRED COMPONENTS eigen3 VERSION 6.9)
-set(IGN_MATH_VER ${ignition-math6_VERSION_MAJOR})
+ign_find_package(ignition-math7 REQUIRED COMPONENTS eigen3)
+set(IGN_MATH_VER ${ignition-math7_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-tools

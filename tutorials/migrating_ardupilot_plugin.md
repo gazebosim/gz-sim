@@ -751,12 +751,12 @@ In the new code we explicitly reference each Ignition package that we use:
 
 ```
 # NEW
-find_package(sdformat12 REQUIRED)
-find_package(ignition-common4-all REQUIRED)
+find_package(sdformat13 REQUIRED)
+find_package(ignition-common5-all REQUIRED)
 find_package(ignition-gazebo7-all REQUIRED)
-find_package(ignition-math6-all REQUIRED)
+find_package(ignition-math7-all REQUIRED)
 find_package(ignition-msgs9-all REQUIRED)
-find_package(ignition-physics5-all REQUIRED)
+find_package(ignition-physics6-all REQUIRED)
 find_package(ignition-sensors7-all REQUIRED)
 find_package(ignition-transport12-all REQUIRED)
 ```
