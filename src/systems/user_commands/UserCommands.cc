@@ -24,7 +24,7 @@
 #include <ignition/msgs/pose.pb.h>
 #include <ignition/msgs/physics.pb.h>
 #include <ignition/msgs/visual.pb.h>
-#include <ignition/msgs/wheel_slip.pb.h>
+#include <ignition/msgs/wheel_slip_parameters.pb.h>
 
 #include <string>
 #include <utility>
@@ -361,16 +361,16 @@ class WheelSlipCommand : public UserCommandBase
   /// \brief Constructor
   /// \param[in] _msg Message containing the wheel slip parameters.
   /// \param[in] _iface Pointer to user commands interface.
-  public: WheelSlipCommand(msgs::WheelSlip *_msg,
+  public: WheelSlipCommand(msgs::WheelSlipParameters *_msg,
       std::shared_ptr<UserCommandsInterface> &_iface);
 
   // Documentation inherited
   public: bool Execute() final;
 
   /// \brief WheelSlip equality comparision function
-  public: std::function<bool(const msgs::WheelSlip &, const msgs::WheelSlip &)>
+  public: std::function<bool(const msgs::WheelSlipParameters &, const msgs::WheelSlipParameters &)>
           wheelSlipEql {
-            [](const msgs::WheelSlip &_a, const msgs::WheelSlip &_b) {
+            [](const msgs::WheelSlipParameters &_a, const msgs::WheelSlipParameters &_b) {
               return
                 _a.name() == _b.name() &&
                 _a.id() == _b.id() &&
@@ -468,7 +468,7 @@ class ignition::gazebo::systems::UserCommandsPrivate
   /// updated.
   /// \return True if successful.
   public: bool WheelSlipService(
-    const msgs::WheelSlip &_req, msgs::Boolean &_res);
+    const msgs::WheelSlipParameters &_req, msgs::Boolean &_res);
 
   /// \brief Queue of commands pending execution.
   public: std::vector<std::unique_ptr<UserCommandBase>> pendingCmds;
@@ -829,7 +829,7 @@ bool UserCommandsPrivate::VisualService(const msgs::Visual &_req,
 }
 
 //////////////////////////////////////////////////
-bool UserCommandsPrivate::WheelSlipService(const msgs::WheelSlip &_req,
+bool UserCommandsPrivate::WheelSlipService(const msgs::WheelSlipParameters &_req,
     msgs::Boolean &_res)
 {
   // Create command and push it to queue
@@ -1456,7 +1456,7 @@ bool VisualCommand::Execute()
 }
 
 //////////////////////////////////////////////////
-WheelSlipCommand::WheelSlipCommand(msgs::WheelSlip *_msg,
+WheelSlipCommand::WheelSlipCommand(msgs::WheelSlipParameters *_msg,
     std::shared_ptr<UserCommandsInterface> &_iface)
     : UserCommandBase(_msg, _iface)
 {
@@ -1465,7 +1465,7 @@ WheelSlipCommand::WheelSlipCommand(msgs::WheelSlip *_msg,
 //////////////////////////////////////////////////
 bool WheelSlipCommand::Execute()
 {
-  auto wheelSlipMsg = dynamic_cast<const msgs::WheelSlip *>(this->msg);
+  auto wheelSlipMsg = dynamic_cast<const msgs::WheelSlipParameters *>(this->msg);
   if (nullptr == wheelSlipMsg)
   {
     ignerr << "Internal error, null wheel slip message" << std::endl;
