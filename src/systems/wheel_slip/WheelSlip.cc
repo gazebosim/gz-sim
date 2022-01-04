@@ -108,7 +108,9 @@ class ignition::gazebo::systems::WheelSlipPrivate
                     {
                       if (_a.size() != _b.size() ||
                           _a.size() < 2 ||_b.size() < 2)
+                      {
                         return false;
+                      }
 
                       for (size_t i = 0; i < _a.size(); i++)
                       {
@@ -251,14 +253,20 @@ void WheelSlipPrivate::Update(EntityComponentManager &_ecm)
     if (wheelSlipCmdComp) {
       const auto & wheelSlipCmdParams = wheelSlipCmdComp->Data();
       bool changed = math::equal(
-          params.slipComplianceLateral, wheelSlipCmdParams.slip_compliance_lateral(), 1e-6) &&
+          params.slipComplianceLateral,
+          wheelSlipCmdParams.slip_compliance_lateral(),
+          1e-6) &&
         math::equal(
-          params.slipComplianceLongitudinal, wheelSlipCmdParams.slip_compliance_longitudinal(), 1e-6);
+          params.slipComplianceLongitudinal,
+          wheelSlipCmdParams.slip_compliance_longitudinal(),
+          1e-6);
 
       if (changed) {
         _ecm.RemoveComponent<components::WheelSlipCmd>(linkSurface.first);
-        params.slipComplianceLateral = wheelSlipCmdParams.slip_compliance_lateral();
-        params.slipComplianceLongitudinal = wheelSlipCmdParams.slip_compliance_longitudinal();
+        params.slipComplianceLateral =
+          wheelSlipCmdParams.slip_compliance_lateral();
+        params.slipComplianceLongitudinal =
+          wheelSlipCmdParams.slip_compliance_longitudinal();
       }
     }
 

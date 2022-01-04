@@ -369,15 +369,19 @@ class WheelSlipCommand : public UserCommandBase
 
   /// \brief WheelSlip equality comparision function
   public: std::function<bool(const msgs::WheelSlip &, const msgs::WheelSlip &)>
-          wheelSlipEql { [](const msgs::WheelSlip &_a, const msgs::WheelSlip &_b)
-            {
+          wheelSlipEql {
+            [](const msgs::WheelSlip &_a, const msgs::WheelSlip &_b) {
               return
                 _a.name() == _b.name() &&
                 _a.id() == _b.id() &&
                 math::equal(
-                  _a.slip_compliance_lateral(), _b.slip_compliance_lateral(), 1e-6) &&
+                  _a.slip_compliance_lateral(),
+                  _b.slip_compliance_lateral(),
+                  1e-6) &&
                 math::equal(
-                  _a.slip_compliance_longitudinal(), _b.slip_compliance_longitudinal(), 1e-6);
+                  _a.slip_compliance_longitudinal(),
+                  _b.slip_compliance_longitudinal(),
+                  1e-6);
             }};
 };
 }
@@ -457,11 +461,14 @@ class ignition::gazebo::systems::UserCommandsPrivate
   public: bool VisualService(const msgs::Visual &_req, msgs::Boolean &_res);
 
   /// \brief Callback for wheel slip service
-  /// \param[in] _req Request containing wheel slip parameter updates of an entity
+  /// \param[in] _req Request containing wheel slip parameter updates of an
+  ///  entity.
   /// \param[out] _res True if message sucessfully received and queued.
-  /// It does not mean that the wheel slip parameters will be successfully updated
+  /// It does not mean that the wheel slip parameters will be successfully
+  /// updated.
   /// \return True if successful.
-  public: bool WheelSlipService(const msgs::WheelSlip &_req, msgs::Boolean &_res);
+  public: bool WheelSlipService(
+    const msgs::WheelSlip &_req, msgs::Boolean &_res);
 
   /// \brief Queue of commands pending execution.
   public: std::vector<std::unique_ptr<UserCommandBase>> pendingCmds;
