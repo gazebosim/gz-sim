@@ -212,8 +212,9 @@ void Thruster::Configure(
   {
     // Keeping cmd_pos for backwards compatibility
     // TODO(chapulina) Deprecate cmd_pos, because the commands aren't positions
-    std::string thrusterTopicOld = ignition::transport::TopicUtils::AsValidTopic(
-      "/model/" + ns + "/joint/" + jointName + "/cmd_pos");
+    std::string thrusterTopicOld =
+      ignition::transport::TopicUtils::AsValidTopic(
+        "/model/" + ns + "/joint/" + jointName + "/cmd_pos");
 
     this->dataPtr->node.Subscribe(
       thrusterTopicOld,
