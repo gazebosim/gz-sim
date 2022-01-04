@@ -33,8 +33,8 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief A component type that contains commanded wheel slip parameters of an
-  /// entity in the world frame represented by msgs::WheelSlip.
+  /// \brief A component type that contains commanded wheel slip parameters of
+  /// an entity in the world frame represented by msgs::WheelSlip.
   using WheelSlipCmd = Component<ignition::msgs::WheelSlip,
     class WheelSlipCmdTag, serializers::MsgSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.WheelSlipCmd",
