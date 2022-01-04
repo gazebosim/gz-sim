@@ -53,7 +53,7 @@ class ignition::gazebo::systems::ThrusterPrivateData
     /// \brief Takes in angular velocity commands in radians per second and
     /// calculates the appropriate force.
     AngVelCmd
-  } opmode;
+  } opmode = OperationMode::ForceCmd;
 
   /// \brief Mutex for read/write access to class
   public: std::mutex mtx;
@@ -112,6 +112,9 @@ class ignition::gazebo::systems::ThrusterPrivateData
 
   /// \brief callback for handling thrust update
   public: void OnCmdThrust(const ignition::msgs::Double &_msg);
+
+  /// \brief callback for handling angular velocity update
+  public: void OnCmdAngVel(const ignition::msgs::Double &_msg);
 
   /// \brief function which computes angular velocity from thrust
   /// \param[in] _thrust Thrust in N
@@ -176,6 +179,14 @@ void Thruster::Configure(
     this->dataPtr->fluidDensity = _sdf->Get<double>("fluid_density");
   }
 
+  // Get the operation mode
+  if (_sdf->HasElement("use_angvel_cmd"))
+  {
+    this->dataPtr->opmode = _sdf->Get<bool>("use_angvel_cmd") ?
+      ThrusterPrivateData::OperationMode::AngVelCmd :
+      ThrusterPrivateData::OperationMode::ForceCmd;
+  }
+
   this->dataPtr->jointEntity = model.JointByName(_ecm, jointName);
   if (kNullEntity == this->dataPtr->jointEntity)
   {
@@ -191,39 +202,62 @@ void Thruster::Configure(
   this->dataPtr->jointPose = _ecm.Component<components::Pose>(
       this->dataPtr->jointEntity)->Data();
 
-  // Keeping cmd_pos for backwards compatibility
-  // TODO(chapulina) Deprecate cmd_pos, because the commands aren't positions
-  std::string thrusterTopicOld = ignition::transport::TopicUtils::AsValidTopic(
-    "/model/" + ns + "/joint/" + jointName + "/cmd_pos");
-
-  this->dataPtr->node.Subscribe(
-    thrusterTopicOld,
-    &ThrusterPrivateData::OnCmdThrust,
-    this->dataPtr.get());
-
-  // Subscribe to force commands
-  std::string thrusterTopic = ignition::transport::TopicUtils::AsValidTopic(
-    "/model/" + ns + "/joint/" + jointName + "/cmd_thrust");
-
-  this->dataPtr->node.Subscribe(
-    thrusterTopic,
-    &ThrusterPrivateData::OnCmdThrust,
-    this->dataPtr.get());
-
-  ignmsg << "Thruster listening to commands in [" << thrusterTopic << "]"
-         << std::endl;
-
-  std::string feedbackTopic = ignition::transport::TopicUtils::AsValidTopic(
-    "/model/" + ns + "/joint/" + jointName + "/ang_vel");
-  this->dataPtr->pub = this->dataPtr->node.Advertise<msgs::Double>(
-    feedbackTopic
-  );
-
   // Get link entity
   auto childLink =
       _ecm.Component<ignition::gazebo::components::ChildLinkName>(
       this->dataPtr->jointEntity);
   this->dataPtr->linkEntity = model.LinkByName(_ecm, childLink->Data());
+
+  if (this->dataPtr->opmode == ThrusterPrivateData::OperationMode::ForceCmd)
+  {
+    // Keeping cmd_pos for backwards compatibility
+    // TODO(chapulina) Deprecate cmd_pos, because the commands aren't positions
+    std::string thrusterTopicOld = ignition::transport::TopicUtils::AsValidTopic(
+      "/model/" + ns + "/joint/" + jointName + "/cmd_pos");
+
+    this->dataPtr->node.Subscribe(
+      thrusterTopicOld,
+      &ThrusterPrivateData::OnCmdThrust,
+      this->dataPtr.get());
+
+    // Subscribe to force commands
+    std::string thrusterTopic = ignition::transport::TopicUtils::AsValidTopic(
+      "/model/" + ns + "/joint/" + jointName + "/cmd_thrust");
+
+    this->dataPtr->node.Subscribe(
+      thrusterTopic,
+      &ThrusterPrivateData::OnCmdThrust,
+      this->dataPtr.get());
+
+    ignmsg << "Thruster listening to commands in [" << thrusterTopic << "]"
+          << std::endl;
+
+    std::string feedbackTopic = ignition::transport::TopicUtils::AsValidTopic(
+      "/model/" + ns + "/joint/" + jointName + "/ang_vel");
+    this->dataPtr->pub = this->dataPtr->node.Advertise<msgs::Double>(
+      feedbackTopic
+    );
+  }
+  else
+  {
+    // Subscribe to angvel commands
+    std::string thrusterTopic = ignition::transport::TopicUtils::AsValidTopic(
+      "/model/" + ns + "/joint/" + jointName + "/cmd_vel");
+
+    this->dataPtr->node.Subscribe(
+      thrusterTopic,
+      &ThrusterPrivateData::OnCmdAngVel,
+      this->dataPtr.get());
+
+    ignmsg << "Thruster listening to commands in [" << thrusterTopic << "]"
+          << std::endl;
+
+    std::string feedbackTopic = ignition::transport::TopicUtils::AsValidTopic(
+      "/model/" + ns + "/joint/" + jointName + "/force");
+    this->dataPtr->pub = this->dataPtr->node.Advertise<msgs::Double>(
+      feedbackTopic
+    );
+  }
 
   // Create necessary components if not present.
   enableComponent<components::AngularVelocity>(_ecm, this->dataPtr->linkEntity);
@@ -290,6 +324,20 @@ void ThrusterPrivateData::OnCmdThrust(const ignition::msgs::Double &_msg)
 }
 
 /////////////////////////////////////////////////
+void ThrusterPrivateData::OnCmdAngVel(const ignition::msgs::Double &_msg)
+{
+  std::lock_guard<std::mutex> lock(mtx);
+  this->propellerAngVel =
+    ignition::math::clamp(ignition::math::fixnan(_msg.data()),
+      this->cmdMin, this->cmdMax);
+
+  // Thrust is proportional to the Rotation Rate squared
+  // See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 246
+  this->thrust = this->AngularVelToThrust(this->propellerAngVel);
+
+}
+
+/////////////////////////////////////////////////
 double ThrusterPrivateData::ThrustToAngularVec(double _thrust)
 {
   // Thrust is proportional to the Rotation Rate squared
@@ -310,7 +358,7 @@ double ThrusterPrivateData::AngularVelToThrust(double _angVel)
   // Thrust is proportional to the Rotation Rate squared
   // See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 246
   return this->thrustCoefficient * pow(this->propellerDiameter, 4)
-    * abs(_angVel) * _angVel;
+    * abs(_angVel) * _angVel * this->fluidDensity;
 }
 
 /////////////////////////////////////////////////
@@ -371,8 +419,17 @@ void Thruster::PreUpdate(
     }
     angvel.set_data(desiredPropellerAngVel);
   }
-  this->dataPtr->pub.Publish(angvel);
 
+  if (this->dataPtr->opmode == ThrusterPrivateData::OperationMode::ForceCmd)
+  {
+    this->dataPtr->pub.Publish(angvel);
+  }
+  else
+  {
+    msgs::Double force;
+    force.set_data(desiredThrust);
+    this->dataPtr->pub.Publish(force);
+  }
   // Force: thrust
   // Torque: propeller rotation, if using PID
   link.AddWorldWrench(
