@@ -50,13 +50,14 @@ class ThrusterTest : public InternalFixture<::testing::Test>
   /// force
   public: void TestWorld(const std::string &_world,
       const std::string &_namespace, double _coefficient, double _density,
-      double _diameter, double _baseTol, bool _useAngVelCmd = false);
+      double _diameter, double _baseTol, bool _useAngVelCmd = false,
+      double mass = 100.1);
 };
 
 //////////////////////////////////////////////////
 void ThrusterTest::TestWorld(const std::string &_world,
     const std::string &_namespace, double _coefficient, double _density,
-    double _diameter, double _baseTol, bool _useAngVelCmd)
+    double _diameter, double _baseTol, bool _useAngVelCmd, double mass)
 {
   // Start server
   ServerConfig serverConfig;
@@ -179,7 +180,6 @@ void ThrusterTest::TestWorld(const std::string &_world,
   // s = a * t^2 / 2
   // F = m * 2 * s / t^2
   // s = F * t^2 / 2m
-  double mass{100.1};
   double xTol{1e-2};
   for (unsigned int i = 0; i < modelPoses.size(); ++i)
   {
@@ -196,7 +196,7 @@ void ThrusterTest::TestWorld(const std::string &_world,
     if (_namespace == "custom")
       EXPECT_NEAR(0.0, pose.Rot().Roll(), 0.1);
     else
-      EXPECT_NEAR(0.0, pose.Rot().Roll(), _baseTol);
+      ASSERT_NEAR(0.0, pose.Rot().Roll(), _baseTol);
   }
 
   double omegaTol{1e-1};
@@ -220,7 +220,7 @@ TEST_F(ThrusterTest, AngVelCmdControl)
       "test", "worlds", "thruster_ang_vel_cmd.sdf");
 
   //  Tolerance is high because the joint command disturbs the vehicle body
-  this->TestWorld(world, "sub", 0.004, 1000, 0.2, 2e-2, true);
+  this->TestWorld(world, "custom", 0.005, 950, 0.2, 1e-2, true, 100.01);
 }
 
 /////////////////////////////////////////////////

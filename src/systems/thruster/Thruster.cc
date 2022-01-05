@@ -336,7 +336,6 @@ void ThrusterPrivateData::OnCmdAngVel(const ignition::msgs::Double &_msg)
   // Thrust is proportional to the Rotation Rate squared
   // See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 246
   this->thrust = this->AngularVelToThrust(this->propellerAngVel);
-
 }
 
 /////////////////////////////////////////////////

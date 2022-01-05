@@ -61,14 +61,14 @@
       <link name="propeller">
         <pose>-1.05 0 0 0 0 0</pose>
         <inertial>
-          <mass>0.1</mass>
+          <mass>0.01</mass>
           <inertia>
-            <ixx>0.000354167</ixx>
+            <ixx>0.0000354167</ixx>
             <ixy>0</ixy>
             <ixz>0</ixz>
-            <iyy>0.000021667</iyy>
+            <iyy>0.0000021667</iyy>
             <iyz>0</iyz>
-            <izz>0.000334167</izz>
+            <izz>0.0000334167</izz>
           </inertia>
         </inertial>
         <visual name="visual">
@@ -97,11 +97,11 @@
       <plugin
         filename="ignition-gazebo-thruster-system"
         name="ignition::gazebo::systems::Thruster">
-        <namespace>sub</namespace>
+        <namespace>custom</namespace>
         <joint_name>propeller_joint</joint_name>
         <thrust_coefficient>0.005</thrust_coefficient>
         <fluid_density>950</fluid_density>
-        <propeller_diameter>0.25</propeller_diameter>
+        <propeller_diameter>0.2</propeller_diameter>
         <velocity_control>true</velocity_control>
         <use_angvel_cmd>true</use_angvel_cmd>
       </plugin>
