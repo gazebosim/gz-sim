@@ -34,16 +34,24 @@ namespace systems
 
   /// \brief This plugin simulates a maritime thruster for
   /// boats and underwater vehicles. It uses the equations described in Fossen's
-  /// "Guidance and Control of Ocean Vehicles" in page 246. This plugin takes in
+  /// "Guidance and Control of Ocean Vehicles" in page 246. This plugin has two
+  /// modes of operation. In the default mode it takes in a
   /// force in Newtons and applies it to the thruster. It also calculates the
   /// theoretical angular velocity of the blades and spins them accordingly.
+  /// Alternatively, one may send angular velocity commands to calculate the
+  /// force to be applied using the said equation.
   ///
   /// ## System Parameters
   /// - <namespace> - The namespace in which the robot exists. The plugin will
-  ///   listen on the topic `/model/{namespace}/joint/{joint_name}/cmd_thrust`.
+  ///   listen on the topic `/model/{namespace}/joint/{joint_name}/cmd_thrust`or
+  ///   `/model/{namespace}/joint/{joint_name}/cmd_vel` depending on the mode of
+  ///   operation.
   ///   [Optional]
   /// - <joint_name> - This is the joint in the model which corresponds to the
   ///   propeller. [Required]
+  /// - <use_angvel_cmd> - Default false, if set to true will make the thruster
+  ///   plugin accept commands in angular velocity in radians per seconds in
+  ///   terms of newtons. [Optional, Boolean, Default True]
   /// - <fluid_density> - The fluid density of the liquid in which the thruster
   ///   is operating in. [Optional, kg/m^3, defaults to 1000 kg/m^3]
   /// - <propeller_diameter> - The diameter of the propeller in meters.
