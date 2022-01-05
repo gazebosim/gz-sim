@@ -89,6 +89,7 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
+#include "ignition/gazebo/rendering/Events.hh"
 #include "ignition/gazebo/rendering/RenderUtil.hh"
 #include "ignition/gazebo/rendering/SceneManager.hh"
 #include "ignition/gazebo/rendering/MarkerManager.hh"
@@ -192,6 +193,13 @@ class ignition::gazebo::RenderUtilPrivate
       const components::Light *_light,
       const components::Name *_name,
       const components::ParentEntity *_parent);
+
+  /// \brief Get the event manager used by RenderUtil
+  /// \return Event manager used by RenderUtil
+  public: static EventManager &RenderEventManager();
+
+  /// \brief Event manager used for emitting render / scene events
+  public: static EventManager eventManager;
 
   /// \brief Total time elapsed in simulation. This will not increase while
   /// paused.
@@ -598,6 +606,9 @@ class ignition::gazebo::RenderUtilPrivate
               const std::unordered_map<Entity, math::Pose3d> &_entityPoses,
               const std::unordered_map<Entity, math::Pose3d> &_trajectoryPoses);
 };
+
+// declare static var
+EventManager RenderUtilPrivate::eventManager;
 
 //////////////////////////////////////////////////
 RenderUtil::RenderUtil() : dataPtr(std::make_unique<RenderUtilPrivate>())
@@ -1583,6 +1594,8 @@ void RenderUtil::Update()
       }
     }
   }
+
+  this->dataPtr->eventManager.Emit<events::SceneUpdate>();
 }
 
 //////////////////////////////////////////////////
@@ -3636,4 +3649,16 @@ void RenderUtilPrivate::CreateLight(
 {
   this->newLights.push_back(std::make_tuple(_entity, _light->Data(),
       _name->Data(), _parent->Data()));
+}
+
+//////////////////////////////////////////////////
+EventManager &RenderUtilPrivate::RenderEventManager()
+{
+  return eventManager;
+}
+
+//////////////////////////////////////////////////
+EventManager &RenderUtil::RenderEventManager()
+{
+  return RenderUtilPrivate::RenderEventManager();
 }

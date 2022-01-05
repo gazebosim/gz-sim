@@ -214,6 +214,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _active True if active.
     public: void SetTransformActive(bool _active);
 
+    /// \brief Set whether the transform controls are currently being dragged.
+    /// \param[in] _active True if active.
+    public: static EventManager &RenderEventManager();
+
     /// \brief Private data pointer.
     private: std::unique_ptr<RenderUtilPrivate> dataPtr;
   };

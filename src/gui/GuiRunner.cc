@@ -92,6 +92,9 @@ class ignition::gazebo::GuiRunner::Implementation
 
   /// \brief Systems implementing PostUpdate
   public: std::vector<ISystemPostUpdate *> systemsPostupdate;
+
+  /// \brief Manager of all events.
+  public: EventManager eventMgr;
 };
 
 /////////////////////////////////////////////////
@@ -302,6 +305,7 @@ void GuiRunner::OnStateQt(const msgs::SerializedStepMap &_msg)
 /////////////////////////////////////////////////
 void GuiRunner::UpdatePlugins()
 {
+  // gui plugins
   auto plugins = ignition::gui::App()->findChildren<GuiSystem *>();
   for (auto plugin : plugins)
   {
@@ -311,6 +315,7 @@ void GuiRunner::UpdatePlugins()
   this->dataPtr->ecm.ClearNewlyCreatedEntities();
   this->dataPtr->ecm.ProcessRemoveEntityRequests();
 
+  // ign-gazebo systems
   this->LoadSystems();
   this->UpdateSystems();
 }
@@ -342,6 +347,14 @@ void GuiRunner::LoadSystems()
             sys->QueryInterface<ISystemUpdate>());
         this->dataPtr->systemsPostupdate.push_back(
             sys->QueryInterface<ISystemPostUpdate>());
+
+
+        auto sysConfigure = sys->QueryInterface<ISystemConfigure>();
+        if (sysConfigure)
+        {
+          sysConfigure->Configure(entity, pluginElem, this->dataPtr->ecm,
+              this->dataPtr->eventMgr);
+        }
         igndbg << "Loaded system [" << name
                << "] for entity [" << entity << "] in GUI"
                << std::endl;
@@ -359,19 +372,28 @@ void GuiRunner::UpdateSystems()
   {
     IGN_PROFILE("PreUpdate");
     for (auto& system : this->dataPtr->systemsPreupdate)
-      system->PreUpdate(this->dataPtr->updateInfo, this->dataPtr->ecm);
+    {
+      if (system)
+        system->PreUpdate(this->dataPtr->updateInfo, this->dataPtr->ecm);
+    }
   }
 
   {
     IGN_PROFILE("Update");
     for (auto& system : this->dataPtr->systemsUpdate)
-      system->Update(this->dataPtr->updateInfo, this->dataPtr->ecm);
+    {
+      if (system)
+        system->Update(this->dataPtr->updateInfo, this->dataPtr->ecm);
+    }
   }
 
   {
     IGN_PROFILE("PostUpdate");
     // \todo(anyone) Do PostUpdates in parallel
     for (auto& system : this->dataPtr->systemsPostupdate)
-      system->PostUpdate(this->dataPtr->updateInfo, this->dataPtr->ecm);
+    {
+      if (system)
+        system->PostUpdate(this->dataPtr->updateInfo, this->dataPtr->ecm);
+    }
   }
 }
