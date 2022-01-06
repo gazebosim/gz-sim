@@ -48,16 +48,17 @@ class ThrusterTest : public InternalFixture<::testing::Test>
   /// \param[in] _baseTol Base tolerance for most quantities
   /// \param[in] _useAngVelCmd Send commands in angular velocity instead of
   /// force
+  /// \param[in] _mass Mass of the body being propelled.
   public: void TestWorld(const std::string &_world,
       const std::string &_namespace, double _coefficient, double _density,
       double _diameter, double _baseTol, bool _useAngVelCmd = false,
-      double mass = 100.1);
+      double _mass = 100.1);
 };
 
 //////////////////////////////////////////////////
 void ThrusterTest::TestWorld(const std::string &_world,
     const std::string &_namespace, double _coefficient, double _density,
-    double _diameter, double _baseTol, bool _useAngVelCmd, double mass)
+    double _diameter, double _baseTol, bool _useAngVelCmd, double _mass)
 {
   // Start server
   ServerConfig serverConfig;
@@ -125,7 +126,7 @@ void ThrusterTest::TestWorld(const std::string &_world,
   // Publish command and check that vehicle moved
   transport::Node node;
   std::string cmdTopic;
-  if(!_useAngVelCmd)
+  if (!_useAngVelCmd)
   {
     cmdTopic = "/model/" + _namespace + "/joint/propeller_joint/cmd_thrust";
   }
@@ -185,7 +186,7 @@ void ThrusterTest::TestWorld(const std::string &_world,
   {
     auto pose = modelPoses[i];
     auto time = dt * i;
-    EXPECT_NEAR(force * time * time / (2 * mass), pose.Pos().X(), xTol);
+    EXPECT_NEAR(force * time * time / (2 * _mass), pose.Pos().X(), xTol);
     EXPECT_NEAR(0.0, pose.Pos().Y(), _baseTol);
     EXPECT_NEAR(0.0, pose.Pos().Z(), _baseTol);
     EXPECT_NEAR(0.0, pose.Rot().Pitch(), _baseTol);
@@ -196,7 +197,7 @@ void ThrusterTest::TestWorld(const std::string &_world,
     if (_namespace == "custom")
       EXPECT_NEAR(0.0, pose.Rot().Roll(), 0.1);
     else
-      ASSERT_NEAR(0.0, pose.Rot().Roll(), _baseTol);
+      EXPECT_NEAR(0.0, pose.Rot().Roll(), _baseTol);
   }
 
   double omegaTol{1e-1};
