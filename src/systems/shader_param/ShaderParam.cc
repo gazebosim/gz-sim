@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Open Source Robotics Foundation
+ * Copyright (C) 2022 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,15 @@
 #include <mutex>
 #include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
+#include <ignition/rendering/Material.hh>
+#include <ignition/rendering/RenderingIface.hh>
+#include <ignition/rendering/Scene.hh>
+#include <ignition/rendering/ShaderParams.hh>
+#include <ignition/rendering/Visual.hh>
 
 #include <sdf/Element.hh>
 
+#include <ignition/gazebo/components/Name.hh>
 #include <ignition/gazebo/rendering/Events.hh>
 #include <ignition/gazebo/rendering/RenderUtil.hh>
 
@@ -33,6 +39,13 @@ using namespace systems;
 
 class ignition::gazebo::systems::ShaderParamPrivate
 {
+  public: class ShaderParamValue
+  {
+    public: std::string type;
+    public: std::string name;
+    public: std::string value;
+  };
+
   /// \brief Path to vertex shader
   public: std::string vertexShaderUri;
 
@@ -48,6 +61,14 @@ class ignition::gazebo::systems::ShaderParamPrivate
 
   /// \brief Connection to pre-render event callback
   public: ignition::common::ConnectionPtr connection{nullptr};
+
+  public: std::string visualName;
+
+  public: rendering::VisualPtr visual;
+  public: rendering::MaterialPtr material;
+  public: rendering::ScenePtr scene;
+  public: Entity entity = kNullEntity;
+  public: std::vector<ShaderParamValue> shaderParams;
 
   /// \brief All rendering operations must happen within this call
   public: void OnUpdate();
@@ -105,6 +126,11 @@ void ShaderParam::Configure(const Entity &_entity,
       }
       else
       {
+        ShaderParamPrivate::ShaderParamValue spv;
+        spv.type = shaderType;
+        spv.name = paramName;
+        spv.value = value;
+        this->dataPtr->shaderParams.push_back(spv);
         // todo store value and set in rendering thread?
 //        this->dataPtr->visual->SetMaterialShaderParam(
 //            paramName, shaderType, value);
@@ -125,11 +151,15 @@ void ShaderParam::Configure(const Entity &_entity,
     else
     {
       sdf::ElementPtr vertexElem = shaderElem->GetElement("vertex");
-      this->dataPtr->fragmentShaderUri = vertexElem->Get<std::string>();
+      this->dataPtr->vertexShaderUri = vertexElem->Get<std::string>();
       sdf::ElementPtr fragmentElem = shaderElem->GetElement("fragment");
-      this->dataPtr->vertexShaderUri = fragmentElem->Get<std::string>();
+      this->dataPtr->fragmentShaderUri = fragmentElem->Get<std::string>();
     }
   }
+
+  this->dataPtr->entity = _entity;
+  auto nameComp = _ecm.Component<components::Name>(_entity);
+  this->dataPtr->visualName = nameComp->Data();
 
   auto &eventMgr = RenderUtil::RenderEventManager();
   this->dataPtr->connection =
@@ -168,6 +198,123 @@ void ShaderParam::PostUpdate(const UpdateInfo &_info,
 void ShaderParamPrivate::OnUpdate()
 {
   std::lock_guard<std::mutex> lock(this->mutex);
+  if (this->visualName.empty())
+    return;
+
+  if (!this->scene)
+    this->scene = rendering::sceneFromFirstRenderEngine();
+
+  if (!this->scene)
+    return;
+
+  if (!this->visual)
+  {
+    // this does a breadth first search for visual with the entity id
+    // \todo(anyone) provide a helper function in RenderUtil to search for
+    // visual by entity id?
+    auto rootVis = scene->RootVisual();
+    std::list<rendering::NodePtr> nodes;
+    nodes.push_back(rootVis);
+    while (!nodes.empty())
+    {
+      auto n = nodes.front();
+      nodes.pop_front();
+      if (n && n->HasUserData("gazebo-entity"))
+      {
+        // RenderUti stores gazebo-entity user data as int
+        // \todo(anyone) Change this to uint64_t in Ignition H?
+        auto variant = n->UserData("gazebo-entity");
+        const int *value = std::get_if<int>(&variant);
+        if (value && *value == static_cast<int>(this->entity))
+        {
+          this->visual = std::dynamic_pointer_cast<rendering::Visual>(n);
+          break;
+        }
+      }
+      for (unsigned int i = 0; i < n->ChildCount(); ++i)
+        nodes.push_back(n->ChildByIndex(i));
+    }
+  }
+
+  if (!this->visual)
+    return;
+
+  if (!this->material)
+  {
+    auto mat = scene->CreateMaterial();
+    mat->SetVertexShader(this->vertexShaderUri);
+    mat->SetFragmentShader(this->fragmentShaderUri);
+    this->visual->SetMaterial(mat);
+    scene->DestroyMaterial(mat);
+    this->material = this->visual->Material();
+  }
+
+  if (!this->material)
+    return;
+
+  for (const auto & spv : this->shaderParams)
+  {
+    std::vector<std::string> values = common::split(spv.value, " ");
+    if (values.empty())
+      continue;
+
+    int intValue = 0;
+    float floatValue = 0;
+    std::vector<float> floatArrayValue;
+
+    rendering::ShaderParam::ParamType paramType;
+
+    if (values.size() == 1u)
+    {
+      std::string str = values[0];
+      std::string::size_type sz;
+      int n = std::stoi(str, &sz);
+      if (sz == str.size())
+      {
+        intValue = n;
+        paramType = rendering::ShaderParam::PARAM_INT;
+      }
+      else
+      {
+        floatValue = std::stof(str);
+        paramType = rendering::ShaderParam::PARAM_FLOAT;
+      }
+    }
+    else
+    {
+      for (const auto &v : values)
+        floatArrayValue.push_back(std::stof(v));
+      paramType = rendering::ShaderParam::PARAM_FLOAT_BUFFER;
+    }
+
+    rendering::ShaderParamsPtr params;
+    if (spv.type == "fragment")
+    {
+      params = this->material->FragmentShaderParams();
+    }
+    else if (spv.type == "vertex")
+    {
+      params = this->material->VertexShaderParams();
+    }
+
+    if (paramType == rendering::ShaderParam::PARAM_INT)
+    {
+//      (*params)[spv.name].InitializeBuffer(1);
+      (*params)[spv.name] = intValue;
+    }
+    else if (paramType == rendering::ShaderParam::PARAM_FLOAT)
+    {
+//      (*params)[spv.name].InitializeBuffer(1);
+      (*params)[spv.name] = floatValue;
+    }
+    else if (paramType == rendering::ShaderParam::PARAM_FLOAT_BUFFER)
+    {
+      (*params)[spv.name].InitializeBuffer(floatArrayValue.size());
+      float *fv = &floatArrayValue[0];
+      (*params)[spv.name].UpdateBuffer(fv);
+    }
+  }
+
   std::cerr << " on update ======== " << this << std::endl;
 }
 
