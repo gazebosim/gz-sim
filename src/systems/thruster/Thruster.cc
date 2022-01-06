@@ -123,7 +123,7 @@ class ignition::gazebo::systems::ThrusterPrivateData
 
   /// \brief function which computers thrust from angular velocity
   /// \param[in] _angVel Angular Velocity in rad/s
-  /// \return Thrust in Newtowns
+  /// \return Thrust in Newtons
   public: double AngularVelToThrust(double _angVel);
 };
 
