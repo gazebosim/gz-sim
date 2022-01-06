@@ -15,17 +15,41 @@
  *
  */
 
+#include <unordered_map>
+
 #include "Parameters.hh"
 
 #include <ignition/common/Profiler.hh>
 #include "ignition/gazebo/EntityComponentManager.hh"
+#include <ignition/gazebo/components/Name.hh>
 #include <ignition/gazebo/components/ParametersRegistry.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
+#include <ignition/msgs/parameter_declarations.pb.h>
+#include <ignition/msgs/parameter_name.pb.h>
+#include <ignition/msgs/parameter_value.pb.h>
+
 using namespace ignition;
 using namespace gazebo;
 using namespace systems;
+
+/// \brief Data we need to store for each parameter.
+struct ParameterData
+{
+  /// \brief Entity id associated to the parameter.
+  uint64_t entity_id;
+
+  /// \brief Component type of the parameter.
+  ///
+  /// Each time the parameter is updated, the component of this type
+  /// of the associated entity is updated.
+  ///
+  std::string component_type;
+};
+
+/// \brief Registry type to store all parameters.
+using ParameterMap = std::unordered_map<std::string, ParameterData>;
 
 class ignition::gazebo::systems::ParametersPrivate
 {
@@ -37,6 +61,17 @@ class ignition::gazebo::systems::ParametersPrivate
 
   /// \brief World entity.
   public: Entity worldEntity{kNullEntity};
+
+  /// \brief Parameter registry.
+  public: ParameterMap registry;
+
+  /// \brief Callback for create service
+  /// \param[in] _req Request containing entity description.
+  /// \param[out] _res True if message successfully received and queued.
+  /// It does not mean that the entity will be successfully spawned.
+  /// \return True if successful.
+  public: bool GetParameter(const msgs::ParameterName &_req,
+      msgs::ParameterValue &_res);
 };
 
 //////////////////////////////////////////////////
@@ -53,16 +88,45 @@ void Parameters::Configure(const Entity &_entity,
 {
   this->dataPtr->worldEntity = _entity;
   this->dataPtr->ecm = &_ecm;
-  // this->dataPtr->node.Advertise(createService,
-  //     &UserCommandsPrivate::CreateService, this->dataPtr.get());
+
   this->dataPtr->ecm->CreateComponent(
       _entity, components::ParametersRegistry(msgs::ParameterDeclarations()));
+
+  const components::Name *constCmp = _ecm.Component<components::Name>(_entity);
+  const std::string &worldName = constCmp->Data();
+  auto validWorldName = transport::TopicUtils::AsValidTopic(worldName);
+  if (validWorldName.empty())
+  {
+    ignerr << "World name [" << worldName
+           << "] doesn't work well with transport, parameter services not advertised."
+           << std::endl;
+    return;
+  }
+
+  std::string srvNamePrefix = "/world/" + validWorldName;
+  std::string getParameterSrvName{srvNamePrefix + "/get_parameter"};
+  this->dataPtr->node.Advertise(getParameterSrvName,
+    &ParametersPrivate::GetParameter, this->dataPtr.get());
 }
 
 //////////////////////////////////////////////////
 void Parameters::PreUpdate(const UpdateInfo &_info, EntityComponentManager &)
 {
   IGN_PROFILE("Parameters::PreUpdate");
+}
+
+bool ParametersPrivate::GetParameter(const msgs::ParameterName &_req,
+  msgs::ParameterValue &_res)
+{
+  const auto & param_name = _req.name();
+  auto it = this->registry.find(param_name);
+  if (it == this->registry.end()) {
+    return false;
+  }
+  Entity entity{it->second.entity_id};
+  auto type_id = components::Factory::Instance()->Id(it->second.component_type);
+  // this->ecm.Component()
+  return true;
 }
 
 IGNITION_ADD_PLUGIN(Parameters,
