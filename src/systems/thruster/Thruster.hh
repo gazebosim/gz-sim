@@ -39,7 +39,11 @@ namespace systems
   /// force in Newtons and applies it to the thruster. It also calculates the
   /// theoretical angular velocity of the blades and spins them accordingly.
   /// Alternatively, one may send angular velocity commands to calculate the
-  /// force to be applied using the said equation.
+  /// force to be applied using the said equation. In the default mode the
+  /// plugin will publish angular velocity in radians per second on
+  /// `/model/{ns}/joint/{joint_name}/ang_vel` as an ignition.msgs.double. If
+  /// <use_angvel_cmd> is set to true it publishes force in Newtons instead to
+  /// `/model/{ns}/joint/{joint_name}/force`.
   ///
   /// ## System Parameters
   /// - <namespace> - The namespace in which the robot exists. The plugin will
