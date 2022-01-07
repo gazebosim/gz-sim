@@ -41,10 +41,20 @@ using namespace systems;
 
 class ignition::gazebo::systems::ShaderParamPrivate
 {
+  /// \brief Data structure for storing shader param info
   public: class ShaderParamValue
   {
+    /// \brief shader type: vertex or fragment
+    public: std::string shader;
+
+    /// \brief variable type: int, float, float_array, int_array
+    /// \todo support samplers
     public: std::string type;
+
+    /// \brief variable name of param
     public: std::string name;
+
+    /// \brief param value
     public: std::string value;
   };
 
@@ -60,14 +70,28 @@ class ignition::gazebo::systems::ShaderParamPrivate
   /// \brief Connection to pre-render event callback
   public: ignition::common::ConnectionPtr connection{nullptr};
 
+  /// \brief Name of visual this plugin is attached to
   public: std::string visualName;
 
+  /// \brief Pointer to visual
   public: rendering::VisualPtr visual;
+
+  /// \brief Material used by this visual
   public: rendering::MaterialPtr material;
+
+  /// \brief Pointer to scene
   public: rendering::ScenePtr scene;
+
+  /// \brief Entity id of the visual
   public: Entity entity = kNullEntity;
+
+  /// \brief A list of shader params
   public: std::vector<ShaderParamValue> shaderParams;
+
+  /// \brief Time params that will be updated every iteration
   public: std::vector<ShaderParamValue> timeParams;
+
+  /// \brief Current sim time
   public: std::chrono::steady_clock::duration currentSimTime;
 
   /// \brief All rendering operations must happen within this call
@@ -89,15 +113,12 @@ ShaderParam::~ShaderParam()
 void ShaderParam::Configure(const Entity &_entity,
                const std::shared_ptr<const sdf::Element> &_sdf,
                EntityComponentManager &_ecm,
-               EventManager &/*_eventMgr*/)
+               EventManager &_eventMgr)
 {
   IGN_PROFILE("ShaderParam::Configure");
-  std::cerr << "shader param configure" << std::endl;
-
   // Ugly, but needed because the sdf::Element::GetElement is not a const
   // function and _sdf is a const shared pointer to a const sdf::Element.
   auto sdf = const_cast<sdf::Element *>(_sdf.get());
-
 
   if (sdf->HasElement("param"))
   {
@@ -105,23 +126,25 @@ void ShaderParam::Configure(const Entity &_entity,
     sdf::ElementPtr paramElem = sdf->GetElement("param");
     while (paramElem)
     {
-      if (!paramElem->HasElement("type") ||
+      if (!paramElem->HasElement("shader") ||
           !paramElem->HasElement("name"))
       {
-        ignerr << "<param> must have <type> and <name> sdf elements"
+        ignerr << "<param> must have <shader> and <name> sdf elements"
                << std::endl;
         paramElem = paramElem->GetNextElement("param");
         continue;
       }
-      std::string shaderType = paramElem->Get<std::string>("type");
+      std::string shaderType = paramElem->Get<std::string>("shader");
       std::string paramName = paramElem->Get<std::string>("name");
-      std::string value = paramElem->Get<std::string>("value");
 
-      // TIME is reserved keyword for sim time
+      std::string type = paramElem->Get<std::string>("type", "float").first;
+      std::string value = paramElem->Get<std::string>("value", "").first;
+
       ShaderParamPrivate::ShaderParamValue spv;
-      spv.type = shaderType;
+      spv.shader = shaderType;
       spv.name = paramName;
       spv.value = value;
+      spv.type = type;
       this->dataPtr->shaderParams.push_back(spv);
       paramElem = paramElem->GetNextElement("param");
     }
@@ -154,9 +177,8 @@ void ShaderParam::Configure(const Entity &_entity,
   auto nameComp = _ecm.Component<components::Name>(_entity);
   this->dataPtr->visualName = nameComp->Data();
 
-  auto &eventMgr = RenderUtil::RenderEventManager();
   this->dataPtr->connection =
-      eventMgr.Connect<ignition::gazebo::events::SceneUpdate>(
+      _eventMgr.Connect<ignition::gazebo::events::SceneUpdate>(
       std::bind(&ShaderParamPrivate::OnUpdate, this->dataPtr.get()));
 }
 
@@ -168,7 +190,6 @@ void ShaderParam::PreUpdate(
   IGN_PROFILE("ShaderParam::PreUpdate");
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->currentSimTime = _info.simTime;
-//  std::cerr << "shader param preupdate " << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -259,11 +280,11 @@ void ShaderParamPrivate::OnUpdate()
         rendering::ShaderParam::PARAM_NONE;
 
     rendering::ShaderParamsPtr params;
-    if (spv.type == "fragment")
+    if (spv.shader == "fragment")
     {
       params = this->material->FragmentShaderParams();
     }
-    else if (spv.type == "vertex")
+    else if (spv.shader == "vertex")
     {
       params = this->material->VertexShaderParams();
     }
@@ -271,37 +292,73 @@ void ShaderParamPrivate::OnUpdate()
     if (values.empty())
     {
       // could be auto constants
-      // assign any value and let ign-rendering handle setting the constants
+      // \todo handle args for constants
       (*params)[spv.name] = intValue;
     }
     // float / int
     else if (values.size() == 1u)
     {
       std::string str = values[0];
+
+      // TIME is reserved keyword for sim time
       if (str == "TIME")
       {
         this->timeParams.push_back(spv);
         continue;
       }
-      std::string::size_type sz;
-      int n = std::stoi(str, &sz);
-      if (sz == str.size())
+
+      // if <type> is not empty, respect the specified type
+      if (!spv.type.empty())
       {
-        intValue = n;
-        paramType = rendering::ShaderParam::PARAM_INT;
+        if (spv.type == "int")
+        {
+          intValue = std::stoi(str);
+          paramType = rendering::ShaderParam::PARAM_INT;
+        }
+        else if (spv.type == "float")
+        {
+          floatValue = std::stof(str);
+          paramType = rendering::ShaderParam::PARAM_FLOAT;
+        }
+        else
+        {
+          // \todo(anyone) support samplers
+        }
       }
+      // else do our best guess at what the type is
       else
       {
-        floatValue = std::stof(str);
-        paramType = rendering::ShaderParam::PARAM_FLOAT;
+        std::string::size_type sz;
+        int n = std::stoi(str, &sz);
+        if ( sz == str.size())
+        {
+          intValue = n;
+          paramType = rendering::ShaderParam::PARAM_INT;
+        }
+        else
+        {
+          floatValue = std::stof(str);
+          paramType = rendering::ShaderParam::PARAM_FLOAT;
+        }
       }
     }
-    // float array
+    // arrays
     else
     {
-      for (const auto &v : values)
-        floatArrayValue.push_back(std::stof(v));
-      paramType = rendering::ShaderParam::PARAM_FLOAT_BUFFER;
+      // int array
+      if (!spv.type.empty() && spv.type == "int_array")
+      {
+        for (const auto &v : values)
+          floatArrayValue.push_back(std::stoi(v));
+        paramType = rendering::ShaderParam::PARAM_INT_BUFFER;
+      }
+      // treat everything else as float_array
+      else
+      {
+        for (const auto &v : values)
+          floatArrayValue.push_back(std::stof(v));
+        paramType = rendering::ShaderParam::PARAM_FLOAT_BUFFER;
+      }
     }
 
     if (paramType == rendering::ShaderParam::PARAM_INT)
@@ -312,7 +369,8 @@ void ShaderParamPrivate::OnUpdate()
     {
       (*params)[spv.name] = floatValue;
     }
-    else if (paramType == rendering::ShaderParam::PARAM_FLOAT_BUFFER)
+    else if (paramType == rendering::ShaderParam::PARAM_INT_BUFFER ||
+        paramType == rendering::ShaderParam::PARAM_FLOAT_BUFFER)
     {
       (*params)[spv.name].InitializeBuffer(floatArrayValue.size());
       float *fv = &floatArrayValue[0];
@@ -326,9 +384,9 @@ void ShaderParamPrivate::OnUpdate()
     float floatValue = (std::chrono::duration_cast<std::chrono::nanoseconds>(
         this->currentSimTime).count()) * 1e-9;
     rendering::ShaderParamsPtr params;
-    if (spv.type == "fragment")
+    if (spv.shader == "fragment")
       params = this->material->FragmentShaderParams();
-    else if (spv.type == "vertex")
+    else if (spv.shader == "vertex")
       params = this->material->VertexShaderParams();
     (*params)[spv.name] = floatValue;
   }

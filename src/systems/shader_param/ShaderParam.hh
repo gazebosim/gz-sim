@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Open Source Robotics Foundation
+ * Copyright (C) 2022 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,41 @@ namespace systems
   // Forward declaration
   class ShaderParamPrivate;
 
-  /// \brief A plugin for updating shader params
+  /// \brief A plugin for setting shaders to a visual and its params
+  ///
+  /// Plugin parameters:
+  ///
+  /// <shader>
+  ///   <vertex>   Path to vertex program
+  ///   <fragment> Path to fragment program
+  /// <param>      Shader parameter - can be repeated within plugin SDF element
+  ///   <name>     Name of uniform variable bound to the shader
+  ///   <shader>   Type of shader, i.e. vertex, fragment
+  ///   <type>     Variable type: float, int, float_array, int_array
+  ///   <value>    Value to set the shader parameter to. The vallue string can
+  ///              be an int, float, or a space delimited array of ints or floats.
+  ///              It can also be 'TIME', in which case the value will be bound
+  ///              to sim time.
+  ///
+  /// Example usage:
+  ///
+  /// \verbatim
+  ///     <plugin filename="ignition-gazebo-shader-param-system"
+  ///             name="ignition::gazebo::systems::ShaderParam">
+  ///        <shader>
+  ///          <vertex>materials/my_vs.glsl</vertex>
+  ///          <fragment>materials/my_fs.glsl</fragment>
+  ///        </shader>
+  ///        <!-- Sets a fragment shader variable named "ambient" to red -->
+  ///        <param>
+  ///          <name>ambient</name>
+  ///          <shader>fragment</shader>
+  ///          <type>float_array</type>
+  ///          <value>1.0 0.0 0.0 1.0</value>
+  ///        </param>
+  ///    </plugin>
+  /// \endverbatim
+
   class ShaderParam
       : public System,
         public ISystemConfigure,

@@ -194,12 +194,8 @@ class ignition::gazebo::RenderUtilPrivate
       const components::Name *_name,
       const components::ParentEntity *_parent);
 
-  /// \brief Get the event manager used by RenderUtil
-  /// \return Event manager used by RenderUtil
-  public: static EventManager &RenderEventManager();
-
   /// \brief Event manager used for emitting render / scene events
-  public: static EventManager eventManager;
+  public: EventManager *eventManager{nullptr};
 
   /// \brief Total time elapsed in simulation. This will not increase while
   /// paused.
@@ -608,7 +604,7 @@ class ignition::gazebo::RenderUtilPrivate
 };
 
 // declare static var
-EventManager RenderUtilPrivate::eventManager;
+// EventManager RenderUtilPrivate::eventManager;
 
 //////////////////////////////////////////////////
 RenderUtil::RenderUtil() : dataPtr(std::make_unique<RenderUtilPrivate>())
@@ -1595,7 +1591,8 @@ void RenderUtil::Update()
     }
   }
 
-  this->dataPtr->eventManager.Emit<events::SceneUpdate>();
+  if (this->dataPtr->eventManager)
+    this->dataPtr->eventManager->Emit<events::SceneUpdate>();
 }
 
 //////////////////////////////////////////////////
@@ -3652,13 +3649,7 @@ void RenderUtilPrivate::CreateLight(
 }
 
 //////////////////////////////////////////////////
-EventManager &RenderUtilPrivate::RenderEventManager()
+void RenderUtil::SetEventManager(EventManager *_mgr)
 {
-  return eventManager;
-}
-
-//////////////////////////////////////////////////
-EventManager &RenderUtil::RenderEventManager()
-{
-  return RenderUtilPrivate::RenderEventManager();
+  this->dataPtr->eventManager = _mgr;
 }

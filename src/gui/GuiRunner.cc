@@ -397,3 +397,9 @@ void GuiRunner::UpdateSystems()
     }
   }
 }
+
+/////////////////////////////////////////////////
+EventManager &GuiRunner::GuiEventManager() const
+{
+  return this->dataPtr->eventMgr;
+}

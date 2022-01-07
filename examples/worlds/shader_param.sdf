@@ -1,13 +1,12 @@
 <?xml version="1.0" ?>
 <!--
 
-Try moving a model:
-
-    ign service -s /world/shapes/set_pose --reqtype ignition.msgs.Pose --reptype ignition.msgs.Boolean --timeout 300 --req 'name: "box", position: {z: 5.0}'
+This world contains a sphere model whose visual appearance is altered by the
+ShaderParam visual plugin over time.
 
 -->
 <sdf version="1.6">
-  <world name="shapes">
+  <world name="deformable_sphere">
 
     <plugin
       filename="ignition-gazebo-physics-system"
@@ -211,71 +210,6 @@ Try moving a model:
       <pose>3 0 0 0 0 0</pose>
       <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/deformable_sphere</uri>
     </include>
-<!--
-    <model name="sphere">
-      <pose>0 1.5 0.5 0 0 0</pose>
-      <link name="sphere_link">
-        <inertial>
-          <inertia>
-            <ixx>0.1</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>0.1</iyy>
-            <iyz>0</iyz>
-            <izz>0.1</izz>
-          </inertia>
-          <mass>1.0</mass>
-        </inertial>
-        <collision name="sphere_collision">
-          <geometry>
-            <sphere>
-              <radius>0.5</radius>
-            </sphere>
-          </geometry>
-        </collision>
-
-        <visual name="sphere_visual">
-          <geometry>
-            <sphere>
-              <radius>0.5</radius>
-            </sphere>
-          </geometry>
-          <plugin
-              filename="ignition-gazebo-shader-param-system"
-              name="ignition::gazebo::systems::ShaderParam">
-            <shader>
-              <vertex>v.glsl</vertex>
-              <fragment>f.glsl</fragment>
-
-            </shader>
-            <param>
-              <type>fragment</type>
-              <name>color</name>
-              <value>1.0 0.0 0.0</value>
-            </param>
-            <param>
-              <type>vertex</type>
-              <name>t</name>
-              <value>TIME</value>
-            </param>
-            <param>
-              <type>vertex</type>
-              <name>worldviewproj_matrix</name>
-            </param>
-            <param>
-              <type>vertex</type>
-              <name>worldview_matrix</name>
-            </param>
-            <param>
-              <type>vertex</type>
-              <name>inverse_transpose_world_matrix</name>
-            </param>
-
-          </plugin>
-        </visual>
-      </link>
-    </model>
--->
 
     <model name="camera">
       <static>true</static>

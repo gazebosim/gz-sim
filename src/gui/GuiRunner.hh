@@ -25,6 +25,7 @@
 #include <ignition/utils/ImplPtr.hh>
 
 #include "ignition/gazebo/config.hh"
+#include "ignition/gazebo/EventManager.hh"
 #include "ignition/gazebo/gui/Export.hh"
 
 namespace ignition
@@ -45,6 +46,9 @@ class IGNITION_GAZEBO_GUI_VISIBLE GuiRunner : public QObject
 
   /// \brief Destructor
   public: ~GuiRunner() override;
+
+  /// \brief Get the event manager for the gui
+  public: EventManager &GuiEventManager() const;
 
   // Documentation inherited
   protected: bool eventFilter(QObject *_obj, QEvent *_event) override;

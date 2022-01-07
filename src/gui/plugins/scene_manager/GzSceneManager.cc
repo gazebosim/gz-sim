@@ -16,6 +16,7 @@
 */
 #include <set>
 
+#include "../../GuiRunner.hh"
 #include "GzSceneManager.hh"
 
 #include <sdf/Element.hh>
@@ -206,6 +207,16 @@ void GzSceneManagerPrivate::OnRender()
       return;
 
     this->renderUtil.SetScene(this->scene);
+
+    auto runners = ignition::gui::App()->findChildren<GuiRunner *>();
+    if (runners.empty() || runners[0] == nullptr)
+    {
+      ignerr << "Internal error: no GuiRunner found." << std::endl;
+    }
+    else
+    {
+      this->renderUtil.SetEventManager(&runners[0]->GuiEventManager());
+    }
   }
 
   this->renderUtil.Update();
