@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 
+project(ignition-gazebo-marker)
+
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   find_package(ignition-transport8 QUIET REQUIRED OPTIONAL_COMPONENTS log)
   set(IGN_TRANSPORT_VER ${ignition-transport8_VERSION_MAJOR})
