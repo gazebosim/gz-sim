@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
+project(ignition-math-examples)
+
 # Find the Ignition-Math library
 set(IGN_MATH_VER 7)
 find_package(ignition-math${IGN_MATH_VER} REQUIRED)
