@@ -23,7 +23,7 @@
 #include <ignition/common/Profiler.hh>
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include <ignition/gazebo/components/Name.hh>
-#include <ignition/gazebo/components/ParametersRegistry.hh>
+#include <ignition/gazebo/components/ParameterDeclarationCmd.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
@@ -38,9 +38,6 @@ using namespace systems;
 /// \brief Data we need to store for each parameter.
 struct ParameterData
 {
-  /// \brief Entity id associated to the parameter.
-  uint64_t entityId;
-
   /// \brief Associated component key.
   ComponentKey componentKey;
 };
@@ -86,8 +83,8 @@ void Parameters::Configure(const Entity &_entity,
   this->dataPtr->worldEntity = _entity;
   this->dataPtr->ecm = &_ecm;
 
-  this->dataPtr->ecm->CreateComponent(
-      _entity, components::ParametersRegistry(msgs::ParameterDeclarations()));
+  // this->dataPtr->ecm->CreateComponent(
+  //     _entity, components::ParametersRegistry(msgs::ParameterDeclarations()));
 
   const components::Name *constCmp = _ecm.Component<components::Name>(_entity);
   const std::string &worldName = constCmp->Data();
@@ -107,9 +104,20 @@ void Parameters::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void Parameters::PreUpdate(const UpdateInfo &_info, EntityComponentManager &)
+void Parameters::PreUpdate(const UpdateInfo &, EntityComponentManager &)
 {
   IGN_PROFILE("Parameters::PreUpdate");
+  auto * declaration_cmd = this->dataPtr->ecm->Component<components::ParameterDeclarationCmd>(this->dataPtr->worldEntity);
+  if (!declaration_cmd) {
+    return;
+  }
+  auto & cmdData = declaration_cmd->Data();
+  for (const auto & decl : cmdData.parameter_declarations())
+  {
+    ComponentKey key{decl.component_type_id(), decl.component_id()};
+    this->dataPtr->registry.emplace(decl.name(), ParameterData{key});
+  }
+  cmdData.clear_parameter_declarations();
 }
 
 bool ParametersPrivate::GetParameter(const msgs::ParameterName &_req,

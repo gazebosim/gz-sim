@@ -30,29 +30,25 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   /// \brief Declare a parameter
   template<typename ComponentT>
   bool
-  DeclareParameter(EntityComponentManager &_ecm,const std::string & parameter_name, typename ComponentT::Type & data)
+  DeclareParameter(EntityComponentManager &_ecm, const std::string & parameter_name, ComponentKey cmpKey)
   {
     auto worldEntity = _ecm.EntityByComponents(components::World());
     if (kNullEntity == worldEntity) {
       return false;
     }
-    std::ostringstream ostr;
-    data->Serialize(ostr);
-    auto * registry = _ecm.Component<components::ParameterDeclarationCmd>(worldEntity);
-    if (!registry) {
-      msgs::ParameterDeclarations declarations;
-      auto * declaration = declarations.add_parameter_declaration();
-      declaration->set_type_name(ComponentT::Type::typeName);
-      declaration->set_name(parameter_name);
-      declaration->set_value(ostr.str());
-      _ecm.CreateComponent<components::ParameterDeclarationCmd>(declarations);
-      return true;
+    auto * declarations = _ecm.Component<components::ParameterDeclarationCmd>(worldEntity);
+    if (!declaration) {
+      _ecm.CreateComponent<components::ParameterDeclarationCmd>(worldEntity, msgs::ParameterDeclarations{});
+      declarations = _ecm.Component<components::ParameterDeclarationCmd>(worldEntity);
+      if (!declarations) {
+        return false;
+      }
     }
-    auto & declarations = registry->Data();
-    auto * declaration = declarations.add_parameter_declaration();
-    declaration->set_type_name(ComponentT::Type::typeName);
+    auto * declaration = declarations->add_declarations();
+    declaration->set_type(ComponentT::Type::typeName);
     declaration->set_name(parameter_name);
-    declaration->set_value(ostr.str());
+    declaration->set_component_id(cmpKey.second);
+    declaration->set_component_type_id(cmpKey.first);
     return true;
   }
 }
