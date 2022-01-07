@@ -15,6 +15,7 @@
  *
  */
 
+#include <sstream>
 #include <unordered_map>
 
 #include "Parameters.hh"
@@ -38,14 +39,10 @@ using namespace systems;
 struct ParameterData
 {
   /// \brief Entity id associated to the parameter.
-  uint64_t entity_id;
+  uint64_t entityId;
 
-  /// \brief Component type of the parameter.
-  ///
-  /// Each time the parameter is updated, the component of this type
-  /// of the associated entity is updated.
-  ///
-  std::string component_type;
+  /// \brief Associated component key.
+  ComponentKey componentKey;
 };
 
 /// \brief Registry type to store all parameters.
@@ -123,9 +120,15 @@ bool ParametersPrivate::GetParameter(const msgs::ParameterName &_req,
   if (it == this->registry.end()) {
     return false;
   }
-  Entity entity{it->second.entity_id};
-  auto type_id = components::Factory::Instance()->Id(it->second.component_type);
-  // this->ecm.Component()
+  ComponentKey key{it->second.componentKey};
+  auto component = this->ecm->Component<components::BaseComponent>(key);
+  if (!component) {
+    return false;
+  }
+  std::ostringstream oss;
+  component->Serialize(oss);
+  _res.set_value(oss.str());
+  _res.set_type(components::Factory::Instance()->Name(key.first));
   return true;
 }
 
