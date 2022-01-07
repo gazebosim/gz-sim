@@ -1,0 +1,45 @@
+<?xml version="1.0" ?>
+<sdf version="1.7">
+  <world name="imu_orientation_reference_frames">
+    <plugin
+      filename="ignition-gazebo-sensors-system"
+      name="ignition::gazebo::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-scene-broadcaster-system"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+
+    <model name="model">
+      <link name="link">
+        <pose> 0 0 3  0 0 0</pose>
+
+        <sensor name="imu_sensor_ENU" type="imu">
+          <imu>
+            <orientation_reference_frame>
+              <localization>ENU</localization>
+            </orientation_reference_frame>
+          </imu>
+        </sensor>
+
+        <sensor name="imu_sensor_NWU" type="imu">
+          <imu>
+            <orientation_reference_frame>
+              <localization>NWU</localization>
+            </orientation_reference_frame>
+          </imu>
+        </sensor>
+
+        <sensor name="imu_sensor_NED" type="imu">
+          <imu>
+            <orientation_reference_frame>
+              <localization>NED</localization>
+            </orientation_reference_frame>
+          </imu>
+        </sensor>
+
+      </link>
+    </model>
+  </world>
+</sdf>
