@@ -603,9 +603,6 @@ class ignition::gazebo::RenderUtilPrivate
               const std::unordered_map<Entity, math::Pose3d> &_trajectoryPoses);
 };
 
-// declare static var
-// EventManager RenderUtilPrivate::eventManager;
-
 //////////////////////////////////////////////////
 RenderUtil::RenderUtil() : dataPtr(std::make_unique<RenderUtilPrivate>())
 {

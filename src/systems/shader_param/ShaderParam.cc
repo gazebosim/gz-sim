@@ -185,29 +185,11 @@ void ShaderParam::Configure(const Entity &_entity,
 //////////////////////////////////////////////////
 void ShaderParam::PreUpdate(
   const ignition::gazebo::UpdateInfo &_info,
-  ignition::gazebo::EntityComponentManager &_ecm)
+  ignition::gazebo::EntityComponentManager &)
 {
   IGN_PROFILE("ShaderParam::PreUpdate");
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->currentSimTime = _info.simTime;
-}
-
-//////////////////////////////////////////////////
-void ShaderParam::Update(const UpdateInfo &_info,
-    EntityComponentManager &_ecm)
-{
-  IGN_PROFILE("ShaderParam::Update");
-//  std::cerr << "shader param update" << std::endl;
-
-//  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-}
-
-//////////////////////////////////////////////////
-void ShaderParam::PostUpdate(const UpdateInfo &_info,
-    const EntityComponentManager &/*_ecm*/)
-{
-  IGN_PROFILE("ShaderParam::PostUpdate");
-//  std::cerr << "shader param post" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -395,9 +377,7 @@ void ShaderParamPrivate::OnUpdate()
 IGNITION_ADD_PLUGIN(ShaderParam,
                     ignition::gazebo::System,
                     ShaderParam::ISystemConfigure,
-                    ShaderParam::ISystemPreUpdate,
-                    ShaderParam::ISystemUpdate,
-                    ShaderParam::ISystemPostUpdate)
+                    ShaderParam::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(ShaderParam,
   "ignition::gazebo::systems::ShaderParam")

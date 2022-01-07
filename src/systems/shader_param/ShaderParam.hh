@@ -67,13 +67,10 @@ namespace systems
   ///        </param>
   ///    </plugin>
   /// \endverbatim
-
   class ShaderParam
       : public System,
         public ISystemConfigure,
-        public ISystemPreUpdate,
-        public ISystemUpdate,
-        public ISystemPostUpdate
+        public ISystemPreUpdate
   {
     /// \brief Constructor
     public: ShaderParam();
@@ -91,15 +88,6 @@ namespace systems
     public: void PreUpdate(
                 const ignition::gazebo::UpdateInfo &_info,
                 ignition::gazebo::EntityComponentManager &_ecm) override;
-
-    /// Documentation inherited
-    public: void Update(const UpdateInfo &_info,
-                        EntityComponentManager &_ecm) final;
-
-    /// Documentation inherited
-    public: void PostUpdate(
-                const UpdateInfo &_info,
-                const EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
     private: std::unique_ptr<ShaderParamPrivate> dataPtr;

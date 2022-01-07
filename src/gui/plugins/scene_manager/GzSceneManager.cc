@@ -118,8 +118,6 @@ void GzSceneManager::Update(const UpdateInfo &_info,
             const components::VisualPlugin *_plugin)->bool
     {
       sdf::ElementPtr pluginElem = _plugin->Data();
-      std::cerr << "plugin elem " << std::endl;
-      std::cerr << pluginElem->ToString("") << std::endl;
       pluginElems[_entity] = _plugin->Data();
       return true;
     });
