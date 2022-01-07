@@ -17,6 +17,7 @@
 
 #include "ShaderParam.hh"
 
+#include <chrono>
 #include <mutex>
 #include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
@@ -28,10 +29,11 @@
 
 #include <sdf/Element.hh>
 
-#include <ignition/gazebo/components/Name.hh>
-#include <ignition/gazebo/rendering/Events.hh>
-#include <ignition/gazebo/rendering/RenderUtil.hh>
-
+#include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/SourceFilePath.hh"
+#include "ignition/gazebo/rendering/Events.hh"
+#include "ignition/gazebo/rendering/RenderUtil.hh"
+#include "ignition/gazebo/Util.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -52,10 +54,6 @@ class ignition::gazebo::systems::ShaderParamPrivate
   /// \brief Path to fragment shader
   public: std::string fragmentShaderUri;
 
-  /// \brief A list of params that requires setting sim time.
-  /// Each element is a pair of <paramName, shaderType>
-  public: std::vector<std::pair<std::string, std::string>> simTimeParams;
-
   /// \brief Mutex to protect sim time updates.
   public: std::mutex mutex;
 
@@ -69,6 +67,8 @@ class ignition::gazebo::systems::ShaderParamPrivate
   public: rendering::ScenePtr scene;
   public: Entity entity = kNullEntity;
   public: std::vector<ShaderParamValue> shaderParams;
+  public: std::vector<ShaderParamValue> timeParams;
+  public: std::chrono::steady_clock::duration currentSimTime;
 
   /// \brief All rendering operations must happen within this call
   public: void OnUpdate();
@@ -106,10 +106,9 @@ void ShaderParam::Configure(const Entity &_entity,
     while (paramElem)
     {
       if (!paramElem->HasElement("type") ||
-          !paramElem->HasElement("name") ||
-          !paramElem->HasElement("value"))
+          !paramElem->HasElement("name"))
       {
-        ignerr << "<param> must have <type>, <name> and <value> sdf elements"
+        ignerr << "<param> must have <type> and <name> sdf elements"
                << std::endl;
         paramElem = paramElem->GetNextElement("param");
         continue;
@@ -119,22 +118,11 @@ void ShaderParam::Configure(const Entity &_entity,
       std::string value = paramElem->Get<std::string>("value");
 
       // TIME is reserved keyword for sim time
-      if (value == "TIME")
-      {
-        this->dataPtr->simTimeParams.push_back(
-            std::make_pair(paramName, shaderType));
-      }
-      else
-      {
-        ShaderParamPrivate::ShaderParamValue spv;
-        spv.type = shaderType;
-        spv.name = paramName;
-        spv.value = value;
-        this->dataPtr->shaderParams.push_back(spv);
-        // todo store value and set in rendering thread?
-//        this->dataPtr->visual->SetMaterialShaderParam(
-//            paramName, shaderType, value);
-      }
+      ShaderParamPrivate::ShaderParamValue spv;
+      spv.type = shaderType;
+      spv.name = paramName;
+      spv.value = value;
+      this->dataPtr->shaderParams.push_back(spv);
       paramElem = paramElem->GetNextElement("param");
     }
   }
@@ -150,10 +138,15 @@ void ShaderParam::Configure(const Entity &_entity,
     }
     else
     {
+      auto modelEntity = topLevelModel(_entity, _ecm);
+      auto modelPath =
+          _ecm.ComponentData<components::SourceFilePath>(modelEntity);
       sdf::ElementPtr vertexElem = shaderElem->GetElement("vertex");
-      this->dataPtr->vertexShaderUri = vertexElem->Get<std::string>();
+      this->dataPtr->vertexShaderUri = common::findFile(
+          asFullPath(vertexElem->Get<std::string>(), modelPath.value()));
       sdf::ElementPtr fragmentElem = shaderElem->GetElement("fragment");
-      this->dataPtr->fragmentShaderUri = fragmentElem->Get<std::string>();
+      this->dataPtr->fragmentShaderUri = common::findFile(
+          asFullPath(fragmentElem->Get<std::string>(), modelPath.value()));
     }
   }
 
@@ -169,10 +162,12 @@ void ShaderParam::Configure(const Entity &_entity,
 
 //////////////////////////////////////////////////
 void ShaderParam::PreUpdate(
-  const ignition::gazebo::UpdateInfo &/*_info*/,
+  const ignition::gazebo::UpdateInfo &_info,
   ignition::gazebo::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("ShaderParam::PreUpdate");
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->currentSimTime = _info.simTime;
 //  std::cerr << "shader param preupdate " << std::endl;
 }
 
@@ -255,18 +250,39 @@ void ShaderParamPrivate::OnUpdate()
   for (const auto & spv : this->shaderParams)
   {
     std::vector<std::string> values = common::split(spv.value, " ");
-    if (values.empty())
-      continue;
 
     int intValue = 0;
     float floatValue = 0;
     std::vector<float> floatArrayValue;
 
-    rendering::ShaderParam::ParamType paramType;
+    rendering::ShaderParam::ParamType paramType =
+        rendering::ShaderParam::PARAM_NONE;
 
-    if (values.size() == 1u)
+    rendering::ShaderParamsPtr params;
+    if (spv.type == "fragment")
+    {
+      params = this->material->FragmentShaderParams();
+    }
+    else if (spv.type == "vertex")
+    {
+      params = this->material->VertexShaderParams();
+    }
+
+    if (values.empty())
+    {
+      // could be auto constants
+      // assign any value and let ign-rendering handle setting the constants
+      (*params)[spv.name] = intValue;
+    }
+    // float / int
+    else if (values.size() == 1u)
     {
       std::string str = values[0];
+      if (str == "TIME")
+      {
+        this->timeParams.push_back(spv);
+        continue;
+      }
       std::string::size_type sz;
       int n = std::stoi(str, &sz);
       if (sz == str.size())
@@ -280,6 +296,7 @@ void ShaderParamPrivate::OnUpdate()
         paramType = rendering::ShaderParam::PARAM_FLOAT;
       }
     }
+    // float array
     else
     {
       for (const auto &v : values)
@@ -287,24 +304,12 @@ void ShaderParamPrivate::OnUpdate()
       paramType = rendering::ShaderParam::PARAM_FLOAT_BUFFER;
     }
 
-    rendering::ShaderParamsPtr params;
-    if (spv.type == "fragment")
-    {
-      params = this->material->FragmentShaderParams();
-    }
-    else if (spv.type == "vertex")
-    {
-      params = this->material->VertexShaderParams();
-    }
-
     if (paramType == rendering::ShaderParam::PARAM_INT)
     {
-//      (*params)[spv.name].InitializeBuffer(1);
       (*params)[spv.name] = intValue;
     }
     else if (paramType == rendering::ShaderParam::PARAM_FLOAT)
     {
-//      (*params)[spv.name].InitializeBuffer(1);
       (*params)[spv.name] = floatValue;
     }
     else if (paramType == rendering::ShaderParam::PARAM_FLOAT_BUFFER)
@@ -314,8 +319,19 @@ void ShaderParamPrivate::OnUpdate()
       (*params)[spv.name].UpdateBuffer(fv);
     }
   }
+  this->shaderParams.clear();
 
-  std::cerr << " on update ======== " << this << std::endl;
+  for (const auto & spv : this->timeParams)
+  {
+    float floatValue = (std::chrono::duration_cast<std::chrono::nanoseconds>(
+        this->currentSimTime).count()) * 1e-9;
+    rendering::ShaderParamsPtr params;
+    if (spv.type == "fragment")
+      params = this->material->FragmentShaderParams();
+    else if (spv.type == "vertex")
+      params = this->material->VertexShaderParams();
+    (*params)[spv.name] = floatValue;
+  }
 }
 
 IGNITION_ADD_PLUGIN(ShaderParam,
