@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 
+project(ign-gazebo-custom-server)
+
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   find_package(ignition-gazebo3 REQUIRED)
   set(IGN_GAZEBO_VER ${ignition-gazebo3_VERSION_MAJOR})
