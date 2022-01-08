@@ -17,6 +17,7 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_VISUAL_HH_
 #define IGNITION_GAZEBO_COMPONENTS_VISUAL_HH_
 
+#include <string>
 #include <sdf/Element.hh>
 #include <sdf/parser.hh>
 #include <ignition/gazebo/components/Factory.hh>
@@ -81,7 +82,8 @@ namespace components
   using VisualPlugin = Component<sdf::ElementPtr,
                                  class VisualPluginTag,
                                  serializers::SdfElementSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.VisualPlugin", VisualPlugin)
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.VisualPlugin",
+      VisualPlugin)
 }
 }
 }

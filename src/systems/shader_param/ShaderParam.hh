@@ -45,9 +45,9 @@ namespace systems
   ///   <shader>   Type of shader, i.e. vertex, fragment
   ///   <type>     Variable type: float, int, float_array, int_array
   ///   <value>    Value to set the shader parameter to. The vallue string can
-  ///              be an int, float, or a space delimited array of ints or floats.
-  ///              It can also be 'TIME', in which case the value will be bound
-  ///              to sim time.
+  ///              be an int, float, or a space delimited array of ints or
+  ///              floats. It can also be 'TIME', in which case the value will
+  ///              be bound to sim time.
   ///
   /// Example usage:
   ///

@@ -14,6 +14,8 @@
  * limitations under the License.
  *
 */
+
+#include <map>
 #include <set>
 
 #include "../../GuiRunner.hh"

@@ -15,6 +15,10 @@
  *
 */
 
+#include <memory>
+#include <utility>
+#include <vector>
+
 #include <ignition/common/Console.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/fuel_tools/Interface.hh>
@@ -325,7 +329,7 @@ void GuiRunner::LoadSystems()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->systemLoadMutex);
   // currently only support systems that are visual plugins
-  for (auto &visualPlugin: this->dataPtr->visualPlugins)
+  for (auto &visualPlugin : this->dataPtr->visualPlugins)
   {
     Entity entity = visualPlugin.first;
     sdf::ElementPtr pluginElem = visualPlugin.second;
@@ -336,7 +340,8 @@ void GuiRunner::LoadSystems()
       std::optional<SystemPluginPtr> system;
       if (!this->dataPtr->systemLoader)
         this->dataPtr->systemLoader = std::make_unique<SystemLoader>();
-      system = this->dataPtr->systemLoader->LoadPlugin(filename, name, pluginElem);
+      system = this->dataPtr->systemLoader->LoadPlugin(
+          filename, name, pluginElem);
       if (system)
       {
         SystemPluginPtr sys = system.value();

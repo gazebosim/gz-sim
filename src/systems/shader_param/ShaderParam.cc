@@ -17,8 +17,12 @@
 
 #include "ShaderParam.hh"
 
+#include <list>
 #include <chrono>
 #include <mutex>
+#include <vector>
+#include <string>
+
 #include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/rendering/Material.hh>
@@ -122,7 +126,7 @@ void ShaderParam::Configure(const Entity &_entity,
 
   if (sdf->HasElement("param"))
   {
-    // loop and set all shader params
+    // loop and parse all shader params
     sdf::ElementPtr paramElem = sdf->GetElement("param");
     while (paramElem)
     {
@@ -150,6 +154,7 @@ void ShaderParam::Configure(const Entity &_entity,
     }
   }
 
+  // parse path to shaders
   if (sdf->HasElement("shader"))
   {
     sdf::ElementPtr shaderElem = sdf->GetElement("shader");
@@ -177,6 +182,9 @@ void ShaderParam::Configure(const Entity &_entity,
   auto nameComp = _ecm.Component<components::Name>(_entity);
   this->dataPtr->visualName = nameComp->Data();
 
+  // connect to the SceneUpdate event
+  // the callback is executed in the rendering thread so do all
+  // rendering operations in that thread
   this->dataPtr->connection =
       _eventMgr.Connect<ignition::gazebo::events::SceneUpdate>(
       std::bind(&ShaderParamPrivate::OnUpdate, this->dataPtr.get()));
@@ -237,6 +245,7 @@ void ShaderParamPrivate::OnUpdate()
   if (!this->visual)
     return;
 
+  // get the material and set shaders
   if (!this->material)
   {
     auto mat = scene->CreateMaterial();
@@ -250,6 +259,8 @@ void ShaderParamPrivate::OnUpdate()
   if (!this->material)
     return;
 
+  // set the shader params read from SDF
+  // this is only done once
   for (const auto & spv : this->shaderParams)
   {
     std::vector<std::string> values = common::split(spv.value, " ");
@@ -271,9 +282,9 @@ void ShaderParamPrivate::OnUpdate()
       params = this->material->VertexShaderParams();
     }
 
+    // if no <value> is specified, this could be a constant
     if (values.empty())
     {
-      // could be auto constants
       // \todo handle args for constants
       (*params)[spv.name] = intValue;
     }
@@ -304,7 +315,7 @@ void ShaderParamPrivate::OnUpdate()
         }
         else
         {
-          // \todo(anyone) support samplers
+          // \todo(anyone) support texture samplers
         }
       }
       // else do our best guess at what the type is
@@ -343,6 +354,7 @@ void ShaderParamPrivate::OnUpdate()
       }
     }
 
+    // set the params
     if (paramType == rendering::ShaderParam::PARAM_INT)
     {
       (*params)[spv.name] = intValue;
@@ -361,6 +373,7 @@ void ShaderParamPrivate::OnUpdate()
   }
   this->shaderParams.clear();
 
+  // time variables need to be updated every iteration
   for (const auto & spv : this->timeParams)
   {
     float floatValue = (std::chrono::duration_cast<std::chrono::nanoseconds>(
