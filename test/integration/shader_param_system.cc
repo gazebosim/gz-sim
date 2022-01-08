@@ -21,7 +21,6 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
-#include <ignition/common/Image.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/utilities/ExtraTestMacros.hh>
 
@@ -29,8 +28,6 @@
 #include "ignition/gazebo/test_config.hh"
 
 #include "../helpers/EnvTestFixture.hh"
-
-#define DEPTH_TOL 1e-4
 
 using namespace ignition;
 using namespace gazebo;
@@ -97,10 +94,6 @@ TEST_F(ShaderParamTest, IGN_UTILS_TEST_DISABLED_ON_MAC(ShaderParamBox))
   // shaders set the sphere color to red
   unsigned int height = 320;
   unsigned int width = 240;
-
-  common::Image img;
-  img.SetFromData(imageBuffer, width, height, common::Image::RGB_INT8);
-  img.SavePNG("test.png");
 
   int mid = (height/2 * width * 3u) + (width/2 - 1) * 3u;
 
