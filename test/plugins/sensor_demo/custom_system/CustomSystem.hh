@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2021 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,8 +35,8 @@ namespace systems
   // Forward declarations.
   class SensorsPrivate;
 
-  /// \class Sensors Sensors.hh ignition/gazebo/systems/Sensors.hh
-  /// \brief A system that manages sensors.
+  /// \class Sensors
+  /// \brief An example system that manages custom rendering sensors.
   ///
   /// ## System Parameters
   ///
@@ -48,8 +48,6 @@ namespace systems
   /// will override the ambient value specified in a world's SDF <scene>
   /// element. This ambient light is used by sensors, not the GUI.
   ///
-  /// \TODO(louise) Have one system for all sensors, or one per
-  /// sensor / sensor type?
   class Sensors:
     public System,
     public ISystemConfigure,
