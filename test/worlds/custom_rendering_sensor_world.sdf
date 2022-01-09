@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!--
-  Demo world with a widget displaying images coming from a camera sensor.
+  Demo world with a widget displaying images coming from a modified camera sensor.
 -->
 <sdf version="1.6">
   <world name="camera_sensor">
@@ -12,11 +12,6 @@
       filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
     </plugin>
-    <!--plugin
-      filename="ignition-gazebo-sensors-system"
-      name="ignition::gazebo::systems::Sensors">
-      <render_engine>ogre</render_engine>
-    </plugin-->
     <plugin
       filename="ignition-gazebo-user-commands-system"
       name="ignition::gazebo::systems::UserCommands">
@@ -283,12 +278,8 @@
           </geometry>
         </collision>
 
-	<sensor name="my_camera" type="custom">
+	<sensor name="double_camera" type="custom">
           <camera>
-	    <vs:left_camera_pose>4 -0.5 1 0 0 3.14</vs:left_camera_pose>
-	    <vs:right_camera_pose>4 0.5 1 0 0 3.14</vs:right_camera_pose>
-	    <vs:right_camera_rotate_180>true</vs:right_camera_rotate_180>
-
             <horizontal_fov>1.047</horizontal_fov>
             <image>
               <width>320</width>
