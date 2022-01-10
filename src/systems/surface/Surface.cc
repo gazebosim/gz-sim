@@ -185,7 +185,8 @@ void Surface::PreUpdate(const ignition::gazebo::UpdateInfo &/*_info*/,
   // Grid point location in world frame
   ignition::math::Vector3d bpntW(0, 0, 0);
   // For each hull
-  igndbg << "===" << std::endl;
+  // Debug output:
+  // igndbg << "===" << std::endl;
   for (int i = 0; i < 2; ++i)
   {
     // Grid point in boat frame
@@ -233,24 +234,24 @@ void Surface::PreUpdate(const ignition::gazebo::UpdateInfo &/*_info*/,
       // Apply force at grid point
       // Position is in the link frame and force is in world frame.
       this->dataPtr->link.AddWorldForce(_ecm,
-        ignition::math::Vector3d(0, 0, kBuoyForce),
+        ignition::math::Vector3d(0, 0, kBuoyForce * 0.5),
         bpnt);
 
       // Debug output:
-      igndbg << bpnt.X() << "," << bpnt.Y() << "," << bpnt.Z() << std::endl;
-      igndbg << "-" << std::endl;
-      igndbg << bpntW.X() << "," << bpntW.Y() << "," << bpntW.Z() << std::endl;
-      igndbg << "X: " << X << std::endl;
-      igndbg << "depth: " << depth << std::endl;
-      igndbg << "dz: " << dz << std::endl;
-      igndbg << "kDdz: " << kDdz << std::endl;
-      igndbg << "deltaZ: " << deltaZ << std::endl;
-      igndbg << "hull radius: " << this->dataPtr->hullRadius << std::endl;
-      igndbg << "vehicle length: " << this->dataPtr->vehicleLength << std::endl;
-      igndbg << "num samples: " << this->dataPtr->numSamples << std::endl;
-      igndbg << "gravity z: " << -this->dataPtr->gravity.Z() << std::endl;
-      igndbg << "fluid density: " << this->dataPtr->fluidDensity << std::endl;
-      igndbg << "Force: " << kBuoyForce << std::endl << std::endl;
+      // igndbg << bpnt.X() << "," << bpnt.Y() << "," << bpnt.Z() << std::endl;
+      // igndbg << "-" << std::endl;
+      // igndbg << bpntW.X() << "," << bpntW.Y() << "," << bpntW.Z() << std::endl;
+      // igndbg << "X: " << X << std::endl;
+      // igndbg << "depth: " << depth << std::endl;
+      // igndbg << "dz: " << dz << std::endl;
+      // igndbg << "kDdz: " << kDdz << std::endl;
+      // igndbg << "deltaZ: " << deltaZ << std::endl;
+      // igndbg << "hull radius: " << this->dataPtr->hullRadius << std::endl;
+      // igndbg << "vehicle length: " << this->dataPtr->vehicleLength << std::endl;
+      // igndbg << "num samples: " << this->dataPtr->numSamples << std::endl;
+      // igndbg << "gravity z: " << -this->dataPtr->gravity.Z() << std::endl;
+      // igndbg << "fluid density: " << this->dataPtr->fluidDensity << std::endl;
+      // igndbg << "Force: " << kBuoyForce << std::endl << std::endl;
     }
   }
 }
@@ -258,7 +259,6 @@ void Surface::PreUpdate(const ignition::gazebo::UpdateInfo &/*_info*/,
 //////////////////////////////////////////////////
 double Surface::CircleSegment(double _r, double _h) const
 {
-  ignerr << "R: " << _r << " h: " << _h << std::endl;
   return _r * _r * acos((_r -_h) / _r ) -
     (_r - _h) * sqrt(2 * _r * _h - _h * _h);
 }
