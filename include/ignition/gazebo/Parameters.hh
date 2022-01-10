@@ -21,7 +21,7 @@
 
 #include <ignition/gazebo/EntityComponentManager.hh>
 #include <ignition/gazebo/components/ParameterDeclarationCmd.hh>
-#include <ignition/gazebo/components/ParametersRegistry.hh>
+#include <ignition/gazebo/components/World.hh>
 
 namespace ignition
 {
@@ -39,14 +39,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
       return false;
     }
     auto * declarations = _ecm.Component<components::ParameterDeclarationCmd>(worldEntity);
-    if (!declaration) {
-      _ecm.CreateComponent<components::ParameterDeclarationCmd>(worldEntity, msgs::ParameterDeclarations{});
+    if (!declarations) {
+      _ecm.CreateComponent<components::ParameterDeclarationCmd>(worldEntity, components::ParameterDeclarationCmd{});
       declarations = _ecm.Component<components::ParameterDeclarationCmd>(worldEntity);
       if (!declarations) {
         return false;
       }
     }
-    auto * declaration = declarations->add_declarations();
+    auto * declaration = declarations->Data().add_parameter_declarations();
     using ProtoMsgT = typename ComponentT::Type;
     static_assert(
       std::is_base_of_v<google::protobuf::Message, ProtoMsgT>,
