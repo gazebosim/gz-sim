@@ -40,7 +40,7 @@ extern "C" void cmdParametersList()
 
   bool result{false};
   const unsigned int timeout{5000};
-  const std::string service{"/" + worldName + "/list_parameters"};
+  const std::string service{"/world/" + worldName + "/list_parameters"};
 
   msgs::Empty req;
   msgs::ParameterDeclarations res;
@@ -62,7 +62,7 @@ extern "C" void cmdParametersList()
     return;
   }
 
-  if (res.parameter_declarations_size()) {
+  if (!res.parameter_declarations_size()) {
     std::cout << "No parameters available" << std::endl;
     return;
   }
@@ -79,7 +79,7 @@ extern "C" void cmdParameterGet(const char *_paramName) {
 
   bool result{false};
   const unsigned int timeout{5000};
-  const std::string service{"/" + worldName + "/get_parameters"};
+  const std::string service{"/world/" + worldName + "/get_parameter"};
 
   msgs::ParameterName req;
   msgs::ParameterValue res;
@@ -136,7 +136,7 @@ extern "C" void cmdParameterSet(
 
   bool result{false};
   const unsigned int timeout{5000};
-  const std::string service{"/" + worldName + "/set_parameters"};
+  const std::string service{"/world" + worldName + "/set_parameter"};
 
   msgs::Parameter req;
   msgs::Empty res;
@@ -145,7 +145,7 @@ extern "C" void cmdParameterSet(
   if (!msg) {
     // try again, to check if the type name was valid
     auto defaultMsg = ignition::msgs::Factory::New(_paramType);
-    std::cerr << "Could not create a message of type [" << _paramValue << "]."
+    std::cerr << "Could not create a message of type [" << _paramType << "]."
               << std::endl;
     if (!defaultMsg) {
       std::cerr << "The message type may be invalid." << std::endl;

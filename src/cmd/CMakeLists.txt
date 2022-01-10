@@ -65,6 +65,34 @@ install(FILES ${model_configured} DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_IN
 
 
 #===============================================================================
+# Used for the installed param command version.
+# Generate the ruby script that gets installed.
+# Note that the major version of the library is included in the name.
+set(cmd_param_script_generated "${CMAKE_CURRENT_BINARY_DIR}/cmdparam${PROJECT_VERSION_MAJOR}.rb")
+set(cmd_param_script_configured "${cmd_param_script_generated}.configured")
+
+configure_file(
+  "cmdparam.rb.in"
+  "${cmd_param_script_configured}"
+  @ONLY)
+file(GENERATE
+  OUTPUT "${cmd_param_script_generated}"
+  INPUT  "${cmd_param_script_configured}")
+
+install(FILES ${cmd_param_script_generated} DESTINATION lib/ruby/ignition)
+
+# Used for the installed version.
+set(ign_param_ruby_path "${CMAKE_INSTALL_PREFIX}/lib/ruby/ignition/cmdparam${PROJECT_VERSION_MAJOR}")
+
+set(param_configured "${CMAKE_CURRENT_BINARY_DIR}/param${PROJECT_VERSION_MAJOR}.yaml")
+configure_file(
+  "param.yaml.in"
+  ${param_configured})
+
+install(FILES ${param_configured} DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/ignition/)
+
+
+#===============================================================================
 # Generate the ruby script for internal testing.
 # Note that the major version of the library is included in the name.
 # Ex: cmdgazebo0.rb

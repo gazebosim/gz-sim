@@ -1,0 +1,170 @@
+#!/usr/bin/ruby
+
+# Copyright (C) 2021 Open Source Robotics Foundation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# We use 'dl' for Ruby <= 1.9.x and 'fiddle' for Ruby >= 2.0.x
+if RUBY_VERSION.split('.')[0] < '2'
+  require 'dl'
+  require 'dl/import'
+  include DL
+else
+  require 'fiddle'
+  require 'fiddle/import'
+  include Fiddle
+end
+
+require 'optparse'
+
+# Constants.
+LIBRARY_NAME = '@library_location@'
+LIBRARY_VERSION = '@PROJECT_VERSION_FULL@'
+
+COMMON_OPTIONS =
+               "  -h [--help]                Print this help message.\n"\
+               "                                                    \n"        +
+               "  --force-version <VERSION>  Use a specific library version.\n"\
+               "                                                    \n"        +
+               '  --versions                 Show the available versions.'
+
+COMMANDS = { 'param' =>
+  "List, set or get parameters.\n\n"+
+  "                                                                        \n"\
+  "  ign param [options]                                                   \n"\
+  "                                                                        \n"\
+  "Available Options:                                                      \n"\
+  "  -l [--list]                Get a list of the available parameters.    \n"\
+  "  -g [--get]                 Get a parameter.                           \n"\
+  "                             Requires the -n option.                    \n"\
+  "  -s [--set]                 Set a parameter.                           \n"\
+  "                             Requires the -n, -t, -v options.           \n"\
+  "  -n [--name] arg            The parameter name.                        \n"\
+  "  -t [--type] arg            The parameter type.                        \n"\
+  "  -m [--value] arg           The parameter value.                       \n\n"+
+  COMMON_OPTIONS
+}
+
+#
+# Class for the Ignition Gazebo Param command line tools.
+#
+class Cmd
+
+  #
+  # Return a structure describing the options.
+  #
+  def parse(args)
+    options = {
+    }
+    usage = COMMANDS[args[0]]
+
+    opt_parser = OptionParser.new do |opts|
+      opts.banner = usage
+
+      opts.on('-h', '--help') do
+        puts usage
+        exit
+      end
+      opts.on('-l', '--list', Integer, 'List parameters available') do
+        options['list'] = 1
+      end
+      opts.on('-g', '--get', Integer, 'Get a parameter') do
+        options['get'] = 1
+      end
+      opts.on('-s', '--set', Integer, 'Set a parameter') do
+        options['set'] = 1
+      end
+      opts.on('-n', '--name [arg]', String, 'Parameter name') do |m|
+        options['name'] = m
+      end
+      opts.on('-t', '--type [arg]', String, 'Parameter type') do |m|
+        options['type'] = m
+      end
+      opts.on('-m', '--value [arg]', String, 'Parameter value') do |m|
+        options['value'] = m
+      end
+    end # opt_parser do
+    begin
+      opt_parser.parse!(args)
+    rescue
+      puts usage
+      exit(-1)
+    end
+
+    # Check that there is at least one command and there is a plugin that knows
+    # how to handle it.
+    if ARGV.empty? || !COMMANDS.key?(ARGV[0]) ||
+       options.empty?
+      puts usage
+      exit(-1)
+    end
+
+    # Check that an option was selected.
+    if !(options.key?('list') || options.key?('get') || options.key?('set'))
+     puts usage
+     exit(-1)
+    end
+
+    options['command'] = args[0]
+
+    options
+  end # parse()
+
+  def execute(args)
+    options = parse(args)
+
+    # Read the plugin that handles the command.
+    if LIBRARY_NAME[0] == '/'
+      # If the first character is a slash, we'll assume that we've been given an
+      # absolute path to the library. This is only used during test mode.
+      plugin = LIBRARY_NAME
+    else
+      # We're assuming that the library path is relative to the current
+      # location of this script.
+      plugin = File.expand_path(File.join(File.dirname(__FILE__), LIBRARY_NAME))
+    end
+    conf_version = LIBRARY_VERSION
+
+    begin
+      Importer.dlload plugin
+    rescue DLError => e
+      puts "Library error for [#{plugin}]: #{e.to_s}"
+      exit(-1)
+    end
+
+    if options.key?('list')
+      Importer.extern 'void cmdParametersList()'
+      Importer.cmdParametersList()
+      exit(0)
+    elsif options.key?('get')
+      Importer.extern 'void cmdParameterGet(const char *)'
+      if not options.key?('name')
+        puts "ERROR: -n [--name] is required for -g [--get]\n"
+        exit(-1)
+      end
+      Importer.cmdParameterGet(options['name'])
+    elsif options.key?('set')
+      if !options.key?('name') || !options.key?('type') || !options.key?('value')
+        puts "ERROR: -n [--name], -t [--type], -m [--value] are required for -s [--set]\n"
+        exit(-1)
+      end
+      Importer.extern 'void cmdParameterSet(const char *, const char *, const char *)'
+      Importer.cmdParameterSet(options['name'], options['type'], options['value'])
+    else
+      puts 'Command error: I do not have an implementation for '\
+        "command [ign #{options['command']}]."
+    end
+  # # execute
+  end
+# class
+end
