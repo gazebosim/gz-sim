@@ -24,7 +24,7 @@
     <plugin
       filename="CustomSystem"
       name="custom::CustomSystem">
-      <render_engine>ogre</render_engine>
+      <render_engine>ogre2</render_engine>
     </plugin>
 
     <scene>
