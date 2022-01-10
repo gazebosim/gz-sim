@@ -1,6 +1,10 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
   <world name="logical_audio_sensor">
+    <physics name="fast" type="ignored">
+      <real_time_factor>0</real_time_factor>
+    </physics>
+
     <model name="model_playing">
       <pose>0 0 0 0 0 0</pose>
       <link name="audio_link">

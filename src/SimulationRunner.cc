@@ -105,8 +105,15 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // So to get a given RTF, our desired period is:
   //
   // period = step_size / RTF
-  this->updatePeriod = std::chrono::nanoseconds(
-      static_cast<int>(this->stepSize.count() / this->desiredRtf));
+  if (this->desiredRtf < 1e-9)
+  {
+    this->updatePeriod = 0ms;
+  }
+  else
+  {
+    this->updatePeriod = std::chrono::nanoseconds(
+        static_cast<int>(this->stepSize.count() / this->desiredRtf));
+  }
 
   this->pauseConn = this->eventMgr.Connect<events::Pause>(
       std::bind(&SimulationRunner::SetPaused, this, std::placeholders::_1));

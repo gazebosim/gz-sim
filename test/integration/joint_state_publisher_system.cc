@@ -19,6 +19,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"
@@ -35,7 +36,9 @@ class JointStatePublisherTest
 };
 
 /////////////////////////////////////////////////
-TEST_F(JointStatePublisherTest, DefaultPublisher)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(JointStatePublisherTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(DefaultPublisher))
 {
   // Start server
   ServerConfig serverConfig;
@@ -86,7 +89,8 @@ TEST_F(JointStatePublisherTest, DefaultPublisher)
 }
 
 /////////////////////////////////////////////////
-TEST_F(JointStatePublisherTest, LimitedPublisher)
+TEST_F(JointStatePublisherTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(LimitedPublisher))
 {
   // Start server
   ServerConfig serverConfig;

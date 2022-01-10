@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
@@ -34,7 +35,8 @@ class EventTrigger : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(EventTrigger, TriggerPause)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(EventTrigger, IGN_UTILS_TEST_DISABLED_ON_WIN32(TriggerPause))
 {
   // Create server
   ServerConfig config;
