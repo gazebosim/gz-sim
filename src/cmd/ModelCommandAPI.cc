@@ -22,7 +22,6 @@
 #include <map>
 
 #include <ignition/msgs/serialized.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Filesystem.hh>
@@ -41,42 +40,10 @@
 #include <ignition/gazebo/components/World.hh>
 #include <ignition/transport/Node.hh>
 
+#include "Utils.hh"
+
 using namespace ignition;
 using namespace gazebo;
-
-//////////////////////////////////////////////////
-/// \brief Get the name of the world being used by calling
-/// `/gazebo/worlds` service.
-/// \return The name of the world if service is available,
-/// an empty string otherwise.
-std::string getWorldName()
-{
-  // Create a transport node.
-  transport::Node node;
-
-  bool result{false};
-  const unsigned int timeout{5000};
-  const std::string service{"/gazebo/worlds"};
-
-  // Request and block
-  msgs::StringMsg_V res;
-
-  if (!node.Request(service, timeout, res, result))
-  {
-    std::cerr << std::endl << "Service call to [" << service << "] timed out"
-              << std::endl;
-    return "";
-  }
-
-  if (!result)
-  {
-    std::cerr << std::endl << "Service call to [" << service << "] failed"
-              << std::endl;
-    return "";
-  }
-
-  return res.data().Get(0);
-}
 
 //////////////////////////////////////////////////
 /// \brief Get entity info: name and entity ID
@@ -136,7 +103,7 @@ std::string poseInfo(math::Pose3d _pose, const std::string &_prefix)
 // \return boolean indicating if it was able to populate the ECM.
 bool populateECM(EntityComponentManager &_ecm)
 {
-  const std::string world = getWorldName();
+  const std::string world = cmd::getWorldName();
   if (world.empty())
   {
     std::cerr << "Command failed when trying to get the world name of "

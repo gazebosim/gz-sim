@@ -35,6 +35,8 @@ ign_add_component(ign
   SOURCES
     ign.cc
     cmd/ModelCommandAPI.cc
+    cmd/ParameterCommandAPI.cc
+    cmd/Utils.cc
   GET_TARGET_NAME ign_lib_target)
 target_link_libraries(${ign_lib_target}
   PRIVATE
@@ -63,6 +65,7 @@ set (sources
   View.cc
   World.cc
   cmd/ModelCommandAPI.cc
+  cmd/Utils.cc
   ${PROTO_PRIVATE_SRC}
   ${network_sources}
 )
