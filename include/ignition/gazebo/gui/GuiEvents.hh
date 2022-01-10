@@ -25,9 +25,11 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include <sdf/Element.hh>
+
 #include <ignition/math/Vector3.hh>
 #include <ignition/utils/ImplPtr.hh>
+#include <sdf/Element.hh>
+
 #include "ignition/gazebo/gui/Export.hh"
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/config.hh"
@@ -216,9 +218,8 @@ namespace events
   class IGNITION_GAZEBO_GUI_VISIBLE VisualPlugin: public QEvent
   {
     /// \brief Constructor
-    /// \param[in] _entity Entity added
-    /// \param[in] _type Entity type
-    /// \param[in] _parent Parent entity.
+    /// \param[in] _entity Visual entity id
+    /// \param[in] _elem Visual plugin SDF element
     public: explicit VisualPlugin(ignition::gazebo::Entity _entity,
                 const sdf::ElementPtr &_elem);
 

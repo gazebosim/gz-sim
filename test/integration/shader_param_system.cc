@@ -64,8 +64,8 @@ TEST_F(ShaderParamTest, IGN_UTILS_TEST_DISABLED_ON_MAC(ShaderParamBox))
 {
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/examples/worlds/shader_param.sdf";
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "examples", "worlds", "shader_param.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);
@@ -95,7 +95,7 @@ TEST_F(ShaderParamTest, IGN_UTILS_TEST_DISABLED_ON_MAC(ShaderParamBox))
   unsigned int height = 320;
   unsigned int width = 240;
 
-  int mid = (height/2 * width * 3u) + (width/2 - 1) * 3u;
+  int mid = (height / 2 * width * 3u) + (width / 2 - 1) * 3u;
 
   // Lock access to buffer and don't release it
   mutex.lock();

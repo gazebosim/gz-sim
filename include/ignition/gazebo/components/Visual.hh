@@ -18,8 +18,10 @@
 #define IGNITION_GAZEBO_COMPONENTS_VISUAL_HH_
 
 #include <string>
-#include <sdf/Element.hh>
+
 #include <sdf/parser.hh>
+#include <sdf/Element.hh>
+
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/config.hh>
@@ -36,7 +38,7 @@ namespace serializers
   {
     /// \brief Serialization for `sdf::Model`.
     /// \param[in] _out Output stream.
-    /// \param[in] _time Model to stream
+    /// \param[in] _elem Visual plugin elem to stream
     /// \return The stream.
     public: static std::ostream &Serialize(std::ostream &_out,
                 const sdf::ElementPtr &_elem)
@@ -50,7 +52,7 @@ namespace serializers
 
     /// \brief Deserialization for `sdf::Element`.
     /// \param[in] _in Input stream.
-    /// \param[out] _model Model to populate
+    /// \param[out] _elem Visual plugin elem to populate
     /// \return The stream.
     public: static std::istream &Deserialize(std::istream &_in,
                 sdf::ElementPtr &_elem)

@@ -52,7 +52,7 @@ class ignition::gazebo::systems::ShaderParamPrivate
     public: std::string shader;
 
     /// \brief variable type: int, float, float_array, int_array
-    /// \todo support samplers
+    /// \todo(anyone) support samplers
     public: std::string type;
 
     /// \brief variable name of param
