@@ -17,6 +17,8 @@
 #ifndef IGNITION_GAZEBO_PARAMETERS_HH_
 #define IGNITION_GAZEBO_PARAMETERS_HH_
 
+#include <type_traits>
+
 #include <ignition/gazebo/EntityComponentManager.hh>
 #include <ignition/gazebo/components/ParameterDeclarationCmd.hh>
 #include <ignition/gazebo/components/ParametersRegistry.hh>
@@ -45,7 +47,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
       }
     }
     auto * declaration = declarations->add_declarations();
-    declaration->set_type(ComponentT::Type::typeName);
+    using ProtoMsgT = typename ComponentT::Type;
+    static_assert(
+      std::is_base_of_v<google::protobuf::Message, ProtoMsgT>,
+      "ignition::gazebo::DeclareParameter<ComponentT>(): ComponentT"
+      "type must be a protobuf message");
+    declaration->set_type(ProtoMsgT::descriptor()->full_name());
     declaration->set_name(parameter_name);
     declaration->set_component_id(cmpKey.second);
     declaration->set_component_type_id(cmpKey.first);
