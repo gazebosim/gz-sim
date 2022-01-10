@@ -18,6 +18,7 @@
 #ifndef IGNITION_MATH_PYTHON__VECTOR4D_HH_
 #define IGNITION_MATH_PYTHON__VECTOR4D_HH_
 
+#include <sstream>
 #include <string>
 
 #include <pybind11/pybind11.h>
