@@ -22,6 +22,7 @@
 #include <map>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 
 #include <ignition/common/Profiler.hh>
