@@ -225,8 +225,6 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OrientationDisabled))
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  const std::string sensorName = "imu_sensor";
-
   auto topic =
       "world/imu_sensor/model/imu_model/link/link/sensor/imu_sensor/imu";
 

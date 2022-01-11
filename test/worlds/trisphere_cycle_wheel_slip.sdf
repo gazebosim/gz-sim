@@ -2,6 +2,9 @@
 
 <sdf version="1.6">
   <world name="wheel_slip">
+    <physics name="fast" type="ignored">
+      <real_time_factor>0</real_time_factor>
+    </physics>
     <gravity>-2 0 -9.8</gravity>
 
     <plugin

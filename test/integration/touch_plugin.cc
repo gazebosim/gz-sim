@@ -298,7 +298,7 @@ TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SpawnedEntities))
   auto testFunc = [&](const std::string &_box1, const std::string &_box2)
   {
     this->server.reset();
-    this->StartServer("/examples/worlds/empty.sdf");
+    this->StartServer("/test/worlds/empty.sdf");
 
     whiteTouched = false;
     req.set_sdf(_box1);
