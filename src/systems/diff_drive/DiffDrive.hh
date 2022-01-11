@@ -124,11 +124,11 @@ namespace systems
   /// `<max_linear_jerk>`: Sets the maximum linear jerk. Overrides `<max_jerk>`
   /// if set.
   ///
-  /// `<min_angular_jerk>`: Sets the minimum angular jerk. Overrides `<min_jerk>`
-  /// if set.
+  /// `<min_angular_jerk>`: Sets the minimum angular jerk. Overrides
+  /// `<min_jerk>` if set.
   ///
-  /// `<max_angular_jerk>`: Sets the maximum angular jerk. Overrides `<max_jerk>`
-  /// if set.
+  /// `<max_angular_jerk>`: Sets the maximum angular jerk. Overrides
+  /// `<max_jerk>` if set.
   class DiffDrive
       : public System,
         public ISystemConfigure,
