@@ -20,6 +20,7 @@
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 
+#include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/empty.pb.h>
 #include <ignition/msgs/parameter.pb.h>
 #include <ignition/msgs/parameter_declarations.pb.h>
@@ -87,8 +88,7 @@ extern "C" void cmdParameterGet(const char *_paramName) {
   req.set_name(_paramName);
 
   std::cout << std::endl << "Getting parameter [" << _paramName
-            << "] for world [" << worldName << "]..." << std::endl
-            << std::endl;
+            << "] for world [" << worldName << "]..." << std::endl;
 
   if (!node.Request(service, req, timeout, res, result))
   {
@@ -105,7 +105,7 @@ extern "C" void cmdParameterGet(const char *_paramName) {
     return;
   }
   const auto & msgType = res.type();
-  std::cout << "Parameter type [" << msgType << "" << std::endl
+  std::cout << "Parameter type [" << msgType << "]" << std::endl << std::endl
             << "------------------------------------------------"
             << std::endl;
   auto msg = ignition::msgs::Factory::New(msgType);
@@ -117,14 +117,15 @@ extern "C" void cmdParameterGet(const char *_paramName) {
   }
   std::istringstream istr(res.value());
   msg->ParseFromIstream(&istr);
-  google::protobuf::io::OstreamOutputStream fos{&std::cout};
-  if (!google::protobuf::TextFormat::Print(*msg, &fos)) {
-    std::cerr << "failed to convert the parameter value to a string"
-              << std::endl;
-    return;
+  {
+    google::protobuf::io::OstreamOutputStream fos{&std::cout};
+    if (!google::protobuf::TextFormat::Print(*msg, &fos)) {
+      std::cerr << "failed to convert the parameter value to a string"
+                << std::endl;
+      return;
+    }
   }
-  std::cout << std::endl
-            << "------------------------------------------------"
+  std::cout << "------------------------------------------------"
             << std::endl;
 }
 
@@ -136,10 +137,10 @@ extern "C" void cmdParameterSet(
 
   bool result{false};
   const unsigned int timeout{5000};
-  const std::string service{"/world" + worldName + "/set_parameter"};
+  const std::string service{"/world/" + worldName + "/set_parameter"};
 
   msgs::Parameter req;
-  msgs::Empty res;
+  msgs::Boolean res;
 
   auto msg = ignition::msgs::Factory::New(_paramType, _paramValue);
   if (!msg) {
@@ -171,7 +172,7 @@ extern "C" void cmdParameterSet(
     return;
   }
 
-  if (!result)
+  if (!result && !res.data())
   {
     std::cerr << std::endl << "Service call to [" << service
               << "] failed. There may be not parameter named like that."

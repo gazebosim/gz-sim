@@ -28,6 +28,7 @@
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
+#include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/parameter_declarations.pb.h>
 #include <ignition/msgs/parameter_name.pb.h>
 #include <ignition/msgs/parameter_value.pb.h>
@@ -39,8 +40,12 @@ using namespace systems;
 /// \brief Data we need to store for each parameter.
 struct ParameterData
 {
+  /// \brief Associated entity id;
+  Entity entity;
   /// \brief Associated component key.
   ComponentKey componentKey;
+  /// \brief Protobuf type
+  std::string protoType;
 };
 
 /// \brief Registry type to store all parameters.
@@ -81,8 +86,7 @@ class ignition::gazebo::systems::ParametersPrivate
   /// \param[in] _req Request specifying which parameter to set and its value.
   /// \param[out] _res Unused.
   /// \return True if successful.
-  public: bool SetParameter(const msgs::Parameter &_req,
-    msgs::Empty &_res);
+  public: bool SetParameter(const msgs::Parameter &_req, msgs::Boolean &_res);
 };
 
 //////////////////////////////////////////////////
@@ -142,7 +146,8 @@ void Parameters::PreUpdate(const UpdateInfo &, EntityComponentManager &)
     for (const auto & decl : cmdData.parameter_declarations())
     {
       ComponentKey key{decl.component_type_id(), decl.component_id()};
-      this->dataPtr->registry.emplace(decl.name(), ParameterData{key});
+      this->dataPtr->registry.emplace(
+        decl.name(), ParameterData{decl.entity_id(), key, decl.type()});
     }
   }
   cmdData.clear_parameter_declarations();
@@ -153,6 +158,7 @@ bool ParametersPrivate::GetParameter(const msgs::ParameterName &_req,
 {
   const auto & param_name = _req.name();
   ComponentKey key;
+  std::string protoType;
   {
     std::lock_guard guard{this->registryMutex};
     auto it = this->registry.find(param_name);
@@ -160,6 +166,7 @@ bool ParametersPrivate::GetParameter(const msgs::ParameterName &_req,
       return false;
     }
     key = it->second.componentKey;
+    protoType = it->second.protoType;
   }
   auto component = this->ecm->Component<components::BaseComponent>(key);
   if (!component) {
@@ -168,7 +175,7 @@ bool ParametersPrivate::GetParameter(const msgs::ParameterName &_req,
   std::ostringstream oss;
   component->Serialize(oss);
   _res.set_value(oss.str());
-  _res.set_type(components::Factory::Instance()->Name(key.first));
+  _res.set_type(protoType);
   return true;
 }
 
@@ -184,7 +191,7 @@ bool ParametersPrivate::ListParameters(const msgs::Empty &,
       auto * decl = _res.add_parameter_declarations();
       decl->set_name(paramPair.first);
       const auto & cmpKey = paramPair.second.componentKey;
-      decl->set_type(components::Factory::Instance()->Name(cmpKey.first));
+      decl->set_type(paramPair.second.protoType);
       decl->set_component_type_id(cmpKey.first);
       decl->set_component_id(cmpKey.second);
     }
@@ -192,11 +199,12 @@ bool ParametersPrivate::ListParameters(const msgs::Empty &,
   return true;
 }
 
-bool ParametersPrivate::SetParameter(const msgs::Parameter &_req,
-  msgs::Empty &)
+bool ParametersPrivate::SetParameter(const msgs::Parameter &_req, msgs::Boolean &_res)
 {
   const auto & param_name = _req.name();
   ComponentKey key;
+  Entity entity;
+  std::string protoType;
   {
     std::lock_guard guard{this->registryMutex};
     auto it = this->registry.find(param_name);
@@ -204,8 +212,10 @@ bool ParametersPrivate::SetParameter(const msgs::Parameter &_req,
       return false;
     }
     key = it->second.componentKey;
+    entity = it->second.entity;
+    protoType = it->second.protoType;
   }
-  if (components::Factory::Instance()->Name(key.first) != _req.type()) {
+  if (protoType != _req.type()) {
     // parameter type doesn't match
     return false;
   }
@@ -217,7 +227,10 @@ bool ParametersPrivate::SetParameter(const msgs::Parameter &_req,
   }
   std::istringstream iss{_req.value()};
   component->Deserialize(iss);
-  return false;
+  this->ecm->SetChanged(entity, key.first);
+  _res.set_data(true);
+  // TODO(ivanpauno): Without this, the call is timing out for some reason.
+  return true;
 }
 
 IGNITION_ADD_PLUGIN(Parameters,

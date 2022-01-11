@@ -32,7 +32,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   /// \brief Declare a parameter
   template<typename ComponentT>
   bool
-  DeclareParameter(EntityComponentManager &_ecm, const std::string & parameter_name, ComponentKey cmpKey)
+  DeclareParameter(EntityComponentManager &_ecm,
+    const std::string & parameter_name, Entity entity, ComponentKey cmpKey)
   {
     auto worldEntity = _ecm.EntityByComponents(components::World());
     if (kNullEntity == worldEntity) {
@@ -56,6 +57,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     declaration->set_name(parameter_name);
     declaration->set_component_id(cmpKey.second);
     declaration->set_component_type_id(cmpKey.first);
+    declaration->set_component_type_id(cmpKey.first);
+    declaration->set_entity_id(entity);
     return true;
   }
 }
