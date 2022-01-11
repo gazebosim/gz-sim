@@ -27,12 +27,14 @@
 
 #include "ignition/gazebo/Link.hh"
 #include "ignition/gazebo/Model.hh"
+#include "ignition/gazebo/Parameters.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointVelocity.hh"
 #include "ignition/gazebo/components/SlipComplianceCmd.hh"
+#include "ignition/gazebo/components/WheelSlipParameters.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -43,7 +45,7 @@ using namespace systems;
 class ignition::gazebo::systems::WheelSlipPrivate
 {
   /// \brief Initialize the plugin
-  public: bool Load(const EntityComponentManager &_ecm, sdf::ElementPtr _sdf);
+  public: bool Load(EntityComponentManager &_ecm, sdf::ElementPtr _sdf);
 
   /// \brief Update wheel slip plugin data based on physics data
   /// \param[in] _ecm Immutable reference to the EntityComponentManager
@@ -51,18 +53,6 @@ class ignition::gazebo::systems::WheelSlipPrivate
 
   /// \brief Ignition communication node
   public: transport::Node node;
-
-  /// \brief Joint Entity
-  public: Entity jointEntity;
-
-  /// \brief Joint name
-  public: std::string jointName;
-
-  /// \brief Commanded joint force
-  public: double jointForceCmd;
-
-  /// \brief mutex to protect jointForceCmd
-  public: std::mutex jointForceCmdMutex;
 
   /// \brief Model interface
   public: Model model{kNullEntity};
@@ -94,6 +84,10 @@ class ignition::gazebo::systems::WheelSlipPrivate
       /// \brief Wheel radius extracted from collision shape if not
       /// specified as xml parameter.
       public: double wheelRadius = 0;
+
+      public: std::string linkName;
+
+      public: ComponentKey wheelSlipParamsCmpKey;
     };
 
   /// \brief The map relating links to their respective surface parameters.
@@ -122,7 +116,7 @@ class ignition::gazebo::systems::WheelSlipPrivate
 };
 
 /////////////////////////////////////////////////
-bool WheelSlipPrivate::Load(const EntityComponentManager &_ecm,
+bool WheelSlipPrivate::Load(EntityComponentManager &_ecm,
                             sdf::ElementPtr _sdf)
 {
   const std::string modelName = this->model.Name(_ecm);
@@ -226,6 +220,22 @@ bool WheelSlipPrivate::Load(const EntityComponentManager &_ecm,
       continue;
     }
 
+    components::WheelSlipParameters paramsMsg;
+    paramsMsg.Data().set_slip_compliance_lateral(params.slipComplianceLateral);
+    paramsMsg.Data().set_slip_compliance_longitudinal(
+      params.slipComplianceLongitudinal);
+    params.wheelSlipParamsCmpKey = _ecm.CreateComponent(link.Entity(), paramsMsg);
+    // Unique name for the parameter
+    // TODO(ivanpauno): Naming conventions for parameters, we will probably need some rules...
+    auto paramName = std::string("systems.wheel_slip.") + modelName + "."
+      + linkName;
+    if (!DeclareParameter<components::WheelSlipParameters>(
+      _ecm, paramName, link.Entity(), params.wheelSlipParamsCmpKey))
+    {
+      ignerr << "Failed to declare parameter: " + paramName << std::endl;
+    }
+
+    params.linkName = linkName;
     this->mapLinkSurfaceParams[link.Entity()] = params;
   }
 
@@ -242,10 +252,23 @@ bool WheelSlipPrivate::Load(const EntityComponentManager &_ecm,
 /////////////////////////////////////////////////
 void WheelSlipPrivate::Update(EntityComponentManager &_ecm)
 {
-  for (const auto &linkSurface : this->mapLinkSurfaceParams)
+  for (auto &linkSurface : this->mapLinkSurfaceParams)
   {
-    const auto &params = linkSurface.second;
+    auto &params = linkSurface.second;
 
+    auto * wheelSlipParamsComp =
+      _ecm.Component<components::WheelSlipParameters>(
+        params.wheelSlipParamsCmpKey);
+    if (!wheelSlipParamsComp) {
+      ignerr << "Failed to get wheel slip parameters component for link ["
+             << params.linkName << "]" << std::endl;
+    } else {
+      auto & wheelSlipParamsMsg = wheelSlipParamsComp->Data();
+      params.slipComplianceLateral =
+        wheelSlipParamsMsg.slip_compliance_lateral();
+      params.slipComplianceLongitudinal =
+        wheelSlipParamsMsg.slip_compliance_longitudinal();
+    }
     // get user-defined normal force constant
     double force = params.wheelNormalForce;
 
