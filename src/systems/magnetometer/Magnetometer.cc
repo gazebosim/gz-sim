@@ -56,25 +56,30 @@ class ignition::gazebo::systems::MagnetometerPrivate
   /// \brief Ign-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
 
+  /// \brief Keep list of sensors that were created during the previous
+  /// `PostUpdate`, so that components can be created during the next
+  /// `PreUpdate`.
+  public: std::unordered_set<Entity> newSensors;
+
   /// True if the rendering component is initialized
   public: bool initialized = false;
 
   /// \brief Create sensor
-  /// \param[in] _ecm Mutable reference to ECM.
+  /// \param[in] _ecm Immutable reference to ECM.
   /// \param[in] _entity Entity of the IMU
   /// \param[in] _magnetometer Magnetometer component.
   /// \param[in] _worldField MagneticField component.
   /// \param[in] _parent Parent entity component.
   public: void AddMagnetometer(
-    EntityComponentManager &_ecm,
+    const EntityComponentManager &_ecm,
     const Entity _entity,
     const components::Magnetometer *_magnetometer,
     const components::MagneticField *_worldField,
     const components::ParentEntity *_parent);
 
   /// \brief Create magnetometer sensor
-  /// \param[in] _ecm Mutable reference to ECM.
-  public: void CreateMagnetometerEntities(EntityComponentManager &_ecm);
+  /// \param[in] _ecm Immutable reference to ECM.
+  public: void CreateMagnetometerEntities(const EntityComponentManager &_ecm);
 
   /// \brief Update magnetometer sensor data based on physics data
   /// \param[in] _ecm Immutable reference to ECM.
@@ -100,7 +105,21 @@ void Magnetometer::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
   IGN_PROFILE("Magnetometer::PreUpdate");
-  this->dataPtr->CreateMagnetometerEntities(_ecm);
+
+  // Create components
+  for (auto entity : this->dataPtr->newSensors)
+  {
+    auto it = this->dataPtr->entitySensorMap.find(entity);
+    if (it == this->dataPtr->entitySensorMap.end())
+    {
+      ignerr << "Entity [" << entity
+             << "] isn't in sensor map, this shouldn't happen." << std::endl;
+      continue;
+    }
+    // Set topic
+    _ecm.CreateComponent(entity, components::SensorTopic(it->second->Topic()));
+  }
+  this->dataPtr->newSensors.clear();
 }
 
 //////////////////////////////////////////////////
@@ -116,6 +135,8 @@ void Magnetometer::PostUpdate(const UpdateInfo &_info,
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
+
+  this->dataPtr->CreateMagnetometerEntities(_ecm);
 
   // Only update and publish if not paused.
   if (!_info.paused)
@@ -136,7 +157,7 @@ void Magnetometer::PostUpdate(const UpdateInfo &_info,
 
 //////////////////////////////////////////////////
 void MagnetometerPrivate::AddMagnetometer(
-  EntityComponentManager &_ecm,
+  const EntityComponentManager &_ecm,
   const Entity _entity,
   const components::Magnetometer *_magnetometer,
   const components::MagneticField *_worldField,
@@ -178,16 +199,14 @@ void MagnetometerPrivate::AddMagnetometer(
   math::Pose3d p = worldPose(_entity, _ecm);
   sensor->SetWorldPose(p);
 
-  // Set topic
-  _ecm.CreateComponent(_entity, components::SensorTopic(sensor->Topic()));
-
   this->entitySensorMap.insert(
       std::make_pair(_entity, std::move(sensor)));
+  this->newSensors.insert(_entity);
 }
 
 //////////////////////////////////////////////////
 void MagnetometerPrivate::CreateMagnetometerEntities(
-    EntityComponentManager &_ecm)
+    const EntityComponentManager &_ecm)
 {
   IGN_PROFILE("MagnetometerPrivate::CreateMagnetometerEntities");
   auto worldEntity = _ecm.EntityByComponents(components::World());
@@ -213,7 +232,8 @@ void MagnetometerPrivate::CreateMagnetometerEntities(
           const components::Magnetometer *_magnetometer,
           const components::ParentEntity *_parent)->bool
         {
-          AddMagnetometer(_ecm, _entity, _magnetometer, worldField, _parent);
+          this->AddMagnetometer(_ecm, _entity, _magnetometer, worldField,
+              _parent);
           return true;
         });
     this->initialized = true;
@@ -226,7 +246,8 @@ void MagnetometerPrivate::CreateMagnetometerEntities(
           const components::Magnetometer *_magnetometer,
           const components::ParentEntity *_parent)->bool
         {
-          AddMagnetometer(_ecm, _entity, _magnetometer, worldField, _parent);
+          this->AddMagnetometer(_ecm, _entity, _magnetometer, worldField,
+              _parent);
           return true;
         });
   }
