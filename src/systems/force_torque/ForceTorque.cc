@@ -136,7 +136,7 @@ void ForceTorque::PostUpdate(const UpdateInfo &_info,
 
     for (auto &it : this->dataPtr->entitySensorMap)
     {
-      it.second.get()->sensors::Sensor::Update(_info.simTime, false);
+      it.second->Update(_info.simTime, false);
     }
   }
 
