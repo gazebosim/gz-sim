@@ -22,9 +22,6 @@ if(USE_SYSTEM_PATHS_FOR_PYTHON_INSTALLATION)
 
   if(USE_DIST_PACKAGES_FOR_PYTHON)
     string(REPLACE "site-packages" "dist-packages" IGN_PYTHON_INSTALL_PATH ${Python3_SITEARCH})
-  else()
-    # custom cmake command is returning dist-packages
-    string(REPLACE "dist-packages" "site-packages" IGN_PYTHON_INSTALL_PATH ${Python3_SITEARCH})
   endif()
 else()
   # If not a system installation, respect local paths
@@ -33,67 +30,54 @@ endif()
 
 set(IGN_PYTHON_INSTALL_PATH "${IGN_PYTHON_INSTALL_PATH}/ignition")
 
-set(PYBIND11_PYTHON_VERSION 3)
-
-find_package(pybind11 2.2 QUIET)
-
-if (NOT ${pybind11_FOUND})
-  if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.11.0")
-    include(FetchContent)
-    FetchContent_Declare(
-        pybind11
-        GIT_REPOSITORY https://github.com/pybind/pybind11
-        GIT_TAG        v2.8.1
-    )
-
-    FetchContent_GetProperties(pybind11)
-    if(NOT pybind11_POPULATED)
-        FetchContent_Populate(pybind11)
-        add_subdirectory(${pybind11_SOURCE_DIR} ${pybind11_BINARY_DIR})
-    endif()
-    set(pybind11_FOUND TRUE)
-  endif()
-endif()
-
-if (${pybind11_FOUND})
-
-  # Set the build location and install location for a CPython extension
-  function(configure_build_install_location _library_name)
-    # Install library for actual use
-    install(TARGETS ${_library_name}
-      DESTINATION "${IGN_PYTHON_INSTALL_PATH}/"
-    )
-  endfunction()
-
-  pybind11_add_module(gazebo SHARED
-    src/ignition/gazebo/_ignition_gazebo_pybind11.cc
-    src/ignition/gazebo/Destroyable.cc
-    src/ignition/gazebo/EntityComponentManager
-    src/ignition/gazebo/EventManager.cc
-    src/ignition/gazebo/HelperSystem.cc
-    src/ignition/gazebo/Server.cc
-		src/ignition/gazebo/ServerConfig.cc
-    src/ignition/gazebo/UpdateInfo.cc
-    src/ignition/gazebo/World.cc
+# Set the build location and install location for a CPython extension
+function(configure_build_install_location _library_name)
+  # Install library for actual use
+  install(TARGETS ${_library_name}
+    DESTINATION "${IGN_PYTHON_INSTALL_PATH}/"
   )
+endfunction()
 
-  target_link_libraries(gazebo PRIVATE
-    ${PROJECT_LIBRARY_TARGET_NAME}
-    sdformat${SDF_VER}::sdformat${SDF_VER}
-    ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
-  )
+pybind11_add_module(gazebo SHARED
+  src/ignition/gazebo/_ignition_gazebo_pybind11.cc
+	src/ignition/gazebo/EntityComponentManager.cc
+  src/ignition/gazebo/EventManager.cc
+  src/ignition/gazebo/HelperSystem.cc
+  src/ignition/gazebo/Server.cc
+  src/ignition/gazebo/ServerConfig.cc
+  src/ignition/gazebo/UpdateInfo.cc
+  src/ignition/gazebo/World.cc
+)
 
-  # TODO(ahcorde): Move this module to ign-common
-  pybind11_add_module(common SHARED
-    src/ignition/common/_ignition_common_pybind11.cc
-    src/ignition/common/Console.cc
-  )
+target_link_libraries(gazebo PRIVATE
+  ${PROJECT_LIBRARY_TARGET_NAME}
+  sdformat${SDF_VER}::sdformat${SDF_VER}
+  ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
+)
 
-  target_link_libraries(common PRIVATE
-    ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
-  )
+# TODO(ahcorde): Move this module to ign-common
+pybind11_add_module(common SHARED
+  src/ignition/common/_ignition_common_pybind11.cc
+  src/ignition/common/Console.cc
+)
 
-  configure_build_install_location(gazebo)
-  configure_build_install_location(common)
+target_link_libraries(common PRIVATE
+  ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
+)
 
-endif()
+# TODO(ahcorde): Move this module to sdformat
+pybind11_add_module(sdformat SHARED
+  src/ignition/sdformat/_sdformat_pybind11.cc
+  src/ignition/sdformat/Element.cc
+)
+
+target_link_libraries(sdformat PRIVATE
+	sdformat${SDF_VER}::sdformat${SDF_VER}
+)
+
+install(TARGETS sdformat
+	DESTINATION "${IGN_LIB_INSTALL_DIR}/python/"
+)
+
+configure_build_install_location(gazebo)
+configure_build_install_location(common)

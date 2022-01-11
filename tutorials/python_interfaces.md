@@ -41,7 +41,7 @@ step simulation and check entities and components.
 
 # Run the example
 
-In the `examples/python/helperFixture.py` folder there is a Python script that
+In the [examples/python](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo6/examples/python) folder there is a Python script
 shows make use of this API. If you compiled Ignition Gazebo from source you should modify your `PYTHONPATH`:
 
 ```bash
