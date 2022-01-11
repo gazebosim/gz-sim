@@ -624,6 +624,64 @@ TEST_P(ServerFixture, SigInt)
 }
 
 /////////////////////////////////////////////////
+TEST_P(ServerFixture, ServerControlStop)
+{
+  // Test that the server correctly reacts to requests on /server_control
+  // service with `stop` set to either false or true.
+
+  gazebo::Server server;
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Run forever, non-blocking.
+  server.Run(false, 0, false);
+
+  IGN_SLEEP_MS(500);
+
+  EXPECT_TRUE(server.Running());
+  EXPECT_TRUE(*server.Running(0));
+
+  transport::Node node;
+  msgs::ServerControl req;
+  msgs::Boolean res;
+  bool result{false};
+  bool executed{false};
+  int sleep{0};
+  int maxSleep{30};
+
+  // first, call with stop = false; the server should keep running
+  while (!executed && sleep < maxSleep)
+  {
+    igndbg << "Requesting /server_control" << std::endl;
+    executed = node.Request("/server_control", req, 100, res, result);
+    sleep++;
+  }
+  EXPECT_TRUE(executed);
+  EXPECT_TRUE(result);
+  EXPECT_FALSE(res.data());
+
+  IGN_SLEEP_MS(500);
+
+  EXPECT_TRUE(server.Running());
+  EXPECT_TRUE(*server.Running(0));
+
+  // now call with stop = true; the server should stop
+  req.set_stop(true);
+
+  igndbg << "Requesting /server_control" << std::endl;
+  executed = node.Request("/server_control", req, 100, res, result);
+
+  EXPECT_TRUE(executed);
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  IGN_SLEEP_MS(500);
+
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+}
+
+/////////////////////////////////////////////////
 TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(AddSystemWhileRunning))
 {
   ignition::gazebo::ServerConfig serverConfig;

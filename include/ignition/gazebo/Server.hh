@@ -89,6 +89,10 @@ namespace ignition
     ///   3. `/gazebo/resource_paths/add` : ignition::msgs::Empty
     ///     + Add new resource paths.
     ///
+    ///   4. `/server_control`(ignition::msgs::ServerControl) :
+    ///         ignition::msgs::Boolean
+    ///     + Control the simulation server.
+    ///
     /// ## Topics
     ///
     /// The following are topics provided by the Server.
