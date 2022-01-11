@@ -26,12 +26,37 @@
 #include <ignition/common/URI.hh>
 
 #include "ignition/gazebo/Util.hh"
+#include "ignition/gazebo/components/AirPressureSensor.hh"
+#include "ignition/gazebo/components/Altimeter.hh"
+#include "ignition/gazebo/components/Camera.hh"
+#include "ignition/gazebo/components/ChildLinkName.hh"
+#include "ignition/gazebo/components/ContactSensor.hh"
+#include "ignition/gazebo/components/DepthCamera.hh"
+#include "ignition/gazebo/components/ForceTorque.hh"
+#include "ignition/gazebo/components/GpuLidar.hh"
+#include "ignition/gazebo/components/Imu.hh"
+#include "ignition/gazebo/components/Inertial.hh"
+#include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/JointAxis.hh"
+#include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/Light.hh"
+#include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/LogicalCamera.hh"
+#include "ignition/gazebo/components/Magnetometer.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/RgbdCamera.hh"
+#include "ignition/gazebo/components/SelfCollide.hh"
+#include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/SourceFilePath.hh"
+#include "ignition/gazebo/components/SegmentationCamera.hh"
+#include "ignition/gazebo/components/Static.hh"
+#include "ignition/gazebo/components/ThermalCamera.hh"
+#include "ignition/gazebo/components/ThreadPitch.hh"
+#include "ignition/gazebo/components/WindMode.hh"
 #include "ignition/gazebo/components/World.hh"
 
 
@@ -277,7 +302,7 @@ namespace sdf_generator
     // First remove child entities of <world> whose names can be changed during
     // simulation (eg. models). Then we add them back from the data in the
     // ECM.
-    // TODO(addisu) Remove actors and lights
+    // TODO(addisu) Remove actors
     std::vector<sdf::ElementPtr> toRemove;
     if (_elem->HasElement("model"))
     {
@@ -287,6 +312,15 @@ namespace sdf_generator
         toRemove.push_back(modelElem);
       }
     }
+    if (_elem->HasElement("light"))
+    {
+      for (auto lightElem = _elem->GetElement("light"); lightElem;
+           lightElem = lightElem->GetNextElement("light"))
+      {
+        toRemove.push_back(lightElem);
+      }
+    }
+
     for (const auto &e : toRemove)
     {
       _elem->RemoveChild(e);
@@ -294,6 +328,7 @@ namespace sdf_generator
 
     auto worldDir = common::parentPath(worldSdf->Data().Element()->FilePath());
 
+    // models
     _ecm.Each<components::Model, components::ModelSdf>(
         [&](const Entity &_modelEntity, const components::Model *,
             const components::ModelSdf *_modelSdf)
@@ -386,6 +421,21 @@ namespace sdf_generator
           return true;
         });
 
+    // lights
+    _ecm.Each<components::Light, components::ParentEntity>(
+        [&](const Entity &_lightEntity,
+            const components::Light *,
+            const components::ParentEntity *_parent) -> bool
+        {
+          if (_parent->Data() != _entity)
+            return true;
+
+           auto lightElem = _elem->AddElement("light");
+           updateLightElement(lightElem, _ecm, _lightEntity);
+
+          return true;
+        });
+
     return true;
   }
 
@@ -397,10 +447,12 @@ namespace sdf_generator
     if (!copySdf(_ecm.Component<components::ModelSdf>(_entity), _elem))
       return false;
 
-    // Update sdf based current components. Here are the list of components to
-    // be updated:
+    // Update sdf based on current components. Here are the list of components
+    // to be updated:
     // - Name
     // - Pose
+    // - Static
+    // - SelfCollide
     // This list is to be updated as other components become updateable during
     // simulation
     auto *nameComp = _ecm.Component<components::Name>(_entity);
@@ -421,17 +473,461 @@ namespace sdf_generator
     }
     poseElem->Set(poseComp->Data());
 
+    // static
+    auto *staticComp = _ecm.Component<components::Static>(_entity);
+    if (staticComp)
+      _elem->GetElement("static")->Set<bool>(staticComp->Data());
+
+    // self collide
+    auto *selfCollideComp = _ecm.Component<components::SelfCollide>(_entity);
+    if (selfCollideComp)
+      _elem->GetElement("self_collide")->Set<bool>(selfCollideComp->Data());
+
     const auto *pathComp =
       _ecm.Component<components::SourceFilePath>(_entity);
 
-    if (_elem->HasElement("link") && nullptr != pathComp)
+    if (_elem->HasElement("link"))
     {
-      // Update relative URIs to use absolute paths. Relative URIs work fine in
-      // included models, but they have to be converted to absolute URIs when
-      // the included model is expanded.
-      relativeToAbsoluteUri(_elem, common::parentPath(pathComp->Data()));
+      if (nullptr != pathComp)
+      {
+        // Update relative URIs to use absolute paths. Relative URIs work fine
+        // in included models, but they have to be converted to absolute URIs
+        // when the included model is expanded.
+        relativeToAbsoluteUri(_elem, common::parentPath(pathComp->Data()));
+      }
+
+      // update links
+      sdf::ElementPtr linkElem = _elem->GetElement("link");
+      while (linkElem)
+      {
+        std::string linkName = linkElem->Get<std::string>("name");
+        auto linkEnt = _ecm.EntityByComponents(
+            components::ParentEntity(_entity), components::Name(linkName));
+        if (linkEnt != kNullEntity)
+          updateLinkElement(linkElem, _ecm, linkEnt);
+        linkElem = linkElem->GetNextElement("link");
+      }
+    }
+
+    if (_elem->HasElement("joint"))
+    {
+      // update joints
+      sdf::ElementPtr jointElem = _elem->GetElement("joint");
+      while (jointElem)
+      {
+        std::string jointName = jointElem->Get<std::string>("name");
+        auto jointEnt = _ecm.EntityByComponents(
+            components::ParentEntity(_entity), components::Name(jointName));
+        if (jointEnt != kNullEntity)
+          updateJointElement(jointElem, _ecm, jointEnt);
+        jointElem = jointElem->GetNextElement("joint");
+      }
+    }
+
+    return true;
+  }
+
+  /////////////////////////////////////////////////
+  bool updateLinkElement(const sdf::ElementPtr &_elem,
+                          const EntityComponentManager &_ecm,
+                          const Entity &_entity)
+  {
+    // Update sdf based on current components. Here are the list of components
+    // to be updated:
+    // - Name
+    // - Pose
+    // - Inertial
+    // - WindMode
+    // This list is to be updated as other components become updateable during
+    // simulation
+    auto *nameComp = _ecm.Component<components::Name>(_entity);
+    _elem->GetAttribute("name")->Set(nameComp->Data());
+
+    auto *poseComp = _ecm.Component<components::Pose>(_entity);
+
+    auto poseElem = _elem->GetElement("pose");
+
+    // Remove all attributes of poseElem
+    for (const auto *attrName : {"relative_to", "degrees", "rotation_format"})
+    {
+      sdf::ParamPtr attr = poseElem->GetAttribute(attrName);
+      if (nullptr != attr)
+      {
+        attr->Reset();
+      }
+    }
+    poseElem->Set(poseComp->Data());
+
+    // inertial
+    auto inertialComp = _ecm.Component<components::Inertial>(_entity);
+    if (inertialComp)
+    {
+      math::Inertiald inertial = inertialComp->Data();
+      sdf::ElementPtr inertialElem = _elem->GetElement("inertial");
+      inertialElem->GetElement("pose")->Set<math::Pose3d>(inertial.Pose());
+      const math::MassMatrix3d &massMatrix = inertial.MassMatrix();
+      inertialElem->GetElement("mass")->Set<double>(massMatrix.Mass());
+      sdf::ElementPtr inertiaElem = inertialElem->GetElement("inertia");
+      inertiaElem->GetElement("ixx")->Set<double>(massMatrix.Ixx());
+      inertiaElem->GetElement("ixy")->Set<double>(massMatrix.Ixy());
+      inertiaElem->GetElement("ixz")->Set<double>(massMatrix.Ixz());
+      inertiaElem->GetElement("iyy")->Set<double>(massMatrix.Iyy());
+      inertiaElem->GetElement("iyz")->Set<double>(massMatrix.Iyz());
+      inertiaElem->GetElement("izz")->Set<double>(massMatrix.Izz());
+    }
+
+    // wind mode
+    auto windModeComp = _ecm.Component<components::WindMode>(_entity);
+    if (windModeComp)
+    {
+      bool windMode = windModeComp->Data();
+      _elem->GetElement("enable_wind")->Set<bool>(windMode);
+    }
+
+    // update sensors
+    if (_elem->HasElement("sensor"))
+    {
+      sdf::ElementPtr sensorElem = _elem->GetElement("sensor");
+      while (sensorElem)
+      {
+        std::string sensorName = sensorElem->Get<std::string>("name");
+        auto sensorEnt = _ecm.EntityByComponents(
+            components::ParentEntity(_entity), components::Name(sensorName));
+        if (sensorEnt != kNullEntity)
+          updateSensorElement(sensorElem, _ecm, sensorEnt);
+        sensorElem = sensorElem->GetNextElement("sensor");
+      }
+    }
+
+    // update lights
+    if (_elem->HasElement("light"))
+    {
+      sdf::ElementPtr lightElem = _elem->GetElement("light");
+      while (lightElem)
+      {
+        std::string lightName = lightElem->Get<std::string>("name");
+        auto lightEnt = _ecm.EntityByComponents(
+            components::ParentEntity(_entity), components::Name(lightName));
+        if (lightEnt != kNullEntity)
+          updateLightElement(lightElem, _ecm, lightEnt);
+        lightElem = lightElem->GetNextElement("light");
+      }
+    }
+
+    return true;
+  }
+
+  /////////////////////////////////////////////////
+  bool updateSensorElement(sdf::ElementPtr _elem,
+                           const EntityComponentManager &_ecm,
+                           const Entity &_entity)
+  {
+    // Update sdf based on current components.
+    // This list is to be updated as other components become updateable during
+    // simulation
+    auto updateSensorNameAndPose = [&]
+    {
+      // override name and pose sdf element using values from ECM
+      auto *nameComp = _ecm.Component<components::Name>(_entity);
+      _elem->GetAttribute("name")->Set(nameComp->Data());
+
+      auto *poseComp = _ecm.Component<components::Pose>(_entity);
+      auto poseElem = _elem->GetElement("pose");
+
+      // Remove all attributes of poseElem
+      for (const auto *attrName : {"relative_to", "degrees", "rotation_format"})
+      {
+        sdf::ParamPtr attr = poseElem->GetAttribute(attrName);
+        if (nullptr != attr)
+        {
+          attr->Reset();
+        }
+      }
+      poseElem->Set(poseComp->Data());
+      return true;
+    };
+
+    // camera
+    auto camComp = _ecm.Component<components::Camera>(_entity);
+    if (camComp)
+    {
+      const sdf::Sensor &sensor = camComp->Data();
+      _elem->Copy(sensor.ToElement());
+      return updateSensorNameAndPose();
+    }
+    // depth camera
+    auto depthCamComp = _ecm.Component<components::DepthCamera>(_entity);
+    if (depthCamComp)
+    {
+      const sdf::Sensor &sensor = depthCamComp->Data();
+      _elem->Copy(sensor.ToElement());
+      return updateSensorNameAndPose();
+    }
+    // thermal camera
+    auto thermalCamComp = _ecm.Component<components::ThermalCamera>(_entity);
+    if (thermalCamComp)
+    {
+      const sdf::Sensor &sensor = thermalCamComp->Data();
+      _elem->Copy(sensor.ToElement());
+      return updateSensorNameAndPose();
+    }
+    // logical camera
+    auto logicalCamComp = _ecm.Component<components::LogicalCamera>(_entity);
+    if (logicalCamComp)
+    {
+      // components::LogicalCamera holds an sdf::ElementPtr instead of an
+      // sdf::Sensor
+      _elem = logicalCamComp->Data();
+      return updateSensorNameAndPose();
+    }
+    // segmentation camera
+    auto segmentationCamComp =
+        _ecm.Component<components::SegmentationCamera>(_entity);
+    if (segmentationCamComp)
+    {
+      const sdf::Sensor &sensor = segmentationCamComp->Data();
+      _elem->Copy(sensor.ToElement());
+      return updateSensorNameAndPose();
+    }
+
+    // gpu lidar
+    auto gpuLidarComp = _ecm.Component<components::GpuLidar>(_entity);
+    if (gpuLidarComp)
+    {
+      const sdf::Sensor &sensor = gpuLidarComp->Data();
+      _elem->Copy(sensor.ToElement());
+      return updateSensorNameAndPose();
+    }
+    // altimeter
+    auto altimeterComp = _ecm.Component<components::Altimeter>(_entity);
+    if (altimeterComp)
+    {
+      const sdf::Sensor &sensor = altimeterComp->Data();
+      _elem->Copy(sensor.ToElement());
+      return updateSensorNameAndPose();
+    }
+    // contact
+    auto contactComp = _ecm.Component<components::ContactSensor>(_entity);
+    if (contactComp)
+    {
+      // components::ContactSensor holds an sdf::ElementPtr instead of an
+      // sdf::Sensor
+      _elem = contactComp->Data();
+      return updateSensorNameAndPose();
+    }
+    // air pressure
+    auto airPressureComp =
+        _ecm.Component<components::AirPressureSensor>(_entity);
+    if (airPressureComp)
+    {
+      const sdf::Sensor &sensor = airPressureComp->Data();
+      _elem->Copy(sensor.ToElement());
+      return updateSensorNameAndPose();
+    }
+    // force torque
+    auto forceTorqueComp = _ecm.Component<components::ForceTorque>(_entity);
+    if (forceTorqueComp)
+    {
+      const sdf::Sensor &sensor = forceTorqueComp->Data();
+      _elem->Copy(sensor.ToElement());
+      return updateSensorNameAndPose();
+    }
+    // imu
+    auto imuComp = _ecm.Component<components::Imu>(_entity);
+    if (imuComp)
+    {
+      const sdf::Sensor &sensor = imuComp->Data();
+      _elem->Copy(sensor.ToElement());
+      return updateSensorNameAndPose();
+    }
+    // magnetometer
+    auto magnetometerComp =
+        _ecm.Component<components::Magnetometer>(_entity);
+    if (magnetometerComp)
+    {
+      const sdf::Sensor &sensor = magnetometerComp->Data();
+      _elem->Copy(sensor.ToElement());
+      return updateSensorNameAndPose();
+    }
+
+    return true;
+  }
+
+  /////////////////////////////////////////////////
+  bool updateLightElement(sdf::ElementPtr _elem,
+                          const EntityComponentManager &_ecm,
+                          const Entity &_entity)
+  {
+    // Update sdf based on the light component
+    auto updateLightNameAndPose = [&]
+    {
+      // override name and pose sdf element using values from ECM
+      auto *nameComp = _ecm.Component<components::Name>(_entity);
+      _elem->GetAttribute("name")->Set(nameComp->Data());
+
+      auto *poseComp = _ecm.Component<components::Pose>(_entity);
+      auto poseElem = _elem->GetElement("pose");
+
+      // Remove all attributes of poseElem
+      for (const auto *attrName : {"relative_to", "degrees", "rotation_format"})
+      {
+        sdf::ParamPtr attr = poseElem->GetAttribute(attrName);
+        if (nullptr != attr)
+        {
+          attr->Reset();
+        }
+      }
+      poseElem->Set(poseComp->Data());
+      return true;
+    };
+
+    // light
+    auto lightComp = _ecm.Component<components::Light>(_entity);
+    if (lightComp)
+    {
+      const sdf::Light &light = lightComp->Data();
+      _elem->Copy(light.ToElement());
+      return updateLightNameAndPose();
     }
     return true;
+  }
+
+  /////////////////////////////////////////////////
+  bool updateJointElement(sdf::ElementPtr _elem,
+                          const EntityComponentManager &_ecm,
+                          const Entity &_entity)
+  {
+    // Update sdf based on the joint component
+    auto updateJointNameAndPose = [&]
+    {
+      // override name and pose sdf element using values from ECM
+      auto *nameComp = _ecm.Component<components::Name>(_entity);
+      _elem->GetAttribute("name")->Set(nameComp->Data());
+
+      auto *poseComp = _ecm.Component<components::Pose>(_entity);
+      auto poseElem = _elem->GetElement("pose");
+
+      // Remove all attributes of poseElem
+      for (const auto *attrName : {"relative_to", "degrees", "rotation_format"})
+      {
+        sdf::ParamPtr attr = poseElem->GetAttribute(attrName);
+        if (nullptr != attr)
+        {
+          attr->Reset();
+        }
+      }
+      poseElem->Set(poseComp->Data());
+      return true;
+    };
+
+    // joint
+    auto jointComp = _ecm.Component<components::Joint>(_entity);
+    if (!jointComp)
+    {
+      return false;
+    }
+
+    // joint type
+    auto jointTypeComp = _ecm.Component<components::JointType>(_entity);
+    sdf::JointType jointType = jointTypeComp->Data();
+    if (jointTypeComp)
+    {
+      std::string jointTypeStr = "invalid";
+      switch (jointType)
+      {
+        case sdf::JointType::BALL:
+          jointTypeStr = "ball";
+          break;
+        case sdf::JointType::CONTINUOUS:
+          jointTypeStr = "continuous";
+          break;
+        case sdf::JointType::FIXED:
+          jointTypeStr = "fixed";
+          break;
+        case sdf::JointType::PRISMATIC:
+          jointTypeStr = "prismatic";
+          break;
+        case sdf::JointType::GEARBOX:
+          jointTypeStr = "gearbox";
+          break;
+        case sdf::JointType::REVOLUTE:
+          jointTypeStr = "revolute";
+          break;
+        case sdf::JointType::REVOLUTE2:
+          jointTypeStr = "revolute2";
+          break;
+        case sdf::JointType::SCREW:
+          jointTypeStr = "screw";
+          break;
+        case sdf::JointType::UNIVERSAL:
+          jointTypeStr = "universal";
+          break;
+        default:
+          break;
+      }
+      _elem->GetAttribute("type")->Set<std::string>(jointTypeStr);
+    }
+
+    // parent
+    auto parentLinkNameComp =
+        _ecm.Component<components::ParentLinkName>(_entity);
+    if (parentLinkNameComp)
+    {
+      _elem->GetElement("parent")->Set<std::string>(parentLinkNameComp->Data());
+    }
+    // child
+    auto childLinkNameComp = _ecm.Component<components::ChildLinkName>(_entity);
+    if (childLinkNameComp)
+    {
+      _elem->GetElement("child")->Set<std::string>(childLinkNameComp->Data());
+    }
+    // thread pitch
+    auto threadPitchComp = _ecm.Component<components::ThreadPitch>(_entity);
+    if (threadPitchComp && jointType == sdf::JointType::SCREW)
+    {
+      _elem->GetElement("thread_pitch")->Set<double>(threadPitchComp->Data());
+    }
+    // axis
+    auto jointAxisComp = _ecm.Component<components::JointAxis>(_entity);
+    if (jointAxisComp)
+    {
+      const sdf::JointAxis axis = jointAxisComp->Data();
+      _elem->GetElement("axis")->Copy(axis.ToElement());
+    }
+    // axis2
+    auto jointAxis2Comp = _ecm.Component<components::JointAxis2>(_entity);
+    if (jointAxis2Comp)
+    {
+      const sdf::JointAxis axis2 = jointAxis2Comp->Data();
+      _elem->GetElement("axis2")->Copy(axis2.ToElement(1u));
+    }
+
+    // sensors
+    // remove existing ones in sdf element and add new ones from ECM.
+    std::vector<sdf::ElementPtr> toRemove;
+    if (_elem->HasElement("sensor"))
+    {
+      for (auto sensorElem = _elem->GetElement("sensor"); sensorElem;
+           sensorElem = sensorElem->GetNextElement("sensor"))
+      {
+        toRemove.push_back(sensorElem);
+      }
+    }
+    for (const auto &e : toRemove)
+    {
+      _elem->RemoveChild(e);
+    }
+
+    auto sensorEntities = _ecm.EntitiesByComponents(
+        components::ParentEntity(_entity), components::Sensor());
+
+    for (const auto &sensorEnt : sensorEntities)
+    {
+      sdf::ElementPtr sensorElem = _elem->AddElement("sensor");
+      updateSensorElement(sensorElem, _ecm, sensorEnt);
+    }
+
+    return updateJointNameAndPose();
   }
 
   /////////////////////////////////////////////////
