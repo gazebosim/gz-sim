@@ -338,15 +338,15 @@ void Link::AddWorldForce(EntityComponentManager &_ecm,
   if (!inertial || !worldPose)
     return;
 
-  // We want the force to be applied at the center of mass, but
+  // We want the force to be applied at an offset from the center of mass, but
   // ExternalWorldWrenchCmd applies the force at the link origin so we need to
   // compute the resulting force and torque on the link origin.
-  auto posComWorldCoord = _position +
-      worldPose->Data().Rot().RotateVector(inertial->Data().Pose().Pos());
+  auto posComWorldCoord = worldPose->Data().Rot().RotateVector(
+    _position + inertial->Data().Pose().Pos());
 
   math::Vector3d torque = posComWorldCoord.Cross(_force);
 
-  this->AddWorldWrench(_ecm, _force, _position, torque);
+  this->AddWorldWrench(_ecm, _force, torque);
 }
 
 //////////////////////////////////////////////////
@@ -369,37 +369,6 @@ void Link::AddWorldWrench(EntityComponentManager &_ecm,
   {
     msgs::Set(linkWrenchComp->Data().mutable_force(),
               msgs::Convert(linkWrenchComp->Data().force()) + _force);
-
-    msgs::Set(linkWrenchComp->Data().mutable_torque(),
-              msgs::Convert(linkWrenchComp->Data().torque()) + _torque);
-  }
-}
-
-//////////////////////////////////////////////////
-void Link::AddWorldWrench(EntityComponentManager &_ecm,
-                         const math::Vector3d &_force,
-                         const math::Vector3d &_position,
-                         const math::Vector3d &_torque) const
-{
-  auto linkWrenchComp =
-      _ecm.Component<components::ExternalWorldWrenchCmd>(this->dataPtr->id);
-
-  components::ExternalWorldWrenchCmd wrench;
-
-  if (!linkWrenchComp)
-  {
-    msgs::Set(wrench.Data().mutable_force(), _force);
-    msgs::Set(wrench.Data().mutable_force_offset(), _position);
-    msgs::Set(wrench.Data().mutable_torque(), _torque);
-    _ecm.CreateComponent(this->dataPtr->id, wrench);
-  }
-  else
-  {
-    msgs::Set(linkWrenchComp->Data().mutable_force(),
-              msgs::Convert(linkWrenchComp->Data().force()) + _force);
-
-    msgs::Set(linkWrenchComp->Data().mutable_force_offset(),
-              msgs::Convert(linkWrenchComp->Data().force_offset()) + _position);
 
     msgs::Set(linkWrenchComp->Data().mutable_torque(),
               msgs::Convert(linkWrenchComp->Data().torque()) + _torque);

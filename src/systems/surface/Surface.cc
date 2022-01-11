@@ -234,7 +234,7 @@ void Surface::PreUpdate(const ignition::gazebo::UpdateInfo &/*_info*/,
       // Apply force at grid point
       // Position is in the link frame and force is in world frame.
       this->dataPtr->link.AddWorldForce(_ecm,
-        ignition::math::Vector3d(0, 0, kBuoyForce * 0.5),
+        ignition::math::Vector3d(0, 0, kBuoyForce),
         bpnt);
 
       // Debug output:
