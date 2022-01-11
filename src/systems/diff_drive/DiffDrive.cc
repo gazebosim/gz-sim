@@ -318,7 +318,6 @@ void DiffDrive::Configure(const Entity &_entity,
     const double maxAngJerk = _sdf->Get<double>("max_angular_jerk");
     this->dataPtr->limiterAng->SetMaxJerk(maxAngJerk);
   }
-  
 
   double odomFreq = _sdf->Get<double>("odom_publish_frequency", 50).first;
   if (odomFreq > 0)
