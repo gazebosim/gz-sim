@@ -262,8 +262,8 @@ namespace ignition
       public: void AddWorldForce(EntityComponentManager &_ecm,
                                  const math::Vector3d &_force) const;
 
-      /// \brief Add a force expressed in world coordinates and applied at the
-      /// center of mass of the link.
+      /// \brief Add a force expressed in world coordinates and applied at
+      /// an offset from the center of mass of the link.
       /// \param[in] _ecm Mutable Entity-component manager.
       /// \param[in] _force Force to be applied expressed in world coordinates
       /// \param[in] _position The point of application of the force expressed
