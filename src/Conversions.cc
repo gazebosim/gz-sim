@@ -15,20 +15,20 @@
  *
 */
 
+#include <ignition/msgs/actor.pb.h>
 #include <ignition/msgs/atmosphere.pb.h>
 #include <ignition/msgs/axis_aligned_box.pb.h>
 #include <ignition/msgs/boxgeom.pb.h>
 #include <ignition/msgs/capsulegeom.pb.h>
 #include <ignition/msgs/cylindergeom.pb.h>
-#include <ignition/msgs/entity.pb.h>
 #include <ignition/msgs/ellipsoidgeom.pb.h>
+#include <ignition/msgs/entity.pb.h>
 #include <ignition/msgs/geometry.pb.h>
-#include <ignition/msgs/gui.pb.h>
 #include <ignition/msgs/gps_sensor.pb.h>
+#include <ignition/msgs/gui.pb.h>
 #include <ignition/msgs/heightmapgeom.pb.h>
 #include <ignition/msgs/imu_sensor.pb.h>
 #include <ignition/msgs/lidar_sensor.pb.h>
-#include <ignition/msgs/actor.pb.h>
 #include <ignition/msgs/light.pb.h>
 #include <ignition/msgs/material.pb.h>
 #include <ignition/msgs/planegeom.pb.h>

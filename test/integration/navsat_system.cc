@@ -24,10 +24,10 @@
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
 
-#include "ignition/gazebo/components/NavSat.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/NavSat.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/Server.hh"
@@ -104,7 +104,7 @@ TEST_F(NavSatTest, ModelFalling)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
-  EXPECT_LT(sleep, maxSleep);
+  EXPECT_LE(sleep, maxSleep);
   EXPECT_LE(10u, navSatMsgs.size());
 
   mutex.lock();

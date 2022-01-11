@@ -57,12 +57,6 @@ ign service -s /world/spherical_coordinates/set_spherical_coordinates \
       name="ignition::gazebo::systems::NavSat">
     </plugin>
 
-    <!-- Processes pose commands -->
-    <plugin
-      filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
-    </plugin>
-
     <!-- Handles requests to update the spherical coordinates -->
     <plugin
       filename="ignition-gazebo-user-commands-system"
@@ -73,6 +67,12 @@ ign service -s /world/spherical_coordinates/set_spherical_coordinates \
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+
+    <!-- Processes pose commands -->
+    <plugin
+      filename="ignition-gazebo-physics-system"
+      name="ignition::gazebo::systems::Physics">
     </plugin>
 
     <!-- Set the coordinates for the world origin -->
