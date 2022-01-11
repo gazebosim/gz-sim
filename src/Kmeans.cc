@@ -27,16 +27,9 @@ using namespace math;
 
 //////////////////////////////////////////////////
 Kmeans::Kmeans(const std::vector<Vector3d> &_obs)
-: dataPtr(new KmeansPrivate)
+: dataPtr(ignition::utils::MakeImpl<Implementation>())
 {
   this->Observations(_obs);
-}
-
-//////////////////////////////////////////////////
-Kmeans::~Kmeans()
-{
-  delete this->dataPtr;
-  this->dataPtr = NULL;
 }
 
 //////////////////////////////////////////////////

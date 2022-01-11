@@ -22,6 +22,7 @@
 #include <ignition/math/Plane.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/math/config.hh>
+#include <ignition/utils/ImplPtr.hh>
 
 namespace ignition
 {
@@ -29,9 +30,6 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
-    //
-    // Forward declaration of private data
-    class FrustumPrivate;
 
     /// \brief Mathematical representation of a frustum and related functions.
     /// This is also known as a view frustum.
@@ -85,13 +83,6 @@ namespace ignition
                       const math::Angle &_fov,
                       double _aspectRatio,
                       const math::Pose3d &_pose = math::Pose3d::Zero);
-
-      /// \brief Copy Constructor
-      /// \param[in] _p Frustum to copy.
-      public: Frustum(const Frustum &_p);
-
-      /// \brief Destructor
-      public: ~Frustum();
 
       /// \brief Get the near distance. This is the distance from the
       /// frustum's vertex to the closest plane.
@@ -168,18 +159,12 @@ namespace ignition
       /// \sa Pose
       public: void SetPose(const Pose3d &_pose);
 
-      /// \brief Assignment operator. Set this frustum to the parameter.
-      /// \param[in] _f Frustum to copy
-      /// \return The new frustum.
-      public: Frustum &operator=(const Frustum &_f);
-
       /// \brief Compute the planes of the frustum. This is called whenever
       /// a property of the frustum is changed.
       private: void ComputePlanes();
 
-      /// \internal
       /// \brief Private data pointer
-      private: FrustumPrivate *dataPtr;
+      IGN_UTILS_IMPL_PTR(dataPtr)
     };
     }
   }

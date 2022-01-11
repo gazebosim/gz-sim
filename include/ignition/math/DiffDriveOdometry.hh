@@ -18,10 +18,10 @@
 #define IGNITION_MATH_DIFFDRIVEODOMETRY_HH_
 
 #include <chrono>
-#include <memory>
 #include <ignition/math/Angle.hh>
 #include <ignition/math/Export.hh>
 #include <ignition/math/config.hh>
+#include <ignition/utils/ImplPtr.hh>
 
 namespace ignition
 {
@@ -32,10 +32,6 @@ namespace ignition
 
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
-    //
-    // Forward declarations.
-    class DiffDriveOdometryPrivate;
-
     /** \class DiffDriveOdometry DiffDriveOdometry.hh \
      * ignition/math/DiffDriveOdometry.hh
      **/
@@ -84,9 +80,6 @@ namespace ignition
       /// \param[in] _windowSize Rolling window size used to compute the
       /// velocity mean
       public: explicit DiffDriveOdometry(size_t _windowSize = 10);
-
-      /// \brief Destructor.
-      public: ~DiffDriveOdometry();
 
       /// \brief Initialize the odometry
       /// \param[in] _time Current time.
@@ -137,17 +130,8 @@ namespace ignition
       /// \param[in] _size The Velocity rolling window size.
       public: void SetVelocityRollingWindowSize(size_t _size);
 
-#ifdef _WIN32
-// Disable warning C4251 which is triggered by
-// std::unique_ptr
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
       /// \brief Private data pointer.
-      private: std::unique_ptr<DiffDriveOdometryPrivate> dataPtr;
-#ifdef _WIN32
-#pragma warning(pop)
-#endif
+      IGN_UTILS_IMPL_PTR(dataPtr)
     };
     }
   }

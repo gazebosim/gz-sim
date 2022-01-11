@@ -17,9 +17,9 @@
 #ifndef IGNITION_MATH_ROLLINGMEAN_HH_
 #define IGNITION_MATH_ROLLINGMEAN_HH_
 
-#include <memory>
 #include <ignition/math/Export.hh>
 #include <ignition/math/config.hh>
+#include <ignition/utils/ImplPtr.hh>
 
 namespace ignition
 {
@@ -27,10 +27,6 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
-    //
-    // Forward declarations.
-    class RollingMeanPrivate;
-
     /// \brief A class that computes the mean over a series of data points.
     /// The window size determines the maximum number of data points. The
     /// oldest value is popped off when the window size is reached and
@@ -41,9 +37,6 @@ namespace ignition
       /// \param[in] _windowSize The window size to use. This value will be
       /// ignored if it is equal to zero.
       public: explicit RollingMean(size_t _windowSize = 10);
-
-      /// \brief Destructor.
-      public: ~RollingMean();
 
       /// \brief Get the mean value.
       /// \return The current mean value, or
@@ -71,17 +64,8 @@ namespace ignition
       /// \return The window size.
       public: size_t WindowSize() const;
 
-#ifdef _WIN32
-// Disable warning C4251 which is triggered by
-// std::unique_ptr
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
       /// \brief Private data pointer.
-      private: std::unique_ptr<RollingMeanPrivate> dataPtr;
-#ifdef _WIN32
-#pragma warning(pop)
-#endif
+      IGN_UTILS_IMPL_PTR(dataPtr)
     };
     }
   }

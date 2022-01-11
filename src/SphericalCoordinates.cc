@@ -39,7 +39,7 @@ const double g_EarthWGS84Flattening = 1.0/298.257223563;
 const double g_EarthRadius = 6371000.0;
 
 // Private data for the SphericalCoordinates class.
-class ignition::math::SphericalCoordinatesPrivate
+class ignition::math::SphericalCoordinates::Implementation
 {
   /// \brief Type of surface being used.
   public: SphericalCoordinates::SurfaceType surfaceType;
@@ -114,7 +114,7 @@ std::string SphericalCoordinates::Convert(
 
 //////////////////////////////////////////////////
 SphericalCoordinates::SphericalCoordinates()
-  : dataPtr(new SphericalCoordinatesPrivate)
+  : dataPtr(ignition::utils::MakeImpl<Implementation>())
 {
   this->SetSurface(EARTH_WGS84);
   this->SetElevationReference(0.0);
@@ -122,7 +122,7 @@ SphericalCoordinates::SphericalCoordinates()
 
 //////////////////////////////////////////////////
 SphericalCoordinates::SphericalCoordinates(const SurfaceType _type)
-  : dataPtr(new SphericalCoordinatesPrivate)
+  : SphericalCoordinates()
 {
   this->SetSurface(_type);
   this->SetElevationReference(0.0);
@@ -134,7 +134,7 @@ SphericalCoordinates::SphericalCoordinates(const SurfaceType _type,
     const ignition::math::Angle &_longitude,
     const double _elevation,
     const ignition::math::Angle &_heading)
-: dataPtr(new SphericalCoordinatesPrivate)
+  : SphericalCoordinates()
 {
   // Set the reference and calculate ellipse parameters
   this->SetSurface(_type);
@@ -147,18 +147,6 @@ SphericalCoordinates::SphericalCoordinates(const SurfaceType _type,
 
   // Generate transformation matrix
   this->UpdateTransformationMatrix();
-}
-
-//////////////////////////////////////////////////
-SphericalCoordinates::SphericalCoordinates(const SphericalCoordinates &_sc)
-  : SphericalCoordinates()
-{
-  (*this) = _sc;
-}
-
-//////////////////////////////////////////////////
-SphericalCoordinates::~SphericalCoordinates()
-{
 }
 
 //////////////////////////////////////////////////
@@ -574,20 +562,4 @@ bool SphericalCoordinates::operator==(const SphericalCoordinates &_sc) const
 bool SphericalCoordinates::operator!=(const SphericalCoordinates &_sc) const
 {
   return !(*this == _sc);
-}
-
-//////////////////////////////////////////////////
-SphericalCoordinates &SphericalCoordinates::operator=(
-  const SphericalCoordinates &_sc)
-{
-  this->SetSurface(_sc.Surface());
-  this->SetLatitudeReference(_sc.LatitudeReference());
-  this->SetLongitudeReference(_sc.LongitudeReference());
-  this->SetElevationReference(_sc.ElevationReference());
-  this->SetHeadingOffset(_sc.HeadingOffset());
-
-  // Generate transformation matrix
-  this->UpdateTransformationMatrix();
-
-  return *this;
 }

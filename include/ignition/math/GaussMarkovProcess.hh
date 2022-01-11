@@ -18,9 +18,9 @@
 #define IGNITION_MATH_GAUSSMARKOVPROCESS_HH_
 
 #include <chrono>
-#include <memory>
 #include <ignition/math/Export.hh>
 #include <ignition/math/config.hh>
+#include <ignition/utils/ImplPtr.hh>
 
 namespace ignition
 {
@@ -31,10 +31,6 @@ namespace ignition
 
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
-    //
-    // Forward declarations.
-    class GaussMarkovProcessPrivate;
-
     /** \class GaussMarkovProcess GaussMarkovProcess.hh\
      * ignition/math/GaussMarkovProcess.hh
      **/
@@ -63,9 +59,6 @@ namespace ignition
       /// \sa Update(const clock::duration &)
       public: GaussMarkovProcess(double _start, double _theta, double _mu,
                   double _sigma);
-
-      /// \brief Destructor.
-      public: ~GaussMarkovProcess();
 
       /// \brief Set the process parameters. This will also call Reset().
       /// \param[in] _start The start value of the process.
@@ -135,17 +128,8 @@ namespace ignition
 
       public: double Update(double _dt);
 
-#ifdef _WIN32
-// Disable warning C4251 which is triggered by
-// std::unique_ptr
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
       /// \brief Private data pointer.
-      private: std::unique_ptr<GaussMarkovProcessPrivate> dataPtr;
-#ifdef _WIN32
-#pragma warning(pop)
-#endif
+      IGN_UTILS_IMPL_PTR(dataPtr)
     };
     }
   }

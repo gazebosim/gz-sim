@@ -18,11 +18,12 @@
 #define IGNITION_MATH_TEMPERATURE_HH_
 
 #include <istream>
-#include <memory>
 #include <ostream>
 
 #include <ignition/math/config.hh>
 #include "ignition/math/Helpers.hh"
+#include <ignition/utils/ImplPtr.hh>
+
 
 namespace ignition
 {
@@ -30,10 +31,6 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
-    //
-    // Forward declare private data class.
-    class TemperaturePrivate;
-
     /// \brief A class that stores temperature information, and allows
     /// conversion between different units.
     ///
@@ -81,22 +78,11 @@ namespace ignition
       /// \brief Default constructor.
       public: Temperature();
 
-      /// \brief Default destructor.
-      public: ~Temperature();
-
       /// \brief Kelvin value constructor. This is a conversion constructor,
       /// and assumes the passed in value is in Kelvin.
       /// \param[in] _temp Temperature in Kelvin.
       // cppcheck-suppress noExplicitConstructor
       public: Temperature(double _temp);
-
-      /// \brief Copy constructor.
-      /// \param[in] _temp Temperature object to copy.
-      public: Temperature(const Temperature &_temp);
-
-      /// \brief Move constructor.
-      /// \param[in] _temp Temperature object to move.
-      public: Temperature(Temperature &&_temp);
 
       /// \brief Convert Kelvin to Celsius.
       /// \param[in] _temp Temperature in Kelvin.
@@ -161,16 +147,6 @@ namespace ignition
       /// \param[in] _temp Temperature in Kelvin.
       /// \return Reference to this instance.
       public: Temperature &operator=(double _temp);
-
-      /// \brief Assignment operator.
-      /// \param[in] _temp Temperature object.
-      /// \return Reference to this instance.
-      public: Temperature &operator=(const Temperature &_temp);
-
-      /// \brief Move operator.
-      /// \param[in] _temp Temperature object to move.
-      /// \return Reference to this instance.
-      public: Temperature &operator=(Temperature &&_temp);
 
       /// \brief Addition operator.
       /// \param[in] _temp Temperature in Kelvin.
@@ -386,17 +362,7 @@ namespace ignition
                 return _in;
               }
 
-#ifdef _WIN32
-// Disable warning C4251 which is triggered by
-// std::unique_ptr
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
-      /// \brief Private data pointer.
-      private: std::unique_ptr<TemperaturePrivate> dataPtr;
-#ifdef _WIN32
-#pragma warning(pop)
-#endif
+      IGN_UTILS_IMPL_PTR(dataPtr)
     };
     }
   }

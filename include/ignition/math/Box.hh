@@ -91,13 +91,6 @@ namespace ignition
       public: Box(const Vector3<Precision> &_size,
                   const ignition::math::Material &_mat);
 
-      /// \brief Copy Constructor.
-      /// \param[in]  _b Box to copy.
-      public: Box(const Box<Precision> &_b) = default;
-
-      /// \brief Destructor.
-      public: ~Box() = default;
-
       /// \brief Get the size of the box.
       /// \return Size of the box in meters.
       public: math::Vector3<Precision> Size() const;

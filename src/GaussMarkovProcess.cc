@@ -21,7 +21,7 @@
 using namespace ignition::math;
 
 //////////////////////////////////////////////////
-class ignition::math::GaussMarkovProcessPrivate
+class ignition::math::GaussMarkovProcess::Implementation
 {
   /// \brief Current process value.
   public: double value{0};
@@ -41,21 +41,16 @@ class ignition::math::GaussMarkovProcessPrivate
 
 //////////////////////////////////////////////////
 GaussMarkovProcess::GaussMarkovProcess()
-  : dataPtr(new GaussMarkovProcessPrivate)
+  : dataPtr(ignition::utils::MakeImpl<Implementation>())
 {
 }
 
 //////////////////////////////////////////////////
 GaussMarkovProcess::GaussMarkovProcess(double _start, double _theta, double _mu,
     double _sigma)
-  : dataPtr(new GaussMarkovProcessPrivate)
+  : GaussMarkovProcess()
 {
   this->Set(_start, _theta, _mu, _sigma);
-}
-
-//////////////////////////////////////////////////
-GaussMarkovProcess::~GaussMarkovProcess()
-{
 }
 
 //////////////////////////////////////////////////

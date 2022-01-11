@@ -18,10 +18,11 @@
 #ifndef IGNITION_MATH_SEMANTICVERSION_HH_
 #define IGNITION_MATH_SEMANTICVERSION_HH_
 
-#include <memory>
+#include <iosfwd>
 #include <string>
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/config.hh>
+#include <ignition/utils/ImplPtr.hh>
 
 namespace ignition
 {
@@ -29,10 +30,6 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
-    //
-    // Forward declare private data class
-    class SemanticVersionPrivate;
-
     /// \class SemanticVersion SemanticVersion.hh
     ///        ignition/math/SemanticVersion.hh
     /// \brief Version comparison class based on Semantic Versioning 2.0.0
@@ -48,15 +45,6 @@ namespace ignition
       /// \param[in] _v the string version. ex: "0.3.2"
       public: explicit SemanticVersion(const std::string &_v);
 
-      /// \brief Copy constructor
-      /// \param[in] _copy the other version
-      public: SemanticVersion(const SemanticVersion &_copy);
-
-      /// \brief Assignment operator
-      /// \param[in] _other The version to assign from.
-      /// \return The reference to this instance
-      public: SemanticVersion &operator=(const SemanticVersion &_other);
-
       /// \brief Constructor
       /// \param[in] _major The major number
       /// \param[in] _minor The minor number
@@ -68,9 +56,6 @@ namespace ignition
                                        const unsigned int _patch = 0,
                                        const std::string &_prerelease = "",
                                        const std::string &_build = "");
-
-      /// \brief Destructor
-      public: ~SemanticVersion();
 
       /// \brief Parse a version string and set the major, minor, patch
       /// numbers, and prerelease and build strings.
@@ -146,17 +131,7 @@ namespace ignition
         return _out;
       }
 
-#ifdef _WIN32
-// Disable warning C4251 which is triggered by
-// std::unique_ptr
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
-      /// \brief Pointer to private data
-      private: std::unique_ptr<SemanticVersionPrivate> dataPtr;
-#ifdef _WIN32
-#pragma warning(pop)
-#endif
+      IGN_UTILS_IMPL_PTR(dataPtr)
     };
     }
   }

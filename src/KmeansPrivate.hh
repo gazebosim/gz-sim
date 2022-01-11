@@ -30,7 +30,7 @@ namespace ignition
     {
     /// \internal
     /// \brief Private data for Kmeans class
-    class KmeansPrivate
+    class Kmeans::Implementation
     {
       /// \brief Observations.
       public: std::vector<Vector3d> obs;

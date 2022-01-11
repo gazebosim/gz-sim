@@ -33,6 +33,7 @@ TEST(DiffDriveOdometryTest, DiffDriveOdometry)
   EXPECT_DOUBLE_EQ(0.0, odom.Y());
   EXPECT_DOUBLE_EQ(0.0, odom.LinearVelocity());
   EXPECT_DOUBLE_EQ(0.0, *odom.AngularVelocity());
+  EXPECT_FALSE(odom.Initialized());
 
   double wheelSeparation = 2.0;
   double wheelRadius = 0.5;
@@ -45,11 +46,15 @@ TEST(DiffDriveOdometryTest, DiffDriveOdometry)
   odom.SetWheelParams(wheelSeparation, wheelRadius, wheelRadius);
   auto startTime = std::chrono::steady_clock::now();
   odom.Init(startTime);
+  EXPECT_TRUE(odom.Initialized());
+
+  // Expect false if time difference is too small
+  EXPECT_FALSE(odom.Update(0.0, 0.0, startTime));
 
   // Sleep for a little while, then update the odometry with the new wheel
   // position.
   auto time1 = startTime + std::chrono::milliseconds(100);
-  odom.Update(IGN_DTOR(1.0), IGN_DTOR(1.0), time1);
+  EXPECT_TRUE(odom.Update(IGN_DTOR(1.0), IGN_DTOR(1.0), time1));
   EXPECT_DOUBLE_EQ(0.0, *odom.Heading());
   EXPECT_DOUBLE_EQ(distPerDegree, odom.X());
   EXPECT_DOUBLE_EQ(0.0, odom.Y());
@@ -61,7 +66,7 @@ TEST(DiffDriveOdometryTest, DiffDriveOdometry)
 
   // Sleep again, then update the odometry with the new wheel position.
   auto time2 = time1 + std::chrono::milliseconds(100);
-  odom.Update(IGN_DTOR(2.0), IGN_DTOR(2.0), time2);
+  EXPECT_TRUE(odom.Update(IGN_DTOR(2.0), IGN_DTOR(2.0), time2));
   EXPECT_DOUBLE_EQ(0.0, *odom.Heading());
   EXPECT_NEAR(distPerDegree * 2.0, odom.X(), 3e-6);
   EXPECT_DOUBLE_EQ(0.0, odom.Y());
@@ -79,10 +84,11 @@ TEST(DiffDriveOdometryTest, DiffDriveOdometry)
   EXPECT_DOUBLE_EQ(0.0, odom.Y());
   EXPECT_DOUBLE_EQ(0.0, odom.LinearVelocity());
   EXPECT_DOUBLE_EQ(0.0, *odom.AngularVelocity());
+  EXPECT_TRUE(odom.Initialized());
 
   // Sleep again, this time move 2 degrees in 100ms.
   time1 = startTime + std::chrono::milliseconds(100);
-  odom.Update(IGN_DTOR(2.0), IGN_DTOR(2.0), time1);
+  EXPECT_TRUE(odom.Update(IGN_DTOR(2.0), IGN_DTOR(2.0), time1));
   EXPECT_DOUBLE_EQ(0.0, *odom.Heading());
   EXPECT_NEAR(distPerDegree * 2.0, odom.X(), 3e-6);
   EXPECT_DOUBLE_EQ(0.0, odom.Y());
@@ -95,7 +101,7 @@ TEST(DiffDriveOdometryTest, DiffDriveOdometry)
 
   // Sleep again, this time rotate the right wheel by 1 degree.
   time2 = time1 + std::chrono::milliseconds(100);
-  odom.Update(IGN_DTOR(2.0), IGN_DTOR(3.0), time2);
+  EXPECT_TRUE(odom.Update(IGN_DTOR(2.0), IGN_DTOR(3.0), time2));
   // The heading should be the arc tangent of the linear distance traveled
   // by the right wheel (the left wheel was stationary) divided by the
   // wheel separation.

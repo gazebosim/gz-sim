@@ -17,29 +17,19 @@
 // Note: Originally cribbed from Ogre3d. Modified to implement Cardinal
 // spline and catmull-rom spline
 
-#include "SplinePrivate.hh"
 #include "ignition/math/Helpers.hh"
 #include "ignition/math/Vector4.hh"
 #include "ignition/math/Spline.hh"
+
+#include "SplinePrivate.hh"
 
 using namespace ignition;
 using namespace math;
 
 ///////////////////////////////////////////////////////////
 Spline::Spline()
-    : dataPtr(new SplinePrivate())
+  : dataPtr(ignition::utils::MakeImpl<Implementation>())
 {
-  // Set up matrix
-  this->dataPtr->autoCalc = true;
-  this->dataPtr->tension = 0.0;
-  this->dataPtr->arcLength = INF_D;
-}
-
-///////////////////////////////////////////////////////////
-Spline::~Spline()
-{
-  delete this->dataPtr;
-  this->dataPtr = NULL;
 }
 
 ///////////////////////////////////////////////////////////

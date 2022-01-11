@@ -22,6 +22,7 @@
 #include <ignition/math/SignalStats.hh>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/config.hh>
+#include <ignition/utils/ImplPtr.hh>
 
 namespace ignition
 {
@@ -29,19 +30,12 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
-    //
-    /// \brief Forward declare private data class.
-    class Vector3StatsPrivate;
-
     /// \class Vector3Stats Vector3Stats.hh ignition/math/Vector3Stats.hh
     /// \brief Collection of statistics for a Vector3 signal.
     class IGNITION_MATH_VISIBLE Vector3Stats
     {
       /// \brief Constructor
       public: Vector3Stats();
-
-      /// \brief Destructor
-      public: ~Vector3Stats();
 
       /// \brief Add a new sample to the statistical measures.
       /// \param[in] _data New signal data point.
@@ -103,7 +97,7 @@ namespace ignition
       public: SignalStats &Mag();
 
       /// \brief Pointer to private data.
-      protected: Vector3StatsPrivate *dataPtr;
+      IGN_UTILS_IMPL_PTR(dataPtr)
     };
     }
   }

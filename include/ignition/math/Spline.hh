@@ -22,6 +22,7 @@
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/config.hh>
+#include <ignition/utils/ImplPtr.hh>
 
 namespace ignition
 {
@@ -32,7 +33,6 @@ namespace ignition
     //
     // Forward declare private classes
     class ControlPoint;
-    class SplinePrivate;
 
     /// \class Spline Spline.hh ignition/math/Spline.hh
     /// \brief Splines
@@ -40,9 +40,6 @@ namespace ignition
     {
       /// \brief constructor
       public: Spline();
-
-      /// \brief destructor
-      public: ~Spline();
 
       /// \brief Sets the tension parameter.
       /// \remarks A value of 0 results in a Catmull-Rom
@@ -258,7 +255,7 @@ namespace ignition
 
       /// \internal
       /// \brief Private data pointer
-      private: SplinePrivate *dataPtr;
+      IGN_UTILS_IMPL_PTR(dataPtr)
     };
     }
   }

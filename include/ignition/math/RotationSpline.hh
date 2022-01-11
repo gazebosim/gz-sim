@@ -19,6 +19,7 @@
 
 #include <ignition/math/Quaternion.hh>
 #include <ignition/math/config.hh>
+#include <ignition/utils/ImplPtr.hh>
 
 namespace ignition
 {
@@ -26,19 +27,12 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
-    //
-    // Forward declare private data
-    class RotationSplinePrivate;
-
     /// \class RotationSpline RotationSpline.hh ignition/math/RotationSpline.hh
     /// \brief Spline for rotations
     class IGNITION_MATH_VISIBLE  RotationSpline
     {
       /// \brief Constructor. Sets the autoCalc to true
       public: RotationSpline();
-
-      /// \brief Destructor. Nothing is done
-      public: ~RotationSpline();
 
       /// \brief Adds a control point to the end of the spline.
       /// \param[in] _p control point
@@ -117,7 +111,7 @@ namespace ignition
       public: void RecalcTangents();
 
       /// \brief Private data pointer
-      private: RotationSplinePrivate *dataPtr;
+      IGN_UTILS_IMPL_PTR(dataPtr)
     };
     }
   }

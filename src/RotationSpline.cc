@@ -16,22 +16,29 @@
 */
 #include "ignition/math/Quaternion.hh"
 #include "ignition/math/RotationSpline.hh"
-#include "RotationSplinePrivate.hh"
 
 using namespace ignition;
 using namespace math;
 
-/////////////////////////////////////////////////
-RotationSpline::RotationSpline()
-: dataPtr(new RotationSplinePrivate)
+/// \internal
+/// \brief Private data for RotationSpline
+class RotationSpline::Implementation
 {
-}
+  /// \brief Automatic recalculation of tangents when control points are
+  /// updated
+  public: bool autoCalc = {true};
+
+  /// \brief the control points
+  public: std::vector<Quaterniond> points;
+
+  /// \brief the tangents
+  public: std::vector<Quaterniond> tangents;
+};
 
 /////////////////////////////////////////////////
-RotationSpline::~RotationSpline()
+RotationSpline::RotationSpline()
+: dataPtr(ignition::utils::MakeImpl<Implementation>())
 {
-  delete this->dataPtr;
-  this->dataPtr = NULL;
 }
 
 /////////////////////////////////////////////////

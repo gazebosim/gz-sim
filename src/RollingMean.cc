@@ -23,7 +23,7 @@
 using namespace ignition::math;
 
 /// \brief Private data
-class ignition::math::RollingMeanPrivate
+class ignition::math::RollingMean::Implementation
 {
   /// \brief The window size
   public: size_t windowSize{10};
@@ -34,15 +34,10 @@ class ignition::math::RollingMeanPrivate
 
 //////////////////////////////////////////////////
 RollingMean::RollingMean(size_t _windowSize)
-  : dataPtr(new RollingMeanPrivate)
+  : dataPtr(ignition::utils::MakeImpl<Implementation>())
 {
   if (_windowSize > 0)
     this->dataPtr->windowSize = _windowSize;
-}
-
-//////////////////////////////////////////////////
-RollingMean::~RollingMean()
-{
 }
 
 //////////////////////////////////////////////////

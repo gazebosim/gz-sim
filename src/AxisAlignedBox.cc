@@ -21,7 +21,7 @@ using namespace ignition;
 using namespace math;
 
 // Private data for AxisAlignedBox class
-class ignition::math::AxisAlignedBoxPrivate
+class ignition::math::AxisAlignedBox::Implementation
 {
   /// \brief Minimum corner of the box
   public: Vector3d min = Vector3d(MAX_D, MAX_D, MAX_D);
@@ -32,14 +32,14 @@ class ignition::math::AxisAlignedBoxPrivate
 
 //////////////////////////////////////////////////
 AxisAlignedBox::AxisAlignedBox()
-: dataPtr(new AxisAlignedBoxPrivate)
+: dataPtr(ignition::utils::MakeImpl<Implementation>())
 {
 }
 
 //////////////////////////////////////////////////
 AxisAlignedBox::AxisAlignedBox(double _vec1X, double _vec1Y, double _vec1Z,
          double _vec2X, double _vec2Y, double _vec2Z)
-: dataPtr(new AxisAlignedBoxPrivate)
+: AxisAlignedBox()
 {
   this->dataPtr->min.Set(_vec1X, _vec1Y, _vec1Z);
   this->dataPtr->max.Set(_vec2X, _vec2Y, _vec2Z);
@@ -50,28 +50,13 @@ AxisAlignedBox::AxisAlignedBox(double _vec1X, double _vec1Y, double _vec1Z,
 
 //////////////////////////////////////////////////
 AxisAlignedBox::AxisAlignedBox(const Vector3d &_vec1, const Vector3d &_vec2)
-: dataPtr(new AxisAlignedBoxPrivate)
+: AxisAlignedBox()
 {
   this->dataPtr->min = _vec1;
   this->dataPtr->min.Min(_vec2);
 
   this->dataPtr->max = _vec2;
   this->dataPtr->max.Max(_vec1);
-}
-
-//////////////////////////////////////////////////
-AxisAlignedBox::AxisAlignedBox(const AxisAlignedBox &_b)
-: dataPtr(new AxisAlignedBoxPrivate)
-{
-  this->dataPtr->min = _b.dataPtr->min;
-  this->dataPtr->max = _b.dataPtr->max;
-}
-
-//////////////////////////////////////////////////
-AxisAlignedBox::~AxisAlignedBox()
-{
-  delete this->dataPtr;
-  this->dataPtr = NULL;
 }
 
 //////////////////////////////////////////////////
@@ -106,21 +91,11 @@ math::Vector3d AxisAlignedBox::Center() const
   return 0.5 * this->dataPtr->min + 0.5 * this->dataPtr->max;
 }
 
-
 //////////////////////////////////////////////////
 void AxisAlignedBox::Merge(const AxisAlignedBox &_box)
 {
   this->dataPtr->min.Min(_box.dataPtr->min);
   this->dataPtr->max.Max(_box.dataPtr->max);
-}
-
-//////////////////////////////////////////////////
-AxisAlignedBox &AxisAlignedBox::operator =(const AxisAlignedBox &_b)
-{
-  this->dataPtr->max = _b.dataPtr->max;
-  this->dataPtr->min = _b.dataPtr->min;
-
-  return *this;
 }
 
 //////////////////////////////////////////////////

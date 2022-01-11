@@ -67,9 +67,6 @@ namespace ignition
                   const Quaternion<Precision> &_rotOffset =
                   Quaternion<Precision>::Identity);
 
-      /// \brief Destructor
-      public: ~Cylinder() = default;
-
       /// \brief Get the radius in meters.
       /// \return The radius of the cylinder in meters.
       public: Precision Radius() const;

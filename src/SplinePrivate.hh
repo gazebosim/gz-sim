@@ -19,9 +19,10 @@
 
 #include <algorithm>
 #include <vector>
+#include <ignition/math/Matrix4.hh>
+#include <ignition/math/Spline.hh>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Vector4.hh>
-#include <ignition/math/Matrix4.hh>
 #include <ignition/math/config.hh>
 
 namespace ignition
@@ -35,11 +36,6 @@ namespace ignition
     /// of arbitrary m derivatives at such point.
     class ControlPoint
     {
-      /// \brief Default constructor.
-      public: ControlPoint()
-      {
-      }
-
       /// \brief Constructor that takes the M derivatives that
       /// define the control point.
       /// \param[in] _initList with the M derivatives.
@@ -115,9 +111,6 @@ namespace ignition
     /// between each pair of control points.
     class IntervalCubicSpline
     {
-      /// \brief Dummy constructor.
-      public: IntervalCubicSpline();
-
       /// \brief Sets both control points.
       /// \param[in] _startPoint start control point.
       /// \param[in] _endPoint end control point.
@@ -166,28 +159,28 @@ namespace ignition
           const unsigned int _mth, const double _t) const;
 
       /// \brief start control point for the curve.
-      private: ControlPoint startPoint;
+      private: ControlPoint startPoint {{Vector3d::Zero, Vector3d::Zero}};
 
       /// \brief end control point for the curve.
-      private: ControlPoint endPoint;
+      private: ControlPoint endPoint {{Vector3d::Zero, Vector3d::Zero}};
 
       /// \brief Bernstein-Hermite polynomial coefficients
       /// for interpolation.
-      private: Matrix4d coeffs;
+      private: Matrix4d coeffs {Matrix4d::Zero};
 
       /// \brief curve arc length.
-      private: double arcLength;
+      private: double arcLength {0.0};
     };
 
     /// \brief Private data for Spline class.
-    class SplinePrivate
+    class Spline::Implementation
     {
       /// \brief when true, the tangents are recalculated when the control
       /// point change.
-      public: bool autoCalc;
+      public: bool autoCalc {true};
 
       /// \brief tension of 0 = Catmull-Rom spline, otherwise a Cardinal spline.
-      public: double tension;
+      public: double tension {0.0};
 
       /// \brief fixings for control points.
       public: std::vector<bool> fixings;
@@ -202,7 +195,7 @@ namespace ignition
       public: std::vector<double> cumulativeArcLengths;
 
       // \brief spline arc length.
-      public: double arcLength;
+      public: double arcLength {INF_D};
     };
     }
   }

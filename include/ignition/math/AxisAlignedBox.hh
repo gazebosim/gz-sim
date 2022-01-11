@@ -25,6 +25,7 @@
 #include <ignition/math/MassMatrix3.hh>
 #include <ignition/math/Material.hh>
 #include <ignition/math/Vector3.hh>
+#include <ignition/utils/ImplPtr.hh>
 
 namespace ignition
 {
@@ -32,10 +33,6 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
-    //
-    // Forward declaration of private data
-    class AxisAlignedBoxPrivate;
-
     /// \class AxisAlignedBox AxisAlignedBox.hh ignition/math/AxisAlignedBox.hh
     /// \brief Mathematical representation of a box that is aligned along
     /// an X,Y,Z axis.
@@ -66,13 +63,6 @@ namespace ignition
       public: AxisAlignedBox(double _vec1X, double _vec1Y, double _vec1Z,
                   double _vec2X, double _vec2Y, double _vec2Z);
 
-      /// \brief Copy Constructor
-      /// \param[in]  _b AxisAlignedBox to copy
-      public: AxisAlignedBox(const AxisAlignedBox &_b);
-
-      /// \brief Destructor
-      public: ~AxisAlignedBox();
-
       /// \brief Get the length along the x dimension
       /// \return Double value of the length in the x dimension
       public: double XLength() const;
@@ -96,11 +86,6 @@ namespace ignition
       /// \brief Merge a box with this box
       /// \param[in]  _box AxisAlignedBox to add to this box
       public: void Merge(const AxisAlignedBox &_box);
-
-      /// \brief Assignment operator. Set this box to the parameter
-      /// \param[in]  _b AxisAlignedBox to copy
-      /// \return The new box.
-      public: AxisAlignedBox &operator=(const AxisAlignedBox &_b);
 
       /// \brief Addition operator. result = this + _b
       /// \param[in] _b AxisAlignedBox to add
@@ -287,7 +272,7 @@ namespace ignition
                    double &_low, double &_high) const;
 
       /// \brief Private data pointer
-      private: AxisAlignedBoxPrivate *dataPtr;
+      IGN_UTILS_IMPL_PTR(dataPtr)
     };
     }
   }

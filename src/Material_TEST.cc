@@ -100,14 +100,11 @@ TEST(MaterialTest, Accessors)
     // Test move constructor
     Material mat4(std::move(mat3));
     EXPECT_EQ(mat2, mat4);
-    Material defaultMat;
-    EXPECT_EQ(defaultMat, mat3);
 
     // Test move operator
     Material mat5;
     mat5 = std::move(mat4);
     EXPECT_EQ(mat2, mat5);
-    EXPECT_EQ(defaultMat, mat4);
   }
 
   {

@@ -53,9 +53,6 @@ namespace ignition
       /// \param[in] _mat Material property for the sphere.
       public: Sphere(const Precision _radius, const Material &_mat);
 
-      /// \brief Destructor
-      public: ~Sphere() = default;
-
       /// \brief Get the radius in meters.
       /// \return The radius of the sphere in meters.
       public: Precision Radius() const;

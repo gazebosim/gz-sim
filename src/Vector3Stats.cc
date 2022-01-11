@@ -15,22 +15,30 @@
  *
 */
 #include <ignition/math/Vector3Stats.hh>
-#include "Vector3StatsPrivate.hh"
 
 using namespace ignition;
 using namespace math;
 
-//////////////////////////////////////////////////
-Vector3Stats::Vector3Stats()
-  : dataPtr(new Vector3StatsPrivate)
+/// \brief Private data class for the Vector3Stats class.
+class Vector3Stats::Implementation
 {
-}
+  /// \brief Statistics for x component of signal.
+  public: SignalStats x;
+
+  /// \brief Statistics for y component of signal.
+  public: SignalStats y;
+
+  /// \brief Statistics for z component of signal.
+  public: SignalStats z;
+
+  /// \brief Statistics for magnitude of signal.
+  public: SignalStats mag;
+};
 
 //////////////////////////////////////////////////
-Vector3Stats::~Vector3Stats()
+Vector3Stats::Vector3Stats()
+  : dataPtr(ignition::utils::MakeImpl<Implementation>())
 {
-  delete this->dataPtr;
-  this->dataPtr = 0;
 }
 
 //////////////////////////////////////////////////

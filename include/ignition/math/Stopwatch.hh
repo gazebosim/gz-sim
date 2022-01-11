@@ -19,9 +19,9 @@
 #define IGNITION_MATH_STOPWATCH_HH_
 
 #include <chrono>
-#include <memory>
 #include <ignition/math/Export.hh>
 #include <ignition/math/config.hh>
+#include <ignition/utils/ImplPtr.hh>
 
 namespace ignition
 {
@@ -32,11 +32,6 @@ namespace ignition
 
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
-    //
-    // Forward declarations.
-    class StopwatchPrivate;
-
-    //
     /// \class Stopwatch Stopwatch.hh ignition/math/Stopwatch.hh
     /// \brief The Stopwatch keeps track of time spent in the run state,
     /// accessed through ElapsedRunTime(), and time spent in the stop state,
@@ -62,17 +57,6 @@ namespace ignition
     {
       /// \brief Constructor.
       public: Stopwatch();
-
-      /// \brief Copy constructor
-      /// \param[in] _watch The stop watch to copy.
-      public: Stopwatch(const Stopwatch &_watch);
-
-      /// \brief Move constructor
-      /// \param[in] _watch The stop watch to move.
-      public: Stopwatch(Stopwatch &&_watch) noexcept;
-
-      /// \brief Destructor.
-      public: ~Stopwatch();
 
       /// \brief Start the stopwatch.
       /// \param[in] _reset If true the stopwatch is reset first.
@@ -129,27 +113,8 @@ namespace ignition
       /// \return True if this watch does not equal the provided watch.
       public: bool operator!=(const Stopwatch &_watch) const;
 
-      /// \brief Copy assignment operator
-      /// \param[in] _watch The stop watch to copy.
-      /// \return Reference to this.
-      public: Stopwatch &operator=(const Stopwatch &_watch);
-
-      /// \brief Move assignment operator
-      /// \param[in] _watch The stop watch to move.
-      /// \return Reference to this.
-      public: Stopwatch &operator=(Stopwatch &&_watch);
-
-#ifdef _WIN32
-// Disable warning C4251 which is triggered by
-// std::unique_ptr
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
       /// \brief Private data pointer.
-      private: std::unique_ptr<StopwatchPrivate> dataPtr;
-#ifdef _WIN32
-#pragma warning(pop)
-#endif
+      IGN_UTILS_IMPL_PTR(dataPtr)
     };
   }
   }

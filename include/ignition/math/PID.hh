@@ -20,6 +20,7 @@
 #include <chrono>
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/config.hh>
+#include <ignition/utils/ImplPtr.hh>
 
 namespace ignition
 {
@@ -62,9 +63,6 @@ namespace ignition
                   const double _cmdMax = -1.0,
                   const double _cmdMin = 0.0,
                   const double _cmdOffset = 0.0);
-
-      /// \brief Destructor
-      public: ~PID() = default;
 
       /// \brief Initialize PID-gains and integral term
       ///        limits:[iMax:iMin]-[I1:I2].
@@ -181,52 +179,11 @@ namespace ignition
       /// \param[in] _de  The derivative error.
       public: void Errors(double &_pe, double &_ie, double &_de) const;
 
-      /// \brief Assignment operator
-      /// \param[in] _p a reference to a PID to assign values from
-      /// \return reference to this instance
-      public: PID &operator=(const PID &_p);
-
       /// \brief Reset the errors and command.
       public: void Reset();
 
-      /// \brief Error at a previous step.
-      private: double pErrLast = 0.0;
-
-      /// \brief Current error.
-      private: double pErr = 0.0;
-
-      /// \brief Integral of gain times error.
-      private: double iErr = 0.0;
-
-      /// \brief Derivative error.
-      private: double dErr = 0.0;
-
-      /// \brief Gain for proportional control.
-      private: double pGain;
-
-      /// \brief Gain for integral control.
-      private: double iGain = 0.0;
-
-      /// \brief Gain for derivative control.
-      private: double dGain = 0.0;
-
-      /// \brief Maximum clamping value for integral term.
-      private: double iMax = -1.0;
-
-      /// \brief Minim clamping value for integral term.
-      private: double iMin = 0.0;
-
-      /// \brief Command value.
-      private: double cmd = 0.0;
-
-      /// \brief Max command clamping value.
-      private: double cmdMax = -1.0;
-
-      /// \brief Min command clamping value.
-      private: double cmdMin = 0.0;
-
-      /// \brief Command offset.
-      private: double cmdOffset = 0.0;
+      /// \brief Pointer to private data.
+      IGN_UTILS_IMPL_PTR(dataPtr)
     };
     }
   }

@@ -29,7 +29,7 @@ using namespace ignition;
 using namespace math;
 
 // Private data for the Material class
-class ignition::math::MaterialPrivate
+class ignition::math::Material::Implementation
 {
   /// \brief Set from a kMaterialData constant.
   public: void SetFrom(const std::pair<MaterialType, MaterialData>& _input)
@@ -52,13 +52,13 @@ class ignition::math::MaterialPrivate
 
 ///////////////////////////////
 Material::Material()
-: dataPtr(new MaterialPrivate)
+: dataPtr(ignition::utils::MakeImpl<Implementation>())
 {
 }
 
 ///////////////////////////////
 Material::Material(const MaterialType _type)
-: dataPtr(new MaterialPrivate)
+: Material()
 {
   auto iter = std::find_if(std::begin(kMaterialData), std::end(kMaterialData),
                            [_type](const auto& item) {
@@ -72,7 +72,7 @@ Material::Material(const MaterialType _type)
 
 ///////////////////////////////
 Material::Material(const std::string &_typename)
-: dataPtr(new MaterialPrivate)
+: Material()
 {
   // Convert to lowercase.
   std::string material = _typename;
@@ -90,32 +90,9 @@ Material::Material(const std::string &_typename)
 
 ///////////////////////////////
 Material::Material(const double _density)
-: dataPtr(new MaterialPrivate)
+: Material()
 {
   this->dataPtr->density = _density;
-}
-
-///////////////////////////////
-Material::Material(const Material &_material)
-: dataPtr(new MaterialPrivate)
-{
-  this->dataPtr->name = _material.Name();
-  this->dataPtr->density = _material.Density();
-  this->dataPtr->type = _material.Type();
-}
-
-///////////////////////////////
-Material::Material(Material &&_material)
-{
-  this->dataPtr = _material.dataPtr;
-  _material.dataPtr = new MaterialPrivate;
-}
-
-///////////////////////////////
-Material::~Material()
-{
-  delete this->dataPtr;
-  this->dataPtr = nullptr;
 }
 
 ///////////////////////////////
@@ -153,24 +130,6 @@ bool Material::operator==(const Material &_material) const
 bool Material::operator!=(const Material &_material) const
 {
   return !(*this == _material);
-}
-
-///////////////////////////////
-Material &Material::operator=(const Material &_material)
-{
-  this->dataPtr->name = _material.Name();
-  this->dataPtr->density = _material.Density();
-  this->dataPtr->type = _material.Type();
-  return *this;
-}
-
-///////////////////////////////
-Material &Material::operator=(Material &&_material)
-{
-  delete this->dataPtr;
-  this->dataPtr = _material.dataPtr;
-  _material.dataPtr = new MaterialPrivate;
-  return *this;
 }
 
 ///////////////////////////////

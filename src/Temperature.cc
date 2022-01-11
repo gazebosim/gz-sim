@@ -14,10 +14,14 @@
  * limitations under the License.
  *
 */
+
 #include "ignition/math/Temperature.hh"
 
+#include <istream>
+#include <ostream>
+
 /// \brief Private data for the Temperature class.
-class ignition::math::TemperaturePrivate
+class ignition::math::Temperature::Implementation
 {
   /// \brief Temperature value in Kelvin.
   public: double kelvin{0.0};
@@ -28,33 +32,15 @@ using namespace math;
 
 /////////////////////////////////////////////////
 Temperature::Temperature()
-: dataPtr(new TemperaturePrivate)
-{
-}
-
-/////////////////////////////////////////////////
-Temperature::~Temperature()
+: dataPtr(ignition::utils::MakeImpl<Implementation>())
 {
 }
 
 /////////////////////////////////////////////////
 Temperature::Temperature(double _temp)
-: dataPtr(new TemperaturePrivate)
+: Temperature()
 {
   this->dataPtr->kelvin = _temp;
-}
-
-/////////////////////////////////////////////////
-Temperature::Temperature(const Temperature &_temp)
-: dataPtr(new TemperaturePrivate)
-{
-  this->dataPtr->kelvin = _temp.Kelvin();
-}
-
-/////////////////////////////////////////////////
-Temperature::Temperature(Temperature &&_temp)
-{
-  this->dataPtr.reset(_temp.dataPtr.release());
 }
 
 /////////////////////////////////////////////////
@@ -139,20 +125,6 @@ double Temperature::operator()() const
 Temperature &Temperature::operator=(double _temp)
 {
   this->SetKelvin(_temp);
-  return *this;
-}
-
-/////////////////////////////////////////////////
-Temperature &Temperature::operator=(const Temperature &_temp)
-{
-  this->SetKelvin(_temp.Kelvin());
-  return *this;
-}
-
-/////////////////////////////////////////////////
-Temperature &Temperature::operator=(Temperature &&_temp)
-{
-  this->dataPtr.reset(_temp.dataPtr.release());
   return *this;
 }
 

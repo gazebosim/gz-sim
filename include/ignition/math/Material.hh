@@ -23,6 +23,7 @@
 #include <ignition/math/Export.hh>
 #include <ignition/math/config.hh>
 #include <ignition/math/MaterialType.hh>
+#include <ignition/utils/ImplPtr.hh>
 
 namespace ignition
 {
@@ -30,8 +31,6 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
-    // Forward declarations
-    class MaterialPrivate;
 
     /// \brief Contains information about a single material.
     ///
@@ -80,18 +79,6 @@ namespace ignition
       /// \param[in] _density Material density.
       public: explicit Material(const double _density);
 
-      /// \brief Copy constructor.
-      /// \param[in] _material Material to copy.
-      public: Material(const Material &_material);
-
-      /// \brief Move constructor.
-      /// \param[in] _material Material to move. The _material object will
-      /// have default values after the move.
-      public: Material(Material &&_material);
-
-      /// \brief Destructor.
-      public: ~Material();
-
       /// \brief Get all the built-in materials.
       /// \return A map of all the materials. The map's key is
       /// material type and the map's value is the material object.
@@ -106,17 +93,6 @@ namespace ignition
       public: void SetToNearestDensity(
                   const double _value,
                   const double _epsilon = std::numeric_limits<double>::max());
-
-      /// \brief Copy operator.
-      /// \param[in] _material Material to copy.
-      /// \return Reference to this material.
-      public: Material &operator=(const Material &_material);
-
-      /// \brief Move operator.
-      /// \param[in] _material Material to move. The _material object will
-      /// contain default values after this move.
-      /// \return Reference to this Material.
-      public: Material &operator=(Material &&_material);
 
       /// \brief Equality operator. This compares type and density values.
       /// \param[in] _material Material to evaluate this object against.
@@ -158,7 +134,7 @@ namespace ignition
       public: void SetDensity(const double _density);
 
       /// \brief Private data pointer.
-      private: MaterialPrivate *dataPtr = nullptr;
+      IGN_UTILS_IMPL_PTR(dataPtr)
     };
     }
   }
