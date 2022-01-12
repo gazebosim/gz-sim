@@ -21,6 +21,7 @@
 #include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/math/Rand.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 #include <ignition/utils/SuppressWarning.hh>
 
 #include "ignition/gazebo/components/CanonicalLink.hh"
