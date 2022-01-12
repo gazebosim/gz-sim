@@ -160,7 +160,7 @@ for dependency installation instructions for each supported operating system.
 2. Install package dependencies:
 
     ```
-    git clone https://github.com/ignitionrobotics/ign-gazebo -b main
+    git clone https://github.com/ignitionrobotics/ign-gazebo -b ign-gazebo5
     ```
 
     ```
