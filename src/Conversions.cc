@@ -15,19 +15,20 @@
  *
 */
 
+#include <ignition/msgs/actor.pb.h>
 #include <ignition/msgs/atmosphere.pb.h>
 #include <ignition/msgs/axis_aligned_box.pb.h>
 #include <ignition/msgs/boxgeom.pb.h>
 #include <ignition/msgs/capsulegeom.pb.h>
 #include <ignition/msgs/cylindergeom.pb.h>
-#include <ignition/msgs/entity.pb.h>
 #include <ignition/msgs/ellipsoidgeom.pb.h>
+#include <ignition/msgs/entity.pb.h>
 #include <ignition/msgs/geometry.pb.h>
+#include <ignition/msgs/gps_sensor.pb.h>
 #include <ignition/msgs/gui.pb.h>
 #include <ignition/msgs/heightmapgeom.pb.h>
 #include <ignition/msgs/imu_sensor.pb.h>
 #include <ignition/msgs/lidar_sensor.pb.h>
-#include <ignition/msgs/actor.pb.h>
 #include <ignition/msgs/light.pb.h>
 #include <ignition/msgs/material.pb.h>
 #include <ignition/msgs/planegeom.pb.h>
@@ -60,6 +61,7 @@
 #include <sdf/Magnetometer.hh>
 #include <sdf/Material.hh>
 #include <sdf/Mesh.hh>
+#include <sdf/NavSat.hh>
 #include <sdf/Pbr.hh>
 #include <sdf/Plane.hh>
 #include <sdf/Sphere.hh>
@@ -1061,6 +1063,44 @@ msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
     else
     {
       ignerr << "Attempting to convert a camera SDF sensor, but the "
+        << "sensor pointer is null.\n";
+    }
+  }
+  else if (_in.Type() == sdf::SensorType::GPS ||
+           _in.Type() == sdf::SensorType::NAVSAT)
+  {
+    if (_in.NavSatSensor())
+    {
+      auto sdfSensor = _in.NavSatSensor();
+
+      // \TODO(chapulina) Update to navsat on Garden
+      auto sensor = out.mutable_gps();
+
+      if (sdfSensor->HorizontalPositionNoise().Type() != sdf::NoiseType::NONE)
+      {
+        gazebo::set(sensor->mutable_position()->mutable_horizontal_noise(),
+            sdfSensor->HorizontalPositionNoise());
+      }
+      if (sdfSensor->VerticalPositionNoise().Type() != sdf::NoiseType::NONE)
+      {
+        gazebo::set(sensor->mutable_position()->mutable_vertical_noise(),
+            sdfSensor->VerticalPositionNoise());
+
+      }
+      if (sdfSensor->HorizontalVelocityNoise().Type() != sdf::NoiseType::NONE)
+      {
+        gazebo::set(sensor->mutable_velocity()->mutable_horizontal_noise(),
+            sdfSensor->HorizontalVelocityNoise());
+      }
+      if (sdfSensor->VerticalVelocityNoise().Type() != sdf::NoiseType::NONE)
+      {
+        gazebo::set(sensor->mutable_velocity()->mutable_vertical_noise(),
+            sdfSensor->VerticalVelocityNoise());
+      }
+    }
+    else
+    {
+      ignerr << "Attempting to convert a NavSat SDF sensor, but the "
         << "sensor pointer is null.\n";
     }
   }
