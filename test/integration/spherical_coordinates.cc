@@ -308,6 +308,7 @@ TEST_F(SphericalCoordinatesTest, CreateEntity)
 
   double desiredLat{-23.0};
   double desiredLon{-43.3};
+  double desiredHeading{0.2};
   double desiredRoll{0.1};
   double desiredPitch{0.2};
   double desiredYaw{0.3};
@@ -321,6 +322,7 @@ TEST_F(SphericalCoordinatesTest, CreateEntity)
   auto scMsg = req.mutable_spherical_coordinates();
   scMsg->set_latitude_deg(desiredLat);
   scMsg->set_longitude_deg(desiredLon);
+  scMsg->set_heading_deg(IGN_RTOD(desiredHeading));
 
   msgs::Boolean res;
   bool result;
@@ -347,5 +349,5 @@ TEST_F(SphericalCoordinatesTest, CreateEntity)
   EXPECT_NEAR(modelLatLon.Y(), desiredLon, 1e-6);
   EXPECT_DOUBLE_EQ(modelPose.Rot().Roll(), desiredRoll);
   EXPECT_DOUBLE_EQ(modelPose.Rot().Pitch(), desiredPitch);
-  EXPECT_DOUBLE_EQ(modelPose.Rot().Yaw(), desiredYaw);
+  EXPECT_DOUBLE_EQ(modelPose.Rot().Yaw(), desiredHeading + desiredYaw);
 }
