@@ -48,8 +48,8 @@ class SphericalCoordinatesTest : public InternalFixture<::testing::Test>
 /////////////////////////////////////////////////
 TEST_F(SphericalCoordinatesTest, InitialFromSDF)
 {
-  TestFixture fixture(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/spherical_coordinates.sdf");
+  TestFixture fixture(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "spherical_coordinates.sdf"));
 
   int iterations{0};
   math::SphericalCoordinates latest;
@@ -146,8 +146,8 @@ TEST_F(SphericalCoordinatesTest, SetWorldOriginFromTransport)
 /////////////////////////////////////////////////
 TEST_F(SphericalCoordinatesTest, SetWorldOriginFromComponent)
 {
-  TestFixture fixture(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/spherical_coordinates.sdf");
+  TestFixture fixture(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "spherical_coordinates.sdf"));
 
   int iterations{0};
   math::SphericalCoordinates latest;
@@ -193,8 +193,8 @@ TEST_F(SphericalCoordinatesTest, SetWorldOriginFromComponent)
 /////////////////////////////////////////////////
 TEST_F(SphericalCoordinatesTest, MoveEntity)
 {
-  TestFixture fixture(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/spherical_coordinates.sdf");
+  TestFixture fixture(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "spherical_coordinates.sdf"));
 
   int iterations{0};
   Entity modelEntity{kNullEntity};
@@ -264,8 +264,8 @@ TEST_F(SphericalCoordinatesTest, MoveEntity)
 /////////////////////////////////////////////////
 TEST_F(SphericalCoordinatesTest, CreateEntity)
 {
-  TestFixture fixture(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/spherical_coordinates.sdf");
+  TestFixture fixture(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "spherical_coordinates.sdf"));
 
   int iterations{0};
   Entity modelEntity{kNullEntity};

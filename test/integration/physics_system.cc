@@ -2077,7 +2077,8 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(Heightmap))
 
 /////////////////////////////////////////////////
 // Joint force
-TEST_F(PhysicsSystemFixture, JointTransmittedWrench)
+TEST_F(PhysicsSystemFixture,
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(JointTransmittedWrench))
 {
   common::Console::SetVerbosity(4);
   ignition::gazebo::ServerConfig serverConfig;

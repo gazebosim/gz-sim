@@ -17,8 +17,10 @@
 
 #include <gtest/gtest.h>
 
-#include "ignition/msgs.hh"
-#include "ignition/transport.hh"
+#include <ignition/msgs/serialized_map.pb.h>
+#include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
+
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 
@@ -37,7 +39,7 @@ class WorldControlState : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(WorldControlState, SetState)
+TEST_F(WorldControlState, IGN_UTILS_TEST_DISABLED_ON_WIN32(SetState))
 {
   common::Console::SetVerbosity(4);
 
