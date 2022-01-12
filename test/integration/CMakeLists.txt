@@ -79,6 +79,7 @@ set(tests_needing_display
   sensors_system.cc
   thermal_system.cc
   thermal_sensor_system.cc
+  wide_angle_camera.cc
 )
 
 # Add systems that need a valid display here.
