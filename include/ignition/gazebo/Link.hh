@@ -220,6 +220,14 @@ namespace ignition
       public: void EnableVelocityChecks(EntityComponentManager &_ecm,
           bool _enable = true) const;
 
+       /// \brief Get the angular acceleration of the body in the world frame.
+       /// \param[in] _ecm Entity-component manager.
+       /// \return Angular acceleration of the body in the world frame or
+       /// nullopt if acceleration checks aren't enabled.
+       /// \sa EnableAccelerationChecks
+       public: std::optional<math::Vector3d> WorldAngularAcceleration(
+           const EntityComponentManager &_ecm) const;
+
       /// \brief Get the linear acceleration of the body in the world frame.
       /// \param[in] _ecm Entity-component manager.
       /// \return Linear acceleration of the body in the world frame or nullopt
