@@ -21,6 +21,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/fuel_tools/ClientConfig.hh>
 #include <ignition/fuel_tools/Interface.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 #include <sdf/Model.hh>
 #include <sdf/Root.hh>
 #include <sdf/sdf.hh>
@@ -892,7 +893,9 @@ TEST_F(ElementUpdateFixture, WorldWithModelsExpandedWithOneIncluded)
 }
 
 /////////////////////////////////////////////////
-TEST_F(ElementUpdateFixture, WorldWithModelsUsingRelativeResourceURIs)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(ElementUpdateFixture,
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(WorldWithModelsUsingRelativeResourceURIs))
 {
   const auto includeUri = std::string("file://") + PROJECT_SOURCE_PATH +
                           "/test/worlds/models/relative_resource_uri";

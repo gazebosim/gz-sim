@@ -19,6 +19,7 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
@@ -42,7 +43,8 @@ class BuoyancyTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(BuoyancyTest, UniformWorldMovement)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(UniformWorldMovement))
 {
   // Start server
   ServerConfig serverConfig;
@@ -196,7 +198,8 @@ TEST_F(BuoyancyTest, UniformWorldMovement)
 }
 
 /////////////////////////////////////////////////
-TEST_F(BuoyancyTest, GradedBuoyancy)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(GradedBuoyancy))
 {
   // Start server
   ServerConfig serverConfig;

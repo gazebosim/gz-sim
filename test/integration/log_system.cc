@@ -37,6 +37,7 @@
 #include <ignition/transport/log/Playback.hh>
 #include <ignition/transport/log/QualifiedTime.hh>
 #include <ignition/math/Pose3.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
@@ -262,7 +263,8 @@ class LogSystemTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(LogSystemTest, LogPlaybackStatistics)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPlaybackStatistics))
 {
   // TODO(anyone) see LogSystemTest.LogControl comment about re-recording
   auto logPath = common::joinPaths(PROJECT_SOURCE_PATH, "test", "media",
@@ -314,7 +316,7 @@ TEST_F(LogSystemTest, LogPlaybackStatistics)
 
 /////////////////////////////////////////////////
 // Logging behavior when no paths are specified
-TEST_F(LogSystemTest, LogDefaults)
+TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
 {
   // Create temp directory to store log
   this->CreateLogsDir();
@@ -418,7 +420,7 @@ TEST_F(LogSystemTest, LogDefaults)
 /////////////////////////////////////////////////
 // Logging behavior when a path is specified either via the C++ API, SDF, or
 // the command line.
-TEST_F(LogSystemTest, LogPaths)
+TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
 {
   // Create temp directory to store log
   this->CreateLogsDir();
@@ -687,7 +689,7 @@ TEST_F(LogSystemTest, LogPaths)
 }
 
 /////////////////////////////////////////////////
-TEST_F(LogSystemTest, RecordAndPlayback)
+TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RecordAndPlayback))
 {
   // Create temp directory to store log
   this->CreateLogsDir();
@@ -837,7 +839,7 @@ TEST_F(LogSystemTest, RecordAndPlayback)
 }
 
 /////////////////////////////////////////////////
-TEST_F(LogSystemTest, LogControl)
+TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogControl))
 {
   // TODO(anyone) when re-recording state.tlog file, do not run
   // `ign gazebo --record rolling_shapes.sdf` with `-r` flag and pause sim
@@ -957,7 +959,7 @@ TEST_F(LogSystemTest, LogControl)
 }
 
 /////////////////////////////////////////////////
-TEST_F(LogSystemTest, LogOverwrite)
+TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogOverwrite))
 {
   // Create temp directory to store log
   this->CreateLogsDir();
@@ -1106,7 +1108,7 @@ TEST_F(LogSystemTest, LogOverwrite)
 }
 
 /////////////////////////////////////////////////
-TEST_F(LogSystemTest, LogControlLevels)
+TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogControlLevels))
 {
   auto logPath = common::joinPaths(PROJECT_SOURCE_PATH, "test", "media",
       "levels_log");
@@ -1245,7 +1247,7 @@ TEST_F(LogSystemTest, LogControlLevels)
 }
 
 /////////////////////////////////////////////////
-TEST_F(LogSystemTest, LogCompress)
+TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogCompress))
 {
   // Create temp directory to store log
   this->CreateLogsDir();
@@ -1351,7 +1353,7 @@ TEST_F(LogSystemTest, LogCompress)
 }
 
 /////////////////////////////////////////////////
-TEST_F(LogSystemTest, LogCompressOverwrite)
+TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogCompressOverwrite))
 {
   // Create temp directory to store log
   this->CreateLogsDir();
@@ -1397,7 +1399,7 @@ TEST_F(LogSystemTest, LogCompressOverwrite)
 }
 
 /////////////////////////////////////////////////
-TEST_F(LogSystemTest, LogCompressCmdLine)
+TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogCompressCmdLine))
 {
 #ifndef __APPLE__
   // Create temp directory to store log
@@ -1477,7 +1479,7 @@ TEST_F(LogSystemTest, LogCompressCmdLine)
 }
 
 /////////////////////////////////////////////////
-TEST_F(LogSystemTest, LogResources)
+TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogResources))
 {
   // Create temp directory to store log
   this->CreateLogsDir();
@@ -1564,7 +1566,7 @@ TEST_F(LogSystemTest, LogResources)
 }
 
 /////////////////////////////////////////////////
-TEST_F(LogSystemTest, LogTopics)
+TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogTopics))
 {
   // Create temp directory to store log
   this->CreateLogsDir();
