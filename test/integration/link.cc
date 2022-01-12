@@ -479,10 +479,10 @@ TEST_F(LinkIntegrationTest, LinkAddWorldForce)
   math::Vector3d force(0, 0, 1.0);
   link.AddWorldForce(ecm, force);
 
-  // No WorldPose or Inertia component exist so command should not work
+  // No WorldPose or Inertial component exists so command should not work
   EXPECT_EQ(nullptr, ecm.Component<components::ExternalWorldWrenchCmd>(eLink));
 
-  // create worldPose and Inertia component and try adding force again
+  // create WorldPose and Inertial component and try adding force again
   math::Pose3d linkWorldPose;
   linkWorldPose.Set(1.0, 0.0, 0.0, 0, 0, IGN_PI_4);
   math::Pose3d inertiaPose;
