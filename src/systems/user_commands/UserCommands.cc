@@ -1146,11 +1146,9 @@ bool CreateCommand::Execute()
       createPose.SetX(pos.X());
       createPose.SetY(pos.Y());
       createPose.SetZ(pos.Z());
-      createPose.Rot().Euler(
-          createPose.Rot().Roll(),
-          createPose.Rot().Pitch(),
-          createPose.Rot().Yaw() +
-            IGN_DTOR(createMsg->spherical_coordinates().heading_deg()));
+      createPose.Rot() = math::Quaterniond(0, 0,
+          IGN_DTOR(createMsg->spherical_coordinates().heading_deg())) *
+          createPose.Rot();
     }
   }
 
