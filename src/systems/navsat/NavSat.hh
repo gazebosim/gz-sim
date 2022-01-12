@@ -20,7 +20,6 @@
 #include <ignition/utils/ImplPtr.hh>
 
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
 
 namespace ignition
@@ -39,7 +38,7 @@ namespace systems
   /// The NavSat sensors rely on the world origin's spherical coordinates
   /// being set, for example through SDF's `<spherical_coordinates>` tag
   /// or the `/world/world_name/set_spherical_coordinates` service.
-  class IGNITION_GAZEBO_VISIBLE NavSat:
+  class NavSat:
     public System,
     public ISystemPreUpdate,
     public ISystemPostUpdate
