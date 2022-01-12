@@ -61,7 +61,7 @@
       <link name="propeller">
         <pose>-1.05 0 0 0 0 0</pose>
         <inertial>
-          <mass>0.01</mass>
+          <mass>0.1</mass>
           <inertia>
             <ixx>0.0000354167</ixx>
             <ixy>0</ixy>
