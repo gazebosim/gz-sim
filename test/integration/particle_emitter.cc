@@ -37,7 +37,7 @@
 using namespace ignition;
 using namespace gazebo;
 
-class ParticleEmitter2Test : public InternalFixture<::testing::Test>
+class ParticleEmitterTest : public InternalFixture<::testing::Test>
 {
   public: void LoadWorld(const std::string &_path, bool _useLevels = false)
   {
@@ -58,12 +58,12 @@ class ParticleEmitter2Test : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 // Load an SDF with a particle emitter and verify its properties.
-TEST_F(ParticleEmitter2Test, SDFLoad)
+TEST_F(ParticleEmitterTest, SDFLoad)
 {
   bool updateCustomChecked{false};
   bool updateDefaultChecked{false};
 
-  this->LoadWorld("test/worlds/particle_emitter2.sdf");
+  this->LoadWorld("test/worlds/particle_emitter.sdf");
 
   // Create a system that checks a particle emitter.
   test::Relay testSystem;

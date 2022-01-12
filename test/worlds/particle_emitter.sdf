@@ -8,8 +8,8 @@
     </physics>
 
     <plugin
-      filename="ignition-gazebo-particle-emitter2-system"
-      name="ignition::gazebo::systems::ParticleEmitter2">
+      filename="ignition-gazebo-particle-emitter-system"
+      name="ignition::gazebo::systems::ParticleEmitter">
     </plugin>
 
     <light type="directional" name="sun">
@@ -97,11 +97,9 @@
             </box>
           </geometry>
         </visual>
+        <particle_emitter name="smoke_generator" type="point">
+        </particle_emitter>
       </link>
-
-      <plugin filename="ignition-gazebo-particle-emitter-system"
-        name="ignition::gazebo::systems::ParticleEmitter">
-      </plugin>
     </model>
   </world>
 </sdf>
