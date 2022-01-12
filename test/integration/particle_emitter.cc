@@ -73,7 +73,7 @@ TEST_F(ParticleEmitterTest, SDFLoad)
         _ecm.Each<components::ParticleEmitter,
                   components::Name,
                   components::Pose>(
-            [&](const ignition::gazebo::Entity &_entity,
+            [&](const ignition::gazebo::Entity &,
                 const components::ParticleEmitter *_emitter,
                 const components::Name *_name,
                 const components::Pose *_pose) -> bool
@@ -121,9 +121,7 @@ TEST_F(ParticleEmitterTest, SDFLoad)
               {
                 updateDefaultChecked = true;
 
-                EXPECT_TRUE(_name->Data().find(std::to_string(_entity))
-                    != std::string::npos);
-                EXPECT_EQ(_name->Data(), _emitter->Data().name());
+                EXPECT_EQ("smoke_generator", _name->Data());
                 EXPECT_EQ(msgs::ParticleEmitter_EmitterType_POINT,
                     _emitter->Data().type());
                 EXPECT_EQ(math::Pose3d(0, 0, 0, 0, 0, 0), _pose->Data());
@@ -133,7 +131,7 @@ TEST_F(ParticleEmitterTest, SDFLoad)
                     msgs::Convert(_emitter->Data().size()));
                 EXPECT_DOUBLE_EQ(10.0, _emitter->Data().rate().data());
                 EXPECT_DOUBLE_EQ(0.0, _emitter->Data().duration().data());
-                EXPECT_FALSE(_emitter->Data().emitting().data());
+                EXPECT_TRUE(_emitter->Data().emitting().data());
                 EXPECT_EQ(math::Vector3d(1, 1, 1),
                     msgs::Convert(_emitter->Data().particle_size()));
                 EXPECT_DOUBLE_EQ(5.0, _emitter->Data().lifetime().data());
@@ -144,7 +142,7 @@ TEST_F(ParticleEmitterTest, SDFLoad)
                     msgs::Convert(_emitter->Data().color_start()));
                 EXPECT_EQ(math::Color::White,
                     msgs::Convert(_emitter->Data().color_end()));
-                EXPECT_DOUBLE_EQ(1.0, _emitter->Data().scale_rate().data());
+                EXPECT_DOUBLE_EQ(0.0, _emitter->Data().scale_rate().data());
                 EXPECT_EQ("", _emitter->Data().color_range_image().data());
               }
 
