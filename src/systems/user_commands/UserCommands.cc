@@ -396,6 +396,8 @@ class WheelSlipCommand : public UserCommandBase
               return
                 _a.name() == _b.name() &&
                 _a.id() == _b.id() &&
+                _a.parent_id() == _b.parent_id() &&
+                _a.parent_name() == _b.parent_name() &&
                 math::equal(
                   _a.slip_compliance_lateral(),
                   _b.slip_compliance_lateral(),
