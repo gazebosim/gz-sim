@@ -25,6 +25,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/Joint.hh"
@@ -66,7 +67,8 @@ class MulticopterTest : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 // Test that commanded motor speed is applied
-TEST_F(MulticopterTest, CommandedMotorSpeed)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(MulticopterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(CommandedMotorSpeed))
 {
   // Start server
   auto server = this->StartServer("/test/worlds/quadcopter.sdf");
@@ -132,7 +134,8 @@ TEST_F(MulticopterTest, CommandedMotorSpeed)
 }
 
 /////////////////////////////////////////////////
-TEST_F(MulticopterTest, MulticopterVelocityControl)
+TEST_F(MulticopterTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(MulticopterVelocityControl))
 {
   // Start server
   auto server =
@@ -240,7 +243,8 @@ TEST_F(MulticopterTest, MulticopterVelocityControl)
 /////////////////////////////////////////////////
 // Test the interactions between MulticopterVelocityControl and
 // MulticopterMotorModel
-TEST_F(MulticopterTest, ModelAndVelocityControlInteraction)
+TEST_F(MulticopterTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(ModelAndVelocityControlInteraction))
 {
   // Start server
   auto server =

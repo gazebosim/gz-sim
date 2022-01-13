@@ -18,6 +18,7 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/math/Pose3.hh"
 #include "ignition/gazebo/Server.hh"
@@ -41,7 +42,8 @@ class NestedModelPhysicsTest : public InternalFixture<::testing::Test>
 /////////////////////////////////////////////////
 /// Test that a tower of 3 boxes built with an <include> and further nesting
 /// moves appropriately with joints in dartsim
-TEST_F(NestedModelPhysicsTest, Movement)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(NestedModelPhysicsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Movement))
 {
   // Start server
   ServerConfig serverConfig;

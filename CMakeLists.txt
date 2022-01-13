@@ -66,7 +66,7 @@ set(IGN_TRANSPORT_VER ${ignition-transport11_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-msgs
-ign_find_package(ignition-msgs8 REQUIRED)
+ign_find_package(ignition-msgs8 REQUIRED VERSION 8.2)
 set(IGN_MSGS_VER ${ignition-msgs8_VERSION_MAJOR})
 
 #--------------------------------------
@@ -88,7 +88,7 @@ set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools7_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-gui
-ign_find_package(ignition-gui6 REQUIRED VERSION 6.1)
+ign_find_package(ignition-gui6 REQUIRED VERSION 6.3)
 set(IGN_GUI_VER ${ignition-gui6_VERSION_MAJOR})
 ign_find_package (Qt5
   COMPONENTS
@@ -111,7 +111,7 @@ set(IGN_PHYSICS_VER ${ignition-physics5_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-sensors
-ign_find_package(ignition-sensors6 REQUIRED VERSION 6.0.1
+ign_find_package(ignition-sensors6 REQUIRED VERSION 6.1
   # component order is important
   COMPONENTS
     # non-rendering
@@ -121,6 +121,7 @@ ign_find_package(ignition-sensors6 REQUIRED VERSION 6.0.1
     force_torque
     logical_camera
     magnetometer
+    navsat
 
     # rendering
     rendering
