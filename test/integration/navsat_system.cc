@@ -23,6 +23,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Model.hh"
@@ -59,7 +60,7 @@ void navsatCb(const msgs::NavSat &_msg)
 
 /////////////////////////////////////////////////
 // The test checks the world pose and sensor readings of a falling navsat
-TEST_F(NavSatTest, ModelFalling)
+TEST_F(NavSatTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
 {
   TestFixture fixture(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "navsat.sdf"));

@@ -621,7 +621,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StateStatic))
 
 /////////////////////////////////////////////////
 /// Test whether the scene topic is published when a component is removed.
-TEST_P(SceneBroadcasterTest, RemovedComponent)
+TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RemovedComponent))
 {
   // Start server
   ignition::gazebo::ServerConfig serverConfig;

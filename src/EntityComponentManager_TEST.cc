@@ -1211,7 +1211,8 @@ TEST_P(EntityComponentManagerFixture,
 }
 
 ////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, EachRemoveAlreadyRemove)
+TEST_P(EntityComponentManagerFixture,
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(EachRemoveAlreadyRemove))
 {
   // Create an entities
   Entity e1 = manager.CreateEntity();
@@ -1359,7 +1360,8 @@ TEST_P(EntityComponentManagerFixture,
 }
 
 //////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, EachAddRemoveComponent)
+TEST_P(EntityComponentManagerFixture,
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(EachAddRemoveComponent))
 {
   // test calling ecm.Each on entities that have components added/removed
   // frequently. This is common with *Cmd components
@@ -2284,7 +2286,8 @@ TEST_P(EntityComponentManagerFixture,
 }
 
 //////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, SetEntityCreateOffset)
+TEST_P(EntityComponentManagerFixture,
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(SetEntityCreateOffset))
 {
   // First entity should have a value of 1.
   Entity entity = manager.CreateEntity();
@@ -2650,7 +2653,8 @@ static void CompareEntityComponents(const EntityComponentManager &_ecm,
 }
 
 //////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, CloneEntities)
+TEST_P(EntityComponentManagerFixture,
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(CloneEntities))
 {
   // testing entity cloning with the following entity structure:
   // - topLevelEntity
@@ -2917,7 +2921,8 @@ TEST_P(EntityComponentManagerFixture, CloneEntities)
 
 /////////////////////////////////////////////////
 // Check that some widely used deprecated APIs still work
-TEST_P(EntityComponentManagerFixture, Deprecated)
+TEST_P(EntityComponentManagerFixture,
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(Deprecated))
 {
   IGN_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
 
