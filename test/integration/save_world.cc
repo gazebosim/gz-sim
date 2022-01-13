@@ -87,7 +87,9 @@ class SdfGeneratorFixture : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(SdfGeneratorFixture, WorldWithModelsSpawnedAfterLoad)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(SdfGeneratorFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(WorldWithModelsSpawnedAfterLoad))
 {
   this->LoadWorld("test/worlds/save_world.sdf");
 
@@ -215,7 +217,7 @@ TEST_F(SdfGeneratorFixture, WorldWithModelsSpawnedAfterLoad)
 /////////////////////////////////////////////////
 // Test segfaults on Mac at startup, possible collision with test above?
 TEST_F(SdfGeneratorFixture,
-    IGN_UTILS_TEST_DISABLED_ON_MAC(ModelSpawnedWithNewName))
+    IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ModelSpawnedWithNewName))
 {
   this->LoadWorld("test/worlds/save_world.sdf");
 

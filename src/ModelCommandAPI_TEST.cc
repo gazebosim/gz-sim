@@ -20,6 +20,7 @@
 #include <string>
 
 #include <gtest/gtest.h>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
@@ -72,7 +73,8 @@ std::string customExecStr(std::string _cmd)
 
 /////////////////////////////////////////////////
 // Test `ign model` command when no Gazebo server is running.
-TEST(ModelCommandAPI, NoServerRunning)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_WIN32(NoServerRunning))
 {
   const std::string cmd = kIgnModelCommand + "--list ";
   const std::string output = customExecStr(cmd);
@@ -85,7 +87,7 @@ TEST(ModelCommandAPI, NoServerRunning)
 
 /////////////////////////////////////////////////
 // Tests `ign model` command.
-TEST(ModelCommandAPI, Commands)
+TEST(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_WIN32(Commands))
 {
   ignition::gazebo::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
