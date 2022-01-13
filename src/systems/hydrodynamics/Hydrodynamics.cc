@@ -106,6 +106,15 @@ class ignition::gazebo::systems::HydrodynamicsPrivateData
   /// \brief Ocean current experienced by this body
   public: math::Vector3d currentVector {0, 0, 0};
 
+  /// \brief Enable Added Mass
+  public: bool enableAddMass {true};
+
+  /// \brief Enable Damping
+  public: bool enableDamping {true};
+
+  /// \brief Enable Coriolis
+  public: bool enableCoriolis {true};
+
   /// \brief Added mass of vehicle;
   /// See: https://en.wikipedia.org/wiki/Added_mass
   public: Eigen::MatrixXd Ma;
@@ -268,6 +277,22 @@ void Hydrodynamics::Configure(
     this->dataPtr->currentVector = _sdf->Get<math::Vector3d>("default_current");
   }
 
+  if(_sdf->HasElement("enable_added_mass"))
+  {
+    this->dataPtr->enableAddMass = _sdf->Get<bool>("enable_added_mass");
+  }
+
+  if(_sdf->HasElement("enable_damping"))
+  {
+    this->dataPtr->enableDamping = _sdf->Get<bool>("enable_damping");
+  }
+
+  if(_sdf->HasElement("enable_coriolis"))
+  {
+    this->dataPtr->enableCoriolis = _sdf->Get<bool>("enable_coriolis");
+  }
+
+
   this->dataPtr->prevState = Eigen::VectorXd::Zero(6);
 
   AddWorldPose(this->dataPtr->linkEntity, _ecm);
@@ -387,7 +412,17 @@ void Hydrodynamics::PreUpdate(
 
   const Eigen::VectorXd kDvec = Dmat * state;
 
-  const Eigen::VectorXd kTotalWrench = kAmassVec + kDvec + kCmatVec;
+
+  Eigen::VectorXd kTotalWrench = Eigen::VectorXd::Zero(6);
+
+  if (this->dataPtr->enableAddMass)
+    kTotalWrench += kAmassVec;
+
+  if (this->dataPtr->enableDamping)
+    kTotalWrench += kDvec;
+
+  if (this->dataPtr->enableCoriolis)
+    kTotalWrench += kCmatVec;
 
   ignition::math::Vector3d
     totalForce(-kTotalWrench(0), -kTotalWrench(1), -kTotalWrench(2));
