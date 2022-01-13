@@ -2,130 +2,109 @@
 
 ## Ignition Math 6.x.x
 
-## Ignition Math 6.9.3 (2022-01-03)
+## Ignition Math 6.9.3 (2022-01-XX)
 
-1. Move SWIG interfaces from python to ruby
-    * [Pull request #354](https://github.com/ignitionrobotics/ign-math/pull/354)
+1. Use const instead of constexpr in Ellipsoid constructor
+    * [Pull request #366](https://github.com/ignitionrobotics/ign-math/pull/366)
 
-1. Added SphericalCoordinates pybind11 interface
-    * [Pull request #357](https://github.com/ignitionrobotics/ign-math/pull/357)
+1. Refactor finding pybind11
+    * [Pull request #360](https://github.com/ignitionrobotics/ign-math/pull/360)
 
-1. Added Vector3Stats pybind11 interface
-    * [Pull request #351](https://github.com/ignitionrobotics/ign-math/pull/351)
+1. Fix Focal on Jenkins
+    * [Pull request #364](https://github.com/ignitionrobotics/ign-math/pull/364)
 
-1. kmeans example in cpp and python
+1. kmeans example in C++ and Python
     * [Pull request #356](https://github.com/ignitionrobotics/ign-math/pull/356)
 
 1. Small fixed in doxygen
     * [Pull request #355](https://github.com/ignitionrobotics/ign-math/pull/355)
 
-1. Added SignalStats pybind11 interface
-    * [Pull request #343](https://github.com/ignitionrobotics/ign-math/pull/343)
+1. Added Python Getting started tutorial
+    * [Pull request #362](https://github.com/ignitionrobotics/ign-math/pull/362)
 
-1. Added Sphere pybind11 interface
-    * [Pull request #352](https://github.com/ignitionrobotics/ign-math/pull/352)
+1. Move SWIG interfaces from Python to Ruby
+    * [Pull request #354](https://github.com/ignitionrobotics/ign-math/pull/354)
 
-1. Added Frustum pybind11 interface
-    * [Pull request #353](https://github.com/ignitionrobotics/ign-math/pull/353)
-
-1. Added Plane pybind11 interface
-    * [Pull request #346](https://github.com/ignitionrobotics/ign-math/pull/346)
-
-1. Added Cylinder pybind11 interface
-    * [Pull request #348](https://github.com/ignitionrobotics/ign-math/pull/348)
-
-1. Added OrientedBox pybind11 interface
-    * [Pull request #350](https://github.com/ignitionrobotics/ign-math/pull/350)
-
-1. Added Inertial pybind11 interface
-    * [Pull request #349](https://github.com/ignitionrobotics/ign-math/pull/349)
-
-1. Added Matrix4 pybind11 interface
-    * [Pull request #337](https://github.com/ignitionrobotics/ign-math/pull/337)
-
-1. Added PID pybind11 interface
-    * [Pull request #323](https://github.com/ignitionrobotics/ign-math/pull/323)
-
-1. Added Temperature pybind11 interface
-    * [Pull request #330](https://github.com/ignitionrobotics/ign-math/pull/330)
-
-1. Add DiffDriveOdometry pybind11 interface and examples
-    * [Pull request #314](https://github.com/ignitionrobotics/ign-math/pull/314)
-
-1. Added MassMatrix3 pybind11 interface
-    * [Pull request #345](https://github.com/ignitionrobotics/ign-math/pull/345)
-
-1. Added AxisAlignedBox pybind11 interface
-    * [Pull request #338](https://github.com/ignitionrobotics/ign-math/pull/338)
-
-1. Add GaussMarkovProcess pybind11 interface and examples
-    * [Pull request #315](https://github.com/ignitionrobotics/ign-math/pull/315)
-
-1. Added RotationSpline pybind11 interface
-    * [Pull request #339](https://github.com/ignitionrobotics/ign-math/pull/339)
-
-1. Added Material pybind11 interface
-    * [Pull request #340](https://github.com/ignitionrobotics/ign-math/pull/340)
-
-1. Added Kmeans pybind11 interface
-    * [Pull request #341](https://github.com/ignitionrobotics/ign-math/pull/341)
-
-1. Added Triangle3 pybind11 interface
-    * [Pull request #335](https://github.com/ignitionrobotics/ign-math/pull/335)
-
-1. Added Pose3 pybind11 interface
-    * [Pull request #334](https://github.com/ignitionrobotics/ign-math/pull/334)
-
-1. Added Triangle pybind11 interface
-    * [Pull request #333](https://github.com/ignitionrobotics/ign-math/pull/333)
-
-1. Added Spline pybind11 interface
-    * [Pull request #332](https://github.com/ignitionrobotics/ign-math/pull/332)
-
-1. Added Filter pybind11 interface
-    * [Pull request #336](https://github.com/ignitionrobotics/ign-math/pull/336)
-
-1. Added SemanticVersion pybind11 interface
-    * [Pull request #331](https://github.com/ignitionrobotics/ign-math/pull/331)
-
-1. Added Matrix3 pybind11 interface
-    * [Pull request #325](https://github.com/ignitionrobotics/ign-math/pull/325)
-
-1. Added MovingWindowFilter pybind11 interface
-    * [Pull request #321](https://github.com/ignitionrobotics/ign-math/pull/321)
-
-1. Added Line3 pybind11 interface
-    * [Pull request #317](https://github.com/ignitionrobotics/ign-math/pull/317)
-
-1. Added Quaternion pybind11 interface
-    * [Pull request #324](https://github.com/ignitionrobotics/ign-math/pull/324)
-
-1. Added StopWatch pybind11 interface
-    * [Pull request #319](https://github.com/ignitionrobotics/ign-math/pull/319)
-
-1. Added RollingMean pybind11 interface
-    * [Pull request #322](https://github.com/ignitionrobotics/ign-math/pull/322)
-
-1. Add Line2 pybind11 interface
-    * [Pull request #316](https://github.com/ignitionrobotics/ign-math/pull/316)
-
-1. Added Color pybind11 interface
-    * [Pull request #318](https://github.com/ignitionrobotics/ign-math/pull/318)
-
-1. Add Helpers pybind11 interface
-    * [Pull request #313](https://github.com/ignitionrobotics/ign-math/pull/313)
-
-1. Added Rand pybind11 interface and example
-    * [Pull request #312](https://github.com/ignitionrobotics/ign-math/pull/312)
-
-1. Added Angle Pybind11 interface
-    * [Pull request #311](https://github.com/ignitionrobotics/ign-math/pull/311)
+1. Added pybind11 interfaces for various classes
+    1. SphericalCoordinates
+        * [Pull request #357](https://github.com/ignitionrobotics/ign-math/pull/357)
+    1. Vector3Stats
+        * [Pull request #351](https://github.com/ignitionrobotics/ign-math/pull/351)
+    1. SignalStats
+        * [Pull request #343](https://github.com/ignitionrobotics/ign-math/pull/343)
+    1. Sphere
+        * [Pull request #352](https://github.com/ignitionrobotics/ign-math/pull/352)
+    1. Frustum
+        * [Pull request #353](https://github.com/ignitionrobotics/ign-math/pull/353)
+    1. Plane
+        * [Pull request #346](https://github.com/ignitionrobotics/ign-math/pull/346)
+    1. Cylinder
+        * [Pull request #348](https://github.com/ignitionrobotics/ign-math/pull/348)
+    1. OrientedBox
+        * [Pull request #276](https://github.com/ignitionrobotics/ign-math/pull/276)
+        * [Pull request #350](https://github.com/ignitionrobotics/ign-math/pull/350)
+    1. Inertial
+        * [Pull request #349](https://github.com/ignitionrobotics/ign-math/pull/349)
+    1. Matrix4
+        * [Pull request #337](https://github.com/ignitionrobotics/ign-math/pull/337)
+    1. PID
+        * [Pull request #323](https://github.com/ignitionrobotics/ign-math/pull/323)
+    1. Temperature
+        * [Pull request #330](https://github.com/ignitionrobotics/ign-math/pull/330)
+    1. DiffDriveOdometry (with examples)
+        * [Pull request #314](https://github.com/ignitionrobotics/ign-math/pull/314)
+    1. MassMatrix3
+        * [Pull request #345](https://github.com/ignitionrobotics/ign-math/pull/345)
+    1. AxisAlignedBox
+        * [Pull request #338](https://github.com/ignitionrobotics/ign-math/pull/338)
+        * [Pull request #281](https://github.com/ignitionrobotics/ign-math/pull/281)
+    1. GaussMarkovProcess (with examples)
+        * [Pull request #315](https://github.com/ignitionrobotics/ign-math/pull/315)
+    1. RotationSpline
+        * [Pull request #339](https://github.com/ignitionrobotics/ign-math/pull/339)
+    1. Material
+        * [Pull request #340](https://github.com/ignitionrobotics/ign-math/pull/340)
+    1. Kmeans
+        * [Pull request #341](https://github.com/ignitionrobotics/ign-math/pull/341)
+    1. Triangle3
+        * [Pull request #335](https://github.com/ignitionrobotics/ign-math/pull/335)
+    1. Pose3
+        * [Pull request #334](https://github.com/ignitionrobotics/ign-math/pull/334)
+    1. Triangle
+        * [Pull request #333](https://github.com/ignitionrobotics/ign-math/pull/333)
+    1. Spline
+        * [Pull request #332](https://github.com/ignitionrobotics/ign-math/pull/332)
+    1. Filter
+        * [Pull request #336](https://github.com/ignitionrobotics/ign-math/pull/336)
+    1. SemanticVersion
+        * [Pull request #331](https://github.com/ignitionrobotics/ign-math/pull/331)
+    1. Matrix3
+        * [Pull request #325](https://github.com/ignitionrobotics/ign-math/pull/325)
+    1. MovingWindowFilter
+        * [Pull request #321](https://github.com/ignitionrobotics/ign-math/pull/321)
+    1. Line3
+        * [Pull request #317](https://github.com/ignitionrobotics/ign-math/pull/317)
+    1. Quaternion
+        * [Pull request #324](https://github.com/ignitionrobotics/ign-math/pull/324)
+    1. StopWatch
+        * [Pull request #319](https://github.com/ignitionrobotics/ign-math/pull/319)
+    1. RollingMean
+        * [Pull request #322](https://github.com/ignitionrobotics/ign-math/pull/322)
+    1. Line2
+        * [Pull request #316](https://github.com/ignitionrobotics/ign-math/pull/316)
+    1. Color
+        * [Pull request #318](https://github.com/ignitionrobotics/ign-math/pull/318)
+    1. Helpers
+        * [Pull request #313](https://github.com/ignitionrobotics/ign-math/pull/313)
+    1. Rand (with examples)
+        * [Pull request #312](https://github.com/ignitionrobotics/ign-math/pull/312)
+    1. Angle
+        * [Pull request #311](https://github.com/ignitionrobotics/ign-math/pull/311)
+    1. Vector2, Vector3 and Vector4
+        * [Pull request #280](https://github.com/ignitionrobotics/ign-math/pull/280)
 
 1. Fix Color::HSV() incorrect hue output
     * [Pull request #320](https://github.com/ignitionrobotics/ign-math/pull/320)
-
-1. Vector2, 3 and 4 with pybind11
-    * [Pull request #280](https://github.com/ignitionrobotics/ign-math/pull/280)
 
 1. Add example and modify document for class Color
     * [Pull request #304](https://github.com/ignitionrobotics/ign-math/pull/304)
@@ -144,12 +123,6 @@
 
 1. quaternion_from_euler example: input degrees
     * [Pull request #282](https://github.com/ignitionrobotics/ign-math/pull/282)
-
-1. AxisAlignedBox: rename some python methods
-    * [Pull request #281](https://github.com/ignitionrobotics/ign-math/pull/281)
-
-1. OrientedBox Python interface
-    * [Pull request #276](https://github.com/ignitionrobotics/ign-math/pull/276)
 
 1. Internal URL fixed (paragraph 266)
     * [Pull request #279](https://github.com/ignitionrobotics/ign-math/pull/279)
