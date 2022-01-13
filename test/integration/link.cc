@@ -23,6 +23,7 @@
 #include <ignition/gazebo/components/AngularVelocity.hh>
 #include <ignition/gazebo/components/CanonicalLink.hh>
 #include <ignition/gazebo/components/Collision.hh>
+#include <ignition/gazebo/components/ExternalWorldWrenchCmd.hh>
 #include <ignition/gazebo/components/Inertial.hh>
 #include <ignition/gazebo/components/Joint.hh>
 #include <ignition/gazebo/components/LinearAcceleration.hh>
@@ -454,4 +455,93 @@ TEST_F(LinkIntegrationTest, LinkKineticEnergy)
 
   *linearVel = components::WorldLinearVelocity({math::Vector3d(10, 0, 0)});
   EXPECT_DOUBLE_EQ(100.0, *link.WorldKineticEnergy(ecm));
+}
+
+//////////////////////////////////////////////////
+TEST_F(LinkIntegrationTest, LinkAddWorldForce)
+{
+  EntityComponentManager ecm;
+  EventManager eventMgr;
+  SdfEntityCreator creator(ecm, eventMgr);
+
+  auto eLink = ecm.CreateEntity();
+  ecm.CreateComponent(eLink, components::Link());
+
+  Link link(eLink);
+  EXPECT_EQ(eLink, link.Entity());
+
+  ASSERT_TRUE(link.Valid(ecm));
+
+  // No ExternalWorldWrenchCmd should exist by default
+  EXPECT_EQ(nullptr, ecm.Component<components::ExternalWorldWrenchCmd>(eLink));
+
+  // Add force
+  math::Vector3d force(0, 0, 1.0);
+  link.AddWorldForce(ecm, force);
+
+  // No WorldPose or Inertial component exists so command should not work
+  EXPECT_EQ(nullptr, ecm.Component<components::ExternalWorldWrenchCmd>(eLink));
+
+  // create WorldPose and Inertial component and try adding force again
+  math::Pose3d linkWorldPose;
+  linkWorldPose.Set(1.0, 0.0, 0.0, 0, 0, IGN_PI_4);
+  math::Pose3d inertiaPose;
+  inertiaPose.Set(1.0, 2.0, 3.0, 0, IGN_PI_2, 0);
+  math::Inertiald linkInertial;
+  linkInertial.SetPose(inertiaPose);
+  ecm.CreateComponent(eLink, components::WorldPose(linkWorldPose));
+  ecm.CreateComponent(eLink, components::Inertial(linkInertial));
+  link.AddWorldForce(ecm, force);
+
+  // ExternalWorldWrenchCmd component should now be created
+  auto wrenchComp = ecm.Component<components::ExternalWorldWrenchCmd>(eLink);
+  EXPECT_NE(nullptr, wrenchComp);
+
+  // verify wrench values
+  auto wrenchMsg = wrenchComp->Data();
+
+  math::Vector3 expectedTorque =
+      linkWorldPose.Rot().RotateVector(inertiaPose.Pos()).Cross(force);
+  EXPECT_EQ(force, math::Vector3d(
+      wrenchMsg.force().x(), wrenchMsg.force().y(), wrenchMsg.force().z()));
+  EXPECT_EQ(expectedTorque, math::Vector3d(
+      wrenchMsg.torque().x(), wrenchMsg.torque().y(), wrenchMsg.torque().z()));
+
+  // apply opposite force. Since the cmd is not processed yet, this should
+  // cancel out the existing wrench cmd
+  link.AddWorldForce(ecm, -force);
+  wrenchComp = ecm.Component<components::ExternalWorldWrenchCmd>(eLink);
+  EXPECT_NE(nullptr, wrenchComp);
+  wrenchMsg = wrenchComp->Data();
+
+  EXPECT_EQ(math::Vector3d::Zero, math::Vector3d(
+      wrenchMsg.force().x(), wrenchMsg.force().y(), wrenchMsg.force().z()));
+  EXPECT_EQ(math::Vector3d::Zero, math::Vector3d(
+      wrenchMsg.torque().x(), wrenchMsg.torque().y(), wrenchMsg.torque().z()));
+
+  // Add world force at an offset
+  math::Vector3d offset{0.0, 1.0, 0.0};
+  link.AddWorldForce(ecm, force, offset);
+
+  wrenchComp = ecm.Component<components::ExternalWorldWrenchCmd>(eLink);
+  EXPECT_NE(nullptr, wrenchComp);
+  wrenchMsg = wrenchComp->Data();
+
+  expectedTorque =
+      linkWorldPose.Rot().RotateVector(offset + inertiaPose.Pos()).Cross(force);
+  EXPECT_EQ(force, math::Vector3d(
+      wrenchMsg.force().x(), wrenchMsg.force().y(), wrenchMsg.force().z()));
+  EXPECT_EQ(expectedTorque, math::Vector3d(
+      wrenchMsg.torque().x(), wrenchMsg.torque().y(), wrenchMsg.torque().z()));
+
+  // apply opposite force again and verify the resulting wrench values are zero
+  link.AddWorldForce(ecm, -force, offset);
+  wrenchComp = ecm.Component<components::ExternalWorldWrenchCmd>(eLink);
+  EXPECT_NE(nullptr, wrenchComp);
+  wrenchMsg = wrenchComp->Data();
+
+  EXPECT_EQ(math::Vector3d::Zero, math::Vector3d(
+      wrenchMsg.force().x(), wrenchMsg.force().y(), wrenchMsg.force().z()));
+  EXPECT_EQ(math::Vector3d::Zero, math::Vector3d(
+      wrenchMsg.torque().x(), wrenchMsg.torque().y(), wrenchMsg.torque().z()));
 }
