@@ -16,29 +16,26 @@
 
 #include <pybind11/pybind11.h>
 
-#include "Destroyable.hh"
 #include "EntityComponentManager.hh"
 #include "EventManager.hh"
 #include "Exceptions.hh"
-#include "HelperSystem.hh"
 #include "Server.hh"
 #include "ServerConfig.hh"
+#include "TestFixture.hh"
 #include "UpdateInfo.hh"
 #include "World.hh"
 
 PYBIND11_MODULE(gazebo, m) {
   m.doc() = "Ignition Gazebo Python Library.";
 
-  ignition::gazebo::python::defineDestroyable(m);
-
   pybind11::register_exception<ignition::gazebo::python::InvalidHandle>(
     m, "InvalidHandle", PyExc_RuntimeError);
 
   ignition::gazebo::python::defineGazeboEntityComponentManager(m);
   ignition::gazebo::python::defineGazeboEventManager(m);
-  ignition::gazebo::python::defineGazeboHelperFixture(m);
   ignition::gazebo::python::defineGazeboServer(m);
   ignition::gazebo::python::defineGazeboServerConfig(m);
+  ignition::gazebo::python::defineGazeboTestFixture(m);
   ignition::gazebo::python::defineGazeboUpdateInfo(m);
   ignition::gazebo::python::defineGazeboWorld(m);
 }

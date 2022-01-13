@@ -20,11 +20,6 @@
 #include <pybind11/pybind11.h>
 
 #include <ignition/gazebo/World.hh>
-#include <ignition/gazebo/EntityComponentManager.hh>
-
-#include "EntityComponentManager.hh"
-
-#include <memory>
 
 namespace ignition
 {
@@ -35,7 +30,6 @@ namespace python
 /// Define a pybind11 wrapper for an ignition::gazebo::World
 /**
  * \param[in] module a pybind11 module to add the definition to
- * \param[in] typestr name of the type used by Python
  */
 void
 defineGazeboWorld(pybind11::object module);

@@ -17,22 +17,22 @@ import os
 import time
 
 from ignition.common import set_verbosity
-from ignition.gazebo import HelperFixture, World
+from ignition.gazebo import TestFixture, World
 from ignition.math import Vector3d
-
+from sdformat import Element
 
 set_verbosity(4)
 
 file_path = os.path.dirname(os.path.realpath(__file__))
 
-helper = HelperFixture(os.path.join(file_path, 'gravity.sdf'))
+helper = TestFixture(os.path.join(file_path, 'gravity.sdf'))
 
 post_iterations = 0
 iterations = 0
 pre_iterations = 0
 
 
-def on_configure_cb(worldEntity, _ecm):
+def on_configure_cb(worldEntity, _sdf, _ecm, _eventManager):
     print('World entity is ', worldEntity)
     w = World(worldEntity)
     v = w.gravity(_ecm)
@@ -61,7 +61,6 @@ helper.on_post_update(on_post_udpate_cb)
 helper.on_update(on_udpate_cb)
 helper.on_pre_update(on_pre_udpate_cb)
 helper.on_configure(on_configure_cb)
-
 helper.finalize()
 
 server = helper.server()

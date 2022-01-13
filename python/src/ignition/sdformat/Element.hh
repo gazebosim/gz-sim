@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-
-#ifndef IGNITION_GAZEBO_PYTHON__SERVER_HH_
-#define IGNITION_GAZEBO_PYTHON__SERVER_HH_
+#ifndef IGNITION_GAZEBO_PYTHON__ELEMENT_HH_
+#define IGNITION_GAZEBO_PYTHON__ELEMENT_HH_
 
 #include <pybind11/pybind11.h>
 
@@ -26,14 +25,14 @@ namespace gazebo
 {
 namespace python
 {
-/// Define a pybind11 wrapper for an ignition::gazebo::Server
+/// Define a pybind11 wrapper for an sdformat::Element
 /**
  * \param[in] module a pybind11 module to add the definition to
  */
 void
-defineGazeboServer(pybind11::object module);
+defineGazeboElement(pybind11::object module);
 }  // namespace python
 }  // namespace gazebo
 }  // namespace ignition
 
-#endif  // IGNITION_GAZEBO_PYTHON__SERVER_HH_
+#endif  // IGNITION_GAZEBO_PYTHON__ELEMENT_HH_

@@ -40,9 +40,9 @@ endfunction()
 
 pybind11_add_module(gazebo SHARED
   src/ignition/gazebo/_ignition_gazebo_pybind11.cc
-	src/ignition/gazebo/EntityComponentManager.cc
+  src/ignition/gazebo/EntityComponentManager.cc
   src/ignition/gazebo/EventManager.cc
-  src/ignition/gazebo/HelperSystem.cc
+  src/ignition/gazebo/TestFixture.cc
   src/ignition/gazebo/Server.cc
   src/ignition/gazebo/ServerConfig.cc
   src/ignition/gazebo/UpdateInfo.cc

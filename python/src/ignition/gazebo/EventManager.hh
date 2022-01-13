@@ -29,7 +29,6 @@ namespace python
 /// Define a pybind11 wrapper for an ignition::gazebo::EventManager
 /**
  * \param[in] module a pybind11 module to add the definition to
- * \param[in] typestr name of the type used by Python
  */
 void
 defineGazeboEventManager(pybind11::object module);
