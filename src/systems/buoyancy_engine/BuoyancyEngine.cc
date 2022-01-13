@@ -69,6 +69,9 @@ class ignition::gazebo::systems::BuoyancyEnginePrivateData
   /// \brief The neutral volume in m^3
   public: double neutralVolume = 0.0003;
 
+  /// \brief Surface location
+  public: std::optional<double> surface = std::nullopt;
+
   /// \brief Trasport node for control
   public: ignition::transport::Node node;
 
@@ -77,7 +80,31 @@ class ignition::gazebo::systems::BuoyancyEnginePrivateData
 
   /// \brief mutex for protecting bladder volume and set point.
   public: std::mutex mtx;
+
+  /// \brief get fluid density
+  public: double CurrentFluidDensity(
+    EntityComponentManager &_ecm,
+    const Link &_link) const;
 };
+
+//////////////////////////////////////////////////
+double BuoyancyEnginePrivateData::CurrentFluidDensity(
+  EntityComponentManager &_ecm,
+  const Link &_link) const
+{
+  if (!this->surface.has_value())
+    return fluidDensity;
+
+  auto pose =_link.WorldPose(_ecm);
+  if (!pose.has_value())
+    return fluidDensity;
+
+  if(pose->Pos().Z() < this->surface.value())
+  {
+    return fluidDensity;
+  }
+  return 0;
+}
 
 //////////////////////////////////////////////////
 void BuoyancyEnginePrivateData::OnCmdBuoyancyEngine(
@@ -146,9 +173,14 @@ void BuoyancyEnginePlugin::Configure(
     this->dataPtr->neutralVolume = _sdf->Get<double>("neutral_volume");
   }
 
-  if(_sdf->HasElement("max_inflation_rate"))
+  if (_sdf->HasElement("max_inflation_rate"))
   {
     this->dataPtr->maxInflationRate = _sdf->Get<double>("max_inflation_rate");
+  }
+
+  if (_sdf->HasElement("surface"))
+  {
+    this->dataPtr->surface = _sdf->Get<double>("surface");
   }
 
   this->dataPtr->world = _ecm.EntityByComponents(components::World());
@@ -203,6 +235,7 @@ void BuoyancyEnginePlugin::PreUpdate(
     return;
   }
 
+  ignition::gazebo::Link link(this->dataPtr->linkEntity);
   math::Vector3d zForce;
   {
     std::lock_guard lock(this->dataPtr->mtx);
@@ -229,13 +262,16 @@ void BuoyancyEnginePlugin::PreUpdate(
     msg.set_data(this->dataPtr->bladderVolume);
     this->dataPtr->statusPub.Publish(msg);
 
+    // Get the fluid density of the current layer
+    auto currentFluidDensity = this->dataPtr->CurrentFluidDensity(_ecm, link);
+
     // Simply use Archimede's principle to apply a force at the desired link
     // position. We take off the neutral buoyancy element in order to simulate
     // the mass of the oil in the bladder.
-    zForce = - gravity->Data() * this->dataPtr->fluidDensity
-      * (this->dataPtr->bladderVolume - this->dataPtr->neutralVolume);
+    zForce = - gravity->Data() *
+      ( currentFluidDensity * this->dataPtr->bladderVolume
+      - this->dataPtr->fluidDensity * this->dataPtr->neutralVolume);
   }
-  ignition::gazebo::Link link(this->dataPtr->linkEntity);
   link.AddWorldWrench(_ecm, zForce, {0, 0, 0});
 }
 
