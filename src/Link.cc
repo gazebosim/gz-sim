@@ -17,6 +17,7 @@
 
 #include <ignition/msgs/Utility.hh>
 
+#include "ignition/gazebo/components/AngularAcceleration.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/Collision.hh"
@@ -246,6 +247,14 @@ void Link::EnableVelocityChecks(EntityComponentManager &_ecm, bool _enable)
 }
 
 //////////////////////////////////////////////////
+std::optional<math::Vector3d> Link::WorldAngularAcceleration(
+    const EntityComponentManager &_ecm) const
+{
+  return _ecm.ComponentData<components::WorldAngularAcceleration>(
+      this->dataPtr->id);
+}
+
+//////////////////////////////////////////////////
 std::optional<math::Vector3d> Link::WorldLinearAcceleration(
     const EntityComponentManager &_ecm) const
 {
@@ -257,6 +266,10 @@ std::optional<math::Vector3d> Link::WorldLinearAcceleration(
 void Link::EnableAccelerationChecks(EntityComponentManager &_ecm, bool _enable)
     const
 {
+  enableComponent<components::WorldAngularAcceleration>(_ecm, this->dataPtr->id,
+      _enable);
+  enableComponent<components::AngularAcceleration>(_ecm, this->dataPtr->id,
+      _enable);
   enableComponent<components::WorldLinearAcceleration>(_ecm, this->dataPtr->id,
       _enable);
   enableComponent<components::LinearAcceleration>(_ecm, this->dataPtr->id,

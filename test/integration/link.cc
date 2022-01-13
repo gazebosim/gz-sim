@@ -20,6 +20,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
 
+#include <ignition/gazebo/components/AngularAcceleration.hh>
 #include <ignition/gazebo/components/AngularVelocity.hh>
 #include <ignition/gazebo/components/CanonicalLink.hh>
 #include <ignition/gazebo/components/Collision.hh>
@@ -315,23 +316,33 @@ TEST_F(LinkIntegrationTest, LinkAccelerations)
 
   // Before we enable acceleration, acceleration should return nullopt
   EXPECT_EQ(std::nullopt, link.WorldLinearAcceleration(ecm));
+  EXPECT_EQ(std::nullopt, link.WorldAngularAcceleration(ecm));
 
   // After enabling, they should return default values
   link.EnableAccelerationChecks(ecm);
   EXPECT_EQ(math::Vector3d::Zero, link.WorldLinearAcceleration(ecm));
+  EXPECT_EQ(math::Vector3d::Zero, link.WorldAngularAcceleration(ecm));
   EXPECT_NE(nullptr, ecm.Component<components::WorldLinearAcceleration>(eLink));
+  EXPECT_NE(nullptr,
+      ecm.Component<components::WorldAngularAcceleration>(eLink));
 
   // After setting acceleration, we get the value
   math::Vector3d linAccel{1.0, 0.0, 0.0};
   ecm.SetComponentData<components::WorldLinearAcceleration>(eLink, linAccel);
-
   EXPECT_EQ(linAccel, link.WorldLinearAcceleration(ecm));
+
+  math::Vector3d angAccel{0.0, 1.0, 0.0};
+  ecm.SetComponentData<components::WorldAngularAcceleration>(eLink, angAccel);
+  EXPECT_EQ(angAccel, link.WorldAngularAcceleration(ecm));
 
   // Disabling accelerations goes back to nullopt
   link.EnableAccelerationChecks(ecm, false);
 
   EXPECT_EQ(std::nullopt, link.WorldLinearAcceleration(ecm));
+  EXPECT_EQ(std::nullopt, link.WorldAngularAcceleration(ecm));
   EXPECT_EQ(nullptr, ecm.Component<components::WorldLinearAcceleration>(eLink));
+  EXPECT_EQ(nullptr,
+      ecm.Component<components::WorldAngularAcceleration>(eLink));
 }
 
 //////////////////////////////////////////////////
