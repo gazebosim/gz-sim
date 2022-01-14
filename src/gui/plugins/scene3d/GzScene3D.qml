@@ -40,7 +40,7 @@ Rectangle {
     anchors.fill: parent
     hoverEnabled: true
     acceptedButtons: Qt.NoButton
-    visible: Scene3D.loadingError.length == 0
+    visible: GzScene3D.loadingError.length == 0
     onEntered: {
       GzScene3D.OnFocusWindow()
     }
@@ -53,7 +53,7 @@ Rectangle {
     id: renderWindow
     objectName: "renderWindow"
     anchors.fill: parent
-    visible: Scene3D.loadingError.length == 0
+    visible: GzScene3D.loadingError.length == 0
 
     /**
      * Message to be displayed over the render window
@@ -127,8 +127,8 @@ Rectangle {
   Label {
     anchors.fill: parent
     anchors.margins: 10
-    text: Scene3D.loadingError
-    visible: (Scene3D.loadingError.length > 0);
+    text: GzScene3D.loadingError
+    visible: (GzScene3D.loadingError.length > 0);
     wrapMode: Text.WordWrap
   }
 }
