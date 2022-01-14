@@ -1112,7 +1112,7 @@ bool CreateCommand::Execute()
   this->iface->creator->SetParent(entity, this->iface->worldEntity);
 
   // Pose
-  math::Pose3d createPose;
+  std::optional<math::Pose3d> createPose;
   if (createMsg->has_pose())
   {
     createPose = msgs::Convert(createMsg->pose());
@@ -1143,17 +1143,22 @@ bool CreateCommand::Execute()
           math::SphericalCoordinates::LOCAL2);
 
       // Override pos and add to yaw
-      createPose.SetX(pos.X());
-      createPose.SetY(pos.Y());
-      createPose.SetZ(pos.Z());
-      createPose.Rot() = math::Quaterniond(0, 0,
+      if (!createPose.has_value())
+        createPose = math::Pose3d::Zero;
+      createPose.value().SetX(pos.X());
+      createPose.value().SetY(pos.Y());
+      createPose.value().SetZ(pos.Z());
+      createPose.value().Rot() = math::Quaterniond(0, 0,
           IGN_DTOR(createMsg->spherical_coordinates().heading_deg())) *
-          createPose.Rot();
+          createPose.value().Rot();
     }
   }
 
-  auto poseComp = this->iface->ecm->Component<components::Pose>(entity);
-  *poseComp = components::Pose(createPose);
+  if (createPose.has_value())
+  {
+    auto poseComp = this->iface->ecm->Component<components::Pose>(entity);
+    *poseComp = components::Pose(createPose.value());
+  }
 
   igndbg << "Created entity [" << entity << "] named [" << desiredName << "]"
          << std::endl;
