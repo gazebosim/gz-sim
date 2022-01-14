@@ -80,6 +80,25 @@ class ignition::gazebo::systems::BuoyancyEnginePrivateData
 };
 
 //////////////////////////////////////////////////
+double BuoyancyEnginePrivateData::CurrentFluidDensity(
+  EntityComponentManager &_ecm,
+  const Link &_link) const
+{
+  if (!this->surface.has_value())
+    return fluidDensity;
+
+  auto pose = _link.WorldPose(_ecm);
+  if (!pose.has_value())
+    return fluidDensity;
+
+  if(pose->Pos().Z() < this->surface.value())
+  {
+    return fluidDensity;
+  }
+  return 0;
+}
+
+//////////////////////////////////////////////////
 void BuoyancyEnginePrivateData::OnCmdBuoyancyEngine(
   const ignition::msgs::Double &_volumeSetpoint)
 {
