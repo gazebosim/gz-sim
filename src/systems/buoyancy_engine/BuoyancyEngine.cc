@@ -95,7 +95,7 @@ double BuoyancyEnginePrivateData::CurrentFluidDensity(
   if (!this->surface.has_value())
     return fluidDensity;
 
-  auto pose =_link.WorldPose(_ecm);
+  auto pose = _link.WorldPose(_ecm);
   if (!pose.has_value())
     return fluidDensity;
 
