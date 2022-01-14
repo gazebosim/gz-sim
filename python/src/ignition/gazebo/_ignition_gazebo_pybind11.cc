@@ -18,7 +18,6 @@
 
 #include "EntityComponentManager.hh"
 #include "EventManager.hh"
-#include "Exceptions.hh"
 #include "Server.hh"
 #include "ServerConfig.hh"
 #include "TestFixture.hh"
@@ -27,9 +26,6 @@
 
 PYBIND11_MODULE(gazebo, m) {
   m.doc() = "Ignition Gazebo Python Library.";
-
-  pybind11::register_exception<ignition::gazebo::python::InvalidHandle>(
-    m, "InvalidHandle", PyExc_RuntimeError);
 
   ignition::gazebo::python::defineGazeboEntityComponentManager(m);
   ignition::gazebo::python::defineGazeboEventManager(m);
