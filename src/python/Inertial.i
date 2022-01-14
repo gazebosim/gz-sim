@@ -35,9 +35,9 @@ namespace ignition
       public: Inertial(const MassMatrix3<T> &_massMatrix,
                        const Pose3<T> &_pose);
 
-      public: Inertial(const Inertial<T> &_inertial);
+      public: Inertial(const Inertial<T> &_inertial) = default;
 
-      public: virtual ~Inertial();
+      public: ~Inertial() = default;
 
       public: bool SetMassMatrix(const MassMatrix3<T> &_m,
                   const T _tolerance = IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>);

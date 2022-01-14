@@ -9,7 +9,7 @@ This tutorial explains how to use the `Vector` classes from Ignition Math librar
 To compile the code, go to `ign-math/examples` and use `cmake`:
 
 ```{.sh}
-git clone https://github.com/ignitionrobotics/ign-math/ -b ign-math6
+git clone https://github.com/ignitionrobotics/ign-math/ -b main
 cd ign-math/examples
 mkdir build
 cd build

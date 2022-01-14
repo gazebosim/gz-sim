@@ -331,42 +331,42 @@ class TestFrustrum(unittest.TestCase):
         # Compute near clip points
         nearTopLeft = Vector3d(
           -math.tan(30 * IGN_PI / 180.0) + offset,
-          frustum.pose().pos().y() + frustum.near() + offset,
+          frustum.pose().y() + frustum.near() + offset,
           math.tan(30 * IGN_PI / 180.0) / frustum.aspect_ratio() - offset)
 
         nearTopLeftBad = Vector3d(
           -math.tan(30 * IGN_PI / 180.0) - offset,
-          frustum.pose().pos().y() + frustum.near() - offset,
+          frustum.pose().y() + frustum.near() - offset,
           math.tan(30 * IGN_PI / 180.0) / frustum.aspect_ratio() + offset)
 
         nearTopRight = Vector3d(
           math.tan(30 * IGN_PI / 180.0) - offset,
-          frustum.pose().pos().y() + frustum.near() + offset,
+          frustum.pose().y() + frustum.near() + offset,
           math.tan(30 * IGN_PI / 180.0) / frustum.aspect_ratio() - offset)
 
         nearTopRightBad = Vector3d(
           math.tan(30 * IGN_PI / 180.0) + offset,
-          frustum.pose().pos().y() + frustum.near() - offset,
+          frustum.pose().y() + frustum.near() - offset,
           math.tan(30 * IGN_PI / 180.0) / frustum.aspect_ratio() + offset)
 
         nearBottomLeft = Vector3d(
           -math.tan(30 * IGN_PI / 180.0) + offset,
-          frustum.pose().pos().y() + frustum.near() + offset,
+          frustum.pose().y() + frustum.near() + offset,
           -math.tan(30 * IGN_PI / 180.0) / frustum.aspect_ratio() + offset)
 
         nearBottomLeftBad = Vector3d(
           -math.tan(30 * IGN_PI / 180.0) - offset,
-          frustum.pose().pos().y() + frustum.near() - offset,
+          frustum.pose().y() + frustum.near() - offset,
           -math.tan(30 * IGN_PI / 180.0) / frustum.aspect_ratio() - offset)
 
         nearBottomRight = Vector3d(
           math.tan(30 * IGN_PI / 180.0) - offset,
-          frustum.pose().pos().y() + frustum.near() + offset,
+          frustum.pose().y() + frustum.near() + offset,
           -math.tan(30 * IGN_PI / 180.0) / frustum.aspect_ratio() + offset)
 
         nearBottomRightBad = Vector3d(
           math.tan(30 * IGN_PI / 180.0) + offset,
-          frustum.pose().pos().y() + frustum.near() - offset,
+          frustum.pose().y() + frustum.near() - offset,
           -math.tan(30 * IGN_PI / 180.0) / frustum.aspect_ratio() - offset)
 
         # Test near clip corners
@@ -385,42 +385,42 @@ class TestFrustrum(unittest.TestCase):
         # Compute far clip points
         farTopLeft = Vector3d(
           -math.tan(30 * IGN_PI / 180.0) * frustum.far() + offset,
-          frustum.pose().pos().y() + frustum.far() - offset,
+          frustum.pose().y() + frustum.far() - offset,
           (math.tan(30 * IGN_PI / 180.0) * frustum.far()) / frustum.aspect_ratio() - offset)
 
         farTopLeftBad = Vector3d(
           -math.tan(30 * IGN_PI / 180.0)*frustum.far() - offset,
-          frustum.pose().pos().y() + frustum.far() + offset,
+          frustum.pose().y() + frustum.far() + offset,
           (math.tan(30 * IGN_PI / 180.0 * frustum.far())) / frustum.aspect_ratio() + offset)
 
         farTopRight = Vector3d(
           math.tan(30 * IGN_PI / 180.0)*frustum.far() - offset,
-          frustum.pose().pos().y() + frustum.far() - offset,
+          frustum.pose().y() + frustum.far() - offset,
           (math.tan(30 * IGN_PI / 180.0) * frustum.far()) / frustum.aspect_ratio() - offset)
 
         farTopRightBad = Vector3d(
           math.tan(30 * IGN_PI / 180.0)*frustum.far() + offset,
-          frustum.pose().pos().y() + frustum.far() + offset,
+          frustum.pose().y() + frustum.far() + offset,
           (math.tan(30 * IGN_PI / 180.0) * frustum.far()) / frustum.aspect_ratio() + offset)
 
         farBottomLeft = Vector3d(
           -math.tan(30 * IGN_PI / 180.0)*frustum.far() + offset,
-          frustum.pose().pos().y() + frustum.far() - offset,
+          frustum.pose().y() + frustum.far() - offset,
           (-math.tan(30 * IGN_PI / 180.0) * frustum.far()) / frustum.aspect_ratio() + offset)
 
         farBottomLeftBad = Vector3d(
           -math.tan(30 * IGN_PI / 180.0)*frustum.far() - offset,
-          frustum.pose().pos().y() + frustum.far() + offset,
+          frustum.pose().y() + frustum.far() + offset,
           (-math.tan(30 * IGN_PI / 180.0) * frustum.far()) / frustum.aspect_ratio() - offset)
 
         farBottomRight = Vector3d(
           math.tan(30 * IGN_PI / 180.0)*frustum.far() - offset,
-          frustum.pose().pos().y() + frustum.far() - offset,
+          frustum.pose().y() + frustum.far() - offset,
           (-math.tan(30 * IGN_PI / 180.0) * frustum.far()) / frustum.aspect_ratio() + offset)
 
         farBottomRightBad = Vector3d(
           math.tan(30 * IGN_PI / 180.0)*frustum.far() + offset,
-          frustum.pose().pos().y() + frustum.far() + offset,
+          frustum.pose().y() + frustum.far() + offset,
           (-math.tan(30 * IGN_PI / 180.0) * frustum.far()) / frustum.aspect_ratio() - offset)
 
         # Test far clip corners

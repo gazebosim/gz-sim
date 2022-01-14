@@ -55,23 +55,21 @@ namespace ignition
 
       public: Frustum();
 
-      public: Frustum(const double _near,
-                  const double _far,
+      public: Frustum(double _near,
+                  double _far,
                   const ignition::math::Angle &_fov,
-                  const double _aspectRatio,
+                  double _aspectRatio,
                   const ignition::math::Pose3<double> &_pose = ignition::math::Pose3<double>::Zero);
 
       public: Frustum(const Frustum &_p);
 
-      public: virtual ~Frustum();
-
       public: double Near() const;
 
-      public: void SetNear(const double _near);
+      public: void SetNear(double _near);
 
       public: double Far() const;
 
-      public: void SetFar(const double _far);
+      public: void SetFar(double _far);
 
       public: ignition::math::Angle FOV() const;
 
@@ -79,7 +77,7 @@ namespace ignition
 
       public: double AspectRatio() const;
 
-      public: void SetAspectRatio(const double _aspectRatio);
+      public: void SetAspectRatio(double _aspectRatio);
 
       public: ignition::math::Plane<double> Plane(const FrustumPlane _plane) const;
 
