@@ -37,7 +37,7 @@ namespace components
 /// The wrench is expressed in the Joint frame and the force component is
 /// applied at the joint origin.
 /// \note The term Wrench is used here to mean a pair of 3D vectors representing
-/// torque and force quantities expessed in a given frame and where the force is
+/// torque and force quantities expressed in a given frame and where the force is
 /// applied at the origin of the frame. This is different from the Wrench used
 /// in screw theory.
 /// \note The value of force_offset in msgs::Wrench is ignored for this
