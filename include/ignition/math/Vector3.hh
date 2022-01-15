@@ -232,7 +232,7 @@ namespace ignition
       /// \return an orthogonal vector
       public: Vector3 Perpendicular() const
       {
-        static const T sqrZero = 1e-06 * 1e-06;
+        static const T sqrZero = static_cast<T>(1e-06 * 1e-06);
 
         Vector3<T> perp = this->Cross(Vector3(1, 0, 0));
 

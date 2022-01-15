@@ -14,6 +14,16 @@ if (${pybind11_FOUND})
   # Split from main extension and converted to pybind11
   pybind11_add_module(math SHARED
     src/_ignition_math_pybind11.cc
+    src/Angle.cc
+    src/Color.cc
+    src/Helpers.cc
+    src/Rand.cc
+    src/RollingMean.cc
+    src/StopWatch.cc
+  )
+
+  target_link_libraries(math PRIVATE
+    ${PROJECT_LIBRARY_TARGET_NAME}
   )
 
   if(USE_SYSTEM_PATHS_FOR_PYTHON_INSTALLATION)
@@ -62,6 +72,13 @@ if (${pybind11_FOUND})
   if (BUILD_TESTING)
     # Add the Python tests
     set(python_tests
+      Angle_TEST
+      Color_TEST
+      Helpers_TEST
+      Line2_TEST
+      Rand_TEST
+      RollingMean_TEST
+      StopWatch_TEST
       Vector2_TEST
       Vector3_TEST
       Vector4_TEST

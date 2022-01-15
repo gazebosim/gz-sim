@@ -18,6 +18,7 @@
 #define IGNITION_MATH_VECTOR4_HH_
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 
 #include <ignition/math/Matrix4.hh>
