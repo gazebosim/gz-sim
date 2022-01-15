@@ -80,7 +80,7 @@ class ignition::gazebo::systems::AltimeterPrivate
 
   /// \brief Create altimeter sensor
   /// \param[in] _ecm Immutable reference to ECM.
-  public: void CreateAltimeterEntities(const EntityComponentManager &_ecm);
+  public: void CreateSensors(const EntityComponentManager &_ecm);
 
   /// \brief Update altimeter sensor data based on physics data
   /// \param[in] _ecm Immutable reference to ECM.
@@ -136,7 +136,7 @@ void Altimeter::PostUpdate(const UpdateInfo &_info,
         << "s]. System may not work properly." << std::endl;
   }
 
-  this->dataPtr->CreateAltimeterEntities(_ecm);
+  this->dataPtr->CreateSensors(_ecm);
 
   // Only update and publish if not paused.
   if (!_info.paused)
@@ -201,8 +201,7 @@ void AltimeterPrivate::AddAltimeter(
 }
 
 //////////////////////////////////////////////////
-void AltimeterPrivate::CreateAltimeterEntities(
-    const EntityComponentManager &_ecm)
+void AltimeterPrivate::CreateSensors(const EntityComponentManager &_ecm)
 {
   IGN_PROFILE("Altimeter::CreateAltimeterEntities");
   if (!this->initialized)

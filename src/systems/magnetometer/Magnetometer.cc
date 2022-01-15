@@ -80,7 +80,7 @@ class ignition::gazebo::systems::MagnetometerPrivate
 
   /// \brief Create magnetometer sensor
   /// \param[in] _ecm Immutable reference to ECM.
-  public: void CreateMagnetometerEntities(const EntityComponentManager &_ecm);
+  public: void CreateSensors(const EntityComponentManager &_ecm);
 
   /// \brief Update magnetometer sensor data based on physics data
   /// \param[in] _ecm Immutable reference to ECM.
@@ -137,7 +137,7 @@ void Magnetometer::PostUpdate(const UpdateInfo &_info,
         << "s]. System may not work properly." << std::endl;
   }
 
-  this->dataPtr->CreateMagnetometerEntities(_ecm);
+  this->dataPtr->CreateSensors(_ecm);
 
   // Only update and publish if not paused.
   if (!_info.paused)
@@ -206,8 +206,7 @@ void MagnetometerPrivate::AddMagnetometer(
 }
 
 //////////////////////////////////////////////////
-void MagnetometerPrivate::CreateMagnetometerEntities(
-    const EntityComponentManager &_ecm)
+void MagnetometerPrivate::CreateSensors(const EntityComponentManager &_ecm)
 {
   IGN_PROFILE("MagnetometerPrivate::CreateMagnetometerEntities");
   auto worldEntity = _ecm.EntityByComponents(components::World());

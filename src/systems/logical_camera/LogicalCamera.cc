@@ -81,7 +81,7 @@ class ignition::gazebo::systems::LogicalCameraPrivate
 
   /// \brief Create logicalCamera sensor
   /// \param[in] _ecm Immutable reference to ECM.
-  public: void CreateLogicalCameraEntities(const EntityComponentManager &_ecm);
+  public: void CreateSensors(const EntityComponentManager &_ecm);
 
   /// \brief Update logicalCamera sensor data based on physics data
   /// \param[in] _ecm Immutable reference to ECM.
@@ -138,7 +138,7 @@ void LogicalCamera::PostUpdate(const UpdateInfo &_info,
         << "s]. System may not work properly." << std::endl;
   }
 
-  this->dataPtr->CreateLogicalCameraEntities(_ecm);
+  this->dataPtr->CreateSensors(_ecm);
 
   // Only update and publish if not paused.
   if (!_info.paused)
@@ -200,8 +200,7 @@ void LogicalCameraPrivate::AddLogicalCamera(
 }
 
 //////////////////////////////////////////////////
-void LogicalCameraPrivate::CreateLogicalCameraEntities(
-    const EntityComponentManager &_ecm)
+void LogicalCameraPrivate::CreateSensors(const EntityComponentManager &_ecm)
 {
   IGN_PROFILE("LogicalCameraPrivate::CreateLogicalCameraEntities");
   if (!this->initialized)

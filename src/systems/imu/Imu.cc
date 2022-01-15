@@ -72,7 +72,7 @@ class ignition::gazebo::systems::ImuPrivate
 
   /// \brief Create IMU sensors in ign-sensors
   /// \param[in] _ecm Immutable reference to ECM.
-  public: void CreateImuEntities(const EntityComponentManager &_ecm);
+  public: void CreateSensors(const EntityComponentManager &_ecm);
 
   /// \brief Update IMU sensor data based on physics data
   /// \param[in] _ecm Immutable reference to ECM.
@@ -139,7 +139,7 @@ void Imu::PostUpdate(const UpdateInfo &_info,
         << "s]. System may not work properly." << std::endl;
   }
 
-  this->dataPtr->CreateImuEntities(_ecm);
+  this->dataPtr->CreateSensors(_ecm);
 
   // Only update and publish if not paused.
   if (!_info.paused)
@@ -214,7 +214,7 @@ void ImuPrivate::AddSensor(
 }
 
 //////////////////////////////////////////////////
-void ImuPrivate::CreateImuEntities(const EntityComponentManager &_ecm)
+void ImuPrivate::CreateSensors(const EntityComponentManager &_ecm)
 {
   IGN_PROFILE("ImuPrivate::CreateImuEntities");
   // Get World Entity

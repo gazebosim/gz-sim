@@ -77,8 +77,8 @@ class ignition::gazebo::systems::AirPressurePrivate
     const components::ParentEntity *_parent);
 
   /// \brief Create air pressure sensor
-  /// \param[in] _ecm Imutable reference to ECM.
-  public: void CreateAirPressureEntities(const EntityComponentManager &_ecm);
+  /// \param[in] _ecm Immutable reference to ECM.
+  public: void CreateSensors(const EntityComponentManager &_ecm);
 
   /// \brief Update air pressure sensor data based on physics data
   /// \param[in] _ecm Immutable reference to ECM.
@@ -136,7 +136,7 @@ void AirPressure::PostUpdate(const UpdateInfo &_info,
         << "s]. System may not work properly." << std::endl;
   }
 
-  this->dataPtr->CreateAirPressureEntities(_ecm);
+  this->dataPtr->CreateSensors(_ecm);
 
   if (!_info.paused)
   {
@@ -199,8 +199,7 @@ void AirPressurePrivate::AddAirPressure(
 }
 
 //////////////////////////////////////////////////
-void AirPressurePrivate::CreateAirPressureEntities(
-    const EntityComponentManager &_ecm)
+void AirPressurePrivate::CreateSensors(const EntityComponentManager &_ecm)
 {
   IGN_PROFILE("AirPressurePrivate::CreateAirPressureEntities");
   if (!this->initialized)
