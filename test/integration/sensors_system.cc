@@ -87,6 +87,17 @@ void testDefaultTopics()
   std::vector<transport::MessagePublisher> publishers;
   transport::Node node;
 
+  // Sensors are created in a separate thread, so we sleep here to give them
+  // time
+  int sleep{0};
+  int maxSleep{30};
+  for (; sleep < maxSleep && !node.TopicInfo(topics.front(), publishers);
+      ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  ASSERT_LT(sleep, maxSleep);
+
   for (const std::string &topic : topics)
   {
     bool result = node.TopicInfo(topic, publishers);

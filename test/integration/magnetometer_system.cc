@@ -23,6 +23,7 @@
 #include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/MagneticField.hh"
 #include "ignition/gazebo/components/Magnetometer.hh"
@@ -60,7 +61,8 @@ void magnetometerCb(const msgs::Magnetometer &_msg)
 
 /////////////////////////////////////////////////
 // The test checks the detected field from a rotated magnetometer
-TEST_F(MagnetometerTest, RotatedMagnetometer)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(MagnetometerTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RotatedMagnetometer))
 {
   // Start server
   ServerConfig serverConfig;

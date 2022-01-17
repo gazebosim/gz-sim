@@ -69,6 +69,15 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
   /// \param[in] _req This value should be true.
   public: void OnDisableRecharge(const ignition::msgs::Boolean &_req);
 
+  /// \brief Callback connected to additional topics that can start battery
+  /// draining.
+  /// \param[in] _data Message data.
+  /// \param[in] _size Message data size.
+  /// \param[in] _info Information about the message.
+  public: void OnBatteryDrainingMsg(
+    const char *_data, const size_t _size,
+    const ignition::transport::MessageInfo &_info);
+
   /// \brief Name of model, only used for printing warning when battery drains.
   public: std::string modelName;
 
@@ -153,6 +162,9 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
 
   /// \brief Battery state of charge message publisher
   public: transport::Node::Publisher statePub;
+
+  /// \brief Whether a topic has received any battery-draining command.
+  public: bool startDrainingFromTopics = false;
 };
 
 /////////////////////////////////////////////////
@@ -340,6 +352,23 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
             << "in LinearBatteryPlugin SDF" << std::endl;
   }
 
+  // Subscribe to power draining topics, if any.
+  if (_sdf->HasElement("power_draining_topic"))
+  {
+    sdf::ElementConstPtr sdfElem = _sdf->FindElement("power_draining_topic");
+    while (sdfElem)
+    {
+      const auto &topic = sdfElem->Get<std::string>();
+      this->dataPtr->node.SubscribeRaw(topic,
+          std::bind(&LinearBatteryPluginPrivate::OnBatteryDrainingMsg,
+          this->dataPtr.get(), std::placeholders::_1, std::placeholders::_2,
+          std::placeholders::_3));
+      ignmsg << "LinearBatteryPlugin subscribes to power draining topic ["
+             << topic << "]." << std::endl;
+      sdfElem = sdfElem->GetNextElement("power_draining_topic");
+    }
+  }
+
   ignmsg << "LinearBatteryPlugin configured. Battery name: "
          << this->dataPtr->battery->Name() << std::endl;
   igndbg << "Battery initial voltage: " << this->dataPtr->battery->InitVoltage()
@@ -371,6 +400,7 @@ void LinearBatteryPluginPrivate::Reset()
   this->iraw = 0.0;
   this->ismooth = 0.0;
   this->q = this->q0;
+  this->startDrainingFromTopics = false;
 }
 
 /////////////////////////////////////////////////
@@ -396,12 +426,23 @@ void LinearBatteryPluginPrivate::OnDisableRecharge(
 }
 
 //////////////////////////////////////////////////
+void LinearBatteryPluginPrivate::OnBatteryDrainingMsg(
+  const char *, const size_t, const ignition::transport::MessageInfo &)
+{
+  this->startDrainingFromTopics = true;
+}
+
+//////////////////////////////////////////////////
 void LinearBatteryPlugin::PreUpdate(
   const ignition::gazebo::UpdateInfo &/*_info*/,
   ignition::gazebo::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("LinearBatteryPlugin::PreUpdate");
-  this->dataPtr->startDraining = false;
+
+  // \todo(anyone) Add in the ability to stop the battery from draining
+  // after it has been started by a topic. See this comment:
+  // https://github.com/ignitionrobotics/ign-gazebo/pull/1255#discussion_r770223092
+  this->dataPtr->startDraining = this->dataPtr->startDrainingFromTopics;
   // Start draining the battery if the robot has started moving
   if (!this->dataPtr->startDraining)
   {
