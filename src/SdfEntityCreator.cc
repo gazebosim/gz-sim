@@ -57,6 +57,7 @@
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/NavSat.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include <ignition/gazebo/components/ParticleEmitter.hh>
@@ -589,6 +590,13 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Link *_link)
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint)
 {
+  return this->CreateEntities(_joint, false);
+}
+
+//////////////////////////////////////////////////
+Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint,
+    bool _resolved)
+{
   IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Joint)");
 
   // Entity
@@ -645,34 +653,54 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint)
   this->dataPtr->ecm->CreateComponent(jointEntity ,
       components::ThreadPitch(_joint->ThreadPitch()));
 
-  std::string resolvedParentLinkName;
-  const auto resolveParentErrors =
-    _joint->ResolveParentLink(resolvedParentLinkName);
-  if (!resolveParentErrors.empty())
-  {
-    ignerr << "Failed to resolve parent link for joint '" << _joint->Name()
-           << "' with parent name '" << _joint->ParentLinkName() << "'"
-           << std::endl;
 
-    return kNullEntity;
+  std::string resolvedParentLinkName;
+  if (_resolved)
+  {
+    resolvedParentLinkName = _joint->ParentLinkName();
+  }
+  else
+  {
+
+    const auto resolveParentErrors =
+      _joint->ResolveParentLink(resolvedParentLinkName);
+    if (!resolveParentErrors.empty())
+    {
+      ignerr << "Failed to resolve parent link for joint '" << _joint->Name()
+             << "' with parent name '" << _joint->ParentLinkName() << "'"
+             << std::endl;
+      for (const auto &error : resolveParentErrors)
+      {
+        ignerr << error << std::endl;
+      }
+
+      return kNullEntity;
+    }
   }
   this->dataPtr->ecm->CreateComponent(
       jointEntity, components::ParentLinkName(resolvedParentLinkName));
 
   std::string resolvedChildLinkName;
-  const auto resolveChildErrors =
-    _joint->ResolveChildLink(resolvedChildLinkName);
-  if (!resolveChildErrors.empty())
+  if (_resolved)
   {
-    ignerr << "Failed to resolve child link for joint '" << _joint->Name()
-           << "' with child name '" << _joint->ChildLinkName() << "'"
-           << std::endl;
-    for (const auto &error : resolveChildErrors)
+    resolvedChildLinkName = _joint->ChildLinkName();
+  }
+  else
+  {
+    const auto resolveChildErrors =
+      _joint->ResolveChildLink(resolvedChildLinkName);
+    if (!resolveChildErrors.empty())
     {
-      ignerr << error << std::endl;
-    }
+      ignerr << "Failed to resolve child link for joint '" << _joint->Name()
+             << "' with child name '" << _joint->ChildLinkName() << "'"
+             << std::endl;
+      for (const auto &error : resolveChildErrors)
+      {
+        ignerr << error << std::endl;
+      }
 
-    return kNullEntity;
+      return kNullEntity;
+    }
   }
 
   this->dataPtr->ecm->CreateComponent(
@@ -846,6 +874,16 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
     // create components to be filled by physics
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::WorldPose(math::Pose3d::Zero));
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::WorldLinearVelocity(math::Vector3d::Zero));
+  }
+  else if (_sensor->Type() == sdf::SensorType::GPS ||
+           _sensor->Type() == sdf::SensorType::NAVSAT)
+  {
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+            components::NavSat(*_sensor));
+
+    // Create components to be filled by physics.
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::WorldLinearVelocity(math::Vector3d::Zero));
   }

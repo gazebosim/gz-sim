@@ -28,6 +28,7 @@
 #include <ignition/math/Pose3.hh>
 #include <ignition/msgs.hh>
 #include <ignition/transport.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/LogicalAudio.hh"
 #include "ignition/gazebo/components/Pose.hh"
@@ -49,7 +50,9 @@ class LogicalAudioTest : public InternalFixture<::testing::Test>
 {
 };
 
-TEST_F(LogicalAudioTest, LogicalAudioDetections)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(LogicalAudioTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(LogicalAudioDetections))
 {
   ServerConfig serverConfig;
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
@@ -204,7 +207,7 @@ TEST_F(LogicalAudioTest, LogicalAudioDetections)
       "world/logical_audio_sensor/model/source_model/sensor/source_1");
 }
 
-TEST_F(LogicalAudioTest, LogicalAudioServices)
+TEST_F(LogicalAudioTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogicalAudioServices))
 {
   ServerConfig serverConfig;
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +

@@ -21,6 +21,7 @@
 #include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/math/Rand.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 #include <ignition/utils/SuppressWarning.hh>
 
 #include "ignition/gazebo/components/CanonicalLink.hh"
@@ -125,6 +126,7 @@ TEST_P(EntityComponentManagerFixture, InvalidComponentType)
   EXPECT_EQ(2u, manager.CreateEntity());
   EXPECT_TRUE(manager.HasEntity(2));
   EXPECT_FALSE(manager.RemoveComponent(2, IntComponent::typeId));
+  EXPECT_FALSE(manager.HasRemovedComponents());
 
   // We should get a nullptr if the component type doesn't exist.
   EXPECT_TRUE(manager.HasEntity(1u));
@@ -134,7 +136,8 @@ TEST_P(EntityComponentManagerFixture, InvalidComponentType)
 }
 
 /////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, RemoveComponent)
+TEST_P(EntityComponentManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(RemoveComponent))
 {
   // Create some entities
   auto eInt = manager.CreateEntity();
@@ -182,6 +185,7 @@ TEST_P(EntityComponentManagerFixture, RemoveComponent)
   EXPECT_FALSE(manager.EntityHasComponentType(eInt, IntComponent::typeId));
   EXPECT_TRUE(manager.ComponentTypes(eInt).empty());
   EXPECT_EQ(nullptr, manager.Component<IntComponent>(eInt));
+  EXPECT_TRUE(manager.HasRemovedComponents());
 
   EXPECT_TRUE(manager.RemoveComponent(eDouble, DoubleComponent::typeId));
   EXPECT_FALSE(manager.EntityHasComponentType(eDouble,
@@ -210,7 +214,8 @@ TEST_P(EntityComponentManagerFixture, RemoveComponent)
 }
 
 /////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, EntitiesAndComponents)
+TEST_P(EntityComponentManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(EntitiesAndComponents))
 {
   EXPECT_EQ(0u, manager.EntityCount());
 
@@ -297,7 +302,8 @@ TEST_P(EntityComponentManagerFixture, EntitiesAndComponents)
 }
 
 /////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, ComponentValues)
+TEST_P(EntityComponentManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(ComponentValues))
 {
   // Create some entities
   Entity eInt = manager.CreateEntity();
@@ -472,7 +478,8 @@ TEST_P(EntityComponentManagerFixture, ComponentValues)
 }
 
 //////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, RebuildViews)
+TEST_P(EntityComponentManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(RebuildViews))
 {
   // Create some entities
   Entity eInt = manager.CreateEntity();
@@ -541,7 +548,8 @@ TEST_P(EntityComponentManagerFixture, RebuildViews)
 }
 
 //////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, ViewsAddComponents)
+TEST_P(EntityComponentManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(ViewsAddComponents))
 {
   // Create some entities
   Entity eInt = manager.CreateEntity();
@@ -614,7 +622,8 @@ TEST_P(EntityComponentManagerFixture, ViewsAddComponents)
 }
 
 //////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, ViewsRemoveComponents)
+TEST_P(EntityComponentManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(ViewsRemoveComponents))
 {
   // Create some entities
   Entity eInt = manager.CreateEntity();
@@ -688,7 +697,8 @@ TEST_P(EntityComponentManagerFixture, ViewsRemoveComponents)
 }
 
 //////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, ViewsAddEntity)
+TEST_P(EntityComponentManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(ViewsAddEntity))
 {
   // Create some entities
   Entity eInt = manager.CreateEntity();
@@ -777,7 +787,8 @@ TEST_P(EntityComponentManagerFixture, ViewsAddEntity)
 }
 
 //////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, ViewsRemoveEntities)
+TEST_P(EntityComponentManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(ViewsRemoveEntities))
 {
   // Create some entities
   Entity eInt = manager.CreateEntity();
@@ -913,7 +924,8 @@ TEST_P(EntityComponentManagerFixture, RemoveEntity)
 }
 
 //////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, ViewsRemoveEntity)
+TEST_P(EntityComponentManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(ViewsRemoveEntity))
 {
   // Create some entities
   Entity eInt = manager.CreateEntity();
@@ -1045,7 +1057,8 @@ int eachCount(EntityCompMgrTest &_manager)
 }
 
 //////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, EachNewBasic)
+TEST_P(EntityComponentManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(EachNewBasic))
 {
   // Create entities
   Entity e1 = manager.CreateEntity();
@@ -1089,7 +1102,8 @@ TEST_P(EntityComponentManagerFixture, EachNewBasic)
 }
 
 //////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, EachNewAfterRemoveComponent)
+TEST_P(EntityComponentManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(EachNewAfterRemoveComponent))
 {
   // Create entities
   Entity e1 = manager.CreateEntity();
@@ -1109,7 +1123,8 @@ TEST_P(EntityComponentManagerFixture, EachNewAfterRemoveComponent)
 }
 
 //////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, EachNewRemoveComponentFromRemoveEntity)
+TEST_P(EntityComponentManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(EachNewRemoveComponentFromRemoveEntity))
 {
   // Create entities
   Entity e1 = manager.CreateEntity();
@@ -1129,7 +1144,8 @@ TEST_P(EntityComponentManagerFixture, EachNewRemoveComponentFromRemoveEntity)
 }
 
 //////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, EachNewAddComponentToExistingEntity)
+TEST_P(EntityComponentManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(EachNewAddComponentToExistingEntity))
 {
   // Create entities
   Entity e1 = manager.CreateEntity();
@@ -1162,7 +1178,8 @@ TEST_P(EntityComponentManagerFixture, EachNewAddComponentToExistingEntity)
 }
 
 ////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, EachRemoveBasic)
+TEST_P(EntityComponentManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(EachRemoveBasic))
 {
   // Create an entities
   Entity e1 = manager.CreateEntity();
@@ -1194,7 +1211,8 @@ TEST_P(EntityComponentManagerFixture, EachRemoveBasic)
 }
 
 ////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, EachRemoveAlreadyRemove)
+TEST_P(EntityComponentManagerFixture,
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(EachRemoveAlreadyRemove))
 {
   // Create an entities
   Entity e1 = manager.CreateEntity();
@@ -1216,7 +1234,8 @@ TEST_P(EntityComponentManagerFixture, EachRemoveAlreadyRemove)
 }
 
 ////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, EachRemoveAfterRebuild)
+TEST_P(EntityComponentManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(EachRemoveAfterRebuild))
 {
   // Test after rebuild
   Entity e1 = manager.CreateEntity();
@@ -1235,7 +1254,8 @@ TEST_P(EntityComponentManagerFixture, EachRemoveAfterRebuild)
 }
 
 ////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, EachRemoveAddComponentToRemoveEntity)
+TEST_P(EntityComponentManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(EachRemoveAddComponentToRemoveEntity))
 {
   Entity e1 = manager.CreateEntity();
   auto comp1 = manager.CreateComponent<IntComponent>(e1, IntComponent(123));
@@ -1253,7 +1273,8 @@ TEST_P(EntityComponentManagerFixture, EachRemoveAddComponentToRemoveEntity)
 }
 
 ////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, EachRemoveAllRemove)
+TEST_P(EntityComponentManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(EachRemoveAllRemove))
 {
   // Test when all entities are removed
   Entity e1 = manager.CreateEntity();
@@ -1272,7 +1293,8 @@ TEST_P(EntityComponentManagerFixture, EachRemoveAllRemove)
 }
 
 ////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, EachNewEachRemove)
+TEST_P(EntityComponentManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(EachNewEachRemove))
 {
   // Test EachNew and EachRemove together
   Entity e1 = manager.CreateEntity();
@@ -1302,7 +1324,8 @@ TEST_P(EntityComponentManagerFixture, EachNewEachRemove)
 }
 
 ////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, EachGetsNewOldRemove)
+TEST_P(EntityComponentManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(EachGetsNewOldRemove))
 {
   // Test that an Each call gets new, old, and removed entities
   Entity e1 = manager.CreateEntity();
@@ -1337,7 +1360,8 @@ TEST_P(EntityComponentManagerFixture, EachGetsNewOldRemove)
 }
 
 //////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, EachAddRemoveComponent)
+TEST_P(EntityComponentManagerFixture,
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(EachAddRemoveComponent))
 {
   // test calling ecm.Each on entities that have components added/removed
   // frequently. This is common with *Cmd components
@@ -1397,7 +1421,8 @@ TEST_P(EntityComponentManagerFixture, EachAddRemoveComponent)
 }
 
 //////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, EntityByComponents)
+TEST_P(EntityComponentManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(EntityByComponents))
 {
   // Create some entities
   Entity eInt = manager.CreateEntity();
@@ -1477,7 +1502,8 @@ TEST_P(EntityComponentManagerFixture, EntityByComponents)
 }
 
 /////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, EntityGraph)
+TEST_P(EntityComponentManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(EntityGraph))
 {
   EXPECT_EQ(0u, manager.EntityCount());
 
@@ -1616,7 +1642,7 @@ TEST_P(EntityComponentManagerFixture, EntityGraph)
 }
 
 /////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, State)
+TEST_P(EntityComponentManagerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(State))
 {
   // Entities and components
   Entity e1{1};
@@ -1897,7 +1923,8 @@ TEST_P(EntityComponentManagerFixture, State)
 }
 
 /////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, ChangedStateComponents)
+TEST_P(EntityComponentManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(ChangedStateComponents))
 {
   // Entity and component
   Entity e1{1};
@@ -2178,7 +2205,8 @@ TEST_P(EntityComponentManagerFixture, Descendants)
 }
 
 //////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, SetChanged)
+TEST_P(EntityComponentManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(SetChanged))
 {
   // Create entities
   Entity e1 = manager.CreateEntity();
@@ -2258,7 +2286,8 @@ TEST_P(EntityComponentManagerFixture, SetChanged)
 }
 
 //////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, SetEntityCreateOffset)
+TEST_P(EntityComponentManagerFixture,
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(SetEntityCreateOffset))
 {
   // First entity should have a value of 1.
   Entity entity = manager.CreateEntity();
@@ -2276,7 +2305,9 @@ TEST_P(EntityComponentManagerFixture, SetEntityCreateOffset)
 }
 
 //////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, SerializedStateMapMsgAfterRemoveComponent)
+TEST_P(EntityComponentManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(
+           SerializedStateMapMsgAfterRemoveComponent))
 {
   // Create entity
   Entity e1 = manager.CreateEntity();
@@ -2344,7 +2375,8 @@ TEST_P(EntityComponentManagerFixture, SerializedStateMapMsgAfterRemoveComponent)
 }
 
 //////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, SerializedStateMsgAfterRemoveComponent)
+TEST_P(EntityComponentManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(SerializedStateMsgAfterRemoveComponent))
 {
   // Create entity
   Entity e1 = manager.CreateEntity();
@@ -2408,7 +2440,8 @@ TEST_P(EntityComponentManagerFixture, SerializedStateMsgAfterRemoveComponent)
 //////////////////////////////////////////////////
 // Verify SerializedStateMap message with no changed components,
 // but some removed components
-TEST_P(EntityComponentManagerFixture, SerializedStateMapMsgCompsRemovedOnly)
+TEST_P(EntityComponentManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(SerializedStateMapMsgCompsRemovedOnly))
 {
   // Create entity
   Entity e1 = manager.CreateEntity();
@@ -2452,7 +2485,8 @@ TEST_P(EntityComponentManagerFixture, SerializedStateMapMsgCompsRemovedOnly)
 //////////////////////////////////////////////////
 // Verify that removed components are correctly filtered when creating a
 // SerializedStateMap message
-TEST_P(EntityComponentManagerFixture, SetRemovedComponentsMsgTypesFilter)
+TEST_P(EntityComponentManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(SetRemovedComponentsMsgTypesFilter))
 {
   // Create entity
   Entity e1 = manager.CreateEntity();
@@ -2493,7 +2527,9 @@ TEST_P(EntityComponentManagerFixture, SetRemovedComponentsMsgTypesFilter)
 }
 
 //////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, RemovedComponentsSyncBetweenServerAndGUI)
+TEST_P(EntityComponentManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(
+           RemovedComponentsSyncBetweenServerAndGUI))
 {
   // Simulate the GUI's ECM
   EntityCompMgrTest guiManager;
@@ -2617,7 +2653,8 @@ static void CompareEntityComponents(const EntityComponentManager &_ecm,
 }
 
 //////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, CloneEntities)
+TEST_P(EntityComponentManagerFixture,
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(CloneEntities))
 {
   // testing entity cloning with the following entity structure:
   // - topLevelEntity
@@ -2795,15 +2832,21 @@ TEST_P(EntityComponentManagerFixture, CloneEntities)
   EXPECT_EQ(kNullEntity, failedClonedEntity);
 
   // create a joint with a parent and child link
+  const std::string parentModelEntityName = "parentModelEntity";
   const std::string parentLinkEntityName = "parentLinkEntity";
   const std::string childLinkEntityName = "childLinkEntity";
+  Entity parentModelEntity = manager.CreateEntity();
+  manager.CreateComponent(parentModelEntity,
+      components::Name(parentModelEntityName));
   Entity parentLinkEntity = manager.CreateEntity();
   manager.CreateComponent(parentLinkEntity,
       components::Name(parentLinkEntityName));
   manager.CreateComponent(parentLinkEntity, components::CanonicalLink());
+  manager.CreateComponent(parentLinkEntity,
+      components::ParentEntity(parentModelEntity));
   Entity jointEntity = manager.CreateEntity();
   manager.CreateComponent(jointEntity,
-      components::ParentEntity(parentLinkEntity));
+      components::ParentEntity(parentModelEntity));
   manager.CreateComponent(jointEntity, components::Name("jointEntity"));
   manager.CreateComponent(jointEntity, components::Joint());
   manager.CreateComponent(jointEntity,
@@ -2812,26 +2855,33 @@ TEST_P(EntityComponentManagerFixture, CloneEntities)
       components::ChildLinkName(childLinkEntityName));
   Entity childLinkEntity = manager.CreateEntity();
   manager.CreateComponent(childLinkEntity,
-      components::ParentEntity(jointEntity));
+      components::ParentEntity(parentModelEntity));
   manager.CreateComponent(childLinkEntity,
       components::Name(childLinkEntityName));
   manager.CreateComponent(childLinkEntity, components::Link());
-  EXPECT_EQ(13u, manager.EntityCount());
+  EXPECT_EQ(14u, manager.EntityCount());
 
   // clone a joint that has a parent and child link.
-  auto clonedParentLinkEntity = manager.Clone(parentLinkEntity, kNullEntity,
+  auto clonedParentModelEntity = manager.Clone(parentModelEntity, kNullEntity,
       "", true);
-  ASSERT_NE(kNullEntity, clonedParentLinkEntity);
-  EXPECT_EQ(16u, manager.EntityCount());
-  clonedEntities.insert(clonedParentLinkEntity);
+  ASSERT_NE(kNullEntity, clonedParentModelEntity);
+  // We just cloned a model with two links and a joint, a total of 4 new
+  // entities.
+  EXPECT_EQ(18u, manager.EntityCount());
+  clonedEntities.insert(clonedParentModelEntity);
   auto clonedJoints = manager.EntitiesByComponents(
-      components::ParentEntity(clonedParentLinkEntity));
+      components::ParentEntity(clonedParentModelEntity), components::Joint());
   ASSERT_EQ(1u, clonedJoints.size());
   clonedEntities.insert(clonedJoints[0]);
   auto clonedChildLinks = manager.EntitiesByComponents(
-      components::ParentEntity(clonedJoints[0]));
+      components::ParentEntity(clonedParentModelEntity), components::Link());
   ASSERT_EQ(1u, clonedChildLinks.size());
   clonedEntities.insert(clonedChildLinks[0]);
+  auto clonedChildCanonicalLinks = manager.EntitiesByComponents(
+      components::ParentEntity(clonedParentModelEntity),
+      components::CanonicalLink());
+  ASSERT_EQ(1u, clonedChildCanonicalLinks.size());
+  clonedEntities.insert(clonedChildCanonicalLinks[0]);
 
   // The cloned joint should have the cloned parent/child link names attached to
   // it, not the original parent/child link names
@@ -2843,17 +2893,19 @@ TEST_P(EntityComponentManagerFixture, CloneEntities)
     manager.Component<components::ChildLinkName>(clonedJoints[0]);
   ASSERT_NE(nullptr, clonedJointChildLinkName);
   EXPECT_NE(clonedJointChildLinkName->Data(), childLinkEntityName);
-  auto clonedParentLinkName =
-    manager.Component<components::Name>(clonedParentLinkEntity);
-  ASSERT_NE(nullptr, clonedParentLinkName);
-  EXPECT_EQ(clonedParentLinkName->Data(), clonedJointParentLinkName->Data());
+  auto clonedParentModelName =
+    manager.Component<components::Name>(clonedParentModelEntity);
+  ASSERT_NE(nullptr, clonedParentModelName);
+  auto clonedJointParentModelName = manager.Component<components::Name>(
+    manager.Component<components::ParentEntity>(clonedJoints[0])->Data());
+  EXPECT_EQ(clonedParentModelName->Data(), clonedJointParentModelName->Data());
   auto clonedChildLinkName =
     manager.Component<components::Name>(clonedChildLinks[0]);
   ASSERT_NE(nullptr, clonedChildLinkName);
   EXPECT_EQ(clonedJointChildLinkName->Data(), clonedChildLinkName->Data());
 
   // make sure that the name given to each cloned entity is unique
-  EXPECT_EQ(8u, clonedEntities.size());
+  EXPECT_EQ(9u, clonedEntities.size());
   for (const auto &entity : clonedEntities)
   {
     auto nameComp = manager.Component<components::Name>(entity);
@@ -2864,12 +2916,13 @@ TEST_P(EntityComponentManagerFixture, CloneEntities)
   // try to clone an entity that does not exist
   EXPECT_EQ(kNullEntity, manager.Clone(kNullEntity, topLevelEntity, "",
         allowRename));
-  EXPECT_EQ(16u, manager.EntityCount());
+  EXPECT_EQ(18u, manager.EntityCount());
 }
 
 /////////////////////////////////////////////////
 // Check that some widely used deprecated APIs still work
-TEST_P(EntityComponentManagerFixture, Deprecated)
+TEST_P(EntityComponentManagerFixture,
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(Deprecated))
 {
   IGN_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
 
@@ -3003,7 +3056,8 @@ TEST_P(EntityComponentManagerFixture, PinnedEntity)
 //////////////////////////////////////////////////
 /// \brief Test using msgs::SerializedStateMap and msgs::SerializedState
 /// to update existing component data between multiple ECMs
-TEST_P(EntityComponentManagerFixture, StateMsgUpdateComponent)
+TEST_P(EntityComponentManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(StateMsgUpdateComponent))
 {
   // create 2 ECMs: one will be modified directly, and the other should be
   // updated to match the first via msgs::SerializedStateMap

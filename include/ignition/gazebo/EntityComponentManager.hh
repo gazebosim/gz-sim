@@ -132,7 +132,7 @@ namespace ignition
       /// being removed.
       ///
       /// This function can be useful when seek operations during log
-      /// playback are used in conjunciton with spawned entities. For
+      /// playback are used in conjunction with spawned entities. For
       /// example, you may want to record a video based on a log file
       /// using a headless simulation instance. This requires a
       /// camera sensor which would be spawned during log playback. If
@@ -668,6 +668,10 @@ namespace ignition
       /// playback.
       /// \param[in] _offset Offset value.
       public: void SetEntityCreateOffset(uint64_t _offset);
+
+      /// \brief Return true if there are components marked for removal.
+      /// \return True if there are components marked for removal.
+      public: bool HasRemovedComponents() const;
 
       /// \brief Clear the list of newly added entities so that a call to
       /// EachAdded after this will have no entities to iterate. This function

@@ -22,6 +22,7 @@
 #include <ignition/math/Stopwatch.hh>
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
@@ -30,7 +31,8 @@
 using namespace ignition;
 using namespace gazebo;
 
-TEST(LevelManagerPerfrormance, LevelVsNoLevel)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST(LevelManagerPerfrormance, IGN_UTILS_TEST_DISABLED_ON_WIN32(LevelVsNoLevel))
 {
   using namespace std::chrono;
 

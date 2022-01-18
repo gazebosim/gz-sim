@@ -18,6 +18,9 @@
 #define IGNITION_GAZEBO_GUI_GUIEVENTS_HH_
 
 #include <QEvent>
+#include <QMap>
+#include <QString>
+
 #include <set>
 #include <string>
 #include <utility>
@@ -176,6 +179,38 @@ namespace events
     /// \brief True if a transform mode is active.
     private: bool tranformModeActive;
   };
+
+  /// \brief Event that notifies an entity is to be added to the model editor
+  class IGNITION_GAZEBO_GUI_VISIBLE ModelEditorAddEntity : public QEvent
+  {
+    /// \brief Constructor
+    /// \param[in] _entity Entity added
+    /// \param[in] _type Entity type
+    /// \param[in] _parent Parent entity.
+    public: explicit ModelEditorAddEntity(QString _entity, QString _type,
+                ignition::gazebo::Entity _parent);
+
+    /// \brief Get the entity to add
+    public: QString Entity() const;
+
+    /// \brief Get the entity type
+    public: QString EntityType() const;
+
+
+    /// \brief Get the parent entity to add the entity to
+    public: ignition::gazebo::Entity ParentEntity() const;
+
+    /// \brief Get the data map.
+    /// \return the QMap of string, string holding custom data.
+    public: QMap<QString, QString> &Data();
+
+    static const QEvent::Type kType = QEvent::Type(QEvent::User + 7);
+
+    /// \internal
+    /// \brief Private data pointer
+    IGN_UTILS_IMPL_PTR(dataPtr)
+  };
+
 }  // namespace events
 }
 }  // namespace gui

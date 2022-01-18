@@ -38,6 +38,7 @@ set(tests
   model.cc
   multicopter.cc
   multiple_servers.cc
+  navsat_system.cc
   nested_model_physics.cc
   network_handshake.cc
   odometry_publisher.cc
@@ -47,6 +48,7 @@ set(tests
   physics_system.cc
   play_pause.cc
   pose_publisher_system.cc
+  recreate_entities.cc
   save_world.cc
   scene_broadcaster_system.cc
   sdf_frame_semantics.cc
@@ -62,6 +64,7 @@ set(tests
   wheel_slip.cc
   wind_effects.cc
   world.cc
+  world_control_state.cc
 )
 
 # Tests that require a valid display

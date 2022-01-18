@@ -22,6 +22,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/Link.hh"
 #include "ignition/gazebo/Model.hh"
@@ -194,7 +195,8 @@ void ThrusterTest::TestWorld(const std::string &_world,
 }
 
 /////////////////////////////////////////////////
-TEST_F(ThrusterTest, PIDControl)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PIDControl))
 {
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "thruster_pid.sdf");
@@ -205,7 +207,7 @@ TEST_F(ThrusterTest, PIDControl)
 }
 
 /////////////////////////////////////////////////
-TEST_F(ThrusterTest, VelocityControl)
+TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(VelocityControl))
 {
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "thruster_vel_cmd.sdf");

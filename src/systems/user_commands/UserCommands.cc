@@ -443,6 +443,10 @@ class ignition::gazebo::systems::UserCommandsPrivate
   /// \return True if successful.
   public: bool LightService(const msgs::Light &_req, msgs::Boolean &_res);
 
+  /// \brief Callback for light subscription
+  /// \param[in] _msg Light message
+  public: void OnCmdLight(const msgs::Light &_msg);
+
   /// \brief Callback for pose service
   /// \param[in] _req Request containing pose update of an entity.
   /// \param[out] _res True if message successfully received and queued.
@@ -602,6 +606,10 @@ void UserCommands::Configure(const Entity &_entity,
   ignmsg << "Light configuration service on [" << lightService << "]"
     << std::endl;
 
+  std::string lightTopic{"/world/" + validWorldName + "/light_config"};
+  this->dataPtr->node.Subscribe(lightTopic, &UserCommandsPrivate::OnCmdLight,
+                                this->dataPtr.get());
+
   // Physics service
   std::string physicsService{"/world/" + validWorldName + "/set_physics"};
   this->dataPtr->node.Advertise(physicsService,
@@ -753,6 +761,21 @@ bool UserCommandsPrivate::LightService(const msgs::Light &_req,
   _res.set_data(true);
   return true;
 }
+
+//////////////////////////////////////////////////
+void UserCommandsPrivate::OnCmdLight(const msgs::Light &_msg)
+{
+  auto msg = _msg.New();
+  msg->CopyFrom(_msg);
+  auto cmd = std::make_unique<LightCommand>(msg, this->iface);
+
+  // Push to pending
+  {
+    std::lock_guard<std::mutex> lock(this->pendingMutex);
+    this->pendingCmds.push_back(std::move(cmd));
+  }
+}
+
 
 //////////////////////////////////////////////////
 bool UserCommandsPrivate::PoseService(const msgs::Pose &_req,
@@ -1089,13 +1112,14 @@ bool CreateCommand::Execute()
   this->iface->creator->SetParent(entity, this->iface->worldEntity);
 
   // Pose
+  std::optional<math::Pose3d> createPose;
   if (createMsg->has_pose())
   {
-    auto poseComp = this->iface->ecm->Component<components::Pose>(entity);
-    *poseComp = components::Pose(msgs::Convert(createMsg->pose()));
+    createPose = msgs::Convert(createMsg->pose());
   }
+
   // Spherical coordinates
-  else if (createMsg->has_spherical_coordinates())
+  if (createMsg->has_spherical_coordinates())
   {
     auto scComp = this->iface->ecm->Component<components::SphericalCoordinates>(
         this->iface->worldEntity);
@@ -1118,10 +1142,22 @@ bool CreateCommand::Execute()
           math::SphericalCoordinates::SPHERICAL,
           math::SphericalCoordinates::LOCAL2);
 
-      auto poseComp = this->iface->ecm->Component<components::Pose>(entity);
-      *poseComp = components::Pose({pos.X(), pos.Y(), pos.Z(), 0, 0,
-          IGN_DTOR(createMsg->spherical_coordinates().heading_deg())});
+      // Override pos and add to yaw
+      if (!createPose.has_value())
+        createPose = math::Pose3d::Zero;
+      createPose.value().SetX(pos.X());
+      createPose.value().SetY(pos.Y());
+      createPose.value().SetZ(pos.Z());
+      createPose.value().Rot() = math::Quaterniond(0, 0,
+          IGN_DTOR(createMsg->spherical_coordinates().heading_deg())) *
+          createPose.value().Rot();
     }
+  }
+
+  if (createPose.has_value())
+  {
+    auto poseComp = this->iface->ecm->Component<components::Pose>(entity);
+    *poseComp = components::Pose(createPose.value());
   }
 
   igndbg << "Created entity [" << entity << "] named [" << desiredName << "]"

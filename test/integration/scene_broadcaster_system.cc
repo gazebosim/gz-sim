@@ -22,12 +22,17 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
+#include "ignition/gazebo/components/Model.hh"
+#include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/Pose.hh"
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"
 
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/Relay.hh"
 
 using namespace ignition;
 
@@ -38,7 +43,8 @@ class SceneBroadcasterTest
 };
 
 /////////////////////////////////////////////////
-TEST_P(SceneBroadcasterTest, PoseInfo)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PoseInfo))
 {
   // Start server
   ignition::gazebo::ServerConfig serverConfig;
@@ -88,7 +94,7 @@ TEST_P(SceneBroadcasterTest, PoseInfo)
 }
 
 /////////////////////////////////////////////////
-TEST_P(SceneBroadcasterTest, SceneInfo)
+TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneInfo))
 {
   // Start server
   ignition::gazebo::ServerConfig serverConfig;
@@ -134,7 +140,7 @@ TEST_P(SceneBroadcasterTest, SceneInfo)
 }
 
 /////////////////////////////////////////////////
-TEST_P(SceneBroadcasterTest, SceneGraph)
+TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneGraph))
 {
   // Start server
   ignition::gazebo::ServerConfig serverConfig;
@@ -174,7 +180,7 @@ TEST_P(SceneBroadcasterTest, SceneGraph)
 
 /////////////////////////////////////////////////
 /// Test whether the scene topic is published only when new entities are added
-TEST_P(SceneBroadcasterTest, SceneTopic)
+TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneTopic))
 {
   // Start server
   ignition::gazebo::ServerConfig serverConfig;
@@ -218,7 +224,8 @@ TEST_P(SceneBroadcasterTest, SceneTopic)
 
 /////////////////////////////////////////////////
 /// Test whether the scene topic is published only when new entities are added
-TEST_P(SceneBroadcasterTest, SceneTopicSensors)
+TEST_P(SceneBroadcasterTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneTopicSensors))
 {
   // Start server
   ignition::gazebo::ServerConfig serverConfig;
@@ -269,7 +276,7 @@ TEST_P(SceneBroadcasterTest, SceneTopicSensors)
 
 /////////////////////////////////////////////////
 /// Test whether the scene topic is published only when new entities are added
-TEST_P(SceneBroadcasterTest, DeletedTopic)
+TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(DeletedTopic))
 {
   // Start server
   ignition::gazebo::ServerConfig serverConfig;
@@ -329,7 +336,7 @@ TEST_P(SceneBroadcasterTest, DeletedTopic)
 
 /////////////////////////////////////////////////
 /// Test whether the scene is updated when a model is spawned.
-TEST_P(SceneBroadcasterTest, SpawnedModel)
+TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SpawnedModel))
 {
   // Start server
   ignition::gazebo::ServerConfig serverConfig;
@@ -399,7 +406,7 @@ TEST_P(SceneBroadcasterTest, SpawnedModel)
 }
 
 /////////////////////////////////////////////////
-TEST_P(SceneBroadcasterTest, State)
+TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(State))
 {
   // Start server
   ignition::gazebo::ServerConfig serverConfig;
@@ -510,12 +517,12 @@ TEST_P(SceneBroadcasterTest, State)
 }
 
 /////////////////////////////////////////////////
-TEST_P(SceneBroadcasterTest, StateStatic)
+TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StateStatic))
 {
   // Start server
   ignition::gazebo::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/examples/worlds/empty.sdf");
+      "/test/worlds/empty.sdf");
 
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -610,6 +617,128 @@ TEST_P(SceneBroadcasterTest, StateStatic)
   while (!received && sleep++ < maxSleep)
     IGN_SLEEP_MS(100);
   EXPECT_TRUE(received);
+}
+
+/////////////////////////////////////////////////
+/// Test whether the scene topic is published when a component is removed.
+TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RemovedComponent))
+{
+  // Start server
+  ignition::gazebo::ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+                          "/test/worlds/shapes.sdf");
+
+  gazebo::Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Create a system that removes a component
+  ignition::gazebo::test::Relay testSystem;
+
+  testSystem.OnUpdate([](const gazebo::UpdateInfo &_info,
+    gazebo::EntityComponentManager &_ecm)
+    {
+      if (_info.iterations > 1)
+      {
+        _ecm.Each<ignition::gazebo::components::Model,
+                  ignition::gazebo::components::Name,
+                  ignition::gazebo::components::Pose>(
+          [&](const ignition::gazebo::Entity &_entity,
+              const ignition::gazebo::components::Model *,
+              const ignition::gazebo::components::Name *_name,
+              const ignition::gazebo::components::Pose *)->bool
+          {
+            if (_name->Data() == "box")
+            {
+              _ecm.RemoveComponent<ignition::gazebo::components::Pose>(_entity);
+            }
+            return true;
+          });
+      }
+    });
+  server.AddSystem(testSystem.systemPtr);
+
+  bool received = false;
+  bool hasState = false;
+  std::function<void(const msgs::SerializedStepMap &)> cb =
+      [&](const msgs::SerializedStepMap &_res)
+  {
+    hasState = _res.has_state();
+    // Check the received state.
+    if (hasState)
+    {
+      ignition::gazebo::EntityComponentManager localEcm;
+      localEcm.SetState(_res.state());
+      bool hasBox = false;
+      localEcm.Each<ignition::gazebo::components::Model,
+                  ignition::gazebo::components::Name>(
+          [&](const ignition::gazebo::Entity &_entity,
+              const ignition::gazebo::components::Model *,
+              const ignition::gazebo::components::Name *_name)->bool
+          {
+            if (_name->Data() == "box")
+            {
+              hasBox = true;
+              if (_res.stats().iterations() > 1)
+              {
+                // The pose component should be gone
+                EXPECT_FALSE(localEcm.EntityHasComponentType(
+                      _entity, ignition::gazebo::components::Pose::typeId));
+              }
+              else
+              {
+                // The pose component should exist
+                EXPECT_TRUE(localEcm.EntityHasComponentType(
+                      _entity, ignition::gazebo::components::Pose::typeId));
+              }
+            }
+            return true;
+          });
+      EXPECT_TRUE(hasBox);
+    }
+    received = true;
+  };
+
+  transport::Node node;
+  EXPECT_TRUE(node.Subscribe("/world/default/state", cb));
+
+  unsigned int sleep = 0u;
+  unsigned int maxSleep = 30u;
+
+  // Run server once. The first time should send the state message
+  server.RunOnce(true);
+  // cppcheck-suppress unmatchedSuppression
+  // cppcheck-suppress knownConditionTrueFalse
+  while (!received && sleep++ < maxSleep)
+    IGN_SLEEP_MS(100);
+  EXPECT_TRUE(received);
+  EXPECT_TRUE(hasState);
+
+  // Run server again. The second time shouldn't have state info. The
+  // message can still arrive due the passage of time (see `itsPubTime` in
+  // SceneBroadcaster::PostUpdate.
+  sleep = 0u;
+  received = false;
+  hasState = false;
+  server.RunOnce(true);
+  // cppcheck-suppress unmatchedSuppression
+  // cppcheck-suppress knownConditionTrueFalse
+  while (!received && sleep++ < maxSleep)
+    IGN_SLEEP_MS(100);
+  EXPECT_FALSE(hasState);
+
+  // Run server again. The third time should send the state message because
+  // the test system removed a component.
+  sleep = 0u;
+  received = false;
+  hasState = false;
+  server.RunOnce(true);
+  // cppcheck-suppress unmatchedSuppression
+  // cppcheck-suppress knownConditionTrueFalse
+  while (!received && sleep++ < maxSleep)
+    IGN_SLEEP_MS(100);
+  EXPECT_TRUE(received);
+  EXPECT_TRUE(hasState);
 }
 
 // Run multiple times

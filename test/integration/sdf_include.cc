@@ -19,6 +19,7 @@
 #include <sdf/sdf.hh>
 #include <ignition/common/Filesystem.hh>
 #include <ignition/fuel_tools.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
@@ -32,7 +33,8 @@ class SdfInclude : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(SdfInclude, DownloadFromFuel)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(SdfInclude, IGN_UTILS_TEST_DISABLED_ON_WIN32(DownloadFromFuel))
 {
   std::string path = common::cwd() + "/test_cache";
 
