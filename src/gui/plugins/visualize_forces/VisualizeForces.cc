@@ -64,10 +64,22 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \brief Set of markers already drawn.
     public: std::unordered_set<std::string> onScreenMarkers;
 
+    public: std::string worldName;
+
     /// \brief Default constructors
     public: VisualizeForcesPrivate()
     {
-      this->node.Subscribe("/world/force_viz",
+    }
+
+    /// \brief Sets the world name so we can subscribe to the correct topic
+    public: void setWorldName(std::string _worldName)
+    {
+      if (_worldName == this->worldName)
+      {
+        return;
+      }
+      this->worldName = _worldName;
+      this->node.Subscribe("/world/"+ this->worldName +"/force_viz",
         &VisualizeForcesPrivate::VisualizeCallback, this);
     }
 
@@ -348,7 +360,7 @@ void VisualizeForces::LoadConfig(const tinyxml2::XMLElement *)
 
 //////////////////////////////////////////////////
 void VisualizeForces::Update(const UpdateInfo &/*unused*/,
-    EntityComponentManager &/*unused*/)
+    EntityComponentManager &_ecm)
 {
   
   this->dataPtr->PublishMarkers();
