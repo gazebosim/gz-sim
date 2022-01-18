@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 
+project(ign-gazebo-each-performance)
+
 find_package(ignition-gazebo6 QUIET REQUIRED)
 
 add_executable(each each.cc)

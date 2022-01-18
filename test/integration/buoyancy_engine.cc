@@ -21,6 +21,7 @@
 #include <ignition/common/Util.hh>
 #include <ignition/msgs/double.pb.h>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
@@ -53,7 +54,7 @@ class BuoyancyEngineTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(BuoyancyEngineTest, TestDownward)
+TEST_F(BuoyancyEngineTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TestDownward))
 {
   ServerConfig serverConfig;
   const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
@@ -102,7 +103,7 @@ TEST_F(BuoyancyEngineTest, TestDownward)
 }
 
 /////////////////////////////////////////////////
-TEST_F(BuoyancyEngineTest, TestUpward)
+TEST_F(BuoyancyEngineTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TestUpward))
 {
   ServerConfig serverConfig;
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +

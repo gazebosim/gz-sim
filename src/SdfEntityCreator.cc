@@ -57,6 +57,7 @@
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/NavSat.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include <ignition/gazebo/components/ParticleEmitter.hh>
@@ -873,6 +874,16 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
     // create components to be filled by physics
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::WorldPose(math::Pose3d::Zero));
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::WorldLinearVelocity(math::Vector3d::Zero));
+  }
+  else if (_sensor->Type() == sdf::SensorType::GPS ||
+           _sensor->Type() == sdf::SensorType::NAVSAT)
+  {
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+            components::NavSat(*_sensor));
+
+    // Create components to be filled by physics.
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::WorldLinearVelocity(math::Vector3d::Zero));
   }

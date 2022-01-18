@@ -141,7 +141,7 @@ URI | TODO
 UpdateParameters | TODO
 VisualPose | See visual API
 WindMode | `ignition::gazebo::Link::WindMode`
-WorldAngularAccel | TODO
+WorldAngularAccel | `ignition::gazebo::Link::WorldAngularAcceleration`
 WorldAngularMomentum | TODO
 WorldAngularVel | `ignition::gazebo::Link::WorldAngularVelocity`
 WorldCoGLinearVel | TODO

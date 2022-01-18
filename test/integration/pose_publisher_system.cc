@@ -22,6 +22,7 @@
 #include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Model.hh"
@@ -98,7 +99,8 @@ std::string addDelimiter(const std::vector<std::string> &_name,
 }
 
 /////////////////////////////////////////////////
-TEST_F(PosePublisherTest, PublishCmd)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(PosePublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 {
   // Start server
   ServerConfig serverConfig;
@@ -320,7 +322,7 @@ TEST_F(PosePublisherTest, PublishCmd)
 }
 
 /////////////////////////////////////////////////
-TEST_F(PosePublisherTest, UpdateFrequency)
+TEST_F(PosePublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(UpdateFrequency))
 {
   // Start server
   ServerConfig serverConfig;
@@ -385,7 +387,7 @@ TEST_F(PosePublisherTest, UpdateFrequency)
 }
 
 /////////////////////////////////////////////////
-TEST_F(PosePublisherTest, StaticPosePublisher)
+TEST_F(PosePublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StaticPosePublisher))
 {
   // Start server
   ServerConfig serverConfig;
@@ -641,7 +643,8 @@ TEST_F(PosePublisherTest, StaticPosePublisher)
 }
 
 /////////////////////////////////////////////////
-TEST_F(PosePublisherTest, StaticPoseUpdateFrequency)
+TEST_F(PosePublisherTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(StaticPoseUpdateFrequency))
 {
   // Start server
   ServerConfig serverConfig;
@@ -708,7 +711,8 @@ TEST_F(PosePublisherTest, StaticPoseUpdateFrequency)
 }
 
 /////////////////////////////////////////////////
-TEST_F(PosePublisherTest, NestedModelLoadPlugin)
+TEST_F(PosePublisherTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(NestedModelLoadPlugin))
 {
   // Start server
   ServerConfig serverConfig;
