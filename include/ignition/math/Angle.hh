@@ -63,19 +63,19 @@ namespace ignition
     {
       /// \brief An angle with a value of zero.
       /// Equivalent to math::Angle(0).
-      public: static const Angle Zero;
+      public: static const Angle &Zero;
 
       /// \brief An angle with a value of Pi.
       /// Equivalent to math::Angle(IGN_PI).
-      public: static const Angle Pi;
+      public: static const Angle &Pi;
 
       /// \brief An angle with a value of Pi * 0.5.
       /// Equivalent to math::Angle(IGN_PI * 0.5).
-      public: static const Angle HalfPi;
+      public: static const Angle &HalfPi;
 
       /// \brief An angle with a value of Pi * 2.
       /// Equivalent to math::Angle(IGN_PI * 2).
-      public: static const Angle TwoPi;
+      public: static const Angle &TwoPi;
 
       /// \brief Default constructor that initializes an Angle to zero
       /// radians/degrees.
@@ -91,7 +91,10 @@ namespace ignition
       //
       /// \param[in] _radian The radians used to initialize this Angle.
       // cppcheck-suppress noExplicitConstructor
-      public: Angle(double _radian);
+      public: constexpr Angle(double _radian)
+      : value(_radian)
+      {
+      }
 
       /// \brief Set the value from an angle in radians.
       /// \param[in] _radian Radian value.

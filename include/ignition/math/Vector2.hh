@@ -39,33 +39,31 @@ namespace ignition
     class Vector2
     {
       /// \brief math::Vector2(0, 0)
-      public: static const Vector2<T> Zero;
+      public: static const Vector2<T> &Zero;
 
       /// \brief math::Vector2(1, 1)
-      public: static const Vector2<T> One;
+      public: static const Vector2<T> &One;
 
       /// \brief math::Vector2(NaN, NaN, NaN)
-      public: static const Vector2 NaN;
+      public: static const Vector2 &NaN;
 
       /// \brief Default Constructor
-      public: Vector2()
+      public: constexpr Vector2()
+      : data{0, 0}
       {
-        this->data[0] = 0;
-        this->data[1] = 0;
       }
 
       /// \brief Constructor
       /// \param[in] _x value along x
       /// \param[in] _y value along y
-      public: Vector2(const T &_x, const T &_y)
+      public: constexpr Vector2(const T &_x, const T &_y)
+      : data{_x, _y}
       {
-        this->data[0] = _x;
-        this->data[1] = _y;
       }
 
       /// \brief Copy constructor
       /// \param[in] _v the value
-      public: constexpr Vector2(const Vector2<T> &_v) = default;
+      public: Vector2(const Vector2<T> &_v) = default;
 
       /// \brief Destructor
       public: ~Vector2() = default;
@@ -576,16 +574,29 @@ namespace ignition
       private: T data[2];
     };
 
-    template<typename T>
-    const Vector2<T> Vector2<T>::Zero(0, 0);
+    namespace detail {
+
+      template<typename T>
+      constexpr Vector2<T> gVector2Zero(0, 0);
+
+      template<typename T>
+      constexpr Vector2<T> gVector2One(1, 1);
+
+      template<typename T>
+      constexpr Vector2<T> gVector2NaN(
+          std::numeric_limits<T>::quiet_NaN(),
+          std::numeric_limits<T>::quiet_NaN());
+
+    }  // namespace detail
 
     template<typename T>
-    const Vector2<T> Vector2<T>::One(1, 1);
+    const Vector2<T> &Vector2<T>::Zero = detail::gVector2Zero<T>;
 
     template<typename T>
-    const Vector2<T> Vector2<T>::NaN(
-        std::numeric_limits<T>::quiet_NaN(),
-        std::numeric_limits<T>::quiet_NaN());
+    const Vector2<T> &Vector2<T>::One = detail::gVector2One<T>;
+
+    template<typename T>
+    const Vector2<T> &Vector2<T>::NaN = detail::gVector2NaN<T>;
 
     typedef Vector2<int> Vector2i;
     typedef Vector2<double> Vector2d;

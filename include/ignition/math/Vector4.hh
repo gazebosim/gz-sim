@@ -38,18 +38,18 @@ namespace ignition
     class Vector4
     {
       /// \brief math::Vector4(0, 0, 0, 0)
-      public: static const Vector4<T> Zero;
+      public: static const Vector4<T> &Zero;
 
       /// \brief math::Vector4(1, 1, 1, 1)
-      public: static const Vector4<T> One;
+      public: static const Vector4<T> &One;
 
       /// \brief math::Vector4(NaN, NaN, NaN, NaN)
-      public: static const Vector4 NaN;
+      public: static const Vector4 &NaN;
 
       /// \brief Constructor
-      public: Vector4()
+      public: constexpr Vector4()
+      : data{0, 0, 0, 0}
       {
-        this->data[0] = this->data[1] = this->data[2] = this->data[3] = 0;
       }
 
       /// \brief Constructor with component values
@@ -57,12 +57,10 @@ namespace ignition
       /// \param[in] _y value along y axis
       /// \param[in] _z value along z axis
       /// \param[in] _w value along w axis
-      public: Vector4(const T &_x, const T &_y, const T &_z, const T &_w)
+      public: constexpr Vector4(const T &_x, const T &_y, const T &_z,
+                                const T &_w)
+      : data{_x, _y, _z, _w}
       {
-        this->data[0] = _x;
-        this->data[1] = _y;
-        this->data[2] = _z;
-        this->data[3] = _w;
       }
 
       /// \brief Copy constructor
@@ -726,17 +724,31 @@ namespace ignition
       private: T data[4];
     };
 
-    template<typename T>
-    const Vector4<T> Vector4<T>::Zero(0, 0, 0, 0);
+    namespace detail {
+
+      template<typename T>
+      constexpr Vector4<T> gVector4Zero(0, 0, 0, 0);
+
+      template<typename T>
+      constexpr Vector4<T> gVector4One(1, 1, 1, 1);
+
+      template<typename T>
+      constexpr Vector4<T> gVector4NaN(
+          std::numeric_limits<T>::quiet_NaN(),
+          std::numeric_limits<T>::quiet_NaN(),
+          std::numeric_limits<T>::quiet_NaN(),
+          std::numeric_limits<T>::quiet_NaN());
+
+    }  // namespace detail
 
     template<typename T>
-    const Vector4<T> Vector4<T>::One(1, 1, 1, 1);
+    const Vector4<T> &Vector4<T>::Zero = detail::gVector4Zero<T>;
 
-    template<typename T> const Vector4<T> Vector4<T>::NaN(
-        std::numeric_limits<T>::quiet_NaN(),
-        std::numeric_limits<T>::quiet_NaN(),
-        std::numeric_limits<T>::quiet_NaN(),
-        std::numeric_limits<T>::quiet_NaN());
+    template<typename T>
+    const Vector4<T> &Vector4<T>::One = detail::gVector4One<T>;
+
+    template<typename T>
+    const Vector4<T> &Vector4<T>::NaN = detail::gVector4NaN<T>;
 
     typedef Vector4<int> Vector4i;
     typedef Vector4<double> Vector4d;

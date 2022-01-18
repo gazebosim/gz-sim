@@ -41,40 +41,36 @@ namespace ignition
     class Vector3
     {
       /// \brief math::Vector3(0, 0, 0)
-      public: static const Vector3 Zero;
+      public: static const Vector3 &Zero;
 
       /// \brief math::Vector3(1, 1, 1)
-      public: static const Vector3 One;
+      public: static const Vector3 &One;
 
       /// \brief math::Vector3(1, 0, 0)
-      public: static const Vector3 UnitX;
+      public: static const Vector3 &UnitX;
 
       /// \brief math::Vector3(0, 1, 0)
-      public: static const Vector3 UnitY;
+      public: static const Vector3 &UnitY;
 
       /// \brief math::Vector3(0, 0, 1)
-      public: static const Vector3 UnitZ;
+      public: static const Vector3 &UnitZ;
 
       /// \brief math::Vector3(NaN, NaN, NaN)
-      public: static const Vector3 NaN;
+      public: static const Vector3 &NaN;
 
       /// \brief Constructor
-      public: Vector3()
+      public: constexpr Vector3()
+      : data{0, 0, 0}
       {
-        this->data[0] = 0;
-        this->data[1] = 0;
-        this->data[2] = 0;
       }
 
       /// \brief Constructor
       /// \param[in] _x value along x
       /// \param[in] _y value along y
       /// \param[in] _z value along z
-      public: Vector3(const T &_x, const T &_y, const T &_z)
+      public: constexpr Vector3(const T &_x, const T &_y, const T &_z)
+      : data{_x, _y, _z}
       {
-        this->data[0] = _x;
-        this->data[1] = _y;
-        this->data[2] = _z;
       }
 
       /// \brief Copy constructor
@@ -768,15 +764,37 @@ namespace ignition
       private: T data[3];
     };
 
-    template<typename T> const Vector3<T> Vector3<T>::Zero(0, 0, 0);
-    template<typename T> const Vector3<T> Vector3<T>::One(1, 1, 1);
-    template<typename T> const Vector3<T> Vector3<T>::UnitX(1, 0, 0);
-    template<typename T> const Vector3<T> Vector3<T>::UnitY(0, 1, 0);
-    template<typename T> const Vector3<T> Vector3<T>::UnitZ(0, 0, 1);
-    template<typename T> const Vector3<T> Vector3<T>::NaN(
-        std::numeric_limits<T>::quiet_NaN(),
-        std::numeric_limits<T>::quiet_NaN(),
-        std::numeric_limits<T>::quiet_NaN());
+    namespace detail {
+
+      template<typename T>
+      constexpr Vector3<T> gVector3Zero(0, 0, 0);
+      template<typename T>
+      constexpr Vector3<T> gVector3One(1, 1, 1);
+      template<typename T>
+      constexpr Vector3<T> gVector3UnitX(1, 0, 0);
+      template<typename T>
+      constexpr Vector3<T> gVector3UnitY(0, 1, 0);
+      template<typename T>
+      constexpr Vector3<T> gVector3UnitZ(0, 0, 1);
+      template<typename T>
+      constexpr Vector3<T> gVector3NaN(
+          std::numeric_limits<T>::quiet_NaN(),
+          std::numeric_limits<T>::quiet_NaN(),
+          std::numeric_limits<T>::quiet_NaN());
+    }  // namespace detail
+
+    template<typename T>
+    const Vector3<T> &Vector3<T>::Zero = detail::gVector3Zero<T>;
+    template<typename T>
+    const Vector3<T> &Vector3<T>::One = detail::gVector3One<T>;
+    template<typename T>
+    const Vector3<T> &Vector3<T>::UnitX = detail::gVector3UnitX<T>;
+    template<typename T>
+    const Vector3<T> &Vector3<T>::UnitY = detail::gVector3UnitY<T>;
+    template<typename T>
+    const Vector3<T> &Vector3<T>::UnitZ = detail::gVector3UnitZ<T>;
+    template<typename T>
+    const Vector3<T> &Vector3<T>::NaN = detail::gVector3NaN<T>;
 
     typedef Vector3<int> Vector3i;
     typedef Vector3<double> Vector3d;

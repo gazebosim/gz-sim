@@ -81,14 +81,14 @@ namespace ignition
     {
       /// \brief A Quaternion initialized to identity.
       /// This is equivalent to math::Quaternion<T>(1, 0, 0, 0)
-      public: static const Quaternion Identity;
+      public: static const Quaternion &Identity;
 
       /// \brief A Quaternion initialized to zero.
       /// This is equivalent to math::Quaternion<T>(0, 0, 0, 0)
-      public: static const Quaternion Zero;
+      public: static const Quaternion &Zero;
 
       /// \brief Default Constructor
-      public: Quaternion()
+      public: constexpr Quaternion()
       : qw(1), qx(0), qy(0), qz(0)
       {
         // quaternion not normalized, because that breaks
@@ -102,7 +102,8 @@ namespace ignition
       /// \param[in] _x X param
       /// \param[in] _y Y param
       /// \param[in] _z Z param
-      public: Quaternion(const T &_w, const T &_x, const T &_y, const T &_z)
+      public: constexpr Quaternion(const T &_w, const T &_x, const T &_y,
+                                   const T &_z)
       : qw(_w), qx(_x), qy(_y), qz(_z)
       {}
 
@@ -1253,11 +1254,21 @@ namespace ignition
       private: T qz;
     };
 
-    template<typename T> const Quaternion<T>
-      Quaternion<T>::Identity(1, 0, 0, 0);
+    namespace detail {
+
+      template<typename T> constexpr Quaternion<T>
+      gQuaternionIdentity(1, 0, 0, 0);
+
+      template<typename T> constexpr Quaternion<T>
+      gQuaternionZero(0, 0, 0, 0);
+
+    }  // namespace detail
 
     template<typename T> const Quaternion<T>
-      Quaternion<T>::Zero(0, 0, 0, 0);
+    &Quaternion<T>::Identity = detail::gQuaternionIdentity<T>;
+
+    template<typename T> const Quaternion<T>
+    &Quaternion<T>::Zero = detail::gQuaternionZero<T>;
 
     /// typedef Quaternion<double> as Quaterniond
     typedef Quaternion<double> Quaterniond;

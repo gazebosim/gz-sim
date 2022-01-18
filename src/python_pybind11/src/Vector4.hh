@@ -127,11 +127,12 @@ void defineMathVector4(py::module &m, const std::string &typestr)
     .def("y", py::overload_cast<const T&>(&Class::Y), "Set the y value.")
     .def("z", py::overload_cast<const T&>(&Class::Z), "Set the z value.")
     .def("w", py::overload_cast<const T&>(&Class::W), "Set the w value.")
-    .def_readonly_static("ZERO", &Class::Zero, "math::Vector4(0, 0, 0, 0)")
-    .def_readonly_static("ONE", &Class::One, "math::Vector4(1, 1, 1, 1)")
-    .def_readonly_static("NAN",
-                         &Class::NaN,
-                         "math::Vector4(NaN, NaN, NaN, NaN)")
+    .def_readonly_static("ZERO", &Class::Zero, py::return_value_policy::copy,
+        "math::Vector4(0, 0, 0, 0)")
+    .def_readonly_static("ONE", &Class::One, py::return_value_policy::copy,
+        "math::Vector4(1, 1, 1, 1)")
+    .def_readonly_static("NAN", &Class::NaN, py::return_value_policy::copy,
+        "math::Vector4(NaN, NaN, NaN, NaN)")
     .def("__copy__", [](const Class &self) {
       return Class(self);
     })

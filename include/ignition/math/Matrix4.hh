@@ -38,10 +38,10 @@ namespace ignition
     class Matrix4
     {
       /// \brief Identity matrix
-      public: static const Matrix4<T> Identity;
+      public: static const Matrix4<T> &Identity;
 
       /// \brief Zero matrix
-      public: static const Matrix4<T> Zero;
+      public: static const Matrix4<T> &Zero;
 
       /// \brief Constructor
       public: Matrix4()
@@ -70,15 +70,15 @@ namespace ignition
       /// \param[in] _v31 Row 3, Col 1 value
       /// \param[in] _v32 Row 3, Col 2 value
       /// \param[in] _v33 Row 3, Col 3 value
-      public: Matrix4(T _v00, T _v01, T _v02, T _v03,
-                      T _v10, T _v11, T _v12, T _v13,
-                      T _v20, T _v21, T _v22, T _v23,
-                      T _v30, T _v31, T _v32, T _v33)
+      public: constexpr Matrix4(T _v00, T _v01, T _v02, T _v03,
+                                T _v10, T _v11, T _v12, T _v13,
+                                T _v20, T _v21, T _v22, T _v23,
+                                T _v30, T _v31, T _v32, T _v33)
+      : data{{_v00, _v01, _v02, _v03},
+             {_v10, _v11, _v12, _v13},
+             {_v20, _v21, _v22, _v23},
+             {_v30, _v31, _v32, _v33}}
       {
-        this->Set(_v00, _v01, _v02, _v03,
-                  _v10, _v11, _v12, _v13,
-                  _v20, _v21, _v22, _v23,
-                  _v30, _v31, _v32, _v33);
       }
 
       /// \brief Construct Matrix4 from a quaternion.
@@ -847,19 +847,29 @@ namespace ignition
       private: T data[4][4];
     };
 
-    template<typename T>
-    const Matrix4<T> Matrix4<T>::Identity(
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1);
+    namespace detail {
+
+      template<typename T>
+      constexpr Matrix4<T> gMatrix4Identity(
+          1, 0, 0, 0,
+          0, 1, 0, 0,
+          0, 0, 1, 0,
+          0, 0, 0, 1);
+
+      template<typename T>
+      constexpr Matrix4<T> gMatrix4Zero(
+          0, 0, 0, 0,
+          0, 0, 0, 0,
+          0, 0, 0, 0,
+          0, 0, 0, 0);
+
+    }  // namespace detail
 
     template<typename T>
-    const Matrix4<T> Matrix4<T>::Zero(
-        0, 0, 0, 0,
-        0, 0, 0, 0,
-        0, 0, 0, 0,
-        0, 0, 0, 0);
+    const Matrix4<T> &Matrix4<T>::Identity = detail::gMatrix4Identity<T>;
+
+    template<typename T>
+    const Matrix4<T> &Matrix4<T>::Zero = detail::gMatrix4Zero<T>;
 
     typedef Matrix4<int> Matrix4i;
     typedef Matrix4<double> Matrix4d;

@@ -95,11 +95,11 @@ namespace ignition
     {
       /// \brief A Matrix3 initialized to identity.
       /// This is equivalent to math::Matrix3<T>(1, 0, 0, 0, 1, 0, 0, 0, 1).
-      public: static const Matrix3<T> Identity;
+      public: static const Matrix3<T> &Identity;
 
       /// \brief A Matrix3 initialized to zero.
       /// This is equivalent to math::Matrix3<T>(0, 0, 0, 0, 0, 0, 0, 0, 0).
-      public: static const Matrix3<T> Zero;
+      public: static const Matrix3<T> &Zero;
 
       /// \brief Default constructor that initializes the matrix3 to zero.
       public: Matrix3()
@@ -121,19 +121,13 @@ namespace ignition
       /// \param[in] _v20 Row 2, Col 0 value
       /// \param[in] _v21 Row 2, Col 1 value
       /// \param[in] _v22 Row 2, Col 2 value
-      public: Matrix3(T _v00, T _v01, T _v02,
-                      T _v10, T _v11, T _v12,
-                      T _v20, T _v21, T _v22)
+      public: constexpr Matrix3(T _v00, T _v01, T _v02,
+                                T _v10, T _v11, T _v12,
+                                T _v20, T _v21, T _v22)
+      : data{{_v00, _v01, _v02},
+             {_v10, _v11, _v12},
+             {_v20, _v21, _v22}}
       {
-        this->data[0][0] = _v00;
-        this->data[0][1] = _v01;
-        this->data[0][2] = _v02;
-        this->data[1][0] = _v10;
-        this->data[1][1] = _v11;
-        this->data[1][2] = _v12;
-        this->data[2][0] = _v20;
-        this->data[2][1] = _v21;
-        this->data[2][2] = _v22;
       }
 
       /// \brief Construct 3x3 rotation Matrix from a quaternion.
@@ -645,17 +639,27 @@ namespace ignition
       private: T data[3][3];
     };
 
-    template<typename T>
-    const Matrix3<T> Matrix3<T>::Identity(
-        1, 0, 0,
-        0, 1, 0,
-        0, 0, 1);
+    namespace detail {
+
+      template<typename T>
+      constexpr Matrix3<T> gMatrix3Identity(
+          1, 0, 0,
+          0, 1, 0,
+          0, 0, 1);
+
+      template<typename T>
+      constexpr Matrix3<T> gMatrix3Zero(
+          0, 0, 0,
+          0, 0, 0,
+          0, 0, 0);
+
+    }  // namespace detail
 
     template<typename T>
-    const Matrix3<T> Matrix3<T>::Zero(
-        0, 0, 0,
-        0, 0, 0,
-        0, 0, 0);
+    const Matrix3<T> &Matrix3<T>::Identity = detail::gMatrix3Identity<T>;
+
+    template<typename T>
+    const Matrix3<T> &Matrix3<T>::Zero = detail::gMatrix3Zero<T>;
 
     /// typedef Matrix3<int> as Matrix3i.
     typedef Matrix3<int> Matrix3i;

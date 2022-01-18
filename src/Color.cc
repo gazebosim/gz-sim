@@ -22,32 +22,29 @@
 using namespace ignition;
 using namespace math;
 
-const Color Color::White = Color(1, 1, 1, 1);
-const Color Color::Black = Color(0, 0, 0, 1);
-const Color Color::Red = Color(1, 0, 0, 1);
-const Color Color::Green = Color(0, 1, 0, 1);
-const Color Color::Blue = Color(0, 0, 1, 1);
-const Color Color::Yellow = Color(1, 1, 0, 1);
-const Color Color::Magenta = Color(1, 0, 1, 1);
-const Color Color::Cyan = Color(0, 1, 1, 1);
+namespace {
 
-//////////////////////////////////////////////////
-Color::Color()
-{
-}
+// Use constexpr storage for the Color constants, to avoid the C++ static
+// initialization order fiasco.
+constexpr Color gWhite = Color(1, 1, 1, 1);
+constexpr Color gBlack = Color(0, 0, 0, 1);
+constexpr Color gRed = Color(1, 0, 0, 1);
+constexpr Color gGreen = Color(0, 1, 0, 1);
+constexpr Color gBlue = Color(0, 0, 1, 1);
+constexpr Color gYellow = Color(1, 1, 0, 1);
+constexpr Color gMagenta = Color(1, 0, 1, 1);
+constexpr Color gCyan = Color(0, 1, 1, 1);
 
-//////////////////////////////////////////////////
-Color::Color(const float _r, const float _g, const float _b, const float _a)
-: r(_r), g(_g), b(_b), a(_a)
-{
-  this->Clamp();
-}
+}  // namespace
 
-//////////////////////////////////////////////////
-Color::Color(const Color &_pt) = default;
-
-//////////////////////////////////////////////////
-Color::~Color() = default;
+const Color &Color::White = gWhite;
+const Color &Color::Black = gBlack;
+const Color &Color::Red = gRed;
+const Color &Color::Green = gGreen;
+const Color &Color::Blue = gBlue;
+const Color &Color::Yellow = gYellow;
+const Color &Color::Magenta = gMagenta;
+const Color &Color::Cyan = gCyan;
 
 //////////////////////////////////////////////////
 void Color::Reset()
@@ -368,17 +365,6 @@ void Color::SetFromABGR(const Color::ABGR _v)
 }
 
 //////////////////////////////////////////////////
-Color &Color::operator=(const Color &_clr)
-{
-  this->r = _clr.r;
-  this->g = _clr.g;
-  this->b = _clr.b;
-  this->a = _clr.a;
-
-  return *this;
-}
-
-//////////////////////////////////////////////////
 Color Color::operator+(const Color &_pt) const
 {
   return Color(this->r + _pt.r, this->g + _pt.g,
@@ -493,22 +479,6 @@ bool Color::operator==(const Color &_pt) const
 bool Color::operator!=(const Color &_pt) const
 {
   return !(*this == _pt);
-}
-
-//////////////////////////////////////////////////
-void Color::Clamp()
-{
-  this->r = this->r < 0 || isnan(this->r) ? 0: this->r;
-  this->r = this->r > 1 ? this->r/255.0f: this->r;
-
-  this->g = this->g < 0 || isnan(this->g) ? 0: this->g;
-  this->g = this->g > 1 ? this->g/255.0f: this->g;
-
-  this->b = this->b < 0 || isnan(this->b) ? 0: this->b;
-  this->b = this->b > 1 ? this->b/255.0f: this->b;
-
-  this->a = this->a < 0 || isnan(this->a) ? 0: this->a;
-  this->a = this->a > 1 ? 1.0f: this->a;
 }
 
 //////////////////////////////////////////////////

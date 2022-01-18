@@ -33,12 +33,34 @@ namespace ignition
     template<typename T>
     class Vector3
     {
-      public: static const Vector3 Zero;
-      public: static const Vector3 One;
-      public: static const Vector3 UnitX;
-      public: static const Vector3 UnitY;
-      public: static const Vector3 UnitZ;
-      public: static const Vector3 NaN;
+      // Use %extend to override getters for static member variables so that
+      // copies of the variables are returned instead of references to the variables.
+      public: %extend {
+        static Vector3 Zero()
+        {
+          return ignition::math::Vector3<T>::Zero;
+        }
+        static Vector3 One()
+        {
+          return ignition::math::Vector3<T>::One;
+        }
+        static Vector3 UnitX()
+        {
+          return ignition::math::Vector3<T>::UnitX;
+        }
+        static Vector3 UnitY()
+        {
+          return ignition::math::Vector3<T>::UnitY;
+        }
+        static Vector3 UnitZ()
+        {
+          return ignition::math::Vector3<T>::UnitZ;
+        }
+        static Vector3 NaN()
+        {
+          return ignition::math::Vector3<T>::NaN;
+        }
+      }
       public: Vector3();
       public: Vector3(const T &_x, const T &_y, const T &_z);
       public: Vector3(const Vector3<T> &_v);

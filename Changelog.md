@@ -42,6 +42,9 @@
 1. Remove virtual from destructors of copyable classes.
     * [Pull request 293](https://github.com/ignitionrobotics/ign-math/pull/293)
 
+1. Use constexpr for simple static constants.
+    * [Pull request 283](https://github.com/ignitionrobotics/ign-math/pull/283)
+
 ## Ignition Math 6.x
 
 ### Ignition Math 6.x.x

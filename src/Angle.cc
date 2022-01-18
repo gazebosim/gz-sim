@@ -19,16 +19,21 @@
 
 using namespace ignition::math;
 
-const Angle Angle::Zero = Angle(0);
-const Angle Angle::Pi = Angle(IGN_PI);
-const Angle Angle::HalfPi = Angle(IGN_PI_2);
-const Angle Angle::TwoPi = Angle(IGN_PI * 2.0);
+namespace {
 
-//////////////////////////////////////////////////
-Angle::Angle(double _radian)
-{
-  this->value = _radian;
-}
+// Use constexpr storage for the Color constants, to avoid the C++ static
+// initialization order fiasco.
+constexpr Angle gZero(0);
+constexpr Angle gPi(IGN_PI);
+constexpr Angle gHalfPi(IGN_PI_2);
+constexpr Angle gTwoPi(IGN_PI * 2.0);
+
+}  // namespace
+
+const Angle &Angle::Zero = gZero;
+const Angle &Angle::Pi = gPi;
+const Angle &Angle::HalfPi = gHalfPi;
+const Angle &Angle::TwoPi = gTwoPi;
 
 //////////////////////////////////////////////////
 void Angle::Radian(double _radian)

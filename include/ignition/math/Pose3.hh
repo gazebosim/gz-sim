@@ -74,7 +74,7 @@ namespace ignition
     {
       /// \brief A Pose3 initialized to zero.
       /// This is equivalent to math::Pose3<T>(0, 0, 0, 0, 0, 0).
-      public: static const Pose3<T> Zero;
+      public: static const Pose3<T> &Zero;
 
       /// \brief Default constructor. This initializes the position
       /// component to zero and the quaternion to identity.
@@ -540,7 +540,13 @@ namespace ignition
       private: Quaternion<T> q;
     };
 
-    template<typename T> const Pose3<T> Pose3<T>::Zero(0, 0, 0, 0, 0, 0);
+    namespace detail {
+
+      template<typename T> constexpr Pose3<T> gPose3Zero{};
+
+    }  // namespace detail
+
+    template<typename T> const Pose3<T> &Pose3<T>::Zero = detail::gPose3Zero<T>;
 
     /// typedef Pose3<double> as Pose3d.
     typedef Pose3<double> Pose3d;

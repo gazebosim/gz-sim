@@ -141,12 +141,18 @@ void defineMathVector3(py::module &m, const std::string &typestr)
     .def("x", py::overload_cast<const T&>(&Class::X), "Set the x value.")
     .def("y", py::overload_cast<const T&>(&Class::Y), "Set the y value.")
     .def("z", py::overload_cast<const T&>(&Class::Z), "Set the z value.")
-    .def_readonly_static("ZERO", &Class::Zero, "math::Vector3(0, 0, 0)")
-    .def_readonly_static("ONE", &Class::One, "math::Vector3(1, 1, 1)")
-    .def_readonly_static("UNIT_X", &Class::UnitX, "math::Vector3(1, 0, 0)")
-    .def_readonly_static("UNIT_Y", &Class::UnitY, "math::Vector3(0, 1, 0)")
-    .def_readonly_static("UNIT_Z", &Class::UnitZ, "math::Vector3(0, 0, 1)")
-    .def_readonly_static("NAN", &Class::NaN, "math::Vector3(NaN, NaN, NaN)")
+    .def_readonly_static("ZERO", &Class::Zero, py::return_value_policy::copy,
+        "math::Vector3(0, 0, 0)")
+    .def_readonly_static("ONE", &Class::One, py::return_value_policy::copy,
+        "math::Vector3(1, 1, 1)")
+    .def_readonly_static("UNIT_X", &Class::UnitX, py::return_value_policy::copy,
+        "math::Vector3(1, 0, 0)")
+    .def_readonly_static("UNIT_Y", &Class::UnitY, py::return_value_policy::copy,
+        "math::Vector3(0, 1, 0)")
+    .def_readonly_static("UNIT_Z", &Class::UnitZ, py::return_value_policy::copy,
+        "math::Vector3(0, 0, 1)")
+    .def_readonly_static("NAN", &Class::NaN, py::return_value_policy::copy,
+        "math::Vector3(NaN, NaN, NaN)")
     .def("__copy__", [](const Class &self) {
       return Class(self);
     })

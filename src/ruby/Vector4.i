@@ -33,9 +33,22 @@ namespace ignition
     template<typename T>
     class Vector4
     {
-      public: static const Vector4 Zero;
-      public: static const Vector4 One;
-      public: static const Vector4 NaN;
+      // Use %extend to override getters for static member variables so that
+      // copies of the variables are returned instead of references to the variables.
+      public: %extend {
+        static Vector4 Zero()
+        {
+          return ignition::math::Vector4<T>::Zero;
+        }
+        static Vector4 One()
+        {
+          return ignition::math::Vector4<T>::One;
+        }
+        static Vector4 NaN()
+        {
+          return ignition::math::Vector4<T>::NaN;
+        }
+      }
       public: Vector4();
       public: Vector4(const T &_x, const T &_y, const T &_z, const T &_w);
       public: Vector4(const Vector4<T> &_v);
