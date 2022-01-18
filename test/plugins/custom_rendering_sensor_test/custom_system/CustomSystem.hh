@@ -33,9 +33,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward declarations.
-  class SensorsPrivate;
+  class CustomRenderingSensorsPrivate;
 
-  /// \class Sensors
+  /// \class CustomRenderingSensors
   /// \brief An example system that manages custom rendering sensors.
   ///
   /// ## System Parameters
@@ -48,17 +48,17 @@ namespace systems
   /// will override the ambient value specified in a world's SDF <scene>
   /// element. This ambient light is used by sensors, not the GUI.
   ///
-  class Sensors:
+  class CustomRenderingSensors:
     public System,
     public ISystemConfigure,
     public ISystemUpdate,
     public ISystemPostUpdate
   {
     /// \brief Constructor
-    public: explicit Sensors();
+    public: explicit CustomRenderingSensors();
 
     /// \brief Destructor
-    public: ~Sensors() override;
+    public: ~CustomRenderingSensors() override;
 
     // Documentation inherited
     public: void Configure(const Entity &_id,
@@ -88,7 +88,7 @@ namespace systems
     private : void RemoveSensor(const Entity &_entity);
 
     /// \brief Private data pointer.
-    private: std::unique_ptr<SensorsPrivate> dataPtr;
+    private: std::unique_ptr<CustomRenderingSensorsPrivate> dataPtr;
   };
   }
 }

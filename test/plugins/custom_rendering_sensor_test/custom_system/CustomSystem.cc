@@ -51,10 +51,10 @@ using namespace gazebo;
 using namespace systems;
 
 // Private data class.
-class ignition::gazebo::systems::SensorsPrivate
+class ignition::gazebo::systems::CustomRenderingSensorsPrivate
 {
   /// \brief Sensor manager object. This manages the lifecycle of the
-  /// instantiated sensors.
+  /// instantiated CustomRenderingSensors.
   public: sensors::Manager sensorManager;
 
   /// \brief used to store whether rendering objects have been created.
@@ -171,7 +171,7 @@ class ignition::gazebo::systems::SensorsPrivate
 };
 
 //////////////////////////////////////////////////
-void SensorsPrivate::WaitForInit()
+void CustomRenderingSensorsPrivate::WaitForInit()
 {
   while (!this->initialized && this->running)
   {
@@ -205,7 +205,7 @@ void SensorsPrivate::WaitForInit()
 }
 
 //////////////////////////////////////////////////
-void SensorsPrivate::RunOnce()
+void CustomRenderingSensorsPrivate::RunOnce()
 {
   std::unique_lock<std::mutex> lock(this->renderMutex);
   this->renderCv.wait(lock, [this]()
@@ -221,7 +221,7 @@ void SensorsPrivate::RunOnce()
     return;
   }
 
-  IGN_PROFILE("SensorsPrivate::RunOnce");
+  IGN_PROFILE("CustomRenderingSensorsPrivate::RunOnce");
   {
     IGN_PROFILE("Update");
     this->renderUtil.Update();
@@ -284,11 +284,11 @@ void SensorsPrivate::RunOnce()
 }
 
 //////////////////////////////////////////////////
-void SensorsPrivate::RenderThread()
+void CustomRenderingSensorsPrivate::RenderThread()
 {
   IGN_PROFILE_THREAD_NAME("RenderThread");
 
-  igndbg << "SensorsPrivate::RenderThread started" << std::endl;
+  igndbg << "CustomRenderingSensorsPrivate::RenderThread started" << std::endl;
 
   // We have to wait for rendering sensors to be available
   this->WaitForInit();
@@ -302,21 +302,21 @@ void SensorsPrivate::RenderThread()
   for (const auto id : this->sensorIds)
     this->sensorManager.Remove(id);
 
-  igndbg << "SensorsPrivate::RenderThread stopped" << std::endl;
+  igndbg << "CustomRenderingSensorsPrivate::RenderThread stopped" << std::endl;
 }
 
 //////////////////////////////////////////////////
-void SensorsPrivate::Run()
+void CustomRenderingSensorsPrivate::Run()
 {
-  igndbg << "SensorsPrivate::Run" << std::endl;
+  igndbg << "CustomRenderingSensorsPrivate::Run" << std::endl;
   this->running = true;
-  this->renderThread = std::thread(&SensorsPrivate::RenderThread, this);
+  this->renderThread = std::thread(&CustomRenderingSensorsPrivate::RenderThread, this);
 }
 
 //////////////////////////////////////////////////
-void SensorsPrivate::Stop()
+void CustomRenderingSensorsPrivate::Stop()
 {
-  igndbg << "SensorsPrivate::Stop" << std::endl;
+  igndbg << "CustomRenderingSensorsPrivate::Stop" << std::endl;
   std::unique_lock<std::mutex> lock(this->renderMutex);
   this->running = false;
 
@@ -336,7 +336,7 @@ void SensorsPrivate::Stop()
 }
 
 //////////////////////////////////////////////////
-void Sensors::RemoveSensor(const Entity &_entity)
+void CustomRenderingSensors::RemoveSensor(const Entity &_entity)
 {
   auto idIter = this->dataPtr->entityToIdMap.find(_entity);
   if (idIter != this->dataPtr->entityToIdMap.end())
@@ -362,23 +362,23 @@ void Sensors::RemoveSensor(const Entity &_entity)
 }
 
 //////////////////////////////////////////////////
-Sensors::Sensors() : System(), dataPtr(std::make_unique<SensorsPrivate>())
+CustomRenderingSensors::CustomRenderingSensors() : System(), dataPtr(std::make_unique<CustomRenderingSensorsPrivate>())
 {
 }
 
 //////////////////////////////////////////////////
-Sensors::~Sensors()
+CustomRenderingSensors::~CustomRenderingSensors()
 {
   this->dataPtr->Stop();
 }
 
 //////////////////////////////////////////////////
-void Sensors::Configure(const Entity &/*_id*/,
+void CustomRenderingSensors::Configure(const Entity &/*_id*/,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm,
     EventManager &_eventMgr)
 {
-  igndbg << "Configuring Sensors system" << std::endl;
+  igndbg << "Configuring CustomRenderingSensors system" << std::endl;
 
   // Setup rendering
   std::string engineName =
@@ -394,11 +394,11 @@ void Sensors::Configure(const Entity &/*_id*/,
 
   this->dataPtr->renderUtil.SetEngineName(engineName);
   this->dataPtr->renderUtil.SetEnableSensors(true,
-      std::bind(&Sensors::CreateSensor, this,
+      std::bind(&CustomRenderingSensors::CreateSensor, this,
       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
     this->dataPtr->renderUtil.SetRemoveSensorCb(
-      std::bind(&Sensors::RemoveSensor, this, std::placeholders::_1));
+      std::bind(&CustomRenderingSensors::RemoveSensor, this, std::placeholders::_1));
 
   // parse sensor-specific data
   auto worldEntity = _ecm.EntityByComponents(components::World());
@@ -425,17 +425,17 @@ void Sensors::Configure(const Entity &/*_id*/,
   this->dataPtr->eventManager = &_eventMgr;
 
   this->dataPtr->stopConn = _eventMgr.Connect<events::Stop>(
-      std::bind(&SensorsPrivate::Stop, this->dataPtr.get()));
+      std::bind(&CustomRenderingSensorsPrivate::Stop, this->dataPtr.get()));
 
   // Kick off worker thread
   this->dataPtr->Run();
 }
 
 //////////////////////////////////////////////////
-void Sensors::Update(const UpdateInfo &_info,
+void CustomRenderingSensors::Update(const UpdateInfo &_info,
                      EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Sensors::Update");
+  IGN_PROFILE("CustomRenderingSensors::Update");
   std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
   if (this->dataPtr->running && this->dataPtr->initialized)
   {
@@ -444,10 +444,10 @@ void Sensors::Update(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-void Sensors::PostUpdate(const UpdateInfo &_info,
+void CustomRenderingSensors::PostUpdate(const UpdateInfo &_info,
                          const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Sensors::PostUpdate");
+  IGN_PROFILE("CustomRenderingSensors::PostUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
@@ -527,7 +527,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-std::string Sensors::CreateSensor(const Entity &_entity,
+std::string CustomRenderingSensors::CreateSensor(const Entity &_entity,
     const sdf::Sensor &_sdf, const std::string &_parentName)
 {
   if (_sdf.Type() == sdf::SensorType::NONE)
@@ -565,10 +565,10 @@ std::string Sensors::CreateSensor(const Entity &_entity,
   return sensor->Name();
 }
 
-IGNITION_ADD_PLUGIN(Sensors, System,
-  Sensors::ISystemConfigure,
-  Sensors::ISystemUpdate,
-  Sensors::ISystemPostUpdate
+IGNITION_ADD_PLUGIN(CustomRenderingSensors, System,
+  CustomRenderingSensors::ISystemConfigure,
+  CustomRenderingSensors::ISystemUpdate,
+  CustomRenderingSensors::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(Sensors, "custom::CustomSystem")
+IGNITION_ADD_PLUGIN_ALIAS(CustomRenderingSensors, "custom::CustomSystem")
