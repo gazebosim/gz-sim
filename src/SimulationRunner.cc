@@ -1490,13 +1490,23 @@ bool SimulationRunner::GenerateWorldSdf(const msgs::SdfGeneratorConfig &_req,
   // TODO(addisu) This is not thread-safe. Wait until it is safe to access the
   // ECM.
   Entity world = this->entityCompMgr.EntityByComponents(components::World());
-  std::optional<std::string> genString = sdf_generator::generateWorld(
+  /*std::optional<std::string> genString = sdf_generator::generateWorld(
       this->entityCompMgr, world, this->fuelUriMap, _req);
   if (genString.has_value())
   {
     _res.set_data(*genString);
     return true;
+  }*/
+
+  std::optional<sdf::World> worldSdf = sdf_generator::generateWorldSdf(
+      this->entityCompMgr, world, this->fuelUriMap, _req);
+  if (worldSdf)
+  {
+    std::string worldString = worldSdf->ToElement()->ToString("");
+    _res.set_data(worldString);
+    return true;
   }
+
   return false;
 }
 

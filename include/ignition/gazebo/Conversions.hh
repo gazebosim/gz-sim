@@ -52,6 +52,7 @@
 #include <sdf/Physics.hh>
 #include <sdf/Scene.hh>
 #include <sdf/Sensor.hh>
+#include <sdf/Visual.hh>
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Export.hh"
@@ -619,6 +620,42 @@ namespace ignition
     /// \return SDF collision.
     template<>
     sdf::Collision convert(const msgs::Collision &_in);
+
+    /// \brief Generic conversion from an SDF collision to another type.
+    /// \param[in] _in SDF collision.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const sdf::Visual &_in)
+    {
+      (void)_in;
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from an SDF collision to a collision
+    /// message.
+    /// \param[in] _in SDF collision.
+    /// \return Visual message.
+    template<>
+    msgs::Visual convert(const sdf::Visual &_in);
+
+    /// \brief Generic conversion from a collision message to another type.
+    /// \param[in] _in Visual message.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const msgs::Visual &_in)
+    {
+      (void)_in;
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from a collision message to a collision
+    /// SDF object.
+    /// \param[in] _in Visual message.
+    /// \return SDF collision.
+    template<>
+    sdf::Visual convert(const msgs::Visual &_in);
 
     /// \brief Generic conversion from a string to another type.
     /// \param[in] _in string.

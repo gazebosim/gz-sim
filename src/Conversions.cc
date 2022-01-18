@@ -158,6 +158,41 @@ sdf::Collision ignition::gazebo::convert(const msgs::Collision &_in)
 //////////////////////////////////////////////////
 template<>
 IGNITION_GAZEBO_VISIBLE
+msgs::Visual ignition::gazebo::convert(const sdf::Visual &_in)
+{
+  msgs::Visual out;
+  out.set_name(_in.Name());
+  msgs::Set(out.mutable_pose(), _in.RawPose());
+  out.set_cast_shadows(_in.CastShadows());
+  out.set_transparency(_in.Transparency());
+  out.mutable_geometry()->CopyFrom(convert<msgs::Geometry>(*_in.Geom()));
+  out.mutable_material()->CopyFrom(convert<msgs::Material>(*_in.Material()));
+  if (_in.HasLaserRetro())
+    out.set_laser_retro(_in.LaserRetro());
+
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+IGNITION_GAZEBO_VISIBLE
+sdf::Visual ignition::gazebo::convert(const msgs::Visual &_in)
+{
+  sdf::Visual out;
+  out.SetName(_in.name());
+  out.SetRawPose(msgs::Convert(_in.pose()));
+  out.SetCastShadows(_in.cast_shadows());
+  out.SetTransparency(_in.transparency());
+  out.SetGeom(convert<sdf::Geometry>(_in.geometry()));
+  out.SetMaterial(convert<sdf::Material>(_in.material()));
+  out.SetLaserRetro(_in.laser_retro());
+
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::Geometry ignition::gazebo::convert(const sdf::Geometry &_in)
 {
   msgs::Geometry out;

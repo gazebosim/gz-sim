@@ -720,6 +720,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
   // Components
   this->dataPtr->ecm->CreateComponent(visualEntity, components::Visual());
   this->dataPtr->ecm->CreateComponent(visualEntity,
+      components::VisualElement(*_visual));
+  this->dataPtr->ecm->CreateComponent(visualEntity,
       components::Pose(ResolveSdfPose(_visual->SemanticPose())));
   this->dataPtr->ecm->CreateComponent(visualEntity,
       components::Name(_visual->Name()));

@@ -30,6 +30,7 @@
 #include "ignition/gazebo/components/Altimeter.hh"
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
+#include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/ContactSensor.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/ForceTorque.hh"
@@ -40,6 +41,7 @@
 #include "ignition/gazebo/components/JointAxis.hh"
 #include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/Light.hh"
+#include "ignition/gazebo/components/LightType.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/LogicalCamera.hh"
 #include "ignition/gazebo/components/Magnetometer.hh"
@@ -56,6 +58,7 @@
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThermalCamera.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
+#include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/WindMode.hh"
 #include "ignition/gazebo/components/World.hh"
 
@@ -1014,6 +1017,362 @@ namespace sdf_generator
     }
     poseElem->Set(poseComp->Data());
     return true;
+  }
+
+  /////////////////////////////////////////////////
+  std::optional<sdf::World> generateWorldSdf(
+      const EntityComponentManager &_ecm, const Entity &_entity,
+      const IncludeUriMap &_includeUriMap,
+      const msgs::SdfGeneratorConfig &_config)
+  {
+    const auto *worldSdf = _ecm.Component<components::WorldSdf>(_entity);
+
+    if (nullptr == worldSdf)
+      return std::nullopt;
+
+    sdf::World world(worldSdf->Data());
+
+    // First remove child entities of <world> whose names can be changed during
+    // simulation (eg. models). Then we add them back from the data in the
+    // ECM.
+    world.ClearModels();
+    world.ClearActors();
+    world.ClearLights();
+
+    auto worldDir = common::parentPath(worldSdf->Data().Element()->FilePath());
+
+    _ecm.Each<components::Model, components::ModelSdf>(
+        [&](const Entity &_modelEntity, const components::Model *,
+            const components::ModelSdf *_modelSdf)
+        {
+          // skip nested models as they are not direct children of world
+          auto parentComp = _ecm.Component<components::ParentEntity>(
+              _modelEntity);
+          if (parentComp && parentComp->Data() != _entity)
+            return true;
+
+          auto modelDir =
+              common::parentPath(_modelSdf->Data().Element()->FilePath());
+
+          const std::string modelName =
+              scopedName(_modelEntity, _ecm, "::", false);
+
+          bool modelFromInclude = isModelFromInclude(modelDir, worldDir);
+
+          auto uriMapIt = _includeUriMap.find(modelDir);
+
+          auto modelConfig = _config.global_entity_gen_config();
+          auto modelConfigIt =
+              _config.override_entity_gen_configs().find(modelName);
+          if (modelConfigIt != _config.override_entity_gen_configs().end())
+          {
+            mergeWithOverride(modelConfig, modelConfigIt->second);
+          }
+
+          if (modelConfig.expand_include_tags().data() || !modelFromInclude)
+          {
+            std::optional<sdf::Model> model = generateModelSdf(
+                _ecm, _modelEntity);
+            if (model)
+              world.AddModel(*model);
+
+            // Check & update possible //model/include(s)
+            /*if (!modelConfig.expand_include_tags().data())
+            {
+              updateModelElementWithNestedInclude(modelElem,
+                    modelConfig.save_fuel_version().data(), _includeUriMap);
+            }*/
+          }
+          else if (uriMapIt != _includeUriMap.end())
+          {/*
+            // The fuel URI might have a version number. If it does, we remove
+            // it unless saveFuelModelVersion is set to true.
+            // Check if this is a fuel URI. We assume that it is a fuel URI if
+            // the scheme is http or https.
+            common::URI uri(uriMapIt->second);
+            if (uri.Scheme() == "http" || uri.Scheme() == "https")
+            {
+              removeVersionFromUri(uri);
+            }
+
+            if (modelConfig.save_fuel_version().data())
+            {
+              // Find out the model version from the file path. Note that we
+              // do this from the file path instead of the Fuel URI because the
+              // URI may not contain version information.
+              //
+              // We are assuming here that, for Fuel models, the directory
+              // containing the sdf file has the same name as the model version.
+              // For example, if the uri is
+              // https://example.org/1.0/test/models/Backpack
+              // the path to the directory containing the sdf file (modelDir)
+              // will be:
+              // $HOME/.ignition/fuel/example.org/test/models/Backpack/2/
+              // and the basename of the directory is "1", which is the model
+              // version.
+              //
+              // However, if symlinks (or other types of indirection) are used,
+              // the pattern of modelDir will be different. The assumption here
+              // is that regardless of the indirection, the name of the
+              // directory containing the sdf file can be used as the version
+              // number
+              //
+              uri.Path() /= common::basename(modelDir);
+            }
+
+            auto includeElem = _elem->AddElement("include");
+            updateIncludeElement(includeElem, _ecm, _modelEntity, uri.Str());
+            */
+          }
+          else
+          {/*
+            // The model is not in the includeUriMap, but expandIncludeTags =
+            // false, so we will assume that its uri is the file path of the
+            // model on the local machine
+            auto includeElem = _elem->AddElement("include");
+            const std::string uri = "file://" + modelDir;
+            updateIncludeElement(includeElem, _ecm, _modelEntity, uri);
+            */
+          }
+          return true;
+        });
+
+    return world;
+  }
+
+  /////////////////////////////////////////////////
+  std::optional<sdf::Model> generateModelSdf(const EntityComponentManager &_ecm,
+      const Entity &_entity)
+  {
+    const auto *modelSdf = _ecm.Component<components::ModelSdf>(_entity);
+
+    if (nullptr == modelSdf)
+      return std::nullopt;
+
+    // Copy the model, then update its values.
+    sdf::Model model(modelSdf->Data());
+
+    // Update sdf based on current components. Here are the list of components
+    // to be updated:
+    // - Name
+    // - Pose
+    // - Static
+    // - SelfCollide
+    // This list is to be updated as other components become updateable during
+    // simulation
+    auto *nameComp = _ecm.Component<components::Name>(_entity);
+    if (nameComp)
+      model.SetName(nameComp->Data());
+
+    auto *poseComp = _ecm.Component<components::Pose>(_entity);
+    if (poseComp)
+      model.SetRawPose(poseComp->Data());
+
+    // static
+    auto *staticComp = _ecm.Component<components::Static>(_entity);
+    if (staticComp)
+      model.SetStatic(staticComp->Data());
+
+    // self collide
+    auto *selfCollideComp = _ecm.Component<components::SelfCollide>(_entity);
+    if (selfCollideComp)
+     model.SetSelfCollide(selfCollideComp->Data());
+
+    // Update links
+    std::vector<Entity> modelLinks = _ecm.EntitiesByComponents(
+      components::ParentEntity(_entity), components::Link());
+
+    model.ClearLinks();
+    for (Entity &link : modelLinks)
+    {
+      std::optional<sdf::Link> linkSdf = generateLinkSdf(_ecm, link);
+      if (linkSdf)
+        model.AddLink(*linkSdf);
+    }
+
+    // Update joints
+    std::vector<Entity> modelJoints = _ecm.EntitiesByComponents(
+      components::ParentEntity(_entity), components::Joint());
+
+    model.ClearJoints();
+    /*for (Entity &joint : modelJoints)
+    {
+      std::optional<sdf::Joint> jointSdf = generateJointSdf(_ecm, joint);
+      if (jointSdf)
+        model.AddJoint(*JoinSdf);
+    }*/
+
+    // Update nested models
+    std::vector<Entity> nestedModels = _ecm.EntitiesByComponents(
+      components::ParentEntity(_entity), components::Model());
+
+    model.ClearModels();
+    for (Entity &nestedModel : nestedModels)
+    {
+      std::optional<sdf::Model> nestedModelSdf =
+        generateModelSdf(_ecm, nestedModel);
+      if (nestedModelSdf)
+        model.AddModel(*nestedModelSdf);
+    }
+
+    return model;
+  }
+
+  /////////////////////////////////////////////////
+  std::optional<sdf::Link> generateLinkSdf(const EntityComponentManager &_ecm,
+      const Entity &_entity)
+  {
+    sdf::Link link;
+
+    // Update sdf based on current components. Here are the list of components
+    // to be updated:
+    // - Name
+    // - Pose
+    // - Inertial
+    // - WindMode
+    // This list is to be updated as other components become updateable during
+    // simulation
+    auto *nameComp = _ecm.Component<components::Name>(_entity);
+    if (nameComp)
+      link.SetName(nameComp->Data());
+
+    auto *poseComp = _ecm.Component<components::Pose>(_entity);
+    if (poseComp)
+      link.SetRawPose(poseComp->Data());
+
+    // inertial
+    auto inertialComp = _ecm.Component<components::Inertial>(_entity);
+    if (inertialComp)
+      link.SetInertial(inertialComp->Data());
+
+    // wind mode
+    auto windModeComp = _ecm.Component<components::WindMode>(_entity);
+    if (windModeComp)
+      link.SetEnableWind(windModeComp->Data());
+
+    // Update sensors
+    std::vector<Entity> sensors = _ecm.EntitiesByComponents(
+      components::ParentEntity(_entity), components::Sensor());
+
+    link.ClearSensors();
+    for (Entity &sensor : sensors)
+    {
+      std::optional<sdf::Sensor> sensorSdf = generateSensorSdf(_ecm, sensor);
+      if (sensorSdf)
+        link.AddSensor(*sensorSdf);
+    }
+
+    // Update collisions
+    std::vector<Entity> collisions = _ecm.EntitiesByComponents(
+      components::ParentEntity(_entity), components::Collision());
+
+    link.ClearCollisions();
+    for (Entity &collision : collisions)
+    {
+      auto comp = _ecm.Component<components::CollisionElement>(collision);
+      if (comp)
+        link.AddCollision(comp->Data());
+    }
+
+    // Update visuals
+    std::vector<Entity> visuals = _ecm.EntitiesByComponents(
+      components::ParentEntity(_entity), components::Visual());
+
+    link.ClearVisuals();
+    for (Entity &visual : visuals)
+    {
+      auto comp = _ecm.Component<components::VisualElement>(visual);
+      if (comp)
+        link.AddVisual(comp->Data());
+    }
+
+    // Update lights
+    std::vector<Entity> lights = _ecm.EntitiesByComponents(
+      components::ParentEntity(_entity), components::LightType());
+
+    link.ClearLights();
+    for (Entity &light : lights)
+    {
+      auto comp = _ecm.Component<components::Light>(light);
+      if (comp)
+        link.AddLight(comp->Data());
+    }
+
+    return link;
+  }
+
+  /////////////////////////////////////////////////
+  std::optional<sdf::Sensor> generateSensorSdf(
+      const EntityComponentManager &_ecm, const Entity &_entity)
+  {
+    // Update sdf based on current components.
+    // This list is to be updated as other components become updateable during
+    // simulation
+    sdf::Sensor sensor;
+
+    // camera
+    auto camComp = _ecm.Component<components::Camera>(_entity);
+    if (camComp)
+      sensor = camComp->Data();
+    // depth camera
+    auto depthCamComp = _ecm.Component<components::DepthCamera>(_entity);
+    if (depthCamComp)
+      sensor = depthCamComp->Data();
+    // thermal camera
+    auto thermalCamComp = _ecm.Component<components::ThermalCamera>(_entity);
+    if (thermalCamComp)
+      sensor = thermalCamComp->Data();
+    // logical camera
+    // IMPLEMENT ME: auto logicalCamComp = _ecm.Component<components::LogicalCamera>(_entity);
+    // if (logicalCamComp)
+    //   sensor = logicalCamComp->Data();
+    // segmentation camera
+    auto segmentationCamComp =
+        _ecm.Component<components::SegmentationCamera>(_entity);
+    if (segmentationCamComp)
+      sensor = segmentationCamComp->Data();
+    // gpu lidar
+    auto gpuLidarComp = _ecm.Component<components::GpuLidar>(_entity);
+    if (gpuLidarComp)
+      sensor = gpuLidarComp->Data();
+    // altimeter
+    auto altimeterComp = _ecm.Component<components::Altimeter>(_entity);
+    if (altimeterComp)
+      sensor = altimeterComp->Data();
+    // contact
+    auto contactComp = _ecm.Component<components::ContactSensor>(_entity);
+    if (contactComp)
+      sensor = altimeterComp->Data();
+    // air pressure
+    auto airPressureComp =
+        _ecm.Component<components::AirPressureSensor>(_entity);
+    if (airPressureComp)
+      sensor = airPressureComp->Data();
+    // force torque
+    auto forceTorqueComp = _ecm.Component<components::ForceTorque>(_entity);
+    if (forceTorqueComp)
+      sensor = forceTorqueComp->Data();
+    // imu
+    auto imuComp = _ecm.Component<components::Imu>(_entity);
+    if (imuComp)
+      sensor = imuComp->Data();
+    // magnetometer
+    auto magnetometerComp =
+        _ecm.Component<components::Magnetometer>(_entity);
+    if (magnetometerComp)
+      sensor = magnetometerComp->Data();
+
+    // Update the name
+    auto *nameComp = _ecm.Component<components::Name>(_entity);
+    if (nameComp)
+      sensor.SetName(nameComp->Data());
+
+    // Update the pose
+    auto *poseComp = _ecm.Component<components::Pose>(_entity);
+    if (poseComp)
+      sensor.SetRawPose(poseComp->Data());
+
+    return sensor;
   }
 }
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
