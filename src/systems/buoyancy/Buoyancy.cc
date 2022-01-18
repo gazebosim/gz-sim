@@ -439,9 +439,6 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
           const components::Volume *_volume,
           const components::CenterOfVolume *_centerOfVolume) -> bool
     {
-      auto newPose = enableComponent<components::Inertial>(_ecm, _entity);
-      newPose |= enableComponent<components::WorldPose>(_ecm, _entity);
-
       // World pose of the link.
       math::Pose3d linkWorldPose = worldPose(_entity, _ecm);
 
