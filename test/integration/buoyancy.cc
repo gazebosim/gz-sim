@@ -43,6 +43,100 @@ class BuoyancyTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
+TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RestoringMoments))
+{
+  int iterations{5000};
+  std::vector<math::Pose3d> poses_uniform, poses_graded;
+  {
+    // Start server
+    ServerConfig serverConfig;
+    const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "/test/worlds/buoyancy_uniform_restoring_moments.sdf");
+    serverConfig.SetSdfFile(sdfFile);
+
+    test::Relay testSystem;
+    testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
+                              const gazebo::EntityComponentManager &_ecm)
+    {
+      // Get Submarine
+      Entity submarine = _ecm.EntityByComponents(
+        components::Model(), components::Name("submarine"));
+
+      // Get pose
+      auto submarinePose = _ecm.Component<components::Pose>(submarine);
+      ASSERT_NE(submarinePose, nullptr);
+
+      poses_uniform.push_back(submarinePose->Data());
+    });
+
+    Server server(serverConfig);
+    EXPECT_FALSE(server.Running());
+    EXPECT_FALSE(*server.Running(0));
+
+    server.AddSystem(testSystem.systemPtr);
+    server.Run(true, iterations, false);
+  }
+
+  {
+    // Start server
+    ServerConfig serverConfig;
+    const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "/test/worlds/buoyancy_graded_restoring_moments.sdf");
+    serverConfig.SetSdfFile(sdfFile);
+
+    test::Relay testSystem;
+    testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
+                              const gazebo::EntityComponentManager &_ecm)
+    {
+      // Get Submarine
+      Entity submarine = _ecm.EntityByComponents(
+        components::Model(), components::Name("submarine"));
+
+      // Get pose
+      auto submarinePose = _ecm.Component<components::Pose>(submarine);
+      ASSERT_NE(submarinePose, nullptr);
+
+      poses_graded.push_back(submarinePose->Data());
+    });
+
+    Server server(serverConfig);
+    EXPECT_FALSE(server.Running());
+    EXPECT_FALSE(*server.Running(0));
+
+    server.AddSystem(testSystem.systemPtr);
+    server.Run(true, iterations, false);
+  }
+
+  ASSERT_EQ(poses_graded.size(), poses_uniform.size());
+  ASSERT_EQ(poses_uniform.size(), iterations);
+  for (std::size_t i = 0; i <  poses_graded.size(); i++)
+  {
+    // The two modes should track a similar course when fully submerged
+    EXPECT_NEAR(poses_graded[i].Rot().Euler().X(),
+      poses_uniform[i].Rot().Euler().X(), 1e-1);
+    EXPECT_NEAR(poses_graded[i].Rot().Euler().Y(),
+      poses_uniform[i].Rot().Euler().Y(), 1e-1);
+    EXPECT_NEAR(poses_graded[i].Rot().Euler().Z(),
+      poses_uniform[i].Rot().Euler().Z(), 1e-1);
+
+    EXPECT_NEAR(poses_graded[i].Pos().X(), poses_uniform[i].Pos().X(), 1e-1);
+    EXPECT_NEAR(poses_graded[i].Pos().Y(), poses_uniform[i].Pos().Y(), 1e-1);
+    EXPECT_NEAR(poses_graded[i].Pos().Z(), poses_uniform[i].Pos().Z(), 1e-1);
+
+    // The box should stay around zero
+    EXPECT_NEAR(poses_graded[i].Pos().X(), 0, 1e-1);
+    EXPECT_NEAR(poses_graded[i].Pos().Y(), 0, 1e-1);
+    EXPECT_NEAR(poses_graded[i].Pos().Z(), 0, 1e-1);
+
+    // The box should not yaw or pitch
+    EXPECT_NEAR(poses_graded[i].Rot().Euler().Y(), 0, 1e-1);
+    EXPECT_NEAR(poses_graded[i].Rot().Euler().Z(), 0, 1e-1);
+
+    // The roll should not exceed its equilibrium position
+  }
+}
+
+/////////////////////////////////////////////////
 // See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
 TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(UniformWorldMovement))
 {
