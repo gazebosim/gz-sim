@@ -432,7 +432,7 @@ void CustomRenderingSensors::Configure(const Entity &/*_id*/,
 }
 
 //////////////////////////////////////////////////
-void CustomRenderingSensors::Update(const UpdateInfo &_info,
+void CustomRenderingSensors::PreUpdate(const UpdateInfo &_info,
                      EntityComponentManager &_ecm)
 {
   IGN_PROFILE("CustomRenderingSensors::Update");
@@ -567,7 +567,7 @@ std::string CustomRenderingSensors::CreateSensor(const Entity &_entity,
 
 IGNITION_ADD_PLUGIN(CustomRenderingSensors, System,
   CustomRenderingSensors::ISystemConfigure,
-  CustomRenderingSensors::ISystemUpdate,
+  CustomRenderingSensors::ISystemPreUpdate,
   CustomRenderingSensors::ISystemPostUpdate
 )
 

@@ -51,7 +51,7 @@ namespace systems
   class CustomRenderingSensors:
     public System,
     public ISystemConfigure,
-    public ISystemUpdate,
+    public ISystemPreUpdate,
     public ISystemPostUpdate
   {
     /// \brief Constructor
@@ -67,7 +67,7 @@ namespace systems
                            EventManager &_eventMgr) final;
 
     // Documentation inherited
-    public: void Update(const UpdateInfo &_info,
+    public: void PreUpdate(const UpdateInfo &_info,
                         EntityComponentManager &_ecm) final;
 
     // Documentation inherited
