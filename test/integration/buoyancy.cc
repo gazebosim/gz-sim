@@ -45,7 +45,9 @@ class BuoyancyTest : public InternalFixture<::testing::Test>
 /////////////////////////////////////////////////
 TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RestoringMoments))
 {
-  int iterations{5000};
+  // This test checks if the restoring moments are correctly calculated accross
+  // both uniform and graded modes when the vehicle is fully submerged.
+  std::size_t iterations{10000};
   std::vector<math::Pose3d> poses_uniform, poses_graded;
   {
     // Start server
@@ -55,7 +57,7 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RestoringMoments))
     serverConfig.SetSdfFile(sdfFile);
 
     test::Relay testSystem;
-    testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
+    testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &/*unused*/,
                               const gazebo::EntityComponentManager &_ecm)
     {
       // Get Submarine
@@ -85,7 +87,7 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RestoringMoments))
     serverConfig.SetSdfFile(sdfFile);
 
     test::Relay testSystem;
-    testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
+    testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &/*unused*/,
                               const gazebo::EntityComponentManager &_ecm)
     {
       // Get Submarine
@@ -107,13 +109,15 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RestoringMoments))
     server.Run(true, iterations, false);
   }
 
+  double max_uniform_roll{0}, max_graded_roll{0};
+  double min_uniform_roll{0}, min_graded_roll{0};
+
   ASSERT_EQ(poses_graded.size(), poses_uniform.size());
   ASSERT_EQ(poses_uniform.size(), iterations);
   for (std::size_t i = 0; i <  poses_graded.size(); i++)
   {
     // The two modes should track a similar course when fully submerged
-    EXPECT_NEAR(poses_graded[i].Rot().Euler().X(),
-      poses_uniform[i].Rot().Euler().X(), 1e-1);
+    // Ignore roll for now as that 
     EXPECT_NEAR(poses_graded[i].Rot().Euler().Y(),
       poses_uniform[i].Rot().Euler().Y(), 1e-1);
     EXPECT_NEAR(poses_graded[i].Rot().Euler().Z(),
@@ -133,7 +137,23 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RestoringMoments))
     EXPECT_NEAR(poses_graded[i].Rot().Euler().Z(), 0, 1e-1);
 
     // The roll should not exceed its equilibrium position
+    EXPECT_LT(poses_graded[i].Rot().Euler().X(), 0.11 + 0.01);
+    EXPECT_LT(poses_uniform[i].Rot().Euler().X(), 0.11 + 0.01);
+
+    // Get the maximum roll
+    max_uniform_roll = std::max(max_uniform_roll, poses_uniform[i].Rot().X());
+    max_graded_roll = std::max(max_graded_roll, poses_graded[i].Rot().X());
+
+    // And the minimum roll
+    min_uniform_roll = std::min(min_uniform_roll, poses_uniform[i].Rot().X());
+    min_graded_roll = std::min(min_graded_roll, poses_graded[i].Rot().X());
   }
+  // The max and min roll should be similar
+  EXPECT_NEAR(max_uniform_roll, max_graded_roll, 1e-1);
+  EXPECT_NEAR(max_uniform_roll, 0.11, 1e-1);
+  EXPECT_NEAR(min_uniform_roll, min_graded_roll, 1e-1);
+  // Emperically derived
+  EXPECT_NEAR(min_uniform_roll, -0.15, 1e-1);
 }
 
 /////////////////////////////////////////////////
