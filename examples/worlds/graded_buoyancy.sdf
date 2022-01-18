@@ -43,6 +43,8 @@
       <!-- enable by top level model name -->
       <enable>balloon_lighter_than_air</enable>
       <enable>box_neutral_buoyancy</enable>
+      <enable>box_neutral_buoyancy_collision_offset</enable>
+      <enable>multi_collision_neutral_buoyancy</enable>
       <enable>box_negative_buoyancy</enable>
     </plugin>
 
@@ -210,6 +212,107 @@
           <geometry>
              <box>
               <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <!--
+      This box is neutrally buoyant and therefore should stay still.
+      Its link origin is above water, but its collision is below.
+    -->
+    <model name='box_neutral_buoyancy_collision_offset'>
+      <pose>-3 5 2 0 0 0</pose>
+      <link name='body'>
+        <inertial>
+          <mass>1000</mass>
+          <pose>0 0 -5.1 0 0 0</pose>
+          <inertia>
+            <ixx>86.28907821859966</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>86.28907821859966</iyy>
+            <iyz>0</iyz>
+            <izz>5.026548245743671</izz>
+          </inertia>
+        </inertial>
+
+        <visual name='link_origin'>
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+        <visual name='collision_origin'>
+          <pose>0 0 -5 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+        <collision name='buoyancy_volume'>
+          <pose>0 0 -5 0 0 0</pose>
+          <geometry>
+             <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <!--
+      This box is neutrally buoyant and therefore should stay still.
+      It has multiple collision shapes.
+    -->
+    <model name='multi_collision_neutral_buoyancy'>
+      <pose>-6 5 -3 0 0 0</pose>
+      <link name='body'>
+        <inertial>
+          <mass>1000</mass>
+          <pose>0 0 0.1 0 0 0</pose>
+          <inertia>
+            <ixx>86.28907821859966</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>86.28907821859966</iyy>
+            <iyz>0</iyz>
+            <izz>5.026548245743671</izz>
+          </inertia>
+        </inertial>
+
+        <visual name='collision_1_vis'>
+          <pose>-0.25 0 0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.5 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+        <visual name='collision_2_vis'>
+          <pose>0.25 0 0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.5 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+        <collision name='collision_1'>
+          <pose>-0.25 0 0 0 0 0</pose>
+          <geometry>
+             <box>
+              <size>0.5 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <collision name='collision_2'>
+          <pose>0.25 0 0 0 0 0</pose>
+          <geometry>
+             <box>
+              <size>0.5 1 1</size>
             </box>
           </geometry>
         </collision>
