@@ -1643,17 +1643,25 @@ void IgnRenderer::HandleMouseViewControl()
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::Initialize()
+std::string IgnRenderer::Initialize()
 {
   if (this->initialized)
-    return;
+    return std::string();
+
+  // Only one engine / scene / user camera is currently supported.
+  // Fail gracefully even before getting to renderUtil.
+  if (!rendering::loadedEngines().empty())
+  {
+    return "Currently only one plugin providing a 3D scene is supported at a "
+            "time.";
+  }
 
   this->dataPtr->renderUtil.SetUseCurrentGLContext(true);
   this->dataPtr->renderUtil.Init();
 
   rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
   if (!scene)
-    return;
+    return "Failed to create a 3D scene.";
 
   auto root = scene->RootVisual();
 
@@ -1674,6 +1682,7 @@ void IgnRenderer::Initialize()
   this->dataPtr->rayQuery = this->dataPtr->camera->Scene()->CreateRayQuery();
 
   this->initialized = true;
+  return std::string();
 }
 
 /////////////////////////////////////////////////
@@ -2067,6 +2076,12 @@ RenderThread::RenderThread()
 }
 
 /////////////////////////////////////////////////
+void RenderThread::SetErrorCb(std::function<void(const QString&)> _cb)
+{
+  this->errorCb = _cb;
+}
+
+/////////////////////////////////////////////////
 void RenderThread::RenderNext()
 {
   this->context->makeCurrent(this->surface);
@@ -2074,7 +2089,12 @@ void RenderThread::RenderNext()
   if (!this->ignRenderer.initialized)
   {
     // Initialize renderer
-    this->ignRenderer.Initialize();
+    auto loadingError = this->ignRenderer.Initialize();
+    if (!loadingError.empty())
+    {
+      this->errorCb(QString::fromStdString(loadingError));
+      return;
+    }
   }
 
   // check if engine has been successfully initialized
@@ -2092,18 +2112,24 @@ void RenderThread::RenderNext()
 /////////////////////////////////////////////////
 void RenderThread::ShutDown()
 {
-  this->context->makeCurrent(this->surface);
+  if (this->context && this->surface)
+    this->context->makeCurrent(this->surface);
 
   this->ignRenderer.Destroy();
 
-  this->context->doneCurrent();
-  delete this->context;
+  if (this->context)
+  {
+    this->context->doneCurrent();
+    delete this->context;
+  }
 
   // schedule this to be deleted only after we're done cleaning up
-  this->surface->deleteLater();
+  if (this->surface)
+    this->surface->deleteLater();
 
   // Stop event processing, move the thread to GUI and make sure it is deleted.
-  this->moveToThread(QGuiApplication::instance()->thread());
+  if (this->ignRenderer.initialized)
+    this->moveToThread(QGuiApplication::instance()->thread());
 }
 
 
@@ -2203,16 +2229,6 @@ void TextureNode::PrepareNode()
 RenderWindowItem::RenderWindowItem(QQuickItem *_parent)
   : QQuickItem(_parent), dataPtr(new RenderWindowItemPrivate)
 {
-  // FIXME(anyone) Ogre 1/2 singletons crash when there's an attempt to load
-  // this plugin twice, so shortcut here. Ideally this would be caught at
-  // Ignition Rendering.
-  static bool done{false};
-  if (done)
-  {
-    return;
-  }
-  done = true;
-
   this->setAcceptedMouseButtons(Qt::AllButtons);
   this->setFlag(ItemHasContents);
   this->dataPtr->renderThread = new RenderThread();
@@ -2378,18 +2394,6 @@ Scene3D::~Scene3D() = default;
 /////////////////////////////////////////////////
 void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
 {
-  // FIXME(anyone) Ogre 1/2 singletons crash when there's an attempt to load
-  // this plugin twice, so shortcut here. Ideally this would be caught at
-  // Ignition Rendering.
-  static bool done{false};
-  if (done)
-  {
-    ignerr << "Only one Scene3D is supported per process at the moment."
-           << std::endl;
-    return;
-  }
-  done = true;
-
   auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
   if (!renderWindow)
   {
@@ -2397,6 +2401,8 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
            << "Render window will not be created" << std::endl;
     return;
   }
+  renderWindow->SetErrorCb(std::bind(&Scene3D::SetLoadingError, this,
+      std::placeholders::_1));
 
   if (this->title.empty())
     this->title = "3D Scene";
@@ -2892,6 +2898,19 @@ void Scene3D::OnFocusWindow()
 }
 
 /////////////////////////////////////////////////
+QString Scene3D::LoadingError() const
+{
+  return this->loadingError;
+}
+
+/////////////////////////////////////////////////
+void Scene3D::SetLoadingError(const QString &_loadingError)
+{
+  this->loadingError = _loadingError;
+  this->LoadingErrorChanged();
+}
+
+/////////////////////////////////////////////////
 void RenderWindowItem::SetXYZSnap(const math::Vector3d &_xyz)
 {
   this->dataPtr->renderThread->ignRenderer.SetXYZSnap(_xyz);
@@ -3178,6 +3197,12 @@ void RenderWindowItem::SetRecordVideoBitrate(unsigned int _bitrate)
 void RenderWindowItem::OnHovered(const ignition::math::Vector2i &_hoverPos)
 {
   this->dataPtr->renderThread->ignRenderer.NewHoverEvent(_hoverPos);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetErrorCb(std::function<void(const QString&)> _cb)
+{
+  this->dataPtr->renderThread->SetErrorCb(_cb);
 }
 
 /////////////////////////////////////////////////
