@@ -12,5 +12,3 @@ target_link_libraries(${PROJECT_NAME}
 )
 target_include_directories(${PROJECT_NAME}
     PUBLIC ../custom_sensor)
-
-install (TARGETS CustomSystem DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})

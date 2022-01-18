@@ -12,6 +12,3 @@ target_link_libraries(${PROJECT_NAME}
     ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER}
     ignition-sensors${IGN_SENSORS_VER}::ignition-sensors${IGN_SENSORS_VER}-rendering
   )
-
-install (TARGETS custom_rendering_sensor DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
-install (TARGETS custom_rendering_sensor DESTINATION ${IGN_LIB_INSTALL_DIR})
