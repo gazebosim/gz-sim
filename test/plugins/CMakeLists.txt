@@ -18,7 +18,7 @@ set (test_plugins
   Null
 )
 
-add_subdirectory(sensor_demo)
+add_subdirectory(custom_rendering_sensor_test)
 
 # TODO: someone with knowledge of ign-plugin please resolve:
 # TestSystem.obj : error LNK2001: unresolved external symbol IgnitionPluginHook

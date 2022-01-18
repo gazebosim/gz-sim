@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_SENSORS_CustomRenderingSensor_HH_
-#define IGNITION_SENSORS_CustomRenderingSensor_HH_
+#ifndef IGNITION_SENSORS_CUSTOMRENDERINGSENSOR_HH_
+#define IGNITION_SENSORS_CUSTOMRENDERINGSENSOR_HH_
 
 #include <cstdint>
 #include <memory>
@@ -71,7 +71,7 @@ namespace ignition
       /// \brief Load the sensor based on data from an sdf::Sensor object.
       /// \param[in] _sdf SDF Sensor parameters.
       /// \return true if loading was successful
-      public: virtual bool Load(const sdf::Sensor &_sdf) override;
+      public: bool Load(const sdf::Sensor &_sdf) override;
 
       /// \brief Load the sensor with SDF parameters.
       /// \param[in] _sdf SDF Sensor parameters.

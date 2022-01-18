@@ -1,0 +1,2 @@
+add_subdirectory(custom_sensor)
+add_subdirectory(custom_system)

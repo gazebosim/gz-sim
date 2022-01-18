@@ -307,15 +307,12 @@ bool CustomRenderingSensor::Update(const std::chrono::steady_clock::duration &_n
   unsigned char *data_left = this->dataPtr->image_left.Data<unsigned char>();
   unsigned char *data_right = this->dataPtr->image_right.Data<unsigned char>();
 
-  ignition::common::Image::PixelFormatType
-      format{common::Image::UNKNOWN_PIXEL_FORMAT};
   msgs::PixelFormatType msgsPixelFormat =
     msgs::PixelFormatType::UNKNOWN_PIXEL_FORMAT;
 
   switch (this->dataPtr->camera_left->ImageFormat())
   {
     case ignition::rendering::PF_R8G8B8:
-      format = ignition::common::Image::RGB_INT8;
       msgsPixelFormat = msgs::PixelFormatType::RGB_INT8;
       break;
     default:

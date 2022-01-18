@@ -37,7 +37,7 @@ int rightMsgCount = 0;
 
 //////////////////////////////////////////////////
 class CustomRenderingSensorTest :
-  public InternalFixture<InternalFixture<::testing::Test>>
+  public InternalFixture<testing::Test>
 {
 };
 
