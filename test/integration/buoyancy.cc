@@ -117,7 +117,8 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RestoringMoments))
   for (std::size_t i = 0; i <  poses_graded.size(); i++)
   {
     // The two modes should track a similar course when fully submerged
-    // Ignore roll for now as that 
+    // Ignore roll for now as that changes a lot and the two sims are not
+    // perfectly in sync.
     EXPECT_NEAR(poses_graded[i].Rot().Euler().Y(),
       poses_uniform[i].Rot().Euler().Y(), 1e-1);
     EXPECT_NEAR(poses_graded[i].Rot().Euler().Z(),
