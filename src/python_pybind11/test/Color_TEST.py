@@ -145,7 +145,7 @@ class TestColor(unittest.TestCase):
         self.assertAlmostEqual(0.5, clr.b())
         self.assertAlmostEqual(1.0, clr.a())
 
-        self.assertTrue(clr.hsv() == Vector3f(6, 0.5, 1))
+        self.assertTrue(clr.hsv() == Vector3f(360, 0.5, 1))
 
         clr.set_from_hsv(60, 0.0, 1.0)
         self.assertAlmostEqual(1.0, clr.r())
@@ -301,19 +301,19 @@ class TestColor(unittest.TestCase):
     def test_HSV(self):
         clr = Color()
         hsv = clr.hsv()
-        self.assertAlmostEqual(hsv.x(), -1.0)
+        self.assertAlmostEqual(hsv.x(), 0.0)
         self.assertAlmostEqual(hsv.y(), 0.0)
         self.assertAlmostEqual(hsv.z(), 0.0)
 
         clr.set(0.1, 0.2, 0.3, 1.0)
         hsv = clr.hsv()
-        self.assertAlmostEqual(hsv.x(), 3.5, delta=1e-3)
+        self.assertAlmostEqual(hsv.x(), 210, delta=1e-3)
         self.assertAlmostEqual(hsv.y(), 0.666667, delta=1e-3)
         self.assertAlmostEqual(hsv.z(), 0.3, delta=1e-3)
 
         clr.set(0.3, 0.2, 0.1, 1.0)
         hsv = clr.hsv()
-        self.assertAlmostEqual(hsv.x(), 0.5, delta=1e-3)
+        self.assertAlmostEqual(hsv.x(), 30, delta=1e-3)
         self.assertAlmostEqual(hsv.y(), 0.666667, delta=1e-3)
         self.assertAlmostEqual(hsv.z(), 0.3, delta=1e-3)
 

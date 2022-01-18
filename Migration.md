@@ -58,6 +58,10 @@ release will remove the deprecated code.
 1. The out stream operator is guaranteed to return always plain 0 and not to
    return -0, 0.0 or other instances of zero value.
 
+## Ignition Math 6.9.2 to 6.10.0
+
+1. **Color::HSV()**: A bug related to the hue output of this function was fixed.
+
 ## Ignition Math 6.8 to 6.9
 
 1. **SphericalCoordinates**: A bug related to the LOCAL frame was fixed. To

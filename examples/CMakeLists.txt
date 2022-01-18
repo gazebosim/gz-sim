@@ -9,6 +9,9 @@ find_package(ignition-math${IGN_MATH_VER} REQUIRED)
 add_executable(angle_example angle_example.cc)
 target_link_libraries(angle_example ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
 
+add_executable(color_example color_example.cc)
+target_link_libraries(color_example ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
+
 add_executable(gauss_markov_process gauss_markov_process_example.cc)
 target_link_libraries(gauss_markov_process ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
 
@@ -32,6 +35,9 @@ target_link_libraries(quaternion_from_euler ignition-math${IGN_MATH_VER}::igniti
 
 add_executable(quaternion_to_euler quaternion_to_euler.cc)
 target_link_libraries(quaternion_to_euler ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
+
+add_executable(rand_example rand_example.cc)
+target_link_libraries(rand_example ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
 
 add_executable(temperature_example temperature_example.cc)
 target_link_libraries(temperature_example ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})

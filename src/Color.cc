@@ -145,7 +145,7 @@ Vector3f Color::HSV() const
 
   if (equal(delta, 0.0f))
   {
-    hsv.X() = -1;
+    hsv.X() = 0.0;
     hsv.Y() = 0.0;
   }
   else if (equal(this->r, min))
@@ -155,6 +155,7 @@ Vector3f Color::HSV() const
   else
     hsv.X() = 1 - ((this->r - this->g) / delta);
 
+  hsv.X() *= 60.0;
   return hsv;
 }
 

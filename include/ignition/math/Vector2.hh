@@ -18,6 +18,7 @@
 #define IGNITION_MATH_VECTOR2_HH_
 
 #include <algorithm>
+#include <cmath>
 #include <istream>
 #include <limits>
 #include <ostream>
@@ -104,7 +105,7 @@ namespace ignition
       /// \brief Normalize the vector length
       public: void Normalize()
       {
-        double d = this->Length();
+        T d = this->Length();
 
         if (!equal<T>(d, static_cast<T>(0.0)))
         {
