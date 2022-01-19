@@ -84,6 +84,7 @@ class ignition::gazebo::systems::BuoyancyEnginePrivateData
   public: std::mutex mtx;
 
   /// \brief  Get fluid density based on the link origin's current position.
+  /// \param[in] _ecm - The ecm in question.
   public: double CurrentFluidDensity(
     const EntityComponentManager &_ecm) const;
 };
