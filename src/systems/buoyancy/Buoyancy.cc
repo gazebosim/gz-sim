@@ -239,7 +239,7 @@ std::pair<math::Vector3d, math::Vector3d> BuoyancyPrivate::ResolveForces(
     // Offset between the link origin and the force application point
     auto offset = _linkInWorld.Pos() - pointInWorld.Pos();
 
-    torque += force.Cross(offset);
+    torque += b.force.Cross(offset);
   }
 
   return {force, torque};
