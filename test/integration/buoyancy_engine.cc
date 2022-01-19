@@ -106,8 +106,8 @@ TEST_F(BuoyancyEngineTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TestDownward))
 TEST_F(BuoyancyEngineTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TestUpward))
 {
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/buoyancy_engine.sdf";
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "buoyancy_engine.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);
@@ -138,6 +138,57 @@ TEST_F(BuoyancyEngineTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TestUpward))
       return;
     }
     poses.push_back(submarineBuoyantPose->Data());
+  });
+
+  server.AddSystem(testSystem.systemPtr);
+  ignition::msgs::Double volume;
+  volume.set_data(10);
+  this->pub.Publish(volume);
+  server.Run(true, iterations, false);
+
+  EXPECT_GT(poses.rbegin()->Pos().Z(), poses.begin()->Pos().Z());
+  EXPECT_NEAR(poses.rbegin()->Pos().X(), poses.begin()->Pos().X(), 1e-3);
+  EXPECT_NEAR(poses.rbegin()->Pos().Y(), poses.begin()->Pos().Y(), 1e-3);
+}
+
+/////////////////////////////////////////////////
+TEST_F(BuoyancyEngineTest, TestUpwardSurface)
+{
+  ServerConfig serverConfig;
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "buoyancy_engine.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  using namespace std::chrono_literals;
+  server.SetUpdatePeriod(1ns);
+
+  std::size_t iterations = 10000;
+
+  test::Relay testSystem;
+  std::vector<ignition::math::Pose3d> poses;
+
+  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &/*_info*/,
+                             const gazebo::EntityComponentManager &_ecm)
+  {
+    // Check pose
+    Entity buoyantBox = _ecm.EntityByComponents(
+      components::Model(), components::Name("buoyant_box_w_surface"));
+    EXPECT_NE(kNullEntity, buoyantBox);
+
+    auto submarineBuoyantPose = _ecm.Component<components::Pose>(buoyantBox);
+    EXPECT_NE(submarineBuoyantPose, nullptr);
+    if (submarineBuoyantPose == nullptr)
+    {
+      ignerr << "Unable to get pose" <<std::endl;
+      return;
+    }
+    poses.push_back(submarineBuoyantPose->Data());
+    double tol = 0.1;
+    EXPECT_LT(submarineBuoyantPose->Data().Z(), 0 + tol);
   });
 
   server.AddSystem(testSystem.systemPtr);
