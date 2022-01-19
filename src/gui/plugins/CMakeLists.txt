@@ -83,6 +83,7 @@ function(gz_add_gui_plugin plugin_name)
     # However, the warning is not important since those members do not need to
     # be interfaced with.
     set_source_files_properties(${gz_add_gui_plugin_SOURCES} COMPILE_FLAGS "/wd4251")
+    set_source_files_properties(${gz_add_gui_plugin_QT_HEADERS} COMPILE_FLAGS "/wd4251")
   endif()
 
   gz_add_gui_library(${plugin_name}
