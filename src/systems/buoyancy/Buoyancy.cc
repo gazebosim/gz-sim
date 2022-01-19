@@ -77,9 +77,10 @@ class ignition::gazebo::systems::BuoyancyPrivate
   public: double UniformFluidDensity(const math::Pose3d &_pose) const;
 
   /// \brief Get the resultant buoyant force on a shape.
-  /// \param[in] _pose The pose of the shape.
+  /// \param[in] _pose World pose of the shape's origin.
   /// \param[in] _shape The collision mesh of a shape. Currently must
-  /// be one of box, cylinder or sphere.
+  /// be box or sphere.
+  /// \param[in] _gravity Gravity acceleration in the world frame.
   /// Updates this->buoyancyForces containing {force, center_of_volume} to be
   /// applied on the link.
   public:
@@ -101,28 +102,36 @@ class ignition::gazebo::systems::BuoyancyPrivate
   /// fluidDensity.
   public: std::map<double, double> layers;
 
-  /// \brief Point from where to apply the force
+  /// \brief Holds information about forces contributed by a single collision
+  /// shape.
   public: struct BuoyancyActionPoint
   {
-    /// \brief The force to be applied
+    /// \brief The force to be applied, expressed in the world frame.
     math::Vector3d force;
 
-    /// \brief The point from which the force will be applied
+    /// \brief The point from which the force will be applied, expressed in
+    /// the collision's frame.
     math::Vector3d point;
 
-    /// \brief The pose of the link in question
+    /// \brief The world pose of the collision.
     math::Pose3d pose;
   };
 
   /// \brief List of points from where the forces act.
+  /// This holds values refent to the current link being processed and must be
+  /// cleared between links.
+  /// \TODO(chapulina) It's dangerous to keep link-specific values in a member
+  /// variable. We should consider reducing the scope of this variable and pass
+  /// it across functions as needed.
   public: std::vector<BuoyancyActionPoint> buoyancyForces;
 
   /// \brief Resolve all forces as if they act as a Wrench from the give pose.
-  /// \param[in] _pose The point from which all poses are to be resolved.
+  /// \param[in] _linkInWorld The point from which all poses are to be resolved.
+  /// This is the link's origin in the world frame.
   /// \return A pair of {force, torque} describing the wrench to be applied
-  /// at _pose.
+  /// at _pose, expressed in the world frame.
   public: std::pair<math::Vector3d, math::Vector3d> ResolveForces(
-    const math::Pose3d &_pose);
+    const math::Pose3d &_linkInWorld);
 
   /// \brief Scoped names of entities that buoyancy should apply to. If empty,
   /// all links will receive buoyancy.
@@ -211,7 +220,7 @@ void BuoyancyPrivate::GradedFluidDensity(
 
 //////////////////////////////////////////////////
 std::pair<math::Vector3d, math::Vector3d> BuoyancyPrivate::ResolveForces(
-  const math::Pose3d &_pose)
+  const math::Pose3d &_linkInWorld)
 {
   auto force = math::Vector3d{0, 0, 0};
   auto torque = math::Vector3d{0, 0, 0};
@@ -219,10 +228,18 @@ std::pair<math::Vector3d, math::Vector3d> BuoyancyPrivate::ResolveForces(
   for (const auto &b : this->buoyancyForces)
   {
     force += b.force;
-    math::Pose3d localPoint{b.point, math::Quaterniond{1, 0, 0, 0}};
-    auto globalPoint = b.pose * localPoint;
-    auto offset = _pose.Pos() - globalPoint.Pos();
-    torque += force.Cross(offset);
+
+    // Pose offset from application point (COV) to collision origin, expressed
+    // in the collision frame
+    math::Pose3d pointInCol{b.point, math::Quaterniond::Identity};
+
+    // Application point in the world frame
+    auto pointInWorld = b.pose * pointInCol;
+
+    // Offset between the link origin and the force application point
+    auto offset = _linkInWorld.Pos() - pointInWorld.Pos();
+
+    torque += b.force.Cross(offset);
   }
 
   return {force, torque};
