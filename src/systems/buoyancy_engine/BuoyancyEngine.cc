@@ -24,6 +24,8 @@
 #include <ignition/gazebo/components/Gravity.hh>
 #include <ignition/gazebo/components/World.hh>
 #include <ignition/gazebo/Link.hh>
+#include <ignition/gazebo/Util.hh>
+
 #include <ignition/msgs/double.pb.h>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
@@ -81,25 +83,21 @@ class ignition::gazebo::systems::BuoyancyEnginePrivateData
   /// \brief mutex for protecting bladder volume and set point.
   public: std::mutex mtx;
 
-  /// \brief get fluid density
+  /// \brief  Get fluid density based on the link origin's current position.
   public: double CurrentFluidDensity(
-    EntityComponentManager &_ecm,
-    const Link &_link) const;
+    const EntityComponentManager &_ecm) const;
 };
 
 //////////////////////////////////////////////////
 double BuoyancyEnginePrivateData::CurrentFluidDensity(
-  EntityComponentManager &_ecm,
-  const Link &_link) const
+  const EntityComponentManager &_ecm) const
 {
   if (!this->surface.has_value())
     return fluidDensity;
 
-  auto pose = _link.WorldPose(_ecm);
-  if (!pose.has_value())
-    return fluidDensity;
+  auto pose = gazebo::worldPose(this->linkEntity, _ecm);
 
-  if(pose->Pos().Z() < this->surface.value())
+  if (pose.Pos().Z() < this->surface.value())
   {
     return fluidDensity;
   }
@@ -201,7 +199,7 @@ void BuoyancyEnginePlugin::Configure(
       + "/buoyancy_engine/current_volume");
   }
 
-  if(!this->dataPtr->node.Subscribe(cmdTopic,
+  if (!this->dataPtr->node.Subscribe(cmdTopic,
     &BuoyancyEnginePrivateData::OnCmdBuoyancyEngine, this->dataPtr.get()))
   {
     ignerr << "Failed to subscribe to [" << cmdTopic << "]" << std::endl;
@@ -263,7 +261,7 @@ void BuoyancyEnginePlugin::PreUpdate(
     this->dataPtr->statusPub.Publish(msg);
 
     // Get the fluid density of the current layer
-    auto currentFluidDensity = this->dataPtr->CurrentFluidDensity(_ecm, link);
+    auto currentFluidDensity = this->dataPtr->CurrentFluidDensity(_ecm);
 
     // Simply use Archimede's principle to apply a force at the desired link
     // position. We take off the neutral buoyancy element in order to simulate

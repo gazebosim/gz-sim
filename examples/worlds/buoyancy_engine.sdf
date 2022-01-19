@@ -36,8 +36,8 @@ To get started run:
 ign gazebo buoyancy_engine.sdf
 ```
 You will see two boxes. The box on the right doesn't have a surface set whereas
-the box on the left does. When commanded t go up, the box on the left will rise
-till it breaches and then start oscillating around the surface. On the other
+the box on the left does. When commanded to go up, the box on the left will rise
+until it breaches and then start oscillating around the surface. On the other
 hand the box on the right will rise forever as no surface is set.
 Enter the following in a separate terminal:
 ```
@@ -145,7 +145,7 @@ ign topic -t  /model/buoyant_box/buoyancy_engine/current_volume -e
     </model>
 
 
-    <model name="buoyant_box_urface">
+    <model name="buoyant_box_surface">
       <pose>0 5 -0.8 0 0 0</pose>
       <link name='body'>
         <inertial>
