@@ -227,7 +227,7 @@
       <link name='body'>
         <inertial>
           <mass>1000</mass>
-          <pose>0 0 -5.1 0 0 0</pose>
+          <pose>0 0 -4.9 0 0 0</pose>
           <inertia>
             <ixx>86.28907821859966</ixx>
             <ixy>0</ixy>
