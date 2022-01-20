@@ -152,7 +152,7 @@ TEST_F(BuoyancyEngineTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TestUpward))
 }
 
 /////////////////////////////////////////////////
-TEST_F(BuoyancyEngineTest, TestUpwardSurface)
+TEST_F(BuoyancyEngineTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TestUpwardSurface))
 {
   ServerConfig serverConfig;
   const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
