@@ -16,7 +16,7 @@
     <plugin
       filename="ignition-gazebo-sensors-system"
       name="ignition::gazebo::systems::Sensors">
-      <render_engine>ogre2</render_engine>
+      <render_engine>ogre</render_engine>
       <background_color>0 0 0 1</background_color>
     </plugin>
 
