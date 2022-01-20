@@ -48,12 +48,12 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RestoringMoments))
   // This test checks if the restoring moments are correctly calculated accross
   // both uniform and graded modes when the vehicle is fully submerged.
   std::size_t iterations{10000};
-  std::vector<math::Pose3d> poses_uniform, poses_graded;
+  std::vector<math::Pose3d> posesUniform, posesGraded;
   {
     // Start server
     ServerConfig serverConfig;
     const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-      "/test/worlds/buoyancy_uniform_restoring_moments.sdf");
+      "test", "worlds", "buoyancy_uniform_restoring_moments.sdf");
     serverConfig.SetSdfFile(sdfFile);
 
     test::Relay testSystem;
@@ -68,7 +68,7 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RestoringMoments))
       auto submarinePose = _ecm.Component<components::Pose>(submarine);
       ASSERT_NE(submarinePose, nullptr);
 
-      poses_uniform.push_back(submarinePose->Data());
+      posesUniform.push_back(submarinePose->Data());
     });
 
     Server server(serverConfig);
@@ -98,7 +98,7 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RestoringMoments))
       auto submarinePose = _ecm.Component<components::Pose>(submarine);
       ASSERT_NE(submarinePose, nullptr);
 
-      poses_graded.push_back(submarinePose->Data());
+      posesGraded.push_back(submarinePose->Data());
     });
 
     Server server(serverConfig);
@@ -109,52 +109,52 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RestoringMoments))
     server.Run(true, iterations, false);
   }
 
-  double max_uniform_roll{0}, max_graded_roll{0};
-  double min_uniform_roll{0}, min_graded_roll{0};
+  double maxUniformRoll{0}, maxGradedRoll{0};
+  double minUniformRoll{0}, minGradedRoll{0};
 
-  ASSERT_EQ(poses_graded.size(), poses_uniform.size());
-  ASSERT_EQ(poses_uniform.size(), iterations);
-  for (std::size_t i = 0; i <  poses_graded.size(); i++)
+  ASSERT_EQ(posesGraded.size(), posesUniform.size());
+  ASSERT_EQ(posesUniform.size(), iterations);
+  for (std::size_t i = 0; i <  posesGraded.size(); i++)
   {
-    // The two modes should track a similar course when fully submerged
+    // The two models should track a similar course when fully submerged
     // Ignore roll for now as that changes a lot and the two sims are not
     // perfectly in sync.
-    EXPECT_NEAR(poses_graded[i].Rot().Euler().Y(),
-      poses_uniform[i].Rot().Euler().Y(), 1e-1);
-    EXPECT_NEAR(poses_graded[i].Rot().Euler().Z(),
-      poses_uniform[i].Rot().Euler().Z(), 1e-1);
+    EXPECT_NEAR(posesGraded[i].Rot().Euler().Y(),
+      posesUniform[i].Rot().Euler().Y(), 1e-1);
+    EXPECT_NEAR(posesGraded[i].Rot().Euler().Z(),
+      posesUniform[i].Rot().Euler().Z(), 1e-1);
 
-    EXPECT_NEAR(poses_graded[i].Pos().X(), poses_uniform[i].Pos().X(), 1e-1);
-    EXPECT_NEAR(poses_graded[i].Pos().Y(), poses_uniform[i].Pos().Y(), 1e-1);
-    EXPECT_NEAR(poses_graded[i].Pos().Z(), poses_uniform[i].Pos().Z(), 1e-1);
+    EXPECT_NEAR(posesGraded[i].Pos().X(), posesUniform[i].Pos().X(), 1e-1);
+    EXPECT_NEAR(posesGraded[i].Pos().Y(), posesUniform[i].Pos().Y(), 1e-1);
+    EXPECT_NEAR(posesGraded[i].Pos().Z(), posesUniform[i].Pos().Z(), 1e-1);
 
     // The box should stay around zero
-    EXPECT_NEAR(poses_graded[i].Pos().X(), 0, 1e-1);
-    EXPECT_NEAR(poses_graded[i].Pos().Y(), 0, 1e-1);
-    EXPECT_NEAR(poses_graded[i].Pos().Z(), 0, 1e-1);
+    EXPECT_NEAR(posesGraded[i].Pos().X(), 0, 1e-1);
+    EXPECT_NEAR(posesGraded[i].Pos().Y(), 0, 1e-1);
+    EXPECT_NEAR(posesGraded[i].Pos().Z(), 0, 1e-1);
 
     // The box should not yaw or pitch
-    EXPECT_NEAR(poses_graded[i].Rot().Euler().Y(), 0, 1e-1);
-    EXPECT_NEAR(poses_graded[i].Rot().Euler().Z(), 0, 1e-1);
+    EXPECT_NEAR(posesGraded[i].Rot().Euler().Y(), 0, 1e-1);
+    EXPECT_NEAR(posesGraded[i].Rot().Euler().Z(), 0, 1e-1);
 
     // The roll should not exceed its equilibrium position
-    EXPECT_LT(poses_graded[i].Rot().Euler().X(), 0.11 + 0.01);
-    EXPECT_LT(poses_uniform[i].Rot().Euler().X(), 0.11 + 0.01);
+    EXPECT_LT(posesGraded[i].Rot().Euler().X(), 0.11 + 0.01);
+    EXPECT_LT(posesUniform[i].Rot().Euler().X(), 0.11 + 0.01);
 
     // Get the maximum roll
-    max_uniform_roll = std::max(max_uniform_roll, poses_uniform[i].Rot().X());
-    max_graded_roll = std::max(max_graded_roll, poses_graded[i].Rot().X());
+    maxUniformRoll = std::max(maxUniformRoll, posesUniform[i].Rot().X());
+    maxGradedRoll = std::max(maxGradedRoll, posesGraded[i].Rot().X());
 
     // And the minimum roll
-    min_uniform_roll = std::min(min_uniform_roll, poses_uniform[i].Rot().X());
-    min_graded_roll = std::min(min_graded_roll, poses_graded[i].Rot().X());
+    minUniformRoll = std::min(minUniformRoll, posesUniform[i].Rot().X());
+    minGradedRoll = std::min(minGradedRoll, posesGraded[i].Rot().X());
   }
   // The max and min roll should be similar
-  EXPECT_NEAR(max_uniform_roll, max_graded_roll, 1e-1);
-  EXPECT_NEAR(max_uniform_roll, 0.11, 1e-1);
-  EXPECT_NEAR(min_uniform_roll, min_graded_roll, 1e-1);
+  EXPECT_NEAR(maxUniformRoll, maxGradedRoll, 1e-1);
+  EXPECT_NEAR(maxUniformRoll, 0.11, 1e-1);
+  EXPECT_NEAR(minUniformRoll, minGradedRoll, 1e-1);
   // Emperically derived
-  EXPECT_NEAR(min_uniform_roll, -0.15, 1e-1);
+  EXPECT_NEAR(minUniformRoll, -0.15, 1e-1);
 }
 
 /////////////////////////////////////////////////
