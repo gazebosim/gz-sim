@@ -132,7 +132,7 @@ namespace ignition
       /// being removed.
       ///
       /// This function can be useful when seek operations during log
-      /// playback are used in conjunciton with spawned entities. For
+      /// playback are used in conjunction with spawned entities. For
       /// example, you may want to record a video based on a log file
       /// using a headless simulation instance. This requires a
       /// camera sensor which would be spawned during log playback. If
