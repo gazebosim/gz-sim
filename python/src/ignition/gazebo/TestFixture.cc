@@ -104,6 +104,7 @@ defineGazeboTestFixture(pybind11::object module)
   .def(pybind11::init<const std::string &>())
   .def(
     "server", &TestFixture::Server,
+    pybind11::return_value_policy::reference,
     "Get pointer to underlying server."
   )
   .def(

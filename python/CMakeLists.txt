@@ -81,3 +81,20 @@ install(TARGETS sdformat
 
 configure_build_install_location(gazebo)
 configure_build_install_location(common)
+
+if (BUILD_TESTING)
+  set(python_tests
+    testFixture_TEST
+  )
+
+  foreach (test ${python_tests})
+    add_test(NAME ${test}.py COMMAND
+      "${PYTHON_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/python/test/${test}.py")
+
+    set(_env_vars)
+    list(APPEND _env_vars "PYTHONPATH=${CMAKE_INSTALL_PREFIX}/lib/python/")
+    list(APPEND _env_vars "LD_LIBRARY_PATH=${CMAKE_INSTALL_PREFIX}/lib:$ENV{LD_LIBRARY_PATH}")
+    set_tests_properties(${test}.py PROPERTIES
+      ENVIRONMENT "${_env_vars}")
+  endforeach()
+endif()

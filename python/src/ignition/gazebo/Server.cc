@@ -30,7 +30,8 @@ namespace python
 {
 void defineGazeboServer(pybind11::object module)
 {
-  pybind11::class_<ignition::gazebo::Server>(module, "Server")
+  pybind11::class_<ignition::gazebo::Server,
+    std::shared_ptr<ignition::gazebo::Server>>(module, "Server")
   .def(pybind11::init<ignition::gazebo::ServerConfig &>())
   .def(
     "run", &ignition::gazebo::Server::Run,
