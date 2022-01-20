@@ -22,6 +22,7 @@
 #include <ignition/common/Filesystem.hh>
 #include <ignition/common/Mesh.hh>
 #include <ignition/common/SubMesh.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"
@@ -50,7 +51,9 @@ class ColladaWorldExporterFixture : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(ColladaWorldExporterFixture, ExportWorld)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(ColladaWorldExporterFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(ExportWorld))
 {
   this->LoadWorld(common::joinPaths("test", "worlds",
         "collada_world_exporter.sdf"));
@@ -71,7 +74,8 @@ TEST_F(ColladaWorldExporterFixture, ExportWorld)
   common::removeAll("./collada_world_exporter_box_test");
 }
 
-TEST_F(ColladaWorldExporterFixture, ExportWorldFromFuelWithSubmesh)
+TEST_F(ColladaWorldExporterFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(ExportWorldFromFuelWithSubmesh))
 {
   std::string world_path =
     ignition::common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds");
@@ -108,7 +112,8 @@ TEST_F(ColladaWorldExporterFixture, ExportWorldFromFuelWithSubmesh)
   common::removeAll(outputPath);
 }
 
-TEST_F(ColladaWorldExporterFixture, ExportWorldMadeFromObj)
+TEST_F(ColladaWorldExporterFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(ExportWorldMadeFromObj))
 {
   std::string world_path =
     ignition::common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds");
@@ -146,7 +151,8 @@ TEST_F(ColladaWorldExporterFixture, ExportWorldMadeFromObj)
   common::removeAll(outputPath);
 }
 
-TEST_F(ColladaWorldExporterFixture, ExportWorldWithLights)
+TEST_F(ColladaWorldExporterFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(ExportWorldWithLights))
 {
   this->LoadWorld(common::joinPaths("test", "worlds",
         "collada_world_exporter_lights.sdf"));
