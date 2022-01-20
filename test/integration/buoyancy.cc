@@ -368,7 +368,8 @@ TEST_F(BuoyancyTest, OffsetAndRotation)
     auto noOffset = *noOffsets.begin();
     EXPECT_NE(kNullEntity, noOffset);
 
-    auto noOffsetRotateds = entitiesFromScopedName("no_offset_rotated::link", _ecm);
+    auto noOffsetRotateds = entitiesFromScopedName("no_offset_rotated::link",
+        _ecm);
     ASSERT_EQ(1u, noOffsetRotateds.size());
     auto noOffsetRotated = *noOffsetRotateds.begin();
     EXPECT_NE(kNullEntity, noOffsetRotated);
@@ -378,7 +379,8 @@ TEST_F(BuoyancyTest, OffsetAndRotation)
     auto withOffset = *withOffsets.begin();
     EXPECT_NE(kNullEntity, withOffset);
 
-    auto withOffsetRotateds = entitiesFromScopedName("com_cov_offset_rotated::link", _ecm);
+    auto withOffsetRotateds = entitiesFromScopedName(
+        "com_cov_offset_rotated::link", _ecm);
     ASSERT_EQ(1u, withOffsetRotateds.size());
     auto withOffsetRotated = *withOffsetRotateds.begin();
     EXPECT_NE(kNullEntity, withOffsetRotated);
@@ -388,7 +390,8 @@ TEST_F(BuoyancyTest, OffsetAndRotation)
     ASSERT_NE(noOffsetCoV, nullptr);
     EXPECT_EQ(math::Vector3d::Zero, noOffsetCoV->Data());
 
-    auto noOffsetRotatedCoV = _ecm.Component<components::CenterOfVolume>(noOffsetRotated);
+    auto noOffsetRotatedCoV = _ecm.Component<components::CenterOfVolume>(
+        noOffsetRotated);
     ASSERT_NE(noOffsetRotatedCoV, nullptr);
     EXPECT_EQ(math::Vector3d::Zero, noOffsetRotatedCoV->Data());
 
@@ -396,7 +399,8 @@ TEST_F(BuoyancyTest, OffsetAndRotation)
     ASSERT_NE(withOffsetCoV, nullptr);
     EXPECT_EQ(math::Vector3d::One, withOffsetCoV->Data());
 
-    auto withOffsetRotatedCoV = _ecm.Component<components::CenterOfVolume>(withOffsetRotated);
+    auto withOffsetRotatedCoV = _ecm.Component<components::CenterOfVolume>(
+        withOffsetRotated);
     ASSERT_NE(withOffsetRotatedCoV, nullptr);
     EXPECT_EQ(math::Vector3d::One, withOffsetRotatedCoV->Data());
 
