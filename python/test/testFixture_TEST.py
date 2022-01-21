@@ -24,7 +24,6 @@ from sdformat import Element
 post_iterations = 0
 iterations = 0
 pre_iterations = 0
-configure_iterations = 0
 
 class TestTestFixture(unittest.TestCase):
 
@@ -33,14 +32,6 @@ class TestTestFixture(unittest.TestCase):
 
         file_path = os.path.dirname(os.path.realpath(__file__))
         helper = TestFixture(os.path.join(file_path, 'gravity.sdf'))
-
-        def on_configure_cb(worldEntity, _sdf, _ecm, _eventManager):
-            global configure_iterations
-            configure_iterations += 1
-            w = World(worldEntity)
-            v = w.gravity(_ecm)
-            self.assertEqual(Vector3d(0, 0, -9.8), v)
-
 
         def on_post_udpate_cb(_info, _ecm):
             global post_iterations
@@ -57,7 +48,6 @@ class TestTestFixture(unittest.TestCase):
         helper.on_post_update(on_post_udpate_cb)
         helper.on_update(on_udpate_cb)
         helper.on_pre_update(on_pre_udpate_cb)
-        helper.on_configure(on_configure_cb)
         helper.finalize()
 
         server = helper.server()
@@ -69,7 +59,6 @@ class TestTestFixture(unittest.TestCase):
         self.assertEqual(1000, pre_iterations)
         self.assertEqual(1000, iterations)
         self.assertEqual(1000, post_iterations)
-        self.assertEqual(1, configure_iterations)
 
 if __name__ == '__main__':
     unittest.main()

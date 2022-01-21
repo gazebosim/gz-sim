@@ -95,7 +95,7 @@ defineGazeboTestFixture(pybind11::object module)
   //     }
   //   ),
   //   pybind11::return_value_policy::reference,
-  //   "Wrapper around a system's pre-update callback"
+  //   "Wrapper around a system's configure callback"
   // );
 }
 }

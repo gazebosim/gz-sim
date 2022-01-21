@@ -41,15 +41,6 @@ iterations = 0
 pre_iterations = 0
 
 
-def on_configure_cb(worldEntity, _sdf, _ecm, _eventManager):
-    print('World entity is ', worldEntity)
-    w = World(worldEntity)
-    v = w.gravity(_ecm)
-    print('Gravity ', v)
-    modelEntity = w.model_by_name(_ecm, 'falling')
-    print('Entity for falling model is: ', modelEntity)
-
-
 def on_post_udpate_cb(_info, _ecm):
     global post_iterations
     post_iterations += 1
@@ -69,7 +60,6 @@ def on_udpate_cb(_info, _ecm):
 helper.on_post_update(on_post_udpate_cb)
 helper.on_update(on_udpate_cb)
 helper.on_pre_update(on_pre_udpate_cb)
-helper.on_configure(on_configure_cb)
 helper.finalize()
 
 server = helper.server()

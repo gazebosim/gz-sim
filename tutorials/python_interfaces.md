@@ -4,7 +4,7 @@
 
 Ignition Gazebo provides a Python API to interact with world.
 
-For now, we provide a `HelperFixture` class that allows to load a world file,
+For now, we provide a `TestFixture` class that allows to load a world file,
 step simulation and check entities and components.
 
  - **Step 1**: Load a world with a fixture
