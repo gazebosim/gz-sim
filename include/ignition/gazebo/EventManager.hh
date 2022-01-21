@@ -144,7 +144,7 @@ namespace ignition
       /// was not able to copy the class
       /// \brief Container of used signals.
       private: std::unordered_map<TypeInfoRef,
-                                  std::shared_ptr<ignition::common::Event>,
+                                  std::unique_ptr<ignition::common::Event>,
                                   Hasher, EqualTo> events;
     };
     }

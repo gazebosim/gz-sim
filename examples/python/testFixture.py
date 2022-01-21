@@ -13,6 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# If you compiled Ignition Gazebo from source you should modify your
+# `PYTHONPATH`:
+#
+# export PYTHONPATH=$PYTHONPATH:<path to ws>/install/lib/python
+#
+# Now you can run the example:
+#
+# python3 examples/python/helperFixture.py
+
 import os
 import time
 

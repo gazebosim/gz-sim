@@ -268,3 +268,56 @@ struct wrap_arg_default {
 template <template <typename...> class wrap_arg_policy, typename Signature>
 using wrap_arg_function = typename internal::wrap_function_impl<
     wrap_arg_policy>::template wrap_arg<std::function<Signature>>;
+
+// The wraps methods were copied from:
+// https://github.com/RobotLocomotion/drake/blob/6ee5e9325821277a62bd5cd5456ccf02ca25dab7/bindings/pydrake/common/wrap_pybind.h
+// It's under BSD 3-Clause License
+
+// Determines if a type will go through pybind11's generic caster. This
+// implies that the type has been declared using `pybind11::class_`, and can have
+// a reference passed through. Otherwise, the type uses type-conversion:
+// https://pybind11.readthedocs.io/en/stable/advanced/cast/index.html
+template <typename T>
+constexpr inline bool is_generic_pybind_v =
+    std::is_base_of_v<pybind11::detail::type_caster_generic,
+        pybind11::detail::make_caster<T>>;
+
+template <typename T, typename = void>
+struct wrap_ref_ptr : public wrap_arg_default<T> {};
+
+template <typename T>
+struct wrap_ref_ptr<T&,
+  std::enable_if_t<is_generic_pybind_v<T> &&
+  !std::is_same_v<T, const std::shared_ptr<const sdf::Element>> >> {
+  // NOLINTNEXTLINE[runtime/references]: Intentional.
+  static T* wrap(T& arg) { return &arg; }
+  static T& unwrap(T* arg_wrapped) {
+    return *arg_wrapped;
+  }
+};
+
+template <typename T, typename = void>
+struct wrap_callback : public wrap_arg_default<T> {};
+
+template <typename Signature>
+struct wrap_callback<const std::function<Signature>&>
+    : public wrap_arg_function<wrap_ref_ptr, Signature> {};
+
+template <typename Signature>
+struct wrap_callback<std::function<Signature>>
+    : public wrap_callback<const std::function<Signature>&> {};
+
+
+/// Ensures that any `std::function<>` arguments are wrapped such that any `T&`
+/// (which can infer for `T = const U`) is wrapped as `U*` (and conversely
+/// unwrapped when returned).
+/// Use this when you have a callback in C++ that has a lvalue reference (const
+/// or mutable) to a C++ argument or return value.
+/// Otherwise, `pybind11` may try and copy the object, will be bad if either
+/// the type is a non-copyable or if you are trying to mutate the object; in
+/// this case, the copy is mutated, but not the original you care about.
+/// For more information, see: https://github.com/pybind/pybind11/issues/1241
+template <typename Func>
+auto WrapCallbacks(Func&& func) {
+  return WrapFunction<wrap_callback, false>(std::forward<Func>(func));
+}

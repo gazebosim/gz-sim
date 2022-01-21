@@ -768,8 +768,6 @@ namespace ignition
           Entity _entity,
           const std::unordered_set<ComponentTypeId> &_types = {}) const;
 
-      /// This was originally a unique_ptr, but pybind11 was failing because it
-      /// was not able to copy the class
       /// \brief Private data pointer.
       private: std::unique_ptr<EntityComponentManagerPrivate> dataPtr;
 
