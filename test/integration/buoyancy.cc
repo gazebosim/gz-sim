@@ -43,6 +43,121 @@ class BuoyancyTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
+TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RestoringMoments))
+{
+  // This test checks if the restoring moments are correctly calculated accross
+  // both uniform and graded modes when the vehicle is fully submerged.
+  std::size_t iterations{10000};
+  std::vector<math::Pose3d> posesUniform, posesGraded;
+  {
+    // Start server
+    ServerConfig serverConfig;
+    const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "buoyancy_uniform_restoring_moments.sdf");
+    serverConfig.SetSdfFile(sdfFile);
+
+    test::Relay testSystem;
+    testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &/*unused*/,
+                              const gazebo::EntityComponentManager &_ecm)
+    {
+      // Get Submarine
+      Entity submarine = _ecm.EntityByComponents(
+        components::Model(), components::Name("submarine"));
+
+      // Get pose
+      auto submarinePose = _ecm.Component<components::Pose>(submarine);
+      ASSERT_NE(submarinePose, nullptr);
+
+      posesUniform.push_back(submarinePose->Data());
+    });
+
+    Server server(serverConfig);
+    EXPECT_FALSE(server.Running());
+    EXPECT_FALSE(*server.Running(0));
+
+    server.AddSystem(testSystem.systemPtr);
+    server.Run(true, iterations, false);
+  }
+
+  {
+    // Start server
+    ServerConfig serverConfig;
+    const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "/test/worlds/buoyancy_graded_restoring_moments.sdf");
+    serverConfig.SetSdfFile(sdfFile);
+
+    test::Relay testSystem;
+    testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &/*unused*/,
+                              const gazebo::EntityComponentManager &_ecm)
+    {
+      // Get Submarine
+      Entity submarine = _ecm.EntityByComponents(
+        components::Model(), components::Name("submarine"));
+
+      // Get pose
+      auto submarinePose = _ecm.Component<components::Pose>(submarine);
+      ASSERT_NE(submarinePose, nullptr);
+
+      posesGraded.push_back(submarinePose->Data());
+    });
+
+    Server server(serverConfig);
+    EXPECT_FALSE(server.Running());
+    EXPECT_FALSE(*server.Running(0));
+
+    server.AddSystem(testSystem.systemPtr);
+    server.Run(true, iterations, false);
+  }
+
+  double maxUniformRoll{0}, maxGradedRoll{0};
+  double minUniformRoll{0}, minGradedRoll{0};
+
+  ASSERT_EQ(posesGraded.size(), posesUniform.size());
+  ASSERT_EQ(posesUniform.size(), iterations);
+  for (std::size_t i = 0; i <  posesGraded.size(); i++)
+  {
+    // The two models should track a similar course when fully submerged
+    // Ignore roll for now as that changes a lot and the two sims are not
+    // perfectly in sync.
+    EXPECT_NEAR(posesGraded[i].Rot().Euler().Y(),
+      posesUniform[i].Rot().Euler().Y(), 1e-1);
+    EXPECT_NEAR(posesGraded[i].Rot().Euler().Z(),
+      posesUniform[i].Rot().Euler().Z(), 1e-1);
+
+    EXPECT_NEAR(posesGraded[i].Pos().X(), posesUniform[i].Pos().X(), 1e-1);
+    EXPECT_NEAR(posesGraded[i].Pos().Y(), posesUniform[i].Pos().Y(), 1e-1);
+    EXPECT_NEAR(posesGraded[i].Pos().Z(), posesUniform[i].Pos().Z(), 1e-1);
+
+    // The box should stay around zero
+    EXPECT_NEAR(posesGraded[i].Pos().X(), 0, 1e-1);
+    EXPECT_NEAR(posesGraded[i].Pos().Y(), 0, 1e-1);
+    EXPECT_NEAR(posesGraded[i].Pos().Z(), 0, 1e-1);
+
+    // The box should not yaw or pitch
+    EXPECT_NEAR(posesGraded[i].Rot().Euler().Y(), 0, 1e-1);
+    EXPECT_NEAR(posesGraded[i].Rot().Euler().Z(), 0, 1e-1);
+
+    // The roll should not exceed its equilibrium position
+    EXPECT_LT(posesGraded[i].Rot().Euler().X(), 0.11 + 0.01);
+    EXPECT_LT(posesUniform[i].Rot().Euler().X(), 0.11 + 0.01);
+
+    // Get the maximum roll
+    maxUniformRoll = std::max(maxUniformRoll, posesUniform[i].Rot().X());
+    maxGradedRoll = std::max(maxGradedRoll, posesGraded[i].Rot().X());
+
+    // And the minimum roll
+    minUniformRoll = std::min(minUniformRoll, posesUniform[i].Rot().X());
+    minGradedRoll = std::min(minGradedRoll, posesGraded[i].Rot().X());
+  }
+  // The max and min roll should be similar
+  EXPECT_NEAR(maxUniformRoll, maxGradedRoll, 1e-1);
+  EXPECT_NEAR(maxUniformRoll, 0.11, 1e-1);
+  EXPECT_NEAR(minUniformRoll, minGradedRoll, 1e-1);
+  // Emperically derived
+  EXPECT_NEAR(minUniformRoll, -0.15, 1e-1);
+}
+
+/////////////////////////////////////////////////
 // See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
 TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(UniformWorldMovement))
 {
