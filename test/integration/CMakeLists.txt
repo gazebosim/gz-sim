@@ -53,7 +53,6 @@ set(tests
   scene_broadcaster_system.cc
   sdf_frame_semantics.cc
   sdf_include.cc
-  shader_param_system.cc
   spherical_coordinates.cc
   thruster.cc
   touch_plugin.cc
@@ -77,6 +76,7 @@ set(tests_needing_display
   optical_tactile_plugin.cc
   rgbd_camera.cc
   sensors_system.cc
+  shader_param_system.cc
   thermal_system.cc
   thermal_sensor_system.cc
 )
