@@ -1453,7 +1453,7 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
         // periodic change
         auto periodicIter = this->dataPtr->periodicChangedComponents.find(type);
         if (periodicIter != this->dataPtr->periodicChangedComponents.end() &&
-            periodicIter->second.find(_entity) != oneTimeIter->second.end())
+            periodicIter->second.find(_entity) != periodicIter->second.end())
           noChange = false;
       }
 
