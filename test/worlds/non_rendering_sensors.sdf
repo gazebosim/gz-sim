@@ -1,6 +1,9 @@
 <?xml version="1.0" ?>
 <sdf version="1.7">
   <world name="non_rendering_sensors">
+    <physics name="fast" type="ignored">
+      <real_time_factor>0</real_time_factor>
+    </physics>
     <plugin
       filename="ignition-gazebo-sensors-system"
       name="ignition::gazebo::systems::Sensors">
