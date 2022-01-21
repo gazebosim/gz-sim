@@ -348,6 +348,8 @@ TEST_F(SdfGeneratorFixture, ModelWithNestedIncludes)
   const std::string worldGenSdfRes =
       this->RequestGeneratedSdf("model_nested_include_world", req);
 
+  std::cout << worldGenSdfRes << std::endl;
+
   // check that model w/ nested includes are not expanded
   tinyxml2::XMLDocument genSdfDoc;
   genSdfDoc.Parse(worldGenSdfRes.c_str());

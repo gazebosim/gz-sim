@@ -81,7 +81,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(DefaultServerConfig))
   EXPECT_TRUE(*server.Paused());
   EXPECT_EQ(0u, *server.IterationCount());
 
-  EXPECT_EQ(3u, *server.EntityCount());
+  EXPECT_EQ(4u, *server.EntityCount());
   EXPECT_TRUE(server.HasEntity("default"));
 
   EXPECT_EQ(3u, *server.SystemCount());
@@ -282,7 +282,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(SdfServerConfig))
   EXPECT_FALSE(*server.Running(0));
   EXPECT_TRUE(*server.Paused());
   EXPECT_EQ(0u, *server.IterationCount());
-  EXPECT_EQ(24u, *server.EntityCount());
+  EXPECT_EQ(25u, *server.EntityCount());
   EXPECT_EQ(3u, *server.SystemCount());
 
   EXPECT_TRUE(server.HasEntity("box"));
@@ -318,7 +318,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigLogRecord))
     gazebo::Server server(serverConfig);
 
     EXPECT_EQ(0u, *server.IterationCount());
-    EXPECT_EQ(3u, *server.EntityCount());
+    EXPECT_EQ(4u, *server.EntityCount());
     EXPECT_EQ(4u, *server.SystemCount());
 
     EXPECT_TRUE(serverConfig.LogRecordTopics().empty());
@@ -358,7 +358,7 @@ TEST_P(ServerFixture,
 
     gazebo::Server server(serverConfig);
     EXPECT_EQ(0u, *server.IterationCount());
-    EXPECT_EQ(3u, *server.EntityCount());
+    EXPECT_EQ(4u, *server.EntityCount());
     EXPECT_EQ(4u, *server.SystemCount());
   }
 
@@ -386,7 +386,7 @@ TEST_P(ServerFixture, SdfStringServerConfig)
   EXPECT_FALSE(*server.Running(0));
   EXPECT_TRUE(*server.Paused());
   EXPECT_EQ(0u, *server.IterationCount());
-  EXPECT_EQ(3u, *server.EntityCount());
+  EXPECT_EQ(4u, *server.EntityCount());
   EXPECT_EQ(2u, *server.SystemCount());
 }
 
@@ -885,7 +885,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
   EXPECT_EQ(1u, preUpdates);
   EXPECT_EQ(1u, postUpdates);
 
-  EXPECT_EQ(7u, *server.EntityCount());
+  EXPECT_EQ(8u, *server.EntityCount());
   EXPECT_TRUE(server.HasEntity("scheme_resource_uri"));
   EXPECT_TRUE(server.HasEntity("the_link"));
   EXPECT_TRUE(server.HasEntity("the_visual"));

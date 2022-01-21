@@ -1794,9 +1794,9 @@ TEST_F(PhysicsSystemFixture,
     [&checked](const gazebo::UpdateInfo &,
     const gazebo::EntityComponentManager &_ecm)
     {
-      _ecm.Each<components::World, components::PhysicsCollisionDetector,
+      _ecm.Each<components::Physics, components::PhysicsCollisionDetector,
                 components::PhysicsSolver>(
-        [&](const ignition::gazebo::Entity &, const components::World *,
+        [&](const ignition::gazebo::Entity &, const components::Physics *,
             const components::PhysicsCollisionDetector *_collisionDetector,
             const components::PhysicsSolver *_solver)->bool
         {
@@ -1837,9 +1837,9 @@ TEST_F(PhysicsSystemFixture, PhysicsOptions)
     [&checked](const gazebo::UpdateInfo &,
     const gazebo::EntityComponentManager &_ecm)
     {
-      _ecm.Each<components::World, components::PhysicsCollisionDetector,
+      _ecm.Each<components::Physics, components::PhysicsCollisionDetector,
                 components::PhysicsSolver>(
-        [&](const ignition::gazebo::Entity &, const components::World *,
+        [&](const ignition::gazebo::Entity &, const components::Physics *,
             const components::PhysicsCollisionDetector *_collisionDetector,
             const components::PhysicsSolver *_solver)->bool
         {

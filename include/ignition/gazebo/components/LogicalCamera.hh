@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_COMPONENTS_LOGICALCAMERA_HH_
 
 #include <sdf/Element.hh>
+#include <sdf/Sensor.hh>
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/config.hh>
@@ -30,11 +31,14 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief TODO(anyone) Substitute with sdf::LogicalCamera once that exists?
-  /// This is currently the whole `<sensor>` element.
   using LogicalCamera = Component<sdf::ElementPtr, class LogicalCameraTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.LogicalCamera",
       LogicalCamera)
+
+  /// \todo(nkoenig) Change LogicalCamera to use sdf::Sensor in Garden.
+  using LogicalCameraSdf = Component<sdf::Sensor, class LogicalCameraTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.LogicalCameraSdf",
+      LogicalCameraSdf)
 }
 }
 }

@@ -756,7 +756,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RecordAndPlayback))
   msgs::SerializedStateMap stateMsg;
   stateMsg.ParseFromString(recordedIter->Data());
   // entity size = 28 in dbl pendulum + 4 in nested model
-  EXPECT_EQ(32, stateMsg.entities_size());
+  EXPECT_EQ(33, stateMsg.entities_size());
   EXPECT_NE(batch.end(), ++recordedIter);
 
   // Playback config

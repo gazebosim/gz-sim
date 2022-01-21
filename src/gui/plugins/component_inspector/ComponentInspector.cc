@@ -543,6 +543,12 @@ void ComponentInspector::Update(const UpdateInfo &,
       continue;
     }
 
+    if (typeId == components::Physics::typeId)
+    {
+      this->SetType("physics");
+      continue;
+    }
+
     // Get component item
     QStandardItem *item;
     auto itemIt = this->dataPtr->componentsModel.items.find(typeId);

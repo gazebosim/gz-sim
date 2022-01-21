@@ -65,6 +65,11 @@ namespace components
       class PhysicsSolverTag, serializers::StringSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.PhysicsSolver",
        PhysicsSolver)
+
+  /// \brief A component used to indicate the active physics entity.
+  using ActivePhysicsEntity = Component<Entity, class ActivePhysicsEntiyTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.ActivePhysicsEntity",
+      ActivePhysicsEntity)
 }
 }
 }

@@ -17,8 +17,10 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_JOINT_HH_
 #define IGNITION_GAZEBO_COMPONENTS_JOINT_HH_
 
+#include <sdf/Joint.hh>
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
+#include <ignition/gazebo/components/Serialization.hh>
 #include <ignition/gazebo/config.hh>
 
 namespace ignition
@@ -27,11 +29,24 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+namespace serializers
+{
+  using JointElementSerializer =
+      serializers::ComponentToMsgSerializer<sdf::Joint, msgs::Joint>;
+}
+
 namespace components
 {
   /// \brief A component that identifies an entity as being a joint.
   using Joint = Component<NoData, class JointTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Joint", Joint)
+
+  /// \brief A component that holds the joint's SDF DOM
+  using JointSdf = Component<sdf::Joint,
+                   class JointTag,
+                   serializers::JointElementSerializer>;
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.JointElement", JointSdf)
+
 }
 }
 }

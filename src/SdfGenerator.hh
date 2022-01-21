@@ -159,12 +159,39 @@ namespace sdf_generator
       const IncludeUriMap &_includeUriMap,
       const msgs::SdfGeneratorConfig &_config);
 
+  /// \brief Generate an sdf::Model based on a model Entity.
+  /// Intended for internal use.
+  /// \input[in] _ecm Immutable reference to the Entity Component Manager
+  /// \input[in] _entity Model entity
+  /// \returns Generated model DOM if generation succeeded.
+  /// Otherwise, nullopt
   std::optional<sdf::Model> generateModelSdf(const EntityComponentManager &_ecm,
       const Entity &_entity);
 
+  /// \brief Generate an sdf::Joint based on a joint Entity.
+  /// Intended for internal use.
+  /// \input[in] _ecm Immutable reference to the Entity Component Manager
+  /// \input[in] _entity Joint entity
+  /// \returns Generated joint DOM if generation succeeded.
+  /// Otherwise, nullopt
+  std::optional<sdf::Joint> generateJointSdf(const EntityComponentManager &_ecm,
+      const Entity &_entity);
+
+  /// \brief Generate an sdf::Link based on a link Entity.
+  /// Intended for internal use.
+  /// \input[in] _ecm Immutable reference to the Entity Component Manager
+  /// \input[in] _entity Link entity
+  /// \returns Generated link DOM if generation succeeded.
+  /// Otherwise, nullopt
   std::optional<sdf::Link> generateLinkSdf(const EntityComponentManager &_ecm,
       const Entity &_entity);
 
+  /// \brief Generate an sdf::Sensor based on a sensor Entity.
+  /// Intended for internal use.
+  /// \input[in] _ecm Immutable reference to the Entity Component Manager
+  /// \input[in] _entity Sensor entity
+  /// \returns Generated sensor DOM if generation succeeded.
+  /// Otherwise, nullopt
   std::optional<sdf::Sensor> generateSensorSdf(
       const EntityComponentManager &_ecm, const Entity &_entity);
 }  // namespace sdf_generator

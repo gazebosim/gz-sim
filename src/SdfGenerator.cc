@@ -49,6 +49,7 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
+#include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/SelfCollide.hh"
@@ -72,6 +73,23 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 {
 namespace sdf_generator
 {
+  void setModelSdfBasics(sdf::Model &_model, const EntityComponentManager &_ecm,
+      const Entity &_entity)
+  {
+    auto *nameComp = _ecm.Component<components::Name>(_entity);
+    if (nameComp)
+      _model.SetName(nameComp->Data());
+
+    auto *poseComp = _ecm.Component<components::Pose>(_entity);
+    if (poseComp)
+      _model.SetRawPose(poseComp->Data());
+
+    // static
+    auto *staticComp = _ecm.Component<components::Static>(_entity);
+    if (staticComp)
+      _model.SetStatic(staticComp->Data());
+  }
+
   /////////////////////////////////////////////////
   /// \brief Copy sdf::Element from component
   /// \param[in] _comp Component containing an sdf::Element. The component has
@@ -1025,6 +1043,7 @@ namespace sdf_generator
       const IncludeUriMap &_includeUriMap,
       const msgs::SdfGeneratorConfig &_config)
   {
+    std::cout <<  "generateWorldSdf\n";
     const auto *worldSdf = _ecm.Component<components::WorldSdf>(_entity);
 
     if (nullptr == worldSdf)
@@ -1032,15 +1051,36 @@ namespace sdf_generator
 
     sdf::World world(worldSdf->Data());
 
-    // First remove child entities of <world> whose names can be changed during
-    // simulation (eg. models). Then we add them back from the data in the
-    // ECM.
-    world.ClearModels();
-    world.ClearActors();
+    // Add physiscs
+    world.ClearPhysics();
+    _ecm.Each<components::Physics, components::ParentEntity>(
+        [&](const Entity &, const components::Physics *_physics,
+            const components::ParentEntity *_parentEntity)
+        {
+          if (_parentEntity->Data() == _entity)
+          {
+            std::cout << "Adding physics[" << _physics->Data().Name() << "]\n";
+            world.AddPhysics(_physics->Data());
+          }
+          return true;
+        });
+
+    // Add lights
     world.ClearLights();
+    _ecm.Each<components::Light, components::ParentEntity>(
+        [&](const Entity &, const components::Light *_light,
+            const components::ParentEntity *_parentEntity)
+        {
+          if (!_light || (_parentEntity && _parentEntity->Data() != _entity))
+            return true;
+          world.AddLight(_light->Data());
+          return true;
+        });
 
     auto worldDir = common::parentPath(worldSdf->Data().Element()->FilePath());
 
+    // Add models
+    world.ClearModels();
     _ecm.Each<components::Model, components::ModelSdf>(
         [&](const Entity &_modelEntity, const components::Model *,
             const components::ModelSdf *_modelSdf)
@@ -1056,6 +1096,8 @@ namespace sdf_generator
 
           const std::string modelName =
               scopedName(_modelEntity, _ecm, "::", false);
+
+          std::cout << "    ModelName[" << modelName << "]\n";
 
           bool modelFromInclude = isModelFromInclude(modelDir, worldDir);
 
@@ -1084,7 +1126,7 @@ namespace sdf_generator
             }*/
           }
           else if (uriMapIt != _includeUriMap.end())
-          {/*
+          {
             // The fuel URI might have a version number. If it does, we remove
             // it unless saveFuelModelVersion is set to true.
             // Check if this is a fuel URI. We assume that it is a fuel URI if
@@ -1119,20 +1161,37 @@ namespace sdf_generator
               //
               uri.Path() /= common::basename(modelDir);
             }
+            const auto *modelSdf = _ecm.Component<components::ModelSdf>(
+                _modelEntity);
 
-            auto includeElem = _elem->AddElement("include");
-            updateIncludeElement(includeElem, _ecm, _modelEntity, uri.Str());
-            */
+            if (nullptr != modelSdf)
+            {
+              // Copy the model, then update its values.
+              sdf::Model model(modelSdf->Data());
+
+              model.SetUri(uri.Str());
+              setModelSdfBasics(model, _ecm, _modelEntity);
+              world.AddModel(model);
+            }
           }
           else
-          {/*
+          {
             // The model is not in the includeUriMap, but expandIncludeTags =
             // false, so we will assume that its uri is the file path of the
             // model on the local machine
-            auto includeElem = _elem->AddElement("include");
             const std::string uri = "file://" + modelDir;
-            updateIncludeElement(includeElem, _ecm, _modelEntity, uri);
-            */
+
+            const auto *modelSdf = _ecm.Component<components::ModelSdf>(
+                _modelEntity);
+
+            if (nullptr != modelSdf)
+            {
+              sdf::Model model(modelSdf->Data());
+              model.SetUri(uri);
+
+              setModelSdfBasics(model, _ecm, _modelEntity);
+              world.AddModel(model);
+            }
           }
           return true;
         });
@@ -1160,20 +1219,10 @@ namespace sdf_generator
     // - SelfCollide
     // This list is to be updated as other components become updateable during
     // simulation
-    auto *nameComp = _ecm.Component<components::Name>(_entity);
-    if (nameComp)
-      model.SetName(nameComp->Data());
-
-    auto *poseComp = _ecm.Component<components::Pose>(_entity);
-    if (poseComp)
-      model.SetRawPose(poseComp->Data());
-
-    // static
-    auto *staticComp = _ecm.Component<components::Static>(_entity);
-    if (staticComp)
-      model.SetStatic(staticComp->Data());
-
     // self collide
+
+    setModelSdfBasics(model, _ecm, _entity);
+
     auto *selfCollideComp = _ecm.Component<components::SelfCollide>(_entity);
     if (selfCollideComp)
      model.SetSelfCollide(selfCollideComp->Data());
@@ -1195,12 +1244,12 @@ namespace sdf_generator
       components::ParentEntity(_entity), components::Joint());
 
     model.ClearJoints();
-    /*for (Entity &joint : modelJoints)
+    for (Entity &joint : modelJoints)
     {
       std::optional<sdf::Joint> jointSdf = generateJointSdf(_ecm, joint);
       if (jointSdf)
-        model.AddJoint(*JoinSdf);
-    }*/
+        model.AddJoint(*jointSdf);
+    }
 
     // Update nested models
     std::vector<Entity> nestedModels = _ecm.EntitiesByComponents(
@@ -1302,6 +1351,71 @@ namespace sdf_generator
   }
 
   /////////////////////////////////////////////////
+  std::optional<sdf::Joint> generateJointSdf(const EntityComponentManager &_ecm,
+      const Entity &_entity)
+  {
+    const auto *jointSdf = _ecm.Component<components::JointSdf>(_entity);
+
+    if (nullptr == jointSdf)
+      return std::nullopt;
+
+    // Copy the joint, then update its values.
+    sdf::Joint joint(jointSdf->Data());
+
+    auto *nameComp = _ecm.Component<components::Name>(_entity);
+    if (nameComp)
+      joint.SetName(nameComp->Data());
+
+    auto *poseComp = _ecm.Component<components::Pose>(_entity);
+    if (poseComp)
+      joint.SetRawPose(poseComp->Data());
+
+    // joint type
+    auto jointTypeComp = _ecm.Component<components::JointType>(_entity);
+    joint.SetType(jointTypeComp->Data());
+
+    // parent
+    auto parentLinkNameComp =
+        _ecm.Component<components::ParentLinkName>(_entity);
+    if (parentLinkNameComp)
+      joint.SetParentLinkName(parentLinkNameComp->Data());
+
+    // child
+    auto childLinkNameComp = _ecm.Component<components::ChildLinkName>(_entity);
+    if (childLinkNameComp)
+      joint.SetChildLinkName(childLinkNameComp->Data());
+
+    // thread pitch
+    auto threadPitchComp = _ecm.Component<components::ThreadPitch>(_entity);
+    if (threadPitchComp && joint.Type() == sdf::JointType::SCREW)
+      joint.SetThreadPitch(threadPitchComp->Data());
+
+    // axis
+    auto jointAxisComp = _ecm.Component<components::JointAxis>(_entity);
+    if (jointAxisComp)
+      joint.SetAxis(0, jointAxisComp->Data());
+
+    // axis2
+    auto jointAxis2Comp = _ecm.Component<components::JointAxis2>(_entity);
+    if (jointAxis2Comp)
+      joint.SetAxis(1, jointAxis2Comp->Data());
+
+    // remove existing sensors, and add in sensors from ECM.
+    std::vector<Entity> sensors = _ecm.EntitiesByComponents(
+        components::ParentEntity(_entity), components::Sensor());
+
+    joint.ClearSensors();
+    for (Entity &sensor : sensors)
+    {
+      std::optional<sdf::Sensor> sensorSdf = generateSensorSdf(_ecm, sensor);
+      if (sensorSdf)
+        joint.AddSensor(*sensorSdf);
+    }
+
+    return joint;
+  }
+
+  /////////////////////////////////////////////////
   std::optional<sdf::Sensor> generateSensorSdf(
       const EntityComponentManager &_ecm, const Entity &_entity)
   {
@@ -1323,9 +1437,9 @@ namespace sdf_generator
     if (thermalCamComp)
       sensor = thermalCamComp->Data();
     // logical camera
-    // IMPLEMENT ME: auto logicalCamComp = _ecm.Component<components::LogicalCamera>(_entity);
-    // if (logicalCamComp)
-    //   sensor = logicalCamComp->Data();
+    auto logicalCamComp = _ecm.Component<components::LogicalCameraSdf>(_entity);
+    if (logicalCamComp)
+      sensor = logicalCamComp->Data();
     // segmentation camera
     auto segmentationCamComp =
         _ecm.Component<components::SegmentationCamera>(_entity);

@@ -79,6 +79,8 @@
 #include "ignition/gazebo/components/WindMode.hh"
 #include "ignition/gazebo/components/World.hh"
 
+#include "PrivateUtils.hh"
+
 class ignition::gazebo::SdfEntityCreatorPrivate
 {
   /// \brief Pointer to entity component manager. We don't assume ownership.
@@ -284,38 +286,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
 
   // Physics
   // \todo(anyone) Support picking a specific physics profile
-  auto physics = _world->PhysicsByIndex(0);
-  if (!physics)
-  {
-    physics = _world->PhysicsDefault();
-  }
-  this->dataPtr->ecm->CreateComponent(worldEntity,
-      components::Physics(*physics));
-
-  // Populate physics options that aren't accessible outside the Element()
-  // See https://github.com/osrf/sdformat/issues/508
-  if (physics->Element() && physics->Element()->HasElement("dart"))
-  {
-    auto dartElem = physics->Element()->GetElement("dart");
-
-    if (dartElem->HasElement("collision_detector"))
-    {
-      auto collisionDetector =
-          dartElem->Get<std::string>("collision_detector");
-
-      this->dataPtr->ecm->CreateComponent(worldEntity,
-          components::PhysicsCollisionDetector(collisionDetector));
-    }
-    if (dartElem->HasElement("solver") &&
-        dartElem->GetElement("solver")->HasElement("solver_type"))
-    {
-      auto solver =
-          dartElem->GetElement("solver")->Get<std::string>("solver_type");
-
-      this->dataPtr->ecm->CreateComponent(worldEntity,
-          components::PhysicsSolver(solver));
-    }
-  }
+  createPhysicsEntities(_world, worldEntity, *this->dataPtr->ecm);
 
   // MagneticField
   this->dataPtr->ecm->CreateComponent(worldEntity,
@@ -601,6 +572,10 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint,
 
   // Entity
   Entity jointEntity = this->dataPtr->ecm->CreateEntity();
+
+  // Store the joint's SDF DOM to be used when saving the world to file
+  this->dataPtr->ecm->CreateComponent(
+      jointEntity, components::JointSdf(*_joint));
 
   // Components
   this->dataPtr->ecm->CreateComponent(jointEntity,
@@ -909,6 +884,9 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
   }
   else if (_sensor->Type() == sdf::SensorType::LOGICAL_CAMERA)
   {
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::LogicalCameraSdf(*_sensor));
+
     auto elem = _sensor->Element();
 
     this->dataPtr->ecm->CreateComponent(sensorEntity,

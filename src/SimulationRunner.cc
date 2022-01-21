@@ -354,8 +354,13 @@ void SimulationRunner::UpdatePhysicsParams()
   {
     return;
   }
+  // Get the active physics entity.
+  auto activePhysicsEntity =
+    this->entityCompMgr.Component<components::ActivePhysicsEntity>(worldEntity);
+
   auto physicsComp =
-    this->entityCompMgr.Component<components::Physics>(worldEntity);
+    this->entityCompMgr.Component<components::Physics>(
+        activePhysicsEntity->Data());
 
   const auto& physicsParams = physicsCmdComp->Data();
   const auto newStepSize =
@@ -389,8 +394,8 @@ void SimulationRunner::UpdatePhysicsParams()
       this->simTimes.clear();
       this->realTimes.clear();
       // Set as OneTimeChange to make sure the update is not missed
-      this->entityCompMgr.SetChanged(worldEntity, components::Physics::typeId,
-          ComponentState::OneTimeChange);
+      this->entityCompMgr.SetChanged(activePhysicsEntity->Data(),
+          components::Physics::typeId, ComponentState::OneTimeChange);
     }
   }
   this->entityCompMgr.RemoveComponent<components::PhysicsCmd>(worldEntity);
@@ -1502,8 +1507,19 @@ bool SimulationRunner::GenerateWorldSdf(const msgs::SdfGeneratorConfig &_req,
       this->entityCompMgr, world, this->fuelUriMap, _req);
   if (worldSdf)
   {
-    std::string worldString = worldSdf->ToElement()->ToString("");
-    _res.set_data(worldString);
+    sdf::Root rootSdf;
+    rootSdf.AddWorld(*worldSdf);
+    bool useIncludeTags = true;
+    if (_req.has_global_entity_gen_config() &&
+        _req.global_entity_gen_config().has_expand_include_tags())
+    {
+      useIncludeTags =
+        !_req.global_entity_gen_config().expand_include_tags().data();
+    }
+    std::cout << "UseIncludeTags[" << useIncludeTags << "]\n";
+
+    std::string rootString = rootSdf.ToElement(useIncludeTags)->ToString("");
+    _res.set_data(rootString);
     return true;
   }
 

@@ -42,6 +42,7 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Performer.hh"
+#include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -111,6 +112,9 @@ QString entityType(Entity _entity,
 
   if (nullptr != _ecm.Component<components::Actor>(_entity))
     return QString("actor");
+
+  if (nullptr != _ecm.Component<components::Physics>(_entity))
+    return QString("physics");
 
   return QString();
 }

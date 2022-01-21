@@ -46,7 +46,6 @@ namespace components
     serializers::VisualElementSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.VisualElement",
                                 VisualElement)
-
 }
 }
 }

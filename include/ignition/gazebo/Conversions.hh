@@ -24,6 +24,7 @@
 #include <ignition/msgs/geometry.pb.h>
 #include <ignition/msgs/gui.pb.h>
 #include <ignition/msgs/inertial.pb.h>
+#include <ignition/msgs/joint.pb.h>
 #include <ignition/msgs/light.pb.h>
 #include <ignition/msgs/material.pb.h>
 #include <ignition/msgs/particle_emitter.pb.h>
@@ -44,6 +45,7 @@
 #include <sdf/Collision.hh>
 #include <sdf/Geometry.hh>
 #include <sdf/Gui.hh>
+#include <sdf/Joint.hh>
 #include <sdf/JointAxis.hh>
 #include <sdf/Light.hh>
 #include <sdf/Material.hh>
@@ -621,8 +623,8 @@ namespace ignition
     template<>
     sdf::Collision convert(const msgs::Collision &_in);
 
-    /// \brief Generic conversion from an SDF collision to another type.
-    /// \param[in] _in SDF collision.
+    /// \brief Generic conversion from an SDF visual to another type.
+    /// \param[in] _in SDF visual.
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
@@ -632,14 +634,14 @@ namespace ignition
       Out::ConversionNotImplemented;
     }
 
-    /// \brief Specialized conversion from an SDF collision to a collision
+    /// \brief Specialized conversion from an SDF visual to a visual
     /// message.
-    /// \param[in] _in SDF collision.
+    /// \param[in] _in SDF visual.
     /// \return Visual message.
     template<>
     msgs::Visual convert(const sdf::Visual &_in);
 
-    /// \brief Generic conversion from a collision message to another type.
+    /// \brief Generic conversion from a visual message to another type.
     /// \param[in] _in Visual message.
     /// \return Conversion result.
     /// \tparam Out Output type.
@@ -650,12 +652,48 @@ namespace ignition
       Out::ConversionNotImplemented;
     }
 
-    /// \brief Specialized conversion from a collision message to a collision
+    /// \brief Specialized conversion from a visual message to a visual
     /// SDF object.
     /// \param[in] _in Visual message.
-    /// \return SDF collision.
+    /// \return SDF visual.
     template<>
     sdf::Visual convert(const msgs::Visual &_in);
+
+    /// \brief Generic conversion from an SDF joint to another type.
+    /// \param[in] _in SDF joint.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const sdf::Joint &_in)
+    {
+      (void)_in;
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from an SDF joint to a joint
+    /// message.
+    /// \param[in] _in SDF joint.
+    /// \return Joint message.
+    template<>
+    msgs::Joint convert(const sdf::Joint &_in);
+
+    /// \brief Generic conversion from a joint message to another type.
+    /// \param[in] _in Joint message.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const msgs::Joint &_in)
+    {
+      (void)_in;
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from a joint message to a joint
+    /// SDF object.
+    /// \param[in] _in Joint message.
+    /// \return SDF joint.
+    template<>
+    sdf::Joint convert(const msgs::Joint &_in);
 
     /// \brief Generic conversion from a string to another type.
     /// \param[in] _in string.

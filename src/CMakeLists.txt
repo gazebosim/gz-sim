@@ -53,6 +53,7 @@ set (sources
   Link.cc
   Model.cc
   Primitives.cc
+  PrivateUtils.cc
   SdfEntityCreator.cc
   SdfGenerator.cc
   Server.cc

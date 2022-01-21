@@ -48,20 +48,44 @@
 using namespace ignition;
 using namespace gazebo;
 
+int countOccurrences(const std::string &_source, const std::string &_target)
+{
+  std::string::size_type pos = 0;
+  int count = 0;
+  while ((pos = _source.find(_target, pos)) != std::string::npos)
+  {
+    ++count;
+    pos += _target.length();
+  }
+
+  return count;
+}
+
 /////////////////////////////////////////////////
 /// \breif Checks if elemA is a subset of elemB
 static testing::AssertionResult isSubset(const sdf::ElementPtr &_elemA,
                      const sdf::ElementPtr &_elemB)
 {
+  std::cout << "isSubset A[" << _elemA->GetName() << "] B[" << _elemB->GetName() << "]\n";
+
   if (_elemA->GetName() != _elemB->GetName())
   {
+    std::cout << "Mismatch in element name: '" << _elemA->GetName() << "' vs '"
+           << _elemB->GetName() << "'" << std::endl;
+
     return testing::AssertionFailure()
            << "Mismatch in element name: '" << _elemA->GetName() << "' vs '"
            << _elemB->GetName() << "'";
+
   }
 
   if (_elemA->GetAttributeCount() != _elemB->GetAttributeCount())
   {
+    std::cout << "Mismatch in attribute count for " << _elemA->GetName() << ": "
+           << _elemA->GetAttributeCount() << " vs "
+           << _elemB->GetAttributeCount() << std::endl;
+
+
     return testing::AssertionFailure()
            << "Mismatch in attribute count for " << _elemA->GetName() << ": "
            << _elemA->GetAttributeCount() << " vs "
@@ -75,6 +99,10 @@ static testing::AssertionResult isSubset(const sdf::ElementPtr &_elemA,
     sdf::ParamPtr attrB = _elemB->GetAttribute(attrA->GetKey());
     if (attrA->GetTypeName() != attrB->GetTypeName())
     {
+      std::cout << "Mismatch in attribute type for " << _elemA->GetName() << "/[@"
+             << attrA->GetKey() << "]: '" << attrA->GetTypeName() << "' vs '"
+             << attrB->GetTypeName() << "'" << std::endl;
+
       return testing::AssertionFailure()
              << "Mismatch in attribute type for " << _elemA->GetName() << "/[@"
              << attrA->GetKey() << "]: '" << attrA->GetTypeName() << "' vs '"
@@ -82,6 +110,10 @@ static testing::AssertionResult isSubset(const sdf::ElementPtr &_elemA,
     }
     if (attrA->GetAsString() != attrB->GetAsString())
     {
+      std::cout << "Mismatch in attribute as string for " << _elemA->GetName()
+             << "/[@" << attrA->GetKey() << "]: '" << attrA->GetAsString()
+             << "' vs '" << attrB->GetAsString() << "'" << std::endl;
+
       return testing::AssertionFailure()
              << "Mismatch in attribute as string for " << _elemA->GetName()
              << "/[@" << attrA->GetKey() << "]: '" << attrA->GetAsString()
@@ -96,11 +128,16 @@ static testing::AssertionResult isSubset(const sdf::ElementPtr &_elemA,
       sdf::ParamPtr valB = _elemB->GetValue();
       if (nullptr == valB)
       {
+        std::cout << "Value of " << _elemB->GetName() << " null" << std::endl;
         return testing::AssertionFailure()
                << "Value of " << _elemB->GetName() << " null";
       }
       if (valA->GetTypeName() != valB->GetTypeName())
       {
+        std::cout << "Mismatch in value type for " << _elemA->GetName() << ": '"
+               << valA->GetTypeName() << "' vs '" << valB->GetTypeName() << "'" << std::endl;
+
+
         return testing::AssertionFailure()
                << "Mismatch in value type for " << _elemA->GetName() << ": '"
                << valA->GetTypeName() << "' vs '" << valB->GetTypeName() << "'";
@@ -113,6 +150,9 @@ static testing::AssertionResult isSubset(const sdf::ElementPtr &_elemA,
 
         if (poseA != poseB)
         {
+          std::cout << "Mismatch in value as Pose: '" << poseA << "' vs '" << poseB
+                 << "'" << std::endl;
+
           return testing::AssertionFailure()
                  << "Mismatch in value as Pose: '" << poseA << "' vs '" << poseB
                  << "'";
@@ -125,9 +165,13 @@ static testing::AssertionResult isSubset(const sdf::ElementPtr &_elemA,
         valB->Get(dblB);
         if (!math::equal(dblA, dblB))
         {
+          std::cout << "Mismatch in value as double: '" << dblA << "' vs '"
+                 << dblB << "'" << std::endl;
+
           return testing::AssertionFailure()
                  << "Mismatch in value as double: '" << dblA << "' vs '"
                  << dblB << "'";
+
         }
       }
       else if (valA->GetTypeName() == "float")
@@ -137,6 +181,9 @@ static testing::AssertionResult isSubset(const sdf::ElementPtr &_elemA,
         valB->Get(fltB);
         if (!math::equal(fltA, fltB))
         {
+          std::cout << "Mismatch in value as float: '" << fltA << "' vs '"
+                 << fltB << "'" << std::endl;
+
           return testing::AssertionFailure()
                  << "Mismatch in value as float: '" << fltA << "' vs '"
                  << fltB << "'";
@@ -149,6 +196,9 @@ static testing::AssertionResult isSubset(const sdf::ElementPtr &_elemA,
         valB->Get(boolB);
         if (boolA != boolB)
         {
+          std::cout << "Mismatch in value as bool: '" << boolA << "' vs '"
+                 << boolB << "'" << std::endl;
+
           return testing::AssertionFailure()
                  << "Mismatch in value as bool: '" << boolA << "' vs '"
                  << boolB << "'";
@@ -157,6 +207,9 @@ static testing::AssertionResult isSubset(const sdf::ElementPtr &_elemA,
       }
       else if (valA->GetAsString() != valB->GetAsString())
       {
+        std::cout << "Mismatch in value as string: '" << valA->GetAsString()
+          << "' vs '" << valB->GetAsString() << "'" << std::endl;
+
         return testing::AssertionFailure()
           << "Mismatch in value as string: '" << valA->GetAsString()
           << "' vs '" << valB->GetAsString() << "'";
@@ -188,14 +241,14 @@ static testing::AssertionResult isSubset(const sdf::ElementPtr &_elemA,
     {
       // Ignore missing pose values if the pose is zero.
       sdf::ParamPtr childValA = childElemA->GetValue();
-      if (childValA->GetTypeName() == "pose")
+      if (childValA && childValA->GetTypeName() == "pose")
       {
         math::Pose3d childValPose;
         childValA->Get(childValPose);
         if (childValPose == math::Pose3d::Zero)
           return testing::AssertionSuccess();
       }
-      else if (childValA->GetTypeName() == "bool")
+      else if (childValA && childValA->GetTypeName() == "bool")
       {
         bool childValBool;
         childValA->Get(childValBool);
@@ -206,6 +259,9 @@ static testing::AssertionResult isSubset(const sdf::ElementPtr &_elemA,
           return testing::AssertionSuccess();
         }
       }
+
+      std::cout << "No matching child element in element B for child element '"
+             << childElemA->GetName() << "' in element A" << std::endl;
 
       return testing::AssertionFailure()
              << "No matching child element in element B for child element '"
@@ -947,34 +1003,76 @@ TEST_F(GenerateWorldFixture, ModelsInline)
 {
   const std::string worldFile{"test/worlds/save_world.sdf"};
   this->LoadWorld(worldFile);
+
   Entity worldEntity = this->ecm.EntityByComponents(components::World());
   // Check with expandIncludeTags = true
   {
     this->sdfGenConfig.mutable_global_entity_gen_config()
         ->mutable_expand_include_tags()
         ->set_data(true);
-    const std::optional<std::string> worldStr = sdf_generator::generateWorld(
+
+     const std::optional<sdf::World> worldSdf = sdf_generator::generateWorldSdf(
         this->ecm, worldEntity, this->includeUriMap, this->sdfGenConfig);
-    ASSERT_TRUE(worldStr.has_value());
-    sdf::Root newRoot;
-    newRoot.LoadSdfString(*worldStr);
-    EXPECT_TRUE(isSubset(newRoot.Element(), this->root.Element()));
-    EXPECT_TRUE(isSubset(this->root.Element(), newRoot.Element()));
+     sdf::Root newRoot;
+     newRoot.AddWorld(*worldSdf);
+
+    EXPECT_TRUE(isSubset(newRoot.ToElement(), this->root.ToElement()));
+    EXPECT_TRUE(isSubset(this->root.ToElement(), newRoot.ToElement()));
   }
   // Check with expandIncludeTags = false
   {
     this->sdfGenConfig.mutable_global_entity_gen_config()
         ->mutable_expand_include_tags()
         ->set_data(false);
-    const std::optional<std::string> worldStr = sdf_generator::generateWorld(
+
+    const std::optional<sdf::World> worldSdf = sdf_generator::generateWorldSdf(
         this->ecm, worldEntity, this->includeUriMap, this->sdfGenConfig);
-    ASSERT_TRUE(worldStr.has_value());
-    // std::cout << "Generated world:" << std::endl;
-    // std::cout << worldStr << std::endl;
-    sdf::Root newRoot;
-    newRoot.LoadSdfString(*worldStr);
-    EXPECT_TRUE(isSubset(newRoot.Element(), this->root.Element()));
-    EXPECT_TRUE(isSubset(this->root.Element(), newRoot.Element()));
+     sdf::Root newRoot;
+     newRoot.AddWorld(*worldSdf);
+
+     std::string newWorldString = newRoot.ToElement()->ToString("");
+
+     // Count the number of <include> statements, which should equal three.
+     EXPECT_EQ(3, countOccurrences(newWorldString, "<include"));
+
+     // Count the number of <model> statements, which should equal one.
+     EXPECT_EQ(1, countOccurrences(newWorldString, "<model"));
+
+    // These checks don't work because the SDF parser expands
+    // <include> elements for example this:
+    //
+    // <include>
+    //  <uri>URI://Backpack</uri>
+    //  <name>backpack1</name>
+    //  <pose>2 0 0 0.1 0.2 0.3</pose>
+    //  <static>true</static>
+    //  <placement_frame></placement_frame>
+    // </include>
+    //
+    // becomes
+    //
+    // <model name='backpack1'>
+    //   <static>true</static>
+    //   <link name='link'>
+    //     <collision name='collision'>
+    //       <geometry>
+    //         <mesh>
+    //           <uri>URI://Backpack/2//files/meshes/Backpack.dae</uri>
+    //         </mesh>
+    //       </geometry>
+    //     </collision>
+    //     <visual name='visual'>
+    //       <geometry>
+    //         <mesh>
+    //           <uri>URI://Backpack/2//files/meshes/Backpack.dae</uri>
+    //         </mesh>
+    //       </geometry>
+    //     </visual>
+    //   </link>
+    //  <pose>2 0 0 0.1 0.2 0.3</pose>
+    // </model>
+    // EXPECT_TRUE(isSubset(newRoot.ToElement(), this->root.Element()));
+    // EXPECT_TRUE(isSubset(this->root.Element(), newRoot.ToElement()));
   }
 }
 

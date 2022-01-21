@@ -365,7 +365,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Remove))
   // Check entities
   // 1 x world + 1 x (default) level + 1 x wind + 5 x model + 5 x link + 5 x
   // collision + 5 x visual + 1 x light
-  EXPECT_EQ(24u, ecm->EntityCount());
+  EXPECT_EQ(25u, ecm->EntityCount());
 
   // Entity remove by name
   msgs::Entity req;
@@ -388,7 +388,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Remove))
 
   // Run an iteration and check it was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(20u, ecm->EntityCount());
+  EXPECT_EQ(21u, ecm->EntityCount());
 
   EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
       components::Name("box")));
@@ -411,7 +411,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Remove))
 
   // Run an iteration and check it was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(16u, ecm->EntityCount());
+  EXPECT_EQ(17u, ecm->EntityCount());
 
   EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
       components::Name("sphere")));
@@ -430,7 +430,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Remove))
 
   // Run an iteration and check it was not removed
   server.Run(true, 1, false);
-  EXPECT_EQ(16u, ecm->EntityCount());
+  EXPECT_EQ(17u, ecm->EntityCount());
 
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Link(),
       components::Name("cylinder_link")));
@@ -451,7 +451,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Remove))
 
   // Run an iteration and check cylinder was removed and light wasn't
   server.Run(true, 1, false);
-  EXPECT_EQ(12u, ecm->EntityCount());
+  EXPECT_EQ(13u, ecm->EntityCount());
 
   EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
       components::Name("cylinder")));
@@ -470,7 +470,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Remove))
 
   // Run an iteration and check nothing was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(12u, ecm->EntityCount());
+  EXPECT_EQ(13u, ecm->EntityCount());
 
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Name("sun")));
 
@@ -484,7 +484,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Remove))
 
   // Run an iteration and check nothing was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(12u, ecm->EntityCount());
+  EXPECT_EQ(13u, ecm->EntityCount());
 
   // Unsupported type - fails to remove
   req.Clear();
@@ -497,7 +497,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Remove))
 
   // Run an iteration and check nothing was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(12u, ecm->EntityCount());
+  EXPECT_EQ(13u, ecm->EntityCount());
 
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Name("sun")));
 
@@ -512,7 +512,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Remove))
 
   // Run an iteration and check it was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(11u, ecm->EntityCount());
+  EXPECT_EQ(12u, ecm->EntityCount());
 
   EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Name("sun")));
 }
@@ -975,7 +975,11 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Physics))
   // Check that the physics properties are the ones specified in the sdf
   auto worldEntity = ecm->EntityByComponents(components::World());
   EXPECT_NE(kNullEntity, worldEntity);
-  auto physicsComp = ecm->Component<components::Physics>(worldEntity);
+  auto activephysicsComp = ecm->Component<components::ActivePhysicsEntity>(
+      worldEntity);
+  ASSERT_NE(nullptr, activephysicsComp);
+  auto physicsComp = ecm->Component<components::Physics>(
+      activephysicsComp->Data());
   ASSERT_NE(nullptr, physicsComp);
   EXPECT_DOUBLE_EQ(0.001, physicsComp->Data().MaxStepSize());
   EXPECT_DOUBLE_EQ(0.0, physicsComp->Data().RealTimeFactor());
@@ -1000,7 +1004,8 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Physics))
   server.Run(true, 2, false);
 
   // Check updated physics properties
-  physicsComp = ecm->Component<components::Physics>(worldEntity);
+  physicsComp = ecm->Component<components::Physics>(
+      activephysicsComp->Data());
   EXPECT_DOUBLE_EQ(0.123, physicsComp->Data().MaxStepSize());
   EXPECT_DOUBLE_EQ(4.567, physicsComp->Data().RealTimeFactor());
 
@@ -1017,7 +1022,8 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Physics))
   server.Run(true, 2, false);
 
   // Check updated physics properties
-  physicsComp = ecm->Component<components::Physics>(worldEntity);
+  physicsComp = ecm->Component<components::Physics>(
+      activephysicsComp->Data());
   EXPECT_DOUBLE_EQ(0.123, physicsComp->Data().MaxStepSize());
   EXPECT_DOUBLE_EQ(4.567, physicsComp->Data().RealTimeFactor());
 }

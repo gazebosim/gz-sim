@@ -893,55 +893,64 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm)
         auto worldPtrPhys = this->engine->ConstructWorld(world);
         this->entityWorldMap.AddEntity(_entity, worldPtrPhys);
 
-        // Optional world features
-        auto collisionDetectorComp =
-            _ecm.Component<components::PhysicsCollisionDetector>(_entity);
-        if (collisionDetectorComp)
-        {
-          auto collisionDetectorFeature =
-              this->entityWorldMap.EntityCast<CollisionDetectorFeatureList>(
-              _entity);
-          if (!collisionDetectorFeature)
-          {
-            static bool informed{false};
-            if (!informed)
-            {
-              igndbg << "Attempting to set physics options, but the "
-                     << "phyiscs engine doesn't support feature "
-                     << "[CollisionDetectorFeature]. Options will be ignored."
-                     << std::endl;
-              informed = true;
-            }
-          }
-          else
-          {
-            collisionDetectorFeature->SetCollisionDetector(
-                collisionDetectorComp->Data());
-          }
-        }
+        // Get the active physics entity.
+        auto activePhysicsEntity =
+          _ecm.Component<components::ActivePhysicsEntity>(_entity);
 
-        auto solverComp =
-            _ecm.Component<components::PhysicsSolver>(_entity);
-        if (solverComp)
+        // Optional world features
+        if (activePhysicsEntity && activePhysicsEntity->Data() != kNullEntity)
         {
-          auto solverFeature =
-              this->entityWorldMap.EntityCast<SolverFeatureList>(
-              _entity);
-          if (!solverFeature)
+          auto collisionDetectorComp =
+              _ecm.Component<components::PhysicsCollisionDetector>(
+                  activePhysicsEntity->Data());
+          if (collisionDetectorComp)
           {
-            static bool informed{false};
-            if (!informed)
+            auto collisionDetectorFeature =
+                this->entityWorldMap.EntityCast<CollisionDetectorFeatureList>(
+                _entity);
+            if (!collisionDetectorFeature)
             {
-              igndbg << "Attempting to set physics options, but the "
-                     << "phyiscs engine doesn't support feature "
-                     << "[SolverFeature]. Options will be ignored."
-                     << std::endl;
-              informed = true;
+              static bool informed{false};
+              if (!informed)
+              {
+                igndbg << "Attempting to set physics options, but the "
+                       << "phyiscs engine doesn't support feature "
+                       << "[CollisionDetectorFeature]. Options will be ignored."
+                       << std::endl;
+                informed = true;
+              }
+            }
+            else
+            {
+              collisionDetectorFeature->SetCollisionDetector(
+                  collisionDetectorComp->Data());
             }
           }
-          else
+
+          auto solverComp =
+              _ecm.Component<components::PhysicsSolver>(
+                  activePhysicsEntity->Data());
+          if (solverComp)
           {
-            solverFeature->SetSolver(solverComp->Data());
+            auto solverFeature =
+                this->entityWorldMap.EntityCast<SolverFeatureList>(
+                _entity);
+            if (!solverFeature)
+            {
+              static bool informed{false};
+              if (!informed)
+              {
+                igndbg << "Attempting to set physics options, but the "
+                       << "phyiscs engine doesn't support feature "
+                       << "[SolverFeature]. Options will be ignored."
+                       << std::endl;
+                informed = true;
+              }
+            }
+            else
+            {
+              solverFeature->SetSolver(solverComp->Data());
+            }
           }
         }
 
@@ -2640,10 +2649,15 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
       [&](const Entity &_entity,
         const components::World *)->bool
       {
+        // Get the active physics entity.
+        auto activePhysicsEntity =
+          _ecm.Component<components::ActivePhysicsEntity>(_entity);
+
         // If not provided by ECM, create component with values from physics if
         // those features are available
         auto collisionDetectorComp =
-            _ecm.Component<components::PhysicsCollisionDetector>(_entity);
+            _ecm.Component<components::PhysicsCollisionDetector>(
+                activePhysicsEntity->Data());
         if (!collisionDetectorComp)
         {
           auto collisionDetectorFeature =
@@ -2651,19 +2665,21 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
               _entity);
           if (collisionDetectorFeature)
           {
-            _ecm.CreateComponent(_entity, components::PhysicsCollisionDetector(
+            _ecm.CreateComponent(activePhysicsEntity->Data(),
+                components::PhysicsCollisionDetector(
                 collisionDetectorFeature->GetCollisionDetector()));
           }
         }
 
-        auto solverComp = _ecm.Component<components::PhysicsSolver>(_entity);
+        auto solverComp = _ecm.Component<components::PhysicsSolver>(
+            activePhysicsEntity->Data());
         if (!solverComp)
         {
           auto solverFeature =
               this->entityWorldMap.EntityCast<SolverFeatureList>(_entity);
           if (solverFeature)
           {
-            _ecm.CreateComponent(_entity,
+            _ecm.CreateComponent(activePhysicsEntity->Data(),
                 components::PhysicsSolver(solverFeature->GetSolver()));
           }
         }

@@ -54,7 +54,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PoseInfo))
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(24u, *server.EntityCount());
+  EXPECT_EQ(25u, *server.EntityCount());
 
   // Create pose subscriber
   transport::Node node;
@@ -104,7 +104,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneInfo))
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(24u, *server.EntityCount());
+  EXPECT_EQ(25u, *server.EntityCount());
 
   // Run server
   server.Run(true, 1, false);
@@ -150,7 +150,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneGraph))
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(24u, *server.EntityCount());
+  EXPECT_EQ(25u, *server.EntityCount());
 
   // Run server
   server.Run(true, 1, false);
@@ -167,15 +167,15 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneGraph))
 
   EXPECT_FALSE(res.data().empty());
   EXPECT_NE(res.data().find("default (1)"), std::string::npos);
-  EXPECT_NE(res.data().find("box (4)"), std::string::npos);
-  EXPECT_NE(res.data().find("box_link (5)"), std::string::npos);
-  EXPECT_NE(res.data().find("box_visual (6)"), std::string::npos);
-  EXPECT_NE(res.data().find("cylinder (8)"), std::string::npos);
-  EXPECT_NE(res.data().find("cylinder_link (9)"), std::string::npos);
-  EXPECT_NE(res.data().find("cylinder_visual (10)"), std::string::npos);
-  EXPECT_NE(res.data().find("sphere (12)"), std::string::npos);
-  EXPECT_NE(res.data().find("sphere_link (13)"), std::string::npos);
-  EXPECT_NE(res.data().find("sphere_visual (14)"), std::string::npos);
+  EXPECT_NE(res.data().find("box (5)"), std::string::npos);
+  EXPECT_NE(res.data().find("box_link (6)"), std::string::npos);
+  EXPECT_NE(res.data().find("box_visual (7)"), std::string::npos);
+  EXPECT_NE(res.data().find("cylinder (9)"), std::string::npos);
+  EXPECT_NE(res.data().find("cylinder_link (10)"), std::string::npos);
+  EXPECT_NE(res.data().find("cylinder_visual (11)"), std::string::npos);
+  EXPECT_NE(res.data().find("sphere (13)"), std::string::npos);
+  EXPECT_NE(res.data().find("sphere_link (14)"), std::string::npos);
+  EXPECT_NE(res.data().find("sphere_visual (15)"), std::string::npos);
 }
 
 /////////////////////////////////////////////////
@@ -190,7 +190,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneTopic))
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(24u, *server.EntityCount());
+  EXPECT_EQ(25u, *server.EntityCount());
 
   // Create requester
   transport::Node node;
@@ -235,7 +235,7 @@ TEST_P(SceneBroadcasterTest,
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(12u, *server.EntityCount());
+  EXPECT_EQ(13u, *server.EntityCount());
 
   // Create requester
   transport::Node node;
@@ -287,7 +287,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(DeletedTopic))
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  const std::size_t initEntityCount = 24;
+  const std::size_t initEntityCount = 25;
   EXPECT_EQ(initEntityCount, *server.EntityCount());
 
   // Subscribe to deletions
@@ -347,7 +347,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SpawnedModel))
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  const std::size_t initEntityCount = 24;
+  const std::size_t initEntityCount = 25;
   EXPECT_EQ(initEntityCount, *server.EntityCount());
 
   server.Run(true, 1, false);
@@ -416,7 +416,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(State))
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(24u, *server.EntityCount());
+  EXPECT_EQ(25u, *server.EntityCount());
   transport::Node node;
 
   // Run server
@@ -446,7 +446,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(State))
       [&](const msgs::SerializedStepMap &_res, const bool _success)
   {
     EXPECT_TRUE(_success);
-    checkMsg(_res, 24);
+    checkMsg(_res, 25);
   };
   std::function<void(const msgs::SerializedStepMap &)> cb2 =
       [&](const msgs::SerializedStepMap &_res)
@@ -458,7 +458,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(State))
   std::function<void(const msgs::SerializedStepMap &)> cbAsync =
       [&](const msgs::SerializedStepMap &_res)
   {
-    checkMsg(_res, 24);
+    checkMsg(_res, 25);
   };
 
   // The request is blocking even though it's meant to be async, so we spin a
@@ -527,7 +527,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StateStatic))
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(8u, *server.EntityCount());
+  EXPECT_EQ(9u, *server.EntityCount());
   transport::Node node;
 
   // Run server

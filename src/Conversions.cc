@@ -165,8 +165,15 @@ msgs::Visual ignition::gazebo::convert(const sdf::Visual &_in)
   msgs::Set(out.mutable_pose(), _in.RawPose());
   out.set_cast_shadows(_in.CastShadows());
   out.set_transparency(_in.Transparency());
-  out.mutable_geometry()->CopyFrom(convert<msgs::Geometry>(*_in.Geom()));
-  out.mutable_material()->CopyFrom(convert<msgs::Material>(*_in.Material()));
+
+  const sdf::Geometry *geom = _in.Geom();
+  if (geom)
+    out.mutable_geometry()->CopyFrom(convert<msgs::Geometry>(*geom));
+
+  const sdf::Material *mat = _in.Material();
+  if (mat)
+    out.mutable_material()->CopyFrom(convert<msgs::Material>(*mat));
+
   if (_in.HasLaserRetro())
     out.set_laser_retro(_in.LaserRetro());
 
@@ -186,6 +193,122 @@ sdf::Visual ignition::gazebo::convert(const msgs::Visual &_in)
   out.SetGeom(convert<sdf::Geometry>(_in.geometry()));
   out.SetMaterial(convert<sdf::Material>(_in.material()));
   out.SetLaserRetro(_in.laser_retro());
+
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+IGNITION_GAZEBO_VISIBLE
+msgs::Joint ignition::gazebo::convert(const sdf::Joint &_in)
+{
+  msgs::Joint out;
+  out.set_name(_in.Name());
+  msgs::Set(out.mutable_pose(), _in.RawPose());
+  out.set_parent(_in.ParentLinkName());
+  out.set_child(_in.ChildLinkName());
+  if (_in.Axis(0))
+    out.mutable_axis1()->CopyFrom(convert<msgs::Axis>(*_in.Axis(0)));
+  if (_in.Axis(1))
+    out.mutable_axis2()->CopyFrom(convert<msgs::Axis>(*_in.Axis(1)));
+
+  switch(_in.Type())
+  {
+    case sdf::JointType::BALL:
+      out.set_type(msgs::Joint::BALL);
+      break;
+    // \todo(nkoenig) Add this in Garden
+    // case sdf::JointType::CONTINUOUS:
+    //   out.set_type(msgs::Joint::CONTINUOUS);
+    //   break;
+    case sdf::JointType::FIXED:
+      out.set_type(msgs::Joint::FIXED);
+      break;
+    case sdf::JointType::GEARBOX:
+      out.set_type(msgs::Joint::GEARBOX);
+      break;
+    case sdf::JointType::PRISMATIC:
+      out.set_type(msgs::Joint::PRISMATIC);
+      break;
+    default:
+    case sdf::JointType::REVOLUTE:
+      out.set_type(msgs::Joint::REVOLUTE);
+      break;
+    case sdf::JointType::REVOLUTE2:
+      out.set_type(msgs::Joint::REVOLUTE2);
+      break;
+    case sdf::JointType::SCREW:
+      out.set_type(msgs::Joint::SCREW);
+      out.mutable_screw()->set_thread_pitch(_in.ThreadPitch());
+      break;
+    case sdf::JointType::UNIVERSAL:
+      out.set_type(msgs::Joint::UNIVERSAL);
+      break;
+  }
+
+  for (uint64_t i = 0; i < _in.SensorCount(); ++i)
+  {
+    out.add_sensor()->CopyFrom(convert<msgs::Sensor>(*_in.SensorByIndex(i)));
+  }
+
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+IGNITION_GAZEBO_VISIBLE
+sdf::Joint ignition::gazebo::convert(const msgs::Joint &_in)
+{
+  sdf::Joint out;
+  out.SetName(_in.name());
+  out.SetRawPose(msgs::Convert(_in.pose()));
+
+  out.SetParentLinkName(_in.parent());
+  out.SetChildLinkName(_in.child());
+  if (_in.has_axis1())
+    out.SetAxis(0, convert<sdf::JointAxis>(_in.axis1()));
+  if (_in.has_axis2())
+    out.SetAxis(1, convert<sdf::JointAxis>(_in.axis2()));
+
+  switch(_in.type())
+  {
+    case msgs::Joint::BALL:
+      out.SetType(sdf::JointType::BALL);
+      break;
+    // \todo(nkoenig) Add this in Garden.
+    // case msgs::Joint::CONTINUOUS:
+    //   out.SetType(sdf::JointType::CONTINUOUS);
+    //   break;
+    case msgs::Joint::FIXED:
+      out.SetType(sdf::JointType::FIXED);
+      break;
+    case msgs::Joint::GEARBOX:
+      out.SetType(sdf::JointType::GEARBOX);
+      break;
+    case msgs::Joint::PRISMATIC:
+      out.SetType(sdf::JointType::PRISMATIC);
+      break;
+    default:
+    case msgs::Joint::REVOLUTE:
+      out.SetType(sdf::JointType::REVOLUTE);
+      break;
+    case msgs::Joint::REVOLUTE2:
+      out.SetType(sdf::JointType::REVOLUTE2);
+      break;
+    case msgs::Joint::SCREW:
+      out.SetType(sdf::JointType::SCREW);
+      if (_in.has_screw())
+        out.SetThreadPitch(_in.screw().thread_pitch());
+      break;
+    case msgs::Joint::UNIVERSAL:
+      out.SetType(sdf::JointType::UNIVERSAL);
+      break;
+  }
+
+  for (int i = 0; i < _in.sensor_size(); ++i)
+  {
+    out.AddSensor(convert<sdf::Sensor>(_in.sensor(i)));
+  }
 
   return out;
 }
