@@ -23,6 +23,8 @@
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
+#include "ignition/gazebo/TestFixture.hh"
+#include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/components/CenterOfVolume.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Name.hh"
@@ -395,4 +397,60 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(GradedBuoyancy))
   server.AddSystem(testSystem.systemPtr);
   server.Run(true, iterations, false);
   EXPECT_TRUE(finished);
+}
+
+
+/////////////////////////////////////////////////
+TEST_F(BuoyancyTest, OffsetAndRotationGraded)
+{
+  TestFixture fixture(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "center_of_volume_graded.sdf"));
+
+  std::size_t iterations{0};
+  fixture.OnPostUpdate([&](
+      const gazebo::UpdateInfo &,
+      const gazebo::EntityComponentManager &_ecm)
+  {
+    // Get links
+    auto noOffsets = entitiesFromScopedName("no_offset::link", _ecm);
+    ASSERT_EQ(1u, noOffsets.size());
+    auto noOffset = *noOffsets.begin();
+    EXPECT_NE(kNullEntity, noOffset);
+
+    auto noOffsetRotateds = entitiesFromScopedName("no_offset_rotated::link",
+        _ecm);
+    ASSERT_EQ(1u, noOffsetRotateds.size());
+    auto noOffsetRotated = *noOffsetRotateds.begin();
+    EXPECT_NE(kNullEntity, noOffsetRotated);
+
+    auto withOffsets = entitiesFromScopedName("com_cov_offset::link", _ecm);
+    ASSERT_EQ(1u, withOffsets.size());
+    auto withOffset = *withOffsets.begin();
+    EXPECT_NE(kNullEntity, withOffset);
+
+    auto withOffsetRotateds = entitiesFromScopedName(
+        "com_cov_offset_rotated::link", _ecm);
+    ASSERT_EQ(1u, withOffsetRotateds.size());
+    auto withOffsetRotated = *withOffsetRotateds.begin();
+    EXPECT_NE(kNullEntity, withOffsetRotated);
+
+    // Check that all objects are neutrally buoyant and stay still
+    auto noOffsetPose = worldPose(noOffset, _ecm);
+    EXPECT_EQ(math::Pose3d(), noOffsetPose);
+
+    auto noOffsetRotatedPose = worldPose(noOffsetRotated, _ecm);
+    EXPECT_EQ(math::Pose3d(-3, 0, 0, 0.1, 0.2, 0.3), noOffsetRotatedPose);
+
+    auto withOffsetPose = worldPose(withOffset, _ecm);
+    EXPECT_EQ(math::Pose3d(0, 3, 0, 0, 0, 0), withOffsetPose);
+
+    auto withOffsetRotatedPose = worldPose(withOffsetRotated, _ecm);
+    EXPECT_EQ(math::Pose3d(-3, 3, 0, 0.1, 0.2, 0.3), withOffsetRotatedPose);
+
+    iterations++;
+  }).Finalize();
+
+  std::size_t targetIterations{1000};
+  fixture.Server()->Run(true, targetIterations, false);
+  EXPECT_EQ(targetIterations, iterations);
 }

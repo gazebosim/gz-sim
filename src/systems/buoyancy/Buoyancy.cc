@@ -316,6 +316,14 @@ void Buoyancy::Configure(const Entity &_entity,
       argument = argument->GetNextElement();
     }
   }
+  else
+  {
+    ignwarn <<
+      "Neither <graded_buoyancy> nor <uniform_fluid_density> specified"
+      << std::endl
+      << "\tDefaulting to <uniform_fluid_density>1000</uniform_fluid_density>"
+      << std::endl;
+  }
 
   if (_sdf->HasElement("enable"))
   {
