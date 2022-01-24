@@ -90,7 +90,6 @@
             <image>
               <width>256</width>
               <height>256</height>
-              <format>R_FLOAT32</format>
             </image>
             <clip>
               <near>0.1</near>

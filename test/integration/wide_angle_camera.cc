@@ -49,7 +49,7 @@ void imageCb(const msgs::Image &_msg)
 {
   mutex.lock();
   unsigned int imageSamples = _msg.width() * _msg.height();
-  unsigned int imageBufferSize = imageSamples * sizeof(float);
+  unsigned int imageBufferSize = _msg.step() * _msg.height();
 
   if (!imageBuffer)
     imageBuffer = new float[imageSamples];
