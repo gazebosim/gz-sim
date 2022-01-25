@@ -22,6 +22,7 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 #include <sdf/World.hh>
 
 #include "ignition/gazebo/components/Factory.hh"
@@ -52,12 +53,13 @@ class RecreateEntitiesFixture : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(RecreateEntitiesFixture, RecreateEntities)
+TEST_F(RecreateEntitiesFixture,
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(RecreateEntities))
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "shapes.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -321,12 +323,13 @@ TEST_F(RecreateEntitiesFixture, RecreateEntities)
 }
 
 /////////////////////////////////////////////////
-TEST_F(RecreateEntitiesFixture, RecreateEntities_Joints)
+TEST_F(RecreateEntitiesFixture,
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(RecreateEntities_Joints))
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/double_pendulum.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "double_pendulum.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -479,12 +482,13 @@ TEST_F(RecreateEntitiesFixture, RecreateEntities_Joints)
 }
 
 /////////////////////////////////////////////////
-TEST_F(RecreateEntitiesFixture, RecreateEntities_WorldJoint)
+TEST_F(RecreateEntitiesFixture,
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(RecreateEntities_WorldJoint))
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/fixed_world_joint.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "fixed_world_joint.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());

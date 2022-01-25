@@ -120,6 +120,7 @@ ign_find_package(ignition-sensors7 REQUIRED
     force_torque
     logical_camera
     magnetometer
+    navsat
 
     # rendering
     rendering

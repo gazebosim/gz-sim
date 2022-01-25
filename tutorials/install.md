@@ -68,7 +68,7 @@ feature which hasn't been released yet.
 
 2. Install package dependencies:
   ```
-  git clone https://github.com/ignitionrobotics/ign-gazebo -b main
+  git clone https://github.com/ignitionrobotics/ign-gazebo -b ign-gazebo<#>
   export SYSTEM_VERSION=bionic
   sudo apt -y install \
     $(sort -u $(find . -iname 'packages-'`lsb_release -cs`'.apt' -o -iname 'packages.apt' | grep -v '/\.git/') | sed '/ignition\|sdf/d' | tr '\n' ' ')

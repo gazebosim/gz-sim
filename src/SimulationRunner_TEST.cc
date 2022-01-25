@@ -21,6 +21,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 #include <sdf/Box.hh>
 #include <sdf/Capsule.hh>
 #include <sdf/Cylinder.hh>
@@ -1073,7 +1074,7 @@ TEST_P(SimulationRunnerTest, Time)
   EXPECT_EQ(0u, runner.CurrentInfo().iterations);
   EXPECT_EQ(0ms, runner.CurrentInfo().simTime);
   EXPECT_EQ(0ms, runner.CurrentInfo().dt);
-  EXPECT_EQ(1ms, runner.UpdatePeriod());
+  EXPECT_EQ(0ms, runner.UpdatePeriod());
   EXPECT_EQ(1ms, runner.StepSize());
 
   runner.SetPaused(false);
@@ -1086,7 +1087,7 @@ TEST_P(SimulationRunnerTest, Time)
   EXPECT_EQ(100u, runner.CurrentInfo().iterations);
   EXPECT_EQ(100ms, runner.CurrentInfo().simTime);
   EXPECT_EQ(1ms, runner.CurrentInfo().dt);
-  EXPECT_EQ(1ms, runner.UpdatePeriod());
+  EXPECT_EQ(0ms, runner.UpdatePeriod());
   EXPECT_EQ(1ms, runner.StepSize());
 
   int sleep = 0;
@@ -1107,7 +1108,7 @@ TEST_P(SimulationRunnerTest, Time)
   EXPECT_EQ(200u, runner.CurrentInfo().iterations);
   EXPECT_EQ(300ms, runner.CurrentInfo().simTime);
   EXPECT_EQ(2ms, runner.CurrentInfo().dt);
-  EXPECT_EQ(1ms, runner.UpdatePeriod());
+  EXPECT_EQ(0ms, runner.UpdatePeriod());
   EXPECT_EQ(2ms, runner.StepSize());
 
   sleep = 0;
@@ -1127,7 +1128,7 @@ TEST_P(SimulationRunnerTest, Time)
   EXPECT_EQ(200u, runner.CurrentInfo().iterations);
   EXPECT_EQ(300ms, runner.CurrentInfo().simTime);
   EXPECT_EQ(2ms, runner.CurrentInfo().dt);
-  EXPECT_EQ(1ms, runner.UpdatePeriod());
+  EXPECT_EQ(0ms, runner.UpdatePeriod());
   EXPECT_EQ(2ms, runner.StepSize());
 
   // Verify info published to /clock topic
@@ -1145,7 +1146,7 @@ TEST_P(SimulationRunnerTest, Time)
   EXPECT_EQ(500ms, runner.CurrentInfo().simTime)
     << runner.CurrentInfo().simTime.count();
   EXPECT_EQ(2ms, runner.CurrentInfo().dt);
-  EXPECT_EQ(1ms, runner.UpdatePeriod());
+  EXPECT_EQ(0ms, runner.UpdatePeriod());
   EXPECT_EQ(2ms, runner.StepSize());
 
   sleep = 0;
@@ -1183,7 +1184,8 @@ TEST_P(SimulationRunnerTest, Time)
 }
 
 /////////////////////////////////////////////////
-TEST_P(SimulationRunnerTest, LoadPlugins)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_P(SimulationRunnerTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadPlugins) )
 {
   // Load SDF file
   sdf::Root root;
@@ -1270,7 +1272,8 @@ TEST_P(SimulationRunnerTest, LoadPlugins)
 }
 
 /////////////////////////////////////////////////
-TEST_P(SimulationRunnerTest, LoadServerNoPlugins)
+TEST_P(SimulationRunnerTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadServerNoPlugins) )
 {
   sdf::Root rootWithout;
   rootWithout.Load(common::joinPaths(PROJECT_SOURCE_PATH,
@@ -1292,7 +1295,8 @@ TEST_P(SimulationRunnerTest, LoadServerNoPlugins)
 }
 
 /////////////////////////////////////////////////
-TEST_P(SimulationRunnerTest, LoadServerConfigPlugins)
+TEST_P(SimulationRunnerTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadServerConfigPlugins) )
 {
   sdf::Root rootWithout;
   rootWithout.Load(common::joinPaths(PROJECT_SOURCE_PATH,
@@ -1392,7 +1396,8 @@ TEST_P(SimulationRunnerTest, LoadServerConfigPlugins)
 }
 
 /////////////////////////////////////////////////
-TEST_P(SimulationRunnerTest, LoadPluginsDefault)
+TEST_P(SimulationRunnerTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadPluginsDefault) )
 {
   sdf::Root rootWithout;
   rootWithout.Load(common::joinPaths(PROJECT_SOURCE_PATH,
@@ -1413,7 +1418,8 @@ TEST_P(SimulationRunnerTest, LoadPluginsDefault)
 }
 
 /////////////////////////////////////////////////
-TEST_P(SimulationRunnerTest, LoadPluginsEvent)
+TEST_P(SimulationRunnerTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadPluginsEvent) )
 {
   // Load SDF file without plugins
   sdf::Root rootWithout;

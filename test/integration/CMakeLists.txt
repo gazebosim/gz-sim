@@ -38,6 +38,7 @@ set(tests
   model.cc
   multicopter.cc
   multiple_servers.cc
+  navsat_system.cc
   nested_model_physics.cc
   network_handshake.cc
   odometry_publisher.cc
