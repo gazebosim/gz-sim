@@ -19,6 +19,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"
@@ -47,7 +48,8 @@ class TouchPluginTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(TouchPluginTest, OneLink)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OneLink))
 {
   this->StartServer("/test/worlds/touch_plugin.sdf");
 
@@ -105,7 +107,7 @@ TEST_F(TouchPluginTest, OneLink)
 }
 
 //////////////////////////////////////////////////
-TEST_F(TouchPluginTest, MultiLink)
+TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(MultiLink))
 {
   this->StartServer("/test/worlds/touch_plugin.sdf");
 
@@ -137,7 +139,7 @@ TEST_F(TouchPluginTest, MultiLink)
 }
 
 //////////////////////////////////////////////////
-TEST_F(TouchPluginTest, StartDisabled)
+TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StartDisabled))
 {
   this->StartServer("/test/worlds/touch_plugin.sdf");
 
@@ -185,7 +187,7 @@ TEST_F(TouchPluginTest, StartDisabled)
 }
 
 //////////////////////////////////////////////////
-TEST_F(TouchPluginTest, RemovalOfParentModel)
+TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RemovalOfParentModel))
 {
   this->StartServer("/test/worlds/touch_plugin.sdf");
 
@@ -224,7 +226,7 @@ TEST_F(TouchPluginTest, RemovalOfParentModel)
 /// Tests whether the plugin works when it is spawned after other entities have
 /// already been created and vice versa
 /// This test uses depends on the user_commands system
-TEST_F(TouchPluginTest, SpawnedEntities)
+TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SpawnedEntities))
 {
   std::string whiteBox = R"EOF(
   <?xml version="1.0" ?>
@@ -296,7 +298,7 @@ TEST_F(TouchPluginTest, SpawnedEntities)
   auto testFunc = [&](const std::string &_box1, const std::string &_box2)
   {
     this->server.reset();
-    this->StartServer("/examples/worlds/empty.sdf");
+    this->StartServer("/test/worlds/empty.sdf");
 
     whiteTouched = false;
     req.set_sdf(_box1);

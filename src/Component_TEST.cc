@@ -17,6 +17,7 @@
 
 #include <gtest/gtest.h>
 #include <ignition/msgs/int32.pb.h>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include <memory>
 
@@ -61,7 +62,8 @@ TEST_F(ComponentTest, ComponentCanBeCopiedAfterDefaultCtor)
 }
 
 //////////////////////////////////////////////////
-TEST_F(ComponentTest, DataByMove)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(ComponentTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(DataByMove))
 {
   auto factory = components::Factory::Instance();
 

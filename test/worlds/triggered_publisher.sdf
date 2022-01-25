@@ -1,6 +1,10 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
   <world name="triggered_publisher">
+    <physics name="fast" type="ignored">
+      <real_time_factor>0</real_time_factor>
+    </physics>
+
     <plugin filename="ignition-gazebo-triggered-publisher-system" name="ignition::gazebo::systems::TriggeredPublisher">
       <input type="ignition.msgs.Empty" topic="/in_0"/>
       <output type="ignition.msgs.Empty" topic="/out_0"/>
