@@ -42,18 +42,20 @@ class WideAngleCameraTest : public InternalFixture<::testing::Test>
 
 std::mutex mutex;
 msgs::Image imageMsg;
-float *imageBuffer = nullptr;
+unsigned char *imageBuffer = nullptr;
 
 /////////////////////////////////////////////////
 void imageCb(const msgs::Image &_msg)
 {
+  ASSERT_EQ(msgs::PixelFormatType::RGB_INT8,
+      _msg.pixel_format_type());
+
   mutex.lock();
-  unsigned int imageSamples = _msg.width() * _msg.height();
-  unsigned int imageBufferSize = _msg.step() * _msg.height();
+  unsigned int imageSamples = _msg.width() * _msg.height() * 3;
 
   if (!imageBuffer)
-    imageBuffer = new float[imageSamples];
-  memcpy(imageBuffer, _msg.data().c_str(), imageBufferSize);
+    imageBuffer = new unsigned char[imageSamples];
+  memcpy(imageBuffer, _msg.data().c_str(), imageSamples);
   mutex.unlock();
 }
 
@@ -63,8 +65,8 @@ TEST_F(WideAngleCameraTest, IGN_UTILS_TEST_DISABLED_ON_MAC(WideAngleCameraBox))
 {
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/wide_angle_camera_sensor.sdf";
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "wide_angle_camera_sensor.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);
