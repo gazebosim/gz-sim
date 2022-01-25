@@ -22,6 +22,7 @@
 #include "ServerConfig.hh"
 #include "TestFixture.hh"
 #include "UpdateInfo.hh"
+#include "Util.hh"
 #include "World.hh"
 
 PYBIND11_MODULE(gazebo, m) {
@@ -34,4 +35,5 @@ PYBIND11_MODULE(gazebo, m) {
   ignition::gazebo::python::defineGazeboTestFixture(m);
   ignition::gazebo::python::defineGazeboUpdateInfo(m);
   ignition::gazebo::python::defineGazeboWorld(m);
+  ignition::gazebo::python::defineGazeboUtil(m);
 }

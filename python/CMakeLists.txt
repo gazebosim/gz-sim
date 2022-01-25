@@ -46,6 +46,7 @@ pybind11_add_module(gazebo SHARED
   src/ignition/gazebo/Server.cc
   src/ignition/gazebo/ServerConfig.cc
   src/ignition/gazebo/UpdateInfo.cc
+  src/ignition/gazebo/Util.cc
   src/ignition/gazebo/World.cc
 )
 

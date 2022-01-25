@@ -20,13 +20,13 @@
 #
 # Now you can run the example:
 #
-# python3 examples/python/helperFixture.py
+# python3 examples/scripts/python_api/helperFixture.py
 
 import os
 import time
 
 from ignition.common import set_verbosity
-from ignition.gazebo import TestFixture, World
+from ignition.gazebo import TestFixture, World, world_entity
 from ignition.math import Vector3d
 from sdformat import Element
 
@@ -39,22 +39,34 @@ helper = TestFixture(os.path.join(file_path, 'gravity.sdf'))
 post_iterations = 0
 iterations = 0
 pre_iterations = 0
-
-
-def on_post_udpate_cb(_info, _ecm):
-    global post_iterations
-    post_iterations += 1
-    # print(_info.sim_time)
+first_iteration = True
 
 
 def on_pre_udpate_cb(_info, _ecm):
     global pre_iterations
+    global first_iteration
     pre_iterations += 1
+    if first_iteration:
+        first_iteration = False
+        world_e = world_entity(_ecm);
+        print('World entity is ', world_e)
+        w = World(world_e)
+        v = w.gravity(_ecm)
+        print('Gravity ', v)
+        modelEntity = w.model_by_name(_ecm, 'falling')
+        print('Entity for falling model is: ', modelEntity)
 
 
 def on_udpate_cb(_info, _ecm):
     global iterations
     iterations += 1
+
+
+def on_post_udpate_cb(_info, _ecm):
+    global post_iterations
+    post_iterations += 1
+    if _info.sim_time.seconds == 1:
+        print('Post update sim time: ', _info.sim_time)
 
 
 helper.on_post_update(on_post_udpate_cb)
