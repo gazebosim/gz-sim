@@ -72,7 +72,7 @@ class View : public BaseView
   /// component data are returned.
   public: ComponentData EntityComponentData(const Entity _entity);
 
-  /// \brief Add an entity with its component data to the view. It is assunmed
+  /// \brief Add an entity with its component data to the view. It is assumed
   /// that the entity to be added does not already exist in the view.
   /// \param[in] _entity The entity
   /// \param[in] _new Whether to add the entity to the list of new entities.
@@ -83,7 +83,7 @@ class View : public BaseView
   public: void AddEntityWithConstComps(const Entity &_entity, const bool _new,
               const ComponentTypeTs*... _compPtrs);
 
-  /// \brief Add an entity with its component data to the view. It is assunmed
+  /// \brief Add an entity with its component data to the view. It is assumed
   /// that the entity to be added does not already exist in the view.
   /// \param[in] _entity The entity
   /// \param[in] _new Whether to add the entity to the list of new entities.
@@ -106,7 +106,7 @@ class View : public BaseView
   public: void Reset() override;
 
   /// \brief A map of entities to their component data. Since tuples are defined
-  /// at compile time, we need seperate containers that have tuples for both
+  /// at compile time, we need separate containers that have tuples for both
   /// non-const and const component pointers (calls to ECM::Each can have a
   /// method signature that uses either non-const or const pointers)
   private: std::unordered_map<Entity, ComponentData> validData;
@@ -116,7 +116,7 @@ class View : public BaseView
   /// between invalidData and validData is that the entities in invalidData were
   /// once in validData, but they had a component removed, so the entity no
   /// longer meets the component requirements of the view. If the missing
-  /// component data is ever added back to an entitiy in invalidData, then this
+  /// component data is ever added back to an entity in invalidData, then this
   /// entity will be moved back to validData. The usage of invalidData is an
   /// implementation detail that should be ignored by those using the View API;
   /// from a user's point of view, entities that belong to invalidData don't

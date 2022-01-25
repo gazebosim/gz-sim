@@ -20,6 +20,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Sensor.hh"
@@ -40,13 +41,13 @@ class ForceTorqueTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(ForceTorqueTest, MeasureWeight)
+TEST_F(ForceTorqueTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(MeasureWeight))
 {
   using namespace std::chrono_literals;
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile =
-      std::string(PROJECT_SOURCE_PATH) + "/test/worlds/force_torque.sdf";
+  const auto sdfFile = common::joinPaths(
+      std::string(PROJECT_SOURCE_PATH), "test", "worlds", "force_torque.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);
@@ -98,13 +99,13 @@ TEST_F(ForceTorqueTest, MeasureWeight)
 }
 
 /////////////////////////////////////////////////
-TEST_F(ForceTorqueTest, SensorPoseOffset)
+TEST_F(ForceTorqueTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SensorPoseOffset))
 {
   using namespace std::chrono_literals;
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile =
-      std::string(PROJECT_SOURCE_PATH) + "/test/worlds/force_torque.sdf";
+  const auto sdfFile = common::joinPaths(
+      std::string(PROJECT_SOURCE_PATH), "test", "worlds", "force_torque.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);

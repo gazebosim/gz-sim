@@ -58,6 +58,11 @@ namespace systems
   ///                 (Required if `<enable_recharge>` is set to true)
   /// - `<fix_issue_225>` True to change the battery behavior to fix some issues
   /// described in https://github.com/ignitionrobotics/ign-gazebo/issues/225.
+  /// - `<power_draining_topic>` A topic that is used to start battery
+  /// discharge. Any message on the specified topic will cause the batter to
+  /// start draining. This element can be specified multiple times if
+  /// multiple topics should be monitored. Note that this mechanism will
+  /// start the battery draining, and once started will keep drainig.
   class LinearBatteryPlugin
       : public System,
         public ISystemConfigure,
