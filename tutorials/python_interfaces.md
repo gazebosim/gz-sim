@@ -14,7 +14,7 @@ step simulation and check entities and components.
     helper = HelperFixture(os.path.join(file_path, 'gravity.sdf'))
     ```
 
- - **Step 2**: Write your `configure`, `pretupdate`, `update` or `postupdate` code:
+ - **Step 2**: Write your `pretupdate`, `update` or `postupdate` code:
     ```python
     def on_post_udpate_cb(_info, _ecm):
       # <your code here>
@@ -41,18 +41,21 @@ step simulation and check entities and components.
 
 # Run the example
 
-In the [examples/python](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo6/examples/python) folder there is a Python script
-shows make use of this API. If you compiled Ignition Gazebo from source you should modify your `PYTHONPATH`:
+In the
+[examples/scripts/python_api](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo6/examples/scripts/python_api)
+folder there is a Python script that shows how to make use of this API.
 
-```bash
-export PYTHONPATH=$PYTHONPATH:<path to ws>/install/lib/python
-```
+> If you compiled Ignition Gazebo from source you should modify your `PYTHONPATH`:
+>
+>  ```bash
+>  export PYTHONPATH=$PYTHONPATH:<path to ws>/install/lib/python
+>    ```
 
 Now you can run the example:
 
 ```bash
-$ python3 examples/python/helperFixture.py
-[Msg] Loading SDF world file[/home/ahcorde/ignition_fortress/src/ign-gazebo/examples/python/gravity.sdf].
+$ python3 examples/scripts/python_api/helperFixture.py
+[Msg] Loading SDF world file[/home/ahcorde/ignition_fortress/src/ign-gazebo/examples/scripts/python_api/gravity.sdf].
 [Dbg] [Physics.cc:789] Loaded [ignition::physics::dartsim::Plugin] from library [/home/ahcorde/ignition_fortress/install/lib/ign-physics-5/engine-plugins/libignition-physics-dartsim-plugin.so]
 [Dbg] [SimulationRunner.cc:909] Loaded system [ignition::gazebo::systems::Physics] for entity [1]
 [Msg] Loaded level [3]

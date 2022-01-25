@@ -140,8 +140,6 @@ namespace ignition
                  }
                };
 
-      /// This was originally a unique_ptr, but pybind11 was failing because it
-      /// was not able to copy the class
       /// \brief Container of used signals.
       private: std::unordered_map<TypeInfoRef,
                                   std::unique_ptr<ignition::common::Event>,

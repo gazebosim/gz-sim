@@ -17,7 +17,7 @@ import time
 import unittest
 
 from ignition.common import set_verbosity
-from ignition.gazebo import TestFixture, World
+from ignition.gazebo import TestFixture, World, world_entity
 from ignition.math import Vector3d
 from sdformat import Element
 
@@ -40,6 +40,11 @@ class TestTestFixture(unittest.TestCase):
         def on_pre_udpate_cb(_info, _ecm):
             global pre_iterations
             pre_iterations += 1
+            world_e = world_entity(_ecm);
+            self.assertEqual(1, world_e)
+            w = World(world_e)
+            v = w.gravity(_ecm)
+            self.assertEqual(Vector3d(0, 0, -9.8), v)
 
         def on_udpate_cb(_info, _ecm):
             global iterations
