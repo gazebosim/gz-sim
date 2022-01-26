@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-math6 VERSION 6.9.3)
+project(ignition-math6 VERSION 6.10.0)
 
 #============================================================================
 # Find ignition-cmake
@@ -16,7 +16,7 @@ find_package(ignition-cmake2 2.8.0 REQUIRED)
 #============================================================================
 set (c++standard 17)
 set (CMAKE_CXX_STANDARD 17)
-ign_configure_project(VERSION_SUFFIX pre2)
+ign_configure_project(VERSION_SUFFIX)
 
 #============================================================================
 # Set project-specific options

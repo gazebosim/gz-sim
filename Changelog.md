@@ -2,7 +2,7 @@
 
 ## Ignition Math 6.x.x
 
-## Ignition Math 6.9.3 (2022-01-XX)
+## Ignition Math 6.10.0 (2022-01-26)
 
 1. Use const instead of constexpr in Ellipsoid constructor
     * [Pull request #366](https://github.com/ignitionrobotics/ign-math/pull/366)
@@ -49,6 +49,7 @@
         * [Pull request #337](https://github.com/ignitionrobotics/ign-math/pull/337)
     1. PID
         * [Pull request #323](https://github.com/ignitionrobotics/ign-math/pull/323)
+        * [Pull request #361](https://github.com/ignitionrobotics/ign-math/pull/361)
     1. Temperature
         * [Pull request #330](https://github.com/ignitionrobotics/ign-math/pull/330)
     1. DiffDriveOdometry (with examples)
@@ -86,6 +87,7 @@
         * [Pull request #317](https://github.com/ignitionrobotics/ign-math/pull/317)
     1. Quaternion
         * [Pull request #324](https://github.com/ignitionrobotics/ign-math/pull/324)
+        * [Pull request #361](https://github.com/ignitionrobotics/ign-math/pull/361)
     1. StopWatch
         * [Pull request #319](https://github.com/ignitionrobotics/ign-math/pull/319)
     1. RollingMean
