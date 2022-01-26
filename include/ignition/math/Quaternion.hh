@@ -940,7 +940,7 @@ namespace ignition
                                       const T _deltaT) const
       {
         Quaternion<T> deltaQ;
-        Vector3<T> theta = _angularVelocity * _deltaT * 0.5;
+        Vector3<T> theta = _angularVelocity * _deltaT / 2;
         T thetaMagSq = theta.SquaredLength();
         T s;
         if (thetaMagSq * thetaMagSq / 24.0 < MIN_D)

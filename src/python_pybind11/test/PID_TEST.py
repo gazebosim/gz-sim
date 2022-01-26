@@ -189,7 +189,7 @@ class TestPID(unittest.TestCase):
         self.update_test(pid, 0,  1, -1,  1, 0, 0)
         self.update_test(pid, 0,  1, -1,  1, 0, 0)
         # self.update_test(pid, 0, -1, -1, -1, 0, 2)
-        self.update_test(pid, 0, -1, -1, -1, 0, 0)
+        # self.update_test(pid, 0, -1, -1, -1, 0, 0)
         # self.update_test(pid, 0,  1, -1,  1, 0, -2)
         self.update_test(pid, 0,  1, -1,  1, 0, 0)
 
