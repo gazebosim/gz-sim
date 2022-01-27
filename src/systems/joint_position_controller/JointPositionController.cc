@@ -198,7 +198,8 @@ void JointPositionController::PreUpdate(
   {
     static bool warned = false;
     if(!warned)
-      ignerr << "Could not find joint with name [" << this->dataPtr->jointName <<";\n";
+      ignerr << "Could not find joint with name ["
+        << this->dataPtr->jointName <<";\n";
     warned = true;
     return;
   }
