@@ -205,10 +205,8 @@ void ImuPrivate::addIMU(
   if (world.SphericalCoordinates(_ecm)) {
     auto sphericalCoordinates = world.SphericalCoordinates(_ecm).value();
     heading = sphericalCoordinates.HeadingOffset().Radian();
-    std::cout << "dbg print heading: " << heading << std::endl;
   }
 
-  sensor->ReadLocalizationTag(data);
   sensor->SetWorldFrameOrientation(math::Quaterniond(0, 0, heading),
     ignition::sensors::WorldFrameEnumType::ENU);
 }
