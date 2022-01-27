@@ -359,6 +359,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   // Subscribe to actuator command messages
   std::string topic = transport::TopicUtils::AsValidTopic(
       this->dataPtr->robotNamespace + "/" + this->dataPtr->commandSubTopic);
+  igndbg << "Listening on " <<topic <<std::endl;
   if (topic.empty())
   {
     ignerr << "Failed to create topic for [" << this->dataPtr->robotNamespace
@@ -566,6 +567,7 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
       const auto worldPose = link.WorldPose(_ecm);
 
       // Apply a force to the link.
+      link.SetVisualizationLabel("multicopter thrust");
       link.AddWorldForce(_ecm,
                          worldPose->Rot().RotateVector(Vector3(0, 0, thrust)));
 
@@ -613,6 +615,7 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
                                bodyVelocityPerpendicular;
 
       // Apply air drag to link.
+      link.SetVisualizationLabel("multicopter drag");
       link.AddWorldForce(_ecm, airDrag);
       // Moments get the parent link, such that the resulting torques can be
       // applied.
