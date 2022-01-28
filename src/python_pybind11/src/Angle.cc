@@ -17,6 +17,7 @@
 
 #include <string>
 
+#include <ignition/math/Angle.hh>
 #include <pybind11/operators.h>
 
 #include "Angle.hh"

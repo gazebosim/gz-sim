@@ -118,9 +118,7 @@ PYBIND11_MODULE(math, m)
 
   ignition::math::python::defineMathTemperature(m, "Temperature");
 
-  ignition::math::python::defineMathVector2<double>(m, "Vector2d");
-  ignition::math::python::defineMathVector2<int>(m, "Vector2i");
-  ignition::math::python::defineMathVector2<float>(m, "Vector2f");
+  ignition::math::python::defineMathVector2(m, "Vector2");
 
   ignition::math::python::defineMathVector3<double>(m, "Vector3d");
   ignition::math::python::defineMathVector3<int>(m, "Vector3i");
