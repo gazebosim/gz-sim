@@ -385,7 +385,8 @@ void EntityComponentManager::Each(typename identity<std::function<
   // function.
   for (const Entity entity : view->Entities())
   {
-    if (!std::apply(_f, view->EntityComponentConstData(entity)))
+    if (!std::apply(_f, 
+          view->template EntityComponentConstData<ComponentTypeTs...>(entity)))
     {
       break;
     }
@@ -405,7 +406,8 @@ void EntityComponentManager::Each(typename identity<std::function<
   // function.
   for (const Entity entity : view->Entities())
   {
-    if (!std::apply(_f, view->EntityComponentData(entity)))
+    if (!std::apply(_f,
+          view->template EntityComponentData<ComponentTypeTs...>(entity)))
     {
       break;
     }
@@ -434,7 +436,8 @@ void EntityComponentManager::EachNew(typename identity<std::function<
   // function.
   for (const Entity entity : view->NewEntities())
   {
-    if (!std::apply(_f, view->EntityComponentData(entity)))
+    if (!std::apply(_f,
+          view->template EntityComponentData<ComponentTypeTs...>(entity)))
     {
       break;
     }
@@ -455,7 +458,7 @@ void EntityComponentManager::EachNew(typename identity<std::function<
   // function.
   for (const Entity entity : view->NewEntities())
   {
-    if (!std::apply(_f, view->EntityComponentConstData(entity)))
+    if (!std::apply(_f, view->template EntityComponentConstData<ComponentTypeTs...>(entity)))
     {
       break;
     }
@@ -476,7 +479,8 @@ void EntityComponentManager::EachRemoved(typename identity<std::function<
   // function.
   for (const Entity entity : view->ToRemoveEntities())
   {
-    if (!std::apply(_f, view->EntityComponentConstData(entity)))
+    if (!std::apply(_f,
+          view->template EntityComponentConstData<ComponentTypeTs...>(entity)))
     {
       break;
     }
@@ -485,7 +489,7 @@ void EntityComponentManager::EachRemoved(typename identity<std::function<
 
 //////////////////////////////////////////////////
 template<typename ...ComponentTypeTs>
-detail::View<ComponentTypeTs...> *EntityComponentManager::FindView() const
+detail::View *EntityComponentManager::FindView() const
 {
   auto viewKey = std::vector<ComponentTypeId>{ComponentTypeTs::typeId...};
 
@@ -493,7 +497,7 @@ detail::View<ComponentTypeTs...> *EntityComponentManager::FindView() const
   auto baseViewPtr = baseViewMutexPair.first;
   if (nullptr != baseViewPtr)
   {
-    auto view = static_cast<detail::View<ComponentTypeTs...>*>(baseViewPtr);
+    auto view = static_cast<detail::View*>(baseViewPtr);
 
     std::unique_ptr<std::lock_guard<std::mutex>> viewLock;
     if (this->LockAddingEntitiesToViews())
@@ -527,28 +531,29 @@ detail::View<ComponentTypeTs...> *EntityComponentManager::FindView() const
   }
 
   // create a new view if one wasn't found
-  detail::View<ComponentTypeTs...> view;
+  auto view = std::make_unique<detail::View>(
+      std::set<ComponentTypeId>{ComponentTypeTs::typeId...});
 
   for (const auto &vertex : this->Entities().Vertices())
   {
     Entity entity = vertex.first;
 
     // only add entities to the view that have all of the components in viewKey
-    if (!this->EntityMatches(entity, view.ComponentTypes()))
+    if (!this->EntityMatches(entity, view->ComponentTypes()))
       continue;
 
-    view.AddEntityWithConstComps(entity, this->IsNewEntity(entity),
-        this->Component<ComponentTypeTs>(entity)...);
-    view.AddEntityWithComps(entity, this->IsNewEntity(entity),
-        const_cast<EntityComponentManager*>(this)->Component<ComponentTypeTs>(
+    view->AddEntityWithConstComps(entity, this->IsNewEntity(entity),
+                                 this->Component<ComponentTypeTs>(entity)...);
+    view->AddEntityWithComps(
+        entity, this->IsNewEntity(entity),
+        const_cast<EntityComponentManager *>(this)->Component<ComponentTypeTs>(
             entity)...);
     if (this->IsMarkedForRemoval(entity))
-      view.MarkEntityToRemove(entity);
+      view->MarkEntityToRemove(entity);
   }
 
-  baseViewPtr = this->AddView(viewKey,
-      std::make_unique<detail::View<ComponentTypeTs...>>(view));
-  return static_cast<detail::View<ComponentTypeTs...>*>(baseViewPtr);
+  baseViewPtr = this->AddView(viewKey, std::move(view));
+  return static_cast<detail::View *>(baseViewPtr);
 }
 
 //////////////////////////////////////////////////
