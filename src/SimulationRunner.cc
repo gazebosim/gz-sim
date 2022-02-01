@@ -1495,20 +1495,11 @@ bool SimulationRunner::GenerateWorldSdf(const msgs::SdfGeneratorConfig &_req,
   // TODO(addisu) This is not thread-safe. Wait until it is safe to access the
   // ECM.
   Entity world = this->entityCompMgr.EntityByComponents(components::World());
-  /*std::optional<std::string> genString = sdf_generator::generateWorld(
-      this->entityCompMgr, world, this->fuelUriMap, _req);
-  if (genString.has_value())
-  {
-    _res.set_data(*genString);
-    return true;
-  }*/
 
-  std::optional<sdf::World> worldSdf = sdf_generator::generateWorldSdf(
+  std::optional<sdf::Root> rootSdf = sdf_generator::generateRootSdf(
       this->entityCompMgr, world, this->fuelUriMap, _req);
-  if (worldSdf)
+  if (rootSdf)
   {
-    sdf::Root rootSdf;
-    rootSdf.AddWorld(*worldSdf);
     bool useIncludeTags = true;
     if (_req.has_global_entity_gen_config() &&
         _req.global_entity_gen_config().has_expand_include_tags())
@@ -1516,9 +1507,8 @@ bool SimulationRunner::GenerateWorldSdf(const msgs::SdfGeneratorConfig &_req,
       useIncludeTags =
         !_req.global_entity_gen_config().expand_include_tags().data();
     }
-    std::cout << "UseIncludeTags[" << useIncludeTags << "]\n";
 
-    std::string rootString = rootSdf.ToElement(useIncludeTags)->ToString("");
+    std::string rootString = rootSdf->ToElement(useIncludeTags)->ToString("");
     _res.set_data(rootString);
     return true;
   }

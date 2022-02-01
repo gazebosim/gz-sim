@@ -1038,12 +1038,30 @@ namespace sdf_generator
   }
 
   /////////////////////////////////////////////////
+  std::optional<sdf::Root> generateRootSdf(
+      const EntityComponentManager &_ecm, const Entity &_entity,
+      const IncludeUriMap &_includeUriMap,
+      const msgs::SdfGeneratorConfig &_config)
+  {
+    sdf::Root rootSdf;
+    std::optional<sdf::World> worldSdf = generateWorldSdf(
+        _ecm, _entity, _includeUriMap, _config);
+    if (worldSdf)
+    {
+      rootSdf.AddWorld(*worldSdf);
+
+      // updatePose(_ecm, _entity, *(rootSdf.WorldByIndex(0)));
+    }
+
+    return rootSdf;
+  }
+
+  /////////////////////////////////////////////////
   std::optional<sdf::World> generateWorldSdf(
       const EntityComponentManager &_ecm, const Entity &_entity,
       const IncludeUriMap &_includeUriMap,
       const msgs::SdfGeneratorConfig &_config)
   {
-    std::cout <<  "generateWorldSdf\n";
     const auto *worldSdf = _ecm.Component<components::WorldSdf>(_entity);
 
     if (nullptr == worldSdf)
@@ -1058,10 +1076,7 @@ namespace sdf_generator
             const components::ParentEntity *_parentEntity)
         {
           if (_parentEntity->Data() == _entity)
-          {
-            std::cout << "Adding physics[" << _physics->Data().Name() << "]\n";
             world.AddPhysics(_physics->Data());
-          }
           return true;
         });
 
@@ -1097,15 +1112,16 @@ namespace sdf_generator
           const std::string modelName =
               scopedName(_modelEntity, _ecm, "::", false);
 
-          std::cout << "    ModelName[" << modelName << "]\n";
 
           bool modelFromInclude = isModelFromInclude(modelDir, worldDir);
 
           auto uriMapIt = _includeUriMap.find(modelDir);
 
-          auto modelConfig = _config.global_entity_gen_config();
+          msgs::SdfGeneratorConfig::EntityGeneratorConfig modelConfig =
+            _config.global_entity_gen_config();
           auto modelConfigIt =
               _config.override_entity_gen_configs().find(modelName);
+
           if (modelConfigIt != _config.override_entity_gen_configs().end())
           {
             mergeWithOverride(modelConfig, modelConfigIt->second);
@@ -1114,7 +1130,7 @@ namespace sdf_generator
           if (modelConfig.expand_include_tags().data() || !modelFromInclude)
           {
             std::optional<sdf::Model> model = generateModelSdf(
-                _ecm, _modelEntity);
+                _ecm, _modelEntity, modelConfig, _includeUriMap);
             if (model)
               world.AddModel(*model);
 
@@ -1201,7 +1217,9 @@ namespace sdf_generator
 
   /////////////////////////////////////////////////
   std::optional<sdf::Model> generateModelSdf(const EntityComponentManager &_ecm,
-      const Entity &_entity)
+      const Entity &_entity,
+      const msgs::SdfGeneratorConfig::EntityGeneratorConfig &_config,
+      const IncludeUriMap &_includeUriMap)
   {
     const auto *modelSdf = _ecm.Component<components::ModelSdf>(_entity);
 
@@ -1210,6 +1228,55 @@ namespace sdf_generator
 
     // Copy the model, then update its values.
     sdf::Model model(modelSdf->Data());
+
+    // This `if` statement is used to make sure the <include> tag is
+    // properly set.
+    if (!_config.expand_include_tags().data())
+    {
+      // First, check that the model SDF element has an <include> element,
+      // and the models' URI is currently empty. This situation can arise
+      // with nested includes, such as:
+      //
+      // <model name="M2">
+      //  <include>
+      //    <uri>sphere</uri>
+      //    <pose>0 2 2 0 0 0</pose>
+      //  </include>
+      // </model>
+      sdf::ElementPtr modelElem = model.Element();
+      if (modelElem && modelElem->GetIncludeElement() && model.Uri().empty())
+      {
+        sdf::ElementPtr includeElem = modelElem->GetIncludeElement();
+
+        std::string modelDir = common::parentPath(modelElem->FilePath());
+        auto uriMapIt = _includeUriMap.find(modelDir);
+
+        // Update the models' URI based on whether the Fuel version should
+        // be saved.
+        if (_config.save_fuel_version().data() &&
+            uriMapIt != _includeUriMap.end())
+        {
+          // find fuel model version from file path
+          std::string version = common::basename(modelDir);
+
+          if (isNumber(version))
+          {
+            std::string uri = includeElem->Get<std::string>("uri");
+            uri = uri + "/" + version;
+            includeElem->GetElement("uri")->Set(uri);
+          }
+          else
+          {
+            ignwarn << "Error retrieving Fuel model version,"
+              << " saving model without version." << std::endl;
+          }
+        }
+
+        // Finaly, set the model's URI so that the Model::ToElement function
+        // correctly outputs the <include> tags.
+        model.SetUri(includeElem->Get<std::string>("uri", "").first);
+      }
+    }
 
     // Update sdf based on current components. Here are the list of components
     // to be updated:
@@ -1259,7 +1326,7 @@ namespace sdf_generator
     for (Entity &nestedModel : nestedModels)
     {
       std::optional<sdf::Model> nestedModelSdf =
-        generateModelSdf(_ecm, nestedModel);
+        generateModelSdf(_ecm, nestedModel, _config, _includeUriMap);
       if (nestedModelSdf)
         model.AddModel(*nestedModelSdf);
     }
@@ -1307,8 +1374,11 @@ namespace sdf_generator
     for (Entity &sensor : sensors)
     {
       std::optional<sdf::Sensor> sensorSdf = generateSensorSdf(_ecm, sensor);
+
       if (sensorSdf)
+      {
         link.AddSensor(*sensorSdf);
+      }
     }
 
     // Update collisions
@@ -1336,16 +1406,15 @@ namespace sdf_generator
     }
 
     // Update lights
-    std::vector<Entity> lights = _ecm.EntitiesByComponents(
-      components::ParentEntity(_entity), components::LightType());
-
     link.ClearLights();
-    for (Entity &light : lights)
-    {
-      auto comp = _ecm.Component<components::Light>(light);
-      if (comp)
-        link.AddLight(comp->Data());
-    }
+    _ecm.Each<components::Light, components::ParentEntity>(
+        [&](const Entity &, const components::Light *_light,
+            const components::ParentEntity *_parent)
+        {
+          if (_parent->Data() == _entity)
+            link.AddLight(_light->Data());
+          return true;
+        });
 
     return link;
   }
@@ -1415,13 +1484,9 @@ namespace sdf_generator
     return joint;
   }
 
-  /////////////////////////////////////////////////
-  std::optional<sdf::Sensor> generateSensorSdf(
-      const EntityComponentManager &_ecm, const Entity &_entity)
+  sdf::Sensor sensorSdf(const EntityComponentManager &_ecm,
+      const Entity &_entity)
   {
-    // Update sdf based on current components.
-    // This list is to be updated as other components become updateable during
-    // simulation
     sdf::Sensor sensor;
 
     // camera
@@ -1453,10 +1518,18 @@ namespace sdf_generator
     auto altimeterComp = _ecm.Component<components::Altimeter>(_entity);
     if (altimeterComp)
       sensor = altimeterComp->Data();
+    // rgbd_camera
+    auto rgbdCameraComp = _ecm.Component<components::RgbdCamera>(_entity);
+    if (rgbdCameraComp)
+      sensor = rgbdCameraComp->Data();
     // contact
     auto contactComp = _ecm.Component<components::ContactSensor>(_entity);
     if (contactComp)
-      sensor = altimeterComp->Data();
+    {
+      // \todo(nkoenig) Change Contact sensor component to hold sdf::Sensor,
+      // and not sdf::ElementPtr.
+      sensor.Load(contactComp->Data());
+    }
     // air pressure
     auto airPressureComp =
         _ecm.Component<components::AirPressureSensor>(_entity);
@@ -1476,6 +1549,19 @@ namespace sdf_generator
     if (magnetometerComp)
       sensor = magnetometerComp->Data();
 
+    return sensor;
+  }
+
+  /////////////////////////////////////////////////
+  std::optional<sdf::Sensor> generateSensorSdf(
+      const EntityComponentManager &_ecm, const Entity &_entity)
+  {
+    // Update sdf based on current components.
+    // This list is to be updated as other components become updateable during
+    // simulation
+
+    sdf::Sensor sensor = sensorSdf(_ecm, _entity);
+
     // Update the name
     auto *nameComp = _ecm.Component<components::Name>(_entity);
     if (nameComp)
@@ -1487,6 +1573,65 @@ namespace sdf_generator
       sensor.SetRawPose(poseComp->Data());
 
     return sensor;
+  }
+
+  void updatePose(const EntityComponentManager &_ecm, const Entity &_entity,
+      sdf::World &_world)
+  {
+    std::vector<Entity> worldModels = _ecm.EntitiesByComponents(
+      components::ParentEntity(_entity), components::Model());
+    for (Entity model : worldModels)
+    {
+      auto *nameComp = _ecm.Component<components::Name>(model);
+      if (nameComp)
+      {
+        sdf::Model *modelSdf = _world.ModelByName(nameComp->Data());
+        if (modelSdf)
+          updatePose(_ecm, model, *modelSdf);
+      }
+    }
+  }
+
+  void updatePose(const EntityComponentManager &_ecm, const Entity &_entity,
+      sdf::Model &_model)
+  {
+    std::vector<Entity> modelLinks = _ecm.EntitiesByComponents(
+      components::ParentEntity(_entity), components::Link());
+    for (Entity link : modelLinks)
+    {
+      auto *nameComp = _ecm.Component<components::Name>(link);
+      if (nameComp)
+      {
+        sdf::Link *linkSdf = _model.LinkByName(nameComp->Data());
+        if (linkSdf)
+          updatePose(_ecm, link, *linkSdf);
+      }
+    }
+  }
+
+  void updatePose(const EntityComponentManager &_ecm, const Entity &_entity,
+      sdf::Link &_link)
+  {
+    std::vector<Entity> sensors = _ecm.EntitiesByComponents(
+      components::ParentEntity(_entity), components::Sensor());
+    for (Entity sensor : sensors)
+    {
+      auto *poseComp = _ecm.Component<components::Pose>(sensor);
+      auto *nameComp = _ecm.Component<components::Name>(sensor);
+      if (poseComp && nameComp)
+      {
+        sdf::Sensor *sensorSdf = _link.SensorByName(nameComp->Data());
+        if (sensorSdf)
+        {
+          sdf::SemanticPose sp = sensorSdf->SemanticPose();
+          math::Pose3d rp;
+          sdf::Errors errors = sp.Resolve(rp, "model");
+          for (sdf::Error err : errors)
+            std::cout << err.Message() << std::endl;
+          std::cout << "  ONE MORE TIME  SemPose[" << sp.RawPose() << "] RelativeTo" << sp.RelativeTo() << "] RP[" << rp << "] ECMPose[" << poseComp->Data() << "]\n";
+        }
+      }
+    }
   }
 }
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE

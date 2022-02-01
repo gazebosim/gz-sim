@@ -25,6 +25,7 @@
 #include <unordered_map>
 #include <sdf/Model.hh>
 #include <sdf/World.hh>
+#include <sdf/Root.hh>
 #include <sdf/Sensor.hh>
 
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -146,6 +147,19 @@ namespace sdf_generator
                            const EntityComponentManager &_ecm,
                            const Entity &_entity);
 
+  /// \brief Generate the SDFormat DOM representation of a root
+  /// \input[in] _ecm Immutable reference to the Entity Component Manager
+  /// \input[in] _entity World entity
+  /// \input[in] _includeUriMap Map from file paths to URIs used to preserve
+  /// included Fuel models
+  /// \input[in] _config Configuration for the world generator
+  /// \returns Generated world DOM if generation succeeded.
+  /// Otherwise, nullopt
+  std::optional<sdf::Root> generateRootSdf(
+      const EntityComponentManager &_ecm, const Entity &_entity,
+      const IncludeUriMap &_includeUriMap,
+      const msgs::SdfGeneratorConfig &_config);
+
   /// \brief Generate the SDFormat DOM representation of a world
   /// \input[in] _ecm Immutable reference to the Entity Component Manager
   /// \input[in] _entity World entity
@@ -166,7 +180,9 @@ namespace sdf_generator
   /// \returns Generated model DOM if generation succeeded.
   /// Otherwise, nullopt
   std::optional<sdf::Model> generateModelSdf(const EntityComponentManager &_ecm,
-      const Entity &_entity);
+      const Entity &_entity,
+      const msgs::SdfGeneratorConfig::EntityGeneratorConfig &_config,
+      const IncludeUriMap &_includeUriMap);
 
   /// \brief Generate an sdf::Joint based on a joint Entity.
   /// Intended for internal use.
@@ -194,6 +210,16 @@ namespace sdf_generator
   /// Otherwise, nullopt
   std::optional<sdf::Sensor> generateSensorSdf(
       const EntityComponentManager &_ecm, const Entity &_entity);
+
+  void updatePose(const EntityComponentManager &_ecm, const Entity &_entity,
+      sdf::World &_world);
+
+  void updatePose(const EntityComponentManager &_ecm, const Entity &_entity,
+      sdf::Model &_model);
+
+  void updatePose(const EntityComponentManager &_ecm, const Entity &_entity,
+      sdf::Link &_link);
+
 }  // namespace sdf_generator
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 }  // namespace gazebo

@@ -313,7 +313,6 @@ TEST_F(SdfGeneratorFixture, WorldWithNestedModel)
   ASSERT_NE(nullptr, genWorld);
 }
 
-
 /////////////////////////////////////////////////
 TEST_F(SdfGeneratorFixture, ModelWithNestedIncludes)
 {
@@ -347,8 +346,6 @@ TEST_F(SdfGeneratorFixture, ModelWithNestedIncludes)
 
   const std::string worldGenSdfRes =
       this->RequestGeneratedSdf("model_nested_include_world", req);
-
-  std::cout << worldGenSdfRes << std::endl;
 
   // check that model w/ nested includes are not expanded
   tinyxml2::XMLDocument genSdfDoc;
@@ -399,7 +396,8 @@ TEST_F(SdfGeneratorFixture, ModelWithNestedIncludes)
   EXPECT_EQ("sphere", std::string(uri->GetText()));
 
   name = include->FirstChildElement("name");
-  EXPECT_EQ(nullptr, name);
+  ASSERT_NE(nullptr, name);
+  EXPECT_EQ("sphere", std::string(name->GetText()));
 
   pose = include->FirstChildElement("pose");
   ASSERT_NE(nullptr, pose);
