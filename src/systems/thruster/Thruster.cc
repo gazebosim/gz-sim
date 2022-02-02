@@ -206,13 +206,27 @@ void Thruster::Configure(
   enableComponent<components::WorldAngularVelocity>(_ecm,
       this->dataPtr->linkEntity);
 
+  double minThrustCmd = this->dataPtr->cmdMin;
+  double maxThrustCmd = this->dataPtr->cmdMax;
   if (_sdf->HasElement("max_thrust_cmd"))
   {
-    this->dataPtr->cmdMax = _sdf->Get<double>("max_thrust_cmd");
+    maxThrustCmd = _sdf->Get<double>("max_thrust_cmd");
   }
   if (_sdf->HasElement("min_thrust_cmd"))
   {
-    this->dataPtr->cmdMin = _sdf->Get<double>("min_thrust_cmd");
+    minThrustCmd = _sdf->Get<double>("min_thrust_cmd");
+  }
+  if (maxThrustCmd < minThrustCmd)
+  {
+    ignerr << "<max_thrust_cmd> must be greater than or equal to "
+           << "<min_thrust_cmd>. Revert to using default values: "
+           << "min: " << this->dataPtr->cmdMin << ", "
+           << "max: " << this->dataPtr->cmdMax << std::endl;
+  }
+  else
+  {
+    this->dataPtr->cmdMax = maxThrustCmd;
+    this->dataPtr->cmdMin = minThrustCmd;
   }
 
   if (_sdf->HasElement("velocity_control"))
