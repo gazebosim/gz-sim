@@ -250,7 +250,8 @@ void WheelSlipPrivate::Update(EntityComponentManager &_ecm)
     auto &params = linkSurface.second;
     const auto * wheelSlipCmdComp =
       _ecm.Component<components::WheelSlipCmd>(linkSurface.first);
-    if (wheelSlipCmdComp) {
+    if (wheelSlipCmdComp)
+    {
       const auto & wheelSlipCmdParams = wheelSlipCmdComp->Data();
       bool changed = math::equal(
           params.slipComplianceLateral,
