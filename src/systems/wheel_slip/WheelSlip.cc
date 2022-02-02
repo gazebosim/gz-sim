@@ -262,7 +262,8 @@ void WheelSlipPrivate::Update(EntityComponentManager &_ecm)
           wheelSlipCmdParams.slip_compliance_longitudinal(),
           1e-6);
 
-      if (changed) {
+      if (changed)
+      {
         _ecm.RemoveComponent<components::WheelSlipCmd>(linkSurface.first);
         params.slipComplianceLateral =
           wheelSlipCmdParams.slip_compliance_lateral();
