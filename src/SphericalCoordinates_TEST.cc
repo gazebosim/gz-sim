@@ -208,8 +208,6 @@ TEST(SphericalCoordinatesTest, CoordinateTransforms)
       ignition::math::Vector3d osrf_e(
           -2693701.91434394, -4299942.14687992, 3851691.0393571);
       ignition::math::Vector3d goog_s(37.4216719, -122.0821853, 30.0);
-      ignition::math::Vector3d goog_e(
-          -2693766.71906146, -4297199.59926038, 3854681.81878812);
 
       // Local tangent plane coordinates (ENU = GLOBAL) coordinates of
       // Google when OSRF is taken as the origin:

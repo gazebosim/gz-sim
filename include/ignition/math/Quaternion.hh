@@ -303,7 +303,7 @@ namespace ignition
       /// \deprecated Use SetFromAxisAngle(T, T, T, T)
       public: void IGN_DEPRECATED(7) Axis(T _ax, T _ay, T _az, T _aa)
       {
-        this->SetFromAxisAngle(_ax, _ay, _ax, _aa);
+        this->SetFromAxisAngle(_ax, _ay, _az, _aa);
       }
 
       /// \brief Set the quaternion from an axis and angle.
@@ -716,7 +716,6 @@ namespace ignition
       /// \param[in] _scale Amount to scale this quaternion
       public: void Scale(T _scale)
       {
-        Quaternion<T> b;
         Vector3<T> axis;
         T angle;
 
