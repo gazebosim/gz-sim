@@ -151,7 +151,7 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
         _entity, components::Collision());
 
     double volumeSum = 0;
-    ignition::math::Vector3d weightedPosSum =
+    ignition::math::Vector3d weightedPosInLinkSum =
       ignition::math::Vector3d::Zero;
 
     // Compute the volume of the link by iterating over all the collision
@@ -210,16 +210,15 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       }
 
       volumeSum += volume;
-      math::Pose3d pose = worldPose(collision, _ecm);
-      weightedPosSum += volume * pose.Pos();
+      auto poseInLink = _ecm.Component<components::Pose>(collision)->Data();
+      weightedPosInLinkSum += volume * poseInLink.Pos();
     }
 
     if (volumeSum > 0)
     {
-      // Store the center of volume
-      math::Pose3d linkWorldPose = worldPose(_entity, _ecm);
+      // Store the center of volume expressed in the link frame
       _ecm.CreateComponent(_entity, components::CenterOfVolume(
-            weightedPosSum / volumeSum - linkWorldPose.Pos()));
+            weightedPosInLinkSum / volumeSum));
 
       // Store the volume
       _ecm.CreateComponent(_entity, components::Volume(volumeSum));
