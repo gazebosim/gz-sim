@@ -65,6 +65,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// for newEntities and removedEntities
     public: std::mutex newRemovedEntityMutex;
 
+    /// \brief Indicates whether initial visual plugins have been loaded or not.
     public: bool initializedVisualPlugins = false;
   };
 }
