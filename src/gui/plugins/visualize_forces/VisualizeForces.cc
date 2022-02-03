@@ -37,7 +37,9 @@
 #include <ignition/gui/Conversions.hh>
 #include <ignition/gui/MainWindow.hh>
 
+#include "ignition/gazebo/components/WrenchVisual.hh"
 #include "ignition/gazebo/Link.hh"
+#include "ignition/gazebo/World.hh"
 #include "VisualizeForces.hh"
 
 namespace ignition
@@ -66,23 +68,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 
     public: std::string worldName;
 
+    /////////////////////////////////////////////////
     /// \brief Default constructors
     public: VisualizeForcesPrivate()
     {
     }
 
-    /// \brief Sets the world name so we can subscribe to the correct topic
-    public: void setWorldName(std::string _worldName)
-    {
-      if (_worldName == this->worldName)
-      {
-        return;
-      }
-      this->worldName = _worldName;
-      this->node.Subscribe("/world/"+ this->worldName +"/force_viz",
-        &VisualizeForcesPrivate::VisualizeCallback, this);
-    }
-
+    /////////////////////////////////////////////////
     /// \brief Handler for when we have to visualize stuff. Simply enqueues
     /// items to be visualized
     /// \param _stamped - The incoming message
@@ -92,6 +84,25 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
       queue.push(_stamped);
     }
 
+    /////////////////////////////////////////////////
+    /// \brief Get the wrench visuals
+    /// \param[in] _ecm - the ecm.
+    public: void RetrieveWrenchesFromEcm(EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::WrenchVisual_V>(
+      [&](const Entity &_entity,
+          components::WrenchVisual_V *_visuals) -> bool
+      {
+        for(auto wrench: _visuals->Data().data())
+        {
+          this->queue.push(wrench);
+        }
+        _visuals->Data().Clear();
+        return true;
+      });
+    }
+
+    /////////////////////////////////////////////////
     /// \brief Publish the force markers
     public: void PublishMarkers()
     {
@@ -362,7 +373,7 @@ void VisualizeForces::LoadConfig(const tinyxml2::XMLElement *)
 void VisualizeForces::Update(const UpdateInfo &/*unused*/,
     EntityComponentManager &_ecm)
 {
-  
+  this->dataPtr->RetrieveWrenchesFromEcm(_ecm);
   this->dataPtr->PublishMarkers();
 }
 
