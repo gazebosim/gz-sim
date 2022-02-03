@@ -79,12 +79,7 @@ PYBIND11_MODULE(math, m)
 
   ignition::math::python::defineMathMaterial(m, "Material");
 
-  ignition::math::python::defineMathMovingWindowFilter<int>(
-    m, "MovingWindowFilteri");
-  ignition::math::python::defineMathMovingWindowFilter<double>(
-    m, "MovingWindowFilterd");
-  ignition::math::python::defineMathMovingWindowFilter
-    <ignition::math::Vector3d>(m, "MovingWindowFilterv3");
+  ignition::math::python::defineMathMovingWindowFilter(m, "MovingWindowFilter");
 
   ignition::math::python::defineMathPID(m, "PID");
 
@@ -120,26 +115,18 @@ PYBIND11_MODULE(math, m)
 
   ignition::math::python::defineMathVector2(m, "Vector2");
 
-  ignition::math::python::defineMathVector3<double>(m, "Vector3d");
-  ignition::math::python::defineMathVector3<int>(m, "Vector3i");
-  ignition::math::python::defineMathVector3<float>(m, "Vector3f");
+  ignition::math::python::defineMathVector3(m, "Vector3");
 
   ignition::math::python::defineMathPlane<double>(m, "Planed");
 
   ignition::math::python::defineMathBox<double>(m, "Boxd");
   ignition::math::python::defineMathBox<float>(m, "Boxf");
 
-  ignition::math::python::defineMathVector4<double>(m, "Vector4d");
-  ignition::math::python::defineMathVector4<int>(m, "Vector4i");
-  ignition::math::python::defineMathVector4<float>(m, "Vector4f");
+  ignition::math::python::defineMathVector4(m, "Vector4");
 
-  ignition::math::python::defineMathLine2<int>(m, "Line2i");
-  ignition::math::python::defineMathLine2<double>(m, "Line2d");
-  ignition::math::python::defineMathLine2<float>(m, "Line2f");
+  ignition::math::python::defineMathLine2(m, "Line2");
 
-  ignition::math::python::defineMathLine3<int>(m, "Line3i");
-  ignition::math::python::defineMathLine3<double>(m, "Line3d");
-  ignition::math::python::defineMathLine3<float>(m, "Line3f");
+  ignition::math::python::defineMathLine3(m, "Line3");
 
   ignition::math::python::defineMathMatrix3<int>(m, "Matrix3i");
   ignition::math::python::defineMathMatrix3<double>(m, "Matrix3d");
@@ -178,20 +165,14 @@ PYBIND11_MODULE(math, m)
 
   ignition::math::python::defineMathFrustum(m, "Frustum");
 
-  ignition::math::python::defineMathFilter<int>(m, "Filteri");
-  ignition::math::python::defineMathFilter<float>(m, "Filterf");
-  ignition::math::python::defineMathFilter<double>(m, "Filterd");
+  ignition::math::python::defineMathFilter(m, "Filter");
 
-  ignition::math::python::defineMathBiQuad<int>(m, "BiQuadi");
-  ignition::math::python::defineMathBiQuad<float>(m, "BiQuadf");
-  ignition::math::python::defineMathBiQuad<double>(m, "BiQuadd");
+  ignition::math::python::defineMathBiQuad(m, "BiQuad");
 
   ignition::math::python::defineMathBiQuadVector3(
     m, "BiQuadVector3");
 
-  ignition::math::python::defineMathOnePole<int>(m, "OnePolei");
-  ignition::math::python::defineMathOnePole<float>(m, "OnePolef");
-  ignition::math::python::defineMathOnePole<double>(m, "OnePoled");
+  ignition::math::python::defineMathOnePole(m, "OnePole");
 
   ignition::math::python::defineMathOnePoleQuaternion(
     m, "OnePoleQuaternion");

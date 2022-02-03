@@ -13,11 +13,15 @@ pybind11_add_module(math SHARED
   src/AxisAlignedBox.cc
   src/Color.cc
   src/DiffDriveOdometry.cc
+  src/Filter.cc
   src/Frustum.cc
   src/GaussMarkovProcess.cc
   src/Helpers.cc
   src/Kmeans.cc
+  src/Line2.cc
+  src/Line3.cc
   src/Material.cc
+  src/MovingWindowFilter.cc
   src/PID.cc
   src/Rand.cc
   src/RollingMean.cc
@@ -29,6 +33,8 @@ pybind11_add_module(math SHARED
   src/StopWatch.cc
   src/Temperature.cc
   src/Vector2.cc
+  src/Vector3.cc
+  src/Vector4.cc
   src/Vector3Stats.cc
 )
 
