@@ -195,9 +195,6 @@ void ImuPrivate::addIMU(
         data.ImuSensor()->OrientationEnabled());
   }
 
-  this->entitySensorMap.insert(
-      std::make_pair(_entity, std::move(sensor)));
-
   // Get world frame orientation and heading
   double heading = 0;
 
@@ -209,6 +206,10 @@ void ImuPrivate::addIMU(
 
   sensor->SetWorldFrameOrientation(math::Quaterniond(0, 0, heading),
     ignition::sensors::WorldFrameEnumType::ENU);
+
+  this->entitySensorMap.insert(
+      std::make_pair(_entity, std::move(sensor)));
+
 }
 
 //////////////////////////////////////////////////
