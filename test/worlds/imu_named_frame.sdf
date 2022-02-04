@@ -105,6 +105,18 @@
           <always_on>1</always_on>
           <visualize>true</visualize>
         </sensor>
+        <sensor name='imu_sensor_CUSTOM' type='imu'>
+          <topic>imu_test_CUSTOM</topic>
+          <update_rate>1</update_rate>
+          <imu>
+            <orientation_reference_frame>
+              <localization>CUSTOM</localization>
+	      <custom_rpy>1.570795 0 0</custom_rpy>
+            </orientation_reference_frame>
+          </imu>
+          <always_on>1</always_on>
+          <visualize>true</visualize>
+        </sensor>
       </link>
     </model>
 

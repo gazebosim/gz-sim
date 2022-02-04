@@ -55,6 +55,7 @@ std::vector<msgs::IMU> imuMsgs;
 msgs::IMU lastImuMsgENU;
 msgs::IMU lastImuMsgNED;
 msgs::IMU lastImuMsgNWU;
+msgs::IMU lastImuMsgCUSTOM;
 
 /////////////////////////////////////////////////
 void imuENUCb(const msgs::IMU &_msg)
@@ -72,6 +73,12 @@ void imuNEDCb(const msgs::IMU &_msg)
 void imuNWUCb(const msgs::IMU &_msg)
 {
   lastImuMsgNWU = _msg;
+}
+
+/////////////////////////////////////////////////
+void imuCUSTOMCb(const msgs::IMU &_msg)
+{
+  lastImuMsgCUSTOM = _msg;
 }
 
 /////////////////////////////////////////////////
@@ -288,12 +295,14 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(NamedFrames))
   auto topicENU = "/imu_test_ENU";
   auto topicNED = "/imu_test_NED";
   auto topicNWU = "/imu_test_NWU";
+  auto topicCUSTOM = "/imu_test_CUSTOM";
 
   // subscribe to imu topic
   transport::Node node;
   node.Subscribe(topicENU, &imuENUCb);
   node.Subscribe(topicNED, &imuNEDCb);
   node.Subscribe(topicNWU, &imuNWUCb);
+  node.Subscribe(topicCUSTOM, &imuCUSTOMCb);
 
   // Run server
   size_t iters200 = 200u;
@@ -303,6 +312,7 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(NamedFrames))
   EXPECT_TRUE(lastImuMsgENU.has_orientation());
   EXPECT_TRUE(lastImuMsgNED.has_orientation());
   EXPECT_TRUE(lastImuMsgNWU.has_orientation());
+  EXPECT_TRUE(lastImuMsgCUSTOM.has_orientation());
 
   // For the ENU msg
   EXPECT_NEAR(lastImuMsgENU.orientation().x(), 0, 1e-2);
@@ -321,6 +331,12 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(NamedFrames))
   EXPECT_NEAR(lastImuMsgNWU.orientation().y(), 0, 1e-2);
   EXPECT_NEAR(lastImuMsgNWU.orientation().z(), 0.707, 1e-2);
   EXPECT_NEAR(lastImuMsgNWU.orientation().w(), 0.707, 1e-2);
+
+  // For the CUSTOM msg
+  EXPECT_NEAR(lastImuMsgCUSTOM.orientation().x(), 0, 1e-2);
+  EXPECT_NEAR(lastImuMsgCUSTOM.orientation().y(), 0.707, 1e-2);
+  EXPECT_NEAR(lastImuMsgCUSTOM.orientation().z(), 0.707, 1e-2);
+  EXPECT_NEAR(lastImuMsgCUSTOM.orientation().w(), 0, 1e-2);
 }
 
 /////////////////////////////////////////////////
@@ -343,12 +359,14 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(NamedFramesWithHeading))
   auto topicENU = "/imu_test_ENU";
   auto topicNED = "/imu_test_NED";
   auto topicNWU = "/imu_test_NWU";
+  auto topicCUSTOM = "/imu_test_CUSTOM";
 
   // subscribe to imu topic
   transport::Node node;
   node.Subscribe(topicENU, &imuENUCb);
   node.Subscribe(topicNED, &imuNEDCb);
   node.Subscribe(topicNWU, &imuNWUCb);
+  node.Subscribe(topicCUSTOM, &imuCUSTOMCb);
 
   // Run server
   size_t iters200 = 200u;
@@ -358,6 +376,7 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(NamedFramesWithHeading))
   EXPECT_TRUE(lastImuMsgENU.has_orientation());
   EXPECT_TRUE(lastImuMsgNED.has_orientation());
   EXPECT_TRUE(lastImuMsgNWU.has_orientation());
+  EXPECT_TRUE(lastImuMsgCUSTOM.has_orientation());
 
   // For the ENU msg
   EXPECT_NEAR(lastImuMsgENU.orientation().x(), 0, 1e-2);
@@ -376,4 +395,10 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(NamedFramesWithHeading))
   EXPECT_NEAR(lastImuMsgNWU.orientation().y(), 0, 1e-2);
   EXPECT_NEAR(lastImuMsgNWU.orientation().z(), 0, 1e-2);
   EXPECT_NEAR(lastImuMsgNWU.orientation().w(), 1, 1e-2);
+
+  // For the CUSTOM msg
+  EXPECT_NEAR(lastImuMsgCUSTOM.orientation().x(), -0.5, 1e-2);
+  EXPECT_NEAR(lastImuMsgCUSTOM.orientation().y(), 0.5, 1e-2);
+  EXPECT_NEAR(lastImuMsgCUSTOM.orientation().z(), 0.5, 1e-2);
+  EXPECT_NEAR(lastImuMsgCUSTOM.orientation().w(), 0.5, 1e-2);
 }
