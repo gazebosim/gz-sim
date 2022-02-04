@@ -52,6 +52,27 @@ class ImuTest : public InternalFixture<::testing::Test>
 
 std::mutex mutex;
 std::vector<msgs::IMU> imuMsgs;
+msgs::IMU lastImuMsgENU;
+msgs::IMU lastImuMsgNED;
+msgs::IMU lastImuMsgNWU;
+
+/////////////////////////////////////////////////
+void imuENUCb(const msgs::IMU &_msg)
+{
+  lastImuMsgENU = _msg;
+}
+
+/////////////////////////////////////////////////
+void imuNEDCb(const msgs::IMU &_msg)
+{
+  lastImuMsgNED = _msg;
+}
+
+/////////////////////////////////////////////////
+void imuNWUCb(const msgs::IMU &_msg)
+{
+  lastImuMsgNWU = _msg;
+}
 
 /////////////////////////////////////////////////
 void imuCb(const msgs::IMU &_msg)
@@ -210,7 +231,7 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
 }
 
 /////////////////////////////////////////////////
-// The test checks to make sure orientation is not published if it is deabled
+// The test checks to make sure orientation is not published if it is disabled
 TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OrientationDisabled))
 {
   imuMsgs.clear();
@@ -245,4 +266,60 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OrientationDisabled))
     EXPECT_FALSE(msg.has_orientation());
   }
   mutex.unlock();
+}
+
+/////////////////////////////////////////////////
+// The test checks if the oritation is published according to the
+// localization tag
+TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(NamedFrames))
+{
+  imuMsgs.clear();
+
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "imu_named_frame.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  auto topicENU = "/imu_test_ENU";
+  auto topicNED = "/imu_test_NED";
+  auto topicNWU = "/imu_test_NWU";
+
+  // subscribe to imu topic
+  transport::Node node;
+  node.Subscribe(topicENU, &imuENUCb);
+  node.Subscribe(topicNED, &imuNEDCb);
+  node.Subscribe(topicNWU, &imuNWUCb);
+
+  // step world and verify imu's orientation is not published
+  // Run server
+  size_t iters200 = 200u;
+  server.Run(true, iters200, false);
+
+  // Check we received messages
+  EXPECT_TRUE(lastImuMsgENU.has_orientation());
+  EXPECT_TRUE(lastImuMsgNED.has_orientation());
+  EXPECT_TRUE(lastImuMsgNWU.has_orientation());
+
+  // For the ENU msg
+  EXPECT_NEAR(lastImuMsgENU.orientation().x(), 0, 1e-2);
+  EXPECT_NEAR(lastImuMsgENU.orientation().y(), 0, 1e-2);
+  EXPECT_NEAR(lastImuMsgENU.orientation().z(), 1, 1e-2);
+  EXPECT_NEAR(lastImuMsgENU.orientation().w(), 0, 1e-2);
+
+  // For the NED msg
+  EXPECT_NEAR(lastImuMsgNED.orientation().x(), -0.707, 1e-2);
+  EXPECT_NEAR(lastImuMsgNED.orientation().y(), 0.707, 1e-2);
+  EXPECT_NEAR(lastImuMsgNED.orientation().z(), 0, 1e-2);
+  EXPECT_NEAR(lastImuMsgNED.orientation().w(), 0, 1e-2);
+
+  // For the NWU msg
+  EXPECT_NEAR(lastImuMsgNWU.orientation().x(), 0, 1e-2);
+  EXPECT_NEAR(lastImuMsgNWU.orientation().y(), 0, 1e-2);
+  EXPECT_NEAR(lastImuMsgNWU.orientation().z(), 0.707, 1e-2);
+  EXPECT_NEAR(lastImuMsgNWU.orientation().w(), 0.707, 1e-2);
 }

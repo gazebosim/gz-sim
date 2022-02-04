@@ -16,7 +16,7 @@
     </plugin>
 
     <spherical_coordinates>
-      <heading_deg>30</heading_deg>
+      <heading_deg>0</heading_deg>
     </spherical_coordinates>
 
     <model name="ground_plane">
@@ -72,17 +72,39 @@
             </box>
           </geometry>
         </visual>
-        <sensor name='imu_sensor' type='imu'>
-          <topic>imu_test</topic>
+        <sensor name='imu_sensor_ENU' type='imu'>
+          <topic>imu_test_ENU</topic>
           <update_rate>1</update_rate>
           <imu>
-          <orientation_reference_frame>
-          <localization>NED</localization>
-          </orientation_reference_frame>
+            <orientation_reference_frame>
+              <localization>ENU</localization>
+            </orientation_reference_frame>
           </imu>
-          <always_on>1</always_on>"
-          <visualize>true</visualize>"
-        </sensor>"
+          <always_on>1</always_on>
+          <visualize>true</visualize>
+        </sensor>
+        <sensor name='imu_sensor_NED' type='imu'>
+          <topic>imu_test_NED</topic>
+          <update_rate>1</update_rate>
+          <imu>
+            <orientation_reference_frame>
+              <localization>NED</localization>
+            </orientation_reference_frame>
+          </imu>
+          <always_on>1</always_on>
+          <visualize>true</visualize>
+        </sensor>
+        <sensor name='imu_sensor_NWU' type='imu'>
+          <topic>imu_test_NWU</topic>
+          <update_rate>1</update_rate>
+          <imu>
+            <orientation_reference_frame>
+              <localization>NWU</localization>
+            </orientation_reference_frame>
+          </imu>
+          <always_on>1</always_on>
+          <visualize>true</visualize>
+        </sensor>
       </link>
     </model>
 
