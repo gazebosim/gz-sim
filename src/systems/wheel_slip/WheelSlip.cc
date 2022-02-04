@@ -264,13 +264,10 @@ void WheelSlipPrivate::Update(EntityComponentManager &_ecm)
 
       if (changed)
       {
-        fprintf(stderr, "changed wheel slip parameters!\n");
         params.slipComplianceLateral =
           wheelSlipCmdParams.slip_compliance_lateral();
         params.slipComplianceLongitudinal =
           wheelSlipCmdParams.slip_compliance_longitudinal();
-      } else {
-        fprintf(stderr, "NOT changed wheel slip parameters!\n");
       }
       _ecm.RemoveComponent<components::WheelSlipCmd>(linkSurface.first);
     }
