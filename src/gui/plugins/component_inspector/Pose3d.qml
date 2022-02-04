@@ -90,7 +90,7 @@ Rectangle {
       value: writableSpin.activeFocus ? writableSpin.value : numberValue
       minimumValue: -spinMax
       maximumValue: spinMax
-      decimals: 6
+      decimals: getDecimals(writableSpin.width)
       onEditingFinished: {
         sendPose()
       }
@@ -108,7 +108,7 @@ Rectangle {
       horizontalAlignment: Text.AlignRight
       verticalAlignment: Text.AlignVCenter
       text: {
-        var decimals = numberText.width < 100 ? 2 : 6
+        var decimals = getDecimals(numberText.width)
         return numberValue.toFixed(decimals)
       }
     }
@@ -134,7 +134,7 @@ Rectangle {
           sourceSize.height: indentation
           sourceSize.width: indentation
           fillMode: Image.Pad
-          anchors.verticalCenter: parent.verticalCenter
+          Layout.alignment : Qt.AlignVCenter
           source: content.show ?
               "qrc:/Gazebo/images/minus.png" : "qrc:/Gazebo/images/plus.png"
         }
@@ -300,7 +300,7 @@ Rectangle {
         }
 
         Text {
-          text: 'Yaw (m)'
+          text: 'Yaw (rad)'
           leftPadding: 5
           color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
           font.pointSize: 12

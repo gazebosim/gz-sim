@@ -20,6 +20,7 @@
 #include <ignition/msgs/double.pb.h>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/components/AngularVelocity.hh"
@@ -31,6 +32,7 @@
 #include "ignition/gazebo/test_config.hh"
 
 #include "../helpers/Relay.hh"
+#include "../helpers/EnvTestFixture.hh"
 
 #define TOL 1e-4
 
@@ -38,15 +40,8 @@ using namespace ignition;
 using namespace gazebo;
 
 /// \brief Test fixture for JointController system
-class JointControllerTestFixture : public ::testing::Test
+class JointControllerTestFixture : public InternalFixture<::testing::Test>
 {
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    ignition::common::Console::SetVerbosity(4);
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
-  }
 };
 
 /////////////////////////////////////////////////
@@ -102,12 +97,21 @@ TEST_F(JointControllerTestFixture, JointVelocityCommand)
 
   server.AddSystem(testSystem.systemPtr);
 
-  const std::size_t initIters = 10;
+  const std::size_t initIters = 1000;
   server.Run(true, initIters, false);
   EXPECT_EQ(initIters, angularVelocities.size());
-  for (const auto &angVel : angularVelocities)
+  for (auto i = 0u; i < angularVelocities.size(); ++i)
   {
-    EXPECT_NEAR(0, angVel.Length(), TOL);
+    if (i == 0)
+    {
+      EXPECT_NEAR(0.0, angularVelocities[i].Length(), TOL)
+          << "Iteration [" << i << "]";
+    }
+    else
+    {
+      EXPECT_NEAR(5.0, angularVelocities[i].Length(), TOL)
+          << "Iteration [" << i << "]";
+    }
   }
 
   angularVelocities.clear();

@@ -56,9 +56,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   class Scene3DPrivate;
   class RenderUtil;
 
-  /// \brief Creates a new ignition rendering scene or adds a user-camera to an
-  /// existing scene. It is possible to orbit the camera around the scene with
+  /// \brief Creates an ignition rendering scene and user camera.
+  /// It is possible to orbit the camera around the scene with
   /// the mouse. Use other plugins to manage objects in the scene.
+  ///
+  /// Only one plugin displaying an Ignition Rendering scene can be used at a
+  /// time.
   ///
   /// ## Configuration
   ///
@@ -79,6 +82,22 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   class Scene3D : public ignition::gazebo::GuiSystem
   {
     Q_OBJECT
+
+    /// \brief Text for popup error
+    Q_PROPERTY(
+      QString errorPopupText
+      READ ErrorPopupText
+      WRITE SetErrorPopupText
+      NOTIFY ErrorPopupTextChanged
+    )
+
+    /// \brief Loading error message
+    Q_PROPERTY(
+      QString loadingError
+      READ LoadingError
+      WRITE SetLoadingError
+      NOTIFY LoadingErrorChanged
+    )
 
     /// \brief Constructor
     public: Scene3D();
@@ -154,6 +173,43 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: bool OnMoveToPose(const msgs::GUICamera &_msg,
                  msgs::Boolean &_res);
 
+    /// \brief Callback for view collisions request
+    /// \param[in] _msg Request message to set the target to view collisions
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnViewCollisions(const msgs::StringMsg &_msg,
+        msgs::Boolean &_res);
+
+    /// \brief Get the text for the popup error message
+    /// \return The error text
+    public: Q_INVOKABLE QString ErrorPopupText() const;
+
+    /// \brief Set the text for the popup error message
+    /// \param[in] _errorTxt The error text
+    public: Q_INVOKABLE void SetErrorPopupText(const QString &_errorTxt);
+
+    /// \brief Notify the popup error text has changed
+    signals: void ErrorPopupTextChanged();
+
+    /// \brief Notify that an error has occurred (opens popup)
+    /// Note that the function name needs to start with lowercase in order for
+    /// the connection to work on the QML side
+    signals: void popupError();
+
+    /// \brief Get the loading error string.
+    /// \return String explaining the loading error. If empty, there's no error.
+    public: Q_INVOKABLE QString LoadingError() const;
+
+    /// \brief Set the loading error message.
+    /// \param[in] _loadingError Error message.
+    public: Q_INVOKABLE void SetLoadingError(const QString &_loadingError);
+
+    /// \brief Notify that loading error has changed
+    signals: void LoadingErrorChanged();
+
+    /// \brief Loading error message
+    public: QString loadingError;
+
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<Scene3DPrivate> dataPtr;
@@ -179,7 +235,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void Render();
 
     /// \brief Initialize the render engine
-    public: void Initialize();
+    /// \return Error message if initialization failed. If empty, no errors
+    /// occurred.
+    public: std::string Initialize();
 
     /// \brief Destroy camera associated with this renderer
     public: void Destroy();
@@ -212,11 +270,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
         const std::string &_savePath);
 
     /// \brief Set whether to record video using sim time as timestamp
-    /// \param[in] _true True record video using sim time
+    /// \param[in] _useSimTime True record video using sim time
     public: void SetRecordVideoUseSimTime(bool _useSimTime);
 
     /// \brief Set whether to record video in lockstep mode
-    /// \param[in] _true True to record video in lockstep mode
+    /// \param[in] _lockstep True to record video in lockstep mode
     public: void SetRecordVideoLockstep(bool _lockstep);
 
     /// \brief Set video recorder bitrate in bps
@@ -245,13 +303,17 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _pose The world pose to set the camera to.
     public: void SetMoveToPose(const math::Pose3d &_pose);
 
+    /// \brief View collisions of the specified target
+    /// \param[in] _target Target to view collisions
+    public: void SetViewCollisionsTarget(const std::string &_target);
+
     /// \brief Set the p gain for the camera follow movement
     /// \param[in] _gain Camera follow p gain.
     public: void SetFollowPGain(double _gain);
 
     /// \brief True to set the camera to follow the target in world frame,
     /// false to follow in target's local frame
-    /// \param[in] _gain Camera follow p gain.
+    /// \param[in] _worldFrame True to use the world frame.
     public: void SetFollowWorldFrame(bool _worldFrame);
 
     /// \brief Set the camera follow offset position
@@ -391,7 +453,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Retrieve the point on a plane at z = 0 in the 3D scene hit by a
     /// ray cast from the given 2D screen coordinates.
-    /// \param[in] _screenPod 2D coordinates on the screen, in pixels.
+    /// \param[in] _screenPos 2D coordinates on the screen, in pixels.
     /// \return 3D coordinates of a point in the 3D scene.
     public: math::Vector3d ScreenToPlane(const math::Vector2i &_screenPos)
         const;
@@ -484,6 +546,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _size Size of the texture
     signals: void TextureReady(int _id, const QSize &_size);
 
+    /// \brief Set a callback to be called in case there are errors.
+    /// \param[in] _cb Error callback
+    public: void SetErrorCb(std::function<void(const QString &)> _cb);
+
+    /// \brief Function to be called if there are errors.
+    public: std::function<void(const QString &)> errorCb;
+
     /// \brief Offscreen surface to render to
     public: QOffscreenSurface *surface = nullptr;
 
@@ -547,11 +616,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
         const std::string &_savePath);
 
     /// \brief Set whether to record video using sim time as timestamp
-    /// \param[in] _true True record video using sim time
+    /// \param[in] _useSimTime True record video using sim time
     public: void SetRecordVideoUseSimTime(bool _useSimTime);
 
     /// \brief Set whether to record video in lockstep mode
-    /// \param[in] _true True to record video in lockstep mode
+    /// \param[in] _lockstep True to record video in lockstep mode
     public: void SetRecordVideoLockstep(bool _lockstep);
 
     /// \brief Set video recorder bitrate in bps
@@ -580,13 +649,17 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _pose The new camera pose in the world frame.
     public: void SetMoveToPose(const math::Pose3d &_pose);
 
+    /// \brief View collisions of the specified target
+    /// \param[in] _target Target to view collisions
+    public: void SetViewCollisionsTarget(const std::string &_target);
+
     /// \brief Set the p gain for the camera follow movement
     /// \param[in] _gain Camera follow p gain.
     public: void SetFollowPGain(double _gain);
 
     /// \brief True to set the camera to follow the target in world frame,
     /// false to follow in target's local frame
-    /// \param[in] _gain Camera follow p gain.
+    /// \param[in] _worldFrame True to use the world frame.
     public: void SetFollowWorldFrame(bool _worldFrame);
 
     /// \brief Set the camera follow offset position
@@ -686,6 +759,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Qt callback when context menu request is received
     /// \param[in] _entity Scoped name of entity.
     public slots: void OnContextMenuRequested(QString _entity);
+
+    /// \brief Set a callback to be called in case there are errors.
+    /// \param[in] _cb Error callback
+    public: void SetErrorCb(std::function<void(const QString &)> _cb);
 
     /// \internal
     /// \brief Pointer to private data.

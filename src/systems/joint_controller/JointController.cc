@@ -98,6 +98,13 @@ void JointController::Configure(const Entity &_entity,
     return;
   }
 
+  if (_sdf->HasElement("initial_velocity"))
+  {
+    this->dataPtr->jointVelCmd = _sdf->Get<double>("initial_velocity");
+    ignmsg << "Joint velocity initialized to ["
+           << this->dataPtr->jointVelCmd << "]" << std::endl;
+  }
+
   if (_sdf->HasElement("use_force_commands") &&
       _sdf->Get<bool>("use_force_commands"))
   {
@@ -133,6 +140,10 @@ void JointController::Configure(const Entity &_entity,
   // Subscribe to commands
   std::string topic{"/model/" + this->dataPtr->model.Name(_ecm) + "/joint/" +
                     this->dataPtr->jointName + "/cmd_vel"};
+  if (_sdf->HasElement("topic"))
+  {
+    topic = _sdf->Get<std::string>("topic");
+  }
   this->dataPtr->node.Subscribe(topic, &JointControllerPrivate::OnCmdVel,
                                 this->dataPtr.get());
 

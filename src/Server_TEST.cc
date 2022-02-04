@@ -39,21 +39,15 @@
 
 #include "plugins/MockSystem.hh"
 #include "../test/helpers/Relay.hh"
+#include "../test/helpers/EnvTestFixture.hh"
 
 using namespace ignition;
 using namespace ignition::gazebo;
 using namespace std::chrono_literals;
 
-class ServerFixture : public ::testing::TestWithParam<int>
+/////////////////////////////////////////////////
+class ServerFixture : public InternalFixture<::testing::TestWithParam<int>>
 {
-  protected: void SetUp() override
-  {
-    // Augment the system plugin path.  In SetUp to avoid test order issues.
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
-
-    ignition::common::Console::SetVerbosity(4);
-  }
 };
 
 /////////////////////////////////////////////////
@@ -626,6 +620,64 @@ TEST_P(ServerFixture, SigInt)
 }
 
 /////////////////////////////////////////////////
+TEST_P(ServerFixture, ServerControlStop)
+{
+  // Test that the server correctly reacts to requests on /server_control
+  // service with `stop` set to either false or true.
+
+  gazebo::Server server;
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Run forever, non-blocking.
+  server.Run(false, 0, false);
+
+  IGN_SLEEP_MS(500);
+
+  EXPECT_TRUE(server.Running());
+  EXPECT_TRUE(*server.Running(0));
+
+  transport::Node node;
+  msgs::ServerControl req;
+  msgs::Boolean res;
+  bool result{false};
+  bool executed{false};
+  int sleep{0};
+  int maxSleep{30};
+
+  // first, call with stop = false; the server should keep running
+  while (!executed && sleep < maxSleep)
+  {
+    igndbg << "Requesting /server_control" << std::endl;
+    executed = node.Request("/server_control", req, 100, res, result);
+    sleep++;
+  }
+  EXPECT_TRUE(executed);
+  EXPECT_TRUE(result);
+  EXPECT_FALSE(res.data());
+
+  IGN_SLEEP_MS(500);
+
+  EXPECT_TRUE(server.Running());
+  EXPECT_TRUE(*server.Running(0));
+
+  // now call with stop = true; the server should stop
+  req.set_stop(true);
+
+  igndbg << "Requesting /server_control" << std::endl;
+  executed = node.Request("/server_control", req, 100, res, result);
+
+  EXPECT_TRUE(executed);
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  IGN_SLEEP_MS(500);
+
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+}
+
+/////////////////////////////////////////////////
 TEST_P(ServerFixture, TwoServersNonBlocking)
 {
   ignition::gazebo::ServerConfig serverConfig;
@@ -721,12 +773,20 @@ TEST_P(ServerFixture, AddSystemWhileRunning)
 
   EXPECT_EQ(3u, *server.SystemCount());
 
+  // Add system from plugin
   gazebo::SystemLoader systemLoader;
   auto mockSystemPlugin = systemLoader.LoadPlugin("libMockSystem.so",
       "ignition::gazebo::MockSystem", nullptr);
   ASSERT_TRUE(mockSystemPlugin.has_value());
 
   auto result = server.AddSystem(mockSystemPlugin.value());
+  ASSERT_TRUE(result.has_value());
+  EXPECT_FALSE(result.value());
+  EXPECT_EQ(3u, *server.SystemCount());
+
+  // Add system pointer
+  auto mockSystem = std::make_shared<MockSystem>();
+  result = server.AddSystem(mockSystem);
   ASSERT_TRUE(result.has_value());
   EXPECT_FALSE(result.value());
   EXPECT_EQ(3u, *server.SystemCount());
@@ -750,28 +810,55 @@ TEST_P(ServerFixture, AddSystemAfterLoad)
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
+  // Add system from plugin
   gazebo::SystemLoader systemLoader;
   auto mockSystemPlugin = systemLoader.LoadPlugin("libMockSystem.so",
       "ignition::gazebo::MockSystem", nullptr);
   ASSERT_TRUE(mockSystemPlugin.has_value());
 
-  EXPECT_EQ(3u, *server.SystemCount());
-  EXPECT_TRUE(*server.AddSystem(mockSystemPlugin.value()));
-  EXPECT_EQ(4u, *server.SystemCount());
-
   auto system = mockSystemPlugin.value()->QueryInterface<gazebo::System>();
   EXPECT_NE(system, nullptr);
   auto mockSystem = dynamic_cast<gazebo::MockSystem*>(system);
-  EXPECT_NE(mockSystem, nullptr);
+  ASSERT_NE(mockSystem, nullptr);
 
+  EXPECT_EQ(3u, *server.SystemCount());
+  EXPECT_EQ(0u, mockSystem->configureCallCount);
+
+  EXPECT_TRUE(*server.AddSystem(mockSystemPlugin.value()));
+
+  EXPECT_EQ(4u, *server.SystemCount());
+  EXPECT_EQ(1u, mockSystem->configureCallCount);
+
+  // Add system pointer
+  auto mockSystemLocal = std::make_shared<MockSystem>();
+  EXPECT_EQ(0u, mockSystemLocal->configureCallCount);
+
+  EXPECT_TRUE(server.AddSystem(mockSystemLocal));
+  EXPECT_EQ(5u, *server.SystemCount());
+  EXPECT_EQ(1u, mockSystemLocal->configureCallCount);
+
+  // Check that update callbacks are called
   server.SetUpdatePeriod(1us);
   EXPECT_EQ(0u, mockSystem->preUpdateCallCount);
   EXPECT_EQ(0u, mockSystem->updateCallCount);
   EXPECT_EQ(0u, mockSystem->postUpdateCallCount);
+  EXPECT_EQ(0u, mockSystemLocal->preUpdateCallCount);
+  EXPECT_EQ(0u, mockSystemLocal->updateCallCount);
+  EXPECT_EQ(0u, mockSystemLocal->postUpdateCallCount);
   server.Run(true, 1, false);
   EXPECT_EQ(1u, mockSystem->preUpdateCallCount);
   EXPECT_EQ(1u, mockSystem->updateCallCount);
   EXPECT_EQ(1u, mockSystem->postUpdateCallCount);
+  EXPECT_EQ(1u, mockSystemLocal->preUpdateCallCount);
+  EXPECT_EQ(1u, mockSystemLocal->updateCallCount);
+  EXPECT_EQ(1u, mockSystemLocal->postUpdateCallCount);
+
+  // Add to inexistent world
+  auto result = server.AddSystem(mockSystemPlugin.value(), 100);
+  EXPECT_FALSE(result.has_value());
+
+  result = server.AddSystem(mockSystemLocal, 100);
+  EXPECT_FALSE(result.has_value());
 }
 
 /////////////////////////////////////////////////
@@ -788,9 +875,9 @@ TEST_P(ServerFixture, Seed)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, ResourcePath)
 {
-  setenv("IGN_GAZEBO_RESOURCE_PATH",
+  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
          (std::string(PROJECT_SOURCE_PATH) + "/test/worlds:" +
-          std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models").c_str(), 1);
+          std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models").c_str());
 
   ServerConfig serverConfig;
   serverConfig.SetSdfFile("resource_paths.sdf");
@@ -876,8 +963,8 @@ TEST_P(ServerFixture, ResourcePath)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, GetResourcePaths)
 {
-  setenv("IGN_GAZEBO_RESOURCE_PATH",
-      "/tmp/some/path:/home/user/another_path", 1);
+  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+      "/tmp/some/path:/home/user/another_path");
 
   ServerConfig serverConfig;
   gazebo::Server server(serverConfig);
@@ -908,7 +995,7 @@ TEST_P(ServerFixture, CachedFuelWorld)
 {
   auto cachedWorldPath =
     common::joinPaths(std::string(PROJECT_SOURCE_PATH), "test", "worlds");
-  setenv("IGN_FUEL_CACHE_PATH", cachedWorldPath.c_str(), 1);
+  ignition::common::setenv("IGN_FUEL_CACHE_PATH", cachedWorldPath.c_str());
 
   ServerConfig serverConfig;
   auto fuelWorldURL =
@@ -932,10 +1019,10 @@ TEST_P(ServerFixture, CachedFuelWorld)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, AddResourcePaths)
 {
-  setenv("IGN_GAZEBO_RESOURCE_PATH",
-      "/tmp/some/path:/home/user/another_path", 1);
-  setenv("SDF_PATH", "", 1);
-  setenv("IGN_FILE_PATH", "", 1);
+  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+      "/tmp/some/path:/home/user/another_path");
+  ignition::common::setenv("SDF_PATH", "");
+  ignition::common::setenv("IGN_FILE_PATH", "");
 
   ServerConfig serverConfig;
   gazebo::Server server(serverConfig);
@@ -979,7 +1066,7 @@ TEST_P(ServerFixture, AddResourcePaths)
   // Check environment variables
   for (auto env : {"IGN_GAZEBO_RESOURCE_PATH", "SDF_PATH", "IGN_FILE_PATH"})
   {
-    char *pathCStr = getenv(env);
+    char *pathCStr = std::getenv(env);
 
     auto paths = common::Split(pathCStr, ':');
     paths.erase(std::remove_if(paths.begin(), paths.end(),

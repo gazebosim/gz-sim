@@ -60,6 +60,9 @@ Rectangle {
       case "loadWorld":
         loadWorldDialog.open();
         break
+      case "aboutDialog":
+        aboutDialog.open();
+        break
       // Forward others to default drawer
       default:
         parent.onAction(_action);
@@ -73,46 +76,50 @@ Rectangle {
     // Custom action which calls custom C++ code
     /*ListElement {
       title: "New world"
-      action: "newWorld"
+      actionElement: "newWorld"
       type: "world"
     }
     ListElement {
       title: "Load world"
-      action: "loadWorld"
+      actionElement: "loadWorld"
       type: "world"
     }*/
     ListElement {
       title: "Save world"
-      action: "saveWorld"
+      actionElement: "saveWorld"
       enabled: false
       type: "world"
     }
     ListElement {
       title: "Save world as..."
-      action: "saveWorldAs"
+      actionElement: "saveWorldAs"
       type: "world"
     }
 
     // Actions provided by Ignition GUI, with custom titles
     ListElement {
       title: "Load client configuration"
-      action: "loadConfig"
+      actionElement: "loadConfig"
     }
     ListElement {
       title: "Save client configuration"
-      action: "saveConfig"
+      actionElement: "saveConfig"
     }
     ListElement {
       title: "Save client configuration as"
-      action: "saveConfigAs"
+      actionElement: "saveConfigAs"
     }
     ListElement {
       title: "Style settings"
-      action: "styleSettings"
+      actionElement: "styleSettings"
+    }
+    ListElement {
+      title: "About"
+      actionElement: "aboutDialog"
     }
     ListElement {
       title: "Quit"
-      action: "close"
+      actionElement: "close"
     }
   }
 
@@ -125,7 +132,7 @@ Rectangle {
       text: title
       highlighted: ListView.isCurrentItem
       onClicked: {
-        customDrawer.onAction(action);
+        customDrawer.onAction(actionElement);
         customDrawer.parent.closeDrawer();
       }
     }
@@ -162,6 +169,34 @@ Rectangle {
     selectExisting: false
     onAccepted: {
       saveWorldFileText.text = fileUrl;
+    }
+  }
+
+  /**
+   * About dialog
+   */
+  Dialog {
+    id: aboutDialog
+    title: "Ignition Gazebo"
+
+    modal: true
+    focus: true
+    parent: ApplicationWindow.overlay
+    width: parent.width / 3 > 500 ? 500 : parent.width / 3
+    x: (parent.width - width) / 2
+    y: (parent.height - height) / 2
+    closePolicy: Popup.CloseOnEscape
+    standardButtons: StandardButton.Ok
+
+    Text {
+      anchors.fill: parent
+      id: aboutMessage
+      wrapMode: Text.Wrap
+      verticalAlignment: Text.AlignVCenter
+      color: Material.theme == Material.Light ? "black" : "white"
+      textFormat: Text.RichText
+      text: AboutDialogHandler.getVersionInformation()
+      onLinkActivated: AboutDialogHandler.openURL(link)
     }
   }
 

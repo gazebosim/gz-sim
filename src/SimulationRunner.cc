@@ -27,6 +27,8 @@
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/components/Physics.hh"
+#include "ignition/gazebo/components/PhysicsCmd.hh"
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
 #include "ignition/gazebo/Util.hh"
@@ -60,8 +62,8 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // Keep system loader so plugins can be loaded at runtime
   this->systemLoader = _systemLoader;
 
-  // Get the first physics profile
-  // \todo(louise) Support picking a specific profile
+  // Get the physics profile
+  // TODO(luca): remove duplicated logic in SdfEntityCreator and LevelManager
   auto physics = _world->PhysicsByIndex(0);
   if (!physics)
   {
@@ -76,7 +78,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
       dur);
 
   // Desired real time factor
-  double desiredRtf = _world->PhysicsDefault()->RealTimeFactor();
+  this->desiredRtf = physics->RealTimeFactor();
 
   // The instantaneous real time factor is given as:
   //
@@ -101,8 +103,15 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // So to get a given RTF, our desired period is:
   //
   // period = step_size / RTF
-  this->updatePeriod = std::chrono::nanoseconds(
-      static_cast<int>(this->stepSize.count() / desiredRtf));
+  if (this->desiredRtf < 1e-9)
+  {
+    this->updatePeriod = 0ms;
+  }
+  else
+  {
+    this->updatePeriod = std::chrono::nanoseconds(
+        static_cast<int>(this->stepSize.count() / this->desiredRtf));
+  }
 
   this->pauseConn = this->eventMgr.Connect<events::Pause>(
       std::bind(&SimulationRunner::SetPaused, this, std::placeholders::_1));
@@ -326,6 +335,47 @@ void SimulationRunner::UpdateCurrentInfo()
 }
 
 /////////////////////////////////////////////////
+void SimulationRunner::UpdatePhysicsParams()
+{
+  auto worldEntity =
+    this->entityCompMgr.EntityByComponents(components::World());
+  const auto physicsCmdComp =
+    this->entityCompMgr.Component<components::PhysicsCmd>(worldEntity);
+  if (!physicsCmdComp)
+  {
+    return;
+  }
+  auto physicsComp =
+    this->entityCompMgr.Component<components::Physics>(worldEntity);
+
+  const auto& physicsParams = physicsCmdComp->Data();
+  const auto newStepSize =
+    std::chrono::duration<double>(physicsParams.max_step_size());
+  const double newRTF = physicsParams.real_time_factor();
+
+  const double eps = 0.00001;
+  if (newStepSize != this->stepSize ||
+      std::abs(newRTF - this->desiredRtf) > eps)
+  {
+    this->SetStepSize(
+      std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+        newStepSize));
+    this->desiredRtf = newRTF;
+    this->updatePeriod = std::chrono::nanoseconds(
+        static_cast<int>(this->stepSize.count() / this->desiredRtf));
+
+    this->simTimes.clear();
+    this->realTimes.clear();
+    // Update physics components
+    physicsComp->Data().SetMaxStepSize(physicsParams.max_step_size());
+    physicsComp->Data().SetRealTimeFactor(newRTF);
+    this->entityCompMgr.SetChanged(worldEntity, components::Physics::typeId,
+        ComponentState::OneTimeChange);
+  }
+  this->entityCompMgr.RemoveComponent<components::PhysicsCmd>(worldEntity);
+}
+
+/////////////////////////////////////////////////
 void SimulationRunner::PublishStats()
 {
   IGN_PROFILE("SimulationRunner::PublishStats");
@@ -373,28 +423,61 @@ void SimulationRunner::PublishStats()
     this->rootClockPub.Publish(clockMsg);
 }
 
-/////////////////////////////////////////////////
-void SimulationRunner::AddSystem(const SystemPluginPtr &_system)
+//////////////////////////////////////////////////
+void SimulationRunner::AddSystem(const SystemPluginPtr &_system,
+      std::optional<Entity> _entity,
+      std::optional<std::shared_ptr<const sdf::Element>> _sdf)
 {
+  this->AddSystemImpl(SystemInternal(_system), _entity, _sdf);
+}
+
+//////////////////////////////////////////////////
+void SimulationRunner::AddSystem(
+      const std::shared_ptr<System> &_system,
+      std::optional<Entity> _entity,
+      std::optional<std::shared_ptr<const sdf::Element>> _sdf)
+{
+  this->AddSystemImpl(SystemInternal(_system), _entity, _sdf);
+}
+
+//////////////////////////////////////////////////
+void SimulationRunner::AddSystemImpl(
+      SystemInternal _system,
+      std::optional<Entity> _entity,
+      std::optional<std::shared_ptr<const sdf::Element>> _sdf)
+{
+  // Call configure
+  if (_system.configure)
+  {
+    // Default to world entity and SDF
+    auto entity = _entity.has_value() ? _entity.value()
+        : worldEntity(this->entityCompMgr);
+    auto sdf = _sdf.has_value() ? _sdf.value() : this->sdfWorld->Element();
+
+    _system.configure->Configure(
+        entity, sdf,
+        this->entityCompMgr,
+        this->eventMgr);
+  }
+
+  // Update callbacks will be handled later, add to queue
   std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
   this->pendingSystems.push_back(_system);
 }
 
 /////////////////////////////////////////////////
-void SimulationRunner::AddSystemToRunner(const SystemPluginPtr &_system)
+void SimulationRunner::AddSystemToRunner(SystemInternal _system)
 {
-  this->systems.push_back(SystemInternal(_system));
+  this->systems.push_back(_system);
 
-  const auto &system = this->systems.back();
+  if (_system.preupdate)
+    this->systemsPreupdate.push_back(_system.preupdate);
 
-  if (system.preupdate)
-    this->systemsPreupdate.push_back(system.preupdate);
+  if (_system.update)
+    this->systemsUpdate.push_back(_system.update);
 
-  if (system.update)
-    this->systemsUpdate.push_back(system.update);
-
-  if (system.postupdate)
-    this->systemsPostupdate.push_back(system.postupdate);
+  if (_system.postupdate)
+    this->systemsPostupdate.push_back(_system.postupdate);
 }
 
 /////////////////////////////////////////////////
@@ -413,7 +496,6 @@ void SimulationRunner::ProcessSystemQueue()
   {
     this->AddSystemToRunner(system);
   }
-
   this->pendingSystems.clear();
 
   // If additional systems were added, recreate the worker threads.
@@ -423,9 +505,9 @@ void SimulationRunner::ProcessSystemQueue()
       << this->systemsPostupdate.size() + 1 << std::endl;
 
     this->postUpdateStartBarrier =
-      std::make_unique<Barrier>(this->systemsPostupdate.size() + 1);
+      std::make_unique<Barrier>(this->systemsPostupdate.size() + 1u);
     this->postUpdateStopBarrier =
-      std::make_unique<Barrier>(this->systemsPostupdate.size() + 1);
+      std::make_unique<Barrier>(this->systemsPostupdate.size() + 1u);
 
     this->postUpdateThreadsRunning = true;
     int id = 0;
@@ -642,6 +724,10 @@ bool SimulationRunner::Run(const uint64_t _iterations)
        processedIterations < _iterations))
   {
     IGN_PROFILE("SimulationRunner::Run - Iteration");
+
+    // Update the step size and desired rtf
+    this->UpdatePhysicsParams();
+
     // Compute the time to sleep in order to match, as closely as possible,
     // the update period.
     sleepTime = 0ns;
@@ -760,18 +846,10 @@ void SimulationRunner::LoadPlugin(const Entity _entity,
     system = this->systemLoader->LoadPlugin(_fname, _name, _sdf);
   }
 
-  // System correctly loaded from library, try to configure
+  // System correctly loaded from library
   if (system)
   {
-    auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
-    if (systemConfig != nullptr)
-    {
-      systemConfig->Configure(_entity, _sdf,
-          this->entityCompMgr,
-          this->eventMgr);
-    }
-
-    this->AddSystem(system.value());
+    this->AddSystem(system.value(), _entity, _sdf);
     igndbg << "Loaded system [" << _name
            << "] for entity [" << _entity << "]" << std::endl;
   }
@@ -864,18 +942,18 @@ void SimulationRunner::LoadLoggingPlugins(const ServerConfig &_config)
 {
   std::list<ServerConfig::PluginInfo> plugins;
 
-  if(_config.UseLogRecord() && !_config.LogPlaybackPath().empty())
+  if (_config.UseLogRecord() && !_config.LogPlaybackPath().empty())
   {
     ignwarn <<
       "Both recording and playback are specified, defaulting to playback\n";
   }
 
-  if(!_config.LogPlaybackPath().empty())
+  if (!_config.LogPlaybackPath().empty())
   {
     auto playbackPlugin = _config.LogPlaybackPlugin();
     plugins.push_back(playbackPlugin);
   }
-  else if(_config.UseLogRecord())
+  else if (_config.UseLogRecord())
   {
     auto recordPlugin = _config.LogRecordPlugin();
     plugins.push_back(recordPlugin);
@@ -888,7 +966,7 @@ void SimulationRunner::LoadLoggingPlugins(const ServerConfig &_config)
 void SimulationRunner::LoadPlugins(const Entity _entity,
     const sdf::ElementPtr &_sdf)
 {
-  sdf::ElementPtr pluginElem = _sdf->GetElement("plugin");
+  sdf::ElementPtr pluginElem = _sdf->FindElement("plugin");
   while (pluginElem)
   {
     auto filename = pluginElem->Get<std::string>("filename");
@@ -896,8 +974,7 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
     // No error message for the 'else' case of the following 'if' statement
     // because SDF create a default <plugin> element even if it's not
     // specified. An error message would result in spamming
-    // the console. \todo(nkoenig) Fix SDF should so that elements are not
-    // automatically added.
+    // the console.
     if (filename != "__default__" && name != "__default__")
     {
       this->LoadPlugin(_entity, filename, name, pluginElem);

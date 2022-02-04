@@ -40,25 +40,25 @@ namespace systems
   /// \brief A plugin for simulating battery usage
   ///
   /// This system processes the following sdf parameters:
-  /// <battery_name> name of the battery (required)
-  /// <voltage> Initial voltage of the battery (required)
-  /// <open_circuit_voltage_constant_coef> Voltage at full charge
-  /// <open_circuit_voltage_linear_coef> Amount of voltage decrease when no
+  /// - `<battery_name>` name of the battery (required)
+  /// - `<voltage>` Initial voltage of the battery (required)
+  /// - `<open_circuit_voltage_constant_coef>` Voltage at full charge
+  /// - `<open_circuit_voltage_linear_coef>` Amount of voltage decrease when no
   ///                                    charge
-  /// <initial_charge> Initial charge of the battery (Ah)
-  /// <capacity> Total charge that the battery can hold (Ah)
-  /// <resistance> Internal resistance (Ohm)
-  /// <smooth_current_tau> coefficient for smoothing current [0, 1].
-  /// <power_load> power load on battery (required) (Watts)
-  /// <enable_recharge> If true, the battery can be recharged
-  /// <recharge_by_topic> If true, the start/stop signals for recharging the
+  /// - `<initial_charge>` Initial charge of the battery (Ah)
+  /// - `<capacity>` Total charge that the battery can hold (Ah)
+  /// - `<resistance>` Internal resistance (Ohm)
+  /// - `<smooth_current_tau>` coefficient for smoothing current [0, 1].
+  /// - `<power_load>` power load on battery (required) (Watts)
+  /// - `<enable_recharge>` If true, the battery can be recharged
+  /// - `<recharge_by_topic>` If true, the start/stop signals for recharging the
   ///                     battery will also be available via topics. The
   ///                     regular Ignition services will still be available.
-  /// <charging_time> Hours taken to fully charge the battery.
-  ///                 (Required if <enable_recharge> is set to true)
-  /// <fix_issue_225> True to change the battery behavior to fix some issues
+  /// - `<charging_time>` Hours taken to fully charge the battery.
+  ///                 (Required if `<enable_recharge>` is set to true)
+  /// - `<fix_issue_225>` True to change the battery behavior to fix some issues
   /// described in https://github.com/ignitionrobotics/ign-gazebo/issues/225.
-  class IGNITION_GAZEBO_VISIBLE LinearBatteryPlugin
+  class LinearBatteryPlugin
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate,

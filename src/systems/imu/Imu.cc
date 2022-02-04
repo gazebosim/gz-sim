@@ -17,17 +17,16 @@
 
 #include "Imu.hh"
 
-#include <unordered_map>
-#include <utility>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
 
 #include <ignition/plugin/Register.hh>
 
 #include <sdf/Element.hh>
 
 #include <ignition/common/Profiler.hh>
-
-#include <ignition/transport/Node.hh>
 
 #include <ignition/sensors/SensorFactory.hh>
 #include <ignition/sensors/ImuSensor.hh>
@@ -58,15 +57,37 @@ class ignition::gazebo::systems::ImuPrivate
   /// \brief Ign-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
 
+  /// \brief Keep list of sensors that were created during the previous
+  /// `PostUpdate`, so that components can be created during the next
+  /// `PreUpdate`.
+  public: std::unordered_set<Entity> newSensors;
+
+  /// \brief Keep track of world ID, which is equivalent to the scene's
+  /// root visual.
+  /// Defaults to zero, which is considered invalid by Ignition Gazebo.
   public: Entity worldEntity = kNullEntity;
 
-  /// \brief Create IMU sensor
-  /// \param[in] _ecm Mutable reference to ECM.
-  public: void CreateImuEntities(EntityComponentManager &_ecm);
+  /// True if the rendering component is initialized
+  public: bool initialized = false;
+
+  /// \brief Create IMU sensors in ign-sensors
+  /// \param[in] _ecm Immutable reference to ECM.
+  public: void CreateSensors(const EntityComponentManager &_ecm);
 
   /// \brief Update IMU sensor data based on physics data
   /// \param[in] _ecm Immutable reference to ECM.
   public: void Update(const EntityComponentManager &_ecm);
+
+  /// \brief Create sensor
+  /// \param[in] _ecm Immutable reference to ECM.
+  /// \param[in] _entity Entity of the IMU
+  /// \param[in] _imu IMU component.
+  /// \param[in] _parent Parent entity component.
+  public: void AddSensor(
+    const EntityComponentManager &_ecm,
+    const Entity _entity,
+    const components::Imu *_imu,
+    const components::ParentEntity *_parent);
 
   /// \brief Remove IMU sensors if their entities have been removed from
   /// simulation.
@@ -87,7 +108,21 @@ void Imu::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
   IGN_PROFILE("Imu::PreUpdate");
-  this->dataPtr->CreateImuEntities(_ecm);
+
+  // Create components
+  for (auto entity : this->dataPtr->newSensors)
+  {
+    auto it = this->dataPtr->entitySensorMap.find(entity);
+    if (it == this->dataPtr->entitySensorMap.end())
+    {
+      ignerr << "Entity [" << entity
+             << "] isn't in sensor map, this shouldn't happen." << std::endl;
+      continue;
+    }
+    // Set topic
+    _ecm.CreateComponent(entity, components::SensorTopic(it->second->Topic()));
+  }
+  this->dataPtr->newSensors.clear();
 }
 
 //////////////////////////////////////////////////
@@ -103,6 +138,8 @@ void Imu::PostUpdate(const UpdateInfo &_info,
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
+
+  this->dataPtr->CreateSensors(_ecm);
 
   // Only update and publish if not paused.
   if (!_info.paused)
@@ -122,7 +159,62 @@ void Imu::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-void ImuPrivate::CreateImuEntities(EntityComponentManager &_ecm)
+void ImuPrivate::AddSensor(
+  const EntityComponentManager &_ecm,
+  const Entity _entity,
+  const components::Imu *_imu,
+  const components::ParentEntity *_parent)
+{
+  // Get the world acceleration (defined in world frame)
+  auto gravity = _ecm.Component<components::Gravity>(worldEntity);
+  if (nullptr == gravity)
+  {
+    ignerr << "World missing gravity." << std::endl;
+    return;
+  }
+
+  // create sensor
+  std::string sensorScopedName =
+      removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
+  sdf::Sensor data = _imu->Data();
+  data.SetName(sensorScopedName);
+  // check topic
+  if (data.Topic().empty())
+  {
+    std::string topic = scopedName(_entity, _ecm) + "/imu";
+    data.SetTopic(topic);
+  }
+  std::unique_ptr<sensors::ImuSensor> sensor =
+      this->sensorFactory.CreateSensor<
+      sensors::ImuSensor>(data);
+  if (nullptr == sensor)
+  {
+    ignerr << "Failed to create sensor [" << sensorScopedName << "]"
+           << std::endl;
+    return;
+  }
+
+  // set sensor parent
+  std::string parentName = _ecm.Component<components::Name>(
+      _parent->Data())->Data();
+  sensor->SetParent(parentName);
+
+  // set gravity - assume it remains fixed
+  sensor->SetGravity(gravity->Data());
+
+  // Get initial pose of sensor and set the reference z pos
+  // The WorldPose component was just created and so it's empty
+  // We'll compute the world pose manually here
+  math::Pose3d p = worldPose(_entity, _ecm);
+  sensor->SetOrientationReference(p.Rot());
+
+  this->entitySensorMap.insert(
+      std::make_pair(_entity, std::move(sensor)));
+  this->newSensors.insert(_entity);
+}
+
+//////////////////////////////////////////////////
+void ImuPrivate::CreateSensors(const EntityComponentManager &_ecm)
 {
   IGN_PROFILE("ImuPrivate::CreateImuEntities");
   // Get World Entity
@@ -134,63 +226,31 @@ void ImuPrivate::CreateImuEntities(EntityComponentManager &_ecm)
     return;
   }
 
-  // Get the world acceleration (defined in world frame)
-  auto gravity = _ecm.Component<components::Gravity>(worldEntity);
-  if (nullptr == gravity)
+  if (!this->initialized)
   {
-    ignerr << "World missing gravity." << std::endl;
-    return;
-  }
-
-  // Create IMUs
-  _ecm.EachNew<components::Imu, components::ParentEntity>(
-    [&](const Entity &_entity,
-        const components::Imu *_imu,
-        const components::ParentEntity *_parent)->bool
-      {
-        // create sensor
-        std::string sensorScopedName =
-            removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
-        sdf::Sensor data = _imu->Data();
-        data.SetName(sensorScopedName);
-        // check topic
-        if (data.Topic().empty())
+    // Create IMUs
+    _ecm.Each<components::Imu, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Imu *_imu,
+          const components::ParentEntity *_parent)->bool
         {
-          std::string topic = scopedName(_entity, _ecm) + "/imu";
-          data.SetTopic(topic);
-        }
-        std::unique_ptr<sensors::ImuSensor> sensor =
-            this->sensorFactory.CreateSensor<
-            sensors::ImuSensor>(data);
-        if (nullptr == sensor)
-        {
-          ignerr << "Failed to create sensor [" << sensorScopedName << "]"
-                 << std::endl;
+          this->AddSensor(_ecm, _entity, _imu, _parent);
           return true;
-        }
-
-        // set sensor parent
-        std::string parentName = _ecm.Component<components::Name>(
-            _parent->Data())->Data();
-        sensor->SetParent(parentName);
-
-        // set gravity - assume it remains fixed
-        sensor->SetGravity(gravity->Data());
-
-        // Get initial pose of sensor and set the reference z pos
-        // The WorldPose component was just created and so it's empty
-        // We'll compute the world pose manually here
-        math::Pose3d p = worldPose(_entity, _ecm);
-        sensor->SetOrientationReference(p.Rot());
-
-        // Set topic
-        _ecm.CreateComponent(_entity, components::SensorTopic(sensor->Topic()));
-
-        this->entitySensorMap.insert(
-            std::make_pair(_entity, std::move(sensor)));
-
-        return true;
-      });
+        });
+      this->initialized = true;
+  }
+  else
+  {
+    // Create IMUs
+    _ecm.EachNew<components::Imu, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Imu *_imu,
+          const components::ParentEntity *_parent)->bool
+        {
+          this->AddSensor(_ecm, _entity, _imu, _parent);
+          return true;
+        });
+    }
 }
 
 //////////////////////////////////////////////////

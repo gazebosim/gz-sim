@@ -25,6 +25,7 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/config.hh"
+#include "../test/helpers/EnvTestFixture.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -93,12 +94,9 @@ class EntityCompMgrTest : public EntityComponentManager
   }
 };
 
-class EntityComponentManagerFixture : public ::testing::TestWithParam<int>
+class EntityComponentManagerFixture
+  : public InternalFixture<::testing::TestWithParam<int>>
 {
-  public: void SetUp() override
-  {
-    common::Console::SetVerbosity(4);
-  }
   public: EntityCompMgrTest manager;
 };
 
@@ -432,6 +430,41 @@ TEST_P(EntityComponentManagerFixture, EntitiesAndComponents)
   EXPECT_TRUE(manager.EntityHasComponentType(entity, IntComponent::typeId));
   EXPECT_FALSE(manager.EntityHasComponentType(entity, DoubleComponent::typeId));
   EXPECT_FALSE(manager.EntityHasComponentType(entity2, IntComponent::typeId));
+
+  // Try to add a component to an entity that does not exist
+  EXPECT_FALSE(manager.HasEntity(kNullEntity));
+  EXPECT_FALSE(manager.EntityHasComponentType(kNullEntity,
+        IntComponent::typeId));
+  EXPECT_EQ(ComponentKey(), manager.CreateComponent<IntComponent>(kNullEntity,
+        IntComponent(123)));
+  EXPECT_FALSE(manager.HasEntity(kNullEntity));
+  EXPECT_FALSE(manager.EntityHasComponentType(kNullEntity,
+        IntComponent::typeId));
+
+  // Query non-existing component, the default value is default-constructed
+  BoolComponent *boolComp = manager.ComponentDefault<BoolComponent>(entity);
+  ASSERT_NE(nullptr, boolComp);
+  EXPECT_TRUE(manager.HasComponentType(BoolComponent::typeId));
+  EXPECT_TRUE(manager.EntityHasComponentType(entity, BoolComponent::typeId));
+  EXPECT_EQ(false, boolComp->Data());
+
+  // Query non-existing component, the default value is used
+  DoubleComponent *doubleComp =
+    manager.ComponentDefault<DoubleComponent>(entity, 1.0);
+  ASSERT_NE(nullptr, doubleComp);
+  EXPECT_TRUE(manager.HasComponentType(DoubleComponent::typeId));
+  EXPECT_TRUE(manager.EntityHasComponentType(entity, IntComponent::typeId));
+  EXPECT_TRUE(manager.EntityHasComponentType(entity, DoubleComponent::typeId));
+  EXPECT_FALSE(
+    manager.EntityHasComponentType(entity2, DoubleComponent::typeId));
+  EXPECT_FLOAT_EQ(1.0, doubleComp->Data());
+
+  // Query existing component, the default value is not used
+  IntComponent *intComp = manager.ComponentDefault<IntComponent>(entity, 124);
+  ASSERT_NE(nullptr, intComp);
+  EXPECT_TRUE(manager.HasComponentType(IntComponent::typeId));
+  EXPECT_TRUE(manager.EntityHasComponentType(entity, IntComponent::typeId));
+  EXPECT_EQ(123, intComp->Data());
 
   // Remove all entities
   manager.RequestRemoveEntities();
@@ -2082,6 +2115,7 @@ TEST_P(EntityComponentManagerFixture, SetChanged)
   auto c2 = manager.CreateComponent<IntComponent>(e2, IntComponent(456));
 
   EXPECT_TRUE(manager.HasOneTimeComponentChanges());
+  EXPECT_EQ(0u, manager.ComponentTypesWithPeriodicChanges().size());
   EXPECT_EQ(ComponentState::OneTimeChange,
       manager.ComponentState(e1, c1.first));
   EXPECT_EQ(ComponentState::OneTimeChange,
@@ -2093,6 +2127,7 @@ TEST_P(EntityComponentManagerFixture, SetChanged)
   // updated
   manager.RunSetAllComponentsUnchanged();
   EXPECT_FALSE(manager.HasOneTimeComponentChanges());
+  EXPECT_EQ(0u, manager.ComponentTypesWithPeriodicChanges().size());
   EXPECT_EQ(ComponentState::NoChange,
       manager.ComponentState(e1, c1.first));
   EXPECT_EQ(ComponentState::NoChange,
@@ -2100,9 +2135,31 @@ TEST_P(EntityComponentManagerFixture, SetChanged)
 
   // Mark as changed
   manager.SetChanged(e1, c1.first, ComponentState::PeriodicChange);
+
+  // check that only e1 c1 is serialized into a message
+  msgs::SerializedStateMap stateMsg;
+  manager.State(stateMsg);
+  {
+    ASSERT_EQ(1, stateMsg.entities_size());
+
+    auto iter = stateMsg.entities().find(e1);
+    const auto &e1Msg = iter->second;
+    EXPECT_EQ(e1, e1Msg.id());
+    ASSERT_EQ(1, e1Msg.components_size());
+
+    auto compIter = e1Msg.components().begin();
+    const auto &e1c1Msg = compIter->second;
+    EXPECT_EQ(IntComponent::typeId, e1c1Msg.type());
+    EXPECT_EQ(123, std::stoi(e1c1Msg.component()));
+  }
+
   manager.SetChanged(e2, c2.first, ComponentState::OneTimeChange);
 
   EXPECT_TRUE(manager.HasOneTimeComponentChanges());
+  // Expect a single component type to be marked as PeriodicChange
+  ASSERT_EQ(1u, manager.ComponentTypesWithPeriodicChanges().size());
+  EXPECT_EQ(IntComponent().TypeId(),
+      *manager.ComponentTypesWithPeriodicChanges().begin());
   EXPECT_EQ(ComponentState::PeriodicChange,
       manager.ComponentState(e1, c1.first));
   EXPECT_EQ(ComponentState::OneTimeChange,
@@ -2112,6 +2169,7 @@ TEST_P(EntityComponentManagerFixture, SetChanged)
   EXPECT_TRUE(manager.RemoveComponent(e1, c1.first));
 
   EXPECT_TRUE(manager.HasOneTimeComponentChanges());
+  EXPECT_EQ(0u, manager.ComponentTypesWithPeriodicChanges().size());
   EXPECT_EQ(ComponentState::NoChange,
       manager.ComponentState(e1, c1.first));
 
@@ -2133,6 +2191,107 @@ TEST_P(EntityComponentManagerFixture, SetEntityCreateOffset)
   manager.SetEntityCreateOffset(1000);
   Entity entity2 = manager.CreateEntity();
   EXPECT_EQ(1001u, entity2);
+
+  // Apply a lower offset, prints warning but goes through.
+  manager.SetEntityCreateOffset(500);
+  Entity entity3 = manager.CreateEntity();
+  EXPECT_EQ(501u, entity3);
+}
+
+//////////////////////////////////////////////////
+/// \brief Test using msgs::SerializedStateMap and msgs::SerializedState
+/// to update existing component data between multiple ECMs
+TEST_P(EntityComponentManagerFixture, StateMsgUpdateComponent)
+{
+  // create 2 ECMs: one will be modified directly, and the other should be
+  // updated to match the first via msgs::SerializedStateMap
+  EntityComponentManager originalECMStateMap;
+  EntityComponentManager otherECMStateMap;
+
+  // create an entity and component
+  auto entity = originalECMStateMap.CreateEntity();
+  originalECMStateMap.CreateComponent(entity, components::IntComponent(1));
+
+  int foundEntities = 0;
+  otherECMStateMap.Each<components::IntComponent>(
+      [&](const Entity &, const components::IntComponent *)
+      {
+        foundEntities++;
+        return true;
+      });
+  EXPECT_EQ(0, foundEntities);
+
+  // update the other ECM to have the new entity and component
+  msgs::SerializedStateMap stateMapMsg;
+  originalECMStateMap.State(stateMapMsg);
+  otherECMStateMap.SetState(stateMapMsg);
+  foundEntities = 0;
+  otherECMStateMap.Each<components::IntComponent>(
+      [&](const Entity &, const components::IntComponent *_intComp)
+      {
+        foundEntities++;
+        EXPECT_EQ(1, _intComp->Data());
+        return true;
+      });
+  EXPECT_EQ(1, foundEntities);
+
+  // modify a component and then share the update with the other ECM
+  stateMapMsg.Clear();
+  originalECMStateMap.SetComponentData<components::IntComponent>(entity, 2);
+  originalECMStateMap.State(stateMapMsg);
+  otherECMStateMap.SetState(stateMapMsg);
+  foundEntities = 0;
+  otherECMStateMap.Each<components::IntComponent>(
+      [&](const Entity &, const components::IntComponent *_intComp)
+      {
+        foundEntities++;
+        EXPECT_EQ(2, _intComp->Data());
+        return true;
+      });
+  EXPECT_EQ(1, foundEntities);
+
+  // Run the same test as above, but this time, use a msgs::SerializedState
+  // instead of a msgs::SerializedStateMap
+  EntityComponentManager originalECMState;
+  EntityComponentManager otherECMState;
+
+  foundEntities = 0;
+  otherECMState.Each<components::IntComponent>(
+      [&](const Entity &, const components::IntComponent *)
+      {
+        foundEntities++;
+        return true;
+      });
+  EXPECT_EQ(0, foundEntities);
+
+  entity = originalECMState.CreateEntity();
+  originalECMState.CreateComponent(entity, components::IntComponent(1));
+
+  auto stateMsg = originalECMState.State();
+  otherECMState.SetState(stateMsg);
+  foundEntities = 0;
+  otherECMState.Each<components::IntComponent>(
+      [&](const Entity &, const components::IntComponent *_intComp)
+      {
+        foundEntities++;
+        EXPECT_EQ(1, _intComp->Data());
+        return true;
+      });
+  EXPECT_EQ(1, foundEntities);
+
+  stateMsg.Clear();
+  originalECMState.SetComponentData<components::IntComponent>(entity, 2);
+  stateMsg = originalECMState.State();
+  otherECMState.SetState(stateMsg);
+  foundEntities = 0;
+  otherECMState.Each<components::IntComponent>(
+      [&](const Entity &, const components::IntComponent *_intComp)
+      {
+        foundEntities++;
+        EXPECT_EQ(2, _intComp->Data());
+        return true;
+      });
+  EXPECT_EQ(1, foundEntities);
 }
 
 // Run multiple times. We want to make sure that static globals don't cause

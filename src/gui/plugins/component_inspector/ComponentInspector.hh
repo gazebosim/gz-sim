@@ -28,6 +28,8 @@
 #include <ignition/gazebo/gui/GuiSystem.hh>
 #include <ignition/gazebo/Types.hh>
 
+#include "ignition/gazebo/components/Physics.hh"
+
 Q_DECLARE_METATYPE(ignition::gazebo::ComponentTypeId)
 
 namespace ignition
@@ -74,6 +76,12 @@ namespace gazebo
   /// \param[in] _data Data to set.
   template<>
   void setData(QStandardItem *_item, const math::Vector3d &_data);
+
+  /// \brief Specialized to set Physics data.
+  /// \param[in] _item Item whose data will be set.
+  /// \param[in] _data Data to set.
+  template<>
+  void setData(QStandardItem *_item, const sdf::Physics &_data);
 
   /// \brief Specialized to set boolean data.
   /// \param[in] _item Item whose data will be set.
@@ -148,8 +156,8 @@ namespace gazebo
 
     /// \brief Entity
     Q_PROPERTY(
-      int entity
-      READ Entity
+      Entity entity
+      READ GetEntity
       WRITE SetEntity
       NOTIFY EntityChanged
     )
@@ -207,6 +215,12 @@ namespace gazebo
     public: Q_INVOKABLE void OnPose(double _x, double _y, double _z,
         double _roll, double _pitch, double _yaw);
 
+    /// \brief Callback in Qt thread when physics' properties change.
+    /// \param[in] _stepSize step size
+    /// \param[in] _realTimeFactor real time factor
+    public: Q_INVOKABLE void OnPhysics(double _stepSize,
+        double _realTimeFactor);
+
     /// \brief Get whether the entity is a nested model or not
     /// \return True if the entity is a nested model, false otherwise
     public: Q_INVOKABLE bool NestedModel() const;
@@ -219,11 +233,11 @@ namespace gazebo
 
     /// \brief Get the entity currently inspected.
     /// \return Entity ID.
-    public: Q_INVOKABLE int Entity() const;
+    public: Q_INVOKABLE Entity GetEntity() const;
 
     /// \brief Set the entity currently inspected.
     /// \param[in] _entity Entity ID.
-    public: Q_INVOKABLE void SetEntity(const int &_entity);
+    public: Q_INVOKABLE void SetEntity(const Entity &_entity);
 
     /// \brief Notify that entity has changed.
     signals: void EntityChanged();

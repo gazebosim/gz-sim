@@ -16,6 +16,7 @@
 */
 
 #include <gtest/gtest.h>
+#include <ignition/common/Console.hh>
 #include <sdf/Actor.hh>
 #include <sdf/Light.hh>
 
@@ -33,11 +34,18 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Util.hh"
 
+#include "helpers/EnvTestFixture.hh"
+
 using namespace ignition;
 using namespace gazebo;
 
+/// \brief Tests for Util.hh
+class UtilTest : public InternalFixture<::testing::Test>
+{
+};
+
 /////////////////////////////////////////////////
-TEST(UtilTest, ScopedName)
+TEST_F(UtilTest, ScopedName)
 {
   EntityComponentManager ecm;
 
@@ -58,6 +66,7 @@ TEST(UtilTest, ScopedName)
 
   // World
   auto worldEntity = ecm.CreateEntity();
+  EXPECT_EQ(kNullEntity, gazebo::worldEntity(ecm));
   EXPECT_EQ(kNullEntity, gazebo::worldEntity(worldEntity, ecm));
   ecm.CreateComponent(worldEntity, components::World());
   ecm.CreateComponent(worldEntity, components::Name("world_name"));
@@ -201,6 +210,7 @@ TEST(UtilTest, ScopedName)
     "world_name::actorD_name");
 
   // World entity
+  EXPECT_EQ(worldEntity, gazebo::worldEntity(ecm));
   EXPECT_EQ(worldEntity, gazebo::worldEntity(worldEntity, ecm));
   EXPECT_EQ(worldEntity, gazebo::worldEntity(lightAEntity, ecm));
   EXPECT_EQ(worldEntity, gazebo::worldEntity(modelBEntity, ecm));
@@ -219,7 +229,89 @@ TEST(UtilTest, ScopedName)
 }
 
 /////////////////////////////////////////////////
-TEST(UtilTest, EntityTypeId)
+TEST_F(UtilTest, EntitiesFromScopedName)
+{
+  EntityComponentManager ecm;
+
+  // banana 1
+  //  - orange 2
+  //    - plum 3
+  //      - grape 4
+  //        - pear 5
+  //          - plum 6
+  //  - grape 7
+  //    - pear 8
+  //      - plum 9
+  //        - pear 10
+  //  - grape 11
+  //    - pear 12
+  //      - orange 13
+  //        - orange 14
+  //    - pear 15
+
+  auto createEntity = [&ecm](const std::string &_name, Entity _parent) -> Entity
+  {
+    auto res = ecm.CreateEntity();
+    ecm.CreateComponent(res, components::Name(_name));
+    ecm.CreateComponent(res, components::ParentEntity(_parent));
+    return res;
+  };
+
+  auto banana1 = ecm.CreateEntity();
+  ecm.CreateComponent(banana1, components::Name("banana"));
+
+  auto orange2 = createEntity("orange", banana1);
+  auto plum3 = createEntity("plum", orange2);
+  auto grape4 = createEntity("grape", plum3);
+  auto pear5 = createEntity("pear", grape4);
+  auto plum6 = createEntity("plum", pear5);
+  auto grape7 = createEntity("grape", banana1);
+  auto pear8 = createEntity("pear", grape7);
+  auto plum9 = createEntity("plum", pear8);
+  auto pear10 = createEntity("pear", plum9);
+  auto grape11 = createEntity("grape", banana1);
+  auto pear12 = createEntity("pear", grape11);
+  auto orange13 = createEntity("orange", pear12);
+  auto orange14 = createEntity("orange", orange13);
+  auto pear15 = createEntity("pear", grape11);
+
+  auto checkEntities = [&ecm](const std::string &_scopedName,
+      Entity _relativeTo, const std::unordered_set<Entity> &_result,
+      const std::string &_delim)
+  {
+    auto res = gazebo::entitiesFromScopedName(_scopedName, ecm, _relativeTo,
+        _delim);
+    EXPECT_EQ(_result.size(), res.size()) << _scopedName;
+
+    for (auto it : _result)
+    {
+      EXPECT_NE(res.find(it), res.end()) << it << "  " << _scopedName;
+    }
+  };
+
+  checkEntities("watermelon", kNullEntity, {}, "::");
+  checkEntities("banana", kNullEntity, {banana1}, "::");
+  checkEntities("orange", kNullEntity, {orange2, orange13, orange14}, ":");
+  checkEntities("banana::orange", kNullEntity, {orange2}, "::");
+  checkEntities("banana::grape", kNullEntity, {grape7, grape11}, "::");
+  checkEntities("grape/pear", kNullEntity, {pear5, pear8, pear12, pear15}, "/");
+  checkEntities("grape...pear...plum", kNullEntity, {plum6, plum9}, "...");
+  checkEntities(
+      "banana::orange::plum::grape::pear::plum", kNullEntity, {plum6}, "::");
+  checkEntities(
+      "banana::orange::kiwi::grape::pear::plum", kNullEntity, {}, "::");
+  checkEntities("orange+orange", kNullEntity, {orange14}, "+");
+  checkEntities("orange", banana1, {orange2}, "::");
+  checkEntities("grape", banana1, {grape7, grape11}, "::");
+  checkEntities("orange", orange2, {}, "::");
+  checkEntities("orange", orange13, {orange14}, "::");
+  checkEntities("grape::pear::plum", plum3, {plum6}, "::");
+  checkEntities("pear", grape11, {pear12, pear15}, "==");
+  checkEntities("plum=pear", pear8, {pear10}, "=");
+}
+
+/////////////////////////////////////////////////
+TEST_F(UtilTest, EntityTypeId)
 {
   EntityComponentManager ecm;
 
@@ -264,7 +356,7 @@ TEST(UtilTest, EntityTypeId)
 }
 
 /////////////////////////////////////////////////
-TEST(UtilTest, EntityTypeStr)
+TEST_F(UtilTest, EntityTypeStr)
 {
   EntityComponentManager ecm;
 
@@ -309,7 +401,7 @@ TEST(UtilTest, EntityTypeStr)
 }
 
 /////////////////////////////////////////////////
-TEST(UtilTest, RemoveParentScopedName)
+TEST_F(UtilTest, RemoveParentScopedName)
 {
   EXPECT_EQ(removeParentScope("world/world_name", "/"), "world_name");
   EXPECT_EQ(removeParentScope("world::world_name::light::lightA_name", "::"),
@@ -324,7 +416,7 @@ TEST(UtilTest, RemoveParentScopedName)
 }
 
 /////////////////////////////////////////////////
-TEST(UtilTest, AsFullPath)
+TEST_F(UtilTest, AsFullPath)
 {
   const std::string relativeUriUnix{"meshes/collision.dae"};
   const std::string relativeUriWindows{"meshes\\collision.dae"};
@@ -408,7 +500,7 @@ TEST(UtilTest, AsFullPath)
 }
 
 /////////////////////////////////////////////////
-TEST(UtilTest, TopLevelModel)
+TEST_F(UtilTest, TopLevelModel)
 {
   EntityComponentManager ecm;
 
@@ -417,6 +509,7 @@ TEST(UtilTest, TopLevelModel)
   //    - linkA
   //    - modelB
   //      - linkB
+  //        - visualB
   //  - modelC
 
   // World
@@ -448,18 +541,78 @@ TEST(UtilTest, TopLevelModel)
   ecm.CreateComponent(linkBEntity, components::Name("linkB_name"));
   ecm.CreateComponent(linkBEntity, components::ParentEntity(modelBEntity));
 
+  // Visual B - child of Link B
+  auto visualBEntity = ecm.CreateEntity();
+  ecm.CreateComponent(visualBEntity, components::Visual());
+  ecm.CreateComponent(visualBEntity, components::Name("visualB_name"));
+  ecm.CreateComponent(visualBEntity, components::ParentEntity(linkBEntity));
+
   // Model C
   auto modelCEntity = ecm.CreateEntity();
   ecm.CreateComponent(modelCEntity, components::Model());
   ecm.CreateComponent(modelCEntity, components::Name("modelC_name"));
   ecm.CreateComponent(modelCEntity, components::ParentEntity(worldEntity));
 
-  // model A, link A, model B and link B should have model A as top level entity
+  // model A, link A, model B, link B and visual B should have
+  // model A as the top level model
   EXPECT_EQ(modelAEntity, topLevelModel(modelAEntity, ecm));
   EXPECT_EQ(modelAEntity, topLevelModel(linkAEntity, ecm));
   EXPECT_EQ(modelAEntity, topLevelModel(modelBEntity, ecm));
   EXPECT_EQ(modelAEntity, topLevelModel(linkBEntity, ecm));
+  EXPECT_EQ(modelAEntity, topLevelModel(visualBEntity, ecm));
 
-  // model C should have itself as the top level entity
+  // model C should have itself as the top level model
   EXPECT_EQ(modelCEntity, topLevelModel(modelCEntity, ecm));
+
+  // the world should have no top level model
+  EXPECT_EQ(kNullEntity, topLevelModel(worldEntity, ecm));
+}
+
+/////////////////////////////////////////////////
+TEST_F(UtilTest, ValidTopic)
+{
+  std::string good{"good"};
+  std::string fixable{"not bad~"};
+  std::string invalid{"@~@~@~"};
+
+  EXPECT_EQ("good", validTopic({good}));
+  EXPECT_EQ("not_bad", validTopic({fixable}));
+  EXPECT_EQ("", validTopic({invalid}));
+
+  EXPECT_EQ("good", validTopic({good, fixable}));
+  EXPECT_EQ("not_bad", validTopic({fixable, good}));
+
+  EXPECT_EQ("good", validTopic({good, invalid}));
+  EXPECT_EQ("good", validTopic({invalid, good}));
+
+  EXPECT_EQ("not_bad", validTopic({fixable, invalid}));
+  EXPECT_EQ("not_bad", validTopic({invalid, fixable}));
+
+  EXPECT_EQ("not_bad", validTopic({fixable, invalid, good}));
+  EXPECT_EQ("good", validTopic({invalid, good, fixable}));
+}
+
+/////////////////////////////////////////////////
+TEST_F(UtilTest, EnableComponent)
+{
+  EntityComponentManager ecm;
+
+  auto entity1 = ecm.CreateEntity();
+  EXPECT_EQ(nullptr, ecm.Component<components::Name>(entity1));
+
+  // Enable
+  EXPECT_TRUE(enableComponent<components::Name>(ecm, entity1));
+  EXPECT_NE(nullptr, ecm.Component<components::Name>(entity1));
+
+  // Enabling again makes no changes
+  EXPECT_FALSE(enableComponent<components::Name>(ecm, entity1, true));
+  EXPECT_NE(nullptr, ecm.Component<components::Name>(entity1));
+
+  // Disable
+  EXPECT_TRUE(enableComponent<components::Name>(ecm, entity1, false));
+  EXPECT_EQ(nullptr, ecm.Component<components::Name>(entity1));
+
+  // Disabling again makes no changes
+  EXPECT_FALSE(enableComponent<components::Name>(ecm, entity1, false));
+  EXPECT_EQ(nullptr, ecm.Component<components::Name>(entity1));
 }

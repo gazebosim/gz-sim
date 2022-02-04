@@ -25,24 +25,16 @@ using namespace gazebo;
 /////////////////////////////////////////////////
 TmpIface::TmpIface()
 {
-  // Server control
-  this->node.Advertise("/server_control",
-      &TmpIface::OnServerControl, this);
 }
 
+
 /////////////////////////////////////////////////
-bool TmpIface::OnServerControl(const msgs::ServerControl &_req,
-                                     msgs::Boolean &_res)
+bool TmpIface::OnServerControl(const msgs::ServerControl &/*_req*/,
+                                     msgs::Boolean &/*_res*/)
 {
-  igndbg << "OnServerControl: request" << std::endl;
-  igndbg << _req.DebugString() << std::endl;
-
-  _res.set_data(true);
-
-  igndbg << "OnServerControl: response" << std::endl;
-  igndbg << _res.DebugString() << std::endl;
-
-  return true;
+  ignerr << "Called wrong /server_control callback. Call the one in "
+         << "ServerPrivate instead." << std::endl;
+  return false;
 }
 
 /////////////////////////////////////////////////

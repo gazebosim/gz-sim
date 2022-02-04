@@ -36,7 +36,7 @@
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Entity.hh>
-#include <ignition/gazebo/Export.hh>
+#include <ignition/gazebo/rendering/Export.hh>
 
 namespace ignition
 {
@@ -48,7 +48,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   class SceneManagerPrivate;
 
   /// \brief Scene manager class for loading and managing objects in the scene
-  class IGNITION_GAZEBO_VISIBLE SceneManager
+  class IGNITION_GAZEBO_RENDERING_VISIBLE SceneManager
   {
     /// \brief Constructor
     public: SceneManager();
@@ -96,9 +96,22 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: rendering::VisualPtr CreateVisual(Entity _id,
         const sdf::Visual &_visual, Entity _parentId = 0);
 
+    /// \brief Create a collision visual
+    /// \param[in] _id Unique visual id
+    /// \param[in] _collision Collision sdf dom
+    /// \param[in] _parentId Parent id
+    /// \return Visual (collision) object created from the sdf dom
+    public: rendering::VisualPtr CreateCollision(Entity _id,
+        const sdf::Collision &_collision, Entity _parentId = 0);
+
+    /// \brief Retrieve visual
+    /// \param[in] _id Unique visual (entity) id
+    /// \return Pointer to requested visual
+    public: rendering::VisualPtr VisualById(Entity _id);
+
     /// \brief Create an actor
     /// \param[in] _id Unique actor id
-    /// \param[in] _visual Actor sdf dom
+    /// \param[in] _actor Actor sdf dom
     /// \param[in] _parentId Parent id
     /// \return Actor object created from the sdf dom
     public: rendering::VisualPtr CreateActor(Entity _id,
@@ -117,7 +130,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// the correct parent.
     /// \param[in] _gazeboId Entity in Gazebo
     /// \param[in] _sensorName Name of sensor node in Ignition Rendering.
-    /// \param[in] _parentId Parent Id on Gazebo.
+    /// \param[in] _parentGazeboId Parent Id on Gazebo.
     /// \return True if sensor is successfully handled
     public: bool AddSensor(Entity _gazeboId, const std::string &_sensorName,
         Entity _parentGazeboId = 0);
@@ -175,7 +188,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// Usually, this will be a model or a light.
     /// \param[in] _visual Child visual
     /// \return Top level visual containining this visual
-    /// \TODO(anyone) Make it const ref when merging forward
+    /// TODO(anyone) Make it const ref when merging forward
     public: rendering::VisualPtr TopLevelVisual(
         // NOLINTNEXTLINE
         rendering::VisualPtr _visual) const;

@@ -100,6 +100,10 @@ ServerPrivate::~ServerPrivate()
   {
     this->runThread.join();
   }
+  if (this->stopThread && this->stopThread->joinable())
+  {
+    this->stopThread->join();
+  }
 }
 
 //////////////////////////////////////////////////
@@ -229,13 +233,11 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
   bool hasRecordPath {false};
   bool hasCompressPath {false};
   bool hasRecordResources {false};
-  bool hasCompress {false};
   bool hasRecordTopics {false};
 
   std::string sdfRecordPath;
   std::string sdfCompressPath;
   bool sdfRecordResources;
-  bool sdfCompress;
   std::vector<std::string> sdfRecordTopics;
 
   if (sdfUseLogRecord)
@@ -246,8 +248,6 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
       recordPluginElem->Get<std::string>("compress_path", "");
     std::tie(sdfRecordResources, hasRecordResources) =
       recordPluginElem->Get<bool>("record_resources", false);
-    std::tie(sdfCompress, hasCompress) =
-      recordPluginElem->Get<bool>("compress", false);
 
     hasRecordTopics = recordPluginElem->HasElement("record_topic");
     if (hasRecordTopics)
@@ -311,7 +311,7 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
 
         // In the case that the --compress flag is set, then
         // this field will be populated with just the file extension
-        if(_config.LogRecordCompressPath() == ".zip")
+        if (_config.LogRecordCompressPath() == ".zip")
         {
           sdfCompressPath = std::string(sdfRecordPath);
           if (!std::string(1, sdfCompressPath.back()).compare(
@@ -401,7 +401,7 @@ void ServerPrivate::SetupTransport()
   if (this->node.Advertise(getPathService,
       &ServerPrivate::ResourcePathsService, this))
   {
-    ignmsg << "Resource path get service on [" << addPathService << "]."
+    ignmsg << "Resource path get service on [" << getPathService << "]."
            << std::endl;
   }
   else
@@ -423,6 +423,19 @@ void ServerPrivate::SetupTransport()
     ignerr << "Something went wrong, failed to advertise [" << pathTopic
            << "]" << std::endl;
   }
+
+  std::string serverControlService{"/server_control"};
+  if (this->node.Advertise(serverControlService,
+                           &ServerPrivate::ServerControlService, this))
+  {
+    ignmsg << "Server control service on [" << serverControlService << "]."
+           << std::endl;
+  }
+  else
+  {
+    ignerr << "Something went wrong, failed to advertise ["
+           << serverControlService << "]" << std::endl;
+  }
 }
 
 //////////////////////////////////////////////////
@@ -435,6 +448,49 @@ bool ServerPrivate::WorldsService(ignition::msgs::StringMsg_V &_res)
   for (const auto &name : this->worldNames)
   {
     _res.add_data(name);
+  }
+
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool ServerPrivate::ServerControlService(
+  const ignition::msgs::ServerControl &_req, msgs::Boolean &_res)
+{
+  _res.set_data(false);
+
+  if (_req.stop())
+  {
+    if (!this->stopThread)
+    {
+      this->stopThread = std::make_shared<std::thread>([this]{
+        ignlog << "Stopping Gazebo" << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        this->Stop();
+      });
+    }
+    _res.set_data(true);
+  }
+
+  // TODO(chapulina): implement world cloning
+  if (_req.clone() || _req.new_port() != 0 || !_req.save_world_name().empty())
+  {
+    ignerr << "ServerControl::clone is not implemented" << std::endl;
+    _res.set_data(false);
+  }
+
+  // TODO(chapulina): implement adding a new world
+  if (_req.new_world())
+  {
+    ignerr << "ServerControl::new_world is not implemented" << std::endl;
+    _res.set_data(false);
+  }
+
+  // TODO(chapulina): implement loading a world
+  if (!_req.open_filename().empty())
+  {
+    ignerr << "ServerControl::open_filename is not implemented" << std::endl;
+    _res.set_data(false);
   }
 
   return true;

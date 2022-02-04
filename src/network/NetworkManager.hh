@@ -43,7 +43,7 @@ namespace ignition
     /// \brief The NetworkManager provides a common interface to derived
     /// objects that control the flow of information in the distributed
     /// simulation environment.
-    class IGNITION_GAZEBO_VISIBLE NetworkManager
+    class NetworkManager
     {
       /// \brief Convenience type alias for NodeOptions
       public: using NodeOptions = ignition::transport::NodeOptions;

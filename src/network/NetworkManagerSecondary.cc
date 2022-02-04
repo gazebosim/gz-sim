@@ -167,6 +167,12 @@ void NetworkManagerSecondary::OnStep(
   msgs::SerializedStateMap stateMsg;
   if (!entities.empty())
     this->dataPtr->ecm->State(stateMsg, entities);
+  // Note on merging forward:
+  // `has_one_time_component_changes` field is available in Edifice so this
+  // workaround can be removed
+  auto data = stateMsg.mutable_header()->add_data();
+  data->set_key("has_one_time_component_changes");
+  data->add_value(this->dataPtr->ecm->HasOneTimeComponentChanges() ? "1" : "0");
 
   this->stepAckPub.Publish(stateMsg);
 

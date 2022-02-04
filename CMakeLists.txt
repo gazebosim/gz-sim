@@ -1,20 +1,20 @@
-cmake_minimum_required(VERSION 3.5.1 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo3 VERSION 3.6.0)
+project(ignition-gazebo3 VERSION 3.12.0)
 
 #============================================================================
 # Find ignition-cmake
 #============================================================================
 # If you get an error at this line, you need to install ignition-cmake
-find_package(ignition-cmake2 2.3 REQUIRED)
+find_package(ignition-cmake2 2.8.0 REQUIRED)
 
 #============================================================================
 # Configure the project
 #============================================================================
-ign_configure_project()
+ign_configure_project(VERSION_SUFFIX)
 
 #============================================================================
 # Set project-specific options
@@ -38,7 +38,16 @@ endif()
 # Search for project-specific dependencies
 #============================================================================
 
-ign_find_package(sdformat9 REQUIRED VERSION 9.3.0)
+# Setting this policy enables using the protobuf_MODULE_COMPATIBLE
+# set command in CMake versions older than 13.13
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+# This option is needed to use the PROTOBUF_GENERATE_CPP
+# in case protobuf is found with the CMake config files
+# It needs to be set before any find_package(...) call
+# as protobuf could be find transitively by any dependency
+set(protobuf_MODULE_COMPATIBLE TRUE)
+
+ign_find_package(sdformat9 REQUIRED VERSION 9.6.0)
 set(SDF_VER ${sdformat9_VERSION_MAJOR})
 
 #--------------------------------------
@@ -59,7 +68,7 @@ set(IGN_MSGS_VER ${ignition-msgs5_VERSION_MAJOR})
 #--------------------------------------
 # Find ignition-common
 # Always use the profiler component to get the headers, regardless of status.
-ign_find_package(ignition-common3 VERSION 3.4
+ign_find_package(ignition-common3 VERSION 3.8
   COMPONENTS
     profiler
     events
@@ -75,7 +84,7 @@ set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools4_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-gui
-ign_find_package(ignition-gui3 REQUIRED VERSION 3.4)
+ign_find_package(ignition-gui3 REQUIRED VERSION 3.6)
 set(IGN_GUI_VER ${ignition-gui3_VERSION_MAJOR})
 ign_find_package (Qt5
   COMPONENTS
@@ -87,7 +96,7 @@ ign_find_package (Qt5
 
 #--------------------------------------
 # Find ignition-physics
-ign_find_package(ignition-physics2 VERSION 2.3
+ign_find_package(ignition-physics2 VERSION 2.5
   COMPONENTS
     mesh
     sdf
@@ -97,7 +106,7 @@ set(IGN_PHYSICS_VER ${ignition-physics2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-sensors
-ign_find_package(ignition-sensors3 REQUIRED
+ign_find_package(ignition-sensors3 REQUIRED VERSION 3.3
   COMPONENTS
     rendering
     air_pressure
@@ -114,13 +123,19 @@ set(IGN_SENSORS_VER ${ignition-sensors3_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-rendering
-ign_find_package(ignition-rendering3 REQUIRED VERSION 3.2)
+ign_find_package(ignition-rendering3 REQUIRED VERSION 3.5)
 set(IGN_RENDERING_VER ${ignition-rendering3_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-math
 ign_find_package(ignition-math6 REQUIRED COMPONENTS eigen3 VERSION 6.6)
 set(IGN_MATH_VER ${ignition-math6_VERSION_MAJOR})
+
+#--------------------------------------
+# Find ignition-tools
+ign_find_package(ignition-tools
+                 REQUIRED
+                 PKGCONFIG "ignition-tools")
 
 #--------------------------------------
 # Find protobuf
@@ -130,7 +145,7 @@ ign_find_package(IgnProtobuf
                  REQUIRED
                  COMPONENTS all
                  PRETTY Protobuf)
-set(PROTOBUF_IMPORT_DIRS ${ignition-msgs5_INCLUDE_DIRS})
+set(Protobuf_IMPORT_DIRS ${ignition-msgs5_INCLUDE_DIRS})
 
 # Plugin install dirs
 set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR
@@ -166,6 +181,7 @@ if (NOT APPLE)
     API_MAINPAGE_MD "${CMAKE_BINARY_DIR}/api.md"
     TUTORIALS_MAINPAGE_MD "${CMAKE_BINARY_DIR}/tutorials.md"
     ADDITIONAL_INPUT_DIRS "${CMAKE_SOURCE_DIR}/src/systems ${CMAKE_SOURCE_DIR}/src/gui/plugins"
+    IMAGE_PATH_DIRS "${CMAKE_SOURCE_DIR}/tutorials/files"
     TAGFILES
      "${IGNITION-MATH_DOXYGEN_TAGFILE} = ${IGNITION-MATH_API_URL}"
      "${IGNITION-MSGS_DOXYGEN_TAGFILE} = ${IGNITION-MSGS_API_URL}"
