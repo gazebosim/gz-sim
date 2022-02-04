@@ -156,7 +156,8 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RestoringMoments))
   EXPECT_NEAR(maxUniformRoll, 0.11, 1e-1);
   EXPECT_NEAR(minUniformRoll, minGradedRoll, 1e-1);
   // Emperically derived
-  EXPECT_NEAR(minUniformRoll, -0.15, 1e-1);
+  // added extra tol (3e-5) after fixing center of volume's reference frame
+  EXPECT_NEAR(minUniformRoll, -0.15, 1e-1 + 3e-5);
 }
 
 /////////////////////////////////////////////////
