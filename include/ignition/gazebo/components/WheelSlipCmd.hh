@@ -23,7 +23,7 @@
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Serialization.hh>
 
-#include <ignition/msgs/wheel_slip_parameters.pb.h>
+#include <ignition/msgs/wheel_slip_parameters_cmd.pb.h>
 
 namespace ignition
 {
@@ -35,7 +35,7 @@ namespace components
 {
   /// \brief A component type that contains commanded wheel slip parameters of
   /// an entity in the world frame represented by msgs::WheelSlipParameters.
-  using WheelSlipCmd = Component<ignition::msgs::WheelSlipParameters,
+  using WheelSlipCmd = Component<ignition::msgs::WheelSlipParametersCmd,
     class WheelSlipCmdTag, serializers::MsgSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.WheelSlipCmd",
       WheelSlipCmd)
