@@ -54,6 +54,7 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/Model.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
 #include "ignition/gazebo/components/ContactSensorData.hh"
 #include "ignition/gazebo/components/ContactSensor.hh"
@@ -383,21 +384,19 @@ class WheelSlipCommand : public UserCommandBase
   /// \brief Constructor
   /// \param[in] _msg Message containing the wheel slip parameters.
   /// \param[in] _iface Pointer to user commands interface.
-  public: WheelSlipCommand(msgs::WheelSlipParameters *_msg,
+  public: WheelSlipCommand(msgs::WheelSlipParametersCmd *_msg,
       std::shared_ptr<UserCommandsInterface> &_iface);
 
   // Documentation inherited
   public: bool Execute() final;
 
   /// \brief WheelSlip equality comparision function
-  public: std::function<bool(const msgs::WheelSlipParameters &, const msgs::WheelSlipParameters &)>
+  public: std::function<bool(const msgs::WheelSlipParametersCmd &, const msgs::WheelSlipParametersCmd &)>
           wheelSlipEql {
-            [](const msgs::WheelSlipParameters &_a, const msgs::WheelSlipParameters &_b) {
+            [](const msgs::WheelSlipParametersCmd &_a, const msgs::WheelSlipParametersCmd &_b) {
               return
-                _a.name() == _b.name() &&
-                _a.id() == _b.id() &&
-                _a.parent_id() == _b.parent_id() &&
-                _a.parent_name() == _b.parent_name() &&
+                _a.model_name() == _b.model_name() &&
+                _a.link_name() == _b.link_name() &&
                 math::equal(
                   _a.slip_compliance_lateral(),
                   _b.slip_compliance_lateral(),
@@ -492,7 +491,7 @@ class ignition::gazebo::systems::UserCommandsPrivate
   /// updated.
   /// \return True if successful.
   public: bool WheelSlipService(
-    const msgs::WheelSlipParameters &_req, msgs::Boolean &_res);
+    const msgs::WheelSlipParametersCmd &_req, msgs::Boolean &_res);
 
   /// \brief Queue of commands pending execution.
   public: std::vector<std::unique_ptr<UserCommandBase>> pendingCmds;
@@ -853,7 +852,7 @@ bool UserCommandsPrivate::VisualService(const msgs::Visual &_req,
 }
 
 //////////////////////////////////////////////////
-bool UserCommandsPrivate::WheelSlipService(const msgs::WheelSlipParameters &_req,
+bool UserCommandsPrivate::WheelSlipService(const msgs::WheelSlipParametersCmd &_req,
     msgs::Boolean &_res)
 {
   // Create command and push it to queue
@@ -1480,7 +1479,7 @@ bool VisualCommand::Execute()
 }
 
 //////////////////////////////////////////////////
-WheelSlipCommand::WheelSlipCommand(msgs::WheelSlipParameters *_msg,
+WheelSlipCommand::WheelSlipCommand(msgs::WheelSlipParametersCmd *_msg,
     std::shared_ptr<UserCommandsInterface> &_iface)
     : UserCommandBase(_msg, _iface)
 {
@@ -1489,66 +1488,45 @@ WheelSlipCommand::WheelSlipCommand(msgs::WheelSlipParameters *_msg,
 //////////////////////////////////////////////////
 bool WheelSlipCommand::Execute()
 {
-  auto wheelSlipMsg = dynamic_cast<const msgs::WheelSlipParameters *>(this->msg);
+  auto wheelSlipMsg = dynamic_cast<const msgs::WheelSlipParametersCmd *>(this->msg);
   if (nullptr == wheelSlipMsg)
   {
     ignerr << "Internal error, null wheel slip message" << std::endl;
     return false;
   }
 
-  Entity wheelSlipEntity{wheelSlipMsg->id()};
 
-  if (kNullEntity == wheelSlipEntity && !wheelSlipMsg->name().empty())
+  Entity modelEntity = this->iface->ecm->EntityByComponents(
+    components::Name(wheelSlipMsg->model_name()));
+  if (kNullEntity == modelEntity)
   {
-    Entity wheelSlipParentEntity{wheelSlipMsg->parent_id()};
-    if (kNullEntity != wheelSlipParentEntity)
-    {
-      wheelSlipEntity = this->iface->ecm->EntityByComponents(
-        components::Name(wheelSlipMsg->name()),
-        components::ParentEntity(wheelSlipParentEntity));
-    }
-    else if (!wheelSlipMsg->parent_name().empty())
-    {
-      auto possible_parents = this->iface->ecm->EntitiesByComponents(
-        components::Name(wheelSlipMsg->parent_name()));
-      for (const auto possible_parent : possible_parents)
-      {
-        wheelSlipEntity = this->iface->ecm->EntityByComponents(
-          components::Name(wheelSlipMsg->name()),
-          components::ParentEntity(possible_parent));
-        if (kNullEntity != wheelSlipEntity) {
-          break;
-        }
-      }
-    }
-    else
-    {
-      wheelSlipEntity = this->iface->ecm->EntityByComponents(
-        components::Name(wheelSlipMsg->name()));
-    }
+    ignerr << "Failed to find model with name [" << wheelSlipMsg->model_name()
+           << "]." << std::endl;
+    return false;
   }
-  if (kNullEntity == wheelSlipEntity)
+  Model model{modelEntity};
+  Entity linkEntity = model.LinkByName(
+    *this->iface->ecm, wheelSlipMsg->link_name());
+  if (kNullEntity == linkEntity)
   {
-    ignerr << "Failed to find wheel slip with name [" << wheelSlipMsg->name()
-           << "], ID [" << wheelSlipMsg->id() << "], parent ID ["
-           << wheelSlipMsg->parent_id() << "] and parent name ["
-           << wheelSlipMsg->parent_name() << "]." << std::endl;
+    ignerr << "Failed to find link with name [" << wheelSlipMsg->link_name()
+           << "] for model [" << wheelSlipMsg->model_name() << "]." << std::endl;
     return false;
   }
 
   auto wheelSlipCmdComp =
-      this->iface->ecm->Component<components::WheelSlipCmd>(wheelSlipEntity);
+      this->iface->ecm->Component<components::WheelSlipCmd>(linkEntity);
   if (!wheelSlipCmdComp)
   {
     this->iface->ecm->CreateComponent(
-        wheelSlipEntity, components::WheelSlipCmd(*wheelSlipMsg));
+        linkEntity, components::WheelSlipCmd(*wheelSlipMsg));
   }
   else
   {
     auto state = wheelSlipCmdComp->SetData(*wheelSlipMsg, this->wheelSlipEql) ?
         ComponentState::OneTimeChange : ComponentState::NoChange;
     this->iface->ecm->SetChanged(
-        wheelSlipEntity, components::WheelSlipCmd::typeId, state);
+        linkEntity, components::WheelSlipCmd::typeId, state);
   }
   return true;
 }

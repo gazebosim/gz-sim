@@ -253,23 +253,26 @@ void WheelSlipPrivate::Update(EntityComponentManager &_ecm)
     if (wheelSlipCmdComp)
     {
       const auto & wheelSlipCmdParams = wheelSlipCmdComp->Data();
-      bool changed = math::equal(
+      bool changed = (!math::equal(
           params.slipComplianceLateral,
           wheelSlipCmdParams.slip_compliance_lateral(),
-          1e-6) &&
-        math::equal(
+          1e-6)) ||
+        (!math::equal(
           params.slipComplianceLongitudinal,
           wheelSlipCmdParams.slip_compliance_longitudinal(),
-          1e-6);
+          1e-6));
 
       if (changed)
       {
-        _ecm.RemoveComponent<components::WheelSlipCmd>(linkSurface.first);
+        fprintf(stderr, "changed wheel slip parameters!\n");
         params.slipComplianceLateral =
           wheelSlipCmdParams.slip_compliance_lateral();
         params.slipComplianceLongitudinal =
           wheelSlipCmdParams.slip_compliance_longitudinal();
+      } else {
+        fprintf(stderr, "NOT changed wheel slip parameters!\n");
       }
+      _ecm.RemoveComponent<components::WheelSlipCmd>(linkSurface.first);
     }
 
     // get user-defined normal force constant
