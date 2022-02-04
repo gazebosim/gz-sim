@@ -20,6 +20,7 @@
 #include <ignition/msgs/image.pb.h>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/utilities/ExtraTestMacros.hh>
@@ -28,22 +29,17 @@
 #include "ignition/gazebo/test_config.hh"
 
 #include "plugins/MockSystem.hh"
+#include "../helpers/EnvTestFixture.hh"
 
 #define DEPTH_TOL 1e-4
 
 using namespace ignition;
 using namespace gazebo;
+using namespace std::chrono_literals;
 
 /// \brief Test RgbdCameraTest system
-class RgbdCameraTest : public ::testing::Test
+class RgbdCameraTest : public InternalFixture<::testing::Test>
 {
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    ignition::common::Console::SetVerbosity(4);
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
-  }
 };
 
 std::mutex mutex;
@@ -86,13 +82,14 @@ TEST_F(RgbdCameraTest, IGN_UTILS_TEST_DISABLED_ON_MAC(RgbdCameraBox))
   size_t iters100 = 100u;
   server.Run(true, iters100, false);
 
-  ignition::common::Time waitTime = ignition::common::Time(0.001);
-  int i = 0;
-  while (nullptr == depthBuffer && i < 500)
+  int sleep{0};
+  int maxSleep{30};
+  while (depthBuffer == nullptr && sleep < maxSleep)
   {
-    ignition::common::Time::Sleep(waitTime);
-    i++;
+    std::this_thread::sleep_for(100ms);
+    sleep++;
   }
+  EXPECT_LT(sleep, maxSleep);
   ASSERT_NE(depthBuffer, nullptr);
 
   // Take into account box of 1 m on each side and 0.05 cm sensor offset

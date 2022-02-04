@@ -20,6 +20,7 @@
 #include <ignition/msgs/entity_factory.pb.h>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
 
@@ -27,26 +28,22 @@
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"
 
 #include "../helpers/Relay.hh"
+#include "../helpers/EnvTestFixture.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
 //////////////////////////////////////////////////
-class UserCommandsTest : public ::testing::Test
+class UserCommandsTest : public InternalFixture<::testing::Test>
 {
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    ignition::common::Console::SetVerbosity(4);
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
-  }
 };
 
 /////////////////////////////////////////////////
@@ -55,7 +52,7 @@ TEST_F(UserCommandsTest, Create)
   // Start server
   ServerConfig serverConfig;
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/examples/worlds/empty.sdf";
+    "/test/worlds/empty.sdf";
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);
@@ -670,4 +667,66 @@ TEST_F(UserCommandsTest, Pose)
   poseComp = ecm->Component<components::Pose>(boxEntity);
   ASSERT_NE(nullptr, poseComp);
   EXPECT_NEAR(500.0, poseComp->Data().Pos().Y(), 0.2);
+}
+
+/////////////////////////////////////////////////
+TEST_F(UserCommandsTest, Physics)
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/shapes.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Create a system just to get the ECM
+  EntityComponentManager *ecm{nullptr};
+  test::Relay testSystem;
+  testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
+                             gazebo::EntityComponentManager &_ecm)
+      {
+        ecm = &_ecm;
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+
+  // Run server and check we have the ECM
+  EXPECT_EQ(nullptr, ecm);
+  server.Run(true, 1, false);
+  EXPECT_NE(nullptr, ecm);
+
+  // Check that the physics properties are the ones specified in the sdf
+  auto worldEntity = ecm->EntityByComponents(components::World());
+  EXPECT_NE(kNullEntity, worldEntity);
+  auto physicsComp = ecm->Component<components::Physics>(worldEntity);
+  ASSERT_NE(nullptr, physicsComp);
+  EXPECT_DOUBLE_EQ(0.001, physicsComp->Data().MaxStepSize());
+  EXPECT_DOUBLE_EQ(0.0, physicsComp->Data().RealTimeFactor());
+
+  // Set physics properties
+  msgs::Physics req;
+  req.set_max_step_size(0.123);
+  req.set_real_time_factor(4.567);
+
+  msgs::Boolean res;
+  bool result;
+  unsigned int timeout = 5000;
+  std::string service{"/world/default/set_physics"};
+
+  transport::Node node;
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Run two iterations, in the first one the PhysicsCmd component is created
+  // in the second one it is processed
+  server.Run(true, 2, false);
+
+  // Check updated physics properties
+  physicsComp = ecm->Component<components::Physics>(worldEntity);
+  EXPECT_DOUBLE_EQ(0.123, physicsComp->Data().MaxStepSize());
+  EXPECT_DOUBLE_EQ(4.567, physicsComp->Data().RealTimeFactor());
 }

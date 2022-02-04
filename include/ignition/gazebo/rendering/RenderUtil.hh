@@ -24,7 +24,7 @@
 #include <sdf/Sensor.hh>
 
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
+#include <ignition/gazebo/rendering/Export.hh>
 #include <ignition/gazebo/System.hh>
 
 #include "ignition/gazebo/rendering/SceneManager.hh"
@@ -41,7 +41,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   class RenderUtilPrivate;
 
   /// \class RenderUtil RenderUtil.hh ignition/gazebo/gui/plugins/RenderUtil.hh
-  class IGNITION_GAZEBO_VISIBLE RenderUtil
+  class IGNITION_GAZEBO_RENDERING_VISIBLE RenderUtil
   {
     /// \brief Constructor
     public: explicit RenderUtil();
@@ -86,16 +86,17 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Name of the rendering scene.
     public: std::string SceneName() const;
 
-    /// \brief Set background color of render window
+    /// \brief Set background color of render window. This will override
+    /// other sources, such as from SDF.
     /// \param[in] _color Color of render window background
     public: void SetBackgroundColor(const math::Color &_color);
 
-    /// \brief Set ambient light of render window
+    /// \brief Set ambient light of render window. This will override
+    /// other sources, such as from SDF.
     /// \param[in] _ambient Color of ambient light
     public: void SetAmbientLight(const math::Color &_ambient);
 
     /// \brief Show grid view in the scene
-    /// \param[in] _scene Pointer to the scene object
     public: void ShowGrid();
 
     /// \brief Set whether to use the current GL context
@@ -110,6 +111,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void SetEnableSensors(bool _enable, std::function<
         std::string(const sdf::Sensor &, const std::string &)>
         _createSensorCb = {});
+
+    /// \brief View collisions of specified entity which are shown in orange
+    /// \param[in] _entity Entity to view collisions
+    public: void ViewCollisions(const Entity &_entity);
 
     /// \brief Get the scene manager
     /// Returns reference to the scene manager.
@@ -126,7 +131,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Set the entity being selected
     /// \param[in] _node Node representing the selected entity
-    /// \TODO(anyone) Make const ref when merging forward
+    /// TODO(anyone) Make const ref when merging forward
     // NOLINTNEXTLINE
     public: void SetSelectedEntity(rendering::NodePtr _node);
 
@@ -139,7 +144,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Get the entity being selected. This will only return the
     /// last entity selected.
-    /// \TODO(anyone) Deprecate in favour of SelectedEntities
+    /// TODO(anyone) Deprecate in favour of SelectedEntities
     public: rendering::NodePtr SelectedEntity() const;
 
     /// \brief Get the entities currently selected, in order of selection.

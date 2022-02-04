@@ -39,6 +39,8 @@
 
 #include <ignition/transport/Node.hh>
 
+#include <ignition/msgs/server_control.pb.h>
+
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Export.hh"
 #include "ignition/gazebo/ServerConfig.hh"
@@ -114,6 +116,13 @@ namespace ignition
       /// \return True if successful.
       private: bool ResourcePathsService(ignition::msgs::StringMsg_V &_res);
 
+      /// \brief Callback for server control service.
+      /// \param[out] _req The control request.
+      /// \param[out] _res Whether the request was successfully fullfilled.
+      /// \return True if successful.
+      private: bool ServerControlService(
+        const ignition::msgs::ServerControl &_req, msgs::Boolean &_res);
+
       /// \brief A pool of worker threads.
       public: common::WorkerPool workerPool{2};
 
@@ -129,6 +138,9 @@ namespace ignition
 
       /// \brief Thread that executes systems.
       public: std::thread runThread;
+
+      /// \brief Thread that shuts down the system.
+      public: std::shared_ptr<std::thread> stopThread;
 
       /// \brief Our signal handler.
       public: ignition::common::SignalHandler sigHandler;

@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>
 
 #include <ignition/gazebo/EntityComponentManager.hh>
@@ -33,15 +34,13 @@
 #include <ignition/gazebo/components/Static.hh>
 #include <ignition/gazebo/components/WindMode.hh>
 
+#include "../helpers/EnvTestFixture.hh"
+
 using namespace ignition;
 using namespace gazebo;
 
-class ModelIntegrationTest : public ::testing::Test
+class ModelIntegrationTest : public InternalFixture<::testing::Test>
 {
-  public: void SetUp() override
-  {
-    ignition::common::Console::SetVerbosity(4);
-  }
 };
 
 //////////////////////////////////////////////////

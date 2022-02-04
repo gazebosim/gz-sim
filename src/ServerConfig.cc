@@ -826,7 +826,8 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
   // 1. Check contents of environment variable
   std::string envConfig;
   bool configSet = ignition::common::env(gazebo::kServerConfigPathEnv,
-                                         envConfig);
+                                         envConfig,
+                                         true);
 
   if (configSet)
   {
@@ -869,16 +870,26 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
     configFilename = "server.config";
   }
 
-  std::string defaultConfig;
-  ignition::common::env(IGN_HOMEDIR, defaultConfig);
-  defaultConfig = ignition::common::joinPaths(defaultConfig, ".ignition",
-    "gazebo", configFilename);
+  std::string defaultConfigDir;
+  ignition::common::env(IGN_HOMEDIR, defaultConfigDir);
+  defaultConfigDir = ignition::common::joinPaths(defaultConfigDir, ".ignition",
+    "gazebo");
+
+  auto defaultConfig = ignition::common::joinPaths(defaultConfigDir,
+      configFilename);
 
   if (!ignition::common::exists(defaultConfig))
   {
     auto installedConfig = ignition::common::joinPaths(
         IGNITION_GAZEBO_SERVER_CONFIG_PATH,
         configFilename);
+
+    if (!ignition::common::createDirectories(defaultConfigDir))
+    {
+      ignerr << "Failed to create directory [" << defaultConfigDir
+             << "]." << std::endl;
+      return ret;
+    }
 
     if (!ignition::common::exists(installedConfig))
     {

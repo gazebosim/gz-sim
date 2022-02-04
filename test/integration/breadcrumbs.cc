@@ -20,12 +20,14 @@
 #include <ignition/msgs/empty.pb.h>
 #include <ignition/msgs/twist.pb.h>
 
+#include <optional>
 #include <regex>
 
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/Entity.hh"
@@ -38,19 +40,13 @@
 
 #include "helpers/Relay.hh"
 #include "helpers/UniqueTestDirectoryEnv.hh"
+#include "helpers/EnvTestFixture.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
-class BreadcrumbsTest : public ::testing::Test
+class BreadcrumbsTest : public InternalFixture<::testing::Test>
 {
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    ignition::common::Console::SetVerbosity(4);
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
-  }
   public: void LoadWorld(const std::string &_path, bool _useLevels = false)
   {
     this->serverConfig.SetResourceCache(test::UniqueTestDirectoryEnv::Path());

@@ -40,7 +40,7 @@ namespace ignition
     /// \class NetworkManagerSecondary NetworkManagerSecondary.hh
     ///   ignition/gazebo/network/NetworkManagerSecondary.hh
     /// \brief Secondary specific behaviors
-    class IGNITION_GAZEBO_VISIBLE NetworkManagerSecondary:
+    class NetworkManagerSecondary:
       public NetworkManager
     {
       // Documentation inherited

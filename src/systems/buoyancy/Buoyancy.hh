@@ -45,7 +45,7 @@ namespace systems
   ///
   /// ## System Parameters
   ///
-  /// * <uniform_fluid_density> sets the density of the fluid that surrounds
+  /// * `<uniform_fluid_density>` sets the density of the fluid that surrounds
   /// the buoyant object.
   ///
   /// ## Example
@@ -57,7 +57,7 @@ namespace systems
   /// ```
   /// ign gazebo -v 4 buoyancy.sdf
   /// ```
-  class IGNITION_GAZEBO_VISIBLE Buoyancy
+  class Buoyancy
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate

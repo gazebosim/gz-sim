@@ -26,6 +26,7 @@
 #include <ignition/msgs/inertial.pb.h>
 #include <ignition/msgs/light.pb.h>
 #include <ignition/msgs/material.pb.h>
+#include <ignition/msgs/physics.pb.h>
 #include <ignition/msgs/scene.pb.h>
 #include <ignition/msgs/sensor.pb.h>
 #include <ignition/msgs/sensor_noise.pb.h>
@@ -46,6 +47,7 @@
 #include <sdf/Light.hh>
 #include <sdf/Material.hh>
 #include <sdf/Noise.hh>
+#include <sdf/Physics.hh>
 #include <sdf/Scene.hh>
 #include <sdf/Sensor.hh>
 
@@ -63,28 +65,32 @@ namespace ignition
     /// to the values contained in a sdf::Noise object.
     /// \param[out] _msg SensorNoise message to set.
     /// \param[in] _sdf SDF Noise object.
-    void set(msgs::SensorNoise *_msg, const sdf::Noise &_sdf);
+    void IGNITION_GAZEBO_VISIBLE
+    set(msgs::SensorNoise *_msg, const sdf::Noise &_sdf);
 
     /// \brief Helper function that sets a mutable msgs::WorldStatistics object
     /// to the values contained in a gazebo::UpdateInfo  object.
     /// \param[out] _msg WorldStatistics message to set.
     /// \param[in] _in UpdateInfo object.
-    void set(msgs::WorldStatistics *_msg, const UpdateInfo &_in);
+    void IGNITION_GAZEBO_VISIBLE
+    set(msgs::WorldStatistics *_msg, const UpdateInfo &_in);
 
     /// \brief Helper function that sets a mutable msgs::Time object
     /// to the values contained in a std::chrono::steady_clock::duration
     /// object.
     /// \param[out] _msg Time message to set.
     /// \param[in] _in Chrono duration object.
-    void set(msgs::Time *_msg, const std::chrono::steady_clock::duration &_in);
+    void IGNITION_GAZEBO_VISIBLE
+    set(msgs::Time *_msg, const std::chrono::steady_clock::duration &_in);
 
     /// \brief Generic conversion from an SDF geometry to another type.
     /// \param[in] _in SDF geometry.
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
-    Out convert(const sdf::Geometry &/*_in*/)
+    Out convert(const sdf::Geometry &_in)
     {
+      (void)_in;
       Out::ConversionNotImplemented;
     }
 
@@ -100,8 +106,9 @@ namespace ignition
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
-    Out convert(const msgs::Pose &/*_in*/)
+    Out convert(const msgs::Pose &_in)
     {
+      (void)_in;
       Out::ConversionNotImplemented;
     }
 
@@ -116,8 +123,9 @@ namespace ignition
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
-    Out convert(const msgs::Geometry &/*_in*/)
+    Out convert(const msgs::Geometry &_in)
     {
+      (void)_in;
       Out::ConversionNotImplemented;
     }
 
@@ -133,8 +141,9 @@ namespace ignition
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
-    Out convert(const sdf::Material &/*_in*/)
+    Out convert(const sdf::Material &_in)
     {
+      (void)_in;
       Out::ConversionNotImplemented;
     }
 
@@ -150,8 +159,9 @@ namespace ignition
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
-    Out convert(const msgs::Material &/*_in*/)
+    Out convert(const msgs::Material &_in)
     {
+      (void)_in;
       Out::ConversionNotImplemented;
     }
 
@@ -167,8 +177,9 @@ namespace ignition
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
-    Out convert(const sdf::Actor &/*_in*/)
+    Out convert(const sdf::Actor &_in)
     {
+      (void)_in;
       Out::ConversionNotImplemented;
     }
 
@@ -184,8 +195,9 @@ namespace ignition
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
-    Out convert(const msgs::Actor& /*_in*/)
+    Out convert(const msgs::Actor& _in)
     {
+      (void)_in;
       Out::ConversionNotImplemented;
     }
 
@@ -201,8 +213,9 @@ namespace ignition
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
-    Out convert(const sdf::Light &/*_in*/)
+    Out convert(const sdf::Light &_in)
     {
+      (void)_in;
       Out::ConversionNotImplemented;
     }
 
@@ -219,8 +232,9 @@ namespace ignition
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
-    Out convert(const msgs::Light& /*_in*/)
+    Out convert(const msgs::Light& _in)
     {
+      (void)_in;
       Out::ConversionNotImplemented;
     }
 
@@ -236,8 +250,9 @@ namespace ignition
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
-    Out convert(const sdf::Gui &/*_in*/)
+    Out convert(const sdf::Gui &_in)
     {
+      (void)_in;
       Out::ConversionNotImplemented;
     }
 
@@ -252,8 +267,9 @@ namespace ignition
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
-    Out convert(const std::chrono::steady_clock::duration &/*_in*/)
+    Out convert(const std::chrono::steady_clock::duration &_in)
     {
+      (void)_in;
       Out::ConversionNotImplemented;
     }
 
@@ -269,8 +285,9 @@ namespace ignition
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
-    Out convert(const msgs::Time &/*_in*/)
+    Out convert(const msgs::Time &_in)
     {
+      (void)_in;
       Out::ConversionNotImplemented;
     }
 
@@ -286,8 +303,9 @@ namespace ignition
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
-    Out convert(const math::Inertiald &/*_in*/)
+    Out convert(const math::Inertiald &_in)
     {
+      (void)_in;
       Out::ConversionNotImplemented;
     }
 
@@ -303,8 +321,9 @@ namespace ignition
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
-    Out convert(const msgs::Inertial &/*_in*/)
+    Out convert(const msgs::Inertial &_in)
     {
+      (void)_in;
       Out::ConversionNotImplemented;
     }
 
@@ -320,8 +339,9 @@ namespace ignition
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
-    Out convert(const sdf::JointAxis &/*_in*/)
+    Out convert(const sdf::JointAxis &_in)
     {
+      (void)_in;
       Out::ConversionNotImplemented;
     }
 
@@ -337,8 +357,9 @@ namespace ignition
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
-    Out convert(const msgs::Axis &/*_in*/)
+    Out convert(const msgs::Axis &_in)
     {
+      (void)_in;
       Out::ConversionNotImplemented;
     }
 
@@ -354,8 +375,9 @@ namespace ignition
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
-    Out convert(const sdf::Scene &/*_in*/)
+    Out convert(const sdf::Scene &_in)
     {
+      (void)_in;
       Out::ConversionNotImplemented;
     }
 
@@ -370,8 +392,9 @@ namespace ignition
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
-    Out convert(const msgs::Scene &/*_in*/)
+    Out convert(const msgs::Scene &_in)
     {
+      (void)_in;
       Out::ConversionNotImplemented;
     }
 
@@ -387,8 +410,9 @@ namespace ignition
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
-    Out convert(const sdf::Atmosphere &/*_in*/)
+    Out convert(const sdf::Atmosphere &_in)
     {
+      (void)_in;
       Out::ConversionNotImplemented;
     }
 
@@ -404,8 +428,9 @@ namespace ignition
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
-    Out convert(const msgs::Atmosphere &/*_in*/)
+    Out convert(const msgs::Atmosphere &_in)
     {
+      (void)_in;
       Out::ConversionNotImplemented;
     }
 
@@ -417,19 +442,57 @@ namespace ignition
     sdf::Atmosphere convert(const msgs::Atmosphere &_in);
 
 
+    /// \brief Generic conversion from an SDF Physics to another type.
+    /// \param[in] _in SDF Physics.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const sdf::Physics &_in)
+    {
+      (void)_in;
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from an SDF physics to a physics
+    /// message.
+    /// \param[in] _in SDF physics.
+    /// \return Physics message.
+    template<>
+    msgs::Physics convert(const sdf::Physics &_in);
+
+    /// \brief Generic conversion from a physics message to another type.
+    /// \param[in] _in Physics message.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const msgs::Physics &_in)
+    {
+      (void)_in;
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from a physics message to a physics
+    /// SDF object.
+    /// \param[in] _in Physics message.
+    /// \return SDF physics.
+    template<>
+    sdf::Physics convert(const msgs::Physics &_in);
+
+
     /// \brief Generic conversion from an SDF Sensor to another type.
     /// \param[in] _in SDF Sensor.
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
-    Out convert(const sdf::Sensor &/*_in*/)
+    Out convert(const sdf::Sensor &_in)
     {
+      (void)_in;
       Out::ConversionNotImplemented;
     }
 
     /// \brief Specialized conversion from an SDF sensor to a sensor
     /// message.
-    /// \param[in] _in SDF geometry.
+    /// \param[in] _in SDF sensor.
     /// \return Sensor message.
     template<>
     msgs::Sensor convert(const sdf::Sensor &_in);
@@ -439,8 +502,9 @@ namespace ignition
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
-    Out convert(const msgs::Sensor &/*_in*/)
+    Out convert(const msgs::Sensor &_in)
     {
+      (void)_in;
       Out::ConversionNotImplemented;
     }
 
@@ -456,8 +520,9 @@ namespace ignition
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
-    Out convert(const msgs::SensorNoise &/*_in*/)
+    Out convert(const msgs::SensorNoise &_in)
     {
+      (void)_in;
       Out::ConversionNotImplemented;
     }
 
@@ -474,8 +539,9 @@ namespace ignition
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
-    Out convert(const msgs::WorldStatistics &/*_in*/)
+    Out convert(const msgs::WorldStatistics &_in)
     {
+      (void)_in;
       Out::ConversionNotImplemented;
     }
 
@@ -491,8 +557,9 @@ namespace ignition
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
-    Out convert(const UpdateInfo &/*_in*/)
+    Out convert(const UpdateInfo &_in)
     {
+      (void)_in;
       Out::ConversionNotImplemented;
     }
 
@@ -508,8 +575,9 @@ namespace ignition
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
-    Out convert(const sdf::Collision &/*_in*/)
+    Out convert(const sdf::Collision &_in)
     {
+      (void)_in;
       Out::ConversionNotImplemented;
     }
 
@@ -525,8 +593,9 @@ namespace ignition
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
-    Out convert(const msgs::Collision &/*_in*/)
+    Out convert(const msgs::Collision &_in)
     {
+      (void)_in;
       Out::ConversionNotImplemented;
     }
 
@@ -542,8 +611,9 @@ namespace ignition
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
-    Out convert(const std::string &/*_in*/)
+    Out convert(const std::string &_in)
     {
+      (void)_in;
       Out::ConversionNotImplemented;
     }
 
@@ -558,8 +628,9 @@ namespace ignition
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
-    Out convert(const math::AxisAlignedBox &/*_in*/)
+    Out convert(const math::AxisAlignedBox &_in)
     {
+      (void)_in;
       Out::ConversionNotImplemented;
     }
 
@@ -576,8 +647,9 @@ namespace ignition
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
-    Out convert(const msgs::AxisAlignedBox &/*_in*/)
+    Out convert(const msgs::AxisAlignedBox &_in)
     {
+      (void)_in;
       Out::ConversionNotImplemented;
     }
 

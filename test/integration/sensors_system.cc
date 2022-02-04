@@ -40,20 +40,18 @@
 #include "ignition/gazebo/components/World.hh"
 
 #include "plugins/MockSystem.hh"
+#include "../helpers/EnvTestFixture.hh"
 
 using namespace ignition;
 using namespace std::chrono_literals;
 namespace components = ignition::gazebo::components;
 
 //////////////////////////////////////////////////
-class SensorsFixture : public ::testing::Test
+class SensorsFixture : public InternalFixture<InternalFixture<::testing::Test>>
 {
   protected: void SetUp() override
   {
-    common::Console::SetVerbosity(4);
-    // Augment the system plugin path.  In SetUp to avoid test order issues.
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-      (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
+    InternalFixture::SetUp();
 
     auto plugin = sm.LoadPlugin("libMockSystem.so",
                                 "ignition::gazebo::MockSystem",
@@ -88,6 +86,17 @@ void testDefaultTopics()
 
   std::vector<transport::MessagePublisher> publishers;
   transport::Node node;
+
+  // Sensors are created in a separate thread, so we sleep here to give them
+  // time
+  int sleep{0};
+  int maxSleep{30};
+  for (; sleep < maxSleep && !node.TopicInfo(topics.front(), publishers);
+      ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  ASSERT_LT(sleep, maxSleep);
 
   for (const std::string &topic : topics)
   {
@@ -127,7 +136,7 @@ TEST_F(SensorsFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(HandleRemovedEntities))
     };
 
   server.AddSystem(this->systemPtr);
-  server.Run(true, 10, false);
+  server.Run(true, 50, false);
   ASSERT_NE(nullptr, ecm);
 
   testDefaultTopics();

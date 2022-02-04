@@ -28,6 +28,7 @@
 #include "ignition/gazebo/gui/TmpIface.hh"
 
 #include "ignition/gazebo/gui/Gui.hh"
+#include "AboutDialogHandler.hh"
 #include "GuiFileHandler.hh"
 #include "PathManager.hh"
 
@@ -55,6 +56,12 @@ std::unique_ptr<ignition::gui::Application> createGui(
   ignmsg << "Ignition Gazebo GUI    v" << IGNITION_GAZEBO_VERSION_FULL
          << std::endl;
 
+  // Set auto scaling factor for HiDPI displays
+  if (QString::fromLocal8Bit(qgetenv("QT_AUTO_SCREEN_SCALE_FACTOR")).isEmpty())
+  {
+    qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
+  }
+
   // Initialize Qt app
   auto app = std::make_unique<ignition::gui::Application>(_argc, _argv);
   app->AddPluginPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
@@ -62,6 +69,9 @@ std::unique_ptr<ignition::gui::Application> createGui(
   // Temporary transport interface
   auto tmp = new ignition::gazebo::TmpIface();
   tmp->setParent(app->Engine());
+
+  auto aboutDialogHandler = new ignition::gazebo::gui::AboutDialogHandler();
+  aboutDialogHandler->setParent(app->Engine());
 
   auto guiFileHandler = new ignition::gazebo::gui::GuiFileHandler();
   guiFileHandler->setParent(app->Engine());
@@ -102,6 +112,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
   // Let QML files use TmpIface' functions and properties
   auto context = new QQmlContext(app->Engine()->rootContext());
   context->setContextProperty("TmpIface", tmp);
+  context->setContextProperty("AboutDialogHandler", aboutDialogHandler);
   context->setContextProperty("GuiFileHandler", guiFileHandler);
 
   // Instantiate GazeboDrawer.qml file into a component
@@ -165,8 +176,6 @@ std::unique_ptr<ignition::gui::Application> createGui(
     // which makes it complicated to mix configurations across worlds.
     // We could have a way to use world-agnostic topics like Gazebo-classic's ~
     auto runner = new ignition::gazebo::GuiRunner(worldsMsg.data(0));
-    runner->connect(app.get(), &ignition::gui::Application::PluginAdded, runner,
-        &ignition::gazebo::GuiRunner::OnPluginAdded);
     ++runnerCount;
     runner->setParent(ignition::gui::App());
 
@@ -203,8 +212,6 @@ std::unique_ptr<ignition::gui::Application> createGui(
 
       // GUI runner
       auto runner = new ignition::gazebo::GuiRunner(worldName);
-      runner->connect(app.get(), &ignition::gui::Application::PluginAdded,
-                      runner, &ignition::gazebo::GuiRunner::OnPluginAdded);
       runner->setParent(ignition::gui::App());
       ++runnerCount;
 

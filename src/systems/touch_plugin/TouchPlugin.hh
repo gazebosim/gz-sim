@@ -42,22 +42,23 @@ namespace systems
   ///
   /// Parameters:
   ///
-  /// <target> Scoped name of the desired collision entity that is checked to
-  ///          see if it's touching this model. This can be a substring of the
-  ///          desired collision name so we match more than one collision. For
-  ///          example, using the name of a model will match all its collisions.
+  /// - `<target>` Scoped name of the desired collision entity that is checked
+  ///              to see if it's touching this model. This can be a substring
+  ///              of the desired collision name so we match more than one
+  ///              collision. For example, using the name of a model will match
+  ///              all its collisions.
   ///
-  /// <time> Target time in seconds to maintain contact.
+  /// - `<time>` Target time in seconds to maintain contact.
   ///
-  /// <namespace> Namespace for transport topics/services:
-  ///             /<namespace>/enable : Service used to enable and disable the
-  ///                                   plugin.
-  ///             /<namespace>/touched : Topic where a message is published once
-  ///                                    the touch event occurs.
+  /// - `<namespace>` Namespace for transport topics/services:
+  ///             + `/<namespace>/enable` : Service used to enable and disable
+  ///                                       the plugin.
+  ///             + `/<namespace>/touched` : Topic where a message is published
+  ///                                        once the touch event occurs.
   ///
-  /// <enabled> Set this to true so the plugin works from the start and doesn't
-  ///           need to be enabled.
-  class IGNITION_GAZEBO_VISIBLE TouchPlugin
+  /// - `<enabled>` Set this to true so the plugin works from the start and
+  ///               doesn't need to be enabled.
+  class TouchPlugin
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate,

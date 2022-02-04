@@ -19,6 +19,7 @@
 #include <tinyxml2.h>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
 #include <sdf/Box.hh>
 #include <sdf/Cylinder.hh>
@@ -53,6 +54,7 @@
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/config.hh"
+#include "../test/helpers/EnvTestFixture.hh"
 #include "SimulationRunner.hh"
 
 using namespace ignition;
@@ -78,16 +80,10 @@ IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.DoubleComponent",
 }
 }
 
-class SimulationRunnerTest : public ::testing::TestWithParam<int>
+/////////////////////////////////////////////////
+class SimulationRunnerTest
+  : public InternalFixture<::testing::TestWithParam<int>>
 {
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    common::Console::SetVerbosity(4);
-
-    common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-      common::joinPaths(PROJECT_BINARY_PATH, "lib"));
-  }
 };
 
 std::vector<msgs::Clock> clockMsgs;
@@ -175,6 +171,10 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
   EXPECT_EQ(1u, worldCount);
   EXPECT_NE(kNullEntity, worldEntity);
+
+  // Test step size, real time factor is not testable since it has no public API
+  auto stepSize = std::chrono::duration<double>(runner.StepSize()).count();
+  EXPECT_DOUBLE_EQ(0.001, stepSize);
 
   // Check models
   unsigned int modelCount{0};
@@ -953,7 +953,7 @@ TEST_P(SimulationRunnerTest, Time)
   EXPECT_EQ(0u, runner.CurrentInfo().iterations);
   EXPECT_EQ(0ms, runner.CurrentInfo().simTime);
   EXPECT_EQ(0ms, runner.CurrentInfo().dt);
-  EXPECT_EQ(1ms, runner.UpdatePeriod());
+  EXPECT_EQ(0ms, runner.UpdatePeriod());
   EXPECT_EQ(1ms, runner.StepSize());
 
   runner.SetPaused(false);
@@ -966,7 +966,7 @@ TEST_P(SimulationRunnerTest, Time)
   EXPECT_EQ(100u, runner.CurrentInfo().iterations);
   EXPECT_EQ(100ms, runner.CurrentInfo().simTime);
   EXPECT_EQ(1ms, runner.CurrentInfo().dt);
-  EXPECT_EQ(1ms, runner.UpdatePeriod());
+  EXPECT_EQ(0ms, runner.UpdatePeriod());
   EXPECT_EQ(1ms, runner.StepSize());
 
   int sleep = 0;
@@ -987,7 +987,7 @@ TEST_P(SimulationRunnerTest, Time)
   EXPECT_EQ(200u, runner.CurrentInfo().iterations);
   EXPECT_EQ(300ms, runner.CurrentInfo().simTime);
   EXPECT_EQ(2ms, runner.CurrentInfo().dt);
-  EXPECT_EQ(1ms, runner.UpdatePeriod());
+  EXPECT_EQ(0ms, runner.UpdatePeriod());
   EXPECT_EQ(2ms, runner.StepSize());
 
   sleep = 0;
@@ -1007,7 +1007,7 @@ TEST_P(SimulationRunnerTest, Time)
   EXPECT_EQ(200u, runner.CurrentInfo().iterations);
   EXPECT_EQ(300ms, runner.CurrentInfo().simTime);
   EXPECT_EQ(2ms, runner.CurrentInfo().dt);
-  EXPECT_EQ(1ms, runner.UpdatePeriod());
+  EXPECT_EQ(0ms, runner.UpdatePeriod());
   EXPECT_EQ(2ms, runner.StepSize());
 
   // Verify info published to /clock topic
@@ -1025,7 +1025,7 @@ TEST_P(SimulationRunnerTest, Time)
   EXPECT_EQ(500ms, runner.CurrentInfo().simTime)
     << runner.CurrentInfo().simTime.count();
   EXPECT_EQ(2ms, runner.CurrentInfo().dt);
-  EXPECT_EQ(1ms, runner.UpdatePeriod());
+  EXPECT_EQ(0ms, runner.UpdatePeriod());
   EXPECT_EQ(2ms, runner.StepSize());
 
   sleep = 0;
@@ -1437,6 +1437,52 @@ TEST_P(SimulationRunnerTest, GenerateWorldSdf)
 
   const auto* world = newRoot.WorldByIndex(0);
   EXPECT_EQ(3u, world->ModelCount());
+}
+
+/////////////////////////////////////////////////
+/// Helper function to recursively check for plugins with filename and name
+/// attributes set to "__default__"
+testing::AssertionResult checkForSpuriousPlugins(sdf::ElementPtr _elem)
+{
+  auto plugin = _elem->FindElement("plugin");
+  if (nullptr != plugin &&
+      plugin->Get<std::string>("filename") == "__default__" &&
+      plugin->Get<std::string>("name") == "__default__")
+  {
+    return testing::AssertionFailure() << _elem->ToString("");
+  }
+  for (auto child = _elem->GetFirstElement(); child;
+       child = child->GetNextElement())
+  {
+    auto result = checkForSpuriousPlugins(child);
+    if (!result)
+      return result;
+  }
+  return testing::AssertionSuccess();
+}
+
+/////////////////////////////////////////////////
+TEST_P(SimulationRunnerTest, GeneratedSdfHasNoSpuriousPlugins)
+{
+  // Load SDF file
+  sdf::Root root;
+  root.Load(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes.sdf"));
+
+  ASSERT_EQ(1u, root.WorldCount());
+
+  // Create simulation runner
+  auto systemLoader = std::make_shared<SystemLoader>();
+  SimulationRunner runner(root.WorldByIndex(0), systemLoader);
+
+  msgs::SdfGeneratorConfig req;
+  msgs::StringMsg genWorldSdf;
+  EXPECT_TRUE(runner.GenerateWorldSdf(req, genWorldSdf));
+  EXPECT_FALSE(genWorldSdf.data().empty());
+
+  sdf::Root newRoot;
+  newRoot.LoadSdfString(genWorldSdf.data());
+  EXPECT_TRUE(checkForSpuriousPlugins(newRoot.Element()));
 }
 
 // Run multiple times. We want to make sure that static globals don't cause

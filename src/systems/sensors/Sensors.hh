@@ -21,7 +21,6 @@
 #include <string>
 
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
 #include <sdf/Sensor.hh>
 
@@ -37,9 +36,21 @@ namespace systems
   class SensorsPrivate;
 
   /// \class Sensors Sensors.hh ignition/gazebo/systems/Sensors.hh
-  /// \brief TODO(louise) Have one system for all sensors, or one per
+  /// \brief A system that manages sensors.
+  ///
+  /// ## System Parameters
+  ///
+  /// - `<render_engine>` Name of the render engine, such as 'ogre' or 'ogre2'.
+  /// - `<background_color>` Color used for the scene's background. This
+  /// will override the background color specified in a world's SDF <scene>
+  /// element. This background color is used by sensors, not the GUI.
+  /// - `<ambient_light>` Color used for the scene's ambient light. This
+  /// will override the ambient value specified in a world's SDF <scene>
+  /// element. This ambient light is used by sensors, not the GUI.
+  ///
+  /// \TODO(louise) Have one system for all sensors, or one per
   /// sensor / sensor type?
-  class IGNITION_GAZEBO_VISIBLE Sensors:
+  class Sensors:
     public System,
     public ISystemConfigure,
     public ISystemPostUpdate

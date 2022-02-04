@@ -20,6 +20,7 @@
 #include <ignition/msgs/fluid_pressure.pb.h>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/components/AirPressureSensor.hh"
@@ -29,20 +30,14 @@
 #include "ignition/gazebo/test_config.hh"
 
 #include "../helpers/Relay.hh"
+#include "../helpers/EnvTestFixture.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
 /// \brief Test AirPressureTest system
-class AirPressureTest : public ::testing::Test
+class AirPressureTest : public InternalFixture<::testing::Test>
 {
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    ignition::common::Console::SetVerbosity(4);
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
-  }
 };
 
 /////////////////////////////////////////////////
@@ -67,7 +62,7 @@ TEST_F(AirPressureTest, AirPressure)
 
   // Create a system that checks sensor topic
   test::Relay testSystem;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
+  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
                               const gazebo::EntityComponentManager &_ecm)
       {
         _ecm.Each<components::AirPressureSensor, components::Name>(
@@ -80,6 +75,10 @@ TEST_F(AirPressureTest, AirPressure)
               auto sensorComp = _ecm.Component<components::Sensor>(_entity);
               EXPECT_NE(nullptr, sensorComp);
 
+              if (_info.iterations == 1)
+                return true;
+
+              // This component is created on the 2nd PreUpdate
               auto topicComp = _ecm.Component<components::SensorTopic>(_entity);
               EXPECT_NE(nullptr, topicComp);
               if (topicComp)

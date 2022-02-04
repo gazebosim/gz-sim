@@ -31,21 +31,12 @@
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/Publisher.hh>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
 namespace ignition::gazebo
 {
   class ShapesPrivate
   {
-    /// \brief Ignition communication node.
-    public: transport::Node node;
-
-    /// \brief Mutex to protect mode
-    public: std::mutex mutex;
-
-    /// \brief Transform control service name
-    public: std::string service;
   };
 }
 

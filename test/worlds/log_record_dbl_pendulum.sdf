@@ -10,7 +10,7 @@
 
     <physics name="1ms" type="ode">
       <max_step_size>0.001</max_step_size>
-      <real_time_factor>1.0</real_time_factor>
+      <real_time_factor>0</real_time_factor>
     </physics>
     <plugin
       filename="ignition-gazebo-physics-system"
@@ -50,6 +50,7 @@
           <geometry>
             <plane>
               <normal>0 0 1</normal>
+              <size>100 100</size>
             </plane>
           </geometry>
         </collision>
@@ -294,4 +295,3 @@
 
   </world>
 </sdf>
-

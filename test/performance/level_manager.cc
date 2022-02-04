@@ -21,6 +21,7 @@
 
 #include <ignition/math/Stopwatch.hh>
 #include <ignition/common/Console.hh>
+#include <ignition/common/Util.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
@@ -35,8 +36,8 @@ TEST(LevelManagerPerfrormance, LevelVsNoLevel)
 
   common::Console::SetVerbosity(4);
 
-  setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-         (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
+  ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+         (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
 
   ignition::gazebo::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
@@ -44,6 +45,17 @@ TEST(LevelManagerPerfrormance, LevelVsNoLevel)
   math::Stopwatch watch;
 
   const std::size_t iters = 5000;
+
+
+  // Reduce potential startup costs by running the server once before
+  // measuring time differences between levels and no levels.
+  {
+    serverConfig.SetUseLevels(true);
+    gazebo::Server server(serverConfig);
+    server.SetUpdatePeriod(1ns);
+
+    server.Run(true, 1, false);
+  }
 
   // Server with levels
   {

@@ -20,6 +20,7 @@
 #include <sdf/Atmosphere.hh>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>
 
 #include <ignition/gazebo/EntityComponentManager.hh>
@@ -39,15 +40,13 @@
 #include <ignition/gazebo/components/WindMode.hh>
 #include <ignition/gazebo/components/World.hh>
 
+#include "../helpers/EnvTestFixture.hh"
+
 using namespace ignition;
 using namespace gazebo;
 
-class WorldIntegrationTest : public ::testing::Test
+class WorldIntegrationTest : public InternalFixture<::testing::Test>
 {
-  public: void SetUp() override
-  {
-    ignition::common::Console::SetVerbosity(4);
-  }
 };
 
 //////////////////////////////////////////////////

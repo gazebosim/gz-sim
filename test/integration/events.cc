@@ -17,24 +17,25 @@
 
 #include <gtest/gtest.h>
 #include <ignition/common/Console.hh>
+#include <ignition/common/Util.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
 #include "plugins/EventTriggerSystem.hh"
+#include "../helpers/EnvTestFixture.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
-/////////////////////////////////////////////////
-TEST(EventTrigger, TriggerPause)
+class EventTrigger : public InternalFixture<::testing::Test>
 {
-  common::Console::SetVerbosity(4);
+};
 
-  setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-    (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
-
+/////////////////////////////////////////////////
+TEST_F(EventTrigger, TriggerPause)
+{
   // Create server
   ServerConfig config;
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
