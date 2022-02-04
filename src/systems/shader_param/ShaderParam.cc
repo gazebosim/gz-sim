@@ -192,10 +192,12 @@ void ShaderParam::Configure(const Entity &_entity,
     {
       sdf::ElementPtr vertexElem = shaderElem->GetElement("vertex");
       this->dataPtr->vertexShaderUri = common::findFile(
-          asFullPath(vertexElem->Get<std::string>(), this->dataPtr->modelPath));
+          asFullPath(vertexElem->Get<std::string>(),
+          this->dataPtr->modelPath));
       sdf::ElementPtr fragmentElem = shaderElem->GetElement("fragment");
       this->dataPtr->fragmentShaderUri = common::findFile(
-          asFullPath(fragmentElem->Get<std::string>(), this->dataPtr->modelPath));
+          asFullPath(fragmentElem->Get<std::string>(),
+          this->dataPtr->modelPath));
     }
   }
 
