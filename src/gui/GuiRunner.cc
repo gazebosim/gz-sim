@@ -353,7 +353,6 @@ void GuiRunner::LoadSystems()
         this->dataPtr->systemsPostupdate.push_back(
             sys->QueryInterface<ISystemPostUpdate>());
 
-
         auto sysConfigure = sys->QueryInterface<ISystemConfigure>();
         if (sysConfigure)
         {
