@@ -209,7 +209,6 @@ void ImuPrivate::addIMU(
 
   this->entitySensorMap.insert(
       std::make_pair(_entity, std::move(sensor)));
-
 }
 
 //////////////////////////////////////////////////

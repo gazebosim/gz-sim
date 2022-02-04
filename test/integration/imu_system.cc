@@ -269,7 +269,7 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OrientationDisabled))
 }
 
 /////////////////////////////////////////////////
-// The test checks if the oritation is published according to the
+// The test checks if the orientation is published according to the
 // localization tag
 TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(NamedFrames))
 {
@@ -324,7 +324,7 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(NamedFrames))
 }
 
 /////////////////////////////////////////////////
-// The test checks if the oritation is published according to the
+// The test checks if the orientation is published according to the
 // localization tag, with heading_deg also accounted for
 TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(NamedFramesWithHeading))
 {
