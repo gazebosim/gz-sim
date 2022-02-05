@@ -27,12 +27,15 @@
 #include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/AngularAcceleration.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
+#include "ignition/gazebo/components/BatterySoC.hh"
 #include "ignition/gazebo/components/CastShadows.hh"
+#include "ignition/gazebo/components/CenterOfVolume.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/LaserRetro.hh"
 #include "ignition/gazebo/components/Level.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/LinearAcceleration.hh"
@@ -46,13 +49,17 @@
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/PerformerAffinity.hh"
+#include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/PoseCmd.hh"
 #include "ignition/gazebo/components/SelfCollide.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/Static.hh"
+#include "ignition/gazebo/components/ThreadPitch.hh"
+#include "ignition/gazebo/components/Transparency.hh"
 #include "ignition/gazebo/components/Visual.hh"
+#include "ignition/gazebo/components/Volume.hh"
 #include "ignition/gazebo/components/WindMode.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -100,6 +107,9 @@ using namespace gazebo;
 template<>
 void ignition::gazebo::setData(QStandardItem *_item, const math::Pose3d &_data)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString("Pose3d"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(QList({
@@ -117,6 +127,9 @@ template<>
 void ignition::gazebo::setData(QStandardItem *_item,
     const math::Vector3d &_data)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString("Vector3d"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(QList({
@@ -130,6 +143,9 @@ void ignition::gazebo::setData(QStandardItem *_item,
 template<>
 void ignition::gazebo::setData(QStandardItem *_item, const std::string &_data)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString("String"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(QString::fromStdString(_data),
@@ -141,6 +157,9 @@ template<>
 void ignition::gazebo::setData(QStandardItem *_item,
     const std::ostringstream &_data)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString("Raw"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(QString::fromStdString(_data.str()),
@@ -151,6 +170,9 @@ void ignition::gazebo::setData(QStandardItem *_item,
 template<>
 void ignition::gazebo::setData(QStandardItem *_item, const bool &_data)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString("Boolean"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(_data, ComponentsModel::RoleNames().key("data"));
@@ -160,6 +182,9 @@ void ignition::gazebo::setData(QStandardItem *_item, const bool &_data)
 template<>
 void ignition::gazebo::setData(QStandardItem *_item, const int &_data)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString("Integer"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(_data, ComponentsModel::RoleNames().key("data"));
@@ -167,16 +192,44 @@ void ignition::gazebo::setData(QStandardItem *_item, const int &_data)
 
 //////////////////////////////////////////////////
 template<>
+void ignition::gazebo::setData(QStandardItem *_item, const Entity &_data)
+{
+  setData(_item, static_cast<int>(_data));
+}
+
+//////////////////////////////////////////////////
+template<>
 void ignition::gazebo::setData(QStandardItem *_item, const double &_data)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString("Float"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(_data, ComponentsModel::RoleNames().key("data"));
 }
 
 //////////////////////////////////////////////////
+template<>
+void ignition::gazebo::setData(QStandardItem *_item, const sdf::Physics &_data)
+{
+  if (nullptr == _item)
+    return;
+
+  _item->setData(QString("Physics"),
+      ComponentsModel::RoleNames().key("dataType"));
+  _item->setData(QList({
+    QVariant(_data.MaxStepSize()),
+    QVariant(_data.RealTimeFactor())
+  }), ComponentsModel::RoleNames().key("data"));
+}
+
+//////////////////////////////////////////////////
 void ignition::gazebo::setUnit(QStandardItem *_item, const std::string &_unit)
 {
+  if (nullptr == _item)
+    return;
+
   _item->setData(QString::fromStdString(_unit),
       ComponentsModel::RoleNames().key("unit"));
 }
@@ -269,6 +322,7 @@ ComponentInspector::ComponentInspector()
   : GuiSystem(), dataPtr(std::make_unique<ComponentInspectorPrivate>())
 {
   qRegisterMetaType<ignition::gazebo::ComponentTypeId>();
+  qRegisterMetaType<Entity>("Entity");
 }
 
 /////////////////////////////////////////////////
@@ -391,12 +445,7 @@ void ComponentInspector::Update(const UpdateInfo &,
     // Add component to list
     else
     {
-      // TODO(louise) Blocking here is not the best idea
-      QMetaObject::invokeMethod(&this->dataPtr->componentsModel,
-          "AddComponentType",
-          Qt::BlockingQueuedConnection,
-          Q_RETURN_ARG(QStandardItem *, item),
-          Q_ARG(ignition::gazebo::ComponentTypeId, typeId));
+      item = this->dataPtr->componentsModel.AddComponentType(typeId);
     }
 
     if (nullptr == item)
@@ -427,12 +476,29 @@ void ComponentInspector::Update(const UpdateInfo &,
         setUnit(item, "rad/s");
       }
     }
+    else if (typeId == components::BatterySoC::typeId)
+    {
+      auto comp = _ecm.Component<components::BatterySoC>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
     else if (typeId == components::CastShadows::typeId)
     {
       auto comp = _ecm.Component<components::CastShadows>(
           this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
+    }
+    else if (typeId == components::CenterOfVolume::typeId)
+    {
+      auto comp = _ecm.Component<components::CenterOfVolume>(
+          this->dataPtr->entity);
+      if (comp)
+      {
+        setData(item, comp->Data());
+        setUnit(item, "m");
+      }
     }
     else if (typeId == components::ChildLinkName::typeId)
     {
@@ -449,6 +515,12 @@ void ComponentInspector::Update(const UpdateInfo &,
         setData(item, comp->Data());
         setUnit(item, "m/s\u00B2");
       }
+    }
+    else if (typeId == components::LaserRetro::typeId)
+    {
+      auto comp = _ecm.Component<components::LaserRetro>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
     }
     else if (typeId == components::LinearAcceleration::typeId)
     {
@@ -510,6 +582,12 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, comp->Data());
     }
+    else if (typeId == components::Physics::typeId)
+    {
+      auto comp = _ecm.Component<components::Physics>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
     else if (typeId == components::Pose::typeId)
     {
       auto comp = _ecm.Component<components::Pose>(this->dataPtr->entity);
@@ -543,6 +621,33 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, comp->Data());
     }
+    else if (typeId == components::ThreadPitch::typeId)
+    {
+      auto comp = _ecm.Component<components::ThreadPitch>(
+          this->dataPtr->entity);
+      if (comp)
+      {
+        setData(item, comp->Data());
+        setUnit(item, "m");
+      }
+    }
+    else if (typeId == components::Transparency::typeId)
+    {
+      auto comp = _ecm.Component<components::Transparency>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::Volume::typeId)
+    {
+      auto comp = _ecm.Component<components::Volume>(
+          this->dataPtr->entity);
+      if (comp)
+      {
+        setData(item, comp->Data());
+        setUnit(item, "m\u00B3");
+      }
+    }
     else if (typeId == components::WindMode::typeId)
     {
       auto comp = _ecm.Component<components::WindMode>(this->dataPtr->entity);
@@ -557,6 +662,16 @@ void ComponentInspector::Update(const UpdateInfo &,
       {
         setData(item, comp->Data());
         setUnit(item, "rad/s\u00B2");
+      }
+    }
+    else if (typeId == components::WorldAngularVelocity::typeId)
+    {
+      auto comp = _ecm.Component<components::WorldAngularVelocity>(
+          this->dataPtr->entity);
+      if (comp)
+      {
+        setData(item, comp->Data());
+        setUnit(item, "rad/s");
       }
     }
     else if (typeId == components::WorldLinearVelocity::typeId)
@@ -638,13 +753,13 @@ bool ComponentInspector::eventFilter(QObject *_obj, QEvent *_event)
 }
 
 /////////////////////////////////////////////////
-int ComponentInspector::Entity() const
+Entity ComponentInspector::GetEntity() const
 {
   return this->dataPtr->entity;
 }
 
 /////////////////////////////////////////////////
-void ComponentInspector::SetEntity(const int &_entity)
+void ComponentInspector::SetEntity(const Entity &_entity)
 {
   // If nothing is selected, display world properties
   if (_entity == kNullEntity)
@@ -715,6 +830,30 @@ void ComponentInspector::OnPose(double _x, double _y, double _z, double _roll,
   auto poseCmdService = "/world/" + this->dataPtr->worldName
       + "/set_pose";
   this->dataPtr->node.Request(poseCmdService, req, cb);
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::OnPhysics(double _stepSize, double _realTimeFactor)
+{
+  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  {
+    if (!_result)
+        ignerr << "Error setting physics parameters" << std::endl;
+  };
+
+  ignition::msgs::Physics req;
+  req.set_max_step_size(_stepSize);
+  req.set_real_time_factor(_realTimeFactor);
+  auto physicsCmdService = "/world/" + this->dataPtr->worldName
+      + "/set_physics";
+  physicsCmdService = transport::TopicUtils::AsValidTopic(physicsCmdService);
+  if (physicsCmdService.empty())
+  {
+    ignerr << "Invalid physics command service topic provided" << std::endl;
+    return;
+  }
+  this->dataPtr->node.Request(physicsCmdService, req, cb);
 }
 
 /////////////////////////////////////////////////

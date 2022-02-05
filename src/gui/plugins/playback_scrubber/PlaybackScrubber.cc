@@ -27,19 +27,17 @@
 #include <string>
 #include <utility>
 
-#include <ignition/math/Helpers.hh>
-
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/Helpers.hh>
 #include <ignition/gui/MainWindow.hh>
+#include <ignition/math/Helpers.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/Publisher.hh>
-#include "ignition/gazebo/components/LogPlaybackStatistics.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/components/Name.hh"
+
 #include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/components/LogPlaybackStatistics.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
 namespace ignition::gazebo

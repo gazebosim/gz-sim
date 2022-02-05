@@ -17,6 +17,8 @@
 
 #include <map>
 #include <set>
+#include <sstream>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -50,6 +52,10 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// \return True if created successfully.
   public: bool CreateComponentStorage(const ComponentTypeId _typeId);
 
+  /// \brief Allots the work for multiple threads prior to running
+  /// `AddEntityToMessage`.
+  public: void CalculateStateThreadLoad();
+
   /// \brief Map of component storage classes. The key is a component
   /// type id, and the value is a pointer to the component storage.
   public: std::unordered_map<ComponentTypeId,
@@ -74,9 +80,25 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// \brief Flag that indicates if all entities should be removed.
   public: bool removeAllEntities{false};
 
-  /// \brief The set of components that each entity has
+  /// \brief True if the entityComponents map was changed.  Primarily used
+  /// by the multithreading functionality in `State()` to allocate work to
+  /// each thread.
+  public: bool entityComponentsDirty{true};
+
+  /// \brief The set of components that each entity has.
+  /// NOTE: Any modification of this data structure must be followed
+  /// by setting `entityComponentsDirty` to true.
   public: std::unordered_map<Entity,
-          std::unordered_map<ComponentTypeId, ComponentKey>> entityComponents;
+          std::unordered_map<ComponentTypeId, ComponentId>> entityComponents;
+
+  /// \brief A vector of iterators to evenly distributed spots in the
+  /// `entityComponents` map.  Threads in the `State` function use this
+  /// vector for easy access of their pre-allocated work.  This vector
+  /// is recalculated if `entityComponents` is changed (when
+  /// `entityComponentsDirty` == true).
+  public: std::vector<std::unordered_map<Entity,
+          std::unordered_map<ComponentTypeId, ComponentId>>::iterator>
+            entityComponentIterators;
 
   /// \brief A mutex to protect newly created entityes.
   public: std::mutex entityCreatedMutex;
@@ -120,7 +142,7 @@ Entity EntityComponentManager::CreateEntity()
 {
   Entity entity = ++this->dataPtr->entityCount;
 
-  if (entity == std::numeric_limits<int64_t>::max())
+  if (entity == std::numeric_limits<uint64_t>::max())
   {
     ignwarn << "Reached maximum number of entities [" << entity << "]"
             << std::endl;
@@ -222,6 +244,7 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
     this->dataPtr->entities = EntityGraph();
     this->dataPtr->entityComponents.clear();
     this->dataPtr->toRemoveEntities.clear();
+    this->dataPtr->entityComponentsDirty = true;
 
     for (std::pair<const ComponentTypeId,
         std::unique_ptr<ComponentStorageBase>> &comp: this->dataPtr->components)
@@ -251,12 +274,12 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
       {
         for (const auto &key : entityIter->second)
         {
-          this->dataPtr->components.at(key.second.first)->Remove(
-              key.second.second);
+          this->dataPtr->components.at(key.first)->Remove(key.second);
         }
 
         // Remove the entry in the entityComponent map
         this->dataPtr->entityComponents.erase(entity);
+        this->dataPtr->entityComponentsDirty = true;
       }
 
       // Remove the entity from views.
@@ -295,6 +318,7 @@ bool EntityComponentManager::RemoveComponent(
   this->dataPtr->entityComponents[_entity].erase(_key.first);
   this->dataPtr->oneTimeChangedComponents.erase(_key);
   this->dataPtr->periodicChangedComponents.erase(_key);
+  this->dataPtr->entityComponentsDirty = true;
 
   this->UpdateViews(_entity);
   return true;
@@ -361,12 +385,14 @@ ComponentState EntityComponentManager::ComponentState(const Entity _entity,
   if (typeKey == ecIter->second.end())
     return result;
 
-  if (this->dataPtr->oneTimeChangedComponents.find(typeKey->second) !=
+  ComponentKey key{_typeId, typeKey->second};
+
+  if (this->dataPtr->oneTimeChangedComponents.find(key) !=
       this->dataPtr->oneTimeChangedComponents.end())
   {
     result = ComponentState::OneTimeChange;
   }
-  else if (this->dataPtr->periodicChangedComponents.find(typeKey->second) !=
+  else if (this->dataPtr->periodicChangedComponents.find(key) !=
       this->dataPtr->periodicChangedComponents.end())
   {
     result = ComponentState::PeriodicChange;
@@ -394,6 +420,18 @@ bool EntityComponentManager::HasEntitiesMarkedForRemoval() const
 bool EntityComponentManager::HasOneTimeComponentChanges() const
 {
   return !this->dataPtr->oneTimeChangedComponents.empty();
+}
+
+/////////////////////////////////////////////////
+std::unordered_set<ComponentTypeId>
+    EntityComponentManager::ComponentTypesWithPeriodicChanges() const
+{
+  std::unordered_set<ComponentTypeId> periodicComponents;
+  for (const auto& compPair : this->dataPtr->periodicChangedComponents)
+  {
+    periodicComponents.insert(compPair.first);
+  }
+  return periodicComponents;
 }
 
 /////////////////////////////////////////////////
@@ -442,6 +480,15 @@ ComponentKey EntityComponentManager::CreateComponentImplementation(
     const Entity _entity, const ComponentTypeId _componentTypeId,
     const components::BaseComponent *_data)
 {
+  // make sure the entity exists
+  if (!this->HasEntity(_entity))
+  {
+    ignerr << "Trying to create a component of type [" << _componentTypeId
+      << "] attached to entity [" << _entity << "], but this entity does not "
+      << "exist. This create component request will be ignored." << std::endl;
+    return ComponentKey();
+  }
+
   // If type hasn't been instantiated yet, create a storage for it
   if (!this->HasComponentType(_componentTypeId))
   {
@@ -461,8 +508,9 @@ ComponentKey EntityComponentManager::CreateComponentImplementation(
   ComponentKey componentKey{_componentTypeId, componentIdPair.first};
 
   this->dataPtr->entityComponents[_entity].insert(
-      {_componentTypeId, componentKey});
+      {_componentTypeId, componentIdPair.first});
   this->dataPtr->oneTimeChangedComponents.insert(componentKey);
+  this->dataPtr->entityComponentsDirty = true;
 
   if (componentIdPair.second)
     this->RebuildViews();
@@ -505,7 +553,7 @@ ComponentId EntityComponentManager::EntityComponentIdFromType(
 
   auto typeIter = ecIter->second.find(_type);
   if (typeIter != ecIter->second.end())
-    return typeIter->second.second;
+    return typeIter->second;
 
   return -1;
 }
@@ -523,8 +571,8 @@ const components::BaseComponent
 
   auto typeIter = ecIter->second.find(_type);
   if (typeIter != ecIter->second.end())
-    return this->dataPtr->components.at(typeIter->second.first)->Component(
-        typeIter->second.second);
+    return this->dataPtr->components.at(_type)->Component(
+        typeIter->second);
 
   return nullptr;
 }
@@ -540,8 +588,7 @@ components::BaseComponent *EntityComponentManager::ComponentImplementation(
 
   auto typeIter = ecIter->second.find(_type);
   if (typeIter != ecIter->second.end())
-    return this->dataPtr->components.at(typeIter->second.first)->Component(
-        typeIter->second.second);
+    return this->dataPtr->components.at(_type)->Component(typeIter->second);
 
   return nullptr;
 }
@@ -732,16 +779,14 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
   for (const ComponentTypeId type : types)
   {
     // If the entity does not have the component, continue
-    std::unordered_map<ComponentTypeId, ComponentKey>::iterator typeIter =
-      iter->second.find(type);
+    auto typeIter = iter->second.find(type);
     if (typeIter == iter->second.end())
     {
       continue;
     }
-    ComponentKey comp = (typeIter->second);
 
     auto compMsg = entityMsg->add_components();
-    auto compBase = this->ComponentImplementation(_entity, comp.first);
+    auto compBase = this->ComponentImplementation(_entity, type);
     compMsg->set_type(compBase->TypeId());
 
     std::ostringstream ostr;
@@ -797,16 +842,16 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
   // Empty means all types
   for (const ComponentTypeId type : types)
   {
-    std::unordered_map<ComponentTypeId, ComponentKey>::iterator typeIter =
-      iter->second.find(type);
+    auto typeIter = iter->second.find(type);
     if (typeIter == iter->second.end())
     {
       continue;
     }
 
-    ComponentKey comp = typeIter->second;
     const components::BaseComponent *compBase =
-      this->ComponentImplementation(_entity, comp.first);
+      this->ComponentImplementation(_entity, type);
+
+    ComponentKey comp = {type, typeIter->second};
 
     // If not sending full state, skip unchanged components
     if (!_full &&
@@ -894,6 +939,51 @@ void EntityComponentManager::ChangedState(
   // TODO(anyone) New / removed / changed components
 }
 
+//////////////////////////////////////////////////
+void EntityComponentManagerPrivate::CalculateStateThreadLoad()
+{
+  // If the entity component vector is dirty, we need to recalculate the
+  // threads and each threads work load
+  if (!this->entityComponentsDirty)
+    return;
+
+  this->entityComponentsDirty = false;
+  this->entityComponentIterators.clear();
+  auto startIt = this->entityComponents.begin();
+  int numComponents = this->entityComponents.size();
+
+  // Set the number of threads to spawn to the min of the calculated thread
+  // count or max threads that the hardware supports
+  int maxThreads = std::thread::hardware_concurrency();
+  uint64_t numThreads = std::min(numComponents, maxThreads);
+
+  int componentsPerThread = std::ceil(static_cast<double>(numComponents) /
+    numThreads);
+
+  igndbg << "Updated state thread iterators: " << numThreads
+         << " threads processing around " << componentsPerThread
+         << " components each." << std::endl;
+
+  // Push back the starting iterator
+  this->entityComponentIterators.push_back(startIt);
+  for (uint64_t i = 0; i < numThreads; ++i)
+  {
+    // If we have added all of the components to the iterator vector, we are
+    // done so push back the end iterator
+    numComponents -= componentsPerThread;
+    if (numComponents <= 0)
+    {
+      this->entityComponentIterators.push_back(
+          this->entityComponents.end());
+      break;
+    }
+
+    // Get the iterator to the next starting group of components
+    auto nextIt = std::next(startIt, componentsPerThread);
+    this->entityComponentIterators.push_back(nextIt);
+    startIt = nextIt;
+  }
+}
 
 //////////////////////////////////////////////////
 ignition::msgs::SerializedState EntityComponentManager::State(
@@ -922,11 +1012,46 @@ void EntityComponentManager::State(
     const std::unordered_set<ComponentTypeId> &_types,
     bool _full) const
 {
-  for (const auto &it : this->dataPtr->entityComponents)
+  std::mutex stateMapMutex;
+  std::vector<std::thread> workers;
+
+  this->dataPtr->CalculateStateThreadLoad();
+
+  auto functor = [&](auto itStart, auto itEnd)
   {
-    if (_entities.empty() || _entities.find(it.first) != _entities.end())
-      this->AddEntityToMessage(_state, it.first, _types, _full);
+    msgs::SerializedStateMap threadMap;
+    while (itStart != itEnd)
+    {
+      auto entity = (*itStart).first;
+      if (_entities.empty() || _entities.find(entity) != _entities.end())
+      {
+        this->AddEntityToMessage(threadMap, entity, _types, _full);
+      }
+      itStart++;
+    }
+    std::lock_guard<std::mutex> lock(stateMapMutex);
+
+    for (const auto &entity : threadMap.entities())
+    {
+      (*_state.mutable_entities())[static_cast<uint64_t>(entity.first)] =
+          entity.second;
+    }
+  };
+
+  // Spawn workers
+  uint64_t numThreads = this->dataPtr->entityComponentIterators.size() - 1;
+  for (uint64_t i = 0; i < numThreads; i++)
+  {
+    workers.push_back(std::thread(functor,
+        this->dataPtr->entityComponentIterators[i],
+        this->dataPtr->entityComponentIterators[i+1]));
   }
+
+  // Wait for each thread to finish processing its components
+  std::for_each(workers.begin(), workers.end(), [](std::thread &_t)
+  {
+    _t.join();
+  });
 }
 
 //////////////////////////////////////////////////
@@ -983,49 +1108,51 @@ void EntityComponentManager::SetState(
         continue;
       }
 
-      // Create component
-      auto newComp = components::Factory::Instance()->New(compMsg.type());
-
-      if (nullptr == newComp)
-      {
-        ignerr << "Failed to deserialize component of type [" << compMsg.type()
-               << "]" << std::endl;
-        continue;
-      }
-
-      std::istringstream istr(compMsg.component());
-      newComp->Deserialize(istr);
-
-      // Get type id
-      auto typeId = newComp->TypeId();
-
-      // TODO(louise) Move into if, see TODO below
-      this->RemoveComponent(entity, typeId);
-
       // Remove component
       if (compMsg.remove())
       {
+        this->RemoveComponent(entity, type);
         continue;
       }
 
       // Get Component
-      auto comp = this->ComponentImplementation(entity, typeId);
+      auto comp = this->ComponentImplementation(entity, type);
 
       // Create if new
       if (nullptr == comp)
       {
-        this->CreateComponentImplementation(entity, typeId, newComp.get());
+        auto newComp = components::Factory::Instance()->New(type);
+        if (nullptr == newComp)
+        {
+          ignerr << "Failed to create component type ["
+            << compMsg.type() << "]" << std::endl;
+          continue;
+        }
+        std::istringstream istr(compMsg.component());
+        newComp->Deserialize(istr);
+        this->CreateComponentImplementation(entity, type, newComp.get());
       }
       // Update component value
       else
       {
-        ignerr << "Internal error" << std::endl;
-        // TODO(louise) We're shortcutting above and always  removing the
-        // component so that we don't get here, gotta figure out why this
-        // doesn't update the component. The following line prints the correct
-        // values.
-        // igndbg << *comp << "  " << *newComp.get() << std::endl;
-        // *comp = *newComp.get();
+        std::istringstream istr(compMsg.component());
+        comp->Deserialize(istr);
+        // note on merging forward:
+        // `AddModifiedComponent` method is available/used in ign-gazebo4, so we
+        // don't need this header patch when merging forward
+        auto flag = ComponentState::PeriodicChange;
+        for (int i = 0; i < _stateMsg.header().data_size(); ++i)
+        {
+          if (_stateMsg.header().data(i).key() ==
+              "has_one_time_component_changes")
+          {
+            int v = stoi(_stateMsg.header().data(i).value(0));
+            if (v)
+              flag = ComponentState::OneTimeChange;
+            break;
+          }
+        }
+        this->SetChanged(entity, type, flag);
       }
     }
   }
@@ -1120,8 +1247,22 @@ void EntityComponentManager::SetState(
       {
         std::istringstream istr(compMsg.component());
         comp->Deserialize(istr);
-        this->SetChanged(entity, compIter.first,
-            ComponentState::OneTimeChange);
+        // Note on merging forward:
+        // `has_one_time_component_changes` field is available in Edifice so
+        // this workaround can be removed
+        auto flag = ComponentState::PeriodicChange;
+        for (int i = 0; i < _stateMsg.header().data_size(); ++i)
+        {
+          if (_stateMsg.header().data(i).key() ==
+              "has_one_time_component_changes")
+          {
+            int v = stoi(_stateMsg.header().data(i).value(0));
+            if (v)
+              flag = ComponentState::OneTimeChange;
+            break;
+          }
+        }
+        this->SetChanged(entity, compIter.first, flag);
       }
     }
   }
@@ -1173,20 +1314,22 @@ void EntityComponentManager::SetChanged(
   if (typeIter == ecIter->second.end())
     return;
 
+  ComponentKey key{_type, typeIter->second};
+
   if (_c == ComponentState::PeriodicChange)
   {
-    this->dataPtr->periodicChangedComponents.insert(typeIter->second);
-    this->dataPtr->oneTimeChangedComponents.erase(typeIter->second);
+    this->dataPtr->periodicChangedComponents.insert(key);
+    this->dataPtr->oneTimeChangedComponents.erase(key);
   }
   else if (_c == ComponentState::OneTimeChange)
   {
-    this->dataPtr->periodicChangedComponents.erase(typeIter->second);
-    this->dataPtr->oneTimeChangedComponents.insert(typeIter->second);
+    this->dataPtr->periodicChangedComponents.erase(key);
+    this->dataPtr->oneTimeChangedComponents.insert(key);
   }
   else
   {
-    this->dataPtr->periodicChangedComponents.erase(typeIter->second);
-    this->dataPtr->oneTimeChangedComponents.erase(typeIter->second);
+    this->dataPtr->periodicChangedComponents.erase(key);
+    this->dataPtr->oneTimeChangedComponents.erase(key);
   }
 }
 

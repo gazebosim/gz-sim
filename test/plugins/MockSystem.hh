@@ -25,10 +25,12 @@ namespace ignition {
   namespace gazebo {
     class IGNITION_GAZEBO_VISIBLE MockSystem :
       public gazebo::System,
+      public gazebo::ISystemConfigure,
       public gazebo::ISystemPreUpdate,
       public gazebo::ISystemUpdate,
       public gazebo::ISystemPostUpdate
     {
+      public: size_t configureCallCount {0};
       public: size_t preUpdateCallCount {0};
       public: size_t updateCallCount {0};
       public: size_t postUpdateCallCount {0};
@@ -40,33 +42,47 @@ namespace ignition {
               std::function<void(const gazebo::UpdateInfo &,
                                  const gazebo::EntityComponentManager &)>;
 
+      public: std::function<void(const Entity &,
+                    const std::shared_ptr<const sdf::Element> &,
+                    EntityComponentManager &,
+                    EventManager &)>
+                configureCallback;
       public: CallbackType preUpdateCallback;
       public: CallbackType updateCallback;
       public: CallbackTypeConst postUpdateCallback;
 
+      public: void Configure(const Entity &_entity,
+                const std::shared_ptr<const sdf::Element> &_sdf,
+                EntityComponentManager &_ecm,
+                EventManager &_eventMgr) override final
+              {
+                ++this->configureCallCount;
+                if (this->configureCallback)
+                  this->configureCallback(_entity, _sdf, _ecm, _eventMgr);
+              }
 
       public: void PreUpdate(const gazebo::UpdateInfo &_info,
-                    gazebo::EntityComponentManager &_manager) override final
+                    gazebo::EntityComponentManager &_ecm) override final
               {
                 ++this->preUpdateCallCount;
                 if (this->preUpdateCallback)
-                  this->preUpdateCallback(_info, _manager);
+                  this->preUpdateCallback(_info, _ecm);
               }
 
       public: void Update(const gazebo::UpdateInfo &_info,
-                    gazebo::EntityComponentManager &_manager) override final
+                    gazebo::EntityComponentManager &_ecm) override final
               {
                 ++this->updateCallCount;
                 if (this->updateCallback)
-                  this->updateCallback(_info, _manager);
+                  this->updateCallback(_info, _ecm);
               }
 
       public: void PostUpdate(const gazebo::UpdateInfo &_info,
-                  const gazebo::EntityComponentManager &_manager) override final
+                  const gazebo::EntityComponentManager &_ecm) override final
               {
                 ++this->postUpdateCallCount;
                 if (this->postUpdateCallback)
-                  this->postUpdateCallback(_info, _manager);
+                  this->postUpdateCallback(_info, _ecm);
               }
     };
   }

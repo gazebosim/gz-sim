@@ -19,7 +19,6 @@
 
 #include <memory>
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
 
 namespace ignition
@@ -54,40 +53,40 @@ namespace systems
   ///
   /// The following parameters are used by the system:
   ///
-  /// <horizontal><magnitude><time_for_rise>
+  /// - `<horizontal><magnitude><time_for_rise>`
   /// Analogous to the time constant of the low pass filter.
   ///
-  /// <horizontal><magnitude><sin><amplitude_percent>
+  /// - `<horizontal><magnitude><sin><amplitude_percent>`
   /// Fraction of the filtered wind velocity magnitude that is set to be the
   /// amplitude of the sinusoid.
   ///
-  /// <horizontal><magnitude><sin><period>
+  /// - `<horizontal><magnitude><sin><period>`
   /// Period of the sinusoid that is added to the wind velocity magnitude.
   ///
-  /// <horizontal><magnitude><noise>
+  /// - `<horizontal><magnitude><noise>`
   /// Parameters for the noise that is added to the wind velocity magnitude.
   ///
-  /// <horizontal><direction><time_for_rise>
+  /// - `<horizontal><direction><time_for_rise>`
   /// Analogous to the time constant of the low pass filter.
   ///
-  /// <horizontal><direction><sin><amplitude>
+  /// - `<horizontal><direction><sin><amplitude>`
   /// Amplitude of the sinusoidal that is added on the direction of the wind
   /// velocity.
   ///
-  /// <horizontal><direction><sin><period>
+  /// - `<horizontal><direction><sin><period>`
   /// Period of the sinusoid that is added to the wind velocity direction.
   ///
-  /// <horizontal><direction><noise>
+  /// - `<horizontal><direction><noise>`
   /// Parameters for the noise that is added to the wind velocity direction.
   ///
-  /// <vertical><time_for_rise>
+  /// - `<vertical><time_for_rise>`
   /// Analogous to the time constant of the low pass filter for the vertical
   /// wind velocity magnitude.
   ///
-  /// <vertical><noise>
+  /// - `<vertical><noise>`
   /// Parameters for the noise that is added to the vertical wind velocity
   /// magnitude.
-  class IGNITION_GAZEBO_VISIBLE WindEffects:
+  class WindEffects:
     public System,
     public ISystemConfigure,
     public ISystemPreUpdate

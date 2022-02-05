@@ -78,11 +78,27 @@ Rectangle {
     return _model.dataType + '.qml'
   }
 
+  // Get number of decimal digits based on a widget's width
+  function getDecimals(_width) {
+    if (_width <= 80)
+      return 2;
+    else if (_width <= 100)
+      return 4;
+    return 6;
+  }
+
   /**
    * Forward pose changes to C++
    */
   function onPose(_x, _y, _z, _roll, _pitch, _yaw) {
     ComponentInspector.OnPose(_x, _y, _z, _roll, _pitch, _yaw)
+  }
+
+  /**
+   * Forward physics changes to C++
+   */
+  function onPhysics(_stepSize, _realTimeFactor) {
+    ComponentInspector.OnPhysics(_stepSize, _realTimeFactor)
   }
 
   Rectangle {

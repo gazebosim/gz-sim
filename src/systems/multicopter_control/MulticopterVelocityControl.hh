@@ -126,11 +126,11 @@ namespace systems
   /// value of 0 implies noise is NOT applied to the component. The default
   /// value is (0, 0, 0).
   ///
-  /// rotorConfiguration: This contains a list of <rotor> elements for each
+  /// rotorConfiguration: This contains a list of `<rotor>` elements for each
   /// rotor in the vehicle. This is a required parameter.
   ///
   ///    rotor: Contains information about a rotor in the vehicle. All the
-  ///    elements of <rotor> are required parameters.
+  ///    elements of `<rotor>` are required parameters.
   ///
   ///      jointName: The name of the joint associated with this rotor.
   ///
@@ -146,7 +146,7 @@ namespace systems
   /// # Examples
   /// See examples/worlds/quadcopter.sdf for a demonstration.
   ///
-  class IGNITION_GAZEBO_VISIBLE MulticopterVelocityControl
+  class MulticopterVelocityControl
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate

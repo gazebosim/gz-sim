@@ -45,6 +45,9 @@
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
+#include "ignition/gazebo/components/JointEffortLimitsCmd.hh"
+#include "ignition/gazebo/components/JointPositionLimitsCmd.hh"
+#include "ignition/gazebo/components/JointVelocityLimitsCmd.hh"
 #include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/JointVelocity.hh"
 #include "ignition/gazebo/components/JointVelocityCmd.hh"
@@ -72,17 +75,13 @@
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
-
+#include "../helpers/EnvTestFixture.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
-class ComponentsTest : public ::testing::Test
+class ComponentsTest : public InternalFixture<::testing::Test>
 {
-  protected: void SetUp() override
-  {
-    common::Console::SetVerbosity(4);
-  }
 };
 
 /////////////////////////////////////////////////
@@ -535,6 +534,121 @@ TEST_F(ComponentsTest, JointAxis)
 }
 
 /////////////////////////////////////////////////
+TEST_F(ComponentsTest, JointEffortLimitsCmd)
+{
+  // Create components
+  auto comp1 = components::JointEffortLimitsCmd();
+  auto comp2 = components::JointEffortLimitsCmd();
+
+  // Equality operators
+  EXPECT_EQ(comp1, comp2);
+  EXPECT_TRUE(comp1 == comp2);
+  EXPECT_FALSE(comp1 != comp2);
+
+  // Stream operators
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+  EXPECT_EQ("0", ostr.str());
+
+  comp2.Data().push_back(math::Vector2d(-1.0, 1.0));
+
+  std::ostringstream ostr2;
+  comp2.Serialize(ostr2);
+  EXPECT_EQ("1 -1 1", ostr2.str());
+
+  comp2.Data().push_back(math::Vector2d(-2.5, 2.5));
+
+  std::ostringstream ostr3;
+  comp2.Serialize(ostr3);
+  EXPECT_EQ("2 -1 1 -2.5 2.5", ostr3.str());
+
+  std::istringstream istr("ignored");
+  components::JointEffortLimitsCmd comp3;
+  comp3.Deserialize(istr);
+}
+
+/////////////////////////////////////////////////
+TEST_F(ComponentsTest, JointPositionLimitsCmd)
+{
+  // Create components
+  auto comp1 = components::JointPositionLimitsCmd();
+  auto comp2 = components::JointPositionLimitsCmd();
+  components::JointPositionLimitsCmd comp3;
+
+  // Equality operators
+  EXPECT_EQ(comp1, comp2);
+  EXPECT_TRUE(comp1 == comp2);
+  EXPECT_FALSE(comp1 != comp2);
+
+  // Stream operators
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+  EXPECT_EQ("0", ostr.str());
+
+  auto istr = std::istringstream(ostr.str());
+  comp3.Deserialize(istr);
+  EXPECT_EQ(comp1, comp3);
+
+  comp2.Data().push_back(math::Vector2d(-1.0, 1.0));
+
+  std::ostringstream ostr2;
+  comp2.Serialize(ostr2);
+  EXPECT_EQ("1 -1 1", ostr2.str());
+
+  istr = std::istringstream(ostr2.str());
+  comp3.Deserialize(istr);
+  EXPECT_EQ(comp2, comp3);
+
+  comp2.Data().push_back(math::Vector2d(-2.5, 2.5));
+
+  std::ostringstream ostr3;
+  comp2.Serialize(ostr3);
+  EXPECT_EQ("2 -1 1 -2.5 2.5", ostr3.str());
+
+  istr = std::istringstream(ostr3.str());
+  comp3.Deserialize(istr);
+  EXPECT_EQ(comp2, comp3);
+
+  istr = std::istringstream("ignored");
+  comp3.Deserialize(istr);
+  EXPECT_EQ(comp1, comp3);
+}
+
+/////////////////////////////////////////////////
+TEST_F(ComponentsTest, JointVelocityLimitsCmd)
+{
+  // Create components
+  auto comp1 = components::JointVelocityLimitsCmd();
+  auto comp2 = components::JointVelocityLimitsCmd();
+
+  // Equality operators
+  EXPECT_EQ(comp1, comp2);
+  EXPECT_TRUE(comp1 == comp2);
+  EXPECT_FALSE(comp1 != comp2);
+
+  // Stream operators
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+  EXPECT_EQ("0", ostr.str());
+
+  comp2.Data().push_back(math::Vector2d(-1.0, 1.0));
+
+  std::ostringstream ostr2;
+  comp2.Serialize(ostr2);
+  EXPECT_EQ("1 -1 1", ostr2.str());
+
+  comp2.Data().push_back(math::Vector2d(-2.5, 2.5));
+
+  std::ostringstream ostr3;
+  comp2.Serialize(ostr3);
+  EXPECT_EQ("2 -1 1 -2.5 2.5", ostr3.str());
+
+  std::istringstream istr("ignored");
+  components::JointVelocityLimitsCmd comp3;
+  comp3.Deserialize(istr);
+}
+
+/////////////////////////////////////////////////
 TEST_F(ComponentsTest, JointType)
 {
   auto data1 = sdf::JointType::FIXED;
@@ -882,31 +996,33 @@ TEST_F(ComponentsTest, LogicalAudioSourcePlayInfo)
 TEST_F(ComponentsTest, LogicalMicrophone)
 {
   logical_audio::Microphone mic1;
-  mic1.id = 0;
+  mic1.id = 4;
   mic1.volumeDetectionThreshold = 0.5;
 
   logical_audio::Microphone mic2;
-  mic2.id = 1;
-  mic2.volumeDetectionThreshold = mic1.volumeDetectionThreshold;
+  mic2.id = 8;
+  mic2.volumeDetectionThreshold = 0.8;
 
   // create components
   auto comp1 = components::LogicalMicrophone(mic1);
   auto comp2 = components::LogicalMicrophone(mic2);
 
   // equality operators
-  EXPECT_NE(mic1, mic2);
-  EXPECT_FALSE(mic1 == mic2);
-  EXPECT_TRUE(mic1 != mic2);
+  EXPECT_NE(comp1, comp2);
+  EXPECT_FALSE(comp1 == comp2);
+  EXPECT_TRUE(comp1 != comp2);
 
   // stream operators
   std::ostringstream ostr;
   comp1.Serialize(ostr);
-  EXPECT_EQ("0 0.5", ostr.str());
+  EXPECT_EQ("4 0.5", ostr.str());
 
-  std::istringstream istr;
+  std::istringstream istr(ostr.str());
   components::LogicalMicrophone comp3;
   comp3.Deserialize(istr);
   EXPECT_EQ(comp1, comp3);
+  EXPECT_DOUBLE_EQ(comp1.Data().volumeDetectionThreshold,
+      comp3.Data().volumeDetectionThreshold);
 }
 
 /////////////////////////////////////////////////

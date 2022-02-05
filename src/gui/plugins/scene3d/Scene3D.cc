@@ -38,6 +38,7 @@
 #include <ignition/common/KeyFrame.hh>
 #include <ignition/common/MeshManager.hh>
 #include <ignition/common/Profiler.hh>
+#include <ignition/common/StringUtils.hh>
 #include <ignition/common/Uuid.hh>
 #include <ignition/common/VideoEncoder.hh>
 
@@ -48,6 +49,7 @@
 
 #include <ignition/rendering/Image.hh>
 #include <ignition/rendering/OrbitViewController.hh>
+#include <ignition/rendering/MoveToHelper.hh>
 #include <ignition/rendering/RayQuery.hh>
 #include <ignition/rendering/RenderEngine.hh>
 #include <ignition/rendering/RenderingIface.hh>
@@ -92,70 +94,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief True to send an event and notify all widgets
     bool sendEvent{false};
-  };
-
-  //
-  /// \brief Helper class for animating a user camera to move to a target entity
-  /// todo(anyone) Move this functionality to rendering::Camera class in
-  /// ign-rendering3
-  class MoveToHelper
-  {
-    /// \brief Move the camera to look at the specified target
-    /// param[in] _camera Camera to be moved
-    /// param[in] _target Target to look at
-    /// param[in] _duration Duration of the move to animation, in seconds.
-    /// param[in] _onAnimationComplete Callback function when animation is
-    /// complete
-    public: void MoveTo(const rendering::CameraPtr &_camera,
-        const rendering::NodePtr &_target, double _duration,
-        std::function<void()> _onAnimationComplete);
-
-    /// \brief Move the camera to the specified pose.
-    /// param[in] _camera Camera to be moved
-    /// param[in] _target Pose to move to
-    /// param[in] _duration Duration of the move to animation, in seconds.
-    /// param[in] _onAnimationComplete Callback function when animation is
-    /// complete
-    public: void MoveTo(const rendering::CameraPtr &_camera,
-        const math::Pose3d &_target, double _duration,
-        std::function<void()> _onAnimationComplete);
-
-    /// \brief Move the camera to look at the specified target
-    /// param[in] _camera Camera to be moved
-    /// param[in] _direction The pose to assume relative to the entit(y/ies),
-    /// (0, 0, 0) indicates to return the camera back to the home pose
-    /// originally loaded in from the sdf.
-    /// param[in] _duration Duration of the move to animation, in seconds.
-    /// param[in] _onAnimationComplete Callback function when animation is
-    /// complete
-    public: void LookDirection(const rendering::CameraPtr &_camera,
-        const math::Vector3d &_direction, const math::Vector3d &_lookAt,
-        double _duration, std::function<void()> _onAnimationComplete);
-
-    /// \brief Add time to the animation.
-    /// \param[in] _time Time to add in seconds
-    public: void AddTime(double _time);
-
-    /// \brief Get whether the move to helper is idle, i.e. no animation
-    /// is being executed.
-    /// \return True if idle, false otherwise
-    public: bool Idle() const;
-
-    /// \brief Set the initial camera pose
-    /// param[in] _pose The init pose of the camera
-    public: void SetInitCameraPose(const math::Pose3d &_pose);
-
-    /// \brief Pose animation object
-    public: std::unique_ptr<common::PoseAnimation> poseAnim;
-
-    /// \brief Pointer to the camera being moved
-    public: rendering::CameraPtr camera;
-
-    /// \brief Callback function when animation is complete.
-    public: std::function<void()> onAnimationComplete;
-
-    /// \brief Initial pose of the camera used for view angles
-    public: math::Pose3d initCameraPose;
   };
 
   /// \brief Private data class for IgnRenderer
@@ -229,7 +167,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: std::string moveToTarget;
 
     /// \brief Helper object to move user camera
-    public: MoveToHelper moveToHelper;
+    public: ignition::rendering::MoveToHelper moveToHelper;
+
+    /// \brief Target to view collisions
+    public: std::string viewCollisionsTarget;
 
     /// \brief Helper object to select entities. Only the latest selection
     /// request is kept.
@@ -311,7 +252,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: rendering::RayQueryPtr rayQuery;
 
     /// \brief View control focus target
-    public: math::Vector3d target;
+    public: math::Vector3d target = math::Vector3d(
+        math::INF_D, math::INF_D, math::INF_D);
 
     /// \brief Rendering utility
     public: RenderUtil renderUtil;
@@ -429,6 +371,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief mutex to protect the render condition variable
     /// Used when recording in lockstep mode.
     public: std::mutex renderMutex;
+
+    /// \brief View collisions service
+    public: std::string viewCollisionsService;
+
+    /// \brief Text for popup error message
+    public: QString errorPopupText;
   };
 }
 }
@@ -443,7 +391,7 @@ QList<QThread *> RenderWindowItemPrivate::threads;
 IgnRenderer::IgnRenderer()
   : dataPtr(new IgnRendererPrivate)
 {
-  this->dataPtr->moveToHelper.initCameraPose = this->cameraPose;
+  this->dataPtr->moveToHelper.SetInitCameraPose(this->cameraPose);
 
   // recorder stats topic
   std::string recorderStatsTopic = "/gui/record_video/stats";
@@ -803,12 +751,43 @@ void IgnRenderer::Render()
     }
   }
 
+  // View collisions
+  {
+    IGN_PROFILE("IgnRenderer::Render ViewCollisions");
+    if (!this->dataPtr->viewCollisionsTarget.empty())
+    {
+      rendering::NodePtr targetNode =
+          scene->NodeByName(this->dataPtr->viewCollisionsTarget);
+
+      if (targetNode)
+      {
+        Entity targetEntity =
+            this->dataPtr->renderUtil.SceneManager().EntityFromNode(targetNode);
+        this->dataPtr->renderUtil.ViewCollisions(targetEntity);
+      }
+      else
+      {
+        ignerr << "Unable to find node name ["
+               << this->dataPtr->viewCollisionsTarget
+               << "] to view collisions" << std::endl;
+      }
+
+      this->dataPtr->viewCollisionsTarget.clear();
+    }
+  }
+
   if (ignition::gui::App())
   {
-    gui::events::Render event;
+    ignition::gui::events::Render event;
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
         &event);
+
+    // This will be deprecated on v5 and removed on v6
+    ignition::gazebo::gui::events::Render oldEvent;
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        &oldEvent);
   }
 
   // only has an effect in video recording lockstep mode
@@ -1397,9 +1376,6 @@ void IgnRenderer::HandleMouseTransformControl()
       // Select entity
       else if (!this->dataPtr->mouseEvent.Dragging())
       {
-        rendering::VisualPtr v = this->dataPtr->camera->VisualAt(
-              this->dataPtr->mouseEvent.Pos());
-
         rendering::VisualPtr visual = this->dataPtr->camera->Scene()->VisualAt(
               this->dataPtr->camera,
               this->dataPtr->mouseEvent.Pos());
@@ -1607,11 +1583,23 @@ void IgnRenderer::HandleMouseViewControl()
   }
   else
   {
-    if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::PRESS)
+    if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::PRESS ||
+        // the rendering thread may miss the press event due to
+        // race condition when doing a drag operation (press and move, where
+        // the move event overrides the press event before it is processed)
+        // so we double check to see if target is set or not
+        (this->dataPtr->mouseEvent.Type() == common::MouseEvent::MOVE &&
+        this->dataPtr->mouseEvent.Dragging() &&
+        std::isinf(this->dataPtr->target.X())))
     {
       this->dataPtr->target = this->ScreenToScene(
           this->dataPtr->mouseEvent.PressPos());
       this->dataPtr->viewControl.SetTarget(this->dataPtr->target);
+    }
+    // unset the target on release (by setting to inf)
+    else if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE)
+    {
+      this->dataPtr->target = ignition::math::INF_D;
     }
 
     // Pan with left button
@@ -1655,17 +1643,25 @@ void IgnRenderer::HandleMouseViewControl()
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::Initialize()
+std::string IgnRenderer::Initialize()
 {
   if (this->initialized)
-    return;
+    return std::string();
+
+  // Only one engine / scene / user camera is currently supported.
+  // Fail gracefully even before getting to renderUtil.
+  if (!rendering::loadedEngines().empty())
+  {
+    return "Currently only one plugin providing a 3D scene is supported at a "
+            "time.";
+  }
 
   this->dataPtr->renderUtil.SetUseCurrentGLContext(true);
   this->dataPtr->renderUtil.Init();
 
   rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
   if (!scene)
-    return;
+    return "Failed to create a 3D scene.";
 
   auto root = scene->RootVisual();
 
@@ -1686,6 +1682,7 @@ void IgnRenderer::Initialize()
   this->dataPtr->rayQuery = this->dataPtr->camera->Scene()->CreateRayQuery();
 
   this->initialized = true;
+  return std::string();
 }
 
 /////////////////////////////////////////////////
@@ -1915,6 +1912,13 @@ void IgnRenderer::SetMoveToPose(const math::Pose3d &_pose)
 }
 
 /////////////////////////////////////////////////
+void IgnRenderer::SetViewCollisionsTarget(const std::string &_target)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->viewCollisionsTarget = _target;
+}
+
+/////////////////////////////////////////////////
 void IgnRenderer::SetFollowPGain(double _gain)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -2072,6 +2076,12 @@ RenderThread::RenderThread()
 }
 
 /////////////////////////////////////////////////
+void RenderThread::SetErrorCb(std::function<void(const QString&)> _cb)
+{
+  this->errorCb = _cb;
+}
+
+/////////////////////////////////////////////////
 void RenderThread::RenderNext()
 {
   this->context->makeCurrent(this->surface);
@@ -2079,7 +2089,12 @@ void RenderThread::RenderNext()
   if (!this->ignRenderer.initialized)
   {
     // Initialize renderer
-    this->ignRenderer.Initialize();
+    auto loadingError = this->ignRenderer.Initialize();
+    if (!loadingError.empty())
+    {
+      this->errorCb(QString::fromStdString(loadingError));
+      return;
+    }
   }
 
   // check if engine has been successfully initialized
@@ -2097,18 +2112,24 @@ void RenderThread::RenderNext()
 /////////////////////////////////////////////////
 void RenderThread::ShutDown()
 {
-  this->context->makeCurrent(this->surface);
+  if (this->context && this->surface)
+    this->context->makeCurrent(this->surface);
 
   this->ignRenderer.Destroy();
 
-  this->context->doneCurrent();
-  delete this->context;
+  if (this->context)
+  {
+    this->context->doneCurrent();
+    delete this->context;
+  }
 
   // schedule this to be deleted only after we're done cleaning up
-  this->surface->deleteLater();
+  if (this->surface)
+    this->surface->deleteLater();
 
   // Stop event processing, move the thread to GUI and make sure it is deleted.
-  this->moveToThread(QGuiApplication::instance()->thread());
+  if (this->ignRenderer.initialized)
+    this->moveToThread(QGuiApplication::instance()->thread());
 }
 
 
@@ -2137,8 +2158,9 @@ TextureNode::TextureNode(QQuickWindow *_window)
 #if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
   this->texture = this->window->createTextureFromId(0, QSize(1, 1));
 #else
+  void * nativeLayout;
   this->texture = this->window->createTextureFromNativeObject(
-      QQuickWindow::NativeObjectTexture, nullptr, 0, QSize(1, 1),
+      QQuickWindow::NativeObjectTexture, &nativeLayout, 0, QSize(1, 1),
       QQuickWindow::TextureIsOpaque);
 #endif
   this->setTexture(this->texture);
@@ -2207,16 +2229,6 @@ void TextureNode::PrepareNode()
 RenderWindowItem::RenderWindowItem(QQuickItem *_parent)
   : QQuickItem(_parent), dataPtr(new RenderWindowItemPrivate)
 {
-  // FIXME(anyone) Ogre 1/2 singletons crash when there's an attempt to load
-  // this plugin twice, so shortcut here. Ideally this would be caught at
-  // Ignition Rendering.
-  static bool done{false};
-  if (done)
-  {
-    return;
-  }
-  done = true;
-
   this->setAcceptedMouseButtons(Qt::AllButtons);
   this->setFlag(ItemHasContents);
   this->dataPtr->renderThread = new RenderThread();
@@ -2382,18 +2394,6 @@ Scene3D::~Scene3D() = default;
 /////////////////////////////////////////////////
 void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
 {
-  // FIXME(anyone) Ogre 1/2 singletons crash when there's an attempt to load
-  // this plugin twice, so shortcut here. Ideally this would be caught at
-  // Ignition Rendering.
-  static bool done{false};
-  if (done)
-  {
-    ignerr << "Only one Scene3D is supported per process at the moment."
-           << std::endl;
-    return;
-  }
-  done = true;
-
   auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
   if (!renderWindow)
   {
@@ -2401,6 +2401,8 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
            << "Render window will not be created" << std::endl;
     return;
   }
+  renderWindow->SetErrorCb(std::bind(&Scene3D::SetLoadingError, this,
+      std::placeholders::_1));
 
   if (this->title.empty())
     this->title = "3D Scene";
@@ -2618,6 +2620,13 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   ignmsg << "Camera pose topic advertised on ["
          << this->dataPtr->cameraPoseTopic << "]" << std::endl;
 
+  // view collisions service
+  this->dataPtr->viewCollisionsService = "/gui/view/collisions";
+  this->dataPtr->node.Advertise(this->dataPtr->viewCollisionsService,
+      &Scene3D::OnViewCollisions, this);
+  ignmsg << "View collisions service on ["
+         << this->dataPtr->viewCollisionsService << "]" << std::endl;
+
   ignition::gui::App()->findChild<
       ignition::gui::MainWindow *>()->QuickWindow()->installEventFilter(this);
   ignition::gui::App()->findChild<
@@ -2771,6 +2780,18 @@ bool Scene3D::OnMoveToPose(const msgs::GUICamera &_msg, msgs::Boolean &_res)
 }
 
 /////////////////////////////////////////////////
+bool Scene3D::OnViewCollisions(const msgs::StringMsg &_msg,
+  msgs::Boolean &_res)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+
+  renderWindow->SetViewCollisionsTarget(_msg.data());
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
 void Scene3D::OnHovered(int _mouseX, int _mouseY)
 {
   auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
@@ -2782,7 +2803,7 @@ void Scene3D::OnDropped(const QString &_drop, int _mouseX, int _mouseY)
 {
   if (_drop.toStdString().empty())
   {
-    ignwarn << "Dropped empty entity URI." << std::endl;
+    this->SetErrorPopupText("Dropped empty entity URI.");
     return;
   }
 
@@ -2797,7 +2818,56 @@ void Scene3D::OnDropped(const QString &_drop, int _mouseX, int _mouseY)
   math::Vector3d pos = renderWindow->ScreenToScene({_mouseX, _mouseY});
 
   msgs::EntityFactory req;
-  req.set_sdf_filename(_drop.toStdString());
+  std::string dropStr = _drop.toStdString();
+  if (QUrl(_drop).isLocalFile())
+  {
+    // mesh to sdf model
+    common::rtrim(dropStr);
+
+    if (!common::MeshManager::Instance()->IsValidFilename(dropStr))
+    {
+      QString errTxt = QString::fromStdString("Invalid URI: " + dropStr +
+        "\nOnly Fuel URLs or mesh file types DAE, OBJ, and STL are supported.");
+      this->SetErrorPopupText(errTxt);
+      return;
+    }
+
+    // Fixes whitespace
+    dropStr = common::replaceAll(dropStr, "%20", " ");
+
+    std::string filename = common::basename(dropStr);
+    std::vector<std::string> splitName = common::split(filename, ".");
+
+    std::string sdf = "<?xml version='1.0'?>"
+      "<sdf version='" + std::string(SDF_PROTOCOL_VERSION) + "'>"
+        "<model name='" + splitName[0] + "'>"
+          "<link name='link'>"
+            "<visual name='visual'>"
+              "<geometry>"
+                "<mesh>"
+                  "<uri>" + dropStr + "</uri>"
+                "</mesh>"
+              "</geometry>"
+            "</visual>"
+            "<collision name='collision'>"
+              "<geometry>"
+                "<mesh>"
+                  "<uri>" + dropStr + "</uri>"
+                "</mesh>"
+              "</geometry>"
+            "</collision>"
+          "</link>"
+        "</model>"
+      "</sdf>";
+
+    req.set_sdf(sdf);
+  }
+  else
+  {
+    // model from fuel
+    req.set_sdf_filename(dropStr);
+  }
+
   req.set_allow_renaming(true);
   msgs::Set(req.mutable_pose(),
       math::Pose3d(pos.X(), pos.Y(), pos.Z(), 1, 0, 0, 0));
@@ -2807,10 +2877,37 @@ void Scene3D::OnDropped(const QString &_drop, int _mouseX, int _mouseY)
 }
 
 /////////////////////////////////////////////////
+QString Scene3D::ErrorPopupText() const
+{
+  return this->dataPtr->errorPopupText;
+}
+
+/////////////////////////////////////////////////
+void Scene3D::SetErrorPopupText(const QString &_errorTxt)
+{
+  this->dataPtr->errorPopupText = _errorTxt;
+  this->ErrorPopupTextChanged();
+  this->popupError();
+}
+
+/////////////////////////////////////////////////
 void Scene3D::OnFocusWindow()
 {
   auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
   renderWindow->forceActiveFocus();
+}
+
+/////////////////////////////////////////////////
+QString Scene3D::LoadingError() const
+{
+  return this->loadingError;
+}
+
+/////////////////////////////////////////////////
+void Scene3D::SetLoadingError(const QString &_loadingError)
+{
+  this->loadingError = _loadingError;
+  this->LoadingErrorChanged();
 }
 
 /////////////////////////////////////////////////
@@ -3026,6 +3123,12 @@ void RenderWindowItem::SetMoveToPose(const math::Pose3d &_pose)
 }
 
 /////////////////////////////////////////////////
+void RenderWindowItem::SetViewCollisionsTarget(const std::string &_target)
+{
+  this->dataPtr->renderThread->ignRenderer.SetViewCollisionsTarget(_target);
+}
+
+/////////////////////////////////////////////////
 void RenderWindowItem::SetFollowPGain(double _gain)
 {
   this->dataPtr->renderThread->ignRenderer.SetFollowPGain(_gain);
@@ -3094,6 +3197,12 @@ void RenderWindowItem::SetRecordVideoBitrate(unsigned int _bitrate)
 void RenderWindowItem::OnHovered(const ignition::math::Vector2i &_hoverPos)
 {
   this->dataPtr->renderThread->ignRenderer.NewHoverEvent(_hoverPos);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetErrorCb(std::function<void(const QString&)> _cb)
+{
+  this->dataPtr->renderThread->SetErrorCb(_cb);
 }
 
 /////////////////////////////////////////////////
@@ -3202,158 +3311,6 @@ void RenderWindowItem::HandleKeyRelease(QKeyEvent *_e)
 //  }
 // }
 //
-
-////////////////////////////////////////////////
-void MoveToHelper::MoveTo(const rendering::CameraPtr &_camera,
-    const ignition::math::Pose3d &_target,
-    double _duration, std::function<void()> _onAnimationComplete)
-{
-  this->camera = _camera;
-  this->poseAnim = std::make_unique<common::PoseAnimation>(
-      "move_to", _duration, false);
-  this->onAnimationComplete = std::move(_onAnimationComplete);
-
-  math::Pose3d start = _camera->WorldPose();
-
-  common::PoseKeyFrame *key = this->poseAnim->CreateKeyFrame(0);
-  key->Translation(start.Pos());
-  key->Rotation(start.Rot());
-
-  key = this->poseAnim->CreateKeyFrame(_duration);
-  if (_target.Pos().IsFinite())
-    key->Translation(_target.Pos());
-  else
-    key->Translation(start.Pos());
-
-  if (_target.Rot().IsFinite())
-    key->Rotation(_target.Rot());
-  else
-    key->Rotation(start.Rot());
-}
-
-////////////////////////////////////////////////
-void MoveToHelper::MoveTo(const rendering::CameraPtr &_camera,
-    const rendering::NodePtr &_target,
-    double _duration, std::function<void()> _onAnimationComplete)
-{
-  this->camera = _camera;
-  this->poseAnim = std::make_unique<common::PoseAnimation>(
-      "move_to", _duration, false);
-  this->onAnimationComplete = std::move(_onAnimationComplete);
-
-  math::Pose3d start = _camera->WorldPose();
-
-  // todo(anyone) implement bounding box function in rendering to get
-  // target size and center.
-  // Assume fixed size and target world position is its center
-  math::Box targetBBox(1.0, 1.0, 1.0);
-  math::Vector3d targetCenter = _target->WorldPosition();
-  math::Vector3d dir = targetCenter - start.Pos();
-  dir.Correct();
-  dir.Normalize();
-
-  // distance to move
-  double maxSize = targetBBox.Size().Max();
-  double dist = start.Pos().Distance(targetCenter) - maxSize;
-
-  // Scale to fit in view
-  double hfov = this->camera->HFOV().Radian();
-  double offset = maxSize*0.5 / std::tan(hfov/2.0);
-
-  // End position and rotation
-  math::Vector3d endPos = start.Pos() + dir*(dist - offset);
-  math::Quaterniond endRot =
-      math::Matrix4d::LookAt(endPos, targetCenter).Rotation();
-  math::Pose3d end(endPos, endRot);
-
-  common::PoseKeyFrame *key = this->poseAnim->CreateKeyFrame(0);
-  key->Translation(start.Pos());
-  key->Rotation(start.Rot());
-
-  key = this->poseAnim->CreateKeyFrame(_duration);
-  key->Translation(end.Pos());
-  key->Rotation(end.Rot());
-}
-
-////////////////////////////////////////////////
-void MoveToHelper::LookDirection(const rendering::CameraPtr &_camera,
-    const math::Vector3d &_direction, const math::Vector3d &_lookAt,
-    double _duration, std::function<void()> _onAnimationComplete)
-{
-  this->camera = _camera;
-  this->poseAnim = std::make_unique<common::PoseAnimation>(
-      "view_angle", _duration, false);
-  this->onAnimationComplete = std::move(_onAnimationComplete);
-
-  math::Pose3d start = _camera->WorldPose();
-
-  // Look at world origin unless there are visuals selected
-  // Keep current distance to look at target
-  math::Vector3d camPos = _camera->WorldPose().Pos();
-  double distance = std::fabs((camPos - _lookAt).Length());
-
-  // Calculate camera position
-  math::Vector3d endPos = _lookAt - _direction * distance;
-
-  // Calculate camera orientation
-  math::Quaterniond endRot =
-    ignition::math::Matrix4d::LookAt(endPos, _lookAt).Rotation();
-
-  // Move camera to that pose
-  common::PoseKeyFrame *key = this->poseAnim->CreateKeyFrame(0);
-  key->Translation(start.Pos());
-  key->Rotation(start.Rot());
-
-  // Move camera back to initial pose
-  if (_direction == math::Vector3d::Zero)
-  {
-    endPos = this->initCameraPose.Pos();
-    endRot = this->initCameraPose.Rot();
-  }
-
-  key = this->poseAnim->CreateKeyFrame(_duration);
-  key->Translation(endPos);
-  key->Rotation(endRot);
-}
-
-////////////////////////////////////////////////
-void MoveToHelper::AddTime(double _time)
-{
-  if (!this->camera || !this->poseAnim)
-    return;
-
-  common::PoseKeyFrame kf(0);
-
-  this->poseAnim->AddTime(_time);
-  this->poseAnim->InterpolatedKeyFrame(kf);
-
-  math::Pose3d offset(kf.Translation(), kf.Rotation());
-
-  this->camera->SetWorldPose(offset);
-
-  if (this->poseAnim->Length() <= this->poseAnim->Time())
-  {
-    if (this->onAnimationComplete)
-    {
-      this->onAnimationComplete();
-    }
-    this->camera.reset();
-    this->poseAnim.reset();
-    this->onAnimationComplete = nullptr;
-  }
-}
-
-////////////////////////////////////////////////
-bool MoveToHelper::Idle() const
-{
-  return this->poseAnim == nullptr;
-}
-
-////////////////////////////////////////////////
-void MoveToHelper::SetInitCameraPose(const math::Pose3d &_pose)
-{
-  this->initCameraPose = _pose;
-}
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(ignition::gazebo::Scene3D,

@@ -10,10 +10,12 @@ set_source_files_properties(
 )
 
 # Suppress compiler warnings in generated protobuf C++ code.
-set_source_files_properties(
-  ${PROTO_PRIVATE_SRC}
-  COMPILE_FLAGS -Wno-unused-parameter
-)
+if(NOT MSVC)
+  set_source_files_properties(
+    ${PROTO_PRIVATE_SRC}
+    COMPILE_FLAGS -Wno-unused-parameter
+  )
+endif()
 
 set(network_sources
   network/NetworkConfig.cc
@@ -29,7 +31,11 @@ set(gui_sources
   PARENT_SCOPE
 )
 
-ign_add_component(ign SOURCES ign.cc GET_TARGET_NAME ign_lib_target)
+ign_add_component(ign
+  SOURCES
+    ign.cc
+    cmd/ModelCommandAPI.cc
+  GET_TARGET_NAME ign_lib_target)
 target_link_libraries(${ign_lib_target}
   PRIVATE
     ${PROJECT_LIBRARY_TARGET_NAME}
@@ -54,9 +60,11 @@ set (sources
   SimulationRunner.cc
   System.cc
   SystemLoader.cc
+  TestFixture.cc
   Util.cc
   View.cc
   World.cc
+  cmd/ModelCommandAPI.cc
   ${PROTO_PRIVATE_SRC}
   ${network_sources}
 )
@@ -72,6 +80,7 @@ set (gtest_sources
   ign_TEST.cc
   Link_TEST.cc
   Model_TEST.cc
+  ModelCommandAPI_TEST.cc
   SdfEntityCreator_TEST.cc
   SdfGenerator_TEST.cc
   Server_TEST.cc
@@ -79,6 +88,7 @@ set (gtest_sources
   SimulationRunner_TEST.cc
   System_TEST.cc
   SystemLoader_TEST.cc
+  TestFixture_TEST.cc
   Util_TEST.cc
   World_TEST.cc
   network/NetworkConfig_TEST.cc
@@ -131,6 +141,44 @@ ign_build_tests(TYPE UNIT
     ${EXTRA_TEST_LIB_DEPS}
     ignition-gazebo${PROJECT_VERSION_MAJOR}
 )
+
+# Command line tests need extra settings
+foreach(CMD_TEST
+  UNIT_ign_TEST
+  UNIT_ModelCommandAPI_TEST)
+
+  if(NOT TARGET ${CMD_TEST})
+    continue()
+  endif()
+
+  # Running `ign gazebo` on macOS has problems when run with /usr/bin/ruby
+  # due to System Integrity Protection (SIP). Try to find ruby from
+  # homebrew as a workaround.
+  if (APPLE)
+    find_program(BREW_RUBY ruby HINTS /usr/local/opt/ruby/bin)
+  endif()
+
+  add_dependencies(${CMD_TEST}
+    ${ign_lib_target}
+    TestModelSystem
+    TestSensorSystem
+    TestWorldSystem
+  )
+
+  target_compile_definitions(${CMD_TEST} PRIVATE
+      "BREW_RUBY=\"${BREW_RUBY} \"")
+
+  target_compile_definitions(${CMD_TEST} PRIVATE
+      "IGN_PATH=\"${IGNITION-TOOLS_BINARY_DIRS}\"")
+
+  set(_env_vars)
+  list(APPEND _env_vars "IGN_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf")
+  list(APPEND _env_vars "IGN_GAZEBO_SYSTEM_PLUGIN_PATH=$<TARGET_FILE_DIR:TestModelSystem>")
+
+  set_tests_properties(${CMD_TEST} PROPERTIES
+    ENVIRONMENT "${_env_vars}")
+
+endforeach()
 
 if(NOT WIN32)
   add_subdirectory(cmd)

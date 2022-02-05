@@ -30,7 +30,9 @@
 #include <ignition/rendering/RenderingIface.hh>
 #include <ignition/rendering/Scene.hh>
 
+#include "ignition/gazebo/rendering/RenderUtil.hh"
 #include "ignition/gazebo/rendering/Events.hh"
+#include "ignition/gazebo/rendering/MarkerManager.hh"
 
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/Model.hh"
@@ -108,6 +110,33 @@ class ignition::gazebo::systems::CameraVideoRecorderPrivate
 
   /// \brief Topic that the sensor publishes to
   public: std::string sensorTopic;
+
+  /// \brief Video recording statistics publisher
+  public: transport::Node::Publisher recorderStatsPub;
+
+  /// \brief Start time of video recording.
+  public: std::chrono::steady_clock::time_point recordStartTime;
+
+  /// \brief Current simulation time.
+  public: std::chrono::steady_clock::duration simTime{0};
+
+  /// \brief Use sim time as timestamp during video recording
+  /// By default (false), video encoding is done using real time.
+  public: bool recordVideoUseSimTime = false;
+
+  /// \brief Video recorder bitrate (bps). This is rougly 2Mbps which
+  /// produces decent video quality while not generating overly large
+  /// video files.
+  ///
+  /// Another point of reference is at:
+  /// https://support.google.com/youtube/answer/1722171?hl=en#zippy=%2Cbitrate
+  public: unsigned int recordVideoBitrate = 2070000;
+
+  /// \brief Recording frames per second.
+  public: unsigned int fps = 25;
+
+  /// \brief Marker manager
+  public: MarkerManager markerManager;
 };
 
 //////////////////////////////////////////////////
@@ -200,7 +229,13 @@ void CameraVideoRecorder::Configure(
   // video recorder service topic name
   if (_sdf->HasElement("service"))
   {
-    this->dataPtr->service = _sdf->Get<std::string>("service");
+    this->dataPtr->service = transport::TopicUtils::AsValidTopic(
+        _sdf->Get<std::string>("service"));
+    if (this->dataPtr->service.empty())
+    {
+      ignerr << "Service [" << _sdf->Get<std::string>("service")
+             << "] not valid. Ignoring." << std::endl;
+    }
   }
   this->dataPtr->eventMgr = &_eventMgr;
 
@@ -208,8 +243,33 @@ void CameraVideoRecorder::Configure(
   sdf::Sensor sensorSdf = cameraEntComp->Data();
   std::string topic  = sensorSdf.Topic();
   if (topic.empty())
-    topic = scopedName(_entity, _ecm) + "/image";
+  {
+    auto scoped = scopedName(_entity, _ecm);
+    topic = transport::TopicUtils::AsValidTopic(scoped + "/image");
+    if (topic.empty())
+    {
+      ignerr << "Failed to generate valid topic for entity [" << scoped
+             << "]" << std::endl;
+    }
+  }
   this->dataPtr->sensorTopic = topic;
+
+  // Get whether sim time should be used for recording.
+  this->dataPtr->recordVideoUseSimTime = _sdf->Get<bool>("use_sim_time",
+      this->dataPtr->recordVideoUseSimTime).first;
+
+  // Get video recoder bitrate param
+  this->dataPtr->recordVideoBitrate = _sdf->Get<unsigned int>("bitrate",
+      this->dataPtr->recordVideoBitrate).first;
+
+  this->dataPtr->fps = _sdf->Get<unsigned int>("fps", this->dataPtr->fps).first;
+
+  // recorder stats topic
+  std::string recorderStatsTopic = this->dataPtr->sensorTopic + "/stats";
+  this->dataPtr->recorderStatsPub =
+    this->dataPtr->node.Advertise<msgs::Time>(recorderStatsTopic);
+  ignmsg << "Camera Video recorder stats topic advertised on ["
+    << recorderStatsTopic << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -218,38 +278,9 @@ void CameraVideoRecorderPrivate::OnPostRender()
   // get scene
   if (!this->scene)
   {
-    auto loadedEngNames = rendering::loadedEngines();
-    if (loadedEngNames.empty())
-      return;
-
-    // assume there is only one engine loaded
-    auto engineName = loadedEngNames[0];
-    if (loadedEngNames.size() > 1)
-    {
-      igndbg << "More than one engine is available. "
-        << "Camera video recorder system will use engine ["
-          << engineName << "]" << std::endl;
-    }
-    auto engine = rendering::engine(engineName);
-    if (!engine)
-    {
-      ignerr << "Internal error: failed to load engine [" << engineName
-        << "]. Camera video recorder system won't work." << std::endl;
-      return;
-    }
-
-    if (engine->SceneCount() == 0)
-      return;
-
-    // assume there is only one scene
-    // load scene
-    auto s = engine->SceneByIndex(0);
-    if (!s)
-    {
-      ignerr << "Internal error: scene is null." << std::endl;
-      return;
-    }
-    this->scene = s;
+    this->scene = rendering::sceneFromFirstRenderEngine();
+    this->markerManager.SetTopic(this->sensorTopic + "/marker");
+    this->markerManager.Init(this->scene);
   }
 
   // return if scene not ready or no sensors available.
@@ -282,6 +313,9 @@ void CameraVideoRecorderPrivate::OnPostRender()
 
   std::lock_guard<std::mutex> lock(this->updateMutex);
 
+  this->markerManager.SetSimTime(this->simTime);
+  this->markerManager.Update();
+
   // record video
   if (this->recordVideo)
   {
@@ -298,8 +332,36 @@ void CameraVideoRecorderPrivate::OnPostRender()
     if (this->videoEncoder.IsEncoding())
     {
       this->camera->Copy(this->cameraImage);
-      this->videoEncoder.AddFrame(
-          this->cameraImage.Data<unsigned char>(), width, height);
+      std::chrono::steady_clock::time_point t;
+        std::chrono::steady_clock::now();
+      if (this->recordVideoUseSimTime)
+        t = std::chrono::steady_clock::time_point(this->simTime);
+      else
+        t = std::chrono::steady_clock::now();
+
+      bool frameAdded = this->videoEncoder.AddFrame(
+          this->cameraImage.Data<unsigned char>(), width, height, t);
+
+      if (frameAdded)
+      {
+        // publish recorder stats
+        if (this->recordStartTime ==
+            std::chrono::steady_clock::time_point(
+              std::chrono::duration(std::chrono::seconds(0))))
+        {
+          // start time, i.e. time when first frame is added
+          this->recordStartTime = t;
+        }
+
+        std::chrono::steady_clock::duration dt;
+        dt = t - this->recordStartTime;
+        int64_t sec, nsec;
+        std::tie(sec, nsec) = ignition::math::durationToSecNsec(dt);
+        msgs::Time msg;
+        msg.set_sec(sec);
+        msg.set_nsec(nsec);
+        this->recorderStatsPub.Publish(msg);
+      }
     }
     // Video recorder is idle. Start recording.
     else
@@ -313,7 +375,11 @@ void CameraVideoRecorderPrivate::OnPostRender()
           &CameraVideoRecorderPrivate::OnImage, this);
 
       this->videoEncoder.Start(this->recordVideoFormat,
-          this->tmpVideoFilename, width, height);
+          this->tmpVideoFilename, width, height, this->fps,
+          this->recordVideoBitrate);
+
+      this->recordStartTime = std::chrono::steady_clock::time_point(
+            std::chrono::duration(std::chrono::seconds(0)));
 
       ignmsg << "Start video recording on [" << this->service << "]. "
              << "Encoding to tmp file: ["
@@ -329,18 +395,31 @@ void CameraVideoRecorderPrivate::OnPostRender()
     // stop encoding
     this->videoEncoder.Stop();
 
-    // move the tmp video file to user specified path
+    ignmsg << "Stop video recording on [" << this->service << "]." << std::endl;
+
     if (common::exists(this->tmpVideoFilename))
     {
-      common::moveFile(this->tmpVideoFilename,
-          this->recordVideoSavePath);
+      std::string parentPath = common::parentPath(this->recordVideoSavePath);
 
-      // Remove old temp file, if it exists.
-      std::remove(this->tmpVideoFilename.c_str());
+      // move the tmp video file to user specified path
+      if (parentPath != this->recordVideoSavePath &&
+          !common::exists(parentPath) && !common::createDirectory(parentPath))
+      {
+        ignerr << "Unable to create directory[" << parentPath
+          << "]. Video file[" << this->tmpVideoFilename
+          << "] will not be moved." << std::endl;
+      }
+      else
+      {
+        common::moveFile(this->tmpVideoFilename, this->recordVideoSavePath);
+
+        // Remove old temp file, if it exists.
+        std::remove(this->tmpVideoFilename.c_str());
+
+        ignmsg << "Saving tmp video[" << this->tmpVideoFilename << "] file to ["
+               << this->recordVideoSavePath << "]" << std::endl;
+      }
     }
-    ignmsg << "Stop video recording on [" << this->service << "]. "
-           << "Saving file to: [" << this->recordVideoSavePath << "]"
-           << std::endl;
 
     // reset the event connection to prevent unnecessary render callbacks
     this->postRenderConn.reset();
@@ -348,9 +427,10 @@ void CameraVideoRecorderPrivate::OnPostRender()
 }
 
 //////////////////////////////////////////////////
-void CameraVideoRecorder::PostUpdate(const UpdateInfo &,
+void CameraVideoRecorder::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
+  this->dataPtr->simTime = _info.simTime;
   if (!this->dataPtr->cameraName.empty())
     return;
 
@@ -363,8 +443,15 @@ void CameraVideoRecorder::PostUpdate(const UpdateInfo &,
 
   if (this->dataPtr->service.empty())
   {
-    this->dataPtr->service = scopedName(this->dataPtr->entity, _ecm) +
-      "/record_video";
+    auto scoped = scopedName(this->dataPtr->entity, _ecm);
+    this->dataPtr->service = transport::TopicUtils::AsValidTopic(scoped +
+        "/record_video");
+    if (this->dataPtr->service.empty())
+    {
+      ignerr << "Failed to create valid service for [" << scoped << "]"
+             << std::endl;
+    }
+    return;
   }
 
   this->dataPtr->node.Advertise(this->dataPtr->service,

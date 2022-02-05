@@ -19,6 +19,7 @@
 #include <vector>
 
 #include <sdf/Actor.hh>
+#include <sdf/Collision.hh>
 #include <sdf/Element.hh>
 #include <sdf/Light.hh>
 #include <sdf/Link.hh>
@@ -43,9 +44,11 @@
 #include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/CastShadows.hh"
+#include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/LaserRetro.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Material.hh"
@@ -101,11 +104,15 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief Name of scene
   public: std::string sceneName = "scene";
 
-  /// \brief Scene background color
-  public: math::Color backgroundColor = math::Color::Black;
+  /// \brief Scene background color. This is optional because a <scene> is
+  /// always present, which has a default background color value. This
+  /// backgroundColor variable is used to override the <scene> value.
+  public: std::optional<math::Color> backgroundColor;
 
-  /// \brief Ambient color
-  public: math::Color ambientLight = math::Color(1.0, 1.0, 1.0, 1.0);
+  /// \brief Ambient color. This is optional because an <scene> is always
+  /// present, which has a default ambient light value. This ambientLight
+  /// variable is used to override the <scene> value.
+  public: std::optional<math::Color> ambientLight;
 
   /// \brief Scene manager
   public: SceneManager sceneManager;
@@ -197,6 +204,30 @@ class ignition::gazebo::RenderUtilPrivate
   /// \param[in] _node Node to be restored.
   /// TODO(anyone) On future versions, use a bounding box instead
   public: void LowlightNode(const rendering::NodePtr &_node);
+
+  /// \brief New collisions to be created
+  public: std::vector<Entity> newCollisions;
+
+  /// \brief Finds the links (collision parent) that are used to create child
+  /// collision visuals in RenderUtil::Update
+  /// \param[in] _ecm The entity-component manager
+  public: void FindCollisionLinks(const EntityComponentManager &_ecm);
+
+  /// \brief A list of links used to create new collision visuals
+  public: std::vector<Entity> newCollisionLinks;
+
+  /// \brief A map of collision entity ids and their SDF DOM
+  public: std::map<Entity, sdf::Collision> entityCollisions;
+
+  /// \brief A map of model entities and their corresponding children links
+  public: std::map<Entity, std::vector<Entity>> modelToLinkEntities;
+
+  /// \brief A map of link entities and their corresponding children collisions
+  public: std::map<Entity, std::vector<Entity>> linkToCollisionEntities;
+
+  /// \brief A map of created collision entities and if they are currently
+  /// visible
+  public: std::map<Entity, bool> viewingCollisions;
 };
 
 //////////////////////////////////////////////////
@@ -225,6 +256,42 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
   this->dataPtr->UpdateRenderingEntities(_ecm);
   this->dataPtr->RemoveRenderingEntities(_ecm, _info);
   this->dataPtr->markerManager.SetSimTime(_info.simTime);
+  this->dataPtr->FindCollisionLinks(_ecm);
+}
+
+//////////////////////////////////////////////////
+void RenderUtilPrivate::FindCollisionLinks(const EntityComponentManager &_ecm)
+{
+  if (this->newCollisions.empty())
+    return;
+
+  for (const auto &entity : this->newCollisions)
+  {
+    std::vector<Entity> links;
+    if (_ecm.EntityMatches(entity,
+          std::set<ComponentTypeId>{components::Model::typeId}))
+    {
+      links = _ecm.EntitiesByComponents(components::ParentEntity(entity),
+                                        components::Link());
+    }
+    else if (_ecm.EntityMatches(entity,
+                std::set<ComponentTypeId>{components::Link::typeId}))
+    {
+      links.push_back(entity);
+    }
+    else
+    {
+      ignerr << "Entity [" << entity
+             << "] for viewing collision must be a model or link"
+             << std::endl;
+      continue;
+    }
+
+    this->newCollisionLinks.insert(this->newCollisionLinks.end(),
+        links.begin(),
+        links.end());
+  }
+  this->newCollisions.clear();
 }
 
 //////////////////////////////////////////////////
@@ -263,6 +330,7 @@ void RenderUtil::Update()
   auto entityPoses = std::move(this->dataPtr->entityPoses);
   auto actorTransforms = std::move(this->dataPtr->actorTransforms);
   auto entityTemp = std::move(this->dataPtr->entityTemp);
+  auto newCollisionLinks = std::move(this->dataPtr->newCollisionLinks);
 
   this->dataPtr->newScenes.clear();
   this->dataPtr->newModels.clear();
@@ -274,6 +342,7 @@ void RenderUtil::Update()
   this->dataPtr->entityPoses.clear();
   this->dataPtr->actorTransforms.clear();
   this->dataPtr->entityTemp.clear();
+  this->dataPtr->newCollisionLinks.clear();
 
   this->dataPtr->markerManager.Update();
 
@@ -290,8 +359,16 @@ void RenderUtil::Update()
   // extend the sensor system to support mutliple scenes in the future
   for (auto &scene : newScenes)
   {
-    this->dataPtr->scene->SetAmbientLight(scene.Ambient());
-    this->dataPtr->scene->SetBackgroundColor(scene.Background());
+    // Only set the ambient color if the RenderUtil::SetBackgroundColor
+    // was not called.
+    if (!this->dataPtr->ambientLight)
+      this->dataPtr->scene->SetAmbientLight(scene.Ambient());
+
+    // Only set the background color if the RenderUtil::SetBackgroundColor
+    // was not called.
+    if (!this->dataPtr->backgroundColor)
+      this->dataPtr->scene->SetBackgroundColor(scene.Background());
+
     if (scene.Grid() && !this->dataPtr->enableSensors)
       this->ShowGrid();
     // only one scene so break
@@ -457,6 +534,43 @@ void RenderUtil::Update()
       visual->SetUserData("temperature", temp.second);
     }
   }
+
+  // create new collision visuals
+  {
+    for (const auto &link : newCollisionLinks)
+    {
+      std::vector<Entity> colEntities =
+          this->dataPtr->linkToCollisionEntities[link];
+
+      for (const auto &colEntity : colEntities)
+      {
+        if (!this->dataPtr->sceneManager.HasEntity(colEntity))
+        {
+          auto vis = this->dataPtr->sceneManager.CreateCollision(colEntity,
+              this->dataPtr->entityCollisions[colEntity], link);
+          this->dataPtr->viewingCollisions[colEntity] = true;
+
+          // add geometry material to originalEmissive map
+          for (auto g = 0u; g < vis->GeometryCount(); ++g)
+          {
+            auto geom = vis->GeometryByIndex(g);
+
+            // Geometry material
+            auto geomMat = geom->Material();
+            if (nullptr == geomMat)
+              continue;
+
+            if (this->dataPtr->originalEmissive.find(geom->Name()) ==
+                this->dataPtr->originalEmissive.end())
+            {
+              this->dataPtr->originalEmissive[geom->Name()] =
+                  geomMat->Emissive();
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 //////////////////////////////////////////////////
@@ -536,6 +650,8 @@ void RenderUtilPrivate::CreateRenderingEntities(
           link.SetRawPose(_pose->Data());
           this->newLinks.push_back(
               std::make_tuple(_entity, link, _parent->Data()));
+          // used for collsions
+          this->modelToLinkEntities[_parent->Data()].push_back(_entity);
           return true;
         });
 
@@ -566,6 +682,12 @@ void RenderUtilPrivate::CreateRenderingEntities(
           if (material != nullptr)
           {
             visual.SetMaterial(material->Data());
+          }
+
+          auto laserRetro = _ecm.Component<components::LaserRetro>(_entity);
+          if (laserRetro != nullptr)
+          {
+            visual.SetLaserRetro(laserRetro->Data());
           }
 
           // todo(anyone) make visual updates more generic without using extra
@@ -601,6 +723,23 @@ void RenderUtilPrivate::CreateRenderingEntities(
         {
           this->newLights.push_back(
               std::make_tuple(_entity, _light->Data(), _parent->Data()));
+          return true;
+        });
+
+    // collisions
+    _ecm.Each<components::Collision, components::Name, components::Pose,
+              components::Geometry, components::CollisionElement,
+              components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::Collision *,
+            const components::Name *,
+            const components::Pose *,
+            const components::Geometry *,
+            const components::CollisionElement *_collElement,
+            const components::ParentEntity *_parent) -> bool
+        {
+          this->entityCollisions[_entity] = _collElement->Data();
+          this->linkToCollisionEntities[_parent->Data()].push_back(_entity);
           return true;
         });
 
@@ -709,6 +848,8 @@ void RenderUtilPrivate::CreateRenderingEntities(
           link.SetRawPose(_pose->Data());
           this->newLinks.push_back(
               std::make_tuple(_entity, link, _parent->Data()));
+          // used for collsions
+          this->modelToLinkEntities[_parent->Data()].push_back(_entity);
           return true;
         });
 
@@ -741,6 +882,12 @@ void RenderUtilPrivate::CreateRenderingEntities(
             visual.SetMaterial(material->Data());
           }
 
+          auto laserRetro = _ecm.Component<components::LaserRetro>(_entity);
+          if (laserRetro != nullptr)
+          {
+            visual.SetLaserRetro(laserRetro->Data());
+          }
+
           this->newVisuals.push_back(
               std::make_tuple(_entity, visual, _parent->Data()));
           return true;
@@ -765,6 +912,23 @@ void RenderUtilPrivate::CreateRenderingEntities(
         {
           this->newLights.push_back(
               std::make_tuple(_entity, _light->Data(), _parent->Data()));
+          return true;
+        });
+
+    // collisions
+    _ecm.EachNew<components::Collision, components::Name, components::Pose,
+              components::Geometry, components::CollisionElement,
+              components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::Collision *,
+            const components::Name *,
+            const components::Pose *,
+            const components::Geometry *,
+            const components::CollisionElement *_collElement,
+            const components::ParentEntity *_parent) -> bool
+        {
+          this->entityCollisions[_entity] = _collElement->Data();
+          this->linkToCollisionEntities[_parent->Data()].push_back(_entity);
           return true;
         });
 
@@ -944,6 +1108,7 @@ void RenderUtilPrivate::RemoveRenderingEntities(
       [&](const Entity &_entity, const components::Model *)->bool
       {
         this->removeEntities[_entity] = _info.iterations;
+        this->modelToLinkEntities.erase(_entity);
         return true;
       });
 
@@ -951,6 +1116,7 @@ void RenderUtilPrivate::RemoveRenderingEntities(
       [&](const Entity &_entity, const components::Link *)->bool
       {
         this->removeEntities[_entity] = _info.iterations;
+        this->linkToCollisionEntities.erase(_entity);
         return true;
       });
 
@@ -1009,6 +1175,16 @@ void RenderUtilPrivate::RemoveRenderingEntities(
         this->removeEntities[_entity] = _info.iterations;
         return true;
       });
+
+  // collisions
+  _ecm.EachRemoved<components::Collision>(
+    [&](const Entity &_entity, const components::Collision *)->bool
+      {
+        this->removeEntities[_entity] = _info.iterations;
+        this->viewingCollisions.erase(_entity);
+        this->entityCollisions.erase(_entity);
+        return true;
+      });
 }
 
 /////////////////////////////////////////////////
@@ -1039,8 +1215,17 @@ void RenderUtil::Init()
         this->dataPtr->engine->CreateScene(this->dataPtr->sceneName);
     if (this->dataPtr->scene)
     {
-      this->dataPtr->scene->SetAmbientLight(this->dataPtr->ambientLight);
-      this->dataPtr->scene->SetBackgroundColor(this->dataPtr->backgroundColor);
+      if (this->dataPtr->ambientLight)
+      {
+        this->dataPtr->scene->SetAmbientLight(
+            *this->dataPtr->ambientLight);
+      }
+
+      if (this->dataPtr->backgroundColor)
+      {
+        this->dataPtr->scene->SetBackgroundColor(
+            *this->dataPtr->backgroundColor);
+      }
     }
   }
   this->dataPtr->sceneManager.SetScene(this->dataPtr->scene);
@@ -1310,5 +1495,67 @@ void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
       ignerr << "Failed to find original material for geometry ["
              << geom->Name() << "]" << std::endl;
     }
+  }
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::ViewCollisions(const Entity &_entity)
+{
+  std::vector<Entity> colEntities;
+  if (this->dataPtr->linkToCollisionEntities.find(_entity) !=
+      this->dataPtr->linkToCollisionEntities.end())
+  {
+    colEntities = this->dataPtr->linkToCollisionEntities[_entity];
+  }
+  else if (this->dataPtr->modelToLinkEntities.find(_entity) !=
+           this->dataPtr->modelToLinkEntities.end())
+  {
+    std::vector<Entity> links = this->dataPtr->modelToLinkEntities[_entity];
+    for (const auto &link : links)
+      colEntities.insert(colEntities.end(),
+          this->dataPtr->linkToCollisionEntities[link].begin(),
+          this->dataPtr->linkToCollisionEntities[link].end());
+  }
+
+  // create and/or toggle collision visuals
+
+  bool showCol, showColInit = false;
+  // first loop looks for new collisions
+  for (const auto &colEntity : colEntities)
+  {
+    if (this->dataPtr->viewingCollisions.find(colEntity) ==
+        this->dataPtr->viewingCollisions.end())
+    {
+      this->dataPtr->newCollisions.push_back(_entity);
+      showColInit = showCol = true;
+    }
+  }
+
+  // second loop toggles already created collisions
+  for (const auto &colEntity : colEntities)
+  {
+    if (this->dataPtr->viewingCollisions.find(colEntity) ==
+        this->dataPtr->viewingCollisions.end())
+      continue;
+
+    // when viewing multiple collisions (e.g. _entity is a model),
+    // boolean for view collisions is based on first colEntity in list
+    if (!showColInit)
+    {
+      showCol = !this->dataPtr->viewingCollisions[colEntity];
+      showColInit = true;
+    }
+
+    rendering::VisualPtr colVisual =
+        this->dataPtr->sceneManager.VisualById(colEntity);
+    if (colVisual == nullptr)
+    {
+      ignerr << "Could not find collision visual for entity [" << colEntity
+             << "]" << std::endl;
+      continue;
+    }
+
+    this->dataPtr->viewingCollisions[colEntity] = showCol;
+    colVisual->SetVisible(showCol);
   }
 }

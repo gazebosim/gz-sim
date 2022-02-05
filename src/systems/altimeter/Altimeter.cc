@@ -21,6 +21,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 
 #include <ignition/common/Profiler.hh>
@@ -51,16 +52,35 @@ using namespace systems;
 /// \brief Private Altimeter data class.
 class ignition::gazebo::systems::AltimeterPrivate
 {
-  /// \brief A map of altimeter entity to its vertical reference
+  /// \brief A map of altimeter entity to its sensor
   public: std::unordered_map<Entity,
       std::unique_ptr<sensors::AltimeterSensor>> entitySensorMap;
 
   /// \brief Ign-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
 
+  /// \brief Keep list of sensors that were created during the previous
+  /// `PostUpdate`, so that components can be created during the next
+  /// `PreUpdate`.
+  public: std::unordered_set<Entity> newSensors;
+
+  /// True if the rendering component is initialized
+  public: bool initialized = false;
+
+  /// \brief Create sensor
+  /// \param[in] _ecm Immutable reference to ECM.
+  /// \param[in] _entity Entity of the IMU
+  /// \param[in] _altimeter Altimeter component.
+  /// \param[in] _parent Parent entity component.
+  public: void AddAltimeter(
+    const EntityComponentManager &_ecm,
+    const Entity _entity,
+    const components::Altimeter *_altimeter,
+    const components::ParentEntity *_parent);
+
   /// \brief Create altimeter sensor
-  /// \param[in] _ecm Mutable reference to ECM.
-  public: void CreateAltimeterEntities(EntityComponentManager &_ecm);
+  /// \param[in] _ecm Immutable reference to ECM.
+  public: void CreateSensors(const EntityComponentManager &_ecm);
 
   /// \brief Update altimeter sensor data based on physics data
   /// \param[in] _ecm Immutable reference to ECM.
@@ -85,7 +105,21 @@ void Altimeter::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
   IGN_PROFILE("Altimeter::PreUpdate");
-  this->dataPtr->CreateAltimeterEntities(_ecm);
+
+  // Create components
+  for (auto entity : this->dataPtr->newSensors)
+  {
+    auto it = this->dataPtr->entitySensorMap.find(entity);
+    if (it == this->dataPtr->entitySensorMap.end())
+    {
+      ignerr << "Entity [" << entity
+             << "] isn't in sensor map, this shouldn't happen." << std::endl;
+      continue;
+    }
+    // Set topic
+    _ecm.CreateComponent(entity, components::SensorTopic(it->second->Topic()));
+  }
+  this->dataPtr->newSensors.clear();
 }
 
 //////////////////////////////////////////////////
@@ -101,6 +135,8 @@ void Altimeter::PostUpdate(const UpdateInfo &_info,
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
+
+  this->dataPtr->CreateSensors(_ecm);
 
   // Only update and publish if not paused.
   if (!_info.paused)
@@ -120,56 +156,79 @@ void Altimeter::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-void AltimeterPrivate::CreateAltimeterEntities(EntityComponentManager &_ecm)
+void AltimeterPrivate::AddAltimeter(
+  const EntityComponentManager &_ecm,
+  const Entity _entity,
+  const components::Altimeter *_altimeter,
+  const components::ParentEntity *_parent)
+{
+  // create sensor
+  std::string sensorScopedName =
+      removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
+  sdf::Sensor data = _altimeter->Data();
+  data.SetName(sensorScopedName);
+  // check topic
+  if (data.Topic().empty())
+  {
+    std::string topic = scopedName(_entity, _ecm) + "/altimeter";
+    data.SetTopic(topic);
+  }
+  std::unique_ptr<sensors::AltimeterSensor> sensor =
+      this->sensorFactory.CreateSensor<
+      sensors::AltimeterSensor>(data);
+  if (nullptr == sensor)
+  {
+    ignerr << "Failed to create sensor [" << sensorScopedName << "]"
+           << std::endl;
+    return;
+  }
+
+  // set sensor parent
+  std::string parentName = _ecm.Component<components::Name>(
+      _parent->Data())->Data();
+  sensor->SetParent(parentName);
+
+  // Get initial pose of sensor and set the reference z pos
+  // The WorldPose component was just created and so it's empty
+  // We'll compute the world pose manually here
+  double verticalReference = worldPose(_entity, _ecm).Pos().Z();
+  sensor->SetVerticalReference(verticalReference);
+  sensor->SetPosition(verticalReference);
+
+  this->entitySensorMap.insert(
+      std::make_pair(_entity, std::move(sensor)));
+  this->newSensors.insert(_entity);
+}
+
+//////////////////////////////////////////////////
+void AltimeterPrivate::CreateSensors(const EntityComponentManager &_ecm)
 {
   IGN_PROFILE("Altimeter::CreateAltimeterEntities");
-  // Create altimeters
-  _ecm.EachNew<components::Altimeter, components::ParentEntity>(
-    [&](const Entity &_entity,
-        const components::Altimeter *_altimeter,
-        const components::ParentEntity *_parent)->bool
-      {
-        // create sensor
-        std::string sensorScopedName =
-            removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
-        sdf::Sensor data = _altimeter->Data();
-        data.SetName(sensorScopedName);
-        // check topic
-        if (data.Topic().empty())
+  if (!this->initialized)
+  {
+    // Create altimeters
+    _ecm.Each<components::Altimeter, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Altimeter *_altimeter,
+          const components::ParentEntity *_parent)->bool
         {
-          std::string topic = scopedName(_entity, _ecm) + "/altimeter";
-          data.SetTopic(topic);
-        }
-        std::unique_ptr<sensors::AltimeterSensor> sensor =
-            this->sensorFactory.CreateSensor<
-            sensors::AltimeterSensor>(data);
-        if (nullptr == sensor)
-        {
-          ignerr << "Failed to create sensor [" << sensorScopedName << "]"
-                 << std::endl;
+          this->AddAltimeter(_ecm, _entity, _altimeter, _parent);
           return true;
-        }
-
-        // set sensor parent
-        std::string parentName = _ecm.Component<components::Name>(
-            _parent->Data())->Data();
-        sensor->SetParent(parentName);
-
-        // Get initial pose of sensor and set the reference z pos
-        // The WorldPose component was just created and so it's empty
-        // We'll compute the world pose manually here
-        double verticalReference = worldPose(_entity, _ecm).Pos().Z();
-        sensor->SetVerticalReference(verticalReference);
-        sensor->SetPosition(verticalReference);
-
-        // Set topic
-        _ecm.CreateComponent(_entity, components::SensorTopic(sensor->Topic()));
-
-        this->entitySensorMap.insert(
-            std::make_pair(_entity, std::move(sensor)));
-
-        return true;
-      });
+        });
+    this->initialized = true;
+  }
+  else
+  {
+    // Create altimeters
+    _ecm.EachNew<components::Altimeter, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Altimeter *_altimeter,
+          const components::ParentEntity *_parent)->bool
+        {
+          this->AddAltimeter(_ecm, _entity, _altimeter, _parent);
+          return true;
+        });
+  }
 }
 
 //////////////////////////////////////////////////

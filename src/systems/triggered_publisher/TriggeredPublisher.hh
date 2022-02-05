@@ -41,14 +41,15 @@ namespace systems
   ///
   /// ## System Parameters
   ///
-  /// `<input>` The tag contains the input message type, topic and matcher
+  /// - `<input>` The tag contains the input message type, topic and matcher
   /// information.
   ///   * Attributes:
   ///     * `type`: Input message type (eg. `ignition.msgs.Boolean`)
   ///     * `topic`: Input message topic name
   ///
-  /// `<input><match>`: Contains configuration for matchers. Multiple <match>
-  /// tags are possible. An output message is triggered if all Matchers match.
+  /// - `<input><match>`: Contains configuration for matchers. Multiple
+  /// `<match>` tags are possible. An output message is triggered if all
+  /// Matchers match.
   ///   * Attributes:
   ///     * `logic_type`("positive" or "negative"): Specifies whether a
   ///         comparison must succeed or fail in order to trigger an output
@@ -63,9 +64,9 @@ namespace systems
   ///       representation of a protobuf message as used by `ign topic` for
   ///       publishing messages
   ///
-  /// `<output>`: Contains configuration for output messages: Multiple <output>
-  /// tags are possible. A message will be published on each output topic for
-  /// each input that matches.
+  /// - `<output>`: Contains configuration for output messages: Multiple
+  /// `<output>` tags are possible. A message will be published on each output
+  /// topic for each input that matches.
   ///   * Attributes:
   ///     * `type`: Output message type (eg. `ignition.msgs.Boolean`)
   ///     * `topic`: Output message topic name
@@ -107,7 +108,7 @@ namespace systems
   /// \endcode
   ///
   /// The `logic_type` attribute can be used to negate a match. That is, to
-  /// trigger an output when the input does not equal the value in <match>
+  /// trigger an output when the input does not equal the value in `<match>`
   /// For example, the following will trigger an ouput when the input does not
   /// equal 1 AND does not equal 2.
   /// \code{.xml}
@@ -153,8 +154,9 @@ namespace systems
   /// The current implementation of this system does not support specifying a
   /// subfield of a repeated field in the "field" attribute. i.e, if
   /// `field="f1.f2"`, `f1` cannot be a repeated field.
-  class IGNITION_GAZEBO_VISIBLE TriggeredPublisher : public System,
-                                                     public ISystemConfigure
+  class TriggeredPublisher :
+    public System,
+    public ISystemConfigure
   {
     /// \brief Constructor
     public: TriggeredPublisher() = default;

@@ -42,19 +42,13 @@
 #include "ignition/gazebo/components/World.hh"
 
 #include "../helpers/Relay.hh"
+#include "../helpers/EnvTestFixture.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
-class SdfFrameSemanticsTest : public ::testing::Test
+class SdfFrameSemanticsTest : public InternalFixture<::testing::Test>
 {
-  protected: void SetUp() override
-  {
-    common::Console::SetVerbosity(4);
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
-  }
-
   public: void StartServer()
   {
     this->relay = std::make_unique<test::Relay>();

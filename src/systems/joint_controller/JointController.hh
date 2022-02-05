@@ -42,6 +42,11 @@ namespace systems
   /// using force commands. If this parameter is not set or is false, the
   /// controller will use velocity commands internally.
   ///
+  /// `<topic>` Topic to receive commands in. Defaults to
+  ///     `/model/<model_name>/joint/<joint_name>/cmd_vel`.
+  ///
+  /// `<initial_velocity>` Velocity to start with.
+  ///
   /// ### Velocity mode: No additional parameters are required.
   ///
   /// ### Force mode: The controller accepts the next optional parameters:
@@ -69,7 +74,7 @@ namespace systems
   ///
   /// `<cmd_offset>` Command offset (feed-forward) of the PID.
   /// The default value is 0.
-  class IGNITION_GAZEBO_VISIBLE JointController
+  class JointController
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate

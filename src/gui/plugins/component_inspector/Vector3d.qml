@@ -54,7 +54,7 @@ Rectangle {
       value: numberValue
       minimumValue: -spinMax
       maximumValue: spinMax
-      decimals: writableSpin.width < 100 ? 2 : 6
+      decimals: getDecimals(writableSpin.width)
     }
   }
 
@@ -69,7 +69,7 @@ Rectangle {
       horizontalAlignment: Text.AlignRight
       verticalAlignment: Text.AlignVCenter
       text: {
-        var decimals = numberText.width < 100 ? 2 : 6
+        var decimals = getDecimals(numberText.width)
         return numberValue.toFixed(decimals)
       }
     }
@@ -95,7 +95,7 @@ Rectangle {
           sourceSize.height: indentation
           sourceSize.width: indentation
           fillMode: Image.Pad
-          anchors.verticalCenter: parent.verticalCenter
+          Layout.alignment : Qt.AlignVCenter
           source: content.show ?
               "qrc:/Gazebo/images/minus.png" : "qrc:/Gazebo/images/plus.png"
         }

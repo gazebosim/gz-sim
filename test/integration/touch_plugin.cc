@@ -17,25 +17,20 @@
 
 #include <gtest/gtest.h>
 #include <ignition/common/Console.hh>
+#include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"
 
+#include "../helpers/EnvTestFixture.hh"
+
 using namespace ignition;
 using namespace gazebo;
 
 /// \brief Test TouchPlugin system
-class TouchPluginTest : public ::testing::Test
+class TouchPluginTest : public InternalFixture<::testing::Test>
 {
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    common::Console::SetVerbosity(4);
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
-  }
-
   public: void StartServer(const std::string &_sdfFile)
   {
     ServerConfig serverConfig;
@@ -301,7 +296,7 @@ TEST_F(TouchPluginTest, SpawnedEntities)
   auto testFunc = [&](const std::string &_box1, const std::string &_box2)
   {
     this->server.reset();
-    this->StartServer("/examples/worlds/empty.sdf");
+    this->StartServer("/test/worlds/empty.sdf");
 
     whiteTouched = false;
     req.set_sdf(_box1);

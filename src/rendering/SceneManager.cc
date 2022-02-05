@@ -17,8 +17,10 @@
 
 
 #include <map>
+#include <unordered_map>
 
 #include <sdf/Box.hh>
+#include <sdf/Collision.hh>
 #include <sdf/Cylinder.hh>
 #include <sdf/Mesh.hh>
 #include <sdf/Pbr.hh>
@@ -57,23 +59,23 @@ class ignition::gazebo::SceneManagerPrivate
   public: rendering::ScenePtr scene;
 
   /// \brief Map of visual entity in Gazebo to visual pointers.
-  public: std::map<Entity, rendering::VisualPtr> visuals;
+  public: std::unordered_map<Entity, rendering::VisualPtr> visuals;
 
   /// \brief Map of actor entity in Gazebo to actor pointers.
-  public: std::map<Entity, rendering::MeshPtr> actors;
+  public: std::unordered_map<Entity, rendering::MeshPtr> actors;
 
   /// \brief Map of actor entity in Gazebo to actor animations.
-  public: std::map<Entity, common::SkeletonPtr> actorSkeletons;
+  public: std::unordered_map<Entity, common::SkeletonPtr> actorSkeletons;
 
   /// \brief Map of actor entity to the associated trajectories.
-  public: std::map<Entity, std::vector<common::TrajectoryInfo>>
+  public: std::unordered_map<Entity, std::vector<common::TrajectoryInfo>>
                     actorTrajectories;
 
   /// \brief Map of light entity in Gazebo to light pointers.
-  public: std::map<Entity, rendering::LightPtr> lights;
+  public: std::unordered_map<Entity, rendering::LightPtr> lights;
 
   /// \brief Map of sensor entity in Gazebo to sensor pointers.
-  public: std::map<Entity, rendering::SensorPtr> sensors;
+  public: std::unordered_map<Entity, rendering::SensorPtr> sensors;
 };
 
 
@@ -247,6 +249,11 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
   visualVis->SetUserData("pause-update", static_cast<int>(0));
   visualVis->SetLocalPose(_visual.RawPose());
 
+  if (_visual.HasLaserRetro())
+  {
+    visualVis->SetUserData("laser_retro", _visual.LaserRetro());
+  }
+
   math::Vector3d scale = math::Vector3d::One;
   math::Pose3d localPose;
   rendering::GeometryPtr geom =
@@ -257,17 +264,19 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
     /// localPose is currently used to handle the normal vector in plane visuals
     /// In general, this can be used to store any local transforms between the
     /// parent Visual and geometry.
-    rendering::VisualPtr geomVis;
     if (localPose != math::Pose3d::Zero)
     {
-      geomVis = this->dataPtr->scene->CreateVisual(name + "_geom");
-      geomVis->SetUserData("gazebo-entity", static_cast<int>(_id));
-      geomVis->SetUserData("pause-update", static_cast<int>(0));
-      geomVis->SetLocalPose(_visual.RawPose() * localPose);
-      visualVis = geomVis;
+      rendering::VisualPtr geomVis =
+          this->dataPtr->scene->CreateVisual(name + "_geom");
+      geomVis->AddGeometry(geom);
+      geomVis->SetLocalPose(localPose);
+      visualVis->AddChild(geomVis);
+    }
+    else
+    {
+      visualVis->AddGeometry(geom);
     }
 
-    visualVis->AddGeometry(geom);
     visualVis->SetLocalScale(scale);
 
     // set material
@@ -307,7 +316,14 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
           double productAlpha = (1.0-_visual.Transparency()) *
               (1.0 - submeshMat->Transparency());
           submeshMat->SetTransparency(1 - productAlpha);
+
+          // unlike setting transparency above, the parent submesh are not
+          // notified about the the cast shadows changes. So we need to set
+          // the material back to the submesh.
+          // \todo(anyone) find way to propate cast shadows changes tos submesh
+          // in ign-rendering
           submeshMat->SetCastShadows(_visual.CastShadows());
+          submesh->SetMaterial(submeshMat);
         }
       }
     }
@@ -341,6 +357,36 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
   return visualVis;
 }
 
+/////////////////////////////////////////////////
+rendering::VisualPtr SceneManager::VisualById(Entity _id)
+{
+  if (this->dataPtr->visuals.find(_id) == this->dataPtr->visuals.end())
+  {
+    ignerr << "Could not find visual for entity: " << _id << std::endl;
+    return nullptr;
+  }
+  return this->dataPtr->visuals[_id];
+}
+
+/////////////////////////////////////////////////
+rendering::VisualPtr SceneManager::CreateCollision(Entity _id,
+    const sdf::Collision &_collision, Entity _parentId)
+{
+  sdf::Material material;
+  material.SetAmbient(math::Color(1, 0.5088, 0.0468, 0.7));
+  material.SetDiffuse(math::Color(1, 0.5088, 0.0468, 0.7));
+
+  sdf::Visual visual;
+  visual.SetGeom(*_collision.Geom());
+  visual.SetMaterial(material);
+  visual.SetCastShadows(false);
+
+  visual.SetRawPose(_collision.RawPose());
+  visual.SetName(_collision.Name());
+
+  rendering::VisualPtr collisionVis = CreateVisual(_id, visual, _parentId);
+  return collisionVis;
+}
 /////////////////////////////////////////////////
 rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     math::Vector3d &_scale, math::Pose3d &_localPose)
@@ -444,7 +490,8 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
       std::string roughnessMap = metal->RoughnessMap();
       if (!roughnessMap.empty())
       {
-        std::string fullPath = common::findFile(roughnessMap);
+        std::string fullPath = common::findFile(
+            asFullPath(roughnessMap, _material.FilePath()));
         if (!fullPath.empty())
           material->SetRoughnessMap(fullPath);
         else
@@ -455,7 +502,8 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
       std::string metalnessMap = metal->MetalnessMap();
       if (!metalnessMap.empty())
       {
-        std::string fullPath = common::findFile(metalnessMap);
+        std::string fullPath = common::findFile(
+            asFullPath(metalnessMap, _material.FilePath()));
         if (!fullPath.empty())
           material->SetMetalnessMap(fullPath);
         else
@@ -465,15 +513,29 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
     }
     else
     {
-      ignerr << "PBR material: currently only metal workflow is supported"
-             << std::endl;
+      auto specular = pbr->Workflow(sdf::PbrWorkflowType::SPECULAR);
+      if (specular)
+      {
+        ignerr << "PBR material: currently only metal workflow is supported. "
+               << "Ignition Gazebo will try to render the material using "
+               << "metal workflow but without Roughness / Metalness settings."
+               << std::endl;
+      }
+      workflow = const_cast<sdf::PbrWorkflow *>(specular);
+    }
+
+    if (!workflow)
+    {
+      ignerr << "No valid PBR workflow found. " << std::endl;
+      return rendering::MaterialPtr();
     }
 
     // albedo map
     std::string albedoMap = workflow->AlbedoMap();
     if (!albedoMap.empty())
     {
-      std::string fullPath = common::findFile(albedoMap);
+      std::string fullPath = common::findFile(
+          asFullPath(albedoMap, _material.FilePath()));
       if (!fullPath.empty())
       {
         material->SetTexture(fullPath);
@@ -486,7 +548,8 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
     std::string normalMap = workflow->NormalMap();
     if (!normalMap.empty())
     {
-      std::string fullPath = common::findFile(normalMap);
+      std::string fullPath = common::findFile(
+          asFullPath(normalMap, _material.FilePath()));
       if (!fullPath.empty())
         material->SetNormalMap(fullPath);
       else
@@ -498,7 +561,8 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
     std::string environmentMap = workflow->EnvironmentMap();
     if (!environmentMap.empty())
     {
-      std::string fullPath = common::findFile(environmentMap);
+      std::string fullPath = common::findFile(
+          asFullPath(environmentMap, _material.FilePath()));
       if (!fullPath.empty())
         material->SetEnvironmentMap(fullPath);
       else
@@ -509,7 +573,8 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
     std::string emissiveMap = workflow->EmissiveMap();
     if (!emissiveMap.empty())
     {
-      std::string fullPath = common::findFile(emissiveMap);
+      std::string fullPath = common::findFile(
+          asFullPath(emissiveMap, _material.FilePath()));
       if (!fullPath.empty())
         material->SetEmissiveMap(fullPath);
       else
@@ -586,7 +651,7 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
   }
 
   unsigned int numAnims = 0;
-  std::map<std::string, unsigned int> mapAnimNameId;
+  std::unordered_map<std::string, unsigned int> mapAnimNameId;
   mapAnimNameId[descriptor.meshName] = numAnims++;
 
   rendering::VisualPtr actorVisual = this->dataPtr->scene->CreateVisual(name);

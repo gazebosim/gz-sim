@@ -27,7 +27,7 @@
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Export.hh"
+#include "ignition/gazebo/gui/Export.hh"
 
 namespace ignition
 {
@@ -37,7 +37,7 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 /// \brief Responsible for running GUI systems as new states are received from
 /// the backend.
-class IGNITION_GAZEBO_VISIBLE GuiRunner : public QObject
+class IGNITION_GAZEBO_GUI_VISIBLE GuiRunner : public QObject
 {
   Q_OBJECT
 
@@ -49,6 +49,7 @@ class IGNITION_GAZEBO_VISIBLE GuiRunner : public QObject
   public: ~GuiRunner() override;
 
   /// \brief Callback when a plugin has been added.
+  /// This function has no effect and is left here for ABI compatibility.
   /// \param[in] _objectName Plugin's object name.
   public slots: void OnPluginAdded(const QString &_objectName);
 
@@ -59,9 +60,18 @@ class IGNITION_GAZEBO_VISIBLE GuiRunner : public QObject
   /// \param[in] _res Response containing new state.
   private: void OnStateAsyncService(const msgs::SerializedStepMap &_res);
 
-  /// \brief Callback when a new state is received from the server.
+  /// \brief Callback when a new state is received from the server. Actual
+  /// updating of the ECM is delegated to OnStateQt
   /// \param[in] _msg New state message.
   private: void OnState(const msgs::SerializedStepMap &_msg);
+
+  /// \brief Called by the Qt thread to update the ECM with new state
+  /// \param[in] _msg New state message.
+  private: Q_INVOKABLE void OnStateQt(const msgs::SerializedStepMap &_msg);
+
+  /// \brief Update the plugins.
+  /// \todo(anyone) Move to GuiRunner::Implementation when porting to v5
+  private: Q_INVOKABLE void UpdatePlugins();
 
   /// \brief Entity-component manager.
   private: gazebo::EntityComponentManager ecm;

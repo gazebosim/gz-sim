@@ -21,6 +21,7 @@
 
 #include <ignition/common/Battery.hh>
 #include <ignition/common/Console.hh>
+#include <ignition/common/Util.hh>
 #include <ignition/common/Filesystem.hh>
 
 #include <sdf/Root.hh>
@@ -38,18 +39,17 @@
 #include "ignition/gazebo/components/Name.hh"
 
 #include "plugins/MockSystem.hh"
+#include "../helpers/EnvTestFixture.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
-class BatteryPluginTest : public ::testing::Test
+class BatteryPluginTest : public InternalFixture<::testing::Test>
 {
   // Documentation inherited
   protected: void SetUp() override
   {
-    common::Console::SetVerbosity(4);
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
+    InternalFixture::SetUp();
 
     auto plugin = sm.LoadPlugin("libMockSystem.so",
                                 "ignition::gazebo::MockSystem",
