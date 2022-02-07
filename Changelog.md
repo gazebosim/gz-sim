@@ -1,5 +1,20 @@
 ## Ignition Gazebo 4.x
 
+### Ignition Gazebo 4.14.0 (2021-12-20)
+
+1. Support battery draining start via topics
+    * [Pull request #1255](https://github.com/ignitionrobotics/ign-gazebo/pull/1255)
+
+1. Make tests run as fast as possible
+    * [Pull request #1194](https://github.com/ignitionrobotics/ign-gazebo/pull/1194)
+    * [Pull request #1250](https://github.com/ignitionrobotics/ign-gazebo/pull/1250)
+
+1. Fix visualize lidar
+    * [Pull request #1224](https://github.com/ignitionrobotics/ign-gazebo/pull/1224)
+
+1. Disable user commands light test on macOS
+    * [Pull request #1204](https://github.com/ignitionrobotics/ign-gazebo/pull/1204)
+
 ### Ignition Gazebo 4.13.0 (2021-11-15)
 
 1. Prevent creation of spurious `<plugin>` elements when saving worlds
@@ -202,7 +217,7 @@
 1. Support configuring particle scatter ratio in particle emitter system.
     * [Pull Request 674](https://github.com/ignitionrobotics/ign-gazebo/pull/674)
 
-1. Fix diffuse and ambient values for ackermann example. 
+1. Fix diffuse and ambient values for ackermann example.
     * [Pull Request 707](https://github.com/ignitionrobotics/ign-gazebo/pull/707)
 
 1. Scenebroadcaster sensors.
@@ -223,7 +238,7 @@
 1. Ackermann Steering Plugin.
     * [Pull Request 618](https://github.com/ignitionrobotics/ign-gazebo/pull/618)
 
-1. Remove bounding box when model is deleted 
+1. Remove bounding box when model is deleted
     * [Pull Request 675](https://github.com/ignitionrobotics/ign-gazebo/pull/675)
 
 1. Cache link poses to improve performance.
@@ -232,7 +247,7 @@
 1. Check empty world name in Scene3d.
     * [Pull Request 662](https://github.com/ignitionrobotics/ign-gazebo/pull/662)
 
-1. All changes up to 3.8.0. 
+1. All changes up to 3.8.0.
 
 ### Ignition Gazebo 4.6.0 (2021-03-01)
 
