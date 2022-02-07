@@ -29,6 +29,7 @@
 #include <ignition/gazebo/components/Joint.hh>
 #include <ignition/gazebo/components/LinearAcceleration.hh>
 #include <ignition/gazebo/components/LinearVelocity.hh>
+#include <ignition/gazebo/components/LinearVelocityCmd.hh>
 #include <ignition/gazebo/components/Link.hh>
 #include <ignition/gazebo/components/Model.hh>
 #include <ignition/gazebo/components/Name.hh>
@@ -466,6 +467,39 @@ TEST_F(LinkIntegrationTest, LinkKineticEnergy)
 
   *linearVel = components::WorldLinearVelocity({math::Vector3d(10, 0, 0)});
   EXPECT_DOUBLE_EQ(100.0, *link.WorldKineticEnergy(ecm));
+}
+
+//////////////////////////////////////////////////
+TEST_F(LinkIntegrationTest, LinkSetVelocity)
+{
+  EntityComponentManager ecm;
+  EventManager eventMgr;
+  SdfEntityCreator creator(ecm, eventMgr);
+
+  auto eLink = ecm.CreateEntity();
+  ecm.CreateComponent(eLink, components::Link());
+
+  Link link(eLink);
+  EXPECT_EQ(eLink, link.Entity());
+
+  ASSERT_TRUE(link.Valid(ecm));
+
+  // No LinearVelocityCmd should exist by default
+  EXPECT_EQ(nullptr, ecm.Component<components::LinearVelocityCmd>(eLink));
+
+  math::Vector3d linVel(1, 0, 0);
+  link.SetLinearVelocity(ecm, linVel);
+
+  // LinearVelocity cmd should exist
+  EXPECT_NE(nullptr, ecm.Component<components::LinearVelocityCmd>(eLink));
+  EXPECT_EQ(linVel,
+    ecm.Component<components::LinearVelocityCmd>(eLink)->Data());
+
+  // Make sure the linear velocity is updated
+  math::Vector3d linVel2(0, 0, 0);
+  link.SetLinearVelocity(ecm, linVel2);
+  EXPECT_EQ(linVel2,
+    ecm.Component<components::LinearVelocityCmd>(eLink)->Data());
 }
 
 //////////////////////////////////////////////////
