@@ -56,9 +56,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   class Scene3DPrivate;
   class RenderUtil;
 
-  /// \brief Creates a new ignition rendering scene or adds a user-camera to an
-  /// existing scene. It is possible to orbit the camera around the scene with
+  /// \brief Creates an ignition rendering scene and user camera.
+  /// It is possible to orbit the camera around the scene with
   /// the mouse. Use other plugins to manage objects in the scene.
+  ///
+  /// Only one plugin displaying an Ignition Rendering scene can be used at a
+  /// time.
   ///
   /// ## Configuration
   ///
@@ -86,6 +89,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
       READ ErrorPopupText
       WRITE SetErrorPopupText
       NOTIFY ErrorPopupTextChanged
+    )
+
+    /// \brief Loading error message
+    Q_PROPERTY(
+      QString loadingError
+      READ LoadingError
+      WRITE SetLoadingError
+      NOTIFY LoadingErrorChanged
     )
 
     /// \brief Constructor
@@ -236,6 +247,20 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: bool OnViewControl(const msgs::StringMsg &_msg,
         msgs::Boolean &_res);
 
+    /// \brief Get the loading error string.
+    /// \return String explaining the loading error. If empty, there's no error.
+    public: Q_INVOKABLE QString LoadingError() const;
+
+    /// \brief Set the loading error message.
+    /// \param[in] _loadingError Error message.
+    public: Q_INVOKABLE void SetLoadingError(const QString &_loadingError);
+
+    /// \brief Notify that loading error has changed
+    signals: void LoadingErrorChanged();
+
+    /// \brief Loading error message
+    public: QString loadingError;
+
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<Scene3DPrivate> dataPtr;
@@ -265,7 +290,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void Render(RenderSync *_renderSync);
 
     /// \brief Initialize the render engine
-    public: void Initialize();
+    /// \return Error message if initialization failed. If empty, no errors
+    /// occurred.
+    public: std::string Initialize();
 
     /// \brief Destroy camera associated with this renderer
     public: void Destroy();
@@ -606,6 +633,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _size Size of the texture
     signals: void TextureReady(uint _id, const QSize &_size);
 
+    /// \brief Set a callback to be called in case there are errors.
+    /// \param[in] _cb Error callback
+    public: void SetErrorCb(std::function<void(const QString &)> _cb);
+
+    /// \brief Function to be called if there are errors.
+    public: std::function<void(const QString &)> errorCb;
+
     /// \brief Offscreen surface to render to
     public: QOffscreenSurface *surface = nullptr;
 
@@ -840,6 +874,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Qt callback when context menu request is received
     /// \param[in] _entity Scoped name of entity.
     public slots: void OnContextMenuRequested(QString _entity);
+
+    /// \brief Set a callback to be called in case there are errors.
+    /// \param[in] _cb Error callback
+    public: void SetErrorCb(std::function<void(const QString &)> _cb);
 
     /// \internal
     /// \brief Pointer to private data.

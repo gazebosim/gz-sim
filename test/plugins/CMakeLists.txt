@@ -13,6 +13,7 @@ set (test_plugins
   EventTriggerSystem
   TestModelSystem
   TestSensorSystem
+  TestVisualSystem
   TestWorldSystem
   MockSystem
   Null
