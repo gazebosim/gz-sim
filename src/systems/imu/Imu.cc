@@ -199,7 +199,8 @@ void ImuPrivate::addIMU(
   double heading = 0;
 
   ignition::gazebo::World world(worldEntity);
-  if (world.SphericalCoordinates(_ecm)) {
+  if (world.SphericalCoordinates(_ecm))
+  {
     auto sphericalCoordinates = world.SphericalCoordinates(_ecm).value();
     heading = sphericalCoordinates.HeadingOffset().Radian();
   }
