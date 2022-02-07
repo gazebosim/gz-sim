@@ -24,6 +24,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/Joint.hh"
@@ -69,7 +70,9 @@ class VerticalForceParamFixture
 
 /////////////////////////////////////////////////
 /// Measure / verify force torques against analytical answers.
-TEST_P(VerticalForceParamFixture, VerifyVerticalForce)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_P(VerticalForceParamFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(VerifyVerticalForce))
 {
   using namespace std::chrono_literals;
   ignition::common::setenv(

@@ -2,6 +2,42 @@
 
 ### Ignition Gazebo 6.X.X (202X-XX-XX)
 
+### Ignition Gazebo 6.4.0 (2021-01-13)
+
+1. Disable more tests on Windows
+    * [Pull request #1286](https://github.com/ignitionrobotics/ign-gazebo/pull/1286)
+
+1. Adding angular acceleration to the Link class
+    * [Pull request #1288](https://github.com/ignitionrobotics/ign-gazebo/pull/1288)
+
+1. Add world force
+    * [Pull request #1279](https://github.com/ignitionrobotics/ign-gazebo/pull/1279)
+
+1. Add NavSat sensor (GPS)
+    * [Pull request #1248](https://github.com/ignitionrobotics/ign-gazebo/pull/1248)
+
+1. Light Commands via topic
+    * [Pull request #1222](https://github.com/ignitionrobotics/ign-gazebo/pull/1222)
+
+1. Support battery draining start via topics
+    * [Pull request #1255](https://github.com/ignitionrobotics/ign-gazebo/pull/1255)
+
+1. Add visibility to ModelEditorAddEntity to fix Windows
+    * [Pull request #1246](https://github.com/ignitionrobotics/ign-gazebo/pull/1246)
+
+1. Make tests run as fast as possible
+    * [Pull request #1194](https://github.com/ignitionrobotics/ign-gazebo/pull/1194)
+
+1. Fix visualize lidar
+    * [Pull request #1224](https://github.com/ignitionrobotics/ign-gazebo/pull/1224)
+
+1. Disable user commands light test on macOS
+    * [Pull request #1204](https://github.com/ignitionrobotics/ign-gazebo/pull/1204)
+
+1. Skip failing Windows tests
+    * [Pull request #1205](https://github.com/ignitionrobotics/ign-gazebo/pull/1205)
+
+
 ### Ignition Gazebo 6.3.0 (2021-12-10)
 
 1. View entity frames from the GUI

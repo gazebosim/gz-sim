@@ -22,6 +22,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/Name.hh"
@@ -46,7 +47,9 @@ class ApplyJointForceTestFixture : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 // Tests that the ApplyJointForce accepts joint velocity commands
-TEST_F(ApplyJointForceTestFixture, JointVelocityCommand)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(ApplyJointForceTestFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(JointVelocityCommand))
 {
   using namespace std::chrono_literals;
 

@@ -495,9 +495,6 @@ namespace ignition
       /// \brief Mutex to protect pendingSystems
       private: mutable std::mutex pendingSystemsMutex;
 
-      /// \brief Systems implementing Configure
-      private: std::vector<ISystemConfigure *> systemsConfigure;
-
       /// \brief Systems implementing PreUpdate
       private: std::vector<ISystemPreUpdate *> systemsPreupdate;
 

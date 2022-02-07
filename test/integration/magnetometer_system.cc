@@ -23,6 +23,7 @@
 #include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/MagneticField.hh"
 #include "ignition/gazebo/components/Magnetometer.hh"
@@ -60,7 +61,8 @@ void magnetometerCb(const msgs::Magnetometer &_msg)
 
 /////////////////////////////////////////////////
 // The test checks the detected field from a rotated magnetometer
-TEST_F(MagnetometerTest, RotatedMagnetometer)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(MagnetometerTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RotatedMagnetometer))
 {
   // Start server
   ServerConfig serverConfig;
@@ -81,7 +83,7 @@ TEST_F(MagnetometerTest, RotatedMagnetometer)
   test::Relay testSystem;
 
   std::vector<math::Pose3d> poses;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
+  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
                               const gazebo::EntityComponentManager &_ecm)
       {
         _ecm.Each<components::Magnetometer,
@@ -98,6 +100,10 @@ TEST_F(MagnetometerTest, RotatedMagnetometer)
               auto sensorComp = _ecm.Component<components::Sensor>(_entity);
               EXPECT_NE(nullptr, sensorComp);
 
+              if (_info.iterations == 1)
+                return true;
+
+              // This component is created on the 2nd PreUpdate
               auto topicComp = _ecm.Component<components::SensorTopic>(_entity);
               EXPECT_NE(nullptr, topicComp);
               if (topicComp)
