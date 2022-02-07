@@ -40,17 +40,17 @@ namespace systems
   ///
   /// Parameters:
   ///
-  /// <parent_link>: Name of the link in the parent model to be used in
+  /// - `<parent_link>`: Name of the link in the parent model to be used in
   /// creating a fixed joint with a link in the child model.
   ///
-  /// <child_model>: Name of the model to which this model will be connected
+  /// - `<child_model>`: Name of the model to which this model will be connected
   ///
-  /// <child_link>: Name of the link in the child model to be used in
+  /// - `<child_link>`: Name of the link in the child model to be used in
   /// creating a fixed joint with a link in the parent model.
   ///
-  /// <topic> (optional): Topic name to be used for detaching connections
+  /// - `<topic>` (optional): Topic name to be used for detaching connections
   ///
-  /// <suppress_child_warning> (optional): If true, the system
+  /// - `<suppress_child_warning>` (optional): If true, the system
   /// will not print a warning message if a child model does not exist yet.
   /// Otherwise, a warning message is printed. Defaults to false.
 

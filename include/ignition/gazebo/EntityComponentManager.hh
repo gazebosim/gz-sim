@@ -81,7 +81,7 @@ namespace ignition
       /// into a queue. The queue is processed toward the end of a simulation
       /// update step.
       ///
-      /// \detail It is recommended that systems don't call this function
+      /// \details It is recommended that systems don't call this function
       /// directly, and instead use the `gazebo::SdfEntityCreator` class to
       /// remove entities.
       ///
@@ -90,6 +90,35 @@ namespace ignition
       /// entities. True by default.
       public: void RequestRemoveEntity(const Entity _entity,
           bool _recursive = true);
+
+      /// \brief Prevent an entity and optionally its children from
+      /// being removed.
+      ///
+      /// This function can be useful when seek operations during log
+      /// playback are used in conjunciton with spawned entities. For
+      /// example, you may want to record a video based on a log file
+      /// using a headless simulation instance. This requires a
+      /// camera sensor which would be spawned during log playback. If
+      /// a seek backward in time is performed during log playback, then the
+      /// spawned camera would be removed. Use this function to prevent the
+      /// camera from automatic removal.
+      ///
+      /// \param[in] _entity Entity to be pinned.
+      /// \param[in] _recursive Whether to recursively pin all child
+      /// entities. True by default.
+      public: void PinEntity(const Entity _entity, bool _recursive = true);
+
+      /// \brief Allow an entity, and optionally its children, previously
+      /// marked as pinned to be removed.
+      /// \param[in] _entity Entity to be unpinned.
+      /// \param[in] _recursive Whether to recursively unpin all child
+      /// entities. True by default.
+      /// \sa void PinEntity(const Entity, bool)
+      public: void UnpinEntity(const Entity _entity, bool _recursive = true);
+
+      /// \brief Allow all previously pinned entities to be removed.
+      /// \sa void PinEntity(const Entity, bool)
+      public: void UnpinAllEntities();
 
       /// \brief Request to remove all entities. This will insert the request
       /// into a queue. The queue is processed toward the end of a simulation
@@ -102,7 +131,7 @@ namespace ignition
       public: bool HasEntity(const Entity _entity) const;
 
       /// \brief Get the first parent of the given entity.
-      /// \detail Entities are not expected to have multiple parents.
+      /// \details Entities are not expected to have multiple parents.
       /// TODO(louise) Either prevent multiple parents or provide full support
       /// for multiple parents.
       /// \param[in] _entity Entity.
@@ -111,11 +140,13 @@ namespace ignition
 
       /// \brief Set the parent of an entity.
       ///
-      /// \detail It is recommended that systems don't call this function
+      /// \details It is recommended that systems don't call this function
       /// directly, and instead use the `gazebo::SdfEntityCreator` class to
       /// create entities that have the correct parent-child relationship.
       ///
-      /// \param[in] _entity Entity or kNullEntity to remove current parent.
+      /// \param[in] _child Entity to set the parent
+      /// \param[in] _parent Entity which should be an immediate parent _child
+      /// entity.
       /// \return True if successful. Will fail if entities don't exist.
       public: bool SetParentEntity(const Entity _child, const Entity _parent);
 
@@ -278,7 +309,7 @@ namespace ignition
       ///  auto entity = EntityByComponents(components::Name("name"),
       ///    components::Model());
       ///
-      /// \detail Component type must have inequality operator.
+      /// \details Component type must have inequality operator.
       ///
       /// \param[in] _desiredComponents All the components which must match.
       /// \return Entity or kNullEntity if no entity has the exact components.
@@ -293,7 +324,7 @@ namespace ignition
       ///  auto entities = EntitiesByComponents(components::Name("camera"),
       ///    components::Sensor());
       ///
-      /// \detail Component type must have inequality operator.
+      /// \details Component type must have inequality operator.
       ///
       /// \param[in] _desiredComponents All the components which must match.
       /// \return All matching entities, or an empty vector if no child entity
@@ -310,7 +341,7 @@ namespace ignition
       ///
       ///  auto entity = ChildrenByComponents(parent, 123, std::string("name"));
       ///
-      /// \detail Component type must have inequality operator.
+      /// \details Component type must have inequality operator.
       ///
       /// \param[in] _parent Entity which should be an immediate parent of the
       /// returned entity.
@@ -465,7 +496,7 @@ namespace ignition
 
       /// \brief Get a message with the serialized state of the given entities
       /// and components.
-      /// \detail The header of the message will not be populated, it is the
+      /// \details The header of the message will not be populated, it is the
       /// responsibility of the caller to timestamp it before use.
       /// \param[in] _entities Entities to be serialized. Leave empty to get
       /// all entities.
@@ -485,7 +516,7 @@ namespace ignition
       /// * Entities which had a component removed
       /// * Entities which had a component modified
       ///
-      /// \detail The header of the message will not be populated, it is the
+      /// \details The header of the message will not be populated, it is the
       /// responsibility of the caller to timestamp it before use.
       public: msgs::SerializedState ChangedState() const;
 
@@ -513,15 +544,16 @@ namespace ignition
       /// one will be created.
       /// Entities / components that are marked as removed will be removed, but
       /// they won't be removed if they're not present in the state.
-      /// \detail The header of the message will not be handled, it is the
+      /// \details The header of the message will not be handled, it is the
       /// responsibility of the caller to use the timestamp.
       /// \param[in] _stateMsg Message containing state to be set.
       public: void SetState(const msgs::SerializedState &_stateMsg);
 
       /// \brief Get a message with the serialized state of the given entities
       /// and components.
-      /// \detail The header of the message will not be populated, it is the
+      /// \details The header of the message will not be populated, it is the
       /// responsibility of the caller to timestamp it before use.
+      /// \param[in] _state serialized state
       /// \param[in] _entities Entities to be serialized. Leave empty to get
       /// all entities.
       /// \param[in] _types Type ID of components to be serialized. Leave empty
@@ -545,7 +577,7 @@ namespace ignition
       /// * Entities which had a component modified
       ///
       /// \param[in] _state New serialized state.
-      /// \detail The header of the message will not be populated, it is the
+      /// \details The header of the message will not be populated, it is the
       /// responsibility of the caller to timestamp it before use.
       public: void ChangedState(msgs::SerializedStateMap &_state) const;
 
@@ -554,7 +586,7 @@ namespace ignition
       /// one will be created.
       /// Entities / components that are marked as removed will be removed, but
       /// they won't be removed if they're not present in the state.
-      /// \detail The header of the message will not be handled, it is the
+      /// \details The header of the message will not be handled, it is the
       /// responsibility of the caller to use the timestamp.
       /// \param[in] _stateMsg Message containing state to be set.
       public: void SetState(const msgs::SerializedStateMap &_stateMsg);

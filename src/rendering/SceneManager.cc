@@ -17,6 +17,7 @@
 
 
 #include <map>
+#include <unordered_map>
 
 #include <sdf/Box.hh>
 #include <sdf/Collision.hh>
@@ -64,27 +65,27 @@ class ignition::gazebo::SceneManagerPrivate
   public: rendering::ScenePtr scene;
 
   /// \brief Map of visual entity in Gazebo to visual pointers.
-  public: std::map<Entity, rendering::VisualPtr> visuals;
+  public: std::unordered_map<Entity, rendering::VisualPtr> visuals;
 
   /// \brief Map of actor entity in Gazebo to actor pointers.
-  public: std::map<Entity, rendering::MeshPtr> actors;
+  public: std::unordered_map<Entity, rendering::MeshPtr> actors;
 
   /// \brief Map of actor entity in Gazebo to actor animations.
-  public: std::map<Entity, common::SkeletonPtr> actorSkeletons;
+  public: std::unordered_map<Entity, common::SkeletonPtr> actorSkeletons;
 
   /// \brief Map of actor entity to the associated trajectories.
-  public: std::map<Entity, std::vector<common::TrajectoryInfo>>
+  public: std::unordered_map<Entity, std::vector<common::TrajectoryInfo>>
                     actorTrajectories;
 
   /// \brief Map of light entity in Gazebo to light pointers.
-  public: std::map<Entity, rendering::LightPtr> lights;
+  public: std::unordered_map<Entity, rendering::LightPtr> lights;
 
   /// \brief Map of particle emitter entity in Gazebo to particle emitter
   /// rendering pointers.
   public: std::map<Entity, rendering::ParticleEmitterPtr> particleEmitters;
 
   /// \brief Map of sensor entity in Gazebo to sensor pointers.
-  public: std::map<Entity, rendering::SensorPtr> sensors;
+  public: std::unordered_map<Entity, rendering::SensorPtr> sensors;
 
   /// \brief Helper function to compute actor trajectory at specified tiime
   /// \param[in] _id Actor entity's unique id
@@ -334,7 +335,14 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
           double productAlpha = (1.0-_visual.Transparency()) *
               (1.0 - submeshMat->Transparency());
           submeshMat->SetTransparency(1 - productAlpha);
+
+          // unlike setting transparency above, the parent submesh are not
+          // notified about the the cast shadows changes. So we need to set
+          // the material back to the submesh.
+          // \todo(anyone) find way to propate cast shadows changes tos submesh
+          // in ign-rendering
           submeshMat->SetCastShadows(_visual.CastShadows());
+          submesh->SetMaterial(submeshMat);
         }
       }
     }
@@ -527,8 +535,21 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
     }
     else
     {
-      ignerr << "PBR material: currently only metal workflow is supported"
-             << std::endl;
+      auto specular = pbr->Workflow(sdf::PbrWorkflowType::SPECULAR);
+      if (specular)
+      {
+        ignerr << "PBR material: currently only metal workflow is supported. "
+               << "Ignition Gazebo will try to render the material using "
+               << "metal workflow but without Roughness / Metalness settings."
+               << std::endl;
+      }
+      workflow = const_cast<sdf::PbrWorkflow *>(specular);
+    }
+
+    if (!workflow)
+    {
+      ignerr << "No valid PBR workflow found. " << std::endl;
+      return rendering::MaterialPtr();
     }
 
     // albedo map
@@ -648,7 +669,7 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
   }
 
   unsigned int numAnims = 0;
-  std::map<std::string, unsigned int> mapAnimNameId;
+  std::unordered_map<std::string, unsigned int> mapAnimNameId;
   mapAnimNameId[descriptor.meshName] = numAnims++;
 
   // Load all animations

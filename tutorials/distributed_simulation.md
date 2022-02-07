@@ -59,7 +59,7 @@ The primary instance will read several command line options to dictate its behav
 
 * **--network-role=primary** - Dictates that the role of this
     participant is a Primary. Capitalization of "primary" is not important.
-* **--network-secondaries=<N>** - The number of secondaries expected
+* **--network-secondaries=`<N>`** - The number of secondaries expected
     to join. Simulation will not begin until **N** secondaries have been
     discovered.
 

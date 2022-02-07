@@ -24,6 +24,7 @@
 #include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Link.hh"
@@ -53,7 +54,7 @@ TEST_F(UserCommandsTest, Create)
   // Start server
   ServerConfig serverConfig;
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/examples/worlds/empty.sdf";
+    "/test/worlds/empty.sdf";
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);
@@ -690,7 +691,8 @@ TEST_F(UserCommandsTest, Pose)
 }
 
 /////////////////////////////////////////////////
-TEST_F(UserCommandsTest, Light)
+// https://github.com/ignitionrobotics/ign-gazebo/issues/634
+TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_MAC(Light))
 {
   // Start server
   ServerConfig serverConfig;
@@ -950,7 +952,7 @@ TEST_F(UserCommandsTest, Physics)
   auto physicsComp = ecm->Component<components::Physics>(worldEntity);
   ASSERT_NE(nullptr, physicsComp);
   EXPECT_DOUBLE_EQ(0.001, physicsComp->Data().MaxStepSize());
-  EXPECT_DOUBLE_EQ(1.0, physicsComp->Data().RealTimeFactor());
+  EXPECT_DOUBLE_EQ(0.0, physicsComp->Data().RealTimeFactor());
 
   // Set physics properties
   msgs::Physics req;
