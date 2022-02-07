@@ -1005,6 +1005,21 @@
 
 ## Ignition Gazebo 4.x
 
+### Ignition Gazebo 4.14.0 (2021-12-20)
+
+1. Support battery draining start via topics
+    * [Pull request #1255](https://github.com/ignitionrobotics/ign-gazebo/pull/1255)
+
+1. Make tests run as fast as possible
+    * [Pull request #1194](https://github.com/ignitionrobotics/ign-gazebo/pull/1194)
+    * [Pull request #1250](https://github.com/ignitionrobotics/ign-gazebo/pull/1250)
+
+1. Fix visualize lidar
+    * [Pull request #1224](https://github.com/ignitionrobotics/ign-gazebo/pull/1224)
+
+1. Disable user commands light test on macOS
+    * [Pull request #1204](https://github.com/ignitionrobotics/ign-gazebo/pull/1204)
+
 ### Ignition Gazebo 4.13.0 (2021-11-15)
 
 1. Prevent creation of spurious `<plugin>` elements when saving worlds
