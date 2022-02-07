@@ -117,7 +117,7 @@ bool NetworkManagerSecondary::OnControl(const private_msgs::PeerControl &_req,
 //////////////////////////////////////////////////
 void NetworkManagerSecondary::AsyncStepTask()
 {
-  std::deque<private_msgs::SimulationStep> next_steps;
+  std::deque<private_msgs::SimulationStep> nextSteps;
   uint64_t maxIteration{0};
   UpdateInfo lastUpdateInfo;
 
@@ -125,17 +125,18 @@ void NetworkManagerSecondary::AsyncStepTask()
   {
     IGN_PROFILE("NetworkManagerSecondary::AsyncStepTaskLoop");
 
-    if (next_steps.size()) {
+    if (nextSteps.size())
+    {
       // Ack message received
-      auto next_step = next_steps.front();
-      next_steps.pop_front();
-      auto info = convert<UpdateInfo>(next_step.stats());
-      // Max iteration is get from the primary message.
+      auto nextStep = nextSteps.front();
+      nextSteps.pop_front();
+      auto info = convert<UpdateInfo>(nextStep.stats());
+      // Max iteration is from the primary message.
       // lastUpdateInfo is updated with the primary provided message
-      // but `simTime` and `iterations` is not updated as the secondary
+      // but `simTime` and `iterations` are not updated as the secondary
       // may be "ahead".
       // TODO(ivanpauno): Does realTime matter in the secondaries?
-      maxIteration = info.iterations + next_step.max_iterations();
+      maxIteration = info.iterations + nextStep.max_iterations();
       uint64_t currentIteration = lastUpdateInfo.iterations;
       auto simTime = lastUpdateInfo.simTime;
       lastUpdateInfo = info;
@@ -151,11 +152,11 @@ void NetworkManagerSecondary::AsyncStepTask()
 
       // Update affinities
       // TODO(ivanpauno):
-      // This needs to be redone based on if performers can "far apart",
-      // "can view each other" or "are interacting".
-      for (int i = 0; i < next_step.affinity_size(); ++i)
+      // This needs to be redone based on if performers are "far apart",
+      // "can view each other", or "are interacting".
+      for (int i = 0; i < nextStep.affinity_size(); ++i)
       {
-        const auto &affinityMsg = next_step.affinity(i);
+        const auto &affinityMsg = nextStep.affinity(i);
         const auto &entityId = affinityMsg.entity().id();
 
         if (affinityMsg.secondary_prefix() == this->Namespace())
@@ -171,9 +172,8 @@ void NetworkManagerSecondary::AsyncStepTask()
         {
           auto parent =
               this->dataPtr->ecm->Component<components::ParentEntity>(entityId);
-          if (parent) {
+          if (parent)
             this->dataPtr->ecm->RequestRemoveEntity(parent->Data());
-          }
 
           if (this->performers.find(entityId) != this->performers.end())
           {
@@ -185,10 +185,12 @@ void NetworkManagerSecondary::AsyncStepTask()
         }
       }
     }
-    while (lastUpdateInfo.iterations < maxIteration) {
-      if (this->stopAsyncStepThread) {
+
+    while (lastUpdateInfo.iterations < maxIteration)
+    {
+      if (this->stopAsyncStepThread)
         return;
-      }
+
       this->dataPtr->stepFunction(lastUpdateInfo);
 
       // Update state with all the performer's entities
@@ -205,10 +207,12 @@ void NetworkManagerSecondary::AsyncStepTask()
       }
 
       private_msgs::SecondaryStep secondaryStep;
-      if (!entities.empty()) {
+      if (!entities.empty())
+      {
         this->dataPtr->ecm->State(
-        *secondaryStep.mutable_serialized_map(), entities);
+            *secondaryStep.mutable_serialized_map(), entities);
       }
+
       secondaryStep.set_secondary_prefix(this->Namespace());
       secondaryStep.mutable_stats()->CopyFrom(
         convert<msgs::WorldStatistics>(lastUpdateInfo));
@@ -219,11 +223,13 @@ void NetworkManagerSecondary::AsyncStepTask()
       lastUpdateInfo.simTime += lastUpdateInfo.dt;
       // TODO(ivanpauno): realTime?
     }
-    if (!next_steps.size()) {
+
+    if (!nextSteps.size())
+    {
       std::unique_lock<std::mutex> guard{this->stepsMutex};
       this->moreStepsCv.wait(guard, [this]{
         return !this->steps.empty() || this->stopAsyncStepThread;});
-      next_steps = std::move(this->steps);
+      nextSteps = std::move(this->steps);
     }
   }
 }

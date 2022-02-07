@@ -16,6 +16,7 @@
 */
 
 #include <gtest/gtest.h>
+#include <ignition/common/Util.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/ServerConfig.hh"
@@ -36,7 +37,7 @@ TEST_P(FuelCachedServer, CachedFuelWorld)
 {
   auto cachedWorldPath =
     common::joinPaths(std::string(PROJECT_SOURCE_PATH), "test", "worlds");
-  setenv("IGN_FUEL_CACHE_PATH", cachedWorldPath.c_str(), 1);
+  common::setenv("IGN_FUEL_CACHE_PATH", cachedWorldPath.c_str());
 
   ServerConfig serverConfig;
   auto fuelWorldURL =

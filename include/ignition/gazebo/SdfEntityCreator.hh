@@ -122,6 +122,13 @@ namespace ignition
       /// \return Joint entity.
       public: Entity CreateEntities(const sdf::Joint *_joint);
 
+      /// \brief Create all entities that exist in the sdf::Joint object and
+      /// load their plugins.
+      /// \param[in] _joint SDF joint object.
+      /// \param[in] _resolved True if all frames are already resolved
+      /// \return Joint entity.
+      public: Entity CreateEntities(const sdf::Joint *_joint, bool _resolved);
+
       /// \brief Create all entities that exist in the sdf::Visual object and
       /// load their plugins.
       /// \param[in] _visual SDF visual object.
@@ -164,16 +171,13 @@ namespace ignition
       public: void SetParent(Entity _child, Entity _parent);
 
       /// \brief Overloaded function to recursively create model entities
-      /// and make sure a) only one canonical link is created per model tree,
-      /// and b) we override the nested model's static property to true if
+      /// making sure to override the nested model's static property to true if
       /// its parent is static
       /// \param[in] _model SDF model object.
-      /// \param[in] _createCanonicalLink True to create a canonical link
-      /// component and attach to its child link entity
       /// \param[in] _staticParent True if parent is static, false otherwise.
       /// \return Model entity.
       private: Entity CreateEntities(const sdf::Model *_model,
-          bool _createCanonicalLink, bool _staticParent);
+                                     bool _staticParent);
 
       /// \brief Pointer to private data.
       private: std::unique_ptr<SdfEntityCreatorPrivate> dataPtr;

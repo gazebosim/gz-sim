@@ -137,6 +137,7 @@ namespace systems::physics_system
         return castEntity;
       }
     }
+
     /// \brief Helper function to cast from an entity type with minimum features
     /// to an entity with a different set of features. This overload takes a
     /// physics entity as input
@@ -187,6 +188,21 @@ namespace systems::physics_system
       return kNullEntity;
     }
 
+    /// \brief Get the physics entity with required features that has a
+    /// particular ID
+    /// \param[in] _id The ID of the desired physics entity
+    /// \return If found, returns the corresponding physics entity. Otherwise,
+    /// nullptr
+    public: RequiredEntityPtr GetPhysicsEntityPtr(std::size_t _id) const
+    {
+      auto it = this->physEntityById.find(_id);
+      if (it != this->physEntityById.end())
+      {
+        return it->second;
+      }
+      return nullptr;
+    }
+
     /// \brief Check whether there is a physics entity associated with the given
     /// Gazebo entity
     /// \param[in] _entity Gazebo entity.
@@ -215,6 +231,7 @@ namespace systems::physics_system
     {
       this->entityMap[_entity] = _physicsEntity;
       this->reverseMap[_physicsEntity] = _entity;
+      this->physEntityById[_physicsEntity->EntityID()] = _physicsEntity;
     }
 
     /// \brief Remove entity from all associated maps
@@ -226,8 +243,9 @@ namespace systems::physics_system
       if (it != this->entityMap.end())
       {
         this->reverseMap.erase(it->second);
-        this->entityMap.erase(it);
+        this->physEntityById.erase(it->second->EntityID());
         this->castCache.erase(_entity);
+        this->entityMap.erase(it);
         return true;
       }
       return false;
@@ -242,8 +260,9 @@ namespace systems::physics_system
       if (it != this->reverseMap.end())
       {
         this->entityMap.erase(it->second);
-        this->reverseMap.erase(it);
+        this->physEntityById.erase(it->first->EntityID());
         this->castCache.erase(it->second);
+        this->reverseMap.erase(it);
         return true;
       }
       return false;
@@ -257,13 +276,13 @@ namespace systems::physics_system
       return this->entityMap;
     }
 
-    /// \brief Get the total number of entries in the three maps. Only used for
+    /// \brief Get the total number of entries in the maps. Only used for
     /// testing.
     /// \return Number of entries in all the maps.
     public: std::size_t TotalMapEntryCount() const
     {
       return this->entityMap.size() + this->reverseMap.size() +
-             this->castCache.size();
+             this->castCache.size() + this->physEntityById.size();
     }
 
     /// \brief Map from Gazebo entity to physics entities with required features
@@ -271,6 +290,10 @@ namespace systems::physics_system
 
     /// \brief Reverse map of entityMap
     private: std::unordered_map<RequiredEntityPtr, Entity> reverseMap;
+
+    /// \brief Map of physics entity IDs to the corresponding physics entity
+    /// with required features
+    private: std::unordered_map<std::size_t, RequiredEntityPtr> physEntityById;
 
     /// \brief Cache map from Gazebo entity to physics entities with optional
     /// features

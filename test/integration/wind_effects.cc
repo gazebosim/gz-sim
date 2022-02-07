@@ -263,7 +263,7 @@ TEST_F(WindEffectsTest , TopicsAndServices)
   this->server->Run(true, 10, false);
 
   // As specified in SDF
-  math::Vector3d windVelSeed{1.0, 0.0, 1.0};
+  math::Vector3d windVelSeed{10.0, 0.0, 10.0};
 
   transport::Node node;
   std::size_t timeout{5000};

@@ -19,6 +19,7 @@
 
 #include <ignition/msgs/entity_factory.pb.h>
 #include <ignition/msgs/light.pb.h>
+#include <ignition/msgs/physics.pb.h>
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
@@ -107,8 +108,6 @@ TEST_F(UserCommandsTest, Create)
   auto lightsStr = std::string("<?xml version='1.0' ?>") +
       "<sdf version='1.6'>" +
       "<light name='accepted_light' type='directional'>" +
-      "</light>" +
-      "<light name='ignored_light' type='directional'>" +
       "</light>" +
       "</sdf>";
 
@@ -363,9 +362,9 @@ TEST_F(UserCommandsTest, Remove)
   EXPECT_NE(nullptr, ecm);
 
   // Check entities
-  // 1 x world + 1 x (default) level + 1 x wind + 3 x model + 3 x link + 3 x
-  // collision + 3 x visual + 1 x light
-  EXPECT_EQ(16u, ecm->EntityCount());
+  // 1 x world + 1 x (default) level + 1 x wind + 5 x model + 5 x link + 5 x
+  // collision + 5 x visual + 1 x light
+  EXPECT_EQ(24u, ecm->EntityCount());
 
   // Entity remove by name
   msgs::Entity req;
@@ -388,7 +387,7 @@ TEST_F(UserCommandsTest, Remove)
 
   // Run an iteration and check it was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(12u, ecm->EntityCount());
+  EXPECT_EQ(20u, ecm->EntityCount());
 
   EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
       components::Name("box")));
@@ -411,7 +410,7 @@ TEST_F(UserCommandsTest, Remove)
 
   // Run an iteration and check it was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(8u, ecm->EntityCount());
+  EXPECT_EQ(16u, ecm->EntityCount());
 
   EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
       components::Name("sphere")));
@@ -430,7 +429,7 @@ TEST_F(UserCommandsTest, Remove)
 
   // Run an iteration and check it was not removed
   server.Run(true, 1, false);
-  EXPECT_EQ(8u, ecm->EntityCount());
+  EXPECT_EQ(16u, ecm->EntityCount());
 
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Link(),
       components::Name("cylinder_link")));
@@ -451,7 +450,7 @@ TEST_F(UserCommandsTest, Remove)
 
   // Run an iteration and check cylinder was removed and light wasn't
   server.Run(true, 1, false);
-  EXPECT_EQ(4u, ecm->EntityCount());
+  EXPECT_EQ(12u, ecm->EntityCount());
 
   EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
       components::Name("cylinder")));
@@ -470,7 +469,7 @@ TEST_F(UserCommandsTest, Remove)
 
   // Run an iteration and check nothing was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(4u, ecm->EntityCount());
+  EXPECT_EQ(12u, ecm->EntityCount());
 
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Name("sun")));
 
@@ -484,7 +483,7 @@ TEST_F(UserCommandsTest, Remove)
 
   // Run an iteration and check nothing was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(4u, ecm->EntityCount());
+  EXPECT_EQ(12u, ecm->EntityCount());
 
   // Unsupported type - fails to remove
   req.Clear();
@@ -497,7 +496,7 @@ TEST_F(UserCommandsTest, Remove)
 
   // Run an iteration and check nothing was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(4u, ecm->EntityCount());
+  EXPECT_EQ(12u, ecm->EntityCount());
 
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Name("sun")));
 
@@ -512,7 +511,7 @@ TEST_F(UserCommandsTest, Remove)
 
   // Run an iteration and check it was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(3u, ecm->EntityCount());
+  EXPECT_EQ(11u, ecm->EntityCount());
 
   EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Name("sun")));
 }
@@ -736,8 +735,10 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_MAC(Light))
   ASSERT_NE(nullptr, pointLightComp);
   EXPECT_EQ(
     math::Pose3d(0, -1.5, 3, 0, 0, 0), pointLightComp->Data().RawPose());
-  EXPECT_EQ(math::Color(1, 0, 0, 1), pointLightComp->Data().Diffuse());
-  EXPECT_EQ(math::Color(0.1, 0.1, 0.1, 1), pointLightComp->Data().Specular());
+  EXPECT_EQ(math::Color(1.0f, 0.0f, 0.0f, 1.0f),
+      pointLightComp->Data().Diffuse());
+  EXPECT_EQ(math::Color(0.1f, 0.1f, 0.1f, 1.0f),
+      pointLightComp->Data().Specular());
   EXPECT_NEAR(4.0, pointLightComp->Data().AttenuationRange(), 0.1);
   EXPECT_NEAR(0.5, pointLightComp->Data().LinearAttenuationFactor(), 0.1);
   EXPECT_NEAR(0.2, pointLightComp->Data().ConstantAttenuationFactor(), 0.1);
@@ -746,15 +747,15 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_MAC(Light))
 
   req.Clear();
   ignition::msgs::Set(req.mutable_diffuse(),
-    ignition::math::Color(0, 1, 1, 0));
+    ignition::math::Color(0.0f, 1.0f, 1.0f, 0.0f));
   ignition::msgs::Set(req.mutable_specular(),
-    ignition::math::Color(0.2, 0.2, 0.2, 0.2));
-  req.set_range(2.6);
+    ignition::math::Color(0.2f, 0.2f, 0.2f, 0.2f));
+  req.set_range(2.6f);
   req.set_name("point");
   req.set_type(ignition::msgs::Light::POINT);
-  req.set_attenuation_linear(0.7);
-  req.set_attenuation_constant(0.6);
-  req.set_attenuation_quadratic(0.001);
+  req.set_attenuation_linear(0.7f);
+  req.set_attenuation_constant(0.6f);
+  req.set_attenuation_quadratic(0.001f);
   req.set_cast_shadows(true);
   EXPECT_TRUE(node.Request(service, req, timeout, res, result));
   EXPECT_TRUE(result);
@@ -768,9 +769,10 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_MAC(Light))
   pointLightComp = ecm->Component<components::Light>(pointLightEntity);
   ASSERT_NE(nullptr, pointLightComp);
 
-  EXPECT_EQ(math::Color(0, 1, 1, 0), pointLightComp->Data().Diffuse());
-  EXPECT_EQ(math::Color(0.2, 0.2, 0.2, 0.2),
-    pointLightComp->Data().Specular());
+  EXPECT_EQ(math::Color(0.0f, 1.0f, 1.0f, 0.0f),
+      pointLightComp->Data().Diffuse());
+  EXPECT_EQ(math::Color(0.2f, 0.2f, 0.2f, 0.2f),
+      pointLightComp->Data().Specular());
   EXPECT_NEAR(2.6, pointLightComp->Data().AttenuationRange(), 0.1);
   EXPECT_NEAR(0.7, pointLightComp->Data().LinearAttenuationFactor(), 0.1);
   EXPECT_NEAR(0.6, pointLightComp->Data().ConstantAttenuationFactor(), 0.1);
@@ -789,10 +791,10 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_MAC(Light))
 
   EXPECT_EQ(
     math::Pose3d(0, 0, 10, 0, 0, 0), directionalLightComp->Data().RawPose());
-  EXPECT_EQ(
-    math::Color(0.8, 0.8, 0.8, 1), directionalLightComp->Data().Diffuse());
-  EXPECT_EQ(
-    math::Color(0.2, 0.2, 0.2, 1), directionalLightComp->Data().Specular());
+  EXPECT_EQ(math::Color(0.8f, 0.8f, 0.8f, 1.0f),
+    directionalLightComp->Data().Diffuse());
+  EXPECT_EQ(math::Color(0.2f, 0.2f, 0.2f, 1.0f),
+    directionalLightComp->Data().Specular());
   EXPECT_NEAR(100, directionalLightComp->Data().AttenuationRange(), 0.1);
   EXPECT_NEAR(
     0.01, directionalLightComp->Data().LinearAttenuationFactor(), 0.01);
@@ -807,15 +809,15 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_MAC(Light))
 
   req.Clear();
   ignition::msgs::Set(req.mutable_diffuse(),
-    ignition::math::Color(0, 1, 1, 0));
+    ignition::math::Color(0.0f, 1.0f, 1.0f, 0.0f));
   ignition::msgs::Set(req.mutable_specular(),
-    ignition::math::Color(0.3, 0.3, 0.3, 0.3));
-  req.set_range(2.6);
+    ignition::math::Color(0.3f, 0.3f, 0.3f, 0.3f));
+  req.set_range(2.6f);
   req.set_name("directional");
   req.set_type(ignition::msgs::Light::DIRECTIONAL);
-  req.set_attenuation_linear(0.7);
-  req.set_attenuation_constant(0.6);
-  req.set_attenuation_quadratic(1);
+  req.set_attenuation_linear(0.7f);
+  req.set_attenuation_constant(0.6f);
+  req.set_attenuation_quadratic(1.0f);
   req.set_cast_shadows(false);
   ignition::msgs::Set(req.mutable_direction(),
     ignition::math::Vector3d(1, 2, 3));
@@ -832,8 +834,9 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_MAC(Light))
     ecm->Component<components::Light>(directionalLightEntity);
   ASSERT_NE(nullptr, directionalLightComp);
 
-  EXPECT_EQ(math::Color(0, 1, 1, 0), directionalLightComp->Data().Diffuse());
-  EXPECT_EQ(math::Color(0.3, 0.3, 0.3, 0.3),
+  EXPECT_EQ(math::Color(0.0f, 1.0f, 1.0f, 0.0f),
+    directionalLightComp->Data().Diffuse());
+  EXPECT_EQ(math::Color(0.3f, 0.3f, 0.3f, 0.3f),
     directionalLightComp->Data().Specular());
   EXPECT_NEAR(2.6, directionalLightComp->Data().AttenuationRange(), 0.1);
   EXPECT_NEAR(
@@ -858,8 +861,10 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_MAC(Light))
   ASSERT_NE(nullptr, spotLightComp);
 
   EXPECT_EQ(math::Pose3d(0, 1.5, 3, 0, 0, 0), spotLightComp->Data().RawPose());
-  EXPECT_EQ(math::Color(0, 1, 0, 1), spotLightComp->Data().Diffuse());
-  EXPECT_EQ(math::Color(0.2, 0.2, 0.2, 1), spotLightComp->Data().Specular());
+  EXPECT_EQ(math::Color(0.0f, 1.0f, 0.0f, 1.0f),
+    spotLightComp->Data().Diffuse());
+  EXPECT_EQ(math::Color(0.2f, 0.2f, 0.2f, 1.0f),
+    spotLightComp->Data().Specular());
   EXPECT_NEAR(5, spotLightComp->Data().AttenuationRange(), 0.1);
   EXPECT_NEAR(0.4, spotLightComp->Data().LinearAttenuationFactor(), 0.01);
   EXPECT_NEAR(0.3, spotLightComp->Data().ConstantAttenuationFactor(), 0.1);
@@ -874,21 +879,21 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_MAC(Light))
 
   req.Clear();
   ignition::msgs::Set(req.mutable_diffuse(),
-    ignition::math::Color(1, 0, 1, 0));
+    ignition::math::Color(1.0f, 0.0f, 1.0f, 0.0f));
   ignition::msgs::Set(req.mutable_specular(),
-    ignition::math::Color(0.3, 0.3, 0.3, 0.3));
-  req.set_range(2.6);
+    ignition::math::Color(0.3f, 0.3f, 0.3f, 0.3f));
+  req.set_range(2.6f);
   req.set_name("spot");
   req.set_type(ignition::msgs::Light::SPOT);
-  req.set_attenuation_linear(0.7);
-  req.set_attenuation_constant(0.6);
-  req.set_attenuation_quadratic(1);
+  req.set_attenuation_linear(0.7f);
+  req.set_attenuation_constant(0.6f);
+  req.set_attenuation_quadratic(1.0f);
   req.set_cast_shadows(true);
   ignition::msgs::Set(req.mutable_direction(),
     ignition::math::Vector3d(1, 2, 3));
-  req.set_spot_inner_angle(1.5);
-  req.set_spot_outer_angle(0.3);
-  req.set_spot_falloff(0.9);
+  req.set_spot_inner_angle(1.5f);
+  req.set_spot_outer_angle(0.3f);
+  req.set_spot_falloff(0.9f);
 
   EXPECT_TRUE(node.Request(service, req, timeout, res, result));
   EXPECT_TRUE(result);
@@ -902,8 +907,9 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_MAC(Light))
   spotLightComp = ecm->Component<components::Light>(spotLightEntity);
   ASSERT_NE(nullptr, spotLightComp);
 
-  EXPECT_EQ(math::Color(1, 0, 1, 0), spotLightComp->Data().Diffuse());
-  EXPECT_EQ(math::Color(0.3, 0.3, 0.3, 0.3),
+  EXPECT_EQ(math::Color(1.0f, 0.0f, 1.0f, 0.0f),
+    spotLightComp->Data().Diffuse());
+  EXPECT_EQ(math::Color(0.3f, 0.3f, 0.3f, 0.3f),
     spotLightComp->Data().Specular());
   EXPECT_NEAR(2.6, spotLightComp->Data().AttenuationRange(), 0.1);
   EXPECT_NEAR(0.7, spotLightComp->Data().LinearAttenuationFactor(), 0.1);

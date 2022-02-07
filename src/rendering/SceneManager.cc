@@ -17,11 +17,15 @@
 
 
 #include <map>
+#include <memory>
 #include <unordered_map>
 
 #include <sdf/Box.hh>
+#include <sdf/Capsule.hh>
 #include <sdf/Collision.hh>
 #include <sdf/Cylinder.hh>
+#include <sdf/Ellipsoid.hh>
+#include <sdf/Heightmap.hh>
 #include <sdf/Mesh.hh>
 #include <sdf/Pbr.hh>
 #include <sdf/Plane.hh>
@@ -29,6 +33,8 @@
 
 #include <ignition/common/Animation.hh>
 #include <ignition/common/Console.hh>
+#include <ignition/common/HeightmapData.hh>
+#include <ignition/common/ImageHeightmap.hh>
 #include <ignition/common/KeyFrame.hh>
 #include <ignition/common/MeshManager.hh>
 #include <ignition/common/Skeleton.hh>
@@ -36,12 +42,20 @@
 
 #include <ignition/msgs/Utility.hh>
 
+#include "ignition/rendering/Capsule.hh"
+#include <ignition/rendering/COMVisual.hh>
 #include <ignition/rendering/Geometry.hh>
+#include <ignition/rendering/Heightmap.hh>
+#include <ignition/rendering/HeightmapDescriptor.hh>
+#include <ignition/rendering/InertiaVisual.hh>
+#include <ignition/rendering/JointVisual.hh>
 #include <ignition/rendering/Light.hh>
+#include <ignition/rendering/LightVisual.hh>
 #include <ignition/rendering/Material.hh>
 #include <ignition/rendering/ParticleEmitter.hh>
 #include <ignition/rendering/Scene.hh>
 #include <ignition/rendering/Visual.hh>
+#include <ignition/rendering/WireBox.hh>
 
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/Util.hh"
@@ -86,6 +100,12 @@ class ignition::gazebo::SceneManagerPrivate
 
   /// \brief Map of sensor entity in Gazebo to sensor pointers.
   public: std::unordered_map<Entity, rendering::SensorPtr> sensors;
+
+  /// \brief The map of the original transparency values for the nodes.
+  public: std::map<std::string, double> originalTransparency;
+
+  /// \brief The map of the original depth write values for the nodes.
+  public: std::map<std::string, bool> originalDepthWrite;
 
   /// \brief Helper function to compute actor trajectory at specified tiime
   /// \param[in] _id Actor entity's unique id
@@ -172,6 +192,8 @@ rendering::VisualPtr SceneManager::CreateModel(Entity _id,
   }
 
   rendering::VisualPtr modelVis = this->dataPtr->scene->CreateVisual(name);
+
+  // \todo(anyone) change to uint64_t once UserData supports this type
   modelVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   modelVis->SetUserData("pause-update", static_cast<int>(0));
   modelVis->SetLocalPose(_model.RawPose());
@@ -220,7 +242,6 @@ rendering::VisualPtr SceneManager::CreateLink(Entity _id,
   linkVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   linkVis->SetUserData("pause-update", static_cast<int>(0));
   linkVis->SetLocalPose(_link.RawPose());
-  linkVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   this->dataPtr->visuals[_id] = linkVis;
 
   if (parent)
@@ -300,7 +321,11 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
 
     // set material
     rendering::MaterialPtr material{nullptr};
-    if (_visual.Material())
+    if (_visual.Geom()->Type() == sdf::GeometryType::HEIGHTMAP)
+    {
+      // Heightmap's material is loaded together with it.
+    }
+    else if (_visual.Material())
     {
       material = this->LoadMaterial(*_visual.Material());
     }
@@ -317,8 +342,8 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
         material->SetAmbient(0.3, 0.3, 0.3);
         material->SetDiffuse(0.7, 0.7, 0.7);
         material->SetSpecular(1.0, 1.0, 1.0);
-        material->SetRoughness(0.2);
-        material->SetMetalness(1.0);
+        material->SetRoughness(0.2f);
+        material->SetMetalness(1.0f);
       }
     }
     else
@@ -380,6 +405,176 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
 }
 
 /////////////////////////////////////////////////
+std::vector<rendering::NodePtr> SceneManager::Filter(const std::string &_node,
+    std::function<bool(const rendering::NodePtr _nodeToFilter)> _filter) const
+{
+  std::vector<rendering::NodePtr> filteredNodes;
+
+  // make sure there is a rendering node named _node
+  auto rootNode = this->dataPtr->scene->NodeByName(_node);
+  if (!rootNode)
+  {
+    ignerr << "Could not find a node with the name [" << _node
+           << "] in the scene." << std::endl;
+    return filteredNodes;
+  }
+
+  // go through _node and its children in top level order, applying _filter to
+  // each node
+  std::queue<rendering::NodePtr> remainingNodes;
+  remainingNodes.push(rootNode);
+  while (!remainingNodes.empty())
+  {
+    auto currentNode = remainingNodes.front();
+    remainingNodes.pop();
+    if (_filter(currentNode))
+      filteredNodes.push_back(currentNode);
+
+    for (auto i = 0u; i < currentNode->ChildCount(); ++i)
+      remainingNodes.push(currentNode->ChildByIndex(i));
+  }
+
+  return filteredNodes;
+}
+
+/////////////////////////////////////////////////
+std::pair<rendering::VisualPtr, std::vector<Entity>> SceneManager::CopyVisual(
+    Entity _id, const std::string &_visual, Entity _parentId)
+{
+  std::pair<rendering::VisualPtr, std::vector<Entity>> result;
+  if (!this->dataPtr->scene)
+    return result;
+
+  if (this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end())
+  {
+    ignerr << "Entity with Id: [" << _id << "] already exists in the scene"
+           << std::endl;
+    return result;
+  }
+
+  rendering::VisualPtr originalVisual =
+    std::dynamic_pointer_cast<rendering::Visual>(
+        this->dataPtr->scene->NodeByName(_visual));
+  if (!originalVisual)
+  {
+    ignerr << "Could not find a node with the name [" << _visual
+           << "] in the scene." << std::endl;
+    return result;
+  }
+
+  auto name = originalVisual->Name() + "::" + std::to_string(_id);
+
+  rendering::VisualPtr parent;
+  if (_parentId != this->dataPtr->worldId)
+  {
+    auto it = this->dataPtr->visuals.find(_parentId);
+    if (it == this->dataPtr->visuals.end())
+    {
+      ignerr << "Parent entity with Id: [" << _parentId << "] not found. "
+             << "Not adding visual with ID [" << _id
+             << "] and name [" << name << "] to the rendering scene."
+             << std::endl;
+      return result;
+    }
+    parent = it->second;
+  }
+
+  if (parent)
+    name = parent->Name() + "::" + name;
+
+  if (this->dataPtr->scene->HasVisualName(name))
+  {
+    ignerr << "Visual: [" << name << "] already exists" << std::endl;
+    return result;
+  }
+
+  // filter visuals that were created by the gui (these shouldn't be cloned)
+  auto filteredVisuals = this->Filter(_visual,
+      [](const rendering::NodePtr _node)
+      {
+        return _node->HasUserData("gui-only");
+      });
+
+  // temporarily detach filtered visuals, but keep track of the original parent
+  // so that the visuals can be re-attached later
+  std::unordered_map<rendering::NodePtr, rendering::NodePtr>
+    removedVisualToParent;
+  for (auto filteredVis : filteredVisuals)
+  {
+    removedVisualToParent[filteredVis] = filteredVis->Parent();
+    filteredVis->RemoveParent();
+  }
+
+  // clone the visual
+  auto clonedVisual = originalVisual->Clone(name, parent);
+  this->dataPtr->visuals[_id] = clonedVisual;
+
+  // re-attach filtered visuals now that cloning is complete
+  for (auto &[removedVisual, originalParent] : removedVisualToParent)
+    originalParent->AddChild(removedVisual);
+
+  // The Clone call above also clones any child visuals that exist, so we need
+  // to keep track of these new child visuals as well. We get a level order
+  // listing of all visuals associated with the newly copied visual
+  bool childrenTracked = true;
+  std::queue<Entity> remainingVisuals;
+  remainingVisuals.push(_id);
+  std::vector<Entity> childVisualIds;
+  while (!remainingVisuals.empty())
+  {
+    const auto topLevelId = remainingVisuals.front();
+    remainingVisuals.pop();
+    const auto visual = this->dataPtr->visuals[topLevelId];
+    for (auto i = 0u; i < visual->ChildCount(); ++i)
+    {
+      auto childId = this->UniqueId();
+      if (!childId)
+      {
+        ignerr << "Unable to create an entity ID for the copied visual's "
+               << "child, so the copied visual will be deleted.\n";
+        childrenTracked = false;
+        break;
+      }
+      auto childVisual = std::dynamic_pointer_cast<rendering::Visual>(
+          visual->ChildByIndex(i));
+      if (!childVisual)
+      {
+        ignerr << "Unable to retrieve a child visual of the copied visual, "
+               << "so the copied visual will be deleted.\n";
+        childrenTracked = false;
+        break;
+      }
+
+      this->dataPtr->visuals[childId] = childVisual;
+      childVisual->SetUserData("gazebo-entity", static_cast<int>(childId));
+      childVisual->SetUserData("pause-update", static_cast<int>(0));
+      childVisualIds.push_back(childId);
+
+      remainingVisuals.push(childId);
+    }
+  }
+
+  if (!childrenTracked)
+  {
+    this->dataPtr->scene->DestroyVisual(clonedVisual, true);
+    for (const auto id : childVisualIds)
+      this->dataPtr->visuals.erase(id);
+  }
+  else
+  {
+    clonedVisual->SetUserData("gazebo-entity", static_cast<int>(_id));
+    clonedVisual->SetUserData("pause-update", static_cast<int>(0));
+
+    result = {clonedVisual, std::move(childVisualIds)};
+
+    if (!parent)
+      this->dataPtr->scene->RootVisual()->AddChild(clonedVisual);
+  }
+
+  return result;
+}
+
+/////////////////////////////////////////////////
 rendering::VisualPtr SceneManager::VisualById(Entity _id)
 {
   if (this->dataPtr->visuals.find(_id) == this->dataPtr->visuals.end())
@@ -395,8 +590,8 @@ rendering::VisualPtr SceneManager::CreateCollision(Entity _id,
     const sdf::Collision &_collision, Entity _parentId)
 {
   sdf::Material material;
-  material.SetAmbient(math::Color(1, 0.5088, 0.0468, 0.7));
-  material.SetDiffuse(math::Color(1, 0.5088, 0.0468, 0.7));
+  material.SetAmbient(math::Color(1.0f, 0.5088f, 0.0468f, 0.7f));
+  material.SetDiffuse(math::Color(1.0f, 0.5088f, 0.0468f, 0.7f));
 
   sdf::Visual visual;
   visual.SetGeom(*_collision.Geom());
@@ -407,6 +602,7 @@ rendering::VisualPtr SceneManager::CreateCollision(Entity _id,
   visual.SetName(_collision.Name());
 
   rendering::VisualPtr collisionVis = CreateVisual(_id, visual, _parentId);
+  collisionVis->SetUserData("gui-only", static_cast<bool>(true));
   return collisionVis;
 }
 /////////////////////////////////////////////////
@@ -424,12 +620,26 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     geom = this->dataPtr->scene->CreateBox();
     scale = _geom.BoxShape()->Size();
   }
+  else if (_geom.Type() == sdf::GeometryType::CAPSULE)
+  {
+    auto capsule = this->dataPtr->scene->CreateCapsule();
+    capsule->SetRadius(_geom.CapsuleShape()->Radius());
+    capsule->SetLength(_geom.CapsuleShape()->Length());
+    geom = capsule;
+  }
   else if (_geom.Type() == sdf::GeometryType::CYLINDER)
   {
     geom = this->dataPtr->scene->CreateCylinder();
     scale.X() = _geom.CylinderShape()->Radius() * 2;
     scale.Y() = scale.X();
     scale.Z() = _geom.CylinderShape()->Length();
+  }
+  else if (_geom.Type() == sdf::GeometryType::ELLIPSOID)
+  {
+    geom = this->dataPtr->scene->CreateSphere();
+    scale.X() = _geom.EllipsoidShape()->Radii().X() * 2;
+    scale.Y() = _geom.EllipsoidShape()->Radii().Y() * 2;
+    scale.Z() = _geom.EllipsoidShape()->Radii().Z() * 2;
   }
   else if (_geom.Type() == sdf::GeometryType::PLANE)
   {
@@ -472,6 +682,58 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     geom = this->dataPtr->scene->CreateMesh(descriptor);
     scale = _geom.MeshShape()->Scale();
   }
+  else if (_geom.Type() == sdf::GeometryType::HEIGHTMAP)
+  {
+    auto fullPath = asFullPath(_geom.HeightmapShape()->Uri(),
+        _geom.HeightmapShape()->FilePath());
+    if (fullPath.empty())
+    {
+      ignerr << "Heightmap geometry missing URI" << std::endl;
+      return geom;
+    }
+
+    auto data = std::make_shared<common::ImageHeightmap>();
+    if (data->Load(fullPath) < 0)
+    {
+      ignerr << "Failed to load heightmap image data from [" << fullPath << "]"
+             << std::endl;
+      return geom;
+    }
+
+    rendering::HeightmapDescriptor descriptor;
+    descriptor.SetData(data);
+    descriptor.SetSize(_geom.HeightmapShape()->Size());
+    descriptor.SetPosition(_geom.HeightmapShape()->Position());
+    descriptor.SetSampling(_geom.HeightmapShape()->Sampling());
+
+    for (uint64_t i = 0; i < _geom.HeightmapShape()->TextureCount(); ++i)
+    {
+      auto textureSdf = _geom.HeightmapShape()->TextureByIndex(i);
+      rendering::HeightmapTexture textureDesc;
+      textureDesc.SetSize(textureSdf->Size());
+      textureDesc.SetDiffuse(common::findFile(asFullPath(textureSdf->Diffuse(),
+          _geom.HeightmapShape()->FilePath())));
+      textureDesc.SetNormal(common::findFile(asFullPath(textureSdf->Normal(),
+          _geom.HeightmapShape()->FilePath())));
+      descriptor.AddTexture(textureDesc);
+    }
+
+    for (uint64_t i = 0; i < _geom.HeightmapShape()->BlendCount(); ++i)
+    {
+      auto blendSdf = _geom.HeightmapShape()->BlendByIndex(i);
+      rendering::HeightmapBlend blendDesc;
+      blendDesc.SetMinHeight(blendSdf->MinHeight());
+      blendDesc.SetFadeDistance(blendSdf->FadeDistance());
+      descriptor.AddBlend(blendDesc);
+    }
+
+    geom = this->dataPtr->scene->CreateHeightmap(descriptor);
+    if (nullptr == geom)
+    {
+      ignerr << "Failed to create heightmap [" << fullPath << "]" << std::endl;
+    }
+    scale = _geom.HeightmapShape()->Size();
+  }
   else
   {
     ignerr << "Unsupported geometry type" << std::endl;
@@ -493,6 +755,7 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
   material->SetDiffuse(_material.Diffuse());
   material->SetSpecular(_material.Specular());
   material->SetEmissive(_material.Emissive());
+  material->SetRenderOrder(_material.RenderOrder());
 
   // parse PBR params
   const sdf::Pbr *pbr = _material.PbrMaterial();
@@ -604,13 +867,30 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
       else
         ignerr << "Unable to find file [" << emissiveMap << "]\n";
     }
+
+    // light map
+    std::string lightMap = workflow->LightMap();
+    if (!lightMap.empty())
+    {
+      std::string fullPath = common::findFile(
+          asFullPath(lightMap, _material.FilePath()));
+      if (!fullPath.empty())
+      {
+        unsigned int uvSet = workflow->LightMapTexCoordSet();
+        material->SetLightMap(fullPath, uvSet);
+      }
+      else
+      {
+        ignerr << "Unable to find file [" << lightMap << "]\n";
+      }
+    }
   }
   return material;
 }
 
 /////////////////////////////////////////////////
 rendering::VisualPtr SceneManager::CreateActor(Entity _id,
-    const sdf::Actor &_actor, Entity _parentId)
+    const sdf::Actor &_actor, const std::string &_name, Entity _parentId)
 {
   if (!this->dataPtr->scene)
     return rendering::VisualPtr();
@@ -626,9 +906,6 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
     return rendering::VisualPtr();
   }
 
-  std::string name = _actor.Name().empty() ? std::to_string(_id) :
-      _actor.Name();
-
   rendering::VisualPtr parent;
   if (_parentId != this->dataPtr->worldId)
   {
@@ -636,14 +913,15 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
     if (it == this->dataPtr->visuals.end())
     {
       ignerr << "Parent entity with Id: [" << _parentId << "] not found. "
-             << "Not adding actor with ID[" << _id
-             << "]  and name [" << name << "] to the rendering scene."
+             << "Not adding actor with ID [" << _id
+             << "] and name [" << _name << "] to the rendering scene."
              << std::endl;
       return rendering::VisualPtr();
     }
     parent = it->second;
   }
 
+  std::string name = _name;
   if (parent)
     name = parent->Name() +  "::" + name;
 
@@ -804,7 +1082,7 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
                     static_cast<int>(point->Time()*1000)));
           waypoints[pointTp] = point->Pose();
         }
-        trajInfo.SetWaypoints(waypoints);
+        trajInfo.SetWaypoints(waypoints, trajSdf->Tension());
         // Animations are offset by 1 because index 0 is taken by the mesh name
         auto animation = _actor.AnimationByIndex(trajInfo.AnimIndex()-1);
 
@@ -915,8 +1193,75 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
 }
 
 /////////////////////////////////////////////////
+rendering::VisualPtr SceneManager::CreateLightVisual(Entity _id,
+    const sdf::Light &_light, const std::string &_name, Entity _parentId)
+{
+  if (!this->dataPtr->scene)
+    return rendering::VisualPtr();
+
+  if (this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end())
+  {
+    ignerr << "Entity with Id: [" << _id << "] already exists in the scene"
+           << std::endl;
+    return rendering::VisualPtr();
+  }
+
+  rendering::LightPtr lightParent;
+  auto it = this->dataPtr->lights.find(_parentId);
+  if (it != this->dataPtr->lights.end())
+  {
+    lightParent = it->second;
+  }
+  else
+  {
+    ignerr << "Parent entity with Id: [" << _parentId << "] not found. "
+           << "Not adding light visual with ID [" << _id
+           << "] and name [" << _name << "] to the rendering scene."
+           << std::endl;
+    return rendering::VisualPtr();
+  }
+
+  std::string name = lightParent->Name() +  "::" + _name + "Visual";
+
+  if (this->dataPtr->scene->HasVisualName(name))
+  {
+    ignerr << "Visual: [" << name << "] already exists" << std::endl;
+    return rendering::VisualPtr();
+  }
+
+  rendering::LightVisualPtr lightVisual =
+    this->dataPtr->scene->CreateLightVisual(name);
+  if (_light.Type() == sdf::LightType::POINT)
+  {
+    lightVisual->SetType(rendering::LightVisualType::LVT_POINT);
+  }
+  else if (_light.Type() == sdf::LightType::DIRECTIONAL)
+  {
+    lightVisual->SetType(rendering::LightVisualType::LVT_DIRECTIONAL);
+  }
+  else if (_light.Type() == sdf::LightType::SPOT)
+  {
+    lightVisual->SetType(rendering::LightVisualType::LVT_SPOT);
+    lightVisual->SetInnerAngle(_light.SpotInnerAngle().Radian());
+    lightVisual->SetOuterAngle(_light.SpotOuterAngle().Radian());
+  }
+  rendering::VisualPtr lightVis = std::dynamic_pointer_cast<rendering::Visual>(
+    lightVisual);
+  lightVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  lightVis->SetUserData("pause-update", static_cast<int>(0));
+  this->dataPtr->visuals[_id] = lightVis;
+
+  if (lightParent)
+  {
+    lightVis->RemoveParent();
+    lightParent->AddChild(lightVis);
+  }
+  return lightVis;
+}
+
+/////////////////////////////////////////////////
 rendering::LightPtr SceneManager::CreateLight(Entity _id,
-    const sdf::Light &_light, Entity _parentId)
+    const sdf::Light &_light, const std::string &_name, Entity _parentId)
 {
   if (!this->dataPtr->scene)
     return rendering::LightPtr();
@@ -941,8 +1286,7 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
     parent = it->second;
   }
 
-  std::string name = _light.Name().empty() ? std::to_string(_id) :
-      _light.Name();
+  std::string name = _name;
   if (parent)
     name = parent->Name() +  "::" + name;
 
@@ -960,6 +1304,7 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
       spotLight->SetInnerAngle(_light.SpotInnerAngle());
       spotLight->SetOuterAngle(_light.SpotOuterAngle());
       spotLight->SetFalloff(_light.SpotFalloff());
+      spotLight->SetDirection(_light.Direction());
       break;
     }
     case sdf::LightType::DIRECTIONAL:
@@ -987,13 +1332,243 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
   light->SetAttenuationRange(_light.AttenuationRange());
 
   light->SetCastShadows(_light.CastShadows());
+  light->SetIntensity(_light.Intensity());
 
   this->dataPtr->lights[_id] = light;
 
   if (parent)
     parent->AddChild(light);
+  else
+    this->dataPtr->scene->RootVisual()->AddChild(light);
 
   return light;
+}
+
+/////////////////////////////////////////////////
+rendering::VisualPtr SceneManager::CreateInertiaVisual(Entity _id,
+    const math::Inertiald &_inertia, Entity _parentId)
+{
+  if (!this->dataPtr->scene)
+    return rendering::VisualPtr();
+
+  if (this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end())
+  {
+    ignerr << "Entity with Id: [" << _id << "] already exists in the scene"
+           << std::endl;
+    return rendering::VisualPtr();
+  }
+
+  rendering::VisualPtr parent;
+  if (_parentId != this->dataPtr->worldId)
+  {
+    auto it = this->dataPtr->visuals.find(_parentId);
+    if (it == this->dataPtr->visuals.end())
+    {
+      // It is possible to get here if the model entity is created then
+      // removed in between render updates.
+      return rendering::VisualPtr();
+    }
+    parent = it->second;
+  }
+
+  std::string name = std::to_string(_id);
+  if (parent)
+    name = parent->Name() + "::" + name;
+
+  rendering::InertiaVisualPtr inertiaVisual =
+    this->dataPtr->scene->CreateInertiaVisual(name);
+  inertiaVisual->SetInertial(_inertia);
+
+  rendering::VisualPtr inertiaVis =
+    std::dynamic_pointer_cast<rendering::Visual>(inertiaVisual);
+  inertiaVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  inertiaVis->SetUserData("pause-update", static_cast<int>(0));
+  inertiaVis->SetUserData("gui-only", static_cast<bool>(true));
+  this->dataPtr->visuals[_id] = inertiaVis;
+
+  if (parent)
+  {
+    inertiaVis->RemoveParent();
+    parent->AddChild(inertiaVis);
+  }
+  return inertiaVis;
+}
+
+/////////////////////////////////////////////////
+rendering::VisualPtr SceneManager::CreateJointVisual(
+    Entity _id, const sdf::Joint &_joint,
+    Entity _childId, Entity _parentId)
+{
+  if (!this->dataPtr->scene)
+  {
+    return rendering::VisualPtr();
+  }
+
+  if (this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end())
+  {
+    ignerr << "Entity with Id: [" << _id << "] already exists in the scene"
+           << std::endl;
+    return rendering::VisualPtr();
+  }
+
+  rendering::VisualPtr parent;
+  if (_childId != this->dataPtr->worldId)
+  {
+    auto it = this->dataPtr->visuals.find(_childId);
+    if (it == this->dataPtr->visuals.end())
+    {
+      // It is possible to get here if the model entity is created then
+      // removed in between render updates.
+      return rendering::VisualPtr();
+    }
+    parent = it->second;
+  }
+
+  // Name.
+  std::string name = _joint.Name().empty() ? std::to_string(_id) :
+    _joint.Name();
+  if (parent)
+  {
+    name = parent->Name() +  "::" + name;
+  }
+
+  rendering::JointVisualPtr jointVisual =
+    this->dataPtr->scene->CreateJointVisual(name);
+
+  switch (_joint.Type())
+  {
+    case sdf::JointType::REVOLUTE:
+      jointVisual->SetType(rendering::JointVisualType::JVT_REVOLUTE);
+      break;
+    case sdf::JointType::REVOLUTE2:
+      jointVisual->SetType(rendering::JointVisualType::JVT_REVOLUTE2);
+      break;
+    case sdf::JointType::PRISMATIC:
+      jointVisual->SetType(rendering::JointVisualType::JVT_PRISMATIC);
+      break;
+    case sdf::JointType::UNIVERSAL:
+      jointVisual->SetType(rendering::JointVisualType::JVT_UNIVERSAL);
+      break;
+    case sdf::JointType::BALL:
+      jointVisual->SetType(rendering::JointVisualType::JVT_BALL);
+      break;
+    case sdf::JointType::SCREW:
+      jointVisual->SetType(rendering::JointVisualType::JVT_SCREW);
+      break;
+    case sdf::JointType::GEARBOX:
+      jointVisual->SetType(rendering::JointVisualType::JVT_GEARBOX);
+      break;
+    case sdf::JointType::FIXED:
+      jointVisual->SetType(rendering::JointVisualType::JVT_FIXED);
+      break;
+    default:
+      jointVisual->SetType(rendering::JointVisualType::JVT_NONE);
+      break;
+  }
+
+  if (parent)
+  {
+    jointVisual->RemoveParent();
+    parent->AddChild(jointVisual);
+  }
+
+  if (_joint.Axis(1) &&
+      (_joint.Type() == sdf::JointType::REVOLUTE2 ||
+       _joint.Type() == sdf::JointType::UNIVERSAL
+      ))
+  {
+    auto axis1 = _joint.Axis(0)->Xyz();
+    auto axis2 = _joint.Axis(1)->Xyz();
+    auto axis1UseParentFrame = _joint.Axis(0)->XyzExpressedIn() == "__model__";
+    auto axis2UseParentFrame = _joint.Axis(1)->XyzExpressedIn() == "__model__";
+
+    jointVisual->SetAxis(axis2, axis2UseParentFrame);
+
+    auto it = this->dataPtr->visuals.find(_parentId);
+    if (it != this->dataPtr->visuals.end())
+    {
+      auto parentName = it->second->Name();
+      jointVisual->SetParentAxis(
+          axis1, parentName, axis1UseParentFrame);
+    }
+  }
+  else if (_joint.Axis(0) &&
+      (_joint.Type() == sdf::JointType::REVOLUTE ||
+       _joint.Type() == sdf::JointType::PRISMATIC
+      ))
+  {
+    auto axis1 = _joint.Axis(0)->Xyz();
+    auto axis1UseParentFrame = _joint.Axis(0)->XyzExpressedIn() == "__model__";
+
+    jointVisual->SetAxis(axis1, axis1UseParentFrame);
+  }
+  else
+  {
+    // For fixed joint type, scale joint visual to the joint child link
+    double childSize =
+        std::max(0.1, parent->BoundingBox().Size().Length());
+    auto scale = ignition::math::Vector3d(childSize * 0.2,
+        childSize * 0.2, childSize * 0.2);
+    jointVisual->SetLocalScale(scale);
+  }
+
+  rendering::VisualPtr jointVis =
+    std::dynamic_pointer_cast<rendering::Visual>(jointVisual);
+  jointVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  jointVis->SetUserData("pause-update", static_cast<int>(0));
+  jointVis->SetUserData("gui-only", static_cast<bool>(true));
+  jointVis->SetLocalPose(_joint.RawPose());
+  this->dataPtr->visuals[_id] = jointVis;
+  return jointVis;
+}
+
+/////////////////////////////////////////////////
+rendering::VisualPtr SceneManager::CreateCOMVisual(Entity _id,
+    const math::Inertiald &_inertia, Entity _parentId)
+{
+  if (!this->dataPtr->scene)
+    return rendering::VisualPtr();
+
+  if (this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end())
+  {
+    ignerr << "Entity with Id: [" << _id << "] already exists in the scene"
+           << std::endl;
+    return rendering::VisualPtr();
+  }
+
+  rendering::VisualPtr parent;
+  if (_parentId != this->dataPtr->worldId)
+  {
+    auto it = this->dataPtr->visuals.find(_parentId);
+    if (it == this->dataPtr->visuals.end())
+    {
+      // It is possible to get here if the model entity is created then
+      // removed in between render updates.
+      return rendering::VisualPtr();
+    }
+    parent = it->second;
+  }
+
+  if (!parent)
+    return rendering::VisualPtr();
+
+  std::string name = std::to_string(_id);
+  name = parent->Name() + "::" + name;
+
+  rendering::COMVisualPtr comVisual =
+      this->dataPtr->scene->CreateCOMVisual(name);
+  comVisual->RemoveParent();
+  parent->AddChild(comVisual);
+  comVisual->SetInertial(_inertia);
+
+  rendering::VisualPtr comVis =
+    std::dynamic_pointer_cast<rendering::Visual>(comVisual);
+  comVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  comVis->SetUserData("pause-update", static_cast<int>(0));
+  comVis->SetUserData("gui-only", static_cast<bool>(true));
+  this->dataPtr->visuals[_id] = comVis;
+
+  return comVis;
 }
 
 /////////////////////////////////////////////////
@@ -1158,10 +1733,7 @@ rendering::ParticleEmitterPtr SceneManager::UpdateParticleEmitter(Entity _id,
       const std::string key = "particle_scatter_ratio";
       if (data.key() == "particle_scatter_ratio" && data.value_size() > 0)
       {
-        // \todo(anyone) switch to use the follow API when merging forward to
-        // edifice
-        // emitter->SetParticleScatterRatio(math::parseFloat(data.value(0)));
-        emitter->SetUserData(key, math::parseFloat(data.value(0)));
+        emitter->SetParticleScatterRatio(math::parseFloat(data.value(0)));
         break;
       }
     }
@@ -1351,13 +1923,6 @@ AnimationUpdateData SceneManager::ActorAnimationAt(
 }
 
 /////////////////////////////////////////////////
-std::map<std::string, math::Matrix4d> SceneManager::ActorMeshAnimationAt(
-    Entity _id, std::chrono::steady_clock::duration _time) const
-{
-  return this->ActorSkeletonTransformsAt(_id, _time);
-}
-
-/////////////////////////////////////////////////
 std::map<std::string, math::Matrix4d> SceneManager::ActorSkeletonTransformsAt(
     Entity _id, std::chrono::steady_clock::duration _time) const
 {
@@ -1454,6 +2019,19 @@ void SceneManager::RemoveEntity(Entity _id)
     auto it = this->dataPtr->visuals.find(_id);
     if (it != this->dataPtr->visuals.end())
     {
+      // Remove visual's original transparency from map
+      rendering::VisualPtr vis = it->second;
+      this->dataPtr->originalTransparency.erase(vis->Name());
+      // Remove visual's original depth write value from map
+      this->dataPtr->originalDepthWrite.erase(vis->Name());
+
+      for (auto g = 0u; g < vis->GeometryCount(); ++g)
+      {
+        auto geom = vis->GeometryByIndex(g);
+        this->dataPtr->originalTransparency.erase(geom->Name());
+        this->dataPtr->originalDepthWrite.erase(geom->Name());
+      }
+
       this->dataPtr->scene->DestroyVisual(it->second);
       this->dataPtr->visuals.erase(it);
       return;
@@ -1520,43 +2098,136 @@ rendering::NodePtr SceneManager::TopLevelNode(
   return node;
 }
 
-/////////////////////////////////////////////////
-Entity SceneManager::EntityFromNode(const rendering::NodePtr &_node) const
+////////////////////////////////////////////////
+void SceneManager::UpdateTransparency(const rendering::NodePtr &_node,
+    bool _makeTransparent)
 {
-  // TODO(anyone) On Dome, set entity ID into node with SetUserData
-  auto visual = std::dynamic_pointer_cast<rendering::Visual>(_node);
-  if (visual)
-  {
-    auto found = std::find_if(std::begin(this->dataPtr->visuals),
-        std::end(this->dataPtr->visuals),
-        [&](const std::pair<Entity, rendering::VisualPtr> &_item)
-    {
-      return _item.second == visual;
-    });
+  if (!_node)
+    return;
 
-    if (found != this->dataPtr->visuals.end())
+  for (auto n = 0u; n < _node->ChildCount(); ++n)
+  {
+    auto child = _node->ChildByIndex(n);
+    this->UpdateTransparency(child, _makeTransparent);
+  }
+
+  auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
+  if (nullptr == vis)
+    return;
+
+  // Visual material
+  auto visMat = vis->Material();
+  if (nullptr != visMat)
+  {
+    auto visTransparency =
+        this->dataPtr->originalTransparency.find(vis->Name());
+    auto visDepthWrite =
+        this->dataPtr->originalDepthWrite.find(vis->Name());
+    if (_makeTransparent)
     {
-      return found->first;
+      if (visTransparency == this->dataPtr->originalTransparency.end())
+      {
+        this->dataPtr->originalTransparency[vis->Name()] =
+          visMat->Transparency();
+      }
+      visMat->SetTransparency(1.0 - ((1.0 - visMat->Transparency()) * 0.5));
+
+      if (visDepthWrite == this->dataPtr->originalDepthWrite.end())
+      {
+        this->dataPtr->originalDepthWrite[vis->Name()] =
+          visMat->DepthWriteEnabled();
+      }
+      visMat->SetDepthWriteEnabled(false);
+    }
+    else
+    {
+      if (visTransparency != this->dataPtr->originalTransparency.end())
+      {
+        visMat->SetTransparency(visTransparency->second);
+      }
+      if (visDepthWrite != this->dataPtr->originalDepthWrite.end())
+      {
+        visMat->SetDepthWriteEnabled(visDepthWrite->second);
+      }
     }
   }
 
-  auto light = std::dynamic_pointer_cast<rendering::Light>(_node);
-  if (light)
+  for (auto g = 0u; g < vis->GeometryCount(); ++g)
   {
-    auto found = std::find_if(std::begin(this->dataPtr->lights),
-        std::end(this->dataPtr->lights),
-        [&](const std::pair<Entity, rendering::LightPtr> &_item)
-    {
-      return _item.second == light;
-    });
+    auto geom = vis->GeometryByIndex(g);
 
-    if (found != this->dataPtr->lights.end())
+    // Geometry material
+    auto geomMat = geom->Material();
+    if (nullptr == geomMat || visMat == geomMat)
+      continue;
+    auto geomTransparency =
+        this->dataPtr->originalTransparency.find(geom->Name());
+    auto geomDepthWrite =
+        this->dataPtr->originalDepthWrite.find(geom->Name());
+
+    if (_makeTransparent)
     {
-      return found->first;
+      if (geomTransparency == this->dataPtr->originalTransparency.end())
+      {
+        this->dataPtr->originalTransparency[geom->Name()] =
+            geomMat->Transparency();
+      }
+      geomMat->SetTransparency(1.0 - ((1.0 - geomMat->Transparency()) * 0.5));
+
+      if (geomDepthWrite == this->dataPtr->originalDepthWrite.end())
+      {
+        this->dataPtr->originalDepthWrite[geom->Name()] =
+            geomMat->DepthWriteEnabled();
+      }
+      geomMat->SetDepthWriteEnabled(false);
+    }
+    else
+    {
+      if (geomTransparency != this->dataPtr->originalTransparency.end())
+      {
+        geomMat->SetTransparency(geomTransparency->second);
+      }
+      if (geomDepthWrite != this->dataPtr->originalDepthWrite.end())
+      {
+        geomMat->SetDepthWriteEnabled(geomDepthWrite->second);
+      }
     }
   }
+}
 
-  return kNullEntity;
+////////////////////////////////////////////////
+void SceneManager::UpdateJointParentPose(Entity _jointId)
+{
+  auto visual =
+      this->VisualById(_jointId);
+
+  rendering::JointVisualPtr jointVisual =
+      std::dynamic_pointer_cast<rendering::JointVisual>(visual);
+
+  auto childPose = jointVisual->WorldPose();
+
+  if (jointVisual->ParentAxisVisual())
+  {
+    jointVisual->ParentAxisVisual()->SetWorldPose(childPose);
+
+    // scale parent axis visual to the child
+    auto childScale = jointVisual->LocalScale();
+    jointVisual->ParentAxisVisual()->SetLocalScale(childScale);
+  }
+}
+
+/////////////////////////////////////////////////
+Entity SceneManager::UniqueId() const
+{
+  auto id = std::numeric_limits<uint64_t>::max();
+  while (true)
+  {
+    if (!this->HasEntity(id))
+      return id;
+    else if (id == 0u)
+      return kNullEntity;
+    --id;
+  }
 }
 
 /////////////////////////////////////////////////

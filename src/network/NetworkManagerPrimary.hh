@@ -58,7 +58,7 @@ namespace ignition
     /// \class NetworkManagerPrimary NetworkManagerPrimary.hh
     ///   ignition/gazebo/network/NetworkManagerPrimary.hh
     /// \brief Simulation primary specific behaviors
-    class NetworkManagerPrimary:
+    class IGNITION_GAZEBO_VISIBLE NetworkManagerPrimary:
       public NetworkManager
     {
       // Documentation inherited
@@ -127,6 +127,7 @@ namespace ignition
       private: uint64_t nextIteration{1u};
 
       /// \brief Keep track of states received from secondaries.
+      /// The key is an iteration number.
       /// TODO(ivanpauno): Maybe a `deque` here instead of a `map`.
       private: std::map<uint64_t, std::vector<private_msgs::SecondaryStep>>
             secondaryStates;

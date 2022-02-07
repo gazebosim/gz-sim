@@ -18,6 +18,8 @@
 #include <gtest/gtest.h>
 
 #include <ignition/msgs/particle_emitter.pb.h>
+#include <ignition/msgs/wrench.pb.h>
+#include <ignition/msgs/Utility.hh>
 
 #include <chrono>
 
@@ -30,6 +32,7 @@
 #include <sdf/Material.hh>
 #include <sdf/Noise.hh>
 #include <sdf/Pbr.hh>
+#include <sdf/sdf.hh>
 #include <sdf/Sensor.hh>
 
 #include "ignition/gazebo/components/Actor.hh"
@@ -49,6 +52,7 @@
 #include "ignition/gazebo/components/JointAxis.hh"
 #include "ignition/gazebo/components/JointEffortLimitsCmd.hh"
 #include "ignition/gazebo/components/JointPositionLimitsCmd.hh"
+#include "ignition/gazebo/components/JointTransmittedWrench.hh"
 #include "ignition/gazebo/components/JointVelocityLimitsCmd.hh"
 #include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/JointVelocity.hh"
@@ -870,6 +874,7 @@ TEST_F(ComponentsTest, Light)
   data1.SetSpotInnerAngle(math::Angle(0.3));
   data1.SetSpotOuterAngle(math::Angle(2.3));
   data1.SetSpotFalloff(5.15);
+  data1.SetIntensity(1.55);
 
   auto data2 = sdf::Light();
 
@@ -892,14 +897,15 @@ TEST_F(ComponentsTest, Light)
   EXPECT_EQ(math::Color(1, 0, 0, 1), comp3.Data().Diffuse());
   EXPECT_EQ(math::Color(0, 1, 0, 1), comp3.Data().Specular());
   EXPECT_TRUE(comp3.Data().CastShadows());
-  EXPECT_FLOAT_EQ(1.3, comp3.Data().AttenuationRange());
-  EXPECT_FLOAT_EQ(0.3, comp3.Data().LinearAttenuationFactor());
-  EXPECT_FLOAT_EQ(0.1, comp3.Data().QuadraticAttenuationFactor());
-  EXPECT_FLOAT_EQ(0.05, comp3.Data().ConstantAttenuationFactor());
+  EXPECT_FLOAT_EQ(1.3f, comp3.Data().AttenuationRange());
+  EXPECT_FLOAT_EQ(0.3f, comp3.Data().LinearAttenuationFactor());
+  EXPECT_FLOAT_EQ(0.1f, comp3.Data().QuadraticAttenuationFactor());
+  EXPECT_FLOAT_EQ(0.05f, comp3.Data().ConstantAttenuationFactor());
   EXPECT_EQ(math::Angle(0.3), comp3.Data().SpotInnerAngle());
   EXPECT_EQ(math::Angle(2.3), comp3.Data().SpotOuterAngle());
-  EXPECT_FLOAT_EQ(5.15, comp3.Data().SpotFalloff());
+  EXPECT_FLOAT_EQ(5.15f, comp3.Data().SpotFalloff());
   EXPECT_EQ(math::Vector3d(2, 3, 4), comp3.Data().Direction());
+  EXPECT_FLOAT_EQ(1.55f, comp3.Data().Intensity());
 }
 
 /////////////////////////////////////////////////
@@ -1174,10 +1180,9 @@ TEST_F(ComponentsTest, Material)
   EXPECT_EQ(math::Color(1, 1, 1, 1), comp3.Data().Emissive());
   EXPECT_FALSE(comp3.Data().Lighting());
 
-  sdf::Pbr *newPbrMaterial = comp3.Data().PbrMaterial();
+  auto newPbrMaterial = comp3.Data().PbrMaterial();
   ASSERT_NE(nullptr, newPbrMaterial);
-  sdf::PbrWorkflow *newWorkflow =
-      newPbrMaterial->Workflow(sdf::PbrWorkflowType::METAL);
+  auto newWorkflow = newPbrMaterial->Workflow(sdf::PbrWorkflowType::METAL);
   ASSERT_NE(nullptr, newWorkflow);
   EXPECT_EQ("albedo_map.png", newWorkflow->AlbedoMap());
   EXPECT_EQ("normal_map.png", newWorkflow->NormalMap());
@@ -1212,6 +1217,66 @@ TEST_F(ComponentsTest, Model)
   std::istringstream istr("ignored");
   components::Model comp3;
   comp3.Deserialize(istr);
+}
+
+/////////////////////////////////////////////////
+TEST_F(ComponentsTest, ModelSdf)
+{
+  std::ostringstream stream;
+  std::string version = SDF_VERSION;
+  stream
+    << "<?xml version=\"1.0\" ?>"
+    << "<sdf version='" << version << "'>"
+    << "  <world name=\"modelSDF\">"
+    << "    <physics name=\"1ms\" type=\"ode\">"
+    << "      <max_step_size>0.001</max_step_size>"
+    << "      <real_time_factor>1.0</real_time_factor>"
+    << "    </physics>"
+    << "    <plugin"
+    << "      filename=\"ignition-gazebo-physics-system\""
+    << "      name=\"ignition::gazebo::systems::Physics\">"
+    << "    </plugin>"
+    << "    <model name='my_model'>"
+    << "      <link name='link'>"
+    << "        <light type= 'point' name='my_light'>"
+    << "          <pose>0.1 0 0 0 0 0</pose>"
+    << "          <diffuse>0.2 0.3 0.4 1</diffuse>"
+    << "          <specular>0.3 0.4 0.5 1</specular>"
+    << "        </light>"
+    << "      </link>"
+    << "    </model>"
+    << "  </world>"
+    << "</sdf>";
+
+  sdf::SDFPtr sdfParsed(new sdf::SDF());
+  sdf::init(sdfParsed);
+  ASSERT_TRUE(sdf::readString(stream.str(), sdfParsed));
+
+  // model
+  EXPECT_TRUE(sdfParsed->Root()->HasElement("world"));
+  sdf::ElementPtr worldElem = sdfParsed->Root()->GetElement("world");
+  EXPECT_TRUE(worldElem->HasElement("model"));
+  sdf::ElementPtr modelElem = worldElem->GetElement("model");
+  EXPECT_TRUE(modelElem->HasAttribute("name"));
+  EXPECT_EQ(modelElem->Get<std::string>("name"), "my_model");
+
+  sdf::Model model;
+  model.Load(modelElem);
+  EXPECT_EQ("my_model", model.Name());
+
+  // Create components
+  auto comp1 = components::ModelSdf(model);
+  components::ModelSdf comp2;
+
+  // Stream operators
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+
+  std::istringstream istr(ostr.str());
+  comp2.Deserialize(istr);
+
+  EXPECT_EQ("my_model", comp2.Data().Name());
+  EXPECT_EQ(1u, comp2.Data().LinkCount());
 }
 
 /////////////////////////////////////////////////
@@ -1716,4 +1781,26 @@ TEST_F(ComponentsTest, ParticleEmitterCmd)
   comp3.Deserialize(istr);
   EXPECT_EQ(comp1.Data().emitting().data(), comp3.Data().emitting().data());
   EXPECT_EQ(comp1.Data().name(), comp3.Data().name());
+}
+
+//////////////////////////////////////////////////
+TEST_F(ComponentsTest, JointTransmittedWrench)
+{
+  msgs::Wrench wrench;
+  msgs::Set(wrench.mutable_torque(), {10, 20, 30});
+  msgs::Set(wrench.mutable_force(), {1, 2, 3});
+
+  // // Create components.
+  auto comp1 = components::JointTransmittedWrench(wrench);
+
+  // Stream operators.
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+
+  std::istringstream istr(ostr.str());
+  components::JointTransmittedWrench comp2;
+  comp2.Deserialize(istr);
+  EXPECT_EQ(msgs::Convert(comp2.Data().force()), msgs::Convert(wrench.force()));
+  EXPECT_EQ(msgs::Convert(comp2.Data().torque()),
+            msgs::Convert(wrench.torque()));
 }

@@ -46,7 +46,7 @@ namespace ignition
     /// \class NetworkManagerSecondary NetworkManagerSecondary.hh
     ///   ignition/gazebo/network/NetworkManagerSecondary.hh
     /// \brief Secondary specific behaviors
-    class NetworkManagerSecondary:
+    class IGNITION_GAZEBO_VISIBLE NetworkManagerSecondary:
       public NetworkManager
     {
       // Documentation inherited
@@ -56,6 +56,7 @@ namespace ignition
           const NetworkConfig &_config,
           const NodeOptions &_options);
 
+      /// \brief Destructor
       public: ~NetworkManagerSecondary();
 
       // Documentation inherited
@@ -78,7 +79,7 @@ namespace ignition
       /// \param[in] _msg Step message.
       private: void OnStep(const private_msgs::SimulationStep &_msg);
 
-      /// \brief Task that will be rn asynchronously in a separated thread.
+      /// \brief Task that will be run asynchronously in a separated thread.
       private: void AsyncStepTask();
 
       /// \brief Flag to control enabling/disabling simulation secondary.

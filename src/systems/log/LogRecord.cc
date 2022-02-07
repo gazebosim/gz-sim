@@ -54,7 +54,6 @@
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -62,6 +61,7 @@
 #include "ignition/gazebo/Util.hh"
 
 using namespace ignition;
+using namespace ignition::gazebo;
 using namespace ignition::gazebo::systems;
 
 // Private data class.
@@ -319,13 +319,8 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
   ignmsg << "Recording to log file [" << dbPath << "]" << std::endl;
 
   // Add default topics if no topics were specified.
-  std::string dynPoseTopic = "/world/" + this->worldName +
-    "/dynamic_pose/info";
-
-  igndbg << "Recording default topic[" << dynPoseTopic << "].\n";
   igndbg << "Recording default topic[" << sdfTopic << "].\n";
   igndbg << "Recording default topic[" << stateTopic << "].\n";
-  this->recorder.AddTopic(dynPoseTopic);
   this->recorder.AddTopic(sdfTopic);
   this->recorder.AddTopic(stateTopic);
 
@@ -547,44 +542,41 @@ bool LogRecordPrivate::SaveModels(const std::set<std::string> &_models)
 
       // Look for URIs in SDF and convert them to paths relative to the model
       // directory
-      for (uint64_t mi = 0; mi < root.ModelCount(); mi++)
+      const sdf::Model *model = root.Model();
+      for (uint64_t li = 0; li < model->LinkCount(); li++)
       {
-        const sdf::Model *model = root.ModelByIndex(mi);
-        for (uint64_t li = 0; li < model->LinkCount(); li++)
+        const sdf::Link *link = model->LinkByIndex(li);
+        for (uint64_t ci = 0; ci < link->CollisionCount(); ci++)
         {
-          const sdf::Link *link = model->LinkByIndex(li);
-          for (uint64_t ci = 0; ci < link->CollisionCount(); ci++)
+          const sdf::Collision *collision = link->CollisionByIndex(ci);
+          const sdf::Geometry *geometry = collision->Geom();
+          const sdf::Mesh *mesh = geometry->MeshShape();
+          if (mesh != nullptr)
           {
-            const sdf::Collision *collision = link->CollisionByIndex(ci);
-            const sdf::Geometry *geometry = collision->Geom();
-            const sdf::Mesh *mesh = geometry->MeshShape();
-            if (mesh != nullptr)
+            // Replace path with relative path
+            std::string relPath = convertToRelativePath(mesh->Uri(), srcPath);
+            sdf::ElementPtr meshElem = mesh->Element();
+            if (meshElem->HasElement("uri"))
             {
-              // Replace path with relative path
-              std::string relPath = convertToRelativePath(mesh->Uri(), srcPath);
-              sdf::ElementPtr meshElem = mesh->Element();
-              if (meshElem->HasElement("uri"))
-              {
-                sdf::ElementPtr uriElem = meshElem->GetElement("uri");
-                uriElem->Set(relPath);
-              }
+              sdf::ElementPtr uriElem = meshElem->GetElement("uri");
+              uriElem->Set(relPath);
             }
           }
-          for (uint64_t vi = 0; vi < link->VisualCount(); vi++)
+        }
+        for (uint64_t vi = 0; vi < link->VisualCount(); vi++)
+        {
+          const sdf::Visual *visual = link->VisualByIndex(vi);
+          const sdf::Geometry *geometry = visual->Geom();
+          const sdf::Mesh *mesh = geometry->MeshShape();
+          if (mesh != nullptr)
           {
-            const sdf::Visual *visual = link->VisualByIndex(vi);
-            const sdf::Geometry *geometry = visual->Geom();
-            const sdf::Mesh *mesh = geometry->MeshShape();
-            if (mesh != nullptr)
+            // Replace path with relative path
+            std::string relPath = convertToRelativePath(mesh->Uri(), srcPath);
+            sdf::ElementPtr meshElem = mesh->Element();
+            if (meshElem->HasElement("uri"))
             {
-              // Replace path with relative path
-              std::string relPath = convertToRelativePath(mesh->Uri(), srcPath);
-              sdf::ElementPtr meshElem = mesh->Element();
-              if (meshElem->HasElement("uri"))
-              {
-                sdf::ElementPtr uriElem = meshElem->GetElement("uri");
-                uriElem->Set(relPath);
-              }
+              sdf::ElementPtr uriElem = meshElem->GetElement("uri");
+              uriElem->Set(relPath);
             }
           }
         }

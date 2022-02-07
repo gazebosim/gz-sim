@@ -1,0 +1,436 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <world name="force_torque">
+    <plugin filename="ignition-gazebo-physics-system" name="ignition::gazebo::systems::Physics" />
+    <plugin filename="ignition-gazebo-forcetorque-system" name="ignition::gazebo::systems::ForceTorque" />
+    <plugin filename='ignition-gazebo-scene-broadcaster-system' name='ignition::gazebo::systems::SceneBroadcaster' />
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+            <emissive>0.8 0.8 0.8 1</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="test1">
+      <model name="scale">
+        <pose>0 0 0.02   0 0 0</pose>
+        <link name="base">
+          <inertial>
+            <mass>2.0</mass>
+            <inertia>
+              <ixx>0.166933</ixx>
+              <iyy>0.166933</iyy>
+              <izz>0.333333</izz>
+            </inertia>
+          </inertial>
+          <visual name="v1">
+            <geometry>
+              <box>
+                <size>1 1 0.04</size>
+              </box>
+            </geometry>
+          </visual>
+          <collision name="c1">
+            <pose>0.5 0.5 -0.01  0 0 0</pose>
+            <geometry>
+              <sphere>
+                <radius>0.01</radius>
+              </sphere>
+            </geometry>
+          </collision>
+          <collision name="c2">
+            <pose>0.5 -0.5 -0.01  0 0 0</pose>
+            <geometry>
+              <sphere>
+                <radius>0.01</radius>
+              </sphere>
+            </geometry>
+          </collision>
+          <collision name="c3">
+            <pose>-0.5 -0.5 -0.01  0 0 0</pose>
+            <geometry>
+              <sphere>
+                <radius>0.01</radius>
+              </sphere>
+            </geometry>
+          </collision>
+          <collision name="c4">
+            <pose>-0.5 0.5 -0.01  0 0 0</pose>
+            <geometry>
+              <sphere>
+                <radius>0.01</radius>
+              </sphere>
+            </geometry>
+          </collision>
+        </link>
+        <link name="sensor_plate">
+          <pose relative_to="base">0 0 0.03   0 0 0</pose>
+          <inertial>
+            <mass>0.2</mass>
+            <inertia>
+              <ixx>0.0166933</ixx>
+              <iyy>0.0166933</iyy>
+              <izz>0.0333333</izz>
+            </inertia>
+          </inertial>
+          <visual name="v1">
+            <geometry>
+              <box>
+                <size>0.9 0.9 0.01</size>
+              </box>
+            </geometry>
+            <material>
+              <ambient>0.8 0.2 0.2 1</ambient>
+              <diffuse>0.8 0.2 0.2 1</diffuse>
+              <specular>0.8 0.2 0.2 1</specular>
+            </material>
+          </visual>
+          <collision name="c1">
+            <geometry>
+              <box>
+                <size>0.9 0.9 0.01</size>
+              </box>
+            </geometry>
+          </collision>
+        </link>
+
+        <joint name="sensor_joint" type="fixed">
+          <parent>base</parent>
+          <child>sensor_plate</child>
+          <sensor name="force_torque_sensor" type="force_torque">
+            <update_rate>100</update_rate>
+            <always_on>true</always_on>
+            <visualize>true</visualize>
+            <topic>force_torque1</topic>
+            <force_torque>
+              <frame>sensor</frame>
+              <measure_direction>parent_to_child</measure_direction>
+            </force_torque>
+          </sensor>
+        </joint>
+      </model>
+
+      <model name="weight">
+        <pose>0 0 0.5   0 0 0</pose>
+        <link name="base">
+          <inertial>
+            <mass>10</mass>
+          </inertial>
+          <visual name="v1">
+            <geometry>
+              <sphere>
+                <radius>0.25</radius>
+              </sphere>
+            </geometry>
+            <material>
+              <ambient>0.0 0.8 0.8 1</ambient>
+              <diffuse>0.0 0.8 0.8 1</diffuse>
+              <specular>0.0 0.8 0.8 1</specular>
+            </material>
+          </visual>
+          <collision name="c1">
+            <geometry>
+              <sphere>
+                <radius>0.25</radius>
+              </sphere>
+            </geometry>
+          </collision>
+        </link>
+      </model>
+    </model>
+
+    <model name="test2">
+      <pose>0 5 0   0 0 0</pose>
+      <model name="scale">
+        <pose>0 0 0.02   0 0 0</pose>
+        <link name="base">
+          <inertial>
+            <mass>2.0</mass>
+            <inertia>
+              <ixx>0.166933</ixx>
+              <iyy>0.166933</iyy>
+              <izz>0.333333</izz>
+            </inertia>
+          </inertial>
+          <visual name="v1">
+            <geometry>
+              <box>
+                <size>1 1 0.04</size>
+              </box>
+            </geometry>
+          </visual>
+          <collision name="c1">
+            <pose>0.5 0.5 -0.01  0 0 0</pose>
+            <geometry>
+              <sphere>
+                <radius>0.01</radius>
+              </sphere>
+            </geometry>
+          </collision>
+          <collision name="c2">
+            <pose>0.5 -0.5 -0.01  0 0 0</pose>
+            <geometry>
+              <sphere>
+                <radius>0.01</radius>
+              </sphere>
+            </geometry>
+          </collision>
+          <collision name="c3">
+            <pose>-0.5 -0.5 -0.01  0 0 0</pose>
+            <geometry>
+              <sphere>
+                <radius>0.01</radius>
+              </sphere>
+            </geometry>
+          </collision>
+          <collision name="c4">
+            <pose>-0.5 0.5 -0.01  0 0 0</pose>
+            <geometry>
+              <sphere>
+                <radius>0.01</radius>
+              </sphere>
+            </geometry>
+          </collision>
+        </link>
+        <link name="sensor_plate">
+          <pose relative_to="base">0 0 0.03   0 0 0</pose>
+          <inertial>
+            <mass>0.2</mass>
+            <inertia>
+              <ixx>0.0166933</ixx>
+              <iyy>0.0166933</iyy>
+              <izz>0.0333333</izz>
+            </inertia>
+          </inertial>
+          <visual name="v1">
+            <geometry>
+              <box>
+                <size>0.9 0.9 0.01</size>
+              </box>
+            </geometry>
+            <material>
+              <ambient>0.8 0.2 0.2 1</ambient>
+              <diffuse>0.8 0.2 0.2 1</diffuse>
+              <specular>0.8 0.2 0.2 1</specular>
+            </material>
+          </visual>
+          <collision name="c1">
+            <geometry>
+              <box>
+                <size>0.9 0.9 0.01</size>
+              </box>
+            </geometry>
+          </collision>
+        </link>
+
+        <joint name="sensor_joint" type="fixed">
+          <parent>base</parent>
+          <child>sensor_plate</child>
+          <sensor name="force_torque_sensor" type="force_torque">
+            <pose>0.1 0 0  0 0 0</pose>
+            <update_rate>100</update_rate>
+            <always_on>true</always_on>
+            <visualize>true</visualize>
+            <topic>force_torque2</topic>
+            <force_torque>
+              <frame>sensor</frame>
+              <measure_direction>parent_to_child</measure_direction>
+            </force_torque>
+          </sensor>
+        </joint>
+      </model>
+
+      <model name="weight">
+        <pose>0 0 0.5   0 0 0</pose>
+        <link name="base">
+          <inertial>
+            <mass>10</mass>
+          </inertial>
+          <visual name="v1">
+            <geometry>
+              <sphere>
+                <radius>0.25</radius>
+              </sphere>
+            </geometry>
+            <material>
+              <ambient>0.0 0.8 0.8 1</ambient>
+              <diffuse>0.0 0.8 0.8 1</diffuse>
+              <specular>0.0 0.8 0.8 1</specular>
+            </material>
+          </visual>
+          <collision name="c1">
+            <geometry>
+              <sphere>
+                <radius>0.25</radius>
+              </sphere>
+            </geometry>
+          </collision>
+        </link>
+      </model>
+    </model>
+
+    <model name="test3">
+      <pose>0 10 0   0 0 0</pose>
+      <model name="scale">
+        <pose>0 0 0.02   0 0 0</pose>
+        <link name="base">
+          <inertial>
+            <mass>2.0</mass>
+            <inertia>
+              <ixx>0.166933</ixx>
+              <iyy>0.166933</iyy>
+              <izz>0.333333</izz>
+            </inertia>
+          </inertial>
+          <visual name="v1">
+            <geometry>
+              <box>
+                <size>1 1 0.04</size>
+              </box>
+            </geometry>
+          </visual>
+          <collision name="c1">
+            <pose>0.5 0.5 -0.01  0 0 0</pose>
+            <geometry>
+              <sphere>
+                <radius>0.01</radius>
+              </sphere>
+            </geometry>
+          </collision>
+          <collision name="c2">
+            <pose>0.5 -0.5 -0.01  0 0 0</pose>
+            <geometry>
+              <sphere>
+                <radius>0.01</radius>
+              </sphere>
+            </geometry>
+          </collision>
+          <collision name="c3">
+            <pose>-0.5 -0.5 -0.01  0 0 0</pose>
+            <geometry>
+              <sphere>
+                <radius>0.01</radius>
+              </sphere>
+            </geometry>
+          </collision>
+          <collision name="c4">
+            <pose>-0.5 0.5 -0.01  0 0 0</pose>
+            <geometry>
+              <sphere>
+                <radius>0.01</radius>
+              </sphere>
+            </geometry>
+          </collision>
+        </link>
+        <link name="sensor_plate">
+          <pose relative_to="base">0 0 0.03   0 0 0</pose>
+          <inertial>
+            <mass>0.2</mass>
+            <inertia>
+              <ixx>0.0166933</ixx>
+              <iyy>0.0166933</iyy>
+              <izz>0.0333333</izz>
+            </inertia>
+          </inertial>
+          <visual name="v1">
+            <geometry>
+              <box>
+                <size>0.9 0.9 0.01</size>
+              </box>
+            </geometry>
+            <material>
+              <ambient>0.8 0.2 0.2 1</ambient>
+              <diffuse>0.8 0.2 0.2 1</diffuse>
+              <specular>0.8 0.2 0.2 1</specular>
+            </material>
+          </visual>
+          <collision name="c1">
+            <geometry>
+              <box>
+                <size>0.9 0.9 0.01</size>
+              </box>
+            </geometry>
+          </collision>
+        </link>
+
+        <joint name="sensor_joint" type="fixed">
+          <parent>base</parent>
+          <child>sensor_plate</child>
+          <sensor name="force_torque_sensor" type="force_torque">
+            <pose degrees="true">0 0 0.0   30 0 0</pose>
+            <update_rate>100</update_rate>
+            <always_on>true</always_on>
+            <visualize>true</visualize>
+            <topic>force_torque3</topic>
+            <force_torque>
+              <frame>child</frame>
+              <measure_direction>parent_to_child</measure_direction>
+            </force_torque>
+          </sensor>
+        </joint>
+      </model>
+
+      <model name="weight">
+        <pose>0 0 0.5   0 0 0</pose>
+        <link name="base">
+          <inertial>
+            <mass>10</mass>
+          </inertial>
+          <visual name="v1">
+            <geometry>
+              <sphere>
+                <radius>0.25</radius>
+              </sphere>
+            </geometry>
+            <material>
+              <ambient>0.0 0.8 0.8 1</ambient>
+              <diffuse>0.0 0.8 0.8 1</diffuse>
+              <specular>0.0 0.8 0.8 1</specular>
+            </material>
+          </visual>
+          <collision name="c1">
+            <geometry>
+              <sphere>
+                <radius>0.25</radius>
+              </sphere>
+            </geometry>
+          </collision>
+        </link>
+      </model>
+    </model>
+  </world>
+</sdf>

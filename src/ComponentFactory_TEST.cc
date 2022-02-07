@@ -19,6 +19,7 @@
 #include "ignition/gazebo/test_config.hh"
 #include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/components/Factory.hh"
+#include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Pose.hh"
 
 #include "../test/helpers/EnvTestFixture.hh"
@@ -29,6 +30,12 @@ using namespace gazebo;
 /////////////////////////////////////////////////
 class ComponentFactoryTest : public InternalFixture<::testing::Test>
 {
+  // Documentation inherited
+  protected: void SetUp() override
+  {
+    InternalFixture::SetUp();
+    common::setenv("IGN_DEBUG_COMPONENT_FACTORY", "true");
+  }
 };
 
 /////////////////////////////////////////////////
@@ -48,8 +55,7 @@ TEST_F(ComponentFactoryTest, Register)
   auto registeredCount = factory->TypeIds().size();
 
   factory->Register<MyCustom>("ign_gazebo_components.MyCustom",
-      new components::ComponentDescriptor<MyCustom>(),
-      new components::StorageDescriptor<MyCustom>());
+      new components::ComponentDescriptor<MyCustom>());
 
   // Check now it has type id
   EXPECT_NE(0u, MyCustom::typeId);
@@ -64,8 +70,7 @@ TEST_F(ComponentFactoryTest, Register)
 
   // Fail to register same component twice
   factory->Register<MyCustom>("ign_gazebo_components.MyCustom",
-      new components::ComponentDescriptor<MyCustom>(),
-      new components::StorageDescriptor<MyCustom>());
+      new components::ComponentDescriptor<MyCustom>());
 
   EXPECT_EQ(registeredCount + 1, factory->TypeIds().size());
 
@@ -73,8 +78,7 @@ TEST_F(ComponentFactoryTest, Register)
   using Duplicate = components::Component<components::NoData,
       class DuplicateTag>;
   factory->Register<Duplicate>("ign_gazebo_components.MyCustom",
-      new components::ComponentDescriptor<Duplicate>(),
-      new components::StorageDescriptor<Duplicate>());
+      new components::ComponentDescriptor<Duplicate>());
 
   EXPECT_EQ(registeredCount + 1, factory->TypeIds().size());
 
@@ -95,12 +99,12 @@ TEST_F(ComponentFactoryTest, New)
 
   {
     auto comp = factory->New(123456789);
-    ASSERT_TRUE(comp == nullptr);
+    ASSERT_EQ(nullptr, comp);
   }
 
   {
     auto comp = factory->New<components::Pose>();
-    ASSERT_TRUE(comp != nullptr);
+    ASSERT_NE(nullptr, comp);
 
     EXPECT_NE(0u, comp->typeId);
     EXPECT_EQ(comp->typeId, components::Pose::typeId);
@@ -108,19 +112,33 @@ TEST_F(ComponentFactoryTest, New)
 
   {
     auto comp = factory->New(components::Pose::typeId);
-    ASSERT_TRUE(comp != nullptr);
+    ASSERT_NE(nullptr, comp);
 
     EXPECT_NE(0u, comp->TypeId());
 
-    EXPECT_TRUE(nullptr != static_cast<components::Pose *>(comp.get()));
+    EXPECT_NE(nullptr, static_cast<components::Pose *>(comp.get()));
   }
 
   {
-    auto storage = factory->NewStorage(components::Pose::typeId);
-    ASSERT_TRUE(storage != nullptr);
+    // Test constructing a component with pre-defined data
 
-    EXPECT_NE(nullptr, static_cast<ComponentStorage<components::Pose> *>(
-        storage.get()));
+    // Test a valid pre-defined component
+    ignition::math::Pose3d pose(1, 2, 3, 4, 5, 6);
+    components::Pose poseComp(pose);
+    auto comp = factory->New(components::Pose::typeId, &poseComp);
+    ASSERT_NE(nullptr, comp);
+    EXPECT_NE(0u, comp->TypeId());
+    auto derivedComp = static_cast<components::Pose *>(comp.get());
+    ASSERT_NE(nullptr, derivedComp);
+    EXPECT_EQ(pose, derivedComp->Data());
+
+    // Test an invalid pre-defined component
+    comp = factory->New(components::Pose::typeId, nullptr);
+    ASSERT_EQ(nullptr, comp);
+
+    // Test mistmatching component types
+    comp = factory->New(components::Name::typeId, &poseComp);
+    ASSERT_EQ(nullptr, comp);
   }
 }
 

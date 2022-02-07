@@ -16,6 +16,7 @@
 */
 
 #include <iostream>
+#include <list>
 #include <regex>
 #include <QColorDialog>
 #include <ignition/common/Console.hh>
@@ -40,6 +41,7 @@
 #include "ignition/gazebo/components/Level.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/LightCmd.hh"
+#include "ignition/gazebo/components/LightType.hh"
 #include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/LinearVelocitySeed.hh"
@@ -53,11 +55,15 @@
 #include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/PerformerAffinity.hh"
 #include "ignition/gazebo/components/Physics.hh"
+#include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/PoseCmd.hh"
+#include "ignition/gazebo/components/RenderEngineGuiPlugin.hh"
+#include "ignition/gazebo/components/RenderEngineServerPlugin.hh"
 #include "ignition/gazebo/components/SelfCollide.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/SourceFilePath.hh"
+#include "ignition/gazebo/components/SphericalCoordinates.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
 #include "ignition/gazebo/components/Transparency.hh"
@@ -132,6 +138,9 @@ void ignition::gazebo::setData(QStandardItem *_item, const math::Pose3d &_data)
 template<>
 void ignition::gazebo::setData(QStandardItem *_item, const msgs::Light &_data)
 {
+  if (nullptr == _item)
+    return;
+
   int lightType = -1;
   if (_data.type() == msgs::Light::POINT)
   {
@@ -168,6 +177,7 @@ void ignition::gazebo::setData(QStandardItem *_item, const msgs::Light &_data)
     QVariant(_data.spot_inner_angle()),
     QVariant(_data.spot_outer_angle()),
     QVariant(_data.spot_falloff()),
+    QVariant(_data.intensity()),
     QVariant(lightType)
   }), ComponentsModel::RoleNames().key("data"));
 }
@@ -305,6 +315,26 @@ void ignition::gazebo::setData(QStandardItem *_item,
 
   // TODO(anyone) Only shows colors of material,
   // need to add others (e.g., pbr)
+}
+
+//////////////////////////////////////////////////
+template<>
+void ignition::gazebo::setData(QStandardItem *_item,
+    const math::SphericalCoordinates &_data)
+{
+  if (nullptr == _item)
+    return;
+
+  _item->setData(QString("SphericalCoordinates"),
+      ComponentsModel::RoleNames().key("dataType"));
+  _item->setData(QList({
+    QVariant(QString::fromStdString(math::SphericalCoordinates::Convert(
+        _data.Surface()))),
+    QVariant(_data.LatitudeReference().Degree()),
+    QVariant(_data.LongitudeReference().Degree()),
+    QVariant(_data.ElevationReference()),
+    QVariant(_data.HeadingOffset().Degree()),
+  }), ComponentsModel::RoleNames().key("data"));
 }
 
 //////////////////////////////////////////////////
@@ -650,6 +680,12 @@ void ComponentInspector::Update(const UpdateInfo &,
         this->dataPtr->worldName = comp->Data();
       this->dataPtr->entityName = comp->Data();
     }
+    else if (typeId == components::LightType::typeId)
+    {
+      auto comp = _ecm.Component<components::LightType>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
     else if (typeId == components::ParentEntity::typeId)
     {
       auto comp = _ecm.Component<components::ParentEntity>(
@@ -687,9 +723,37 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, comp->Data());
     }
+    else if (typeId == components::PhysicsCollisionDetector::typeId)
+    {
+      auto comp = _ecm.Component<components::PhysicsCollisionDetector>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::PhysicsSolver::typeId)
+    {
+      auto comp = _ecm.Component<components::PhysicsSolver>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
     else if (typeId == components::Pose::typeId)
     {
       auto comp = _ecm.Component<components::Pose>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::RenderEngineGuiPlugin::typeId)
+    {
+      auto comp = _ecm.Component<components::RenderEngineGuiPlugin>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::RenderEngineServerPlugin::typeId)
+    {
+      auto comp = _ecm.Component<components::RenderEngineServerPlugin>(
+          this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
@@ -717,6 +781,13 @@ void ComponentInspector::Update(const UpdateInfo &,
     {
       auto comp =
           _ecm.Component<components::SourceFilePath>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::SphericalCoordinates::typeId)
+    {
+      auto comp = _ecm.Component<components::SphericalCoordinates>(
+          this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
@@ -817,17 +888,24 @@ void ComponentInspector::Update(const UpdateInfo &,
     }
   }
 
-  // Remove components no longer present
+  // Remove components no longer present - list items to remove
+  std::list<ignition::gazebo::ComponentTypeId> itemsToRemove;
   for (auto itemIt : this->dataPtr->componentsModel.items)
   {
     auto typeId = itemIt.first;
     if (componentTypes.find(typeId) == componentTypes.end())
     {
-      QMetaObject::invokeMethod(&this->dataPtr->componentsModel,
-          "RemoveComponentType",
-          Qt::QueuedConnection,
-          Q_ARG(ignition::gazebo::ComponentTypeId, typeId));
+      itemsToRemove.push_back(typeId);
     }
+  }
+
+  // Remove components in list
+  for (auto typeId : itemsToRemove)
+  {
+    QMetaObject::invokeMethod(&this->dataPtr->componentsModel,
+        "RemoveComponentType",
+        Qt::QueuedConnection,
+        Q_ARG(ignition::gazebo::ComponentTypeId, typeId));
   }
 }
 
@@ -947,7 +1025,7 @@ void ComponentInspector::OnLight(
   double _attRange, double _attLinear, double _attConstant,
   double _attQuadratic, bool _castShadows, double _directionX,
   double _directionY, double _directionZ, double _innerAngle,
-  double _outerAngle, double _falloff, int _type)
+  double _outerAngle, double _falloff, double _intensity, int _type)
 {
   std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
       [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
@@ -968,6 +1046,7 @@ void ComponentInspector::OnLight(
   req.set_attenuation_constant(_attConstant);
   req.set_attenuation_quadratic(_attQuadratic);
   req.set_cast_shadows(_castShadows);
+  req.set_intensity(_intensity);
   if (_type == 0)
     req.set_type(ignition::msgs::Light::POINT);
   else if (_type == 1)
@@ -1112,6 +1191,44 @@ void ComponentInspector::OnMaterialColor(
     return;
   }
   this->dataPtr->node.Request(materialCmdService, req, cb);
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::OnSphericalCoordinates(QString _surface,
+    double _latitude, double _longitude, double _elevation,
+    double _heading)
+{
+  if (_surface != QString("EARTH_WGS84"))
+  {
+    ignerr << "Surface [" << _surface.toStdString() << "] not supported."
+           << std::endl;
+    return;
+  }
+
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
+  {
+    if (!_result)
+      ignerr << "Error setting spherical coordinates." << std::endl;
+  };
+
+  msgs::SphericalCoordinates req;
+  req.set_surface_model(msgs::SphericalCoordinates::EARTH_WGS84);
+  req.set_latitude_deg(_latitude);
+  req.set_longitude_deg(_longitude);
+  req.set_elevation(_elevation);
+  req.set_heading_deg(_heading);
+
+  auto sphericalCoordsCmdService = "/world/" + this->dataPtr->worldName
+      + "/set_spherical_coordinates";
+  sphericalCoordsCmdService =
+      transport::TopicUtils::AsValidTopic(sphericalCoordsCmdService);
+  if (sphericalCoordsCmdService.empty())
+  {
+    ignerr << "Invalid spherical coordinates service" << std::endl;
+    return;
+  }
+  this->dataPtr->node.Request(sphericalCoordsCmdService, req, cb);
 }
 
 /////////////////////////////////////////////////

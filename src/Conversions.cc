@@ -18,10 +18,13 @@
 #include <ignition/msgs/atmosphere.pb.h>
 #include <ignition/msgs/axis_aligned_box.pb.h>
 #include <ignition/msgs/boxgeom.pb.h>
+#include <ignition/msgs/capsulegeom.pb.h>
 #include <ignition/msgs/cylindergeom.pb.h>
 #include <ignition/msgs/entity.pb.h>
+#include <ignition/msgs/ellipsoidgeom.pb.h>
 #include <ignition/msgs/geometry.pb.h>
 #include <ignition/msgs/gui.pb.h>
+#include <ignition/msgs/heightmapgeom.pb.h>
 #include <ignition/msgs/imu_sensor.pb.h>
 #include <ignition/msgs/lidar_sensor.pb.h>
 #include <ignition/msgs/actor.pb.h>
@@ -45,9 +48,12 @@
 #include <sdf/Altimeter.hh>
 #include <sdf/Box.hh>
 #include <sdf/Camera.hh>
+#include <sdf/Capsule.hh>
 #include <sdf/Cylinder.hh>
+#include <sdf/Ellipsoid.hh>
 #include <sdf/Geometry.hh>
 #include <sdf/Gui.hh>
+#include <sdf/Heightmap.hh>
 #include <sdf/Imu.hh>
 #include <sdf/Lidar.hh>
 #include <sdf/Light.hh>
@@ -58,6 +64,7 @@
 #include <sdf/Plane.hh>
 #include <sdf/Sphere.hh>
 
+#include <algorithm>
 #include <string>
 
 #include "ignition/gazebo/Conversions.hh"
@@ -157,11 +164,23 @@ msgs::Geometry ignition::gazebo::convert(const sdf::Geometry &_in)
     out.set_type(msgs::Geometry::BOX);
     msgs::Set(out.mutable_box()->mutable_size(), _in.BoxShape()->Size());
   }
+  else if (_in.Type() == sdf::GeometryType::CAPSULE && _in.CapsuleShape())
+  {
+    out.set_type(msgs::Geometry::CAPSULE);
+    out.mutable_capsule()->set_radius(_in.CapsuleShape()->Radius());
+    out.mutable_capsule()->set_length(_in.CapsuleShape()->Length());
+  }
   else if (_in.Type() == sdf::GeometryType::CYLINDER && _in.CylinderShape())
   {
     out.set_type(msgs::Geometry::CYLINDER);
     out.mutable_cylinder()->set_radius(_in.CylinderShape()->Radius());
     out.mutable_cylinder()->set_length(_in.CylinderShape()->Length());
+  }
+  else if (_in.Type() == sdf::GeometryType::ELLIPSOID && _in.EllipsoidShape())
+  {
+    out.set_type(msgs::Geometry::ELLIPSOID);
+    msgs::Set(out.mutable_ellipsoid()->mutable_radii(),
+             _in.EllipsoidShape()->Radii());
   }
   else if (_in.Type() == sdf::GeometryType::PLANE && _in.PlaneShape())
   {
@@ -188,6 +207,39 @@ msgs::Geometry ignition::gazebo::convert(const sdf::Geometry &_in)
     meshMsg->set_submesh(meshSdf->Submesh());
     meshMsg->set_center_submesh(meshSdf->CenterSubmesh());
   }
+  else if (_in.Type() == sdf::GeometryType::HEIGHTMAP && _in.HeightmapShape())
+  {
+    auto heightmapSdf = _in.HeightmapShape();
+
+    out.set_type(msgs::Geometry::HEIGHTMAP);
+    auto heightmapMsg = out.mutable_heightmap();
+
+    heightmapMsg->set_filename(asFullPath(heightmapSdf->Uri(),
+        heightmapSdf->FilePath()));
+    msgs::Set(heightmapMsg->mutable_size(), heightmapSdf->Size());
+    msgs::Set(heightmapMsg->mutable_origin(), heightmapSdf->Position());
+    heightmapMsg->set_use_terrain_paging(heightmapSdf->UseTerrainPaging());
+    heightmapMsg->set_sampling(heightmapSdf->Sampling());
+
+    for (auto i = 0u; i < heightmapSdf->TextureCount(); ++i)
+    {
+      auto textureSdf = heightmapSdf->TextureByIndex(i);
+      auto textureMsg = heightmapMsg->add_texture();
+      textureMsg->set_size(textureSdf->Size());
+      textureMsg->set_diffuse(asFullPath(textureSdf->Diffuse(),
+          heightmapSdf->FilePath()));
+      textureMsg->set_normal(asFullPath(textureSdf->Normal(),
+          heightmapSdf->FilePath()));
+    }
+
+    for (auto i = 0u; i < heightmapSdf->BlendCount(); ++i)
+    {
+      auto blendSdf = heightmapSdf->BlendByIndex(i);
+      auto blendMsg = heightmapMsg->add_blend();
+      blendMsg->set_min_height(blendSdf->MinHeight());
+      blendMsg->set_fade_dist(blendSdf->FadeDistance());
+    }
+  }
   else
   {
     ignerr << "Geometry type [" << static_cast<int>(_in.Type())
@@ -211,6 +263,16 @@ sdf::Geometry ignition::gazebo::convert(const msgs::Geometry &_in)
 
     out.SetBoxShape(boxShape);
   }
+  else if (_in.type() == msgs::Geometry::CAPSULE && _in.has_capsule())
+  {
+    out.SetType(sdf::GeometryType::CAPSULE);
+
+    sdf::Capsule capsuleShape;
+    capsuleShape.SetRadius(_in.capsule().radius());
+    capsuleShape.SetLength(_in.capsule().length());
+
+    out.SetCapsuleShape(capsuleShape);
+  }
   else if (_in.type() == msgs::Geometry::CYLINDER && _in.has_cylinder())
   {
     out.SetType(sdf::GeometryType::CYLINDER);
@@ -220,6 +282,15 @@ sdf::Geometry ignition::gazebo::convert(const msgs::Geometry &_in)
     cylinderShape.SetLength(_in.cylinder().length());
 
     out.SetCylinderShape(cylinderShape);
+  }
+  else if (_in.type() == msgs::Geometry::ELLIPSOID && _in.has_ellipsoid())
+  {
+    out.SetType(sdf::GeometryType::ELLIPSOID);
+
+    sdf::Ellipsoid ellipsoidShape;
+    ellipsoidShape.SetRadii(msgs::Convert(_in.ellipsoid().radii()));
+
+    out.SetEllipsoidShape(ellipsoidShape);
   }
   else if (_in.type() == msgs::Geometry::PLANE && _in.has_plane())
   {
@@ -252,6 +323,38 @@ sdf::Geometry ignition::gazebo::convert(const msgs::Geometry &_in)
 
     out.SetMeshShape(meshShape);
   }
+  else if (_in.type() == msgs::Geometry::HEIGHTMAP && _in.has_heightmap())
+  {
+    out.SetType(sdf::GeometryType::HEIGHTMAP);
+    sdf::Heightmap heightmapShape;
+
+    heightmapShape.SetUri(_in.heightmap().filename());
+    heightmapShape.SetSize(msgs::Convert(_in.heightmap().size()));
+    heightmapShape.SetPosition(msgs::Convert(_in.heightmap().origin()));
+    heightmapShape.SetUseTerrainPaging(_in.heightmap().use_terrain_paging());
+    heightmapShape.SetSampling(_in.heightmap().sampling());
+
+    for (int i = 0; i < _in.heightmap().texture_size(); ++i)
+    {
+      auto textureMsg = _in.heightmap().texture(i);
+      sdf::HeightmapTexture textureSdf;
+      textureSdf.SetSize(textureMsg.size());
+      textureSdf.SetDiffuse(textureMsg.diffuse());
+      textureSdf.SetNormal(textureMsg.normal());
+      heightmapShape.AddTexture(textureSdf);
+    }
+
+    for (int i = 0; i < _in.heightmap().blend_size(); ++i)
+    {
+      auto blendMsg = _in.heightmap().blend(i);
+      sdf::HeightmapBlend blendSdf;
+      blendSdf.SetMinHeight(blendMsg.min_height());
+      blendSdf.SetFadeDistance(blendMsg.fade_dist());
+      heightmapShape.AddBlend(blendSdf);
+    }
+
+    out.SetHeightmapShape(heightmapShape);
+  }
   else
   {
     ignerr << "Geometry type [" << static_cast<int>(_in.type())
@@ -270,19 +373,15 @@ msgs::Material ignition::gazebo::convert(const sdf::Material &_in)
   msgs::Set(out.mutable_diffuse(), _in.Diffuse());
   msgs::Set(out.mutable_specular(), _in.Specular());
   msgs::Set(out.mutable_emissive(), _in.Emissive());
+  out.set_render_order(_in.RenderOrder());
   out.set_lighting(_in.Lighting());
+  out.set_double_sided(_in.DoubleSided());
 
-  // todo(anyone) add double_sided field to msgs::Material
-  auto data = out.mutable_header()->add_data();
-  data->set_key("double_sided");
-  std::string *value = data->add_value();
-  *value = std::to_string(_in.DoubleSided());
-
-  sdf::Pbr *pbr = _in.PbrMaterial();
+  auto pbr = _in.PbrMaterial();
   if (pbr)
   {
-    msgs::Material::PBR *pbrMsg = out.mutable_pbr();
-    sdf::PbrWorkflow *workflow = pbr->Workflow(sdf::PbrWorkflowType::METAL);
+    auto pbrMsg = out.mutable_pbr();
+    auto workflow = pbr->Workflow(sdf::PbrWorkflowType::METAL);
     if (workflow)
       pbrMsg->set_type(msgs::Material_PBR_WorkflowType_METAL);
     else
@@ -315,6 +414,9 @@ msgs::Material ignition::gazebo::convert(const sdf::Material &_in)
           asFullPath(workflow->EnvironmentMap(), _in.FilePath()));
       pbrMsg->set_emissive_map(workflow->EmissiveMap().empty() ? "" :
           asFullPath(workflow->EmissiveMap(), _in.FilePath()));
+      pbrMsg->set_light_map(workflow->LightMap().empty() ? "" :
+          asFullPath(workflow->LightMap(), _in.FilePath()));
+      pbrMsg->set_light_map_texcoord_set(workflow->LightMapTexCoordSet());
     }
   }
   return out;
@@ -330,15 +432,9 @@ sdf::Material ignition::gazebo::convert(const msgs::Material &_in)
   out.SetDiffuse(msgs::Convert(_in.diffuse()));
   out.SetSpecular(msgs::Convert(_in.specular()));
   out.SetEmissive(msgs::Convert(_in.emissive()));
+  out.SetRenderOrder(_in.render_order());
   out.SetLighting(_in.lighting());
-
-  // todo(anyone) add double_sided field to msgs::Material
-  for (int i = 0; i < _in.header().data_size(); ++i)
-  {
-    const auto &data = _in.header().data(i);
-    if (data.key() == "double_sided" && data.value_size() > 0)
-      out.SetDoubleSided(math::parseInt(data.value(0)));
-  }
+  out.SetDoubleSided(_in.double_sided());
 
   if (_in.has_pbr())
   {
@@ -361,6 +457,8 @@ sdf::Material ignition::gazebo::convert(const msgs::Material &_in)
     workflow.SetEnvironmentMap(pbrMsg.environment_map());
     workflow.SetAmbientOcclusionMap(pbrMsg.ambient_occlusion_map());
     workflow.SetEmissiveMap(pbrMsg.emissive_map());
+    workflow.SetLightMap(pbrMsg.light_map(), pbrMsg.light_map_texcoord_set());
+
     pbr.SetWorkflow(workflow.Type(), workflow);
     out.SetPbrMaterial(pbr);
   }
@@ -464,6 +562,7 @@ msgs::Light ignition::gazebo::convert(const sdf::Light &_in)
   out.set_attenuation_linear(_in.LinearAttenuationFactor());
   out.set_attenuation_quadratic(_in.QuadraticAttenuationFactor());
   out.set_range(_in.AttenuationRange());
+  out.set_intensity(_in.Intensity());
   msgs::Set(out.mutable_direction(), _in.Direction());
   out.set_cast_shadows(_in.CastShadows());
   out.set_spot_inner_angle(_in.SpotInnerAngle().Radian());
@@ -493,6 +592,7 @@ sdf::Light ignition::gazebo::convert(const msgs::Light &_in)
   out.SetQuadraticAttenuationFactor(_in.attenuation_quadratic());
   out.SetAttenuationRange(_in.range());
   out.SetDirection(msgs::Convert(_in.direction()));
+  out.SetIntensity(_in.intensity());
   out.SetCastShadows(_in.cast_shadows());
   out.SetSpotInnerAngle(math::Angle(_in.spot_inner_angle()));
   out.SetSpotOuterAngle(math::Angle(_in.spot_outer_angle()));
@@ -670,6 +770,21 @@ msgs::Scene ignition::gazebo::convert(const sdf::Scene &_in)
   out.set_shadows(_in.Shadows());
   out.set_grid(_in.Grid());
   out.set_origin_visual(_in.OriginVisual());
+
+  if (_in.Sky())
+  {
+    msgs::Sky *skyMsg = out.mutable_sky();
+    skyMsg->set_time(_in.Sky()->Time());
+    skyMsg->set_sunrise(_in.Sky()->Sunrise());
+    skyMsg->set_sunset(_in.Sky()->Sunset());
+    skyMsg->set_wind_speed(_in.Sky()->CloudSpeed());
+    skyMsg->set_wind_direction(_in.Sky()->CloudDirection().Radian());
+    skyMsg->set_humidity(_in.Sky()->CloudHumidity());
+    skyMsg->set_mean_cloud_size(_in.Sky()->CloudMeanSize());
+    msgs::Set(skyMsg->mutable_cloud_ambient(),
+        _in.Sky()->CloudAmbient());
+  }
+
   return out;
 }
 
@@ -686,6 +801,20 @@ sdf::Scene ignition::gazebo::convert(const msgs::Scene &_in)
   out.SetShadows(_in.shadows());
   out.SetGrid(_in.grid());
   out.SetOriginVisual(_in.origin_visual());
+
+  if (_in.has_sky())
+  {
+    sdf::Sky sky;
+    sky.SetTime(_in.sky().time());
+    sky.SetSunrise(_in.sky().sunrise());
+    sky.SetSunset(_in.sky().sunset());
+    sky.SetCloudSpeed(_in.sky().wind_speed());
+    sky.SetCloudDirection(math::Angle(_in.sky().wind_direction()));
+    sky.SetCloudHumidity(_in.sky().humidity());
+    sky.SetCloudMeanSize(_in.sky().mean_cloud_size());
+    sky.SetCloudAmbient(msgs::Convert(_in.sky().cloud_ambient()));
+    out.SetSky(sky);
+  }
   return out;
 }
 
@@ -747,6 +876,7 @@ void ignition::gazebo::set(msgs::WorldStatistics *_msg,
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::Physics ignition::gazebo::convert(const sdf::Physics &_in)
 {
   msgs::Physics out;
@@ -757,6 +887,7 @@ msgs::Physics ignition::gazebo::convert(const sdf::Physics &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 sdf::Physics ignition::gazebo::convert(const msgs::Physics &_in)
 {
   sdf::Physics out;
@@ -790,6 +921,44 @@ void ignition::gazebo::set(msgs::SensorNoise *_msg, const sdf::Noise &_sdf)
   _msg->set_precision(_sdf.Precision());
   _msg->set_dynamic_bias_stddev(_sdf.DynamicBiasStdDev());
   _msg->set_dynamic_bias_correlation_time(_sdf.DynamicBiasCorrelationTime());
+}
+
+//////////////////////////////////////////////////
+std::string ignition::gazebo::convert(const sdf::LightType &_in)
+{
+  if (_in == sdf::LightType::POINT)
+  {
+    return std::string("point");
+  }
+  else if (_in == sdf::LightType::DIRECTIONAL)
+  {
+    return std::string("directional");
+  }
+  else if (_in == sdf::LightType::SPOT)
+  {
+    return std::string("spot");
+  }
+  return std::string("");
+}
+
+//////////////////////////////////////////////////
+sdf::LightType ignition::gazebo::convert(const std::string &_in)
+{
+  std::string inLowerCase = _in;
+  std::transform(_in.begin(), _in.end(), inLowerCase.begin(), ::tolower);
+  if (inLowerCase == "point")
+  {
+    return sdf::LightType::POINT;
+  }
+  else if (inLowerCase == "directional")
+  {
+    return sdf::LightType::DIRECTIONAL;
+  }
+  else if (inLowerCase == "spot")
+  {
+    return sdf::LightType::SPOT;
+  }
+  return sdf::LightType::INVALID;
 }
 
 //////////////////////////////////////////////////
@@ -1094,8 +1263,8 @@ sdf::Sensor ignition::gazebo::convert(const msgs::Sensor &_in)
     if (_in.has_camera())
     {
       sensor.SetHorizontalFov(_in.camera().horizontal_fov());
-      sensor.SetImageWidth(_in.camera().image_size().x());
-      sensor.SetImageHeight(_in.camera().image_size().y());
+      sensor.SetImageWidth(static_cast<int>(_in.camera().image_size().x()));
+      sensor.SetImageHeight(static_cast<int>(_in.camera().image_size().y()));
       sensor.SetPixelFormatStr(_in.camera().image_format());
       sensor.SetNearClip(_in.camera().near_clip());
       sensor.SetFarClip(_in.camera().far_clip());
@@ -1391,13 +1560,7 @@ msgs::ParticleEmitter ignition::gazebo::convert(const sdf::ParticleEmitter &_in)
     header->add_value(_in.Topic());
   }
 
-  // todo(anyone) Use particle_scatter_ratio in particle_emitter.proto from
-  // Fortress on.
-  auto header = out.mutable_header()->add_data();
-  header->set_key("particle_scatter_ratio");
-  std::string *value = header->add_value();
-  *value = std::to_string(_in.ScatterRatio());
-
+  out.mutable_particle_scatter_ratio()->set_data(_in.ScatterRatio());
   return out;
 }
 
@@ -1449,6 +1612,8 @@ sdf::ParticleEmitter ignition::gazebo::convert(const msgs::ParticleEmitter &_in)
     out.SetScaleRate(_in.scale_rate().data());
   if (_in.has_color_range_image())
     out.SetColorRangeImage(_in.color_range_image().data());
+  if (_in.has_particle_scatter_ratio())
+    out.SetScatterRatio(_in.particle_scatter_ratio().data());
 
   for (int i = 0; i < _in.header().data_size(); ++i)
   {
@@ -1456,10 +1621,6 @@ sdf::ParticleEmitter ignition::gazebo::convert(const msgs::ParticleEmitter &_in)
     if (data.key() == "topic" && data.value_size() > 0)
     {
       out.SetTopic(data.value(0));
-    }
-    else if (data.key() == "particle_scatter_ratio" && data.value_size() > 0)
-    {
-      out.SetScatterRatio(std::stof(data.value(0)));
     }
   }
 

@@ -18,11 +18,13 @@
 #define IGNITION_GAZEBO_WORLD_HH_
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
 #include <sdf/Atmosphere.hh>
 #include <ignition/math/Vector3.hh>
+#include <ignition/math/SphericalCoordinates.hh>
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -115,10 +117,23 @@ namespace ignition
 
       /// \brief Get atmosphere information.
       /// \param[in] _ecm Entity-component manager.
-      /// \return Magnetic field vector or nullopt if the entity does not
+      /// \return Atmosphere or nullopt if the entity does not
       /// have a components::Atmosphere component.
       public: std::optional<sdf::Atmosphere> Atmosphere(
           const EntityComponentManager &_ecm) const;
+
+      /// \brief Get spherical coordinates for the world origin.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return Spherical coordinates or nullopt if the entity does not
+      /// have a components::SphericalCoordinates component.
+      public: std::optional<math::SphericalCoordinates> SphericalCoordinates(
+          const EntityComponentManager &_ecm) const;
+
+      /// \brief Set spherical coordinates for the world origin.
+      /// \param[in] _ecm Entity-component manager.
+      /// \param[in] _sphericalCoordinates New spherical coordinates.
+      public: void SetSphericalCoordinates(EntityComponentManager &_ecm,
+          const math::SphericalCoordinates &_sphericalCoordinates);
 
       /// \brief Get the ID of a light entity which is an immediate child of
       /// this world.

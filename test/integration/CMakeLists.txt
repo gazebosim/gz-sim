@@ -8,6 +8,7 @@ set(tests
   battery_plugin.cc
   breadcrumbs.cc
   buoyancy.cc
+  buoyancy_engine.cc
   collada_world_exporter.cc
   components.cc
   contact_system.cc
@@ -18,6 +19,7 @@ set(tests
   events.cc
   examples_build.cc
   follow_actor_system.cc
+  force_torque_system.cc
   fuel_cached_server.cc
   halt_motion.cc
   imu_system.cc
@@ -36,6 +38,7 @@ set(tests
   model.cc
   multicopter.cc
   multiple_servers.cc
+  nested_model_physics.cc
   network_handshake.cc
   odometry_publisher.cc
   particle_emitter.cc
@@ -44,10 +47,13 @@ set(tests
   physics_system.cc
   play_pause.cc
   pose_publisher_system.cc
+  recreate_entities.cc
   save_world.cc
   scene_broadcaster_system.cc
   sdf_frame_semantics.cc
   sdf_include.cc
+  spherical_coordinates.cc
+  thruster.cc
   touch_plugin.cc
   tracked_vehicle_system.cc
   triggered_publisher.cc
@@ -57,6 +63,7 @@ set(tests
   wheel_slip.cc
   wind_effects.cc
   world.cc
+  world_control_state.cc
 )
 
 # Tests that require a valid display
@@ -85,6 +92,15 @@ else()
   endforeach(test)
 endif()
 
+if (MSVC)
+  # Warning #4251 is the "dll-interface" warning that tells you when types used
+  # by a class are not being exported. These generated source files have private
+  # members that don't get exported, so they trigger this warning. However, the
+  # warning is not important since those members do not need to be interfaced
+  # with.
+  set_source_files_properties(${tests} COMPILE_FLAGS "/wd4251 /wd4146")
+endif()
+
 link_directories(${PROJECT_BINARY_DIR}/test)
 include_directories(${PROJECT_SOURCE_DIR}/test)
 
@@ -94,6 +110,7 @@ ign_build_tests(TYPE INTEGRATION
   LIB_DEPS
     ${EXTRA_TEST_LIB_DEPS}
 )
+
 
 # For INTEGRATION_physics_system, we need to check what version of DART is
 # available so that we can disable tests that are unsupported by the particular
@@ -111,3 +128,7 @@ target_link_libraries(INTEGRATION_tracked_vehicle_system
 )
 # The default timeout (240s) doesn't seem to be enough for this test.
 set_tests_properties(INTEGRATION_tracked_vehicle_system PROPERTIES TIMEOUT 300)
+
+if(TARGET INTEGRATION_examples_build)
+  set_tests_properties(INTEGRATION_examples_build PROPERTIES TIMEOUT 320)
+endif()

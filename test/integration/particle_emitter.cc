@@ -19,6 +19,8 @@
 
 #include <string>
 
+#include <ignition/common/Util.hh>
+
 #include <ignition/math/Color.hh>
 #include <ignition/msgs/Utility.hh>
 

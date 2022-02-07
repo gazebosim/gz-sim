@@ -70,13 +70,13 @@ namespace ignition
     /// explains why UpdateInfo::simTime is initially 0 if simulation is started
     /// paused, while UpdateInfo::simTime is initially UpdateInfo::dt if
     /// simulation is started un-paused.
-    class IGNITION_GAZEBO_VISIBLE System
+    class System
     {
       /// \brief Constructor
-      public: System();
+      public: System() = default;
 
       /// \brief Destructor
-      public: virtual ~System();
+      public: virtual ~System() = default;
     };
 
     /// \class ISystemConfigure ISystem.hh ignition/gazebo/System.hh
@@ -85,7 +85,7 @@ namespace ignition
     /// Configure is called after the system is instatiated and all entities
     /// and components are loaded from the corresponding SDF world, and before
     /// simulation begins exectution.
-    class IGNITION_GAZEBO_VISIBLE ISystemConfigure {
+    class ISystemConfigure {
       /// \brief Configure the system
       /// \param[in] _entity The entity this plugin is attached to.
       /// \param[in] _sdf The SDF Element associated with this system plugin.
@@ -102,21 +102,21 @@ namespace ignition
 
     /// \class ISystemPreUpdate ISystem.hh ignition/gazebo/System.hh
     /// \brief Interface for a system that uses the PreUpdate phase
-    class IGNITION_GAZEBO_VISIBLE ISystemPreUpdate {
+    class ISystemPreUpdate {
       public: virtual void PreUpdate(const UpdateInfo &_info,
                                      EntityComponentManager &_ecm) = 0;
     };
 
     /// \class ISystemUpdate ISystem.hh ignition/gazebo/System.hh
     /// \brief Interface for a system that uses the Update phase
-    class IGNITION_GAZEBO_VISIBLE ISystemUpdate {
+    class ISystemUpdate {
       public: virtual void Update(const UpdateInfo &_info,
                                   EntityComponentManager &_ecm) = 0;
     };
 
     /// \class ISystemPostUpdate ISystem.hh ignition/gazebo/System.hh
     /// \brief Interface for a system that uses the PostUpdate phase
-    class IGNITION_GAZEBO_VISIBLE ISystemPostUpdate{
+    class ISystemPostUpdate{
       public: virtual void PostUpdate(const UpdateInfo &_info,
                                       const EntityComponentManager &_ecm) = 0;
     };

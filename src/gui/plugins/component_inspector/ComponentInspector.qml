@@ -101,12 +101,12 @@ Rectangle {
                    _rDiffuse, _gDiffuse, _bDiffuse, _aDiffuse,
                    _attRange, _attLinear, _attConstant, _attQuadratic,
                    _castShadows, _directionX, _directionY, _directionZ,
-                   _innerAngle, _outerAngle, _falloff, _type) {
+                   _innerAngle, _outerAngle, _falloff, _intensity, _type) {
     ComponentInspector.OnLight(_rSpecular, _gSpecular, _bSpecular, _aSpecular,
                                _rDiffuse, _gDiffuse, _bDiffuse, _aDiffuse,
                                _attRange, _attLinear, _attConstant, _attQuadratic,
                                _castShadows, _directionX, _directionY, _directionZ,
-                               _innerAngle, _outerAngle, _falloff, _type)
+                               _innerAngle, _outerAngle, _falloff, _intensity, _type)
   }
 
   /*
@@ -130,6 +130,14 @@ Rectangle {
         _rSpecular, _gSpecular, _bSpecular, _aSpecular,
         _rEmissive, _gEmissive, _bEmissive, _aEmissive,
         _type, _currColor)
+  }
+
+  /*
+   * Forward spherical coordinate changes to C++
+   */
+  function onSphericalCoordinates(_surface, _lat, _lon, _elevation, _heading) {
+    ComponentInspector.OnSphericalCoordinates(_surface, _lat, _lon, _elevation,
+        _heading);
   }
 
   Rectangle {

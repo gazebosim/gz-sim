@@ -17,6 +17,7 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Profiler.hh>
+#include <sdf/Types.hh>
 
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
@@ -32,7 +33,9 @@
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/ContactSensor.hh"
+#include "ignition/gazebo/components/CustomSensor.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
+#include "ignition/gazebo/components/ForceTorque.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Gravity.hh"
@@ -44,6 +47,7 @@
 #include "ignition/gazebo/components/LaserRetro.hh"
 #include "ignition/gazebo/components/Lidar.hh"
 #include "ignition/gazebo/components/Light.hh"
+#include "ignition/gazebo/components/LightType.hh"
 #include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Link.hh"
@@ -60,9 +64,11 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/Scene.hh"
+#include "ignition/gazebo/components/SegmentationCamera.hh"
 #include "ignition/gazebo/components/SelfCollide.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/SourceFilePath.hh"
+#include "ignition/gazebo/components/SphericalCoordinates.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThermalCamera.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
@@ -109,6 +115,69 @@ static math::Pose3d ResolveSdfPose(const sdf::SemanticPose &_semPose)
   }
 
   return pose;
+}
+
+/////////////////////////////////////////////////
+static std::optional<sdf::JointAxis> ResolveJointAxis(
+    const sdf::JointAxis &_unresolvedAxis)
+{
+  math::Vector3d axisXyz;
+  const sdf::Errors resolveAxisErrors = _unresolvedAxis.ResolveXyz(axisXyz);
+  if (!resolveAxisErrors.empty())
+  {
+    ignerr << "Failed to resolve axis" << std::endl;
+    return std::nullopt;
+  }
+
+  sdf::JointAxis resolvedAxis = _unresolvedAxis;
+
+  const sdf::Errors setXyzErrors = resolvedAxis.SetXyz(axisXyz);
+  if (!setXyzErrors.empty())
+  {
+    ignerr << "Failed to resolve axis" << std::endl;
+    return std::nullopt;
+  }
+
+  resolvedAxis.SetXyzExpressedIn("");
+  return resolvedAxis;
+}
+
+//////////////////////////////////////////////////
+/// \brief Find a descendent child link entity by name.
+/// \param[in] _name The relative name of the link with "::" as the scope
+/// delimiter
+/// \param[in] _model Model entity that defines the scope
+/// \param[in] _ecm Entity component manager
+/// \return The Entity of the descendent link or kNullEntity if link was not
+/// found
+static Entity FindDescendentLinkEntityByName(const std::string &_name,
+                                             const Entity &_model,
+                                             const EntityComponentManager &_ecm)
+{
+  auto ind = _name.find(sdf::kSdfScopeDelimiter);
+  std::vector<Entity> candidates;
+  if (ind != std::string::npos)
+  {
+    candidates = _ecm.ChildrenByComponents(
+        _model, components::Model(), components::Name(_name.substr(0, ind)));
+    if (candidates.size() != 1 || (ind + 2 >= _name.size()))
+    {
+      return kNullEntity;
+    }
+    return FindDescendentLinkEntityByName(_name.substr(ind + 2),
+                                          candidates.front(), _ecm);
+  }
+  else
+  {
+    candidates = _ecm.ChildrenByComponents(_model, components::Link(),
+                                           components::Name(_name));
+
+    if (candidates.size() != 1)
+    {
+      return kNullEntity;
+    }
+    return candidates.front();
+  }
 }
 
 //////////////////////////////////////////////////
@@ -171,6 +240,13 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
         components::Atmosphere(*_world->Atmosphere()));
   }
 
+  // spherical coordinates
+  if (_world->SphericalCoordinates())
+  {
+    this->dataPtr->ecm->CreateComponent(worldEntity,
+        components::SphericalCoordinates(*_world->SphericalCoordinates()));
+  }
+
   // Models
   for (uint64_t modelIndex = 0; modelIndex < _world->ModelCount();
       ++modelIndex)
@@ -215,6 +291,31 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
   this->dataPtr->ecm->CreateComponent(worldEntity,
       components::Physics(*physics));
 
+  // Populate physics options that aren't accessible outside the Element()
+  // See https://github.com/osrf/sdformat/issues/508
+  if (physics->Element() && physics->Element()->HasElement("dart"))
+  {
+    auto dartElem = physics->Element()->GetElement("dart");
+
+    if (dartElem->HasElement("collision_detector"))
+    {
+      auto collisionDetector =
+          dartElem->Get<std::string>("collision_detector");
+
+      this->dataPtr->ecm->CreateComponent(worldEntity,
+          components::PhysicsCollisionDetector(collisionDetector));
+    }
+    if (dartElem->HasElement("solver") &&
+        dartElem->GetElement("solver")->HasElement("solver_type"))
+    {
+      auto solver =
+          dartElem->GetElement("solver")->Get<std::string>("solver_type");
+
+      this->dataPtr->ecm->CreateComponent(worldEntity,
+          components::PhysicsSolver(solver));
+    }
+  }
+
   // MagneticField
   this->dataPtr->ecm->CreateComponent(worldEntity,
       components::MagneticField(_world->MagneticField()));
@@ -234,12 +335,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
 {
   IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Model)");
 
-  // todo(anyone) Support multiple canonical links in nested models
-  // This version of CreateEntties keeps track whether or not to create a
-  // canonical link in a model tree using the second arg in this recursive
-  // function. We also override child nested models static property if parent
-  // model is static
-  auto ent = this->CreateEntities(_model, true, false);
+  auto ent = this->CreateEntities(_model, false);
 
   // Load all model plugins afterwards, so we get scoped name for nested models.
   for (const auto &[entity, element] : this->dataPtr->newModels)
@@ -267,7 +363,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
 
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
-    bool _createCanonicalLink, bool _staticParent)
+                                        bool _staticParent)
 {
   // Entity
   Entity modelEntity = this->dataPtr->ecm->CreateEntity();
@@ -292,7 +388,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
   // the parent frame until we get frames working.
 
   // Links
-  bool canonicalLinkCreated = false;
+  const auto *canonicalLink = _model->CanonicalLink();
+
   for (uint64_t linkIndex = 0; linkIndex < _model->LinkCount();
       ++linkIndex)
   {
@@ -301,13 +398,10 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
 
     this->SetParent(linkEntity, modelEntity);
 
-    if (_createCanonicalLink &&
-        ((_model->CanonicalLinkName().empty() && linkIndex == 0) ||
-        (link == _model->CanonicalLink())))
+    if (canonicalLink == link)
     {
       this->dataPtr->ecm->CreateComponent(linkEntity,
           components::CanonicalLink());
-      canonicalLinkCreated = true;
     }
 
     // Set wind mode if the link didn't override it
@@ -333,15 +427,32 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
       ++modelIndex)
   {
     auto nestedModel = _model->ModelByIndex(modelIndex);
-
-    // Create nested model. Make sure to only create canonical link component
-    // in the nested model if a canonical link has not been created in this
-    // model yet. Also override static propery of the nested model if this model
-    //  is static
-    auto nestedModelEntity = this->CreateEntities(nestedModel,
-        (_createCanonicalLink && !canonicalLinkCreated), isStatic);
+    auto nestedModelEntity = this->CreateEntities(nestedModel, isStatic);
 
     this->SetParent(nestedModelEntity, modelEntity);
+  }
+
+  // Find canonical link
+  const auto canonicalLinkPair = _model->CanonicalLinkAndRelativeName();
+  if (canonicalLinkPair.first)
+  {
+    Entity canonicalLinkEntity = FindDescendentLinkEntityByName(
+        canonicalLinkPair.second, modelEntity, *this->dataPtr->ecm);
+    if (kNullEntity != canonicalLinkEntity)
+    {
+      this->dataPtr->ecm->CreateComponent(
+          modelEntity, components::ModelCanonicalLink(canonicalLinkEntity));
+    }
+    else
+    {
+      ignerr << "Could not find the canonical link entity for "
+             << canonicalLinkPair.second << "\n";
+    }
+  }
+  else if(!isStatic)
+  {
+    ignerr << "Could not resolve the canonical link for " << _model->Name()
+           << "\n";
   }
 
   // Store the model's SDF DOM to be used when saving the world to file
@@ -391,6 +502,9 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Light *_light)
       components::Pose(ResolveSdfPose(_light->SemanticPose())));
   this->dataPtr->ecm->CreateComponent(lightEntity,
       components::Name(_light->Name()));
+
+  this->dataPtr->ecm->CreateComponent(lightEntity,
+    components::LightType(convert(_light->Type())));
 
   return lightEntity;
 }
@@ -475,6 +589,13 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Link *_link)
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint)
 {
+  return this->CreateEntities(_joint, false);
+}
+
+//////////////////////////////////////////////////
+Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint,
+    bool _resolved)
+{
   IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Joint)");
 
   // Entity
@@ -486,16 +607,42 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint)
   this->dataPtr->ecm->CreateComponent(jointEntity,
       components::JointType(_joint->Type()));
 
+  // Sensors
+  for (uint64_t sensorIndex = 0; sensorIndex < _joint->SensorCount();
+      ++sensorIndex)
+  {
+    auto sensor = _joint->SensorByIndex(sensorIndex);
+    auto sensorEntity = this->CreateEntities(sensor);
+
+    this->SetParent(sensorEntity, jointEntity);
+  }
+
   if (_joint->Axis(0))
   {
+    auto resolvedAxis = ResolveJointAxis(*_joint->Axis(0));
+    if (!resolvedAxis)
+    {
+      ignerr << "Failed to resolve joint axis 0 for joint '" << _joint->Name()
+             << "'" << std::endl;
+      return kNullEntity;
+    }
+
     this->dataPtr->ecm->CreateComponent(jointEntity,
-        components::JointAxis(*_joint->Axis(0)));
+        components::JointAxis(std::move(*resolvedAxis)));
   }
 
   if (_joint->Axis(1))
   {
+    auto resolvedAxis = ResolveJointAxis(*_joint->Axis(1));
+    if (!resolvedAxis)
+    {
+      ignerr << "Failed to resolve joint axis 1 for joint '" << _joint->Name()
+             << "'" << std::endl;
+      return kNullEntity;
+    }
+
     this->dataPtr->ecm->CreateComponent(jointEntity,
-        components::JointAxis2(*_joint->Axis(1)));
+        components::JointAxis2(std::move(*resolvedAxis)));
   }
 
   this->dataPtr->ecm->CreateComponent(jointEntity,
@@ -504,10 +651,59 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint)
       components::Name(_joint->Name()));
   this->dataPtr->ecm->CreateComponent(jointEntity ,
       components::ThreadPitch(_joint->ThreadPitch()));
-  this->dataPtr->ecm->CreateComponent(jointEntity,
-      components::ParentLinkName(_joint->ParentLinkName()));
-  this->dataPtr->ecm->CreateComponent(jointEntity,
-      components::ChildLinkName(_joint->ChildLinkName()));
+
+
+  std::string resolvedParentLinkName;
+  if (_resolved)
+  {
+    resolvedParentLinkName = _joint->ParentLinkName();
+  }
+  else
+  {
+
+    const auto resolveParentErrors =
+      _joint->ResolveParentLink(resolvedParentLinkName);
+    if (!resolveParentErrors.empty())
+    {
+      ignerr << "Failed to resolve parent link for joint '" << _joint->Name()
+             << "' with parent name '" << _joint->ParentLinkName() << "'"
+             << std::endl;
+      for (const auto &error : resolveParentErrors)
+      {
+        ignerr << error << std::endl;
+      }
+
+      return kNullEntity;
+    }
+  }
+  this->dataPtr->ecm->CreateComponent(
+      jointEntity, components::ParentLinkName(resolvedParentLinkName));
+
+  std::string resolvedChildLinkName;
+  if (_resolved)
+  {
+    resolvedChildLinkName = _joint->ChildLinkName();
+  }
+  else
+  {
+    const auto resolveChildErrors =
+      _joint->ResolveChildLink(resolvedChildLinkName);
+    if (!resolveChildErrors.empty())
+    {
+      ignerr << "Failed to resolve child link for joint '" << _joint->Name()
+             << "' with child name '" << _joint->ChildLinkName() << "'"
+             << std::endl;
+      for (const auto &error : resolveChildErrors)
+      {
+        ignerr << error << std::endl;
+      }
+
+      return kNullEntity;
+    }
+  }
+
+  this->dataPtr->ecm->CreateComponent(
+      jointEntity, components::ChildLinkName(resolvedChildLinkName));
 
   return jointEntity;
 }
@@ -634,7 +830,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
   }
   else if (_sensor->Type() == sdf::SensorType::LIDAR)
   {
-    // \todo(anyone) Implement CPU-base lidar
+    // \todo(anyone) Implement CPU-based lidar
     // this->dataPtr->ecm->CreateComponent(sensorEntity,
     //     components::Lidar(*_sensor));
     ignwarn << "Sensor type LIDAR not supported yet. Try using"
@@ -654,6 +850,11 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
   {
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::ThermalCamera(*_sensor));
+  }
+  else if (_sensor->Type() == sdf::SensorType::SEGMENTATION_CAMERA)
+  {
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::SegmentationCamera(*_sensor));
   }
   else if (_sensor->Type() == sdf::SensorType::AIR_PRESSURE)
   {
@@ -688,6 +889,11 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
     this->dataPtr->ecm->CreateComponent(sensorEntity,
             components::LinearAcceleration(math::Vector3d::Zero));
   }
+  else if (_sensor->Type() == sdf::SensorType::FORCE_TORQUE)
+  {
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::ForceTorque(*_sensor));
+  }
   else if (_sensor->Type() == sdf::SensorType::LOGICAL_CAMERA)
   {
     auto elem = _sensor->Element();
@@ -716,6 +922,12 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
             components::ContactSensor(elem));
     // We will let the contact system create the necessary components for
     // physics to populate.
+  }
+  else if (_sensor->Type() == sdf::SensorType::CUSTOM)
+  {
+    auto elem = _sensor->Element();
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+            components::CustomSensor(*_sensor));
   }
   else
   {

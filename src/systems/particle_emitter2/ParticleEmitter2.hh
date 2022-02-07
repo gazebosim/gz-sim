@@ -45,7 +45,7 @@ namespace systems
   ///     3. Copy ParticleEmitter2 to ParticleEmitter in Ignition G.
   ///     4. Deprecrate ParticleEmitter2 in Ignition G.
   ///     5. Remove ParticleEmitter2 in Ignition H.
-  class IGNITION_GAZEBO_VISIBLE ParticleEmitter2
+  class ParticleEmitter2
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate

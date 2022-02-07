@@ -63,7 +63,7 @@ ign gazebo -v 4 -z 100000000 -r --network-role primary --network-secondaries $SE
 sleep 10s
 
 echo "-----------------------"
-echo "Launching ign_imgui"
+echo "Launching ign_gui"
 echo "-----------------------"
 ign_imgui -o $OUTPUT_STATS_FILE &
 

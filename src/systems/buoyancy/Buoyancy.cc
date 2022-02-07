@@ -16,8 +16,11 @@
  */
 #include <ignition/msgs/wrench.pb.h>
 
+#include <map>
 #include <mutex>
 #include <string>
+#include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include <ignition/common/Mesh.hh>
@@ -39,6 +42,7 @@
 #include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Volume.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -54,15 +58,34 @@ using namespace systems;
 
 class ignition::gazebo::systems::BuoyancyPrivate
 {
-  /// \brief Get the fluid density based on a pose. This function can be
-  /// used to adjust the fluid density based on the pose of an object in the
-  /// world. This function currently returns a constant value, see the todo
-  /// in the function implementation.
+  public: enum BuoyancyType
+  {
+    /// \brief Applies same buoyancy to whole world.
+    UNIFORM_BUOYANCY,
+    /// \brief Uses z-axis to determine buoyancy of the world
+    /// This is useful for worlds where we want to simulate the ocean interface.
+    /// Or for instance if we want to simulate different levels of buoyancies
+    /// at different depths.
+    GRADED_BUOYANCY
+  };
+  public: BuoyancyType buoyancyType{BuoyancyType::UNIFORM_BUOYANCY};
+  /// \brief Get the fluid density based on a pose.
   /// \param[in] _pose The pose to use when computing the fluid density. The
   /// pose frame is left undefined because this function currently returns
   /// a constant value, see the todo in the function implementation.
   /// \return The fluid density at the givein pose.
-  public: double FluidDensity(const math::Pose3d &_pose) const;
+  public: double UniformFluidDensity(const math::Pose3d &_pose) const;
+
+  /// \brief Get the resultant buoyant force on a shape.
+  /// \param[in] _pose The pose of the shape.
+  /// \param[in] _shape The collision mesh of a shape. Currently must
+  /// be one of box, cylinder or sphere.
+  /// Updates this->buoyancyForces containing {force, center_of_volume} to be
+  /// applied on the link.
+  public:
+  template<typename T>
+  void GradedFluidDensity(
+    const math::Pose3d &_pose, const T &_shape, const math::Vector3d &_gravity);
 
   /// \brief Model interface
   public: Entity world{kNullEntity};
@@ -70,19 +93,139 @@ class ignition::gazebo::systems::BuoyancyPrivate
   /// \brief The density of the fluid in which the object is submerged in
   /// kg/m^3. Defaults to 1000, the fluid density of water.
   public: double fluidDensity{1000};
+
+  /// \brief When using GradedBuoyancy, we provide a different buoyancy for
+  /// each layer. The key on this map is height in meters and the value is fluid
+  /// density. I.E all the fluid between $key$m and $next_key$m has the density
+  /// $value$kg/m^3. Everything below the first key is considered as having
+  /// fluidDensity.
+  public: std::map<double, double> layers;
+
+  /// \brief Point from where to apply the force
+  public: struct BuoyancyActionPoint
+  {
+    /// \brief The force to be applied
+    math::Vector3d force;
+
+    /// \brief The point from which the force will be applied
+    math::Vector3d point;
+
+    /// \brief The pose of the link in question
+    math::Pose3d pose;
+  };
+
+  /// \brief List of points from where the forces act.
+  public: std::vector<BuoyancyActionPoint> buoyancyForces;
+
+  /// \brief Resolve all forces as if they act as a Wrench from the give pose.
+  /// \param[in] _pose The point from which all poses are to be resolved.
+  /// \return A pair of {force, torque} describing the wrench to be applied
+  /// at _pose.
+  public: std::pair<math::Vector3d, math::Vector3d> ResolveForces(
+    const math::Pose3d &_pose);
+
+  /// \brief Scoped names of entities that buoyancy should apply to. If empty,
+  /// all links will receive buoyancy.
+  public: std::unordered_set<std::string> enabled;
 };
 
 //////////////////////////////////////////////////
-double BuoyancyPrivate::FluidDensity(const math::Pose3d & /*_pose*/) const
+double BuoyancyPrivate::UniformFluidDensity(const math::Pose3d &/*_pose*/) const
 {
-  // \todo(nkoenig) Adjust the fluid density based on the provided pose.
-  // This could take into acount:
-  //   1. Transition from water to air. Currently this function is used for
-  //   a whole link, but when transitioning between mediums a link may span
-  //   both mediums. Surface tension could also be a factor.
-  //   2. Fluid density changes based on depth below the water surface and
-  //   height above water surface.
   return this->fluidDensity;
+}
+
+//////////////////////////////////////////////////
+template<typename T>
+void BuoyancyPrivate::GradedFluidDensity(
+  const math::Pose3d &_pose, const T &_shape, const math::Vector3d &_gravity)
+{
+  auto prevLayerFluidDensity = this->fluidDensity;
+  auto prevLayerVol = 0.0;
+  auto centerOfBuoyancy = math::Vector3d{0, 0, 0};
+
+  for (const auto &[height, currFluidDensity] : this->layers)
+  {
+    // TODO(arjo): Transform plane and slice the shape
+    math::Planed plane{math::Vector3d{0, 0, 1}, height - _pose.Pos().Z()};
+    auto vol = _shape.VolumeBelow(plane);
+
+    // Short circuit.
+    if (vol <= 0)
+    {
+      prevLayerFluidDensity = currFluidDensity;
+      continue;
+    }
+
+    // Calculate point from which force is applied
+    auto cov = _shape.CenterOfVolumeBelow(plane);
+
+    if (!cov.has_value())
+    {
+      prevLayerFluidDensity = currFluidDensity;
+      continue;
+    }
+
+    // Archimedes principle for this layer
+    auto forceMag =  - (vol - prevLayerVol) * _gravity * prevLayerFluidDensity;
+
+    // Accumulate layers.
+    prevLayerFluidDensity = currFluidDensity;
+
+    auto cob = (cov.value() * vol - centerOfBuoyancy * prevLayerVol)
+      / (vol - prevLayerVol);
+    centerOfBuoyancy = cov.value();
+    auto buoyancyAction = BuoyancyActionPoint
+    {
+      forceMag,
+      cob,
+      _pose
+    };
+    this->buoyancyForces.push_back(buoyancyAction);
+
+    prevLayerVol = vol;
+  }
+  // For the rest of the layers.
+  auto vol = _shape.Volume();
+
+  // No force contributed by this layer.
+  if (std::abs(vol - prevLayerVol) < 1e-10)
+    return;
+
+  // Archimedes principle for this layer
+  auto forceMag = - (vol - prevLayerVol) * _gravity * prevLayerFluidDensity;
+
+  // Calculate centre of buoyancy
+  auto cov = math::Vector3d{0, 0, 0};
+  auto cob =
+    (cov * vol - centerOfBuoyancy * prevLayerVol) / (vol - prevLayerVol);
+  centerOfBuoyancy = cov;
+  auto buoyancyAction = BuoyancyActionPoint
+  {
+    forceMag,
+    cob,
+    _pose
+  };
+  this->buoyancyForces.push_back(buoyancyAction);
+}
+
+//////////////////////////////////////////////////
+std::pair<math::Vector3d, math::Vector3d> BuoyancyPrivate::ResolveForces(
+  const math::Pose3d &_pose)
+{
+  auto force = math::Vector3d{0, 0, 0};
+  auto torque = math::Vector3d{0, 0, 0};
+
+  for (const auto &b : this->buoyancyForces)
+  {
+    force += b.force;
+    math::Pose3d localPoint{b.point, math::Quaterniond{1, 0, 0, 0}};
+    auto globalPoint = b.pose * localPoint;
+    auto offset = globalPoint.Pos() - _pose.Pos();
+    torque += force.Cross(offset);
+  }
+
+  return {force, torque};
 }
 
 //////////////////////////////////////////////////
@@ -113,6 +256,58 @@ void Buoyancy::Configure(const Entity &_entity,
   if (_sdf->HasElement("uniform_fluid_density"))
   {
     this->dataPtr->fluidDensity = _sdf->Get<double>("uniform_fluid_density");
+  }
+  else if (_sdf->HasElement("graded_buoyancy"))
+  {
+    this->dataPtr->buoyancyType =
+      BuoyancyPrivate::BuoyancyType::GRADED_BUOYANCY;
+
+    auto gradedElement = _sdf->GetFirstElement();
+    if (gradedElement == nullptr)
+    {
+      ignerr << "Unable to get element description" << std::endl;
+      return;
+    }
+
+    auto argument = gradedElement->GetFirstElement();
+    while (argument != nullptr)
+    {
+      if (argument->GetName() == "default_density")
+      {
+        argument->GetValue()->Get<double>(this->dataPtr->fluidDensity);
+        igndbg << "Default density set to "
+          << this->dataPtr->fluidDensity << std::endl;
+      }
+      if (argument->GetName() == "density_change")
+      {
+        auto depth = argument->Get<double>("above_depth", 0.0);
+        auto density = argument->Get<double>("density", 0.0);
+        if (!depth.second)
+        {
+          ignwarn << "No <above_depth> tag was found as a "
+            << "child of <density_change>" << std::endl;
+        }
+        if (!density.second)
+        {
+          ignwarn << "No <density> tag was found as a "
+            << "child of <density_change>" << std::endl;
+        }
+        this->dataPtr->layers[depth.first] = density.first;
+        igndbg << "Added layer at " << depth.first << ", "
+          <<  density.first << std::endl;
+      }
+      argument = argument->GetNextElement();
+    }
+  }
+
+  if (_sdf->HasElement("enable"))
+  {
+    for (auto enableElem = _sdf->FindElement("enable");
+        enableElem != nullptr;
+        enableElem = enableElem->GetNextElement("enable"))
+    {
+      this->dataPtr->enabled.insert(enableElem->Get<std::string>());
+    }
   }
 }
 
@@ -145,14 +340,18 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       return true;
     }
 
+    if (!this->IsEnabled(_entity, _ecm))
+    {
+      return true;
+    }
+
     Link link(_entity);
 
     std::vector<Entity> collisions = _ecm.ChildrenByComponents(
         _entity, components::Collision());
 
     double volumeSum = 0;
-    ignition::math::Vector3d weightedPosSum =
-      ignition::math::Vector3d::Zero;
+    math::Vector3d weightedPosSum = math::Vector3d::Zero;
 
     // Compute the volume of the link by iterating over all the collision
     // elements and storing each geometry's volume.
@@ -240,30 +439,131 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
           const components::Volume *_volume,
           const components::CenterOfVolume *_centerOfVolume) -> bool
     {
+      auto newPose = enableComponent<components::Inertial>(_ecm, _entity);
+      newPose |= enableComponent<components::WorldPose>(_ecm, _entity);
+
       // World pose of the link.
       math::Pose3d linkWorldPose = worldPose(_entity, _ecm);
 
+      Link link(_entity);
+
+      math::Vector3d buoyancy;
       // By Archimedes' principle,
       // buoyancy = -(mass*gravity)*fluid_density/object_density
       // object_density = mass/volume, so the mass term cancels.
-      math::Vector3d buoyancy =
-        -this->dataPtr->FluidDensity(linkWorldPose) *
+      if (this->dataPtr->buoyancyType
+        == BuoyancyPrivate::BuoyancyType::UNIFORM_BUOYANCY)
+      {
+        buoyancy =
+        -this->dataPtr->UniformFluidDensity(linkWorldPose) *
         _volume->Data() * gravity->Data();
 
-      // Convert the center of volume to the world frame
-      math::Vector3d offsetWorld = linkWorldPose.Rot().RotateVector(
-          _centerOfVolume->Data());
-      // Compute the torque that should be applied due to buoyancy and
-      // the center of volume.
-      math::Vector3d torque = offsetWorld.Cross(buoyancy);
+        // Convert the center of volume to the world frame
+        math::Vector3d offsetWorld = linkWorldPose.Rot().RotateVector(
+            _centerOfVolume->Data());
+        // Compute the torque that should be applied due to buoyancy and
+        // the center of volume.
+        math::Vector3d torque = offsetWorld.Cross(buoyancy);
 
-      // Apply the wrench to the link. This wrench is applied in the
-      // Physics System.
-      Link link(_entity);
-      link.AddWorldWrench(_ecm, buoyancy, torque);
+        // Apply the wrench to the link. This wrench is applied in the
+        // Physics System.
+        link.AddWorldWrench(_ecm, buoyancy, torque);
+      }
+      else if (this->dataPtr->buoyancyType
+        == BuoyancyPrivate::BuoyancyType::GRADED_BUOYANCY)
+      {
+        if (newPose)
+        {
+          // Skip entity if WorldPose and inertial are not yet ready
+          // TODO(arjo): Find a way of disabling gravity effects for
+          // this first iteration.
+          return true;
+        }
+        std::vector<Entity> collisions = _ecm.ChildrenByComponents(
+          _entity, components::Collision());
+        this->dataPtr->buoyancyForces.clear();
+
+        for (auto e : collisions)
+        {
+          const components::CollisionElement *coll =
+            _ecm.Component<components::CollisionElement>(e);
+
+          auto pose = worldPose(e, _ecm);
+
+          if (!coll)
+          {
+            ignerr << "Invalid collision pointer. This shouldn't happen\n";
+            continue;
+          }
+
+          switch (coll->Data().Geom()->Type())
+          {
+            case sdf::GeometryType::BOX:
+              this->dataPtr->GradedFluidDensity<math::Boxd>(
+                pose,
+                coll->Data().Geom()->BoxShape()->Shape(),
+                gravity->Data());
+              break;
+            case sdf::GeometryType::SPHERE:
+              this->dataPtr->GradedFluidDensity<math::Sphered>(
+                pose,
+                coll->Data().Geom()->SphereShape()->Shape(),
+                gravity->Data());
+              break;
+            default:
+            {
+              static bool warned{false};
+              if (!warned)
+              {
+                ignwarn << "Only <box> and <sphere> collisions are supported "
+                  << "by the graded buoyancy option." << std::endl;
+                warned = true;
+              }
+              break;
+            }
+          }
+        }
+        auto [force, torque] = this->dataPtr->ResolveForces(
+        link.WorldInertialPose(_ecm).value());
+        // Apply the wrench to the link. This wrench is applied in the
+        // Physics System.
+        link.AddWorldWrench(_ecm, force, torque);
+      }
 
       return true;
   });
+}
+
+//////////////////////////////////////////////////
+bool Buoyancy::IsEnabled(Entity _entity,
+    const EntityComponentManager &_ecm) const
+{
+  // If there's nothing enabled, all entities are enabled
+  if (this->dataPtr->enabled.empty())
+    return true;
+
+  auto entity = _entity;
+  while (entity != kNullEntity)
+  {
+    // Fully scoped name
+    auto name = scopedName(entity, _ecm, "::", false);
+
+    // Remove world name
+    name = removeParentScope(name, "::");
+
+    if (this->dataPtr->enabled.find(name) != this->dataPtr->enabled.end())
+      return true;
+
+    // Check parent
+    auto parentComp = _ecm.Component<components::ParentEntity>(entity);
+
+    if (nullptr == parentComp)
+      return false;
+
+    entity = parentComp->Data();
+  }
+
+  return false;
 }
 
 IGNITION_ADD_PLUGIN(Buoyancy,

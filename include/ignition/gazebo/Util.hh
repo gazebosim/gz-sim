@@ -205,7 +205,8 @@ namespace ignition
     /// \return An Ignition Transport topic name based on the scoped name of
     /// the provided entity, or empty string if a topic name could not be
     /// generated.
-    std::string topicFromScopedName(const Entity &_entity,
+    std::string IGNITION_GAZEBO_VISIBLE topicFromScopedName(
+        const Entity &_entity,
         const EntityComponentManager &_ecm,
         bool _excludeWorld = true);
 
@@ -236,6 +237,15 @@ namespace ignition
       }
       return changed;
     }
+
+    /// \brief Get the spherical coordinates for an entity.
+    /// \param[in] _entity Entity whose coordinates we want.
+    /// \param[in] _ecm Entity component manager
+    /// \return The entity's latitude (deg), longitude (deg) and elevation (m).
+    /// If the entity doesn't have a pose, or the world's spherical coordinates
+    /// haven't been defined, this will return nullopt.
+    std::optional<math::Vector3d> IGNITION_GAZEBO_VISIBLE sphericalCoordinates(
+        Entity _entity, const EntityComponentManager &_ecm);
 
     /// \brief Environment variable holding resource paths.
     const std::string kResourcePathEnv{"IGN_GAZEBO_RESOURCE_PATH"};

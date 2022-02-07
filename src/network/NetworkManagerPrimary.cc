@@ -135,11 +135,12 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
   // move ahead N iterations (hardcoded to 1000 now),
   // until the secondaries completed those N steps the simulation cannot be
   // paused, the step size cannot be changed, etc.
-  // This should be handle in a better fashion.
+  // This should be handled in a better fashion.
   // Note: send an ack each N/2 iterations, allows secondaries
   // to move ahead faster.
-  if ( ((0uLL == _info.iterations % (this->kSecondaryIterations/2))
-        || this->paused) && !_info.paused) {
+  if (((0uLL == _info.iterations % (this->kSecondaryIterations/2))
+        || this->paused) && !_info.paused)
+  {
     // Allow secondaries to continue moving forward each N steps (1000).
     // Also send a message if the simulation was paused and now it's running.
     private_msgs::SimulationStep step;
@@ -160,7 +161,8 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
   this->paused = _info.paused;
 
   // Block until all secondaries are done
-  if (_info.iterations >= this->nextIteration && !_info.paused) {
+  if (_info.iterations >= this->nextIteration && !_info.paused)
+  {
     // Update state based on secondaries messages.
     std::vector<private_msgs::SecondaryStep> secondariesSteps;
     {
@@ -229,14 +231,17 @@ std::map<std::string, SecondaryControl::Ptr>
 void NetworkManagerPrimary::OnStepAck(const private_msgs::SecondaryStep &_msg)
 {
   std::unique_lock<std::mutex> guard{this->secondaryStatesMutex};
-  auto iteration = _msg.stats().iterations();
-  auto & secState = this->secondaryStates[iteration];
+  uint64_t iteration = _msg.stats().iterations();
+  std::vector<private_msgs::SecondaryStep> &secState =
+    this->secondaryStates[iteration];
   secState.emplace_back(_msg);
-  if (
-      iteration == this->nextIteration &&
+
+  // Notify when all the secondaries have sent in their ack messages.
+  if (iteration == this->nextIteration &&
       secState.size() == this->secondaries.size())
   {
-    guard.unlock();  // no need to hold the lock while notifying
+    // no need to hold the lock while notifying
+    guard.unlock();
     this->secondaryStatesCv.notify_one();
   }
 }
@@ -300,9 +305,9 @@ void NetworkManagerPrimary::PopulateAffinities(
   {
     auto secondaryIt = this->secondaries.begin();
 
-    for (const auto &[level, performers] : lToPNew)
+    for (const auto &it : lToPNew)
     {
-      for (const auto &performer : performers)
+      for (const auto &performer : it.second)
       {
         this->SetAffinity(performer, secondaryIt->second->prefix,
             _msg.add_affinity());

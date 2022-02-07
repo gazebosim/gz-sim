@@ -232,7 +232,7 @@ TEST_P(ServerFixture, ServerConfigSensorPlugin)
 
   // The simulation runner should not be running.
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(2u, *server.SystemCount());
+  EXPECT_EQ(3u, *server.SystemCount());
 
   // Run the server
   igndbg << "Run server" << std::endl;
@@ -279,13 +279,15 @@ TEST_P(ServerFixture, SdfServerConfig)
   EXPECT_FALSE(*server.Running(0));
   EXPECT_TRUE(*server.Paused());
   EXPECT_EQ(0u, *server.IterationCount());
-  EXPECT_EQ(16u, *server.EntityCount());
+  EXPECT_EQ(24u, *server.EntityCount());
   EXPECT_EQ(3u, *server.SystemCount());
 
   EXPECT_TRUE(server.HasEntity("box"));
   EXPECT_FALSE(server.HasEntity("box", 1));
   EXPECT_TRUE(server.HasEntity("sphere"));
   EXPECT_TRUE(server.HasEntity("cylinder"));
+  EXPECT_TRUE(server.HasEntity("capsule"));
+  EXPECT_TRUE(server.HasEntity("ellipsoid"));
   EXPECT_FALSE(server.HasEntity("bad", 0));
   EXPECT_FALSE(server.HasEntity("bad", 1));
 }

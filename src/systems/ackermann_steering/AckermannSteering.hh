@@ -95,12 +95,12 @@ namespace systems
   /// right_steering_joint
   ///
   /// References:
-  /// https://github.com/ignitionrobotics/ign-gazebo/tree/ign-gazebo4/src/systems/diff_drive
+  /// https://github.com/ignitionrobotics/ign-gazebo/tree/main/src/systems/diff_drive
   /// https://www.auto.tuwien.ac.at/bib/pdf_TR/TR0183.pdf
   /// https://github.com/froohoo/ackermansteer/blob/master/ackermansteer/
 
 
-  class IGNITION_GAZEBO_VISIBLE AckermannSteering
+  class AckermannSteering
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate,

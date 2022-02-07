@@ -179,7 +179,7 @@ TEST_F(ImuTest, ModelFalling)
   // Time to advance, allow 0.5 s settling time.
   // This assumes inelastic collisions with the ground.
   double dtHit = tHit + 0.5 - (iters200 + 1) * stepSize;
-  double steps = ceil(dtHit / stepSize);
+  int steps = static_cast<int>(ceil(dtHit / stepSize));
   ASSERT_GT(steps, 0);
   server.Run(true, steps, false);
 

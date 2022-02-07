@@ -21,12 +21,13 @@ import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
 import QtQuick.Layouts 1.3
 import QtQuick.Controls.Styles 1.4
+import QtQuick.Dialogs 1.0
 import IgnGazebo 1.0 as IgnGazebo
 
 Rectangle {
   id: entityTree
-  color: "transparent"
-  Layout.minimumWidth: 250
+  color: lightGrey
+  Layout.minimumWidth: 400
   Layout.minimumHeight: 375
   anchors.fill: parent
 
@@ -34,6 +35,28 @@ Rectangle {
    * Time delay for tooltip to show, in ms
    */
   property int tooltipDelay: 500
+
+  /**
+   * Dark grey according to theme
+   */
+  property color darkGrey: (Material.theme == Material.Light) ?
+    Material.color(Material.Grey, Material.Shade200) :
+    Material.color(Material.Grey, Material.Shade900)
+
+  /**
+   * Light grey according to theme
+   */
+  property color lightGrey: (Material.theme == Material.Light) ?
+    Material.color(Material.Grey, Material.Shade100) :
+    Material.color(Material.Grey, Material.Shade800)
+
+  /**
+   * Highlight color
+   */
+  property color highlightColor: Qt.rgba(
+    Material.accent.r,
+    Material.accent.g,
+    Material.accent.b, 0.3)
 
   /**
    * Height of each item in pixels
@@ -86,9 +109,192 @@ Rectangle {
     }
   }
 
+  // The component for a menu section header
+  Component {
+    id: menuSectionHeading
+    Rectangle {
+      height: childrenRect.height
+
+      Text {
+          text: sectionText 
+          font.pointSize: 10
+          padding: 5
+      }
+    }
+  }
+
+  Rectangle {
+    id: header
+    visible: true 
+    height: addEntity.height
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    width: parent.width
+    color: darkGrey
+
+    RowLayout {
+      anchors.fill: parent
+      spacing: 0
+
+      Label {
+        text: "Entity Tree"
+        font.capitalization: Font.Capitalize
+        color: Material.theme == Material.Light ? "#444444" : "#cccccc"
+        font.pointSize: 12
+        padding: 5
+      }
+
+      ToolButton {
+        anchors.right: parent.right
+        id: addEntity
+        ToolTip.text: "Add an entity to the world"
+        ToolTip.visible: hovered
+        contentItem: Image {
+          fillMode: Image.Pad
+          horizontalAlignment: Image.AlignHCenter
+          verticalAlignment: Image.AlignVCenter
+          source: "qrc:/Gazebo/images/plus.png"
+          sourceSize.width: 18;
+          sourceSize.height: 18;
+        }
+        onClicked: addEntityMenu.open()
+
+        FileDialog {
+          id: loadFileDialog
+          title: "Load mesh"
+          folder: shortcuts.home
+          nameFilters: [ "Collada files (*.dae)", "(*.stl)", "(*.obj)" ]
+          selectMultiple: false
+          selectExisting: true
+          onAccepted: {
+            EntityTree.OnLoadMesh(fileUrl)
+          }
+        }
+
+        Menu {
+          id: addEntityMenu
+
+          Item {
+            Layout.fillWidth: true
+            height: childrenRect.height
+            Loader { 
+              property string sectionText: "Model"
+              sourceComponent: menuSectionHeading
+            }
+          }
+
+          MenuItem
+          {
+            id: box
+            text: "Box"
+            onClicked: {
+              EntityTree.OnInsertEntity("box")
+            }
+          }
+
+          MenuItem
+          {
+            id: capsule
+            text: "Capsule"
+            onClicked: {
+              EntityTree.OnInsertEntity("capsule")
+            }
+          }
+
+          MenuItem
+          {
+            id: cylinder
+            text: "Cylinder"
+            onClicked: {
+              EntityTree.OnInsertEntity("cylinder")
+            }
+          }
+
+          MenuItem
+          {
+            id: ellipsoid
+            text: "Ellipsoid"
+            onClicked: {
+              EntityTree.OnInsertEntity("ellipsoid")
+            }
+          }
+
+          MenuItem
+          {
+            id: sphere 
+            text: "Sphere"
+            onClicked: {
+              EntityTree.OnInsertEntity("sphere")
+            }
+          }
+
+          MenuItem
+          {
+            id: mesh 
+            text: "Mesh"
+            onClicked: {
+              loadFileDialog.open()
+            }
+          }
+
+          MenuSeparator {
+            padding: 0
+            topPadding: 12
+            bottomPadding: 12
+            contentItem: Rectangle {
+              implicitWidth: 200
+              implicitHeight: 1
+              color: "#1E000000"
+            }
+          }
+
+          Item {
+            Layout.fillWidth: true
+            height: childrenRect.height
+            Loader { 
+              property string sectionText: "Light"
+              sourceComponent: menuSectionHeading
+            }
+          }
+
+          MenuItem
+          {
+            id: directionalLight 
+            text: "Directional"
+            onClicked: {
+              EntityTree.OnInsertEntity("directional")
+            }
+          }
+
+          MenuItem
+          {
+            id: pointLight
+            text: "Point"
+            onClicked: {
+              EntityTree.OnInsertEntity("point")
+            }
+          }
+
+          MenuItem
+          {
+            id: spotLight 
+            text: "Spot"
+            onClicked: {
+              EntityTree.OnInsertEntity("spot")
+            }
+          }
+        }
+      }
+    }
+  }
+
   TreeView {
     id: tree
-    anchors.fill: parent
+    anchors.top: header.bottom
+    anchors.bottom: parent.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
     model: EntityTreeModel
     selectionMode: SelectionMode.MultiSelection
 
@@ -105,16 +311,20 @@ Rectangle {
     }
 
     style: TreeViewStyle {
+      frame: Rectangle {
+        border{
+          color:  lightGrey
+        }
+      }
       indentation: itemHeight * 0.75
 
       headerDelegate: Rectangle {
         visible: false
       }
-
       branchDelegate: Rectangle {
         height: itemHeight
         width: itemHeight * 0.75
-        color: "transparent"
+        color:  "transparent"
         Image {
           id: icon
           sourceSize.height: itemHeight * 0.4
@@ -123,7 +333,7 @@ Rectangle {
           anchors.verticalCenter: parent.verticalCenter
           anchors.right: parent.right
           source: styleData.isExpanded ?
-              "qrc:/Gazebo/images/minus.png" : "qrc:/Gazebo/images/plus.png"
+              "qrc:/Gazebo/images/chevron-down.svg" : "qrc:/Gazebo/images/chevron-right.svg"
         }
         MouseArea {
           anchors.fill: parent
@@ -145,7 +355,7 @@ Rectangle {
       rowDelegate: Rectangle {
         visible: styleData.row !== undefined
         height: itemHeight
-        color: styleData.selected ? Material.accent : (styleData.row % 2 == 0) ? even : odd
+        color: styleData.selected ? highlightColor : (styleData.row % 2 == 0) ? even : odd
         MouseArea {
           anchors.fill: parent
           hoverEnabled: true
@@ -164,7 +374,7 @@ Rectangle {
 
       itemDelegate: Rectangle {
         id: itemDel
-        color: styleData.selected ? Material.accent : (styleData.row % 2 == 0) ? even : odd
+        color: "transparent"
         height: itemHeight
 
 

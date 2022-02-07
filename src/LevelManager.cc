@@ -25,6 +25,7 @@
 #include <sdf/Model.hh>
 #include <sdf/World.hh>
 
+#include <ignition/math/SphericalCoordinates.hh>
 #include <ignition/common/Profiler.hh>
 
 #include "ignition/gazebo/Events.hh"
@@ -50,8 +51,10 @@
 #include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/RenderEngineGuiPlugin.hh"
+#include "ignition/gazebo/components/RenderEngineServerHeadless.hh"
 #include "ignition/gazebo/components/RenderEngineServerPlugin.hh"
 #include "ignition/gazebo/components/Scene.hh"
+#include "ignition/gazebo/components/SphericalCoordinates.hh"
 #include "ignition/gazebo/components/Wind.hh"
 #include "ignition/gazebo/components/World.hh"
 
@@ -111,6 +114,31 @@ void LevelManager::ReadLevelPerformerInfo()
   this->runner->entityCompMgr.CreateComponent(this->worldEntity,
       components::Physics(*physics));
 
+  // Populate physics options that aren't accessible outside the Element()
+  // See https://github.com/osrf/sdformat/issues/508
+  if (physics->Element() && physics->Element()->HasElement("dart"))
+  {
+    auto dartElem = physics->Element()->GetElement("dart");
+
+    if (dartElem->HasElement("collision_detector"))
+    {
+      auto collisionDetector =
+          dartElem->Get<std::string>("collision_detector");
+
+      this->runner->entityCompMgr.CreateComponent(worldEntity,
+          components::PhysicsCollisionDetector(collisionDetector));
+    }
+    if (dartElem->HasElement("solver") &&
+        dartElem->GetElement("solver")->HasElement("solver_type"))
+    {
+      auto solver =
+          dartElem->GetElement("solver")->Get<std::string>("solver_type");
+
+      this->runner->entityCompMgr.CreateComponent(worldEntity,
+          components::PhysicsSolver(solver));
+    }
+  }
+
   this->runner->entityCompMgr.CreateComponent(this->worldEntity,
       components::MagneticField(this->runner->sdfWorld->MagneticField()));
 
@@ -121,6 +149,10 @@ void LevelManager::ReadLevelPerformerInfo()
   this->runner->entityCompMgr.CreateComponent(this->worldEntity,
       components::RenderEngineServerPlugin(
       this->runner->serverConfig.RenderEngineServer()));
+
+  this->runner->entityCompMgr.CreateComponent(this->worldEntity,
+      components::RenderEngineServerHeadless(
+      this->runner->serverConfig.HeadlessRendering()));
 
   this->runner->entityCompMgr.CreateComponent(this->worldEntity,
       components::RenderEngineGuiPlugin(
@@ -153,6 +185,14 @@ void LevelManager::ReadLevelPerformerInfo()
   {
     this->runner->entityCompMgr.CreateComponent(this->worldEntity,
         components::Atmosphere(*this->runner->sdfWorld->Atmosphere()));
+  }
+
+  // spherical coordinates
+  if (this->runner->sdfWorld->SphericalCoordinates())
+  {
+    this->runner->entityCompMgr.CreateComponent(this->worldEntity,
+        components::SphericalCoordinates(
+        *this->runner->sdfWorld->SphericalCoordinates()));
   }
 
   // TODO(anyone) This should probably go somewhere else as it is a global

@@ -27,6 +27,7 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
+#include <ignition/gui/GuiEvents.hh>
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/rendering/Geometry.hh>
@@ -363,7 +364,8 @@ void AlignTool::Align()
       if (!vis)
         continue;
 
-      if (std::get<int>(vis->UserData("gazebo-entity")) ==
+      if (vis->HasUserData("gazebo-entity") &&
+          std::get<int>(vis->UserData("gazebo-entity")) ==
           static_cast<int>(entityId))
       {
         // Check here to see if visual is top level or not, continue if not
@@ -549,7 +551,7 @@ rendering::NodePtr AlignTool::TopLevelNode(rendering::ScenePtr &_scene,
 /////////////////////////////////////////////////
 bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gazebo::gui::events::Render::kType)
+  if (_event->type() == ignition::gui::events::Render::kType)
   {
     // This event is called in Scene3d's RenderThread, so it's safe to make
     // rendering calls here
@@ -567,7 +569,8 @@ bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
            ignition::gazebo::gui::events::EntitiesSelected::kType)
   {
     auto selectedEvent =
-        reinterpret_cast<gui::events::EntitiesSelected *>(_event);
+        reinterpret_cast<ignition::gazebo::gui::events::EntitiesSelected *>(
+        _event);
 
     // Only update if a valid cast, the data isn't empty, and
     // the command is not from user (sent from backend)

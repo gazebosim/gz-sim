@@ -14,6 +14,10 @@
       name="ignition::gazebo::systems::Sensors">
       <render_engine>ogre2</render_engine>
     </plugin>
+    <plugin
+      filename="libignition-gazebo-scene-broadcaster-system.so"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
 
     <light type="directional" name="sun">
       <cast_shadows>true</cast_shadows>

@@ -22,8 +22,11 @@
 #include <sdf/Altimeter.hh>
 #include <sdf/Atmosphere.hh>
 #include <sdf/Box.hh>
+#include <sdf/Capsule.hh>
 #include <sdf/Cylinder.hh>
+#include <sdf/Ellipsoid.hh>
 #include <sdf/Gui.hh>
+#include <sdf/Heightmap.hh>
 #include <sdf/Light.hh>
 #include <sdf/Magnetometer.hh>
 #include <sdf/Mesh.hh>
@@ -62,6 +65,7 @@ TEST(Conversions, Light)
   light.SetSpotInnerAngle(1.9);
   light.SetSpotOuterAngle(3.3);
   light.SetSpotFalloff(0.9);
+  light.SetIntensity(1.7);
 
   msgs::Light lightMsg;
   lightMsg = convert<msgs::Light>(light);
@@ -76,14 +80,15 @@ TEST(Conversions, Light)
       msgs::Convert(lightMsg.diffuse()));
   EXPECT_EQ(math::Color(0.8f, 0.9f, 0.1f, 1),
       msgs::Convert(lightMsg.specular()));
-  EXPECT_FLOAT_EQ(3.2, lightMsg.range());
-  EXPECT_FLOAT_EQ(0.5, lightMsg.attenuation_constant());
-  EXPECT_FLOAT_EQ(0.1, lightMsg.attenuation_linear());
-  EXPECT_FLOAT_EQ(0.01, lightMsg.attenuation_quadratic());
+  EXPECT_FLOAT_EQ(3.2f, lightMsg.range());
+  EXPECT_FLOAT_EQ(0.5f, lightMsg.attenuation_constant());
+  EXPECT_FLOAT_EQ(0.1f, lightMsg.attenuation_linear());
+  EXPECT_FLOAT_EQ(0.01f, lightMsg.attenuation_quadratic());
   EXPECT_EQ(math::Vector3d(0.1, 0.2, 1), msgs::Convert(lightMsg.direction()));
   EXPECT_EQ(math::Angle(1.9), lightMsg.spot_inner_angle());
   EXPECT_EQ(math::Angle(3.3), lightMsg.spot_outer_angle());
-  EXPECT_FLOAT_EQ(0.9, lightMsg.spot_falloff());
+  EXPECT_FLOAT_EQ(0.9f, lightMsg.spot_falloff());
+  EXPECT_FLOAT_EQ(1.7f, lightMsg.intensity());
 
   auto newLight = convert<sdf::Light>(lightMsg);
   EXPECT_EQ("test_convert_light", newLight.Name());
@@ -94,14 +99,25 @@ TEST(Conversions, Light)
   EXPECT_TRUE(newLight.CastShadows());
   EXPECT_EQ(math::Color(0.4f, 0.5f, 0.6f, 1.0f), newLight.Diffuse());
   EXPECT_EQ(math::Color(0.8f, 0.9f, 0.1f, 1.0f), newLight.Specular());
-  EXPECT_FLOAT_EQ(3.2, newLight.AttenuationRange());
-  EXPECT_FLOAT_EQ(0.5, newLight.ConstantAttenuationFactor());
-  EXPECT_FLOAT_EQ(0.1, newLight.LinearAttenuationFactor());
-  EXPECT_FLOAT_EQ(0.01, newLight.QuadraticAttenuationFactor());
+  EXPECT_FLOAT_EQ(3.2f, newLight.AttenuationRange());
+  EXPECT_FLOAT_EQ(0.5f, newLight.ConstantAttenuationFactor());
+  EXPECT_FLOAT_EQ(0.1f, newLight.LinearAttenuationFactor());
+  EXPECT_FLOAT_EQ(0.01f, newLight.QuadraticAttenuationFactor());
   EXPECT_EQ(math::Vector3d(0.1, 0.2, 1), newLight.Direction());
   EXPECT_EQ(math::Angle(1.9), newLight.SpotInnerAngle());
   EXPECT_EQ(math::Angle(3.3), newLight.SpotOuterAngle());
-  EXPECT_FLOAT_EQ(0.9, newLight.SpotFalloff());
+  EXPECT_FLOAT_EQ(0.9f, newLight.SpotFalloff());
+  EXPECT_FLOAT_EQ(1.7f, newLight.Intensity());
+
+  EXPECT_EQ("", convert(sdf::LightType::INVALID));
+  EXPECT_EQ("point", convert(sdf::LightType::POINT));
+  EXPECT_EQ("directional", convert(sdf::LightType::DIRECTIONAL));
+  EXPECT_EQ("spot", convert(sdf::LightType::SPOT));
+
+  EXPECT_EQ(sdf::LightType::POINT, convert("POINT"));
+  EXPECT_EQ(sdf::LightType::DIRECTIONAL, convert("DireCtiOnal"));
+  EXPECT_EQ(sdf::LightType::SPOT, convert("spot"));
+  EXPECT_EQ(sdf::LightType::INVALID, convert("gazebo"));
 }
 
 /////////////////////////////////////////////////
@@ -228,8 +244,7 @@ TEST(Conversions, Material)
   material.SetAmbient(ignition::math::Color(0.9f, 1.0f, 1.1f, 1.2f));
   material.SetEmissive(ignition::math::Color(1.3f, 1.4f, 1.5f, 1.6f));
   material.SetLighting(true);
-
-  // todo(anyone) add double_sided field to msgs::Material
+  material.SetRenderOrder(2.5);
   material.SetDoubleSided(true);
 
   sdf::Pbr pbr;
@@ -244,6 +259,7 @@ TEST(Conversions, Material)
   workflow.SetEmissiveMap("emissive_map.png");
   workflow.SetGlossinessMap("dummy_glossiness_map.png");
   workflow.SetSpecularMap("dummy_specular_map.png");
+  workflow.SetLightMap("light_map.png", 1u);
   workflow.SetMetalness(0.3);
   workflow.SetRoughness(0.9);
   workflow.SetGlossiness(0.1);
@@ -260,11 +276,8 @@ TEST(Conversions, Material)
   EXPECT_EQ(math::Color(1.3f, 1.4f, 1.5f, 1.6f),
       msgs::Convert(materialMsg.emissive()));
   EXPECT_TRUE(materialMsg.lighting());
-
-  // todo(anyone) double_sided is temporarily stored in header
-  // Need to add double_sided field to msgs::Material
-  bool doubleSided = math::parseInt(materialMsg.header().data(0).value(0));
-  EXPECT_TRUE(doubleSided);
+  EXPECT_DOUBLE_EQ(2.5, materialMsg.render_order());
+  EXPECT_TRUE(materialMsg.double_sided());
 
   EXPECT_TRUE(materialMsg.has_pbr());
   const auto &pbrMsg = materialMsg.pbr();
@@ -278,6 +291,9 @@ TEST(Conversions, Material)
   EXPECT_EQ("ambient_occlusion_map.png", pbrMsg.ambient_occlusion_map());
   EXPECT_EQ("dummy_glossiness_map.png", pbrMsg.glossiness_map());
   EXPECT_EQ("dummy_specular_map.png", pbrMsg.specular_map());
+  EXPECT_EQ("light_map.png", pbrMsg.light_map());
+  EXPECT_EQ(1u, pbrMsg.light_map_texcoord_set());
+
   EXPECT_DOUBLE_EQ(0.3, pbrMsg.metalness());
   EXPECT_DOUBLE_EQ(0.9, pbrMsg.roughness());
   EXPECT_DOUBLE_EQ(0.1, pbrMsg.glossiness());
@@ -289,11 +305,11 @@ TEST(Conversions, Material)
   EXPECT_EQ(math::Color(1.3f, 1.4f, 1.5f, 1.6f), newMaterial.Emissive());
   EXPECT_TRUE(newMaterial.Lighting());
   EXPECT_TRUE(newMaterial.DoubleSided());
+  EXPECT_DOUBLE_EQ(2.5, newMaterial.RenderOrder());
 
-  sdf::Pbr *newPbrMaterial = newMaterial.PbrMaterial();
+  auto newPbrMaterial = newMaterial.PbrMaterial();
   ASSERT_NE(nullptr, newPbrMaterial);
-  sdf::PbrWorkflow *newWorkflow =
-      newPbrMaterial->Workflow(sdf::PbrWorkflowType::METAL);
+  auto newWorkflow = newPbrMaterial->Workflow(sdf::PbrWorkflowType::METAL);
   ASSERT_NE(nullptr, newWorkflow);
   EXPECT_EQ("albedo_map.png", newWorkflow->AlbedoMap());
   EXPECT_EQ("normal_map.png", newWorkflow->NormalMap());
@@ -304,6 +320,8 @@ TEST(Conversions, Material)
   EXPECT_EQ("ambient_occlusion_map.png", newWorkflow->AmbientOcclusionMap());
   EXPECT_EQ("dummy_glossiness_map.png", newWorkflow->GlossinessMap());
   EXPECT_EQ("dummy_specular_map.png", newWorkflow->SpecularMap());
+  EXPECT_EQ("light_map.png", newWorkflow->LightMap());
+  EXPECT_EQ(1u, newWorkflow->LightMapTexCoordSet());
   EXPECT_DOUBLE_EQ(0.3, newWorkflow->Metalness());
   EXPECT_DOUBLE_EQ(0.9, newWorkflow->Roughness());
   EXPECT_DOUBLE_EQ(0.1, newWorkflow->Glossiness());
@@ -353,6 +371,30 @@ TEST(Conversions, GeometrySphere)
 }
 
 /////////////////////////////////////////////////
+TEST(Conversions, GeometryCapsule)
+{
+  sdf::Geometry geometry;
+  geometry.SetType(sdf::GeometryType::CAPSULE);
+
+  sdf::Capsule capsuleShape;
+  capsuleShape.SetRadius(1.23);
+  capsuleShape.SetLength(4.56);
+  geometry.SetCapsuleShape(capsuleShape);
+
+  auto geometryMsg = convert<msgs::Geometry>(geometry);
+  EXPECT_EQ(msgs::Geometry::CAPSULE, geometryMsg.type());
+  EXPECT_TRUE(geometryMsg.has_capsule());
+  EXPECT_DOUBLE_EQ(1.23, geometryMsg.capsule().radius());
+  EXPECT_DOUBLE_EQ(4.56, geometryMsg.capsule().length());
+
+  auto newGeometry = convert<sdf::Geometry>(geometryMsg);
+  EXPECT_EQ(sdf::GeometryType::CAPSULE, newGeometry.Type());
+  ASSERT_NE(nullptr, newGeometry.CapsuleShape());
+  EXPECT_DOUBLE_EQ(1.23, newGeometry.CapsuleShape()->Radius());
+  EXPECT_DOUBLE_EQ(4.56, newGeometry.CapsuleShape()->Length());
+}
+
+/////////////////////////////////////////////////
 TEST(Conversions, GeometryCylinder)
 {
   sdf::Geometry geometry;
@@ -374,6 +416,29 @@ TEST(Conversions, GeometryCylinder)
   ASSERT_NE(nullptr, newGeometry.CylinderShape());
   EXPECT_DOUBLE_EQ(1.23, newGeometry.CylinderShape()->Radius());
   EXPECT_DOUBLE_EQ(4.56, newGeometry.CylinderShape()->Length());
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, GeometryEllipsoid)
+{
+  sdf::Geometry geometry;
+  geometry.SetType(sdf::GeometryType::ELLIPSOID);
+
+  sdf::Ellipsoid ellipsoidShape;
+  ellipsoidShape.SetRadii(ignition::math::Vector3d(1.2, 3.2, 2.4));
+  geometry.SetEllipsoidShape(ellipsoidShape);
+
+  auto geometryMsg = convert<msgs::Geometry>(geometry);
+  EXPECT_EQ(msgs::Geometry::ELLIPSOID, geometryMsg.type());
+  EXPECT_TRUE(geometryMsg.has_ellipsoid());
+  EXPECT_EQ(ignition::math::Vector3d(1.2, 3.2, 2.4),
+    msgs::Convert(geometryMsg.ellipsoid().radii()));
+
+  auto newGeometry = convert<sdf::Geometry>(geometryMsg);
+  EXPECT_EQ(sdf::GeometryType::ELLIPSOID, newGeometry.Type());
+  ASSERT_NE(nullptr, newGeometry.EllipsoidShape());
+  EXPECT_EQ(ignition::math::Vector3d(1.2, 3.2, 2.4),
+    newGeometry.EllipsoidShape()->Radii());
 }
 
 /////////////////////////////////////////////////
@@ -431,6 +496,72 @@ TEST(Conversions, GeometryPlane)
   ASSERT_NE(nullptr, newGeometry.PlaneShape());
   EXPECT_EQ(math::Vector2d(1, 2), newGeometry.PlaneShape()->Size());
   EXPECT_EQ(math::Vector3d::UnitY, newGeometry.PlaneShape()->Normal());
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, GeometryHeightmap)
+{
+  sdf::Geometry geometry;
+  geometry.SetType(sdf::GeometryType::HEIGHTMAP);
+
+  sdf::Heightmap heightmap;
+  heightmap.SetUri("file://heights.png");
+  heightmap.SetSize(ignition::math::Vector3d(1, 2, 3));
+  heightmap.SetPosition(ignition::math::Vector3d(4, 5, 6));
+  heightmap.SetUseTerrainPaging(true);
+  heightmap.SetSampling(16u);
+
+  sdf::HeightmapTexture texture;
+  texture.SetDiffuse("file://diffuse.png");
+  texture.SetNormal("file://normal.png");
+  texture.SetSize(1.23);
+  heightmap.AddTexture(texture);
+
+  sdf::HeightmapBlend blend;
+  blend.SetMinHeight(123.456);
+  blend.SetFadeDistance(456.789);
+  heightmap.AddBlend(blend);
+
+  geometry.SetHeightmapShape(heightmap);
+
+  auto geometryMsg = convert<msgs::Geometry>(geometry);
+
+  EXPECT_EQ(msgs::Geometry::HEIGHTMAP, geometryMsg.type());
+  EXPECT_TRUE(geometryMsg.has_heightmap());
+  EXPECT_EQ(math::Vector3d(1, 2, 3),
+      msgs::Convert(geometryMsg.heightmap().size()));
+  EXPECT_EQ("file://heights.png", geometryMsg.heightmap().filename());
+  EXPECT_TRUE(geometryMsg.heightmap().use_terrain_paging());
+  EXPECT_EQ(16u, geometryMsg.heightmap().sampling());
+
+  ASSERT_EQ(1, geometryMsg.heightmap().texture().size());
+  EXPECT_DOUBLE_EQ(1.23, geometryMsg.heightmap().texture(0).size());
+  EXPECT_EQ("file://diffuse.png", geometryMsg.heightmap().texture(0).diffuse());
+  EXPECT_EQ("file://normal.png", geometryMsg.heightmap().texture(0).normal());
+
+  ASSERT_EQ(1, geometryMsg.heightmap().blend().size());
+  EXPECT_DOUBLE_EQ(123.456, geometryMsg.heightmap().blend(0).min_height());
+  EXPECT_DOUBLE_EQ(456.789, geometryMsg.heightmap().blend(0).fade_dist());
+
+  auto newGeometry = convert<sdf::Geometry>(geometryMsg);
+
+  EXPECT_EQ(sdf::GeometryType::HEIGHTMAP, newGeometry.Type());
+
+  auto newHeightmap = newGeometry.HeightmapShape();
+  ASSERT_NE(nullptr, newHeightmap);
+  EXPECT_EQ(math::Vector3d(1, 2, 3), newHeightmap->Size());
+  EXPECT_EQ("file://heights.png", newHeightmap->Uri());
+  EXPECT_TRUE(newHeightmap->UseTerrainPaging());
+  EXPECT_EQ(16u, newHeightmap->Sampling());
+
+  ASSERT_EQ(1u, newHeightmap->TextureCount());
+  EXPECT_DOUBLE_EQ(1.23, newHeightmap->TextureByIndex(0)->Size());
+  EXPECT_EQ("file://diffuse.png", newHeightmap->TextureByIndex(0)->Diffuse());
+  EXPECT_EQ("file://normal.png", newHeightmap->TextureByIndex(0)->Normal());
+
+  ASSERT_EQ(1u, newHeightmap->BlendCount());
+  EXPECT_DOUBLE_EQ(123.456, newHeightmap->BlendByIndex(0)->MinHeight());
+  EXPECT_DOUBLE_EQ(456.789, newHeightmap->BlendByIndex(0)->FadeDistance());
 }
 
 /////////////////////////////////////////////////
@@ -523,6 +654,7 @@ TEST(Conversions, Scene)
   EXPECT_TRUE(sceneMsg.shadows());
   EXPECT_TRUE(sceneMsg.grid());
   EXPECT_TRUE(sceneMsg.origin_visual());
+  EXPECT_FALSE(sceneMsg.has_sky());
 
   auto newScene = convert<sdf::Scene>(sceneMsg);
   EXPECT_EQ(math::Color(0.1f, 0.2f, 0.3f, 0.4f), newScene.Ambient());
@@ -530,6 +662,42 @@ TEST(Conversions, Scene)
   EXPECT_TRUE(newScene.Shadows());
   EXPECT_TRUE(newScene.Grid());
   EXPECT_TRUE(newScene.OriginVisual());
+  EXPECT_EQ(nullptr, newScene.Sky());
+
+  // sky
+  sdf::Sky sky;
+  sky.SetTime(10);
+  sky.SetSunrise(4.0);
+  sky.SetSunset(15.0);
+  sky.SetCloudSpeed(5.0);
+  sky.SetCloudDirection(math::Angle(3.14));
+  sky.SetCloudHumidity(0.11);
+  sky.SetCloudMeanSize(0.88);
+  sky.SetCloudAmbient(math::Color::Red);
+  scene.SetSky(sky);
+
+  auto sceneSkyMsg = convert<msgs::Scene>(scene);
+  EXPECT_TRUE(sceneSkyMsg.has_sky());
+  EXPECT_DOUBLE_EQ(10.0, sceneSkyMsg.sky().time());
+  EXPECT_DOUBLE_EQ(4.0, sceneSkyMsg.sky().sunrise());
+  EXPECT_DOUBLE_EQ(15.0, sceneSkyMsg.sky().sunset());
+  EXPECT_DOUBLE_EQ(5.0, sceneSkyMsg.sky().wind_speed());
+  EXPECT_DOUBLE_EQ(3.14, sceneSkyMsg.sky().wind_direction());
+  EXPECT_DOUBLE_EQ(0.11, sceneSkyMsg.sky().humidity());
+  EXPECT_DOUBLE_EQ(0.88, sceneSkyMsg.sky().mean_cloud_size());
+  EXPECT_EQ(math::Color::Red,
+      msgs::Convert(sceneSkyMsg.sky().cloud_ambient()));
+
+  auto newSceneSky = convert<sdf::Scene>(sceneSkyMsg);
+  ASSERT_NE(nullptr, newSceneSky.Sky());
+  EXPECT_DOUBLE_EQ(10.0, newSceneSky.Sky()->Time());
+  EXPECT_DOUBLE_EQ(4.0, newSceneSky.Sky()->Sunrise());
+  EXPECT_DOUBLE_EQ(15.0, newSceneSky.Sky()->Sunset());
+  EXPECT_DOUBLE_EQ(5.0, newSceneSky.Sky()->CloudSpeed());
+  EXPECT_EQ(math::Angle(3.14), newSceneSky.Sky()->CloudDirection());
+  EXPECT_DOUBLE_EQ(0.11, newSceneSky.Sky()->CloudHumidity());
+  EXPECT_DOUBLE_EQ(0.88, newSceneSky.Sky()->CloudMeanSize());
+  EXPECT_EQ(math::Color::Red, newSceneSky.Sky()->CloudAmbient());
 }
 
 /////////////////////////////////////////////////
@@ -726,24 +894,24 @@ TEST(Conversions, Actor)
   EXPECT_EQ(math::Pose3d(3, 2, 1, 0, 0, 0),
       msgs::Convert(actorMsg.pose()));
   EXPECT_EQ("walk.dae", actorMsg.skin_filename());
-  EXPECT_FLOAT_EQ(2.0, actorMsg.skin_scale());
+  EXPECT_FLOAT_EQ(2.0f, actorMsg.skin_scale());
   EXPECT_TRUE(actorMsg.script_loop());
-  EXPECT_FLOAT_EQ(2.8, actorMsg.script_delay_start());
+  EXPECT_FLOAT_EQ(2.8f, actorMsg.script_delay_start());
   EXPECT_TRUE(actorMsg.script_auto_start());
 
   ASSERT_EQ(1, actorMsg.animations_size());
   EXPECT_EQ("animation", actorMsg.animations(0).name());
   EXPECT_EQ("animation_filename", actorMsg.animations(0).filename());
-  EXPECT_FLOAT_EQ(1.23, actorMsg.animations(0).scale());
+  EXPECT_FLOAT_EQ(1.23f, actorMsg.animations(0).scale());
   EXPECT_TRUE(actorMsg.animations(0).interpolate_x());
 
   ASSERT_EQ(1, actorMsg.trajectories_size());
   EXPECT_EQ(456u, actorMsg.trajectories(0).id());
   EXPECT_EQ("traj_type", actorMsg.trajectories(0).type());
-  EXPECT_FLOAT_EQ(7.89, actorMsg.trajectories(0).tension());
+  EXPECT_FLOAT_EQ(7.89f, actorMsg.trajectories(0).tension());
 
   ASSERT_EQ(1, actorMsg.trajectories(0).waypoints_size());
-  EXPECT_FLOAT_EQ(0.123, actorMsg.trajectories(0).waypoints(0).time());
+  EXPECT_FLOAT_EQ(0.123f, actorMsg.trajectories(0).waypoints(0).time());
   EXPECT_EQ(math::Pose3d(6, 5, 4, 0, 0, 0),
       msgs::Convert(actorMsg.trajectories(0).waypoints(0).pose()));
 
@@ -751,24 +919,24 @@ TEST(Conversions, Actor)
   EXPECT_EQ("test_convert_actor", newActor.Name());
   EXPECT_EQ(math::Pose3d(3, 2, 1, 0, 0, 0), newActor.RawPose());
   EXPECT_EQ("walk.dae", newActor.SkinFilename());
-  EXPECT_FLOAT_EQ(2.0, newActor.SkinScale());
+  EXPECT_FLOAT_EQ(2.0f, newActor.SkinScale());
   EXPECT_TRUE(newActor.ScriptLoop());
-  EXPECT_FLOAT_EQ(2.8, newActor.ScriptDelayStart());
+  EXPECT_FLOAT_EQ(2.8f, newActor.ScriptDelayStart());
   EXPECT_TRUE(newActor.ScriptAutoStart());
 
   ASSERT_EQ(1u, newActor.AnimationCount());
   EXPECT_EQ("animation", newActor.AnimationByIndex(0)->Name());
   EXPECT_EQ("animation_filename", newActor.AnimationByIndex(0)->Filename());
-  EXPECT_FLOAT_EQ(1.23, newActor.AnimationByIndex(0)->Scale());
+  EXPECT_FLOAT_EQ(1.23f, newActor.AnimationByIndex(0)->Scale());
   EXPECT_TRUE(newActor.AnimationByIndex(0)->InterpolateX());
 
   ASSERT_EQ(1u, newActor.TrajectoryCount());
   EXPECT_EQ(456u, newActor.TrajectoryByIndex(0)->Id());
   EXPECT_EQ("traj_type", newActor.TrajectoryByIndex(0)->Type());
-  EXPECT_FLOAT_EQ(7.89, newActor.TrajectoryByIndex(0)->Tension());
+  EXPECT_FLOAT_EQ(7.89f, newActor.TrajectoryByIndex(0)->Tension());
 
   ASSERT_EQ(1u, newActor.TrajectoryByIndex(0)->WaypointCount());
-  EXPECT_FLOAT_EQ(0.123,
+  EXPECT_FLOAT_EQ(0.123f,
           newActor.TrajectoryByIndex(0)->WaypointByIndex(0)->Time());
   EXPECT_EQ(math::Pose3d(6, 5, 4, 0, 0, 0),
       newActor.TrajectoryByIndex(0)->WaypointByIndex(0)->Pose());
@@ -829,9 +997,7 @@ TEST(Conversions, ParticleEmitter)
   EXPECT_EQ("topic", header.key());
   EXPECT_EQ("my_topic", header.value(0));
 
-  auto headerScatterRatio = emitterMsg.header().data(1);
-  EXPECT_EQ("particle_scatter_ratio", headerScatterRatio.key());
-  EXPECT_FLOAT_EQ(0.9f, std::stof(headerScatterRatio.value(0)));
+  EXPECT_FLOAT_EQ(0.9f, emitterMsg.particle_scatter_ratio().data());
 
   EXPECT_EQ(math::Pose3d(1, 2, 3, 0, 0, 0), msgs::Convert(emitterMsg.pose()));
 

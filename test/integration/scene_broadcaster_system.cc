@@ -22,12 +22,16 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
+#include "ignition/gazebo/components/Model.hh"
+#include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/Pose.hh"
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"
 
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/Relay.hh"
 
 using namespace ignition;
 
@@ -48,7 +52,7 @@ TEST_P(SceneBroadcasterTest, PoseInfo)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(16u, *server.EntityCount());
+  EXPECT_EQ(24u, *server.EntityCount());
 
   // Create pose subscriber
   transport::Node node;
@@ -60,7 +64,7 @@ TEST_P(SceneBroadcasterTest, PoseInfo)
     ASSERT_TRUE(_msg.header().has_stamp());
     EXPECT_LT(0, _msg.header().stamp().sec() +  _msg.header().stamp().nsec());
 
-    EXPECT_EQ(10, _msg.pose_size());
+    EXPECT_EQ(16, _msg.pose_size());
 
     std::map<int, std::string> entityMap;
     for (auto p = 0; p < _msg.pose_size(); ++p)
@@ -68,7 +72,7 @@ TEST_P(SceneBroadcasterTest, PoseInfo)
       entityMap.insert(std::make_pair(_msg.pose(p).id(), _msg.pose(p).name()));
     }
 
-    EXPECT_EQ(10u, entityMap.size());
+    EXPECT_EQ(16u, entityMap.size());
 
     received = true;
   };
@@ -78,7 +82,7 @@ TEST_P(SceneBroadcasterTest, PoseInfo)
   server.Run(true, 1, false);
 
   unsigned int sleep{0u};
-  unsigned int maxSleep{10u};
+  unsigned int maxSleep{30u};
   // cppcheck-suppress unmatchedSuppression
   // cppcheck-suppress knownConditionTrueFalse
   while (!received && sleep++ < maxSleep)
@@ -98,7 +102,7 @@ TEST_P(SceneBroadcasterTest, SceneInfo)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(16u, *server.EntityCount());
+  EXPECT_EQ(24u, *server.EntityCount());
 
   // Run server
   server.Run(true, 1, false);
@@ -113,7 +117,7 @@ TEST_P(SceneBroadcasterTest, SceneInfo)
   EXPECT_TRUE(node.Request("/world/default/scene/info", timeout, res, result));
   EXPECT_TRUE(result);
 
-  EXPECT_EQ(3, res.model_size());
+  EXPECT_EQ(5, res.model_size());
 
   for (auto m = 0; m < res.model_size(); ++m)
   {
@@ -144,7 +148,7 @@ TEST_P(SceneBroadcasterTest, SceneGraph)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(16u, *server.EntityCount());
+  EXPECT_EQ(24u, *server.EntityCount());
 
   // Run server
   server.Run(true, 1, false);
@@ -184,7 +188,7 @@ TEST_P(SceneBroadcasterTest, SceneTopic)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(16u, *server.EntityCount());
+  EXPECT_EQ(24u, *server.EntityCount());
 
   // Create requester
   transport::Node node;
@@ -280,7 +284,7 @@ TEST_P(SceneBroadcasterTest, DeletedTopic)
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  const std::size_t initEntityCount = 16;
+  const std::size_t initEntityCount = 24;
   EXPECT_EQ(initEntityCount, *server.EntityCount());
 
   // Subscribe to deletions
@@ -340,7 +344,7 @@ TEST_P(SceneBroadcasterTest, SpawnedModel)
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  const std::size_t initEntityCount = 16;
+  const std::size_t initEntityCount = 24;
   EXPECT_EQ(initEntityCount, *server.EntityCount());
 
   server.Run(true, 1, false);
@@ -409,7 +413,7 @@ TEST_P(SceneBroadcasterTest, State)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(16u, *server.EntityCount());
+  EXPECT_EQ(24u, *server.EntityCount());
   transport::Node node;
 
   // Run server
@@ -439,19 +443,19 @@ TEST_P(SceneBroadcasterTest, State)
       [&](const msgs::SerializedStepMap &_res, const bool _success)
   {
     EXPECT_TRUE(_success);
-    checkMsg(_res, 16);
+    checkMsg(_res, 24);
   };
   std::function<void(const msgs::SerializedStepMap &)> cb2 =
       [&](const msgs::SerializedStepMap &_res)
   {
-    checkMsg(_res, 3);
+    checkMsg(_res, 5);
   };
 
   // async state request with full state response
   std::function<void(const msgs::SerializedStepMap &)> cbAsync =
       [&](const msgs::SerializedStepMap &_res)
   {
-    checkMsg(_res, 16);
+    checkMsg(_res, 24);
   };
 
   // The request is blocking even though it's meant to be async, so we spin a
@@ -464,7 +468,7 @@ TEST_P(SceneBroadcasterTest, State)
 
   // Run server
   unsigned int sleep{0u};
-  unsigned int maxSleep{10u};
+  unsigned int maxSleep{30u};
   while (!received && sleep++ < maxSleep)
   {
     IGN_SLEEP_MS(100);
@@ -588,7 +592,7 @@ TEST_P(SceneBroadcasterTest, StateStatic)
 
   // Run server
   unsigned int sleep{0u};
-  unsigned int maxSleep{10u};
+  unsigned int maxSleep{30u};
   while (!received && sleep++ < maxSleep)
   {
     IGN_SLEEP_MS(100);
@@ -610,6 +614,128 @@ TEST_P(SceneBroadcasterTest, StateStatic)
   while (!received && sleep++ < maxSleep)
     IGN_SLEEP_MS(100);
   EXPECT_TRUE(received);
+}
+
+/////////////////////////////////////////////////
+/// Test whether the scene topic is published when a component is removed.
+TEST_P(SceneBroadcasterTest, RemovedComponent)
+{
+  // Start server
+  ignition::gazebo::ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+                          "/test/worlds/shapes.sdf");
+
+  gazebo::Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Create a system that removes a component
+  ignition::gazebo::test::Relay testSystem;
+
+  testSystem.OnUpdate([](const gazebo::UpdateInfo &_info,
+    gazebo::EntityComponentManager &_ecm)
+    {
+      if (_info.iterations > 1)
+      {
+        _ecm.Each<ignition::gazebo::components::Model,
+                  ignition::gazebo::components::Name,
+                  ignition::gazebo::components::Pose>(
+          [&](const ignition::gazebo::Entity &_entity,
+              const ignition::gazebo::components::Model *,
+              const ignition::gazebo::components::Name *_name,
+              const ignition::gazebo::components::Pose *)->bool
+          {
+            if (_name->Data() == "box")
+            {
+              _ecm.RemoveComponent<ignition::gazebo::components::Pose>(_entity);
+            }
+            return true;
+          });
+      }
+    });
+  server.AddSystem(testSystem.systemPtr);
+
+  bool received = false;
+  bool hasState = false;
+  std::function<void(const msgs::SerializedStepMap &)> cb =
+      [&](const msgs::SerializedStepMap &_res)
+  {
+    hasState = _res.has_state();
+    // Check the received state.
+    if (hasState)
+    {
+      ignition::gazebo::EntityComponentManager localEcm;
+      localEcm.SetState(_res.state());
+      bool hasBox = false;
+      localEcm.Each<ignition::gazebo::components::Model,
+                  ignition::gazebo::components::Name>(
+          [&](const ignition::gazebo::Entity &_entity,
+              const ignition::gazebo::components::Model *,
+              const ignition::gazebo::components::Name *_name)->bool
+          {
+            if (_name->Data() == "box")
+            {
+              hasBox = true;
+              if (_res.stats().iterations() > 1)
+              {
+                // The pose component should be gone
+                EXPECT_FALSE(localEcm.EntityHasComponentType(
+                      _entity, ignition::gazebo::components::Pose::typeId));
+              }
+              else
+              {
+                // The pose component should exist
+                EXPECT_TRUE(localEcm.EntityHasComponentType(
+                      _entity, ignition::gazebo::components::Pose::typeId));
+              }
+            }
+            return true;
+          });
+      EXPECT_TRUE(hasBox);
+    }
+    received = true;
+  };
+
+  transport::Node node;
+  EXPECT_TRUE(node.Subscribe("/world/default/state", cb));
+
+  unsigned int sleep = 0u;
+  unsigned int maxSleep = 30u;
+
+  // Run server once. The first time should send the state message
+  server.RunOnce(true);
+  // cppcheck-suppress unmatchedSuppression
+  // cppcheck-suppress knownConditionTrueFalse
+  while (!received && sleep++ < maxSleep)
+    IGN_SLEEP_MS(100);
+  EXPECT_TRUE(received);
+  EXPECT_TRUE(hasState);
+
+  // Run server again. The second time shouldn't have state info. The
+  // message can still arrive due the passage of time (see `itsPubTime` in
+  // SceneBroadcaster::PostUpdate.
+  sleep = 0u;
+  received = false;
+  hasState = false;
+  server.RunOnce(true);
+  // cppcheck-suppress unmatchedSuppression
+  // cppcheck-suppress knownConditionTrueFalse
+  while (!received && sleep++ < maxSleep)
+    IGN_SLEEP_MS(100);
+  EXPECT_FALSE(hasState);
+
+  // Run server again. The third time should send the state message because
+  // the test system removed a component.
+  sleep = 0u;
+  received = false;
+  hasState = false;
+  server.RunOnce(true);
+  // cppcheck-suppress unmatchedSuppression
+  // cppcheck-suppress knownConditionTrueFalse
+  while (!received && sleep++ < maxSleep)
+    IGN_SLEEP_MS(100);
+  EXPECT_TRUE(received);
+  EXPECT_TRUE(hasState);
 }
 
 // Run multiple times

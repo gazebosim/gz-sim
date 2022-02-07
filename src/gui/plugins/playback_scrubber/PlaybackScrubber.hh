@@ -30,7 +30,7 @@ namespace gazebo
 {
   class PlaybackScrubberPrivate;
 
-  /// \brief Provides buttons for adding a box, sphere, or cylinder
+  /// \brief Provides slider and functionality for log playback.
   /// to the scene
   class PlaybackScrubber : public ignition::gazebo::GuiSystem
   {

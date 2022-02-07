@@ -26,12 +26,13 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
+#include <ignition/gui/GuiEvents.hh>
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/Publisher.hh>
 
-#include "ignition/gazebo/gui/GuiEvents.hh"
+#include <ignition/gazebo/Primitives.hh>
 
 namespace ignition::gazebo
 {
@@ -73,149 +74,15 @@ void Shapes::LoadConfig(const tinyxml2::XMLElement *)
 void Shapes::OnMode(const QString &_mode)
 {
   std::string modelSdfString = _mode.toStdString();
-  std::transform(modelSdfString.begin(), modelSdfString.end(),
-                 modelSdfString.begin(), ::tolower);
+  modelSdfString = getPrimitive(modelSdfString);
 
-  // TODO(anyone) when porting to v5 add <material> tag to capsule & ellipsoid
-  if (modelSdfString == "box")
+  if (!modelSdfString.empty())
   {
-    modelSdfString = std::string("<?xml version=\"1.0\"?>"
-                                 "<sdf version=\"1.6\">"
-                                   "<model name=\"box\">"
-                                     "<pose>0 0 0.5 0 0 0</pose>"
-                                     "<link name=\"box_link\">"
-                                       "<inertial>"
-                                         "<inertia>"
-                                           "<ixx>0.167</ixx>"
-                                           "<ixy>0</ixy>"
-                                           "<ixz>0</ixz>"
-                                           "<iyy>0.167</iyy>"
-                                           "<iyz>0</iyz>"
-                                           "<izz>0.167</izz>"
-                                         "</inertia>"
-                                         "<mass>1.0</mass>"
-                                       "</inertial>"
-                                       "<collision name=\"box_collision\">"
-                                         "<geometry>"
-                                           "<box>"
-                                             "<size>1 1 1</size>"
-                                           "</box>"
-                                         "</geometry>"
-                                       "</collision>"
-                                       "<visual name=\"box_visual\">"
-                                         "<geometry>"
-                                           "<box>"
-                                             "<size>1 1 1</size>"
-                                           "</box>"
-                                         "</geometry>"
-                                         "<material>"
-                                           "<ambient>0.3 0.3 0.3 1</ambient>"
-                                           "<diffuse>0.7 0.7 0.7 1</diffuse>"
-                                           "<specular>1 1 1 1</specular>"
-                                         "</material>"
-                                       "</visual>"
-                                     "</link>"
-                                   "</model>"
-                                 "</sdf>");
+    ignition::gui::events::SpawnFromDescription event(modelSdfString);
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        &event);
   }
-  else if (modelSdfString == "sphere")
-  {
-    modelSdfString = std::string("<?xml version=\"1.0\"?>"
-                                 "<sdf version=\"1.6\">"
-                                   "<model name=\"sphere\">"
-                                     "<pose>0 0 0.5 0 0 0</pose>"
-                                     "<link name=\"sphere_link\">"
-                                       "<inertial>"
-                                         "<inertia>"
-                                           "<ixx>0.1</ixx>"
-                                           "<ixy>0</ixy>"
-                                           "<ixz>0</ixz>"
-                                           "<iyy>0.1</iyy>"
-                                           "<iyz>0</iyz>"
-                                           "<izz>0.1</izz>"
-                                         "</inertia>"
-                                         "<mass>1.0</mass>"
-                                       "</inertial>"
-                                       "<collision name=\"sphere_collision\">"
-                                         "<geometry>"
-                                           "<sphere>"
-                                             "<radius>0.5</radius>"
-                                           "</sphere>"
-                                         "</geometry>"
-                                       "</collision>"
-                                       "<visual name=\"sphere_visual\">"
-                                         "<geometry>"
-                                           "<sphere>"
-                                             "<radius>0.5</radius>"
-                                           "</sphere>"
-                                         "</geometry>"
-                                         "<material>"
-                                           "<ambient>0.3 0.3 0.3 1</ambient>"
-                                           "<diffuse>0.7 0.7 0.7 1</diffuse>"
-                                           "<specular>1 1 1 1</specular>"
-                                         "</material>"
-                                       "</visual>"
-                                     "</link>"
-                                   "</model>"
-                                 "</sdf>");
-  }
-  else if (modelSdfString == "cylinder")
-  {
-    modelSdfString = std::string("<?xml version=\"1.0\"?>"
-                                 "<sdf version=\"1.6\">"
-                                   "<model name=\"cylinder\">"
-                                     "<pose>0 0 0.5 0 0 0</pose>"
-                                     "<link name=\"cylinder_link\">"
-                                       "<inertial>"
-                                         "<inertia>"
-                                           "<ixx>0.146</ixx>"
-                                           "<ixy>0</ixy>"
-                                           "<ixz>0</ixz>"
-                                           "<iyy>0.146</iyy>"
-                                           "<iyz>0</iyz>"
-                                           "<izz>0.125</izz>"
-                                         "</inertia>"
-                                         "<mass>1.0</mass>"
-                                       "</inertial>"
-                                       "<collision name=\"cylinder_collision\">"
-                                         "<geometry>"
-                                           "<cylinder>"
-                                             "<radius>0.5</radius>"
-                                             "<length>1.0</length>"
-                                           "</cylinder>"
-                                         "</geometry>"
-                                       "</collision>"
-                                       "<visual name=\"cylinder_visual\">"
-                                         "<geometry>"
-                                           "<cylinder>"
-                                             "<radius>0.5</radius>"
-                                             "<length>1.0</length>"
-                                           "</cylinder>"
-                                         "</geometry>"
-                                         "<material>"
-                                           "<ambient>0.3 0.3 0.3 1</ambient>"
-                                           "<diffuse>0.7 0.7 0.7 1</diffuse>"
-                                           "<specular>1 1 1 1</specular>"
-                                         "</material>"
-                                       "</visual>"
-                                     "</link>"
-                                   "</model>"
-                                 "</sdf>");
-  }
-  else
-  {
-    ignwarn << "Invalid model string " << modelSdfString << "\n";
-    ignwarn << "The valid options are:\n";
-    ignwarn << " - box\n";
-    ignwarn << " - sphere\n";
-    ignwarn << " - cylinder\n";
-    return;
-  }
-
-  gui::events::SpawnPreviewModel event(modelSdfString);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-      &event);
 }
 
 // Register this plugin

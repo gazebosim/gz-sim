@@ -22,6 +22,7 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Filesystem.hh>
+#include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/utilities/ExtraTestMacros.hh>
 
@@ -55,6 +56,11 @@ void thermalCb(const msgs::Image &_msg)
 {
   std::lock_guard<std::mutex> g_lock(g_mutex);
   g_imageMsgs.push_back(_msg);
+
+  EXPECT_EQ(320u, _msg.width());
+  EXPECT_EQ(240u, _msg.height());
+  EXPECT_EQ(320u, _msg.step());
+  EXPECT_EQ(msgs::PixelFormatType::L_INT8, _msg.pixel_format_type());
 
   unsigned int width = _msg.width();
   unsigned int height = _msg.height();
@@ -167,9 +173,9 @@ TEST_F(ThermalSensorTest,
   const std::string cylinderVisual = "cylinder_visual";
   const std::string boxVisual = "box_visual";
   EXPECT_EQ(3u, entityTemp.size());
-  ASSERT_TRUE(entityTemp.find(sphereVisual) != entityTemp.end());
-  ASSERT_TRUE(entityTemp.find(cylinderVisual) != entityTemp.end());
-  ASSERT_TRUE(entityTemp.find(boxVisual) != entityTemp.end());
+  ASSERT_NE(entityTemp.find(sphereVisual), entityTemp.end());
+  ASSERT_NE(entityTemp.find(cylinderVisual), entityTemp.end());
+  ASSERT_NE(entityTemp.find(boxVisual), entityTemp.end());
   EXPECT_DOUBLE_EQ(600.0, entityTemp[sphereVisual].Kelvin());
   // the user specified temp is larger than the max value representable by an
   // 8 bit 3 degree resolution camera - this value should be clamped
@@ -183,17 +189,17 @@ TEST_F(ThermalSensorTest,
 
   // wait for image
   bool received = false;
-  for (unsigned int i = 0; i < 20; ++i)
+  int sleep{0};
+  int maxSleep{40};
+  for (; sleep < maxSleep && !received; ++sleep)
   {
-    {
-      std::lock_guard<std::mutex> lock(g_mutex);
-      received = !g_imageMsgs.empty();
-    }
-    if (received)
-      break;
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::lock_guard<std::mutex> lock(g_mutex);
+    received = !g_imageMsgs.empty();
   }
+  EXPECT_LT(sleep, maxSleep);
   EXPECT_TRUE(received);
+  ASSERT_NE(nullptr, g_image);
 
   // check temperature in actual image output
   {

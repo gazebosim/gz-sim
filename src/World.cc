@@ -15,6 +15,7 @@
  *
 */
 
+#include <ignition/math/SphericalCoordinates.hh>
 #include <ignition/math/Vector3.hh>
 
 #include "ignition/gazebo/components/Actor.hh"
@@ -25,6 +26,7 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/SphericalCoordinates.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/World.hh"
 
@@ -89,6 +91,34 @@ std::optional<sdf::Atmosphere> World::Atmosphere(
     const EntityComponentManager &_ecm) const
 {
   return _ecm.ComponentData<components::Atmosphere>(this->dataPtr->id);
+}
+
+//////////////////////////////////////////////////
+std::optional<math::SphericalCoordinates> World::SphericalCoordinates(
+    const EntityComponentManager &_ecm) const
+{
+  return _ecm.ComponentData<components::SphericalCoordinates>(
+      this->dataPtr->id);
+}
+
+//////////////////////////////////////////////////
+void World::SetSphericalCoordinates(EntityComponentManager &_ecm,
+    const math::SphericalCoordinates &_sphericalCoordinates)
+{
+  auto sphericalCoordinatesComp =
+      _ecm.Component<components::SphericalCoordinates>(this->dataPtr->id);
+  if (!sphericalCoordinatesComp)
+  {
+    _ecm.CreateComponent(this->dataPtr->id,
+        components::SphericalCoordinates(_sphericalCoordinates));
+    return;
+  }
+
+  sphericalCoordinatesComp->SetData(_sphericalCoordinates,
+      [](const math::SphericalCoordinates &,
+         const math::SphericalCoordinates &){return false;});
+  _ecm.SetChanged(this->dataPtr->id,
+      components::SphericalCoordinates::typeId, ComponentState::OneTimeChange);
 }
 
 //////////////////////////////////////////////////
