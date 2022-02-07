@@ -33,7 +33,7 @@ namespace components
   /// \brief A component for an entity's center of volume. Units are in meters.
   /// The Vector3 value indicates center of volume of an entity. The
   /// position of the center of volume is relative to the pose of the parent
-  /// entity.
+  /// entity, which is usually a link.
   using CenterOfVolume = Component<math::Vector3d, class CenterOfVolumeTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.CenterOfVolume",
       CenterOfVolume)
