@@ -220,10 +220,10 @@ namespace ignition
       public: void EnableVelocityChecks(EntityComponentManager &_ecm,
           bool _enable = true) const;
 
-      /// \brief Set the linear velocity on this link. If this is set wrenches
+      /// \brief Set the linear velocity on this link. If this is set, wrenches
       /// on this link will be ignored for the current time step.
-      /// \param[in] _ecm Entity-component manager.
-      /// \param[in] _vel Linear velocity to set.
+      /// \param[in] _ecm Entity Component manager.
+      /// \param[in] _vel Linear velocity to set in Link's Frame.
       public: void SetLinearVelocity(EntityComponentManager &_ecm,
           const math::Vector3d &_vel) const;
 
