@@ -37,6 +37,7 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace detail
 {
+
 /// \brief A view that caches a particular set of component type data.
 /// \tparam ComponentTypeTs The component type(s) that are stored in this view.
 class View : public BaseView
@@ -162,6 +163,14 @@ class View : public BaseView
     return CreateTupleImpl<Args...>(std::index_sequence_for<Args...>{}, _args);
   }
 };
+
+//////////////////////////////////////////////////
+/// Helper function to create a View out of template arguments
+template <typename... ComponentTypeTs>
+View MakeView()
+{
+  return View({ComponentTypeTs::typeId...});
+}
 
 //////////////////////////////////////////////////
 template <typename... ComponentTypeTs>
