@@ -100,6 +100,11 @@ namespace ignition
                   EventManager &_eventMgr) = 0;
     };
 
+    class ISystemReset {
+      public: virtual void Reset(const UpdateInfo &_info,
+                                 EntityComponentManager &_ecm) = 0;
+    };
+
     /// \class ISystemPreUpdate ISystem.hh ignition/gazebo/System.hh
     /// \brief Interface for a system that uses the PreUpdate phase
     class ISystemPreUpdate {
