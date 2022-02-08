@@ -17,6 +17,7 @@
 #ifndef IGNITION_GAZEBO_DETAIL_VIEW_HH_
 #define IGNITION_GAZEBO_DETAIL_VIEW_HH_
 
+#include <memory>
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
@@ -104,6 +105,8 @@ class View : public BaseView
 
   /// \brief Documentation inherited
   public: void Reset() override;
+
+  public: std::unique_ptr<BaseView> Clone() const override;
 
   /// \brief A map of entities to their component data. Since tuples are defined
   /// at compile time, we need separate containers that have tuples for both
@@ -328,6 +331,13 @@ void View<ComponentTypeTs...>::Reset()
   this->invalidData.clear();
   this->invalidConstData.clear();
   this->missingCompTracker.clear();
+}
+
+//////////////////////////////////////////////////
+template<typename ...ComponentTypeTs>
+std::unique_ptr<BaseView> View<ComponentTypeTs...>::Clone() const
+{
+  return std::make_unique<View<ComponentTypeTs...>>(*this);
 }
 }  // namespace detail
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE

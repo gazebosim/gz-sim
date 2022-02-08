@@ -49,6 +49,7 @@ set (sources
   BaseView.cc
   Conversions.cc
   EntityComponentManager.cc
+  EntityComponentManagerDiff.cc
   LevelManager.cc
   Link.cc
   Model.cc

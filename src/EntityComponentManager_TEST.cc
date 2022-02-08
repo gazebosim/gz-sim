@@ -35,6 +35,7 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/config.hh"
+#include "EntityComponentManagerDiff.hh"
 #include "../test/helpers/EnvTestFixture.hh"
 
 using namespace ignition;
@@ -105,6 +106,18 @@ class EntityCompMgrTest : public EntityComponentManager
   public: void RunClearRemovedComponents()
   {
     this->ClearRemovedComponents();
+  }
+
+  public: EntityComponentManagerDiff RunComputeDiff(
+              const EntityComponentManager &_other) const
+  {
+    return this->ComputeDiff(_other);
+  }
+
+  public: void RunApplyDiff(const EntityComponentManager &_other,
+                            const EntityComponentManagerDiff &_diff)
+  {
+    this->ApplyDiff(_other, _diff);
   }
 };
 
@@ -3148,6 +3161,167 @@ TEST_P(EntityComponentManagerFixture,
         return true;
       });
   EXPECT_EQ(1, foundEntities);
+}
+
+TEST_P(EntityComponentManagerFixture, CopyEcm)
+{
+  Entity entity = manager.CreateEntity();
+  math::Pose3d testPose{1, 2, 3, 0.1, 0.2, 0.3};
+  manager.CreateComponent(entity, components::Pose{testPose});
+
+  EntityCompMgrTest managerCopy;
+  managerCopy.Copy(manager);
+  EXPECT_EQ(manager.EntityCount(), managerCopy.EntityCount());
+  EXPECT_TRUE(managerCopy.HasEntity(entity));
+  EXPECT_TRUE(
+      managerCopy.EntityHasComponentType(entity, components::Pose::typeId));
+  managerCopy.EachNew<components::Pose>(
+      [&](const Entity &_entity, const components::Pose *_pose)
+      {
+        EXPECT_EQ(_entity, entity);
+        EXPECT_EQ(testPose, _pose->Data());
+        return true;
+      });
+}
+
+TEST_P(EntityComponentManagerFixture, ComputDiff)
+{
+  Entity entity1 = manager.CreateEntity();
+  math::Pose3d testPose{1, 2, 3, 0.1, 0.2, 0.3};
+  manager.CreateComponent(entity1, components::Pose{testPose});
+
+  EntityCompMgrTest managerCopy;
+  managerCopy.Copy(manager);
+
+  Entity entity2 = manager.CreateEntity();
+  manager.CreateComponent(entity2, components::StringComponent{"Entity2"});
+
+  manager.RunClearNewlyCreatedEntities();
+
+  // manager now has:
+  // - entity1 [Pose]
+  // - entity2 [StringComponent]
+  // managerCopy has
+  // - entity1 [Pose]
+
+  {
+    EntityComponentManagerDiff diff = managerCopy.RunComputeDiff(manager);
+    EXPECT_EQ(1u, diff.AddedEntities().size());
+    EXPECT_EQ(0u, diff.RemovedEntities().size());
+  }
+
+  // Now add another component to managerCopy. We should expect one more entity
+  // in RemovedEntities
+  managerCopy.SetEntityCreateOffset(10);
+  managerCopy.CreateEntity();
+  {
+    EntityComponentManagerDiff diff = managerCopy.RunComputeDiff(manager);
+    EXPECT_EQ(1u, diff.AddedEntities().size());
+    EXPECT_EQ(1u, diff.RemovedEntities().size());
+
+    diff.ClearRemovedEntities();
+    EXPECT_EQ(1u, diff.AddedEntities().size());
+    EXPECT_EQ(0u, diff.RemovedEntities().size());
+  }
+
+  {
+    EntityComponentManagerDiff diff = managerCopy.RunComputeDiff(manager);
+    EXPECT_EQ(1u, diff.RemovedEntities().size());
+    managerCopy.RunApplyDiff(manager, diff);
+    EXPECT_TRUE(managerCopy.HasEntitiesMarkedForRemoval());
+  }
+}
+
+TEST_P(EntityComponentManagerFixture, ResetToWithDeletedEntity)
+{
+  Entity entity1 = manager.CreateEntity();
+  math::Pose3d testPose{1, 2, 3, 0.1, 0.2, 0.3};
+  manager.CreateComponent(entity1, components::Pose{testPose});
+  manager.CreateComponent(entity1, components::Name{"entity1"});
+
+  Entity entity2 = manager.CreateEntity();
+  manager.CreateComponent(entity2, components::Name{"entity2"});
+
+  {
+    std::vector<Entity> newEntities;
+    manager.EachNew<components::Name>(
+        [&](const Entity &_entity, const components::Name *)
+        {
+          newEntities.push_back(_entity);
+          return true;
+        });
+    ASSERT_EQ(2u, newEntities.size());
+  }
+
+  EntityCompMgrTest managerCopy;
+  managerCopy.Copy(manager);
+
+  manager.RequestRemoveEntity(entity1);
+
+  // Emulate a step so that entity1 can be actually removed.
+  manager.RunClearNewlyCreatedEntities();
+  manager.ProcessEntityRemovals();
+  manager.RunClearRemovedComponents();
+  manager.RunSetAllComponentsUnchanged();
+
+  EXPECT_FALSE(manager.HasNewEntities());
+
+  // Now reset to the copy
+  manager.ResetTo(managerCopy);
+  EXPECT_TRUE(manager.HasNewEntities());
+
+  {
+    std::vector<Entity> newEntities;
+    manager.EachNew<components::Name>(
+        [&](const Entity &_entity, const components::Name *)
+        {
+          newEntities.push_back(_entity);
+          return true;
+        });
+    ASSERT_EQ(2u, newEntities.size());
+  }
+}
+
+TEST_P(EntityComponentManagerFixture, ResetToWithAddedEntity)
+{
+  Entity entity1 = manager.CreateEntity();
+  math::Pose3d testPose{1, 2, 3, 0.1, 0.2, 0.3};
+  manager.CreateComponent(entity1, components::Pose{testPose});
+  manager.CreateComponent(entity1, components::Name{"entity1"});
+
+  Entity entity2 = manager.CreateEntity();
+  manager.CreateComponent(entity2, components::Name{"entity2"});
+
+  EntityCompMgrTest managerCopy;
+  managerCopy.Copy(manager);
+
+  // Add entity3 after a copy has been made.
+  Entity entity3 = manager.CreateEntity();
+  manager.CreateComponent(entity3, components::Name{"entity3"});
+
+  // Emulate a step so that entity1 can be actually removed.
+  manager.RunClearNewlyCreatedEntities();
+  manager.ProcessEntityRemovals();
+  manager.RunClearRemovedComponents();
+  manager.RunSetAllComponentsUnchanged();
+
+  EXPECT_FALSE(manager.HasNewEntities());
+
+  // Now reset to the copy
+  manager.ResetTo(managerCopy);
+  EXPECT_TRUE(manager.HasNewEntities());
+
+  {
+    std::vector<Entity> removedEntities;
+    manager.EachRemoved<components::Name>(
+        [&](const Entity &_entity, const components::Name *)
+        {
+          removedEntities.push_back(_entity);
+          return true;
+        });
+    ASSERT_EQ(1u, removedEntities.size());
+    EXPECT_EQ(entity3, removedEntities.front());
+  }
 }
 
 // Run multiple times. We want to make sure that static globals don't cause

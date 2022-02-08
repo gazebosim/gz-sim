@@ -95,6 +95,9 @@ namespace ignition
       /// \brief Get an vector of all systems implementing "Configure"
       public: const std::vector<ISystemConfigure *>& SystemsConfigure();
 
+      /// \brief Get an vector of all systems implementing "Reset"
+      public: const std::vector<ISystemReset *>& SystemsReset();
+
       /// \brief Get an vector of all systems implementing "PreUpdate"
       public: const std::vector<ISystemPreUpdate *>& SystemsPreUpdate();
 
@@ -125,6 +128,9 @@ namespace ignition
 
       /// \brief Systems implementing Configure
       private: std::vector<ISystemConfigure *> systemsConfigure;
+
+      /// \brief Systems implementing Reset 
+      private: std::vector<ISystemReset *> systemsReset;
 
       /// \brief Systems implementing PreUpdate
       private: std::vector<ISystemPreUpdate *> systemsPreupdate;

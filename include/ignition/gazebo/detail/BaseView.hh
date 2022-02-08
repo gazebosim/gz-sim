@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_DETAIL_BASEVIEW_HH_
 
 #include <cstddef>
+#include <memory>
 #include <set>
 #include <unordered_map>
 #include <vector>
@@ -186,6 +187,8 @@ class IGNITION_GAZEBO_VISIBLE BaseView
   /// added to the view are actually added to the view.
   /// \sa ToAddEntities
   public: void ClearToAddEntities();
+
+  public: virtual std::unique_ptr<BaseView> Clone() const = 0;
 
   // TODO(adlarkin) make this a std::unordered_set for better performance.
   // We need to make sure nothing else depends on the ordered preserved by
