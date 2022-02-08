@@ -17,10 +17,12 @@
 #ifndef IGNITION_GAZEBO_DETAIL_VIEW_HH_
 #define IGNITION_GAZEBO_DETAIL_VIEW_HH_
 
+#include <set>
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
+#include <vector>
 
 #include <ignition/common/Console.hh>
 
@@ -177,9 +179,9 @@ template <typename... ComponentTypeTs>
 std::tuple<Entity, const ComponentTypeTs *...> View::EntityComponentConstData(
     const Entity _entity) const
 {
-  return std::tuple_cat(
-      std::make_tuple(_entity),
-      CreateTuple<const ComponentTypeTs *...>(this->validConstData.at(_entity)));
+  return std::tuple_cat(std::make_tuple(_entity),
+                        CreateTuple<const ComponentTypeTs *...>(
+                            this->validConstData.at(_entity)));
 }
 
 //////////////////////////////////////////////////

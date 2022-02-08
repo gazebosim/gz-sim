@@ -385,7 +385,7 @@ void EntityComponentManager::Each(typename identity<std::function<
   // function.
   for (const Entity entity : view->Entities())
   {
-    if (!std::apply(_f, 
+    if (!std::apply(_f,
           view->template EntityComponentConstData<ComponentTypeTs...>(entity)))
     {
       break;
@@ -458,7 +458,8 @@ void EntityComponentManager::EachNew(typename identity<std::function<
   // function.
   for (const Entity entity : view->NewEntities())
   {
-    if (!std::apply(_f, view->template EntityComponentConstData<ComponentTypeTs...>(entity)))
+    if (!std::apply(_f,
+          view->template EntityComponentConstData<ComponentTypeTs...>(entity)))
     {
       break;
     }
