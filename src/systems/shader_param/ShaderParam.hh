@@ -37,7 +37,11 @@ namespace systems
   ///
   /// Plugin parameters:
   ///
-  /// <shader>
+  /// <shader>     Shader to use - can be repeated to specify shader programs
+  ///              written in different languages.
+  ///              Attributes:
+  ///                language - Shader language. Possible values: glsl, metal
+  ///                           Default to glsl if not specified
   ///   <vertex>   Path to vertex program
   ///   <fragment> Path to fragment program
   /// <param>      Shader parameter - can be repeated within plugin SDF element
@@ -54,7 +58,7 @@ namespace systems
   /// \verbatim
   ///     <plugin filename="ignition-gazebo-shader-param-system"
   ///             name="ignition::gazebo::systems::ShaderParam">
-  ///        <shader>
+  ///        <shader language='glsl'>
   ///          <vertex>materials/my_vs.glsl</vertex>
   ///          <fragment>materials/my_fs.glsl</fragment>
   ///        </shader>
