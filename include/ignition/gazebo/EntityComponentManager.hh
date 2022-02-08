@@ -49,6 +49,7 @@ namespace ignition
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
     class IGNITION_GAZEBO_HIDDEN EntityComponentManagerPrivate;
+    class EntityComponentManagerDiff;
 
     /// \brief Type alias for the graph that holds entities.
     /// Each vertex is an entity, and the direction points from the parent to
@@ -70,6 +71,8 @@ namespace ignition
 
       /// \brief Destructor
       public: ~EntityComponentManager();
+
+      public: void Copy(const EntityComponentManager &_fromEcm);
 
       /// \brief Creates a new Entity.
       /// \return An id for the Entity, or kNullEntity on failure.
@@ -669,6 +672,13 @@ namespace ignition
       /// \param[in] _offset Offset value.
       public: void SetEntityCreateOffset(uint64_t _offset);
 
+      /// \brief Given a diff, apply it to this ECM. Note that for removed
+      /// entities, this would mark them for removal instead of actually
+      /// removing the entities.
+      /// \param[in] _other Original EntityComponentManager from which the diff
+      /// was computed.
+      public: void ResetTo(const EntityComponentManager &_other);
+
       /// \brief Return true if there are components marked for removal.
       /// \return True if there are components marked for removal.
       public: bool HasRemovedComponents() const;
@@ -689,6 +699,24 @@ namespace ignition
 
       /// \brief Mark all components as not changed.
       protected: void SetAllComponentsUnchanged();
+
+      /// Compute the diff between this EntityComponentManager and _other at the
+      /// entity level.
+      ///  * If an entity is in `_other`, but not in `this`, insert the entity
+      ///  as an "added" entity.
+      ///  * If an entity is in `this`, but not in `other`, insert the entity
+      ///  as a "removed" entity.
+      ///  \return Data structure containing the added and removed entities
+      protected: EntityComponentManagerDiff ComputeDiff(
+                     const EntityComponentManager &_other) const;
+
+      /// \brief Given a diff, apply it to this ECM. Note that for removed
+      /// entities, this would mark them for removal instead of actually
+      /// removing the entities.
+      /// \param[in] _other Original EntityComponentManager from which the diff
+      /// was computed.
+      protected: void ApplyDiff(const EntityComponentManager &_other,
+                                const EntityComponentManagerDiff &_diff);
 
       /// \brief Get whether an Entity exists and is new.
       ///

@@ -84,6 +84,9 @@ size_t SystemManager::ActivatePendingSystems()
     if (system.configure)
       this->systemsConfigure.push_back(system.configure);
 
+    if (system.reset)
+      this->systemsReset.push_back(system.reset);
+
     if (system.preupdate)
       this->systemsPreupdate.push_back(system.preupdate);
 
@@ -138,6 +141,12 @@ void SystemManager::AddSystemImpl(
 const std::vector<ISystemConfigure *>& SystemManager::SystemsConfigure()
 {
   return this->systemsConfigure;
+}
+
+//////////////////////////////////////////////////
+const std::vector<ISystemReset *>& SystemManager::SystemsReset()
+{
+  return this->systemsReset;
 }
 
 //////////////////////////////////////////////////

@@ -169,6 +169,9 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // Load the active levels
   this->levelMgr->UpdateLevelsState();
 
+  // Store the initial state of the ECM;
+  this->initialEntityCompMgr.Copy(this->entityCompMgr);
+
   // Load any additional plugins from the Server Configuration
   this->LoadServerPlugins(this->serverConfig.Plugins());
 
@@ -264,7 +267,7 @@ void SimulationRunner::UpdateCurrentInfo()
     this->realTimeWatch.Reset();
     if (!this->currentInfo.paused)
       this->realTimeWatch.Start();
-
+    this->resetInitiated = true;
     this->requestedRewind = false;
 
     return;
@@ -531,6 +534,14 @@ void SimulationRunner::UpdateSystems()
   // WorkerPool.cc). We could turn on parallel updates in the future, and/or
   // turn it on if there are sufficient systems. More testing is required.
 
+  if (this->resetInitiated)
+  {
+    IGN_PROFILE("Reset");
+    for (auto &system : this->systemsReset)
+      system->Reset(this->currentInfo, this->entityCompMgr);
+    return;
+  }
+
   {
     IGN_PROFILE("PreUpdate");
     for (auto& system : this->systemMgr->SystemsPreUpdate())
@@ -748,6 +759,11 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     // Update time information. This will update the iteration count, RTF,
     // and other values.
     this->UpdateCurrentInfo();
+    if (this->resetInitiated)
+    {
+      this->entityCompMgr.ResetTo(this->initialEntityCompMgr);
+    }
+
     if (!this->currentInfo.paused)
     {
       processedIterations++;
@@ -772,6 +788,8 @@ bool SimulationRunner::Run(const uint64_t _iterations)
       this->currentInfo.iterations++;
       this->blockingPausedStepPending = false;
     }
+
+    this->resetInitiated = false;
   }
 
   this->running = false;
