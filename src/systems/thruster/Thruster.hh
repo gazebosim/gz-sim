@@ -64,6 +64,10 @@ namespace systems
   ///              no units, defaults to 0.0]
   /// - <d_gain> - Derivative gain for joint PID controller. [Optional,
   ///              no units, defaults to 0.0]
+  /// - <max_thrust_cmd> - Maximum thrust command. [Optional,
+  ///                      defaults to 1000N]
+  /// - <min_thrust_cmd> - Minimum thrust command. [Optional,
+  ///                      defaults to -1000N]
   ///
   /// ## Example
   /// An example configuration is installed with Gazebo. The example
