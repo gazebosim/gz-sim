@@ -58,6 +58,10 @@ namespace systems::physics_system
     /// \param[in] _ecm EntityComponentManager
     public: void AddNewModels(const EntityComponentManager &_ecm);
 
+    /// \brief Save mappings for all models and their canonical links
+    /// \param[in] _ecm EntityComponentManager
+    public: void AddAllModels(const EntityComponentManager &_ecm);
+
     /// \brief Get a topological ordering of models that have a particular
     /// canonical link
     /// \param[in] _canonicalLink The canonical link
@@ -79,13 +83,24 @@ namespace systems::physics_system
 
     /// \brief An empty set of models that is returned from the
     /// CanonicalLinkModels method for links that map to no models
-    private: const std::set<Entity> emptyModelOrdering{};
+    private: static inline const std::set<Entity> kEmptyModelOrdering{};
   };
 
   void CanonicalLinkModelTracker::AddNewModels(
       const EntityComponentManager &_ecm)
   {
     _ecm.EachNew<components::Model, components::ModelCanonicalLink>(
+        [this](const Entity &_model, const components::Model *,
+          const components::ModelCanonicalLink *_canonicalLinkComp)
+        {
+          this->linkModelMap[_canonicalLinkComp->Data()].insert(_model);
+          return true;
+        });
+  }
+  void CanonicalLinkModelTracker::AddAllModels(
+      const EntityComponentManager &_ecm)
+  {
+    _ecm.Each<components::Model, components::ModelCanonicalLink>(
         [this](const Entity &_model, const components::Model *,
           const components::ModelCanonicalLink *_canonicalLinkComp)
         {
@@ -102,7 +117,7 @@ namespace systems::physics_system
       return it->second;
 
     // if an invalid entity was given, it maps to no models
-    return this->emptyModelOrdering;
+    return this->kEmptyModelOrdering;
   }
 
   void CanonicalLinkModelTracker::RemoveLink(const Entity &_link)
