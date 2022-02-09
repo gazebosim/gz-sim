@@ -32,7 +32,7 @@ esac
 done
 
 FILENAME="${SCRIPTNAME%.*}"
-TMPFILE=$(mktemp /tmp/primary.XXXXXX.sdf)
+TMPFILE=$(mktemp /tmp/secondary.XXXXXX.sdf)
 function cleanup {
   rm $TMPFILE
 }

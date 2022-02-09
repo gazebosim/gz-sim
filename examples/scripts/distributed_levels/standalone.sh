@@ -57,7 +57,7 @@ sleep 10s
 echo "-----------------------"
 echo "Launching ign_gui"
 echo "-----------------------"
-ign_imgui -o $OUTPUT_STATS_FILE &
+ign gazebo -g -o $OUTPUT_STATS_FILE &
 sleep 120s
 
 echo "-----------------------"

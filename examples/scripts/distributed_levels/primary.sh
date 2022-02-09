@@ -45,13 +45,6 @@ function cleanup {
 }
 trap cleanup EXIT
 
-OUTPUT_STATS_FILE="stats_distributed_r${ROBOTS}_s${SECONDARIES}.csv"
-
-if [[ -f $OUTPUT_STATS_FILE ]]; then
-  echo "$OUTPUT_STATS_FILE already exists, deleting before running a simulation with the same settings..."
-  rm $OUTPUT_STATS_FILE
-fi
-
 empy3 -o "$TMPFILE" "$FILENAME.sdf.em" $ROBOTS
 
 echo "-----------------------"
@@ -60,17 +53,10 @@ echo "-----------------------"
 # --levels is implied by --network-role
 ign gazebo -v 4 -z 100000000 -r --network-role primary --network-secondaries $SECONDARIES $TMPFILE &
 
-sleep 10s
-
-echo "-----------------------"
-echo "Launching ign_gui"
-echo "-----------------------"
-ign_imgui -o $OUTPUT_STATS_FILE &
-
-sleep 120s
+sleep 30s
 
 echo "-----------------------"
 echo "Closing"
 echo "-----------------------"
-kill -SIGINT %1 %2
-wait %1 %2
+kill -SIGINT %1
+wait %1
