@@ -79,12 +79,12 @@ class ignition::gazebo::systems::ThrusterPrivateData
   /// and writes the angular velocity directly to the joint. default: false
   public: bool velocityControl = false;
 
-  /// \brief Maximum input force [N] for the propellerController, default: 1000N
-  /// TODO(chapulina) Make it configurable from SDF.
+  /// \brief Maximum input force [N] for the propellerController,
+  /// default: 1000N
   public: double cmdMax = 1000;
 
-  /// \brief Minimum input force [N] for the propellerController, default: 1000N
-  /// TODO(chapulina) Make it configurable from SDF.
+  /// \brief Minimum input force [N] for the propellerController,
+  /// default: -1000N
   public: double cmdMin = -1000;
 
   /// \brief Thrust coefficient relating the propeller angular velocity to the
@@ -205,6 +205,29 @@ void Thruster::Configure(
   enableComponent<components::AngularVelocity>(_ecm, this->dataPtr->linkEntity);
   enableComponent<components::WorldAngularVelocity>(_ecm,
       this->dataPtr->linkEntity);
+
+  double minThrustCmd = this->dataPtr->cmdMin;
+  double maxThrustCmd = this->dataPtr->cmdMax;
+  if (_sdf->HasElement("max_thrust_cmd"))
+  {
+    maxThrustCmd = _sdf->Get<double>("max_thrust_cmd");
+  }
+  if (_sdf->HasElement("min_thrust_cmd"))
+  {
+    minThrustCmd = _sdf->Get<double>("min_thrust_cmd");
+  }
+  if (maxThrustCmd < minThrustCmd)
+  {
+    ignerr << "<max_thrust_cmd> must be greater than or equal to "
+           << "<min_thrust_cmd>. Revert to using default values: "
+           << "min: " << this->dataPtr->cmdMin << ", "
+           << "max: " << this->dataPtr->cmdMax << std::endl;
+  }
+  else
+  {
+    this->dataPtr->cmdMax = maxThrustCmd;
+    this->dataPtr->cmdMin = minThrustCmd;
+  }
 
   if (_sdf->HasElement("velocity_control"))
   {

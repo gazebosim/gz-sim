@@ -93,7 +93,7 @@ TEST_F(LogicalCameraTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogicalCameraBox))
 
   // Create a system that checks sensor topics
   test::Relay testSystem;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
+  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
                               const gazebo::EntityComponentManager &_ecm)
       {
         _ecm.Each<components::LogicalCamera, components::Name>(
@@ -107,11 +107,15 @@ TEST_F(LogicalCameraTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogicalCameraBox))
                 auto sensorComp = _ecm.Component<components::Sensor>(_entity);
                 EXPECT_NE(nullptr, sensorComp);
 
-                auto topicComp =
-                    _ecm.Component<components::SensorTopic>(_entity);
-                EXPECT_NE(nullptr, topicComp);
-                if (topicComp) {
-                  EXPECT_EQ(topic1, topicComp->Data());
+                if (_info.iterations != 1)
+                {
+                  auto topicComp =
+                      _ecm.Component<components::SensorTopic>(_entity);
+                  EXPECT_NE(nullptr, topicComp);
+                  if (topicComp)
+                  {
+                    EXPECT_EQ(topic1, topicComp->Data());
+                  }
                 }
                 update1Checked = true;
               }
@@ -121,11 +125,15 @@ TEST_F(LogicalCameraTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogicalCameraBox))
                 auto sensorComp = _ecm.Component<components::Sensor>(_entity);
                 EXPECT_NE(nullptr, sensorComp);
 
-                auto topicComp =
-                    _ecm.Component<components::SensorTopic>(_entity);
-                EXPECT_NE(nullptr, topicComp);
-                if (topicComp) {
-                EXPECT_EQ(topic2, topicComp->Data());
+                if (_info.iterations != 1)
+                {
+                  auto topicComp =
+                      _ecm.Component<components::SensorTopic>(_entity);
+                  EXPECT_NE(nullptr, topicComp);
+                  if (topicComp)
+                  {
+                    EXPECT_EQ(topic2, topicComp->Data());
+                  }
                 }
                 update2Checked = true;
               }
