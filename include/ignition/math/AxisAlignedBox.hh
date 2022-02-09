@@ -221,57 +221,6 @@ namespace ignition
       /// \return Volume of the box in m^3.
       public: double Volume() const;
 
-      /// \brief Compute the cylinder's density given a mass value. The
-      /// cylinder is assumed to be solid with uniform density. This
-      /// function requires the cylinder's radius and length to be set to
-      /// values greater than zero. The Material of the cylinder is ignored.
-      /// \param[in] _mass Mass of the cylinder, in kg. This value should be
-      /// greater than zero.
-      /// \return Density of the cylinder in kg/m^3. A negative value is
-      /// returned if radius, length or _mass is <= 0.
-      /// \deprecated Unimplemented
-      public: double IGN_DEPRECATED(6.0) DensityFromMass(
-        const double _mass) const;
-
-      /// \brief Set the density of this box based on a mass value.
-      /// Density is computed using
-      /// double DensityFromMass(const double _mass) const. The
-      /// box is assumed to be solid with uniform density. This
-      /// function requires the box's size to be set to
-      /// values greater than zero. The existing Material density value is
-      /// overwritten only if the return value from this true.
-      /// \param[in] _mass Mass of the box, in kg. This value should be
-      /// greater than zero.
-      /// \return True if the density was set. False is returned if the
-      /// box's size or the _mass value are <= 0.
-      /// \sa double DensityFromMass(const double _mass) const
-      /// \deprecated Unimplemented
-      public: bool IGN_DEPRECATED(6.0) SetDensityFromMass(
-        const double _mass);
-
-      /// \brief Get the material associated with this box.
-      /// \return The material assigned to this box.
-      /// \deprecated Unimplemented
-      public: const ignition::math::Material IGN_DEPRECATED(6.0)
-        &Material() const;
-
-      /// \brief Set the material associated with this box.
-      /// \param[in] _mat The material assigned to this box
-      /// \deprecated Unimplemented
-      public: void IGN_DEPRECATED(6.0) SetMaterial(
-        const ignition::math::Material &_mat);
-
-      /// \brief Get the mass matrix for this box. This function
-      /// is only meaningful if the box's size and material
-      /// have been set.
-      /// \param[out] _massMat The computed mass matrix will be stored
-      /// here.
-      /// \return False if computation of the mass matrix failed, which
-      /// could be due to an invalid size (<=0) or density (<=0).
-      /// \deprecated Unimplemented
-      public: bool IGN_DEPRECATED(6.0) MassMatrix(
-        MassMatrix3d &_massMat) const;
-
       /// \brief Clip a line to a dimension of the box.
       /// This is a helper function to Intersects
       /// \param[in] _d Dimension of the box(0, 1, or 2).
