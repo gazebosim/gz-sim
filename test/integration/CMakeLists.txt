@@ -38,6 +38,7 @@ set(tests
   model.cc
   multicopter.cc
   multiple_servers.cc
+  navsat_system.cc
   nested_model_physics.cc
   network_handshake.cc
   odometry_publisher.cc
@@ -56,9 +57,7 @@ set(tests
   thruster.cc
   touch_plugin.cc
   tracked_vehicle_system.cc
-  # TODO(chapulina) Re-enable this test when parsing `type` attributes is fixed
-  # See https://github.com/ignitionrobotics/sdformat/pull/809
-  # triggered_publisher.cc
+  triggered_publisher.cc
   user_commands.cc
   velocity_control_system.cc
   log_system.cc

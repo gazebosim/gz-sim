@@ -1,6 +1,9 @@
 <?xml version="1.0" ?>
 <sdf version="1.9">
   <world name="force_torque">
+    <physics name="fast" type="ignored">
+      <real_time_factor>0</real_time_factor>
+    </physics>
     <plugin filename="ignition-gazebo-physics-system" name="ignition::gazebo::systems::Physics" />
     <plugin filename="ignition-gazebo-forcetorque-system" name="ignition::gazebo::systems::ForceTorque" />
     <plugin filename='ignition-gazebo-scene-broadcaster-system' name='ignition::gazebo::systems::SceneBroadcaster' />

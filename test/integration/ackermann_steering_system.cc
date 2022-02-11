@@ -20,6 +20,7 @@
 #include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Model.hh"
@@ -193,7 +194,8 @@ class AckermannSteeringTest
 };
 
 /////////////////////////////////////////////////
-TEST_P(AckermannSteeringTest, PublishCmd)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_P(AckermannSteeringTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 {
   TestPublishCmd(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
                                    "/test/worlds/ackermann_steering.sdf"),
@@ -201,7 +203,8 @@ TEST_P(AckermannSteeringTest, PublishCmd)
 }
 
 /////////////////////////////////////////////////
-TEST_P(AckermannSteeringTest, PublishCmdCustomTopics)
+TEST_P(AckermannSteeringTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmdCustomTopics))
 {
   TestPublishCmd(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "/test/worlds/ackermann_steering_custom_topics.sdf"),
@@ -209,7 +212,7 @@ TEST_P(AckermannSteeringTest, PublishCmdCustomTopics)
 }
 
 /////////////////////////////////////////////////
-TEST_P(AckermannSteeringTest, SkidPublishCmd)
+TEST_P(AckermannSteeringTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SkidPublishCmd))
 {
   // Start server
   ServerConfig serverConfig;
@@ -307,7 +310,7 @@ TEST_P(AckermannSteeringTest, SkidPublishCmd)
 }
 
 /////////////////////////////////////////////////
-TEST_P(AckermannSteeringTest, OdomFrameId)
+TEST_P(AckermannSteeringTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
 {
   // Start server
   ServerConfig serverConfig;
@@ -365,7 +368,8 @@ TEST_P(AckermannSteeringTest, OdomFrameId)
 }
 
 /////////////////////////////////////////////////
-TEST_P(AckermannSteeringTest, OdomCustomFrameId)
+TEST_P(AckermannSteeringTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(OdomCustomFrameId))
 {
   // Start server
   ServerConfig serverConfig;

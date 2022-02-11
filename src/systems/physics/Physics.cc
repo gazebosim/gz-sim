@@ -2892,8 +2892,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
   IGN_PROFILE_END();
 
   // pose/velocity/acceleration of non-link entities such as sensors /
-  // collisions. These get updated only if another system has created a
-  // components::WorldPose component for the entity.
+  // collisions. These get updated only if another system has created
+  // the component for the entity.
   // Populated components:
   // * WorldPose
   // * WorldLinearVelocity

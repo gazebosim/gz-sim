@@ -6,6 +6,72 @@
 
 ### Ignition Gazebo 6.X.X (202X-XX-XX)
 
+### Ignition Gazebo 6.4.0 (2021-01-13)
+
+1. Disable more tests on Windows
+    * [Pull request #1286](https://github.com/ignitionrobotics/ign-gazebo/pull/1286)
+
+1. Adding angular acceleration to the Link class
+    * [Pull request #1288](https://github.com/ignitionrobotics/ign-gazebo/pull/1288)
+
+1. Add world force
+    * [Pull request #1279](https://github.com/ignitionrobotics/ign-gazebo/pull/1279)
+
+1. Add NavSat sensor (GPS)
+    * [Pull request #1248](https://github.com/ignitionrobotics/ign-gazebo/pull/1248)
+
+1. Light Commands via topic
+    * [Pull request #1222](https://github.com/ignitionrobotics/ign-gazebo/pull/1222)
+
+1. Support battery draining start via topics
+    * [Pull request #1255](https://github.com/ignitionrobotics/ign-gazebo/pull/1255)
+
+1. Add visibility to ModelEditorAddEntity to fix Windows
+    * [Pull request #1246](https://github.com/ignitionrobotics/ign-gazebo/pull/1246)
+
+1. Make tests run as fast as possible
+    * [Pull request #1194](https://github.com/ignitionrobotics/ign-gazebo/pull/1194)
+
+1. Fix visualize lidar
+    * [Pull request #1224](https://github.com/ignitionrobotics/ign-gazebo/pull/1224)
+
+1. Disable user commands light test on macOS
+    * [Pull request #1204](https://github.com/ignitionrobotics/ign-gazebo/pull/1204)
+
+1. Skip failing Windows tests
+    * [Pull request #1205](https://github.com/ignitionrobotics/ign-gazebo/pull/1205)
+
+
+### Ignition Gazebo 6.3.0 (2021-12-10)
+
+1. View entity frames from the GUI
+    * [Pull request #1105](https://github.com/ignitionrobotics/ign-gazebo/pull/1105)
+
+1. Model editor
+    * [Pull request #1231](https://github.com/ignitionrobotics/ign-gazebo/pull/1231)
+
+1. Send state message when components are removed
+    * [Pull request #1235](https://github.com/ignitionrobotics/ign-gazebo/pull/1235)
+
+1. Docker fixes for Fortress
+    * [Pull request #1238](https://github.com/ignitionrobotics/ign-gazebo/pull/1238)
+
+1. Added sensor plugin to be able to visualize camera in `plane_propeller_demo.sdf`
+    * [Pull request #1226](https://github.com/ignitionrobotics/ign-gazebo/pull/1226)
+
+1. Update SdfGenerator to save link and sensor data to file
+    * [Pull request #1201](https://github.com/ignitionrobotics/ign-gazebo/pull/1201)
+
+1. Fix buoyancy not being applied for one iteration
+    * [Pull request #1211](https://github.com/ignitionrobotics/ign-gazebo/pull/1211)
+
+1. Increase maximum values in ViewAngle widget and increase its size
+    * [Pull request #1221](https://github.com/ignitionrobotics/ign-gazebo/pull/1221)
+    * [Pull request #1239](https://github.com/ignitionrobotics/ign-gazebo/pull/1239)
+
+1. Fix the force-torque sensor update rate
+    * [Pull request #1159](https://github.com/ignitionrobotics/ign-gazebo/pull/1159)
+
 ### Ignition Gazebo 6.2.0 (2021-11-16)
 
 1. Configurable joint state publisher's topic
@@ -942,6 +1008,41 @@
     * [Pull request #426](https://github.com/ignitionrobotics/ign-gazebo/pull/426)
 
 ## Ignition Gazebo 4.x
+
+### Ignition Gazebo 4.13.0 (2021-11-15)
+
+1. Prevent creation of spurious `<plugin>` elements when saving worlds
+    * [Pull request #1192](https://github.com/ignitionrobotics/ign-gazebo/pull/1192)
+
+1. Add support for tracked vehicles
+    * [Pull request #869](https://github.com/ignitionrobotics/ign-gazebo/pull/869)
+
+1. Add components to dynamically set joint limits
+    * [Pull request #847](https://github.com/ignitionrobotics/ign-gazebo/pull/847)
+
+1. Fix updating component from state
+    * [Pull request #1181](https://github.com/ignitionrobotics/ign-gazebo/pull/1181)
+
+1. Fix updating a component's data via SerializedState msg
+    * [Pull request #1149](https://github.com/ignitionrobotics/ign-gazebo/pull/1149)
+
+1. Sensor systems work if loaded after sensors
+    * [Pull request #1104](https://github.com/ignitionrobotics/ign-gazebo/pull/1104)
+
+1. Fix generation of systems library symlinks in build directory
+    * [Pull request #1160](https://github.com/ignitionrobotics/ign-gazebo/pull/1160)
+
+1. Edit material colors in component inspector
+    * [Pull request #1123](https://github.com/ignitionrobotics/ign-gazebo/pull/1123)
+
+1. Support setting the background color for sensors
+    * [Pull request #1147](https://github.com/ignitionrobotics/ign-gazebo/pull/1147)
+
+1. Use uint64_t for ComponentInspector Entity IDs
+    * [Pull request #1144](https://github.com/ignitionrobotics/ign-gazebo/pull/1144)
+
+1. Fix integers and floats on component inspector
+    * [Pull request #1143](https://github.com/ignitionrobotics/ign-gazebo/pull/1143)
 
 ### Ignition Gazebo 4.12.0 (2021-10-22)
 

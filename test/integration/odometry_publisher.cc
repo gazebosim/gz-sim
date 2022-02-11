@@ -20,6 +20,7 @@
 #include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/AngularVelocityCmd.hh"
@@ -396,7 +397,8 @@ class OdometryPublisherTest
 };
 
 /////////////////////////////////////////////////
-TEST_P(OdometryPublisherTest, Movement)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_P(OdometryPublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Movement))
 {
   TestMovement(
       std::string(PROJECT_SOURCE_PATH) + "/test/worlds/odometry_publisher.sdf",
@@ -404,7 +406,8 @@ TEST_P(OdometryPublisherTest, Movement)
 }
 
 /////////////////////////////////////////////////
-TEST_P(OdometryPublisherTest, MovementCustomTopic)
+TEST_P(OdometryPublisherTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(MovementCustomTopic))
 {
   TestMovement(
       std::string(PROJECT_SOURCE_PATH) +
@@ -413,7 +416,7 @@ TEST_P(OdometryPublisherTest, MovementCustomTopic)
 }
 
 /////////////////////////////////////////////////
-TEST_P(OdometryPublisherTest, Movement3d)
+TEST_P(OdometryPublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Movement3d))
 {
   TestMovement3d(
       ignition::common::joinPaths(PROJECT_SOURCE_PATH,
@@ -422,7 +425,7 @@ TEST_P(OdometryPublisherTest, Movement3d)
 }
 
 /////////////////////////////////////////////////
-TEST_P(OdometryPublisherTest, OdomFrameId)
+TEST_P(OdometryPublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
 {
   TestPublishCmd(
       std::string(PROJECT_SOURCE_PATH) + "/test/worlds/odometry_publisher.sdf",
@@ -432,7 +435,8 @@ TEST_P(OdometryPublisherTest, OdomFrameId)
 }
 
 /////////////////////////////////////////////////
-TEST_P(OdometryPublisherTest, OdomCustomFrameId)
+TEST_P(OdometryPublisherTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(OdomCustomFrameId))
 {
   TestPublishCmd(
       std::string(PROJECT_SOURCE_PATH) +

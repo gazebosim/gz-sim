@@ -55,6 +55,8 @@ namespace systems
   ///   float, default=0.000003m^3/s]
   /// <fluid_density> - The fluid density of the liquid its suspended in kgm^-3.
   ///   [optional, float, default=1000kgm^-3]
+  /// <surface> - The Z height in metres at which the surface of the water is.
+  /// If not defined then there is no surface [optional, float]
   ///
   /// ## Topics
   /// * Subscribes to a ignition::msgs::Double on `buoyancy_engine` or

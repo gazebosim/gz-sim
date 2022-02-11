@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 
+project(ign-gazebo-multi-lrauv-race)
+
 find_package(ignition-transport12 QUIET REQUIRED OPTIONAL_COMPONENTS log)
 set(IGN_TRANSPORT_VER ${ignition-transport12_VERSION_MAJOR})
 
