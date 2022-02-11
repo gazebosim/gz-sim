@@ -74,7 +74,7 @@ namespace systems
   ///         The block should contain the relative direction and distance from
   ///         the initial position in which the vehicle should move, specified
   ///         in the world frame.
-  ///           <direction>: Relative direction (degrees) in the world frame for
+  ///           <direction>: Relative direction (radians) in the world frame for
   ///                        the vehicle to travel.
   ///           <length>: Distance (meters) for the vehicle to travel.
   /// <circle>: Element that indicates the model should travel in "circle" mode.
