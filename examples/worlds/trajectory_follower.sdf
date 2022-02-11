@@ -103,8 +103,8 @@
         filename="ignition-gazebo-trajectory-follower-system"
         name="ignition::gazebo::systems::TrajectoryFollower">
         <link_name>box_link</link_name>
-        <loop_forever>true</loop_forever>
-        <force>1</force>
+        <loop>true</loop>
+        <force>10</force>
         <torque>10</torque>
         <waypoints>
           <waypoint>2 0</waypoint>
@@ -113,6 +113,159 @@
       </plugin>
 
     </model>
+
+    <model name="box_2">
+      <pose>0 2 0.5 0 0 1.5708</pose>
+      <link name="box_link">
+        <inertial>
+          <inertia>
+            <ixx>0.16666</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.16666</iyy>
+            <iyz>0</iyz>
+            <izz>0.16666</izz>
+          </inertia>
+          <mass>1.0</mass>
+        </inertial>
+        <collision name="box_collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="box_visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1 0 0 1</ambient>
+            <diffuse>1 0 0 1</diffuse>
+            <specular>1 0 0 1</specular>
+          </material>
+        </visual>
+      </link>
+
+      <plugin
+        filename="ignition-gazebo-trajectory-follower-system"
+        name="ignition::gazebo::systems::TrajectoryFollower">
+        <link_name>box_link</link_name>
+        <loop>true</loop>
+        <force>10</force>
+        <torque>10</torque>
+        <line>
+          <direction>0</direction>
+          <length>5</length>
+        </line>
+      </plugin>
+
+    </model>
+
+    <model name="box_3">
+      <pose>0 -2 0.5 0 0 -1.5708</pose>
+      <link name="box_link">
+        <inertial>
+          <inertia>
+            <ixx>0.16666</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.16666</iyy>
+            <iyz>0</iyz>
+            <izz>0.16666</izz>
+          </inertia>
+          <mass>1.0</mass>
+        </inertial>
+        <collision name="box_collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="box_visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1 0 0 1</ambient>
+            <diffuse>1 0 0 1</diffuse>
+            <specular>1 0 0 1</specular>
+          </material>
+        </visual>
+      </link>
+
+      <plugin
+        filename="ignition-gazebo-trajectory-follower-system"
+        name="ignition::gazebo::systems::TrajectoryFollower">
+        <link_name>box_link</link_name>
+        <loop>true</loop>
+        <force>10</force>
+        <torque>10</torque>
+        <line>
+          <direction>0</direction>
+          <length>5</length>
+        </line>
+      </plugin>
+
+    </model>
+
+    <!-- <model name="box_4">
+      <pose>-2 0 0.5 0 0 3.14159</pose>
+      <pose>0 0 0.5 0 0 0</pose>
+      <link name="box_link">
+        <inertial>
+          <inertia>
+            <ixx>0.16666</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.16666</iyy>
+            <iyz>0</iyz>
+            <izz>0.16666</izz>
+          </inertia>
+          <mass>1.0</mass>
+        </inertial>
+        <collision name="box_collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="box_visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1 0 0 1</ambient>
+            <diffuse>1 0 0 1</diffuse>
+            <specular>1 0 0 1</specular>
+          </material>
+        </visual>
+      </link>
+
+      <plugin
+        filename="ignition-gazebo-trajectory-follower-system"
+        name="ignition::gazebo::systems::TrajectoryFollower">
+        <link_name>box_link</link_name>
+        <loop>true</loop>
+        <force>10</force>
+        <torque>10</torque>
+        <circle>
+          <radius>5</radius>
+        </circle>
+      </plugin>
+
+    </model> -->
 
   </world>
 </sdf>

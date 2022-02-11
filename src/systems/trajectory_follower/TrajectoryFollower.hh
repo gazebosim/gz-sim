@@ -51,10 +51,10 @@ namespace systems
   ///              will be applied when moving the vehicle.
   ///
   /// * Optional parameters:
-  /// <loop_forever>: When true, all waypoints will be visited continously in a
-  ///                 circular pattern. If false, the model will stop when the
-  ///                 last waypoint is reached. Note, that if the vehicle moves,
-  ///                 it will still try to reach the very last waypoint.
+  /// <loop>: When true, all waypoints will be visited continously in a
+  ///         circular pattern. If false, the model will stop when the
+  ///         last waypoint is reached. Note, that if the vehicle moves,
+  ///         it will still try to reach the very last waypoint.
   /// <waypoints>: Element specifying the set of waypoints that the
   ///              the model should navigate through. This block should contain
   ///              at least one of these blocks:
@@ -87,7 +87,7 @@ namespace systems
   //   filename="ignition-gazebo-trajectory-follower-system"
   //   name="ignition::gazebo::systems::TrajectoryFollower">
   //   <link_name>base_link</link_name>
-  //   <loop_forever>true</loop_forever>
+  //   <loop>true</loop>
   //   <waypoints>
   //     <waypoint>25 0</waypoint>
   //     <waypoint>15 0</waypoint>
@@ -97,7 +97,7 @@ namespace systems
   //   filename="ignition-gazebo-trajectory-follower-system"
   //   name="ignition::gazebo::systems::TrajectoryFollower">
   //   <link_name>base_link</link_name>
-  //   <loop_forever>true</loop_forever>
+  //   <loop>true</loop>
   //   <line>
   //     <direction>0</direction>
   //     <length>5</length>
@@ -107,7 +107,7 @@ namespace systems
   //   filename="ignition-gazebo-trajectory-follower-system"
   //   name="ignition::gazebo::systems::TrajectoryFollower">
   //   <link_name>base_link</link_name>
-  //   <loop_forever>true</loop_forever>
+  //   <loop>true</loop>
   //   <circle>
   //     <radius>2</radius>
   //   </circle>

@@ -18,6 +18,7 @@
 #include <vector>
 
 #include <ignition/common/Profiler.hh>
+#include <ignition/math/Angle.hh>
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/math/Vector2.hh>
@@ -150,7 +151,7 @@ void TrajectoryFollowerPrivate::Load(const EntityComponentManager &_ecm,
       return;
     }
 
-    // Parse the required <direction> field.
+    // Parse the required <radius> field.
     double radius = circleElem->Get<double>("radius");
 
     // Get the current model position in global coordinates. Create
@@ -179,8 +180,8 @@ void TrajectoryFollowerPrivate::Load(const EntityComponentManager &_ecm,
       ignerr << "No <line><direction> specified" << std::endl;
       return;
     }
-    auto dirElem = lineElem->GetElement("direction");
-    double direction = dirElem->Get<double>();
+    ignition::math::Angle direction =
+      lineElem->Get<ignition::math::Angle>("direction");
 
     // Parse the required <length> field.
     if (!lineElem->HasElement("length"))
@@ -188,14 +189,13 @@ void TrajectoryFollowerPrivate::Load(const EntityComponentManager &_ecm,
       ignerr << "No <line><length> specified" << std::endl;
       return;
     }
-    auto lenElem = lineElem->GetElement("length");
-    double length = lenElem->Get<double>();
+    auto length = lineElem->Get<double>("length");
 
     // Create a relative vector in the direction of "direction" and of
     // length "length".
     ignition::math::Vector3d lineVec(
-      length * cos(direction * M_PI / 180),
-      length * sin(direction * M_PI / 180), 0);
+      length * cos(direction.Radian()),
+      length * sin(direction.Radian()), 0);
     ignition::math::Vector2d position(this->modelPose.Pos().X(),
                                       this->modelPose.Pos().Y());
     // Add the initial model position and calculated endpoint as waypoints.
@@ -206,9 +206,9 @@ void TrajectoryFollowerPrivate::Load(const EntityComponentManager &_ecm,
     igndbg << "Entered line waypoints " << position << ", " << p2D << std::endl;
   }
 
-  // Parse the optional <loop_forever> element.
-  if (_sdf->HasElement("loop_forever"))
-    this->loopForever = _sdf->Get<bool>("loop_forever");;
+  // Parse the optional <loop> element.
+  if (_sdf->HasElement("loop"))
+    this->loopForever = _sdf->Get<bool>("loop");;
 
   // Parse the optional <force> element.
   if (_sdf->HasElement("force"))
@@ -216,7 +216,7 @@ void TrajectoryFollowerPrivate::Load(const EntityComponentManager &_ecm,
 
   // Parse the optional <torque> element.
   if (_sdf->HasElement("torque"))
-    this->forceToApply = _sdf->Get<double>("torque");
+    this->torqueToApply = _sdf->Get<double>("torque");
 
   // Parse the optional <range_tolerance> element.
   if (_sdf->HasElement("range_tolerance"))
@@ -272,10 +272,8 @@ void TrajectoryFollower::PreUpdate(
   if (this->dataPtr->localWaypoints.empty())
     return;
 
-  //this->dataPtr->modelPose = this->dataPtr->link.WorldPose(_ecm);
   this->dataPtr->modelPose = ignition::gazebo::worldPose(
     this->dataPtr->link.Entity(), _ecm);
-  // (*this->dataPtr->modelPose).Pos().Z() = 0;
   this->dataPtr->modelPose.Pos().Z() = 0;
 
   // Direction vector to the goal from the model.
