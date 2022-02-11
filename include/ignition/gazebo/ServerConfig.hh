@@ -24,6 +24,7 @@
 #include <string>
 #include <vector>
 #include <sdf/Element.hh>
+#include <sdf/Root.hh>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
@@ -174,6 +175,17 @@ namespace ignition
       /// be returned if an SDF string has not been set.
       /// \return The full contents of the SDF string, or empty string.
       public: std::string SdfString() const;
+
+      /// \brief Set the SDF Root DOM object. The sdf::Root object will take
+      /// precendence over ServerConfig::SdfString() and
+      /// ServerConfig::SdfFile().
+      /// \param[in] _root SDF Root object to use.
+      public: void SetSdfRoot(const sdf::Root &_root) const;
+
+      /// \brief Get the SDF Root DOM object.
+      /// \return SDF Root object to use, or std::nullopt if the sdf::Root
+      /// has not been set via ServerConfig::SetSdfRoot().
+      public: const std::optional<sdf::Root> &SdfRoot() const;
 
       /// \brief Set the update rate in Hertz. Value <=0 are ignored.
       /// \param[in] _hz The desired update rate of the server in Hertz.

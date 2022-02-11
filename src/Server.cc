@@ -33,31 +33,6 @@
 using namespace ignition;
 using namespace gazebo;
 
-//////////////////////////////////////////////////
-// Getting the first .sdf file in the path
-std::string findFuelResourceSdf(const std::string &_path)
-{
-  if (!common::exists(_path))
-    return "";
-
-  for (common::DirIter file(_path); file != common::DirIter(); ++file)
-  {
-    std::string current(*file);
-    if (!common::isFile(current))
-      continue;
-
-    auto fileName = common::basename(current);
-    auto fileExtensionIndex = fileName.rfind(".");
-    auto fileExtension = fileName.substr(fileExtensionIndex + 1);
-
-    if (fileExtension == "sdf")
-    {
-      return current;
-    }
-  }
-  return "";
-}
-
 /// \brief This struct provides access to the default world.
 struct DefaultWorld
 {
@@ -99,7 +74,12 @@ Server::Server(const ServerConfig &_config)
   sdf::Errors errors;
 
   // Load a world if specified. Check SDF string first, then SDF file
-  if (!_config.SdfString().empty())
+  if (_config.SdfRoot())
+  {
+    this->dataPtr->sdfRoot.Clone(*_config.SdfRoot());
+    ignmsg << "Loading SDF world from SDF DOM.\n";
+  }
+  else if (!_config.SdfString().empty())
   {
     std::string msg = "Loading SDF string. ";
     if (_config.SdfFile().empty())
@@ -115,43 +95,8 @@ Server::Server(const ServerConfig &_config)
   }
   else if (!_config.SdfFile().empty())
   {
-    std::string filePath;
-
-    // Check Fuel if it's a URL
-    auto sdfUri = common::URI(_config.SdfFile());
-    if (sdfUri.Scheme() == "http" || sdfUri.Scheme() == "https")
-    {
-      std::string fuelCachePath;
-      if (this->dataPtr->fuelClient->CachedWorld(common::URI(_config.SdfFile()),
-          fuelCachePath))
-      {
-        filePath = findFuelResourceSdf(fuelCachePath);
-      }
-      else if (auto result = this->dataPtr->fuelClient->DownloadWorld(
-          common::URI(_config.SdfFile()), fuelCachePath))
-      {
-        filePath = findFuelResourceSdf(fuelCachePath);
-      }
-      else
-      {
-        ignwarn << "Fuel couldn't download URL [" << _config.SdfFile()
-                << "], error: [" << result.ReadableResult() << "]"
-                << std::endl;
-      }
-    }
-
-    if (filePath.empty())
-    {
-      common::SystemPaths systemPaths;
-
-      // Worlds from environment variable
-      systemPaths.SetFilePathEnv(kResourcePathEnv);
-
-      // Worlds installed with ign-gazebo
-      systemPaths.AddFilePaths(IGN_GAZEBO_WORLD_INSTALL_DIR);
-
-      filePath = systemPaths.FindFile(_config.SdfFile());
-    }
+    std::string filePath = resolveSdfWorldFile(_config.SdfFile(),
+        _config.ResourceCache());
 
     if (filePath.empty())
     {

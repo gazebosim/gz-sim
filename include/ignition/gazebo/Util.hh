@@ -210,6 +210,24 @@ namespace ignition
         const EntityComponentManager &_ecm,
         bool _excludeWorld = true);
 
+    /// \brief Convert an SDF world filename string, such as "shapes.sdf", to
+    /// full system file path.
+    /// The provided SDF filename may be a Fuel URI, relative path, name
+    /// of an installed Gazebo world filename, or an absolute path.
+    /// \param[in] _sdfFile An SDF world filename such as:
+    ///    1. "shapes.sdf" - This is referencing an installed world file.
+    ///    2. "../shapes.sdf" - This is referencing a relative world file.
+    ///    3. "/home/user/shapes.sdf" - This is reference an absolute world
+    ///       file.
+    ///    4. "https://fuel.ignitionrobotics.org/1.0/openrobotics/worlds/shapes.sdf" - This is referencing a Fuel URI. This will download the world file.
+    /// \param[in] _fuelResourceCache Path to a Fuel resource cache, if
+    /// known.
+    /// \return Full path to the SDF world file. An empty string is returned
+    /// if the file could not be found.
+    std::string IGNITION_GAZEBO_VISIBLE resolveSdfWorldFile(
+        const std::string &_sdfFilename,
+        const std::string &_fuelResourceCache = "");
+
     /// \brief Helper function to "enable" a component (i.e. create it if it
     /// doesn't exist) or "disable" a component (i.e. remove it if it exists).
     /// \param[in] _ecm Mutable reference to the ECM

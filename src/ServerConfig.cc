@@ -301,6 +301,9 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// \brief is the headless mode active.
   public: bool isHeadlessRendering{false};
+
+  /// \brief Optional SDF root object.
+  public: std::optional<sdf::Root> sdfRoot;
 };
 
 //////////////////////////////////////////////////
@@ -323,6 +326,7 @@ bool ServerConfig::SetSdfFile(const std::string &_file)
 {
   this->dataPtr->sdfFile = _file;
   this->dataPtr->sdfString = "";
+  this->dataPtr->sdfRoot = std::nullopt;
   return true;
 }
 
@@ -337,6 +341,7 @@ bool ServerConfig::SetSdfString(const std::string &_sdfString)
 {
   this->dataPtr->sdfFile = "";
   this->dataPtr->sdfString = _sdfString;
+  this->dataPtr->sdfRoot = std::nullopt;
   return true;
 }
 
@@ -695,6 +700,28 @@ void ServerConfig::ClearLogRecordTopics()
 const std::vector<std::string> &ServerConfig::LogRecordTopics() const
 {
   return this->dataPtr->logRecordTopics;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetSdfRoot(const sdf::Root &_root) const
+{
+  this->dataPtr->sdfRoot.emplace();
+
+  for (uint64_t i = 0; i < _root.WorldCount(); ++i)
+  {
+    const sdf::World *world = _root.WorldByIndex(i);
+    if (world)
+      this->dataPtr->sdfRoot->AddWorld(*world);
+  }
+
+  this->dataPtr->sdfFile = "";
+  this->dataPtr->sdfString = "";
+}
+
+/////////////////////////////////////////////////
+const std::optional<sdf::Root> &ServerConfig::SdfRoot() const
+{
+  return this->dataPtr->sdfRoot;
 }
 
 /////////////////////////////////////////////////

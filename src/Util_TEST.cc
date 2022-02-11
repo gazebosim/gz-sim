@@ -21,6 +21,8 @@
 #include <sdf/Light.hh>
 #include <sdf/Types.hh>
 
+#include <ignition/fuel_tools/ClientConfig.hh>
+
 #include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Joint.hh"
@@ -37,6 +39,7 @@
 #include "ignition/gazebo/Util.hh"
 
 #include "helpers/EnvTestFixture.hh"
+#include "helpers/UniqueTestDirectoryEnv.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -715,4 +718,43 @@ TEST_F(UtilTest, EnableComponent)
   // Disabling again makes no changes
   EXPECT_FALSE(enableComponent<components::Name>(ecm, entity1, false));
   EXPECT_EQ(nullptr, ecm.Component<components::Name>(entity1));
+}
+
+/////////////////////////////////////////////////
+TEST_F(UtilTest, ResolveSdfWorldFile)
+{
+  // Test resolving a Fuel URI
+  fuel_tools::ClientConfig config;
+
+  // URI to a Fuel world.
+  std::string fuelUri =
+    "https://fuel.ignitionrobotics.org/1.0/openrobotics/worlds/test world";
+
+  // The expect path for the local Fuel world.
+  std::string expectedPath = common::joinPaths(
+      config.CacheLocation(), "fuel.ignitionrobotics.org",
+      "openrobotics", "worlds", "test world");
+
+  // Get the Fuel world.
+  std::string resolvedPath = resolveSdfWorldFile(fuelUri,
+      config.CacheLocation());
+
+  // The Fuel model has not been downloaded, so it should not exist.
+  EXPECT_FALSE(resolvedPath.empty());
+
+  // The expected path should be the first part of the resolved path. The
+  // resolved path will have extra world version information at the end.
+  EXPECT_EQ(0u, resolvedPath.find(expectedPath));
+
+  // Now try to resolve the downloaded world file using an aboslute path
+  EXPECT_EQ(resolvedPath, resolveSdfWorldFile(resolvedPath));
+
+  // The "shapes.sdf" world file should resolve.
+  EXPECT_FALSE(resolveSdfWorldFile("shapes.sdf").empty());
+
+  // A bad absolute path should return an empty string
+  EXPECT_TRUE(resolveSdfWorldFile("/invalid/does_not_exist.sdf").empty());
+
+  // A bad relative path should return an empty string
+  EXPECT_TRUE(resolveSdfWorldFile("../invalid/does_not_exist.sdf").empty());
 }
