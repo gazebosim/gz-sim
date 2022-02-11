@@ -14,7 +14,6 @@ set(tests
   detachable_joint.cc
   diff_drive_system.cc
   each_new_removed.cc
-  elevator_system.cc
   entity_erase.cc
   events.cc
   examples_build.cc
@@ -61,6 +60,11 @@ set(tests
   wind_effects.cc
   world.cc
 )
+
+# elevator system causes compile erros on windows
+if (NOT WIN32)
+  list(APPEND tests elevator_system.cc)
+endif()
 
 # Tests that require a valid display
 set(tests_needing_display
