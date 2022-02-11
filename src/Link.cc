@@ -17,6 +17,7 @@
 
 #include <ignition/msgs/Utility.hh>
 
+#include "ignition/gazebo/components/AngularAcceleration.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/Collision.hh"
@@ -25,6 +26,7 @@
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
+#include "ignition/gazebo/components/LinearVelocityCmd.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
@@ -246,6 +248,33 @@ void Link::EnableVelocityChecks(EntityComponentManager &_ecm, bool _enable)
 }
 
 //////////////////////////////////////////////////
+void Link::SetLinearVelocity(EntityComponentManager &_ecm,
+  const math::Vector3d &_vel) const
+{
+    auto vel =
+      _ecm.Component<components::LinearVelocityCmd>(this->dataPtr->id);
+
+    if (vel == nullptr)
+    {
+      _ecm.CreateComponent(
+          this->dataPtr->id,
+          components::LinearVelocityCmd(_vel));
+    }
+    else
+    {
+      vel->Data() = _vel;
+    }
+}
+
+//////////////////////////////////////////////////
+std::optional<math::Vector3d> Link::WorldAngularAcceleration(
+    const EntityComponentManager &_ecm) const
+{
+  return _ecm.ComponentData<components::WorldAngularAcceleration>(
+      this->dataPtr->id);
+}
+
+//////////////////////////////////////////////////
 std::optional<math::Vector3d> Link::WorldLinearAcceleration(
     const EntityComponentManager &_ecm) const
 {
@@ -257,6 +286,10 @@ std::optional<math::Vector3d> Link::WorldLinearAcceleration(
 void Link::EnableAccelerationChecks(EntityComponentManager &_ecm, bool _enable)
     const
 {
+  enableComponent<components::WorldAngularAcceleration>(_ecm, this->dataPtr->id,
+      _enable);
+  enableComponent<components::AngularAcceleration>(_ecm, this->dataPtr->id,
+      _enable);
   enableComponent<components::WorldLinearAcceleration>(_ecm, this->dataPtr->id,
       _enable);
   enableComponent<components::LinearAcceleration>(_ecm, this->dataPtr->id,
@@ -320,6 +353,29 @@ void Link::AddWorldForce(EntityComponentManager &_ecm,
   // compute the resulting force and torque on the link origin.
   auto posComWorldCoord =
       worldPose->Data().Rot().RotateVector(inertial->Data().Pose().Pos());
+
+  math::Vector3d torque = posComWorldCoord.Cross(_force);
+
+  this->AddWorldWrench(_ecm, _force, torque);
+}
+
+//////////////////////////////////////////////////
+void Link::AddWorldForce(EntityComponentManager &_ecm,
+                         const math::Vector3d &_force,
+                         const math::Vector3d &_position) const
+{
+  auto inertial = _ecm.Component<components::Inertial>(this->dataPtr->id);
+  auto worldPose = _ecm.Component<components::WorldPose>(this->dataPtr->id);
+
+  // Can't apply force if the inertial's pose is not found
+  if (!inertial || !worldPose)
+    return;
+
+  // We want the force to be applied at an offset from the center of mass, but
+  // ExternalWorldWrenchCmd applies the force at the link origin so we need to
+  // compute the resulting force and torque on the link origin.
+  auto posComWorldCoord = worldPose->Data().Rot().RotateVector(
+    _position + inertial->Data().Pose().Pos());
 
   math::Vector3d torque = posComWorldCoord.Cross(_force);
 

@@ -38,6 +38,7 @@ set(tests
   model.cc
   multicopter.cc
   multiple_servers.cc
+  navsat_system.cc
   nested_model_physics.cc
   network_handshake.cc
   odometry_publisher.cc
@@ -75,6 +76,7 @@ set(tests_needing_display
   optical_tactile_plugin.cc
   rgbd_camera.cc
   sensors_system.cc
+  shader_param_system.cc
   thermal_system.cc
   thermal_sensor_system.cc
 )

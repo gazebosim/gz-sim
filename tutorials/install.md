@@ -59,33 +59,36 @@ feature which hasn't been released yet.
 
 ### Ubuntu 18.04 or above
 
-1. Enable the Ignition software repositories:
+1. Install tools
+  ```
+  sudo apt install -y build-essential cmake g++-8 git gnupg lsb-release wget
+  ```
+
+2. Enable the Ignition software repositories:
   ```
   sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
   wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
   sudo apt-get update
   ```
 
-2. Install package dependencies:
+3. Clone repository
   ```
-  git clone https://github.com/ignitionrobotics/ign-gazebo -b main
-  export SYSTEM_VERSION=bionic
-  sudo apt -y install \
-    $(sort -u $(find . -iname 'packages-'`lsb_release -cs`'.apt' -o -iname 'packages.apt' | grep -v '/\.git/') | sed '/ignition\|sdf/d' | tr '\n' ' ')
+  git clone https://github.com/ignitionrobotics/ign-gazebo -b ign-gazebo<#>
   ```
 
-3. (Ubuntu 18.04 only) Configure gcc8
+4. Install package dependencies (including other Ignition libraries):
+  ```
+  sudo apt -y install \
+    $(sort -u $(find . -iname 'packages-'`lsb_release -cs`'.apt' -o -iname 'packages.apt' | tr '\n' ' '))
+  ```
+
+5. (Ubuntu 18.04 only) Configure gcc8
   ```
   sudo apt-get install g++-8
   sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 800 --slave /usr/bin/g++ g++ /usr/bin/g++-8 --slave /usr/bin/gcov gcov /usr/bin/gcov-8
   ```
 
-4. Clone the repository if you haven't already.
-  ```
-  git clone https://github.com/ignitionrobotics/ign-gazebo -b ign-gazebo<#>
-  ```
-
-5. Configure and build.
+6. Configure and build.
   ```
   cd ign-gazebo
   mkdir build

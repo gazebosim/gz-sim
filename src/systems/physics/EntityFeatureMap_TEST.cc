@@ -29,6 +29,7 @@
 #include <ignition/physics/RemoveEntities.hh>
 #include <ignition/physics/config.hh>
 #include <ignition/plugin/Loader.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "../../../test/helpers/EnvTestFixture.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -92,7 +93,9 @@ class EntityFeatureMapFixture: public InternalFixture<::testing::Test>
   public: EnginePtrType engine;
 };
 
-TEST_F(EntityFeatureMapFixture, AddCastRemoveEntity)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(EntityFeatureMapFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(AddCastRemoveEntity))
 {
   struct TestOptionalFeatures1
       : physics::FeatureList<physics::LinkFrameSemantics>

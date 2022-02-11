@@ -220,6 +220,21 @@ namespace ignition
       public: void EnableVelocityChecks(EntityComponentManager &_ecm,
           bool _enable = true) const;
 
+      /// \brief Set the linear velocity on this link. If this is set, wrenches
+      /// on this link will be ignored for the current time step.
+      /// \param[in] _ecm Entity Component manager.
+      /// \param[in] _vel Linear velocity to set in Link's Frame.
+      public: void SetLinearVelocity(EntityComponentManager &_ecm,
+          const math::Vector3d &_vel) const;
+
+      /// \brief Get the angular acceleration of the body in the world frame.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return Angular acceleration of the body in the world frame or
+      /// nullopt if acceleration checks aren't enabled.
+      /// \sa EnableAccelerationChecks
+      public: std::optional<math::Vector3d> WorldAngularAcceleration(
+          const EntityComponentManager &_ecm) const;
+
       /// \brief Get the linear acceleration of the body in the world frame.
       /// \param[in] _ecm Entity-component manager.
       /// \return Linear acceleration of the body in the world frame or nullopt
@@ -261,6 +276,16 @@ namespace ignition
       /// \param[in] _force Force to be applied expressed in world coordinates
       public: void AddWorldForce(EntityComponentManager &_ecm,
                                  const math::Vector3d &_force) const;
+
+      /// \brief Add a force expressed in world coordinates and applied at
+      /// an offset from the center of mass of the link.
+      /// \param[in] _ecm Mutable Entity-component manager.
+      /// \param[in] _force Force to be applied expressed in world coordinates
+      /// \param[in] _position The point of application of the force expressed
+      /// in the link-fixed frame.
+      public: void AddWorldForce(EntityComponentManager &_ecm,
+                                 const math::Vector3d &_force,
+                                 const math::Vector3d &_position) const;
 
       /// \brief Add a wrench expressed in world coordinates and applied to
       /// the link at the link's origin. This wrench is applied for one

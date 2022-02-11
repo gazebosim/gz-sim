@@ -22,6 +22,7 @@
 #include <ignition/common/Util.hh>
 #include <ignition/math/Rand.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 #include <sdf/Mesh.hh>
 
 #include "ignition/gazebo/components/AxisAlignedBox.hh"
@@ -50,7 +51,8 @@ class ServerFixture : public InternalFixture<::testing::TestWithParam<int>>
 };
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, DefaultServerConfig)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(DefaultServerConfig))
 {
   ignition::gazebo::ServerConfig serverConfig;
   EXPECT_TRUE(serverConfig.SdfFile().empty());
@@ -158,7 +160,7 @@ TEST_P(ServerFixture, ServerConfigPluginInfo)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, ServerConfigRealPlugin)
+TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigRealPlugin))
 {
   // Start server
   ServerConfig serverConfig;
@@ -209,7 +211,8 @@ TEST_P(ServerFixture, ServerConfigRealPlugin)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, ServerConfigSensorPlugin)
+TEST_P(ServerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigSensorPlugin))
 {
   // Start server
   ServerConfig serverConfig;
@@ -260,7 +263,7 @@ TEST_P(ServerFixture, ServerConfigSensorPlugin)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, SdfServerConfig)
+TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(SdfServerConfig))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -293,7 +296,7 @@ TEST_P(ServerFixture, SdfServerConfig)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, SdfRootServerConfig)
+TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(SdfRootServerConfig))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -336,7 +339,7 @@ TEST_P(ServerFixture, SdfRootServerConfig)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, ServerConfigLogRecord)
+TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigLogRecord))
 {
   auto logPath = common::joinPaths(
       std::string(PROJECT_BINARY_PATH), "test_log_path");
@@ -375,7 +378,8 @@ TEST_P(ServerFixture, ServerConfigLogRecord)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, ServerConfigLogRecordCompress)
+TEST_P(ServerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigLogRecordCompress))
 {
   auto logPath = common::joinPaths(
       std::string(PROJECT_BINARY_PATH), "test_log_path");
@@ -526,7 +530,7 @@ TEST_P(ServerFixture, RunNonBlocking)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, RunOnceUnpaused)
+TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(RunOnceUnpaused))
 {
   gazebo::Server server;
   EXPECT_FALSE(server.Running());
@@ -573,7 +577,7 @@ TEST_P(ServerFixture, RunOnceUnpaused)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, RunOncePaused)
+TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(RunOncePaused))
 {
   gazebo::Server server;
   EXPECT_FALSE(server.Running());
@@ -663,7 +667,65 @@ TEST_P(ServerFixture, SigInt)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, AddSystemWhileRunning)
+TEST_P(ServerFixture, ServerControlStop)
+{
+  // Test that the server correctly reacts to requests on /server_control
+  // service with `stop` set to either false or true.
+
+  gazebo::Server server;
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Run forever, non-blocking.
+  server.Run(false, 0, false);
+
+  IGN_SLEEP_MS(500);
+
+  EXPECT_TRUE(server.Running());
+  EXPECT_TRUE(*server.Running(0));
+
+  transport::Node node;
+  msgs::ServerControl req;
+  msgs::Boolean res;
+  bool result{false};
+  bool executed{false};
+  int sleep{0};
+  int maxSleep{30};
+
+  // first, call with stop = false; the server should keep running
+  while (!executed && sleep < maxSleep)
+  {
+    igndbg << "Requesting /server_control" << std::endl;
+    executed = node.Request("/server_control", req, 100, res, result);
+    sleep++;
+  }
+  EXPECT_TRUE(executed);
+  EXPECT_TRUE(result);
+  EXPECT_FALSE(res.data());
+
+  IGN_SLEEP_MS(500);
+
+  EXPECT_TRUE(server.Running());
+  EXPECT_TRUE(*server.Running(0));
+
+  // now call with stop = true; the server should stop
+  req.set_stop(true);
+
+  igndbg << "Requesting /server_control" << std::endl;
+  executed = node.Request("/server_control", req, 100, res, result);
+
+  EXPECT_TRUE(executed);
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  IGN_SLEEP_MS(500);
+
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(AddSystemWhileRunning))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -711,7 +773,7 @@ TEST_P(ServerFixture, AddSystemWhileRunning)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, AddSystemAfterLoad)
+TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(AddSystemAfterLoad))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -785,7 +847,7 @@ TEST_P(ServerFixture, Seed)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, ResourcePath)
+TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
 {
   ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
          (std::string(PROJECT_SOURCE_PATH) + "/test/worlds:" +

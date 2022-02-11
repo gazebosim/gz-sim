@@ -2,6 +2,10 @@
 
 <sdf version="1.6">
   <world name="optical_tactile_plugin">
+    <physics name="fast" type="ignored">
+      <real_time_factor>0</real_time_factor>
+    </physics>
+
     <plugin
       filename="libignition-gazebo-physics-system.so"
       name="ignition::gazebo::systems::Physics">
