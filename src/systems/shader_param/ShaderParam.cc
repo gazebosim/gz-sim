@@ -224,9 +224,6 @@ void ShaderParam::Configure(const Entity &_entity,
           asFullPath(fragmentElem->Get<std::string>(),
           this->dataPtr->modelPath));
       this->dataPtr->shaders[api] = shader;
-
-      std::cerr << "api: " << api << ", " << shader.vertexShaderUri << std::endl;
-
       shaderElem = shaderElem->GetNextElement("shader");
     }
   }
