@@ -32,9 +32,9 @@
 #include <vector>
 
 #include <ignition/common/Console.hh>
-#include <ignition/common/Dem.hh>
-#include <ignition/common/HeightmapData.hh>
-#include <ignition/common/ImageHeightmap.hh>
+#include <ignition/common/geospatial/Dem.hh>
+#include <ignition/common/geospatial/HeightmapData.hh>
+#include <ignition/common/geospatial/ImageHeightmap.hh>
 #include <ignition/common/MeshManager.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/common/StringUtils.hh>
