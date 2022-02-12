@@ -165,7 +165,7 @@ void TrajectoryFollowerPrivate::Load(const EntityComponentManager &_ecm,
       // Add the local vector to the current position.
       // Store global position as a waypoint.
       this->localWaypoints.push_back(position + vec);
-      angle += 2 * M_PI / this->numSamples;
+      angle += 2 * IGN_PI / this->numSamples;
       vec.Set(radius * cos(angle), radius * sin(angle));
       igndbg << "Entered circle waypoint " << position + vec << std::endl;
     }
