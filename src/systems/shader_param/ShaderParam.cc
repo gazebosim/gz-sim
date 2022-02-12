@@ -327,7 +327,7 @@ void ShaderParamPrivate::OnUpdate()
       // if both glsl and metal are specified, print a msg to inform that
       // metal is used instead of glsl
       if (it != this->shaders.end())
-        ignmsg << "Using metal shaders. " << std::endl
+        ignmsg << "Using metal shaders. " << std::endl;
     }
 #endif
     this->visual->SetMaterial(mat);
