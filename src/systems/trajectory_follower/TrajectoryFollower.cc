@@ -15,6 +15,7 @@
  *
  */
 
+#include <string>
 #include <vector>
 
 #include <ignition/common/Profiler.hh>
@@ -208,7 +209,7 @@ void TrajectoryFollowerPrivate::Load(const EntityComponentManager &_ecm,
 
   // Parse the optional <loop> element.
   if (_sdf->HasElement("loop"))
-    this->loopForever = _sdf->Get<bool>("loop");;
+    this->loopForever = _sdf->Get<bool>("loop");
 
   // Parse the optional <force> element.
   if (_sdf->HasElement("force"))
