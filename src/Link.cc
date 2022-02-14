@@ -454,7 +454,7 @@ void Link::AddWorldWrench(EntityComponentManager &_ecm,
     }
     else
     {
-      wrenchVisual = visWrenchComp->Data().add_data();
+      wrenchVisual = visWrenchComp->Data().mutable_data()->Add();
     }
     wrenchVisual->set_label(this->dataPtr->visualizationLabel.value());
     wrenchVisual->mutable_entity()->set_id(this->Entity());
@@ -470,6 +470,10 @@ void Link::AddWorldWrench(EntityComponentManager &_ecm,
       _ecm.CreateComponent<components::WrenchVisual_V>(
         this->dataPtr->id, visualV);
     }
+    ///igndbg << "publishing wrench visual for link ["
+    ///       << this->dataPtr->id << "] with force [" << _force
+    ///       << "] and torque [" << _torque << "]" << "from ["
+    ///       << this->dataPtr->visualizationLabel.value() << "]" << std::endl;
   }
 }
 
