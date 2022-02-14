@@ -2131,6 +2131,12 @@ void RenderUtilPrivate::UpdateLights(
     auto l = std::dynamic_pointer_cast<rendering::Light>(node);
     if (l)
     {
+      if (!ignition::math::equal(
+          l->Intensity(),
+          static_cast<double>(light.second.intensity())))
+      {
+        l->SetIntensity(light.second.intensity());
+      }
       if (light.second.has_diffuse())
       {
         if (l->DiffuseColor() != msgs::Convert(light.second.diffuse()))
