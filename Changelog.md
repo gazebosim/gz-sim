@@ -15,9 +15,6 @@
 1. Fix weird indentation in `Link.hh`
     * [Pull request #1324](https://github.com/ignitionrobotics/ign-gazebo/pull/1324)
 
-1. fix buoyancy test by increasing tol
-    * [Pull request #fix buoyancy test by increasing tol](https://github.com/ignitionrobotics/ign-gazebo/pull/fix buoyancy test by increasing tol)
-
 1. Limit thruster system's input thrust cmd
     * [Pull request #1318](https://github.com/ignitionrobotics/ign-gazebo/pull/1318)
 
@@ -71,9 +68,6 @@
 
 1. Implement /server_control::stop
     * [Pull request #1240](https://github.com/ignitionrobotics/ign-gazebo/pull/1240)
-
-1. 👩‍🌾 Make depth camera tests more robust (#897)
-    * [Pull request #897) (#1257](https://github.com/ignitionrobotics/ign-gazebo/pull/897) (#1257)
 
 ### Ignition Gazebo 6.4.0 (2021-01-13)
 
