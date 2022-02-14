@@ -96,8 +96,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
         for(auto wrench: _visuals->Data().data())
         {
           this->queue.push(wrench);
+          igndbg << "Visualizing wrench for entity [" << wrench.entity().id()
+                 << "]" << "From [" << wrench.label() << "]" << std::endl;
         }
-        _visuals->Data().Clear();
+        _visuals->Data().mutable_data()->Clear();
         return true;
       });
     }

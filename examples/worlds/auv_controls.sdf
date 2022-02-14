@@ -21,7 +21,7 @@
 
   2. Propel the vehicle:
 
-      ign topic -t /model/tethys/joint/propeller_joint/cmd_thrust
+      ign topic -t /model/tethys/joint/propeller_joint/cmd_thrust \
       -m ignition.msgs.Double -p 'data: -31'
 
 -->
