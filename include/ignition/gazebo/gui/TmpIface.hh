@@ -63,14 +63,14 @@ namespace ignition
       /// \param[in] _path Path to world file.
       public slots: void OnSaveWorldAs(const QString &_path);
 
-      /// \brief Server control service callback
-      /// This is the server-side logic which provides the world_control
-      /// service.
+      /// \brief This function does nothing and is kept only for retaining ABI
+      /// compatibility. /server_control service handling was moved to
+      /// ServerPrivate.
       /// \param[in] _req Request
       /// \param[out] _res Response
-      /// \return True for success
-      private: bool OnServerControl(const msgs::ServerControl &_req,
-                                          msgs::Boolean &_res);
+      /// \return False.
+      private: bool IGN_DEPRECATED(3) OnServerControl(
+        const msgs::ServerControl &_req, msgs::Boolean &_res);
 
       /// \brief Communication node
       private: transport::Node node;
