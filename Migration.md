@@ -80,6 +80,10 @@ since pose information is being logged in the `changed_state` topic.
 * The `gui.config` and `server.config` files are now located in a versioned
   folder inside `$HOME/.ignition/gazebo`, i.e. `$HOME/.ignition/gazebo/6/gui.config`.
 
+* The `Component::Clone` method has been marked `const` to reflect that it 
+  should not mutate internal component state. Component implementations that
+  overrode the `Clone` method must also be marked `const`.
+
 ## Ignition Gazebo 5.2 to 5.3
 
 * If no `<namespace>` is given to the `Thruster` plugin, the namespace now

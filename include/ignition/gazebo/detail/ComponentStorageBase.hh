@@ -27,7 +27,7 @@ namespace ignition
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     //
     /// \brief All component instances of the same type are stored
-    /// squentially in memory. This is a base class for storing components
+    /// sequentially in memory. This is a base class for storing components
     /// of a particular type.
     class IGNITION_GAZEBO_HIDDEN ComponentStorageBase
     {
