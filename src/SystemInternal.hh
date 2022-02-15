@@ -89,6 +89,14 @@ namespace ignition
       /// Will be nullptr if the System doesn't implement this interface.
       public: ISystemPostUpdate *postupdate = nullptr;
 
+      /// \brief Cached entity that was used to call `Configure` on the system
+      /// Useful for if a system needs to be reconfigured at runtime
+      public: Entity configureEntity = {kNullEntity};
+
+      /// \brief Cached sdf that was used to call `Configure` on the system
+      /// Useful for if a system needs to be reconfigured at runtime
+      public: std::shared_ptr<const sdf::Element> configureSdf = nullptr;
+
       /// \brief Vector of queries and callbacks
       public: std::vector<EntityQueryCallback> updates;
     };
