@@ -189,30 +189,42 @@ class ignition::gazebo::systems::PhysicsPrivate
 
   /// \brief Create physics entities
   /// \param[in] _ecm Constant reference to ECM.
+  /// \param[in] _warnIfEntityExists True to emit warnings if the same entity
+  /// already exists in the physics system  
   public: void CreatePhysicsEntities(const EntityComponentManager &_ecm,
                                      bool _warnIfEntityExists = true);
 
   /// \brief Create world entities
   /// \param[in] _ecm Constant reference to ECM.
+  /// \param[in] _warnIfEntityExists True to emit warnings if the same entity
+  /// already exists in the physics system  
   public: void CreateWorldEntities(const EntityComponentManager &_ecm,
                                    bool _warnIfEntityExists = true);
   /// \brief Create model entities
   /// \param[in] _ecm Constant reference to ECM.
+  /// \param[in] _warnIfEntityExists True to emit warnings if the same entity
+  /// already exists in the physics system  
   public: void CreateModelEntities(const EntityComponentManager &_ecm,
                                    bool _warnIfEntityExists = true);
 
   /// \brief Create link entities
   /// \param[in] _ecm Constant reference to ECM.
+  /// \param[in] _warnIfEntityExists True to emit warnings if the same entity
+  /// already exists in the physics system  
   public: void CreateLinkEntities(const EntityComponentManager &_ecm,
                                   bool _warnIfEntityExists = true);
 
   /// \brief Create collision entities
   /// \param[in] _ecm Constant reference to ECM.
+  /// \param[in] _warnIfEntityExists True to emit warnings if the same entity
+  /// already exists in the physics system  
   public: void CreateCollisionEntities(const EntityComponentManager &_ecm,
                                        bool _warnIfEntityExists = true);
 
   /// \brief Create joint entities
   /// \param[in] _ecm Constant reference to ECM.
+  /// \param[in] _warnIfEntityExists True to emit warnings if the same entity
+  /// already exists in the physics system  
   public: void CreateJointEntities(const EntityComponentManager &_ecm,
                                    bool _warnIfEntityExists = true);
 

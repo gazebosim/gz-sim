@@ -3163,6 +3163,7 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_EQ(1, foundEntities);
 }
 
+//////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture, CopyEcm)
 {
   Entity entity = manager.CreateEntity();
@@ -3184,7 +3185,8 @@ TEST_P(EntityComponentManagerFixture, CopyEcm)
       });
 }
 
-TEST_P(EntityComponentManagerFixture, ComputDiff)
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, ComputeDiff)
 {
   Entity entity1 = manager.CreateEntity();
   math::Pose3d testPose{1, 2, 3, 0.1, 0.2, 0.3};
@@ -3228,10 +3230,11 @@ TEST_P(EntityComponentManagerFixture, ComputDiff)
     EntityComponentManagerDiff diff = managerCopy.RunComputeDiff(manager);
     EXPECT_EQ(1u, diff.RemovedEntities().size());
     managerCopy.RunApplyDiff(manager, diff);
-    EXPECT_TRUE(managerCopy.HasEntitiesMarkedForRemoval());
+    EXPECT_FALSE(managerCopy.HasEntitiesMarkedForRemoval());
   }
 }
 
+//////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture, ResetToWithDeletedEntity)
 {
   Entity entity1 = manager.CreateEntity();
@@ -3282,6 +3285,7 @@ TEST_P(EntityComponentManagerFixture, ResetToWithDeletedEntity)
   }
 }
 
+//////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture, ResetToWithAddedEntity)
 {
   Entity entity1 = manager.CreateEntity();
