@@ -53,8 +53,8 @@
 
 #include "network/NetworkManager.hh"
 #include "LevelManager.hh"
+#include "SystemManager.hh"
 #include "Barrier.hh"
-#include "SystemInternal.hh"
 #include "WorldControl.hh"
 
 using namespace std::chrono_literals;
@@ -370,16 +370,6 @@ namespace ignition
       /// Physics component of the world, if any.
       public: void UpdatePhysicsParams();
 
-      /// \brief Implementation for AddSystem functions. This only adds systems
-      /// to a queue, the actual addition is performed by `AddSystemToRunner` at
-      /// the appropriate time.
-      /// \param[in] _system Generic representation of a system.
-      /// \param[in] _entity Entity received from AddSystem.
-      /// \param[in] _sdf SDF received from AddSystem.
-      private: void AddSystemImpl(SystemInternal _system,
-        std::optional<Entity> _entity = std::nullopt,
-        std::optional<std::shared_ptr<const sdf::Element>> _sdf = std::nullopt);
-
       /// \brief Process entities with the components::Recreate component.
       /// Put in a request to make them as removed
       private: void ProcessRecreateEntitiesRemove();
@@ -399,26 +389,16 @@ namespace ignition
       /// server is in the run state.
       private: std::atomic<bool> running{false};
 
-      /// \brief All the systems.
-      private: std::vector<SystemInternal> systems;
-
-      /// \brief Pending systems to be added to systems.
-      private: std::vector<SystemInternal> pendingSystems;
-
-      /// \brief Mutex to protect pendingSystems
-      private: mutable std::mutex pendingSystemsMutex;
-
-      /// \brief Systems implementing PreUpdate
-      private: std::vector<ISystemPreUpdate *> systemsPreupdate;
-
-      /// \brief Systems implementing Update
-      private: std::vector<ISystemUpdate *> systemsUpdate;
-
-      /// \brief Systems implementing PostUpdate
-      private: std::vector<ISystemPostUpdate *> systemsPostupdate;
+      /// \brief Manager of all systems.
+      private: std::unique_ptr<SystemManager> systemMgr;
 
       /// \brief Manager of all events.
+      /// Note: must be before EntityComponentManager
       private: EventManager eventMgr;
+
+      /// \brief Manager of all systems.
+      /// Note: must be before EntityComponentManager
+      private: std::unique_ptr<SystemManager> systemMgr;
 
       /// \brief Manager of all components.
       private: EntityComponentManager entityCompMgr;
@@ -448,12 +428,6 @@ namespace ignition
 
       /// \brief List of real times used to compute averages.
       private: std::list<std::chrono::steady_clock::duration> realTimes;
-
-      /// \brief System loader, for loading system plugins.
-      private: SystemLoaderPtr systemLoader;
-
-      /// \brief Mutex to protect systemLoader
-      private: std::mutex systemLoaderMutex;
 
       /// \brief Node for communication.
       private: std::unique_ptr<transport::Node> node{nullptr};

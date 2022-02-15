@@ -61,9 +61,6 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // Keep world name
   this->worldName = _world->Name();
 
-  // Keep system loader so plugins can be loaded at runtime
-  this->systemLoader = _systemLoader;
-
   // Get the physics profile
   // TODO(luca): remove duplicated logic in SdfEntityCreator and LevelManager
   auto physics = _world->PhysicsByIndex(0);
@@ -114,6 +111,9 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
     this->updatePeriod = std::chrono::nanoseconds(
         static_cast<int>(this->stepSize.count() / this->desiredRtf));
   }
+
+  // Create the system manager
+  this->systemMgr = std::make_unique<SystemManager>(_systemLoader);
 
   this->pauseConn = this->eventMgr.Connect<events::Pause>(
       std::bind(&SimulationRunner::SetPaused, this, std::placeholders::_1));
@@ -173,7 +173,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 
   // If we have reached this point and no systems have been loaded, then load
   // a default set of systems.
-  if (this->systems.empty() && this->pendingSystems.empty())
+  if (this->systemMgr->TotalCount() == 0)
   {
     ignmsg << "No systems loaded from SDF, loading defaults" << std::endl;
     bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
@@ -455,7 +455,12 @@ void SimulationRunner::AddSystem(const SystemPluginPtr &_system,
       std::optional<Entity> _entity,
       std::optional<std::shared_ptr<const sdf::Element>> _sdf)
 {
-  this->AddSystemImpl(SystemInternal(_system), _entity, _sdf);
+  auto entity = _entity.has_value() ? _entity.value()
+      : worldEntity(this->entityCompMgr);
+  auto sdf = _sdf.has_value() ? _sdf.value() : this->sdfWorld->Element();
+
+  this->systemMgr->AddSystem(_system, entity, sdf);
+  this->systemMgr->ConfigurePendingSystems(this->entityCompMgr, this->eventMgr);
 }
 
 //////////////////////////////////////////////////
@@ -464,104 +469,60 @@ void SimulationRunner::AddSystem(
       std::optional<Entity> _entity,
       std::optional<std::shared_ptr<const sdf::Element>> _sdf)
 {
-  this->AddSystemImpl(SystemInternal(_system), _entity, _sdf);
-}
+  auto entity = _entity.has_value() ? _entity.value()
+      : worldEntity(this->entityCompMgr);
+  auto sdf = _sdf.has_value() ? _sdf.value() : this->sdfWorld->Element();
 
-//////////////////////////////////////////////////
-void SimulationRunner::AddSystemImpl(
-      SystemInternal _system,
-      std::optional<Entity> _entity,
-      std::optional<std::shared_ptr<const sdf::Element>> _sdf)
-{
-  // Call configure
-  if (_system.configure)
-  {
-    // Default to world entity and SDF
-    auto entity = _entity.has_value() ? _entity.value()
-        : worldEntity(this->entityCompMgr);
-    auto sdf = _sdf.has_value() ? _sdf.value() : this->sdfWorld->Element();
-
-    _system.configure->Configure(
-        entity, sdf,
-        this->entityCompMgr,
-        this->eventMgr);
-  }
-
-  // Update callbacks will be handled later, add to queue
-  std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
-  this->pendingSystems.push_back(_system);
-}
-
-/////////////////////////////////////////////////
-void SimulationRunner::AddSystemToRunner(SystemInternal _system)
-{
-  this->systems.push_back(_system);
-
-  if (_system.preupdate)
-    this->systemsPreupdate.push_back(_system.preupdate);
-
-  if (_system.update)
-    this->systemsUpdate.push_back(_system.update);
-
-  if (_system.postupdate)
-    this->systemsPostupdate.push_back(_system.postupdate);
+  this->systemMgr->AddSystem(_system, entity, sdf);
+  this->systemMgr->ConfigurePendingSystems(this->entityCompMgr, this->eventMgr);
 }
 
 /////////////////////////////////////////////////
 void SimulationRunner::ProcessSystemQueue()
 {
-  std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
-  auto pending = this->pendingSystems.size();
+  auto pending = this->systemMgr->PendingCount();
 
-  if (pending > 0)
+  if (0 == pending)
+    return;
+
+  // If additional systems are to be added, stop the existing threads.
+  this->StopWorkerThreads();
+
+  this->systemMgr->ActivatePendingSystems();
+
+  auto threadCount = this->systemMgr->SystemsPostUpdate().size() + 1u;
+
+  igndbg << "Creating PostUpdate worker threads: "
+    << threadCount << std::endl;
+
+  this->postUpdateStartBarrier = std::make_unique<Barrier>(threadCount);
+  this->postUpdateStopBarrier = std::make_unique<Barrier>(threadCount);
+
+  this->postUpdateThreadsRunning = true;
+  int id = 0;
+
+  for (auto &system : this->systemMgr->SystemsPostUpdate())
   {
-    // If additional systems are to be added, stop the existing threads.
-    this->StopWorkerThreads();
-  }
+    igndbg << "Creating postupdate worker thread (" << id << ")" << std::endl;
 
-  for (const auto &system : this->pendingSystems)
-  {
-    this->AddSystemToRunner(system);
-  }
-  this->pendingSystems.clear();
-
-  // If additional systems were added, recreate the worker threads.
-  if (pending > 0)
-  {
-    igndbg << "Creating PostUpdate worker threads: "
-      << this->systemsPostupdate.size() + 1 << std::endl;
-
-    this->postUpdateStartBarrier =
-      std::make_unique<Barrier>(this->systemsPostupdate.size() + 1u);
-    this->postUpdateStopBarrier =
-      std::make_unique<Barrier>(this->systemsPostupdate.size() + 1u);
-
-    this->postUpdateThreadsRunning = true;
-    int id = 0;
-
-    for (auto &system : this->systemsPostupdate)
+    this->postUpdateThreads.push_back(std::thread([&, id]()
     {
-      igndbg << "Creating postupdate worker thread (" << id << ")" << std::endl;
-
-      this->postUpdateThreads.push_back(std::thread([&, id]()
+      std::stringstream ss;
+      ss << "PostUpdateThread: " << id;
+      IGN_PROFILE_THREAD_NAME(ss.str().c_str());
+      while (this->postUpdateThreadsRunning)
       {
-        std::stringstream ss;
-        ss << "PostUpdateThread: " << id;
-        IGN_PROFILE_THREAD_NAME(ss.str().c_str());
-        while (this->postUpdateThreadsRunning)
+        this->postUpdateStartBarrier->Wait();
+        if (this->postUpdateThreadsRunning)
         {
-          this->postUpdateStartBarrier->Wait();
-          if (this->postUpdateThreadsRunning)
-          {
-            system->PostUpdate(this->currentInfo, this->entityCompMgr);
-          }
-          this->postUpdateStopBarrier->Wait();
+          system->PostUpdate(this->currentInfo, this->entityCompMgr);
         }
-        igndbg << "Exiting postupdate worker thread ("
-          << id << ")" << std::endl;
-      }));
-      id++;
-    }
+        this->postUpdateStopBarrier->Wait();
+      }
+      igndbg << "Exiting postupdate worker thread ("
+        << id << ")" << std::endl;
+    }));
+    id++;
   }
 }
 
@@ -577,13 +538,13 @@ void SimulationRunner::UpdateSystems()
 
   {
     IGN_PROFILE("PreUpdate");
-    for (auto& system : this->systemsPreupdate)
+    for (auto& system : this->systemMgr->SystemsPreUpdate())
       system->PreUpdate(this->currentInfo, this->entityCompMgr);
   }
 
   {
     IGN_PROFILE("Update");
-    for (auto& system : this->systemsUpdate)
+    for (auto& system : this->systemMgr->SystemsUpdate())
       system->Update(this->currentInfo, this->entityCompMgr);
   }
 
@@ -903,19 +864,9 @@ void SimulationRunner::LoadPlugin(const Entity _entity,
                                   const std::string &_name,
                                   const sdf::ElementPtr &_sdf)
 {
-  std::optional<SystemPluginPtr> system;
-  {
-    std::lock_guard<std::mutex> lock(this->systemLoaderMutex);
-    system = this->systemLoader->LoadPlugin(_fname, _name, _sdf);
-  }
-
-  // System correctly loaded from library
-  if (system)
-  {
-    this->AddSystem(system.value(), _entity, _sdf);
-    igndbg << "Loaded system [" << _name
-           << "] for entity [" << _entity << "]" << std::endl;
-  }
+  this->systemMgr->LoadPlugin(_entity, _fname, _name, _sdf);
+  this->systemMgr->ConfigurePendingSystems(
+      this->entityCompMgr, this->eventMgr);
 }
 
 //////////////////////////////////////////////////
@@ -1085,8 +1036,7 @@ size_t SimulationRunner::EntityCount() const
 /////////////////////////////////////////////////
 size_t SimulationRunner::SystemCount() const
 {
-  std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
-  return this->systems.size() + this->pendingSystems.size();
+  return this->systemMgr->TotalCount();
 }
 
 /////////////////////////////////////////////////
