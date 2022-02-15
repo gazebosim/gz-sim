@@ -48,14 +48,14 @@
 #include "ignition/gazebo/EventManager.hh"
 #include "ignition/gazebo/Export.hh"
 #include "ignition/gazebo/ServerConfig.hh"
-#include "ignition/gazebo/System.hh"
 #include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/SystemPluginPtr.hh"
 #include "ignition/gazebo/Types.hh"
 
 #include "network/NetworkManager.hh"
 #include "LevelManager.hh"
 #include "Barrier.hh"
+#include "SystemInternal.hh"
+#include "WorldControl.hh"
 
 using namespace std::chrono_literals;
 
@@ -67,93 +67,6 @@ namespace ignition
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
     class SimulationRunnerPrivate;
-
-    /// \brief Helper struct to control world time. It's used to hold
-    /// input from either msgs::WorldControl or msgs::LogPlaybackControl.
-    struct WorldControl
-    {
-      /// \brief True to pause simulation.
-      // cppcheck-suppress unusedStructMember
-      bool pause{false};  // NOLINT
-
-      /// \biref Run a given number of simulation iterations.
-      // cppcheck-suppress unusedStructMember
-      uint64_t multiStep{0u};  // NOLINT
-
-      /// \brief Reset simulation back to time zero. Rewinding resets sim time,
-      /// real time and iterations.
-      // cppcheck-suppress unusedStructMember
-      bool rewind{false};  // NOLINT
-
-      /// \brief A simulation time in the future to run to and then pause.
-      /// A negative number indicates that this variable it not being used.
-      std::chrono::steady_clock::duration runToSimTime{-1};  // NOLINT
-
-      /// \brief Sim time to jump to. A negative value means don't seek.
-      /// Seeking changes sim time but doesn't affect real time.
-      /// It also resets iterations back to zero.
-      std::chrono::steady_clock::duration seek{-1};
-    };
-
-    /// \brief Class to hold systems internally. It supports systems loaded
-    /// from plugins, as well as systems created at runtime.
-    class SystemInternal
-    {
-      /// \brief Constructor
-      /// \param[in] _systemPlugin A system loaded from a plugin.
-      public: explicit SystemInternal(SystemPluginPtr _systemPlugin)
-              : systemPlugin(std::move(_systemPlugin)),
-                system(systemPlugin->QueryInterface<System>()),
-                configure(systemPlugin->QueryInterface<ISystemConfigure>()),
-                preupdate(systemPlugin->QueryInterface<ISystemPreUpdate>()),
-                update(systemPlugin->QueryInterface<ISystemUpdate>()),
-                postupdate(systemPlugin->QueryInterface<ISystemPostUpdate>())
-      {
-      }
-
-      /// \brief Constructor
-      /// \param[in] _system Pointer to a system.
-      public: explicit SystemInternal(const std::shared_ptr<System> &_system)
-              : systemShared(_system),
-                system(_system.get()),
-                configure(dynamic_cast<ISystemConfigure *>(_system.get())),
-                preupdate(dynamic_cast<ISystemPreUpdate *>(_system.get())),
-                update(dynamic_cast<ISystemUpdate *>(_system.get())),
-                postupdate(dynamic_cast<ISystemPostUpdate *>(_system.get()))
-      {
-      }
-
-      /// \brief Plugin object. This manages the lifecycle of the instantiated
-      /// class as well as the shared library.
-      /// This will be null if the system wasn't loaded from a plugin.
-      public: SystemPluginPtr systemPlugin;
-
-      /// \brief Pointer to a system.
-      /// This will be null if the system wasn't loaded from a pointer.
-      public: std::shared_ptr<System> systemShared{nullptr};
-
-      /// \brief Access this system via the `System` interface
-      public: System *system = nullptr;
-
-      /// \brief Access this system via the ISystemConfigure interface
-      /// Will be nullptr if the System doesn't implement this interface.
-      public: ISystemConfigure *configure = nullptr;
-
-      /// \brief Access this system via the ISystemPreUpdate interface
-      /// Will be nullptr if the System doesn't implement this interface.
-      public: ISystemPreUpdate *preupdate = nullptr;
-
-      /// \brief Access this system via the ISystemUpdate interface
-      /// Will be nullptr if the System doesn't implement this interface.
-      public: ISystemUpdate *update = nullptr;
-
-      /// \brief Access this system via the ISystemPostUpdate interface
-      /// Will be nullptr if the System doesn't implement this interface.
-      public: ISystemPostUpdate *postupdate = nullptr;
-
-      /// \brief Vector of queries and callbacks
-      public: std::vector<EntityQueryCallback> updates;
-    };
 
     class IGNITION_GAZEBO_VISIBLE SimulationRunner
     {
