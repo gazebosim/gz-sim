@@ -43,10 +43,10 @@ class ignition::gazebo::ServerConfig::PluginInfoPrivate
           : entityName(_info->entityName),
             entityType(_info->entityType),
             filename(_info->filename),
-            name(_info->name)
+            name(_info->name),
+            plugin(_info->plugin)
   {
-    if (_info->sdf)
-      this->sdf = _info->sdf->Clone();
+    this->sdf = plugin.Element();
   }
 
   /// \brief Constructor based on values.
@@ -56,23 +56,20 @@ class ignition::gazebo::ServerConfig::PluginInfoPrivate
   /// \param[in] _entityType Entity type which should receive  this
   /// plugin. The type is used in conjuction with _entityName to
   /// uniquely identify an entity.
-  /// \param[in] _filename Plugin library filename.
-  /// \param[in] _name Name of the interface within the plugin library
-  /// to load.
-  /// \param[in] _sdf Plugin XML elements associated with this plugin.
+  /// \param[in] _plugin SDF Plugin associated with this plugin.
   // cppcheck-suppress passedByValue
   public: PluginInfoPrivate(std::string _entityName,
   // cppcheck-suppress passedByValue
                             std::string _entityType,
   // cppcheck-suppress passedByValue
-                            std::string _filename,
-  // cppcheck-suppress passedByValue
-                            std::string _name)
+                            sdf::Plugin _plugin)
           : entityName(std::move(_entityName)),
             entityType(std::move(_entityType)),
-            filename(std::move(_filename)),
-            name(std::move(_name))
+            plugin(std::move(_plugin))
   {
+    this->filename = this->plugin.Filename();
+    this->name = this->plugin.Name();
+    this->sdf = this->plugin.Element();
   }
 
   /// \brief The name of the entity.
@@ -89,6 +86,9 @@ class ignition::gazebo::ServerConfig::PluginInfoPrivate
 
   /// \brief XML elements associated with this plugin
   public: sdf::ElementPtr sdf = nullptr;
+
+  /// \brief SDF plugin information.
+  public: sdf::Plugin plugin;
 };
 
 //////////////////////////////////////////////////
@@ -106,11 +106,28 @@ ServerConfig::PluginInfo::PluginInfo(const std::string &_entityName,
                        const std::string &_filename,
                        const std::string &_name,
                        const sdf::ElementPtr &_sdf)
-  : dataPtr(new ServerConfig::PluginInfoPrivate(_entityName, _entityType,
-                                  _filename, _name))
+  : dataPtr(new ServerConfig::PluginInfoPrivate())
 {
   if (_sdf)
+  {
     this->dataPtr->sdf = _sdf->Clone();
+    this->dataPtr->plugin.Load(this->dataPtr->sdf);
+  }
+  this->dataPtr->plugin.SetName(_name);
+  this->dataPtr->plugin.SetFilename(_filename);
+  this->dataPtr->filename = _filename;
+  this->dataPtr->name = _name;
+  this->dataPtr->entityName = _entityName;
+  this->dataPtr->entityType = _entityType;
+}
+
+//////////////////////////////////////////////////
+ServerConfig::PluginInfo::PluginInfo(const std::string &_entityName,
+                       const std::string &_entityType,
+                       const sdf::Plugin &_plugin)
+  : dataPtr(new ServerConfig::PluginInfoPrivate(_entityName, _entityType,
+                                  _plugin))
+{
 }
 
 //////////////////////////////////////////////////
@@ -161,6 +178,7 @@ const std::string &ServerConfig::PluginInfo::Filename() const
 //////////////////////////////////////////////////
 void ServerConfig::PluginInfo::SetFilename(const std::string &_filename)
 {
+  this->dataPtr->plugin.SetFilename(_filename);
   this->dataPtr->filename = _filename;
 }
 
@@ -173,6 +191,7 @@ const std::string &ServerConfig::PluginInfo::Name() const
 //////////////////////////////////////////////////
 void ServerConfig::PluginInfo::SetName(const std::string &_name)
 {
+  this->dataPtr->plugin.SetName(_name);
   this->dataPtr->name = _name;
 }
 
@@ -186,9 +205,32 @@ const sdf::ElementPtr &ServerConfig::PluginInfo::Sdf() const
 void ServerConfig::PluginInfo::SetSdf(const sdf::ElementPtr &_sdf)
 {
   if (_sdf)
+  {
     this->dataPtr->sdf = _sdf->Clone();
+    this->dataPtr->plugin.Load(_sdf);
+  }
   else
     this->dataPtr->sdf = nullptr;
+}
+
+//////////////////////////////////////////////////
+const sdf::Plugin &ServerConfig::PluginInfo::Plugin() const
+{
+  return this->dataPtr->plugin;
+}
+
+//////////////////////////////////////////////////
+sdf::Plugin &ServerConfig::PluginInfo::Plugin()
+{
+  return this->dataPtr->plugin;
+}
+
+//////////////////////////////////////////////////
+void ServerConfig::PluginInfo::SetPlugin(const sdf::Plugin &_plugin) const
+{
+  this->dataPtr->plugin = _plugin;
+  this->dataPtr->filename = _plugin.Filename();
+  this->dataPtr->name = _plugin.Name();
 }
 
 /// \brief Private data for ServerConfig.
@@ -823,9 +865,11 @@ parsePluginsFromDoc(const tinyxml2::XMLDocument &_doc)
     // Create an SDF element of the plugin
     sdf::ElementPtr sdf(new sdf::Element);
     copyElement(sdf, elem);
+    sdf::Plugin plugin;
+    plugin.Load(sdf);
 
     // Add the plugin to the server config
-    ret.push_back({entityName, entityType, file, name, sdf});
+    ret.push_back({entityName, entityType, plugin});
   }
   return ret;
 }
@@ -847,7 +891,6 @@ ignition::gazebo::parsePluginsFromString(const std::string &_str)
   doc.Parse(_str.c_str());
   return parsePluginsFromDoc(doc);
 }
-
 
 /////////////////////////////////////////////////
 std::list<ServerConfig::PluginInfo>

@@ -423,6 +423,7 @@ TEST_P(ServerFixture, SdfStringServerConfig)
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
   EXPECT_TRUE(serverConfig.SdfFile().empty());
   EXPECT_FALSE(serverConfig.SdfString().empty());
+  EXPECT_FALSE(serverConfig.SdfRoot());
 
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());

@@ -121,8 +121,12 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->stopConn = this->eventMgr.Connect<events::Stop>(
       std::bind(&SimulationRunner::OnStop, this));
 
-  this->loadPluginsConn = this->eventMgr.Connect<events::LoadPlugins>(
+  this->loadPluginsConn = this->eventMgr.Connect<events::LoadSdfPlugins>(
       std::bind(&SimulationRunner::LoadPlugins, this, std::placeholders::_1,
+      std::placeholders::_2));
+
+  this->loadPtrPluginsConn = this->eventMgr.Connect<events::LoadPlugins>(
+      std::bind(&SimulationRunner::LoadPtrPlugins, this, std::placeholders::_1,
       std::placeholders::_2));
 
   // Create the level manager
@@ -919,6 +923,25 @@ void SimulationRunner::LoadPlugin(const Entity _entity,
 }
 
 //////////////////////////////////////////////////
+void SimulationRunner::LoadPlugin(const Entity _entity,
+                                  const sdf::Plugin &_plugin)
+{
+  std::optional<SystemPluginPtr> system;
+  {
+    std::lock_guard<std::mutex> lock(this->systemLoaderMutex);
+    system = this->systemLoader->LoadPlugin(_plugin);
+  }
+
+  // System correctly loaded from library
+  if (system)
+  {
+    this->AddSystem(system.value(), _entity, _plugin.ToElement());
+    igndbg << "Loaded system [" << _plugin.Name()
+           << "] for entity [" << _entity << "]" << std::endl;
+  }
+}
+
+//////////////////////////////////////////////////
 void SimulationRunner::LoadServerPlugins(
     const std::list<ServerConfig::PluginInfo> &_plugins)
 {
@@ -995,7 +1018,7 @@ void SimulationRunner::LoadServerPlugins(
 
     if (kNullEntity != entity)
     {
-      this->LoadPlugin(entity, plugin.Filename(), plugin.Name(), plugin.Sdf());
+      this->LoadPlugin(entity, plugin.Plugin());
     }
   }
 }
@@ -1026,7 +1049,7 @@ void SimulationRunner::LoadLoggingPlugins(const ServerConfig &_config)
 }
 
 //////////////////////////////////////////////////
-void SimulationRunner::LoadPlugins(const Entity _entity,
+void SimulationRunner::LoadPtrPlugins(const Entity _entity,
     const sdf::ElementPtr &_sdf)
 {
   sdf::ElementPtr pluginElem = _sdf->FindElement("plugin");
@@ -1044,6 +1067,25 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
     }
 
     pluginElem = pluginElem->GetNextElement("plugin");
+  }
+}
+
+//////////////////////////////////////////////////
+void SimulationRunner::LoadPlugins(const Entity _entity,
+    const sdf::Plugins &_plugins)
+{
+  for (const sdf::Plugin plugin : _plugins)
+  {
+    auto filename = plugin.Filename();
+    auto name = plugin.Name();
+    // No error message for the 'else' case of the following 'if' statement
+    // because SDF create a default <plugin> element even if it's not
+    // specified. An error message would result in spamming
+    // the console.
+    if (filename != "__default__" && name != "__default__")
+    {
+      this->LoadPlugin(_entity, plugin);
+    }
   }
 }
 

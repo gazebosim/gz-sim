@@ -228,6 +228,7 @@ namespace ignition
       /// \param[in] _fname Filename of the plugin library
       /// \param[in] _name Name of the plugin
       /// \param[in] _sdf SDF element (content of plugin tag)
+      /// \todo(nkoenig) Remove this in Garden.
       public: void LoadPlugin(const Entity _entity,
           const std::string &_fname,
           const std::string &_name,
@@ -236,8 +237,20 @@ namespace ignition
       /// \brief Load system plugins for a given entity.
       /// \param[in] _entity Entity
       /// \param[in] _sdf SDF element
-      public: void LoadPlugins(const Entity _entity,
+      /// \todo(nkoenig) Remove this in Garden.
+      public: void LoadPtrPlugins(const Entity _entity,
           const sdf::ElementPtr &_sdf);
+
+      /// \brief Load system plugin for a given entity.
+      /// \param[in] _entity Entity
+      /// \param[in] _plugin SDF Plugin to load
+      public: void LoadPlugin(const Entity _entity, const sdf::Plugin &_plugin);
+
+      /// \brief Load system plugins for a given entity.
+      /// \param[in] _entity Entity
+      /// \param[in] _plugins SDF Plugins to load
+      public: void LoadPlugins(const Entity _entity,
+          const sdf::Plugins &_plugins);
 
       /// \brief Load server plugins for a given entity.
       /// \param[in] _config Configuration to load plugins from.
@@ -577,6 +590,10 @@ namespace ignition
 
       /// \brief Connection to the load plugins event.
       private: common::ConnectionPtr loadPluginsConn;
+
+      /// \brief Connection to the sdf element pointer load plugins event.
+      /// \todo(nkoenig) Remove this in Garden.
+      private: common::ConnectionPtr loadPtrPluginsConn;
 
       /// \brief Pointer to the sdf::World object of this runner
       private: const sdf::World *sdfWorld;

@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_EVENTS_HH_
 
 #include <sdf/Element.hh>
+#include <sdf/Plugin.hh>
 
 #include <ignition/common/Event.hh>
 
@@ -56,7 +57,14 @@ namespace ignition
       /// \brief Event used to load plugins for an entity into simulation.
       /// Pass in the entity which will own the plugins, and an SDF element for
       /// the entity, which may contain multiple `<plugin>` tags.
+      /// \todo(nkoenig) Deprecate this in Garden.
       using LoadPlugins = common::EventT<void(Entity, sdf::ElementPtr),
+          struct LoadPluginsTag>;
+
+      /// \brief Event used to load plugins for an entity into simulation.
+      /// Pass in the entity which will own the plugins, and an SDF element for
+      /// the entity, which may contain multiple `<plugin>` tags.
+      using LoadSdfPlugins = common::EventT<void(Entity, sdf::Plugins),
           struct LoadPluginsTag>;
       }
     }  // namespace events

@@ -24,6 +24,7 @@
 #include <string>
 #include <vector>
 #include <sdf/Element.hh>
+#include <sdf/Plugin.hh>
 #include <sdf/Root.hh>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
@@ -69,11 +70,24 @@ namespace ignition
         /// \param[in] _name Name of the interface within the plugin library
         /// to load.
         /// \param[in] _sdf Plugin XML elements associated with this plugin.
+        /// \todo(nkoenig) Deprecate this in Garden.
         public: PluginInfo(const std::string &_entityName,
                            const std::string &_entityType,
                            const std::string &_filename,
                            const std::string &_name,
                            const sdf::ElementPtr &_sdf);
+
+        /// \brief Constructor with plugin information specified.
+        /// \param[in] _entityName Name of the entity which should receive
+        /// this plugin. The name is used in conjuction with _entityType to
+        /// uniquely identify an entity.
+        /// \param[in] _entityType Entity type which should receive  this
+        /// plugin. The type is used in conjuction with _entityName to
+        /// uniquely identify an entity.
+        /// \param[in] _plugin SDF Plugin library information.
+        public: PluginInfo(const std::string &_entityName,
+                           const std::string &_entityType,
+                           const sdf::Plugin &_plugin);
 
         /// \brief Copy constructor.
         /// \param[in] _info Plugin to copy.
@@ -110,31 +124,49 @@ namespace ignition
 
         /// \brief Get the plugin library filename.
         /// \return Plugin library filename.
+        /// \todo(nkoenig) Deprecate this function in Garden.
         public: const std::string &Filename() const;
 
         /// \brief Set the type of the entity which should receive this
         /// plugin. The type is used in conjuction with EntityName to
         /// uniquely identify an entity.
         /// \param[in] _filename Entity type string.
+        /// \todo(nkoenig) Deprecate this function in Garden.
         public: void SetFilename(const std::string &_filename);
 
         /// \brief Name of the interface within the plugin library
         /// to load.
         /// \return Interface name.
+        /// \todo(nkoenig) Deprecate this function in Garden.
         public: const std::string &Name() const;
 
         /// \brief Set the name of the interface within the plugin library
         /// to load.
         /// \param[in] _name Interface name.
+        /// \todo(nkoenig) Deprecate this function in Garden.
         public: void SetName(const std::string &_name);
 
         /// \brief Plugin XML elements associated with this plugin.
         /// \return SDF pointer.
+        /// \todo(nkoenig) Deprecate this function in Garden.
         public: const sdf::ElementPtr &Sdf() const;
 
         /// \brief Set the plugin XML elements associated with this plugin.
         /// \param[in] _sdf SDF pointer, it will be cloned.
+        /// \todo(nkoenig) Deprecate this function in Garden.
         public: void SetSdf(const sdf::ElementPtr &_sdf);
+
+        /// \brief Get the SDF plugin information.
+        /// \return The SDF Plugin object.
+        public: const sdf::Plugin &Plugin() const;
+
+        /// \brief Get a mutable version of the SDF plugin information.
+        /// \return The SDF Plugin object.
+        public:  sdf::Plugin &Plugin();
+
+        /// \brief Set the SDF plugin information.
+        /// \param[in] _plugin The SDF Plugin object to use.
+        public: void SetPlugin(const sdf::Plugin &_plugin) const;
 
         /// \brief Private data pointer
         private: std::unique_ptr<ServerConfig::PluginInfoPrivate> dataPtr;

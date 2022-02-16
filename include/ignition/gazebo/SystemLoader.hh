@@ -22,6 +22,7 @@
 #include <string>
 
 #include <sdf/Element.hh>
+#include <sdf/Plugin.hh>
 
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
@@ -53,6 +54,7 @@ namespace ignition
       /// \brief Load and instantiate system plugin from an SDF element.
       /// \param[in] _sdf SDF Element describing plugin instance to be loaded.
       /// \returns Shared pointer to system instance or nullptr.
+      /// \todo(nkoenig) Deprecate this function in Garden
       public: std::optional<SystemPluginPtr> LoadPlugin(
                   const sdf::ElementPtr &_sdf);
 
@@ -61,10 +63,17 @@ namespace ignition
       /// \param[in] _name Class name to be instantiated.
       /// \param[in] _sdf SDF Element describing plugin instance to be loaded.
       /// \returns Shared pointer to system instance or nullptr.
+      /// \todo(nkoenig) Deprecate this function in Garden
       public: std::optional<SystemPluginPtr> LoadPlugin(
                   const std::string &_filename,
                   const std::string &_name,
                   const sdf::ElementPtr &_sdf);
+
+      /// \brief Load and instantiate system plugin from name/filename.
+      /// \param[in] _plugin SDF Plugin to be loaded.
+      /// \returns Shared pointer to system instance or nullptr.
+      public: std::optional<SystemPluginPtr> LoadPlugin(
+                  const sdf::Plugin &_plugin);
 
       /// \brief Makes a printable string with info about systems
       /// \returns A pretty string
