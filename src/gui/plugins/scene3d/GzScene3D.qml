@@ -14,16 +14,18 @@
  * limitations under the License.
  *
 */
+import IgnGazebo 1.0 as IgnGazebo
+import QtGraphicalEffects 1.0
 import QtQuick 2.9
 import QtQuick.Controls 2.2
 import QtQuick.Dialogs 1.0
+import QtQuick.Layouts 1.3
 import RenderWindow 1.0
-import QtGraphicalEffects 1.0
-import IgnGazebo 1.0 as IgnGazebo
 
 Rectangle {
-  width: 1000
-  height: 800
+  Layout.minimumWidth: 200
+  Layout.minimumHeight: 200
+  anchors.fill: parent
 
   /**
    * True to enable gamma correction
@@ -38,6 +40,7 @@ Rectangle {
     anchors.fill: parent
     hoverEnabled: true
     acceptedButtons: Qt.NoButton
+    visible: GzScene3D.loadingError.length == 0
     onEntered: {
       GzScene3D.OnFocusWindow()
     }
@@ -50,6 +53,7 @@ Rectangle {
     id: renderWindow
     objectName: "renderWindow"
     anchors.fill: parent
+    visible: GzScene3D.loadingError.length == 0
 
     /**
      * Message to be displayed over the render window
@@ -120,4 +124,11 @@ Rectangle {
     standardButtons: Dialog.Ok
   }
 
+  Label {
+    anchors.fill: parent
+    anchors.margins: 10
+    text: GzScene3D.loadingError
+    visible: (GzScene3D.loadingError.length > 0);
+    wrapMode: Text.WordWrap
+  }
 }
