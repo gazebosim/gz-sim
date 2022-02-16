@@ -397,9 +397,9 @@ void PosePublisherPrivate::InitializeEntitiesToPublish(
         if (nestedModel)
           fillPose = this->publishNestedModelPose;
       }
-      else
+      if (!fillPose)
       {
-        fillPose =  this->publishNestedModelPose && this->publishModelPose;
+        fillPose = this->publishNestedModelPose && this->publishModelPose;
       }
     }
 
