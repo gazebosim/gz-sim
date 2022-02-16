@@ -389,9 +389,6 @@ namespace ignition
       /// server is in the run state.
       private: std::atomic<bool> running{false};
 
-      /// \brief Manager of all systems.
-      private: std::unique_ptr<SystemManager> systemMgr;
-
       /// \brief Manager of all events.
       /// Note: must be before EntityComponentManager
       private: EventManager eventMgr;

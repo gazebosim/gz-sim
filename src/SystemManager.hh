@@ -42,7 +42,13 @@ namespace ignition
       /// \brief Constructor
       /// \param[in] _systemLoader A pointer to a SystemLoader to load plugins
       ///  from files
-      public: explicit SystemManager(const SystemLoaderPtr &_systemLoader);
+      /// \param[in] _entityCompMgr Pointer to the entity component manager to
+      ///  be used when configuring new systems
+      /// \param[in] _eventMgr Pointer to the event manager to be used when
+      ///  configuring new systems
+      public: explicit SystemManager(const SystemLoaderPtr &_systemLoader,
+                            EntityComponentManager *_entityCompMgr = nullptr,
+                            EventManager *_eventMgr = nullptr);
 
       /// \brief Load system plugin for a given entity.
       /// \param[in] _entity Entity
@@ -81,12 +87,6 @@ namespace ignition
       /// \brief Get the count of all (pending + active) managed systems
       /// \return The count.
       public: size_t TotalCount() const;
-
-      /// \brief Call the configure call on all pending systems
-      /// \param[in] _ecm The entity component manager to configure with
-      /// \param[in] _evetnMgr The event manager to configure with
-      public: void ConfigurePendingSystems(EntityComponentManager &_ecm,
-                                           EventManager &_eventMgr);
 
       /// \brief Move all "pending" systems to "active" state
       /// \return The number of newly-active systems
@@ -143,6 +143,12 @@ namespace ignition
 
       /// \brief Mutex to protect systemLoader
       private: std::mutex systemLoaderMutex;
+
+      /// \brief Pointer to associated entity component manager
+      private: EntityComponentManager *entityCompMgr;
+
+      /// \brief Pointer to associated event manager
+      private: EventManager *eventMgr;
     };
     }
   }  // namespace gazebo
