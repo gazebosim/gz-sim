@@ -2131,11 +2131,37 @@ void RenderUtilPrivate::UpdateLights(
     auto l = std::dynamic_pointer_cast<rendering::Light>(node);
     if (l)
     {
-      if (!ignition::math::equal(
-          l->Intensity(),
-          static_cast<double>(light.second.intensity())))
+      // todo(anyone) Use the field isLightOn in light.proto from
+      // Garden on.
+      bool isLightOn = true;
+      for (int i = 0; i < light.second.header().data_size(); ++i)
       {
-        l->SetIntensity(light.second.intensity());
+        for (int j = 0;
+            j < light.second.header().data(i).value_size(); ++j)
+        {
+          if (light.second.header().data(i).key() ==
+              "isLightOn")
+          {
+            isLightOn = ignition::math::parseInt(
+              light.second.header().data(i).value(0));
+          }
+        }
+      }
+
+      // const auto lightOnOff = _entityLightsOn.at(light.first);
+
+      if (isLightOn)
+      {
+        if (!ignition::math::equal(
+            l->Intensity(),
+            static_cast<double>(light.second.intensity())))
+        {
+          l->SetIntensity(light.second.intensity());
+        }
+      }
+      else
+      {
+        l->SetIntensity(0);
       }
       if (light.second.has_diffuse())
       {

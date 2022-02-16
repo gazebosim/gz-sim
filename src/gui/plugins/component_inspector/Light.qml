@@ -99,6 +99,9 @@ Rectangle {
   // Loaded item for intensity
   property var intensityItem: {}
 
+  // Loaded item for isLightOn
+  property var isLightOnItem: {}
+
   // Send new light data to C++
   function sendLight() {
     // TODO(anyone) There's a loss of precision when these values get to C++
@@ -123,7 +126,8 @@ Rectangle {
       outerAngleItem.value,
       falloffItem.value,
       intensityItem.value,
-      model.data[20]
+      model.data[20],
+      isLightOnItem.checked
     );
   }
 
@@ -284,6 +288,45 @@ Rectangle {
       ColumnLayout {
         id: grid
         width: parent.width
+
+        RowLayout {
+          Rectangle {
+            color: "transparent"
+            height: 40
+            Layout.preferredWidth: isOnText.width + indentation*3
+            Loader {
+              id: isLightOn
+              width: iconWidth
+              height: iconHeight
+              y:10
+              sourceComponent: plotIcon
+            }
+            Component.onCompleted: isLightOn.item.componentInfo = "is light on ?"
+
+            Text {
+              id : isOnText
+              text: ' Turn on/off'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
+            }
+          }
+          Item {
+            Layout.fillWidth: true
+            height: 40
+
+            Loader {
+              id: inOnLoader
+              anchors.fill: parent
+              property double numberValue: model.data[21]
+              sourceComponent: ignSwitch
+              onLoaded: {
+                isLightOnItem = inOnLoader.item
+              }
+            }
+          }
+        }
 
         RowLayout {
           Rectangle {

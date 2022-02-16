@@ -259,7 +259,7 @@ namespace gazebo
       double _attLinear, double _attConstant, double _attQuadratic,
       bool _castShadows, double _directionX, double _directionY,
       double _directionZ, double _innerAngle, double _outerAngle,
-      double _falloff, double _intensity, int _type);
+      double _falloff, double _intensity, int _type, bool _isLightOn);
 
     /// \brief Callback in Qt thread when physics' properties change.
     /// \param[in] _stepSize step size
