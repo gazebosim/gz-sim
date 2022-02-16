@@ -38,11 +38,6 @@ namespace ignition::gazebo
 {
   class ShapesPrivate
   {
-    /// \brief Ignition communication node.
-    public: transport::Node node;
-
-    /// \brief Transform control service name
-    public: std::string service;
   };
 }
 
