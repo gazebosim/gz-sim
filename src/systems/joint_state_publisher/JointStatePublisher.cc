@@ -213,10 +213,14 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
           if (jointAxis)
           {
             msgs::Set(
-              jointMsg->mutable_axis1()->mutable_xyz(), jointAxis->Data().Xyz());
-            jointMsg->mutable_axis1()->set_limit_upper(jointAxis->Data().Upper());
-            jointMsg->mutable_axis1()->set_limit_lower(jointAxis->Data().Lower());
-            jointMsg->mutable_axis1()->set_damping(jointAxis->Data().Damping());
+              jointMsg->mutable_axis1()->mutable_xyz(),
+              jointAxis->Data().Xyz());
+            jointMsg->mutable_axis1()->set_limit_upper(
+              jointAxis->Data().Upper());
+            jointMsg->mutable_axis1()->set_limit_lower(
+              jointAxis->Data().Lower());
+            jointMsg->mutable_axis1()->set_damping(
+              jointAxis->Data().Damping());
           }
         }
         else if (i == 1)
