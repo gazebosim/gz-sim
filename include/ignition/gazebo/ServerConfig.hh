@@ -37,28 +37,29 @@ namespace ignition
     // Forward declarations.
     class ServerConfigPrivate;
 
-    /// \brief Type of SDF source.
-    enum class SourceType
-    {
-      // The source is an SDF file.
-      kSdfFile,
-
-      // No source specified.
-      kNone,
-
-      // The source is an SDF Root object.
-      kSdfRoot,
-
-      // The source is an SDF string.
-      kSdfString,
-    };
-
     /// \class ServerConfig ServerConfig.hh ignition/gazebo/ServerConfig.hh
     /// \brief Configuration parameters for a Server. An instance of this
     /// object can be used to construct a Server with a particular
     /// configuration.
     class IGNITION_GAZEBO_VISIBLE ServerConfig
     {
+      /// \brief Type of SDF source.
+      public: enum class SourceType
+      {
+        // No source specified.
+        kNone,
+
+        // The source is an SDF Root object.
+        kSdfRoot,
+
+        // The source is an SDF file.
+        kSdfFile,
+
+        // The source is an SDF string.
+        kSdfString,
+      };
+
+
       class PluginInfoPrivate;
       /// \brief Information about a plugin that should be loaded by the
       /// server.

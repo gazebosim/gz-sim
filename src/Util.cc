@@ -609,8 +609,8 @@ std::string findFuelResourceSdf(const std::string &_path)
 }
 
 //////////////////////////////////////////////////
-std::string IGNITION_GAZEBO_VISIBLE resolveSdfWorldFile(
-    const std::string &_sdfFile, const std::string &_fuelResourceCache)
+std::string resolveSdfWorldFile(const std::string &_sdfFile,
+    const std::string &_fuelResourceCache)
 {
   std::string filePath;
 
@@ -659,4 +659,3 @@ std::string IGNITION_GAZEBO_VISIBLE resolveSdfWorldFile(
 }
 }
 }
-

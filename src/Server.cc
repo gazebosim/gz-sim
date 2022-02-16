@@ -76,14 +76,14 @@ Server::Server(const ServerConfig &_config)
   switch (_config.Source())
   {
     // Load a world if specified. Check SDF string first, then SDF file
-    case SourceType::kSdfRoot:
+    case ServerConfig::SourceType::kSdfRoot:
     {
       this->dataPtr->sdfRoot = _config.SdfRoot()->Clone();
       ignmsg << "Loading SDF world from SDF DOM.\n";
       break;
     }
 
-    case SourceType::kSdfString:
+    case ServerConfig::SourceType::kSdfString:
     {
       std::string msg = "Loading SDF string. ";
       if (_config.SdfFile().empty())
@@ -99,7 +99,7 @@ Server::Server(const ServerConfig &_config)
       break;
     }
 
-    case SourceType::kSdfFile:
+    case ServerConfig::SourceType::kSdfFile:
     {
       std::string filePath = resolveSdfWorldFile(_config.SdfFile(),
           _config.ResourceCache());
@@ -122,7 +122,7 @@ Server::Server(const ServerConfig &_config)
       break;
     }
 
-    case SourceType::kNone:
+    case ServerConfig::SourceType::kNone:
     default:
     {
       ignmsg << "Loading default world.\n";
