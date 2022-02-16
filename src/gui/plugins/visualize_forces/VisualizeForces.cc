@@ -89,6 +89,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \param[in] _ecm - the ecm.
     public: void RetrieveWrenchesFromEcm(EntityComponentManager &_ecm)
     {
+      std::vector<Entity> entities;
       _ecm.Each<components::WrenchVisual_V>(
       [&](const Entity &_entity,
           components::WrenchVisual_V *_visuals) -> bool
@@ -99,9 +100,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
           igndbg << "Visualizing wrench for entity [" << wrench.entity().id()
                  << "]" << "From [" << wrench.label() << "]" << std::endl;
         }
-        _visuals->Data().mutable_data()->Clear();
+        entities.push_back(_entity);
         return true;
       });
+      for (auto entity: entities)
+        _ecm.RemoveComponent<components::WrenchVisual_V>(entity);
     }
 
     /////////////////////////////////////////////////
