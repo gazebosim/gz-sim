@@ -76,7 +76,7 @@ Server::Server(const ServerConfig &_config)
   // Load a world if specified. Check SDF string first, then SDF file
   if (_config.SdfRoot())
   {
-    this->dataPtr->sdfRoot.Clone(*_config.SdfRoot());
+    this->dataPtr->sdfRoot = _config.SdfRoot()->Clone();
     ignmsg << "Loading SDF world from SDF DOM.\n";
   }
   else if (!_config.SdfString().empty())
