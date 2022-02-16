@@ -2148,8 +2148,6 @@ void RenderUtilPrivate::UpdateLights(
         }
       }
 
-      // const auto lightOnOff = _entityLightsOn.at(light.first);
-
       if (isLightOn)
       {
         if (!ignition::math::equal(

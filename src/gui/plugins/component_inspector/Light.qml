@@ -294,13 +294,6 @@ Rectangle {
             color: "transparent"
             height: 40
             Layout.preferredWidth: isOnText.width + indentation*3
-            Loader {
-              id: isLightOn
-              width: iconWidth
-              height: iconHeight
-              y:10
-              sourceComponent: plotIcon
-            }
             Component.onCompleted: isLightOn.item.componentInfo = "is light on ?"
 
             Text {
