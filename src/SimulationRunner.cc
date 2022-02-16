@@ -113,7 +113,8 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   }
 
   // Create the system manager
-  this->systemMgr = std::make_unique<SystemManager>(_systemLoader);
+  this->systemMgr = std::make_unique<SystemManager>(_systemLoader,
+      &this->entityCompMgr, &this->eventMgr);
 
   this->pauseConn = this->eventMgr.Connect<events::Pause>(
       std::bind(&SimulationRunner::SetPaused, this, std::placeholders::_1));
@@ -460,7 +461,6 @@ void SimulationRunner::AddSystem(const SystemPluginPtr &_system,
   auto sdf = _sdf.has_value() ? _sdf.value() : this->sdfWorld->Element();
 
   this->systemMgr->AddSystem(_system, entity, sdf);
-  this->systemMgr->ConfigurePendingSystems(this->entityCompMgr, this->eventMgr);
 }
 
 //////////////////////////////////////////////////
@@ -474,7 +474,6 @@ void SimulationRunner::AddSystem(
   auto sdf = _sdf.has_value() ? _sdf.value() : this->sdfWorld->Element();
 
   this->systemMgr->AddSystem(_system, entity, sdf);
-  this->systemMgr->ConfigurePendingSystems(this->entityCompMgr, this->eventMgr);
 }
 
 /////////////////////////////////////////////////
@@ -865,8 +864,6 @@ void SimulationRunner::LoadPlugin(const Entity _entity,
                                   const sdf::ElementPtr &_sdf)
 {
   this->systemMgr->LoadPlugin(_entity, _fname, _name, _sdf);
-  this->systemMgr->ConfigurePendingSystems(
-      this->entityCompMgr, this->eventMgr);
 }
 
 //////////////////////////////////////////////////

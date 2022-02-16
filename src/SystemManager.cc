@@ -21,8 +21,12 @@ using namespace ignition;
 using namespace gazebo;
 
 //////////////////////////////////////////////////
-SystemManager::SystemManager(const SystemLoaderPtr &_systemLoader)
-  : systemLoader(_systemLoader)
+SystemManager::SystemManager(const SystemLoaderPtr &_systemLoader,
+                             EntityComponentManager *_entityCompMgr,
+                             EventManager *_eventMgr)
+  : systemLoader(_systemLoader),
+    entityCompMgr(_entityCompMgr),
+    eventMgr(_eventMgr)
 {
 }
 
@@ -69,28 +73,6 @@ size_t SystemManager::PendingCount() const
 }
 
 //////////////////////////////////////////////////
-void SystemManager::ConfigurePendingSystems(EntityComponentManager &_ecm,
-                                            EventManager &_eventMgr)
-{
-  std::lock_guard<std::mutex> lock(this->systemsMutex);
-  for (size_t ii = 0; ii < this->pendingSystems.size(); ++ii)
-  {
-    if (this->pendingSystemsConfigured[ii])
-      continue;
-
-    const auto& system = this->pendingSystems[ii];
-
-    if (system.configure)
-    {
-      system.configure->Configure(system.configureEntity,
-                                  system.configureSdf,
-                                  _ecm, _eventMgr);
-      this->pendingSystemsConfigured[ii] = true;
-    }
-  }
-}
-
-//////////////////////////////////////////////////
 size_t SystemManager::ActivatePendingSystems()
 {
   std::lock_guard<std::mutex> lock(this->systemsMutex);
@@ -115,7 +97,6 @@ size_t SystemManager::ActivatePendingSystems()
   }
 
   this->pendingSystems.clear();
-  this->pendingSystemsConfigured.clear();
   return count;
 }
 
@@ -142,13 +123,17 @@ void SystemManager::AddSystemImpl(
       Entity _entity,
       std::shared_ptr<const sdf::Element> _sdf)
 {
-  _system.configureEntity = _entity;
-  _system.configureSdf = _sdf;
+  // Configure the system, if necessary
+  if (_system.configure && this->entityCompMgr && this->eventMgr)
+  {
+    _system.configure->Configure(_entity, _sdf,
+                                 *this->entityCompMgr,
+                                 *this->eventMgr);
+  }
 
   // Update callbacks will be handled later, add to queue
   std::lock_guard<std::mutex> lock(this->systemsMutex);
   this->pendingSystems.push_back(_system);
-  this->pendingSystemsConfigured.push_back(false);
 }
 
 //////////////////////////////////////////////////

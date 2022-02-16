@@ -79,7 +79,7 @@ TEST(SystemManager, Constructor)
 }
 
 /////////////////////////////////////////////////
-TEST(SystemManager, AddSystem)
+TEST(SystemManager, AddSystem_NoEcm)
 {
   auto loader = std::make_shared<SystemLoader>();
   SystemManager systemMgr(loader);
@@ -94,6 +94,10 @@ TEST(SystemManager, AddSystem)
 
   auto configSystem = std::make_shared<System_WithConfigure>();
   systemMgr.AddSystem(configSystem, kNullEntity, nullptr);
+
+  // SystemManager without an ECM/EventmManager will mean no config occurs
+  EXPECT_EQ(0, configSystem->configured);
+
   EXPECT_EQ(0u, systemMgr.ActiveCount());
   EXPECT_EQ(1u, systemMgr.PendingCount());
   EXPECT_EQ(1u, systemMgr.TotalCount());
@@ -130,3 +134,65 @@ TEST(SystemManager, AddSystem)
   EXPECT_EQ(1u, systemMgr.SystemsUpdate().size());
   EXPECT_EQ(1u, systemMgr.SystemsPostUpdate().size());
 }
+
+/////////////////////////////////////////////////
+TEST(SystemManager, AddSystem_Ecm)
+{
+  auto loader = std::make_shared<SystemLoader>();
+
+  auto ecm = EntityComponentManager();
+  auto eventManager = EventManager();
+
+  SystemManager systemMgr(loader, &ecm, &eventManager);
+
+  EXPECT_EQ(0u, systemMgr.ActiveCount());
+  EXPECT_EQ(0u, systemMgr.PendingCount());
+  EXPECT_EQ(0u, systemMgr.TotalCount());
+  EXPECT_EQ(0u, systemMgr.SystemsConfigure().size());
+  EXPECT_EQ(0u, systemMgr.SystemsPreUpdate().size());
+  EXPECT_EQ(0u, systemMgr.SystemsUpdate().size());
+  EXPECT_EQ(0u, systemMgr.SystemsPostUpdate().size());
+
+  auto configSystem = std::make_shared<System_WithConfigure>();
+  systemMgr.AddSystem(configSystem, kNullEntity, nullptr);
+
+  // Configure called during AddSystem
+  EXPECT_EQ(1, configSystem->configured);
+
+  EXPECT_EQ(0u, systemMgr.ActiveCount());
+  EXPECT_EQ(1u, systemMgr.PendingCount());
+  EXPECT_EQ(1u, systemMgr.TotalCount());
+  EXPECT_EQ(0u, systemMgr.SystemsConfigure().size());
+  EXPECT_EQ(0u, systemMgr.SystemsPreUpdate().size());
+  EXPECT_EQ(0u, systemMgr.SystemsUpdate().size());
+  EXPECT_EQ(0u, systemMgr.SystemsPostUpdate().size());
+
+  systemMgr.ActivatePendingSystems();
+  EXPECT_EQ(1u, systemMgr.ActiveCount());
+  EXPECT_EQ(0u, systemMgr.PendingCount());
+  EXPECT_EQ(1u, systemMgr.TotalCount());
+  EXPECT_EQ(1u, systemMgr.SystemsConfigure().size());
+  EXPECT_EQ(0u, systemMgr.SystemsPreUpdate().size());
+  EXPECT_EQ(0u, systemMgr.SystemsUpdate().size());
+  EXPECT_EQ(0u, systemMgr.SystemsPostUpdate().size());
+
+  auto updateSystem = std::make_shared<System_WithUpdates>();
+  systemMgr.AddSystem(updateSystem, kNullEntity, nullptr);
+  EXPECT_EQ(1u, systemMgr.ActiveCount());
+  EXPECT_EQ(1u, systemMgr.PendingCount());
+  EXPECT_EQ(2u, systemMgr.TotalCount());
+  EXPECT_EQ(1u, systemMgr.SystemsConfigure().size());
+  EXPECT_EQ(0u, systemMgr.SystemsPreUpdate().size());
+  EXPECT_EQ(0u, systemMgr.SystemsUpdate().size());
+  EXPECT_EQ(0u, systemMgr.SystemsPostUpdate().size());
+
+  systemMgr.ActivatePendingSystems();
+  EXPECT_EQ(2u, systemMgr.ActiveCount());
+  EXPECT_EQ(0u, systemMgr.PendingCount());
+  EXPECT_EQ(2u, systemMgr.TotalCount());
+  EXPECT_EQ(1u, systemMgr.SystemsConfigure().size());
+  EXPECT_EQ(1u, systemMgr.SystemsPreUpdate().size());
+  EXPECT_EQ(1u, systemMgr.SystemsUpdate().size());
+  EXPECT_EQ(1u, systemMgr.SystemsPostUpdate().size());
+}
+
