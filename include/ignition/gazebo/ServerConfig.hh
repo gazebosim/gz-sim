@@ -37,6 +37,22 @@ namespace ignition
     // Forward declarations.
     class ServerConfigPrivate;
 
+    /// \brief Type of SDF source.
+    enum class SourceType
+    {
+      // The source is an SDF file.
+      kSdfFile,
+
+      // No source specified.
+      kNone,
+
+      // The source is an SDF Root object.
+      kSdfRoot,
+
+      // The source is an SDF string.
+      kSdfString,
+    };
+
     /// \class ServerConfig ServerConfig.hh ignition/gazebo/ServerConfig.hh
     /// \brief Configuration parameters for a Server. An instance of this
     /// object can be used to construct a Server with a particular
@@ -185,7 +201,7 @@ namespace ignition
       /// \brief Get the SDF Root DOM object.
       /// \return SDF Root object to use, or std::nullopt if the sdf::Root
       /// has not been set via ServerConfig::SetSdfRoot().
-      public: const std::optional<sdf::Root> &SdfRoot() const;
+      public: std::optional<sdf::Root> &SdfRoot() const;
 
       /// \brief Set the update rate in Hertz. Value <=0 are ignored.
       /// \param[in] _hz The desired update rate of the server in Hertz.
@@ -394,6 +410,10 @@ namespace ignition
       /// \return Time when this ServerConfig was created.
       public: const std::chrono::time_point<std::chrono::system_clock> &
               Timestamp() const;
+
+      /// \brief Get the type of source
+      /// \return The source type.
+      public: SourceType Source() const;
 
       /// \brief Private data pointer
       private: std::unique_ptr<ServerConfigPrivate> dataPtr;
