@@ -29,6 +29,7 @@
 #include <ignition/math/Vector3.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/transport/TopicUtils.hh>
 #include <sdf/sdf.hh>
 
 #include "ignition/gazebo/components/Pose.hh"
@@ -251,10 +252,17 @@ void TrajectoryFollowerPrivate::Load(const EntityComponentManager &_ecm,
   // Parse the optional <topic> element.
   this->topic = "/model/" + this->model.Name(_ecm) +
     "/trajectory_follower/pause";
+
   if (_sdf->HasElement("topic"))
     this->topic = _sdf->Get<std::string>("topic");
 
+  this->topic = transport::TopicUtils::AsValidTopic(this->topic);
+
   this->node.Subscribe(topic, &TrajectoryFollowerPrivate::OnPause, this);
+
+  ignmsg << "TrajectoryFollower["
+      << this->model.Name() << "] subscribed "
+      << "to pause messages on topic[" << this->topic << "]\n";
 
   // If we have waypoints to visit, read the first one.
   if (!this->localWaypoints.empty())
