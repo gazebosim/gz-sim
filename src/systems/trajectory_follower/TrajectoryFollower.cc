@@ -261,7 +261,7 @@ void TrajectoryFollowerPrivate::Load(const EntityComponentManager &_ecm,
   this->node.Subscribe(topic, &TrajectoryFollowerPrivate::OnPause, this);
 
   ignmsg << "TrajectoryFollower["
-      << this->model.Name() << "] subscribed "
+      << this->model.Name(_ecm) << "] subscribed "
       << "to pause messages on topic[" << this->topic << "]\n";
 
   // If we have waypoints to visit, read the first one.
