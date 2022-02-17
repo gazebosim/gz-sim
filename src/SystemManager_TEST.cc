@@ -28,7 +28,7 @@
 using namespace ignition::gazebo;
 
 /////////////////////////////////////////////////
-class System_WithConfigure:
+class SystemWithConfigure:
   public System,
   public ISystemConfigure
 {
@@ -43,7 +43,7 @@ class System_WithConfigure:
 };
 
 /////////////////////////////////////////////////
-class System_WithUpdates:
+class SystemWithUpdates:
   public System,
   public ISystemPreUpdate,
   public ISystemUpdate,
@@ -79,7 +79,7 @@ TEST(SystemManager, Constructor)
 }
 
 /////////////////////////////////////////////////
-TEST(SystemManager, AddSystem_NoEcm)
+TEST(SystemManager, AddSystemNoEcm)
 {
   auto loader = std::make_shared<SystemLoader>();
   SystemManager systemMgr(loader);
@@ -92,7 +92,7 @@ TEST(SystemManager, AddSystem_NoEcm)
   EXPECT_EQ(0u, systemMgr.SystemsUpdate().size());
   EXPECT_EQ(0u, systemMgr.SystemsPostUpdate().size());
 
-  auto configSystem = std::make_shared<System_WithConfigure>();
+  auto configSystem = std::make_shared<SystemWithConfigure>();
   systemMgr.AddSystem(configSystem, kNullEntity, nullptr);
 
   // SystemManager without an ECM/EventmManager will mean no config occurs
@@ -115,7 +115,7 @@ TEST(SystemManager, AddSystem_NoEcm)
   EXPECT_EQ(0u, systemMgr.SystemsUpdate().size());
   EXPECT_EQ(0u, systemMgr.SystemsPostUpdate().size());
 
-  auto updateSystem = std::make_shared<System_WithUpdates>();
+  auto updateSystem = std::make_shared<SystemWithUpdates>();
   systemMgr.AddSystem(updateSystem, kNullEntity, nullptr);
   EXPECT_EQ(1u, systemMgr.ActiveCount());
   EXPECT_EQ(1u, systemMgr.PendingCount());
@@ -136,7 +136,7 @@ TEST(SystemManager, AddSystem_NoEcm)
 }
 
 /////////////////////////////////////////////////
-TEST(SystemManager, AddSystem_Ecm)
+TEST(SystemManager, AddSystemEcm)
 {
   auto loader = std::make_shared<SystemLoader>();
 
@@ -153,7 +153,7 @@ TEST(SystemManager, AddSystem_Ecm)
   EXPECT_EQ(0u, systemMgr.SystemsUpdate().size());
   EXPECT_EQ(0u, systemMgr.SystemsPostUpdate().size());
 
-  auto configSystem = std::make_shared<System_WithConfigure>();
+  auto configSystem = std::make_shared<SystemWithConfigure>();
   systemMgr.AddSystem(configSystem, kNullEntity, nullptr);
 
   // Configure called during AddSystem
@@ -176,7 +176,7 @@ TEST(SystemManager, AddSystem_Ecm)
   EXPECT_EQ(0u, systemMgr.SystemsUpdate().size());
   EXPECT_EQ(0u, systemMgr.SystemsPostUpdate().size());
 
-  auto updateSystem = std::make_shared<System_WithUpdates>();
+  auto updateSystem = std::make_shared<SystemWithUpdates>();
   systemMgr.AddSystem(updateSystem, kNullEntity, nullptr);
   EXPECT_EQ(1u, systemMgr.ActiveCount());
   EXPECT_EQ(1u, systemMgr.PendingCount());

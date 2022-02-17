@@ -54,28 +54,26 @@ void SystemManager::LoadPlugin(const Entity _entity,
 //////////////////////////////////////////////////
 size_t SystemManager::TotalCount() const
 {
-  std::lock_guard<std::mutex> lock(this->systemsMutex);
-  return this->systems.size() + this->pendingSystems.size();
+  return this->ActiveCount() + this->PendingCount();
 }
 
 //////////////////////////////////////////////////
 size_t SystemManager::ActiveCount() const
 {
-  std::lock_guard<std::mutex> lock(this->systemsMutex);
   return this->systems.size();
 }
 
 //////////////////////////////////////////////////
 size_t SystemManager::PendingCount() const
 {
-  std::lock_guard<std::mutex> lock(this->systemsMutex);
+  std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
   return this->pendingSystems.size();
 }
 
 //////////////////////////////////////////////////
 size_t SystemManager::ActivatePendingSystems()
 {
-  std::lock_guard<std::mutex> lock(this->systemsMutex);
+  std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
 
   auto count = this->pendingSystems.size();
 
@@ -132,7 +130,7 @@ void SystemManager::AddSystemImpl(
   }
 
   // Update callbacks will be handled later, add to queue
-  std::lock_guard<std::mutex> lock(this->systemsMutex);
+  std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
   this->pendingSystems.push_back(_system);
 }
 

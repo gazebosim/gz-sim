@@ -456,10 +456,8 @@ void SimulationRunner::AddSystem(const SystemPluginPtr &_system,
       std::optional<Entity> _entity,
       std::optional<std::shared_ptr<const sdf::Element>> _sdf)
 {
-  auto entity = _entity.has_value() ? _entity.value()
-      : worldEntity(this->entityCompMgr);
-  auto sdf = _sdf.has_value() ? _sdf.value() : this->sdfWorld->Element();
-
+  auto entity = _entity.value_or(worldEntity(this->entityCompMgr));
+  auto sdf = _sdf.value_or(this->sdfWorld->Element());
   this->systemMgr->AddSystem(_system, entity, sdf);
 }
 
@@ -469,10 +467,8 @@ void SimulationRunner::AddSystem(
       std::optional<Entity> _entity,
       std::optional<std::shared_ptr<const sdf::Element>> _sdf)
 {
-  auto entity = _entity.has_value() ? _entity.value()
-      : worldEntity(this->entityCompMgr);
-  auto sdf = _sdf.has_value() ? _sdf.value() : this->sdfWorld->Element();
-
+  auto entity = _entity.value_or(worldEntity(this->entityCompMgr));
+  auto sdf = _sdf.value_or(this->sdfWorld->Element());
   this->systemMgr->AddSystem(_system, entity, sdf);
 }
 
