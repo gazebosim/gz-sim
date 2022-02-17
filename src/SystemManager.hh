@@ -120,11 +120,8 @@ namespace ignition
       /// \brief Pending systems to be added to systems.
       private: std::vector<SystemInternal> pendingSystems;
 
-      /// \brief Mark if a pending system has been configured
-      private: std::vector<bool> pendingSystemsConfigured;
-
       /// \brief Mutex to protect pendingSystems
-      private: mutable std::mutex systemsMutex;
+      private: mutable std::mutex pendingSystemsMutex;
 
       /// \brief Systems implementing Configure
       private: std::vector<ISystemConfigure *> systemsConfigure;

@@ -17,6 +17,11 @@
 #ifndef IGNITION_GAZEBO_WORLDCONTROL_HH_
 #define IGNITION_GAZEBO_WORLDCONTROL_HH_
 
+#include <chrono>
+#include <cstdint>
+
+#include "ignition/gazebo/config.hh"
+
 namespace ignition
 {
   namespace gazebo
