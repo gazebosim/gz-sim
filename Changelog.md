@@ -10,7 +10,7 @@
 1. Added Equal functions with a tolerance parameter to Pose3 and Quaternion.
     * [BitBucket pull request 319](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-math/pull-requests/319)
 
-1. Updates per issue #101.
+1. Updates per issue [#101](https://github.com/ignitionrobotics/ign-math/issues/101).
     * Matrix3: [BitBucket pull request 328](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-math/pull-requests/328)
     * Pose: [BitBucket pull request 329](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-math/pull-requests/329)
     * Quaternion: [BitBucket pull request 327](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-math/pull-requests/327)
@@ -32,18 +32,22 @@
 
 1. Defer regex construction to avoid static initialization.
     * [Pull request 289](https://github.com/ignitionrobotics/ign-math/pull/289)
-                       
+
 1. Defer Material::Predefined construction to avoid static initialization.
     * [Pull request 290](https://github.com/ignitionrobotics/ign-math/pull/290)
 
 1. Resolve cppcheck errors by adding explicit constructors and consts.
     * [Pull request 291](https://github.com/ignitionrobotics/ign-math/pull/291)
-                   
+
 1. Remove virtual from destructors of copyable classes.
     * [Pull request 293](https://github.com/ignitionrobotics/ign-math/pull/293)
 
 1. Use constexpr for simple static constants.
     * [Pull request 283](https://github.com/ignitionrobotics/ign-math/pull/283)
+
+1. Deprecated `appendToStream(std::ostream, T, int)`. Use `appendToStream(std::ostream, T)`
+instead.
+    * [Pull request 376](https://github.com/ignitionrobotics/ign-math/pull/376)
 
 ## Ignition Math 6.x
 

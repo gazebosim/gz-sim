@@ -604,7 +604,7 @@ namespace ignition
             if (!(i == 0 && j == 0))
               _out << " ";
 
-            appendToStream(_out, _m(i, j), 6);
+            appendToStream(_out, _m(i, j));
           }
         }
 

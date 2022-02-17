@@ -53,6 +53,10 @@ release will remove the deprecated code.
     + ***Deprecation:*** public: void W(T)
     + ***Replacement:*** public: void SetW(T)
 
+1. **Helpers.hh**
+    + **Deprecation:** template<typename T> inline void appendToStream(std::ostream, T, int)
+    + **Replacement:** template<typename T> inline void appendToStream(std::ostream, T)
+
 ### Modifications
 
 1. The out stream operator is guaranteed to return always plain 0 and not to
@@ -266,4 +270,3 @@ release will remove the deprecated code.
 
     + ***Deprecation:*** IGN_I64_INF
     + ***Replacement:*** ignition::math::INF_I64
-

@@ -17,9 +17,14 @@
 
 #include <gtest/gtest.h>
 
+#include <iomanip>
+#include <cmath>
+#include <limits>
+
 #include "ignition/math/Rand.hh"
 #include "ignition/math/Vector3.hh"
 #include "ignition/math/Helpers.hh"
+#include <ignition/utils/SuppressWarning.hh>
 
 using namespace ignition;
 
@@ -963,6 +968,8 @@ TEST(HelpersTest, AppendToStream)
 {
   std::ostringstream out;
 
+  IGN_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
+  // Deprecated in ign-math7
   math::appendToStream(out, 0.12345678, 3);
   EXPECT_EQ(out.str(), "0.123");
 
@@ -980,4 +987,53 @@ TEST(HelpersTest, AppendToStream)
 
   math::appendToStream(out, 0, 3);
   EXPECT_EQ(out.str(), "0.123 0 456 0");
+
+  out.str("");
+  IGN_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
+
+  math::appendToStream(out, 0.0f);
+  EXPECT_EQ(out.str(), "0");
+
+  out << " ";
+
+  math::appendToStream(out, 456);
+  EXPECT_EQ(out.str(), "0 456");
+
+  out << " ";
+
+  math::appendToStream(out, 0);
+  EXPECT_EQ(out.str(), "0 456 0");
+
+  out << " ";
+
+  // ref: https://en.cppreference.com/w/cpp/io/manip/setprecision
+  const long double pi = std::acos(-1.L);
+  math::appendToStream(out, pi);
+  EXPECT_EQ(out.str(), "0 456 0 3.14159");
+
+  out << " "
+      << std::setprecision(10);
+
+  math::appendToStream(out, pi);
+  EXPECT_EQ(out.str(), "0 456 0 3.14159 3.141592654");
+
+  out << " "
+      << std::setprecision(std::numeric_limits<long double>::digits10 + 1);
+
+  math::appendToStream(out, pi);
+#ifdef _WIN32
+  EXPECT_EQ(out.str(), "0 456 0 3.14159 3.141592654 3.141592653589793");
+#else
+  EXPECT_EQ(out.str(), "0 456 0 3.14159 3.141592654 3.141592653589793239");
+#endif
+
+  out << " "
+      << std::setprecision(3);
+
+  math::appendToStream(out, pi);
+#ifdef _WIN32
+  EXPECT_EQ(out.str(), "0 456 0 3.14159 3.141592654 3.141592653589793 3.14");
+#else
+  EXPECT_EQ(out.str(), "0 456 0 3.14159 3.141592654 3.141592653589793239 3.14");
+#endif
 }

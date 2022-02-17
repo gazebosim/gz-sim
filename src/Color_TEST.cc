@@ -330,10 +330,22 @@ TEST(Color, ConstAndSet)
 /////////////////////////////////////////////////
 TEST(Color, OperatorStreamOut)
 {
-  math::Color c(0.1f, 0.2f, 0.3f, 0.0f);
+  math::Color c(0.1111f, 0.2222f, 0.3333f, 0.5555f);
   std::ostringstream stream;
   stream << c;
-  EXPECT_EQ(stream.str(), "0.1 0.2 0.3 0");
+  EXPECT_EQ(stream.str(), "0.1111 0.2222 0.3333 0.5555");
+
+  stream.str("");
+  stream << std::setprecision(2) << c;
+  EXPECT_EQ(stream.str(), "0.11 0.22 0.33 0.56");
+
+  stream.str("");
+  stream << std::setprecision(3) << c;
+  EXPECT_EQ(stream.str(), "0.111 0.222 0.333 0.555");
+
+  stream.str("");
+  stream << std::setprecision(1) << std::fixed << c;
+  EXPECT_EQ(stream.str(), "0.1 0.2 0.3 0.6");
 }
 
 /////////////////////////////////////////////////

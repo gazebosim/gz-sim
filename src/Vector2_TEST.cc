@@ -296,9 +296,21 @@ TEST(Vector2Test, AbsDot)
 /////////////////////////////////////////////////
 TEST(Vector2Test, OperatorStreamOut)
 {
-  math::Vector2d v(0.1, 1.2);
+  math::Vector2d v(0.1234, 1.234);
   std::ostringstream stream;
   stream << v;
+  EXPECT_EQ(stream.str(), "0.1234 1.234");
+
+  stream.str("");
+  stream << std::setprecision(2) << v;
+  EXPECT_EQ(stream.str(), "0.12 1.2");
+
+  stream.str("");
+  stream << std::setprecision(3) << v;
+  EXPECT_EQ(stream.str(), "0.123 1.23");
+
+  stream.str("");
+  stream << std::setprecision(1) << std::fixed << v;
   EXPECT_EQ(stream.str(), "0.1 1.2");
 }
 
@@ -464,4 +476,3 @@ TEST(Vector2Test, NaN)
   EXPECT_EQ(math::Vector2f::Zero, nanVecF);
   EXPECT_TRUE(nanVecF.IsFinite());
 }
-

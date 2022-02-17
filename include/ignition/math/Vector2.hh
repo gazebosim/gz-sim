@@ -538,7 +538,7 @@ namespace ignition
           if (i > 0)
             _out << " ";
 
-          appendToStream(_out, _pt[i], 6);
+          appendToStream(_out, _pt[i]);
         }
         return _out;
       }

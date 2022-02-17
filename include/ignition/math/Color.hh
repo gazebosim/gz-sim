@@ -296,7 +296,7 @@ namespace ignition
           if (i > 0)
             _out << " ";
 
-          appendToStream(_out, _color[i], 6);
+          appendToStream(_out, _color[i]);
         }
         return _out;
       }

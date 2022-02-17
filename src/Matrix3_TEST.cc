@@ -160,13 +160,26 @@ TEST(Matrix3dTest, OperatorMul)
 /////////////////////////////////////////////////
 TEST(Matrix3dTest, OperatorStreamOut)
 {
-  math::Matrix3d matA(1, 2, 3,
-                      4, 0, 6,
-                      7, 8, 9);
+  math::Matrix3d matA(1.111, 2.222, 3.333,
+                      4.444, 0.001, 6.666,
+                      7.777, 8.888, 9.999);
 
   std::ostringstream stream;
   stream << matA;
-  EXPECT_EQ(stream.str(), "1 2 3 4 0 6 7 8 9");
+  EXPECT_EQ(stream.str(),
+            "1.111 2.222 3.333 4.444 0.001 6.666 7.777 8.888 9.999");
+
+  stream.str("");
+  stream << std::setprecision(2) << matA;
+  EXPECT_EQ(stream.str(), "1.1 2.2 3.3 4.4 0.001 6.7 7.8 8.9 10");
+
+  stream.str("");
+  stream << std::setprecision(3) << matA;
+  EXPECT_EQ(stream.str(), "1.11 2.22 3.33 4.44 0.001 6.67 7.78 8.89 10");
+
+  stream.str("");
+  stream << std::setprecision(1) << std::fixed << matA;
+  EXPECT_EQ(stream.str(), "1.1 2.2 3.3 4.4 0.0 6.7 7.8 8.9 10.0");
 }
 
 /////////////////////////////////////////////////

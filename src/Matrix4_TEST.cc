@@ -17,9 +17,9 @@
 
 #include <gtest/gtest.h>
 
+#include "ignition/math/Matrix4.hh"
 #include "ignition/math/Pose3.hh"
 #include "ignition/math/Quaternion.hh"
-#include "ignition/math/Matrix4.hh"
 #include "ignition/math/Vector3.hh"
 
 using namespace ignition;
@@ -542,14 +542,33 @@ TEST(Matrix4dTest, NoIndexException)
 /////////////////////////////////////////////////
 TEST(Matrix4dTest, OperatorStreamOut)
 {
-  math::Matrix4d matA(1, 2, 3, 4,
-                      5, 6, 7, 8,
-                      9, 10, 11, 12,
-                      13, 14, 15, 0);
+  math::Matrix4d matA(1.111, 2.222, 3.333, 4.444,
+                      5.555, 6.666, 7.777, 8.888,
+                      9.999, 10.01, 11.11, 12.12,
+                      13.13, 14.14, 15.15, 0.001);
 
   std::ostringstream stream;
   stream << matA;
-  EXPECT_EQ(stream.str(), "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 0");
+  EXPECT_EQ(stream.str(),
+            "1.111 2.222 3.333 4.444 5.555 6.666 7.777 8.888 9.999 10.01"
+            " 11.11 12.12 13.13 14.14 15.15 0.001");
+
+  stream.str("");
+  stream << std::setprecision(2) << matA;
+  EXPECT_EQ(stream.str(),
+            "1.1 2.2 3.3 4.4 5.6 6.7 7.8 8.9 10 10 11 12 13 14 15 0.001");
+
+  stream.str("");
+  stream << std::setprecision(3) << matA;
+  EXPECT_EQ(stream.str(),
+            "1.11 2.22 3.33 4.44 5.55 6.67 7.78 8.89 10 10"
+            " 11.1 12.1 13.1 14.1 15.2 0.001");
+
+  stream.str("");
+  stream << std::setprecision(1) << std::fixed << matA;
+  EXPECT_EQ(stream.str(),
+            "1.1 2.2 3.3 4.4 5.6 6.7 7.8 8.9 10.0 10.0"
+            " 11.1 12.1 13.1 14.1 15.2 0.0");
 }
 
 /////////////////////////////////////////////////
