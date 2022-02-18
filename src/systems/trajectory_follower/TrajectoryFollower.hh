@@ -67,8 +67,8 @@ namespace systems
   ///                      +- this tolerance, a torque won't be applied (degree)
   ///                      The default value is 2 deg.
   /// <zero_vel_on_bearing_reached>: Force angular velocity to be zero when
-  ///                                target bearing is reached. This prevents
-  ///                                overshooting on rotation. Default is false.
+  ///                                target bearing is reached.
+  ///                                Default is false.
   /// <force>: The force to apply at every plugin iteration in the X direction
   ///          of the link (N). The default value is 60.
   /// <torque>: The torque to apply at every plugin iteration in the Yaw

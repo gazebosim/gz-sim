@@ -166,11 +166,12 @@
         <link_name>box_link</link_name>
         <loop>true</loop>
         <force>10</force>
-        <torque>10</torque>
+        <torque>20</torque>
         <line>
           <direction>0</direction>
           <length>5</length>
         </line>
+        <zero_vel_on_bearing_reached>true</zero_vel_on_bearing_reached>
       </plugin>
 
     </model>

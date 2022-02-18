@@ -258,7 +258,7 @@ void TrajectoryFollowerPrivate::Load(const EntityComponentManager &_ecm,
 
   // Parse the optional <zero_vel_on_bearing_reached> element.
   if (_sdf->HasElement("zero_vel_on_bearing_reached"))
-    this->forceZeroAngVel = _sdf->Get<double>("zero_vel_on_bearing_reached");
+    this->forceZeroAngVel = _sdf->Get<bool>("zero_vel_on_bearing_reached");
 
   // Parse the optional <topic> element.
   this->topic = "/model/" + this->model.Name(_ecm) +
@@ -390,7 +390,7 @@ void TrajectoryFollower::PreUpdate(
 
     // force angular velocity to be zero when bearing is reached
     if (this->dataPtr->forceZeroAngVel &&
-        math::equal(std::abs(bearing.Degree()), 0.0, 0.1))
+        math::equal(std::abs(bearing.Degree()), 0.0, 1.0))
     {
       this->dataPtr->link.SetAngularVelocity(_ecm, math::Vector3d::Zero);
       this->dataPtr->zeroAngVelSet = true;
