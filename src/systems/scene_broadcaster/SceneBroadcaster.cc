@@ -785,7 +785,7 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
           components::AirPressureSensor>(_entity);
         if (airPressureComp)
         {
-          sensorMsg->set_type("air_preasure");
+          sensorMsg->set_type("air_pressure");
         }
         auto cameraComp = _manager.Component<components::Camera>(_entity);
         if (cameraComp)
