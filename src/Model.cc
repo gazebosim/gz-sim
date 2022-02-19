@@ -78,7 +78,7 @@ bool Model::Valid(const EntityComponentManager &_ecm) const
 }
 
 //////////////////////////////////////////////////
-std::string Model::Name(const EntityComponentManager &_ecm) const
+std::optional<std::string> Model::Name(const EntityComponentManager &_ecm) const
 {
   auto comp = _ecm.Component<components::Name>(this->dataPtr->id);
   if (comp)
