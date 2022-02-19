@@ -96,7 +96,7 @@ namespace ignition
       /// \brief Get the model's unscoped name.
       /// \param[in] _ecm Entity-component manager.
       /// \return Model's name.
-      public: std::string Name(const EntityComponentManager &_ecm) const;
+      public: std::optional<std::string> Name(const EntityComponentManager &_ecm) const;
 
       /// \brief Get whether this model is static.
       /// \param[in] _ecm Entity-component manager.
