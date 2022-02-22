@@ -389,8 +389,9 @@ void TrajectoryFollower::PreUpdate(
       ignition::math::Vector3d(this->dataPtr->forceToApply, 0, 0));
 
     // force angular velocity to be zero when bearing is reached
-    if (this->dataPtr->forceZeroAngVel &&
-        math::equal(std::abs(bearing.Degree()), 0.0, 1.0))
+    if (this->dataPtr->forceZeroAngVel && !this->dataPtr->zeroAngVelSet &&
+        math::equal (std::abs(bearing.Degree()), 0.0,
+        this->dataPtr->bearingTolerance * 0.5))
     {
       this->dataPtr->link.SetAngularVelocity(_ecm, math::Vector3d::Zero);
       this->dataPtr->zeroAngVelSet = true;
@@ -409,6 +410,7 @@ void TrajectoryFollower::PreUpdate(
       {
         _ecm.RemoveComponent<components::AngularVelocityCmd>(
           this->dataPtr->link.Entity());
+        this->dataPtr->zeroAngVelSet = false;
       }
     }
 
