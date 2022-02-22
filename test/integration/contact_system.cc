@@ -100,12 +100,12 @@ TEST_F(ContactSystemTest,
       EXPECT_NEAR(0.25, std::abs(contact.position(0).x()), 5e-2);
       EXPECT_NEAR(1, std::abs(contact.position(0).y()), 5e-2);
       EXPECT_NEAR(1, contact.position(0).z(), 5e-2);
-      bool EntityNameFound =
+      bool entityNameFound =
         contact.collision1().name() ==
-	"world:contact_sensor:model:contact_model:link:link:collision:collision_sphere1" ||
-	contact.collision1().name() ==
-	"world:contact_sensor:model:contact_model:link:link:collision:collision_sphere2";
-      EXPECT_TRUE(EntityNameFound);
+        "contact_model::link::collision_sphere1" ||
+        contact.collision1().name() ==
+        "contact_model::link::collision_sphere2";
+      EXPECT_TRUE(entityNameFound);
     }
   }
 

@@ -3260,10 +3260,10 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
           msgs::Contact *contactMsg = contactsComp.add_contact();
           contactMsg->mutable_collision1()->set_id(_collEntity1);
           contactMsg->mutable_collision1()->set_name(
-	    scopedName(_collEntity1, _ecm, ":", 1));
+            removeParentScope(scopedName(_collEntity1, _ecm, "::", 0), "::"));
           contactMsg->mutable_collision2()->set_id(collEntity2);
           contactMsg->mutable_collision2()->set_name(
-	    scopedName(collEntity2, _ecm, ":", 1));
+            removeParentScope(scopedName(collEntity2, _ecm, "::", 0), "::"));
           for (const auto &contact : contactData)
           {
             auto *position = contactMsg->add_position();
