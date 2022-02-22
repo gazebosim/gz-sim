@@ -356,10 +356,6 @@ void SensorsPrivate::RenderThread()
     this->RunOnce();
   }
 
-  // clean up before exiting
-  for (const auto id : this->sensorIds)
-    this->sensorManager.Remove(id);
-
   igndbg << "SensorsPrivate::RenderThread stopped" << std::endl;
 }
 
@@ -508,11 +504,36 @@ void Sensors::Configure(const Entity &/*_id*/,
 
   this->dataPtr->eventManager = &_eventMgr;
 
-  this->dataPtr->stopConn = _eventMgr.Connect<events::Stop>(
+  this->dataPtr->stopConn = this->dataPtr->eventManager->Connect<events::Stop>(
       std::bind(&SensorsPrivate::Stop, this->dataPtr.get()));
 
   // Kick off worker thread
   this->dataPtr->Run();
+}
+
+//////////////////////////////////////////////////
+void Sensors::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
+{
+  IGN_PROFILE("Sensors::Reset");
+
+  if (this->dataPtr->running && this->dataPtr->initialized)
+  {
+    igndbg << "Resetting Sensors\n";
+
+    this->dataPtr->sensorMaskMutex.lock();
+    this->dataPtr->sensorMask.clear();
+    this->dataPtr->sensorMaskMutex.unlock();
+
+    auto time = math::durationToSecNsec(_info.simTime);
+    auto t = math::secNsecToDuration(time.first, time.second);
+
+    for (auto id : this->dataPtr->sensorIds)
+    {
+      sensors::Sensor *s = this->dataPtr->sensorManager.Sensor(id);
+      auto rs = dynamic_cast<sensors::RenderingSensor *>(s);
+      rs->SetNextDataUpdateTime(t);
+    }
+  }
 }
 
 //////////////////////////////////////////////////
@@ -532,14 +553,6 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
                          const EntityComponentManager &_ecm)
 {
   IGN_PROFILE("Sensors::PostUpdate");
-
-  // \TODO(anyone) Support rewind
-  if (_info.dt < std::chrono::steady_clock::duration::zero())
-  {
-    ignwarn << "Detected jump back in time ["
-        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
-        << "s]. System may not work properly." << std::endl;
-  }
 
   {
     std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
@@ -814,6 +827,7 @@ std::string Sensors::CreateSensor(const Entity &_entity,
 
 IGNITION_ADD_PLUGIN(Sensors, System,
   Sensors::ISystemConfigure,
+  Sensors::ISystemReset,
   Sensors::ISystemUpdate,
   Sensors::ISystemPostUpdate
 )

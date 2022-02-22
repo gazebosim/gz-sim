@@ -45,7 +45,12 @@ void SystemManager::LoadPlugin(const Entity _entity,
   // System correctly loaded from library
   if (system)
   {
-    this->AddSystem(system.value(), _entity, _sdf);
+    SystemInternal ss(system.value());
+    ss.entity = _entity;
+    ss.fname = _fname;
+    ss.name = _name;
+    ss.sdf = _sdf;
+    this->AddSystemImpl(ss, ss.entity, ss.sdf);
     igndbg << "Loaded system [" << _name
            << "] for entity [" << _entity << "]" << std::endl;
   }
@@ -99,6 +104,57 @@ size_t SystemManager::ActivatePendingSystems()
 
   this->pendingSystems.clear();
   return count;
+}
+
+//////////////////////////////////////////////////
+void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
+{
+  {
+    std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
+    this->pendingSystems.clear();
+  }
+
+  // Clear all iterable collections of systems
+  this->systemsConfigure.clear();
+  this->systemsReset.clear();
+  this->systemsPreupdate.clear();
+  this->systemsUpdate.clear();
+  this->systemsPostupdate.clear();
+
+  this->entityCompMgr = &_ecm;
+
+  for (auto& system: this->systems)
+  {
+    if (nullptr != system.reset)
+    {
+      // If implemented, call reset and add to pending systems.
+      system.reset->Reset(_info, *this->entityCompMgr);
+
+      {
+        std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
+        this->pendingSystems.push_back(system);
+      }
+    }
+    else
+    {
+      // Cannot reset systems that were created in memory rather than
+      // from a plugin, because there isn't access to the constructor.
+      if (nullptr != system.systemShared)
+      {
+        ignwarn << "Systems not created from plugins cannot be correctly "
+          << " reset without implementing ISystemReset interface.\n";
+          continue;
+      }
+
+      this->LoadPlugin(system.entity, 
+                       system.fname, 
+                       system.name, 
+                       system.sdf);
+    }
+  }
+
+  this->systems.clear();
+  this->ActivatePendingSystems();
 }
 
 //////////////////////////////////////////////////

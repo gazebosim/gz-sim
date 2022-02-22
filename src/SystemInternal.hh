@@ -105,15 +105,17 @@ namespace ignition
       /// system during the `Configure` call.
       public: Entity parentEntity = {kNullEntity};
 
+      public: std::string fname = "";
+
+      public: std::string name = "";
+
       /// \brief Cached sdf that was used to call `Configure` on the system
       /// Useful for if a system needs to be reconfigured at runtime
-      public: std::shared_ptr<const sdf::Element> configureSdf = nullptr;
+      public: std::shared_ptr<sdf::Element> sdf = nullptr;
 
       /// \brief Vector of queries and callbacks
       public: std::vector<EntityQueryCallback> updates;
     };
     }
-  }  // namespace gazebo
-}  // namespace ignition
 #endif  // IGNITION_GAZEBO_SYSTEMINTERNAL_HH_
 

@@ -202,6 +202,9 @@ class ignition::gazebo::ServerConfigPrivate
 
     this->timestamp = IGN_SYSTEM_TIME();
 
+    igndbg << "Home: " << home << std::endl;
+    igndbg << "To ISO: " << common::timeToIso(this->timestamp) << std::endl;
+
     // Set a default log record path
     this->logRecordPath = common::joinPaths(home,
         ".ignition", "gazebo", "log", common::timeToIso(this->timestamp));

@@ -92,12 +92,17 @@ namespace ignition
       /// \return The number of newly-active systems
       public: size_t ActivatePendingSystems();
 
-      /// \brief Get an vector of all active systems implementing "Configure"
-      /// \return Vector of systems's configure interfaces.
+      /// \brief Reset all managed systems
+      /// \param[in] _info Update information for the reset time
+      /// \param[in] _ecm ECM information for the reset time
+      public: void Reset(const UpdateInfo &_info, EntityComponentManager &_ecm);
+
+      /// \brief Get an vector of all systems implementing "Configure"
+      /// \return Vector of systems' configure interfaces.
       public: const std::vector<ISystemConfigure *>& SystemsConfigure();
 
       /// \brief Get an vector of all active systems implementing "Reset"
-      /// \return Vector of systems's reset interfaces.
+      /// \return Vector of systems' reset interfaces.
       public: const std::vector<ISystemReset *>& SystemsReset();
 
       /// \brief Get an vector of all active systems implementing "PreUpdate"

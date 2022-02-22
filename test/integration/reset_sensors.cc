@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Open Source Robotics Foundation
+ * Copyright (C) 2018 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ using namespace std::chrono_literals;
 namespace components = ignition::gazebo::components;
 
 //////////////////////////////////////////////////
-class ResetFixture: public InternalFixture<::testing::Test>
+class ResetFixture: public InternalFixture<InternalFixture<::testing::Test>>
 {
   protected: void SetUp() override
   {
@@ -90,14 +90,14 @@ void worldReset()
 }
 
 /////////////////////////////////////////////////
-/// This test checks that that the physics system handles cases where entities
+/// This test checks that that the sensors system handles cases where entities
 /// are removed and then added back
-TEST_F(ResetFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
+TEST_F(ResetFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
-  const std::string sdfFile = common::joinPaths(PROJECT_SOURCE_PATH,
-    "test", "worlds", "reset.sdf");
+  const std::string sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/reset_sensors.sdf";
 
   serverConfig.SetSdfFile(sdfFile);
 
@@ -138,6 +138,7 @@ TEST_F(ResetFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
   // In this case, the box should fall some
   server.Run(true, 100, false);
   {
+    ASSERT_NE(nullptr, ecm);
     auto entity = ecm->EntityByComponents(components::Name("box"));
     ASSERT_NE(kNullEntity, entity);
     auto poseComp = ecm->Component<components::Pose>(entity);
@@ -163,8 +164,8 @@ TEST_F(ResetFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
   // Send command to reset to initial state
   worldReset();
 
-  // It takes two iterations for this to propagate,
-  // the first is for the message to be received and internal state setup
+  // It takes two iterations for this to propage, 
+  // the first is for the message to be recieved and internal state setup
   server.Run(true, 1, false);
   EXPECT_EQ(1u, this->mockSystem->configureCallCount);
   EXPECT_EQ(0u, this->mockSystem->resetCallCount);

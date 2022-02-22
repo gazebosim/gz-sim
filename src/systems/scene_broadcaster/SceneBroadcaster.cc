@@ -378,6 +378,28 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
+void SceneBroadcaster::Reset(const UpdateInfo &_info,
+                             EntityComponentManager &_manager)
+{
+  // Update scene graph with added entities before populating pose message
+  this->dataPtr->SceneGraphAddEntities(_manager);
+
+  this->dataPtr->PoseUpdate(_info, _manager);
+
+  // call SceneGraphRemoveEntities at the end of this update cycle so that
+  // removed entities are removed from the scene graph for the next update cycle
+  this->dataPtr->SceneGraphRemoveEntities(_manager);
+
+  std::unique_lock<std::mutex> lock(this->dataPtr->stateMutex);
+  this->dataPtr->stepMsg.Clear();
+
+  set(this->dataPtr->stepMsg.mutable_stats(), _info);
+  _manager.State(*this->dataPtr->stepMsg.mutable_state(), {}, {}, true);
+  this->dataPtr->statePub.Publish(this->dataPtr->stepMsg);
+  this->dataPtr->lastStatePubTime = std::chrono::system_clock::now();
+}
+
+//////////////////////////////////////////////////
 void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_manager)
 {
@@ -1176,7 +1198,8 @@ void SceneBroadcasterPrivate::RemoveFromGraph(const Entity _entity,
 IGNITION_ADD_PLUGIN(SceneBroadcaster,
                     ignition::gazebo::System,
                     SceneBroadcaster::ISystemConfigure,
-                    SceneBroadcaster::ISystemPostUpdate)
+                    SceneBroadcaster::ISystemPostUpdate,
+                    SceneBroadcaster::ISystemReset)
 
 // Add plugin alias so that we can refer to the plugin without the version
 // namespace

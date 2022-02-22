@@ -40,7 +40,8 @@ namespace systems
   class SceneBroadcaster final:
     public System,
     public ISystemConfigure,
-    public ISystemPostUpdate
+    public ISystemPostUpdate,
+    public ISystemReset
   {
     /// \brief Constructor
     public: SceneBroadcaster();
@@ -57,6 +58,10 @@ namespace systems
     // Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
                 const EntityComponentManager &_ecm) final;
+
+    // Documentation inherited
+    public: void Reset(const UpdateInfo &_info,
+                       EntityComponentManager &_ecm) final;
 
     /// \brief Private data pointer
     private: std::unique_ptr<SceneBroadcasterPrivate> dataPtr;

@@ -82,6 +82,7 @@ set(tests_needing_display
   distortion_camera.cc
   gpu_lidar.cc
   optical_tactile_plugin.cc
+  reset_sensors.cc
   rgbd_camera.cc
   sensors_system.cc
   sensors_system_battery.cc
