@@ -151,7 +151,8 @@ void OdometryPublisher::Configure(const Entity &_entity,
   }
   else
   {
-    this->dataPtr->offset.Pos() = _sdf->Get<ignition::math::Vector3d>("xyz_offset");
+    this->dataPtr->offset.Pos() = _sdf->Get<ignition::math::Vector3d>(
+      "xyz_offset");
   }
 
   if (!_sdf->HasElement("rpy_offset"))
@@ -162,7 +163,8 @@ void OdometryPublisher::Configure(const Entity &_entity,
   else
   {
     this->dataPtr->offset.Rot() =
-      ignition::math::Quaterniond(_sdf->Get<ignition::math::Vector3d>("rpy_offset"));
+      ignition::math::Quaterniond(_sdf->Get<ignition::math::Vector3d>(
+        "rpy_offset"));
   }
 
   this->dataPtr->robotBaseFrame = this->dataPtr->model.Name(_ecm)
