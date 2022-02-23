@@ -28,6 +28,12 @@
 #include <sdf/Error.hh>
 
 #include <ignition/common/Profiler.hh>
+#include <ignition/math/AdditivelySeparableScalarField3.hh>
+#include <ignition/math/PiecewiseScalarField3.hh>
+#include <ignition/math/Polynomial3.hh>
+#include <ignition/math/Region3.hh>
+#include <ignition/math/Vector3.hh>
+#include <ignition/math/Vector4.hh>
 #include <ignition/msgs/Utility.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
@@ -52,6 +58,152 @@
 using namespace ignition;
 using namespace gazebo;
 using namespace systems;
+
+namespace {
+  using ScalingFactor =
+      math::AdditivelySeparableScalarField3d<math::Polynomial3d>;
+  using PiecewiseScalingFactor = math::PiecewiseScalarField3d<ScalingFactor>;
+
+  //////////////////////////////////////////////////
+  ScalingFactor MakeConstantScalingFactor(double _value)
+  {
+    return ScalingFactor(
+        _value / 3.,
+        math::Polynomial3d::Constant(_value),
+        math::Polynomial3d::Constant(_value),
+        math::Polynomial3d::Constant(_value));
+  }
+
+  //////////////////////////////////////////////////
+  math::Polynomial3d LoadPolynomial3d(const sdf::ElementPtr &_sdf)
+  {
+    math::Vector4<double> coeffs;
+    std::istringstream(_sdf->Get<std::string>()) >> coeffs;
+    return math::Polynomial3d(std::move(coeffs));
+  }
+
+  //////////////////////////////////////////////////
+  ScalingFactor LoadScalingFactor(const sdf::ElementPtr &_sdf)
+  {
+    if (!_sdf->GetFirstElement())
+    {
+      return MakeConstantScalingFactor(_sdf->Get<double>());
+    }
+    double k = 1.;
+    if (_sdf->HasElement("k"))
+    {
+      k = _sdf->GetElementImpl("k")->Get<double>();
+    }
+    math::Polynomial3d p = math::Polynomial3d::Constant(0.);
+    if (_sdf->HasElement("px"))
+    {
+      p = LoadPolynomial3d(_sdf->GetElementImpl("px"));
+    }
+    math::Polynomial3d q = math::Polynomial3d::Constant(0.);
+    if (_sdf->HasElement("qy"))
+    {
+      q = LoadPolynomial3d(_sdf->GetElementImpl("qy"));
+    }
+    math::Polynomial3d r = math::Polynomial3d::Constant(0.);
+    if (_sdf->HasElement("rz"))
+    {
+      r = LoadPolynomial3d(_sdf->GetElementImpl("rz"));
+    }
+    return ScalingFactor(k, std::move(p), std::move(q), std::move(r));
+  }
+
+  //////////////////////////////////////////////////
+  math::Intervald LoadIntervald(const sdf::ElementPtr _sdf, const std::string &_prefix)
+  {
+    bool leftClosed = false;
+    double leftValue = -math::INF_D;
+    const std::string geAttrName = _prefix + "ge";
+    const std::string gtAttrName = _prefix + "gt";
+    if (_sdf->HasAttribute(geAttrName) && _sdf->HasAttribute(gtAttrName))
+    {
+      ignerr << "Attributes '" << geAttrName << "' and '" << gtAttrName << "'"
+             << " are mutually exclusive. Ignoring both." << std::endl;
+    }
+    else if (_sdf->HasAttribute(geAttrName))
+    {
+      sdf::ParamPtr sdfGeAttrValue = _sdf->GetAttribute(geAttrName);
+      if (!sdfGeAttrValue->Get<double>(leftValue))
+      {
+        ignerr << "Invalid '" << geAttrName << "' attribute value. "
+               << "Ignoring." << std::endl;
+      }
+      else
+      {
+        leftClosed = true;
+      }
+    }
+    else if (_sdf->HasAttribute(gtAttrName))
+    {
+      sdf::ParamPtr sdfGtAttrValue = _sdf->GetAttribute(gtAttrName);
+      if(!sdfGtAttrValue->Get<double>(leftValue))
+      {
+        ignerr << "Invalid '" << gtAttrName << "' attribute value. "
+               << "Ignoring." << std::endl;
+      }
+    }
+
+    bool rightClosed = false;
+    double rightValue = math::INF_D;
+    const std::string leAttrName = _prefix + "le";
+    const std::string ltAttrName = _prefix + "lt";
+    if (_sdf->HasAttribute(leAttrName) && _sdf->HasAttribute(ltAttrName))
+    {
+      ignerr << "Attributes '" << leAttrName << "' and '" << ltAttrName << "'"
+             << " are mutually exclusive. Ignoring both." << std::endl;
+    }
+    else if (_sdf->HasAttribute(leAttrName))
+    {
+      sdf::ParamPtr sdfLeAttrValue = _sdf->GetAttribute(leAttrName);
+      if (!sdfLeAttrValue->Get<double>(rightValue))
+      {
+        ignerr << "Invalid '" << leAttrName << "' attribute value. "
+               << "Ignoring." << std::endl;
+      }
+      else
+      {
+        rightClosed = true;
+      }
+    }
+    else if (_sdf->HasAttribute(ltAttrName))
+    {
+      sdf::ParamPtr sdfLtAttrValue = _sdf->GetAttribute(ltAttrName);
+      if (!sdfLtAttrValue->Get<double>(rightValue))
+      {
+        ignerr << "Invalid '" << gtAttrName << "'"
+               << "attribute value. Ignoring."
+               << std::endl;
+      }
+    }
+
+    return math::Intervald(leftValue, leftClosed, rightValue, rightClosed);
+  }
+
+  //////////////////////////////////////////////////
+  PiecewiseScalingFactor LoadPiecewiseScalingFactor(const sdf::ElementPtr _sdf)
+  {
+    if (!_sdf->HasElement("when"))
+    {
+      return PiecewiseScalingFactor::Throughout(LoadScalingFactor(_sdf));
+    }
+    std::vector<PiecewiseScalingFactor::Piece> pieces;
+    for (sdf::ElementPtr sdfPiece = _sdf->GetElement("when");
+         sdfPiece; sdfPiece = sdfPiece->GetNextElement("when"))
+    {
+      pieces.push_back({
+          math::Region3d(LoadIntervald(sdfPiece, "x"),
+                         LoadIntervald(sdfPiece, "y"),
+                         LoadIntervald(sdfPiece, "z")),
+          LoadScalingFactor(sdfPiece),
+      });
+    }
+    return PiecewiseScalingFactor(std::move(pieces));
+  }
+}  // namespace
 
 /// \brief Private WindEffects data class.
 class ignition::gazebo::systems::WindEffectsPrivate
@@ -134,7 +286,7 @@ class ignition::gazebo::systems::WindEffectsPrivate
   public: double magnitudeMeanVertical{0.0};
 
   /// \brief The scaling factor to approximate wind as force on a mass.
-  public: double forceApproximationScalingFactor{1.0};
+  public: PiecewiseScalingFactor forceApproximationScalingFactor;
 
   /// \brief Noise added to magnitude.
   public: sensors::NoisePtr noiseMagnitude;
@@ -281,19 +433,22 @@ void WindEffectsPrivate::Load(EntityComponentManager &_ecm,
   {
     sdf::ElementPtr sdfForceApprox =
         _sdf->GetElementImpl("force_approximation_scaling_factor");
-
-    this->forceApproximationScalingFactor = sdfForceApprox->Get<double>();
+    this->forceApproximationScalingFactor =
+        LoadPiecewiseScalingFactor(sdfForceApprox);
+  }
+  else
+  {
+    this->forceApproximationScalingFactor =
+        PiecewiseScalingFactor::Throughout(MakeConstantScalingFactor(1.));
   }
 
-  // If the forceApproximationScalingFactor is very small don't update.
   // It doesn't make sense to be negative, that would be negative wind drag.
-  if (std::fabs(this->forceApproximationScalingFactor) < 1e-6)
+  if (this->forceApproximationScalingFactor.Minimum() < 0.)
   {
-    ignerr << "Please set <force_approximation_scaling_factor> to a value "
-           << "greater than 0" << std::endl;
+    ignerr << "<force_approximation_scaling_factor> must "
+           << "always be a nonnegative quantity" << std::endl;
     return;
   }
-
 
   this->validConfig = true;
 }
@@ -411,12 +566,16 @@ void WindEffectsPrivate::ApplyWindForce(const UpdateInfo &,
 
   Link link;
 
-  _ecm.Each<components::Link, components::Inertial, components::WindMode,
+  _ecm.Each<components::Link,
+            components::Inertial,
+            components::WindMode,
+            components::WorldPose,
             components::WorldLinearVelocity>(
       [&](const Entity &_entity,
           components::Link *,
           components::Inertial *_inertial,
           components::WindMode *_windMode,
+          components::WorldPose *_linkPose,
           components::WorldLinearVelocity *_linkVel) -> bool
       {
         // Skip links for which the wind is disabled
@@ -427,9 +586,11 @@ void WindEffectsPrivate::ApplyWindForce(const UpdateInfo &,
 
         link.ResetEntity(_entity);
 
-        math::Vector3d windForce = _inertial->Data().MassMatrix().Mass() *
-                                   this->forceApproximationScalingFactor *
-                                   (windVel->Data() - _linkVel->Data());
+        const math::Vector3d windForce =
+            _inertial->Data().MassMatrix().Mass() *
+            this->forceApproximationScalingFactor(
+                _linkPose->Data().Pos()) *
+            (windVel->Data() - _linkVel->Data());
 
         // Apply force at center of mass
         link.AddWorldForce(_ecm, windForce);
