@@ -72,7 +72,13 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// `AddEntityToMessage`.
   public: void CalculateStateThreadLoad();
 
-  public: void Copy(const EntityComponentManagerPrivate &_from);
+  /// \brief Copies the contents of `_from` into this object.
+  /// \note This is a member function instead of a copy constructor so that
+  /// it can have additional parameters if the need arises in the future.
+  /// Additionally, not every data member is copied making its behavior
+  /// different from what would be expected from a copy constructor.
+  /// \param[in] _from Object to copy from
+  public: void CopyFrom(const EntityComponentManagerPrivate &_from);
 
   /// \brief Create a message for the removed components
   /// \param[in] _entity Entity with the removed components
@@ -290,12 +296,8 @@ EntityComponentManager::EntityComponentManager()
 //////////////////////////////////////////////////
 EntityComponentManager::~EntityComponentManager() = default;
 
-// //////////////////////////////////////////////////
-// EntityComponentManager::EntityComponentManager(
-//     EntityComponentManager &&_ecm) noexcept = default;
-
 //////////////////////////////////////////////////
-void EntityComponentManagerPrivate::Copy(
+void EntityComponentManagerPrivate::CopyFrom(
     const EntityComponentManagerPrivate &_from)
 {
   this->createdCompTypes = _from.createdCompTypes;
@@ -2114,13 +2116,13 @@ void EntityComponentManager::UnpinAllEntities()
 }
 
 /////////////////////////////////////////////////
-void EntityComponentManager::Copy(const EntityComponentManager &_fromEcm)
+void EntityComponentManager::CopyFrom(const EntityComponentManager &_fromEcm)
 {
-  this->dataPtr->Copy(*_fromEcm.dataPtr);
+  this->dataPtr->CopyFrom(*_fromEcm.dataPtr);
 }
 
 /////////////////////////////////////////////////
-EntityComponentManagerDiff EntityComponentManager::ComputeDiff(
+EntityComponentManagerDiff EntityComponentManager::ComputeEntityDiff(
     const EntityComponentManager &_other) const
 {
   EntityComponentManagerDiff diff;
@@ -2149,8 +2151,9 @@ EntityComponentManagerDiff EntityComponentManager::ComputeDiff(
 }
 
 /////////////////////////////////////////////////
-void EntityComponentManager::ApplyDiff(const EntityComponentManager &_other,
-                                       const EntityComponentManagerDiff &_diff)
+void EntityComponentManager::ApplyEntityDiff(
+    const EntityComponentManager &_other,
+    const EntityComponentManagerDiff &_diff)
 {
   auto copyComponents = [&](Entity _entity)
   {
@@ -2184,7 +2187,6 @@ void EntityComponentManager::ApplyDiff(const EntityComponentManager &_other,
     if (!this->HasEntity(entity))
     {
       this->dataPtr->CreateEntityImplementation(entity);
-      this->RequestRemoveEntity(entity, false);
       // We want to set this entity as "removed", but
       // CreateEntityImplementation sets it as "newlyCreated",
       // so remove it from that list.
@@ -2200,15 +2202,17 @@ void EntityComponentManager::ApplyDiff(const EntityComponentManager &_other,
       copyComponents(entity);
       this->SetParentEntity(entity, _other.ParentEntity(entity));
     }
+
+    this->RequestRemoveEntity(entity, false);
   }
 }
 
 /////////////////////////////////////////////////
 void EntityComponentManager::ResetTo(const EntityComponentManager &_other)
 {
-  auto ecmDiff = this->ComputeDiff(_other);
+  auto ecmDiff = this->ComputeEntityDiff(_other);
   EntityComponentManager tmpCopy;
-  tmpCopy.Copy(_other);
-  tmpCopy.ApplyDiff(*this, ecmDiff);
-  this->Copy(tmpCopy);
+  tmpCopy.CopyFrom(_other);
+  tmpCopy.ApplyEntityDiff(*this, ecmDiff);
+  this->CopyFrom(tmpCopy);
 }

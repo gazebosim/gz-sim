@@ -72,7 +72,13 @@ namespace ignition
       /// \brief Destructor
       public: ~EntityComponentManager();
 
-      public: void Copy(const EntityComponentManager &_fromEcm);
+      /// \brief Copies the contents of `_from` into this object.
+      /// \note This is a member function instead of a copy constructor so that
+      /// it can have additional parameters if the need arises in the future.
+      /// Additionally, not every data member is copied making its behavior
+      /// different from what would be expected from a copy constructor.
+      /// \param[in] _from Object to copy from
+      public: void CopyFrom(const EntityComponentManager &_fromEcm);
 
       /// \brief Creates a new Entity.
       /// \return An id for the Entity, or kNullEntity on failure.
@@ -701,22 +707,23 @@ namespace ignition
       protected: void SetAllComponentsUnchanged();
 
       /// Compute the diff between this EntityComponentManager and _other at the
-      /// entity level.
+      /// entity level. This does not compute the diff between components of an
+      /// entity.
       ///  * If an entity is in `_other`, but not in `this`, insert the entity
       ///  as an "added" entity.
       ///  * If an entity is in `this`, but not in `other`, insert the entity
       ///  as a "removed" entity.
       ///  \return Data structure containing the added and removed entities
-      protected: EntityComponentManagerDiff ComputeDiff(
+      protected: EntityComponentManagerDiff ComputeEntityDiff(
                      const EntityComponentManager &_other) const;
 
-      /// \brief Given a diff, apply it to this ECM. Note that for removed
-      /// entities, this would mark them for removal instead of actually
+      /// \brief Given an entity diff, apply it to this ECM. Note that for
+      /// removed entities, this would mark them for removal instead of actually
       /// removing the entities.
       /// \param[in] _other Original EntityComponentManager from which the diff
       /// was computed.
-      protected: void ApplyDiff(const EntityComponentManager &_other,
-                                const EntityComponentManagerDiff &_diff);
+      protected: void ApplyEntityDiff(const EntityComponentManager &_other,
+                                      const EntityComponentManagerDiff &_diff);
 
       /// \brief Get whether an Entity exists and is new.
       ///

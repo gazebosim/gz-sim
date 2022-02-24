@@ -111,13 +111,13 @@ class EntityCompMgrTest : public EntityComponentManager
   public: EntityComponentManagerDiff RunComputeDiff(
               const EntityComponentManager &_other) const
   {
-    return this->ComputeDiff(_other);
+    return this->ComputeEntityDiff(_other);
   }
 
   public: void RunApplyDiff(const EntityComponentManager &_other,
                             const EntityComponentManagerDiff &_diff)
   {
-    this->ApplyDiff(_other, _diff);
+    this->ApplyEntityDiff(_other, _diff);
   }
 };
 
@@ -3171,7 +3171,7 @@ TEST_P(EntityComponentManagerFixture, CopyEcm)
   manager.CreateComponent(entity, components::Pose{testPose});
 
   EntityCompMgrTest managerCopy;
-  managerCopy.Copy(manager);
+  managerCopy.CopyFrom(manager);
   EXPECT_EQ(manager.EntityCount(), managerCopy.EntityCount());
   EXPECT_TRUE(managerCopy.HasEntity(entity));
   EXPECT_TRUE(
@@ -3185,7 +3185,6 @@ TEST_P(EntityComponentManagerFixture, CopyEcm)
       });
 }
 
-//////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture, ComputeDiff)
 {
   Entity entity1 = manager.CreateEntity();
@@ -3193,7 +3192,7 @@ TEST_P(EntityComponentManagerFixture, ComputeDiff)
   manager.CreateComponent(entity1, components::Pose{testPose});
 
   EntityCompMgrTest managerCopy;
-  managerCopy.Copy(manager);
+  managerCopy.CopyFrom(manager);
 
   Entity entity2 = manager.CreateEntity();
   manager.CreateComponent(entity2, components::StringComponent{"Entity2"});
@@ -3230,7 +3229,7 @@ TEST_P(EntityComponentManagerFixture, ComputeDiff)
     EntityComponentManagerDiff diff = managerCopy.RunComputeDiff(manager);
     EXPECT_EQ(1u, diff.RemovedEntities().size());
     managerCopy.RunApplyDiff(manager, diff);
-    EXPECT_FALSE(managerCopy.HasEntitiesMarkedForRemoval());
+    EXPECT_TRUE(managerCopy.HasEntitiesMarkedForRemoval());
   }
 }
 
@@ -3257,7 +3256,7 @@ TEST_P(EntityComponentManagerFixture, ResetToWithDeletedEntity)
   }
 
   EntityCompMgrTest managerCopy;
-  managerCopy.Copy(manager);
+  managerCopy.CopyFrom(manager);
 
   manager.RequestRemoveEntity(entity1);
 
@@ -3297,7 +3296,7 @@ TEST_P(EntityComponentManagerFixture, ResetToWithAddedEntity)
   manager.CreateComponent(entity2, components::Name{"entity2"});
 
   EntityCompMgrTest managerCopy;
-  managerCopy.Copy(manager);
+  managerCopy.CopyFrom(manager);
 
   // Add entity3 after a copy has been made.
   Entity entity3 = manager.CreateEntity();
