@@ -69,6 +69,8 @@ namespace systems
   /// <zero_vel_on_bearing_reached>: Force angular velocity to be zero when
   ///                                target bearing is reached.
   ///                                Default is false.
+  ///                                Note: this is an experimental parameter
+  ///                                and may be removed in the future.
   /// <force>: The force to apply at every plugin iteration in the X direction
   ///          of the link (N). The default value is 60.
   /// <torque>: The torque to apply at every plugin iteration in the Yaw
