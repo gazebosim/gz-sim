@@ -170,7 +170,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->levelMgr->UpdateLevelsState();
 
   // Store the initial state of the ECM;
-  this->initialEntityCompMgr.Copy(this->entityCompMgr);
+  this->initialEntityCompMgr.CopyFrom(this->entityCompMgr);
 
   // Load any additional plugins from the Server Configuration
   this->LoadServerPlugins(this->serverConfig.Plugins());
@@ -537,7 +537,7 @@ void SimulationRunner::UpdateSystems()
   if (this->resetInitiated)
   {
     IGN_PROFILE("Reset");
-    for (auto &system : this->systemsReset)
+    for (auto &system : this->systemMgr->SystemsReset())
       system->Reset(this->currentInfo, this->entityCompMgr);
     return;
   }
