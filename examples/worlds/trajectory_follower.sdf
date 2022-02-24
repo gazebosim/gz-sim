@@ -1,6 +1,16 @@
 <?xml version="1.0" ?>
 <!--
   Ignition Gazebo trajectory follower plugin demo.
+
+  Try sending commands:
+
+    To pause the trajectory follower behavior:
+
+      ign topic -t "/model/box/trajectory_follower/pause" -m ignition.msgs.Boolean -p "data: true"
+
+    To resume the trajectory follower behavior:
+
+      ign topic -t "/model/box/trajectory_follower/pause" -m ignition.msgs.Boolean -p "data: false"
 -->
 <sdf version="1.6">
   <world name="trajectory_follower">

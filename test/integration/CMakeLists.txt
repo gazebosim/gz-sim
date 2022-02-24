@@ -67,6 +67,11 @@ set(tests
   world_control_state.cc
 )
 
+# elevator system causes compile erros on windows
+if (NOT WIN32)
+  list(APPEND tests elevator_system.cc)
+endif()
+
 # Tests that require a valid display
 set(tests_needing_display
   camera_sensor_background.cc
