@@ -25,6 +25,13 @@
             <sensor_key>456</sensor_key>
           </plugin>
         </sensor>
+        <visual name="visual">
+          <plugin
+            filename="TestVisualSystem"
+            name="ignition::gazebo::TestVisualSystem">
+            <sensor_key>890</sensor_key>
+          </plugin>
+        </visual>
       </link>
     </model>
   </world>
