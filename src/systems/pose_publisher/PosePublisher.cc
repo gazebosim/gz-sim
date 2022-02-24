@@ -201,7 +201,7 @@ void PosePublisher::Configure(const Entity &_entity,
         this->dataPtr->publishNestedModelPose).first;
 
   // for backward compatibility, publish_model_pose will be set to the
-  // same valuee as publish_nested_model_pose if it is not specified.
+  // same value as publish_nested_model_pose if it is not specified.
   this->dataPtr->publishModelPose =
     _sdf->Get<bool>("publish_model_pose",
         this->dataPtr->publishNestedModelPose).first;
