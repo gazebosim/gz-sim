@@ -9,7 +9,7 @@
       filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
       <contacts>
-        <include_entity_names>true</include_entity_names>
+        <include_entity_names>false</include_entity_names>
       </contacts>
     </plugin>
     <plugin
