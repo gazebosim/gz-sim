@@ -15,6 +15,9 @@
  *
  */
 
+#include <ignition/msgs/boolean.pb.h>
+
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -25,6 +28,8 @@
 #include <ignition/math/Vector2.hh>
 #include <ignition/math/Vector3.hh>
 #include <ignition/plugin/Register.hh>
+#include <ignition/transport/Node.hh>
+#include <ignition/transport/TopicUtils.hh>
 #include <sdf/sdf.hh>
 
 #include "ignition/gazebo/components/Pose.hh"
@@ -45,6 +50,20 @@ class ignition::gazebo::systems::TrajectoryFollowerPrivate
   /// \param[in] _sdf The SDF Element associated with this system plugin.
   public: void Load(const EntityComponentManager &_ecm,
                     const sdf::ElementPtr &_sdf);
+
+  /// \brief Callback to pause/resume the behavior.
+  /// \param[in] _paused True when the intention is to pause the trajectory
+  /// follower behavior or false to continue the trajectory.
+  public: void OnPause(const msgs::Boolean &_paused);
+
+  /// \brief A mutex to protect the paused member.
+  public: std::mutex mutex;
+
+  /// \brief Ignition transport node.
+  public: transport::Node node;
+
+  /// \brief Topic name to pause/resume the trajectory.
+  public: std::string topic;
 
   /// \brief The link entity
   public: ignition::gazebo::Link link;
@@ -87,6 +106,9 @@ class ignition::gazebo::systems::TrajectoryFollowerPrivate
 
   /// \brief Copy of the sdf configuration used for this plugin
   public: sdf::ElementPtr sdfConfig;
+
+  /// \brief Whether the trajectory follower behavior should be paused or not.
+  public: bool paused = false;
 };
 
 //////////////////////////////////////////////////
@@ -227,12 +249,34 @@ void TrajectoryFollowerPrivate::Load(const EntityComponentManager &_ecm,
   if (_sdf->HasElement("bearing_tolerance"))
     this->bearingTolerance = _sdf->Get<double>("bearing_tolerance");
 
+  // Parse the optional <topic> element.
+  this->topic = "/model/" + this->model.Name(_ecm) +
+    "/trajectory_follower/pause";
+
+  if (_sdf->HasElement("topic"))
+    this->topic = _sdf->Get<std::string>("topic");
+
+  this->topic = transport::TopicUtils::AsValidTopic(this->topic);
+
+  this->node.Subscribe(topic, &TrajectoryFollowerPrivate::OnPause, this);
+
+  ignmsg << "TrajectoryFollower["
+      << this->model.Name(_ecm) << "] subscribed "
+      << "to pause messages on topic[" << this->topic << "]\n";
+
   // If we have waypoints to visit, read the first one.
   if (!this->localWaypoints.empty())
   {
     this->nextGoal =
       {this->localWaypoints.front().X(), this->localWaypoints.front().Y(), 0};
   }
+}
+
+/////////////////////////////////////////////////
+void TrajectoryFollowerPrivate::OnPause(const msgs::Boolean &_paused)
+{
+  std::lock_guard<std::mutex> lock(this->mutex);
+  this->paused = _paused.data();
 }
 
 //////////////////////////////////////////////////
@@ -258,8 +302,11 @@ void TrajectoryFollower::PreUpdate(
 {
   IGN_PROFILE("TrajectoryFollower::PreUpdate");
 
-  if (_info.paused)
-    return;
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+    if (_info.paused || this->dataPtr->paused)
+      return;
+  }
 
   if (!this->dataPtr->initialized)
   {
