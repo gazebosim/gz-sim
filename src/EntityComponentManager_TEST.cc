@@ -111,13 +111,13 @@ class EntityCompMgrTest : public EntityComponentManager
   public: EntityComponentManagerDiff RunComputeDiff(
               const EntityComponentManager &_other) const
   {
-    return this->ComputeDiff(_other);
+    return this->ComputeEntityDiff(_other);
   }
 
   public: void RunApplyDiff(const EntityComponentManager &_other,
                             const EntityComponentManagerDiff &_diff)
   {
-    this->ApplyDiff(_other, _diff);
+    this->ApplyEntityDiff(_other, _diff);
   }
 };
 
@@ -3170,7 +3170,7 @@ TEST_P(EntityComponentManagerFixture, CopyEcm)
   manager.CreateComponent(entity, components::Pose{testPose});
 
   EntityCompMgrTest managerCopy;
-  managerCopy.Copy(manager);
+  managerCopy.CopyFrom(manager);
   EXPECT_EQ(manager.EntityCount(), managerCopy.EntityCount());
   EXPECT_TRUE(managerCopy.HasEntity(entity));
   EXPECT_TRUE(
@@ -3184,14 +3184,14 @@ TEST_P(EntityComponentManagerFixture, CopyEcm)
       });
 }
 
-TEST_P(EntityComponentManagerFixture, ComputDiff)
+TEST_P(EntityComponentManagerFixture, ComputeDiff)
 {
   Entity entity1 = manager.CreateEntity();
   math::Pose3d testPose{1, 2, 3, 0.1, 0.2, 0.3};
   manager.CreateComponent(entity1, components::Pose{testPose});
 
   EntityCompMgrTest managerCopy;
-  managerCopy.Copy(manager);
+  managerCopy.CopyFrom(manager);
 
   Entity entity2 = manager.CreateEntity();
   manager.CreateComponent(entity2, components::StringComponent{"Entity2"});
@@ -3254,7 +3254,7 @@ TEST_P(EntityComponentManagerFixture, ResetToWithDeletedEntity)
   }
 
   EntityCompMgrTest managerCopy;
-  managerCopy.Copy(manager);
+  managerCopy.CopyFrom(manager);
 
   manager.RequestRemoveEntity(entity1);
 
@@ -3293,7 +3293,7 @@ TEST_P(EntityComponentManagerFixture, ResetToWithAddedEntity)
   manager.CreateComponent(entity2, components::Name{"entity2"});
 
   EntityCompMgrTest managerCopy;
-  managerCopy.Copy(manager);
+  managerCopy.CopyFrom(manager);
 
   // Add entity3 after a copy has been made.
   Entity entity3 = manager.CreateEntity();
