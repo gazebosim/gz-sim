@@ -623,7 +623,7 @@ sdf::Light ignition::gazebo::convert(const msgs::Light &_in)
     }
   }
   out.SetLightOn(isLightOn);
-  
+
   if (_in.type() == msgs::Light_LightType_POINT)
     out.SetType(sdf::LightType::POINT);
   else if (_in.type() == msgs::Light_LightType_SPOT)
