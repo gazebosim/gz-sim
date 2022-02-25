@@ -737,15 +737,11 @@ void Physics::Configure(const Entity &_entity,
   }
 
   // Check if entity names should be populated in contact points.
-  if (_sdf->HasElement("contacts"))
+  auto contactsElement = _sdf->FindElement("contacts");
+  if (contactsElement)
   {
-    auto sdfClone = _sdf->Clone();
-    auto contactsElement = sdfClone->GetElement("contacts");
-    if (contactsElement->HasElement("include_entity_names"))
-    {
-      this->dataPtr->contactsEntityNames = contactsElement->Get<bool>(
-        "include_entity_names");
-    }
+    this->dataPtr->contactsEntityNames = contactsElement->Get<bool>(
+      "include_entity_names");
   }
 
   // Find engine shared library

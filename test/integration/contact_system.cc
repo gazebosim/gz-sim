@@ -93,12 +93,9 @@ TEST_F(ContactSystemTest,
     for (const auto &contact : lastContacts.contact())
     {
       ASSERT_EQ(1, contact.position_size());
-      bool entityNameFound =
-        contact.collision1().name() ==
-        "contact_model::link::collision_sphere1" ||
-        contact.collision1().name() ==
-        "contact_model::link::collision_sphere2";
-      EXPECT_FALSE(entityNameFound);
+      bool entityNameEmpty =
+        contact.collision1().name() == "";
+      EXPECT_TRUE(entityNameEmpty);
     }
   }
 
