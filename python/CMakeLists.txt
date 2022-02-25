@@ -28,13 +28,11 @@ else()
   set(IGN_PYTHON_INSTALL_PATH ${IGN_LIB_INSTALL_DIR}/python)
 endif()
 
-set(IGN_PYTHON_INSTALL_PATH "${IGN_PYTHON_INSTALL_PATH}/ignition")
-
 # Set the build location and install location for a CPython extension
 function(configure_build_install_location _library_name)
   # Install library for actual use
   install(TARGETS ${_library_name}
-    DESTINATION "${IGN_PYTHON_INSTALL_PATH}/"
+    DESTINATION "${IGN_PYTHON_INSTALL_PATH}/ignition"
   )
 endfunction()
 
@@ -77,7 +75,7 @@ target_link_libraries(sdformat PRIVATE
 )
 
 install(TARGETS sdformat
-	DESTINATION "${IGN_LIB_INSTALL_DIR}/python/"
+	DESTINATION "${IGN_PYTHON_INSTALL_PATH}"
 )
 
 configure_build_install_location(gazebo)
