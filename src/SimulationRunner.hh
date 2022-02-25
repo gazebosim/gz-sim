@@ -389,13 +389,17 @@ namespace ignition
       /// server is in the run state.
       private: std::atomic<bool> running{false};
 
+      /// \brief Manager of all systems.
+      /// Note: must be before EntityComponentManager
+      /// Note: must be before EventMgr
+      /// Because systems have access to the ECM and Events, they need to be
+      /// cleanly stopped and destructed before destroying the event manager
+      /// and entity component manager.
+      private: std::unique_ptr<SystemManager> systemMgr;
+
       /// \brief Manager of all events.
       /// Note: must be before EntityComponentManager
       private: EventManager eventMgr;
-
-      /// \brief Manager of all systems.
-      /// Note: must be before EntityComponentManager
-      private: std::unique_ptr<SystemManager> systemMgr;
 
       /// \brief Manager of all components.
       private: EntityComponentManager entityCompMgr;
