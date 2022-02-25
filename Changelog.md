@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 6.6.0 (2022-02-24)
 
+1. Fix accessing empty JointPosition component in lift drag plugin
+    * [Pull request #1366](https://github.com/ignitionrobotics/ign-gazebo/pull/1366)
+
 1. Add parameter to TrajectoryFollower stop rotation when bearing is reached
     * [Pull request #1349](https://github.com/ignitionrobotics/ign-gazebo/pull/1349)
 
