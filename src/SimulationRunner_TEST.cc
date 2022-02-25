@@ -1234,6 +1234,18 @@ TEST_P(SimulationRunnerTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadPlugins) )
       });
   EXPECT_NE(kNullEntity, sensorId);
 
+  // Get visual entity
+  Entity visualId{kNullEntity};
+  runner.EntityCompMgr().Each<ignition::gazebo::components::Visual>([&](
+      const ignition::gazebo::Entity &_entity,
+      const ignition::gazebo::components::Visual *_visual)->bool
+      {
+        EXPECT_NE(nullptr, _visual);
+        visualId = _entity;
+        return true;
+      });
+  EXPECT_NE(kNullEntity, visualId);
+
   // Check component registered by world plugin
   std::string worldComponentName{"WorldPluginComponent"};
   auto worldComponentId = ignition::common::hash64(worldComponentName);
@@ -1258,6 +1270,14 @@ TEST_P(SimulationRunnerTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadPlugins) )
   EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(sensorId,
       sensorComponentId));
 
+  // Check component registered by visual plugin
+  std::string visualComponentName{"VisualPluginComponent"};
+  auto visualComponentId = ignition::common::hash64(visualComponentName);
+
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(visualComponentId));
+  EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(visualId,
+      visualComponentId));
+
   // Clang re-registers components between tests. If we don't unregister them
   // beforehand, the new plugin tries to create a storage type from a previous
   // plugin, causing a crash.
@@ -1268,6 +1288,7 @@ TEST_P(SimulationRunnerTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadPlugins) )
     components::Factory::Instance()->Unregister(worldComponentId);
     components::Factory::Instance()->Unregister(modelComponentId);
     components::Factory::Instance()->Unregister(sensorComponentId);
+    components::Factory::Instance()->Unregister(visualComponentId);
   #endif
 }
 

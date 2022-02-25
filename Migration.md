@@ -135,6 +135,10 @@ in SDF by setting the `<visual><material><double_sided>` SDF element.
     * **Deprecated**: `Entity EntityFromNode(const rendering::NodePtr &_node) const;`
     * **Replacement**: `Entity entity = std::get<int>(visual->UserData("gazebo-entity"));`
 
+## Ignition Gazebo 3.12.0 to 3.X.X
+
+* Some sensors will only have the `SensorTopic` component after the 1st iteration.
+
 ## Ignition Gazebo 2.x to 3.x
 
 * Use ign-rendering3, ign-sensors3 and ign-gui3.

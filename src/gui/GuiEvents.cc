@@ -50,6 +50,15 @@ class ignition::gazebo::gui::events::ModelEditorAddEntity::Implementation
   public: ignition::gazebo::Entity parent;
 };
 
+class ignition::gazebo::gui::events::VisualPlugin::Implementation
+{
+  /// \brief Entity to load the visual plugin for
+  public: ignition::gazebo::Entity entity;
+
+  /// \brief Sdf element of the visual plugin
+  public: sdf::ElementPtr element;
+};
+
 using namespace ignition;
 using namespace gazebo;
 using namespace gui;
@@ -131,4 +140,25 @@ ignition::gazebo::Entity ModelEditorAddEntity::ParentEntity() const
 QMap<QString, QString> &ModelEditorAddEntity::Data()
 {
   return this->dataPtr->data;
+}
+
+/////////////////////////////////////////////////
+VisualPlugin::VisualPlugin(ignition::gazebo::Entity _entity,
+    const sdf::ElementPtr &_elem) :
+    QEvent(kType), dataPtr(utils::MakeImpl<Implementation>())
+{
+  this->dataPtr->entity = _entity;
+  this->dataPtr->element = _elem;
+}
+
+/////////////////////////////////////////////////
+ignition::gazebo::Entity VisualPlugin::Entity() const
+{
+  return this->dataPtr->entity;
+}
+
+/////////////////////////////////////////////////
+sdf::ElementPtr VisualPlugin::Element() const
+{
+  return this->dataPtr->element;
 }
