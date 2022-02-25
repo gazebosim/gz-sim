@@ -73,20 +73,23 @@ void defineMathMatrix3(py::module &m, const std::string &typestr)
          py::return_value_policy::reference)
     // .def(py::self *= py::self)
     .def("set",
-         &Class::Set,
+         py::overload_cast<size_t, size_t, T>(&Class::Set),
+         "Set a single value")
+    .def("set",
+         py::overload_cast<T, T, T, T, T, T, T, T, T>(&Class::Set),
          "Set values")
-    .def("axes",
-         &Class::Axes,
+    .def("set_axes",
+         &Class::SetAxes,
          "Set the matrix from three axis (1 per column)")
-    .def("axis",
-        &Class::Axis,
+    .def("set_from_axis_angle",
+        &Class::SetFromAxisAngle,
         "Set the matrix from an axis and angle")
-    .def("from_2_axes",
-         &Class::From2Axes,
+    .def("set_from_2_axes",
+         &Class::SetFrom2Axes,
          "Set the matrix to represent rotation from "
          "vector _v1 to vector _v2, so that")
-    .def("col",
-         &Class::Col,
+    .def("set_col",
+         &Class::SetCol,
          "Set a column.")
     .def("equal",
          &Class::Equal,
