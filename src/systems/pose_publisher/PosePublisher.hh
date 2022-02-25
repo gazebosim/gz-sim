@@ -43,9 +43,11 @@ namespace systems
   /// publish_visual_pose       : Set to true to publish visual pose
   /// publish_collision_pose    : Set to true to publish collision pose
   /// publish_sensor_pose       : Set to true to publish sensor pose
+  /// publish_model_pose        : Set to true to publish model pose.
   /// publish_nested_model_pose : Set to true to publish nested model pose. The
   ///                             pose of the model that contains this system is
-  ///                             also published.
+  ///                             also published unless publish_model_pose is
+  ///                             set to false
   /// use_pose_vector_msg       : Set to true to publish an
   ///                             ignition::msgs::Pose_V message instead of
   ///                             mulitple ignition::msgs::Pose messages.
