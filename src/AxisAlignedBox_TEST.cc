@@ -201,22 +201,30 @@ TEST(AxisAlignedBoxTest, DefaultConstructor)
 TEST(AxisAlignedBoxTest, Minus)
 {
   AxisAlignedBox box1(1, 2, 3, 4, 5, 6);
+  const AxisAlignedBox box1Const(1, 2, 3, 4, 5, 6);
   Vector3d sub(1, 1, 1);
 
   AxisAlignedBox box2 = box1 - sub;
+  AxisAlignedBox box2Const = box1Const - sub;
   EXPECT_EQ(box2.Min(), box1.Min() - sub);
   EXPECT_EQ(box2.Max(), box1.Max() - sub);
+  EXPECT_EQ(box2Const.Min(), box1Const.Min() - sub);
+  EXPECT_EQ(box2Const.Max(), box1Const.Max() - sub);
 }
 
 /////////////////////////////////////////////////
 TEST(AxisAlignedBoxTest, Plus)
 {
   AxisAlignedBox box1(1, 2, 3, 4, 5, 6);
+  const AxisAlignedBox box1Const(1, 2, 3, 4, 5, 6);
   Vector3d add(1, 1, 1);
 
   AxisAlignedBox box2 = box1 + add;
+  const AxisAlignedBox box2Const = box1Const + add;
   EXPECT_EQ(box2.Min(), box1.Min() + add);
   EXPECT_EQ(box2.Max(), box1.Max() + add);
+  EXPECT_EQ(box2Const.Min(), box1Const.Min() + add);
+  EXPECT_EQ(box2Const.Max(), box1Const.Max() + add);
 }
 
 /////////////////////////////////////////////////

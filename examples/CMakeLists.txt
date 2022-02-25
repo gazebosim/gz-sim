@@ -12,6 +12,9 @@ target_link_libraries(angle_example ignition-math${IGN_MATH_VER}::ignition-math$
 add_executable(color_example color_example.cc)
 target_link_libraries(color_example ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
 
+add_executable(diff_drive_odometry diff_drive_odometry.cc)
+target_link_libraries(diff_drive_odometry ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
+
 add_executable(gauss_markov_process gauss_markov_process_example.cc)
 target_link_libraries(gauss_markov_process ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
 
@@ -20,6 +23,9 @@ target_link_libraries(graph_example ignition-math${IGN_MATH_VER}::ignition-math$
 
 add_executable(helpers_example helpers_example.cc)
 target_link_libraries(helpers_example ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
+
+add_executable(kmeans kmeans.cc)
+target_link_libraries(kmeans ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
 
 add_executable(matrix3_example matrix3_example.cc)
 target_link_libraries(matrix3_example ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
