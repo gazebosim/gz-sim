@@ -8,6 +8,7 @@
       filename="ignition-gazebo-sensors-system"
       name="ignition::gazebo::systems::Sensors">
       <render_engine>ogre2</render_engine>
+      <background_color>1, 1, 1</background_color>
     </plugin>
     <plugin
         filename="ignition-gazebo-user-commands-system"
@@ -17,12 +18,15 @@
       filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
-    <plugin
-      filename="ignition-gazebo-model-photo-shoot-system"
-      name="ignition::gazebo::systems::ModelPhotoShoot">
-      <model_uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/barcs_qav500_sensor_config_1</model_uri>
-      <translation_data_file>poses.txt</translation_data_file>
-    </plugin>
+    <include>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/barcs_qav500_sensor_config_1</uri>
+      <plugin
+        filename="ignition-gazebo-model-photo-shoot-system"
+        name="ignition::gazebo::systems::ModelPhotoShoot">
+        <translation_data_file>poses.txt</translation_data_file>
+        <random_joints_pose>false</random_joints_pose>
+      </plugin>
+    </include>
     <model name="photo_shoot">
       <pose>2.2 0 0 0 0 -3.14</pose>
       <link name="link">
