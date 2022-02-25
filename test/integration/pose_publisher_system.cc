@@ -742,4 +742,19 @@ TEST_F(PosePublisherTest,
   }
 
   EXPECT_TRUE(!poseMsgs.empty());
+
+  // only the pose of the nested model should be published and no other entity
+  std::string expectedEntityName = "model_00::model_01";
+  math::Pose3d expectedEntityPose(1, 0, 0, 0, 0, 0);
+  for (auto &msg : poseMsgs)
+  {
+    ASSERT_LT(1, msg.header().data_size());
+    ASSERT_LT(0, msg.header().data(1).value_size());
+    std::string childFrameId = msg.header().data(1).value(0);
+    EXPECT_EQ(expectedEntityName, childFrameId);
+    math::Pose3d pose;
+    auto p = msgs::Convert(poseMsgs[0]);
+    EXPECT_EQ(expectedEntityPose, p);
+  }
+
 }
