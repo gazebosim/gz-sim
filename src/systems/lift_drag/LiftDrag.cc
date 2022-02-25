@@ -266,6 +266,9 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
         _ecm.Component<components::JointPosition>(this->controlJointEntity);
   }
 
+  if (!controlJointPosition)
+    return;
+
   if (!worldLinVel || !worldAngVel || !worldPose)
     return;
 
