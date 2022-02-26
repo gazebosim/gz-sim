@@ -67,7 +67,7 @@ void defineMathOrientedBox(py::module &m, const std::string &typestr)
     .def(py::self != py::self)
     .def(py::self == py::self)
     .def("pose",
-         py::overload_cast<ignition::math::Pose3<T>&>(&Class::Pose),
+         py::overload_cast<const ignition::math::Pose3<T>&>(&Class::Pose),
          "Set the box pose, which is the pose of its center.")
     .def("pose",
          py::overload_cast<>(&Class::Pose, py::const_),
@@ -77,7 +77,7 @@ void defineMathOrientedBox(py::module &m, const std::string &typestr)
          py::overload_cast<>(&Class::Size, py::const_),
          "Get the size of the OrientedBox.")
     .def("size",
-         py::overload_cast<ignition::math::Vector3<T>&>
+         py::overload_cast<const ignition::math::Vector3<T>&>
           (&Class::Size),
          "Set the size of the OrientedBox.")
     .def("x_length",
