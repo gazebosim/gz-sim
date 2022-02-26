@@ -741,7 +741,7 @@ void Physics::Configure(const Entity &_entity,
   if (contactsElement)
   {
     this->dataPtr->contactsEntityNames = contactsElement->Get<bool>(
-      "include_entity_names");
+      "include_entity_names", true).first;
   }
 
   // Find engine shared library

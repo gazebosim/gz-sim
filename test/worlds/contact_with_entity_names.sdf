@@ -8,6 +8,9 @@
     <plugin
       filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
+      <contacts>
+        <include_entity_names>true</include_entity_names>
+      </contacts>
     </plugin>
     <plugin
       filename="ignition-gazebo-contact-system"
