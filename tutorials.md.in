@@ -9,11 +9,12 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 
 1. \subpage install "Installation"
 2. \subpage cppgetstarted "C++ Get Started"
-3. \subpage example_vector2 "Vector example"
-4. \subpage example_angle "Angle example"
-5. \subpage example_triangle "Triangle example"
-6. \subpage rotation_example "Rotation example"
-7. \subpage color "Color example"
+3. \subpage pythongetstarted "Python Get Started"
+4. \subpage example_vector2 "Vector example"
+5. \subpage example_angle "Angle example"
+6. \subpage example_triangle "Triangle example"
+7. \subpage rotation_example "Rotation example"
+8. \subpage color "Color example"
 
 ## License
 

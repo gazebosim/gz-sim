@@ -71,13 +71,13 @@ public:
     }
 };
 
-/// Define a pybind11 wrapper for an ignition::math::Filter
+/// Help define a pybind11 wrapper for an ignition::math::Filter
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
  */
 template<typename T>
-void defineMathFilter(py::module &m, const std::string &typestr)
+void helpDefineMathFilter(py::module &m, const std::string &typestr)
 {
   using Class = ignition::math::Filter<T>;
   std::string pyclass_name = typestr;
@@ -96,6 +96,13 @@ void defineMathFilter(py::module &m, const std::string &typestr)
          &Class::Value,
          "Get the output of the filter.");
 }
+
+/// Define a pybind11 wrapper for an ignition::math::Filter
+/**
+ * \param[in] module a pybind11 module to add the definition to
+ * \param[in] typestr name of the type used by Python
+ */
+void defineMathFilter(py::module &m, const std::string &typestr);
 
 template<typename T>
 class OnePoleTrampoline : public OnePole<T> {
@@ -116,13 +123,13 @@ public:
   }
 };
 
-/// Define a pybind11 wrapper for an ignition::math::OnePole
+/// Help define a pybind11 wrapper for an ignition::math::OnePole
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
  */
 template<typename T>
-void defineMathOnePole(py::module &m, const std::string &typestr)
+void helpDefineMathOnePole(py::module &m, const std::string &typestr)
 {
   using Class = ignition::math::OnePole<T>;
   std::string pyclass_name = typestr;
@@ -146,64 +153,26 @@ void defineMathOnePole(py::module &m, const std::string &typestr)
          "Update the filter's output.");
 }
 
+/// Define a pybind11 wrapper for an ignition::math::OnePole
+/**
+ * \param[in] module a pybind11 module to add the definition to
+ * \param[in] typestr name of the type used by Python
+ */
+void defineMathOnePole(py::module &m, const std::string &typestr);
+
 /// Define a pybind11 wrapper for an ignition::math::OnePoleQuaterion
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
  */
-void defineMathOnePoleQuaternion(py::module &m, const std::string &typestr)
-{
-  using Class = ignition::math::OnePoleQuaternion;
-  std::string pyclass_name = typestr;
-  py::class_<Class>(m,
-                    pyclass_name.c_str(),
-                    py::buffer_protocol(),
-                    py::dynamic_attr())
-    .def(py::init<>())
-    .def(py::init<double, double>())
-    .def("set",
-         &Class::Set,
-         "Set the output of the filter.")
-    .def("value",
-         &Class::Value,
-         "Get the output of the filter.")
-    .def("fc",
-         &Class::Fc,
-         "Set the cutoff frequency and sample rate.")
-    .def("process",
-         &Class::Process,
-         "Update the filter's output.");
-}
+void defineMathOnePoleQuaternion(py::module &m, const std::string &typestr);
 
 /// Define a pybind11 wrapper for an ignition::math::OnePoleVector3
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
  */
-void defineMathOnePoleVector3(py::module &m, const std::string &typestr)
-{
-  using Class = ignition::math::OnePoleVector3;
-  std::string pyclass_name = typestr;
-  py::class_<Class>(m,
-                    pyclass_name.c_str(),
-                    py::buffer_protocol(),
-                    py::dynamic_attr())
-    .def(py::init<>())
-    .def(py::init<double, double>())
-    .def("set",
-         &Class::Set,
-         "Set the output of the filter.")
-    .def("value",
-         &Class::
-         Value,
-         "Get the output of the filter.")
-    .def("fc",
-         &Class::Fc,
-         "Set the cutoff frequency and sample rate.")
-    .def("process",
-         &Class::Process,
-         "Update the filter's output.");
-}
+void defineMathOnePoleVector3(py::module &m, const std::string &typestr);
 
 template<typename T>
 class BiQuadTrampoline : public BiQuad<T>
@@ -244,13 +213,13 @@ public:
   }
 };
 
-/// Define a pybind11 wrapper for an ignition::math::BiQuad
+/// Help define a pybind11 wrapper for an ignition::math::BiQuad
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
  */
 template<typename T>
-void defineMathBiQuad(py::module &m, const std::string &typestr)
+void helpDefineMathBiQuad(py::module &m, const std::string &typestr)
 {
   using Class = ignition::math::BiQuad<T>;
   std::string pyclass_name = typestr;
@@ -277,37 +246,20 @@ void defineMathBiQuad(py::module &m, const std::string &typestr)
          "Update the filter's output.");
 }
 
+/// Define a pybind11 wrapper for an ignition::math::BiQuad
+/**
+ * \param[in] module a pybind11 module to add the definition to
+ * \param[in] typestr name of the type used by Python
+ */
+void defineMathBiQuad(py::module &m, const std::string &typestr);
+
 /// Define a pybind11 wrapper for an ignition::math::BiQuadVector3
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
  */
-void defineMathBiQuadVector3(py::module &m, const std::string &typestr)
-{
-  using Class = ignition::math::BiQuadVector3;
-  std::string pyclass_name = typestr;
-  py::class_<Class>(m,
-                    pyclass_name.c_str(),
-                    py::buffer_protocol(),
-                    py::dynamic_attr())
-    .def(py::init<>())
-    .def(py::init<double, double>())
-    .def("set",
-         &Class::Set,
-         "Set the output of the filter.")
-    .def("fc",
-          py::overload_cast<double, double>(&Class::Fc),
-         "Set the cutoff frequency and sample rate.")
-    .def("value",
-         &Class::Value,
-         "Get the output of the filter.")
-    .def("fc",
-         py::overload_cast<double, double, double>(&Class::Fc),
-         "Set the cutoff frequency, sample rate and Q coefficient.")
-    .def("process",
-         &Class::Process,
-         "Update the filter's output.");
-}
+void defineMathBiQuadVector3(py::module &m, const std::string &typestr);
+
 }  // namespace python
 }  // namespace math
 }  // namespace ignition

@@ -35,13 +35,13 @@ namespace math
 {
 namespace python
 {
-/// Define a pybind11 wrapper for an ignition::math::Line2
+/// Help define a pybind11 wrapper for an ignition::math::Line2
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
  */
 template<typename T>
-void defineMathLine2(py::module &m, const std::string &typestr)
+void helpDefineMathLine2(py::module &m, const std::string &typestr)
 {
   using Class = ignition::math::Line2<T>;
   auto toString = [](const Class &si) {
@@ -128,6 +128,13 @@ void defineMathLine2(py::module &m, const std::string &typestr)
     .def("__str__", toString)
     .def("__repr__", toString);
 }
+
+/// Define a pybind11 wrapper for an ignition::math::Line2
+/**
+ * \param[in] module a pybind11 module to add the definition to
+ * \param[in] typestr name of the type used by Python
+ */
+void defineMathLine2(py::module &m, const std::string &typestr);
 
 }  // namespace python
 }  // namespace math

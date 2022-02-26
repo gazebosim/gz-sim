@@ -72,15 +72,26 @@ if (SWIG_FOUND)
   else()
     message (STATUS "Searching for Ruby - found version ${RUBY_VERSION}.")
   endif()
+endif()
 
-  ########################################
-  # Include python
-  find_package(PythonInterp 3 REQUIRED) # change to Python3 when Bionic is EOL
-  find_package(PythonLibs QUIET)
-  if (NOT PYTHONLIBS_FOUND)
-    message (STATUS "Searching for Python - not found.")
+########################################
+# Python bindings
+include(IgnPython)
+find_package(PythonLibs QUIET)
+if (NOT PYTHONLIBS_FOUND)
+  IGN_BUILD_WARNING("Python is missing: Python interfaces are disabled.")
+  message (STATUS "Searching for Python - not found.")
+else()
+  message (STATUS "Searching for Python - found version ${PYTHONLIBS_VERSION_STRING}.")
+
+  set(PYBIND11_PYTHON_VERSION 3)
+  find_package(pybind11 2.2 QUIET)
+
+  if (${pybind11_FOUND})
+    message (STATUS "Searching for pybind11 - found version ${pybind11_VERSION}.")
   else()
-    message (STATUS "Searching for Python - found version ${PYTHONLIBS_VERSION_STRING}.")
+    IGN_BUILD_WARNING("pybind11 is missing: Python interfaces are disabled.")
+    message (STATUS "Searching for pybind11 - not found.")
   endif()
 endif()
 
