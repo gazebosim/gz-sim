@@ -1,8 +1,42 @@
 ## Ignition Gazebo 6.x
 
-### Ignition Gazebo 6.X.X (202X-XX-XX)
+### Ignition Gazebo 6.6.0 (2022-02-24)
 
-### Ignition Gazebo 6.5.0 (202X-XX-XX)
+1. Fix accessing empty JointPosition component in lift drag plugin
+    * [Pull request #1366](https://github.com/ignitionrobotics/ign-gazebo/pull/1366)
+
+1. Add parameter to TrajectoryFollower stop rotation when bearing is reached
+    * [Pull request #1349](https://github.com/ignitionrobotics/ign-gazebo/pull/1349)
+
+1. Support disabling pose publisher from publishing top level model pose
+    * [Pull request #1342](https://github.com/ignitionrobotics/ign-gazebo/pull/1342)
+
+1. Added more sensor properties to scene/info topic
+    * [Pull request #1344](https://github.com/ignitionrobotics/ign-gazebo/pull/1344)
+
+1. Adding ability to pause/resume the trajectory follower behavior.
+    * [Pull request #1347](https://github.com/ignitionrobotics/ign-gazebo/pull/1347)
+
+1. Logs a warning if a mode is not clearly sepecified.
+    * [Pull request #1307](https://github.com/ignitionrobotics/ign-gazebo/pull/1307)
+
+1. JointStatePublisher publish parent, child and axis data
+    * [Pull request #1345](https://github.com/ignitionrobotics/ign-gazebo/pull/1345)
+
+1. Fixed light gui component inspector
+    * [Pull request #1337](https://github.com/ignitionrobotics/ign-gazebo/pull/1337)
+
+1. Fix UNIT_SdfGenerator_TEST
+    * [Pull request #1319](https://github.com/ignitionrobotics/ign-gazebo/pull/1319)
+
+1. Add elevator system
+    * [Pull request #535](https://github.com/ignitionrobotics/ign-gazebo/pull/535)
+
+1. Removed unused variables in shapes plugin
+    * [Pull request #1321](https://github.com/ignitionrobotics/ign-gazebo/pull/1321)
+
+### Ignition Gazebo 6.5.0 (2022-02-15)
+
 1. New trajectory follower system
     * [Pull request #1332](https://github.com/ignitionrobotics/ign-gazebo/pull/1332)
 
