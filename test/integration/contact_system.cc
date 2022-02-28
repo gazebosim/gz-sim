@@ -41,6 +41,155 @@ class ContactSystemTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
+// This test verifies that colliding entity names are populated in
+// the contact points message.
+TEST_F(ContactSystemTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(EnableCollidingEntityNames))
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/contact_with_entity_names.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  using namespace std::chrono_literals;
+  server.SetUpdatePeriod(1ns);
+
+  std::mutex contactMutex;
+  std::vector<msgs::Contacts> contactMsgs;
+
+  auto contactCb = [&](const msgs::Contacts &_msg) -> void
+  {
+    std::lock_guard<std::mutex> lock(contactMutex);
+    contactMsgs.push_back(_msg);
+  };
+
+  // subscribe to contacts topic
+  transport::Node node;
+  // Have to create an lvalue here for Node::Subscribe to work.
+  auto callbackFunc = std::function<void(const msgs::Contacts &)>(contactCb);
+  node.Subscribe("/test_multiple_collisions", callbackFunc);
+
+  // Run server
+  size_t iters = 1000;
+  server.Run(true, iters, false);
+  {
+    std::lock_guard<std::mutex> lock(contactMutex);
+    ASSERT_GE(contactMsgs.size(), 1u);
+  }
+
+  // "contact_model" has one contact sensor, but the sensor uses two collisions
+  // as sensors. Therefore, once the "contact_model" model has fallen and has
+  // stabilized, we expect that each collision will have 1 contact point.
+  {
+    std::lock_guard<std::mutex> lock(contactMutex);
+    const auto &lastContacts = contactMsgs.back();
+    EXPECT_EQ(4, lastContacts.contact_size());
+
+    for (const auto &contact : lastContacts.contact())
+    {
+      ASSERT_EQ(1, contact.position_size());
+      bool entityNameFound =
+        contact.collision1().name() ==
+        "contact_model::link::collision_sphere1" ||
+        contact.collision1().name() ==
+        "contact_model::link::collision_sphere2";
+      EXPECT_TRUE(entityNameFound);
+    }
+  }
+
+  // Remove the colliding boxes and check that contacts are no longer generated.
+  server.RequestRemoveEntity("box1");
+  server.RequestRemoveEntity("box2");
+  // Run once to remove entities
+  server.Run(true, 1, false);
+
+  contactMsgs.clear();
+  server.Run(true, 10, false);
+  {
+    std::lock_guard<std::mutex> lock(contactMutex);
+    EXPECT_EQ(0u, contactMsgs.size());
+  }
+}
+
+/////////////////////////////////////////////////
+// This test verifies that colliding entity names are not populated in
+// the contact points message.
+TEST_F(ContactSystemTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(DisableCollidingEntityNames))
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/contact_without_entity_names.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  using namespace std::chrono_literals;
+  server.SetUpdatePeriod(1ns);
+
+  std::mutex contactMutex;
+  std::vector<msgs::Contacts> contactMsgs;
+
+  auto contactCb = [&](const msgs::Contacts &_msg) -> void
+  {
+    std::lock_guard<std::mutex> lock(contactMutex);
+    contactMsgs.push_back(_msg);
+  };
+
+  // subscribe to contacts topic
+  transport::Node node;
+  // Have to create an lvalue here for Node::Subscribe to work.
+  auto callbackFunc = std::function<void(const msgs::Contacts &)>(contactCb);
+  node.Subscribe("/test_multiple_collisions", callbackFunc);
+
+  // Run server
+  size_t iters = 1000;
+  server.Run(true, iters, false);
+  {
+    std::lock_guard<std::mutex> lock(contactMutex);
+    ASSERT_GE(contactMsgs.size(), 1u);
+  }
+
+  // "contact_model" has one contact sensor, but the sensor uses two collisions
+  // as sensors. Therefore, once the "contact_model" model has fallen and has
+  // stabilized, we expect that each collision will have 1 contact point.
+  {
+    std::lock_guard<std::mutex> lock(contactMutex);
+    const auto &lastContacts = contactMsgs.back();
+    EXPECT_EQ(4, lastContacts.contact_size());
+
+    for (const auto &contact : lastContacts.contact())
+    {
+      ASSERT_EQ(1, contact.position_size());
+      bool entityNameEmpty =
+        contact.collision1().name() == "";
+      EXPECT_TRUE(entityNameEmpty);
+    }
+  }
+
+  // Remove the colliding boxes and check that contacts are no longer generated.
+  server.RequestRemoveEntity("box1");
+  server.RequestRemoveEntity("box2");
+  // Run once to remove entities
+  server.Run(true, 1, false);
+
+  contactMsgs.clear();
+  server.Run(true, 10, false);
+  {
+    std::lock_guard<std::mutex> lock(contactMutex);
+    EXPECT_EQ(0u, contactMsgs.size());
+  }
+}
+
+/////////////////////////////////////////////////
 // The test checks that contacts are published by the contact system
 // See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
 TEST_F(ContactSystemTest,
@@ -100,6 +249,12 @@ TEST_F(ContactSystemTest,
       EXPECT_NEAR(0.25, std::abs(contact.position(0).x()), 5e-2);
       EXPECT_NEAR(1, std::abs(contact.position(0).y()), 5e-2);
       EXPECT_NEAR(1, contact.position(0).z(), 5e-2);
+      bool entityNameFound =
+        contact.collision1().name() ==
+        "contact_model::link::collision_sphere1" ||
+        contact.collision1().name() ==
+        "contact_model::link::collision_sphere2";
+      EXPECT_TRUE(entityNameFound);
     }
   }
 
