@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo6 VERSION 6.5.0)
+project(ignition-gazebo6 VERSION 6.6.0)
 
 #============================================================================
 # Find ignition-cmake
@@ -15,6 +15,7 @@ find_package(ignition-cmake2 2.8.0 REQUIRED)
 # Configure the project
 #============================================================================
 ign_configure_project(VERSION_SUFFIX)
+set (CMAKE_CXX_STANDARD 17)
 
 #============================================================================
 # Set project-specific options
@@ -36,6 +37,14 @@ endif()
 
 include(test/find_dri.cmake)
 FindDRI()
+
+option(USE_SYSTEM_PATHS_FOR_PYTHON_INSTALLATION
+      "Install python modules in standard system paths in the system"
+      OFF)
+
+option(USE_DIST_PACKAGES_FOR_PYTHON
+      "Use dist-packages instead of site-package to install python modules"
+      OFF)
 
 #============================================================================
 # Search for project-specific dependencies
@@ -167,6 +176,26 @@ ign_find_package(IgnProtobuf
                  PRETTY Protobuf)
 set(Protobuf_IMPORT_DIRS ${ignition-msgs8_INCLUDE_DIRS})
 
+#--------------------------------------
+# Find python
+include(IgnPython)
+find_package(PythonLibs QUIET)
+if (NOT PYTHONLIBS_FOUND)
+  IGN_BUILD_WARNING("Python is missing: Python interfaces are disabled.")
+  message (STATUS "Searching for Python - not found.")
+else()
+  message (STATUS "Searching for Python - found version ${PYTHONLIBS_VERSION_STRING}.")
+
+  set(PYBIND11_PYTHON_VERSION 3)
+  find_package(pybind11 2.2 QUIET)
+
+  if (${pybind11_FOUND})
+    message (STATUS "Searching for pybind11 - found version ${pybind11_VERSION}.")
+	else()
+		IGN_BUILD_WARNING("pybind11 is missing: Python interfaces are disabled.")
+		message (STATUS "Searching for pybind11 - not found.")
+	endif()
+endif()
 # Plugin install dirs
 set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR
   ${CMAKE_INSTALL_PREFIX}/${IGN_LIB_INSTALL_DIR}/ign-${IGN_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins
@@ -187,6 +216,9 @@ add_subdirectory(examples)
 #============================================================================
 ign_create_packages()
 
+if (${pybind11_FOUND})
+	add_subdirectory(python)
+endif()
 #============================================================================
 # Configure documentation
 #============================================================================
