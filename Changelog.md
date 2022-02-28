@@ -1,6 +1,107 @@
 ## Ignition Gazebo 6.x
 
-### Ignition Gazebo 6.X.X (202X-XX-XX)
+### Ignition Gazebo 6.6.0 (2022-02-24)
+
+1. Fix accessing empty JointPosition component in lift drag plugin
+    * [Pull request #1366](https://github.com/ignitionrobotics/ign-gazebo/pull/1366)
+
+1. Add parameter to TrajectoryFollower stop rotation when bearing is reached
+    * [Pull request #1349](https://github.com/ignitionrobotics/ign-gazebo/pull/1349)
+
+1. Support disabling pose publisher from publishing top level model pose
+    * [Pull request #1342](https://github.com/ignitionrobotics/ign-gazebo/pull/1342)
+
+1. Added more sensor properties to scene/info topic
+    * [Pull request #1344](https://github.com/ignitionrobotics/ign-gazebo/pull/1344)
+
+1. Adding ability to pause/resume the trajectory follower behavior.
+    * [Pull request #1347](https://github.com/ignitionrobotics/ign-gazebo/pull/1347)
+
+1. Logs a warning if a mode is not clearly sepecified.
+    * [Pull request #1307](https://github.com/ignitionrobotics/ign-gazebo/pull/1307)
+
+1. JointStatePublisher publish parent, child and axis data
+    * [Pull request #1345](https://github.com/ignitionrobotics/ign-gazebo/pull/1345)
+
+1. Fixed light gui component inspector
+    * [Pull request #1337](https://github.com/ignitionrobotics/ign-gazebo/pull/1337)
+
+1. Fix UNIT_SdfGenerator_TEST
+    * [Pull request #1319](https://github.com/ignitionrobotics/ign-gazebo/pull/1319)
+
+1. Add elevator system
+    * [Pull request #535](https://github.com/ignitionrobotics/ign-gazebo/pull/535)
+
+1. Removed unused variables in shapes plugin
+    * [Pull request #1321](https://github.com/ignitionrobotics/ign-gazebo/pull/1321)
+
+### Ignition Gazebo 6.5.0 (2022-02-15)
+
+1. New trajectory follower system
+    * [Pull request #1332](https://github.com/ignitionrobotics/ign-gazebo/pull/1332)
+
+1. Extend ShaderParam system to support textures
+    * [Pull request #1310](https://github.com/ignitionrobotics/ign-gazebo/pull/1310)
+
+1. Adds a `Link::SetLinearVelocity()` method
+    * [Pull request #1323](https://github.com/ignitionrobotics/ign-gazebo/pull/1323)
+
+1. Fix weird indentation in `Link.hh`
+    * [Pull request #1324](https://github.com/ignitionrobotics/ign-gazebo/pull/1324)
+
+1. Limit thruster system's input thrust cmd
+    * [Pull request #1318](https://github.com/ignitionrobotics/ign-gazebo/pull/1318)
+
+1. Load and run visual plugin (system) on GUI side
+    * [Pull request #1275](https://github.com/ignitionrobotics/ign-gazebo/pull/1275)
+
+1. Log an error if JointPositionController cannot find the joint. (citadel retarget)
+    * [Pull request #1314](https://github.com/ignitionrobotics/ign-gazebo/pull/1314)
+
+1. Update source install instructions
+    * [Pull request #1311](https://github.com/ignitionrobotics/ign-gazebo/pull/1311)
+
+1. Document the `<topic>` option for JointPositionController.
+    * [Pull request #1309](https://github.com/ignitionrobotics/ign-gazebo/pull/1309)
+
+1. Fix typo in EntityComponentManager
+    * [Pull request #1304](https://github.com/ignitionrobotics/ign-gazebo/pull/1304)
+
+1. Buoyancy: fix center of volume's reference frame
+    * [Pull request #1302](https://github.com/ignitionrobotics/ign-gazebo/pull/1302)
+
+1. Fix graded buoyancy problems
+    * [Pull request #1297](https://github.com/ignitionrobotics/ign-gazebo/pull/1297)
+
+1. Add surface to buoyancy engine. (retarget fortress)
+    * [Pull request #1298](https://github.com/ignitionrobotics/ign-gazebo/pull/1298)
+
+1. Remove EachNew calls from sensor PreUpdates
+    * [Pull request #1281](https://github.com/ignitionrobotics/ign-gazebo/pull/1281)
+
+1. Prevent GzScene3D 💥 if another scene is already loaded
+    * [Pull request #1294](https://github.com/ignitionrobotics/ign-gazebo/pull/1294)
+
+1. Fix various typos on API documentation
+    * [Pull request #1291](https://github.com/ignitionrobotics/ign-gazebo/pull/1291)
+
+1. Optional orientation when spawning entity using spherical coordinates
+    * [Pull request #1263](https://github.com/ignitionrobotics/ign-gazebo/pull/1263)
+
+1. Cleanup update call for non-rendering sensors
+    * [Pull request #1282](https://github.com/ignitionrobotics/ign-gazebo/pull/1282)
+
+1. Documentation Error
+    * [Pull request #1285](https://github.com/ignitionrobotics/ign-gazebo/pull/1285)
+
+1. Min and max parameters for velocity, acceleration, and jerk apply to linear and angular separately.
+    * [Pull request #1229](https://github.com/ignitionrobotics/ign-gazebo/pull/1229)
+
+1. Add project() call to examples
+    * [Pull request #1274](https://github.com/ignitionrobotics/ign-gazebo/pull/1274)
+
+1. Implement /server_control::stop
+    * [Pull request #1240](https://github.com/ignitionrobotics/ign-gazebo/pull/1240)
 
 ### Ignition Gazebo 6.4.0 (2021-01-13)
 
