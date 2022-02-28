@@ -15,6 +15,9 @@
  *
  */
 
+#include <ignition/msgs/boolean.pb.h>
+
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -25,9 +28,12 @@
 #include <ignition/math/Vector2.hh>
 #include <ignition/math/Vector3.hh>
 #include <ignition/plugin/Register.hh>
+#include <ignition/transport/Node.hh>
+#include <ignition/transport/TopicUtils.hh>
 #include <sdf/sdf.hh>
 
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/AngularVelocityCmd.hh"
 #include "ignition/gazebo/Link.hh"
 #include "ignition/gazebo/Model.hh"
 #include "ignition/gazebo/Util.hh"
@@ -45,6 +51,20 @@ class ignition::gazebo::systems::TrajectoryFollowerPrivate
   /// \param[in] _sdf The SDF Element associated with this system plugin.
   public: void Load(const EntityComponentManager &_ecm,
                     const sdf::ElementPtr &_sdf);
+
+  /// \brief Callback to pause/resume the behavior.
+  /// \param[in] _paused True when the intention is to pause the trajectory
+  /// follower behavior or false to continue the trajectory.
+  public: void OnPause(const msgs::Boolean &_paused);
+
+  /// \brief A mutex to protect the paused member.
+  public: std::mutex mutex;
+
+  /// \brief Ignition transport node.
+  public: transport::Node node;
+
+  /// \brief Topic name to pause/resume the trajectory.
+  public: std::string topic;
 
   /// \brief The link entity
   public: ignition::gazebo::Link link;
@@ -87,6 +107,15 @@ class ignition::gazebo::systems::TrajectoryFollowerPrivate
 
   /// \brief Copy of the sdf configuration used for this plugin
   public: sdf::ElementPtr sdfConfig;
+
+  /// \brief Whether the trajectory follower behavior should be paused or not.
+  public: bool paused = false;
+
+  /// \brief Angular velocity set to zero
+  public: bool zeroAngVelSet = false;
+
+  /// \brief Force angular velocity to be zero when bearing is reached
+  public: bool forceZeroAngVel = false;
 };
 
 //////////////////////////////////////////////////
@@ -227,12 +256,38 @@ void TrajectoryFollowerPrivate::Load(const EntityComponentManager &_ecm,
   if (_sdf->HasElement("bearing_tolerance"))
     this->bearingTolerance = _sdf->Get<double>("bearing_tolerance");
 
+  // Parse the optional <zero_vel_on_bearing_reached> element.
+  if (_sdf->HasElement("zero_vel_on_bearing_reached"))
+    this->forceZeroAngVel = _sdf->Get<bool>("zero_vel_on_bearing_reached");
+
+  // Parse the optional <topic> element.
+  this->topic = "/model/" + this->model.Name(_ecm) +
+    "/trajectory_follower/pause";
+
+  if (_sdf->HasElement("topic"))
+    this->topic = _sdf->Get<std::string>("topic");
+
+  this->topic = transport::TopicUtils::AsValidTopic(this->topic);
+
+  this->node.Subscribe(topic, &TrajectoryFollowerPrivate::OnPause, this);
+
+  ignmsg << "TrajectoryFollower["
+      << this->model.Name(_ecm) << "] subscribed "
+      << "to pause messages on topic[" << this->topic << "]\n";
+
   // If we have waypoints to visit, read the first one.
   if (!this->localWaypoints.empty())
   {
     this->nextGoal =
       {this->localWaypoints.front().X(), this->localWaypoints.front().Y(), 0};
   }
+}
+
+/////////////////////////////////////////////////
+void TrajectoryFollowerPrivate::OnPause(const msgs::Boolean &_paused)
+{
+  std::lock_guard<std::mutex> lock(this->mutex);
+  this->paused = _paused.data();
 }
 
 //////////////////////////////////////////////////
@@ -258,8 +313,11 @@ void TrajectoryFollower::PreUpdate(
 {
   IGN_PROFILE("TrajectoryFollower::PreUpdate");
 
-  if (_info.paused)
-    return;
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+    if (_info.paused || this->dataPtr->paused)
+      return;
+  }
 
   if (!this->dataPtr->initialized)
   {
@@ -329,11 +387,33 @@ void TrajectoryFollower::PreUpdate(
   {
     forceWorld = (*comPose).Rot().RotateVector(
       ignition::math::Vector3d(this->dataPtr->forceToApply, 0, 0));
-  }
 
+    // force angular velocity to be zero when bearing is reached
+    if (this->dataPtr->forceZeroAngVel && !this->dataPtr->zeroAngVelSet &&
+        math::equal (std::abs(bearing.Degree()), 0.0,
+        this->dataPtr->bearingTolerance * 0.5))
+    {
+      this->dataPtr->link.SetAngularVelocity(_ecm, math::Vector3d::Zero);
+      this->dataPtr->zeroAngVelSet = true;
+    }
+  }
   ignition::math::Vector3d torqueWorld;
   if (std::abs(bearing.Degree()) > this->dataPtr->bearingTolerance)
   {
+    // remove angular velocity component otherwise the physics system will set
+    // the zero ang vel command every iteration
+    if (this->dataPtr->forceZeroAngVel && this->dataPtr->zeroAngVelSet)
+    {
+      auto angVelCmdComp = _ecm.Component<components::AngularVelocityCmd>(
+          this->dataPtr->link.Entity());
+      if (angVelCmdComp)
+      {
+        _ecm.RemoveComponent<components::AngularVelocityCmd>(
+          this->dataPtr->link.Entity());
+        this->dataPtr->zeroAngVelSet = false;
+      }
+    }
+
     int sign = std::abs(bearing.Degree()) / bearing.Degree();
     torqueWorld = (*comPose).Rot().RotateVector(
        ignition::math::Vector3d(0, 0, sign * this->dataPtr->torqueToApply));
