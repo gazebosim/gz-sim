@@ -26,10 +26,25 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace detail
 {
 //////////////////////////////////////////////////
-View::View(std::set<ComponentTypeId> _compIds)
+View::View(const std::set<ComponentTypeId>& _compIds)
 {
   this->componentTypes = _compIds;
 }
+
+//////////////////////////////////////////////////
+const std::vector<const components::BaseComponent *>
+    &View::EntityComponentConstData(const Entity _entity) const
+{
+  return this->validConstData.at(_entity);
+}
+
+//////////////////////////////////////////////////
+const std::vector<components::BaseComponent *> &View::EntityComponentData(
+    const Entity _entity)
+{
+  return this->validData.at(_entity);
+}
+
 
 //////////////////////////////////////////////////
 bool View::HasCachedComponentData(const Entity _entity) const
@@ -74,6 +89,7 @@ bool View::RemoveEntity(const Entity _entity)
 
   return true;
 }
+
 //////////////////////////////////////////////////
 bool View::NotifyComponentAddition(const Entity _entity,
     bool _newEntity, const ComponentTypeId _typeId)

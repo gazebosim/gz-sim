@@ -32,6 +32,7 @@
 using namespace ignition;
 using namespace gazebo;
 
+#ifdef NEW_VIEW
 class BaseViewTest : public InternalFixture<::testing::Test>
 {
 };
@@ -39,7 +40,8 @@ class BaseViewTest : public InternalFixture<::testing::Test>
 /////////////////////////////////////////////////
 TEST_F(BaseViewTest, ComponentTypes)
 {
-  auto modelNameView = detail::MakeView<components::Model, components::Name>();
+  auto modelNameView =
+      detail::View({components::Model::typeId, components::Name::typeId});
 
   // make sure that a view's required component types are initialized properly
   EXPECT_EQ(2u, modelNameView.ComponentTypes().size());
@@ -55,7 +57,8 @@ TEST_F(BaseViewTest, ComponentTypes)
 /////////////////////////////////////////////////
 TEST_F(BaseViewTest, ToAddEntities)
 {
-  auto modelNameView = detail::MakeView<components::Model, components::Name>();
+  auto modelNameView =
+      detail::View({components::Model::typeId, components::Name::typeId});
   const Entity e1 = 1;
   auto e1IsNew = true;
 
@@ -114,7 +117,8 @@ TEST_F(BaseViewTest, ToAddEntities)
 /////////////////////////////////////////////////
 TEST_F(BaseViewTest, AddEntities)
 {
-  auto modelNameView = detail::MakeView<components::Model, components::Name>();
+  auto modelNameView =
+      detail::View({components::Model::typeId, components::Name::typeId});
 
   // Initially, the view should have no entities
   EXPECT_EQ(0u, modelNameView.Entities().size());
@@ -151,39 +155,28 @@ TEST_F(BaseViewTest, AddEntities)
   EXPECT_NE(modelNameView.NewEntities().find(e2),
       modelNameView.NewEntities().end());
 
-  auto e1ConstData =
-      modelNameView
-          .EntityComponentConstData<components::Model, components::Name>(e1);
-  EXPECT_EQ(e1, std::get<Entity>(e1ConstData));
-  EXPECT_EQ(&e1ModelComp, std::get<const components::Model *>(e1ConstData));
-  EXPECT_EQ(&e1NameComp, std::get<const components::Name *>(e1ConstData));
+  auto e1ConstData = modelNameView.EntityComponentConstData(e1);
+  ASSERT_EQ(2u, e1ConstData.size());
+  EXPECT_EQ(&e1ModelComp, e1ConstData[0]);
+  EXPECT_EQ(&e1NameComp, e1ConstData[1]);
 
-  auto e1Data =
-      modelNameView.EntityComponentData<components::Model, components::Name>(
-          e1);
-  EXPECT_EQ(e1, std::get<Entity>(e1Data));
-  EXPECT_EQ(&e1ModelComp, std::get<components::Model *>(e1Data));
-  EXPECT_EQ(&e1NameComp, std::get<components::Name *>(e1Data));
+  auto e1Data = modelNameView.EntityComponentData(e1);
+  EXPECT_EQ(&e1ModelComp, e1Data[0]);
+  EXPECT_EQ(&e1NameComp, e1Data[1]);
 
-  auto e2ConstData =
-      modelNameView
-          .EntityComponentConstData<components::Model, components::Name>(e2);
-  EXPECT_EQ(e2, std::get<Entity>(e2ConstData));
-  EXPECT_EQ(&e2ModelComp, std::get<const components::Model *>(e2ConstData));
-  EXPECT_EQ(&e2NameComp, std::get<const components::Name *>(e2ConstData));
+  auto e2ConstData = modelNameView .EntityComponentConstData(e2);
+  EXPECT_EQ(&e2ModelComp, e2ConstData[0]);
+  EXPECT_EQ(&e2NameComp, e2ConstData[1]);
 
-  auto e2Data =
-      modelNameView.EntityComponentData<components::Model, components::Name>(
-          e2);
-  EXPECT_EQ(e2, std::get<Entity>(e2Data));
-  EXPECT_EQ(&e2ModelComp, std::get<components::Model *>(e2Data));
-  EXPECT_EQ(&e2NameComp, std::get<components::Name *>(e2Data));
+  auto e2Data = modelNameView.EntityComponentData(e2);
+  EXPECT_EQ(&e2ModelComp, e2Data[0]);
+  EXPECT_EQ(&e2NameComp, e2Data[1]);
 }
 
 /////////////////////////////////////////////////
 TEST_F(BaseViewTest, RemoveEntities)
 {
-  auto view = detail::MakeView<components::Model>();
+  auto view = detail::View({components::Model::typeId});
 
   const Entity e1 = 1;
   auto e1ModelComp = components::Model();
@@ -233,7 +226,7 @@ TEST_F(BaseViewTest, RemoveEntities)
 /////////////////////////////////////////////////
 TEST_F(BaseViewTest, Reset)
 {
-  auto view = detail::MakeView<components::Model>();
+  auto view = detail::View({components::Model::typeId});
 
   // initially, the view should be completely empty, except for its component
   // types (the view's component types are defined at object instantiation time
@@ -312,7 +305,7 @@ TEST_F(BaseViewTest, Reset)
 /////////////////////////////////////////////////
 TEST_F(BaseViewTest, CachedComponentData)
 {
-  auto view = detail::MakeView<components::Model>();
+  auto view = detail::View({components::Model::typeId});
 
   const Entity e1 = 1;
   const auto e1IsNew = true;
@@ -341,7 +334,8 @@ TEST_F(BaseViewTest, CachedComponentData)
 /////////////////////////////////////////////////
 TEST_F(BaseViewTest, ComponentChangeNotification)
 {
-  auto view = detail::MakeView<components::Model, components::Visual>();
+  auto view = detail::View({components::Model::typeId,
+      components::Visual::typeId});
 
   const Entity e1 = 1;
   const auto e1IsNew = true;
@@ -525,3 +519,4 @@ TEST_F(BaseViewTest, ComponentTypeHasher)
   uniqueVecs.insert(vec7);
   EXPECT_EQ(7u, uniqueVecs.size());
 }
+#endif

@@ -31,6 +31,7 @@
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/detail/BaseView.hh"
 
+
 namespace ignition
 {
 namespace gazebo
@@ -39,9 +40,7 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace detail
 {
-
 /// \brief A view that caches a particular set of component type data.
-/// \tparam ComponentTypeTs The component type(s) that are stored in this view.
 class View : public BaseView
 {
   /// \brief Alias for containers that hold and entity and its component data.
@@ -52,7 +51,8 @@ class View : public BaseView
                std::vector<const components::BaseComponent *>;
 
   /// \brief Constructor
-  public: View(std::set<ComponentTypeId> _compIds);
+  /// \param[in] _compIds a set of IDs of the components cached by this View.
+  public: explicit View(const std::set<ComponentTypeId> &_compIds);
 
   /// \brief Documentation inherited
   public: bool HasCachedComponentData(const Entity _entity) const override;
@@ -65,21 +65,22 @@ class View : public BaseView
   /// \param[_in] _entity The entity
   /// \return The entity and its component data. Const pointers to the component
   /// data are returned.
-  public: template <typename... ComponentTypeTs>
-          std::tuple<Entity, const ComponentTypeTs *...>
-          EntityComponentConstData(const Entity _entity) const;
+  public: const std::vector<const components::BaseComponent *>
+          &EntityComponentConstData(const Entity _entity) const;
 
   /// \brief Get an entity and its component data. It is assumed that the entity
   /// being requested exists in the view.
   /// \param[_in] _entity The entity
   /// \return The entity and its component data. Mutable pointers to the
   /// component data are returned.
-  public: template <typename... ComponentTypeTs>
-          std::tuple<Entity, ComponentTypeTs *...>
-          EntityComponentData(const Entity _entity);
+  public: const std::vector<components::BaseComponent *>
+          &EntityComponentData(const Entity _entity);
 
   /// \brief Add an entity with its component data to the view. It is assumed
   /// that the entity to be added does not already exist in the view.
+  /// \tparam ComponentTypeTs The component type(s) that are stored in this
+  /// view. These types correspond to each of the types in the _compPtrs
+  /// parameter of this function.
   /// \param[in] _entity The entity
   /// \param[in] _new Whether to add the entity to the list of new entities.
   /// The new here is to indicate whether the entity is new to the entity
@@ -92,6 +93,9 @@ class View : public BaseView
 
   /// \brief Add an entity with its component data to the view. It is assumed
   /// that the entity to be added does not already exist in the view.
+  /// \tparam ComponentTypeTs The component type(s) that are stored in this
+  /// view. These types correspond to each of the types in the _compPtrs
+  /// parameter of this function.
   /// \param[in] _entity The entity
   /// \param[in] _new Whether to add the entity to the list of new entities.
   /// The new here is to indicate whether the entity is new to the entity
@@ -152,47 +156,7 @@ class View : public BaseView
   private: std::unordered_map<Entity, std::unordered_set<ComponentTypeId>>
              missingCompTracker;
 
-  template <typename... Args, std::size_t... Is, typename DataType>
-  static auto CreateTupleImpl(std::index_sequence<Is...>,
-                              const DataType &_args)
-  {
-    return std::make_tuple(static_cast<Args>(_args[Is])...);
-  }
-
-  template <typename... Args, typename DataType>
-  static auto CreateTuple(const DataType &_args)
-  {
-    return CreateTupleImpl<Args...>(std::index_sequence_for<Args...>{}, _args);
-  }
 };
-
-//////////////////////////////////////////////////
-/// Helper function to create a View out of template arguments
-template <typename... ComponentTypeTs>
-View MakeView()
-{
-  return View({ComponentTypeTs::typeId...});
-}
-
-//////////////////////////////////////////////////
-template <typename... ComponentTypeTs>
-std::tuple<Entity, const ComponentTypeTs *...> View::EntityComponentConstData(
-    const Entity _entity) const
-{
-  return std::tuple_cat(std::make_tuple(_entity),
-                        CreateTuple<const ComponentTypeTs *...>(
-                            this->validConstData.at(_entity)));
-}
-
-//////////////////////////////////////////////////
-template <typename... ComponentTypeTs>
-std::tuple<Entity, ComponentTypeTs *...> View::EntityComponentData(
-    const Entity _entity)
-{
-  return std::tuple_cat(
-      std::make_tuple(_entity),
-      CreateTuple<ComponentTypeTs *...>(this->validData.at(_entity)));
-}
 
 //////////////////////////////////////////////////
 template <typename... ComponentTypeTs>
@@ -217,7 +181,6 @@ void View::AddEntityWithComps(const Entity &_entity, const bool _new,
   if (_new)
     this->newEntities.insert(_entity);
 }
-
 }  // namespace detail
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 }  // namespace gazebo

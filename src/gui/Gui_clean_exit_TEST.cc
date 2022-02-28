@@ -35,24 +35,29 @@ class GazeboDeathTest
 };
 
 /////////////////////////////////////////////////
+/// \brief Start the server.
+/// \param[in] _fileName Full path to the SDFormat file to load.
 void startServer(const std::string &_fileName)
 {
   gazebo::ServerConfig config;
   config.SetSdfFile(_fileName);
 
   gazebo::Server server(config);
-  server.Run(true, 1, true);
+  EXPECT_TRUE(server.Run(true, 1, true));
 }
 
 /////////////////////////////////////////////////
+/// \brief Start the GUI.
 void startGui()
 {
   int argc = 1;
   char *argv = const_cast<char *>("ign-gazebo-gui");
-  gazebo::gui::runGui(argc, &argv, "", "");
+  EXPECT_EQ(0, gazebo::gui::runGui(argc, &argv, "", ""));
 }
 
 /////////////////////////////////////////////////
+/// \brief Start both server and GUI.
+/// \param[in] _fileName Full path to the SDFormat file to load.
 void startBoth(const std::string &_fileName)
 {
   std::thread serverThread([&]() { startServer(_fileName); });
