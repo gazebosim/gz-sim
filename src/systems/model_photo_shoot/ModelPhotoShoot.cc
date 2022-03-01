@@ -33,6 +33,7 @@
 #include <ignition/msgs.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/rendering/Scene.hh>
+#include <ignition/gazebo/Util.hh>
 #include <ignition/rendering/Visual.hh>
 #include <ignition/rendering/WireBox.hh>
 
@@ -56,6 +57,9 @@ class ignition::gazebo::systems::ModelPhotoShootPrivate
 
   /// \brief model
   public: std::shared_ptr<ignition::gazebo::Model> model;
+
+  /// \brief model world pose
+  public: ignition::math::Pose3d modelPose3D;
 
   /// \brief Connection to pre-render event callback.
   public: ignition::common::ConnectionPtr connection{nullptr};
@@ -91,7 +95,8 @@ void ModelPhotoShoot::Configure(const ignition::gazebo::Entity &_entity,
   }
   else
   {
-    igndbg << "Saving translation data to: " << save_data_location << std::endl;
+    igndbg << "Saving translation data to: "
+        << save_data_location << std::endl;
     this->dataPtr->savingFile.open(save_data_location);
   }
 
@@ -107,6 +112,9 @@ void ModelPhotoShoot::Configure(const ignition::gazebo::Entity &_entity,
 
   this->dataPtr->model = std::make_shared<ignition::gazebo::Model>(_entity);
   this->dataPtr->modelName = this->dataPtr->model->Name(_ecm);
+  // Get the pose of the model
+  this->dataPtr->modelPose3D =
+      ignition::gazebo::worldPose(this->dataPtr->model->Entity(), _ecm);
 }
 
 //////////////////////////////////////////////////
@@ -117,28 +125,36 @@ void ModelPhotoShoot::PreUpdate(
   if (this->dataPtr->randomPoses)
   {
     std::vector<gazebo::Entity> joints = this->dataPtr->model->Joints(_ecm);
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    unsigned seed =
+        std::chrono::system_clock::now().time_since_epoch().count();
     std::default_random_engine generator(seed);
     for (auto joint = joints.begin(); joint != joints.end(); ++joint)
     {
-
       auto jointNameComp = _ecm.Component<components::Name>(*joint);
-      if (jointNameComp->Data() != "World")
+      if (jointNameComp && jointNameComp->Data() != "World")
       {
         // Using the JointAxis component to extract the joint pose limits
         auto jointAxisComp = _ecm.Component<components::JointAxis>(*joint);
-
-        float mean =
-            (jointAxisComp->Data().Lower() + jointAxisComp->Data().Upper()) / 2;
-        float stdv = (jointAxisComp->Data().Upper() - mean) / 3;
-        std::normal_distribution<float> distribution(mean, stdv);
-        float jointPose = distribution(generator);
-        _ecm.SetComponentData<components::JointPositionReset>(*joint,
-                                                              {jointPose});
-        if (this->dataPtr->savingFile.is_open())
+        if (jointAxisComp)
         {
-          this->dataPtr->savingFile << jointNameComp->Data() << ": "
-                                    << jointPose << std::endl;
+          float mean =
+              (jointAxisComp->Data().Lower() +
+              jointAxisComp->Data().Upper()) / 2;
+          float stdv = (jointAxisComp->Data().Upper() - mean) / 3;
+          std::normal_distribution<float> distribution(mean, stdv);
+          float jointPose = distribution(generator);
+          _ecm.SetComponentData<components::JointPositionReset>(*joint,
+                                                                {jointPose});
+          if (this->dataPtr->savingFile.is_open())
+          {
+            this->dataPtr->savingFile << jointNameComp->Data() << ": "
+                                      << jointPose << std::endl;
+          }
+        }
+        else
+        {
+          igndbg << "No jointAxisComp found, ignoring joint: " <<
+              jointNameComp->Data() << std::endl;
         }
       }
     }
@@ -150,7 +166,6 @@ void ModelPhotoShoot::PreUpdate(
 //////////////////////////////////////////////////
 void ModelPhotoShootPrivate::PerformPostRenderingOperations()
 {
-
   ignition::rendering::ScenePtr scene =
       ignition::rendering::sceneFromFirstRenderEngine();
   ignition::rendering::VisualPtr modelVisual =
@@ -160,7 +175,6 @@ void ModelPhotoShootPrivate::PerformPostRenderingOperations()
 
   if (modelVisual && this->takePicture)
   {
-
     scene->SetAmbientLight(0.3, 0.3, 0.3);
 
     // create directional light
@@ -184,43 +198,51 @@ void ModelPhotoShootPrivate::PerformPostRenderingOperations()
           scene->NodeByIndex(i));
       if (nullptr != camera && camera->Name() == "photo_shoot::link::camera")
       {
-
-        // Set the model pose
+        // Compute the translation we have to apply to the cameras to
+        // center the model in the image.
         ignition::math::AxisAlignedBox bbox = modelVisual->LocalBoundingBox();
         double scaling = 1.0 / bbox.Size().Max();
-        // Compute the model translation.
-        ignition::math::Vector3d trans = -bbox.Center();
+        ignition::math::Vector3d bboxCenter = bbox.Center();
+        ignition::math::Vector3d translation =
+            bboxCenter + this->modelPose3D.Pos();
         if (this->savingFile.is_open()) {
-          this->savingFile << "Translation: " << trans << std::endl;
+          this->savingFile << "Translation: " << translation << std::endl;
           this->savingFile << "Scaling: " << scaling << std::endl;
         }
-        // Normalize the size of the visual
-        modelVisual->SetWorldPose(
-            ignition::math::Pose3d(trans.X(), trans.Y(), trans.Z(), 0, 0, 0));
 
         ignition::math::Pose3d pose;
         // Perspective view
-        pose.Pos().Set(1.6 / scaling, -1.6 / scaling, 1.2 / scaling);
+        pose.Pos().Set(1.6 / scaling + translation.X(),
+                       -1.6 / scaling + translation.Y(),
+                       1.2 / scaling + translation.Z()+0.078);
         pose.Rot().Euler(0, IGN_DTOR(30), IGN_DTOR(-225));
         SavePicture(camera, pose, "1.png");
 
         // Top view
-        pose.Pos().Set(0, 0, 2.2 / scaling);
+        pose.Pos().Set(0 + translation.X(),
+                       0 + translation.Y(),
+                       2.2 / scaling + translation.Z()+0.078);
         pose.Rot().Euler(0, IGN_DTOR(90), 0);
         SavePicture(camera, pose, "2.png");
 
         // Front view
-        pose.Pos().Set(2.2 / scaling, 0, 0);
+        pose.Pos().Set(2.2 / scaling + translation.X(),
+                       0 + translation.Y(),
+                       0 + translation.Z()+0.078);
         pose.Rot().Euler(0, 0, IGN_DTOR(-180));
         SavePicture(camera, pose, "3.png");
 
         // Side view
-        pose.Pos().Set(0, 2.2 / scaling, 0);
+        pose.Pos().Set(0 + translation.X(),
+                       2.2 / scaling + translation.Y(),
+                       0 + translation.Z()+0.078);
         pose.Rot().Euler(0, 0, IGN_DTOR(-90));
         SavePicture(camera, pose, "4.png");
 
         // Back view
-        pose.Pos().Set(-2.2 / scaling, 0, 0);
+        pose.Pos().Set(-2.2 / scaling + translation.X(),
+                       0 + translation.Y(),
+                       0 + translation.Z()+0.078);
         pose.Rot().Euler(0, 0, 0);
         SavePicture(camera, pose, "5.png");
 
@@ -238,13 +260,13 @@ void ModelPhotoShootPrivate::SavePicture(
 {
   unsigned int width = _camera->ImageWidth();
   unsigned int height = _camera->ImageHeight();
-
   ignition::common::Image image;
 
   _camera->SetWorldPose(_pose);
   auto cameraImage = _camera->CreateImage();
   _camera->Capture(cameraImage);
-  auto formatStr = ignition::rendering::PixelUtil::Name(_camera->ImageFormat());
+  auto formatStr =
+      ignition::rendering::PixelUtil::Name(_camera->ImageFormat());
   auto format = ignition::common::Image::ConvertPixelFormat(formatStr);
   image.SetFromData(cameraImage.Data<unsigned char>(), width, height, format);
   std::string fullName = _fileName;
