@@ -16,28 +16,26 @@
  */
 
 #include <ignition/msgs/particle_emitter.pb.h>
+#include <ignition/msgs/particle_emitter_v.pb.h>
 
+#include <map>
 #include <mutex>
-#include <set>
 #include <string>
+#include <vector>
 
 #include <ignition/common/Profiler.hh>
-#include <ignition/math/Color.hh>
-#include <ignition/math/Vector3.hh>
 #include <ignition/msgs/Utility.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
 #include <ignition/gazebo/components/Name.hh>
+#include <ignition/gazebo/components/ParentEntity.hh>
 #include <ignition/gazebo/components/ParticleEmitter.hh>
 #include <ignition/gazebo/components/Pose.hh>
-#include <ignition/gazebo/components/SourceFilePath.hh>
-#include <ignition/gazebo/Conversions.hh>
-#include <ignition/gazebo/Model.hh>
-#include <ignition/gazebo/SdfEntityCreator.hh>
 #include <ignition/gazebo/Util.hh>
-#include <sdf/Material.hh>
 #include "ParticleEmitter.hh"
+
+using namespace std::chrono_literals;
 
 using namespace ignition;
 using namespace gazebo;
@@ -48,32 +46,57 @@ class ignition::gazebo::systems::ParticleEmitterPrivate
 {
   /// \brief Callback for receiving particle emitter commands.
   /// \param[in] _msg Particle emitter message.
-  public: void OnCmd(const ignition::msgs::ParticleEmitter &_msg);
+  public: void OnCmd(const ignition::msgs::ParticleEmitter &_msg,
+              const transport::MessageInfo &_info);
 
-  /// \brief The particle emitter parsed from SDF.
-  public: ignition::msgs::ParticleEmitter emitter;
+  public: bool EmittersService(ignition::msgs::ParticleEmitter_V &_res);
 
   /// \brief The transport node.
   public: ignition::transport::Node node;
 
-  /// \brief Particle emitter entity.
-  public: Entity emitterEntity{kNullEntity};
+  /// \brief Map of topic name to particle emitter entity.
+  public: std::map<std::string, Entity> emitterTopicMap;
 
-  /// \brief The particle emitter command requested externally.
-  public: ignition::msgs::ParticleEmitter userCmd;
-
-  public: bool newDataReceived = false;
+  /// \brief Map of Entity to particle emitter command requested externally.
+  public: std::map<Entity, ignition::msgs::ParticleEmitter> userCmd;
 
   /// \brief A mutex to protect the user command.
   public: std::mutex mutex;
+
+  /// \brief Protects serviceMsg.
+  public: std::mutex serviceMutex;
+
+  /// \brief Filled on demand for the emitter service.
+  public: msgs::ParticleEmitter_V serviceMsg;
 };
 
 //////////////////////////////////////////////////
-void ParticleEmitterPrivate::OnCmd(const msgs::ParticleEmitter &_msg)
+void ParticleEmitterPrivate::OnCmd(const msgs::ParticleEmitter &_msg,
+    const transport::MessageInfo &_info)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
-  this->userCmd = _msg;
-  this->newDataReceived = true;
+  std::map<std::string, Entity>::const_iterator iter =
+    this->emitterTopicMap.find(_info.Topic());
+  if (iter != this->emitterTopicMap.end())
+  {
+    this->userCmd[iter->second].CopyFrom(_msg);
+  }
+  else
+  {
+    ignwarn << "Topic[" << _info.Topic() << "] is not known to the particle "
+      "emitter system. The requested command will be ignored.\n";
+  }
+}
+
+//////////////////////////////////////////////////
+bool ParticleEmitterPrivate::EmittersService(
+    ignition::msgs::ParticleEmitter_V &_res)
+{
+  _res.Clear();
+
+  std::scoped_lock<std::mutex> lock(this->serviceMutex);
+  _res.CopyFrom(this->serviceMsg);
+  return true;
 }
 
 //////////////////////////////////////////////////
@@ -84,219 +107,31 @@ ParticleEmitter::ParticleEmitter()
 
 //////////////////////////////////////////////////
 void ParticleEmitter::Configure(const Entity &_entity,
-    const std::shared_ptr<const sdf::Element> &_sdf,
+    const std::shared_ptr<const sdf::Element> & /*_sdf*/,
     EntityComponentManager &_ecm,
-    EventManager &_eventMgr)
+    EventManager & /*_eventMgr*/)
 {
-  Model model = Model(_entity);
-
-  if (!model.Valid(_ecm))
+  // World
+  const components::Name *name = _ecm.Component<components::Name>(_entity);
+  if (name == nullptr)
   {
-    ignerr << "ParticleEmitter plugin should be attached to a model entity. "
-           << "Failed to initialize." << std::endl;
+    ignerr << "World with id: " << _entity
+           << " has no name. ParticleEmitter cannot create transport topics\n";
     return;
   }
 
-  // Create a particle emitter entity.
-  this->dataPtr->emitterEntity = _ecm.CreateEntity();
-  if (this->dataPtr->emitterEntity == kNullEntity)
+  std::string emittersService = "/world/" + name->Data() + "/particle_emitters";
+  if (this->dataPtr->node.Advertise(emittersService,
+        &ParticleEmitterPrivate::EmittersService, this->dataPtr.get()))
   {
-    ignerr << "Failed to create a particle emitter entity" << std::endl;
-    return;
+    ignmsg << "Serving particle emitter information on ["
+      << emittersService << "]" << std::endl;
   }
-
-  // allow_renaming
-  bool allowRenaming = false;
-  if (_sdf->HasElement("allow_renaming"))
-    allowRenaming = _sdf->Get<bool>("allow_renaming");
-
-  // Name.
-  std::string name = "particle_emitter_entity_" +
-      std::to_string(this->dataPtr->emitterEntity);
-  if (_sdf->HasElement("emitter_name"))
+  else
   {
-    std::set<std::string> emitterNames;
-    std::string emitterName = _sdf->Get<std::string>("emitter_name");
-
-    // check to see if name is already taken
-    _ecm.Each<components::Name, components::ParticleEmitter>(
-        [&emitterNames](const Entity &, const components::Name *_name,
-                      const components::ParticleEmitter *)
-        {
-          emitterNames.insert(_name->Data());
-          return true;
-        });
-
-    name = emitterName;
-
-    // rename emitter if needed
-    if (emitterNames.find(emitterName) != emitterNames.end())
-    {
-      if (!allowRenaming)
-      {
-        ignwarn << "Entity named [" << name
-                << "] already exists and "
-                << "[allow_renaming] is false. Entity not spawned."
-                << std::endl;
-        return;
-      }
-      int counter = 0;
-      while (emitterNames.find(name) != emitterNames.end())
-      {
-        name = emitterName + "_" + std::to_string(++counter);
-      }
-      ignmsg << "Entity named [" << emitterName
-             << "] already exists. Renaming it to " << name << std::endl;
-    }
+    ignerr << "Something went wrong, failed to advertise [" << emittersService
+           << "]" << std::endl;
   }
-  this->dataPtr->emitter.set_name(name);
-
-  // Type. The default type is point.
-  this->dataPtr->emitter.set_type(
-      ignition::msgs::ParticleEmitter_EmitterType_POINT);
-  std::string type = _sdf->Get<std::string>("type", "point").first;
-  if (type == "box")
-  {
-    this->dataPtr->emitter.set_type(
-      ignition::msgs::ParticleEmitter_EmitterType_BOX);
-  }
-  else if (type == "cylinder")
-  {
-    this->dataPtr->emitter.set_type(
-      ignition::msgs::ParticleEmitter_EmitterType_CYLINDER);
-  }
-  else if (type == "ellipsoid")
-  {
-    this->dataPtr->emitter.set_type(
-      ignition::msgs::ParticleEmitter_EmitterType_ELLIPSOID);
-  }
-  else if (type != "point")
-  {
-    ignerr << "Unknown emitter type [" << type << "]. Using [point] instead"
-           << std::endl;
-  }
-
-  // Pose.
-  ignition::math::Pose3d pose =
-    _sdf->Get<ignition::math::Pose3d>("pose");
-  ignition::msgs::Set(this->dataPtr->emitter.mutable_pose(), pose);
-
-  // Size.
-  ignition::math::Vector3d size = ignition::math::Vector3d::One;
-  if (_sdf->HasElement("size"))
-    size = _sdf->Get<ignition::math::Vector3d>("size");
-  ignition::msgs::Set(this->dataPtr->emitter.mutable_size(), size);
-
-  // Rate.
-  this->dataPtr->emitter.mutable_rate()->set_data(
-      _sdf->Get<double>("rate", 10).first);
-
-  // Duration.
-  this->dataPtr->emitter.mutable_duration()->set_data(
-      _sdf->Get<double>("duration", 0).first);
-
-  // Emitting.
-  this->dataPtr->emitter.mutable_emitting()->set_data(
-      _sdf->Get<bool>("emitting", false).first);
-
-  // Particle size.
-  size = ignition::math::Vector3d::One;
-  if (_sdf->HasElement("particle_size"))
-    size = _sdf->Get<ignition::math::Vector3d>("particle_size");
-  ignition::msgs::Set(this->dataPtr->emitter.mutable_particle_size(), size);
-
-  // Lifetime.
-  this->dataPtr->emitter.mutable_lifetime()->set_data(
-      _sdf->Get<double>("lifetime", 5).first);
-
-  // Material.
-  if (_sdf->HasElement("material"))
-  {
-    auto materialElem = _sdf->GetElementImpl("material");
-    sdf::Material material;
-    material.Load(materialElem);
-    ignition::msgs::Material materialMsg = convert<msgs::Material>(material);
-    this->dataPtr->emitter.mutable_material()->CopyFrom(materialMsg);
-  }
-
-  // Min velocity.
-  this->dataPtr->emitter.mutable_min_velocity()->set_data(
-    _sdf->Get<double>("min_velocity", 1).first);
-
-  // Max velocity.
-  this->dataPtr->emitter.mutable_max_velocity()->set_data(
-    _sdf->Get<double>("max_velocity", 1).first);
-
-  // Color start.
-  ignition::math::Color color = ignition::math::Color::White;
-  if (_sdf->HasElement("color_start"))
-    color = _sdf->Get<ignition::math::Color>("color_start");
-  ignition::msgs::Set(this->dataPtr->emitter.mutable_color_start(), color);
-
-  // Color end.
-  color = ignition::math::Color::White;
-  if (_sdf->HasElement("color_end"))
-    color = _sdf->Get<ignition::math::Color>("color_end");
-  ignition::msgs::Set(this->dataPtr->emitter.mutable_color_end(), color);
-
-  // Scale rate.
-  this->dataPtr->emitter.mutable_scale_rate()->set_data(
-    _sdf->Get<double>("scale_rate", 1).first);
-
-  // Color range image.
-  if (_sdf->HasElement("color_range_image"))
-  {
-    auto modelPath = _ecm.ComponentData<components::SourceFilePath>(_entity);
-    auto colorRangeImagePath = _sdf->Get<std::string>("color_range_image");
-    auto path = asFullPath(colorRangeImagePath, modelPath.value());
-
-    common::SystemPaths systemPaths;
-    systemPaths.SetFilePathEnv(kResourcePathEnv);
-    auto absolutePath = systemPaths.FindFile(path);
-
-    this->dataPtr->emitter.mutable_color_range_image()->set_data(
-        absolutePath);
-  }
-
-  // particle scatter ratio
-  const std::string scatterRatioKey = "particle_scatter_ratio";
-  if (_sdf->HasElement(scatterRatioKey))
-  {
-    // todo(anyone) add particle_scatter_ratio field in next release of ign-msgs
-    auto data = this->dataPtr->emitter.mutable_header()->add_data();
-    data->set_key(scatterRatioKey);
-    std::string *value = data->add_value();
-    *value = _sdf->Get<std::string>(scatterRatioKey);
-  }
-
-  igndbg << "Loading particle emitter:" << std::endl
-         << this->dataPtr->emitter.DebugString() << std::endl;
-
-  // Create components.
-  SdfEntityCreator sdfEntityCreator(_ecm, _eventMgr);
-  sdfEntityCreator.SetParent(this->dataPtr->emitterEntity, _entity);
-
-  _ecm.CreateComponent(this->dataPtr->emitterEntity,
-    components::Name(this->dataPtr->emitter.name()));
-
-  _ecm.CreateComponent(this->dataPtr->emitterEntity,
-    components::ParticleEmitter(this->dataPtr->emitter));
-
-  _ecm.CreateComponent(this->dataPtr->emitterEntity, components::Pose(pose));
-
-  // Advertise the topic to receive particle emitter commands.
-  const std::string kDefaultTopic =
-    "/model/" + model.Name(_ecm) + "/particle_emitter/" + name;
-  std::string topic = _sdf->Get<std::string>("topic", kDefaultTopic).first;
-  if (!this->dataPtr->node.Subscribe(
-         topic, &ParticleEmitterPrivate::OnCmd, this->dataPtr.get()))
-  {
-    ignerr << "Error subscribing to topic [" << topic << "]. "
-        << "Particle emitter will not receive updates." << std::endl;
-    return;
-  }
-  igndbg << "Subscribed to " << topic << " for receiving particle emitter "
-         << "updates" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -307,40 +142,108 @@ void ParticleEmitter::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
-  if (!this->dataPtr->newDataReceived)
+  // Create particle emitters
+  {
+    std::lock_guard<std::mutex> serviceLock(this->dataPtr->serviceMutex);
+    _ecm.EachNew<components::ParticleEmitter, components::ParentEntity,
+      components::Pose>(
+      [&](const Entity &_entity,
+          const components::ParticleEmitter *_emitter,
+          const components::ParentEntity *_parent,
+          const components::Pose *_pose)->bool
+        {
+          std::string topic;
+
+          // Get the topic information from the header, which is currently a
+          // hack to avoid breaking the particle_emitter.proto message.
+          if (_emitter->Data().has_header())
+          {
+            for (const auto data : _emitter->Data().header().data())
+            {
+              if (data.key() == "topic" && !data.value().empty())
+              {
+                topic = data.value(0);
+              }
+            }
+          }
+
+          // If a topic has not been specified, then generate topic based
+          // on the scoped name.
+          topic = !topic.empty() ? topic :
+            topicFromScopedName(_entity, _ecm) + "/cmd";
+
+          // Subscribe to the topic that receives particle emitter commands.
+          if (!this->dataPtr->node.Subscribe(
+                topic, &ParticleEmitterPrivate::OnCmd, this->dataPtr.get()))
+          {
+            ignerr << "Error subscribing to topic [" << topic << "]. "
+              << "Particle emitter will not receive updates." << std::endl;
+            return false;
+          }
+          ignmsg << "Particle emitter["
+            << scopedName(_entity, _ecm, "::", false) << "] subscribed "
+            << "to command messages on topic[" << topic << "]\n";
+
+          // Store the topic name so that we can apply user commands
+          // correctly.
+          this->dataPtr->emitterTopicMap[topic] = _entity;
+
+          // Store the emitter information in the service message, which
+          // can then be used in the particle_emitters service.
+          msgs::ParticleEmitter *emitterMsg =
+            this->dataPtr->serviceMsg.add_particle_emitter();
+          emitterMsg->CopyFrom(_emitter->Data());
+          msgs::Set(emitterMsg->mutable_pose(), _pose->Data());
+
+          // Set the topic information if it was not set via SDF.
+          if (!emitterMsg->has_header())
+          {
+            auto headerData = emitterMsg->mutable_header()->add_data();
+            headerData->set_key("topic");
+            headerData->add_value(topic);
+          }
+
+          // Set the particle emitter frame
+          auto frameData = emitterMsg->mutable_header()->add_data();
+          frameData->set_key("frame");
+          frameData->add_value(
+              removeParentScope(
+                scopedName(_parent->Data(), _ecm, "::", false), "::"));
+
+          return true;
+        });
+  }
+
+  if (this->dataPtr->userCmd.empty() || _info.paused)
     return;
 
-  // Nothing left to do if paused.
-  if (_info.paused)
-    return;
-
-  this->dataPtr->newDataReceived = false;
-
-  // Create component.
-  auto emitterComp = _ecm.Component<components::ParticleEmitterCmd>(
-      this->dataPtr->emitterEntity);
-  if (!emitterComp)
+  // Process each command
+  for (const auto cmd : this->dataPtr->userCmd)
   {
-    _ecm.CreateComponent(
-        this->dataPtr->emitterEntity,
-        components::ParticleEmitterCmd(this->dataPtr->userCmd));
-  }
-  else
-  {
-    emitterComp->Data() = this->dataPtr->userCmd;
+    // Create component.
+    auto emitterComp = _ecm.Component<components::ParticleEmitterCmd>(
+        cmd.first);
+    if (!emitterComp)
+    {
+      _ecm.CreateComponent(cmd.first,
+          components::ParticleEmitterCmd(cmd.second));
+    }
+    else
+    {
+      emitterComp->Data() = cmd.second;
 
-    // Note: we process the cmd component in RenderUtil but if there is only
-    // rendering on the gui side, it will not be able to remove the cmd
-    // component from the ECM. It seems like adding OneTimeChange here will make
-    // sure the cmd component is found again in Each call on GUI side.
-    // todo(anyone) find a better way to process this cmd component in
-    // RenderUtil.cc
-    _ecm.SetChanged(this->dataPtr->emitterEntity,
-        components::ParticleEmitterCmd::typeId,
-        ComponentState::OneTimeChange);
+      // Note: we process the cmd component in RenderUtil but if there is only
+      // rendering on the gui side, it will not be able to remove the cmd
+      // component from the ECM. It seems like adding OneTimeChange here will
+      // make sure the cmd component is found again in Each call on GUI side.
+      // todo(anyone) find a better way to process this cmd component in
+      // RenderUtil.cc
+      _ecm.SetChanged(cmd.first,
+          components::ParticleEmitterCmd::typeId,
+          ComponentState::OneTimeChange);
+    }
   }
-
-  igndbg << "New ParticleEmitterCmd component created" << std::endl;
+  this->dataPtr->userCmd.clear();
 }
 
 IGNITION_ADD_PLUGIN(ParticleEmitter,

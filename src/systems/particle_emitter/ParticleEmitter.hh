@@ -31,95 +31,20 @@ namespace systems
 {
   class ParticleEmitterPrivate;
 
-  /// \brief A system for creating a particle emitter.
+  /// \brief A system for running and managing particle emitters. A particle
+  /// emitter is defined using the <particle_emitter> SDF element.
   ///
-  /// This system will be deprecated in Igition Fortress. Please consider
-  /// using the ParticleEmitter2 system.
-  ///
-  /// System parameters
-  ///
-  /// `<emitter_name>`: Unique name for the particle emitter. The name will be
-  ///                   automatically generated if this parameter is not set.
-  /// `<allow_renaming>`: Rename the particle emitter if one with the same name
-  ///                     already exists. Default is false.
-  /// `<type>`: The emitter type (point, box, cylinder, ellipsoid).
-  ///           Default value is point.
-  /// `<pose>`: The pose of the emitter. Default value is {0, 0, 0, 0, 0, 0}.
-  /// `<size>`: The size of the emitter where the particles are sampled.
-  ///           Default value is (1, 1, 1).
-  ///           Note that the interpretation of the emitter area varies
-  ///           depending on the emmiter type:
-  ///             - point: The area is ignored.
-  ///             - box: The area is interpreted as width X height X depth.
-  ///             - cylinder: The area is interpreted as the bounding box of the
-  ///                         cilinder. The cylinder is oriented along the
-  ///                         Z-axis.
-  ///             - ellipsoid: The area is interpreted as the bounding box of an
-  ///                          ellipsoid shaped area, i.e. a sphere or
-  ///                          squashed-sphere area. The parameters are again
-  ///                          identical to EM_BOX, except that the dimensions
-  ///                          describe the widest points along each of the
-  ///                          axes.
-  /// `<rate>`: How many particles per second should be emitted.
-  ///           Default value is 10.
-  /// `<duration`>: The number of seconds the emitter is active. A value of 0
-  ///               means infinite duration. Default value is 0.
-  /// `<emitting>`: This is used to turn on or off particle emission.
-  ///               Default value is false.
-  /// `<particle_size>`: Set the particle dimensions (width, height, depth).
-  ///                    Default value is {1, 1, 1}.
-  /// `<lifetime>`: Set the number of seconds each particle will ’live’ for
-  ///               before being destroyed. Default value is 5.
-  /// `<material>`: Sets the material which all particles in the emitter will
-  ///               use.
-  /// `<min_velocity>`: Sets a minimum velocity for each particle (m/s).
-  ///                   Default value is 1.
-  /// `<max_velocity>`: Sets a maximum velocity for each particle (m/s).
-  ///                   Default value is 1.
-  /// `<color_start>`: Sets the starting color for all particle emitted.
-  ///                  The actual color will be interpolated between this color
-  ///                  and the one set under <color_end>.
-  ///                  Color::White is the default color for the particles
-  ///                  unless a specific function is used.
-  ///                  To specify a color, RGB values should be passed in.
-  ///                  For example, to specify red, a user should enter:
-  ///                  <color_start>1 0 0</color_start>
-  ///                  Note that this function overrides the particle colors set
-  ///                  with <color_range_image>.
-  /// `<color_end>`: Sets the end color for all particle emitted.
-  ///                The actual color will be interpolated between this color
-  ///                and the one set under <color_start>.
-  ///                Color::White is the default color for the particles
-  ///                unless a specific function is used (see color_start for
-  ///                more information about defining custom colors with RGB
-  ///                values).
-  ///                Note that this function overrides the particle colors set
-  ///                with <color_range_image>.
-  /// `<scale_rate>`: Sets the amount by which to scale the particles in both x
-  ///                 and y direction per second. Default value is 1.
-  /// `<color_range_image>`: Sets the path to the color image used as an
-  ///                        affector. This affector modifies the color of
-  ///                        particles in flight. The colors are taken from a
-  ///                        specified image file. The range of color values
-  ///                        begins from the left side of the image and move to
-  ///                        the right over the lifetime of the particle,
-  ///                        therefore only the horizontal dimension of the
-  ///                        image is used.
-  ///                        Note that this function overrides the particle
-  ///                        colors set with <color_start> and <color_end>.
-  /// `<topic>`: Topic used to update particle emitter properties at runtime.
-  ///            The default topic is
-  ///            /model/<model_name>/particle_emitter/<emitter_name>
-  ///            Note that the emitter id and name may not be changed.
-  ///            See the examples/worlds/particle_emitter.sdf example world for
-  ///            example usage.
+  /// This system will create a transport subscriber for each
+  /// <particle_emitter> using the child <topic> name. If a <topic> is not
+  /// specified, the following topic naming scheme will be used:
+  /// `/model/{model_name}/link/{link_name}/particle_emitter/{emitter_name}/cmd`
   class ParticleEmitter
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate
   {
     /// \brief Constructor
-    public: IGN_DEPRECATED(6) ParticleEmitter();
+    public: ParticleEmitter();
 
     // Documentation inherited
     public: void Configure(const Entity &_entity,
