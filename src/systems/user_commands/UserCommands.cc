@@ -1511,29 +1511,40 @@ bool WheelSlipCommand::Execute()
     return false;
   }
   Model model{modelEntity};
-  Entity linkEntity = model.LinkByName(
-    *this->iface->ecm, wheelSlipMsg->link_name());
-  if (kNullEntity == linkEntity)
-  {
-    ignerr << "Failed to find link with name [" << wheelSlipMsg->link_name()
-           << "] for model [" << wheelSlipMsg->model_name() << "]."
-           << std::endl;
-    return false;
-  }
+  auto linkName = wheelSlipMsg->link_name();
 
-  auto wheelSlipCmdComp =
+  auto doForEachLink = [this, wheelSlipMsg](Entity linkEntity) {
+    auto wheelSlipCmdComp =
       this->iface->ecm->Component<components::WheelSlipCmd>(linkEntity);
-  if (!wheelSlipCmdComp)
-  {
-    this->iface->ecm->CreateComponent(
-        linkEntity, components::WheelSlipCmd(*wheelSlipMsg));
-  }
-  else
-  {
-    auto state = wheelSlipCmdComp->SetData(*wheelSlipMsg, this->wheelSlipEql) ?
-        ComponentState::OneTimeChange : ComponentState::NoChange;
-    this->iface->ecm->SetChanged(
-        linkEntity, components::WheelSlipCmd::typeId, state);
+    if (!wheelSlipCmdComp)
+    {
+      this->iface->ecm->CreateComponent(
+          linkEntity, components::WheelSlipCmd(*wheelSlipMsg));
+    }
+    else
+    {
+      auto state = wheelSlipCmdComp->SetData(*wheelSlipMsg, this->wheelSlipEql) ?
+          ComponentState::OneTimeChange : ComponentState::NoChange;
+      this->iface->ecm->SetChanged(
+          linkEntity, components::WheelSlipCmd::typeId, state);
+    }
+  };
+
+  if (linkName != "*") {
+    Entity linkEntity = model.LinkByName(
+      *this->iface->ecm, wheelSlipMsg->link_name());
+    if (kNullEntity == linkEntity)
+    {
+      ignerr << "Failed to find link with name [" << wheelSlipMsg->link_name()
+            << "] for model [" << wheelSlipMsg->model_name() << "]."
+            << std::endl;
+      return false;
+    }
+    doForEachLink(linkEntity);
+  } else {
+    for (const auto & linkEntity : model.Links(*this->iface->ecm)) {
+      doForEachLink(linkEntity);
+    }
   }
   return true;
 }
