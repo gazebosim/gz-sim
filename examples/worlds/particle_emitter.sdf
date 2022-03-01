@@ -1,10 +1,5 @@
 <?xml version="1.0" ?>
 
-<!-- NOTE: This world uses a particle emitter that is implemented as
-     a plugin. We recommend using particle emitters based on the SDF
-     specification. See the test/worlds/particle_emitter2.sdf example.
--->
-
 <!--
   Launch this example with:
 
@@ -14,15 +9,15 @@
 
     To disable the particle emitter:
 
-      ign topic -t /model/smoke_generator/particle_emitter/smoke_generator -m ignition.msgs.ParticleEmitter -p 'name: "smoke_generator" pose { position { } orientation { w: 1 } } size { x: 1 y: 1 z: 1 } rate: 10 emitting: false particle_size { x: 1 y: 1 z: 1 } lifetime: 2 material { header { data { key: "double_sided" value: "0" } } ambient { a: 1 } diffuse { r: 0.7 g: 0.7 b: 0.7 a: 1 } specular { a: 1 } emissive { a: 1 } lighting: true pbr { type: METAL albedo_map: "/home/caguero/.ignition/fuel/fuel.ignitionrobotics.org/caguero/models/smoke_generator/2/materials/textures/smoke.png" metalness: 0.5 roughness: 0.5 } } min_velocity: 10 max_velocity: 20 color_start { r: 1 g: 1 b: 1 a: 1 } color_end { r: 1 g: 1 b: 1 a: 1 } scale_rate: 10 color_range_image: "/home/caguero/.ignition/fuel/fuel.ignitionrobotics.org/caguero/models/smoke_generator/2/materials/textures/smokecolors.png"'
+      ign topic -t /model/fog_generator/link/fog_link/particle_emitter/emitter/cmd -m ignition.msgs.ParticleEmitter -p 'emitting: {data: false}'
 
     Enable back the particle emitter:
 
-      ign topic -t /model/smoke_generator/particle_emitter/smoke_generator -m ignition.msgs.ParticleEmitter -p 'name: "smoke_generator" pose { position { } orientation { w: 1 } } size { x: 1 y: 1 z: 1 } rate: 10 emitting: true particle_size { x: 1 y: 1 z: 1 } lifetime: 2 material { header { data { key: "double_sided" value: "0" } } ambient { a: 1 } diffuse { r: 0.7 g: 0.7 b: 0.7 a: 1 } specular { a: 1 } emissive { a: 1 } lighting: true pbr { type: METAL albedo_map: "/home/caguero/.ignition/fuel/fuel.ignitionrobotics.org/caguero/models/smoke_generator/2/materials/textures/smoke.png" metalness: 0.5 roughness: 0.5 } } min_velocity: 10 max_velocity: 20 color_start { r: 1 g: 1 b: 1 a: 1 } color_end { r: 1 g: 1 b: 1 a: 1 } scale_rate: 10 color_range_image: "/home/caguero/.ignition/fuel/fuel.ignitionrobotics.org/caguero/models/smoke_generator/2/materials/textures/smokecolors.png"'
+      ign topic -t /model/fog_generator/link/fog_link/particle_emitter/emitter/cmd -m ignition.msgs.ParticleEmitter -p 'emitting: {data: true}'
 
     Then, change the particle rate:
 
-      ign topic -t /model/smoke_generator/particle_emitter/smoke_generator -m ignition.msgs.ParticleEmitter -p 'name: "smoke_generator" pose { position { } orientation { w: 1 } } size { x: 1 y: 1 z: 1 } rate: 100 emitting: true particle_size { x: 1 y: 1 z: 1 } lifetime: 2 material { header { data { key: "double_sided" value: "0" } } ambient { a: 1 } diffuse { r: 0.7 g: 0.7 b: 0.7 a: 1 } specular { a: 1 } emissive { a: 1 } lighting: true pbr { type: METAL albedo_map: "/home/caguero/.ignition/fuel/fuel.ignitionrobotics.org/caguero/models/smoke_generator/2/materials/textures/smoke.png" metalness: 0.5 roughness: 0.5 } } min_velocity: 10 max_velocity: 20 color_start { r: 1 g: 1 b: 1 a: 1 } color_end { r: 1 g: 1 b: 1 a: 1 } scale_rate: 10 color_range_image: "/home/caguero/.ignition/fuel/fuel.ignitionrobotics.org/caguero/models/smoke_generator/2/materials/textures/smokecolors.png"'
+      ign topic -t /model/fog_generator/link/fog_link/particle_emitter/emitter/cmd -m ignition.msgs.ParticleEmitter -p 'rate: {data: 100}'
 -->
 
 <sdf version="1.6">
@@ -35,6 +30,8 @@
     <plugin
       filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
+      <!-- Use TPE in order to use nested models -->
+      <engine><filename>libignition-physics-tpe-plugin.so</filename></engine>
     </plugin>
     <plugin
       filename="ignition-gazebo-user-commands-system"
@@ -43,6 +40,10 @@
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-particle-emitter-system"
+      name="ignition::gazebo::systems::ParticleEmitter">
     </plugin>
 
     <light type="directional" name="sun">
@@ -86,10 +87,33 @@
     </model>
 
     <include>
-      <uri>https://fuel.ignitionrobotics.org/1.0/caguero/models/smoke_generator</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/fog generator</uri>
     </include>
 
-  </world>
+    <!-- Nested model example, where the particles are bright red
+         billboards -->
+    <model name="nested">
+      <static>true</static>
+      <pose>20 20 0 0 0 0</pose>
+      <model name="fog_generator">
+        <link name="fog_link_nested">
+        <particle_emitter name="emitter" type="box">
+          <emitting>true</emitting>
+          <size>10 10 0</size>
+          <particle_size>1 1 1</particle_size>
+          <lifetime>25</lifetime>
+          <min_velocity>0.1</min_velocity>
+          <max_velocity>0.2</max_velocity>
+          <scale_rate>0.5</scale_rate>
+          <rate>5</rate>
+          <material>
+            <diffuse>1.0 0.0 0.0</diffuse>
+            <specular>1.0 0.0 0.0</specular>
+          </material>
+        </particle_emitter>
+      </link>
+    </model>
+  </model>
+
+</world>
 </sdf>
-
-

@@ -31,7 +31,8 @@ namespace systems
 {
   class ParticleEmitter2Private;
 
-  /// \brief A system for running and managing particle emitters. A particle
+  /// \brief This is deprecated, please use the ParticleEmitter system.
+  /// A system for running and managing particle emitters. A particle
   /// emitter is defined using the <particle_emitter> SDF element.
   ///
   /// This system will create a transport subscriber for each
@@ -51,7 +52,7 @@ namespace systems
         public ISystemPreUpdate
   {
     /// \brief Constructor
-    public: ParticleEmitter2();
+    public: IGN_DEPRECATED(7) ParticleEmitter2();
 
     // Documentation inherited
     public: void Configure(const Entity &_entity,
