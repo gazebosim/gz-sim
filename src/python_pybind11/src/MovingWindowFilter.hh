@@ -33,13 +33,13 @@ namespace math
 {
 namespace python
 {
-/// Define a pybind11 wrapper for an ignition::math::MovingWindowFilter
+/// Help define a pybind11 wrapper for an ignition::math::MovingWindowFilter
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
  */
 template<typename T>
-void defineMathMovingWindowFilter(py::module &m, const std::string &typestr)
+void helpDefineMathMovingWindowFilter(py::module &m, const std::string &typestr)
 {
   using Class = ignition::math::MovingWindowFilter<T>;
   std::string pyclass_name = typestr;
@@ -57,6 +57,12 @@ void defineMathMovingWindowFilter(py::module &m, const std::string &typestr)
     .def("value", &Class::Value, "Get filtered result");
 }
 
+/// Define a pybind11 wrapper for an ignition::math::MovingWindowFilter
+/**
+ * \param[in] module a pybind11 module to add the definition to
+ * \param[in] typestr name of the type used by Python
+ */
+void defineMathMovingWindowFilter(py::module &m, const std::string &typestr);
 }  // namespace python
 }  // namespace math
 }  // namespace ignition

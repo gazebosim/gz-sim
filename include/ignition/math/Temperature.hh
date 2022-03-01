@@ -151,12 +151,12 @@ namespace ignition
       /// \brief Addition operator.
       /// \param[in] _temp Temperature in Kelvin.
       /// \return Resulting temperature.
-      public: Temperature operator+(double _temp);
+      public: Temperature operator+(double _temp) const;
 
       /// \brief Addition operator.
       /// \param[in] _temp Temperature object.
       /// \return Resulting temperature.
-      public: Temperature operator+(const Temperature &_temp);
+      public: Temperature operator+(const Temperature &_temp) const;
 
       /// \brief Addition operator for double type.
       /// \param[in] _t Temperature in Kelvin.
@@ -180,12 +180,12 @@ namespace ignition
       /// \brief Subtraction operator.
       /// \param[in] _temp Temperature in Kelvin.
       /// \return Resulting temperature.
-      public: Temperature operator-(double _temp);
+      public: Temperature operator-(double _temp) const;
 
       /// \brief Subtraction operator.
       /// \param[in] _temp Temperature object.
       /// \return Resulting temperature.
-      public: Temperature operator-(const Temperature &_temp);
+      public: Temperature operator-(const Temperature &_temp) const;
 
       /// \brief Subtraction operator for double type.
       /// \param[in] _t Temperature in Kelvin.
@@ -209,12 +209,12 @@ namespace ignition
       /// \brief Multiplication operator.
       /// \param[in] _temp Temperature in Kelvin.
       /// \return Resulting temperature.
-      public: Temperature operator*(double _temp);
+      public: Temperature operator*(double _temp) const;
 
       /// \brief Multiplication operator.
       /// \param[in] _temp Temperature object.
       /// \return Resulting temperature.
-      public: Temperature operator*(const Temperature &_temp);
+      public: Temperature operator*(const Temperature &_temp) const;
 
       /// \brief Multiplication operator for double type.
       /// \param[in] _t Temperature in Kelvin.
@@ -238,12 +238,12 @@ namespace ignition
       /// \brief Division operator.
       /// \param[in] _temp Temperature in Kelvin.
       /// \return Resulting temperature.
-      public: Temperature operator/(double _temp);
+      public: Temperature operator/(double _temp) const;
 
       /// \brief Division operator.
       /// \param[in] _temp Temperature object.
       /// \return Resulting temperature.
-      public: Temperature operator/(const Temperature &_temp);
+      public: Temperature operator/(const Temperature &_temp) const;
 
       /// \brief Division operator for double type.
       /// \param[in] _t Temperature in Kelvin.

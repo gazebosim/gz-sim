@@ -22,8 +22,6 @@
 
 #include <pybind11/pybind11.h>
 
-#include <ignition/math/Angle.hh>
-
 namespace py = pybind11;
 
 namespace ignition

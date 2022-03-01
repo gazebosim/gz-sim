@@ -18,6 +18,7 @@
 #ifndef IGNITION_MATH_PYTHON__LINE3_HH_
 #define IGNITION_MATH_PYTHON__LINE3_HH_
 
+#include <sstream>
 #include <string>
 
 #include <pybind11/pybind11.h>
@@ -35,13 +36,13 @@ namespace math
 {
 namespace python
 {
-/// Define a pybind11 wrapper for an ignition::math::Line3
+/// Help define a pybind11 wrapper for an ignition::math::Line3
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
  */
 template<typename T>
-void defineMathLine3(py::module &m, const std::string &typestr)
+void helpDefineMathLine3(py::module &m, const std::string &typestr)
 {
   using Class = ignition::math::Line3<T>;
   auto toString = [](const Class &si) {
@@ -144,6 +145,13 @@ void defineMathLine3(py::module &m, const std::string &typestr)
     .def("__str__", toString)
     .def("__repr__", toString);
 }
+
+/// Define a pybind11 wrapper for an ignition::math::Line3
+/**
+ * \param[in] module a pybind11 module to add the definition to
+ * \param[in] typestr name of the type used by Python
+ */
+void defineMathLine3(py::module &m, const std::string &typestr);
 }  // namespace python
 }  // namespace math
 }  // namespace ignition

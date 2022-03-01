@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_MATH_PYTHON__VECTOR2D_HH_
-#define IGNITION_MATH_PYTHON__VECTOR2D_HH_
+#ifndef IGNITION_MATH_PYTHON__VECTOR2_HH_
+#define IGNITION_MATH_PYTHON__VECTOR2_HH_
 
 #include <sstream>
 #include <string>
@@ -35,12 +35,12 @@ namespace math
 {
 namespace python
 {
-/// Define a pybind11 wrapper for an ignition::math::Vector2
+/// Help define a pybind11 wrapper for an ignition::math::Vector2
 /**
  * \param[in] module a pybind11 module to add the definition to
  */
 template<typename T>
-void defineMathVector2(py::module &m, const std::string &typestr)
+void helpDefineMathVector2(py::module &m, const std::string &typestr)
 {
   using Class = ignition::math::Vector2<T>;
   auto toString = [](const Class &si) {
@@ -140,8 +140,13 @@ void defineMathVector2(py::module &m, const std::string &typestr)
     .def("__repr__", toString);
 }
 
+/// Define a pybind11 wrapper for an ignition::math::Vector2
+/**
+ * \param[in] module a pybind11 module to add the definition to
+ */
+void defineMathVector2(py::module &m, const std::string &typestr);
 }  // namespace python
 }  // namespace gazebo
 }  // namespace ignition
 
-#endif  // IGNITION_MATH_PYTHON__VECTOR2D_HH_
+#endif  // IGNITION_MATH_PYTHON__VECTOR2_HH_

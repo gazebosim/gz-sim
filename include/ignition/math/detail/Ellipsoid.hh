@@ -96,7 +96,7 @@ std::optional< MassMatrix3<T> > Ellipsoid<T>::MassMatrix() const
 template<typename T>
 T Ellipsoid<T>::Volume() const
 {
-  constexpr T kFourThirdsPi = 4. * IGN_PI / 3.;
+  const T kFourThirdsPi = 4. * IGN_PI / 3.;
   return kFourThirdsPi * this->radii.X() * this->radii.Y() * this->radii.Z();
 }
 

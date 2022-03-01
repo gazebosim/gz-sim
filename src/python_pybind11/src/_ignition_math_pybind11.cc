@@ -15,28 +15,44 @@
 #include <pybind11/pybind11.h>
 
 #include "Angle.hh"
+#include "AxisAlignedBox.hh"
+#include "Box.hh"
 #include "Color.hh"
+#include "Cylinder.hh"
+#include "DiffDriveOdometry.hh"
 #include "Filter.hh"
+#include "Frustum.hh"
 #include "GaussMarkovProcess.hh"
 #include "Helpers.hh"
+#include "Inertial.hh"
 #include "Kmeans.hh"
 #include "Line2.hh"
 #include "Line3.hh"
+#include "MassMatrix3.hh"
 #include "Material.hh"
 #include "Matrix3.hh"
+#include "Matrix4.hh"
 #include "MovingWindowFilter.hh"
+#include "OrientedBox.hh"
+#include "PID.hh"
+#include "Plane.hh"
 #include "Pose3.hh"
 #include "Quaternion.hh"
 #include "Rand.hh"
 #include "RollingMean.hh"
 #include "RotationSpline.hh"
 #include "SemanticVersion.hh"
+#include "SignalStats.hh"
+#include "Sphere.hh"
+#include "SphericalCoordinates.hh"
 #include "Spline.hh"
 #include "StopWatch.hh"
+#include "Temperature.hh"
 #include "Triangle.hh"
 #include "Triangle3.hh"
 #include "Vector2.hh"
 #include "Vector3.hh"
+#include "Vector3Stats.hh"
 #include "Vector4.hh"
 
 namespace py = pybind11;
@@ -47,7 +63,12 @@ PYBIND11_MODULE(math, m)
 
   ignition::math::python::defineMathAngle(m, "Angle");
 
+  ignition::math::python::defineMathAxisAlignedBox(m, "AxisAlignedBox");
+
   ignition::math::python::defineMathColor(m, "Color");
+
+  ignition::math::python::defineMathDiffDriveOdometry(
+    m, "DiffDriveOdometry");
 
   ignition::math::python::defineMathGaussMarkovProcess(
     m, "GaussMarkovProcess");
@@ -58,48 +79,62 @@ PYBIND11_MODULE(math, m)
 
   ignition::math::python::defineMathMaterial(m, "Material");
 
-  ignition::math::python::defineMathMovingWindowFilter<int>(
-    m, "MovingWindowFilteri");
-  ignition::math::python::defineMathMovingWindowFilter<double>(
-    m, "MovingWindowFilterd");
-  ignition::math::python::defineMathMovingWindowFilter
-    <ignition::math::Vector3d>(m, "MovingWindowFilterv3");
+  ignition::math::python::defineMathMovingWindowFilter(m, "MovingWindowFilter");
+
+  ignition::math::python::defineMathPID(m, "PID");
 
   ignition::math::python::defineMathRand(m, "Rand");
 
   ignition::math::python::defineMathRollingMean(m, "RollingMean");
 
+  ignition::math::python::defineMathSignalStats(m, "SignalStats");
+  ignition::math::python::defineMathSignalStatistic(m, "SignalStatistic");
+  ignition::math::python::defineMathSignalVariance(m, "SignalVariance");
+  ignition::math::python::defineMathSignalMaximum(m, "SignalMaximum");
+  ignition::math::python::defineMathSignalMinimum(m, "SignalMinimum");
+  ignition::math::python::defineMathSignalMaxAbsoluteValue(
+    m, "SignalMaxAbsoluteValue");
+  ignition::math::python::defineMathSignalRootMeanSquare(
+    m, "SignalRootMeanSquare");
+  ignition::math::python::defineMathSignalMean(m, "SignalMean");
+
   ignition::math::python::defineMathRotationSpline(m, "RotationSpline");
 
+  ignition::math::python::defineMathVector3Stats(m, "Vector3Stats");
+
   ignition::math::python::defineMathSemanticVersion(m, "SemanticVersion");
+
+  ignition::math::python::defineMathSphericalCoordinates(
+    m, "SphericalCoordinates");
 
   ignition::math::python::defineMathSpline(m, "Spline");
 
   ignition::math::python::defineMathStopwatch(m, "Stopwatch");
 
-  ignition::math::python::defineMathVector2<double>(m, "Vector2d");
-  ignition::math::python::defineMathVector2<int>(m, "Vector2i");
-  ignition::math::python::defineMathVector2<float>(m, "Vector2f");
+  ignition::math::python::defineMathTemperature(m, "Temperature");
 
-  ignition::math::python::defineMathVector3<double>(m, "Vector3d");
-  ignition::math::python::defineMathVector3<int>(m, "Vector3i");
-  ignition::math::python::defineMathVector3<float>(m, "Vector3f");
+  ignition::math::python::defineMathVector2(m, "Vector2");
 
-  ignition::math::python::defineMathVector4<double>(m, "Vector4d");
-  ignition::math::python::defineMathVector4<int>(m, "Vector4i");
-  ignition::math::python::defineMathVector4<float>(m, "Vector4f");
+  ignition::math::python::defineMathVector3(m, "Vector3");
 
-  ignition::math::python::defineMathLine2<int>(m, "Line2i");
-  ignition::math::python::defineMathLine2<double>(m, "Line2d");
-  ignition::math::python::defineMathLine2<float>(m, "Line2f");
+  ignition::math::python::defineMathPlane<double>(m, "Planed");
 
-  ignition::math::python::defineMathLine3<int>(m, "Line3i");
-  ignition::math::python::defineMathLine3<double>(m, "Line3d");
-  ignition::math::python::defineMathLine3<float>(m, "Line3f");
+  ignition::math::python::defineMathBox<double>(m, "Boxd");
+  ignition::math::python::defineMathBox<float>(m, "Boxf");
+
+  ignition::math::python::defineMathVector4(m, "Vector4");
+
+  ignition::math::python::defineMathLine2(m, "Line2");
+
+  ignition::math::python::defineMathLine3(m, "Line3");
 
   ignition::math::python::defineMathMatrix3<int>(m, "Matrix3i");
   ignition::math::python::defineMathMatrix3<double>(m, "Matrix3d");
   ignition::math::python::defineMathMatrix3<float>(m, "Matrix3f");
+
+  ignition::math::python::defineMathMatrix4<int>(m, "Matrix4i");
+  ignition::math::python::defineMathMatrix4<double>(m, "Matrix4d");
+  ignition::math::python::defineMathMatrix4<float>(m, "Matrix4f");
 
   ignition::math::python::defineMathTriangle<int>(m, "Trianglei");
   ignition::math::python::defineMathTriangle<double>(m, "Triangled");
@@ -113,24 +148,31 @@ PYBIND11_MODULE(math, m)
   ignition::math::python::defineMathQuaternion<double>(m, "Quaterniond");
   ignition::math::python::defineMathQuaternion<float>(m, "Quaternionf");
 
+  ignition::math::python::defineMathOrientedBox<double>(m, "OrientedBoxd");
+
   ignition::math::python::defineMathPose3<int>(m, "Pose3i");
   ignition::math::python::defineMathPose3<double>(m, "Pose3d");
   ignition::math::python::defineMathPose3<float>(m, "Pose3f");
 
-  ignition::math::python::defineMathFilter<int>(m, "Filteri");
-  ignition::math::python::defineMathFilter<float>(m, "Filterf");
-  ignition::math::python::defineMathFilter<double>(m, "Filterd");
+  ignition::math::python::defineMathMassMatrix3<double>(m, "MassMatrix3d");
+  ignition::math::python::defineMathMassMatrix3<float>(m, "MassMatrix3f");
 
-  ignition::math::python::defineMathBiQuad<int>(m, "BiQuadi");
-  ignition::math::python::defineMathBiQuad<float>(m, "BiQuadf");
-  ignition::math::python::defineMathBiQuad<double>(m, "BiQuadd");
+  ignition::math::python::defineMathSphere<double>(m, "Sphered");
+
+  ignition::math::python::defineMathCylinder<double>(m, "Cylinderd");
+
+  ignition::math::python::defineMathInertial<double>(m, "Inertiald");
+
+  ignition::math::python::defineMathFrustum(m, "Frustum");
+
+  ignition::math::python::defineMathFilter(m, "Filter");
+
+  ignition::math::python::defineMathBiQuad(m, "BiQuad");
 
   ignition::math::python::defineMathBiQuadVector3(
     m, "BiQuadVector3");
 
-  ignition::math::python::defineMathOnePole<int>(m, "OnePolei");
-  ignition::math::python::defineMathOnePole<float>(m, "OnePolef");
-  ignition::math::python::defineMathOnePole<double>(m, "OnePoled");
+  ignition::math::python::defineMathOnePole(m, "OnePole");
 
   ignition::math::python::defineMathOnePoleQuaternion(
     m, "OnePoleQuaternion");

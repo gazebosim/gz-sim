@@ -16,7 +16,7 @@
 # installed.
 #
 # Modify the PYTHONPATH environment variable to include the ignition math
-# library install path. For example, if you install to /user:
+# library install path. For example, if you install to /usr:
 #
 # $ export PYTHONPATH=/usr/lib/python:$PYTHONPATH
 #
