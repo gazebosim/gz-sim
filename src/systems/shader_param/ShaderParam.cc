@@ -19,6 +19,7 @@
 
 #include <chrono>
 #include <list>
+#include <map>
 #include <mutex>
 #include <vector>
 #include <string>
@@ -65,11 +66,21 @@ class ignition::gazebo::systems::ShaderParamPrivate
     public: std::vector<std::string> args;
   };
 
-  /// \brief Path to vertex shader
-  public: std::string vertexShaderUri;
+  /// \brief Data structure for storing shader files uri
+  public: class ShaderUri
+  {
+    /// \brief Shader language: glsl or metal
+    public: std::string language;
 
-  /// \brief Path to fragment shader
-  public: std::string fragmentShaderUri;
+    /// \brief Path to vertex shader
+    public: std::string vertexShaderUri;
+
+    /// \brief Path to fragment shader
+    public: std::string fragmentShaderUri;
+  };
+
+  /// \brief A map of shader language to shader program files
+  public: std::map<std::string, ShaderUri> shaders;
 
   /// \brief Mutex to protect sim time updates.
   public: std::mutex mutex;
@@ -179,9 +190,16 @@ void ShaderParam::Configure(const Entity &_entity,
   }
 
   // parse path to shaders
-  if (sdf->HasElement("shader"))
+  if (!sdf->HasElement("shader"))
   {
-    sdf::ElementPtr shaderElem = sdf->GetElement("shader");
+    ignerr << "Unable to load shader param system. "
+           << "Missing <shader> SDF element." << std::endl;
+    return;
+  }
+  // allow mulitple shader SDF element for different shader languages
+  sdf::ElementPtr shaderElem = sdf->GetElement("shader");
+  while (shaderElem)
+  {
     if (!shaderElem->HasElement("vertex") ||
         !shaderElem->HasElement("fragment"))
     {
@@ -190,15 +208,31 @@ void ShaderParam::Configure(const Entity &_entity,
     }
     else
     {
+      // default to glsl
+      std::string api = "glsl";
+      if (shaderElem->HasAttribute("language"))
+        api = shaderElem->GetAttribute("language")->GetAsString();
+
+      ShaderParamPrivate::ShaderUri shader;
+      shader.language = api;
+
       sdf::ElementPtr vertexElem = shaderElem->GetElement("vertex");
-      this->dataPtr->vertexShaderUri = common::findFile(
+      shader.vertexShaderUri = common::findFile(
           asFullPath(vertexElem->Get<std::string>(),
           this->dataPtr->modelPath));
       sdf::ElementPtr fragmentElem = shaderElem->GetElement("fragment");
-      this->dataPtr->fragmentShaderUri = common::findFile(
+      shader.fragmentShaderUri = common::findFile(
           asFullPath(fragmentElem->Get<std::string>(),
           this->dataPtr->modelPath));
+      this->dataPtr->shaders[api] = shader;
+      shaderElem = shaderElem->GetNextElement("shader");
     }
+  }
+  if (this->dataPtr->shaders.empty())
+  {
+    ignerr << "Unable to load shader param system. "
+           << "No valid shaders." << std::endl;
+    return;
   }
 
   this->dataPtr->entity = _entity;
@@ -272,8 +306,30 @@ void ShaderParamPrivate::OnUpdate()
   if (!this->material)
   {
     auto mat = scene->CreateMaterial();
-    mat->SetVertexShader(this->vertexShaderUri);
-    mat->SetFragmentShader(this->fragmentShaderUri);
+
+    // default to glsl
+    auto it = this->shaders.find("glsl");
+    if (it != this->shaders.end())
+    {
+      mat->SetVertexShader(it->second.vertexShaderUri);
+      mat->SetFragmentShader(it->second.fragmentShaderUri);
+    }
+    // prefer metal over glsl on macOS
+    // \todo(anyone) instead of using ifdef to check for macOS,
+    // expose add an accessor function to get the GraphicsApi
+    // from rendering::RenderEngine
+#ifdef __APPLE__
+    auto metalIt = this->shaders.find("metal");
+    if (metalIt != this->shaders.end())
+    {
+      mat->SetVertexShader(metalIt->second.vertexShaderUri);
+      mat->SetFragmentShader(metalIt->second.fragmentShaderUri);
+      // if both glsl and metal are specified, print a msg to inform that
+      // metal is used instead of glsl
+      if (it != this->shaders.end())
+        ignmsg << "Using metal shaders. " << std::endl;
+    }
+#endif
     this->visual->SetMaterial(mat);
     scene->DestroyMaterial(mat);
     this->material = this->visual->Material();
