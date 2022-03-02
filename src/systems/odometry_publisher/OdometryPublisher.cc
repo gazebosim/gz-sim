@@ -283,9 +283,7 @@ void OdometryPublisherPrivate::UpdateOdometry(
 
   // Get and set robotBaseFrame to odom transformation.
   const math::Pose3d rawPose = worldPose(this->model.Entity(), _ecm);
-  math::Pose3d pose;
-  pose.Pos() = rawPose.Pos() + this->offset.Pos();
-  pose.Rot() = this->offset.Rot() * rawPose.Rot();
+  math::Pose3d pose = rawPose * this->offset;
   msg.mutable_pose()->mutable_position()->set_x(pose.Pos().X());
   msg.mutable_pose()->mutable_position()->set_y(pose.Pos().Y());
   msgs::Set(msg.mutable_pose()->mutable_orientation(), pose.Rot());

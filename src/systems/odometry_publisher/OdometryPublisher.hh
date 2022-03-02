@@ -56,6 +56,14 @@ namespace systems
   /// `<dimensions>`: Number of dimensions to represent odometry. Only 2 and 3
   /// dimensional spaces are supported. This element is optional, and the
   /// default value is 2.
+  ///
+  /// `<xyz_offset>`: Position offset relative to the body fixed frame, the
+  /// default value is 0 0 0. This offset will be added to the odometry
+  /// message.
+  ///
+  /// `<rpy_offset>`: Rotation offset relative to the body fixed frame, the
+  /// default value is 0 0 0. This offset will be added to the odometry
+  //  message.
   class OdometryPublisher
       : public System,
         public ISystemConfigure,
