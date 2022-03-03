@@ -162,6 +162,7 @@ void ThrusterTest::TestWorld(const std::string &_world,
   modelPoses.clear();
   propellerAngVels.clear();
 
+  // max allowed force
   double force{300.0};
 
   // See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 246
@@ -169,7 +170,7 @@ void ThrusterTest::TestWorld(const std::string &_world,
   //     (fluid_density * thrust_coefficient * propeller_diameter ^ 4))
   auto omega = sqrt(force / (_density * _coefficient * pow(_diameter, 4)));
 
-  msgs::Double msg;
+  msg.Clear();
   if(!_useAngVelCmd)
   {
     msg.set_data(force);
@@ -192,9 +193,6 @@ void ThrusterTest::TestWorld(const std::string &_world,
 
   EXPECT_EQ(100u * sleep, modelPoses.size());
   EXPECT_EQ(100u * sleep, propellerAngVels.size());
-
-  // max allowed force
-  double force{300.0};
 
   // F = m * a
   // s = a * t^2 / 2
