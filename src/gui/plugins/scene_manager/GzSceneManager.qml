@@ -27,7 +27,7 @@ GridLayout {
   anchors.fill: parent
   anchors.margins: 10
 
-  property string message: 'N/A'
+  property string message: 'This plugin updates a 3D scene based on information coming from the Entity-Component-Manager.'
 
   Label {
     Layout.columnSpan: 1
