@@ -18,6 +18,8 @@
 #include <map>
 #include <set>
 
+#include <QQmlProperty>
+
 #include "../../GuiRunner.hh"
 #include "GzSceneManager.hh"
 
@@ -67,6 +69,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Indicates whether initial visual plugins have been loaded or not.
     public: bool initializedVisualPlugins = false;
+
+    /// \brief Whether the plugin was correctly initialized
+    public: bool initialized{false};
   };
 }
 }
@@ -90,14 +95,30 @@ void GzSceneManager::LoadConfig(const tinyxml2::XMLElement *)
   if (this->title.empty())
     this->title = "Scene Manager";
 
+  static bool done{false};
+  if (done)
+  {
+    std::string msg{"Only one GzSceneManager is supported at a time."};
+    ignerr << msg << std::endl;
+    QQmlProperty::write(this->PluginItem(), "message",
+        QString::fromStdString(msg));
+    return;
+  }
+  done = true;
+
   ignition::gui::App()->findChild<
       ignition::gui::MainWindow *>()->installEventFilter(this);
+
+  this->dataPtr->initialized = true;
 }
 
 //////////////////////////////////////////////////
 void GzSceneManager::Update(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
+  if (!this->dataPtr->initialized)
+    return;
+
   IGN_PROFILE("GzSceneManager::Update");
 
   this->dataPtr->renderUtil.UpdateECM(_info, _ecm);
