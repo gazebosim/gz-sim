@@ -128,7 +128,7 @@ void ModelPhotoShoot::PreUpdate(
     unsigned seed =
         std::chrono::system_clock::now().time_since_epoch().count();
     std::default_random_engine generator(seed);
-    for (auto joint = joints.begin(); joint != joints.end(); ++joint)
+    for (const auto &joint = joints)
     {
       auto jointNameComp = _ecm.Component<components::Name>(*joint);
       if (jointNameComp && jointNameComp->Data() != "World")
