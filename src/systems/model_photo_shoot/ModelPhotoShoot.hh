@@ -39,6 +39,33 @@ namespace systems
   // Forward declarations.
   class ModelPhotoShootPrivate;
 
+  /// \brief This plugin is a port of the old ModelPropShop plugin from gazebo
+  /// classic. It generates 5 pictures of a model: perspective, top, front,
+  /// sideand back. It can do it using the default position or moving the joint
+  /// to random positions. It allows saving the camera and joint poses so it
+  /// can be replicated in other systems.
+  ///
+  /// ## System Parameters
+  /// - <translation_data_file> - Location to save the camera and joint poses.
+  ///   [Optional]
+  /// - <random_joints_pose> - Set to true to take pictures with the joints in
+  ///   random poses instead of the default ones. This option only supports
+  ///   single axis joints. [Optional]
+  ///
+  /// ## Example
+  /// An example configuration is installed with Gazebo. The example uses
+  /// the Ogre2 rendering plugin to set the background color of the pictures.
+  /// It also includes the camera sensor that will be used along with the
+  /// corresponding parameters so they can be easily tunned.
+  ///
+  /// To run the example:
+  /// ```
+  /// ign gazebo model_photo_shoot.sdf -s -r --iterations 50
+  /// ```
+  /// This will start gazebo, load the model take the pictures and shutdown
+  /// after 50 iterations. You will find the pictures in the same location you
+  /// run the command.
+
   /// \brief System that takes snapshots of an sdf model
   class ModelPhotoShoot : public System,
                           public ISystemConfigure,

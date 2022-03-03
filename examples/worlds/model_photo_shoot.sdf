@@ -28,7 +28,6 @@
       </plugin>
     </include>
     <model name="photo_shoot">
-      <pose>2.2 0 0 0 0 -3.14</pose>
       <link name="link">
         <pose>0 0 0 0 0 0</pose>
         <sensor name="camera" type="camera">

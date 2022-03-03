@@ -23,19 +23,15 @@
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
 #include "ignition/gazebo/components/JointPosition.hh"
-#include "ignition/gazebo/components/JointPositionLimitsCmd.hh"
 #include "ignition/gazebo/components/JointPositionReset.hh"
 #include <ignition/common/Image.hh>
-#include <ignition/gazebo/World.hh>
 #include <ignition/gazebo/components/Name.hh>
 #include <ignition/gazebo/components/Pose.hh>
 #include <ignition/gazebo/rendering/Events.hh>
-#include <ignition/msgs.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/rendering/Scene.hh>
 #include <ignition/gazebo/Util.hh>
 #include <ignition/rendering/Visual.hh>
-#include <ignition/rendering/WireBox.hh>
 
 using namespace ignition;
 using namespace gazebo;
@@ -86,9 +82,9 @@ void ModelPhotoShoot::Configure(const ignition::gazebo::Entity &_entity,
                                 ignition::gazebo::EntityComponentManager &_ecm,
                                 ignition::gazebo::EventManager &_eventMgr)
 {
-  std::string save_data_location =
+  std::string saveDataLocation =
       _sdf->Get<std::string>("translation_data_file");
-  if (save_data_location.empty())
+  if (saveDataLocation.empty())
   {
     igndbg << "No data location specified, skipping translaiton data"
               "saving.\n";
@@ -96,8 +92,8 @@ void ModelPhotoShoot::Configure(const ignition::gazebo::Entity &_entity,
   else
   {
     igndbg << "Saving translation data to: "
-        << save_data_location << std::endl;
-    this->dataPtr->savingFile.open(save_data_location);
+        << saveDataLocation << std::endl;
+    this->dataPtr->savingFile.open(saveDataLocation);
   }
 
   if (_sdf->HasElement("random_joints_pose"))
@@ -128,22 +124,19 @@ void ModelPhotoShoot::PreUpdate(
     unsigned seed =
         std::chrono::system_clock::now().time_since_epoch().count();
     std::default_random_engine generator(seed);
-    for (const auto &joint = joints)
+    for (const auto &joint : joints)
     {
-      auto jointNameComp = _ecm.Component<components::Name>(*joint);
-      if (jointNameComp && jointNameComp->Data() != "World")
+      auto jointNameComp = _ecm.Component<components::Name>(joint);
+      if (jointNameComp)
       {
         // Using the JointAxis component to extract the joint pose limits
-        auto jointAxisComp = _ecm.Component<components::JointAxis>(*joint);
+        auto jointAxisComp = _ecm.Component<components::JointAxis>(joint);
         if (jointAxisComp)
         {
-          float mean =
-              (jointAxisComp->Data().Lower() +
-              jointAxisComp->Data().Upper()) / 2;
-          float stdv = (jointAxisComp->Data().Upper() - mean) / 3;
-          std::normal_distribution<float> distribution(mean, stdv);
+          std::uniform_real_distribution<double> distribution(
+              jointAxisComp->Data().Lower(), jointAxisComp->Data().Upper());
           float jointPose = distribution(generator);
-          _ecm.SetComponentData<components::JointPositionReset>(*joint,
+          _ecm.SetComponentData<components::JointPositionReset>(joint,
                                                                 {jointPose});
           if (this->dataPtr->savingFile.is_open())
           {
@@ -214,35 +207,35 @@ void ModelPhotoShootPrivate::PerformPostRenderingOperations()
         // Perspective view
         pose.Pos().Set(1.6 / scaling + translation.X(),
                        -1.6 / scaling + translation.Y(),
-                       1.2 / scaling + translation.Z()+0.078);
+                       1.2 / scaling + translation.Z());
         pose.Rot().Euler(0, IGN_DTOR(30), IGN_DTOR(-225));
         SavePicture(camera, pose, "1.png");
 
         // Top view
         pose.Pos().Set(0 + translation.X(),
                        0 + translation.Y(),
-                       2.2 / scaling + translation.Z()+0.078);
+                       2.2 / scaling + translation.Z());
         pose.Rot().Euler(0, IGN_DTOR(90), 0);
         SavePicture(camera, pose, "2.png");
 
         // Front view
         pose.Pos().Set(2.2 / scaling + translation.X(),
                        0 + translation.Y(),
-                       0 + translation.Z()+0.078);
+                       0 + translation.Z());
         pose.Rot().Euler(0, 0, IGN_DTOR(-180));
         SavePicture(camera, pose, "3.png");
 
         // Side view
         pose.Pos().Set(0 + translation.X(),
                        2.2 / scaling + translation.Y(),
-                       0 + translation.Z()+0.078);
+                       0 + translation.Z());
         pose.Rot().Euler(0, 0, IGN_DTOR(-90));
         SavePicture(camera, pose, "4.png");
 
         // Back view
         pose.Pos().Set(-2.2 / scaling + translation.X(),
                        0 + translation.Y(),
-                       0 + translation.Z()+0.078);
+                       0 + translation.Z());
         pose.Rot().Euler(0, 0, 0);
         SavePicture(camera, pose, "5.png");
 
