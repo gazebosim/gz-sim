@@ -22,6 +22,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointPosition.hh"
@@ -47,7 +48,9 @@ class JointPositionControllerTestFixture
 
 /////////////////////////////////////////////////
 // Tests that the JointPositionController accepts joint position commands
-TEST_F(JointPositionControllerTestFixture, JointPositionForceCommand)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(JointPositionControllerTestFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(JointPositionForceCommand))
 {
   using namespace std::chrono_literals;
 
@@ -123,7 +126,8 @@ TEST_F(JointPositionControllerTestFixture, JointPositionForceCommand)
 
 /////////////////////////////////////////////////
 // Tests that the JointPositionController accepts joint position commands
-TEST_F(JointPositionControllerTestFixture, JointPositonVelocityCommand)
+TEST_F(JointPositionControllerTestFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(JointPositonVelocityCommand))
 {
   using namespace std::chrono_literals;
 

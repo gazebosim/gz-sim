@@ -77,9 +77,10 @@ class ignition::gazebo::systems::BuoyancyPrivate
   public: double UniformFluidDensity(const math::Pose3d &_pose) const;
 
   /// \brief Get the resultant buoyant force on a shape.
-  /// \param[in] _pose The pose of the shape.
+  /// \param[in] _pose World pose of the shape's origin.
   /// \param[in] _shape The collision mesh of a shape. Currently must
-  /// be one of box, cylinder or sphere.
+  /// be box or sphere.
+  /// \param[in] _gravity Gravity acceleration in the world frame.
   /// Updates this->buoyancyForces containing {force, center_of_volume} to be
   /// applied on the link.
   public:
@@ -101,28 +102,36 @@ class ignition::gazebo::systems::BuoyancyPrivate
   /// fluidDensity.
   public: std::map<double, double> layers;
 
-  /// \brief Point from where to apply the force
+  /// \brief Holds information about forces contributed by a single collision
+  /// shape.
   public: struct BuoyancyActionPoint
   {
-    /// \brief The force to be applied
+    /// \brief The force to be applied, expressed in the world frame.
     math::Vector3d force;
 
-    /// \brief The point from which the force will be applied
+    /// \brief The point from which the force will be applied, expressed in
+    /// the collision's frame.
     math::Vector3d point;
 
-    /// \brief The pose of the link in question
+    /// \brief The world pose of the collision.
     math::Pose3d pose;
   };
 
   /// \brief List of points from where the forces act.
+  /// This holds values refent to the current link being processed and must be
+  /// cleared between links.
+  /// \TODO(chapulina) It's dangerous to keep link-specific values in a member
+  /// variable. We should consider reducing the scope of this variable and pass
+  /// it across functions as needed.
   public: std::vector<BuoyancyActionPoint> buoyancyForces;
 
   /// \brief Resolve all forces as if they act as a Wrench from the give pose.
-  /// \param[in] _pose The point from which all poses are to be resolved.
+  /// \param[in] _linkInWorld The point from which all poses are to be resolved.
+  /// This is the link's origin in the world frame.
   /// \return A pair of {force, torque} describing the wrench to be applied
-  /// at _pose.
+  /// at _pose, expressed in the world frame.
   public: std::pair<math::Vector3d, math::Vector3d> ResolveForces(
-    const math::Pose3d &_pose);
+    const math::Pose3d &_linkInWorld);
 
   /// \brief Scoped names of entities that buoyancy should apply to. If empty,
   /// all links will receive buoyancy.
@@ -211,7 +220,7 @@ void BuoyancyPrivate::GradedFluidDensity(
 
 //////////////////////////////////////////////////
 std::pair<math::Vector3d, math::Vector3d> BuoyancyPrivate::ResolveForces(
-  const math::Pose3d &_pose)
+  const math::Pose3d &_linkInWorld)
 {
   auto force = math::Vector3d{0, 0, 0};
   auto torque = math::Vector3d{0, 0, 0};
@@ -219,10 +228,18 @@ std::pair<math::Vector3d, math::Vector3d> BuoyancyPrivate::ResolveForces(
   for (const auto &b : this->buoyancyForces)
   {
     force += b.force;
-    math::Pose3d localPoint{b.point, math::Quaterniond{1, 0, 0, 0}};
-    auto globalPoint = b.pose * localPoint;
-    auto offset = globalPoint.Pos() - _pose.Pos();
-    torque += force.Cross(offset);
+
+    // Pose offset from application point (COV) to collision origin, expressed
+    // in the collision frame
+    math::Pose3d pointInCol{b.point, math::Quaterniond::Identity};
+
+    // Application point in the world frame
+    auto pointInWorld = b.pose * pointInCol;
+
+    // Offset between the link origin and the force application point
+    auto offset = _linkInWorld.Pos() - pointInWorld.Pos();
+
+    torque += b.force.Cross(offset);
   }
 
   return {force, torque};
@@ -299,6 +316,14 @@ void Buoyancy::Configure(const Entity &_entity,
       argument = argument->GetNextElement();
     }
   }
+  else
+  {
+    ignwarn <<
+      "Neither <graded_buoyancy> nor <uniform_fluid_density> specified"
+      << std::endl
+      << "\tDefaulting to <uniform_fluid_density>1000</uniform_fluid_density>"
+      << std::endl;
+  }
 
   if (_sdf->HasElement("enable"))
   {
@@ -351,7 +376,8 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
         _entity, components::Collision());
 
     double volumeSum = 0;
-    math::Vector3d weightedPosSum = math::Vector3d::Zero;
+    ignition::math::Vector3d weightedPosInLinkSum =
+      ignition::math::Vector3d::Zero;
 
     // Compute the volume of the link by iterating over all the collision
     // elements and storing each geometry's volume.
@@ -409,16 +435,15 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       }
 
       volumeSum += volume;
-      math::Pose3d pose = worldPose(collision, _ecm);
-      weightedPosSum += volume * pose.Pos();
+      auto poseInLink = _ecm.Component<components::Pose>(collision)->Data();
+      weightedPosInLinkSum += volume * poseInLink.Pos();
     }
 
     if (volumeSum > 0)
     {
-      // Store the center of volume
-      math::Pose3d linkWorldPose = worldPose(_entity, _ecm);
+      // Store the center of volume expressed in the link frame
       _ecm.CreateComponent(_entity, components::CenterOfVolume(
-            weightedPosSum / volumeSum - linkWorldPose.Pos()));
+            weightedPosInLinkSum / volumeSum));
 
       // Store the volume
       _ecm.CreateComponent(_entity, components::Volume(volumeSum));
@@ -439,9 +464,6 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
           const components::Volume *_volume,
           const components::CenterOfVolume *_centerOfVolume) -> bool
     {
-      auto newPose = enableComponent<components::Inertial>(_ecm, _entity);
-      newPose |= enableComponent<components::WorldPose>(_ecm, _entity);
-
       // World pose of the link.
       math::Pose3d linkWorldPose = worldPose(_entity, _ecm);
 
@@ -472,13 +494,6 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       else if (this->dataPtr->buoyancyType
         == BuoyancyPrivate::BuoyancyType::GRADED_BUOYANCY)
       {
-        if (newPose)
-        {
-          // Skip entity if WorldPose and inertial are not yet ready
-          // TODO(arjo): Find a way of disabling gravity effects for
-          // this first iteration.
-          return true;
-        }
         std::vector<Entity> collisions = _ecm.ChildrenByComponents(
           _entity, components::Collision());
         this->dataPtr->buoyancyForces.clear();
@@ -523,8 +538,7 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
             }
           }
         }
-        auto [force, torque] = this->dataPtr->ResolveForces(
-        link.WorldInertialPose(_ecm).value());
+        auto [force, torque] = this->dataPtr->ResolveForces(linkWorldPose);
         // Apply the wrench to the link. This wrench is applied in the
         // Physics System.
         link.AddWorldWrench(_ecm, force, torque);

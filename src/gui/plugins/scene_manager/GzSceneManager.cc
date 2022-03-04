@@ -14,9 +14,17 @@
  * limitations under the License.
  *
 */
-#include <set>
 
+#include <map>
+#include <set>
+#include <string>
+
+#include <QQmlProperty>
+
+#include "../../GuiRunner.hh"
 #include "GzSceneManager.hh"
+
+#include <sdf/Element.hh>
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/gui/Application.hh>
@@ -28,6 +36,7 @@
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 #include "ignition/gazebo/rendering/RenderUtil.hh"
@@ -58,6 +67,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Mutex to protect gui event and system upate call race conditions
     /// for newEntities and removedEntities
     public: std::mutex newRemovedEntityMutex;
+
+    /// \brief Indicates whether initial visual plugins have been loaded or not.
+    public: bool initializedVisualPlugins = false;
+
+    /// \brief Whether the plugin was correctly initialized
+    public: bool initialized{false};
   };
 }
 }
@@ -81,14 +96,30 @@ void GzSceneManager::LoadConfig(const tinyxml2::XMLElement *)
   if (this->title.empty())
     this->title = "Scene Manager";
 
+  static bool done{false};
+  if (done)
+  {
+    std::string msg{"Only one GzSceneManager is supported at a time."};
+    ignerr << msg << std::endl;
+    QQmlProperty::write(this->PluginItem(), "message",
+        QString::fromStdString(msg));
+    return;
+  }
+  done = true;
+
   ignition::gui::App()->findChild<
       ignition::gui::MainWindow *>()->installEventFilter(this);
+
+  this->dataPtr->initialized = true;
 }
 
 //////////////////////////////////////////////////
 void GzSceneManager::Update(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
+  if (!this->dataPtr->initialized)
+    return;
+
   IGN_PROFILE("GzSceneManager::Update");
 
   this->dataPtr->renderUtil.UpdateECM(_info, _ecm);
@@ -101,6 +132,42 @@ void GzSceneManager::Update(const UpdateInfo &_info,
   }
 
   this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
+
+  // load visual plugin on gui side
+  std::map<Entity, sdf::ElementPtr> pluginElems;
+  if (!this->dataPtr->initializedVisualPlugins)
+  {
+    _ecm.Each<components::Visual, components::VisualPlugin>(
+        [&](const Entity &_entity,
+            const components::Visual *,
+            const components::VisualPlugin *_plugin)->bool
+    {
+      sdf::ElementPtr pluginElem = _plugin->Data();
+      pluginElems[_entity] = _plugin->Data();
+      return true;
+    });
+    this->dataPtr->initializedVisualPlugins = true;
+  }
+  else
+  {
+    _ecm.EachNew<components::Visual, components::VisualPlugin>(
+        [&](const Entity &_entity,
+            const components::Visual *,
+            const components::VisualPlugin *_plugin)->bool
+    {
+      sdf::ElementPtr pluginElem = _plugin->Data();
+      pluginElems[_entity] = _plugin->Data();
+      return true;
+    });
+  }
+  for (const auto &it : pluginElems)
+  {
+    ignition::gazebo::gui::events::VisualPlugin visualPluginEvent(
+        it.first, it.second);
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        &visualPluginEvent);
+  }
 
   // Emit entities created / removed event for gui::Plugins which don't have
   // direct access to the ECM.
@@ -163,6 +230,16 @@ void GzSceneManagerPrivate::OnRender()
       return;
 
     this->renderUtil.SetScene(this->scene);
+
+    auto runners = ignition::gui::App()->findChildren<GuiRunner *>();
+    if (runners.empty() || runners[0] == nullptr)
+    {
+      ignerr << "Internal error: no GuiRunner found." << std::endl;
+    }
+    else
+    {
+      this->renderUtil.SetEventManager(&runners[0]->GuiEventManager());
+    }
   }
 
   this->renderUtil.Update();

@@ -23,6 +23,7 @@
 #include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/LogicalCamera.hh"
 #include "ignition/gazebo/components/Model.hh"
@@ -66,7 +67,8 @@ void logicalCamera2Cb(const msgs::LogicalCameraImage &_msg)
 /////////////////////////////////////////////////
 // This test checks that both logical cameras in the world can see a box
 // at the correct relative pose.
-TEST_F(LogicalCameraTest, LogicalCameraBox)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(LogicalCameraTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogicalCameraBox))
 {
   // Start server
   ServerConfig serverConfig;
@@ -91,7 +93,7 @@ TEST_F(LogicalCameraTest, LogicalCameraBox)
 
   // Create a system that checks sensor topics
   test::Relay testSystem;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
+  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
                               const gazebo::EntityComponentManager &_ecm)
       {
         _ecm.Each<components::LogicalCamera, components::Name>(
@@ -105,11 +107,15 @@ TEST_F(LogicalCameraTest, LogicalCameraBox)
                 auto sensorComp = _ecm.Component<components::Sensor>(_entity);
                 EXPECT_NE(nullptr, sensorComp);
 
-                auto topicComp =
-                    _ecm.Component<components::SensorTopic>(_entity);
-                EXPECT_NE(nullptr, topicComp);
-                if (topicComp) {
-                  EXPECT_EQ(topic1, topicComp->Data());
+                if (_info.iterations != 1)
+                {
+                  auto topicComp =
+                      _ecm.Component<components::SensorTopic>(_entity);
+                  EXPECT_NE(nullptr, topicComp);
+                  if (topicComp)
+                  {
+                    EXPECT_EQ(topic1, topicComp->Data());
+                  }
                 }
                 update1Checked = true;
               }
@@ -119,11 +125,15 @@ TEST_F(LogicalCameraTest, LogicalCameraBox)
                 auto sensorComp = _ecm.Component<components::Sensor>(_entity);
                 EXPECT_NE(nullptr, sensorComp);
 
-                auto topicComp =
-                    _ecm.Component<components::SensorTopic>(_entity);
-                EXPECT_NE(nullptr, topicComp);
-                if (topicComp) {
-                EXPECT_EQ(topic2, topicComp->Data());
+                if (_info.iterations != 1)
+                {
+                  auto topicComp =
+                      _ecm.Component<components::SensorTopic>(_entity);
+                  EXPECT_NE(nullptr, topicComp);
+                  if (topicComp)
+                  {
+                    EXPECT_EQ(topic2, topicComp->Data());
+                  }
                 }
                 update2Checked = true;
               }

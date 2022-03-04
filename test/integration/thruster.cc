@@ -22,6 +22,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/Link.hh"
 #include "ignition/gazebo/Model.hh"
@@ -133,9 +134,24 @@ void ThrusterTest::TestWorld(const std::string &_world,
   EXPECT_LT(sleep, maxSleep);
   EXPECT_TRUE(pub.HasConnections());
 
-  double force{300.0};
+  // input force cmd - this should be capped to 0
+  double forceCmd{-1000.0};
   msgs::Double msg;
-  msg.set_data(force);
+  msg.set_data(forceCmd);
+  pub.Publish(msg);
+
+  // Check no movement
+  fixture.Server()->Run(true, 100, false);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  EXPECT_DOUBLE_EQ(0.0, modelPoses.back().Pos().X());
+  EXPECT_EQ(100u, modelPoses.size());
+  EXPECT_EQ(100u, propellerAngVels.size());
+  modelPoses.clear();
+  propellerAngVels.clear();
+
+  // input force cmd this should be capped to 300
+  forceCmd = 1000.0;
+  msg.set_data(forceCmd);
   pub.Publish(msg);
 
   // Check movement
@@ -150,6 +166,9 @@ void ThrusterTest::TestWorld(const std::string &_world,
 
   EXPECT_EQ(100u * sleep, modelPoses.size());
   EXPECT_EQ(100u * sleep, propellerAngVels.size());
+
+  // max allowed force
+  double force{300.0};
 
   // F = m * a
   // s = a * t^2 / 2
@@ -194,7 +213,8 @@ void ThrusterTest::TestWorld(const std::string &_world,
 }
 
 /////////////////////////////////////////////////
-TEST_F(ThrusterTest, PIDControl)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PIDControl))
 {
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "thruster_pid.sdf");
@@ -205,7 +225,7 @@ TEST_F(ThrusterTest, PIDControl)
 }
 
 /////////////////////////////////////////////////
-TEST_F(ThrusterTest, VelocityControl)
+TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(VelocityControl))
 {
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "thruster_vel_cmd.sdf");
