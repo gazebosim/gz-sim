@@ -251,7 +251,7 @@ void ModelPhotoShootPrivate::PerformPostRenderingOperations()
 void ModelPhotoShootPrivate::SavePicture(
                                   const ignition::rendering::CameraPtr _camera,
                                   const ignition::math::Pose3d _pose,
-                                  const std::string _fileName) const
+                                  const std::string &_fileName) const
 {
   unsigned int width = _camera->ImageWidth();
   unsigned int height = _camera->ImageHeight();
