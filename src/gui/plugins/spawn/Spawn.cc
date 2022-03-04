@@ -25,6 +25,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <QQmlProperty>
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/MeshManager.hh>
@@ -179,6 +180,17 @@ void Spawn::LoadConfig(const tinyxml2::XMLElement *)
 {
   if (this->title.empty())
     this->title = "Spawn";
+
+  static bool done{false};
+  if (done)
+  {
+    std::string msg{"Only one Spawn plugin is supported at a time."};
+    ignerr << msg << std::endl;
+    QQmlProperty::write(this->PluginItem(), "message",
+        QString::fromStdString(msg));
+    return;
+  }
+  done = true;
 
   // World name from window, to construct default topics and services
   auto worldNames = gui::worldNames();
