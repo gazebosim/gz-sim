@@ -1,5 +1,25 @@
 ## Ignition Gazebo 6.x
 
+### Ignition Gazebo 6.7.0 (2022-02-24)
+
+1. Added Python interfaces to some Ignition Gazebo methods
+    * [Pull request #1219](https://github.com/ignitionrobotics/ign-gazebo/pull/1219)
+
+1. Use pose multiplication instead of addition
+    * [Pull request #1369](https://github.com/ignitionrobotics/ign-gazebo/pull/1369)
+
+1. Disables Failing Buoyancy Tests on Win32
+    * [Pull request #1368](https://github.com/ignitionrobotics/ign-gazebo/pull/1368)
+
+1. Extend ShaderParam system to support loading different shader languages
+    * [Pull request #1335](https://github.com/ignitionrobotics/ign-gazebo/pull/1335)
+
+1. Populate names of colliding entities in contact points message
+    * [Pull request #1351](https://github.com/ignitionrobotics/ign-gazebo/pull/1351)
+
+1. Refactor System functionality into SystemManager
+    * [Pull request #1340](https://github.com/ignitionrobotics/ign-gazebo/pull/1340)
+
 ### Ignition Gazebo 6.6.0 (2022-02-24)
 
 1. Fix accessing empty JointPosition component in lift drag plugin
