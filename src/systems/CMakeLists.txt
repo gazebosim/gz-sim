@@ -21,7 +21,7 @@ function(gz_add_system system_name)
 
   set(options)
   set(oneValueArgs)
-  set(multiValueArgs SOURCES PUBLIC_LINK_LIBS PRIVATE_LINK_LIBS PRIVATE_COMPILE_DEFS)
+  set(multiValueArgs SOURCES PUBLIC_LINK_LIBS PRIVATE_INCLUDE_DIRS PRIVATE_LINK_LIBS PRIVATE_COMPILE_DEFS)
 
   cmake_parse_arguments(gz_add_system "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
@@ -57,6 +57,13 @@ function(gz_add_system system_name)
       ${gz_add_system_PRIVATE_LINK_LIBS}
       ignition-plugin${IGN_PLUGIN_VER}::register
   )
+
+  if(gz_add_system_PRIVATE_INCLUDE_DIRS)
+    target_include_directories(${system_target}
+      PRIVATE
+        ${gz_add_system_PRIVATE_INCLUDE_DIRS}
+    )
+  endif()
 
   if(gz_add_system_PRIVATE_COMPILE_DEFS)
     target_compile_definitions(${system_target}
@@ -98,6 +105,10 @@ add_subdirectory(contact)
 add_subdirectory(camera_video_recorder)
 add_subdirectory(detachable_joint)
 add_subdirectory(diff_drive)
+# elevator system causes compile erros on windows
+if (NOT WIN32)
+add_subdirectory(elevator)
+endif()
 add_subdirectory(follow_actor)
 add_subdirectory(hydrodynamics)
 add_subdirectory(imu)

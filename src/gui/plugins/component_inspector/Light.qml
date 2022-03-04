@@ -873,7 +873,7 @@ Rectangle {
         }
         RowLayout {
           Text {
-            visible: model.data[19] === 1 || model.data[19] === 2
+            visible: model.data[20] === 1 || model.data[20] === 2
             Layout.columnSpan: 6
             text: "      Direction"
             color: "dimgrey"
@@ -882,7 +882,7 @@ Rectangle {
         }
         RowLayout {
           Rectangle {
-            visible: model.data[19] === 1 || model.data[19] === 2
+            visible: model.data[20] === 1 || model.data[20] === 2
             color: "transparent"
             height: 40
             Layout.preferredWidth: xDirectionText.width + indentation*3
@@ -896,7 +896,7 @@ Rectangle {
             Component.onCompleted: loaderDirectionX.item.componentInfo = "directionX"
 
             Text {
-              visible: model.data[19] === 1 || model.data[19] === 2
+              visible: model.data[20] === 1 || model.data[20] === 2
               id : xDirectionText
               text: ' X:'
               leftPadding: 5
@@ -906,7 +906,7 @@ Rectangle {
             }
           }
           Item {
-            visible: model.data[19] === 1 || model.data[19] === 2
+            visible: model.data[20] === 1 || model.data[20] === 2
             Layout.fillWidth: true
             height: 40
             Layout.columnSpan: 4
@@ -923,7 +923,7 @@ Rectangle {
         }
         RowLayout {
           Rectangle {
-            visible: model.data[19] === 1 || model.data[19] === 2
+            visible: model.data[20] === 1 || model.data[20] === 2
             color: "transparent"
             height: 40
             Layout.preferredWidth: yDirectionText.width + indentation*3
@@ -937,7 +937,7 @@ Rectangle {
             Component.onCompleted: loaderDirectionY.item.componentInfo = "directionY"
 
             Text {
-              visible: model.data[19] === 1 || model.data[19] === 2
+              visible: model.data[20] === 1 || model.data[20] === 2
               id : yDirectionText
               text: ' Y:'
               leftPadding: 5
@@ -947,7 +947,7 @@ Rectangle {
             }
           }
           Item {
-            visible: model.data[19] === 1 || model.data[19] === 2
+            visible: model.data[20] === 1 || model.data[20] === 2
             Layout.fillWidth: true
             height: 40
             Layout.columnSpan: 4
@@ -964,7 +964,7 @@ Rectangle {
         }
         RowLayout {
           Rectangle {
-            visible: model.data[19] === 1 || model.data[19] === 2
+            visible: model.data[20] === 1 || model.data[20] === 2
             color: "transparent"
             height: 40
             Layout.preferredWidth: zDirectionText.width + indentation*3
@@ -978,7 +978,7 @@ Rectangle {
             Component.onCompleted: loaderDirectionZ.item.componentInfo = "directionZ"
 
             Text {
-              visible: model.data[19] === 1 || model.data[19] === 2
+              visible: model.data[20] === 1 || model.data[20] === 2
               id : zDirectionText
               text: ' Z:'
               leftPadding: 5
@@ -988,7 +988,7 @@ Rectangle {
             }
           }
           Item {
-            visible: model.data[19] === 1 || model.data[19] === 2
+            visible: model.data[20] === 1 || model.data[20] === 2
             Layout.fillWidth: true
             height: 40
             Layout.columnSpan: 4
@@ -1005,7 +1005,7 @@ Rectangle {
         }
         RowLayout {
           Text {
-            visible: model.data[19] === 1
+            visible: model.data[20] === 1
             Layout.columnSpan: 6
             text: "      Spot features"
             color: "dimgrey"
@@ -1014,7 +1014,7 @@ Rectangle {
         }
         RowLayout {
           Rectangle {
-            visible: model.data[19] === 1
+            visible: model.data[20] === 1
             color: "transparent"
             height: 40
             Layout.preferredWidth: innerAngleText.width + indentation*3
@@ -1028,7 +1028,7 @@ Rectangle {
             Component.onCompleted: loaderInnerAngle.item.componentInfo = "innerAngle"
 
             Text {
-              visible: model.data[19] === 1
+              visible: model.data[20] === 1
               id : innerAngleText
               text: ' Inner Angle:'
               leftPadding: 5
@@ -1038,7 +1038,7 @@ Rectangle {
             }
           }
           Item {
-            visible: model.data[19] === 1
+            visible: model.data[20] === 1
             Layout.fillWidth: true
             height: 40
             Layout.columnSpan: 4
@@ -1055,7 +1055,7 @@ Rectangle {
         }
         RowLayout {
           Rectangle {
-            visible: model.data[19] === 1
+            visible: model.data[20] === 1
             color: "transparent"
             height: 40
             Layout.preferredWidth: outerAngleText.width + indentation*3
@@ -1069,7 +1069,7 @@ Rectangle {
             Component.onCompleted: loaderOuterAngle.item.componentInfo = "outerAngle"
 
             Text {
-              visible: model.data[19] === 1
+              visible: model.data[20] === 1
               id : outerAngleText
               text: ' Outer angle:'
               leftPadding: 5
@@ -1079,7 +1079,7 @@ Rectangle {
             }
           }
           Item {
-            visible: model.data[19] === 1
+            visible: model.data[20] === 1
             Layout.fillWidth: true
             height: 40
             Layout.columnSpan: 4
@@ -1096,7 +1096,7 @@ Rectangle {
         }
         RowLayout {
           Rectangle {
-            visible: model.data[19] === 1
+            visible: model.data[20] === 1
             color: "transparent"
             height: 40
             Layout.preferredWidth: fallOffText.width + indentation*3
@@ -1110,7 +1110,7 @@ Rectangle {
             Component.onCompleted: loaderFallOff.item.componentInfo = "falloff"
 
             Text {
-              visible: model.data[19] === 1
+              visible: model.data[20] === 1
               id : fallOffText
               text: ' Falloff:'
               leftPadding: 5
@@ -1120,7 +1120,7 @@ Rectangle {
             }
           }
           Item {
-            visible: model.data[19] === 1
+            visible: model.data[20] === 1
             Layout.fillWidth: true
             height: 40
             Layout.columnSpan: 4
