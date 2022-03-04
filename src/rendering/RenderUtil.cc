@@ -1321,7 +1321,7 @@ void RenderUtil::Update()
           trajPose.Rot() = tf.second["actorPose"].Rotation();
         }
 
-        actorVisual->SetLocalPose(trajPose + globalPose);
+        actorVisual->SetLocalPose(globalPose * trajPose);
 
         tf.second.erase("actorPose");
         actorMesh->SetSkeletonLocalTransforms(tf.second);
@@ -3035,7 +3035,7 @@ void RenderUtilPrivate::UpdateAnimation(const std::unordered_map<Entity,
       trajPose.Rot() = poseFrame.Rotation();
     }
 
-    actorVisual->SetLocalPose(trajPose + globalPose);
+    actorVisual->SetLocalPose(globalPose * trajPose);
   }
 }
 

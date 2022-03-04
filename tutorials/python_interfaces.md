@@ -14,7 +14,7 @@ step simulation and check entities and components.
     helper = HelperFixture(os.path.join(file_path, 'gravity.sdf'))
     ```
 
- - **Step 2**: Write your `pretupdate`, `update` or `postupdate` code:
+ - **Step 2**: Write your `preupdate`, `update` or `postupdate` code:
     ```python
     def on_post_udpate_cb(_info, _ecm):
       # <your code here>

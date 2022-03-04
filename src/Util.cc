@@ -81,7 +81,7 @@ math::Pose3d worldPose(const Entity &_entity,
     if (!parentPose)
       break;
     // transform pose
-    pose = pose + parentPose->Data();
+    pose = parentPose->Data() * pose;
     // keep going up the tree
     p = _ecm.Component<components::ParentEntity>(p->Data());
   }
