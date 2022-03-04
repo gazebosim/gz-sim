@@ -47,8 +47,8 @@ class ignition::gazebo::systems::ModelPhotoShootPrivate
 
   /// \brief Save a pitcture with the camera from the given pose.
   public: void SavePicture (const ignition::rendering::CameraPtr _camera,
-                    const ignition::math::Pose3d _pose,
-                    const std::string _fileName) const;
+                    const ignition::math::Pose3d &_pose,
+                    const std::string &_fileName) const;
 
   /// \brief Name of the loaded model.
   public: std::string modelName;
