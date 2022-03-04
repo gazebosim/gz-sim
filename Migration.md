@@ -5,6 +5,13 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
+## Ignition Gazebo 6.x to 7.0 
+
+* **Deprecated**
+  + The `ParticleEmitter2` system was renamed to `ParticleEmitter`. The
+  `ParticleEmitter2` system is now deprecated. Please use the
+  `ParticleEmitter` system. 
+
 ## Ignition Gazebo 6.1 to 6.2
 
 * If no `<namespace>` is given to the `Thruster` plugin, the namespace now

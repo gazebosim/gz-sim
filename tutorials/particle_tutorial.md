@@ -4,15 +4,15 @@ This tutorial shows how to use the particle emitter system to add and configure 
 
 ## Particle Emitter System
 
-We will demonstrate the particle emitter system by using the [examples/worlds/particle_emitter2.sdf](
-https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo4/examples/worlds/particle_emitter2.sdf) world.
+We will demonstrate the particle emitter system by using the [examples/worlds/particle_emitter.sdf](
+https://github.com/ignitionrobotics/ign-gazebo/blob/main/examples/worlds/particle_emitter.sdf) world.
 
 To be able to spawn particle emitters,  first you will need to include the particle emitter system as a plugin to the world in your SDF. The system does not take any arguments.
 
 ```xml
     <plugin
-      filename="ignition-gazebo-particle-emitter2-system"
-      name="ignition::gazebo::systems::ParticleEmitter2">
+      filename="ignition-gazebo-particle-emitter-system"
+      name="ignition::gazebo::systems::ParticleEmitter">
     </plugin>
 ```
 
@@ -60,7 +60,7 @@ The SDF 1.6+ specification supports having a `<particle_emitter>` SDF element as
 Let's launch the example world to see what it looks like.
 
 ```bash
-ign gazebo -v 4 -r particle_emitter2.sdf
+ign gazebo -v 4 -r particle_emitter.sdf
 ```
 
 You should see the fog slowly starting to appear from the ground plane in the world:
