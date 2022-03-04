@@ -1523,8 +1523,9 @@ bool WheelSlipCommand::Execute()
     }
     else
     {
-      auto state = wheelSlipCmdComp->SetData(*wheelSlipMsg, this->wheelSlipEql) ?
-          ComponentState::OneTimeChange : ComponentState::NoChange;
+      auto state = wheelSlipCmdComp->SetData(
+        *wheelSlipMsg, this->wheelSlipEql) ? ComponentState::OneTimeChange
+        : ComponentState::NoChange;
       this->iface->ecm->SetChanged(
           linkEntity, components::WheelSlipCmd::typeId, state);
     }
