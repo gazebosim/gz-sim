@@ -1,3 +1,11 @@
+<?xml version="1.0" ?>
+<!--
+  Ignition Gazebo Model Photo Shoot plugin demo
+
+  This will take perspective, top, front, and both sides pictures of the model:
+    ign gazebo  -s -r -v 4 --iterations 50 model_photo_shoot.sdf
+
+-->
 <sdf version="1.6">
   <world name="default">
     <plugin
@@ -10,16 +18,8 @@
       <render_engine>ogre2</render_engine>
       <background_color>1, 1, 1</background_color>
     </plugin>
-    <plugin
-        filename="ignition-gazebo-user-commands-system"
-        name="ignition::gazebo::systems::UserCommands">
-    </plugin>
-    <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
-    </plugin>
     <include>
-      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/barcs_qav500_sensor_config_1</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Robonaut</uri>
       <plugin
         filename="ignition-gazebo-model-photo-shoot-system"
         name="ignition::gazebo::systems::ModelPhotoShoot">

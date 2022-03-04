@@ -20,17 +20,19 @@
 #include <string>
 #include <vector>
 
+#include <ignition/common/Image.hh>
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
-#include "ignition/gazebo/components/JointPosition.hh"
 #include "ignition/gazebo/components/JointPositionReset.hh"
-#include <ignition/common/Image.hh>
 #include <ignition/gazebo/components/Name.hh>
 #include <ignition/gazebo/components/Pose.hh>
+#include <ignition/gazebo/Model.hh>
 #include <ignition/gazebo/rendering/Events.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/rendering/Scene.hh>
 #include <ignition/gazebo/Util.hh>
+#include <ignition/plugin/Register.hh>
+#include <ignition/rendering/Camera.hh>
+#include <ignition/rendering/Scene.hh>
+#include <ignition/rendering/RenderingIface.hh>
 #include <ignition/rendering/Visual.hh>
 
 using namespace ignition;
@@ -146,7 +148,7 @@ void ModelPhotoShoot::PreUpdate(
         }
         else
         {
-          igndbg << "No jointAxisComp found, ignoring joint: " <<
+          ignerr << "No jointAxisComp found, ignoring joint: " <<
               jointNameComp->Data() << std::endl;
         }
       }
@@ -262,10 +264,9 @@ void ModelPhotoShootPrivate::SavePicture(
       ignition::rendering::PixelUtil::Name(_camera->ImageFormat());
   auto format = ignition::common::Image::ConvertPixelFormat(formatStr);
   image.SetFromData(cameraImage.Data<unsigned char>(), width, height, format);
-  std::string fullName = _fileName;
-  image.SavePNG(fullName);
+  image.SavePNG(_fileName);
 
-  igndbg << "Saved image to [" << fullName << "]" << std::endl;
+  igndbg << "Saved image to [" << _fileName << "]" << std::endl;
 }
 
 IGNITION_ADD_PLUGIN(ModelPhotoShoot, ignition::gazebo::System,

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2022 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,7 @@
 
 #include <memory>
 
-#include <ignition/gazebo/Model.hh>
 #include <ignition/gazebo/System.hh>
-#include <ignition/gazebo/World.hh>
-#include <ignition/rendering/Camera.hh>
-#include <ignition/rendering/RenderingIface.hh>
-#include <ignition/transport/Node.hh>
 
 namespace ignition
 {
@@ -41,7 +36,7 @@ namespace systems
 
   /// \brief This plugin is a port of the old ModelPropShop plugin from gazebo
   /// classic. It generates 5 pictures of a model: perspective, top, front,
-  /// sideand back. It can do it using the default position or moving the joint
+  /// side and back. It can do it using the default position or moving the joint
   /// to random positions. It allows saving the camera and joint poses so it
   /// can be replicated in other systems.
   ///
@@ -51,6 +46,9 @@ namespace systems
   /// - <random_joints_pose> - Set to true to take pictures with the joints in
   ///   random poses instead of the default ones. This option only supports
   ///   single axis joints. [Optional]
+  /// - A camera sensor must be set in the SDF file as it will be used by the
+  ///   plugin to take the pictures. This allows the plugin user to set the
+  ///   camera parameters as needed. [Required]
   ///
   /// ## Example
   /// An example configuration is installed with Gazebo. The example uses
