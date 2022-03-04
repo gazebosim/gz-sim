@@ -20,6 +20,9 @@
 1. Refactor System functionality into SystemManager
     * [Pull request #1340](https://github.com/ignitionrobotics/ign-gazebo/pull/1340)
 
+1. GzSceneManager: Prevent crash boom when inserted from menu
+    * [Pull request #1371](https://github.com/ignitionrobotics/ign-gazebo/pull/1371)
+
 ### Ignition Gazebo 6.6.0 (2022-02-24)
 
 1. Fix accessing empty JointPosition component in lift drag plugin
