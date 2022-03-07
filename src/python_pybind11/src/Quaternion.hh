@@ -42,8 +42,15 @@ namespace python
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
  */
+void defineMathQuaternion(py::module &m, const std::string &typestr);
+
+/// Help define a pybind11 wrapper for an ignition::math::Quaternion
+/**
+ * \param[in] module a pybind11 module to add the definition to
+ * \param[in] typestr name of the type used by Python
+ */
 template<typename T>
-void defineMathQuaternion(py::module &m, const std::string &typestr)
+void helpDefineMathQuaternion(py::module &m, const std::string &typestr)
 {
   using Class = ignition::math::Quaternion<T>;
   auto toString = [](const Class &si) {

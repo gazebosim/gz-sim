@@ -39,8 +39,15 @@ namespace python
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
  */
+void defineMathMatrix4(py::module &m, const std::string &typestr);
+
+/// Define a pybind11 wrapper for an ignition::math::Matrix4
+/**
+ * \param[in] module a pybind11 module to add the definition to
+ * \param[in] typestr name of the type used by Python
+ */
 template<typename T>
-void defineMathMatrix4(py::module &m, const std::string &typestr)
+void helpDefineMathMatrix4(py::module &m, const std::string &typestr)
 {
   using Class = ignition::math::Matrix4<T>;
   auto toString = [](const Class &si) {
