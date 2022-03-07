@@ -17,16 +17,21 @@
 
 #include <gtest/gtest.h>
 
+#ifdef _MSC_VER
+#pragma warning(push, 0)
+#endif
 #include <ignition/msgs/image.pb.h>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
+#include "ignition/gazebo/Server.hh"
+#include "ignition/gazebo/test_config.hh"
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/utilities/ExtraTestMacros.hh>
-
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/test_config.hh"
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
@@ -74,7 +79,7 @@ TEST_F(DistortionCameraTest,
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  // subscribe to the image topic
+  // Subscribe to the image topic
   transport::Node node;
   node.Subscribe("/camera_sensor_barrel", &imageCb);
 
