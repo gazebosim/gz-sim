@@ -9,35 +9,38 @@ step simulation and check entities and components.
 
  - **Step 1**: Load a world with a fixture
 
-    ```python
-    file_path = os.path.dirname(os.path.realpath(__file__))
-    helper = HelperFixture(os.path.join(file_path, 'gravity.sdf'))
-    ```
+```{.python}
+file_path = os.path.dirname(os.path.realpath(__file__))
+helper = HelperFixture(os.path.join(file_path, 'gravity.sdf'))
+```
 
  - **Step 2**: Write your `preupdate`, `update` or `postupdate` code:
-    ```python
-    def on_post_udpate_cb(_info, _ecm):
-      # <your code here>
-      ...
-    ```
+
+```python
+def on_post_udpate_cb(_info, _ecm):
+  # <your code here>
+  ...
+```
 
  - **Step 3**: Register the function.
-    ```python
-    helper.on_post_update(on_post_udpate_cb)
-    ```
 
+```python
+helper.on_post_update(on_post_udpate_cb)
+```
 
   - **Step 4**: Be sure to call finalize before running the server.
-    ```python
-    helper.finalize()
-    ```
+
+```python
+helper.finalize()
+```
 
   - **Step 5**: Run the server
-    ```python
-    server.run(False, 1000, False)
-    while(server.is_running()):
-        time.sleep(0.1)
-    ```
+
+```python
+server.run(False, 1000, False)
+while(server.is_running()):
+    time.sleep(0.1)
+```
 
 # Run the example
 
@@ -45,11 +48,11 @@ In the
 [examples/scripts/python_api](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo6/examples/scripts/python_api)
 folder there is a Python script that shows how to make use of this API.
 
-> If you compiled Ignition Gazebo from source you should modify your `PYTHONPATH`:
->
->  ```bash
->  export PYTHONPATH=$PYTHONPATH:<path to ws>/install/lib/python
->    ```
+If you compiled Ignition Gazebo from source you should modify your `PYTHONPATH`:
+
+```bash
+export PYTHONPATH=$PYTHONPATH:<path to ws>/install/lib/python
+```
 
 Now you can run the example:
 
