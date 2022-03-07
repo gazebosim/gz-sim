@@ -21,20 +21,21 @@
 #include <vector>
 
 #include <ignition/common/Image.hh>
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/JointAxis.hh"
-#include "ignition/gazebo/components/JointType.hh"
-#include "ignition/gazebo/components/JointPositionReset.hh"
-#include <ignition/gazebo/components/Name.hh>
-#include <ignition/gazebo/components/Pose.hh>
-#include <ignition/gazebo/Model.hh>
-#include <ignition/gazebo/rendering/Events.hh>
-#include <ignition/gazebo/Util.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/rendering/Camera.hh>
 #include <ignition/rendering/Scene.hh>
 #include <ignition/rendering/RenderingIface.hh>
 #include <ignition/rendering/Visual.hh>
+
+#include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/JointAxis.hh"
+#include "ignition/gazebo/components/JointType.hh"
+#include "ignition/gazebo/components/JointPositionReset.hh"
+#include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/Model.hh"
+#include "ignition/gazebo/rendering/Events.hh"
+#include "ignition/gazebo/Util.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -143,10 +144,11 @@ void ModelPhotoShoot::PreUpdate(
             if (jointAxisComp)
             {
               std::uniform_real_distribution<double> distribution(
-                  jointAxisComp->Data().Lower(), jointAxisComp->Data().Upper());
+                  jointAxisComp->Data().Lower(),
+                  jointAxisComp->Data().Upper());
               double jointPose = distribution(generator);
-              _ecm.SetComponentData<components::JointPositionReset>(joint,
-                                                                    {jointPose});
+              _ecm.SetComponentData<components::JointPositionReset>(
+                  joint, {jointPose});
               if (this->dataPtr->savingFile.is_open())
               {
                 this->dataPtr->savingFile << jointNameComp->Data() << ": "
