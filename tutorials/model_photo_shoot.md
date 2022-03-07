@@ -4,7 +4,8 @@
 
 Ignition Gazebo offers a model photo taking tool that will take perspective,
 top, front, and both sides pictures of a model. You can test the demo world
-in Ignition Gazebo by running the following command:
+in Ignition Gazebo, located at `examples/worlds/model_photo_shoot.sdf`, by
+running the following command:
 
 ```
 ign gazebo  -s -r -v 4 --iterations 50 model_photo_shoot.sdf
