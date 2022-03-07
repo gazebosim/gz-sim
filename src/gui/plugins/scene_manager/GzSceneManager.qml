@@ -23,7 +23,7 @@ GridLayout {
   columns: 1
   columnSpacing: 10
   Layout.minimumWidth: 350
-  Layout.minimumHeight: 200
+  Layout.minimumHeight: 130
   anchors.fill: parent
   anchors.margins: 10
 
