@@ -15,6 +15,7 @@
  *
 */
 
+#include <sstream>
 #include <string>
 
 #include <ignition/math/Angle.hh>
