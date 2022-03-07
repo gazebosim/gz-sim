@@ -20,9 +20,14 @@ pybind11_add_module(math SHARED
   src/Kmeans.cc
   src/Line2.cc
   src/Line3.cc
+  src/MassMatrix3.cc
   src/Material.cc
+  src/Matrix3.cc
+  src/Matrix4.cc
   src/MovingWindowFilter.cc
   src/PID.cc
+  src/Pose3.cc
+  src/Quaternion.cc
   src/Rand.cc
   src/RollingMean.cc
   src/RotationSpline.cc
@@ -32,6 +37,8 @@ pybind11_add_module(math SHARED
   src/Spline.cc
   src/StopWatch.cc
   src/Temperature.cc
+  src/Triangle.cc
+  src/Triangle3.cc
   src/Vector2.cc
   src/Vector3.cc
   src/Vector4.cc

@@ -38,8 +38,15 @@ namespace python
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
  */
+void defineMathMassMatrix3(py::module &m, const std::string &typestr);
+
+/// Help define a pybind11 wrapper for an ignition::math::MassMatrix3
+/**
+ * \param[in] module a pybind11 module to add the definition to
+ * \param[in] typestr name of the type used by Python
+ */
 template<typename T>
-void defineMathMassMatrix3(py::module &m, const std::string &typestr)
+void helpDefineMathMassMatrix3(py::module &m, const std::string &typestr)
 {
   using Class = ignition::math::MassMatrix3<T>;
   std::string pyclass_name = typestr;
