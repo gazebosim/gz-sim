@@ -23,6 +23,7 @@
 #include <ignition/common/Image.hh>
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
+#include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/JointPositionReset.hh"
 #include <ignition/gazebo/components/Name.hh>
 #include <ignition/gazebo/components/Pose.hh>
@@ -131,26 +132,49 @@ void ModelPhotoShoot::PreUpdate(
       auto jointNameComp = _ecm.Component<components::Name>(joint);
       if (jointNameComp)
       {
-        // Using the JointAxis component to extract the joint pose limits
-        auto jointAxisComp = _ecm.Component<components::JointAxis>(joint);
-        if (jointAxisComp)
+        auto jointType = _ecm.Component<components::JointType>(joint)->Data();
+        if (jointType != sdf::JointType::FIXED)
         {
-          std::uniform_real_distribution<double> distribution(
-              jointAxisComp->Data().Lower(), jointAxisComp->Data().Upper());
-          float jointPose = distribution(generator);
-          _ecm.SetComponentData<components::JointPositionReset>(joint,
-                                                                {jointPose});
-          if (this->dataPtr->savingFile.is_open())
+          if (jointType == sdf::JointType::REVOLUTE  ||
+              jointType == sdf::JointType::PRISMATIC)
           {
-            this->dataPtr->savingFile << jointNameComp->Data() << ": "
-                                      << jointPose << std::endl;
+            // Using the JointAxis component to extract the joint pose limits
+            auto jointAxisComp = _ecm.Component<components::JointAxis>(joint);
+            if (jointAxisComp)
+            {
+              std::uniform_real_distribution<double> distribution(
+                  jointAxisComp->Data().Lower(), jointAxisComp->Data().Upper());
+              double jointPose = distribution(generator);
+              _ecm.SetComponentData<components::JointPositionReset>(joint,
+                                                                    {jointPose});
+              if (this->dataPtr->savingFile.is_open())
+              {
+                this->dataPtr->savingFile << jointNameComp->Data() << ": "
+                                          << jointPose << std::endl;
+              }
+            }
+            else
+            {
+              ignerr << "No jointAxisComp found, ignoring joint: " <<
+                  jointNameComp->Data() << std::endl;
+            }
+          }
+          else
+          {
+            ignerr << "Model Photo Shoot only supports single axis joints. "
+                "Skipping joint: "<< jointNameComp->Data() << std::endl;
           }
         }
         else
         {
-          ignerr << "No jointAxisComp found, ignoring joint: " <<
-              jointNameComp->Data() << std::endl;
+          igndbg << "Ignoring fixed joint: " << jointNameComp->Data() <<
+              std::endl;
         }
+      }
+      else
+      {
+          ignerr << "No jointNameComp found on entity: " << joint <<
+              std:: endl;
       }
     }
     // Only set random joint poses once
