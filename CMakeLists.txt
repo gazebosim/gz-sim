@@ -80,6 +80,7 @@ else()
   message (STATUS "Searching for Python - found version ${PYTHONLIBS_VERSION_STRING}.")
 
   set(PYBIND11_PYTHON_VERSION 3)
+  find_package(Python3 QUIET COMPONENTS Interpreter Development)
   find_package(pybind11 2.2 QUIET)
 
   if (${pybind11_FOUND})
