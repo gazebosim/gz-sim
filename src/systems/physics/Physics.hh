@@ -64,6 +64,19 @@ namespace systems
 
   /// \class Physics Physics.hh ignition/gazebo/systems/Physics.hh
   /// \brief Base class for a System.
+  /// Includes optional parameter : <include_entity_names>. When set
+  /// to false, the name of colliding entities is not populated in
+  /// the contacts. Remains true by default. Usage :
+  /// ```
+  ///  <plugin
+  ///    filename="ignition-gazebo-physics-system"
+  ///    name="ignition::gazebo::systems::Physics">
+  ///    <contacts>
+  ///      <include_entity_names>false</include_entity_names>
+  ///    </contacts>
+  ///  </plugin>
+  ///  ```
+
   class Physics:
     public System,
     public ISystemConfigure,

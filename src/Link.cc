@@ -19,6 +19,7 @@
 
 #include "ignition/gazebo/components/AngularAcceleration.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
+#include "ignition/gazebo/components/AngularVelocityCmd.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
@@ -259,6 +260,25 @@ void Link::SetLinearVelocity(EntityComponentManager &_ecm,
       _ecm.CreateComponent(
           this->dataPtr->id,
           components::LinearVelocityCmd(_vel));
+    }
+    else
+    {
+      vel->Data() = _vel;
+    }
+}
+
+//////////////////////////////////////////////////
+void Link::SetAngularVelocity(EntityComponentManager &_ecm,
+  const math::Vector3d &_vel) const
+{
+    auto vel =
+      _ecm.Component<components::AngularVelocityCmd>(this->dataPtr->id);
+
+    if (vel == nullptr)
+    {
+      _ecm.CreateComponent(
+          this->dataPtr->id,
+          components::AngularVelocityCmd(_vel));
     }
     else
     {
