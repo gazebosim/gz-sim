@@ -52,7 +52,7 @@
     </model>
 
     <model name='vehicle'>
-      <pose>0 0 0 0 0 0</pose>
+      <pose>10 -10 0 0 0 0</pose>
 
       <link name='chassis'>
         <pose>-0.151427 -0 0.175 0 -0 0</pose>

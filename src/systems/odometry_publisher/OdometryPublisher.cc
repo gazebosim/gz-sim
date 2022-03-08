@@ -94,7 +94,7 @@ class ignition::gazebo::systems::OdometryPublisherPrivate
   public: math::clock::time_point lastUpdateTime;
 
   /// \brief Allow specifying constant xyz and rpy offsets
-  public: ignition::math::Pose3d offset;
+  public: ignition::math::Pose3d offset = {0, 0, 0, 0, 0, 0};
 };
 
 //////////////////////////////////////////////////
@@ -145,22 +145,13 @@ void OdometryPublisher::Configure(const Entity &_entity,
     this->dataPtr->odomFrame = _sdf->Get<std::string>("odom_frame");
   }
 
-  if (!_sdf->HasElement("xyz_offset"))
-  {
-    this->dataPtr->offset.Pos() = ignition::math::Vector3d(0, 0, 0);
-  }
-  else
+  if (_sdf->HasElement("xyz_offset"))
   {
     this->dataPtr->offset.Pos() = _sdf->Get<ignition::math::Vector3d>(
       "xyz_offset");
   }
 
-  if (!_sdf->HasElement("rpy_offset"))
-  {
-    this->dataPtr->offset.Rot() =
-      ignition::math::Quaterniond(ignition::math::Vector3d(0, 0, 0));
-  }
-  else
+  if (_sdf->HasElement("rpy_offset"))
   {
     this->dataPtr->offset.Rot() =
       ignition::math::Quaterniond(_sdf->Get<ignition::math::Vector3d>(

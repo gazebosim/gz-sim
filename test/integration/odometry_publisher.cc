@@ -432,8 +432,8 @@ class OdometryPublisherTest
     // Run for 3s and check the pose in the last message
     ASSERT_FALSE(odomPoses.empty());
     auto lastPose = odomPoses[odomPoses.size() - 1];
-    EXPECT_NEAR(lastPose.Pos().X(), 1, 1e-2);
-    EXPECT_NEAR(lastPose.Pos().Y(), -1, 1e-2);
+    EXPECT_NEAR(lastPose.Pos().X(), 11, 1e-2);
+    EXPECT_NEAR(lastPose.Pos().Y(), -11, 1e-2);
     EXPECT_NEAR(lastPose.Pos().Z(), 0, 1e-2);
 
     EXPECT_NEAR(lastPose.Rot().Roll(), 1.57, 1e-2);
