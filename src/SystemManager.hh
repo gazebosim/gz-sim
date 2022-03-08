@@ -129,7 +129,7 @@ namespace ignition
       /// \brief Systems implementing Configure
       private: std::vector<ISystemConfigure *> systemsConfigure;
 
-      /// \brief Systems implementing Reset 
+      /// \brief Systems implementing Reset
       private: std::vector<ISystemReset *> systemsReset;
 
       /// \brief Systems implementing PreUpdate
