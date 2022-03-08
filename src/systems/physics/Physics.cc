@@ -686,6 +686,10 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// through the GUI model editor, so that we can avoid premature creation
   /// of joints. This also lets us suppress some invalid error messages.
   public: std::set<Entity> jointAddedToModel;
+
+  /// \brief Flag to store whether the names of colliding entities should
+  /// be populated in the contact points.
+  public: bool contactsEntityNames = true;
 };
 
 //////////////////////////////////////////////////
@@ -730,6 +734,14 @@ void Physics::Configure(const Entity &_entity,
   {
     engineComp->SetData(pluginLib,
         [](const std::string &_a, const std::string &_b){return _a == _b;});
+  }
+
+  // Check if entity names should be populated in contact points.
+  auto contactsElement = _sdf->FindElement("contacts");
+  if (contactsElement)
+  {
+    this->dataPtr->contactsEntityNames = contactsElement->Get<bool>(
+      "include_entity_names", true).first;
   }
 
   // Find engine shared library
@@ -2150,7 +2162,6 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
         worldAngularVelFeature->SetWorldAngularVelocity(
             math::eigen3::convert(worldAngularVel));
-
         return true;
       });
 
@@ -3260,6 +3271,13 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
           msgs::Contact *contactMsg = contactsComp.add_contact();
           contactMsg->mutable_collision1()->set_id(_collEntity1);
           contactMsg->mutable_collision2()->set_id(collEntity2);
+          if (this->contactsEntityNames)
+          {
+            contactMsg->mutable_collision1()->set_name(
+              removeParentScope(scopedName(_collEntity1, _ecm, "::", 0), "::"));
+            contactMsg->mutable_collision2()->set_name(
+              removeParentScope(scopedName(collEntity2, _ecm, "::", 0), "::"));
+          }
           for (const auto &contact : contactData)
           {
             auto *position = contactMsg->add_position();

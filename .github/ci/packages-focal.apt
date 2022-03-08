@@ -3,3 +3,4 @@ libdart-dev
 libdart-external-ikfast-dev
 libdart-external-odelcpsolver-dev
 libdart-utils-urdf-dev
+python3-ignition-math6
