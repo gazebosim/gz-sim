@@ -39,7 +39,6 @@
 #include "ignition/gazebo/Util.hh"
 
 #include "helpers/EnvTestFixture.hh"
-#include "helpers/UniqueTestDirectoryEnv.hh"
 
 using namespace ignition;
 using namespace gazebo;

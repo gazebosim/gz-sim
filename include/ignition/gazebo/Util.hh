@@ -219,7 +219,8 @@ namespace ignition
     ///    2. "../shapes.sdf" - This is referencing a relative world file.
     ///    3. "/home/user/shapes.sdf" - This is reference an absolute world
     ///       file.
-    ///    4. "https://fuel.ignitionrobotics.org/1.0/openrobotics/worlds/shapes.sdf" - This is referencing a Fuel URI. This will download the world file.
+    ///    4. "https://fuel.ignitionrobotics.org/1.0/openrobotics/worlds/shapes.sdf"
+    /// This is referencing a Fuel URI. This will download the world file.
     /// \param[in] _fuelResourceCache Path to a Fuel resource cache, if
     /// known.
     /// \return Full path to the SDF world file. An empty string is returned

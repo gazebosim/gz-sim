@@ -346,6 +346,9 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// \brief Optional SDF root object.
   public: std::optional<sdf::Root> sdfRoot;
+
+  /// \brief Type of source used.
+  public: ServerConfig::SourceType source{ServerConfig::SourceType::kNone};
 };
 
 //////////////////////////////////////////////////
@@ -366,6 +369,7 @@ ServerConfig::~ServerConfig() = default;
 //////////////////////////////////////////////////
 bool ServerConfig::SetSdfFile(const std::string &_file)
 {
+  this->dataPtr->source = ServerConfig::SourceType::kSdfFile;
   this->dataPtr->sdfFile = _file;
   this->dataPtr->sdfString = "";
   this->dataPtr->sdfRoot = std::nullopt;
@@ -381,6 +385,7 @@ std::string ServerConfig::SdfFile() const
 //////////////////////////////////////////////////
 bool ServerConfig::SetSdfString(const std::string &_sdfString)
 {
+  this->dataPtr->source = ServerConfig::SourceType::kSdfString;
   this->dataPtr->sdfFile = "";
   this->dataPtr->sdfString = _sdfString;
   this->dataPtr->sdfRoot = std::nullopt;
@@ -747,6 +752,7 @@ const std::vector<std::string> &ServerConfig::LogRecordTopics() const
 /////////////////////////////////////////////////
 void ServerConfig::SetSdfRoot(const sdf::Root &_root) const
 {
+  this->dataPtr->source = ServerConfig::SourceType::kSdfRoot;
   this->dataPtr->sdfRoot.emplace();
 
   for (uint64_t i = 0; i < _root.WorldCount(); ++i)
@@ -761,9 +767,15 @@ void ServerConfig::SetSdfRoot(const sdf::Root &_root) const
 }
 
 /////////////////////////////////////////////////
-const std::optional<sdf::Root> &ServerConfig::SdfRoot() const
+std::optional<sdf::Root> &ServerConfig::SdfRoot() const
 {
   return this->dataPtr->sdfRoot;
+}
+
+/////////////////////////////////////////////////
+ServerConfig::SourceType ServerConfig::Source() const
+{
+  return this->dataPtr->source;
 }
 
 /////////////////////////////////////////////////

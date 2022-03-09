@@ -73,53 +73,64 @@ Server::Server(const ServerConfig &_config)
 
   sdf::Errors errors;
 
-  // Load a world if specified. Check SDF string first, then SDF file
-  if (_config.SdfRoot())
+  switch (_config.Source())
   {
-    this->dataPtr->sdfRoot = _config.SdfRoot()->Clone();
-    ignmsg << "Loading SDF world from SDF DOM.\n";
-  }
-  else if (!_config.SdfString().empty())
-  {
-    std::string msg = "Loading SDF string. ";
-    if (_config.SdfFile().empty())
+    // Load a world if specified. Check SDF string first, then SDF file
+    case ServerConfig::SourceType::kSdfRoot:
     {
-      msg += "File path not available.\n";
-    }
-    else
-    {
-      msg += "File path [" + _config.SdfFile() + "].\n";
-    }
-    ignmsg <<  msg;
-    errors = this->dataPtr->sdfRoot.LoadSdfString(_config.SdfString());
-  }
-  else if (!_config.SdfFile().empty())
-  {
-    std::string filePath = resolveSdfWorldFile(_config.SdfFile(),
-        _config.ResourceCache());
-
-    if (filePath.empty())
-    {
-      ignerr << "Failed to find world [" << _config.SdfFile() << "]"
-             << std::endl;
-      return;
+      this->dataPtr->sdfRoot = _config.SdfRoot()->Clone();
+      ignmsg << "Loading SDF world from SDF DOM.\n";
+      break;
     }
 
-    ignmsg << "Loading SDF world file[" << filePath << "].\n";
+    case ServerConfig::SourceType::kSdfString:
+    {
+      std::string msg = "Loading SDF string. ";
+      if (_config.SdfFile().empty())
+      {
+        msg += "File path not available.\n";
+      }
+      else
+      {
+        msg += "File path [" + _config.SdfFile() + "].\n";
+      }
+      ignmsg <<  msg;
+      errors = this->dataPtr->sdfRoot.LoadSdfString(_config.SdfString());
+      break;
+    }
 
-    // \todo(nkoenig) Async resource download.
-    // This call can block for a long period of time while
-    // resources are downloaded. Blocking here causes the GUI to block with
-    // a black screen (search for "Async resource download" in
-    // 'src/gui_main.cc'.
-    errors = this->dataPtr->sdfRoot.Load(filePath);
-  }
-  else
-  {
-    ignmsg << "Loading default world.\n";
-    // Load an empty world.
-    /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
-    errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World());
+    case ServerConfig::SourceType::kSdfFile:
+    {
+      std::string filePath = resolveSdfWorldFile(_config.SdfFile(),
+          _config.ResourceCache());
+
+      if (filePath.empty())
+      {
+        ignerr << "Failed to find world [" << _config.SdfFile() << "]"
+               << std::endl;
+        return;
+      }
+
+      ignmsg << "Loading SDF world file[" << filePath << "].\n";
+
+      // \todo(nkoenig) Async resource download.
+      // This call can block for a long period of time while
+      // resources are downloaded. Blocking here causes the GUI to block with
+      // a black screen (search for "Async resource download" in
+      // 'src/gui_main.cc'.
+      errors = this->dataPtr->sdfRoot.Load(filePath);
+      break;
+    }
+
+    case ServerConfig::SourceType::kNone:
+    default:
+    {
+      ignmsg << "Loading default world.\n";
+      // Load an empty world.
+      /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
+      errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World());
+      break;
+    }
   }
 
   if (!errors.empty())
