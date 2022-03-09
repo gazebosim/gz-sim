@@ -374,12 +374,13 @@ void EntityComponentManager::EachNoCache(typename identity<std::function<
 
 namespace detail
 {
-/// \brief Helper template to call a callback function with each of the components
-/// in the _data vector expanded as arguments to the callback function.
+/// \brief Helper template to call a callback function with each of the
+/// components in the _data vector expanded as arguments to the callback
+/// function.
 /// \tparam ComponentTypeTs The actual types of each of the components.
 /// \tparam FuncT The type of the callback function.
 /// \tparam BaseComponentT Either "BaseComponent" or "const BaseComponent"
-/// \tparam Is Index sequence that will be used to iterate through the vector 
+/// \tparam Is Index sequence that will be used to iterate through the vector
 /// _data.
 /// \param[in] _f The callback function
 /// \param[in] _entity The entity associated with the components.
@@ -395,8 +396,9 @@ constexpr bool applyFunctionImpl(const FuncT &_f, const Entity &_entity,
   return _f(_entity, static_cast<ComponentTypeTs *>(_data[Is])...);
 }
 
-/// \brief Helper template to call a callback function with each of the components
-/// in the _data vector expanded as arguments to the callback function.
+/// \brief Helper template to call a callback function with each of the
+/// components in the _data vector expanded as arguments to the callback
+/// function.
 /// \tparam ComponentTypeTs The actual types of each of the components.
 /// \tparam FuncT The type of the callback function.
 /// \tparam BaseComponentT Either "BaseComponent" or "const BaseComponent"
@@ -585,10 +587,9 @@ detail::View *EntityComponentManager::FindView() const
       continue;
 
     view.AddEntityWithConstComps(entity, this->IsNewEntity(entity),
-                                 this->Component<ComponentTypeTs>(entity)...);
-    view.AddEntityWithComps(
-        entity, this->IsNewEntity(entity),
-        const_cast<EntityComponentManager *>(this)->Component<ComponentTypeTs>(
+        this->Component<ComponentTypeTs>(entity)...);
+    view.AddEntityWithComps(entity, this->IsNewEntity(entity),
+        const_cast<EntityComponentManager*>(this)->Component<ComponentTypeTs>(
             entity)...);
     if (this->IsMarkedForRemoval(entity))
       view.MarkEntityToRemove(entity);

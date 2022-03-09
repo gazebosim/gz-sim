@@ -31,7 +31,6 @@
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/detail/BaseView.hh"
 
-
 namespace ignition
 {
 namespace gazebo
@@ -155,7 +154,6 @@ class View : public BaseView
   /// \sa invalidData
   private: std::unordered_map<Entity, std::unordered_set<ComponentTypeId>>
              missingCompTracker;
-
 };
 
 //////////////////////////////////////////////////

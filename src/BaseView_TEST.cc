@@ -15,24 +15,23 @@
  *
 */
 
-#include "ignition/gazebo/detail/BaseView.hh"
-
 #include <gtest/gtest.h>
 
 #include <ignition/common/Console.hh>
 
-#include "../test/helpers/EnvTestFixture.hh"
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/Types.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Visual.hh"
+#include "ignition/gazebo/detail/BaseView.hh"
 #include "ignition/gazebo/detail/View.hh"
+
+#include "../test/helpers/EnvTestFixture.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
-#ifdef NEW_VIEW
 class BaseViewTest : public InternalFixture<::testing::Test>
 {
 };
@@ -519,4 +518,3 @@ TEST_F(BaseViewTest, ComponentTypeHasher)
   uniqueVecs.insert(vec7);
   EXPECT_EQ(7u, uniqueVecs.size());
 }
-#endif
