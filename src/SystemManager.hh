@@ -21,6 +21,8 @@
 #include <string>
 #include <vector>
 
+#include <sdf/Plugin.hh>
+
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Export.hh"
@@ -59,6 +61,12 @@ namespace ignition
                               const std::string &_fname,
                               const std::string &_name,
                               const sdf::ElementPtr &_sdf);
+
+      /// \brief Load system plugin for a given entity.
+      /// \param[in] _entity Entity
+      /// \param[in] _plugin Plugin to load
+      public: void LoadPlugin(const Entity _entity,
+                              const sdf::Plugin &_plugin);
 
       /// \brief Add a system to the manager
       /// \param[in] _system SystemPluginPtr to be added
