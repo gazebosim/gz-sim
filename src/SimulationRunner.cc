@@ -126,6 +126,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
       std::bind(&SimulationRunner::LoadPlugins, this, std::placeholders::_1,
       std::placeholders::_2));
 
+  /// \todo(nkoenig) Deprecate/remove this event in Garden
   this->loadPtrPluginsConn = this->eventMgr.Connect<events::LoadPlugins>(
       std::bind(&SimulationRunner::LoadPtrPlugins, this, std::placeholders::_1,
       std::placeholders::_2));
@@ -981,6 +982,7 @@ void SimulationRunner::LoadLoggingPlugins(const ServerConfig &_config)
 }
 
 //////////////////////////////////////////////////
+/// \todo(nkoenig) Remove this function in Garden.
 void SimulationRunner::LoadPtrPlugins(const Entity _entity,
     const sdf::ElementPtr &_sdf)
 {

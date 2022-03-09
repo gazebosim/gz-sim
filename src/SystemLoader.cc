@@ -210,7 +210,20 @@ std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(
   const std::string &_name,
   const sdf::ElementPtr &_sdf)
 {
-  ignition::plugin::PluginPtr plugin;
+  if (_filename == "" || _name == "")
+  {
+    ignerr << "Failed to instantiate system plugin: empty argument "
+              "[(filename): " << _filename << "] " <<
+              "[(name): " << _name << "]." << std::endl;
+    return {};
+  }
+
+  sdf::Plugin plugin;
+  plugin.Load(_sdf);
+  plugin.SetFilename(_filename);
+  plugin.SetName(_name);
+  return LoadPlugin(plugin);
+  /*ignition::plugin::PluginPtr plugin;
 
   if (_filename == "" || _name == "")
   {
@@ -229,6 +242,7 @@ std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(
   }
 
   return {};
+  */
 }
 
 //////////////////////////////////////////////////
@@ -264,6 +278,7 @@ std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(
 
   return {};
 }
+
 //////////////////////////////////////////////////
 std::string SystemLoader::PrettyStr() const
 {

@@ -179,7 +179,7 @@ namespace ignition
 
         /// \brief Get a mutable version of the SDF plugin information.
         /// \return The SDF Plugin object.
-        public:  sdf::Plugin &Plugin();
+        public: sdf::Plugin &Plugin();
 
         /// \brief Set the SDF plugin information.
         /// \param[in] _plugin The SDF Plugin object to use.
