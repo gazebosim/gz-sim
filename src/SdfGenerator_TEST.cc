@@ -791,7 +791,9 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithOneExpanded)
                 common::joinPaths(PROJECT_SOURCE_PATH, worldFile).c_str()));
 
   tinyxml2::XMLDocument genSdfDoc;
-  genSdfDoc.Parse(elem->ToString("").c_str());
+  sdf::PrintConfig config;
+  config.SetOutPrecision(6);
+  genSdfDoc.Parse(elem->ToString("", config).c_str());
 
   // Compare elements from the original sdf xml and the generated xml
   auto origWorld = originalSdfDoc.RootElement()->FirstChildElement("world");
