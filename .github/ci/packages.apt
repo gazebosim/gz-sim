@@ -22,6 +22,8 @@ libsdformat12-dev
 libtinyxml2-dev
 libxi-dev
 libxmu-dev
+python3-distutils
+python3-pybind11
 qml-module-qt-labs-folderlistmodel
 qml-module-qt-labs-settings
 qml-module-qtqml-models2

@@ -1321,7 +1321,7 @@ void RenderUtil::Update()
           trajPose.Rot() = tf.second["actorPose"].Rotation();
         }
 
-        actorVisual->SetLocalPose(trajPose + globalPose);
+        actorVisual->SetLocalPose(globalPose * trajPose);
 
         tf.second.erase("actorPose");
         actorMesh->SetSkeletonLocalTransforms(tf.second);
@@ -2811,6 +2811,12 @@ void RenderUtilPrivate::UpdateLights(
     auto l = std::dynamic_pointer_cast<rendering::Light>(node);
     if (l)
     {
+      if (!ignition::math::equal(
+          l->Intensity(),
+          static_cast<double>(light.second.intensity())))
+      {
+        l->SetIntensity(light.second.intensity());
+      }
       if (light.second.has_diffuse())
       {
         if (l->DiffuseColor() != msgs::Convert(light.second.diffuse()))
@@ -3029,7 +3035,7 @@ void RenderUtilPrivate::UpdateAnimation(const std::unordered_map<Entity,
       trajPose.Rot() = poseFrame.Rotation();
     }
 
-    actorVisual->SetLocalPose(trajPose + globalPose);
+    actorVisual->SetLocalPose(globalPose * trajPose);
   }
 }
 

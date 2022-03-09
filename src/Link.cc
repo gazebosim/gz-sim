@@ -19,6 +19,7 @@
 
 #include "ignition/gazebo/components/AngularAcceleration.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
+#include "ignition/gazebo/components/AngularVelocityCmd.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
@@ -26,6 +27,7 @@
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
+#include "ignition/gazebo/components/LinearVelocityCmd.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
@@ -244,6 +246,44 @@ void Link::EnableVelocityChecks(EntityComponentManager &_ecm, bool _enable)
       _enable);
   enableComponent<components::WorldPose>(_ecm, this->dataPtr->id,
       _enable);
+}
+
+//////////////////////////////////////////////////
+void Link::SetLinearVelocity(EntityComponentManager &_ecm,
+  const math::Vector3d &_vel) const
+{
+    auto vel =
+      _ecm.Component<components::LinearVelocityCmd>(this->dataPtr->id);
+
+    if (vel == nullptr)
+    {
+      _ecm.CreateComponent(
+          this->dataPtr->id,
+          components::LinearVelocityCmd(_vel));
+    }
+    else
+    {
+      vel->Data() = _vel;
+    }
+}
+
+//////////////////////////////////////////////////
+void Link::SetAngularVelocity(EntityComponentManager &_ecm,
+  const math::Vector3d &_vel) const
+{
+    auto vel =
+      _ecm.Component<components::AngularVelocityCmd>(this->dataPtr->id);
+
+    if (vel == nullptr)
+    {
+      _ecm.CreateComponent(
+          this->dataPtr->id,
+          components::AngularVelocityCmd(_vel));
+    }
+    else
+    {
+      vel->Data() = _vel;
+    }
 }
 
 //////////////////////////////////////////////////

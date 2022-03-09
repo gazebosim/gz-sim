@@ -110,7 +110,7 @@ void EntityContextMenu::LoadConfig(const tinyxml2::XMLElement *)
     this->dataPtr->entityContextMenuHandler);
 
   if (this->title.empty())
-    this->title = "EntityContextMenu";
+    this->title = "Entity Context Menu";
 
   ignition::gui::App()->findChild
     <ignition::gui::MainWindow *>()->installEventFilter(this);
