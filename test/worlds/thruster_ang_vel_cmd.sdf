@@ -104,6 +104,8 @@
         <propeller_diameter>0.2</propeller_diameter>
         <velocity_control>true</velocity_control>
         <use_angvel_cmd>true</use_angvel_cmd>
+        <max_thrust_cmd>300</max_thrust_cmd>
+        <min_thrust_cmd>0</min_thrust_cmd>
       </plugin>
     </model>
 
