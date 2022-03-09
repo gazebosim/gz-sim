@@ -1,6 +1,9 @@
 <?xml version="1.0" ?>
 <sdf version="1.7">
   <world name="joint_wrenches">
+    <physics name="fast" type="ignored">
+      <real_time_factor>0</real_time_factor>
+    </physics>
     <model name="ground_plane">
       <static>true</static>
       <link name="link">

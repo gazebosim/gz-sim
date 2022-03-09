@@ -1213,7 +1213,7 @@ rendering::GeometryPtr VisualizationCapabilitiesPrivate::CreateGeometry(
     // The rotation is the angle between the +z(0,0,1) vector and the
     // normal, which are both expressed in the local (Visual) frame.
     math::Vector3d normal = _geom.PlaneShape()->Normal();
-    localPose.Rot().From2Axes(math::Vector3d::UnitZ, normal.Normalized());
+    localPose.Rot().SetFrom2Axes(math::Vector3d::UnitZ, normal.Normalized());
   }
   else if (_geom.Type() == sdf::GeometryType::SPHERE)
   {

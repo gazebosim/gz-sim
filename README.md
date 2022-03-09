@@ -9,10 +9,10 @@
 
 Build | Status
 -- | --
-Test coverage | [![codecov](https://codecov.io/gh/ignitionrobotics/ign-gazebo/branch/ign-gazebo6/graph/badge.svg)](https://codecov.io/gh/ignitionrobotics/ign-gazebo)
-Ubuntu Bionic | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-ign-gazebo6-bionic-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-ign-gazebo6-bionic-amd64)
-Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-ign-gazebo6-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-ign-gazebo6-homebrew-amd64)
-Windows       | [![Build Status](https://build.osrfoundation.org/job/ign_gazebo-ign-6-win/badge/icon)](https://build.osrfoundation.org/job/ign_gazebo-ign-6-win/)
+Test coverage | [![codecov](https://codecov.io/gh/ignitionrobotics/ign-gazebo/branch/main/graph/badge.svg)](https://codecov.io/gh/ignitionrobotics/ign-gazebo)
+Ubuntu Bionic | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-main-bionic-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-main-bionic-amd64)
+Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-main-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-main-homebrew-amd64)
+Windows       | [![Build Status](https://build.osrfoundation.org/job/ign_gazebo-ci-win/badge/icon)](https://build.osrfoundation.org/job/ign_gazebo-ci-win/)
 
 Ignition Gazebo is an open source robotics simulator. Through Ignition Gazebo, users have access to high fidelity physics, rendering, and sensor models. Additionally, users and developers have multiple points of entry to simulation including a graphical user interface, plugins, and asynchronous message passing and services.
 
@@ -114,9 +114,9 @@ line is using symbolic links to each library's YAML file.
 ```
 mkdir ~/.ignition/tools/configs -p
 cd ~/.ignition/tools/configs/
-ln -s /usr/local/share/ignition/fuel7.yaml .
-ln -s /usr/local/share/ignition/transport11.yaml .
-ln -s /usr/local/share/ignition/transportlog11.yaml .
+ln -s /usr/local/share/ignition/fuel8.yaml .
+ln -s /usr/local/share/ignition/transport12.yaml .
+ln -s /usr/local/share/ignition/transportlog12.yaml .
 ...
 export IGN_CONFIG_PATH=$HOME/.ignition/tools/configs
 ```
@@ -125,11 +125,11 @@ This issue is tracked [here](https://github.com/ignitionrobotics/ign-tools/issue
 
 # Documentation
 
-See the [installation tutorial](https://ignitionrobotics.org/api/gazebo/6.0/install.html).
+See the [installation tutorial](https://ignitionrobotics.org/api/gazebo/6.1/install.html).
 
 # Testing
 
-See the [installation tutorial](https://ignitionrobotics.org/api/gazebo/6.0/install.html).
+See the [installation tutorial](https://ignitionrobotics.org/api/gazebo/6.1/install.html).
 
 See the [Writing Tests section of the contributor guide](https://github.com/ignitionrobotics/ign-gazebo/blob/main/CONTRIBUTING.md#writing-tests) for help creating or modifying tests.
 

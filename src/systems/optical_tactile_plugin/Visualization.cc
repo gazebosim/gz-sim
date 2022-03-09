@@ -203,7 +203,7 @@ void OpticalTactilePluginVisualization::AddNormalForceToMarkerMsgs(
     _position.X(), _position.Y(), _position.Z());
 
   ignition::math::Quaternionf normalForceOrientationFromSensor;
-  normalForceOrientationFromSensor.From2Axes(
+  normalForceOrientationFromSensor.SetFrom2Axes(
     ignition::math::Vector3f(0, 0, 1), _normalForce);
 
   ignition::math::Pose3f normalForcePoseFromSensor(

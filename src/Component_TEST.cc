@@ -180,7 +180,7 @@ class NoSerialize : public components::BaseComponent
     return 0;
   }
 
-  public: std::unique_ptr<BaseComponent> Clone() override
+  public: std::unique_ptr<BaseComponent> Clone() const override
   {
     return nullptr;
   }

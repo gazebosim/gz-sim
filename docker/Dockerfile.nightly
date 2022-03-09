@@ -12,18 +12,18 @@ RUN scripts/enable_ign_nightly.sh
 RUN apt-get update \
  && apt-get install -y \
     libignition-cmake2-dev \
-    libignition-common4-dev \
-    libignition-fuel-tools7-dev \
-    libignition-math6-eigen3-dev \
+    libignition-common5-dev \
+    libignition-fuel-tools8-dev \
+    libignition-math7-eigen3-dev \
     libignition-plugin-dev \
-    libignition-physics5-dev \
-    libignition-rendering6-dev \
+    libignition-physics6-dev \
+    libignition-rendering7-dev \
     libignition-tools-dev \
-    libignition-transport11-dev \
-    libignition-gui6-dev \
-    libignition-msgs8-dev \
-    libignition-sensors6-dev \
-    libsdformat12-dev
+    libignition-transport12-dev \
+    libignition-gui7-dev \
+    libignition-msgs9-dev \
+    libignition-sensors7-dev \
+    libsdformat13-dev
 
 COPY . ign-gazebo
 RUN cd ign-gazebo \

@@ -38,12 +38,9 @@
       <uniform_fluid_density>1000</uniform_fluid_density>
     </plugin>
 
-    <!-- Requires ParticleEmitter2 in ign-gazebo 4.8.0, which will be copied
-      to ParticleEmitter in Ignition G.
-      See https://github.com/ignitionrobotics/ign-gazebo/pull/730 -->
     <plugin
-      filename="ignition-gazebo-particle-emitter2-system"
-      name="ignition::gazebo::systems::ParticleEmitter2">
+      filename="ignition-gazebo-particle-emitter-system"
+      name="ignition::gazebo::systems::ParticleEmitter">
     </plugin>
 
     <light type="directional" name="sun">
@@ -60,9 +57,6 @@
       <direction>-0.5 0.1 -0.9</direction>
     </light>
 
-    <!-- Requires ParticleEmitter2 in ign-gazebo 4.8.0, which will be copied
-      to ParticleEmitter in Ignition G.
-      See https://github.com/ignitionrobotics/ign-gazebo/pull/730 -->
     <include>
       <pose>-5 0 0 0 0 0</pose>
       <uri>https://fuel.ignitionrobotics.org/1.0/mabel/models/Turquoise turbidity generator</uri>

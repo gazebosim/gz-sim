@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 
 project(ign-gazebo-scene-requester)
 
-find_package(ignition-transport11 QUIET REQUIRED OPTIONAL_COMPONENTS log)
-set(IGN_TRANSPORT_VER ${ignition-transport11_VERSION_MAJOR})
+find_package(ignition-transport12 QUIET REQUIRED OPTIONAL_COMPONENTS log)
+set(IGN_TRANSPORT_VER ${ignition-transport12_VERSION_MAJOR})
 
 add_executable(scene_requester scene_requester.cc)
 target_link_libraries(scene_requester

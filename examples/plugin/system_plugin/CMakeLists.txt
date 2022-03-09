@@ -7,9 +7,9 @@ project(SampleSystem)
 find_package(ignition-plugin1 REQUIRED COMPONENTS register)
 set(IGN_PLUGIN_VER ${ignition-plugin1_VERSION_MAJOR})
 
-find_package(ignition-gazebo6 REQUIRED)
+find_package(ignition-gazebo7 REQUIRED)
 add_library(SampleSystem SHARED SampleSystem.cc SampleSystem2.cc)
 set_property(TARGET SampleSystem PROPERTY CXX_STANDARD 17)
 target_link_libraries(SampleSystem
   PRIVATE ignition-plugin${IGN_PLUGIN_VER}::ignition-plugin${IGN_PLUGIN_VER}
-  PRIVATE ignition-gazebo6::ignition-gazebo6)
+  PRIVATE ignition-gazebo7::ignition-gazebo7)

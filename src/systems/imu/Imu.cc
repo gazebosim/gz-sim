@@ -149,7 +149,7 @@ void Imu::PostUpdate(const UpdateInfo &_info,
     for (auto &it : this->dataPtr->entitySensorMap)
     {
       // Update measurement time
-      it.second.get()->sensors::Sensor::Update(_info.simTime, false);
+      it.second->Update(_info.simTime, false);
     }
   }
 

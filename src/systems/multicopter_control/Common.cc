@@ -111,7 +111,7 @@ RotorConfiguration loadRotorConfiguration(const EntityComponentManager &_ecm,
 
     rotor.armLength = rotorProj.Length();
     math::Quaterniond rot;
-    rot.From2Axes(math::Vector3d::UnitX, rotorProj);
+    rot.SetFrom2Axes(math::Vector3d::UnitX, rotorProj);
     rotor.angle = rot.Yaw();
 
     if (!elem->HasElement("forceConstant"))
