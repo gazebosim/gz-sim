@@ -266,6 +266,7 @@ void TrajectoryFollower::PreUpdate(
     // We call Load here instead of Configure because we can't be guaranteed
     // that all entities have been created when Configure is called
     this->dataPtr->Load(_ecm, this->dataPtr->sdfConfig);
+    enableComponent<components::WorldPose>(_ecm, this->dataPtr->link.Entity());
     this->dataPtr->initialized = true;
   }
 
@@ -321,6 +322,12 @@ void TrajectoryFollower::PreUpdate(
 
   // Transform from world to local frame.
   auto comPose = this->dataPtr->link.WorldInertialPose(_ecm);
+  if (!comPose.has_value())
+  {
+    ignerr << "Failed to get CoM pose for link ["
+           << this->dataPtr->link.Entity() << "]" << std::endl;
+    return;
+  }
 
   // Transform the force and torque to the world frame.
   // Move commands. The vehicle always move forward (X direction).
