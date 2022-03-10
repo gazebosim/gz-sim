@@ -18,8 +18,8 @@
 #include <gtest/gtest.h>
 
 #include <string>
-#include <vector>
 #include <unordered_set>
+#include <vector>
 
 #include <sdf/Model.hh>
 #include <sdf/Root.hh>
