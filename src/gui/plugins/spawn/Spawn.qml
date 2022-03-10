@@ -20,10 +20,14 @@ import QtQuick.Controls 2.2
 import QtQuick.Dialogs 1.0
 import QtQuick.Layouts 1.3
 
-Rectangle {
-  visible: false
-  Layout.minimumWidth: 100
-  Layout.minimumHeight: 100
+ColumnLayout {
+  Layout.minimumWidth: 350
+  Layout.minimumHeight: 110
+  anchors.fill: parent
+  anchors.margins: 10
+
+  property string message: 'Adding spawn functionality to the 3D scene, ' +
+      'via events and drag and drop'
 
   Connections {
     target: Spawn
@@ -44,5 +48,16 @@ Rectangle {
       text: Spawn.errorPopupText
     }
     standardButtons: Dialog.Ok
+  }
+
+  Label {
+    Layout.fillWidth: true
+    wrapMode: Text.WordWrap
+    text: message
+  }
+
+  Item {
+    width: 10
+    Layout.fillHeight: true
   }
 }
