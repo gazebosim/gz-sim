@@ -83,7 +83,7 @@ TEST_F(MagnetometerTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RotatedMagnetometer))
   test::Relay testSystem;
 
   std::vector<math::Pose3d> poses;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
+  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
                               const gazebo::EntityComponentManager &_ecm)
       {
         _ecm.Each<components::Magnetometer,
@@ -100,6 +100,10 @@ TEST_F(MagnetometerTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RotatedMagnetometer))
               auto sensorComp = _ecm.Component<components::Sensor>(_entity);
               EXPECT_NE(nullptr, sensorComp);
 
+              if (_info.iterations == 1)
+                return true;
+
+              // This component is created on the 2nd PreUpdate
               auto topicComp = _ecm.Component<components::SensorTopic>(_entity);
               EXPECT_NE(nullptr, topicComp);
               if (topicComp)
