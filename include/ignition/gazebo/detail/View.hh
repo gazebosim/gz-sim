@@ -40,7 +40,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace detail
 {
 /// \brief A view that caches a particular set of component type data.
-class View : public BaseView
+///
+/// Note that symbols for this class are visible because methods from this class
+/// are used in templated Ignition::Gazebo::EntityComponentManager methods.
+/// However, users should not use this class (or anything else in namespace
+/// ignition::gazebo::detail) directly.
+class IGNITION_GAZEBO_VISIBLE View : public BaseView
 {
   /// \brief Alias for containers that hold and entity and its component data.
   /// The component types held in this container match the component types that
