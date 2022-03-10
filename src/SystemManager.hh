@@ -108,9 +108,9 @@ namespace ignition
       /// \return Vector of systems's post-update interfaces.
       public: const std::vector<ISystemPostUpdate *>& SystemsPostUpdate();
 
-      /// \brief Get an vector of all active systems attached to a given entity.
+      /// \brief Get an vector of all systems attached to a given entity.
       /// \return Vector of systems.
-      public: std::vector<SystemInternal> SystemsByEntity(Entity _entity);
+      public: std::vector<SystemInternal> TotalByEntity(Entity _entity);
 
       /// \brief Implementation for AddSystem functions. This only adds systems
       /// to a queue, the actual addition is performed by `AddSystemToRunner` at

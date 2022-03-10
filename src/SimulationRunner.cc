@@ -174,7 +174,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 
   // If we have reached this point and no world systems have been loaded, then
   // load a default set of systems.
-  if (this->systemMgr->SystemsByEntity(
+  if (this->systemMgr->TotalByEntity(
       worldEntity(this->entityCompMgr)).empty())
   {
     ignmsg << "No systems loaded from SDF, loading defaults" << std::endl;

@@ -106,7 +106,7 @@ TEST(SystemManager, AddSystemNoEcm)
   EXPECT_EQ(0u, systemMgr.SystemsPreUpdate().size());
   EXPECT_EQ(0u, systemMgr.SystemsUpdate().size());
   EXPECT_EQ(0u, systemMgr.SystemsPostUpdate().size());
-  EXPECT_EQ(0u, systemMgr.SystemsByEntity(configEntity).size());
+  EXPECT_EQ(1u, systemMgr.TotalByEntity(configEntity).size());
 
   systemMgr.ActivatePendingSystems();
   EXPECT_EQ(1u, systemMgr.ActiveCount());
@@ -116,7 +116,7 @@ TEST(SystemManager, AddSystemNoEcm)
   EXPECT_EQ(0u, systemMgr.SystemsPreUpdate().size());
   EXPECT_EQ(0u, systemMgr.SystemsUpdate().size());
   EXPECT_EQ(0u, systemMgr.SystemsPostUpdate().size());
-  EXPECT_EQ(1u, systemMgr.SystemsByEntity(configEntity).size());
+  EXPECT_EQ(1u, systemMgr.TotalByEntity(configEntity).size());
 
   auto updateSystem = std::make_shared<SystemWithUpdates>();
   Entity updateEntity{456u};
@@ -128,7 +128,7 @@ TEST(SystemManager, AddSystemNoEcm)
   EXPECT_EQ(0u, systemMgr.SystemsPreUpdate().size());
   EXPECT_EQ(0u, systemMgr.SystemsUpdate().size());
   EXPECT_EQ(0u, systemMgr.SystemsPostUpdate().size());
-  EXPECT_EQ(0u, systemMgr.SystemsByEntity(updateEntity).size());
+  EXPECT_EQ(1u, systemMgr.TotalByEntity(updateEntity).size());
 
   systemMgr.ActivatePendingSystems();
   EXPECT_EQ(2u, systemMgr.ActiveCount());
@@ -138,7 +138,7 @@ TEST(SystemManager, AddSystemNoEcm)
   EXPECT_EQ(1u, systemMgr.SystemsPreUpdate().size());
   EXPECT_EQ(1u, systemMgr.SystemsUpdate().size());
   EXPECT_EQ(1u, systemMgr.SystemsPostUpdate().size());
-  EXPECT_EQ(1u, systemMgr.SystemsByEntity(updateEntity).size());
+  EXPECT_EQ(1u, systemMgr.TotalByEntity(updateEntity).size());
 }
 
 /////////////////////////////////////////////////

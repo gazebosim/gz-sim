@@ -158,10 +158,15 @@ const std::vector<ISystemPostUpdate *>& SystemManager::SystemsPostUpdate()
 }
 
 //////////////////////////////////////////////////
-std::vector<SystemInternal> SystemManager::SystemsByEntity(Entity _entity)
+std::vector<SystemInternal> SystemManager::TotalByEntity(Entity _entity)
 {
   std::vector<SystemInternal> result;
   for (auto system : this->systems)
+  {
+    if (system.parentEntity == _entity)
+      result.push_back(system);
+  }
+  for (auto system : this->pendingSystems)
   {
     if (system.parentEntity == _entity)
       result.push_back(system);

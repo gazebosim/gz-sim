@@ -39,6 +39,7 @@ namespace ignition
     {
       /// \brief Constructor
       /// \param[in] _systemPlugin A system loaded from a plugin.
+      /// \param[in] _entity The entity that this system is attached to.
       public: explicit SystemInternal(SystemPluginPtr _systemPlugin, Entity _entity)
               : systemPlugin(std::move(_systemPlugin)),
                 system(systemPlugin->QueryInterface<System>()),
