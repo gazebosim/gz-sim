@@ -39,8 +39,15 @@ namespace python
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
  */
+void defineMathTriangle(py::module &m, const std::string &typestr);
+
+/// Help define a pybind11 wrapper for an ignition::math::Triangle
+/**
+ * \param[in] module a pybind11 module to add the definition to
+ * \param[in] typestr name of the type used by Python
+ */
 template<typename T>
-void defineMathTriangle(py::module &m, const std::string &typestr)
+void helpDefineMathTriangle(py::module &m, const std::string &typestr)
 {
   using Class = ignition::math::Triangle<T>;
   py::class_<Class>(m,

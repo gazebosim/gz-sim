@@ -128,34 +128,21 @@ PYBIND11_MODULE(math, m)
 
   ignition::math::python::defineMathLine3(m, "Line3");
 
-  ignition::math::python::defineMathMatrix3<int>(m, "Matrix3i");
-  ignition::math::python::defineMathMatrix3<double>(m, "Matrix3d");
-  ignition::math::python::defineMathMatrix3<float>(m, "Matrix3f");
+  ignition::math::python::defineMathMatrix3(m, "Matrix3");
 
-  ignition::math::python::defineMathMatrix4<int>(m, "Matrix4i");
-  ignition::math::python::defineMathMatrix4<double>(m, "Matrix4d");
-  ignition::math::python::defineMathMatrix4<float>(m, "Matrix4f");
+  ignition::math::python::defineMathMatrix4(m, "Matrix4");
 
-  ignition::math::python::defineMathTriangle<int>(m, "Trianglei");
-  ignition::math::python::defineMathTriangle<double>(m, "Triangled");
-  ignition::math::python::defineMathTriangle<float>(m, "Trianglef");
+  ignition::math::python::defineMathTriangle(m, "Triangle");
 
-  ignition::math::python::defineMathTriangle3<int>(m, "Triangle3i");
-  ignition::math::python::defineMathTriangle3<double>(m, "Triangle3d");
-  ignition::math::python::defineMathTriangle3<float>(m, "Triangle3f");
+  ignition::math::python::defineMathTriangle3(m, "Triangle3");
 
-  ignition::math::python::defineMathQuaternion<int>(m, "Quaternioni");
-  ignition::math::python::defineMathQuaternion<double>(m, "Quaterniond");
-  ignition::math::python::defineMathQuaternion<float>(m, "Quaternionf");
+  ignition::math::python::defineMathQuaternion(m, "Quaternion");
 
   ignition::math::python::defineMathOrientedBox<double>(m, "OrientedBoxd");
 
-  ignition::math::python::defineMathPose3<int>(m, "Pose3i");
-  ignition::math::python::defineMathPose3<double>(m, "Pose3d");
-  ignition::math::python::defineMathPose3<float>(m, "Pose3f");
+  ignition::math::python::defineMathPose3(m, "Pose3");
 
-  ignition::math::python::defineMathMassMatrix3<double>(m, "MassMatrix3d");
-  ignition::math::python::defineMathMassMatrix3<float>(m, "MassMatrix3f");
+  ignition::math::python::defineMathMassMatrix3(m, "MassMatrix3");
 
   ignition::math::python::defineMathSphere<double>(m, "Sphered");
 

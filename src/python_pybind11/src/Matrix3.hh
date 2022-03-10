@@ -18,6 +18,7 @@
 #ifndef IGNITION_MATH_PYTHON__MATRIX3_HH_
 #define IGNITION_MATH_PYTHON__MATRIX3_HH_
 
+#include <sstream>
 #include <string>
 
 #include <pybind11/pybind11.h>
@@ -39,8 +40,15 @@ namespace python
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
  */
+void defineMathMatrix3(py::module &m, const std::string &typestr);
+
+/// Help define a pybind11 wrapper for an ignition::math::Matrix3
+/**
+ * \param[in] module a pybind11 module to add the definition to
+ * \param[in] typestr name of the type used by Python
+ */
 template<typename T>
-void defineMathMatrix3(py::module &m, const std::string &typestr)
+void helpDefineMathMatrix3(py::module &m, const std::string &typestr)
 {
   using Class = ignition::math::Matrix3<T>;
   auto toString = [](const Class &si) {
