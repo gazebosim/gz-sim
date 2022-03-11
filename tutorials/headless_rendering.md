@@ -3,7 +3,7 @@
 It is often desirable to run simulation on a remote computer, such as
 a computer managed by cloud provider, in order to paralellize work or access
 specific compute resources. Simulated sensors that require GPU access have
-historically been difficult to use on a remote computer due to opengl's
+historically been difficult to use on a remote computer due to OpenGL's
 X server requirement. This issue can be resolved through installation and
 proper configuration of X, but the steps can be complex and error prone.
 
