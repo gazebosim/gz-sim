@@ -1076,8 +1076,9 @@ TEST_F(UserCommandsTest, WheelSlip)
 
   // modify wheel slip parameters of one link of model 0
   msgs::WheelSlipParametersCmd req;
-  req.set_model_name("trisphere_cycle0");
-  req.set_link_name("wheel_front");
+  auto * entityMsg = req.mutable_entity();
+  entityMsg->set_name("trisphere_cycle0::wheel_front");
+  entityMsg->set_type(msgs::Entity::LINK);
   req.set_slip_compliance_lateral(1);
   req.set_slip_compliance_longitudinal(1);
 
@@ -1097,8 +1098,8 @@ TEST_F(UserCommandsTest, WheelSlip)
   server.Run(true, 2, false);
 
   // modify wheel slip parameters of one link of model 1
-  req.set_model_name("trisphere_cycle1");
-  req.set_link_name("*");
+  entityMsg->set_name("trisphere_cycle1");
+  entityMsg->set_type(msgs::Entity::MODEL);
   req.set_slip_compliance_lateral(2);
   req.set_slip_compliance_longitudinal(1);
 

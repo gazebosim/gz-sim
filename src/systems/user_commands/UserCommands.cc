@@ -42,6 +42,8 @@
 
 #include "ignition/common/Profiler.hh"
 
+#include "ignition/gazebo/components/Collision.hh"
+#include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/LightCmd.hh"
 #include "ignition/gazebo/components/Link.hh"
@@ -51,11 +53,13 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/PoseCmd.hh"
 #include "ignition/gazebo/components/PhysicsCmd.hh"
+#include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Model.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
+#include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/components/ContactSensorData.hh"
 #include "ignition/gazebo/components/ContactSensor.hh"
 #include "ignition/gazebo/components/Sensor.hh"
@@ -399,8 +403,13 @@ class WheelSlipCommand : public UserCommandBase
               const msgs::WheelSlipParametersCmd &_b)
             {
               return
-                _a.model_name() == _b.model_name() &&
-                _a.link_name() == _b.link_name() &&
+                (
+                  (_a.entity().id() != kNullEntity && _a.entity().id() == _b.entity().id()) ||
+                  (
+                    _a.entity().name() == _b.entity().name() &&
+                    _a.entity().type() == _b.entity().type()
+                  )
+                ) &&
                 math::equal(
                   _a.slip_compliance_lateral(),
                   _b.slip_compliance_lateral(),
@@ -1490,6 +1499,67 @@ WheelSlipCommand::WheelSlipCommand(msgs::WheelSlipParametersCmd *_msg,
 {
 }
 
+// TODO(ivanpauno): Move this somewhere else
+Entity scopedEntityFromMsg(const msgs::Entity & _msg, const EntityComponentManager & _ecm)
+{
+  if (_msg.id() != kNullEntity) {
+    return _msg.id();
+  }
+  std::unordered_set<Entity> entities = entitiesFromScopedName(_msg.name(), _ecm);
+  if (entities.empty()) {
+    ignerr << "Failed to find entity with scoped name [" << _msg.name()
+          << "]." << std::endl;
+    return kNullEntity;
+  }
+  if (_msg.type() == msgs::Entity::NONE) {
+    return *entities.begin();
+  }
+  const components::BaseComponent * component;
+  std::string componentType;
+  for (const auto entity : entities) {
+    switch (_msg.type()) {
+      case msgs::Entity::LIGHT:
+        component = _ecm.Component<components::Light>(entity);
+        componentType = "LIGHT";
+        break;
+      case msgs::Entity::MODEL:
+        component = _ecm.Component<components::Model>(entity);
+        componentType = "MODEL";
+        break;
+      case msgs::Entity::LINK:
+        component = _ecm.Component<components::Link>(entity);
+        componentType = "LINK";
+        break;
+      case msgs::Entity::VISUAL:
+        component = _ecm.Component<components::Visual>(entity);
+        componentType = "VISUAL";
+        break;
+      case msgs::Entity::COLLISION:
+        component = _ecm.Component<components::Collision>(entity);
+        componentType = "COLLISION";
+        break;
+      case msgs::Entity::SENSOR:
+        component = _ecm.Component<components::Sensor>(entity);
+        componentType = "SENSOR";
+        break;
+      case msgs::Entity::JOINT:
+        component = _ecm.Component<components::Joint>(entity);
+        componentType = "JOINT";
+        break;
+      default:
+        componentType = "unknown";
+        break;
+    }
+    if (component != nullptr) {
+      return entity;
+    }
+  }
+  ignerr << "Found entity with scoped name [" << _msg.name()
+        << "], but it doesn't have a component of the required type ["
+        << componentType << "]." << std::endl;
+  return kNullEntity;
+}
+
 //////////////////////////////////////////////////
 bool WheelSlipCommand::Execute()
 {
@@ -1500,18 +1570,12 @@ bool WheelSlipCommand::Execute()
     ignerr << "Internal error, null wheel slip message" << std::endl;
     return false;
   }
-
-
-  Entity modelEntity = this->iface->ecm->EntityByComponents(
-    components::Name(wheelSlipMsg->model_name()));
-  if (kNullEntity == modelEntity)
+  const auto & ecm = *this->iface->ecm;
+  Entity entity = scopedEntityFromMsg(wheelSlipMsg->entity(), ecm);
+  if (kNullEntity == entity)
   {
-    ignerr << "Failed to find model with name [" << wheelSlipMsg->model_name()
-           << "]." << std::endl;
     return false;
   }
-  Model model{modelEntity};
-  auto linkName = wheelSlipMsg->link_name();
 
   auto doForEachLink = [this, wheelSlipMsg](Entity linkEntity) {
     auto wheelSlipCmdComp =
@@ -1530,24 +1594,23 @@ bool WheelSlipCommand::Execute()
           linkEntity, components::WheelSlipCmd::typeId, state);
     }
   };
+  const components::BaseComponent * component = ecm.Component<components::Link>(entity);
 
-  if (linkName != "*") {
-    Entity linkEntity = model.LinkByName(
-      *this->iface->ecm, wheelSlipMsg->link_name());
-    if (kNullEntity == linkEntity)
-    {
-      ignerr << "Failed to find link with name [" << wheelSlipMsg->link_name()
-            << "] for model [" << wheelSlipMsg->model_name() << "]."
-            << std::endl;
-      return false;
-    }
-    doForEachLink(linkEntity);
-  } else {
+  if (nullptr != component) {
+    doForEachLink(entity);
+    return true;
+  }
+  component = ecm.Component<components::Model>(entity);
+  if (nullptr != component) {
+    Model model{entity};
     for (const auto & linkEntity : model.Links(*this->iface->ecm)) {
       doForEachLink(linkEntity);
     }
+    return true;
   }
-  return true;
+  ignerr << "Found entity with scoped name [" << wheelSlipMsg->entity().name()
+          << "], is neither a model or a link." << std::endl;
+  return false;
 }
 
 IGNITION_ADD_PLUGIN(UserCommands, System,
