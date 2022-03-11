@@ -412,26 +412,6 @@ void Sensors::RemoveSensor(const Entity &_entity)
       }
     }
 
-   //  {
-   //    std::unique_lock<std::mutex> lock(this->dataPtr->sensorStateMutex);
-   //    this->dataPtr->sensorsToDisable.erase(idIter->second);
-   //    bool removed = false;
-   //    for (auto &modelSensorIt : this->dataPtr->sensorsToDisable)
-   //    {
-   //      for (const auto &sensorEnt : modelSensorIt.second)
-   //      {
-   //        if (sensorEnt == _entity)
-   //        {
-   //          modelSensorIt.second.erase(sensorEnt);
-   //          removed = true;
-   //          break;
-   //        }
-   //      }
-   //      if (removed)
-   //        break;
-   //    }
-   //  }
-
     // update cameras list
     for (auto &it : this->dataPtr->cameras)
     {
