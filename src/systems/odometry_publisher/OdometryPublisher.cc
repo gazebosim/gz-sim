@@ -92,6 +92,9 @@ class ignition::gazebo::systems::OdometryPublisherPrivate
 
   /// \brief Current timestamp.
   public: math::clock::time_point lastUpdateTime;
+
+  /// \brief Allow specifying constant xyz and rpy offsets
+  public: ignition::math::Pose3d offset = {0, 0, 0, 0, 0, 0};
 };
 
 //////////////////////////////////////////////////
@@ -140,6 +143,19 @@ void OdometryPublisher::Configure(const Entity &_entity,
   else
   {
     this->dataPtr->odomFrame = _sdf->Get<std::string>("odom_frame");
+  }
+
+  if (_sdf->HasElement("xyz_offset"))
+  {
+    this->dataPtr->offset.Pos() = _sdf->Get<ignition::math::Vector3d>(
+      "xyz_offset");
+  }
+
+  if (_sdf->HasElement("rpy_offset"))
+  {
+    this->dataPtr->offset.Rot() =
+      ignition::math::Quaterniond(_sdf->Get<ignition::math::Vector3d>(
+        "rpy_offset"));
   }
 
   this->dataPtr->robotBaseFrame = this->dataPtr->model.Name(_ecm)
@@ -257,7 +273,8 @@ void OdometryPublisherPrivate::UpdateOdometry(
     return;
 
   // Get and set robotBaseFrame to odom transformation.
-  const math::Pose3d pose = worldPose(this->model.Entity(), _ecm);
+  const math::Pose3d rawPose = worldPose(this->model.Entity(), _ecm);
+  math::Pose3d pose = rawPose * this->offset;
   msg.mutable_pose()->mutable_position()->set_x(pose.Pos().X());
   msg.mutable_pose()->mutable_position()->set_y(pose.Pos().Y());
   msgs::Set(msg.mutable_pose()->mutable_orientation(), pose.Rot());
