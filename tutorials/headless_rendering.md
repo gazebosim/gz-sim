@@ -7,7 +7,9 @@ historically been difficult to use on a remote computer due to OpenGL's
 X server requirement. This issue can be resolved through installation and
 proper configuration of X, but the steps can be complex and error prone.
 
-An easier solution is through the use of [EGL](https://www.khronos.org/egl), which allows for the the creation of rendering surfaces without an X server. Ignition Gazebo has added support for EGL via the `--headless-rendering` command line option. For example:
+An easier solution is through the use of [EGL](https://www.khronos.org/egl), which allows for the the creation of rendering surfaces without an X server. Ignition Gazebo has added support for EGL via the `--headless-rendering` command line option. Use of EGL is only available with OGRE2.
+
+Example usage:
 
 ```
 ign gazebo -v 4 -s --headless-rendering sensors_demo.sdf
@@ -15,7 +17,8 @@ ign gazebo -v 4 -s --headless-rendering sensors_demo.sdf
 
 If you are using Ignition Gazebo as a library, then you can configure the
 server to use headless rendering through the
-`ServerConfig::SetHeadlessRendering(bool)` function.
+`ServerConfig::SetHeadlessRendering(bool)` function. Make sure your SDF
+world uses OGRE2.
 
 ## AWS Example
 
@@ -56,7 +59,7 @@ configuring an AWS GPU instance with Gazebo running headless.
   sudo reboot
   ```
 11. [Install Gazebo](https://ignitionrobotics.org/docs/latest/install).
-12. Run a Gazebo world with camera sensors using headless rendering. This will use EGL.
+12. Run a Gazebo world that uses OGRE2 with camera sensors using headless rendering. This will enable EGL.
   ```
   ign gazebo -v 4 -s -r --headless-rendering sensors_demo.sdf
   ```
