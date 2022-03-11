@@ -41,9 +41,11 @@
 #include <ignition/sensors/Manager.hh>
 
 #include "ignition/gazebo/components/Atmosphere.hh"
+#include "ignition/gazebo/components/BatterySoC.hh"
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
+#include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/RenderEngineServerHeadless.hh"
 #include "ignition/gazebo/components/RenderEngineServerPlugin.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
@@ -180,11 +182,34 @@ class ignition::gazebo::systems::SensorsPrivate
   /// \brief Stop the rendering thread
   public: void Stop();
 
+  /// \brief Update battery state of sensors in model
+  /// \param[in] _ecm Entity component manager
+  public: void UpdateBatteryState(const EntityComponentManager &_ecm);
+
   /// \brief Use to optionally set the background color.
   public: std::optional<math::Color> backgroundColor;
 
   /// \brief Use to optionally set the ambient light.
   public: std::optional<math::Color> ambientLight;
+
+  /// \brief A map between model entity ids in the ECM to its battery state
+  /// True means has charge, false means drained
+  public: std::unordered_map<Entity, bool> modelBatteryState;
+
+  /// \brief A map between model entity ids in the ECM to whether its battery
+  /// state has changed.
+  /// True means has charge, false means drained
+  public: std::unordered_map<Entity, bool> modelBatteryStateChanged;
+
+  /// \brief Disable sensors if parent model's battery is drained
+  /// Affects sensors that are in nested models
+  public: bool disableOnDrainedBattery = false;
+
+  /// \brief A list of sensor ids whose active state has changed
+  public: std::map<sensors::SensorId, bool> sensorStateChanged;
+
+  /// \brief Mutex to protect access to sensorStateChanged
+  public: std::mutex sensorStateMutex;
 };
 
 //////////////////////////////////////////////////
@@ -244,6 +269,23 @@ void SensorsPrivate::RunOnce()
 
   if (!this->activeSensors.empty())
   {
+    // disable sensors that are out of battery or re-enable sensors that are being
+    // charged
+    if (this->disableOnDrainedBattery)
+    {
+      std::unique_lock<std::mutex> lock2(this->sensorStateMutex);
+      for (const auto &sensorIt : this->sensorStateChanged)
+      {
+        sensors::Sensor *s =
+            this->sensorManager.Sensor(sensorIt.first);
+        if (s)
+        {
+          s->SetActive(sensorIt.second);
+        }
+      }
+      this->sensorStateChanged.clear();
+    }
+
     this->sensorMaskMutex.lock();
     // Check the active sensors against masked sensors.
     //
@@ -370,6 +412,26 @@ void Sensors::RemoveSensor(const Entity &_entity)
       }
     }
 
+   //  {
+   //    std::unique_lock<std::mutex> lock(this->dataPtr->sensorStateMutex);
+   //    this->dataPtr->sensorsToDisable.erase(idIter->second);
+   //    bool removed = false;
+   //    for (auto &modelSensorIt : this->dataPtr->sensorsToDisable)
+   //    {
+   //      for (const auto &sensorEnt : modelSensorIt.second)
+   //      {
+   //        if (sensorEnt == _entity)
+   //        {
+   //          modelSensorIt.second.erase(sensorEnt);
+   //          removed = true;
+   //          break;
+   //        }
+   //      }
+   //      if (removed)
+   //        break;
+   //    }
+   //  }
+
     // update cameras list
     for (auto &it : this->dataPtr->cameras)
     {
@@ -408,6 +470,11 @@ void Sensors::Configure(const Entity &/*_id*/,
   // Setup rendering
   std::string engineName =
       _sdf->Get<std::string>("render_engine", "ogre2").first;
+
+  // Setup rendering
+  this->dataPtr->disableOnDrainedBattery =
+      _sdf->Get<bool>("disable_on_drained_battery",
+     this->dataPtr-> disableOnDrainedBattery).first;
 
   // Get the background color, if specified.
   if (_sdf->HasElement("background_color"))
@@ -492,7 +559,6 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
         << "s]. System may not work properly." << std::endl;
   }
 
-
   {
     std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
     if (!this->dataPtr->initialized &&
@@ -547,6 +613,9 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
     if (!activeSensors.empty() ||
         this->dataPtr->renderUtil.PendingSensors() > 0)
     {
+      if (this->dataPtr->disableOnDrainedBattery)
+        this->dataPtr->UpdateBatteryState(_ecm);
+
       std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
       this->dataPtr->renderCv.wait(lock, [this] {
         return !this->dataPtr->running || !this->dataPtr->updateAvailable; });
@@ -562,6 +631,67 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
       this->dataPtr->renderCv.notify_one();
     }
   }
+}
+
+
+//////////////////////////////////////////////////
+void SensorsPrivate::UpdateBatteryState(const EntityComponentManager &_ecm)
+{
+  // Battery state
+  _ecm.Each<components::BatterySoC>(
+      [&](const Entity & _entity, const components::BatterySoC *_bat)
+      {
+        bool hasCharge = _bat->Data() > 0;
+        auto stateIt =
+          this->modelBatteryState.find(_ecm.ParentEntity(_entity));
+        if (stateIt != this->modelBatteryState.end())
+        {
+          // detect a change in battery charge state
+          if (stateIt->second != hasCharge)
+          {
+            this->modelBatteryStateChanged[_ecm.ParentEntity(_entity)] =
+                hasCharge;
+          }
+        }
+        this->modelBatteryState[_ecm.ParentEntity(_entity)] = hasCharge;
+        return true;
+      });
+
+  // disable sensor if parent model is out of battery or re-enable sensor
+  // if battery is charging
+  for (const auto & modelIt : this->modelBatteryStateChanged)
+  {
+    // check if sensor is part of this model
+    for (const auto & sensorIt : this->entityToIdMap)
+    {
+      // parent link
+      auto parentLinkComp =
+          _ecm.Component<components::ParentEntity>(sensorIt.first);
+      if (!parentLinkComp)
+        continue;
+
+      // parent model
+      auto parentModelComp = _ecm.Component<components::ParentEntity>(
+          parentLinkComp->Data());
+      if (!parentModelComp)
+        continue;
+
+      // keep going up the tree in case sensor is in a nested model
+      while (parentModelComp)
+      {
+        auto parentEnt = parentModelComp->Data();
+        if (parentEnt == modelIt.first)
+        {
+          std::unique_lock<std::mutex> lock(this->sensorStateMutex);
+          // sensor is part of model - update its active state
+          this->sensorStateChanged[sensorIt.second] = modelIt.second;
+          break;
+        }
+        parentModelComp = _ecm.Component<components::ParentEntity>(parentEnt);
+      }
+    }
+  }
+  this->modelBatteryStateChanged.clear();
 }
 
 //////////////////////////////////////////////////
