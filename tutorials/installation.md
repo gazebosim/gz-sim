@@ -114,21 +114,25 @@ The optional Eigen component of Ignition Math requires:
 
 ### Ubuntu
 
-1. Clone the repository
+1. Install tools
+  ```
+  sudo apt install -y build-essential cmake g++-8 git gnupg lsb-release wget
+  ```
+
+2. Install dependencies
+  ```
+  sudo apt -y install \
+    $(sort -u $(find . -iname 'packages-'`lsb_release -cs`'.apt' -o -iname 'packages.apt' | tr '\n' ' '))
+  ```
+
+3. Clone the repository
   ```
   git clone https://github.com/ignitionrobotics/ign-math -b ign-math<#>
   ```
   Be sure to replace `<#>` with a number value, such as 1 or 2, depending on
   which version you need.
 
-2. Install dependencies
-  ```
-  export SYSTEM_VERSION=bionic
-  sudo apt -y install \
-    $(sort -u $(find . -iname 'packages-'$SYSTEM_VERSION'.apt' -o -iname 'packages.apt') | tr '\n' ' ')
-  ```
-
-3. Configure and build
+4. Configure and build
   ```
   cd ign-math
   mkdir build
@@ -137,7 +141,7 @@ The optional Eigen component of Ignition Math requires:
   make
   ```
 
-4. Optionally, install
+5. Optionally, install
   ```
   sudo make install
   ```
