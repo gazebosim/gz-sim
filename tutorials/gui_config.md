@@ -17,10 +17,10 @@ There are a few places where the GUI configuration can come from:
 
 Each of the items above takes precedence over the ones below it by default.
 For example, if a user chooses a `--gui-config`, the SDF's `<gui>` element is
-ignored. And the default configuration file is only loaded if no configuration
-is passed through the command line or the SDF file.
+ignored. The default configuration file is loaded if no configuration is
+passed through the command line or the SDF file.
 
-The default behaviour can be overridden using the `--gui-config-options`
+The default behaviour can be overridden using the `--gui-config-option`
 command line argument, which offers options:
 
 * `force`: Force the use of the GUI config file, ignoring the SDF file. If a
@@ -29,22 +29,26 @@ command line argument, which offers options:
 * `ignore`: Ignore the config file completely and load only plugins from SDF.
 * `prepend`: Load plugins from both the config file and the SDF file. The config
   file is loaded first.
+* `merge`: Like `prepend`, but only the last instance of each plugin is loaded,
+  which should usually come from the SDF file.
 
-The table below summarizes how all the options behave together:
+The table below summarizes how all the options behave together. Not all
+combinations are useful, but we cover all corner cases (i.e. there's no point
+in providing a config and also opting to `ignore` it):
 
---gui-config     | SDF `<gui>`  | --gui-config-option      | Result
----------------- | ------------ | ------------------------ | ------
-empty            | no plugins   | empty / force / prepend  | Load plugins from `$HOME/.ignition/gazebo/gui.config`
-empty / provided | no plugins   | ignore                   | Load no plugins
-provided         | no plugins   | empty / force / prepend  | Load plugins from `--gui-config`
-empty            | has plugins  | empty / ignore           | Load plugins from SDF
-empty            | has plugins  | force                    | `$HOME/.ignition/gazebo/gui.config`
-empty            | has plugins  | prepend                  | Load plugins from `$HOME/.ignition/gazebo/gui.config` and SDF
-provided         | has plugins  | empty / force            | Load plugins from `--gui-config`
-provided         | has plugins  | ignore                   | Load plugins from SDF
-provided         | has plugins  | prepend                  | Load plugins from `--gui-config` and SDF
+--gui-config     | SDF `<gui>`  | --gui-config-option             | Result
+---------------- | ------------ | ------------------------------- | ------
+empty            | no plugins   | empty / force / prepend / merge | Load plugins from `$HOME/.ignition/gazebo/gui.config`
+empty / provided | no plugins   | ignore                          | Load no plugins
+provided         | no plugins   | empty / force / prepend / merge | Load plugins from `--gui-config`
+empty            | has plugins  | empty / ignore                  | Load plugins from SDF
+empty            | has plugins  | force                           | `$HOME/.ignition/gazebo/gui.config`
+empty            | has plugins  | prepend / merge                 | Load plugins from `$HOME/.ignition/gazebo/gui.config` then SDF
+provided         | has plugins  | empty / force                   | Load plugins from `--gui-config`
+provided         | has plugins  | ignore                          | Load plugins from SDF
+provided         | has plugins  | prepend / merge                 | Load plugins from `--gui-config` then SDF
 
-> \* For log-playback, the default file is
+> For log-playback, the default file is
 > `$HOME/.ignition/gazebo/playback_gui.config`
 
 ## Try it out
@@ -162,9 +166,9 @@ configuration files from the command line.
 Let's start by creating a custom configuration file, but instead of editing by
 hand, we'll create it from the UI.
 
-1. Let's start loading the SDF world we created above, with the `<gui>` element back:
+1. Start loading the SDF world we created above, with the `<gui>` element back:
 
-`ign gazebo <path to>/fuel_preview.sdf`
+    `ign gazebo <path to>/fuel_preview.sdf`
 
 2. Now from the top-right menu, choose to add the "View Angle" plugin. This
    plugin has convenient buttons to change the camera angle, try them out!
@@ -180,21 +184,37 @@ hand, we'll create it from the UI.
 
 7. Close Gazebo
 
-@image html files/gui_config/save_config.gif
+    @image html files/gui_config/save_config.gif
 
-1. Take a look at the saved file if you're curious, it will look a lot like
+8. Take a look at the saved file if you're curious, it will look a lot like
    the default file, but with more properties defined.
 
-2. Finally, let's load the previous world, with our custom configuration:
+9. Finally, let's load the previous world, with our custom configuration:
 
     `ign gazebo <path to>/fuel_preview.sdf --gui-config <path to>saved.config`
 
-3. Gazebo should open with your custom layout.
+10. Gazebo should open with your custom layout.
+
+    @image html files/gui_config/cmd_line.png
 
 **Tip**: From the top-left menu, you can choose "Save client configuration" to
 save directly to `$HOME/.ignition/gazebo/gui.config`.
 
-@image html files/gui_config/cmd_line.png
+#### Options
 
+In case you want to force the default GUI layout without editing the SDF file to
+remove `<gui>`, you can pass `--gui-config-option force`:
 
+`ign gazebo --gui-config-option force <path to>/fuel_preview.sdf`
+
+@image html files/gui_config/fuel_preview_no_gui.png
+
+The above gives you other plugins, but the 3D scene isn't nicely formatted to
+view the model (blue background, diagonal camera angle...). In order to get all
+the default plugins, but format the 3D scene as it is in the SDF, we can use the
+`merge` option:
+
+`ign gazebo --gui-config-option merge <path to>/fuel_preview.sdf`
+
+@image html files/gui_config/fuel_preview_merge.png
 
