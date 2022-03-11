@@ -21,6 +21,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 
 #include <ignition/plugin/Register.hh>
@@ -49,30 +50,35 @@ using namespace systems;
 /// \brief Private AirPressure data class.
 class ignition::gazebo::systems::AirPressurePrivate
 {
-  /// \brief A map of air pressure entity to its vertical reference
+  /// \brief A map of air pressure entity to its sensor
   public: std::unordered_map<Entity,
       std::unique_ptr<sensors::AirPressureSensor>> entitySensorMap;
 
   /// \brief Ign-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
 
+  /// \brief Keep list of sensors that were created during the previous
+  /// `PostUpdate`, so that components can be created during the next
+  /// `PreUpdate`.
+  public: std::unordered_set<Entity> newSensors;
+
   /// True if the rendering component is initialized
   public: bool initialized = false;
 
   /// \brief Create sensor
-  /// \param[in] _ecm Mutable reference to ECM.
+  /// \param[in] _ecm Immutable reference to ECM.
   /// \param[in] _entity Entity of the IMU
   /// \param[in] _airPressure AirPressureSensor component.
   /// \param[in] _parent Parent entity component.
   public: void AddAirPressure(
-    EntityComponentManager &_ecm,
+    const EntityComponentManager &_ecm,
     const Entity _entity,
     const components::AirPressureSensor *_airPressure,
     const components::ParentEntity *_parent);
 
   /// \brief Create air pressure sensor
-  /// \param[in] _ecm Mutable reference to ECM.
-  public: void CreateAirPressureEntities(EntityComponentManager &_ecm);
+  /// \param[in] _ecm Immutable reference to ECM.
+  public: void CreateSensors(const EntityComponentManager &_ecm);
 
   /// \brief Update air pressure sensor data based on physics data
   /// \param[in] _ecm Immutable reference to ECM.
@@ -98,7 +104,21 @@ void AirPressure::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
   IGN_PROFILE("AirPressure::PreUpdate");
-  this->dataPtr->CreateAirPressureEntities(_ecm);
+
+  // Create components
+  for (auto entity : this->dataPtr->newSensors)
+  {
+    auto it = this->dataPtr->entitySensorMap.find(entity);
+    if (it == this->dataPtr->entitySensorMap.end())
+    {
+      ignerr << "Entity [" << entity
+             << "] isn't in sensor map, this shouldn't happen." << std::endl;
+      continue;
+    }
+    // Set topic
+    _ecm.CreateComponent(entity, components::SensorTopic(it->second->Topic()));
+  }
+  this->dataPtr->newSensors.clear();
 }
 
 //////////////////////////////////////////////////
@@ -116,6 +136,8 @@ void AirPressure::PostUpdate(const UpdateInfo &_info,
         << "s]. System may not work properly." << std::endl;
   }
 
+  this->dataPtr->CreateSensors(_ecm);
+
   if (!_info.paused)
   {
     this->dataPtr->UpdateAirPressures(_ecm);
@@ -132,7 +154,7 @@ void AirPressure::PostUpdate(const UpdateInfo &_info,
 
 //////////////////////////////////////////////////
 void AirPressurePrivate::AddAirPressure(
-  EntityComponentManager &_ecm,
+  const EntityComponentManager &_ecm,
   const Entity _entity,
   const components::AirPressureSensor *_airPressure,
   const components::ParentEntity *_parent)
@@ -169,15 +191,13 @@ void AirPressurePrivate::AddAirPressure(
   math::Pose3d sensorWorldPose = worldPose(_entity, _ecm);
   sensor->SetPose(sensorWorldPose);
 
-  // Set topic
-  _ecm.CreateComponent(_entity, components::SensorTopic(sensor->Topic()));
-
   this->entitySensorMap.insert(
       std::make_pair(_entity, std::move(sensor)));
+  this->newSensors.insert(_entity);
 }
 
 //////////////////////////////////////////////////
-void AirPressurePrivate::CreateAirPressureEntities(EntityComponentManager &_ecm)
+void AirPressurePrivate::CreateSensors(const EntityComponentManager &_ecm)
 {
   IGN_PROFILE("AirPressurePrivate::CreateAirPressureEntities");
   if (!this->initialized)
@@ -188,7 +208,7 @@ void AirPressurePrivate::CreateAirPressureEntities(EntityComponentManager &_ecm)
           const components::AirPressureSensor *_airPressure,
           const components::ParentEntity *_parent)->bool
         {
-          AddAirPressure(_ecm, _entity, _airPressure, _parent);
+          this->AddAirPressure(_ecm, _entity, _airPressure, _parent);
           return true;
         });
     this->initialized = true;
@@ -201,7 +221,7 @@ void AirPressurePrivate::CreateAirPressureEntities(EntityComponentManager &_ecm)
           const components::AirPressureSensor *_airPressure,
           const components::ParentEntity *_parent)->bool
         {
-          AddAirPressure(_ecm, _entity, _airPressure, _parent);
+          this->AddAirPressure(_ecm, _entity, _airPressure, _parent);
           return true;
         });
   }

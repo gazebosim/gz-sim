@@ -32,6 +32,18 @@ namespace ignition
     /// more information about events.
     namespace events
     {
+      /// \brief The render event is emitted when the the scene manager is
+      /// updated with contents from the ECM. This event is emitted
+      /// before the PreRender event on the server side in the rendering
+      /// thread. It is also accessible on the GUI side.
+      ///
+      /// For example:
+      /// \code
+      /// eventManager.Emit<ignition::gazebo::events::SceneUpdate>();
+      /// \endcode
+      using SceneUpdate = ignition::common::EventT<void(void),
+          struct SceneUpdateTag>;
+
       /// \brief The render event is emitted before rendering updates.
       /// The event is emitted in the rendering thread so rendering
       /// calls can ben make in this event callback
