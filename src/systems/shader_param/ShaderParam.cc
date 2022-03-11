@@ -19,6 +19,7 @@
 
 #include <chrono>
 #include <list>
+#include <map>
 #include <mutex>
 #include <vector>
 #include <string>
@@ -51,8 +52,8 @@ class ignition::gazebo::systems::ShaderParamPrivate
     /// \brief shader type: vertex or fragment
     public: std::string shader;
 
-    /// \brief variable type: int, float, float_array, int_array
-    /// \todo(anyone) support samplers
+    /// \brief variable type: int, float, float_array, int_array,
+    /// texture, texture_cube
     public: std::string type;
 
     /// \brief variable name of param
@@ -60,13 +61,26 @@ class ignition::gazebo::systems::ShaderParamPrivate
 
     /// \brief param value
     public: std::string value;
+
+    /// \brief Any additional arguments
+    public: std::vector<std::string> args;
   };
 
-  /// \brief Path to vertex shader
-  public: std::string vertexShaderUri;
+  /// \brief Data structure for storing shader files uri
+  public: class ShaderUri
+  {
+    /// \brief Shader language: glsl or metal
+    public: std::string language;
 
-  /// \brief Path to fragment shader
-  public: std::string fragmentShaderUri;
+    /// \brief Path to vertex shader
+    public: std::string vertexShaderUri;
+
+    /// \brief Path to fragment shader
+    public: std::string fragmentShaderUri;
+  };
+
+  /// \brief A map of shader language to shader program files
+  public: std::map<std::string, ShaderUri> shaders;
 
   /// \brief Mutex to protect sim time updates.
   public: std::mutex mutex;
@@ -97,6 +111,9 @@ class ignition::gazebo::systems::ShaderParamPrivate
 
   /// \brief Current sim time
   public: std::chrono::steady_clock::duration currentSimTime;
+
+  /// \brief Path to model
+  public: std::string modelPath;
 
   /// \brief All rendering operations must happen within this call
   public: void OnUpdate();
@@ -149,15 +166,40 @@ void ShaderParam::Configure(const Entity &_entity,
       spv.name = paramName;
       spv.value = value;
       spv.type = type;
+
+      if (paramElem->HasElement("arg"))
+      {
+        sdf::ElementPtr argElem = paramElem->GetElement("arg");
+        while (argElem)
+        {
+          spv.args.push_back(argElem->Get<std::string>());
+          argElem = argElem->GetNextElement("arg");
+        }
+      }
+
       this->dataPtr->shaderParams.push_back(spv);
       paramElem = paramElem->GetNextElement("param");
     }
   }
 
-  // parse path to shaders
-  if (sdf->HasElement("shader"))
+  if (this->dataPtr->modelPath.empty())
   {
-    sdf::ElementPtr shaderElem = sdf->GetElement("shader");
+    auto modelEntity = topLevelModel(_entity, _ecm);
+    this->dataPtr->modelPath =
+        _ecm.ComponentData<components::SourceFilePath>(modelEntity).value();
+  }
+
+  // parse path to shaders
+  if (!sdf->HasElement("shader"))
+  {
+    ignerr << "Unable to load shader param system. "
+           << "Missing <shader> SDF element." << std::endl;
+    return;
+  }
+  // allow mulitple shader SDF element for different shader languages
+  sdf::ElementPtr shaderElem = sdf->GetElement("shader");
+  while (shaderElem)
+  {
     if (!shaderElem->HasElement("vertex") ||
         !shaderElem->HasElement("fragment"))
     {
@@ -166,16 +208,31 @@ void ShaderParam::Configure(const Entity &_entity,
     }
     else
     {
-      auto modelEntity = topLevelModel(_entity, _ecm);
-      auto modelPath =
-          _ecm.ComponentData<components::SourceFilePath>(modelEntity);
+      // default to glsl
+      std::string api = "glsl";
+      if (shaderElem->HasAttribute("language"))
+        api = shaderElem->GetAttribute("language")->GetAsString();
+
+      ShaderParamPrivate::ShaderUri shader;
+      shader.language = api;
+
       sdf::ElementPtr vertexElem = shaderElem->GetElement("vertex");
-      this->dataPtr->vertexShaderUri = common::findFile(
-          asFullPath(vertexElem->Get<std::string>(), modelPath.value()));
+      shader.vertexShaderUri = common::findFile(
+          asFullPath(vertexElem->Get<std::string>(),
+          this->dataPtr->modelPath));
       sdf::ElementPtr fragmentElem = shaderElem->GetElement("fragment");
-      this->dataPtr->fragmentShaderUri = common::findFile(
-          asFullPath(fragmentElem->Get<std::string>(), modelPath.value()));
+      shader.fragmentShaderUri = common::findFile(
+          asFullPath(fragmentElem->Get<std::string>(),
+          this->dataPtr->modelPath));
+      this->dataPtr->shaders[api] = shader;
+      shaderElem = shaderElem->GetNextElement("shader");
     }
+  }
+  if (this->dataPtr->shaders.empty())
+  {
+    ignerr << "Unable to load shader param system. "
+           << "No valid shaders." << std::endl;
+    return;
   }
 
   this->dataPtr->entity = _entity;
@@ -249,8 +306,30 @@ void ShaderParamPrivate::OnUpdate()
   if (!this->material)
   {
     auto mat = scene->CreateMaterial();
-    mat->SetVertexShader(this->vertexShaderUri);
-    mat->SetFragmentShader(this->fragmentShaderUri);
+
+    // default to glsl
+    auto it = this->shaders.find("glsl");
+    if (it != this->shaders.end())
+    {
+      mat->SetVertexShader(it->second.vertexShaderUri);
+      mat->SetFragmentShader(it->second.fragmentShaderUri);
+    }
+    // prefer metal over glsl on macOS
+    // \todo(anyone) instead of using ifdef to check for macOS,
+    // expose add an accessor function to get the GraphicsApi
+    // from rendering::RenderEngine
+#ifdef __APPLE__
+    auto metalIt = this->shaders.find("metal");
+    if (metalIt != this->shaders.end())
+    {
+      mat->SetVertexShader(metalIt->second.vertexShaderUri);
+      mat->SetFragmentShader(metalIt->second.fragmentShaderUri);
+      // if both glsl and metal are specified, print a msg to inform that
+      // metal is used instead of glsl
+      if (it != this->shaders.end())
+        ignmsg << "Using metal shaders. " << std::endl;
+    }
+#endif
     this->visual->SetMaterial(mat);
     scene->DestroyMaterial(mat);
     this->material = this->visual->Material();
@@ -263,14 +342,12 @@ void ShaderParamPrivate::OnUpdate()
   // this is only done once
   for (const auto & spv : this->shaderParams)
   {
-    std::vector<std::string> values = common::split(spv.value, " ");
-
-    int intValue = 0;
-    float floatValue = 0;
-    std::vector<float> floatArrayValue;
-
-    rendering::ShaderParam::ParamType paramType =
-        rendering::ShaderParam::PARAM_NONE;
+    // TIME is reserved keyword for sim time
+    if (spv.value == "TIME")
+    {
+      this->timeParams.push_back(spv);
+      continue;
+    }
 
     rendering::ShaderParamsPtr params;
     if (spv.shader == "fragment")
@@ -283,92 +360,115 @@ void ShaderParamPrivate::OnUpdate()
     }
 
     // if no <value> is specified, this could be a constant
-    if (values.empty())
+    if (spv.value.empty())
     {
-      // \todo handle args for constants
-      (*params)[spv.name] = intValue;
+      // \todo handle args for constants in ign-rendering
+      (*params)[spv.name] = 1;
+      continue;
     }
-    // float / int
-    else if (values.size() == 1u)
+
+    // handle texture params
+    if (spv.type == "texture")
     {
-      std::string str = values[0];
-
-      // TIME is reserved keyword for sim time
-      if (str == "TIME")
-      {
-        this->timeParams.push_back(spv);
-        continue;
-      }
-
-      // if <type> is not empty, respect the specified type
-      if (!spv.type.empty())
-      {
-        if (spv.type == "int")
-        {
-          intValue = std::stoi(str);
-          paramType = rendering::ShaderParam::PARAM_INT;
-        }
-        else if (spv.type == "float")
-        {
-          floatValue = std::stof(str);
-          paramType = rendering::ShaderParam::PARAM_FLOAT;
-        }
-        else
-        {
-          // \todo(anyone) support texture samplers
-        }
-      }
-      // else do our best guess at what the type is
-      else
-      {
-        std::string::size_type sz;
-        int n = std::stoi(str, &sz);
-        if ( sz == str.size())
-        {
-          intValue = n;
-          paramType = rendering::ShaderParam::PARAM_INT;
-        }
-        else
-        {
-          floatValue = std::stof(str);
-          paramType = rendering::ShaderParam::PARAM_FLOAT;
-        }
-      }
+      unsigned int uvSetIndex = spv.args.empty() ? 0u :
+          static_cast<unsigned int>(std::stoul(spv.args[0]));
+      std::string texPath = common::findFile(
+          asFullPath(spv.value, this->modelPath));
+      (*params)[spv.name].SetTexture(texPath,
+          rendering::ShaderParam::ParamType::PARAM_TEXTURE, uvSetIndex);
     }
-    // arrays
+    else if (spv.type == "texture_cube")
+    {
+      unsigned int uvSetIndex = spv.args.empty() ? 0u :
+          static_cast<unsigned int>(std::stoul(spv.args[0]));
+      std::string texPath = common::findFile(
+          asFullPath(spv.value, this->modelPath));
+      (*params)[spv.name].SetTexture(texPath,
+          rendering::ShaderParam::ParamType::PARAM_TEXTURE_CUBE, uvSetIndex);
+    }
+    // handle int, float, int_array, and float_array params
     else
     {
-      // int array
-      if (!spv.type.empty() && spv.type == "int_array")
+      std::vector<std::string> values = common::split(spv.value, " ");
+
+      int intValue = 0;
+      float floatValue = 0;
+      std::vector<float> floatArrayValue;
+
+      rendering::ShaderParam::ParamType paramType =
+          rendering::ShaderParam::PARAM_NONE;
+
+      // float / int
+      if (values.size() == 1u)
       {
-        for (const auto &v : values)
-          floatArrayValue.push_back(std::stoi(v));
-        paramType = rendering::ShaderParam::PARAM_INT_BUFFER;
+        std::string str = values[0];
+
+        // if <type> is not empty, respect the specified type
+        if (!spv.type.empty())
+        {
+          if (spv.type == "int")
+          {
+            intValue = std::stoi(str);
+            paramType = rendering::ShaderParam::PARAM_INT;
+          }
+          else if (spv.type == "float")
+          {
+            floatValue = std::stof(str);
+            paramType = rendering::ShaderParam::PARAM_FLOAT;
+          }
+        }
+        // else do our best guess at what the type is
+        else
+        {
+          std::string::size_type sz;
+          int n = std::stoi(str, &sz);
+          if ( sz == str.size())
+          {
+            intValue = n;
+            paramType = rendering::ShaderParam::PARAM_INT;
+          }
+          else
+          {
+            floatValue = std::stof(str);
+            paramType = rendering::ShaderParam::PARAM_FLOAT;
+          }
+        }
       }
-      // treat everything else as float_array
+      // arrays
       else
       {
-        for (const auto &v : values)
-          floatArrayValue.push_back(std::stof(v));
-        paramType = rendering::ShaderParam::PARAM_FLOAT_BUFFER;
+        // int array
+        if (!spv.type.empty() && spv.type == "int_array")
+        {
+          for (const auto &v : values)
+            floatArrayValue.push_back(std::stoi(v));
+          paramType = rendering::ShaderParam::PARAM_INT_BUFFER;
+        }
+        // treat everything else as float_array
+        else
+        {
+          for (const auto &v : values)
+            floatArrayValue.push_back(std::stof(v));
+          paramType = rendering::ShaderParam::PARAM_FLOAT_BUFFER;
+        }
       }
-    }
 
-    // set the params
-    if (paramType == rendering::ShaderParam::PARAM_INT)
-    {
-      (*params)[spv.name] = intValue;
-    }
-    else if (paramType == rendering::ShaderParam::PARAM_FLOAT)
-    {
-      (*params)[spv.name] = floatValue;
-    }
-    else if (paramType == rendering::ShaderParam::PARAM_INT_BUFFER ||
-        paramType == rendering::ShaderParam::PARAM_FLOAT_BUFFER)
-    {
-      (*params)[spv.name].InitializeBuffer(floatArrayValue.size());
-      float *fv = &floatArrayValue[0];
-      (*params)[spv.name].UpdateBuffer(fv);
+      // set the params
+      if (paramType == rendering::ShaderParam::PARAM_INT)
+      {
+        (*params)[spv.name] = intValue;
+      }
+      else if (paramType == rendering::ShaderParam::PARAM_FLOAT)
+      {
+        (*params)[spv.name] = floatValue;
+      }
+      else if (paramType == rendering::ShaderParam::PARAM_INT_BUFFER ||
+          paramType == rendering::ShaderParam::PARAM_FLOAT_BUFFER)
+      {
+        (*params)[spv.name].InitializeBuffer(floatArrayValue.size());
+        float *fv = &floatArrayValue[0];
+        (*params)[spv.name].UpdateBuffer(fv);
+      }
     }
   }
   this->shaderParams.clear();

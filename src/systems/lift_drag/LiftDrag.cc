@@ -382,7 +382,7 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
     cl = this->cla * alpha * cosSweepAngle;
 
   // modify cl per control joint value
-  if (controlJointPosition)
+  if (controlJointPosition && !controlJointPosition->Data().empty())
   {
     cl = cl + this->controlJointRadToCL * controlJointPosition->Data()[0];
     /// \todo(anyone): also change cm and cd
