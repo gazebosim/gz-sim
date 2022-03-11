@@ -166,7 +166,7 @@ TEST_F(SensorsFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(SensorsBatteryState))
   unsigned int totalIter = 0u;
   unsigned int iterToRun = 50u;
 
-  // Run the until battery is completed drained
+  // Run until battery is completely drained
   while (batComp->Data() > 0.0 && totalIter < 1000)
   {
     server.Run(true, iterToRun, false);
