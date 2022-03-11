@@ -153,6 +153,21 @@ void ignition::gazebo::setData(QStandardItem *_item, const msgs::Light &_data)
     lightType = 2;
   }
 
+  bool visualizeVisual = true;
+  for (int i = 0; i < _data.header().data_size(); ++i)
+  {
+    for (int j = 0;
+        j < _data.header().data(i).value_size(); ++j)
+    {
+      if (_data.header().data(i).key() ==
+          "visualizeVisual")
+      {
+        visualizeVisual = ignition::math::parseInt(
+          _data.header().data(i).value(0));
+      }
+    }
+  }
+
   bool isLightOn = true;
   for (int i = 0; i < _data.header().data_size(); ++i)
   {
@@ -192,7 +207,8 @@ void ignition::gazebo::setData(QStandardItem *_item, const msgs::Light &_data)
     QVariant(_data.spot_falloff()),
     QVariant(_data.intensity()),
     QVariant(lightType),
-    QVariant(isLightOn)
+    QVariant(isLightOn),
+    QVariant(visualizeVisual)
   }), ComponentsModel::RoleNames().key("data"));
 }
 
@@ -1006,7 +1022,7 @@ void ComponentInspector::OnLight(
   double _attQuadratic, bool _castShadows, double _directionX,
   double _directionY, double _directionZ, double _innerAngle,
   double _outerAngle, double _falloff, double _intensity, int _type,
-  bool _isLightOn)
+  bool _isLightOn, bool _visualizeVisual)
 {
   std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
       [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
@@ -1016,13 +1032,22 @@ void ComponentInspector::OnLight(
   };
 
   ignition::msgs::Light req;
-
-  // todo(anyone) Use the field isLightOn in light.proto from
-  // Garden on.
-  auto header = req.mutable_header()->add_data();
-  header->set_key("isLightOn");
-  std::string *value = header->add_value();
-  *value = std::to_string(_isLightOn);
+  {
+    // todo(anyone) Use the field isLightOn in light.proto from
+    // Garden on.
+    auto header = req.mutable_header()->add_data();
+    header->set_key("isLightOn");
+    std::string *value = header->add_value();
+    *value = std::to_string(_isLightOn);
+  }
+  {
+    // todo(anyone) Use the field visualize_visual in light.proto from
+    // Garden on.
+    auto header = req.mutable_header()->add_data();
+    header->set_key("visualizeVisual");
+    std::string *value = header->add_value();
+    *value = std::to_string(_visualizeVisual);
+  }
 
   req.set_name(this->dataPtr->entityName);
   req.set_id(this->dataPtr->entity);

@@ -102,13 +102,13 @@ Rectangle {
                    _attRange, _attLinear, _attConstant, _attQuadratic,
                    _castShadows, _directionX, _directionY, _directionZ,
                    _innerAngle, _outerAngle, _falloff, _intensity, _type,
-                   _isLightOn) {
+                   _isLightOn, _visualizeVisual) {
     ComponentInspector.OnLight(_rSpecular, _gSpecular, _bSpecular, _aSpecular,
                                _rDiffuse, _gDiffuse, _bDiffuse, _aDiffuse,
                                _attRange, _attLinear, _attConstant, _attQuadratic,
                                _castShadows, _directionX, _directionY, _directionZ,
                                _innerAngle, _outerAngle, _falloff, _intensity, _type,
-                               _isLightOn)
+                               _isLightOn, _visualizeVisual)
   }
 
   /*

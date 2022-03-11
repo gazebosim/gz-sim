@@ -569,12 +569,23 @@ msgs::Light ignition::gazebo::convert(const sdf::Light &_in)
   out.set_spot_outer_angle(_in.SpotOuterAngle().Radian());
   out.set_spot_falloff(_in.SpotFalloff());
 
-  // todo(anyone) Use the field isLightOn in light.proto from
-  // Garden on.
-  auto header = out.mutable_header()->add_data();
-  header->set_key("isLightOn");
-  std::string *value = header->add_value();
-  *value = std::to_string(_in.LightOn());
+  {
+    // todo(anyone) Use the field isLightOn in light.proto from
+    // Garden on.
+    auto header = out.mutable_header()->add_data();
+    header->set_key("isLightOn");
+    std::string *value = header->add_value();
+    *value = std::to_string(_in.LightOn());
+  }
+
+  {
+    // todo(anyone) Use the field visualize_visual in light.proto from
+    // Garden on.
+    auto header = out.mutable_header()->add_data();
+    header->set_key("visualizeVisual");
+    std::string *value = header->add_value();
+    *value = std::to_string(_in.Visualize());
+  }
 
   if (_in.Type() == sdf::LightType::POINT)
     out.set_type(msgs::Light_LightType_POINT);
@@ -605,6 +616,24 @@ sdf::Light ignition::gazebo::convert(const msgs::Light &_in)
   out.SetSpotInnerAngle(math::Angle(_in.spot_inner_angle()));
   out.SetSpotOuterAngle(math::Angle(_in.spot_outer_angle()));
   out.SetSpotFalloff(_in.spot_falloff());
+
+  // todo(anyone) Use the field isLightOn in light.proto from
+  // Garden on.
+  bool visualizeVisual = true;
+  for (int i = 0; i < _in.header().data_size(); ++i)
+  {
+    for (int j = 0;
+        j < _in.header().data(i).value_size(); ++j)
+    {
+      if (_in.header().data(i).key() ==
+          "visualizeVisual")
+      {
+        visualizeVisual = ignition::math::parseInt(
+          _in.header().data(i).value(0));
+      }
+    }
+  }
+  out.SetVisualize(visualizeVisual);
 
   // todo(anyone) Use the field isLightOn in light.proto from
   // Garden on.

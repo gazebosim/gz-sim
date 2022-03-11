@@ -161,6 +161,27 @@ class LightCommand : public UserCommandBase
             {
               // todo(anyone) Use the field isLightOn in light.proto from
               // Garden on.
+              auto getVisualizeVisual = [](const msgs::Light &_light) -> bool
+              {
+                bool visualizeVisual = true;
+                for (int i = 0; i < _light.header().data_size(); ++i)
+                {
+                  for (int j = 0;
+                      j < _light.header().data(i).value_size(); ++j)
+                  {
+                    if (_light.header().data(i).key() ==
+                        "visualizeVisual")
+                    {
+                      visualizeVisual = ignition::math::parseInt(
+                        _light.header().data(i).value(0));
+                    }
+                  }
+                }
+                return visualizeVisual;
+              };
+
+              // todo(anyone) Use the field isLightOn in light.proto from
+              // Garden on.
               auto getIsLightOn = [](const msgs::Light &_light) -> bool
               {
                 bool isLightOn = true;
@@ -180,6 +201,7 @@ class LightCommand : public UserCommandBase
                 return isLightOn;
                };
              return
+                getVisualizeVisual(_a) == getVisualizeVisual(_b) &&
                 getIsLightOn(_a) == getIsLightOn(_b) &&
                 _a.type() == _b.type() &&
                 _a.name() == _b.name() &&
