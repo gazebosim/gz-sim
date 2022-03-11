@@ -201,12 +201,12 @@ class ignition::gazebo::systems::SensorsPrivate
   /// True means has charge, false means drained
   public: std::unordered_map<Entity, bool> modelBatteryStateChanged;
 
+  /// \brief A map of sensor ids to their active state
+  public: std::map<sensors::SensorId, bool> sensorStateChanged;
+
   /// \brief Disable sensors if parent model's battery is drained
   /// Affects sensors that are in nested models
   public: bool disableOnDrainedBattery = false;
-
-  /// \brief A list of sensor ids whose active state has changed
-  public: std::map<sensors::SensorId, bool> sensorStateChanged;
 
   /// \brief Mutex to protect access to sensorStateChanged
   public: std::mutex sensorStateMutex;
@@ -451,7 +451,7 @@ void Sensors::Configure(const Entity &/*_id*/,
   std::string engineName =
       _sdf->Get<std::string>("render_engine", "ogre2").first;
 
-  // Setup rendering
+  // get whether or not to disable sensor when model battery is drained
   this->dataPtr->disableOnDrainedBattery =
       _sdf->Get<bool>("disable_on_drained_battery",
      this->dataPtr-> disableOnDrainedBattery).first;
