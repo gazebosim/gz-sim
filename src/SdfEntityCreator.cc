@@ -750,6 +750,17 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
         components::Material(*_visual->Material()));
   }
 
+  // store the plugin in a component
+  if (_visual->Element())
+  {
+    sdf::ElementPtr pluginElem =  _visual->Element()->FindElement("plugin");
+    if (pluginElem)
+    {
+      this->dataPtr->ecm->CreateComponent(visualEntity,
+          components::VisualPlugin(pluginElem));
+    }
+  }
+
   // Keep track of visuals so we can load their plugins after loading the
   // entire model and having its full scoped name.
   this->dataPtr->newVisuals[visualEntity] = _visual->Element();

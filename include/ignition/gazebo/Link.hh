@@ -220,13 +220,28 @@ namespace ignition
       public: void EnableVelocityChecks(EntityComponentManager &_ecm,
           bool _enable = true) const;
 
-       /// \brief Get the angular acceleration of the body in the world frame.
-       /// \param[in] _ecm Entity-component manager.
-       /// \return Angular acceleration of the body in the world frame or
-       /// nullopt if acceleration checks aren't enabled.
-       /// \sa EnableAccelerationChecks
-       public: std::optional<math::Vector3d> WorldAngularAcceleration(
-           const EntityComponentManager &_ecm) const;
+      /// \brief Set the linear velocity on this link. If this is set, wrenches
+      /// on this link will be ignored for the current time step.
+      /// \param[in] _ecm Entity Component manager.
+      /// \param[in] _vel Linear velocity to set in Link's Frame.
+      public: void SetLinearVelocity(EntityComponentManager &_ecm,
+          const math::Vector3d &_vel) const;
+
+
+      /// \brief Set the angular velocity on this link. If this is set, wrenches
+      /// on this link will be ignored for the current time step.
+      /// \param[in] _ecm Entity Component manager.
+      /// \param[in] _vel Angular velocity to set in Link's Frame.
+      public: void SetAngularVelocity(EntityComponentManager &_ecm,
+          const math::Vector3d &_vel) const;
+
+      /// \brief Get the angular acceleration of the body in the world frame.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return Angular acceleration of the body in the world frame or
+      /// nullopt if acceleration checks aren't enabled.
+      /// \sa EnableAccelerationChecks
+      public: std::optional<math::Vector3d> WorldAngularAcceleration(
+          const EntityComponentManager &_ecm) const;
 
       /// \brief Get the linear acceleration of the body in the world frame.
       /// \param[in] _ecm Entity-component manager.

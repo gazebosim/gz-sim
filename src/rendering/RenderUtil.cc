@@ -90,6 +90,7 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
+#include "ignition/gazebo/rendering/Events.hh"
 #include "ignition/gazebo/rendering/RenderUtil.hh"
 #include "ignition/gazebo/rendering/SceneManager.hh"
 #include "ignition/gazebo/rendering/MarkerManager.hh"
@@ -193,6 +194,9 @@ class ignition::gazebo::RenderUtilPrivate
       const components::Light *_light,
       const components::Name *_name,
       const components::ParentEntity *_parent);
+
+  /// \brief Event manager used for emitting render / scene events
+  public: EventManager *eventManager{nullptr};
 
   /// \brief Total time elapsed in simulation. This will not increase while
   /// paused.
@@ -1318,7 +1322,7 @@ void RenderUtil::Update()
           trajPose.Rot() = tf.second["actorPose"].Rotation();
         }
 
-        actorVisual->SetLocalPose(trajPose + globalPose);
+        actorVisual->SetLocalPose(globalPose * trajPose);
 
         tf.second.erase("actorPose");
         actorMesh->SetSkeletonLocalTransforms(tf.second);
@@ -1584,6 +1588,9 @@ void RenderUtil::Update()
       }
     }
   }
+
+  if (this->dataPtr->eventManager)
+    this->dataPtr->eventManager->Emit<events::SceneUpdate>();
 }
 
 //////////////////////////////////////////////////
@@ -2847,6 +2854,12 @@ void RenderUtilPrivate::UpdateLights(
     auto l = std::dynamic_pointer_cast<rendering::Light>(node);
     if (l)
     {
+      if (!ignition::math::equal(
+          l->Intensity(),
+          static_cast<double>(light.second.intensity())))
+      {
+        l->SetIntensity(light.second.intensity());
+      }
       if (light.second.has_diffuse())
       {
         if (l->DiffuseColor() != msgs::Convert(light.second.diffuse()))
@@ -3065,7 +3078,7 @@ void RenderUtilPrivate::UpdateAnimation(const std::unordered_map<Entity,
       trajPose.Rot() = poseFrame.Rotation();
     }
 
-    actorVisual->SetLocalPose(trajPose + globalPose);
+    actorVisual->SetLocalPose(globalPose * trajPose);
   }
 }
 
@@ -3679,4 +3692,10 @@ void RenderUtilPrivate::CreateLight(
 {
   this->newLights.push_back(std::make_tuple(_entity, _light->Data(),
       _name->Data(), _parent->Data()));
+}
+
+//////////////////////////////////////////////////
+void RenderUtil::SetEventManager(EventManager *_mgr)
+{
+  this->dataPtr->eventManager = _mgr;
 }

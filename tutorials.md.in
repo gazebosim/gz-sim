@@ -37,6 +37,7 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage model_command "Model Command": Use the CLI to get information about the models in a simulation.
 * \subpage test_fixture "Test Fixture": Writing automated CI tests
 * \subpage spherical_coordinates "Spherical coordinates": Working with latitude and longitude
+* \subpage python_interfaces Python interfaces
 
 **Migration from Gazebo classic**
 

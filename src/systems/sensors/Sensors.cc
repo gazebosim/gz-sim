@@ -244,7 +244,6 @@ void SensorsPrivate::RunOnce()
     this->renderUtil.Update();
   }
 
-
   if (!this->activeSensors.empty())
   {
     this->sensorMaskMutex.lock();
@@ -424,8 +423,9 @@ void Sensors::Configure(const Entity &/*_id*/,
   this->dataPtr->renderUtil.SetEnableSensors(true,
       std::bind(&Sensors::CreateSensor, this,
       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    this->dataPtr->renderUtil.SetRemoveSensorCb(
+  this->dataPtr->renderUtil.SetRemoveSensorCb(
       std::bind(&Sensors::RemoveSensor, this, std::placeholders::_1));
+  this->dataPtr->renderUtil.SetEventManager(&_eventMgr);
 
   // parse sensor-specific data
   auto worldEntity = _ecm.EntityByComponents(components::World());
