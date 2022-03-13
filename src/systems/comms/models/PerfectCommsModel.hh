@@ -14,11 +14,13 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_BROKERPLUGIN_HH_
-#define IGNITION_GAZEBO_SYSTEMS_BROKERPLUGIN_HH_
+#ifndef IGNITION_GAZEBO_SYSTEMS_PERFECTCOMMSMODEL_HH_
+#define IGNITION_GAZEBO_SYSTEMS_PERFECTCOMMSMODEL_HH_
 
 #include <ignition/gazebo/System.hh>
-#include <memory>
+#include <ignition/utils/ImplPtr.hh>
+#include "../AddressManager.hh"
+#include "../CommsModel.hh"
 
 namespace ignition
 {
@@ -28,20 +30,18 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
 {
-  // Forward declaration
-  class BrokerPluginPrivate;
-
   /// \brief
-  class BrokerPlugin
+  class PerfectCommsModel
       : public System,
+        public ICommsModel,
         public ISystemConfigure,
         public ISystemPreUpdate
   {
     /// \brief Constructor
-    public: BrokerPlugin();
+    public: PerfectCommsModel();
 
     /// \brief Destructor
-    public: ~BrokerPlugin() override = default;
+    public: ~PerfectCommsModel();
 
     // Documentation inherited
     public: void Configure(const Entity &_entity,
@@ -54,8 +54,14 @@ namespace systems
                 const ignition::gazebo::UpdateInfo &_info,
                 ignition::gazebo::EntityComponentManager &_ecm) override;
 
-    /// \brief Private data pointer
-    private: std::unique_ptr<BrokerPluginPrivate> dataPtr;
+    /// \brief
+    public: void Step(
+      const ignition::gazebo::UpdateInfo &_info,
+      ignition::gazebo::EntityComponentManager &_ecm,
+      AddressManager &_messageMgr);
+
+    /// \brief Private data pointer.
+    IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)
   };
   }
 }

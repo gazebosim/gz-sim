@@ -17,16 +17,16 @@
 
 #include <ignition/msgs/datagram.pb.h>
 
+#include <algorithm>
 #include <deque>
+#include <memory>
 #include <mutex>
-// #include <ignition/msgs/frame.pb.h>
-// #include <map>
-// #include <ignition/common/Profiler.hh>
-// #include <ignition/plugin/Register.hh>
-// #include <sdf/sdf.hh>
+#include <unordered_set>
 
-// #include "ignition/gazebo/Util.hh"
+#include <ignition/gazebo/Util.hh>
+#include <ignition/transport/Node.hh>
 
+#include "AddressManager.hh"
 #include "Broker.hh"
 #include "CommonTypes.hh"
 
@@ -34,105 +34,22 @@ using namespace ignition;
 using namespace gazebo;
 using namespace systems;
 
-/// \brief Helper class for managing bidirectional mapping of client IDs and
-/// addresses. The class is not thread-safe, so callers must ensure that none
-/// of the public methods get called simultaneously.
-struct ClientIDs
-{
-  /// \brief Number of active clients for each address. This structure can be
-  /// accessed by outer code for reading, but not for modification.
-  std::unordered_map<std::string, size_t> numActiveClients;
-
-  /// \brief Map of client IDs to addresses. This structure can be accessed by
-  /// outer code for reading, but not for modification.
-  std::unordered_map<ClientID, std::string> idToAddress;
-
-  /// \brief Add a new client and generate its ID.
-  /// \param _address Address of the client.
-  /// \return ID of the client. This method should always succeed and return
-  /// an ID different from invalidClientID.
-  ClientID Add(const std::string& _address)
-  {
-    const auto clientId = this->NextID();
-    this->idToAddress[clientId] = _address;
-    if (this->numActiveClients.find(_address) == this->numActiveClients.end())
-      this->numActiveClients[_address] = 0;
-    this->numActiveClients[_address]++;
-    return clientId;
-  }
-
-  /// \brief Unregister a client.
-  /// \param _id ID of the client.
-  /// \return Success of the unregistration. The method can fail e.g. when
-  /// trying to unregister a client which has not been registered.
-  bool Remove(const ClientID _id)
-  {
-    if (!this->Valid(_id))
-      return false;
-    this->numActiveClients[this->idToAddress[_id]]--;
-    this->idToAddress.erase(_id);
-    return true;
-  }
-
-  /// \brief Clear/reset the structure to be able to work as new.
-  /// \note This cancels all registrations of all clients and resets the client
-  /// ID numbering, so it is not valid to mix IDs of clients obtained before and
-  /// after a Clear() call.
-  void Clear()
-  {
-    this->numActiveClients.clear();
-    this->idToAddress.clear();
-    this->lastId = invalidClientId;
-  }
-
-  /// \brief Check validity of a client ID.
-  /// \param _id ID to check.
-  /// \return Whether a client with the given ID has been registered.
-  bool Valid(const ClientID _id) const
-  {
-    return _id != invalidClientId &&
-      this->idToAddress.find(_id) != this->idToAddress.end();
-  }
-
-  /// \brief Return an ID for a new client.
-  /// \return The ID.
-  private: ClientID NextID()
-  {
-    return ++this->lastId;
-  }
-
-  /// \brief Last ID given to a client.
-  private: ClientID lastId {invalidClientId};
-};
-
-class ignition::gazebo::systems::BrokerPrivate
+/// \brief Private Broker data class.
+class ignition::gazebo::systems::Broker::Implementation
 {
   /// \brief An Ignition Transport node for communications.
   public: ignition::transport::Node node;
 
-  /// \brief Queue to store the incoming messages received from the clients.
-  public: std::deque<msgs::Datagram> incomingMsgs;
+  /// \brief The message manager.
+  public: AddressManager data;
 
   /// \brief Protect data from races.
   public: std::mutex mutex;
-
-  /// \brief Information about the members of the team.
-  public: TeamMembershipPtr team;
-
-  /// \brief IDs of registered clients.
-  public: ClientIDs clientIDs;
-
-  /// \brief Buffer to store incoming data packets.
-  // std::map<CommsAddress, ignition::msgs::Frame> incomingBuffer;
-
-  /// \brief Buffer to store outgoing data packets.
-  // std::map<CommsAddress, ignition::msgs::Frame> outgoingBuffer;
 };
 
 //////////////////////////////////////////////////
 Broker::Broker()
-    // : team(std::make_shared<TeamMembership_M>()),
-    :  dataPtr(std::make_unique<BrokerPrivate>())
+  : dataPtr(ignition::utils::MakeUniqueImpl<Implementation>())
 {
 }
 
@@ -145,185 +62,90 @@ Broker::~Broker()
 //////////////////////////////////////////////////
 void Broker::Start()
 {
-  // Advertise the service for registering addresses.
-  if (!this->dataPtr->node.Advertise(kAddrRegistrationSrv,
-                                     &Broker::OnAddrRegistration, this))
+  // Advertise the service for binding addresses.
+  if (!this->dataPtr->node.Advertise(kAddrBindSrv, &Broker::OnBind, this))
   {
-    std::cerr << "Error advertising srv [" << kAddrRegistrationSrv << "]"
+    ignerr << "Error advertising srv [" << kAddrBindSrv << "]" << std::endl;
+    return;
+  }
+
+  // Advertise the service for unbinding addresses.
+  if (!this->dataPtr->node.Advertise(kAddrUnbindSrv, &Broker::OnUnbind, this))
+  {
+    ignerr << "Error advertising srv [" << kAddrUnbindSrv << "]"
               << std::endl;
     return;
   }
 
-  // Advertise the service for unregistering addresses.
-  if (!this->dataPtr->node.Advertise(kAddrUnregistrationSrv,
-                                     &Broker::OnAddrUnregistration, this))
+  // Advertise the topic for receiving data messages.
+  if (!this->dataPtr->node.Subscribe(kBrokerTopic, &Broker::OnMsg, this))
   {
-    std::cerr << "Error advertising srv [" << kAddrUnregistrationSrv << "]"
-              << std::endl;
-    return;
+    ignerr << "Error subscribing to topic [" << kBrokerTopic << "]"
+           << std::endl;
   }
-
-  // Advertise the service for registering end points.
-  if (!this->dataPtr->node.Advertise(kEndPointRegistrationSrv,
-                                     &Broker::OnEndPointRegistration, this))
-  {
-    std::cerr << "Error advertising srv [" << kEndPointRegistrationSrv << "]"
-              << std::endl;
-    return;
-  }
-
-  // Advertise the service for unregistering end points.
-  if (!this->dataPtr->node.Advertise(kEndPointUnregistrationSrv,
-                                     &Broker::OnEndPointUnregistration, this))
-  {
-    std::cerr << "Error advertising srv [" << kEndPointUnregistrationSrv << "]"
-              << std::endl;
-    return;
-  }
-
-  // Advertise a oneway service for centralizing all message requests.
-  if (!this->dataPtr->node.Advertise(kBrokerSrv, &Broker::OnMessage, this))
-  {
-    std::cerr << "Error advertising srv [" << kBrokerSrv << "]" << std::endl;
-    return;
-  }
-
-  std::cout << "Started communication broker in Ignition partition "
-            << this->IgnPartition() << std::endl;
 }
 
 //////////////////////////////////////////////////
-std::string Broker::IgnPartition() const
+void Broker::OnBind(const ignition::msgs::StringMsg_V &_req)
 {
-  return this->dataPtr->node.Options().Partition();
+  auto count = _req.data_size();
+  if (count != 2)
+    ignerr << "Receive incorrect number of arguments. "
+           << "Expecting 2 and receive " << count << std::endl;
+
+  std::lock_guard<std::mutex> lk(this->dataPtr->mutex);
+  this->dataPtr->data.AddSubscriber(_req.data(0), _req.data(1));
+
+  ignmsg << "Address [" << _req.data(0) << "] bound on topic ["
+         << _req.data(1) << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
-ClientID Broker::Register(const std::string &_clientAddress)
+void Broker::OnUnbind(const ignition::msgs::StringMsg_V &_req)
+{
+  auto count = _req.data_size();
+  if (count != 2)
+    ignerr << "Receive incorrect number of arguments. "
+           << "Expecting 2 and receive " << count << std::endl;
+
+  std::lock_guard<std::mutex> lk(this->dataPtr->mutex);
+  this->dataPtr->data.RemoveSubscriber(_req.data(0), _req.data(1));
+
+  ignmsg << "Address [" << _req.data(0) << "] unbound on topic ["
+         << _req.data(1) << "]" << std::endl;
+}
+
+//////////////////////////////////////////////////
+void Broker::OnMsg(const ignition::msgs::Datagram &_msg)
+{
+  // Place the message in the outbound queue of the sender.
+  auto msgPtr = std::make_shared<ignition::msgs::Datagram>(_msg);
+
+  std::lock_guard<std::mutex> lk(this->dataPtr->mutex);
+  this->dataPtr->data.AddOutbound(_msg.src_address(), msgPtr);
+}
+
+//////////////////////////////////////////////////
+void Broker::DeliverMsgs()
 {
   std::lock_guard<std::mutex> lk(this->dataPtr->mutex);
-  auto kvp = this->dataPtr->team->find(_clientAddress);
-  if (kvp == this->dataPtr->team->end())
-  {
-    auto newMember = std::make_shared<TeamMember>();
-
-    // Name and address are the same.
-    newMember->address = _clientAddress;
-    newMember->name = _clientAddress;
-
-    (*this->dataPtr->team)[_clientAddress] = newMember;
-  }
-
-  const auto clientId = this->dataPtr->clientIDs.Add(_clientAddress);
-
-  return clientId;
+  this->dataPtr->data.DeliverMsgs();
 }
 
 //////////////////////////////////////////////////
-bool Broker::Unregister(const ClientID _clientId)
+AddressManager &Broker::Data()
 {
-  if (!this->dataPtr->clientIDs.Valid(_clientId))
-  {
-    std::cerr << "Broker::Unregister() error: Client ID [" << _clientId
-              << "] is invalid." << std::endl;
-    return false;
-  }
-
-  bool success = true;
-
-  // std::unordered_set<subt::communication_broker::EndpointID> endpointIds;
-  // {
-  //   // make a copy because Unbind() calls will alter the structure
-  //   std::lock_guard<std::mutex> lk(this->mutex);
-  //   endpointIds = this->dataPtr->endpointIDs.clientIdToEndpointIds[_clientId];
-  // }
-
-  // for (const auto endpointId : endpointIds)
-  //   success = success && this->Unbind(endpointId);
-
-  {
-    std::lock_guard<std::mutex> lk(this->dataPtr->mutex);
-
-    const auto& clientAddress = this->dataPtr->clientIDs.idToAddress[_clientId];
-    success = success && this->dataPtr->clientIDs.Remove(_clientId);
-
-    if (this->dataPtr->clientIDs.numActiveClients[clientAddress] == 0u)
-      this->dataPtr->team->erase(clientAddress);
-  }
-
-  return success;
+  return this->dataPtr->data;
 }
 
 //////////////////////////////////////////////////
-bool Broker::DispatchMessages()
+void Broker::Lock()
 {
-  return true;
+  this->dataPtr->mutex.lock();
 }
 
-/////////////////////////////////////////////////
-bool Broker::OnAddrRegistration(const ignition::msgs::StringMsg &_req,
-                                ignition::msgs::UInt32 &_rep)
+//////////////////////////////////////////////////
+void Broker::Unlock()
 {
-  const auto &address = _req.data();
-
-  const ClientID result = this->Register(address);
-
-  _rep.set_data(result);
-
-  return result != invalidClientId;
+  this->dataPtr->mutex.unlock();
 }
-
-/////////////////////////////////////////////////
-bool Broker::OnAddrUnregistration(const ignition::msgs::UInt32 &_req,
-                                  ignition::msgs::Boolean &_rep)
-{
-  uint32_t clientId = _req.data();
-
-  bool result;
-
-  result = this->Unregister(clientId);
-
-  _rep.set_data(result);
-
-  return result;
-}
-
-/////////////////////////////////////////////////
-void Broker::OnMessage(const ignition::msgs::Datagram &_req)
-{
-  // Just save the message, it will be processed later.
-  std::lock_guard<std::mutex> lk(this->dataPtr->mutex);
-
-  // Save the message.
-  this->dataPtr->incomingMsgs.push_back(_req);
-}
-
-// //////////////////////////////////////////////////
-// CommsBroker::CommsBroker()
-//   : dataPtr(std::make_unique<CommsBrokerPrivate>())
-// {
-// }
-
-// //////////////////////////////////////////////////
-// void CommsBroker::Configure(const Entity &_entity,
-//     const std::shared_ptr<const sdf::Element> &_sdf,
-//     EntityComponentManager &/*_ecm*/,
-//     EventManager &/*_eventMgr*/)
-// {
-// }
-
-// //////////////////////////////////////////////////
-// void CommsBroker::PreUpdate(
-//     const ignition::gazebo::UpdateInfo &_info,
-//     ignition::gazebo::EntityComponentManager &_ecm)
-// {
-//   IGN_PROFILE("CommsBroker::PreUpdate");
-// }
-
-// IGNITION_ADD_PLUGIN(CommsBroker,
-//                     ignition::gazebo::System,
-//                     CommsBroker::ISystemConfigure,
-//                     CommsBroker::ISystemPreUpdate)
-
-// IGNITION_ADD_PLUGIN_ALIAS(CommsBroker,
-//                           "ignition::gazebo::systems::CommsBroker")
