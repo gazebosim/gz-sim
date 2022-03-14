@@ -103,6 +103,7 @@ TEST_P(ServerFixture, UpdateRate)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, ServerConfigPluginInfo)
 {
+  IGN_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
   ServerConfig::PluginInfo pluginInfo;
   pluginInfo.SetEntityName("an_entity");
   pluginInfo.SetEntityType("model");
@@ -156,6 +157,73 @@ TEST_P(ServerFixture, ServerConfigPluginInfo)
     EXPECT_EQ(cfgPlugins.front().Filename(), plugins.front().Filename());
     EXPECT_EQ(cfgPlugins.front().Name(), plugins.front().Name());
     EXPECT_EQ(cfgPlugins.front().Sdf(), plugins.front().Sdf());
+  }
+  IGN_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, ServerConfigSdfPluginInfo)
+{
+  ServerConfig::PluginInfo pluginInfo;
+  pluginInfo.SetEntityName("an_entity");
+  pluginInfo.SetEntityType("model");
+  sdf::Plugin plugin;
+  plugin.SetFilename("filename");
+  plugin.SetName("interface");
+  pluginInfo.SetPlugin(plugin);
+
+  ignition::gazebo::ServerConfig serverConfig;
+  serverConfig.AddPlugin(pluginInfo);
+
+  const std::list<ServerConfig::PluginInfo> &plugins = serverConfig.Plugins();
+  ASSERT_FALSE(plugins.empty());
+
+  EXPECT_EQ("an_entity", plugins.front().EntityName());
+  EXPECT_EQ("model", plugins.front().EntityType());
+  EXPECT_EQ("filename", plugins.front().Plugin().Filename());
+  EXPECT_EQ("interface", plugins.front().Plugin().Name());
+  EXPECT_EQ(nullptr, plugins.front().Plugin().Element());
+  EXPECT_TRUE(plugins.front().Plugin().Contents().empty());
+
+  // Test operator=
+  {
+    ServerConfig::PluginInfo info;
+    info = plugins.front();
+
+    EXPECT_EQ(info.EntityName(), plugins.front().EntityName());
+    EXPECT_EQ(info.EntityType(), plugins.front().EntityType());
+    EXPECT_EQ(info.Plugin().Filename(), plugins.front().Plugin().Filename());
+    EXPECT_EQ(info.Plugin().Name(), plugins.front().Plugin().Name());
+    EXPECT_EQ(info.Plugin().ToElement()->ToString(""),
+        plugins.front().Plugin().ToElement()->ToString(""));
+  }
+
+  // Test copy constructor
+  {
+    ServerConfig::PluginInfo info(plugins.front());
+
+    EXPECT_EQ(info.EntityName(), plugins.front().EntityName());
+    EXPECT_EQ(info.EntityType(), plugins.front().EntityType());
+    EXPECT_EQ(info.Plugin().Filename(), plugins.front().Plugin().Filename());
+    EXPECT_EQ(info.Plugin().Name(), plugins.front().Plugin().Name());
+    EXPECT_EQ(info.Plugin().ToElement()->ToString(""),
+        plugins.front().Plugin().ToElement()->ToString(""));
+  }
+
+  // Test server config copy constructor
+  {
+    const ServerConfig &cfg(serverConfig);
+    const std::list<ServerConfig::PluginInfo> &cfgPlugins = cfg.Plugins();
+    ASSERT_FALSE(cfgPlugins.empty());
+
+    EXPECT_EQ(cfgPlugins.front().EntityName(), plugins.front().EntityName());
+    EXPECT_EQ(cfgPlugins.front().EntityType(), plugins.front().EntityType());
+    EXPECT_EQ(cfgPlugins.front().Plugin().Filename(),
+        plugins.front().Plugin().Filename());
+    EXPECT_EQ(cfgPlugins.front().Plugin().Name(),
+        plugins.front().Plugin().Name());
+    EXPECT_EQ(cfgPlugins.front().Plugin().ToElement()->ToString(""),
+        plugins.front().Plugin().ToElement()->ToString(""));
   }
 }
 

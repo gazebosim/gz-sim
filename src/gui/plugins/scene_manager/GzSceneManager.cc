@@ -134,39 +134,42 @@ void GzSceneManager::Update(const UpdateInfo &_info,
   this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
 
   // load visual plugin on gui side
-  std::map<Entity, sdf::ElementPtr> pluginElems;
+  std::map<Entity, sdf::Plugins> plugins;
   if (!this->dataPtr->initializedVisualPlugins)
   {
-    _ecm.Each<components::Visual, components::VisualPlugin>(
+    _ecm.Each<components::Visual, components::VisualPlugins>(
         [&](const Entity &_entity,
             const components::Visual *,
-            const components::VisualPlugin *_plugin)->bool
+            const components::VisualPlugins *_plugins)->bool
     {
-      sdf::ElementPtr pluginElem = _plugin->Data();
-      pluginElems[_entity] = _plugin->Data();
+      plugins[_entity].insert(plugins[_entity].end(),
+          _plugins->Data().begin(), _plugins->Data().end());
       return true;
     });
     this->dataPtr->initializedVisualPlugins = true;
   }
   else
   {
-    _ecm.EachNew<components::Visual, components::VisualPlugin>(
+    _ecm.EachNew<components::Visual, components::VisualPlugins>(
         [&](const Entity &_entity,
             const components::Visual *,
-            const components::VisualPlugin *_plugin)->bool
+            const components::VisualPlugins *_plugins)->bool
     {
-      sdf::ElementPtr pluginElem = _plugin->Data();
-      pluginElems[_entity] = _plugin->Data();
+      plugins[_entity].insert(plugins[_entity].end(),
+          _plugins->Data().begin(), _plugins->Data().end());
       return true;
     });
   }
-  for (const auto &it : pluginElems)
+  for (const auto &it : plugins)
   {
-    ignition::gazebo::gui::events::VisualPlugin visualPluginEvent(
-        it.first, it.second);
-    ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-        &visualPluginEvent);
+    for (const sdf::Plugin plugin : it.second)
+    {
+      ignition::gazebo::gui::events::VisualPluginSdf visualPluginEvent(
+          it.first, plugin);
+      ignition::gui::App()->sendEvent(
+          ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+          &visualPluginEvent);
+    }
   }
 
   // Emit entities created / removed event for gui::Plugins which don't have

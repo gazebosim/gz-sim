@@ -59,6 +59,15 @@ class ignition::gazebo::gui::events::VisualPlugin::Implementation
   public: sdf::ElementPtr element;
 };
 
+class ignition::gazebo::gui::events::VisualPluginSdf::Implementation
+{
+  /// \brief Entity to load the visual plugin for
+  public: ignition::gazebo::Entity entity;
+
+  /// \brief Sdf plugin of the visual plugin
+  public: sdf::Plugin plugin;
+};
+
 using namespace ignition;
 using namespace gazebo;
 using namespace gui;
@@ -161,4 +170,25 @@ ignition::gazebo::Entity VisualPlugin::Entity() const
 sdf::ElementPtr VisualPlugin::Element() const
 {
   return this->dataPtr->element;
+}
+
+/////////////////////////////////////////////////
+VisualPluginSdf::VisualPluginSdf(ignition::gazebo::Entity _entity,
+    const sdf::Plugin &_plugin) :
+    QEvent(kType), dataPtr(utils::MakeImpl<Implementation>())
+{
+  this->dataPtr->entity = _entity;
+  this->dataPtr->plugin = _plugin;
+}
+
+/////////////////////////////////////////////////
+ignition::gazebo::Entity VisualPluginSdf::Entity() const
+{
+  return this->dataPtr->entity;
+}
+
+/////////////////////////////////////////////////
+sdf::Plugin VisualPluginSdf::Plugin() const
+{
+  return this->dataPtr->plugin;
 }

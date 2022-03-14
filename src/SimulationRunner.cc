@@ -20,6 +20,7 @@
 #include <algorithm>
 
 #include <sdf/Root.hh>
+#include <ignition/utils/SuppressWarning.hh>
 
 #include "ignition/common/Profiler.hh"
 #include "ignition/gazebo/components/Model.hh"
@@ -122,13 +123,9 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->stopConn = this->eventMgr.Connect<events::Stop>(
       std::bind(&SimulationRunner::OnStop, this));
 
+  /// \todo(nkoenig) Rename this event to LoadPlugin in Gazebo 8 (H collection)
   this->loadPluginsConn = this->eventMgr.Connect<events::LoadSdfPlugins>(
       std::bind(&SimulationRunner::LoadPlugins, this, std::placeholders::_1,
-      std::placeholders::_2));
-
-  /// \todo(nkoenig) Deprecate/remove this event in Garden
-  this->loadPtrPluginsConn = this->eventMgr.Connect<events::LoadPlugins>(
-      std::bind(&SimulationRunner::LoadPtrPlugins, this, std::placeholders::_1,
       std::placeholders::_2));
 
   // Create the level manager
@@ -860,15 +857,6 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 
 //////////////////////////////////////////////////
 void SimulationRunner::LoadPlugin(const Entity _entity,
-                                  const std::string &_fname,
-                                  const std::string &_name,
-                                  const sdf::ElementPtr &_sdf)
-{
-  this->systemMgr->LoadPlugin(_entity, _fname, _name, _sdf);
-}
-
-//////////////////////////////////////////////////
-void SimulationRunner::LoadPlugin(const Entity _entity,
                                   const sdf::Plugin &_plugin)
 {
   this->systemMgr->LoadPlugin(_entity, _plugin);
@@ -979,29 +967,6 @@ void SimulationRunner::LoadLoggingPlugins(const ServerConfig &_config)
   }
 
   this->LoadServerPlugins(plugins);
-}
-
-//////////////////////////////////////////////////
-/// \todo(nkoenig) Remove this function in Garden.
-void SimulationRunner::LoadPtrPlugins(const Entity _entity,
-    const sdf::ElementPtr &_sdf)
-{
-  sdf::ElementPtr pluginElem = _sdf->FindElement("plugin");
-  while (pluginElem)
-  {
-    auto filename = pluginElem->Get<std::string>("filename");
-    auto name = pluginElem->Get<std::string>("name");
-    // No error message for the 'else' case of the following 'if' statement
-    // because SDF create a default <plugin> element even if it's not
-    // specified. An error message would result in spamming
-    // the console.
-    if (filename != "__default__" && name != "__default__")
-    {
-      this->LoadPlugin(_entity, filename, name, pluginElem);
-    }
-
-    pluginElem = pluginElem->GetNextElement("plugin");
-  }
 }
 
 //////////////////////////////////////////////////

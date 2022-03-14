@@ -34,6 +34,7 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace serializers
 {
+  IGN_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
   class SdfElementSerializer
   {
     /// \brief Serialization for `sdf::Model`.
@@ -72,6 +73,7 @@ namespace serializers
       return _in;
     }
   };
+  IGN_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
 }
 
 namespace components
@@ -81,12 +83,13 @@ namespace components
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Visual", Visual)
 
   /// \brief A component that contains a visual plugin's SDF element.
-  /// \todo(nkoenig) Deprecate this in Garden
-  using VisualPlugin = Component<sdf::ElementPtr,
+  using VisualPlugin IGN_DEPRECATED(7) = Component<sdf::ElementPtr,
                                  class VisualPluginTag,
                                  serializers::SdfElementSerializer>;
+  IGN_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.VisualPlugin",
       VisualPlugin)
+  IGN_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
 
   /// \brief A component that contains a visual plugin's SDF objects.
   using VisualPlugins = Component<sdf::Plugins,

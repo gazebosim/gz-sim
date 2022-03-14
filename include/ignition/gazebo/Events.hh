@@ -57,13 +57,14 @@ namespace ignition
       /// \brief Event used to load plugins for an entity into simulation.
       /// Pass in the entity which will own the plugins, and an SDF element for
       /// the entity, which may contain multiple `<plugin>` tags.
-      /// \todo(nkoenig) Deprecate this in Garden.
-      using LoadPlugins = common::EventT<void(Entity, sdf::ElementPtr),
-          struct LoadPluginsTag>;
+      using LoadPlugins IGN_DEPRECATED(7.0) =
+        common::EventT<void(Entity, sdf::ElementPtr), struct LoadPluginsTag>;
 
       /// \brief Event used to load plugins for an entity into simulation.
       /// Pass in the entity which will own the plugins, and an SDF element for
       /// the entity, which may contain multiple `<plugin>` tags.
+      /// \todo(nkoenig) Rename this to LoadPlugins in Gazebo 8 (H
+      /// collection).
       using LoadSdfPlugins = common::EventT<void(Entity, sdf::Plugins),
           struct LoadPluginsTag>;
       }

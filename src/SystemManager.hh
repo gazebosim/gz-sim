@@ -54,16 +54,6 @@ namespace ignition
 
       /// \brief Load system plugin for a given entity.
       /// \param[in] _entity Entity
-      /// \param[in] _fname Filename of the plugin library
-      /// \param[in] _name Name of the plugin
-      /// \param[in] _sdf SDF element (content of plugin tag)
-      public: void LoadPlugin(const Entity _entity,
-                              const std::string &_fname,
-                              const std::string &_name,
-                              const sdf::ElementPtr &_sdf);
-
-      /// \brief Load system plugin for a given entity.
-      /// \param[in] _entity Entity
       /// \param[in] _plugin Plugin to load
       public: void LoadPlugin(const Entity _entity,
                               const sdf::Plugin &_plugin);

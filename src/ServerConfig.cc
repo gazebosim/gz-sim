@@ -612,45 +612,33 @@ void ServerConfig::AddPlugin(const ServerConfig::PluginInfo &_info)
 ServerConfig::PluginInfo
 ServerConfig::LogPlaybackPlugin() const
 {
+  sdf::Plugin plugin;
   auto entityName = "*";
   auto entityType = "world";
-  auto pluginName = "ignition::gazebo::systems::LogPlayback";
-  auto pluginFilename = "ignition-gazebo-log-system";
-
-  sdf::ElementPtr playbackElem;
-  playbackElem = std::make_shared<sdf::Element>();
-  playbackElem->SetName("plugin");
+  plugin.SetName("ignition::gazebo::systems::LogPlayback");
+  plugin.SetFilename("ignition-gazebo-log-system");
 
   if (!this->LogPlaybackPath().empty())
   {
     sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
     pathElem->SetName("playback_path");
-    playbackElem->AddElementDescription(pathElem);
-    pathElem = playbackElem->GetElement("playback_path");
     pathElem->AddValue("string", "", false, "");
     pathElem->Set<std::string>(this->LogPlaybackPath());
+    plugin.InsertContent(pathElem);
   }
 
-  return ServerConfig::PluginInfo(entityName,
-      entityType,
-      pluginFilename,
-      pluginName,
-      playbackElem);
+  return ServerConfig::PluginInfo(entityName, entityType, plugin);
 }
 
 /////////////////////////////////////////////////
 ServerConfig::PluginInfo
 ServerConfig::LogRecordPlugin() const
 {
+  sdf::Plugin plugin;
   auto entityName = "*";
   auto entityType = "world";
-  auto pluginName = "ignition::gazebo::systems::LogRecord";
-  auto pluginFilename = "ignition-gazebo-log-system";
-
-  sdf::ElementPtr recordElem;
-
-  recordElem = std::make_shared<sdf::Element>();
-  recordElem->SetName("plugin");
+  plugin.SetName("ignition::gazebo::systems::LogRecord");
+  plugin.SetFilename("ignition-gazebo-log-system");
 
   igndbg << "Generating LogRecord SDF:" << std::endl;
 
@@ -658,37 +646,33 @@ ServerConfig::LogRecordPlugin() const
   {
     sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
     pathElem->SetName("record_path");
-    recordElem->AddElementDescription(pathElem);
-    pathElem = recordElem->GetElement("record_path");
     pathElem->AddValue("string", "", false, "");
     pathElem->Set<std::string>(this->LogRecordPath());
+    plugin.InsertContent(pathElem);
   }
 
   // Set whether to record resources
   sdf::ElementPtr resourceElem = std::make_shared<sdf::Element>();
   resourceElem->SetName("record_resources");
-  recordElem->AddElementDescription(resourceElem);
-  resourceElem = recordElem->GetElement("record_resources");
   resourceElem->AddValue("bool", "false", false, "");
   resourceElem->Set<bool>(this->LogRecordResources() ? true : false);
+  plugin.InsertContent(resourceElem);
 
   if (!this->LogRecordCompressPath().empty())
   {
     // Set whether to compress
     sdf::ElementPtr compressElem = std::make_shared<sdf::Element>();
     compressElem->SetName("compress");
-    recordElem->AddElementDescription(compressElem);
-    compressElem = recordElem->GetElement("compress");
     compressElem->AddValue("bool", "false", false, "");
     compressElem->Set<bool>(true);
+    plugin.InsertContent(compressElem);
 
-  // Set compress path
+    // Set compress path
     sdf::ElementPtr cPathElem = std::make_shared<sdf::Element>();
     cPathElem->SetName("compress_path");
-    recordElem->AddElementDescription(cPathElem);
-    cPathElem = recordElem->GetElement("compress_path");
     cPathElem->AddValue("string", "", false, "");
     cPathElem->Set<std::string>(this->LogRecordCompressPath());
+    plugin.InsertContent(cPathElem);
   }
 
   // If record topics specified, add in SDF
@@ -696,19 +680,16 @@ ServerConfig::LogRecordPlugin() const
   {
     sdf::ElementPtr topicElem = std::make_shared<sdf::Element>();
     topicElem->SetName("record_topic");
-    recordElem->AddElementDescription(topicElem);
-    topicElem = recordElem->AddElement("record_topic");
     topicElem->AddValue("string", "false", false, "");
     topicElem->Set<std::string>(topic);
+    plugin.InsertContent(topicElem);
   }
 
-  igndbg << recordElem->ToString("") << std::endl;
+  igndbg << plugin.ToElement()->ToString("") << std::endl;
 
   return ServerConfig::PluginInfo(entityName,
       entityType,
-      pluginFilename,
-      pluginName,
-      recordElem);
+      plugin);
 }
 
 /////////////////////////////////////////////////

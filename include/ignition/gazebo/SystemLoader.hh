@@ -55,7 +55,7 @@ namespace ignition
       /// \param[in] _sdf SDF Element describing plugin instance to be loaded.
       /// \returns Shared pointer to system instance or nullptr.
       /// \todo(nkoenig) Deprecate this function in Garden
-      public: std::optional<SystemPluginPtr> LoadPlugin(
+      public: IGN_DEPRECATED(7) std::optional<SystemPluginPtr> LoadPlugin(
                   const sdf::ElementPtr &_sdf);
 
       /// \brief Load and instantiate system plugin from name/filename.
@@ -64,7 +64,7 @@ namespace ignition
       /// \param[in] _sdf SDF Element describing plugin instance to be loaded.
       /// \returns Shared pointer to system instance or nullptr.
       /// \todo(nkoenig) Deprecate this function in Garden
-      public: std::optional<SystemPluginPtr> LoadPlugin(
+      public: IGN_DEPRECATED(7) std::optional<SystemPluginPtr> LoadPlugin(
                   const std::string &_filename,
                   const std::string &_name,
                   const sdf::ElementPtr &_sdf);
