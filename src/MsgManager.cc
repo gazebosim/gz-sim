@@ -22,42 +22,40 @@
 #include <memory>
 #include <string>
 #include <unordered_set>
+#include <ignition/gazebo/CommonTypes.hh>
+#include <ignition/gazebo/MsgManager.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/utils/ImplPtr.hh>
 
-#include "AddressManager.hh"
-#include "CommonTypes.hh"
-
 using namespace ignition;
 using namespace gazebo;
-using namespace systems;
 
-/// \brief Private AddressManager data class.
-class ignition::gazebo::systems::AddressManager::Implementation
+/// \brief Private MsgManager data class.
+class ignition::gazebo::MsgManager::Implementation
 {
   /// \brief Buffer to store the content associated to each address.
   /// The key is an address. The value contains all the information associated
   /// to the address.
-  public: std::map<std::string, AddressContent> data;
+  public: std::map<std::string, MsgContent> data;
 
   /// \brief An Ignition Transport node for communications.
   public: ignition::transport::Node node;
 };
 
 //////////////////////////////////////////////////
-AddressManager::AddressManager()
+MsgManager::MsgManager()
   : dataPtr(ignition::utils::MakeUniqueImpl<Implementation>())
 {
 }
 
 //////////////////////////////////////////////////
-AddressManager::~AddressManager()
+MsgManager::~MsgManager()
 {
   // cannot use default destructor because of dataPtr
 }
 
 //////////////////////////////////////////////////
-void AddressManager::AddSubscriber(const std::string &_address,
+void MsgManager::AddSubscriber(const std::string &_address,
                                    const std::string &_topic)
 {
   ignition::transport::Node::Publisher publisher =
@@ -67,7 +65,7 @@ void AddressManager::AddSubscriber(const std::string &_address,
 }
 
 //////////////////////////////////////////////////
-// std::unordered_set<std::string> AddressManager::Subscribers(
+// std::unordered_set<std::string> MsgManager::Subscribers(
 //   const std::string &_address)
 // {
 //   std::unordered_set<std::string> result;
@@ -81,21 +79,21 @@ void AddressManager::AddSubscriber(const std::string &_address,
 // }
 
 //////////////////////////////////////////////////
-void AddressManager::AddInbound(const std::string &_address,
+void MsgManager::AddInbound(const std::string &_address,
                                 const std::shared_ptr<msgs::Datagram> &_msg)
 {
   this->dataPtr->data[_address].inboundMsgs.push_back(_msg);
 }
 
 //////////////////////////////////////////////////
-void AddressManager::AddOutbound(const std::string &_address,
+void MsgManager::AddOutbound(const std::string &_address,
                          const std::shared_ptr<msgs::Datagram> &_msg)
 {
   this->dataPtr->data[_address].outboundMsgs.push_back(_msg);
 }
 
 //////////////////////////////////////////////////
-bool AddressManager::RemoveSubscriber(const std::string &_address,
+bool MsgManager::RemoveSubscriber(const std::string &_address,
                               const std::string &_topic)
 {
   // Iterate over all the topics.
@@ -109,7 +107,7 @@ bool AddressManager::RemoveSubscriber(const std::string &_address,
 }
 
 //////////////////////////////////////////////////
-void AddressManager::RemoveInbound(const std::string &_address,
+void MsgManager::RemoveInbound(const std::string &_address,
                            const std::shared_ptr<msgs::Datagram> &_msg)
 {
   if (this->dataPtr->data.find(_address) !=
@@ -121,7 +119,7 @@ void AddressManager::RemoveInbound(const std::string &_address,
 }
 
 //////////////////////////////////////////////////
-void AddressManager::RemoveOutbound(const std::string &_address,
+void MsgManager::RemoveOutbound(const std::string &_address,
                             const std::shared_ptr<msgs::Datagram> &_msg)
 {
   if (this->dataPtr->data.find(_address) != this->dataPtr->data.end())
@@ -132,7 +130,7 @@ void AddressManager::RemoveOutbound(const std::string &_address,
 }
 
 //////////////////////////////////////////////////
-void AddressManager::DeliverMsgs()
+void MsgManager::DeliverMsgs()
 {
   for (auto & [address, content] : this->dataPtr->data)
   {
@@ -144,7 +142,10 @@ void AddressManager::DeliverMsgs()
     {
       // Use the publisher associated to the destination address.
       for (auto & [topic, publisher] : content.subscriptions)
+      {
         publisher.Publish(*msg);
+        ignmsg << "Publishing msg [" << msg->DebugString() << "]" << std::endl;
+      }
     }
 
     content.inboundMsgs.clear();
@@ -152,19 +153,19 @@ void AddressManager::DeliverMsgs()
 }
 
 //////////////////////////////////////////////////
-std::map<std::string, AddressContent> &AddressManager::Data()
+std::map<std::string, MsgContent> &MsgManager::Data()
 {
   return this->dataPtr->data;
 }
 
 //////////////////////////////////////////////////
-std::map<std::string, AddressContent> AddressManager::Copy()
+std::map<std::string, MsgContent> MsgManager::Copy()
 {
   return this->dataPtr->data;
 }
 
 //////////////////////////////////////////////////
-void AddressManager::Set(std::map<std::string, AddressContent> &_newContent)
+void MsgManager::Set(std::map<std::string, MsgContent> &_newContent)
 {
-this->dataPtr->data = _newContent;
+  this->dataPtr->data = _newContent;
 }

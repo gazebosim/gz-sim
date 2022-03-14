@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_ADDRESSMANAGER_HH_
-#define IGNITION_GAZEBO_SYSTEMS_ADDRESSMANAGER_HH_
+#ifndef IGNITION_GAZEBO_MSGMANAGER_HH_
+#define IGNITION_GAZEBO_MSGMANAGER_HH_
 
 #include <ignition/msgs/datagram.pb.h>
 #include <deque>
@@ -33,10 +33,8 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace systems
-{
 
-struct AddressContent
+struct MsgContent
 {
   /// \brief Queue of inbound messages.
   public: std::deque<std::shared_ptr<msgs::Datagram>> inboundMsgs;
@@ -51,13 +49,13 @@ struct AddressContent
 };
 
 /// \brief
-class AddressManager
+class MsgManager
 {
   /// \brief Default constructor.
-  public: AddressManager();
+  public: MsgManager();
 
   /// \brief Destructor.
-  public: virtual ~AddressManager();
+  public: virtual ~MsgManager();
 
   /// \brief
   public: void AddSubscriber(const std::string &_address,
@@ -91,18 +89,17 @@ class AddressManager
   public: void DeliverMsgs();
 
   /// \brief ToDo.
-  public: std::map<std::string, AddressContent> &Data();
+  public: std::map<std::string, MsgContent> &Data();
 
   /// \brief ToDo.
-  public: std::map<std::string, AddressContent> Copy();
+  public: std::map<std::string, MsgContent> Copy();
 
   /// \brief ToDo.
-  public: void Set(std::map<std::string, AddressContent> &_newContent);
+  public: void Set(std::map<std::string, MsgContent> &_newContent);
 
   /// \brief Private data pointer.
   IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)
 };
-}
 }
 }
 }

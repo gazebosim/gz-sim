@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_COMMONTYPES_HH_
-#define IGNITION_GAZEBO_SYSTEMS_COMMONTYPES_HH_
+#ifndef IGNITION_GAZEBO_COMMONTYPES_HH_
+#define IGNITION_GAZEBO_COMMONTYPES_HH_
 
 #include <string>
 
@@ -25,9 +25,6 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace systems
-{
-
 // /// \brief Address used to send a message to all the members of the team
 // /// listening on a specific port.
 // const std::string kBroadcast = "broadcast";
@@ -44,7 +41,6 @@ const std::string kAddrBindSrv = "/broker/bind";
 
 /// \brief Service used to invalidate an address.
 const std::string kAddrUnbindSrv = "/broker/unbind";
-}
 }
 }
 }

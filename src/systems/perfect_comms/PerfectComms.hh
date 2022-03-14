@@ -14,13 +14,13 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_PERFECTCOMMSMODEL_HH_
-#define IGNITION_GAZEBO_SYSTEMS_PERFECTCOMMSMODEL_HH_
+#ifndef IGNITION_GAZEBO_SYSTEMS_PERFECTCOMMS_HH_
+#define IGNITION_GAZEBO_SYSTEMS_PERFECTCOMMS_HH_
 
+#include <ignition/gazebo/CommsModel.hh>
+#include <ignition/gazebo/MsgManager.hh>
 #include <ignition/gazebo/System.hh>
 #include <ignition/utils/ImplPtr.hh>
-#include "../AddressManager.hh"
-#include "../CommsModel.hh"
 
 namespace ignition
 {
@@ -31,17 +31,17 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
 {
   /// \brief
-  class PerfectCommsModel
+  class PerfectComms
       : public System,
         public ICommsModel,
         public ISystemConfigure,
         public ISystemPreUpdate
   {
     /// \brief Constructor
-    public: PerfectCommsModel();
+    public: PerfectComms();
 
     /// \brief Destructor
-    public: ~PerfectCommsModel();
+    public: ~PerfectComms();
 
     // Documentation inherited
     public: void Configure(const Entity &_entity,
@@ -58,7 +58,7 @@ namespace systems
     public: void Step(
       const ignition::gazebo::UpdateInfo &_info,
       ignition::gazebo::EntityComponentManager &_ecm,
-      AddressManager &_messageMgr);
+      MsgManager &_messageMgr);
 
     /// \brief Private data pointer.
     IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)

@@ -15,14 +15,13 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_COMMS_COMMSMODEL_HH__
-#define IGNITION_GAZEBO_SYSTEMS_COMMS_COMMSMODEL_HH__
+#ifndef IGNITION_GAZEBO_COMMSMODEL_HH__
+#define IGNITION_GAZEBO_COMMSMODEL_HH__
 
 #include <ignition/gazebo/EntityComponentManager.hh>
+#include <ignition/gazebo/MsgManager.hh>
 #include <ignition/gazebo/System.hh>
 #include <sdf/sdf.hh>
-
-#include "AddressManager.hh"
 
 namespace ignition
 {
@@ -30,8 +29,6 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace systems
-{
   /// \brief Abstract interface to define how the environment should handle
   /// communication simulation. This class should be responsible for
   /// handling dropouts, decay and packet collisions.
@@ -45,12 +42,11 @@ namespace systems
     public: virtual void Step(
       const ignition::gazebo::UpdateInfo &_info,
       ignition::gazebo::EntityComponentManager &_ecm,
-      AddressManager &_messageMgr) = 0;
+      ignition::gazebo::MsgManager &_messageMgr) = 0;
 
     /// \brief Destructor
     public: virtual ~ICommsModel() = default;
   };
-  }
 }
 }
 }

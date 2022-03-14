@@ -16,40 +16,38 @@
  */
 
 #include <ignition/common/Profiler.hh>
-#include <ignition/plugin/Register.hh>
+#include <ignition/gazebo/Broker.hh>
 #include <ignition/gazebo/Util.hh>
+#include <ignition/plugin/Register.hh>
 #include <sdf/sdf.hh>
 
-#include "ignition/gazebo/Util.hh"
-
-#include "../Broker.hh"
-#include "PerfectCommsModel.hh"
+#include "PerfectComms.hh"
 
 using namespace ignition;
 using namespace gazebo;
 using namespace systems;
 
-class ignition::gazebo::systems::PerfectCommsModel::Implementation
+class ignition::gazebo::systems::PerfectComms::Implementation
 {
   /// \brief Broker instance.
-  public: Broker broker;
+  public: ignition::gazebo::Broker broker;
 };
 
 //////////////////////////////////////////////////
-PerfectCommsModel::PerfectCommsModel()
+PerfectComms::PerfectComms()
   : dataPtr(ignition::utils::MakeUniqueImpl<Implementation>())
 {
   ignerr << "Broker plugin running" << std::endl;
 }
 
-///////////////////////////PerfectCommsModel///////////////////////
-PerfectCommsModel::~PerfectCommsModel()
+//////////////////////////////////////////////////
+PerfectComms::~PerfectComms()
 {
   // cannot use default destructor because of dataPtr
 }
 
 //////////////////////////////////////////////////
-void PerfectCommsModel::Configure(const Entity &_entity,
+void PerfectComms::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &/*_ecm*/,
     EventManager &/*_eventMgr*/)
@@ -58,11 +56,11 @@ void PerfectCommsModel::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void PerfectCommsModel::PreUpdate(
+void PerfectComms::PreUpdate(
     const ignition::gazebo::UpdateInfo &_info,
     ignition::gazebo::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("PerfectCommsModel::PreUpdate");
+  IGN_PROFILE("PerfectComms::PreUpdate");
 
   // Step the comms model.
   this->Step(_info, _ecm, this->dataPtr->broker.Data());
@@ -71,10 +69,10 @@ void PerfectCommsModel::PreUpdate(
   this->dataPtr->broker.DeliverMsgs();
 }
 
-void PerfectCommsModel::Step(
+void PerfectComms::Step(
       const ignition::gazebo::UpdateInfo &_info,
       ignition::gazebo::EntityComponentManager &_ecm,
-      AddressManager &_messageMgr)
+      MsgManager &_messageMgr)
 {
   this->dataPtr->broker.Lock();
 
@@ -101,10 +99,10 @@ void PerfectCommsModel::Step(
   this->dataPtr->broker.Unlock();
 }
 
-IGNITION_ADD_PLUGIN(PerfectCommsModel,
+IGNITION_ADD_PLUGIN(PerfectComms,
                     ignition::gazebo::System,
-                    PerfectCommsModel::ISystemConfigure,
-                    PerfectCommsModel::ISystemPreUpdate)
+                    PerfectComms::ISystemConfigure,
+                    PerfectComms::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(PerfectCommsModel,
-                          "ignition::gazebo::systems::PerfectCommsModel")
+IGNITION_ADD_PLUGIN_ALIAS(PerfectComms,
+                          "ignition::gazebo::systems::PerfectComms")

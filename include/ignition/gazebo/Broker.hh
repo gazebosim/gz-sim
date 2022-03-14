@@ -17,15 +17,14 @@
 
 /// \file Broker.hh
 /// \brief Broker for handling message delivery among robots.
-#ifndef IGNITION_GAZEBO_SYSTEMS_BROKER_HH_
-#define IGNITION_GAZEBO_SYSTEMS_BROKER_HH_
+#ifndef IGNITION_GAZEBO_BROKER_HH_
+#define IGNITION_GAZEBO_BROKER_HH_
 
 #include <mutex>
+#include <ignition/gazebo/MsgManager.hh>
 #include <ignition/msgs/datagram.pb.h>
 #include <ignition/msgs/stringmsg_v.pb.h>
 #include <ignition/utils/ImplPtr.hh>
-
-#include "AddressManager.hh"
 
 namespace ignition
 {
@@ -33,8 +32,6 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace systems
-{
   /// \brief Store messages, and exposes an API for registering new clients,
   /// bind to a particular address, push new messages or get the list of
   /// messages already stored in the queue.
@@ -62,7 +59,7 @@ namespace systems
     public: void DeliverMsgs();
 
     /// \brief ToDo.
-    public: AddressManager &Data();
+    public: ignition::gazebo::MsgManager &Data();
 
     /// \brief ToDo.
     public: void Lock();
@@ -73,7 +70,6 @@ namespace systems
    /// \brief Private data pointer.
    IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)
   };
-  }
 }
 }
 }

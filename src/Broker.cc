@@ -23,25 +23,23 @@
 #include <mutex>
 #include <unordered_set>
 
+#include <ignition/gazebo/Broker.hh>
+#include <ignition/gazebo/CommonTypes.hh>
+#include <ignition/gazebo/MsgManager.hh>
 #include <ignition/gazebo/Util.hh>
 #include <ignition/transport/Node.hh>
 
-#include "AddressManager.hh"
-#include "Broker.hh"
-#include "CommonTypes.hh"
-
 using namespace ignition;
 using namespace gazebo;
-using namespace systems;
 
 /// \brief Private Broker data class.
-class ignition::gazebo::systems::Broker::Implementation
+class ignition::gazebo::Broker::Implementation
 {
   /// \brief An Ignition Transport node for communications.
   public: ignition::transport::Node node;
 
   /// \brief The message manager.
-  public: AddressManager data;
+  public: ignition::gazebo::MsgManager data;
 
   /// \brief Protect data from races.
   public: std::mutex mutex;
@@ -133,7 +131,7 @@ void Broker::DeliverMsgs()
 }
 
 //////////////////////////////////////////////////
-AddressManager &Broker::Data()
+MsgManager &Broker::Data()
 {
   return this->dataPtr->data;
 }

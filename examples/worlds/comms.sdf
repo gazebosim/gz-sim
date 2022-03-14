@@ -110,8 +110,8 @@
       </link>
 
       <plugin
-        filename="ignition-gazebo-perfect-comms-model-system"
-        name="ignition::gazebo::systems::PerfectCommsModel">
+        filename="ignition-gazebo-perfect-comms-system"
+        name="ignition::gazebo::systems::PerfectComms">
       </plugin>
 
     </model>
