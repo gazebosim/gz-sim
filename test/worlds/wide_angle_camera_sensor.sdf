@@ -1,0 +1,129 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="wide_angle_camera_sensor">
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin
+      filename="ignition-gazebo-physics-system"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-sensors-system"
+      name="ignition::gazebo::systems::Sensors">
+      <render_engine>ogre</render_engine>
+    </plugin>
+    <plugin
+      filename="libignition-gazebo-scene-broadcaster-system.so"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <!--plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane-->
+            <box>
+              <size>20 20 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <!--plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane-->
+            <box>
+              <size>20 20 0.1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+  <model name="wide_angle_camera">
+      <static>true</static>
+      <pose>1 1 0.5 0 0.0 3.14</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </visual>
+        <sensor name="wide_angle_camera" type="wideanglecamera">
+          <camera>
+            <horizontal_fov>3.14</horizontal_fov>
+            <image>
+              <width>256</width>
+              <height>256</height>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>100</far>
+            </clip>
+            <!-- A new section named `lens`. -->
+            <lens>
+              <!-- type element is mandatory -->
+              <type>custom</type>
+              <!-- manually defined mapping function r = c1*f*fun(theta/c2 + c3) -->
+              <!-- More information here: https://en.wikipedia.org/wiki/Fisheye_lens#Mapping_function -->
+              <custom_function>
+                <c1>1.05</c1>
+                <!-- linear scaling -->
+                <c2>4</c2>
+                <!-- angle scaling -->
+                <f>1.0</f>
+                <!-- one more scaling parameter -->
+                <fun>tan</fun>
+                <!-- one of sin,tan,id -->
+              </custom_function>
+              <!-- if it is set to `true` your horizontal FOV will ramain as defined -->
+              <!-- othervise it depends on lens type and custom function, if there is one -->
+              <scale_to_hfov>true</scale_to_hfov>
+              <!-- clip everything that is outside of this angle -->
+              <cutoff_angle>3.1415</cutoff_angle>
+              <!-- resolution of the cubemap texture, the highter it is - the sharper is your image -->
+              <env_texture_size>512</env_texture_size>
+            </lens>
+          </camera>
+          <update_rate>10</update_rate>
+          <topic>wide_angle_camera</topic>
+        </sensor>
+      </link>
+    </model>
+  </world>
+</sdf>
