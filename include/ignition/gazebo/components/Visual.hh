@@ -81,14 +81,15 @@ namespace components
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Visual", Visual)
 
   /// \brief A component that contains a visual plugin's SDF element.
-  /// \todo(nkoenig) Deprecate this in Garden
+  /// \note This will be deprecated in Gazebo 7 (Garden), please the use
+  /// sdf::Plugins interface.
   using VisualPlugin = Component<sdf::ElementPtr,
                                  class VisualPluginTag,
                                  serializers::SdfElementSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.VisualPlugin",
       VisualPlugin)
 
-  /// \brief A component that contains a visual plugin's SDF objects.
+  /// \brief A component that contains a visual plugin's SDF Plugin objects.
   using VisualPlugins = Component<sdf::Plugins,
                                  class VisualPluginsTag,
                                  serializers::VectorSerializer<sdf::Plugin>>;

@@ -126,11 +126,6 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
       std::bind(&SimulationRunner::LoadPlugins, this, std::placeholders::_1,
       std::placeholders::_2));
 
-  /// \todo(nkoenig) Deprecate/remove this event in Garden
-  this->loadPtrPluginsConn = this->eventMgr.Connect<events::LoadPlugins>(
-      std::bind(&SimulationRunner::LoadPtrPlugins, this, std::placeholders::_1,
-      std::placeholders::_2));
-
   // Create the level manager
   this->levelMgr = std::make_unique<LevelManager>(this, _config.UseLevels());
 
@@ -973,43 +968,16 @@ void SimulationRunner::LoadLoggingPlugins(const ServerConfig &_config)
 }
 
 //////////////////////////////////////////////////
-/// \todo(nkoenig) Remove this function in Garden.
-void SimulationRunner::LoadPtrPlugins(const Entity _entity,
-    const sdf::ElementPtr &_sdf)
-{
-  sdf::ElementPtr pluginElem = _sdf->FindElement("plugin");
-  while (pluginElem)
-  {
-    auto filename = pluginElem->Get<std::string>("filename");
-    auto name = pluginElem->Get<std::string>("name");
-    // No error message for the 'else' case of the following 'if' statement
-    // because SDF create a default <plugin> element even if it's not
-    // specified. An error message would result in spamming
-    // the console.
-    if (filename != "__default__" && name != "__default__")
-    {
-      sdf::Plugin plugin;
-      plugin.Load(pluginElem);
-      this->LoadPlugin(_entity, plugin);
-    }
-
-    pluginElem = pluginElem->GetNextElement("plugin");
-  }
-}
-
-//////////////////////////////////////////////////
 void SimulationRunner::LoadPlugins(const Entity _entity,
     const sdf::Plugins &_plugins)
 {
   for (const sdf::Plugin plugin : _plugins)
   {
-    auto filename = plugin.Filename();
-    auto name = plugin.Name();
     // No error message for the 'else' case of the following 'if' statement
     // because SDF create a default <plugin> element even if it's not
     // specified. An error message would result in spamming
     // the console.
-    if (filename != "__default__" && name != "__default__")
+    if (plugin.Filename() != "__default__" && plugin.Name() != "__default__")
     {
       this->LoadPlugin(_entity, plugin);
     }

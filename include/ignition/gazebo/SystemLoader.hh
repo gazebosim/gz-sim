@@ -54,7 +54,8 @@ namespace ignition
       /// \brief Load and instantiate system plugin from an SDF element.
       /// \param[in] _sdf SDF Element describing plugin instance to be loaded.
       /// \returns Shared pointer to system instance or nullptr.
-      /// \todo(nkoenig) Deprecate this function in Garden
+      /// \note This will be deprecated in Gazebo 7 (Garden), please the use
+      /// sdf::Plugin interface.
       public: std::optional<SystemPluginPtr> LoadPlugin(
                   const sdf::ElementPtr &_sdf);
 
@@ -63,7 +64,8 @@ namespace ignition
       /// \param[in] _name Class name to be instantiated.
       /// \param[in] _sdf SDF Element describing plugin instance to be loaded.
       /// \returns Shared pointer to system instance or nullptr.
-      /// \todo(nkoenig) Deprecate this function in Garden
+      /// \note This will be deprecated in Gazebo 7 (Garden), please the use
+      /// sdf::Plugin interface.
       public: std::optional<SystemPluginPtr> LoadPlugin(
                   const std::string &_filename,
                   const std::string &_name,

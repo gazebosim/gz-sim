@@ -164,7 +164,7 @@ void GzSceneManager::Update(const UpdateInfo &_info,
   {
     for (const sdf::Plugin plugin : it.second)
     {
-      ignition::gazebo::gui::events::VisualPluginSdf visualPluginEvent(
+      ignition::gazebo::gui::events::VisualSdfPlugin visualPluginEvent(
           it.first, plugin);
       ignition::gui::App()->sendEvent(
           ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),

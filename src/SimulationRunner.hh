@@ -136,20 +136,13 @@ namespace ignition
       /// \brief Publish current world statistics.
       public: void PublishStats();
 
-      /// \brief Load system plugins for a given entity.
-      /// \param[in] _entity Entity
-      /// \param[in] _sdf SDF element
-      /// \todo(nkoenig) Remove this in Garden.
-      public: void LoadPtrPlugins(const Entity _entity,
-          const sdf::ElementPtr &_sdf);
-
       /// \brief Load system plugin for a given entity.
-      /// \param[in] _entity Entity
+      /// \param[in] _entity The plugins will be associated with this Entity
       /// \param[in] _plugin SDF Plugin to load
       public: void LoadPlugin(const Entity _entity, const sdf::Plugin &_plugin);
 
       /// \brief Load system plugins for a given entity.
-      /// \param[in] _entity Entity
+      /// \param[in] _entity The plugins will be associated with this Entity
       /// \param[in] _plugins SDF Plugins to load
       public: void LoadPlugins(const Entity _entity,
           const sdf::Plugins &_plugins);
@@ -467,10 +460,6 @@ namespace ignition
 
       /// \brief Connection to the load plugins event.
       private: common::ConnectionPtr loadPluginsConn;
-
-      /// \brief Connection to the sdf element pointer load plugins event.
-      /// \todo(nkoenig) Remove this in Garden.
-      private: common::ConnectionPtr loadPtrPluginsConn;
 
       /// \brief Pointer to the sdf::World object of this runner
       private: const sdf::World *sdfWorld;

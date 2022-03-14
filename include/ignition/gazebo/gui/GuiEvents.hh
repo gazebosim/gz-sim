@@ -216,6 +216,8 @@ namespace events
   };
 
   /// \brief Event that notifies a visual plugin is to be loaded
+  /// \note This will be deprecated in Gazebo 7 (Garden), please the use
+  /// VisualSdfPlugin class.
   class IGNITION_GAZEBO_GUI_VISIBLE VisualPlugin: public QEvent
   {
     /// \brief Constructor
@@ -238,18 +240,18 @@ namespace events
   };
 
   /// \brief Event that notifies a visual plugin is to be loaded
-  class IGNITION_GAZEBO_GUI_VISIBLE VisualPluginSdf: public QEvent
+  class IGNITION_GAZEBO_GUI_VISIBLE VisualSdfPlugin: public QEvent
   {
     /// \brief Constructor
     /// \param[in] _entity Visual entity id
-    /// \param[in] _elem Visual plugin SDF element
-    public: explicit VisualPluginSdf(ignition::gazebo::Entity _entity,
+    /// \param[in] _plguin SDF plugin object
+    public: explicit VisualSdfPlugin(ignition::gazebo::Entity _entity,
                 const sdf::Plugin &_plugin);
 
     /// \brief Get the entity to load the visual plugin for
     public: ignition::gazebo::Entity Entity() const;
 
-    /// \brief Get the sdf plugin of the visual plugin
+    /// \brief Get the SDF Plugin of the visual plugin
     public: sdf::Plugin Plugin() const;
 
     static const QEvent::Type kType = QEvent::Type(QEvent::User + 8);
