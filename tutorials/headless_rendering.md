@@ -4,8 +4,9 @@ It is often desirable to run simulation on a remote computer, such as
 a computer managed by cloud provider, in order to paralellize work or access
 specific compute resources. Simulated sensors that require GPU access have
 historically been difficult to use on a remote computer due to OpenGL's
-X server requirement. This issue can be resolved through installation and
-proper configuration of X, but the steps can be complex and error prone.
+X server requirement on linux systems. This issue can be resolved through
+installation and proper configuration of X, but the steps can be complex and
+error prone.
 
 An easier solution is through the use of [EGL](https://www.khronos.org/egl), which allows for the the creation of rendering surfaces without an X server. Ignition Gazebo has added support for EGL via the `--headless-rendering` command line option. Use of EGL is only available with OGRE2.
 
