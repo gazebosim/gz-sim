@@ -137,12 +137,12 @@ namespace ignition
       public: void PublishStats();
 
       /// \brief Load system plugin for a given entity.
-      /// \param[in] _entity Entity
+      /// \param[in] _entity The plugins will be associated with this Entity
       /// \param[in] _plugin SDF Plugin to load
       public: void LoadPlugin(const Entity _entity, const sdf::Plugin &_plugin);
 
       /// \brief Load system plugins for a given entity.
-      /// \param[in] _entity Entity
+      /// \param[in] _entity The plugins will be associated with this Entity
       /// \param[in] _plugins SDF Plugins to load
       public: void LoadPlugins(const Entity _entity,
           const sdf::Plugins &_plugins);

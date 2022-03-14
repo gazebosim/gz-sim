@@ -83,6 +83,7 @@ namespace components
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Visual", Visual)
 
   /// \brief A component that contains a visual plugin's SDF element.
+  /// \deprecated Use the VisualPlugins component
   using VisualPlugin IGN_DEPRECATED(7) = Component<sdf::ElementPtr,
                                  class VisualPluginTag,
                                  serializers::SdfElementSerializer>;
@@ -91,7 +92,7 @@ namespace components
       VisualPlugin)
   IGN_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
 
-  /// \brief A component that contains a visual plugin's SDF objects.
+  /// \brief A component that contains a visual plugin's SDF Plugin objects.
   using VisualPlugins = Component<sdf::Plugins,
                                  class VisualPluginsTag,
                                  serializers::VectorSerializer<sdf::Plugin>>;

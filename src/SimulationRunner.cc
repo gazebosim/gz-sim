@@ -975,13 +975,11 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
 {
   for (const sdf::Plugin plugin : _plugins)
   {
-    auto filename = plugin.Filename();
-    auto name = plugin.Name();
     // No error message for the 'else' case of the following 'if' statement
     // because SDF create a default <plugin> element even if it's not
     // specified. An error message would result in spamming
     // the console.
-    if (filename != "__default__" && name != "__default__")
+    if (plugin.Filename() != "__default__" && plugin.Name() != "__default__")
     {
       this->LoadPlugin(_entity, plugin);
     }
