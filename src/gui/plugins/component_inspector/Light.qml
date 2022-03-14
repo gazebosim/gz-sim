@@ -301,7 +301,7 @@ Rectangle {
 
             Text {
               id : visualizeVisualText
-              text: ' Visualize visual enabled'
+              text: ' View gizmo'
               leftPadding: 5
               color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
               font.pointSize: 12
