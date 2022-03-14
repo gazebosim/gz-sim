@@ -18,8 +18,10 @@
 #include <gtest/gtest.h>
 
 #include <csignal>
+#include <chrono>
 #include <exception>
 #include <ignition/common/Filesystem.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 
 #include "helpers/EnvTestFixture.hh"
 #include "ignition/gazebo/Server.hh"
@@ -62,7 +64,8 @@ void startBoth(const std::string &_fileName)
 {
   std::thread serverThread([&]() { startServer(_fileName); });
   std::thread guiThread(startGui);
-  sleep(4);
+  using namespace std::chrono_literals;
+  std::this_thread::sleep_for(4s);
   std::raise(SIGTERM);
   serverThread.join();
   guiThread.join();
@@ -70,7 +73,7 @@ void startBoth(const std::string &_fileName)
 }
 
 /////////////////////////////////////////////////
-TEST_P(GazeboDeathTest, CleanExit)
+TEST_P(GazeboDeathTest, IGN_UTILS_TEST_DISABLED_ON_MAC(CleanExit))
 {
   const auto sdfFile =
       common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", GetParam());
