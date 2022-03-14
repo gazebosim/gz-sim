@@ -1033,7 +1033,7 @@ void ComponentInspector::OnLight(
 
   ignition::msgs::Light req;
   {
-    // todo(anyone) Use the field isLightOn in light.proto from
+    // todo(ahcorde) Use the field is_llight_on in light.proto from
     // Garden on.
     auto header = req.mutable_header()->add_data();
     header->set_key("isLightOn");
@@ -1041,7 +1041,7 @@ void ComponentInspector::OnLight(
     *value = std::to_string(_isLightOn);
   }
   {
-    // todo(anyone) Use the field visualize_visual in light.proto from
+    // todo(ahcorde) Use the field visualize_visual in light.proto from
     // Garden on.
     auto header = req.mutable_header()->add_data();
     header->set_key("visualizeVisual");

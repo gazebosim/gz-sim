@@ -570,7 +570,7 @@ msgs::Light ignition::gazebo::convert(const sdf::Light &_in)
   out.set_spot_falloff(_in.SpotFalloff());
 
   {
-    // todo(anyone) Use the field isLightOn in light.proto from
+    // todo(ahcorde) Use the field is_llight_on in light.proto from
     // Garden on.
     auto header = out.mutable_header()->add_data();
     header->set_key("isLightOn");
@@ -579,7 +579,7 @@ msgs::Light ignition::gazebo::convert(const sdf::Light &_in)
   }
 
   {
-    // todo(anyone) Use the field visualize_visual in light.proto from
+    // todo(ahcorde) Use the field visualize_visual in light.proto from
     // Garden on.
     auto header = out.mutable_header()->add_data();
     header->set_key("visualizeVisual");
@@ -617,7 +617,7 @@ sdf::Light ignition::gazebo::convert(const msgs::Light &_in)
   out.SetSpotOuterAngle(math::Angle(_in.spot_outer_angle()));
   out.SetSpotFalloff(_in.spot_falloff());
 
-  // todo(anyone) Use the field isLightOn in light.proto from
+  // todo(ahcorde) Use the field is_light_off in light.proto from
   // Garden on.
   bool visualizeVisual = true;
   for (int i = 0; i < _in.header().data_size(); ++i)
@@ -635,7 +635,7 @@ sdf::Light ignition::gazebo::convert(const msgs::Light &_in)
   }
   out.SetVisualize(visualizeVisual);
 
-  // todo(anyone) Use the field isLightOn in light.proto from
+  // todo(ahcorde) Use the field is_llight_on in light.proto from
   // Garden on.
   bool isLightOn = true;
   for (int i = 0; i < _in.header().data_size(); ++i)

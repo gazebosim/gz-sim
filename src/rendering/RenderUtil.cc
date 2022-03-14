@@ -2132,7 +2132,7 @@ void RenderUtilPrivate::UpdateLights(
     auto l = std::dynamic_pointer_cast<rendering::Light>(node);
     if (l)
     {
-      // todo(anyone) Use the field visualize_visual in light.proto from
+      // todo(ahcorde) Use the field visualize_visual in light.proto from
       // Garden on.
       bool visualizeVisual = true;
       for (int i = 0; i < light.second.header().data_size(); ++i)
@@ -2155,7 +2155,7 @@ void RenderUtilPrivate::UpdateLights(
       if (lightVisual)
         lightVisual->SetVisible(visualizeVisual);
 
-      // todo(anyone) Use the field isLightOn in light.proto from
+      // todo(ahcorde) Use the field is_llight_on in light.proto from
       // Garden on.
       bool isLightOn = true;
       for (int i = 0; i < light.second.header().data_size(); ++i)
