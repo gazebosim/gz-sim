@@ -294,7 +294,6 @@ Rectangle {
             color: "transparent"
             height: 40
             Layout.preferredWidth: isOnText.width + indentation*3
-            Component.onCompleted: isLightOn.item.componentInfo = "is light on ?"
 
             Text {
               id : isOnText
@@ -315,7 +314,7 @@ Rectangle {
               property double numberValue: model.data[21]
               sourceComponent: ignSwitch
               onLoaded: {
-                isLightOnItem = inOnLoader.item
+                isLightOnItem = isOnLoader.item
               }
             }
           }
