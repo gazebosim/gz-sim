@@ -394,6 +394,52 @@ class OdometryPublisherTest
 
     EXPECT_EQ(5u, odomPosesCount);
   }
+
+  /// \param[in] _sdfFile SDF file to load.
+  /// \param[in] _odomTopic Odometry topic.
+  protected: void TestOffsetTags(const std::string &_sdfFile,
+                               const std::string &_odomTopic)
+  {
+    // Start server
+    ServerConfig serverConfig;
+    serverConfig.SetSdfFile(_sdfFile);
+
+    Server server(serverConfig);
+    EXPECT_FALSE(server.Running());
+    EXPECT_FALSE(*server.Running(0));
+
+    std::vector<math::Pose3d> odomPoses;
+    // Create function to store data from odometry messages
+    std::function<void(const msgs::Odometry &)> odomCb =
+      [&](const msgs::Odometry &_msg)
+      {
+        odomPoses.push_back(msgs::Convert(_msg.pose()));
+      };
+    transport::Node node;
+    node.Subscribe(_odomTopic, odomCb);
+
+    // Run server while the model moves with the velocities set earlier
+    server.Run(true, 3000, false);
+
+    int sleep = 0;
+    int maxSleep = 30;
+    for (; odomPoses.size() < 150 && sleep < maxSleep; ++sleep)
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    ASSERT_NE(maxSleep, sleep);
+
+    // Run for 3s and check the pose in the last message
+    ASSERT_FALSE(odomPoses.empty());
+    auto lastPose = odomPoses[odomPoses.size() - 1];
+    EXPECT_NEAR(lastPose.Pos().X(), 11, 1e-2);
+    EXPECT_NEAR(lastPose.Pos().Y(), -11, 1e-2);
+    EXPECT_NEAR(lastPose.Pos().Z(), 0, 1e-2);
+
+    EXPECT_NEAR(lastPose.Rot().Roll(), 1.57, 1e-2);
+    EXPECT_NEAR(lastPose.Rot().Pitch(), 0, 1e-2);
+    EXPECT_NEAR(lastPose.Rot().Yaw(), 0, 1e-2);
+  }
 };
 
 /////////////////////////////////////////////////
@@ -444,6 +490,16 @@ TEST_P(OdometryPublisherTest,
       "/model/bar/odom",
       "odomCustom",
       "baseCustom");
+}
+
+/////////////////////////////////////////////////
+TEST_P(OdometryPublisherTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(OffsetTagTest))
+{
+  TestOffsetTags(
+      std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/odometry_offset.sdf",
+      "/model/vehicle/odometry");
 }
 
 // Run multiple times
