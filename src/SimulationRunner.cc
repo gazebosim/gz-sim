@@ -860,15 +860,6 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 
 //////////////////////////////////////////////////
 void SimulationRunner::LoadPlugin(const Entity _entity,
-                                  const std::string &_fname,
-                                  const std::string &_name,
-                                  const sdf::ElementPtr &_sdf)
-{
-  this->systemMgr->LoadPlugin(_entity, _fname, _name, _sdf);
-}
-
-//////////////////////////////////////////////////
-void SimulationRunner::LoadPlugin(const Entity _entity,
                                   const sdf::Plugin &_plugin)
 {
   this->systemMgr->LoadPlugin(_entity, _plugin);
@@ -997,7 +988,9 @@ void SimulationRunner::LoadPtrPlugins(const Entity _entity,
     // the console.
     if (filename != "__default__" && name != "__default__")
     {
-      this->LoadPlugin(_entity, filename, name, pluginElem);
+      sdf::Plugin plugin;
+      plugin.Load(pluginElem);
+      this->LoadPlugin(_entity, plugin);
     }
 
     pluginElem = pluginElem->GetNextElement("plugin");

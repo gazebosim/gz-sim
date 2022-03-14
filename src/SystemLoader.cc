@@ -223,26 +223,6 @@ std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(
   plugin.SetFilename(_filename);
   plugin.SetName(_name);
   return LoadPlugin(plugin);
-  /*ignition::plugin::PluginPtr plugin;
-
-  if (_filename == "" || _name == "")
-  {
-    ignerr << "Failed to instantiate system plugin: empty argument "
-              "[(filename): " << _filename << "] " <<
-              "[(name): " << _name << "]." << std::endl;
-    return {};
-  }
-
-  auto ret = this->dataPtr->InstantiateSystemPlugin(_filename,
-                                                    _name,
-                                                    _sdf, plugin);
-  if (ret && plugin)
-  {
-    return plugin;
-  }
-
-  return {};
-  */
 }
 
 //////////////////////////////////////////////////
@@ -253,9 +233,9 @@ std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(
   {
     return {};
   }
-  auto filename = _sdf->Get<std::string>("filename");
-  auto pluginName = _sdf->Get<std::string>("name");
-  return LoadPlugin(filename, pluginName, _sdf);
+  sdf::Plugin plugin;
+  plugin.Load(_sdf);
+  return LoadPlugin(plugin);
 }
 
 //////////////////////////////////////////////////
