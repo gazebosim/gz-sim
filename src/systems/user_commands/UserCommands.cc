@@ -159,7 +159,7 @@ class LightCommand : public UserCommandBase
   public: std::function<bool(const msgs::Light &, const msgs::Light &)>
           lightEql { [](const msgs::Light &_a, const msgs::Light &_b)
             {
-              // todo(anyone) Use the field isLightOn in light.proto from
+              // todo(ahcorde) Use the field is_light_off in light.proto from
               // Garden on.
               auto getIsLightOn = [](const msgs::Light &_light) -> bool
               {

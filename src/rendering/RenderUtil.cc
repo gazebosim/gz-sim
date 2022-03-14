@@ -2131,7 +2131,7 @@ void RenderUtilPrivate::UpdateLights(
     auto l = std::dynamic_pointer_cast<rendering::Light>(node);
     if (l)
     {
-      // todo(anyone) Use the field isLightOn in light.proto from
+      // todo(ahcorde) Use the field is_light_off in light.proto from
       // Garden on.
       bool isLightOn = true;
       for (int i = 0; i < light.second.header().data_size(); ++i)

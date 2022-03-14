@@ -310,7 +310,7 @@ Rectangle {
             height: 40
 
             Loader {
-              id: inOnLoader
+              id: isOnLoader
               anchors.fill: parent
               property double numberValue: model.data[21]
               sourceComponent: ignSwitch

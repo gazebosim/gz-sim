@@ -252,6 +252,7 @@ namespace gazebo
     /// \param[in] _falloff Falloff of the spotlight
     /// \param[in] _intensity Intensity of the light
     /// \param[in] _type light type
+    /// \param[in] _isLightOn is light on
     public: Q_INVOKABLE void OnLight(
       double _rSpecular, double _gSpecular, double _bSpecular,
       double _aSpecular, double _rDiffuse, double _gDiffuse,
