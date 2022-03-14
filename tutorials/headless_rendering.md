@@ -22,8 +22,12 @@ world uses OGRE2.
 
 ## AWS Example
 
-This example will guide you through the process of launching and
-configuring an AWS GPU instance with Gazebo running headless.
+This example will guide you through the process of launching and configuring
+an AWS GPU instance with Gazebo running headless. A GPU instance is
+recommended when sensors that require a render engine are used. It is
+possible to use a machine without a GPU, in which case OGRE will revert to
+software rendering. You can read more about [OGRE's EGL implementation
+here](https://www.ogre3d.org/2021/02/06/ogre-2-2-5-cerberus-released-and-egl-headless-support).
 
 1. Go to the [AWS EC2 service](https://console.aws.amazon.com/ec2)
 2. Click the `Launch Instance` button in the upper right.
