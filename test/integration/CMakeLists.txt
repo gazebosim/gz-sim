@@ -10,6 +10,7 @@ set(tests
   buoyancy.cc
   buoyancy_engine.cc
   collada_world_exporter.cc
+  comms.cc
   components.cc
   contact_system.cc
   detachable_joint.cc
