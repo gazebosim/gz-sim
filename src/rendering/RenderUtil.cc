@@ -2155,7 +2155,7 @@ void RenderUtilPrivate::UpdateLights(
       if (lightVisual)
         lightVisual->SetVisible(visualizeVisual);
 
-      // todo(ahcorde) Use the field is_llight_on in light.proto from
+      // todo(ahcorde) Use the field is_light_off in light.proto from
       // Garden on.
       bool isLightOn = true;
       for (int i = 0; i < light.second.header().data_size(); ++i)

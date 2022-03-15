@@ -1033,7 +1033,7 @@ void ComponentInspector::OnLight(
 
   ignition::msgs::Light req;
   {
-    // todo(ahcorde) Use the field is_llight_on in light.proto from
+    // todo(ahcorde) Use the field is_light_off in light.proto from
     // Garden on.
     auto header = req.mutable_header()->add_data();
     header->set_key("isLightOn");
