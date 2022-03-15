@@ -43,7 +43,6 @@ set(tests
   network_handshake.cc
   odometry_publisher.cc
   particle_emitter.cc
-  particle_emitter2.cc
   performer_detector.cc
   physics_system.cc
   play_pause.cc
@@ -67,6 +66,11 @@ set(tests
   world_control_state.cc
 )
 
+# elevator system causes compile erros on windows
+if (NOT WIN32)
+  list(APPEND tests elevator_system.cc)
+endif()
+
 # Tests that require a valid display
 set(tests_needing_display
   camera_sensor_background.cc
@@ -76,8 +80,10 @@ set(tests_needing_display
   optical_tactile_plugin.cc
   rgbd_camera.cc
   sensors_system.cc
+  shader_param_system.cc
   thermal_system.cc
   thermal_sensor_system.cc
+  wide_angle_camera.cc
 )
 
 # Add systems that need a valid display here.

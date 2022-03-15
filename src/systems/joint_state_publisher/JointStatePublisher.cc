@@ -24,12 +24,15 @@
 
 #include <ignition/plugin/Register.hh>
 
+#include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/JointAxis.hh"
 #include "ignition/gazebo/components/JointForce.hh"
 #include "ignition/gazebo/components/JointPosition.hh"
 #include "ignition/gazebo/components/JointVelocity.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/Util.hh"
 
@@ -208,6 +211,18 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
     if (pose)
       msgs::Set(jointMsg->mutable_pose(), pose->Data());
 
+    auto child = _ecm.Component<components::ChildLinkName>(joint);
+    if (child)
+    {
+      jointMsg->set_child(child->Data());
+    }
+
+    auto parent = _ecm.Component<components::ParentLinkName>(joint);
+    if (parent)
+    {
+      jointMsg->set_parent(parent->Data());
+    }
+
     // Set the joint position
     const auto *jointPositions  =
       _ecm.Component<components::JointPosition>(joint);
@@ -218,6 +233,19 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
         if (i == 0)
         {
           jointMsg->mutable_axis1()->set_position(jointPositions->Data()[i]);
+          auto jointAxis = _ecm.Component<components::JointAxis>(joint);
+          if (jointAxis)
+          {
+            msgs::Set(
+              jointMsg->mutable_axis1()->mutable_xyz(),
+              jointAxis->Data().Xyz());
+            jointMsg->mutable_axis1()->set_limit_upper(
+              jointAxis->Data().Upper());
+            jointMsg->mutable_axis1()->set_limit_lower(
+              jointAxis->Data().Lower());
+            jointMsg->mutable_axis1()->set_damping(
+              jointAxis->Data().Damping());
+          }
         }
         else if (i == 1)
         {

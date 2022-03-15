@@ -60,6 +60,7 @@ set (sources
   ServerPrivate.cc
   SimulationRunner.cc
   SystemLoader.cc
+  SystemManager.cc
   TestFixture.cc
   Util.cc
   World.cc
@@ -86,6 +87,7 @@ set (gtest_sources
   Server_TEST.cc
   SimulationRunner_TEST.cc
   SystemLoader_TEST.cc
+  SystemManager_TEST.cc
   System_TEST.cc
   TestFixture_TEST.cc
   Util_TEST.cc

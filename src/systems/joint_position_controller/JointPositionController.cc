@@ -230,8 +230,17 @@ void JointPositionController::PreUpdate(
         this->dataPtr->model.JointByName(_ecm, this->dataPtr->jointName);
   }
 
+  // If the joint is still not found then warn the user, they may have entered
+  // the wrong joint name.
   if (this->dataPtr->jointEntity == kNullEntity)
+  {
+    static bool warned = false;
+    if(!warned)
+      ignerr << "Could not find joint with name ["
+        << this->dataPtr->jointName <<"]\n";
+    warned = true;
     return;
+  }
 
   // Nothing left to do if paused.
   if (_info.paused)
