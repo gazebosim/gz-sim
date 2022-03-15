@@ -47,7 +47,7 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 # as protobuf could be find transitively by any dependency
 set(protobuf_MODULE_COMPATIBLE TRUE)
 
-ign_find_package(sdformat11 REQUIRED VERSION 11.2.1)
+ign_find_package(sdformat11 REQUIRED VERSION 11.4.0)
 set(SDF_VER ${sdformat11_VERSION_MAJOR})
 
 #--------------------------------------

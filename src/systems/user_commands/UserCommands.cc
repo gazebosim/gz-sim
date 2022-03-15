@@ -159,7 +159,28 @@ class LightCommand : public UserCommandBase
   public: std::function<bool(const msgs::Light &, const msgs::Light &)>
           lightEql { [](const msgs::Light &_a, const msgs::Light &_b)
             {
+              // todo(ahcorde) Use the field is_light_off in light.proto from
+              // Garden on.
+              auto getIsLightOn = [](const msgs::Light &_light) -> bool
+              {
+                bool isLightOn = true;
+                for (int i = 0; i < _light.header().data_size(); ++i)
+                {
+                  for (int j = 0;
+                      j < _light.header().data(i).value_size(); ++j)
+                  {
+                    if (_light.header().data(i).key() ==
+                        "isLightOn")
+                    {
+                      isLightOn = ignition::math::parseInt(
+                        _light.header().data(i).value(0));
+                    }
+                  }
+                }
+                return isLightOn;
+               };
              return
+                getIsLightOn(_a) == getIsLightOn(_b) &&
                 _a.type() == _b.type() &&
                 _a.name() == _b.name() &&
                 math::equal(
