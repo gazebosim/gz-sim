@@ -18,7 +18,7 @@ Throughout this tutorial, be sure to replace `<#>` with a number value, such as
 
 ## Binary Install
 
-### Ubuntu 18.04 or above
+### Ubuntu 20.04 or above
 
 The binary install method will use pre-built packages which are typically
 available through a package management utility such as [Apt](https://wiki.debian.org/Apt).
@@ -57,7 +57,7 @@ installing Ignition Gazebo from source.
 Install from source if you're interested in changing the source code or need a
 feature which hasn't been released yet.
 
-### Ubuntu 18.04 or above
+### Ubuntu 20.04 or above
 
 1. Install tools
   ```
@@ -82,13 +82,7 @@ feature which hasn't been released yet.
     $(sort -u $(find . -iname 'packages-'`lsb_release -cs`'.apt' -o -iname 'packages.apt' | tr '\n' ' '))
   ```
 
-5. (Ubuntu 18.04 only) Configure gcc8
-  ```
-  sudo apt-get install g++-8
-  sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 800 --slave /usr/bin/g++ g++ /usr/bin/g++-8 --slave /usr/bin/gcov gcov /usr/bin/gcov-8
-  ```
-
-6. Configure and build.
+5. Configure and build.
   ```
   cd ign-gazebo
   mkdir build
