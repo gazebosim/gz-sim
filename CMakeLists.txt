@@ -142,6 +142,7 @@ ign_find_package(ignition-sensors7 REQUIRED
     depth_camera
     rgbd_camera
     thermal_camera
+    wide_angle_camera
 )
 set(IGN_SENSORS_VER ${ignition-sensors7_VERSION_MAJOR})
 
