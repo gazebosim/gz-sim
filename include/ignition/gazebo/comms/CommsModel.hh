@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_COMMSMODEL_HH__
-#define IGNITION_GAZEBO_COMMSMODEL_HH__
+#ifndef IGNITION_GAZEBO_COMMSMODEL_HH_
+#define IGNITION_GAZEBO_COMMSMODEL_HH_
 
 #include <sdf/sdf.hh>
 
@@ -37,7 +37,45 @@ namespace comms
   /// communication simulation. This class should be responsible for
   /// handling dropouts, decay and packet collisions.
   class ICommsModel
+      : public System,
+        public ISystemConfigure,
+        public ISystemPreUpdate
   {
+    // Documentation inherited
+    public: void Configure(const Entity &_entity,
+                           const std::shared_ptr<const sdf::Element> &_sdf,
+                           EntityComponentManager &_ecm,
+                           EventManager &_eventMgr) override
+            {
+              this->Load(_entity, _sdf, _ecm, _eventMgr);
+              this->broker.Start();
+            }
+
+    // Documentation inherited
+    public: void PreUpdate(
+                const ignition::gazebo::UpdateInfo &_info,
+                ignition::gazebo::EntityComponentManager &_ecm) override
+            {
+              // Step the comms model.
+              this->Step(_info, _ecm, this->broker.Data());
+
+              // Deliver the inbound messages.
+              this->broker.DeliverMsgs();
+            }
+
+    /// \brief This method is called when the system is being configured
+    /// override this to load any additional params for the comms model
+    /// \param[in] _entity The entity this plugin is attached to.
+    /// \param[in] _sdf The SDF Element associated with this system plugin.
+    /// \param[in] _ecm The EntityComponentManager of the given simulation
+    /// instance.
+    /// \param[in] _eventMgr The EventManager of the given simulation
+    /// instance.
+    public: virtual void Load(const Entity &_entity,
+      const std::shared_ptr<const sdf::Element> &_sdf,
+      EntityComponentManager &_ecm,
+      EventManager &_eventMgr) = 0;
+
     /// \brief This method is called when there is a timestep in the simulator
     /// override this to update your data structures as needed.
     /// \param[in] _info - Simulator information about the current timestep.
@@ -48,6 +86,9 @@ namespace comms
 
     /// \brief Destructor
     public: virtual ~ICommsModel() = default;
+
+    /// \brief Broker instance
+    public: Broker broker;
   };
 }
 }

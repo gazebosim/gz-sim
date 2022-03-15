@@ -33,10 +33,7 @@ namespace systems
 {
   /// \brief
   class PerfectComms
-      : public System,
-        public comms::ICommsModel,
-        public ISystemConfigure,
-        public ISystemPreUpdate
+        : public comms::ICommsModel
   {
     /// \brief Constructor
     public: PerfectComms();
@@ -45,21 +42,15 @@ namespace systems
     public: ~PerfectComms();
 
     // Documentation inherited
-    public: void Configure(const Entity &_entity,
-                           const std::shared_ptr<const sdf::Element> &_sdf,
-                           EntityComponentManager &_ecm,
-                           EventManager &_eventMgr) override;
-
-    // Documentation inherited
-    public: void PreUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) override;
+    public: void Load(const Entity &_entity,
+                      const std::shared_ptr<const sdf::Element> &_sdf,
+                      EntityComponentManager &_ecm,
+                      EventManager &_eventMgr) override;
 
     /// \brief
-    public: void Step(
-      const ignition::gazebo::UpdateInfo &_info,
-      ignition::gazebo::EntityComponentManager &_ecm,
-      comms::MsgManager &_messageMgr);
+    public: void Step(const ignition::gazebo::UpdateInfo &_info,
+                      EntityComponentManager &_ecm,
+                      comms::MsgManager &_messageMgr);
 
     /// \brief Private data pointer.
     IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)

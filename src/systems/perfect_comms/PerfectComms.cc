@@ -30,15 +30,12 @@ using namespace systems;
 
 class ignition::gazebo::systems::PerfectComms::Implementation
 {
-  /// \brief Broker instance.
-  public: comms::Broker broker;
 };
 
 //////////////////////////////////////////////////
 PerfectComms::PerfectComms()
   : dataPtr(ignition::utils::MakeUniqueImpl<Implementation>())
 {
-  ignerr << "Broker plugin running" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -48,40 +45,26 @@ PerfectComms::~PerfectComms()
 }
 
 //////////////////////////////////////////////////
-void PerfectComms::Configure(const Entity &_entity,
-    const std::shared_ptr<const sdf::Element> &_sdf,
+// void PerfectComms::Configure(const Entity &_entity,
+void PerfectComms::Load(const Entity &/*_entity*/,
+    const std::shared_ptr<const sdf::Element> &/*_sdf*/,
     EntityComponentManager &/*_ecm*/,
     EventManager &/*_eventMgr*/)
 {
-  this->dataPtr->broker.Start();
-}
-
-//////////////////////////////////////////////////
-void PerfectComms::PreUpdate(
-    const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
-{
-  IGN_PROFILE("PerfectComms::PreUpdate");
-
-  // Step the comms model.
-  this->Step(_info, _ecm, this->dataPtr->broker.Data());
-
-  // Deliver the inbound messages.
-  this->dataPtr->broker.DeliverMsgs();
 }
 
 void PerfectComms::Step(
-      const UpdateInfo &_info,
-      EntityComponentManager &_ecm,
-      comms::MsgManager &_messageMgr)
+      const UpdateInfo &/*_info*/,
+      EntityComponentManager &/*_ecm*/,
+      comms::MsgManager &/*_messageMgr*/)
 {
-  this->dataPtr->broker.Lock();
+  this->broker.Lock();
 
   // Check if there are new messages to process.
-  auto &allData = this->dataPtr->broker.Data().Data();
+  auto &allData = this->broker.Data().Data();
 
   // Create a copy to modify while we iterate.
-  auto allDataCopy = this->dataPtr->broker.Data().Copy();
+  auto allDataCopy = this->broker.Data().Copy();
 
   for (auto & [address, content] : allData)
   {
@@ -95,15 +78,15 @@ void PerfectComms::Step(
     allDataCopy[address].outboundMsgs.clear();
   }
 
-  this->dataPtr->broker.Data().Set(allDataCopy);
+  this->broker.Data().Set(allDataCopy);
 
-  this->dataPtr->broker.Unlock();
+  this->broker.Unlock();
 }
 
 IGNITION_ADD_PLUGIN(PerfectComms,
                     ignition::gazebo::System,
-                    PerfectComms::ISystemConfigure,
-                    PerfectComms::ISystemPreUpdate)
+                    comms::ICommsModel::ISystemConfigure,
+                    comms::ICommsModel::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(PerfectComms,
                           "ignition::gazebo::systems::PerfectComms")
