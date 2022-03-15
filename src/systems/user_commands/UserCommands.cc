@@ -28,6 +28,7 @@
 
 #include <string>
 #include <utility>
+#include <unordered_set>
 #include <vector>
 
 #include <ignition/msgs/Utility.hh>
@@ -404,7 +405,10 @@ class WheelSlipCommand : public UserCommandBase
             {
               return
                 (
-                  (_a.entity().id() != kNullEntity && _a.entity().id() == _b.entity().id()) ||
+                  (
+                    _a.entity().id() != kNullEntity &&
+                    _a.entity().id() == _b.entity().id()
+                  ) ||
                   (
                     _a.entity().name() == _b.entity().name() &&
                     _a.entity().type() == _b.entity().type()
@@ -1500,12 +1504,14 @@ WheelSlipCommand::WheelSlipCommand(msgs::WheelSlipParametersCmd *_msg,
 }
 
 // TODO(ivanpauno): Move this somewhere else
-Entity scopedEntityFromMsg(const msgs::Entity & _msg, const EntityComponentManager & _ecm)
+Entity scopedEntityFromMsg(
+  const msgs::Entity & _msg, const EntityComponentManager & _ecm)
 {
   if (_msg.id() != kNullEntity) {
     return _msg.id();
   }
-  std::unordered_set<Entity> entities = entitiesFromScopedName(_msg.name(), _ecm);
+  std::unordered_set<Entity> entities = entitiesFromScopedName(
+    _msg.name(), _ecm);
   if (entities.empty()) {
     ignerr << "Failed to find entity with scoped name [" << _msg.name()
           << "]." << std::endl;
@@ -1594,7 +1600,8 @@ bool WheelSlipCommand::Execute()
           linkEntity, components::WheelSlipCmd::typeId, state);
     }
   };
-  const components::BaseComponent * component = ecm.Component<components::Link>(entity);
+  const components::BaseComponent * component =
+    ecm.Component<components::Link>(entity);
 
   if (nullptr != component) {
     doForEachLink(entity);
