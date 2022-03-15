@@ -17,10 +17,11 @@
 #ifndef IGNITION_GAZEBO_SYSTEMS_PERFECTCOMMS_HH_
 #define IGNITION_GAZEBO_SYSTEMS_PERFECTCOMMS_HH_
 
-#include <ignition/gazebo/CommsModel.hh>
-#include <ignition/gazebo/MsgManager.hh>
-#include <ignition/gazebo/System.hh>
 #include <ignition/utils/ImplPtr.hh>
+
+#include "ignition/gazebo/comms/CommsModel.hh"
+#include "ignition/gazebo/comms/MsgManager.hh"
+#include "ignition/gazebo/System.hh"
 
 namespace ignition
 {
@@ -33,7 +34,7 @@ namespace systems
   /// \brief
   class PerfectComms
       : public System,
-        public ICommsModel,
+        public comms::ICommsModel,
         public ISystemConfigure,
         public ISystemPreUpdate
   {
@@ -58,7 +59,7 @@ namespace systems
     public: void Step(
       const ignition::gazebo::UpdateInfo &_info,
       ignition::gazebo::EntityComponentManager &_ecm,
-      MsgManager &_messageMgr);
+      comms::MsgManager &_messageMgr);
 
     /// \brief Private data pointer.
     IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)

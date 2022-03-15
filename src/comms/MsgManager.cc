@@ -22,16 +22,14 @@
 #include <memory>
 #include <string>
 #include <unordered_set>
-#include <ignition/gazebo/CommonTypes.hh>
-#include <ignition/gazebo/MsgManager.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/utils/ImplPtr.hh>
 
-using namespace ignition;
-using namespace gazebo;
+#include "ignition/gazebo/comms/CommonTypes.hh"
+#include "ignition/gazebo/comms/MsgManager.hh"
 
 /// \brief Private MsgManager data class.
-class ignition::gazebo::MsgManager::Implementation
+class ignition::gazebo::comms::MsgManager::Implementation
 {
   /// \brief Buffer to store the content associated to each address.
   /// The key is an address. The value contains all the information associated
@@ -41,6 +39,10 @@ class ignition::gazebo::MsgManager::Implementation
   /// \brief An Ignition Transport node for communications.
   public: ignition::transport::Node node;
 };
+
+using namespace ignition;
+using namespace gazebo;
+using namespace comms;
 
 //////////////////////////////////////////////////
 MsgManager::MsgManager()
@@ -153,19 +155,19 @@ void MsgManager::DeliverMsgs()
 }
 
 //////////////////////////////////////////////////
-std::map<std::string, MsgContent> &MsgManager::Data()
+std::map<std::string, comms::MsgContent> &MsgManager::Data()
 {
   return this->dataPtr->data;
 }
 
 //////////////////////////////////////////////////
-std::map<std::string, MsgContent> MsgManager::Copy()
+std::map<std::string, comms::MsgContent> MsgManager::Copy()
 {
   return this->dataPtr->data;
 }
 
 //////////////////////////////////////////////////
-void MsgManager::Set(std::map<std::string, MsgContent> &_newContent)
+void MsgManager::Set(std::map<std::string, comms::MsgContent> &_newContent)
 {
   this->dataPtr->data = _newContent;
 }

@@ -19,12 +19,16 @@
 
 #include <string>
 
+#include "ignition/gazebo/config.hh"
+
 namespace ignition
 {
 namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+namespace comms
+{
 // /// \brief Address used to send a message to all the members of the team
 // /// listening on a specific port.
 // const std::string kBroadcast = "broadcast";
@@ -41,6 +45,7 @@ const std::string kAddrBindSrv = "/broker/bind";
 
 /// \brief Service used to invalidate an address.
 const std::string kAddrUnbindSrv = "/broker/unbind";
+}
 }
 }
 }

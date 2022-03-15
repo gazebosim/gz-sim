@@ -15,11 +15,12 @@
  *
  */
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/gazebo/Broker.hh>
-#include <ignition/gazebo/Util.hh>
 #include <ignition/plugin/Register.hh>
 #include <sdf/sdf.hh>
+
+#include "ignition/gazebo/comms/Broker.hh"
+#include "ignition/common/Profiler.hh"
+#include "ignition/gazebo/Util.hh"
 
 #include "PerfectComms.hh"
 
@@ -30,7 +31,7 @@ using namespace systems;
 class ignition::gazebo::systems::PerfectComms::Implementation
 {
   /// \brief Broker instance.
-  public: ignition::gazebo::Broker broker;
+  public: comms::Broker broker;
 };
 
 //////////////////////////////////////////////////
@@ -70,9 +71,9 @@ void PerfectComms::PreUpdate(
 }
 
 void PerfectComms::Step(
-      const ignition::gazebo::UpdateInfo &_info,
-      ignition::gazebo::EntityComponentManager &_ecm,
-      MsgManager &_messageMgr)
+      const UpdateInfo &_info,
+      EntityComponentManager &_ecm,
+      comms::MsgManager &_messageMgr)
 {
   this->dataPtr->broker.Lock();
 

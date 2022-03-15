@@ -21,10 +21,12 @@
 #define IGNITION_GAZEBO_BROKER_HH_
 
 #include <mutex>
-#include <ignition/gazebo/MsgManager.hh>
 #include <ignition/msgs/datagram.pb.h>
 #include <ignition/msgs/stringmsg_v.pb.h>
 #include <ignition/utils/ImplPtr.hh>
+
+#include "ignition/gazebo/comms/MsgManager.hh"
+#include "ignition/gazebo/config.hh"
 
 namespace ignition
 {
@@ -32,6 +34,9 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+namespace comms
+{
+
   /// \brief Store messages, and exposes an API for registering new clients,
   /// bind to a particular address, push new messages or get the list of
   /// messages already stored in the queue.
@@ -59,7 +64,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void DeliverMsgs();
 
     /// \brief ToDo.
-    public: ignition::gazebo::MsgManager &Data();
+    public: MsgManager &Data();
 
     /// \brief ToDo.
     public: void Lock();
@@ -70,6 +75,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
    /// \brief Private data pointer.
    IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)
   };
+}
 }
 }
 }

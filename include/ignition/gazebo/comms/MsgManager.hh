@@ -23,9 +23,11 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <ignition/gazebo/System.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/utils/ImplPtr.hh>
+
+#include "ignition/gazebo/config.hh"
+#include "ignition/gazebo/System.hh"
 
 namespace ignition
 {
@@ -33,7 +35,8 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-
+namespace comms
+{
 struct MsgContent
 {
   /// \brief Queue of inbound messages.
@@ -100,6 +103,7 @@ class MsgManager
   /// \brief Private data pointer.
   IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)
 };
+}
 }
 }
 }

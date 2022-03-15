@@ -18,10 +18,12 @@
 #ifndef IGNITION_GAZEBO_COMMSMODEL_HH__
 #define IGNITION_GAZEBO_COMMSMODEL_HH__
 
-#include <ignition/gazebo/EntityComponentManager.hh>
-#include <ignition/gazebo/MsgManager.hh>
-#include <ignition/gazebo/System.hh>
 #include <sdf/sdf.hh>
+
+#include "ignition/gazebo/config.hh"
+#include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/System.hh"
+#include "ignition/gazebo/comms/MsgManager.hh"
 
 namespace ignition
 {
@@ -29,6 +31,8 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+namespace comms
+{
   /// \brief Abstract interface to define how the environment should handle
   /// communication simulation. This class should be responsible for
   /// handling dropouts, decay and packet collisions.
@@ -39,14 +43,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _info - Simulator information about the current timestep.
     /// \param[in] _ecm - Ignition's ECM.
     /// \param[in] _messageMgr - Use this to mark the message as arrived.
-    public: virtual void Step(
-      const ignition::gazebo::UpdateInfo &_info,
-      ignition::gazebo::EntityComponentManager &_ecm,
-      ignition::gazebo::MsgManager &_messageMgr) = 0;
+    public: virtual void Step(const UpdateInfo &_info,
+      EntityComponentManager &_ecm, MsgManager &_messageMgr) = 0;
 
     /// \brief Destructor
     public: virtual ~ICommsModel() = default;
   };
+}
 }
 }
 }
