@@ -285,7 +285,21 @@ EntityComponentManager::EntityComponentManager()
 }
 
 //////////////////////////////////////////////////
-EntityComponentManager::~EntityComponentManager() = default;
+EntityComponentManager::~EntityComponentManager()
+{
+  // Views created in plugins have their destructor defined in the plugin that
+  // created the view. If a plugin has been unloaded early, trying to delete
+  // these views when destroying the ECM causes a segfault.
+  // To avoid a crash on shutdown for now, unique pointers to views are released
+  // so that view's destructors are not automatically called when the ECM is
+  // destroyed.
+  // (see https://github.com/ignitionrobotics/ign-gazebo/issues/1158
+  // for more info about why this may happen)
+  // TODO(adlarkin) find a better way to resolve this issue; possible solution
+  // in https://github.com/ignitionrobotics/ign-gazebo/pull/1317
+  for (auto &v : this->dataPtr->views)
+    v.second.first.release();
+}
 
 //////////////////////////////////////////////////
 size_t EntityComponentManager::EntityCount() const
