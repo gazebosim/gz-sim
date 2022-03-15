@@ -1912,6 +1912,10 @@ void EntityComponentManager::SetChanged(
     auto oneTimeIter = this->dataPtr->oneTimeChangedComponents.find(_type);
     if (oneTimeIter != this->dataPtr->oneTimeChangedComponents.end())
       oneTimeIter->second.erase(_entity);
+
+    // the component state is flagged as no change, so don't mark the
+    // corresponding entity as one with a modified component
+    return;
   }
 
   this->dataPtr->AddModifiedComponent(_entity);
