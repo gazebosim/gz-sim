@@ -101,6 +101,8 @@ set (gtest_sources
   Util_TEST.cc
   World_TEST.cc
   ign_TEST.cc
+  comms/Broker_TEST.cc
+  comms/MsgManager_TEST.cc
   network/NetworkConfig_TEST.cc
   network/PeerTracker_TEST.cc
   network/NetworkManager_TEST.cc
