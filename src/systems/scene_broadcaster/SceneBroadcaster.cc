@@ -329,10 +329,15 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
 
     set(this->dataPtr->stepMsg.mutable_stats(), _info);
 
-    // Publish full state if there are change events
-    if (changeEvent || this->dataPtr->stateServiceRequest)
+    // Publish full state if it has been explicitly requested
+    if (this->dataPtr->stateServiceRequest)
     {
       _manager.State(*this->dataPtr->stepMsg.mutable_state(), {}, {}, true);
+    }
+    // Publish the changed state a change occurred to the ECS
+    else if (changeEvent)
+    {
+      _manager.ChangedState(*this->dataPtr->stepMsg.mutable_state());
     }
     // Otherwise publish just periodic change components when running
     else if (!_info.paused)

@@ -620,8 +620,10 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StateStatic))
 }
 
 /////////////////////////////////////////////////
-/// Test whether the scene topic is published when a component is removed.
-TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RemovedComponent))
+/// Test whether the scene topic is published when entities and components are
+/// removed/added
+TEST_P(SceneBroadcasterTest,
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(AddRemoveEntitiesComponents))
 {
   // Start server
   ignition::gazebo::ServerConfig serverConfig;
@@ -638,7 +640,8 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RemovedComponent))
   testSystem.OnUpdate([](const gazebo::UpdateInfo &_info,
     gazebo::EntityComponentManager &_ecm)
     {
-      if (_info.iterations > 1)
+      // remove a component from an entity
+      if (_info.iterations == 2)
       {
         _ecm.Each<ignition::gazebo::components::Model,
                   ignition::gazebo::components::Name,
@@ -655,21 +658,61 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RemovedComponent))
             return true;
           });
       }
+      // add a component to an entity
+      else if (_info.iterations == 3)
+      {
+        auto boxEntity = _ecm.EntityByComponents(
+            gazebo::components::Name("box"), gazebo::components::Model());
+        ASSERT_NE(gazebo::kNullEntity, boxEntity);
+        EXPECT_FALSE(_ecm.EntityHasComponentType(boxEntity,
+              ignition::gazebo::components::Pose::typeId));
+        _ecm.CreateComponent<ignition::gazebo::components::Pose>(boxEntity,
+            ignition::gazebo::components::Pose({1, 2, 3, 4, 5, 6}));
+        EXPECT_TRUE(_ecm.EntityHasComponentType(boxEntity,
+              ignition::gazebo::components::Pose::typeId));
+      }
+      // remove an entity
+      else if (_info.iterations == 4)
+      {
+        auto boxEntity = _ecm.EntityByComponents(
+            gazebo::components::Name("box"), gazebo::components::Model());
+        ASSERT_NE(gazebo::kNullEntity, boxEntity);
+        _ecm.RequestRemoveEntity(boxEntity);
+      }
+      // create an entity
+      else if (_info.iterations == 5)
+      {
+        EXPECT_EQ(gazebo::kNullEntity, _ecm.EntityByComponents(
+              gazebo::components::Name("newEntity"),
+              gazebo::components::Model()));
+        auto newEntity = _ecm.CreateEntity();
+        _ecm.CreateComponent(newEntity, gazebo::components::Name("newEntity"));
+        _ecm.CreateComponent(newEntity, gazebo::components::Model());
+        EXPECT_NE(gazebo::kNullEntity, _ecm.EntityByComponents(
+              gazebo::components::Name("newEntity"),
+              gazebo::components::Model()));
+      }
     });
   server.AddSystem(testSystem.systemPtr);
 
+  std::unordered_set<int> receivedIterations;
+
   bool received = false;
   bool hasState = false;
+  ignition::gazebo::EntityComponentManager localEcm;
   std::function<void(const msgs::SerializedStepMap &)> cb =
       [&](const msgs::SerializedStepMap &_res)
   {
+    receivedIterations.insert(_res.stats().iterations());
+
     hasState = _res.has_state();
     // Check the received state.
     if (hasState)
     {
-      ignition::gazebo::EntityComponentManager localEcm;
       localEcm.SetState(_res.state());
       bool hasBox = false;
+      bool hasNewEntity = false;
+      bool newEntityIteration = _res.stats().iterations() == 5;
       localEcm.Each<ignition::gazebo::components::Model,
                   ignition::gazebo::components::Name>(
           [&](const ignition::gazebo::Entity &_entity,
@@ -679,22 +722,45 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RemovedComponent))
             if (_name->Data() == "box")
             {
               hasBox = true;
-              if (_res.stats().iterations() > 1)
-              {
-                // The pose component should be gone
-                EXPECT_FALSE(localEcm.EntityHasComponentType(
-                      _entity, ignition::gazebo::components::Pose::typeId));
-              }
-              else
+              if (_res.stats().iterations() != 2)
               {
                 // The pose component should exist
                 EXPECT_TRUE(localEcm.EntityHasComponentType(
                       _entity, ignition::gazebo::components::Pose::typeId));
               }
+              else
+              {
+                // The pose component should be gone
+                EXPECT_FALSE(localEcm.EntityHasComponentType(
+                      _entity, ignition::gazebo::components::Pose::typeId));
+              }
             }
+
+            if (newEntityIteration && _name->Data() == "newEntity")
+              hasNewEntity = true;
+
             return true;
           });
+
+      // make sure that the box entity is marked as removed
+      if (_res.stats().iterations() >= 4)
+      {
+        bool markedAsRemoved = false;
+        localEcm.EachRemoved<ignition::gazebo::components::Model,
+                    ignition::gazebo::components::Name>(
+            [&](const ignition::gazebo::Entity &,
+                const ignition::gazebo::components::Model *,
+                const ignition::gazebo::components::Name *_name)->bool
+            {
+              if (_name->Data() == "box")
+                markedAsRemoved = true;
+              return true;
+            });
+        EXPECT_TRUE(markedAsRemoved);
+      }
+
       EXPECT_TRUE(hasBox);
+      EXPECT_EQ(newEntityIteration, hasNewEntity);
     }
     received = true;
   };
@@ -702,43 +768,55 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RemovedComponent))
   transport::Node node;
   EXPECT_TRUE(node.Subscribe("/world/default/state", cb));
 
-  unsigned int sleep = 0u;
-  unsigned int maxSleep = 30u;
+  // Helper method that runs the server one iteration and then checks that
+  // received data was processed correctly.
+  // The _shouldHaveState parameter defines whether the published
+  // msgs::SerializedStepMap should contain state info or not
+  std::function<void(bool)> runServerOnce =
+      [&](bool _shouldHaveState)
+      {
+        unsigned int sleep = 0u;
+        unsigned int maxSleep = 30u;
+        received = false;
+        hasState = false;
+
+        server.RunOnce(true);
+        // cppcheck-suppress unmatchedSuppression
+        // cppcheck-suppress knownConditionTrueFalse
+        while (!received && sleep++ < maxSleep)
+          IGN_SLEEP_MS(100);
+        EXPECT_TRUE(received);
+        EXPECT_EQ(_shouldHaveState, hasState);
+      };
 
   // Run server once. The first time should send the state message
-  server.RunOnce(true);
-  // cppcheck-suppress unmatchedSuppression
-  // cppcheck-suppress knownConditionTrueFalse
-  while (!received && sleep++ < maxSleep)
-    IGN_SLEEP_MS(100);
-  EXPECT_TRUE(received);
-  EXPECT_TRUE(hasState);
+  runServerOnce(true);
 
   // Run server again. The second time shouldn't have state info. The
   // message can still arrive due the passage of time (see `itsPubTime` in
   // SceneBroadcaster::PostUpdate.
-  sleep = 0u;
-  received = false;
-  hasState = false;
-  server.RunOnce(true);
-  // cppcheck-suppress unmatchedSuppression
-  // cppcheck-suppress knownConditionTrueFalse
-  while (!received && sleep++ < maxSleep)
-    IGN_SLEEP_MS(100);
-  EXPECT_FALSE(hasState);
+  runServerOnce(false);
 
   // Run server again. The third time should send the state message because
   // the test system removed a component.
-  sleep = 0u;
-  received = false;
-  hasState = false;
-  server.RunOnce(true);
-  // cppcheck-suppress unmatchedSuppression
-  // cppcheck-suppress knownConditionTrueFalse
-  while (!received && sleep++ < maxSleep)
-    IGN_SLEEP_MS(100);
-  EXPECT_TRUE(received);
-  EXPECT_TRUE(hasState);
+  runServerOnce(true);
+
+  // Run server again. The fourth time should send the state message because
+  // the test system added a component.
+  runServerOnce(true);
+
+  // Run server again. The fifth time should send the state message because
+  // the test system requested to remove an entity.
+  runServerOnce(true);
+
+  // Run server again. The sixth time should send the state message because
+  // the test system created an entity.
+  runServerOnce(true);
+
+  // Sanity check: make sure that state messages from iterations 0 - 5 were
+  // received and processed
+  const std::unordered_set targetIterationsContents = {0, 1, 2, 3, 4, 5};
+  EXPECT_EQ(receivedIterations, targetIterationsContents);
 }
 
 // Run multiple times
