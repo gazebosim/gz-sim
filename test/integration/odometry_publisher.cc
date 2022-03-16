@@ -503,7 +503,7 @@ class OdometryPublisherTest
     EXPECT_NEAR(angVelSumY/n, 0, 0.3);
     EXPECT_NEAR(angVelSumZ/n, 0, 0.3);
 
-    // Calculate the variation.
+    // Calculate the variation (sigma^2).
     double linVelSqSumX = 0, linVelSqSumY = 0, linVelSqSumZ = 0; 
     double angVelSqSumX = 0, angVelSqSumY = 0, angVelSqSumZ = 0; 
     for (int i = 0; i < n; i++) {
@@ -516,6 +516,7 @@ class OdometryPublisherTest
       angVelSqSumZ += std::pow(odomAngVels[i].Z() - angVelSumZ/n, 2);
     }
 
+    // Verify the variance values.
     EXPECT_NEAR(linVelSqSumX/n, 1, 0.3);
     EXPECT_NEAR(linVelSqSumY/n, 1, 0.3);
     EXPECT_NEAR(linVelSqSumZ/n, 1, 0.3);
