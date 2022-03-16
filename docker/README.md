@@ -110,15 +110,9 @@ Docker has two available versions: Community Edition (CE) and Enterprise Edition
         # Add the official GPG key of Docker
         curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 
-1. Setup Docker using 1 of the two options below.
+1. Setup Docker.
 
-    1. Ubuntu Bionic users
-
-            sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) edge"
-
-    1. Everyone else.
-
-            sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+        sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
 
 1. Install Docker
 
