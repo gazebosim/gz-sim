@@ -449,6 +449,13 @@ void OdometryPublisherPrivate::UpdateOdometry(
   msg_covariance.mutable_twist_with_covariance()->
     mutable_twist()->mutable_angular()->set_z(msg.twist().angular().z());
 
+  msg_covariance.mutable_twist_with_covariance()->
+    mutable_twist()->mutable_linear()->set_x(msg.twist().linear().x());
+  msg_covariance.mutable_twist_with_covariance()->
+    mutable_twist()->mutable_linear()->set_y(msg.twist().linear().y());
+  msg_covariance.mutable_twist_with_covariance()->
+    mutable_twist()->mutable_linear()->set_z(msg.twist().linear().z());
+
   // Populate the covariance matrix.
   // Should the matrix me populated for pose as well ?
   auto gn2 = this->gaussianNoise * this->gaussianNoise;

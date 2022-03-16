@@ -456,12 +456,16 @@ class OdometryPublisherTest
 
     std::vector<math::Vector3d> odomLinVels;
     std::vector<math::Vector3d> odomAngVels;
+    google::protobuf::RepeatedField<float> odomTwistCovariance;
     // Create function to store data from odometry messages
-    std::function<void(const msgs::Odometry &)> odomCb =
-      [&](const msgs::Odometry &_msg)
+    std::function<void(const msgs::OdometryWithCovariance &)> odomCb =
+      [&](const msgs::OdometryWithCovariance &_msg)
       {
-        odomLinVels.push_back(msgs::Convert(_msg.twist().linear()));
-        odomAngVels.push_back(msgs::Convert(_msg.twist().angular()));
+        odomLinVels.push_back(msgs::Convert(_msg.twist_with_covariance().
+          twist().linear()));
+        odomAngVels.push_back(msgs::Convert(_msg.twist_with_covariance().
+          twist().angular()));
+        odomTwistCovariance = _msg.twist_with_covariance().covariance().data();
       };
     transport::Node node;
     node.Subscribe(_odomTopic, odomCb);
@@ -524,6 +528,16 @@ class OdometryPublisherTest
     EXPECT_NEAR(angVelSqSumX/n, 1, 0.3);
     EXPECT_NEAR(angVelSqSumY/n, 1, 0.3);
     EXPECT_NEAR(angVelSqSumZ/n, 1, 0.3);
+
+    // Check the covariance matrix.
+    EXPECT_EQ(odomTwistCovariance.size(), 36);
+    for (int i = 0; i < 36; i++) {
+      if (i % 7 == 0) {
+        EXPECT_NEAR(odomTwistCovariance[i], 1, 1e-2);
+      } else {
+        EXPECT_NEAR(odomTwistCovariance[i], 0, 1e-2);
+      }
+    }
   }
 };
 
@@ -594,7 +608,7 @@ TEST_P(OdometryPublisherTest,
   TestGaussianNoise(
       std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/odometry_noise.sdf",
-      "/model/vehicle/odometry");
+      "/model/vehicle/odometry_with_covariance");
 }
 
 // Run multiple times
