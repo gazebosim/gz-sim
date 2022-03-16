@@ -18,6 +18,7 @@
 #include "OdometryPublisher.hh"
 
 #include <ignition/msgs/odometry.pb.h>
+#include <ignition/msgs/odometry_with_covariance.pb.h>
 
 #include <limits>
 #include <string>
@@ -76,6 +77,9 @@ class ignition::gazebo::systems::OdometryPublisherPrivate
   /// \brief Diff drive odometry message publisher.
   public: transport::Node::Publisher odomPub;
 
+  /// \brief Diff drive odometry with covariance message publisher.
+  public: transport::Node::Publisher odomCovPub;
+
   /// \brief Rolling mean accumulators for the linear velocity
   public: std::tuple<math::RollingMean, math::RollingMean, math::RollingMean>
     linearMean;
@@ -95,6 +99,9 @@ class ignition::gazebo::systems::OdometryPublisherPrivate
 
   /// \brief Allow specifying constant xyz and rpy offsets
   public: ignition::math::Pose3d offset = {0, 0, 0, 0, 0, 0};
+
+  /// \brief Gaussian noise
+  public: double gaussianNoise = 0;
 };
 
 //////////////////////////////////////////////////
@@ -158,6 +165,11 @@ void OdometryPublisher::Configure(const Entity &_entity,
         "rpy_offset"));
   }
 
+  if (_sdf->HasElement("gaussian_noise"))
+  {
+    this->dataPtr->gaussianNoise = _sdf->Get<double>("gaussian_noise");
+  }
+
   this->dataPtr->robotBaseFrame = this->dataPtr->model.Name(_ecm)
     + "/" + "base_footprint";
   if (!_sdf->HasElement("robot_base_frame"))
@@ -199,8 +211,14 @@ void OdometryPublisher::Configure(const Entity &_entity,
   // Setup odometry
   std::string odomTopic{"/model/" + this->dataPtr->model.Name(_ecm) +
     "/odometry"};
+  std::string odomCovTopic{"/model/" + this->dataPtr->model.Name(_ecm) +
+    "/odometry_with_covariance"};
+
   if (_sdf->HasElement("odom_topic"))
     odomTopic = _sdf->Get<std::string>("odom_topic");
+  if (_sdf->HasElement("odom_covariance_topic"))
+    odomCovTopic = _sdf->Get<std::string>("odom_covariance_topic");
+
   std::string odomTopicValid {transport::TopicUtils::AsValidTopic(odomTopic)};
   if (odomTopicValid.empty())
   {
@@ -210,6 +228,16 @@ void OdometryPublisher::Configure(const Entity &_entity,
   }
   this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
       odomTopicValid);
+
+  std::string odomCovTopicValid {transport::TopicUtils::AsValidTopic(odomCovTopic)};
+  if (odomCovTopicValid.empty())
+  {
+    ignerr << "Failed to generate odom topic ["
+           << odomCovTopic << "]" << std::endl;
+    return;
+  }
+  this->dataPtr->odomCovPub = this->dataPtr->node.Advertise<
+      msgs::OdometryWithCovariance>(odomCovTopicValid);
 }
 
 //////////////////////////////////////////////////
@@ -303,9 +331,11 @@ void OdometryPublisherPrivate::UpdateOdometry(
     std::get<0>(this->linearMean).Push(linearVelocityX);
     std::get<1>(this->linearMean).Push(linearVelocityY);
     msg.mutable_twist()->mutable_linear()->set_x(
-      std::get<0>(this->linearMean).Mean());
+      std::get<0>(this->linearMean).Mean() +
+      ignition::math::Rand::DblNormal(0, this->gaussianNoise));
     msg.mutable_twist()->mutable_linear()->set_y(
-      std::get<1>(this->linearMean).Mean());
+      std::get<1>(this->linearMean).Mean() +
+      ignition::math::Rand::DblNormal(0, this->gaussianNoise));
   }
   // Get velocities and roll/pitch rates assuming 3D
   else if (this->dimensions == 3)
@@ -334,21 +364,27 @@ void OdometryPublisherPrivate::UpdateOdometry(
     std::get<0>(this->angularMean).Push(rollDiff / dt.count());
     std::get<1>(this->angularMean).Push(pitchDiff / dt.count());
     msg.mutable_twist()->mutable_linear()->set_x(
-      std::get<0>(this->linearMean).Mean());
+      std::get<0>(this->linearMean).Mean() +
+      ignition::math::Rand::DblNormal(0, this->gaussianNoise));
     msg.mutable_twist()->mutable_linear()->set_y(
-      std::get<1>(this->linearMean).Mean());
+      std::get<1>(this->linearMean).Mean() +
+      ignition::math::Rand::DblNormal(0, this->gaussianNoise));
     msg.mutable_twist()->mutable_linear()->set_z(
-      std::get<2>(this->linearMean).Mean());
+      std::get<2>(this->linearMean).Mean() +
+      ignition::math::Rand::DblNormal(0, this->gaussianNoise));
     msg.mutable_twist()->mutable_angular()->set_x(
-      std::get<0>(this->angularMean).Mean());
+      std::get<0>(this->angularMean).Mean() +
+      ignition::math::Rand::DblNormal(0, this->gaussianNoise));
     msg.mutable_twist()->mutable_angular()->set_y(
-      std::get<1>(this->angularMean).Mean());
+      std::get<1>(this->angularMean).Mean() +
+      ignition::math::Rand::DblNormal(0, this->gaussianNoise));
   }
 
   // Set yaw rate
   std::get<2>(this->angularMean).Push(yawDiff / dt.count());
   msg.mutable_twist()->mutable_angular()->set_z(
-    std::get<2>(this->angularMean).Mean());
+    std::get<2>(this->angularMean).Mean() +
+    ignition::math::Rand::DblNormal(0, this->gaussianNoise));
 
   // Set the time stamp in the header.
   msg.mutable_header()->mutable_stamp()->CopyFrom(
@@ -374,6 +410,56 @@ void OdometryPublisherPrivate::UpdateOdometry(
   }
   this->lastOdomPubTime = _info.simTime;
   this->odomPub.Publish(msg);
+
+  // Generate odometry with covariance message and publish it.
+  msgs::OdometryWithCovariance msg_covariance;
+
+  // Set the time stamp in the header.
+  msg_covariance.mutable_header()->mutable_stamp()->CopyFrom(
+      convert<msgs::Time>(_info.simTime));
+
+  // Set the frame ids.
+  frame = msg_covariance.mutable_header()->add_data();
+  frame->set_key("frame_id");
+  frame->add_value(odomFrame);
+  childFrame = msg.mutable_header()->add_data();
+  childFrame->set_key("child_frame_id");
+  childFrame->add_value(robotBaseFrame);
+
+  // Copy position from odometry msg.
+  msg_covariance.mutable_pose_with_covariance()->
+    mutable_pose()->mutable_position()->set_x(msg.pose().position().x());
+  msg_covariance.mutable_pose_with_covariance()->
+    mutable_pose()->mutable_position()->set_y(msg.pose().position().y());
+  msg_covariance.mutable_pose_with_covariance()->
+    mutable_pose()->mutable_position()->set_z(msg.pose().position().z());
+
+  // Copy twist from odometry msg.
+  msg_covariance.mutable_twist_with_covariance()->
+    mutable_twist()->mutable_angular()->set_x(msg.twist().angular().x());
+  msg_covariance.mutable_twist_with_covariance()->
+    mutable_twist()->mutable_angular()->set_y(msg.twist().angular().y());
+  msg_covariance.mutable_twist_with_covariance()->
+    mutable_twist()->mutable_angular()->set_z(msg.twist().angular().z());
+
+  // Populate the covariance matrix.
+  // Should the matrix me populated for pose as well ?
+  auto gn2 = this->gaussianNoise * this->gaussianNoise;
+  for (int i = 0; i < 36; i++) {
+    if (i % 7 == 0) {
+      msg_covariance.mutable_pose_with_covariance()->
+        mutable_covariance()->add_data(gn2);
+      msg_covariance.mutable_twist_with_covariance()->
+        mutable_covariance()->add_data(gn2);
+    }
+    else {
+      msg_covariance.mutable_pose_with_covariance()->
+        mutable_covariance()->add_data(0);
+      msg_covariance.mutable_twist_with_covariance()->
+        mutable_covariance()->add_data(0);
+    }
+  }
+  this->odomCovPub.Publish(msg_covariance);
 }
 
 IGNITION_ADD_PLUGIN(OdometryPublisher,
