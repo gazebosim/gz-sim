@@ -336,6 +336,13 @@ void OdometryPublisherPrivate::UpdateOdometry(
     msg.mutable_twist()->mutable_linear()->set_y(
       std::get<1>(this->linearMean).Mean() +
       ignition::math::Rand::DblNormal(0, this->gaussianNoise));
+    msg.mutable_twist()->mutable_linear()->set_z(
+      ignition::math::Rand::DblNormal(0, this->gaussianNoise));
+
+    msg.mutable_twist()->mutable_angular()->set_x(
+      ignition::math::Rand::DblNormal(0, this->gaussianNoise));
+    msg.mutable_twist()->mutable_angular()->set_y(
+      ignition::math::Rand::DblNormal(0, this->gaussianNoise));
   }
   // Get velocities and roll/pitch rates assuming 3D
   else if (this->dimensions == 3)
