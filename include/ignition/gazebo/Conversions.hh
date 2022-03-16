@@ -709,6 +709,22 @@ namespace ignition
     /// \return Particle emitter message.
     template<>
     sdf::ParticleEmitter convert(const msgs::ParticleEmitter &_in);
+
+    /// \brief Generic conversion from an SDF element to another type.
+    /// \param[in] _in SDF element.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const sdf::Element &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from an SDF element to a plugin message.
+    /// \param[in] _in SDF element.
+    /// \return Plugin message.
+    template<>
+    msgs::Plugin convert(const sdf::Element &_in);
     }
   }
 }

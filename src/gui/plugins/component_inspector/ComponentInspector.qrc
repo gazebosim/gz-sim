@@ -12,6 +12,7 @@
   <file>Pose3d.qml</file>
   <file>SphericalCoordinates.qml</file>
   <file>String.qml</file>
+  <file>SystemInfo.qml</file>
   <file>TypeHeader.qml</file>
   <file>Vector3d.qml</file>
   <file>plottable_icon.svg</file>

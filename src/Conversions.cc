@@ -1722,3 +1722,31 @@ sdf::ParticleEmitter ignition::gazebo::convert(const msgs::ParticleEmitter &_in)
 
   return out;
 }
+
+//////////////////////////////////////////////////
+template<>
+IGNITION_GAZEBO_VISIBLE
+msgs::Plugin ignition::gazebo::convert(const sdf::Element &_in)
+{
+  msgs::Plugin result;
+
+  if (_in.GetName() != "plugin")
+  {
+    ignerr << "Tried to convert SDF [" << _in.GetName() <<
+        "] into [plugin]" << std::endl;
+    return result;
+  }
+
+  result.set_name(_in.Get<std::string>("name"));
+  result.set_filename(_in.Get<std::string>("filename"));
+
+  std::stringstream ss;
+  for (auto innerElem = _in.GetFirstElement(); innerElem;
+      innerElem = innerElem->GetNextElement(""))
+  {
+    ss << innerElem->ToString("");
+  }
+  result.set_innerxml(ss.str());
+
+  return result;
+}

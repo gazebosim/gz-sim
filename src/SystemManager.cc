@@ -15,6 +15,8 @@
  *
 */
 
+#include "ignition/gazebo/components/SystemInfo.hh"
+#include "ignition/gazebo/Conversions.hh"
 #include "SystemManager.hh"
 
 using namespace ignition;
@@ -120,6 +122,22 @@ void SystemManager::AddSystemImpl(
       SystemInternal _system,
       std::shared_ptr<const sdf::Element> _sdf)
 {
+  // Add component
+  msgs::Plugin_V systemInfoMsg;
+  auto systemInfoComp = this->entityCompMgr->Component<components::SystemInfo>(
+      _system.parentEntity);
+  if (systemInfoComp)
+  {
+    systemInfoMsg = systemInfoComp->Data();
+  }
+  auto pluginMsg = systemInfoMsg.add_plugins();
+  pluginMsg->CopyFrom(convert<msgs::Plugin>(*_sdf.get()));
+
+  this->entityCompMgr->SetComponentData<components::SystemInfo>(
+      _system.parentEntity, systemInfoMsg);
+  this->entityCompMgr->SetChanged(_system.parentEntity,
+      components::SystemInfo::typeId);
+
   // Configure the system, if necessary
   if (_system.configure && this->entityCompMgr && this->eventMgr)
   {
