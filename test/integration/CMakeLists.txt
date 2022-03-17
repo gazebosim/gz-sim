@@ -82,8 +82,9 @@ set(tests_needing_display
   rgbd_camera.cc
   sensors_system.cc
   shader_param_system.cc
-  thermal_system.cc
   thermal_sensor_system.cc
+  thermal_system.cc
+  triggered_camera.cc
 )
 
 # Add systems that need a valid display here.
