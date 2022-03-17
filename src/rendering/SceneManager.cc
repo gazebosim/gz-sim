@@ -1776,6 +1776,9 @@ bool SceneManager::AddSensor(Entity _gazeboId, const std::string &_sensorName,
     return false;
   }
 
+  // \todo(anyone) change to uint64_t once UserData supports this type
+  sensor->SetUserData("gazebo-entity", static_cast<int>(_gazeboId));
+
   if (parent)
   {
     sensor->RemoveParent();
