@@ -73,8 +73,18 @@ void startBoth(const std::string &_fileName)
 }
 
 /////////////////////////////////////////////////
-TEST_P(GazeboDeathTest, IGN_UTILS_TEST_DISABLED_ON_MAC(CleanExit))
+TEST_P(GazeboDeathTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(CleanExit))
 {
+  std::string githubAction;
+  // This test hangs when there is high CPU usage, so we skip it on Github
+  // Actions.
+  // Note: The GITHUB_ACTIONS environment variable is automatically set when
+  // running on Github Actions. See https://docs.github.com/en/actions/learn-github-actions/environment-variables#default-environment-variables
+  if (common::env("GITHUB_ACTIONS", githubAction))
+  {
+    GTEST_SKIP();
+  }
+
   const auto sdfFile =
       common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", GetParam());
   ASSERT_TRUE(common::exists(sdfFile))
@@ -92,6 +102,6 @@ INSTANTIATE_TEST_SUITE_P(WorldFiles, GazeboDeathTest,
 int main(int _argc, char **_argv)
 {
   ::testing::InitGoogleTest(&_argc, _argv);
-  ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+  ::testing::FLAGS_gtest_death_test_style = "fast";
   return RUN_ALL_TESTS();
 }
