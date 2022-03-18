@@ -24,6 +24,9 @@ target_link_libraries(graph_example ignition-math${IGN_MATH_VER}::ignition-math$
 add_executable(helpers_example helpers_example.cc)
 target_link_libraries(helpers_example ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
 
+add_executable(interval_example interval_example.cc)
+target_link_libraries(interval_example ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
+
 add_executable(kmeans kmeans.cc)
 target_link_libraries(kmeans ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
 
