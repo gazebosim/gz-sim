@@ -20,6 +20,7 @@
 #include <cstdlib>
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 
 #include "PeerTracker.hh"
 #include "ignition/gazebo/EventManager.hh"
@@ -143,7 +144,7 @@ TEST(PeerTracker, PeerTracker)
 }
 
 //////////////////////////////////////////////////
-TEST(PeerTracker, PeerTrackerStale)
+TEST(PeerTracker, IGN_UTILS_TEST_DISABLED_ON_MAC(PeerTrackerStale))
 {
   ignition::common::Console::SetVerbosity(4);
   EventManager eventMgr;
