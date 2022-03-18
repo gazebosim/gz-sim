@@ -253,6 +253,7 @@ namespace gazebo
     /// \param[in] _intensity Intensity of the light
     /// \param[in] _type light type
     /// \param[in] _isLightOn is light on
+    /// \param[in] _visualizeVisual is visual enabled
     public: Q_INVOKABLE void OnLight(
       double _rSpecular, double _gSpecular, double _bSpecular,
       double _aSpecular, double _rDiffuse, double _gDiffuse,
@@ -260,7 +261,8 @@ namespace gazebo
       double _attLinear, double _attConstant, double _attQuadratic,
       bool _castShadows, double _directionX, double _directionY,
       double _directionZ, double _innerAngle, double _outerAngle,
-      double _falloff, double _intensity, int _type, bool _isLightOn);
+      double _falloff, double _intensity, int _type, bool _isLightOn,
+      bool _visualizeVisual);
 
     /// \brief Callback in Qt thread when physics' properties change.
     /// \param[in] _stepSize step size
