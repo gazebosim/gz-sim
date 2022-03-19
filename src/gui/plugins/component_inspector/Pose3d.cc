@@ -15,6 +15,8 @@
  *
 */
 
+#include <string>
+
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/pose.pb.h>
 
