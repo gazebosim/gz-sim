@@ -153,8 +153,6 @@ def distort(file_path, object_prefix, distort_extent, method):
     elif file_path.lower().endswith('obj'):
         bpy.ops.import_scene.obj(filepath=file_path, axis_forward='X',
             axis_up='Z')
-    # TODO add imports for other formats. Trivial one-liners, but OBJ and
-    # COLLADA are the most common used for Gazebo, others not needed now.
     else:
         print('ERROR: Only COLLADA (.dae) and OBJ formats are supported for importing at the moment.')
         return
@@ -210,8 +208,8 @@ def distort(file_path, object_prefix, distort_extent, method):
     # Export result to file
     out_path = os.path.splitext(file_path)[0] + '_distort' + \
         os.path.splitext(file_path)[1]
-    # TODO: COLLADA is not exporting texture correctly, not sure why.
-    # TODO: collada_export() does not expose relative path option.
+    # NOTE: COLLADA is not exporting texture correctly, not sure why.
+    # NOTE: collada_export() does not expose relative path option.
     if out_path.lower().endswith('dae'):
         bpy.ops.wm.collada_export(filepath=out_path)
     elif out_path.lower().endswith('obj'):
