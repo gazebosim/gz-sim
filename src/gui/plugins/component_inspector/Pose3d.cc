@@ -20,12 +20,7 @@
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/pose.pb.h>
 
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/PoseCmd.hh"
-
 #include "Pose3d.hh"
-#include "ComponentInspector.hh"
-#include "Types.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -38,55 +33,14 @@ Pose3d::Pose3d(ComponentInspector *_inspector)
   this->inspector = _inspector;
 
   this->inspector->AddUpdateViewCb(components::Pose::typeId,
-      std::bind(&Pose3d::UpdateView, this, std::placeholders::_1,
-      std::placeholders::_2));
+      std::bind(&Pose3d::UpdateView<components::Pose>, this,
+      std::placeholders::_1, std::placeholders::_2));
   this->inspector->AddUpdateViewCb(components::WorldPose::typeId,
-      std::bind(&Pose3d::UpdateView, this, std::placeholders::_1,
-      std::placeholders::_2));
+      std::bind(&Pose3d::UpdateView<components::WorldPose>, this,
+      std::placeholders::_1, std::placeholders::_2));
   this->inspector->AddUpdateViewCb(components::WorldPoseCmd::typeId,
-      std::bind(&Pose3d::UpdateView, this, std::placeholders::_1,
-      std::placeholders::_2));
-}
-
-/////////////////////////////////////////////////
-void Pose3d::UpdateView(const EntityComponentManager &_ecm,
-    QStandardItem *_item)
-{
-  if (nullptr == _item)
-    return;
-
-  math::Pose3d pose;
-
-  if (auto poseComp = _ecm.Component<components::Pose>(
-      this->inspector->GetEntity()))
-  {
-    pose = poseComp->Data();
-  }
-  else if (auto worldPoseComp = _ecm.Component<components::WorldPose>(
-      this->inspector->GetEntity()))
-  {
-    pose = worldPoseComp->Data();
-  }
-  else if (auto worldPoseCmdComp = _ecm.Component<components::WorldPoseCmd>(
-      this->inspector->GetEntity()))
-  {
-    pose = worldPoseCmdComp->Data();
-  }
-  else
-  {
-    return;
-  }
-
-  _item->setData(QString("Pose3d"),
-      ComponentsModel::RoleNames().key("dataType"));
-  _item->setData(QList({
-    QVariant(pose.Pos().X()),
-    QVariant(pose.Pos().Y()),
-    QVariant(pose.Pos().Z()),
-    QVariant(pose.Rot().Roll()),
-    QVariant(pose.Rot().Pitch()),
-    QVariant(pose.Rot().Yaw())
-  }), ComponentsModel::RoleNames().key("data"));
+      std::bind(&Pose3d::UpdateView<components::WorldPoseCmd>, this,
+      std::placeholders::_1, std::placeholders::_2));
 }
 
 /////////////////////////////////////////////////

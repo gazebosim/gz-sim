@@ -18,7 +18,13 @@
 #define IGNITION_GAZEBO_GUI_COMPONENTINSPECTOR_POSE3D_HH_
 
 #include <ignition/math/Pose3.hh>
+
+#include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/PoseCmd.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
+
+#include "ComponentInspector.hh"
+#include "Types.hh"
 
 #include <QObject>
 #include <QStandardItem>
@@ -45,8 +51,32 @@ namespace inspector
     /// \brief Callback when there are ECM updates.
     /// \param[in] _ecm Immutable reference to the ECM.
     /// \param[in] _item Item to update.
-    public: void UpdateView(const EntityComponentManager &_ecm,
-        QStandardItem *_item);
+    /// \tparam ComponentType Type of component being updated.
+    public:
+    template<typename ComponentType>
+    void UpdateView(const EntityComponentManager &_ecm,
+        QStandardItem *_item)
+    {
+      if (nullptr == _item)
+        return;
+
+      auto comp = _ecm.Component<ComponentType>(this->inspector->GetEntity());
+      if (nullptr == comp)
+        return;
+
+      auto pose = comp->Data();
+
+      _item->setData(QString("Pose3d"),
+          ComponentsModel::RoleNames().key("dataType"));
+      _item->setData(QList({
+        QVariant(pose.Pos().X()),
+        QVariant(pose.Pos().Y()),
+        QVariant(pose.Pos().Z()),
+        QVariant(pose.Rot().Roll()),
+        QVariant(pose.Rot().Pitch()),
+        QVariant(pose.Rot().Yaw())
+      }), ComponentsModel::RoleNames().key("data"));
+    }
 
     /// \brief Callback in Qt thread when pose changes.
     /// \param[in] _x X
