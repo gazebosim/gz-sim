@@ -168,7 +168,9 @@ void ThrusterTest::TestWorld(const std::string &_world,
   // See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 246
   // omega = sqrt(thrust /
   //     (fluid_density * thrust_coefficient * propeller_diameter ^ 4))
-  auto omega = sqrt(force / (_density * _coefficient * pow(_diameter, 4)));
+  auto omega = sqrt(abs(force / (_density * _coefficient * pow(_diameter, 4))));
+  // Account for negative thrust and/or negative thrust coefficient
+  omega *= (force * _coefficient > 0 ? 1 : -1);
 
   msg.Clear();
   if(!_useAngVelCmd)
@@ -242,6 +244,17 @@ TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(AngVelCmdControl))
 }
 
 /////////////////////////////////////////////////
+TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(ClockwiseThrust))
+{
+  auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "thruster_cw.sdf");
+
+  //  Thruster spins clockwise (thrust coefficient is negative)
+  //  Tolerance is high because the joint command disturbs the vehicle body
+  this->TestWorld(world, "custom", -0.005, 950, 0.2, 1e-2);
+}
+
+/////////////////////////////////////////////////
 // See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
 TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PIDControl))
 {
@@ -262,4 +275,3 @@ TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(VelocityControl))
   // Tolerance is high because the joint command disturbs the vehicle body
   this->TestWorld(world, "custom", 0.005, 950, 0.25, 1e-2);
 }
-
