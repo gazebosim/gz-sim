@@ -6,6 +6,11 @@ This can be used to generate sets of similar objects to test the generalization
 of perception algorithms, underwater manipulation of naturally biofouled or
 deformed objects, and in other applications.
 
+One way to programmatically distort models is to use Blender Python scripting.
+Blender is a free open source 3D modeling software used by professional artists
+for games and films.
+It offers a Python API for most things available in its GUI.
+
 ## Prerequisites
 
 These instructions have been tested in [Blender](https://www.blender.org/) 2.92,
