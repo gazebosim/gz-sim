@@ -371,7 +371,7 @@ double ThrusterPrivateData::ThrustToAngularVec(double _thrust)
       (this->fluidDensity
       * this->thrustCoefficient * pow(this->propellerDiameter, 4))));
 
-  propAngularVelocity *= (_thrust > 0) ? 1: -1;
+  propAngularVelocity *= (_thrust * this->thrustCoefficient > 0) ? 1: -1;
 
   return propAngularVelocity;
 }
