@@ -48,6 +48,9 @@ target_link_libraries(quaternion_to_euler ignition-math${IGN_MATH_VER}::ignition
 add_executable(rand_example rand_example.cc)
 target_link_libraries(rand_example ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
 
+add_executable(region3_example region3_example.cc)
+target_link_libraries(region3_example ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
+
 add_executable(temperature_example temperature_example.cc)
 target_link_libraries(temperature_example ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
 
