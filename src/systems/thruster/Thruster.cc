@@ -92,12 +92,12 @@ class ignition::gazebo::systems::ThrusterPrivateData
   /// and writes the angular velocity directly to the joint. default: false
   public: bool velocityControl = false;
 
-  /// \brief Maximum input force [N] for the propellerController,
-  /// default: 1000N
+  /// \brief Maximum input force [N] or angular velocity [rad/s] for the
+  /// propellerController, default: 1000
   public: double cmdMax = 1000;
 
-  /// \brief Minimum input force [N] for the propellerController,
-  /// default: -1000N
+  /// \brief Minimum input force [N] or angular velocity [rad/s] for the
+  /// propellerController, default: -1000
   public: double cmdMin = -1000;
 
   /// \brief Thrust coefficient relating the propeller angular velocity to the
