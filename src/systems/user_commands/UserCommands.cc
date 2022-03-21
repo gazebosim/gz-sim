@@ -24,7 +24,7 @@
 #include <ignition/msgs/pose.pb.h>
 #include <ignition/msgs/physics.pb.h>
 #include <ignition/msgs/visual.pb.h>
-#include <ignition/msgs/wheel_slip_parameters.pb.h>
+#include <ignition/msgs/wheel_slip_parameters_cmd.pb.h>
 
 #include <string>
 #include <utility>
