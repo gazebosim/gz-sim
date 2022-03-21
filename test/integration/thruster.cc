@@ -147,10 +147,16 @@ void ThrusterTest::TestWorld(const std::string &_world,
   EXPECT_LT(sleep, maxSleep);
   EXPECT_TRUE(pub.HasConnections());
 
-  // input force cmd - this should be capped to 0
-  double forceCmd{-1000.0};
+  // Test the cmd limits specified in the world file. These should be:
+  //    if (use_angvel_cmd && thrust_coefficient < 0):
+  //        min_thrust = -300
+  //        max_thrust = 0
+  //    else:
+  //        min_thrust = 0
+  //        max_thrust = 300
+  double invalidCmd = (_useAngVelCmd && _coefficient < 0) ? 1000 : -1000;
   msgs::Double msg;
-  msg.set_data(forceCmd);
+  msg.set_data(invalidCmd);
   pub.Publish(msg);
 
   // Check no movement
@@ -244,14 +250,25 @@ TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(AngVelCmdControl))
 }
 
 /////////////////////////////////////////////////
-TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(ClockwiseThrust))
+TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(CwForceCmdControl))
 {
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-    "test", "worlds", "thruster_cw.sdf");
+    "test", "worlds", "thruster_cw_force_cmd.sdf");
 
   //  Thruster spins clockwise (thrust coefficient is negative)
   //  Tolerance is high because the joint command disturbs the vehicle body
   this->TestWorld(world, "custom", -0.005, 950, 0.2, 1e-2);
+}
+
+/////////////////////////////////////////////////
+TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(CwAngVelCmdControl))
+{
+  auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "thruster_cw_ang_vel_cmd.sdf");
+
+  //  Thruster spins clockwise (thrust coefficient is negative)
+  //  Tolerance is high because the joint command disturbs the vehicle body
+  this->TestWorld(world, "custom", -0.005, 950, 0.2, 1e-2, true);
 }
 
 /////////////////////////////////////////////////
