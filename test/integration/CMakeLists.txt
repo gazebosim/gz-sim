@@ -67,6 +67,11 @@ set(tests
   world_control_state.cc
 )
 
+# elevator system causes compile erros on windows
+if (NOT WIN32)
+  list(APPEND tests elevator_system.cc)
+endif()
+
 # Tests that require a valid display
 set(tests_needing_display
   camera_sensor_background.cc
@@ -133,4 +138,10 @@ set_tests_properties(INTEGRATION_tracked_vehicle_system PROPERTIES TIMEOUT 300)
 
 if(TARGET INTEGRATION_examples_build)
   set_tests_properties(INTEGRATION_examples_build PROPERTIES TIMEOUT 320)
+endif()
+
+if(VALID_DISPLAY AND VALID_DRI_DISPLAY)
+  target_link_libraries(INTEGRATION_sensors_system
+    ignition-rendering${IGN_RENDERING_VER}::ignition-rendering${IGN_RENDERING_VER}
+  )
 endif()

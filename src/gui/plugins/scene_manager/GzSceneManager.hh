@@ -34,6 +34,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   /// This plugin doesn't instantiate a new 3D scene. Instead, it relies on
   /// another plugin being loaded alongside it that will create and paint the
   /// scene to the window, such as `ignition::gui::plugins::Scene3D`.
+  ///
+  /// Only one GzSceneManager can be used at a time.
   class GzSceneManager : public GuiSystem
   {
     Q_OBJECT
