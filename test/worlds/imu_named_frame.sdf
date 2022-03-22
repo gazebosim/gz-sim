@@ -15,10 +15,6 @@
       name="ignition::gazebo::systems::Imu">
     </plugin>
 
-    <spherical_coordinates>
-      <heading_deg>0</heading_deg>
-    </spherical_coordinates>
-
     <model name="ground_plane">
       <static>true</static>
       <link name="link">

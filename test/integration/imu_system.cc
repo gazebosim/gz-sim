@@ -82,6 +82,15 @@ void imuCUSTOMCb(const msgs::IMU &_msg)
 }
 
 /////////////////////////////////////////////////
+void clearLastImuMsgs()
+{
+  lastImuMsgCUSTOM.Clear();
+  lastImuMsgENU.Clear();
+  lastImuMsgNED.Clear();
+  lastImuMsgNWU.Clear();
+}
+
+/////////////////////////////////////////////////
 void imuCb(const msgs::IMU &_msg)
 {
   mutex.lock();
@@ -281,6 +290,7 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OrientationDisabled))
 TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(NamedFrames))
 {
   imuMsgs.clear();
+  clearLastImuMsgs();
 
   // Start server
   ServerConfig serverConfig;
@@ -305,8 +315,7 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(NamedFrames))
   node.Subscribe(topicCUSTOM, &imuCUSTOMCb);
 
   // Run server
-  size_t iters200 = 200u;
-  server.Run(true, iters200, false);
+  server.Run(true, 200u, false);
 
   // Check we received messages
   EXPECT_TRUE(lastImuMsgENU.has_orientation());
@@ -345,6 +354,7 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(NamedFrames))
 TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(NamedFramesWithHeading))
 {
   imuMsgs.clear();
+  clearLastImuMsgs();
 
   // Start server
   ServerConfig serverConfig;
@@ -369,8 +379,7 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(NamedFramesWithHeading))
   node.Subscribe(topicCUSTOM, &imuCUSTOMCb);
 
   // Run server
-  size_t iters200 = 200u;
-  server.Run(true, iters200, false);
+  server.Run(true, 200u, false);
 
   // Check we received messages
   EXPECT_TRUE(lastImuMsgENU.has_orientation());

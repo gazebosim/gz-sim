@@ -196,7 +196,7 @@ void ImuPrivate::addIMU(
   }
 
   // Get world frame orientation and heading
-  double heading = 0;
+  double heading = 0.0;
 
   ignition::gazebo::World world(worldEntity);
   if (world.SphericalCoordinates(_ecm))
