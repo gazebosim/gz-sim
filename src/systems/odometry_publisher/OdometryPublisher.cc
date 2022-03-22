@@ -224,20 +224,20 @@ void OdometryPublisher::Configure(const Entity &_entity,
   {
     ignerr << "Failed to generate odom topic ["
            << odomTopic << "]" << std::endl;
-    return;
+  } else {
+    this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
+        odomTopicValid);
   }
-  this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
-      odomTopicValid);
 
   std::string odomCovTopicValid {transport::TopicUtils::AsValidTopic(odomCovTopic)};
   if (odomCovTopicValid.empty())
   {
     ignerr << "Failed to generate odom topic ["
            << odomCovTopic << "]" << std::endl;
-    return;
+  } else {
+    this->dataPtr->odomCovPub = this->dataPtr->node.Advertise<
+        msgs::OdometryWithCovariance>(odomCovTopicValid);
   }
-  this->dataPtr->odomCovPub = this->dataPtr->node.Advertise<
-      msgs::OdometryWithCovariance>(odomCovTopicValid);
 }
 
 //////////////////////////////////////////////////
@@ -416,7 +416,9 @@ void OdometryPublisherPrivate::UpdateOdometry(
     return;
   }
   this->lastOdomPubTime = _info.simTime;
-  this->odomPub.Publish(msg);
+  if (this->odomPub.Valid()) {
+    this->odomPub.Publish(msg);
+  }
 
   // Generate odometry with covariance message and publish it.
   msgs::OdometryWithCovariance msg_covariance;
@@ -473,7 +475,9 @@ void OdometryPublisherPrivate::UpdateOdometry(
         mutable_covariance()->add_data(0);
     }
   }
-  this->odomCovPub.Publish(msg_covariance);
+  if (this->odomCovPub.Valid()) {
+    this->odomCovPub.Publish(msg_covariance);
+  }
 }
 
 IGNITION_ADD_PLUGIN(OdometryPublisher,
