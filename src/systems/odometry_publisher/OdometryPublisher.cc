@@ -101,7 +101,7 @@ class ignition::gazebo::systems::OdometryPublisherPrivate
   public: ignition::math::Pose3d offset = {0, 0, 0, 0, 0, 0};
 
   /// \brief Gaussian noise
-  public: double gaussianNoise = 0;
+  public: double gaussianNoise = 0.0;
 };
 
 //////////////////////////////////////////////////
