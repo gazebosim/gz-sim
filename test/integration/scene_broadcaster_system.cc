@@ -858,11 +858,11 @@ TEST_P(SceneBroadcasterTest,
   // made by the test system is received.
   received = false;
   hasState = false;
-  server.Run(true, 5, false);
+  server.Run(true, 10, false);
   // (wait for a bit after running the server in case ign-transport is still
   // processing messages)
   unsigned int sleep = 0u;
-  unsigned int maxSleep = 30u;
+  unsigned int maxSleep = 50u;
   // cppcheck-suppress unmatchedSuppression
   // cppcheck-suppress knownConditionTrueFalse
   while (!received && sleep++ < maxSleep)
