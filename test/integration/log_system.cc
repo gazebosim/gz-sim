@@ -918,7 +918,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogControl))
     latestSpherePose = spherePose;
   }
 
-  // Rewind
+  // Rewind to zero
   req.Clear();
   req.set_rewind(true);
 
@@ -926,7 +926,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogControl))
   EXPECT_TRUE(result);
   EXPECT_TRUE(res.data());
 
-  server.Run(true, 2, false);
+  server.Run(true, 3, false);
 
   EXPECT_TRUE(sphereFound);
   sphereFound = false;
