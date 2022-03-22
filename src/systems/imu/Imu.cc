@@ -17,9 +17,10 @@
 
 #include "Imu.hh"
 
-#include <unordered_map>
-#include <utility>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
 
 #include <ignition/plugin/Register.hh>
 
@@ -57,6 +58,11 @@ class ignition::gazebo::systems::ImuPrivate
   /// \brief Ign-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
 
+  /// \brief Keep list of sensors that were created during the previous
+  /// `PostUpdate`, so that components can be created during the next
+  /// `PreUpdate`.
+  public: std::unordered_set<Entity> newSensors;
+
   /// \brief Keep track of world ID, which is equivalent to the scene's
   /// root visual.
   /// Defaults to zero, which is considered invalid by Ignition Gazebo.
@@ -65,21 +71,21 @@ class ignition::gazebo::systems::ImuPrivate
   /// True if the rendering component is initialized
   public: bool initialized = false;
 
-  /// \brief Create IMU sensor
-  /// \param[in] _ecm Mutable reference to ECM.
-  public: void CreateImuEntities(EntityComponentManager &_ecm);
+  /// \brief Create IMU sensors in ign-sensors
+  /// \param[in] _ecm Immutable reference to ECM.
+  public: void CreateSensors(const EntityComponentManager &_ecm);
 
   /// \brief Update IMU sensor data based on physics data
   /// \param[in] _ecm Immutable reference to ECM.
   public: void Update(const EntityComponentManager &_ecm);
 
   /// \brief Create sensor
-  /// \param[in] _ecm Mutable reference to ECM.
+  /// \param[in] _ecm Immutable reference to ECM.
   /// \param[in] _entity Entity of the IMU
   /// \param[in] _imu IMU component.
   /// \param[in] _parent Parent entity component.
-  public: void addIMU(
-    EntityComponentManager &_ecm,
+  public: void AddSensor(
+    const EntityComponentManager &_ecm,
     const Entity _entity,
     const components::Imu *_imu,
     const components::ParentEntity *_parent);
@@ -103,7 +109,21 @@ void Imu::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
   IGN_PROFILE("Imu::PreUpdate");
-  this->dataPtr->CreateImuEntities(_ecm);
+
+  // Create components
+  for (auto entity : this->dataPtr->newSensors)
+  {
+    auto it = this->dataPtr->entitySensorMap.find(entity);
+    if (it == this->dataPtr->entitySensorMap.end())
+    {
+      ignerr << "Entity [" << entity
+             << "] isn't in sensor map, this shouldn't happen." << std::endl;
+      continue;
+    }
+    // Set topic
+    _ecm.CreateComponent(entity, components::SensorTopic(it->second->Topic()));
+  }
+  this->dataPtr->newSensors.clear();
 }
 
 //////////////////////////////////////////////////
@@ -119,6 +139,8 @@ void Imu::PostUpdate(const UpdateInfo &_info,
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
+
+  this->dataPtr->CreateSensors(_ecm);
 
   // Only update and publish if not paused.
   if (!_info.paused)
@@ -136,8 +158,8 @@ void Imu::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-void ImuPrivate::addIMU(
-  EntityComponentManager &_ecm,
+void ImuPrivate::AddSensor(
+  const EntityComponentManager &_ecm,
   const Entity _entity,
   const components::Imu *_imu,
   const components::ParentEntity *_parent)
@@ -185,9 +207,6 @@ void ImuPrivate::addIMU(
   math::Pose3d p = worldPose(_entity, _ecm);
   sensor->SetOrientationReference(p.Rot());
 
-  // Set topic
-  _ecm.CreateComponent(_entity, components::SensorTopic(sensor->Topic()));
-
   // Set whether orientation is enabled
   if (data.ImuSensor())
   {
@@ -210,10 +229,11 @@ void ImuPrivate::addIMU(
 
   this->entitySensorMap.insert(
       std::make_pair(_entity, std::move(sensor)));
+  this->newSensors.insert(_entity);
 }
 
 //////////////////////////////////////////////////
-void ImuPrivate::CreateImuEntities(EntityComponentManager &_ecm)
+void ImuPrivate::CreateSensors(const EntityComponentManager &_ecm)
 {
   IGN_PROFILE("ImuPrivate::CreateImuEntities");
   // Get World Entity
@@ -233,7 +253,7 @@ void ImuPrivate::CreateImuEntities(EntityComponentManager &_ecm)
           const components::Imu *_imu,
           const components::ParentEntity *_parent)->bool
         {
-          addIMU(_ecm, _entity, _imu, _parent);
+          this->AddSensor(_ecm, _entity, _imu, _parent);
           return true;
         });
       this->initialized = true;
@@ -246,7 +266,7 @@ void ImuPrivate::CreateImuEntities(EntityComponentManager &_ecm)
           const components::Imu *_imu,
           const components::ParentEntity *_parent)->bool
         {
-          addIMU(_ecm, _entity, _imu, _parent);
+          this->AddSensor(_ecm, _entity, _imu, _parent);
           return true;
       });
   }

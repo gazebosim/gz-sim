@@ -63,11 +63,12 @@
         <plugin
            filename="ignition-gazebo-pose-publisher-system"
            name="ignition::gazebo::systems::PosePublisher">
-          <publish_link_pose>true</publish_link_pose>
+          <publish_link_pose>false</publish_link_pose>
           <publish_sensor_pose>false</publish_sensor_pose>
           <publish_collision_pose>false</publish_collision_pose>
           <publish_visual_pose>false</publish_visual_pose>
-          <publish_nested_model_pose>false</publish_nested_model_pose>
+          <publish_nested_model_pose>true</publish_nested_model_pose>
+          <publish_model_pose>false</publish_model_pose>
           <update_frequency>100</update_frequency>
         </plugin>
       </model>
