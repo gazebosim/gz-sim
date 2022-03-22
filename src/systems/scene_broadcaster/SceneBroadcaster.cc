@@ -334,7 +334,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     {
       _manager.State(*this->dataPtr->stepMsg.mutable_state(), {}, {}, true);
     }
-    // Publish the changed state a change occurred to the ECS
+    // Publish the changed state if a change occurred to the ECS
     else if (changeEvent)
     {
       _manager.ChangedState(*this->dataPtr->stepMsg.mutable_state());
