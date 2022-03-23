@@ -1041,7 +1041,7 @@ TEST_F(UserCommandsTest, WheelSlip)
 
   // Run server and check we have the ECM
   EXPECT_EQ(nullptr, ecm);
-  server.Run(true, 1, false);
+  server.Run(true, 2, false);
   ASSERT_NE(nullptr, ecm);
 
   // Check that the physics properties are the ones specified in the sdf
