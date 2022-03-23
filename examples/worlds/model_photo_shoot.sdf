@@ -8,6 +8,7 @@
 -->
 <sdf version="1.6">
   <world name="default">
+    <gravity>0 0 0</gravity>
     <plugin
       filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">

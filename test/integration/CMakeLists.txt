@@ -34,6 +34,7 @@ set(tests
   logical_audio_sensor_plugin.cc
   magnetometer_system.cc
   model.cc
+  model_photo_shoot.cc
   multicopter.cc
   multiple_servers.cc
   nested_model_physics.cc
@@ -125,5 +126,10 @@ target_link_libraries(INTEGRATION_tracked_vehicle_system
   ignition-physics${IGN_PHYSICS_VER}::core
   ignition-plugin${IGN_PLUGIN_VER}::loader
 )
+
+target_link_libraries(INTEGRATION_model_photo_shoot
+  ignition-rendering${IGN_RENDERING_VER}::ignition-rendering${IGN_RENDERING_VER}
+)
+
 # The default timeout (240s) doesn't seem to be enough for this test.
 set_tests_properties(INTEGRATION_tracked_vehicle_system PROPERTIES TIMEOUT 300)
