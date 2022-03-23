@@ -1016,7 +1016,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Physics))
 }
 
 /////////////////////////////////////////////////
-TEST_F(UserCommandsTest, WheelSlip)
+TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(WheelSlip))
 {
   // Start server
   ServerConfig serverConfig;
@@ -1041,7 +1041,7 @@ TEST_F(UserCommandsTest, WheelSlip)
 
   // Run server and check we have the ECM
   EXPECT_EQ(nullptr, ecm);
-  server.Run(true, 2, false);
+  server.Run(true, 1, false);
   ASSERT_NE(nullptr, ecm);
 
   // Check that the physics properties are the ones specified in the sdf
