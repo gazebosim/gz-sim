@@ -147,6 +147,22 @@ void ThrusterTest::TestWorld(const std::string &_world,
   EXPECT_LT(sleep, maxSleep);
   EXPECT_TRUE(pub.HasConnections());
 
+  // input force cmd - this should be capped to 0
+  double forceCmd{-1000.0};
+  msgs::Double msg;
+  msg.set_data(forceCmd);
+  pub.Publish(msg);
+
+  // Check no movement
+  fixture.Server()->Run(true, 100, false);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  EXPECT_DOUBLE_EQ(0.0, modelPoses.back().Pos().X());
+  EXPECT_EQ(100u, modelPoses.size());
+  EXPECT_EQ(100u, propellerAngVels.size());
+  modelPoses.clear();
+  propellerAngVels.clear();
+
+  // max allowed force
   double force{300.0};
 
   // See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 246
@@ -154,7 +170,7 @@ void ThrusterTest::TestWorld(const std::string &_world,
   //     (fluid_density * thrust_coefficient * propeller_diameter ^ 4))
   auto omega = sqrt(force / (_density * _coefficient * pow(_diameter, 4)));
 
-  msgs::Double msg;
+  msg.Clear();
   if(!_useAngVelCmd)
   {
     msg.set_data(force);

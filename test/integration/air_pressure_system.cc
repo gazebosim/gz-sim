@@ -64,7 +64,7 @@ TEST_F(AirPressureTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(AirPressure))
 
   // Create a system that checks sensor topic
   test::Relay testSystem;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
+  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
                               const gazebo::EntityComponentManager &_ecm)
       {
         _ecm.Each<components::AirPressureSensor, components::Name>(
@@ -77,6 +77,10 @@ TEST_F(AirPressureTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(AirPressure))
               auto sensorComp = _ecm.Component<components::Sensor>(_entity);
               EXPECT_NE(nullptr, sensorComp);
 
+              if (_info.iterations == 1)
+                return true;
+
+              // This component is created on the 2nd PreUpdate
               auto topicComp = _ecm.Component<components::SensorTopic>(_entity);
               EXPECT_NE(nullptr, topicComp);
               if (topicComp)

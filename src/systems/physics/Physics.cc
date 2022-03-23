@@ -32,10 +32,12 @@
 #include <unordered_set>
 #include <vector>
 
-#include <ignition/common/HeightmapData.hh>
-#include <ignition/common/ImageHeightmap.hh>
+#include <ignition/common/geospatial/Dem.hh>
+#include <ignition/common/geospatial/HeightmapData.hh>
+#include <ignition/common/geospatial/ImageHeightmap.hh>
 #include <ignition/common/MeshManager.hh>
 #include <ignition/common/Profiler.hh>
+#include <ignition/common/StringUtils.hh>
 #include <ignition/common/SystemPaths.hh>
 #include <ignition/math/AxisAlignedBox.hh>
 #include <ignition/math/eigen3/Conversions.hh>
@@ -707,6 +709,10 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// through the GUI model editor, so that we can avoid premature creation
   /// of joints. This also lets us suppress some invalid error messages.
   public: std::set<Entity> jointAddedToModel;
+
+  /// \brief Flag to store whether the names of colliding entities should
+  /// be populated in the contact points.
+  public: bool contactsEntityNames = true;
 };
 
 //////////////////////////////////////////////////
@@ -751,6 +757,14 @@ void Physics::Configure(const Entity &_entity,
   {
     engineComp->SetData(pluginLib,
         [](const std::string &_a, const std::string &_b){return _a == _b;});
+  }
+
+  // Check if entity names should be populated in contact points.
+  auto contactsElement = _sdf->FindElement("contacts");
+  if (contactsElement)
+  {
+    this->dataPtr->contactsEntityNames = contactsElement->Get<bool>(
+      "include_entity_names", true).first;
   }
 
   // Find engine shared library
@@ -1320,17 +1334,38 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
             return true;
           }
 
-          common::ImageHeightmap data;
-          if (data.Load(fullPath) < 0)
+          std::shared_ptr<common::HeightmapData> data;
+          std::string lowerFullPath = common::lowercase(fullPath);
+          // check if heightmap is an image
+          if (common::EndsWith(lowerFullPath, ".png")
+              || common::EndsWith(lowerFullPath, ".jpg")
+              || common::EndsWith(lowerFullPath, ".jpeg"))
           {
-            ignerr << "Failed to load heightmap image data from [" << fullPath
-                   << "]" << std::endl;
-            return true;
+            auto img = std::make_shared<common::ImageHeightmap>();
+            if (img->Load(fullPath) < 0)
+            {
+              ignerr << "Failed to load heightmap image data from ["
+                     << fullPath << "]" << std::endl;
+              return true;
+            }
+            data = img;
+          }
+          // DEM
+          else
+          {
+            auto dem = std::make_shared<common::Dem>();
+            if (dem->Load(fullPath) < 0)
+            {
+              ignerr << "Failed to load heightmap dem data from ["
+                     << fullPath << "]" << std::endl;
+              return true;
+            }
+            data = dem;
           }
 
           collisionPtrPhys = linkHeightmapFeature->AttachHeightmapShape(
               _name->Data(),
-              data,
+              *data,
               math::eigen3::convert(_pose->Data()),
               math::eigen3::convert(heightmapSdf->Size()),
               heightmapSdf->Sampling());
@@ -2200,7 +2235,6 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
         worldAngularVelFeature->SetWorldAngularVelocity(
             math::eigen3::convert(worldAngularVel));
-
         return true;
       });
 
@@ -3435,6 +3469,13 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
           msgs::Contact *contactMsg = contactsComp.add_contact();
           contactMsg->mutable_collision1()->set_id(_collEntity1);
           contactMsg->mutable_collision2()->set_id(collEntity2);
+          if (this->contactsEntityNames)
+          {
+            contactMsg->mutable_collision1()->set_name(
+              removeParentScope(scopedName(_collEntity1, _ecm, "::", 0), "::"));
+            contactMsg->mutable_collision2()->set_name(
+              removeParentScope(scopedName(collEntity2, _ecm, "::", 0), "::"));
+          }
           for (const auto &contact : contactData)
           {
             auto *position = contactMsg->add_position();

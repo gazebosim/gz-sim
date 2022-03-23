@@ -31,21 +31,39 @@
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
+#include "ignition/gazebo/components/AirPressureSensor.hh"
+#include "ignition/gazebo/components/Altimeter.hh"
+#include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/CastShadows.hh"
+#include "ignition/gazebo/components/ContactSensor.hh"
+#include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/GpuLidar.hh"
+#include "ignition/gazebo/components/Imu.hh"
+#include "ignition/gazebo/components/LaserRetro.hh"
+#include "ignition/gazebo/components/Lidar.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/LogicalCamera.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Static.hh"
+#include "ignition/gazebo/components/ThermalCamera.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
+
+#include <sdf/Camera.hh>
+#include <sdf/Imu.hh>
+#include <sdf/Lidar.hh>
+#include <sdf/Noise.hh>
+#include <sdf/Sensor.hh>
 
 using namespace std::chrono_literals;
 
@@ -778,6 +796,169 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
         sensorMsg->set_parent_id(_parentComp->Data());
         sensorMsg->set_name(_nameComp->Data());
         sensorMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
+
+        auto altimeterComp = _manager.Component<components::Altimeter>(_entity);
+        if (altimeterComp)
+        {
+          sensorMsg->set_type("altimeter");
+        }
+        auto airPressureComp = _manager.Component<
+          components::AirPressureSensor>(_entity);
+        if (airPressureComp)
+        {
+          sensorMsg->set_type("air_pressure");
+        }
+        auto cameraComp = _manager.Component<components::Camera>(_entity);
+        if (cameraComp)
+        {
+          sensorMsg->set_type("camera");
+          msgs::CameraSensor * cameraSensorMsg = sensorMsg->mutable_camera();
+          const auto * camera = cameraComp->Data().CameraSensor();
+          if (camera)
+          {
+            cameraSensorMsg->set_horizontal_fov(
+              camera->HorizontalFov().Radian());
+            cameraSensorMsg->mutable_image_size()->set_x(camera->ImageWidth());
+            cameraSensorMsg->mutable_image_size()->set_y(camera->ImageHeight());
+            cameraSensorMsg->set_image_format(camera->PixelFormatStr());
+            cameraSensorMsg->set_near_clip(camera->NearClip());
+            cameraSensorMsg->set_far_clip(camera->FarClip());
+            msgs::Distortion *distortionMsg =
+              cameraSensorMsg->mutable_distortion();
+            if (distortionMsg)
+            {
+              distortionMsg->mutable_center()->set_x(
+                camera->DistortionCenter().X());
+              distortionMsg->mutable_center()->set_y(
+                camera->DistortionCenter().Y());
+              distortionMsg->set_k1(camera->DistortionK1());
+              distortionMsg->set_k2(camera->DistortionK2());
+              distortionMsg->set_k3(camera->DistortionK3());
+              distortionMsg->set_p1(camera->DistortionP1());
+              distortionMsg->set_p2(camera->DistortionP2());
+            }
+          }
+        }
+        auto contactSensorComp = _manager.Component<
+          components::ContactSensor>(_entity);
+        if (contactSensorComp)
+        {
+          sensorMsg->set_type("contact_sensor");
+        }
+        auto depthCameraSensorComp = _manager.Component<
+          components::DepthCamera>(_entity);
+        if (depthCameraSensorComp)
+        {
+          sensorMsg->set_type("depth_camera");
+        }
+        auto gpuLidarComp = _manager.Component<components::GpuLidar>(_entity);
+        if (gpuLidarComp)
+        {
+          sensorMsg->set_type("gpu_lidar");
+          msgs::LidarSensor * lidarSensorMsg = sensorMsg->mutable_lidar();
+          const auto * lidar = gpuLidarComp->Data().LidarSensor();
+
+          if (lidar && lidarSensorMsg)
+          {
+            lidarSensorMsg->set_horizontal_samples(
+              lidar->HorizontalScanSamples());
+            lidarSensorMsg->set_horizontal_resolution(
+              lidar->HorizontalScanResolution());
+            lidarSensorMsg->set_horizontal_min_angle(
+              lidar->HorizontalScanMinAngle().Radian());
+            lidarSensorMsg->set_horizontal_max_angle(
+              lidar->HorizontalScanMaxAngle().Radian());
+            lidarSensorMsg->set_vertical_samples(lidar->VerticalScanSamples());
+            lidarSensorMsg->set_vertical_resolution(
+              lidar->VerticalScanResolution());
+            lidarSensorMsg->set_vertical_min_angle(
+              lidar->VerticalScanMinAngle().Radian());
+            lidarSensorMsg->set_vertical_max_angle(
+              lidar->VerticalScanMaxAngle().Radian());
+            lidarSensorMsg->set_range_min(lidar->RangeMin());
+            lidarSensorMsg->set_range_max(lidar->RangeMax());
+            lidarSensorMsg->set_range_resolution(lidar->RangeResolution());
+            msgs::SensorNoise *sensorNoise = lidarSensorMsg->mutable_noise();
+            if (sensorNoise)
+            {
+              const auto noise = lidar->LidarNoise();
+              switch(noise.Type())
+              {
+                case sdf::NoiseType::GAUSSIAN:
+                  sensorNoise->set_type(msgs::SensorNoise::GAUSSIAN);
+                  break;
+                case sdf::NoiseType::GAUSSIAN_QUANTIZED:
+                  sensorNoise->set_type(msgs::SensorNoise::GAUSSIAN_QUANTIZED);
+                  break;
+                default:
+                  sensorNoise->set_type(msgs::SensorNoise::NONE);
+              }
+              sensorNoise->set_mean(noise.Mean());
+              sensorNoise->set_stddev(noise.StdDev());
+              sensorNoise->set_bias_mean(noise.BiasMean());
+              sensorNoise->set_bias_stddev(noise.BiasStdDev());
+              sensorNoise->set_precision(noise.Precision());
+              sensorNoise->set_dynamic_bias_stddev(noise.DynamicBiasStdDev());
+              sensorNoise->set_dynamic_bias_correlation_time(
+                noise.DynamicBiasCorrelationTime());
+            }
+          }
+        }
+        auto imuComp = _manager.Component<components::Imu>(_entity);
+        if (imuComp)
+        {
+          sensorMsg->set_type("imu");
+          msgs::IMUSensor * imuMsg = sensorMsg->mutable_imu();
+          const auto * imu = imuComp->Data().ImuSensor();
+
+          ignition::gazebo::set(
+              imuMsg->mutable_linear_acceleration()->mutable_x_noise(),
+              imu->LinearAccelerationXNoise());
+          ignition::gazebo::set(
+              imuMsg->mutable_linear_acceleration()->mutable_y_noise(),
+              imu->LinearAccelerationYNoise());
+          ignition::gazebo::set(
+              imuMsg->mutable_linear_acceleration()->mutable_z_noise(),
+              imu->LinearAccelerationZNoise());
+          ignition::gazebo::set(
+              imuMsg->mutable_angular_velocity()->mutable_x_noise(),
+              imu->AngularVelocityXNoise());
+          ignition::gazebo::set(
+              imuMsg->mutable_angular_velocity()->mutable_y_noise(),
+              imu->AngularVelocityYNoise());
+          ignition::gazebo::set(
+              imuMsg->mutable_angular_velocity()->mutable_z_noise(),
+              imu->AngularVelocityZNoise());
+        }
+        auto laserRetroComp = _manager.Component<
+          components::LaserRetro>(_entity);
+        if (laserRetroComp)
+        {
+          sensorMsg->set_type("laser_retro");
+        }
+        auto lidarComp = _manager.Component<components::Lidar>(_entity);
+        if (lidarComp)
+        {
+          sensorMsg->set_type("lidar");
+        }
+        auto logicalCamera = _manager.Component<
+          components::LogicalCamera>(_entity);
+        if (logicalCamera)
+        {
+          sensorMsg->set_type("logical_camera");
+        }
+        auto rgbdCameraComp = _manager.Component<
+          components::RgbdCamera>(_entity);
+        if (rgbdCameraComp)
+        {
+          sensorMsg->set_type("rgbd_camera");
+        }
+        auto thermalCameraComp = _manager.Component<
+          components::ThermalCamera>(_entity);
+        if (thermalCameraComp)
+        {
+          sensorMsg->set_type("thermal_camera");
+        }
 
         // Add to graph
         newGraph.AddVertex(_nameComp->Data(), sensorMsg, _entity);

@@ -3185,6 +3185,7 @@ TEST_P(EntityComponentManagerFixture, CopyEcm)
       });
 }
 
+//////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture, ComputeDiff)
 {
   Entity entity1 = manager.CreateEntity();

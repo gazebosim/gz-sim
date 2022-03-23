@@ -76,6 +76,7 @@
 #include "ignition/gazebo/components/Transparency.hh"
 #include "ignition/gazebo/components/Visibility.hh"
 #include "ignition/gazebo/components/Visual.hh"
+#include "ignition/gazebo/components/WideAngleCamera.hh"
 #include "ignition/gazebo/components/WindMode.hh"
 #include "ignition/gazebo/components/World.hh"
 
@@ -749,6 +750,17 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
         components::Material(*_visual->Material()));
   }
 
+  // store the plugin in a component
+  if (_visual->Element())
+  {
+    sdf::ElementPtr pluginElem =  _visual->Element()->FindElement("plugin");
+    if (pluginElem)
+    {
+      this->dataPtr->ecm->CreateComponent(visualEntity,
+          components::VisualPlugin(pluginElem));
+    }
+  }
+
   // Keep track of visuals so we can load their plugins after loading the
   // entire model and having its full scoped name.
   this->dataPtr->newVisuals[visualEntity] = _visual->Element();
@@ -856,6 +868,11 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
   {
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::SegmentationCamera(*_sensor));
+  }
+  else if (_sensor->Type() == sdf::SensorType::WIDE_ANGLE_CAMERA)
+  {
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::WideAngleCamera(*_sensor));
   }
   else if (_sensor->Type() == sdf::SensorType::AIR_PRESSURE)
   {

@@ -316,6 +316,14 @@ void Buoyancy::Configure(const Entity &_entity,
       argument = argument->GetNextElement();
     }
   }
+  else
+  {
+    ignwarn <<
+      "Neither <graded_buoyancy> nor <uniform_fluid_density> specified"
+      << std::endl
+      << "\tDefaulting to <uniform_fluid_density>1000</uniform_fluid_density>"
+      << std::endl;
+  }
 
   if (_sdf->HasElement("enable"))
   {
@@ -368,7 +376,8 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
         _entity, components::Collision());
 
     double volumeSum = 0;
-    math::Vector3d weightedPosSum = math::Vector3d::Zero;
+    ignition::math::Vector3d weightedPosInLinkSum =
+      ignition::math::Vector3d::Zero;
 
     // Compute the volume of the link by iterating over all the collision
     // elements and storing each geometry's volume.
@@ -426,16 +435,15 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       }
 
       volumeSum += volume;
-      math::Pose3d pose = worldPose(collision, _ecm);
-      weightedPosSum += volume * pose.Pos();
+      auto poseInLink = _ecm.Component<components::Pose>(collision)->Data();
+      weightedPosInLinkSum += volume * poseInLink.Pos();
     }
 
     if (volumeSum > 0)
     {
-      // Store the center of volume
-      math::Pose3d linkWorldPose = worldPose(_entity, _ecm);
+      // Store the center of volume expressed in the link frame
       _ecm.CreateComponent(_entity, components::CenterOfVolume(
-            weightedPosSum / volumeSum - linkWorldPose.Pos()));
+            weightedPosInLinkSum / volumeSum));
 
       // Store the volume
       _ecm.CreateComponent(_entity, components::Volume(volumeSum));
