@@ -99,7 +99,7 @@
         name="ignition::gazebo::systems::Thruster">
         <namespace>custom</namespace>
         <joint_name>propeller_joint</joint_name>
-        <!-- Clockwise thruster -->
+        <!-- Counter-clockwise thruster -->
         <thrust_coefficient>-0.005</thrust_coefficient>
         <fluid_density>950</fluid_density>
         <propeller_diameter>0.2</propeller_diameter>

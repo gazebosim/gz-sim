@@ -61,10 +61,10 @@ namespace systems
   /// - <propeller_diameter> - The diameter of the propeller in meters.
   ///   [Optional, m, defaults to 0.02m]
   /// - <thrust_coefficient> - This is the coefficient which relates the angular
-  ///   velocity to actual thrust. A positive coefficient spins the propeller
-  ///   counter-clockwise for a positive thrust force; a negative coefficient
-  ///   spins the propeller clockwise for positive thrust force. [Optional,
-  ///   no units, defaults to 1.0]
+  ///   velocity to thrust. A positive coefficient corresponds to a clockwise
+  ///   propeller, which is a propeller that spins clockwise under positive
+  ///   thrust when viewed along the parent link from stern (-x) to bow (+x).
+  ///   [Optional, no units, defaults to 1.0]
   ///
   ///      omega = sqrt(thrust /
   ///          (fluid_density * thrust_coefficient * propeller_diameter ^ 4))

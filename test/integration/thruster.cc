@@ -250,23 +250,23 @@ TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(AngVelCmdControl))
 }
 
 /////////////////////////////////////////////////
-TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(CwForceCmdControl))
+TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(CcwForceCmdControl))
 {
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-    "test", "worlds", "thruster_cw_force_cmd.sdf");
+    "test", "worlds", "thruster_ccw_force_cmd.sdf");
 
-  //  Thruster spins clockwise (thrust coefficient is negative)
+  //  Viewed from stern to bow the propeller spins counter-clockwise
   //  Tolerance is high because the joint command disturbs the vehicle body
   this->TestWorld(world, "custom", -0.005, 950, 0.2, 1e-2);
 }
 
 /////////////////////////////////////////////////
-TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(CwAngVelCmdControl))
+TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(CcwAngVelCmdControl))
 {
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-    "test", "worlds", "thruster_cw_ang_vel_cmd.sdf");
+    "test", "worlds", "thruster_ccw_ang_vel_cmd.sdf");
 
-  //  Thruster spins clockwise (thrust coefficient is negative)
+  //  Viewed from stern to bow the propeller spins counter-clockwise
   //  Tolerance is high because the joint command disturbs the vehicle body
   this->TestWorld(world, "custom", -0.005, 950, 0.2, 1e-2, true);
 }
