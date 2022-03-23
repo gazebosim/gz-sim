@@ -151,8 +151,8 @@ TEST_F(JointStatePublisherTest,
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/diff_drive_nested.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "diff_drive_nested.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -165,7 +165,6 @@ TEST_F(JointStatePublisherTest,
   std::function<void(const msgs::Model &)> jointStateCb =
     [&](const msgs::Model &_msg)
     {
-      std::cerr << "asdfasdf" << std::endl;
       bool foundLeftWheelJoint{false},
            foundRightWheelJoint{false},
            foundCasterWheel{false},
