@@ -99,6 +99,12 @@ Rectangle {
   // Loaded item for intensity
   property var intensityItem: {}
 
+  // Loaded item for isLightOn
+  property var isLightOnItem: {}
+
+  // Loaded item for visualizeVisuals
+  property var visualizeVisualItem: {}
+
   // Send new light data to C++
   function sendLight() {
     // TODO(anyone) There's a loss of precision when these values get to C++
@@ -123,7 +129,9 @@ Rectangle {
       outerAngleItem.value,
       falloffItem.value,
       intensityItem.value,
-      model.data[20]
+      model.data[20],
+      isLightOnItem.checked,
+      visualizeVisualItem.checked
     );
   }
 
@@ -284,6 +292,68 @@ Rectangle {
       ColumnLayout {
         id: grid
         width: parent.width
+
+        RowLayout {
+          Rectangle {
+            color: "transparent"
+            height: 40
+            Layout.preferredWidth: visualizeVisualText.width + indentation*3
+
+            Text {
+              id : visualizeVisualText
+              text: ' View gizmo'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
+            }
+          }
+          Item {
+            Layout.fillWidth: true
+            height: 40
+
+            Loader {
+              id: visualizeVisualLoader
+              anchors.fill: parent
+              property double numberValue: model.data[22]
+              sourceComponent: ignSwitch
+              onLoaded: {
+                visualizeVisualItem = visualizeVisualLoader.item
+              }
+            }
+          }
+        }
+
+        RowLayout {
+          Rectangle {
+            color: "transparent"
+            height: 40
+            Layout.preferredWidth: isOnText.width + indentation*3
+
+            Text {
+              id : isOnText
+              text: ' Turn on/off'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
+            }
+          }
+          Item {
+            Layout.fillWidth: true
+            height: 40
+
+            Loader {
+              id: isOnLoader
+              anchors.fill: parent
+              property double numberValue: model.data[21]
+              sourceComponent: ignSwitch
+              onLoaded: {
+                isLightOnItem = isOnLoader.item
+              }
+            }
+          }
+        }
 
         RowLayout {
           Rectangle {
