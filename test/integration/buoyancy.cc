@@ -200,7 +200,7 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Movement))
 }
 
 /////////////////////////////////////////////////
-TEST_F(BuoyancyTest, OffsetAndRotation)
+TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OffsetAndRotation))
 {
   TestFixture fixture(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "center_of_volume.sdf"));

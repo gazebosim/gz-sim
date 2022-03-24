@@ -692,6 +692,81 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Pose))
   EXPECT_NEAR(500.0, poseComp->Data().Pos().Y(), 0.2);
 }
 
+
+/////////////////////////////////////////////////
+TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PoseVector))
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/shapes.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Create a system just to get the ECM
+  EntityComponentManager *ecm{nullptr};
+  test::Relay testSystem;
+  testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
+                             gazebo::EntityComponentManager &_ecm)
+      {
+        ecm = &_ecm;
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+
+  // Run server and check we have the ECM
+  EXPECT_EQ(nullptr, ecm);
+  server.Run(true, 1, false);
+  EXPECT_NE(nullptr, ecm);
+
+  // Entity move by name
+  msgs::Pose_V req;
+
+  auto poseBoxMsg = req.add_pose();
+  poseBoxMsg->set_name("box");
+  poseBoxMsg->mutable_position()->set_y(123.0);
+
+  auto poseSphereMsg = req.add_pose();
+  poseSphereMsg->set_name("sphere");
+  poseSphereMsg->mutable_position()->set_y(456.0);
+
+  msgs::Boolean res;
+  bool result;
+  unsigned int timeout = 5000;
+  std::string service{"/world/default/set_pose_vector"};
+
+  transport::Node node;
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Box entity
+  auto boxEntity = ecm->EntityByComponents(components::Name("box"));
+  EXPECT_NE(kNullEntity, boxEntity);
+
+  // Check entity has not been moved yet
+  auto poseComp = ecm->Component<components::Pose>(boxEntity);
+  ASSERT_NE(nullptr, poseComp);
+  EXPECT_EQ(math::Pose3d(1, 2, 3, 0, 0, 1), poseComp->Data());
+
+  // Run an iteration and check it was moved
+  server.Run(true, 1, false);
+
+  poseComp = ecm->Component<components::Pose>(boxEntity);
+  ASSERT_NE(nullptr, poseComp);
+  EXPECT_NEAR(123.0, poseComp->Data().Pos().Y(), 0.2);
+
+  auto sphereEntity = ecm->EntityByComponents(components::Name("sphere"));
+  EXPECT_NE(kNullEntity, sphereEntity);
+
+  poseComp = ecm->Component<components::Pose>(sphereEntity);
+  ASSERT_NE(nullptr, poseComp);
+  EXPECT_NEAR(456, poseComp->Data().Pos().Y(), 0.2);
+}
+
 /////////////////////////////////////////////////
 // https://github.com/ignitionrobotics/ign-gazebo/issues/634
 TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
