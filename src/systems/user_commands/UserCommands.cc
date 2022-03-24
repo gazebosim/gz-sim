@@ -245,10 +245,10 @@ bool pose3Eql(const math::Pose3d &_a, const math::Pose3d &_b)
 }
 
 /// \brief Update pose for a specific pose message
-/// \param[in] _req
+/// \param[in] _req Message containing new pose
 /// \param[in] _iface Pointer to user commands interface.
 /// \return True if successful.
-bool UpdatePose(
+bool updatePose(
   const msgs::Pose &_req,
   std::shared_ptr<UserCommandsInterface> _iface);
 
@@ -738,7 +738,7 @@ bool RemoveCommand::Execute()
 
 
 //////////////////////////////////////////////////
-bool UpdatePose(
+bool updatePose(
   const msgs::Pose &_poseMsg,
   std::shared_ptr<UserCommandsInterface> _iface)
 {
@@ -799,7 +799,7 @@ bool PoseCommand::Execute()
     return false;
   }
 
-  return UpdatePose(*poseMsg, this->iface);
+  return updatePose(*poseMsg, this->iface);
 }
 
 //////////////////////////////////////////////////
@@ -821,7 +821,7 @@ bool PoseVectorCommand::Execute()
 
   for (int i = 0; i < poseVectorMsg->pose_size(); i++)
   {
-    if (!UpdatePose(poseVectorMsg->pose(i), this->iface))
+    if (!updatePose(poseVectorMsg->pose(i), this->iface))
     {
       return false;
     }
