@@ -694,7 +694,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Pose))
 
 
 /////////////////////////////////////////////////
-TEST_F(UserCommandsTest, PoseVector)
+TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PoseVector))
 {
   // Start server
   ServerConfig serverConfig;
