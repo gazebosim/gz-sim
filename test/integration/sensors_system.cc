@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include <sdf/Model.hh>
@@ -26,6 +27,11 @@
 
 #include <ignition/transport/Node.hh>
 #include <ignition/utilities/ExtraTestMacros.hh>
+
+#include <ignition/rendering/Camera.hh>
+#include <ignition/rendering/RenderEngine.hh>
+#include <ignition/rendering/RenderingIface.hh>
+#include <ignition/rendering/Scene.hh>
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/EventManager.hh"
@@ -37,7 +43,10 @@
 
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/World.hh"
+
+#include "ignition/gazebo/rendering/Events.hh"
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
@@ -45,6 +54,45 @@
 using namespace ignition;
 using namespace std::chrono_literals;
 namespace components = ignition::gazebo::components;
+
+std::unordered_set<gazebo::Entity> g_sensorEntityIds;
+rendering::ScenePtr g_scene;
+
+/////////////////////////////////////////////////
+void OnPostRender()
+{
+  if (!g_scene)
+  {
+    g_scene = rendering::sceneFromFirstRenderEngine();
+  }
+  ASSERT_TRUE(g_scene);
+
+  EXPECT_LT(0u, g_scene->SensorCount());
+  for (unsigned int i = 0; i < g_scene->SensorCount(); ++i)
+  {
+    auto sensor = g_scene->SensorByIndex(i);
+    ASSERT_TRUE(sensor);
+    EXPECT_TRUE(sensor->HasUserData("gazebo-entity"));
+    auto variant = sensor->UserData("gazebo-entity");
+
+    // todo(anyone) change int to uint64_t once user data supports it
+    const int *value = std::get_if<int>(&variant);
+    ASSERT_TRUE(value);
+    g_sensorEntityIds.insert(*value);
+  }
+}
+
+/////////////////////////////////////////////////
+void testSensorEntityIds(const gazebo::EntityComponentManager &_ecm,
+    const std::unordered_set<gazebo::Entity> &_ids)
+{
+  EXPECT_FALSE(_ids.empty());
+  for (const auto & id : _ids)
+  {
+    auto sensorComp = _ecm.Component<gazebo::components::Sensor>(id);
+    EXPECT_TRUE(sensorComp);
+  }
+}
 
 //////////////////////////////////////////////////
 class SensorsFixture : public InternalFixture<InternalFixture<::testing::Test>>
@@ -128,6 +176,8 @@ TEST_F(SensorsFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(HandleRemovedEntities))
 
   gazebo::Server server(serverConfig);
 
+  common::ConnectionPtr postRenderConn;
+
   // A pointer to the ecm. This will be valid once we run the mock system
   gazebo::EntityComponentManager *ecm = nullptr;
   this->mockSystem->preUpdateCallback =
@@ -135,12 +185,25 @@ TEST_F(SensorsFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(HandleRemovedEntities))
     {
       ecm = &_ecm;
     };
+  this->mockSystem->configureCallback =
+    [&](const gazebo::Entity &,
+           const std::shared_ptr<const sdf::Element> &,
+           gazebo::EntityComponentManager &,
+           gazebo::EventManager &_eventMgr)
+    {
+      postRenderConn = _eventMgr.Connect<gazebo::events::PostRender>(
+          std::bind(&::OnPostRender));
+    };
 
   server.AddSystem(this->systemPtr);
   server.Run(true, 50, false);
   ASSERT_NE(nullptr, ecm);
 
   testDefaultTopics();
+
+  testSensorEntityIds(*ecm, g_sensorEntityIds);
+  g_sensorEntityIds.clear();
+  g_scene.reset();
 
   // We won't use the event manager but it's required to create an
   // SdfEntityCreator
