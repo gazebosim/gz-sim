@@ -87,6 +87,8 @@ class ignition::gazebo::SdfEntityCreatorPrivate
   /// \brief Pointer to event manager. We don't assume ownership.
   public: EventManager *eventManager{nullptr};
 
+  public: sdf::World world;
+
   /// \brief Keep track of new sensors being added, so we load their plugins
   /// only after we have their scoped name.
   public: std::map<Entity, sdf::Plugins> newSensors;
@@ -221,6 +223,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
 
   // World entity
   Entity worldEntity = this->dataPtr->ecm->CreateEntity();
+  this->dataPtr->world = *_world;
 
   // World components
   this->dataPtr->ecm->CreateComponent(worldEntity, components::World());
@@ -322,7 +325,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
       components::MagneticField(_world->MagneticField()));
 
   this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(worldEntity,
-      _world->Plugins());
+      this->dataPtr->world.Plugins());
 
   // Store the world's SDF DOM to be used when saving the world to file
   this->dataPtr->ecm->CreateComponent(
@@ -838,6 +841,17 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
   }
   else if (_sensor->Type() == sdf::SensorType::GPU_LIDAR)
   {
+    std::cout << "\n\n HAS GPU LIDAR. Load sensor system\n\n";
+
+    sdf::Plugin sensorPlugin;
+    sensorPlugin.SetFilename("ignition-gazebo-sensors-system");
+    sensorPlugin.SetName("ignition::gazebo::systems::Sensors");
+    sdf::ElementPtr sensorElem(new sdf::Element);
+    sensorElem->SetName("render_engine");
+    sensorElem->Set<std::string>("ogre2");
+    sensorPlugin.InsertContent(sensorElem);
+    this->dataPtr->world.AddPlugin(sensorPlugin);
+
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::GpuLidar(*_sensor));
   }
