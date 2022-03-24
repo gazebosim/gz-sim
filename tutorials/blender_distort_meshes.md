@@ -13,8 +13,8 @@ It offers a Python API for most things available in its GUI.
 
 ## Prerequisites
 
-These instructions have been tested in [Blender](https://www.blender.org/) 2.92,
-which has a revamped user interface from previous versions.
+These instructions have been tested in [Blender](https://www.blender.org/) 2.92.
+Version 2.8x and above have a revamped user interface from previous versions.
 The version in packaging managers such as `apt-get` may be older.
 In that case, install manually as needed.
 These instructions may work in newer versions.
