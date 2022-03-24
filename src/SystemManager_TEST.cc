@@ -93,7 +93,8 @@ TEST(SystemManager, AddSystemNoEcm)
   EXPECT_EQ(0u, systemMgr.SystemsPostUpdate().size());
 
   auto configSystem = std::make_shared<SystemWithConfigure>();
-  systemMgr.AddSystem(configSystem, kNullEntity, nullptr);
+  Entity configEntity{123u};
+  systemMgr.AddSystem(configSystem, configEntity, nullptr);
 
   // SystemManager without an ECM/EventmManager will mean no config occurs
   EXPECT_EQ(0, configSystem->configured);
@@ -105,6 +106,7 @@ TEST(SystemManager, AddSystemNoEcm)
   EXPECT_EQ(0u, systemMgr.SystemsPreUpdate().size());
   EXPECT_EQ(0u, systemMgr.SystemsUpdate().size());
   EXPECT_EQ(0u, systemMgr.SystemsPostUpdate().size());
+  EXPECT_EQ(1u, systemMgr.TotalByEntity(configEntity).size());
 
   systemMgr.ActivatePendingSystems();
   EXPECT_EQ(1u, systemMgr.ActiveCount());
@@ -114,9 +116,11 @@ TEST(SystemManager, AddSystemNoEcm)
   EXPECT_EQ(0u, systemMgr.SystemsPreUpdate().size());
   EXPECT_EQ(0u, systemMgr.SystemsUpdate().size());
   EXPECT_EQ(0u, systemMgr.SystemsPostUpdate().size());
+  EXPECT_EQ(1u, systemMgr.TotalByEntity(configEntity).size());
 
   auto updateSystem = std::make_shared<SystemWithUpdates>();
-  systemMgr.AddSystem(updateSystem, kNullEntity, nullptr);
+  Entity updateEntity{456u};
+  systemMgr.AddSystem(updateSystem, updateEntity, nullptr);
   EXPECT_EQ(1u, systemMgr.ActiveCount());
   EXPECT_EQ(1u, systemMgr.PendingCount());
   EXPECT_EQ(2u, systemMgr.TotalCount());
@@ -124,6 +128,7 @@ TEST(SystemManager, AddSystemNoEcm)
   EXPECT_EQ(0u, systemMgr.SystemsPreUpdate().size());
   EXPECT_EQ(0u, systemMgr.SystemsUpdate().size());
   EXPECT_EQ(0u, systemMgr.SystemsPostUpdate().size());
+  EXPECT_EQ(1u, systemMgr.TotalByEntity(updateEntity).size());
 
   systemMgr.ActivatePendingSystems();
   EXPECT_EQ(2u, systemMgr.ActiveCount());
@@ -133,6 +138,7 @@ TEST(SystemManager, AddSystemNoEcm)
   EXPECT_EQ(1u, systemMgr.SystemsPreUpdate().size());
   EXPECT_EQ(1u, systemMgr.SystemsUpdate().size());
   EXPECT_EQ(1u, systemMgr.SystemsPostUpdate().size());
+  EXPECT_EQ(1u, systemMgr.TotalByEntity(updateEntity).size());
 }
 
 /////////////////////////////////////////////////
