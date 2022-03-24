@@ -21,14 +21,16 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <ignition/math/Pose3.hh>
 #include <ignition/math/Vector3.hh>
+#include <ignition/transport/Node.hh>
 
 #include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/gui/GuiSystem.hh>
 #include <ignition/gazebo/Types.hh>
 
 #include "ignition/gazebo/components/Physics.hh"
+
+#include "Types.hh"
 
 #include <ignition/msgs/light.pb.h>
 
@@ -66,12 +68,6 @@ namespace gazebo
   /// \param[in] _data Data to set.
   template<>
   void setData(QStandardItem *_item, const std::string &_data);
-
-  /// \brief Specialized to set pose data.
-  /// \param[in] _item Item whose data will be set.
-  /// \param[in] _data Data to set.
-  template<>
-  void setData(QStandardItem *_item, const math::Pose3d &_data);
 
   /// \brief Specialized to set light data.
   /// \param[in] _item Item whose data will be set.
@@ -220,15 +216,12 @@ namespace gazebo
     // Documentation inherited
     public: void Update(const UpdateInfo &, EntityComponentManager &) override;
 
-    /// \brief Callback in Qt thread when pose changes.
-    /// \param[in] _x X
-    /// \param[in] _y Y
-    /// \param[in] _z Z
-    /// \param[in] _roll Roll
-    /// \param[in] _pitch Pitch
-    /// \param[in] _yaw Yaw
-    public: Q_INVOKABLE void OnPose(double _x, double _y, double _z,
-        double _roll, double _pitch, double _yaw);
+    /// \brief Add a callback that's called whenever there are updates from the
+    /// ECM to the view, for a given component type.
+    /// \param[in] _id The component type id
+    /// \param[in] _cb Function that's called when there are updates.
+    public: void AddUpdateViewCb(ComponentTypeId _id,
+                inspector::UpdateViewCb _cb);
 
     /// \brief Callback in Qt thread when specular changes.
     /// \param[in] _rSpecular specular red
@@ -352,6 +345,14 @@ namespace gazebo
 
     /// \brief Notify that paused has changed.
     signals: void PausedChanged();
+
+    /// \brief Name of world entity
+    /// \return World name
+    public: const std::string &WorldName() const;
+
+    /// \brief Node for communication
+    /// \return Transport node
+    public: transport::Node &TransportNode();
 
     /// \internal
     /// \brief Pointer to private data.
