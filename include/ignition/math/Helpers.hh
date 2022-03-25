@@ -893,6 +893,50 @@ namespace ignition
                                                 // .000 - 0.999
 
 
+    /// \brief Check if the given string represents a time.
+    /// An example time string is "0 00:00:00.000", which has the format
+    /// "DAYS HOURS:MINUTES:SECONDS.MILLISECONDS"
+    /// \return True if the regex was able to split the string otherwise False
+    inline bool isTimeString(const std::string &_timeString)
+    {
+      std::smatch matches;
+
+      // `matches` should always be a size of 6 as there are 6 matching
+      // groups in the regex.
+      // 1. The whole regex
+      // 2. The days
+      // 3. The hours
+      // 4. The minutes
+      // 5. The seconds
+      // 6. The milliseconds
+      // Note that the space will remain in the day match, the colon
+      // will remain in the hour and minute matches, and the period will
+      // remain in the millisecond match
+      if (!std::regex_search(_timeString, matches, time_regex) ||
+          matches.size() != 6)
+        return false;
+
+      std::string dayString = matches[1];
+
+      // Days are the only unbounded number, so check first to see if stoi
+      // runs successfully
+      if (!dayString.empty())
+      {
+        // Erase the space
+        dayString.erase(dayString.length() - 1);
+        try
+        {
+          std::stoi(dayString);
+        }
+        catch (const std::out_of_range &)
+        {
+          return false;
+        }
+      }
+
+      return true;
+    }
+
     /// \brief Split a std::chrono::steady_clock::duration to a string
     /// \param[in] _timeString The string to convert in general format
     /// \param[out] numberDays number of days in the string

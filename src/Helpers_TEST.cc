@@ -639,6 +639,7 @@ TEST(HelpersTest, stringToDuration)
   std::chrono::steady_clock::duration duration =
     std::chrono::steady_clock::duration::zero();
 
+  EXPECT_TRUE(math::isTimeString(time));
   EXPECT_EQ(resultTime, duration);
 
   time = "10 0";
@@ -646,6 +647,7 @@ TEST(HelpersTest, stringToDuration)
   duration = std::chrono::steady_clock::duration::zero();
   duration += std::chrono::hours(10 * 24);
 
+  EXPECT_TRUE(math::isTimeString(time));
   EXPECT_EQ(resultTime, duration);
 
   time = "7";
@@ -653,6 +655,7 @@ TEST(HelpersTest, stringToDuration)
   duration = std::chrono::steady_clock::duration::zero();
   duration += std::chrono::seconds(7);
 
+  EXPECT_TRUE(math::isTimeString(time));
   EXPECT_EQ(resultTime, duration);
 
   time = "7:10";
@@ -661,6 +664,7 @@ TEST(HelpersTest, stringToDuration)
   duration += std::chrono::minutes(7);
   duration += std::chrono::seconds(10);
 
+  EXPECT_TRUE(math::isTimeString(time));
   EXPECT_EQ(resultTime, duration);
 
   time = "17:10";
@@ -669,6 +673,7 @@ TEST(HelpersTest, stringToDuration)
   duration += std::chrono::minutes(17);
   duration += std::chrono::seconds(10);
 
+  EXPECT_TRUE(math::isTimeString(time));
   EXPECT_EQ(resultTime, duration);
 
   time = "7:10.4";
@@ -678,6 +683,7 @@ TEST(HelpersTest, stringToDuration)
   duration += std::chrono::seconds(10);
   duration += std::chrono::milliseconds(400);
 
+  EXPECT_TRUE(math::isTimeString(time));
   EXPECT_EQ(resultTime, duration);
 
   time = "7:10.45";
@@ -687,6 +693,7 @@ TEST(HelpersTest, stringToDuration)
   duration += std::chrono::seconds(10);
   duration += std::chrono::milliseconds(450);
 
+  EXPECT_TRUE(math::isTimeString(time));
   EXPECT_EQ(resultTime, duration);
 
   time = "7:10.456";
@@ -696,6 +703,7 @@ TEST(HelpersTest, stringToDuration)
   duration += std::chrono::seconds(10);
   duration += std::chrono::milliseconds(456);
 
+  EXPECT_TRUE(math::isTimeString(time));
   EXPECT_EQ(resultTime, duration);
 
   time = "2 23:18:25.902";
@@ -707,6 +715,7 @@ TEST(HelpersTest, stringToDuration)
   duration += std::chrono::seconds(25);
   duration += std::chrono::milliseconds(902);
 
+  EXPECT_TRUE(math::isTimeString(time));
   EXPECT_EQ(resultTime, duration);
 
   time = ".9";
@@ -714,41 +723,49 @@ TEST(HelpersTest, stringToDuration)
   duration = std::chrono::steady_clock::duration::zero();
   duration += std::chrono::milliseconds(900);
 
+  EXPECT_TRUE(math::isTimeString(time));
   EXPECT_EQ(resultTime, duration);
 
   time = "bad time";
   resultTime = math::stringToDuration(time);
 
+  EXPECT_FALSE(math::isTimeString(time));
   EXPECT_EQ(resultTime, std::chrono::steady_clock::duration::zero());
 
   time = "";
   resultTime = math::stringToDuration(time);
 
+  EXPECT_TRUE(math::isTimeString(time));
   EXPECT_EQ(resultTime, std::chrono::steady_clock::duration::zero());
 
   time = "60";
   resultTime = math::stringToDuration(time);
 
+  EXPECT_FALSE(math::isTimeString(time));
   EXPECT_EQ(resultTime, std::chrono::steady_clock::duration::zero());
 
   time = "60:12";
   resultTime = math::stringToDuration(time);
 
+  EXPECT_FALSE(math::isTimeString(time));
   EXPECT_EQ(resultTime, std::chrono::steady_clock::duration::zero());
 
   time = "12:12.9999";
   resultTime = math::stringToDuration(time);
 
+  EXPECT_FALSE(math::isTimeString(time));
   EXPECT_EQ(resultTime, std::chrono::steady_clock::duration::zero());
 
   time = "25:12:12.99";
   resultTime = math::stringToDuration(time);
 
+  EXPECT_FALSE(math::isTimeString(time));
   EXPECT_EQ(resultTime, std::chrono::steady_clock::duration::zero());
 
   time = "999999999999999 5:12:12.5";
   resultTime = math::stringToDuration(time);
 
+  EXPECT_FALSE(math::isTimeString(time));
   EXPECT_EQ(resultTime, std::chrono::steady_clock::duration::zero());
 }
 
