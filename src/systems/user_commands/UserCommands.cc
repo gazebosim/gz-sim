@@ -22,6 +22,7 @@
 #include <ignition/msgs/entity_factory.pb.h>
 #include <ignition/msgs/light.pb.h>
 #include <ignition/msgs/pose.pb.h>
+#include <ignition/msgs/pose_v.pb.h>
 #include <ignition/msgs/physics.pb.h>
 #include <ignition/msgs/visual.pb.h>
 #include <ignition/msgs/wheel_slip_parameters_cmd.pb.h>
@@ -273,17 +274,19 @@ class PoseCommand : public UserCommandBase
 
   // Documentation inherited
   public: bool Execute() final;
+};
 
-  /// \brief Pose3d equality comparison function.
-  public: std::function<bool(const math::Pose3d &, const math::Pose3d &)>
-          pose3Eql { [](const math::Pose3d &_a, const math::Pose3d &_b)
-                     {
-                       return _a.Pos().Equal(_b.Pos(), 1e-6) &&
-                         math::equal(_a.Rot().X(), _b.Rot().X(), 1e-6) &&
-                         math::equal(_a.Rot().Y(), _b.Rot().Y(), 1e-6) &&
-                         math::equal(_a.Rot().Z(), _b.Rot().Z(), 1e-6) &&
-                         math::equal(_a.Rot().W(), _b.Rot().W(), 1e-6);
-                     }};
+/// \brief Command to update an entity's pose transform.
+class PoseVectorCommand : public UserCommandBase
+{
+  /// \brief Constructor
+  /// \param[in] _msg pose_v message.
+  /// \param[in] _iface Pointer to user commands interface.
+  public: PoseVectorCommand(msgs::Pose_V *_msg,
+      std::shared_ptr<UserCommandsInterface> &_iface);
+
+  // Documentation inherited
+  public: bool Execute() final;
 };
 
 /// \brief Command to modify the physics parameters of a simulation.
@@ -470,6 +473,13 @@ class ignition::gazebo::systems::UserCommandsPrivate
   /// \return True if successful.
   public: bool PoseService(const msgs::Pose &_req, msgs::Boolean &_res);
 
+  /// \brief Callback for pose_v service
+  /// \param[in] _req Request containing pose update of several entities.
+  /// \param[out] _res True if message successfully received and queued.
+  /// It does not mean that the entity will be successfully moved.
+  /// \return True if successful.
+  public: bool PoseVectorService(const msgs::Pose_V &_req, msgs::Boolean &_res);
+
   /// \brief Callback for physics service
   /// \param[in] _req Request containing updates to the physics parameters.
   /// \param[out] _res True if message successfully received and queued.
@@ -522,6 +532,26 @@ class ignition::gazebo::systems::UserCommandsPrivate
   /// \brief Mutex to protect pending queue.
   public: std::mutex pendingMutex;
 };
+
+/// \brief Pose3d equality comparison function.
+/// \param[in] _a A pose to compare
+/// \param[in] _b Another pose to compare
+bool pose3Eql(const math::Pose3d &_a, const math::Pose3d &_b)
+{
+  return _a.Pos().Equal(_b.Pos(), 1e-6) &&
+    math::equal(_a.Rot().X(), _b.Rot().X(), 1e-6) &&
+    math::equal(_a.Rot().Y(), _b.Rot().Y(), 1e-6) &&
+    math::equal(_a.Rot().Z(), _b.Rot().Z(), 1e-6) &&
+    math::equal(_a.Rot().W(), _b.Rot().W(), 1e-6);
+}
+
+/// \brief Update pose for a specific pose message
+/// \param[in] _req Message containing new pose
+/// \param[in] _iface Pointer to user commands interface.
+/// \return True if successful.
+bool updatePose(
+  const msgs::Pose &_req,
+  std::shared_ptr<UserCommandsInterface> _iface);
 
 //////////////////////////////////////////////////
 UserCommands::UserCommands() : System(),
@@ -615,6 +645,14 @@ void UserCommands::Configure(const Entity &_entity,
       &UserCommandsPrivate::PoseService, this->dataPtr.get());
 
   ignmsg << "Pose service on [" << poseService << "]" << std::endl;
+
+  // Pose vector service
+  std::string poseVectorService{
+    "/world/" + worldName + "/set_pose_vector"};
+  this->dataPtr->node.Advertise(poseVectorService,
+      &UserCommandsPrivate::PoseVectorService, this->dataPtr.get());
+
+  ignmsg << "Pose service on [" << poseVectorService << "]" << std::endl;
 
   // Light service
   std::string lightService{"/world/" + validWorldName + "/light_config"};
@@ -783,6 +821,25 @@ bool UserCommandsPrivate::PoseService(const msgs::Pose &_req,
   auto msg = _req.New();
   msg->CopyFrom(_req);
   auto cmd = std::make_unique<PoseCommand>(msg, this->iface);
+
+  // Push to pending
+  {
+    std::lock_guard<std::mutex> lock(this->pendingMutex);
+    this->pendingCmds.push_back(std::move(cmd));
+  }
+
+  _res.set_data(true);
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool UserCommandsPrivate::PoseVectorService(const msgs::Pose_V &_req,
+    msgs::Boolean &_res)
+{
+  // Create command and push it to queue
+  auto msg = _req.New();
+  msg->CopyFrom(_req);
+  auto cmd = std::make_unique<PoseVectorCommand>(msg, this->iface);
 
   // Push to pending
   {
@@ -1262,6 +1319,51 @@ bool LightCommand::Execute()
 }
 
 //////////////////////////////////////////////////
+bool updatePose(
+  const msgs::Pose &_poseMsg,
+  std::shared_ptr<UserCommandsInterface> _iface)
+{
+  // Check the name of the entity being spawned
+  std::string entityName = _poseMsg.name();
+  Entity entity = kNullEntity;
+  // TODO(anyone) Update pose message to use Entity, with default ID null
+  if (_poseMsg.id() != kNullEntity && _poseMsg.id() != 0)
+  {
+    entity = _poseMsg.id();
+  }
+  else if (!entityName.empty())
+  {
+    entity = _iface->ecm->EntityByComponents(components::Name(entityName),
+      components::ParentEntity(_iface->worldEntity));
+  }
+
+  if (!_iface->ecm->HasEntity(entity))
+  {
+    ignerr << "Unable to update the pose for entity id:[" << _poseMsg.id()
+           << "], name[" << entityName << "]" << std::endl;
+    return false;
+  }
+
+  auto poseCmdComp =
+    _iface->ecm->Component<components::WorldPoseCmd>(entity);
+  if (!poseCmdComp)
+  {
+    _iface->ecm->CreateComponent(
+        entity, components::WorldPoseCmd(msgs::Convert(_poseMsg)));
+  }
+  else
+  {
+    /// \todo(anyone) Moving an object is not captured in a log file.
+    auto state = poseCmdComp->SetData(msgs::Convert(_poseMsg), pose3Eql) ?
+        ComponentState::OneTimeChange :
+        ComponentState::NoChange;
+    _iface->ecm->SetChanged(entity, components::WorldPoseCmd::typeId,
+        state);
+  }
+  return true;
+}
+
+//////////////////////////////////////////////////
 PoseCommand::PoseCommand(msgs::Pose *_msg,
     std::shared_ptr<UserCommandsInterface> &_iface)
     : UserCommandBase(_msg, _iface)
@@ -1278,42 +1380,32 @@ bool PoseCommand::Execute()
     return false;
   }
 
-  // Check the name of the entity being spawned
-  std::string entityName = poseMsg->name();
-  Entity entity = kNullEntity;
-  // TODO(anyone) Update pose message to use Entity, with default ID null
-  if (poseMsg->id() != kNullEntity && poseMsg->id() != 0)
-  {
-    entity = poseMsg->id();
-  }
-  else if (!entityName.empty())
-  {
-    entity = this->iface->ecm->EntityByComponents(components::Name(entityName),
-      components::ParentEntity(this->iface->worldEntity));
-  }
+  return updatePose(*poseMsg, this->iface);
+}
 
-  if (!this->iface->ecm->HasEntity(entity))
+//////////////////////////////////////////////////
+PoseVectorCommand::PoseVectorCommand(msgs::Pose_V *_msg,
+    std::shared_ptr<UserCommandsInterface> &_iface)
+    : UserCommandBase(_msg, _iface)
+{
+}
+
+//////////////////////////////////////////////////
+bool PoseVectorCommand::Execute()
+{
+  auto poseVectorMsg = dynamic_cast<const msgs::Pose_V *>(this->msg);
+  if (nullptr == poseVectorMsg)
   {
-    ignerr << "Unable to update the pose for entity id:[" << poseMsg->id()
-           << "], name[" << entityName << "]" << std::endl;
+    ignerr << "Internal error, null create message" << std::endl;
     return false;
   }
 
-  auto poseCmdComp =
-    this->iface->ecm->Component<components::WorldPoseCmd>(entity);
-  if (!poseCmdComp)
+  for (int i = 0; i < poseVectorMsg->pose_size(); i++)
   {
-    this->iface->ecm->CreateComponent(
-        entity, components::WorldPoseCmd(msgs::Convert(*poseMsg)));
-  }
-  else
-  {
-    /// \todo(anyone) Moving an object is not captured in a log file.
-    auto state = poseCmdComp->SetData(msgs::Convert(*poseMsg), this->pose3Eql) ?
-        ComponentState::OneTimeChange :
-        ComponentState::NoChange;
-    this->iface->ecm->SetChanged(entity, components::WorldPoseCmd::typeId,
-        state);
+    if (!updatePose(poseVectorMsg->pose(i), this->iface))
+    {
+      return false;
+    }
   }
 
   return true;
