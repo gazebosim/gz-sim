@@ -448,7 +448,7 @@ TEST(SphericalCoordinatesTest, NoHeading)
   auto latLonAlt = sc.SphericalFromLocalPosition({0, 0, 0});
   EXPECT_DOUBLE_EQ(lat.Degree(), latLonAlt.X());
   EXPECT_DOUBLE_EQ(lon.Degree(), latLonAlt.Y());
-  EXPECT_DOUBLE_EQ(elev, latLonAlt.Z());
+  EXPECT_NEAR(elev, latLonAlt.Z(), 1e-6);
 
   auto xyzOrigin = sc.LocalFromSphericalPosition(latLonAlt);
   EXPECT_EQ(math::Vector3d::Zero, xyzOrigin);
@@ -556,7 +556,7 @@ TEST(SphericalCoordinatesTest, WithHeading)
   auto latLonAlt = sc.SphericalFromLocalPosition({0, 0, 0});
   EXPECT_DOUBLE_EQ(lat.Degree(), latLonAlt.X());
   EXPECT_DOUBLE_EQ(lon.Degree(), latLonAlt.Y());
-  EXPECT_DOUBLE_EQ(elev, latLonAlt.Z());
+  EXPECT_NEAR(elev, latLonAlt.Z(), 1e-6);
 
   auto xyzOrigin = sc.LocalFromSphericalPosition(latLonAlt);
   EXPECT_EQ(math::Vector3d::Zero, xyzOrigin);

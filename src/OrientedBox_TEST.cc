@@ -328,11 +328,12 @@ TEST(OrientedBoxTest, ContainsOrientedRotation)
 TEST(OrientedBoxTest, OperatorStreamOut)
 {
   OrientedBoxd b(Vector3d(0.1, 1.2, 2.3),
-                  Pose3d(3.4, 4.5, 5.6, 0.0, -0.1, 0.2));
+                  Pose3d(3.4, 4.5, 5.6, 0.1, -0.1, 0.2));
   std::ostringstream stream;
   stream << b;
+
   EXPECT_EQ(stream.str(),
-      "Size[0.1 1.2 2.3] Pose[3.4 4.5 5.6 0 -0.1 0.2] Material[]");
+      "Size[0.1 1.2 2.3] Pose[3.4 4.5 5.6 0.1 -0.1 0.2] Material[]");
 }
 
 //////////////////////////////////////////////////
