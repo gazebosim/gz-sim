@@ -15,15 +15,14 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_COMMSMODEL_HH_
-#define IGNITION_GAZEBO_COMMSMODEL_HH_
+#ifndef IGNITION_GAZEBO_ICOMMSMODEL_HH_
+#define IGNITION_GAZEBO_ICOMMSMODEL_HH_
 
 #include <sdf/sdf.hh>
-
+#include "ignition/gazebo/comms/Broker.hh"
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/System.hh"
-#include "ignition/gazebo/comms/MsgManager.hh"
 
 namespace ignition
 {
@@ -33,6 +32,9 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace comms
 {
+  // Forward declarations.
+  class MsgManager;
+
   /// \brief Abstract interface to define how the environment should handle
   /// communication simulation. This class should be responsible for
   /// handling dropouts, decay and packet collisions.
@@ -41,27 +43,37 @@ namespace comms
         public ISystemConfigure,
         public ISystemPreUpdate
   {
-    // Documentation inherited
+    /// \brief Destructor.
+    public: virtual ~ICommsModel() = default;
+
+    // Documentation inherited.
     public: void Configure(const Entity &_entity,
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) override
-            {
-              this->Load(_entity, _sdf, _ecm, _eventMgr);
-              this->broker.Start();
-            }
+    {
+      sdf::ElementPtr sdfClone = _sdf->Clone();
+      this->Load(_entity, sdfClone, _ecm, _eventMgr);
+      this->broker.Load(sdfClone);
+      this->broker.Start();
+    }
 
-    // Documentation inherited
+    // Documentation inherited.
     public: void PreUpdate(
                 const ignition::gazebo::UpdateInfo &_info,
                 ignition::gazebo::EntityComponentManager &_ecm) override
-            {
-              // Step the comms model.
-              this->Step(_info, _ecm, this->broker.Data());
+    {
+      // We lock while we manipulate the queues.
+      this->broker.Lock();
 
-              // Deliver the inbound messages.
-              this->broker.DeliverMsgs();
-            }
+      // Step the comms model.
+      this->Step(_info, _ecm, this->broker.DataManager());
+
+      this->broker.Unlock();
+
+      // Deliver the inbound messages.
+      this->broker.DeliverMsgs();
+    }
 
     /// \brief This method is called when the system is being configured
     /// override this to load any additional params for the comms model
@@ -69,12 +81,11 @@ namespace comms
     /// \param[in] _sdf The SDF Element associated with this system plugin.
     /// \param[in] _ecm The EntityComponentManager of the given simulation
     /// instance.
-    /// \param[in] _eventMgr The EventManager of the given simulation
-    /// instance.
+    /// \param[in] _eventMgr The EventManager of the given simulation instance.
     public: virtual void Load(const Entity &_entity,
-      const std::shared_ptr<const sdf::Element> &_sdf,
-      EntityComponentManager &_ecm,
-      EventManager &_eventMgr) = 0;
+                              std::shared_ptr<const sdf::Element> _sdf,
+                              EntityComponentManager &_ecm,
+                              EventManager &_eventMgr) = 0;
 
     /// \brief This method is called when there is a timestep in the simulator
     /// override this to update your data structures as needed.
@@ -82,12 +93,10 @@ namespace comms
     /// \param[in] _ecm - Ignition's ECM.
     /// \param[in] _messageMgr - Use this to mark the message as arrived.
     public: virtual void Step(const UpdateInfo &_info,
-      EntityComponentManager &_ecm, MsgManager &_messageMgr) = 0;
+                              EntityComponentManager &_ecm,
+                              MsgManager &_messageMgr) = 0;
 
-    /// \brief Destructor
-    public: virtual ~ICommsModel() = default;
-
-    /// \brief Broker instance
+    /// \brief Broker instance.
     public: Broker broker;
   };
 }

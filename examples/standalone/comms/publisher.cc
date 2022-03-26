@@ -30,6 +30,13 @@
 static std::atomic<bool> g_terminatePub(false);
 
 //////////////////////////////////////////////////
+/// \brief Usage function.
+void usage()
+{
+  std::cerr << "./publisher <dst_address>" << std::endl;
+}
+
+//////////////////////////////////////////////////
 /// \brief Function callback executed when a SIGINT or SIGTERM signals are
 /// captured. This is used to break the infinite loop that publishes messages
 /// and exit the program smoothly.
@@ -42,15 +49,21 @@ void signal_handler(int _signal)
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
+  if (argc != 2)
+  {
+    usage();
+    return -1;
+  }
+
   // Install a signal handler for SIGINT and SIGTERM.
   std::signal(SIGINT,  signal_handler);
   std::signal(SIGTERM, signal_handler);
 
   // Create a transport node and advertise a topic.
   ignition::transport::Node node;
-  std::string topic = "/broker";
+  std::string topic = "/broker/msgs";
 
-  auto pub = node.Advertise<ignition::msgs::Datagram>(topic);
+  auto pub = node.Advertise<ignition::msgs::Dataframe>(topic);
   if (!pub)
   {
     std::cerr << "Error advertising topic [" << topic << "]" << std::endl;
@@ -60,7 +73,7 @@ int main(int argc, char **argv)
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Prepare the message.
-  ignition::msgs::Datagram msg;
+  ignition::msgs::Dataframe msg;
   msg.set_src_address("unused");
   msg.set_dst_address(argv[1]);
 
@@ -82,7 +95,7 @@ int main(int argc, char **argv)
     if (!pub.Publish(msg))
       break;
 
-    counter++;
+    ++counter;
 
     std::cout << "Publishing hello on topic [" << topic << "]" << std::endl;
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));

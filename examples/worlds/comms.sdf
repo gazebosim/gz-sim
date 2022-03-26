@@ -1,19 +1,22 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo trajectory follower plugin demo.
+  Ignition Gazebo comms plugin demo.
 
-  Try sending commands:
+  Compile the comms clients:
+    cd ign-gazebo/examples/standalone/comms
+    mkdir build
+    cd build
+    cmake ..
+    make
 
-    To pause the trajectory follower behavior:
+  Try launching a client subscriber:
+    ./subscriber addr1 box1 addr1/rx
 
-      ign topic -t "/model/box/trajectory_follower/pause" -m ignition.msgs.Boolean -p "data: true"
-
-    To resume the trajectory follower behavior:
-
-      ign topic -t "/model/box/trajectory_follower/pause" -m ignition.msgs.Boolean -p "data: false"
+  Try launching a client publisher:
+    ./publisher addr1
 -->
 <sdf version="1.6">
-  <world name="trajectory_follower">
+  <world name="comms">
 
     <physics name="1ms" type="ignored">
       <max_step_size>0.001</max_step_size>
@@ -30,6 +33,10 @@
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-perfect-comms-system"
+      name="ignition::gazebo::systems::PerfectComms">
     </plugin>
 
     <light type="directional" name="sun">
@@ -73,7 +80,7 @@
       </link>
     </model>
 
-    <model name="box">
+    <model name="box1">
       <pose>2 0 0.5 0 0 0</pose>
       <link name="box_link">
         <inertial>
@@ -110,10 +117,59 @@
       </link>
 
       <plugin
-        filename="ignition-gazebo-perfect-comms-system"
-        name="ignition::gazebo::systems::PerfectComms">
+        filename="ignition-gazebo-comms-endpoint-system"
+        name="ignition::gazebo::systems::CommsEndpoint">
+        <address>addr1</address>
+        <topic>addr1/rx</topic>
       </plugin>
+    </model>
 
+    <model name="box2">
+      <pose>-2 0 0.5 0 0 0</pose>
+      <link name="box_link">
+        <inertial>
+          <inertia>
+            <ixx>0.16666</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.16666</iyy>
+            <iyz>0</iyz>
+            <izz>0.16666</izz>
+          </inertia>
+          <mass>1.0</mass>
+        </inertial>
+        <collision name="box_collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="box_visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0 0 1 1</ambient>
+            <diffuse>0 0 1 1</diffuse>
+            <specular>0 0 1 1</specular>
+          </material>
+        </visual>
+      </link>
+
+      <plugin
+        filename="ignition-gazebo-comms-endpoint-system"
+        name="ignition::gazebo::systems::CommsEndpoint">
+        <address>addr2</address>
+        <topic>addr2/rx</topic>
+        <broker>
+          <bind_service>/broker/bind</bind_service>
+          <unbind_service>/broker/unbind</unbind_service>
+        </broker>
+      </plugin>
     </model>
 
   </world>

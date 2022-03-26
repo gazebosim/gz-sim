@@ -15,31 +15,70 @@
  *
  */
 
-/// \file Broker.hh
-/// \brief Broker for handling message delivery among robots.
 #ifndef IGNITION_GAZEBO_BROKER_HH_
 #define IGNITION_GAZEBO_BROKER_HH_
 
-#include <mutex>
-#include <ignition/msgs/datagram.pb.h>
-#include <ignition/msgs/stringmsg_v.pb.h>
+#include <memory>
 #include <ignition/utils/ImplPtr.hh>
-
-#include "ignition/gazebo/comms/MsgManager.hh"
+#include <sdf/sdf.hh>
 #include "ignition/gazebo/config.hh"
 
 namespace ignition
 {
+namespace msgs
+{
+  // Forward declarations.
+  class Dataframe;
+  class StringMsg_V;
+}
 namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace comms
 {
+  // Forward declarations.
+  class MsgManager;
 
-  /// \brief Store messages, and exposes an API for registering new clients,
-  /// bind to a particular address, push new messages or get the list of
-  /// messages already stored in the queue.
+  /// \brief A class to store messages to be delivered using a comms model.
+  /// This class should be used in combination with a specific comms model that
+  /// implements the ICommsModel interface.
+  /// \sa ICommsModel.hh
+  /// The broker maintains two queues: inbound and outbound. When a client
+  /// sends a communication request, we'll store it in the outbound queue of
+  /// the sender's address. When the comms model decides that a message needs
+  /// to be delivered to one of the destination, it'll be stored in the inbound
+  /// queue of the destination's address.
+  ///
+  /// The main goal of this class is to receive the comms requests and place
+  /// them in the appropriate outbound queue, as well as deliver the messages
+  /// that are in the inbound queues.
+  ///
+  /// The instance of the comms model is responsible for moving around the
+  /// messages from the outbound queues to the inbound queues.
+  ///
+  /// The broker can be configured with the following SDF parameters:
+  ///
+  /// * Optional parameters:
+  /// <broker> Element used to capture the broker parameters. This block can
+  ///          contain any of the next parameters:
+  ///    <messages_topic>: Topic name where the broker receives all the incoming
+  ///                      messages. The default value is "/broker/msgs"
+  ///    <bind_service>: Service name used to bind an address.
+  ///                    The default value is "/broker/bind"
+  ///    <unbind_service>: Service name used to unbind from an address.
+  ///                      The default value is "/broker/unbind"
+  ///
+  /// Here's an example:
+  /// <plugin
+  ///   filename="ignition-gazebo-perfect-comms-system"
+  ///   name="ignition::gazebo::systems::PerfectComms">
+  ///   <broker>
+  ///     <messages_topic>/broker/inbound</messages_topic>
+  ///     <bind_service>/broker/bind_address</bind_service>
+  ///     <unbind_service>/broker/unbind_address</unbind_service>
+  ///   </broker>
+  /// </plugin>
   class Broker
   {
     /// \brief Constructor.
@@ -48,28 +87,48 @@ namespace comms
     /// \brief Destructor.
     public: virtual ~Broker();
 
-    /// \brief Start.
+    /// \brief Configure the broker via SDF.
+    /// \param[in] _sdf The SDF Element associated with the broker parameters.
+    public: void Load(std::shared_ptr<const sdf::Element> _sdf);
+
+    /// \brief Start handling comms services.
+    ///
+    /// This function allows us to wait to advertise capabilities to
+    /// clients until the broker has been entirely initialized.
     public: void Start();
 
-    /// \brief ToDo.
+    /// \brief This method associates an address with a client topic used as
+    /// callback for receiving messages. This is a client requirement to
+    /// start receiving messages.
+    /// \param[in] _req Bind request containing the following content:
+    ///   _req[0] Client address.
+    ///   _req[1] Model name associated to the address.
+    ///   _req[2] Client subscription topic.
     public: void OnBind(const ignition::msgs::StringMsg_V &_req);
 
-    /// \brief ToDo.
+    /// \brief Unbind a given client address. The client associated to this
+    /// address will not receive any more messages.
+    /// \param[in] _req Bind request containing the following content:
+    ///   _req[0] Client address.
+    ///   _req[1] Client subscription topic.
     public: void OnUnbind(const ignition::msgs::StringMsg_V &_req);
 
-    /// \brief ToDo.
-    public: void OnMsg(const ignition::msgs::Datagram &_msg);
+    /// \brief Callback executed to process a communication request from one of
+    /// the clients.
+    /// \param[in] _msg The message from the client.
+    public: void OnMsg(const ignition::msgs::Dataframe &_msg);
 
-    /// \brief ToDo.
+    /// \brief Process all the messages in the inbound queue and deliver them
+    /// to the destination clients.
     public: void DeliverMsgs();
 
-    /// \brief ToDo.
-    public: MsgManager &Data();
+    /// \brief Get a mutable reference to the message manager.
+    public: MsgManager &DataManager();
 
-    /// \brief ToDo.
+    /// \brief Lock the mutex to access the message manager.
     public: void Lock();
 
-    /// \brief ToDo.
+    /// \brief Unlock the mutex to access the message manager.
     public: void Unlock();
 
    /// \brief Private data pointer.

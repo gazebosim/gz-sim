@@ -56,7 +56,7 @@ TEST_F(CommsTest, Comms)
 
   unsigned int msgCounter = 0u;
   std::mutex mutex;
-  auto cb = [&](const msgs::Datagram &_msg) -> void
+  auto cb = [&](const msgs::Dataframe &_msg) -> void
   {
     // verify msg content
     std::lock_guard<std::mutex> lock(mutex);
@@ -74,7 +74,7 @@ TEST_F(CommsTest, Comms)
   std::string topic = "topic1";
 
   // Subscribe to a topic by registering a callback.
-  auto cbFunc = std::function<void(const msgs::Datagram &)>(cb);
+  auto cbFunc = std::function<void(const msgs::Dataframe &)>(cb);
   EXPECT_TRUE(node.Subscribe(topic, cbFunc))
       << "Error subscribing to topic [" << topic << "]";
 
@@ -87,10 +87,10 @@ TEST_F(CommsTest, Comms)
   EXPECT_TRUE(node.Request("/broker/bind", req));
 
   // create publisher
-  auto pub = node.Advertise<ignition::msgs::Datagram>(topic);
+  auto pub = node.Advertise<ignition::msgs::Dataframe>(topic);
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   // Prepare the message.
-  ignition::msgs::Datagram msg;
+  ignition::msgs::Dataframe msg;
   msg.set_src_address("unused");
   msg.set_dst_address(addr);
 

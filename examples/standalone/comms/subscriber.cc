@@ -15,15 +15,23 @@
  *
 */
 
-// Example: ./subscriber addr1 addr1/rx
+// Example: ./subscriber addr1 box1 addr1/rx
 
 #include <iostream>
 #include <ignition/msgs.hh>
 #include <ignition/transport.hh>
 
 //////////////////////////////////////////////////
+/// \brief Usage function.
+void usage()
+{
+  std::cerr << "./subscriber <src_address> <model_name> <callback_topic>"
+            << std::endl;
+}
+
+//////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cb(const ignition::msgs::Datagram &_msg)
+void cb(const ignition::msgs::Dataframe &_msg)
 {
   std::cout << "Msg: " << _msg.data() << std::endl << std::endl;
 }
@@ -31,10 +39,17 @@ void cb(const ignition::msgs::Datagram &_msg)
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
+  if (argc != 4)
+  {
+    usage();
+    return -1;
+  }
+
   // Create a transport node.
   ignition::transport::Node node;
-  std::string addr = argv[1];
-  std::string topic = argv[2];
+  std::string addr  = argv[1];
+  std::string model = argv[2];
+  std::string topic = argv[3];
 
   // Subscribe to a topic by registering a callback.
   if (!node.Subscribe(topic, cb))
@@ -43,15 +58,25 @@ int main(int argc, char **argv)
     return -1;
   }
 
-  // Prepare the input parameters.
-  ignition::msgs::StringMsg_V req;
-  req.add_data(addr);
-  req.add_data(topic);
+  // Prepare the bind parameters.
+  ignition::msgs::StringMsg_V bindReq;
+  bindReq.add_data(addr);
+  bindReq.add_data(model);
+  bindReq.add_data(topic);
 
   // Bind.
-  if (!node.Request("/broker/bind", req))
-    std::cerr << "Service call failed" << std::endl;
+  // if (!node.Request("/broker/bind", bindReq))
+  //   std::cerr << "Bind call failed" << std::endl;
 
   // Zzzzzz.
   ignition::transport::waitForShutdown();
+
+  // Prepare the unbind parameters.
+  ignition::msgs::StringMsg_V unbindReq;
+  unbindReq.add_data(addr);
+  unbindReq.add_data(topic);
+
+  // Unbind.
+  // if (!node.Request("/broker/unbind", unbindReq))
+  //   std::cerr << "Unbind call failed" << std::endl;
 }

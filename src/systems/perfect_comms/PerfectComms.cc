@@ -15,13 +15,14 @@
  *
  */
 
-#include <ignition/plugin/Register.hh>
 #include <sdf/sdf.hh>
 
-#include "ignition/gazebo/comms/Broker.hh"
-#include "ignition/common/Profiler.hh"
-#include "ignition/gazebo/Util.hh"
+#include <ignition/common/Profiler.hh>
+#include <ignition/plugin/Register.hh>
 
+#include "ignition/gazebo/comms/Broker.hh"
+#include "ignition/gazebo/comms/MsgManager.hh"
+#include "ignition/gazebo/Util.hh"
 #include "PerfectComms.hh"
 
 using namespace ignition;
@@ -47,7 +48,7 @@ PerfectComms::~PerfectComms()
 //////////////////////////////////////////////////
 // void PerfectComms::Configure(const Entity &_entity,
 void PerfectComms::Load(const Entity &/*_entity*/,
-    const std::shared_ptr<const sdf::Element> &/*_sdf*/,
+    std::shared_ptr<const sdf::Element> /*_sdf*/,
     EntityComponentManager &/*_ecm*/,
     EventManager &/*_eventMgr*/)
 {
@@ -58,13 +59,11 @@ void PerfectComms::Step(
       EntityComponentManager &/*_ecm*/,
       comms::MsgManager &/*_messageMgr*/)
 {
-  this->broker.Lock();
-
   // Check if there are new messages to process.
-  auto &allData = this->broker.Data().Data();
+  auto &allData = this->broker.DataManager().Data();
 
   // Create a copy to modify while we iterate.
-  auto allDataCopy = this->broker.Data().Copy();
+  auto allDataCopy = this->broker.DataManager().Copy();
 
   for (auto & [address, content] : allData)
   {
@@ -78,9 +77,7 @@ void PerfectComms::Step(
     allDataCopy[address].outboundMsgs.clear();
   }
 
-  this->broker.Data().Set(allDataCopy);
-
-  this->broker.Unlock();
+  this->broker.DataManager().Set(allDataCopy);
 }
 
 IGNITION_ADD_PLUGIN(PerfectComms,

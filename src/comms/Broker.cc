@@ -15,18 +15,17 @@
  *
  */
 
-#include <ignition/msgs/datagram.pb.h>
+#include <ignition/msgs/dataframe.pb.h>
 
 #include <algorithm>
 #include <deque>
 #include <memory>
 #include <mutex>
+#include <string>
 #include <unordered_set>
 
 #include <ignition/transport/Node.hh>
-
 #include "ignition/gazebo/comms/Broker.hh"
-#include "ignition/gazebo/comms/CommonTypes.hh"
 #include "ignition/gazebo/comms/MsgManager.hh"
 #include "ignition/gazebo/Util.hh"
 
@@ -41,6 +40,15 @@ class ignition::gazebo::comms::Broker::Implementation
 
   /// \brief Protect data from races.
   public: std::mutex mutex;
+
+  /// \brief Topic used to centralize all messages sent from the agents.
+  public: std::string msgTopic = "/broker/msgs";
+
+  /// \brief Service used to bind to an address.
+  public: std::string bindSrv = "/broker/bind";
+
+  /// \brief Service used to unbind from an address.
+  public: std::string unbindSrv = "/broker/unbind";
 };
 
 using namespace ignition;
@@ -60,44 +68,75 @@ Broker::~Broker()
 }
 
 //////////////////////////////////////////////////
+void Broker::Load(std::shared_ptr<const sdf::Element> _sdf)
+{
+  if (!_sdf->HasElement("broker"))
+    return;
+
+  sdf::ElementPtr elem = _sdf->Clone()->GetElement("broker");
+  this->dataPtr->msgTopic =
+    elem->Get<std::string>("messages_topic", this->dataPtr->msgTopic).first;
+  this->dataPtr->bindSrv =
+    elem->Get<std::string>("bind_service", this->dataPtr->bindSrv).first;
+  this->dataPtr->unbindSrv =
+    elem->Get<std::string>("unbind_service", this->dataPtr->unbindSrv).first;
+}
+
+//////////////////////////////////////////////////
 void Broker::Start()
 {
   // Advertise the service for binding addresses.
-  if (!this->dataPtr->node.Advertise(kAddrBindSrv, &Broker::OnBind, this))
+  if (!this->dataPtr->node.Advertise(this->dataPtr->bindSrv,
+                                     &Broker::OnBind, this))
   {
-    ignerr << "Error advertising srv [" << kAddrBindSrv << "]" << std::endl;
+    ignerr << "Error advertising srv [" << this->dataPtr->bindSrv << "]"
+           << std::endl;
     return;
   }
 
   // Advertise the service for unbinding addresses.
-  if (!this->dataPtr->node.Advertise(kAddrUnbindSrv, &Broker::OnUnbind, this))
+  if (!this->dataPtr->node.Advertise(this->dataPtr->unbindSrv,
+                                     &Broker::OnUnbind, this))
   {
-    ignerr << "Error advertising srv [" << kAddrUnbindSrv << "]"
-              << std::endl;
+    ignerr << "Error advertising srv [" << this->dataPtr->unbindSrv << "]"
+           << std::endl;
     return;
   }
 
   // Advertise the topic for receiving data messages.
-  if (!this->dataPtr->node.Subscribe(kBrokerTopic, &Broker::OnMsg, this))
+  if (!this->dataPtr->node.Subscribe(this->dataPtr->msgTopic,
+                                     &Broker::OnMsg, this))
   {
-    ignerr << "Error subscribing to topic [" << kBrokerTopic << "]"
+    ignerr << "Error subscribing to topic [" << this->dataPtr->msgTopic << "]"
            << std::endl;
+    return;
   }
+
+  igndbg << "Broker services:" << std::endl;
+  igndbg << "  Bind: [" << this->dataPtr->bindSrv << "]" << std::endl;
+  igndbg << "  Unbind: [" << this->dataPtr->unbindSrv << "]" << std::endl;
+  igndbg << "Broker topics:" << std::endl;
+  igndbg << "  Incoming messages: [" << this->dataPtr->msgTopic << "]"
+         << std::endl;
 }
 
 //////////////////////////////////////////////////
 void Broker::OnBind(const ignition::msgs::StringMsg_V &_req)
 {
   auto count = _req.data_size();
-  if (count != 2)
+  if (count != 3)
     ignerr << "Receive incorrect number of arguments. "
-           << "Expecting 2 and receive " << count << std::endl;
+           << "Expecting 3 and receive " << count << std::endl;
+
+  std::string address = _req.data(0);
+  std::string model   = _req.data(1);
+  std::string topic   = _req.data(2);
 
   std::lock_guard<std::mutex> lk(this->dataPtr->mutex);
-  this->dataPtr->data.AddSubscriber(_req.data(0), _req.data(1));
+  this->DataManager().AddSubscriber(address, model, topic);
 
-  ignmsg << "Address [" << _req.data(0) << "] bound on topic ["
-         << _req.data(1) << "]" << std::endl;
+  ignmsg << "Address [" << address << "] bound to model [" << model
+         << "] on topic [" << topic << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -108,32 +147,35 @@ void Broker::OnUnbind(const ignition::msgs::StringMsg_V &_req)
     ignerr << "Receive incorrect number of arguments. "
            << "Expecting 2 and receive " << count << std::endl;
 
-  std::lock_guard<std::mutex> lk(this->dataPtr->mutex);
-  this->dataPtr->data.RemoveSubscriber(_req.data(0), _req.data(1));
+  std::string address = _req.data(0);
+  std::string topic   = _req.data(1);
 
-  ignmsg << "Address [" << _req.data(0) << "] unbound on topic ["
-         << _req.data(1) << "]" << std::endl;
+  std::lock_guard<std::mutex> lk(this->dataPtr->mutex);
+  this->DataManager().RemoveSubscriber(address, topic);
+
+  ignmsg << "Address [" << address << "] unbound on topic ["
+         << topic << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
-void Broker::OnMsg(const ignition::msgs::Datagram &_msg)
+void Broker::OnMsg(const ignition::msgs::Dataframe &_msg)
 {
   // Place the message in the outbound queue of the sender.
-  auto msgPtr = std::make_shared<ignition::msgs::Datagram>(_msg);
+  auto msgPtr = std::make_shared<ignition::msgs::Dataframe>(_msg);
 
   std::lock_guard<std::mutex> lk(this->dataPtr->mutex);
-  this->dataPtr->data.AddOutbound(_msg.src_address(), msgPtr);
+  this->DataManager().AddOutbound(_msg.src_address(), msgPtr);
 }
 
 //////////////////////////////////////////////////
 void Broker::DeliverMsgs()
 {
   std::lock_guard<std::mutex> lk(this->dataPtr->mutex);
-  this->dataPtr->data.DeliverMsgs();
+  this->DataManager().DeliverMsgs();
 }
 
 //////////////////////////////////////////////////
-MsgManager &Broker::Data()
+MsgManager &Broker::DataManager()
 {
   return this->dataPtr->data;
 }

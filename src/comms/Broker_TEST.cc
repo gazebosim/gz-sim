@@ -16,10 +16,11 @@
 */
 
 #include <gtest/gtest.h>
-#include <ignition/common/Console.hh>
 
+#include <ignition/msgs/dataframe.pb.h>
+#include <ignition/msgs/stringmsg_v.pb.h>
 #include "ignition/gazebo/comms/Broker.hh"
-
+#include "ignition/gazebo/comms/MsgManager.hh"
 #include "helpers/EnvTestFixture.hh"
 
 using namespace ignition;
@@ -35,33 +36,34 @@ TEST_F(BrokerTest, Broker)
 {
   comms::Broker broker;
 
-  // test locking / unlocking and accessing data
+  // Test locking / unlocking and accessing data.
   EXPECT_NO_THROW(broker.Start());
   EXPECT_NO_THROW(broker.Lock());
-  auto &allData = broker.Data().Data();
+  auto &allData = broker.DataManager().Data();
   EXPECT_TRUE(allData.empty());
   EXPECT_NO_THROW(broker.Unlock());
 
-  // test manually binding address and topic
+  // Test manually binding address and topic.
   msgs::StringMsg_V reqBind;
   reqBind.add_data("addr1");
+  reqBind.add_data("model1");
   reqBind.add_data("topic");
   broker.OnBind(reqBind);
-  allData = broker.Data().Data();
+  allData = broker.DataManager().Data();
   EXPECT_EQ(1u, allData.size());
   EXPECT_EQ(1u, allData["addr1"].subscriptions.size());
   EXPECT_NE(allData["addr1"].subscriptions.end(),
       allData["addr1"].subscriptions.find("topic"));
 
-  // test manually adding a msg
+  // Test manually adding a msg.
   EXPECT_TRUE(allData["addr1"].outboundMsgs.empty());
-  msgs::Datagram msg;
+  msgs::Dataframe msg;
   msg.set_src_address("addr1");
   broker.OnMsg(msg);
   EXPECT_EQ(1u, allData["addr1"].outboundMsgs.size());
   EXPECT_EQ("addr1", allData["addr1"].outboundMsgs[0u]->src_address());
 
-  // test manually unbinding address and topic
+  // Test manually unbinding address and topic.
   msgs::StringMsg_V reqUnbind;
   reqUnbind.add_data("addr1");
   reqUnbind.add_data("topic");
@@ -69,8 +71,8 @@ TEST_F(BrokerTest, Broker)
   EXPECT_EQ(1u, allData.size());
   EXPECT_TRUE(allData["addr1"].subscriptions.empty());
 
-  // test msg delivery
-  auto msgIn = std::make_shared<msgs::Datagram>();
+  // Test msg delivery.
+  auto msgIn = std::make_shared<msgs::Dataframe>();
   allData["addr2"].inboundMsgs.push_back(msgIn);
   EXPECT_EQ(1u, allData["addr2"].inboundMsgs.size());
   broker.DeliverMsgs();

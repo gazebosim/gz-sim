@@ -14,14 +14,13 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_PERFECTCOMMS_HH_
-#define IGNITION_GAZEBO_SYSTEMS_PERFECTCOMMS_HH_
+#ifndef IGNITION_GAZEBO_SYSTEMS_COMMSENDPOINT_HH_
+#define IGNITION_GAZEBO_SYSTEMS_COMMSENDPOINT_HH_
 
 #include <memory>
 #include <ignition/utils/ImplPtr.hh>
 #include <sdf/sdf.hh>
 
-#include "ignition/gazebo/comms/ICommsModel.hh"
 #include "ignition/gazebo/System.hh"
 
 namespace ignition
@@ -32,30 +31,27 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
 {
-  // Forward declarations.
-  class MsgManager;
-
-  /// \brief An example of a comms model.
-  /// This model always delivers any message to its destination.
-  class PerfectComms
-        : public comms::ICommsModel
+  class CommsEndpoint
+      : public System,
+        public ISystemConfigure,
+        public ISystemPreUpdate
   {
-    /// \brief Constructor.
-    public: PerfectComms();
+    /// \brief Constructor
+    public: CommsEndpoint();
 
-    /// \brief Destructor.
-    public: ~PerfectComms();
+    /// \brief Destructor
+    public: ~CommsEndpoint();
 
-    // Documentation inherited.
-    public: void Load(const Entity &_entity,
-                      std::shared_ptr<const sdf::Element> _sdf,
-                      EntityComponentManager &_ecm,
-                      EventManager &_eventMgr) override;
+    // Documentation inherited
+    public: void Configure(const Entity &_entity,
+                           const std::shared_ptr<const sdf::Element> &_sdf,
+                           EntityComponentManager &_ecm,
+                           EventManager &_eventMgr) override;
 
-    // Documentation inherited.
-    public: void Step(const ignition::gazebo::UpdateInfo &_info,
-                      EntityComponentManager &_ecm,
-                      comms::MsgManager &_messageMgr);
+    // Documentation inherited
+    public: void PreUpdate(
+                const ignition::gazebo::UpdateInfo &_info,
+                ignition::gazebo::EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer.
     IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)

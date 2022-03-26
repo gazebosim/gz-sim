@@ -17,9 +17,8 @@
 
 #include <gtest/gtest.h>
 #include <ignition/common/Console.hh>
-
+#include <ignition/msgs/dataframe.pb.h>
 #include "ignition/gazebo/comms/MsgManager.hh"
-
 #include "helpers/EnvTestFixture.hh"
 
 using namespace ignition;
@@ -39,14 +38,14 @@ TEST_F(MsgManagerTest, MsgManager)
   EXPECT_TRUE(msgManager.Copy().empty());
 
   // test subscriber
-  msgManager.AddSubscriber("addr1", "topic1");
+  msgManager.AddSubscriber("addr1", "model1", "topic1");
   EXPECT_EQ(1u, msgManager.Data().size());
   EXPECT_NE(msgManager.Data().end(), msgManager.Data().find("addr1"));
   EXPECT_NE(msgManager.Data()["addr1"].subscriptions.end(),
             msgManager.Data()["addr1"].subscriptions.find("topic1"));
 
   // test inbound
-  auto msgIn = std::make_shared<msgs::Datagram>();
+  auto msgIn = std::make_shared<msgs::Dataframe>();
   EXPECT_EQ(msgManager.Data().end(), msgManager.Data().find("addr2"));
   msgManager.AddInbound("addr2", msgIn);
   EXPECT_NE(msgManager.Data().end(), msgManager.Data().find("addr2"));
@@ -54,7 +53,7 @@ TEST_F(MsgManagerTest, MsgManager)
   EXPECT_EQ(msgIn, msgManager.Data()["addr2"].inboundMsgs[0]);
 
   // test outbound
-  auto msgOut = std::make_shared<msgs::Datagram>();
+  auto msgOut = std::make_shared<msgs::Dataframe>();
   EXPECT_EQ(msgManager.Data().end(), msgManager.Data().find("addr3"));
   msgManager.AddOutbound("addr3", msgOut);
   EXPECT_NE(msgManager.Data().end(), msgManager.Data().find("addr3"));
@@ -79,8 +78,8 @@ TEST_F(MsgManagerTest, MsgManager)
   EXPECT_TRUE(msgManager.Data()["addr1"].subscriptions.empty());
 
   // test setting msg content
-  auto msgIn2 = std::make_shared<msgs::Datagram>();
-  auto msgOut2 = std::make_shared<msgs::Datagram>();
+  auto msgIn2 = std::make_shared<msgs::Dataframe>();
+  auto msgOut2 = std::make_shared<msgs::Dataframe>();
   std::map<std::string, comms::MsgContent> content;
   content["addr6"].inboundMsgs.push_back(msgIn2);
   content["addr6"].outboundMsgs.push_back(msgOut2);
