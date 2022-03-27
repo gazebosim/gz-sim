@@ -54,8 +54,9 @@ namespace systems
 
     // Documentation inherited.
     public: void Step(const ignition::gazebo::UpdateInfo &_info,
-                      EntityComponentManager &_ecm,
-                      comms::MsgManager &_messageMgr);
+                      const comms::Registry &_currentRegistry,
+                      comms::Registry &_newRegistry,
+                      EntityComponentManager &_ecm);
 
     /// \brief Private data pointer.
     IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)

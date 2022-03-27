@@ -19,6 +19,7 @@
 #define IGNITION_GAZEBO_ICOMMSMODEL_HH_
 
 #include <sdf/sdf.hh>
+#include <ignition/common/Profiler.hh>
 #include "ignition/gazebo/comms/Broker.hh"
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -36,8 +37,8 @@ namespace comms
   class MsgManager;
 
   /// \brief Abstract interface to define how the environment should handle
-  /// communication simulation. This class should be responsible for
-  /// handling dropouts, decay and packet collisions.
+  /// communication simulation. As an example, this class could be responsible
+  /// for handling dropouts, decay and packet collisions.
   class ICommsModel
       : public System,
         public ISystemConfigure,
@@ -63,11 +64,16 @@ namespace comms
                 const ignition::gazebo::UpdateInfo &_info,
                 ignition::gazebo::EntityComponentManager &_ecm) override
     {
-      // We lock while we manipulate the queues.
+      IGN_PROFILE("ICommsModel::PreUpdate");
+
+      // We lock while we manipulate data.
       this->broker.Lock();
 
       // Step the comms model.
-      this->Step(_info, _ecm, this->broker.DataManager());
+      const Registry &currentRegistry = this->broker.DataManager().DataConst();
+      Registry newRegistry = this->broker.DataManager().Copy();
+      this->Step(_info, currentRegistry, newRegistry, _ecm);
+      this->broker.DataManager().Set(newRegistry);
 
       this->broker.Unlock();
 
@@ -89,12 +95,15 @@ namespace comms
 
     /// \brief This method is called when there is a timestep in the simulator
     /// override this to update your data structures as needed.
-    /// \param[in] _info - Simulator information about the current timestep.
+    /// \param[in] _info Simulator information about the current timestep.
+    /// \param[in] _currentRegistry The current registry.
+    /// \param[in] _newRegistry The new registry. When Step() is finished this
+    ///                         will become the new registry.
     /// \param[in] _ecm - Ignition's ECM.
-    /// \param[in] _messageMgr - Use this to mark the message as arrived.
     public: virtual void Step(const UpdateInfo &_info,
-                              EntityComponentManager &_ecm,
-                              MsgManager &_messageMgr) = 0;
+                              const Registry &_currentRegistry,
+                              Registry &_newRegistry,
+                              EntityComponentManager &_ecm) = 0;
 
     /// \brief Broker instance.
     public: Broker broker;

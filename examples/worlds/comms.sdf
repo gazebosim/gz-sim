@@ -2,17 +2,17 @@
 <!--
   Ignition Gazebo comms plugin demo.
 
-  Compile the comms clients:
+  Compile the comms publisher:
     cd ign-gazebo/examples/standalone/comms
     mkdir build
     cd build
     cmake ..
     make
 
-  Try launching a client subscriber:
-    ./subscriber addr1 box1 addr1/rx
+  Try launching a comms subscriber:
+    ign topic -e -t addr1/rx
 
-  Try launching a client publisher:
+  Try launching a comms publisher:
     ./publisher addr1
 -->
 <sdf version="1.6">
@@ -170,6 +170,7 @@
           <unbind_service>/broker/unbind</unbind_service>
         </broker>
       </plugin>
+
     </model>
 
   </world>

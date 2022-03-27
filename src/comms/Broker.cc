@@ -15,6 +15,7 @@
  *
  */
 
+#include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/dataframe.pb.h>
 
 #include <algorithm>
@@ -121,12 +122,16 @@ void Broker::Start()
 }
 
 //////////////////////////////////////////////////
-void Broker::OnBind(const ignition::msgs::StringMsg_V &_req)
+bool Broker::OnBind(const ignition::msgs::StringMsg_V &_req,
+                    ignition::msgs::Boolean &/*_rep*/)
 {
   auto count = _req.data_size();
   if (count != 3)
+  {
     ignerr << "Receive incorrect number of arguments. "
            << "Expecting 3 and receive " << count << std::endl;
+    return false;
+  }
 
   std::string address = _req.data(0);
   std::string model   = _req.data(1);
@@ -137,6 +142,8 @@ void Broker::OnBind(const ignition::msgs::StringMsg_V &_req)
 
   ignmsg << "Address [" << address << "] bound to model [" << model
          << "] on topic [" << topic << "]" << std::endl;
+
+  return true;
 }
 
 //////////////////////////////////////////////////

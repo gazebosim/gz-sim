@@ -15,6 +15,11 @@
  *
  */
 
+#include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/stringmsg_v.pb.h>
+
+#include <atomic>
+#include <chrono>
 #include <string>
 #include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
@@ -32,6 +37,15 @@ using namespace systems;
 
 class ignition::gazebo::systems::CommsEndpoint::Implementation
 {
+  /// \brief Send the bind request.
+  public: void Bind();
+
+  /// \brief Service response callback.
+  /// \brief \param[in] _rep Unused.
+  /// \brief \param[in] _result Bind result.
+  public: void BindCallback(const ignition::msgs::Boolean &_rep,
+                            const bool _result);
+
   /// \brief The address.
   public: std::string address;
 
@@ -42,7 +56,7 @@ class ignition::gazebo::systems::CommsEndpoint::Implementation
   public: Model model{kNullEntity};
 
   /// \brief True when the address has been bound in the broker.
-  public: bool bound{false};
+  public: std::atomic_bool bound{false};
 
   /// \brief Service where the broker is listening bind requests.
   public: std::string bindSrv = "/broker/bind";
@@ -50,10 +64,39 @@ class ignition::gazebo::systems::CommsEndpoint::Implementation
   /// \brief Service where the broker is listening unbind requests.
   public: std::string unbindSrv = "/broker/unbind";
 
+  /// \brief Message to send the bind request.
+  public: ignition::msgs::StringMsg_V bindReq;
+
+  /// \brief Message to send the unbind request.
+  public: ignition::msgs::StringMsg_V unbindReq;
+
+  /// \brief Time between bind retries (secs).
+  public: std::chrono::steady_clock::duration bindRequestPeriod{1};
+
+  /// \brief Last simulation time we tried to bind.
+  public: std::chrono::steady_clock::duration lastBindRequestTime{-2};
+
   /// \brief The ignition transport node.
   public: ignition::transport::Node node;
 };
 
+//////////////////////////////////////////////////
+void CommsEndpoint::Implementation::BindCallback(
+  const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+{
+  if (_result)
+    this->bound = true;
+
+  igndbg << "Succesfuly bound to [" << this->address << "] on topic ["
+         << this->topic << "]" << std::endl;
+}
+
+//////////////////////////////////////////////////
+void CommsEndpoint::Implementation::Bind()
+{
+  this->node.Request(this->bindSrv, this->bindReq,
+    &CommsEndpoint::Implementation::BindCallback, this);
+}
 
 //////////////////////////////////////////////////
 CommsEndpoint::CommsEndpoint()
@@ -67,21 +110,17 @@ CommsEndpoint::~CommsEndpoint()
   if (!this->dataPtr->bound)
     return;
 
-  // Prepare the unbind parameters.
-  ignition::msgs::StringMsg_V unbindReq;
-  unbindReq.add_data(this->dataPtr->address);
-  unbindReq.add_data(this->dataPtr->topic);
-
   // Unbind.
-  if (!this->dataPtr->node.Request("/broker/unbind", unbindReq))
-    ignerr << "Bind call failed" << std::endl;
-
+  // Note the we send the request as a one way request because we're not going
+  // to be alive to check the result or retry.
+  this->dataPtr->node.Request(
+    this->dataPtr->unbindSrv, this->dataPtr->unbindReq);
 }
 
 //////////////////////////////////////////////////
 void CommsEndpoint::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
-    EntityComponentManager &/*_ecm*/,
+    EntityComponentManager &_ecm,
     EventManager &/*_eventMgr*/)
 {
   // Parse <address>.
@@ -100,6 +139,7 @@ void CommsEndpoint::Configure(const Entity &_entity,
   }
   this->dataPtr->topic = _sdf->Get<std::string>("topic");
 
+  // Parse <broker>.
   if (_sdf->HasElement("broker"))
   {
     sdf::ElementPtr elem = _sdf->Clone()->GetElement("broker");
@@ -111,29 +151,37 @@ void CommsEndpoint::Configure(const Entity &_entity,
 
   // Set model.
   this->dataPtr->model = Model(_entity);
+
+  // Prepare the bind parameters.
+  this->dataPtr->bindReq.add_data(this->dataPtr->address);
+  this->dataPtr->bindReq.add_data(this->dataPtr->model.Name(_ecm));
+  this->dataPtr->bindReq.add_data(this->dataPtr->topic);
+
+  // Prepare the unbind parameters.
+  this->dataPtr->unbindReq.add_data(this->dataPtr->address);
+  this->dataPtr->unbindReq.add_data(this->dataPtr->topic);
 }
 
 //////////////////////////////////////////////////
 void CommsEndpoint::PreUpdate(
-    const ignition::gazebo::UpdateInfo &/*_info*/,
-    ignition::gazebo::EntityComponentManager &_ecm)
+    const ignition::gazebo::UpdateInfo &_info,
+    ignition::gazebo::EntityComponentManager &/*_ecm*/)
 {
   IGN_PROFILE("CommsEndpoint::PreUpdate");
 
   if (this->dataPtr->bound)
     return;
 
-  // Prepare the bind parameters.
-  ignition::msgs::StringMsg_V bindReq;
-  bindReq.add_data(this->dataPtr->address);
-  bindReq.add_data(this->dataPtr->model.Name(_ecm));
-  bindReq.add_data(this->dataPtr->topic);
+  auto elapsed = _info.simTime - this->dataPtr->lastBindRequestTime;
+  if (elapsed > std::chrono::steady_clock::duration::zero() &&
+      elapsed < this->dataPtr->bindRequestPeriod)
+  {
+    return;
+  }
+  this->dataPtr->lastBindRequestTime = _info.simTime;
 
-  // Bind.
-  if (this->dataPtr->node.Request("/broker/bind", bindReq))
-    this->dataPtr->bound = true;
-  else
-    ignerr << "Bind call failed" << std::endl;
+  // Let's try to bind.
+  this->dataPtr->Bind();
 }
 
 IGNITION_ADD_PLUGIN(CommsEndpoint,

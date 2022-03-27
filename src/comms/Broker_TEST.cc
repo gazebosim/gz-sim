@@ -17,6 +17,7 @@
 
 #include <gtest/gtest.h>
 
+#include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/dataframe.pb.h>
 #include <ignition/msgs/stringmsg_v.pb.h>
 #include "ignition/gazebo/comms/Broker.hh"
@@ -48,7 +49,10 @@ TEST_F(BrokerTest, Broker)
   reqBind.add_data("addr1");
   reqBind.add_data("model1");
   reqBind.add_data("topic");
-  broker.OnBind(reqBind);
+  ignition::msgs::Boolean rep;
+  bool result;
+  result = broker.OnBind(reqBind, rep);
+  EXPECT_TRUE(result);
   allData = broker.DataManager().Data();
   EXPECT_EQ(1u, allData.size());
   EXPECT_EQ(1u, allData["addr1"].subscriptions.size());

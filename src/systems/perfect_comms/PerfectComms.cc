@@ -46,7 +46,6 @@ PerfectComms::~PerfectComms()
 }
 
 //////////////////////////////////////////////////
-// void PerfectComms::Configure(const Entity &_entity,
 void PerfectComms::Load(const Entity &/*_entity*/,
     std::shared_ptr<const sdf::Element> /*_sdf*/,
     EntityComponentManager &/*_ecm*/,
@@ -54,30 +53,25 @@ void PerfectComms::Load(const Entity &/*_entity*/,
 {
 }
 
+//////////////////////////////////////////////////
 void PerfectComms::Step(
       const UpdateInfo &/*_info*/,
-      EntityComponentManager &/*_ecm*/,
-      comms::MsgManager &/*_messageMgr*/)
+      const comms::Registry &_currentRegistry,
+      comms::Registry &_newRegistry,
+      EntityComponentManager &/*_ecm*/)
 {
-  // Check if there are new messages to process.
-  auto &allData = this->broker.DataManager().Data();
-
-  // Create a copy to modify while we iterate.
-  auto allDataCopy = this->broker.DataManager().Copy();
-
-  for (auto & [address, content] : allData)
+  for (auto & [address, content] : _currentRegistry)
   {
     // Reference to the outbound queue for this address.
     auto &outbound = content.outboundMsgs;
 
     // All these messages need to be processed.
     for (auto &msg : outbound)
-      allDataCopy[msg->dst_address()].inboundMsgs.push_back(msg);
+      _newRegistry[msg->dst_address()].inboundMsgs.push_back(msg);
 
-    allDataCopy[address].outboundMsgs.clear();
+    // Clear the outbound queue.
+    _newRegistry[address].outboundMsgs.clear();
   }
-
-  this->broker.DataManager().Set(allDataCopy);
 }
 
 IGNITION_ADD_PLUGIN(PerfectComms,

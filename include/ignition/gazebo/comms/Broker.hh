@@ -28,6 +28,7 @@ namespace ignition
 namespace msgs
 {
   // Forward declarations.
+  class Boolean;
   class Dataframe;
   class StringMsg_V;
 }
@@ -104,7 +105,10 @@ namespace comms
     ///   _req[0] Client address.
     ///   _req[1] Model name associated to the address.
     ///   _req[2] Client subscription topic.
-    public: void OnBind(const ignition::msgs::StringMsg_V &_req);
+    /// \param[out] _rep Unused
+    /// \return True when the bind service succeeded or false otherwise.
+    public: bool OnBind(const ignition::msgs::StringMsg_V &_req,
+                        ignition::msgs::Boolean &_rep);
 
     /// \brief Unbind a given client address. The client associated to this
     /// address will not receive any more messages.

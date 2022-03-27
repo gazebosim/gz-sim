@@ -80,7 +80,7 @@ TEST_F(MsgManagerTest, MsgManager)
   // test setting msg content
   auto msgIn2 = std::make_shared<msgs::Dataframe>();
   auto msgOut2 = std::make_shared<msgs::Dataframe>();
-  std::map<std::string, comms::MsgContent> content;
+  std::map<std::string, comms::AddressContent> content;
   content["addr6"].inboundMsgs.push_back(msgIn2);
   content["addr6"].outboundMsgs.push_back(msgOut2);
   msgManager.Set(content);

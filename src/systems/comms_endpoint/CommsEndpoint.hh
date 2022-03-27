@@ -31,6 +31,37 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
 {
+  /// \brief A system that registers in the comms broker an endpoint.
+  /// You're creating an address attached to the model where the plugin is
+  /// running. The system will bind this address in the broker automatically
+  /// for you and unbind it when the model is destroyed.
+  ///
+  /// The endpoint can be configured with the following SDF parameters:
+  ///
+  /// * Required parameters:
+  /// <address> An identifier used to receive messages (string).
+  /// <topic> The topic name where you want to receive the messages targeted to
+  /// this address.
+  ///
+  /// * Optional parameters:
+  /// <broker> Element used to capture where are the broker services.
+  ///          This block can contain any of the next optional parameters:
+  ///    <bind_service>: Service name used to bind an address.
+  ///                    The default value is "/broker/bind"
+  ///    <unbind_service>: Service name used to unbind from an address.
+  ///                      The default value is "/broker/unbind"
+  ///
+  /// Here's an example:
+  /// <plugin
+  ///   filename="ignition-gazebo-comms-endpoint-system"
+  ///   name="ignition::gazebo::systems::CommsEndpoint">
+  ///   <address>addr1</address>
+  ///   <topic>addr1/rx</topic>
+  ///   <broker>
+  ///     <bind_service>/broker/bind</bind_service>
+  ///     <unbind_service>/broker/unbind</unbind_service>
+  ///   </broker>
+  /// </plugin>
   class CommsEndpoint
       : public System,
         public ISystemConfigure,

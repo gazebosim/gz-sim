@@ -28,28 +28,13 @@
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/comms/MsgManager.hh"
 
-// /// \brief Private MsgManagerData data class.
-// class ignition::gazebo::comms::MsgManagerData::Implementation
-// {
-//   /// \brief Queue of inbound messages.
-//   public: std::deque<std::shared_ptr<msgs::Dataframe>> inboundMsgs;
-
-//   /// \brief Queue of outbound messages.
-//   public: std::deque<std::shared_ptr<msgs::Dataframe>> outboundMsgs;
-
-//   /// \brief A map where the key is the topic subscribed to this address and
-//   /// the value is a publisher to reach that topic.
-//   public: std::map<std::string,
-//                    ignition::transport::Node::Publisher> subscriptions;
-// };
-
 /// \brief Private MsgManager data class.
 class ignition::gazebo::comms::MsgManager::Implementation
 {
   /// \brief Buffer to store the content associated to each address.
   /// The key is an address. The value contains all the information associated
   /// to the address.
-  public: std::map<std::string, MsgContent> data;
+  public: Registry data;
 
   /// \brief An Ignition Transport node for communications.
   public: ignition::transport::Node node;
@@ -58,18 +43,6 @@ class ignition::gazebo::comms::MsgManager::Implementation
 using namespace ignition;
 using namespace gazebo;
 using namespace comms;
-
-// //////////////////////////////////////////////////
-// MsgManagerData::MsgManagerData()
-//   : dataPtr(ignition::utils::MakeUniqueImpl<Implementation>())
-// {
-// }
-
-// //////////////////////////////////////////////////
-// MsgManagerData::~MsgManagerData()
-// {
-//   // cannot use default destructor because of dataPtr
-// }
 
 //////////////////////////////////////////////////
 MsgManager::MsgManager()
@@ -98,14 +71,14 @@ void MsgManager::AddSubscriber(const std::string &_address,
 
 //////////////////////////////////////////////////
 void MsgManager::AddInbound(const std::string &_address,
-                            const std::shared_ptr<msgs::Dataframe> &_msg)
+                            const msgs::DataframeSharedPtr &_msg)
 {
   this->dataPtr->data[_address].inboundMsgs.push_back(_msg);
 }
 
 //////////////////////////////////////////////////
 void MsgManager::AddOutbound(const std::string &_address,
-                             const std::shared_ptr<msgs::Dataframe> &_msg)
+                             const msgs::DataframeSharedPtr &_msg)
 {
   this->dataPtr->data[_address].outboundMsgs.push_back(_msg);
 }
@@ -122,7 +95,7 @@ bool MsgManager::RemoveSubscriber(const std::string &_address,
 
 //////////////////////////////////////////////////
 void MsgManager::RemoveInbound(const std::string &_address,
-                               const std::shared_ptr<msgs::Dataframe> &_msg)
+                               const msgs::DataframeSharedPtr &_msg)
 {
   if (this->dataPtr->data.find(_address) == this->dataPtr->data.end())
     return;
@@ -133,7 +106,7 @@ void MsgManager::RemoveInbound(const std::string &_address,
 
 //////////////////////////////////////////////////
 void MsgManager::RemoveOutbound(const std::string &_address,
-                                const std::shared_ptr<msgs::Dataframe> &_msg)
+                                const msgs::DataframeSharedPtr &_msg)
 {
   if (this->dataPtr->data.find(_address) == this->dataPtr->data.end())
     return;
@@ -163,19 +136,25 @@ void MsgManager::DeliverMsgs()
 }
 
 //////////////////////////////////////////////////
-std::map<std::string, comms::MsgContent> &MsgManager::Data()
+const Registry &MsgManager::DataConst()
 {
   return this->dataPtr->data;
 }
 
 //////////////////////////////////////////////////
-std::map<std::string, comms::MsgContent> MsgManager::Copy()
+Registry &MsgManager::Data()
 {
   return this->dataPtr->data;
 }
 
 //////////////////////////////////////////////////
-void MsgManager::Set(std::map<std::string, comms::MsgContent> &_newContent)
+Registry MsgManager::Copy()
+{
+  return this->dataPtr->data;
+}
+
+//////////////////////////////////////////////////
+void MsgManager::Set(Registry &_newContent)
 {
   this->dataPtr->data = _newContent;
 }

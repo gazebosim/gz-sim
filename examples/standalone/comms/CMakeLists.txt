@@ -8,7 +8,3 @@ set(IGN_TRANSPORT_VER ${ignition-transport11_VERSION_MAJOR})
 add_executable(publisher publisher.cc)
 target_link_libraries(publisher
   ignition-transport${IGN_TRANSPORT_VER}::core)
-
-add_executable(subscriber subscriber.cc)
-target_link_libraries(subscriber
-  ignition-transport${IGN_TRANSPORT_VER}::core)

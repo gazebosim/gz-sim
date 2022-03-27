@@ -42,37 +42,32 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace comms
 {
 
-/// \brief ToDo.
-struct MsgContent
+/// \brief A queue of message pointers.
+using DataQueue = std::deque<msgs::DataframeSharedPtr>;
+
+/// \brief A map where the key is the topic subscribed to an address and
+/// the value is a publisher to reach that topic.
+using SubscriptionHandler = std::map<std::string, transport::Node::Publisher>;
+
+/// \brief All the information associated to an address.
+struct AddressContent
 {
   /// \brief Queue of inbound messages.
-  public: std::deque<std::shared_ptr<msgs::Dataframe>> inboundMsgs;
+  public: DataQueue inboundMsgs;
 
   /// \brief Queue of outbound messages.
-  public: std::deque<std::shared_ptr<msgs::Dataframe>> outboundMsgs;
+  public: DataQueue outboundMsgs;
 
-  /// \brief A map where the key is the topic subscribed to this address and
-  /// the value is a publisher to reach that topic.
-  public: std::map<std::string,
-                   ignition::transport::Node::Publisher> subscriptions;
+  /// \brief Subscribers.
+  public: SubscriptionHandler subscriptions;
 
   /// \brief Model name associated to this address.
   public: std::string modelName;
 };
 
-// class MsgManagerData
-// {
-//   /// \brief Default constructor.
-//   public: MsgManagerData();
-
-//   /// \brief Destructor.
-//   public: virtual ~MsgManagerData();
-
-// public:
-
-//   /// \brief Private data pointer.
-//   IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)
-// };
+/// \brief A map where the key is an address and the value is all the
+/// information associated to each address (subscribers, queues, ...).
+using Registry = std::map<std::string, AddressContent>;
 
 /// \brief ToDo.
 class MsgManager
@@ -95,13 +90,13 @@ class MsgManager
   /// \param[in] _address The destination address.
   /// \param[in] _msg The message.
   public: void AddInbound(const std::string &_address,
-                          const std::shared_ptr<msgs::Dataframe> &_msg);
+                          const msgs::DataframeSharedPtr &_msg);
 
   /// \brief Add a new message to the outbound queue.
   /// \param[in] _address The sender address.
   /// \param[in] _msg The message.
   public: void AddOutbound(const std::string &_address,
-                           const std::shared_ptr<msgs::Dataframe> &_msg);
+                           const msgs::DataframeSharedPtr &_msg);
 
   /// \brief Remove an existing subscriber.
   /// \param The subscriber address.
@@ -114,13 +109,13 @@ class MsgManager
   /// \param[in] _address The destination address.
   /// \param[in] _Msg Message pointer to remove.
   public: void RemoveInbound(const std::string &_address,
-                             const std::shared_ptr<msgs::Dataframe> &_msg);
+                             const msgs::DataframeSharedPtr &_msg);
 
   /// \brief Remove a message from the outbound queue.
   /// \param[in] _address The sender address.
   /// \param[in] _msg Message pointer to remove.
   public: void RemoveOutbound(const std::string &_address,
-                              const std::shared_ptr<msgs::Dataframe> &_msg);
+                              const msgs::DataframeSharedPtr &_msg);
 
   /// \brief This function delivers all the messages in the inbound queue to
   /// the appropriate subscribers. This function also clears the inbound queue.
@@ -129,16 +124,21 @@ class MsgManager
   /// \brief Get a mutable reference to the data containing subscriptions and
   /// data queues.
   /// \return A mutable reference to the data.
-  public: std::map<std::string, MsgContent> &Data();
+  public: const Registry &DataConst();
+
+  /// \brief Get a mutable reference to the data containing subscriptions and
+  /// data queues.
+  /// \return A mutable reference to the data.
+  public: Registry &Data();
 
   /// \brief Get a copy of the data structure containing subscriptions and data
   /// queues.
   /// \return A copy of the data.
-  public: std::map<std::string, MsgContent> Copy();
+  public: Registry Copy();
 
   /// \brief Set the data structure containing subscriptions and data queues.
   /// \param[in] _newContent New content to be set.
-  public: void Set(std::map<std::string, MsgContent> &_newContent);
+  public: void Set(Registry &_newContent);
 
   /// \brief Private data pointer.
   IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)
