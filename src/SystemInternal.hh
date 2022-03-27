@@ -39,25 +39,31 @@ namespace ignition
     {
       /// \brief Constructor
       /// \param[in] _systemPlugin A system loaded from a plugin.
-      public: explicit SystemInternal(SystemPluginPtr _systemPlugin)
+      /// \param[in] _entity The entity that this system is attached to.
+      public: explicit SystemInternal(SystemPluginPtr _systemPlugin,
+          Entity _entity)
               : systemPlugin(std::move(_systemPlugin)),
                 system(systemPlugin->QueryInterface<System>()),
                 configure(systemPlugin->QueryInterface<ISystemConfigure>()),
                 preupdate(systemPlugin->QueryInterface<ISystemPreUpdate>()),
                 update(systemPlugin->QueryInterface<ISystemUpdate>()),
-                postupdate(systemPlugin->QueryInterface<ISystemPostUpdate>())
+                postupdate(systemPlugin->QueryInterface<ISystemPostUpdate>()),
+                parentEntity(_entity)
       {
       }
 
       /// \brief Constructor
       /// \param[in] _system Pointer to a system.
-      public: explicit SystemInternal(const std::shared_ptr<System> &_system)
+      /// \param[in] _entity The entity that this system is attached to.
+      public: explicit SystemInternal(const std::shared_ptr<System> &_system,
+          Entity _entity)
               : systemShared(_system),
                 system(_system.get()),
                 configure(dynamic_cast<ISystemConfigure *>(_system.get())),
                 preupdate(dynamic_cast<ISystemPreUpdate *>(_system.get())),
                 update(dynamic_cast<ISystemUpdate *>(_system.get())),
-                postupdate(dynamic_cast<ISystemPostUpdate *>(_system.get()))
+                postupdate(dynamic_cast<ISystemPostUpdate *>(_system.get())),
+                parentEntity(_entity)
       {
       }
 
@@ -89,9 +95,9 @@ namespace ignition
       /// Will be nullptr if the System doesn't implement this interface.
       public: ISystemPostUpdate *postupdate = nullptr;
 
-      /// \brief Cached entity that was used to call `Configure` on the system
-      /// Useful for if a system needs to be reconfigured at runtime
-      public: Entity configureEntity = {kNullEntity};
+      /// \brief Entity that the system is attached to. It's passed to the
+      /// system during the `Configure` call.
+      public: Entity parentEntity = {kNullEntity};
 
       /// \brief Cached sdf that was used to call `Configure` on the system
       /// Useful for if a system needs to be reconfigured at runtime
