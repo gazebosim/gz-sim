@@ -1031,6 +1031,8 @@ void RenderUtil::Update()
     return;
 
   this->dataPtr->updateMutex.lock();
+
+  this->dataPtr->scene->SetTime(this->dataPtr->simTime);
   auto newScenes = std::move(this->dataPtr->newScenes);
   auto newModels = std::move(this->dataPtr->newModels);
   auto newLinks = std::move(this->dataPtr->newLinks);
@@ -2500,6 +2502,12 @@ void RenderUtil::Init()
       this->dataPtr->scene->SetSkyEnabled(this->dataPtr->skyEnabled);
     }
   }
+
+#if IGNITION_RENDERING_MAJOR_VERSION <= 6
+  // HACK: Tell ign-rendering6 to listen to SetTime calls
+  this->dataPtr->scene->SetTime(std::chrono::nanoseconds(-1));
+#endif
+
   this->dataPtr->sceneManager.SetScene(this->dataPtr->scene);
   if (this->dataPtr->enableSensors)
     this->dataPtr->markerManager.SetTopic("/sensors/marker");
@@ -2574,6 +2582,10 @@ void RenderUtil::SetSceneName(const std::string &_name)
 void RenderUtil::SetScene(const rendering::ScenePtr &_scene)
 {
   this->dataPtr->scene = _scene;
+#if IGNITION_RENDERING_MAJOR_VERSION <= 6
+  // HACK: Tell ign-rendering6 to listen to SetTime calls
+  this->dataPtr->scene->SetTime(std::chrono::nanoseconds(-1));
+#endif
   this->dataPtr->sceneManager.SetScene(_scene);
   this->dataPtr->engine = _scene == nullptr ? nullptr : _scene->Engine();
 }
