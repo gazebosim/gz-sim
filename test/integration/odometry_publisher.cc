@@ -486,8 +486,8 @@ class OdometryPublisherTest
     int n = odomLinVels.size();
 
     // Calculate the means.
-    double linVelSumX = 0, linVelSumY = 0, linVelSumZ = 0; 
-    double angVelSumX = 0, angVelSumY = 0, angVelSumZ = 0; 
+    double linVelSumX = 0, linVelSumY = 0, linVelSumZ = 0;
+    double angVelSumX = 0, angVelSumY = 0, angVelSumZ = 0;
     for (int i = 0; i < n; i++) {
       linVelSumX += odomLinVels[i].X();
       linVelSumY += odomLinVels[i].Y();
@@ -508,8 +508,8 @@ class OdometryPublisherTest
     EXPECT_NEAR(angVelSumZ/n, 0, 0.3);
 
     // Calculate the variation (sigma^2).
-    double linVelSqSumX = 0, linVelSqSumY = 0, linVelSqSumZ = 0; 
-    double angVelSqSumX = 0, angVelSqSumY = 0, angVelSqSumZ = 0; 
+    double linVelSqSumX = 0, linVelSqSumY = 0, linVelSqSumZ = 0;
+    double angVelSqSumX = 0, angVelSqSumY = 0, angVelSqSumZ = 0;
     for (int i = 0; i < n; i++) {
       linVelSqSumX += std::pow(odomLinVels[i].X() - linVelSumX/n, 2);
       linVelSqSumY += std::pow(odomLinVels[i].Y() - linVelSumY/n, 2);

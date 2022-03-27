@@ -229,7 +229,8 @@ void OdometryPublisher::Configure(const Entity &_entity,
         odomTopicValid);
   }
 
-  std::string odomCovTopicValid {transport::TopicUtils::AsValidTopic(odomCovTopic)};
+  std::string odomCovTopicValid {
+    transport::TopicUtils::AsValidTopic(odomCovTopic)};
   if (odomCovTopicValid.empty())
   {
     ignerr << "Failed to generate odom topic ["
@@ -467,8 +468,7 @@ void OdometryPublisherPrivate::UpdateOdometry(
         mutable_covariance()->add_data(gn2);
       msg_covariance.mutable_twist_with_covariance()->
         mutable_covariance()->add_data(gn2);
-    }
-    else {
+    } else {
       msg_covariance.mutable_pose_with_covariance()->
         mutable_covariance()->add_data(0);
       msg_covariance.mutable_twist_with_covariance()->
