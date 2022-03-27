@@ -17,25 +17,21 @@
 
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/dataframe.pb.h>
+#include <ignition/msgs/time.pb.h>
 
-#include <algorithm>
-#include <deque>
 #include <memory>
 #include <mutex>
 #include <string>
-#include <unordered_set>
 
 #include <ignition/transport/Node.hh>
 #include "ignition/gazebo/comms/Broker.hh"
 #include "ignition/gazebo/comms/MsgManager.hh"
+#include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/Util.hh"
 
 /// \brief Private Broker data class.
 class ignition::gazebo::comms::Broker::Implementation
 {
-  /// \brief An Ignition Transport node for communications.
-  public: ignition::transport::Node node;
-
   /// \brief The message manager.
   public: MsgManager data;
 
@@ -50,6 +46,12 @@ class ignition::gazebo::comms::Broker::Implementation
 
   /// \brief Service used to unbind from an address.
   public: std::string unbindSrv = "/broker/unbind";
+
+  /// \brief The current time.
+  public: std::chrono::steady_clock::duration time{0};
+
+  /// \brief An Ignition Transport node for communications.
+  public: ignition::transport::Node node;
 };
 
 using namespace ignition;
@@ -122,6 +124,12 @@ void Broker::Start()
 }
 
 //////////////////////////////////////////////////
+void Broker::SetTime(const std::chrono::steady_clock::duration &_time)
+{
+  this->dataPtr->time = _time;
+}
+
+//////////////////////////////////////////////////
 bool Broker::OnBind(const ignition::msgs::StringMsg_V &_req,
                     ignition::msgs::Boolean &/*_rep*/)
 {
@@ -171,6 +179,11 @@ void Broker::OnMsg(const ignition::msgs::Dataframe &_msg)
   auto msgPtr = std::make_shared<ignition::msgs::Dataframe>(_msg);
 
   std::lock_guard<std::mutex> lk(this->dataPtr->mutex);
+
+  // Stamp the time.
+  msgPtr->mutable_header()->mutable_stamp()->CopyFrom(
+      gazebo::convert<msgs::Time>(this->dataPtr->time));
+
   this->DataManager().AddOutbound(_msg.src_address(), msgPtr);
 }
 

@@ -69,6 +69,9 @@ namespace comms
       // We lock while we manipulate data.
       this->broker.Lock();
 
+      // Update the time in the broker.
+      this->broker.SetTime(_info.simTime);
+
       // Step the comms model.
       const Registry &currentRegistry = this->broker.DataManager().DataConst();
       Registry newRegistry = this->broker.DataManager().Copy();

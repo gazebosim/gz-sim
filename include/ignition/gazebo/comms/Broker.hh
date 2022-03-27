@@ -98,6 +98,10 @@ namespace comms
     /// clients until the broker has been entirely initialized.
     public: void Start();
 
+    /// \brief Set the current time.
+    /// \param[in] _time Current time.
+    public: void SetTime(const std::chrono::steady_clock::duration &_time);
+
     /// \brief This method associates an address with a client topic used as
     /// callback for receiving messages. This is a client requirement to
     /// start receiving messages.
