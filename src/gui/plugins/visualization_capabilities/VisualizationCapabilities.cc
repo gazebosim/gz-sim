@@ -30,6 +30,7 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
+#include <QQmlProperty>
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/HeightmapData.hh>
@@ -2766,7 +2767,19 @@ void VisualizationCapabilities::Update(const UpdateInfo &,
 void VisualizationCapabilities::LoadConfig(const tinyxml2::XMLElement *)
 {
   if (this->title.empty())
-    this->title = "VisualizationCapabilities";
+    this->title = "Visualization capabilities";
+
+  static bool done{false};
+  if (done)
+  {
+    std::string msg{
+        "Only one Visualization capabilities plugin is supported at a time."};
+    ignerr << msg << std::endl;
+    QQmlProperty::write(this->PluginItem(), "message",
+        QString::fromStdString(msg));
+    return;
+  }
+  done = true;
 
   // view as transparent service
   this->dataPtr->viewTransparentService = "/gui/view/transparent";

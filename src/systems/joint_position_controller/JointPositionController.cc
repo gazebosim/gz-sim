@@ -46,13 +46,13 @@ class ignition::gazebo::systems::JointPositionControllerPrivate
   public: transport::Node node;
 
   /// \brief Joint Entity
-  public: Entity jointEntity;
+  public: Entity jointEntity{kNullEntity};
 
   /// \brief Joint name
   public: std::string jointName;
 
   /// \brief Commanded joint position
-  public: double jointPosCmd;
+  public: double jointPosCmd{0.0};
 
   /// \brief mutex to protect joint commands
   public: std::mutex jointCmdMutex;
@@ -170,6 +170,12 @@ void JointPositionController::Configure(const Entity &_entity,
 
   this->dataPtr->posPid.Init(p, i, d, iMax, iMin, cmdMax, cmdMin, cmdOffset);
 
+
+  if (_sdf->HasElement("initial_position"))
+  {
+    this->dataPtr->jointPosCmd = _sdf->Get<double>("initial_position");
+  }
+
   // Subscribe to commands
   std::string topic = transport::TopicUtils::AsValidTopic("/model/" +
       this->dataPtr->model.Name(_ecm) + "/joint/" + this->dataPtr->jointName +
@@ -206,6 +212,8 @@ void JointPositionController::Configure(const Entity &_entity,
   igndbg << "cmd_min: ["    << cmdMin    << "]"            << std::endl;
   igndbg << "cmd_offset: [" << cmdOffset << "]"            << std::endl;
   igndbg << "Topic: ["      << topic     << "]"            << std::endl;
+  igndbg << "initial_position: [" << this->dataPtr->jointPosCmd << "]"
+         << std::endl;
 }
 
 //////////////////////////////////////////////////
