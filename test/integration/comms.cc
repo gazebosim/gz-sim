@@ -58,7 +58,7 @@ TEST_F(CommsTest, Comms)
   std::mutex mutex;
   auto cb = [&](const msgs::Dataframe &_msg) -> void
   {
-    // verify msg content
+    // Verify msg content
     std::lock_guard<std::mutex> lock(mutex);
     std::string expected = "hello world " + std::to_string(msgCounter);
 
@@ -68,33 +68,26 @@ TEST_F(CommsTest, Comms)
     msgCounter++;
   };
 
-  // create subscriber
+  // Create subscriber.
   ignition::transport::Node node;
-  std::string addr = "addr1";
-  std::string topic = "topic1";
+  std::string addr  = "addr1";
+  std::string subscriptionTopic = "addr1/rx";
 
   // Subscribe to a topic by registering a callback.
   auto cbFunc = std::function<void(const msgs::Dataframe &)>(cb);
-  EXPECT_TRUE(node.Subscribe(topic, cbFunc))
-      << "Error subscribing to topic [" << topic << "]";
+  EXPECT_TRUE(node.Subscribe(subscriptionTopic, cbFunc))
+      << "Error subscribing to topic [" << subscriptionTopic << "]";
 
-  // Prepare the input parameters.
-  ignition::msgs::StringMsg_V req;
-  req.add_data(addr);
-  req.add_data(topic);
-
-  // Bind.
-  EXPECT_TRUE(node.Request("/broker/bind", req));
-
-  // create publisher
-  auto pub = node.Advertise<ignition::msgs::Dataframe>(topic);
+  // Create publisher.
+  std::string publicationTopic = "/broker/msgs";
+  auto pub = node.Advertise<ignition::msgs::Dataframe>(publicationTopic);
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   // Prepare the message.
   ignition::msgs::Dataframe msg;
   msg.set_src_address("unused");
   msg.set_dst_address(addr);
 
-  // publish 10 messages
+  // Publish 10 messages.
   ignition::msgs::StringMsg payload;
   unsigned int pubCount = 10u;
   for (unsigned int i = 0u; i < pubCount; ++i)
@@ -106,10 +99,10 @@ TEST_F(CommsTest, Comms)
         << payload.DebugString();
     msg.set_data(serializedData);
     EXPECT_TRUE(pub.Publish(msg));
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    server.Run(true, 100, false);
   }
 
-  // verify subscriber received all msgs
+  // Verify subscriber received all msgs.
   int sleep = 0;
   bool done = false;
   while (!done && sleep++ < 10)

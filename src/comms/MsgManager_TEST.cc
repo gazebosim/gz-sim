@@ -16,7 +16,6 @@
 */
 
 #include <gtest/gtest.h>
-#include <ignition/common/Console.hh>
 #include <ignition/msgs/dataframe.pb.h>
 #include "ignition/gazebo/comms/MsgManager.hh"
 #include "helpers/EnvTestFixture.hh"
@@ -37,14 +36,36 @@ TEST_F(MsgManagerTest, MsgManager)
   EXPECT_TRUE(msgManager.Data().empty());
   EXPECT_TRUE(msgManager.Copy().empty());
 
-  // test subscriber
-  msgManager.AddSubscriber("addr1", "model1", "topic1");
+  // Test subscriber.
+  EXPECT_TRUE(msgManager.AddSubscriber("addr1", "model1", "topic1"));
   EXPECT_EQ(1u, msgManager.Data().size());
   EXPECT_NE(msgManager.Data().end(), msgManager.Data().find("addr1"));
+  EXPECT_EQ(1u, msgManager.Data()["addr1"].subscriptions.size());
   EXPECT_NE(msgManager.Data()["addr1"].subscriptions.end(),
             msgManager.Data()["addr1"].subscriptions.find("topic1"));
+  EXPECT_EQ("model1", msgManager.Data()["addr1"].modelName);
 
-  // test inbound
+  // Try to bind to an address attached to another model.
+  EXPECT_FALSE(msgManager.AddSubscriber("addr1", "model2", "topic2"));
+  EXPECT_EQ(1u, msgManager.Data().size());
+  EXPECT_NE(msgManager.Data().end(), msgManager.Data().find("addr1"));
+  EXPECT_EQ(1u, msgManager.Data()["addr1"].subscriptions.size());
+  EXPECT_NE(msgManager.Data()["addr1"].subscriptions.end(),
+            msgManager.Data()["addr1"].subscriptions.find("topic1"));
+  EXPECT_EQ("model1", msgManager.Data()["addr1"].modelName);
+
+  // Add an additional topic.
+  EXPECT_TRUE(msgManager.AddSubscriber("addr1", "model1", "topic2"));
+  EXPECT_EQ(1u, msgManager.Data().size());
+  EXPECT_NE(msgManager.Data().end(), msgManager.Data().find("addr1"));
+  EXPECT_EQ(2u, msgManager.Data()["addr1"].subscriptions.size());
+  EXPECT_NE(msgManager.Data()["addr1"].subscriptions.end(),
+            msgManager.Data()["addr1"].subscriptions.find("topic1"));
+  EXPECT_NE(msgManager.Data()["addr1"].subscriptions.end(),
+            msgManager.Data()["addr1"].subscriptions.find("topic2"));
+  EXPECT_EQ("model1", msgManager.Data()["addr1"].modelName);
+
+  // Test inbound.
   auto msgIn = std::make_shared<msgs::Dataframe>();
   EXPECT_EQ(msgManager.Data().end(), msgManager.Data().find("addr2"));
   msgManager.AddInbound("addr2", msgIn);
@@ -52,7 +73,7 @@ TEST_F(MsgManagerTest, MsgManager)
   EXPECT_FALSE(msgManager.Data()["addr2"].inboundMsgs.empty());
   EXPECT_EQ(msgIn, msgManager.Data()["addr2"].inboundMsgs[0]);
 
-  // test outbound
+  // Test outbound.
   auto msgOut = std::make_shared<msgs::Dataframe>();
   EXPECT_EQ(msgManager.Data().end(), msgManager.Data().find("addr3"));
   msgManager.AddOutbound("addr3", msgOut);
@@ -60,24 +81,42 @@ TEST_F(MsgManagerTest, MsgManager)
   EXPECT_FALSE(msgManager.Data()["addr3"].outboundMsgs.empty());
   EXPECT_EQ(msgOut, msgManager.Data()["addr3"].outboundMsgs[0]);
 
-  // test msg removal
-  msgManager.RemoveInbound("addr2", msgIn);
+  // Test msg removal.
+  EXPECT_FALSE(msgManager.RemoveInbound("not_found", msgIn));
+  EXPECT_TRUE(msgManager.RemoveInbound("addr2", msgIn));
   EXPECT_TRUE(msgManager.Data()["addr2"].inboundMsgs.empty());
-  msgManager.RemoveOutbound("addr3", msgOut);
+  EXPECT_FALSE(msgManager.RemoveOutbound("not_found", msgOut));
+  EXPECT_TRUE(msgManager.RemoveOutbound("addr3", msgOut));
   EXPECT_TRUE(msgManager.Data()["addr3"].outboundMsgs.empty());
 
-  // test msg delivery
+  // Test msg delivery.
   msgManager.AddInbound("addr4", msgIn);
   EXPECT_FALSE(msgManager.Data()["addr4"].inboundMsgs.empty());
   msgManager.DeliverMsgs();
   EXPECT_TRUE(msgManager.Data()["addr4"].inboundMsgs.empty());
 
-  // test subscriber removal
+  // Test subscriber removal.
   msgManager.RemoveSubscriber("addr1", "topic1");
   EXPECT_NE(msgManager.Data().end(), msgManager.Data().find("addr1"));
-  EXPECT_TRUE(msgManager.Data()["addr1"].subscriptions.empty());
+  EXPECT_EQ(1u, msgManager.Data()["addr1"].subscriptions.size());
+  EXPECT_NE(msgManager.Data()["addr1"].subscriptions.end(),
+            msgManager.Data()["addr1"].subscriptions.find("topic2"));
+  msgManager.RemoveSubscriber("addr1", "topic2");
+  EXPECT_NE(msgManager.Data().end(), msgManager.Data().find("addr1"));
+  EXPECT_EQ(0u, msgManager.Data()["addr1"].subscriptions.size());
+  EXPECT_TRUE(msgManager.Data()["addr1"].modelName.empty());
 
-  // test setting msg content
+  // Without subscribers, we should be able to recycle the address for a
+  // different model.
+  EXPECT_TRUE(msgManager.AddSubscriber("addr1", "model2", "topic2"));
+  EXPECT_EQ(4u, msgManager.Data().size());
+  EXPECT_NE(msgManager.Data().end(), msgManager.Data().find("addr1"));
+  EXPECT_EQ(1u, msgManager.Data()["addr1"].subscriptions.size());
+  EXPECT_NE(msgManager.Data()["addr1"].subscriptions.end(),
+            msgManager.Data()["addr1"].subscriptions.find("topic2"));
+  EXPECT_EQ("model2", msgManager.Data()["addr1"].modelName);
+
+  // Test setting msg content.
   auto msgIn2 = std::make_shared<msgs::Dataframe>();
   auto msgOut2 = std::make_shared<msgs::Dataframe>();
   std::map<std::string, comms::AddressContent> content;
@@ -90,10 +129,15 @@ TEST_F(MsgManagerTest, MsgManager)
   EXPECT_EQ(1u, msgManager.Data()["addr6"].outboundMsgs.size());
   EXPECT_EQ(msgOut2, msgManager.Data()["addr6"].outboundMsgs[0u]);
 
-  // test copy
+  // Test copy.
   EXPECT_TRUE(msgManager.Copy()["addr6"].subscriptions.empty());
   EXPECT_EQ(1u, msgManager.Copy()["addr6"].inboundMsgs.size());
   EXPECT_EQ(msgIn2, msgManager.Copy()["addr6"].inboundMsgs[0u]);
   EXPECT_EQ(1u, msgManager.Copy()["addr6"].outboundMsgs.size());
   EXPECT_EQ(msgOut2, msgManager.Copy()["addr6"].outboundMsgs[0u]);
+
+  // Test DataConst.
+  auto it = msgManager.DataConst().find("addr6");
+  EXPECT_TRUE(it->second.subscriptions.empty());
+
 }

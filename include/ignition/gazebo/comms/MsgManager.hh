@@ -78,11 +78,15 @@ class MsgManager
   /// \brief Destructor.
   public: virtual ~MsgManager();
 
-  /// \brief Add a new subscriber
+  /// \brief Add a new subscriber. It's possible to associate multiple topics
+  /// to the same address/model pair. However, the same address cannot be
+  /// attached to multiple models. When all the subscribers are removed, it's
+  /// posible to bind to this address using a different model.
   /// \param[in] _address The subscriber address.
   /// \param[in] _modelName The model name.
   /// \param[in] _topic The subscriber topic.
-  public: void AddSubscriber(const std::string &_address,
+  /// \return True if the subscriber was successfully added or false otherwise.
+  public: bool AddSubscriber(const std::string &_address,
                              const std::string &_modelName,
                              const std::string &_topic);
 
@@ -108,13 +112,15 @@ class MsgManager
   /// \brief Remove a message from the inbound queue.
   /// \param[in] _address The destination address.
   /// \param[in] _Msg Message pointer to remove.
-  public: void RemoveInbound(const std::string &_address,
+  /// \return True if the message was removed or false otherwise.
+  public: bool RemoveInbound(const std::string &_address,
                              const msgs::DataframeSharedPtr &_msg);
 
   /// \brief Remove a message from the outbound queue.
   /// \param[in] _address The sender address.
   /// \param[in] _msg Message pointer to remove.
-  public: void RemoveOutbound(const std::string &_address,
+  /// \return True if the message was removed or false otherwise.
+  public: bool RemoveOutbound(const std::string &_address,
                               const msgs::DataframeSharedPtr &_msg);
 
   /// \brief This function delivers all the messages in the inbound queue to

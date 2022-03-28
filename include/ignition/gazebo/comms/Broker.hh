@@ -51,9 +51,9 @@ namespace comms
   /// to be delivered to one of the destination, it'll be stored in the inbound
   /// queue of the destination's address.
   ///
-  /// The main goal of this class is to receive the comms requests and place
-  /// them in the appropriate outbound queue, as well as deliver the messages
-  /// that are in the inbound queues.
+  /// The main goal of this class is to receive the comms requests, stamp the
+  /// time, and place them in the appropriate outbound queue, as well as deliver
+  /// the messages that are in the inbound queues.
   ///
   /// The instance of the comms model is responsible for moving around the
   /// messages from the outbound queues to the inbound queues.
@@ -97,6 +97,10 @@ namespace comms
     /// This function allows us to wait to advertise capabilities to
     /// clients until the broker has been entirely initialized.
     public: void Start();
+
+    /// \brief Get the current time.
+    /// \return Current time.
+    public: std::chrono::steady_clock::duration Time() const;
 
     /// \brief Set the current time.
     /// \param[in] _time Current time.

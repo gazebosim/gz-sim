@@ -66,6 +66,9 @@ namespace comms
     {
       IGN_PROFILE("ICommsModel::PreUpdate");
 
+      if (_info.paused)
+        return;
+
       // We lock while we manipulate data.
       this->broker.Lock();
 

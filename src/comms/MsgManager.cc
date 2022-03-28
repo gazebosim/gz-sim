@@ -57,16 +57,27 @@ MsgManager::~MsgManager()
 }
 
 //////////////////////////////////////////////////
-void MsgManager::AddSubscriber(const std::string &_address,
+bool MsgManager::AddSubscriber(const std::string &_address,
                                const std::string &_modelName,
                                const std::string &_topic)
 {
+  auto it = this->dataPtr->data.find(_address);
+  if (it != this->dataPtr->data.end())
+  {
+    if (!it->second.modelName.empty() && it->second.modelName != _modelName)
+    {
+      ignerr << "AddSubscriber() error: Address already attached to a different"
+             << " model" << std::endl;
+      return false;
+    }
+  }
   this->dataPtr->data[_address].modelName = _modelName;
 
   ignition::transport::Node::Publisher publisher =
     this->dataPtr->node.Advertise<ignition::msgs::Dataframe>(_topic);
 
   this->dataPtr->data[_address].subscriptions[_topic] = publisher;
+  return true;
 }
 
 //////////////////////////////////////////////////
@@ -87,32 +98,56 @@ void MsgManager::AddOutbound(const std::string &_address,
 bool MsgManager::RemoveSubscriber(const std::string &_address,
                                   const std::string &_topic)
 {
-  if (this->dataPtr->data.find(_address) == this->dataPtr->data.end())
+  auto it = this->dataPtr->data.find(_address);
+  if (it == this->dataPtr->data.end())
+  {
+    ignerr << "RemoveSubscriber() error: Unable to find address ["
+           << _address << "]" << std::endl;
     return false;
+  }
 
-  return this->dataPtr->data[_address].subscriptions.erase(_topic) > 0;
+  auto res = it->second.subscriptions.erase(_topic) > 0;
+
+  // It there are no subscribers we clear the model name. This way the address
+  // can be bound to a separate model. We also clear the queues.
+  if (it->second.subscriptions.empty())
+    it->second.modelName = "";
+
+  return res;
 }
 
 //////////////////////////////////////////////////
-void MsgManager::RemoveInbound(const std::string &_address,
+bool MsgManager::RemoveInbound(const std::string &_address,
                                const msgs::DataframeSharedPtr &_msg)
 {
-  if (this->dataPtr->data.find(_address) == this->dataPtr->data.end())
-    return;
+  auto it = this->dataPtr->data.find(_address);
+  if (it == this->dataPtr->data.end())
+  {
+    ignerr << "RemoveInbound() error: Unable to find address ["
+           << _address << "]" << std::endl;
+    return false;
+  }
 
-  auto &q = this->dataPtr->data[_address].inboundMsgs;
+  auto &q = it->second.inboundMsgs;
   q.erase(std::remove(q.begin(), q.end(), _msg), q.end());
+  return true;
 }
 
 //////////////////////////////////////////////////
-void MsgManager::RemoveOutbound(const std::string &_address,
+bool MsgManager::RemoveOutbound(const std::string &_address,
                                 const msgs::DataframeSharedPtr &_msg)
 {
-  if (this->dataPtr->data.find(_address) == this->dataPtr->data.end())
-    return;
+  auto it = this->dataPtr->data.find(_address);
+  if (it == this->dataPtr->data.end())
+  {
+    ignerr << "RemoveOutbound() error: Unable to find address ["
+           << _address << "]" << std::endl;
+    return false;
+  }
 
-  auto &q = this->dataPtr->data[_address].outboundMsgs;
+  auto &q = it->second.outboundMsgs;
   q.erase(std::remove(q.begin(), q.end(), _msg), q.end());
+  return true;
 }
 
 //////////////////////////////////////////////////
