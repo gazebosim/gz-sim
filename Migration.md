@@ -29,6 +29,11 @@ release will remove the deprecated code.
     + ***Deprecation:*** public: void Col(unsigned int, const Vector3<T> &)
     + ***Replacement:*** public: void SetCol(unsigned int, const Vector3<T> &)
 
+1. **Pose3.hh**
+    + The addition operators `+` and `+=` are deprecated in favor of multiplication
+      operators `*` and `*=`, though the order of operands is reversed
+      (A + B = B * A).
+
 1. **Quaternion.hh**
     + ***Deprecation:*** public: void Axis(T, T, T, T)
     + ***Replacement:*** public: void SetFromAxisAngle(T, T, T, T)

@@ -183,7 +183,7 @@ namespace ignition
       /// then, B + A is the transform from O to Q specified in frame O
       /// \param[in] _pose Pose3<T> to add to this pose.
       /// \return The resulting pose.
-      public: Pose3<T> operator+(const Pose3<T> &_pose) const
+      public: IGN_DEPRECATED(7) Pose3<T> operator+(const Pose3<T> &_pose) const
       {
         Pose3<T> result;
 
@@ -197,7 +197,8 @@ namespace ignition
       /// \param[in] _pose Pose3<T> to add to this pose.
       /// \sa operator+(const Pose3<T> &_pose) const.
       /// \return The resulting pose.
-      public: const Pose3<T> &operator+=(const Pose3<T> &_pose)
+      public: IGN_DEPRECATED(7) const Pose3<T> &
+              operator+=(const Pose3<T> &_pose)
       {
         this->p = this->CoordPositionAdd(_pose);
         this->q = this->CoordRotationAdd(_pose.q);
