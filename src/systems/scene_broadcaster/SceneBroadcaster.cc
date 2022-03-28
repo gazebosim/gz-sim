@@ -176,7 +176,7 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   public: transport::Node::Publisher dyPosePub;
 
   /// \brief Rate at which to publish dynamic poses
-  public: double dyPoseHertz{60};
+  public: int dyPoseHertz{60};
 
   /// \brief Scene publisher
   public: transport::Node::Publisher scenePub;
@@ -258,11 +258,7 @@ void SceneBroadcaster::Configure(
   this->dataPtr->worldEntity = _entity;
   this->dataPtr->worldName = name->Data();
 
-  auto readHertz = _sdf->Get<double>("dynamic_pose_hertz", 60);
-  if (readHertz.first < 0.0)
-  {
-    ignerr << "SceneBroadcaster dynamic_pose_hertz must be non-negative\n";
-  }
+  auto readHertz = _sdf->Get<int>("dynamic_pose_hertz", 60);
   this->dataPtr->dyPoseHertz = readHertz.first;
 
   auto stateHertz = _sdf->Get<double>("state_hertz", 60);
