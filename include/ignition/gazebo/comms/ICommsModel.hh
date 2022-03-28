@@ -18,6 +18,7 @@
 #ifndef IGNITION_GAZEBO_ICOMMSMODEL_HH_
 #define IGNITION_GAZEBO_ICOMMSMODEL_HH_
 
+#include <memory>
 #include <sdf/sdf.hh>
 #include <ignition/common/Profiler.hh>
 #include "ignition/gazebo/comms/Broker.hh"
