@@ -25,9 +25,11 @@
 #include <ignition/msgs/pose_v.pb.h>
 #include <ignition/msgs/physics.pb.h>
 #include <ignition/msgs/visual.pb.h>
+#include <ignition/msgs/wheel_slip_parameters_cmd.pb.h>
 
 #include <string>
 #include <utility>
+#include <unordered_set>
 #include <vector>
 
 #include <ignition/msgs/Utility.hh>
@@ -42,6 +44,8 @@
 
 #include "ignition/common/Profiler.hh"
 
+#include "ignition/gazebo/components/Collision.hh"
+#include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/LightCmd.hh"
 #include "ignition/gazebo/components/Link.hh"
@@ -51,14 +55,18 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/PoseCmd.hh"
 #include "ignition/gazebo/components/PhysicsCmd.hh"
+#include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/Model.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
+#include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/components/ContactSensorData.hh"
 #include "ignition/gazebo/components/ContactSensor.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/VisualCmd.hh"
+#include "ignition/gazebo/components/WheelSlipCmd.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -377,6 +385,48 @@ class VisualCommand : public UserCommandBase
                   aMaterial.emissive().a(), bMaterial.emissive().a(), 1e-6f);
             }};
 };
+
+/// \brief Command to modify a wheel entity from simulation.
+class WheelSlipCommand : public UserCommandBase
+{
+  /// \brief Constructor
+  /// \param[in] _msg Message containing the wheel slip parameters.
+  /// \param[in] _iface Pointer to user commands interface.
+  public: WheelSlipCommand(msgs::WheelSlipParametersCmd *_msg,
+      std::shared_ptr<UserCommandsInterface> &_iface);
+
+  // Documentation inherited
+  public: bool Execute() final;
+
+  /// \brief WheelSlip equality comparision function
+  public: std::function<bool(
+    const msgs::WheelSlipParametersCmd &, const msgs::WheelSlipParametersCmd &)>
+          wheelSlipEql {
+            [](
+              const msgs::WheelSlipParametersCmd &_a,
+              const msgs::WheelSlipParametersCmd &_b)
+            {
+              return
+                (
+                  (
+                    _a.entity().id() != kNullEntity &&
+                    _a.entity().id() == _b.entity().id()
+                  ) ||
+                  (
+                    _a.entity().name() == _b.entity().name() &&
+                    _a.entity().type() == _b.entity().type()
+                  )
+                ) &&
+                math::equal(
+                  _a.slip_compliance_lateral(),
+                  _b.slip_compliance_lateral(),
+                  1e-6) &&
+                math::equal(
+                  _a.slip_compliance_longitudinal(),
+                  _b.slip_compliance_longitudinal(),
+                  1e-6);
+            }};
+};
 }
 }
 }
@@ -459,6 +509,16 @@ class ignition::gazebo::systems::UserCommandsPrivate
   /// It does not mean that the viusal will be successfully updated
   /// \return True if successful.
   public: bool VisualService(const msgs::Visual &_req, msgs::Boolean &_res);
+
+  /// \brief Callback for wheel slip service
+  /// \param[in] _req Request containing wheel slip parameter updates of an
+  ///  entity.
+  /// \param[out] _res True if message sucessfully received and queued.
+  /// It does not mean that the wheel slip parameters will be successfully
+  /// updated.
+  /// \return True if successful.
+  public: bool WheelSlipService(
+    const msgs::WheelSlipParametersCmd &_req, msgs::Boolean &_res);
 
   /// \brief Queue of commands pending execution.
   public: std::vector<std::unique_ptr<UserCommandBase>> pendingCmds;
@@ -634,6 +694,14 @@ void UserCommands::Configure(const Entity &_entity,
       &UserCommandsPrivate::VisualService, this->dataPtr.get());
 
   ignmsg << "Material service on [" << visualService << "]" << std::endl;
+
+  // Wheel slip service
+  std::string wheelSlipService
+      {"/world/" + validWorldName + "/wheel_slip"};
+  this->dataPtr->node.Advertise(wheelSlipService,
+      &UserCommandsPrivate::WheelSlipService, this->dataPtr.get());
+
+  ignmsg << "Material service on [" << wheelSlipService << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -847,6 +915,25 @@ bool UserCommandsPrivate::VisualService(const msgs::Visual &_req,
   auto msg = _req.New();
   msg->CopyFrom(_req);
   auto cmd = std::make_unique<VisualCommand>(msg, this->iface);
+  // Push to pending
+  {
+    std::lock_guard<std::mutex> lock(this->pendingMutex);
+    this->pendingCmds.push_back(std::move(cmd));
+  }
+
+  _res.set_data(true);
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool UserCommandsPrivate::WheelSlipService(
+    const msgs::WheelSlipParametersCmd &_req,
+    msgs::Boolean &_res)
+{
+  // Create command and push it to queue
+  auto msg = _req.New();
+  msg->CopyFrom(_req);
+  auto cmd = std::make_unique<WheelSlipCommand>(msg, this->iface);
   // Push to pending
   {
     std::lock_guard<std::mutex> lock(this->pendingMutex);
@@ -1499,6 +1586,130 @@ bool VisualCommand::Execute()
         visualEntity, components::VisualCmd::typeId, state);
   }
   return true;
+}
+
+//////////////////////////////////////////////////
+WheelSlipCommand::WheelSlipCommand(msgs::WheelSlipParametersCmd *_msg,
+    std::shared_ptr<UserCommandsInterface> &_iface)
+    : UserCommandBase(_msg, _iface)
+{
+}
+
+// TODO(ivanpauno): Move this somewhere else
+Entity scopedEntityFromMsg(
+  const msgs::Entity & _msg, const EntityComponentManager & _ecm)
+{
+  if (_msg.id() != kNullEntity) {
+    return _msg.id();
+  }
+  std::unordered_set<Entity> entities = entitiesFromScopedName(
+    _msg.name(), _ecm);
+  if (entities.empty()) {
+    ignerr << "Failed to find entity with scoped name [" << _msg.name()
+          << "]." << std::endl;
+    return kNullEntity;
+  }
+  if (_msg.type() == msgs::Entity::NONE) {
+    return *entities.begin();
+  }
+  const components::BaseComponent * component;
+  std::string componentType;
+  for (const auto entity : entities) {
+    switch (_msg.type()) {
+      case msgs::Entity::LIGHT:
+        component = _ecm.Component<components::Light>(entity);
+        componentType = "LIGHT";
+        break;
+      case msgs::Entity::MODEL:
+        component = _ecm.Component<components::Model>(entity);
+        componentType = "MODEL";
+        break;
+      case msgs::Entity::LINK:
+        component = _ecm.Component<components::Link>(entity);
+        componentType = "LINK";
+        break;
+      case msgs::Entity::VISUAL:
+        component = _ecm.Component<components::Visual>(entity);
+        componentType = "VISUAL";
+        break;
+      case msgs::Entity::COLLISION:
+        component = _ecm.Component<components::Collision>(entity);
+        componentType = "COLLISION";
+        break;
+      case msgs::Entity::SENSOR:
+        component = _ecm.Component<components::Sensor>(entity);
+        componentType = "SENSOR";
+        break;
+      case msgs::Entity::JOINT:
+        component = _ecm.Component<components::Joint>(entity);
+        componentType = "JOINT";
+        break;
+      default:
+        componentType = "unknown";
+        break;
+    }
+    if (component != nullptr) {
+      return entity;
+    }
+  }
+  ignerr << "Found entity with scoped name [" << _msg.name()
+        << "], but it doesn't have a component of the required type ["
+        << componentType << "]." << std::endl;
+  return kNullEntity;
+}
+
+//////////////////////////////////////////////////
+bool WheelSlipCommand::Execute()
+{
+  auto wheelSlipMsg = dynamic_cast<const msgs::WheelSlipParametersCmd *>(
+      this->msg);
+  if (nullptr == wheelSlipMsg)
+  {
+    ignerr << "Internal error, null wheel slip message" << std::endl;
+    return false;
+  }
+  const auto & ecm = *this->iface->ecm;
+  Entity entity = scopedEntityFromMsg(wheelSlipMsg->entity(), ecm);
+  if (kNullEntity == entity)
+  {
+    return false;
+  }
+
+  auto doForEachLink = [this, wheelSlipMsg](Entity linkEntity) {
+    auto wheelSlipCmdComp =
+      this->iface->ecm->Component<components::WheelSlipCmd>(linkEntity);
+    if (!wheelSlipCmdComp)
+    {
+      this->iface->ecm->CreateComponent(
+          linkEntity, components::WheelSlipCmd(*wheelSlipMsg));
+    }
+    else
+    {
+      auto state = wheelSlipCmdComp->SetData(
+        *wheelSlipMsg, this->wheelSlipEql) ? ComponentState::OneTimeChange
+        : ComponentState::NoChange;
+      this->iface->ecm->SetChanged(
+          linkEntity, components::WheelSlipCmd::typeId, state);
+    }
+  };
+  const components::BaseComponent * component =
+    ecm.Component<components::Link>(entity);
+
+  if (nullptr != component) {
+    doForEachLink(entity);
+    return true;
+  }
+  component = ecm.Component<components::Model>(entity);
+  if (nullptr != component) {
+    Model model{entity};
+    for (const auto & linkEntity : model.Links(*this->iface->ecm)) {
+      doForEachLink(linkEntity);
+    }
+    return true;
+  }
+  ignerr << "Found entity with scoped name [" << wheelSlipMsg->entity().name()
+          << "], is neither a model or a link." << std::endl;
+  return false;
 }
 
 IGNITION_ADD_PLUGIN(UserCommands, System,
