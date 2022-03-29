@@ -681,16 +681,7 @@ msgs::GUI ignition::gazebo::convert(const sdf::Gui &_in)
     while (pluginElem)
     {
       auto pluginMsg = out.add_plugin();
-      pluginMsg->set_name(pluginElem->Get<std::string>("name"));
-      pluginMsg->set_filename(pluginElem->Get<std::string>("filename"));
-
-      std::stringstream ss;
-      for (auto innerElem = pluginElem->GetFirstElement();
-          innerElem; innerElem = innerElem->GetNextElement(""))
-      {
-        ss << innerElem->ToString("");
-      }
-      pluginMsg->set_innerxml(ss.str());
+      pluginMsg->CopyFrom(convert<msgs::Plugin>(*(pluginElem.get())));
       pluginElem = pluginElem->GetNextElement("plugin");
     }
   }
