@@ -50,7 +50,7 @@ using namespace std::chrono_literals;
 namespace components = ignition::gazebo::components;
 
 //////////////////////////////////////////////////
-class ResetFixture: public InternalFixture<InternalFixture<::testing::Test>>
+class ResetFixture: public InternalFixture<::testing::Test>
 {
   protected: void SetUp() override
   {
@@ -90,9 +90,9 @@ void worldReset()
 }
 
 /////////////////////////////////////////////////
-/// This test checks that that the sensors system handles cases where entities
+/// This test checks that that the phycis system handles cases where entities
 /// are removed and then added back
-TEST_F(ResetFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
+TEST_F(ResetFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
