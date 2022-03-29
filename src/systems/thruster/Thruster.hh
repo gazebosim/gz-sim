@@ -53,15 +53,18 @@ namespace systems
   ///   [Optional]
   /// - <joint_name> - This is the joint in the model which corresponds to the
   ///   propeller. [Required]
-  /// - <use_angvel_cmd> - Default false, if set to true will make the thruster
+  /// - <use_angvel_cmd> - If set to true will make the thruster
   ///   plugin accept commands in angular velocity in radians per seconds in
-  ///   terms of newtons. [Optional, Boolean, Default True]
+  ///   terms of newtons. [Optional, Boolean, defaults to false]
   /// - <fluid_density> - The fluid density of the liquid in which the thruster
   ///   is operating in. [Optional, kg/m^3, defaults to 1000 kg/m^3]
   /// - <propeller_diameter> - The diameter of the propeller in meters.
   ///   [Optional, m, defaults to 0.02m]
   /// - <thrust_coefficient> - This is the coefficient which relates the angular
-  ///   velocity to actual thrust. [Optional, no units, defaults to 1.0]
+  ///   velocity to thrust. A positive coefficient corresponds to a clockwise
+  ///   propeller, which is a propeller that spins clockwise under positive
+  ///   thrust when viewed along the parent link from stern (-x) to bow (+x).
+  ///   [Optional, no units, defaults to 1.0]
   ///
   ///      omega = sqrt(thrust /
   ///          (fluid_density * thrust_coefficient * propeller_diameter ^ 4))
@@ -76,10 +79,10 @@ namespace systems
   ///              no units, defaults to 0.0]
   /// - <d_gain> - Derivative gain for joint PID controller. [Optional,
   ///              no units, defaults to 0.0]
-  /// - <max_thrust_cmd> - Maximum thrust command. [Optional,
-  ///                      defaults to 1000N]
-  /// - <min_thrust_cmd> - Minimum thrust command. [Optional,
-  ///                      defaults to -1000N]
+  /// - <max_thrust_cmd> - Maximum input thrust or angular velocity command.
+  ///                      [Optional, defaults to 1000N or 1000rad/s]
+  /// - <min_thrust_cmd> - Minimum input thrust or angular velocity command.
+  ///                      [Optional, defaults to -1000N or -1000rad/s]
   ///
   /// ## Example
   /// An example configuration is installed with Gazebo. The example
