@@ -6,6 +6,9 @@ project(ignition-math-examples)
 set(IGN_MATH_VER 7)
 find_package(ignition-math${IGN_MATH_VER} REQUIRED)
 
+add_executable(additively_separable_scalar_field3_example additively_separable_scalar_field3_example.cc)
+target_link_libraries(additively_separable_scalar_field3_example ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
+
 add_executable(angle_example angle_example.cc)
 target_link_libraries(angle_example ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
 
