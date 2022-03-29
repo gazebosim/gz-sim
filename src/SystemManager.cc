@@ -103,7 +103,7 @@ void SystemManager::AddSystem(const SystemPluginPtr &_system,
       Entity _entity,
       std::shared_ptr<const sdf::Element> _sdf)
 {
-  this->AddSystemImpl(SystemInternal(_system), _entity, _sdf);
+  this->AddSystemImpl(SystemInternal(_system, _entity), _sdf);
 }
 
 //////////////////////////////////////////////////
@@ -112,19 +112,18 @@ void SystemManager::AddSystem(
       Entity _entity,
       std::shared_ptr<const sdf::Element> _sdf)
 {
-  this->AddSystemImpl(SystemInternal(_system), _entity, _sdf);
+  this->AddSystemImpl(SystemInternal(_system, _entity), _sdf);
 }
 
 //////////////////////////////////////////////////
 void SystemManager::AddSystemImpl(
       SystemInternal _system,
-      Entity _entity,
       std::shared_ptr<const sdf::Element> _sdf)
 {
   // Configure the system, if necessary
   if (_system.configure && this->entityCompMgr && this->eventMgr)
   {
-    _system.configure->Configure(_entity, _sdf,
+    _system.configure->Configure(_system.parentEntity, _sdf,
                                  *this->entityCompMgr,
                                  *this->eventMgr);
   }
@@ -156,4 +155,21 @@ const std::vector<ISystemUpdate *>& SystemManager::SystemsUpdate()
 const std::vector<ISystemPostUpdate *>& SystemManager::SystemsPostUpdate()
 {
   return this->systemsPostupdate;
+}
+
+//////////////////////////////////////////////////
+std::vector<SystemInternal> SystemManager::TotalByEntity(Entity _entity)
+{
+  std::vector<SystemInternal> result;
+  for (auto system : this->systems)
+  {
+    if (system.parentEntity == _entity)
+      result.push_back(system);
+  }
+  for (auto system : this->pendingSystems)
+  {
+    if (system.parentEntity == _entity)
+      result.push_back(system);
+  }
+  return result;
 }
