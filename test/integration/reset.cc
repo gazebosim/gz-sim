@@ -164,7 +164,7 @@ TEST_F(ResetFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
   // Send command to reset to initial state
   worldReset();
 
-  // It takes two iterations for this to propage, 
+  // It takes two iterations for this to propage,
   // the first is for the message to be recieved and internal state setup
   server.Run(true, 1, false);
   EXPECT_EQ(1u, this->mockSystem->configureCallCount);
