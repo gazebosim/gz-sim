@@ -151,8 +151,7 @@ void ModelPhotoShoot::PreUpdate(
               _ecm.SetComponentData<components::JointPositionReset>(
                   joint, {jointPose});
 
-              // Create a JointPosition component if it doesn't exist. This signals
-              // physics system to populate the component
+              // Create a JointPosition component if it doesn't exist.
               if (nullptr == _ecm.Component<components::JointPosition>(joint))
               {
                 _ecm.CreateComponent(joint, components::JointPosition());
