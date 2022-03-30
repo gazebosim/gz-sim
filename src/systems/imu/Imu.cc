@@ -207,13 +207,6 @@ void ImuPrivate::AddSensor(
   math::Pose3d p = worldPose(_entity, _ecm);
   sensor->SetOrientationReference(p.Rot());
 
-  // Set whether orientation is enabled
-  if (data.ImuSensor())
-  {
-    sensor->SetOrientationEnabled(
-        data.ImuSensor()->OrientationEnabled());
-  }
-
   // Get world frame orientation and heading.
   // If <orientation_reference_frame> includes a named
   // frame like NED, that must be supplied to the IMU sensor,
@@ -234,6 +227,13 @@ void ImuPrivate::AddSensor(
       sensor->SetWorldFrameOrientation(math::Quaterniond(0, 0, heading),
         ignition::sensors::WorldFrameEnumType::ENU);
     }
+  }
+
+  // Set whether orientation is enabled
+  if (data.ImuSensor())
+  {
+    sensor->SetOrientationEnabled(
+        data.ImuSensor()->OrientationEnabled());
   }
 
   this->entitySensorMap.insert(
