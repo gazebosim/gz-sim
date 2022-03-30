@@ -72,6 +72,14 @@
             </box>
           </geometry>
         </visual>
+        <sensor name='imu_sensor_DEFAULT' type='imu'>
+          <topic>imu_test_DEFAULT</topic>
+          <update_rate>1</update_rate>
+          <imu>
+          </imu>
+          <always_on>1</always_on>
+          <visualize>true</visualize>
+        </sensor>
         <sensor name='imu_sensor_ENU' type='imu'>
           <topic>imu_test_ENU</topic>
           <update_rate>1</update_rate>

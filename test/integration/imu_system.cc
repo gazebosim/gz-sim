@@ -56,6 +56,7 @@ msgs::IMU lastImuMsgENU;
 msgs::IMU lastImuMsgNED;
 msgs::IMU lastImuMsgNWU;
 msgs::IMU lastImuMsgCUSTOM;
+msgs::IMU lastImuMsgDEFAULT;
 
 /////////////////////////////////////////////////
 void imuENUCb(const msgs::IMU &_msg)
@@ -82,12 +83,19 @@ void imuCUSTOMCb(const msgs::IMU &_msg)
 }
 
 /////////////////////////////////////////////////
+void imuDEFULTCb(const msgs::IMU &_msg)
+{
+  lastImuMsgDEFAULT = _msg;
+}
+
+/////////////////////////////////////////////////
 void clearLastImuMsgs()
 {
   lastImuMsgCUSTOM.Clear();
   lastImuMsgENU.Clear();
   lastImuMsgNED.Clear();
   lastImuMsgNWU.Clear();
+  lastImuMsgDEFAULT.Clear();
 }
 
 /////////////////////////////////////////////////
@@ -310,6 +318,7 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(NamedFrames))
   auto topicNED = "/imu_test_NED";
   auto topicNWU = "/imu_test_NWU";
   auto topicCUSTOM = "/imu_test_CUSTOM";
+  auto topicDEFAULT = "/imu_test_DEFAULT";
 
   // subscribe to imu topic
   transport::Node node;
@@ -317,6 +326,7 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(NamedFrames))
   node.Subscribe(topicNED, &imuNEDCb);
   node.Subscribe(topicNWU, &imuNWUCb);
   node.Subscribe(topicCUSTOM, &imuCUSTOMCb);
+  node.Subscribe(topicDEFAULT, &imuDEFULTCb);
 
   // Run server
   server.Run(true, 200u, false);
@@ -326,6 +336,14 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(NamedFrames))
   EXPECT_TRUE(lastImuMsgNED.has_orientation());
   EXPECT_TRUE(lastImuMsgNWU.has_orientation());
   EXPECT_TRUE(lastImuMsgCUSTOM.has_orientation());
+  EXPECT_TRUE(lastImuMsgDEFAULT.has_orientation());
+
+  // For the DEFAULT msg, orientation is reported relative
+  // to the original pose, which should be identity quaternion.
+  EXPECT_NEAR(lastImuMsgDEFAULT.orientation().x(), 0, 1e-2);
+  EXPECT_NEAR(lastImuMsgDEFAULT.orientation().y(), 0, 1e-2);
+  EXPECT_NEAR(lastImuMsgDEFAULT.orientation().z(), 0, 1e-2);
+  EXPECT_NEAR(lastImuMsgDEFAULT.orientation().w(), 1, 1e-2);
 
   // For the ENU msg
   EXPECT_NEAR(lastImuMsgENU.orientation().x(), 0, 1e-2);
@@ -374,6 +392,7 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(NamedFramesWithHeading))
   auto topicNED = "/imu_test_NED";
   auto topicNWU = "/imu_test_NWU";
   auto topicCUSTOM = "/imu_test_CUSTOM";
+  auto topicDEFAULT = "/imu_test_DEFAULT";
 
   // subscribe to imu topic
   transport::Node node;
@@ -381,6 +400,7 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(NamedFramesWithHeading))
   node.Subscribe(topicNED, &imuNEDCb);
   node.Subscribe(topicNWU, &imuNWUCb);
   node.Subscribe(topicCUSTOM, &imuCUSTOMCb);
+  node.Subscribe(topicDEFAULT, &imuDEFULTCb);
 
   // Run server
   server.Run(true, 200u, false);
@@ -390,6 +410,14 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(NamedFramesWithHeading))
   EXPECT_TRUE(lastImuMsgNED.has_orientation());
   EXPECT_TRUE(lastImuMsgNWU.has_orientation());
   EXPECT_TRUE(lastImuMsgCUSTOM.has_orientation());
+  EXPECT_TRUE(lastImuMsgDEFAULT.has_orientation());
+
+  // For the DEFAULT msg, orientation is reported relative
+  // to the original pose, which should be identity quaternion.
+  EXPECT_NEAR(lastImuMsgDEFAULT.orientation().x(), 0, 1e-2);
+  EXPECT_NEAR(lastImuMsgDEFAULT.orientation().y(), 0, 1e-2);
+  EXPECT_NEAR(lastImuMsgDEFAULT.orientation().z(), 0, 1e-2);
+  EXPECT_NEAR(lastImuMsgDEFAULT.orientation().w(), 1, 1e-2);
 
   // For the ENU msg
   EXPECT_NEAR(lastImuMsgENU.orientation().x(), 0, 1e-2);

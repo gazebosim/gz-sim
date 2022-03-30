@@ -214,18 +214,27 @@ void ImuPrivate::AddSensor(
         data.ImuSensor()->OrientationEnabled());
   }
 
-  // Get world frame orientation and heading
-  double heading = 0.0;
+  // Get world frame orientation and heading.
+  // If <orientation_reference_frame> includes a named
+  // frame like NED, that must be supplied to the IMU sensor,
+  // otherwise orientations are reported w.r.t to the initial
+  // orientation.
+  if (data.Element()->HasElement("imu")) {
+    auto imuElementPtr = data.Element()->GetElement("imu");
+    if (imuElementPtr->HasElement("orientation_reference_frame")) {
+      double heading = 0.0;
 
-  ignition::gazebo::World world(worldEntity);
-  if (world.SphericalCoordinates(_ecm))
-  {
-    auto sphericalCoordinates = world.SphericalCoordinates(_ecm).value();
-    heading = sphericalCoordinates.HeadingOffset().Radian();
+      ignition::gazebo::World world(worldEntity);
+      if (world.SphericalCoordinates(_ecm))
+      {
+        auto sphericalCoordinates = world.SphericalCoordinates(_ecm).value();
+        heading = sphericalCoordinates.HeadingOffset().Radian();
+      }
+
+      sensor->SetWorldFrameOrientation(math::Quaterniond(0, 0, heading),
+        ignition::sensors::WorldFrameEnumType::ENU);
+    }
   }
-
-  sensor->SetWorldFrameOrientation(math::Quaterniond(0, 0, heading),
-    ignition::sensors::WorldFrameEnumType::ENU);
 
   this->entitySensorMap.insert(
       std::make_pair(_entity, std::move(sensor)));
