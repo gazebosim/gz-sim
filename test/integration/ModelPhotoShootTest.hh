@@ -82,11 +82,10 @@ void SavePicture(const ignition::rendering::CameraPtr _camera,
 void testImages(const std::string &_imageFile,
                 const std::string &_testImageFile)
 {
-  std::string imageFilePath = common::joinPaths(
-      std::string(PROJECT_BINARY_PATH), "test", "integration", _imageFile);
+  std::string imageFilePath = common::joinPaths(common::cwd(), _imageFile);
   ignition::common::Image image(imageFilePath);
-  std::string testImageFilePath = common::joinPaths(
-      std::string(PROJECT_BINARY_PATH), "test", "integration", _testImageFile);
+  std::string testImageFilePath =
+      common::joinPaths(common::cwd(), _testImageFile);
   ignition::common::Image testImage(testImageFilePath);
 
   EXPECT_TRUE(image.Valid());
@@ -111,6 +110,11 @@ void testImages(const std::string &_imageFile,
 /// \brief Test ModelPhotoShootTest system.
 class ModelPhotoShootTest : public InternalFixture<::testing::Test>
 {
+  protected: void SetUp() override
+  {
+    EXPECT_TRUE(common::chdir(test::UniqueTestDirectoryEnv::Path()));
+    InternalFixture<::testing::Test>::SetUp();
+  }
   /// \brief PostRender callback.
   public: void OnPostRender()
   {
@@ -168,8 +172,7 @@ class ModelPhotoShootTest : public InternalFixture<::testing::Test>
   /// \param[in] _poseFile File containing the generated poses.
   protected: void LoadPoseValues(std::string _poseFile = "poses.txt")
   {
-    std::string poseFilePath = common::joinPaths(
-      std::string(PROJECT_BINARY_PATH), "test", "integration", _poseFile);
+    std::string poseFilePath = common::joinPaths(common::cwd(), _poseFile);
     std::ifstream poseFile (poseFilePath);
     std::string line;
     ASSERT_TRUE(poseFile.is_open());

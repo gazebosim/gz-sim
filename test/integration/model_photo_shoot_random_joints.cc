@@ -26,3 +26,11 @@ TEST_F(ModelPhotoShootTest,
   this->ModelPhotoShootTestCmd(
       "test/worlds/model_photo_shoot_random_joints.sdf");
 }
+
+int main(int _argc, char **_argv)
+{
+  ::testing::InitGoogleTest(&_argc, _argv);
+  ::testing::AddGlobalTestEnvironment(
+      new test::UniqueTestDirectoryEnv("model_photo_shoot_test"));
+  return RUN_ALL_TESTS();
+}
