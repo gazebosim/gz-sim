@@ -22,6 +22,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <unordered_map>
 
 #include <ignition/transport/Node.hh>
 #include <ignition/utils/ImplPtr.hh>
@@ -47,7 +48,7 @@ using DataQueue = std::deque<msgs::DataframeSharedPtr>;
 
 /// \brief A map where the key is the topic subscribed to an address and
 /// the value is a publisher to reach that topic.
-using SubscriptionHandler = std::map<std::string, transport::Node::Publisher>;
+using SubscriptionHandler = std::unordered_map<std::string, transport::Node::Publisher>;
 
 /// \brief All the information associated to an address.
 struct AddressContent
@@ -67,7 +68,7 @@ struct AddressContent
 
 /// \brief A map where the key is an address and the value is all the
 /// information associated to each address (subscribers, queues, ...).
-using Registry = std::map<std::string, AddressContent>;
+using Registry = std::unordered_map<std::string, AddressContent>;
 
 /// \brief ToDo.
 class MsgManager
