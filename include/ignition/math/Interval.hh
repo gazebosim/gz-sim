@@ -51,11 +51,14 @@ namespace ignition
 
       /// \brief Constructor
       /// \param[in] _leftValue leftmost interval value
-      /// \param[in] _leftClosed whether the interval is left-closed or not
+      /// \param[in] _leftClosed whether the interval is
+      ///   left-closed or not
       /// \param[in] _rightValue rightmost interval value
-      /// \param[in] _rightClosed whether the interval is right-closed or not
-      public: Interval(T _leftValue, bool _leftClosed,
-                       T _rightValue, bool _rightClosed)
+      /// \param[in] _rightClosed whether the interval
+      ///   is right-closed or not
+      public: constexpr Interval(
+          T _leftValue, bool _leftClosed,
+          T _rightValue, bool _rightClosed)
       : leftValue(std::move(_leftValue)),
         rightValue(std::move(_rightValue)),
         leftClosed(_leftClosed),
@@ -67,7 +70,8 @@ namespace ignition
       /// \param[in] _leftValue leftmost interval value
       /// \param[in] _rightValue rightmost interval value
       /// \return the open interval
-      public: static Interval<T> Open(T _leftValue, T _rightValue)
+      public: static constexpr Interval<T>
+      Open(T _leftValue, T _rightValue)
       {
         return Interval<T>(
           std::move(_leftValue), false,
@@ -78,7 +82,8 @@ namespace ignition
       /// \param[in] _leftValue leftmost interval value
       /// \param[in] _rightValue rightmost interval value
       /// \return the left-closed interval
-      public: static Interval<T> LeftClosed(T _leftValue, T _rightValue)
+      public: static constexpr Interval<T>
+      LeftClosed(T _leftValue, T _rightValue)
       {
         return Interval<T>(
           std::move(_leftValue), true,
@@ -89,7 +94,8 @@ namespace ignition
       /// \param[in] _leftValue leftmost interval value
       /// \param[in] _rightValue rightmost interval value
       /// \return the left-closed interval
-      public: static Interval<T> RightClosed(T _leftValue, T _rightValue)
+      public: static constexpr Interval<T>
+      RightClosed(T _leftValue, T _rightValue)
       {
         return Interval<T>(
           std::move(_leftValue), false,
@@ -100,7 +106,8 @@ namespace ignition
       /// \param[in] _leftValue leftmost interval value
       /// \param[in] _rightValue rightmost interval value
       /// \return the closed interval
-      public: static Interval<T> Closed(T _leftValue, T _rightValue)
+      public: static constexpr Interval<T>
+      Closed(T _leftValue, T _rightValue)
       {
         return Interval<T>{
           std::move(_leftValue), true,
@@ -276,7 +283,7 @@ namespace ignition
 
     namespace detail {
        template<typename T>
-       const Interval<T> gUnboundedInterval =
+       constexpr Interval<T> gUnboundedInterval =
            Interval<T>::Open(-std::numeric_limits<T>::infinity(),
                              std::numeric_limits<T>::infinity());
     }  // namespace detail

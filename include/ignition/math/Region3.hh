@@ -60,7 +60,8 @@ namespace ignition
       /// \param[in] _ix x-axis interval
       /// \param[in] _iy y-axis interval
       /// \param[in] _iz z-axis interval
-      public: Region3(Interval<T> _ix, Interval<T> _iy, Interval<T> _iz)
+      public: constexpr Region3(
+          Interval<T> _ix, Interval<T> _iy, Interval<T> _iz)
       : ix(std::move(_ix)), iy(std::move(_iy)), iz(std::move(_iz))
       {
       }
@@ -74,7 +75,7 @@ namespace ignition
       /// \param[in] _zRight righmost z-axis interval value
       /// \return the (`_xLeft`, `_xRight`) ✕ (`_yLeft`, `_yRight`)
       ///  ✕ (`_zLeft`, `_zRight`) open region
-      public: static Region3<T> Open(
+      public: static constexpr Region3<T> Open(
           T _xLeft, T _yLeft, T _zLeft,
           T _xRight, T _yRight, T _zRight)
       {
@@ -92,7 +93,7 @@ namespace ignition
       /// \param[in] _zRight righmost z-axis interval value
       /// \return the [`_xLeft`, `_xRight`] ✕ [`_yLeft`, `_yRight`]
       ///  ✕ [`_zLeft`, `_zRight`] closed region
-      public: static Region3<T> Closed(
+      public: static constexpr Region3<T> Closed(
           T _xLeft, T _yLeft, T _zLeft,
           T _xRight, T _yRight, T _zRight)
       {
@@ -188,7 +189,7 @@ namespace ignition
 
     namespace detail {
        template<typename T>
-       const Region3<T> gUnboundedRegion3(
+       constexpr Region3<T> gUnboundedRegion3(
            Interval<T>::Open(-std::numeric_limits<T>::infinity(),
                              std::numeric_limits<T>::infinity()),
            Interval<T>::Open(-std::numeric_limits<T>::infinity(),
