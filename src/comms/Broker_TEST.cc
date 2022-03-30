@@ -44,16 +44,21 @@ TEST_F(BrokerTest, Broker)
   EXPECT_TRUE(allData.empty());
   EXPECT_NO_THROW(broker.Unlock());
 
+  // Test manually binding with an incorrect number of arguments.
+  msgs::StringMsg_V wrongReqBind;
+  wrongReqBind.add_data("addr1");
+  wrongReqBind.add_data("model1");
+  ignition::msgs::Boolean unused;
+  EXPECT_FALSE(broker.OnBind(wrongReqBind, unused));
+  allData = broker.DataManager().Data();
+  EXPECT_EQ(0u, allData.size());
+
   // Test manually binding address and topic.
   msgs::StringMsg_V reqBind;
   reqBind.add_data("addr1");
   reqBind.add_data("model1");
   reqBind.add_data("topic");
-  ignition::msgs::Boolean rep;
-  bool result;
-  result = broker.OnBind(reqBind, rep);
-  EXPECT_TRUE(result);
-  allData = broker.DataManager().Data();
+  EXPECT_TRUE(broker.OnBind(reqBind, unused));
   EXPECT_EQ(1u, allData.size());
   EXPECT_EQ(1u, allData["addr1"].subscriptions.size());
   EXPECT_NE(allData["addr1"].subscriptions.end(),
@@ -66,6 +71,13 @@ TEST_F(BrokerTest, Broker)
   broker.OnMsg(msg);
   EXPECT_EQ(1u, allData["addr1"].outboundMsgs.size());
   EXPECT_EQ("addr1", allData["addr1"].outboundMsgs[0u]->src_address());
+
+  // Test manually unbinding with an incorrect number of arguments.
+  msgs::StringMsg_V wrongReqUnbind;
+  wrongReqUnbind.add_data("addr1");
+  broker.OnUnbind(wrongReqUnbind);
+  EXPECT_EQ(1u, allData.size());
+  EXPECT_FALSE(allData["addr1"].subscriptions.empty());
 
   // Test manually unbinding address and topic.
   msgs::StringMsg_V reqUnbind;
@@ -81,4 +93,11 @@ TEST_F(BrokerTest, Broker)
   EXPECT_EQ(1u, allData["addr2"].inboundMsgs.size());
   broker.DeliverMsgs();
   EXPECT_TRUE(allData["addr2"].inboundMsgs.empty());
+
+  // Test time.
+  const std::chrono::steady_clock::duration time0{0};
+  const std::chrono::steady_clock::duration time1{1};
+  EXPECT_EQ(time0, broker.Time());
+  broker.SetTime(time1);
+  EXPECT_EQ(time1, broker.Time());
 }

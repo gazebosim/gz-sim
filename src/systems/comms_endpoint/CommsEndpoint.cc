@@ -111,7 +111,7 @@ CommsEndpoint::~CommsEndpoint()
     return;
 
   // Unbind.
-  // Note the we send the request as a one way request because we're not going
+  // We use a oneway request because we're not going
   // to be alive to check the result or retry.
   this->dataPtr->node.Request(
     this->dataPtr->unbindSrv, this->dataPtr->unbindReq);

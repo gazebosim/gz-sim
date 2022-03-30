@@ -52,13 +52,11 @@ target_link_libraries(${ign_lib_target}
 set (sources
   Barrier.cc
   BaseView.cc
-#  Broker.cc
   Conversions.cc
   EntityComponentManager.cc
   LevelManager.cc
   Link.cc
   Model.cc
-#  MsgManager.cc
   Primitives.cc
   SdfEntityCreator.cc
   SdfGenerator.cc

@@ -92,26 +92,32 @@ namespace ignition
       /// \return The number of newly-active systems
       public: size_t ActivatePendingSystems();
 
-      /// \brief Get an vector of all systems implementing "Configure"
+      /// \brief Get an vector of all active systems implementing "Configure"
+      /// \return Vector of systems's configure interfaces.
       public: const std::vector<ISystemConfigure *>& SystemsConfigure();
 
-      /// \brief Get an vector of all systems implementing "PreUpdate"
+      /// \brief Get an vector of all active systems implementing "PreUpdate"
+      /// \return Vector of systems's pre-update interfaces.
       public: const std::vector<ISystemPreUpdate *>& SystemsPreUpdate();
 
-      /// \brief Get an vector of all systems implementing "Update"
+      /// \brief Get an vector of all active systems implementing "Update"
+      /// \return Vector of systems's update interfaces.
       public: const std::vector<ISystemUpdate *>& SystemsUpdate();
 
-      /// \brief Get an vector of all systems implementing "PostUpdate"
+      /// \brief Get an vector of all active systems implementing "PostUpdate"
+      /// \return Vector of systems's post-update interfaces.
       public: const std::vector<ISystemPostUpdate *>& SystemsPostUpdate();
+
+      /// \brief Get an vector of all systems attached to a given entity.
+      /// \return Vector of systems.
+      public: std::vector<SystemInternal> TotalByEntity(Entity _entity);
 
       /// \brief Implementation for AddSystem functions. This only adds systems
       /// to a queue, the actual addition is performed by `AddSystemToRunner` at
       /// the appropriate time.
       /// \param[in] _system Generic representation of a system.
-      /// \param[in] _entity Entity received from AddSystem.
       /// \param[in] _sdf SDF received from AddSystem.
       private: void AddSystemImpl(SystemInternal _system,
-                                  Entity _entity,
                                   std::shared_ptr<const sdf::Element> _sdf);
 
       /// \brief All the systems.

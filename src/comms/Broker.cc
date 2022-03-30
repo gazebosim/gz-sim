@@ -124,6 +124,12 @@ void Broker::Start()
 }
 
 //////////////////////////////////////////////////
+std::chrono::steady_clock::duration Broker::Time() const
+{
+  return this->dataPtr->time;
+}
+
+//////////////////////////////////////////////////
 void Broker::SetTime(const std::chrono::steady_clock::duration &_time)
 {
   this->dataPtr->time = _time;
@@ -146,7 +152,9 @@ bool Broker::OnBind(const ignition::msgs::StringMsg_V &_req,
   std::string topic   = _req.data(2);
 
   std::lock_guard<std::mutex> lk(this->dataPtr->mutex);
-  this->DataManager().AddSubscriber(address, model, topic);
+
+  if (!this->DataManager().AddSubscriber(address, model, topic))
+    return false;
 
   ignmsg << "Address [" << address << "] bound to model [" << model
          << "] on topic [" << topic << "]" << std::endl;
@@ -159,8 +167,11 @@ void Broker::OnUnbind(const ignition::msgs::StringMsg_V &_req)
 {
   auto count = _req.data_size();
   if (count != 2)
+  {
     ignerr << "Receive incorrect number of arguments. "
            << "Expecting 2 and receive " << count << std::endl;
+    return;
+  }
 
   std::string address = _req.data(0);
   std::string topic   = _req.data(1);
