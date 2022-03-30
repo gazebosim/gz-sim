@@ -18,8 +18,11 @@
 #include <gtest/gtest.h>
 
 #include <stdio.h>
+#include <string>
 #include <fstream>
 #include <map>
+#include <memory>
+#include <vector>
 
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Model.hh"
@@ -255,11 +258,15 @@ class ModelPhotoShootTest : public InternalFixture<::testing::Test>
           {
             auto jointType = _ecm.Component<components::JointType>
                 (joint)->Data();
-            ASSERT_TRUE(jointType == sdf::JointType::REVOLUTE  ||
+            ASSERT_TRUE(jointType == sdf::JointType::REVOLUTE ||
                   jointType == sdf::JointType::PRISMATIC);
             auto jointAxis = _ecm.Component<components::JointAxis>(joint);
-            ASSERT_GE(it->second,jointAxis->Data().Lower());
-            ASSERT_LE(it->second,jointAxis->Data().Upper());
+            ASSERT_GE(it->second, jointAxis->Data().Lower());
+            ASSERT_LE(it->second, jointAxis->Data().Upper());
+            auto jointPosition =
+                _ecm.Component<components::JointPosition>(joint);
+            ASSERT_NE(jointPosition, nullptr);
+            ASSERT_DOUBLE_EQ(jointPosition->Data()[0], it->second);
           }
         }
         this->checkRandomJoints = false;

@@ -30,6 +30,7 @@
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
 #include "ignition/gazebo/components/JointType.hh"
+#include "ignition/gazebo/components/JointPosition.hh"
 #include "ignition/gazebo/components/JointPositionReset.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Pose.hh"
@@ -149,9 +150,20 @@ void ModelPhotoShoot::PreUpdate(
               double jointPose = distribution(generator);
               _ecm.SetComponentData<components::JointPositionReset>(
                   joint, {jointPose});
+
+              // Create a JointPosition component if it doesn't exist. This signals
+              // physics system to populate the component
+              if (nullptr == _ecm.Component<components::JointPosition>(joint))
+              {
+                _ecm.CreateComponent(joint, components::JointPosition());
+                _ecm.SetComponentData<components::JointPosition>(
+                    joint, {jointPose});
+              }
+
               if (this->dataPtr->savingFile.is_open())
               {
                 this->dataPtr->savingFile << jointNameComp->Data() << ": "
+                                          << std::setprecision(17)
                                           << jointPose << std::endl;
               }
             }
