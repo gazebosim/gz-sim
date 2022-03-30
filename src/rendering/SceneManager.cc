@@ -1245,6 +1245,9 @@ rendering::VisualPtr SceneManager::CreateLightVisual(Entity _id,
     lightVisual->SetInnerAngle(_light.SpotInnerAngle().Radian());
     lightVisual->SetOuterAngle(_light.SpotOuterAngle().Radian());
   }
+
+  lightVisual->SetVisible(_light.Visualize());
+
   rendering::VisualPtr lightVis = std::dynamic_pointer_cast<rendering::Visual>(
     lightVisual);
   lightVis->SetUserData("gazebo-entity", static_cast<int>(_id));
