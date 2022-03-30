@@ -15,6 +15,9 @@
  *
 */
 
+#ifndef IGNITION_GAZEBO_TEST_INTEGRATION_MODELPHOTOSHOOTTEST_HH_
+#define IGNITION_GAZEBO_TEST_INTEGRATION_MODELPHOTOSHOOTTEST_HH_
+
 #include <gtest/gtest.h>
 
 #include <stdio.h>
@@ -296,3 +299,5 @@ class ModelPhotoShootTest : public InternalFixture<::testing::Test>
   private: std::map<std::string, double> jointPositions;
   private: std::shared_ptr<ignition::gazebo::Model> model;
 };
+
+#endif
