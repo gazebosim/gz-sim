@@ -18,9 +18,9 @@
 #define IGNITION_GAZEBO_SYSTEMS_COMMSENDPOINT_HH_
 
 #include <memory>
+
 #include <ignition/utils/ImplPtr.hh>
 #include <sdf/sdf.hh>
-
 #include "ignition/gazebo/System.hh"
 
 namespace ignition

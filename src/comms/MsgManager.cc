@@ -18,10 +18,7 @@
 #include <ignition/msgs/dataframe.pb.h>
 
 #include <algorithm>
-#include <map>
-#include <memory>
 #include <string>
-#include <unordered_set>
 
 #include <ignition/transport/Node.hh>
 #include <ignition/utils/ImplPtr.hh>

@@ -16,6 +16,7 @@
 */
 
 #include <gtest/gtest.h>
+
 #include <chrono>
 #include <functional>
 #include <mutex>
@@ -23,10 +24,8 @@
 #include <ignition/msgs.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/utilities/ExtraTestMacros.hh>
-
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
-
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace ignition;
@@ -42,8 +41,9 @@ TEST_F(CommsTest, Comms)
 {
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/examples/worlds/comms.sdf";
+  const auto sdfFile =
+    ignition::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "examples", "worlds", "comms.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);

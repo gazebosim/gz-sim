@@ -17,6 +17,9 @@
 
 #include <gtest/gtest.h>
 #include <ignition/msgs/dataframe.pb.h>
+
+#include <unordered_map>
+
 #include "ignition/gazebo/comms/MsgManager.hh"
 #include "helpers/EnvTestFixture.hh"
 

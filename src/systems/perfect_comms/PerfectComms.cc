@@ -19,7 +19,6 @@
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
-
 #include "ignition/gazebo/comms/Broker.hh"
 #include "ignition/gazebo/comms/MsgManager.hh"
 #include "ignition/gazebo/Util.hh"

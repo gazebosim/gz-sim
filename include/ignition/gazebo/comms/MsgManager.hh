@@ -19,7 +19,6 @@
 #define IGNITION_GAZEBO_MSGMANAGER_HH_
 
 #include <deque>
-#include <map>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -48,7 +47,8 @@ using DataQueue = std::deque<msgs::DataframeSharedPtr>;
 
 /// \brief A map where the key is the topic subscribed to an address and
 /// the value is a publisher to reach that topic.
-using SubscriptionHandler = std::unordered_map<std::string, transport::Node::Publisher>;
+using SubscriptionHandler =
+  std::unordered_map<std::string, transport::Node::Publisher>;
 
 /// \brief All the information associated to an address.
 struct AddressContent
@@ -104,8 +104,8 @@ class MsgManager
                            const msgs::DataframeSharedPtr &_msg);
 
   /// \brief Remove an existing subscriber.
-  /// \param The subscriber address.
-  /// \param The Subscriber topic.
+  /// \param[in] _address The subscriber address.
+  /// \param[in] _topic The Subscriber topic.
   /// \return True if the subscriber was removed or false otherwise.
   public: bool RemoveSubscriber(const std::string &_address,
                                 const std::string &_topic);

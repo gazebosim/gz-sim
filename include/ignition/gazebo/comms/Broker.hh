@@ -19,6 +19,7 @@
 #define IGNITION_GAZEBO_BROKER_HH_
 
 #include <memory>
+
 #include <ignition/utils/ImplPtr.hh>
 #include <sdf/sdf.hh>
 #include "ignition/gazebo/config.hh"
@@ -135,6 +136,7 @@ namespace comms
     public: void DeliverMsgs();
 
     /// \brief Get a mutable reference to the message manager.
+    /// \return The mutable reference.
     public: MsgManager &DataManager();
 
     /// \brief Lock the mutex to access the message manager.

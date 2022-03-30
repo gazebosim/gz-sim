@@ -16,10 +16,10 @@
 */
 
 #include <gtest/gtest.h>
-
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/dataframe.pb.h>
 #include <ignition/msgs/stringmsg_v.pb.h>
+
 #include "ignition/gazebo/comms/Broker.hh"
 #include "ignition/gazebo/comms/MsgManager.hh"
 #include "helpers/EnvTestFixture.hh"
