@@ -19,11 +19,19 @@
 
 #include <stdio.h>
 #include <fstream>
+#include <map>
 
+#include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/Model.hh"
+#include "ignition/gazebo/components/JointAxis.hh"
+#include "ignition/gazebo/components/JointType.hh"
+#include "ignition/gazebo/components/JointPosition.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"
+#include "ignition/gazebo/TestFixture.hh"
 #include "ignition/gazebo/rendering/Events.hh"
+#include "ignition/gazebo/Model.hh"
 
 #include <ignition/common/Image.hh>
 #include <ignition/rendering/Camera.hh>
@@ -32,8 +40,8 @@
 #include <ignition/rendering/Scene.hh>
 #include <ignition/rendering/Visual.hh>
 
+
 #include "helpers/UniqueTestDirectoryEnv.hh"
-#include "plugins/MockSystem.hh"
 #include "helpers/EnvTestFixture.hh"
 
 using namespace ignition;
@@ -65,30 +73,33 @@ void SavePicture(const ignition::rendering::CameraPtr _camera,
 /// \brief Tests that two png files have the same values.
 /// \param[in] _filename First png file.
 /// \param[in] _testFilename Second png file.
-void testImages(const std::string &_filename,
-                const std::string &_testFilename)
+void testImages(const std::string &_imageFile,
+                const std::string &_testImageFile)
 {
-  ignition::common::Image image(std::string(PROJECT_BINARY_PATH) +
-      "/test/integration/" + _filename);
-  ignition::common::Image testImage(std::string(PROJECT_BINARY_PATH) +
-      "/test/integration/" + _testFilename);
+  std::string imageFilePath = common::joinPaths(
+      std::string(PROJECT_BINARY_PATH), "test", "integration", _imageFile);
+  ignition::common::Image image(imageFilePath);
+  std::string testImageFilePath = common::joinPaths(
+      std::string(PROJECT_BINARY_PATH), "test", "integration", _testImageFile);
+  ignition::common::Image testImage(testImageFilePath);
+
   EXPECT_TRUE(image.Valid());
   EXPECT_TRUE(testImage.Valid());
   EXPECT_EQ(image.Width(), testImage.Width());
   EXPECT_EQ(image.Height(), testImage.Height());
   EXPECT_EQ(image.PixelFormat(), testImage.PixelFormat());
   unsigned int dataLength;
-  unsigned char *imageData;
+  unsigned char *imageData = nullptr;
   image.Data(&imageData, dataLength);
   unsigned int testDataLenght;
-  unsigned char *testImageData;
+  unsigned char *testImageData = nullptr;
   image.Data(&testImageData, testDataLenght);
   ASSERT_EQ(dataLength, testDataLenght);
   ASSERT_EQ(memcmp(imageData, testImageData, dataLength), 0);
 
   // Deleting files so they do not affect future tests
-  EXPECT_EQ(remove(_filename.c_str()), 0);
-  EXPECT_EQ(remove(_testFilename.c_str()), 0);
+  EXPECT_EQ(remove(imageFilePath.c_str()), 0);
+  EXPECT_EQ(remove(testImageFilePath.c_str()), 0);
 }
 
 /// \brief Test ModelPhotoShootTest system.
@@ -97,7 +108,7 @@ class ModelPhotoShootTest : public InternalFixture<::testing::Test>
   /// \brief PostRender callback.
   public: void OnPostRender()
   {
-    if (!testPicturesTaken)
+    if (takeTestPics)
     {
       ignition::rendering::ScenePtr scene =
         ignition::rendering::sceneFromFirstRenderEngine();
@@ -143,7 +154,7 @@ class ModelPhotoShootTest : public InternalFixture<::testing::Test>
           SavePicture(camera, pose, "5_test.png");
         }
       }
-      testPicturesTaken = true;
+      takeTestPics = false;
     }
   }
 
@@ -151,7 +162,9 @@ class ModelPhotoShootTest : public InternalFixture<::testing::Test>
   /// \param[in] _poseFile File containing the generated poses.
   protected: void LoadPoseValues(std::string _poseFile = "poses.txt")
   {
-    std::ifstream poseFile (_poseFile);
+    std::string poseFilePath = common::joinPaths(
+      std::string(PROJECT_BINARY_PATH), "test", "integration", _poseFile);
+    std::ifstream poseFile (poseFilePath);
     std::string line;
     ASSERT_TRUE(poseFile.is_open());
     while (getline(poseFile, line) )
@@ -172,72 +185,94 @@ class ModelPhotoShootTest : public InternalFixture<::testing::Test>
           this->translation = {tr_x, tr_y, tr_z};
           break;
         }
-        if (word == "Scaling:")
+        else
         {
-          getline( iss, word, ' ' );
-          this->scaling = std::stod(word);
-          break;
+          if (word == "Scaling:")
+          {
+            getline( iss, word, ' ' );
+            this->scaling = std::stod(word);
+            break;
+          }
+          else
+          {
+            std::string jointName = line.substr(0, line.find(": "));
+            std::string jointPose = line.substr(line.find(": ")+2);
+            jointPositions[jointName] = std::stod(jointPose);
+          }
         }
       }
     }
     poseFile.close();
-    EXPECT_EQ(remove(_poseFile.c_str()), 0);
-  }
-
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    InternalFixture::SetUp();
-
-    auto plugin = sm.LoadPlugin("libMockSystem.so",
-                                "ignition::gazebo::MockSystem",
-                                nullptr);
-    EXPECT_TRUE(plugin.has_value());
-    this->systemPtr = plugin.value();
-    this->mockSystem = static_cast<gazebo::MockSystem *>(
-        systemPtr->QueryInterface<gazebo::System>());
+    EXPECT_EQ(remove(poseFilePath.c_str()), 0);
   }
 
   /// \brief Tests the Model Photo Shoot plugin with a given sdf world.
   /// \param[in] _sdfWorld SDF World to use for the test.
-  protected: void modelPhotoShootTestCmd(const std::string _sdfWorld)
+  protected: void ModelPhotoShootTestCmd(const std::string _sdfWorld)
   {
     // First run of the server generating images through the plugin.
-    this->serverConfig.SetResourceCache(test::UniqueTestDirectoryEnv::Path());
-    this->serverConfig.SetSdfFile(
-        common::joinPaths(PROJECT_SOURCE_PATH, _sdfWorld));
-
-    this->server = std::make_unique<Server>(this->serverConfig);
-    EXPECT_FALSE(this->server->Running());
-    EXPECT_FALSE(*this->server->Running(0));
-
-    this->server->SetUpdatePeriod(1ns);
-    this->server->Run(true, 50, false);
+    TestFixture fixture(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+        _sdfWorld));
+    fixture.Server()->SetUpdatePeriod(1ns);
 
     common::ConnectionPtr postRenderConn;
-
-    // A pointer to the ecm. This will be valid once we run the mock system.
-    gazebo::EntityComponentManager *ecm = nullptr;
-    this->mockSystem->preUpdateCallback =
-      [&ecm](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
-      {
-        ecm = &_ecm;
-      };
-    this->mockSystem->configureCallback =
-      [&](const gazebo::Entity &,
-            const std::shared_ptr<const sdf::Element> &,
-            gazebo::EntityComponentManager &,
-            gazebo::EventManager &_eventMgr)
-      {
-        postRenderConn = _eventMgr.Connect<gazebo::events::PostRender>(
-            std::bind(&ModelPhotoShootTest::OnPostRender, this));
-      };
-    this->LoadPoseValues();
-    this->server->AddSystem(this->systemPtr);
-
-    while (!testPicturesTaken)
+    fixture.OnConfigure([&](
+      const Entity &,
+      const std::shared_ptr<const sdf::Element> &,
+      EntityComponentManager &,
+      EventManager &_eventMgr)
     {
-      this->server->Run(true, 1, false);
+      postRenderConn = _eventMgr.Connect<gazebo::events::PostRender>(
+            std::bind(&ModelPhotoShootTest::OnPostRender, this));
+    }).Finalize();
+
+    fixture.Server()->Run(true, 50, false);
+    this->LoadPoseValues();
+
+    fixture.OnPreUpdate([&](const gazebo::UpdateInfo &,
+                            gazebo::EntityComponentManager &_ecm)
+    {
+      if(!jointPositions.empty() && this->checkRandomJoints)
+      {
+        _ecm.Each<components::Model>(
+        [&](const ignition::gazebo::Entity &_entity,
+            const components::Model *) -> bool
+        {
+          auto modelName = _ecm.Component<components::Name>(_entity);
+          if (modelName->Data() == "r2")
+          {
+            this->model = std::make_shared<ignition::gazebo::Model>(_entity);
+          }
+          return true;
+        });
+        std::vector<gazebo::Entity> joints = this->model->Joints(_ecm);
+        for (const auto &joint : joints)
+        {
+          auto jointNameComp = _ecm.Component<components::Name>(joint);
+          std::map<std::string, double>::iterator it =
+              jointPositions.find(jointNameComp->Data());
+          if(it != jointPositions.end())
+          {
+            auto jointType = _ecm.Component<components::JointType>
+                (joint)->Data();
+            ASSERT_TRUE(jointType == sdf::JointType::REVOLUTE  ||
+                  jointType == sdf::JointType::PRISMATIC);
+            auto jointAxis = _ecm.Component<components::JointAxis>(joint);
+            ASSERT_GE(it->second,jointAxis->Data().Lower());
+            ASSERT_LE(it->second,jointAxis->Data().Upper());
+          }
+        }
+        this->checkRandomJoints = false;
+      }
+    }).Finalize();
+
+    this->takeTestPics = true;
+
+    const auto end_time = std::chrono::steady_clock::now() +
+        std::chrono::milliseconds(3000);
+    while (takeTestPics && end_time > std::chrono::steady_clock::now())
+    {
+      fixture.Server()->Run(true, 1, false);
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
     testImages("1.png", "1_test.png");
@@ -247,19 +282,10 @@ class ModelPhotoShootTest : public InternalFixture<::testing::Test>
     testImages("5.png", "5_test.png");
   }
 
-  public: ServerConfig serverConfig;
-  public: std::unique_ptr<Server> server;
-  public: ignition::gazebo::SystemPluginPtr systemPtr;
-  public: gazebo::MockSystem *mockSystem;
-
-  private: gazebo::SystemLoader sm;
-  private: bool testPicturesTaken{false};
+  private: bool takeTestPics{false};
+  private: bool checkRandomJoints{true};
   private: double scaling;
   private: ignition::math::Vector3d translation;
+  private: std::map<std::string, double> jointPositions;
+  private: std::shared_ptr<ignition::gazebo::Model> model;
 };
-
-// Test the Model Photo Shoot plugin on the example world.
-TEST_F(ModelPhotoShootTest, ModelPhotoShootExampleWorld)
-{
-  this->modelPhotoShootTestCmd("examples/worlds/model_photo_shoot.sdf");
-}

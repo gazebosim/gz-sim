@@ -34,7 +34,8 @@ set(tests
   logical_audio_sensor_plugin.cc
   magnetometer_system.cc
   model.cc
-  model_photo_shoot.cc
+  model_photo_shoot_default_joints.cc
+  model_photo_shoot_random_joints.cc
   multicopter.cc
   multiple_servers.cc
   nested_model_physics.cc
@@ -127,7 +128,10 @@ target_link_libraries(INTEGRATION_tracked_vehicle_system
   ignition-plugin${IGN_PLUGIN_VER}::loader
 )
 
-target_link_libraries(INTEGRATION_model_photo_shoot
+target_link_libraries(INTEGRATION_model_photo_shoot_default_joints
+  ignition-rendering${IGN_RENDERING_VER}::ignition-rendering${IGN_RENDERING_VER}
+)
+target_link_libraries(INTEGRATION_model_photo_shoot_random_joints
   ignition-rendering${IGN_RENDERING_VER}::ignition-rendering${IGN_RENDERING_VER}
 )
 
