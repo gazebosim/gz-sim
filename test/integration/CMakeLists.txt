@@ -78,6 +78,7 @@ set(tests_needing_display
   camera_sensor_background.cc
   camera_video_record_system.cc
   depth_camera.cc
+  distortion_camera.cc
   gpu_lidar.cc
   optical_tactile_plugin.cc
   rgbd_camera.cc
