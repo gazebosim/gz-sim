@@ -68,7 +68,7 @@ Rectangle {
   // Send new pose to C++
   function sendPose() {
     // TODO(anyone) There's a loss of precision when these values get to C++
-    componentInspector.onPose(
+    Pose3dImpl.OnPose(
       xItem.value,
       yItem.value,
       zItem.value,
