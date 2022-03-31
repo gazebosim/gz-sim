@@ -477,40 +477,22 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RotatingBody))
   server.Run(true, 50u, false);
 
   // Store initial orientations reported by the IMUs
-  auto initialOrientationDEFAULT = ignition::math::Quaterniond(
-                  lastImuMsgDEFAULT.orientation().w(),
-                  lastImuMsgDEFAULT.orientation().x(),
-                  lastImuMsgDEFAULT.orientation().y(),
-                  lastImuMsgDEFAULT.orientation().z());
-  auto initialOrientationENU = ignition::math::Quaterniond(
-                  lastImuMsgENU.orientation().w(),
-                  lastImuMsgENU.orientation().x(),
-                  lastImuMsgENU.orientation().y(),
-                  lastImuMsgENU.orientation().z());
-  auto initialOrientationNED = ignition::math::Quaterniond(
-                  lastImuMsgNED.orientation().w(),
-                  lastImuMsgNED.orientation().x(),
-                  lastImuMsgNED.orientation().y(),
-                  lastImuMsgNED.orientation().z());
+  auto initialOrientationDEFAULT = msgs::Convert(
+                  lastImuMsgDEFAULT.orientation());
+  auto initialOrientationENU = msgs::Convert(
+                  lastImuMsgENU.orientation());
+  auto initialOrientationNED = msgs::Convert(
+                  lastImuMsgNED.orientation());
 
   server.Run(true, 1500u, false);
 
   // Store final orientations reported by the IMUs
-  auto finalOrientationDEFAULT = ignition::math::Quaterniond(
-                  lastImuMsgDEFAULT.orientation().w(),
-                  lastImuMsgDEFAULT.orientation().x(),
-                  lastImuMsgDEFAULT.orientation().y(),
-                  lastImuMsgDEFAULT.orientation().z());
-  auto finalOrientationENU = ignition::math::Quaterniond(
-                  lastImuMsgENU.orientation().w(),
-                  lastImuMsgENU.orientation().x(),
-                  lastImuMsgENU.orientation().y(),
-                  lastImuMsgENU.orientation().z());
-  auto finalOrientationNED = ignition::math::Quaterniond(
-                  lastImuMsgNED.orientation().w(),
-                  lastImuMsgNED.orientation().x(),
-                  lastImuMsgNED.orientation().y(),
-                  lastImuMsgNED.orientation().z());
+  auto finalOrientationDEFAULT = msgs::Convert(
+                  lastImuMsgDEFAULT.orientation());
+  auto finalOrientationENU = msgs::Convert(
+                  lastImuMsgENU.orientation());
+  auto finalOrientationNED = msgs::Convert(
+                  lastImuMsgNED.orientation());
 
   auto differenceOrientationDEFAULT = finalOrientationDEFAULT *
           initialOrientationDEFAULT.Inverse();
