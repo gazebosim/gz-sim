@@ -443,3 +443,107 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(NamedFramesWithHeading))
   EXPECT_NEAR(lastImuMsgCUSTOM.orientation().z(), 0.5, 1e-2);
   EXPECT_NEAR(lastImuMsgCUSTOM.orientation().w(), 0.5, 1e-2);
 }
+
+/////////////////////////////////////////////////
+// The test checks if orientations are reported correctly for a rotating body.
+// The world includes a sphere rolling down a plane, with axis of rotation
+// as the "west" direction vector, using the right hand rule.
+TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RotatingBody))
+{
+  imuMsgs.clear();
+  clearLastImuMsgs();
+
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "imu_rotating_demo.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  auto topicENU = "/imu_test_ENU";
+  auto topicNED = "/imu_test_NED";
+  auto topicDEFAULT = "/imu_test_DEFAULT";
+
+  // subscribe to imu topic
+  transport::Node node;
+  node.Subscribe(topicENU, &imuENUCb);
+  node.Subscribe(topicNED, &imuNEDCb);
+  node.Subscribe(topicDEFAULT, &imuDEFULTCb);
+
+  // Run server
+  server.Run(true, 50u, false);
+
+  // Store initial orientations reported by the IMUs
+  auto initialOrientationDEFAULT = ignition::math::Quaterniond(
+                  lastImuMsgDEFAULT.orientation().w(),
+                  lastImuMsgDEFAULT.orientation().x(),
+                  lastImuMsgDEFAULT.orientation().y(),
+                  lastImuMsgDEFAULT.orientation().z());
+  auto initialOrientationENU = ignition::math::Quaterniond(
+                  lastImuMsgENU.orientation().w(),
+                  lastImuMsgENU.orientation().x(),
+                  lastImuMsgENU.orientation().y(),
+                  lastImuMsgENU.orientation().z());
+  auto initialOrientationNED = ignition::math::Quaterniond(
+                  lastImuMsgNED.orientation().w(),
+                  lastImuMsgNED.orientation().x(),
+                  lastImuMsgNED.orientation().y(),
+                  lastImuMsgNED.orientation().z());
+
+  server.Run(true, 1500u, false);
+
+  // Store final orientations reported by the IMUs
+  auto finalOrientationDEFAULT = ignition::math::Quaterniond(
+                  lastImuMsgDEFAULT.orientation().w(),
+                  lastImuMsgDEFAULT.orientation().x(),
+                  lastImuMsgDEFAULT.orientation().y(),
+                  lastImuMsgDEFAULT.orientation().z());
+  auto finalOrientationENU = ignition::math::Quaterniond(
+                  lastImuMsgENU.orientation().w(),
+                  lastImuMsgENU.orientation().x(),
+                  lastImuMsgENU.orientation().y(),
+                  lastImuMsgENU.orientation().z());
+  auto finalOrientationNED = ignition::math::Quaterniond(
+                  lastImuMsgNED.orientation().w(),
+                  lastImuMsgNED.orientation().x(),
+                  lastImuMsgNED.orientation().y(),
+                  lastImuMsgNED.orientation().z());
+
+  auto differenceOrientationDEFAULT = finalOrientationDEFAULT *
+          initialOrientationDEFAULT.Inverse();
+  auto differenceOrientationENU = finalOrientationENU *
+          initialOrientationENU.Inverse();
+  auto differenceOrientationNED = finalOrientationNED *
+          initialOrientationNED.Inverse();
+
+  // Since the sphere has rotated along the west direction,
+  // pitch and yaw change for ENU reporting IMU should be zero,
+  // and roll should have some non trivial negative value.
+  EXPECT_TRUE((differenceOrientationENU.Roll() < -0.04));
+  EXPECT_NEAR(differenceOrientationENU.Pitch(), 0, 1e-2);
+  EXPECT_NEAR(differenceOrientationENU.Yaw(), 0, 1e-2);
+
+  // Similarly, roll and yaw for NED reporting IMU should be zero,
+  // and pitch should be some non trivial negative value.
+  EXPECT_NEAR(differenceOrientationNED.Roll(), 0, 1e-2);
+  EXPECT_TRUE((differenceOrientationNED.Pitch() < -0.04));
+  EXPECT_NEAR(differenceOrientationNED.Yaw(), 0, 1e-2);
+
+  // In the sdf world, the IMU model & link have a yaw pose of PI/2,
+  // which means the initial orientation of DEFAULT IMU is
+  // effectively WND (by rotating ENU by PI about N). Therefore,
+  // pitch and yaw for DEFAULT case should be zero, and roll
+  // should be nontrivial positive value.
+  EXPECT_TRUE((differenceOrientationDEFAULT.Roll() > 0.04));
+  EXPECT_NEAR(differenceOrientationDEFAULT.Pitch(), 0, 1e-2);
+  EXPECT_NEAR(differenceOrientationDEFAULT.Yaw(), 0, 1e-2);
+
+  // Those nontrivial values should match for all 3 sensors.
+  EXPECT_NEAR(differenceOrientationENU.Roll(),
+        differenceOrientationNED.Pitch(), 1e-4);
+  EXPECT_NEAR(differenceOrientationENU.Roll(),
+        -differenceOrientationDEFAULT.Roll(), 1e-4);
+}
