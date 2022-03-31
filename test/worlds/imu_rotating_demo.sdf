@@ -46,7 +46,7 @@
       </link>
     </model>
 
-    <model name="imu_model">
+    <model name="imu_model_1">
       <pose>1 1 1 0 1.57 0</pose>
       <link name="link">
         <pose>0 0 0 0 1.57 0</pose>
@@ -58,18 +58,18 @@
             <izz>0.000166667</izz>
           </inertia>
         </inertial>
-        <collision name="collision">
+        <collision name="collision_1">
           <geometry>
             <sphere>0.1</sphere>
           </geometry>
         </collision>
-        <visual name="visual">
+        <visual name="visual_1">
           <geometry>
             <sphere>0.1</sphere>
           </geometry>
         </visual>
-        <sensor name='imu_sensor_DEFAULT' type='imu'>
-          <topic>imu_test_DEFAULT</topic>
+        <sensor name='imu_sensor_DEFAULT_1' type='imu'>
+          <topic>imu_test_DEFAULT_1</topic>
           <update_rate>1</update_rate>
           <always_on>1</always_on>
           <visualize>true</visualize>
@@ -93,6 +93,68 @@
               <localization>NED</localization>
             </orientation_reference_frame>
           </imu>
+          <always_on>1</always_on>
+          <visualize>true</visualize>
+        </sensor>
+      </link>
+    </model>
+
+    <model name="imu_model_2">
+      <pose>4 4 1 1.57 0 0</pose>
+      <link name="link_2">
+        <pose>0 0 0 0 1.57 0</pose>
+        <inertial>
+          <mass>0.1</mass>
+          <inertia>
+            <ixx>0.000166667</ixx>
+            <iyy>0.000166667</iyy>
+            <izz>0.000166667</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision_2">
+          <geometry>
+            <sphere>0.1</sphere>
+          </geometry>
+        </collision>
+        <visual name="visual_2">
+          <geometry>
+            <sphere>0.1</sphere>
+          </geometry>
+        </visual>
+        <sensor name='imu_sensor_DEFAULT_2' type='imu'>
+          <topic>imu_test_DEFAULT_2</topic>
+          <update_rate>1</update_rate>
+          <always_on>1</always_on>
+          <visualize>true</visualize>
+        </sensor>
+      </link>
+    </model>
+
+    <model name="imu_model_3">
+      <pose>7 7 1 1.57 0 0</pose>
+      <link name="link_3">
+        <pose>0 0 0 0 0 1.57</pose>
+        <inertial>
+          <mass>0.1</mass>
+          <inertia>
+            <ixx>0.000166667</ixx>
+            <iyy>0.000166667</iyy>
+            <izz>0.000166667</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision_3">
+          <geometry>
+            <sphere>0.1</sphere>
+          </geometry>
+        </collision>
+        <visual name="visual_3">
+          <geometry>
+            <sphere>0.1</sphere>
+          </geometry>
+        </visual>
+        <sensor name='imu_sensor_DEFAULT_3' type='imu'>
+          <topic>imu_test_DEFAULT_3</topic>
+          <update_rate>1</update_rate>
           <always_on>1</always_on>
           <visualize>true</visualize>
         </sensor>

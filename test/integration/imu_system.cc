@@ -463,22 +463,44 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RotatingBody))
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  auto topicENU = "/imu_test_ENU";
-  auto topicNED = "/imu_test_NED";
-  auto topicDEFAULT = "/imu_test_DEFAULT";
+  msgs::IMU currentImuMsgDefault_1;
+  msgs::IMU currentImuMsgDefault_2;
+  msgs::IMU currentImuMsgDefault_3;
+
+  auto defaultCb1 = std::function<void(const msgs::IMU &_msg)>(
+      [&](const msgs::IMU &_msg)
+      {
+        currentImuMsgDefault_1 = _msg;
+      });
+  auto defaultCb2 = std::function<void(const msgs::IMU &_msg)>(
+      [&](const msgs::IMU &_msg)
+      {
+        currentImuMsgDefault_2 = _msg;
+      });
+  auto defaultCb3 = std::function<void(const msgs::IMU &_msg)>(
+      [&](const msgs::IMU &_msg)
+      {
+        currentImuMsgDefault_3 = _msg;
+      });
 
   // subscribe to imu topic
   transport::Node node;
-  node.Subscribe(topicENU, &imuENUCb);
-  node.Subscribe(topicNED, &imuNEDCb);
-  node.Subscribe(topicDEFAULT, &imuDEFULTCb);
+  node.Subscribe("/imu_test_ENU", &imuENUCb);
+  node.Subscribe("/imu_test_NED", &imuNEDCb);
+  node.Subscribe("/imu_test_DEFAULT_1", defaultCb1);
+  node.Subscribe("/imu_test_DEFAULT_2", defaultCb2);
+  node.Subscribe("/imu_test_DEFAULT_3", defaultCb3);
 
   // Run server
   server.Run(true, 50u, false);
 
   // Store initial orientations reported by the IMUs
-  auto initialOrientationDEFAULT = msgs::Convert(
-                  lastImuMsgDEFAULT.orientation());
+  auto initialOrientationDEFAULT_1 = msgs::Convert(
+                  currentImuMsgDefault_1.orientation());
+  auto initialOrientationDEFAULT_2 = msgs::Convert(
+                  currentImuMsgDefault_2.orientation());
+  auto initialOrientationDEFAULT_3 = msgs::Convert(
+                  currentImuMsgDefault_3.orientation());
   auto initialOrientationENU = msgs::Convert(
                   lastImuMsgENU.orientation());
   auto initialOrientationNED = msgs::Convert(
@@ -487,15 +509,24 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RotatingBody))
   server.Run(true, 1500u, false);
 
   // Store final orientations reported by the IMUs
-  auto finalOrientationDEFAULT = msgs::Convert(
-                  lastImuMsgDEFAULT.orientation());
+  auto finalOrientationDEFAULT_1 = msgs::Convert(
+                  currentImuMsgDefault_1.orientation());
+  auto finalOrientationDEFAULT_2 = msgs::Convert(
+                  currentImuMsgDefault_2.orientation());
+  auto finalOrientationDEFAULT_3 = msgs::Convert(
+                  currentImuMsgDefault_3.orientation());
   auto finalOrientationENU = msgs::Convert(
                   lastImuMsgENU.orientation());
   auto finalOrientationNED = msgs::Convert(
                   lastImuMsgNED.orientation());
 
-  auto differenceOrientationDEFAULT = finalOrientationDEFAULT *
-          initialOrientationDEFAULT.Inverse();
+  auto differenceOrientationDEFAULT_1 = finalOrientationDEFAULT_1 *
+          initialOrientationDEFAULT_1.Inverse();
+  auto differenceOrientationDEFAULT_2 = finalOrientationDEFAULT_2 *
+          initialOrientationDEFAULT_2.Inverse();
+  auto differenceOrientationDEFAULT_3 = finalOrientationDEFAULT_3 *
+          initialOrientationDEFAULT_3.Inverse();
+
   auto differenceOrientationENU = finalOrientationENU *
           initialOrientationENU.Inverse();
   auto differenceOrientationNED = finalOrientationNED *
@@ -519,13 +550,30 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RotatingBody))
   // effectively WND (by rotating ENU by PI about N). Therefore,
   // pitch and yaw for DEFAULT case should be zero, and roll
   // should be nontrivial positive value.
-  EXPECT_TRUE((differenceOrientationDEFAULT.Roll() > 0.04));
-  EXPECT_NEAR(differenceOrientationDEFAULT.Pitch(), 0, 1e-2);
-  EXPECT_NEAR(differenceOrientationDEFAULT.Yaw(), 0, 1e-2);
+  EXPECT_TRUE((differenceOrientationDEFAULT_1.Roll() > 0.04));
+  EXPECT_NEAR(differenceOrientationDEFAULT_1.Pitch(), 0, 1e-2);
+  EXPECT_NEAR(differenceOrientationDEFAULT_1.Yaw(), 0, 1e-2);
 
-  // Those nontrivial values should match for all 3 sensors.
+  // For DEFAULT_2, model has a pose PI/2 0 0 & link has a pose of
+  // 0 PI/2 0, which makes the frame NUE.
+  EXPECT_NEAR(differenceOrientationDEFAULT_2.Roll(), 0, 1e-2);
+  EXPECT_NEAR(differenceOrientationDEFAULT_2.Pitch(), 0, 1e-2);
+  EXPECT_TRUE((differenceOrientationDEFAULT_2.Yaw() < -0.04));
+
+  // For DEFAULT_3, model has a pose PI/2 0 0 & link has a pose of
+  // 0 0 PI/2, which makes the frame UWS.
+  EXPECT_NEAR(differenceOrientationDEFAULT_3.Roll(), 0, 1e-2);
+  EXPECT_TRUE((differenceOrientationDEFAULT_3.Pitch() > 0.04));
+  EXPECT_NEAR(differenceOrientationDEFAULT_3.Yaw(), 0, 1e-2);
+
+  // Those nontrivial values should match for all sensors.
   EXPECT_NEAR(differenceOrientationENU.Roll(),
         differenceOrientationNED.Pitch(), 1e-4);
+
   EXPECT_NEAR(differenceOrientationENU.Roll(),
-        -differenceOrientationDEFAULT.Roll(), 1e-4);
+        -differenceOrientationDEFAULT_1.Roll(), 1e-4);
+  EXPECT_NEAR(differenceOrientationENU.Roll(),
+        differenceOrientationDEFAULT_2.Yaw(), 1e-4);
+  EXPECT_NEAR(differenceOrientationENU.Roll(),
+        -differenceOrientationDEFAULT_3.Pitch(), 1e-4);
 }
