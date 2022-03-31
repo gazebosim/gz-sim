@@ -92,9 +92,18 @@ namespace ignition
       /// \return The number of newly-active systems
       public: size_t ActivatePendingSystems();
 
-      /// \brief Reset all managed systems
-      /// \param[in] _info Update information for the reset time
-      /// \param[in] _ecm ECM information for the reset time
+      /// \brief Perform a reset on all systems
+      ///
+      /// If a system implements the ISystemReset interface, it will be called.
+      //
+      /// Otherwise, if a system does not have the ISystemReset interface
+      /// implemented, and was created via loading a plugin,
+      /// that plugin will be reloaded.
+      ///
+      /// Otherwise, if a system is created from in-memory rather than a plugin,
+      /// that system will remain unaffected.
+      /// \param[in] _info Update info corresponding to the update time
+      /// \param[in] _ecm Version of the _ecm reset to an initial state
       public: void Reset(const UpdateInfo &_info, EntityComponentManager &_ecm);
 
       /// \brief Get an vector of all systems implementing "Configure"

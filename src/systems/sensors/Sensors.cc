@@ -512,7 +512,7 @@ void Sensors::Configure(const Entity &/*_id*/,
 }
 
 //////////////////////////////////////////////////
-void Sensors::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
+void Sensors::Reset(const UpdateInfo &_info, EntityComponentManager &)
 {
   IGN_PROFILE("Sensors::Reset");
 
@@ -520,18 +520,16 @@ void Sensors::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
   {
     igndbg << "Resetting Sensors\n";
 
-    this->dataPtr->sensorMaskMutex.lock();
-    this->dataPtr->sensorMask.clear();
-    this->dataPtr->sensorMaskMutex.unlock();
-
-    auto time = math::durationToSecNsec(_info.simTime);
-    auto t = math::secNsecToDuration(time.first, time.second);
+    {
+      std::lock_guard<std::mutex> lock(this->dataPtr->sensorMaskMutex);
+      this->dataPtr->sensorMask.clear();
+    }
 
     for (auto id : this->dataPtr->sensorIds)
     {
       sensors::Sensor *s = this->dataPtr->sensorManager.Sensor(id);
       auto rs = dynamic_cast<sensors::RenderingSensor *>(s);
-      rs->SetNextDataUpdateTime(t);
+      rs->SetNextDataUpdateTime(_info.simTime);
     }
   }
 }

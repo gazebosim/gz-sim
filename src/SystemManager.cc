@@ -49,8 +49,8 @@ void SystemManager::LoadPlugin(const Entity _entity,
     ss.entity = _entity;
     ss.fname = _fname;
     ss.name = _name;
-    ss.sdf = _sdf;
-    this->AddSystemImpl(ss, ss.entity, ss.sdf);
+    ss.configureSdf = _sdf;
+    this->AddSystemImpl(ss, ss.entity, ss.configureSdf);
     igndbg << "Loaded system [" << _name
            << "] for entity [" << _entity << "]" << std::endl;
   }
@@ -121,14 +121,12 @@ void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
   this->systemsUpdate.clear();
   this->systemsPostupdate.clear();
 
-  this->entityCompMgr = &_ecm;
-
-  for (auto& system: this->systems)
+  for (auto& system : this->systems)
   {
     if (nullptr != system.reset)
     {
       // If implemented, call reset and add to pending systems.
-      system.reset->Reset(_info, *this->entityCompMgr);
+      system.reset->Reset(_info, _ecm);
 
       {
         std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
@@ -146,10 +144,11 @@ void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
           continue;
       }
 
-      this->LoadPlugin(system.entity, 
-                       system.fname, 
-                       system.name, 
-                       system.sdf);
+      sdf::ElementPtr configureCopy(system.configureSdf->Clone());
+      this->LoadPlugin(system.entity,
+                       system.fname,
+                       system.name,
+                       configureCopy);
     }
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2022 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,12 +92,12 @@ void worldReset()
 /////////////////////////////////////////////////
 /// This test checks that that the sensors system handles cases where entities
 /// are removed and then added back
-TEST_F(ResetFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
+TEST_F(ResetFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
-  const std::string sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/reset_sensors.sdf";
+  const std::string sdfFile = common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "reset_sensors.sdf");
 
   serverConfig.SetSdfFile(sdfFile);
 
@@ -164,7 +164,7 @@ TEST_F(ResetFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
   // Send command to reset to initial state
   worldReset();
 
-  // It takes two iterations for this to propage, 
+  // It takes two iterations for this to propage,
   // the first is for the message to be recieved and internal state setup
   server.Run(true, 1, false);
   EXPECT_EQ(1u, this->mockSystem->configureCallCount);
