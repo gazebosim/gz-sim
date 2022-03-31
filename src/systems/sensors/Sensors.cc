@@ -269,8 +269,8 @@ void SensorsPrivate::RunOnce()
 
   if (!this->activeSensors.empty())
   {
-    // disable sensors that are out of battery or re-enable sensors that are being
-    // charged
+    // disable sensors that are out of battery or re-enable sensors that are
+    // being charged
     if (this->disableOnDrainedBattery)
     {
       std::unique_lock<std::mutex> lock2(this->sensorStateMutex);

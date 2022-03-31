@@ -104,7 +104,7 @@ TEST_F(SensorsFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(SensorsBatteryState))
   // Start server
   Server server(serverConfig);
   server.AddSystem(this->systemPtr);
-  server.Run(true,100, false);
+  server.Run(true, 100, false);
   EXPECT_NE(nullptr, ecm);
 
   // Check a battery exists
