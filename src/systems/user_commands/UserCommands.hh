@@ -54,7 +54,7 @@ namespace systems
   /// * **Response type*: ignition.msgs.Boolean
   ///
   /// Try some examples described on examples/worlds/empty.sdf
-  class UserCommands:
+  class UserCommands final:
     public System,
     public ISystemConfigure,
     public ISystemPreUpdate
