@@ -276,7 +276,6 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPlaybackStatistics))
   Server server(config);
 
   test::Relay testSystem;
-  math::Pose3d spherePose;
   std::chrono::steady_clock::time_point startTime;
   std::chrono::steady_clock::time_point endTime;
   testSystem.OnPostUpdate(

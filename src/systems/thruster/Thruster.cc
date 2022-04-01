@@ -395,8 +395,6 @@ void Thruster::PreUpdate(
 
   ignition::gazebo::Link link(this->dataPtr->linkEntity);
 
-  auto pose = worldPose(this->dataPtr->linkEntity, _ecm);
-
   // TODO(arjo129): add logic for custom coordinate frame
   // Convert joint axis to the world frame
   const auto linkWorldPose = worldPose(this->dataPtr->linkEntity, _ecm);
