@@ -22,6 +22,7 @@
 #include <ignition/msgs/entity_factory.pb.h>
 
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <sdf/Root.hh>
@@ -113,7 +114,8 @@ namespace {
   }
 
   //////////////////////////////////////////////////
-  math::Intervald LoadIntervald(const sdf::ElementPtr _sdf, const std::string &_prefix)
+  math::Intervald
+  LoadIntervald(const sdf::ElementPtr _sdf, const std::string &_prefix)
   {
     bool leftClosed = false;
     double leftValue = -math::INF_D;
