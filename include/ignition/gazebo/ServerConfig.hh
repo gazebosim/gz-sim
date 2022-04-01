@@ -24,6 +24,7 @@
 #include <string>
 #include <vector>
 #include <sdf/Element.hh>
+#include <sdf/Root.hh>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
@@ -42,6 +43,23 @@ namespace ignition
     /// configuration.
     class IGNITION_GAZEBO_VISIBLE ServerConfig
     {
+      /// \brief Type of SDF source.
+      public: enum class SourceType
+      {
+        // No source specified.
+        kNone,
+
+        // The source is an SDF Root object.
+        kSdfRoot,
+
+        // The source is an SDF file.
+        kSdfFile,
+
+        // The source is an SDF string.
+        kSdfString,
+      };
+
+
       class PluginInfoPrivate;
       /// \brief Information about a plugin that should be loaded by the
       /// server.
@@ -174,6 +192,17 @@ namespace ignition
       /// be returned if an SDF string has not been set.
       /// \return The full contents of the SDF string, or empty string.
       public: std::string SdfString() const;
+
+      /// \brief Set the SDF Root DOM object. The sdf::Root object will take
+      /// precendence over ServerConfig::SdfString() and
+      /// ServerConfig::SdfFile().
+      /// \param[in] _root SDF Root object to use.
+      public: void SetSdfRoot(const sdf::Root &_root) const;
+
+      /// \brief Get the SDF Root DOM object.
+      /// \return SDF Root object to use, or std::nullopt if the sdf::Root
+      /// has not been set via ServerConfig::SetSdfRoot().
+      public: std::optional<sdf::Root> &SdfRoot() const;
 
       /// \brief Set the update rate in Hertz. Value <=0 are ignored.
       /// \param[in] _hz The desired update rate of the server in Hertz.
@@ -382,6 +411,10 @@ namespace ignition
       /// \return Time when this ServerConfig was created.
       public: const std::chrono::time_point<std::chrono::system_clock> &
               Timestamp() const;
+
+      /// \brief Get the type of source
+      /// \return The source type.
+      public: SourceType Source() const;
 
       /// \brief Private data pointer
       private: std::unique_ptr<ServerConfigPrivate> dataPtr;

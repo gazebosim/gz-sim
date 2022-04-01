@@ -1282,8 +1282,8 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm)
             return true;
           }
 
-          auto fullPath = asFullPath(heightmapSdf->Uri(),
-              heightmapSdf->FilePath());
+          auto fullPath = common::findFile(asFullPath(heightmapSdf->Uri(),
+              heightmapSdf->FilePath()));
           if (fullPath.empty())
           {
             ignerr << "Heightmap geometry missing URI" << std::endl;
