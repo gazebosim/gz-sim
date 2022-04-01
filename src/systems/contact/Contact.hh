@@ -36,7 +36,7 @@ namespace systems
   **/
   /// \brief Contact sensor system which manages all contact sensors in
   /// simulation
-  class Contact :
+  class Contact final:
     public System,
     public ISystemPreUpdate,
     public ISystemPostUpdate

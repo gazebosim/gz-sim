@@ -829,7 +829,7 @@ void RenderUtilPrivate::FindInertialLinks(const EntityComponentManager &_ecm)
         _ecm.EntityMatches(entity,
                 std::set<ComponentTypeId>{components::Link::typeId}))
     {
-      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
+      links = this->FindChildLinksFromECM(_ecm, entity);
     }
     else
     {
@@ -853,7 +853,7 @@ void RenderUtilPrivate::FindInertialLinks(const EntityComponentManager &_ecm)
         _ecm.EntityMatches(entity,
                 std::set<ComponentTypeId>{components::Link::typeId}))
     {
-      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
+      links = this->FindChildLinksFromECM(_ecm, entity);
     }
     else
     {
@@ -931,7 +931,7 @@ void RenderUtilPrivate::PopulateViewModeVisualLinks(
         _ecm.EntityMatches(entity,
                 std::set<ComponentTypeId>{components::Link::typeId}))
     {
-      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
+      links = this->FindChildLinksFromECM(_ecm, entity);
     }
     else
     {
@@ -956,7 +956,7 @@ void RenderUtilPrivate::PopulateViewModeVisualLinks(
         _ecm.EntityMatches(entity,
                 std::set<ComponentTypeId>{components::Link::typeId}))
     {
-      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
+      links = this->FindChildLinksFromECM(_ecm, entity);
     }
     else
     {
@@ -988,7 +988,7 @@ void RenderUtilPrivate::FindCollisionLinks(const EntityComponentManager &_ecm)
         _ecm.EntityMatches(entity,
                 std::set<ComponentTypeId>{components::Link::typeId}))
     {
-      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
+      links = this->FindChildLinksFromECM(_ecm, entity);
     }
     else
     {
@@ -3138,7 +3138,7 @@ void RenderUtil::HideWireboxes(const Entity &_entity)
 /////////////////////////////////////////////////
 void RenderUtil::ViewInertia(const Entity &_entity)
 {
-  std::vector<Entity> inertiaLinks = std::move(this->FindChildLinks(_entity));
+  std::vector<Entity> inertiaLinks = this->FindChildLinks(_entity);
 
   // check if _entity has an inertial component (_entity is a link)
   if (this->dataPtr->entityInertials.find(_entity) !=
@@ -3197,7 +3197,7 @@ void RenderUtil::ViewInertia(const Entity &_entity)
 /////////////////////////////////////////////////
 void RenderUtil::ViewCOM(const Entity &_entity)
 {
-  std::vector<Entity> inertiaLinks = std::move(this->FindChildLinks(_entity));
+  std::vector<Entity> inertiaLinks = this->FindChildLinks(_entity);
 
   // check if _entity has an inertial component (_entity is a link)
   if (this->dataPtr->entityInertials.find(_entity) !=
@@ -3351,7 +3351,7 @@ void RenderUtil::ViewTransparent(const Entity &_entity)
   }
 
   // Find all existing child links for this entity
-  std::vector<Entity> links = std::move(this->FindChildLinks(_entity));
+  std::vector<Entity> links = this->FindChildLinks(_entity);
 
   for (const auto &link : links)
   {
@@ -3423,7 +3423,7 @@ void RenderUtil::ViewWireframes(const Entity &_entity)
   }
 
   // Find all existing child links for this entity
-  std::vector<Entity> links = std::move(this->FindChildLinks(_entity));
+  std::vector<Entity> links = this->FindChildLinks(_entity);
 
   for (const auto &link : links)
   {
@@ -3493,7 +3493,7 @@ void RenderUtil::ViewCollisions(const Entity &_entity)
   }
 
   // Find all existing child links for this entity
-  std::vector<Entity> links = std::move(this->FindChildLinks(_entity));
+  std::vector<Entity> links = this->FindChildLinks(_entity);
 
   for (const auto &link : links)
   {
