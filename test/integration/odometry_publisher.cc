@@ -488,7 +488,8 @@ class OdometryPublisherTest
     // Calculate the means.
     double linVelSumX = 0, linVelSumY = 0, linVelSumZ = 0;
     double angVelSumX = 0, angVelSumY = 0, angVelSumZ = 0;
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < n; i++)
+    {
       linVelSumX += odomLinVels[i].X();
       linVelSumY += odomLinVels[i].Y();
       linVelSumZ += odomLinVels[i].Z();
@@ -510,7 +511,8 @@ class OdometryPublisherTest
     // Calculate the variation (sigma^2).
     double linVelSqSumX = 0, linVelSqSumY = 0, linVelSqSumZ = 0;
     double angVelSqSumX = 0, angVelSqSumY = 0, angVelSqSumZ = 0;
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < n; i++)
+    {
       linVelSqSumX += std::pow(odomLinVels[i].X() - linVelSumX/n, 2);
       linVelSqSumY += std::pow(odomLinVels[i].Y() - linVelSumY/n, 2);
       linVelSqSumZ += std::pow(odomLinVels[i].Z() - linVelSumZ/n, 2);
@@ -531,8 +533,10 @@ class OdometryPublisherTest
 
     // Check the covariance matrix.
     EXPECT_EQ(odomTwistCovariance.size(), 36);
-    for (int i = 0; i < 36; i++) {
-      if (i % 7 == 0) {
+    for (int i = 0; i < 36; i++)
+    {
+      if (i % 7 == 0)
+      {
         EXPECT_NEAR(odomTwistCovariance[i], 1, 1e-2);
       } else {
         EXPECT_NEAR(odomTwistCovariance[i], 0, 1e-2);

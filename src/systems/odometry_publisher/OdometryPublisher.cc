@@ -417,7 +417,8 @@ void OdometryPublisherPrivate::UpdateOdometry(
     return;
   }
   this->lastOdomPubTime = _info.simTime;
-  if (this->odomPub.Valid()) {
+  if (this->odomPub.Valid())
+  {
     this->odomPub.Publish(msg);
   }
 
@@ -462,8 +463,10 @@ void OdometryPublisherPrivate::UpdateOdometry(
   // Populate the covariance matrix.
   // Should the matrix me populated for pose as well ?
   auto gn2 = this->gaussianNoise * this->gaussianNoise;
-  for (int i = 0; i < 36; i++) {
-    if (i % 7 == 0) {
+  for (int i = 0; i < 36; i++)
+  {
+    if (i % 7 == 0)
+    {
       msg_covariance.mutable_pose_with_covariance()->
         mutable_covariance()->add_data(gn2);
       msg_covariance.mutable_twist_with_covariance()->
@@ -475,7 +478,8 @@ void OdometryPublisherPrivate::UpdateOdometry(
         mutable_covariance()->add_data(0);
     }
   }
-  if (this->odomCovPub.Valid()) {
+  if (this->odomCovPub.Valid())
+  {
     this->odomCovPub.Publish(msg_covariance);
   }
 }
