@@ -224,7 +224,9 @@ void OdometryPublisher::Configure(const Entity &_entity,
   {
     ignerr << "Failed to generate odom topic ["
            << odomTopic << "]" << std::endl;
-  } else {
+  }
+  else
+  {
     this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
         odomTopicValid);
   }
@@ -235,7 +237,9 @@ void OdometryPublisher::Configure(const Entity &_entity,
   {
     ignerr << "Failed to generate odom topic ["
            << odomCovTopic << "]" << std::endl;
-  } else {
+  }
+  else
+  {
     this->dataPtr->odomCovPub = this->dataPtr->node.Advertise<
         msgs::OdometryWithCovariance>(odomCovTopicValid);
   }
@@ -423,14 +427,14 @@ void OdometryPublisherPrivate::UpdateOdometry(
   }
 
   // Generate odometry with covariance message and publish it.
-  msgs::OdometryWithCovariance msg_covariance;
+  msgs::OdometryWithCovariance msgCovariance;
 
   // Set the time stamp in the header.
-  msg_covariance.mutable_header()->mutable_stamp()->CopyFrom(
+  msgCovariance.mutable_header()->mutable_stamp()->CopyFrom(
       convert<msgs::Time>(_info.simTime));
 
   // Set the frame ids.
-  frame = msg_covariance.mutable_header()->add_data();
+  frame = msgCovariance.mutable_header()->add_data();
   frame->set_key("frame_id");
   frame->add_value(odomFrame);
   childFrame = msg.mutable_header()->add_data();
@@ -438,26 +442,26 @@ void OdometryPublisherPrivate::UpdateOdometry(
   childFrame->add_value(robotBaseFrame);
 
   // Copy position from odometry msg.
-  msg_covariance.mutable_pose_with_covariance()->
+  msgCovariance.mutable_pose_with_covariance()->
     mutable_pose()->mutable_position()->set_x(msg.pose().position().x());
-  msg_covariance.mutable_pose_with_covariance()->
+  msgCovariance.mutable_pose_with_covariance()->
     mutable_pose()->mutable_position()->set_y(msg.pose().position().y());
-  msg_covariance.mutable_pose_with_covariance()->
+  msgCovariance.mutable_pose_with_covariance()->
     mutable_pose()->mutable_position()->set_z(msg.pose().position().z());
 
   // Copy twist from odometry msg.
-  msg_covariance.mutable_twist_with_covariance()->
+  msgCovariance.mutable_twist_with_covariance()->
     mutable_twist()->mutable_angular()->set_x(msg.twist().angular().x());
-  msg_covariance.mutable_twist_with_covariance()->
+  msgCovariance.mutable_twist_with_covariance()->
     mutable_twist()->mutable_angular()->set_y(msg.twist().angular().y());
-  msg_covariance.mutable_twist_with_covariance()->
+  msgCovariance.mutable_twist_with_covariance()->
     mutable_twist()->mutable_angular()->set_z(msg.twist().angular().z());
 
-  msg_covariance.mutable_twist_with_covariance()->
+  msgCovariance.mutable_twist_with_covariance()->
     mutable_twist()->mutable_linear()->set_x(msg.twist().linear().x());
-  msg_covariance.mutable_twist_with_covariance()->
+  msgCovariance.mutable_twist_with_covariance()->
     mutable_twist()->mutable_linear()->set_y(msg.twist().linear().y());
-  msg_covariance.mutable_twist_with_covariance()->
+  msgCovariance.mutable_twist_with_covariance()->
     mutable_twist()->mutable_linear()->set_z(msg.twist().linear().z());
 
   // Populate the covariance matrix.
@@ -467,20 +471,22 @@ void OdometryPublisherPrivate::UpdateOdometry(
   {
     if (i % 7 == 0)
     {
-      msg_covariance.mutable_pose_with_covariance()->
+      msgCovariance.mutable_pose_with_covariance()->
         mutable_covariance()->add_data(gn2);
-      msg_covariance.mutable_twist_with_covariance()->
+      msgCovariance.mutable_twist_with_covariance()->
         mutable_covariance()->add_data(gn2);
-    } else {
-      msg_covariance.mutable_pose_with_covariance()->
+    }
+    else
+    {
+      msgCovariance.mutable_pose_with_covariance()->
         mutable_covariance()->add_data(0);
-      msg_covariance.mutable_twist_with_covariance()->
+      msgCovariance.mutable_twist_with_covariance()->
         mutable_covariance()->add_data(0);
     }
   }
   if (this->odomCovPub.Valid())
   {
-    this->odomCovPub.Publish(msg_covariance);
+    this->odomCovPub.Publish(msgCovariance);
   }
 }
 
