@@ -89,8 +89,8 @@ namespace comms
       // Parse the optional <step_size>.
       if (sdfClone->HasElement("step_size"))
       {
-        this->timeStep = std::chrono::duration<long, std::nano>(
-          static_cast<long>(sdfClone->Get<double>("step_size") * 1e9));
+        this->timeStep = std::chrono::duration<int64_t, std::nano>(
+          static_cast<int64_t>(sdfClone->Get<double>("step_size") * 1e9));
       }
 
       this->Load(_entity, sdfClone, _ecm, _eventMgr);
