@@ -35,8 +35,20 @@
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
     <plugin
-      filename="ignition-gazebo-perfect-comms-system"
-      name="ignition::gazebo::systems::PerfectComms">
+      filename="ignition-gazebo-wireless-comms-system"
+      name="ignition::gazebo::systems::WirelessComms">
+      <range_config>
+        <max_range>500.0</max_range>
+        <fading_exponent>1.5</fading_exponent>
+        <L0>40</L0>
+        <sigma>10.0</sigma>
+      </range_config>
+      <radio_config>
+        <capacity>1000000</capacity>
+        <tx_power>20</tx_power>
+        <noise_floor>-90</noise_floor>
+        <modulation>QPSK</modulation>
+      </radio_config>
     </plugin>
 
     <light type="directional" name="sun">
@@ -119,8 +131,21 @@
       <plugin
         filename="ignition-gazebo-comms-endpoint-system"
         name="ignition::gazebo::systems::CommsEndpoint">
+        <link_name>box_link</link_name>
         <address>addr1</address>
         <topic>addr1/rx</topic>
+      </plugin>
+      <plugin
+        filename="ignition-gazebo-trajectory-follower-system"
+        name="ignition::gazebo::systems::TrajectoryFollower">
+        <link_name>box_link</link_name>
+        <loop>true</loop>
+        <force>10</force>
+        <torque>10</torque>
+        <line>
+          <direction>0</direction>
+          <length>500</length>
+        </line>
       </plugin>
     </model>
 
@@ -163,6 +188,7 @@
       <plugin
         filename="ignition-gazebo-comms-endpoint-system"
         name="ignition::gazebo::systems::CommsEndpoint">
+        <link_name>box_link</link_name>
         <address>addr2</address>
         <topic>addr2/rx</topic>
         <broker>
