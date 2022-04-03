@@ -132,7 +132,6 @@
       <plugin
         filename="ignition-gazebo-comms-endpoint-system"
         name="ignition::gazebo::systems::CommsEndpoint">
-        <link_name>box_link</link_name>
         <address>addr1</address>
         <topic>addr1/rx</topic>
       </plugin>
@@ -189,7 +188,6 @@
       <plugin
         filename="ignition-gazebo-comms-endpoint-system"
         name="ignition::gazebo::systems::CommsEndpoint">
-        <link_name>box_link</link_name>
         <address>addr2</address>
         <topic>addr2/rx</topic>
         <broker>

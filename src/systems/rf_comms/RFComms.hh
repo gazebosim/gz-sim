@@ -32,11 +32,13 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
 {
-  /// \brief An example of a comms model.
-  /// This model simulates communication using radio frequency (RF) devices.
-  /// The model uses a log-distance path loss function.
+  /// \brief A comms model that simulates communication using radio frequency
+  /// (RF) devices. The model uses a log-distance path loss function.
   ///
-  /// This sytem can be configured with the following SDF parameters:
+  /// This communication model has been ported from:
+  /// https://github.com/osrf/subt .
+  ///
+  /// This system can be configured with the following SDF parameters:
   ///
   /// * Optional parameters:
   /// <range_config> Element used to capture the range configuration based on a

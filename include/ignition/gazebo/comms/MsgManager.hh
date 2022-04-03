@@ -26,6 +26,7 @@
 #include <ignition/transport/Node.hh>
 #include <ignition/utils/ImplPtr.hh>
 #include "ignition/gazebo/config.hh"
+#include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/System.hh"
 
 namespace ignition
@@ -64,6 +65,9 @@ struct AddressContent
 
   /// \brief Model name associated to this address.
   public: std::string modelName;
+
+  // \brief Entity of the model associated to this address.
+  public: gazebo::Entity entity;
 };
 
 /// \brief A map where the key is an address and the value is all the

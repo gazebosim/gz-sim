@@ -18,7 +18,9 @@
 #include <limits>
 #include <list>
 #include <random>
+#include <string>
 #include <tuple>
+#include <unordered_map>
 #include <utility>
 
 #include <sdf/sdf.hh>
@@ -191,11 +193,7 @@ class ignition::gazebo::systems::RFComms::Implementation
   /// \brief Radio configuration.
   public: RadioConfiguration radioConfig;
 
-  /// \brief A map where the key is the address and the value is the
-  /// Link instance associated.
-  public: std::unordered_map<std::string, gazebo::Link> links;
-
-  /// \brief A map where the key is the address and the value is its radio state
+  /// \brief A map where the key is the address and the value its radio state.
   public: std::unordered_map<std::string, RadioState> radioStates;
 
   /// \brief Duration of an epoch (seconds).
@@ -223,15 +221,15 @@ RFPower RFComms::Implementation::LogNormalReceivedPower(
   const double &_txPower, const RadioState &_txState,
   const RadioState &_rxState) const
 {
-  double range = _txState.pose.Pos().Distance(_rxState.pose.Pos());
+  const double kRange = _txState.pose.Pos().Distance(_rxState.pose.Pos());
 
-  if (this->rangeConfig.maxRange > 0.0 && range > this->rangeConfig.maxRange)
+  if (this->rangeConfig.maxRange > 0.0 && kRange > this->rangeConfig.maxRange)
     return {-std::numeric_limits<double>::infinity(), 0.0};
 
-  double PL =
-    this->rangeConfig.l0 + 10 * this->rangeConfig.fadingExponent * log10(range);
+  const double kPL = this->rangeConfig.l0 +
+    10 * this->rangeConfig.fadingExponent * log10(kRange);
 
-  return {_txPower - PL, this->rangeConfig.sigma};
+  return {_txPower - kPL, this->rangeConfig.sigma};
 }
 
 /////////////////////////////////////////////
@@ -400,20 +398,27 @@ void RFComms::Step(
       comms::Registry &_newRegistry,
       EntityComponentManager &_ecm)
 {
-  // Make sure that all addresses have its corresponding Link initialized.
+  // Update ratio states.
   for (auto & [address, content] : _currentRegistry)
   {
-    std::string linkName = content.modelName;
-    if (this->dataPtr->links.find(address) != this->dataPtr->links.end())
-      continue;
+    // Associate entity if needed.
+    if (content.entity == kNullEntity)
+    {
+      auto entities = gazebo::entitiesFromScopedName(content.modelName, _ecm);
+      if (entities.empty())
+        continue;
 
-    auto entities = gazebo::entitiesFromScopedName(linkName, _ecm);
-    if (entities.empty())
-      continue;
+      auto entityId = *(entities.begin());
+      _newRegistry[address].entity = entityId;
 
-    auto entityId = *(entities.begin());
-    this->dataPtr->links[address] = gazebo::Link(entityId);
-    enableComponent<components::WorldPose>(_ecm, entityId);
+      enableComponent<components::WorldPose>(_ecm, entityId);
+    }
+
+    // Update radio state.
+    const auto kPose = gazebo::worldPose(content.entity, _ecm);
+    this->dataPtr->radioStates[address].pose = kPose;
+    this->dataPtr->radioStates[address].timeStamp =
+      std::chrono::duration<double>(_info.simTime).count();
   }
 
   for (auto & [address, content] : _currentRegistry)
@@ -422,25 +427,11 @@ void RFComms::Step(
     auto &outbound = content.outboundMsgs;
 
     // All these messages need to be processed.
-    for (auto &msg : outbound)
+    for (const auto &msg : outbound)
     {
-      // Update radio state.
-      const auto kSrcAddress = msg->src_address();
-      const auto kDstAddress = msg->dst_address();
-
-      this->dataPtr->radioStates[kSrcAddress].pose =
-        *(this->dataPtr->links[kSrcAddress].WorldPose(_ecm));
-      this->dataPtr->radioStates[kSrcAddress].timeStamp =
-        std::chrono::duration<double>(_info.simTime).count();
-
-      this->dataPtr->radioStates[kDstAddress].pose =
-        *(this->dataPtr->links[kDstAddress].WorldPose(_ecm));
-      this->dataPtr->radioStates[kDstAddress].timeStamp =
-        std::chrono::duration<double>(_info.simTime).count();
-
       auto [sendPacket, rssi] = this->dataPtr->AttemptSend(
-        this->dataPtr->radioStates[kSrcAddress],
-        this->dataPtr->radioStates[kDstAddress],
+        this->dataPtr->radioStates[msg->src_address()],
+        this->dataPtr->radioStates[msg->dst_address()],
         msg->data().size());
 
       if (sendPacket)

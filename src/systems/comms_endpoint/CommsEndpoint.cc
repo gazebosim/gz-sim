@@ -54,9 +54,6 @@ class ignition::gazebo::systems::CommsEndpoint::Implementation
   /// \brief Model interface
   public: Model model{kNullEntity};
 
-  /// \brief ToDo.
-  public: std::string linkName;
-
   /// \brief True when the address has been bound in the broker.
   public: std::atomic_bool bound{false};
 
@@ -141,14 +138,6 @@ void CommsEndpoint::Configure(const Entity &_entity,
   }
   this->dataPtr->topic = _sdf->Get<std::string>("topic");
 
-  // Parse <link_name>.
-  if (!_sdf->HasElement("link_name"))
-  {
-    ignerr << "No <link_name> specified." << std::endl;
-    return;
-  }
-  this->dataPtr->linkName = _sdf->Get<std::string>("link_name");
-
   // Parse <broker>.
   if (_sdf->HasElement("broker"))
   {
@@ -164,9 +153,7 @@ void CommsEndpoint::Configure(const Entity &_entity,
 
   // Prepare the bind parameters.
   this->dataPtr->bindReq.add_data(this->dataPtr->address);
-  // this->dataPtr->bindReq.add_data(this->dataPtr->model.Name(_ecm));
-  this->dataPtr->bindReq.add_data(this->dataPtr->model.Name(_ecm) +
-    "::" + this->dataPtr->linkName);
+  this->dataPtr->bindReq.add_data(this->dataPtr->model.Name(_ecm));
   this->dataPtr->bindReq.add_data(this->dataPtr->topic);
 
   // Prepare the unbind parameters.
