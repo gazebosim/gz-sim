@@ -35,12 +35,12 @@
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
     <plugin
-      filename="ignition-gazebo-wireless-comms-system"
-      name="ignition::gazebo::systems::WirelessComms">
+      filename="ignition-gazebo-rf-comms-system"
+      name="ignition::gazebo::systems::RFComms">
       <range_config>
-        <max_range>500.0</max_range>
+        <max_range>500000.0</max_range>
         <fading_exponent>1.5</fading_exponent>
-        <L0>40</L0>
+        <l0>40</l0>
         <sigma>10.0</sigma>
       </range_config>
       <radio_config>
@@ -93,7 +93,8 @@
     </model>
 
     <model name="box1">
-      <pose>2 0 0.5 0 0 0</pose>
+      <static>true</static>
+      <pose>30000 0 0.5 0 0 0</pose>
       <link name="box_link">
         <inertial>
           <inertia>
@@ -135,7 +136,7 @@
         <address>addr1</address>
         <topic>addr1/rx</topic>
       </plugin>
-      <plugin
+      <!-- <plugin
         filename="ignition-gazebo-trajectory-follower-system"
         name="ignition::gazebo::systems::TrajectoryFollower">
         <link_name>box_link</link_name>
@@ -144,9 +145,9 @@
         <torque>10</torque>
         <line>
           <direction>0</direction>
-          <length>500</length>
+          <length>5000</length>
         </line>
-      </plugin>
+      </plugin> -->
     </model>
 
     <model name="box2">

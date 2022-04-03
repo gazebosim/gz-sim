@@ -1,6 +1,6 @@
-gz_add_system(wireless-comms
+gz_add_system(rf-comms
   SOURCES
-  WirelessComms.cc
+  RFComms.cc
   PUBLIC_LINK_LIBS
     ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
 )
