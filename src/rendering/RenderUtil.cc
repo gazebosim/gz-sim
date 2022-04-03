@@ -2503,10 +2503,13 @@ void RenderUtil::Init()
     }
   }
 
-#if IGNITION_RENDERING_MAJOR_VERSION <= 6
-  // HACK: Tell ign-rendering6 to listen to SetTime calls
-  this->dataPtr->scene->SetTime(std::chrono::nanoseconds(-1));
-#endif
+  {
+    // HACK: Tell ign-rendering6 to listen to SetTime calls
+    // TODO(anyone). Remove this when linked against ign-rendering7
+    this->dataPtr->scene->SetTime(std::chrono::nanoseconds(-1));
+    IGN_ASSERT(this->dataPtr->scene->Time() != std::chrono::nanoseconds(-1),
+               "Please remove this snippet after merging with ign-rendering7");
+  }
 
   this->dataPtr->sceneManager.SetScene(this->dataPtr->scene);
   if (this->dataPtr->enableSensors)
@@ -2582,10 +2585,13 @@ void RenderUtil::SetSceneName(const std::string &_name)
 void RenderUtil::SetScene(const rendering::ScenePtr &_scene)
 {
   this->dataPtr->scene = _scene;
-#if IGNITION_RENDERING_MAJOR_VERSION <= 6
-  // HACK: Tell ign-rendering6 to listen to SetTime calls
-  this->dataPtr->scene->SetTime(std::chrono::nanoseconds(-1));
-#endif
+  {
+    // HACK: Tell ign-rendering6 to listen to SetTime calls
+    // TODO(anyone). Remove this when linked against ign-rendering7
+    this->dataPtr->scene->SetTime(std::chrono::nanoseconds(-1));
+    IGN_ASSERT(this->dataPtr->scene->Time() != std::chrono::nanoseconds(-1),
+               "Please remove this snippet after merging with ign-rendering7");
+  }
   this->dataPtr->sceneManager.SetScene(_scene);
   this->dataPtr->engine = _scene == nullptr ? nullptr : _scene->Engine();
 }
