@@ -113,7 +113,7 @@
           <imu>
             <orientation_reference_frame>
               <localization>CUSTOM</localization>
-	      <custom_rpy>1.570795 0 0</custom_rpy>
+	      <custom_rpy parent_frame='world'>1.570795 0 0</custom_rpy>
             </orientation_reference_frame>
           </imu>
           <always_on>1</always_on>
