@@ -467,21 +467,21 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RotatingBody))
   msgs::IMU currentImuMsgDefault_2;
   msgs::IMU currentImuMsgDefault_3;
 
-  auto defaultCb1 = std::function<void(const msgs::IMU &_msg)>(
+  std::function<void(const msgs::IMU &_msg)> defaultCb1 =
       [&](const msgs::IMU &_msg)
       {
         currentImuMsgDefault_1 = _msg;
-      });
-  auto defaultCb2 = std::function<void(const msgs::IMU &_msg)>(
+      };
+  std::function<void(const msgs::IMU &_msg)> defaultCb2 =
       [&](const msgs::IMU &_msg)
       {
         currentImuMsgDefault_2 = _msg;
-      });
-  auto defaultCb3 = std::function<void(const msgs::IMU &_msg)>(
+      };
+  std::function<void(const msgs::IMU &_msg)> defaultCb3 =
       [&](const msgs::IMU &_msg)
       {
         currentImuMsgDefault_3 = _msg;
-      });
+      };
 
   // subscribe to imu topic
   transport::Node node;

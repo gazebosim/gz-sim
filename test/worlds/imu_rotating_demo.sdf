@@ -60,12 +60,12 @@
         </inertial>
         <collision name="collision_1">
           <geometry>
-            <sphere>0.1</sphere>
+            <sphere></sphere>
           </geometry>
         </collision>
         <visual name="visual_1">
           <geometry>
-            <sphere>0.1</sphere>
+            <sphere></sphere>
           </geometry>
         </visual>
         <sensor name='imu_sensor_DEFAULT_1' type='imu'>
@@ -113,12 +113,12 @@
         </inertial>
         <collision name="collision_2">
           <geometry>
-            <sphere>0.1</sphere>
+            <sphere></sphere>
           </geometry>
         </collision>
         <visual name="visual_2">
           <geometry>
-            <sphere>0.1</sphere>
+            <sphere></sphere>
           </geometry>
         </visual>
         <sensor name='imu_sensor_DEFAULT_2' type='imu'>
@@ -144,12 +144,12 @@
         </inertial>
         <collision name="collision_3">
           <geometry>
-            <sphere>0.1</sphere>
+            <sphere></sphere>
           </geometry>
         </collision>
         <visual name="visual_3">
           <geometry>
-            <sphere>0.1</sphere>
+            <sphere></sphere>
           </geometry>
         </visual>
         <sensor name='imu_sensor_DEFAULT_3' type='imu'>
