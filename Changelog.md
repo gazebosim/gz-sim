@@ -11,8 +11,14 @@
 1. Referring to Fuel assets within a heightmap
     * [Pull request #1419](https://github.com/ignitionrobotics/ign-gazebo/pull/1419)
 
+1. Add the Model Photo Shoot system, port of Modelpropshop plugin from Gazebo classic
+    * [Pull request #1331](https://github.com/ignitionrobotics/ign-gazebo/pull/1331)
+
 1. Distortion camera integration test
     * [Pull request #1374](https://github.com/ignitionrobotics/ign-gazebo/pull/1374)
+
+1. Add wheel slip user command
+    * [Pull request #1241](https://github.com/ignitionrobotics/ign-gazebo/pull/1241)
 
 1. SceneBroadcaster: only send changed state information for change events
     * [Pull request #1392](https://github.com/ignitionrobotics/ign-gazebo/pull/1392)
