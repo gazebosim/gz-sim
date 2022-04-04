@@ -40,11 +40,10 @@ const std::vector<const components::BaseComponent *>
 
 //////////////////////////////////////////////////
 const std::vector<components::BaseComponent *> &View::EntityComponentData(
-    const Entity _entity)
+    const Entity _entity) const
 {
   return this->validData.at(_entity);
 }
-
 
 //////////////////////////////////////////////////
 bool View::HasCachedComponentData(const Entity _entity) const

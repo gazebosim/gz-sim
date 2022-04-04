@@ -77,7 +77,7 @@ class IGNITION_GAZEBO_VISIBLE View : public BaseView
   /// \param[_in] _entity The entity
   /// \return The entity and its component data. Mutable pointers to the
   /// component data are returned.
-  public: const ComponentData &EntityComponentData(const Entity _entity);
+  public: const ComponentData &EntityComponentData(const Entity _entity) const;
 
   /// \brief Add an entity with its component data to the view. It is assumed
   /// that the entity to be added does not already exist in the view.
