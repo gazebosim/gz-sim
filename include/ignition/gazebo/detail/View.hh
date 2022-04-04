@@ -69,16 +69,15 @@ class IGNITION_GAZEBO_VISIBLE View : public BaseView
   /// \param[_in] _entity The entity
   /// \return The entity and its component data. Const pointers to the component
   /// data are returned.
-  public: const std::vector<const components::BaseComponent *>
-          &EntityComponentConstData(const Entity _entity) const;
+  public: const ConstComponentData &EntityComponentConstData(
+              const Entity _entity) const;
 
   /// \brief Get an entity and its component data. It is assumed that the entity
   /// being requested exists in the view.
   /// \param[_in] _entity The entity
   /// \return The entity and its component data. Mutable pointers to the
   /// component data are returned.
-  public: const std::vector<components::BaseComponent *>
-          &EntityComponentData(const Entity _entity);
+  public: const ComponentData &EntityComponentData(const Entity _entity);
 
   /// \brief Add an entity with its component data to the view. It is assumed
   /// that the entity to be added does not already exist in the view.

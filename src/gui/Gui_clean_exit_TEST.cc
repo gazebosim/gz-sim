@@ -64,6 +64,9 @@ void startBoth(const std::string &_fileName)
 {
   std::thread serverThread([&]() { startServer(_fileName); });
   std::thread guiThread(startGui);
+  // Sleep long enough for every system to be loaded and initialized. Sending a
+  // SIGTERM during initialization doesn't always work properly and that is not
+  // what we are testing here.
   using namespace std::chrono_literals;
   std::this_thread::sleep_for(4s);
   std::raise(SIGTERM);

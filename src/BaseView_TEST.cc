@@ -160,14 +160,17 @@ TEST_F(BaseViewTest, AddEntities)
   EXPECT_EQ(&e1NameComp, e1ConstData[1]);
 
   auto e1Data = modelNameView.EntityComponentData(e1);
+  ASSERT_EQ(2u, e1Data.size());
   EXPECT_EQ(&e1ModelComp, e1Data[0]);
   EXPECT_EQ(&e1NameComp, e1Data[1]);
 
   auto e2ConstData = modelNameView .EntityComponentConstData(e2);
+  ASSERT_EQ(2u, e2ConstData.size());
   EXPECT_EQ(&e2ModelComp, e2ConstData[0]);
   EXPECT_EQ(&e2NameComp, e2ConstData[1]);
 
   auto e2Data = modelNameView.EntityComponentData(e2);
+  ASSERT_EQ(2u, e2Data.size());
   EXPECT_EQ(&e2ModelComp, e2Data[0]);
   EXPECT_EQ(&e2NameComp, e2Data[1]);
 }

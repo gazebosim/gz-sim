@@ -440,7 +440,7 @@ void EntityComponentManager::Each(typename identity<std::function<
 //////////////////////////////////////////////////
 template<typename ...ComponentTypeTs>
 void EntityComponentManager::Each(typename identity<std::function<
-    bool(const Entity &, ComponentTypeTs *...)>>::type _f)
+    bool(const Entity &_entity, ComponentTypeTs *...)>>::type _f)
 {
   // Get the view. This will create a new view if one does not already
   // exist.
