@@ -86,7 +86,7 @@ namespace systems
   /// - `<vertical><noise>`
   /// Parameters for the noise that is added to the vertical wind velocity
   /// magnitude.
-  class WindEffects:
+  class WindEffects final:
     public System,
     public ISystemConfigure,
     public ISystemPreUpdate
