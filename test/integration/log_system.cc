@@ -333,8 +333,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
 
   // Test case 1:
   // No path specified on command line. This does not go through
-  // ign.cc, so ignLogDirectory() is not initialized (empty string). Recording
-  // should not take place.
+  // ign.cc, recording should take place in the `.ignition` directory
   {
     // Load SDF
     sdf::Root recordSdfRoot;
@@ -354,8 +353,12 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
     recordServer.Run(true, 200, false);
   }
 
-  // Check ignLogDirectory is empty
-  EXPECT_TRUE(ignLogDirectory().empty());
+  // We should expect to see "auto_default.log"  and "state.tlog"
+  EXPECT_FALSE(ignLogDirectory().empty());
+  EXPECT_TRUE(common::exists(
+        common::joinPaths(ignLogDirectory(), "auto_default.log")));
+  EXPECT_TRUE(common::exists(
+        common::joinPaths(ignLogDirectory(), "state.tlog")));
 
   // Remove artifacts. Recreate new directory
   this->RemoveLogsDir();
