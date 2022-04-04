@@ -537,9 +537,11 @@ class OdometryPublisherTest
     {
       if (i % 7 == 0)
       {
-        EXPECT_NEAR(odomTwistCovariance[i], 1, 1e-2);
-      } else {
-        EXPECT_NEAR(odomTwistCovariance[i], 0, 1e-2);
+        EXPECT_NEAR(odomTwistCovariance.Get(i), 1, 1e-2);
+      }
+      else
+      {
+        EXPECT_NEAR(odomTwistCovariance.Get(i), 0, 1e-2);
       }
     }
   }
