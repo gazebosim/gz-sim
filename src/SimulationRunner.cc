@@ -172,9 +172,10 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // Load any additional plugins from the Server Configuration
   this->LoadServerPlugins(this->serverConfig.Plugins());
 
-  // If we have reached this point and no systems have been loaded, then load
-  // a default set of systems.
-  if (this->systemMgr->TotalCount() == 0)
+  // If we have reached this point and no world systems have been loaded, then
+  // load a default set of systems.
+  if (this->systemMgr->TotalByEntity(
+      worldEntity(this->entityCompMgr)).empty())
   {
     ignmsg << "No systems loaded from SDF, loading defaults" << std::endl;
     bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();

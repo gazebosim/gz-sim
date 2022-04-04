@@ -47,6 +47,9 @@ namespace systems
   /// - `<ambient_light>` Color used for the scene's ambient light. This
   /// will override the ambient value specified in a world's SDF <scene>
   /// element. This ambient light is used by sensors, not the GUI.
+  /// - `<disable_on_drained_battery>` Disable sensors if the model's
+  /// battery plugin charge reaches zero. Sensors that are in nested
+  /// models are also affected.
   ///
   /// \TODO(louise) Have one system for all sensors, or one per
   /// sensor / sensor type?

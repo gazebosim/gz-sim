@@ -77,10 +77,12 @@ set(tests_needing_display
   camera_sensor_background.cc
   camera_video_record_system.cc
   depth_camera.cc
+  distortion_camera.cc
   gpu_lidar.cc
   optical_tactile_plugin.cc
   rgbd_camera.cc
   sensors_system.cc
+  sensors_system_battery.cc
   shader_param_system.cc
   thermal_system.cc
   thermal_sensor_system.cc
@@ -138,4 +140,10 @@ set_tests_properties(INTEGRATION_tracked_vehicle_system PROPERTIES TIMEOUT 300)
 
 if(TARGET INTEGRATION_examples_build)
   set_tests_properties(INTEGRATION_examples_build PROPERTIES TIMEOUT 320)
+endif()
+
+if(VALID_DISPLAY AND VALID_DRI_DISPLAY)
+  target_link_libraries(INTEGRATION_sensors_system
+    ignition-rendering${IGN_RENDERING_VER}::ignition-rendering${IGN_RENDERING_VER}
+  )
 endif()
