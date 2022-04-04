@@ -33,7 +33,9 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/WheelSlipCmd.hh"
 #include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/Model.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"
@@ -1104,3 +1106,103 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Physics))
   EXPECT_DOUBLE_EQ(0.123, physicsComp->Data().MaxStepSize());
   EXPECT_DOUBLE_EQ(4.567, physicsComp->Data().RealTimeFactor());
 }
+
+/////////////////////////////////////////////////
+TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(WheelSlip))
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/trisphere_cycle_wheel_slip.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Create a system just to get the ECM
+  EntityComponentManager *ecm{nullptr};
+  test::Relay testSystem;
+  testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
+                             gazebo::EntityComponentManager &_ecm)
+      {
+        ecm = &_ecm;
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+
+  // Run server and check we have the ECM
+  EXPECT_EQ(nullptr, ecm);
+  server.Run(true, 1, false);
+  ASSERT_NE(nullptr, ecm);
+
+  // Check that the physics properties are the ones specified in the sdf
+  auto worldEntity = ecm->EntityByComponents(components::World());
+  ASSERT_NE(kNullEntity, worldEntity);
+  Entity tc0 = ecm->EntityByComponents(
+    components::Name("trisphere_cycle0"));
+  ASSERT_NE(kNullEntity, tc0);
+  Entity tc1 = ecm->EntityByComponents(
+    components::Name("trisphere_cycle1"));
+  ASSERT_NE(kNullEntity, tc1);
+
+  Model tcModel0{tc0};
+  Model tcModel1{tc1};
+  Entity wf0 = tcModel0.LinkByName(*ecm, "wheel_front");
+  ASSERT_NE(kNullEntity, wf0);
+  Entity wrl0 = tcModel0.LinkByName(*ecm, "wheel_rear_left");
+  ASSERT_NE(kNullEntity, wrl0);
+  Entity wrf0 = tcModel0.LinkByName(*ecm, "wheel_rear_right");
+  ASSERT_NE(kNullEntity, wrf0);
+  Entity wf1 = tcModel1.LinkByName(*ecm, "wheel_front");
+  ASSERT_NE(kNullEntity, wf1);
+  Entity wrl1 = tcModel1.LinkByName(*ecm, "wheel_rear_left");
+  ASSERT_NE(kNullEntity, wrl1);
+  Entity wrf1 = tcModel1.LinkByName(*ecm, "wheel_rear_right");
+  ASSERT_NE(kNullEntity, wrf1);
+
+  Entity links[] = {wf0, wrl0, wrf0, wf1, wrl1, wrf1};
+  for (auto link : links) {
+    EXPECT_EQ(nullptr, ecm->Component<components::WheelSlipCmd>(link));
+  }
+
+  // modify wheel slip parameters of one link of model 0
+  msgs::WheelSlipParametersCmd req;
+  auto * entityMsg = req.mutable_entity();
+  entityMsg->set_name("trisphere_cycle0::wheel_front");
+  entityMsg->set_type(msgs::Entity::LINK);
+  req.set_slip_compliance_lateral(1);
+  req.set_slip_compliance_longitudinal(1);
+
+  msgs::Boolean res;
+  bool result;
+  unsigned int timeout = 5000;
+  std::string service{"/world/wheel_slip/wheel_slip"};
+
+  transport::Node node;
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Run two iterations, in the first one the WheelSlipCmd component is created
+  // and processed.
+  // The second one is just to check everything went fine.
+  server.Run(true, 2, false);
+
+  // modify wheel slip parameters of one link of model 1
+  entityMsg->set_name("trisphere_cycle1");
+  entityMsg->set_type(msgs::Entity::MODEL);
+  req.set_slip_compliance_lateral(2);
+  req.set_slip_compliance_longitudinal(1);
+
+  result = false;
+  res = msgs::Boolean{};
+
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Run two iterations, in the first one the WheelSlipCmd component is created
+  // and processed.
+  // The second one is just to check everything went fine.
+  server.Run(true, 3, false);}
