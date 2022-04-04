@@ -61,6 +61,9 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // Keep world name
   this->worldName = _world->Name();
 
+  this->parametersRegistry = std::make_unique<
+    ignition::transport::parameters::ParametersRegistry>(this->worldName);
+
   // Get the physics profile
   // TODO(luca): remove duplicated logic in SdfEntityCreator and LevelManager
   auto physics = _world->PhysicsByIndex(0);

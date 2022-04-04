@@ -83,6 +83,11 @@ namespace ignition
       /// Will be nullptr if the System doesn't implement this interface.
       public: ISystemConfigure *configure = nullptr;
 
+      /// \brief Access this system via the ISystemConfigureParameters
+      ///   interface.
+      /// Will be nullptr if the System doesn't implement this interface.
+      public: ISystemConfigureParameters *configureParameters = nullptr;
+
       /// \brief Access this system via the ISystemPreUpdate interface
       /// Will be nullptr if the System doesn't implement this interface.
       public: ISystemPreUpdate *preupdate = nullptr;

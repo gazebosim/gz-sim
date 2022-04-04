@@ -21,12 +21,16 @@ using namespace ignition;
 using namespace gazebo;
 
 //////////////////////////////////////////////////
-SystemManager::SystemManager(const SystemLoaderPtr &_systemLoader,
-                             EntityComponentManager *_entityCompMgr,
-                             EventManager *_eventMgr)
+SystemManager::SystemManager(
+  const SystemLoaderPtr &_systemLoader,
+  EntityComponentManager *_entityCompMgr,
+  EventManager *_eventMgr,
+  igntion::transport::parameters::ParametersRegistry *
+    _parametersRegistry = nullptr)
   : systemLoader(_systemLoader),
     entityCompMgr(_entityCompMgr),
-    eventMgr(_eventMgr)
+    eventMgr(_eventMgr),
+    parametersRegistry(_parametersRegistry)
 {
 }
 
@@ -83,6 +87,9 @@ size_t SystemManager::ActivatePendingSystems()
 
     if (system.configure)
       this->systemsConfigure.push_back(system.configure);
+    
+    if (system.configureParameters)
+      this->systemsConfigureParameters.push_back(system.configure);
 
     if (system.preupdate)
       this->systemsPreupdate.push_back(system.preupdate);
@@ -128,6 +135,15 @@ void SystemManager::AddSystemImpl(
                                  *this->eventMgr);
   }
 
+  // Configure the system parameters, if necessary
+  if (_system.configureParameters && this->entityCompMgr && this->parametersRegistry)
+  {
+    _system.configureParameters->ConfigureParameters(
+      _system.parentEntity,
+      *this->parametersRegistry,
+      *this->entityCompMgr);
+  }
+
   // Update callbacks will be handled later, add to queue
   std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
   this->pendingSystems.push_back(_system);
@@ -137,6 +153,12 @@ void SystemManager::AddSystemImpl(
 const std::vector<ISystemConfigure *>& SystemManager::SystemsConfigure()
 {
   return this->systemsConfigure;
+}
+
+//////////////////////////////////////////////////
+const std::vector<ISystemConfigureParameters *>& SystemManager::SystemsConfigureParameters()
+{
+  return this->systemsConfigureParameters;
 }
 
 //////////////////////////////////////////////////

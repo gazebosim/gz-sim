@@ -46,9 +46,12 @@ namespace ignition
       ///  be used when configuring new systems
       /// \param[in] _eventMgr Pointer to the event manager to be used when
       ///  configuring new systems
-      public: explicit SystemManager(const SystemLoaderPtr &_systemLoader,
-                            EntityComponentManager *_entityCompMgr = nullptr,
-                            EventManager *_eventMgr = nullptr);
+      public: explicit SystemManager(
+        const SystemLoaderPtr &_systemLoader,
+        EntityComponentManager *_entityCompMgr = nullptr,
+        EventManager *_eventMgr = nullptr
+        igntion::transport::parameters::ParametersRegistry *
+          _parametersRegistry = nullptr);
 
       /// \brief Load system plugin for a given entity.
       /// \param[in] _entity Entity
@@ -96,6 +99,11 @@ namespace ignition
       /// \return Vector of systems's configure interfaces.
       public: const std::vector<ISystemConfigure *>& SystemsConfigure();
 
+      /// \brief Get an vector of all active systems implementing
+      ///   "ConfigureParameters"
+      /// \return Vector of systems's configure interfaces.
+      public: const std::vector<ISystemConfigureParameters *>& SystemsConfigureParameters();
+
       /// \brief Get an vector of all active systems implementing "PreUpdate"
       /// \return Vector of systems's pre-update interfaces.
       public: const std::vector<ISystemPreUpdate *>& SystemsPreUpdate();
@@ -132,6 +140,9 @@ namespace ignition
       /// \brief Systems implementing Configure
       private: std::vector<ISystemConfigure *> systemsConfigure;
 
+      /// \brief Systems implementing ConfigureParameters
+      private: std::vector<ConfigureParameters *> systemsConfigureParameters;
+
       /// \brief Systems implementing PreUpdate
       private: std::vector<ISystemPreUpdate *> systemsPreupdate;
 
@@ -152,6 +163,9 @@ namespace ignition
 
       /// \brief Pointer to associated event manager
       private: EventManager *eventMgr;
+
+      /// \brief Pointer to associated parameters registry
+      private: ignition::transport::parameters::ParametersRegistry *parametersRegistry;
     };
     }
   }  // namespace gazebo

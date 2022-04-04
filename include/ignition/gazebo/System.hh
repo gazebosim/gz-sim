@@ -25,6 +25,8 @@
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/Types.hh>
 
+#include <ignition/transport/parameters/Registry.hh>
+
 #include <sdf/Element.hh>
 
 namespace ignition
@@ -98,6 +100,18 @@ namespace ignition
                   const std::shared_ptr<const sdf::Element> &_sdf,
                   EntityComponentManager &_ecm,
                   EventManager &_eventMgr) = 0;
+    };
+
+    /// \class ISystemConfigureParameters ISystem.hh ignition/gazebo/System.hh
+    /// \brief Interface for a system that declares parameters.
+    ///
+    /// ISystemConfigureParameters::Configure is called after
+    /// ISystemConfigure::Configure.
+    class ISystemConfigureParameters {
+      /// \brief Configure the parameters of the system.
+      /// \param[in] _registry The parameter registry.
+      public: virtual void Configure(
+                  ignition::transport::parameters::ParametersRegistry & _registry) = 0;
     };
 
     /// \class ISystemPreUpdate ISystem.hh ignition/gazebo/System.hh
