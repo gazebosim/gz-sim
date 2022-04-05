@@ -84,7 +84,7 @@ TEST_F(PerfectCommsTest, PerfectComms)
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   // Prepare the message.
   ignition::msgs::Dataframe msg;
-  msg.set_src_address("unused");
+  msg.set_src_address("addr2");
   msg.set_dst_address(addr);
 
   // Publish 10 messages.

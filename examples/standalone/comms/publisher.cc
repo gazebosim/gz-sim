@@ -75,7 +75,7 @@ int main(int argc, char **argv)
 
   // Prepare the message.
   ignition::msgs::Dataframe msg;
-  msg.set_src_address("unused");
+  msg.set_src_address("addr1");
   msg.set_dst_address(argv[1]);
 
   // Publish messages at 1Hz.
