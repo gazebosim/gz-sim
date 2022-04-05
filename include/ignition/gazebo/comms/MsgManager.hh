@@ -66,7 +66,7 @@ struct AddressContent
   /// \brief Model name associated to this address.
   public: std::string modelName;
 
-  // \brief Entity of the model associated to this address.
+  /// \brief Entity of the model associated to this address.
   public: gazebo::Entity entity;
 };
 
