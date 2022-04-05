@@ -16,7 +16,7 @@
     ./publisher addr1
 -->
 <sdf version="1.6">
-  <world name="comms">
+  <world name="perfect_comms">
 
     <physics name="1ms" type="ignored">
       <max_step_size>0.001</max_step_size>

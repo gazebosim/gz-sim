@@ -32,18 +32,18 @@ using namespace ignition;
 using namespace gazebo;
 
 /////////////////////////////////////////////////
-class CommsTest : public InternalFixture<::testing::Test>
+class PerfectCommsTest : public InternalFixture<::testing::Test>
 {
 };
 
 /////////////////////////////////////////////////
-TEST_F(CommsTest, Comms)
+TEST_F(PerfectCommsTest, PerfectComms)
 {
   // Start server
   ServerConfig serverConfig;
   const auto sdfFile =
     ignition::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-      "examples", "worlds", "comms.sdf");
+      "examples", "worlds", "perfect_comms.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);
