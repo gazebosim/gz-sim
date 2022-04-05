@@ -290,8 +290,7 @@ std::tuple<bool, double> RFComms::Implementation::AttemptSend(
             "# Bytes: " << _numBytes << "\n" <<
             "PER: " << packetDropProb << std::endl;
 
-  double randDraw = (rand() % 1000) / 1000.0;
-
+  double randDraw = (rand_r() % 1000) / 1000.0;
   bool packetReceived = randDraw > packetDropProb;
 
   if (!packetReceived)
