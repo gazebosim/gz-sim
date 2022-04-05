@@ -24,6 +24,9 @@ using namespace gazebo;
 using namespace detail;
 
 //////////////////////////////////////////////////
+BaseView::~BaseView() = default;
+
+//////////////////////////////////////////////////
 bool BaseView::HasEntity(const Entity _entity) const
 {
   return this->entities.find(_entity) != this->entities.end();
