@@ -105,13 +105,14 @@ namespace ignition
     /// \class ISystemConfigureParameters ISystem.hh ignition/gazebo/System.hh
     /// \brief Interface for a system that declares parameters.
     ///
-    /// ISystemConfigureParameters::Configure is called after
+    /// ISystemConfigureParameters::ConfigureParameters is called after
     /// ISystemConfigure::Configure.
     class ISystemConfigureParameters {
       /// \brief Configure the parameters of the system.
       /// \param[in] _registry The parameter registry.
-      public: virtual void Configure(
-                  ignition::transport::parameters::ParametersRegistry & _registry) = 0;
+      public: virtual void ConfigureParameters(
+                  ignition::transport::parameters::ParametersRegistry & _registry,
+                  EntityComponentManager &_ecm) = 0;
     };
 
     /// \class ISystemPreUpdate ISystem.hh ignition/gazebo/System.hh
