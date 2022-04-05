@@ -1,5 +1,79 @@
 ## Ignition Gazebo 6.x
 
+### Ignition Gazebo 6.8.0 (2022-04-04)
+
+1. ServerConfig accepts an sdf::Root DOM object
+    * [Pull request #1333](https://github.com/ignitionrobotics/ign-gazebo/pull/1333)
+
+1. Disable sensors in sensors system when battery is drained
+    * [Pull request #1385](https://github.com/ignitionrobotics/ign-gazebo/pull/1385)
+
+1. Referring to Fuel assets within a heightmap
+    * [Pull request #1419](https://github.com/ignitionrobotics/ign-gazebo/pull/1419)
+
+1. Add the Model Photo Shoot system, port of Modelpropshop plugin from Gazebo classic
+    * [Pull request #1331](https://github.com/ignitionrobotics/ign-gazebo/pull/1331)
+
+1. Distortion camera integration test
+    * [Pull request #1374](https://github.com/ignitionrobotics/ign-gazebo/pull/1374)
+
+1. Add wheel slip user command
+    * [Pull request #1241](https://github.com/ignitionrobotics/ign-gazebo/pull/1241)
+
+1. SceneBroadcaster: only send changed state information for change events
+    * [Pull request #1392](https://github.com/ignitionrobotics/ign-gazebo/pull/1392)
+
+1. Fortress: Install Ogre 2.2, simplify docker
+    * [Pull request #1395](https://github.com/ignitionrobotics/ign-gazebo/pull/1395)
+
+1. Disable tests that are expected to fail on Windows
+    * [Pull request #1408](https://github.com/ignitionrobotics/ign-gazebo/pull/1408)
+
+1. Added user command to set multiple entities
+    * [Pull request #1394](https://github.com/ignitionrobotics/ign-gazebo/pull/1394)
+
+1. Fix JointStatePublisher topic name for nested models
+    * [Pull request #1405](https://github.com/ignitionrobotics/ign-gazebo/pull/1405)
+
+1. add initial_position param to joint controller system
+    * [Pull request #1406](https://github.com/ignitionrobotics/ign-gazebo/pull/1406)
+
+1. Component inspector: refactor Pose3d C++ code into a separate class
+    * [Pull request #1400](https://github.com/ignitionrobotics/ign-gazebo/pull/1400)
+
+1. Prevent hanging when world has only non-world plugins
+    * [Pull request #1383](https://github.com/ignitionrobotics/ign-gazebo/pull/1383)
+
+1. Toggle Light visuals
+    * [Pull request #1387](https://github.com/ignitionrobotics/ign-gazebo/pull/1387)
+
+1. Disable PeerTracker.PeerTrackerStale on macOS
+    * [Pull request #1398](https://github.com/ignitionrobotics/ign-gazebo/pull/1398)
+
+1. Disable ModelCommandAPI_TEST.RgbdCameraSensor on macOS
+    * [Pull request #1397](https://github.com/ignitionrobotics/ign-gazebo/pull/1397)
+
+1. Don't mark entities with a ComponentState::NoChange component as modified
+    * [Pull request #1391](https://github.com/ignitionrobotics/ign-gazebo/pull/1391)
+
+1. Add gazebo Entity id to rendering sensor's user data
+    * [Pull request #1381](https://github.com/ignitionrobotics/ign-gazebo/pull/1381)
+
+1. Allow to turn on/off lights
+    * [Pull request #1343](https://github.com/ignitionrobotics/ign-gazebo/pull/1343)
+
+1. Added headless rendering tutorial
+    * [Pull request #1386](https://github.com/ignitionrobotics/ign-gazebo/pull/1386)
+
+1. Add xyz and rpy offset to published odometry pose
+    * [Pull request #1341](https://github.com/ignitionrobotics/ign-gazebo/pull/1341)
+
+1. Fix visualization python tutorial
+    * [Pull request #1377](https://github.com/ignitionrobotics/ign-gazebo/pull/1377)
+
+1. Populate GUI plugins that are empty
+    * [Pull request #1375](https://github.com/ignitionrobotics/ign-gazebo/pull/1375)
+
 ### Ignition Gazebo 6.7.0 (2022-02-24)
 
 1. Added Python interfaces to some Ignition Gazebo methods

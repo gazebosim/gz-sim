@@ -53,6 +53,10 @@ namespace systems
   /// messages. This element is optional, and the default value is
   /// `/model/{name_of_model}/odometry`.
   ///
+  /// `<odom_covariance_topic>`: Custom topic on which this system will publish
+  /// odometry with covariance messages. This element is optional, and the
+  /// default value is `/model/{name_of_model}/odometry_with_covariance`.
+  ///
   /// `<dimensions>`: Number of dimensions to represent odometry. Only 2 and 3
   /// dimensional spaces are supported. This element is optional, and the
   /// default value is 2.
@@ -63,7 +67,11 @@ namespace systems
   ///
   /// `<rpy_offset>`: Rotation offset relative to the body fixed frame, the
   /// default value is 0 0 0. This offset will be added to the odometry
-  //  message.
+  ///  message.
+  ///
+  /// `<gaussian_noise>`: Standard deviation of the Gaussian noise to be added
+  /// to pose and twist messages. This element is optional, and the default
+  /// value is 0.
   class OdometryPublisher
       : public System,
         public ISystemConfigure,
