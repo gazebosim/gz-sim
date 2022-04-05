@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo perfect-comms plugin demo.
+  Ignition Gazebo rfcomms plugin demo.
 
   Compile the comms publisher:
     cd ign-gazebo/examples/standalone/comms
@@ -16,7 +16,7 @@
     ./publisher addr1
 -->
 <sdf version="1.6">
-  <world name="perfect_comms">
+  <world name="rf_comms">
 
     <physics name="1ms" type="ignored">
       <max_step_size>0.001</max_step_size>
@@ -35,8 +35,20 @@
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
     <plugin
-      filename="ignition-gazebo-perfect-comms-system"
-      name="ignition::gazebo::systems::PerfectComms">
+      filename="ignition-gazebo-rf-comms-system"
+      name="ignition::gazebo::systems::RFComms">
+      <range_config>
+        <max_range>500000.0</max_range>
+        <fading_exponent>2.6</fading_exponent>
+        <l0>40</l0>
+        <sigma>10.0</sigma>
+      </range_config>
+      <radio_config>
+        <capacity>1000000</capacity>
+        <tx_power>20</tx_power>
+        <noise_floor>-90</noise_floor>
+        <modulation>QPSK</modulation>
+      </radio_config>
     </plugin>
 
     <light type="directional" name="sun">
@@ -54,6 +66,7 @@
     </light>
 
     <model name="ground_plane">
+      <static>true</static>
       <link name="link">
         <collision name="collision">
           <geometry>
@@ -81,7 +94,7 @@
 
     <model name="box1">
       <static>true</static>
-      <pose>2 0 0.5 0 0 0</pose>
+      <pose>50 0 0.5 0 0 0</pose>
       <link name="box_link">
         <inertial>
           <inertia>
