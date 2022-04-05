@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo comms plugin demo.
+  Ignition Gazebo perfect-comms plugin demo.
 
   Compile the comms publisher:
     cd ign-gazebo/examples/standalone/comms
@@ -35,20 +35,8 @@
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
     <plugin
-      filename="ignition-gazebo-rf-comms-system"
-      name="ignition::gazebo::systems::RFComms">
-      <range_config>
-        <max_range>500000.0</max_range>
-        <fading_exponent>1.5</fading_exponent>
-        <l0>40</l0>
-        <sigma>10.0</sigma>
-      </range_config>
-      <radio_config>
-        <capacity>1000000</capacity>
-        <tx_power>20</tx_power>
-        <noise_floor>-90</noise_floor>
-        <modulation>QPSK</modulation>
-      </radio_config>
+      filename="ignition-gazebo-perfect-comms-system"
+      name="ignition::gazebo::systems::PerfectComms">
     </plugin>
 
     <light type="directional" name="sun">
@@ -94,7 +82,7 @@
 
     <model name="box1">
       <static>true</static>
-      <pose>30000 0 0.5 0 0 0</pose>
+      <pose>2 0 0.5 0 0 0</pose>
       <link name="box_link">
         <inertial>
           <inertia>
@@ -135,18 +123,6 @@
         <address>addr1</address>
         <topic>addr1/rx</topic>
       </plugin>
-      <!-- <plugin
-        filename="ignition-gazebo-trajectory-follower-system"
-        name="ignition::gazebo::systems::TrajectoryFollower">
-        <link_name>box_link</link_name>
-        <loop>true</loop>
-        <force>10</force>
-        <torque>10</torque>
-        <line>
-          <direction>0</direction>
-          <length>5000</length>
-        </line>
-      </plugin> -->
     </model>
 
     <model name="box2">

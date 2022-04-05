@@ -290,7 +290,7 @@ std::tuple<bool, double> RFComms::Implementation::AttemptSend(
             "# Bytes: " << _numBytes << "\n" <<
             "PER: " << packetDropProb << std::endl;
 
-  double randDraw = (rand_r() % 1000) / 1000.0;
+  double randDraw = (rand() % 1000) / 1000.0;
   bool packetReceived = randDraw > packetDropProb;
 
   if (!packetReceived)
@@ -408,16 +408,21 @@ void RFComms::Step(
         continue;
 
       auto entityId = *(entities.begin());
+      if (entityId == kNullEntity)
+        continue;
+
       _newRegistry[address].entity = entityId;
 
       enableComponent<components::WorldPose>(_ecm, entityId);
     }
-
-    // Update radio state.
-    const auto kPose = gazebo::worldPose(content.entity, _ecm);
-    this->dataPtr->radioStates[address].pose = kPose;
-    this->dataPtr->radioStates[address].timeStamp =
-      std::chrono::duration<double>(_info.simTime).count();
+    else
+    {
+      // Update radio state.
+      const auto kPose = gazebo::worldPose(content.entity, _ecm);
+      this->dataPtr->radioStates[address].pose = kPose;
+      this->dataPtr->radioStates[address].timeStamp =
+        std::chrono::duration<double>(_info.simTime).count();
+    }
   }
 
   for (auto & [address, content] : _currentRegistry)
@@ -425,16 +430,24 @@ void RFComms::Step(
     // Reference to the outbound queue for this address.
     auto &outbound = content.outboundMsgs;
 
-    // All these messages need to be processed.
-    for (const auto &msg : outbound)
+    // The source address needs to be attached to a robot.
+    auto itSrc = this->dataPtr->radioStates.find(address);
+    if (itSrc != this->dataPtr->radioStates.end())
     {
-      auto [sendPacket, rssi] = this->dataPtr->AttemptSend(
-        this->dataPtr->radioStates[msg->src_address()],
-        this->dataPtr->radioStates[msg->dst_address()],
-        msg->data().size());
+      // All these messages need to be processed.
+      for (const auto &msg : outbound)
+      {
+        // The destination address needs to be attached to a robot.
+        auto itDst = this->dataPtr->radioStates.find(msg->dst_address());
+        if (itDst == this->dataPtr->radioStates.end())
+          continue;
 
-      if (sendPacket)
-        _newRegistry[msg->dst_address()].inboundMsgs.push_back(msg);
+        auto [sendPacket, rssi] = this->dataPtr->AttemptSend(
+          itSrc->second, itDst->second, msg->data().size());
+
+        if (sendPacket)
+          _newRegistry[msg->dst_address()].inboundMsgs.push_back(msg);
+      }
     }
 
     // Clear the outbound queue.

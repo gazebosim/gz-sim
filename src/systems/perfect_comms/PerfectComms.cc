@@ -57,16 +57,55 @@ void PerfectComms::Step(
       const UpdateInfo &/*_info*/,
       const comms::Registry &_currentRegistry,
       comms::Registry &_newRegistry,
-      EntityComponentManager &/*_ecm*/)
+      EntityComponentManager &_ecm)
 {
+  // Initialize entity if needed.
+  for (auto & [address, content] : _currentRegistry)
+  {
+    if (content.entity == kNullEntity)
+    {
+      auto entities = gazebo::entitiesFromScopedName(content.modelName, _ecm);
+      if (entities.empty())
+        continue;
+
+      auto entityId = *(entities.begin());
+      if (entityId == kNullEntity)
+        continue;
+
+      _newRegistry[address].entity = entityId;
+    }
+  }
+
   for (auto & [address, content] : _currentRegistry)
   {
     // Reference to the outbound queue for this address.
     auto &outbound = content.outboundMsgs;
 
-    // All these messages need to be processed.
-    for (auto &msg : outbound)
-      _newRegistry[msg->dst_address()].inboundMsgs.push_back(msg);
+    // Is the source address bound?
+    auto itSrc = _currentRegistry.find(address);
+    bool srcAddressBound = itSrc != _currentRegistry.end();
+
+    // Is the source address attached to a model?
+    bool srcAddressAttachedToModel =
+      srcAddressBound && itSrc->second.entity != kNullEntity;
+
+    if (srcAddressAttachedToModel)
+    {
+      // All these messages need to be processed.
+      for (auto &msg : outbound)
+      {
+        // Is the destination address bound?
+        auto itDst = _currentRegistry.find(msg->dst_address());
+        bool dstAddressBound = itDst != _currentRegistry.end();
+
+        // Is the destination address attached to a model?
+        bool dstAddressAttachedToModel =
+          dstAddressBound && itDst->second.entity != kNullEntity;
+
+        if (dstAddressAttachedToModel)
+          _newRegistry[msg->dst_address()].inboundMsgs.push_back(msg);
+      }
+    }
 
     // Clear the outbound queue.
     _newRegistry[address].outboundMsgs.clear();
