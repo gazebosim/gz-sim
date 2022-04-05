@@ -284,11 +284,11 @@ std::tuple<bool, double> RFComms::Implementation::AttemptSend(
 
   double packetDropProb = 1.0 - exp(_numBytes * log(1 - ber));
 
-  igndbg << "TX power (dBm): " << this->radioConfig.txPower << "\n" <<
-            "RX power (dBm): " << rxPower << "\n" <<
-            "BER: " << ber << "\n" <<
-            "# Bytes: " << _numBytes << "\n" <<
-            "PER: " << packetDropProb << std::endl;
+  // igndbg << "TX power (dBm): " << this->radioConfig.txPower << "\n" <<
+  //           "RX power (dBm): " << rxPower << "\n" <<
+  //           "BER: " << ber << "\n" <<
+  //           "# Bytes: " << _numBytes << "\n" <<
+  //           "PER: " << packetDropProb << std::endl;
 
   double randDraw = (rand() % 1000) / 1000.0;
   bool packetReceived = randDraw > packetDropProb;
