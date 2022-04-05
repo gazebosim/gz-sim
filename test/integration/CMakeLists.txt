@@ -10,7 +10,6 @@ set(tests
   buoyancy.cc
   buoyancy_engine.cc
   collada_world_exporter.cc
-  comms.cc
   components.cc
   contact_system.cc
   detachable_joint.cc
@@ -45,6 +44,7 @@ set(tests
   odometry_publisher.cc
   particle_emitter.cc
   particle_emitter2.cc
+  perfect_comms.cc
   performer_detector.cc
   physics_system.cc
   play_pause.cc
