@@ -64,6 +64,7 @@ set (sources
   SystemManager.cc
   TestFixture.cc
   Util.cc
+  View.cc
   World.cc
   cmd/ModelCommandAPI.cc
   ${PROTO_PRIVATE_SRC}
