@@ -26,6 +26,7 @@
 #include <ignition/transport/Node.hh>
 #include <ignition/utils/ImplPtr.hh>
 #include "ignition/gazebo/config.hh"
+#include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/System.hh"
 
 namespace ignition
