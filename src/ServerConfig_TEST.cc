@@ -228,3 +228,31 @@ TEST(ServerConfig, GenerateRecordPlugin)
   EXPECT_EQ(plugin.Name(), "ignition::gazebo::systems::LogRecord");
 }
 
+//////////////////////////////////////////////////
+TEST(ServerConfig, SdfRoot)
+{
+  ServerConfig config;
+  EXPECT_FALSE(config.SdfRoot());
+  EXPECT_TRUE(config.SdfFile().empty());
+  EXPECT_TRUE(config.SdfString().empty());
+  EXPECT_EQ(ServerConfig::SourceType::kNone, config.Source());
+
+  config.SetSdfString("string");
+  EXPECT_FALSE(config.SdfRoot());
+  EXPECT_TRUE(config.SdfFile().empty());
+  EXPECT_FALSE(config.SdfString().empty());
+  EXPECT_EQ(ServerConfig::SourceType::kSdfString, config.Source());
+
+  config.SetSdfFile("file");
+  EXPECT_FALSE(config.SdfRoot());
+  EXPECT_FALSE(config.SdfFile().empty());
+  EXPECT_TRUE(config.SdfString().empty());
+  EXPECT_EQ(ServerConfig::SourceType::kSdfFile, config.Source());
+
+  sdf::Root root;
+  config.SetSdfRoot(root);
+  EXPECT_TRUE(config.SdfRoot());
+  EXPECT_TRUE(config.SdfFile().empty());
+  EXPECT_TRUE(config.SdfString().empty());
+  EXPECT_EQ(ServerConfig::SourceType::kSdfRoot, config.Source());
+}
