@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo6 VERSION 6.7.0)
+project(ignition-gazebo6 VERSION 6.8.0)
 
 #============================================================================
 # Find ignition-cmake
@@ -74,7 +74,7 @@ set(IGN_TRANSPORT_VER ${ignition-transport11_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-msgs
-ign_find_package(ignition-msgs8 REQUIRED VERSION 8.2)
+ign_find_package(ignition-msgs8 REQUIRED VERSION 8.3)
 set(IGN_MSGS_VER ${ignition-msgs8_VERSION_MAJOR})
 
 #--------------------------------------
