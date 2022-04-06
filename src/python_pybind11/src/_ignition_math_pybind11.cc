@@ -17,6 +17,7 @@
 #include "Angle.hh"
 #include "AxisAlignedBox.hh"
 #include "Box.hh"
+#include "Capsule.hh"
 #include "Color.hh"
 #include "Cylinder.hh"
 #include "DiffDriveOdometry.hh"
@@ -64,6 +65,8 @@ PYBIND11_MODULE(math, m)
   ignition::math::python::defineMathAngle(m, "Angle");
 
   ignition::math::python::defineMathAxisAlignedBox(m, "AxisAlignedBox");
+
+  ignition::math::python::defineMathCapsule(m, "Capsule");
 
   ignition::math::python::defineMathColor(m, "Color");
 

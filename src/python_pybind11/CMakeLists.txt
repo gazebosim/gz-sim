@@ -11,6 +11,7 @@ pybind11_add_module(math SHARED
   src/_ignition_math_pybind11.cc
   src/Angle.cc
   src/AxisAlignedBox.cc
+  src/Capsule.cc
   src/Color.cc
   src/DiffDriveOdometry.cc
   src/Filter.cc
@@ -98,6 +99,7 @@ if (BUILD_TESTING)
     Angle_TEST
     AxisAlignedBox_TEST
     Box_TEST
+    Capsule_TEST
     Color_TEST
     Cylinder_TEST
     DiffDriveOdometry_TEST
