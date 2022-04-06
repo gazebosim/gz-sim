@@ -74,7 +74,7 @@ std::string customExecStr(std::string _cmd)
 /////////////////////////////////////////////////
 // Test `ign model` command when no Gazebo server is running.
 // See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
-TEST(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_WIN32(NoServerRunning))
+/*TEST(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_WIN32(NoServerRunning))
 {
   const std::string cmd = kIgnModelCommand + "--list ";
   const std::string output = customExecStr(cmd);
@@ -476,7 +476,7 @@ TEST(ModelCommandAPI, AltimeterSensor)
       "    - Dynamic bias correlation time (s): 0\n";
     EXPECT_EQ(expectedOutput, output);
   }
-}
+}*/
 
 /////////////////////////////////////////////////
 // Tests `ign model -s` command with a gpu lidar sensor.
@@ -535,8 +535,64 @@ TEST(ModelCommandAPI, GpuLidarSensor)
 }
 
 /////////////////////////////////////////////////
+// Tests `ign model -s` command with a gpu lidar sensor.
+TEST(ModelCommandAPI, GpuLidarSensor2)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+  // Using an static model to avoid any movements in the simulation.
+  serverConfig.SetSdfFile(
+      ignition::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+        "test", "worlds", "gpu_lidar.sdf"));
+
+  ignition::gazebo::Server server(serverConfig);
+  // Run at least one iteration before continuing to guarantee correctly set up.
+  ASSERT_TRUE(server.Run(true, 5, false));
+  // Run without blocking.
+  server.Run(false, 0, false);
+
+  // Tested command: ign model -m altimeter_mode -l link -s altimeter_sensor
+  {
+    const std::string cmd = kIgnModelCommand
+      + "-m gpu_lidar -l gpu_lidar_link -s gpu_lidar";
+    std::string output = customExecStr(cmd);
+    ReplaceNegativeZeroValues(output);
+    const std::string expectedOutput =
+      "\nRequesting state for world [gpu_lidar_sensor]...\n\n"
+      "- Sensor [8]\n"
+      "  - Name: gpu_lidar\n"
+      "  - Parent: gpu_lidar [4]\n"
+      "  - Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
+      "    [0.000000 0.000000 0.000000]\n"
+      "    [0.000000 0.000000 0.000000]\n"
+      "  - Range:\n"
+      "    - Min (m): 0.08\n"
+      "    - Max (m): 10\n"
+      "    - Resolution: 0.01\n"
+      "  - Horizontal scan:\n"
+      "    - Samples: 640\n"
+      "    - Resolution: 1\n"
+      "    - Min angle (rad): -1.39626\n"
+      "    - Max angle (rad): 1.39626\n"
+      "  - Vertical scan:\n"
+      "    - Samples: 1\n"
+      "    - Resolution: 0.01\n"
+      "    - Min angle (rad): 0\n"
+      "    - Max angle (rad): 0\n"
+      "  - Noise:\n"
+      "    - Mean (m): 0\n"
+      "    - Bias mean (m): 0\n"
+      "    - Standard deviation (m): 0\n"
+      "    - Bias standard deviation (m): 0\n"
+      "    - Precision: 0\n"
+      "    - Dynamic bias standard deviation (m): 0\n"
+      "    - Dynamic bias correlation time (s): 0\n";
+    EXPECT_EQ(expectedOutput, output);
+  }
+}
+
+/////////////////////////////////////////////////
 // Tests `ign model -s` command with a magnetometer.
-TEST(ModelCommandAPI, MagnetometerSensor)
+/*TEST(ModelCommandAPI, MagnetometerSensor)
 {
   ignition::gazebo::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
@@ -591,11 +647,11 @@ TEST(ModelCommandAPI, MagnetometerSensor)
 
       EXPECT_EQ(expectedOutput, output);
   }
-}
+}*/
 
 /////////////////////////////////////////////////
 // Tests `ign model -s` command with an rgbd camera.
-TEST(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_MAC(RgbdCameraSensor))
+/*TEST(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_MAC(RgbdCameraSensor))
 {
   ignition::gazebo::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
@@ -662,7 +718,7 @@ TEST(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_MAC(RgbdCameraSensor))
       "  - Visibility mask: 4294967295\n";
       EXPECT_EQ(expectedOutput, output);
   }
-}
+}*/
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)

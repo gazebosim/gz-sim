@@ -609,7 +609,25 @@ RenderUtil::RenderUtil() : dataPtr(std::make_unique<RenderUtilPrivate>())
 }
 
 //////////////////////////////////////////////////
-RenderUtil::~RenderUtil() = default;
+RenderUtil::~RenderUtil()
+{
+  if (this->dataPtr->scene)
+  {
+    // this->dataPtr->scene->Destroy();
+  }
+
+}
+
+//////////////////////////////////////////////////
+void RenderUtil::Destroy()
+{
+  if (this->dataPtr->scene)
+  {
+    // rendering::unloadEngine(this->dataPtr->engineName);
+    this->dataPtr->scene->Destroy();
+    rendering::unloadEngine(this->dataPtr->engineName);
+  }
+}
 
 //////////////////////////////////////////////////
 rendering::ScenePtr RenderUtil::Scene() const

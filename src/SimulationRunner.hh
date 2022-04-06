@@ -377,6 +377,12 @@ namespace ignition
       /// See the newWorldControlState variable below.
       private: void ProcessNewWorldControlState();
 
+      /// \brief Callback that handles the LoadWorldPlugin event.
+      /// This function checks that the provided plugin has not already been
+      /// loaded.
+      /// \param[in] _plugin World plugin to load.
+      public: void OnLoadWorldPlugin(const sdf::Plugin &_plugin);
+
       /// \brief This is used to indicate that a stop event has been received.
       private: std::atomic<bool> stopReceived{false};
 
@@ -460,6 +466,9 @@ namespace ignition
 
       /// \brief Connection to the load plugins event.
       private: common::ConnectionPtr loadPluginsConn;
+
+      /// \brief Connection to the load world plugin event.
+      private: common::ConnectionPtr loadWorldPluginConn;
 
       /// \brief Pointer to the sdf::World object of this runner
       private: const sdf::World *sdfWorld;

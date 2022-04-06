@@ -52,6 +52,15 @@ namespace ignition
                             EntityComponentManager *_entityCompMgr = nullptr,
                             EventManager *_eventMgr = nullptr);
 
+      /// \brief Check if the system plugin for a given entity is already
+      /// loaded, or pending a load.
+      /// \param[in] _entity Entity
+      /// \param[in] _plugin Plugin to load
+      /// \return True if the plugin associated with the entity already
+      /// exists, false otherwise.
+      public: bool HasPlugin(const Entity _entity,
+                             const sdf::Plugin &_plugin);
+
       /// \brief Load system plugin for a given entity.
       /// \param[in] _entity Entity
       /// \param[in] _plugin Plugin to load

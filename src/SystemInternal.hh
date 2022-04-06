@@ -21,6 +21,7 @@
 #include <memory>
 #include <utility>
 #include <vector>
+#include <sdf/Plugin.hh>
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/System.hh"
@@ -67,6 +68,22 @@ namespace ignition
       {
       }
 
+      /// \brief Constructor
+      /// \param[in] _systemPlugin A system loaded from a plugin.
+      /// \param[in] _entity The entity that this system is attached to.
+      public: explicit SystemInternal(SystemPluginPtr _systemPlugin,
+          Entity _entity, const sdf::Plugin &_plugin)
+              : systemPlugin(std::move(_systemPlugin)),
+                system(systemPlugin->QueryInterface<System>()),
+                configure(systemPlugin->QueryInterface<ISystemConfigure>()),
+                preupdate(systemPlugin->QueryInterface<ISystemPreUpdate>()),
+                update(systemPlugin->QueryInterface<ISystemUpdate>()),
+                postupdate(systemPlugin->QueryInterface<ISystemPostUpdate>()),
+                parentEntity(_entity),
+                sdfPlugin(_plugin)
+      {
+      }
+
       /// \brief Plugin object. This manages the lifecycle of the instantiated
       /// class as well as the shared library.
       /// This will be null if the system wasn't loaded from a plugin.
@@ -99,9 +116,10 @@ namespace ignition
       /// system during the `Configure` call.
       public: Entity parentEntity = {kNullEntity};
 
-      /// \brief Cached sdf that was used to call `Configure` on the system
+      /// \brief Cached sdf plugin that was used to call `Configure` on the
+      /// system.
       /// Useful for if a system needs to be reconfigured at runtime
-      public: std::shared_ptr<const sdf::Element> configureSdf = nullptr;
+      public: std::optional<sdf::Plugin> sdfPlugin{std::nullopt};
 
       /// \brief Vector of queries and callbacks
       public: std::vector<EntityQueryCallback> updates;

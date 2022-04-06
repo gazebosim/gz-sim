@@ -126,6 +126,10 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
       std::bind(&SimulationRunner::LoadPlugins, this, std::placeholders::_1,
       std::placeholders::_2));
 
+  this->loadWorldPluginConn = this->eventMgr.Connect<events::LoadWorldPlugin>(
+      std::bind(&SimulationRunner::OnLoadWorldPlugin, this,
+        std::placeholders::_1));
+
   // Create the level manager
   this->levelMgr = std::make_unique<LevelManager>(this, _config.UseLevels());
 
@@ -174,10 +178,10 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 
   // If we have reached this point and no world systems have been loaded, then
   // load a default set of systems.
-  if (this->systemMgr->TotalByEntity(
-      worldEntity(this->entityCompMgr)).empty())
+  // if (this->systemMgr->TotalByEntity(
+  //     worldEntity(this->entityCompMgr)).empty())
+  if (_world->Plugins().empty() && this->serverConfig.Plugins().empty())
   {
-    ignmsg << "No systems loaded from SDF, loading defaults" << std::endl;
     bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
     auto plugins = ignition::gazebo::loadPluginInfo(isPlayback);
     this->LoadServerPlugins(plugins);
@@ -859,6 +863,22 @@ void SimulationRunner::LoadPlugin(const Entity _entity,
                                   const sdf::Plugin &_plugin)
 {
   this->systemMgr->LoadPlugin(_entity, _plugin);
+}
+
+//////////////////////////////////////////////////
+void SimulationRunner::OnLoadWorldPlugin(const sdf::Plugin &_plugin)
+{
+
+  // This function is called when a entity is created that requires
+  // a world plugin. For example, a robot with a camera sensor needs the
+  // Sensors system plugin.
+  // Check to make sure that the world plugin is not already loaded,
+  // otherwise we could end up with a lot of duplicate world plugins.
+
+  if (!systemMgr->HasPlugin(worldEntity(this->entityCompMgr), _plugin))
+  {
+    this->systemMgr->LoadPlugin(worldEntity(this->entityCompMgr), _plugin);
+  }
 }
 
 //////////////////////////////////////////////////

@@ -30,6 +30,7 @@
 
 #include <ignition/math/Helpers.hh>
 
+#include "ignition//rendering/RenderingIface.hh"
 #include <ignition/rendering/Scene.hh>
 #include <ignition/sensors/CameraSensor.hh>
 #include <ignition/sensors/DepthCameraSensor.hh>
@@ -180,11 +181,16 @@ class ignition::gazebo::systems::SensorsPrivate
   /// \brief Stop the rendering thread
   public: void Stop();
 
+  /// \brief Stop the rendering thread
+  public: void OnStop();
+
   /// \brief Use to optionally set the background color.
   public: std::optional<math::Color> backgroundColor;
 
   /// \brief Use to optionally set the ambient light.
   public: std::optional<math::Color> ambientLight;
+
+  public: bool needsStop{false};
 };
 
 //////////////////////////////////////////////////
@@ -316,6 +322,8 @@ void SensorsPrivate::RenderThread()
   for (const auto id : this->sensorIds)
     this->sensorManager.Remove(id);
 
+  this->renderUtil.Destroy();
+
   igndbg << "SensorsPrivate::RenderThread stopped" << std::endl;
 }
 
@@ -325,6 +333,12 @@ void SensorsPrivate::Run()
   igndbg << "SensorsPrivate::Run" << std::endl;
   this->running = true;
   this->renderThread = std::thread(&SensorsPrivate::RenderThread, this);
+}
+
+//////////////////////////////////////////////////
+void SensorsPrivate::OnStop()
+{
+  this->needsStop = true;
 }
 
 //////////////////////////////////////////////////
@@ -460,7 +474,7 @@ void Sensors::Configure(const Entity &/*_id*/,
   this->dataPtr->eventManager = &_eventMgr;
 
   this->dataPtr->stopConn = _eventMgr.Connect<events::Stop>(
-      std::bind(&SensorsPrivate::Stop, this->dataPtr.get()));
+      std::bind(&SensorsPrivate::OnStop, this->dataPtr.get()));
 
   // Kick off worker thread
   this->dataPtr->Run();
@@ -483,6 +497,11 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
                          const EntityComponentManager &_ecm)
 {
   IGN_PROFILE("Sensors::PostUpdate");
+  if (this->dataPtr->needsStop)
+  {
+    this->dataPtr->Stop();
+    return;
+  }
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
