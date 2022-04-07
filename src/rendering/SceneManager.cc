@@ -684,8 +684,8 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
   }
   else if (_geom.Type() == sdf::GeometryType::HEIGHTMAP)
   {
-    auto fullPath = asFullPath(_geom.HeightmapShape()->Uri(),
-        _geom.HeightmapShape()->FilePath());
+    auto fullPath = common::findFile(asFullPath(_geom.HeightmapShape()->Uri(),
+        _geom.HeightmapShape()->FilePath()));
     if (fullPath.empty())
     {
       ignerr << "Heightmap geometry missing URI" << std::endl;
