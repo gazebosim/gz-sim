@@ -1319,6 +1319,9 @@ def main():
             file=sys.stderr,
         )
 
+    # # Generate a single SDF model
+    # sdf_model_exporter.generate()
+
     # Generate dataset of procedural models
     procedural_dataset_generator.generate()
 
