@@ -26,10 +26,6 @@ detail)
 
 5. Randomization of parameters, e.g. mass and surface friction
 
-This script is still not yet fully featured, e.g. baking of procedural textures
-is not yet implemented, hence it contains a number of TODO notes (contributions
-are welcome).
-
 ## Procedural Mesh Geometry
 
 [url_blender_docs_geometry_nodes]: https://docs.blender.org/manual/en/latest/modeling/geometry_nodes/introduction.html
@@ -76,3 +72,41 @@ If Blender is installed from [snap][url_snap_blender], it will not be possible
 to setup the trimesh module required for estimation of inertial properties.
 Therefore, please run Blender from console with the `--python-use-system-env`
 flag.
+
+## Future Work
+
+Script [`procedural_dataset_generator.py`][procedural_dataset_generator_script]
+is not fully featured yet. Bellow is a list of desired features that could be
+eventually added to improve its functionality (contributions are welcome).
+
+### SDF Model Exporter
+
+- **Exporting**
+  - Support exporting processed objects as separate `<visual>` and `<collision>`
+    entities under a single SDF model (default behavior).
+  - Support exporting processed objects as separate SDF models (user-configured
+    optional feature).
+  - Add option to skip exporting of `<visual>` or `<collision>` entities for
+    some of the processed objects (user-configured optional feature).
+  - Support exporting of lights.
+  - Support exporting of cameras.
+  - Automatic generation of thumbnails via Blender renders.
+- **Materials**
+  - Support texture baking for processed objects (should be the default
+    behavior).
+    - [Refactoring] To fully support texture baking, each processed object must
+      be exported as separate `<visual>` entity in order to prevent overlapping
+      UV maps.
+  - Add better mapping of materials (in addition to what COLLADA exporter does).
+
+### Procedural Dataset Generator
+
+- **Template**
+  - Add `.blend` template project that can be used as a start point for
+    generation of new datasets.
+- **Randomization**
+  - Add option to specify distribution for sampling random variables (e.g.
+    uniform/Gaussian).
+- **Materials**
+  - Support randomization of procedural materials.
+  - Add option to pull (random) PBR textures from an online source.
