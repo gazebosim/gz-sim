@@ -168,7 +168,7 @@ void MsgManager::DeliverMsgs()
 }
 
 //////////////////////////////////////////////////
-const Registry &MsgManager::DataConst()
+const Registry &MsgManager::DataConst() const
 {
   return this->dataPtr->data;
 }
@@ -180,13 +180,13 @@ Registry &MsgManager::Data()
 }
 
 //////////////////////////////////////////////////
-Registry MsgManager::Copy()
+Registry MsgManager::Copy() const
 {
   return this->dataPtr->data;
 }
 
 //////////////////////////////////////////////////
-void MsgManager::Set(Registry &_newContent)
+void MsgManager::Set(const Registry &_newContent)
 {
   this->dataPtr->data = _newContent;
 }

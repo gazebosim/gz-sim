@@ -74,7 +74,7 @@ struct AddressContent
 /// information associated to each address (subscribers, queues, ...).
 using Registry = std::unordered_map<std::string, AddressContent>;
 
-/// \brief ToDo.
+/// \brief Class to handle messages and subscriptions.
 class MsgManager
 {
   /// \brief Default constructor.
@@ -132,10 +132,10 @@ class MsgManager
   /// the appropriate subscribers. This function also clears the inbound queue.
   public: void DeliverMsgs();
 
-  /// \brief Get a mutable reference to the data containing subscriptions and
+  /// \brief Get an inmutable reference to the data containing subscriptions and
   /// data queues.
-  /// \return A mutable reference to the data.
-  public: const Registry &DataConst();
+  /// \return A const reference to the data.
+  public: const Registry &DataConst() const;
 
   /// \brief Get a mutable reference to the data containing subscriptions and
   /// data queues.
@@ -145,11 +145,11 @@ class MsgManager
   /// \brief Get a copy of the data structure containing subscriptions and data
   /// queues.
   /// \return A copy of the data.
-  public: Registry Copy();
+  public: Registry Copy() const;
 
   /// \brief Set the data structure containing subscriptions and data queues.
   /// \param[in] _newContent New content to be set.
-  public: void Set(Registry &_newContent);
+  public: void Set(const Registry &_newContent);
 
   /// \brief Private data pointer.
   IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)
