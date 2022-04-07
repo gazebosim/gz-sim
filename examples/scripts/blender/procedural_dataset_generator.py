@@ -1270,10 +1270,11 @@ class procedural_dataset_generator(sdf_model_exporter):
         # TODO[enhancement]: Figure out a better way of updating modifiers after
         #                    programatic changes
         bpy.context.view_layer.objects.active = obj
-        bpy.ops.object.modifier_move_to_index(
-            modifier=obj.modifiers.values()[0].name,
-            index=0,
-        )
+        if len(obj.modifiers.values()):
+            bpy.ops.object.modifier_move_to_index(
+                modifier=obj.modifiers.values()[0].name,
+                index=0,
+            )
 
     def __unify_string(
         string: str,
