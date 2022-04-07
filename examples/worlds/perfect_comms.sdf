@@ -10,10 +10,10 @@
     make
 
   Try launching a comms subscriber:
-    ign topic -e -t addr1/rx
+    ign topic -e -t addr2/rx
 
   Try launching a comms publisher:
-    ./publisher addr1
+    ./publisher addr2
 -->
 <sdf version="1.6">
   <world name="perfect_comms">
@@ -54,6 +54,7 @@
     </light>
 
     <model name="ground_plane">
+      <static>true</static>
       <link name="link">
         <collision name="collision">
           <geometry>
@@ -80,7 +81,6 @@
     </model>
 
     <model name="box1">
-      <static>true</static>
       <pose>2 0 0.5 0 0 0</pose>
       <link name="box_link">
         <inertial>

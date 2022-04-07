@@ -50,12 +50,12 @@ struct RangeConfiguration
   /// \brief Received power at 1m (in dBm).
   double l0 = 40;
 
-  /// \beief Standard deviation for received power.
+  /// \brief Standard deviation for received power.
   double sigma = 10;
 
   /// Output stream operator.
-  /// @param[out] _oss Stream.
-  /// @param[in] _config configuration to output.
+  /// \param[out] _oss Stream.
+  /// \param[in] _config configuration to output.
   friend std::ostream &operator<<(std::ostream &_oss,
                                   const RangeConfiguration &_config)
   {
@@ -87,8 +87,8 @@ struct RadioConfiguration
   double noiseFloor = -90;
 
   /// Output stream operator.
-  /// @param _oss Stream.
-  /// @param _config configuration to output.
+  /// \param _oss Stream.
+  /// \param _config configuration to output.
   friend std::ostream &operator<<(std::ostream &_oss,
                                   const RadioConfiguration &_config)
   {
@@ -138,7 +138,7 @@ struct RFPower
 
   /// \brief double operator.
   /// \return the RFPower as a double.
-  operator double()
+  operator double() const
   {
     return mean;
   }
@@ -155,7 +155,6 @@ class ignition::gazebo::systems::RFComms::Implementation
   /// limitations). This probability is then used to determine if the
   /// packet is successfully communicated.
   ///
-  /// @param radio Static configuration for the radio
   /// \param[in out] _txState Current state of the transmitter.
   /// \param[in out] _rxState Current state of the receiver.
   /// \param[in] _numBytes Size of the packet.
@@ -332,12 +331,6 @@ std::tuple<bool, double> RFComms::Implementation::AttemptSend(
 RFComms::RFComms()
   : dataPtr(ignition::utils::MakeUniqueImpl<Implementation>())
 {
-}
-
-//////////////////////////////////////////////////
-RFComms::~RFComms()
-{
-  // cannot use default destructor because of dataPtr
 }
 
 //////////////////////////////////////////////////

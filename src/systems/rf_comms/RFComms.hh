@@ -20,7 +20,7 @@
 #include <memory>
 
 #include <ignition/utils/ImplPtr.hh>
-#include <sdf/sdf.hh>
+#include <sdf/Element.hh>
 #include "ignition/gazebo/comms/ICommsModel.hh"
 #include "ignition/gazebo/System.hh"
 
@@ -86,7 +86,7 @@ namespace systems
     public: RFComms();
 
     /// \brief Destructor.
-    public: ~RFComms();
+    public: ~RFComms() override = default;
 
     // Documentation inherited.
     public: void Load(const Entity &_entity,
@@ -98,7 +98,7 @@ namespace systems
     public: void Step(const ignition::gazebo::UpdateInfo &_info,
                       const comms::Registry &_currentRegistry,
                       comms::Registry &_newRegistry,
-                      EntityComponentManager &_ecm);
+                      EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer.
     IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)

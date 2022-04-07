@@ -10,10 +10,10 @@
     make
 
   Try launching a comms subscriber:
-    ign topic -e -t addr1/rx
+    ign topic -e -t addr2/rx
 
   Try launching a comms publisher:
-    ./publisher addr1
+    ./publisher addr2
 -->
 <sdf version="1.6">
   <world name="rf_comms">
