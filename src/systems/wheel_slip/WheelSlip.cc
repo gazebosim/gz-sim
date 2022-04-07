@@ -27,6 +27,7 @@
 
 #include "ignition/gazebo/Link.hh"
 #include "ignition/gazebo/Model.hh"
+#include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Collision.hh"
@@ -34,6 +35,8 @@
 #include "ignition/gazebo/components/JointVelocity.hh"
 #include "ignition/gazebo/components/SlipComplianceCmd.hh"
 #include "ignition/gazebo/components/WheelSlipCmd.hh"
+
+#include <ignition/msgs/wheel_slip_parameters.pb.h>
 
 using namespace ignition;
 using namespace gazebo;
@@ -52,6 +55,9 @@ class ignition::gazebo::systems::WheelSlipPrivate
 
   /// \brief Ignition communication node
   public: transport::Node node;
+
+    /// \brief Parameters registry
+  public: transport::parameters::ParametersRegistry * registry;
 
   /// \brief Joint Entity
   public: Entity jointEntity;
@@ -248,28 +254,39 @@ void WheelSlipPrivate::Update(EntityComponentManager &_ecm)
   for (auto &linkSurface : this->mapLinkSurfaceParams)
   {
     auto &params = linkSurface.second;
-    const auto * wheelSlipCmdComp =
-      _ecm.Component<components::WheelSlipCmd>(linkSurface.first);
-    if (wheelSlipCmdComp)
+    std::string scopedName = ignition::gazebo::scopedName(
+      linkSurface.first, _ecm, ".", false);
+
+    auto paramName = std::string("systems.wheel_slip.") + scopedName;
+    transport::parameters::ParametersRegistry::ParameterValue value;
+    try {
+      value = this->registry->GetParameter(paramName);
+    } catch (const std::exception & ex) {
+      ignerr << "WheelSlip system Update(): failed to get parameter ["
+              << paramName << "]";
+    }
+    auto * msg = dynamic_cast<msgs::WheelSlipParameters *>(value.msg.get());
+    if (msg)
     {
-      const auto & wheelSlipCmdParams = wheelSlipCmdComp->Data();
       bool changed = (!math::equal(
           params.slipComplianceLateral,
-          wheelSlipCmdParams.slip_compliance_lateral(),
+          msg->slip_compliance_lateral(),
           1e-6)) ||
         (!math::equal(
           params.slipComplianceLongitudinal,
-          wheelSlipCmdParams.slip_compliance_longitudinal(),
+          msg->slip_compliance_longitudinal(),
           1e-6));
 
       if (changed)
       {
         params.slipComplianceLateral =
-          wheelSlipCmdParams.slip_compliance_lateral();
+          msg->slip_compliance_lateral();
         params.slipComplianceLongitudinal =
-          wheelSlipCmdParams.slip_compliance_longitudinal();
+          msg->slip_compliance_longitudinal();
       }
-      _ecm.RemoveComponent<components::WheelSlipCmd>(linkSurface.first);
+    } else {
+      ignerr << "WheelSlip system Update(): parameter ["
+              << paramName << "] is not of type [ign_msgs.WheelSlipParameters]";
     }
 
     // get user-defined normal force constant
@@ -346,6 +363,25 @@ void WheelSlip::Configure(const Entity &_entity,
   this->dataPtr->validConfig = this->dataPtr->Load(_ecm, sdfClone);
 }
 
+void WheelSlip::ConfigureParameters(
+  ignition::transport::parameters::ParametersRegistry & _registry,
+  EntityComponentManager &_ecm)
+{
+  this->dataPtr->registry = &_registry;
+  for (const auto & linkParamsPair : this->dataPtr->mapLinkSurfaceParams) {
+    std::string scopedName = ignition::gazebo::scopedName(
+      linkParamsPair.first, _ecm, ".", false);
+
+    auto paramName = std::string("systems.wheel_slip.") + scopedName;
+    auto wsParams = std::make_unique<ignition::msgs::WheelSlipParameters>();
+    wsParams->set_slip_compliance_lateral(
+      linkParamsPair.second.slipComplianceLateral);
+    wsParams->set_slip_compliance_longitudinal(
+      linkParamsPair.second.slipComplianceLongitudinal);
+    _registry.DeclareParameter(paramName, std::move(wsParams));
+  }
+}
+
 //////////////////////////////////////////////////
 void WheelSlip::PreUpdate(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
@@ -388,6 +424,7 @@ void WheelSlip::PreUpdate(const UpdateInfo &_info, EntityComponentManager &_ecm)
 IGNITION_ADD_PLUGIN(WheelSlip,
                     ignition::gazebo::System,
                     WheelSlip::ISystemConfigure,
+                    WheelSlip::ISystemConfigureParameters,
                     WheelSlip::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(WheelSlip,
