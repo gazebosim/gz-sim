@@ -7,7 +7,7 @@ also inside robotics simulators like Ignition Gazebo. In addition to modeling,
 sculpting and texturing models manually, Blender similarly enables procedural
 generation of datasets that can facilitate diversity in simulation environments.
 
-[procedural_dataset_generator_script]: ../examples/scripts/blender/procedural_dataset_generator.py
+[procedural_dataset_generator_script]: https://github.com/ignitionrobotics/ign-gazebo/tree/ign-gazebo6/examples/scripts/blender/procedural_dataset_generator.py
 Script [`procedural_dataset_generator.py`][procedural_dataset_generator_script]
 supports generation of procedural SDF models for use inside Ignition Gazebo. Its
 exporting capabilities can be used with a number of existing `.blend` files.
@@ -29,7 +29,7 @@ detail)
 ## Procedural Mesh Geometry
 
 [url_blender_docs_geometry_nodes]: https://docs.blender.org/manual/en/latest/modeling/geometry_nodes/introduction.html
-[rock_blend_file]: ./files/blender_procedural_generation/rock.blend
+[rock_blend_file]: https://github.com/ignitionrobotics/ign-gazebo/tree/ign-gazebo6/tutorials/files/blender_procedural_generation/rock.blend
 [Geometry Nodes][url_blender_docs_geometry_nodes] is a feature of Blender that
 enables creation and modification of mesh geometry through node-based pipelines.
 By combining procedural operations with randomness, a seemingly infinite number
@@ -39,7 +39,7 @@ rocks. The corresponding `.blend` file can be accessed here (tested with Blender
 3.0/3.1): [rock.blend][rock_blend_file]. This file can be used as a template for
 creation of other custom datasets.
 
-@image html files/blender_procedural_generation/example_rock.gif "Procedural Generation Example" width=100%
+@image html https://github.com/ignitionrobotics/ign-gazebo/tree/ign-gazebo6/tutorials/files/blender_procedural_generation/example_rock.gif "Procedural Generation Example" width=100%
 
 [url_blender_tutorial_geometry_nodes_0]: https://youtube.com/watch?v=4WAxMI1QJMQ&list=PLjEaoINr3zgFX8ZsChQVQsuDSjEqdWMAD&index=9
 [url_blender_tutorial_geometry_nodes_1]: https://youtube.com/watch?v=XSkaM-8Vgz8
