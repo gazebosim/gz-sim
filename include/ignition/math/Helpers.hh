@@ -731,6 +731,31 @@ namespace ignition
     {
       std::smatch matches;
 
+      // The following regex takes a time string in the general format of
+      // "dd hh:mm:ss.nnn" where n is milliseconds, if just one number is
+      // provided, it is assumed to be seconds
+      static const std::regex time_regex(
+          "^([0-9]+ ){0,1}"                       // day:
+                                                  // Any positive integer
+
+          "(?:([1-9]:|[0-1][0-9]:|2[0-3]:){0,1}"  // hour:
+                                                  // 1 - 9:
+                                                  // 01 - 19:
+                                                  // 20 - 23:
+
+          "([0-9]:|[0-5][0-9]:)){0,1}"            // minute:
+                                                  // 0 - 9:
+                                                  // 00 - 59:
+
+          "(?:([0-9]|[0-5][0-9]){0,1}"            // second:
+                                                  // 0 - 9
+                                                  // 00 - 59
+
+          "(\\.[0-9]{1,3}){0,1})$");              // millisecond:
+                                                  // .0 - .9
+                                                  // .00 - .99
+                                                  // .000 - 0.999
+
       // `matches` should always be a size of 6 as there are 6 matching
       // groups in the regex.
       // 1. The whole regex
