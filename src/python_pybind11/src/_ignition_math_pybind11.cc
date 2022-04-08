@@ -21,6 +21,7 @@
 #include "Color.hh"
 #include "Cylinder.hh"
 #include "DiffDriveOdometry.hh"
+#include "Ellipsoid.hh"
 #include "Filter.hh"
 #include "Frustum.hh"
 #include "GaussMarkovProcess.hh"
@@ -72,6 +73,9 @@ PYBIND11_MODULE(math, m)
 
   ignition::math::python::defineMathDiffDriveOdometry(
     m, "DiffDriveOdometry");
+
+  ignition::math::python::defineMathEllipsoid(
+    m, "Ellipsoid");
 
   ignition::math::python::defineMathGaussMarkovProcess(
     m, "GaussMarkovProcess");
