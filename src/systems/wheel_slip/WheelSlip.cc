@@ -257,13 +257,17 @@ void WheelSlipPrivate::Update(EntityComponentManager &_ecm)
     std::string scopedName = ignition::gazebo::scopedName(
       linkSurface.first, _ecm, ".", false);
 
-    auto paramName = std::string("systems.wheel_slip.") + scopedName;
+    // TODO(ivanpauno): WHY THE SCOPED NAME CHANGES BETWEEN HERE AND
+    //   ConfigureParameters()?
+    // Here the scoped name starts with "wheel_slip."
+    // In `ConfigureParameters()` that doesn't happen!
+    auto paramName = std::string("systems.") + scopedName;
     transport::parameters::ParametersRegistry::ParameterValue value;
     try {
       value = this->registry->GetParameter(paramName);
     } catch (const std::exception & ex) {
       ignerr << "WheelSlip system Update(): failed to get parameter ["
-              << paramName << "]";
+              << paramName << "]: " << ex.what() << std::endl;
     }
     auto * msg = dynamic_cast<msgs::WheelSlipParameters *>(value.msg.get());
     if (msg)
@@ -279,14 +283,18 @@ void WheelSlipPrivate::Update(EntityComponentManager &_ecm)
 
       if (changed)
       {
+        igndbg << "WheelSlip system Update(): parameter ["
+              << paramName << "] updated"
+              << std::endl;
         params.slipComplianceLateral =
           msg->slip_compliance_lateral();
         params.slipComplianceLongitudinal =
           msg->slip_compliance_longitudinal();
       }
-    } else {
+    } else if (value.msg.get()) {
       ignerr << "WheelSlip system Update(): parameter ["
-              << paramName << "] is not of type [ign_msgs.WheelSlipParameters]";
+              << paramName << "] is not of type [ign_msgs.WheelSlipParameters]"
+              << std::endl;
     }
 
     // get user-defined normal force constant
