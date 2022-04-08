@@ -45,6 +45,8 @@ namespace ignition
               : systemPlugin(std::move(_systemPlugin)),
                 system(systemPlugin->QueryInterface<System>()),
                 configure(systemPlugin->QueryInterface<ISystemConfigure>()),
+                configureParameters(
+                  systemPlugin->QueryInterface<ISystemConfigureParameters>()),
                 preupdate(systemPlugin->QueryInterface<ISystemPreUpdate>()),
                 update(systemPlugin->QueryInterface<ISystemUpdate>()),
                 postupdate(systemPlugin->QueryInterface<ISystemPostUpdate>()),
@@ -60,6 +62,8 @@ namespace ignition
               : systemShared(_system),
                 system(_system.get()),
                 configure(dynamic_cast<ISystemConfigure *>(_system.get())),
+                configureParameters(
+                  dynamic_cast<ISystemConfigureParameters *>(_system.get())),
                 preupdate(dynamic_cast<ISystemPreUpdate *>(_system.get())),
                 update(dynamic_cast<ISystemUpdate *>(_system.get())),
                 postupdate(dynamic_cast<ISystemPostUpdate *>(_system.get())),

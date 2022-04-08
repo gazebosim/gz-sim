@@ -49,8 +49,8 @@ namespace ignition
       public: explicit SystemManager(
         const SystemLoaderPtr &_systemLoader,
         EntityComponentManager *_entityCompMgr = nullptr,
-        EventManager *_eventMgr = nullptr
-        igntion::transport::parameters::ParametersRegistry *
+        EventManager *_eventMgr = nullptr,
+        ignition::transport::parameters::ParametersRegistry *
           _parametersRegistry = nullptr);
 
       /// \brief Load system plugin for a given entity.
@@ -141,7 +141,7 @@ namespace ignition
       private: std::vector<ISystemConfigure *> systemsConfigure;
 
       /// \brief Systems implementing ConfigureParameters
-      private: std::vector<ConfigureParameters *> systemsConfigureParameters;
+      private: std::vector<ISystemConfigureParameters *> systemsConfigureParameters;
 
       /// \brief Systems implementing PreUpdate
       private: std::vector<ISystemPreUpdate *> systemsPreupdate;

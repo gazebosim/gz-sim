@@ -25,8 +25,7 @@ SystemManager::SystemManager(
   const SystemLoaderPtr &_systemLoader,
   EntityComponentManager *_entityCompMgr,
   EventManager *_eventMgr,
-  igntion::transport::parameters::ParametersRegistry *
-    _parametersRegistry = nullptr)
+  ignition::transport::parameters::ParametersRegistry *_parametersRegistry)
   : systemLoader(_systemLoader),
     entityCompMgr(_entityCompMgr),
     eventMgr(_eventMgr),
@@ -89,7 +88,7 @@ size_t SystemManager::ActivatePendingSystems()
       this->systemsConfigure.push_back(system.configure);
     
     if (system.configureParameters)
-      this->systemsConfigureParameters.push_back(system.configure);
+      this->systemsConfigureParameters.push_back(system.configureParameters);
 
     if (system.preupdate)
       this->systemsPreupdate.push_back(system.preupdate);
@@ -139,7 +138,6 @@ void SystemManager::AddSystemImpl(
   if (_system.configureParameters && this->entityCompMgr && this->parametersRegistry)
   {
     _system.configureParameters->ConfigureParameters(
-      _system.parentEntity,
       *this->parametersRegistry,
       *this->entityCompMgr);
   }
