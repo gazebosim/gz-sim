@@ -23,6 +23,7 @@
 #include <cstdint>
 #include <ostream>
 #include <limits>
+#include <regex>
 #include <string>
 #include <tuple>
 #include <utility>
