@@ -436,7 +436,7 @@ void RFComms::Step(
           continue;
 
         auto [sendPacket, rssi] = this->dataPtr->AttemptSend(
-          itSrc->second, itDst->second, msg->data().size());
+          itSrc->second, itDst->second, msg->ByteSizeLong());
 
         if (sendPacket)
           _newRegistry[msg->dst_address()].inboundMsgs.push_back(msg);
