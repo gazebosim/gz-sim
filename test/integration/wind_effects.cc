@@ -218,7 +218,6 @@ TEST_F(WindEffectsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(WindEnabledInLink))
   EXPECT_TRUE(linkWindMode.values.back().Data());
 }
 
-
 ////////////////////////////////////////////////
 TEST_F(WindEffectsTest , IGN_UTILS_TEST_DISABLED_ON_WIN32(WindForce))
 {
@@ -254,6 +253,48 @@ TEST_F(WindEffectsTest , IGN_UTILS_TEST_DISABLED_ON_WIN32(WindForce))
     EXPECT_LT(1e-6, lastAccelMagnitude - accelMagnitude);
     lastAccelMagnitude = accelMagnitude;
   }
+}
+
+////////////////////////////////////////////////
+TEST_F(WindEffectsTest , IGN_UTILS_TEST_DISABLED_ON_WIN32(ComplexWindForce))
+{
+  this->StartServer("/test/worlds/sea_storm_effects.sdf");
+  LinkComponentRecorder<components::WorldLinearAcceleration>
+      belowSurfaceAccelerations("box_below_surface", true);
+  LinkComponentRecorder<components::WorldLinearAcceleration>
+      aboveSurfaceAccelerations("box_above_surface", true);
+  LinkComponentRecorder<components::WorldLinearAcceleration>
+      upHighAccelerations("box_up_high", true);
+
+  using namespace std::chrono_literals;
+  this->server->SetUpdatePeriod(0ns);
+
+  this->server->AddSystem(belowSurfaceAccelerations.systemPtr);
+  this->server->AddSystem(aboveSurfaceAccelerations.systemPtr);
+  this->server->AddSystem(upHighAccelerations.systemPtr);
+
+  const std::size_t nIters{3000};
+  this->server->Run(true, nIters, false);
+
+  ASSERT_EQ(nIters, belowSurfaceAccelerations.values.size());
+  ASSERT_EQ(nIters, aboveSurfaceAccelerations.values.size());
+  ASSERT_EQ(nIters, upHighAccelerations.values.size());
+
+  double maxAboveSurfaceAccelMagnitude = 0.;
+  for (std::size_t i = 0; i < nIters; ++i)
+  {
+    const double belowSurfaceAccelMagnitude =
+        belowSurfaceAccelerations.values[i].Data().Length();
+    const double aboveSurfaceAccelMagnitude =
+        aboveSurfaceAccelerations.values[i].Data().Length();
+    const double upHighAccelMagnitude =
+        upHighAccelerations.values[i].Data().Length();
+    maxAboveSurfaceAccelMagnitude = std::max(
+        maxAboveSurfaceAccelMagnitude, aboveSurfaceAccelMagnitude);
+    EXPECT_LE(aboveSurfaceAccelMagnitude, upHighAccelMagnitude);
+    EXPECT_LT(belowSurfaceAccelMagnitude, 1e-6);
+  }
+  EXPECT_GT(maxAboveSurfaceAccelMagnitude, 1e-6);
 }
 
 ////////////////////////////////////////////////

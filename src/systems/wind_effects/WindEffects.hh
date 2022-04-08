@@ -33,9 +33,8 @@ namespace systems
   class WindEffectsPrivate;
 
   /// \brief A system that simulates a simple wind model.
-  /// The wind is described as a uniform worldwide model. So it is independent
-  /// from model position for simple computations. Its components are computed
-  /// separately:
+  /// The wind is described as a uniform worldwide model.
+  /// Its components are computed separately:
   /// - Horizontal amplitude:
   ///      Low pass filtering on user input (complementary gain)
   ///      + small local fluctuations
@@ -50,6 +49,12 @@ namespace systems
   ///      Low pass filtering on user input (complementary gain)
   ///      + small local fluctuations
   ///      + noise on value
+  ///
+  /// Forces exerted by the wind on model links are approximated from
+  /// link mass and velocity with respect to wind velocity, and applied
+  /// to the link frame origin. These approximations can be amplified or
+  /// attenuated on a per location basis by specifying a piecewise scalar
+  /// field for a scaling factor.
   ///
   /// The following parameters are used by the system:
   ///
@@ -86,6 +91,40 @@ namespace systems
   /// - `<vertical><noise>`
   /// Parameters for the noise that is added to the vertical wind velocity
   /// magnitude.
+  ///
+  /// - `<force_approximation_scaling_factor>`
+  /// Proportionality constant used for wind force approximations as a
+  /// piecewise, separable scalar field:
+  /// \verbatim
+  ///   <force_approximation_scaling_factor>
+  ///     <when xlt="0"> <!-- Half space where x < 0 -->
+  ///       <k>1</k>
+  ///       <px>0 0 0 1</px>  <!-- p(x) = x -->
+  ///       <qy>0 0 0 1</qy>  <!-- q(y) = 1 -->
+  ///       <rz>0 1 0 1</rz>  <!-- r(z) = z^2 -->
+  ///     </when>
+  ///   </force_approximation_scaling_factor>
+  /// \endverbatim
+  /// When the scaling factor is to be constant in a region, a numerical
+  /// constant may be used in place for the scalar field definition:
+  /// \verbatim
+  ///   <force_approximation_scaling_factor>
+  ///     <!-- First octant -->
+  ///     <when xge="0" yge="0" zge="0">1</when>
+  ///   </force_approximation_scaling_factor>
+  /// \endverbatim
+  /// To use the same constant or scalar field in all space, region
+  /// definition may be dropped:
+  /// \verbatim
+  ///   <force_approximation_scaling_factor>
+  ///     <k>2</k>
+  ///     <px>1 0 1 0</px>  <!-- p(x) = x^3 + x -->
+  ///     <qy>0 1 0 1</qy>  <!-- q(y) = x^2 + 1 -->
+  ///     <rz>1 0 1 0</rz>  <!-- r(z) = z^3 + z -->
+  ///   </force_approximation_scaling_factor>
+  /// \endverbatim
+  /// Regions may not overlap.
+  ///
   class WindEffects final:
     public System,
     public ISystemConfigure,
