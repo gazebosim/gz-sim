@@ -18,14 +18,12 @@
 #ifndef IGNITION_GAZEBO_ICOMMSMODEL_HH_
 #define IGNITION_GAZEBO_ICOMMSMODEL_HH_
 
-#include <algorithm>
 #include <memory>
 
-#include <sdf/sdf.hh>
-#include <ignition/common/Profiler.hh>
-#include "ignition/gazebo/comms/Broker.hh"
+#include <ignition/utils/ImplPtr.hh>
+#include <sdf/Element.hh>
+#include "ignition/gazebo/comms/MsgManager.hh"
 #include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/System.hh"
 
 namespace ignition
@@ -34,11 +32,13 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+
+  // Forward declarations
+  class EntityComponentManager;
+  class EventManager;
+
 namespace comms
 {
-  // Forward declarations.
-  class MsgManager;
-
   /// \brief Abstract interface to define how the environment should handle
   /// communication simulation. As an example, this class could be responsible
   /// for handling dropouts, decay and packet collisions.
@@ -69,87 +69,29 @@ namespace comms
         public ISystemConfigure,
         public ISystemPreUpdate
   {
+    /// \brief Constructor.
+    public: ICommsModel();
+
     /// \brief Destructor.
-    public: virtual ~ICommsModel() = default;
+    public: ~ICommsModel() override = default;
 
     // Documentation inherited.
     public: void Configure(const Entity &_entity,
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
-                           EventManager &_eventMgr) override
-    {
-      // Parse the optional <step_size>.
-      if (_sdf->HasElement("step_size"))
-      {
-        this->timeStep = std::chrono::duration<int64_t, std::nano>(
-          static_cast<int64_t>(_sdf->Get<double>("step_size") * 1e9));
-      }
-
-      this->Load(_entity, _sdf, _ecm, _eventMgr);
-      this->broker.Load(_sdf);
-      this->broker.Start();
-    }
+                           EventManager &_eventMgr) override;
 
     // Documentation inherited.
     public: void PreUpdate(
                 const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) override
-    {
-      IGN_PROFILE("ICommsModel::PreUpdate");
-
-      if (_info.paused)
-        return;
-
-      this->currentTime =
-        std::chrono::steady_clock::time_point(_info.simTime);
-
-      if (!this->timeStep.has_value())
-      {
-        // If no step_size is defined simply execute one step of the comms model
-        this->StepImpl(_info, _ecm);
-      }
-      else
-      {
-        // Otherwise step at the specified time step until we converge on the
-        // final timestep. If the timestep is larger than the dt, then dt will
-        // be used.
-        auto endTime = this->currentTime + _info.dt;
-
-        while (this->currentTime < endTime)
-        {
-          ignition::gazebo::UpdateInfo info(_info);
-          info.dt = std::min(this->timeStep.value(), _info.dt);
-          info.simTime = this->currentTime.time_since_epoch();
-          this->StepImpl(_info, _ecm);
-          this->currentTime += info.dt;
-        }
-      }
-    }
+                ignition::gazebo::EntityComponentManager &_ecm) override;
 
     /// \brief This method is called when there is a timestep in the simulator.
     /// \param[in] _info Simulator information about the current timestep.
     ///                         will become the new registry.
     /// \param[in] _ecm - Ignition's ECM.
     public: virtual void StepImpl(const UpdateInfo &_info,
-                                  EntityComponentManager &_ecm)
-    {
-      // We lock while we manipulate data.
-      this->broker.Lock();
-
-      // Update the time in the broker.
-      this->broker.SetTime(_info.simTime);
-
-      // Step the comms model.
-      const Registry &currentRegistry = this->broker.DataManager().DataConst();
-      Registry newRegistry = this->broker.DataManager().Copy();
-      this->Step(_info, currentRegistry, newRegistry, _ecm);
-      this->broker.DataManager().Set(newRegistry);
-
-      this->broker.Unlock();
-
-      // Deliver the inbound messages.
-      this->broker.DeliverMsgs();
-    }
+                                  EntityComponentManager &_ecm);
 
     /// \brief This method is called when the system is being configured
     /// override this to load any additional params for the comms model
@@ -167,7 +109,7 @@ namespace comms
     /// override this to update your data structures as needed.
     /// \param[in] _info Simulator information about the current timestep.
     /// \param[in] _currentRegistry The current registry.
-    /// \param[in] _newRegistry The new registry. When Step() is finished this
+    /// \param[out] _newRegistry The new registry. When Step() is finished this
     ///                         will become the new registry.
     /// \param[in] _ecm - Ignition's ECM.
     public: virtual void Step(const UpdateInfo &_info,
@@ -175,15 +117,8 @@ namespace comms
                               Registry &_newRegistry,
                               EntityComponentManager &_ecm) = 0;
 
-    /// \brief Broker instance.
-    protected: Broker broker;
-
-    /// \brief The step size for each step iteration.
-    protected: std::optional<std::chrono::steady_clock::duration>
-      timeStep = std::nullopt;
-
-    /// \brief Current time.
-    protected: std::chrono::steady_clock::time_point currentTime;
+    /// \brief Private data pointer.
+    IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)
   };
 }
 }

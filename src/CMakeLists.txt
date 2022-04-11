@@ -28,6 +28,7 @@ set(network_sources
 
 set(comms_sources
   comms/Broker.cc
+  comms/ICommsModel.cc
   comms/MsgManager.cc
 )
 
