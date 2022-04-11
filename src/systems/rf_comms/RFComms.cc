@@ -26,6 +26,7 @@
 #include <sdf/sdf.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/math/Pose3.hh>
+#include <ignition/math/Rand.hh>
 #include <ignition/plugin/Register.hh>
 #include "ignition/gazebo/comms/MsgManager.hh"
 #include "ignition/gazebo/components/Pose.hh"
@@ -289,7 +290,7 @@ std::tuple<bool, double> RFComms::Implementation::AttemptSend(
   //           "# Bytes: " << _numBytes << "\n" <<
   //           "PER: " << packetDropProb << std::endl;
 
-  double randDraw = (rand() % 1000) / 1000.0;
+  double randDraw = ignition::math::Rand::DblUniform();
   bool packetReceived = randDraw > packetDropProb;
 
   if (!packetReceived)
