@@ -70,7 +70,7 @@ namespace comms
         public ISystemPreUpdate
   {
     /// \brief Constructor.
-    public: ICommsModel();
+    public: explicit ICommsModel();
 
     /// \brief Destructor.
     public: ~ICommsModel() override = default;
@@ -107,6 +107,9 @@ namespace comms
 
     /// \brief This method is called when there is a timestep in the simulator
     /// override this to update your data structures as needed.
+    ///
+    /// Note: this is an experimental interface and might change in the future.
+    ///
     /// \param[in] _info Simulator information about the current timestep.
     /// \param[in] _currentRegistry The current registry.
     /// \param[out] _newRegistry The new registry. When Step() is finished this

@@ -41,7 +41,7 @@ namespace systems
         : public comms::ICommsModel
   {
     /// \brief Constructor.
-    public: PerfectComms();
+    public: explicit PerfectComms();
 
     /// \brief Destructor.
     public: ~PerfectComms();
