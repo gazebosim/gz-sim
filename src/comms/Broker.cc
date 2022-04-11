@@ -151,7 +151,7 @@ bool Broker::OnBind(const ignition::msgs::StringMsg_V &_req,
   std::string model   = _req.data(1);
   std::string topic   = _req.data(2);
 
-  std::lock_guard<std::mutex> lk(this->dataPtr->mutex);
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
   if (!this->DataManager().AddSubscriber(address, model, topic))
     return false;
@@ -168,15 +168,15 @@ void Broker::OnUnbind(const ignition::msgs::StringMsg_V &_req)
   auto count = _req.data_size();
   if (count != 2)
   {
-    ignerr << "Receive incorrect number of arguments. "
-           << "Expecting 2 and receive " << count << std::endl;
+    ignerr << "Received incorrect number of arguments. "
+           << "Expecting 2 and received " << count << std::endl;
     return;
   }
 
   std::string address = _req.data(0);
   std::string topic   = _req.data(1);
 
-  std::lock_guard<std::mutex> lk(this->dataPtr->mutex);
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->DataManager().RemoveSubscriber(address, topic);
 
   ignmsg << "Address [" << address << "] unbound on topic ["
@@ -189,7 +189,7 @@ void Broker::OnMsg(const ignition::msgs::Dataframe &_msg)
   // Place the message in the outbound queue of the sender.
   auto msgPtr = std::make_shared<ignition::msgs::Dataframe>(_msg);
 
-  std::lock_guard<std::mutex> lk(this->dataPtr->mutex);
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
   // Stamp the time.
   msgPtr->mutable_header()->mutable_stamp()->CopyFrom(
@@ -201,7 +201,7 @@ void Broker::OnMsg(const ignition::msgs::Dataframe &_msg)
 //////////////////////////////////////////////////
 void Broker::DeliverMsgs()
 {
-  std::lock_guard<std::mutex> lk(this->dataPtr->mutex);
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->DataManager().DeliverMsgs();
 }
 
