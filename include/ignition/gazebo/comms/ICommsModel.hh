@@ -53,12 +53,6 @@ namespace comms
   /// then the comms model step size will default to dt.
   /// Note: for consistency it is adviced that the dt is a multiple of timestep.
   /// Units are in seconds.
-  ///    <messages_topic>: Topic name where the broker receives all the incoming
-  ///                      messages. The default value is "/broker/msgs"
-  ///    <bind_service>: Service name used to bind an address.
-  ///                    The default value is "/broker/bind"
-  ///    <unbind_service>: Service name used to unbind from an address.
-  ///                      The default value is "/broker/unbind"
   ///
   /// Here's an example:
   /// <physics name="1ms" type="ignored">
@@ -84,17 +78,15 @@ namespace comms
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) override
     {
-      sdf::ElementPtr sdfClone = _sdf->Clone();
-
       // Parse the optional <step_size>.
-      if (sdfClone->HasElement("step_size"))
+      if (_sdf->HasElement("step_size"))
       {
         this->timeStep = std::chrono::duration<int64_t, std::nano>(
-          static_cast<int64_t>(sdfClone->Get<double>("step_size") * 1e9));
+          static_cast<int64_t>(_sdf->Get<double>("step_size") * 1e9));
       }
 
-      this->Load(_entity, sdfClone, _ecm, _eventMgr);
-      this->broker.Load(sdfClone);
+      this->Load(_entity, _sdf, _ecm, _eventMgr);
+      this->broker.Load(_sdf);
       this->broker.Start();
     }
 
@@ -134,8 +126,7 @@ namespace comms
       }
     }
 
-    /// \brief This method is called when there is a timestep in the simulator
-    /// override this to update your data structures as needed.
+    /// \brief This method is called when there is a timestep in the simulator.
     /// \param[in] _info Simulator information about the current timestep.
     ///                         will become the new registry.
     /// \param[in] _ecm - Ignition's ECM.
