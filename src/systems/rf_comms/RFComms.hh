@@ -83,7 +83,7 @@ namespace systems
     : public comms::ICommsModel
   {
     /// \brief Constructor.
-    public: RFComms();
+    public: explicit RFComms();
 
     /// \brief Destructor.
     public: ~RFComms() override = default;
