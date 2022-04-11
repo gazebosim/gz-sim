@@ -84,7 +84,7 @@ namespace comms
   class Broker
   {
     /// \brief Constructor.
-    public: Broker();
+    public: explicit Broker();
 
     /// \brief Destructor.
     public: virtual ~Broker();

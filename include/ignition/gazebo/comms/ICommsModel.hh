@@ -70,7 +70,7 @@ namespace comms
         public ISystemPreUpdate
   {
     /// \brief Constructor.
-    public: ICommsModel();
+    public: explicit ICommsModel();
 
     /// \brief Destructor.
     public: ~ICommsModel() override = default;

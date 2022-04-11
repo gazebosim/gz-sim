@@ -78,7 +78,7 @@ using Registry = std::unordered_map<std::string, AddressContent>;
 class MsgManager
 {
   /// \brief Default constructor.
-  public: MsgManager();
+  public: explicit MsgManager();
 
   /// \brief Destructor.
   public: virtual ~MsgManager();
