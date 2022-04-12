@@ -188,8 +188,6 @@ class IGNITION_GAZEBO_VISIBLE BaseView
   /// \sa ToAddEntities
   public: void ClearToAddEntities();
 
-  public: virtual std::unique_ptr<BaseView> Clone() const = 0;
-
   // TODO(adlarkin) make this a std::unordered_set for better performance.
   // We need to make sure nothing else depends on the ordered preserved by
   // std::set first
