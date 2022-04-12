@@ -73,7 +73,7 @@ namespace comms
     public: explicit ICommsModel();
 
     /// \brief Destructor.
-    public: ~ICommsModel() override = default;
+    //public: ~ICommsModel() override = default;
 
     // Documentation inherited.
     public: void Configure(const Entity &_entity,
