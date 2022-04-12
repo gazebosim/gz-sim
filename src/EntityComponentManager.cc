@@ -1855,6 +1855,8 @@ void EntityComponentManager::SetState(
       components::BaseComponent *comp =
         this->ComponentImplementation(entity, compIter.first);
 
+      std::istringstream istr(compMsg.component());
+
       // Create if new
       if (nullptr == comp)
       {
@@ -1868,7 +1870,6 @@ void EntityComponentManager::SetState(
           continue;
         }
 
-        std::istringstream istr(compMsg.component());
         newComp->Deserialize(istr);
 
         this->CreateComponentImplementation(entity,
@@ -1877,7 +1878,6 @@ void EntityComponentManager::SetState(
       // Update component value
       else
       {
-        std::istringstream istr(compMsg.component());
         comp->Deserialize(istr);
         this->SetChanged(entity, compIter.first,
             _stateMsg.has_one_time_component_changes() ?
@@ -1958,6 +1958,10 @@ void EntityComponentManager::SetChanged(
     auto oneTimeIter = this->dataPtr->oneTimeChangedComponents.find(_type);
     if (oneTimeIter != this->dataPtr->oneTimeChangedComponents.end())
       oneTimeIter->second.erase(_entity);
+
+    // the component state is flagged as no change, so don't mark the
+    // corresponding entity as one with a modified component
+    return;
   }
 
   this->dataPtr->AddModifiedComponent(_entity);

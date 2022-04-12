@@ -2251,6 +2251,17 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_EQ(ComponentState::NoChange,
       manager.ComponentState(e2, c2->TypeId()));
 
+  // Marking a component that isn't changed as unchanged again shouldn't effect
+  // the ecm's changed state
+  manager.RunClearNewlyCreatedEntities();
+  EXPECT_EQ(0, manager.ChangedState().entities_size());
+  manager.SetChanged(e1, c1->TypeId(), ComponentState::NoChange);
+  EXPECT_EQ(ComponentState::NoChange,
+      manager.ComponentState(e1, c1->TypeId()));
+  EXPECT_FALSE(manager.HasOneTimeComponentChanges());
+  EXPECT_EQ(0u, manager.ComponentTypesWithPeriodicChanges().size());
+  EXPECT_EQ(0, manager.ChangedState().entities_size());
+
   // Mark as changed
   manager.SetChanged(e1, c1->TypeId(), ComponentState::PeriodicChange);
 
