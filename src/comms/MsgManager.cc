@@ -48,12 +48,6 @@ MsgManager::MsgManager()
 }
 
 //////////////////////////////////////////////////
-MsgManager::~MsgManager()
-{
-  // cannot use default destructor because of dataPtr
-}
-
-//////////////////////////////////////////////////
 bool MsgManager::AddSubscriber(const std::string &_address,
                                const std::string &_modelName,
                                const std::string &_topic)

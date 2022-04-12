@@ -80,9 +80,6 @@ class MsgManager
   /// \brief Default constructor.
   public: explicit MsgManager();
 
-  /// \brief Destructor.
-  public: virtual ~MsgManager();
-
   /// \brief Add a new subscriber. It's possible to associate multiple topics
   /// to the same address/model pair. However, the same address cannot be
   /// attached to multiple models. When all the subscribers are removed, it's

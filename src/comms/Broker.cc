@@ -65,12 +65,6 @@ Broker::Broker()
 }
 
 //////////////////////////////////////////////////
-Broker::~Broker()
-{
-  // cannot use default destructor because of dataPtr
-}
-
-//////////////////////////////////////////////////
 void Broker::Load(std::shared_ptr<const sdf::Element> _sdf)
 {
   if (!_sdf->HasElement("broker"))

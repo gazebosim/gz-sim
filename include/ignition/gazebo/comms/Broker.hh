@@ -86,9 +86,6 @@ namespace comms
     /// \brief Constructor.
     public: explicit Broker();
 
-    /// \brief Destructor.
-    public: virtual ~Broker();
-
     /// \brief Configure the broker via SDF.
     /// \param[in] _sdf The SDF Element associated with the broker parameters.
     public: void Load(std::shared_ptr<const sdf::Element> _sdf);

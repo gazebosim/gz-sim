@@ -39,12 +39,6 @@ PerfectComms::PerfectComms()
 }
 
 //////////////////////////////////////////////////
-PerfectComms::~PerfectComms()
-{
-  // cannot use default destructor because of dataPtr
-}
-
-//////////////////////////////////////////////////
 void PerfectComms::Load(const Entity &/*_entity*/,
     std::shared_ptr<const sdf::Element> /*_sdf*/,
     EntityComponentManager &/*_ecm*/,
