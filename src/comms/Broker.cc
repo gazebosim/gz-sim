@@ -51,7 +51,7 @@ class ignition::gazebo::comms::Broker::Implementation
   public: std::chrono::steady_clock::duration time{0};
 
   /// \brief An Ignition Transport node for communications.
-  public: ignition::transport::Node node;
+  public: std::unique_ptr<ignition::transport::Node> node;
 };
 
 using namespace ignition;
@@ -62,6 +62,7 @@ using namespace comms;
 Broker::Broker()
   : dataPtr(ignition::utils::MakeUniqueImpl<Implementation>())
 {
+  this->dataPtr->node = std::make_unique<ignition::transport::Node>();
 }
 
 //////////////////////////////////////////////////
@@ -83,8 +84,8 @@ void Broker::Load(std::shared_ptr<const sdf::Element> _sdf)
 void Broker::Start()
 {
   // Advertise the service for binding addresses.
-  if (!this->dataPtr->node.Advertise(this->dataPtr->bindSrv,
-                                     &Broker::OnBind, this))
+  if (!this->dataPtr->node->Advertise(this->dataPtr->bindSrv,
+                                      &Broker::OnBind, this))
   {
     ignerr << "Error advertising srv [" << this->dataPtr->bindSrv << "]"
            << std::endl;
@@ -92,8 +93,8 @@ void Broker::Start()
   }
 
   // Advertise the service for unbinding addresses.
-  if (!this->dataPtr->node.Advertise(this->dataPtr->unbindSrv,
-                                     &Broker::OnUnbind, this))
+  if (!this->dataPtr->node->Advertise(this->dataPtr->unbindSrv,
+                                      &Broker::OnUnbind, this))
   {
     ignerr << "Error advertising srv [" << this->dataPtr->unbindSrv << "]"
            << std::endl;
@@ -101,8 +102,8 @@ void Broker::Start()
   }
 
   // Advertise the topic for receiving data messages.
-  if (!this->dataPtr->node.Subscribe(this->dataPtr->msgTopic,
-                                     &Broker::OnMsg, this))
+  if (!this->dataPtr->node->Subscribe(this->dataPtr->msgTopic,
+                                      &Broker::OnMsg, this))
   {
     ignerr << "Error subscribing to topic [" << this->dataPtr->msgTopic << "]"
            << std::endl;
