@@ -252,6 +252,12 @@ void PosePublisher::Configure(const Entity &_entity,
 
   std::string poseTopic = scopedName(_entity, _ecm) + "/pose";
   poseTopic = transport::TopicUtils::AsValidTopic(poseTopic);
+  if (poseTopic.empty())
+  {
+    poseTopic = "/pose";
+    ignerr << "Empty pose topic generated for pose_publisher system. "
+           << "Setting to " << poseTopic << std::endl;
+  }
   std::string staticPoseTopic = poseTopic + "_static";
 
   if (this->dataPtr->usePoseV)
