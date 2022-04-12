@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 project(ignition-math-examples)
 
 # Find the Ignition-Math library
-set(IGN_MATH_VER 7)
-find_package(ignition-math${IGN_MATH_VER} REQUIRED)
+find_package(ignition-math7 REQUIRED)
+set(IGN_MATH_VER ${ignition-math7_VERSION_MAJOR})
 
 add_executable(additively_separable_scalar_field3_example additively_separable_scalar_field3_example.cc)
 target_link_libraries(additively_separable_scalar_field3_example ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
