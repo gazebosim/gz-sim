@@ -64,7 +64,7 @@ namespace comms
   ///   name="ignition::gazebo::systems::PerfectComms">
   ///   <step_size>1</step_size>
   /// </plugin>
-  class IGNITION_GAZEBO_VISIBLE ICommsModel
+  class ICommsModel
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate
