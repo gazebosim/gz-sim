@@ -85,7 +85,7 @@ namespace comms
   class Broker
   {
     /// \brief Constructor.
-    public: explicit Broker();
+    public: Broker();
 
     /// \brief Configure the broker via SDF.
     /// \param[in] _sdf The SDF Element associated with the broker parameters.

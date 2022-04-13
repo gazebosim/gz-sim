@@ -78,7 +78,7 @@ using Registry = std::unordered_map<std::string, AddressContent>;
 class MsgManager
 {
   /// \brief Default constructor.
-  public: explicit MsgManager();
+  public: MsgManager();
 
   /// \brief Add a new subscriber. It's possible to associate multiple topics
   /// to the same address/model pair. However, the same address cannot be
