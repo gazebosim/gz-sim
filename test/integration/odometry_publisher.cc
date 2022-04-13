@@ -394,6 +394,157 @@ class OdometryPublisherTest
 
     EXPECT_EQ(5u, odomPosesCount);
   }
+
+  /// \param[in] _sdfFile SDF file to load.
+  /// \param[in] _odomTopic Odometry topic.
+  protected: void TestOffsetTags(const std::string &_sdfFile,
+                               const std::string &_odomTopic)
+  {
+    // Start server
+    ServerConfig serverConfig;
+    serverConfig.SetSdfFile(_sdfFile);
+
+    Server server(serverConfig);
+    EXPECT_FALSE(server.Running());
+    EXPECT_FALSE(*server.Running(0));
+
+    std::vector<math::Pose3d> odomPoses;
+    // Create function to store data from odometry messages
+    std::function<void(const msgs::Odometry &)> odomCb =
+      [&](const msgs::Odometry &_msg)
+      {
+        odomPoses.push_back(msgs::Convert(_msg.pose()));
+      };
+    transport::Node node;
+    node.Subscribe(_odomTopic, odomCb);
+
+    // Run server while the model moves with the velocities set earlier
+    server.Run(true, 3000, false);
+
+    int sleep = 0;
+    int maxSleep = 30;
+    for (; odomPoses.size() < 150 && sleep < maxSleep; ++sleep)
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    ASSERT_NE(maxSleep, sleep);
+
+    // Run for 3s and check the pose in the last message
+    ASSERT_FALSE(odomPoses.empty());
+    auto lastPose = odomPoses[odomPoses.size() - 1];
+    EXPECT_NEAR(lastPose.Pos().X(), 11, 1e-2);
+    EXPECT_NEAR(lastPose.Pos().Y(), -11, 1e-2);
+    EXPECT_NEAR(lastPose.Pos().Z(), 0, 1e-2);
+
+    EXPECT_NEAR(lastPose.Rot().Roll(), 1.57, 1e-2);
+    EXPECT_NEAR(lastPose.Rot().Pitch(), 0, 1e-2);
+    EXPECT_NEAR(lastPose.Rot().Yaw(), 0, 1e-2);
+  }
+
+  /// \param[in] _sdfFile SDF file to load.
+  /// \param[in] _odomTopic Odometry topic.
+  protected: void TestGaussianNoise(const std::string &_sdfFile,
+                               const std::string &_odomTopic)
+  {
+    // Start server
+    ServerConfig serverConfig;
+    serverConfig.SetSdfFile(_sdfFile);
+
+    Server server(serverConfig);
+    EXPECT_FALSE(server.Running());
+    EXPECT_FALSE(*server.Running(0));
+
+    std::vector<math::Vector3d> odomLinVels;
+    std::vector<math::Vector3d> odomAngVels;
+    google::protobuf::RepeatedField<float> odomTwistCovariance;
+    // Create function to store data from odometry messages
+    std::function<void(const msgs::OdometryWithCovariance &)> odomCb =
+      [&](const msgs::OdometryWithCovariance &_msg)
+      {
+        odomLinVels.push_back(msgs::Convert(_msg.twist_with_covariance().
+          twist().linear()));
+        odomAngVels.push_back(msgs::Convert(_msg.twist_with_covariance().
+          twist().angular()));
+        odomTwistCovariance = _msg.twist_with_covariance().covariance().data();
+      };
+    transport::Node node;
+    node.Subscribe(_odomTopic, odomCb);
+
+    // Run server while the model moves with the velocities set earlier
+    server.Run(true, 3000, false);
+
+    int sleep = 0;
+    int maxSleep = 30;
+    for (; odomLinVels.size() < 500 && sleep < maxSleep; ++sleep)
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
+    // Verify the Gaussian noise.
+    ASSERT_FALSE(odomLinVels.empty());
+    ASSERT_FALSE(odomAngVels.empty());
+    int n = odomLinVels.size();
+
+    // Calculate the means.
+    double linVelSumX = 0, linVelSumY = 0, linVelSumZ = 0;
+    double angVelSumX = 0, angVelSumY = 0, angVelSumZ = 0;
+    for (int i = 0; i < n; i++)
+    {
+      linVelSumX += odomLinVels[i].X();
+      linVelSumY += odomLinVels[i].Y();
+      linVelSumZ += odomLinVels[i].Z();
+
+      angVelSumX += odomAngVels[i].X();
+      angVelSumY += odomAngVels[i].Y();
+      angVelSumZ += odomAngVels[i].Z();
+    }
+
+    // Check that the mean values are close to zero.
+    EXPECT_NEAR(linVelSumX/n, 0, 0.3);
+    EXPECT_NEAR(linVelSumY/n, 0, 0.3);
+    EXPECT_NEAR(linVelSumZ/n, 0, 0.3);
+
+    EXPECT_NEAR(angVelSumX/n, 0, 0.3);
+    EXPECT_NEAR(angVelSumY/n, 0, 0.3);
+    EXPECT_NEAR(angVelSumZ/n, 0, 0.3);
+
+    // Calculate the variation (sigma^2).
+    double linVelSqSumX = 0, linVelSqSumY = 0, linVelSqSumZ = 0;
+    double angVelSqSumX = 0, angVelSqSumY = 0, angVelSqSumZ = 0;
+    for (int i = 0; i < n; i++)
+    {
+      linVelSqSumX += std::pow(odomLinVels[i].X() - linVelSumX/n, 2);
+      linVelSqSumY += std::pow(odomLinVels[i].Y() - linVelSumY/n, 2);
+      linVelSqSumZ += std::pow(odomLinVels[i].Z() - linVelSumZ/n, 2);
+
+      angVelSqSumX += std::pow(odomAngVels[i].X() - angVelSumX/n, 2);
+      angVelSqSumY += std::pow(odomAngVels[i].Y() - angVelSumY/n, 2);
+      angVelSqSumZ += std::pow(odomAngVels[i].Z() - angVelSumZ/n, 2);
+    }
+
+    // Verify the variance values.
+    EXPECT_NEAR(linVelSqSumX/n, 1, 0.3);
+    EXPECT_NEAR(linVelSqSumY/n, 1, 0.3);
+    EXPECT_NEAR(linVelSqSumZ/n, 1, 0.3);
+
+    EXPECT_NEAR(angVelSqSumX/n, 1, 0.3);
+    EXPECT_NEAR(angVelSqSumY/n, 1, 0.3);
+    EXPECT_NEAR(angVelSqSumZ/n, 1, 0.3);
+
+    // Check the covariance matrix.
+    EXPECT_EQ(odomTwistCovariance.size(), 36);
+    for (int i = 0; i < 36; i++)
+    {
+      if (i % 7 == 0)
+      {
+        EXPECT_NEAR(odomTwistCovariance.Get(i), 1, 1e-2);
+      }
+      else
+      {
+        EXPECT_NEAR(odomTwistCovariance.Get(i), 0, 1e-2);
+      }
+    }
+  }
 };
 
 /////////////////////////////////////////////////
@@ -444,6 +595,26 @@ TEST_P(OdometryPublisherTest,
       "/model/bar/odom",
       "odomCustom",
       "baseCustom");
+}
+
+/////////////////////////////////////////////////
+TEST_P(OdometryPublisherTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(OffsetTagTest))
+{
+  TestOffsetTags(
+      std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/odometry_offset.sdf",
+      "/model/vehicle/odometry");
+}
+
+/////////////////////////////////////////////////
+TEST_P(OdometryPublisherTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(GaussianNoiseTest))
+{
+  TestGaussianNoise(
+      std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/odometry_noise.sdf",
+      "/model/vehicle/odometry_with_covariance");
 }
 
 // Run multiple times

@@ -36,6 +36,8 @@ set(tests
   logical_audio_sensor_plugin.cc
   magnetometer_system.cc
   model.cc
+  model_photo_shoot_default_joints.cc
+  model_photo_shoot_random_joints.cc
   multicopter.cc
   multiple_servers.cc
   navsat_system.cc
@@ -76,10 +78,12 @@ set(tests_needing_display
   camera_sensor_background.cc
   camera_video_record_system.cc
   depth_camera.cc
+  distortion_camera.cc
   gpu_lidar.cc
   optical_tactile_plugin.cc
   rgbd_camera.cc
   sensors_system.cc
+  sensors_system_battery.cc
   shader_param_system.cc
   thermal_system.cc
   thermal_sensor_system.cc
@@ -133,9 +137,23 @@ target_link_libraries(INTEGRATION_tracked_vehicle_system
   ignition-physics${IGN_PHYSICS_VER}::core
   ignition-plugin${IGN_PLUGIN_VER}::loader
 )
+
+target_link_libraries(INTEGRATION_model_photo_shoot_default_joints
+  ignition-rendering${IGN_RENDERING_VER}::ignition-rendering${IGN_RENDERING_VER}
+)
+target_link_libraries(INTEGRATION_model_photo_shoot_random_joints
+  ignition-rendering${IGN_RENDERING_VER}::ignition-rendering${IGN_RENDERING_VER}
+)
+
 # The default timeout (240s) doesn't seem to be enough for this test.
 set_tests_properties(INTEGRATION_tracked_vehicle_system PROPERTIES TIMEOUT 300)
 
 if(TARGET INTEGRATION_examples_build)
   set_tests_properties(INTEGRATION_examples_build PROPERTIES TIMEOUT 320)
+endif()
+
+if(VALID_DISPLAY AND VALID_DRI_DISPLAY)
+  target_link_libraries(INTEGRATION_sensors_system
+    ignition-rendering${IGN_RENDERING_VER}::ignition-rendering${IGN_RENDERING_VER}
+  )
 endif()
