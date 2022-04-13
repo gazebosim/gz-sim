@@ -133,34 +133,34 @@ class ModelPhotoShootTest : public InternalFixture<::testing::Test>
           pose.Pos().Set(1.6 / scaling + translation.X(),
                         -1.6 / scaling + translation.Y(),
                         1.2 / scaling + translation.Z());
-          pose.Rot().Euler(0, IGN_DTOR(30), IGN_DTOR(-225));
+          pose.Rot().SetFromEuler(0, IGN_DTOR(30), IGN_DTOR(-225));
           SavePicture(camera, pose, "1_test.png");
           // Top view
           pose.Pos().Set(0 + translation.X(),
                         0 + translation.Y(),
                         2.2 / scaling + translation.Z());
-          pose.Rot().Euler(0, IGN_DTOR(90), 0);
+          pose.Rot().SetFromEuler(0, IGN_DTOR(90), 0);
           SavePicture(camera, pose, "2_test.png");
 
           // Front view
           pose.Pos().Set(2.2 / scaling + translation.X(),
                         0 + translation.Y(),
                         0 + translation.Z());
-          pose.Rot().Euler(0, 0, IGN_DTOR(-180));
+          pose.Rot().SetFromEuler(0, 0, IGN_DTOR(-180));
           SavePicture(camera, pose, "3_test.png");
 
           // Side view
           pose.Pos().Set(0 + translation.X(),
                         2.2 / scaling + translation.Y(),
                         0 + translation.Z());
-          pose.Rot().Euler(0, 0, IGN_DTOR(-90));
+          pose.Rot().SetFromEuler(0, 0, IGN_DTOR(-90));
           SavePicture(camera, pose, "4_test.png");
 
           // Back view
           pose.Pos().Set(-2.2 / scaling + translation.X(),
                         0 + translation.Y(),
                         0 + translation.Z());
-          pose.Rot().Euler(0, 0, 0);
+          pose.Rot().SetFromEuler(0, 0, 0);
           SavePicture(camera, pose, "5_test.png");
         }
       }

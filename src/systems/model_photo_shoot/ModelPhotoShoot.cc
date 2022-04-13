@@ -247,35 +247,35 @@ void ModelPhotoShootPrivate::PerformPostRenderingOperations()
         pose.Pos().Set(1.6 / scaling + translation.X(),
                        -1.6 / scaling + translation.Y(),
                        1.2 / scaling + translation.Z());
-        pose.Rot().Euler(0, IGN_DTOR(30), IGN_DTOR(-225));
+        pose.Rot().SetFromEuler(0, IGN_DTOR(30), IGN_DTOR(-225));
         SavePicture(camera, pose, "1.png");
 
         // Top view
         pose.Pos().Set(0 + translation.X(),
                        0 + translation.Y(),
                        2.2 / scaling + translation.Z());
-        pose.Rot().Euler(0, IGN_DTOR(90), 0);
+        pose.Rot().SetFromEuler(0, IGN_DTOR(90), 0);
         SavePicture(camera, pose, "2.png");
 
         // Front view
         pose.Pos().Set(2.2 / scaling + translation.X(),
                        0 + translation.Y(),
                        0 + translation.Z());
-        pose.Rot().Euler(0, 0, IGN_DTOR(-180));
+        pose.Rot().SetFromEuler(0, 0, IGN_DTOR(-180));
         SavePicture(camera, pose, "3.png");
 
         // Side view
         pose.Pos().Set(0 + translation.X(),
                        2.2 / scaling + translation.Y(),
                        0 + translation.Z());
-        pose.Rot().Euler(0, 0, IGN_DTOR(-90));
+        pose.Rot().SetFromEuler(0, 0, IGN_DTOR(-90));
         SavePicture(camera, pose, "4.png");
 
         // Back view
         pose.Pos().Set(-2.2 / scaling + translation.X(),
                        0 + translation.Y(),
                        0 + translation.Z());
-        pose.Rot().Euler(0, 0, 0);
+        pose.Rot().SetFromEuler(0, 0, 0);
         SavePicture(camera, pose, "5.png");
 
         this->takePicture = false;
