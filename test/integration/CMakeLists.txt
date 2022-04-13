@@ -46,6 +46,7 @@ set(tests
   odometry_publisher.cc
   particle_emitter.cc
   particle_emitter2.cc
+  perfect_comms.cc
   performer_detector.cc
   physics_system.cc
   play_pause.cc
