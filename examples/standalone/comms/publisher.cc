@@ -15,7 +15,7 @@
  *
 */
 
-// Example: ./publisher addr1
+// Example: ./publisher addr2
 
 #include <atomic>
 #include <chrono>
