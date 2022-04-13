@@ -9,10 +9,10 @@
 
 Build | Status
 -- | --
-Test coverage | [![codecov](https://codecov.io/gh/ignitionrobotics/ign-math/branch/ign-math6/graph/badge.svg)](https://codecov.io/gh/ignitionrobotics/ign-math)
-Ubuntu Focal | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-ign-math6-focal-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-ign-math6-focal-amd64)
-Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-ign-math6-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-ign-math6-homebrew-amd64)
-Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-ign-math6-windows7-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-ign-math6-windows7-amd64)
+Test coverage | [![codecov](https://codecov.io/gh/ignitionrobotics/ign-math/branch/ign-math7/graph/badge.svg)](https://codecov.io/gh/ignitionrobotics/ign-math)
+Ubuntu Focal | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-ign-math7-focal-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-ign-math7-focal-amd64)
+Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-ign-math7-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-ign-math7-homebrew-amd64)
+Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-ign-math7-windows7-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-ign-math7-windows7-amd64)
 
 Ignition Math, a component of [Ignition
 Robotics](https://ignitionrobotics.org), provides general purpose math
@@ -52,7 +52,7 @@ See the [installation tutorial](https://ignitionrobotics.org/api/math/6.8/instal
 
 # Usage
 
-Please refer to the [examples directory](https://github.com/ignitionrobotics/ign-math/raw/ign-math6/examples/).
+Please refer to the [examples directory](https://github.com/ignitionrobotics/ign-math/raw/ign-math7/examples/).
 
 # Folder Structure
 

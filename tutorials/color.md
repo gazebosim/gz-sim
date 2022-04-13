@@ -7,7 +7,7 @@ This tutorial explains how to use the `Color` class from Ignition Math library.
 Go to `ign-math/examples` and use `cmake` to compile the code:
 
 ```{.sh}
-git clone https://github.com/ignitionrobotics/ign-math/ -b ign-math6
+git clone https://github.com/ignitionrobotics/ign-math/ -b ign-math7
 cd ign-math/examples
 mkdir build
 cd build
