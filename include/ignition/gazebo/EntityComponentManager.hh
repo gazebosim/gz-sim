@@ -773,7 +773,7 @@ namespace ignition
       /// \tparam ComponentTypeTs All the component types that define a view.
       /// \return A pointer to the view.
       private: template<typename ...ComponentTypeTs>
-          detail::View<ComponentTypeTs...> *FindView() const;
+          detail::View *FindView() const;
 
       /// \brief Find a view based on the provided component type ids.
       /// \param[in] _types The component type ids that serve as a key into
