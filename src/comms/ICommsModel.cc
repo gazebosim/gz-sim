@@ -48,7 +48,7 @@ class ignition::gazebo::comms::ICommsModel::Implementation
 
 //////////////////////////////////////////////////
 ICommsModel::ICommsModel()
-  : System(), dataPtr(ignition::utils::MakeUniqueImpl<Implementation>())
+  : dataPtr(ignition::utils::MakeUniqueImpl<Implementation>())
 {
 }
 
