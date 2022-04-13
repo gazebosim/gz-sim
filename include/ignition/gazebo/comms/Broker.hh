@@ -22,6 +22,7 @@
 
 #include <ignition/utils/ImplPtr.hh>
 #include <sdf/sdf.hh>
+#include "ignition/gazebo/comms/MsgManager.hh"
 #include "ignition/gazebo/config.hh"
 
 namespace ignition
