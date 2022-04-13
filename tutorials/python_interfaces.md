@@ -42,7 +42,7 @@ step simulation and check entities and components.
 # Run the example
 
 In the
-[examples/scripts/python_api](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo6/examples/scripts/python_api)
+[examples/scripts/python_api](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo7/examples/scripts/python_api)
 folder there is a Python script that shows how to make use of this API.
 
 > If you compiled Ignition Gazebo from source you should modify your `PYTHONPATH`:
