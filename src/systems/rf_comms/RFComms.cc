@@ -199,8 +199,11 @@ class ignition::gazebo::systems::RFComms::Implementation
   /// \brief Duration of an epoch (seconds).
   public: double epochDuration = 1.0;
 
+  /// \brief Random device to seed random engine
+  public: std::random_device rd{};
+
   /// \brief Random number generator.
-  public: std::default_random_engine rndEngine;
+  public: std::default_random_engine rndEngine{rd()};
 };
 
 /////////////////////////////////////////////
@@ -437,7 +440,7 @@ void RFComms::Step(
           continue;
 
         auto [sendPacket, rssi] = this->dataPtr->AttemptSend(
-          itSrc->second, itDst->second, msg->ByteSize());
+          itSrc->second, itDst->second, msg->ByteSizeLong());
 
         if (sendPacket)
           _newRegistry[msg->dst_address()].inboundMsgs.push_back(msg);
