@@ -43,9 +43,6 @@ namespace systems
     /// \brief Constructor.
     public: explicit PerfectComms();
 
-    /// \brief Destructor.
-    public: ~PerfectComms();
-
     // Documentation inherited.
     public: void Load(const Entity &_entity,
                       std::shared_ptr<const sdf::Element> _sdf,

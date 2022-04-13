@@ -75,13 +75,10 @@ struct AddressContent
 using Registry = std::unordered_map<std::string, AddressContent>;
 
 /// \brief Class to handle messages and subscriptions.
-class MsgManager
+class IGNITION_GAZEBO_VISIBLE MsgManager
 {
   /// \brief Default constructor.
-  public: explicit MsgManager();
-
-  /// \brief Destructor.
-  public: virtual ~MsgManager();
+  public: MsgManager();
 
   /// \brief Add a new subscriber. It's possible to associate multiple topics
   /// to the same address/model pair. However, the same address cannot be

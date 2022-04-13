@@ -37,7 +37,7 @@ class PerfectCommsTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(PerfectCommsTest, PerfectComms)
+TEST_F(PerfectCommsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PerfectComms))
 {
   // Start server
   ServerConfig serverConfig;

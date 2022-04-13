@@ -34,7 +34,7 @@ class ignition::gazebo::comms::MsgManager::Implementation
   public: Registry data;
 
   /// \brief An Ignition Transport node for communications.
-  public: ignition::transport::Node node;
+  public: std::unique_ptr<ignition::transport::Node> node;
 };
 
 using namespace ignition;
@@ -45,12 +45,7 @@ using namespace comms;
 MsgManager::MsgManager()
   : dataPtr(ignition::utils::MakeUniqueImpl<Implementation>())
 {
-}
-
-//////////////////////////////////////////////////
-MsgManager::~MsgManager()
-{
-  // cannot use default destructor because of dataPtr
+  this->dataPtr->node = std::make_unique<ignition::transport::Node>();
 }
 
 //////////////////////////////////////////////////
@@ -71,7 +66,7 @@ bool MsgManager::AddSubscriber(const std::string &_address,
   this->dataPtr->data[_address].modelName = _modelName;
 
   ignition::transport::Node::Publisher publisher =
-    this->dataPtr->node.Advertise<ignition::msgs::Dataframe>(_topic);
+    this->dataPtr->node->Advertise<ignition::msgs::Dataframe>(_topic);
 
   this->dataPtr->data[_address].subscriptions[_topic] = publisher;
   return true;

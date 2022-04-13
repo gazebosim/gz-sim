@@ -76,7 +76,7 @@ class ignition::gazebo::systems::CommsEndpoint::Implementation
   public: std::chrono::steady_clock::duration lastBindRequestTime{-2};
 
   /// \brief The ignition transport node.
-  public: ignition::transport::Node node;
+  public: std::unique_ptr<ignition::transport::Node> node;
 };
 
 //////////////////////////////////////////////////
@@ -93,7 +93,7 @@ void CommsEndpoint::Implementation::BindCallback(
 //////////////////////////////////////////////////
 void CommsEndpoint::Implementation::Bind()
 {
-  this->node.Request(this->bindSrv, this->bindReq,
+  this->node->Request(this->bindSrv, this->bindReq,
     &CommsEndpoint::Implementation::BindCallback, this);
 }
 
@@ -101,6 +101,7 @@ void CommsEndpoint::Implementation::Bind()
 CommsEndpoint::CommsEndpoint()
   : dataPtr(ignition::utils::MakeUniqueImpl<Implementation>())
 {
+  this->dataPtr->node = std::make_unique<ignition::transport::Node>();
 }
 
 //////////////////////////////////////////////////
@@ -112,7 +113,7 @@ CommsEndpoint::~CommsEndpoint()
   // Unbind.
   // We use a oneway request because we're not going
   // to be alive to check the result or retry.
-  this->dataPtr->node.Request(
+  this->dataPtr->node->Request(
     this->dataPtr->unbindSrv, this->dataPtr->unbindReq);
 }
 

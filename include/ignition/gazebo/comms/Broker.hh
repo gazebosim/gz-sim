@@ -22,6 +22,7 @@
 
 #include <ignition/utils/ImplPtr.hh>
 #include <sdf/sdf.hh>
+#include "ignition/gazebo/comms/MsgManager.hh"
 #include "ignition/gazebo/config.hh"
 
 namespace ignition
@@ -81,13 +82,10 @@ namespace comms
   ///     <unbind_service>/broker/unbind_address</unbind_service>
   ///   </broker>
   /// </plugin>
-  class Broker
+  class IGNITION_GAZEBO_VISIBLE Broker
   {
     /// \brief Constructor.
-    public: explicit Broker();
-
-    /// \brief Destructor.
-    public: virtual ~Broker();
+    public: Broker();
 
     /// \brief Configure the broker via SDF.
     /// \param[in] _sdf The SDF Element associated with the broker parameters.
