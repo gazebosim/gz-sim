@@ -21,6 +21,8 @@
 #include <utility>
 #include <vector>
 
+#include <QQmlProperty>
+
 #include <ignition/common/MouseEvent.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/GuiEvents.hh>
@@ -474,6 +476,17 @@ void SelectEntities::LoadConfig(const tinyxml2::XMLElement *)
 {
   if (this->title.empty())
     this->title = "Select entities";
+
+  static bool done{false};
+  if (done)
+  {
+    std::string msg{"Only one SelectEntities plugin is supported at a time."};
+    ignerr << msg << std::endl;
+    QQmlProperty::write(this->PluginItem(), "message",
+        QString::fromStdString(msg));
+    return;
+  }
+  done = true;
 
   ignition::gui::App()->findChild<
       ignition::gui::MainWindow *>()->installEventFilter(this);

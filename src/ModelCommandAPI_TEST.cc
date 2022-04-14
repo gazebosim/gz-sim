@@ -595,7 +595,7 @@ TEST(ModelCommandAPI, MagnetometerSensor)
 
 /////////////////////////////////////////////////
 // Tests `ign model -s` command with an rgbd camera.
-TEST(ModelCommandAPI, RgbdCameraSensor)
+TEST(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_MAC(RgbdCameraSensor))
 {
   ignition::gazebo::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.

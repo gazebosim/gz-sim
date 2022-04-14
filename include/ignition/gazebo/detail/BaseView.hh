@@ -18,7 +18,6 @@
 #define IGNITION_GAZEBO_DETAIL_BASEVIEW_HH_
 
 #include <cstddef>
-#include <memory>
 #include <set>
 #include <unordered_map>
 #include <vector>
@@ -69,7 +68,7 @@ struct ComponentTypeHasher
 class IGNITION_GAZEBO_VISIBLE BaseView
 {
   /// \brief Destructor
-  public: virtual ~BaseView() = default;
+  public: virtual ~BaseView();
 
   /// \brief See if an entity is a part of the view
   /// \param[in] _entity The entity

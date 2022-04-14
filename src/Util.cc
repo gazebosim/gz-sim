@@ -21,6 +21,9 @@
 #include <ignition/transport/TopicUtils.hh>
 #include <sdf/Types.hh>
 
+#include <ignition/fuel_tools/Interface.hh>
+#include <ignition/fuel_tools/ClientConfig.hh>
+
 #include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Joint.hh"
@@ -552,7 +555,80 @@ std::optional<math::Vector3d> sphericalCoordinates(Entity _entity,
   // Return degrees
   return math::Vector3d(IGN_RTOD(rad.X()), IGN_RTOD(rad.Y()), rad.Z());
 }
-}
-}
+
+//////////////////////////////////////////////////
+// Getting the first .sdf file in the path
+std::string findFuelResourceSdf(const std::string &_path)
+{
+  if (!common::exists(_path))
+    return "";
+
+  for (common::DirIter file(_path); file != common::DirIter(); ++file)
+  {
+    std::string current(*file);
+    if (!common::isFile(current))
+      continue;
+
+    auto fileName = common::basename(current);
+    auto fileExtensionIndex = fileName.rfind(".");
+    auto fileExtension = fileName.substr(fileExtensionIndex + 1);
+
+    if (fileExtension == "sdf")
+    {
+      return current;
+    }
+  }
+  return "";
 }
 
+//////////////////////////////////////////////////
+std::string resolveSdfWorldFile(const std::string &_sdfFile,
+    const std::string &_fuelResourceCache)
+{
+  std::string filePath;
+
+  // Check Fuel if it's a URL
+  auto sdfUri = common::URI(_sdfFile);
+  if (sdfUri.Scheme() == "http" || sdfUri.Scheme() == "https")
+  {
+    fuel_tools::ClientConfig config;
+    if (!_fuelResourceCache.empty())
+      config.SetCacheLocation(_fuelResourceCache);
+    fuel_tools::FuelClient fuelClient(config);
+
+    std::string fuelCachePath;
+    if (fuelClient.CachedWorld(common::URI(_sdfFile), fuelCachePath))
+    {
+      filePath = findFuelResourceSdf(fuelCachePath);
+    }
+    else if (auto result = fuelClient.DownloadWorld(
+          common::URI(_sdfFile), fuelCachePath))
+    {
+      filePath = findFuelResourceSdf(fuelCachePath);
+    }
+    else
+    {
+      ignwarn << "Fuel couldn't download URL [" << _sdfFile
+        << "], error: [" << result.ReadableResult() << "]"
+        << std::endl;
+    }
+  }
+
+  if (filePath.empty())
+  {
+    common::SystemPaths systemPaths;
+
+    // Worlds from environment variable
+    systemPaths.SetFilePathEnv(kResourcePathEnv);
+
+    // Worlds installed with ign-gazebo
+    systemPaths.AddFilePaths(IGN_GAZEBO_WORLD_INSTALL_DIR);
+
+    filePath = systemPaths.FindFile(_sdfFile);
+  }
+
+  return filePath;
+}
+}
+}
+}
