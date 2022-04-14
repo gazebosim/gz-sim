@@ -2251,7 +2251,7 @@ TEST_F(PhysicsSystemFixtureWithDart6_10,
             if (jointVel->Data().size() > 0)
             {
               ++count;
-              EXPECT_TRUE(std::abs(jointVel->Data()[0]) < 1.1);
+              EXPECT_LT(std::abs(jointVel->Data()[0]), 1.1);
             }
           }
           EXPECT_EQ(count, 2);

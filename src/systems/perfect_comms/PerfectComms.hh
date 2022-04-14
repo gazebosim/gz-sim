@@ -53,7 +53,7 @@ namespace systems
     public: void Step(const ignition::gazebo::UpdateInfo &_info,
                       const comms::Registry &_currentRegistry,
                       comms::Registry &_newRegistry,
-                      EntityComponentManager &_ecm);
+                      EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer.
     IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)
