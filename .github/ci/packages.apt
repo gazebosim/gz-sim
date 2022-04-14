@@ -1,5 +1,5 @@
 libeigen3-dev
-libignition-cmake2-dev
+libignition-cmake3-dev
 libignition-utils2-dev
 python3-distutils
 python3-pybind11

@@ -11,7 +11,7 @@ environment:
 install:
   - git clone https://github.com/ignitionrobotics/ign-cmake
   - cd ign-cmake
-  - git checkout ign-cmake2
+  - git checkout ign-cmake3
   - md build
   - cd build
   - cmake .. -DBUILD_TESTING:BOOL=False

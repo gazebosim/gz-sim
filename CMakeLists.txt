@@ -9,7 +9,7 @@ project(ignition-math7 VERSION 7.0.0)
 # Find ignition-cmake
 #============================================================================
 # If you get an error at this line, you need to install ignition-cmake
-find_package(ignition-cmake2 2.8.0 REQUIRED)
+find_package(ignition-cmake3 REQUIRED)
 
 #============================================================================
 # Configure the project
