@@ -51,6 +51,7 @@ set(tests
   physics_system.cc
   play_pause.cc
   pose_publisher_system.cc
+  rf_comms.cc
   recreate_entities.cc
   save_world.cc
   scene_broadcaster_system.cc
