@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.11.0 FATAL_ERROR)
 
-find_package(ignition-cmake2 REQUIRED)
+find_package(ignition-cmake3 REQUIRED)
 
 project(OdometerSystem)
 

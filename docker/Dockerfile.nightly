@@ -11,14 +11,14 @@ RUN scripts/enable_ign_nightly.sh
 
 RUN apt-get update \
  && apt-get install -y \
-    libignition-cmake2-dev \
+    libignition-cmake3-dev \
     libignition-common5-dev \
     libignition-fuel-tools8-dev \
     libignition-math7-eigen3-dev \
     libignition-plugin2-dev \
     libignition-physics6-dev \
     libignition-rendering7-dev \
-    libignition-tools-dev \
+    libignition-tools2-dev \
     libignition-transport12-dev \
     libignition-gui7-dev \
     libignition-msgs9-dev \

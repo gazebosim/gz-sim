@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 
-find_package(ignition-cmake2 REQUIRED)
+find_package(ignition-cmake3 REQUIRED)
 
 project(SampleSystem)
 
