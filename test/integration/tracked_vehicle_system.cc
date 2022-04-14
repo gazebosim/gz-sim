@@ -29,7 +29,7 @@
 #include <ignition/physics/FeaturePolicy.hh>
 #include <ignition/physics/config.hh>
 #include <ignition/plugin/Loader.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Model.hh"

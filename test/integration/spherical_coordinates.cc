@@ -20,7 +20,7 @@
 #include <ignition/math/SphericalCoordinates.hh>
 #include <ignition/math/Vector3.hh>
 #include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/TestFixture.hh"
 #include "ignition/gazebo/Util.hh"

@@ -23,7 +23,7 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 #include <sdf/Box.hh>
 #include <sdf/Cylinder.hh>
 #include <sdf/Joint.hh>
