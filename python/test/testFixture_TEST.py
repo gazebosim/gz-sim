@@ -19,7 +19,6 @@ import unittest
 from ignition.common import set_verbosity
 from ignition.gazebo import TestFixture, World, world_entity
 from ignition.math import Vector3d
-from sdformat import Element
 
 post_iterations = 0
 iterations = 0
