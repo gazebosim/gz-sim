@@ -160,7 +160,7 @@ set(IGN_MATH_VER ${ignition-math7_VERSION_MAJOR})
 # Find ignition-tools
 ign_find_package(ignition-tools2
                  REQUIRED
-                 PKGCONFIG "ignition-tools")
+                 PKGCONFIG "ignition-tools2")
 
 #--------------------------------------
 # Find ignition-utils
