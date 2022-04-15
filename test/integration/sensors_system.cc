@@ -26,7 +26,7 @@
 #include <sdf/World.hh>
 
 #include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 
 #include <ignition/rendering/Camera.hh>
 #include <ignition/rendering/RenderEngine.hh>

@@ -21,7 +21,7 @@
 
 #include <string>
 #include <ignition/common/Util.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 

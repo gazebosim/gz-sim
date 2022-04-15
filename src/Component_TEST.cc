@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 #include <ignition/msgs/int32.pb.h>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 
 #include <memory>
 

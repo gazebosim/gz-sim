@@ -22,7 +22,7 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 #include <sdf/World.hh>
 
 #include "ignition/gazebo/components/Factory.hh"

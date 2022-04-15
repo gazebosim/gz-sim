@@ -28,7 +28,7 @@
 #include <ignition/math/Pose3.hh>
 #include <ignition/msgs.hh>
 #include <ignition/transport.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/LogicalAudio.hh"
 #include "ignition/gazebo/components/Pose.hh"
