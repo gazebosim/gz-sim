@@ -64,20 +64,6 @@ target_link_libraries(common PRIVATE
   ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
 )
 
-# TODO(ahcorde): Move this module to sdformat
-pybind11_add_module(sdformat SHARED
-  src/ignition/sdformat/_sdformat_pybind11.cc
-  src/ignition/sdformat/Element.cc
-)
-
-target_link_libraries(sdformat PRIVATE
-	sdformat${SDF_VER}::sdformat${SDF_VER}
-)
-
-install(TARGETS sdformat
-	DESTINATION "${IGN_PYTHON_INSTALL_PATH}"
-)
-
 configure_build_install_location(gazebo)
 configure_build_install_location(common)
 
@@ -88,7 +74,6 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   if(${pybind11_VERSION} VERSION_LESS "2.4.4")
     target_compile_options(common PRIVATE -fsized-deallocation)
     target_compile_options(gazebo PRIVATE -fsized-deallocation)
-    target_compile_options(sdformat PRIVATE -fsized-deallocation)
   endif()
 endif()
 
