@@ -16,6 +16,7 @@
 */
 
 #include "ignition/gazebo/EntityComponentManager.hh"
+#include "EntityComponentManagerDiff.hh"
 
 #include <map>
 #include <memory>
@@ -70,6 +71,14 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// \brief Allots the work for multiple threads prior to running
   /// `AddEntityToMessage`.
   public: void CalculateStateThreadLoad();
+
+  /// \brief Copies the contents of `_from` into this object.
+  /// \note This is a member function instead of a copy constructor so that
+  /// it can have additional parameters if the need arises in the future.
+  /// Additionally, not every data member is copied making its behavior
+  /// different from what would be expected from a copy constructor.
+  /// \param[in] _from Object to copy from
+  public: void CopyFrom(const EntityComponentManagerPrivate &_from);
 
   /// \brief Create a message for the removed components
   /// \param[in] _entity Entity with the removed components
@@ -286,6 +295,43 @@ EntityComponentManager::EntityComponentManager()
 
 //////////////////////////////////////////////////
 EntityComponentManager::~EntityComponentManager() = default;
+
+//////////////////////////////////////////////////
+void EntityComponentManagerPrivate::CopyFrom(
+    const EntityComponentManagerPrivate &_from)
+{
+  this->createdCompTypes = _from.createdCompTypes;
+  this->entities = _from.entities;
+  this->periodicChangedComponents = _from.periodicChangedComponents;
+  this->oneTimeChangedComponents = _from.oneTimeChangedComponents;
+  this->newlyCreatedEntities = _from.newlyCreatedEntities;
+  this->toRemoveEntities = _from.toRemoveEntities;
+  this->modifiedComponents = _from.modifiedComponents;
+  this->removeAllEntities = _from.removeAllEntities;
+  this->views.clear();
+  this->lockAddEntitiesToViews = _from.lockAddEntitiesToViews;
+  this->descendantCache.clear();
+  this->entityCount = _from.entityCount;
+  this->removedComponents = _from.removedComponents;
+  this->componentsMarkedAsRemoved = _from.componentsMarkedAsRemoved;
+
+  for (const auto &[entity, comps] : _from.componentStorage)
+  {
+    this->componentStorage[entity].clear();
+    for (const auto &comp : comps)
+    {
+      this->componentStorage[entity].emplace_back(comp->Clone());
+    }
+  }
+  this->componentTypeIndex = _from.componentTypeIndex;
+  this->componentTypeIndexIterators.clear();
+  this->componentTypeIndexDirty = true;
+
+  // Not copying maps related to cloning since they are transient variables
+  // that are used as return values of some member functions.
+
+  this->pinnedEntities = _from.pinnedEntities;
+}
 
 //////////////////////////////////////////////////
 size_t EntityComponentManager::EntityCount() const
@@ -1809,6 +1855,8 @@ void EntityComponentManager::SetState(
       components::BaseComponent *comp =
         this->ComponentImplementation(entity, compIter.first);
 
+      std::istringstream istr(compMsg.component());
+
       // Create if new
       if (nullptr == comp)
       {
@@ -1822,7 +1870,6 @@ void EntityComponentManager::SetState(
           continue;
         }
 
-        std::istringstream istr(compMsg.component());
         newComp->Deserialize(istr);
 
         this->CreateComponentImplementation(entity,
@@ -1831,7 +1878,6 @@ void EntityComponentManager::SetState(
       // Update component value
       else
       {
-        std::istringstream istr(compMsg.component());
         comp->Deserialize(istr);
         this->SetChanged(entity, compIter.first,
             _stateMsg.has_one_time_component_changes() ?
@@ -1912,6 +1958,10 @@ void EntityComponentManager::SetChanged(
     auto oneTimeIter = this->dataPtr->oneTimeChangedComponents.find(_type);
     if (oneTimeIter != this->dataPtr->oneTimeChangedComponents.end())
       oneTimeIter->second.erase(_entity);
+
+    // the component state is flagged as no change, so don't mark the
+    // corresponding entity as one with a modified component
+    return;
   }
 
   this->dataPtr->AddModifiedComponent(_entity);
@@ -2067,4 +2117,106 @@ void EntityComponentManager::UnpinEntity(const Entity _entity, bool _recursive)
 void EntityComponentManager::UnpinAllEntities()
 {
   this->dataPtr->pinnedEntities.clear();
+}
+
+/////////////////////////////////////////////////
+void EntityComponentManager::CopyFrom(const EntityComponentManager &_fromEcm)
+{
+  this->dataPtr->CopyFrom(*_fromEcm.dataPtr);
+}
+
+/////////////////////////////////////////////////
+EntityComponentManagerDiff EntityComponentManager::ComputeEntityDiff(
+    const EntityComponentManager &_other) const
+{
+  EntityComponentManagerDiff diff;
+  for (const auto &item : _other.dataPtr->entities.Vertices())
+  {
+    const auto &v = item.second.get();
+    if (!this->dataPtr->entities.VertexFromId(v.Id()).Valid())
+    {
+      // In `_other` but not in `this`, so insert the entity as an "added"
+      // entity.
+      diff.InsertAddedEntity(v.Data());
+    }
+  }
+
+  for (const auto &item : this->dataPtr->entities.Vertices())
+  {
+    const auto &v = item.second.get();
+    if (!_other.dataPtr->entities.VertexFromId(v.Id()).Valid())
+    {
+      // In `this` but not in `other`, so insert the entity as a "removed"
+      // entity.
+      diff.InsertRemovedEntity(v.Data());
+    }
+  }
+  return diff;
+}
+
+/////////////////////////////////////////////////
+void EntityComponentManager::ApplyEntityDiff(
+    const EntityComponentManager &_other,
+    const EntityComponentManagerDiff &_diff)
+{
+  auto copyComponents = [&](Entity _entity)
+  {
+    for (const auto compTypeId : _other.ComponentTypes(_entity))
+    {
+      const components::BaseComponent *data =
+          _other.ComponentImplementation(_entity, compTypeId);
+      this->CreateComponentImplementation(_entity, compTypeId,
+                                          data->Clone().get());
+    }
+  };
+
+  for(auto entity : _diff.AddedEntities())
+  {
+    if (!this->HasEntity(entity))
+    {
+      this->dataPtr->CreateEntityImplementation(entity);
+      if (entity >= this->dataPtr->entityCount)
+      {
+        this->dataPtr->entityCount = entity;
+      }
+      copyComponents(entity);
+      this->SetParentEntity(entity, _other.ParentEntity(entity));
+    }
+  }
+
+  for (const auto &entity : _diff.RemovedEntities())
+  {
+    // if the entity is not in this ECM, add it before requesting for its
+    // removal.
+    if (!this->HasEntity(entity))
+    {
+      this->dataPtr->CreateEntityImplementation(entity);
+      // We want to set this entity as "removed", but
+      // CreateEntityImplementation sets it as "newlyCreated",
+      // so remove it from that list.
+      {
+        std::lock_guard<std::mutex> lock(this->dataPtr->entityCreatedMutex);
+        this->dataPtr->newlyCreatedEntities.erase(entity);
+      }
+      // Copy components so that EachRemoved match correctly
+      if (entity >= this->dataPtr->entityCount)
+      {
+        this->dataPtr->entityCount = entity;
+      }
+      copyComponents(entity);
+      this->SetParentEntity(entity, _other.ParentEntity(entity));
+    }
+
+    this->RequestRemoveEntity(entity, false);
+  }
+}
+
+/////////////////////////////////////////////////
+void EntityComponentManager::ResetTo(const EntityComponentManager &_other)
+{
+  auto ecmDiff = this->ComputeEntityDiff(_other);
+  EntityComponentManager tmpCopy;
+  tmpCopy.CopyFrom(_other);
+  tmpCopy.ApplyEntityDiff(*this, ecmDiff);
+  this->CopyFrom(tmpCopy);
 }

@@ -33,12 +33,14 @@
 
 #include <ignition/common/Animation.hh>
 #include <ignition/common/Console.hh>
-#include <ignition/common/HeightmapData.hh>
-#include <ignition/common/ImageHeightmap.hh>
+#include <ignition/common/geospatial/Dem.hh>
+#include <ignition/common/geospatial/HeightmapData.hh>
+#include <ignition/common/geospatial/ImageHeightmap.hh>
 #include <ignition/common/KeyFrame.hh>
 #include <ignition/common/MeshManager.hh>
 #include <ignition/common/Skeleton.hh>
 #include <ignition/common/SkeletonAnimation.hh>
+#include <ignition/common/StringUtils.hh>
 
 #include <ignition/msgs/Utility.hh>
 
@@ -684,20 +686,42 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
   }
   else if (_geom.Type() == sdf::GeometryType::HEIGHTMAP)
   {
-    auto fullPath = asFullPath(_geom.HeightmapShape()->Uri(),
-        _geom.HeightmapShape()->FilePath());
+    auto fullPath = common::findFile(asFullPath(_geom.HeightmapShape()->Uri(),
+        _geom.HeightmapShape()->FilePath()));
     if (fullPath.empty())
     {
       ignerr << "Heightmap geometry missing URI" << std::endl;
       return geom;
     }
 
-    auto data = std::make_shared<common::ImageHeightmap>();
-    if (data->Load(fullPath) < 0)
+
+    std::shared_ptr<common::HeightmapData> data;
+    std::string lowerFullPath = common::lowercase(fullPath);
+    // check if heightmap is an image
+    if (common::EndsWith(lowerFullPath, ".png")
+        || common::EndsWith(lowerFullPath, ".jpg")
+        || common::EndsWith(lowerFullPath, ".jpeg"))
     {
-      ignerr << "Failed to load heightmap image data from [" << fullPath << "]"
-             << std::endl;
-      return geom;
+      auto img = std::make_shared<common::ImageHeightmap>();
+      if (img->Load(fullPath) < 0)
+      {
+        ignerr << "Failed to load heightmap image data from ["
+               << fullPath << "]" << std::endl;
+        return geom;
+      }
+      data = img;
+    }
+    // DEM
+    else
+    {
+      auto dem = std::make_shared<common::Dem>();
+      if (dem->Load(fullPath) < 0)
+      {
+        ignerr << "Failed to load heightmap dem data from ["
+               << fullPath << "]" << std::endl;
+        return geom;
+      }
+      data = dem;
     }
 
     rendering::HeightmapDescriptor descriptor;
@@ -1245,6 +1269,9 @@ rendering::VisualPtr SceneManager::CreateLightVisual(Entity _id,
     lightVisual->SetInnerAngle(_light.SpotInnerAngle().Radian());
     lightVisual->SetOuterAngle(_light.SpotOuterAngle().Radian());
   }
+
+  lightVisual->SetVisible(_light.Visualize());
+
   rendering::VisualPtr lightVis = std::dynamic_pointer_cast<rendering::Visual>(
     lightVisual);
   lightVis->SetUserData("gazebo-entity", static_cast<int>(_id));
@@ -1775,6 +1802,9 @@ bool SceneManager::AddSensor(Entity _gazeboId, const std::string &_sensorName,
     ignerr << "Unable to find sensor [" << _sensorName << "]" << std::endl;
     return false;
   }
+
+  // \todo(anyone) change to uint64_t once UserData supports this type
+  sensor->SetUserData("gazebo-entity", static_cast<int>(_gazeboId));
 
   if (parent)
   {

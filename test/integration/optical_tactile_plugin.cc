@@ -25,7 +25,7 @@
 #include <ignition/common/Filesystem.hh>
 #include <ignition/msgs/Utility.hh>
 #include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"

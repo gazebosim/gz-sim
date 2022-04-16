@@ -22,7 +22,7 @@
 #include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Model.hh"
@@ -752,7 +752,6 @@ TEST_F(PosePublisherTest,
     ASSERT_LT(0, msg.header().data(1).value_size());
     std::string childFrameId = msg.header().data(1).value(0);
     EXPECT_EQ(expectedEntityName, childFrameId);
-    math::Pose3d pose;
     auto p = msgs::Convert(poseMsgs[0]);
     EXPECT_EQ(expectedEntityPose, p);
   }

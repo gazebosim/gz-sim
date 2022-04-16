@@ -32,10 +32,12 @@
 #include <unordered_set>
 #include <vector>
 
-#include <ignition/common/HeightmapData.hh>
-#include <ignition/common/ImageHeightmap.hh>
+#include <ignition/common/geospatial/Dem.hh>
+#include <ignition/common/geospatial/HeightmapData.hh>
+#include <ignition/common/geospatial/ImageHeightmap.hh>
 #include <ignition/common/MeshManager.hh>
 #include <ignition/common/Profiler.hh>
+#include <ignition/common/StringUtils.hh>
 #include <ignition/common/SystemPaths.hh>
 #include <ignition/math/AxisAlignedBox.hh>
 #include <ignition/math/eigen3/Conversions.hh>
@@ -1282,25 +1284,46 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm)
             return true;
           }
 
-          auto fullPath = asFullPath(heightmapSdf->Uri(),
-              heightmapSdf->FilePath());
+          auto fullPath = common::findFile(asFullPath(heightmapSdf->Uri(),
+              heightmapSdf->FilePath()));
           if (fullPath.empty())
           {
             ignerr << "Heightmap geometry missing URI" << std::endl;
             return true;
           }
 
-          common::ImageHeightmap data;
-          if (data.Load(fullPath) < 0)
+          std::shared_ptr<common::HeightmapData> data;
+          std::string lowerFullPath = common::lowercase(fullPath);
+          // check if heightmap is an image
+          if (common::EndsWith(lowerFullPath, ".png")
+              || common::EndsWith(lowerFullPath, ".jpg")
+              || common::EndsWith(lowerFullPath, ".jpeg"))
           {
-            ignerr << "Failed to load heightmap image data from [" << fullPath
-                   << "]" << std::endl;
-            return true;
+            auto img = std::make_shared<common::ImageHeightmap>();
+            if (img->Load(fullPath) < 0)
+            {
+              ignerr << "Failed to load heightmap image data from ["
+                     << fullPath << "]" << std::endl;
+              return true;
+            }
+            data = img;
+          }
+          // DEM
+          else
+          {
+            auto dem = std::make_shared<common::Dem>();
+            if (dem->Load(fullPath) < 0)
+            {
+              ignerr << "Failed to load heightmap dem data from ["
+                     << fullPath << "]" << std::endl;
+              return true;
+            }
+            data = dem;
           }
 
           collisionPtrPhys = linkHeightmapFeature->AttachHeightmapShape(
               _name->Data(),
-              data,
+              *data,
               math::eigen3::convert(_pose->Data()),
               math::eigen3::convert(heightmapSdf->Size()),
               heightmapSdf->Sampling());

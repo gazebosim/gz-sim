@@ -21,7 +21,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/fuel_tools/ClientConfig.hh>
 #include <ignition/fuel_tools/Interface.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 #include <sdf/Model.hh>
 #include <sdf/Root.hh>
 #include <sdf/sdf.hh>

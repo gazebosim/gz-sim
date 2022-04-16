@@ -86,6 +86,7 @@
 #include "ignition/gazebo/components/Visibility.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/VisualCmd.hh"
+#include "ignition/gazebo/components/WideAngleCamera.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
@@ -378,6 +379,7 @@ class ignition::gazebo::RenderUtilPrivate
           lightEql { [](const sdf::Light &_a, const sdf::Light &_b)
             {
              return
+                _a.Visualize() == _b.Visualize() &&
                 _a.Type() == _b.Type() &&
                 _a.Name() == _b.Name() &&
                 _a.Diffuse() == _b.Diffuse() &&
@@ -828,7 +830,7 @@ void RenderUtilPrivate::FindInertialLinks(const EntityComponentManager &_ecm)
         _ecm.EntityMatches(entity,
                 std::set<ComponentTypeId>{components::Link::typeId}))
     {
-      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
+      links = this->FindChildLinksFromECM(_ecm, entity);
     }
     else
     {
@@ -852,7 +854,7 @@ void RenderUtilPrivate::FindInertialLinks(const EntityComponentManager &_ecm)
         _ecm.EntityMatches(entity,
                 std::set<ComponentTypeId>{components::Link::typeId}))
     {
-      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
+      links = this->FindChildLinksFromECM(_ecm, entity);
     }
     else
     {
@@ -930,7 +932,7 @@ void RenderUtilPrivate::PopulateViewModeVisualLinks(
         _ecm.EntityMatches(entity,
                 std::set<ComponentTypeId>{components::Link::typeId}))
     {
-      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
+      links = this->FindChildLinksFromECM(_ecm, entity);
     }
     else
     {
@@ -955,7 +957,7 @@ void RenderUtilPrivate::PopulateViewModeVisualLinks(
         _ecm.EntityMatches(entity,
                 std::set<ComponentTypeId>{components::Link::typeId}))
     {
-      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
+      links = this->FindChildLinksFromECM(_ecm, entity);
     }
     else
     {
@@ -987,7 +989,7 @@ void RenderUtilPrivate::FindCollisionLinks(const EntityComponentManager &_ecm)
         _ecm.EntityMatches(entity,
                 std::set<ComponentTypeId>{components::Link::typeId}))
     {
-      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
+      links = this->FindChildLinksFromECM(_ecm, entity);
     }
     else
     {
@@ -1641,6 +1643,7 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
   const std::string thermalCameraSuffix{"/image"};
   const std::string gpuLidarSuffix{"/scan"};
   const std::string segmentationCameraSuffix{"/segmentation"};
+  const std::string wideAngleCameraSuffix{"/image"};
 
   // Get all the new worlds
   // TODO(anyone) Only one scene is supported for now
@@ -1882,6 +1885,17 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
             _parent->Data(), segmentationCameraSuffix);
           return true;
         });
+
+    // Create wide angle cameras
+    _ecm.Each<components::WideAngleCamera, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::WideAngleCamera *_wideAngleCamera,
+          const components::ParentEntity *_parent)->bool
+        {
+          this->AddNewSensor(_ecm, _entity, _wideAngleCamera->Data(),
+            _parent->Data(), wideAngleCameraSuffix);
+          return true;
+        });
   }
 }
 
@@ -1895,6 +1909,7 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
   const std::string thermalCameraSuffix{"/image"};
   const std::string gpuLidarSuffix{"/scan"};
   const std::string segmentationCameraSuffix{"/segmentation"};
+  const std::string wideAngleCameraSuffix{"/image"};
 
   // Get all the new worlds
   // TODO(anyone) Only one scene is supported for now
@@ -2136,6 +2151,17 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
             _parent->Data(), segmentationCameraSuffix);
           return true;
         });
+
+    // Create wide angle cameras
+    _ecm.EachNew<components::WideAngleCamera, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::WideAngleCamera *_wideAngleCamera,
+          const components::ParentEntity *_parent)->bool
+        {
+          this->AddNewSensor(_ecm, _entity, _wideAngleCamera->Data(),
+            _parent->Data(), wideAngleCameraSuffix);
+          return true;
+        });
   }
 }
 
@@ -2296,6 +2322,16 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         this->entityPoses[_entity] = _pose->Data();
         return true;
       });
+
+  // Update wide angle cameras
+  _ecm.Each<components::WideAngleCamera, components::Pose>(
+      [&](const Entity &_entity,
+        const components::WideAngleCamera *,
+        const components::Pose *_pose)->bool
+      {
+        this->entityPoses[_entity] = _pose->Data();
+        return true;
+      });
 }
 
 //////////////////////////////////////////////////
@@ -2422,6 +2458,14 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   // segmentation cameras
   _ecm.EachRemoved<components::SegmentationCamera>(
     [&](const Entity &_entity, const components::SegmentationCamera *)->bool
+      {
+        this->removeEntities[_entity] = _info.iterations;
+        return true;
+      });
+
+  // wide angle cameras
+  _ecm.EachRemoved<components::WideAngleCamera>(
+    [&](const Entity &_entity, const components::WideAngleCamera *)->bool
       {
         this->removeEntities[_entity] = _info.iterations;
         return true;
@@ -2811,11 +2855,58 @@ void RenderUtilPrivate::UpdateLights(
     auto l = std::dynamic_pointer_cast<rendering::Light>(node);
     if (l)
     {
-      if (!ignition::math::equal(
-          l->Intensity(),
-          static_cast<double>(light.second.intensity())))
+      // todo(ahcorde) Use the field visualize_visual in light.proto from
+      // Garden on.
+      bool visualizeVisual = true;
+      for (int i = 0; i < light.second.header().data_size(); ++i)
       {
-        l->SetIntensity(light.second.intensity());
+        for (int j = 0;
+            j < light.second.header().data(i).value_size(); ++j)
+        {
+          if (light.second.header().data(i).key() ==
+              "visualizeVisual")
+          {
+            visualizeVisual = ignition::math::parseInt(
+              light.second.header().data(i).value(0));
+          }
+        }
+      }
+
+      rendering::VisualPtr lightVisual =
+          this->sceneManager.VisualById(
+            this->matchLightWithVisuals[light.first]);
+      if (lightVisual)
+        lightVisual->SetVisible(visualizeVisual);
+
+      // todo(ahcorde) Use the field is_light_off in light.proto from
+      // Garden on.
+      bool isLightOn = true;
+      for (int i = 0; i < light.second.header().data_size(); ++i)
+      {
+        for (int j = 0;
+            j < light.second.header().data(i).value_size(); ++j)
+        {
+          if (light.second.header().data(i).key() ==
+              "isLightOn")
+          {
+            isLightOn = ignition::math::parseInt(
+              light.second.header().data(i).value(0));
+          }
+        }
+      }
+
+      if (isLightOn)
+      {
+        if (!ignition::math::equal(
+            l->Intensity(),
+            static_cast<double>(light.second.intensity())))
+        {
+          l->SetIntensity(light.second.intensity());
+        }
+      }
+      else
+      {
+        l->SetIntensity(0);
       }
       if (light.second.has_diffuse())
       {
@@ -3095,7 +3186,7 @@ void RenderUtil::HideWireboxes(const Entity &_entity)
 /////////////////////////////////////////////////
 void RenderUtil::ViewInertia(const Entity &_entity)
 {
-  std::vector<Entity> inertiaLinks = std::move(this->FindChildLinks(_entity));
+  std::vector<Entity> inertiaLinks = this->FindChildLinks(_entity);
 
   // check if _entity has an inertial component (_entity is a link)
   if (this->dataPtr->entityInertials.find(_entity) !=
@@ -3154,7 +3245,7 @@ void RenderUtil::ViewInertia(const Entity &_entity)
 /////////////////////////////////////////////////
 void RenderUtil::ViewCOM(const Entity &_entity)
 {
-  std::vector<Entity> inertiaLinks = std::move(this->FindChildLinks(_entity));
+  std::vector<Entity> inertiaLinks = this->FindChildLinks(_entity);
 
   // check if _entity has an inertial component (_entity is a link)
   if (this->dataPtr->entityInertials.find(_entity) !=
@@ -3308,7 +3399,7 @@ void RenderUtil::ViewTransparent(const Entity &_entity)
   }
 
   // Find all existing child links for this entity
-  std::vector<Entity> links = std::move(this->FindChildLinks(_entity));
+  std::vector<Entity> links = this->FindChildLinks(_entity);
 
   for (const auto &link : links)
   {
@@ -3380,7 +3471,7 @@ void RenderUtil::ViewWireframes(const Entity &_entity)
   }
 
   // Find all existing child links for this entity
-  std::vector<Entity> links = std::move(this->FindChildLinks(_entity));
+  std::vector<Entity> links = this->FindChildLinks(_entity);
 
   for (const auto &link : links)
   {
@@ -3450,7 +3541,7 @@ void RenderUtil::ViewCollisions(const Entity &_entity)
   }
 
   // Find all existing child links for this entity
-  std::vector<Entity> links = std::move(this->FindChildLinks(_entity));
+  std::vector<Entity> links = this->FindChildLinks(_entity);
 
   for (const auto &link : links)
   {

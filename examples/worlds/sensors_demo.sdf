@@ -518,7 +518,6 @@
       </link>
     </model>
 
-
     <include>
       <pose>0 1 3 0.0 0.0 1.57</pose>
       <uri>

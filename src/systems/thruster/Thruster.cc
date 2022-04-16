@@ -92,12 +92,12 @@ class ignition::gazebo::systems::ThrusterPrivateData
   /// and writes the angular velocity directly to the joint. default: false
   public: bool velocityControl = false;
 
-  /// \brief Maximum input force [N] for the propellerController,
-  /// default: 1000N
+  /// \brief Maximum input force [N] or angular velocity [rad/s] for the
+  /// propellerController, default: 1000
   public: double cmdMax = 1000;
 
-  /// \brief Minimum input force [N] for the propellerController,
-  /// default: -1000N
+  /// \brief Minimum input force [N] or angular velocity [rad/s] for the
+  /// propellerController, default: -1000
   public: double cmdMin = -1000;
 
   /// \brief Thrust coefficient relating the propeller angular velocity to the
@@ -371,7 +371,7 @@ double ThrusterPrivateData::ThrustToAngularVec(double _thrust)
       (this->fluidDensity
       * this->thrustCoefficient * pow(this->propellerDiameter, 4))));
 
-  propAngularVelocity *= (_thrust > 0) ? 1: -1;
+  propAngularVelocity *= (_thrust * this->thrustCoefficient > 0) ? 1: -1;
 
   return propAngularVelocity;
 }
@@ -394,8 +394,6 @@ void Thruster::PreUpdate(
     return;
 
   ignition::gazebo::Link link(this->dataPtr->linkEntity);
-
-  auto pose = worldPose(this->dataPtr->linkEntity, _ecm);
 
   // TODO(arjo129): add logic for custom coordinate frame
   // Convert joint axis to the world frame

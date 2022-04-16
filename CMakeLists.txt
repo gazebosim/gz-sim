@@ -9,7 +9,7 @@ project(ignition-gazebo7 VERSION 7.0.0)
 # Find ignition-cmake
 #============================================================================
 # If you get an error at this line, you need to install ignition-cmake
-find_package(ignition-cmake2 2.8.0 REQUIRED)
+find_package(ignition-cmake3 REQUIRED)
 
 #============================================================================
 # Configure the project
@@ -64,8 +64,8 @@ set(SDF_VER ${sdformat13_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-plugin
-ign_find_package(ignition-plugin1 REQUIRED COMPONENTS loader register)
-set(IGN_PLUGIN_VER ${ignition-plugin1_VERSION_MAJOR})
+ign_find_package(ignition-plugin2 REQUIRED COMPONENTS loader register)
+set(IGN_PLUGIN_VER ${ignition-plugin2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-transport
@@ -142,6 +142,7 @@ ign_find_package(ignition-sensors7 REQUIRED
     depth_camera
     rgbd_camera
     thermal_camera
+    wide_angle_camera
 )
 set(IGN_SENSORS_VER ${ignition-sensors7_VERSION_MAJOR})
 
@@ -157,14 +158,14 @@ set(IGN_MATH_VER ${ignition-math7_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-tools
-ign_find_package(ignition-tools
+ign_find_package(ignition-tools2
                  REQUIRED
-                 PKGCONFIG "ignition-tools")
+                 PKGCONFIG "ignition-tools2")
 
 #--------------------------------------
 # Find ignition-utils
-ign_find_package(ignition-utils1 REQUIRED COMPONENTS cli)
-set(IGN_UTILS_VER ${ignition-utils1_VERSION_MAJOR})
+ign_find_package(ignition-utils2 REQUIRED COMPONENTS cli)
+set(IGN_UTILS_VER ${ignition-utils2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find protobuf
@@ -187,6 +188,7 @@ else()
   message (STATUS "Searching for Python - found version ${PYTHONLIBS_VERSION_STRING}.")
 
   set(PYBIND11_PYTHON_VERSION 3)
+  find_package(Python3 QUIET COMPONENTS Interpreter Development)
   find_package(pybind11 2.2 QUIET)
 
   if (${pybind11_FOUND})

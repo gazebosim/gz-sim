@@ -37,7 +37,7 @@ namespace systems
   **/
   /// \brief System which periodically publishes an ignition::msgs::Scene
   /// message with updated information.
-  class SceneBroadcaster:
+  class SceneBroadcaster final:
     public System,
     public ISystemConfigure,
     public ISystemPostUpdate

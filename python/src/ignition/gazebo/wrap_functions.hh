@@ -287,8 +287,7 @@ struct wrap_ref_ptr : public wrap_arg_default<T> {};
 
 template <typename T>
 struct wrap_ref_ptr<T&,
-  std::enable_if_t<is_generic_pybind_v<T> &&
-  !std::is_same_v<T, const std::shared_ptr<const sdf::Element>> >> {
+  std::enable_if_t<is_generic_pybind_v<T>>> {
   // NOLINTNEXTLINE[runtime/references]: Intentional.
   static T* wrap(T& arg) { return &arg; }
   static T& unwrap(T* arg_wrapped) {
