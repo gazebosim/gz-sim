@@ -49,6 +49,7 @@ namespace ignition
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
     class IGNITION_GAZEBO_HIDDEN EntityComponentManagerPrivate;
+    class EntityComponentManagerDiff;
 
     /// \brief Type alias for the graph that holds entities.
     /// Each vertex is an entity, and the direction points from the parent to
@@ -70,6 +71,14 @@ namespace ignition
 
       /// \brief Destructor
       public: ~EntityComponentManager();
+
+      /// \brief Copies the contents of `_from` into this object.
+      /// \note This is a member function instead of a copy constructor so that
+      /// it can have additional parameters if the need arises in the future.
+      /// Additionally, not every data member is copied making its behavior
+      /// different from what would be expected from a copy constructor.
+      /// \param[in] _from Object to copy from
+      public: void CopyFrom(const EntityComponentManager &_fromEcm);
 
       /// \brief Creates a new Entity.
       /// \return An id for the Entity, or kNullEntity on failure.
@@ -669,6 +678,13 @@ namespace ignition
       /// \param[in] _offset Offset value.
       public: void SetEntityCreateOffset(uint64_t _offset);
 
+      /// \brief Given a diff, apply it to this ECM. Note that for removed
+      /// entities, this would mark them for removal instead of actually
+      /// removing the entities.
+      /// \param[in] _other Original EntityComponentManager from which the diff
+      /// was computed.
+      public: void ResetTo(const EntityComponentManager &_other);
+
       /// \brief Return true if there are components marked for removal.
       /// \return True if there are components marked for removal.
       public: bool HasRemovedComponents() const;
@@ -689,6 +705,25 @@ namespace ignition
 
       /// \brief Mark all components as not changed.
       protected: void SetAllComponentsUnchanged();
+
+      /// Compute the diff between this EntityComponentManager and _other at the
+      /// entity level. This does not compute the diff between components of an
+      /// entity.
+      ///  * If an entity is in `_other`, but not in `this`, insert the entity
+      ///  as an "added" entity.
+      ///  * If an entity is in `this`, but not in `other`, insert the entity
+      ///  as a "removed" entity.
+      ///  \return Data structure containing the added and removed entities
+      protected: EntityComponentManagerDiff ComputeEntityDiff(
+                     const EntityComponentManager &_other) const;
+
+      /// \brief Given an entity diff, apply it to this ECM. Note that for
+      /// removed entities, this would mark them for removal instead of actually
+      /// removing the entities.
+      /// \param[in] _other Original EntityComponentManager from which the diff
+      /// was computed.
+      protected: void ApplyEntityDiff(const EntityComponentManager &_other,
+                                      const EntityComponentManagerDiff &_diff);
 
       /// \brief Get whether an Entity exists and is new.
       ///
@@ -738,7 +773,7 @@ namespace ignition
       /// \tparam ComponentTypeTs All the component types that define a view.
       /// \return A pointer to the view.
       private: template<typename ...ComponentTypeTs>
-          detail::View<ComponentTypeTs...> *FindView() const;
+          detail::View *FindView() const;
 
       /// \brief Find a view based on the provided component type ids.
       /// \param[in] _types The component type ids that serve as a key into

@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.11.0 FATAL_ERROR)
 
-find_package(ignition-cmake2 REQUIRED)
+find_package(ignition-cmake3 REQUIRED)
 
 project(OdometerSystem)
 
-ign_find_package(ignition-plugin1 REQUIRED COMPONENTS register)
-set(IGN_PLUGIN_VER ${ignition-plugin1_VERSION_MAJOR})
+ign_find_package(ignition-plugin2 REQUIRED COMPONENTS register)
+set(IGN_PLUGIN_VER ${ignition-plugin2_VERSION_MAJOR})
 
 ign_find_package(ignition-gazebo7 REQUIRED)
 set(IGN_GAZEBO_VER ${ignition-gazebo7_VERSION_MAJOR})

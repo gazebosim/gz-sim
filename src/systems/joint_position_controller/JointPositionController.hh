@@ -81,6 +81,9 @@ namespace systems
   /// `<topic>` If you wish to listen on a non-default topic you may specify it
   /// here, otherwise the controller defaults to listening on
   /// "/model/<model_name>/joint/<joint_name>/<joint_index>/cmd_pos".
+  ///
+  /// `<initial_position>` Initial position of a joint. Optional parameter.
+  ///  The default value is 0.
   class JointPositionController
       : public System,
         public ISystemConfigure,

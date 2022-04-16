@@ -22,7 +22,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/Link.hh"
 #include "ignition/gazebo/Model.hh"
@@ -147,10 +147,16 @@ void ThrusterTest::TestWorld(const std::string &_world,
   EXPECT_LT(sleep, maxSleep);
   EXPECT_TRUE(pub.HasConnections());
 
-  // input force cmd - this should be capped to 0
-  double forceCmd{-1000.0};
+  // Test the cmd limits specified in the world file. These should be:
+  //    if (use_angvel_cmd && thrust_coefficient < 0):
+  //        min_thrust = -300
+  //        max_thrust = 0
+  //    else:
+  //        min_thrust = 0
+  //        max_thrust = 300
+  double invalidCmd = (_useAngVelCmd && _coefficient < 0) ? 1000 : -1000;
   msgs::Double msg;
-  msg.set_data(forceCmd);
+  msg.set_data(invalidCmd);
   pub.Publish(msg);
 
   // Check no movement
@@ -168,7 +174,9 @@ void ThrusterTest::TestWorld(const std::string &_world,
   // See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 246
   // omega = sqrt(thrust /
   //     (fluid_density * thrust_coefficient * propeller_diameter ^ 4))
-  auto omega = sqrt(force / (_density * _coefficient * pow(_diameter, 4)));
+  auto omega = sqrt(abs(force / (_density * _coefficient * pow(_diameter, 4))));
+  // Account for negative thrust and/or negative thrust coefficient
+  omega *= (force * _coefficient > 0 ? 1 : -1);
 
   msg.Clear();
   if(!_useAngVelCmd)
@@ -242,6 +250,28 @@ TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(AngVelCmdControl))
 }
 
 /////////////////////////////////////////////////
+TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(CcwForceCmdControl))
+{
+  auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "thruster_ccw_force_cmd.sdf");
+
+  //  Viewed from stern to bow the propeller spins counter-clockwise
+  //  Tolerance is high because the joint command disturbs the vehicle body
+  this->TestWorld(world, "custom", -0.005, 950, 0.2, 1e-2);
+}
+
+/////////////////////////////////////////////////
+TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(CcwAngVelCmdControl))
+{
+  auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "thruster_ccw_ang_vel_cmd.sdf");
+
+  //  Viewed from stern to bow the propeller spins counter-clockwise
+  //  Tolerance is high because the joint command disturbs the vehicle body
+  this->TestWorld(world, "custom", -0.005, 950, 0.2, 1e-2, true);
+}
+
+/////////////////////////////////////////////////
 // See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
 TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PIDControl))
 {
@@ -262,4 +292,3 @@ TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(VelocityControl))
   // Tolerance is high because the joint command disturbs the vehicle body
   this->TestWorld(world, "custom", 0.005, 950, 0.25, 1e-2);
 }
-

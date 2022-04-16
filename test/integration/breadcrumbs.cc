@@ -29,7 +29,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/Server.hh"
@@ -396,7 +396,6 @@ TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PerformerSetVolume))
   const std::size_t iterTestStart = 1000;
   const std::size_t nIters = iterTestStart + 2000;
 
-  std::optional<math::Pose3d> initialPose;
   testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
                              const gazebo::EntityComponentManager &_ecm)
   {

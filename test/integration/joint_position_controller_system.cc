@@ -22,7 +22,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointPosition.hh"
@@ -178,9 +178,16 @@ TEST_F(JointPositionControllerTestFixture,
 
   server.AddSystem(testSystem.systemPtr);
 
-  const std::size_t initIters = 10;
+  // joint pos starts at 0
+  const std::size_t initIters = 1;
   server.Run(true, initIters, false);
   EXPECT_NEAR(0, currentPosition.at(0), TOL);
+
+  // joint moves to initial_position at -2.0
+  const std::size_t initPosIters = 1000;
+  server.Run(true, initPosIters, false);
+  double expectedInitialPosition = -2.0;
+  EXPECT_NEAR(expectedInitialPosition, currentPosition.at(0), TOL);
 
   // Publish command and check that the joint position is set
   transport::Node node;

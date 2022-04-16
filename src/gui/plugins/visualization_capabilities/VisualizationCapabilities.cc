@@ -30,6 +30,7 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
+#include <QQmlProperty>
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/geospatial/Dem.hh>
@@ -1778,7 +1779,7 @@ void VisualizationCapabilitiesPrivate::ViewCollisions(const Entity &_entity)
   }
 
   // Find all existing child links for this entity
-  std::vector<Entity> links = std::move(this->FindChildLinks(_entity));
+  std::vector<Entity> links = this->FindChildLinks(_entity);
 
   for (const auto &link : links)
   {
@@ -1828,7 +1829,7 @@ void VisualizationCapabilitiesPrivate::ViewCollisions(const Entity &_entity)
 /////////////////////////////////////////////////
 void VisualizationCapabilitiesPrivate::ViewInertia(const Entity &_entity)
 {
-  std::vector<Entity> inertiaLinks = std::move(this->FindChildLinks(_entity));
+  std::vector<Entity> inertiaLinks = this->FindChildLinks(_entity);
 
   // check if _entity has an inertial component (_entity is a link)
   if (this->entityInertials.find(_entity) !=
@@ -1956,7 +1957,7 @@ void VisualizationCapabilitiesPrivate::ViewJoints(const Entity &_entity)
 /////////////////////////////////////////////////
 void VisualizationCapabilitiesPrivate::ViewCOM(const Entity &_entity)
 {
-  std::vector<Entity> inertiaLinks = std::move(this->FindChildLinks(_entity));
+  std::vector<Entity> inertiaLinks = this->FindChildLinks(_entity);
 
   // check if _entity has an inertial component (_entity is a link)
   if (this->entityInertials.find(_entity) !=
@@ -2014,7 +2015,7 @@ void VisualizationCapabilitiesPrivate::ViewWireframes(const Entity &_entity)
   }
 
   // Find all existing child links for this entity
-  std::vector<Entity> links = std::move(this->FindChildLinks(_entity));
+  std::vector<Entity> links = this->FindChildLinks(_entity);
 
   for (const auto &link : links)
   {
@@ -2068,7 +2069,7 @@ void VisualizationCapabilitiesPrivate::ViewFrames(const Entity &_entity)
   bool showFrames = (this->viewingFrames.find(_entity) ==
         this->viewingFrames.end()) || !this->viewingFrames[_entity];
 
-  auto descendants = std::move(this->FindChildFrames(_entity));
+  auto descendants = this->FindChildFrames(_entity);
 
   for (const auto &descendant : descendants)
   {
@@ -2107,7 +2108,7 @@ void VisualizationCapabilitiesPrivate::ViewTransparent(const Entity &_entity)
   }
 
   // Find all existing child links for this entity
-  std::vector<Entity> links = std::move(this->FindChildLinks(_entity));
+  std::vector<Entity> links = this->FindChildLinks(_entity);
 
   for (const auto &link : links)
   {
@@ -2286,7 +2287,7 @@ void VisualizationCapabilitiesPrivate::FindInertialLinks(
         _ecm.EntityMatches(entity,
                 std::set<ComponentTypeId>{components::Link::typeId}))
     {
-      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
+      links = this->FindChildLinksFromECM(_ecm, entity);
     }
     else
     {
@@ -2310,7 +2311,7 @@ void VisualizationCapabilitiesPrivate::FindInertialLinks(
         _ecm.EntityMatches(entity,
                 std::set<ComponentTypeId>{components::Link::typeId}))
     {
-      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
+      links = this->FindChildLinksFromECM(_ecm, entity);
     }
     else
     {
@@ -2342,7 +2343,7 @@ void VisualizationCapabilitiesPrivate::FindCollisionLinks(
         _ecm.EntityMatches(entity,
                 std::set<ComponentTypeId>{components::Link::typeId}))
     {
-      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
+      links = this->FindChildLinksFromECM(_ecm, entity);
     }
     else
     {
@@ -2372,7 +2373,7 @@ void VisualizationCapabilitiesPrivate::PopulateViewModeVisualLinks(
         _ecm.EntityMatches(entity,
                 std::set<ComponentTypeId>{components::Link::typeId}))
     {
-      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
+      links = this->FindChildLinksFromECM(_ecm, entity);
     }
     else
     {
@@ -2397,7 +2398,7 @@ void VisualizationCapabilitiesPrivate::PopulateViewModeVisualLinks(
         _ecm.EntityMatches(entity,
                 std::set<ComponentTypeId>{components::Link::typeId}))
     {
-      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
+      links = this->FindChildLinksFromECM(_ecm, entity);
     }
     else
     {
@@ -2789,7 +2790,19 @@ void VisualizationCapabilities::Update(const UpdateInfo &,
 void VisualizationCapabilities::LoadConfig(const tinyxml2::XMLElement *)
 {
   if (this->title.empty())
-    this->title = "VisualizationCapabilities";
+    this->title = "Visualization capabilities";
+
+  static bool done{false};
+  if (done)
+  {
+    std::string msg{
+        "Only one Visualization capabilities plugin is supported at a time."};
+    ignerr << msg << std::endl;
+    QQmlProperty::write(this->PluginItem(), "message",
+        QString::fromStdString(msg));
+    return;
+  }
+  done = true;
 
   // view as transparent service
   this->dataPtr->viewTransparentService = "/gui/view/transparent";

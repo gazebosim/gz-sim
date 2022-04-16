@@ -228,14 +228,20 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
           {
             auto subMeshLock = mesh->SubMeshByIndex(k).lock();
             subm = worldMesh.AddSubMesh(*subMeshLock.get());
-            addSubmeshFunc(subMeshLock->MaterialIndex());
+            if (const auto subMeshIdx = subMeshLock->GetMaterialIndex())
+              addSubmeshFunc(static_cast<int>(subMeshIdx.value()));
+            else
+              addSubmeshFunc(-1);
           }
         }
         else
         {
           auto subMeshLock = mesh->SubMeshByName(subMeshName).lock();
           subm = worldMesh.AddSubMesh(*subMeshLock.get());
-          addSubmeshFunc(subMeshLock->MaterialIndex());
+          if (const auto subMeshIdx = subMeshLock->GetMaterialIndex())
+            addSubmeshFunc(static_cast<int>(subMeshIdx.value()));
+          else
+            addSubmeshFunc(-1);
         }
       }
       else

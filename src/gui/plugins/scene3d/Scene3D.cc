@@ -1908,8 +1908,6 @@ void IgnRenderer::HandleMouseTransformControl()
         this->dataPtr->startWorldPos =
           target->WorldPosition();
       }
-      ignition::math::Vector3d worldPos =
-        target->WorldPosition();
       math::Vector3d distance =
         this->dataPtr->transformControl.TranslationFrom2d(axis, start, end);
       if (this->dataPtr->keyEvent.Control())

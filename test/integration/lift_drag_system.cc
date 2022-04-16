@@ -24,7 +24,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/Joint.hh"

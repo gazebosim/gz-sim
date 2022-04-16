@@ -15,15 +15,39 @@
  *
 */
 
-import QtQuick 2.0
-import QtQuick.Controls 2.0
+import QtQuick 2.9
+import QtQuick.Controls 2.1
 import QtQuick.Layouts 1.3
 import RenderWindowOverlay 1.0
 import IgnGazebo 1.0 as IgnGazebo
 
-Rectangle {
-  visible: false
-  color: "transparent"
+ColumnLayout {
+  Layout.minimumWidth: 350
+  Layout.minimumHeight: 370
+  anchors.fill: parent
+  anchors.margins: 10
+
+  property string message: 'Adding a right-click context menu to the 3D scene.<br><br>' +
+      'For proper positioning:<br><ol>' +
+      '<li>Undock the menu</li>' +
+      '<li>Right-click this text, and choose Settings</li>' +
+      '<li>Hide the title bar and set height to zero</li></ol><br><br>' +
+      'These other plugins must also be loaded to enable all functionality:<br><ul>' +
+      '<li>Move To / Follow: Camera tracking</li>' +
+      '<li>Copy / Paste: Copy Paste</li>' +
+      '<li>View: Visualization Capabilities</li>' +
+      '<li>Remove: Gz Scene Manager</li></ul>'
+
+  Label {
+    Layout.fillWidth: true
+    wrapMode: Text.WordWrap
+    text: message
+  }
+
+  Item {
+    width: 10
+    Layout.fillHeight: true
+  }
 
   RenderWindowOverlay {
     id: renderWindowOverlay

@@ -22,7 +22,7 @@
 #include <ignition/common/Filesystem.hh>
 #include <ignition/common/Mesh.hh>
 #include <ignition/common/SubMesh.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"

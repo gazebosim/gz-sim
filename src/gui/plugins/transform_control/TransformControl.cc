@@ -827,7 +827,6 @@ void TransformControlPrivate::HandleTransform()
         this->isStartWorldPosSet = true;
         this->startWorldPos = target->WorldPosition();
       }
-      ignition::math::Vector3d worldPos = target->WorldPosition();
       math::Vector3d distance =
         this->transformControl.TranslationFrom2d(axis, start, end);
       if (this->keyEvent.Control())

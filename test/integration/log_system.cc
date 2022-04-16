@@ -37,7 +37,7 @@
 #include <ignition/transport/log/Playback.hh>
 #include <ignition/transport/log/QualifiedTime.hh>
 #include <ignition/math/Pose3.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
@@ -276,7 +276,6 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPlaybackStatistics))
   Server server(config);
 
   test::Relay testSystem;
-  math::Pose3d spherePose;
   std::chrono::steady_clock::time_point startTime;
   std::chrono::steady_clock::time_point endTime;
   testSystem.OnPostUpdate(
@@ -334,8 +333,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
 
   // Test case 1:
   // No path specified on command line. This does not go through
-  // ign.cc, so ignLogDirectory() is not initialized (empty string). Recording
-  // should not take place.
+  // ign.cc, recording should take place in the `.ignition` directory
   {
     // Load SDF
     sdf::Root recordSdfRoot;
@@ -355,8 +353,12 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
     recordServer.Run(true, 200, false);
   }
 
-  // Check ignLogDirectory is empty
-  EXPECT_TRUE(ignLogDirectory().empty());
+  // We should expect to see "auto_default.log"  and "state.tlog"
+  EXPECT_FALSE(ignLogDirectory().empty());
+  EXPECT_TRUE(common::exists(
+        common::joinPaths(ignLogDirectory(), "auto_default.log")));
+  EXPECT_TRUE(common::exists(
+        common::joinPaths(ignLogDirectory(), "state.tlog")));
 
   // Remove artifacts. Recreate new directory
   this->RemoveLogsDir();
@@ -918,7 +920,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogControl))
     latestSpherePose = spherePose;
   }
 
-  // Rewind
+  // Rewind to zero
   req.Clear();
   req.set_rewind(true);
 
@@ -926,7 +928,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogControl))
   EXPECT_TRUE(result);
   EXPECT_TRUE(res.data());
 
-  server.Run(true, 2, false);
+  server.Run(true, 3, false);
 
   EXPECT_TRUE(sphereFound);
   sphereFound = false;
