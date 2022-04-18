@@ -50,7 +50,6 @@ pybind11_add_module(gazebo SHARED
 
 target_link_libraries(gazebo PRIVATE
   ${PROJECT_LIBRARY_TARGET_NAME}
-  sdformat${SDF_VER}::sdformat${SDF_VER}
   ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
 )
 
