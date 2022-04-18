@@ -23,7 +23,7 @@
 #include <ignition/common/StringUtils.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/gui/Gui.hh"
 #include "ignition/gazebo/test_config.hh"

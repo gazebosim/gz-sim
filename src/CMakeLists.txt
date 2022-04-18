@@ -64,6 +64,7 @@ set (sources
   SystemManager.cc
   TestFixture.cc
   Util.cc
+  View.cc
   World.cc
   cmd/ModelCommandAPI.cc
   ${PROTO_PRIVATE_SRC}
@@ -199,7 +200,7 @@ foreach(CMD_TEST
       "BREW_RUBY=\"${BREW_RUBY} \"")
 
   target_compile_definitions(${CMD_TEST} PRIVATE
-      "IGN_PATH=\"${IGNITION-TOOLS_BINARY_DIRS}\"")
+      "IGN_PATH=\"${IGNITION-TOOLS2_BINARY_DIRS}\"")
 
   set(_env_vars)
   list(APPEND _env_vars "IGN_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf")

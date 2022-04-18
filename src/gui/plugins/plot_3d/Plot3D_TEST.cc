@@ -28,7 +28,7 @@
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/gui/Plugin.hh>
 #include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 #include <ignition/utils/SuppressWarning.hh>
 
 #include "ignition/gazebo/components/Joint.hh"

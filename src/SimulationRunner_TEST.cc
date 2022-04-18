@@ -21,7 +21,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 #include <sdf/Box.hh>
 #include <sdf/Capsule.hh>
 #include <sdf/Cylinder.hh>
@@ -1530,6 +1530,30 @@ TEST_P(SimulationRunnerTest,
       << componentId;
   EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(cylinderEntity,
       componentId)) << componentId;
+}
+
+/////////////////////////////////////////////////
+TEST_P(SimulationRunnerTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadOnlyModelPlugin) )
+{
+  sdf::Root rootWithout;
+  rootWithout.Load(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "model_plugin_only.sdf"));
+  ASSERT_EQ(1u, rootWithout.WorldCount());
+
+  // ServerConfig will fall back to environment variable
+  auto config = common::joinPaths(PROJECT_SOURCE_PATH,
+    "test", "worlds", "server_valid2.config");
+  ASSERT_EQ(true, common::setenv(gazebo::kServerConfigPathEnv, config));
+  ServerConfig serverConfig;
+
+  // Create simulation runner
+  auto systemLoader = std::make_shared<SystemLoader>();
+  SimulationRunner runner(rootWithout.WorldByIndex(0), systemLoader,
+      serverConfig);
+
+  // 1 model plugin from SDF and 2 world plugins from config
+  ASSERT_EQ(3u, runner.SystemCount());
 }
 
 /////////////////////////////////////////////////

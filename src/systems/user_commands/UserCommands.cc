@@ -22,11 +22,14 @@
 #include <ignition/msgs/entity_factory.pb.h>
 #include <ignition/msgs/light.pb.h>
 #include <ignition/msgs/pose.pb.h>
+#include <ignition/msgs/pose_v.pb.h>
 #include <ignition/msgs/physics.pb.h>
 #include <ignition/msgs/visual.pb.h>
+#include <ignition/msgs/wheel_slip_parameters_cmd.pb.h>
 
 #include <string>
 #include <utility>
+#include <unordered_set>
 #include <vector>
 
 #include <ignition/math/SphericalCoordinates.hh>
@@ -42,6 +45,8 @@
 
 #include "ignition/common/Profiler.hh"
 
+#include "ignition/gazebo/components/Collision.hh"
+#include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/LightCmd.hh"
 #include "ignition/gazebo/components/Link.hh"
@@ -52,15 +57,19 @@
 #include "ignition/gazebo/components/PoseCmd.hh"
 #include "ignition/gazebo/components/PhysicsCmd.hh"
 #include "ignition/gazebo/components/SphericalCoordinates.hh"
+#include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/Model.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
+#include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/World.hh"
 #include "ignition/gazebo/components/ContactSensorData.hh"
 #include "ignition/gazebo/components/ContactSensor.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/VisualCmd.hh"
+#include "ignition/gazebo/components/WheelSlipCmd.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -127,18 +136,6 @@ Entity topLevelEntityFromMessage(const EntityComponentManager &_ecm,
 
   ignerr << "Message missing either entity's ID or name + type" << std::endl;
   return kNullEntity;
-}
-
-/// \brief Pose3d equality comparison function.
-/// \param[in] _a A pose to compare
-/// \param[in] _b Another pose to compare
-bool pose3Eql(const math::Pose3d &_a, const math::Pose3d &_b)
-{
-  return _a.Pos().Equal(_b.Pos(), 1e-6) &&
-    math::equal(_a.Rot().X(), _b.Rot().X(), 1e-6) &&
-    math::equal(_a.Rot().Y(), _b.Rot().Y(), 1e-6) &&
-    math::equal(_a.Rot().Z(), _b.Rot().Z(), 1e-6) &&
-    math::equal(_a.Rot().W(), _b.Rot().W(), 1e-6);
 }
 
 /// \brief This class is passed to every command and contains interfaces that
@@ -230,7 +227,50 @@ class LightCommand : public UserCommandBase
   public: std::function<bool(const msgs::Light &, const msgs::Light &)>
           lightEql { [](const msgs::Light &_a, const msgs::Light &_b)
             {
+              // todo(ahcorde) Use the field is_light_off in light.proto from
+              // Garden on.
+              auto getVisualizeVisual = [](const msgs::Light &_light) -> bool
+              {
+                bool visualizeVisual = true;
+                for (int i = 0; i < _light.header().data_size(); ++i)
+                {
+                  for (int j = 0;
+                      j < _light.header().data(i).value_size(); ++j)
+                  {
+                    if (_light.header().data(i).key() ==
+                        "visualizeVisual")
+                    {
+                      visualizeVisual = ignition::math::parseInt(
+                        _light.header().data(i).value(0));
+                    }
+                  }
+                }
+                return visualizeVisual;
+              };
+
+              // todo(ahcorde) Use the field is_light_off in light.proto from
+              // Garden on.
+              auto getIsLightOn = [](const msgs::Light &_light) -> bool
+              {
+                bool isLightOn = true;
+                for (int i = 0; i < _light.header().data_size(); ++i)
+                {
+                  for (int j = 0;
+                      j < _light.header().data(i).value_size(); ++j)
+                  {
+                    if (_light.header().data(i).key() ==
+                        "isLightOn")
+                    {
+                      isLightOn = ignition::math::parseInt(
+                        _light.header().data(i).value(0));
+                    }
+                  }
+                }
+                return isLightOn;
+               };
              return
+                getVisualizeVisual(_a) == getVisualizeVisual(_b) &&
+                getIsLightOn(_a) == getIsLightOn(_b) &&
                 _a.type() == _b.type() &&
                 _a.name() == _b.name() &&
                 math::equal(
@@ -289,6 +329,19 @@ class PoseCommand : public UserCommandBase
   /// \param[in] _msg pose message.
   /// \param[in] _iface Pointer to user commands interface.
   public: PoseCommand(msgs::Pose *_msg,
+      std::shared_ptr<UserCommandsInterface> &_iface);
+
+  // Documentation inherited
+  public: bool Execute() final;
+};
+
+/// \brief Command to update an entity's pose transform.
+class PoseVectorCommand : public UserCommandBase
+{
+  /// \brief Constructor
+  /// \param[in] _msg pose_v message.
+  /// \param[in] _iface Pointer to user commands interface.
+  public: PoseVectorCommand(msgs::Pose_V *_msg,
       std::shared_ptr<UserCommandsInterface> &_iface);
 
   // Documentation inherited
@@ -404,6 +457,48 @@ class VisualCommand : public UserCommandBase
                   aMaterial.emissive().a(), bMaterial.emissive().a(), 1e-6f);
             }};
 };
+
+/// \brief Command to modify a wheel entity from simulation.
+class WheelSlipCommand : public UserCommandBase
+{
+  /// \brief Constructor
+  /// \param[in] _msg Message containing the wheel slip parameters.
+  /// \param[in] _iface Pointer to user commands interface.
+  public: WheelSlipCommand(msgs::WheelSlipParametersCmd *_msg,
+      std::shared_ptr<UserCommandsInterface> &_iface);
+
+  // Documentation inherited
+  public: bool Execute() final;
+
+  /// \brief WheelSlip equality comparision function
+  public: std::function<bool(
+    const msgs::WheelSlipParametersCmd &, const msgs::WheelSlipParametersCmd &)>
+          wheelSlipEql {
+            [](
+              const msgs::WheelSlipParametersCmd &_a,
+              const msgs::WheelSlipParametersCmd &_b)
+            {
+              return
+                (
+                  (
+                    _a.entity().id() != kNullEntity &&
+                    _a.entity().id() == _b.entity().id()
+                  ) ||
+                  (
+                    _a.entity().name() == _b.entity().name() &&
+                    _a.entity().type() == _b.entity().type()
+                  )
+                ) &&
+                math::equal(
+                  _a.slip_compliance_lateral(),
+                  _b.slip_compliance_lateral(),
+                  1e-6) &&
+                math::equal(
+                  _a.slip_compliance_longitudinal(),
+                  _b.slip_compliance_longitudinal(),
+                  1e-6);
+            }};
+};
 }
 }
 }
@@ -454,6 +549,13 @@ class ignition::gazebo::systems::UserCommandsPrivate
   /// \return True if successful.
   public: bool PoseService(const msgs::Pose &_req, msgs::Boolean &_res);
 
+  /// \brief Callback for pose_v service
+  /// \param[in] _req Request containing pose update of several entities.
+  /// \param[out] _res True if message successfully received and queued.
+  /// It does not mean that the entity will be successfully moved.
+  /// \return True if successful.
+  public: bool PoseVectorService(const msgs::Pose_V &_req, msgs::Boolean &_res);
+
   /// \brief Callback for physics service
   /// \param[in] _req Request containing updates to the physics parameters.
   /// \param[out] _res True if message successfully received and queued.
@@ -492,6 +594,16 @@ class ignition::gazebo::systems::UserCommandsPrivate
   /// \return True if successful.
   public: bool VisualService(const msgs::Visual &_req, msgs::Boolean &_res);
 
+  /// \brief Callback for wheel slip service
+  /// \param[in] _req Request containing wheel slip parameter updates of an
+  ///  entity.
+  /// \param[out] _res True if message sucessfully received and queued.
+  /// It does not mean that the wheel slip parameters will be successfully
+  /// updated.
+  /// \return True if successful.
+  public: bool WheelSlipService(
+    const msgs::WheelSlipParametersCmd &_req, msgs::Boolean &_res);
+
   /// \brief Queue of commands pending execution.
   public: std::vector<std::unique_ptr<UserCommandBase>> pendingCmds;
 
@@ -504,6 +616,26 @@ class ignition::gazebo::systems::UserCommandsPrivate
   /// \brief Mutex to protect pending queue.
   public: std::mutex pendingMutex;
 };
+
+/// \brief Pose3d equality comparison function.
+/// \param[in] _a A pose to compare
+/// \param[in] _b Another pose to compare
+bool pose3Eql(const math::Pose3d &_a, const math::Pose3d &_b)
+{
+  return _a.Pos().Equal(_b.Pos(), 1e-6) &&
+    math::equal(_a.Rot().X(), _b.Rot().X(), 1e-6) &&
+    math::equal(_a.Rot().Y(), _b.Rot().Y(), 1e-6) &&
+    math::equal(_a.Rot().Z(), _b.Rot().Z(), 1e-6) &&
+    math::equal(_a.Rot().W(), _b.Rot().W(), 1e-6);
+}
+
+/// \brief Update pose for a specific pose message
+/// \param[in] _req Message containing new pose
+/// \param[in] _iface Pointer to user commands interface.
+/// \return True if successful.
+bool updatePose(
+  const msgs::Pose &_req,
+  std::shared_ptr<UserCommandsInterface> _iface);
 
 //////////////////////////////////////////////////
 UserCommands::UserCommands() : System(),
@@ -598,6 +730,14 @@ void UserCommands::Configure(const Entity &_entity,
 
   ignmsg << "Pose service on [" << poseService << "]" << std::endl;
 
+  // Pose vector service
+  std::string poseVectorService{
+    "/world/" + worldName + "/set_pose_vector"};
+  this->dataPtr->node.Advertise(poseVectorService,
+      &UserCommandsPrivate::PoseVectorService, this->dataPtr.get());
+
+  ignmsg << "Pose service on [" << poseVectorService << "]" << std::endl;
+
   // Light service
   std::string lightService{"/world/" + validWorldName + "/light_config"};
   this->dataPtr->node.Advertise(lightService,
@@ -651,6 +791,14 @@ void UserCommands::Configure(const Entity &_entity,
       &UserCommandsPrivate::VisualService, this->dataPtr.get());
 
   ignmsg << "Material service on [" << visualService << "]" << std::endl;
+
+  // Wheel slip service
+  std::string wheelSlipService
+      {"/world/" + validWorldName + "/wheel_slip"};
+  this->dataPtr->node.Advertise(wheelSlipService,
+      &UserCommandsPrivate::WheelSlipService, this->dataPtr.get());
+
+  ignmsg << "Material service on [" << wheelSlipService << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -797,6 +945,25 @@ bool UserCommandsPrivate::PoseService(const msgs::Pose &_req,
 }
 
 //////////////////////////////////////////////////
+bool UserCommandsPrivate::PoseVectorService(const msgs::Pose_V &_req,
+    msgs::Boolean &_res)
+{
+  // Create command and push it to queue
+  auto msg = _req.New();
+  msg->CopyFrom(_req);
+  auto cmd = std::make_unique<PoseVectorCommand>(msg, this->iface);
+
+  // Push to pending
+  {
+    std::lock_guard<std::mutex> lock(this->pendingMutex);
+    this->pendingCmds.push_back(std::move(cmd));
+  }
+
+  _res.set_data(true);
+  return true;
+}
+
+//////////////////////////////////////////////////
 bool UserCommandsPrivate::EnableCollisionService(const msgs::Entity &_req,
     msgs::Boolean &_res)
 {
@@ -860,6 +1027,25 @@ bool UserCommandsPrivate::VisualService(const msgs::Visual &_req,
   auto msg = _req.New();
   msg->CopyFrom(_req);
   auto cmd = std::make_unique<VisualCommand>(msg, this->iface);
+  // Push to pending
+  {
+    std::lock_guard<std::mutex> lock(this->pendingMutex);
+    this->pendingCmds.push_back(std::move(cmd));
+  }
+
+  _res.set_data(true);
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool UserCommandsPrivate::WheelSlipService(
+    const msgs::WheelSlipParametersCmd &_req,
+    msgs::Boolean &_res)
+{
+  // Create command and push it to queue
+  auto msg = _req.New();
+  msg->CopyFrom(_req);
+  auto cmd = std::make_unique<WheelSlipCommand>(msg, this->iface);
   // Push to pending
   {
     std::lock_guard<std::mutex> lock(this->pendingMutex);
@@ -1302,6 +1488,51 @@ bool LightCommand::Execute()
 }
 
 //////////////////////////////////////////////////
+bool updatePose(
+  const msgs::Pose &_poseMsg,
+  std::shared_ptr<UserCommandsInterface> _iface)
+{
+  // Check the name of the entity being spawned
+  std::string entityName = _poseMsg.name();
+  Entity entity = kNullEntity;
+  // TODO(anyone) Update pose message to use Entity, with default ID null
+  if (_poseMsg.id() != kNullEntity && _poseMsg.id() != 0)
+  {
+    entity = _poseMsg.id();
+  }
+  else if (!entityName.empty())
+  {
+    entity = _iface->ecm->EntityByComponents(components::Name(entityName),
+      components::ParentEntity(_iface->worldEntity));
+  }
+
+  if (!_iface->ecm->HasEntity(entity))
+  {
+    ignerr << "Unable to update the pose for entity id:[" << _poseMsg.id()
+           << "], name[" << entityName << "]" << std::endl;
+    return false;
+  }
+
+  auto poseCmdComp =
+    _iface->ecm->Component<components::WorldPoseCmd>(entity);
+  if (!poseCmdComp)
+  {
+    _iface->ecm->CreateComponent(
+        entity, components::WorldPoseCmd(msgs::Convert(_poseMsg)));
+  }
+  else
+  {
+    /// \todo(anyone) Moving an object is not captured in a log file.
+    auto state = poseCmdComp->SetData(msgs::Convert(_poseMsg), pose3Eql) ?
+        ComponentState::OneTimeChange :
+        ComponentState::NoChange;
+    _iface->ecm->SetChanged(entity, components::WorldPoseCmd::typeId,
+        state);
+  }
+  return true;
+}
+
+//////////////////////////////////////////////////
 PoseCommand::PoseCommand(msgs::Pose *_msg,
     std::shared_ptr<UserCommandsInterface> &_iface)
     : UserCommandBase(_msg, _iface)
@@ -1318,42 +1549,32 @@ bool PoseCommand::Execute()
     return false;
   }
 
-  // Check the name of the entity being spawned
-  std::string entityName = poseMsg->name();
-  Entity entity = kNullEntity;
-  // TODO(anyone) Update pose message to use Entity, with default ID null
-  if (poseMsg->id() != kNullEntity && poseMsg->id() != 0)
-  {
-    entity = poseMsg->id();
-  }
-  else if (!entityName.empty())
-  {
-    entity = this->iface->ecm->EntityByComponents(components::Name(entityName),
-      components::ParentEntity(this->iface->worldEntity));
-  }
+  return updatePose(*poseMsg, this->iface);
+}
 
-  if (!this->iface->ecm->HasEntity(entity))
+//////////////////////////////////////////////////
+PoseVectorCommand::PoseVectorCommand(msgs::Pose_V *_msg,
+    std::shared_ptr<UserCommandsInterface> &_iface)
+    : UserCommandBase(_msg, _iface)
+{
+}
+
+//////////////////////////////////////////////////
+bool PoseVectorCommand::Execute()
+{
+  auto poseVectorMsg = dynamic_cast<const msgs::Pose_V *>(this->msg);
+  if (nullptr == poseVectorMsg)
   {
-    ignerr << "Unable to update the pose for entity id:[" << poseMsg->id()
-           << "], name[" << entityName << "]" << std::endl;
+    ignerr << "Internal error, null create message" << std::endl;
     return false;
   }
 
-  auto poseCmdComp =
-    this->iface->ecm->Component<components::WorldPoseCmd>(entity);
-  if (!poseCmdComp)
+  for (int i = 0; i < poseVectorMsg->pose_size(); i++)
   {
-    this->iface->ecm->CreateComponent(
-        entity, components::WorldPoseCmd(msgs::Convert(*poseMsg)));
-  }
-  else
-  {
-    /// \todo(anyone) Moving an object is not captured in a log file.
-    auto state = poseCmdComp->SetData(msgs::Convert(*poseMsg), pose3Eql) ?
-        ComponentState::OneTimeChange :
-        ComponentState::NoChange;
-    this->iface->ecm->SetChanged(entity, components::WorldPoseCmd::typeId,
-        state);
+    if (!updatePose(poseVectorMsg->pose(i), this->iface))
+    {
+      return false;
+    }
   }
 
   return true;
@@ -1614,6 +1835,130 @@ bool VisualCommand::Execute()
         visualEntity, components::VisualCmd::typeId, state);
   }
   return true;
+}
+
+//////////////////////////////////////////////////
+WheelSlipCommand::WheelSlipCommand(msgs::WheelSlipParametersCmd *_msg,
+    std::shared_ptr<UserCommandsInterface> &_iface)
+    : UserCommandBase(_msg, _iface)
+{
+}
+
+// TODO(ivanpauno): Move this somewhere else
+Entity scopedEntityFromMsg(
+  const msgs::Entity & _msg, const EntityComponentManager & _ecm)
+{
+  if (_msg.id() != kNullEntity) {
+    return _msg.id();
+  }
+  std::unordered_set<Entity> entities = entitiesFromScopedName(
+    _msg.name(), _ecm);
+  if (entities.empty()) {
+    ignerr << "Failed to find entity with scoped name [" << _msg.name()
+          << "]." << std::endl;
+    return kNullEntity;
+  }
+  if (_msg.type() == msgs::Entity::NONE) {
+    return *entities.begin();
+  }
+  const components::BaseComponent * component;
+  std::string componentType;
+  for (const auto entity : entities) {
+    switch (_msg.type()) {
+      case msgs::Entity::LIGHT:
+        component = _ecm.Component<components::Light>(entity);
+        componentType = "LIGHT";
+        break;
+      case msgs::Entity::MODEL:
+        component = _ecm.Component<components::Model>(entity);
+        componentType = "MODEL";
+        break;
+      case msgs::Entity::LINK:
+        component = _ecm.Component<components::Link>(entity);
+        componentType = "LINK";
+        break;
+      case msgs::Entity::VISUAL:
+        component = _ecm.Component<components::Visual>(entity);
+        componentType = "VISUAL";
+        break;
+      case msgs::Entity::COLLISION:
+        component = _ecm.Component<components::Collision>(entity);
+        componentType = "COLLISION";
+        break;
+      case msgs::Entity::SENSOR:
+        component = _ecm.Component<components::Sensor>(entity);
+        componentType = "SENSOR";
+        break;
+      case msgs::Entity::JOINT:
+        component = _ecm.Component<components::Joint>(entity);
+        componentType = "JOINT";
+        break;
+      default:
+        componentType = "unknown";
+        break;
+    }
+    if (component != nullptr) {
+      return entity;
+    }
+  }
+  ignerr << "Found entity with scoped name [" << _msg.name()
+        << "], but it doesn't have a component of the required type ["
+        << componentType << "]." << std::endl;
+  return kNullEntity;
+}
+
+//////////////////////////////////////////////////
+bool WheelSlipCommand::Execute()
+{
+  auto wheelSlipMsg = dynamic_cast<const msgs::WheelSlipParametersCmd *>(
+      this->msg);
+  if (nullptr == wheelSlipMsg)
+  {
+    ignerr << "Internal error, null wheel slip message" << std::endl;
+    return false;
+  }
+  const auto & ecm = *this->iface->ecm;
+  Entity entity = scopedEntityFromMsg(wheelSlipMsg->entity(), ecm);
+  if (kNullEntity == entity)
+  {
+    return false;
+  }
+
+  auto doForEachLink = [this, wheelSlipMsg](Entity linkEntity) {
+    auto wheelSlipCmdComp =
+      this->iface->ecm->Component<components::WheelSlipCmd>(linkEntity);
+    if (!wheelSlipCmdComp)
+    {
+      this->iface->ecm->CreateComponent(
+          linkEntity, components::WheelSlipCmd(*wheelSlipMsg));
+    }
+    else
+    {
+      auto state = wheelSlipCmdComp->SetData(
+        *wheelSlipMsg, this->wheelSlipEql) ? ComponentState::OneTimeChange
+        : ComponentState::NoChange;
+      this->iface->ecm->SetChanged(
+          linkEntity, components::WheelSlipCmd::typeId, state);
+    }
+  };
+  const components::BaseComponent * component =
+    ecm.Component<components::Link>(entity);
+
+  if (nullptr != component) {
+    doForEachLink(entity);
+    return true;
+  }
+  component = ecm.Component<components::Model>(entity);
+  if (nullptr != component) {
+    Model model{entity};
+    for (const auto & linkEntity : model.Links(*this->iface->ecm)) {
+      doForEachLink(linkEntity);
+    }
+    return true;
+  }
+  ignerr << "Found entity with scoped name [" << wheelSlipMsg->entity().name()
+          << "], is neither a model or a link." << std::endl;
+  return false;
 }
 
 IGNITION_ADD_PLUGIN(UserCommands, System,

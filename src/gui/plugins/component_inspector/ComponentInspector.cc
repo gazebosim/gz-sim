@@ -24,7 +24,6 @@
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/AngularAcceleration.hh"
@@ -56,8 +55,6 @@
 #include "ignition/gazebo/components/PerformerAffinity.hh"
 #include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/PoseCmd.hh"
 #include "ignition/gazebo/components/RenderEngineGuiPlugin.hh"
 #include "ignition/gazebo/components/RenderEngineServerPlugin.hh"
 #include "ignition/gazebo/components/SelfCollide.hh"
@@ -75,6 +72,7 @@
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
 #include "ComponentInspector.hh"
+#include "Pose3d.hh"
 
 namespace ignition::gazebo
 {
@@ -109,30 +107,18 @@ namespace ignition::gazebo
 
     /// \brief Transport node for making command requests
     public: transport::Node node;
+
+    /// \brief A map of component types to the function used to update it.
+    public: std::map<ComponentTypeId, inspector::UpdateViewCb>
+        updateViewCbs;
+
+    /// \brief Handles all components displayed as a 3D pose.
+    public: std::unique_ptr<inspector::Pose3d> pose3d;
   };
 }
 
 using namespace ignition;
 using namespace gazebo;
-
-//////////////////////////////////////////////////
-template<>
-void ignition::gazebo::setData(QStandardItem *_item, const math::Pose3d &_data)
-{
-  if (nullptr == _item)
-    return;
-
-  _item->setData(QString("Pose3d"),
-      ComponentsModel::RoleNames().key("dataType"));
-  _item->setData(QList({
-    QVariant(_data.Pos().X()),
-    QVariant(_data.Pos().Y()),
-    QVariant(_data.Pos().Z()),
-    QVariant(_data.Rot().Roll()),
-    QVariant(_data.Rot().Pitch()),
-    QVariant(_data.Rot().Yaw())
-  }), ComponentsModel::RoleNames().key("data"));
-}
 
 //////////////////////////////////////////////////
 template<>
@@ -153,6 +139,36 @@ void ignition::gazebo::setData(QStandardItem *_item, const msgs::Light &_data)
   else if (_data.type() == msgs::Light::DIRECTIONAL)
   {
     lightType = 2;
+  }
+
+  bool visualizeVisual = true;
+  for (int i = 0; i < _data.header().data_size(); ++i)
+  {
+    for (int j = 0;
+        j < _data.header().data(i).value_size(); ++j)
+    {
+      if (_data.header().data(i).key() ==
+          "visualizeVisual")
+      {
+        visualizeVisual = ignition::math::parseInt(
+          _data.header().data(i).value(0));
+      }
+    }
+  }
+
+  bool isLightOn = true;
+  for (int i = 0; i < _data.header().data_size(); ++i)
+  {
+    for (int j = 0;
+        j < _data.header().data(i).value_size(); ++j)
+    {
+      if (_data.header().data(i).key() ==
+          "isLightOn")
+      {
+        isLightOn = ignition::math::parseInt(
+          _data.header().data(i).value(0));
+      }
+    }
   }
 
   _item->setData(QString("Light"),
@@ -178,7 +194,9 @@ void ignition::gazebo::setData(QStandardItem *_item, const msgs::Light &_data)
     QVariant(_data.spot_outer_angle()),
     QVariant(_data.spot_falloff()),
     QVariant(_data.intensity()),
-    QVariant(lightType)
+    QVariant(lightType),
+    QVariant(isLightOn),
+    QVariant(visualizeVisual)
   }), ComponentsModel::RoleNames().key("data"));
 }
 
@@ -454,6 +472,9 @@ void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
   // Connect model
   this->Context()->setContextProperty(
       "ComponentsModel", &this->dataPtr->componentsModel);
+
+  // Type-specific handlers
+  this->dataPtr->pose3d = std::make_unique<inspector::Pose3d>(this);
 }
 
 //////////////////////////////////////////////////
@@ -737,12 +758,6 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, comp->Data());
     }
-    else if (typeId == components::Pose::typeId)
-    {
-      auto comp = _ecm.Component<components::Pose>(this->dataPtr->entity);
-      if (comp)
-        setData(item, comp->Data());
-    }
     else if (typeId == components::RenderEngineGuiPlugin::typeId)
     {
       auto comp = _ecm.Component<components::RenderEngineGuiPlugin>(
@@ -864,18 +879,10 @@ void ComponentInspector::Update(const UpdateInfo &,
         setUnit(item, "m/s");
       }
     }
-    else if (typeId == components::WorldPose::typeId)
+    else if (this->dataPtr->updateViewCbs.find(typeId) !=
+          this->dataPtr->updateViewCbs.end())
     {
-      auto comp = _ecm.Component<components::WorldPose>(this->dataPtr->entity);
-      if (comp)
-        setData(item, comp->Data());
-    }
-    else if (typeId == components::WorldPoseCmd::typeId)
-    {
-      auto comp = _ecm.Component<components::WorldPoseCmd>(
-          this->dataPtr->entity);
-      if (comp)
-        setData(item, comp->Data());
+      this->dataPtr->updateViewCbs[typeId](_ecm, item);
     }
     else if (typeId == components::Material::typeId)
     {
@@ -907,6 +914,13 @@ void ComponentInspector::Update(const UpdateInfo &,
         Qt::QueuedConnection,
         Q_ARG(ignition::gazebo::ComponentTypeId, typeId));
   }
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::AddUpdateViewCb(ComponentTypeId _id,
+    inspector::UpdateViewCb _cb)
+{
+  this->dataPtr->updateViewCbs[_id] = _cb;
 }
 
 /////////////////////////////////////////////////
@@ -999,33 +1013,14 @@ void ComponentInspector::SetPaused(bool _paused)
 }
 
 /////////////////////////////////////////////////
-void ComponentInspector::OnPose(double _x, double _y, double _z, double _roll,
-    double _pitch, double _yaw)
-{
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
-  {
-    if (!_result)
-        ignerr << "Error setting pose" << std::endl;
-  };
-
-  ignition::msgs::Pose req;
-  req.set_id(this->dataPtr->entity);
-  msgs::Set(req.mutable_position(), math::Vector3d(_x, _y, _z));
-  msgs::Set(req.mutable_orientation(), math::Quaterniond(_roll, _pitch, _yaw));
-  auto poseCmdService = "/world/" + this->dataPtr->worldName
-      + "/set_pose";
-  this->dataPtr->node.Request(poseCmdService, req, cb);
-}
-
-/////////////////////////////////////////////////
 void ComponentInspector::OnLight(
   double _rSpecular, double _gSpecular, double _bSpecular, double _aSpecular,
   double _rDiffuse, double _gDiffuse, double _bDiffuse, double _aDiffuse,
   double _attRange, double _attLinear, double _attConstant,
   double _attQuadratic, bool _castShadows, double _directionX,
   double _directionY, double _directionZ, double _innerAngle,
-  double _outerAngle, double _falloff, double _intensity, int _type)
+  double _outerAngle, double _falloff, double _intensity, int _type,
+  bool _isLightOn, bool _visualizeVisual)
 {
   std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
       [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
@@ -1035,6 +1030,23 @@ void ComponentInspector::OnLight(
   };
 
   ignition::msgs::Light req;
+  {
+    // todo(ahcorde) Use the field is_light_off in light.proto from
+    // Garden on.
+    auto header = req.mutable_header()->add_data();
+    header->set_key("isLightOn");
+    std::string *value = header->add_value();
+    *value = std::to_string(_isLightOn);
+  }
+  {
+    // todo(ahcorde) Use the field visualize_visual in light.proto from
+    // Garden on.
+    auto header = req.mutable_header()->add_data();
+    header->set_key("visualizeVisual");
+    std::string *value = header->add_value();
+    *value = std::to_string(_visualizeVisual);
+  }
+
   req.set_name(this->dataPtr->entityName);
   req.set_id(this->dataPtr->entity);
   ignition::msgs::Set(req.mutable_diffuse(),
@@ -1235,6 +1247,18 @@ void ComponentInspector::OnSphericalCoordinates(QString _surface,
 bool ComponentInspector::NestedModel() const
 {
   return this->dataPtr->nestedModel;
+}
+
+/////////////////////////////////////////////////
+const std::string &ComponentInspector::WorldName() const
+{
+  return this->dataPtr->worldName;
+}
+
+/////////////////////////////////////////////////
+transport::Node &ComponentInspector::TransportNode()
+{
+  return this->dataPtr->node;
 }
 
 // Register this plugin

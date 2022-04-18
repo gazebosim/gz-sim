@@ -20,7 +20,7 @@
 #include <ignition/common/Util.hh>
 #include <ignition/msgs/Utility.hh>
 #include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/Link.hh"
 #include "ignition/gazebo/Server.hh"

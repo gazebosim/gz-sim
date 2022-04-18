@@ -37,7 +37,7 @@
 #include <ignition/transport/log/Playback.hh>
 #include <ignition/transport/log/QualifiedTime.hh>
 #include <ignition/math/Pose3.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 
 #include <sdf/Root.hh>
 #include <sdf/World.hh>

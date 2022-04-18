@@ -25,7 +25,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointPosition.hh"

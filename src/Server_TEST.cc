@@ -22,7 +22,7 @@
 #include <ignition/common/Util.hh>
 #include <ignition/math/Rand.hh>
 #include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 #include <sdf/Mesh.hh>
 
 #include "ignition/gazebo/components/AxisAlignedBox.hh"
@@ -275,6 +275,49 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(SdfServerConfig))
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
   EXPECT_FALSE(serverConfig.SdfFile().empty());
+  EXPECT_TRUE(serverConfig.SdfString().empty());
+
+  gazebo::Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+  EXPECT_TRUE(*server.Paused());
+  EXPECT_EQ(0u, *server.IterationCount());
+  EXPECT_EQ(24u, *server.EntityCount());
+  EXPECT_EQ(3u, *server.SystemCount());
+
+  EXPECT_TRUE(server.HasEntity("box"));
+  EXPECT_FALSE(server.HasEntity("box", 1));
+  EXPECT_TRUE(server.HasEntity("sphere"));
+  EXPECT_TRUE(server.HasEntity("cylinder"));
+  EXPECT_TRUE(server.HasEntity("capsule"));
+  EXPECT_TRUE(server.HasEntity("ellipsoid"));
+  EXPECT_FALSE(server.HasEntity("bad", 0));
+  EXPECT_FALSE(server.HasEntity("bad", 1));
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(SdfRootServerConfig))
+{
+  ignition::gazebo::ServerConfig serverConfig;
+
+  serverConfig.SetSdfString(TestWorldSansPhysics::World());
+  EXPECT_TRUE(serverConfig.SdfFile().empty());
+  EXPECT_FALSE(serverConfig.SdfString().empty());
+
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "air_pressure.sdf"));
+  EXPECT_FALSE(serverConfig.SdfFile().empty());
+  EXPECT_TRUE(serverConfig.SdfString().empty());
+
+  sdf::Root root;
+  root.Load(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes.sdf"));
+
+  // Setting the SDF Root should override the string and file.
+  serverConfig.SetSdfRoot(root);
+
+  EXPECT_TRUE(serverConfig.SdfRoot());
+  EXPECT_TRUE(serverConfig.SdfFile().empty());
   EXPECT_TRUE(serverConfig.SdfString().empty());
 
   gazebo::Server server(serverConfig);

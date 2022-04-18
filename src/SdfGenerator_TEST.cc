@@ -21,7 +21,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/fuel_tools/ClientConfig.hh>
 #include <ignition/fuel_tools/Interface.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 #include <sdf/Model.hh>
 #include <sdf/Root.hh>
 #include <sdf/sdf.hh>
@@ -791,7 +791,9 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithOneExpanded)
                 common::joinPaths(PROJECT_SOURCE_PATH, worldFile).c_str()));
 
   tinyxml2::XMLDocument genSdfDoc;
-  genSdfDoc.Parse(elem->ToString("").c_str());
+  sdf::PrintConfig config;
+  config.SetOutPrecision(6);
+  genSdfDoc.Parse(elem->ToString("", config).c_str());
 
   // Compare elements from the original sdf xml and the generated xml
   auto origWorld = originalSdfDoc.RootElement()->FirstChildElement("world");

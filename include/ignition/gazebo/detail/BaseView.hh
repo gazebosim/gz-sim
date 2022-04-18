@@ -18,7 +18,6 @@
 #define IGNITION_GAZEBO_DETAIL_BASEVIEW_HH_
 
 #include <cstddef>
-#include <memory>
 #include <set>
 #include <unordered_map>
 #include <vector>
@@ -69,7 +68,7 @@ struct ComponentTypeHasher
 class IGNITION_GAZEBO_VISIBLE BaseView
 {
   /// \brief Destructor
-  public: virtual ~BaseView() = default;
+  public: virtual ~BaseView();
 
   /// \brief See if an entity is a part of the view
   /// \param[in] _entity The entity
@@ -187,8 +186,6 @@ class IGNITION_GAZEBO_VISIBLE BaseView
   /// added to the view are actually added to the view.
   /// \sa ToAddEntities
   public: void ClearToAddEntities();
-
-  public: virtual std::unique_ptr<BaseView> Clone() const = 0;
 
   // TODO(adlarkin) make this a std::unordered_set for better performance.
   // We need to make sure nothing else depends on the ordered preserved by

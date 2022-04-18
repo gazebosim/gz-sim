@@ -24,7 +24,7 @@
 #include <ignition/common/Util.hh>
 #include <ignition/common/Filesystem.hh>
 #include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 
 #include <sdf/Root.hh>
 #include <sdf/World.hh>

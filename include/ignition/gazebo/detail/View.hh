@@ -17,14 +17,16 @@
 #ifndef IGNITION_GAZEBO_DETAIL_VIEW_HH_
 #define IGNITION_GAZEBO_DETAIL_VIEW_HH_
 
-#include <memory>
+#include <set>
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
+#include <vector>
 
 #include <ignition/common/Console.hh>
 
+#include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/detail/BaseView.hh"
@@ -38,19 +40,23 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace detail
 {
 /// \brief A view that caches a particular set of component type data.
-/// \tparam ComponentTypeTs The component type(s) that are stored in this view.
-template<typename ...ComponentTypeTs>
-class View : public BaseView
+///
+/// Note that symbols for this class are visible because methods from this class
+/// are used in templated Ignition::Gazebo::EntityComponentManager methods.
+/// However, users should not use this class (or anything else in namespace
+/// ignition::gazebo::detail) directly.
+class IGNITION_GAZEBO_VISIBLE View : public BaseView
 {
   /// \brief Alias for containers that hold and entity and its component data.
   /// The component types held in this container match the component types that
   /// were specified when creating the view.
-  private: using ComponentData = std::tuple<Entity, ComponentTypeTs*...>;
+  private: using ComponentData = std::vector<components::BaseComponent *>;
   private: using ConstComponentData =
-           std::tuple<Entity, const ComponentTypeTs*...>;
+               std::vector<const components::BaseComponent *>;
 
   /// \brief Constructor
-  public: View();
+  /// \param[in] _compIds a set of IDs of the components cached by this View.
+  public: explicit View(const std::set<ComponentTypeId> &_compIds);
 
   /// \brief Documentation inherited
   public: bool HasCachedComponentData(const Entity _entity) const override;
@@ -63,7 +69,7 @@ class View : public BaseView
   /// \param[_in] _entity The entity
   /// \return The entity and its component data. Const pointers to the component
   /// data are returned.
-  public: ConstComponentData EntityComponentConstData(
+  public: const ConstComponentData &EntityComponentConstData(
               const Entity _entity) const;
 
   /// \brief Get an entity and its component data. It is assumed that the entity
@@ -71,28 +77,36 @@ class View : public BaseView
   /// \param[_in] _entity The entity
   /// \return The entity and its component data. Mutable pointers to the
   /// component data are returned.
-  public: ComponentData EntityComponentData(const Entity _entity);
+  public: const ComponentData &EntityComponentData(const Entity _entity) const;
 
   /// \brief Add an entity with its component data to the view. It is assumed
   /// that the entity to be added does not already exist in the view.
+  /// \tparam ComponentTypeTs The component type(s) that are stored in this
+  /// view. These types correspond to each of the types in the _compPtrs
+  /// parameter of this function.
   /// \param[in] _entity The entity
   /// \param[in] _new Whether to add the entity to the list of new entities.
   /// The new here is to indicate whether the entity is new to the entity
   /// component manager. An existing entity can be added when creating a new
   /// view or when rebuilding the view.
   /// \param[in] _compPtrs Const pointers to the entity's components
-  public: void AddEntityWithConstComps(const Entity &_entity, const bool _new,
+  public: template<typename ...ComponentTypeTs>
+          void AddEntityWithConstComps(const Entity &_entity, const bool _new,
               const ComponentTypeTs*... _compPtrs);
 
   /// \brief Add an entity with its component data to the view. It is assumed
   /// that the entity to be added does not already exist in the view.
+  /// \tparam ComponentTypeTs The component type(s) that are stored in this
+  /// view. These types correspond to each of the types in the _compPtrs
+  /// parameter of this function.
   /// \param[in] _entity The entity
   /// \param[in] _new Whether to add the entity to the list of new entities.
   /// The new here is to indicate whether the entity is new to the entity
   /// component manager. An existing entity can be added when creating a new
   /// view or when rebuilding the view.
   /// \param[in] _compPtrs Pointers to the entity's components
-  public: void AddEntityWithComps(const Entity &_entity, const bool _new,
+  public: template<typename ...ComponentTypeTs>
+          void AddEntityWithComps(const Entity &_entity, const bool _new,
               ComponentTypeTs*... _compPtrs);
 
   /// \brief Documentation inherited
@@ -105,8 +119,6 @@ class View : public BaseView
 
   /// \brief Documentation inherited
   public: void Reset() override;
-
-  public: std::unique_ptr<BaseView> Clone() const override;
 
   /// \brief A map of entities to their component data. Since tuples are defined
   /// at compile time, we need separate containers that have tuples for both
@@ -149,195 +161,27 @@ class View : public BaseView
 };
 
 //////////////////////////////////////////////////
-template<typename ...ComponentTypeTs>
-View<ComponentTypeTs...>::View()
+template <typename... ComponentTypeTs>
+void View::AddEntityWithConstComps(const Entity &_entity, const bool _new,
+                                   const ComponentTypeTs *... _compPtrs)
 {
-  this->componentTypes = {ComponentTypeTs::typeId...};
-}
-
-//////////////////////////////////////////////////
-template<typename ...ComponentTypeTs>
-bool View<ComponentTypeTs...>::HasCachedComponentData(
-    const Entity _entity) const
-{
-  auto cachedComps =
-    this->validData.find(_entity) != this->validData.end() ||
-    this->invalidData.find(_entity) != this->invalidData.end();
-  auto cachedConstComps =
-    this->validConstData.find(_entity) != this->validConstData.end() ||
-    this->invalidConstData.find(_entity) != this->invalidConstData.end();
-
-  if (cachedComps && !cachedConstComps)
-  {
-    ignwarn << "Non-const component data is cached for entity " << _entity
-      << ", but const component data is not cached." << std::endl;
-  }
-  else if (cachedConstComps && !cachedComps)
-  {
-    ignwarn << "Const component data is cached for entity " << _entity
-      << ", but non-const component data is not cached." << std::endl;
-  }
-
-  return cachedComps && cachedConstComps;
-}
-
-//////////////////////////////////////////////////
-template<typename ...ComponentTypeTs>
-bool View<ComponentTypeTs...>::RemoveEntity(const Entity _entity)
-{
-  this->invalidData.erase(_entity);
-  this->invalidConstData.erase(_entity);
-  this->missingCompTracker.erase(_entity);
-
-  if (!this->HasEntity(_entity) && !this->IsEntityMarkedForAddition(_entity))
-    return false;
-
-  this->entities.erase(_entity);
-  this->newEntities.erase(_entity);
-  this->toRemoveEntities.erase(_entity);
-  this->toAddEntities.erase(_entity);
-  this->validData.erase(_entity);
-  this->validConstData.erase(_entity);
-
-  return true;
-}
-
-//////////////////////////////////////////////////
-template<typename ...ComponentTypeTs>
-typename View<ComponentTypeTs...>::ConstComponentData
-  View<ComponentTypeTs...>::EntityComponentConstData(const Entity _entity) const
-{
-  return this->validConstData.at(_entity);
-}
-
-//////////////////////////////////////////////////
-template<typename ...ComponentTypeTs>
-typename View<ComponentTypeTs...>::ComponentData
-  View<ComponentTypeTs...>::EntityComponentData(const Entity _entity)
-{
-  return this->validData.at(_entity);
-}
-
-//////////////////////////////////////////////////
-template<typename ...ComponentTypeTs>
-void View<ComponentTypeTs...>::AddEntityWithConstComps(const Entity &_entity,
-    const bool _new, const ComponentTypeTs*... _compPtrs)
-{
-  this->validConstData[_entity] = std::make_tuple(_entity, _compPtrs...);
+  this->validConstData[_entity] =
+      std::vector<const components::BaseComponent *>{_compPtrs...};
   this->entities.insert(_entity);
   if (_new)
     this->newEntities.insert(_entity);
 }
 
 //////////////////////////////////////////////////
-template<typename ...ComponentTypeTs>
-void View<ComponentTypeTs...>::AddEntityWithComps(const Entity &_entity,
-    const bool _new, ComponentTypeTs*... _compPtrs)
+template <typename... ComponentTypeTs>
+void View::AddEntityWithComps(const Entity &_entity, const bool _new,
+                              ComponentTypeTs *... _compPtrs)
 {
-  this->validData[_entity] = std::make_tuple(_entity, _compPtrs...);
+  this->validData[_entity] =
+      std::vector<components::BaseComponent *>{_compPtrs...};
   this->entities.insert(_entity);
   if (_new)
     this->newEntities.insert(_entity);
-}
-
-//////////////////////////////////////////////////
-template<typename ...ComponentTypeTs>
-bool View<ComponentTypeTs...>::NotifyComponentAddition(const Entity _entity,
-    bool _newEntity, const ComponentTypeId _typeId)
-{
-  // make sure that _typeId is a type required by the view and that _entity is
-  // already a part of the view
-  if (!this->RequiresComponent(_typeId) ||
-      !this->HasCachedComponentData(_entity))
-    return false;
-
-  // remove the newly added component type from the missing component types
-  // list
-  auto missingCompsIter = this->missingCompTracker.find(_entity);
-  if (missingCompsIter == this->missingCompTracker.end())
-  {
-    // the component is already added, so nothing else needs to be done
-    return true;
-  }
-  missingCompsIter->second.erase(_typeId);
-
-  // if the entity now has all components that meet the requirements of the
-  // view, then add the entity back to the view
-  if (missingCompsIter->second.empty())
-  {
-    auto nh = this->invalidData.extract(_entity);
-    this->validData.insert(std::move(nh));
-    auto constCompNh = this->invalidConstData.extract(_entity);
-    this->validConstData.insert(std::move(constCompNh));
-    this->entities.insert(_entity);
-    if (_newEntity)
-      this->newEntities.insert(_entity);
-    this->missingCompTracker.erase(_entity);
-  }
-
-  return true;
-}
-
-//////////////////////////////////////////////////
-template<typename ...ComponentTypeTs>
-bool View<ComponentTypeTs...>::NotifyComponentRemoval(const Entity _entity,
-    const ComponentTypeId _typeId)
-{
-  // if entity is still marked as to add, remove from the view
-  if (this->RequiresComponent(_typeId))
-    this->toAddEntities.erase(_entity);
-
-  // make sure that _typeId is a type required by the view and that _entity is
-  // already a part of the view
-  if (!this->RequiresComponent(_typeId) ||
-      !this->HasCachedComponentData(_entity))
-    return false;
-
-  // if the component being removed is the first component that causes _entity
-  // to be invalid for this view, move _entity from validData to invalidData
-  // since _entity should no longer be considered a part of the view
-  auto it = this->validData.find(_entity);
-  auto constCompIt = this->validConstData.find(_entity);
-  if (it != this->validData.end() &&
-      constCompIt != this->validConstData.end())
-  {
-    auto nh = this->validData.extract(it);
-    this->invalidData.insert(std::move(nh));
-    auto constCompNh = this->validConstData.extract(constCompIt);
-    this->invalidConstData.insert(std::move(constCompNh));
-    this->entities.erase(_entity);
-    this->newEntities.erase(_entity);
-  }
-
-  this->missingCompTracker[_entity].insert(_typeId);
-
-  return true;
-}
-
-//////////////////////////////////////////////////
-template<typename ...ComponentTypeTs>
-void View<ComponentTypeTs...>::Reset()
-{
-  // reset all data structures in the BaseView except for componentTypes since
-  // the view always requires the types in componentTypes
-  this->entities.clear();
-  this->newEntities.clear();
-  this->toRemoveEntities.clear();
-  this->toAddEntities.clear();
-
-  // reset all data structures unique to the templated view
-  this->validData.clear();
-  this->validConstData.clear();
-  this->invalidData.clear();
-  this->invalidConstData.clear();
-  this->missingCompTracker.clear();
-}
-
-//////////////////////////////////////////////////
-template<typename ...ComponentTypeTs>
-std::unique_ptr<BaseView> View<ComponentTypeTs...>::Clone() const
-{
-  return std::make_unique<View<ComponentTypeTs...>>(*this);
 }
 }  // namespace detail
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
