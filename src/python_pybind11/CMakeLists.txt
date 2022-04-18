@@ -51,6 +51,19 @@ target_link_libraries(math PRIVATE
   ${PROJECT_LIBRARY_TARGET_NAME}
 )
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  # Workaround for Clang and pybind11 on Focal
+  # https://github.com/pybind/pybind11/issues/1604
+  # Resolved by newer versions of pybind11
+  if(${pybind11_VERSION} VERSION_LESS "2.4.4")
+    target_compile_options(math PRIVATE -fsized-deallocation)
+  endif()
+
+  # Suppress warnings that clang misidentifies:
+  # https://github.com/pybind/pybind11/issues/1893
+  target_compile_options(math PRIVATE -Wno-self-assign-overloaded)
+endif()
+
 if(USE_SYSTEM_PATHS_FOR_PYTHON_INSTALLATION)
   if(${CMAKE_VERSION} VERSION_LESS "3.12.0")
     execute_process(
