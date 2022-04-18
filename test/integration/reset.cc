@@ -90,14 +90,14 @@ void worldReset()
 }
 
 /////////////////////////////////////////////////
-/// This test checks that that the phycis system handles cases where entities
+/// This test checks that that the physics system handles cases where entities
 /// are removed and then added back
 TEST_F(ResetFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
-  const std::string sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/reset.sdf";
+  const std::string sdfFile = common::joinPaths(PROJECT_SOURCE_PATH,
+    "test", "worlds", "reset.sdf");
 
   serverConfig.SetSdfFile(sdfFile);
 
@@ -138,7 +138,6 @@ TEST_F(ResetFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
   // In this case, the box should fall some
   server.Run(true, 100, false);
   {
-    ASSERT_NE(nullptr, ecm);
     auto entity = ecm->EntityByComponents(components::Name("box"));
     ASSERT_NE(kNullEntity, entity);
     auto poseComp = ecm->Component<components::Pose>(entity);
@@ -164,8 +163,8 @@ TEST_F(ResetFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
   // Send command to reset to initial state
   worldReset();
 
-  // It takes two iterations for this to propage,
-  // the first is for the message to be recieved and internal state setup
+  // It takes two iterations for this to propagate,
+  // the first is for the message to be received and internal state setup
   server.Run(true, 1, false);
   EXPECT_EQ(1u, this->mockSystem->configureCallCount);
   EXPECT_EQ(0u, this->mockSystem->resetCallCount);

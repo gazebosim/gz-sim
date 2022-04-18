@@ -14,6 +14,10 @@
       name="ignition::gazebo::systems::UserCommands">
     </plugin>
 
+    <physics name="fast" type="ignored">
+      <real_time_factor>0</real_time_factor>
+    </physics>
+
     <model name="box">
       <pose>0 0 1.1 0 0 0</pose>
       <static>false</static>
