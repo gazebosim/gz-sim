@@ -75,8 +75,7 @@ void OnPostRender()
     EXPECT_TRUE(sensor->HasUserData("gazebo-entity"));
     auto variant = sensor->UserData("gazebo-entity");
 
-    // todo(anyone) change int to uint64_t once user data supports it
-    const int *value = std::get_if<int>(&variant);
+    const uint64_t *value = std::get_if<uint64_t>(&variant);
     ASSERT_TRUE(value);
     g_sensorEntityIds.insert(*value);
   }

@@ -1277,7 +1277,7 @@ void RenderUtil::Update()
         // this functionality is needed for temporal placement of a
         // visual such as an align preview
         updateNode = std::get<int>(vis->UserData("pause-update"));
-        entityId = std::get<int>(vis->UserData("gazebo-entity"));
+        entityId = std::get<uint64_t>(vis->UserData("gazebo-entity"));
       }
       if ((this->dataPtr->transformActive &&
           (pose.first == this->dataPtr->selectedEntities.back() ||
@@ -2690,7 +2690,7 @@ void RenderUtil::SetSelectedEntity(const rendering::NodePtr &_node)
   Entity entityId = kNullEntity;
 
   if (vis)
-    entityId = std::get<int>(vis->UserData("gazebo-entity"));
+    entityId = std::get<uint64_t>(vis->UserData("gazebo-entity"));
 
   if (entityId == kNullEntity)
     return;
@@ -2750,7 +2750,7 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
   auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
   Entity entityId = kNullEntity;
   if (vis)
-    entityId = std::get<int>(vis->UserData("gazebo-entity"));
+    entityId = std::get<uint64_t>(vis->UserData("gazebo-entity"));
   // If the entity is not found in the existing map, create a wire box
   auto wireBoxIt = this->wireBoxes.find(entityId);
   if (wireBoxIt == this->wireBoxes.end())
@@ -2808,7 +2808,7 @@ void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
   auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
   Entity entityId = kNullEntity;
   if (vis)
-    entityId = std::get<int>(vis->UserData("gazebo-entity"));
+    entityId = std::get<uint64_t>(vis->UserData("gazebo-entity"));
   if (this->wireBoxes.find(entityId) != this->wireBoxes.end())
   {
     ignition::rendering::WireBoxPtr wireBox =
