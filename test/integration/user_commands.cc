@@ -835,13 +835,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
   req.set_attenuation_constant(0.6f);
   req.set_attenuation_quadratic(0.001f);
   req.set_cast_shadows(true);
-
-  // todo(ahcorde) Use the field is_light_off in light.proto from
-  // Garden on.
-  auto header = req.mutable_header()->add_data();
-  header->set_key("isLightOn");
-  std::string *value = header->add_value();
-  *value = std::to_string(true);
+  req.set_is_light_off(true);
 
   EXPECT_TRUE(node.Request(service, req, timeout, res, result));
   EXPECT_TRUE(result);

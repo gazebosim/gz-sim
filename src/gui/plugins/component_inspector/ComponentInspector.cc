@@ -1031,14 +1031,6 @@ void ComponentInspector::OnLight(
 
   ignition::msgs::Light req;
   {
-    // todo(ahcorde) Use the field is_light_off in light.proto from
-    // Garden on.
-    auto header = req.mutable_header()->add_data();
-    header->set_key("isLightOn");
-    std::string *value = header->add_value();
-    *value = std::to_string(_isLightOn);
-  }
-  {
     // todo(ahcorde) Use the field visualize_visual in light.proto from
     // Garden on.
     auto header = req.mutable_header()->add_data();
@@ -1059,6 +1051,7 @@ void ComponentInspector::OnLight(
   req.set_attenuation_quadratic(_attQuadratic);
   req.set_cast_shadows(_castShadows);
   req.set_intensity(_intensity);
+  req.set_is_light_off(!_isLightOn);
   if (_type == 0)
     req.set_type(ignition::msgs::Light::POINT);
   else if (_type == 1)

@@ -2878,24 +2878,7 @@ void RenderUtilPrivate::UpdateLights(
       if (lightVisual)
         lightVisual->SetVisible(visualizeVisual);
 
-      // todo(ahcorde) Use the field is_light_off in light.proto from
-      // Garden on.
-      bool isLightOn = true;
-      for (int i = 0; i < light.second.header().data_size(); ++i)
-      {
-        for (int j = 0;
-            j < light.second.header().data(i).value_size(); ++j)
-        {
-          if (light.second.header().data(i).key() ==
-              "isLightOn")
-          {
-            isLightOn = ignition::math::parseInt(
-              light.second.header().data(i).value(0));
-          }
-        }
-      }
-
-      if (isLightOn)
+      if (!light.second.is_light_off())
       {
         if (!ignition::math::equal(
             l->Intensity(),
