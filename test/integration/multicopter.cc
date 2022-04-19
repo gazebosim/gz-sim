@@ -34,6 +34,7 @@
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Model.hh"
+#include "ignition/gazebo/components/Pose.hh"
 
 #include "ignition/gazebo/Model.hh"
 #include "ignition/gazebo/Server.hh"
@@ -316,4 +317,66 @@ TEST_F(MulticopterTest,
         EXPECT_EQ(4u, numJoints);
       });
   server->Run(true, 10, false);
+}
+
+/////////////////////////////////////////////////
+TEST_F(MulticopterTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(MulticopterVelocityControlNestedModel))
+{
+  // test that the drone is able to take off when carrying a payload
+  // (nexted model) with extra mass.
+
+  // Start server
+  auto server =
+      this->StartServer("/test/worlds/quadcopter_velocity_control_nested.sdf");
+
+  test::Relay testSystem;
+  transport::Node node;
+  auto cmdVel = node.Advertise<msgs::Twist>("/X3/gazebo/command/twist");
+
+  // Add the system
+  server->AddSystem(testSystem.systemPtr);
+  server->Run(true, 1, false);
+
+  // get pose of drone in post update
+  math::Pose3d x3Pose;
+  testSystem.OnPostUpdate(
+      [&](const gazebo::UpdateInfo &,
+          const gazebo::EntityComponentManager &_ecm)
+      {
+          auto x3Ent =_ecm.EntityByComponents(
+              components::Model(), components::Name("X3"));
+          ASSERT_NE(kNullEntity, x3Ent);
+
+          auto poseComp = _ecm.Component<components::Pose>(x3Ent);
+          if (poseComp)
+             x3Pose = poseComp->Data();
+      });
+
+  server->Run(true, 100, false);
+
+  // check initial z pos
+  double initialZ = x3Pose.Pos().Z();
+  EXPECT_GT(0.1, initialZ);
+
+  // run for a few interations and verify drone is still on the ground
+  server->Run(true, 100, false);
+  EXPECT_NEAR(initialZ, x3Pose.Pos().Z(), 1e-3);
+
+  // send linear z vel for drone to take off
+  msgs::Twist msg;
+  msgs::Set(msg.mutable_linear(), math::Vector3d(0, 0, 5));
+  cmdVel.Publish(msg);
+
+  // verify drone continues to fly higher over the duration of 1 second
+  double zHeight = x3Pose.Pos().Z();
+  for (unsigned int i = 0; i < 10; ++i)
+  {
+    server->Run(true, 100, false);
+    EXPECT_LT(zHeight, x3Pose.Pos().Z());
+    zHeight = x3Pose.Pos().Z();
+  }
+
+  // one last check to verify drone is at least 5 meters off the ground
+  EXPECT_LT(5.0, x3Pose.Pos().Z());
 }
