@@ -344,7 +344,7 @@ TEST_F(MulticopterTest,
       [&](const gazebo::UpdateInfo &,
           const gazebo::EntityComponentManager &_ecm)
       {
-          auto x3Ent =_ecm.EntityByComponents(
+          auto x3Ent = _ecm.EntityByComponents(
               components::Model(), components::Name("X3"));
           ASSERT_NE(kNullEntity, x3Ent);
 
