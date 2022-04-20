@@ -3230,7 +3230,6 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
   auto allContacts =
       std::move(worldCollisionFeature->GetContactsFromLastStep());
 
-  std::unordered_map<ShapePtrType, Entity> contactCache;
   for (const auto &contactComposite : allContacts)
   {
     const auto &contact = contactComposite.Get<WorldShapeType::ContactPoint>();
