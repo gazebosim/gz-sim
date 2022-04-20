@@ -308,6 +308,7 @@ void SensorsPrivate::RunOnce()
     {
       IGN_PROFILE("PreRender");
       this->eventManager->Emit<events::PreRender>();
+      this->scene->SetTime(this->updateTime);
       // Update the scene graph manually to improve performance
       // We only need to do this once per frame It is important to call
       // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
