@@ -46,13 +46,34 @@ namespace serializers
       sdf::ElementPtr modelElem = _model.Element();
       if (!modelElem)
       {
-        ignerr << "Unable to serialize sdf::Model" << std::endl;
+        ignwarn << "Unable to serialize sdf::Model" << std::endl;
         return _out;
+      }
+
+      bool skip = false;
+      if (modelElem->HasElement("pose"))
+      {
+        sdf::ElementPtr poseElem = modelElem->GetElement("pose");
+        if (poseElem->HasAttribute("relative_to"))
+        {
+          // Skip serializing models with //pose/@relative_to attribute
+          // since deserialization will fail. This could be a nested model.
+          // see https://github.com/ignitionrobotics/ign-gazebo/issues/1071
+          static bool warned = false;
+          if (!warned)
+          {
+            ignwarn << "Skipping serialization / deserialization for models "
+                    << "with //pose/@relative_to attribute."
+                    << std::endl;
+            warned = true;
+          }
+          skip = true;
+        }
       }
 
       _out << "<?xml version=\"1.0\" ?>"
            << "<sdf version='" << SDF_PROTOCOL_VERSION << "'>"
-           << modelElem->ToString("")
+           << (skip ? std::string() : modelElem->ToString(""))
            << "</sdf>";
       return _out;
     }
@@ -70,7 +91,7 @@ namespace serializers
       sdf::Errors errors = root.LoadSdfString(sdf);
       if (!root.Model())
       {
-        ignerr << "Unable to unserialize sdf::Model" << std::endl;
+        ignwarn << "Unable to deserialize sdf::Model" << std::endl;
         return _in;
       }
 
