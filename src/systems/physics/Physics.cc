@@ -3227,15 +3227,17 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
   // Note that we are temporarily storing pointers to elements in this
   // ("allContacts") container. Thus, we must make sure it doesn't get destroyed
   // until the end of this function.
-  auto allContacts = worldCollisionFeature->GetContactsFromLastStep();
+  auto allContacts =
+      std::move(worldCollisionFeature->GetContactsFromLastStep());
+
+  std::unordered_map<ShapePtrType, Entity> contactCache;
   for (const auto &contactComposite : allContacts)
   {
     const auto &contact = contactComposite.Get<WorldShapeType::ContactPoint>();
     auto coll1Entity =
-      this->entityCollisionMap.Get(ShapePtrType(contact.collision1));
+      this->entityCollisionMap.GetByPhysicsId(contact.collision1->EntityID());
     auto coll2Entity =
-      this->entityCollisionMap.Get(ShapePtrType(contact.collision2));
-
+      this->entityCollisionMap.GetByPhysicsId(contact.collision2->EntityID());
 
     if (coll1Entity != kNullEntity && coll2Entity != kNullEntity)
     {
@@ -3334,10 +3336,10 @@ void PhysicsPrivate::EnableContactSurfaceCustomization(const Entity &_world)
       Feature::ContactSurfaceParams<Policy> &_params)
       {
         const auto &contact = _contact.Get<ContactPoint>();
-        auto coll1Entity = this->entityCollisionMap.Get(
-          ShapePtrType(contact.collision1));
-        auto coll2Entity = this->entityCollisionMap.Get(
-          ShapePtrType(contact.collision2));
+        auto coll1Entity = this->entityCollisionMap.GetByPhysicsId(
+          contact.collision1->EntityID());
+        auto coll2Entity = this->entityCollisionMap.GetByPhysicsId(
+          contact.collision2->EntityID());
 
         // check if at least one of the entities wants contact surface
         // customization
