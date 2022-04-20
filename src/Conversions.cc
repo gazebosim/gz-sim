@@ -579,7 +579,7 @@ msgs::Light ignition::gazebo::convert(const sdf::Light &_in)
     std::string *value = header->add_value();
     *value = std::to_string(_in.LightOn());
   }
-  out.set_visualize_visual(!_in.Visualize());
+  out.set_visualize_visual(_in.Visualize());
 
   if (_in.Type() == sdf::LightType::POINT)
     out.set_type(msgs::Light_LightType_POINT);
@@ -610,7 +610,7 @@ sdf::Light ignition::gazebo::convert(const msgs::Light &_in)
   out.SetSpotInnerAngle(math::Angle(_in.spot_inner_angle()));
   out.SetSpotOuterAngle(math::Angle(_in.spot_outer_angle()));
   out.SetSpotFalloff(_in.spot_falloff());
-  out.SetVisualize(!_in.visualize_visual());
+  out.SetVisualize(_in.visualize_visual());
 
   // todo(ahcorde) Use the field is_light_off in light.proto from
   // Garden on.
