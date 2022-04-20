@@ -20,7 +20,7 @@
 #
 # Now you can run the example:
 #
-# python3 examples/scripts/python_api/helperFixture.py
+# python3 examples/scripts/python_api/testFixture.py
 
 import os
 import time
@@ -28,13 +28,12 @@ import time
 from ignition.common import set_verbosity
 from ignition.gazebo import TestFixture, World, world_entity
 from ignition.math import Vector3d
-from sdformat import Element
 
 set_verbosity(4)
 
 file_path = os.path.dirname(os.path.realpath(__file__))
 
-helper = TestFixture(os.path.join(file_path, 'gravity.sdf'))
+fixture = TestFixture(os.path.join(file_path, 'gravity.sdf'))
 
 post_iterations = 0
 iterations = 0
@@ -69,12 +68,12 @@ def on_post_udpate_cb(_info, _ecm):
         print('Post update sim time: ', _info.sim_time)
 
 
-helper.on_post_update(on_post_udpate_cb)
-helper.on_update(on_udpate_cb)
-helper.on_pre_update(on_pre_udpate_cb)
-helper.finalize()
+fixture.on_post_update(on_post_udpate_cb)
+fixture.on_update(on_udpate_cb)
+fixture.on_pre_update(on_pre_udpate_cb)
+fixture.finalize()
 
-server = helper.server()
+server = fixture.server()
 server.run(False, 1000, False)
 
 while(server.is_running()):

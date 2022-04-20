@@ -11,7 +11,7 @@ step simulation and check entities and components.
 
 ```{.python}
 file_path = os.path.dirname(os.path.realpath(__file__))
-helper = HelperFixture(os.path.join(file_path, 'gravity.sdf'))
+fixture = TestFixture(os.path.join(file_path, 'gravity.sdf'))
 ```
 
  - **Step 2**: Write your `preupdate`, `update` or `postupdate` code:
@@ -25,13 +25,13 @@ def on_post_udpate_cb(_info, _ecm):
  - **Step 3**: Register the function.
 
 ```python
-helper.on_post_update(on_post_udpate_cb)
+fixture.on_post_update(on_post_udpate_cb)
 ```
 
   - **Step 4**: Be sure to call finalize before running the server.
 
 ```python
-helper.finalize()
+fixture.finalize()
 ```
 
   - **Step 5**: Run the server
@@ -57,7 +57,7 @@ export PYTHONPATH=$PYTHONPATH:<path to ws>/install/lib/python
 Now you can run the example:
 
 ```bash
-$ python3 examples/scripts/python_api/helperFixture.py
+$ python3 examples/scripts/python_api/testFixture.py
 [Msg] Loading SDF world file[/home/ahcorde/ignition_fortress/src/ign-gazebo/examples/scripts/python_api/gravity.sdf].
 [Dbg] [Physics.cc:789] Loaded [ignition::physics::dartsim::Plugin] from library [/home/ahcorde/ignition_fortress/install/lib/ign-physics-5/engine-plugins/libignition-physics-dartsim-plugin.so]
 [Dbg] [SimulationRunner.cc:909] Loaded system [ignition::gazebo::systems::Physics] for entity [1]
