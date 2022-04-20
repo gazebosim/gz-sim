@@ -141,21 +141,6 @@ void ignition::gazebo::setData(QStandardItem *_item, const msgs::Light &_data)
     lightType = 2;
   }
 
-  bool visualizeVisual = true;
-  for (int i = 0; i < _data.header().data_size(); ++i)
-  {
-    for (int j = 0;
-        j < _data.header().data(i).value_size(); ++j)
-    {
-      if (_data.header().data(i).key() ==
-          "visualizeVisual")
-      {
-        visualizeVisual = ignition::math::parseInt(
-          _data.header().data(i).value(0));
-      }
-    }
-  }
-
   bool isLightOn = true;
   for (int i = 0; i < _data.header().data_size(); ++i)
   {
@@ -196,7 +181,7 @@ void ignition::gazebo::setData(QStandardItem *_item, const msgs::Light &_data)
     QVariant(_data.intensity()),
     QVariant(lightType),
     QVariant(isLightOn),
-    QVariant(visualizeVisual)
+    QVariant(_data.visualize_visual())
   }), ComponentsModel::RoleNames().key("data"));
 }
 
@@ -1038,14 +1023,6 @@ void ComponentInspector::OnLight(
     std::string *value = header->add_value();
     *value = std::to_string(_isLightOn);
   }
-  {
-    // todo(ahcorde) Use the field visualize_visual in light.proto from
-    // Garden on.
-    auto header = req.mutable_header()->add_data();
-    header->set_key("visualizeVisual");
-    std::string *value = header->add_value();
-    *value = std::to_string(_visualizeVisual);
-  }
 
   req.set_name(this->dataPtr->entityName);
   req.set_id(this->dataPtr->entity);
@@ -1059,6 +1036,7 @@ void ComponentInspector::OnLight(
   req.set_attenuation_quadratic(_attQuadratic);
   req.set_cast_shadows(_castShadows);
   req.set_intensity(_intensity);
+  req.set_visualize_visual(_visualizeVisual);
   if (_type == 0)
     req.set_type(ignition::msgs::Light::POINT);
   else if (_type == 1)
