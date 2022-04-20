@@ -180,7 +180,7 @@ void ignition::gazebo::setData(QStandardItem *_item, const msgs::Light &_data)
     QVariant(_data.spot_falloff()),
     QVariant(_data.intensity()),
     QVariant(lightType),
-    QVariant(_data.is_light_off()),
+    QVariant(!_data.is_light_off()),
     QVariant(visualizeVisual)
   }), ComponentsModel::RoleNames().key("data"));
 }

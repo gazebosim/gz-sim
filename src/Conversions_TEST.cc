@@ -66,6 +66,7 @@ TEST(Conversions, Light)
   light.SetSpotOuterAngle(3.3);
   light.SetSpotFalloff(0.9);
   light.SetIntensity(1.7);
+  light.SetLightOn(true);
 
   msgs::Light lightMsg;
   lightMsg = convert<msgs::Light>(light);
@@ -76,6 +77,7 @@ TEST(Conversions, Light)
   /// \todo(anyone) add pose frame fields in ign-msgs?
   // EXPECT_EQ("world", lightMsg.pose_frame());
   EXPECT_TRUE(lightMsg.cast_shadows());
+  EXPECT_FALSE(lightMsg.is_light_off());
   EXPECT_EQ(math::Color(0.4f, 0.5f, 0.6f, 1),
       msgs::Convert(lightMsg.diffuse()));
   EXPECT_EQ(math::Color(0.8f, 0.9f, 0.1f, 1),
