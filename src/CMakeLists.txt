@@ -26,6 +26,12 @@ set(network_sources
   network/PeerTracker.cc
 )
 
+set(comms_sources
+  comms/Broker.cc
+  comms/ICommsModel.cc
+  comms/MsgManager.cc
+)
+
 set(gui_sources
   ${gui_sources}
   PARENT_SCOPE
@@ -68,6 +74,7 @@ set (sources
   cmd/ModelCommandAPI.cc
   ${PROTO_PRIVATE_SRC}
   ${network_sources}
+  ${comms_sources}
 )
 
 set (gtest_sources
@@ -94,6 +101,8 @@ set (gtest_sources
   Util_TEST.cc
   World_TEST.cc
   ign_TEST.cc
+  comms/Broker_TEST.cc
+  comms/MsgManager_TEST.cc
   network/NetworkConfig_TEST.cc
   network/PeerTracker_TEST.cc
   network/NetworkManager_TEST.cc
