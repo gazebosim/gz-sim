@@ -823,6 +823,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
   EXPECT_NEAR(0.01, pointLightComp->Data().QuadraticAttenuationFactor(), 0.1);
   EXPECT_FALSE(pointLightComp->Data().CastShadows());
   EXPECT_TRUE(pointLightComp->Data().LightOn());
+  EXPECT_TRUE(pointLightComp->Data().Visualize());
 
   req.Clear();
   ignition::msgs::Set(req.mutable_diffuse(),
@@ -837,6 +838,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
   req.set_attenuation_quadratic(0.001f);
   req.set_cast_shadows(true);
   req.set_is_light_off(false);
+  req.set_visualize_visual(false);
 
   EXPECT_TRUE(node.Request(service, req, timeout, res, result));
   EXPECT_TRUE(result);
@@ -860,6 +862,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
   EXPECT_NEAR(0.001, pointLightComp->Data().QuadraticAttenuationFactor(), 0.1);
   EXPECT_TRUE(pointLightComp->Data().CastShadows());
   EXPECT_TRUE(pointLightComp->Data().LightOn());
+  EXPECT_FALSE(pointLightComp->Data().Visualize());
   EXPECT_EQ(sdf::LightType::POINT, pointLightComp->Data().Type());
 
   // Check directional light entity has not been edited yet - Initial values
@@ -888,6 +891,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
     math::Vector3d(0.5, 0.2, -0.9), directionalLightComp->Data().Direction());
   EXPECT_TRUE(directionalLightComp->Data().CastShadows());
   EXPECT_TRUE(directionalLightComp->Data().LightOn());
+  EXPECT_TRUE(directionalLightComp->Data().Visualize());
   EXPECT_EQ(sdf::LightType::POINT, pointLightComp->Data().Type());
 
   req.Clear();
@@ -903,6 +907,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
   req.set_attenuation_quadratic(1.0f);
   req.set_cast_shadows(false);
   req.set_is_light_off(false);
+  req.set_visualize_visual(false);
   ignition::msgs::Set(req.mutable_direction(),
     ignition::math::Vector3d(1, 2, 3));
   EXPECT_TRUE(node.Request(service, req, timeout, res, result));
@@ -932,6 +937,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
   EXPECT_EQ(math::Vector3d(1, 2, 3), directionalLightComp->Data().Direction());
   EXPECT_FALSE(directionalLightComp->Data().CastShadows());
   EXPECT_TRUE(directionalLightComp->Data().LightOn());
+  EXPECT_FALSE(directionalLightComp->Data().Visualize());
   EXPECT_EQ(sdf::LightType::DIRECTIONAL,
     directionalLightComp->Data().Type());
 
@@ -957,6 +963,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
     0.001, spotLightComp->Data().QuadraticAttenuationFactor(), 0.001);
   EXPECT_EQ(math::Vector3d(0, 0, -1), spotLightComp->Data().Direction());
   EXPECT_FALSE(spotLightComp->Data().CastShadows());
+  EXPECT_TRUE(spotLightComp->Data().Visualize());
   EXPECT_EQ(sdf::LightType::SPOT, spotLightComp->Data().Type());
   EXPECT_NEAR(0.1, spotLightComp->Data().SpotInnerAngle().Radian(), 0.1);
   EXPECT_NEAR(0.5, spotLightComp->Data().SpotOuterAngle().Radian(), 0.1);
@@ -975,6 +982,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
   req.set_attenuation_quadratic(1.0f);
   req.set_cast_shadows(true);
   req.set_is_light_off(true);
+  req.set_visualize_visual(true);
   ignition::msgs::Set(req.mutable_direction(),
     ignition::math::Vector3d(1, 2, 3));
   req.set_spot_inner_angle(1.5f);
@@ -1004,6 +1012,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
   EXPECT_EQ(math::Vector3d(1, 2, 3), spotLightComp->Data().Direction());
   EXPECT_TRUE(spotLightComp->Data().CastShadows());
   EXPECT_FALSE(spotLightComp->Data().LightOn());
+  EXPECT_TRUE(spotLightComp->Data().Visualize());
   EXPECT_EQ(sdf::LightType::SPOT, spotLightComp->Data().Type());
   EXPECT_NEAR(1.5, spotLightComp->Data().SpotInnerAngle().Radian(), 0.1);
   EXPECT_NEAR(0.3, spotLightComp->Data().SpotOuterAngle().Radian(), 0.1);

@@ -227,30 +227,9 @@ class LightCommand : public UserCommandBase
   public: std::function<bool(const msgs::Light &, const msgs::Light &)>
           lightEql { [](const msgs::Light &_a, const msgs::Light &_b)
             {
-              // todo(ahcorde) Use the field visualize_visual in light.proto
-              // from Garden on.
-              auto getVisualizeVisual = [](const msgs::Light &_light) -> bool
-              {
-                bool visualizeVisual = true;
-                for (int i = 0; i < _light.header().data_size(); ++i)
-                {
-                  for (int j = 0;
-                      j < _light.header().data(i).value_size(); ++j)
-                  {
-                    if (_light.header().data(i).key() ==
-                        "visualizeVisual")
-                    {
-                      visualizeVisual = ignition::math::parseInt(
-                        _light.header().data(i).value(0));
-                    }
-                  }
-                }
-                return visualizeVisual;
-              };
-
              return
-                getVisualizeVisual(_a) == getVisualizeVisual(_b) &&
                 _a.is_light_off() == _b.is_light_off() &&
+                _a.visualize_visual() == _b.visualize_visual() &&
                 _a.type() == _b.type() &&
                 _a.name() == _b.name() &&
                 math::equal(

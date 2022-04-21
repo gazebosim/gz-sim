@@ -2855,28 +2855,11 @@ void RenderUtilPrivate::UpdateLights(
     auto l = std::dynamic_pointer_cast<rendering::Light>(node);
     if (l)
     {
-      // todo(ahcorde) Use the field visualize_visual in light.proto from
-      // Garden on.
-      bool visualizeVisual = true;
-      for (int i = 0; i < light.second.header().data_size(); ++i)
-      {
-        for (int j = 0;
-            j < light.second.header().data(i).value_size(); ++j)
-        {
-          if (light.second.header().data(i).key() ==
-              "visualizeVisual")
-          {
-            visualizeVisual = ignition::math::parseInt(
-              light.second.header().data(i).value(0));
-          }
-        }
-      }
-
       rendering::VisualPtr lightVisual =
           this->sceneManager.VisualById(
             this->matchLightWithVisuals[light.first]);
       if (lightVisual)
-        lightVisual->SetVisible(visualizeVisual);
+        lightVisual->SetVisible(light.second.visualize_visual());
 
       if (!light.second.is_light_off())
       {
