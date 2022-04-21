@@ -684,8 +684,8 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
   }
   else if (_geom.Type() == sdf::GeometryType::HEIGHTMAP)
   {
-    auto fullPath = asFullPath(_geom.HeightmapShape()->Uri(),
-        _geom.HeightmapShape()->FilePath());
+    auto fullPath = common::findFile(asFullPath(_geom.HeightmapShape()->Uri(),
+        _geom.HeightmapShape()->FilePath()));
     if (fullPath.empty())
     {
       ignerr << "Heightmap geometry missing URI" << std::endl;
@@ -1245,6 +1245,9 @@ rendering::VisualPtr SceneManager::CreateLightVisual(Entity _id,
     lightVisual->SetInnerAngle(_light.SpotInnerAngle().Radian());
     lightVisual->SetOuterAngle(_light.SpotOuterAngle().Radian());
   }
+
+  lightVisual->SetVisible(_light.Visualize());
+
   rendering::VisualPtr lightVis = std::dynamic_pointer_cast<rendering::Visual>(
     lightVisual);
   lightVis->SetUserData("gazebo-entity", static_cast<int>(_id));

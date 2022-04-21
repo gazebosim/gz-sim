@@ -378,6 +378,7 @@ class ignition::gazebo::RenderUtilPrivate
           lightEql { [](const sdf::Light &_a, const sdf::Light &_b)
             {
              return
+                _a.Visualize() == _b.Visualize() &&
                 _a.Type() == _b.Type() &&
                 _a.Name() == _b.Name() &&
                 _a.Diffuse() == _b.Diffuse() &&
@@ -1030,6 +1031,8 @@ void RenderUtil::Update()
     return;
 
   this->dataPtr->updateMutex.lock();
+
+  this->dataPtr->scene->SetTime(this->dataPtr->simTime);
   auto newScenes = std::move(this->dataPtr->newScenes);
   auto newModels = std::move(this->dataPtr->newModels);
   auto newLinks = std::move(this->dataPtr->newLinks);
@@ -2499,6 +2502,15 @@ void RenderUtil::Init()
       this->dataPtr->scene->SetSkyEnabled(this->dataPtr->skyEnabled);
     }
   }
+
+  {
+    // HACK: Tell ign-rendering6 to listen to SetTime calls
+    // TODO(anyone) Remove this when linked against ign-rendering7
+    this->dataPtr->scene->SetTime(std::chrono::nanoseconds(-1));
+    IGN_ASSERT(this->dataPtr->scene->Time() != std::chrono::nanoseconds(-1),
+               "Please remove this snippet after merging with ign-rendering7");
+  }
+
   this->dataPtr->sceneManager.SetScene(this->dataPtr->scene);
   if (this->dataPtr->enableSensors)
     this->dataPtr->markerManager.SetTopic("/sensors/marker");
@@ -2573,6 +2585,13 @@ void RenderUtil::SetSceneName(const std::string &_name)
 void RenderUtil::SetScene(const rendering::ScenePtr &_scene)
 {
   this->dataPtr->scene = _scene;
+  {
+    // HACK: Tell ign-rendering6 to listen to SetTime calls
+    // TODO(anyone) Remove this when linked against ign-rendering7
+    this->dataPtr->scene->SetTime(std::chrono::nanoseconds(-1));
+    IGN_ASSERT(this->dataPtr->scene->Time() != std::chrono::nanoseconds(-1),
+               "Please remove this snippet after merging with ign-rendering7");
+  }
   this->dataPtr->sceneManager.SetScene(_scene);
   this->dataPtr->engine = _scene == nullptr ? nullptr : _scene->Engine();
 }
@@ -2811,11 +2830,58 @@ void RenderUtilPrivate::UpdateLights(
     auto l = std::dynamic_pointer_cast<rendering::Light>(node);
     if (l)
     {
-      if (!ignition::math::equal(
-          l->Intensity(),
-          static_cast<double>(light.second.intensity())))
+      // todo(ahcorde) Use the field visualize_visual in light.proto from
+      // Garden on.
+      bool visualizeVisual = true;
+      for (int i = 0; i < light.second.header().data_size(); ++i)
       {
-        l->SetIntensity(light.second.intensity());
+        for (int j = 0;
+            j < light.second.header().data(i).value_size(); ++j)
+        {
+          if (light.second.header().data(i).key() ==
+              "visualizeVisual")
+          {
+            visualizeVisual = ignition::math::parseInt(
+              light.second.header().data(i).value(0));
+          }
+        }
+      }
+
+      rendering::VisualPtr lightVisual =
+          this->sceneManager.VisualById(
+            this->matchLightWithVisuals[light.first]);
+      if (lightVisual)
+        lightVisual->SetVisible(visualizeVisual);
+
+      // todo(ahcorde) Use the field is_light_off in light.proto from
+      // Garden on.
+      bool isLightOn = true;
+      for (int i = 0; i < light.second.header().data_size(); ++i)
+      {
+        for (int j = 0;
+            j < light.second.header().data(i).value_size(); ++j)
+        {
+          if (light.second.header().data(i).key() ==
+              "isLightOn")
+          {
+            isLightOn = ignition::math::parseInt(
+              light.second.header().data(i).value(0));
+          }
+        }
+      }
+
+      if (isLightOn)
+      {
+        if (!ignition::math::equal(
+            l->Intensity(),
+            static_cast<double>(light.second.intensity())))
+        {
+          l->SetIntensity(light.second.intensity());
+        }
+      }
+      else
+      {
+        l->SetIntensity(0);
       }
       if (light.second.has_diffuse())
       {
