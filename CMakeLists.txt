@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo6 VERSION 6.7.0)
+project(ignition-gazebo6 VERSION 6.9.0)
 
 #============================================================================
 # Find ignition-cmake
@@ -74,7 +74,7 @@ set(IGN_TRANSPORT_VER ${ignition-transport11_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-msgs
-ign_find_package(ignition-msgs8 REQUIRED VERSION 8.2)
+ign_find_package(ignition-msgs8 REQUIRED VERSION 8.3)
 set(IGN_MSGS_VER ${ignition-msgs8_VERSION_MAJOR})
 
 #--------------------------------------
@@ -187,6 +187,7 @@ else()
   message (STATUS "Searching for Python - found version ${PYTHONLIBS_VERSION_STRING}.")
 
   set(PYBIND11_PYTHON_VERSION 3)
+  find_package(Python3 QUIET COMPONENTS Interpreter Development)
   find_package(pybind11 2.2 QUIET)
 
   if (${pybind11_FOUND})
@@ -224,6 +225,8 @@ endif()
 #============================================================================
 configure_file(${CMAKE_SOURCE_DIR}/api.md.in ${CMAKE_BINARY_DIR}/api.md)
 configure_file(${CMAKE_SOURCE_DIR}/tutorials.md.in ${CMAKE_BINARY_DIR}/tutorials.md)
+configure_file(${CMAKE_SOURCE_DIR}/tools/desktop/ignition-gazebo.desktop.in ${CMAKE_BINARY_DIR}/ignition-gazebo${PROJECT_VERSION_MAJOR}.desktop)
+configure_file(${CMAKE_SOURCE_DIR}/tools/desktop/ignition-gazebo.svg.in ${CMAKE_BINARY_DIR}/ignition-gazebo${PROJECT_VERSION_MAJOR}.svg)
 
 # disable doxygen on macOS due to issues with doxygen 1.9.0
 # there is an unreleased fix; revert this when 1.9.1 is released
