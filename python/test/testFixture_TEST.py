@@ -30,7 +30,7 @@ class TestTestFixture(unittest.TestCase):
         set_verbosity(4)
 
         file_path = os.path.dirname(os.path.realpath(__file__))
-        helper = TestFixture(os.path.join(file_path, 'gravity.sdf'))
+        fixture = TestFixture(os.path.join(file_path, 'gravity.sdf'))
 
         def on_post_udpate_cb(_info, _ecm):
             global post_iterations
@@ -49,12 +49,12 @@ class TestTestFixture(unittest.TestCase):
             global iterations
             iterations += 1
 
-        helper.on_post_update(on_post_udpate_cb)
-        helper.on_update(on_udpate_cb)
-        helper.on_pre_update(on_pre_udpate_cb)
-        helper.finalize()
+        fixture.on_post_update(on_post_udpate_cb)
+        fixture.on_update(on_udpate_cb)
+        fixture.on_pre_update(on_pre_udpate_cb)
+        fixture.finalize()
 
-        server = helper.server()
+        server = fixture.server()
         server.run(False, 1000, False)
 
         while(server.is_running()):
