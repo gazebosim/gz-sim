@@ -33,6 +33,7 @@
 #include <ignition/common/MeshManager.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/common/SystemPaths.hh>
+#include <ignition/common/Uuid.hh>
 #include <ignition/math/AxisAlignedBox.hh>
 #include <ignition/math/eigen3/Conversions.hh>
 #include <ignition/math/Vector3.hh>
@@ -73,6 +74,7 @@
 #include <sdf/Link.hh>
 #include <sdf/Mesh.hh>
 #include <sdf/Model.hh>
+#include <sdf/Polyline.hh>
 #include <sdf/Surface.hh>
 #include <sdf/World.hh>
 
@@ -952,6 +954,55 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
               *mesh,
               math::eigen3::convert(_pose->Data()),
               math::eigen3::convert(meshSdf->Scale()));
+        }
+        else if (_geom->Data().Type() == sdf::GeometryType::POLYLINE)
+        {
+          auto polylineSdf = _geom->Data().PolylineShape();
+          if (polylineSdf.empty())
+          {
+            ignwarn << "Polyline geometry for collision [" << _name->Data()
+                    << "] missing polylines." << std::endl;
+            return true;
+          }
+
+          std::vector<std::vector<math::Vector2d>> vertices;
+          for (auto polyline : _geom->Data().PolylineShape())
+          {
+            vertices.push_back(polyline.Points());
+          }
+
+          std::string name("POLYLINE_" + common::Uuid().String());
+          auto meshManager = ignition::common::MeshManager::Instance();
+          meshManager->CreateExtrudedPolyline(name, vertices,
+              _geom->Data().PolylineShape()[0].Height());
+
+          auto polyline = meshManager->MeshByName(name);
+          if (nullptr == polyline)
+          {
+            ignwarn << "Failed to create polyline for collision [" << _name->Data()
+                    << "]." << std::endl;
+            return true;
+          }
+
+          auto linkMeshFeature =
+              this->entityLinkMap.EntityCast<MeshFeatureList>(_parent->Data());
+          if (!linkMeshFeature)
+          {
+            static bool informed{false};
+            if (!informed)
+            {
+              igndbg << "Attempting to process polyline geometries, but the physics"
+                     << " engine doesn't support feature "
+                     << "[AttachMeshShapeFeature]. Polylines will be ignored."
+                     << std::endl;
+              informed = true;
+            }
+            return true;
+          }
+
+          collisionPtrPhys = linkMeshFeature->AttachMeshShape(_name->Data(),
+              *polyline,
+              math::eigen3::convert(_pose->Data()));
         }
         else
         {

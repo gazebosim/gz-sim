@@ -25,6 +25,7 @@
 #include <sdf/Mesh.hh>
 #include <sdf/Pbr.hh>
 #include <sdf/Plane.hh>
+#include <sdf/Polyline.hh>
 #include <sdf/Sphere.hh>
 
 #include <ignition/common/Animation.hh>
@@ -33,6 +34,7 @@
 #include <ignition/common/Skeleton.hh>
 #include <ignition/common/SkeletonAnimation.hh>
 #include <ignition/common/MeshManager.hh>
+#include <ignition/common/Uuid.hh>
 
 #include <ignition/rendering/Geometry.hh>
 #include <ignition/rendering/Light.hh>
@@ -449,6 +451,26 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     descriptor.mesh = meshManager->Load(descriptor.meshName);
     geom = this->dataPtr->scene->CreateMesh(descriptor);
     scale = _geom.MeshShape()->Scale();
+  }
+  else if (_geom.Type() == sdf::GeometryType::POLYLINE)
+  {
+    std::vector<std::vector<math::Vector2d>> vertices;
+    for (auto polyline : _geom.PolylineShape())
+    {
+      vertices.push_back(polyline.Points());
+    }
+
+    std::string name("POLYLINE_" + common::Uuid().String());
+
+    auto meshManager = ignition::common::MeshManager::Instance();
+    meshManager->CreateExtrudedPolyline(name, vertices,
+        _geom.PolylineShape()[0].Height());
+
+    rendering::MeshDescriptor descriptor;
+    descriptor.meshName = name;
+    descriptor.mesh = meshManager->MeshByName(name);
+
+    geom = this->dataPtr->scene->CreateMesh(descriptor);
   }
   else
   {
