@@ -979,8 +979,8 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
           auto polyline = meshManager->MeshByName(name);
           if (nullptr == polyline)
           {
-            ignwarn << "Failed to create polyline for collision [" << _name->Data()
-                    << "]." << std::endl;
+            ignwarn << "Failed to create polyline for collision ["
+                    << _name->Data() << "]." << std::endl;
             return true;
           }
 
@@ -991,8 +991,8 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
             static bool informed{false};
             if (!informed)
             {
-              igndbg << "Attempting to process polyline geometries, but the physics"
-                     << " engine doesn't support feature "
+              igndbg << "Attempting to process polyline geometries, but the"
+                     << " physics engine doesn't support feature "
                      << "[AttachMeshShapeFeature]. Polylines will be ignored."
                      << std::endl;
               informed = true;
