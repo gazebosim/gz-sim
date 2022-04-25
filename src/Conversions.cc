@@ -197,9 +197,9 @@ msgs::Geometry ignition::gazebo::convert(const sdf::Geometry &_in)
     {
       auto polylineMsg = out.add_polyline();
       polylineMsg->set_height(polyline.Height());
-      for (auto point : polyline.Points())
+      for (auto i = 0; i < polyline.PointCount(); ++i)
       {
-        msgs::Set(polylineMsg->add_point(), point);
+        msgs::Set(polylineMsg->add_point(), *polyline.PointByIndex(i));
       }
     }
   }

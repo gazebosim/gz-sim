@@ -452,11 +452,11 @@ TEST(Conversions, GeometryPolyline)
   ASSERT_FALSE(newGeometry.PolylineShape().empty());
   ASSERT_EQ(1u, newGeometry.PolylineShape().size());
   EXPECT_DOUBLE_EQ(1.23, newGeometry.PolylineShape()[0].Height());
-  ASSERT_EQ(2u, newGeometry.PolylineShape()[0].Points().size());
-  EXPECT_DOUBLE_EQ(4.5, newGeometry.PolylineShape()[0].Points()[0].X());
-  EXPECT_DOUBLE_EQ(6.7, newGeometry.PolylineShape()[0].Points()[0].Y());
-  EXPECT_DOUBLE_EQ(8.9, newGeometry.PolylineShape()[0].Points()[1].X());
-  EXPECT_DOUBLE_EQ(10.11, newGeometry.PolylineShape()[0].Points()[1].Y());
+  ASSERT_EQ(2u, newGeometry.PolylineShape()[0].PointCount());
+  EXPECT_DOUBLE_EQ(4.5, newGeometry.PolylineShape()[0].PointByIndex(0)->X());
+  EXPECT_DOUBLE_EQ(6.7, newGeometry.PolylineShape()[0].PointByIndex(0)->Y());
+  EXPECT_DOUBLE_EQ(8.9, newGeometry.PolylineShape()[0].PointByIndex(1)->X());
+  EXPECT_DOUBLE_EQ(10.11, newGeometry.PolylineShape()[0].PointByIndex(1)->Y());
 }
 
 /////////////////////////////////////////////////
