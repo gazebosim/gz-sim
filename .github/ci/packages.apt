@@ -15,7 +15,6 @@ libignition-tools2-dev
 libignition-transport12-dev
 libignition-utils2-cli-dev
 libogre-1.9-dev
-libogre-2.2-dev
 libprotobuf-dev
 libprotoc-dev
 libsdformat13-dev
