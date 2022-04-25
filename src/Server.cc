@@ -175,11 +175,11 @@ Server::Server(const ServerConfig &_config)
     errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World());
   }
 
+  // TODO(ahcorde) Filter message. Only continue if there is a download issue
   if (!errors.empty())
   {
     for (auto &err : errors)
       ignerr << err << "\n";
-    return;
   }
 
   // Add record plugin

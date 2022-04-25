@@ -723,7 +723,12 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   while (this->running && (_iterations == 0 ||
        processedIterations < _iterations))
   {
+    std::lock_guard<std::mutex> lock(this->mutexDownloadParallel);
+
     IGN_PROFILE("SimulationRunner::Run - Iteration");
+
+    if (!this->DownloadedAllModel())
+      this->SetPaused(true);
 
     // Update the step size and desired rtf
     this->UpdatePhysicsParams();
@@ -1319,4 +1324,30 @@ bool SimulationRunner::NextStepIsBlockingPaused() const
 void SimulationRunner::SetNextStepAsBlockingPaused(const bool value)
 {
   this->blockingPausedStepPending = value;
+}
+
+//////////////////////////////////////////////////
+bool SimulationRunner::DownloadedAllModel() const
+{
+  return downloadedAllModels;
+}
+
+//////////////////////////////////////////////////
+void SimulationRunner::SetDownloadedAllModel(bool _downloadedAllModels)
+{
+  this->downloadedAllModels = _downloadedAllModels;
+}
+
+//////////////////////////////////////////////////
+void SimulationRunner::AddModel(const sdf::Model &_model)
+{
+  std::lock_guard<std::mutex> lock(this->mutexDownloadParallel);
+  levelMgr->AddModel(_model);
+}
+
+//////////////////////////////////////////////////
+void SimulationRunner::AddActor(const sdf::Actor &_actor)
+{
+  std::lock_guard<std::mutex> lock(this->mutexDownloadParallel);
+  levelMgr->AddActor(_actor);
 }

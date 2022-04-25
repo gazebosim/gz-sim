@@ -88,6 +88,14 @@ namespace ignition
       /// every update cycle
       public: void UpdateLevelsState();
 
+      /// \brief This will add a model to the scene
+      /// \param[in] _model SDF model to add to the scene
+      public: void AddModel(const sdf::Model &_model);
+
+      /// \brief This will add an actor to the scene
+      /// \param[in] _model SDF actor to add to the scene
+      public: void AddActor(const sdf::Actor &_actor);
+
       /// \brief Load entities that have been marked for loading.
       /// \param[in] _namesToLoad List of of entity names to load
       private: void LoadActiveEntities(

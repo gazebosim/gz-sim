@@ -129,6 +129,22 @@ namespace ignition
       /// \brief All the simulation runners.
       public: std::vector<std::unique_ptr<SimulationRunner>> simRunners;
 
+      /// \brief Mutex to protect the runner while the models are downloaded
+      /// in the background
+      public: std::recursive_mutex mutexDownloadParallel;
+
+      /// \brief Thread to download models
+      public: std::vector<std::thread> threadDownloadModels;
+
+      /// \brief Number of models to download
+      public: std::atomic<unsigned int> numberOfModelToDownload = 0;
+
+      /// \brief Number of models already downloaded
+      public: std::atomic<unsigned int> currentNumberOfModelToDownload = 0;
+
+      /// \brief are all models downloaded ?
+      public: std::atomic<bool> allModelDownloaded = false;
+
       /// \brief Mutex to protect the Run operation.
       public: std::mutex runMutex;
 

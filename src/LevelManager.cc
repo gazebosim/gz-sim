@@ -469,6 +469,60 @@ void LevelManager::ConfigureDefaultLevel()
 }
 
 /////////////////////////////////////////////////
+void LevelManager::AddModel(const sdf::Model &_model)
+{
+  if (this->worldEntity == kNullEntity)
+  {
+    ignerr << "Could not find the world entity while creating performers\n";
+    return;
+  }
+
+  if (this->performerMap.find(_model.Name()) == this->performerMap.end())
+  {
+    Entity performerEntity = this->runner->entityCompMgr.CreateEntity();
+
+    Entity modelEntity = this->entityCreator->CreateEntities(&_model);
+
+    // Make the model a parent of this performer
+    this->entityCreator->SetParent(performerEntity,
+                                   modelEntity);
+
+    // Add parent world to the model
+    this->entityCreator->SetParent(modelEntity, this->worldEntity);
+
+    this->performerMap[_model.Name()] = performerEntity;
+    this->activeEntityNames.insert(_model.Name());
+  }
+}
+
+/////////////////////////////////////////////////
+void LevelManager::AddActor(const sdf::Actor &_actor)
+{
+  if (this->worldEntity == kNullEntity)
+  {
+    ignerr << "Could not find the world entity while creating performers\n";
+    return;
+  }
+
+  if (this->performerMap.find(_actor.Name()) == this->performerMap.end())
+  {
+    Entity performerEntity = this->runner->entityCompMgr.CreateEntity();
+
+    Entity actorEntity = this->entityCreator->CreateEntities(&_actor);
+
+    // Make the model a parent of this performer
+    this->entityCreator->SetParent(performerEntity,
+                                   actorEntity);
+
+    // Add parent world to the model
+    this->entityCreator->SetParent(actorEntity, this->worldEntity);
+
+    this->performerMap[_actor.Name()] = performerEntity;
+    this->activeEntityNames.insert(_actor.Name());
+  }
+}
+
+/////////////////////////////////////////////////
 void LevelManager::CreatePerformers()
 {
   IGN_PROFILE("LevelManager::CreatePerformers");

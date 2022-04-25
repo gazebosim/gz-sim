@@ -176,6 +176,24 @@ namespace ignition
       /// \return True if the operation completed successfully.
       public: bool Run(const uint64_t _iterations);
 
+      /// \brief This will add a model to the scene
+      /// \param[in] _model SDF model to add to the scene
+      public: void AddModel(const sdf::Model &_model);
+
+      /// \brief This will add an actor to the scene
+      /// \param[in] _model SDF actor to add to the scene
+      public: void AddActor(const sdf::Actor &_actor);
+
+      /// \brief Check if there is any model being downloaded in the backgound.
+      /// \return True if there is any model being downloaded in the background,
+      /// false otherwise
+      public: bool DownloadedAllModel() const;
+
+      /// \brief Set if there is any model being downloaded in the backgound.
+      /// \param[in] _downloadedAllModels True if there is any model being
+      /// downloaded in the background, false otherwise.
+      public: void SetDownloadedAllModel(bool _downloadedAllModels);
+
       /// \brief Perform a simulation step:
       /// * Publish stats and process control messages
       /// * Update levels and systems
@@ -585,6 +603,12 @@ namespace ignition
 
       /// \brief True if Server::RunOnce triggered a blocking paused step
       private: bool blockingPausedStepPending{false};
+
+      /// \brief Mutex to protect the runner when a new model is inserted
+      private: std::mutex mutexDownloadParallel;
+
+      /// \brief True if all model are downloaded, false otherwise
+      private: bool downloadedAllModels{false};
 
       friend class LevelManager;
     };
