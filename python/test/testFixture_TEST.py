@@ -39,7 +39,7 @@ class TestTestFixture(unittest.TestCase):
         def on_pre_udpate_cb(_info, _ecm):
             global pre_iterations
             pre_iterations += 1
-            world_e = world_entity(_ecm);
+            world_e = world_entity(_ecm)
             self.assertEqual(1, world_e)
             w = World(world_e)
             v = w.gravity(_ecm)
