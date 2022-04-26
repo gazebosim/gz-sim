@@ -264,7 +264,7 @@ void WheelSlipPrivate::Update(EntityComponentManager &_ecm)
     auto paramName = std::string("systems.") + scopedName;
     transport::parameters::ParametersRegistry::ParameterValue value;
     try {
-      value = this->registry->GetParameter(paramName);
+      value = this->registry->Parameter(paramName);
     } catch (const std::exception & ex) {
       ignerr << "WheelSlip system Update(): failed to get parameter ["
               << paramName << "]: " << ex.what() << std::endl;
