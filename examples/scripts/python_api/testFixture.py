@@ -48,7 +48,7 @@ def on_pre_udpate_cb(_info, _ecm):
     pre_iterations += 1
     if first_iteration:
         first_iteration = False
-        world_e = world_entity(_ecm);
+        world_e = world_entity(_ecm)
         print('World entity is ', world_e)
         w = World(world_e)
         v = w.gravity(_ecm)
