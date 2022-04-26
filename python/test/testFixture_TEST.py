@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import os
-import time
 import unittest
 
 from ignition.common import set_verbosity
@@ -56,10 +55,7 @@ class TestTestFixture(unittest.TestCase):
         helper.finalize()
 
         server = helper.server()
-        server.run(False, 1000, False)
-
-        while(server.is_running()):
-            time.sleep(0.1)
+        server.run(True, 1000, False)
 
         self.assertEqual(1000, pre_iterations)
         self.assertEqual(1000, iterations)
