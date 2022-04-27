@@ -966,14 +966,9 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
           }
 
           std::vector<std::vector<math::Vector2d>> vertices;
-          for (auto polyline : _geom->Data().PolylineShape())
+          for (const auto &polyline : _geom->Data().PolylineShape())
           {
-            std::vector<math::Vector2d> points;
-            for (uint64_t i = 0; i < polyline.PointCount(); ++i)
-            {
-              points.push_back(*polyline.PointByIndex(i));
-            }
-            vertices.push_back(points);
+            vertices.push_back(polyline.Points());
           }
 
           std::string name("POLYLINE_" + common::Uuid().String());

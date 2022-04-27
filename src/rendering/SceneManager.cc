@@ -455,14 +455,9 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
   else if (_geom.Type() == sdf::GeometryType::POLYLINE)
   {
     std::vector<std::vector<math::Vector2d>> vertices;
-    for (auto polyline : _geom.PolylineShape())
+    for (const auto &polyline : _geom.PolylineShape())
     {
-      std::vector<math::Vector2d> points;
-      for (uint64_t i = 0; i < polyline.PointCount(); ++i)
-      {
-        points.push_back(*polyline.PointByIndex(i));
-      }
-      vertices.push_back(points);
+      vertices.push_back(polyline.Points());
     }
 
     std::string name("POLYLINE_" + common::Uuid().String());

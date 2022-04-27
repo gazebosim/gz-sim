@@ -193,13 +193,13 @@ msgs::Geometry ignition::gazebo::convert(const sdf::Geometry &_in)
       !_in.PolylineShape().empty())
   {
     out.set_type(msgs::Geometry::POLYLINE);
-    for (auto polyline : _in.PolylineShape())
+    for (const auto &polyline : _in.PolylineShape())
     {
       auto polylineMsg = out.add_polyline();
       polylineMsg->set_height(polyline.Height());
-      for (auto i = 0; i < polyline.PointCount(); ++i)
+      for (const auto &point : polyline.Points())
       {
-        msgs::Set(polylineMsg->add_point(), *polyline.PointByIndex(i));
+        msgs::Set(polylineMsg->add_point(), point);
       }
     }
   }
