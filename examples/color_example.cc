@@ -16,7 +16,7 @@
 */
 //! [complete]
 #include <iostream>
-#include <ignition/math/Color.hh>
+#include <gz/math/Color.hh>
 
 int main(int argc, char **argv) 
 {

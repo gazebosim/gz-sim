@@ -16,7 +16,7 @@
 */
 //! [complete]
 #include <stdio.h>
-#include <ignition/math/Quaternion.hh>
+#include <gz/math/Quaternion.hh>
 
 int main(int argc, char **argv)
 {

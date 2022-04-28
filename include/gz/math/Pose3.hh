@@ -14,12 +14,12 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_POSE_HH_
-#define IGNITION_MATH_POSE_HH_
+#ifndef GZ_MATH_POSE_HH_
+#define GZ_MATH_POSE_HH_
 
-#include <ignition/math/Quaternion.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/math/config.hh>
+#include <gz/math/Quaternion.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/math/config.hh>
 
 namespace ignition
 {
@@ -28,7 +28,7 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
     //
-    /// \class Pose3 Pose3.hh ignition/math/Pose3.hh
+    /// \class Pose3 Pose3.hh gz/math/Pose3.hh
     /// \brief The Pose3 class represents a 3D position and rotation. The
     /// position  component is a Vector3, and the rotation is a Quaternion.
     ///
@@ -47,7 +47,7 @@ namespace ignition
     /// \code{.rb}
     /// # $ export RUBYLIB=/usr/lib/ruby:$RUBYLIB
     /// #
-    /// require 'ignition/math'
+    /// require 'gz/math'
     ///
     /// # Construct a default Pose3d.
     /// p = Ignition::Math::Pose3d.new

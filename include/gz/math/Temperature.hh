@@ -14,15 +14,15 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_TEMPERATURE_HH_
-#define IGNITION_MATH_TEMPERATURE_HH_
+#ifndef GZ_MATH_TEMPERATURE_HH_
+#define GZ_MATH_TEMPERATURE_HH_
 
 #include <istream>
 #include <ostream>
 
-#include <ignition/math/config.hh>
-#include "ignition/math/Helpers.hh"
-#include <ignition/utils/ImplPtr.hh>
+#include <gz/math/config.hh>
+#include "gz/math/Helpers.hh"
+#include <gz/utils/ImplPtr.hh>
 
 
 namespace ignition
@@ -54,7 +54,7 @@ namespace ignition
     /// #
     /// # $ export RUBYLIB=/usr/lib/ruby:$RUBYLIB
     /// #
-    /// require 'ignition/math'
+    /// require 'gz/math'
     ///
     /// celsius = Ignition::Math::Temperature::KelvinToCelsius(2.5);
     /// printf("2.5Kelvin to Celsius is %f\n", celsius)

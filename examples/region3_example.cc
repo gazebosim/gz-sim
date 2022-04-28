@@ -16,8 +16,8 @@
 */
 //! [complete]
 #include <iostream>
-#include <ignition/math/Region3.hh>
-#include <ignition/math/Vector3.hh>
+#include <gz/math/Region3.hh>
+#include <gz/math/Vector3.hh>
 
 int main(int argc, char **argv)
 {

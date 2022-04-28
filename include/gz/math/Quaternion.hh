@@ -14,14 +14,14 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_QUATERNION_HH_
-#define IGNITION_MATH_QUATERNION_HH_
+#ifndef GZ_MATH_QUATERNION_HH_
+#define GZ_MATH_QUATERNION_HH_
 
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/Angle.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/math/Matrix3.hh>
-#include <ignition/math/config.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/Angle.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/math/Matrix3.hh>
+#include <gz/math/config.hh>
 
 namespace ignition
 {
@@ -32,7 +32,7 @@ namespace ignition
     //
     template <typename T> class Matrix3;
 
-    /// \class Quaternion Quaternion.hh ignition/math/Quaternion.hh
+    /// \class Quaternion Quaternion.hh gz/math/Quaternion.hh
     /// \brief A quaternion class that represents 3D rotations and
     /// orientations. Four scalar values, [w,x,y,z], are used represent
     /// orientations and rotations.
@@ -56,7 +56,7 @@ namespace ignition
     /// #
     /// # $ export RUBYLIB=/usr/lib/ruby:$RUBYLIB
     /// #
-    /// require 'ignition/math'
+    /// require 'gz/math'
     ///
     /// q = Ignition::Math::Quaterniond.new
     /// printf("A default quaternion has the following values\n"+

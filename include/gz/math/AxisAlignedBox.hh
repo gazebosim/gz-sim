@@ -14,18 +14,18 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_AXISALIGNEDBOX_HH_
-#define IGNITION_MATH_AXISALIGNEDBOX_HH_
+#ifndef GZ_MATH_AXISALIGNEDBOX_HH_
+#define GZ_MATH_AXISALIGNEDBOX_HH_
 
 #include <ostream>
 #include <tuple>
-#include <ignition/math/config.hh>
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/Line3.hh>
-#include <ignition/math/MassMatrix3.hh>
-#include <ignition/math/Material.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/utils/ImplPtr.hh>
+#include <gz/math/config.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/Line3.hh>
+#include <gz/math/MassMatrix3.hh>
+#include <gz/math/Material.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/utils/ImplPtr.hh>
 
 namespace ignition
 {
@@ -33,7 +33,7 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
-    /// \class AxisAlignedBox AxisAlignedBox.hh ignition/math/AxisAlignedBox.hh
+    /// \class AxisAlignedBox AxisAlignedBox.hh gz/math/AxisAlignedBox.hh
     /// \brief Mathematical representation of a box that is aligned along
     /// an X,Y,Z axis.
     class IGNITION_MATH_VISIBLE AxisAlignedBox

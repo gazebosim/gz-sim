@@ -15,13 +15,13 @@
  *
 */
 
-#ifndef IGNITION_MATH_STOPWATCH_HH_
-#define IGNITION_MATH_STOPWATCH_HH_
+#ifndef GZ_MATH_STOPWATCH_HH_
+#define GZ_MATH_STOPWATCH_HH_
 
 #include <chrono>
-#include <ignition/math/Export.hh>
-#include <ignition/math/config.hh>
-#include <ignition/utils/ImplPtr.hh>
+#include <gz/math/Export.hh>
+#include <gz/math/config.hh>
+#include <gz/utils/ImplPtr.hh>
 
 namespace ignition
 {
@@ -32,7 +32,7 @@ namespace ignition
 
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
-    /// \class Stopwatch Stopwatch.hh ignition/math/Stopwatch.hh
+    /// \class Stopwatch Stopwatch.hh gz/math/Stopwatch.hh
     /// \brief The Stopwatch keeps track of time spent in the run state,
     /// accessed through ElapsedRunTime(), and time spent in the stop state,
     /// accessed through ElapsedStopTime(). Elapsed run time starts accumulating

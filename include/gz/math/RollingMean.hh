@@ -14,12 +14,12 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_ROLLINGMEAN_HH_
-#define IGNITION_MATH_ROLLINGMEAN_HH_
+#ifndef GZ_MATH_ROLLINGMEAN_HH_
+#define GZ_MATH_ROLLINGMEAN_HH_
 
-#include <ignition/math/Export.hh>
-#include <ignition/math/config.hh>
-#include <ignition/utils/ImplPtr.hh>
+#include <gz/math/Export.hh>
+#include <gz/math/config.hh>
+#include <gz/utils/ImplPtr.hh>
 
 namespace ignition
 {

@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_DETAIL_CYLINDER_HH_
-#define IGNITION_MATH_DETAIL_CYLINDER_HH_
+#ifndef GZ_MATH_DETAIL_CYLINDER_HH_
+#define GZ_MATH_DETAIL_CYLINDER_HH_
 namespace ignition
 {
 namespace math

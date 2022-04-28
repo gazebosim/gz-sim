@@ -16,7 +16,7 @@
 */
 //! [complete]
 #include <iostream>
-#include <ignition/math/Interval.hh>
+#include <gz/math/Interval.hh>
 
 int main(int argc, char **argv)
 {

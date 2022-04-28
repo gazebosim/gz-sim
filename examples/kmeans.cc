@@ -18,7 +18,7 @@
 #include <iostream>
 #include <vector>
 
-#include <ignition/math/Kmeans.hh>
+#include <gz/math/Kmeans.hh>
 
 int main(int argc, char **argv)
 {

@@ -14,12 +14,12 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_CYLINDER_HH_
-#define IGNITION_MATH_CYLINDER_HH_
+#ifndef GZ_MATH_CYLINDER_HH_
+#define GZ_MATH_CYLINDER_HH_
 
-#include "ignition/math/MassMatrix3.hh"
-#include "ignition/math/Material.hh"
-#include "ignition/math/Quaternion.hh"
+#include "gz/math/MassMatrix3.hh"
+#include "gz/math/Material.hh"
+#include "gz/math/Quaternion.hh"
 
 namespace ignition
 {
@@ -31,7 +31,7 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
     //
-    /// \class Cylinder Cylinder.hh ignition/math/Cylinder.hh
+    /// \class Cylinder Cylinder.hh gz/math/Cylinder.hh
     /// \brief A representation of a cylinder.
     ///
     /// The cylinder class supports defining a cylinder with a radius,
@@ -175,6 +175,6 @@ namespace ignition
     }
   }
 }
-#include "ignition/math/detail/Cylinder.hh"
+#include "gz/math/detail/Cylinder.hh"
 
 #endif

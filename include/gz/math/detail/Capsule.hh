@@ -14,13 +14,13 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_DETAIL_CAPSULE_HH_
-#define IGNITION_MATH_DETAIL_CAPSULE_HH_
+#ifndef GZ_MATH_DETAIL_CAPSULE_HH_
+#define GZ_MATH_DETAIL_CAPSULE_HH_
 
 #include <limits>
 #include <optional>
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/Inertial.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/Inertial.hh>
 
 namespace ignition
 {

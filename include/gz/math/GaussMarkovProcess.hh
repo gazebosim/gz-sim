@@ -14,13 +14,13 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_GAUSSMARKOVPROCESS_HH_
-#define IGNITION_MATH_GAUSSMARKOVPROCESS_HH_
+#ifndef GZ_MATH_GAUSSMARKOVPROCESS_HH_
+#define GZ_MATH_GAUSSMARKOVPROCESS_HH_
 
 #include <chrono>
-#include <ignition/math/Export.hh>
-#include <ignition/math/config.hh>
-#include <ignition/utils/ImplPtr.hh>
+#include <gz/math/Export.hh>
+#include <gz/math/config.hh>
+#include <gz/utils/ImplPtr.hh>
 
 namespace ignition
 {
@@ -32,7 +32,7 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
     /** \class GaussMarkovProcess GaussMarkovProcess.hh\
-     * ignition/math/GaussMarkovProcess.hh
+     * gz/math/GaussMarkovProcess.hh
      **/
     /// \brief Implementation of a stationary gauss-markov process, also
     /// known as a Ornstein Ulenbeck process.

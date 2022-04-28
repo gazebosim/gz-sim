@@ -14,12 +14,12 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_CAPSULE_HH_
-#define IGNITION_MATH_CAPSULE_HH_
+#ifndef GZ_MATH_CAPSULE_HH_
+#define GZ_MATH_CAPSULE_HH_
 
 #include <optional>
-#include "ignition/math/MassMatrix3.hh"
-#include "ignition/math/Material.hh"
+#include "gz/math/MassMatrix3.hh"
+#include "gz/math/Material.hh"
 
 namespace ignition
 {
@@ -31,7 +31,7 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
     //
-    /// \class Capsule Capsule.hh ignition/math/Capsule.hh
+    /// \class Capsule Capsule.hh gz/math/Capsule.hh
     /// \brief A representation of a capsule or sphere-capped cylinder.
     ///
     /// The capsule class supports defining a capsule with a radius,
@@ -146,6 +146,6 @@ namespace ignition
     }
   }
 }
-#include "ignition/math/detail/Capsule.hh"
+#include "gz/math/detail/Capsule.hh"
 
 #endif

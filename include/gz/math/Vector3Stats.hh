@@ -14,15 +14,15 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_VECTOR3STATS_HH_
-#define IGNITION_MATH_VECTOR3STATS_HH_
+#ifndef GZ_MATH_VECTOR3STATS_HH_
+#define GZ_MATH_VECTOR3STATS_HH_
 
 #include <string>
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/SignalStats.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/math/config.hh>
-#include <ignition/utils/ImplPtr.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/SignalStats.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/math/config.hh>
+#include <gz/utils/ImplPtr.hh>
 
 namespace ignition
 {
@@ -30,7 +30,7 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
-    /// \class Vector3Stats Vector3Stats.hh ignition/math/Vector3Stats.hh
+    /// \class Vector3Stats Vector3Stats.hh gz/math/Vector3Stats.hh
     /// \brief Collection of statistics for a Vector3 signal.
     class IGNITION_MATH_VISIBLE Vector3Stats
     {

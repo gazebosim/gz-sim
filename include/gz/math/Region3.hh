@@ -14,17 +14,17 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_REGION3_HH_
-#define IGNITION_MATH_REGION3_HH_
+#ifndef GZ_MATH_REGION3_HH_
+#define GZ_MATH_REGION3_HH_
 
 #include <cmath>
 #include <limits>
 #include <ostream>
 #include <utility>
 
-#include <ignition/math/Interval.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/math/config.hh>
+#include <gz/math/Interval.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/math/config.hh>
 
 namespace ignition
 {
@@ -33,7 +33,7 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
     //
-    /// \class Region3 Region3.hh ignition/math/Region3.hh
+    /// \class Region3 Region3.hh gz/math/Region3.hh
     /// \brief The Region3 class represents the cartesian product
     /// of intervals Ix ✕ Iy ✕ Iz, one per axis, yielding an
     /// axis-aligned region of R^3 space. It can be thought of as

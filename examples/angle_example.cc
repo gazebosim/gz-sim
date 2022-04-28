@@ -16,7 +16,7 @@
 */
 //! [complete]
 #include <iostream>
-#include <ignition/math/Angle.hh>
+#include <gz/math/Angle.hh>
 
 int main(int argc, char **argv)
 {

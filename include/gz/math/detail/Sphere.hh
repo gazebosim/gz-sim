@@ -14,10 +14,10 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_DETAIL_SPHERE_HH_
-#define IGNITION_MATH_DETAIL_SPHERE_HH_
+#ifndef GZ_MATH_DETAIL_SPHERE_HH_
+#define GZ_MATH_DETAIL_SPHERE_HH_
 
-#include "ignition/math/Sphere.hh"
+#include "gz/math/Sphere.hh"
 
 namespace ignition
 {

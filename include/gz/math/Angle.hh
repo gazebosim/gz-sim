@@ -14,13 +14,13 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_ANGLE_HH_
-#define IGNITION_MATH_ANGLE_HH_
+#ifndef GZ_MATH_ANGLE_HH_
+#define GZ_MATH_ANGLE_HH_
 
 #include <istream>
 #include <ostream>
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/config.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/config.hh>
 
 /// \def IGN_RTOD(d)
 /// \brief Macro that converts radians to degrees
@@ -47,7 +47,7 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
     //
-    /// \class Angle Angle.hh ignition/math/Angle.hh
+    /// \class Angle Angle.hh gz/math/Angle.hh
     /// \brief The Angle class is used to simplify and clarify the use of
     /// radians and degrees measurements. A default constructed Angle instance
     /// has a value of zero radians/degrees.

@@ -14,16 +14,16 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_SPHERICALCOORDINATES_HH_
-#define IGNITION_MATH_SPHERICALCOORDINATES_HH_
+#ifndef GZ_MATH_SPHERICALCOORDINATES_HH_
+#define GZ_MATH_SPHERICALCOORDINATES_HH_
 
 #include <string>
 
-#include <ignition/math/Angle.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/config.hh>
-#include <ignition/utils/ImplPtr.hh>
+#include <gz/math/Angle.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/config.hh>
+#include <gz/utils/ImplPtr.hh>
 
 namespace ignition
 {

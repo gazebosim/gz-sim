@@ -14,13 +14,13 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_SPHERE_HH_
-#define IGNITION_MATH_SPHERE_HH_
+#ifndef GZ_MATH_SPHERE_HH_
+#define GZ_MATH_SPHERE_HH_
 
-#include "ignition/math/MassMatrix3.hh"
-#include "ignition/math/Material.hh"
-#include "ignition/math/Quaternion.hh"
-#include "ignition/math/Plane.hh"
+#include "gz/math/MassMatrix3.hh"
+#include "gz/math/Material.hh"
+#include "gz/math/Quaternion.hh"
+#include "gz/math/Plane.hh"
 
 namespace ignition
 {
@@ -32,7 +32,7 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
     //
-    /// \class Sphere Sphere.hh ignition/math/Sphere.hh
+    /// \class Sphere Sphere.hh gz/math/Sphere.hh
     /// \brief A representation of a sphere.
     ///
     /// The sphere class supports defining a sphere with a radius and
@@ -151,6 +151,6 @@ namespace ignition
     }
   }
 }
-#include "ignition/math/detail/Sphere.hh"
+#include "gz/math/detail/Sphere.hh"
 
 #endif

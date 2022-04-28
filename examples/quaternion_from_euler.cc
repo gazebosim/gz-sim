@@ -17,8 +17,8 @@
 
 #include <iostream>
 #include <sstream>
-#include <ignition/math/Matrix3.hh>
-#include <ignition/math/Quaternion.hh>
+#include <gz/math/Matrix3.hh>
+#include <gz/math/Quaternion.hh>
 
 // Copied from urdfdom
 static inline double strToDouble(const char *in)

@@ -14,13 +14,13 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_PID_HH_
-#define IGNITION_MATH_PID_HH_
+#ifndef GZ_MATH_PID_HH_
+#define GZ_MATH_PID_HH_
 
 #include <chrono>
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/config.hh>
-#include <ignition/utils/ImplPtr.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/config.hh>
+#include <gz/utils/ImplPtr.hh>
 
 namespace ignition
 {
@@ -29,7 +29,7 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
     //
-    /// \class PID PID.hh ignition/math/PID.hh
+    /// \class PID PID.hh gz/math/PID.hh
     /// \brief Generic PID controller class.
     /// Generic proportional-integral-derivative controller class that
     /// keeps track of PID-error states and control inputs given

@@ -14,12 +14,12 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_ROTATIONSPLINE_HH_
-#define IGNITION_MATH_ROTATIONSPLINE_HH_
+#ifndef GZ_MATH_ROTATIONSPLINE_HH_
+#define GZ_MATH_ROTATIONSPLINE_HH_
 
-#include <ignition/math/Quaternion.hh>
-#include <ignition/math/config.hh>
-#include <ignition/utils/ImplPtr.hh>
+#include <gz/math/Quaternion.hh>
+#include <gz/math/config.hh>
+#include <gz/utils/ImplPtr.hh>
 
 namespace ignition
 {
@@ -27,7 +27,7 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
-    /// \class RotationSpline RotationSpline.hh ignition/math/RotationSpline.hh
+    /// \class RotationSpline RotationSpline.hh gz/math/RotationSpline.hh
     /// \brief Spline for rotations
     class IGNITION_MATH_VISIBLE  RotationSpline
     {

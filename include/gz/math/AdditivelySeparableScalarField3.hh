@@ -14,15 +14,15 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_SEPARABLE_SCALAR_FIELD3_HH_
-#define IGNITION_MATH_SEPARABLE_SCALAR_FIELD3_HH_
+#ifndef GZ_MATH_SEPARABLE_SCALAR_FIELD3_HH_
+#define GZ_MATH_SEPARABLE_SCALAR_FIELD3_HH_
 
 #include <limits>
 #include <utility>
 
-#include <ignition/math/Region3.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/math/config.hh>
+#include <gz/math/Region3.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/math/config.hh>
 
 namespace ignition
 {
@@ -33,7 +33,7 @@ namespace ignition
     //
     /** \class AdditivelySeparableScalarField3\
      * AdditivelySeparableScalarField3.hh\
-     * ignition/math/AdditivelySeparableScalarField3.hh
+     * gz/math/AdditivelySeparableScalarField3.hh
      */
     /// \brief The AdditivelySeparableScalarField3 class constructs
     /// a scalar field F in R^3 as a sum of scalar functions i.e.

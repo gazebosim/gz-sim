@@ -15,21 +15,21 @@
  *
 */
 
-#ifndef IGNITION_MATH_EIGEN3_UTIL_HH_
-#define IGNITION_MATH_EIGEN3_UTIL_HH_
+#ifndef GZ_MATH_EIGEN3_UTIL_HH_
+#define GZ_MATH_EIGEN3_UTIL_HH_
 
 #include <vector>
 
 #include <Eigen/Geometry>
 #include <Eigen/Eigenvalues>
 
-#include <ignition/math/AxisAlignedBox.hh>
-#include <ignition/math/Matrix3.hh>
-#include <ignition/math/OrientedBox.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/math/Quaternion.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/math/eigen3/Conversions.hh>
+#include <gz/math/AxisAlignedBox.hh>
+#include <gz/math/Matrix3.hh>
+#include <gz/math/OrientedBox.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/Quaternion.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/math/eigen3/Conversions.hh>
 
 namespace ignition
 {

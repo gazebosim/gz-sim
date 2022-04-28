@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_GRAPH_GRAPHALGORITHMS_HH_
-#define IGNITION_MATH_GRAPH_GRAPHALGORITHMS_HH_
+#ifndef GZ_MATH_GRAPH_GRAPHALGORITHMS_HH_
+#define GZ_MATH_GRAPH_GRAPHALGORITHMS_HH_
 
 #include <functional>
 #include <list>
@@ -25,9 +25,9 @@
 #include <utility>
 #include <vector>
 
-#include <ignition/math/config.hh>
-#include "ignition/math/graph/Graph.hh"
-#include "ignition/math/Helpers.hh"
+#include <gz/math/config.hh>
+#include "gz/math/graph/Graph.hh"
+#include "gz/math/Helpers.hh"
 
 namespace ignition
 {

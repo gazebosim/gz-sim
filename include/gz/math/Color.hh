@@ -14,16 +14,16 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_COLOR_HH_
-#define IGNITION_MATH_COLOR_HH_
+#ifndef GZ_MATH_COLOR_HH_
+#define GZ_MATH_COLOR_HH_
 
 #include <cctype>
 #include <istream>
 #include <ostream>
 
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/math/config.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/math/config.hh>
 
 namespace ignition
 {
@@ -32,7 +32,7 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
     //
-    /// \class Color Color.hh ignition/math/Color.hh
+    /// \class Color Color.hh gz/math/Color.hh
     /// \brief Defines a color using a red (R), green (G), blue (B), and alpha
     /// (A) component. Each color component is in the range [0..1].
     ///

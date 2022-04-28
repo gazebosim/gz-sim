@@ -14,12 +14,12 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_LINE3_HH_
-#define IGNITION_MATH_LINE3_HH_
+#ifndef GZ_MATH_LINE3_HH_
+#define GZ_MATH_LINE3_HH_
 
 #include <algorithm>
-#include <ignition/math/Vector3.hh>
-#include <ignition/math/config.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/math/config.hh>
 
 namespace ignition
 {
@@ -28,7 +28,7 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
     //
-    /// \class Line3 Line3.hh ignition/math/Line3.hh
+    /// \class Line3 Line3.hh gz/math/Line3.hh
     /// \brief A three dimensional line segment. The line is defined by a
     /// start and end point.
     template<typename T>

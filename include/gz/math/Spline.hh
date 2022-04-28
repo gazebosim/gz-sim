@@ -16,13 +16,13 @@
 */
 // Note: Originally cribbed from Ogre3d. Modified to implement Cardinal
 // spline and catmull-rom spline
-#ifndef IGNITION_MATH_SPLINE_HH_
-#define IGNITION_MATH_SPLINE_HH_
+#ifndef GZ_MATH_SPLINE_HH_
+#define GZ_MATH_SPLINE_HH_
 
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/math/config.hh>
-#include <ignition/utils/ImplPtr.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/math/config.hh>
+#include <gz/utils/ImplPtr.hh>
 
 namespace ignition
 {
@@ -34,7 +34,7 @@ namespace ignition
     // Forward declare private classes
     class ControlPoint;
 
-    /// \class Spline Spline.hh ignition/math/Spline.hh
+    /// \class Spline Spline.hh gz/math/Spline.hh
     /// \brief Splines
     class IGNITION_MATH_VISIBLE Spline
     {

@@ -14,16 +14,16 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_MATERIAL_HH_
-#define IGNITION_MATH_MATERIAL_HH_
+#ifndef GZ_MATH_MATERIAL_HH_
+#define GZ_MATH_MATERIAL_HH_
 
 #include <limits>
 #include <map>
 #include <string>
-#include <ignition/math/Export.hh>
-#include <ignition/math/config.hh>
-#include <ignition/math/MaterialType.hh>
-#include <ignition/utils/ImplPtr.hh>
+#include <gz/math/Export.hh>
+#include <gz/math/config.hh>
+#include <gz/math/MaterialType.hh>
+#include <gz/utils/ImplPtr.hh>
 
 namespace ignition
 {
@@ -40,7 +40,7 @@ namespace ignition
     /// enum.
     ///
     /// This class will replace the
-    /// [MaterialDensity class](https://github.com/ignitionrobotics/ign-common/blob/ign-common1/include/ignition/common/MaterialDensity.hh)
+    /// [MaterialDensity class](https://github.com/ignitionrobotics/ign-common/blob/ign-common1/include/gz/common/MaterialDensity.hh)
     /// found in the Ignition Common library, which was at version 1 at the
     /// time of this writing.
     ///

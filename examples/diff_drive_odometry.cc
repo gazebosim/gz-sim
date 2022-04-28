@@ -18,9 +18,9 @@
 #include <iostream>
 #include <chrono>
 
-#include <ignition/math/Angle.hh>
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/DiffDriveOdometry.hh>
+#include <gz/math/Angle.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/DiffDriveOdometry.hh>
 
 int main(int argc, char **argv)
 {

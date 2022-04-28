@@ -14,15 +14,15 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_PLANE_HH_
-#define IGNITION_MATH_PLANE_HH_
+#ifndef GZ_MATH_PLANE_HH_
+#define GZ_MATH_PLANE_HH_
 
-#include <ignition/math/AxisAlignedBox.hh>
-#include <ignition/math/Vector2.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/math/config.hh>
-#include <ignition/math/Line2.hh>
-#include <ignition/math/Quaternion.hh>
+#include <gz/math/AxisAlignedBox.hh>
+#include <gz/math/Vector2.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/math/config.hh>
+#include <gz/math/Line2.hh>
+#include <gz/math/Quaternion.hh>
 #include <optional>
 
 namespace ignition
@@ -32,7 +32,7 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
     //
-    /// \class Plane Plane.hh ignition/math/Plane.hh
+    /// \class Plane Plane.hh gz/math/Plane.hh
     /// \brief A plane and related functions.
     template<typename T>
     class Plane

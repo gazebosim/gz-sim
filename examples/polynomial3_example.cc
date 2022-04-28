@@ -16,8 +16,8 @@
 */
 //! [complete]
 #include <iostream>
-#include <ignition/math/Polynomial3.hh>
-#include <ignition/math/Vector4.hh>
+#include <gz/math/Polynomial3.hh>
+#include <gz/math/Vector4.hh>
 
 int main(int argc, char **argv)
 {

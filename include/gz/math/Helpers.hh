@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_FUNCTIONS_HH_
-#define IGNITION_MATH_FUNCTIONS_HH_
+#ifndef GZ_MATH_FUNCTIONS_HH_
+#define GZ_MATH_FUNCTIONS_HH_
 
 #include <algorithm>
 #include <chrono>
@@ -29,8 +29,8 @@
 #include <utility>
 #include <vector>
 
-#include <ignition/math/config.hh>
-#include "ignition/math/Export.hh"
+#include <gz/math/config.hh>
+#include "gz/math/Export.hh"
 
 /// \brief The default tolerance value used by MassMatrix3::IsValid(),
 /// MassMatrix3::IsPositive(), and MassMatrix3::ValidMoments()

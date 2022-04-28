@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_POLYNOMIAL3_HH_
-#define IGNITION_MATH_POLYNOMIAL3_HH_
+#ifndef GZ_MATH_POLYNOMIAL3_HH_
+#define GZ_MATH_POLYNOMIAL3_HH_
 
 #include <algorithm>
 #include <cmath>
@@ -23,9 +23,9 @@
 #include <string>
 #include <utility>
 
-#include <ignition/math/Interval.hh>
-#include <ignition/math/Vector4.hh>
-#include <ignition/math/config.hh>
+#include <gz/math/Interval.hh>
+#include <gz/math/Vector4.hh>
+#include <gz/math/config.hh>
 
 namespace ignition
 {
@@ -34,7 +34,7 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
     //
-    /// \class Polynomial3 Polynomial3.hh ignition/math/Polynomial3.hh
+    /// \class Polynomial3 Polynomial3.hh gz/math/Polynomial3.hh
     /// \brief The Polynomial3 class represents a cubic polynomial
     /// with real coefficients p(x) = c0 x^3 + c1 x^2 + c2 x + c3.
     /// ## Example

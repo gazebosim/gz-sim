@@ -14,10 +14,10 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_DETAIL_BOX_HH_
-#define IGNITION_MATH_DETAIL_BOX_HH_
+#ifndef GZ_MATH_DETAIL_BOX_HH_
+#define GZ_MATH_DETAIL_BOX_HH_
 
-#include "ignition/math/Triangle3.hh"
+#include "gz/math/Triangle3.hh"
 
 #include <algorithm>
 #include <set>

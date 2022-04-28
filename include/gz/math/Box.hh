@@ -14,16 +14,16 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_BOX_HH_
-#define IGNITION_MATH_BOX_HH_
+#ifndef GZ_MATH_BOX_HH_
+#define GZ_MATH_BOX_HH_
 
-#include <ignition/math/config.hh>
-#include <ignition/math/MassMatrix3.hh>
-#include <ignition/math/Material.hh>
-#include <ignition/math/Plane.hh>
-#include <ignition/math/Vector3.hh>
+#include <gz/math/config.hh>
+#include <gz/math/MassMatrix3.hh>
+#include <gz/math/Material.hh>
+#include <gz/math/Plane.hh>
+#include <gz/math/Vector3.hh>
 
-#include "ignition/math/detail/WellOrderedVector.hh"
+#include "gz/math/detail/WellOrderedVector.hh"
 
 #include <set>
 
@@ -38,7 +38,7 @@ namespace ignition
     template<typename T>
     using IntersectionPoints = std::set<Vector3<T>, WellOrderedVectors<T>>;
 
-    /// \class Box Box.hh ignition/math/Box.hh
+    /// \class Box Box.hh gz/math/Box.hh
     /// \brief A representation of a box. All units are in meters.
     ///
     /// The box class supports defining a size and material properties.
@@ -218,5 +218,5 @@ namespace ignition
     }
   }
 }
-#include "ignition/math/detail/Box.hh"
+#include "gz/math/detail/Box.hh"
 #endif

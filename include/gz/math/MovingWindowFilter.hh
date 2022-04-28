@@ -14,12 +14,12 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_MOVINGWINDOWFILTER_HH_
-#define IGNITION_MATH_MOVINGWINDOWFILTER_HH_
+#ifndef GZ_MATH_MOVINGWINDOWFILTER_HH_
+#define GZ_MATH_MOVINGWINDOWFILTER_HH_
 
 #include <memory>
 #include <vector>
-#include "ignition/math/Export.hh"
+#include "gz/math/Export.hh"
 
 namespace ignition
 {

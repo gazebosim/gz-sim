@@ -14,12 +14,12 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_INERTIAL_HH_
-#define IGNITION_MATH_INERTIAL_HH_
+#ifndef GZ_MATH_INERTIAL_HH_
+#define GZ_MATH_INERTIAL_HH_
 
-#include <ignition/math/config.hh>
-#include "ignition/math/MassMatrix3.hh"
-#include "ignition/math/Pose3.hh"
+#include <gz/math/config.hh>
+#include "gz/math/MassMatrix3.hh"
+#include "gz/math/Pose3.hh"
 
 namespace ignition
 {
@@ -28,7 +28,7 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
     //
-    /// \class Inertial Inertial.hh ignition/math/Inertial.hh
+    /// \class Inertial Inertial.hh gz/math/Inertial.hh
     /// \brief The Inertial object provides a representation for the mass and
     /// inertia matrix of a body B. The components of the inertia matrix are
     /// expressed in what we call the "inertial" frame Bi of the body, i.e.

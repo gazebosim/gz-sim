@@ -14,16 +14,16 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_VECTOR4_HH_
-#define IGNITION_MATH_VECTOR4_HH_
+#ifndef GZ_MATH_VECTOR4_HH_
+#define GZ_MATH_VECTOR4_HH_
 
 #include <algorithm>
 #include <cmath>
 #include <limits>
 
-#include <ignition/math/Matrix4.hh>
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/config.hh>
+#include <gz/math/Matrix4.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/config.hh>
 
 namespace ignition
 {
@@ -32,7 +32,7 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
     //
-    /// \class Vector4 Vector4.hh ignition/math/Vector4.hh
+    /// \class Vector4 Vector4.hh gz/math/Vector4.hh
     /// \brief T Generic x, y, z, w vector
     template<typename T>
     class Vector4

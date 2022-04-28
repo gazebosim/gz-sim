@@ -14,14 +14,14 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_TRIANGLE_HH_
-#define IGNITION_MATH_TRIANGLE_HH_
+#ifndef GZ_MATH_TRIANGLE_HH_
+#define GZ_MATH_TRIANGLE_HH_
 
 #include <set>
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/Line2.hh>
-#include <ignition/math/Vector2.hh>
-#include <ignition/math/config.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/Line2.hh>
+#include <gz/math/Vector2.hh>
+#include <gz/math/config.hh>
 
 namespace ignition
 {
@@ -30,7 +30,7 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
     //
-    /// \class Triangle Triangle.hh ignition/math/Triangle.hh
+    /// \class Triangle Triangle.hh gz/math/Triangle.hh
     /// \brief Triangle class and related functions.
     template<typename T>
     class Triangle

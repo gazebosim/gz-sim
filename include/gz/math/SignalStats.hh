@@ -14,14 +14,14 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_SIGNALSTATS_HH_
-#define IGNITION_MATH_SIGNALSTATS_HH_
+#ifndef GZ_MATH_SIGNALSTATS_HH_
+#define GZ_MATH_SIGNALSTATS_HH_
 
 #include <map>
 #include <memory>
 #include <string>
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/config.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/config.hh>
 
 namespace ignition
 {
@@ -33,7 +33,7 @@ namespace ignition
     /// \brief Forward declare private data class.
     class SignalStatisticPrivate;
 
-    /// \class SignalStatistic SignalStats.hh ignition/math/SignalStats.hh
+    /// \class SignalStatistic SignalStats.hh gz/math/SignalStats.hh
     /// \brief Statistical properties of a discrete time scalar signal.
     class IGNITION_MATH_VISIBLE SignalStatistic
     {
@@ -79,7 +79,7 @@ namespace ignition
 #endif
     };
 
-    /// \class SignalMaximum SignalStats.hh ignition/math/SignalStats.hh
+    /// \class SignalMaximum SignalStats.hh gz/math/SignalStats.hh
     /// \brief Computing the maximum value of a discretely sampled signal.
     class IGNITION_MATH_VISIBLE SignalMaximum : public SignalStatistic
     {
@@ -94,7 +94,7 @@ namespace ignition
       public: virtual void InsertData(const double _data) override;
     };
 
-    /// \class SignalMean SignalStats.hh ignition/math/SignalStats.hh
+    /// \class SignalMean SignalStats.hh gz/math/SignalStats.hh
     /// \brief Computing the mean value of a discretely sampled signal.
     class IGNITION_MATH_VISIBLE SignalMean : public SignalStatistic
     {
@@ -109,7 +109,7 @@ namespace ignition
       public: virtual void InsertData(const double _data) override;
     };
 
-    /// \class SignalMinimum SignalStats.hh ignition/math/SignalStats.hh
+    /// \class SignalMinimum SignalStats.hh gz/math/SignalStats.hh
     /// \brief Computing the minimum value of a discretely sampled signal.
     class IGNITION_MATH_VISIBLE SignalMinimum : public SignalStatistic
     {
@@ -124,7 +124,7 @@ namespace ignition
       public: virtual void InsertData(const double _data) override;
     };
 
-    /// \class SignalRootMeanSquare SignalStats.hh ignition/math/SignalStats.hh
+    /// \class SignalRootMeanSquare SignalStats.hh gz/math/SignalStats.hh
     /// \brief Computing the square root of the mean squared value
     /// of a discretely sampled signal.
     class IGNITION_MATH_VISIBLE SignalRootMeanSquare : public SignalStatistic
@@ -141,7 +141,7 @@ namespace ignition
     };
 
     /// \class SignalMaxAbsoluteValue SignalStats.hh
-    /// ignition/math/SignalStats.hh
+    /// gz/math/SignalStats.hh
     /// \brief Computing the maximum of the absolute value
     /// of a discretely sampled signal.
     /// Also known as the maximum norm, infinity norm, or supremum norm.
@@ -158,7 +158,7 @@ namespace ignition
       public: virtual void InsertData(const double _data) override;
     };
 
-    /// \class SignalVariance SignalStats.hh ignition/math/SignalStats.hh
+    /// \class SignalVariance SignalStats.hh gz/math/SignalStats.hh
     /// \brief Computing the incremental variance
     /// of a discretely sampled signal.
     class IGNITION_MATH_VISIBLE SignalVariance : public SignalStatistic
@@ -177,7 +177,7 @@ namespace ignition
     /// \brief Forward declare private data class.
     class SignalStatsPrivate;
 
-    /// \class SignalStats SignalStats.hh ignition/math/SignalStats.hh
+    /// \class SignalStats SignalStats.hh gz/math/SignalStats.hh
     /// \brief Collection of statistics for a scalar signal.
     class IGNITION_MATH_VISIBLE SignalStats
     {

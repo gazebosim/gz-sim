@@ -14,16 +14,16 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_MATRIX3_HH_
-#define IGNITION_MATH_MATRIX3_HH_
+#ifndef GZ_MATH_MATRIX3_HH_
+#define GZ_MATH_MATRIX3_HH_
 
 #include <algorithm>
 #include <cstring>
 #include <utility>
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/math/Quaternion.hh>
-#include <ignition/math/config.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/math/Quaternion.hh>
+#include <gz/math/config.hh>
 
 namespace ignition
 {
@@ -34,7 +34,7 @@ namespace ignition
     //
     template <typename T> class Quaternion;
 
-    /// \class Matrix3 Matrix3.hh ignition/math/Matrix3.hh
+    /// \class Matrix3 Matrix3.hh gz/math/Matrix3.hh
     /// \brief A 3x3 matrix class.
     ///
     /// The following two type definitions are provided:
@@ -55,7 +55,7 @@ namespace ignition
     /// #
     /// # $ export RUBYLIB=/usr/lib/ruby:$RUBYLIB
     /// #
-    /// require 'ignition/math'
+    /// require 'gz/math'
     ///
     /// # Construct a default matrix3.
     /// m = Ignition::Math::Matrix3d.new

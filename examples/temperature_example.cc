@@ -16,7 +16,7 @@
 */
 //! [complete]
 #include <stdio.h>
-#include <ignition/math/Temperature.hh>
+#include <gz/math/Temperature.hh>
 
 int main(int argc, char **argv)
 {

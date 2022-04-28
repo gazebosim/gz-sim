@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_VECTOR2_HH_
-#define IGNITION_MATH_VECTOR2_HH_
+#ifndef GZ_MATH_VECTOR2_HH_
+#define GZ_MATH_VECTOR2_HH_
 
 #include <algorithm>
 #include <cmath>
@@ -23,8 +23,8 @@
 #include <limits>
 #include <ostream>
 
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/config.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/config.hh>
 
 namespace ignition
 {
@@ -33,7 +33,7 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
     //
-    /// \class Vector2 Vector2.hh ignition/math/Vector2.hh
+    /// \class Vector2 Vector2.hh gz/math/Vector2.hh
     /// \brief Two dimensional (x, y) vector.
     template<typename T>
     class Vector2

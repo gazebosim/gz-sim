@@ -16,7 +16,7 @@
 */
 //! [complete]
 #include <iostream>
-#include <ignition/math.hh>
+#include <gz/math.hh>
 
 int main(int argc, char **argv)
 {

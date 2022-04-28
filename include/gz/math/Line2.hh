@@ -14,12 +14,12 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_LINE2_HH_
-#define IGNITION_MATH_LINE2_HH_
+#ifndef GZ_MATH_LINE2_HH_
+#define GZ_MATH_LINE2_HH_
 
 #include <algorithm>
-#include <ignition/math/Vector2.hh>
-#include <ignition/math/config.hh>
+#include <gz/math/Vector2.hh>
+#include <gz/math/config.hh>
 
 namespace ignition
 {
@@ -28,7 +28,7 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
     //
-    /// \class Line2 Line2.hh ignition/math/Line2.hh
+    /// \class Line2 Line2.hh gz/math/Line2.hh
     /// \brief A two dimensional line segment. The line is defined by a
     /// start and end point.
     template<typename T>

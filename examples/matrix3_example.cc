@@ -16,7 +16,7 @@
 */
 //! [complete]
 #include <iostream>
-#include <ignition/math/Matrix3.hh>
+#include <gz/math/Matrix3.hh>
 
 int main(int argc, char **argv)
 {

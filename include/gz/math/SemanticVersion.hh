@@ -15,14 +15,14 @@
  *
 */
 
-#ifndef IGNITION_MATH_SEMANTICVERSION_HH_
-#define IGNITION_MATH_SEMANTICVERSION_HH_
+#ifndef GZ_MATH_SEMANTICVERSION_HH_
+#define GZ_MATH_SEMANTICVERSION_HH_
 
 #include <iosfwd>
 #include <string>
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/config.hh>
-#include <ignition/utils/ImplPtr.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/config.hh>
+#include <gz/utils/ImplPtr.hh>
 
 namespace ignition
 {
@@ -31,7 +31,7 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
     /// \class SemanticVersion SemanticVersion.hh
-    ///        ignition/math/SemanticVersion.hh
+    ///        gz/math/SemanticVersion.hh
     /// \brief Version comparison class based on Semantic Versioning 2.0.0
     /// http://semver.org/
     /// Compares versions and converts versions from string.

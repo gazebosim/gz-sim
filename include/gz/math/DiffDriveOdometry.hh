@@ -14,14 +14,14 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_DIFFDRIVEODOMETRY_HH_
-#define IGNITION_MATH_DIFFDRIVEODOMETRY_HH_
+#ifndef GZ_MATH_DIFFDRIVEODOMETRY_HH_
+#define GZ_MATH_DIFFDRIVEODOMETRY_HH_
 
 #include <chrono>
-#include <ignition/math/Angle.hh>
-#include <ignition/math/Export.hh>
-#include <ignition/math/config.hh>
-#include <ignition/utils/ImplPtr.hh>
+#include <gz/math/Angle.hh>
+#include <gz/math/Export.hh>
+#include <gz/math/config.hh>
+#include <gz/utils/ImplPtr.hh>
 
 namespace ignition
 {
@@ -33,7 +33,7 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
     /** \class DiffDriveOdometry DiffDriveOdometry.hh \
-     * ignition/math/DiffDriveOdometry.hh
+     * gz/math/DiffDriveOdometry.hh
      **/
     /// \brief Computes odometry values based on a set of kinematic
     /// properties and wheel speeds for a diff-drive vehicle.

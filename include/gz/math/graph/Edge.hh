@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_GRAPH_EDGE_HH_
-#define IGNITION_MATH_GRAPH_EDGE_HH_
+#ifndef GZ_MATH_GRAPH_EDGE_HH_
+#define GZ_MATH_GRAPH_EDGE_HH_
 
 // uint64_t
 #include <cstdint>
@@ -24,8 +24,8 @@
 #include <ostream>
 #include <set>
 
-#include <ignition/math/config.hh>
-#include "ignition/math/graph/Vertex.hh"
+#include <gz/math/config.hh>
+#include "gz/math/graph/Vertex.hh"
 
 namespace ignition
 {

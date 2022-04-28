@@ -15,13 +15,13 @@
  *
 */
 
-#ifndef IGNITION_MATH_SYSTEMS_SPEEDLIMITER_HH_
-#define IGNITION_MATH_SYSTEMS_SPEEDLIMITER_HH_
+#ifndef GZ_MATH_SYSTEMS_SPEEDLIMITER_HH_
+#define GZ_MATH_SYSTEMS_SPEEDLIMITER_HH_
 
 #include <chrono>
 #include <memory>
-#include <ignition/math/config.hh>
-#include "ignition/math/Helpers.hh"
+#include <gz/math/config.hh>
+#include "gz/math/Helpers.hh"
 
 namespace ignition
 {

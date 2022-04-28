@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_VECTOR3_HH_
-#define IGNITION_MATH_VECTOR3_HH_
+#ifndef GZ_MATH_VECTOR3_HH_
+#define GZ_MATH_VECTOR3_HH_
 
 #include <algorithm>
 #include <cmath>
@@ -23,8 +23,8 @@
 #include <limits>
 #include <ostream>
 
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/config.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/config.hh>
 
 namespace ignition
 {
@@ -33,7 +33,7 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
     //
-    /// \class Vector3 Vector3.hh ignition/math/Vector3.hh
+    /// \class Vector3 Vector3.hh gz/math/Vector3.hh
     /// \brief The Vector3 class represents the generic vector containing 3
     /// elements.  Since it's commonly used to keep coordinate system
     /// related information, its elements are labeled by x, y, z.

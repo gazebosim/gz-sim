@@ -14,13 +14,13 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_FILTER_HH_
-#define IGNITION_MATH_FILTER_HH_
+#ifndef GZ_MATH_FILTER_HH_
+#define GZ_MATH_FILTER_HH_
 
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/math/Quaternion.hh>
-#include <ignition/math/config.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/math/Quaternion.hh>
+#include <gz/math/config.hh>
 
 namespace ignition
 {
@@ -29,7 +29,7 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
     //
-    /// \class Filter Filter.hh ignition/math/Filter.hh
+    /// \class Filter Filter.hh gz/math/Filter.hh
     /// \brief Filter base class
     template <class T>
     class Filter
@@ -60,7 +60,7 @@ namespace ignition
       protected: T y0{};
     };
 
-    /// \class OnePole Filter.hh ignition/math/Filter.hh
+    /// \class OnePole Filter.hh gz/math/Filter.hh
     /// \brief A one-pole DSP filter.
     /// \sa http://www.earlevel.com/main/2012/12/15/a-one-pole-filter/
     template <class T>
@@ -100,7 +100,7 @@ namespace ignition
       protected: double b1 = 0;
     };
 
-    /// \class OnePoleQuaternion Filter.hh ignition/math/Filter.hh
+    /// \class OnePoleQuaternion Filter.hh gz/math/Filter.hh
     /// \brief One-pole quaternion filter.
     class OnePoleQuaternion : public OnePole<math::Quaterniond>
     {
@@ -130,7 +130,7 @@ namespace ignition
       }
     };
 
-    /// \class OnePoleVector3 Filter.hh ignition/math/Filter.hh
+    /// \class OnePoleVector3 Filter.hh gz/math/Filter.hh
     /// \brief One-pole vector3 filter.
     class OnePoleVector3 : public OnePole<math::Vector3d>
     {
@@ -150,7 +150,7 @@ namespace ignition
       }
     };
 
-    /// \class BiQuad Filter.hh ignition/math/Filter.hh
+    /// \class BiQuad Filter.hh gz/math/Filter.hh
     /// \brief Bi-quad filter base class.
     /// \sa http://www.earlevel.com/main/2003/03/02/the-bilinear-z-transform/
     template <class T>
@@ -226,7 +226,7 @@ namespace ignition
       protected: T x1{}, x2{}, y1{}, y2{};
     };
 
-    /// \class BiQuadVector3 Filter.hh ignition/math/Filter.hh
+    /// \class BiQuadVector3 Filter.hh gz/math/Filter.hh
     /// \brief BiQuad vector3 filter
     class BiQuadVector3 : public BiQuad<math::Vector3d>
     {

@@ -14,12 +14,12 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_ELLIPSOID_HH_
-#define IGNITION_MATH_ELLIPSOID_HH_
+#ifndef GZ_MATH_ELLIPSOID_HH_
+#define GZ_MATH_ELLIPSOID_HH_
 
 #include <optional>
-#include "ignition/math/MassMatrix3.hh"
-#include "ignition/math/Material.hh"
+#include "gz/math/MassMatrix3.hh"
+#include "gz/math/Material.hh"
 
 namespace ignition
 {
@@ -28,7 +28,7 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
     //
-    /// \class Ellipsoid Ellipsoid.hh ignition/math/Ellipsoid.hh
+    /// \class Ellipsoid Ellipsoid.hh gz/math/Ellipsoid.hh
     /// \brief A representation of a general ellipsoid.
     ///
     /// The ellipsoid class supports defining a ellipsoid with three radii and
@@ -129,6 +129,6 @@ namespace ignition
     }
   }
 }
-#include "ignition/math/detail/Ellipsoid.hh"
+#include "gz/math/detail/Ellipsoid.hh"
 
 #endif
