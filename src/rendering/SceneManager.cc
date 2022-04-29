@@ -778,6 +778,7 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
   material->SetAmbient(_material.Ambient());
   material->SetDiffuse(_material.Diffuse());
   material->SetSpecular(_material.Specular());
+  material->SetShininess(_material.Shininess());
   material->SetEmissive(_material.Emissive());
   material->SetRenderOrder(_material.RenderOrder());
 
