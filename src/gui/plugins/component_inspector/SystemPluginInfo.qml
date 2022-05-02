@@ -45,6 +45,7 @@ Rectangle {
 
     ExpandingTypeHeader {
       id: header
+      customToolTip: "Information about system plugins attached to this entity"
     }
 
     // Content
