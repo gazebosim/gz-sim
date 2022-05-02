@@ -15,7 +15,7 @@
  *
 */
 
-#include "ignition/gazebo/components/SystemInfo.hh"
+#include "ignition/gazebo/components/SystemPluginInfo.hh"
 #include "ignition/gazebo/Conversions.hh"
 #include "SystemManager.hh"
 
@@ -127,7 +127,7 @@ void SystemManager::AddSystemImpl(
   {
     msgs::Plugin_V systemInfoMsg;
     auto systemInfoComp =
-        this->entityCompMgr->Component<components::SystemInfo>(
+        this->entityCompMgr->Component<components::SystemPluginInfo>(
         _system.parentEntity);
     if (systemInfoComp)
     {
@@ -139,10 +139,10 @@ void SystemManager::AddSystemImpl(
       pluginMsg->CopyFrom(convert<msgs::Plugin>(*_sdf.get()));
     }
 
-    this->entityCompMgr->SetComponentData<components::SystemInfo>(
+    this->entityCompMgr->SetComponentData<components::SystemPluginInfo>(
         _system.parentEntity, systemInfoMsg);
     this->entityCompMgr->SetChanged(_system.parentEntity,
-        components::SystemInfo::typeId);
+        components::SystemPluginInfo::typeId);
   }
 
   // Configure the system, if necessary

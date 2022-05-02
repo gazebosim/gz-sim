@@ -17,9 +17,9 @@
 #include <ignition/msgs/plugin_v.pb.h>
 
 #include <ignition/common/Console.hh>
-#include <ignition/gazebo/components/SystemInfo.hh>
+#include <ignition/gazebo/components/SystemPluginInfo.hh>
 
-#include "SystemInfo.hh"
+#include "SystemPluginInfo.hh"
 #include "ComponentInspector.hh"
 #include "Types.hh"
 
@@ -28,28 +28,28 @@ using namespace gazebo;
 using namespace inspector;
 
 /////////////////////////////////////////////////
-SystemInfo::SystemInfo(ComponentInspector *_inspector)
+SystemPluginInfo::SystemPluginInfo(ComponentInspector *_inspector)
 {
-  _inspector->Context()->setContextProperty("SystemInfoImpl", this);
+  _inspector->Context()->setContextProperty("SystemPluginInfoImpl", this);
   this->inspector = _inspector;
 
-  this->inspector->AddUpdateViewCb(components::SystemInfo::typeId,
-      std::bind(&SystemInfo::UpdateView, this, std::placeholders::_1,
+  this->inspector->AddUpdateViewCb(components::SystemPluginInfo::typeId,
+      std::bind(&SystemPluginInfo::UpdateView, this, std::placeholders::_1,
       std::placeholders::_2));
 }
 
 /////////////////////////////////////////////////
-void SystemInfo::UpdateView(const EntityComponentManager &_ecm,
+void SystemPluginInfo::UpdateView(const EntityComponentManager &_ecm,
     QStandardItem *_item)
 {
-  auto comp = _ecm.Component<components::SystemInfo>(
+  auto comp = _ecm.Component<components::SystemPluginInfo>(
       this->inspector->GetEntity());
   if (nullptr == _item || nullptr == comp)
     return;
 
   auto msg = comp->Data();
 
-  _item->setData(QString("SystemInfo"),
+  _item->setData(QString("SystemPluginInfo"),
       ComponentsModel::RoleNames().key("dataType"));
 
   QList<QVariant> pluginList;

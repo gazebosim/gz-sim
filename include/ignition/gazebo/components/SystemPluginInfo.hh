@@ -31,12 +31,13 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief This component holds information about all the systems that are
-  /// attached to an entity. The content of each system is populated the moment
-  /// the plugin is instantiated and isn't modified throughout simulation.
-  using SystemInfo = Component<msgs::Plugin_V, class SystemInfoTag,
+  /// \brief This component holds information about all the system plugins that
+  /// are attached to an entity. The content of each system is populated the
+  /// moment the plugin is instantiated and isn't modified throughout simulation.
+  using SystemPluginInfo = Component<msgs::Plugin_V, class SystemPluginInfoTag,
       serializers::MsgSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.SystemInfo", SystemInfo)
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.SystemPluginInfo",
+      SystemPluginInfo)
 }
 }
 }

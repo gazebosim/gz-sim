@@ -211,12 +211,12 @@ Rectangle {
               id: innerXmlRectangle
               Layout.columnSpan: 2
               Layout.fillWidth: true
-              height: innerXmlText.contentHeight * 0.8
+              height: innerXmlText.paintedHeight
               color: Material.background
               TextEdit {
                 id: innerXmlText
-                anchors.fill: parent
-                text: modelData[2].length == 0 ? "N/A" : modelData[2]
+                width: parent.width
+                text: modelData[2].length == 0 ? "N/A" : modelData[2].trim()
                 color: valueColor
                 textFormat: TextEdit.PlainText
                 font.pointSize: 10

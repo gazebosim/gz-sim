@@ -29,14 +29,14 @@ namespace gazebo
 class ComponentInspector;
 namespace inspector
 {
-  /// \brief A class that handles SystemInfo components.
-  class SystemInfo : public QObject
+  /// \brief A class that handles SystemPluginInfo components.
+  class SystemPluginInfo : public QObject
   {
     Q_OBJECT
 
     /// \brief Constructor
     /// \param[in] _inspector The component inspector.
-    public: explicit SystemInfo(ComponentInspector *_inspector);
+    public: explicit SystemPluginInfo(ComponentInspector *_inspector);
 
     /// \brief Callback when there are ECM updates.
     /// \param[in] _ecm Immutable reference to the ECM.

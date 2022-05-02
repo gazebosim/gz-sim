@@ -674,19 +674,13 @@ msgs::GUI ignition::gazebo::convert(const sdf::Gui &_in)
   out.set_fullscreen(_in.Fullscreen());
 
   // Set gui plugins
-  auto elem = _in.Element();
-  if (elem && elem->HasElement("plugin"))
+  for (uint64_t i = 0; i < _in.PluginCount(); ++i)
   {
-    auto pluginElem = elem->GetElement("plugin");
-    while (pluginElem)
-    {
-      auto pluginMsg = out.add_plugin();
-      pluginMsg->CopyFrom(convert<msgs::Plugin>(*(pluginElem.get())));
-      pluginElem = pluginElem->GetNextElement("plugin");
-    }
+    auto pluginMsg = out.add_plugin();
+    pluginMsg->CopyFrom(convert<msgs::Plugin>(*_in.PluginByIndex(i)));
   }
 
-  if (elem->HasElement("camera"))
+  if (_in.Element()->HasElement("camera"))
   {
     ignwarn << "<gui><camera> can't be converted yet" << std::endl;
   }
@@ -1723,8 +1717,8 @@ msgs::Plugin ignition::gazebo::convert(const sdf::Element &_in)
 
   if (_in.GetName() != "plugin")
   {
-    ignerr << "Tried to convert SDF [" << _in.GetName() <<
-        "] into [plugin]" << std::endl;
+    ignerr << "Tried to convert SDF [" << _in.GetName()
+           << "] into [plugin]" << std::endl;
     return result;
   }
 
@@ -1736,6 +1730,26 @@ msgs::Plugin ignition::gazebo::convert(const sdf::Element &_in)
       innerElem = innerElem->GetNextElement(""))
   {
     ss << innerElem->ToString("");
+  }
+  result.set_innerxml(ss.str());
+
+  return result;
+}
+
+//////////////////////////////////////////////////
+template<>
+IGNITION_GAZEBO_VISIBLE
+msgs::Plugin ignition::gazebo::convert(const sdf::Plugin &_in)
+{
+  msgs::Plugin result;
+
+  result.set_name(_in.Name());
+  result.set_filename(_in.Filename());
+
+  std::stringstream ss;
+  for (auto content : _in.Contents())
+  {
+    ss << content->ToString("");
   }
   result.set_innerxml(ss.str());
 

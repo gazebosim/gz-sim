@@ -21,7 +21,7 @@
 #include "ignition/gazebo/System.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/Types.hh"
-#include "ignition/gazebo/components/SystemInfo.hh"
+#include "ignition/gazebo/components/SystemPluginInfo.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
 #include "SystemManager.hh"
@@ -216,11 +216,11 @@ TEST(SystemManager, AddSystemWithInfo)
 
   SystemManager systemMgr(loader, &ecm, &eventManager);
 
-  // No element, no SystemInfo component
+  // No element, no SystemPluginInfo component
   auto configSystem = std::make_shared<SystemWithConfigure>();
   systemMgr.AddSystem(configSystem, entity, nullptr);
 
-  // Element becomes SystemInfo component
+  // Element becomes SystemPluginInfo component
   auto pluginElem = std::make_shared<sdf::Element>();
   sdf::initFile("plugin.sdf", pluginElem);
   sdf::readString("<?xml version='1.0'?><sdf version='1.6'>"
@@ -233,9 +233,9 @@ TEST(SystemManager, AddSystemWithInfo)
   systemMgr.AddSystem(updateSystem, entity, pluginElem);
 
   int entityCount{0};
-  ecm.Each<components::SystemInfo>(
+  ecm.Each<components::SystemPluginInfo>(
       [&](const Entity &_entity,
-          const components::SystemInfo *_systemInfoComp) -> bool
+          const components::SystemPluginInfo *_systemInfoComp) -> bool
       {
         EXPECT_EQ(entity, _entity);
 

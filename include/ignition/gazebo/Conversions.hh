@@ -49,6 +49,7 @@
 #include <sdf/Material.hh>
 #include <sdf/Noise.hh>
 #include <sdf/ParticleEmitter.hh>
+#include <sdf/Plugin.hh>
 #include <sdf/Physics.hh>
 #include <sdf/Scene.hh>
 #include <sdf/Sensor.hh>
@@ -725,6 +726,22 @@ namespace ignition
     /// \return Plugin message.
     template<>
     msgs::Plugin convert(const sdf::Element &_in);
+
+    /// \brief Generic conversion from an SDF plugin to another type.
+    /// \param[in] _in SDF plugin.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const sdf::Plugin &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from an SDF plugin to a plugin message.
+    /// \param[in] _in SDF plugin.
+    /// \return Plugin message.
+    template<>
+    msgs::Plugin convert(const sdf::Plugin &_in);
     }
   }
 }

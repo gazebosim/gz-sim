@@ -1054,3 +1054,23 @@ TEST(Conversions, PluginElement)
   EXPECT_NE(pluginMsg.innerxml().find("<avocado>0.5</avocado>"),
       std::string::npos);
 }
+
+/////////////////////////////////////////////////
+TEST(Conversions, Plugin)
+{
+  sdf::Plugin pluginSdf;
+  pluginSdf.SetName("peach");
+  pluginSdf.SetFilename("plum");
+
+  auto content = std::make_shared<sdf::Element>();
+  content->SetName("avocado");
+  content->AddValue("double", "0.5", false, "");
+  pluginSdf.InsertContent(content);
+
+  auto pluginMsg = convert<msgs::Plugin>(pluginSdf);
+  EXPECT_EQ("plum", pluginMsg.filename());
+  EXPECT_EQ("peach", pluginMsg.name());
+
+  EXPECT_NE(pluginMsg.innerxml().find("<avocado>0.5</avocado>"),
+      std::string::npos) << pluginMsg.innerxml();
+}
