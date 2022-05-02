@@ -45,10 +45,12 @@ set(tests
   network_handshake.cc
   odometry_publisher.cc
   particle_emitter.cc
+  perfect_comms.cc
   performer_detector.cc
   physics_system.cc
   play_pause.cc
   pose_publisher_system.cc
+  rf_comms.cc
   recreate_entities.cc
   reset.cc
   save_world.cc
