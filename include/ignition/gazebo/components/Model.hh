@@ -59,6 +59,10 @@ namespace serializers
           // Skip serializing models with //pose/@relative_to attribute
           // since deserialization will fail. This could be a nested model.
           // see https://github.com/ignitionrobotics/ign-gazebo/issues/1071
+          // Once https://github.com/ignitionrobotics/sdformat/issues/820 is
+          // resolved, there should be an API that returns sdf::Errors objects
+          // instead of printing console msgs so it would be easier to ignore
+          // specific errors in Deserialize.
           static bool warned = false;
           if (!warned)
           {
