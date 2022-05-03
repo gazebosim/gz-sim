@@ -16,7 +16,7 @@
  */
 
 #include "ForceTorque.hh"
-#include "SensorImpl.hh"
+#include "gz_sensor/GzSensorImpl.hh"
 
 #include <unordered_map>
 #include <utility>
@@ -40,7 +40,6 @@
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Util.hh"
 
@@ -50,7 +49,7 @@ using namespace systems;
 
 /// \brief Private ForceTorque data class.
 class ignition::gazebo::systems::ForceTorquePrivate
-: public SensorImpl<sensors::ForceTorqueSensor, components::ForceTorque>
+: public GzSensorImpl<sensors::ForceTorqueSensor, components::ForceTorque>
 {
   /// \brief A struct to hold the joint and link entities associated with a
   /// sensor

@@ -15,12 +15,12 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_SENSORIMPL_HH_
-#define IGNITION_GAZEBO_SYSTEMS_SENSORIMPL_HH_
+#ifndef IGNITION_GAZEBO_SYSTEMS_GZSENSORIMPL_HH_
+#define IGNITION_GAZEBO_SYSTEMS_GZSENSORIMPL_HH_
 
-#include <map>
 #include <memory>
-#include <set>
+#include <unordered_map>
+#include <unordered_set>
 
 #include <ignition/common/Profiler.hh>
 
@@ -29,7 +29,7 @@
 
 #include <ignition/sensors/SensorFactory.hh>
 
-namespace ignition 
+namespace ignition
 {
 namespace gazebo
 {
@@ -39,14 +39,14 @@ namespace systems
 {
 
 template <typename SensorT, typename ComponentT>
-class SensorImpl
+class GzSensorImpl
 {
-  public: using SensorPtr = std::unique_ptr<SensorT>;
+  public: using GzSensorPtr = std::unique_ptr<SensorT>;
 
-  public: using EntitySensorMap = std::unordered_map<Entity, SensorPtr>;
+  public: using EntitySensorMap = std::unordered_map<Entity, GzSensorPtr>;
 
   /// \brief A map of Sensor entity to its gz-sensors object.
-  public: EntitySensorMap entitySensorMap; 
+  public: EntitySensorMap entitySensorMap;
 
   /// \brief gz-sensors sensor factory for creating sensors
   public: ignition::sensors::SensorFactory sensorFactory;
@@ -60,7 +60,7 @@ class SensorImpl
 
   /// \brief Create sensors in gz-sensors
   /// \param[in] _ecm Immutable reference to ECM.
-  public: void CreateSensors(const EntityComponentManager &_ecm) 
+  public: void CreateSensors(const EntityComponentManager &_ecm)
   {
     IGN_PROFILE("SensorImpl::CreateSensors");
 

@@ -58,6 +58,12 @@ function(gz_add_system system_name)
       ignition-plugin${IGN_PLUGIN_VER}::register
   )
 
+  target_include_directories(${system_target}
+    PRIVATE
+      ${PROJECT_SOURCE_DIR}/src/systems/common
+  )
+
+
   if(gz_add_system_PRIVATE_INCLUDE_DIRS)
     target_include_directories(${system_target}
       PRIVATE
