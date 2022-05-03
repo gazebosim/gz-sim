@@ -128,7 +128,7 @@ ign_build_tests(TYPE INTEGRATION
 # For INTEGRATION_physics_system, we need to check what version of DART is
 # available so that we can disable tests that are unsupported by the particular
 # version of physics engine
-ign_find_package(DART)
+ign_find_package(DART CONFIG)
 if (DART_FOUND)
   # Only adding include directories, no need to link against DART to check version
   target_include_directories(INTEGRATION_physics_system SYSTEM PRIVATE ${DART_INCLUDE_DIRS})
