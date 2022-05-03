@@ -2212,17 +2212,15 @@ TEST_F(PhysicsSystemFixtureWithDart6_10,
   EXPECT_FALSE(server->Running());
   EXPECT_FALSE(*server->Running(0));
 
-  using namespace std::chrono_literals;
   server->SetUpdatePeriod(1ns);
 
   test::Relay testSystem;
 
-  const std::size_t iterTestStart{100};
-  const std::size_t nIters{500};
+  const std::size_t nIters{600};
   testSystem.OnPreUpdate(
       [&](const gazebo::UpdateInfo &_info, gazebo::EntityComponentManager &_ecm)
       {
-        // Create components, if the don't exist, on the first iteration
+        // Create components, if they don't exist on the first iteration
         if (_info.iterations == 1)
         {
           for (const auto &e : _ecm.EntitiesByComponents(components::Joint()))
@@ -2239,8 +2237,8 @@ TEST_F(PhysicsSystemFixtureWithDart6_10,
       [&](const gazebo::UpdateInfo &_info,
           const gazebo::EntityComponentManager &_ecm)
       {
-        // After nIters iterations, check angular velocity of each of the joints
-        if (_info.iterations == iterTestStart + nIters)
+        // At nIters iterations, check angular velocity of each of the joints
+        if (_info.iterations == nIters)
         {
           int count = 0;
           for (const auto &e : _ecm.EntitiesByComponents(components::Joint()))
@@ -2251,7 +2249,7 @@ TEST_F(PhysicsSystemFixtureWithDart6_10,
             if (jointVel->Data().size() > 0)
             {
               ++count;
-              EXPECT_LT(std::abs(jointVel->Data()[0]), 1.1);
+              EXPECT_LE(std::abs(jointVel->Data()[0]), 1.0);
             }
           }
           EXPECT_EQ(count, 2);
@@ -2259,5 +2257,5 @@ TEST_F(PhysicsSystemFixtureWithDart6_10,
       });
 
   server->AddSystem(testSystem.systemPtr);
-  server->Run(true, iterTestStart + nIters, false);
+  server->Run(true, nIters, false);
 }
