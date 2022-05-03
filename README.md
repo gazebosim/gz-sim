@@ -10,9 +10,9 @@
 Build | Status
 -- | --
 Test coverage | [![codecov](https://codecov.io/gh/ignitionrobotics/ign-math/branch/ign-math6/graph/badge.svg)](https://codecov.io/gh/ignitionrobotics/ign-math)
-Ubuntu Bionic | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-ign-math6-bionic-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-ign-math6-bionic-amd64)
+Ubuntu Focal  | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-ign-math6-focal-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-ign-math6-focal-amd64)
 Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-ign-math6-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-ign-math6-homebrew-amd64)
-Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-ign-math6-windows7-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-ign-math6-windows7-amd64)
+Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ign_math-ign-6-win)](https://build.osrfoundation.org/job/ign_math-ign-6-win)
 
 Ignition Math, a component of [Ignition
 Robotics](https://ignitionrobotics.org), provides general purpose math
