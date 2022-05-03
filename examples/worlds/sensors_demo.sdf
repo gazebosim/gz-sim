@@ -380,7 +380,6 @@
             <image>
               <width>320</width>
               <height>240</height>
-              <format>L8</format>
             </image>
             <clip>
               <near>0.1</near>
