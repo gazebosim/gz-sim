@@ -2249,7 +2249,9 @@ TEST_F(PhysicsSystemFixtureWithDart6_10,
             if (jointVel->Data().size() > 0)
             {
               ++count;
-              EXPECT_LE(std::abs(jointVel->Data()[0]), 1);
+              const double kVelocityLimit = 1.0;
+              const double kTolerance = 1e-6;
+              EXPECT_NEAR(jointVel->Data()[0], 0, kVelocityLimit + kTolerance);
             }
           }
           EXPECT_EQ(count, 2);
