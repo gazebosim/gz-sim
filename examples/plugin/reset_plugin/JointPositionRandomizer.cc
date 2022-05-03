@@ -19,6 +19,8 @@
 #include <ignition/gazebo/System.hh>
 #include <ignition/gazebo/components/Joint.hh>
 #include <ignition/gazebo/components/JointPositionReset.hh>
+#include <ignition/gazebo/components/JointPositionLimitsCmd.hh>
+#include <ignition/gazebo/components/JointType.hh>
 #include <ignition/gazebo/components/ParentEntity.hh>
 #include <ignition/plugin/Register.hh>
 
@@ -42,18 +44,32 @@ class JointPositionRandomizer : public System,
     std::cout << "Reset joints\n";
     auto joints = _ecm.EntitiesByComponents(
         components::ParentEntity(this->targetEntity), components::Joint());
+
     for (auto joint : joints)
     {
-      double pos = math::Rand::DblUniform(0, IGN_PI);
-      std::cout << "joint " << joint << " pos: " << pos << std::endl;
+      auto jointType = _ecm.Component<components::JointType>(joint);
+
+      double pos = 0.0; 
+
+      if (jointType->Data() == sdf::JointType::PRISMATIC)
+      {
+        pos = math::Rand::DblUniform(-0.8, 0.1);
+        std::cout << "prismatic joint (" << joint 
+          << ") pos: (" << pos << " m)"<< std::endl;
+      } 
+      else if (jointType->Data() == sdf::JointType::REVOLUTE)
+      {
+        pos = math::Rand::DblUniform(0, IGN_PI);
+        std::cout << "revolute joint (" << joint 
+          << ") pos: (" << pos << " rad)"<< std::endl;
+      }
       _ecm.SetComponentData<components::JointPositionReset>(joint, {pos});
     }
   }
 
   private: Entity targetEntity;
 };
-}
-
+}  // namespace reset_plugin
 
 IGNITION_ADD_PLUGIN(reset_plugin::JointPositionRandomizer,
                     ignition::gazebo::System,
