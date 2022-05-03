@@ -2249,7 +2249,7 @@ TEST_F(PhysicsSystemFixtureWithDart6_10,
             if (jointVel->Data().size() > 0)
             {
               ++count;
-              EXPECT_LE(std::abs(jointVel->Data()[0]), 1.0);
+              EXPECT_LE(std::abs(jointVel->Data()[0]), 1);
             }
           }
           EXPECT_EQ(count, 2);
