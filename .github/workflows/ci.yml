@@ -16,3 +16,15 @@ jobs:
           codecov-enabled: true
           cppcheck-enabled: true
           cpplint-enabled: true
+  jammy-ci:
+    runs-on: ubuntu-latest
+    name: Ubuntu Jammy CI
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Compile and test
+        id: ci
+        uses: ignition-tooling/action-ignition-ci@jammy
+        with:
+          # per bug https://github.com/ignitionrobotics/ign-gazebo/issues/1409
+          cmake-args: '-DBUILD_DOCS=OFF'

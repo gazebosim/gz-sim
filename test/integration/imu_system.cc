@@ -52,6 +52,51 @@ class ImuTest : public InternalFixture<::testing::Test>
 
 std::mutex mutex;
 std::vector<msgs::IMU> imuMsgs;
+msgs::IMU lastImuMsgENU;
+msgs::IMU lastImuMsgNED;
+msgs::IMU lastImuMsgNWU;
+msgs::IMU lastImuMsgCUSTOM;
+msgs::IMU lastImuMsgDEFAULT;
+
+/////////////////////////////////////////////////
+void imuENUCb(const msgs::IMU &_msg)
+{
+  lastImuMsgENU = _msg;
+}
+
+/////////////////////////////////////////////////
+void imuNEDCb(const msgs::IMU &_msg)
+{
+  lastImuMsgNED = _msg;
+}
+
+/////////////////////////////////////////////////
+void imuNWUCb(const msgs::IMU &_msg)
+{
+  lastImuMsgNWU = _msg;
+}
+
+/////////////////////////////////////////////////
+void imuCUSTOMCb(const msgs::IMU &_msg)
+{
+  lastImuMsgCUSTOM = _msg;
+}
+
+/////////////////////////////////////////////////
+void imuDEFULTCb(const msgs::IMU &_msg)
+{
+  lastImuMsgDEFAULT = _msg;
+}
+
+/////////////////////////////////////////////////
+void clearLastImuMsgs()
+{
+  lastImuMsgCUSTOM.Clear();
+  lastImuMsgENU.Clear();
+  lastImuMsgNED.Clear();
+  lastImuMsgNWU.Clear();
+  lastImuMsgDEFAULT.Clear();
+}
 
 /////////////////////////////////////////////////
 void imuCb(const msgs::IMU &_msg)
@@ -214,7 +259,7 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
 }
 
 /////////////////////////////////////////////////
-// The test checks to make sure orientation is not published if it is deabled
+// The test checks to make sure orientation is not published if it is disabled
 TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OrientationDisabled))
 {
   imuMsgs.clear();
@@ -249,4 +294,286 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OrientationDisabled))
     EXPECT_FALSE(msg.has_orientation());
   }
   mutex.unlock();
+}
+
+/////////////////////////////////////////////////
+// The test checks if the orientation is published according to the
+// localization tag
+TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(NamedFrames))
+{
+  imuMsgs.clear();
+  clearLastImuMsgs();
+
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "imu_named_frame.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  auto topicENU = "/imu_test_ENU";
+  auto topicNED = "/imu_test_NED";
+  auto topicNWU = "/imu_test_NWU";
+  auto topicCUSTOM = "/imu_test_CUSTOM";
+  auto topicDEFAULT = "/imu_test_DEFAULT";
+
+  // subscribe to imu topic
+  transport::Node node;
+  node.Subscribe(topicENU, &imuENUCb);
+  node.Subscribe(topicNED, &imuNEDCb);
+  node.Subscribe(topicNWU, &imuNWUCb);
+  node.Subscribe(topicCUSTOM, &imuCUSTOMCb);
+  node.Subscribe(topicDEFAULT, &imuDEFULTCb);
+
+  // Run server
+  server.Run(true, 200u, false);
+
+  // Check we received messages
+  EXPECT_TRUE(lastImuMsgENU.has_orientation());
+  EXPECT_TRUE(lastImuMsgNED.has_orientation());
+  EXPECT_TRUE(lastImuMsgNWU.has_orientation());
+  EXPECT_TRUE(lastImuMsgCUSTOM.has_orientation());
+  EXPECT_TRUE(lastImuMsgDEFAULT.has_orientation());
+
+  // For the DEFAULT msg, orientation is reported relative
+  // to the original pose, which should be identity quaternion.
+  EXPECT_NEAR(lastImuMsgDEFAULT.orientation().x(), 0, 1e-2);
+  EXPECT_NEAR(lastImuMsgDEFAULT.orientation().y(), 0, 1e-2);
+  EXPECT_NEAR(lastImuMsgDEFAULT.orientation().z(), 0, 1e-2);
+  EXPECT_NEAR(lastImuMsgDEFAULT.orientation().w(), 1, 1e-2);
+
+  // For the ENU msg
+  EXPECT_NEAR(lastImuMsgENU.orientation().x(), 0, 1e-2);
+  EXPECT_NEAR(lastImuMsgENU.orientation().y(), 0, 1e-2);
+  EXPECT_NEAR(lastImuMsgENU.orientation().z(), 1, 1e-2);
+  EXPECT_NEAR(lastImuMsgENU.orientation().w(), 0, 1e-2);
+
+  // For the NED msg
+  EXPECT_NEAR(lastImuMsgNED.orientation().x(), -0.707, 1e-2);
+  EXPECT_NEAR(lastImuMsgNED.orientation().y(), 0.707, 1e-2);
+  EXPECT_NEAR(lastImuMsgNED.orientation().z(), 0, 1e-2);
+  EXPECT_NEAR(lastImuMsgNED.orientation().w(), 0, 1e-2);
+
+  // For the NWU msg
+  EXPECT_NEAR(lastImuMsgNWU.orientation().x(), 0, 1e-2);
+  EXPECT_NEAR(lastImuMsgNWU.orientation().y(), 0, 1e-2);
+  EXPECT_NEAR(lastImuMsgNWU.orientation().z(), 0.707, 1e-2);
+  EXPECT_NEAR(lastImuMsgNWU.orientation().w(), 0.707, 1e-2);
+
+  // For the CUSTOM msg
+  EXPECT_NEAR(lastImuMsgCUSTOM.orientation().x(), 0, 1e-2);
+  EXPECT_NEAR(lastImuMsgCUSTOM.orientation().y(), 0.707, 1e-2);
+  EXPECT_NEAR(lastImuMsgCUSTOM.orientation().z(), 0.707, 1e-2);
+  EXPECT_NEAR(lastImuMsgCUSTOM.orientation().w(), 0, 1e-2);
+}
+
+/////////////////////////////////////////////////
+// The test checks if the orientation is published according to the
+// localization tag, with heading_deg also accounted for
+TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(NamedFramesWithHeading))
+{
+  imuMsgs.clear();
+  clearLastImuMsgs();
+
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "imu_heading_deg.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  auto topicENU = "/imu_test_ENU";
+  auto topicNED = "/imu_test_NED";
+  auto topicNWU = "/imu_test_NWU";
+  auto topicCUSTOM = "/imu_test_CUSTOM";
+  auto topicDEFAULT = "/imu_test_DEFAULT";
+
+  // subscribe to imu topic
+  transport::Node node;
+  node.Subscribe(topicENU, &imuENUCb);
+  node.Subscribe(topicNED, &imuNEDCb);
+  node.Subscribe(topicNWU, &imuNWUCb);
+  node.Subscribe(topicCUSTOM, &imuCUSTOMCb);
+  node.Subscribe(topicDEFAULT, &imuDEFULTCb);
+
+  // Run server
+  server.Run(true, 200u, false);
+
+  // Check we received messages
+  EXPECT_TRUE(lastImuMsgENU.has_orientation());
+  EXPECT_TRUE(lastImuMsgNED.has_orientation());
+  EXPECT_TRUE(lastImuMsgNWU.has_orientation());
+  EXPECT_TRUE(lastImuMsgCUSTOM.has_orientation());
+  EXPECT_TRUE(lastImuMsgDEFAULT.has_orientation());
+
+  // For the DEFAULT msg, orientation is reported relative
+  // to the original pose, which should be identity quaternion.
+  EXPECT_NEAR(lastImuMsgDEFAULT.orientation().x(), 0, 1e-2);
+  EXPECT_NEAR(lastImuMsgDEFAULT.orientation().y(), 0, 1e-2);
+  EXPECT_NEAR(lastImuMsgDEFAULT.orientation().z(), 0, 1e-2);
+  EXPECT_NEAR(lastImuMsgDEFAULT.orientation().w(), 1, 1e-2);
+
+  // For the ENU msg
+  EXPECT_NEAR(lastImuMsgENU.orientation().x(), 0, 1e-2);
+  EXPECT_NEAR(lastImuMsgENU.orientation().y(), 0, 1e-2);
+  EXPECT_NEAR(lastImuMsgENU.orientation().z(), 0.707, 1e-2);
+  EXPECT_NEAR(lastImuMsgENU.orientation().w(), 0.707, 1e-2);
+
+  // For the NED msg
+  EXPECT_NEAR(lastImuMsgNED.orientation().x(), -1, 1e-2);
+  EXPECT_NEAR(lastImuMsgNED.orientation().y(), 0, 1e-2);
+  EXPECT_NEAR(lastImuMsgNED.orientation().z(), 0, 1e-2);
+  EXPECT_NEAR(lastImuMsgNED.orientation().w(), 0, 1e-2);
+
+  // For the NWU msg
+  EXPECT_NEAR(lastImuMsgNWU.orientation().x(), 0, 1e-2);
+  EXPECT_NEAR(lastImuMsgNWU.orientation().y(), 0, 1e-2);
+  EXPECT_NEAR(lastImuMsgNWU.orientation().z(), 0, 1e-2);
+  EXPECT_NEAR(lastImuMsgNWU.orientation().w(), 1, 1e-2);
+
+  // For the CUSTOM msg
+  EXPECT_NEAR(lastImuMsgCUSTOM.orientation().x(), -0.5, 1e-2);
+  EXPECT_NEAR(lastImuMsgCUSTOM.orientation().y(), 0.5, 1e-2);
+  EXPECT_NEAR(lastImuMsgCUSTOM.orientation().z(), 0.5, 1e-2);
+  EXPECT_NEAR(lastImuMsgCUSTOM.orientation().w(), 0.5, 1e-2);
+}
+
+/////////////////////////////////////////////////
+// The test checks if orientations are reported correctly for a rotating body.
+// The world includes a sphere rolling down a plane, with axis of rotation
+// as the "west" direction vector, using the right hand rule.
+TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RotatingBody))
+{
+  imuMsgs.clear();
+  clearLastImuMsgs();
+
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "imu_rotating_demo.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  msgs::IMU currentImuMsgDefault_1;
+  msgs::IMU currentImuMsgDefault_2;
+  msgs::IMU currentImuMsgDefault_3;
+
+  std::function<void(const msgs::IMU &_msg)> defaultCb1 =
+      [&](const msgs::IMU &_msg)
+      {
+        currentImuMsgDefault_1 = _msg;
+      };
+  std::function<void(const msgs::IMU &_msg)> defaultCb2 =
+      [&](const msgs::IMU &_msg)
+      {
+        currentImuMsgDefault_2 = _msg;
+      };
+  std::function<void(const msgs::IMU &_msg)> defaultCb3 =
+      [&](const msgs::IMU &_msg)
+      {
+        currentImuMsgDefault_3 = _msg;
+      };
+
+  // subscribe to imu topic
+  transport::Node node;
+  node.Subscribe("/imu_test_ENU", &imuENUCb);
+  node.Subscribe("/imu_test_NED", &imuNEDCb);
+  node.Subscribe("/imu_test_DEFAULT_1", defaultCb1);
+  node.Subscribe("/imu_test_DEFAULT_2", defaultCb2);
+  node.Subscribe("/imu_test_DEFAULT_3", defaultCb3);
+
+  // Run server
+  server.Run(true, 50u, false);
+
+  // Store initial orientations reported by the IMUs
+  auto initialOrientationDEFAULT_1 = msgs::Convert(
+                  currentImuMsgDefault_1.orientation());
+  auto initialOrientationDEFAULT_2 = msgs::Convert(
+                  currentImuMsgDefault_2.orientation());
+  auto initialOrientationDEFAULT_3 = msgs::Convert(
+                  currentImuMsgDefault_3.orientation());
+  auto initialOrientationENU = msgs::Convert(
+                  lastImuMsgENU.orientation());
+  auto initialOrientationNED = msgs::Convert(
+                  lastImuMsgNED.orientation());
+
+  server.Run(true, 1500u, false);
+
+  // Store final orientations reported by the IMUs
+  auto finalOrientationDEFAULT_1 = msgs::Convert(
+                  currentImuMsgDefault_1.orientation());
+  auto finalOrientationDEFAULT_2 = msgs::Convert(
+                  currentImuMsgDefault_2.orientation());
+  auto finalOrientationDEFAULT_3 = msgs::Convert(
+                  currentImuMsgDefault_3.orientation());
+  auto finalOrientationENU = msgs::Convert(
+                  lastImuMsgENU.orientation());
+  auto finalOrientationNED = msgs::Convert(
+                  lastImuMsgNED.orientation());
+
+  auto differenceOrientationDEFAULT_1 = finalOrientationDEFAULT_1 *
+          initialOrientationDEFAULT_1.Inverse();
+  auto differenceOrientationDEFAULT_2 = finalOrientationDEFAULT_2 *
+          initialOrientationDEFAULT_2.Inverse();
+  auto differenceOrientationDEFAULT_3 = finalOrientationDEFAULT_3 *
+          initialOrientationDEFAULT_3.Inverse();
+
+  auto differenceOrientationENU = finalOrientationENU *
+          initialOrientationENU.Inverse();
+  auto differenceOrientationNED = finalOrientationNED *
+          initialOrientationNED.Inverse();
+
+  // Since the sphere has rotated along the west direction,
+  // pitch and yaw change for ENU reporting IMU should be zero,
+  // and roll should have some non trivial negative value.
+  EXPECT_TRUE((differenceOrientationENU.Roll() < -0.04));
+  EXPECT_NEAR(differenceOrientationENU.Pitch(), 0, 1e-2);
+  EXPECT_NEAR(differenceOrientationENU.Yaw(), 0, 1e-2);
+
+  // Similarly, roll and yaw for NED reporting IMU should be zero,
+  // and pitch should be some non trivial negative value.
+  EXPECT_NEAR(differenceOrientationNED.Roll(), 0, 1e-2);
+  EXPECT_TRUE((differenceOrientationNED.Pitch() < -0.04));
+  EXPECT_NEAR(differenceOrientationNED.Yaw(), 0, 1e-2);
+
+  // In the sdf world, the IMU model & link have a yaw pose of PI/2,
+  // which means the initial orientation of DEFAULT IMU is
+  // effectively WND (by rotating ENU by PI about N). Therefore,
+  // pitch and yaw for DEFAULT case should be zero, and roll
+  // should be nontrivial positive value.
+  EXPECT_TRUE((differenceOrientationDEFAULT_1.Roll() > 0.04));
+  EXPECT_NEAR(differenceOrientationDEFAULT_1.Pitch(), 0, 1e-2);
+  EXPECT_NEAR(differenceOrientationDEFAULT_1.Yaw(), 0, 1e-2);
+
+  // For DEFAULT_2, model has a pose PI/2 0 0 & link has a pose of
+  // 0 PI/2 0, which makes the frame NUE.
+  EXPECT_NEAR(differenceOrientationDEFAULT_2.Roll(), 0, 1e-2);
+  EXPECT_NEAR(differenceOrientationDEFAULT_2.Pitch(), 0, 1e-2);
+  EXPECT_TRUE((differenceOrientationDEFAULT_2.Yaw() < -0.04));
+
+  // For DEFAULT_3, model has a pose PI/2 0 0 & link has a pose of
+  // 0 0 PI/2, which makes the frame UWS.
+  EXPECT_NEAR(differenceOrientationDEFAULT_3.Roll(), 0, 1e-2);
+  EXPECT_TRUE((differenceOrientationDEFAULT_3.Pitch() > 0.04));
+  EXPECT_NEAR(differenceOrientationDEFAULT_3.Yaw(), 0, 1e-2);
+
+  // Those nontrivial values should match for all sensors.
+  EXPECT_NEAR(differenceOrientationENU.Roll(),
+        differenceOrientationNED.Pitch(), 1e-4);
+
+  EXPECT_NEAR(differenceOrientationENU.Roll(),
+        -differenceOrientationDEFAULT_1.Roll(), 1e-4);
+  EXPECT_NEAR(differenceOrientationENU.Roll(),
+        differenceOrientationDEFAULT_2.Yaw(), 1e-4);
+  EXPECT_NEAR(differenceOrientationENU.Roll(),
+        -differenceOrientationDEFAULT_3.Pitch(), 1e-4);
 }
