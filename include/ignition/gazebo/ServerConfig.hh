@@ -172,7 +172,8 @@ namespace ignition
       /// Setting the SDF file will override any value set by `SetSdfString`.
       ///
       /// \param[in] _file Full path to an SDF file.
-      /// \return (reserved for future use)
+      /// \return True if the file was set, false if the file was not set.
+      /// The file will not be set if the provide _file string is empty.
       public: bool SetSdfFile(const std::string &_file);
 
       /// \brief Get the SDF file that has been set. An empty string will be
