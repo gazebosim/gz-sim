@@ -801,8 +801,7 @@ void TransformControlPrivate::HandleTransform()
         auto entityId = kNullEntity;
         try
         {
-          entityId = static_cast<unsigned int>(
-            std::get<int>(visual->UserData("gazebo-entity")));
+          entityId = std::get<uint64_t>(visual->UserData("gazebo-entity"));
         }
         catch (std::bad_variant_access &)
         {

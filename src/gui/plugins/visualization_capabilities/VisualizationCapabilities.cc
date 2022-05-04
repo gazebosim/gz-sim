@@ -806,7 +806,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
       if (targetVis && targetVis->HasUserData("gazebo-entity"))
       {
         Entity targetEntity =
-            std::get<int>(targetVis->UserData("gazebo-entity"));
+            std::get<uint64_t>(targetVis->UserData("gazebo-entity"));
         this->ViewCOM(targetEntity);
       }
       else
@@ -832,7 +832,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
       if (targetVis && targetVis->HasUserData("gazebo-entity"))
       {
         Entity targetEntity =
-            std::get<int>(targetVis->UserData("gazebo-entity"));
+            std::get<uint64_t>(targetVis->UserData("gazebo-entity"));
         this->ViewInertia(targetEntity);
       }
       else
@@ -858,7 +858,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
       if (targetVis && targetVis->HasUserData("gazebo-entity"))
       {
         Entity targetEntity =
-            std::get<int>(targetVis->UserData("gazebo-entity"));
+            std::get<uint64_t>(targetVis->UserData("gazebo-entity"));
         this->ViewTransparent(targetEntity);
       }
       else
@@ -884,7 +884,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
       if (targetVis && targetVis->HasUserData("gazebo-entity"))
       {
         Entity targetEntity =
-            std::get<int>(targetVis->UserData("gazebo-entity"));
+            std::get<uint64_t>(targetVis->UserData("gazebo-entity"));
         this->ViewCollisions(targetEntity);
       }
       else
@@ -910,7 +910,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
       if (targetVis && targetVis->HasUserData("gazebo-entity"))
       {
         Entity targetEntity =
-            std::get<int>(targetVis->UserData("gazebo-entity"));
+            std::get<uint64_t>(targetVis->UserData("gazebo-entity"));
         this->ViewJoints(targetEntity);
       }
       else
@@ -936,7 +936,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
       if (targetVis && targetVis->HasUserData("gazebo-entity"))
       {
         Entity targetEntity =
-            std::get<int>(targetVis->UserData("gazebo-entity"));
+            std::get<uint64_t>(targetVis->UserData("gazebo-entity"));
         this->ViewWireframes(targetEntity);
       }
       else
@@ -961,7 +961,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
       if (targetVis && targetVis->HasUserData("gazebo-entity"))
       {
         Entity targetEntity =
-            std::get<int>(targetVis->UserData("gazebo-entity"));
+            std::get<uint64_t>(targetVis->UserData("gazebo-entity"));
         this->ViewFrames(targetEntity);
       }
       else
@@ -1087,7 +1087,7 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateJointVisual(
 
   rendering::VisualPtr jointVis =
     std::dynamic_pointer_cast<rendering::Visual>(jointVisual);
-  jointVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  jointVis->SetUserData("gazebo-entity", _id);
   jointVis->SetUserData("pause-update", static_cast<int>(0));
   jointVis->SetUserData("gui-only", static_cast<bool>(true));
   jointVis->SetLocalPose(_joint.RawPose());
@@ -1132,7 +1132,7 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateInertiaVisual(
 
   rendering::VisualPtr inertiaVis =
     std::dynamic_pointer_cast<rendering::Visual>(inertiaVisual);
-  inertiaVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  inertiaVis->SetUserData("gazebo-entity", _id);
   inertiaVis->SetUserData("pause-update", static_cast<int>(0));
   inertiaVis->SetUserData("gui-only", static_cast<bool>(true));
   this->visuals[_id] = inertiaVis;
@@ -1487,7 +1487,7 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateCollisionVisual(
     return vis;
   }
   rendering::VisualPtr visualVis = this->scene->CreateVisual(name);
-  visualVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  visualVis->SetUserData("gazebo-entity", _id);
   visualVis->SetUserData("pause-update", static_cast<int>(0));
   visualVis->SetLocalPose(_visual.RawPose());
 
@@ -1611,7 +1611,7 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateCOMVisual(
 
   rendering::VisualPtr comVis =
     std::dynamic_pointer_cast<rendering::Visual>(comVisual);
-  comVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  comVis->SetUserData("gazebo-entity", _id);
   comVis->SetUserData("pause-update", static_cast<int>(0));
   comVis->SetUserData("gui-only", static_cast<bool>(true));
   this->visuals[_id] = comVis;
@@ -1682,7 +1682,8 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::VisualByEntity(
 
     try
     {
-      Entity visualEntity = std::get<int>(visual->UserData("gazebo-entity"));
+      Entity visualEntity = std::get<uint64_t>(
+        visual->UserData("gazebo-entity"));
 
       if (visualEntity == _entity)
       {
