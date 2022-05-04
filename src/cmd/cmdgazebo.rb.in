@@ -122,6 +122,15 @@ COMMANDS = { 'gazebo' =>
   "                               provided, the default installed config is        \n"\
   "                               used.                                            \n"\
   "\n"\
+  "  --gui-config-option [arg]    Options for combining GUI configs with GUI       \n"\
+  "                               plugins defined on the world SDF file.           \n"\
+  "                               Available options:                               \n"\
+  "                               * prepend: Load all plugins from the GUI config  \n"\
+  "                                          first, then all plugins from the SDF  \n"\
+  "                                          file.                                 \n"\
+  "                               * merge: Same as prepend, but only the last      \n"\
+  "                                        instance of each plugin is loaded.      \n"\
+  "\n"\
   "  --physics-engine [arg]       Ignition Physics engine plugin to load.          \n"\
   "                               Gazebo will use DART by default.                 \n"\
   "                               (ignition-physics-dartsim-plugin)                \n"\
@@ -281,6 +290,9 @@ class Cmd
       end
       opts.on('--gui-config [arg]', String) do |c|
         options['gui_config'] = c
+      end
+      opts.on('--gui-config-option [arg]', String) do |c|
+        options['gui_config_option'] = c
       end
       opts.on('--physics-engine [arg]', String) do |e|
         options['physics_engine'] = e
@@ -465,7 +477,7 @@ See https://github.com/ignitionrobotics/ign-gazebo/issues/44 for more info."
           ENV['RMT_PORT'] = '1501'
           Process.setpgid(0, 0)
           Process.setproctitle('ign gazebo gui')
-          Importer.runGui(options['gui_config'])
+          Importer.runGui(options['gui_config'], options['gui_config_option'])
         end
 
         Signal.trap("INT") {
@@ -503,7 +515,7 @@ See https://github.com/ignitionrobotics/ign-gazebo/issues/44 for more info."
         end
 
         ENV['RMT_PORT'] = '1501'
-        Importer.runGui(options['gui_config'])
+        Importer.runGui(options['gui_config'], options['gui_config_option'])
       end
     rescue
       puts "Library error: Problem running [#{options['command']}]() "\

@@ -355,7 +355,7 @@ extern "C" int runServer(const char *_sdfString,
 }
 
 //////////////////////////////////////////////////
-extern "C" int runGui(const char *_guiConfig)
+extern "C" int runGui(const char *_guiConfig, const char *_guiConfigOption)
 {
   // argc and argv are going to be passed to a QApplication. The Qt
   // documentation has a warning about these:

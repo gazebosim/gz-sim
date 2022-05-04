@@ -66,8 +66,9 @@ extern "C" int runServer(const char *_sdfString,
 
 /// \brief External hook to run simulation GUI.
 /// \param[in] _guiConfig Path to Ignition GUI configuration file.
+/// \param[in] _guiConfigOption Option for loading GUI configs.
 /// \return 0 if successful, 1 if not.
-extern "C" int runGui(const char *_guiConfig);
+extern "C" int runGui(const char *_guiConfig, const char *_guiConfigOption);
 
 /// \brief External hook to find or download a fuel world provided a URL.
 /// \param[in] _pathToResource Path to the fuel world resource, ie,

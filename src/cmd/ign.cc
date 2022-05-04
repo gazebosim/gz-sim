@@ -205,7 +205,7 @@ extern "C" int runServer(const char *_sdfString,
 }
 
 //////////////////////////////////////////////////
-extern "C" int runGui(const char *_guiConfig)
+extern "C" int runGui(const char *_guiConfig, const char *_guiConfigOption)
 {
   ignition::common::SignalHandler sigHandler;
   bool sigKilled = false;
