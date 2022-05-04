@@ -570,24 +570,8 @@ msgs::Light ignition::gazebo::convert(const sdf::Light &_in)
   out.set_spot_inner_angle(_in.SpotInnerAngle().Radian());
   out.set_spot_outer_angle(_in.SpotOuterAngle().Radian());
   out.set_spot_falloff(_in.SpotFalloff());
-
-  {
-    // todo(ahcorde) Use the field is_light_off in light.proto from
-    // Garden on.
-    auto header = out.mutable_header()->add_data();
-    header->set_key("isLightOn");
-    std::string *value = header->add_value();
-    *value = std::to_string(_in.LightOn());
-  }
-
-  {
-    // todo(ahcorde) Use the field visualize_visual in light.proto from
-    // Garden on.
-    auto header = out.mutable_header()->add_data();
-    header->set_key("visualizeVisual");
-    std::string *value = header->add_value();
-    *value = std::to_string(_in.Visualize());
-  }
+  out.set_is_light_off(!_in.LightOn());
+  out.set_visualize_visual(_in.Visualize());
 
   if (_in.Type() == sdf::LightType::POINT)
     out.set_type(msgs::Light_LightType_POINT);
@@ -618,42 +602,8 @@ sdf::Light ignition::gazebo::convert(const msgs::Light &_in)
   out.SetSpotInnerAngle(math::Angle(_in.spot_inner_angle()));
   out.SetSpotOuterAngle(math::Angle(_in.spot_outer_angle()));
   out.SetSpotFalloff(_in.spot_falloff());
-
-  // todo(ahcorde) Use the field is_light_off in light.proto from
-  // Garden on.
-  bool visualizeVisual = true;
-  for (int i = 0; i < _in.header().data_size(); ++i)
-  {
-    for (int j = 0;
-        j < _in.header().data(i).value_size(); ++j)
-    {
-      if (_in.header().data(i).key() ==
-          "visualizeVisual")
-      {
-        visualizeVisual = ignition::math::parseInt(
-          _in.header().data(i).value(0));
-      }
-    }
-  }
-  out.SetVisualize(visualizeVisual);
-
-  // todo(ahcorde) Use the field is_light_off in light.proto from
-  // Garden on.
-  bool isLightOn = true;
-  for (int i = 0; i < _in.header().data_size(); ++i)
-  {
-    for (int j = 0;
-        j < _in.header().data(i).value_size(); ++j)
-    {
-      if (_in.header().data(i).key() ==
-          "isLightOn")
-      {
-        isLightOn = ignition::math::parseInt(
-          _in.header().data(i).value(0));
-      }
-    }
-  }
-  out.SetLightOn(isLightOn);
+  out.SetLightOn(!_in.is_light_off());
+  out.SetVisualize(_in.visualize_visual());
 
   if (_in.type() == msgs::Light_LightType_POINT)
     out.SetType(sdf::LightType::POINT);

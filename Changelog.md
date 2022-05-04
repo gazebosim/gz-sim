@@ -4,6 +4,39 @@
 
 ## Ignition Gazebo 6.x
 
+### Ignition Gazebo 6.9.0 (2022-04-14)
+
+1. Add new `RFComms` system
+    * [Pull request #1428](https://github.com/ignitionrobotics/ign-gazebo/pull/1428)
+
+1. Add comms infrastructure
+    * [Pull request #1416](https://github.com/ignitionrobotics/ign-gazebo/pull/1416)
+
+1. Fix CMake version examples and bump plugin version
+    * [Pull request #1442](https://github.com/ignitionrobotics/ign-gazebo/pull/1442)
+
+1. Make sure pose publisher creates valid pose topics
+    * [Pull request #1433](https://github.com/ignitionrobotics/ign-gazebo/pull/1433)
+
+1. Add Ubuntu Jammy CI
+    * [Pull request #1418](https://github.com/ignitionrobotics/ign-gazebo/pull/1418)
+
+1. Removed `screenToPlane` method and use `rendering::screenToPlane`
+    * [Pull request #1432](https://github.com/ignitionrobotics/ign-gazebo/pull/1432)
+
+1. Supply world frame orientation and heading to IMU sensor (#1427)
+    * [Pull request #1427](https://github.com/ignitionrobotics/ign-gazebo/pull/1427)
+
+1. Add desktop entry and SVG logo
+    * [Pull request #1411](https://github.com/ignitionrobotics/ign-gazebo/pull/1411)
+    * [Pull request #1430](https://github.com/ignitionrobotics/ign-gazebo/pull/1430)
+
+1. Fix segfault at exit
+    * [Pull request #1317](https://github.com/ignitionrobotics/ign-gazebo/pull/1317)
+
+1. Add Gaussian noise to Odometry Publisher
+    * [Pull request #1393](https://github.com/ignitionrobotics/ign-gazebo/pull/1393)
+
 ### Ignition Gazebo 6.8.0 (2022-04-04)
 
 1. ServerConfig accepts an sdf::Root DOM object
