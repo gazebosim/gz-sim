@@ -44,9 +44,9 @@ namespace gz
       using SceneUpdate = gz::common::EventT<void(void),
           struct SceneUpdateTag>;
 
-      /// \brief The render event is emitted before rendering updates.
+      /// \brief The pre render event is emitted before rendering updates.
       /// The event is emitted in the rendering thread so rendering
-      /// calls can ben make in this event callback
+      /// calls can be made in this event callback
       ///
       /// For example:
       /// \code
@@ -55,9 +55,20 @@ namespace gz
       using PreRender = gz::common::EventT<void(void),
           struct PreRenderTag>;
 
-      /// \brief The render event is emitted after rendering updates.
+      /// \brief The render event is emitted during rendering updates.
       /// The event is emitted in the rendering thread so rendering
-      /// calls can ben make in this event callback
+      /// calls can be made in this event callback
+      ///
+      /// For example:
+      /// \code
+      /// eventManager.Emit<gz::sim::events::Render>();
+      /// \endcode
+      using Render = gz::common::EventT<void(void),
+          struct RenderTag>;
+
+      /// \brief The post render event is emitted after rendering updates.
+      /// The event is emitted in the rendering thread so rendering
+      /// calls can be made in this event callback
       ///
       /// For example:
       /// \code
@@ -65,6 +76,20 @@ namespace gz
       /// \endcode
       using PostRender = gz::common::EventT<void(void),
           struct PostRenderTag>;
+
+      /// \brief The force render event may be emitted outside the
+      /// rendering thread to force rendering calls ie. to ensure
+      /// rendering occurs even if it wasn't seemingly necessary.
+      ///
+      /// Useful for custom, out-of-tree rendering sensors that
+      /// need the rendering thread to perform an update.
+      ///
+      /// For example:
+      /// \code
+      /// eventManager.Emit<gz::sim::events::ForceRender>();
+      /// \endcode
+      using ForceRender = gz::common::EventT<void(void),
+          struct ForceRenderTag>;
       }
     }  // namespace events
   }  // namespace sim

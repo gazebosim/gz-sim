@@ -113,6 +113,9 @@ class gz::sim::systems::SensorsPrivate
   /// \brief Flag to signal if rendering update is needed
   public: bool updateAvailable { false };
 
+  /// \brief Flag to signal if a rendering update must be done
+  public: std::atomic<bool> forceUpdate { false };
+
   /// \brief Thread that rendering will occur in
   public: std::thread renderThread;
 
@@ -128,6 +131,9 @@ class gz::sim::systems::SensorsPrivate
 
   /// \brief Connection to events::Stop event, used to stop thread
   public: gz::common::ConnectionPtr stopConn;
+
+  /// \brief Connection to events::ForceRender event, used to force rendering
+  public: gz::common::ConnectionPtr forceRenderConn;
 
   /// \brief Update time for the next rendering iteration
   public: std::chrono::steady_clock::duration updateTime;
@@ -184,6 +190,9 @@ class gz::sim::systems::SensorsPrivate
 
   /// \brief Stop the rendering thread
   public: void Stop();
+
+  /// \brief Force rendering thread to render
+  public: void ForceRender();
 
   /// \brief Update battery state of sensors in model
   /// \param[in] _ecm Entity component manager
@@ -275,7 +284,7 @@ void SensorsPrivate::RunOnce()
     this->renderUtil.Update();
   }
 
-  if (!this->activeSensors.empty())
+  if (!this->activeSensors.empty() || this->forceUpdate)
   {
     // disable sensors that are out of battery or re-enable sensors that are
     // being charged
@@ -344,6 +353,7 @@ void SensorsPrivate::RunOnce()
       // publish data
       IGN_PROFILE("RunOnce");
       this->sensorManager.RunOnce(this->updateTime);
+      this->eventManager->Emit<events::Render>();
     }
 
     // re-enble sensors
@@ -366,6 +376,7 @@ void SensorsPrivate::RunOnce()
   }
 
   this->updateAvailable = false;
+  this->forceUpdate = false;
   lock.unlock();
   this->renderCv.notify_one();
 }
@@ -420,6 +431,12 @@ void SensorsPrivate::Stop()
   {
     this->renderThread.join();
   }
+}
+
+//////////////////////////////////////////////////
+void SensorsPrivate::ForceRender()
+{
+  this->forceUpdate = true;
 }
 
 //////////////////////////////////////////////////
@@ -540,6 +557,9 @@ void Sensors::Configure(const Entity &/*_id*/,
   this->dataPtr->stopConn = _eventMgr.Connect<events::Stop>(
       std::bind(&SensorsPrivate::Stop, this->dataPtr.get()));
 
+  this->dataPtr->forceRenderConn = _eventMgr.Connect<events::ForceRender>(
+      std::bind(&SensorsPrivate::ForceRender, this->dataPtr.get()));
+
   // Kick off worker thread
   this->dataPtr->Run();
 }
@@ -573,7 +593,8 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
   {
     std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
     if (!this->dataPtr->initialized &&
-        (_ecm.HasComponentType(components::Camera::typeId) ||
+        (this->dataPtr->forceUpdate ||
+         _ecm.HasComponentType(components::Camera::typeId) ||
          _ecm.HasComponentType(components::DepthCamera::typeId) ||
          _ecm.HasComponentType(components::GpuLidar::typeId) ||
          _ecm.HasComponentType(components::RgbdCamera::typeId) ||
@@ -623,7 +644,8 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
     this->dataPtr->sensorMaskMutex.unlock();
 
     if (!activeSensors.empty() ||
-        this->dataPtr->renderUtil.PendingSensors() > 0)
+        this->dataPtr->renderUtil.PendingSensors() > 0 ||
+        this->dataPtr->forceUpdate)
     {
       if (this->dataPtr->disableOnDrainedBattery)
         this->dataPtr->UpdateBatteryState(_ecm);
