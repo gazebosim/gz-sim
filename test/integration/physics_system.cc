@@ -2249,6 +2249,9 @@ TEST_F(PhysicsSystemFixtureWithDart6_10,
             if (jointVel->Data().size() > 0)
             {
               ++count;
+              // Joint velocity should lie between
+              // - (kVelocityLimit + kTolerance) and
+              // + (kVelocityLimit + kTolerance)
               const double kVelocityLimit = 1.0;
               const double kTolerance = 1e-6;
               EXPECT_NEAR(jointVel->Data()[0], 0, kVelocityLimit + kTolerance);

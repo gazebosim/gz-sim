@@ -876,7 +876,8 @@ TEST_P(SceneBroadcasterTest,
 
 /////////////////////////////////////////////////
 // Tests https://github.com/ignitionrobotics/ign-gazebo/issues/1414
-TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(DecimalStateHertz))
+TEST_P(SceneBroadcasterTest,
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(DecimalStateHertz))
 {
   // Start server
   std::string sdfStr = R"(
