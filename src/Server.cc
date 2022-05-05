@@ -175,11 +175,16 @@ Server::Server(const ServerConfig &_config)
     errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World());
   }
 
-  // TODO(ahcorde) Filter message. Only continue if there is a download issue
   if (!errors.empty())
   {
     for (auto &err : errors)
-      ignerr << err << "\n";
+    {
+      // Filtering these errors, because we are downloading models in the
+      // background
+      if (err.Code() != sdf::ErrorCode::URI_INVALID &&
+          err.Code() != sdf::ErrorCode::URI_LOOKUP)
+        ignerr << err << "\n";
+    }
   }
 
   // Add record plugin

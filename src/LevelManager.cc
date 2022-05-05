@@ -523,6 +523,33 @@ void LevelManager::AddActor(const sdf::Actor &_actor)
 }
 
 /////////////////////////////////////////////////
+void LevelManager::AddLight(const sdf::Light &_light)
+{
+  if (this->worldEntity == kNullEntity)
+  {
+    ignerr << "Could not find the world entity while creating performers\n";
+    return;
+  }
+
+  if (this->performerMap.find(_light.Name()) == this->performerMap.end())
+  {
+    Entity performerEntity = this->runner->entityCompMgr.CreateEntity();
+
+    Entity lightEntity = this->entityCreator->CreateEntities(&_light);
+
+    // Make the model a parent of this performer
+    this->entityCreator->SetParent(performerEntity,
+                                   lightEntity);
+
+    // Add parent world to the model
+    this->entityCreator->SetParent(lightEntity, this->worldEntity);
+
+    this->performerMap[_light.Name()] = performerEntity;
+    this->activeEntityNames.insert(_light.Name());
+  }
+}
+
+/////////////////////////////////////////////////
 void LevelManager::CreatePerformers()
 {
   IGN_PROFILE("LevelManager::CreatePerformers");

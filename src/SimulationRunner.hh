@@ -181,18 +181,22 @@ namespace ignition
       public: void AddModel(const sdf::Model &_model);
 
       /// \brief This will add an actor to the scene
-      /// \param[in] _model SDF actor to add to the scene
+      /// \param[in] _actor SDF actor to add to the scene
       public: void AddActor(const sdf::Actor &_actor);
 
+      /// \brief This will add an light to the scene
+      /// \param[in] _light SDF light to add to the scene
+      public: void AddLight(const sdf::Light &_light);
+
       /// \brief Check if there is any model being downloaded in the backgound.
-      /// \return True if there is any model being downloaded in the background,
-      /// false otherwise
-      public: bool DownloadedAllModel() const;
+      /// \return False if there is any model being downloaded in the background,
+      /// true otherwise
+      public: bool FetchedAllIncludes() const;
 
       /// \brief Set if there is any model being downloaded in the backgound.
-      /// \param[in] _downloadedAllModels True if there is any model being
-      /// downloaded in the background, false otherwise.
-      public: void SetDownloadedAllModel(bool _downloadedAllModels);
+      /// \param[in] _downloadedAllModels False if there is any model being
+      /// downloaded in the background, true otherwise.
+      public: void SetFetchedAllIncludes(bool _downloadedAllModels);
 
       /// \brief Perform a simulation step:
       /// * Publish stats and process control messages

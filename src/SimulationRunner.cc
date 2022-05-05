@@ -727,7 +727,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
     IGN_PROFILE("SimulationRunner::Run - Iteration");
 
-    if (!this->DownloadedAllModel())
+    if (!this->FetchedAllIncludes())
       this->SetPaused(true);
 
     // Update the step size and desired rtf
@@ -1327,13 +1327,13 @@ void SimulationRunner::SetNextStepAsBlockingPaused(const bool value)
 }
 
 //////////////////////////////////////////////////
-bool SimulationRunner::DownloadedAllModel() const
+bool SimulationRunner::FetchedAllIncludes() const
 {
   return downloadedAllModels;
 }
 
 //////////////////////////////////////////////////
-void SimulationRunner::SetDownloadedAllModel(bool _downloadedAllModels)
+void SimulationRunner::SetFetchedAllIncludes(bool _downloadedAllModels)
 {
   this->downloadedAllModels = _downloadedAllModels;
 }
@@ -1343,6 +1343,13 @@ void SimulationRunner::AddModel(const sdf::Model &_model)
 {
   std::lock_guard<std::mutex> lock(this->mutexDownloadParallel);
   levelMgr->AddModel(_model);
+}
+
+//////////////////////////////////////////////////
+void SimulationRunner::AddLight(const sdf::Light &_light)
+{
+  std::lock_guard<std::mutex> lock(this->mutexDownloadParallel);
+  levelMgr->AddLight(_light);
 }
 
 //////////////////////////////////////////////////

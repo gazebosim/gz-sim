@@ -372,7 +372,7 @@ void ServerPrivate::CreateEntities()
 
     if (this->numberOfModelToDownload == this->currentNumberOfModelToDownload)
     {
-      runner->SetDownloadedAllModel(true);
+      runner->SetFetchedAllIncludes(true);
     }
     this->simRunners.push_back(std::move(runner));
   }
@@ -581,141 +581,174 @@ std::string ServerPrivate::FetchResource(const std::string &_uri)
   std::string uri = _uri;
   std::string pathReturn;
 
-  if (!this->fuelClient->CachedModel(ignition::common::URI(_uri), pathReturn) &&
-      !this->fuelClient->CachedModelFile(ignition::common::URI(_uri), pathReturn))
+  // TODO(ahcorde) Review this part again
+  // <mesh>
+  //   <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Radio/4/files/meshes/Radio.dae</uri>
+  // </mesh>
+  // This kind of models are not returning an error when the model is loaded
+  // the first time
+  std::string basename = ignition::common::basename(uri);
+  std::vector<std::string> baseNameTokens =
+    ignition::common::split(basename, ".");
+
+  if (baseNameTokens.size() > 1)
+  {
+    auto path =
+        fuel_tools::fetchResourceWithClient(uri, *this->fuelClient.get());
+    currentNumberOfModelToDownload++;
+    if (!path.empty())
+    {
+      for (auto &runner : this->simRunners)
+      {
+        runner->AddToFuelUriMap(path, _uri);
+      }
+      this->fuelUriMap[path] = _uri;
+    }
+    return path;
+  }
+
+  if (this->fuelClient->CachedModel(ignition::common::URI(_uri), pathReturn) ||
+      this->fuelClient->CachedModelFile(ignition::common::URI(_uri), pathReturn))
+  {
+    currentNumberOfModelToDownload++;
+  }
+  else
   {
     threadDownloadModels.emplace_back([&, uri]()
     {
       auto path =
           fuel_tools::fetchResourceWithClient(uri, *this->fuelClient.get());
 
-      if (!path.empty())
+      currentNumberOfModelToDownload++;
+
+      if (path.empty())
       {
-        currentNumberOfModelToDownload++;
-        // std::lock_guard<std::recursive_mutex>  lock(this->mutexDownloadParallel);
-        while (this->simRunners.size() == 0)
-        {
-          std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        }
+        ignerr << "Not able to find the resource [" << uri << "]\n";
+        return;
+      }
+      while (this->simRunners.size() == 0)
+      {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      }
 
-        if (!allModelDownloaded)
-        {
-          for (auto &runner : this->simRunners)
-          {
-            if (runner)
-            {
-              runner->SetDownloadedAllModel(false);
-            }
-          }
-        }
-
+      if (!allModelDownloaded)
+      {
         for (auto &runner : this->simRunners)
         {
           if (runner)
           {
-            runner->AddToFuelUriMap(path, uri);
-            if (currentNumberOfModelToDownload == numberOfModelToDownload
-                && !allModelDownloaded)
-            {
-              allModelDownloaded = true;
-              sdf::Errors errors;
-              sdf::Root rootTmp;
-              if (!config.SdfString().empty())
-              {
-                if (!config.SdfFile().empty())
-                {
-                  errors = rootTmp.LoadSdfString(config.SdfString());
-                }
-              }
-              else if (!config.SdfFile().empty())
-              {
-                std::string filePath;
-
-                // Check Fuel if it's a URL
-                auto sdfUri = common::URI(config.SdfFile());
-                if (sdfUri.Scheme() == "http" || sdfUri.Scheme() == "https")
-                {
-                  std::string fuelCachePath;
-                  if (this->fuelClient->CachedWorld(common::URI(config.SdfFile()),
-                      fuelCachePath))
-                  {
-                    filePath = findFuelResourceSdf2(fuelCachePath);
-                  }
-                  else if (auto result = this->fuelClient->DownloadWorld(
-                      common::URI(config.SdfFile()), fuelCachePath))
-                  {
-                    filePath = findFuelResourceSdf2(fuelCachePath);
-                  }
-                  else
-                  {
-                    ignwarn << "Fuel couldn't download URL [" << config.SdfFile()
-                            << "], error: [" << result.ReadableResult() << "]"
-                            << std::endl;
-                  }
-                }
-
-                if (filePath.empty())
-                {
-                  common::SystemPaths systemPaths;
-
-                  // Worlds from environment variable
-                  systemPaths.SetFilePathEnv(kResourcePathEnv);
-
-                  // Worlds installed with ign-gazebo
-                  systemPaths.AddFilePaths(IGN_GAZEBO_WORLD_INSTALL_DIR);
-
-                  filePath = systemPaths.FindFile(config.SdfFile());
-                }
-
-                errors = rootTmp.Load(filePath);
-                if (!errors.empty())
-                {
-                  for (auto &err : errors)
-                    ignerr << err << "\n";
-                }
-              }
-
-              if (rootTmp.WorldCount() > 0)
-              {
-                for (size_t i = 0; i < rootTmp.WorldByIndex(0)->ModelCount(); i++)
-                {
-                  auto m = rootTmp.WorldByIndex(0)->ModelByIndex(i);
-                  if(!this->sdfRoot.ModelNameExists(m->Name()) &&
-                     (this->sdfRoot.WorldCount() > 0 &&
-                      !this->sdfRoot.WorldByIndex(0)->ModelNameExists(m->Name())))
-                  {
-                    runner->AddModel(*m);
-                  }
-                }
-                for (size_t i = 0; i < rootTmp.WorldByIndex(0)->ActorCount(); i++)
-                {
-                  auto actor = rootTmp.WorldByIndex(0)->ActorByIndex(i);
-                  if(!this->sdfRoot.ActorNameExists(actor->Name()) &&
-                     (this->sdfRoot.WorldCount() > 0 &&
-                      !this->sdfRoot.WorldByIndex(0)->ActorNameExists(actor->Name())))
-                  {
-                    runner->AddActor(*actor);
-                  }
-                }
-              }
-              runner->SetDownloadedAllModel(true);
-            }
-          }
-          else
-          {
-            ignerr << "Runner is null" << '\n';
+            runner->SetFetchedAllIncludes(false);
           }
         }
-        this->fuelUriMap[path] = uri;
       }
+
+      for (auto &runner : this->simRunners)
+      {
+        if (!runner)
+        {
+          ignerr << "Runner is null" << '\n';
+          continue;
+        }
+        runner->AddToFuelUriMap(path, uri);
+        if (currentNumberOfModelToDownload != numberOfModelToDownload)
+        {
+          continue;
+        }
+        allModelDownloaded = true;
+        sdf::Errors errors;
+        sdf::Root rootTmp;
+        if (!config.SdfString().empty())
+        {
+          if (!config.SdfFile().empty())
+          {
+            errors = rootTmp.LoadSdfString(config.SdfString());
+          }
+        }
+        else if (!config.SdfFile().empty())
+        {
+          std::string filePath;
+
+          // Check Fuel if it's a URL
+          auto sdfUri = common::URI(config.SdfFile());
+          if (sdfUri.Scheme() == "http" || sdfUri.Scheme() == "https")
+          {
+            std::string fuelCachePath;
+            if (this->fuelClient->CachedWorld(common::URI(config.SdfFile()),
+                fuelCachePath))
+            {
+              filePath = findFuelResourceSdf2(fuelCachePath);
+            }
+            else if (auto result = this->fuelClient->DownloadWorld(
+                common::URI(config.SdfFile()), fuelCachePath))
+            {
+              filePath = findFuelResourceSdf2(fuelCachePath);
+            }
+            else
+            {
+              ignwarn << "Fuel couldn't download URL [" << config.SdfFile()
+                      << "], error: [" << result.ReadableResult() << "]"
+                      << std::endl;
+            }
+          }
+
+          if (filePath.empty())
+          {
+            common::SystemPaths systemPaths;
+
+            // Worlds from environment variable
+            systemPaths.SetFilePathEnv(kResourcePathEnv);
+
+            // Worlds installed with ign-gazebo
+            systemPaths.AddFilePaths(IGN_GAZEBO_WORLD_INSTALL_DIR);
+
+            filePath = systemPaths.FindFile(config.SdfFile());
+          }
+
+          errors = rootTmp.Load(filePath);
+          if (!errors.empty())
+          {
+            for (auto &err : errors)
+              ignerr << err << "\n";
+          }
+        }
+
+        if (rootTmp.WorldCount() > 0)
+        {
+          for (size_t i = 0; i < rootTmp.WorldByIndex(0)->LightCount(); i++)
+          {
+            auto light = rootTmp.WorldByIndex(0)->LightByIndex(i);
+            if(!this->sdfRoot.LightNameExists(light->Name()) &&
+               (!this->sdfRoot.WorldByIndex(0)->LightNameExists(
+                 light->Name())))
+            {
+              runner->AddLight(*light);
+            }
+          }
+          for (size_t i = 0; i < rootTmp.WorldByIndex(0)->ModelCount(); i++)
+          {
+            auto m = rootTmp.WorldByIndex(0)->ModelByIndex(i);
+            if(!this->sdfRoot.ModelNameExists(m->Name()) &&
+               (!this->sdfRoot.WorldByIndex(0)->ModelNameExists(m->Name())))
+            {
+              runner->AddModel(*m);
+            }
+          }
+          for (size_t i = 0; i < rootTmp.WorldByIndex(0)->ActorCount(); i++)
+          {
+            auto actor = rootTmp.WorldByIndex(0)->ActorByIndex(i);
+            if(!this->sdfRoot.ActorNameExists(actor->Name()) &&
+               (!this->sdfRoot.WorldByIndex(0)->ActorNameExists(
+                 actor->Name())))
+            {
+              runner->AddActor(*actor);
+            }
+          }
+        }
+        runner->SetFetchedAllIncludes(true);
+      }
+      this->fuelUriMap[path] = uri;
     });
   }
-  else
-  {
-    currentNumberOfModelToDownload++;
-  }
-
-  ignerr << "pathReturn " << pathReturn << std::endl;
 
   return pathReturn;
 }

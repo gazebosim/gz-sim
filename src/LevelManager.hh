@@ -93,8 +93,12 @@ namespace ignition
       public: void AddModel(const sdf::Model &_model);
 
       /// \brief This will add an actor to the scene
-      /// \param[in] _model SDF actor to add to the scene
+      /// \param[in] _actor SDF actor to add to the scene
       public: void AddActor(const sdf::Actor &_actor);
+
+      /// \brief This will add an light to the scene
+      /// \param[in] _light SDF light to add to the scene
+      public: void AddLight(const sdf::Light &_light);
 
       /// \brief Load entities that have been marked for loading.
       /// \param[in] _namesToLoad List of of entity names to load
