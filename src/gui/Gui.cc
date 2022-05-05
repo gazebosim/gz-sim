@@ -45,6 +45,16 @@ std::unique_ptr<ignition::gui::Application> createGui(
     int &_argc, char **_argv, const char *_guiConfig,
     const char *_defaultGuiConfig, bool _loadPluginsFromSdf)
 {
+  return createGui(_argc, _argv, _guiConfig, _defaultGuiConfig,
+      _loadPluginsFromSdf, nullptr);
+}
+
+//////////////////////////////////////////////////
+std::unique_ptr<ignition::gui::Application> createGui(
+    int &_argc, char **_argv, const char *_guiConfig,
+    const char *_defaultGuiConfig, bool _loadPluginsFromSdf,
+    const char *_guiConfigOption)
+{
   ignition::common::SignalHandler sigHandler;
   bool sigKilled = false;
   sigHandler.AddCallback([&](const int /*_sig*/)
@@ -162,6 +172,9 @@ std::unique_ptr<ignition::gui::Application> createGui(
   std::size_t runnerCount = 0;
 
   // Configuration file from command line
+
+  // TODO can't load config here because we may override it with SDF below
+
   if (_guiConfig != nullptr && std::strlen(_guiConfig) > 0 &&
       std::string(_guiConfig) != "_playback_")
   {
@@ -221,6 +234,19 @@ std::unique_ptr<ignition::gui::Application> createGui(
       auto runner = new ignition::gazebo::GuiRunner(worldName);
       runner->setParent(ignition::gui::App());
       ++runnerCount;
+
+      // Config options
+      if (_guiConfigOption != nullptr && std::strlen(_guiConfigOption) > 0)
+      {
+         auto option = std::string(_guiConfig);
+         if (option == "prepend")
+         {
+         }
+         else if (option == "merge")
+         {
+         }
+      }
+
 
       // Load plugins after creating GuiRunner, so they can access worldName
       if (_loadPluginsFromSdf)
@@ -290,7 +316,15 @@ std::unique_ptr<ignition::gui::Application> createGui(
 //////////////////////////////////////////////////
 int runGui(int &_argc, char **_argv, const char *_guiConfig)
 {
-  auto app = gazebo::gui::createGui(_argc, _argv, _guiConfig);
+  return runGui(_argc, _argv, _guiConfig, nullptr);
+}
+
+//////////////////////////////////////////////////
+int runGui(int &_argc, char **_argv, const char *_guiConfig,
+    const char *_guiConfigOption)
+{
+  auto app = gazebo::gui::createGui(_argc, _argv, _guiConfig, nullptr, true,
+      _guiConfigOption);
   if (nullptr != app)
   {
     // Run main window.

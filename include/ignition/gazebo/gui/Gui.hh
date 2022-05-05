@@ -41,8 +41,23 @@ namespace gui
   /// ign-tools. Set to the name of the application if using ign-tools)
   /// \param[in] _guiConfig The GUI configuration file. If nullptr, the default
   /// configuration from IGN_HOMEDIR/.ignition/gazebo/gui.config will be used.
+  /// \return Zero if ran successfully.
   IGNITION_GAZEBO_GUI_VISIBLE int runGui(int &_argc, char **_argv,
                                      const char *_guiConfig);
+
+  /// \brief Run GUI application
+  /// \param[in] _argc Number of command line arguments (Used when running
+  /// without ign-tools. Set to 1 if using ign-tools). Note: The object
+  /// referenced by this variable must continue to exist for the lifetime of the
+  /// application.
+  /// \param[in] _argv Command line arguments (Used when running without
+  /// ign-tools. Set to the name of the application if using ign-tools)
+  /// \param[in] _guiConfig The GUI configuration file. If nullptr, the default
+  /// configuration from IGN_HOMEDIR/.ignition/gazebo/gui.config will be used.
+  /// \param[in] _guiConfigOption Options for loading GUI configuration.
+  /// \return Zero if ran successfully.
+  IGNITION_GAZEBO_GUI_VISIBLE int runGui(int &_argc, char **_argv,
+      const char *_guiConfig, const char *_guiConfigOption = nullptr);
 
   /// \brief Create a Gazebo GUI application
   /// \param[in] _argc Number of command line arguments (Used when running
@@ -60,10 +75,35 @@ namespace gui
   /// IGN_HOMEDIR/.ignition/gazebo/gui.config will be used.
   /// \param[in] _loadPluginsFromSdf If true, plugins specified in the world
   /// SDFormat file will get loaded.
+  /// \return The GUI application.
   IGNITION_GAZEBO_GUI_VISIBLE
   std::unique_ptr<ignition::gui::Application> createGui(
       int &_argc, char **_argv, const char *_guiConfig,
       const char *_defaultGuiConfig = nullptr, bool _loadPluginsFromSdf = true);
+
+  /// \brief Create a Gazebo GUI application
+  /// \param[in] _argc Number of command line arguments (Used when running
+  /// without ign-tools. Set to 1 if using ign-tools). Note: The object
+  /// referenced by this variable must continue to exist for the lifetime of the
+  /// application.
+  /// \param[in] _argv Command line arguments (Used when running without
+  /// ign-tools. Set to the name of the application if using ign-tools)
+  /// \param[in] _guiConfig The GUI configuration file. If nullptr, the default
+  /// configuration from IGN_HOMEDIR/.ignition/gazebo/gui.config will be used.
+  /// \param[in] _defaultGuiConfig The default GUI configuration file. If no
+  /// plugins were added from a world file or from _guiConfig, this
+  /// configuration file will be loaded. If this argument is a nullptr or if the
+  /// file does not exist, the default configuration from
+  /// IGN_HOMEDIR/.ignition/gazebo/gui.config will be used.
+  /// \param[in] _loadPluginsFromSdf If true, plugins specified in the world
+  /// SDFormat file will get loaded.
+  /// \param[in] _guiConfigOption Options for loading GUI configuration.
+  /// \return The GUI application.
+  IGNITION_GAZEBO_GUI_VISIBLE
+  std::unique_ptr<ignition::gui::Application> createGui(
+      int &_argc, char **_argv, const char *_guiConfig,
+      const char *_defaultGuiConfig, bool _loadPluginsFromSdf,
+      const char *_guiConfigOption);
 
 }  // namespace gui
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE

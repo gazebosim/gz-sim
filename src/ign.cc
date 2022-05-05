@@ -368,5 +368,6 @@ extern "C" int runGui(const char *_guiConfig, const char *_guiConfigOption)
   // be converted to a const char *. The const cast is here to prevent a warning
   // since we do need to pass a char* to runGui
   char *argv = const_cast<char *>("ign-gazebo-gui");
-  return ignition::gazebo::gui::runGui(argc, &argv, _guiConfig);
+  return ignition::gazebo::gui::runGui(argc, &argv, _guiConfig,
+      _guiConfigOption);
 }
