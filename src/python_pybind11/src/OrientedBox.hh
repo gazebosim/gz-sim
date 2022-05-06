@@ -72,7 +72,6 @@ void defineMathOrientedBox(py::module &m, const std::string &typestr)
          "Set the box pose, which is the pose of its center.")
     .def("pose",
          py::overload_cast<>(&Class::Pose, py::const_),
-         py::return_value_policy::reference,
          "Get the box pose, which is the pose of its center.")
     .def("size",
          py::overload_cast<>(&Class::Size, py::const_),

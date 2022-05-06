@@ -125,8 +125,8 @@ void helpDefineMathPose3(py::module &m, const std::string &typestr)
          &Class::Round,
          "Round all values to _precision decimal places")
     .def("pos",
-         py::overload_cast<>(&Class::Pos, py::const_),
-         py::return_value_policy::reference,
+         py::overload_cast<>(&Class::Pos),
+         py::return_value_policy::reference_internal,
          "Get the position.")
     .def("x", &Class::X, "Get the X value of the position")
     .def("y", &Class::Y, "Get the Y value of the position")
@@ -135,8 +135,8 @@ void helpDefineMathPose3(py::module &m, const std::string &typestr)
     .def("set_y", &Class::SetY, "Set the Y value of the position")
     .def("set_z", &Class::SetZ, "Set the Z value of the position")
     .def("rot",
-         py::overload_cast<>(&Class::Rot, py::const_),
-         py::return_value_policy::reference,
+         py::overload_cast<>(&Class::Rot),
+         py::return_value_policy::reference_internal,
          "Get the rotation.")
     .def("roll", &Class::Roll, "Get the Roll value of the position")
     .def("pitch", &Class::Pitch, "Get the Pitch value of the position")

@@ -84,7 +84,6 @@ void defineMathCylinder(py::module &m, const std::string &typestr)
          "Set the rotation offset.")
     .def("mat",
          &Class::Mat,
-         py::return_value_policy::reference,
          "Get the material associated with this box.")
     .def("set_mat",
          &Class::SetMat,

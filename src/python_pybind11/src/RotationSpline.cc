@@ -38,7 +38,6 @@ void defineMathRotationSpline(py::module &m, const std::string &typestr)
        "Adds a control point to the end of the spline.")
    .def("point",
         &Class::Point,
-        py::return_value_policy::reference,
         "Gets the detail of one of the control points of the spline.")
    .def("point_count",
         &Class::PointCount,
