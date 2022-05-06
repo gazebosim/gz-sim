@@ -462,7 +462,7 @@ namespace ignition
         return this->q;
       }
 
-      /// \brief Get a mutuable reference to the rotation.
+      /// \brief Get a mutable reference to the rotation.
       /// \return Quaternion representation of the rotation.
       public: inline Quaternion<T> &Rot()
       {

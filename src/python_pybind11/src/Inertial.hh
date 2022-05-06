@@ -65,14 +65,12 @@ void defineMathInertial(py::module &m, const std::string &typestr)
          "Set the mass and inertia matrix.")
     .def("mass_matrix",
          &Class::MassMatrix,
-         py::return_value_policy::reference,
          "Get the mass and inertia matrix.")
     .def("set_pose",
          &Class::SetPose,
          "Set the pose of the center of mass reference frame.")
     .def("pose",
          &Class::Pose,
-         py::return_value_policy::reference,
          "Get the pose of the center of mass reference frame.")
     .def("moi",
          &Class::Moi,
@@ -86,7 +84,6 @@ void defineMathInertial(py::module &m, const std::string &typestr)
          &Class::SetMassMatrixRotation,
          py::arg("_q") = ignition::math::Quaternion<T>::Identity,
          py::arg("_tol") = 1e-6,
-         py::return_value_policy::reference,
          "Set the MassMatrix rotation (eigenvectors of inertia matrix) "
          "without affecting the MOI in the base coordinate frame.")
     .def("__copy__", [](const Class &self) {

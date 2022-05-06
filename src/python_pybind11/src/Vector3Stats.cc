@@ -52,19 +52,19 @@ void defineMathVector3Stats(py::module &m, const std::string &typestr)
          "Forget all previous data.")
     .def("x",
          py::overload_cast<>(&Class::X),
-         py::return_value_policy::reference,
+         py::return_value_policy::reference_internal,
          "Get statistics for x component of signal.")
     .def("y",
          py::overload_cast<>(&Class::Y),
-         py::return_value_policy::reference,
+         py::return_value_policy::reference_internal,
          "Get statistics for y component of signal.")
     .def("z",
          py::overload_cast<>(&Class::Z),
-         py::return_value_policy::reference,
+         py::return_value_policy::reference_internal,
          "Get statistics for z component of signal.")
     .def("mag",
          py::overload_cast<>(&Class::Mag),
-         py::return_value_policy::reference,
+         py::return_value_policy::reference_internal,
          "Get statistics for mag component of signal.")
     .def("__copy__", [](const Class &self) {
       return Class(self);

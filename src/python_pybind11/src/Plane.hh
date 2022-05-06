@@ -93,12 +93,12 @@ void defineMathPlane(py::module &m, const std::string &typestr)
          "The side of the plane a point is on.")
     .def("size",
          py::overload_cast<>(&Class::Size),
-         py::return_value_policy::reference,
+         py::return_value_policy::reference_internal,
          "Get the plane size")
     .def("normal",
          py::overload_cast<>(&Class::Normal),
-         py::return_value_policy::reference,
-         "Get the plane size")
+         py::return_value_policy::reference_internal,
+         "Get the plane normal")
     .def("offset",
          &Class::Offset,
          "Get the plane offset")

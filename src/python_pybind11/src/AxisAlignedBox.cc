@@ -80,12 +80,12 @@ void defineMathAxisAlignedBox(py::module &m, const std::string &typestr)
     .def(py::self == py::self)
     .def(py::self != py::self)
     .def("min",
-         py::overload_cast<>(&Class::Min, py::const_),
-         py::return_value_policy::reference,
+         py::overload_cast<>(&Class::Min),
+         py::return_value_policy::reference_internal,
          "Get the minimum corner.")
     .def("max",
-         py::overload_cast<>(&Class::Max, py::const_),
-         py::return_value_policy::reference,
+         py::overload_cast<>(&Class::Max),
+         py::return_value_policy::reference_internal,
          "Get the maximum corner.")
     .def("intersects",
          &Class::Intersects,
