@@ -718,12 +718,33 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   // Keep number of iterations requested by caller
   uint64_t processedIterations{0};
 
+  bool isInitialRunOfSimulationSet = false;
+
   // Execute all the systems until we are told to stop, or the number of
   // iterations is reached.
   while (this->running && (_iterations == 0 ||
        processedIterations < _iterations))
   {
+    std::lock_guard<std::mutex> lock(this->mutexDownloadParallel);
+
     IGN_PROFILE("SimulationRunner::Run - Iteration");
+
+    // If the models are still being downloaded, it doesn't allow to start
+    // the simulation
+    if (!this->FetchedAllIncludes())
+    {
+      this->SetPaused(true);
+    }
+    else
+    {
+      // when the models are downloaded we should set which is the run option
+      // used by the user.
+      if (!isInitialRunOfSimulationSet)
+      {
+        isInitialRunOfSimulationSet = true;
+        this->SetPaused(!this->serverConfig.RunOption());
+      }
+    }
 
     // Update the step size and desired rtf
     this->UpdatePhysicsParams();
@@ -1319,4 +1340,23 @@ bool SimulationRunner::NextStepIsBlockingPaused() const
 void SimulationRunner::SetNextStepAsBlockingPaused(const bool value)
 {
   this->blockingPausedStepPending = value;
+}
+
+//////////////////////////////////////////////////
+bool SimulationRunner::FetchedAllIncludes() const
+{
+  return downloadedAllModels;
+}
+
+//////////////////////////////////////////////////
+void SimulationRunner::SetFetchedAllIncludes(bool _downloadedAllModels)
+{
+  this->downloadedAllModels = _downloadedAllModels;
+}
+
+//////////////////////////////////////////////////
+void SimulationRunner::AddWorld(const sdf::World *_world)
+{
+  std::lock_guard<std::mutex> lock(this->mutexDownloadParallel);
+  levelMgr->AddWorld(_world);
 }

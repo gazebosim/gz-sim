@@ -96,84 +96,109 @@ Server::Server(const ServerConfig &_config)
 
   sdf::Errors errors;
 
-  // Load a world if specified. Check SDF string first, then SDF file
-  if (!_config.SdfString().empty())
+  this->dataPtr->downloadModelsThread = new std::thread([&]()
   {
-    std::string msg = "Loading SDF string. ";
-    if (_config.SdfFile().empty())
+    sdf::Errors errorsThread;
+    // Load a world if specified. Check SDF string first, then SDF file
+    if (!_config.SdfString().empty())
     {
-      msg += "File path not available.\n";
-    }
-    else
-    {
-      msg += "File path [" + _config.SdfFile() + "].\n";
-    }
-    ignmsg <<  msg;
-    errors = this->dataPtr->sdfRoot.LoadSdfString(_config.SdfString());
-  }
-  else if (!_config.SdfFile().empty())
-  {
-    std::string filePath;
-
-    // Check Fuel if it's a URL
-    auto sdfUri = common::URI(_config.SdfFile());
-    if (sdfUri.Scheme() == "http" || sdfUri.Scheme() == "https")
-    {
-      std::string fuelCachePath;
-      if (this->dataPtr->fuelClient->CachedWorld(common::URI(_config.SdfFile()),
-          fuelCachePath))
+      std::string msg = "Loading SDF string. ";
+      if (_config.SdfFile().empty())
       {
-        filePath = findFuelResourceSdf(fuelCachePath);
-      }
-      else if (auto result = this->dataPtr->fuelClient->DownloadWorld(
-          common::URI(_config.SdfFile()), fuelCachePath))
-      {
-        filePath = findFuelResourceSdf(fuelCachePath);
+        msg += "File path not available.\n";
       }
       else
       {
-        ignwarn << "Fuel couldn't download URL [" << _config.SdfFile()
-                << "], error: [" << result.ReadableResult() << "]"
-                << std::endl;
+        msg += "File path [" + _config.SdfFile() + "].\n";
+      }
+      ignmsg <<  msg;
+      errorsThread = this->dataPtr->sdfRoot.LoadSdfString(_config.SdfString());
+    }
+    else if (!_config.SdfFile().empty())
+    {
+      std::string filePath;
+
+      // Check Fuel if it's a URL
+      auto sdfUri = common::URI(_config.SdfFile());
+      if (sdfUri.Scheme() == "http" || sdfUri.Scheme() == "https")
+      {
+        std::string fuelCachePath;
+        if (this->dataPtr->fuelClient->CachedWorld(common::URI(
+            _config.SdfFile()), fuelCachePath))
+        {
+          filePath = findFuelResourceSdf(fuelCachePath);
+        }
+        else if (auto result = this->dataPtr->fuelClient->DownloadWorld(
+            common::URI(_config.SdfFile()), fuelCachePath))
+        {
+          filePath = findFuelResourceSdf(fuelCachePath);
+        }
+        else
+        {
+          ignwarn << "Fuel couldn't download URL [" << _config.SdfFile()
+                  << "], error: [" << result.ReadableResult() << "]"
+                  << std::endl;
+        }
+      }
+
+      if (filePath.empty())
+      {
+        common::SystemPaths systemPaths;
+
+        // Worlds from environment variable
+        systemPaths.SetFilePathEnv(kResourcePathEnv);
+
+        // Worlds installed with ign-gazebo
+        systemPaths.AddFilePaths(IGN_GAZEBO_WORLD_INSTALL_DIR);
+
+        filePath = systemPaths.FindFile(_config.SdfFile());
+      }
+
+      if (filePath.empty())
+      {
+        ignerr << "Failed to find world [" << _config.SdfFile() << "]"
+               << std::endl;
+        return;
+      }
+
+      ignmsg << "Loading SDF world file[" << filePath << "].\n";
+
+      // \todo(nkoenig) Async resource download.
+      // This call can block for a long period of time while
+      // resources are downloaded. Blocking here causes the GUI to block with
+      // a black screen (search for "Async resource download" in
+      // 'src/gui_main.cc'.
+      errorsThread = this->dataPtr->sdfRoot.Load(filePath);
+
+      if (!errorsThread.empty())
+      {
+        for (auto &err : errorsThread)
+          ignerr << err << "\n";
+        return;
+      }
+
+      if (this->dataPtr->sdfRoot.WorldCount() == 0)
+      {
+        ignerr << "There is no world available" << "\n";
+        return;
+      }
+
+      for (std::unique_ptr<SimulationRunner> &runner : this->dataPtr->simRunners)
+      {
+        for (size_t j = 0; j < this->dataPtr->sdfRoot.WorldCount(); ++j){
+            runner->AddWorld(this->dataPtr->sdfRoot.WorldByIndex(j));
+        }
+        runner->SetFetchedAllIncludes(true);
       }
     }
+    ignmsg << "Download models in parallel has finished. "
+           << "Now you can start the simulation" << std::endl;
+  });
 
-    if (filePath.empty())
-    {
-      common::SystemPaths systemPaths;
-
-      // Worlds from environment variable
-      systemPaths.SetFilePathEnv(kResourcePathEnv);
-
-      // Worlds installed with ign-gazebo
-      systemPaths.AddFilePaths(IGN_GAZEBO_WORLD_INSTALL_DIR);
-
-      filePath = systemPaths.FindFile(_config.SdfFile());
-    }
-
-    if (filePath.empty())
-    {
-      ignerr << "Failed to find world [" << _config.SdfFile() << "]"
-             << std::endl;
-      return;
-    }
-
-    ignmsg << "Loading SDF world file[" << filePath << "].\n";
-
-    // \todo(nkoenig) Async resource download.
-    // This call can block for a long period of time while
-    // resources are downloaded. Blocking here causes the GUI to block with
-    // a black screen (search for "Async resource download" in
-    // 'src/gui_main.cc'.
-    errors = this->dataPtr->sdfRoot.Load(filePath);
-  }
-  else
-  {
-    ignmsg << "Loading default world.\n";
-    // Load an empty world.
-    /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
-    errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World());
-  }
+  ignmsg << "Loading default world.\n";
+  // Load an empty world.
+  /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
+  errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World());
 
   if (!errors.empty())
   {

@@ -232,6 +232,7 @@ class ignition::gazebo::ServerConfigPrivate
             physicsEngine(_cfg->physicsEngine),
             renderEngineServer(_cfg->renderEngineServer),
             renderEngineGui(_cfg->renderEngineGui),
+            running(_cfg->running),
             plugins(_cfg->plugins),
             networkRole(_cfg->networkRole),
             networkSecondaries(_cfg->networkSecondaries),
@@ -283,6 +284,10 @@ class ignition::gazebo::ServerConfigPrivate
   /// \brief File containing render engine gui plugin. If empty, OGRE2
   /// will be used.
   public: std::string renderEngineGui = "";
+
+  /// \brief This is used to indicate that Run has been called, and the
+  /// server is in the run state.
+  public: bool running{false};
 
   /// \brief List of plugins to load.
   public: std::list<ServerConfig::PluginInfo> plugins;
@@ -371,6 +376,18 @@ std::optional<std::chrono::steady_clock::duration>
   }
 
   return std::nullopt;
+}
+
+/////////////////////////////////////////////////
+bool ServerConfig::RunOption() const
+{
+  return this->dataPtr->running;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetRunOption(bool _run)
+{
+  this->dataPtr->running = _run;
 }
 
 /////////////////////////////////////////////////
@@ -928,4 +945,3 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
 
   return ret;
 }
-

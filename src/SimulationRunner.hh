@@ -176,6 +176,20 @@ namespace ignition
       /// \return True if the operation completed successfully.
       public: bool Run(const uint64_t _iterations);
 
+      /// \brief This will add a world to the scene
+      /// \param[in] _light SDF world to add to the scene
+      public: void AddWorld(const sdf::World *_world);
+
+      /// \brief Check if there is any model being downloaded in the backgound.
+      /// \return False if there is any model being downloaded in the background,
+      /// true otherwise
+      public: bool FetchedAllIncludes() const;
+
+      /// \brief Set if there is any model being downloaded in the backgound.
+      /// \param[in] _downloadedAllModels False if there is any model being
+      /// downloaded in the background, true otherwise.
+      public: void SetFetchedAllIncludes(bool _downloadedAllModels);
+
       /// \brief Perform a simulation step:
       /// * Publish stats and process control messages
       /// * Update levels and systems
@@ -585,6 +599,12 @@ namespace ignition
 
       /// \brief True if Server::RunOnce triggered a blocking paused step
       private: bool blockingPausedStepPending{false};
+
+      /// \brief Mutex to protect the runner when a new model is inserted
+      private: std::mutex mutexDownloadParallel;
+
+      /// \brief True if all model are downloaded, false otherwise
+      private: std::atomic<bool> downloadedAllModels{false};
 
       friend class LevelManager;
     };

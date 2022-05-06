@@ -128,6 +128,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
   // Path for logs
   std::string recordPathMod = serverConfig.LogRecordPath();
 
+  serverConfig.SetRunOption(_run);
+
   // Path for compressed log, used to check for duplicates
   std::string cmpPath = std::string(recordPathMod);
   if (!std::string(1, cmpPath.back()).compare(ignition::common::separator("")))
