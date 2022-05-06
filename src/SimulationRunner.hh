@@ -181,8 +181,8 @@ namespace ignition
       public: void AddWorld(const sdf::World *_world);
 
       /// \brief Check if there is any model being downloaded in the backgound.
-      /// \return False if there is any model being downloaded in the background,
-      /// true otherwise
+      /// \return False if there is any model being downloaded in the
+      /// background, True otherwise
       public: bool FetchedAllIncludes() const;
 
       /// \brief Set if there is any model being downloaded in the backgound.

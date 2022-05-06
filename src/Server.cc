@@ -183,9 +183,11 @@ Server::Server(const ServerConfig &_config)
         return;
       }
 
-      for (std::unique_ptr<SimulationRunner> &runner : this->dataPtr->simRunners)
+      for (std::unique_ptr<SimulationRunner> &runner :
+           this->dataPtr->simRunners)
       {
-        for (size_t j = 0; j < this->dataPtr->sdfRoot.WorldCount(); ++j){
+        for (size_t j = 0; j < this->dataPtr->sdfRoot.WorldCount(); ++j)
+        {
             runner->AddWorld(this->dataPtr->sdfRoot.WorldByIndex(j));
         }
         runner->SetFetchedAllIncludes(true);
