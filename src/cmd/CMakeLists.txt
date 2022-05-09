@@ -7,7 +7,7 @@ set(cmd_script_configured "${cmd_script_generated}.configured")
 
 # Set the library_location variable to the relative path to the library file
 # within the install directory structure.
-set(library_location "../../../${CMAKE_INSTALL_LIBDIR}/$<TARGET_FILE_NAME:${ign_lib_target}>")
+set(library_location "../../../${CMAKE_INSTALL_LIBDIR}/$<TARGET_FILE_NAME:${gz_lib_target}>")
 
 configure_file(
   "cmd${IGN_DESIGNATION}.rb.in"
@@ -73,7 +73,7 @@ set(cmd_script_configured_test "${cmd_script_generated_test}.configured")
 
 # Set the library_location variable to the relative path to the library file
 # within the install directory structure.
-set(library_location "$<TARGET_FILE:${ign_lib_target}>")
+set(library_location "$<TARGET_FILE:${gz_lib_target}>")
 
 configure_file(
   "cmd${IGN_DESIGNATION}.rb.in"
