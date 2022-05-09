@@ -37,15 +37,15 @@ function(configure_build_install_location _library_name)
 endfunction()
 
 pybind11_add_module(gazebo SHARED
-  src/ignition/gazebo/_ignition_gazebo_pybind11.cc
-  src/ignition/gazebo/EntityComponentManager.cc
-  src/ignition/gazebo/EventManager.cc
-  src/ignition/gazebo/TestFixture.cc
-  src/ignition/gazebo/Server.cc
-  src/ignition/gazebo/ServerConfig.cc
-  src/ignition/gazebo/UpdateInfo.cc
-  src/ignition/gazebo/Util.cc
-  src/ignition/gazebo/World.cc
+  src/gz/sim/_gz_sim_pybind11.cc
+  src/gz/sim/EntityComponentManager.cc
+  src/gz/sim/EventManager.cc
+  src/gz/sim/TestFixture.cc
+  src/gz/sim/Server.cc
+  src/gz/sim/ServerConfig.cc
+  src/gz/sim/UpdateInfo.cc
+  src/gz/sim/Util.cc
+  src/gz/sim/World.cc
 )
 
 target_link_libraries(gazebo PRIVATE
@@ -55,8 +55,8 @@ target_link_libraries(gazebo PRIVATE
 
 # TODO(ahcorde): Move this module to ign-common
 pybind11_add_module(common SHARED
-  src/ignition/common/_ignition_common_pybind11.cc
-  src/ignition/common/Console.cc
+  src/gz/common/_gz_common_pybind11.cc
+  src/gz/common/Console.cc
 )
 
 target_link_libraries(common PRIVATE
