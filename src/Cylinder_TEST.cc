@@ -18,7 +18,7 @@
 #include <cmath>
 #include <iostream>
 
-#include "ignition/math/Cylinder.hh"
+#include "gz/math/Cylinder.hh"
 
 using namespace ignition;
 

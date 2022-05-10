@@ -19,7 +19,7 @@
 #include <iostream>
 #include <string>
 
-#include "ignition/math/graph/Vertex.hh"
+#include "gz/math/graph/Vertex.hh"
 
 using namespace ignition;
 using namespace math;

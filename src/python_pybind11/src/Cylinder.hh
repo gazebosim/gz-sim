@@ -24,7 +24,7 @@
 #include <pybind11/operators.h>
 #include <pybind11/stl.h>
 
-#include <ignition/math/Cylinder.hh>
+#include <gz/math/Cylinder.hh>
 
 namespace py = pybind11;
 using namespace pybind11::literals;

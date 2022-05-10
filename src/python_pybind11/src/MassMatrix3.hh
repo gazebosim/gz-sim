@@ -22,8 +22,8 @@
 #include <pybind11/operators.h>
 #include <string>
 
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/MassMatrix3.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/MassMatrix3.hh>
 
 namespace py = pybind11;
 

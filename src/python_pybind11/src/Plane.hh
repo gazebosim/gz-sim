@@ -24,7 +24,7 @@
 #include <pybind11/operators.h>
 #include <pybind11/stl.h>
 
-#include <ignition/math/Plane.hh>
+#include <gz/math/Plane.hh>
 
 namespace py = pybind11;
 using namespace pybind11::literals;

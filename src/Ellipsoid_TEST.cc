@@ -18,9 +18,9 @@
 #include <cmath>
 #include <iostream>
 
-#include "ignition/math/Ellipsoid.hh"
-#include "ignition/math/Helpers.hh"
-#include "ignition/math/Vector3.hh"
+#include "gz/math/Ellipsoid.hh"
+#include "gz/math/Helpers.hh"
+#include "gz/math/Vector3.hh"
 
 using namespace ignition;
 

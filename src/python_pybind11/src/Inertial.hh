@@ -24,7 +24,7 @@
 #include <pybind11/operators.h>
 #include <pybind11/stl.h>
 
-#include <ignition/math/Inertial.hh>
+#include <gz/math/Inertial.hh>
 
 namespace py = pybind11;
 using namespace pybind11::literals;

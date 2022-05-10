@@ -15,11 +15,11 @@
  *
 */
 
-#include <ignition/math/Kmeans.hh>
+#include <gz/math/Kmeans.hh>
 
 #include <iostream>
 
-#include <ignition/math/Rand.hh>
+#include <gz/math/Rand.hh>
 #include "KmeansPrivate.hh"
 
 using namespace ignition;

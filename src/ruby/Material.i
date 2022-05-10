@@ -17,10 +17,10 @@
 
 %module material
 %{
-#include <ignition/math/config.hh>
-#include <ignition/math/Export.hh>
-#include <ignition/math/Material.hh>
-#include <ignition/math/MaterialType.hh>
+#include <gz/math/config.hh>
+#include <gz/math/Export.hh>
+#include <gz/math/Material.hh>
+#include <gz/math/MaterialType.hh>
 %}
 
 %include "std_string.i"

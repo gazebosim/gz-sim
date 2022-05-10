@@ -19,7 +19,7 @@
 #include <string>
 
 #include "Color.hh"
-#include <ignition/math/Color.hh>
+#include <gz/math/Color.hh>
 
 #include <pybind11/operators.h>
 

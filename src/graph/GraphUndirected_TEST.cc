@@ -21,7 +21,7 @@
 #include <utility>
 #include <vector>
 
-#include "ignition/math/graph/Graph.hh"
+#include "gz/math/graph/Graph.hh"
 
 using namespace ignition;
 using namespace math;

@@ -17,10 +17,10 @@
 
 %module quaternion
 %{
-  #include <ignition/math/config.hh>
-  #include <ignition/math/Pose3.hh>
-  #include <ignition/math/Quaternion.hh>
-  #include <ignition/math/Vector3.hh>
+  #include <gz/math/config.hh>
+  #include <gz/math/Pose3.hh>
+  #include <gz/math/Quaternion.hh>
+  #include <gz/math/Vector3.hh>
 %}
 
 %include "std_string.i"

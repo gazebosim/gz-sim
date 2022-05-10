@@ -17,8 +17,8 @@
 
 #include <gtest/gtest.h>
 
-#include "ignition/math/PID.hh"
-#include "ignition/math/Helpers.hh"
+#include "gz/math/PID.hh"
+#include "gz/math/Helpers.hh"
 
 using namespace ignition;
 

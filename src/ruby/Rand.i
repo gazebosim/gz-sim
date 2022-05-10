@@ -17,7 +17,7 @@
 
 %module rand
 %{
-#include <ignition/math/Rand.hh>
+#include <gz/math/Rand.hh>
 %}
 
 namespace ignition

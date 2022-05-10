@@ -21,10 +21,10 @@
 #include <cmath>
 #include <limits>
 
-#include "ignition/math/Rand.hh"
-#include "ignition/math/Vector3.hh"
-#include "ignition/math/Helpers.hh"
-#include <ignition/utils/SuppressWarning.hh>
+#include "gz/math/Rand.hh"
+#include "gz/math/Vector3.hh"
+#include "gz/math/Helpers.hh"
+#include <gz/utils/SuppressWarning.hh>
 
 using namespace ignition;
 

@@ -16,7 +16,7 @@
 */
 #include <gtest/gtest.h>
 
-#include "ignition/math/Temperature.hh"
+#include "gz/math/Temperature.hh"
 
 using namespace ignition;
 using namespace math;

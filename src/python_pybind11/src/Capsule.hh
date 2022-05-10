@@ -24,7 +24,7 @@
 #include <pybind11/operators.h>
 #include <pybind11/stl.h>
 
-#include <ignition/math/Capsule.hh>
+#include <gz/math/Capsule.hh>
 
 namespace py = pybind11;
 using namespace pybind11::literals;

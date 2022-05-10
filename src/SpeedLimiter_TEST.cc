@@ -17,8 +17,8 @@
 
 #include <gtest/gtest.h>
 
-#include "ignition/math/Helpers.hh"
-#include "ignition/math/SpeedLimiter.hh"
+#include "gz/math/Helpers.hh"
+#include "gz/math/SpeedLimiter.hh"
 
 using namespace ignition;
 using namespace math;

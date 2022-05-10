@@ -22,7 +22,7 @@
 
 %module helpers
 %{
-#include <ignition/math/Helpers.hh>
+#include <gz/math/Helpers.hh>
 %}
 
 template <typename T>

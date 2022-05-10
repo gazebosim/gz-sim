@@ -19,10 +19,10 @@
 %{
 #include <chrono>
 #include <memory>
-#include <ignition/math/DiffDriveOdometry.hh>
-#include <ignition/math/Angle.hh>
-#include <ignition/math/Export.hh>
-#include <ignition/math/config.hh>
+#include <gz/math/DiffDriveOdometry.hh>
+#include <gz/math/Angle.hh>
+#include <gz/math/Export.hh>
+#include <gz/math/config.hh>
 %}
 
 %include "typemaps.i"

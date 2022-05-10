@@ -22,7 +22,7 @@
 #include <pybind11/chrono.h>
 #include <string>
 
-#include <ignition/math/DiffDriveOdometry.hh>
+#include <gz/math/DiffDriveOdometry.hh>
 
 namespace py = pybind11;
 

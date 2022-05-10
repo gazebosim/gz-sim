@@ -22,7 +22,7 @@
 
 %module pose3
 %{
-#include <ignition/math/Pose3.hh>
+#include <gz/math/Pose3.hh>
 %}
 
 namespace ignition

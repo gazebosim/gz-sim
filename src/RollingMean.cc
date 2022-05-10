@@ -18,7 +18,7 @@
 #include <numeric>
 #include <limits>
 #include <deque>
-#include "ignition/math/RollingMean.hh"
+#include "gz/math/RollingMean.hh"
 
 using namespace ignition::math;
 

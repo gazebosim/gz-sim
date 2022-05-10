@@ -21,10 +21,10 @@
 #include <vector>
 #include <optional>
 
-#include <ignition/math/Vector3.hh>
-#include <ignition/math/detail/InterpolationPoint.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/math/detail/InterpolationPoint.hh>
 
-#include <ignition/math/detail/AxisIndex.hh>
+#include <gz/math/detail/AxisIndex.hh>
 
 namespace ignition
 {

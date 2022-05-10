@@ -16,8 +16,8 @@
 */
 %module movingwindowfilter
 %{
-#include "ignition/math/MovingWindowFilter.hh"
-#include "ignition/math/Vector3.hh"
+#include "gz/math/MovingWindowFilter.hh"
+#include "gz/math/Vector3.hh"
 %}
 
 namespace ignition

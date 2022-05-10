@@ -18,7 +18,7 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/math/eigen3/Conversions.hh>
+#include <gz/math/eigen3/Conversions.hh>
 
 /////////////////////////////////////////////////
 /// Check Vector3 conversions

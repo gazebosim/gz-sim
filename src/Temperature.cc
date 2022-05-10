@@ -15,7 +15,7 @@
  *
 */
 
-#include "ignition/math/Temperature.hh"
+#include "gz/math/Temperature.hh"
 
 #include <istream>
 #include <ostream>

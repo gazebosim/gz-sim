@@ -17,8 +17,8 @@
 #include <iostream>
 #include <string>
 
-#include "ignition/math/Matrix3.hh"
-#include "ignition/math/SphericalCoordinates.hh"
+#include "gz/math/Matrix3.hh"
+#include "gz/math/SphericalCoordinates.hh"
 
 using namespace ignition;
 using namespace math;

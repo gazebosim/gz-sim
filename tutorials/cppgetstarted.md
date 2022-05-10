@@ -24,7 +24,7 @@ For this example, we'll take the short and easy approach.
 At this point your main file should look like
 
 ```{.cpp}
-#include <ignition/math.hh>
+#include <gz/math.hh>
 
 int main()
 {
@@ -38,7 +38,7 @@ ignition::math::Vector3d type which is a typedef of `Vector3<double>`. The resul
 addition will be a main file similar to the following.
 
 ```{.cpp}
-#include <ignition/math.hh>
+#include <gz/math.hh>
 
 int main()
 {
@@ -53,7 +53,7 @@ Finally, we can compute the distance between `point1` and `point2` using the
 ignition::math::Vector3::Distance() function and output the distance value.
 
 ```{.cpp}
-#include <ignition/math.hh>
+#include <gz/math.hh>
 
 int main()
 {

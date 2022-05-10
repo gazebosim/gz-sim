@@ -18,7 +18,7 @@
 #include <gtest/gtest.h>
 #include <thread>
 
-#include "ignition/math/Stopwatch.hh"
+#include "gz/math/Stopwatch.hh"
 
 using namespace ignition;
 

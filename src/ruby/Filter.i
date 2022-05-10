@@ -17,11 +17,11 @@
 
 %module filter
 %{
-#include <ignition/math/config.hh>
-#include <ignition/math/Filter.hh>
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/Quaternion.hh>
-#include <ignition/math/Vector3.hh>
+#include <gz/math/config.hh>
+#include <gz/math/Filter.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/Quaternion.hh>
+#include <gz/math/Vector3.hh>
 %}
 
 %import Quaternion.i

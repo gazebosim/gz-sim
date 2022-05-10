@@ -18,7 +18,7 @@
 #include <gtest/gtest.h>
 #include <cmath>
 
-#include "ignition/math/Inertial.hh"
+#include "gz/math/Inertial.hh"
 
 using namespace ignition;
 

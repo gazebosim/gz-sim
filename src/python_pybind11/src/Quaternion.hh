@@ -25,9 +25,9 @@
 #include <pybind11/operators.h>
 #include <pybind11/stl.h>
 
-#include <ignition/math/Quaternion.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/math/Matrix3.hh>
+#include <gz/math/Quaternion.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/math/Matrix3.hh>
 
 namespace py = pybind11;
 using namespace pybind11::literals;

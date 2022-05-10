@@ -17,9 +17,9 @@
 
 %module rotationspline
 %{
-#include <ignition/math/RotationSpline.hh>
-#include <ignition/math/Quaternion.hh>
-#include <ignition/math/config.hh>
+#include <gz/math/RotationSpline.hh>
+#include <gz/math/Quaternion.hh>
+#include <gz/math/config.hh>
 %}
 
 namespace ignition

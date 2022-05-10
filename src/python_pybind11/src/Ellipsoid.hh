@@ -24,8 +24,8 @@
 #include <pybind11/operators.h>
 #include <pybind11/stl.h>
 
-#include <ignition/math/Ellipsoid.hh>
-#include <ignition/math/Vector3.hh>
+#include <gz/math/Ellipsoid.hh>
+#include <gz/math/Vector3.hh>
 
 namespace py = pybind11;
 using namespace pybind11::literals;

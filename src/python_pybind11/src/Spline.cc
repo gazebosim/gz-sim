@@ -16,7 +16,7 @@
 */
 #include <string>
 #include "Spline.hh"
-#include <ignition/math/Spline.hh>
+#include <gz/math/Spline.hh>
 
 namespace ignition
 {

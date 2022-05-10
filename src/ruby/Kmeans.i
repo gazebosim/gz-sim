@@ -17,9 +17,9 @@
 
 %module kmeans
 %{
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/math/Kmeans.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/math/Kmeans.hh>
 %}
 
 %include "std_vector.i"

@@ -22,7 +22,7 @@
 
 %module matrix3
 %{
-#include <ignition/math/Matrix3.hh>
+#include <gz/math/Matrix3.hh>
 %}
 
 namespace ignition

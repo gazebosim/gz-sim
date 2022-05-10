@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 #include <cmath>
-#include <ignition/math/Color.hh>
+#include <gz/math/Color.hh>
 
 using namespace ignition;
 

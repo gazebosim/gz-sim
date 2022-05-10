@@ -17,12 +17,12 @@
 
 %module triangle
 %{
-#include <ignition/math/config.hh>
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/Line2.hh>
+#include <gz/math/config.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/Line2.hh>
 #include <set>
-#include <ignition/math/Triangle.hh>
-#include <ignition/math/Vector2.hh>
+#include <gz/math/Triangle.hh>
+#include <gz/math/Vector2.hh>
 %}
 
 namespace ignition

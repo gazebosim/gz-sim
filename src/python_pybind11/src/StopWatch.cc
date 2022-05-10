@@ -21,7 +21,7 @@
 
 #include "StopWatch.hh"
 
-#include <ignition/math/Stopwatch.hh>
+#include <gz/math/Stopwatch.hh>
 
 namespace ignition
 {

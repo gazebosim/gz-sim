@@ -17,14 +17,14 @@
 
 %module box
 %{
-#include <ignition/math/Box.hh>
-#include <ignition/math/config.hh>
-#include <ignition/math/MassMatrix3.hh>
-#include <ignition/math/Material.hh>
-#include <ignition/math/Plane.hh>
-#include <ignition/math/Vector3.hh>
+#include <gz/math/Box.hh>
+#include <gz/math/config.hh>
+#include <gz/math/MassMatrix3.hh>
+#include <gz/math/Material.hh>
+#include <gz/math/Plane.hh>
+#include <gz/math/Vector3.hh>
 
-#include "ignition/math/detail/WellOrderedVector.hh"
+#include "gz/math/detail/WellOrderedVector.hh"
 
 #include <set>
 #include <optional>

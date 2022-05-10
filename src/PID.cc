@@ -17,8 +17,8 @@
 
 #include <chrono>
 #include <cmath>
-#include "ignition/math/Helpers.hh"
-#include "ignition/math/PID.hh"
+#include "gz/math/Helpers.hh"
+#include "gz/math/PID.hh"
 
 using namespace ignition;
 using namespace math;

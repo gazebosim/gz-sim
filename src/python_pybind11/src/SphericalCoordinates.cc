@@ -17,8 +17,8 @@
 #include <pybind11/operators.h>
 
 #include "SphericalCoordinates.hh"
-#include <ignition/math/Angle.hh>
-#include <ignition/math/SphericalCoordinates.hh>
+#include <gz/math/Angle.hh>
+#include <gz/math/SphericalCoordinates.hh>
 
 namespace ignition
 {

@@ -17,8 +17,8 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/math/Rand.hh>
-#include <ignition/math/SignalStats.hh>
+#include <gz/math/Rand.hh>
+#include <gz/math/SignalStats.hh>
 
 using namespace ignition;
 

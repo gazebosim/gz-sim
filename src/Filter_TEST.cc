@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include "ignition/math/Filter.hh"
+#include "gz/math/Filter.hh"
 
 using namespace ignition;
 

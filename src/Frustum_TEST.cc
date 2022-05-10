@@ -17,8 +17,8 @@
 
 #include <gtest/gtest.h>
 
-#include "ignition/math/Helpers.hh"
-#include "ignition/math/Frustum.hh"
+#include "gz/math/Helpers.hh"
+#include "gz/math/Frustum.hh"
 
 using namespace ignition;
 using namespace math;

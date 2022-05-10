@@ -19,9 +19,9 @@
 %{
 #include <chrono>
 #include <memory>
-#include "ignition/math/Stopwatch.hh"
-#include <ignition/math/Export.hh>
-#include <ignition/math/config.hh>
+#include "gz/math/Stopwatch.hh"
+#include <gz/math/Export.hh>
+#include <gz/math/config.hh>
 %}
 
 %include "typemaps.i"

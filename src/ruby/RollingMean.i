@@ -17,7 +17,7 @@
 
 %module rollingMean
 %{
-#include <ignition/math/RollingMean.hh>
+#include <gz/math/RollingMean.hh>
 %}
 
 namespace ignition

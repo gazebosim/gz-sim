@@ -17,9 +17,9 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/utils/SuppressWarning.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/utils/SuppressWarning.hh>
 
 using namespace ignition;
 

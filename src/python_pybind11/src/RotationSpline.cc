@@ -16,7 +16,7 @@
 */
 #include <string>
 #include "RotationSpline.hh"
-#include <ignition/math/RotationSpline.hh>
+#include <gz/math/RotationSpline.hh>
 
 namespace ignition
 {

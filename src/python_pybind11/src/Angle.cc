@@ -18,7 +18,7 @@
 #include <sstream>
 #include <string>
 
-#include <ignition/math/Angle.hh>
+#include <gz/math/Angle.hh>
 #include <pybind11/operators.h>
 
 #include "Angle.hh"

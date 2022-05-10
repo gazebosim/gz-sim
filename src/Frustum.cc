@@ -19,12 +19,12 @@
 #include <array>
 #include <utility>
 
-#include "ignition/math/Angle.hh"
-#include "ignition/math/AxisAlignedBox.hh"
-#include "ignition/math/Frustum.hh"
-#include "ignition/math/Matrix4.hh"
-#include "ignition/math/Plane.hh"
-#include "ignition/math/Pose3.hh"
+#include "gz/math/Angle.hh"
+#include "gz/math/AxisAlignedBox.hh"
+#include "gz/math/Frustum.hh"
+#include "gz/math/Matrix4.hh"
+#include "gz/math/Plane.hh"
+#include "gz/math/Pose3.hh"
 
 using namespace ignition;
 using namespace math;

@@ -19,11 +19,11 @@
 
 #include <algorithm>
 #include <vector>
-#include <ignition/math/Matrix4.hh>
-#include <ignition/math/Spline.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/math/Vector4.hh>
-#include <ignition/math/config.hh>
+#include <gz/math/Matrix4.hh>
+#include <gz/math/Spline.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/math/Vector4.hh>
+#include <gz/math/config.hh>
 
 namespace ignition
 {

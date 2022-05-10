@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/math/eigen3/Util.hh>
+#include <gz/math/eigen3/Util.hh>
 
 using namespace ignition;
 

@@ -20,8 +20,8 @@
 #include <numeric>
 #include <sstream>
 
-#include "ignition/math/Helpers.hh"
-#include "ignition/math/Vector3.hh"
+#include "gz/math/Helpers.hh"
+#include "gz/math/Vector3.hh"
 
 using namespace ignition;
 

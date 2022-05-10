@@ -22,9 +22,9 @@
 
 #include <pybind11/pybind11.h>
 
-#include <ignition/math/Filter.hh>
-#include <ignition/math/Quaternion.hh>
-#include <ignition/math/Vector3.hh>
+#include <gz/math/Filter.hh>
+#include <gz/math/Quaternion.hh>
+#include <gz/math/Vector3.hh>
 
 namespace py = pybind11;
 

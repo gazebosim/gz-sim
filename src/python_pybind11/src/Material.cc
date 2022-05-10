@@ -19,8 +19,8 @@
 #include <string>
 
 #include "Material.hh"
-#include <ignition/math/Material.hh>
-#include <ignition/math/MaterialType.hh>
+#include <gz/math/Material.hh>
+#include <gz/math/MaterialType.hh>
 
 #include <pybind11/operators.h>
 #include <pybind11/stl_bind.h>

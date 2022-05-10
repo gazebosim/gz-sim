@@ -19,8 +19,8 @@
 #include <pybind11/stl.h>
 
 #include "Helpers.hh"
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/Vector3.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/Vector3.hh>
 
 namespace ignition
 {

@@ -18,7 +18,7 @@
 %module signalStats
 
 %{
-#include <ignition/math/SignalStats.hh>
+#include <gz/math/SignalStats.hh>
 %}
 
 %include "std_string.i"

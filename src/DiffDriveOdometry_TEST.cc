@@ -18,9 +18,9 @@
 #include <gtest/gtest.h>
 #include <thread>
 
-#include "ignition/math/Angle.hh"
-#include "ignition/math/Helpers.hh"
-#include "ignition/math/DiffDriveOdometry.hh"
+#include "gz/math/Angle.hh"
+#include "gz/math/Helpers.hh"
+#include "gz/math/DiffDriveOdometry.hh"
 
 using namespace ignition;
 

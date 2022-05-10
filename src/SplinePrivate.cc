@@ -15,7 +15,7 @@
  *
 */
 
-#include "ignition/math/Matrix4.hh"
+#include "gz/math/Matrix4.hh"
 
 #include "SplinePrivate.hh"
 

@@ -22,7 +22,7 @@
 
 #include <pybind11/pybind11.h>
 
-#include <ignition/math/MovingWindowFilter.hh>
+#include <gz/math/MovingWindowFilter.hh>
 
 namespace py = pybind11;
 using namespace pybind11::literals;

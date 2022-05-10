@@ -17,7 +17,7 @@
 #include <cmath>
 #include <algorithm>
 
-#include "ignition/math/Color.hh"
+#include "gz/math/Color.hh"
 
 using namespace ignition;
 using namespace math;

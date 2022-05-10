@@ -17,7 +17,7 @@
 #include <string>
 
 #include "Rand.hh"
-#include <ignition/math/Rand.hh>
+#include <gz/math/Rand.hh>
 
 namespace ignition
 {

@@ -17,8 +17,8 @@
 
 #include <gtest/gtest.h>
 
-#include "ignition/math/Line3.hh"
-#include "ignition/math/Helpers.hh"
+#include "gz/math/Line3.hh"
+#include "gz/math/Helpers.hh"
 
 using namespace ignition;
 

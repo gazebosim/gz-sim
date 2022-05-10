@@ -18,7 +18,7 @@
 #include <sstream>
 #include <string>
 
-#include <ignition/math/SemanticVersion.hh>
+#include <gz/math/SemanticVersion.hh>
 #include <pybind11/operators.h>
 
 #include "SemanticVersion.hh"

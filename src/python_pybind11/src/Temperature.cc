@@ -18,7 +18,7 @@
 #include <sstream>
 #include <string>
 
-#include <ignition/math/Temperature.hh>
+#include <gz/math/Temperature.hh>
 
 #include "Temperature.hh"
 #include <pybind11/operators.h>

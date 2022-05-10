@@ -17,11 +17,11 @@
 
 %module cylinder
 %{
-#include <ignition/math/Cylinder.hh>
-#include <ignition/math/config.hh>
-#include <ignition/math/MassMatrix3.hh>
-#include <ignition/math/Material.hh>
-#include <ignition/math/Quaternion.hh>
+#include <gz/math/Cylinder.hh>
+#include <gz/math/config.hh>
+#include <gz/math/MassMatrix3.hh>
+#include <gz/math/Material.hh>
+#include <gz/math/Quaternion.hh>
 %}
 
 namespace ignition

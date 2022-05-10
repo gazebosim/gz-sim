@@ -17,10 +17,10 @@
 
 %module inertial
 %{
-#include <ignition/math/Inertial.hh>
-#include <ignition/math/config.hh>
-#include "ignition/math/MassMatrix3.hh"
-#include "ignition/math/Pose3.hh"
+#include <gz/math/Inertial.hh>
+#include <gz/math/config.hh>
+#include "gz/math/MassMatrix3.hh"
+#include "gz/math/Pose3.hh"
 %}
 
 namespace ignition

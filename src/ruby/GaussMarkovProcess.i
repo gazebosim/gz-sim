@@ -17,7 +17,7 @@
 
 %module gaussMarkovProcess
 %{
-#include <ignition/math/GaussMarkovProcess.hh>
+#include <gz/math/GaussMarkovProcess.hh>
 %}
 
 namespace ignition

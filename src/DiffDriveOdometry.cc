@@ -15,8 +15,8 @@
  *
 */
 #include <cmath>
-#include "ignition/math/DiffDriveOdometry.hh"
-#include "ignition/math/RollingMean.hh"
+#include "gz/math/DiffDriveOdometry.hh"
+#include "gz/math/RollingMean.hh"
 
 using namespace ignition;
 using namespace math;

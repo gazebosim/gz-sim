@@ -15,7 +15,7 @@
  *
 */
 #include <chrono>
-#include "ignition/math/Stopwatch.hh"
+#include "gz/math/Stopwatch.hh"
 
 using namespace ignition::math;
 

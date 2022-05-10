@@ -17,8 +17,8 @@
 
 #include <gtest/gtest.h>
 
-#include "ignition/math/Helpers.hh"
-#include "ignition/math/Matrix3.hh"
+#include "gz/math/Helpers.hh"
+#include "gz/math/Matrix3.hh"
 
 using namespace ignition;
 

@@ -15,12 +15,12 @@
  *
 */
 
-#include "ignition/math/Material.hh"
+#include "gz/math/Material.hh"
 
 #include <algorithm>
 #include <memory>
 
-#include "ignition/math/Helpers.hh"
+#include "gz/math/Helpers.hh"
 
 // Placing the kMaterialData in a separate file for conveniece and clarity.
 #include "MaterialType.hh"

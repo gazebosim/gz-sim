@@ -20,10 +20,10 @@
 #include <memory>
 #include <string>
 
-#include <ignition/math/SphericalCoordinates.hh>
-#include <ignition/math/Angle.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/math/config.hh>
+#include <gz/math/SphericalCoordinates.hh>
+#include <gz/math/Angle.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/math/config.hh>
 %}
 
 namespace ignition

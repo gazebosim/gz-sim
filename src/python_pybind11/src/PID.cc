@@ -18,7 +18,7 @@
 #include <pybind11/chrono.h>
 #include <string>
 
-#include <ignition/math/PID.hh>
+#include <gz/math/PID.hh>
 
 #include "PID.hh"
 

@@ -18,9 +18,9 @@
 #include <gtest/gtest.h>
 #include <cmath>
 
-#include "ignition/math/Helpers.hh"
-#include "ignition/math/MassMatrix3.hh"
-#include "ignition/math/Material.hh"
+#include "gz/math/Helpers.hh"
+#include "gz/math/MassMatrix3.hh"
+#include "gz/math/Material.hh"
 
 using namespace ignition;
 

@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/math/Vector3Stats.hh>
+#include <gz/math/Vector3Stats.hh>
 
 using namespace ignition;
 

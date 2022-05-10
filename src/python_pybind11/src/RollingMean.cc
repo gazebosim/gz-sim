@@ -16,7 +16,7 @@
 */
 #include <string>
 #include "RollingMean.hh"
-#include <ignition/math/RollingMean.hh>
+#include <gz/math/RollingMean.hh>
 
 namespace ignition
 {

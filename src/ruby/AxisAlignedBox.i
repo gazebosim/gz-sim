@@ -19,11 +19,11 @@
 %{
 #include <iostream>
 #include <tuple>
-#include <ignition/math/AxisAlignedBox.hh>
-#include <ignition/math/config.hh>
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/Line3.hh>
-#include <ignition/math/Vector3.hh>
+#include <gz/math/AxisAlignedBox.hh>
+#include <gz/math/config.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/Line3.hh>
+#include <gz/math/Vector3.hh>
 %}
 
 %include "typemaps.i"

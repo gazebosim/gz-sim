@@ -25,7 +25,7 @@
 
 #include <cassert>
 
-#include <ignition/math/detail/InterpolationPoint.hh>
+#include <gz/math/detail/InterpolationPoint.hh>
 
 namespace ignition
 {

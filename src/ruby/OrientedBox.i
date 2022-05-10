@@ -18,14 +18,14 @@
 %module orientedbox
 %{
 #include <iostream>
-#include <ignition/math/OrientedBox.hh>
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/MassMatrix3.hh>
-#include <ignition/math/Material.hh>
-#include <ignition/math/Matrix4.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/math/config.hh>
+#include <gz/math/OrientedBox.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/MassMatrix3.hh>
+#include <gz/math/Material.hh>
+#include <gz/math/Matrix4.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/math/config.hh>
 %}
 
 namespace ignition

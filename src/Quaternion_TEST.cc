@@ -19,11 +19,11 @@
 
 #include <cmath>
 
-#include "ignition/math/Helpers.hh"
-#include "ignition/math/Quaternion.hh"
-#include "ignition/math/Matrix3.hh"
-#include "ignition/math/Matrix4.hh"
-#include <ignition/utils/SuppressWarning.hh>
+#include "gz/math/Helpers.hh"
+#include "gz/math/Quaternion.hh"
+#include "gz/math/Matrix3.hh"
+#include "gz/math/Matrix4.hh"
+#include <gz/utils/SuppressWarning.hh>
 
 using namespace ignition;
 

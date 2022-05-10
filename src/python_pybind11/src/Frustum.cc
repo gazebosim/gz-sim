@@ -17,7 +17,7 @@
 #include <string>
 
 #include "Frustum.hh"
-#include <ignition/math/Frustum.hh>
+#include <gz/math/Frustum.hh>
 
 #include <pybind11/operators.h>
 #include <pybind11/stl_bind.h>

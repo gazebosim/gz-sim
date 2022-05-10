@@ -22,7 +22,7 @@
 
 %module quaternion
 %{
-#include <ignition/math/Quaternion.hh>
+#include <gz/math/Quaternion.hh>
 %}
 
 namespace ignition

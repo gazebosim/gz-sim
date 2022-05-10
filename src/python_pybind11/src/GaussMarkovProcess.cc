@@ -22,7 +22,7 @@
 #include <pybind11/operators.h>
 #include <pybind11/chrono.h>
 
-#include <ignition/math/GaussMarkovProcess.hh>
+#include <gz/math/GaussMarkovProcess.hh>
 
 #include "GaussMarkovProcess.hh"
 

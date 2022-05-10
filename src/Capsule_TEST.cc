@@ -18,8 +18,8 @@
 #include <cmath>
 #include <iostream>
 
-#include "ignition/math/Capsule.hh"
-#include "ignition/math/Helpers.hh"
+#include "gz/math/Capsule.hh"
+#include "gz/math/Helpers.hh"
 
 using namespace ignition;
 

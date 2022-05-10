@@ -17,7 +17,7 @@
 
 %module temperature
 %{
-#include <ignition/math/Temperature.hh>
+#include <gz/math/Temperature.hh>
 %}
 
 namespace ignition

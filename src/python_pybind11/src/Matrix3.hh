@@ -24,7 +24,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/operators.h>
 
-#include <ignition/math/Matrix3.hh>
+#include <gz/math/Matrix3.hh>
 
 namespace py = pybind11;
 using namespace pybind11::literals;

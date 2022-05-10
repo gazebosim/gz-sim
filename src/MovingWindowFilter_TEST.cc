@@ -16,8 +16,8 @@
 */
 
 #include <gtest/gtest.h>
-#include "ignition/math/Vector3.hh"
-#include "ignition/math/MovingWindowFilter.hh"
+#include "gz/math/Vector3.hh"
+#include "gz/math/MovingWindowFilter.hh"
 
 using namespace ignition;
 

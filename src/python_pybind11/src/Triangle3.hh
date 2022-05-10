@@ -23,7 +23,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/operators.h>
 
-#include <ignition/math/Triangle3.hh>
+#include <gz/math/Triangle3.hh>
 
 namespace py = pybind11;
 using namespace pybind11::literals;

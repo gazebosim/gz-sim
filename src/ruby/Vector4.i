@@ -23,7 +23,7 @@
 
 %module vector4
 %{
-#include <ignition/math/Vector4.hh>
+#include <gz/math/Vector4.hh>
 %}
 
 namespace ignition

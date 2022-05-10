@@ -18,8 +18,8 @@
 #ifndef IGNITION_MATH_INTERPOLATION_POINT_HH_
 #define IGNITION_MATH_INTERPOLATION_POINT_HH_
 
-#include <ignition/math/Vector3.hh>
-#include <ignition/math/Vector2.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/math/Vector2.hh>
 
 #include <optional>
 #include <vector>

@@ -18,8 +18,8 @@
 #include <gtest/gtest.h>
 #include <string>
 
-#include "ignition/math/graph/Graph.hh"
-#include "ignition/math/graph/GraphAlgorithms.hh"
+#include "gz/math/graph/Graph.hh"
+#include "gz/math/graph/GraphAlgorithms.hh"
 
 using namespace ignition;
 using namespace math;

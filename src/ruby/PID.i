@@ -16,7 +16,7 @@
 */
 %module pid 
 %{
-	#include <ignition/math/PID.hh>
+	#include <gz/math/PID.hh>
 %}
 
 %include "typemaps.i"

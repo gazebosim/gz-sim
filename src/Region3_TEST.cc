@@ -17,7 +17,7 @@
 #include <gtest/gtest.h>
 #include <ostream>
 
-#include "ignition/math/Region3.hh"
+#include "gz/math/Region3.hh"
 
 using namespace ignition;
 

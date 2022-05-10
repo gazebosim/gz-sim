@@ -19,7 +19,7 @@
 
 #include <memory>
 #include <vector>
-#include <ignition/math/config.hh>
+#include <gz/math/config.hh>
 
 namespace ignition
 {

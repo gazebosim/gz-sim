@@ -17,14 +17,14 @@
 
 %module massmatrix3
 %{
-#include "ignition/math/MassMatrix3.hh"
+#include "gz/math/MassMatrix3.hh"
 
-#include "ignition/math/Helpers.hh"
-#include "ignition/math/Material.hh"
-#include "ignition/math/Quaternion.hh"
-#include "ignition/math/Vector2.hh"
-#include "ignition/math/Vector3.hh"
-#include "ignition/math/Matrix3.hh"
+#include "gz/math/Helpers.hh"
+#include "gz/math/Material.hh"
+#include "gz/math/Quaternion.hh"
+#include "gz/math/Vector2.hh"
+#include "gz/math/Vector3.hh"
+#include "gz/math/Matrix3.hh"
 %}
 
 namespace ignition

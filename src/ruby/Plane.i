@@ -17,13 +17,13 @@
 
 %module plane
 %{
-#include <ignition/math/Plane.hh>
-#include <ignition/math/AxisAlignedBox.hh>
-#include <ignition/math/Vector2.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/math/config.hh>
-#include <ignition/math/Line2.hh>
-#include <ignition/math/Quaternion.hh>
+#include <gz/math/Plane.hh>
+#include <gz/math/AxisAlignedBox.hh>
+#include <gz/math/Vector2.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/math/config.hh>
+#include <gz/math/Line2.hh>
+#include <gz/math/Quaternion.hh>
 #include <optional>
 %}
 

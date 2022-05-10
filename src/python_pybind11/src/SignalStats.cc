@@ -20,7 +20,7 @@
 #include <string>
 
 #include "SignalStats.hh"
-#include <ignition/math/SignalStats.hh>
+#include <gz/math/SignalStats.hh>
 
 namespace ignition
 {

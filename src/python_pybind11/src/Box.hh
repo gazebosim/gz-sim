@@ -25,7 +25,7 @@
 #include <pybind11/operators.h>
 #include <pybind11/stl.h>
 
-#include <ignition/math/Box.hh>
+#include <gz/math/Box.hh>
 
 namespace py = pybind11;
 using namespace pybind11::literals;

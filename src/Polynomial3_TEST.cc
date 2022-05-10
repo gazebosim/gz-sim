@@ -17,7 +17,7 @@
 #include <gtest/gtest.h>
 #include <ostream>
 
-#include "ignition/math/Polynomial3.hh"
+#include "gz/math/Polynomial3.hh"
 
 using namespace ignition;
 

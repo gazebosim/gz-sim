@@ -18,7 +18,7 @@
 #include <cmath>
 #include <iostream>
 
-#include "ignition/math/Sphere.hh"
+#include "gz/math/Sphere.hh"
 
 using namespace ignition;
 using namespace math;

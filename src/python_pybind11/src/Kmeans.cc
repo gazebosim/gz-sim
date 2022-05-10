@@ -18,7 +18,7 @@
 #include <vector>
 
 #include "Kmeans.hh"
-#include <ignition/math/Kmeans.hh>
+#include <gz/math/Kmeans.hh>
 #include <pybind11/stl.h>
 
 namespace ignition

@@ -17,12 +17,12 @@
 
 %module frustum
 %{
-#include <ignition/math/Frustum.hh>
-#include <ignition/math/Angle.hh>
-#include <ignition/math/AxisAlignedBox.hh>
-#include <ignition/math/Plane.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/math/config.hh>
+#include <gz/math/Frustum.hh>
+#include <gz/math/Angle.hh>
+#include <gz/math/AxisAlignedBox.hh>
+#include <gz/math/Plane.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/config.hh>
 %}
 
 namespace ignition

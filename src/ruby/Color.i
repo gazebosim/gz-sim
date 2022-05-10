@@ -18,10 +18,10 @@
 %module Color
 %{
 #include <sstream>
-#include <ignition/math/Color.hh>
-#include <ignition/math/config.hh>
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/Vector3.hh>
+#include <gz/math/Color.hh>
+#include <gz/math/config.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/Vector3.hh>
 %}
 
 %include "std_string.i"

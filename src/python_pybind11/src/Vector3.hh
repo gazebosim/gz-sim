@@ -24,7 +24,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/operators.h>
 
-#include <ignition/math/Vector3.hh>
+#include <gz/math/Vector3.hh>
 
 namespace py = pybind11;
 using namespace pybind11::literals;
