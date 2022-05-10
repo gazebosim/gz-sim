@@ -1292,6 +1292,11 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm)
             return true;
           }
 
+          auto sdfElement = heightmapSdf->Element();
+          bool isNonEarthDEM = false;
+          if (sdfElement->HasElement("NonEarthDEM")) {
+            isNonEarthDEM = sdfElement->Get<bool>("NonEarthDEM");
+          }
           std::shared_ptr<common::HeightmapData> data;
           std::string lowerFullPath = common::lowercase(fullPath);
           // check if heightmap is an image
@@ -1312,6 +1317,7 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm)
           else
           {
             auto dem = std::make_shared<common::Dem>();
+            dem->SetNonEarthDEM(isNonEarthDEM);
             if (dem->Load(fullPath) < 0)
             {
               ignerr << "Failed to load heightmap dem data from ["
