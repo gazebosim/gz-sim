@@ -186,6 +186,11 @@ class ignition::gazebo::systems::SensorsPrivate
   /// \param[in] _ecm Entity component manager
   public: void UpdateBatteryState(const EntityComponentManager &_ecm);
 
+  /// \brief Check if sensor has subscribers
+  /// \param[in] _sensor Sensor to check
+  /// \return True if the sensor has subscribers, false otherwise
+  public: bool HasConnections(sensors::RenderingSensor *_sensor) const;
+
   /// \brief Use to optionally set the background color.
   public: std::optional<math::Color> backgroundColor;
 
@@ -316,10 +321,32 @@ void SensorsPrivate::RunOnce()
       this->scene->PreRender();
     }
 
+    // disable sensors that have no subscribers to prevent doing unnecessary
+    // work
+    std::unordered_set<sensors::RenderingSensor *> tmpDisabledSensors;
+    this->sensorMaskMutex.lock();
+    for (auto id : this->sensorIds)
+    {
+      sensors::Sensor *s = this->sensorManager.Sensor(id);
+      auto rs = dynamic_cast<sensors::RenderingSensor *>(s);
+      if (rs->IsActive() && !this->HasConnections(rs))
+      {
+        rs->SetActive(false);
+        tmpDisabledSensors.insert(rs);
+      }
+    }
+    this->sensorMaskMutex.unlock();
+
     {
       // publish data
       IGN_PROFILE("RunOnce");
       this->sensorManager.RunOnce(this->updateTime);
+    }
+
+    // re-enble sensors
+    for (auto &rs : tmpDisabledSensors)
+    {
+      rs->SetActive(true);
     }
 
     {
@@ -803,6 +830,39 @@ std::string Sensors::CreateSensor(const Entity &_entity,
   }
 
   return sensor->Name();
+}
+
+//////////////////////////////////////////////////
+bool SensorsPrivate::HasConnections(sensors::RenderingSensor *_sensor) const
+{
+  // \todo(iche033) Remove this function once a virtual
+  // sensors::RenderingSensor::HasConnections function is available
+  {
+    auto s = dynamic_cast<sensors::CameraSensor *>(_sensor);
+    if (s)
+      return s->HasConnections();
+  }
+  {
+    auto s = dynamic_cast<sensors::DepthCameraSensor *>(_sensor);
+    if (s)
+      return s->HasConnections();
+  }
+  {
+    auto s = dynamic_cast<sensors::GpuLidarSensor *>(_sensor);
+    if (s)
+      return s->HasConnections();
+  }
+  {
+    auto s = dynamic_cast<sensors::SegmentationCameraSensor *>(_sensor);
+    if (s)
+      return s->HasConnections();
+  }
+  {
+    auto s = dynamic_cast<sensors::ThermalCameraSensor *>(_sensor);
+    if (s)
+      return s->HasConnections();
+  }
+  return true;
 }
 
 IGNITION_ADD_PLUGIN(Sensors, System,

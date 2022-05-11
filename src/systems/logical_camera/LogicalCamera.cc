@@ -143,6 +143,25 @@ void LogicalCamera::PostUpdate(const UpdateInfo &_info,
   // Only update and publish if not paused.
   if (!_info.paused)
   {
+    // check to see if update is necessary
+    // we only update if there is at least one sensor that needs data
+    // and that sensor has subscribers.
+    // note: ign-sensors does its own throttling. Here the check is mainly
+    // to void doing work in the LogicalCameraPrivate::UpdateLogicalCameras
+    // function
+    bool needsUpdate = false;
+    for (auto &it : this->dataPtr->entitySensorMap)
+    {
+      if (it.second->NextDataUpdateTime() <= _info.simTime &&
+          it.second->HasConnections())
+      {
+        needsUpdate = true;
+        break;
+      }
+    }
+    if (!needsUpdate)
+      return;
+
     this->dataPtr->UpdateLogicalCameras(_ecm);
 
     for (auto &it : this->dataPtr->entitySensorMap)
