@@ -731,18 +731,21 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
     // If the models are still being downloaded, it doesn't allow to start
     // the simulation
-    if (!this->FetchedAllIncludes())
+    if (this->serverConfig.DownloadInParallel())
     {
-      this->SetPaused(true);
-    }
-    else
-    {
-      // when the models are downloaded we should set which is the run option
-      // used by the user.
-      if (!isInitialRunOfSimulationSet)
+      if (!this->FetchedAllIncludes())
       {
-        isInitialRunOfSimulationSet = true;
-        this->SetPaused(!this->serverConfig.RunOption());
+        this->SetPaused(true);
+      }
+      else
+      {
+        // when the models are downloaded we should set which is the run option
+        // used by the user.
+        if (!isInitialRunOfSimulationSet)
+        {
+          isInitialRunOfSimulationSet = true;
+          this->SetPaused(!this->serverConfig.RunOption());
+        }
       }
     }
 

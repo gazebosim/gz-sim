@@ -220,6 +220,7 @@ class ignition::gazebo::ServerConfigPrivate
   public: explicit ServerConfigPrivate(
               const std::unique_ptr<ServerConfigPrivate> &_cfg)
           : sdfFile(_cfg->sdfFile),
+            sdfString(_cfg->sdfString),
             updateRate(_cfg->updateRate),
             useLevels(_cfg->useLevels),
             useLogRecord(_cfg->useLogRecord),
@@ -288,6 +289,9 @@ class ignition::gazebo::ServerConfigPrivate
   /// \brief This is used to indicate that Run has been called, and the
   /// server is in the run state.
   public: bool running{false};
+
+  /// \brief True if models are downloaded in the background, false otherwise
+  public: bool downloadInParallel{false};
 
   /// \brief List of plugins to load.
   public: std::list<ServerConfig::PluginInfo> plugins;
@@ -388,6 +392,18 @@ bool ServerConfig::RunOption() const
 void ServerConfig::SetRunOption(bool _run)
 {
   this->dataPtr->running = _run;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetDownloadInParallel(bool _downloadInParallel)
+{
+  this->dataPtr->downloadInParallel = _downloadInParallel;
+}
+
+/////////////////////////////////////////////////
+bool ServerConfig::DownloadInParallel() const
+{
+  return this->dataPtr->downloadInParallel;
 }
 
 /////////////////////////////////////////////////
