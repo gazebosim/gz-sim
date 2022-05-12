@@ -33,6 +33,7 @@
 #include <ignition/common/MeshManager.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/common/SystemPaths.hh>
+#include <ignition/common/Uuid.hh>
 #include <ignition/math/AxisAlignedBox.hh>
 #include <ignition/math/eigen3/Conversions.hh>
 #include <ignition/math/Vector3.hh>
@@ -73,6 +74,7 @@
 #include <sdf/Link.hh>
 #include <sdf/Mesh.hh>
 #include <sdf/Model.hh>
+#include <sdf/Polyline.hh>
 #include <sdf/Surface.hh>
 #include <sdf/World.hh>
 
@@ -176,6 +178,31 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// \brief Create physics entities
   /// \param[in] _ecm Constant reference to ECM.
   public: void CreatePhysicsEntities(const EntityComponentManager &_ecm);
+
+
+  /// \brief Create world entities
+  /// \param[in] _ecm Constant reference to ECM.
+  public: void CreateWorldEntities(const EntityComponentManager &_ecm);
+
+  /// \brief Create model entities
+  /// \param[in] _ecm Constant reference to ECM.
+  public: void CreateModelEntities(const EntityComponentManager &_ecm);
+
+  /// \brief Create link entities
+  /// \param[in] _ecm Constant reference to ECM.
+  public: void CreateLinkEntities(const EntityComponentManager &_ecm);
+
+  /// \brief Create collision entities
+  /// \param[in] _ecm Constant reference to ECM.
+  public: void CreateCollisionEntities(const EntityComponentManager &_ecm);
+
+  /// \brief Create joint entities
+  /// \param[in] _ecm Constant reference to ECM.
+  public: void CreateJointEntities(const EntityComponentManager &_ecm);
+
+  /// \brief Create Battery entities
+  /// \param[in] _ecm Constant reference to ECM.
+  public: void CreateBatteryEntities(const EntityComponentManager &_ecm);
 
   /// \brief Remove physics entities if they are removed from the ECM
   /// \param[in] _ecm Constant reference to ECM.
@@ -665,6 +692,18 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 {
+  this->CreateWorldEntities(_ecm);
+  this->CreateModelEntities(_ecm);
+  this->CreateLinkEntities(_ecm);
+  // We don't need to add visuals to the physics engine.
+  this->CreateCollisionEntities(_ecm);
+  this->CreateJointEntities(_ecm);
+  this->CreateBatteryEntities(_ecm);
+}
+
+//////////////////////////////////////////////////
+void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm)
+{
   // Get all the new worlds
   _ecm.EachNew<components::World, components::Name, components::Gravity>(
       [&](const Entity &_entity,
@@ -689,7 +728,11 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 
         return true;
       });
+}
 
+//////////////////////////////////////////////////
+void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm)
+{
   _ecm.EachNew<components::Model, components::Name, components::Pose,
             components::ParentEntity>(
       [&](const Entity &_entity,
@@ -817,7 +860,11 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 
         return true;
       });
+}
 
+//////////////////////////////////////////////////
+void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm)
+{
   _ecm.EachNew<components::Link, components::Name, components::Pose,
             components::ParentEntity>(
       [&](const Entity &_entity,
@@ -871,10 +918,11 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 
         return true;
       });
+}
 
-  // We don't need to add visuals to the physics engine.
-
-  // collisions
+//////////////////////////////////////////////////
+void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm)
+{
   _ecm.EachNew<components::Collision, components::Name, components::Pose,
             components::Geometry, components::CollisionElement,
             components::ParentEntity>(
@@ -953,6 +1001,55 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
               math::eigen3::convert(_pose->Data()),
               math::eigen3::convert(meshSdf->Scale()));
         }
+        else if (_geom->Data().Type() == sdf::GeometryType::POLYLINE)
+        {
+          auto polylineSdf = _geom->Data().PolylineShape();
+          if (polylineSdf.empty())
+          {
+            ignwarn << "Polyline geometry for collision [" << _name->Data()
+                    << "] missing polylines." << std::endl;
+            return true;
+          }
+
+          std::vector<std::vector<math::Vector2d>> vertices;
+          for (const auto &polyline : _geom->Data().PolylineShape())
+          {
+            vertices.push_back(polyline.Points());
+          }
+
+          std::string name("POLYLINE_" + common::Uuid().String());
+          auto meshManager = ignition::common::MeshManager::Instance();
+          meshManager->CreateExtrudedPolyline(name, vertices,
+              _geom->Data().PolylineShape()[0].Height());
+
+          auto polyline = meshManager->MeshByName(name);
+          if (nullptr == polyline)
+          {
+            ignwarn << "Failed to create polyline for collision ["
+                    << _name->Data() << "]." << std::endl;
+            return true;
+          }
+
+          auto linkMeshFeature =
+              this->entityLinkMap.EntityCast<MeshFeatureList>(_parent->Data());
+          if (!linkMeshFeature)
+          {
+            static bool informed{false};
+            if (!informed)
+            {
+              igndbg << "Attempting to process polyline geometries, but the"
+                     << " physics engine doesn't support feature "
+                     << "[AttachMeshShapeFeature]. Polylines will be ignored."
+                     << std::endl;
+              informed = true;
+            }
+            return true;
+          }
+
+          collisionPtrPhys = linkMeshFeature->AttachMeshShape(_name->Data(),
+              *polyline,
+              math::eigen3::convert(_pose->Data()));
+        }
         else
         {
           auto linkCollisionFeature =
@@ -1003,8 +1100,11 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
             topLevelModel(_entity, _ecm)));
         return true;
       });
+}
 
-  // joints
+//////////////////////////////////////////////////
+void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm)
+{
   _ecm.EachNew<components::Joint, components::Name, components::JointType,
                components::Pose, components::ThreadPitch,
                components::ParentEntity, components::ParentLinkName,
@@ -1086,15 +1186,6 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
           this->topLevelModelMap.insert(std::make_pair(_entity,
               topLevelModel(_entity, _ecm)));
         }
-        return true;
-      });
-
-  _ecm.EachNew<components::BatterySoC>(
-      [&](const Entity & _entity, const components::BatterySoC *)->bool
-      {
-        // Parent entity of battery is model entity
-        this->entityOffMap.insert(std::make_pair(
-          _ecm.ParentEntity(_entity), false));
         return true;
       });
 
@@ -1218,6 +1309,19 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
             }
           }
         }
+        return true;
+      });
+}
+
+//////////////////////////////////////////////////
+void PhysicsPrivate::CreateBatteryEntities(const EntityComponentManager &_ecm)
+{
+  _ecm.EachNew<components::BatterySoC>(
+      [&](const Entity & _entity, const components::BatterySoC *)->bool
+      {
+        // Parent entity of battery is model entity
+        this->entityOffMap.insert(std::make_pair(
+          _ecm.ParentEntity(_entity), false));
         return true;
       });
 }
