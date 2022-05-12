@@ -195,8 +195,7 @@ rendering::VisualPtr SceneManager::CreateModel(Entity _id,
 
   rendering::VisualPtr modelVis = this->dataPtr->scene->CreateVisual(name);
 
-  // \todo(anyone) change to uint64_t once UserData supports this type
-  modelVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  modelVis->SetUserData("gazebo-entity", _id);
   modelVis->SetUserData("pause-update", static_cast<int>(0));
   modelVis->SetLocalPose(_model.RawPose());
   this->dataPtr->visuals[_id] = modelVis;
@@ -241,7 +240,7 @@ rendering::VisualPtr SceneManager::CreateLink(Entity _id,
   if (parent)
     name = parent->Name() + "::" + name;
   rendering::VisualPtr linkVis = this->dataPtr->scene->CreateVisual(name);
-  linkVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  linkVis->SetUserData("gazebo-entity", _id);
   linkVis->SetUserData("pause-update", static_cast<int>(0));
   linkVis->SetLocalPose(_link.RawPose());
   this->dataPtr->visuals[_id] = linkVis;
@@ -287,7 +286,7 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
   if (parent)
     name = parent->Name() + "::" + name;
   rendering::VisualPtr visualVis = this->dataPtr->scene->CreateVisual(name);
-  visualVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  visualVis->SetUserData("gazebo-entity", _id);
   visualVis->SetUserData("pause-update", static_cast<int>(0));
   visualVis->SetLocalPose(_visual.RawPose());
 
@@ -548,7 +547,7 @@ std::pair<rendering::VisualPtr, std::vector<Entity>> SceneManager::CopyVisual(
       }
 
       this->dataPtr->visuals[childId] = childVisual;
-      childVisual->SetUserData("gazebo-entity", static_cast<int>(childId));
+      childVisual->SetUserData("gazebo-entity", childId);
       childVisual->SetUserData("pause-update", static_cast<int>(0));
       childVisualIds.push_back(childId);
 
@@ -564,7 +563,7 @@ std::pair<rendering::VisualPtr, std::vector<Entity>> SceneManager::CopyVisual(
   }
   else
   {
-    clonedVisual->SetUserData("gazebo-entity", static_cast<int>(_id));
+    clonedVisual->SetUserData("gazebo-entity", _id);
     clonedVisual->SetUserData("pause-update", static_cast<int>(0));
 
     result = {clonedVisual, std::move(childVisualIds)};
@@ -1202,7 +1201,7 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
   rendering::VisualPtr actorVisual = this->dataPtr->scene->CreateVisual(name);
   actorVisual->SetLocalPose(_actor.RawPose());
   actorVisual->AddGeometry(actorMesh);
-  actorVisual->SetUserData("gazebo-entity", static_cast<int>(_id));
+  actorVisual->SetUserData("gazebo-entity", _id);
   actorVisual->SetUserData("pause-update", static_cast<int>(0));
 
   this->dataPtr->visuals[_id] = actorVisual;
@@ -1275,7 +1274,7 @@ rendering::VisualPtr SceneManager::CreateLightVisual(Entity _id,
 
   rendering::VisualPtr lightVis = std::dynamic_pointer_cast<rendering::Visual>(
     lightVisual);
-  lightVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  lightVis->SetUserData("gazebo-entity", _id);
   lightVis->SetUserData("pause-update", static_cast<int>(0));
   this->dataPtr->visuals[_id] = lightVis;
 
@@ -1409,7 +1408,7 @@ rendering::VisualPtr SceneManager::CreateInertiaVisual(Entity _id,
 
   rendering::VisualPtr inertiaVis =
     std::dynamic_pointer_cast<rendering::Visual>(inertiaVisual);
-  inertiaVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  inertiaVis->SetUserData("gazebo-entity", _id);
   inertiaVis->SetUserData("pause-update", static_cast<int>(0));
   inertiaVis->SetUserData("gui-only", static_cast<bool>(true));
   this->dataPtr->visuals[_id] = inertiaVis;
@@ -1542,7 +1541,7 @@ rendering::VisualPtr SceneManager::CreateJointVisual(
 
   rendering::VisualPtr jointVis =
     std::dynamic_pointer_cast<rendering::Visual>(jointVisual);
-  jointVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  jointVis->SetUserData("gazebo-entity", _id);
   jointVis->SetUserData("pause-update", static_cast<int>(0));
   jointVis->SetUserData("gui-only", static_cast<bool>(true));
   jointVis->SetLocalPose(_joint.RawPose());
@@ -1591,7 +1590,7 @@ rendering::VisualPtr SceneManager::CreateCOMVisual(Entity _id,
 
   rendering::VisualPtr comVis =
     std::dynamic_pointer_cast<rendering::Visual>(comVisual);
-  comVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  comVis->SetUserData("gazebo-entity", _id);
   comVis->SetUserData("pause-update", static_cast<int>(0));
   comVis->SetUserData("gui-only", static_cast<bool>(true));
   this->dataPtr->visuals[_id] = comVis;
@@ -1804,8 +1803,7 @@ bool SceneManager::AddSensor(Entity _gazeboId, const std::string &_sensorName,
     return false;
   }
 
-  // \todo(anyone) change to uint64_t once UserData supports this type
-  sensor->SetUserData("gazebo-entity", static_cast<int>(_gazeboId));
+  sensor->SetUserData("gazebo-entity", _gazeboId);
 
   if (parent)
   {

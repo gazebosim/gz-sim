@@ -377,8 +377,7 @@ void ViewAnglePrivate::OnRender()
 
             try
             {
-              if (std::get<int>(vis->UserData("gazebo-entity")) !=
-                  static_cast<int>(entity))
+              if (std::get<uint64_t>(vis->UserData("gazebo-entity")) != entity)
               {
                 continue;
               }
