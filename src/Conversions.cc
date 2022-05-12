@@ -374,6 +374,7 @@ msgs::Material ignition::gazebo::convert(const sdf::Material &_in)
   msgs::Set(out.mutable_ambient(), _in.Ambient());
   msgs::Set(out.mutable_diffuse(), _in.Diffuse());
   msgs::Set(out.mutable_specular(), _in.Specular());
+  out.set_shininess(_in.Shininess());
   msgs::Set(out.mutable_emissive(), _in.Emissive());
   out.set_render_order(_in.RenderOrder());
   out.set_lighting(_in.Lighting());
@@ -433,6 +434,7 @@ sdf::Material ignition::gazebo::convert(const msgs::Material &_in)
   out.SetAmbient(msgs::Convert(_in.ambient()));
   out.SetDiffuse(msgs::Convert(_in.diffuse()));
   out.SetSpecular(msgs::Convert(_in.specular()));
+  out.SetShininess(_in.shininess());
   out.SetEmissive(msgs::Convert(_in.emissive()));
   out.SetRenderOrder(_in.render_order());
   out.SetLighting(_in.lighting());
