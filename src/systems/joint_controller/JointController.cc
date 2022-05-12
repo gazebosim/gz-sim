@@ -261,8 +261,7 @@ void JointControllerPrivate::OnCmdVel(const msgs::Double &_msg)
 
 IGNITION_ADD_PLUGIN(JointController,
                     ignition::gazebo::System,
-                    JointController::ISystemConfigure,
-                    JointController::ISystemPreUpdate)
+                    JointController::ISystemConfigure)
 
 IGNITION_ADD_PLUGIN_ALIAS(JointController,
                           "ignition::gazebo::systems::JointController")
