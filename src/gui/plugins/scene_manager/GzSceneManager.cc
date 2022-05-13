@@ -162,10 +162,18 @@ void GzSceneManager::Update(const UpdateInfo &_info,
   }
   for (const auto &it : plugins)
   {
+    // Send the new VisualPlugins event
+    ignition::gazebo::gui::events::VisualPlugins visualPluginsEvent(
+        it.first, it.second);
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        &visualPluginsEvent);
+
+    // Send the old VisualPlugin event
     for (const sdf::Plugin &plugin : it.second)
     {
-      ignition::gazebo::gui::events::VisualSdfPlugin visualPluginEvent(
-          it.first, plugin);
+      ignition::gazebo::gui::events::VisualPlugin visualPluginEvent(
+          it.first, plugin.ToElement());
       ignition::gui::App()->sendEvent(
           ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
           &visualPluginEvent);
