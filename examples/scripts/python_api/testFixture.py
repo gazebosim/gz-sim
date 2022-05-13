@@ -23,7 +23,6 @@
 # python3 examples/scripts/python_api/helperFixture.py
 
 import os
-import time
 
 from ignition.common import set_verbosity
 from ignition.gazebo import TestFixture, World, world_entity
@@ -48,7 +47,7 @@ def on_pre_udpate_cb(_info, _ecm):
     pre_iterations += 1
     if first_iteration:
         first_iteration = False
-        world_e = world_entity(_ecm);
+        world_e = world_entity(_ecm)
         print('World entity is ', world_e)
         w = World(world_e)
         v = w.gravity(_ecm)
@@ -75,10 +74,7 @@ helper.on_pre_update(on_pre_udpate_cb)
 helper.finalize()
 
 server = helper.server()
-server.run(False, 1000, False)
-
-while(server.is_running()):
-    time.sleep(0.1)
+server.run(True, 1000, False)
 
 print('iterations ', iterations)
 print('post_iterations ', post_iterations)

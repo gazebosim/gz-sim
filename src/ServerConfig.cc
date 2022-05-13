@@ -369,6 +369,9 @@ ServerConfig::~ServerConfig() = default;
 //////////////////////////////////////////////////
 bool ServerConfig::SetSdfFile(const std::string &_file)
 {
+  if (_file.empty())
+    return false;
+
   this->dataPtr->source = ServerConfig::SourceType::kSdfFile;
   this->dataPtr->sdfFile = _file;
   this->dataPtr->sdfString = "";

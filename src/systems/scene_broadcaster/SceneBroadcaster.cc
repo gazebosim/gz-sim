@@ -224,9 +224,12 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// paused. The not-paused (a.ka. running) period has a key=false and a
   /// default update rate of 60Hz. The paused period has a key=true and a
   /// default update rate of 30Hz.
-  public: std::map<bool, std::chrono::duration<int64_t, std::ratio<1, 1000>>>
-      statePublishPeriod{{false, std::chrono::milliseconds(1000/60)},
-                         {true,  std::chrono::milliseconds(1000/30)}};
+  public: std::map<bool, std::chrono::duration<double, std::ratio<1, 1000>>>
+      statePublishPeriod{
+        {false, std::chrono::duration<double,
+        std::ratio<1, 1000>>(1000/60.0)},
+          {true,  std::chrono::duration<double,
+            std::ratio<1, 1000>>(1000/30.0)}};
 
   /// \brief Flag used to indicate if the state service was called.
   public: bool stateServiceRequest{false};
@@ -261,16 +264,25 @@ void SceneBroadcaster::Configure(
   auto readHertz = _sdf->Get<int>("dynamic_pose_hertz", 60);
   this->dataPtr->dyPoseHertz = readHertz.first;
 
-  auto stateHerz = _sdf->Get<int>("state_hertz", 60);
-  this->dataPtr->statePublishPeriod[false] =
-      std::chrono::duration<int64_t, std::ratio<1, 1000>>(
-      std::chrono::milliseconds(1000/stateHerz.first));
+  auto stateHertz = _sdf->Get<double>("state_hertz", 60);
+  if (stateHertz.first > 0.0)
+  {
+    this->dataPtr->statePublishPeriod[false] =
+        std::chrono::duration<double, std::ratio<1, 1000>>(
+            1000 / stateHertz.first);
 
-  // Set the paused update rate to half of the running update rate.
-  this->dataPtr->statePublishPeriod[true] =
-      std::chrono::duration<int64_t, std::ratio<1, 1000>>(
-      std::chrono::milliseconds(1000 /
-        static_cast<int>(std::max(stateHerz.first * 0.5, 1.0))));
+    // Set the paused update rate to half of the running update rate.
+    this->dataPtr->statePublishPeriod[true] =
+        std::chrono::duration<double, std::ratio<1, 1000>>(1000/
+            (stateHertz.first * 0.5));
+  }
+  else
+  {
+    using secs_double = std::chrono::duration<double, std::ratio<1>>;
+    ignerr << "SceneBroadcaster state_hertz must be positive, using default ("
+      << 1.0 / secs_double(this->dataPtr->statePublishPeriod[false]).count() <<
+        "Hz)\n";
+  }
 
   // Add to graph
   {
