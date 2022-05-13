@@ -369,11 +369,15 @@ ServerConfig::~ServerConfig() = default;
 //////////////////////////////////////////////////
 bool ServerConfig::SetSdfFile(const std::string &_file)
 {
-  this->dataPtr->source = ServerConfig::SourceType::kSdfFile;
-  this->dataPtr->sdfFile = _file;
-  this->dataPtr->sdfString = "";
-  this->dataPtr->sdfRoot = std::nullopt;
-  return true;
+  if (!_file.empty())
+  {
+    this->dataPtr->source = ServerConfig::SourceType::kSdfFile;
+    this->dataPtr->sdfFile = _file;
+    this->dataPtr->sdfString = "";
+    this->dataPtr->sdfRoot = std::nullopt;
+    return true;
+  }
+  return false;
 }
 
 /////////////////////////////////////////////////
