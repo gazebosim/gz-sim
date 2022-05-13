@@ -188,7 +188,7 @@ ignition::gazebo::Entity VisualSdfPlugin::Entity() const
 }
 
 /////////////////////////////////////////////////
-sdf::Plugin VisualSdfPlugin::Plugin() const
+const sdf::Plugin &VisualSdfPlugin::Plugin() const
 {
   return this->dataPtr->plugin;
 }

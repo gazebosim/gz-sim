@@ -162,7 +162,7 @@ void GzSceneManager::Update(const UpdateInfo &_info,
   }
   for (const auto &it : plugins)
   {
-    for (const sdf::Plugin plugin : it.second)
+    for (const sdf::Plugin &plugin : it.second)
     {
       ignition::gazebo::gui::events::VisualSdfPlugin visualPluginEvent(
           it.first, plugin);

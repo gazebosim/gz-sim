@@ -42,9 +42,9 @@ class ignition::gazebo::ServerConfig::PluginInfoPrivate
               const std::unique_ptr<ServerConfig::PluginInfoPrivate> &_info)
           : entityName(_info->entityName),
             entityType(_info->entityType),
+            plugin(_info->plugin),
             filename(_info->filename),
-            name(_info->name),
-            plugin(_info->plugin)
+            name(_info->name)
   {
     this->sdf = plugin.Element();
   }
@@ -65,11 +65,11 @@ class ignition::gazebo::ServerConfig::PluginInfoPrivate
                             sdf::Plugin _plugin)
           : entityName(std::move(_entityName)),
             entityType(std::move(_entityType)),
-            plugin(std::move(_plugin))
+            plugin(std::move(_plugin)),
+            filename(plugin.Filename()),
+            name(plugin.Name()),
+            sdf(plugin.Element())
   {
-    this->filename = this->plugin.Filename();
-    this->name = this->plugin.Name();
-    this->sdf = this->plugin.Element();
   }
 
   /// \brief The name of the entity.
@@ -77,6 +77,9 @@ class ignition::gazebo::ServerConfig::PluginInfoPrivate
 
   /// \brief The type of entity.
   public: std::string entityType = "";
+
+  /// \brief SDF plugin information.
+  public: sdf::Plugin plugin;
 
   /// \brief _filename The plugin library.
   public: std::string filename = "";
@@ -87,8 +90,6 @@ class ignition::gazebo::ServerConfig::PluginInfoPrivate
   /// \brief XML elements associated with this plugin
   public: sdf::ElementPtr sdf = nullptr;
 
-  /// \brief SDF plugin information.
-  public: sdf::Plugin plugin;
 };
 
 //////////////////////////////////////////////////

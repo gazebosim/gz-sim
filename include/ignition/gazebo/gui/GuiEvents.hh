@@ -252,7 +252,7 @@ namespace events
     public: ignition::gazebo::Entity Entity() const;
 
     /// \brief Get the SDF Plugin of the visual plugin
-    public: sdf::Plugin Plugin() const;
+    public: const sdf::Plugin &Plugin() const;
 
     static const QEvent::Type kType = QEvent::Type(QEvent::User + 8);
 

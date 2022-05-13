@@ -972,7 +972,7 @@ void SimulationRunner::LoadLoggingPlugins(const ServerConfig &_config)
 void SimulationRunner::LoadPlugins(const Entity _entity,
     const sdf::Plugins &_plugins)
 {
-  for (const sdf::Plugin plugin : _plugins)
+  for (const sdf::Plugin &plugin : _plugins)
   {
     // No error message for the 'else' case of the following 'if' statement
     // because SDF create a default <plugin> element even if it's not
