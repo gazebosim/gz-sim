@@ -213,6 +213,24 @@ namespace ignition
       /// an UpdateRate has not been set.
       public: std::optional<double> UpdateRate() const;
 
+      /// \brief Set the run option
+      /// \return True if -r is setted or False otherwise
+      public: void SetRunOption(bool _run);
+
+      /// \brief Get the run option
+      /// \return True if -r is setted or False otherwise
+      public: bool RunOption() const;
+
+      /// \brief True if the models are downloaded in a thread false otherwise
+      /// \param _downloadInParallel True if the models are downloaded in a
+      /// thread false otherwise
+      public: void SetDownloadInParallel(bool _downloadInParallel);
+
+      /// \brief Return True if the models are downloaded in a thread false
+      /// otherwise
+      /// \return True if the models are downloaded in a thread false otherwise
+      public: bool DownloadInParallel() const;
+
       /// \brief Get whether the server is using the level system
       /// \return True if the server is set to use the level system
       public: bool UseLevels() const;

@@ -256,7 +256,16 @@ void SceneBroadcaster::Configure(
   }
 
   this->dataPtr->worldEntity = _entity;
+
+  if (!this->dataPtr->worldName.empty() && this->dataPtr->node)
+  {
+    std::cerr << "RESETING node" << '\n';
+    this->dataPtr->node.reset();
+  }
+
   this->dataPtr->worldName = name->Data();
+
+  std::cerr << "SceneBroadcaster::Configure " << this->dataPtr->worldName << '\n';
 
   auto readHertz = _sdf->Get<int>("dynamic_pose_hertz", 60);
   this->dataPtr->dyPoseHertz = readHertz.first;
@@ -378,6 +387,13 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
+void SceneBroadcaster::Reset(const UpdateInfo &_info,
+                             EntityComponentManager &_manager)
+{
+  std::cerr << "SceneBroadcaster reset" << this->dataPtr->worldName << '\n';
+}
+
+//////////////////////////////////////////////////
 void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_manager)
 {
@@ -496,6 +512,7 @@ void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
 //////////////////////////////////////////////////
 void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
 {
+  this->worldName = _worldName;
   auto ns = transport::TopicUtils::AsValidTopic("/world/" + _worldName);
   if (ns.empty())
   {

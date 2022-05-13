@@ -220,19 +220,52 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
 {
   IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::World)");
 
-  // World entity
-  Entity worldEntity = this->dataPtr->ecm->CreateEntity();
-
-  // World components
-  this->dataPtr->ecm->CreateComponent(worldEntity, components::World());
-  this->dataPtr->ecm->CreateComponent(worldEntity,
-      components::Name(_world->Name()));
-
-  // scene
-  if (_world->Scene())
+  // In the update loop, you can for example get the name of the world and set
+  // it as a property that can be read from the QML.
+  Entity worldEntity;
+  this->dataPtr->ecm->Each<ignition::gazebo::components::Name,
+            ignition::gazebo::components::World>(
+    [&](const ignition::gazebo::Entity &_entity,
+        const ignition::gazebo::components::Name *_name,
+        const ignition::gazebo::components::World *_w)->bool
   {
+    std::cerr << "/worldEntity " << worldEntity << '\n';
+    worldEntity = _entity;
+    // worldComp = _w;
+    std::cerr << "/_name " << _name->Data() << '\n';
+    // if (_name == "empty_world")
+    // {
+    //   _name = _world->Name();
+    // }
+    // std::cerr << "/_name " << _name << '\n';
+
+    return false;
+  });
+
+  components::World *worldComp;
+  components::Name *nameComp;
+
+  worldComp = this->dataPtr->ecm->Component<components::World>(worldEntity);
+  nameComp = this->dataPtr->ecm->Component<components::Name>(worldEntity);
+  // worldComp->Data()->SetName(_world->Name());
+  nameComp->Data() = _world->Name();
+
+  if (!worldComp)
+  {
+    // World entity
+    worldEntity = this->dataPtr->ecm->CreateEntity();
+
+    // World components
+    this->dataPtr->ecm->CreateComponent(worldEntity, components::World());
     this->dataPtr->ecm->CreateComponent(worldEntity,
-        components::Scene(*_world->Scene()));
+        components::Name(_world->Name()));
+
+    // scene
+    if (_world->Scene())
+    {
+      this->dataPtr->ecm->CreateComponent(worldEntity,
+          components::Scene(*_world->Scene()));
+    }
   }
 
   // atmosphere

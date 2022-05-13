@@ -232,12 +232,15 @@ class ignition::gazebo::ServerConfigPrivate
             physicsEngine(_cfg->physicsEngine),
             renderEngineServer(_cfg->renderEngineServer),
             renderEngineGui(_cfg->renderEngineGui),
+            running(_cfg->running),
+            downloadInParallel(_cfg->downloadInParallel),
             plugins(_cfg->plugins),
             networkRole(_cfg->networkRole),
             networkSecondaries(_cfg->networkSecondaries),
             seed(_cfg->seed),
             logRecordTopics(_cfg->logRecordTopics),
-            isHeadlessRendering(_cfg->isHeadlessRendering) { }
+            isHeadlessRendering(_cfg->isHeadlessRendering),
+            source(_cfg->source) { }
 
   // \brief The SDF file that the server should load
   public: std::string sdfFile = "";
@@ -280,6 +283,13 @@ class ignition::gazebo::ServerConfigPrivate
   /// \brief File containing render engine gui plugin. If empty, OGRE2
   /// will be used.
   public: std::string renderEngineGui = "";
+
+  /// \brief This is used to indicate that Run has been called, and the
+  /// server is in the run state.
+  public: bool running{false};
+
+  /// \brief True if models are downloaded in the background, false otherwise
+  public: bool downloadInParallel{false};
 
   /// \brief List of plugins to load.
   public: std::list<ServerConfig::PluginInfo> plugins;
@@ -381,6 +391,30 @@ std::optional<std::chrono::steady_clock::duration>
   }
 
   return std::nullopt;
+}
+
+/////////////////////////////////////////////////
+bool ServerConfig::RunOption() const
+{
+  return this->dataPtr->running;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetRunOption(bool _run)
+{
+  this->dataPtr->running = _run;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetDownloadInParallel(bool _downloadInParallel)
+{
+  this->dataPtr->downloadInParallel = _downloadInParallel;
+}
+
+/////////////////////////////////////////////////
+bool ServerConfig::DownloadInParallel() const
+{
+  return this->dataPtr->downloadInParallel;
 }
 
 /////////////////////////////////////////////////

@@ -102,6 +102,10 @@ ServerPrivate::~ServerPrivate()
   {
     this->stopThread->join();
   }
+  if (this->downloadModelsThread.joinable())
+  {
+    this->downloadModelsThread.join();
+  }
 }
 
 //////////////////////////////////////////////////

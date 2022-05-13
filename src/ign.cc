@@ -129,6 +129,8 @@ extern "C" int runServer(const char *_sdfString,
   // Path for logs
   std::string recordPathMod = serverConfig.LogRecordPath();
 
+  serverConfig.SetRunOption(_run);
+
   // Path for compressed log, used to check for duplicates
   std::string cmpPath = std::string(recordPathMod);
   if (!std::string(1, cmpPath.back()).compare(ignition::common::separator("")))
@@ -348,7 +350,8 @@ extern "C" int runServer(const char *_sdfString,
   }
 
   // Create the Gazebo server
-  ignition::gazebo::Server server(serverConfig);
+  serverConfig.SetDownloadInParallel(true);
+  ignition::gazebo::Server server(true, serverConfig);
 
   // Run the server
   server.Run(true, _iterations, _run == 0);

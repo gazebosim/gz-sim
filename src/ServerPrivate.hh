@@ -164,6 +164,13 @@ namespace ignition
       /// Server. It is used in the SDFormat world generator when saving worlds
       public: std::unordered_map<std::string, std::string> fuelUriMap;
 
+      /// \brief Thread to download the models
+      public: std::thread downloadModelsThread;
+
+      /// \brief True if models are downloaded in the background, false
+      /// otherwise
+      public: bool downloadInParallel{false};
+
       /// \brief List of names for all worlds loaded in this server.
       private: std::vector<std::string> worldNames;
 

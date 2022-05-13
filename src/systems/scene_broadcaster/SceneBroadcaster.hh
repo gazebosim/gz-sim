@@ -40,7 +40,8 @@ namespace systems
   class SceneBroadcaster final:
     public System,
     public ISystemConfigure,
-    public ISystemPostUpdate
+    public ISystemPostUpdate,
+    public ISystemReset
   {
     /// \brief Constructor
     public: SceneBroadcaster();
@@ -55,6 +56,10 @@ namespace systems
                            EventManager &_eventMgr) final;
 
     // Documentation inherited
+    public: void Reset(const UpdateInfo &_info,
+                       EntityComponentManager &_ecm) final;
+
+    // Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
                 const EntityComponentManager &_ecm) final;
 
@@ -66,4 +71,3 @@ namespace systems
 }
 }
 #endif
-

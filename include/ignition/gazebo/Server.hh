@@ -120,6 +120,20 @@ namespace ignition
       /// \brief Destructor
       public: ~Server();
 
+      /// \brief Construct the server using the parameters specified in a
+      /// ServerConfig and choose it should download models in the background
+      /// \param[in] _config Server configuration parameters. If this
+      /// parameter is omitted, then an empty world is loaded.
+      public: Server(bool _downloadInParallel,
+                     const ServerConfig &_config = ServerConfig());
+
+      /// \brief Initialize server
+      private: void Init();
+
+      /// \brief Download models from the sdf
+      /// \return True if everything was fine False otherwise
+      private: bool DownloadModels();
+
       /// \brief Set the update period. The update period is the wall-clock time
       /// between ECS updates.
       /// Note that this is different from the simulation update rate. ECS

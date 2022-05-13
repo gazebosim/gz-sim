@@ -17,50 +17,16 @@
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
-    <light type="directional" name="sun">
-      <cast_shadows>true</cast_shadows>
-      <pose>0 0 10 0 0 0</pose>
-      <diffuse>0.8 0.8 0.8 1</diffuse>
-      <specular>0.2 0.2 0.2 1</specular>
-      <attenuation>
-        <range>1000</range>
-        <constant>0.9</constant>
-        <linear>0.01</linear>
-        <quadratic>0.001</quadratic>
-      </attenuation>
-      <direction>-0.5 0.1 -0.9</direction>
-    </light>
+    <include>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Sun</uri>
+    </include>
 
-    <model name="ground_plane">
-      <static>true</static>
-      <link name="link">
-        <collision name="collision">
-          <geometry>
-            <plane>
-              <normal>0 0 1</normal>
-              <size>100 100</size>
-            </plane>
-          </geometry>
-        </collision>
-        <visual name="visual">
-          <geometry>
-            <plane>
-              <normal>0 0 1</normal>
-              <size>100 100</size>
-            </plane>
-          </geometry>
-          <material>
-            <ambient>0.8 0.8 0.8 1</ambient>
-            <diffuse>0.8 0.8 0.8 1</diffuse>
-            <specular>0.8 0.8 0.8 1</specular>
-          </material>
-        </visual>
-      </link>
-    </model>
+    <include>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Ground Plane</uri>
+    </include>
 
     <!-- Included model without meshes -->
     <include>
-      <name>Double pendulum</name>
       <pose>-3 0 0 0 0 0</pose>
       <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Double pendulum with base</uri>
     </include>
@@ -73,15 +39,12 @@
 
     <!-- Included model with meshes using relative paths -->
     <include>
-      <name>Gazebo (relative paths)</name>
       <pose>2 5 0 0 0 0</pose>
       <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Gazebo - relative paths</uri>
     </include>
 
     <!-- Included actor with meshes using relative paths -->
     <include>
-      <name>Actor Test</name>
-      <pose>0 0 0 0 0 0</pose>
       <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/actor - relative paths</uri>
     </include>
 
@@ -104,55 +67,6 @@
             </mesh>
           </geometry>
         </visual>
-      </link>
-    </model>
-
-    <!-- Heightmap referring to assets from another model -->
-    <model name="fortress_heightmap">
-      <static>true</static>
-      <link name="link">
-        <visual name="visual">
-          <geometry>
-            <heightmap>
-              <use_terrain_paging>false</use_terrain_paging>
-              <texture>
-                <diffuse>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/dirt_diffusespecular.png</diffuse>
-                <normal>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/flat_normal.png</normal>
-                <size>10</size>
-              </texture>
-              <texture>
-                <diffuse>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/grass_diffusespecular.png</diffuse>
-                <normal>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/flat_normal.png</normal>
-                <size>10</size>
-              </texture>
-              <texture>
-                <diffuse>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/fungus_diffusespecular.png</diffuse>
-                <normal>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/flat_normal.png</normal>
-                <size>10</size>
-              </texture>
-              <blend>
-                <min_height>28</min_height>
-                <fade_dist>6</fade_dist>
-              </blend>
-              <blend>
-                <min_height>35</min_height>
-                <fade_dist>18</fade_dist>
-              </blend>
-              <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/fortress_heightmap.png</uri>
-              <size>257 257 50</size>
-              <pos>0 0 -28</pos>
-            </heightmap>
-          </geometry>
-        </visual>
-        <collision name="collision">
-          <geometry>
-            <heightmap>
-              <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/fortress_heightmap.png</uri>
-              <size>257 257 50</size>
-              <pos>0 0 -28</pos>
-            </heightmap>
-          </geometry>
-        </collision>
       </link>
     </model>
 

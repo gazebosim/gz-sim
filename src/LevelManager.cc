@@ -515,6 +515,12 @@ void LevelManager::ConfigureDefaultLevel()
 }
 
 /////////////////////////////////////////////////
+void LevelManager::AddWorld(const sdf::World *_world)
+{
+  this->entityCreator->CreateEntities(_world);
+}
+
+/////////////////////////////////////////////////
 void LevelManager::CreatePerformers()
 {
   IGN_PROFILE("LevelManager::CreatePerformers");

@@ -43,7 +43,7 @@ struct DefaultWorld
   {
     static std::string world = std::string("<?xml version='1.0'?>"
       "<sdf version='1.6'>"
-        "<world name='default'>") +
+        "<world name='empty_world'>") +
         "</world>"
       "</sdf>";
 
@@ -56,29 +56,30 @@ Server::Server(const ServerConfig &_config)
   : dataPtr(new ServerPrivate)
 {
   this->dataPtr->config = _config;
+  this->Init();
+}
 
-  // Configure the fuel client
-  fuel_tools::ClientConfig config;
-  if (!_config.ResourceCache().empty())
-    config.SetCacheLocation(_config.ResourceCache());
-  this->dataPtr->fuelClient = std::make_unique<fuel_tools::FuelClient>(config);
+/////////////////////////////////////////////////
+Server::Server(bool _downloadInParallel, const ServerConfig &_config)
+  : dataPtr(new ServerPrivate)
+{
+  this->dataPtr->config = _config;
+  this->dataPtr->downloadInParallel = _downloadInParallel;
+  this->Init();
+}
 
-  // Configure SDF to fetch assets from ignition fuel.
-  sdf::setFindCallback(std::bind(&ServerPrivate::FetchResource,
-        this->dataPtr.get(), std::placeholders::_1));
-  common::addFindFileURICallback(std::bind(&ServerPrivate::FetchResourceUri,
-      this->dataPtr.get(), std::placeholders::_1));
-
-  addResourcePaths();
-
+/////////////////////////////////////////////////
+bool Server::DownloadModels()
+{
   sdf::Errors errors;
-
-  switch (_config.Source())
+  std::cerr << "this->dataPtr->config.Source() "
+            << static_cast<int>(this->dataPtr->config.Source()) << '\n';
+  switch (this->dataPtr->config.Source())
   {
     // Load a world if specified. Check SDF string first, then SDF file
     case ServerConfig::SourceType::kSdfRoot:
     {
-      this->dataPtr->sdfRoot = _config.SdfRoot()->Clone();
+      this->dataPtr->sdfRoot = this->dataPtr->config.SdfRoot()->Clone();
       ignmsg << "Loading SDF world from SDF DOM.\n";
       break;
     }
@@ -86,40 +87,69 @@ Server::Server(const ServerConfig &_config)
     case ServerConfig::SourceType::kSdfString:
     {
       std::string msg = "Loading SDF string. ";
-      if (_config.SdfFile().empty())
+      if (this->dataPtr->config.SdfFile().empty())
       {
         msg += "File path not available.\n";
       }
       else
       {
-        msg += "File path [" + _config.SdfFile() + "].\n";
+        msg += "File path [" + this->dataPtr->config.SdfFile() + "].\n";
       }
       ignmsg <<  msg;
-      errors = this->dataPtr->sdfRoot.LoadSdfString(_config.SdfString());
+      errors = this->dataPtr->sdfRoot.LoadSdfString(
+        this->dataPtr->config.SdfString());
       break;
     }
 
     case ServerConfig::SourceType::kSdfFile:
     {
-      std::string filePath = resolveSdfWorldFile(_config.SdfFile(),
-          _config.ResourceCache());
+      std::string filePath = resolveSdfWorldFile(this->dataPtr->config.SdfFile(),
+          this->dataPtr->config.ResourceCache());
 
       if (filePath.empty())
       {
-        ignerr << "Failed to find world [" << _config.SdfFile() << "]"
+        ignerr << "Failed to find world ["
+               << this->dataPtr->config.SdfFile() << "]"
                << std::endl;
-        return;
+        return false;
       }
 
       ignmsg << "Loading SDF world file[" << filePath << "].\n";
 
-      // \todo(nkoenig) Async resource download.
-      // This call can block for a long period of time while
-      // resources are downloaded. Blocking here causes the GUI to block with
-      // a black screen (search for "Async resource download" in
-      // 'src/gui_main.cc'.
+      while (this->dataPtr->downloadInParallel &&
+             this->dataPtr->simRunners.size() == 0)
+      {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      }
+
       errors = this->dataPtr->sdfRoot.Load(filePath);
-      break;
+
+      if (!this->dataPtr->downloadInParallel)
+        return true;
+
+      if (this->dataPtr->sdfRoot.WorldCount() == 0)
+      {
+        ignerr << "There is no world available" << "\n";
+        return false;
+      }
+
+      while (this->dataPtr->simRunners.size() == 0)
+      {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      }
+
+      for (std::unique_ptr<SimulationRunner> &runner :
+           this->dataPtr->simRunners)
+      {
+        for (size_t j = 0; j < this->dataPtr->sdfRoot.WorldCount(); ++j)
+        {
+            runner->AddWorld(this->dataPtr->sdfRoot.WorldByIndex(j));
+        }
+        runner->SetFetchedAllIncludes(true);
+      }
+      ignmsg << "Download models in parallel has finished. "
+             << "Now you can start the simulation" << std::endl;
+       break;
     }
 
     case ServerConfig::SourceType::kNone:
@@ -137,22 +167,70 @@ Server::Server(const ServerConfig &_config)
   {
     for (auto &err : errors)
       ignerr << err << "\n";
+    return false;
+  }
+  return true;
+}
+
+/////////////////////////////////////////////////
+void Server::Init()
+{
+  // Configure the fuel client
+  fuel_tools::ClientConfig config;
+  if (!this->dataPtr->config.ResourceCache().empty())
+    config.SetCacheLocation(this->dataPtr->config.ResourceCache());
+  this->dataPtr->fuelClient = std::make_unique<fuel_tools::FuelClient>(config);
+
+  // Configure SDF to fetch assets from ignition fuel.
+  sdf::setFindCallback(std::bind(&ServerPrivate::FetchResource,
+        this->dataPtr.get(), std::placeholders::_1));
+  common::addFindFileURICallback(std::bind(&ServerPrivate::FetchResourceUri,
+      this->dataPtr.get(), std::placeholders::_1));
+
+  addResourcePaths();
+
+  sdf::Errors errors;
+
+  if (this->dataPtr->downloadInParallel)
+  {
+    this->dataPtr->downloadModelsThread = std::thread([&]()
+    {
+      this->DownloadModels();
+    });
+
+    ignmsg << "Loading default world.\n";
+    // Load an empty world.
+    /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
+    errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World());
+  }
+  else
+  {
+    if (!this->DownloadModels())
+    {
+      return;
+    }
+  }
+
+  if (!errors.empty())
+  {
+    for (auto &err : errors)
+      ignerr << err << "\n";
     return;
   }
 
   // Add record plugin
-  if (_config.UseLogRecord())
+  if (this->dataPtr->config.UseLogRecord())
   {
-    this->dataPtr->AddRecordPlugin(_config);
+    this->dataPtr->AddRecordPlugin(this->dataPtr->config);
   }
 
   this->dataPtr->CreateEntities();
 
   // Set the desired update period, this will override the desired RTF given in
   // the world file which was parsed by CreateEntities.
-  if (_config.UpdatePeriod())
+  if (this->dataPtr->config.UpdatePeriod())
   {
-    this->SetUpdatePeriod(_config.UpdatePeriod().value());
+    this->SetUpdatePeriod(this->dataPtr->config.UpdatePeriod().value());
   }
 
   // Establish publishers and subscribers.

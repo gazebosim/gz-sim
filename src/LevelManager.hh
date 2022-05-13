@@ -88,6 +88,10 @@ namespace ignition
       /// every update cycle
       public: void UpdateLevelsState();
 
+      /// \brief This will add a world to the scene
+      /// \param[in] _world SDF world to add to the scene
+      public: void AddWorld(const sdf::World *_world);
+
       /// \brief Load entities that have been marked for loading.
       /// \param[in] _namesToLoad List of of entity names to load
       private: void LoadActiveEntities(
@@ -184,4 +188,3 @@ namespace ignition
 }
 // IGNITION_GAZEBO_LEVELMANAGER_HH
 #endif
-
