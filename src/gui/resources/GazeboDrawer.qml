@@ -57,6 +57,9 @@ Rectangle {
       case "aboutDialog":
         aboutDialog.open();
         break
+      case "quickSetupDialog":
+        quickSetupDialog.open();
+        break  
       // Forward others to default drawer
       default:
         parent.onAction(_action);
@@ -100,6 +103,10 @@ Rectangle {
     ListElement {
       title: "About"
       actionElement: "aboutDialog"
+    }
+    ListElement {
+      title: "Quick Setup"
+      actionElement: "quickSetupDialog"
     }
     ListElement {
       title: "Quit"
@@ -166,6 +173,34 @@ Rectangle {
       textFormat: Text.RichText
       text: AboutDialogHandler.getVersionInformation()
       onLinkActivated: AboutDialogHandler.openURL(link)
+    }
+  }
+
+  /**
+   * Quick Setup dialog
+   */
+  Dialog {
+    id: quickSetupDialog
+    title: "Quick Setup"
+
+    modal: true
+    focus: true
+    parent: ApplicationWindow.overlay
+    width: parent.width / 3 > 500 ? 500 : parent.width / 3
+    x: (parent.width - width) / 2
+    y: (parent.height - height) / 2
+    closePolicy: Popup.CloseOnEscape
+    standardButtons: StandardButton.Ok
+
+    Text {
+      anchors.fill: parent
+      id: quickSetupMessage
+      wrapMode: Text.Wrap
+      verticalAlignment: Text.AlignVCenter
+      color: Material.theme == Material.Light ? "black" : "white"
+      textFormat: Text.RichText
+      text: QuickSetup.getVersionInformation()
+      onLinkActivated: QuickSetup.openURL(link)
     }
   }
 
