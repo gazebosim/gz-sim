@@ -4,7 +4,7 @@ import QtQuick.Layouts 1.3
 
 Image {
     id: root
-    source: "images/icons/coffees/Cappuccino.png"
+    source: ""
     signal clicked
     sourceSize.width: 100
     sourceSize.height: 100

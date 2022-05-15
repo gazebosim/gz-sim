@@ -29,6 +29,7 @@
 
 #include "ignition/gazebo/gui/Gui.hh"
 #include "AboutDialogHandler.hh"
+#include "QuickSetup.hh"
 #include "GuiFileHandler.hh"
 #include "PathManager.hh"
 
@@ -73,6 +74,9 @@ std::unique_ptr<ignition::gui::Application> createGui(
   auto aboutDialogHandler = new ignition::gazebo::gui::AboutDialogHandler();
   aboutDialogHandler->setParent(app->Engine());
 
+  auto quickSetupHandler = new ignition::gazebo::gui::QuickSetupHandler();
+  quickSetupHandler->setParent(app->Engine());
+
   auto guiFileHandler = new ignition::gazebo::gui::GuiFileHandler();
   guiFileHandler->setParent(app->Engine());
 
@@ -113,10 +117,31 @@ std::unique_ptr<ignition::gui::Application> createGui(
   auto context = new QQmlContext(app->Engine()->rootContext());
   context->setContextProperty("TmpIface", tmp);
   context->setContextProperty("AboutDialogHandler", aboutDialogHandler);
+  context->setContextProperty("QuickSetupHandler", quickSetupHandler);
   context->setContextProperty("GuiFileHandler", guiFileHandler);
 
+  // Instantiate QuickSetup.qml file into a component
+  QQmlComponent qsComponent(app->Engine(), "qrc:/Gazebo/QuickSetup.qml");
+  auto qsDrawerItem = qobject_cast<QQuickItem *>(qsComponent.create(context));
+
+  if (qsDrawerItem)
+  {
+    // C++ ownership
+    QQmlEngine::setObjectOwnership(qsDrawerItem, QQmlEngine::CppOwnership);
+
+    // Add to main window
+    auto bgItem = win->findChild<QQuickItem *>("background");
+    qsDrawerItem->setParentItem(bgItem);
+    qsDrawerItem->setParent(app->Engine());
+  }
+  else
+  {
+    ignerr << "Failed to instantiate custom drawer, drawer will be empty"
+           << std::endl;
+  }
+
   // Instantiate GazeboDrawer.qml file into a component
-  QQmlComponent component(app->Engine(), ":/Gazebo/GazeboDrawer.qml");
+  QQmlComponent component(app->Engine(), "qrc:/Gazebo/GazeboDrawer.qml");
   auto gzDrawerItem = qobject_cast<QQuickItem *>(component.create(context));
   if (gzDrawerItem)
   {
@@ -132,6 +157,13 @@ std::unique_ptr<ignition::gui::Application> createGui(
   {
     ignerr << "Failed to instantiate custom drawer, drawer will be empty"
            << std::endl;
+  }
+
+  for (auto it = win->children().begin(); it != win->children().end(); ++it) {
+    // if the current index is needed:
+    // auto i = std::distance(v.begin(), it); 
+    ignwarn << "*it.objectName()" << std::endl;
+    // access element as *it
   }
 
   // Get list of worlds

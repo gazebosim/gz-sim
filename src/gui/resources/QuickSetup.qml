@@ -26,88 +26,110 @@ import Qt.labs.folderlistmodel 2.1
 /**
  * Quick Setup
  */
-Rectangle {
-    id: cancelBtn
-    color: Material.color(Material.Grey, Material.Shade600);
-    width: 420
-    height: 400
+// Item{
+//   // id: quickSetup
+//   x: Math.round((parent.width - width) / 2)
+//   y: Math.round((parent.height - height) / 2)
 
-    Column {
-      anchors.fill: parent
-      anchors.margins: 10
+  Rectangle {
+      width: 420
+      height: 400
+      id: quickSetup
 
-      Row {
-        Column{
-          Label {
-           text: "Worlds"
-          }
-        Rectangle {
-        width: 100
-        height: 300
-        color: "transparent"
+      function loadWorld(fileName, fileURL_, fileIsDir){
+        console.log(fileURL_)
+        console.log(fileName)
+        console.log(fileIsDir)
+        TmpIface.OnLoadWorldFromDir(fileURL)
+      }
 
-            ListView {
-              anchors.fill: parent
+      function getThumbnail(fileURL, fileIsDir){
+        if (fileIsDir)
+          return fileURL + "/thumbnails/0.png";
+        else
+          return "";
+      }
 
-              FolderListModel {
-                  id: folderModel
-                  showDirs: true
-                  showDirsFirst: true
-                  folder: "file:///home/m/repos/citadel/src/ign-gazebo/examples/worlds/Edifice demo/thumbnails"
-                  nameFilters: ["*.png"]
-              }
+      // color: Material.color(Material.Grey, Material.Shade600);
+      Component.onCompleted: function(){console.log("component completed")}
+    
+      Column {
+        anchors.fill: parent
+        anchors.margins: 10
 
-              Component {
-                  id: fileDelegate
-                  Text { text: fileName }
-              }
+        Row {
+          Column{
+            Label {
+            text: "Worlds"
+            }
+          Rectangle {
+          width: 100
+          height: 300
+          color: "transparent"
 
-              model: folderModel
-              delegate: World {
-                      width: parent.width
-                      height: 100
-                      id: fileName
-                      text: fileName
-                      source: "images/light.png"
-              }
-              ScrollIndicator.vertical: ScrollIndicator {
-                active: true;
-                onActiveChanged: {
-                  active = true;
+
+              ListView {
+                anchors.fill: parent
+
+                FolderListModel {
+                    id: folderModel
+                    showDirs: true
+                    showFiles: true
+                    showDirsFirst: true
+                    folder: "file:///home/m/repos/citadel/src/ign-gazebo/examples/worlds/"
+                    nameFilters: [ "*.sdf" ]
+                }
+
+                model: folderModel
+                delegate: World {
+                  width: parent.width
+                  height: 100
+                  id: filePath
+                  // text: filePath
+                  text: fileName
+                  source: quickSetup.getThumbnail(fileURL, fileIsDir)
+                  onClicked: quickSetup.loadWorld(fileName, fileURL, fileIsDir)
+                }
+
+                ScrollIndicator.vertical: ScrollIndicator {
+                  active: true;
+                  onActiveChanged: {
+                    active = true;
+                  }
                 }
               }
             }
           }
-        }
-        Column{
-          CheckBox {
-            text: "Don't show again"
-            Layout.fillWidth: true
-            checked: sdfGenConfig.saveFuelModelVersion
-            onClicked: {
-              sdfGenConfig.saveFuelModelVersion = checked
+          Column{
+            CheckBox {
+              text: "Don't show again"
+              Layout.fillWidth: true
+              // checked: sdfGenConfig.saveFuelModelVersion
+              onClicked: {
+                sdfGenConfig.saveFuelModelVersion = checked
+            }
           }
-        }
-        RoundButton {
-          id: closeButton
-          visible: true
-          text: closeIcon
-          checkable: true
-          Layout.alignment : Qt.AlignVCenter
-          Layout.minimumWidth: width
-          Layout.leftMargin: 10
+          Button {
+            id: closeButton
+            visible: true
+            text: "Skip"
+            Layout.alignment : Qt.AlignVCenter
+            Layout.minimumWidth: width
+            Layout.leftMargin: 10
 
-          onClicked: {
-            ShutdownButton.OnStop()
+            onClicked: {
+              quickSetup.close();
+            }
+
+            Material.background: Material.primary
+            ToolTip.visible: hovered
+            ToolTip.delay: tooltipDelay
+            ToolTip.timeout: tooltipTimeout
+            ToolTip.text: qsTr("Skip")
           }
-          Material.background: Material.primary
-          ToolTip.visible: hovered
-          ToolTip.delay: tooltipDelay
-          ToolTip.timeout: tooltipTimeout
-          ToolTip.text: qsTr("Quit")
         }
       }
-    }
 
-  }  
-}
+    }
+  }
+// }

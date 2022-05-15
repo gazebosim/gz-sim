@@ -1,5 +1,7 @@
 <!DOCTYPE RCC><RCC version="1.0">
   <qresource prefix="Gazebo/">
+    <file>World.qml</file>
+    <file>QuickSetup.qml</file>
     <file>GazeboDrawer.qml</file>
     <file>images/actor.png</file>
     <file>images/collision.png</file>

@@ -14,6 +14,8 @@
  * limitations under the License.
  *
 */
+
+
 import QtQuick 2.9
 import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
@@ -63,6 +65,9 @@ Rectangle {
       case "aboutDialog":
         aboutDialog.open();
         break
+      case "quickSetupDialog":
+        quickSetupDialog.open();
+        break;
       // Forward others to default drawer
       default:
         parent.onAction(_action);
@@ -78,12 +83,12 @@ Rectangle {
       title: "New world"
       actionElement: "newWorld"
       type: "world"
-    }
+    }*/
     ListElement {
       title: "Load world"
       actionElement: "loadWorld"
       type: "world"
-    }*/
+    }
     ListElement {
       title: "Save world"
       actionElement: "saveWorld"
@@ -116,6 +121,10 @@ Rectangle {
     ListElement {
       title: "About"
       actionElement: "aboutDialog"
+    }
+    ListElement {
+      title: "Quick Setup"
+      actionElement: "quickSetupDialog"
     }
     ListElement {
       title: "Quit"
@@ -199,6 +208,88 @@ Rectangle {
       onLinkActivated: AboutDialogHandler.openURL(link)
     }
   }
+
+  // ListView {
+  //     id: listViewView
+
+  //     FolderListModel {
+  //         id: folderModel
+  //         nameFilters: ["images/*.png"]
+  //     }
+
+  //     Component {
+  //         id: fileDelegate
+  //         Text { text: fileName }
+  //     }
+
+  //     model: folderModel
+  //     delegate: fileDelegate
+  // }
+
+  /**
+   * Quick Setup dialog
+   */
+  //  ApplicationWindow {
+  //   id: win
+  //   visible: true
+    Dialog {
+      id: quickSetupDialog
+      modal: true
+      focus: true
+      title: "Quick setup menu"
+      parent: ApplicationWindow.overlay
+      x: (parent.width - width) / 2
+      y: (parent.height - height) / 2
+      closePolicy: Popup.CloseOnEscape
+      onAccepted: {
+        QuickSetup.OnSkip();
+      }
+      Component.onCompleted: {
+        dialogButtons.standardButton(Dialog.Ok).enabled = false
+      }
+      footer: DialogButtonBox {
+        id: dialogButtons2
+        standardButtons: Dialog.Ok | Dialog.Cancel
+      }
+
+      Rectangle {
+          id: background
+          color: "#eec1a2"
+      }
+      contentItem: ColumnLayout {
+        id: quickSetupContent
+
+        World{
+          id: world1
+          text: "eddifice"
+          source: "images/actor.png"
+        }
+
+        World{
+          id: world2
+          text: "citadel"
+          source: "images/light.png"
+        }
+
+        ComboBox {
+          id: materialThemeCombo
+          currentIndex: 0
+          model: ["Light", "Dark"]
+          delegate: ItemDelegate {
+            text: modelData
+            width: parent.width
+          }
+        }
+        CheckBox {
+          text: "Don't show again"
+          Layout.fillWidth: true
+          checked: sdfGenConfig.saveFuelModelVersion
+          onClicked: {
+            sdfGenConfig.saveFuelModelVersion = checked
+          }
+        }
+      }
+   }
 
   /**
    * Dialog with configurations for SDF generation
