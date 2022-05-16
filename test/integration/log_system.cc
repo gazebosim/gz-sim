@@ -308,9 +308,9 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPlaybackStatistics))
   auto endTimePair = math::timePointToSecNsec(endTime);
 
   EXPECT_EQ(0, startTimePair.first);
-  EXPECT_EQ(0, startTimePair.second);
+  EXPECT_EQ(1000000, startTimePair.second);
   EXPECT_EQ(5, endTimePair.first);
-  EXPECT_EQ(800000000, endTimePair.second);
+  EXPECT_EQ(0, endTimePair.second);
 }
 
 /////////////////////////////////////////////////
