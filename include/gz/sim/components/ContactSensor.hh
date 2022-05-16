@@ -14,13 +14,13 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_CONTACTSENSOR_HH_
-#define IGNITION_GAZEBO_COMPONENTS_CONTACTSENSOR_HH_
+#ifndef GZ_SIM_COMPONENTS_CONTACTSENSOR_HH_
+#define GZ_SIM_COMPONENTS_CONTACTSENSOR_HH_
 
 #include <sdf/Element.hh>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/config.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/config.hh>
 
 namespace ignition
 {
@@ -33,7 +33,7 @@ namespace components
   /// \brief TODO(anyone) Substitute with sdf::Contact once that exists?
   /// This is currently the whole `<sensor>` element.
   using ContactSensor = Component<sdf::ElementPtr, class ContactSensorTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.ContactSensor",
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.ContactSensor",
                                 ContactSensor)
 }
 }

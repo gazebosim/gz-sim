@@ -14,15 +14,15 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_LogPlaybackStatistics_HH_
-#define IGNITION_GAZEBO_COMPONENTS_LogPlaybackStatistics_HH_
+#ifndef GZ_SIM_COMPONENTS_LogPlaybackStatistics_HH_
+#define GZ_SIM_COMPONENTS_LogPlaybackStatistics_HH_
 
-#include <ignition/msgs/log_playback_stats.pb.h>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Serialization.hh>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Conversions.hh>
+#include <gz/msgs/log_playback_stats.pb.h>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/components/Serialization.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Conversions.hh>
 
 namespace ignition
 {
@@ -38,7 +38,7 @@ namespace components
   /// being loaded
   using LogPlaybackStatistics = Component<ignition::msgs::LogPlaybackStatistics,
       class LogPlaybackStatisticsTag, serializers::MsgSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.LogPlaybackStatistics",
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.LogPlaybackStatistics",
       LogPlaybackStatistics)
 }
 }

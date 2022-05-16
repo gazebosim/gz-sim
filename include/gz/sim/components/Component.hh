@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_COMPONENT_HH_
-#define IGNITION_GAZEBO_COMPONENTS_COMPONENT_HH_
+#ifndef GZ_SIM_COMPONENTS_COMPONENT_HH_
+#define GZ_SIM_COMPONENTS_COMPONENT_HH_
 
 #include <cstdint>
 #include <memory>
@@ -23,11 +23,11 @@
 #include <sstream>
 #include <utility>
 
-#include <ignition/common/Console.hh>
+#include <gz/common/Console.hh>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/Types.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
+#include <gz/sim/Types.hh>
 
 namespace ignition
 {

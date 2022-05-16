@@ -18,8 +18,8 @@
 #define IGNITION_GAZEBO_SYSTEMS_FORCE_TORQUE_HH_
 
 #include <memory>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/System.hh>
 
 namespace ignition
 {
@@ -32,7 +32,7 @@ namespace systems
   // Forward declarations.
   class ForceTorquePrivate;
 
-  /// \class ForceTorque ForceTorque.hh ignition/gazebo/systems/ForceTorque.hh
+  /// \class ForceTorque ForceTorque.hh gz/sim/systems/ForceTorque.hh
   /// \brief This system manages all Force-Torque sensors in simulation.
   /// Each FT sensor reports readings over Ignition Transport.
   /// \note Regardless of the setting of //sensor/force_torque/frame the point

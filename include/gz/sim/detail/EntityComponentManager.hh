@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_DETAIL_ENTITYCOMPONENTMANAGER_HH_
-#define IGNITION_GAZEBO_DETAIL_ENTITYCOMPONENTMANAGER_HH_
+#ifndef GZ_GAZEBO_DETAIL_ENTITYCOMPONENTMANAGER_HH_
+#define GZ_GAZEBO_DETAIL_ENTITYCOMPONENTMANAGER_HH_
 
 #include <cstring>
 #include <map>
@@ -28,9 +28,9 @@
 #include <utility>
 #include <vector>
 
-#include <ignition/math/Helpers.hh>
+#include <gz/math/Helpers.hh>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include "gz/sim/EntityComponentManager.hh"
 
 namespace ignition
 {

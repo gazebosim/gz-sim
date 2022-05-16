@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_CREATEREMOVE_HH_
-#define IGNITION_GAZEBO_CREATEREMOVE_HH_
+#ifndef GZ_GAZEBO_CREATEREMOVE_HH_
+#define GZ_GAZEBO_CREATEREMOVE_HH_
 
 #include <memory>
 
@@ -32,10 +32,10 @@
 #include <sdf/Visual.hh>
 #include <sdf/World.hh>
 
-#include <ignition/gazebo/Entity.hh>
-#include <ignition/gazebo/EntityComponentManager.hh>
-#include <ignition/gazebo/EventManager.hh>
-#include <ignition/gazebo/Types.hh>
+#include <gz/sim/Entity.hh>
+#include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/EventManager.hh>
+#include <gz/sim/Types.hh>
 
 namespace ignition
 {
@@ -47,7 +47,7 @@ namespace ignition
     class SdfEntityCreatorPrivate;
     //
     /// \class SdfEntityCreator SdfEntityCreator.hh
-    ///      ignition/gazebo/SdfEntityCreator.hh
+    ///      gz/sim/SdfEntityCreator.hh
     /// \brief Provides convenient functions to spawn entities and load their
     /// plugins from SDF elements, to remove them, and to change their
     /// hierarchy.

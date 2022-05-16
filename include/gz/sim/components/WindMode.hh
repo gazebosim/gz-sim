@@ -14,12 +14,12 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_WINDMODE_HH_
-#define IGNITION_GAZEBO_COMPONENTS_WINDMODE_HH_
+#ifndef GZ_SIM_COMPONENTS_WINDMODE_HH_
+#define GZ_SIM_COMPONENTS_WINDMODE_HH_
 
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/config.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/config.hh>
 
 namespace ignition
 {
@@ -31,7 +31,7 @@ namespace components
 {
   /// \brief A component used to indicate whether an entity is affected by wind.
   using WindMode = Component<bool, class WindModeTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.WindMode", WindMode)
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.WindMode", WindMode)
 }
 }
 }

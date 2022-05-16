@@ -14,15 +14,15 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_CONTACTDATASENSOR_HH_
-#define IGNITION_GAZEBO_COMPONENTS_CONTACTDATASENSOR_HH_
+#ifndef GZ_SIM_COMPONENTS_CONTACTDATASENSOR_HH_
+#define GZ_SIM_COMPONENTS_CONTACTDATASENSOR_HH_
 
-#include <ignition/msgs/contacts.pb.h>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Serialization.hh>
-#include <ignition/gazebo/config.hh>
-#include <ignition/math/Vector3.hh>
+#include <gz/msgs/contacts.pb.h>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Serialization.hh>
+#include <gz/sim/config.hh>
+#include <gz/math/Vector3.hh>
 
 namespace ignition
 {
@@ -36,7 +36,7 @@ namespace components
   using ContactSensorData =
       Component<msgs::Contacts,
       class ContactSensorDataTag, serializers::MsgSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.ContactSensorData",
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.ContactSensorData",
                                 ContactSensorData)
 }
 }

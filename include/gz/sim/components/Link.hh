@@ -14,12 +14,12 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_LINK_HH_
-#define IGNITION_GAZEBO_COMPONENTS_LINK_HH_
+#ifndef GZ_SIM_COMPONENTS_LINK_HH_
+#define GZ_SIM_COMPONENTS_LINK_HH_
 
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/config.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/config.hh>
 
 namespace ignition
 {
@@ -31,7 +31,7 @@ namespace components
 {
   /// \brief A component that identifies an entity as being a link.
   using Link = Component<NoData, class LinkTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Link", Link)
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Link", Link)
 }
 }
 }

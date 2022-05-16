@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_EVENTMANAGER_HH_
-#define IGNITION_GAZEBO_EVENTMANAGER_HH_
+#ifndef GZ_GAZEBO_EVENTMANAGER_HH_
+#define GZ_GAZEBO_EVENTMANAGER_HH_
 
 #include <functional>
 #include <memory>
@@ -23,12 +23,12 @@
 #include <unordered_map>
 #include <utility>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Event.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Event.hh>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/Types.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
+#include <gz/sim/Types.hh>
 
 namespace ignition
 {
@@ -149,4 +149,4 @@ namespace ignition
   }
 }
 
-#endif  // IGNITION_GAZEBO_EVENTMANAGER_HH_
+#endif  // GZ_GAZEBO_EVENTMANAGER_HH_

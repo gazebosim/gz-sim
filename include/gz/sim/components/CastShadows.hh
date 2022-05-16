@@ -14,12 +14,12 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_CASTSHADOWS_HH_
-#define IGNITION_GAZEBO_COMPONENTS_CASTSHADOWS_HH_
+#ifndef GZ_SIM_COMPONENTS_CASTSHADOWS_HH_
+#define GZ_SIM_COMPONENTS_CASTSHADOWS_HH_
 
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/config.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/config.hh>
 
 namespace ignition
 {
@@ -32,7 +32,7 @@ namespace components
   /// \brief A component used to indicate that an entity casts shadows
   /// e.g. visual entities
   using CastShadows = Component<bool, class CastShadowsTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.CastShadows",
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.CastShadows",
       CastShadows)
 }
 }

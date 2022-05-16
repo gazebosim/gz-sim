@@ -15,31 +15,31 @@
  *
  */
 
-#include <ignition/msgs/actuators.pb.h>
-#include <ignition/msgs/twist.pb.h>
+#include <gz/msgs/actuators.pb.h>
+#include <gz/msgs/twist.pb.h>
 
 #include <limits>
 
-#include <ignition/common/Profiler.hh>
+#include <gz/common/Profiler.hh>
 
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include <ignition/math/Inertial.hh>
-#include <ignition/math/Vector3.hh>
+#include <gz/math/Inertial.hh>
+#include <gz/math/Vector3.hh>
 
-#include <ignition/math/eigen3/Conversions.hh>
+#include <gz/math/eigen3/Conversions.hh>
 
 #include <sdf/sdf.hh>
 
-#include "ignition/gazebo/components/Actuators.hh"
-#include "ignition/gazebo/components/Gravity.hh"
-#include "ignition/gazebo/components/Inertial.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Model.hh"
+#include "gz/sim/components/Actuators.hh"
+#include "gz/sim/components/Gravity.hh"
+#include "gz/sim/components/Inertial.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
 
 #include "MulticopterVelocityControl.hh"
 

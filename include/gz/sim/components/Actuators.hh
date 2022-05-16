@@ -14,14 +14,14 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_ACTUATORS_HH_
-#define IGNITION_GAZEBO_COMPONENTS_ACTUATORS_HH_
+#ifndef GZ_SIM_COMPONENTS_ACTUATORS_HH_
+#define GZ_SIM_COMPONENTS_ACTUATORS_HH_
 
-#include <ignition/msgs/actuators.pb.h>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Serialization.hh>
-#include <ignition/gazebo/config.hh>
+#include <gz/msgs/actuators.pb.h>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/components/Serialization.hh>
+#include <gz/sim/config.hh>
 
 namespace ignition
 {
@@ -37,7 +37,7 @@ namespace components
   using Actuators = Component<msgs::Actuators, class ActuatorsTag,
                               serializers::MsgSerializer>;
 
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Actuators", Actuators)
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Actuators", Actuators)
 }
 }
 }

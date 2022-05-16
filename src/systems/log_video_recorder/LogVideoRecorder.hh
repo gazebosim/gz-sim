@@ -19,8 +19,8 @@
 
 #include <memory>
 #include <vector>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/System.hh>
 
 namespace ignition
 {
@@ -33,7 +33,7 @@ namespace systems
   class LogVideoRecorderPrivate;
 
   /** \class LogVideoRecorder LogVideoRecorder.hh \
-   * ignition/gazebo/systems/LogVideoRecorder.hh
+   * gz/sim/systems/LogVideoRecorder.hh
   **/
   /// \brief System which recordings videos from log playback
   /// There are two ways to specify what entities in the log playback to follow

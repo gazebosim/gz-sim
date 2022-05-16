@@ -14,16 +14,16 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_MAGNETICFIELD_HH_
-#define IGNITION_GAZEBO_COMPONENTS_MAGNETICFIELD_HH_
+#ifndef GZ_SIM_COMPONENTS_MAGNETICFIELD_HH_
+#define GZ_SIM_COMPONENTS_MAGNETICFIELD_HH_
 
-#include <ignition/math/Vector3.hh>
+#include <gz/math/Vector3.hh>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
 
-#include <ignition/gazebo/components/Factory.hh>
-#include "ignition/gazebo/components/Component.hh"
+#include <gz/sim/components/Factory.hh>
+#include "gz/sim/components/Component.hh"
 
 namespace ignition
 {
@@ -36,7 +36,7 @@ namespace components
   /// \brief Stores the 3D magnetic field in teslas.
   using MagneticField = Component<math::Vector3d, class MagneticFieldTag>;
   IGN_GAZEBO_REGISTER_COMPONENT(
-      "ign_gazebo_components.MagneticField", MagneticField)
+      "gz_sim_components.MagneticField", MagneticField)
 }
 }
 }

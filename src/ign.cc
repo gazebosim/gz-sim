@@ -21,18 +21,18 @@
 #include <string>
 #include <vector>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/fuel_tools/FuelClient.hh>
-#include <ignition/fuel_tools/ClientConfig.hh>
-#include <ignition/fuel_tools/Result.hh>
-#include <ignition/fuel_tools/WorldIdentifier.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/fuel_tools/FuelClient.hh>
+#include <gz/fuel_tools/ClientConfig.hh>
+#include <gz/fuel_tools/Result.hh>
+#include <gz/fuel_tools/WorldIdentifier.hh>
 
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/ServerConfig.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/ServerConfig.hh"
 
-#include "ignition/gazebo/gui/Gui.hh"
+#include "gz/sim/gui/Gui.hh"
 
 //////////////////////////////////////////////////
 extern "C" char *ignitionGazeboVersion()

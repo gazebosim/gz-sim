@@ -15,14 +15,14 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_GUI_GUI_HH_
-#define IGNITION_GAZEBO_GUI_GUI_HH_
+#ifndef GZ_GAZEBO_GUI_GUI_HH_
+#define GZ_GAZEBO_GUI_GUI_HH_
 
 #include <memory>
-#include <ignition/gui/Application.hh>
+#include <gz/gui/Application.hh>
 
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/gui/Export.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/gui/Export.hh"
 
 namespace ignition
 {
@@ -40,7 +40,7 @@ namespace gui
   /// \param[in] _argv Command line arguments (Used when running without
   /// ign-tools. Set to the name of the application if using ign-tools)
   /// \param[in] _guiConfig The GUI configuration file. If nullptr, the default
-  /// configuration from IGN_HOMEDIR/.ignition/gazebo/gui.config will be used.
+  /// configuration from IGN_HOMEDIR/.gz/sim/gui.config will be used.
   /// \param[in] _renderEngineGui --render-engine-gui option
   /// \return -1 on failure, 0 on success
   IGNITION_GAZEBO_GUI_VISIBLE int runGui(int &_argc,
@@ -54,12 +54,12 @@ namespace gui
   /// \param[in] _argv Command line arguments (Used when running without
   /// ign-tools. Set to the name of the application if using ign-tools)
   /// \param[in] _guiConfig The GUI configuration file. If nullptr, the default
-  /// configuration from IGN_HOMEDIR/.ignition/gazebo/gui.config will be used.
+  /// configuration from IGN_HOMEDIR/.gz/sim/gui.config will be used.
   /// \param[in] _defaultGuiConfig The default GUI configuration file. If no
   /// plugins were added from a world file or from _guiConfig, this
   /// configuration file will be loaded. If this argument is a nullptr or if the
   /// file does not exist, the default configuration from
-  /// IGN_HOMEDIR/.ignition/gazebo/gui.config will be used.
+  /// IGN_HOMEDIR/.gz/sim/gui.config will be used.
   /// \param[in] _loadPluginsFromSdf If true, plugins specified in the world
   /// SDFormat file will get loaded.
   /// \param[in] _renderEngineGui --render-engine-gui option

@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_FACTORY_HH_
-#define IGNITION_GAZEBO_COMPONENTS_FACTORY_HH_
+#ifndef GZ_SIM_COMPONENTS_FACTORY_HH_
+#define GZ_SIM_COMPONENTS_FACTORY_HH_
 
 #include <cstdint>
 #include <cstring>
@@ -24,13 +24,13 @@
 #include <string>
 #include <vector>
 
-#include <ignition/common/SingletonT.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/detail/ComponentStorageBase.hh>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/Types.hh>
+#include <gz/common/SingletonT.hh>
+#include <gz/common/Util.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/detail/ComponentStorageBase.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
+#include <gz/sim/Types.hh>
 
 namespace ignition
 {
@@ -371,9 +371,9 @@ namespace components
   /// \param[in] _compType Component type name.
   /// \param[in] _classname Class name for component.
   #define IGN_GAZEBO_REGISTER_COMPONENT(_compType, _classname) \
-  class IgnGazeboComponents##_classname \
+  class GzSimComponents##_classname \
   { \
-    public: IgnGazeboComponents##_classname() \
+    public: GzSimComponents##_classname() \
     { \
       if (_classname::typeId != 0) \
         return; \
@@ -383,7 +383,7 @@ namespace components
         _compType, new Desc());\
     } \
   }; \
-  static IgnGazeboComponents##_classname\
+  static GzSimComponents##_classname\
     IgnitionGazeboComponentsInitializer##_classname;
 }
 }

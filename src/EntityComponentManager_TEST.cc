@@ -17,24 +17,24 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/math/Rand.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
-#include <ignition/utils/SuppressWarning.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/Rand.hh>
+#include <gz/utils/ExtraTestMacros.hh>
+#include <gz/utils/SuppressWarning.hh>
 
-#include "ignition/gazebo/components/CanonicalLink.hh"
-#include "ignition/gazebo/components/ChildLinkName.hh"
-#include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/ParentLinkName.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/config.hh"
+#include "gz/sim/components/CanonicalLink.hh"
+#include "gz/sim/components/ChildLinkName.hh"
+#include "gz/sim/components/Factory.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/ParentLinkName.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/config.hh"
 #include "EntityComponentManagerDiff.hh"
 #include "../test/helpers/EnvTestFixture.hh"
 

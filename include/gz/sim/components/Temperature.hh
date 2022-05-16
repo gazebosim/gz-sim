@@ -14,14 +14,14 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_TEMPERATURE_HH_
-#define IGNITION_GAZEBO_COMPONENTS_TEMPERATURE_HH_
+#ifndef GZ_SIM_COMPONENTS_TEMPERATURE_HH_
+#define GZ_SIM_COMPONENTS_TEMPERATURE_HH_
 
-#include <ignition/math/Temperature.hh>
+#include <gz/math/Temperature.hh>
 
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/config.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/config.hh>
 
 namespace ignition
 {
@@ -33,13 +33,13 @@ namespace components
 {
   /// \brief A component that stores temperature data in Kelvin
   using Temperature = Component<math::Temperature, class TemperatureTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Temperature",
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Temperature",
       Temperature)
 
   /// \brief A component that stores temperature linear resolution in Kelvin
   using TemperatureLinearResolution = Component<double, class TemperatureTag>;
   IGN_GAZEBO_REGISTER_COMPONENT(
-      "ign_gazebo_components.TemperatureLinearResolution",
+      "gz_sim_components.TemperatureLinearResolution",
       TemperatureLinearResolution)
 }
 }

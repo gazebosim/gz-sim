@@ -14,14 +14,14 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_PERFORMER_HH_
-#define IGNITION_GAZEBO_COMPONENTS_PERFORMER_HH_
+#ifndef GZ_SIM_COMPONENTS_PERFORMER_HH_
+#define GZ_SIM_COMPONENTS_PERFORMER_HH_
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
 
-#include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/components/Component.hh"
+#include "gz/sim/components/Factory.hh"
+#include "gz/sim/components/Component.hh"
 
 namespace ignition
 {
@@ -33,7 +33,7 @@ namespace components
 {
   /// \brief This component identifies an entity as being a performer.
   using Performer = Component<NoData, class PerformerTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Performer", Performer)
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Performer", Performer)
 }
 }
 }

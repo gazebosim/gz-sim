@@ -14,15 +14,15 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_GUI_GUISYSTEM_HH_
-#define IGNITION_GAZEBO_GUI_GUISYSTEM_HH_
+#ifndef GZ_GAZEBO_GUI_GUISYSTEM_HH_
+#define GZ_GAZEBO_GUI_GUISYSTEM_HH_
 
 #include <QtCore>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/EntityComponentManager.hh>
-#include <ignition/gazebo/gui/Export.hh>
-#include <ignition/gui/Plugin.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/gui/Export.hh>
+#include <gz/gui/Plugin.hh>
 
 #include <sdf/Element.hh>
 

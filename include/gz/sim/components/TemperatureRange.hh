@@ -14,17 +14,17 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_TEMPERATURERANGE_HH_
-#define IGNITION_GAZEBO_COMPONENTS_TEMPERATURERANGE_HH_
+#ifndef GZ_SIM_COMPONENTS_TEMPERATURERANGE_HH_
+#define GZ_SIM_COMPONENTS_TEMPERATURERANGE_HH_
 
 #include <istream>
 #include <ostream>
 
-#include <ignition/math/Temperature.hh>
+#include <gz/math/Temperature.hh>
 
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/config.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/config.hh>
 
 namespace ignition
 {
@@ -89,7 +89,7 @@ namespace components
   /// \brief A component that stores a temperature range in kelvin
   using TemperatureRange = Component<TemperatureRangeInfo,
         class TemperatureRangeTag, serializers::TemperatureRangeInfoSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.TemperatureRange",
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.TemperatureRange",
       TemperatureRange)
 }
 }

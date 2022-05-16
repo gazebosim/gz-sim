@@ -17,11 +17,11 @@
 
 #include <gtest/gtest.h>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/System.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/Types.hh"
-#include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/System.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/Types.hh"
+#include "gz/sim/test_config.hh"  // NOLINT(build/include)
 
 #include "SystemManager.hh"
 

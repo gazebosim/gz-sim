@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_DETAIL_VIEW_HH_
-#define IGNITION_GAZEBO_DETAIL_VIEW_HH_
+#ifndef GZ_GAZEBO_DETAIL_VIEW_HH_
+#define GZ_GAZEBO_DETAIL_VIEW_HH_
 
 #include <set>
 #include <tuple>
@@ -24,12 +24,12 @@
 #include <utility>
 #include <vector>
 
-#include <ignition/common/Console.hh>
+#include <gz/common/Console.hh>
 
-#include "ignition/gazebo/components/Component.hh"
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/detail/BaseView.hh"
+#include "gz/sim/components/Component.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/detail/BaseView.hh"
 
 namespace ignition
 {

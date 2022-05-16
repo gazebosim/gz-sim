@@ -14,16 +14,16 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SYSTEM_HH_
-#define IGNITION_GAZEBO_SYSTEM_HH_
+#ifndef GZ_GAZEBO_SYSTEM_HH_
+#define GZ_GAZEBO_SYSTEM_HH_
 
 #include <memory>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/EntityComponentManager.hh>
-#include <ignition/gazebo/EventManager.hh>
-#include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/Types.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/EventManager.hh>
+#include <gz/sim/Export.hh>
+#include <gz/sim/Types.hh>
 
 #include <sdf/Element.hh>
 
@@ -37,7 +37,7 @@ namespace ignition
     /// more information about systems.
     namespace systems {}
 
-    /// \class System System.hh ignition/gazebo/System.hh
+    /// \class System System.hh gz/sim/System.hh
     /// \brief Base class for a System.
     ///
     /// A System operates on Entities that have certain Components. A System
@@ -79,7 +79,7 @@ namespace ignition
       public: virtual ~System() = default;
     };
 
-    /// \class ISystemConfigure ISystem.hh ignition/gazebo/System.hh
+    /// \class ISystemConfigure ISystem.hh gz/sim/System.hh
     /// \brief Interface for a system that implements optional configuration
     ///
     /// Configure is called after the system is instantiated and all entities
@@ -105,21 +105,21 @@ namespace ignition
                                  EntityComponentManager &_ecm) = 0;
     };
 
-    /// \class ISystemPreUpdate ISystem.hh ignition/gazebo/System.hh
+    /// \class ISystemPreUpdate ISystem.hh gz/sim/System.hh
     /// \brief Interface for a system that uses the PreUpdate phase
     class ISystemPreUpdate {
       public: virtual void PreUpdate(const UpdateInfo &_info,
                                      EntityComponentManager &_ecm) = 0;
     };
 
-    /// \class ISystemUpdate ISystem.hh ignition/gazebo/System.hh
+    /// \class ISystemUpdate ISystem.hh gz/sim/System.hh
     /// \brief Interface for a system that uses the Update phase
     class ISystemUpdate {
       public: virtual void Update(const UpdateInfo &_info,
                                   EntityComponentManager &_ecm) = 0;
     };
 
-    /// \class ISystemPostUpdate ISystem.hh ignition/gazebo/System.hh
+    /// \class ISystemPostUpdate ISystem.hh gz/sim/System.hh
     /// \brief Interface for a system that uses the PostUpdate phase
     class ISystemPostUpdate{
       public: virtual void PostUpdate(const UpdateInfo &_info,

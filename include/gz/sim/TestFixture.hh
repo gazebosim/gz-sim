@@ -14,16 +14,16 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_TESTFIXTURE_HH_
-#define IGNITION_GAZEBO_TESTFIXTURE_HH_
+#ifndef GZ_GAZEBO_TESTFIXTURE_HH_
+#define GZ_GAZEBO_TESTFIXTURE_HH_
 
 #include <memory>
 #include <string>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Export.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/ServerConfig.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Export.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/ServerConfig.hh"
 
 namespace ignition
 {

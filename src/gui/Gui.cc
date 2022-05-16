@@ -15,16 +15,16 @@
  *
  */
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/SignalHandler.hh>
-#include <ignition/common/Filesystem.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/SignalHandler.hh>
+#include <gz/common/Filesystem.hh>
 
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/gui/Plugin.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/gui/Plugin.hh>
 
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/gui/Gui.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/gui/Gui.hh"
 
 #include "AboutDialogHandler.hh"
 #include "GuiFileHandler.hh"
@@ -265,7 +265,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
   if (plugins.empty())
   {
     // Check if there's a default config file under
-    // ~/.ignition/gazebo and use that. If there isn't, copy
+    // ~/.gz/sim and use that. If there isn't, copy
     // the installed file there first.
     if (!ignition::common::exists(defaultConfig))
     {
@@ -305,7 +305,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
       }
     }
 
-    // Also set ~/.ignition/gazebo/ver/gui.config as the default path
+    // Also set ~/.gz/sim/ver/gui.config as the default path
     if (!app->LoadConfig(defaultConfig))
     {
       ignerr << "Failed to load config file[" << defaultConfig << "]."

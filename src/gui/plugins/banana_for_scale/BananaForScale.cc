@@ -21,16 +21,16 @@
 #include <iostream>
 #include <string>
 
-#include <ignition/common/Console.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/plugin/Register.hh>
+#include <gz/common/Console.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/plugin/Register.hh>
 
-#include <ignition/fuel_tools/FuelClient.hh>
-#include <ignition/fuel_tools/ClientConfig.hh>
+#include <gz/fuel_tools/FuelClient.hh>
+#include <gz/fuel_tools/ClientConfig.hh>
 
-#include "ignition/gazebo/gui/GuiEvents.hh"
+#include "gz/sim/gui/GuiEvents.hh"
 
 namespace ignition::gazebo
 {

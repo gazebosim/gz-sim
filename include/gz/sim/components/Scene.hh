@@ -14,17 +14,17 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_SCENE_HH_
-#define IGNITION_GAZEBO_COMPONENTS_SCENE_HH_
+#ifndef GZ_SIM_COMPONENTS_SCENE_HH_
+#define GZ_SIM_COMPONENTS_SCENE_HH_
 
-#include <ignition/msgs/scene.pb.h>
+#include <gz/msgs/scene.pb.h>
 
 #include <sdf/Scene.hh>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Serialization.hh>
-#include <ignition/gazebo/Conversions.hh>
-#include <ignition/gazebo/config.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/components/Serialization.hh>
+#include <gz/sim/Conversions.hh>
+#include <gz/sim/config.hh>
 
 namespace ignition
 {
@@ -44,7 +44,7 @@ namespace components
   using Scene =
       Component<sdf::Scene, class SceneTag, serializers::SceneSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT(
-      "ign_gazebo_components.Scene", Scene)
+      "gz_sim_components.Scene", Scene)
 }
 }
 }

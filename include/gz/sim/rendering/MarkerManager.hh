@@ -14,15 +14,15 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_MARKERMANAGER_HH_
-#define IGNITION_GAZEBO_MARKERMANAGER_HH_
+#ifndef GZ_GAZEBO_MARKERMANAGER_HH_
+#define GZ_GAZEBO_MARKERMANAGER_HH_
 
 #include <memory>
 #include <string>
 
-#include <ignition/gazebo/rendering/Export.hh>
+#include <gz/sim/rendering/Export.hh>
 
-#include "ignition/rendering/RenderTypes.hh"
+#include "gz/rendering/RenderTypes.hh"
 
 namespace ignition
 {

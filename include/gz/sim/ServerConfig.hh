@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SERVERCONFIG_HH_
-#define IGNITION_GAZEBO_SERVERCONFIG_HH_
+#ifndef GZ_GAZEBO_SERVERCONFIG_HH_
+#define GZ_GAZEBO_SERVERCONFIG_HH_
 
 #include <chrono>
 #include <list>
@@ -25,8 +25,8 @@
 #include <vector>
 #include <sdf/Element.hh>
 #include <sdf/Root.hh>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
 
 namespace ignition
 {
@@ -37,7 +37,7 @@ namespace ignition
     // Forward declarations.
     class ServerConfigPrivate;
 
-    /// \class ServerConfig ServerConfig.hh ignition/gazebo/ServerConfig.hh
+    /// \class ServerConfig ServerConfig.hh gz/sim/ServerConfig.hh
     /// \brief Configuration parameters for a Server. An instance of this
     /// object can be used to construct a Server with a particular
     /// configuration.
@@ -328,14 +328,14 @@ namespace ignition
       /// from fuel.ignitionrobotics.org, should be stored.
       /// \return Path to a location on disk. An empty string indicates that
       /// the default value will be used, which is currently
-      /// ~/.ignition/fuel.
+      /// ~/.gz/fuel.
       public: const std::string &ResourceCache() const;
 
       /// \brief Set the path to where simulation resources, such as models
       /// downloaded from fuel.ignitionrobotics.org, should be stored.
       /// \param[in] _path Path to a location on disk. An empty string
       /// indicates that the default value will be used, which is currently
-      /// ~/.ignition/fuel.
+      /// ~/.gz/fuel.
       public: void SetResourceCache(const std::string &_path);
 
       /// \brief Physics engine plugin library to load.
@@ -444,7 +444,7 @@ namespace ignition
     ///    variable.
     ///   * If IGN_GAZEBO_SERVER_CONFIG_PATH is set but empty, no plugins
     ///     are loaded.
-    /// 2. File at ${IGN_HOMEDIR}/.ignition/gazebo/server.config
+    /// 2. File at ${IGN_HOMEDIR}/.gz/sim/server.config
     /// 3. File at ${IGN_DATA_INSTALL_DIR}/server.config
     ///
     /// If any of the above files exist but are empty, resolution

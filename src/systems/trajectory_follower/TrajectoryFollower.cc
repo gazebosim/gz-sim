@@ -15,28 +15,28 @@
  *
  */
 
-#include <ignition/msgs/boolean.pb.h>
+#include <gz/msgs/boolean.pb.h>
 
 #include <mutex>
 #include <string>
 #include <vector>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/math/Angle.hh>
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/math/Vector2.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/TopicUtils.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/math/Angle.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/Vector2.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
+#include <gz/transport/TopicUtils.hh>
 #include <sdf/sdf.hh>
 
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/AngularVelocityCmd.hh"
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/AngularVelocityCmd.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Util.hh"
 
 #include "TrajectoryFollower.hh"
 

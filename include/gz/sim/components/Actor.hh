@@ -14,10 +14,10 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_ACTOR_HH_
-#define IGNITION_GAZEBO_COMPONENTS_ACTOR_HH_
+#ifndef GZ_SIM_COMPONENTS_ACTOR_HH_
+#define GZ_SIM_COMPONENTS_ACTOR_HH_
 
-#include <ignition/msgs/actor.pb.h>
+#include <gz/msgs/actor.pb.h>
 
 #include <chrono>
 #include <ratio>
@@ -25,11 +25,11 @@
 
 #include <sdf/Actor.hh>
 
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Serialization.hh>
-#include <ignition/gazebo/Conversions.hh>
-#include <ignition/gazebo/config.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/components/Serialization.hh>
+#include <gz/sim/Conversions.hh>
+#include <gz/sim/config.hh>
 
 namespace ignition
 {
@@ -78,18 +78,18 @@ namespace components
   /// element](http://sdformat.org/spec?ver=1.6&elem=actor).
   using Actor =
       Component<sdf::Actor, class ActorTag, serializers::ActorSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Actor", Actor)
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Actor", Actor)
 
   /// \brief Time in seconds within animation being currently played.
   using AnimationTime = Component<std::chrono::steady_clock::duration,
       class AnimationTimeTag, serializers::AnimationTimeSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.AnimationTime",
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.AnimationTime",
       AnimationTime)
 
   /// \brief Name of animation being currently played.
   using AnimationName = Component<std::string, class AnimationNameTag,
       serializers::StringSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.AnimationName",
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.AnimationName",
       AnimationName)
 }
 }

@@ -18,8 +18,8 @@
 #define IGNITION_GAZEBO_SYSTEMS_LOGICALCAMERA_HH_
 
 #include <memory>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/System.hh>
 
 namespace ignition
 {
@@ -33,7 +33,7 @@ namespace systems
   class LogicalCameraPrivate;
 
   /** \class LogicalCamera LogicalCamera.hh \
-   *  ignition/gazebo/systems/LogicalCamera.hh
+   *  gz/sim/systems/LogicalCamera.hh
   **/
   /// \brief A logical camera sensor that reports objects detected within its
   /// frustum readings over ign transport

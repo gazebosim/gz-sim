@@ -14,23 +14,23 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_LINK_HH_
-#define IGNITION_GAZEBO_LINK_HH_
+#ifndef GZ_GAZEBO_LINK_HH_
+#define GZ_GAZEBO_LINK_HH_
 
 #include <memory>
 #include <optional>
 #include <string>
 #include <vector>
 
-#include <ignition/math/Pose3.hh>
-#include <ignition/math/Quaternion.hh>
-#include <ignition/math/Vector3.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/Quaternion.hh>
+#include <gz/math/Vector3.hh>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/EntityComponentManager.hh>
-#include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/Model.hh>
-#include <ignition/gazebo/Types.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/Export.hh>
+#include <gz/sim/Model.hh>
+#include <gz/sim/Types.hh>
 
 namespace ignition
 {
@@ -41,7 +41,7 @@ namespace ignition
     // Forward declarations.
     class IGNITION_GAZEBO_HIDDEN LinkPrivate;
     //
-    /// \class Link Link.hh ignition/gazebo/Link.hh
+    /// \class Link Link.hh gz/sim/Link.hh
     /// \brief This class provides wrappers around entities and components
     /// which are more convenient and straight-forward to use than dealing
     /// with the `EntityComponentManager` directly.

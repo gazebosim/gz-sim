@@ -14,11 +14,11 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
-#define IGNITION_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
+#ifndef GZ_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
+#define GZ_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
 
-#include <ignition/msgs/serialized.pb.h>
-#include <ignition/msgs/serialized_map.pb.h>
+#include <gz/msgs/serialized.pb.h>
+#include <gz/msgs/serialized_map.pb.h>
 
 #include <map>
 #include <memory>
@@ -32,14 +32,14 @@
 #include <utility>
 #include <vector>
 
-#include <ignition/common/Console.hh>
-#include <ignition/math/graph/Graph.hh>
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/Export.hh"
-#include "ignition/gazebo/Types.hh"
+#include <gz/common/Console.hh>
+#include <gz/math/graph/Graph.hh>
+#include "gz/sim/Entity.hh"
+#include "gz/sim/Export.hh"
+#include "gz/sim/Types.hh"
 
-#include "ignition/gazebo/components/Component.hh"
-#include "ignition/gazebo/detail/View.hh"
+#include "gz/sim/components/Component.hh"
+#include "gz/sim/detail/View.hh"
 
 namespace ignition
 {
@@ -58,7 +58,7 @@ namespace ignition
     using EntityGraph = math::graph::DirectedGraph<Entity, bool>;
 
     /** \class EntityComponentManager EntityComponentManager.hh \
-     * ignition/gazebo/EntityComponentManager.hh
+     * gz/sim/EntityComponentManager.hh
     **/
     /// \brief The EntityComponentManager constructs, deletes, and returns
     /// components and entities.
@@ -851,6 +851,6 @@ namespace ignition
   }
 }
 
-#include "ignition/gazebo/detail/EntityComponentManager.hh"
+#include "gz/sim/detail/EntityComponentManager.hh"
 
 #endif

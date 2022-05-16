@@ -20,8 +20,8 @@
 #include <memory>
 #include <string>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
 
 #include "NetworkRole.hh"
 
@@ -31,7 +31,7 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-    /// \class NetworkConfig NetworkConfig.hh ignition/gazebo/NetworkConfig.hh
+    /// \class NetworkConfig NetworkConfig.hh gz/sim/NetworkConfig.hh
     /// \brief Configuration parameters for a distributed simulation instance
     ///
     /// NetworkConfig can either be created programatically, or populated from

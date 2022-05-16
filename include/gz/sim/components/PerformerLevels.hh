@@ -14,16 +14,16 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_PERFORMERLEVELS_HH_
-#define IGNITION_GAZEBO_COMPONENTS_PERFORMERLEVELS_HH_
+#ifndef GZ_SIM_COMPONENTS_PERFORMERLEVELS_HH_
+#define GZ_SIM_COMPONENTS_PERFORMERLEVELS_HH_
 
 #include <set>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
 
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/components/Component.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/components/Factory.hh"
+#include "gz/sim/components/Component.hh"
 
 namespace ignition
 {
@@ -75,7 +75,7 @@ namespace components
   /// \brief Holds all the levels which a performer is in.
   using PerformerLevels = Component<std::set<Entity>, class PerformerLevelsTag,
                                     serializers::PerformerLevelsSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.PerformerLevels",
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.PerformerLevels",
       PerformerLevels)
 }
 }

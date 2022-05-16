@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_SCENEMANAGER_HH_
-#define IGNITION_GAZEBO_SCENEMANAGER_HH_
+#ifndef GZ_GAZEBO_SCENEMANAGER_HH_
+#define GZ_GAZEBO_SCENEMANAGER_HH_
 
 #include <map>
 #include <memory>
@@ -33,17 +33,17 @@
 #include <sdf/Model.hh>
 #include <sdf/Visual.hh>
 
-#include <ignition/common/KeyFrame.hh>
-#include <ignition/common/Animation.hh>
-#include <ignition/common/graphics/Types.hh>
+#include <gz/common/KeyFrame.hh>
+#include <gz/common/Animation.hh>
+#include <gz/common/graphics/Types.hh>
 
-#include <ignition/msgs/particle_emitter.pb.h>
+#include <gz/msgs/particle_emitter.pb.h>
 
-#include <ignition/rendering/RenderTypes.hh>
+#include <gz/rendering/RenderTypes.hh>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Entity.hh>
-#include <ignition/gazebo/rendering/Export.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Entity.hh>
+#include <gz/sim/rendering/Export.hh>
 
 namespace ignition
 {

@@ -14,14 +14,14 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_JOINTFORCECMD_HH_
-#define IGNITION_GAZEBO_COMPONENTS_JOINTFORCECMD_HH_
+#ifndef GZ_SIM_COMPONENTS_JOINTFORCECMD_HH_
+#define GZ_SIM_COMPONENTS_JOINTFORCECMD_HH_
 
 #include <vector>
 
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/config.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/config.hh>
 
 namespace ignition
 {
@@ -36,7 +36,7 @@ namespace components
   /// std::vector and systems that set this component need to ensure that the
   /// vector has the same size as the degrees of freedom of the joint.
   using JointForceCmd = Component<std::vector<double>, class JointForceCmdTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.JointForceCmd",
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.JointForceCmd",
                                 JointForceCmd)
 }
 }

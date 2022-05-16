@@ -22,12 +22,12 @@
 #include <string>
 #include <vector>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/EventManager.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
+#include <gz/sim/EventManager.hh>
 
-#include <ignition/common/Event.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Event.hh>
+#include <gz/transport/Node.hh>
 
 #include "PeerInfo.hh"
 

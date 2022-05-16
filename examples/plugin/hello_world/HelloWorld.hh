@@ -20,7 +20,7 @@
 
 // The only required include in the header is this one.
 // All others will depend on what your plugin does.
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/System.hh>
 
 // It's good practice to use a custom namespace for your project.
 namespace hello_world

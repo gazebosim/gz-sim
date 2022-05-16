@@ -26,8 +26,8 @@
 #include <chrono>
 #include <thread>
 
-#include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/msgs.hh>
+#include <gz/transport.hh>
 
 // Fin joint limits from tethys model.sdf
 double random_angle_within_limits(double min=-0.261799, double max=0.261799)

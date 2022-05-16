@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_WORLD_HH_
-#define IGNITION_GAZEBO_WORLD_HH_
+#ifndef GZ_GAZEBO_WORLD_HH_
+#define GZ_GAZEBO_WORLD_HH_
 
 #include <memory>
 #include <optional>
@@ -23,13 +23,13 @@
 #include <vector>
 
 #include <sdf/Atmosphere.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/math/SphericalCoordinates.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/math/SphericalCoordinates.hh>
 
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Export.hh"
-#include "ignition/gazebo/Types.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Export.hh"
+#include "gz/sim/Types.hh"
 
 namespace ignition
 {
@@ -40,7 +40,7 @@ namespace ignition
     // Forward declarations.
     class IGNITION_GAZEBO_HIDDEN WorldPrivate;
     //
-    /// \class World World.hh ignition/gazebo/World.hh
+    /// \class World World.hh gz/sim/World.hh
     /// \brief This class provides wrappers around entities and components
     /// which are more convenient and straight-forward to use than dealing
     /// with the `EntityComponentManager` directly.

@@ -18,58 +18,58 @@
 #include "UserCommands.hh"
 
 #include <google/protobuf/message.h>
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/entity_factory.pb.h>
-#include <ignition/msgs/light.pb.h>
-#include <ignition/msgs/pose.pb.h>
-#include <ignition/msgs/pose_v.pb.h>
-#include <ignition/msgs/physics.pb.h>
-#include <ignition/msgs/visual.pb.h>
-#include <ignition/msgs/wheel_slip_parameters_cmd.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/entity_factory.pb.h>
+#include <gz/msgs/light.pb.h>
+#include <gz/msgs/pose.pb.h>
+#include <gz/msgs/pose_v.pb.h>
+#include <gz/msgs/physics.pb.h>
+#include <gz/msgs/visual.pb.h>
+#include <gz/msgs/wheel_slip_parameters_cmd.pb.h>
 
 #include <string>
 #include <utility>
 #include <unordered_set>
 #include <vector>
 
-#include <ignition/math/SphericalCoordinates.hh>
-#include <ignition/msgs/Utility.hh>
+#include <gz/math/SphericalCoordinates.hh>
+#include <gz/msgs/Utility.hh>
 
 #include <sdf/Physics.hh>
 #include <sdf/Root.hh>
 #include <sdf/Error.hh>
 #include <sdf/Light.hh>
 
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/common/Profiler.hh"
+#include "gz/common/Profiler.hh"
 
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/LightCmd.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/PoseCmd.hh"
-#include "ignition/gazebo/components/PhysicsCmd.hh"
-#include "ignition/gazebo/components/SphericalCoordinates.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/Conversions.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/SdfEntityCreator.hh"
-#include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/World.hh"
-#include "ignition/gazebo/components/ContactSensorData.hh"
-#include "ignition/gazebo/components/ContactSensor.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/VisualCmd.hh"
-#include "ignition/gazebo/components/WheelSlipCmd.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/LightCmd.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/PoseCmd.hh"
+#include "gz/sim/components/PhysicsCmd.hh"
+#include "gz/sim/components/SphericalCoordinates.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/Conversions.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/SdfEntityCreator.hh"
+#include "gz/sim/Util.hh"
+#include "gz/sim/World.hh"
+#include "gz/sim/components/ContactSensorData.hh"
+#include "gz/sim/components/ContactSensor.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/VisualCmd.hh"
+#include "gz/sim/components/WheelSlipCmd.hh"
 
 using namespace ignition;
 using namespace gazebo;

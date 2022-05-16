@@ -32,7 +32,7 @@
 
 #include "ignition/gazebo/components/LogicalAudio.hh"
 #include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/test_config.hh"
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Server.hh"

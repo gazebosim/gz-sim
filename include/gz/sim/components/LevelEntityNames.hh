@@ -14,17 +14,17 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_LEVELENTITYNAMES_HH_
-#define IGNITION_GAZEBO_COMPONENTS_LEVELENTITYNAMES_HH_
+#ifndef GZ_SIM_COMPONENTS_LEVELENTITYNAMES_HH_
+#define GZ_SIM_COMPONENTS_LEVELENTITYNAMES_HH_
 
 #include <iterator>
 #include <string>
 #include <set>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
 
-#include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/components/Component.hh"
+#include "gz/sim/components/Factory.hh"
+#include "gz/sim/components/Component.hh"
 
 namespace ignition
 {
@@ -81,7 +81,7 @@ namespace components
       Component<std::set<std::string>, class LevelEntityNamesTag,
                 serializers::LevelEntityNamesSerializer>;
 
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.LevelEntityNames",
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.LevelEntityNames",
       LevelEntityNames)
 }
 }

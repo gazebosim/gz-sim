@@ -14,12 +14,12 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_VOLUME_HH_
-#define IGNITION_GAZEBO_COMPONENTS_VOLUME_HH_
+#ifndef GZ_SIM_COMPONENTS_VOLUME_HH_
+#define GZ_SIM_COMPONENTS_VOLUME_HH_
 
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/config.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/config.hh>
 
 namespace ignition
 {
@@ -32,7 +32,7 @@ namespace components
   /// \brief A volume component where the units are m^3.
   /// Double value indicates volume of an entity.
   using Volume = Component<double, class VolumeTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Volume", Volume)
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Volume", Volume)
 }
 }
 }

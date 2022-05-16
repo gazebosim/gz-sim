@@ -14,18 +14,18 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SERVER_HH_
-#define IGNITION_GAZEBO_SERVER_HH_
+#ifndef GZ_GAZEBO_SERVER_HH_
+#define GZ_GAZEBO_SERVER_HH_
 
 #include <cstdint>
 #include <memory>
 #include <optional>
 #include <string>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/EntityComponentManager.hh>
-#include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/ServerConfig.hh>
-#include <ignition/gazebo/SystemPluginPtr.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/Export.hh>
+#include <gz/sim/ServerConfig.hh>
+#include <gz/sim/SystemPluginPtr.hh>
 
 namespace ignition
 {
@@ -36,7 +36,7 @@ namespace ignition
     // Forware declarations
     class ServerPrivate;
 
-    /// \class Server Server.hh ignition/gazebo/Server.hh
+    /// \class Server Server.hh gz/sim/Server.hh
     /// \brief The server instantiates and controls simulation.
     ///
     /// ## Example Usage

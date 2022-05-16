@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_LOGICALAUDIO_HH_
-#define IGNITION_GAZEBO_COMPONENTS_LOGICALAUDIO_HH_
+#ifndef GZ_SIM_COMPONENTS_LOGICALAUDIO_HH_
+#define GZ_SIM_COMPONENTS_LOGICALAUDIO_HH_
 
 #include <chrono>
 #include <cstdint>
@@ -23,9 +23,9 @@
 #include <ostream>
 #include <ratio>
 
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/config.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/config.hh>
 
 namespace ignition
 {
@@ -292,7 +292,7 @@ namespace components
   using LogicalAudioSource = Component<logical_audio::Source,
         class LogicalAudioSourceTag,
         serializers::LogicalAudioSourceSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.LogicalAudioSource",
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.LogicalAudioSource",
       LogicalAudioSource)
 }
 
@@ -304,7 +304,7 @@ namespace components
         class LogicalAudioSourcePlayInfoTag,
         serializers::LogicalAudioSourcePlayInfoSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT(
-      "ign_gazebo_components.LogicalAudioSourcePlayInfo",
+      "gz_sim_components.LogicalAudioSourcePlayInfo",
       LogicalAudioSourcePlayInfo)
 }
 
@@ -315,7 +315,7 @@ namespace components
   using LogicalMicrophone = Component<logical_audio::Microphone,
         class LogicalMicrophoneTag,
         serializers::LogicalMicrophoneSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.LogicalMicrophone",
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.LogicalMicrophone",
       LogicalMicrophone)
 }
 }

@@ -14,14 +14,14 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_DETACHABLE_JOINT_HH_
-#define IGNITION_GAZEBO_COMPONENTS_DETACHABLE_JOINT_HH_
+#ifndef GZ_SIM_COMPONENTS_DETACHABLE_JOINT_HH_
+#define GZ_SIM_COMPONENTS_DETACHABLE_JOINT_HH_
 
 #include <string>
-#include <ignition/gazebo/Entity.hh>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/config.hh>
+#include <gz/sim/Entity.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/config.hh>
 
 namespace ignition
 {
@@ -94,7 +94,7 @@ namespace components
   using DetachableJoint =
       Component<DetachableJointInfo, class DetachableJointTag,
                 serializers::DetachableJointInfoSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.DetachableJoint",
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.DetachableJoint",
                                 DetachableJoint)
 }
 }

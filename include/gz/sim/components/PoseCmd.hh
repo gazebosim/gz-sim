@@ -14,16 +14,16 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_POSECMD_HH_
-#define IGNITION_GAZEBO_COMPONENTS_POSECMD_HH_
+#ifndef GZ_SIM_COMPONENTS_POSECMD_HH_
+#define GZ_SIM_COMPONENTS_POSECMD_HH_
 
-#include <ignition/math/Pose3.hh>
+#include <gz/math/Pose3.hh>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
 
-#include <ignition/gazebo/components/Factory.hh>
-#include "ignition/gazebo/components/Component.hh"
+#include <gz/sim/components/Factory.hh>
+#include "gz/sim/components/Component.hh"
 
 namespace ignition
 {
@@ -36,7 +36,7 @@ namespace components
   /// \brief A component type that contains commanded pose of an
   /// entity in the world frame represented by ignition::math::Pose3d.
   using WorldPoseCmd = Component<math::Pose3d, class WorldPoseCmdTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.WorldPoseCmd",
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.WorldPoseCmd",
       WorldPoseCmd)
 }
 }

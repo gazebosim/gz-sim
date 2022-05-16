@@ -14,14 +14,14 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_CHILDLINKNAME_HH_
-#define IGNITION_GAZEBO_COMPONENTS_CHILDLINKNAME_HH_
+#ifndef GZ_SIM_COMPONENTS_CHILDLINKNAME_HH_
+#define GZ_SIM_COMPONENTS_CHILDLINKNAME_HH_
 
 #include <string>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Serialization.hh>
-#include <ignition/gazebo/config.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Serialization.hh>
+#include <gz/sim/config.hh>
 
 namespace ignition
 {
@@ -36,7 +36,7 @@ namespace components
   using ChildLinkName = Component<std::string, class ChildLinkNameTag,
       serializers::StringSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT(
-    "ign_gazebo_components.ChildLinkName", ChildLinkName)
+    "gz_sim_components.ChildLinkName", ChildLinkName)
 }
 }
 }

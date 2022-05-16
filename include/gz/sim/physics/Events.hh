@@ -14,17 +14,17 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_PHYSICS_EVENTS_HH_
-#define IGNITION_GAZEBO_PHYSICS_EVENTS_HH_
+#ifndef GZ_GAZEBO_PHYSICS_EVENTS_HH_
+#define GZ_GAZEBO_PHYSICS_EVENTS_HH_
 
 #include <optional>
 
-#include <ignition/common/Event.hh>
+#include <gz/common/Event.hh>
 
-#include <ignition/physics/ContactProperties.hh>
+#include <gz/physics/ContactProperties.hh>
 
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/Entity.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/Entity.hh"
 
 #include <Eigen/Geometry>
 
@@ -62,4 +62,4 @@ namespace ignition
   }  // namespace gazebo
 }  // namespace ignition
 
-#endif  // IGNITION_GAZEBO_PHYSICS_EVENTS_HH_
+#endif  // GZ_GAZEBO_PHYSICS_EVENTS_HH_

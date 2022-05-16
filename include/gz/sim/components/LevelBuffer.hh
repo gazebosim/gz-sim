@@ -14,14 +14,14 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_LEVELBUFFER_HH_
-#define IGNITION_GAZEBO_COMPONENTS_LEVELBUFFER_HH_
+#ifndef GZ_SIM_COMPONENTS_LEVELBUFFER_HH_
+#define GZ_SIM_COMPONENTS_LEVELBUFFER_HH_
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
 
-#include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/components/Component.hh"
+#include "gz/sim/components/Factory.hh"
+#include "gz/sim/components/Component.hh"
 
 namespace ignition
 {
@@ -33,7 +33,7 @@ namespace components
 {
   /// \brief A component that holds the buffer setting of a level's geometry
   using LevelBuffer = Component<double, class LevelBufferTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.LevelBuffer",
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.LevelBuffer",
       LevelBuffer)
 }
 }

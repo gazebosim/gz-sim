@@ -17,10 +17,10 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/gazebo/ServerConfig.hh>
-#include <ignition/gazebo/Util.hh>
-#include <ignition/gazebo/test_config.hh>
+#include <gz/common/Console.hh>
+#include <gz/sim/ServerConfig.hh>
+#include <gz/sim/Util.hh>
+#include <gz/sim/test_config.hh>
 
 using namespace ignition;
 using namespace gazebo;
@@ -155,7 +155,7 @@ TEST(ParsePluginsFromFile, DefaultConfig)
   // If more systems are added, then the number needs
   // to be adjusted below.
   auto config = common::joinPaths(PROJECT_SOURCE_PATH,
-    "include", "ignition", "gazebo", "server.config");
+    "include", "gz", "sim", "server.config");
 
   auto plugins = parsePluginsFromFile(config);
   ASSERT_EQ(3u, plugins.size());
@@ -169,7 +169,7 @@ TEST(ParsePluginsFromFile, PlaybackConfig)
   // If more systems are added, then the number needs
   // to be adjusted below.
   auto config = common::joinPaths(PROJECT_SOURCE_PATH,
-    "include", "ignition", "gazebo", "playback_server.config");
+    "include", "gz", "sim", "playback_server.config");
 
   auto plugins = parsePluginsFromFile(config);
   ASSERT_EQ(2u, plugins.size());
