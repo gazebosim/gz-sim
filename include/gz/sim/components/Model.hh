@@ -14,17 +14,17 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_MODEL_HH_
-#define IGNITION_GAZEBO_COMPONENTS_MODEL_HH_
+#ifndef GZ_SIM_COMPONENTS_MODEL_HH_
+#define GZ_SIM_COMPONENTS_MODEL_HH_
 
 #include <string>
 
 #include <sdf/Model.hh>
 #include <sdf/Root.hh>
 
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/config.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/config.hh>
 
 namespace ignition
 {
@@ -84,13 +84,13 @@ namespace components
 {
   /// \brief A component that identifies an entity as being a model.
   using Model = Component<NoData, class ModelTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Model", Model)
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Model", Model)
 
   /// \brief A component that holds the model's SDF DOM
   using ModelSdf = Component<sdf::Model,
                    class ModelTag,
                    serializers::SdfModelSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.ModelSdf", ModelSdf)
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.ModelSdf", ModelSdf)
 }
 }
 }

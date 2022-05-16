@@ -14,16 +14,16 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_WHEELSLIPCMD_HH_
-#define IGNITION_GAZEBO_COMPONENTS_WHEELSLIPCMD_HH_
+#ifndef GZ_SIM_COMPONENTS_WHEELSLIPCMD_HH_
+#define GZ_SIM_COMPONENTS_WHEELSLIPCMD_HH_
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Serialization.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Serialization.hh>
 
-#include <ignition/msgs/wheel_slip_parameters_cmd.pb.h>
+#include <gz/msgs/wheel_slip_parameters_cmd.pb.h>
 
 namespace ignition
 {
@@ -37,7 +37,7 @@ namespace components
   /// an entity in the world frame represented by msgs::WheelSlipParameters.
   using WheelSlipCmd = Component<ignition::msgs::WheelSlipParametersCmd,
     class WheelSlipCmdTag, serializers::MsgSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.WheelSlipCmd",
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.WheelSlipCmd",
       WheelSlipCmd)
 }
 }

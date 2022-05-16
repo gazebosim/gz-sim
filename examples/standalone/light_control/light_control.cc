@@ -18,10 +18,10 @@
 #include <chrono>
 #include <iostream>
 
-#include <ignition/gazebo/components/Light.hh>
-#include <ignition/gazebo/components/LightCmd.hh>
-#include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/sim/components/Light.hh>
+#include <gz/sim/components/LightCmd.hh>
+#include <gz/msgs.hh>
+#include <gz/transport.hh>
 
 using namespace std::chrono_literals;
 

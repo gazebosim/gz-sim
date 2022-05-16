@@ -14,15 +14,15 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_THERMALCAMERA_HH_
-#define IGNITION_GAZEBO_COMPONENTS_THERMALCAMERA_HH_
+#ifndef GZ_SIM_COMPONENTS_THERMALCAMERA_HH_
+#define GZ_SIM_COMPONENTS_THERMALCAMERA_HH_
 
 #include <sdf/Sensor.hh>
 
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Serialization.hh>
-#include <ignition/gazebo/config.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/components/Serialization.hh>
+#include <gz/sim/config.hh>
 
 namespace ignition
 {
@@ -36,7 +36,7 @@ namespace components
   /// sdf::Sensor, information.
   using ThermalCamera = Component<sdf::Sensor, class ThermalCameraTag,
       serializers::SensorSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.ThermalCamera",
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.ThermalCamera",
       ThermalCamera)
 }
 }

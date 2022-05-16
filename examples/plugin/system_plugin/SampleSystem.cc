@@ -1,7 +1,7 @@
 #include "SampleSystem.hh"
 
 //! [registerSampleSystem]
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
 // Include a line in your source file for each interface implemented.
 IGNITION_ADD_PLUGIN(

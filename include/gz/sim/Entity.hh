@@ -14,12 +14,12 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_ENTITY_HH_
-#define IGNITION_GAZEBO_ENTITY_HH_
+#ifndef GZ_GAZEBO_ENTITY_HH_
+#define GZ_GAZEBO_ENTITY_HH_
 
 #include <cstdint>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
 
 /// \brief This library is part of the [Ignition
 /// Robotics](https://ignitionrobotics.org) project.

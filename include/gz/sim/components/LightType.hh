@@ -14,16 +14,16 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_LIGHTTYPE_HH_
-#define IGNITION_GAZEBO_COMPONENTS_LIGHTTYPE_HH_
+#ifndef GZ_SIM_COMPONENTS_LIGHTTYPE_HH_
+#define GZ_SIM_COMPONENTS_LIGHTTYPE_HH_
 
 #include <string>
 #include <memory>
 #include <sdf/Light.hh>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Serialization.hh>
-#include <ignition/gazebo/config.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/components/Serialization.hh>
+#include <gz/sim/config.hh>
 
 namespace ignition
 {
@@ -37,7 +37,7 @@ namespace components
   /// around std::string
   using LightType = Component<std::string, class LightTypeTag,
       serializers::StringSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.LightType", LightType)
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.LightType", LightType)
 }
 }
 }

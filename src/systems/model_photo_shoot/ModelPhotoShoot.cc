@@ -20,23 +20,23 @@
 #include <string>
 #include <vector>
 
-#include <ignition/common/Image.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/rendering/Camera.hh>
-#include <ignition/rendering/Scene.hh>
-#include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/Visual.hh>
+#include <gz/common/Image.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/rendering/Camera.hh>
+#include <gz/rendering/Scene.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include <gz/rendering/Visual.hh>
 
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/JointAxis.hh"
-#include "ignition/gazebo/components/JointType.hh"
-#include "ignition/gazebo/components/JointPosition.hh"
-#include "ignition/gazebo/components/JointPositionReset.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/rendering/Events.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointAxis.hh"
+#include "gz/sim/components/JointType.hh"
+#include "gz/sim/components/JointPosition.hh"
+#include "gz/sim/components/JointPositionReset.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/rendering/Events.hh"
+#include "gz/sim/Util.hh"
 
 using namespace ignition;
 using namespace gazebo;

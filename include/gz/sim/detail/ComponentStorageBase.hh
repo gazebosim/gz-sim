@@ -14,10 +14,10 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_DETAIL_COMPONENTSTORAGEBASE_HH_
-#define IGNITION_GAZEBO_DETAIL_COMPONENTSTORAGEBASE_HH_
+#ifndef GZ_GAZEBO_DETAIL_COMPONENTSTORAGEBASE_HH_
+#define GZ_GAZEBO_DETAIL_COMPONENTSTORAGEBASE_HH_
 
-#include "ignition/gazebo/Export.hh"
+#include "gz/sim/Export.hh"
 
 namespace ignition
 {

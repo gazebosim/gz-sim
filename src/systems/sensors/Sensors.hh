@@ -20,8 +20,8 @@
 #include <memory>
 #include <string>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/System.hh>
 #include <sdf/Sensor.hh>
 
 namespace ignition
@@ -35,7 +35,7 @@ namespace systems
   // Forward declarations.
   class SensorsPrivate;
 
-  /// \class Sensors Sensors.hh ignition/gazebo/systems/Sensors.hh
+  /// \class Sensors Sensors.hh gz/sim/systems/Sensors.hh
   /// \brief A system that manages sensors.
   ///
   /// ## System Parameters

@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_RENDERUTIL_HH_
-#define IGNITION_GAZEBO_RENDERUTIL_HH_
+#ifndef GZ_GAZEBO_RENDERUTIL_HH_
+#define GZ_GAZEBO_RENDERUTIL_HH_
 
 #include <memory>
 #include <set>
@@ -24,12 +24,12 @@
 
 #include <sdf/Sensor.hh>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/rendering/Export.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/rendering/Export.hh>
+#include <gz/sim/System.hh>
 
-#include "ignition/gazebo/rendering/SceneManager.hh"
-#include "ignition/gazebo/rendering/MarkerManager.hh"
+#include "gz/sim/rendering/SceneManager.hh"
+#include "gz/sim/rendering/MarkerManager.hh"
 
 
 namespace ignition
@@ -41,7 +41,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   // forward declaration
   class RenderUtilPrivate;
 
-  /// \class RenderUtil RenderUtil.hh ignition/gazebo/gui/plugins/RenderUtil.hh
+  /// \class RenderUtil RenderUtil.hh gz/sim/gui/plugins/RenderUtil.hh
   class IGNITION_GAZEBO_RENDERING_VISIBLE RenderUtil
   {
     /// \brief Constructor

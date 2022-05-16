@@ -14,13 +14,13 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_LABEL_HH_
-#define IGNITION_GAZEBO_COMPONENTS_LABEL_HH_
+#ifndef GZ_SIM_COMPONENTS_LABEL_HH_
+#define GZ_SIM_COMPONENTS_LABEL_HH_
 
-#include "ignition/gazebo/Export.hh"
-#include "ignition/gazebo/components/Component.hh"
-#include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/config.hh"
+#include "gz/sim/Export.hh"
+#include "gz/sim/components/Component.hh"
+#include "gz/sim/components/Factory.hh"
+#include "gz/sim/config.hh"
 
 namespace ignition
 {
@@ -34,7 +34,7 @@ namespace components
   /// case of the Label component is with Segmentation & Bounding box
   /// sensors to generate dataset annotations.
   using SemanticLabel = Component<uint32_t, class SemanticLabelTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.SemanticLabel",
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.SemanticLabel",
       SemanticLabel)
 }
 }

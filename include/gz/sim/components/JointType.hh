@@ -14,14 +14,14 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_JOINTTYPE_HH_
-#define IGNITION_GAZEBO_COMPONENTS_JOINTTYPE_HH_
+#ifndef GZ_SIM_COMPONENTS_JOINTTYPE_HH_
+#define GZ_SIM_COMPONENTS_JOINTTYPE_HH_
 
 #include <memory>
 #include <sdf/Joint.hh>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/config.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/config.hh>
 
 namespace ignition
 {
@@ -65,7 +65,7 @@ namespace components
   using JointType = Component<sdf::JointType, class JointTypeTag,
                               serializers::JointTypeSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT(
-      "ign_gazebo_components.JointType", JointType)
+      "gz_sim_components.JointType", JointType)
 }
 }
 }

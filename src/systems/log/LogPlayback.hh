@@ -19,8 +19,8 @@
 
 #include <memory>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/System.hh>
 
 namespace ignition
 {
@@ -34,7 +34,7 @@ namespace systems
   class LogPlaybackPrivate;
 
   /// \class LogPlayback LogPlayback.hh
-  ///   ignition/gazebo/systems/log/LogPlayback.hh
+  ///   gz/sim/systems/log/LogPlayback.hh
   /// \brief Log state playback
   class LogPlayback:
     public System,

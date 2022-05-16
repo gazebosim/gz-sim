@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SYSTEMLOADER_HH_
-#define IGNITION_GAZEBO_SYSTEMLOADER_HH_
+#ifndef GZ_GAZEBO_SYSTEMLOADER_HH_
+#define GZ_GAZEBO_SYSTEMLOADER_HH_
 
 #include <memory>
 #include <optional>
@@ -23,9 +23,9 @@
 
 #include <sdf/Element.hh>
 
-#include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/System.hh>
-#include <ignition/gazebo/SystemPluginPtr.hh>
+#include <gz/sim/Export.hh>
+#include <gz/sim/System.hh>
+#include <gz/sim/SystemPluginPtr.hh>
 
 namespace ignition
 {
@@ -36,7 +36,7 @@ namespace ignition
     // Forward declarations.
     class IGNITION_GAZEBO_HIDDEN SystemLoaderPrivate;
 
-    /// \class SystemLoader SystemLoader.hh ignition/gazebo/SystemLoader.hh
+    /// \class SystemLoader SystemLoader.hh gz/sim/SystemLoader.hh
     /// \brief Class for loading/unloading System plugins.
     class IGNITION_GAZEBO_VISIBLE SystemLoader
     {
@@ -77,5 +77,5 @@ namespace ignition
     using SystemLoaderPtr = std::shared_ptr<SystemLoader>;
   }
 }
-#endif  // IGNITION_GAZEBO_SYSTEMLOADER_HH_
+#endif  // GZ_GAZEBO_SYSTEMLOADER_HH_
 

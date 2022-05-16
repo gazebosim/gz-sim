@@ -15,19 +15,19 @@
  *
  */
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/dataframe.pb.h>
-#include <ignition/msgs/time.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/dataframe.pb.h>
+#include <gz/msgs/time.pb.h>
 
 #include <memory>
 #include <mutex>
 #include <string>
 
-#include <ignition/transport/Node.hh>
-#include "ignition/gazebo/comms/Broker.hh"
-#include "ignition/gazebo/comms/MsgManager.hh"
-#include "ignition/gazebo/Conversions.hh"
-#include "ignition/gazebo/Util.hh"
+#include <gz/transport/Node.hh>
+#include "gz/sim/comms/Broker.hh"
+#include "gz/sim/comms/MsgManager.hh"
+#include "gz/sim/Conversions.hh"
+#include "gz/sim/Util.hh"
 
 /// \brief Private Broker data class.
 class ignition::gazebo::comms::Broker::Implementation

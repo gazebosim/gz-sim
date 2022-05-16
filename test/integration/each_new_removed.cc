@@ -28,7 +28,7 @@
 #include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
+#include "gz/sim/test_config.hh"  // NOLINT(build/include)
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"

@@ -14,15 +14,15 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_JOINTTRANSMITTEDWRENCH_HH_
-#define IGNITION_GAZEBO_COMPONENTS_JOINTTRANSMITTEDWRENCH_HH_
+#ifndef GZ_SIM_COMPONENTS_JOINTTRANSMITTEDWRENCH_HH_
+#define GZ_SIM_COMPONENTS_JOINTTRANSMITTEDWRENCH_HH_
 
-#include <ignition/msgs/wrench.pb.h>
+#include <gz/msgs/wrench.pb.h>
 
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Serialization.hh>
-#include <ignition/gazebo/config.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/components/Serialization.hh>
+#include <gz/sim/config.hh>
 
 namespace ignition
 {
@@ -46,7 +46,7 @@ namespace components
 using JointTransmittedWrench =
     Component<msgs::Wrench, class JointTransmittedWrenchTag,
               serializers::MsgSerializer>;
-IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.JointTransmittedWrench",
+IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.JointTransmittedWrench",
                               JointTransmittedWrench)
 }  // namespace components
 }

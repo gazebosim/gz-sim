@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_GUI_GUIEVENTS_HH_
-#define IGNITION_GAZEBO_GUI_GUIEVENTS_HH_
+#ifndef GZ_GAZEBO_GUI_GUIEVENTS_HH_
+#define GZ_GAZEBO_GUI_GUIEVENTS_HH_
 
 #include <QEvent>
 #include <QMap>
@@ -26,13 +26,13 @@
 #include <utility>
 #include <vector>
 
-#include <ignition/math/Vector3.hh>
-#include <ignition/utils/ImplPtr.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/utils/ImplPtr.hh>
 #include <sdf/Element.hh>
 
-#include "ignition/gazebo/gui/Export.hh"
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/config.hh"
+#include "gz/sim/gui/Export.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/config.hh"
 
 namespace ignition
 {
@@ -241,4 +241,4 @@ namespace events
 }  // namespace gazebo
 }  // namespace ignition
 
-#endif  // IGNITION_GAZEBO_GUI_GUIEVENTS_HH_
+#endif  // GZ_GAZEBO_GUI_GUIEVENTS_HH_

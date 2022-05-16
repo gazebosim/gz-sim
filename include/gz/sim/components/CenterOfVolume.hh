@@ -14,13 +14,13 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_CENTEROFVOLUME_HH_
-#define IGNITION_GAZEBO_COMPONENTS_CENTEROFVOLUME_HH_
+#ifndef GZ_SIM_COMPONENTS_CENTEROFVOLUME_HH_
+#define GZ_SIM_COMPONENTS_CENTEROFVOLUME_HH_
 
-#include <ignition/math/Vector3.hh>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/config.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/config.hh>
 
 namespace ignition
 {
@@ -35,7 +35,7 @@ namespace components
   /// position of the center of volume is relative to the pose of the parent
   /// entity, which is usually a link.
   using CenterOfVolume = Component<math::Vector3d, class CenterOfVolumeTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.CenterOfVolume",
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.CenterOfVolume",
       CenterOfVolume)
 }
 }

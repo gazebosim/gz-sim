@@ -17,8 +17,8 @@
 
 #include "Spawn.hh"
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/entity_factory.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/entity_factory.pb.h>
 
 #include <algorithm>
 #include <limits>
@@ -27,35 +27,35 @@
 #include <vector>
 #include <QQmlProperty>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/MeshManager.hh>
-#include <ignition/common/Profiler.hh>
-#include <ignition/common/Uuid.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/MeshManager.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/common/Uuid.hh>
 
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/Helpers.hh>
-#include <ignition/gui/MainWindow.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/Helpers.hh>
+#include <gz/gui/MainWindow.hh>
 
-#include <ignition/math/Vector2.hh>
-#include <ignition/msgs/Utility.hh>
+#include <gz/math/Vector2.hh>
+#include <gz/msgs/Utility.hh>
 
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
-#include <ignition/rendering/Camera.hh>
-#include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/RayQuery.hh>
-#include <ignition/rendering/Utils.hh>
-#include <ignition/rendering/Visual.hh>
-#include <ignition/rendering/Scene.hh>
+#include <gz/rendering/Camera.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include <gz/rendering/RayQuery.hh>
+#include <gz/rendering/Utils.hh>
+#include <gz/rendering/Visual.hh>
+#include <gz/rendering/Scene.hh>
 
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/Publisher.hh>
+#include <gz/transport/Node.hh>
+#include <gz/transport/Publisher.hh>
 
 #include <sdf/Root.hh>
 
-#include "ignition/gazebo/rendering/RenderUtil.hh"
-#include "ignition/gazebo/rendering/SceneManager.hh"
+#include "gz/sim/rendering/RenderUtil.hh"
+#include "gz/sim/rendering/SceneManager.hh"
 
 namespace ignition::gazebo
 {

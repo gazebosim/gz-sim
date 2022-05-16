@@ -20,11 +20,11 @@
 #include <set>
 #include <unordered_map>
 
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/components/CanonicalLink.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/config.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/components/CanonicalLink.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/config.hh"
 
 namespace ignition::gazebo
 {

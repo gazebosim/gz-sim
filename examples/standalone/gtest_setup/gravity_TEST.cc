@@ -17,12 +17,12 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/gazebo/Model.hh>
-#include <ignition/gazebo/World.hh>
-#include <ignition/gazebo/Server.hh>
-#include <ignition/gazebo/Util.hh>
-#include <ignition/gazebo/TestFixture.hh>
+#include <gz/common/Console.hh>
+#include <gz/sim/Model.hh>
+#include <gz/sim/World.hh>
+#include <gz/sim/Server.hh>
+#include <gz/sim/Util.hh>
+#include <gz/sim/TestFixture.hh>
 
 //////////////////////////////////////////////////
 // Test that an object falls due to gravity

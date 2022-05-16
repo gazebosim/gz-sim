@@ -19,8 +19,8 @@
 #include <linux/joystick.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <ignition/math/Helpers.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/transport/Node.hh>
 #include <sdf/sdf.hh>
 
 //////////////////////////////////////////////////

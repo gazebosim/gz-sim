@@ -14,12 +14,12 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_TRANSPARENCY_HH_
-#define IGNITION_GAZEBO_COMPONENTS_TRANSPARENCY_HH_
+#ifndef GZ_SIM_COMPONENTS_TRANSPARENCY_HH_
+#define GZ_SIM_COMPONENTS_TRANSPARENCY_HH_
 
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/config.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/config.hh>
 
 namespace ignition
 {
@@ -33,7 +33,7 @@ namespace components
   /// e.g. visual entities. Value is in the range from 0 (opaque) to
   /// 1 (transparent).
   using Transparency = Component<float, class TransparencyTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Transparency",
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Transparency",
       Transparency)
 }
 }

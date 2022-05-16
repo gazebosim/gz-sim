@@ -18,7 +18,7 @@
 #define SYSTEM_PLUGIN_COMMANDACTOR_HH_
 
 #include <chrono>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/System.hh>
 
 namespace command_actor
 {

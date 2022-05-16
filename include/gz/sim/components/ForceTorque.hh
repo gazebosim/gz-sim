@@ -14,17 +14,17 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_FORCETORQUE_HH_
-#define IGNITION_GAZEBO_COMPONENTS_FORCETORQUE_HH_
+#ifndef GZ_SIM_COMPONENTS_FORCETORQUE_HH_
+#define GZ_SIM_COMPONENTS_FORCETORQUE_HH_
 
 #include <sdf/Sensor.hh>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
 
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Serialization.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/components/Serialization.hh>
 
 namespace ignition
 {
@@ -38,7 +38,7 @@ namespace components
   /// sdf::ForceTorque, information.
   using ForceTorque = Component<sdf::Sensor, class ForceTorqueTag,
       serializers::SensorSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.ForceTorque",
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.ForceTorque",
                                 ForceTorque)
 }
 }

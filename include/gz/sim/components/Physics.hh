@@ -14,22 +14,22 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_PHYSICS_HH_
-#define IGNITION_GAZEBO_COMPONENTS_PHYSICS_HH_
+#ifndef GZ_SIM_COMPONENTS_PHYSICS_HH_
+#define GZ_SIM_COMPONENTS_PHYSICS_HH_
 
 #include <string>
 
-#include <ignition/msgs/physics.pb.h>
+#include <gz/msgs/physics.pb.h>
 
 #include <sdf/Physics.hh>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
 
-#include <ignition/gazebo/components/Factory.hh>
-#include "ignition/gazebo/components/Component.hh"
-#include <ignition/gazebo/components/Serialization.hh>
-#include <ignition/gazebo/Conversions.hh>
+#include <gz/sim/components/Factory.hh>
+#include "gz/sim/components/Component.hh"
+#include <gz/sim/components/Serialization.hh>
+#include <gz/sim/Conversions.hh>
 
 namespace ignition
 {
@@ -48,7 +48,7 @@ namespace components
   /// the World entity.
   using Physics = Component<sdf::Physics, class PhysicsTag,
       serializers::PhysicsSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Physics",
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Physics",
       Physics)
 
   /// \brief The name of the collision detector to be used. The supported
@@ -56,14 +56,14 @@ namespace components
   using PhysicsCollisionDetector = Component<std::string,
       class PhysicsCollisionDetectorTag, serializers::StringSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT(
-      "ign_gazebo_components.PhysicsCollisionDetector",
+      "gz_sim_components.PhysicsCollisionDetector",
        PhysicsCollisionDetector)
 
   /// \brief The name of the solver to be used. The supported options will
   /// depend on the physics engine being used.
   using PhysicsSolver = Component<std::string,
       class PhysicsSolverTag, serializers::StringSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.PhysicsSolver",
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.PhysicsSolver",
        PhysicsSolver)
 }
 }

@@ -20,10 +20,10 @@
 #include <string>
 
 #include <gtest/gtest.h>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
+#include "gz/sim/Server.hh"
+#include "gz/sim/test_config.hh"  // NOLINT(build/include)
 
 static const std::string kIgnModelCommand(
     std::string(BREW_RUBY) + std::string(IGN_PATH) + "/ign model ");

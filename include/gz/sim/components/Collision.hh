@@ -14,15 +14,15 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_COLLISION_HH_
-#define IGNITION_GAZEBO_COMPONENTS_COLLISION_HH_
+#ifndef GZ_SIM_COMPONENTS_COLLISION_HH_
+#define GZ_SIM_COMPONENTS_COLLISION_HH_
 
 #include <sdf/Element.hh>
 
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Serialization.hh>
-#include <ignition/gazebo/config.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/components/Serialization.hh>
+#include <gz/sim/config.hh>
 
 namespace ignition
 {
@@ -41,7 +41,7 @@ namespace components
   /// \brief A component that identifies an entity as being a collision.
   using Collision = Component<NoData, class CollisionTag>;
   IGN_GAZEBO_REGISTER_COMPONENT(
-      "ign_gazebo_components.Collision", Collision)
+      "gz_sim_components.Collision", Collision)
 
   // TODO(anyone) The sdf::Collision DOM object does not yet contain
   // surface information.
@@ -49,7 +49,7 @@ namespace components
   using CollisionElement =
       Component<sdf::Collision, class CollisionElementTag,
     serializers::CollisionElementSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.CollisionElement",
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.CollisionElement",
                                 CollisionElement)
 
   /// \brief A component used to enable customization of contact surface for a
@@ -58,7 +58,7 @@ namespace components
   using EnableContactSurfaceCustomization =
     Component<bool, class EnableContactSurfaceCustomizationTag>;
   IGN_GAZEBO_REGISTER_COMPONENT(
-    "ign_gazebo_components.EnableContactSurfaceCustomization",
+    "gz_sim_components.EnableContactSurfaceCustomization",
     EnableContactSurfaceCustomization)
 }
 }

@@ -15,11 +15,11 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_PRIMITIVES_HH_
-#define IGNITION_GAZEBO_PRIMITIVES_HH_
+#ifndef GZ_GAZEBO_PRIMITIVES_HH_
+#define GZ_GAZEBO_PRIMITIVES_HH_
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
 
 #include <string>
 
@@ -78,6 +78,6 @@ namespace ignition
 }  // namespace ignition
 
 
-#endif  // IGNITION_GAZEBO_PRIMITIVES_HH_
+#endif  // GZ_GAZEBO_PRIMITIVES_HH_
 
 

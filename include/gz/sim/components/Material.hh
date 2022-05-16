@@ -14,17 +14,17 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_MATERIAL_HH_
-#define IGNITION_GAZEBO_COMPONENTS_MATERIAL_HH_
+#ifndef GZ_SIM_COMPONENTS_MATERIAL_HH_
+#define GZ_SIM_COMPONENTS_MATERIAL_HH_
 
-#include <ignition/msgs/material.pb.h>
+#include <gz/msgs/material.pb.h>
 
 #include <sdf/Material.hh>
 
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Serialization.hh>
-#include <ignition/gazebo/config.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/components/Serialization.hh>
+#include <gz/sim/config.hh>
 
 namespace ignition
 {
@@ -42,7 +42,7 @@ namespace components
   /// \brief This component holds an entity's material.
   using Material = Component<sdf::Material, class MaterialTag,
                              serializers::MaterialSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Material", Material)
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Material", Material)
 }
 }
 }

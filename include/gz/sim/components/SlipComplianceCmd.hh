@@ -15,16 +15,16 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_COMPONENTS_SLIPCOMPLIANCECMD_HH_
-#define IGNITION_GAZEBO_COMPONENTS_SLIPCOMPLIANCECMD_HH_
+#ifndef GZ_SIM_COMPONENTS_SLIPCOMPLIANCECMD_HH_
+#define GZ_SIM_COMPONENTS_SLIPCOMPLIANCECMD_HH_
 
 #include <vector>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
 
-#include <ignition/gazebo/components/Factory.hh>
-#include "ignition/gazebo/components/Component.hh"
+#include <gz/sim/components/Factory.hh>
+#include "gz/sim/components/Component.hh"
 
 namespace ignition
 {
@@ -40,7 +40,7 @@ namespace components
   /// direction 2 (fdir2) respectively.
   using SlipComplianceCmd =
     Component<std::vector<double>, class SlipComplianceCmdTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.SlipComplianceCmd ",
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.SlipComplianceCmd ",
       SlipComplianceCmd)
 }
 }

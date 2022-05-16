@@ -14,17 +14,17 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_DETAIL_BASEVIEW_HH_
-#define IGNITION_GAZEBO_DETAIL_BASEVIEW_HH_
+#ifndef GZ_GAZEBO_DETAIL_BASEVIEW_HH_
+#define GZ_GAZEBO_DETAIL_BASEVIEW_HH_
 
 #include <cstddef>
 #include <set>
 #include <unordered_map>
 #include <vector>
 
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/Types.hh"
-#include "ignition/gazebo/config.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/Types.hh"
+#include "gz/sim/config.hh"
 
 namespace ignition
 {

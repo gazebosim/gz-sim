@@ -14,13 +14,13 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_LINEARVELOCITYSEED_HH_
-#define IGNITION_GAZEBO_COMPONENTS_LINEARVELOCITYSEED_HH_
+#ifndef GZ_SIM_COMPONENTS_LINEARVELOCITYSEED_HH_
+#define GZ_SIM_COMPONENTS_LINEARVELOCITYSEED_HH_
 
-#include <ignition/math/Vector3.hh>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/config.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/config.hh>
 
 namespace ignition
 {
@@ -36,7 +36,7 @@ namespace components
   /// by applying transformations and adding noise.
   using LinearVelocitySeed =
       Component<math::Vector3d, class LinearVelocitySeedTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.LinearVelocitySeed",
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.LinearVelocitySeed",
                                 LinearVelocitySeed)
 
   /// \brief A component type that contains linear velocity seed of an entity in
@@ -45,7 +45,7 @@ namespace components
   /// noise.
   using WorldLinearVelocitySeed =
       Component<math::Vector3d, class WorldLinearVelocitySeedTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.WorldLinearVelocitySeed",
+  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.WorldLinearVelocitySeed",
                                 WorldLinearVelocitySeed)
 }
 }

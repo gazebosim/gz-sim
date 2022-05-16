@@ -14,15 +14,15 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_TYPES_HH_
-#define IGNITION_GAZEBO_TYPES_HH_
+#ifndef GZ_GAZEBO_TYPES_HH_
+#define GZ_GAZEBO_TYPES_HH_
 
 #include <chrono>
 #include <cstdint>
 #include <functional>
 #include <utility>
 
-#include "ignition/gazebo/Entity.hh"
+#include "gz/sim/Entity.hh"
 
 namespace ignition
 {

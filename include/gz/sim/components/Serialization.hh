@@ -14,18 +14,18 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_SERIALIZATION_HH_
-#define IGNITION_GAZEBO_COMPONENTS_SERIALIZATION_HH_
+#ifndef GZ_SIM_COMPONENTS_SERIALIZATION_HH_
+#define GZ_SIM_COMPONENTS_SERIALIZATION_HH_
 
 #include <google/protobuf/message_lite.h>
-#include <ignition/msgs/double_v.pb.h>
+#include <gz/msgs/double_v.pb.h>
 
 #include <string>
 #include <vector>
 #include <sdf/Sensor.hh>
 
-#include <ignition/gazebo/Conversions.hh>
-#include <ignition/msgs/Utility.hh>
+#include <gz/sim/Conversions.hh>
+#include <gz/msgs/Utility.hh>
 
 // This header holds serialization operators which are shared among several
 // components

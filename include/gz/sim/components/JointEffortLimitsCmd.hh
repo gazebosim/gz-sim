@@ -14,17 +14,17 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_JOINTEFFORTLIMITSCMD_HH_
-#define IGNITION_GAZEBO_COMPONENTS_JOINTEFFORTLIMITSCMD_HH_
+#ifndef GZ_SIM_COMPONENTS_JOINTEFFORTLIMITSCMD_HH_
+#define GZ_SIM_COMPONENTS_JOINTEFFORTLIMITSCMD_HH_
 
 #include <vector>
-#include <ignition/math/Vector2.hh>
+#include <gz/math/Vector2.hh>
 
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Serialization.hh>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Serialization.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
 
 namespace ignition
 {
@@ -50,7 +50,7 @@ using JointEffortLimitsCmd = Component<
 >;
 
 IGN_GAZEBO_REGISTER_COMPONENT(
-  "ign_gazebo_components.JointEffortLimitsCmd", JointEffortLimitsCmd)
+  "gz_sim_components.JointEffortLimitsCmd", JointEffortLimitsCmd)
 }
 
 }
