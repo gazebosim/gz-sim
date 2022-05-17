@@ -1029,7 +1029,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
       if (targetVis && targetVis->HasUserData("gazebo-entity"))
       {
         Entity targetEntity =
-            std::get<int>(targetVis->UserData("gazebo-entity"));
+            std::get<uint64_t>(targetVis->UserData("gazebo-entity"));
         this->dataPtr->renderUtil.ViewTransparent(targetEntity);
       }
       else
@@ -1055,7 +1055,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
       if (targetVis && targetVis->HasUserData("gazebo-entity"))
       {
         Entity targetEntity =
-            std::get<int>(targetVis->UserData("gazebo-entity"));
+            std::get<uint64_t>(targetVis->UserData("gazebo-entity"));
         this->dataPtr->renderUtil.ViewCOM(targetEntity);
       }
       else
@@ -1081,7 +1081,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
       if (targetVis && targetVis->HasUserData("gazebo-entity"))
       {
         Entity targetEntity =
-            std::get<int>(targetVis->UserData("gazebo-entity"));
+            std::get<uint64_t>(targetVis->UserData("gazebo-entity"));
         this->dataPtr->renderUtil.ViewInertia(targetEntity);
       }
       else
@@ -1107,7 +1107,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
       if (targetVis && targetVis->HasUserData("gazebo-entity"))
       {
         Entity targetEntity =
-            std::get<int>(targetVis->UserData("gazebo-entity"));
+            std::get<uint64_t>(targetVis->UserData("gazebo-entity"));
         this->dataPtr->renderUtil.ViewJoints(targetEntity);
       }
       else
@@ -1133,7 +1133,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
       if (targetVis && targetVis->HasUserData("gazebo-entity"))
       {
         Entity targetEntity =
-            std::get<int>(targetVis->UserData("gazebo-entity"));
+            std::get<uint64_t>(targetVis->UserData("gazebo-entity"));
         this->dataPtr->renderUtil.ViewWireframes(targetEntity);
       }
       else
@@ -1159,7 +1159,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
       if (targetVis && targetVis->HasUserData("gazebo-entity"))
       {
         Entity targetEntity =
-            std::get<int>(targetVis->UserData("gazebo-entity"));
+            std::get<uint64_t>(targetVis->UserData("gazebo-entity"));
         this->dataPtr->renderUtil.ViewCollisions(targetEntity);
       }
       else

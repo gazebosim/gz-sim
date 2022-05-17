@@ -173,7 +173,8 @@ void SelectEntitiesPrivate::HandleEntitySelection()
       Entity entityId = kNullEntity;
       try
       {
-        entityId = std::get<int>(visualToHighLight->UserData("gazebo-entity"));
+        entityId = std::get<uint64_t>(
+          visualToHighLight->UserData("gazebo-entity"));
       }
       catch(std::bad_variant_access &_e)
       {
@@ -213,7 +214,7 @@ void SelectEntitiesPrivate::HandleEntitySelection()
   Entity entityId = kNullEntity;
   try
   {
-    entityId = std::get<int>(visual->UserData("gazebo-entity"));
+    entityId = std::get<uint64_t>(visual->UserData("gazebo-entity"));
   }
   catch(std::bad_variant_access &e)
   {
@@ -244,7 +245,7 @@ void SelectEntitiesPrivate::LowlightNode(const rendering::VisualPtr &_visual)
   {
     try
     {
-      entityId = std::get<int>(_visual->UserData("gazebo-entity"));
+      entityId = std::get<uint64_t>(_visual->UserData("gazebo-entity"));
     }
     catch(std::bad_variant_access &)
     {
@@ -272,7 +273,7 @@ void SelectEntitiesPrivate::HighlightNode(const rendering::VisualPtr &_visual)
   Entity entityId = kNullEntity;
   try
   {
-    entityId = std::get<int>(_visual->UserData("gazebo-entity"));
+    entityId = std::get<uint64_t>(_visual->UserData("gazebo-entity"));
   }
   catch(std::bad_variant_access &)
   {
@@ -359,7 +360,7 @@ void SelectEntitiesPrivate::SetSelectedEntity(
   {
     try
     {
-      entityId = std::get<int>(topLevelVisual->UserData("gazebo-entity"));
+      entityId = std::get<uint64_t>(topLevelVisual->UserData("gazebo-entity"));
     }
     catch(std::bad_variant_access &)
     {
@@ -545,7 +546,7 @@ bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
           Entity entityId = kNullEntity;
           try
           {
-            entityId = std::get<int>(visual->UserData("gazebo-entity"));
+            entityId = std::get<uint64_t>(visual->UserData("gazebo-entity"));
           }
           catch(std::bad_variant_access &)
           {

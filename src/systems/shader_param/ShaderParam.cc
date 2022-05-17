@@ -284,11 +284,9 @@ void ShaderParamPrivate::OnUpdate()
       nodes.pop_front();
       if (n && n->HasUserData("gazebo-entity"))
       {
-        // RenderUti stores gazebo-entity user data as int
-        // \todo(anyone) Change this to uint64_t in Ignition H?
         auto variant = n->UserData("gazebo-entity");
-        const int *value = std::get_if<int>(&variant);
-        if (value && *value == static_cast<int>(this->entity))
+        const uint64_t *value = std::get_if<uint64_t>(&variant);
+        if (value && *value == this->entity)
         {
           this->visual = std::dynamic_pointer_cast<rendering::Visual>(n);
           break;
