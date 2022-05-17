@@ -3174,6 +3174,7 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_EQ(1, foundEntities);
 }
 
+//////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture, CopyEcm)
 {
   Entity entity = manager.CreateEntity();
@@ -3195,6 +3196,7 @@ TEST_P(EntityComponentManagerFixture, CopyEcm)
       });
 }
 
+//////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture, ComputeDiff)
 {
   Entity entity1 = manager.CreateEntity();
@@ -3243,6 +3245,7 @@ TEST_P(EntityComponentManagerFixture, ComputeDiff)
   }
 }
 
+//////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture, ResetToWithDeletedEntity)
 {
   Entity entity1 = manager.CreateEntity();
@@ -3293,6 +3296,7 @@ TEST_P(EntityComponentManagerFixture, ResetToWithDeletedEntity)
   }
 }
 
+//////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture, ResetToWithAddedEntity)
 {
   Entity entity1 = manager.CreateEntity();
