@@ -15,9 +15,9 @@
  *
 */
 
-#include <ignition/common/Util.hh>
-#include <ignition/common/Console.hh>
-#include "ignition/gazebo/Primitives.hh"
+#include <gz/common/Util.hh>
+#include <gz/common/Console.hh>
+#include "gz/sim/Primitives.hh"
 
 using namespace ignition;
 using namespace gazebo;

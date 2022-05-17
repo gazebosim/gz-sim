@@ -18,12 +18,12 @@
 #include <gtest/gtest.h>
 
 #include <cstdlib>
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
 #include "PeerTracker.hh"
-#include "ignition/gazebo/EventManager.hh"
+#include "gz/sim/EventManager.hh"
 
 using namespace ignition::gazebo;
 

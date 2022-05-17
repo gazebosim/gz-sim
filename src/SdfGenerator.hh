@@ -17,14 +17,14 @@
 #ifndef IGNITION_GAZEBO_SDFGENERATOR_HH_
 #define IGNITION_GAZEBO_SDFGENERATOR_HH_
 
-#include <ignition/msgs/sdf_generator_config.pb.h>
+#include <gz/msgs/sdf_generator_config.pb.h>
 
 #include <sdf/Element.hh>
 #include <optional>
 #include <string>
 #include <unordered_map>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include "gz/sim/EntityComponentManager.hh"
 
 namespace ignition
 {

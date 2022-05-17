@@ -17,7 +17,7 @@
 
 #include "NavSat.hh"
 
-#include <ignition/msgs/navsat.pb.h>
+#include <gz/msgs/navsat.pb.h>
 
 #include <memory>
 #include <string>
@@ -27,22 +27,22 @@
 
 #include <sdf/Sensor.hh>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/plugin/Register.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/plugin/Register.hh>
 
-#include <ignition/math/Helpers.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/transport/Node.hh>
 
-#include <ignition/sensors/SensorFactory.hh>
-#include <ignition/sensors/NavSatSensor.hh>
+#include <gz/sensors/SensorFactory.hh>
+#include <gz/sensors/NavSatSensor.hh>
 
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/NavSat.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/NavSat.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Util.hh"
 
 using namespace ignition;
 using namespace gazebo;

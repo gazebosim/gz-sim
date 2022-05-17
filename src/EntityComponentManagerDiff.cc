@@ -17,7 +17,7 @@
 
 #include "EntityComponentManagerDiff.hh"
 
-#include "ignition/gazebo/Entity.hh"
+#include "gz/sim/Entity.hh"
 
 using namespace ignition;
 using namespace gazebo;

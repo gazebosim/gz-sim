@@ -13,37 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
-#ifndef IGNITION_GAZEBO_COMPONENTS_PERFORMERAFFINITY_HH_
-#define IGNITION_GAZEBO_COMPONENTS_PERFORMERAFFINITY_HH_
+ */
 
-#include <string>
-
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-
-#include "ignition/gazebo/components/Component.hh"
-#include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/components/Serialization.hh"
-
-namespace ignition
-{
-namespace gazebo
-{
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace components
-{
-  /// \brief This component holds the address of the distributed secondary that
-  /// this performer is associated with.
-  using PerformerAffinity = Component<std::string, class PerformerAffinityTag,
-      serializers::StringSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.PerformerAffinity",
-      PerformerAffinity)
-}
-}
-}
-}
-
-#endif
-
+#include <gz/sim/components/PerformerAffinity.hh>

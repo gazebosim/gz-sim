@@ -19,8 +19,8 @@
 
 #include <memory>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/System.hh>
 
 namespace ignition
 {
@@ -33,7 +33,7 @@ namespace systems
   // Forward declarations.
   class LogRecordPrivate;
 
-  /// \class LogRecord LogRecord.hh ignition/gazebo/systems/log/LogRecord.hh
+  /// \class LogRecord LogRecord.hh gz/sim/systems/log/LogRecord.hh
   /// \brief Log state recorder
   class LogRecord:
     public System,

@@ -14,33 +14,5 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_JOINTFORCECMD_HH_
-#define IGNITION_GAZEBO_COMPONENTS_JOINTFORCECMD_HH_
 
-#include <vector>
-
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/config.hh>
-
-namespace ignition
-{
-namespace gazebo
-{
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace components
-{
-  /// \brief Commanded joint forces (or torques) to be applied to a joint
-  /// in SI units (Nm for revolute, N for prismatic). The component wraps a
-  /// std::vector and systems that set this component need to ensure that the
-  /// vector has the same size as the degrees of freedom of the joint.
-  using JointForceCmd = Component<std::vector<double>, class JointForceCmdTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.JointForceCmd",
-                                JointForceCmd)
-}
-}
-}
-}
-
-#endif
+#include <gz/sim/components/JointForceCmd.hh>

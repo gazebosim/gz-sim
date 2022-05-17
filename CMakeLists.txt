@@ -14,7 +14,9 @@ find_package(ignition-cmake3 REQUIRED)
 #============================================================================
 # Configure the project
 #============================================================================
-ign_configure_project(VERSION_SUFFIX pre1)
+ign_configure_project(
+  REPLACE_IGNITION_INCLUDE_PATH gz/sim
+  VERSION_SUFFIX pre1)
 set (CMAKE_CXX_STANDARD 17)
 
 #============================================================================
@@ -252,3 +254,13 @@ endif()
 if(TARGET doc)
   file(COPY ${CMAKE_SOURCE_DIR}/tutorials/files/ DESTINATION ${CMAKE_BINARY_DIR}/doxygen/html/files/)
 endif()
+
+# TICKTOCK MASTER HEADER (to bypass IGN_DESIGNATION)
+# TODO(CH3): Remove on tock
+configure_file(
+  ${CMAKE_CURRENT_BINARY_DIR}/include/gz/${IGN_DESIGNATION}.hh
+  ${CMAKE_CURRENT_BINARY_DIR}/include/gz/sim.hh
+  COPYONLY)
+install(
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/include/gz/sim.hh
+  DESTINATION ${IGN_INCLUDE_INSTALL_DIR_FULL}/gz)

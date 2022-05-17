@@ -36,7 +36,7 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/test_config.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"

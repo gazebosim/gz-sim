@@ -15,24 +15,24 @@
  *
  */
 
-#include <ignition/msgs/particle_emitter.pb.h>
-#include <ignition/msgs/particle_emitter_v.pb.h>
+#include <gz/msgs/particle_emitter.pb.h>
+#include <gz/msgs/particle_emitter_v.pb.h>
 
 #include <map>
 #include <mutex>
 #include <string>
 #include <vector>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/msgs/Utility.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/msgs/Utility.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include <ignition/gazebo/components/Name.hh>
-#include <ignition/gazebo/components/ParentEntity.hh>
-#include <ignition/gazebo/components/ParticleEmitter.hh>
-#include <ignition/gazebo/components/Pose.hh>
-#include <ignition/gazebo/Util.hh>
+#include <gz/sim/components/Name.hh>
+#include <gz/sim/components/ParentEntity.hh>
+#include <gz/sim/components/ParticleEmitter.hh>
+#include <gz/sim/components/Pose.hh>
+#include <gz/sim/Util.hh>
 #include "ParticleEmitter.hh"
 
 using namespace std::chrono_literals;

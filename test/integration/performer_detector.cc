@@ -27,7 +27,7 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/PoseCmd.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/test_config.hh"
 
 #include "helpers/Relay.hh"
 #include "helpers/EnvTestFixture.hh"

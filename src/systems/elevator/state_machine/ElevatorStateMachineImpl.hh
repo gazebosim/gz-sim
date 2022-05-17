@@ -25,7 +25,7 @@
 #include <sstream>
 #include <utility>
 
-#include <ignition/common/Console.hh>
+#include <gz/common/Console.hh>
 
 #include "../ElevatorStateMachine.hh"
 

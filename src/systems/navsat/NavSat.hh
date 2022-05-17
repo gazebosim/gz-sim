@@ -17,10 +17,10 @@
 #ifndef IGNITION_GAZEBO_SYSTEMS_NAVSAT_HH_
 #define IGNITION_GAZEBO_SYSTEMS_NAVSAT_HH_
 
-#include <ignition/utils/ImplPtr.hh>
+#include <gz/utils/ImplPtr.hh>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/System.hh>
 
 namespace ignition
 {
@@ -30,7 +30,7 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
 {
-  /// \class NavSat NavSat.hh ignition/gazebo/systems/NavSat.hh
+  /// \class NavSat NavSat.hh gz/sim/systems/NavSat.hh
   /// \brief System that handles navigation satellite sensors, such as GPS,
   /// that reports position and velocity in spherical coordinates (latitude /
   /// longitude) over Ignition Transport.

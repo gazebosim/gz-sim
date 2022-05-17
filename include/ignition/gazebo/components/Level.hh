@@ -14,33 +14,5 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_LEVEL_HH_
-#define IGNITION_GAZEBO_COMPONENTS_LEVEL_HH_
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-
-#include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/components/Component.hh"
-
-namespace ignition
-{
-namespace gazebo
-{
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace components
-{
-  /// \brief This component identifies an entity as being a level.
-  using Level = Component<NoData, class LevelTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Level", Level)
-
-  /// \brief This component identifies an entity as being a default level.
-  using DefaultLevel = Component<NoData, class DefaultLevelTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.DefaultLevel",
-      DefaultLevel)
-}
-}
-}
-}
-#endif
+#include <gz/sim/components/Level.hh>

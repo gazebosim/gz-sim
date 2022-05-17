@@ -13,36 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
-#ifndef IGNITION_GAZEBO_COMPONENTS_LogPlaybackStatistics_HH_
-#define IGNITION_GAZEBO_COMPONENTS_LogPlaybackStatistics_HH_
+ */
 
-#include <ignition/msgs/log_playback_stats.pb.h>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Serialization.hh>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Conversions.hh>
-
-namespace ignition
-{
-namespace gazebo
-{
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace components
-{
-  /// \brief A component type that contains log playback,
-  /// systems::LogPlayback, information.
-  /// The log playback is created from world entity upon the playback plugin
-  /// being loaded
-  using LogPlaybackStatistics = Component<ignition::msgs::LogPlaybackStatistics,
-      class LogPlaybackStatisticsTag, serializers::MsgSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.LogPlaybackStatistics",
-      LogPlaybackStatistics)
-}
-}
-}
-}
-
-#endif
+#include <gz/sim/components/LogPlaybackStatistics.hh>

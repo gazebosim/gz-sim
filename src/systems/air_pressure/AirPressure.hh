@@ -18,8 +18,8 @@
 #define IGNITION_GAZEBO_SYSTEMS_AIRPRESSURE_HH_
 
 #include <memory>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/System.hh>
 
 namespace ignition
 {
@@ -32,7 +32,7 @@ namespace systems
   // Forward declarations.
   class AirPressurePrivate;
 
-  /// \class AirPressure AirPressure.hh ignition/gazebo/systems/AirPressure.hh
+  /// \class AirPressure AirPressure.hh gz/sim/systems/AirPressure.hh
   /// \brief An air pressure sensor that reports vertical position and velocity
   /// readings over ign transport
   class AirPressure:

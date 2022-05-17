@@ -18,17 +18,17 @@
 #include "../../GuiRunner.hh"
 #include "EntityContextMenu.hh"
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
-#include <ignition/msgs/entity.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/entity.pb.h>
 
 #include <iostream>
 #include <string>
 
-#include <ignition/common/Console.hh>
-#include <ignition/gazebo/Conversions.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Console.hh>
+#include <gz/sim/Conversions.hh>
+#include <gz/gui/Application.hh>
+#include <gz/transport/Node.hh>
 
 namespace ignition::gazebo
 {
@@ -83,7 +83,7 @@ using namespace ignition;
 using namespace gazebo;
 
 /////////////////////////////////////////////////
-void IgnGazeboPlugin::registerTypes(const char *_uri)
+void GzSimPlugin::registerTypes(const char *_uri)
 {
   // Register our 'EntityContextMenuItem' in qml engine
   qmlRegisterType<ignition::gazebo::EntityContextMenu>(_uri, 1, 0,

@@ -25,7 +25,7 @@
 #include <ignition/transport/Node.hh>
 #include <ignition/utils/ExtraTestMacros.hh>
 #include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
+#include "gz/sim/test_config.hh"  // NOLINT(build/include)
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace ignition;

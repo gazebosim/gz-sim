@@ -24,7 +24,7 @@
 #include <ignition/math/SemanticVersion.hh>
 #include <ignition/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 // File copied from

@@ -16,8 +16,8 @@
 */
 
 #include <iostream>
-#include <ignition/msgs/scene.pb.h>
-#include <ignition/transport/Node.hh>
+#include <gz/msgs/scene.pb.h>
+#include <gz/transport/Node.hh>
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)

@@ -13,25 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
-#ifndef IGNITION_GAZEBO_SYSTEMPLUGINPTR_HH_
-#define IGNITION_GAZEBO_SYSTEMPLUGINPTR_HH_
+ */
 
-#include <ignition/plugin/SpecializedPluginPtr.hh>
-#include <ignition/gazebo/System.hh>
-
-namespace ignition
-{
-  namespace gazebo
-  {
-    using SystemPluginPtr = ignition::plugin::SpecializedPluginPtr<
-      System,
-      ISystemConfigure,
-      ISystemPreUpdate,
-      ISystemUpdate,
-      ISystemPostUpdate
-    >;
-  }
-}
-
-#endif
+#include <gz/sim/SystemPluginPtr.hh>

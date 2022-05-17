@@ -24,21 +24,21 @@
 #include <vector>
 #include <string>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/rendering/Material.hh>
-#include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/Scene.hh>
-#include <ignition/rendering/ShaderParams.hh>
-#include <ignition/rendering/Visual.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/rendering/Material.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include <gz/rendering/Scene.hh>
+#include <gz/rendering/ShaderParams.hh>
+#include <gz/rendering/Visual.hh>
 
 #include <sdf/Element.hh>
 
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/SourceFilePath.hh"
-#include "ignition/gazebo/rendering/Events.hh"
-#include "ignition/gazebo/rendering/RenderUtil.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/SourceFilePath.hh"
+#include "gz/sim/rendering/Events.hh"
+#include "gz/sim/rendering/RenderUtil.hh"
+#include "gz/sim/Util.hh"
 
 using namespace ignition;
 using namespace gazebo;

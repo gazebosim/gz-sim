@@ -14,27 +14,5 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_WIND_HH_
-#define IGNITION_GAZEBO_COMPONENTS_WIND_HH_
 
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/config.hh>
-
-namespace ignition
-{
-namespace gazebo
-{
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace components
-{
-  /// \brief A component that identifies an entity as being a wind.
-  using Wind = Component<NoData, class WindTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Wind", Wind)
-}
-}
-}
-}
-
-#endif
+#include <gz/sim/components/Wind.hh>

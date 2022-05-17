@@ -18,8 +18,8 @@
 #define IGNITION_GAZEBO_SYSTEMS_FOLLOWACTOR_HH_
 
 #include <memory>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/System.hh>
 
 namespace ignition
 {
@@ -32,7 +32,7 @@ namespace systems
   // Forward declarations.
   class FollowActorPrivate;
 
-  /// \class FollowActor FollowActor.hh ignition/gazebo/systems/FollowActor.hh
+  /// \class FollowActor FollowActor.hh gz/sim/systems/FollowActor.hh
   /// \brief Make an actor follow a target entity in the world.
   ///
   /// ## SDF parameters

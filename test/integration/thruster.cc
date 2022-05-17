@@ -32,7 +32,7 @@
 #include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/World.hh"
 
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace ignition;
