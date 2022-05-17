@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 
 project(ResetPlugins)
 
-ign_find_package(ignition-plugin2 REQUIRED COMPONENTS register)
+find_package(ignition-plugin2 REQUIRED COMPONENTS register)
 set(IGN_PLUGIN_VER ${ignition-plugin2_VERSION_MAJOR})
 
 find_package(ignition-gazebo7 REQUIRED)
