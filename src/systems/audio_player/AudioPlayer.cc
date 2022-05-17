@@ -16,7 +16,7 @@
  */
 
 #include "AudioPlayer.hh"
-
+#include "OpenAL.hh"
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
