@@ -1294,8 +1294,15 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm)
 
           auto sdfElement = heightmapSdf->Element();
           bool isNonEarthDEM = false;
-          if (sdfElement->HasElement("NonEarthDEM")) {
-            isNonEarthDEM = sdfElement->Get<bool>("NonEarthDEM");
+          if (sdfElement->HasElement("surface_model"))
+          {
+            auto surfaceModel = sdfElement->Get<std::string>("surface_model");
+            if (surfaceModel != "EARTH_WGS84" ||
+                common::lowercase(surfaceModel) != "earth")
+            {
+              igndbg << "Loading a non Earth DEM model" << std::endl;
+              isNonEarthDEM = true;
+            }
           }
           std::shared_ptr<common::HeightmapData> data;
           std::string lowerFullPath = common::lowercase(fullPath);
