@@ -288,7 +288,6 @@ void SensorsPrivate::RunOnce()
       this->sensorStateChanged.clear();
     }
 
-    this->sensorMaskMutex.lock();
     // Check the active sensors against masked sensors.
     //
     // The internal state of a rendering sensor is not updated until the
@@ -298,14 +297,16 @@ void SensorsPrivate::RunOnce()
     // To prevent this, add sensors that are currently being rendered to
     // a mask. Sensors are removed from the mask when 90% of the update
     // delta has passed, which will allow rendering to proceed.
-    for (const auto & sensor : this->activeSensors)
     {
-      // 90% of update delta (1/UpdateRate());
-      auto delta = std::chrono::duration_cast< std::chrono::milliseconds>(
-        std::chrono::duration< double >(0.9 / sensor->UpdateRate()));
-      this->sensorMask[sensor->Id()] = this->updateTime + delta;
+      std::unique_lock<std::mutex> lockMask(this->sensorMaskMutex);
+      for (const auto & sensor : this->activeSensors)
+      {
+        // 90% of update delta (1/UpdateRate());
+        auto delta = std::chrono::duration_cast< std::chrono::milliseconds>(
+          std::chrono::duration< double >(0.9 / sensor->UpdateRate()));
+        this->sensorMask[sensor->Id()] = this->updateTime + delta;
+      }
     }
-    this->sensorMaskMutex.unlock();
 
     {
       IGN_PROFILE("PreRender");
@@ -521,7 +522,7 @@ void Sensors::Reset(const UpdateInfo &_info, EntityComponentManager &)
     igndbg << "Resetting Sensors\n";
 
     {
-      std::lock_guard<std::mutex> lock(this->dataPtr->sensorMaskMutex);
+      std::unique_lock<std::mutex> lock(this->dataPtr->sensorMaskMutex);
       this->dataPtr->sensorMask.clear();
     }
 
@@ -578,31 +579,32 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
 
     std::vector<sensors::RenderingSensor *> activeSensors;
 
-    this->dataPtr->sensorMaskMutex.lock();
-    for (auto id : this->dataPtr->sensorIds)
     {
-      sensors::Sensor *s = this->dataPtr->sensorManager.Sensor(id);
-      auto rs = dynamic_cast<sensors::RenderingSensor *>(s);
-
-      auto it = this->dataPtr->sensorMask.find(id);
-      if (it != this->dataPtr->sensorMask.end())
+      std::unique_lock<std::mutex> lk(this->dataPtr->sensorMaskMutex);
+      for (auto id : this->dataPtr->sensorIds)
       {
-        if (it->second <= t)
-        {
-          this->dataPtr->sensorMask.erase(it);
-        }
-        else
-        {
-          continue;
-        }
-      }
+        sensors::Sensor *s = this->dataPtr->sensorManager.Sensor(id);
+        auto rs = dynamic_cast<sensors::RenderingSensor *>(s);
 
-      if (rs && rs->NextDataUpdateTime() <= t)
-      {
-        activeSensors.push_back(rs);
+        auto it = this->dataPtr->sensorMask.find(id);
+        if (it != this->dataPtr->sensorMask.end())
+        {
+          if (it->second <= t)
+          {
+            this->dataPtr->sensorMask.erase(it);
+          }
+          else
+          {
+            continue;
+          }
+        }
+
+        if (rs && rs->NextDataUpdateTime() <= t)
+        {
+          activeSensors.push_back(rs);
+        }
       }
     }
-    this->dataPtr->sensorMaskMutex.unlock();
 
     if (!activeSensors.empty() ||
         this->dataPtr->renderUtil.PendingSensors() > 0)

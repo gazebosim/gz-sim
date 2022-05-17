@@ -107,6 +107,19 @@ size_t SystemManager::ActivatePendingSystems()
 }
 
 //////////////////////////////////////////////////
+/// \brief Structure to temporarily store plugin information for reset
+struct PluginInfo {
+  /// \brief Entity plugin is attached to
+  Entity entity;
+  /// \brief  Filename of the plugin library
+  std::string fname;
+  /// \brief Name of the plugin
+  std::string name;
+  /// \brief SDF element (content of the plugin tag)
+  sdf::ElementPtr sdf;
+}
+
+//////////////////////////////////////////////////
 void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
   {
@@ -120,6 +133,8 @@ void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
   this->systemsPreupdate.clear();
   this->systemsUpdate.clear();
   this->systemsPostupdate.clear();
+
+  std::vector<PluginInfo> pluginsToBeLoaded;
 
   for (auto& system : this->systems)
   {
@@ -144,15 +159,24 @@ void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
           continue;
       }
 
-      sdf::ElementPtr configureCopy(system.configureSdf->Clone());
-      this->LoadPlugin(system.entity,
-                       system.fname,
-                       system.name,
-                       configureCopy);
+
+      PluginInfo info = {
+        system.entity, system.fname, system.name,
+        system.configureSdf->Clone()
+      };
+
+      pluginsToBeLoaded.push_back(info);
     }
   }
 
   this->systems.clear();
+
+  // Load plugins which do not implement reset after clearing this->systems
+  // to ensure the previous instance is destroyed before the new one is created
+  // and configured.
+  for (const auto &pluginInfo : pluginsToBeLoaded) {
+    this->LoadPlugin(pluginInfo);
+  }
   this->ActivatePendingSystems();
 }
 
