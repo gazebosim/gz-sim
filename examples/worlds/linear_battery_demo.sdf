@@ -28,7 +28,7 @@
   Stop recharging the battery using a topic (optional if <recharge_by_topic> is true):
       ign topic -t /model/vehicle_blue/battery/linear_battery/recharge/stop -m ignition.msgs.Boolean -p 'data:true'
 
-  The blue vehicle should stop when it runs out of battery.
+  After the battery runs out, no force is applied to the joints in the blue vehicle. It would keep on moving as there is no friction to stop it.
   The green vehicle will not stop with recharge function.
 
 -->
