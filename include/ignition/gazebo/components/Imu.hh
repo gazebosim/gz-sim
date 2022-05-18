@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/Imu.hh>
+#include <ignition/gazebo/config.hh>

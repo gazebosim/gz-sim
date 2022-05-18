@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/ThreadPitch.hh>
+#include <ignition/gazebo/config.hh>

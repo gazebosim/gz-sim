@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/lift-drag-system/Export.hh>
+#include <ignition/gazebo/config.hh>

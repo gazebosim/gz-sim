@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/air-pressure-system/Export.hh>
+#include <ignition/gazebo/config.hh>

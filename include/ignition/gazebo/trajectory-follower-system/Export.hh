@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/trajectory-follower-system/Export.hh>
+#include <ignition/gazebo/config.hh>

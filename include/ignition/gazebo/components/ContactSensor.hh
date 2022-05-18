@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/ContactSensor.hh>
+#include <ignition/gazebo/config.hh>

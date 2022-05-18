@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/SphericalCoordinates.hh>
+#include <ignition/gazebo/config.hh>

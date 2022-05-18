@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/Actuators.hh>
+#include <ignition/gazebo/config.hh>

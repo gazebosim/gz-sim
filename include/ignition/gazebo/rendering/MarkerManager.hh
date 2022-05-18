@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/rendering/MarkerManager.hh>
+#include <ignition/gazebo/config.hh>

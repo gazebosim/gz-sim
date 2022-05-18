@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/touchplugin-system/Export.hh>
+#include <ignition/gazebo/config.hh>

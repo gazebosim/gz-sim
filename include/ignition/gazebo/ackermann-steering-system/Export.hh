@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/ackermann-steering-system/Export.hh>
+#include <ignition/gazebo/config.hh>

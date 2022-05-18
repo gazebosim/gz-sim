@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/PerformerAffinity.hh>
+#include <ignition/gazebo/config.hh>
