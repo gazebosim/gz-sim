@@ -34,7 +34,7 @@
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/Types.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/test_config.hh"
 
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
