@@ -22,22 +22,22 @@
 
 #include "UpdateInfo.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 namespace python
 {
 void defineGazeboUpdateInfo(pybind11::object module)
 {
-  pybind11::class_<ignition::gazebo::UpdateInfo>(module, "UpdateInfo")
+  pybind11::class_<gz::sim::UpdateInfo>(module, "UpdateInfo")
   .def(pybind11::init<>())
-  .def_readwrite("sim_time", &ignition::gazebo::UpdateInfo::simTime)
-  .def_readwrite("real_time", &ignition::gazebo::UpdateInfo::realTime)
-  .def_readwrite("dt", &ignition::gazebo::UpdateInfo::dt)
-  .def_readwrite("paused", &ignition::gazebo::UpdateInfo::paused)
-  .def_readwrite("iterations", &ignition::gazebo::UpdateInfo::iterations);
+  .def_readwrite("sim_time", &gz::sim::UpdateInfo::simTime)
+  .def_readwrite("real_time", &gz::sim::UpdateInfo::realTime)
+  .def_readwrite("dt", &gz::sim::UpdateInfo::dt)
+  .def_readwrite("paused", &gz::sim::UpdateInfo::paused)
+  .def_readwrite("iterations", &gz::sim::UpdateInfo::iterations);
 }
 }  // namespace python
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz

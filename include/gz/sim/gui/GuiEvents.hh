@@ -34,9 +34,9 @@
 #include "gz/sim/Entity.hh"
 #include "gz/sim/config.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 namespace gui {
 // Inline bracket to help doxygen filtering.
@@ -191,7 +191,7 @@ namespace events
     /// \param[in] _type Entity type
     /// \param[in] _parent Parent entity.
     public: explicit ModelEditorAddEntity(QString _entity, QString _type,
-                ignition::gazebo::Entity _parent);
+                gz::sim::Entity _parent);
 
     /// \brief Get the entity to add
     public: QString Entity() const;
@@ -201,7 +201,7 @@ namespace events
 
 
     /// \brief Get the parent entity to add the entity to
-    public: ignition::gazebo::Entity ParentEntity() const;
+    public: gz::sim::Entity ParentEntity() const;
 
     /// \brief Get the data map.
     /// \return the QMap of string, string holding custom data.
@@ -220,11 +220,11 @@ namespace events
     /// \brief Constructor
     /// \param[in] _entity Visual entity id
     /// \param[in] _elem Visual plugin SDF element
-    public: explicit VisualPlugin(ignition::gazebo::Entity _entity,
+    public: explicit VisualPlugin(gz::sim::Entity _entity,
                 const sdf::ElementPtr &_elem);
 
     /// \brief Get the entity to load the visual plugin for
-    public: ignition::gazebo::Entity Entity() const;
+    public: gz::sim::Entity Entity() const;
 
     /// \brief Get the sdf element of the visual plugin
     public: sdf::ElementPtr Element() const;
@@ -238,7 +238,7 @@ namespace events
 }  // namespace events
 }
 }  // namespace gui
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz
 
 #endif  // GZ_GAZEBO_GUI_GUIEVENTS_HH_

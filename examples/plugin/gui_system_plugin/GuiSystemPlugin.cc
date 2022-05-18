@@ -39,16 +39,16 @@ void GuiSystemPlugin::LoadConfig(const tinyxml2::XMLElement * /*_pluginElem*/)
 }
 
 //////////////////////////////////////////////////
-void GuiSystemPlugin::Update(const ignition::gazebo::UpdateInfo & /*_info*/,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void GuiSystemPlugin::Update(const gz::sim::UpdateInfo & /*_info*/,
+    gz::sim::EntityComponentManager &_ecm)
 {
   // In the update loop, you can for example get the name of the world and set
   // it as a property that can be read from the QML.
-  _ecm.Each<ignition::gazebo::components::Name,
-            ignition::gazebo::components::World>(
-    [&](const ignition::gazebo::Entity &_entity,
-        const ignition::gazebo::components::Name *_name,
-        const ignition::gazebo::components::World *)->bool
+  _ecm.Each<gz::sim::components::Name,
+            gz::sim::components::World>(
+    [&](const gz::sim::Entity &_entity,
+        const gz::sim::components::Name *_name,
+        const gz::sim::components::World *)->bool
   {
     this->SetCustomProperty(QString::fromStdString(_name->Data()));
     return true;
@@ -70,4 +70,4 @@ void GuiSystemPlugin::SetCustomProperty(const QString &_customProperty)
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(GuiSystemPlugin,
-                    ignition::gui::Plugin)
+                    gz::gui::Plugin)

@@ -38,8 +38,8 @@
 #include "gz/sim/Model.hh"
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Velocity command.
@@ -54,25 +54,25 @@ struct Commands
   Commands() : lin(0.0), ang(0.0) {}
 };
 
-class ignition::gazebo::systems::AckermannSteeringPrivate
+class gz::sim::systems::AckermannSteeringPrivate
 {
   /// \brief Callback for velocity subscription
   /// \param[in] _msg Velocity message
-  public: void OnCmdVel(const ignition::msgs::Twist &_msg);
+  public: void OnCmdVel(const gz::msgs::Twist &_msg);
 
   /// \brief Update odometry and publish an odometry message.
   /// \param[in] _info System update information.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
-  public: void UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm);
+  public: void UpdateOdometry(const gz::sim::UpdateInfo &_info,
+    const gz::sim::EntityComponentManager &_ecm);
 
   /// \brief Update the linear and angular velocities.
   /// \param[in] _info System update information.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
-  public: void UpdateVelocity(const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm);
+  public: void UpdateVelocity(const gz::sim::UpdateInfo &_info,
+    const gz::sim::EntityComponentManager &_ecm);
 
   /// \brief Ignition communication node.
   public: transport::Node node;
@@ -162,10 +162,10 @@ class ignition::gazebo::systems::AckermannSteeringPrivate
   public: std::chrono::steady_clock::duration lastOdomTime{0};
 
   /// \brief Linear velocity limiter.
-  public: std::unique_ptr<ignition::math::SpeedLimiter> limiterLin;
+  public: std::unique_ptr<gz::math::SpeedLimiter> limiterLin;
 
   /// \brief Angular velocity limiter.
-  public: std::unique_ptr<ignition::math::SpeedLimiter> limiterAng;
+  public: std::unique_ptr<gz::math::SpeedLimiter> limiterAng;
 
   /// \brief Previous control command.
   public: Commands last0Cmd;
@@ -257,8 +257,8 @@ void AckermannSteering::Configure(const Entity &_entity,
       this->dataPtr->wheelRadius).first;
 
   // Instantiate the speed limiters.
-  this->dataPtr->limiterLin = std::make_unique<ignition::math::SpeedLimiter>();
-  this->dataPtr->limiterAng = std::make_unique<ignition::math::SpeedLimiter>();
+  this->dataPtr->limiterLin = std::make_unique<gz::math::SpeedLimiter>();
+  this->dataPtr->limiterAng = std::make_unique<gz::math::SpeedLimiter>();
 
   // Parse speed limiter parameters.
   if (_sdf->HasElement("min_velocity"))
@@ -354,8 +354,8 @@ void AckermannSteering::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void AckermannSteering::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void AckermannSteering::PreUpdate(const gz::sim::UpdateInfo &_info,
+    gz::sim::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("AckermannSteering::PreUpdate");
 
@@ -566,8 +566,8 @@ void AckermannSteering::PostUpdate(const UpdateInfo &_info,
 
 //////////////////////////////////////////////////
 void AckermannSteeringPrivate::UpdateOdometry(
-    const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm)
+    const gz::sim::UpdateInfo &_info,
+    const gz::sim::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("AckermannSteering::UpdateOdometry");
   // Initialize, if not already initialized.
@@ -673,8 +673,8 @@ void AckermannSteeringPrivate::UpdateOdometry(
 
 //////////////////////////////////////////////////
 void AckermannSteeringPrivate::UpdateVelocity(
-    const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm)
+    const gz::sim::UpdateInfo &_info,
+    const gz::sim::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("AckermannSteering::UpdateVelocity");
 
@@ -759,10 +759,10 @@ void AckermannSteeringPrivate::OnCmdVel(const msgs::Twist &_msg)
 }
 
 IGNITION_ADD_PLUGIN(AckermannSteering,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     AckermannSteering::ISystemConfigure,
                     AckermannSteering::ISystemPreUpdate,
                     AckermannSteering::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(AckermannSteering,
-                          "ignition::gazebo::systems::AckermannSteering")
+                          "gz::sim::systems::AckermannSteering")

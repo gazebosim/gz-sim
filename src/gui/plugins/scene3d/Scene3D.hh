@@ -45,9 +45,9 @@
 #include "gz/gui/qt.h"
 
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -79,7 +79,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   ///     * \<p_gain\>    : Camera follow movement p gain.
   ///     * \<target\>    : Target to follow.
   /// * \<fullscreen\> : Optional starting the window in fullscreen.
-  class Scene3D : public ignition::gazebo::GuiSystem
+  class Scene3D : public gz::sim::GuiSystem
   {
     Q_OBJECT
 
@@ -825,7 +825,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Called when the mouse hovers to a new position.
     /// \param[in] _hoverPos 2D coordinates of the hovered mouse position on
     /// the render window.
-    public: void OnHovered(const ignition::math::Vector2i &_hoverPos);
+    public: void OnHovered(const gz::math::Vector2i &_hoverPos);
 
     /// \brief Get whether the renderer is initialized. The renderer is
     /// initialized when the context is created and the render thread is

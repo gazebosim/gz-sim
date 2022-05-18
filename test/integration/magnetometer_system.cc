@@ -40,8 +40,8 @@
 
 #define TOL 1e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test MagnetometerTest system
 class MagnetometerTest : public InternalFixture<::testing::Test>
@@ -89,7 +89,7 @@ TEST_F(MagnetometerTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RotatedMagnetometer))
         _ecm.Each<components::Magnetometer,
                   components::Name,
                   components::WorldPose>(
-            [&](const ignition::gazebo::Entity &_entity,
+            [&](const gz::sim::Entity &_entity,
                 const components::Magnetometer *,
                 const components::Name *_name,
                 const components::WorldPose *_worldPose) -> bool
@@ -130,7 +130,7 @@ TEST_F(MagnetometerTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RotatedMagnetometer))
   // Hardcoded SDF values
   math::Vector3d worldMagneticField(0.94, 0.76, -0.12);
 
-  ignition::math::Vector3d field = poses.back().Rot().Inverse().RotateVector(
+  gz::math::Vector3d field = poses.back().Rot().Inverse().RotateVector(
         worldMagneticField);
   mutex.lock();
   EXPECT_NEAR(magnetometerMsgs.back().mutable_field_tesla()->x(),

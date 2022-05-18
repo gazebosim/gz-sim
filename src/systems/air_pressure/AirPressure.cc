@@ -43,12 +43,12 @@
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Private AirPressure data class.
-class ignition::gazebo::systems::AirPressurePrivate
+class gz::sim::systems::AirPressurePrivate
 {
   /// \brief A map of air pressure entity to its sensor
   public: std::unordered_map<Entity,
@@ -280,4 +280,4 @@ IGNITION_ADD_PLUGIN(AirPressure, System,
   AirPressure::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(AirPressure, "ignition::gazebo::systems::AirPressure")
+IGNITION_ADD_PLUGIN_ALIAS(AirPressure, "gz::sim::systems::AirPressure")

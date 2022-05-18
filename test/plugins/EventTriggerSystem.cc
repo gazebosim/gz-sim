@@ -2,8 +2,8 @@
 
 #include <ignition/plugin/Register.hh>
 
-IGNITION_ADD_PLUGIN(ignition::gazebo::EventTriggerSystem,
-    ignition::gazebo::System,
-    ignition::gazebo::EventTriggerSystem::ISystemConfigure,
-    ignition::gazebo::EventTriggerSystem::ISystemUpdate)
+IGNITION_ADD_PLUGIN(gz::sim::EventTriggerSystem,
+    gz::sim::System,
+    gz::sim::EventTriggerSystem::ISystemConfigure,
+    gz::sim::EventTriggerSystem::ISystemUpdate)
 

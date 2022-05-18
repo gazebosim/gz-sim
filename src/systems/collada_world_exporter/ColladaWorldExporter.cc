@@ -50,12 +50,12 @@
 
 #include "ColladaWorldExporter.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 
-class ignition::gazebo::systems::ColladaWorldExporterPrivate
+class gz::sim::systems::ColladaWorldExporterPrivate
 {
   // Default constructor
   public: ColladaWorldExporterPrivate() = default;
@@ -85,7 +85,7 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
             components::Name,
             components::Geometry,
             components::Transparency>(
-    [&](const ignition::gazebo::Entity &_entity,
+    [&](const gz::sim::Entity &_entity,
         const components::Visual *,
         const components::Name *_name,
         const components::Geometry *_geom,
@@ -107,12 +107,12 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
       }
       mat->SetTransparency(_transparency->Data());
 
-      const ignition::common::Mesh *mesh;
-      std::weak_ptr<ignition::common::SubMesh> subm;
+      const gz::common::Mesh *mesh;
+      std::weak_ptr<gz::common::SubMesh> subm;
       math::Vector3d scale;
       math::Matrix4d matrix(worldPose);
-      ignition::common::MeshManager *meshManager =
-          ignition::common::MeshManager::Instance();
+      gz::common::MeshManager *meshManager =
+          gz::common::MeshManager::Instance();
 
       auto addSubmeshFunc = [&](int _matIndex)
       {
@@ -328,4 +328,4 @@ IGNITION_ADD_PLUGIN(ColladaWorldExporter,
                     ColladaWorldExporter::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(ColladaWorldExporter,
-                          "ignition::gazebo::systems::ColladaWorldExporter")
+                          "gz::sim::systems::ColladaWorldExporter")

@@ -52,8 +52,8 @@
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test DiffDrive system
 class WheelSlipTest : public InternalFixture<::testing::Test>
@@ -82,7 +82,7 @@ class WheelSlipTest : public InternalFixture<::testing::Test>
     public: double drumSpeed = 0.0;
 
     /// \brief Steer angle to apply.
-    public: ignition::math::Angle steer;
+    public: gz::math::Angle steer;
 
     /// \brief Suspension force to apply in N.
     public: double suspForce = 0.0;

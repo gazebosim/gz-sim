@@ -23,26 +23,26 @@
 /// \brief Server-side system that uses Ignition Rendering APIs.
 /// It changes the ambient color every 2 simulation seconds.
 class RenderingServerPlugin:
-  public ignition::gazebo::System,
-  public ignition::gazebo::ISystemConfigure,
-  public ignition::gazebo::ISystemPreUpdate
+  public gz::sim::System,
+  public gz::sim::ISystemConfigure,
+  public gz::sim::ISystemPreUpdate
 {
   /// \brief Called once at startup
   /// \param[in] _entity Entity that the plugin is attached to, not used.
   /// \param[in] _sdf Element with custom configuration, not used.
   /// \param[in] _ecm Entity component manager
   /// \param[in] _eventMgr Event manager
-  public: void Configure(const ignition::gazebo::Entity &_entity,
+  public: void Configure(const gz::sim::Entity &_entity,
                          const std::shared_ptr<const sdf::Element> &_sdf,
-                         ignition::gazebo::EntityComponentManager &_ecm,
-                         ignition::gazebo::EventManager &_eventMgr) override;
+                         gz::sim::EntityComponentManager &_ecm,
+                         gz::sim::EventManager &_eventMgr) override;
 
   /// \brief Called just before each simulation update.
   /// \param[in] _info Contains information like sim time.
   /// \param[in] _ecm Entity component manager
   public: void PreUpdate(
-              const ignition::gazebo::UpdateInfo &_info,
-              ignition::gazebo::EntityComponentManager &_ecm) override;
+              const gz::sim::UpdateInfo &_info,
+              gz::sim::EntityComponentManager &_ecm) override;
 
   /// \brief All rendering operations must happen within this call
   private: void PerformRenderingOperations();
@@ -52,10 +52,10 @@ class RenderingServerPlugin:
   private: void FindScene();
 
   /// \brief Connection to pre-render event callback
-  private: ignition::common::ConnectionPtr connection{nullptr};
+  private: gz::common::ConnectionPtr connection{nullptr};
 
   /// \brief Pointer to rendering scene
-  private: ignition::rendering::ScenePtr scene{nullptr};
+  private: gz::rendering::ScenePtr scene{nullptr};
 
   /// \brief Current simulation time.
   private: std::chrono::steady_clock::duration simTime{0};

@@ -23,8 +23,8 @@
 #include "Magnetometer.hh"
 #include "Types.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 Magnetometer::Magnetometer(ComponentInspectorEditor *_inspector)

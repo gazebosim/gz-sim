@@ -43,8 +43,8 @@
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 //////////////////////////////////////////////////
 class UserCommandsTest : public InternalFixture<::testing::Test>
@@ -773,7 +773,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
 {
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = ignition::common::joinPaths(
+  const auto sdfFile = gz::common::joinPaths(
     std::string(PROJECT_SOURCE_PATH), "test", "worlds", "lights_render.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
@@ -826,13 +826,13 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
   EXPECT_TRUE(pointLightComp->Data().Visualize());
 
   req.Clear();
-  ignition::msgs::Set(req.mutable_diffuse(),
-    ignition::math::Color(0.0f, 1.0f, 1.0f, 0.0f));
-  ignition::msgs::Set(req.mutable_specular(),
-    ignition::math::Color(0.2f, 0.2f, 0.2f, 0.2f));
+  gz::msgs::Set(req.mutable_diffuse(),
+    gz::math::Color(0.0f, 1.0f, 1.0f, 0.0f));
+  gz::msgs::Set(req.mutable_specular(),
+    gz::math::Color(0.2f, 0.2f, 0.2f, 0.2f));
   req.set_range(2.6f);
   req.set_name("point");
-  req.set_type(ignition::msgs::Light::POINT);
+  req.set_type(gz::msgs::Light::POINT);
   req.set_attenuation_linear(0.7f);
   req.set_attenuation_constant(0.6f);
   req.set_attenuation_quadratic(0.001f);
@@ -895,21 +895,21 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
   EXPECT_EQ(sdf::LightType::POINT, pointLightComp->Data().Type());
 
   req.Clear();
-  ignition::msgs::Set(req.mutable_diffuse(),
-    ignition::math::Color(0.0f, 1.0f, 1.0f, 0.0f));
-  ignition::msgs::Set(req.mutable_specular(),
-    ignition::math::Color(0.3f, 0.3f, 0.3f, 0.3f));
+  gz::msgs::Set(req.mutable_diffuse(),
+    gz::math::Color(0.0f, 1.0f, 1.0f, 0.0f));
+  gz::msgs::Set(req.mutable_specular(),
+    gz::math::Color(0.3f, 0.3f, 0.3f, 0.3f));
   req.set_range(2.6f);
   req.set_name("directional");
-  req.set_type(ignition::msgs::Light::DIRECTIONAL);
+  req.set_type(gz::msgs::Light::DIRECTIONAL);
   req.set_attenuation_linear(0.7f);
   req.set_attenuation_constant(0.6f);
   req.set_attenuation_quadratic(1.0f);
   req.set_cast_shadows(false);
   req.set_is_light_off(false);
   req.set_visualize_visual(false);
-  ignition::msgs::Set(req.mutable_direction(),
-    ignition::math::Vector3d(1, 2, 3));
+  gz::msgs::Set(req.mutable_direction(),
+    gz::math::Vector3d(1, 2, 3));
   EXPECT_TRUE(node.Request(service, req, timeout, res, result));
   EXPECT_TRUE(result);
   EXPECT_TRUE(res.data());
@@ -970,21 +970,21 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
   EXPECT_NEAR(0.8, spotLightComp->Data().SpotFalloff(), 0.1);
 
   req.Clear();
-  ignition::msgs::Set(req.mutable_diffuse(),
-    ignition::math::Color(1.0f, 0.0f, 1.0f, 0.0f));
-  ignition::msgs::Set(req.mutable_specular(),
-    ignition::math::Color(0.3f, 0.3f, 0.3f, 0.3f));
+  gz::msgs::Set(req.mutable_diffuse(),
+    gz::math::Color(1.0f, 0.0f, 1.0f, 0.0f));
+  gz::msgs::Set(req.mutable_specular(),
+    gz::math::Color(0.3f, 0.3f, 0.3f, 0.3f));
   req.set_range(2.6f);
   req.set_name("spot");
-  req.set_type(ignition::msgs::Light::SPOT);
+  req.set_type(gz::msgs::Light::SPOT);
   req.set_attenuation_linear(0.7f);
   req.set_attenuation_constant(0.6f);
   req.set_attenuation_quadratic(1.0f);
   req.set_cast_shadows(true);
   req.set_is_light_off(true);
   req.set_visualize_visual(true);
-  ignition::msgs::Set(req.mutable_direction(),
-    ignition::math::Vector3d(1, 2, 3));
+  gz::msgs::Set(req.mutable_direction(),
+    gz::math::Vector3d(1, 2, 3));
   req.set_spot_inner_angle(1.5f);
   req.set_spot_outer_angle(0.3f);
   req.set_spot_falloff(0.9f);
@@ -1023,8 +1023,8 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
 
   msgs::Light lightMsg;
   lightMsg.set_name("spot");
-  ignition::msgs::Set(lightMsg.mutable_diffuse(),
-    ignition::math::Color(1.0f, 1.0f, 1.0f, 1.0f));
+  gz::msgs::Set(lightMsg.mutable_diffuse(),
+    gz::math::Color(1.0f, 1.0f, 1.0f, 1.0f));
 
   // Publish light config
   auto pub = node.Advertise<msgs::Light>(lightTopic);

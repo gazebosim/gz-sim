@@ -26,7 +26,7 @@
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/config.hh"
 
-namespace ignition::gazebo
+namespace gz::sim
 {
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems::physics_system

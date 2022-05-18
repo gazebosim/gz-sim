@@ -33,8 +33,8 @@
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test AirPressureTest system
 class AirPressureTest : public InternalFixture<::testing::Test>
@@ -68,7 +68,7 @@ TEST_F(AirPressureTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(AirPressure))
                               const gazebo::EntityComponentManager &_ecm)
       {
         _ecm.Each<components::AirPressureSensor, components::Name>(
-            [&](const ignition::gazebo::Entity &_entity,
+            [&](const gz::sim::Entity &_entity,
                 const components::AirPressureSensor *,
                 const components::Name *_name) -> bool
             {

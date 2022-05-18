@@ -21,9 +21,9 @@
 #include <gz/sim/System.hh>
 #include <memory>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -76,7 +76,7 @@ namespace systems
         |
 
     <plugin filename="libignition-gazebo-wheel-slip-system.so"
-     name="ignition::gazebo::systems::WheelSlip">
+     name="gz::sim::systems::WheelSlip">
       <wheel link_name="wheel_front_left">
         <slip_compliance_lateral>0</slip_compliance_lateral>
         <slip_compliance_longitudinal>0.1</slip_compliance_longitudinal>
@@ -123,8 +123,8 @@ namespace systems
 
     // Documentation inherited
     public: void PreUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) override;
+                const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
     private: std::unique_ptr<WheelSlipPrivate> dataPtr;

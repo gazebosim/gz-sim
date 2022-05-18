@@ -30,7 +30,7 @@
 #include "gz/sim/Util.hh"
 
 /// \brief Private Broker data class.
-class ignition::gazebo::comms::Broker::Implementation
+class gz::sim::comms::Broker::Implementation
 {
   /// \brief The message manager.
   public: MsgManager data;
@@ -51,18 +51,18 @@ class ignition::gazebo::comms::Broker::Implementation
   public: std::chrono::steady_clock::duration time{0};
 
   /// \brief An Ignition Transport node for communications.
-  public: std::unique_ptr<ignition::transport::Node> node;
+  public: std::unique_ptr<gz::transport::Node> node;
 };
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace comms;
 
 //////////////////////////////////////////////////
 Broker::Broker()
-  : dataPtr(ignition::utils::MakeUniqueImpl<Implementation>())
+  : dataPtr(gz::utils::MakeUniqueImpl<Implementation>())
 {
-  this->dataPtr->node = std::make_unique<ignition::transport::Node>();
+  this->dataPtr->node = std::make_unique<gz::transport::Node>();
 }
 
 //////////////////////////////////////////////////
@@ -131,8 +131,8 @@ void Broker::SetTime(const std::chrono::steady_clock::duration &_time)
 }
 
 //////////////////////////////////////////////////
-bool Broker::OnBind(const ignition::msgs::StringMsg_V &_req,
-                    ignition::msgs::Boolean &/*_rep*/)
+bool Broker::OnBind(const gz::msgs::StringMsg_V &_req,
+                    gz::msgs::Boolean &/*_rep*/)
 {
   auto count = _req.data_size();
   if (count != 3)
@@ -158,7 +158,7 @@ bool Broker::OnBind(const ignition::msgs::StringMsg_V &_req,
 }
 
 //////////////////////////////////////////////////
-void Broker::OnUnbind(const ignition::msgs::StringMsg_V &_req)
+void Broker::OnUnbind(const gz::msgs::StringMsg_V &_req)
 {
   auto count = _req.data_size();
   if (count != 2)
@@ -179,10 +179,10 @@ void Broker::OnUnbind(const ignition::msgs::StringMsg_V &_req)
 }
 
 //////////////////////////////////////////////////
-void Broker::OnMsg(const ignition::msgs::Dataframe &_msg)
+void Broker::OnMsg(const gz::msgs::Dataframe &_msg)
 {
   // Place the message in the outbound queue of the sender.
-  auto msgPtr = std::make_shared<ignition::msgs::Dataframe>(_msg);
+  auto msgPtr = std::make_shared<gz::msgs::Dataframe>(_msg);
 
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 

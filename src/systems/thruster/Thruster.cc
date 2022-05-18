@@ -39,11 +39,11 @@
 
 #include "Thruster.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::ThrusterPrivateData
+class gz::sim::systems::ThrusterPrivateData
 {
   /// \brief The mode of operation
   public: enum OperationMode {
@@ -111,10 +111,10 @@ class ignition::gazebo::systems::ThrusterPrivateData
   public: double propellerDiameter = 0.02;
 
   /// \brief callback for handling thrust update
-  public: void OnCmdThrust(const ignition::msgs::Double &_msg);
+  public: void OnCmdThrust(const gz::msgs::Double &_msg);
 
   /// \brief callback for handling angular velocity update
-  public: void OnCmdAngVel(const ignition::msgs::Double &_msg);
+  public: void OnCmdAngVel(const gz::msgs::Double &_msg);
 
   /// \brief function which computes angular velocity from thrust
   /// \param[in] _thrust Thrust in N
@@ -136,13 +136,13 @@ Thruster::Thruster():
 
 /////////////////////////////////////////////////
 void Thruster::Configure(
-  const ignition::gazebo::Entity &_entity,
+  const gz::sim::Entity &_entity,
   const std::shared_ptr<const sdf::Element> &_sdf,
-  ignition::gazebo::EntityComponentManager &_ecm,
-  ignition::gazebo::EventManager &/*_eventMgr*/)
+  gz::sim::EntityComponentManager &_ecm,
+  gz::sim::EventManager &/*_eventMgr*/)
 {
   // Create model object, to access convenient functions
-  auto model = ignition::gazebo::Model(_entity);
+  auto model = gz::sim::Model(_entity);
   auto modelName = model.Name(_ecm);
 
   // Get namespace
@@ -196,7 +196,7 @@ void Thruster::Configure(
   }
 
   this->dataPtr->jointAxis =
-    _ecm.Component<ignition::gazebo::components::JointAxis>(
+    _ecm.Component<gz::sim::components::JointAxis>(
     this->dataPtr->jointEntity)->Data().Xyz();
 
   this->dataPtr->jointPose = _ecm.Component<components::Pose>(
@@ -204,7 +204,7 @@ void Thruster::Configure(
 
   // Get link entity
   auto childLink =
-      _ecm.Component<ignition::gazebo::components::ChildLinkName>(
+      _ecm.Component<gz::sim::components::ChildLinkName>(
       this->dataPtr->jointEntity);
   this->dataPtr->linkEntity = model.LinkByName(_ecm, childLink->Data());
 
@@ -213,7 +213,7 @@ void Thruster::Configure(
     // Keeping cmd_pos for backwards compatibility
     // TODO(chapulina) Deprecate cmd_pos, because the commands aren't positions
     std::string thrusterTopicOld =
-      ignition::transport::TopicUtils::AsValidTopic(
+      gz::transport::TopicUtils::AsValidTopic(
         "/model/" + ns + "/joint/" + jointName + "/cmd_pos");
 
     this->dataPtr->node.Subscribe(
@@ -222,7 +222,7 @@ void Thruster::Configure(
       this->dataPtr.get());
 
     // Subscribe to force commands
-    std::string thrusterTopic = ignition::transport::TopicUtils::AsValidTopic(
+    std::string thrusterTopic = gz::transport::TopicUtils::AsValidTopic(
       "/model/" + ns + "/joint/" + jointName + "/cmd_thrust");
 
     this->dataPtr->node.Subscribe(
@@ -233,7 +233,7 @@ void Thruster::Configure(
     ignmsg << "Thruster listening to commands in [" << thrusterTopic << "]"
           << std::endl;
 
-    std::string feedbackTopic = ignition::transport::TopicUtils::AsValidTopic(
+    std::string feedbackTopic = gz::transport::TopicUtils::AsValidTopic(
       "/model/" + ns + "/joint/" + jointName + "/ang_vel");
     this->dataPtr->pub = this->dataPtr->node.Advertise<msgs::Double>(
       feedbackTopic
@@ -243,7 +243,7 @@ void Thruster::Configure(
   {
     igndbg << "Using angular velocity mode" << std::endl;
     // Subscribe to angvel commands
-    std::string thrusterTopic = ignition::transport::TopicUtils::AsValidTopic(
+    std::string thrusterTopic = gz::transport::TopicUtils::AsValidTopic(
       "/model/" + ns + "/joint/" + jointName + "/cmd_vel");
 
     this->dataPtr->node.Subscribe(
@@ -254,7 +254,7 @@ void Thruster::Configure(
     ignmsg << "Thruster listening to commands in [" << thrusterTopic << "]"
           << std::endl;
 
-    std::string feedbackTopic = ignition::transport::TopicUtils::AsValidTopic(
+    std::string feedbackTopic = gz::transport::TopicUtils::AsValidTopic(
       "/model/" + ns + "/joint/" + jointName + "/force");
     this->dataPtr->pub = this->dataPtr->node.Advertise<msgs::Double>(
       feedbackTopic
@@ -337,10 +337,10 @@ void Thruster::Configure(
 }
 
 /////////////////////////////////////////////////
-void ThrusterPrivateData::OnCmdThrust(const ignition::msgs::Double &_msg)
+void ThrusterPrivateData::OnCmdThrust(const gz::msgs::Double &_msg)
 {
   std::lock_guard<std::mutex> lock(mtx);
-  this->thrust = ignition::math::clamp(ignition::math::fixnan(_msg.data()),
+  this->thrust = gz::math::clamp(gz::math::fixnan(_msg.data()),
     this->cmdMin, this->cmdMax);
 
   // Thrust is proportional to the Rotation Rate squared
@@ -349,11 +349,11 @@ void ThrusterPrivateData::OnCmdThrust(const ignition::msgs::Double &_msg)
 }
 
 /////////////////////////////////////////////////
-void ThrusterPrivateData::OnCmdAngVel(const ignition::msgs::Double &_msg)
+void ThrusterPrivateData::OnCmdAngVel(const gz::msgs::Double &_msg)
 {
   std::lock_guard<std::mutex> lock(mtx);
   this->propellerAngVel =
-    ignition::math::clamp(ignition::math::fixnan(_msg.data()),
+    gz::math::clamp(gz::math::fixnan(_msg.data()),
       this->cmdMin, this->cmdMax);
 
   // Thrust is proportional to the Rotation Rate squared
@@ -387,13 +387,13 @@ double ThrusterPrivateData::AngularVelToThrust(double _angVel)
 
 /////////////////////////////////////////////////
 void Thruster::PreUpdate(
-  const ignition::gazebo::UpdateInfo &_info,
-  ignition::gazebo::EntityComponentManager &_ecm)
+  const gz::sim::UpdateInfo &_info,
+  gz::sim::EntityComponentManager &_ecm)
 {
   if (_info.paused)
     return;
 
-  ignition::gazebo::Link link(this->dataPtr->linkEntity);
+  gz::sim::Link link(this->dataPtr->linkEntity);
 
   // TODO(arjo129): add logic for custom coordinate frame
   // Convert joint axis to the world frame
@@ -428,7 +428,7 @@ void Thruster::PreUpdate(
   else
   {
     auto velocityComp =
-    _ecm.Component<ignition::gazebo::components::JointVelocityCmd>(
+    _ecm.Component<gz::sim::components::JointVelocityCmd>(
       this->dataPtr->jointEntity);
     if (velocityComp == nullptr)
     {
@@ -465,4 +465,4 @@ IGNITION_ADD_PLUGIN(
   Thruster::ISystemConfigure,
   Thruster::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(Thruster, "ignition::gazebo::systems::Thruster")
+IGNITION_ADD_PLUGIN_ALIAS(Thruster, "gz::sim::systems::Thruster")

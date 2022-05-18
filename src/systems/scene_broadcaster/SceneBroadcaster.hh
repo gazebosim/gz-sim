@@ -22,9 +22,9 @@
 #include <gz/sim/config.hh>
 #include <gz/sim/System.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -35,7 +35,7 @@ namespace systems
   /** \class SceneBroadcaster SceneBroadcaster.hh \
    * gz/sim/systems/SceneBroadcaster.hh
   **/
-  /// \brief System which periodically publishes an ignition::msgs::Scene
+  /// \brief System which periodically publishes an gz::msgs::Scene
   /// message with updated information.
   class SceneBroadcaster final:
     public System,

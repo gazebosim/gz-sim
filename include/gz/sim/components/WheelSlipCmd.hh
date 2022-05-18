@@ -25,9 +25,9 @@
 
 #include <gz/msgs/wheel_slip_parameters_cmd.pb.h>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -35,7 +35,7 @@ namespace components
 {
   /// \brief A component type that contains commanded wheel slip parameters of
   /// an entity in the world frame represented by msgs::WheelSlipParameters.
-  using WheelSlipCmd = Component<ignition::msgs::WheelSlipParametersCmd,
+  using WheelSlipCmd = Component<gz::msgs::WheelSlipParametersCmd,
     class WheelSlipCmdTag, serializers::MsgSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.WheelSlipCmd",
       WheelSlipCmd)

@@ -52,11 +52,11 @@
 
 #include "Buoyancy.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::BuoyancyPrivate
+class gz::sim::systems::BuoyancyPrivate
 {
   public: enum BuoyancyType
   {
@@ -337,8 +337,8 @@ void Buoyancy::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void Buoyancy::PreUpdate(const gz::sim::UpdateInfo &_info,
+    gz::sim::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("Buoyancy::PreUpdate");
   const components::Gravity *gravity = _ecm.Component<components::Gravity>(
@@ -376,8 +376,8 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
         _entity, components::Collision());
 
     double volumeSum = 0;
-    ignition::math::Vector3d weightedPosInLinkSum =
-      ignition::math::Vector3d::Zero;
+    gz::math::Vector3d weightedPosInLinkSum =
+      gz::math::Vector3d::Zero;
 
     // Compute the volume of the link by iterating over all the collision
     // elements and storing each geometry's volume.
@@ -581,9 +581,9 @@ bool Buoyancy::IsEnabled(Entity _entity,
 }
 
 IGNITION_ADD_PLUGIN(Buoyancy,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     Buoyancy::ISystemConfigure,
                     Buoyancy::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(Buoyancy,
-                          "ignition::gazebo::systems::Buoyancy")
+                          "gz::sim::systems::Buoyancy")

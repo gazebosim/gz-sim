@@ -93,7 +93,7 @@
 #include "gz/sim/rendering/RenderUtil.hh"
 #include "gz/sim/rendering/SceneManager.hh"
 
-namespace ignition::gazebo
+namespace gz::sim
 {
   class VisualizationCapabilitiesPrivate
   {
@@ -103,15 +103,15 @@ namespace ignition::gazebo
     /// \brief Helper function to get all child links of a model entity.
     /// \param[in] _entity Entity to find child links
     /// \return Vector of child links found for the parent entity
-    public: std::vector<ignition::gazebo::Entity>
-      FindChildLinks(const ignition::gazebo::Entity &_entity);
+    public: std::vector<gz::sim::Entity>
+      FindChildLinks(const gz::sim::Entity &_entity);
 
     /// \brief Helper function to get all children of an entity that have a
     /// pose.
     /// \param[in] _entity Entity to find children
     /// \return Vector of children found for the parent entity
-    public: std::unordered_set<ignition::gazebo::Entity>
-      FindChildFrames(const ignition::gazebo::Entity &_entity);
+    public: std::unordered_set<gz::sim::Entity>
+      FindChildFrames(const gz::sim::Entity &_entity);
 
     /// \brief Finds the links (collision parent) that are used to create child
     /// collision visuals in RenderUtil::Update
@@ -122,15 +122,15 @@ namespace ignition::gazebo
     /// \param[in] _ecm The entity-component manager
     /// \param[in] _entity Entity to find child links
     /// \return A vector of child links found for the entity
-    public: std::vector<ignition::gazebo::Entity> FindChildLinksFromECM(
-        const ignition::gazebo::EntityComponentManager &_ecm,
-        const ignition::gazebo::Entity &_entity);
+    public: std::vector<gz::sim::Entity> FindChildLinksFromECM(
+        const gz::sim::EntityComponentManager &_ecm,
+        const gz::sim::Entity &_entity);
 
     /// \brief Finds the links (visual parent) that are used to toggle wireframe
     /// and transparent view for visuals in RenderUtil::Update
     /// \param[in] _ecm The entity-component manager
     public: void PopulateViewModeVisualLinks(
-      const ignition::gazebo::EntityComponentManager &_ecm);
+      const gz::sim::EntityComponentManager &_ecm);
 
     /// \brief Finds the links (inertial parent) that are used to create child
     /// inertia and center of mass visuals in RenderUtil::Update
@@ -149,7 +149,7 @@ namespace ignition::gazebo
     /// \param[in] _parent Parent link's visual
     /// \return Pointer to created visual
     public: rendering::VisualPtr CreateCollisionVisual(
-        ignition::gazebo::Entity _id,
+        gz::sim::Entity _id,
         const sdf::Visual &_visual,
         rendering::VisualPtr &_parent);
 
@@ -173,7 +173,7 @@ namespace ignition::gazebo
     /////////////////////////////////////////////////
     /// \brief View an entity as transparent
     /// \param[in] _entity Entity to view as transparent
-    public: void ViewTransparent(const ignition::gazebo::Entity &_entity);
+    public: void ViewTransparent(const gz::sim::Entity &_entity);
 
     /// \brief Callback for view as transparent request
     /// \param[in] _msg Request message to set the target to view as
@@ -188,7 +188,7 @@ namespace ignition::gazebo
     /////////////////////////////////////////////////
     /// \brief View wireframes of specified entity
     /// \param[in] _entity Entity to view wireframes
-    public: void ViewWireframes(const ignition::gazebo::Entity &_entity);
+    public: void ViewWireframes(const gz::sim::Entity &_entity);
 
     /// \brief Callback for view wireframes request
     /// \param[in] _msg Request message to set the target to view wireframes
@@ -217,9 +217,9 @@ namespace ignition::gazebo
     /// \param[in] _collision SDF description of collision
     /// \param[in] _parent Parent link's visual
     public: rendering::VisualPtr CreateCollision(
-      ignition::gazebo::Entity _id,
+      gz::sim::Entity _id,
       const sdf::Collision &_collision,
-      ignition::rendering::VisualPtr &_parent);
+      gz::rendering::VisualPtr &_parent);
 
     /////////////////////////////////////////////////
     // COM
@@ -241,10 +241,10 @@ namespace ignition::gazebo
     /// \param[in] _inertial Inertial component of the link
     /// \param[in] _parent Visual parent
     /// \return Visual (center of mass) object created from the inertial
-    public: ignition::rendering::VisualPtr CreateCOMVisual(
-      ignition::gazebo::Entity _id,
+    public: gz::rendering::VisualPtr CreateCOMVisual(
+      gz::sim::Entity _id,
       const math::Inertiald &_inertia,
-      ignition::rendering::VisualPtr &_parent);
+      gz::rendering::VisualPtr &_parent);
 
     /////////////////////////////////////////////////
     // Inertia
@@ -265,10 +265,10 @@ namespace ignition::gazebo
     /// \param[in] _inertial Inertial component of the link
     /// \param[in] _parent Visual parent
     /// \return Visual (center of mass) object created from the inertial
-    public: ignition::rendering::VisualPtr CreateInertiaVisual(
-      ignition::gazebo::Entity _id,
+    public: gz::rendering::VisualPtr CreateInertiaVisual(
+      gz::sim::Entity _id,
       const math::Inertiald &_inertia,
-      ignition::rendering::VisualPtr &_parent);
+      gz::rendering::VisualPtr &_parent);
 
     /////////////////////////////////////////////////
     // Joints
@@ -334,10 +334,10 @@ namespace ignition::gazebo
     public: Entity worldId{kNullEntity};
 
     /// \brief Pointer to the rendering scene
-    public: ignition::rendering::ScenePtr scene{nullptr};
+    public: gz::rendering::ScenePtr scene{nullptr};
 
     /// \brief Scene manager
-    public: ignition::gazebo::SceneManager sceneManager;
+    public: gz::sim::SceneManager sceneManager;
 
     /// True if the rendering component is initialized
     public: bool initialized = false;
@@ -349,11 +349,11 @@ namespace ignition::gazebo
     public: std::map<Entity, std::vector<Entity>> modelToModelEntities;
 
     /// \brief New wireframe visuals to be toggled
-    public: std::vector<ignition::gazebo::Entity> newTransparentEntities;
+    public: std::vector<gz::sim::Entity> newTransparentEntities;
 
     /// \brief A map of link entities and their corresponding children visuals
-    public: std::map<ignition::gazebo::Entity,
-      std::vector<ignition::gazebo::Entity>> linkToVisualEntities;
+    public: std::map<gz::sim::Entity,
+      std::vector<gz::sim::Entity>> linkToVisualEntities;
 
     /// \brief Map of visual entity in Gazebo to visual pointers.
     public: std::map<Entity, rendering::VisualPtr> visuals;
@@ -369,7 +369,7 @@ namespace ignition::gazebo
 
     /// \brief A map of created transparent visuals and if they are currently
     /// visible
-    public: std::map<ignition::gazebo::Entity, bool> viewingTransparent;
+    public: std::map<gz::sim::Entity, bool> viewingTransparent;
 
     /// \brief View transparent service
     public: std::string viewTransparentService;
@@ -538,8 +538,8 @@ namespace ignition::gazebo
   };
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 void VisualizationCapabilitiesPrivate::OnRender()
@@ -1080,7 +1080,7 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateJointVisual(
     // For fixed joint type, scale joint visual to the joint child link
     double childSize =
         std::max(0.1, parent->BoundingBox().Size().Length());
-    auto scale = ignition::math::Vector3d(childSize * 0.2,
+    auto scale = gz::math::Vector3d(childSize * 0.2,
         childSize * 0.2, childSize * 0.2);
     jointVisual->SetLocalScale(scale);
   }
@@ -1118,9 +1118,9 @@ void VisualizationCapabilitiesPrivate::UpdateJointParentPose(Entity _jointId)
 
 /////////////////////////////////////////////////
 rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateInertiaVisual(
-  ignition::gazebo::Entity _id,
+  gz::sim::Entity _id,
   const math::Inertiald &_inertia,
-  ignition::rendering::VisualPtr &_parent)
+  gz::rendering::VisualPtr &_parent)
 {
   std::string name = "Inertia_" + std::to_string(_id);
   if (_parent)
@@ -1146,7 +1146,7 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateInertiaVisual(
 
 /////////////////////////////////////////////////
 rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateCollision(
-  ignition::gazebo::Entity _id,
+  gz::sim::Entity _id,
   const sdf::Collision &_collision,
   rendering::VisualPtr &_parent)
 {
@@ -1240,8 +1240,8 @@ rendering::GeometryPtr VisualizationCapabilitiesPrivate::CreateGeometry(
     descriptor.subMeshName = _geom.MeshShape()->Submesh();
     descriptor.centerSubMesh = _geom.MeshShape()->CenterSubmesh();
 
-    ignition::common::MeshManager *meshManager =
-        ignition::common::MeshManager::Instance();
+    gz::common::MeshManager *meshManager =
+        gz::common::MeshManager::Instance();
     descriptor.mesh = meshManager->Load(descriptor.meshName);
     geom = this->scene->CreateMesh(descriptor);
     scale = _geom.MeshShape()->Scale();
@@ -1461,7 +1461,7 @@ rendering::MaterialPtr VisualizationCapabilitiesPrivate::CreateMaterial(
 
 /////////////////////////////////////////////////
 rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateCollisionVisual(
-  ignition::gazebo::Entity _id,
+  gz::sim::Entity _id,
   const sdf::Visual &_visual,
   rendering::VisualPtr &_parent)
 {
@@ -1597,7 +1597,7 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateCollisionVisual(
 
 /////////////////////////////////////////////////
 rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateCOMVisual(
-  ignition::gazebo::Entity _id,
+  gz::sim::Entity _id,
   const math::Inertiald &_inertia,
   rendering::VisualPtr &_parent)
 {
@@ -2856,14 +2856,14 @@ void VisualizationCapabilities::LoadConfig(const tinyxml2::XMLElement *)
   ignmsg << "View frames service on ["
          << this->dataPtr->viewFramesService << "]" << std::endl;
 
-  ignition::gui::App()->findChild
-    <ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild
+    <gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 ////////////////////////////////////////////////
 bool VisualizationCapabilities::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::Render::kType)
+  if (_event->type() == gz::gui::events::Render::kType)
   {
     this->dataPtr->OnRender();
   }
@@ -2872,5 +2872,5 @@ bool VisualizationCapabilities::eventFilter(QObject *_obj, QEvent *_event)
 
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::VisualizationCapabilities,
-                    ignition::gui::Plugin)
+IGNITION_ADD_PLUGIN(gz::sim::VisualizationCapabilities,
+                    gz::gui::Plugin)

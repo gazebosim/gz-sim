@@ -24,9 +24,9 @@
 #include "gz/sim/gui/GuiSystem.hh"
 #include "gz/gui/qt.h"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
@@ -37,7 +37,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
   /// checkbox to turn visualization of non-hitting rays on or off and
   /// the textfield to select the message to be visualised. The combobox is
   /// used to select the type of visual for the sensor data.
-  class VisualizeLidar : public ignition::gazebo::GuiSystem
+  class VisualizeLidar : public gz::sim::GuiSystem
   {
     Q_OBJECT
 

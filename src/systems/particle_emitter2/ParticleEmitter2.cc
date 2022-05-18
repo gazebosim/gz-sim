@@ -37,28 +37,28 @@
 
 using namespace std::chrono_literals;
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 // Private data class.
-class ignition::gazebo::systems::ParticleEmitter2Private
+class gz::sim::systems::ParticleEmitter2Private
 {
   /// \brief Callback for receiving particle emitter commands.
   /// \param[in] _msg Particle emitter message.
-  public: void OnCmd(const ignition::msgs::ParticleEmitter &_msg,
+  public: void OnCmd(const gz::msgs::ParticleEmitter &_msg,
               const transport::MessageInfo &_info);
 
-  public: bool EmittersService(ignition::msgs::ParticleEmitter_V &_res);
+  public: bool EmittersService(gz::msgs::ParticleEmitter_V &_res);
 
   /// \brief The transport node.
-  public: ignition::transport::Node node;
+  public: gz::transport::Node node;
 
   /// \brief Map of topic name to particle emitter entity.
   public: std::map<std::string, Entity> emitterTopicMap;
 
   /// \brief Map of Entity to particle emitter command requested externally.
-  public: std::map<Entity, ignition::msgs::ParticleEmitter> userCmd;
+  public: std::map<Entity, gz::msgs::ParticleEmitter> userCmd;
 
   /// \brief A mutex to protect the user command.
   public: std::mutex mutex;
@@ -90,7 +90,7 @@ void ParticleEmitter2Private::OnCmd(const msgs::ParticleEmitter &_msg,
 
 //////////////////////////////////////////////////
 bool ParticleEmitter2Private::EmittersService(
-    ignition::msgs::ParticleEmitter_V &_res)
+    gz::msgs::ParticleEmitter_V &_res)
 {
   _res.Clear();
 
@@ -135,8 +135,8 @@ void ParticleEmitter2::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void ParticleEmitter2::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void ParticleEmitter2::PreUpdate(const gz::sim::UpdateInfo &_info,
+    gz::sim::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("ParticleEmitter2::PreUpdate");
 
@@ -247,9 +247,9 @@ void ParticleEmitter2::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 }
 
 IGNITION_ADD_PLUGIN(ParticleEmitter2,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     ParticleEmitter2::ISystemConfigure,
                     ParticleEmitter2::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(ParticleEmitter2,
-                          "ignition::gazebo::systems::ParticleEmitter2")
+                          "gz::sim::systems::ParticleEmitter2")

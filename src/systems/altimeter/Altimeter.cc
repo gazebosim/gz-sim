@@ -45,12 +45,12 @@
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Private Altimeter data class.
-class ignition::gazebo::systems::AltimeterPrivate
+class gz::sim::systems::AltimeterPrivate
 {
   /// \brief A map of altimeter entity to its sensor
   public: std::unordered_map<Entity,
@@ -286,4 +286,4 @@ IGNITION_ADD_PLUGIN(Altimeter, System,
   Altimeter::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(Altimeter, "ignition::gazebo::systems::Altimeter")
+IGNITION_ADD_PLUGIN_ALIAS(Altimeter, "gz::sim::systems::Altimeter")

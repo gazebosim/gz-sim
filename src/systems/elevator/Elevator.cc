@@ -50,9 +50,9 @@
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/Pose.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
@@ -103,7 +103,7 @@ class ElevatorPrivate : public ElevatorCommonPrivate
   /// then publishes the new state
   /// \param[in] _info Current simulation step info
   /// \param[in] _ecm Entity component manager
-  public: void UpdateState(const ignition::gazebo::UpdateInfo &_info,
+  public: void UpdateState(const gz::sim::UpdateInfo &_info,
                            const EntityComponentManager &_ecm);
 
   /// \brief Callback for the door lidar scans
@@ -394,7 +394,7 @@ void ElevatorPrivate::SetCabinMonitor(
 }
 
 //////////////////////////////////////////////////
-void ElevatorPrivate::UpdateState(const ignition::gazebo::UpdateInfo &_info,
+void ElevatorPrivate::UpdateState(const gz::sim::UpdateInfo &_info,
                                   const EntityComponentManager &_ecm)
 {
   // Update state
@@ -444,9 +444,9 @@ void ElevatorPrivate::OnCmdMsg(const msgs::Int32 &_msg)
 IGNITION_ADD_PLUGIN(Elevator, System, Elevator::ISystemConfigure,
                     Elevator::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(Elevator, "ignition::gazebo::systems::Elevator")
+IGNITION_ADD_PLUGIN_ALIAS(Elevator, "gz::sim::systems::Elevator")
 
 }  // namespace systems
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz

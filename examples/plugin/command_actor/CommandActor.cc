@@ -21,7 +21,7 @@
 
 IGNITION_ADD_PLUGIN(
     command_actor::CommandActor,
-    ignition::gazebo::System,
+    gz::sim::System,
     command_actor::CommandActor::ISystemConfigure,
     command_actor::CommandActor::ISystemPreUpdate)
 using namespace command_actor;
@@ -37,10 +37,10 @@ CommandActor::~CommandActor()
 }
 
 //////////////////////////////////////////////////
-void CommandActor::Configure(const ignition::gazebo::Entity &_entity,
+void CommandActor::Configure(const gz::sim::Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
-    ignition::gazebo::EntityComponentManager &/*_ecm*/,
-    ignition::gazebo::EventManager &/*_eventMgr*/)
+    gz::sim::EntityComponentManager &/*_ecm*/,
+    gz::sim::EventManager &/*_eventMgr*/)
 {
   this->entity = _entity;
   ignmsg << "Command actor for entity [" << _entity << "]" << std::endl;
@@ -52,7 +52,7 @@ void CommandActor::Configure(const ignition::gazebo::Entity &_entity,
        originElem != nullptr;
        originElem = originElem->GetNextElement("origin"))
   {
-    auto pose = originElem->Get<ignition::math::Pose3d>("pose");
+    auto pose = originElem->Get<gz::math::Pose3d>("pose");
     auto time = originElem->Get<int>("time");
 
     this->origins[time] = pose;
@@ -65,7 +65,7 @@ void CommandActor::Configure(const ignition::gazebo::Entity &_entity,
        trajPoseElem != nullptr;
        trajPoseElem = trajPoseElem->GetNextElement("trajectory_pose"))
   {
-    auto pose = trajPoseElem->Get<ignition::math::Pose3d>("pose");
+    auto pose = trajPoseElem->Get<gz::math::Pose3d>("pose");
     auto time = trajPoseElem->Get<int>("time");
 
     this->trajPoses[time] = pose;
@@ -76,8 +76,8 @@ void CommandActor::Configure(const ignition::gazebo::Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void CommandActor::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void CommandActor::PreUpdate(const gz::sim::UpdateInfo &_info,
+    gz::sim::EntityComponentManager &_ecm)
 {
   auto sec = std::chrono::duration_cast<std::chrono::seconds>(
       _info.simTime).count();
@@ -86,14 +86,14 @@ void CommandActor::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   if (sec > this->lastOriginChange &&
       this->origins.find(sec) != this->origins.end())
   {
-    auto poseComp = _ecm.Component<ignition::gazebo::components::Pose>(
+    auto poseComp = _ecm.Component<gz::sim::components::Pose>(
         this->entity);
-    *poseComp = ignition::gazebo::components::Pose(this->origins[sec]);
+    *poseComp = gz::sim::components::Pose(this->origins[sec]);
 
     // Updates to pose component can usually be missed, so we need to mark this
     // as an important one-time change.
-    _ecm.SetChanged(this->entity, ignition::gazebo::components::Pose::typeId,
-        ignition::gazebo::ComponentState::OneTimeChange);
+    _ecm.SetChanged(this->entity, gz::sim::components::Pose::typeId,
+        gz::sim::ComponentState::OneTimeChange);
 
     ignmsg << "Changing origin to [" << this->origins[sec] << "]" << std::endl;
 
@@ -105,17 +105,17 @@ void CommandActor::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       this->trajPoses.find(sec) != this->trajPoses.end())
   {
     auto trajPoseComp =
-        _ecm.Component<ignition::gazebo::components::TrajectoryPose>(
+        _ecm.Component<gz::sim::components::TrajectoryPose>(
         this->entity);
     if (nullptr == trajPoseComp)
     {
       _ecm.CreateComponent(this->entity,
-          ignition::gazebo::components::TrajectoryPose(this->trajPoses[sec]));
+          gz::sim::components::TrajectoryPose(this->trajPoses[sec]));
     }
     else
     {
       *trajPoseComp =
-          ignition::gazebo::components::TrajectoryPose(this->trajPoses[sec]);
+          gz::sim::components::TrajectoryPose(this->trajPoses[sec]);
     }
 
     ignmsg << "Changing trajectory pose to [" << this->trajPoses[sec] << "]"

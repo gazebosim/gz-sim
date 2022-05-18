@@ -17,8 +17,8 @@
 
 #include "SystemManager.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 //////////////////////////////////////////////////
 SystemManager::SystemManager(const SystemLoaderPtr &_systemLoader,

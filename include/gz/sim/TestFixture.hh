@@ -25,9 +25,9 @@
 #include "gz/sim/Server.hh"
 #include "gz/sim/ServerConfig.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -39,7 +39,7 @@ class IGNITION_GAZEBO_HIDDEN TestFixturePrivate;
 /// ## Usage
 ///
 /// // Load a world with a fixture
-/// ignition::gazebo::TestFixture fixture("path_to.sdf");
+/// gz::sim::TestFixture fixture("path_to.sdf");
 ///
 /// // Register callbacks, for example:
 /// fixture.OnPostUpdate([&](const gazebo::UpdateInfo &,

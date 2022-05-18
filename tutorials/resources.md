@@ -40,7 +40,7 @@ Ignition will look for system plugins on the following paths, in order:
 
 1. All paths on the `IGN_GAZEBO_SYSTEM_PLUGIN_PATH` environment variable
 2. `$HOME/.ignition/gazebo/plugins`
-3. [Systems that are installed with Ignition Gazebo](https://ignitionrobotics.org/api/gazebo/4.6/namespaceignition_1_1gazebo_1_1systems.html)
+3. [Systems that are installed with Ignition Gazebo](https://ignitionrobotics.org/api/gazebo/4.6/namespace gz_1_1gazebo_1_1systems.html)
 
 ### Ignition GUI plugins
 
@@ -60,9 +60,9 @@ Ignition will look for GUI plugins on the following paths, in order:
 
 1. All paths set on the `IGN_GUI_PLUGIN_PATH` environment variable
 2. [GUI plugins that are installed with Ignition Gazebo](https://github.com/ignitionrobotics/ign-gazebo/tree/main/src/gui/plugins)
-3. Other paths added by calling `ignition::gui::App()->AddPluginPath`
+3. Other paths added by calling `gz::gui::App()->AddPluginPath`
 4. `~/.ignition/gui/plugins`
-5. [Plugins which are installed with Ignition GUI](https://ignitionrobotics.org/api/gui/4.2/namespaceignition_1_1gui_1_1plugins.html)
+5. [Plugins which are installed with Ignition GUI](https://ignitionrobotics.org/api/gui/4.2/namespace gz_1_1gui_1_1plugins.html)
 
 ### Physics engines
 
@@ -109,7 +109,7 @@ Top-level entities such as models, lights and actors may be loaded through:
 * The `/world/<world_name>/create` service:
     * SDF file as string (`<model>` / `<light>` / `<actor>` root)
     * Path / URL to SDF file
-    * (TODO) `ignition::msgs::Model`, `ignition::msgs::Light`
+    * (TODO) `gz::msgs::Model`, `gz::msgs::Light`
 * Within a system, using
   [SdfEntityCreator](https://ignitionrobotics.org/api/gazebo/4.6/classignition_1_1gazebo_1_1SdfEntityCreator.html)
   or directly creating components and entities.

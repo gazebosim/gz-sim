@@ -39,11 +39,11 @@
 #include <sdf/Element.hh>
 #include "LogicalAudio.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::LogicalAudioSensorPluginPrivate
+class gz::sim::systems::LogicalAudioSensorPluginPrivate
 {
   /// \brief Creates an audio source with attributes specified in an SDF file.
   /// \param[in] _elem A pointer to the source element in the SDF file.
@@ -78,7 +78,7 @@ class ignition::gazebo::systems::LogicalAudioSensorPluginPrivate
                const logical_audio::SourcePlayInfo &_sourcePlayInfo);
 
   /// \brief Node used to create publishers and services
-  public: ignition::transport::Node node;
+  public: gz::transport::Node node;
 
   /// \brief A flag used to initialize a source's playing information
   /// before starting simulation.
@@ -97,7 +97,7 @@ class ignition::gazebo::systems::LogicalAudioSensorPluginPrivate
   /// (an entity can have multiple microphones attached to it).
   /// The value is the microphone's detection publisher.
   public: std::unordered_map<Entity,
-            ignition::transport::Node::Publisher> micEntities;
+            gz::transport::Node::Publisher> micEntities;
 
   /// \brief A mutex used to ensure that the play source service call does
   /// not interfere with the source's state in the PreUpdate step.
@@ -240,7 +240,7 @@ void LogicalAudioSensorPlugin::PostUpdate(const UpdateInfo &_info,
           // publish the source that the microphone heard, along with the
           // volume level the microphone detected. The detected source's
           // ID is embedded in the message's header
-          ignition::msgs::Double msg;
+          gz::msgs::Double msg;
           auto header = msg.mutable_header();
           auto timeStamp = header->mutable_stamp();
           timeStamp->set_sec(simSeconds.count());
@@ -284,7 +284,7 @@ void LogicalAudioSensorPluginPrivate::CreateAudioSource(
   }
   _ids.insert(id);
 
-  ignition::math::Pose3d pose;
+  gz::math::Pose3d pose;
   if (!_elem->HasElement("pose"))
   {
     ignwarn << "Audio source is missing a pose. "
@@ -293,7 +293,7 @@ void LogicalAudioSensorPluginPrivate::CreateAudioSource(
   }
   else
   {
-    pose = _elem->Get<ignition::math::Pose3d>("pose");
+    pose = _elem->Get<gz::math::Pose3d>("pose");
   }
 
   if (!_elem->HasElement("attenuation_function"))
@@ -385,16 +385,16 @@ void LogicalAudioSensorPluginPrivate::CreateAudioSource(
       components::LogicalAudioSourcePlayInfo(playInfo));
 
   // create service callbacks that allow this source to be played/stopped
-  std::function<bool(ignition::msgs::Boolean &)> playSrvCb =
-    [this, entity](ignition::msgs::Boolean &_resp)
+  std::function<bool(gz::msgs::Boolean &)> playSrvCb =
+    [this, entity](gz::msgs::Boolean &_resp)
     {
       std::lock_guard<std::mutex> lock(this->playSourceMutex);
       this->sourceEntities[entity].first = true;
       _resp.set_data(true);
       return true;
     };
-  std::function<bool(ignition::msgs::Boolean &)> stopSrvCb =
-    [this, entity](ignition::msgs::Boolean &_resp)
+  std::function<bool(gz::msgs::Boolean &)> stopSrvCb =
+    [this, entity](gz::msgs::Boolean &_resp)
     {
       std::lock_guard<std::mutex> lock(this->stopSourceMutex);
       this->sourceEntities[entity].second = true;
@@ -454,7 +454,7 @@ void LogicalAudioSensorPluginPrivate::CreateMicrophone(
   }
   _ids.insert(id);
 
-  ignition::math::Pose3d pose;
+  gz::math::Pose3d pose;
   if (!_elem->HasElement("pose"))
   {
     ignwarn << "Microphone is missing a pose. "
@@ -463,7 +463,7 @@ void LogicalAudioSensorPluginPrivate::CreateMicrophone(
   }
   else
   {
-    pose = _elem->Get<ignition::math::Pose3d>("pose");
+    pose = _elem->Get<gz::math::Pose3d>("pose");
   }
 
   double volumeDetectionThreshold;
@@ -501,7 +501,7 @@ void LogicalAudioSensorPluginPrivate::CreateMicrophone(
       components::Pose(pose));
 
   // create the detection publisher for this microphone
-  auto pub = this->node.Advertise<ignition::msgs::Double>(
+  auto pub = this->node.Advertise<gz::msgs::Double>(
       scopedName(entity, _ecm) + "/detection");
   if (!pub)
   {
@@ -526,10 +526,10 @@ bool LogicalAudioSensorPluginPrivate::DurationExceeded(
 }
 
 IGNITION_ADD_PLUGIN(LogicalAudioSensorPlugin,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     LogicalAudioSensorPlugin::ISystemConfigure,
                     LogicalAudioSensorPlugin::ISystemPreUpdate,
                     LogicalAudioSensorPlugin::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(LogicalAudioSensorPlugin,
-  "ignition::gazebo::systems::LogicalAudioSensorPlugin")
+  "gz::sim::systems::LogicalAudioSensorPlugin")

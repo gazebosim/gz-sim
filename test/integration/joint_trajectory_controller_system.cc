@@ -41,8 +41,8 @@
 
 #define TOL 1e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test fixture for JointTrajectoryController system
 class JointTrajectoryControllerTestFixture
@@ -152,14 +152,14 @@ TEST_F(JointTrajectoryControllerTestFixture,
   }
 
   // Create new JointTrajectory message based on the defined trajectory
-  ignition::msgs::JointTrajectory msg;
+  gz::msgs::JointTrajectory msg;
   for (const auto &jointName : jointNames)
   {
     msg.add_joint_names(jointName);
   }
   for (size_t i = 0; i < trajectoryPositions.size(); ++i)
   {
-    ignition::msgs::JointTrajectoryPoint point;
+    gz::msgs::JointTrajectoryPoint point;
 
     // Set the temporal information for the point
     auto time = point.mutable_time_from_start();
@@ -179,8 +179,8 @@ TEST_F(JointTrajectoryControllerTestFixture,
 
   // Verify that feedback is strictly increasing and reaches value of 1.0
   size_t count = 0;
-  std::function<void(const ignition::msgs::Float &)> feedbackCallback =
-      [&](const ignition::msgs::Float &_msg) {
+  std::function<void(const gz::msgs::Float &)> feedbackCallback =
+      [&](const gz::msgs::Float &_msg) {
         count++;
         if (trajectoryPositions.size() == count)
         {
@@ -322,14 +322,14 @@ TEST_F(JointTrajectoryControllerTestFixture,
   }
 
   // Create new JointTrajectory message based on the defined trajectory
-  ignition::msgs::JointTrajectory msg;
+  gz::msgs::JointTrajectory msg;
   for (const auto &jointName : jointNames)
   {
     msg.add_joint_names(jointName);
   }
   for (size_t i = 0; i < trajectoryVelocities.size(); ++i)
   {
-    ignition::msgs::JointTrajectoryPoint point;
+    gz::msgs::JointTrajectoryPoint point;
 
     // Set the temporal information for the point
     auto time = point.mutable_time_from_start();
@@ -349,8 +349,8 @@ TEST_F(JointTrajectoryControllerTestFixture,
 
   // Verify that feedback is strictly increasing and reaches value of 1.0
   size_t count = 0;
-  std::function<void(const ignition::msgs::Float &)> feedbackCallback =
-      [&](const ignition::msgs::Float &_msg) {
+  std::function<void(const gz::msgs::Float &)> feedbackCallback =
+      [&](const gz::msgs::Float &_msg) {
         count++;
         if (trajectoryVelocities.size() == count)
         {

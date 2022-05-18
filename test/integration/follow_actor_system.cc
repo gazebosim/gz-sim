@@ -33,8 +33,8 @@
 
 #define tol 10e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 /// \brief Test FollowActor system
@@ -47,7 +47,7 @@ class Relay
   public: Relay()
   {
     auto plugin = loader.LoadPlugin("libMockSystem.so",
-                                "ignition::gazebo::MockSystem",
+                                "gz::sim::MockSystem",
                                 nullptr);
     EXPECT_TRUE(plugin.has_value());
 

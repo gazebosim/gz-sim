@@ -21,8 +21,8 @@
 #include "gz/common/Console.hh"
 #include "gz/common/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 NetworkConfig NetworkConfig::FromValues(const std::string &_role,

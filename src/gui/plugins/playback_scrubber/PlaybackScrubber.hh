@@ -24,15 +24,15 @@
 #include <gz/sim/gui/GuiSystem.hh>
 #include <gz/gui/Plugin.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
   class PlaybackScrubberPrivate;
 
   /// \brief Provides slider and functionality for log playback.
   /// to the scene
-  class PlaybackScrubber : public ignition::gazebo::GuiSystem
+  class PlaybackScrubber : public gz::sim::GuiSystem
   {
     Q_OBJECT
 

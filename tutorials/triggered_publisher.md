@@ -26,7 +26,7 @@ the change to the `DiffDrive` system is shown below:
 
   <plugin
     filename="ignition-gazebo-diff-drive-system"
-    name="ignition::gazebo::systems::DiffDrive">
+    name="gz::sim::systems::DiffDrive">
     <left_joint>front_left_wheel_joint</left_joint>
     <left_joint>rear_left_wheel_joint</left_joint>
     <right_joint>front_right_wheel_joint</right_joint>
@@ -45,7 +45,7 @@ a "start" message from the user:
 
 ```xml
 <plugin filename="ignition-gazebo-triggered-publisher-system"
-        name="ignition::gazebo::systems::TriggeredPublisher">
+        name="gz::sim::systems::TriggeredPublisher">
   <input type="ignition.msgs.Empty" topic="/start"/>
   <output type="ignition.msgs.Twist" topic="/cmd_vel">
       linear: {x: 3}
@@ -118,14 +118,14 @@ indicating where the sensor is on the ground.
     </link>
     <plugin
       filename="ignition-gazebo-touchplugin-system"
-      name="ignition::gazebo::systems::TouchPlugin">
+      name="gz::sim::systems::TouchPlugin">
       <target>vehicle_blue</target>
       <namespace>trigger</namespace>
       <time>0.001</time>
       <enabled>true</enabled>
     </plugin>
     <plugin filename="ignition-gazebo-detachable-joint-system"
-            name="ignition::gazebo::systems::DetachableJoint">
+            name="gz::sim::systems::DetachableJoint">
       <parent_link>body</parent_link>
       <child_model>box1</child_model>
       <child_link>box_body</child_link>
@@ -142,7 +142,7 @@ indicating where the sensor is on the ground.
       ...
       <plugin
         filename="ignition-gazebo-contact-system"
-        name="ignition::gazebo::systems::Contact">
+        name="gz::sim::systems::Contact">
       </plugin>
       ...
     </world>
@@ -164,7 +164,7 @@ message is `true`
 
 ```xml
 <plugin filename="ignition-gazebo-triggered-publisher-system"
-        name="ignition::gazebo::systems::TriggeredPublisher">
+        name="gz::sim::systems::TriggeredPublisher">
   <input type="ignition.msgs.Boolean" topic="/trigger/touched">
     <match>data: true</match>
   </input>
@@ -197,7 +197,7 @@ the link "box_body" in `box1`
     <world>
       ...
       <plugin filename="ignition-gazebo-altimeter-system"
-        name="ignition::gazebo::systems::Altimeter">
+        name="gz::sim::systems::Altimeter">
       </plugin>
       ...
     </world>
@@ -220,7 +220,7 @@ static model `trigger` by adding the following to `trigger`
 <model name="trigger">
   ...
   <plugin filename="ignition-gazebo-detachable-joint-system"
-          name="ignition::gazebo::systems::DetachableJoint">
+          name="gz::sim::systems::DetachableJoint">
     <parent_link>body</parent_link>
     <child_model>box2</child_model>
     <child_link>box_body</child_link>
@@ -244,7 +244,7 @@ numbers is not advised, we will set a tolerance of 0.2.
 
 ```xml
 <plugin filename="ignition-gazebo-triggered-publisher-system"
-        name="ignition::gazebo::systems::TriggeredPublisher">
+        name="gz::sim::systems::TriggeredPublisher">
   <input type="ignition.msgs.Altimeter" topic="/altimeter">
     <match field="vertical_position" tol="0.2">-7.5</match>
   </input>

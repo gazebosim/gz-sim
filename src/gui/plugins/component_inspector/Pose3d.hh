@@ -29,9 +29,9 @@
 #include <QObject>
 #include <QStandardItem>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 class ComponentInspector;
 namespace inspector

@@ -27,14 +27,14 @@
 #include "gz/sim/components/WindMode.hh"
 #include "gz/sim/Model.hh"
 
-class ignition::gazebo::ModelPrivate
+class gz::sim::ModelPrivate
 {
   /// \brief Id of model entity.
   public: Entity id{kNullEntity};
 };
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 //////////////////////////////////////////////////
 Model::Model(gazebo::Entity _entity)

@@ -26,9 +26,9 @@
 
 #include <sdf/Element.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
   // Inline bracket to help doxygen filtering.
   inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -38,10 +38,10 @@ namespace gazebo
   /// will only operate on an Entity if it has all of the required
   /// Components.
   ///
-  /// GUI systems are different from `ignition::gazebo::System`s because they
+  /// GUI systems are different from `gz::sim::System`s because they
   /// don't run in the same process as the physics. Instead, they run in a
   /// separate process that is stepped by updates coming through the network
-  class IGNITION_GAZEBO_GUI_VISIBLE GuiSystem : public ignition::gui::Plugin
+  class IGNITION_GAZEBO_GUI_VISIBLE GuiSystem : public gz::gui::Plugin
   {
     Q_OBJECT
 

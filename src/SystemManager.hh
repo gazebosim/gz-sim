@@ -29,9 +29,9 @@
 
 #include "SystemInternal.hh"
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -161,6 +161,6 @@ namespace ignition
       private: EventManager *eventMgr;
     };
     }
-  }  // namespace gazebo
-}  // namespace ignition
+  }  // namespace sim
+}  // namespace gz
 #endif  // GZ_GAZEBO_SYSTEMINTERNAL_HH_

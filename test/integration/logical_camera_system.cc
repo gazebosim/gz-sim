@@ -36,8 +36,8 @@
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test LogicalCameraTest system
 class LogicalCameraTest : public InternalFixture<::testing::Test>
@@ -97,7 +97,7 @@ TEST_F(LogicalCameraTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogicalCameraBox))
                               const gazebo::EntityComponentManager &_ecm)
       {
         _ecm.Each<components::LogicalCamera, components::Name>(
-            [&](const ignition::gazebo::Entity &_entity,
+            [&](const gz::sim::Entity &_entity,
                 const components::LogicalCamera *,
                 const components::Name *_name) -> bool
             {
@@ -177,22 +177,22 @@ TEST_F(LogicalCameraTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogicalCameraBox))
   math::Pose3d boxPose(1, 0, 0.5, 0, 0, 0);
   math::Pose3d sensor1Pose(0.05, 0.05, 0.55, 0, 0, 0);
   mutex.lock();
-  ignition::msgs::LogicalCameraImage img1 = logicalCamera1Msgs.back();
-  EXPECT_EQ(sensor1Pose, ignition::msgs::Convert(img1.pose()));
+  gz::msgs::LogicalCameraImage img1 = logicalCamera1Msgs.back();
+  EXPECT_EQ(sensor1Pose, gz::msgs::Convert(img1.pose()));
   EXPECT_EQ(1, img1.model().size());
   EXPECT_EQ(boxName, img1.model(0).name());
-  ignition::math::Pose3d boxPoseCamera1Frame = boxPose - sensor1Pose;
-  EXPECT_EQ(boxPoseCamera1Frame, ignition::msgs::Convert(img1.model(0).pose()));
+  gz::math::Pose3d boxPoseCamera1Frame = boxPose - sensor1Pose;
+  EXPECT_EQ(boxPoseCamera1Frame, gz::msgs::Convert(img1.model(0).pose()));
   mutex.unlock();
 
   // Sensor 2 should see box too - note different sensor pose.
   math::Pose3d sensor2Pose(0.05, -0.45, 0.55, 0, 0, 0);
   mutex.lock();
-  ignition::msgs::LogicalCameraImage img2 = logicalCamera2Msgs.back();
-  EXPECT_EQ(sensor2Pose, ignition::msgs::Convert(img2.pose()));
+  gz::msgs::LogicalCameraImage img2 = logicalCamera2Msgs.back();
+  EXPECT_EQ(sensor2Pose, gz::msgs::Convert(img2.pose()));
   EXPECT_EQ(1, img2.model().size());
   EXPECT_EQ(boxName, img2.model(0).name());
-  ignition::math::Pose3d boxPoseCamera2Frame = boxPose - sensor2Pose;
-  EXPECT_EQ(boxPoseCamera2Frame, ignition::msgs::Convert(img2.model(0).pose()));
+  gz::math::Pose3d boxPoseCamera2Frame = boxPose - sensor2Pose;
+  EXPECT_EQ(boxPoseCamera2Frame, gz::msgs::Convert(img2.model(0).pose()));
   mutex.unlock();
 }

@@ -3,15 +3,15 @@
   <world name="odometer_world">
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <!-- The system is added to the world, so it handles all odometers in the world-->
     <plugin
@@ -102,7 +102,7 @@
       <!-- Use the velocity control plugin to give it some initial velocity -->
       <plugin
         filename="ignition-gazebo-velocity-control-system"
-        name="ignition::gazebo::systems::VelocityControl">
+        name="gz::sim::systems::VelocityControl">
         <initial_linear>0.2 0 0</initial_linear>
       </plugin>
     </model>

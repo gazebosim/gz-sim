@@ -39,8 +39,8 @@
 #include "gz/sim/Model.hh"
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Velocity command.
@@ -58,18 +58,18 @@ struct Commands
   Commands() : lin(0.0), lat(0.0), ang(0.0) {}
 };
 
-class ignition::gazebo::systems::MecanumDrivePrivate
+class gz::sim::systems::MecanumDrivePrivate
 {
   /// \brief Callback for velocity subscription
   /// \param[in] _msg Velocity message
-  public: void OnCmdVel(const ignition::msgs::Twist &_msg);
+  public: void OnCmdVel(const gz::msgs::Twist &_msg);
 
   /// \brief Update the linear and angular velocities.
   /// \param[in] _info System update information.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
-  public: void UpdateVelocity(const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm);
+  public: void UpdateVelocity(const gz::sim::UpdateInfo &_info,
+    const gz::sim::EntityComponentManager &_ecm);
 
   /// \brief Ignition communication node.
   public: transport::Node node;
@@ -141,10 +141,10 @@ class ignition::gazebo::systems::MecanumDrivePrivate
   public: transport::Node::Publisher tfPub;
 
   /// \brief Linear velocity limiter.
-  public: std::unique_ptr<ignition::math::SpeedLimiter> limiterLin;
+  public: std::unique_ptr<gz::math::SpeedLimiter> limiterLin;
 
   /// \brief Angular velocity limiter.
-  public: std::unique_ptr<ignition::math::SpeedLimiter> limiterAng;
+  public: std::unique_ptr<gz::math::SpeedLimiter> limiterAng;
 
   /// \brief Previous control command.
   public: Commands last0Cmd;
@@ -231,8 +231,8 @@ void MecanumDrive::Configure(const Entity &_entity,
       this->dataPtr->wheelRadius).first;
 
   // Instantiate the speed limiters.
-  this->dataPtr->limiterLin = std::make_unique<ignition::math::SpeedLimiter>();
-  this->dataPtr->limiterAng = std::make_unique<ignition::math::SpeedLimiter>();
+  this->dataPtr->limiterLin = std::make_unique<gz::math::SpeedLimiter>();
+  this->dataPtr->limiterAng = std::make_unique<gz::math::SpeedLimiter>();
 
   // Parse speed limiter parameters.
   if (_sdf->HasElement("min_velocity"))
@@ -326,8 +326,8 @@ void MecanumDrive::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void MecanumDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void MecanumDrive::PreUpdate(const gz::sim::UpdateInfo &_info,
+    gz::sim::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("MecanumDrive::PreUpdate");
 
@@ -505,8 +505,8 @@ void MecanumDrive::PostUpdate(const UpdateInfo &_info,
 
 //////////////////////////////////////////////////
 void MecanumDrivePrivate::UpdateVelocity(
-    const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &/*_ecm*/)
+    const gz::sim::UpdateInfo &_info,
+    const gz::sim::EntityComponentManager &/*_ecm*/)
 {
   IGN_PROFILE("MecanumDrive::UpdateVelocity");
 
@@ -560,10 +560,10 @@ void MecanumDrivePrivate::OnCmdVel(const msgs::Twist &_msg)
 }
 
 IGNITION_ADD_PLUGIN(MecanumDrive,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     MecanumDrive::ISystemConfigure,
                     MecanumDrive::ISystemPreUpdate,
                     MecanumDrive::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(MecanumDrive,
-                          "ignition::gazebo::systems::MecanumDrive")
+                          "gz::sim::systems::MecanumDrive")

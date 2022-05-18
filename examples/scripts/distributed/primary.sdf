@@ -3,7 +3,7 @@
   <world name="default">
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <scene>
@@ -203,7 +203,7 @@
       </link>
     </model>
 
-    <plugin name="ignition::gazebo" filename="dummy">
+    <plugin name="gz::sim" filename="dummy">
 
       <performer name="perf_sphere">
         <ref>sphere</ref>

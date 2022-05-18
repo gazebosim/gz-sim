@@ -39,8 +39,8 @@
 #include "gz/sim/Model.hh"
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Velocity command.
@@ -55,29 +55,29 @@ struct Commands
   Commands() : lin(0.0), ang(0.0) {}
 };
 
-class ignition::gazebo::systems::DiffDrivePrivate
+class gz::sim::systems::DiffDrivePrivate
 {
   /// \brief Callback for velocity subscription
   /// \param[in] _msg Velocity message
-  public: void OnCmdVel(const ignition::msgs::Twist &_msg);
+  public: void OnCmdVel(const gz::msgs::Twist &_msg);
 
   /// \brief Callback for enable/disable subscription
   /// \param[in] _msg Boolean message
-  public: void OnEnable(const ignition::msgs::Boolean &_msg);
+  public: void OnEnable(const gz::msgs::Boolean &_msg);
 
   /// \brief Update odometry and publish an odometry message.
   /// \param[in] _info System update information.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
-  public: void UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm);
+  public: void UpdateOdometry(const gz::sim::UpdateInfo &_info,
+    const gz::sim::EntityComponentManager &_ecm);
 
   /// \brief Update the linear and angular velocities.
   /// \param[in] _info System update information.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
-  public: void UpdateVelocity(const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm);
+  public: void UpdateVelocity(const gz::sim::UpdateInfo &_info,
+    const gz::sim::EntityComponentManager &_ecm);
 
   /// \brief Ignition communication node.
   public: transport::Node node;
@@ -128,10 +128,10 @@ class ignition::gazebo::systems::DiffDrivePrivate
   public: transport::Node::Publisher tfPub;
 
   /// \brief Linear velocity limiter.
-  public: std::unique_ptr<ignition::math::SpeedLimiter> limiterLin;
+  public: std::unique_ptr<gz::math::SpeedLimiter> limiterLin;
 
   /// \brief Angular velocity limiter.
-  public: std::unique_ptr<ignition::math::SpeedLimiter> limiterAng;
+  public: std::unique_ptr<gz::math::SpeedLimiter> limiterAng;
 
   /// \brief Previous control command.
   public: Commands last0Cmd;
@@ -206,8 +206,8 @@ void DiffDrive::Configure(const Entity &_entity,
       this->dataPtr->wheelRadius).first;
 
   // Instantiate the speed limiters.
-  this->dataPtr->limiterLin = std::make_unique<ignition::math::SpeedLimiter>();
-  this->dataPtr->limiterAng = std::make_unique<ignition::math::SpeedLimiter>();
+  this->dataPtr->limiterLin = std::make_unique<gz::math::SpeedLimiter>();
+  this->dataPtr->limiterAng = std::make_unique<gz::math::SpeedLimiter>();
 
   // Parse speed limiter parameters.
 
@@ -386,8 +386,8 @@ void DiffDrive::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void DiffDrive::PreUpdate(const gz::sim::UpdateInfo &_info,
+    gz::sim::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("DiffDrive::PreUpdate");
 
@@ -524,8 +524,8 @@ void DiffDrive::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm)
+void DiffDrivePrivate::UpdateOdometry(const gz::sim::UpdateInfo &_info,
+    const gz::sim::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("DiffDrive::UpdateOdometry");
   // Initialize, if not already initialized.
@@ -608,7 +608,7 @@ void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
 
   // Construct the Pose_V/tf message and publish it.
   msgs::Pose_V tfMsg;
-  ignition::msgs::Pose *tfMsgPose = tfMsg.add_pose();
+  gz::msgs::Pose *tfMsgPose = tfMsg.add_pose();
   tfMsgPose->mutable_header()->CopyFrom(*msg.mutable_header());
   tfMsgPose->mutable_position()->CopyFrom(msg.mutable_pose()->position());
   tfMsgPose->mutable_orientation()->CopyFrom(msg.mutable_pose()->orientation());
@@ -619,8 +619,8 @@ void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-void DiffDrivePrivate::UpdateVelocity(const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &/*_ecm*/)
+void DiffDrivePrivate::UpdateVelocity(const gz::sim::UpdateInfo &_info,
+    const gz::sim::EntityComponentManager &/*_ecm*/)
 {
   IGN_PROFILE("DiffDrive::UpdateVelocity");
 
@@ -674,9 +674,9 @@ void DiffDrivePrivate::OnEnable(const msgs::Boolean &_msg)
 }
 
 IGNITION_ADD_PLUGIN(DiffDrive,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     DiffDrive::ISystemConfigure,
                     DiffDrive::ISystemPreUpdate,
                     DiffDrive::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(DiffDrive, "ignition::gazebo::systems::DiffDrive")
+IGNITION_ADD_PLUGIN_ALIAS(DiffDrive, "gz::sim::systems::DiffDrive")

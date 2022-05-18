@@ -30,11 +30,11 @@
 #include "gz/sim/Util.hh"
 #include "CommsEndpoint.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::CommsEndpoint::Implementation
+class gz::sim::systems::CommsEndpoint::Implementation
 {
   /// \brief Send the bind request.
   public: void Bind();
@@ -42,7 +42,7 @@ class ignition::gazebo::systems::CommsEndpoint::Implementation
   /// \brief Service response callback.
   /// \brief \param[in] _rep Unused.
   /// \brief \param[in] _result Bind result.
-  public: void BindCallback(const ignition::msgs::Boolean &_rep,
+  public: void BindCallback(const gz::msgs::Boolean &_rep,
                             const bool _result);
 
   /// \brief The address.
@@ -64,10 +64,10 @@ class ignition::gazebo::systems::CommsEndpoint::Implementation
   public: std::string unbindSrv = "/broker/unbind";
 
   /// \brief Message to send the bind request.
-  public: ignition::msgs::StringMsg_V bindReq;
+  public: gz::msgs::StringMsg_V bindReq;
 
   /// \brief Message to send the unbind request.
-  public: ignition::msgs::StringMsg_V unbindReq;
+  public: gz::msgs::StringMsg_V unbindReq;
 
   /// \brief Time between bind retries (secs).
   public: std::chrono::steady_clock::duration bindRequestPeriod{1};
@@ -76,12 +76,12 @@ class ignition::gazebo::systems::CommsEndpoint::Implementation
   public: std::chrono::steady_clock::duration lastBindRequestTime{-2};
 
   /// \brief The ignition transport node.
-  public: std::unique_ptr<ignition::transport::Node> node;
+  public: std::unique_ptr<gz::transport::Node> node;
 };
 
 //////////////////////////////////////////////////
 void CommsEndpoint::Implementation::BindCallback(
-  const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  const gz::msgs::Boolean &/*_rep*/, const bool _result)
 {
   if (_result)
     this->bound = true;
@@ -99,9 +99,9 @@ void CommsEndpoint::Implementation::Bind()
 
 //////////////////////////////////////////////////
 CommsEndpoint::CommsEndpoint()
-  : dataPtr(ignition::utils::MakeUniqueImpl<Implementation>())
+  : dataPtr(gz::utils::MakeUniqueImpl<Implementation>())
 {
-  this->dataPtr->node = std::make_unique<ignition::transport::Node>();
+  this->dataPtr->node = std::make_unique<gz::transport::Node>();
 }
 
 //////////////////////////////////////////////////
@@ -164,8 +164,8 @@ void CommsEndpoint::Configure(const Entity &_entity,
 
 //////////////////////////////////////////////////
 void CommsEndpoint::PreUpdate(
-    const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &/*_ecm*/)
+    const gz::sim::UpdateInfo &_info,
+    gz::sim::EntityComponentManager &/*_ecm*/)
 {
   IGN_PROFILE("CommsEndpoint::PreUpdate");
 
@@ -185,9 +185,9 @@ void CommsEndpoint::PreUpdate(
 }
 
 IGNITION_ADD_PLUGIN(CommsEndpoint,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     CommsEndpoint::ISystemConfigure,
                     CommsEndpoint::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(CommsEndpoint,
-                          "ignition::gazebo::systems::CommsEndpoint")
+                          "gz::sim::systems::CommsEndpoint")

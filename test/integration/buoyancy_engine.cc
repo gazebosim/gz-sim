@@ -33,8 +33,8 @@
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 class BuoyancyEngineTest : public InternalFixture<::testing::Test>
 {
@@ -42,15 +42,15 @@ class BuoyancyEngineTest : public InternalFixture<::testing::Test>
   protected: void SetUp() override
   {
     InternalFixture::SetUp();
-    this->pub = this->node.Advertise<ignition::msgs::Double>(
+    this->pub = this->node.Advertise<gz::msgs::Double>(
       "/model/buoyant_box/buoyancy_engine/");
   }
 
   /// \brief Node for communication
-  public: ignition::transport::Node node;
+  public: gz::transport::Node node;
 
   /// \brief Publishes commands
-  public: ignition::transport::Node::Publisher pub;
+  public: gz::transport::Node::Publisher pub;
 };
 
 /////////////////////////////////////////////////
@@ -71,7 +71,7 @@ TEST_F(BuoyancyEngineTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TestDownward))
   std::size_t iterations = 10000;
 
   test::Relay testSystem;
-  std::vector<ignition::math::Pose3d> poses;
+  std::vector<gz::math::Pose3d> poses;
 
   testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &/*_info*/,
                              const gazebo::EntityComponentManager &_ecm)
@@ -92,7 +92,7 @@ TEST_F(BuoyancyEngineTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TestDownward))
   });
 
   server.AddSystem(testSystem.systemPtr);
-  ignition::msgs::Double volume;
+  gz::msgs::Double volume;
   volume.set_data(0);
   this->pub.Publish(volume);
   server.Run(true, iterations, false);
@@ -120,7 +120,7 @@ TEST_F(BuoyancyEngineTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TestUpward))
   std::size_t iterations = 10000;
 
   test::Relay testSystem;
-  std::vector<ignition::math::Pose3d> poses;
+  std::vector<gz::math::Pose3d> poses;
 
   testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &/*_info*/,
                              const gazebo::EntityComponentManager &_ecm)
@@ -141,7 +141,7 @@ TEST_F(BuoyancyEngineTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TestUpward))
   });
 
   server.AddSystem(testSystem.systemPtr);
-  ignition::msgs::Double volume;
+  gz::msgs::Double volume;
   volume.set_data(10);
   this->pub.Publish(volume);
   server.Run(true, iterations, false);
@@ -169,7 +169,7 @@ TEST_F(BuoyancyEngineTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TestUpwardSurface))
   std::size_t iterations = 10000;
 
   test::Relay testSystem;
-  std::vector<ignition::math::Pose3d> poses;
+  std::vector<gz::math::Pose3d> poses;
 
   testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &/*_info*/,
                              const gazebo::EntityComponentManager &_ecm)
@@ -192,7 +192,7 @@ TEST_F(BuoyancyEngineTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TestUpwardSurface))
   });
 
   server.AddSystem(testSystem.systemPtr);
-  ignition::msgs::Double volume;
+  gz::msgs::Double volume;
   volume.set_data(10);
   this->pub.Publish(volume);
   server.Run(true, iterations, false);

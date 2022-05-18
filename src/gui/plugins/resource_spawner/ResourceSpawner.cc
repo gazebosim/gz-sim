@@ -41,7 +41,7 @@
 
 #include "gz/sim/EntityComponentManager.hh"
 
-namespace ignition::gazebo
+namespace gz::sim
 {
   class ResourceSpawnerPrivate
   {
@@ -60,7 +60,7 @@ namespace ignition::gazebo
     public: PathModel ownerModel;
 
     /// \brief Client used to download resources from Ignition Fuel.
-    public: std::unique_ptr<ignition::fuel_tools::FuelClient>
+    public: std::unique_ptr<gz::fuel_tools::FuelClient>
             fuelClient = nullptr;
 
     /// \brief The map to cache resources after a search is made on an owner,
@@ -74,8 +74,8 @@ namespace ignition::gazebo
   };
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 PathModel::PathModel() : QStandardItemModel()
@@ -207,17 +207,17 @@ QHash<int, QByteArray> ResourceModel::roleNames() const
 
 /////////////////////////////////////////////////
 ResourceSpawner::ResourceSpawner()
-  : ignition::gui::Plugin(),
+  : gz::gui::Plugin(),
   dataPtr(std::make_unique<ResourceSpawnerPrivate>())
 {
-  ignition::gui::App()->Engine()->rootContext()->setContextProperty(
+  gz::gui::App()->Engine()->rootContext()->setContextProperty(
       "ResourceList", &this->dataPtr->resourceModel);
-  ignition::gui::App()->Engine()->rootContext()->setContextProperty(
+  gz::gui::App()->Engine()->rootContext()->setContextProperty(
       "PathList", &this->dataPtr->pathModel);
-  ignition::gui::App()->Engine()->rootContext()->setContextProperty(
+  gz::gui::App()->Engine()->rootContext()->setContextProperty(
       "OwnerList", &this->dataPtr->ownerModel);
   this->dataPtr->fuelClient =
-    std::make_unique<ignition::fuel_tools::FuelClient>();
+    std::make_unique<gz::fuel_tools::FuelClient>();
 }
 
 /////////////////////////////////////////////////
@@ -482,7 +482,7 @@ void ResourceSpawner::OnDownloadFuelResource(const QString &_path,
   // Set the waiting cursor while the resource downloads
   QGuiApplication::setOverrideCursor(Qt::WaitCursor);
   if (this->dataPtr->fuelClient->DownloadModel(
-        ignition::common::URI(_path.toStdString()), localPath))
+        gz::common::URI(_path.toStdString()), localPath))
   {
     // Successful download, set thumbnail
     std::string thumbnailPath = common::joinPaths(localPath, "thumbnails");
@@ -564,7 +564,7 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
     std::set<std::string> ownerSet;
     for (auto const &server : servers)
     {
-      std::vector<ignition::fuel_tools::ModelIdentifier> models;
+      std::vector<gz::fuel_tools::ModelIdentifier> models;
       for (auto iter = this->dataPtr->fuelClient->Models(server); iter; ++iter)
       {
         models.push_back(iter->Identification());
@@ -584,10 +584,10 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
         // If the resource is cached, we can go ahead and populate the
         // respective information
         if (this->dataPtr->fuelClient->CachedModel(
-              ignition::common::URI(id.UniqueName()), path))
+              gz::common::URI(id.UniqueName()), path))
         {
           resource.isDownloaded = true;
-          resource.sdfPath = ignition::common::joinPaths(path, "model.sdf");
+          resource.sdfPath = gz::common::joinPaths(path, "model.sdf");
           std::string thumbnailPath = common::joinPaths(path, "thumbnails");
           this->SetThumbnail(thumbnailPath, resource);
         }
@@ -626,12 +626,12 @@ void ResourceSpawner::OnSortChosen(const QString &_sortType)
 /////////////////////////////////////////////////
 void ResourceSpawner::OnResourceSpawn(const QString &_sdfPath)
 {
-  ignition::gui::events::SpawnFromPath event(_sdfPath.toStdString());
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  gz::gui::events::SpawnFromPath event(_sdfPath.toStdString());
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &event);
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::ResourceSpawner,
-    ignition::gui::Plugin)
+IGNITION_ADD_PLUGIN(gz::sim::ResourceSpawner,
+    gz::gui::Plugin)

@@ -24,8 +24,8 @@
 #include <ignition/gazebo/components/ParentEntity.hh>
 #include <ignition/plugin/Register.hh>
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 namespace reset_plugin
 {
 class JointPositionRandomizer : public System,
@@ -72,6 +72,6 @@ class JointPositionRandomizer : public System,
 }  // namespace reset_plugin
 
 IGNITION_ADD_PLUGIN(reset_plugin::JointPositionRandomizer,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     reset_plugin::JointPositionRandomizer::ISystemConfigure,
                     reset_plugin::JointPositionRandomizer::ISystemReset)

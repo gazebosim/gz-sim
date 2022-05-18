@@ -33,9 +33,9 @@
 
 #include <gz/sim/config.hh>
 
-using namespace ignition::gazebo;
+using namespace gz::sim;
 
-class ignition::gazebo::SystemLoaderPrivate
+class gz::sim::SystemLoaderPrivate
 {
   //////////////////////////////////////////////////
   public: explicit SystemLoaderPrivate() = default;
@@ -44,24 +44,24 @@ class ignition::gazebo::SystemLoaderPrivate
   public: bool InstantiateSystemPlugin(const std::string &_filename,
               const std::string &_name,
               const sdf::ElementPtr &/*_sdf*/,
-              ignition::plugin::PluginPtr &_plugin)
+              gz::plugin::PluginPtr &_plugin)
   {
-    ignition::common::SystemPaths systemPaths;
+    gz::common::SystemPaths systemPaths;
     systemPaths.SetPluginPathEnv(pluginPathEnv);
 
     for (const auto &path : this->systemPluginPaths)
       systemPaths.AddPluginPaths(path);
 
     std::string homePath;
-    ignition::common::env(IGN_HOMEDIR, homePath);
+    gz::common::env(IGN_HOMEDIR, homePath);
     systemPaths.AddPluginPaths(homePath + "/.gz/sim/plugins");
     systemPaths.AddPluginPaths(IGN_GAZEBO_PLUGIN_INSTALL_DIR);
 
     auto pathToLib = systemPaths.FindSharedLibrary(_filename);
     if (pathToLib.empty())
     {
-      // We assume ignition::gazebo corresponds to the levels feature
-      if (_name != "ignition::gazebo")
+      // We assume gz::sim corresponds to the levels feature
+      if (_name != "gz::sim")
       {
         ignerr << "Failed to load system plugin [" << _filename <<
                   "] : couldn't find shared library." << std::endl;
@@ -113,7 +113,7 @@ class ignition::gazebo::SystemLoaderPrivate
   public: std::string pluginPathEnv{"IGN_GAZEBO_SYSTEM_PLUGIN_PATH"};
 
   /// \brief Plugin loader instace
-  public: ignition::plugin::Loader loader;
+  public: gz::plugin::Loader loader;
 
   /// \brief Paths to search for system plugins.
   public: std::unordered_set<std::string> systemPluginPaths;
@@ -143,7 +143,7 @@ std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(
   const std::string &_name,
   const sdf::ElementPtr &_sdf)
 {
-  ignition::plugin::PluginPtr plugin;
+  gz::plugin::PluginPtr plugin;
 
   if (_filename == "" || _name == "")
   {

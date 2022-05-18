@@ -54,8 +54,8 @@
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 static const std::string kBinPath(PROJECT_BINARY_PATH);
 
@@ -329,7 +329,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
   std::string homeOrig;
   common::env(IGN_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
+  EXPECT_TRUE(gz::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
 
   // Test case 1:
   // No path specified on command line. This does not go through
@@ -416,7 +416,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
 #endif
 
   // Revert environment variable after test is done
-  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
+  EXPECT_TRUE(gz::common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
 }
 
 /////////////////////////////////////////////////
@@ -472,7 +472,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
   std::string homeOrig;
   common::env(IGN_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
+  EXPECT_TRUE(gz::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
 
   // Store number of files before running
   auto logPath = common::joinPaths(homeFake.c_str(), ".ignition", "gazebo",
@@ -685,7 +685,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
 #endif
 
   // Revert environment variable after test is done
-  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
+  EXPECT_TRUE(gz::common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
 
   this->RemoveLogsDir();
 }
@@ -1496,7 +1496,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogResources))
   std::string homeOrig;
   common::env(IGN_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
+  EXPECT_TRUE(gz::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
 
   const std::string recordPath = this->logDir;
   std::string statePath = common::joinPaths(recordPath, "state.tlog");
@@ -1561,7 +1561,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogResources))
       "models", "x2 config 1")));
 
   // Revert environment variable after test is done
-  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
+  EXPECT_TRUE(gz::common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
 
   // Remove artifacts
   this->RemoveLogsDir();
@@ -1583,7 +1583,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogTopics))
   std::string homeOrig;
   common::env(IGN_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
+  EXPECT_TRUE(gz::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
 
   const std::string recordPath = this->logDir;
   std::string statePath = common::joinPaths(recordPath, "state.tlog");

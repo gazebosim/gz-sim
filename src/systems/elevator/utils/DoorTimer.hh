@@ -29,9 +29,9 @@
 
 #include <gz/sim/System.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
@@ -74,7 +74,7 @@ class DoorTimer
 
 }  // namespace systems
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz
 
 #endif  // GZ_GAZEBO_SYSTEMS_DOOR_TIMER_HH_

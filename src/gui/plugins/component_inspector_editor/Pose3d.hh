@@ -20,9 +20,9 @@
 #include <QObject>
 #include <gz/math/Pose3.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
   class ComponentInspectorEditor;
 

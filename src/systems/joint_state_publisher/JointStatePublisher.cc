@@ -36,8 +36,8 @@
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 //////////////////////////////////////////////////
@@ -313,9 +313,9 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
 }
 
 IGNITION_ADD_PLUGIN(JointStatePublisher,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     JointStatePublisher::ISystemConfigure,
                     JointStatePublisher::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(JointStatePublisher,
-    "ignition::gazebo::systems::JointStatePublisher")
+    "gz::sim::systems::JointStatePublisher")

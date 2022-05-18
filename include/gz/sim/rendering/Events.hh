@@ -22,9 +22,9 @@
 
 #include "gz/sim/config.hh"
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -39,9 +39,9 @@ namespace ignition
       ///
       /// For example:
       /// \code
-      /// eventManager.Emit<ignition::gazebo::events::SceneUpdate>();
+      /// eventManager.Emit<gz::sim::events::SceneUpdate>();
       /// \endcode
-      using SceneUpdate = ignition::common::EventT<void(void),
+      using SceneUpdate = gz::common::EventT<void(void),
           struct SceneUpdateTag>;
 
       /// \brief The render event is emitted before rendering updates.
@@ -50,9 +50,9 @@ namespace ignition
       ///
       /// For example:
       /// \code
-      /// eventManager.Emit<ignition::gazebo::events::PreRender>();
+      /// eventManager.Emit<gz::sim::events::PreRender>();
       /// \endcode
-      using PreRender = ignition::common::EventT<void(void),
+      using PreRender = gz::common::EventT<void(void),
           struct PreRenderTag>;
 
       /// \brief The render event is emitted after rendering updates.
@@ -61,13 +61,13 @@ namespace ignition
       ///
       /// For example:
       /// \code
-      /// eventManager.Emit<ignition::gazebo::events::PostRender>();
+      /// eventManager.Emit<gz::sim::events::PostRender>();
       /// \endcode
-      using PostRender = ignition::common::EventT<void(void),
+      using PostRender = gz::common::EventT<void(void),
           struct PostRenderTag>;
       }
     }  // namespace events
-  }  // namespace gazebo
-}  // namespace ignition
+  }  // namespace sim
+}  // namespace gz
 
 #endif  // GZ_GAZEBO_RENDEREVENTS_HH_

@@ -24,9 +24,9 @@
 #include "gz/sim/config.hh"
 #include "gz/sim/gui/Export.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -65,14 +65,14 @@ namespace gui
   /// \param[in] _renderEngineGui --render-engine-gui option
   /// \return Newly created application.
   IGNITION_GAZEBO_GUI_VISIBLE
-  std::unique_ptr<ignition::gui::Application> createGui(
+  std::unique_ptr<gz::gui::Application> createGui(
       int &_argc, char **_argv, const char *_guiConfig,
       const char *_defaultGuiConfig = nullptr, bool _loadPluginsFromSdf = true,
       const char *_renderEngine = nullptr);
 
 }  // namespace gui
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz
 
 #endif

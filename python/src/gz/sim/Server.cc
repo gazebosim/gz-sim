@@ -22,31 +22,31 @@
 
 #include "Server.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 namespace python
 {
 void defineGazeboServer(pybind11::object module)
 {
-  pybind11::class_<ignition::gazebo::Server,
-    std::shared_ptr<ignition::gazebo::Server>>(module, "Server")
-  .def(pybind11::init<ignition::gazebo::ServerConfig &>())
+  pybind11::class_<gz::sim::Server,
+    std::shared_ptr<gz::sim::Server>>(module, "Server")
+  .def(pybind11::init<gz::sim::ServerConfig &>())
   .def(
-    "run", &ignition::gazebo::Server::Run,
+    "run", &gz::sim::Server::Run,
     "Run the server. By default this is a non-blocking call, "
     " which means the server runs simulation in a separate thread. Pass "
     " in true to the _blocking argument to run the server in the current "
     " thread.")
   .def(
-    "has_entity", &ignition::gazebo::Server::HasEntity,
+    "has_entity", &gz::sim::Server::HasEntity,
     "Return true if the specified world has an entity with the provided name.")
   .def(
     "is_running",
-    pybind11::overload_cast<>(&ignition::gazebo::Server::Running, pybind11::const_),
+    pybind11::overload_cast<>(&gz::sim::Server::Running, pybind11::const_),
     "Get whether the server is running.");
 }
 }  // namespace python
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz

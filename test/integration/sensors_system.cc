@@ -51,9 +51,9 @@
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace std::chrono_literals;
-namespace components = ignition::gazebo::components;
+namespace components = gz::sim::components;
 
 std::unordered_set<gazebo::Entity> g_sensorEntityIds;
 rendering::ScenePtr g_scene;
@@ -101,7 +101,7 @@ class SensorsFixture : public InternalFixture<InternalFixture<::testing::Test>>
     InternalFixture::SetUp();
 
     auto plugin = sm.LoadPlugin("libMockSystem.so",
-                                "ignition::gazebo::MockSystem",
+                                "gz::sim::MockSystem",
                                 nullptr);
     EXPECT_TRUE(plugin.has_value());
     this->systemPtr = plugin.value();
@@ -109,7 +109,7 @@ class SensorsFixture : public InternalFixture<InternalFixture<::testing::Test>>
         systemPtr->QueryInterface<gazebo::System>());
   }
 
-  public: ignition::gazebo::SystemPluginPtr systemPtr;
+  public: gz::sim::SystemPluginPtr systemPtr;
   public: gazebo::MockSystem *mockSystem;
 
   private: gazebo::SystemLoader sm;
@@ -160,7 +160,7 @@ void testDefaultTopics()
 /// are removed and then added back
 TEST_F(SensorsFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(HandleRemovedEntities))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
 
   const std::string sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/sensor.sdf";

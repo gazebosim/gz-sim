@@ -40,9 +40,9 @@
 
 #include "SelectEntities.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 namespace gui
 {
@@ -64,7 +64,7 @@ struct SelectionHelper
 }
 
 /// \brief Private data class for SelectEntities
-class ignition::gazebo::gui::SelectEntitiesPrivate
+class gz::sim::gui::SelectEntitiesPrivate
 {
   /// \brief Initialize the plugin, attaching to a camera.
   public: void Initialize();
@@ -121,10 +121,10 @@ class ignition::gazebo::gui::SelectEntitiesPrivate
 
   /// \brief A map of entity ids and wire boxes
   public: std::unordered_map<Entity,
-    ignition::rendering::WireBoxPtr> wireBoxes;
+    gz::rendering::WireBoxPtr> wireBoxes;
 
   /// \brief MouseEvent
-  public: ignition::common::MouseEvent mouseEvent;
+  public: gz::common::MouseEvent mouseEvent;
 
   /// \brief is the mouse modify ?
   public: bool mouseDirty = false;
@@ -142,9 +142,9 @@ class ignition::gazebo::gui::SelectEntitiesPrivate
   public: bool isSpawning{false};
 };
 
-using namespace ignition;
-using namespace gazebo;
-using namespace gazebo::gui;
+using namespace gz;
+using namespace sim;
+using namespace sim::gui;
 
 /////////////////////////////////////////////////
 void SelectEntitiesPrivate::HandleEntitySelection()
@@ -185,10 +185,10 @@ void SelectEntitiesPrivate::HandleEntitySelection()
 
       this->HighlightNode(visualToHighLight);
 
-      ignition::gazebo::gui::events::EntitiesSelected selectEvent(
+      gz::sim::gui::events::EntitiesSelected selectEvent(
           this->selectedEntities);
-      ignition::gui::App()->sendEvent(
-          ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      gz::gui::App()->sendEvent(
+          gz::gui::App()->findChild<gz::gui::MainWindow *>(),
           &selectEvent);
     }
     this->receivedSelectedEntities = false;
@@ -254,7 +254,7 @@ void SelectEntitiesPrivate::LowlightNode(const rendering::VisualPtr &_visual)
   }
   if (this->wireBoxes.find(entityId) != this->wireBoxes.end())
   {
-    ignition::rendering::WireBoxPtr wireBox = this->wireBoxes[entityId];
+    gz::rendering::WireBoxPtr wireBox = this->wireBoxes[entityId];
     auto visParent = wireBox->Parent();
     if (visParent)
       visParent->SetVisible(false);
@@ -294,12 +294,12 @@ void SelectEntitiesPrivate::HighlightNode(const rendering::VisualPtr &_visual)
       white->SetEmissive(1.0, 1.0, 1.0);
     }
 
-    ignition::rendering::WireBoxPtr wireBox = this->scene->CreateWireBox();
-    ignition::math::AxisAlignedBox aabb = _visual->LocalBoundingBox();
+    gz::rendering::WireBoxPtr wireBox = this->scene->CreateWireBox();
+    gz::math::AxisAlignedBox aabb = _visual->LocalBoundingBox();
     wireBox->SetBox(aabb);
 
     // Create visual and add wire box
-    ignition::rendering::VisualPtr wireBoxVis = this->scene->CreateVisual();
+    gz::rendering::VisualPtr wireBoxVis = this->scene->CreateVisual();
     wireBoxVis->SetInheritScale(false);
     wireBoxVis->AddGeometry(wireBox);
     wireBoxVis->SetMaterial(white, false);
@@ -308,12 +308,12 @@ void SelectEntitiesPrivate::HighlightNode(const rendering::VisualPtr &_visual)
 
     // Add wire box to map for setting visibility
     this->wireBoxes.insert(
-        std::pair<Entity, ignition::rendering::WireBoxPtr>(entityId, wireBox));
+        std::pair<Entity, gz::rendering::WireBoxPtr>(entityId, wireBox));
   }
   else
   {
-    ignition::rendering::WireBoxPtr wireBox = wireBoxIt->second;
-    ignition::math::AxisAlignedBox aabb = _visual->LocalBoundingBox();
+    gz::rendering::WireBoxPtr wireBox = wireBoxIt->second;
+    gz::math::AxisAlignedBox aabb = _visual->LocalBoundingBox();
     wireBox->SetBox(aabb);
     auto visParent = wireBox->Parent();
     if (visParent)
@@ -374,10 +374,10 @@ void SelectEntitiesPrivate::SetSelectedEntity(
   this->selectedEntities.push_back(entityId);
   this->selectedEntitiesID.push_back(topLevelVisual->Id());
   this->HighlightNode(topLevelVisual);
-  ignition::gazebo::gui::events::EntitiesSelected entitiesSelected(
+  gz::sim::gui::events::EntitiesSelected entitiesSelected(
     this->selectedEntities);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &entitiesSelected);
 }
 
@@ -396,9 +396,9 @@ void SelectEntitiesPrivate::DeselectAllEntities()
   this->selectedEntities.clear();
   this->selectedEntitiesID.clear();
 
-  ignition::gazebo::gui::events::DeselectAllEntities deselectEvent(true);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  gz::sim::gui::events::DeselectAllEntities deselectEvent(true);
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &deselectEvent);
 }
 
@@ -424,10 +424,10 @@ void SelectEntitiesPrivate::UpdateSelectedEntity(
   // Notify other widgets of the currently selected entities
   if (_sendEvent || deselectedAll)
   {
-    ignition::gazebo::gui::events::EntitiesSelected selectEvent(
+    gz::sim::gui::events::EntitiesSelected selectEvent(
         this->selectedEntities);
-    ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+    gz::gui::App()->sendEvent(
+        gz::gui::App()->findChild<gz::gui::MainWindow *>(),
         &selectEvent);
   }
 }
@@ -489,17 +489,17 @@ void SelectEntities::LoadConfig(const tinyxml2::XMLElement *)
   }
   done = true;
 
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
 bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::LeftClickOnScene::kType)
+  if (_event->type() == gz::gui::events::LeftClickOnScene::kType)
   {
-    ignition::gui::events::LeftClickOnScene *_e =
-      static_cast<ignition::gui::events::LeftClickOnScene*>(_event);
+    gz::gui::events::LeftClickOnScene *_e =
+      static_cast<gz::gui::events::LeftClickOnScene*>(_event);
     this->dataPtr->mouseEvent = _e->Mouse();
 
     if (this->dataPtr->mouseEvent.Button() == common::MouseEvent::LEFT &&
@@ -515,13 +515,13 @@ bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
       }
     }
   }
-  else if (_event->type() == ignition::gui::events::Render::kType)
+  else if (_event->type() == gz::gui::events::Render::kType)
   {
     this->dataPtr->Initialize();
     this->dataPtr->HandleEntitySelection();
   }
   else if (_event->type() ==
-    ignition::gazebo::gui::events::TransformControlModeActive::kType)
+    gz::sim::gui::events::TransformControlModeActive::kType)
   {
     auto transformControlMode =
       reinterpret_cast<gazebo::gui::events::TransformControlModeActive *>(
@@ -530,7 +530,7 @@ bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
       transformControlMode->TransformControlActive();
   }
   else if (_event->type() ==
-    ignition::gazebo::gui::events::EntitiesSelected::kType)
+    gz::sim::gui::events::EntitiesSelected::kType)
   {
     auto selectedEvent =
         reinterpret_cast<gui::events::EntitiesSelected *>(_event);
@@ -564,22 +564,22 @@ bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-           ignition::gazebo::gui::events::DeselectAllEntities::kType)
+           gz::sim::gui::events::DeselectAllEntities::kType)
   {
     this->dataPtr->selectedEntitiesID.clear();
     this->dataPtr->selectedEntities.clear();
   }
   else if (_event->type() ==
-    ignition::gui::events::SpawnFromDescription::kType ||
-    _event->type() == ignition::gui::events::SpawnFromPath::kType)
+    gz::gui::events::SpawnFromDescription::kType ||
+    _event->type() == gz::gui::events::SpawnFromPath::kType)
   {
     this->dataPtr->isSpawning = true;
     this->dataPtr->mouseDirty = true;
   }
-  else if (_event->type() == ignition::gui::events::KeyReleaseOnScene::kType)
+  else if (_event->type() == gz::gui::events::KeyReleaseOnScene::kType)
   {
-    ignition::gui::events::KeyReleaseOnScene *_e =
-      static_cast<ignition::gui::events::KeyReleaseOnScene*>(_event);
+    gz::gui::events::KeyReleaseOnScene *_e =
+      static_cast<gz::gui::events::KeyReleaseOnScene*>(_event);
     if (_e->Key().Key() == Qt::Key_Escape)
     {
       this->dataPtr->mouseDirty = true;
@@ -588,7 +588,7 @@ bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-           ignition::gazebo::gui::events::NewRemovedEntities::kType)
+           gz::sim::gui::events::NewRemovedEntities::kType)
   {
     if (!this->dataPtr->wireBoxes.empty())
     {
@@ -612,5 +612,5 @@ bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::gui::SelectEntities,
-                    ignition::gui::Plugin)
+IGNITION_ADD_PLUGIN(gz::sim::gui::SelectEntities,
+                    gz::gui::Plugin)

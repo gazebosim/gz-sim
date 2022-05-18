@@ -24,9 +24,9 @@
 
 #include "gz/gui/qt.h"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
@@ -36,7 +36,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
   /// \brief Visualize the contacts returned by the Physics plugin. Use the
   /// checkbox to turn visualization on or off and spin boxes to change
   /// the size of the markers.
-  class VisualizeContacts : public ignition::gazebo::GuiSystem
+  class VisualizeContacts : public gz::sim::GuiSystem
   {
     Q_OBJECT
 

@@ -43,8 +43,8 @@
 
 #define tol 10e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 #define EXPECT_ANGLE_NEAR(a1, a2, tol) \
@@ -90,7 +90,7 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
         << "Failed to find plugin [" << *pluginLib << "]";
 
     // Load engine plugin
-    ignition::plugin::Loader pluginLoader;
+    gz::plugin::Loader pluginLoader;
     auto plugins = pluginLoader.LoadLib(pathToLib);
     ASSERT_FALSE(plugins.empty())
         << "Unable to load the [" << pathToLib << "] library";

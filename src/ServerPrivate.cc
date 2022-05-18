@@ -29,8 +29,8 @@
 #include "gz/sim/Util.hh"
 #include "SimulationRunner.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief This struct provides access to the record plugin SDF string
 struct LoggingPlugin
@@ -59,7 +59,7 @@ struct LoggingPlugin
   public: static std::string &RecordPluginName()
   {
     static std::string recordPluginName =
-      "ignition::gazebo::systems::LogRecord";
+      "gz::sim::systems::LogRecord";
     return recordPluginName;
   }
 
@@ -76,7 +76,7 @@ struct LoggingPlugin
   public: static std::string &PlaybackPluginName()
   {
     static std::string playbackPluginName =
-      "ignition::gazebo::systems::LogPlayback";
+      "gz::sim::systems::LogPlayback";
     return playbackPluginName;
   }
 };
@@ -385,7 +385,7 @@ void ServerPrivate::SetupTransport()
 }
 
 //////////////////////////////////////////////////
-bool ServerPrivate::WorldsService(ignition::msgs::StringMsg_V &_res)
+bool ServerPrivate::WorldsService(gz::msgs::StringMsg_V &_res)
 {
   std::lock_guard<std::mutex> lock(this->worldsMutex);
 
@@ -401,7 +401,7 @@ bool ServerPrivate::WorldsService(ignition::msgs::StringMsg_V &_res)
 
 //////////////////////////////////////////////////
 bool ServerPrivate::ServerControlService(
-  const ignition::msgs::ServerControl &_req, msgs::Boolean &_res)
+  const gz::msgs::ServerControl &_req, msgs::Boolean &_res)
 {
   _res.set_data(false);
 
@@ -444,7 +444,7 @@ bool ServerPrivate::ServerControlService(
 
 //////////////////////////////////////////////////
 void ServerPrivate::AddResourcePathsService(
-    const ignition::msgs::StringMsg_V &_req)
+    const gz::msgs::StringMsg_V &_req)
 {
   std::vector<std::string> paths;
   for (int i = 0; i < _req.data_size(); ++i)
@@ -467,7 +467,7 @@ void ServerPrivate::AddResourcePathsService(
 
 //////////////////////////////////////////////////
 bool ServerPrivate::ResourcePathsService(
-    ignition::msgs::StringMsg_V &_res)
+    gz::msgs::StringMsg_V &_res)
 {
   _res.Clear();
 

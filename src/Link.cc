@@ -39,14 +39,14 @@
 
 #include "gz/sim/Link.hh"
 
-class ignition::gazebo::LinkPrivate
+class gz::sim::LinkPrivate
 {
   /// \brief Id of link entity.
   public: Entity id{kNullEntity};
 };
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 //////////////////////////////////////////////////
 Link::Link(gazebo::Entity _entity)

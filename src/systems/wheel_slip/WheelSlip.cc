@@ -35,13 +35,13 @@
 #include "gz/sim/components/SlipComplianceCmd.hh"
 #include "gz/sim/components/WheelSlipCmd.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 // Adapted from osrf/Gazebo WheelSlipPlugin
 // https://osrf-migration.github.io/gazebo-gh-pages/#!/osrf/gazebo/pull-requests/2950/
-class ignition::gazebo::systems::WheelSlipPrivate
+class gz::sim::systems::WheelSlipPrivate
 {
   /// \brief Initialize the plugin
   public: bool Load(const EntityComponentManager &_ecm, sdf::ElementPtr _sdf);
@@ -386,9 +386,9 @@ void WheelSlip::PreUpdate(const UpdateInfo &_info, EntityComponentManager &_ecm)
 }
 
 IGNITION_ADD_PLUGIN(WheelSlip,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     WheelSlip::ISystemConfigure,
                     WheelSlip::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(WheelSlip,
-                          "ignition::gazebo::systems::WheelSlip")
+                          "gz::sim::systems::WheelSlip")

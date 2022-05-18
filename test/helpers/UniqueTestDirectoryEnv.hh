@@ -23,9 +23,9 @@
 #include <ignition/common/Filesystem.hh>
 #include <gz/sim/test_config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 namespace test
 {
@@ -47,7 +47,7 @@ namespace test
 ///  {
 ///    ::testing::InitGoogleTest(&_argc, _argv);
 ///    ::testing::AddGlobalTestEnvironment(
-///      new ignition::gazebo::test::UniqueTestDirectoryEnv("custom_dir_name"));
+///      new gz::sim::test::UniqueTestDirectoryEnv("custom_dir_name"));
 ///     return RUN_ALL_TESTS();
 ///  }
 /// gtest is responsible for the instance, so there is no need to delete it.

@@ -35,11 +35,11 @@
 #include <gz/msgs/light.pb.h>
 
 #include "Types.hh"
-Q_DECLARE_METATYPE(ignition::gazebo::ComponentTypeId)
+Q_DECLARE_METATYPE(gz::sim::ComponentTypeId)
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
   class ComponentInspectorEditorPrivate;
 
@@ -152,12 +152,12 @@ namespace gazebo
     /// \param[in] _typeId Type of component to be added.
     /// \return Newly created item.
     public slots: QStandardItem *AddComponentType(
-        ignition::gazebo::ComponentTypeId _typeId);
+        gz::sim::ComponentTypeId _typeId);
 
     /// \brief Remove a component type from the inspector.
     /// \param[in] _typeId Type of component to be removed.
     public slots: void RemoveComponentType(
-        ignition::gazebo::ComponentTypeId _typeId);
+        gz::sim::ComponentTypeId _typeId);
 
     /// \brief Keep track of items in the tree, according to type ID.
     public: std::map<ComponentTypeId, QStandardItem *> items;

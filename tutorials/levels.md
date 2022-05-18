@@ -144,8 +144,8 @@ The concepts of levels and performers are specific to Ignition Gazebo, thus,
 putting them directly under the `<world>` tag would diminish the generality of
 SDF. A new tag, `<extension>`, has been proposed for such circumstances but has
 not been implemented yet. Therefore, for now, the `<level>` and `<performer>`
-tags will be added to a `<plugin name="ignition::gazebo" filename="dummy">` tag.
-The plugin name `ignition::gazebo` will be fixed so that a simulation runner
+tags will be added to a `<plugin name="gz::sim" filename="dummy">` tag.
+The plugin name `gz::sim` will be fixed so that a simulation runner
 would know to check for that name in each plugin tag.
 
 ### <level>
@@ -224,7 +224,7 @@ The name of the add performer service is
 `/world/<world_name>/level/set_performer`. Make sure to replace
 `<world_name>` with the name of simulated world. The service request is an
 ignition:msgs::StringMsg message, and the response is an
-ignition::msgs::Boolean message. The response is true when the peformer was
+gz::msgs::Boolean message. The response is true when the peformer was
 successfuly added.
 
 #### Example
@@ -298,7 +298,7 @@ the figure
     <!-- other links and joints-->
   </model>
 
-  <plugin name="ignition::gazebo" filename="dummy">
+  <plugin name="gz::sim" filename="dummy">
     <performer name="perf1">
       <ref>R1</ref>
       <geometry>

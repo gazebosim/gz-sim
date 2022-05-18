@@ -21,9 +21,9 @@
 #include <gz/sim/System.hh>
 #include <memory>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -39,7 +39,7 @@ namespace systems
   /// The default topic name is "/model/${MODEL_NAME}/joint_trajectory" that
   /// can be configured with the `<topic>` system parameter.
   ///
-  /// This topic accepts ignition::msgs::JointTrajectory messages that represent
+  /// This topic accepts gz::msgs::JointTrajectory messages that represent
   /// a full trajectory, defined as temporal `points` with their fields ordered
   /// according to `joint_names` field. The fields under `points` are
   /// `positions` - Controlled by position PID controller for each joint
@@ -150,15 +150,15 @@ namespace systems
 
     // Documentation inherited
     public: void PreUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) override;
+                const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
     private: std::unique_ptr<JointTrajectoryControllerPrivate> dataPtr;
   };
 }  // namespace systems
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz
 
 #endif

@@ -38,9 +38,9 @@
 #include "gz/sim/SdfEntityCreator.hh"
 #include "gz/sim/Types.hh"
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -108,12 +108,12 @@ namespace ignition
 
       /// \brief Read information about performers from the sdf Element and
       /// create performer entities
-      /// \param[in] _sdf sdf::ElementPtr of the ignition::gazebo plugin tag
+      /// \param[in] _sdf sdf::ElementPtr of the gz::sim plugin tag
       private: void ReadPerformers(const sdf::ElementPtr &_sdf);
 
       /// \brief Read information about levels from the sdf Element and
       /// create level entities
-      /// \param[in] _sdf sdf::ElementPtr of the ignition::gazebo plugin tag
+      /// \param[in] _sdf sdf::ElementPtr of the gz::sim plugin tag
       private: void ReadLevels(const sdf::ElementPtr &_sdf);
 
       /// \brief Determine which entities belong to the default level and
@@ -171,7 +171,7 @@ namespace ignition
       private: std::unique_ptr<SdfEntityCreator> entityCreator{nullptr};
 
       /// \brief Transport node.
-      private: ignition::transport::Node node;
+      private: gz::transport::Node node;
 
       /// \brief The list of performers to add.
       private: std::list<std::pair<std::string, sdf::Geometry>> performersToAdd;

@@ -27,13 +27,13 @@
 #include "ignition/gazebo/SystemLoader.hh"
 #include "gz/sim/test_config.hh"  // NOLINT(build/include)
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 //////////////////////////////////////////////////
 int main(int _argc, char** _argv)
 {
-  ignition::common::Console::SetVerbosity(4);
+  gz::common::Console::SetVerbosity(4);
 
   std::string sdfFile{""};
   if (_argc >= 2)
@@ -56,7 +56,7 @@ int main(int _argc, char** _argv)
   }
   igndbg << "Update rate: " << updateRate << std::endl;
 
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   if (!serverConfig.SetSdfFile(sdfFile))
   {
     ignerr << "Failed to set SDF file [" << sdfFile << "]" << std::endl;
@@ -68,23 +68,23 @@ int main(int _argc, char** _argv)
     serverConfig.SetUpdateRate(updateRate);
 
   // Create the Gazebo server
-  ignition::gazebo::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
 
-  ignition::transport::Node node;
+  gz::transport::Node node;
 
-  std::vector<ignition::msgs::Clock> msgs;
+  std::vector<gz::msgs::Clock> msgs;
   msgs.reserve(iterations);
 
-  std::function<void(const ignition::msgs::Clock&)> cb =
-    [&](const ignition::msgs::Clock &_msg)
+  std::function<void(const gz::msgs::Clock&)> cb =
+    [&](const gz::msgs::Clock &_msg)
     {
       msgs.push_back(_msg);
     };
 
   double progress = 0;
 
-  std::function<void(const ignition::msgs::WorldStatistics &)> cb2 =
-    [&](const ignition::msgs::WorldStatistics &_msg)
+  std::function<void(const gz::msgs::WorldStatistics &)> cb2 =
+    [&](const gz::msgs::WorldStatistics &_msg)
     {
       double nIters = static_cast<double>(_msg.iterations());
       nIters = nIters / iterations * 100;

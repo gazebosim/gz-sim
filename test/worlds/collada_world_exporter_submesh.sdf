@@ -10,12 +10,12 @@
 
     <plugin
       filename="libignition-gazebo-physics-system.so"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
 
     <plugin
       filename="ignition-gazebo-collada-world-exporter-system"
-      name="ignition::gazebo::systems::ColladaWorldExporter">
+      name="gz::sim::systems::ColladaWorldExporter">
     </plugin>
 
     <include>

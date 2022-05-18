@@ -34,8 +34,8 @@
 #include "../../../test/helpers/EnvTestFixture.hh"
 #include "gz/sim/EntityComponentManager.hh"
 
-using namespace ignition;
-using namespace ignition::gazebo::systems::physics_system;
+using namespace gz;
+using namespace gz::sim::systems::physics_system;
 
 struct MinimumFeatureList
     : physics::FeatureList<physics::ConstructEmptyWorldFeature,
@@ -64,7 +64,7 @@ class EntityFeatureMapFixture: public InternalFixture<::testing::Test>
         << "Failed to find plugin [" << pluginLib << "]";
 
     // Load engine plugin
-    ignition::plugin::Loader pluginLoader;
+    gz::plugin::Loader pluginLoader;
     auto plugins = pluginLoader.LoadLib(pathToLib);
     ASSERT_FALSE(plugins.empty())
         << "Unable to load the [" << pathToLib << "] library.";
@@ -82,7 +82,7 @@ class EntityFeatureMapFixture: public InternalFixture<::testing::Test>
                           << pathToLib << "]";
 
       this->engine =
-          ignition::physics::RequestEngine<physics::FeaturePolicy3d,
+          gz::physics::RequestEngine<physics::FeaturePolicy3d,
                                            MinimumFeatureList>::From(plugin);
 
       ASSERT_NE(nullptr, this->engine);

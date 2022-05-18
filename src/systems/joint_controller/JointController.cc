@@ -31,15 +31,15 @@
 #include "gz/sim/components/JointVelocityCmd.hh"
 #include "gz/sim/Model.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::JointControllerPrivate
+class gz::sim::systems::JointControllerPrivate
 {
   /// \brief Callback for velocity subscription
   /// \param[in] _msg Velocity message
-  public: void OnCmdVel(const ignition::msgs::Double &_msg);
+  public: void OnCmdVel(const gz::msgs::Double &_msg);
 
   /// \brief Ignition communication node.
   public: transport::Node node;
@@ -61,7 +61,7 @@ class ignition::gazebo::systems::JointControllerPrivate
   public: bool useForceCommands{false};
 
   /// \brief Velocity PID controller.
-  public: ignition::math::PID velPid;
+  public: gz::math::PID velPid;
 };
 
 //////////////////////////////////////////////////
@@ -173,8 +173,8 @@ void JointController::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void JointController::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void JointController::PreUpdate(const gz::sim::UpdateInfo &_info,
+    gz::sim::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("JointController::PreUpdate");
 
@@ -260,9 +260,9 @@ void JointControllerPrivate::OnCmdVel(const msgs::Double &_msg)
 }
 
 IGNITION_ADD_PLUGIN(JointController,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     JointController::ISystemConfigure,
                     JointController::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(JointController,
-                          "ignition::gazebo::systems::JointController")
+                          "gz::sim::systems::JointController")

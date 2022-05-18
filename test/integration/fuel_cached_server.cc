@@ -23,8 +23,8 @@
 
 #include "../test/helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace ignition::gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace std::chrono_literals;
 
 /////////////////////////////////////////////////

@@ -23,9 +23,9 @@
 
 #include <string>
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -74,8 +74,8 @@ namespace ignition
     std::string IGNITION_GAZEBO_VISIBLE
     getPrimitive(const std::string &_typeName);
     }
-  }  // namespace gazebo
-}  // namespace ignition
+  }  // namespace sim
+}  // namespace gz
 
 
 #endif  // GZ_GAZEBO_PRIMITIVES_HH_

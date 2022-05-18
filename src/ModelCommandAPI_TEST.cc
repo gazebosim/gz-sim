@@ -89,13 +89,13 @@ TEST(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_WIN32(NoServerRunning))
 // Tests `ign model` command.
 TEST(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_WIN32(Commands))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
   serverConfig.SetSdfFile(
-      ignition::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
         "test", "worlds", "static_diff_drive_vehicle.sdf"));
 
-  ignition::gazebo::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
   // Run at least one iteration before continuing to guarantee correctly set up.
   ASSERT_TRUE(server.Run(true, 5, false));
   // Run without blocking.
@@ -389,13 +389,13 @@ TEST(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_WIN32(Commands))
 // Tests `ign model -s` command with an airpressure sensor.
 TEST(ModelCommandAPI, AirPressureSensor)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
   serverConfig.SetSdfFile(
-      ignition::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
         "test", "worlds", "air_pressure.sdf"));
 
-  ignition::gazebo::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
   // Run at least one iteration before continuing to guarantee correctly set up.
   ASSERT_TRUE(server.Run(true, 5, false));
   // Run without blocking.
@@ -432,13 +432,13 @@ TEST(ModelCommandAPI, AirPressureSensor)
 // Tests `ign model -s` command with an altimeter.
 TEST(ModelCommandAPI, AltimeterSensor)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
   serverConfig.SetSdfFile(
-      ignition::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
         "test", "worlds", "altimeter_with_pose.sdf"));
 
-  ignition::gazebo::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
   // Run at least one iteration before continuing to guarantee correctly set up.
   ASSERT_TRUE(server.Run(true, 5, false));
   // Run without blocking.
@@ -482,13 +482,13 @@ TEST(ModelCommandAPI, AltimeterSensor)
 // Tests `ign model -s` command with a gpu lidar sensor.
 TEST(ModelCommandAPI, GpuLidarSensor)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
   serverConfig.SetSdfFile(
-      ignition::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
         "test", "worlds", "gpu_lidar.sdf"));
 
-  ignition::gazebo::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
   // Run at least one iteration before continuing to guarantee correctly set up.
   ASSERT_TRUE(server.Run(true, 5, false));
   // Run without blocking.
@@ -538,13 +538,13 @@ TEST(ModelCommandAPI, GpuLidarSensor)
 // Tests `ign model -s` command with a magnetometer.
 TEST(ModelCommandAPI, MagnetometerSensor)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
   serverConfig.SetSdfFile(
-      ignition::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
         "test", "worlds", "magnetometer.sdf"));
 
-  ignition::gazebo::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
   // Run at least one iteration before continuing to guarantee correctly set up.
   ASSERT_TRUE(server.Run(true, 5, false));
   // Run without blocking.
@@ -597,13 +597,13 @@ TEST(ModelCommandAPI, MagnetometerSensor)
 // Tests `ign model -s` command with an rgbd camera.
 TEST(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_MAC(RgbdCameraSensor))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
   serverConfig.SetSdfFile(
-      ignition::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
         "test", "worlds", "rgbd_camera_sensor.sdf"));
 
-  ignition::gazebo::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
   // Run at least one iteration before continuing to guarantee correctly set up.
   ASSERT_TRUE(server.Run(true, 5, false));
   // Run without blocking.

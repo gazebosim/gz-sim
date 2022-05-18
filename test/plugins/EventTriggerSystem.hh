@@ -21,9 +21,9 @@
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/System.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 class EventTriggerSystem :
   public gazebo::System,

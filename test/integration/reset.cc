@@ -44,10 +44,10 @@
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
-namespace components = ignition::gazebo::components;
+namespace components = gz::sim::components;
 
 //////////////////////////////////////////////////
 class ResetFixture: public InternalFixture<::testing::Test>
@@ -57,7 +57,7 @@ class ResetFixture: public InternalFixture<::testing::Test>
     InternalFixture::SetUp();
 
     auto plugin = sm.LoadPlugin("libMockSystem.so",
-                                "ignition::gazebo::MockSystem",
+                                "gz::sim::MockSystem",
                                 nullptr);
     EXPECT_TRUE(plugin.has_value());
     this->systemPtr = plugin.value();
@@ -65,7 +65,7 @@ class ResetFixture: public InternalFixture<::testing::Test>
         systemPtr->QueryInterface<gazebo::System>());
   }
 
-  public: ignition::gazebo::SystemPluginPtr systemPtr;
+  public: gz::sim::SystemPluginPtr systemPtr;
   public: gazebo::MockSystem *mockSystem;
 
   private: gazebo::SystemLoader sm;
@@ -74,8 +74,8 @@ class ResetFixture: public InternalFixture<::testing::Test>
 /////////////////////////////////////////////////
 void worldReset()
 {
-  ignition::msgs::WorldControl req;
-  ignition::msgs::Boolean rep;
+  gz::msgs::WorldControl req;
+  gz::msgs::Boolean rep;
   req.mutable_reset()->set_all(true);
   transport::Node node;
 
@@ -94,7 +94,7 @@ void worldReset()
 /// are removed and then added back
 TEST_F(ResetFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
 
   const std::string sdfFile = common::joinPaths(PROJECT_SOURCE_PATH,
     "test", "worlds", "reset.sdf");

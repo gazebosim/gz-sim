@@ -29,13 +29,13 @@ using namespace std::literals::chrono_literals;
 
 //////////////////////////////////////////////////
 void RenderingServerPlugin::Configure(
-    const ignition::gazebo::Entity &/*_entity*/,
+    const gz::sim::Entity &/*_entity*/,
     const std::shared_ptr<const sdf::Element> &/*_sdf*/,
-    ignition::gazebo::EntityComponentManager &/*_ecm*/,
-    ignition::gazebo::EventManager &_eventMgr)
+    gz::sim::EntityComponentManager &/*_ecm*/,
+    gz::sim::EventManager &_eventMgr)
 {
 //! [connectToServerEvent]
-  this->connection = _eventMgr.Connect<ignition::gazebo::events::PreRender>(
+  this->connection = _eventMgr.Connect<gz::sim::events::PreRender>(
     std::bind(&RenderingServerPlugin::PerformRenderingOperations, this));
 //! [connectToServerEvent]
 }
@@ -56,9 +56,9 @@ void RenderingServerPlugin::PerformRenderingOperations()
     return;
 
   this->scene->SetAmbientLight({
-      static_cast<float>(ignition::math::Rand::DblUniform(0.0, 1.0)),
-      static_cast<float>(ignition::math::Rand::DblUniform(0.0, 1.0)),
-      static_cast<float>(ignition::math::Rand::DblUniform(0.0, 1.0)),
+      static_cast<float>(gz::math::Rand::DblUniform(0.0, 1.0)),
+      static_cast<float>(gz::math::Rand::DblUniform(0.0, 1.0)),
+      static_cast<float>(gz::math::Rand::DblUniform(0.0, 1.0)),
       1.0});
 
   this->lastUpdate = this->simTime;
@@ -69,7 +69,7 @@ void RenderingServerPlugin::PerformRenderingOperations()
 //! [findScene]
 void RenderingServerPlugin::FindScene()
 {
-  auto loadedEngNames = ignition::rendering::loadedEngines();
+  auto loadedEngNames = gz::rendering::loadedEngines();
   if (loadedEngNames.empty())
   {
     igndbg << "No rendering engine is loaded yet" << std::endl;
@@ -83,7 +83,7 @@ void RenderingServerPlugin::FindScene()
     igndbg << "More than one engine is available. "
       << "Using engine [" << engineName << "]" << std::endl;
   }
-  auto engine = ignition::rendering::engine(engineName);
+  auto engine = gz::rendering::engine(engineName);
   if (!engine)
   {
     ignerr << "Internal error: failed to load engine [" << engineName
@@ -121,15 +121,15 @@ void RenderingServerPlugin::FindScene()
 //! [findScene]
 
 //////////////////////////////////////////////////
-void RenderingServerPlugin::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void RenderingServerPlugin::PreUpdate(const gz::sim::UpdateInfo &_info,
+    gz::sim::EntityComponentManager &_ecm)
 {
   this->simTime = _info.simTime;
 }
 
 IGNITION_ADD_PLUGIN(
   RenderingServerPlugin,
-  ignition::gazebo::System,
+  gz::sim::System,
   RenderingServerPlugin::ISystemConfigure,
   RenderingServerPlugin::ISystemPreUpdate
 )

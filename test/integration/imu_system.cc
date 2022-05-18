@@ -42,8 +42,8 @@
 
 #define TOL 1e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test ImuTest system
 class ImuTest : public InternalFixture<::testing::Test>
@@ -144,7 +144,7 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
                   components::WorldPose,
                   components::AngularVelocity,
                   components::LinearAcceleration>(
-            [&](const ignition::gazebo::Entity &_entity,
+            [&](const gz::sim::Entity &_entity,
                 const components::Imu *,
                 const components::Name *_name,
                 const components::WorldPose *_worldPose,
@@ -175,7 +175,7 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
             });
 
         _ecm.Each<components::Gravity>(
-            [&](const ignition::gazebo::Entity &,
+            [&](const gz::sim::Entity &,
                 const components::Gravity *_gravity) -> bool
             {
               // gtest is having a hard time with ASSERTs inside nested lambdas

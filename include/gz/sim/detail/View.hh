@@ -31,9 +31,9 @@
 #include "gz/sim/config.hh"
 #include "gz/sim/detail/BaseView.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -44,7 +44,7 @@ namespace detail
 /// Note that symbols for this class are visible because methods from this class
 /// are used in templated Ignition::Gazebo::EntityComponentManager methods.
 /// However, users should not use this class (or anything else in namespace
-/// ignition::gazebo::detail) directly.
+/// gz::sim::detail) directly.
 class IGNITION_GAZEBO_VISIBLE View : public BaseView
 {
   /// \brief Alias for containers that hold and entity and its component data.
@@ -185,6 +185,6 @@ void View::AddEntityWithComps(const Entity &_entity, const bool _new,
 }
 }  // namespace detail
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz
 #endif

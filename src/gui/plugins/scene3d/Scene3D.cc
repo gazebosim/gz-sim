@@ -77,11 +77,11 @@
 std::condition_variable g_renderCv;
 
 Q_DECLARE_METATYPE(std::string)
-Q_DECLARE_METATYPE(ignition::gazebo::RenderSync*)
+Q_DECLARE_METATYPE(gz::sim::RenderSync*)
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   /// \brief Helper to store selection requests to be handled in the render
@@ -157,7 +157,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: bool zPressed = false;
 
     /// \brief The starting world pose of a clicked visual.
-    public: ignition::math::Vector3d startWorldPos = math::Vector3d::Zero;
+    public: gz::math::Vector3d startWorldPos = math::Vector3d::Zero;
 
     /// \brief Flag to keep track of world pose setting used
     /// for button translating.
@@ -208,7 +208,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: std::string moveToTarget;
 
     /// \brief Helper object to move user camera
-    public: ignition::rendering::MoveToHelper moveToHelper;
+    public: gz::rendering::MoveToHelper moveToHelper;
 
     /// \brief Target to follow
     public: std::string followTarget;
@@ -284,8 +284,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: std::string spawnSdfPath;
 
     /// \brief The pose of the spawn preview.
-    public: ignition::math::Pose3d spawnPreviewPose =
-            ignition::math::Pose3d::Zero;
+    public: gz::math::Pose3d spawnPreviewPose =
+            gz::math::Pose3d::Zero;
 
     /// \brief The visual generated from the spawnSdfString / spawnSdfPath
     public: rendering::NodePtr spawnPreview = nullptr;
@@ -567,8 +567,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 }
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 QList<QThread *> RenderWindowItemPrivate::threads;
 
@@ -794,7 +794,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
           std::chrono::steady_clock::duration dt;
           dt = t - this->dataPtr->recordStartTime;
           int64_t sec, nsec;
-          std::tie(sec, nsec) = ignition::math::durationToSecNsec(dt);
+          std::tie(sec, nsec) = gz::math::durationToSecNsec(dt);
           msgs::Time msg;
           msg.set_sec(sec);
           msg.set_nsec(nsec);
@@ -1173,11 +1173,11 @@ void IgnRenderer::Render(RenderSync *_renderSync)
     }
   }
 
-  if (ignition::gui::App())
+  if (gz::gui::App())
   {
-    ignition::gui::events::Render event;
-    ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+    gz::gui::events::Render event;
+    gz::gui::App()->sendEvent(
+        gz::gui::App()->findChild<gz::gui::MainWindow *>(),
         &event);
   }
 
@@ -1212,7 +1212,7 @@ bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
     // Only preview first model
     sdf::Model model = *(_sdf.Model());
     this->dataPtr->spawnPreviewPose = model.RawPose();
-    model.SetName(ignition::common::Uuid().String());
+    model.SetName(gz::common::Uuid().String());
     Entity modelId = this->UniqueId();
     if (!modelId)
     {
@@ -1228,7 +1228,7 @@ bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
     for (auto j = 0u; j < model.LinkCount(); j++)
     {
       sdf::Link link = *(model.LinkByIndex(j));
-      link.SetName(ignition::common::Uuid().String());
+      link.SetName(gz::common::Uuid().String());
       Entity linkId = this->UniqueId();
       if (!linkId)
       {
@@ -1241,7 +1241,7 @@ bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
       for (auto k = 0u; k < link.VisualCount(); k++)
       {
        sdf::Visual visual = *(link.VisualByIndex(k));
-       visual.SetName(ignition::common::Uuid().String());
+       visual.SetName(gz::common::Uuid().String());
        Entity visualId = this->UniqueId();
        if (!visualId)
        {
@@ -1259,7 +1259,7 @@ bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
     // Only preview first model
     sdf::Light light = *(_sdf.Light());
     this->dataPtr->spawnPreviewPose = light.RawPose();
-    light.SetName(ignition::common::Uuid().String());
+    light.SetName(gz::common::Uuid().String());
     Entity lightVisualId = this->UniqueId();
     if (!lightVisualId)
     {
@@ -1327,9 +1327,9 @@ void IgnRenderer::BroadcastHoverPos()
   {
     math::Vector3d pos = this->ScreenToScene(this->dataPtr->mouseHoverPos);
 
-    ignition::gui::events::HoverToScene hoverToSceneEvent(pos);
-    ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+    gz::gui::events::HoverToScene hoverToSceneEvent(pos);
+    gz::gui::App()->sendEvent(
+        gz::gui::App()->findChild<gz::gui::MainWindow *>(),
         &hoverToSceneEvent);
   }
 }
@@ -1343,9 +1343,9 @@ void IgnRenderer::BroadcastLeftClick()
   {
     math::Vector3d pos = this->ScreenToScene(this->dataPtr->mouseEvent.Pos());
 
-    ignition::gui::events::LeftClickToScene leftClickToSceneEvent(pos);
-    ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+    gz::gui::events::LeftClickToScene leftClickToSceneEvent(pos);
+    gz::gui::App()->sendEvent(
+        gz::gui::App()->findChild<gz::gui::MainWindow *>(),
         &leftClickToSceneEvent);
   }
 }
@@ -1363,9 +1363,9 @@ void IgnRenderer::BroadcastRightClick()
 
     math::Vector3d pos = this->ScreenToScene(this->dataPtr->mouseEvent.Pos());
 
-    ignition::gui::events::RightClickToScene rightClickToSceneEvent(pos);
-    ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+    gz::gui::events::RightClickToScene rightClickToSceneEvent(pos);
+    gz::gui::App()->sendEvent(
+        gz::gui::App()->findChild<gz::gui::MainWindow *>(),
         &rightClickToSceneEvent);
   }
 }
@@ -1443,17 +1443,17 @@ void IgnRenderer::HandleKeyPress(QKeyEvent *_e)
   // fullscreen
   if (_e->key() == Qt::Key_F11)
   {
-    if (ignition::gui::App()->findChild
-        <ignition::gui::MainWindow *>()->QuickWindow()->visibility()
+    if (gz::gui::App()->findChild
+        <gz::gui::MainWindow *>()->QuickWindow()->visibility()
         == QWindow::FullScreen)
     {
-      ignition::gui::App()->findChild
-        <ignition::gui::MainWindow *>()->QuickWindow()->showNormal();
+      gz::gui::App()->findChild
+        <gz::gui::MainWindow *>()->QuickWindow()->showNormal();
     }
     else
     {
-      ignition::gui::App()->findChild
-        <ignition::gui::MainWindow *>()->QuickWindow()->showFullScreen();
+      gz::gui::App()->findChild
+        <gz::gui::MainWindow *>()->QuickWindow()->showFullScreen();
     }
   }
 
@@ -1550,8 +1550,8 @@ void IgnRenderer::HandleModelPlacement()
     this->TerminateSpawnPreview();
 
     math::Pose3d modelPose = this->dataPtr->spawnPreviewPose;
-    std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-        [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+    std::function<void(const gz::msgs::Boolean &, const bool)> cb =
+        [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
     {
       if (!_result)
         ignerr << "Error creating model" << std::endl;
@@ -1629,9 +1629,9 @@ void IgnRenderer::DeselectAllEntities(bool _sendEvent)
 
   if (_sendEvent)
   {
-    ignition::gazebo::gui::events::DeselectAllEntities deselectEvent;
-    ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+    gz::sim::gui::events::DeselectAllEntities deselectEvent;
+    gz::gui::App()->sendEvent(
+        gz::gui::App()->findChild<gz::gui::MainWindow *>(),
         &deselectEvent);
   }
 }
@@ -1665,7 +1665,7 @@ double IgnRenderer::SnapValue(
 
 /////////////////////////////////////////////////
 void IgnRenderer::SnapPoint(
-    ignition::math::Vector3d &_point, math::Vector3d &_snapVals,
+    gz::math::Vector3d &_point, math::Vector3d &_snapVals,
     double _sensitivity) const
 {
   if (_snapVals.X() <= 0 || _snapVals.Y() <= 0 || _snapVals.Z() <= 0)
@@ -1772,7 +1772,7 @@ void IgnRenderer::HandleMouseTransformControl()
         // check if the visual is an axis in the gizmo visual
         math::Vector3d axis =
             this->dataPtr->transformControl.AxisById(visual->Id());
-        if (axis != ignition::math::Vector3d::Zero)
+        if (axis != gz::math::Vector3d::Zero)
         {
           // start the transform process
           this->dataPtr->transformControl.SetActiveAxis(axis);
@@ -1790,14 +1790,14 @@ void IgnRenderer::HandleMouseTransformControl()
       {
         if (this->dataPtr->transformControl.Node())
         {
-          std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-              [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+          std::function<void(const gz::msgs::Boolean &, const bool)> cb =
+              [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
           {
             if (!_result)
               ignerr << "Error setting pose" << std::endl;
           };
           rendering::NodePtr node = this->dataPtr->transformControl.Node();
-          ignition::msgs::Pose req;
+          gz::msgs::Pose req;
           req.set_name(node->Name());
           msgs::Set(req.mutable_position(), node->WorldPosition());
           msgs::Set(req.mutable_orientation(), node->WorldRotation());
@@ -1840,7 +1840,7 @@ void IgnRenderer::HandleMouseTransformControl()
         // check if the visual is an axis in the gizmo visual
         math::Vector3d axis =
             this->dataPtr->transformControl.AxisById(visual->Id());
-        if (axis == ignition::math::Vector3d::Zero)
+        if (axis == gz::math::Vector3d::Zero)
         {
           auto topVis =
               this->dataPtr->renderUtil.SceneManager().TopLevelVisual(visual);
@@ -2058,7 +2058,7 @@ void IgnRenderer::HandleMouseViewControl()
     // unset the target on release (by setting to inf)
     else if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE)
     {
-      this->dataPtr->target = ignition::math::INF_D;
+      this->dataPtr->target = gz::math::INF_D;
     }
 
     // Pan with left button
@@ -2110,7 +2110,7 @@ std::string IgnRenderer::Initialize()
   }
 
   this->dataPtr->renderUtil.SetWinID(std::to_string(
-    ignition::gui::App()->findChild<ignition::gui::MainWindow *>()->
+    gz::gui::App()->findChild<gz::gui::MainWindow *>()->
       QuickWindow()->winId()));
   this->dataPtr->renderUtil.SetUseCurrentGLContext(true);
   this->dataPtr->renderUtil.Init();
@@ -2256,10 +2256,10 @@ void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node,
   // Notify other widgets of the currently selected entities
   if (_sendEvent || deselectedAll)
   {
-    ignition::gazebo::gui::events::EntitiesSelected selectEvent(
+    gz::sim::gui::events::EntitiesSelected selectEvent(
         this->dataPtr->renderUtil.SelectedEntities());
-    ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+    gz::gui::App()->sendEvent(
+        gz::gui::App()->findChild<gz::gui::MainWindow *>(),
         &selectEvent);
   }
 }
@@ -2530,7 +2530,7 @@ math::Vector3d IgnRenderer::ScreenToPlane(
   this->dataPtr->rayQuery->SetFromCamera(
       this->dataPtr->camera, math::Vector2d(nx, ny));
 
-  ignition::math::Planed plane(ignition::math::Vector3d(0, 0, 1), 0);
+  gz::math::Planed plane(gz::math::Vector3d(0, 0, 1), 0);
 
   math::Vector3d origin = this->dataPtr->rayQuery->Origin();
   math::Vector3d direction = this->dataPtr->rayQuery->Direction();
@@ -3136,8 +3136,8 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       elem->QueryBoolText(&fullscreen);
       if (fullscreen)
       {
-        ignition::gui::App()->findChild
-          <ignition::gui::MainWindow *>()->QuickWindow()->showFullScreen();
+        gz::gui::App()->findChild
+          <gz::gui::MainWindow *>()->QuickWindow()->showFullScreen();
       }
     }
 
@@ -3265,10 +3265,10 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   ignmsg << "Camera view controller topic advertised on ["
          << this->dataPtr->cameraViewControlService << "]" << std::endl;
 
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->QuickWindow()->installEventFilter(this);
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->QuickWindow()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 //////////////////////////////////////////////////
@@ -3534,8 +3534,8 @@ void Scene3D::OnDropped(const QString &_drop, int _mouseX, int _mouseY)
     return;
   }
 
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &_res, const bool _result)
+  std::function<void(const gz::msgs::Boolean &, const bool)> cb =
+      [](const gz::msgs::Boolean &_res, const bool _result)
   {
     if (!_result || !_res.data())
       ignerr << "Error creating dropped entity." << std::endl;
@@ -3677,10 +3677,10 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-      ignition::gazebo::gui::events::EntitiesSelected::kType)
+      gz::sim::gui::events::EntitiesSelected::kType)
   {
     auto selectedEvent =
-        reinterpret_cast<ignition::gazebo::gui::events::EntitiesSelected *>(
+        reinterpret_cast<gz::sim::gui::events::EntitiesSelected *>(
         _event);
     if (selectedEvent)
     {
@@ -3711,10 +3711,10 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-           ignition::gazebo::gui::events::DeselectAllEntities::kType)
+           gz::sim::gui::events::DeselectAllEntities::kType)
   {
     auto deselectEvent =
-        reinterpret_cast<ignition::gazebo::gui::events::DeselectAllEntities *>(
+        reinterpret_cast<gz::sim::gui::events::DeselectAllEntities *>(
         _event);
 
     // If the event is from the user, update render util state
@@ -3725,9 +3725,9 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-      ignition::gui::events::SnapIntervals::kType)
+      gz::gui::events::SnapIntervals::kType)
   {
-    auto snapEvent = reinterpret_cast<ignition::gui::events::SnapIntervals *>(
+    auto snapEvent = reinterpret_cast<gz::gui::events::SnapIntervals *>(
         _event);
     if (snapEvent)
     {
@@ -3738,20 +3738,20 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-      ignition::gui::events::SpawnFromDescription::kType)
+      gz::gui::events::SpawnFromDescription::kType)
   {
     auto spawnPreviewEvent = reinterpret_cast<
-        ignition::gui::events::SpawnFromDescription *>(_event);
+        gz::gui::events::SpawnFromDescription *>(_event);
     if (spawnPreviewEvent)
     {
       auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
       renderWindow->SetModel(spawnPreviewEvent->Description());
     }
   }
-  else if (_event->type() == ignition::gui::events::SpawnFromPath::kType)
+  else if (_event->type() == gz::gui::events::SpawnFromPath::kType)
   {
     auto spawnPreviewPathEvent =
-      reinterpret_cast<ignition::gui::events::SpawnFromPath *>(_event);
+      reinterpret_cast<gz::gui::events::SpawnFromPath *>(_event);
     if (spawnPreviewPathEvent)
     {
       auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
@@ -3759,10 +3759,10 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-      ignition::gui::events::DropdownMenuEnabled::kType)
+      gz::gui::events::DropdownMenuEnabled::kType)
   {
     auto dropdownMenuEnabledEvent =
-      reinterpret_cast<ignition::gui::events::DropdownMenuEnabled *>(_event);
+      reinterpret_cast<gz::gui::events::DropdownMenuEnabled *>(_event);
     if (dropdownMenuEnabledEvent)
     {
       auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
@@ -3965,7 +3965,7 @@ void RenderWindowItem::SetVisibilityMask(uint32_t _mask)
 }
 
 /////////////////////////////////////////////////
-void RenderWindowItem::OnHovered(const ignition::math::Vector2i &_hoverPos)
+void RenderWindowItem::OnHovered(const gz::math::Vector2i &_hoverPos)
 {
   this->dataPtr->renderThread->ignRenderer.NewHoverEvent(_hoverPos);
 }
@@ -3981,7 +3981,7 @@ void RenderWindowItem::mousePressEvent(QMouseEvent *_e)
 {
   this->forceActiveFocus();
 
-  auto event = ignition::gui::convert(*_e);
+  auto event = gz::gui::convert(*_e);
   event.SetPressPos(event.Pos());
   this->dataPtr->mouseEvent = event;
   this->dataPtr->mouseEvent.SetType(common::MouseEvent::PRESS);
@@ -3993,7 +3993,7 @@ void RenderWindowItem::mousePressEvent(QMouseEvent *_e)
 ////////////////////////////////////////////////
 void RenderWindowItem::mouseReleaseEvent(QMouseEvent *_e)
 {
-  auto event = ignition::gui::convert(*_e);
+  auto event = gz::gui::convert(*_e);
   event.SetPressPos(this->dataPtr->mouseEvent.PressPos());
 
   // A release at the end of a drag
@@ -4010,7 +4010,7 @@ void RenderWindowItem::mouseReleaseEvent(QMouseEvent *_e)
 ////////////////////////////////////////////////
 void RenderWindowItem::mouseMoveEvent(QMouseEvent *_e)
 {
-  auto event = ignition::gui::convert(*_e);
+  auto event = gz::gui::convert(*_e);
 
   if (!event.Dragging())
     return;
@@ -4084,5 +4084,5 @@ void RenderWindowItem::HandleKeyRelease(QKeyEvent *_e)
 //
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::Scene3D,
-                    ignition::gui::Plugin)
+IGNITION_ADD_PLUGIN(gz::sim::Scene3D,
+                    gz::gui::Plugin)

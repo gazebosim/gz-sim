@@ -31,8 +31,8 @@
 #include "gz/sim/test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test Kinetic Energy Monitor system
 class KineticEnergyMonitorTest : public InternalFixture<::testing::Test>

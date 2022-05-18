@@ -93,12 +93,12 @@ settings). Defaults to `false`. Note: the server publishes states at 60Hz
 and the video recorder records at 25 FPS so it also makes sense to update the
 Scene Broadcaster system to only publish states at 25Hz. You can do this by
 going to the world SDF file, locate the
-`ignition::gazebo::systems::SceneBroadcaster` system, and set the
+`gz::sim::systems::SceneBroadcaster` system, and set the
 `<state_hertz>` parameter:
 
 ```xml
         <plugin filename='ignition-gazebo-scene-broadcaster-system'
-                name='ignition::gazebo::systems::SceneBroadcaster'>
+                name='gz::sim::systems::SceneBroadcaster'>
           <state_hertz>25</state_hertz>
         </plugin>
 ```

@@ -43,16 +43,16 @@
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Private Magnetometer data class.
-class ignition::gazebo::systems::MagnetometerPrivate
+class gz::sim::systems::MagnetometerPrivate
 {
   /// \brief A map of magnetometer entity to its sensor.
   public: std::unordered_map<Entity,
-      std::unique_ptr<ignition::sensors::MagnetometerSensor>> entitySensorMap;
+      std::unique_ptr<gz::sensors::MagnetometerSensor>> entitySensorMap;
 
   /// \brief Ign-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
@@ -308,4 +308,4 @@ IGNITION_ADD_PLUGIN(Magnetometer, System,
 )
 
 IGNITION_ADD_PLUGIN_ALIAS(Magnetometer,
-                          "ignition::gazebo::systems::Magnetometer")
+                          "gz::sim::systems::Magnetometer")

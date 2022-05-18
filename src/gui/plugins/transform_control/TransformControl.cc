@@ -47,7 +47,7 @@
 
 #include "gz/sim/gui/GuiEvents.hh"
 
-namespace ignition::gazebo
+namespace gz::sim
 {
   class TransformControlPrivate
   {
@@ -62,7 +62,7 @@ namespace ignition::gazebo
     /// \param[in] _sensitivity Sensitivity of a point snapping, in terms of a
     /// percentage of the interval.
     public: void SnapPoint(
-        ignition::math::Vector3d &_point, math::Vector3d &_snapVals,
+        gz::math::Vector3d &_point, math::Vector3d &_snapVals,
         double _sensitivity = 0.4) const;
 
     /// \brief Constraints the passed in axis to the currently selected axes.
@@ -147,10 +147,10 @@ namespace ignition::gazebo
     public: std::vector<Entity> selectedEntities;
 
     /// \brief Holds the latest mouse event
-    public: ignition::common::MouseEvent mouseEvent;
+    public: gz::common::MouseEvent mouseEvent;
 
     /// \brief Holds the latest key event
-    public: ignition::common::KeyEvent keyEvent;
+    public: gz::common::KeyEvent keyEvent;
 
     /// \brief Flag to indicate whether the x key is currently being pressed
     public: bool xPressed = false;
@@ -171,7 +171,7 @@ namespace ignition::gazebo
     public: bool isStartWorldPosSet = false;
 
     /// \brief The starting world pose of a clicked visual.
-    public: ignition::math::Vector3d startWorldPos = math::Vector3d::Zero;
+    public: gz::math::Vector3d startWorldPos = math::Vector3d::Zero;
 
     /// \brief Block orbit
     public: bool blockOrbit = false;
@@ -182,12 +182,12 @@ namespace ignition::gazebo
   };
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 TransformControl::TransformControl()
-  : ignition::gui::Plugin(),
+  : gz::gui::Plugin(),
   dataPtr(std::make_unique<TransformControlPrivate>())
 {
 }
@@ -220,9 +220,9 @@ void TransformControl::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
            << "MinimalScene." << std::endl;
   }
 
-  ignition::gui::App()->findChild<ignition::gui::MainWindow *>
+  gz::gui::App()->findChild<gz::gui::MainWindow *>
       ()->installEventFilter(this);
-  ignition::gui::App()->findChild<ignition::gui::MainWindow *>
+  gz::gui::App()->findChild<gz::gui::MainWindow *>
       ()->QuickWindow()->installEventFilter(this);
 }
 
@@ -239,12 +239,12 @@ void TransformControl::OnSnapUpdate(
   // Emit event to GzScene3D in legacy mode
   if (this->dataPtr->legacy)
   {
-    ignition::gui::events::SnapIntervals event(
+    gz::gui::events::SnapIntervals event(
         this->dataPtr->xyzSnapVals,
         this->dataPtr->rpySnapVals,
         this->dataPtr->scaleSnapVals);
-    ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(), &event);
+    gz::gui::App()->sendEvent(
+        gz::gui::App()->findChild<gz::gui::MainWindow *>(), &event);
   }
 
   this->newSnapValues();
@@ -258,14 +258,14 @@ void TransformControl::OnMode(const QString &_mode)
   // Legacy behaviour: send request to GzScene3D
   if (this->dataPtr->legacy)
   {
-    std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-        [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+    std::function<void(const gz::msgs::Boolean &, const bool)> cb =
+        [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
     {
       if (!_result)
         ignerr << "Error setting transform mode" << std::endl;
     };
 
-    ignition::msgs::StringMsg req;
+    gz::msgs::StringMsg req;
     req.set_data(modeStr);
     this->dataPtr->node.Request(this->dataPtr->service, req, cb);
   }
@@ -284,10 +284,10 @@ void TransformControl::OnMode(const QString &_mode)
     else
       ignerr << "Unknown transform mode: [" << modeStr << "]" << std::endl;
 
-    ignition::gazebo::gui::events::TransformControlModeActive
+    gz::sim::gui::events::TransformControlModeActive
       transformControlModeActive(this->dataPtr->transformMode);
-    ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+    gz::gui::App()->sendEvent(
+        gz::gui::App()->findChild<gz::gui::MainWindow *>(),
         &transformControlModeActive);
     this->dataPtr->mouseDirty = true;
   }
@@ -347,7 +347,7 @@ void TransformControl::LoadGrid()
 /////////////////////////////////////////////////
 bool TransformControl::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::Render::kType)
+  if (_event->type() == gz::gui::events::Render::kType)
   {
     // This event is called in Scene3d's RenderThread, so it's safe to make
     // rendering calls here
@@ -361,48 +361,48 @@ bool TransformControl::eventFilter(QObject *_obj, QEvent *_event)
     this->dataPtr->HandleTransform();
   }
   else if (_event->type() ==
-    ignition::gazebo::gui::events::EntitiesSelected::kType)
+    gz::sim::gui::events::EntitiesSelected::kType)
   {
     if (!this->dataPtr->blockOrbit)
     {
-      ignition::gazebo::gui::events::EntitiesSelected *_e =
-        static_cast<ignition::gazebo::gui::events::EntitiesSelected*>(_event);
+      gz::sim::gui::events::EntitiesSelected *_e =
+        static_cast<gz::sim::gui::events::EntitiesSelected*>(_event);
       this->dataPtr->selectedEntities = _e->Data();
     }
   }
   else if (_event->type() ==
-    ignition::gazebo::gui::events::DeselectAllEntities::kType)
+    gz::sim::gui::events::DeselectAllEntities::kType)
   {
     if (!this->dataPtr->blockOrbit)
     {
       this->dataPtr->selectedEntities.clear();
     }
   }
-  else if (_event->type() == ignition::gui::events::LeftClickOnScene::kType)
+  else if (_event->type() == gz::gui::events::LeftClickOnScene::kType)
   {
-    ignition::gui::events::LeftClickOnScene *_e =
-      static_cast<ignition::gui::events::LeftClickOnScene*>(_event);
+    gz::gui::events::LeftClickOnScene *_e =
+      static_cast<gz::gui::events::LeftClickOnScene*>(_event);
     this->dataPtr->mouseEvent = _e->Mouse();
     this->dataPtr->mouseDirty = true;
   }
-  else if (_event->type() == ignition::gui::events::MousePressOnScene::kType)
+  else if (_event->type() == gz::gui::events::MousePressOnScene::kType)
   {
     auto event =
-        static_cast<ignition::gui::events::MousePressOnScene *>(_event);
+        static_cast<gz::gui::events::MousePressOnScene *>(_event);
     this->dataPtr->mouseEvent = event->Mouse();
     this->dataPtr->mouseDirty = true;
   }
-  else if (_event->type() == ignition::gui::events::DragOnScene::kType)
+  else if (_event->type() == gz::gui::events::DragOnScene::kType)
   {
     auto event =
-        static_cast<ignition::gui::events::DragOnScene *>(_event);
+        static_cast<gz::gui::events::DragOnScene *>(_event);
     this->dataPtr->mouseEvent = event->Mouse();
     this->dataPtr->mouseDirty = true;
   }
-  else if (_event->type() == ignition::gui::events::KeyPressOnScene::kType)
+  else if (_event->type() == gz::gui::events::KeyPressOnScene::kType)
   {
-    ignition::gui::events::KeyPressOnScene *_e =
-      static_cast<ignition::gui::events::KeyPressOnScene*>(_event);
+    gz::gui::events::KeyPressOnScene *_e =
+      static_cast<gz::gui::events::KeyPressOnScene*>(_event);
     this->dataPtr->keyEvent = _e->Key();
 
     if (this->dataPtr->keyEvent.Key() == Qt::Key_T)
@@ -414,10 +414,10 @@ bool TransformControl::eventFilter(QObject *_obj, QEvent *_event)
       this->activateRotate();
     }
   }
-  else if (_event->type() == ignition::gui::events::KeyReleaseOnScene::kType)
+  else if (_event->type() == gz::gui::events::KeyReleaseOnScene::kType)
   {
-    ignition::gui::events::KeyReleaseOnScene *_e =
-      static_cast<ignition::gui::events::KeyReleaseOnScene*>(_event);
+    gz::gui::events::KeyReleaseOnScene *_e =
+      static_cast<gz::gui::events::KeyReleaseOnScene*>(_event);
     this->dataPtr->keyEvent = _e->Key();
     if (this->dataPtr->keyEvent.Key() == Qt::Key_Escape)
     {
@@ -580,9 +580,9 @@ void TransformControlPrivate::HandleTransform()
     return;
 
   // handle mouse movements
-  if (this->mouseEvent.Button() == ignition::common::MouseEvent::LEFT)
+  if (this->mouseEvent.Button() == gz::common::MouseEvent::LEFT)
   {
-    if (this->mouseEvent.Type() == ignition::common::MouseEvent::PRESS
+    if (this->mouseEvent.Type() == gz::common::MouseEvent::PRESS
         && this->transformControl.Node())
     {
       this->mousePressPos = this->mouseEvent.Pos();
@@ -597,7 +597,7 @@ void TransformControlPrivate::HandleTransform()
         // check if the visual is an axis in the gizmo visual
         math::Vector3d axis =
             this->transformControl.AxisById(visual->Id());
-        if (axis != ignition::math::Vector3d::Zero)
+        if (axis != gz::math::Vector3d::Zero)
         {
           this->blockOrbit = true;
           // start the transform process
@@ -624,7 +624,7 @@ void TransformControlPrivate::HandleTransform()
         }
       }
     }
-    else if (this->mouseEvent.Type() == ignition::common::MouseEvent::RELEASE)
+    else if (this->mouseEvent.Type() == gz::common::MouseEvent::RELEASE)
     {
       this->blockOrbit = false;
 
@@ -633,8 +633,8 @@ void TransformControlPrivate::HandleTransform()
       {
         if (this->transformControl.Node())
         {
-          std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-            [this](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+          std::function<void(const gz::msgs::Boolean &, const bool)> cb =
+            [this](const gz::msgs::Boolean &/*_rep*/, const bool _result)
           {
             if (this->transformControl.Node())
             {
@@ -654,7 +654,7 @@ void TransformControlPrivate::HandleTransform()
           rendering::NodePtr nodeTmp = this->transformControl.Node();
           auto topVisual = std::dynamic_pointer_cast<rendering::Visual>(
             nodeTmp);
-          ignition::msgs::Pose req;
+          gz::msgs::Pose req;
           req.set_name(topVisual->Name());
           msgs::Set(req.mutable_position(), nodeTmp->WorldPosition());
           msgs::Set(req.mutable_orientation(), nodeTmp->WorldRotation());
@@ -663,7 +663,7 @@ void TransformControlPrivate::HandleTransform()
           if (this->poseCmdService.empty())
           {
             std::string worldName;
-            auto worldNames = ignition::gui::worldNames();
+            auto worldNames = gz::gui::worldNames();
             if (!worldNames.empty())
               worldName = worldNames[0].toStdString();
 
@@ -698,7 +698,7 @@ void TransformControlPrivate::HandleTransform()
 
         // check if the visual is an axis in the gizmo visual
         math::Vector3d axis = this->transformControl.AxisById(visual->Id());
-        if (axis == ignition::math::Vector3d::Zero)
+        if (axis == gz::math::Vector3d::Zero)
         {
           auto topNode = this->TopLevelNode(visual);
           if (!topNode)
@@ -913,9 +913,9 @@ void TransformControlPrivate::HandleTransform()
     this->mouseDirty = false;
   }
 
-  ignition::gui::events::BlockOrbit blockOrbitEvent(this->blockOrbit);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  gz::gui::events::BlockOrbit blockOrbitEvent(this->blockOrbit);
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &blockOrbitEvent);
 }
 
@@ -993,7 +993,7 @@ void TransformControlPrivate::XYZConstraint(math::Vector3d &_axis)
 
 /////////////////////////////////////////////////
 void TransformControlPrivate::SnapPoint(
-    ignition::math::Vector3d &_point, math::Vector3d &_snapVals,
+    gz::math::Vector3d &_point, math::Vector3d &_snapVals,
     double _sensitivity) const
 {
   if (_snapVals.X() <= 0 || _snapVals.Y() <= 0 || _snapVals.Z() <= 0)
@@ -1015,5 +1015,5 @@ void TransformControlPrivate::SnapPoint(
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::TransformControl,
-                    ignition::gui::Plugin)
+IGNITION_ADD_PLUGIN(gz::sim::TransformControl,
+                    gz::gui::Plugin)

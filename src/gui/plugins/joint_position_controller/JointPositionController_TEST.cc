@@ -47,7 +47,7 @@
 int g_argc = 1;
 char **g_argv;
 
-using namespace ignition;
+using namespace gz;
 
 /// \brief Tests for the joint position controller GUI plugin
 class JointPositionControllerGui : public InternalFixture<::testing::Test>

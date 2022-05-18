@@ -27,9 +27,9 @@
 #include "gz/sim/Model.hh"
 #include "gz/sim/System.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -70,8 +70,8 @@ namespace systems
 
     /// Documentation inherited
     public: void PreUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) final;
+                const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) final;
 
     /// \brief Callback for detach request topic
     private: void OnDetachRequest(const msgs::Empty &_msg);

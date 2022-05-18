@@ -38,8 +38,8 @@
 #include "network/NetworkManagerPrimary.hh"
 #include "SdfGenerator.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 using StringSet = std::unordered_set<std::string>;
 
@@ -182,7 +182,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   {
     ignmsg << "No systems loaded from SDF, loading defaults" << std::endl;
     bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
-    auto plugins = ignition::gazebo::loadPluginInfo(isPlayback);
+    auto plugins = gz::sim::loadPluginInfo(isPlayback);
     this->LoadServerPlugins(plugins);
   }
 
@@ -407,14 +407,14 @@ void SimulationRunner::PublishStats()
   IGN_PROFILE("SimulationRunner::PublishStats");
 
   // Create the world statistics message.
-  ignition::msgs::WorldStatistics msg;
+  gz::msgs::WorldStatistics msg;
   msg.set_real_time_factor(this->realTimeFactor);
 
   auto realTimeSecNsec =
-    ignition::math::durationToSecNsec(this->currentInfo.realTime);
+    gz::math::durationToSecNsec(this->currentInfo.realTime);
 
   auto simTimeSecNsec =
-    ignition::math::durationToSecNsec(this->currentInfo.simTime);
+    gz::math::durationToSecNsec(this->currentInfo.simTime);
 
   msg.mutable_real_time()->set_sec(realTimeSecNsec.first);
   msg.mutable_real_time()->set_nsec(realTimeSecNsec.second);
@@ -440,7 +440,7 @@ void SimulationRunner::PublishStats()
 
   // Create and publish the clock message. The clock message is not
   // throttled.
-  ignition::msgs::Clock clockMsg;
+  gz::msgs::Clock clockMsg;
   clockMsg.mutable_real()->set_sec(realTimeSecNsec.first);
   clockMsg.mutable_real()->set_nsec(realTimeSecNsec.second);
   clockMsg.mutable_sim()->set_sec(simTimeSecNsec.first);
@@ -530,7 +530,7 @@ void SimulationRunner::UpdateSystems()
 {
   IGN_PROFILE("SimulationRunner::UpdateSystems");
   // \todo(nkoenig)  Systems used to be updated in parallel using
-  // an ignition::common::WorkerPool. There is overhead associated with
+  // an gz::common::WorkerPool. There is overhead associated with
   // this, most notably the creation and destruction of WorkOrders (see
   // WorkerPool.cc). We could turn on parallel updates in the future, and/or
   // turn it on if there are sufficient systems. More testing is required.
@@ -653,14 +653,14 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     // https://github.com/ignitionrobotics/ign-gui/pull/306 and
     // https://github.com/ignitionrobotics/ign-gazebo/pull/1163)
     advertOpts.SetMsgsPerSec(10);
-    this->statsPub = this->node->Advertise<ignition::msgs::WorldStatistics>(
+    this->statsPub = this->node->Advertise<gz::msgs::WorldStatistics>(
         "stats", advertOpts);
   }
 
   if (!this->rootStatsPub.Valid())
   {
     // Check for the existence of other publishers on `/stats`
-    std::vector<ignition::transport::MessagePublisher> publishers;
+    std::vector<gz::transport::MessagePublisher> publishers;
     this->node->TopicInfo("/stats", publishers);
 
     if (!publishers.empty())
@@ -687,13 +687,13 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
   // Create the clock publisher.
   if (!this->clockPub.Valid())
-    this->clockPub = this->node->Advertise<ignition::msgs::Clock>("clock");
+    this->clockPub = this->node->Advertise<gz::msgs::Clock>("clock");
 
   // Create the global clock publisher.
   if (!this->rootClockPub.Valid())
   {
     // Check for the existence of other publishers on `/clock`
-    std::vector<ignition::transport::MessagePublisher> publishers;
+    std::vector<gz::transport::MessagePublisher> publishers;
     this->node->TopicInfo("/clock", publishers);
 
     if (!publishers.empty())
@@ -713,7 +713,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     {
       ignmsg << "Found no publishers on /clock, adding root clock topic"
              << std::endl;
-      this->rootClockPub = this->node->Advertise<ignition::msgs::Clock>(
+      this->rootClockPub = this->node->Advertise<gz::msgs::Clock>(
           "/clock");
     }
   }
@@ -1354,13 +1354,13 @@ SimulationRunner::UpdatePeriod() const
 }
 
 /////////////////////////////////////////////////
-const ignition::math::clock::duration &SimulationRunner::StepSize() const
+const gz::math::clock::duration &SimulationRunner::StepSize() const
 {
   return this->stepSize;
 }
 
 /////////////////////////////////////////////////
-void SimulationRunner::SetStepSize(const ignition::math::clock::duration &_step)
+void SimulationRunner::SetStepSize(const gz::math::clock::duration &_step)
 {
   this->stepSize = _step;
 }
@@ -1436,7 +1436,7 @@ bool SimulationRunner::RequestRemoveEntity(const Entity _entity,
 }
 
 //////////////////////////////////////////////////
-bool SimulationRunner::GuiInfoService(ignition::msgs::GUI &_res)
+bool SimulationRunner::GuiInfoService(gz::msgs::GUI &_res)
 {
   _res.Clear();
 

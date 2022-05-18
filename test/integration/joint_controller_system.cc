@@ -37,8 +37,8 @@
 
 #define TOL 1e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test fixture for JointController system
 class JointControllerTestFixture : public InternalFixture<::testing::Test>
@@ -87,7 +87,7 @@ TEST_F(JointControllerTestFixture,
       {
         _ecm.Each<components::Link, components::Name,
                   components::AngularVelocity>(
-            [&](const ignition::gazebo::Entity &,
+            [&](const gz::sim::Entity &,
                 const components::Link *,
                 const components::Name *_name,
                 const components::AngularVelocity *_angularVel) -> bool
@@ -185,7 +185,7 @@ TEST_F(JointControllerTestFixture,
       {
         _ecm.Each<components::Link, components::Name,
                   components::AngularVelocity>(
-            [&](const ignition::gazebo::Entity &,
+            [&](const gz::sim::Entity &,
                 const components::Link *,
                 const components::Name *_name,
                 const components::AngularVelocity *_angularVel) -> bool

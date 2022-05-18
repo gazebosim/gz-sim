@@ -28,9 +28,9 @@
 #include "gz/sim/Model.hh"
 #include "gz/sim/System.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -40,9 +40,9 @@ namespace systems
   /// or leaves a specified region.
   ///
   /// A performer is detected when a performer's volume, which is
-  /// represented by an ignition::math::AxisAlignedBox, intersects with the
+  /// represented by an gz::math::AxisAlignedBox, intersects with the
   /// PerformerDetector's region, which is also represented by an
-  /// ignition::math::AxisAlignedBox. When a performer is detected, the system
+  /// gz::math::AxisAlignedBox. When a performer is detected, the system
   /// publishes an ignition.msgs.Pose message with the pose of the detected
   /// performer with respect to the model containing the PerformerDetector. The
   /// name and id fields of the Pose message will be set to the name and the
@@ -95,8 +95,8 @@ namespace systems
 
     /// Documentation inherited
     public: void PostUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                const ignition::gazebo::EntityComponentManager &_ecm) final;
+                const gz::sim::UpdateInfo &_info,
+                const gz::sim::EntityComponentManager &_ecm) final;
 
     /// \brief Check if the entity has already been detected
     /// \param [in] _entity The entity to test

@@ -67,12 +67,12 @@
 
 using namespace std::chrono_literals;
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 // Private data class.
-class ignition::gazebo::systems::SceneBroadcasterPrivate
+class gz::sim::systems::SceneBroadcasterPrivate
 {
   /// \brief Type alias for the graph used to represent the scene graph.
   public: using SceneGraphType = math::graph::DirectedGraph<
@@ -85,21 +85,21 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// \brief Callback for scene info service.
   /// \param[out] _res Response containing the latest scene message.
   /// \return True if successful.
-  public: bool SceneInfoService(ignition::msgs::Scene &_res);
+  public: bool SceneInfoService(gz::msgs::Scene &_res);
 
   /// \brief Callback for scene graph service.
   /// \param[out] _res Response containing the the scene graph in DOT format.
   /// \return True if successful.
-  public: bool SceneGraphService(ignition::msgs::StringMsg &_res);
+  public: bool SceneGraphService(gz::msgs::StringMsg &_res);
 
   /// \brief Callback for state service.
   /// \param[out] _res Response containing the latest full state.
   /// \return True if successful.
-  public: bool StateService(ignition::msgs::SerializedStepMap &_res);
+  public: bool StateService(gz::msgs::SerializedStepMap &_res);
 
   /// \brief Callback for state service - non blocking.
   /// \param[out] _res Response containing the last available full state.
-  public: void StateAsyncService(const ignition::msgs::StringMsg &_req);
+  public: void StateAsyncService(const gz::msgs::StringMsg &_req);
 
   /// \brief Updates the scene graph when entities are added
   /// \param[in] _manager The entity component manager
@@ -549,7 +549,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   // Scene info topic
   std::string sceneTopic{ns + "/scene/info"};
 
-  this->scenePub = this->node->Advertise<ignition::msgs::Scene>(sceneTopic);
+  this->scenePub = this->node->Advertise<gz::msgs::Scene>(sceneTopic);
 
   ignmsg << "Publishing scene information on [" << sceneTopic
          << "]" << std::endl;
@@ -558,7 +558,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   std::string deletionTopic{ns + "/scene/deletion"};
 
   this->deletionPub =
-      this->node->Advertise<ignition::msgs::UInt32_V>(deletionTopic);
+      this->node->Advertise<gz::msgs::UInt32_V>(deletionTopic);
 
   ignmsg << "Publishing entity deletions on [" << deletionTopic << "]"
          << std::endl;
@@ -567,7 +567,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   std::string stateTopic{ns + "/state"};
 
   this->statePub =
-      this->node->Advertise<ignition::msgs::SerializedStepMap>(stateTopic);
+      this->node->Advertise<gz::msgs::SerializedStepMap>(stateTopic);
 
   ignmsg << "Publishing state changes on [" << stateTopic << "]"
       << std::endl;
@@ -596,7 +596,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
 }
 
 //////////////////////////////////////////////////
-bool SceneBroadcasterPrivate::SceneInfoService(ignition::msgs::Scene &_res)
+bool SceneBroadcasterPrivate::SceneInfoService(gz::msgs::Scene &_res)
 {
   std::lock_guard<std::mutex> lock(this->graphMutex);
 
@@ -615,7 +615,7 @@ bool SceneBroadcasterPrivate::SceneInfoService(ignition::msgs::Scene &_res)
 
 //////////////////////////////////////////////////
 void SceneBroadcasterPrivate::StateAsyncService(
-    const ignition::msgs::StringMsg &_req)
+    const gz::msgs::StringMsg &_req)
 {
   std::unique_lock<std::mutex> lock(this->stateMutex);
   this->stateServiceRequest = true;
@@ -624,7 +624,7 @@ void SceneBroadcasterPrivate::StateAsyncService(
 
 //////////////////////////////////////////////////
 bool SceneBroadcasterPrivate::StateService(
-    ignition::msgs::SerializedStepMap &_res)
+    gz::msgs::SerializedStepMap &_res)
 {
   _res.Clear();
 
@@ -646,7 +646,7 @@ bool SceneBroadcasterPrivate::StateService(
 }
 
 //////////////////////////////////////////////////
-bool SceneBroadcasterPrivate::SceneGraphService(ignition::msgs::StringMsg &_res)
+bool SceneBroadcasterPrivate::SceneGraphService(gz::msgs::StringMsg &_res)
 {
   std::lock_guard<std::mutex> lock(this->graphMutex);
 
@@ -916,22 +916,22 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
           msgs::IMUSensor * imuMsg = sensorMsg->mutable_imu();
           const auto * imu = imuComp->Data().ImuSensor();
 
-          ignition::gazebo::set(
+          gz::sim::set(
               imuMsg->mutable_linear_acceleration()->mutable_x_noise(),
               imu->LinearAccelerationXNoise());
-          ignition::gazebo::set(
+          gz::sim::set(
               imuMsg->mutable_linear_acceleration()->mutable_y_noise(),
               imu->LinearAccelerationYNoise());
-          ignition::gazebo::set(
+          gz::sim::set(
               imuMsg->mutable_linear_acceleration()->mutable_z_noise(),
               imu->LinearAccelerationZNoise());
-          ignition::gazebo::set(
+          gz::sim::set(
               imuMsg->mutable_angular_velocity()->mutable_x_noise(),
               imu->AngularVelocityXNoise());
-          ignition::gazebo::set(
+          gz::sim::set(
               imuMsg->mutable_angular_velocity()->mutable_y_noise(),
               imu->AngularVelocityYNoise());
-          ignition::gazebo::set(
+          gz::sim::set(
               imuMsg->mutable_angular_velocity()->mutable_z_noise(),
               imu->AngularVelocityZNoise());
         }
@@ -1174,11 +1174,11 @@ void SceneBroadcasterPrivate::RemoveFromGraph(const Entity _entity,
 
 
 IGNITION_ADD_PLUGIN(SceneBroadcaster,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     SceneBroadcaster::ISystemConfigure,
                     SceneBroadcaster::ISystemPostUpdate)
 
 // Add plugin alias so that we can refer to the plugin without the version
 // namespace
 IGNITION_ADD_PLUGIN_ALIAS(SceneBroadcaster,
-                          "ignition::gazebo::systems::SceneBroadcaster")
+                          "gz::sim::systems::SceneBroadcaster")

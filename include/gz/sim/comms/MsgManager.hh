@@ -29,14 +29,14 @@
 #include "gz/sim/Entity.hh"
 #include "gz/sim/System.hh"
 
-namespace ignition
+namespace gz
 {
 namespace msgs
 {
   // Forward declarations.
   class Dataframe;
 }
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {

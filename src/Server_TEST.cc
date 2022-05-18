@@ -41,8 +41,8 @@
 #include "../test/helpers/Relay.hh"
 #include "../test/helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace ignition::gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace std::chrono_literals;
 
 /////////////////////////////////////////////////
@@ -54,7 +54,7 @@ class ServerFixture : public InternalFixture<::testing::TestWithParam<int>>
 // See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
 TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(DefaultServerConfig))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   EXPECT_TRUE(serverConfig.SdfFile().empty());
   EXPECT_TRUE(serverConfig.SdfString().empty());
   EXPECT_FALSE(serverConfig.UpdateRate());
@@ -110,7 +110,7 @@ TEST_P(ServerFixture, ServerConfigPluginInfo)
   pluginInfo.SetName("interface");
   pluginInfo.SetSdf(nullptr);
 
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   serverConfig.AddPlugin(pluginInfo);
 
   const std::list<ServerConfig::PluginInfo> &plugins = serverConfig.Plugins();
@@ -171,7 +171,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigRealPlugin))
   sdf::ElementPtr sdf(new sdf::Element);
   sdf->SetName("plugin");
   sdf->AddAttribute("name", "string",
-      "ignition::gazebo::TestModelSystem", true);
+      "gz::sim::TestModelSystem", true);
   sdf->AddAttribute("filename", "string", "libTestModelSystem.so", true);
 
   sdf::ElementPtr child(new sdf::Element);
@@ -180,7 +180,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigRealPlugin))
   child->AddValue("string", "987", "1");
 
   serverConfig.AddPlugin({"box", "model",
-      "libTestModelSystem.so", "ignition::gazebo::TestModelSystem", sdf});
+      "libTestModelSystem.so", "gz::sim::TestModelSystem", sdf});
 
   gazebo::Server server(serverConfig);
 
@@ -222,12 +222,12 @@ TEST_P(ServerFixture,
   sdf::ElementPtr sdf(new sdf::Element);
   sdf->SetName("plugin");
   sdf->AddAttribute("name", "string",
-      "ignition::gazebo::TestSensorSystem", true);
+      "gz::sim::TestSensorSystem", true);
   sdf->AddAttribute("filename", "string", "libTestSensorSystem.so", true);
 
   serverConfig.AddPlugin({
       "air_pressure_sensor::air_pressure_model::link::air_pressure_sensor",
-      "sensor", "libTestSensorSystem.so", "ignition::gazebo::TestSensorSystem",
+      "sensor", "libTestSensorSystem.so", "gz::sim::TestSensorSystem",
       sdf});
 
   igndbg << "Create server" << std::endl;
@@ -265,7 +265,7 @@ TEST_P(ServerFixture,
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(SdfServerConfig))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
 
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
   EXPECT_TRUE(serverConfig.SdfFile().empty());
@@ -298,7 +298,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(SdfServerConfig))
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(SdfRootServerConfig))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
 
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
   EXPECT_TRUE(serverConfig.SdfFile().empty());
@@ -412,7 +412,7 @@ TEST_P(ServerFixture,
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, SdfStringServerConfig)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
 
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
@@ -540,7 +540,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(RunOnceUnpaused))
   // Load a system
   gazebo::SystemLoader systemLoader;
   auto mockSystemPlugin = systemLoader.LoadPlugin(
-      "libMockSystem.so", "ignition::gazebo::MockSystem", nullptr);
+      "libMockSystem.so", "gz::sim::MockSystem", nullptr);
   ASSERT_TRUE(mockSystemPlugin.has_value());
 
   // Check that it was loaded
@@ -587,7 +587,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(RunOncePaused))
   // Load a system
   gazebo::SystemLoader systemLoader;
   auto mockSystemPlugin = systemLoader.LoadPlugin(
-      "libMockSystem.so", "ignition::gazebo::MockSystem", nullptr);
+      "libMockSystem.so", "gz::sim::MockSystem", nullptr);
   ASSERT_TRUE(mockSystemPlugin.has_value());
 
   // Check that it was loaded
@@ -626,7 +626,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(RunOncePaused))
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, RunNonBlockingMultiple)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
   gazebo::Server server(serverConfig);
 
@@ -727,7 +727,7 @@ TEST_P(ServerFixture, ServerControlStop)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(AddSystemWhileRunning))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
 
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
@@ -750,7 +750,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(AddSystemWhileRunning))
   // Add system from plugin
   gazebo::SystemLoader systemLoader;
   auto mockSystemPlugin = systemLoader.LoadPlugin("libMockSystem.so",
-      "ignition::gazebo::MockSystem", nullptr);
+      "gz::sim::MockSystem", nullptr);
   ASSERT_TRUE(mockSystemPlugin.has_value());
 
   auto result = server.AddSystem(mockSystemPlugin.value());
@@ -775,7 +775,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(AddSystemWhileRunning))
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(AddSystemAfterLoad))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
 
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
@@ -787,7 +787,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(AddSystemAfterLoad))
   // Add system from plugin
   gazebo::SystemLoader systemLoader;
   auto mockSystemPlugin = systemLoader.LoadPlugin("libMockSystem.so",
-      "ignition::gazebo::MockSystem", nullptr);
+      "gz::sim::MockSystem", nullptr);
   ASSERT_TRUE(mockSystemPlugin.has_value());
 
   auto system = mockSystemPlugin.value()->QueryInterface<gazebo::System>();
@@ -838,18 +838,18 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(AddSystemAfterLoad))
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, Seed)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   EXPECT_EQ(0u, serverConfig.Seed());
   unsigned int mySeed = 12345u;
   serverConfig.SetSeed(mySeed);
   EXPECT_EQ(mySeed, serverConfig.Seed());
-  EXPECT_EQ(mySeed, ignition::math::Rand::Seed());
+  EXPECT_EQ(mySeed, gz::math::Rand::Seed());
 }
 
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
 {
-  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+  gz::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
          (std::string(PROJECT_SOURCE_PATH) + "/test/worlds:" +
           std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models").c_str());
 
@@ -908,7 +908,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
       // Check physics system loaded meshes and got their BB correct
       eachCount = 0;
       _ecm.Each<components::AxisAlignedBox>(
-        [&](const ignition::gazebo::Entity &,
+        [&](const gz::sim::Entity &,
             const components::AxisAlignedBox *_box)->bool
         {
           auto box = _box->Data();
@@ -937,7 +937,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, GetResourcePaths)
 {
-  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+  gz::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
       "/tmp/some/path:/home/user/another_path");
 
   ServerConfig serverConfig;
@@ -967,10 +967,10 @@ TEST_P(ServerFixture, GetResourcePaths)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, AddResourcePaths)
 {
-  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+  gz::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
       "/tmp/some/path:/home/user/another_path");
-  ignition::common::setenv("SDF_PATH", "");
-  ignition::common::setenv("IGN_FILE_PATH", "");
+  gz::common::setenv("SDF_PATH", "");
+  gz::common::setenv("IGN_FILE_PATH", "");
 
   ServerConfig serverConfig;
   gazebo::Server server(serverConfig);

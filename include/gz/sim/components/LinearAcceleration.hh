@@ -25,23 +25,23 @@
 #include <gz/sim/components/Factory.hh>
 #include "gz/sim/components/Component.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component type that contains linear acceleration of an entity
-  /// represented by ignition::math::Vector3d.
+  /// represented by gz::math::Vector3d.
   using LinearAcceleration =
     Component<math::Vector3d, class LinearAccelerationTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.LinearAcceleration",
       LinearAcceleration)
 
   /// \brief A component type that contains linear acceleration of an entity
-  /// in the world frame represented by ignition::math::Vector3d.
+  /// in the world frame represented by gz::math::Vector3d.
   using WorldLinearAcceleration =
       Component<math::Vector3d, class WorldLinearAccelerationTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.WorldLinearAcceleration",

@@ -39,12 +39,12 @@
 
 #include "KineticEnergyMonitor.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Private data class
-class ignition::gazebo::systems::KineticEnergyMonitorPrivate
+class gz::sim::systems::KineticEnergyMonitorPrivate
 {
   /// \brief Link of the model.
   public: Entity linkEntity;
@@ -169,9 +169,9 @@ void KineticEnergyMonitor::PostUpdate(const UpdateInfo &_info,
 }
 
 IGNITION_ADD_PLUGIN(KineticEnergyMonitor,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     KineticEnergyMonitor::ISystemConfigure,
                     KineticEnergyMonitor::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(KineticEnergyMonitor,
-  "ignition::gazebo::systems::KineticEnergyMonitor")
+  "gz::sim::systems::KineticEnergyMonitor")

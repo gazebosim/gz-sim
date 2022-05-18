@@ -26,9 +26,9 @@
 #include "gz/sim/System.hh"
 #include "gz/sim/SystemPluginPtr.hh"
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -113,7 +113,7 @@ namespace ignition
       public: std::vector<EntityQueryCallback> updates;
     };
     }
-  }  // namespace gazebo
-}  // namespace ignition
+  }  // namespace sim
+}  // namespace gz
 #endif  // GZ_GAZEBO_SYSTEMINTERNAL_HH_
 

@@ -37,8 +37,8 @@
 
 #include "PerformerDetector.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /////////////////////////////////////////////////
@@ -130,8 +130,8 @@ void PerformerDetector::Configure(const Entity &_entity,
 
 //////////////////////////////////////////////////
 void PerformerDetector::PostUpdate(
-  const ignition::gazebo::UpdateInfo &_info,
-  const ignition::gazebo::EntityComponentManager &_ecm)
+  const gz::sim::UpdateInfo &_info,
+  const gz::sim::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("PerformerDetector::PostUpdate");
 
@@ -260,9 +260,9 @@ void PerformerDetector::Publish(
 }
 
 IGNITION_ADD_PLUGIN(PerformerDetector,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     PerformerDetector::ISystemConfigure,
                     PerformerDetector::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(PerformerDetector,
-                          "ignition::gazebo::systems::PerformerDetector")
+                          "gz::sim::systems::PerformerDetector")

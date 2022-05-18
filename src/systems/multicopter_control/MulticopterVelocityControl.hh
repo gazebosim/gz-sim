@@ -30,9 +30,9 @@
 #include "Common.hh"
 #include "LeeVelocityController.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -162,8 +162,8 @@ namespace systems
 
     // Documentation inherited
     public: void PreUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) override;
+                const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief Callback for twist messages
     /// The controller waits for the first twist message before publishing any
@@ -182,7 +182,7 @@ namespace systems
     /// \param[in] _ecm Mutable reference to the EntityComponentManager
     /// \param[in] _vels Rotor velocities to be published
     private: void PublishRotorVelocities(
-                 ignition::gazebo::EntityComponentManager &_ecm,
+                 gz::sim::EntityComponentManager &_ecm,
                  const Eigen::VectorXd &_vels);
 
     /// \brief Model interface

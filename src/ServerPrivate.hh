@@ -49,9 +49,9 @@
 
 using namespace std::chrono_literals;
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -105,24 +105,24 @@ namespace ignition
       /// \brief Callback for worlds service.
       /// \param[out] _res Response containing the names of all the worlds.
       /// \return True if successful.
-      private: bool WorldsService(ignition::msgs::StringMsg_V &_res);
+      private: bool WorldsService(gz::msgs::StringMsg_V &_res);
 
       /// \brief Callback for add resource paths service.
       /// \param[out] _req Request containing the paths to be added.
       private: void AddResourcePathsService(
-          const ignition::msgs::StringMsg_V &_req);
+          const gz::msgs::StringMsg_V &_req);
 
       /// \brief Callback for get resource paths service.
       /// \param[out] _res Response filled with all current paths.
       /// \return True if successful.
-      private: bool ResourcePathsService(ignition::msgs::StringMsg_V &_res);
+      private: bool ResourcePathsService(gz::msgs::StringMsg_V &_res);
 
       /// \brief Callback for server control service.
       /// \param[out] _req The control request.
       /// \param[out] _res Whether the request was successfully fullfilled.
       /// \return True if successful.
       private: bool ServerControlService(
-        const ignition::msgs::ServerControl &_req, msgs::Boolean &_res);
+        const gz::msgs::ServerControl &_req, msgs::Boolean &_res);
 
       /// \brief A pool of worker threads.
       public: common::WorkerPool workerPool{2};
@@ -144,7 +144,7 @@ namespace ignition
       public: std::shared_ptr<std::thread> stopThread;
 
       /// \brief Our signal handler.
-      public: ignition::common::SignalHandler sigHandler;
+      public: gz::common::SignalHandler sigHandler;
 
       /// \brief Our system loader.
       public: SystemLoaderPtr systemLoader;

@@ -31,8 +31,8 @@
 #include "ignition/gazebo/components/World.hh"
 
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace components;
 
 constexpr const int kEachIterations {100};

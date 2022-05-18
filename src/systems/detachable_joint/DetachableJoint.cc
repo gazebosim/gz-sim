@@ -35,8 +35,8 @@
 
 #include "DetachableJoint.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /////////////////////////////////////////////////
@@ -114,8 +114,8 @@ void DetachableJoint::Configure(const Entity &_entity,
 
 //////////////////////////////////////////////////
 void DetachableJoint::PreUpdate(
-  const ignition::gazebo::UpdateInfo &/*_info*/,
-  ignition::gazebo::EntityComponentManager &_ecm)
+  const gz::sim::UpdateInfo &/*_info*/,
+  gz::sim::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("DetachableJoint::PreUpdate");
   if (this->validConfig && !this->initialized)
@@ -190,9 +190,9 @@ void DetachableJoint::OnDetachRequest(const msgs::Empty &)
 }
 
 IGNITION_ADD_PLUGIN(DetachableJoint,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     DetachableJoint::ISystemConfigure,
                     DetachableJoint::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(DetachableJoint,
-  "ignition::gazebo::systems::DetachableJoint")
+  "gz::sim::systems::DetachableJoint")

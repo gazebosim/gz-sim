@@ -59,9 +59,9 @@
 
 using namespace std::chrono_literals;
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -280,11 +280,11 @@ namespace ignition
 
       /// \brief Get the step size;
       /// \return Step size.
-      public: const ignition::math::clock::duration &StepSize() const;
+      public: const gz::math::clock::duration &StepSize() const;
 
       /// \brief Set the step size;
       /// \param[in] _step Step size.
-      public: void SetStepSize(const ignition::math::clock::duration &_step);
+      public: void SetStepSize(const gz::math::clock::duration &_step);
 
       /// \brief World control service callback. This function stores the
       /// the request which will then be processed by the ProcessMessages
@@ -319,7 +319,7 @@ namespace ignition
       /// \brief Callback for GUI info service.
       /// \param[out] _res Response containing the latest GUI message.
       /// \return True if successful.
-      private: bool GuiInfoService(ignition::msgs::GUI &_res);
+      private: bool GuiInfoService(gz::msgs::GUI &_res);
 
       /// \brief Calculate real time factor and populate currentInfo.
       private: void UpdateCurrentInfo();
@@ -438,34 +438,34 @@ namespace ignition
       private: std::unique_ptr<transport::Node> node{nullptr};
 
       /// \brief World statistics publisher.
-      private: ignition::transport::Node::Publisher statsPub;
+      private: gz::transport::Node::Publisher statsPub;
 
       /// \brief Clock publisher for the root `/stats` topic.
-      private: ignition::transport::Node::Publisher rootStatsPub;
+      private: gz::transport::Node::Publisher rootStatsPub;
 
       /// \brief Clock publisher.
-      private: ignition::transport::Node::Publisher clockPub;
+      private: gz::transport::Node::Publisher clockPub;
 
       /// \brief Clock publisher for the root `/clock` topic.
-      private: ignition::transport::Node::Publisher rootClockPub;
+      private: gz::transport::Node::Publisher rootClockPub;
 
       /// \brief Name of world being simulated.
       private: std::string worldName;
 
       /// \brief Stopwatch to keep track of wall time.
-      private: ignition::math::Stopwatch realTimeWatch;
+      private: gz::math::Stopwatch realTimeWatch;
 
       /// \brief Step size
-      private: ignition::math::clock::duration stepSize{10ms};
+      private: gz::math::clock::duration stepSize{10ms};
 
       /// \brief Desired real time factor
       private: double desiredRtf{1.0};
 
       /// \brief Connection to the pause event.
-      private: ignition::common::ConnectionPtr pauseConn;
+      private: gz::common::ConnectionPtr pauseConn;
 
       /// \brief Connection to the stop event.
-      private: ignition::common::ConnectionPtr stopConn;
+      private: gz::common::ConnectionPtr stopConn;
 
       /// \brief Connection to the load plugins event.
       private: common::ConnectionPtr loadPluginsConn;

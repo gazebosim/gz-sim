@@ -29,7 +29,7 @@
 
 #include "gz/sim/Entity.hh"
 
-namespace ignition::gazebo
+namespace gz::sim
 {
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems::physics_system

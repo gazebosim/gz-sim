@@ -21,9 +21,9 @@
 #include <gz/sim/config.hh>
 #include <gz/sim/System.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -33,8 +33,8 @@ namespace systems
   class PosePublisherPrivate;
 
   /// \brief Pose publisher system. Attach to an entity to publish the
-  /// transform of its child entities in the form of ignition::msgs::Pose
-  /// messages, or a single ignition::msgs::Pose_V message if
+  /// transform of its child entities in the form of gz::msgs::Pose
+  /// messages, or a single gz::msgs::Pose_V message if
   /// "use_pose_vector_msg" is true.
   ///
   /// The following parameters are used by the system:
@@ -49,8 +49,8 @@ namespace systems
   ///                             also published unless publish_model_pose is
   ///                             set to false
   /// use_pose_vector_msg       : Set to true to publish an
-  ///                             ignition::msgs::Pose_V message instead of
-  ///                             mulitple ignition::msgs::Pose messages.
+  ///                             gz::msgs::Pose_V message instead of
+  ///                             mulitple gz::msgs::Pose messages.
   /// update_frequency          : Frequency of pose publications in Hz. A
   ///                             negative frequency publishes as fast as
   ///                             possible (i.e, at the rate of the simulation

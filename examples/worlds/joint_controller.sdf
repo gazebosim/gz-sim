@@ -18,11 +18,11 @@
   <world name="default">
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <light type="directional" name="sun">
@@ -118,7 +118,7 @@
       <!-- Velocity mode -->
       <plugin
         filename="ignition-gazebo-joint-controller-system"
-        name="ignition::gazebo::systems::JointController">
+        name="gz::sim::systems::JointController">
         <joint_name>j1</joint_name>
         <initial_velocity>5.0</initial_velocity>
       </plugin>
@@ -205,7 +205,7 @@
       <!-- Force mode -->
       <plugin
         filename="ignition-gazebo-joint-controller-system"
-        name="ignition::gazebo::systems::JointController">
+        name="gz::sim::systems::JointController">
         <joint_name>j1</joint_name>
         <use_force_commands>true</use_force_commands>
         <p_gain>0.2</p_gain>

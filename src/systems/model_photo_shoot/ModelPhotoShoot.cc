@@ -38,32 +38,32 @@
 #include "gz/sim/rendering/Events.hh"
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Private ModelPhotoShoot data class.
-class ignition::gazebo::systems::ModelPhotoShootPrivate
+class gz::sim::systems::ModelPhotoShootPrivate
 {
   /// \brief Callback for pos rendering operations.
   public: void PerformPostRenderingOperations();
 
   /// \brief Save a pitcture with the camera from the given pose.
-  public: void SavePicture (const ignition::rendering::CameraPtr _camera,
-                    const ignition::math::Pose3d &_pose,
+  public: void SavePicture (const gz::rendering::CameraPtr _camera,
+                    const gz::math::Pose3d &_pose,
                     const std::string &_fileName) const;
 
   /// \brief Name of the loaded model.
   public: std::string modelName;
 
   /// \brief model
-  public: std::shared_ptr<ignition::gazebo::Model> model;
+  public: std::shared_ptr<gz::sim::Model> model;
 
   /// \brief model world pose
-  public: ignition::math::Pose3d modelPose3D;
+  public: gz::math::Pose3d modelPose3D;
 
   /// \brief Connection to pre-render event callback.
-  public: ignition::common::ConnectionPtr connection{nullptr};
+  public: gz::common::ConnectionPtr connection{nullptr};
 
   /// \brief Boolean to control we only take the pictures once.
   public: bool takePicture{true};
@@ -82,10 +82,10 @@ ModelPhotoShoot::ModelPhotoShoot()
 }
 
 //////////////////////////////////////////////////
-void ModelPhotoShoot::Configure(const ignition::gazebo::Entity &_entity,
+void ModelPhotoShoot::Configure(const gz::sim::Entity &_entity,
                                 const std::shared_ptr<const sdf::Element> &_sdf,
-                                ignition::gazebo::EntityComponentManager &_ecm,
-                                ignition::gazebo::EventManager &_eventMgr)
+                                gz::sim::EntityComponentManager &_ecm,
+                                gz::sim::EventManager &_eventMgr)
 {
   std::string saveDataLocation =
       _sdf->Get<std::string>("translation_data_file");
@@ -107,21 +107,21 @@ void ModelPhotoShoot::Configure(const ignition::gazebo::Entity &_entity,
   }
 
   this->dataPtr->connection =
-      _eventMgr.Connect<ignition::gazebo::events::PostRender>(std::bind(
+      _eventMgr.Connect<gz::sim::events::PostRender>(std::bind(
           &ModelPhotoShootPrivate::PerformPostRenderingOperations,
           this->dataPtr.get()));
 
-  this->dataPtr->model = std::make_shared<ignition::gazebo::Model>(_entity);
+  this->dataPtr->model = std::make_shared<gz::sim::Model>(_entity);
   this->dataPtr->modelName = this->dataPtr->model->Name(_ecm);
   // Get the pose of the model
   this->dataPtr->modelPose3D =
-      ignition::gazebo::worldPose(this->dataPtr->model->Entity(), _ecm);
+      gz::sim::worldPose(this->dataPtr->model->Entity(), _ecm);
 }
 
 //////////////////////////////////////////////////
 void ModelPhotoShoot::PreUpdate(
-    const ignition::gazebo::UpdateInfo &,
-    ignition::gazebo::EntityComponentManager &_ecm)
+    const gz::sim::UpdateInfo &,
+    gz::sim::EntityComponentManager &_ecm)
 {
   if (this->dataPtr->randomPoses)
   {
@@ -198,19 +198,19 @@ void ModelPhotoShoot::PreUpdate(
 //////////////////////////////////////////////////
 void ModelPhotoShootPrivate::PerformPostRenderingOperations()
 {
-  ignition::rendering::ScenePtr scene =
-      ignition::rendering::sceneFromFirstRenderEngine();
-  ignition::rendering::VisualPtr modelVisual =
+  gz::rendering::ScenePtr scene =
+      gz::rendering::sceneFromFirstRenderEngine();
+  gz::rendering::VisualPtr modelVisual =
       scene->VisualByName(this->modelName);
 
-  ignition::rendering::VisualPtr root = scene->RootVisual();
+  gz::rendering::VisualPtr root = scene->RootVisual();
 
   if (modelVisual && this->takePicture)
   {
     scene->SetAmbientLight(0.3, 0.3, 0.3);
 
     // create directional light
-    ignition::rendering::DirectionalLightPtr light0 =
+    gz::rendering::DirectionalLightPtr light0 =
         scene->CreateDirectionalLight();
     light0->SetDirection(-0.5, 0.5, -1);
     light0->SetDiffuseColor(0.8, 0.8, 0.8);
@@ -218,7 +218,7 @@ void ModelPhotoShootPrivate::PerformPostRenderingOperations()
     root->AddChild(light0);
 
     // create point light
-    ignition::rendering::PointLightPtr light2 = scene->CreatePointLight();
+    gz::rendering::PointLightPtr light2 = scene->CreatePointLight();
     light2->SetDiffuseColor(0.5, 0.5, 0.5);
     light2->SetSpecularColor(0.5, 0.5, 0.5);
     light2->SetLocalPosition(3, 5, 5);
@@ -226,23 +226,23 @@ void ModelPhotoShootPrivate::PerformPostRenderingOperations()
 
     for (unsigned int i = 0; i < scene->NodeCount(); ++i)
     {
-      auto camera = std::dynamic_pointer_cast<ignition::rendering::Camera>(
+      auto camera = std::dynamic_pointer_cast<gz::rendering::Camera>(
           scene->NodeByIndex(i));
       if (nullptr != camera && camera->Name() == "photo_shoot::link::camera")
       {
         // Compute the translation we have to apply to the cameras to
         // center the model in the image.
-        ignition::math::AxisAlignedBox bbox = modelVisual->LocalBoundingBox();
+        gz::math::AxisAlignedBox bbox = modelVisual->LocalBoundingBox();
         double scaling = 1.0 / bbox.Size().Max();
-        ignition::math::Vector3d bboxCenter = bbox.Center();
-        ignition::math::Vector3d translation =
+        gz::math::Vector3d bboxCenter = bbox.Center();
+        gz::math::Vector3d translation =
             bboxCenter + this->modelPose3D.Pos();
         if (this->savingFile.is_open()) {
           this->savingFile << "Translation: " << translation << std::endl;
           this->savingFile << "Scaling: " << scaling << std::endl;
         }
 
-        ignition::math::Pose3d pose;
+        gz::math::Pose3d pose;
         // Perspective view
         pose.Pos().Set(1.6 / scaling + translation.X(),
                        -1.6 / scaling + translation.Y(),
@@ -286,29 +286,29 @@ void ModelPhotoShootPrivate::PerformPostRenderingOperations()
 
 //////////////////////////////////////////////////
 void ModelPhotoShootPrivate::SavePicture(
-                                  const ignition::rendering::CameraPtr _camera,
-                                  const ignition::math::Pose3d &_pose,
+                                  const gz::rendering::CameraPtr _camera,
+                                  const gz::math::Pose3d &_pose,
                                   const std::string &_fileName) const
 {
   unsigned int width = _camera->ImageWidth();
   unsigned int height = _camera->ImageHeight();
-  ignition::common::Image image;
+  gz::common::Image image;
 
   _camera->SetWorldPose(_pose);
   auto cameraImage = _camera->CreateImage();
   _camera->Capture(cameraImage);
   auto formatStr =
-      ignition::rendering::PixelUtil::Name(_camera->ImageFormat());
-  auto format = ignition::common::Image::ConvertPixelFormat(formatStr);
+      gz::rendering::PixelUtil::Name(_camera->ImageFormat());
+  auto format = gz::common::Image::ConvertPixelFormat(formatStr);
   image.SetFromData(cameraImage.Data<unsigned char>(), width, height, format);
   image.SavePNG(_fileName);
 
   igndbg << "Saved image to [" << _fileName << "]" << std::endl;
 }
 
-IGNITION_ADD_PLUGIN(ModelPhotoShoot, ignition::gazebo::System,
+IGNITION_ADD_PLUGIN(ModelPhotoShoot, gz::sim::System,
                     ModelPhotoShoot::ISystemConfigure,
                     ModelPhotoShoot::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(ModelPhotoShoot,
-                          "ignition::gazebo::systems::ModelPhotoShoot")
+                          "gz::sim::systems::ModelPhotoShoot")

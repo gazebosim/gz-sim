@@ -21,20 +21,20 @@
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 namespace python
 {
-/// Define a pybind11 wrapper for an ignition::gazebo::EntityComponentManager
+/// Define a pybind11 wrapper for an gz::sim::EntityComponentManager
 /**
  * \param[in] module a pybind11 module to add the definition to
  */
 void
 defineGazeboEntityComponentManager(pybind11::object module);
 }  // namespace python
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz
 
 #endif  // GZ_GAZEBO_PYTHON__ENTITY_COMPONENT_MANAGER_HH_

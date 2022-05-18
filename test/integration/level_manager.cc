@@ -50,8 +50,8 @@
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 //////////////////////////////////////////////////
@@ -106,7 +106,7 @@ class LevelManagerFixture : public InternalFixture<::testing::Test>
   {
     InternalFixture::SetUp();
 
-    ignition::gazebo::ServerConfig serverConfig;
+    gz::sim::ServerConfig serverConfig;
 
     // Except tile_0, which is on the default level, every tile belongs to a
     // level. The name of the level corresponds to the tile in its suffix, i.e.,

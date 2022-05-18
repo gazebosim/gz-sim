@@ -3,7 +3,7 @@
   <world name="test_world">
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
 
     <model name="commanded">
@@ -19,7 +19,7 @@
       </link>
       <plugin
         filename="ignition-gazebo-velocity-control-system"
-        name="ignition::gazebo::systems::VelocityControl">
+        name="gz::sim::systems::VelocityControl">
       </plugin>
     </model>
   </world>

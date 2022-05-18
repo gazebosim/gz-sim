@@ -28,9 +28,9 @@
 
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
-using namespace gazebo::gui;
+using namespace gz;
+using namespace sim;
+using namespace sim::gui;
 
 //////////////////////////////////////////////////
 void onAddResourcePaths(const msgs::StringMsg_V &_msg)

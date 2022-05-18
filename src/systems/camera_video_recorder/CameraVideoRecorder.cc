@@ -46,12 +46,12 @@
 
 #include "CameraVideoRecorder.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 // Private data class.
-class ignition::gazebo::systems::CameraVideoRecorderPrivate
+class gz::sim::systems::CameraVideoRecorderPrivate
 {
   /// \brief Callback for the video recorder service
   public: bool OnRecordVideo(const msgs::VideoRecord &_msg,
@@ -70,7 +70,7 @@ class ignition::gazebo::systems::CameraVideoRecorderPrivate
   public: std::mutex updateMutex;
 
   /// \brief Connection to the post-render event.
-  public: ignition::common::ConnectionPtr postRenderConn;
+  public: gz::common::ConnectionPtr postRenderConn;
 
   /// \brief Pointer to the event manager
   public: EventManager *eventMgr = nullptr;
@@ -356,7 +356,7 @@ void CameraVideoRecorderPrivate::OnPostRender()
         std::chrono::steady_clock::duration dt;
         dt = t - this->recordStartTime;
         int64_t sec, nsec;
-        std::tie(sec, nsec) = ignition::math::durationToSecNsec(dt);
+        std::tie(sec, nsec) = gz::math::durationToSecNsec(dt);
         msgs::Time msg;
         msg.set_sec(sec);
         msg.set_nsec(nsec);
@@ -461,11 +461,11 @@ void CameraVideoRecorder::PostUpdate(const UpdateInfo &_info,
 }
 
 IGNITION_ADD_PLUGIN(CameraVideoRecorder,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     CameraVideoRecorder::ISystemConfigure,
                     CameraVideoRecorder::ISystemPostUpdate)
 
 // Add plugin alias so that we can refer to the plugin without the version
 // namespace
 IGNITION_ADD_PLUGIN_ALIAS(CameraVideoRecorder,
-                          "ignition::gazebo::systems::CameraVideoRecorder")
+                          "gz::sim::systems::CameraVideoRecorder")

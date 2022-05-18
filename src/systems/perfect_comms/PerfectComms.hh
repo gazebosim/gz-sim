@@ -24,9 +24,9 @@
 #include "gz/sim/comms/ICommsModel.hh"
 #include "gz/sim/System.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -50,7 +50,7 @@ namespace systems
                       EventManager &_eventMgr) override;
 
     // Documentation inherited.
-    public: void Step(const ignition::gazebo::UpdateInfo &_info,
+    public: void Step(const gz::sim::UpdateInfo &_info,
                       const comms::Registry &_currentRegistry,
                       comms::Registry &_newRegistry,
                       EntityComponentManager &_ecm) override;

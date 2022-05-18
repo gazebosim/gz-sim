@@ -61,13 +61,13 @@
 #include "../test/helpers/EnvTestFixture.hh"
 #include "SimulationRunner.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace components;
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
@@ -207,35 +207,35 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       EXPECT_EQ(worldEntity, _parent->Data());
       if (modelCount == 1)
       {
-        EXPECT_EQ(ignition::math::Pose3d(1, 2, 3, 0, 0, 1),
+        EXPECT_EQ(gz::math::Pose3d(1, 2, 3, 0, 0, 1),
             _pose->Data());
         EXPECT_EQ("box", _name->Data());
         boxModelEntity = _entity;
       }
       else if (modelCount == 2)
       {
-        EXPECT_EQ(ignition::math::Pose3d(-1, -2, -3, 0, 0, 1),
+        EXPECT_EQ(gz::math::Pose3d(-1, -2, -3, 0, 0, 1),
             _pose->Data());
         EXPECT_EQ("cylinder", _name->Data());
         cylModelEntity = _entity;
       }
       else if (modelCount == 3)
       {
-        EXPECT_EQ(ignition::math::Pose3d(0, 0, 0, 0, 0, 1),
+        EXPECT_EQ(gz::math::Pose3d(0, 0, 0, 0, 0, 1),
             _pose->Data());
         EXPECT_EQ("sphere", _name->Data());
         sphModelEntity = _entity;
       }
       else if (modelCount == 4)
       {
-        EXPECT_EQ(ignition::math::Pose3d(-4, -5, -6, 0, 0, 1),
+        EXPECT_EQ(gz::math::Pose3d(-4, -5, -6, 0, 0, 1),
             _pose->Data());
         EXPECT_EQ("capsule", _name->Data());
         capModelEntity = _entity;
       }
       else if (modelCount == 5)
       {
-        EXPECT_EQ(ignition::math::Pose3d(4, 5, 6, 0, 0, 1),
+        EXPECT_EQ(gz::math::Pose3d(4, 5, 6, 0, 0, 1),
             _pose->Data());
         EXPECT_EQ("ellipsoid", _name->Data());
         ellipModelEntity = _entity;
@@ -276,7 +276,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
       if (linkCount == 1)
       {
-        EXPECT_EQ(ignition::math::Pose3d(0.1, 0.1, 0.1, 0, 0, 0),
+        EXPECT_EQ(gz::math::Pose3d(0.1, 0.1, 0.1, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("box_link", _name->Data());
         EXPECT_EQ(boxModelEntity, _parent->Data());
@@ -284,7 +284,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       }
       else if (linkCount == 2)
       {
-        EXPECT_EQ(ignition::math::Pose3d(0.2, 0.2, 0.2, 0, 0, 0),
+        EXPECT_EQ(gz::math::Pose3d(0.2, 0.2, 0.2, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("cylinder_link", _name->Data());
         EXPECT_EQ(cylModelEntity, _parent->Data());
@@ -292,7 +292,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       }
       else if (linkCount == 3)
       {
-        EXPECT_EQ(ignition::math::Pose3d(0.3, 0.3, 0.3, 0, 0, 0),
+        EXPECT_EQ(gz::math::Pose3d(0.3, 0.3, 0.3, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("sphere_link", _name->Data());
         EXPECT_EQ(sphModelEntity, _parent->Data());
@@ -300,7 +300,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       }
       else if (linkCount == 4)
       {
-        EXPECT_EQ(ignition::math::Pose3d(0.5, 0.5, 0.5, 0, 0, 0),
+        EXPECT_EQ(gz::math::Pose3d(0.5, 0.5, 0.5, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("capsule_link", _name->Data());
         EXPECT_EQ(capModelEntity, _parent->Data());
@@ -308,7 +308,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       }
       else if (linkCount == 5)
       {
-        EXPECT_EQ(ignition::math::Pose3d(0.8, 0.8, 0.8, 0, 0, 0),
+        EXPECT_EQ(gz::math::Pose3d(0.8, 0.8, 0.8, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("ellipsoid_link", _name->Data());
         EXPECT_EQ(ellipModelEntity, _parent->Data());
@@ -395,7 +395,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
       if (collisionCount == 1)
       {
-        EXPECT_EQ(ignition::math::Pose3d(0.11, 0.11, 0.11, 0, 0, 0),
+        EXPECT_EQ(gz::math::Pose3d(0.11, 0.11, 0.11, 0, 0, 0),
             _pose->Data());
 
         EXPECT_EQ("box_collision", _name->Data());
@@ -409,7 +409,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       }
       else if (collisionCount == 2)
       {
-        EXPECT_EQ(ignition::math::Pose3d(0.21, 0.21, 0.21, 0, 0, 0),
+        EXPECT_EQ(gz::math::Pose3d(0.21, 0.21, 0.21, 0, 0, 0),
             _pose->Data());
 
         EXPECT_EQ("cylinder_collision", _name->Data());
@@ -423,7 +423,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       }
       else if (collisionCount == 3)
       {
-        EXPECT_EQ(ignition::math::Pose3d(0.31, 0.31, 0.31, 0, 0, 0),
+        EXPECT_EQ(gz::math::Pose3d(0.31, 0.31, 0.31, 0, 0, 0),
             _pose->Data());
 
         EXPECT_EQ("sphere_collision", _name->Data());
@@ -436,7 +436,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       }
       else if (collisionCount == 4)
       {
-        EXPECT_EQ(ignition::math::Pose3d(0.51, 0.51, 0.51, 0, 0, 0),
+        EXPECT_EQ(gz::math::Pose3d(0.51, 0.51, 0.51, 0, 0, 0),
             _pose->Data());
 
         EXPECT_EQ("capsule_collision", _name->Data());
@@ -450,7 +450,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       }
       else if (collisionCount == 5)
       {
-        EXPECT_EQ(ignition::math::Pose3d(0.81, 0.81, 0.81, 0, 0, 0),
+        EXPECT_EQ(gz::math::Pose3d(0.81, 0.81, 0.81, 0, 0, 0),
             _pose->Data());
 
         EXPECT_EQ("ellipsoid_collision", _name->Data());
@@ -459,7 +459,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
         EXPECT_EQ(sdf::GeometryType::ELLIPSOID, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().EllipsoidShape());
-        EXPECT_EQ(ignition::math::Vector3d(0.4, 0.6, 1.6),
+        EXPECT_EQ(gz::math::Vector3d(0.4, 0.6, 1.6),
         _geometry->Data().EllipsoidShape()->Radii());
       }
       return true;
@@ -494,7 +494,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
       if (visualCount == 1)
       {
-        EXPECT_EQ(ignition::math::Pose3d(0.12, 0.12, 0.12, 0, 0, 0),
+        EXPECT_EQ(gz::math::Pose3d(0.12, 0.12, 0.12, 0, 0, 0),
             _pose->Data());
 
         EXPECT_EQ("box_visual", _name->Data());
@@ -513,7 +513,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       }
       else if (visualCount == 2)
       {
-        EXPECT_EQ(ignition::math::Pose3d(0.22, 0.22, 0.22, 0, 0, 0),
+        EXPECT_EQ(gz::math::Pose3d(0.22, 0.22, 0.22, 0, 0, 0),
             _pose->Data());
 
         EXPECT_EQ("cylinder_visual", _name->Data());
@@ -532,7 +532,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       }
       else if (visualCount == 3)
       {
-        EXPECT_EQ(ignition::math::Pose3d(0.32, 0.32, 0.32, 0, 0, 0),
+        EXPECT_EQ(gz::math::Pose3d(0.32, 0.32, 0.32, 0, 0, 0),
             _pose->Data());
 
         EXPECT_EQ("sphere_visual", _name->Data());
@@ -550,7 +550,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       }
       else if (visualCount == 4)
       {
-        EXPECT_EQ(ignition::math::Pose3d(0.52, 0.52, 0.52, 0, 0, 0),
+        EXPECT_EQ(gz::math::Pose3d(0.52, 0.52, 0.52, 0, 0, 0),
             _pose->Data());
 
         EXPECT_EQ("capsule_visual", _name->Data());
@@ -569,7 +569,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       }
       else if (visualCount == 5)
       {
-        EXPECT_EQ(ignition::math::Pose3d(0.82, 0.82, 0.82, 0, 0, 0),
+        EXPECT_EQ(gz::math::Pose3d(0.82, 0.82, 0.82, 0, 0, 0),
             _pose->Data());
 
         EXPECT_EQ("ellipsoid_visual", _name->Data());
@@ -578,7 +578,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
         EXPECT_EQ(sdf::GeometryType::ELLIPSOID, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().EllipsoidShape());
-        EXPECT_EQ(ignition::math::Vector3d(0.4, 0.6, 1.6),
+        EXPECT_EQ(gz::math::Vector3d(0.4, 0.6, 1.6),
           _geometry->Data().EllipsoidShape()->Radii());
 
         EXPECT_EQ(math::Color(0.0f, 0.0f, 0.0f), _material->Data().Emissive());
@@ -610,7 +610,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
       lightCount++;
 
-      EXPECT_EQ(ignition::math::Pose3d(0.0, 0.0, 10, 0, 0, 0),
+      EXPECT_EQ(gz::math::Pose3d(0.0, 0.0, 10, 0, 0, 0),
           _pose->Data());
 
       EXPECT_EQ("sun", _name->Data());
@@ -619,20 +619,20 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
       EXPECT_EQ("sun", _light->Data().Name());
       EXPECT_EQ(sdf::LightType::DIRECTIONAL, _light->Data().Type());
-      EXPECT_EQ(ignition::math::Pose3d(0, 0, 10, 0, 0, 0),
+      EXPECT_EQ(gz::math::Pose3d(0, 0, 10, 0, 0, 0),
           _light->Data().RawPose());
       EXPECT_EQ("", _light->Data().PoseRelativeTo());
       EXPECT_TRUE(_light->Data().CastShadows());
-      EXPECT_EQ(ignition::math::Color(0.8f, 0.8f, 0.8f, 1),
+      EXPECT_EQ(gz::math::Color(0.8f, 0.8f, 0.8f, 1),
           _light->Data().Diffuse());
-      EXPECT_EQ(ignition::math::Color(0.2f, 0.2f, 0.2f, 1),
+      EXPECT_EQ(gz::math::Color(0.2f, 0.2f, 0.2f, 1),
           _light->Data().Specular());
       EXPECT_DOUBLE_EQ(1000, _light->Data().AttenuationRange());
       EXPECT_DOUBLE_EQ(0.9, _light->Data().ConstantAttenuationFactor());
       EXPECT_DOUBLE_EQ(0.01, _light->Data().LinearAttenuationFactor());
       EXPECT_DOUBLE_EQ(0.001, _light->Data().QuadraticAttenuationFactor());
       EXPECT_DOUBLE_EQ(1.0, _light->Data().Intensity());
-      EXPECT_EQ(ignition::math::Vector3d(-0.5, 0.1, -0.9),
+      EXPECT_EQ(gz::math::Vector3d(-0.5, 0.1, -0.9),
           _light->Data().Direction());
       return true;
     });
@@ -703,7 +703,7 @@ TEST_P(SimulationRunnerTest, CreateLights)
       modelCount++;
 
       EXPECT_EQ(worldEntity, _parent->Data());
-      EXPECT_EQ(ignition::math::Pose3d(0, 0, 0, 0, 0, 0),
+      EXPECT_EQ(gz::math::Pose3d(0, 0, 0, 0, 0, 0),
           _pose->Data());
       EXPECT_EQ("sphere", _name->Data());
       sphModelEntity = _entity;
@@ -734,7 +734,7 @@ TEST_P(SimulationRunnerTest, CreateLights)
 
       linkCount++;
 
-      EXPECT_EQ(ignition::math::Pose3d(0.0, 0.0, 0.0, 0, 0, 0),
+      EXPECT_EQ(gz::math::Pose3d(0.0, 0.0, 0.0, 0, 0, 0),
           _pose->Data());
       EXPECT_EQ("sphere_link", _name->Data());
       EXPECT_EQ(sphModelEntity, _parent->Data());
@@ -771,7 +771,7 @@ TEST_P(SimulationRunnerTest, CreateLights)
 
       visualCount++;
 
-      EXPECT_EQ(ignition::math::Pose3d(0.0, 0.0, 0.0, 0, 0, 0),
+      EXPECT_EQ(gz::math::Pose3d(0.0, 0.0, 0.0, 0, 0, 0),
           _pose->Data());
 
       EXPECT_EQ("sphere_visual", _name->Data());
@@ -812,19 +812,19 @@ TEST_P(SimulationRunnerTest, CreateLights)
       // light attached to link
       if (lightCount == 1u)
       {
-        EXPECT_EQ(ignition::math::Pose3d(0.0, 0.0, 1.0, 0, 0, 0),
+        EXPECT_EQ(gz::math::Pose3d(0.0, 0.0, 1.0, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("link_light_point", _name->Data());
         EXPECT_EQ(sphLinkEntity, _parent->Data());
         EXPECT_EQ("link_light_point", _light->Data().Name());
         EXPECT_EQ(sdf::LightType::POINT, _light->Data().Type());
-        EXPECT_EQ(ignition::math::Pose3d(0, 0, 1, 0, 0, 0),
+        EXPECT_EQ(gz::math::Pose3d(0, 0, 1, 0, 0, 0),
             _light->Data().RawPose());
         EXPECT_EQ(std::string(), _light->Data().PoseRelativeTo());
         EXPECT_FALSE(_light->Data().CastShadows());
-        EXPECT_EQ(ignition::math::Color(0.0f, 0.0f, 1.0f, 1),
+        EXPECT_EQ(gz::math::Color(0.0f, 0.0f, 1.0f, 1),
             _light->Data().Diffuse());
-        EXPECT_EQ(ignition::math::Color(0.1f, 0.1f, 0.1f, 1),
+        EXPECT_EQ(gz::math::Color(0.1f, 0.1f, 0.1f, 1),
             _light->Data().Specular());
         EXPECT_DOUBLE_EQ(2, _light->Data().AttenuationRange());
         EXPECT_DOUBLE_EQ(0.05, _light->Data().ConstantAttenuationFactor());
@@ -834,43 +834,43 @@ TEST_P(SimulationRunnerTest, CreateLights)
       // directional light in the world
       else if (lightCount == 2u)
       {
-        EXPECT_EQ(ignition::math::Pose3d(0.0, 0.0, 10, 0, 0, 0),
+        EXPECT_EQ(gz::math::Pose3d(0.0, 0.0, 10, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("directional", _name->Data());
         EXPECT_EQ(worldEntity, _parent->Data());
         EXPECT_EQ("directional", _light->Data().Name());
         EXPECT_EQ(sdf::LightType::DIRECTIONAL, _light->Data().Type());
-        EXPECT_EQ(ignition::math::Pose3d(0, 0, 10, 0, 0, 0),
+        EXPECT_EQ(gz::math::Pose3d(0, 0, 10, 0, 0, 0),
             _light->Data().RawPose());
         EXPECT_EQ(std::string(), _light->Data().PoseRelativeTo());
         EXPECT_TRUE(_light->Data().CastShadows());
-        EXPECT_EQ(ignition::math::Color(0.8f, 0.8f, 0.8f, 1),
+        EXPECT_EQ(gz::math::Color(0.8f, 0.8f, 0.8f, 1),
             _light->Data().Diffuse());
-        EXPECT_EQ(ignition::math::Color(0.2f, 0.2f, 0.2f, 1),
+        EXPECT_EQ(gz::math::Color(0.2f, 0.2f, 0.2f, 1),
             _light->Data().Specular());
         EXPECT_DOUBLE_EQ(100, _light->Data().AttenuationRange());
         EXPECT_DOUBLE_EQ(0.9, _light->Data().ConstantAttenuationFactor());
         EXPECT_DOUBLE_EQ(0.01, _light->Data().LinearAttenuationFactor());
         EXPECT_DOUBLE_EQ(0.001, _light->Data().QuadraticAttenuationFactor());
-        EXPECT_EQ(ignition::math::Vector3d(0.5, 0.2, -0.9),
+        EXPECT_EQ(gz::math::Vector3d(0.5, 0.2, -0.9),
             _light->Data().Direction());
       }
       // point light in the world
       else if (lightCount == 3u)
       {
-        EXPECT_EQ(ignition::math::Pose3d(0.0, -1.5, 3, 0, 0, 0),
+        EXPECT_EQ(gz::math::Pose3d(0.0, -1.5, 3, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("point", _name->Data());
         EXPECT_EQ(worldEntity, _parent->Data());
         EXPECT_EQ("point", _light->Data().Name());
         EXPECT_EQ(sdf::LightType::POINT, _light->Data().Type());
-        EXPECT_EQ(ignition::math::Pose3d(0, -1.5, 3, 0, 0, 0),
+        EXPECT_EQ(gz::math::Pose3d(0, -1.5, 3, 0, 0, 0),
             _light->Data().RawPose());
         EXPECT_EQ(std::string(), _light->Data().PoseRelativeTo());
         EXPECT_FALSE(_light->Data().CastShadows());
-        EXPECT_EQ(ignition::math::Color(1.0f, 0.0f, 0.0f, 1),
+        EXPECT_EQ(gz::math::Color(1.0f, 0.0f, 0.0f, 1),
             _light->Data().Diffuse());
-        EXPECT_EQ(ignition::math::Color(0.1f, 0.1f, 0.1f, 1),
+        EXPECT_EQ(gz::math::Color(0.1f, 0.1f, 0.1f, 1),
             _light->Data().Specular());
         EXPECT_DOUBLE_EQ(4, _light->Data().AttenuationRange());
         EXPECT_DOUBLE_EQ(0.2, _light->Data().ConstantAttenuationFactor());
@@ -880,25 +880,25 @@ TEST_P(SimulationRunnerTest, CreateLights)
       // spot light in the world
       else if (lightCount == 4u)
       {
-        EXPECT_EQ(ignition::math::Pose3d(0.0, 1.5, 3, 0, 0, 0),
+        EXPECT_EQ(gz::math::Pose3d(0.0, 1.5, 3, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("spot", _name->Data());
         EXPECT_EQ(worldEntity, _parent->Data());
         EXPECT_EQ("spot", _light->Data().Name());
         EXPECT_EQ(sdf::LightType::SPOT, _light->Data().Type());
-        EXPECT_EQ(ignition::math::Pose3d(0, 1.5, 3, 0, 0, 0),
+        EXPECT_EQ(gz::math::Pose3d(0, 1.5, 3, 0, 0, 0),
             _light->Data().RawPose());
         EXPECT_EQ(std::string(), _light->Data().PoseRelativeTo());
         EXPECT_FALSE(_light->Data().CastShadows());
-        EXPECT_EQ(ignition::math::Color(0.0f, 1.0f, 0.0f, 1),
+        EXPECT_EQ(gz::math::Color(0.0f, 1.0f, 0.0f, 1),
             _light->Data().Diffuse());
-        EXPECT_EQ(ignition::math::Color(0.2f, 0.2f, 0.2f, 1),
+        EXPECT_EQ(gz::math::Color(0.2f, 0.2f, 0.2f, 1),
             _light->Data().Specular());
         EXPECT_DOUBLE_EQ(5, _light->Data().AttenuationRange());
         EXPECT_DOUBLE_EQ(0.3, _light->Data().ConstantAttenuationFactor());
         EXPECT_DOUBLE_EQ(0.4, _light->Data().LinearAttenuationFactor());
         EXPECT_DOUBLE_EQ(0.001, _light->Data().QuadraticAttenuationFactor());
-        EXPECT_EQ(ignition::math::Vector3d(0.0, 0.0, -1.0),
+        EXPECT_EQ(gz::math::Vector3d(0.0, 0.0, -1.0),
             _light->Data().Direction());
         EXPECT_DOUBLE_EQ(0.1, _light->Data().SpotInnerAngle().Radian());
         EXPECT_DOUBLE_EQ(0.5, _light->Data().SpotOuterAngle().Radian());
@@ -1200,9 +1200,9 @@ TEST_P(SimulationRunnerTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadPlugins) )
 
   // Get world entity
   Entity worldId{kNullEntity};
-  runner.EntityCompMgr().Each<ignition::gazebo::components::World>([&](
-      const ignition::gazebo::Entity &_entity,
-      const ignition::gazebo::components::World *_world)->bool
+  runner.EntityCompMgr().Each<gz::sim::components::World>([&](
+      const gz::sim::Entity &_entity,
+      const gz::sim::components::World *_world)->bool
       {
         EXPECT_NE(nullptr, _world);
         worldId = _entity;
@@ -1212,9 +1212,9 @@ TEST_P(SimulationRunnerTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadPlugins) )
 
   // Get model entity
   Entity modelId{kNullEntity};
-  runner.EntityCompMgr().Each<ignition::gazebo::components::Model>([&](
-      const ignition::gazebo::Entity &_entity,
-      const ignition::gazebo::components::Model *_model)->bool
+  runner.EntityCompMgr().Each<gz::sim::components::Model>([&](
+      const gz::sim::Entity &_entity,
+      const gz::sim::components::Model *_model)->bool
       {
         EXPECT_NE(nullptr, _model);
         modelId = _entity;
@@ -1224,9 +1224,9 @@ TEST_P(SimulationRunnerTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadPlugins) )
 
   // Get sensor entity
   Entity sensorId{kNullEntity};
-  runner.EntityCompMgr().Each<ignition::gazebo::components::Sensor>([&](
-      const ignition::gazebo::Entity &_entity,
-      const ignition::gazebo::components::Sensor *_sensor)->bool
+  runner.EntityCompMgr().Each<gz::sim::components::Sensor>([&](
+      const gz::sim::Entity &_entity,
+      const gz::sim::components::Sensor *_sensor)->bool
       {
         EXPECT_NE(nullptr, _sensor);
         sensorId = _entity;
@@ -1236,9 +1236,9 @@ TEST_P(SimulationRunnerTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadPlugins) )
 
   // Get visual entity
   Entity visualId{kNullEntity};
-  runner.EntityCompMgr().Each<ignition::gazebo::components::Visual>([&](
-      const ignition::gazebo::Entity &_entity,
-      const ignition::gazebo::components::Visual *_visual)->bool
+  runner.EntityCompMgr().Each<gz::sim::components::Visual>([&](
+      const gz::sim::Entity &_entity,
+      const gz::sim::components::Visual *_visual)->bool
       {
         EXPECT_NE(nullptr, _visual);
         visualId = _entity;
@@ -1248,7 +1248,7 @@ TEST_P(SimulationRunnerTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadPlugins) )
 
   // Check component registered by world plugin
   std::string worldComponentName{"WorldPluginComponent"};
-  auto worldComponentId = ignition::common::hash64(worldComponentName);
+  auto worldComponentId = gz::common::hash64(worldComponentName);
 
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(worldComponentId));
   EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(worldId,
@@ -1256,7 +1256,7 @@ TEST_P(SimulationRunnerTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadPlugins) )
 
   // Check component registered by model plugin
   std::string modelComponentName{"ModelPluginComponent"};
-  auto modelComponentId = ignition::common::hash64(modelComponentName);
+  auto modelComponentId = gz::common::hash64(modelComponentName);
 
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(modelComponentId));
   EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(modelId,
@@ -1264,7 +1264,7 @@ TEST_P(SimulationRunnerTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadPlugins) )
 
   // Check component registered by sensor plugin
   std::string sensorComponentName{"SensorPluginComponent"};
-  auto sensorComponentId = ignition::common::hash64(sensorComponentName);
+  auto sensorComponentId = gz::common::hash64(sensorComponentName);
 
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(sensorComponentId));
   EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(sensorId,
@@ -1272,7 +1272,7 @@ TEST_P(SimulationRunnerTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadPlugins) )
 
   // Check component registered by visual plugin
   std::string visualComponentName{"VisualPluginComponent"};
-  auto visualComponentId = ignition::common::hash64(visualComponentName);
+  auto visualComponentId = gz::common::hash64(visualComponentName);
 
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(visualComponentId));
   EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(visualId,
@@ -1345,9 +1345,9 @@ TEST_P(SimulationRunnerTest,
 
   // Get world entity
   Entity worldId{kNullEntity};
-  runner.EntityCompMgr().Each<ignition::gazebo::components::World>([&](
-      const ignition::gazebo::Entity &_entity,
-      const ignition::gazebo::components::World *_world)->bool
+  runner.EntityCompMgr().Each<gz::sim::components::World>([&](
+      const gz::sim::Entity &_entity,
+      const gz::sim::components::World *_world)->bool
       {
         EXPECT_NE(nullptr, _world);
         worldId = _entity;
@@ -1357,9 +1357,9 @@ TEST_P(SimulationRunnerTest,
 
   // Get model entity
   Entity modelId{kNullEntity};
-  runner.EntityCompMgr().Each<ignition::gazebo::components::Model>([&](
-      const ignition::gazebo::Entity &_entity,
-      const ignition::gazebo::components::Model *_model)->bool
+  runner.EntityCompMgr().Each<gz::sim::components::Model>([&](
+      const gz::sim::Entity &_entity,
+      const gz::sim::components::Model *_model)->bool
       {
         EXPECT_NE(nullptr, _model);
         modelId = _entity;
@@ -1369,9 +1369,9 @@ TEST_P(SimulationRunnerTest,
 
   // Get sensor entity
   Entity sensorId{kNullEntity};
-  runner.EntityCompMgr().Each<ignition::gazebo::components::Sensor>([&](
-      const ignition::gazebo::Entity &_entity,
-      const ignition::gazebo::components::Sensor *_sensor)->bool
+  runner.EntityCompMgr().Each<gz::sim::components::Sensor>([&](
+      const gz::sim::Entity &_entity,
+      const gz::sim::components::Sensor *_sensor)->bool
       {
         EXPECT_NE(nullptr, _sensor);
         sensorId = _entity;
@@ -1381,7 +1381,7 @@ TEST_P(SimulationRunnerTest,
 
   // Check component registered by world plugin
   std::string worldComponentName{"WorldPluginComponent"};
-  auto worldComponentId = ignition::common::hash64(worldComponentName);
+  auto worldComponentId = gz::common::hash64(worldComponentName);
 
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(worldComponentId));
   EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(worldId,
@@ -1389,7 +1389,7 @@ TEST_P(SimulationRunnerTest,
 
   // Check component registered by model plugin
   std::string modelComponentName{"ModelPluginComponent"};
-  auto modelComponentId = ignition::common::hash64(modelComponentName);
+  auto modelComponentId = gz::common::hash64(modelComponentName);
 
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(modelComponentId));
   EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(modelId,
@@ -1397,7 +1397,7 @@ TEST_P(SimulationRunnerTest,
 
   // Check component registered by sensor plugin
   std::string sensorComponentName{"SensorPluginComponent"};
-  auto sensorComponentId = ignition::common::hash64(sensorComponentName);
+  auto sensorComponentId = gz::common::hash64(sensorComponentName);
 
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(sensorComponentId));
   EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(sensorId,
@@ -1455,24 +1455,24 @@ TEST_P(SimulationRunnerTest,
 
   // Get model entities
   auto boxEntity = runner.EntityCompMgr().EntityByComponents(
-      ignition::gazebo::components::Model(),
-      ignition::gazebo::components::Name("box"));
+      gz::sim::components::Model(),
+      gz::sim::components::Name("box"));
   EXPECT_NE(kNullEntity, boxEntity);
 
   auto sphereEntity = runner.EntityCompMgr().EntityByComponents(
-      ignition::gazebo::components::Model(),
-      ignition::gazebo::components::Name("sphere"));
+      gz::sim::components::Model(),
+      gz::sim::components::Name("sphere"));
   EXPECT_NE(kNullEntity, sphereEntity);
 
   auto cylinderEntity = runner.EntityCompMgr().EntityByComponents(
-      ignition::gazebo::components::Model(),
-      ignition::gazebo::components::Name("cylinder"));
+      gz::sim::components::Model(),
+      gz::sim::components::Name("cylinder"));
   EXPECT_NE(kNullEntity, cylinderEntity);
 
   // We can't access the type registered by the plugin unless we link against
   // it, but we know its name to check
   std::string componentName{"ModelPluginComponent"};
-  auto componentId = ignition::common::hash64(componentName);
+  auto componentId = gz::common::hash64(componentName);
 
   // Check there's no double component
   EXPECT_FALSE(runner.EntityCompMgr().HasComponentType(componentId));

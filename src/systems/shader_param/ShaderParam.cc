@@ -40,11 +40,11 @@
 #include "gz/sim/rendering/RenderUtil.hh"
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::ShaderParamPrivate
+class gz::sim::systems::ShaderParamPrivate
 {
   /// \brief Data structure for storing shader param info
   public: class ShaderParamValue
@@ -86,7 +86,7 @@ class ignition::gazebo::systems::ShaderParamPrivate
   public: std::mutex mutex;
 
   /// \brief Connection to pre-render event callback
-  public: ignition::common::ConnectionPtr connection{nullptr};
+  public: gz::common::ConnectionPtr connection{nullptr};
 
   /// \brief Name of visual this plugin is attached to
   public: std::string visualName;
@@ -243,14 +243,14 @@ void ShaderParam::Configure(const Entity &_entity,
   // the callback is executed in the rendering thread so do all
   // rendering operations in that thread
   this->dataPtr->connection =
-      _eventMgr.Connect<ignition::gazebo::events::SceneUpdate>(
+      _eventMgr.Connect<gz::sim::events::SceneUpdate>(
       std::bind(&ShaderParamPrivate::OnUpdate, this->dataPtr.get()));
 }
 
 //////////////////////////////////////////////////
 void ShaderParam::PreUpdate(
-  const ignition::gazebo::UpdateInfo &_info,
-  ignition::gazebo::EntityComponentManager &)
+  const gz::sim::UpdateInfo &_info,
+  gz::sim::EntityComponentManager &)
 {
   IGN_PROFILE("ShaderParam::PreUpdate");
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -486,9 +486,9 @@ void ShaderParamPrivate::OnUpdate()
 }
 
 IGNITION_ADD_PLUGIN(ShaderParam,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     ShaderParam::ISystemConfigure,
                     ShaderParam::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(ShaderParam,
-  "ignition::gazebo::systems::ShaderParam")
+  "gz::sim::systems::ShaderParam")

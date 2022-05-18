@@ -24,10 +24,10 @@ listens to the topic `buoyancy_engine` or
 <fluid_density> - The fluid density of the liquid its suspended in kgm^-3.
   [optional, float, default=1000kgm^-3]
 ## Topics
-* Subscribes to a ignition::msgs::Double on `buoyancy_engine` or
+* Subscribes to a gz::msgs::Double on `buoyancy_engine` or
  `/model/{namespace}/buoyancy_engine`. This is the set point for the
  engine.
-* Publishes a ignition::msgs::Double on `buoyancy_engine` or
+* Publishes a gz::msgs::Double on `buoyancy_engine` or
  `/model/{namespace}/buoyancy_engine/current_volume` on the current volume
 ## Examples
 
@@ -70,24 +70,24 @@ ign topic -t  /model/buoyant_box/buoyancy_engine/current_volume -e
     </physics>
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin
       filename="ignition-gazebo-contact-system"
-      name="ignition::gazebo::systems::Contact">
+      name="gz::sim::systems::Contact">
     </plugin>
 
     <plugin
       filename="ignition-gazebo-buoyancy-system"
-      name="ignition::gazebo::systems::Buoyancy">
+      name="gz::sim::systems::Buoyancy">
       <uniform_fluid_density>1000</uniform_fluid_density>
     </plugin>
 
@@ -133,7 +133,7 @@ ign topic -t  /model/buoyant_box/buoyancy_engine/current_volume -e
       </link>
       <plugin
         filename="libignition-gazebo-buoyancy-engine-system.so"
-        name="ignition::gazebo::systems::BuoyancyEngine">
+        name="gz::sim::systems::BuoyancyEngine">
         <link_name>body</link_name>
         <namespace>buoyant_box</namespace>
         <min_volume>0.0</min_volume>
@@ -173,7 +173,7 @@ ign topic -t  /model/buoyant_box/buoyancy_engine/current_volume -e
       </link>
       <plugin
         filename="libignition-gazebo-buoyancy-engine-system.so"
-        name="ignition::gazebo::systems::BuoyancyEngine">
+        name="gz::sim::systems::BuoyancyEngine">
         <link_name>body</link_name>
         <namespace>buoyant_box</namespace>
         <min_volume>0.0</min_volume>

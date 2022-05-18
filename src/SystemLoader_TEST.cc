@@ -26,7 +26,7 @@
 
 #include "gz/sim/test_config.hh"  // NOLINT(build/include)
 
-using namespace ignition;
+using namespace gz;
 
 /////////////////////////////////////////////////
 TEST(SystemLoader, Constructor)
@@ -34,7 +34,7 @@ TEST(SystemLoader, Constructor)
   gazebo::SystemLoader sm;
 
   // Add test plugin to path (referenced in config)
-  auto testBuildPath = ignition::common::joinPaths(
+  auto testBuildPath = gz::common::joinPaths(
       std::string(PROJECT_BINARY_PATH), "lib");
   sm.AddSystemPluginPath(testBuildPath);
 
@@ -43,7 +43,7 @@ TEST(SystemLoader, Constructor)
       "<world name='default'>"
       "<plugin filename='libignition-gazebo") +
       IGNITION_GAZEBO_MAJOR_VERSION_STR + "-physics-system.so' "
-      "name='ignition::gazebo::systems::Physics'></plugin>"
+      "name='gz::sim::systems::Physics'></plugin>"
       "</world></sdf>");
 
   auto worldElem = root.WorldByIndex(0)->Element();

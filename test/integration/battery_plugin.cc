@@ -43,8 +43,8 @@
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 class BatteryPluginTest : public InternalFixture<::testing::Test>
 {
@@ -54,7 +54,7 @@ class BatteryPluginTest : public InternalFixture<::testing::Test>
     InternalFixture::SetUp();
 
     auto plugin = sm.LoadPlugin("libMockSystem.so",
-                                "ignition::gazebo::MockSystem",
+                                "gz::sim::MockSystem",
                                 nullptr);
     EXPECT_TRUE(plugin.has_value());
     this->systemPtr = plugin.value();
@@ -64,7 +64,7 @@ class BatteryPluginTest : public InternalFixture<::testing::Test>
     EXPECT_NE(nullptr, this->mockSystem);
   }
 
-  public: ignition::gazebo::SystemPluginPtr systemPtr;
+  public: gz::sim::SystemPluginPtr systemPtr;
   public: gazebo::MockSystem *mockSystem;
 
   private: gazebo::SystemLoader sm;
@@ -229,7 +229,7 @@ TEST_F(BatteryPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PowerDrainTopic))
 
   // Send a message on one of the <power_draining_topic> topics, which will
   // start the battery draining when the server starts again.
-  ignition::transport::Node node;
+  gz::transport::Node node;
   auto pub = node.Advertise<msgs::StringMsg>("/battery/discharge2");
   msgs::StringMsg msg;
   pub.Publish(msg);

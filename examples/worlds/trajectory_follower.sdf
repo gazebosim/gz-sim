@@ -21,15 +21,15 @@
     </physics>
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <light type="directional" name="sun">
@@ -111,7 +111,7 @@
 
       <plugin
         filename="ignition-gazebo-trajectory-follower-system"
-        name="ignition::gazebo::systems::TrajectoryFollower">
+        name="gz::sim::systems::TrajectoryFollower">
         <link_name>box_link</link_name>
         <loop>true</loop>
         <force>10</force>
@@ -162,7 +162,7 @@
 
       <plugin
         filename="ignition-gazebo-trajectory-follower-system"
-        name="ignition::gazebo::systems::TrajectoryFollower">
+        name="gz::sim::systems::TrajectoryFollower">
         <link_name>box_link</link_name>
         <loop>true</loop>
         <force>10</force>
@@ -213,7 +213,7 @@
 
       <plugin
         filename="ignition-gazebo-trajectory-follower-system"
-        name="ignition::gazebo::systems::TrajectoryFollower">
+        name="gz::sim::systems::TrajectoryFollower">
         <link_name>box_link</link_name>
         <loop>true</loop>
         <force>10</force>

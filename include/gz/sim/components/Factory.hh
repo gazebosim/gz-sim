@@ -32,9 +32,9 @@
 #include <gz/sim/Export.hh>
 #include <gz/sim/Types.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -112,7 +112,7 @@ namespace components
 
   /// \brief A factory that generates a component based on a string type.
   class Factory
-      : public ignition::common::SingletonT<Factory>
+      : public gz::common::SingletonT<Factory>
   {
     /// \brief Register a component so that the factory can create instances
     /// of the component and its storage based on an ID.
@@ -146,7 +146,7 @@ namespace components
         return;
       }
 
-      auto typeHash = ignition::common::hash64(_type);
+      auto typeHash = gz::common::hash64(_type);
 
       // Initialize static member variable - we need to set these
       // static members for every shared lib that uses the component, but we
@@ -176,7 +176,7 @@ namespace components
       // This happens at static initialization time, so we can't use common
       // console
       std::string debugEnv;
-      ignition::common::env("IGN_DEBUG_COMPONENT_FACTORY", debugEnv);
+      gz::common::env("IGN_DEBUG_COMPONENT_FACTORY", debugEnv);
       if (debugEnv == "true")
       {
         std::cout << "Registering [" << ComponentTypeT::typeName << "]"
@@ -377,7 +377,7 @@ namespace components
     { \
       if (_classname::typeId != 0) \
         return; \
-      using namespace ignition;\
+      using namespace gz;\
       using Desc = gazebo::components::ComponentDescriptor<_classname>; \
       gazebo::components::Factory::Instance()->Register<_classname>(\
         _compType, new Desc());\

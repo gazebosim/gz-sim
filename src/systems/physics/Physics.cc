@@ -143,51 +143,51 @@
 
 #include "EntityFeatureMap.hh"
 
-using namespace ignition;
-using namespace ignition::gazebo;
-using namespace ignition::gazebo::systems;
-using namespace ignition::gazebo::systems::physics_system;
-namespace components = ignition::gazebo::components;
+using namespace gz;
+using namespace gz::sim;
+using namespace gz::sim::systems;
+using namespace gz::sim::systems::physics_system;
+namespace components = gz::sim::components;
 
 
 // Private data class.
-class ignition::gazebo::systems::PhysicsPrivate
+class gz::sim::systems::PhysicsPrivate
 {
   /// \brief This is the minimum set of features that any physics engine must
   /// implement to be supported by this system.
   /// New features can't be added to this list in minor / patch releases, in
   /// order to maintain backwards compatibility with downstream physics plugins.
-  public: struct MinimumFeatureList : ignition::physics::FeatureList<
-          ignition::physics::FindFreeGroupFeature,
-          ignition::physics::SetFreeGroupWorldPose,
-          ignition::physics::FreeGroupFrameSemantics,
-          ignition::physics::LinkFrameSemantics,
-          ignition::physics::ForwardStep,
-          ignition::physics::RemoveModelFromWorld,
-          ignition::physics::sdf::ConstructSdfLink,
-          ignition::physics::sdf::ConstructSdfModel,
-          ignition::physics::sdf::ConstructSdfWorld
+  public: struct MinimumFeatureList : gz::physics::FeatureList<
+          gz::physics::FindFreeGroupFeature,
+          gz::physics::SetFreeGroupWorldPose,
+          gz::physics::FreeGroupFrameSemantics,
+          gz::physics::LinkFrameSemantics,
+          gz::physics::ForwardStep,
+          gz::physics::RemoveModelFromWorld,
+          gz::physics::sdf::ConstructSdfLink,
+          gz::physics::sdf::ConstructSdfModel,
+          gz::physics::sdf::ConstructSdfWorld
           >{};
 
   /// \brief Engine type with just the minimum features.
-  public: using EnginePtrType = ignition::physics::EnginePtr<
-            ignition::physics::FeaturePolicy3d, MinimumFeatureList>;
+  public: using EnginePtrType = gz::physics::EnginePtr<
+            gz::physics::FeaturePolicy3d, MinimumFeatureList>;
 
   /// \brief World type with just the minimum features.
-  public: using WorldPtrType = ignition::physics::WorldPtr<
-            ignition::physics::FeaturePolicy3d, MinimumFeatureList>;
+  public: using WorldPtrType = gz::physics::WorldPtr<
+            gz::physics::FeaturePolicy3d, MinimumFeatureList>;
 
   /// \brief Model type with just the minimum features.
-  public: using ModelPtrType = ignition::physics::ModelPtr<
-            ignition::physics::FeaturePolicy3d, MinimumFeatureList>;
+  public: using ModelPtrType = gz::physics::ModelPtr<
+            gz::physics::FeaturePolicy3d, MinimumFeatureList>;
 
   /// \brief Link type with just the minimum features.
-  public: using LinkPtrType = ignition::physics::LinkPtr<
-            ignition::physics::FeaturePolicy3d, MinimumFeatureList>;
+  public: using LinkPtrType = gz::physics::LinkPtr<
+            gz::physics::FeaturePolicy3d, MinimumFeatureList>;
 
   /// \brief Free group type with just the minimum features.
-  public: using FreeGroupPtrType = ignition::physics::FreeGroupPtr<
-            ignition::physics::FeaturePolicy3d, MinimumFeatureList>;
+  public: using FreeGroupPtrType = gz::physics::FreeGroupPtr<
+            gz::physics::FeaturePolicy3d, MinimumFeatureList>;
 
   /// \brief Create physics entities
   /// \param[in] _ecm Constant reference to ECM.
@@ -250,7 +250,7 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// \param[in] _dt Duration
   /// \returns Output data from the physics engine (this currently contains
   /// data for links that experienced a pose change in the physics step)
-  public: ignition::physics::ForwardStep::Output Step(
+  public: gz::physics::ForwardStep::Output Step(
               const std::chrono::steady_clock::duration &_dt);
 
   /// \brief Get data of links that were updated in the latest physics step.
@@ -265,7 +265,7 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// properly (models must be updated in topological order).
   public: std::map<Entity, physics::FrameData3d> ChangedLinks(
               EntityComponentManager &_ecm,
-              const ignition::physics::ForwardStep::Output &_updatedLinks);
+              const gz::physics::ForwardStep::Output &_updatedLinks);
 
   /// \brief Helper function to update the pose of a model.
   /// \param[in] _model The model to update.
@@ -314,7 +314,7 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// \param[in] _from An ancestor of the _to entity.
   /// \param[in] _to A descendant of the _from entity.
   /// \return Pose transform between the two entities
-  public: ignition::math::Pose3d RelativePose(const Entity &_from,
+  public: gz::math::Pose3d RelativePose(const Entity &_from,
       const Entity &_to, const EntityComponentManager &_ecm) const;
 
   /// \brief Enable contact surface customization for the given world.
@@ -335,7 +335,7 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// \brief Keep track of poses for links attached to non-static models.
   /// This allows for skipping pose updates if a link's pose didn't change
   /// after a physics step.
-  public: std::unordered_map<Entity, ignition::math::Pose3d> linkWorldPoses;
+  public: std::unordered_map<Entity, gz::math::Pose3d> linkWorldPoses;
 
   /// \brief Keep a mapping of canonical links to models that have this
   /// canonical link. Useful for updating model poses efficiently after a
@@ -451,18 +451,18 @@ class ignition::gazebo::systems::PhysicsPrivate
   public: struct FrictionPyramidSlipComplianceFeatureList
       : physics::FeatureList<
             MinimumFeatureList,
-            ignition::physics::GetShapeFrictionPyramidSlipCompliance,
-            ignition::physics::SetShapeFrictionPyramidSlipCompliance>{};
+            gz::physics::GetShapeFrictionPyramidSlipCompliance,
+            gz::physics::SetShapeFrictionPyramidSlipCompliance>{};
   //////////////////////////////////////////////////
   // Joints
 
   /// \brief Feature list to handle joints.
-  public: struct JointFeatureList : ignition::physics::FeatureList<
+  public: struct JointFeatureList : gz::physics::FeatureList<
             MinimumFeatureList,
-            ignition::physics::GetBasicJointProperties,
-            ignition::physics::GetBasicJointState,
-            ignition::physics::SetBasicJointState,
-            ignition::physics::sdf::ConstructSdfJoint>{};
+            gz::physics::GetBasicJointProperties,
+            gz::physics::GetBasicJointState,
+            gz::physics::SetBasicJointState,
+            gz::physics::sdf::ConstructSdfJoint>{};
 
 
   //////////////////////////////////////////////////
@@ -485,50 +485,50 @@ class ignition::gazebo::systems::PhysicsPrivate
   // Collisions
 
   /// \brief Feature list to handle collisions.
-  public: struct CollisionFeatureList : ignition::physics::FeatureList<
+  public: struct CollisionFeatureList : gz::physics::FeatureList<
             MinimumFeatureList,
-            ignition::physics::sdf::ConstructSdfCollision>{};
+            gz::physics::sdf::ConstructSdfCollision>{};
 
   /// \brief Feature list to handle contacts information.
-  public: struct ContactFeatureList : ignition::physics::FeatureList<
+  public: struct ContactFeatureList : gz::physics::FeatureList<
             CollisionFeatureList,
-            ignition::physics::GetContactsFromLastStepFeature>{};
+            gz::physics::GetContactsFromLastStepFeature>{};
 
   /// \brief Feature list to change contacts before they are applied to physics.
   public: struct SetContactPropertiesCallbackFeatureList :
-            ignition::physics::FeatureList<
+            gz::physics::FeatureList<
               ContactFeatureList,
-              ignition::physics::SetContactPropertiesCallbackFeature>{};
+              gz::physics::SetContactPropertiesCallbackFeature>{};
 
   /// \brief Collision type with collision features.
-  public: using ShapePtrType = ignition::physics::ShapePtr<
-            ignition::physics::FeaturePolicy3d, CollisionFeatureList>;
+  public: using ShapePtrType = gz::physics::ShapePtr<
+            gz::physics::FeaturePolicy3d, CollisionFeatureList>;
 
   /// \brief World type with just the minimum features. Non-pointer.
-  public: using WorldShapeType = ignition::physics::World<
-            ignition::physics::FeaturePolicy3d, ContactFeatureList>;
+  public: using WorldShapeType = gz::physics::World<
+            gz::physics::FeaturePolicy3d, ContactFeatureList>;
 
   //////////////////////////////////////////////////
   // Collision filtering with bitmasks
 
   /// \brief Feature list to filter collisions with bitmasks.
-  public: struct CollisionMaskFeatureList : ignition::physics::FeatureList<
+  public: struct CollisionMaskFeatureList : gz::physics::FeatureList<
           CollisionFeatureList,
-          ignition::physics::CollisionFilterMaskFeature>{};
+          gz::physics::CollisionFilterMaskFeature>{};
 
   //////////////////////////////////////////////////
   // Link force
   /// \brief Feature list for applying forces to links.
-  public: struct LinkForceFeatureList : ignition::physics::FeatureList<
-            ignition::physics::AddLinkExternalForceTorque>{};
+  public: struct LinkForceFeatureList : gz::physics::FeatureList<
+            gz::physics::AddLinkExternalForceTorque>{};
 
 
   //////////////////////////////////////////////////
   // Bounding box
   /// \brief Feature list for model bounding box.
-  public: struct BoundingBoxFeatureList : ignition::physics::FeatureList<
+  public: struct BoundingBoxFeatureList : gz::physics::FeatureList<
             MinimumFeatureList,
-            ignition::physics::GetModelBoundingBox>{};
+            gz::physics::GetModelBoundingBox>{};
 
 
   //////////////////////////////////////////////////
@@ -562,8 +562,8 @@ class ignition::gazebo::systems::PhysicsPrivate
   //////////////////////////////////////////////////
   // World velocity command
   public: struct WorldVelocityCommandFeatureList :
-            ignition::physics::FeatureList<
-              ignition::physics::SetFreeGroupWorldVelocity>{};
+            gz::physics::FeatureList<
+              gz::physics::SetFreeGroupWorldVelocity>{};
 
 
   //////////////////////////////////////////////////
@@ -582,29 +582,29 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// \brief Feature list for heightmaps.
   /// Include MinimumFeatureList so created collision can be automatically
   /// up-cast.
-  public: struct HeightmapFeatureList : ignition::physics::FeatureList<
+  public: struct HeightmapFeatureList : gz::physics::FeatureList<
             CollisionFeatureList,
             physics::heightmap::AttachHeightmapShapeFeature>{};
 
   //////////////////////////////////////////////////
   // Collision detector
   /// \brief Feature list for setting and getting the collision detector
-  public: struct CollisionDetectorFeatureList : ignition::physics::FeatureList<
-            ignition::physics::CollisionDetector>{};
+  public: struct CollisionDetectorFeatureList : gz::physics::FeatureList<
+            gz::physics::CollisionDetector>{};
 
   //////////////////////////////////////////////////
   // Solver
   /// \brief Feature list for setting and getting the solver
-  public: struct SolverFeatureList : ignition::physics::FeatureList<
-            ignition::physics::Solver>{};
+  public: struct SolverFeatureList : gz::physics::FeatureList<
+            gz::physics::Solver>{};
 
   //////////////////////////////////////////////////
   // Nested Models
 
   /// \brief Feature list to construct nested models
-  public: struct NestedModelFeatureList : ignition::physics::FeatureList<
+  public: struct NestedModelFeatureList : gz::physics::FeatureList<
             MinimumFeatureList,
-            ignition::physics::sdf::ConstructSdfNestedModel>{};
+            gz::physics::sdf::ConstructSdfNestedModel>{};
 
   //////////////////////////////////////////////////
   /// \brief World EntityFeatureMap
@@ -785,7 +785,7 @@ void Physics::Configure(const Entity &_entity,
   }
 
   // Load engine plugin
-  ignition::plugin::Loader pluginLoader;
+  gz::plugin::Loader pluginLoader;
   auto plugins = pluginLoader.LoadLib(pathToLib);
   if (plugins.empty())
   {
@@ -815,8 +815,8 @@ void Physics::Configure(const Entity &_entity,
       continue;
     }
 
-    this->dataPtr->engine = ignition::physics::RequestEngine<
-      ignition::physics::FeaturePolicy3d,
+    this->dataPtr->engine = gz::physics::RequestEngine<
+      gz::physics::FeaturePolicy3d,
       PhysicsPrivate::MinimumFeatureList>::From(plugin);
 
     if (nullptr != this->dataPtr->engine)
@@ -826,8 +826,8 @@ void Physics::Configure(const Entity &_entity,
       break;
     }
 
-    auto missingFeatures = ignition::physics::RequestEngine<
-        ignition::physics::FeaturePolicy3d,
+    auto missingFeatures = gz::physics::RequestEngine<
+        gz::physics::FeaturePolicy3d,
         PhysicsPrivate::MinimumFeatureList>::MissingFeatureNames(plugin);
 
     std::stringstream msg;
@@ -863,7 +863,7 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   {
     this->dataPtr->CreatePhysicsEntities(_ecm);
     this->dataPtr->UpdatePhysics(_ecm);
-    ignition::physics::ForwardStep::Output stepOutput;
+    gz::physics::ForwardStep::Output stepOutput;
     // Only step if not paused.
     if (!_info.paused)
     {
@@ -1268,7 +1268,7 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
             return true;
           }
 
-          auto &meshManager = *ignition::common::MeshManager::Instance();
+          auto &meshManager = *gz::common::MeshManager::Instance();
           auto fullPath = asFullPath(meshSdf->Uri(), meshSdf->FilePath());
           auto *mesh = meshManager.Load(fullPath);
           if (nullptr == mesh)
@@ -2564,13 +2564,13 @@ void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
 }
 
 //////////////////////////////////////////////////
-ignition::physics::ForwardStep::Output PhysicsPrivate::Step(
+gz::physics::ForwardStep::Output PhysicsPrivate::Step(
     const std::chrono::steady_clock::duration &_dt)
 {
   IGN_PROFILE("PhysicsPrivate::Step");
-  ignition::physics::ForwardStep::Input input;
-  ignition::physics::ForwardStep::State state;
-  ignition::physics::ForwardStep::Output output;
+  gz::physics::ForwardStep::Input input;
+  gz::physics::ForwardStep::State state;
+  gz::physics::ForwardStep::Output output;
 
   input.Get<std::chrono::steady_clock::duration>() = _dt;
 
@@ -2583,7 +2583,7 @@ ignition::physics::ForwardStep::Output PhysicsPrivate::Step(
 }
 
 //////////////////////////////////////////////////
-ignition::math::Pose3d PhysicsPrivate::RelativePose(const Entity &_from,
+gz::math::Pose3d PhysicsPrivate::RelativePose(const Entity &_from,
   const Entity &_to, const EntityComponentManager &_ecm) const
 {
   math::Pose3d transform;
@@ -2621,7 +2621,7 @@ ignition::math::Pose3d PhysicsPrivate::RelativePose(const Entity &_from,
 //////////////////////////////////////////////////
 std::map<Entity, physics::FrameData3d> PhysicsPrivate::ChangedLinks(
     EntityComponentManager &_ecm,
-    const ignition::physics::ForwardStep::Output &_updatedLinks)
+    const gz::physics::ForwardStep::Output &_updatedLinks)
 {
   IGN_PROFILE("Links Frame Data");
 
@@ -2629,10 +2629,10 @@ std::map<Entity, physics::FrameData3d> PhysicsPrivate::ChangedLinks(
 
   // Check to see if the physics engine gave a list of changed poses. If not, we
   // will iterate through all of the links via the ECM to see which ones changed
-  if (_updatedLinks.Has<ignition::physics::ChangedWorldPoses>())
+  if (_updatedLinks.Has<gz::physics::ChangedWorldPoses>())
   {
     for (const auto &link :
-        _updatedLinks.Query<ignition::physics::ChangedWorldPoses>()->entries)
+        _updatedLinks.Query<gz::physics::ChangedWorldPoses>()->entries)
     {
       // get the gazebo entity that matches the updated physics link entity
       const auto linkPhys = this->entityLinkMap.GetPhysicsEntityPtr(link.body);
@@ -2684,7 +2684,7 @@ std::map<Entity, physics::FrameData3d> PhysicsPrivate::ChangedLinks(
         // update the link pose if this is the first update,
         // or if the link pose has changed since the last update
         // (if the link pose hasn't changed, there's no need for a pose update)
-        const auto worldPoseMath3d = ignition::math::eigen3::convert(
+        const auto worldPoseMath3d = gz::math::eigen3::convert(
             frameData.pose);
         if ((this->linkWorldPoses.find(_entity) == this->linkWorldPoses.end())
             || !this->pose3Eql(this->linkWorldPoses[_entity], worldPoseMath3d))
@@ -3144,7 +3144,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
               this->LinkFrameDataAtOffset(linkPhys, _pose->Data());
 
           auto entityWorldPose = math::eigen3::convert(entityFrameData.pose);
-          ignition::math::Vector3d entityWorldAngularVel =
+          gz::math::Vector3d entityWorldAngularVel =
               math::eigen3::convert(entityFrameData.angularVelocity);
 
           auto entityBodyAngularVel =
@@ -3169,7 +3169,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
               this->LinkFrameDataAtOffset(linkPhys, _pose->Data());
 
           auto entityWorldPose = math::eigen3::convert(entityFrameData.pose);
-          ignition::math::Vector3d entityWorldLinearAcc =
+          gz::math::Vector3d entityWorldLinearAcc =
               math::eigen3::convert(entityFrameData.linearAcceleration);
 
           auto entityBodyLinearAcc =
@@ -3524,7 +3524,7 @@ void PhysicsPrivate::EnableContactSurfaceCustomization(const Entity &_world)
   using ContactPoint = GCFeatureWorld::ContactPoint;
   using ExtraContactData = GCFeature::ExtraContactDataT<Policy>;
 
-  const auto callbackID = "ignition::gazebo::systems::Physics";
+  const auto callbackID = "gz::sim::systems::Physics";
   setContactPropertiesCallbackFeature->AddContactPropertiesCallback(
     callbackID,
     [this, _world](const GCFeatureWorld::Contact &_contact,
@@ -3598,9 +3598,9 @@ void PhysicsPrivate::DisableContactSurfaceCustomization(const Entity &_world)
 }
 
 IGNITION_ADD_PLUGIN(Physics,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     Physics::ISystemConfigure,
                     Physics::ISystemReset,
                     Physics::ISystemUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(Physics, "ignition::gazebo::systems::Physics")
+IGNITION_ADD_PLUGIN_ALIAS(Physics, "gz::sim::systems::Physics")

@@ -25,8 +25,8 @@
 #include "gz/sim/test_config.hh"  // NOLINT(build/include)
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 class PhysicsSystemFixture : public InternalFixture<::testing::Test>
@@ -38,7 +38,7 @@ class PhysicsSystemFixture : public InternalFixture<::testing::Test>
 TEST_F(PhysicsSystemFixture,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(CreatePhysicsWorld))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
 
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/shapes.sdf");

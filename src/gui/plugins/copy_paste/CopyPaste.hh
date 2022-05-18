@@ -24,14 +24,14 @@
 
 #include "gz/sim/gui/GuiSystem.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
   class CopyPastePrivate;
 
   /// \brief Plugin for copying/pasting entities in the GUI.
-  class CopyPaste : public ignition::gazebo::GuiSystem
+  class CopyPaste : public gz::sim::GuiSystem
   {
     Q_OBJECT
 
@@ -63,15 +63,15 @@ namespace gazebo
     /// entity to be copied
     /// \param[out] _resp The service response
     /// \return Whether the service was successful (true) or not (false)
-    private: bool CopyServiceCB(const ignition::msgs::StringMsg &_req,
-                ignition::msgs::Boolean &_resp);
+    private: bool CopyServiceCB(const gz::msgs::StringMsg &_req,
+                gz::msgs::Boolean &_resp);
 
     /// \brief Callback for handling a paste service request
     /// \param[in] _req The service request
     /// \param[out] _resp The service response
     /// \return Whether the service was successful (true) or not (false)
-    private: bool PasteServiceCB(const ignition::msgs::Empty &_req,
-                ignition::msgs::Boolean &_resp);
+    private: bool PasteServiceCB(const gz::msgs::Empty &_req,
+                gz::msgs::Boolean &_resp);
 
     /// \internal
     /// \brief Pointer to private data

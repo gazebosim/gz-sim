@@ -34,8 +34,8 @@
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test OpticalTactilePlugin system
 class OpticalTactilePluginTest : public InternalFixture<::testing::Test>
@@ -52,12 +52,12 @@ class OpticalTactilePluginTest : public InternalFixture<::testing::Test>
     EXPECT_FALSE(*server->Running(0));
   }
 
-  public: ignition::math::Vector3f MapPointCloudData(
+  public: gz::math::Vector3f MapPointCloudData(
     const uint64_t &_i,
     const uint64_t &_j)
   {
     // Initialize return variable
-    ignition::math::Vector3f measuredPoint(0, 0, 0);
+    gz::math::Vector3f measuredPoint(0, 0, 0);
 
     std::string data = this->normalForces.data();
     char *msgBuffer = data.data();

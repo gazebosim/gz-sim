@@ -29,8 +29,8 @@
 #include "gz/sim/test_config.hh"  // NOLINT(build/include)
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 class RFCommsTest : public InternalFixture<::testing::Test>
@@ -43,7 +43,7 @@ TEST_F(RFCommsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RFComms))
   // Start server
   ServerConfig serverConfig;
   const auto sdfFile =
-    ignition::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "examples", "worlds", "rf_comms.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
@@ -63,14 +63,14 @@ TEST_F(RFCommsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RFComms))
     std::lock_guard<std::mutex> lock(mutex);
     std::string expected = "hello world " + std::to_string(msgCounter);
 
-    ignition::msgs::StringMsg receivedMsg;
+    gz::msgs::StringMsg receivedMsg;
     receivedMsg.ParseFromString(_msg.data());
     EXPECT_EQ(expected, receivedMsg.data());
     msgCounter++;
   };
 
   // Create subscriber.
-  ignition::transport::Node node;
+  gz::transport::Node node;
   std::string addr  = "addr1";
   std::string subscriptionTopic = "addr1/rx";
 
@@ -81,15 +81,15 @@ TEST_F(RFCommsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RFComms))
 
   // Create publisher.
   std::string publicationTopic = "/broker/msgs";
-  auto pub = node.Advertise<ignition::msgs::Dataframe>(publicationTopic);
+  auto pub = node.Advertise<gz::msgs::Dataframe>(publicationTopic);
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   // Prepare the message.
-  ignition::msgs::Dataframe msg;
+  gz::msgs::Dataframe msg;
   msg.set_src_address("addr2");
   msg.set_dst_address(addr);
 
   // Publish 10 messages.
-  ignition::msgs::StringMsg payload;
+  gz::msgs::StringMsg payload;
   unsigned int pubCount = 10u;
   for (unsigned int i = 0u; i < pubCount; ++i)
   {

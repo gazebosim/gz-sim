@@ -21,9 +21,9 @@
 
 #include <memory>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -59,10 +59,10 @@ namespace systems
   /// If not defined then there is no surface [optional, float]
   ///
   /// ## Topics
-  /// * Subscribes to a ignition::msgs::Double on `buoyancy_engine` or
+  /// * Subscribes to a gz::msgs::Double on `buoyancy_engine` or
   ///  `/model/{namespace}/buoyancy_engine`. This is the set point for the
   ///  engine.
-  /// * Publishes a ignition::msgs::Double on `buoyancy_engine` or
+  /// * Publishes a gz::msgs::Double on `buoyancy_engine` or
   ///  `/model/{namespace}/buoyancy_engine/current_volume` on the current volume
   ///
   /// ## Examples
@@ -86,25 +86,25 @@ namespace systems
   /// ign topic -t  /model/buoyant_box/buoyancy_engine/current_volume -e
   /// ```
   class BuoyancyEnginePlugin:
-    public ignition::gazebo::System,
-    public ignition::gazebo::ISystemConfigure,
-    public ignition::gazebo::ISystemPreUpdate
+    public gz::sim::System,
+    public gz::sim::ISystemConfigure,
+    public gz::sim::ISystemPreUpdate
   {
     /// \brief Constructor
     public: BuoyancyEnginePlugin();
 
     // Documentation inherited
     public: void Configure(
-        const ignition::gazebo::Entity &_entity,
+        const gz::sim::Entity &_entity,
         const std::shared_ptr<const sdf::Element> &_sdf,
-        ignition::gazebo::EntityComponentManager &_ecm,
-        ignition::gazebo::EventManager &/*_eventMgr*/
+        gz::sim::EntityComponentManager &_ecm,
+        gz::sim::EventManager &/*_eventMgr*/
     );
 
     // Documentation inherited
     public: void PreUpdate(
-        const ignition::gazebo::UpdateInfo &_info,
-        ignition::gazebo::EntityComponentManager &_ecm);
+        const gz::sim::UpdateInfo &_info,
+        gz::sim::EntityComponentManager &_ecm);
 
     /// \brief Private data pointer
     private: std::unique_ptr<BuoyancyEnginePrivateData> dataPtr;

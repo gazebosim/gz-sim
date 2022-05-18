@@ -32,9 +32,9 @@
 #include "gz/sim/components/LinearVelocity.hh"
 #include "gz/sim/components/AngularVelocity.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -287,5 +287,5 @@ std::optional<FrameData> getFrameData(const EntityComponentManager &_ecm,
 }  // namespace multicopter_control
 }  // namespace systems
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz

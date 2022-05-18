@@ -27,7 +27,7 @@ tag:
 ```xml
 <plugin
       filename="ignition-gazebo-buoyancy-system"
-      name="ignition::gazebo::systems::Buoyancy">
+      name="gz::sim::systems::Buoyancy">
     <uniform_fluid_density>1000</uniform_fluid_density>
 </plugin>
 ```
@@ -38,7 +38,7 @@ rpm. Under the `<include>` or `<model>` tag add the following:
 ```xml
 <plugin
     filename="ignition-gazebo-thruster-system"
-    name="ignition::gazebo::systems::Thruster">
+    name="gz::sim::systems::Thruster">
     <namespace>tethys</namespace>
     <joint_name>propeller_joint</joint_name>
     <thrust_coefficient>0.004422</thrust_coefficient>
@@ -70,7 +70,7 @@ experimental tests in a water tub.
 ```xml
 <plugin
 filename="ignition-gazebo-hydrodynamics-system"
-name="ignition::gazebo::systems::Hydrodynamics">
+name="gz::sim::systems::Hydrodynamics">
     <link_name>base_link</link_name>
     <xDotU>-4.876161</xDotU>
     <yDotV>-126.324739</yDotV>
@@ -108,7 +108,7 @@ turning when we move.
 <!-- Vertical fin -->
 <plugin
 filename="ignition-gazebo-lift-drag-system"
-name="ignition::gazebo::systems::LiftDrag">
+name="gz::sim::systems::LiftDrag">
     <air_density>1000</air_density>
     <cla>4.13</cla>
     <cla_stall>-1.1</cla_stall>
@@ -126,7 +126,7 @@ name="ignition::gazebo::systems::LiftDrag">
 <!-- Horizontal fin -->
 <plugin
 filename="ignition-gazebo-lift-drag-system"
-name="ignition::gazebo::systems::LiftDrag">
+name="gz::sim::systems::LiftDrag">
     <air_density>1000</air_density>
     <cla>4.13</cla>
     <cla_stall>-1.1</cla_stall>
@@ -147,14 +147,14 @@ use the joint controller plugin.
 ```xml
 <plugin
 filename="ignition-gazebo-joint-position-controller-system"
-name="ignition::gazebo::systems::JointPositionController">
+name="gz::sim::systems::JointPositionController">
     <joint_name>horizontal_fins_joint</joint_name>
     <p_gain>0.1</p_gain>
 </plugin>
 
 <plugin
 filename="ignition-gazebo-joint-position-controller-system"
-name="ignition::gazebo::systems::JointPositionController">
+name="gz::sim::systems::JointPositionController">
     <joint_name>vertical_fins_joint</joint_name>
     <p_gain>0.1</p_gain>
 </plugin>

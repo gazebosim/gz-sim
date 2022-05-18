@@ -27,15 +27,15 @@
 #include "gz/sim/Model.hh"
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::ApplyJointForcePrivate
+class gz::sim::systems::ApplyJointForcePrivate
 {
   /// \brief Callback for joint force subscription
   /// \param[in] _msg Joint force message
-  public: void OnCmdForce(const ignition::msgs::Double &_msg);
+  public: void OnCmdForce(const gz::msgs::Double &_msg);
 
   /// \brief Ignition communication node.
   public: transport::Node node;
@@ -111,8 +111,8 @@ void ApplyJointForce::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void ApplyJointForce::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void ApplyJointForce::PreUpdate(const gz::sim::UpdateInfo &_info,
+    gz::sim::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("ApplyJointForce::PreUpdate");
 
@@ -164,9 +164,9 @@ void ApplyJointForcePrivate::OnCmdForce(const msgs::Double &_msg)
 }
 
 IGNITION_ADD_PLUGIN(ApplyJointForce,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     ApplyJointForce::ISystemConfigure,
                     ApplyJointForce::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(ApplyJointForce,
-                          "ignition::gazebo::systems::ApplyJointForce")
+                          "gz::sim::systems::ApplyJointForce")

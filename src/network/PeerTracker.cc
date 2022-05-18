@@ -19,14 +19,14 @@
 #include <algorithm>
 #include <utility>
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 PeerTracker::PeerTracker(
     PeerInfo _info,
     EventManager *_eventMgr,
-    const ignition::transport::NodeOptions &_options):
+    const gz::transport::NodeOptions &_options):
   info(std::move(_info)),
   eventMgr(_eventMgr),
   node(_options)

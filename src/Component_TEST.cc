@@ -32,8 +32,8 @@
 
 #include "../test/helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 //////////////////////////////////////////////////
 class ComponentTest : public InternalFixture<::testing::Test>
@@ -126,7 +126,7 @@ inline std::istream &operator>>(std::istream &_in, sdf::Element &_element)
 
 // ostream operator for math::Inertiald (not defined elsewhere)
 // Note: Must be defined in the correct namespace or clang refuses to find it.
-namespace ignition
+namespace gz
 {
 namespace math
 {
@@ -332,7 +332,7 @@ TEST_F(ComponentTest, OStream)
     EXPECT_EQ("Mass: 0", ostr.str());
   }
 
-  // Component with a ignition::msgs type that gets serialized by the default
+  // Component with a gz::msgs type that gets serialized by the default
   // serializer
   {
     using Custom = components::Component<msgs::Int32, class CustomTag,
@@ -484,7 +484,7 @@ TEST_F(ComponentTest, IStream)
     EXPECT_DOUBLE_EQ(200, comp.Data()->MassMatrix().Mass());
   }
 
-  // Component with a ignition::msgs type that gets deserialized by the message
+  // Component with a gz::msgs type that gets deserialized by the message
   // deserializer
   {
     using Custom = components::Component<msgs::Int32, class CustomTag,

@@ -40,11 +40,11 @@
 
 #include "TrajectoryFollower.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::TrajectoryFollowerPrivate
+class gz::sim::systems::TrajectoryFollowerPrivate
 {
   /// \brief Initialize the plugin.
   /// \param[in] _ecm Immutable reference to the EntityComponentManager.
@@ -67,13 +67,13 @@ class ignition::gazebo::systems::TrajectoryFollowerPrivate
   public: std::string topic;
 
   /// \brief The link entity
-  public: ignition::gazebo::Link link;
+  public: gz::sim::Link link;
 
   /// \brief Model interface
   public: Model model{kNullEntity};
 
   /// \brief The initial pose of the model relative to the world frame.
-  public: ignition::math::Pose3<double> modelPose;
+  public: gz::math::Pose3<double> modelPose;
 
   /// \brief True if the model should continue looping though the waypoints.
   public: bool loopForever = false;
@@ -96,11 +96,11 @@ class ignition::gazebo::systems::TrajectoryFollowerPrivate
   public: unsigned int numSamples = 8u;
 
   /// \brief The next position to reach.
-  public: ignition::math::Vector3d nextGoal;
+  public: gz::math::Vector3d nextGoal;
 
   /// \brief Vector containing waypoints as 3D vectors of doubles representing
   /// X Y, where X and Y are local (Gazebo) coordinates.
-  public: std::vector<ignition::math::Vector2d> localWaypoints;
+  public: std::vector<gz::math::Vector2d> localWaypoints;
 
   /// \brief Initialization flag.
   public: bool initialized{false};
@@ -138,7 +138,7 @@ void TrajectoryFollowerPrivate::Load(const EntityComponentManager &_ecm,
     return;
   }
 
-  this->modelPose = ignition::gazebo::worldPose(this->link.Entity(), _ecm);
+  this->modelPose = gz::sim::worldPose(this->link.Entity(), _ecm);
   this->modelPose.Pos().Z() = 0;
 
   // Parse the optional <waypoints> element.
@@ -156,8 +156,8 @@ void TrajectoryFollowerPrivate::Load(const EntityComponentManager &_ecm,
     auto waypointElem = waypointsElem->GetElement("waypoint");
     while (waypointElem)
     {
-      ignition::math::Vector2d position =
-        waypointElem->Get<ignition::math::Vector2d>();
+      gz::math::Vector2d position =
+        waypointElem->Get<gz::math::Vector2d>();
 
       // Save the position.
       this->localWaypoints.push_back(position);
@@ -186,10 +186,10 @@ void TrajectoryFollowerPrivate::Load(const EntityComponentManager &_ecm,
 
     // Get the current model position in global coordinates. Create
     // local vectors that represent a path along a rough circle.
-    ignition::math::Vector2d position(this->modelPose.Pos().X(),
+    gz::math::Vector2d position(this->modelPose.Pos().X(),
                                       this->modelPose.Pos().Y());
     double angle = 0;
-    ignition::math::Vector2d vec(radius, 0);
+    gz::math::Vector2d vec(radius, 0);
     for (unsigned int i = 0u; i < this->numSamples; ++i)
     {
       // Add the local vector to the current position.
@@ -210,8 +210,8 @@ void TrajectoryFollowerPrivate::Load(const EntityComponentManager &_ecm,
       ignerr << "No <line><direction> specified" << std::endl;
       return;
     }
-    ignition::math::Angle direction =
-      lineElem->Get<ignition::math::Angle>("direction");
+    gz::math::Angle direction =
+      lineElem->Get<gz::math::Angle>("direction");
 
     // Parse the required <length> field.
     if (!lineElem->HasElement("length"))
@@ -223,15 +223,15 @@ void TrajectoryFollowerPrivate::Load(const EntityComponentManager &_ecm,
 
     // Create a relative vector in the direction of "direction" and of
     // length "length".
-    ignition::math::Vector3d lineVec(
+    gz::math::Vector3d lineVec(
       length * cos(direction.Radian()),
       length * sin(direction.Radian()), 0);
-    ignition::math::Vector2d position(this->modelPose.Pos().X(),
+    gz::math::Vector2d position(this->modelPose.Pos().X(),
                                       this->modelPose.Pos().Y());
     // Add the initial model position and calculated endpoint as waypoints.
     this->localWaypoints.push_back(position);
-    ignition::math::Vector3d p = this->modelPose.CoordPositionAdd(lineVec);
-    ignition::math::Vector2d p2D = {p.X(), p.Y()};
+    gz::math::Vector3d p = this->modelPose.CoordPositionAdd(lineVec);
+    gz::math::Vector2d p2D = {p.X(), p.Y()};
     this->localWaypoints.push_back(p2D);
     igndbg << "Entered line waypoints " << position << ", " << p2D << std::endl;
   }
@@ -308,8 +308,8 @@ void TrajectoryFollower::Configure(const Entity &_entity,
 
 //////////////////////////////////////////////////
 void TrajectoryFollower::PreUpdate(
-    const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+    const gz::sim::UpdateInfo &_info,
+    gz::sim::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("TrajectoryFollower::PreUpdate");
 
@@ -332,20 +332,20 @@ void TrajectoryFollower::PreUpdate(
   if (this->dataPtr->localWaypoints.empty())
     return;
 
-  this->dataPtr->modelPose = ignition::gazebo::worldPose(
+  this->dataPtr->modelPose = gz::sim::worldPose(
     this->dataPtr->link.Entity(), _ecm);
   this->dataPtr->modelPose.Pos().Z() = 0;
 
   // Direction vector to the goal from the model.
-  ignition::math::Vector3d direction =
+  gz::math::Vector3d direction =
     this->dataPtr->nextGoal - this->dataPtr->modelPose.Pos();
 
   // Direction vector in the local frame of the model.
-  ignition::math::Vector3d directionLocalFrame =
+  gz::math::Vector3d directionLocalFrame =
     this->dataPtr->modelPose.Rot().RotateVectorReverse(direction);
 
   double range = directionLocalFrame.Length();
-  ignition::math::Angle bearing(
+  gz::math::Angle bearing(
     atan2(directionLocalFrame.Y(), directionLocalFrame.X()));
   bearing.Normalize();
 
@@ -389,11 +389,11 @@ void TrajectoryFollower::PreUpdate(
 
   // Transform the force and torque to the world frame.
   // Move commands. The vehicle always move forward (X direction).
-  ignition::math::Vector3d forceWorld;
+  gz::math::Vector3d forceWorld;
   if (std::abs(bearing.Degree()) <= this->dataPtr->bearingTolerance)
   {
     forceWorld = (*comPose).Rot().RotateVector(
-      ignition::math::Vector3d(this->dataPtr->forceToApply, 0, 0));
+      gz::math::Vector3d(this->dataPtr->forceToApply, 0, 0));
 
     // force angular velocity to be zero when bearing is reached
     if (this->dataPtr->forceZeroAngVel && !this->dataPtr->zeroAngVelSet &&
@@ -404,7 +404,7 @@ void TrajectoryFollower::PreUpdate(
       this->dataPtr->zeroAngVelSet = true;
     }
   }
-  ignition::math::Vector3d torqueWorld;
+  gz::math::Vector3d torqueWorld;
   if (std::abs(bearing.Degree()) > this->dataPtr->bearingTolerance)
   {
     // remove angular velocity component otherwise the physics system will set
@@ -423,7 +423,7 @@ void TrajectoryFollower::PreUpdate(
 
     int sign = std::abs(bearing.Degree()) / bearing.Degree();
     torqueWorld = (*comPose).Rot().RotateVector(
-       ignition::math::Vector3d(0, 0, sign * this->dataPtr->torqueToApply));
+       gz::math::Vector3d(0, 0, sign * this->dataPtr->torqueToApply));
   }
 
   // Apply the force and torque at COM.
@@ -431,9 +431,9 @@ void TrajectoryFollower::PreUpdate(
 }
 
 IGNITION_ADD_PLUGIN(TrajectoryFollower,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     TrajectoryFollower::ISystemConfigure,
                     TrajectoryFollower::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(TrajectoryFollower,
-                          "ignition::gazebo::systems::TrajectoryFollower")
+                          "gz::sim::systems::TrajectoryFollower")

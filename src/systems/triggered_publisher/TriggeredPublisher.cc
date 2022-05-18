@@ -33,8 +33,8 @@
 #undef GetMessage
 #endif
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Base class for input matchers.
@@ -668,8 +668,8 @@ void TriggeredPublisher::DoWork()
 }
 
 //////////////////////////////////////////////////
-void TriggeredPublisher::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &/*_ecm*/)
+void TriggeredPublisher::PreUpdate(const gz::sim::UpdateInfo &_info,
+    gz::sim::EntityComponentManager &/*_ecm*/)
 {
   using namespace std::chrono_literals;
   IGN_PROFILE("TriggeredPublisher::PreUpdate");
@@ -724,9 +724,9 @@ bool TriggeredPublisher::MatchInput(const transport::ProtoMsg &_inputMsg)
 }
 
 IGNITION_ADD_PLUGIN(TriggeredPublisher,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     TriggeredPublisher::ISystemConfigure,
                     TriggeredPublisher::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(TriggeredPublisher,
-                          "ignition::gazebo::systems::TriggeredPublisher")
+                          "gz::sim::systems::TriggeredPublisher")

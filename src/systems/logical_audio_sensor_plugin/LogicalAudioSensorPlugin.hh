@@ -21,9 +21,9 @@
 
 #include <gz/sim/System.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -115,7 +115,7 @@ namespace systems
   /// Sources can be started and stopped via Ignition service calls.
   /// If a source is successfully created, the following services will be
   /// created for the source (`<PREFIX>` is the scoped name for the source - see
-  /// ignition::gazebo::scopedName for more details - and `<id>` is the value
+  /// gz::sim::scopedName for more details - and `<id>` is the value
   /// specified in the source's `<id>` tag from the SDF):
   ///     * `<PREFIX>/source_<id>/play`
   ///         * Starts playing the source with the specified ID.
@@ -127,7 +127,7 @@ namespace systems
   /// Microphone detection information can be retrieved via Ignition topics.
   /// Whenever a microphone detects a source, it publishes a message to the
   /// `<PREFIX>/mic_<id>/detection` topic, where `<PREFIX>` is the scoped name
-  /// for the microphone - see ignition::gazebo::scopedName for more details -
+  /// for the microphone - see gz::sim::scopedName for more details -
   /// and `<id>` is the value specified in the microphone's `<id>` tag from the
   /// SDF.
   class LogicalAudioSensorPlugin :
@@ -149,8 +149,8 @@ namespace systems
                 EventManager &_eventMgr) override;
 
     // Documentation inherited
-    public: void PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) override;
+    public: void PreUpdate(const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) override;
 
     /// Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,

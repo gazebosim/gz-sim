@@ -21,20 +21,20 @@
 
 #include "ServerConfig.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 namespace python
 {
 void defineGazeboServerConfig(pybind11::object module)
 {
-  pybind11::class_<ignition::gazebo::ServerConfig>(module, "ServerConfig")
+  pybind11::class_<gz::sim::ServerConfig>(module, "ServerConfig")
   .def(pybind11::init<>())
   .def(
-    "set_sdf_file", &ignition::gazebo::ServerConfig::SetSdfFile,
+    "set_sdf_file", &gz::sim::ServerConfig::SetSdfFile,
     "Set an SDF file to be used with the server.");
 }
 }  // namespace python
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz

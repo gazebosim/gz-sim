@@ -24,19 +24,19 @@
     </physics>
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin
       filename="ignition-gazebo-rf-comms-system"
-      name="ignition::gazebo::systems::RFComms">
+      name="gz::sim::systems::RFComms">
       <range_config>
         <max_range>500000.0</max_range>
         <fading_exponent>2.6</fading_exponent>
@@ -131,7 +131,7 @@
 
       <plugin
         filename="ignition-gazebo-comms-endpoint-system"
-        name="ignition::gazebo::systems::CommsEndpoint">
+        name="gz::sim::systems::CommsEndpoint">
         <address>addr1</address>
         <topic>addr1/rx</topic>
       </plugin>
@@ -175,7 +175,7 @@
 
       <plugin
         filename="ignition-gazebo-comms-endpoint-system"
-        name="ignition::gazebo::systems::CommsEndpoint">
+        name="gz::sim::systems::CommsEndpoint">
         <address>addr2</address>
         <topic>addr2/rx</topic>
         <broker>

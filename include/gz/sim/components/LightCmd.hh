@@ -27,9 +27,9 @@
 
 #include <gz/msgs/light.pb.h>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -37,7 +37,7 @@ namespace components
 {
   /// \brief A component type that contains commanded light of an
   /// entity in the world frame represented by msgs::Light.
-  using LightCmd = Component<ignition::msgs::Light,
+  using LightCmd = Component<gz::msgs::Light,
     class LightCmdTag, serializers::MsgSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.LightCmd",
       LightCmd)

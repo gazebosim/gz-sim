@@ -18,7 +18,7 @@ helpful pointers on how to setup tests.
 
 ## Test Fixture
 
-The example above uses the `ignition::gazebo::TestFixture` class, which provides
+The example above uses the `gz::sim::TestFixture` class, which provides
 a convenient API to start a simulation and step through it while checking that
 entities in simulation are acting as expected. See that class' documentation
 for more information.

@@ -20,8 +20,8 @@
 #include "gz/sim/test_config.hh"
 #include "gz/sim/gui/GuiEvents.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace gui;
 
 /////////////////////////////////////////////////

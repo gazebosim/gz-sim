@@ -22,15 +22,15 @@
 
 #include <gz/sim/gui/GuiSystem.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
   class VisualizationCapabilitiesPrivate;
 
   /// \brief Allows to visualize transparent, collisions, inertial,
   /// CoM and more.
-  class VisualizationCapabilities : public ignition::gazebo::GuiSystem
+  class VisualizationCapabilities : public gz::sim::GuiSystem
   {
     Q_OBJECT
 

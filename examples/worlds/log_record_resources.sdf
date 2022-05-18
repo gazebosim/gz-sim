@@ -17,15 +17,15 @@
   <world name="default">
     <plugin
      filename="ignition-gazebo-physics-system"
-     name="ignition::gazebo::systems::Physics">
+     name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin
       filename="ignition-gazebo-log-system"
-      name="ignition::gazebo::systems::LogRecord">
+      name="gz::sim::systems::LogRecord">
       <record_resources>1</record_resources>
       <compress>0</compress>
     </plugin>

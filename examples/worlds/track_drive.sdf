@@ -24,19 +24,19 @@
     </physics>
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin
       filename="ignition-gazebo-imu-system"
-      name="ignition::gazebo::systems::Imu">
+      name="gz::sim::systems::Imu">
     </plugin>
 
     <light type="directional" name="sun">
@@ -1051,7 +1051,7 @@
 
       <!-- Track drive -->
       <plugin filename="ignition-gazebo-diff-drive-system"
-              name="ignition::gazebo::systems::DiffDrive">
+              name="gz::sim::systems::DiffDrive">
         <left_joint>left_track_wheel1_j</left_joint>
         <right_joint>right_track_wheel1_j</right_joint>
         <left_joint>left_track_wheel2_j</left_joint>
@@ -2072,7 +2072,7 @@
 
       <!-- Track drive -->
       <plugin filename="ignition-gazebo-diff-drive-system"
-              name="ignition::gazebo::systems::DiffDrive">
+              name="gz::sim::systems::DiffDrive">
         <left_joint>left_track_wheel1_j</left_joint>
         <right_joint>right_track_wheel1_j</right_joint>
         <left_joint>left_track_wheel2_j</left_joint>

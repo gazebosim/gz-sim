@@ -35,8 +35,8 @@
 #include "gz/sim/Util.hh"
 #include "RFComms.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Parameters for simple log-normal fading model.
@@ -113,7 +113,7 @@ struct RadioState
   double timeStamp;
 
   /// \brief Pose of the radio.
-  ignition::math::Pose3<double> pose;
+  gz::math::Pose3<double> pose;
 
   /// \brief Recent sent packet history.
   std::list<std::pair<double, uint64_t>> bytesSent;
@@ -146,7 +146,7 @@ struct RFPower
 };
 
 /// \brief Private RFComms data class.
-class ignition::gazebo::systems::RFComms::Implementation
+class gz::sim::systems::RFComms::Implementation
 {
   /// \brief Attempt communication between two nodes.
   ///
@@ -293,7 +293,7 @@ std::tuple<bool, double> RFComms::Implementation::AttemptSend(
   //           "# Bytes: " << _numBytes << "\n" <<
   //           "PER: " << packetDropProb << std::endl;
 
-  double randDraw = ignition::math::Rand::DblUniform();
+  double randDraw = gz::math::Rand::DblUniform();
   bool packetReceived = randDraw > packetDropProb;
 
   if (!packetReceived)
@@ -333,7 +333,7 @@ std::tuple<bool, double> RFComms::Implementation::AttemptSend(
 
 //////////////////////////////////////////////////
 RFComms::RFComms()
-  : dataPtr(ignition::utils::MakeUniqueImpl<Implementation>())
+  : dataPtr(gz::utils::MakeUniqueImpl<Implementation>())
 {
 }
 
@@ -457,9 +457,9 @@ void RFComms::Step(
 }
 
 IGNITION_ADD_PLUGIN(RFComms,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     comms::ICommsModel::ISystemConfigure,
                     comms::ICommsModel::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(RFComms,
-                          "ignition::gazebo::systems::RFComms")
+                          "gz::sim::systems::RFComms")

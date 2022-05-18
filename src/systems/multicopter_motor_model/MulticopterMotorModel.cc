@@ -97,8 +97,8 @@ class FirstOrderFilter {
   T previousState;
 };
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Constants for specifying clockwise (kCw) and counter-clockwise (kCcw)
@@ -115,10 +115,10 @@ enum class MotorType {
   kForce
 };
 
-class ignition::gazebo::systems::MulticopterMotorModelPrivate
+class gz::sim::systems::MulticopterMotorModelPrivate
 {
   /// \brief Callback for actuator commands.
-  public: void OnActuatorMsg(const ignition::msgs::Actuators &_msg);
+  public: void OnActuatorMsg(const gz::msgs::Actuators &_msg);
 
   /// \brief Apply link forces and moments based on propeller state.
   public: void UpdateForcesAndMoments(EntityComponentManager &_ecm);
@@ -370,8 +370,8 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void MulticopterMotorModel::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void MulticopterMotorModel::PreUpdate(const gz::sim::UpdateInfo &_info,
+    gz::sim::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("MulticopterMotorModel::PreUpdate");
 
@@ -469,7 +469,7 @@ void MulticopterMotorModel::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
 //////////////////////////////////////////////////
 void MulticopterMotorModelPrivate::OnActuatorMsg(
-    const ignition::msgs::Actuators &_msg)
+    const gz::msgs::Actuators &_msg)
 {
   std::lock_guard<std::mutex> lock(this->recvdActuatorsMsgMutex);
   this->recvdActuatorsMsg = _msg;
@@ -559,8 +559,8 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
                       realMotorVelocity * realMotorVelocity *
                       this->motorConstant;
 
-      using Pose = ignition::math::Pose3d;
-      using Vector3 = ignition::math::Vector3d;
+      using Pose = gz::math::Pose3d;
+      using Vector3 = gz::math::Vector3d;
 
       Link link(this->linkEntity);
       const auto worldPose = link.WorldPose(_ecm);
@@ -671,9 +671,9 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
 }
 
 IGNITION_ADD_PLUGIN(MulticopterMotorModel,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     MulticopterMotorModel::ISystemConfigure,
                     MulticopterMotorModel::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(MulticopterMotorModel,
-                          "ignition::gazebo::systems::MulticopterMotorModel")
+                          "gz::sim::systems::MulticopterMotorModel")

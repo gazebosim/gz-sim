@@ -25,16 +25,16 @@
 #include <gz/transport/Node.hh>
 #include <gz/sim/System.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
 {
   /// \brief The JointStatePub system publishes state information for
-  /// a model. The published message type is ignition::msgs::Model, and the
+  /// a model. The published message type is gz::msgs::Model, and the
   /// publication topic is "/world/<world_name>/model/<model_name>/state".
   ///
   /// By default the JointStatePublisher will publish all joints for

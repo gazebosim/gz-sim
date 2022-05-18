@@ -88,8 +88,8 @@
 #include "gz/sim/test_config.hh"  // NOLINT(build/include)
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 class ComponentsTest : public InternalFixture<::testing::Test>
 {
@@ -120,7 +120,7 @@ TEST_F(ComponentsTest, Actor)
   comp3.Deserialize(istr);
   EXPECT_EQ("abc", comp3.Data().Name());
   EXPECT_EQ("def", comp3.Data().SkinFilename());
-  EXPECT_EQ(ignition::math::Pose3d(3, 2, 1, 0, 0, 0), comp3.Data().RawPose());
+  EXPECT_EQ(gz::math::Pose3d(3, 2, 1, 0, 0, 0), comp3.Data().RawPose());
 }
 
 /////////////////////////////////////////////////
@@ -183,7 +183,7 @@ TEST_F(ComponentsTest, AirPressureSensor)
   sdf::Sensor data1;
   data1.SetName("abc");
   data1.SetType(sdf::SensorType::AIR_PRESSURE);
-  data1.SetRawPose(ignition::math::Pose3d(1, 2, 3, 0, 0, 0));
+  data1.SetRawPose(gz::math::Pose3d(1, 2, 3, 0, 0, 0));
 
   sdf::AirPressure airPressure1;
   data1.SetAirPressureSensor(airPressure1);
@@ -211,7 +211,7 @@ TEST_F(ComponentsTest, AirPressureSensor)
   comp3.Deserialize(istr);
   EXPECT_EQ("abc", comp3.Data().Name());
   EXPECT_EQ(sdf::SensorType::AIR_PRESSURE, comp3.Data().Type());
-  EXPECT_EQ(ignition::math::Pose3d(1, 2, 3, 0, 0, 0), comp3.Data().RawPose());
+  EXPECT_EQ(gz::math::Pose3d(1, 2, 3, 0, 0, 0), comp3.Data().RawPose());
 }
 
 /////////////////////////////////////////////////
@@ -474,7 +474,7 @@ TEST_F(ComponentsTest, Imu)
   data1.SetType(sdf::SensorType::IMU);
   data1.SetUpdateRate(100);
   data1.SetTopic("imu_data");
-  data1.SetRawPose(ignition::math::Pose3d(1, 2, 3, 0, 0, 0));
+  data1.SetRawPose(gz::math::Pose3d(1, 2, 3, 0, 0, 0));
 
   sdf::Imu imu1;
   data1.SetImuSensor(imu1);
@@ -505,7 +505,7 @@ TEST_F(ComponentsTest, Imu)
   EXPECT_EQ(sdf::SensorType::IMU, comp3.Data().Type());
   EXPECT_EQ("imu_data", comp3.Data().Topic());
   EXPECT_DOUBLE_EQ(100, comp3.Data().UpdateRate());
-  EXPECT_EQ(ignition::math::Pose3d(1, 2, 3, 0, 0, 0), comp3.Data().RawPose());
+  EXPECT_EQ(gz::math::Pose3d(1, 2, 3, 0, 0, 0), comp3.Data().RawPose());
 }
 
 /////////////////////////////////////////////////
@@ -1100,7 +1100,7 @@ TEST_F(ComponentsTest, Magnetometer)
   data1.SetType(sdf::SensorType::MAGNETOMETER);
   data1.SetUpdateRate(12.4);
   data1.SetTopic("grape");
-  data1.SetRawPose(ignition::math::Pose3d(1, 2, 3, 0, 0, 0));
+  data1.SetRawPose(gz::math::Pose3d(1, 2, 3, 0, 0, 0));
 
   sdf::Magnetometer mag1;
   data1.SetMagnetometerSensor(mag1);
@@ -1130,7 +1130,7 @@ TEST_F(ComponentsTest, Magnetometer)
   EXPECT_EQ(sdf::SensorType::MAGNETOMETER, comp3.Data().Type());
   EXPECT_EQ("grape", comp3.Data().Topic());
   EXPECT_DOUBLE_EQ(12.4, comp3.Data().UpdateRate());
-  EXPECT_EQ(ignition::math::Pose3d(1, 2, 3, 0, 0, 0), comp3.Data().RawPose());
+  EXPECT_EQ(gz::math::Pose3d(1, 2, 3, 0, 0, 0), comp3.Data().RawPose());
 }
 
 /////////////////////////////////////////////////
@@ -1234,7 +1234,7 @@ TEST_F(ComponentsTest, ModelSdf)
     << "    </physics>"
     << "    <plugin"
     << "      filename=\"ignition-gazebo-physics-system\""
-    << "      name=\"ignition::gazebo::systems::Physics\">"
+    << "      name=\"gz::sim::systems::Physics\">"
     << "    </plugin>"
     << "    <model name='my_model'>"
     << "      <link name='link'>"
@@ -1697,7 +1697,7 @@ TEST_F(ComponentsTest, ParticleEmitter)
   msgs::ParticleEmitter emitter1;
   emitter1.set_name("emitter1");
   emitter1.set_id(0);
-  emitter1.set_type(ignition::msgs::ParticleEmitter_EmitterType_BOX);
+  emitter1.set_type(gz::msgs::ParticleEmitter_EmitterType_BOX);
   emitter1.mutable_size()->set_x(1);
   emitter1.mutable_size()->set_y(2);
   emitter1.mutable_size()->set_z(3);
@@ -1724,7 +1724,7 @@ TEST_F(ComponentsTest, ParticleEmitter)
   msgs::ParticleEmitter emitter2;
   emitter2.set_name("emitter2");
   emitter2.set_id(1);
-  emitter2.set_type(ignition::msgs::ParticleEmitter_EmitterType_BOX);
+  emitter2.set_type(gz::msgs::ParticleEmitter_EmitterType_BOX);
   emitter2.mutable_size()->set_x(1);
   emitter2.mutable_size()->set_y(2);
   emitter2.mutable_size()->set_z(3);

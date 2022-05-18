@@ -29,12 +29,12 @@
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Private Thermal sensor data class.
-class ignition::gazebo::systems::ThermalSensorPrivate
+class gz::sim::systems::ThermalSensorPrivate
 {
 };
 
@@ -90,4 +90,4 @@ IGNITION_ADD_PLUGIN(ThermalSensor, System,
 )
 
 IGNITION_ADD_PLUGIN_ALIAS(ThermalSensor,
-    "ignition::gazebo::systems::ThermalSensor")
+    "gz::sim::systems::ThermalSensor")

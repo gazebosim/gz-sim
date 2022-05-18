@@ -50,12 +50,12 @@
 #include "gz/sim/Conversions.hh"
 #include "gz/sim/Model.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Private data class for PosePublisher
-class ignition::gazebo::systems::PosePublisherPrivate
+class gz::sim::systems::PosePublisherPrivate
 {
   /// \brief Initializes internal caches for entities whose poses are to be
   /// published and their names
@@ -156,12 +156,12 @@ class ignition::gazebo::systems::PosePublisherPrivate
   /// \brief A variable that gets populated with poses. This also here as a
   /// member variable to avoid repeated memory allocations and improve
   /// performance.
-  public: ignition::msgs::Pose poseMsg;
+  public: gz::msgs::Pose poseMsg;
 
   /// \brief A variable that gets populated with poses. This also here as a
   /// member variable to avoid repeated memory allocations and improve
   /// performance.
-  public: ignition::msgs::Pose_V poseVMsg;
+  public: gz::msgs::Pose_V poseVMsg;
 
   /// \brief True to publish a vector of poses. False to publish individual pose
   /// msgs.
@@ -263,23 +263,23 @@ void PosePublisher::Configure(const Entity &_entity,
   if (this->dataPtr->usePoseV)
   {
     this->dataPtr->posePub =
-      this->dataPtr->node.Advertise<ignition::msgs::Pose_V>(poseTopic);
+      this->dataPtr->node.Advertise<gz::msgs::Pose_V>(poseTopic);
 
     if (this->dataPtr->staticPosePublisher)
     {
       this->dataPtr->poseStaticPub =
-          this->dataPtr->node.Advertise<ignition::msgs::Pose_V>(
+          this->dataPtr->node.Advertise<gz::msgs::Pose_V>(
           staticPoseTopic);
     }
   }
   else
   {
     this->dataPtr->posePub =
-      this->dataPtr->node.Advertise<ignition::msgs::Pose>(poseTopic);
+      this->dataPtr->node.Advertise<gz::msgs::Pose>(poseTopic);
     if (this->dataPtr->staticPosePublisher)
     {
       this->dataPtr->poseStaticPub =
-          this->dataPtr->node.Advertise<ignition::msgs::Pose>(
+          this->dataPtr->node.Advertise<gz::msgs::Pose>(
           staticPoseTopic);
     }
   }
@@ -530,7 +530,7 @@ void PosePublisherPrivate::PublishPoses(
   IGN_PROFILE("PosePublisher::PublishPoses");
 
   // publish poses
-  ignition::msgs::Pose *msg = nullptr;
+  gz::msgs::Pose *msg = nullptr;
   if (this->usePoseV)
     this->poseVMsg.Clear();
 
@@ -588,4 +588,4 @@ IGNITION_ADD_PLUGIN(PosePublisher,
                     PosePublisher::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(PosePublisher,
-                          "ignition::gazebo::systems::PosePublisher")
+                          "gz::sim::systems::PosePublisher")

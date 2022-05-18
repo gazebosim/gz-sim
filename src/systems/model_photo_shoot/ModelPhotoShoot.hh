@@ -23,9 +23,9 @@
 
 #include "gz/sim/System.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -77,14 +77,14 @@ namespace systems
     public: ~ModelPhotoShoot() override = default;
 
     // Documentation inherited
-    public: void Configure(const ignition::gazebo::Entity &_id,
+    public: void Configure(const gz::sim::Entity &_id,
                     const std::shared_ptr<const sdf::Element> &_sdf,
-                    ignition::gazebo::EntityComponentManager &_ecm,
-                    ignition::gazebo::EventManager &_eventMgr) override;
+                    gz::sim::EntityComponentManager &_ecm,
+                    gz::sim::EventManager &_eventMgr) override;
 
     // Documentation inherited
-    public: void PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-                    ignition::gazebo::EntityComponentManager &_ecm) override;
+    public: void PreUpdate(const gz::sim::UpdateInfo &_info,
+                    gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
     private: std::unique_ptr<ModelPhotoShootPrivate> dataPtr;

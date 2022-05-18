@@ -39,8 +39,8 @@
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test NavSatTest system
 class NavSatTest : public InternalFixture<::testing::Test>
@@ -76,7 +76,7 @@ TEST_F(NavSatTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
     {
       _ecm.Each<components::Sensor, components::NavSat, components::Name,
                 components::SensorTopic>(
-          [&](const ignition::gazebo::Entity &,
+          [&](const gz::sim::Entity &,
               const components::Sensor *,
               const components::NavSat *,
               const components::Name *_name,

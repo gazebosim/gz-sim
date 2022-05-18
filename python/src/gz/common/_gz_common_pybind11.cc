@@ -20,6 +20,6 @@ PYBIND11_MODULE(common, m) {
   m.doc() = "Ignition Common Python Library.";
 
   m.def(
-    "set_verbosity", &ignition::common::python::SetVerbosity,
+    "set_verbosity", &gz::common::python::SetVerbosity,
     "Set verbosity level.");
 }

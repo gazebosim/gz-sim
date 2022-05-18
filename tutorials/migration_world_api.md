@@ -52,25 +52,25 @@ components (properties) into entities such as worlds.
 
 Classic | Ignition
 -- | --
-Atmosphere | `ignition::gazebo::World::Atmosphere`
+Atmosphere | `gz::sim::World::Atmosphere`
 AtmosphereEnabled | TODO
 DisableAllModels | TODO
 EnableAllModels | TODO
 GetSDFDom | TODO
-Gravity | `ignition::gazebo::World::Gravity`
+Gravity | `gz::sim::World::Gravity`
 IsLoaded | Not applicable
-IsPaused | Use `ignition::gazebo::UpdateInfo`
-Iterations | Use `ignition::gazebo::UpdateInfo`
-MagneticField | `ignition::gazebo::World::MagneticField`
-Name | `ignition::gazebo::World::Name`
-PauseTime | Use `ignition::gazebo::UpdateInfo`
+IsPaused | Use `gz::sim::UpdateInfo`
+Iterations | Use `gz::sim::UpdateInfo`
+MagneticField | `gz::sim::World::MagneticField`
+Name | `gz::sim::World::Name`
+PauseTime | Use `gz::sim::UpdateInfo`
 Physics | TODO
 PhysicsEnabled | TODO
 PresetMgr | TODO
-PublishLightPose | Use `ignition::gazebo::systems::PosePublisher`
-PublishModelPose | Use `ignition::gazebo::systems::PosePublisher`
+PublishLightPose | Use `gz::sim::systems::PosePublisher`
+PublishModelPose | Use `gz::sim::systems::PosePublisher`
 PublishModelScale | TODO
-RealTime | Use `ignition::gazebo::UpdateInfo`
+RealTime | Use `gz::sim::UpdateInfo`
 Running | Not applicable
 SDF | TODO
 SetAtmosphereEnabled | TODO
@@ -82,9 +82,9 @@ SetPhysicsEnabled | TODO
 SetSimTime | Use world control service
 SetState | TODO
 SetWindEnabled | TODO
-SimTime | Use `ignition::gazebo::UpdateInfo`
+SimTime | Use `gz::sim::UpdateInfo`
 SphericalCoords | TODO
-StartTime | Use `ignition::gazebo::UpdateInfo`
+StartTime | Use `gz::sim::UpdateInfo`
 URI | TODO
 UpdateStateSDF | TODO
 Wind | TODO
@@ -101,15 +101,15 @@ they deal with entity IDs.
 
 Classic | Ignition
 -- | --
-BaseByName | Use type-specific `ignition::gazebo::World::*ByName`
-EntityByName | Use type-specific `ignition::gazebo::World::*ByName`
-LightByName | `ignition::gazebo::World::LightByName`
-LightCount |  `ignition::gazebo::World::LightCount`
-Lights | `ignition::gazebo::World::Lights`
-ModelByIndex |  `ignition::gazebo::World::ModelByName`
-ModelByName | `ignition::gazebo::World::ModelByName`
-ModelCount | `ignition::gazebo::World::ModelCount`
-Models | `ignition::gazebo::World::Models`
+BaseByName | Use type-specific `gz::sim::World::*ByName`
+EntityByName | Use type-specific `gz::sim::World::*ByName`
+LightByName | `gz::sim::World::LightByName`
+LightCount |  `gz::sim::World::LightCount`
+Lights | `gz::sim::World::Lights`
+ModelByIndex |  `gz::sim::World::ModelByName`
+ModelByName | `gz::sim::World::ModelByName`
+ModelCount | `gz::sim::World::ModelCount`
+Models | `gz::sim::World::Models`
 PrintEntityTree | Use scene graph service
 
 ## Write family
@@ -122,7 +122,7 @@ Classic | Ignition
 Clear | TODO
 ClearModels | TODO
 InsertModelFile | TODO
-InsertModelSDF | `ignition::gazebo::SdfEntityCreator::CreateEntities`
+InsertModelSDF | `gz::sim::SdfEntityCreator::CreateEntities`
 InsertModelString | TODO
 RemoveModel | TODO
 RemovePlugin | TODO
@@ -137,8 +137,8 @@ Classic | Ignition
 -- | --
 Fini | N/A
 Init | N/A
-Load | `ignition::gazebo::SdfEntityCreator::CreateEntities`
-LoadLight | `ignition::gazebo::SdfEntityCreator::CreateEntities`
+Load | `gz::sim::SdfEntityCreator::CreateEntities`
+LoadLight | `gz::sim::SdfEntityCreator::CreateEntities`
 LoadPlugin | TODO
 Reset | TODO
 ResetEntities | TODO
@@ -161,7 +161,7 @@ Classic | Ignition
 -- | --
 EntityBelowPoint | Requires a system
 ModelBelowPoint | Requires a system
-SceneMsg | Use `ignition::gazebo::systems::SceneBoradcaster`
+SceneMsg | Use `gz::sim::systems::SceneBoradcaster`
 WorldPoseMutex | N/A
 StripWorldName | N/A
 UniqueModelName | TODO

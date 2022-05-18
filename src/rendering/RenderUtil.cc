@@ -97,11 +97,11 @@
 
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 // Private data class.
-class ignition::gazebo::RenderUtilPrivate
+class gz::sim::RenderUtilPrivate
 {
   /// True if the rendering component is initialized
   public: bool initialized = false;
@@ -228,7 +228,7 @@ class ignition::gazebo::RenderUtilPrivate
   public: MarkerManager markerManager;
 
   /// \brief Pointer to rendering engine.
-  public: ignition::rendering::RenderEngine *engine{nullptr};
+  public: gz::rendering::RenderEngine *engine{nullptr};
 
   /// \brief rendering scene to be managed by the scene manager and used to
   /// generate sensor data
@@ -345,7 +345,7 @@ class ignition::gazebo::RenderUtilPrivate
   public: std::unordered_map<Entity, int> entityLabel;
 
   /// \brief A map of entity ids and wire boxes
-  public: std::unordered_map<Entity, ignition::rendering::WireBoxPtr> wireBoxes;
+  public: std::unordered_map<Entity, gz::rendering::WireBoxPtr> wireBoxes;
 
   /// \brief A map of entity ids and trajectory pose updates.
   public: std::unordered_map<Entity, math::Pose3d> trajectoryPoses;
@@ -2501,7 +2501,7 @@ void RenderUtil::Init()
   if (nullptr != this->dataPtr->scene)
     return;
 
-  ignition::common::SystemPaths pluginPath;
+  gz::common::SystemPaths pluginPath;
   pluginPath.SetPluginPathEnv(kRenderPluginPathEnv);
   rendering::setPluginPaths(pluginPath.PluginPaths());
 
@@ -2777,7 +2777,7 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
     wireBox->SetBox(aabb);
 
     // Create visual and add wire box
-    ignition::rendering::VisualPtr wireBoxVis =
+    gz::rendering::VisualPtr wireBoxVis =
       this->scene->CreateVisual();
     wireBoxVis->SetInheritScale(false);
     wireBoxVis->AddGeometry(wireBox);
@@ -2787,12 +2787,12 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
 
     // Add wire box to map for setting visibility
     this->wireBoxes.insert(
-        std::pair<Entity, ignition::rendering::WireBoxPtr>(entityId, wireBox));
+        std::pair<Entity, gz::rendering::WireBoxPtr>(entityId, wireBox));
   }
   else
   {
-    ignition::rendering::WireBoxPtr wireBox = wireBoxIt->second;
-    ignition::math::AxisAlignedBox aabb = vis->LocalBoundingBox();
+    gz::rendering::WireBoxPtr wireBox = wireBoxIt->second;
+    gz::math::AxisAlignedBox aabb = vis->LocalBoundingBox();
     wireBox->SetBox(aabb);
     auto visParent = wireBox->Parent();
     if (visParent)
@@ -2811,7 +2811,7 @@ void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
     entityId = std::get<uint64_t>(vis->UserData("gazebo-entity"));
   if (this->wireBoxes.find(entityId) != this->wireBoxes.end())
   {
-    ignition::rendering::WireBoxPtr wireBox =
+    gz::rendering::WireBoxPtr wireBox =
       this->wireBoxes[entityId];
     auto visParent = wireBox->Parent();
     if (visParent)
@@ -2863,7 +2863,7 @@ void RenderUtilPrivate::UpdateLights(
 
       if (!light.second.is_light_off())
       {
-        if (!ignition::math::equal(
+        if (!gz::math::equal(
             l->Intensity(),
             static_cast<double>(light.second.intensity())))
         {
@@ -2886,25 +2886,25 @@ void RenderUtilPrivate::UpdateLights(
           l->SetSpecularColor(msgs::Convert(light.second.specular()));
         }
       }
-      if (!ignition::math::equal(
+      if (!gz::math::equal(
           l->AttenuationRange(),
           static_cast<double>(light.second.range())))
       {
         l->SetAttenuationRange(light.second.range());
       }
-      if (!ignition::math::equal(
+      if (!gz::math::equal(
           l->AttenuationLinear(),
           static_cast<double>(light.second.attenuation_linear())))
       {
         l->SetAttenuationLinear(light.second.attenuation_linear());
       }
-      if (!ignition::math::equal(
+      if (!gz::math::equal(
           l->AttenuationConstant(),
           static_cast<double>(light.second.attenuation_constant())))
       {
         l->SetAttenuationConstant(light.second.attenuation_constant());
       }
-      if (!ignition::math::equal(
+      if (!gz::math::equal(
           l->AttenuationQuadratic(),
           static_cast<double>(light.second.attenuation_quadratic())))
       {
@@ -2943,7 +2943,7 @@ void RenderUtilPrivate::UpdateLights(
           lSpotLight->SetInnerAngle(light.second.spot_inner_angle());
         if (lSpotLight->OuterAngle() != light.second.spot_outer_angle())
           lSpotLight->SetOuterAngle(light.second.spot_outer_angle());
-        if (!ignition::math::equal(
+        if (!gz::math::equal(
             lSpotLight->Falloff(),
             static_cast<double>(light.second.spot_falloff())))
         {
@@ -3142,7 +3142,7 @@ void RenderUtil::HideWireboxes(const Entity &_entity)
   auto wireBoxIt = this->dataPtr->wireBoxes.find(_entity);
   if (wireBoxIt != this->dataPtr->wireBoxes.end())
   {
-    ignition::rendering::WireBoxPtr wireBox = wireBoxIt->second;
+    gz::rendering::WireBoxPtr wireBox = wireBoxIt->second;
     auto visParent = wireBox->Parent();
     if (visParent)
       visParent->SetVisible(false);

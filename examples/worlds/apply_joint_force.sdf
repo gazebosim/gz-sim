@@ -14,11 +14,11 @@
   <world name="apply_joint_force">
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <light type="directional" name="sun">
@@ -145,7 +145,7 @@
       </joint>
       <plugin
         filename="ignition-gazebo-apply-joint-force-system"
-        name="ignition::gazebo::systems::ApplyJointForce">
+        name="gz::sim::systems::ApplyJointForce">
         <joint_name>j1</joint_name>
       </plugin>
     </model>

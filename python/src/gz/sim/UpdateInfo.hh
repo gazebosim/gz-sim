@@ -20,20 +20,20 @@
 
 #include <pybind11/pybind11.h>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 namespace python
 {
-/// Define a pybind11 wrapper for an ignition::gazebo::UpdateInfo
+/// Define a pybind11 wrapper for an gz::sim::UpdateInfo
 /**
  * \param[in] module a pybind11 module to add the definition to
  */
 void
 defineGazeboUpdateInfo(pybind11::object module);
 }  // namespace python
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz
 
 #endif  // GZ_GAZEBO_PYTHON__UPDATE_INFO_HH_

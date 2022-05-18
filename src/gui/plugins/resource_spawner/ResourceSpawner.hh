@@ -25,9 +25,9 @@
 
 #include <gz/gui/Plugin.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
   class ResourceSpawnerPrivate;
 
@@ -141,7 +141,7 @@ namespace gazebo
 
   /// \brief Provides interface for communicating to backend for generation
   /// of local models
-  class ResourceSpawner : public ignition::gui::Plugin
+  class ResourceSpawner : public gz::gui::Plugin
   {
     Q_OBJECT
 

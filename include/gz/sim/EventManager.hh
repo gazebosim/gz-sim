@@ -30,9 +30,9 @@
 #include <gz/sim/Export.hh>
 #include <gz/sim/Types.hh>
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -46,7 +46,7 @@ namespace ignition
     /// to an Event or emit an Event as needed to signal actions that need to
     /// occur.
     ///
-    /// See \ref ignition::gazebo::events for a complete list of events.
+    /// See \ref gz::sim::events for a complete list of events.
 
     /// TODO: if visibility is added here the MSVC is unable to compile it.
     /// The use of smart pointer inside the unordered_map (events method) is
@@ -65,7 +65,7 @@ namespace ignition
       /// \return A Connection pointer, which will automatically call
       /// Disconnect when it goes out of scope.
       public: template <typename E>
-              ignition::common::ConnectionPtr
+              gz::common::ConnectionPtr
               Connect(const typename E::CallbackT &_subscriber)
               {
                 if (this->events.find(typeid(E)) == this->events.end()) {
@@ -142,7 +142,7 @@ namespace ignition
 
       /// \brief Container of used signals.
       private: std::unordered_map<TypeInfoRef,
-                                  std::unique_ptr<ignition::common::Event>,
+                                  std::unique_ptr<gz::common::Event>,
                                   Hasher, EqualTo> events;
     };
     }

@@ -22,9 +22,9 @@
 
 #include "gz/sim/config.hh"
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -56,6 +56,6 @@ namespace ignition
       std::chrono::steady_clock::duration seek{-1};
     };
     }
-  }  // namespace gazebo
-}  // namespace ignition
+  }  // namespace sim
+}  // namespace gz
 #endif  // GZ_GAZEBO_WORLDCONTROL_HH_

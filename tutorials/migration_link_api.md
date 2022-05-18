@@ -55,15 +55,15 @@ components (properties) into entities such as links.
 
 Classic | Ignition
 -- | --
-AddForce | `ignition::gazebo::Link::AddWorldForce`
+AddForce | `gz::sim::Link::AddWorldForce`
 AddForceAtRelativePosition | TODO
 AddForceAtWorldPosition | TODO
 AddLinkForce | TODO
 AddRelativeForce | TODO
 AddRelativeTorque | TODO
-AddTorque | `ignition::gazebo::Link::AddWorldWrench`
+AddTorque | `gz::sim::Link::AddWorldWrench`
 AddType | `ecm.CreateComponent<Type>(entity, Type())`
-Battery | Use this system: `ignition::gazebo::systems::LinearBatteryPlugin`
+Battery | Use this system: `gz::sim::systems::LinearBatteryPlugin`
 BoundingBox | TODO
 CollisionBoundingBox | TODO
 DirtyPose | Not supported
@@ -71,24 +71,24 @@ FillMsg | TODO
 GetAngularDamping | TODO
 GetEnabled | TODO
 GetGravityMode | TODO
-GetId | `ignition::gazebo::Link::Entity`
-GetInertial | `ignition::gazebo::Link::WorldInertialPose` / `ignition::gazebo::Link::WorldInertialMatrix`
+GetId | `gz::sim::Link::Entity`
+GetInertial | `gz::sim::Link::WorldInertialPose` / `gz::sim::Link::WorldInertialMatrix`
 GetKinematic | TODO
 GetLinearDamping | TODO
-GetName | `ignition::gazebo::Link::Name`
+GetName | `gz::sim::Link::Name`
 GetSDF | TODO
 GetSDFDom | TODO
 GetSaveable | Not supported
-GetScopedName | `ignition::gazebo::scopedName`
+GetScopedName | `gz::sim::scopedName`
 GetSelfCollide | See model API
 GetSensorName | See sensor API
-GetType | `ignition::gazebo::entityType`
+GetType | `gz::sim::entityType`
 GetWorldEnergy | TODO
-GetWorldEnergyKinetic | `ignition::gazebo::Link::WorldKineticEnergy`
+GetWorldEnergyKinetic | `gz::sim::Link::WorldKineticEnergy`
 GetWorldEnergyPotential | TODO
 HasType | `gazebo::components::Link::typeId == entityTypeId(entity, ecm)`
 InitialRelativePose | TODO
-IsCanonicalLink | `ignition::gazebo::Link::IsCanonical`
+IsCanonicalLink | `gz::sim::Link::IsCanonical`
 IsSelected | Selection is client-specific, not porting
 IsStatic | See model API
 MoveFrame | TODO
@@ -136,22 +136,22 @@ SetWindMode | TODO
 SetWorldPose | TODO
 SetWorldTwist | TODO
 StopAnimation | TODO
-TypeStr | `ignition::gazebo::entityTypeStr`
+TypeStr | `gz::sim::entityTypeStr`
 URI | TODO
 UpdateParameters | TODO
 VisualPose | See visual API
-WindMode | `ignition::gazebo::Link::WindMode`
-WorldAngularAccel | `ignition::gazebo::Link::WorldAngularAcceleration`
+WindMode | `gz::sim::Link::WindMode`
+WorldAngularAccel | `gz::sim::Link::WorldAngularAcceleration`
 WorldAngularMomentum | TODO
-WorldAngularVel | `ignition::gazebo::Link::WorldAngularVelocity`
+WorldAngularVel | `gz::sim::Link::WorldAngularVelocity`
 WorldCoGLinearVel | TODO
 WorldCoGPose | TODO
 WorldForce | TODO
-WorldInertiaMatrix | `ignition::gazebo::Link::WorldInertialMatrix`
-WorldInertialPose | `ignition::gazebo::Link::WorldInertialPose`
-WorldLinearAccel | `ignition::gazebo::Link::WorldLinearAcceleration`
-WorldLinearVel | `ignition::gazebo::Link::WorldLinearVelocity`
-WorldPose |  `ignition::gazebo::Link::WorldPose`
+WorldInertiaMatrix | `gz::sim::Link::WorldInertialMatrix`
+WorldInertialPose | `gz::sim::Link::WorldInertialPose`
+WorldLinearAccel | `gz::sim::Link::WorldLinearAcceleration`
+WorldLinearVel | `gz::sim::Link::WorldLinearVelocity`
+WorldPose |  `gz::sim::Link::WorldPose`
 WorldTorque | TODO
 WorldWindLinearVel | TODO
 
@@ -170,28 +170,28 @@ they deal with entity IDs.
 
 Classic | Ignition
 -- | --
-BatteryCount | Use this system: `ignition::gazebo::systems::LinearBatteryPlugin`
+BatteryCount | Use this system: `gz::sim::systems::LinearBatteryPlugin`
 FindAllConnectedLinksHelper | TODO
-GetByName | Use type-specific `ignition::gazebo::Link::*ByName`
-GetChild | Use type-specific `ignition::gazebo::Link::*ByName`
-GetChildCollision | `ignition::gazebo::Link::CollisionByName`
-GetChildCount | Use type-specific `ignition::gazebo::Link::*Count`
+GetByName | Use type-specific `gz::sim::Link::*ByName`
+GetChild | Use type-specific `gz::sim::Link::*ByName`
+GetChildCollision | `gz::sim::Link::CollisionByName`
+GetChildCount | Use type-specific `gz::sim::Link::*Count`
 GetChildJoint | TODO
 GetChildJointsLinks | See joint API
 GetChildLink | Not supported
-GetCollision | `ignition::gazebo::Link::CollisionByName`
-GetCollisions | `ignition::gazebo::Link::Collisions`
-GetModel | `ignition::gazebo::Link::ParentModel`
-GetParent | `ignition::gazebo::EntiyComponentManager::ParentEntity`
-GetParentId | `ignition::gazebo::EntiyComponentManager::ParentEntity`
+GetCollision | `gz::sim::Link::CollisionByName`
+GetCollisions | `gz::sim::Link::Collisions`
+GetModel | `gz::sim::Link::ParentModel`
+GetParent | `gz::sim::EntiyComponentManager::ParentEntity`
+GetParentId | `gz::sim::EntiyComponentManager::ParentEntity`
 GetParentJoints | TODO
 GetParentJointsLinks | See joint API
-GetParentModel | `ignition::gazebo::Link::ParentModel`
-GetSensorCount | `ignition::gazebo::Link::SensorCount`
+GetParentModel | `gz::sim::Link::ParentModel`
+GetSensorCount | `gz::sim::Link::SensorCount`
 GetVisualMessage | See visual API
-GetWorld |  `ignition::gazebo::worldEntity`
-VisualId | `ignition::gazebo::Link::VisualByName`
-Visuals | `ignition::gazebo::Link::Visuals`
+GetWorld |  `gz::sim::worldEntity`
+VisualId | `gz::sim::Link::VisualByName`
+Visuals | `gz::sim::Link::Visuals`
 
 ---
 
@@ -238,8 +238,8 @@ Classic | Ignition
 -- | --
 Fini | N/A
 Init | N/A
-Load | `ignition::gazebo::SdfEntityCreator::CreateEntities`
-LoadJoints | `ignition::gazebo::SdfEntityCreator::CreateEntities`
+Load | `gz::sim::SdfEntityCreator::CreateEntities`
+LoadJoints | `gz::sim::SdfEntityCreator::CreateEntities`
 LoadPlugins | TODO
 Reset | TODO
 ResetPhysicsStates | TODO

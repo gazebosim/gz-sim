@@ -25,23 +25,23 @@
 #include <gz/sim/components/Factory.hh>
 #include "gz/sim/components/Component.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component type that contains angular velocity of an entity
-  /// represented by ignition::math::Vector3d.
+  /// represented by gz::math::Vector3d.
   using AngularVelocity =
     Component<math::Vector3d, class AngularVelocityTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.AngularVelocity",
       AngularVelocity)
 
   /// \brief A component type that contains angular velocity of an entity in the
-  /// world frame represented by ignition::math::Vector3d.
+  /// world frame represented by gz::math::Vector3d.
   using WorldAngularVelocity =
       Component<math::Vector3d, class WorldAngularVelocityTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.WorldAngularVelocity",

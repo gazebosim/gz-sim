@@ -29,8 +29,8 @@
 
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 uint64_t kIterations;
@@ -45,8 +45,8 @@ uint64_t testPaused(bool _paused)
   bool paused = !_paused;
   uint64_t iterations = 0;
 
-  std::function<void(const ignition::msgs::WorldStatistics &)> cb =
-      [&](const ignition::msgs::WorldStatistics &_msg)
+  std::function<void(const gz::msgs::WorldStatistics &)> cb =
+      [&](const gz::msgs::WorldStatistics &_msg)
   {
     std::unique_lock<std::mutex> lock(mutex);
     paused = _msg.paused();
@@ -138,7 +138,7 @@ TEST_F(NetworkHandshake, IGN_UTILS_TEST_DISABLED_ON_WIN32(Updates))
   primaryPluginInfo.SetEntityType("world");
   primaryPluginInfo.SetFilename(
       "libignition-gazebo-scene-broadcaster-system.so");
-  primaryPluginInfo.SetName("ignition::gazebo::systems::SceneBroadcaster");
+  primaryPluginInfo.SetName("gz::sim::systems::SceneBroadcaster");
   primaryPluginInfo.SetSdf(pluginElem);
 
   ServerConfig configPrimary;
@@ -159,7 +159,7 @@ TEST_F(NetworkHandshake, IGN_UTILS_TEST_DISABLED_ON_WIN32(Updates))
   secondaryPluginInfo.SetEntityName("default");
   secondaryPluginInfo.SetEntityType("world");
   secondaryPluginInfo.SetFilename("libignition-gazebo-physics-system.so");
-  secondaryPluginInfo.SetName("ignition::gazebo::systems::Physics");
+  secondaryPluginInfo.SetName("gz::sim::systems::Physics");
   secondaryPluginInfo.SetSdf(pluginElem);
 
   ServerConfig configSecondary;
@@ -174,8 +174,8 @@ TEST_F(NetworkHandshake, IGN_UTILS_TEST_DISABLED_ON_WIN32(Updates))
   // Subscribe to pose updates, which should come from the primary
   transport::Node node;
   std::vector<double> zPos;
-  std::function<void(const ignition::msgs::Pose_V &)> cb =
-      [&](const ignition::msgs::Pose_V &_msg)
+  std::function<void(const gz::msgs::Pose_V &)> cb =
+      [&](const gz::msgs::Pose_V &_msg)
   {
     for (int i = 0; i < _msg.pose().size(); ++i)
     {

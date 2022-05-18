@@ -42,8 +42,8 @@
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ParentEntity.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 class ContactSensor
@@ -81,7 +81,7 @@ class ContactSensor
   public: std::vector<Entity> collisionEntities;
 };
 
-class ignition::gazebo::systems::ContactPrivate
+class gz::sim::systems::ContactPrivate
 {
   /// \brief Create sensors that correspond to entities in the simulation
   /// \param[in] _ecm Mutable reference to ECM.
@@ -123,7 +123,7 @@ void ContactSensor::Load(const sdf::ElementPtr &_sdf, const std::string &_topic,
   }
 
   ignmsg << "Contact system publishing on " << this->topic << std::endl;
-  this->pub = this->node.Advertise<ignition::msgs::Contacts>(this->topic);
+  this->pub = this->node.Advertise<gz::msgs::Contacts>(this->topic);
 }
 
 //////////////////////////////////////////////////
@@ -299,5 +299,5 @@ IGNITION_ADD_PLUGIN(Contact, System,
   Contact::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(Contact, "ignition::gazebo::systems::Contact")
+IGNITION_ADD_PLUGIN_ALIAS(Contact, "gz::sim::systems::Contact")
 

@@ -23,9 +23,9 @@
 #include <gz/sim/Export.hh>
 #include <gz/sim/System.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -91,7 +91,7 @@ namespace systems
       </link>
       <plugin
         filename="ignition-gazebo-kinetic-energy-monitor-system"
-        name="ignition::gazebo::systems::KineticEnergyMonitor">
+        name="gz::sim::systems::KineticEnergyMonitor">
         <base_link_name>sphere_link</base_link_name>
         <kinetic_energy_threshold>100</kinetic_energy_threshold>
       </plugin>

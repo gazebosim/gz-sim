@@ -23,9 +23,9 @@
 #include <ignition/gazebo/Util.hh>
 #include "Util.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 namespace python
 {
@@ -33,9 +33,9 @@ void defineGazeboUtil(pybind11::module &_module)
 {
   _module.def("world_entity",
       pybind11::overload_cast<const EntityComponentManager &>(
-      &ignition::gazebo::worldEntity),
+      &gz::sim::worldEntity),
       "Get the first world entity that's found.");
 }
 }  // namespace python
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz

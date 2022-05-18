@@ -20,9 +20,9 @@
 #include <gz/sim/System.hh>
 #include <memory>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -111,9 +111,9 @@ namespace systems
   /// [1] Fossen, Thor I. _Guidance and Control of Ocean Vehicles_.
   ///    United Kingdom: Wiley, 1994.
   class Hydrodynamics:
-    public ignition::gazebo::System,
-    public ignition::gazebo::ISystemConfigure,
-    public ignition::gazebo::ISystemPreUpdate
+    public gz::sim::System,
+    public gz::sim::ISystemConfigure,
+    public gz::sim::ISystemPreUpdate
   {
     /// \brief Constructor
     public: Hydrodynamics();
@@ -123,15 +123,15 @@ namespace systems
 
     /// Documentation inherited
     public: void Configure(
-        const ignition::gazebo::Entity &_entity,
+        const gz::sim::Entity &_entity,
         const std::shared_ptr<const sdf::Element> &_sdf,
-        ignition::gazebo::EntityComponentManager &_ecm,
-        ignition::gazebo::EventManager &/*_eventMgr*/) override;
+        gz::sim::EntityComponentManager &_ecm,
+        gz::sim::EventManager &/*_eventMgr*/) override;
 
     /// Documentation inherited
     public: void PreUpdate(
-        const ignition::gazebo::UpdateInfo &_info,
-        ignition::gazebo::EntityComponentManager &_ecm) override;
+        const gz::sim::UpdateInfo &_info,
+        gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
     private: std::unique_ptr<HydrodynamicsPrivateData> dataPtr;

@@ -46,16 +46,16 @@
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Private ForceTorque data class.
-class ignition::gazebo::systems::ForceTorquePrivate
+class gz::sim::systems::ForceTorquePrivate
 {
   /// \brief A map of FT entity to its FT sensor.
   public: std::unordered_map<Entity,
-      std::unique_ptr<ignition::sensors::ForceTorqueSensor>> entitySensorMap;
+      std::unique_ptr<gz::sensors::ForceTorqueSensor>> entitySensorMap;
 
   /// \brief A struct to hold the joint and link entities associated with a
   /// sensor
@@ -349,4 +349,4 @@ IGNITION_ADD_PLUGIN(ForceTorque, System,
   ForceTorque::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(ForceTorque, "ignition::gazebo::systems::ForceTorque")
+IGNITION_ADD_PLUGIN_ALIAS(ForceTorque, "gz::sim::systems::ForceTorque")

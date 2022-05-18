@@ -20,18 +20,18 @@
 
 #include "EventManager.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 namespace python
 {
 /////////////////////////////////////////////////
 void defineGazeboEventManager(pybind11::object module)
 {
-  pybind11::class_<ignition::gazebo::EventManager>(module, "EventManager")
+  pybind11::class_<gz::sim::EventManager>(module, "EventManager")
   .def(pybind11::init<>());
 }
 }  // namespace python
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz

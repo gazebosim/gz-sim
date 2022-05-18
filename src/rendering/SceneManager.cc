@@ -63,14 +63,14 @@
 #include "gz/sim/Util.hh"
 #include "gz/sim/rendering/SceneManager.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 using TP = std::chrono::steady_clock::time_point;
 
 /// \brief Private data class.
-class ignition::gazebo::SceneManagerPrivate
+class gz::sim::SceneManagerPrivate
 {
   /// \brief Keep track of world ID, which is equivalent to the scene's
   /// root visual.
@@ -677,8 +677,8 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     descriptor.subMeshName = _geom.MeshShape()->Submesh();
     descriptor.centerSubMesh = _geom.MeshShape()->CenterSubmesh();
 
-    ignition::common::MeshManager *meshManager =
-        ignition::common::MeshManager::Instance();
+    gz::common::MeshManager *meshManager =
+        gz::common::MeshManager::Instance();
     descriptor.mesh = meshManager->Load(descriptor.meshName);
     geom = this->dataPtr->scene->CreateMesh(descriptor);
     scale = _geom.MeshShape()->Scale();
@@ -1533,7 +1533,7 @@ rendering::VisualPtr SceneManager::CreateJointVisual(
     // For fixed joint type, scale joint visual to the joint child link
     double childSize =
         std::max(0.1, parent->BoundingBox().Size().Length());
-    auto scale = ignition::math::Vector3d(childSize * 0.2,
+    auto scale = gz::math::Vector3d(childSize * 0.2,
         childSize * 0.2, childSize * 0.2);
     jointVisual->SetLocalScale(scale);
   }
@@ -1664,19 +1664,19 @@ rendering::ParticleEmitterPtr SceneManager::UpdateParticleEmitter(Entity _id,
   // Type.
   switch (_emitter.type())
   {
-    case ignition::msgs::ParticleEmitter_EmitterType_BOX:
+    case gz::msgs::ParticleEmitter_EmitterType_BOX:
     {
-      emitter->SetType(ignition::rendering::EmitterType::EM_BOX);
+      emitter->SetType(gz::rendering::EmitterType::EM_BOX);
       break;
     }
-    case ignition::msgs::ParticleEmitter_EmitterType_CYLINDER:
+    case gz::msgs::ParticleEmitter_EmitterType_CYLINDER:
     {
-      emitter->SetType(ignition::rendering::EmitterType::EM_CYLINDER);
+      emitter->SetType(gz::rendering::EmitterType::EM_CYLINDER);
       break;
     }
-    case ignition::msgs::ParticleEmitter_EmitterType_ELLIPSOID:
+    case gz::msgs::ParticleEmitter_EmitterType_ELLIPSOID:
     {
-      emitter->SetType(ignition::rendering::EmitterType::EM_ELLIPSOID);
+      emitter->SetType(gz::rendering::EmitterType::EM_ELLIPSOID);
       break;
     }
     default:
@@ -1687,7 +1687,7 @@ rendering::ParticleEmitterPtr SceneManager::UpdateParticleEmitter(Entity _id,
 
   // Emitter size.
   if (_emitter.has_size())
-    emitter->SetEmitterSize(ignition::msgs::Convert(_emitter.size()));
+    emitter->SetEmitterSize(gz::msgs::Convert(_emitter.size()));
 
   // Rate.
   if (_emitter.has_rate())
@@ -1706,7 +1706,7 @@ rendering::ParticleEmitterPtr SceneManager::UpdateParticleEmitter(Entity _id,
   if (_emitter.has_particle_size())
   {
     emitter->SetParticleSize(
-        ignition::msgs::Convert(_emitter.particle_size()));
+        gz::msgs::Convert(_emitter.particle_size()));
   }
 
   // Lifetime.
@@ -1716,7 +1716,7 @@ rendering::ParticleEmitterPtr SceneManager::UpdateParticleEmitter(Entity _id,
   // Material.
   if (_emitter.has_material())
   {
-    ignition::rendering::MaterialPtr material =
+    gz::rendering::MaterialPtr material =
       this->LoadMaterial(convert<sdf::Material>(_emitter.material()));
     emitter->SetMaterial(material);
   }
@@ -1738,8 +1738,8 @@ rendering::ParticleEmitterPtr SceneManager::UpdateParticleEmitter(Entity _id,
   else if (_emitter.has_color_start() && _emitter.has_color_end())
   {
     emitter->SetColorRange(
-      ignition::msgs::Convert(_emitter.color_start()),
-      ignition::msgs::Convert(_emitter.color_end()));
+      gz::msgs::Convert(_emitter.color_start()),
+      gz::msgs::Convert(_emitter.color_end()));
   }
 
   // Scale rate.

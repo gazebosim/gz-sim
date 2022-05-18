@@ -46,7 +46,7 @@ extern "C" char *gazeboVersionHeader()
 extern "C" void cmdVerbosity(
     const char *_verbosity)
 {
-  ignition::common::Console::SetVerbosity(std::atoi(_verbosity));
+  gz::common::Console::SetVerbosity(std::atoi(_verbosity));
 }
 
 //////////////////////////////////////////////////
@@ -61,7 +61,7 @@ extern "C" int runServer(const char *_sdfString,
     int _networkSecondaries, int _record, const char *_recordPath,
     int _logOverwrite, const char *_playback, const char *_file)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
 
   // Path for logs
   std::string recordPathMod = serverConfig.LogRecordPath();
@@ -83,17 +83,17 @@ extern "C" int runServer(const char *_sdfString,
       recordPathMod = std::string(_recordPath);
 
       // Check if path or compressed file with same prefix exists
-      if (ignition::common::exists(recordPathMod))
+      if (gz::common::exists(recordPathMod))
       {
         // Overwrite if flag specified
         if (_logOverwrite > 0)
         {
           bool recordMsg = false;
           // Remove files before initializing console log files on top of them
-          if (ignition::common::exists(recordPathMod))
+          if (gz::common::exists(recordPathMod))
           {
             recordMsg = true;
-            ignition::common::removeAll(recordPathMod);
+            gz::common::removeAll(recordPathMod);
           }
 
           // Create log file before printing any messages so they can be logged
@@ -111,11 +111,11 @@ extern "C" int runServer(const char *_sdfString,
         {
           // Remove the separator at end of path
           if (!std::string(1, recordPathMod.back()).compare(
-            ignition::common::separator("")))
+            gz::common::separator("")))
           {
             recordPathMod = recordPathMod.substr(0, recordPathMod.length() - 1);
           }
-          recordPathMod = ignition::common::uniqueDirectoryPath(recordPathMod);
+          recordPathMod = gz::common::uniqueDirectoryPath(recordPathMod);
 
           ignLogInit(recordPathMod, "server_console.log");
           ignwarn << "Log path already exists on disk! "
@@ -189,13 +189,13 @@ extern "C" int runServer(const char *_sdfString,
     else
     {
       ignmsg << "Playing back states" << _playback << std::endl;
-      serverConfig.SetLogPlaybackPath(ignition::common::absPath(
+      serverConfig.SetLogPlaybackPath(gz::common::absPath(
         std::string(_playback)));
     }
   }
 
   // Create the Gazebo server
-  ignition::gazebo::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
 
   // Run the server
   server.Run(true, _iterations, _run == 0);
@@ -207,7 +207,7 @@ extern "C" int runServer(const char *_sdfString,
 //////////////////////////////////////////////////
 extern "C" int runGui(const char *_guiConfig)
 {
-  ignition::common::SignalHandler sigHandler;
+  gz::common::SignalHandler sigHandler;
   bool sigKilled = false;
   sigHandler.AddCallback([&](const int /*_sig*/)
   {
@@ -221,7 +221,7 @@ extern "C" int runGui(const char *_guiConfig)
   char **argv = nullptr;
 
   // Initialize Qt app
-  ignition::gui::Application app(argc, argv);
+  gz::gui::Application app(argc, argv);
   app.AddPluginPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
 
   // add import path so we can load custom modules
@@ -229,17 +229,17 @@ extern "C" int runGui(const char *_guiConfig)
 
   // Set default config file for Gazebo
   std::string defaultConfigDir;
-  ignition::common::env(IGN_HOMEDIR, defaultConfigDir);
-  defaultConfigDir = ignition::common::joinPaths(defaultConfig, ".ignition",
+  gz::common::env(IGN_HOMEDIR, defaultConfigDir);
+  defaultConfigDir = gz::common::joinPaths(defaultConfig, ".ignition",
       "gazebo", IGNITION_GAZEBO_MAJOR_VERSION_STR);
 
-  auto defaultConfig = ignition::common::joinPaths(defaultConfigDir,
+  auto defaultConfig = gz::common::joinPaths(defaultConfigDir,
       "gui.config");
 
   app.SetDefaultConfigPath(defaultConfig);
 
   // Customize window
-  auto mainWin = app.findChild<ignition::gui::MainWindow *>();
+  auto mainWin = app.findChild<gz::gui::MainWindow *>();
   auto win = mainWin->QuickWindow();
   win->setProperty("title", "Gazebo");
 
@@ -263,13 +263,13 @@ extern "C" int runGui(const char *_guiConfig)
   }
 
   // Get list of worlds
-  ignition::transport::Node node;
+  gz::transport::Node node;
 
   bool executed{false};
   bool result{false};
   unsigned int timeout{5000};
   std::string service{"/gazebo/worlds"};
-  ignition::msgs::StringMsg_V worldsMsg;
+  gz::msgs::StringMsg_V worldsMsg;
 
   // This loop is here to allow the server time to download resources.
   // \todo(nkoenig) Async resource download. Search for "Async resource
@@ -302,7 +302,7 @@ extern "C" int runGui(const char *_guiConfig)
 # pragma warning(push)
 # pragma warning(disable: 4996)
 #endif
-  std::vector<ignition::gazebo::GuiRunner *> runners;
+  std::vector<gz::sim::GuiRunner *> runners;
 #ifndef _WIN32
 # pragma GCC diagnostic pop
 #else
@@ -331,16 +331,16 @@ extern "C" int runGui(const char *_guiConfig)
 # pragma warning(push)
 # pragma warning(disable: 4996)
 #endif
-    auto runner = new ignition::gazebo::GuiRunner(worldsMsg.data(0));
+    auto runner = new gz::sim::GuiRunner(worldsMsg.data(0));
 #ifndef _WIN32
 # pragma GCC diagnostic pop
 #else
 # pragma warning(pop)
 #endif
-    runner->connect(&app, &ignition::gui::Application::PluginAdded, runner,
-        &ignition::gazebo::GuiRunner::OnPluginAdded);
+    runner->connect(&app, &gz::gui::Application::PluginAdded, runner,
+        &gz::sim::GuiRunner::OnPluginAdded);
     runners.push_back(runner);
-    runner->setParent(ignition::gui::App());
+    runner->setParent(gz::gui::App());
   }
   // GUI configuration from SDF (request to server)
   else
@@ -358,7 +358,7 @@ extern "C" int runGui(const char *_guiConfig)
       igndbg << "Requesting GUI from [" << service << "]..." << std::endl;
 
       // Request and block
-      ignition::msgs::GUI res;
+      gz::msgs::GUI res;
       executed = node.Request(service, timeout, res, result);
 
       if (!executed)
@@ -381,10 +381,10 @@ extern "C" int runGui(const char *_guiConfig)
       }
 
       // GUI runner
-      auto runner = new ignition::gazebo::GuiRunner(worldName);
-      runner->connect(&app, &ignition::gui::Application::PluginAdded, runner,
-          &ignition::gazebo::GuiRunner::OnPluginAdded);
-      runner->setParent(ignition::gui::App());
+      auto runner = new gz::sim::GuiRunner(worldName);
+      runner->connect(&app, &gz::gui::Application::PluginAdded, runner,
+          &gz::sim::GuiRunner::OnPluginAdded);
+      runner->setParent(gz::gui::App());
       runners.push_back(runner);
     }
     mainWin->configChanged();
@@ -397,25 +397,25 @@ extern "C" int runGui(const char *_guiConfig)
   }
 
   // If no plugins have been added, load default config file
-  auto plugins = mainWin->findChildren<ignition::gui::Plugin *>();
+  auto plugins = mainWin->findChildren<gz::gui::Plugin *>();
   if (plugins.empty())
   {
     // Check if there's a default config file under
     // ~/.gz/sim and use that. If there isn't, copy
     // the installed file there first.
-    if (!ignition::common::exists(defaultConfig))
+    if (!gz::common::exists(defaultConfig))
     {
-      auto installedConfig = ignition::common::joinPaths(
+      auto installedConfig = gz::common::joinPaths(
           IGNITION_GAZEBO_GUI_CONFIG_PATH, "gui.config");
 
-      if (!ignition::common::createDirectories(defaultConfigDir))
+      if (!gz::common::createDirectories(defaultConfigDir))
       {
         ignerr << "Failed to create directory [" << defaultConfigDir
                << "]." << std::endl;
         return -1;
       }
 
-      if (!ignition::common::exists(installedConfig))
+      if (!gz::common::exists(installedConfig))
       {
         ignerr << "Failed to copy installed config [" << installedConfig
                << "] to default config [" << defaultConfig << "]."
@@ -424,7 +424,7 @@ extern "C" int runGui(const char *_guiConfig)
         return -1;
       }
 
-      if (!ignition::common::copyFile(installedConfig, defaultConfig))
+      if (!gz::common::copyFile(installedConfig, defaultConfig))
       {
         ignerr << "Failed to copy installed config [" << installedConfig
                << "] to default config [" << defaultConfig << "]."

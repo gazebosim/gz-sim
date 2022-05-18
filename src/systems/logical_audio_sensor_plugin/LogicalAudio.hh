@@ -24,9 +24,9 @@
 #include <gz/sim/logicalaudiosensorplugin-system/Export.hh>
 #include <gz/math/Pose3.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -70,8 +70,8 @@ namespace logical_audio
       double _sourceEmissionVolume,
       double _innerRadius,
       double _falloffDistance,
-      const ignition::math::Pose3d &_sourcePose,
-      const ignition::math::Pose3d &_targetPose);
+      const gz::math::Pose3d &_sourcePose,
+      const gz::math::Pose3d &_targetPose);
 
   /// \brief Set the attenuation function that matches the defined string.
   /// The string is not case sensitive, and must match the spelling

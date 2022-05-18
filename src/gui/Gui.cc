@@ -31,21 +31,21 @@
 #include "GuiRunner.hh"
 #include "PathManager.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace gui
 {
 //////////////////////////////////////////////////
-std::unique_ptr<ignition::gui::Application> createGui(
+std::unique_ptr<gz::gui::Application> createGui(
     int &_argc, char **_argv, const char *_guiConfig,
     const char *_defaultGuiConfig, bool _loadPluginsFromSdf,
     const char *_renderEngine)
 {
-  ignition::common::SignalHandler sigHandler;
+  gz::common::SignalHandler sigHandler;
   bool sigKilled = false;
   sigHandler.AddCallback([&](const int /*_sig*/)
   {
@@ -62,16 +62,16 @@ std::unique_ptr<ignition::gui::Application> createGui(
   }
 
   // Initialize Qt app
-  auto app = std::make_unique<ignition::gui::Application>(_argc, _argv);
+  auto app = std::make_unique<gz::gui::Application>(_argc, _argv);
   app->AddPluginPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
 
-  auto aboutDialogHandler = new ignition::gazebo::gui::AboutDialogHandler();
+  auto aboutDialogHandler = new gz::sim::gui::AboutDialogHandler();
   aboutDialogHandler->setParent(app->Engine());
 
-  auto guiFileHandler = new ignition::gazebo::gui::GuiFileHandler();
+  auto guiFileHandler = new gz::sim::gui::GuiFileHandler();
   guiFileHandler->setParent(app->Engine());
 
-  auto pathManager = new ignition::gazebo::gui::PathManager();
+  auto pathManager = new gz::sim::gui::PathManager();
   pathManager->setParent(app->Engine());
 
   // add import path so we can load custom modules
@@ -92,11 +92,11 @@ std::unique_ptr<ignition::gui::Application> createGui(
     {
       defaultGuiConfigName = "playback_gui.config";
     }
-    ignition::common::env(IGN_HOMEDIR, defaultConfig);
+    gz::common::env(IGN_HOMEDIR, defaultConfig);
     defaultConfigFolder =
-      ignition::common::joinPaths(defaultConfig, ".ignition",
+      gz::common::joinPaths(defaultConfig, ".ignition",
         "gazebo", IGNITION_GAZEBO_MAJOR_VERSION_STR);
-    defaultConfig = ignition::common::joinPaths(defaultConfigFolder,
+    defaultConfig = gz::common::joinPaths(defaultConfigFolder,
         defaultGuiConfigName);
   }
   else
@@ -107,7 +107,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
   app->SetDefaultConfigPath(defaultConfig);
 
   // Customize window
-  auto mainWin = app->findChild<ignition::gui::MainWindow *>();
+  auto mainWin = app->findChild<gz::gui::MainWindow *>();
   if (_renderEngine != nullptr)
   {
     mainWin->SetRenderEngine(_renderEngine);
@@ -140,12 +140,12 @@ std::unique_ptr<ignition::gui::Application> createGui(
   }
 
   // Get list of worlds
-  ignition::transport::Node node;
+  gz::transport::Node node;
   bool executed{false};
   bool result{false};
   unsigned int timeout{5000};
   std::string service{"/gazebo/worlds"};
-  ignition::msgs::StringMsg_V worldsMsg;
+  gz::msgs::StringMsg_V worldsMsg;
 
   // This loop is here to allow the server time to download resources.
   // \todo(nkoenig) Async resource download. Search for "Async resource
@@ -180,9 +180,9 @@ std::unique_ptr<ignition::gui::Application> createGui(
     // TODO(anyone) Most of ign-gazebo's transport API includes the world name,
     // which makes it complicated to mix configurations across worlds.
     // We could have a way to use world-agnostic topics like Gazebo-classic's ~
-    auto runner = new ignition::gazebo::GuiRunner(worldsMsg.data(0));
+    auto runner = new gz::sim::GuiRunner(worldsMsg.data(0));
     ++runnerCount;
-    runner->setParent(ignition::gui::App());
+    runner->setParent(gz::gui::App());
 
     // Load plugins after runner is up
     if (!app->LoadConfig(_guiConfig))
@@ -202,7 +202,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
 
       // Request GUI info for each world
       result = false;
-      ignition::msgs::GUI res;
+      gz::msgs::GUI res;
       service = transport::TopicUtils::AsValidTopic("/world/" + worldName +
           "/gui/info");
       if (service.empty())
@@ -229,8 +229,8 @@ std::unique_ptr<ignition::gui::Application> createGui(
       }
 
       // GUI runner
-      auto runner = new ignition::gazebo::GuiRunner(worldName);
-      runner->setParent(ignition::gui::App());
+      auto runner = new gz::sim::GuiRunner(worldName);
+      runner->setParent(gz::gui::App());
       ++runnerCount;
 
       // Load plugins after creating GuiRunner, so they can access worldName
@@ -261,17 +261,17 @@ std::unique_ptr<ignition::gui::Application> createGui(
   }
 
   // If no plugins have been added, load default config file
-  auto plugins = mainWin->findChildren<ignition::gui::Plugin *>();
+  auto plugins = mainWin->findChildren<gz::gui::Plugin *>();
   if (plugins.empty())
   {
     // Check if there's a default config file under
     // ~/.gz/sim and use that. If there isn't, copy
     // the installed file there first.
-    if (!ignition::common::exists(defaultConfig))
+    if (!gz::common::exists(defaultConfig))
     {
-      if (!ignition::common::exists(defaultConfigFolder))
+      if (!gz::common::exists(defaultConfigFolder))
       {
-        if (!ignition::common::createDirectories(defaultConfigFolder))
+        if (!gz::common::createDirectories(defaultConfigFolder))
         {
           ignerr << "Failed to create the default config folder ["
             << defaultConfigFolder << "]\n";
@@ -279,9 +279,9 @@ std::unique_ptr<ignition::gui::Application> createGui(
         }
       }
 
-      auto installedConfig = ignition::common::joinPaths(
+      auto installedConfig = gz::common::joinPaths(
           IGNITION_GAZEBO_GUI_CONFIG_PATH, defaultGuiConfigName);
-      if (!ignition::common::exists(installedConfig))
+      if (!gz::common::exists(installedConfig))
       {
         ignerr << "Failed to copy installed config [" << installedConfig
                << "] to default config [" << defaultConfig << "]."
@@ -290,7 +290,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
         return nullptr;
       }
 
-      if (!ignition::common::copyFile(installedConfig, defaultConfig))
+      if (!gz::common::copyFile(installedConfig, defaultConfig))
       {
         ignerr << "Failed to copy installed config [" << installedConfig
                << "] to default config [" << defaultConfig << "]."
@@ -336,5 +336,5 @@ int runGui(int &_argc, char **_argv, const char *_guiConfig,
 }
 }  // namespace gui
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz

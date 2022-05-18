@@ -38,7 +38,7 @@
 #include "gz/sim/Entity.hh"
 #include "gz/sim/gui/GuiEvents.hh"
 
-namespace ignition::gazebo
+namespace gz::sim
 {
   class ViewAnglePrivate
   {
@@ -108,12 +108,12 @@ namespace ignition::gazebo
   };
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 ViewAngle::ViewAngle()
-  : ignition::gui::Plugin(), dataPtr(std::make_unique<ViewAnglePrivate>())
+  : gz::gui::Plugin(), dataPtr(std::make_unique<ViewAnglePrivate>())
 {
 }
 
@@ -148,14 +148,14 @@ void ViewAngle::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   // Move to pose service
   this->dataPtr->moveToPoseService = "/gui/move_to/pose";
 
-  ignition::gui::App()->findChild<
-    ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+    gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
 bool ViewAngle::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::Render::kType)
+  if (_event->type() == gz::gui::events::Render::kType)
   {
     this->dataPtr->OnRender();
 
@@ -166,7 +166,7 @@ bool ViewAngle::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-           ignition::gazebo::gui::events::EntitiesSelected::kType)
+           gz::sim::gui::events::EntitiesSelected::kType)
   {
     auto selectedEvent =
         reinterpret_cast<gazebo::gui::events::EntitiesSelected *>(
@@ -185,7 +185,7 @@ bool ViewAngle::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-           ignition::gazebo::gui::events::DeselectAllEntities::kType)
+           gz::sim::gui::events::DeselectAllEntities::kType)
   {
     this->dataPtr->selectedEntities.clear();
   }
@@ -462,5 +462,5 @@ bool ViewAnglePrivate::UpdateQtCamClipDist()
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::ViewAngle,
-                    ignition::gui::Plugin)
+IGNITION_ADD_PLUGIN(gz::sim::ViewAngle,
+                    gz::gui::Plugin)

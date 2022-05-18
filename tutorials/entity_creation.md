@@ -10,7 +10,7 @@ You can include the `UserCommands` system plugin including these lines in your S
 ```xml
 <plugin
   filename="ignition-gazebo-user-commands-system"
-  name="ignition::gazebo::systems::UserCommands">
+  name="gz::sim::systems::UserCommands">
 </plugin>
 ```
 
@@ -58,7 +58,7 @@ ign service --list
 # Factory message
 
 To create new entities in the world we need to use the
-[ignition::msgs::EntityFactory](https://ignitionrobotics.org/api/msgs/6.0/classignition_1_1msgs_1_1EntityFactory__V.html)
+[gz::msgs::EntityFactory](https://ignitionrobotics.org/api/msgs/6.0/classignition_1_1msgs_1_1EntityFactory__V.html)
 message to send a request to the create service.
 This message allows us to create entities from strings, files,
 [Models](https://ignitionrobotics.org/api/msgs/6.0/classignition_1_1msgs_1_1Model.html),
@@ -91,8 +91,8 @@ There is an option to create a new entity every time that the message is sent by
 
 To insert a light in the world we have two options:
 
- - Fill the string inside the `ignition::msgs::EntityFactory` message like in the section above.
- - Fill the field `light` inside the `ignition::msgs::EntityFactory` message.
+ - Fill the string inside the `gz::msgs::EntityFactory` message like in the section above.
+ - Fill the field `light` inside the `gz::msgs::EntityFactory` message.
 
 In the following snippet you can see how the light's field is filled.
 

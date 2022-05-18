@@ -29,12 +29,12 @@
 
 #include "FollowActor.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Private FollowActor data class.
-class ignition::gazebo::systems::FollowActorPrivate
+class gz::sim::systems::FollowActorPrivate
 {
   /// \brief Entity for the actor.
   public: Entity actorEntity{kNullEntity};
@@ -291,4 +291,4 @@ IGNITION_ADD_PLUGIN(FollowActor, System,
   FollowActor::ISystemPreUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(FollowActor, "ignition::gazebo::systems::FollowActor")
+IGNITION_ADD_PLUGIN_ALIAS(FollowActor, "gz::sim::systems::FollowActor")

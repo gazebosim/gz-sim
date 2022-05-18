@@ -27,9 +27,9 @@
 #include "PeerInfo.hh"
 #include "PeerTracker.hh"
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -50,10 +50,10 @@ namespace ignition
       public: std::unique_ptr<PeerTracker> tracker;
 
       /// \brief Track connection to "PeerRemoved" Event
-      public: ignition::common::ConnectionPtr peerRemovedConn;
+      public: gz::common::ConnectionPtr peerRemovedConn;
 
       /// \brief Traack connection to "PeerStale" Event
-      public: ignition::common::ConnectionPtr peerStaleConn;
+      public: gz::common::ConnectionPtr peerStaleConn;
 
       /// \brief Function from the SimulationRunner to call for stepping.
       /// It will update the systems.
@@ -66,11 +66,11 @@ namespace ignition
       public: std::atomic<bool> stopReceived {false};
 
       /// \brief Track connection to "events::Stop" Event
-      public: ignition::common::ConnectionPtr stoppingConn;
+      public: gz::common::ConnectionPtr stoppingConn;
     };
     }
-  }  // namespace gazebo
-}  // namespace ignition
+  }  // namespace sim
+}  // namespace gz
 
 #endif  // GZ_GAZEBO_NETWORKMANAGER_HH_
 

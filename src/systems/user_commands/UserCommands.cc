@@ -71,13 +71,13 @@
 #include "gz/sim/components/VisualCmd.hh"
 #include "gz/sim/components/WheelSlipCmd.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
@@ -464,7 +464,7 @@ class WheelSlipCommand : public UserCommandBase
 }
 
 /// \brief Private UserCommands data class.
-class ignition::gazebo::systems::UserCommandsPrivate
+class gz::sim::systems::UserCommandsPrivate
 {
   /// \brief Callback for create service
   /// \param[in] _req Request containing entity description.
@@ -1926,4 +1926,4 @@ IGNITION_ADD_PLUGIN(UserCommands, System,
 )
 
 IGNITION_ADD_PLUGIN_ALIAS(UserCommands,
-                          "ignition::gazebo::systems::UserCommands")
+                          "gz::sim::systems::UserCommands")

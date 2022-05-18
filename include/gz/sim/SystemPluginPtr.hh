@@ -20,11 +20,11 @@
 #include <gz/plugin/SpecializedPluginPtr.hh>
 #include <gz/sim/System.hh>
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
-    using SystemPluginPtr = ignition::plugin::SpecializedPluginPtr<
+    using SystemPluginPtr = gz::plugin::SpecializedPluginPtr<
       System,
       ISystemConfigure,
       ISystemPreUpdate,

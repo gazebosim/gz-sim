@@ -42,8 +42,8 @@
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test LogicalAudio system plugin
 class LogicalAudioTest : public InternalFixture<::testing::Test>
@@ -65,10 +65,10 @@ TEST_F(LogicalAudioTest,
   EXPECT_FALSE(*server.Running(0));
 
   // helper variables for checking the validity of the ECM
-  const ignition::math::Pose3d sourcePose(0, 0, 0, 0, 0, 0);
+  const gz::math::Pose3d sourcePose(0, 0, 0, 0, 0, 0);
   const auto zeroSeconds = std::chrono::seconds(0);
-  const ignition::math::Pose3d micClosePose(0.5, 0, 0, 0, 0, 0);
-  const ignition::math::Pose3d micFarPose(0, 0, 0, 0, 0, 0);
+  const gz::math::Pose3d micClosePose(0.5, 0, 0, 0, 0, 0);
+  const gz::math::Pose3d micFarPose(0, 0, 0, 0, 0, 0);
   std::chrono::steady_clock::duration sourceStartTime;
   bool firstTime{true};
 

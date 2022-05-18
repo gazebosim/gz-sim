@@ -60,12 +60,12 @@
 #include "gz/sim/rendering/Events.hh"
 #include "gz/sim/rendering/RenderUtil.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 // Private data class.
-class ignition::gazebo::systems::SensorsPrivate
+class gz::sim::systems::SensorsPrivate
 {
   /// \brief Sensor manager object. This manages the lifecycle of the
   /// instantiated sensors.
@@ -100,7 +100,7 @@ class ignition::gazebo::systems::SensorsPrivate
   /// \brief Maps gazebo entity to its matching sensor ID
   ///
   /// Useful for detecting when a sensor Entity has been deleted and trigger
-  /// the destruction of the corresponding ignition::sensors Sensor object
+  /// the destruction of the corresponding gz::sensors Sensor object
   public: std::unordered_map<Entity, sensors::SensorId> entityToIdMap;
 
   /// \brief Flag to indicate if worker threads are running
@@ -126,7 +126,7 @@ class ignition::gazebo::systems::SensorsPrivate
   public: std::condition_variable renderCv;
 
   /// \brief Connection to events::Stop event, used to stop thread
-  public: ignition::common::ConnectionPtr stopConn;
+  public: gz::common::ConnectionPtr stopConn;
 
   /// \brief Update time for the next rendering iteration
   public: std::chrono::steady_clock::duration updateTime;
@@ -818,4 +818,4 @@ IGNITION_ADD_PLUGIN(Sensors, System,
   Sensors::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(Sensors, "ignition::gazebo::systems::Sensors")
+IGNITION_ADD_PLUGIN_ALIAS(Sensors, "gz::sim::systems::Sensors")

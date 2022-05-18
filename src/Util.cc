@@ -41,9 +41,9 @@
 
 #include "gz/sim/Util.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -449,20 +449,20 @@ void addResourcePaths(const std::vector<std::string> &_paths)
   for (const auto &path : sdfPaths)
     sdfPathsStr += ':' + path;
 
-  ignition::common::setenv(kSdfPathEnv.c_str(), sdfPathsStr.c_str());
+  gz::common::setenv(kSdfPathEnv.c_str(), sdfPathsStr.c_str());
 
   std::string ignPathsStr;
   for (const auto &path : ignPaths)
     ignPathsStr += ':' + path;
 
-  ignition::common::setenv(
+  gz::common::setenv(
     systemPaths->FilePathEnv().c_str(), ignPathsStr.c_str());
 
   std::string gzPathsStr;
   for (const auto &path : gzPaths)
     gzPathsStr += ':' + path;
 
-  ignition::common::setenv(kResourcePathEnv.c_str(), gzPathsStr.c_str());
+  gz::common::setenv(kResourcePathEnv.c_str(), gzPathsStr.c_str());
 
   // Force re-evaluation
   // SDF is evaluated at find call
@@ -470,7 +470,7 @@ void addResourcePaths(const std::vector<std::string> &_paths)
 }
 
 //////////////////////////////////////////////////
-ignition::gazebo::Entity topLevelModel(const Entity &_entity,
+gz::sim::Entity topLevelModel(const Entity &_entity,
     const EntityComponentManager &_ecm)
 {
   auto entity = _entity;

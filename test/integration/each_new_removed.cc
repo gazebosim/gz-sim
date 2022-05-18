@@ -33,7 +33,7 @@
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace std::chrono_literals;
 
 using IntComponent = gazebo::components::Component<int, class IntComponentTag>;
@@ -49,7 +49,7 @@ class EachNewRemovedFixture : public InternalFixture<::testing::Test>
 TEST_F(EachNewRemovedFixture,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(EachNewEachRemovedInSystem))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
 
   gazebo::Server server;
 

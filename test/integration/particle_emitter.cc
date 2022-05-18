@@ -35,8 +35,8 @@
 #include "helpers/EnvTestFixture.hh"
 #include "helpers/Relay.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 class ParticleEmitterTest : public InternalFixture<::testing::Test>
 {
@@ -75,7 +75,7 @@ TEST_F(ParticleEmitterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SDFLoad))
         _ecm.Each<components::ParticleEmitter,
                   components::Name,
                   components::Pose>(
-            [&](const ignition::gazebo::Entity &,
+            [&](const gz::sim::Entity &,
                 const components::ParticleEmitter *_emitter,
                 const components::Name *_name,
                 const components::Pose *_pose) -> bool

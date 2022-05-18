@@ -60,8 +60,8 @@
 
 #include "SimulationRunner.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 LevelManager::LevelManager(SimulationRunner *_runner, const bool _useLevels)
@@ -197,10 +197,10 @@ void LevelManager::ReadLevelPerformerInfo()
 
   // TODO(anyone) This should probably go somewhere else as it is a global
   // constant.
-  const std::string kPluginName{"ignition::gazebo"};
+  const std::string kPluginName{"gz::sim"};
 
   sdf::ElementPtr pluginElem;
-  // Get the ignition::gazebo plugin element
+  // Get the gz::sim plugin element
   for (auto plugin = worldElem->FindElement("plugin"); plugin;
        plugin = plugin->GetNextElement("plugin"))
   {

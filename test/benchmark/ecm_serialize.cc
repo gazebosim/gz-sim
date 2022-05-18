@@ -33,9 +33,9 @@
 #include "ignition/gazebo/components/Factory.hh"
 
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
@@ -66,8 +66,8 @@ IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.BoolComponent",
 }
 
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace components;
 
 // NOLINTNEXTLINE

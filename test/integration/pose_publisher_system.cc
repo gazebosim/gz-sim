@@ -38,8 +38,8 @@
 
 #define tol 10e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test PosePublisher system
 class PosePublisherTest : public InternalFixture<::testing::TestWithParam<int>>
@@ -191,7 +191,7 @@ TEST_F(PosePublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 
       // timestamps
       auto simTimeSecNsec =
-          ignition::math::durationToSecNsec(_info.simTime);
+          gz::math::durationToSecNsec(_info.simTime);
        timestamps.push_back(
            math::secNsecToTimePoint(
              simTimeSecNsec.first,
@@ -240,7 +240,7 @@ TEST_F(PosePublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 
   // sort the pose msgs according to timestamp
   std::sort(poseMsgs.begin(), poseMsgs.end(), [](
-      const ignition::msgs::Pose &_l, const ignition::msgs::Pose &_r)
+      const gz::msgs::Pose &_l, const gz::msgs::Pose &_r)
   {
     std::chrono::steady_clock::time_point lt =
       math::secNsecToTimePoint(
@@ -486,7 +486,7 @@ TEST_F(PosePublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StaticPosePublisher))
 
       // timestamps
       auto simTimeSecNsec =
-          ignition::math::durationToSecNsec(_info.simTime);
+          gz::math::durationToSecNsec(_info.simTime);
       timestamps.push_back(
           math::secNsecToTimePoint(
             simTimeSecNsec.first, simTimeSecNsec.second));

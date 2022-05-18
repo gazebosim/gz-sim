@@ -25,16 +25,16 @@
 #include <gz/sim/components/Factory.hh>
 #include "gz/sim/components/Component.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component type that contains commanded pose of an
-  /// entity in the world frame represented by ignition::math::Pose3d.
+  /// entity in the world frame represented by gz::math::Pose3d.
   using WorldPoseCmd = Component<math::Pose3d, class WorldPoseCmdTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.WorldPoseCmd",
       WorldPoseCmd)

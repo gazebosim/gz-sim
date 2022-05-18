@@ -1,7 +1,7 @@
 # Joystick
 
 Standalone program that publishes
-[ignition::msgs::Joy](https://ignitionrobotics.org/api/msgs/5.6/classignition_1_1msgs_1_1Joy.html)
+[gz::msgs::Joy](https://ignitionrobotics.org/api/msgs/5.6/classignition_1_1msgs_1_1Joy.html)
 messages from a joystick device using Ignition Transport.
 
 The mapping of joystick buttons to fields in the message is the same as [this](http://wiki.ros.org/joy).

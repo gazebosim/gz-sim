@@ -29,21 +29,21 @@
     </physics>
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
       <!-- Use TPE in order to use nested models -->
       <engine><filename>libignition-physics-tpe-plugin.so</filename></engine>
     </plugin>
     <plugin
       filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin
       filename="ignition-gazebo-particle-emitter-system"
-      name="ignition::gazebo::systems::ParticleEmitter">
+      name="gz::sim::systems::ParticleEmitter">
     </plugin>
 
     <light type="directional" name="sun">

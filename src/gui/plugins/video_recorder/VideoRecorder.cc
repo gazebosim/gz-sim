@@ -42,7 +42,7 @@
 /// multiple viewports in the future.
 std::condition_variable g_renderCv;
 
-namespace ignition::gazebo
+namespace gz::sim
 {
   class VideoRecorderPrivate
   {
@@ -121,8 +121,8 @@ namespace ignition::gazebo
   };
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 void VideoRecorderPrivate::Initialize()
@@ -219,7 +219,7 @@ void VideoRecorderPrivate::OnRender()
           std::chrono::steady_clock::duration dt;
           dt = t - this->startTime;
           int64_t sec, nsec;
-          std::tie(sec, nsec) = ignition::math::durationToSecNsec(dt);
+          std::tie(sec, nsec) = gz::math::durationToSecNsec(dt);
           msgs::Time msg;
           msg.set_sec(sec);
           msg.set_nsec(nsec);
@@ -360,14 +360,14 @@ void VideoRecorder::LoadConfig(const tinyxml2::XMLElement * _pluginElem)
            << "MinimalScene." << std::endl;
   }
 
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
 bool VideoRecorder::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::Render::kType)
+  if (_event->type() == gz::gui::events::Render::kType)
   {
     this->dataPtr->OnRender();
   }
@@ -386,13 +386,13 @@ void VideoRecorder::OnStart(const QString &_format)
 
   if (this->dataPtr->legacy)
   {
-    std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-        [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+    std::function<void(const gz::msgs::Boolean &, const bool)> cb =
+        [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
     {
       if (!_result)
         ignerr << "Error sending video record start request" << std::endl;
     };
-    ignition::msgs::VideoRecord req;
+    gz::msgs::VideoRecord req;
     req.set_start(this->dataPtr->recordVideo);
     req.set_format(this->dataPtr->format);
     req.set_save_filename(this->dataPtr->filename);
@@ -408,14 +408,14 @@ void VideoRecorder::OnStop()
 
   if (this->dataPtr->legacy)
   {
-    std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-        [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+    std::function<void(const gz::msgs::Boolean &, const bool)> cb =
+        [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
     {
       if (!_result)
         ignerr << "Error sending video record stop request" << std::endl;
     };
 
-    ignition::msgs::VideoRecord req;
+    gz::msgs::VideoRecord req;
     req.set_stop(true);
     this->dataPtr->node.Request(this->dataPtr->service, req, cb);
   }
@@ -462,5 +462,5 @@ void VideoRecorder::OnCancel()
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::VideoRecorder,
-                    ignition::gui::Plugin)
+IGNITION_ADD_PLUGIN(gz::sim::VideoRecorder,
+                    gz::gui::Plugin)

@@ -24,9 +24,9 @@
 #include <gz/sim/System.hh>
 #include <sdf/Sensor.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {

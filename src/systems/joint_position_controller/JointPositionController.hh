@@ -20,9 +20,9 @@
 #include <memory>
 #include <gz/sim/System.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -38,7 +38,7 @@ namespace systems
   /// The topic name is
   /// "/model/<model_name>/joint/<joint_name>/<joint_index>/cmd_pos".
   ///
-  /// This topic accepts ignition::msgs::Double values representing the target
+  /// This topic accepts gz::msgs::Double values representing the target
   /// position. If you wish to change the topic on which this plugin listens
   /// you may use the `<topic>` parameter to specify which topic the plugin
   /// should listen on.
@@ -103,8 +103,8 @@ namespace systems
 
     // Documentation inherited
     public: void PreUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) override;
+                const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
     private: std::unique_ptr<JointPositionControllerPrivate> dataPtr;

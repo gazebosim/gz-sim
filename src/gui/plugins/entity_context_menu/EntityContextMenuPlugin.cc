@@ -35,7 +35,7 @@
 #include <gz/rendering/Visual.hh>
 #include <gz/rendering/Scene.hh>
 
-namespace ignition::gazebo
+namespace gz::sim
 {
   class EntityContextMenuPrivate
   {
@@ -53,8 +53,8 @@ namespace ignition::gazebo
   };
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 void EntityContextMenuPrivate::OnRender()
@@ -112,21 +112,21 @@ void EntityContextMenu::LoadConfig(const tinyxml2::XMLElement *)
   if (this->title.empty())
     this->title = "Entity Context Menu";
 
-  ignition::gui::App()->findChild
-    <ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild
+    <gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 ////////////////////////////////////////////////
 bool EntityContextMenu::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::Render::kType)
+  if (_event->type() == gz::gui::events::Render::kType)
   {
     this->dataPtr->OnRender();
   }
-  else if (_event->type() == ignition::gui::events::RightClickOnScene::kType)
+  else if (_event->type() == gz::gui::events::RightClickOnScene::kType)
   {
-    ignition::gui::events::RightClickOnScene *_e =
-      static_cast<ignition::gui::events::RightClickOnScene*>(_event);
+    gz::gui::events::RightClickOnScene *_e =
+      static_cast<gz::gui::events::RightClickOnScene*>(_event);
     if (_e)
     {
       this->dataPtr->entityContextMenuHandler.HandleMouseContextMenu(
@@ -204,5 +204,5 @@ void EntityContextMenuHandler::HandleMouseContextMenu(
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::EntityContextMenu,
-                    ignition::gui::Plugin)
+IGNITION_ADD_PLUGIN(gz::sim::EntityContextMenu,
+                    gz::gui::Plugin)

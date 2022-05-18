@@ -32,9 +32,9 @@
 #include <string>
 #include <memory>
 
-namespace ignition {
+namespace gz {
 
-namespace gazebo {
+namespace sim {
 
 class PlotComponentPrivate;
 
@@ -47,7 +47,7 @@ class PlotComponent
   /// \param [in] _entity entity id of that component
   /// \param [in] _typeId type identifier unique to each component type
   public: PlotComponent(const std::string &_type,
-                        ignition::gazebo::Entity _entity,
+                        gz::sim::Entity _entity,
                         ComponentTypeId _typeId);
 
   /// \brief Destructor
@@ -76,12 +76,12 @@ class PlotComponent
 
   /// \brief Get all attributes of the component
   /// \return component attributes
-  public: std::map<std::string, std::shared_ptr<ignition::gui::PlotData>>
+  public: std::map<std::string, std::shared_ptr<gz::gui::PlotData>>
     Data() const;
 
   /// \brief Get the Component entity ID
   /// \return Entity ID
-  public: ignition::gazebo::Entity Entity();
+  public: gz::sim::Entity Entity();
 
   /// \brief Get the Component type ID
   /// \return component type ID
@@ -95,7 +95,7 @@ class PlottingPrivate;
 
 /// \brief Physics data plotting handler that keeps track of the
 /// registered components, update them and update the plot
-class Plotting : public ignition::gazebo::GuiSystem
+class Plotting : public gz::sim::GuiSystem
 {
   Q_OBJECT
   /// \brief Constructor
@@ -108,14 +108,14 @@ class Plotting : public ignition::gazebo::GuiSystem
   public: void LoadConfig(const tinyxml2::XMLElement *) override;
 
   // Documentation inherited
-  public: void Update(const ignition::gazebo::UpdateInfo &_info,
-                      ignition::gazebo::EntityComponentManager &_ecm) override;
+  public: void Update(const gz::sim::UpdateInfo &_info,
+                      gz::sim::EntityComponentManager &_ecm) override;
 
   /// \brief Set the Component data of given id to the given vector
   /// \param [in] _Id Component Key of the components map
   /// \param [in] _vector Vector Data to be set to the component
   public: void SetData(std::string _Id,
-                       const ignition::math::Vector3d &_vector);
+                       const gz::math::Vector3d &_vector);
 
    /// \brief Set the Component data of given id to the given light
    /// \param [in] _Id Component Key of the components map
@@ -127,7 +127,7 @@ class Plotting : public ignition::gazebo::GuiSystem
   /// \param [in] _Id Component Key of the components map
   /// \param [in] _pose Position Data to be set to the component
   public: void SetData(std::string _Id,
-                       const ignition::math::Pose3d &_pose);
+                       const gz::math::Pose3d &_pose);
 
   /// \brief Set the Component data of given id to the given spherical
   /// coordinates.

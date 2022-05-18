@@ -51,7 +51,7 @@
 
 #include "ModelEditor.hh"
 
-namespace ignition::gazebo
+namespace gz::sim
 {
   class EntityToAdd
   {
@@ -130,8 +130,8 @@ namespace ignition::gazebo
   };
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 ModelEditor::ModelEditor()
@@ -145,8 +145,8 @@ ModelEditor::~ModelEditor() = default;
 /////////////////////////////////////////////////
 void ModelEditor::Load()
 {
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 //////////////////////////////////////////////////
@@ -238,10 +238,10 @@ void ModelEditor::Update(const UpdateInfo &,
   // use GuiNewRemovedEntities event to update other gui plugins
   // note this event will be removed in Ignition Garden
   std::set<Entity> removedEntities;
-  ignition::gazebo::gui::events::GuiNewRemovedEntities event(
+  gz::sim::gui::events::GuiNewRemovedEntities event(
       newEntities, removedEntities);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &event);
 
   this->dataPtr->entitiesToAdd.clear();

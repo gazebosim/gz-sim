@@ -46,8 +46,8 @@
 
 #define TOL 1e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 struct VerticalForceTestParam
 {
@@ -75,7 +75,7 @@ TEST_P(VerticalForceParamFixture,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(VerifyVerticalForce))
 {
   using namespace std::chrono_literals;
-  ignition::common::setenv(
+  gz::common::setenv(
       "IGN_GAZEBO_RESOURCE_PATH",
       common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", "models"));
 

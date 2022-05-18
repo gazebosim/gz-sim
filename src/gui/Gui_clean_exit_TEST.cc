@@ -28,7 +28,7 @@
 #include "gz/sim/gui/Gui.hh"
 #include "gz/sim/test_config.hh"  // NOLINT(build/include)
 
-using namespace ignition;
+using namespace gz;
 
 /////////////////////////////////////////////////
 class GazeboDeathTest

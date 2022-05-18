@@ -25,11 +25,11 @@
 #include <gz/sim/gui/GuiSystem.hh>
 #include <gz/sim/Types.hh>
 
-Q_DECLARE_METATYPE(ignition::gazebo::Entity)
+Q_DECLARE_METATYPE(gz::sim::Entity)
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 namespace gui
 {
@@ -71,10 +71,10 @@ namespace gui
 
   /// \brief Control position of all joints in the selected model.
   /// The model must have loaded an
-  /// `ignition::gazebo::systems::JointPositionController`
+  /// `gz::sim::systems::JointPositionController`
   /// for each joint to be controlled.
   ///
-  /// This plugin publishes position command messages (`ignition::msgs::Double`)
+  /// This plugin publishes position command messages (`gz::msgs::Double`)
   /// on topics in the format `/model/<model_name>/joint/<joint_name/0/cmd_pos`.
   ///
   /// Only the 1st axis of each joint is considered. Joints without axes are

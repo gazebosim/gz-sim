@@ -8,15 +8,15 @@
 
     <plugin
       filename="libignition-gazebo-physics-system.so"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="libignition-gazebo-contact-system.so"
-      name="ignition::gazebo::systems::Contact">
+      name="gz::sim::systems::Contact">
     </plugin>
     <plugin
       filename="libignition-gazebo-sensors-system.so"
-      name="ignition::gazebo::systems::Sensors">
+      name="gz::sim::systems::Sensors">
     </plugin>
 
     <model name="ground_plane">
@@ -80,7 +80,7 @@
       <static>false</static>
       <plugin
         filename="libignition-gazebo-opticaltactileplugin-system.so"
-        name="ignition::gazebo::systems::OpticalTactilePlugin">
+        name="gz::sim::systems::OpticalTactilePlugin">
         <enabled>false</enabled>
         <namespace>optical_tactile_sensor</namespace>
         <visualize_sensor>false</visualize_sensor>

@@ -19,13 +19,13 @@
 
 #include <pybind11/pybind11.h>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 namespace python
 {
-/// Define a pybind11 wrapper for an ignition::gazebo::TestFixture
+/// Define a pybind11 wrapper for an gz::sim::TestFixture
 /**
  * \param[in] module a pybind11 module to add the definition to
  */

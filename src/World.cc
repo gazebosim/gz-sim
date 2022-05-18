@@ -30,14 +30,14 @@
 #include "gz/sim/components/World.hh"
 #include "gz/sim/World.hh"
 
-class ignition::gazebo::WorldPrivate
+class gz::sim::WorldPrivate
 {
   /// \brief Id of world entity.
   public: Entity id{kNullEntity};
 };
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 //////////////////////////////////////////////////
 World::World(gazebo::Entity _entity)

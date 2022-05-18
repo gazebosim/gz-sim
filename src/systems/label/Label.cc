@@ -28,8 +28,8 @@
 #include "gz/sim/components/SemanticLabel.hh"
 #include "gz/sim/components/Visual.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 //////////////////////////////////////////////////
@@ -103,4 +103,4 @@ void Label::Configure(const Entity &_entity,
 }
 
 IGNITION_ADD_PLUGIN(Label, System, Label::ISystemConfigure)
-IGNITION_ADD_PLUGIN_ALIAS(Label, "ignition::gazebo::systems::Label")
+IGNITION_ADD_PLUGIN_ALIAS(Label, "gz::sim::systems::Label")

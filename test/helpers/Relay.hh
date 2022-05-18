@@ -21,9 +21,9 @@
 
 #include "../plugins/MockSystem.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 namespace test
 {

@@ -19,7 +19,7 @@ model:
 <model>
   ...
   <plugin filename="ignition-gazebo-linearbatteryplugin-system"
-        name="ignition::gazebo::systems::LinearBatteryPlugin">
+        name="gz::sim::systems::LinearBatteryPlugin">
         <!--Li-ion battery spec from LIR18650 datasheet-->
         <battery_name>linear_battery</battery_name>
         <voltage>4.2</voltage>
@@ -107,7 +107,7 @@ By default, two Ignition Transport services are available for managing charging:
 * `/model/<model_name>/battery/<battery_name>/recharge/start`: Enable recharging.
 * `/model/<model_name>/battery/<battery_name>/recharge/stop`: Disable recharging.
 
-Both services accept an `ignition::msgs::Boolean` parameter.
+Both services accept an `gz::msgs::Boolean` parameter.
 
 ## Try out an example
 

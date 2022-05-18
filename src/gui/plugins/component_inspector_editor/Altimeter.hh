@@ -19,9 +19,9 @@
 
 #include <QObject>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
   class ComponentInspectorEditor;
 

@@ -30,7 +30,7 @@
 #include <gz/gui/Application.hh>
 #include <gz/transport/Node.hh>
 
-namespace ignition::gazebo
+namespace gz::sim
 {
   /// \brief Private data class for EntityContextMenu
   class EntityContextMenuPrivate
@@ -79,14 +79,14 @@ namespace ignition::gazebo
   };
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 void GzSimPlugin::registerTypes(const char *_uri)
 {
   // Register our 'EntityContextMenuItem' in qml engine
-  qmlRegisterType<ignition::gazebo::EntityContextMenu>(_uri, 1, 0,
+  qmlRegisterType<gz::sim::EntityContextMenu>(_uri, 1, 0,
       "EntityContextMenuItem");
 }
 
@@ -163,14 +163,14 @@ void EntityContextMenu::OnRemove(
       "/world/" + this->dataPtr->worldName + "/remove";
   }
 
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &_rep, const bool _result)
+  std::function<void(const gz::msgs::Boolean &, const bool)> cb =
+      [](const gz::msgs::Boolean &_rep, const bool _result)
   {
     if (!_result || !_rep.data())
       ignerr << "Error sending remove request" << std::endl;
   };
 
-  ignition::msgs::Entity req;
+  gz::msgs::Entity req;
   req.set_name(_data.toStdString());
   req.set_type(convert<msgs::Entity_Type>(_type.toStdString()));
 
@@ -180,8 +180,8 @@ void EntityContextMenu::OnRemove(
 /////////////////////////////////////////////////
 void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
 {
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  std::function<void(const gz::msgs::Boolean &, const bool)> cb =
+      [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
       ignerr << "Error sending move to request" << std::endl;
@@ -190,67 +190,67 @@ void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
   std::string request = _request.toStdString();
   if (request == "move_to")
   {
-    ignition::msgs::StringMsg req;
+    gz::msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->moveToService, req, cb);
   }
   else if (request == "follow")
   {
-    ignition::msgs::StringMsg req;
+    gz::msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->followService, req, cb);
   }
   else if (request == "view_transparent")
   {
-    ignition::msgs::StringMsg req;
+    gz::msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->viewTransparentService, req, cb);
   }
   else if (request == "view_com")
   {
-    ignition::msgs::StringMsg req;
+    gz::msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->viewCOMService, req, cb);
   }
   else if (request == "view_inertia")
   {
-    ignition::msgs::StringMsg req;
+    gz::msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->viewInertiaService, req, cb);
   }
   else if (request == "view_joints")
   {
-    ignition::msgs::StringMsg req;
+    gz::msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->viewJointsService, req, cb);
   }
   else if (request == "view_wireframes")
   {
-    ignition::msgs::StringMsg req;
+    gz::msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->viewWireframesService, req, cb);
   }
   else if (request == "view_collisions")
   {
-    ignition::msgs::StringMsg req;
+    gz::msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->viewCollisionsService, req, cb);
   }
   else if (request == "view_frames")
   {
-    ignition::msgs::StringMsg req;
+    gz::msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->viewFramesService, req, cb);
   }
   else if (request == "copy")
   {
-    ignition::msgs::StringMsg req;
+    gz::msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->copyService, req, cb);
   }
   else if (request == "paste")
   {
-    ignition::msgs::Empty req;
+    gz::msgs::Empty req;
     this->dataPtr->node.Request(this->dataPtr->pasteService, req, cb);
   }
   else

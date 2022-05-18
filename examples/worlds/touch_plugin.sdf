@@ -23,15 +23,15 @@ The output of the plugin is via
   <world name="touch">
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-contact-system"
-      name="ignition::gazebo::systems::Contact">
+      name="gz::sim::systems::Contact">
     </plugin>
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <light type="directional" name="sun">
@@ -104,7 +104,7 @@ The output of the plugin is via
 
       <plugin
         filename="ignition-gazebo-touchplugin-system"
-        name="ignition::gazebo::systems::TouchPlugin">
+        name="gz::sim::systems::TouchPlugin">
         <target>green_box_for_white</target>
         <time>3</time>
         <namespace>white_touches_only_green</namespace>

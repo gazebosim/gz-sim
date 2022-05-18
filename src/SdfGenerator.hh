@@ -26,9 +26,9 @@
 
 #include "gz/sim/EntityComponentManager.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
@@ -144,7 +144,7 @@ namespace sdf_generator
                            const Entity &_entity);
 }  // namespace sdf_generator
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz
 
 #endif /* end of include guard: GZ_GAZEBO_SDFGENERATOR_HH_ */

@@ -22,9 +22,9 @@
 
 #include <gz/gui/Plugin.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 namespace gui
 {
@@ -32,7 +32,7 @@ namespace gui
 
   /// \brief This plugin is in charge of selecting and deselecting the entities
   /// from the Scene3D and emit the corresponding events.
-  class SelectEntities : public ignition::gui::Plugin
+  class SelectEntities : public gz::gui::Plugin
   {
     Q_OBJECT
 

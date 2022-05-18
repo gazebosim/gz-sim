@@ -31,7 +31,7 @@
 // File copied from
 // https://github.com/ignitionrobotics/ign-gui/raw/ign-gui3/test/integration/ExamplesBuild_TEST.cc
 
-using namespace ignition;
+using namespace gz;
 
 auto kExampleTypes = std::vector<std::string>{"plugin", "standalone"};
 

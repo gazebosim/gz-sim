@@ -38,8 +38,8 @@
 
 #define tol 0.005
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 /// \brief Test OdometryPublisher system
@@ -570,7 +570,7 @@ TEST_P(OdometryPublisherTest,
 TEST_P(OdometryPublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Movement3d))
 {
   TestMovement3d(
-      ignition::common::joinPaths(PROJECT_SOURCE_PATH,
+      gz::common::joinPaths(PROJECT_SOURCE_PATH,
       "test", "worlds", "odometry_publisher_3d.sdf"),
       "/model/X3/odometry");
 }

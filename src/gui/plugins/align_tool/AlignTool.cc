@@ -48,7 +48,7 @@
 
 #include "AlignTool.hh"
 
-namespace ignition::gazebo
+namespace gz::sim
 {
   class AlignToolPrivate
   {
@@ -97,8 +97,8 @@ namespace ignition::gazebo
   };
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 AlignTool::AlignTool()
@@ -106,8 +106,8 @@ AlignTool::AlignTool()
 {
   // Deselect all entities upon loading plugin
   gui::events::DeselectAllEntities deselectEvent(true);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &deselectEvent);
 }
 
@@ -121,8 +121,8 @@ void AlignTool::LoadConfig(const tinyxml2::XMLElement *)
     this->title = "Align tool";
 
   // For align tool requests
-  ignition::gui::App()->findChild
-      <ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild
+      <gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
@@ -352,14 +352,14 @@ void AlignTool::Align()
     this->dataPtr->scene = rendering::sceneFromFirstRenderEngine();
 
   // Get current list of selected entities
-  std::vector<ignition::rendering::VisualPtr> selectedList;
-  ignition::rendering::VisualPtr relativeVisual;
+  std::vector<gz::rendering::VisualPtr> selectedList;
+  gz::rendering::VisualPtr relativeVisual;
 
   for (const auto &entityId : this->dataPtr->selectedEntities)
   {
     for (auto i = 0u; i < this->dataPtr->scene->VisualCount(); ++i)
     {
-      ignition::rendering::VisualPtr vis =
+      gz::rendering::VisualPtr vis =
         this->dataPtr->scene->VisualByIndex(i);
       if (!vis)
         continue;
@@ -388,8 +388,8 @@ void AlignTool::Align()
     (relativeVisual = selectedList.back());
 
   // Callback function for ignition node request
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/* _rep*/, const bool _result)
+  std::function<void(const gz::msgs::Boolean &, const bool)> cb =
+      [](const gz::msgs::Boolean &/* _rep*/, const bool _result)
   {
     if (!_result)
       ignerr << "Error setting pose" << std::endl;
@@ -403,11 +403,11 @@ void AlignTool::Align()
   }
 
   int axisIndex = static_cast<int>(this->dataPtr->axis);
-  ignition::msgs::Pose req;
+  gz::msgs::Pose req;
 
-  ignition::math::AxisAlignedBox targetBox = relativeVisual->BoundingBox();
-  ignition::math::Vector3d targetMin = targetBox.Min();
-  ignition::math::Vector3d targetMax = targetBox.Max();
+  gz::math::AxisAlignedBox targetBox = relativeVisual->BoundingBox();
+  gz::math::Vector3d targetMin = targetBox.Min();
+  gz::math::Vector3d targetMax = targetBox.Max();
 
   // Index math to avoid iterating through the selected node
   for (unsigned int i = this->dataPtr->first;
@@ -417,9 +417,9 @@ void AlignTool::Align()
     if (!vis)
       continue;
 
-    ignition::math::AxisAlignedBox box = vis->BoundingBox();
-    ignition::math::Vector3d min = box.Min();
-    ignition::math::Vector3d max = box.Max();
+    gz::math::AxisAlignedBox box = vis->BoundingBox();
+    gz::math::Vector3d min = box.Min();
+    gz::math::Vector3d max = box.Max();
 
     // Check here to see if visual is top level or not, continue if not
     rendering::VisualPtr topLevelVis = this->TopLevelVisual(
@@ -550,7 +550,7 @@ rendering::NodePtr AlignTool::TopLevelNode(rendering::ScenePtr &_scene,
 /////////////////////////////////////////////////
 bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::Render::kType)
+  if (_event->type() == gz::gui::events::Render::kType)
   {
     // This event is called in Scene3d's RenderThread, so it's safe to make
     // rendering calls here
@@ -565,10 +565,10 @@ bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-           ignition::gazebo::gui::events::EntitiesSelected::kType)
+           gz::sim::gui::events::EntitiesSelected::kType)
   {
     auto selectedEvent =
-        reinterpret_cast<ignition::gazebo::gui::events::EntitiesSelected *>(
+        reinterpret_cast<gz::sim::gui::events::EntitiesSelected *>(
         _event);
 
     // Only update if a valid cast, the data isn't empty, and
@@ -588,7 +588,7 @@ bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-           ignition::gazebo::gui::events::DeselectAllEntities::kType)
+           gz::sim::gui::events::DeselectAllEntities::kType)
   {
     this->dataPtr->selectedEntities.clear();
   }
@@ -596,5 +596,5 @@ bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::AlignTool,
-                    ignition::gui::Plugin)
+IGNITION_ADD_PLUGIN(gz::sim::AlignTool,
+                    gz::gui::Plugin)

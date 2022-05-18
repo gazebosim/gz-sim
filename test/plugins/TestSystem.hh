@@ -20,9 +20,9 @@
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/System.hh>
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     class TestSystem: public System

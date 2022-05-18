@@ -33,59 +33,59 @@
 
 #include "gz/sim/rendering/MarkerManager.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// Private data for the MarkerManager class
-class ignition::gazebo::MarkerManagerPrivate
+class gz::sim::MarkerManagerPrivate
 {
   /// \brief Processes a marker message.
   /// \param[in] _msg The message data.
   /// \return True if the marker was processed successfully.
-  public: bool ProcessMarkerMsg(const ignition::msgs::Marker &_msg);
+  public: bool ProcessMarkerMsg(const gz::msgs::Marker &_msg);
 
   /// \brief Converts an ignition msg render type to ignition rendering
   /// \param[in] _msg The message data
   /// \return Converted rendering type, if any.
-  public: ignition::rendering::MarkerType MsgToType(
-                    const ignition::msgs::Marker &_msg);
+  public: gz::rendering::MarkerType MsgToType(
+                    const gz::msgs::Marker &_msg);
 
   /// \brief Converts an ignition msg material to ignition rendering
   //         material.
   //  \param[in] _msg The message data.
   //  \return Converted rendering material, if any.
   public: rendering::MaterialPtr MsgToMaterial(
-                    const ignition::msgs::Marker &_msg);
+                    const gz::msgs::Marker &_msg);
 
   /// \brief Updates the markers.
   public: void Update();
 
   /// \brief Callback that receives marker messages.
   /// \param[in] _req The marker message.
-  public: void OnMarkerMsg(const ignition::msgs::Marker &_req);
+  public: void OnMarkerMsg(const gz::msgs::Marker &_req);
 
   /// \brief Callback that receives multiple marker messages.
   /// \param[in] _req The vector of marker messages
   /// \param[in] _res Response data
   /// \return True if the request is received
-  public: bool OnMarkerMsgArray(const ignition::msgs::Marker_V &_req,
-              ignition::msgs::Boolean &_res);
+  public: bool OnMarkerMsgArray(const gz::msgs::Marker_V &_req,
+              gz::msgs::Boolean &_res);
 
   /// \brief Services callback that returns a list of markers.
   /// \param[out] _rep Service reply
   /// \return True on success.
-  public: bool OnList(ignition::msgs::Marker_V &_rep);
+  public: bool OnList(gz::msgs::Marker_V &_rep);
 
   /// \brief Sets Marker from marker message.
   /// \param[in] _msg The message data.
   /// \param[out] _markerPtr The message pointer to set.
-  public: void SetMarker(const ignition::msgs::Marker &_msg,
+  public: void SetMarker(const gz::msgs::Marker &_msg,
                          const rendering::MarkerPtr &_markerPtr);
 
   /// \brief Sets Visual from marker message.
   /// \param[in] _msg The message data.
   /// \param[out] _visualPtr The visual pointer to set.
-  public: void SetVisual(const ignition::msgs::Marker &_msg,
+  public: void SetVisual(const gz::msgs::Marker &_msg,
                          const rendering::VisualPtr &_visualPtr);
 
   /// \brief Sets sim time from time.
@@ -100,22 +100,22 @@ class ignition::gazebo::MarkerManagerPrivate
 
   /// \brief Map of visuals
   public: std::map<std::string,
-      std::map<uint64_t, ignition::rendering::VisualPtr>> visuals;
+      std::map<uint64_t, gz::rendering::VisualPtr>> visuals;
 
   /// \brief List of marker message to process.
-  public: std::list<ignition::msgs::Marker> markerMsgs;
+  public: std::list<gz::msgs::Marker> markerMsgs;
 
   /// \brief Pointer to the scene
   public: rendering::ScenePtr scene;
 
   /// \brief Ignition node
-  public: ignition::transport::Node node;
+  public: gz::transport::Node node;
 
   /// \brief Sim time according to UpdateInfo in RenderUtil
   public: std::chrono::steady_clock::duration simTime;
 
   /// \brief The last marker message received
-  public: ignition::msgs::Marker msg;
+  public: gz::msgs::Marker msg;
 
   /// \brief Topic name for the marker service
   public: std::string topicName = "/marker";
@@ -149,7 +149,7 @@ void MarkerManager::Update()
 }
 
 /////////////////////////////////////////////////
-bool MarkerManager::Init(const ignition::rendering::ScenePtr &_scene)
+bool MarkerManager::Init(const gz::rendering::ScenePtr &_scene)
 {
   if (!_scene)
   {
@@ -229,8 +229,8 @@ void MarkerManagerPrivate::Update()
       if (it->second->GeometryCount() == 0u)
         continue;
 
-      ignition::rendering::MarkerPtr markerPtr =
-            std::dynamic_pointer_cast<ignition::rendering::Marker>
+      gz::rendering::MarkerPtr markerPtr =
+            std::dynamic_pointer_cast<gz::rendering::Marker>
             (it->second->GeometryByIndex(0u));
       if (markerPtr != nullptr)
       {
@@ -263,7 +263,7 @@ void MarkerManagerPrivate::SetSimTime(
 }
 
 /////////////////////////////////////////////////
-void MarkerManagerPrivate::SetVisual(const ignition::msgs::Marker &_msg,
+void MarkerManagerPrivate::SetVisual(const gz::msgs::Marker &_msg,
                            const rendering::VisualPtr &_visualPtr)
 {
   // Set Visual Scale
@@ -302,7 +302,7 @@ void MarkerManagerPrivate::SetVisual(const ignition::msgs::Marker &_msg,
 }
 
 /////////////////////////////////////////////////
-void MarkerManagerPrivate::SetMarker(const ignition::msgs::Marker &_msg,
+void MarkerManagerPrivate::SetMarker(const gz::msgs::Marker &_msg,
                            const rendering::MarkerPtr &_markerPtr)
 {
   _markerPtr->SetLayer(_msg.layer());
@@ -319,7 +319,7 @@ void MarkerManagerPrivate::SetMarker(const ignition::msgs::Marker &_msg,
     _markerPtr->SetLifetime(std::chrono::seconds(0));
   }
   // Set Marker Render Type
-  ignition::rendering::MarkerType markerType = MsgToType(_msg);
+  gz::rendering::MarkerType markerType = MsgToType(_msg);
   _markerPtr->SetType(markerType);
 
   // Set Marker Material
@@ -357,49 +357,49 @@ void MarkerManagerPrivate::SetMarker(const ignition::msgs::Marker &_msg,
 }
 
 /////////////////////////////////////////////////
-ignition::rendering::MarkerType MarkerManagerPrivate::MsgToType(
-                          const ignition::msgs::Marker &_msg)
+gz::rendering::MarkerType MarkerManagerPrivate::MsgToType(
+                          const gz::msgs::Marker &_msg)
 {
-  ignition::msgs::Marker_Type marker = this->msg.type();
-  if (marker != _msg.type() && _msg.type() != ignition::msgs::Marker::NONE)
+  gz::msgs::Marker_Type marker = this->msg.type();
+  if (marker != _msg.type() && _msg.type() != gz::msgs::Marker::NONE)
   {
     marker = _msg.type();
     this->msg.set_type(_msg.type());
   }
   switch (marker)
   {
-    case ignition::msgs::Marker::BOX:
-      return ignition::rendering::MarkerType::MT_BOX;
-    case ignition::msgs::Marker::CAPSULE:
-      return ignition::rendering::MarkerType::MT_CAPSULE;
-    case ignition::msgs::Marker::CYLINDER:
-      return ignition::rendering::MarkerType::MT_CYLINDER;
-    case ignition::msgs::Marker::LINE_STRIP:
-      return ignition::rendering::MarkerType::MT_LINE_STRIP;
-    case ignition::msgs::Marker::LINE_LIST:
-      return ignition::rendering::MarkerType::MT_LINE_LIST;
-    case ignition::msgs::Marker::POINTS:
-      return ignition::rendering::MarkerType::MT_POINTS;
-    case ignition::msgs::Marker::SPHERE:
-      return ignition::rendering::MarkerType::MT_SPHERE;
-    case ignition::msgs::Marker::TEXT:
-      return ignition::rendering::MarkerType::MT_TEXT;
-    case ignition::msgs::Marker::TRIANGLE_FAN:
-      return ignition::rendering::MarkerType::MT_TRIANGLE_FAN;
-    case ignition::msgs::Marker::TRIANGLE_LIST:
-      return ignition::rendering::MarkerType::MT_TRIANGLE_LIST;
-    case ignition::msgs::Marker::TRIANGLE_STRIP:
-      return ignition::rendering::MarkerType::MT_TRIANGLE_STRIP;
+    case gz::msgs::Marker::BOX:
+      return gz::rendering::MarkerType::MT_BOX;
+    case gz::msgs::Marker::CAPSULE:
+      return gz::rendering::MarkerType::MT_CAPSULE;
+    case gz::msgs::Marker::CYLINDER:
+      return gz::rendering::MarkerType::MT_CYLINDER;
+    case gz::msgs::Marker::LINE_STRIP:
+      return gz::rendering::MarkerType::MT_LINE_STRIP;
+    case gz::msgs::Marker::LINE_LIST:
+      return gz::rendering::MarkerType::MT_LINE_LIST;
+    case gz::msgs::Marker::POINTS:
+      return gz::rendering::MarkerType::MT_POINTS;
+    case gz::msgs::Marker::SPHERE:
+      return gz::rendering::MarkerType::MT_SPHERE;
+    case gz::msgs::Marker::TEXT:
+      return gz::rendering::MarkerType::MT_TEXT;
+    case gz::msgs::Marker::TRIANGLE_FAN:
+      return gz::rendering::MarkerType::MT_TRIANGLE_FAN;
+    case gz::msgs::Marker::TRIANGLE_LIST:
+      return gz::rendering::MarkerType::MT_TRIANGLE_LIST;
+    case gz::msgs::Marker::TRIANGLE_STRIP:
+      return gz::rendering::MarkerType::MT_TRIANGLE_STRIP;
     default:
       ignerr << "Unable to create marker of type[" << _msg.type() << "]\n";
       break;
   }
-  return ignition::rendering::MarkerType::MT_NONE;
+  return gz::rendering::MarkerType::MT_NONE;
 }
 
 /////////////////////////////////////////////////
 rendering::MaterialPtr MarkerManagerPrivate::MsgToMaterial(
-                              const ignition::msgs::Marker &_msg)
+                              const gz::msgs::Marker &_msg)
 {
   rendering::MaterialPtr material = this->scene->CreateMaterial();
 
@@ -433,7 +433,7 @@ rendering::MaterialPtr MarkerManagerPrivate::MsgToMaterial(
 }
 
 //////////////////////////////////////////////////
-bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
+bool MarkerManagerPrivate::ProcessMarkerMsg(const gz::msgs::Marker &_msg)
 {
   // Get the namespace, if it exists. Otherwise, use the global namespace
   std::string ns;
@@ -453,14 +453,14 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
   // Otherwise generate unique id
   else
   {
-    id = ignition::math::Rand::IntUniform(0, ignition::math::MAX_I32);
+    id = gz::math::Rand::IntUniform(0, gz::math::MAX_I32);
 
     // Make sure it's unique if namespace is given
     if (nsIter != this->visuals.end())
     {
       while (nsIter->second.find(id) != nsIter->second.end())
-        id = ignition::math::Rand::IntUniform(ignition::math::MIN_UI32,
-                                              ignition::math::MAX_UI32);
+        id = gz::math::Rand::IntUniform(gz::math::MIN_UI32,
+                                              gz::math::MAX_UI32);
     }
   }
 
@@ -470,7 +470,7 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
     visualIter = nsIter->second.find(id);
 
   // Add/modify a marker
-  if (_msg.action() == ignition::msgs::Marker::ADD_MODIFY)
+  if (_msg.action() == gz::msgs::Marker::ADD_MODIFY)
   {
     // Modify an existing marker, identified by namespace and id
     if (nsIter != this->visuals.end() &&
@@ -480,8 +480,8 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
       {
         // TODO(anyone): Update so that multiple markers can
         //               be attached to one visual
-        ignition::rendering::MarkerPtr markerPtr =
-              std::dynamic_pointer_cast<ignition::rendering::Marker>
+        gz::rendering::MarkerPtr markerPtr =
+              std::dynamic_pointer_cast<gz::rendering::Marker>
               (visualIter->second->GeometryByIndex(0));
 
         visualIter->second->RemoveGeometryByIndex(0);
@@ -528,7 +528,7 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
     }
   }
   // Remove a single marker
-  else if (_msg.action() == ignition::msgs::Marker::DELETE_MARKER)
+  else if (_msg.action() == gz::msgs::Marker::DELETE_MARKER)
   {
     // Remove the marker if it can be found.
     if (nsIter != this->visuals.end() &&
@@ -549,7 +549,7 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
     }
   }
   // Remove all markers, or all markers in a namespace
-  else if (_msg.action() == ignition::msgs::Marker::DELETE_ALL)
+  else if (_msg.action() == gz::msgs::Marker::DELETE_ALL)
   {
     // If given namespace doesn't exist
     if (!ns.empty() && nsIter == this->visuals.end())
@@ -593,7 +593,7 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
 
 
 /////////////////////////////////////////////////
-bool MarkerManagerPrivate::OnList(ignition::msgs::Marker_V &_rep)
+bool MarkerManagerPrivate::OnList(gz::msgs::Marker_V &_rep)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
   _rep.clear_marker();
@@ -603,7 +603,7 @@ bool MarkerManagerPrivate::OnList(ignition::msgs::Marker_V &_rep)
   {
     for (auto iter : mIter.second)
     {
-      ignition::msgs::Marker *markerMsg = _rep.add_marker();
+      gz::msgs::Marker *markerMsg = _rep.add_marker();
       markerMsg->set_ns(mIter.first);
       markerMsg->set_id(iter.first);
     }
@@ -613,7 +613,7 @@ bool MarkerManagerPrivate::OnList(ignition::msgs::Marker_V &_rep)
 }
 
 /////////////////////////////////////////////////
-void MarkerManagerPrivate::OnMarkerMsg(const ignition::msgs::Marker &_req)
+void MarkerManagerPrivate::OnMarkerMsg(const gz::msgs::Marker &_req)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
   this->markerMsgs.push_back(_req);
@@ -621,7 +621,7 @@ void MarkerManagerPrivate::OnMarkerMsg(const ignition::msgs::Marker &_req)
 
 /////////////////////////////////////////////////
 bool MarkerManagerPrivate::OnMarkerMsgArray(
-    const ignition::msgs::Marker_V&_req, ignition::msgs::Boolean &_res)
+    const gz::msgs::Marker_V&_req, gz::msgs::Boolean &_res)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
   std::copy(_req.marker().begin(), _req.marker().end(),

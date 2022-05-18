@@ -60,12 +60,12 @@
 
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace ignition::gazebo;
-using namespace ignition::gazebo::systems;
+using namespace gz;
+using namespace gz::sim;
+using namespace gz::sim::systems;
 
 // Private data class.
-class ignition::gazebo::systems::LogRecordPrivate
+class gz::sim::systems::LogRecordPrivate
 {
   /// \brief Start recording
   /// \param[in] _logPath Path to record to.
@@ -359,7 +359,7 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
 
   // This calls Log::Open() and loads sql schema
   if (this->recorder.Start(dbPath) ==
-      ignition::transport::log::RecorderError::SUCCESS)
+      gz::transport::log::RecorderError::SUCCESS)
   {
     this->instStarted = true;
     return true;
@@ -706,11 +706,11 @@ void LogRecord::PostUpdate(const UpdateInfo &_info,
     this->dataPtr->LogModelResources(_ecm);
 }
 
-IGNITION_ADD_PLUGIN(ignition::gazebo::systems::LogRecord,
-                    ignition::gazebo::System,
+IGNITION_ADD_PLUGIN(gz::sim::systems::LogRecord,
+                    gz::sim::System,
                     LogRecord::ISystemConfigure,
                     LogRecord::ISystemPreUpdate,
                     LogRecord::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(ignition::gazebo::systems::LogRecord,
-                          "ignition::gazebo::systems::LogRecord")
+IGNITION_ADD_PLUGIN_ALIAS(gz::sim::systems::LogRecord,
+                          "gz::sim::systems::LogRecord")

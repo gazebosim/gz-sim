@@ -37,8 +37,8 @@
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test WindEffects system
 class WindEffectsTest : public InternalFixture<::testing::Test>
@@ -71,7 +71,7 @@ class LinkComponentRecorder
       : linkName(std::move(_linkName))
   {
     auto plugin = loader.LoadPlugin("libMockSystem.so",
-                                    "ignition::gazebo::MockSystem", nullptr);
+                                    "gz::sim::MockSystem", nullptr);
     EXPECT_TRUE(plugin.has_value());
 
     this->systemPtr = plugin.value();

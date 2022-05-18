@@ -44,12 +44,12 @@
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Private NavSat data class.
-class ignition::gazebo::systems::NavSat::Implementation
+class gz::sim::systems::NavSat::Implementation
 {
   /// \brief A map of NavSat entity to its sensor
   public: std::unordered_map<Entity,
@@ -281,4 +281,4 @@ IGNITION_ADD_PLUGIN(NavSat, System,
   NavSat::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(NavSat, "ignition::gazebo::systems::NavSat")
+IGNITION_ADD_PLUGIN_ALIAS(NavSat, "gz::sim::systems::NavSat")

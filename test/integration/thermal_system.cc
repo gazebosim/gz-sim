@@ -40,8 +40,8 @@
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test Thermal system
 class ThermalTest : public InternalFixture<::testing::Test>
@@ -71,7 +71,7 @@ TEST_F(ThermalTest, IGN_UTILS_TEST_DISABLED_ON_MAC(TemperatureComponent))
     const gazebo::EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Temperature, components::Name>(
-          [&](const ignition::gazebo::Entity &_id,
+          [&](const gz::sim::Entity &_id,
               const components::Temperature *_temp,
               const components::Name *_name) -> bool
           {
@@ -86,7 +86,7 @@ TEST_F(ThermalTest, IGN_UTILS_TEST_DISABLED_ON_MAC(TemperatureComponent))
 
       _ecm.Each<components::TemperatureRange, components::SourceFilePath,
         components::Name>(
-          [&](const ignition::gazebo::Entity &_id,
+          [&](const gz::sim::Entity &_id,
               const components::TemperatureRange *_tempRange,
               const components::SourceFilePath *_heatSigURI,
               const components::Name *_name) -> bool
@@ -196,7 +196,7 @@ TEST_F(ThermalTest, IGN_UTILS_TEST_DISABLED_ON_MAC(ThermalSensorSystem))
     gazebo::EntityComponentManager &_ecm)
     {
       _ecm.Each<components::ThermalCamera, components::Name>(
-          [&](const ignition::gazebo::Entity &_id,
+          [&](const gz::sim::Entity &_id,
               const components::ThermalCamera *_sensor,
               const components::Name *_name) -> bool
           {

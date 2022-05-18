@@ -40,8 +40,8 @@
 
 #include "helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Tests for Util.hh
 class UtilTest : public InternalFixture<::testing::Test>

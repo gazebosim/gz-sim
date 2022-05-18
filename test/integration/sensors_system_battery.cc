@@ -36,9 +36,9 @@
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
-namespace components = ignition::gazebo::components;
+using namespace gz;
+using namespace sim;
+namespace components = gz::sim::components;
 
 unsigned int imgCount = 0u;
 unsigned int depthImgCount = 0u;
@@ -66,7 +66,7 @@ class SensorsFixture : public InternalFixture<InternalFixture<::testing::Test>>
     InternalFixture::SetUp();
 
     auto plugin = sm.LoadPlugin("libMockSystem.so",
-                                "ignition::gazebo::MockSystem",
+                                "gz::sim::MockSystem",
                                 nullptr);
     EXPECT_TRUE(plugin.has_value());
     this->systemPtr = plugin.value();
@@ -74,7 +74,7 @@ class SensorsFixture : public InternalFixture<InternalFixture<::testing::Test>>
         systemPtr->QueryInterface<gazebo::System>());
   }
 
-  public: ignition::gazebo::SystemPluginPtr systemPtr;
+  public: gz::sim::SystemPluginPtr systemPtr;
   public: gazebo::MockSystem *mockSystem;
 
   private: gazebo::SystemLoader sm;
@@ -124,7 +124,7 @@ TEST_F(SensorsFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(SensorsBatteryState))
   // and the <initial_charge> is equivalent ot the <capacity>.
   EXPECT_DOUBLE_EQ(batComp->Data(), 1.0);
 
-  ignition::transport::Node node;
+  gz::transport::Node node;
 
   // subscribe to img topics to make sure we are receiving images.
   node.Subscribe("/camera", &imageCb);

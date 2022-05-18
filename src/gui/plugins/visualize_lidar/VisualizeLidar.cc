@@ -60,9 +60,9 @@
 
 #include "gz/msgs/laserscan.pb.h"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 {
@@ -128,8 +128,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 }
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 VisualizeLidar::VisualizeLidar()
@@ -197,8 +197,8 @@ void VisualizeLidar::LoadLidar()
 
     scene->DestroyVisual(this->dataPtr->lidar);
 
-    ignition::gui::App()->findChild<
-        ignition::gui::MainWindow *>()->removeEventFilter(this);
+    gz::gui::App()->findChild<
+        gz::gui::MainWindow *>()->removeEventFilter(this);
   }
   else
   {
@@ -214,14 +214,14 @@ void VisualizeLidar::LoadConfig(const tinyxml2::XMLElement *)
   if (this->title.empty())
     this->title = "Visualize lidar";
 
-  ignition::gui::App()->findChild<
-    ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+    gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
 bool VisualizeLidar::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::Render::kType)
+  if (_event->type() == gz::gui::events::Render::kType)
   {
     // This event is called in Scene3d's RenderThread, so it's safe to make
     // rendering calls here
@@ -526,5 +526,5 @@ QString VisualizeLidar::MinRange() const
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::VisualizeLidar,
-                    ignition::gui::Plugin)
+IGNITION_ADD_PLUGIN(gz::sim::VisualizeLidar,
+                    gz::gui::Plugin)

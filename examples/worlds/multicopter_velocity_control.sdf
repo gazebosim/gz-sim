@@ -39,19 +39,19 @@ You can use the velocity controller and command linear velocity and yaw angular 
     </physics>
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin
       filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
       filename="ignition-gazebo-sensors-system"
-      name="ignition::gazebo::systems::Sensors">
+      name="gz::sim::systems::Sensors">
       <render_engine>ogre2</render_engine>
     </plugin>
 
@@ -102,7 +102,7 @@ You can use the velocity controller and command linear velocity and yaw angular 
       </uri>
       <plugin
         filename="ignition-gazebo-multicopter-motor-model-system"
-        name="ignition::gazebo::systems::MulticopterMotorModel">
+        name="gz::sim::systems::MulticopterMotorModel">
         <robotNamespace>X3</robotNamespace>
         <jointName>X3/rotor_0_joint</jointName>
         <linkName>X3/rotor_0</linkName>
@@ -122,7 +122,7 @@ You can use the velocity controller and command linear velocity and yaw angular 
       </plugin>
       <plugin
         filename="ignition-gazebo-multicopter-motor-model-system"
-        name="ignition::gazebo::systems::MulticopterMotorModel">
+        name="gz::sim::systems::MulticopterMotorModel">
         <robotNamespace>X3</robotNamespace>
         <jointName>X3/rotor_1_joint</jointName>
         <linkName>X3/rotor_1</linkName>
@@ -142,7 +142,7 @@ You can use the velocity controller and command linear velocity and yaw angular 
       </plugin>
       <plugin
         filename="ignition-gazebo-multicopter-motor-model-system"
-        name="ignition::gazebo::systems::MulticopterMotorModel">
+        name="gz::sim::systems::MulticopterMotorModel">
         <robotNamespace>X3</robotNamespace>
         <jointName>X3/rotor_2_joint</jointName>
         <linkName>X3/rotor_2</linkName>
@@ -162,7 +162,7 @@ You can use the velocity controller and command linear velocity and yaw angular 
       </plugin>
       <plugin
         filename="ignition-gazebo-multicopter-motor-model-system"
-        name="ignition::gazebo::systems::MulticopterMotorModel">
+        name="gz::sim::systems::MulticopterMotorModel">
         <robotNamespace>X3</robotNamespace>
         <jointName>X3/rotor_3_joint</jointName>
         <linkName>X3/rotor_3</linkName>
@@ -182,7 +182,7 @@ You can use the velocity controller and command linear velocity and yaw angular 
       </plugin>
       <plugin
         filename="ignition-gazebo-multicopter-control-system"
-        name="ignition::gazebo::systems::MulticopterVelocityControl">
+        name="gz::sim::systems::MulticopterVelocityControl">
         <robotNamespace>X3</robotNamespace>
         <commandSubTopic>gazebo/command/twist</commandSubTopic>
         <enableSubTopic>enable</enableSubTopic>
@@ -221,7 +221,7 @@ You can use the velocity controller and command linear velocity and yaw angular 
       </plugin>
       <plugin
         filename="ignition-gazebo-odometry-publisher-system"
-        name="ignition::gazebo::systems::OdometryPublisher">
+        name="gz::sim::systems::OdometryPublisher">
         <dimensions>3</dimensions>
       </plugin>
     </include>
@@ -232,7 +232,7 @@ You can use the velocity controller and command linear velocity and yaw angular 
       </uri>
 
       <plugin filename="ignition-gazebo-multicopter-motor-model-system"
-        name="ignition::gazebo::systems::MulticopterMotorModel">
+        name="gz::sim::systems::MulticopterMotorModel">
         <robotNamespace>X4</robotNamespace>
         <jointName>rotor_0_joint</jointName>
         <linkName>rotor_0</linkName>
@@ -252,7 +252,7 @@ You can use the velocity controller and command linear velocity and yaw angular 
         <motorType>velocity</motorType>
       </plugin>
       <plugin filename="ignition-gazebo-multicopter-motor-model-system"
-        name="ignition::gazebo::systems::MulticopterMotorModel">
+        name="gz::sim::systems::MulticopterMotorModel">
         <robotNamespace>X4</robotNamespace>
         <jointName>rotor_1_joint</jointName>
         <linkName>rotor_1</linkName>
@@ -272,7 +272,7 @@ You can use the velocity controller and command linear velocity and yaw angular 
         <motorType>velocity</motorType>
       </plugin>
       <plugin filename="ignition-gazebo-multicopter-motor-model-system"
-        name="ignition::gazebo::systems::MulticopterMotorModel">
+        name="gz::sim::systems::MulticopterMotorModel">
         <robotNamespace>X4</robotNamespace>
         <jointName>rotor_2_joint</jointName>
         <linkName>rotor_2</linkName>
@@ -292,7 +292,7 @@ You can use the velocity controller and command linear velocity and yaw angular 
         <motorType>velocity</motorType>
       </plugin>
       <plugin filename="ignition-gazebo-multicopter-motor-model-system"
-        name="ignition::gazebo::systems::MulticopterMotorModel">
+        name="gz::sim::systems::MulticopterMotorModel">
         <robotNamespace>X4</robotNamespace>
         <jointName>rotor_3_joint</jointName>
         <linkName>rotor_3</linkName>
@@ -312,7 +312,7 @@ You can use the velocity controller and command linear velocity and yaw angular 
         <motorType>velocity</motorType>
       </plugin>
       <plugin filename="ignition-gazebo-multicopter-motor-model-system"
-        name="ignition::gazebo::systems::MulticopterMotorModel">
+        name="gz::sim::systems::MulticopterMotorModel">
         <robotNamespace>X4</robotNamespace>
         <jointName>rotor_4_joint</jointName>
         <linkName>rotor_4</linkName>
@@ -332,7 +332,7 @@ You can use the velocity controller and command linear velocity and yaw angular 
         <motorType>velocity</motorType>
       </plugin>
       <plugin filename="ignition-gazebo-multicopter-motor-model-system"
-        name="ignition::gazebo::systems::MulticopterMotorModel">
+        name="gz::sim::systems::MulticopterMotorModel">
         <robotNamespace>X4</robotNamespace>
         <jointName>rotor_5_joint</jointName>
         <linkName>rotor_5</linkName>
@@ -354,7 +354,7 @@ You can use the velocity controller and command linear velocity and yaw angular 
 
       <plugin
         filename="ignition-gazebo-multicopter-control-system"
-        name="ignition::gazebo::systems::MulticopterVelocityControl">
+        name="gz::sim::systems::MulticopterVelocityControl">
         <robotNamespace>X4</robotNamespace>
         <commandSubTopic>gazebo/command/twist</commandSubTopic>
         <enableSubTopic>enable</enableSubTopic>
@@ -416,7 +416,7 @@ You can use the velocity controller and command linear velocity and yaw angular 
       </plugin>
       <plugin
         filename="ignition-gazebo-odometry-publisher-system"
-        name="ignition::gazebo::systems::OdometryPublisher">
+        name="gz::sim::systems::OdometryPublisher">
         <dimensions>3</dimensions>
       </plugin>
     </include>

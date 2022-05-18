@@ -39,8 +39,8 @@
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test AltimeterTest system
 class AltimeterTest : public InternalFixture<::testing::Test>
@@ -88,7 +88,7 @@ TEST_F(AltimeterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
         _ecm.Each<components::Altimeter, components::Name,
                   components::WorldPose,
                   components::WorldLinearVelocity>(
-            [&](const ignition::gazebo::Entity &_entity,
+            [&](const gz::sim::Entity &_entity,
                 const components::Altimeter *,
                 const components::Name *_name,
                 const components::WorldPose *_worldPose,

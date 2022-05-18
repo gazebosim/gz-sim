@@ -50,7 +50,7 @@
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Primitives.hh"
 
-namespace ignition::gazebo
+namespace gz::sim
 {
   class EntityTreePrivate
   {
@@ -75,8 +75,8 @@ namespace ignition::gazebo
   };
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 //////////////////////////////////////////////////
 QString entityType(Entity _entity,
@@ -292,7 +292,7 @@ EntityTree::EntityTree()
   : GuiSystem(), dataPtr(std::make_unique<EntityTreePrivate>())
 {
   // Connect model
-  ignition::gui::App()->Engine()->rootContext()->setContextProperty(
+  gz::gui::App()->Engine()->rootContext()->setContextProperty(
      "EntityTreeModel", &this->dataPtr->treeModel);
 }
 
@@ -305,8 +305,8 @@ void EntityTree::LoadConfig(const tinyxml2::XMLElement *)
   if (this->title.empty())
     this->title = "Entity tree";
 
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 //////////////////////////////////////////////////
@@ -450,8 +450,8 @@ void EntityTree::OnEntitySelectedFromQml(Entity _entity)
 {
   std::vector<Entity> entitySet {_entity};
   gui::events::EntitiesSelected event(entitySet, true);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &event);
 }
 
@@ -459,8 +459,8 @@ void EntityTree::OnEntitySelectedFromQml(Entity _entity)
 void EntityTree::DeselectAllEntities()
 {
   gui::events::DeselectAllEntities event(true);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &event);
 }
 
@@ -468,9 +468,9 @@ void EntityTree::DeselectAllEntities()
 void EntityTree::OnInsertEntity(const QString &_type)
 {
   std::string modelSdfString = getPrimitive(_type.toStdString());
-  ignition::gui::events::SpawnFromDescription event(modelSdfString);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  gz::gui::events::SpawnFromDescription event(modelSdfString);
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &event);
 }
 
@@ -515,9 +515,9 @@ void EntityTree::OnLoadMesh(const QString &_mesh)
         "</model>"
       "</sdf>";
 
-    ignition::gui::events::SpawnFromDescription event(sdf);
-    ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+    gz::gui::events::SpawnFromDescription event(sdf);
+    gz::gui::App()->sendEvent(
+        gz::gui::App()->findChild<gz::gui::MainWindow *>(),
         &event);
 
   }
@@ -526,7 +526,7 @@ void EntityTree::OnLoadMesh(const QString &_mesh)
 /////////////////////////////////////////////////
 bool EntityTree::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gazebo::gui::events::EntitiesSelected::kType)
+  if (_event->type() == gz::sim::gui::events::EntitiesSelected::kType)
   {
     auto selectedEvent =
         reinterpret_cast<gui::events::EntitiesSelected *>(_event);
@@ -544,7 +544,7 @@ bool EntityTree::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-           ignition::gazebo::gui::events::DeselectAllEntities::kType)
+           gz::sim::gui::events::DeselectAllEntities::kType)
   {
     auto deselectAllEvent =
         reinterpret_cast<gui::events::DeselectAllEntities *>(_event);
@@ -555,7 +555,7 @@ bool EntityTree::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-           ignition::gazebo::gui::events::GuiNewRemovedEntities::kType)
+           gz::sim::gui::events::GuiNewRemovedEntities::kType)
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->newRemovedEntityMutex);
     auto addedRemovedEvent =
@@ -577,5 +577,5 @@ bool EntityTree::eventFilter(QObject *_obj, QEvent *_event)
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::EntityTree,
-                    ignition::gui::Plugin)
+IGNITION_ADD_PLUGIN(gz::sim::EntityTree,
+                    gz::gui::Plugin)

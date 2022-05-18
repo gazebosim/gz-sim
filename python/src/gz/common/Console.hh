@@ -17,7 +17,7 @@
 
 #include <pybind11/pybind11.h>
 
-namespace ignition
+namespace gz
 {
   namespace common
   {

@@ -21,8 +21,8 @@
 
 #include "ignition/gazebo/System.hh"
 
-namespace ignition {
-  namespace gazebo {
+namespace gz {
+  namespace sim {
     class MockSystem :
       public gazebo::System,
       public gazebo::ISystemConfigure,

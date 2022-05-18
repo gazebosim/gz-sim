@@ -34,7 +34,7 @@
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
 
-using namespace ignition;
+using namespace gz;
 
 /// \brief Test SceneBroadcaster system
 class SceneBroadcasterTest
@@ -47,7 +47,7 @@ class SceneBroadcasterTest
 TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PoseInfo))
 {
   // Start server
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
 
@@ -97,7 +97,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PoseInfo))
 TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneInfo))
 {
   // Start server
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
 
@@ -114,7 +114,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneInfo))
 
   bool result{false};
   unsigned int timeout{5000};
-  ignition::msgs::Scene res;
+  gz::msgs::Scene res;
 
   EXPECT_TRUE(node.Request("/world/default/scene/info", timeout, res, result));
   EXPECT_TRUE(result);
@@ -132,7 +132,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneInfo))
   }
 
   // Repeat the request to make sure the same information is returned
-  ignition::msgs::Scene res2;
+  gz::msgs::Scene res2;
   EXPECT_TRUE(node.Request("/world/default/scene/info", timeout, res2, result));
   EXPECT_TRUE(result);
 
@@ -143,7 +143,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneInfo))
 TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneGraph))
 {
   // Start server
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
 
@@ -160,7 +160,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneGraph))
 
   bool result{false};
   unsigned int timeout{5000};
-  ignition::msgs::StringMsg res;
+  gz::msgs::StringMsg res;
 
   EXPECT_TRUE(node.Request("/world/default/scene/graph", timeout, res, result));
   EXPECT_TRUE(result);
@@ -183,7 +183,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneGraph))
 TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneTopic))
 {
   // Start server
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
                           "/test/worlds/shapes.sdf");
 
@@ -215,7 +215,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneTopic))
 
   bool result{false};
   unsigned int timeout{5000};
-  ignition::msgs::Scene msg;
+  gz::msgs::Scene msg;
 
   EXPECT_TRUE(node.Request("/world/default/scene/info", timeout, msg, result));
   EXPECT_TRUE(result);
@@ -228,7 +228,7 @@ TEST_P(SceneBroadcasterTest,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneTopicSensors))
 {
   // Start server
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
                           "/test/worlds/altimeter_with_pose.sdf");
 
@@ -260,7 +260,7 @@ TEST_P(SceneBroadcasterTest,
 
   bool result{false};
   unsigned int timeout{5000};
-  ignition::msgs::Scene msg;
+  gz::msgs::Scene msg;
 
   EXPECT_TRUE(node.Request("/world/altimeter_sensor/scene/info",
         timeout, msg, result));
@@ -279,7 +279,7 @@ TEST_P(SceneBroadcasterTest,
 TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(DeletedTopic))
 {
   // Start server
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
                           "/test/worlds/shapes.sdf");
 
@@ -339,7 +339,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(DeletedTopic))
 TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SpawnedModel))
 {
   // Start server
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
                           "/test/worlds/shapes.sdf");
 
@@ -385,8 +385,8 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SpawnedModel))
 
   // Check that the model is in the scene/infor response
   {
-    ignition::msgs::Empty req;
-    ignition::msgs::Scene rep;
+    gz::msgs::Empty req;
+    gz::msgs::Scene rep;
     bool result;
     unsigned int timeout = 2000;
     EXPECT_TRUE(node.Request("/world/default/scene/info", req, timeout,
@@ -409,7 +409,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SpawnedModel))
 TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(State))
 {
   // Start server
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
 
@@ -500,7 +500,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(State))
   std::string reqSrv = "/state_async_callback_test";
   node.Advertise(reqSrv, cbAsync);
 
-  ignition::msgs::StringMsg req;
+  gz::msgs::StringMsg req;
   req.set_data(reqSrv);
   node.Request("/world/default/state_async", req);
 
@@ -520,7 +520,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(State))
 TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StateStatic))
 {
   // Start server
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/empty.sdf");
 
@@ -626,7 +626,7 @@ TEST_P(SceneBroadcasterTest,
     IGN_UTILS_TEST_DISABLED_ON_WIN32(AddRemoveEntitiesComponents))
 {
   // Start server
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
                           "/test/worlds/shapes_scene_broadcaster_only.sdf");
 
@@ -635,7 +635,7 @@ TEST_P(SceneBroadcasterTest,
   EXPECT_FALSE(*server.Running(0));
 
   // Create a system that removes a component
-  ignition::gazebo::test::Relay testSystem;
+  gz::sim::test::Relay testSystem;
 
   testSystem.OnUpdate([](const gazebo::UpdateInfo &_info,
     gazebo::EntityComponentManager &_ecm)
@@ -645,17 +645,17 @@ TEST_P(SceneBroadcasterTest,
       // remove a component from an entity
       if (_info.iterations == 2)
       {
-        _ecm.Each<ignition::gazebo::components::Model,
-                  ignition::gazebo::components::Name,
-                  ignition::gazebo::components::Pose>(
-          [&](const ignition::gazebo::Entity &_entity,
-              const ignition::gazebo::components::Model *,
-              const ignition::gazebo::components::Name *_name,
-              const ignition::gazebo::components::Pose *)->bool
+        _ecm.Each<gz::sim::components::Model,
+                  gz::sim::components::Name,
+                  gz::sim::components::Pose>(
+          [&](const gz::sim::Entity &_entity,
+              const gz::sim::components::Model *,
+              const gz::sim::components::Name *_name,
+              const gz::sim::components::Pose *)->bool
           {
             if (_name->Data() == "box")
             {
-              _ecm.RemoveComponent<ignition::gazebo::components::Pose>(_entity);
+              _ecm.RemoveComponent<gz::sim::components::Pose>(_entity);
             }
             return true;
           });
@@ -667,11 +667,11 @@ TEST_P(SceneBroadcasterTest,
             gazebo::components::Name("box"), gazebo::components::Model());
         ASSERT_NE(gazebo::kNullEntity, boxEntity);
         EXPECT_FALSE(_ecm.EntityHasComponentType(boxEntity,
-              ignition::gazebo::components::Pose::typeId));
-        _ecm.CreateComponent<ignition::gazebo::components::Pose>(boxEntity,
-            ignition::gazebo::components::Pose({1, 2, 3, 4, 5, 6}));
+              gz::sim::components::Pose::typeId));
+        _ecm.CreateComponent<gz::sim::components::Pose>(boxEntity,
+            gz::sim::components::Pose({1, 2, 3, 4, 5, 6}));
         EXPECT_TRUE(_ecm.EntityHasComponentType(boxEntity,
-              ignition::gazebo::components::Pose::typeId));
+              gz::sim::components::Pose::typeId));
       }
       // remove an entity
       else if (_info.iterations == 4)
@@ -725,7 +725,7 @@ TEST_P(SceneBroadcasterTest,
   int receivedStates = 0;
   bool received = false;
   bool hasState = false;
-  ignition::gazebo::EntityComponentManager localEcm;
+  gz::sim::EntityComponentManager localEcm;
   std::function<void(const msgs::SerializedStepMap &)> cb =
       [&](const msgs::SerializedStepMap &_res)
   {
@@ -743,11 +743,11 @@ TEST_P(SceneBroadcasterTest,
       bool newEntityIteration = _res.stats().iterations() == 5;
       bool oneTimeChangeIteration = _res.stats().iterations() == 6;
       bool periodicChangeIteration = _res.stats().iterations() > 7;
-      localEcm.Each<ignition::gazebo::components::Model,
-                  ignition::gazebo::components::Name>(
-          [&](const ignition::gazebo::Entity &_entity,
-              const ignition::gazebo::components::Model *,
-              const ignition::gazebo::components::Name *_name)->bool
+      localEcm.Each<gz::sim::components::Model,
+                  gz::sim::components::Name>(
+          [&](const gz::sim::Entity &_entity,
+              const gz::sim::components::Model *,
+              const gz::sim::components::Name *_name)->bool
           {
             if (_name->Data() == "box")
             {
@@ -756,13 +756,13 @@ TEST_P(SceneBroadcasterTest,
               {
                 // The pose component should exist
                 EXPECT_TRUE(localEcm.EntityHasComponentType(
-                      _entity, ignition::gazebo::components::Pose::typeId));
+                      _entity, gz::sim::components::Pose::typeId));
               }
               else
               {
                 // The pose component should be gone
                 EXPECT_FALSE(localEcm.EntityHasComponentType(
-                      _entity, ignition::gazebo::components::Pose::typeId));
+                      _entity, gz::sim::components::Pose::typeId));
               }
             }
 
@@ -781,11 +781,11 @@ TEST_P(SceneBroadcasterTest,
       if (_res.stats().iterations() >= 4)
       {
         bool markedAsRemoved = false;
-        localEcm.EachRemoved<ignition::gazebo::components::Model,
-                    ignition::gazebo::components::Name>(
-            [&](const ignition::gazebo::Entity &,
-                const ignition::gazebo::components::Model *,
-                const ignition::gazebo::components::Name *_name)->bool
+        localEcm.EachRemoved<gz::sim::components::Model,
+                    gz::sim::components::Name>(
+            [&](const gz::sim::Entity &,
+                const gz::sim::components::Model *,
+                const gz::sim::components::Name *_name)->bool
             {
               if (_name->Data() == "box")
                 markedAsRemoved = true;

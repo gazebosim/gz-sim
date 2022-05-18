@@ -28,7 +28,7 @@
 
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace std::chrono_literals;
 
 std::mutex mutex;

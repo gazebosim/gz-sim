@@ -21,17 +21,17 @@
 
 #include <ignition/gazebo/Util.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 namespace python
 {
-/// Define a pybind11 wrapper for a ignition::gazebo::Util
+/// Define a pybind11 wrapper for a gz::sim::Util
 /// \param[in] _module a pybind11 module to add the definition to
 void defineGazeboUtil(pybind11::module &_module);
 }  // namespace python
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz
 
 #endif  // GZ_GAZEBO_PYTHON__WORLD_HH_

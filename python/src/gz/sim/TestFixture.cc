@@ -23,9 +23,9 @@
 
 #include "wrap_functions.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 namespace python
 {

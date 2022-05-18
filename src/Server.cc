@@ -30,8 +30,8 @@
 #include "ServerPrivate.hh"
 #include "SimulationRunner.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief This struct provides access to the default world.
 struct DefaultWorld

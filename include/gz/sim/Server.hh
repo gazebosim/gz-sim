@@ -27,9 +27,9 @@
 #include <gz/sim/ServerConfig.hh>
 #include <gz/sim/SystemPluginPtr.hh>
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -44,7 +44,7 @@ namespace ignition
     /// A basic simulation server can be instantiated and run using
     ///
     /// ```
-    /// ignition::gazebo::Server server;
+    /// gz::sim::Server server;
     /// server.Run();
     /// ```
     ///
@@ -53,9 +53,9 @@ namespace ignition
     /// elements contained in the file.
     ///
     /// ```
-    /// ignition::gazebo::ServerConfig config;
+    /// gz::sim::ServerConfig config;
     /// config.SetSdfFile("path_to_file.sdf");
-    /// ignition::gazebo::Server server(config);
+    /// gz::sim::Server server(config);
     /// server.Run();
     /// ```
     ///
@@ -80,17 +80,17 @@ namespace ignition
     ///
     /// List syntax: *service_name(request_msg_type) : response_msg_type*
     ///
-    ///   1. `/world/<world_name>/scene/info(none)` : ignition::msgs::Scene
+    ///   1. `/world/<world_name>/scene/info(none)` : gz::msgs::Scene
     ///     + Returns the current scene information.
     ///
-    ///   2. `/gazebo/resource_paths/get` : ignition::msgs::StringMsg_V
+    ///   2. `/gazebo/resource_paths/get` : gz::msgs::StringMsg_V
     ///     + Get list of resource paths.
     ///
-    ///   3. `/gazebo/resource_paths/add` : ignition::msgs::Empty
+    ///   3. `/gazebo/resource_paths/add` : gz::msgs::Empty
     ///     + Add new resource paths.
     ///
-    ///   4. `/server_control`(ignition::msgs::ServerControl) :
-    ///         ignition::msgs::Boolean
+    ///   4. `/server_control`(gz::msgs::ServerControl) :
+    ///         gz::msgs::Boolean
     ///     + Control the simulation server.
     ///
     /// ## Topics
@@ -101,12 +101,12 @@ namespace ignition
     ///
     /// List syntax: *topic_name : published_msg_type*
     ///
-    /// 1. `/world/<world_name>/clock` : ignition::msgs::Clock
+    /// 1. `/world/<world_name>/clock` : gz::msgs::Clock
     ///
-    /// 2. `/world/<world_name>/stats` : ignition::msgs::WorldStatistics
+    /// 2. `/world/<world_name>/stats` : gz::msgs::WorldStatistics
     ///   + This topic is throttled to 5Hz.
     ///
-    /// 3. `/gazebo/resource_paths` : ignition::msgs::StringMsg_V
+    /// 3. `/gazebo/resource_paths` : gz::msgs::StringMsg_V
     ///   + Updated list of resource paths.
     ///
     class IGNITION_GAZEBO_VISIBLE Server

@@ -26,8 +26,8 @@
 
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test TouchPlugin system
 class TouchPluginTest : public InternalFixture<::testing::Test>
@@ -249,7 +249,7 @@ TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SpawnedEntities))
         </link>
         <plugin
           filename="libignition-gazebo-touchplugin-system.so"
-          name="ignition::gazebo::systems::TouchPlugin">
+          name="gz::sim::systems::TouchPlugin">
           <target>green_box_for_white</target>
           <time>0.2</time>
           <namespace>white_touches_only_green</namespace>

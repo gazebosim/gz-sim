@@ -30,8 +30,8 @@
 #include "helpers/UniqueTestDirectoryEnv.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 class ColladaWorldExporterFixture : public InternalFixture<::testing::Test>
@@ -78,10 +78,10 @@ TEST_F(ColladaWorldExporterFixture,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(ExportWorldFromFuelWithSubmesh))
 {
   std::string world_path =
-    ignition::common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds");
-  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+    gz::common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds");
+  gz::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
     (world_path + ":" +
-    ignition::common::joinPaths(world_path, "models")).c_str());
+    gz::common::joinPaths(world_path, "models")).c_str());
 
   this->LoadWorld(common::joinPaths("test", "worlds",
         "collada_world_exporter_submesh.sdf"));
@@ -116,10 +116,10 @@ TEST_F(ColladaWorldExporterFixture,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(ExportWorldMadeFromObj))
 {
   std::string world_path =
-    ignition::common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds");
-  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+    gz::common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds");
+  gz::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
     (world_path + ":" +
-    ignition::common::joinPaths(world_path, "models")).c_str());
+    gz::common::joinPaths(world_path, "models")).c_str());
 
   this->LoadWorld(common::joinPaths("test", "worlds",
         "office.sdf"));

@@ -2,10 +2,10 @@
 
 #include <ignition/plugin/Register.hh>
 
-IGNITION_ADD_PLUGIN(ignition::gazebo::MockSystem, ignition::gazebo::System,
-    ignition::gazebo::MockSystem::ISystemConfigure,
-    ignition::gazebo::MockSystem::ISystemReset,
-    ignition::gazebo::MockSystem::ISystemPreUpdate,
-    ignition::gazebo::MockSystem::ISystemUpdate,
-    ignition::gazebo::MockSystem::ISystemPostUpdate)
+IGNITION_ADD_PLUGIN(gz::sim::MockSystem, gz::sim::System,
+    gz::sim::MockSystem::ISystemConfigure,
+    gz::sim::MockSystem::ISystemReset,
+    gz::sim::MockSystem::ISystemPreUpdate,
+    gz::sim::MockSystem::ISystemUpdate,
+    gz::sim::MockSystem::ISystemPostUpdate)
 

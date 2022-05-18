@@ -78,17 +78,17 @@ library](http://sdformat.org/) is used by both classic and Ignition. But in plac
 In the old code, the plugin class `ArduPilotPlugin` is declared in the `gazebo` namespace:
 ```cpp
 // OLD
-namespace gazebo
+namespace sim
 {
 ```
 
-In the new code we declare the class in the `ignition::gazebo::systems` namespace:
+In the new code we declare the class in the `gz::sim::systems` namespace:
 
 ```cpp
 // NEW
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 namespace systems
 {
@@ -109,10 +109,10 @@ the symbol visibility macro):
 ```cpp
 // NEW
 class IGNITION_GAZEBO_VISIBLE ArduPilotPlugin:
-       public ignition::gazebo::System,
-       public ignition::gazebo::ISystemConfigure,
-       public ignition::gazebo::ISystemPostUpdate,
-       public ignition::gazebo::ISystemPreUpdate
+       public gz::sim::System,
+       public gz::sim::ISystemConfigure,
+       public gz::sim::ISystemPostUpdate,
+       public gz::sim::ISystemPreUpdate
 ```
 
 With this declaration we're indicating that our plugin will supply implementation of the `Configure()`, `PreUpdate()`, and `PostUpdate()` methods.
@@ -130,10 +130,10 @@ In the new code, we use `Configure()` for the same purpose (if a different signa
 
 ```cpp
 // NEW
-void Configure(const ignition::gazebo::Entity &_entity,
+void Configure(const gz::sim::Entity &_entity,
   const std::shared_ptr<const sdf::Element> &_sdf,
-  ignition::gazebo::EntityComponentManager &_ecm,
-  ignition::gazebo::EventManager &_eventMgr);
+  gz::sim::EntityComponentManager &_ecm,
+  gz::sim::EventManager &_eventMgr);
 ```
 
 Similarly, the old code provides `OnUpdate()`, which is called once per time step while simulation is running:
@@ -149,11 +149,11 @@ In the new code, this method is replaced by two methods, `PreUpdate()` and
 
 ```cpp
 // NEW
-void PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-  ignition::gazebo::EntityComponentManager &_ecm);
+void PreUpdate(const gz::sim::UpdateInfo &_info,
+  gz::sim::EntityComponentManager &_ecm);
 
-void PostUpdate(const ignition::gazebo::UpdateInfo &_info,
-  const ignition::gazebo::EntityComponentManager &_ecm);
+void PostUpdate(const gz::sim::UpdateInfo &_info,
+  const gz::sim::EntityComponentManager &_ecm);
 ```
 
 As the names suggest, the former is called before each time step, while the
@@ -179,9 +179,9 @@ become:
 ```cpp
 // NEW
 void ApplyMotorForces(const double _dt,
-  ignition::gazebo::EntityComponentManager &_ecm);
+  gz::sim::EntityComponentManager &_ecm);
 void SendState(double _simTime,
-  const ignition::gazebo::EntityComponentManager &_ecm);
+  const gz::sim::EntityComponentManager &_ecm);
 bool InitArduPilotSockets(const std::shared_ptr<const sdf::Element> &_sdf);
 ```
 
@@ -280,11 +280,11 @@ Now let's get into the class member declarations. The `PID` class has moved from
 common::PID pid;
 ```
 
-to `ignition::math`:
+to `gz::math`:
 
 ```cpp
 // NEW
-ignition::math::PID pid;
+gz::math::PID pid;
 ```
 
 In the old code we store a `physics::JointPtr` for each propeller joint we're controlling:
@@ -294,11 +294,11 @@ In the old code we store a `physics::JointPtr` for each propeller joint we're co
 physics::JointPtr joint;
 ```
 
-In the new code we store an `ignition::gazebo::Entity` instead:
+In the new code we store an `gz::sim::Entity` instead:
 
 ```cpp
 // NEW
-ignition::gazebo::Entity joint;
+gz::sim::Entity joint;
 ```
 
 In the old code we store an `event::ConnectionPtr` to manage periodic calls to the `OnUpdate()` method:
@@ -323,9 +323,9 @@ the model, and the entity underyling one of the links in the model:
 
 ```cpp
 // NEW
-ignition::gazebo::Entity entity{ignition::gazebo::kNullEntity};
-ignition::gazebo::Model model{ignition::gazebo::kNullEntity};
-ignition::gazebo::Entity modelLink{ignition::gazebo::kNullEntity};
+gz::sim::Entity entity{gz::sim::kNullEntity};
+gz::sim::Model model{gz::sim::kNullEntity};
+gz::sim::Entity modelLink{gz::sim::kNullEntity};
 ```
 
 The old code uses a custom time class:
@@ -362,8 +362,8 @@ and so on:
 // NEW
 std::string imuName;
 bool imuInitialized;
-ignition::transport::Node node;
-ignition::msgs::IMU imuMsg;
+gz::transport::Node node;
+gz::msgs::IMU imuMsg;
 bool imuMsgValid;
 std::mutex imuMsgMutex;
 ```
@@ -374,7 +374,7 @@ message in a mutex-controlled fashion:
 
 ```cpp
 // NEW
-void imuCb(const ignition::msgs::IMU &_msg)
+void imuCb(const gz::msgs::IMU &_msg)
 {
   std::lock_guard<std::mutex> lock(this->imuMsgMutex);
   imuMsg = _msg;
@@ -421,7 +421,7 @@ In the new code, we store the entity, model, and name a bit differently:
 ```cpp
 // NEW
 this->dataPtr->entity = _entity;
-this->dataPtr->model = ignition::gazebo::Model(_entity);
+this->dataPtr->model = gz::sim::Model(_entity);
 this->dataPtr->modelName = this->dataPtr->model.Name(_ecm);
 ```
 
@@ -437,11 +437,11 @@ ensure that the components exist:
 // NEW
 if(!_ecm.EntityHasComponentType(this->dataPtr->modelLink, components::WorldPose::typeId))
 {
-  _ecm.CreateComponent(this->dataPtr->modelLink, ignition::gazebo::components::WorldPose());
+  _ecm.CreateComponent(this->dataPtr->modelLink, gz::sim::components::WorldPose());
 }
 if(!_ecm.EntityHasComponentType(this->dataPtr->modelLink, components::WorldLinearVelocity::typeId))
 {
-  _ecm.CreateComponent(this->dataPtr->modelLink, ignition::gazebo::components::WorldLinearVelocity());
+  _ecm.CreateComponent(this->dataPtr->modelLink, gz::sim::components::WorldLinearVelocity());
 }
 ```
 
@@ -560,7 +560,7 @@ this->dataPtr->lastControllerUpdateTime = _info.simTime;
 
 Note the differences in both methods with regard to time-handling: (i) the
 current simulation time is passed in as part of an
-`ignition::gazebo::UpdateInfo` object; and (ii) we operate on time values using
+`gz::sim::UpdateInfo` object; and (ii) we operate on time values using
 `std::chrono`.
 
 #### One-time initialization in PreUpdate(): subscribing to sensor data
@@ -594,7 +594,7 @@ if(!this->dataPtr->imuInitialized)
     return;
   }
 
-  this->dataPtr->node.Subscribe(imuTopicName, &ignition::gazebo::systems::ArduPilotPluginPrivate::imuCb, this->dataPtr.get());
+  this->dataPtr->node.Subscribe(imuTopicName, &gz::sim::systems::ArduPilotPluginPrivate::imuCb, this->dataPtr.get());
 }
 ```
 
@@ -619,11 +619,11 @@ exist):
 
 ```cpp
 // NEW
-const double vel = _ecm.ComponentData<ignition::gazebo::components::JointVelocity>(
+const double vel = _ecm.ComponentData<gz::sim::components::JointVelocity>(
     this->dataPtr->controls[i].joint);
 // ...do some feedback control math to compute force from vel...
 _ecm.SetComponentData(this->dataPtr->controls[i].joint,
-    ignition::gazebo::components::JointForceCmd({force}));
+    gz::sim::components::JointForceCmd({force}));
 ```
 
 A similar pattern is used for the case of setting a velocity on a joint;
@@ -642,13 +642,13 @@ and copying the result into the packet that we're going to send to ArduPilot:
 
 ```cpp
 // OLD
-const ignition::math::Vector3d linearAccel =
+const gz::math::Vector3d linearAccel =
   this->dataPtr->imuSensor->LinearAcceleration();
 pkt.imuLinearAccelerationXYZ[0] = linearAccel.X();
 pkt.imuLinearAccelerationXYZ[1] = linearAccel.Y();
 pkt.imuLinearAccelerationXYZ[2] = linearAccel.Z();
 
-const ignition::math::Vector3d angularVel =
+const gz::math::Vector3d angularVel =
   this->dataPtr->imuSensor->AngularVelocity();
 pkt.imuAngularVelocityRPY[0] = angularVel.X();
 pkt.imuAngularVelocityRPY[1] = angularVel.Y();
@@ -664,7 +664,7 @@ message:
 
 ```cpp
 // NEW
-ignition::msgs::IMU imuMsg;
+gz::msgs::IMU imuMsg;
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->imuMsgMutex);
   if(!this->dataPtr->imuMsgValid)
@@ -689,11 +689,11 @@ object:
 
 ```cpp
 // OLD
-const ignition::math::Pose3d gazeboXYZToModelXForwardZDown =
+const gz::math::Pose3d gazeboXYZToModelXForwardZDown =
   this->modelXYZToAirplaneXForwardZDown +
   this->dataPtr->model->WorldPose();
 
-const ignition::math::Vector3d velGazeboWorldFrame =
+const gz::math::Vector3d velGazeboWorldFrame =
   this->dataPtr->model->GetLink()->WorldLinearVel();
 ```
 
@@ -702,15 +702,15 @@ components attached to the entity representing one of the UAV model's links:
 
 ```cpp
 // NEW
-const ignition::gazebo::components::WorldPose* pComp =
-    _ecm.Component<ignition::gazebo::components::WorldPose>(this->dataPtr->modelLink);
-const ignition::math::Pose3d gazeboXYZToModelXForwardZDown =
+const gz::sim::components::WorldPose* pComp =
+    _ecm.Component<gz::sim::components::WorldPose>(this->dataPtr->modelLink);
+const gz::math::Pose3d gazeboXYZToModelXForwardZDown =
   this->modelXYZToAirplaneXForwardZDown +
   pComp->Data();
 
-const ignition::gazebo::components::WorldLinearVelocity* vComp =
-  _ecm.Component<ignition::gazebo::components::WorldLinearVelocity>(this->dataPtr->modelLink);
-const ignition::math::Vector3d velGazeboWorldFrame = vComp->Data();
+const gz::sim::components::WorldLinearVelocity* vComp =
+  _ecm.Component<gz::sim::components::WorldLinearVelocity>(this->dataPtr->modelLink);
+const gz::math::Vector3d velGazeboWorldFrame = vComp->Data();
 ```
 
 ### Registering the plugin
@@ -726,12 +726,12 @@ In the new code we instead use two macros: `IGNITION_ADD_PLUGIN()` and `IGNITION
 
 ```cpp
 // NEW
-IGNITION_ADD_PLUGIN(ignition::gazebo::systems::ArduPilotPlugin,
-                    ignition::gazebo::System,
-                    ignition::gazebo::systems::ArduPilotPlugin::ISystemConfigure,
-                    ignition::gazebo::systems::ArduPilotPlugin::ISystemPostUpdate,
-                    ignition::gazebo::systems::ArduPilotPlugin::ISystemPreUpdate)
-IGNITION_ADD_PLUGIN_ALIAS(ignition::gazebo::systems::ArduPilotPlugin,"ArduPilotPlugin")
+IGNITION_ADD_PLUGIN(gz::sim::systems::ArduPilotPlugin,
+                    gz::sim::System,
+                    gz::sim::systems::ArduPilotPlugin::ISystemConfigure,
+                    gz::sim::systems::ArduPilotPlugin::ISystemPostUpdate,
+                    gz::sim::systems::ArduPilotPlugin::ISystemPreUpdate)
+IGNITION_ADD_PLUGIN_ALIAS(gz::sim::systems::ArduPilotPlugin,"ArduPilotPlugin")
 ```
 
 ## Build recipe: `CMakeLists.txt`
@@ -831,7 +831,7 @@ In the new model, we do this instead:
 ```xml
 <!-- NEW -->
 <plugin
-    name="ignition::gazebo::systems::LiftDrag"
+    name="gz::sim::systems::LiftDrag"
     filename="ignition-gazebo-lift-drag-system">
   <!-- ...configuration goes here... -->
   <link_name>rotor_0</link_name>
@@ -846,25 +846,25 @@ plugin once for the entire model and the `ApplyJointForce` plugin once for each 
 <!-- NEW -->
 <plugin
   filename="ignition-gazebo-joint-state-publisher-system"
-  name="ignition::gazebo::systems::JointStatePublisher"></plugin>
+  name="gz::sim::systems::JointStatePublisher"></plugin>
 <plugin
   filename="ignition-gazebo-apply-joint-force-system"
-  name="ignition::gazebo::systems::ApplyJointForce">
+  name="gz::sim::systems::ApplyJointForce">
   <joint_name>rotor_0_joint</joint_name>
 </plugin>
 <plugin
   filename="ignition-gazebo-apply-joint-force-system"
-  name="ignition::gazebo::systems::ApplyJointForce">
+  name="gz::sim::systems::ApplyJointForce">
   <joint_name>rotor_1_joint</joint_name>
 </plugin>
 <plugin
   filename="ignition-gazebo-apply-joint-force-system"
-  name="ignition::gazebo::systems::ApplyJointForce">
+  name="gz::sim::systems::ApplyJointForce">
   <joint_name>rotor_2_joint</joint_name>
 </plugin>
 <plugin
   filename="ignition-gazebo-apply-joint-force-system"
-  name="ignition::gazebo::systems::ApplyJointForce">
+  name="gz::sim::systems::ApplyJointForce">
   <joint_name>rotor_3_joint</joint_name>
 </plugin>
 ```

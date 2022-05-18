@@ -26,9 +26,9 @@
 #include "gz/sim/config.hh"
 #include "gz/sim/System.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -61,7 +61,7 @@ namespace comms
   /// </physics>
   /// <plugin
   ///   filename="ignition-gazebo-perfect-comms-system"
-  ///   name="ignition::gazebo::systems::PerfectComms">
+  ///   name="gz::sim::systems::PerfectComms">
   ///   <step_size>1</step_size>
   /// </plugin>
   class IGNITION_GAZEBO_VISIBLE ICommsModel:
@@ -87,8 +87,8 @@ namespace comms
 
     // Documentation inherited.
     public: void PreUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) override;
+                const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief This method is called when there is a timestep in the simulator.
     /// \param[in] _info Simulator information about the current timestep.

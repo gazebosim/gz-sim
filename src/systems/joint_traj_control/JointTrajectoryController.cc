@@ -41,8 +41,8 @@
 
 #include "JointTrajectoryController.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Helper class that contains all parameters required to create and
@@ -59,7 +59,7 @@ class JointParameters
   /// indicates the joint name
   public: static std::map<std::string, JointParameters> ParseAll(
               const std::shared_ptr<const sdf::Element> &_sdf,
-              ignition::gazebo::EntityComponentManager &_ecm,
+              gz::sim::EntityComponentManager &_ecm,
               std::vector<Entity> _enabledJoints);
 
   /// \brief Parse all values of a single parameter that is specified multiple
@@ -151,20 +151,20 @@ class ActuatedJoint
   /// \brief Setup components required for control of this joint
   /// \param[in,out] _ecm Ignition Entity Component Manager
   public: void SetupComponents(
-              ignition::gazebo::EntityComponentManager &_ecm) const;
+              gz::sim::EntityComponentManager &_ecm) const;
 
   /// \brief Set target of the joint that the controller will attempt to reach
   /// \param[in] _targetPoint Targets of all controlled joint
   /// \param[in] _jointIndex Index of the joint, used to determine what index
   /// of `_targetPoint` to use
   public: void SetTarget(
-              const ignition::msgs::JointTrajectoryPoint &_targetPoint,
+              const gz::msgs::JointTrajectoryPoint &_targetPoint,
               const size_t &_jointIndex);
 
   /// \brief Update command force that is applied on the joint
   /// \param[in,out] _ecm Ignition Entity Component Manager
   /// \param[in] _dt Time difference to update for
-  public: void Update(ignition::gazebo::EntityComponentManager &_ecm,
+  public: void Update(gz::sim::EntityComponentManager &_ecm,
                       const std::chrono::steady_clock::duration &_dt);
 
   /// \brief Reset the target of the joint
@@ -197,9 +197,9 @@ class ActuatedJoint
   public: struct PIDs
   {
     /// \brief Position PID controller
-    ignition::math::PID position;
+    gz::math::PID position;
     /// \brief Velocity PID controller
-    ignition::math::PID velocity;
+    gz::math::PID velocity;
   } pids;
 };
 
@@ -250,11 +250,11 @@ class Trajectory
 
   /// \brief Trajectory defined in terms of temporal points, whose members are
   /// ordered according to `jointNames`
-  public: std::vector<ignition::msgs::JointTrajectoryPoint> points;
+  public: std::vector<gz::msgs::JointTrajectoryPoint> points;
 };
 
 /// \brief Private data of the JointTrajectoryController plugin
-class ignition::gazebo::systems::JointTrajectoryControllerPrivate
+class gz::sim::systems::JointTrajectoryControllerPrivate
 {
   /// \brief Get a list of enabled, unique, 1-axis joints of the model. If no
   /// joint names are specified in the plugin configuration, all valid 1-axis
@@ -273,7 +273,7 @@ class ignition::gazebo::systems::JointTrajectoryControllerPrivate
   /// \param[in] _msg A new message describing a joint trajectory that needs
   /// to be followed
   public: void JointTrajectoryCallback(
-              const ignition::msgs::JointTrajectory &_msg);
+              const gz::msgs::JointTrajectory &_msg);
 
   /// \brief Reset internals of the plugin, without affecting already created
   /// components
@@ -403,13 +403,13 @@ void JointTrajectoryController::Configure(
   ignmsg << "[JointTrajectoryController] Advertising joint trajectory progress"
             " on topic [" << progressTopic << "].\n";
   this->dataPtr->progressPub =
-      this->dataPtr->node.Advertise<ignition::msgs::Float>(progressTopic);
+      this->dataPtr->node.Advertise<gz::msgs::Float>(progressTopic);
 }
 
 //////////////////////////////////////////////////
 void JointTrajectoryController::PreUpdate(
-    const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+    const gz::sim::UpdateInfo &_info,
+    gz::sim::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("JointTrajectoryController::PreUpdate");
 
@@ -506,7 +506,7 @@ void JointTrajectoryController::PreUpdate(
       }
 
       // Publish current progress of the trajectory
-      ignition::msgs::Float progressMsg;
+      gz::msgs::Float progressMsg;
       progressMsg.set_data(this->dataPtr->trajectory.ComputeProgress());
       this->dataPtr->progressPub.Publish(progressMsg);
     }
@@ -630,7 +630,7 @@ std::vector<Entity> JointTrajectoryControllerPrivate::GetEnabledJoints(
 
 //////////////////////////////////////////////////
 void JointTrajectoryControllerPrivate::JointTrajectoryCallback(
-    const ignition::msgs::JointTrajectory &_msg)
+    const gz::msgs::JointTrajectory &_msg)
 {
   // Make sure the message is valid
   if (_msg.joint_names_size() == 0)
@@ -711,7 +711,7 @@ void JointTrajectoryControllerPrivate::Reset()
 //////////////////////////////////////////////////
 std::map<std::string, JointParameters> JointParameters::ParseAll(
     const std::shared_ptr<const sdf::Element> &_sdf,
-    ignition::gazebo::EntityComponentManager &_ecm,
+    gz::sim::EntityComponentManager &_ecm,
     std::vector<Entity> _enabledJoints)
 {
   std::map<std::string, JointParameters> output;
@@ -855,7 +855,7 @@ ActuatedJoint::ActuatedJoint(const Entity &_entity,
   this->target.acceleration = 0.0;
   this->target.effort = 0.0;
 
-  this->pids.position = ignition::math::PID(_params.positionPID.pGain,
+  this->pids.position = gz::math::PID(_params.positionPID.pGain,
                                             _params.positionPID.iGain,
                                             _params.positionPID.dGain,
                                             _params.positionPID.iMax,
@@ -864,7 +864,7 @@ ActuatedJoint::ActuatedJoint(const Entity &_entity,
                                             _params.positionPID.cmdMin,
                                             _params.positionPID.cmdOffset);
 
-  this->pids.velocity = ignition::math::PID(_params.velocityPID.pGain,
+  this->pids.velocity = gz::math::PID(_params.velocityPID.pGain,
                                             _params.velocityPID.iGain,
                                             _params.velocityPID.dGain,
                                             _params.velocityPID.iMax,
@@ -896,7 +896,7 @@ ActuatedJoint::ActuatedJoint(const Entity &_entity,
 
 //////////////////////////////////////////////////
 void ActuatedJoint::SetupComponents(
-    ignition::gazebo::EntityComponentManager &_ecm) const
+    gz::sim::EntityComponentManager &_ecm) const
 {
   // Create JointPosition component if one does not exist
   if (nullptr == _ecm.Component<components::JointPosition>(this->entity))
@@ -919,7 +919,7 @@ void ActuatedJoint::SetupComponents(
 
 //////////////////////////////////////////////////
 void ActuatedJoint::SetTarget(
-    const ignition::msgs::JointTrajectoryPoint &_targetPoint,
+    const gz::msgs::JointTrajectoryPoint &_targetPoint,
     const size_t &_jointIndex)
 {
   if ((signed)_jointIndex < _targetPoint.positions_size())
@@ -941,7 +941,7 @@ void ActuatedJoint::SetTarget(
 }
 
 //////////////////////////////////////////////////
-void ActuatedJoint::Update(ignition::gazebo::EntityComponentManager &_ecm,
+void ActuatedJoint::Update(gz::sim::EntityComponentManager &_ecm,
                            const std::chrono::steady_clock::duration &_dt)
 {
   // Get JointPosition and JointVelocity components
@@ -1059,9 +1059,9 @@ void Trajectory::Reset()
 
 // Register plugin
 IGNITION_ADD_PLUGIN(JointTrajectoryController,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     JointTrajectoryController::ISystemConfigure,
                     JointTrajectoryController::ISystemPreUpdate)
 IGNITION_ADD_PLUGIN_ALIAS(
     JointTrajectoryController,
-    "ignition::gazebo::systems::JointTrajectoryController")
+    "gz::sim::systems::JointTrajectoryController")

@@ -22,9 +22,9 @@
 #include <QtQml/QQmlExtensionPlugin>
 #include <memory>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
   class EntityContextMenuPrivate;
 

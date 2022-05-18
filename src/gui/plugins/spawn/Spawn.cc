@@ -57,7 +57,7 @@
 #include "gz/sim/rendering/RenderUtil.hh"
 #include "gz/sim/rendering/SceneManager.hh"
 
-namespace ignition::gazebo
+namespace gz::sim
 {
   class SpawnPrivate
   {
@@ -149,12 +149,12 @@ namespace ignition::gazebo
   };
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 Spawn::Spawn()
-  : ignition::gui::Plugin(),
+  : gz::gui::Plugin(),
   dataPtr(std::make_unique<SpawnPrivate>())
 {
 }
@@ -184,8 +184,8 @@ void Spawn::LoadConfig(const tinyxml2::XMLElement *)
   if (!worldNames.empty())
     this->dataPtr->worldName = worldNames[0].toStdString();
 
-  ignition::gui::App()->findChild
-    <ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild
+    <gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
@@ -196,7 +196,7 @@ void SpawnPrivate::HandlePlacement()
 
   if (this->spawnPreview && this->hoverDirty)
   {
-    math::Vector3d pos = ignition::rendering::screenToPlane(
+    math::Vector3d pos = gz::rendering::screenToPlane(
       this->mouseHoverPos, this->camera, this->rayQuery);
     pos.Z(this->spawnPreview->WorldPosition().Z());
     this->spawnPreview->SetWorldPosition(pos);
@@ -216,7 +216,7 @@ void SpawnPrivate::HandlePlacement()
       if (!_result)
         ignerr << "Error creating entity" << std::endl;
     };
-    math::Vector3d pos = ignition::rendering::screenToPlane(
+    math::Vector3d pos = gz::rendering::screenToPlane(
       this->mouseEvent.Pos(), this->camera, this->rayQuery);
     pos.Z(pose.Pos().Z());
     msgs::EntityFactory req;
@@ -477,63 +477,63 @@ bool SpawnPrivate::GeneratePreview(const std::string &_name)
 ////////////////////////////////////////////////
 bool Spawn::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::Render::kType)
+  if (_event->type() == gz::gui::events::Render::kType)
   {
     this->dataPtr->OnRender();
   }
-  else if (_event->type() == ignition::gui::events::LeftClickOnScene::kType)
+  else if (_event->type() == gz::gui::events::LeftClickOnScene::kType)
   {
-    ignition::gui::events::LeftClickOnScene *_e =
-      static_cast<ignition::gui::events::LeftClickOnScene*>(_event);
+    gz::gui::events::LeftClickOnScene *_e =
+      static_cast<gz::gui::events::LeftClickOnScene*>(_event);
     this->dataPtr->mouseEvent = _e->Mouse();
     if (this->dataPtr->generatePreview || this->dataPtr->isPlacing)
       this->dataPtr->mouseDirty = true;
   }
-  else if (_event->type() == ignition::gui::events::HoverOnScene::kType)
+  else if (_event->type() == gz::gui::events::HoverOnScene::kType)
   {
-    ignition::gui::events::HoverOnScene *_e =
-      static_cast<ignition::gui::events::HoverOnScene*>(_event);
+    gz::gui::events::HoverOnScene *_e =
+      static_cast<gz::gui::events::HoverOnScene*>(_event);
     this->dataPtr->mouseHoverPos = _e->Mouse().Pos();
     this->dataPtr->hoverDirty = true;
   }
   else if (_event->type() ==
-    ignition::gui::events::SpawnFromDescription::kType)
+    gz::gui::events::SpawnFromDescription::kType)
   {
-    ignition::gui::events::SpawnFromDescription *_e =
-      static_cast<ignition::gui::events::SpawnFromDescription*>(_event);
+    gz::gui::events::SpawnFromDescription *_e =
+      static_cast<gz::gui::events::SpawnFromDescription*>(_event);
     this->dataPtr->spawnSdfString = _e->Description();
     this->dataPtr->generatePreview = true;
   }
-  else if (_event->type() == ignition::gui::events::SpawnFromPath::kType)
+  else if (_event->type() == gz::gui::events::SpawnFromPath::kType)
   {
     auto spawnPreviewPathEvent =
-      reinterpret_cast<ignition::gui::events::SpawnFromPath *>(_event);
+      reinterpret_cast<gz::gui::events::SpawnFromPath *>(_event);
     this->dataPtr->spawnSdfPath = spawnPreviewPathEvent->FilePath();
     this->dataPtr->generatePreview = true;
   }
-  else if (_event->type() == ignition::gui::events::SpawnCloneFromName::kType)
+  else if (_event->type() == gz::gui::events::SpawnCloneFromName::kType)
   {
     auto spawnCloneEvent =
-      reinterpret_cast<ignition::gui::events::SpawnCloneFromName *>(_event);
+      reinterpret_cast<gz::gui::events::SpawnCloneFromName *>(_event);
     if (spawnCloneEvent)
     {
       this->dataPtr->spawnCloneName = spawnCloneEvent->Name();
       this->dataPtr->generatePreview = true;
     }
   }
-  else if (_event->type() == ignition::gui::events::KeyReleaseOnScene::kType)
+  else if (_event->type() == gz::gui::events::KeyReleaseOnScene::kType)
   {
-    ignition::gui::events::KeyReleaseOnScene *_e =
-      static_cast<ignition::gui::events::KeyReleaseOnScene*>(_event);
+    gz::gui::events::KeyReleaseOnScene *_e =
+      static_cast<gz::gui::events::KeyReleaseOnScene*>(_event);
     if (_e->Key().Key() == Qt::Key_Escape)
     {
       this->dataPtr->escapeReleased = true;
     }
   }
-  else if (_event->type() == ignition::gui::events::DropOnScene::kType)
+  else if (_event->type() == gz::gui::events::DropOnScene::kType)
   {
     auto dropOnSceneEvent =
-      reinterpret_cast<ignition::gui::events::DropOnScene *>(_event);
+      reinterpret_cast<gz::gui::events::DropOnScene *>(_event);
     if (dropOnSceneEvent)
     {
       this->OnDropped(dropOnSceneEvent);
@@ -544,7 +544,7 @@ bool Spawn::eventFilter(QObject *_obj, QEvent *_event)
 }
 
 /////////////////////////////////////////////////
-void Spawn::OnDropped(const ignition::gui::events::DropOnScene *_event)
+void Spawn::OnDropped(const gz::gui::events::DropOnScene *_event)
 {
   if (nullptr == _event || nullptr == this->dataPtr->camera ||
       nullptr == this->dataPtr->rayQuery)
@@ -558,14 +558,14 @@ void Spawn::OnDropped(const ignition::gui::events::DropOnScene *_event)
     return;
   }
 
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &_res, const bool _result)
+  std::function<void(const gz::msgs::Boolean &, const bool)> cb =
+      [](const gz::msgs::Boolean &_res, const bool _result)
   {
     if (!_result || !_res.data())
       ignerr << "Error creating dropped entity." << std::endl;
   };
 
-  math::Vector3d pos = ignition::rendering::screenToScene(
+  math::Vector3d pos = gz::rendering::screenToScene(
     _event->Mouse(),
     this->dataPtr->camera,
     this->dataPtr->rayQuery);
@@ -646,5 +646,5 @@ void Spawn::SetErrorPopupText(const QString &_errorTxt)
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::Spawn,
-                    ignition::gui::Plugin)
+IGNITION_ADD_PLUGIN(gz::sim::Spawn,
+                    gz::gui::Plugin)

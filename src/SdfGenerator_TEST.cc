@@ -45,8 +45,8 @@
 
 #include "SdfGenerator.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 /// \breif Checks if elemA is a subset of elemB

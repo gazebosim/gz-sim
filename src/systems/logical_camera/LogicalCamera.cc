@@ -46,12 +46,12 @@
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Private LogicalCamera data class.
-class ignition::gazebo::systems::LogicalCameraPrivate
+class gz::sim::systems::LogicalCameraPrivate
 {
   /// \brief A map of logicalCamera entities
   public: std::unordered_map<Entity,
@@ -303,4 +303,4 @@ IGNITION_ADD_PLUGIN(LogicalCamera, System,
 
 
 IGNITION_ADD_PLUGIN_ALIAS(LogicalCamera,
-    "ignition::gazebo::systems::LogicalCamera")
+    "gz::sim::systems::LogicalCamera")

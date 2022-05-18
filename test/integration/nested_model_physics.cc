@@ -32,8 +32,8 @@
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 class NestedModelPhysicsTest : public InternalFixture<::testing::Test>
 {
@@ -50,7 +50,7 @@ TEST_F(NestedModelPhysicsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Movement))
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/include_connected_nested_models.sdf";
   std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
-  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH", path.c_str());
+  gz::common::setenv("IGN_GAZEBO_RESOURCE_PATH", path.c_str());
   serverConfig.SetResourceCache(path);
   serverConfig.SetPhysicsEngine("libignition-physics-dartsim-plugin.so");
   serverConfig.SetSdfFile(sdfFile);
@@ -94,8 +94,8 @@ TEST_F(NestedModelPhysicsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Movement))
 
     constexpr double epsilon = 1e-2;
     // base_link does not move in this world
-    const ignition::math::Pose3d expectedBazeLinkPose(0, 0, 0.5, 0, 0, 0);
-    const ignition::math::Pose3d expectedLink01StartPose(0, 2, 0, 0, 0, 0);
+    const gz::math::Pose3d expectedBazeLinkPose(0, 0, 0.5, 0, 0, 0);
+    const gz::math::Pose3d expectedLink01StartPose(0, 2, 0, 0, 0, 0);
 
     EXPECT_NEAR(
       expectedBazeLinkPose.X(), baseLinkPose->Data().Pos().X(), epsilon);

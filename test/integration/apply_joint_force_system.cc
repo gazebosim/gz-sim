@@ -37,8 +37,8 @@
 
 #define TOL 1e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test fixture for ApplyJointForce system
 class ApplyJointForceTestFixture : public InternalFixture<::testing::Test>

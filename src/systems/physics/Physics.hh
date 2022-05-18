@@ -51,9 +51,9 @@
 #include <gz/sim/config.hh>
 #include <gz/sim/System.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -70,7 +70,7 @@ namespace systems
   /// ```
   ///  <plugin
   ///    filename="ignition-gazebo-physics-system"
-  ///    name="ignition::gazebo::systems::Physics">
+  ///    name="gz::sim::systems::Physics">
   ///    <contacts>
   ///      <include_entity_names>false</include_entity_names>
   ///    </contacts>

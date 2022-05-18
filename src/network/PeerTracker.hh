@@ -31,9 +31,9 @@
 
 #include "PeerInfo.hh"
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -55,7 +55,7 @@ namespace ignition
     /// announcements and heartbeats from other peers.
     class IGNITION_GAZEBO_VISIBLE PeerTracker {
       /// \brief Convenience type alias for NodeOptions
-      public: using NodeOptions = ignition::transport::NodeOptions;
+      public: using NodeOptions = gz::transport::NodeOptions;
 
       /// \brief Convenience type alias for duration
       public: using Duration = std::chrono::steady_clock::duration;
@@ -209,17 +209,17 @@ namespace ignition
       private: EventManager *eventMgr;
 
       /// \brief Transport node
-      private: ignition::transport::Node node;
+      private: gz::transport::Node node;
 
       /// \brief Heartbeat publisher
-      private: ignition::transport::Node::Publisher heartbeatPub;
+      private: gz::transport::Node::Publisher heartbeatPub;
 
       /// \brief Announcement publisher
-      private: ignition::transport::Node::Publisher announcePub;
+      private: gz::transport::Node::Publisher announcePub;
     };
     }
-  }  // namespace gazebo
-}  // namespace ignition
+  }  // namespace sim
+}  // namespace gz
 
 #endif  // GZ_GAZEBO_NETWORKCONFIG_HH_
 

@@ -39,7 +39,7 @@
 #include "gz/sim/components/World.hh"
 #include "gz/sim/EntityComponentManager.hh"
 
-namespace ignition::gazebo
+namespace gz::sim
 {
   class PlottingPrivate
   {
@@ -69,17 +69,17 @@ namespace ignition::gazebo
     /// \brief attributes of the components,
     /// ex: x,y,z attributes in Vector3d type component
     public: std::map<std::string,
-      std::shared_ptr<ignition::gui::PlotData>> data;
+      std::shared_ptr<gz::gui::PlotData>> data;
   };
 }
 
-using namespace ignition;
-using namespace ignition::gazebo;
-using namespace ignition::gui;
+using namespace gz;
+using namespace gz::sim;
+using namespace gz::gui;
 
 //////////////////////////////////////////////////
 PlotComponent::PlotComponent(const std::string &_type,
-                             ignition::gazebo::Entity _entity,
+                             gz::sim::Entity _entity,
                              ComponentTypeId _typeId) :
     dataPtr(std::make_unique<PlotComponentPrivate>())
 {
@@ -239,7 +239,7 @@ void Plotting::LoadConfig(const tinyxml2::XMLElement *)
 }
 
 //////////////////////////////////////////////////
-void Plotting::SetData(std::string _Id, const ignition::math::Vector3d &_vector)
+void Plotting::SetData(std::string _Id, const gz::math::Vector3d &_vector)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->componentsMutex);
   this->dataPtr->components[_Id]->SetAttributeValue("x", _vector.X());
@@ -248,7 +248,7 @@ void Plotting::SetData(std::string _Id, const ignition::math::Vector3d &_vector)
 }
 
 //////////////////////////////////////////////////
-void Plotting::SetData(std::string _Id, const ignition::msgs::Light &_light)
+void Plotting::SetData(std::string _Id, const gz::msgs::Light &_light)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->componentsMutex);
   if (_light.has_specular())
@@ -303,7 +303,7 @@ void Plotting::SetData(std::string _Id, const ignition::msgs::Light &_light)
 }
 
 //////////////////////////////////////////////////
-void Plotting::SetData(std::string _Id, const ignition::math::Pose3d &_pose)
+void Plotting::SetData(std::string _Id, const gz::math::Pose3d &_pose)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->componentsMutex);
   this->dataPtr->components[_Id]->SetAttributeValue("x", _pose.Pos().X());
@@ -396,8 +396,8 @@ std::string Plotting::ComponentName(const uint64_t &_typeId)
 }
 
 //////////////////////////////////////////////////
-void Plotting::Update(const ignition::gazebo::UpdateInfo &_info,
-                       ignition::gazebo::EntityComponentManager &_ecm)
+void Plotting::Update(const gz::sim::UpdateInfo &_info,
+                       gz::sim::EntityComponentManager &_ecm)
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->componentsMutex);
   for (auto component : this->dataPtr->components)
@@ -527,8 +527,8 @@ void Plotting::Update(const ignition::gazebo::UpdateInfo &_info,
       auto comp = _ecm.Component<components::Light>(entity);
       if (comp)
       {
-        ignition::msgs::Light lightMsgs =
-          convert<ignition::msgs::Light>(comp->Data());
+        gz::msgs::Light lightMsgs =
+          convert<gz::msgs::Light>(comp->Data());
         this->SetData(component.first, lightMsgs);
       }
     }
@@ -550,6 +550,6 @@ void Plotting::Update(const ignition::gazebo::UpdateInfo &_info,
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::Plotting,
-                    ignition::gazebo::GuiSystem,
-                    ignition::gui::Plugin)
+IGNITION_ADD_PLUGIN(gz::sim::Plotting,
+                    gz::sim::GuiSystem,
+                    gz::gui::Plugin)

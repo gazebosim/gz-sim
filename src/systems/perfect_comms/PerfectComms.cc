@@ -24,17 +24,17 @@
 #include "gz/sim/Util.hh"
 #include "PerfectComms.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::PerfectComms::Implementation
+class gz::sim::systems::PerfectComms::Implementation
 {
 };
 
 //////////////////////////////////////////////////
 PerfectComms::PerfectComms()
-  : dataPtr(ignition::utils::MakeUniqueImpl<Implementation>())
+  : dataPtr(gz::utils::MakeUniqueImpl<Implementation>())
 {
 }
 
@@ -107,9 +107,9 @@ void PerfectComms::Step(
 }
 
 IGNITION_ADD_PLUGIN(PerfectComms,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     comms::ICommsModel::ISystemConfigure,
                     comms::ICommsModel::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(PerfectComms,
-                          "ignition::gazebo::systems::PerfectComms")
+                          "gz::sim::systems::PerfectComms")

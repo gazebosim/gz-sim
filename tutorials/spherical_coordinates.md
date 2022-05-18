@@ -98,7 +98,7 @@ to creating entities.
 
 In order to create an entity at a given spherical coordinate using the
 `/world/<world_name>/create` service, omit the `pose` field from the
-`ignition::msgs::EntityFactory` message and use the `spherical_coordinates`
+`gz::msgs::EntityFactory` message and use the `spherical_coordinates`
 field instead.
 
 For example, you can spawn a sphere into the `spherical_coordinates.sdf` world
@@ -145,6 +145,6 @@ ign service -s /world/spherical_coordinates/set_spherical_coordinates \
 ## Querying entities' coordinates
 
 When writing plugins, developers can use the
-`ignition::gazebo::sphericalCoordinates` helper function to query the current
+`gz::sim::sphericalCoordinates` helper function to query the current
 coordinates for any entity that has a pose.
 

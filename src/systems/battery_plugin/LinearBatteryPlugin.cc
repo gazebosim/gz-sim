@@ -48,11 +48,11 @@
 #include "gz/sim/components/World.hh"
 #include "gz/sim/Model.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::LinearBatteryPluginPrivate
+class gz::sim::systems::LinearBatteryPluginPrivate
 {
   /// \brief Reset the plugin
   public: void Reset();
@@ -63,11 +63,11 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
 
   /// \brief Callback executed to start recharging.
   /// \param[in] _req This value should be true.
-  public: void OnEnableRecharge(const ignition::msgs::Boolean &_req);
+  public: void OnEnableRecharge(const gz::msgs::Boolean &_req);
 
   /// \brief Callback executed to stop recharging.
   /// \param[in] _req This value should be true.
-  public: void OnDisableRecharge(const ignition::msgs::Boolean &_req);
+  public: void OnDisableRecharge(const gz::msgs::Boolean &_req);
 
   /// \brief Callback connected to additional topics that can start battery
   /// draining.
@@ -76,7 +76,7 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
   /// \param[in] _info Information about the message.
   public: void OnBatteryDrainingMsg(
     const char *_data, const size_t _size,
-    const ignition::transport::MessageInfo &_info);
+    const gz::transport::MessageInfo &_info);
 
   /// \brief Name of model, only used for printing warning when battery drains.
   public: std::string modelName;
@@ -411,7 +411,7 @@ double LinearBatteryPluginPrivate::StateOfCharge() const
 
 //////////////////////////////////////////////////
 void LinearBatteryPluginPrivate::OnEnableRecharge(
-  const ignition::msgs::Boolean &/*_req*/)
+  const gz::msgs::Boolean &/*_req*/)
 {
   igndbg << "Request for start charging received" << std::endl;
   this->startCharging = true;
@@ -419,7 +419,7 @@ void LinearBatteryPluginPrivate::OnEnableRecharge(
 
 //////////////////////////////////////////////////
 void LinearBatteryPluginPrivate::OnDisableRecharge(
-  const ignition::msgs::Boolean &/*_req*/)
+  const gz::msgs::Boolean &/*_req*/)
 {
   igndbg << "Request for stop charging received" << std::endl;
   this->startCharging = false;
@@ -427,15 +427,15 @@ void LinearBatteryPluginPrivate::OnDisableRecharge(
 
 //////////////////////////////////////////////////
 void LinearBatteryPluginPrivate::OnBatteryDrainingMsg(
-  const char *, const size_t, const ignition::transport::MessageInfo &)
+  const char *, const size_t, const gz::transport::MessageInfo &)
 {
   this->startDrainingFromTopics = true;
 }
 
 //////////////////////////////////////////////////
 void LinearBatteryPlugin::PreUpdate(
-  const ignition::gazebo::UpdateInfo &/*_info*/,
-  ignition::gazebo::EntityComponentManager &_ecm)
+  const gz::sim::UpdateInfo &/*_info*/,
+  gz::sim::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("LinearBatteryPlugin::PreUpdate");
 
@@ -670,11 +670,11 @@ double LinearBatteryPlugin::OnUpdateVoltage(
 }
 
 IGNITION_ADD_PLUGIN(LinearBatteryPlugin,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     LinearBatteryPlugin::ISystemConfigure,
                     LinearBatteryPlugin::ISystemPreUpdate,
                     LinearBatteryPlugin::ISystemUpdate,
                     LinearBatteryPlugin::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(LinearBatteryPlugin,
-  "ignition::gazebo::systems::LinearBatteryPlugin")
+  "gz::sim::systems::LinearBatteryPlugin")

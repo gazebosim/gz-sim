@@ -25,9 +25,9 @@
 
 #include "GuiFileHandler.hh"
 
-using namespace ignition;
-using namespace gazebo;
-using namespace gazebo::gui;
+using namespace gz;
+using namespace sim;
+using namespace sim::gui;
 
 /////////////////////////////////////////////////
 void GuiFileHandler::SaveWorldAs(const QString &_fileUrl,
@@ -45,7 +45,7 @@ void GuiFileHandler::SaveWorldAs(const QString &_fileUrl,
 
   std::string localPath = url.toLocalFile().toStdString() + suffix;
   std::string service{"/gazebo/worlds"};
-  ignition::msgs::StringMsg_V worldsMsg;
+  gz::msgs::StringMsg_V worldsMsg;
 
   bool result{false};
   unsigned int timeout{5000};

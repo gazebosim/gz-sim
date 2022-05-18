@@ -24,7 +24,7 @@
 #include <ignition/common/Util.hh>
 #include "gz/sim/test_config.hh"
 
-using namespace ignition;
+using namespace gz;
 
 /// \brief Common test setup for various tests
 template <typename TestType>

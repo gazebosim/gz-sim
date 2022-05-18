@@ -47,12 +47,12 @@
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/World.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Private LogPlayback data class.
-class ignition::gazebo::systems::LogPlaybackPrivate
+class gz::sim::systems::LogPlaybackPrivate
 {
   /// \brief Extract model resource files and state file from compression.
   /// \return True if extraction was successful.
@@ -609,10 +609,10 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   }
 }
 
-IGNITION_ADD_PLUGIN(ignition::gazebo::systems::LogPlayback,
-                    ignition::gazebo::System,
+IGNITION_ADD_PLUGIN(gz::sim::systems::LogPlayback,
+                    gz::sim::System,
                     LogPlayback::ISystemConfigure,
                     LogPlayback::ISystemUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(ignition::gazebo::systems::LogPlayback,
-                          "ignition::gazebo::systems::LogPlayback")
+IGNITION_ADD_PLUGIN_ALIAS(gz::sim::systems::LogPlayback,
+                          "gz::sim::systems::LogPlayback")

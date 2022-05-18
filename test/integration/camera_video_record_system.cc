@@ -28,8 +28,8 @@
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test CameraVideoRecorder system
 class CameraVideoRecorderTest : public InternalFixture<::testing::Test>
@@ -51,7 +51,7 @@ TEST_F(CameraVideoRecorderTest, IGN_UTILS_TEST_DISABLED_ON_MAC(RecordVideo))
   // Run server
   server.Run(true, 1, false);
 
-  ignition::transport::Node node;
+  gz::transport::Node node;
   std::vector<std::string> services;
   bool hasService = false;
 
@@ -75,8 +75,8 @@ TEST_F(CameraVideoRecorderTest, IGN_UTILS_TEST_DISABLED_ON_MAC(RecordVideo))
   }
   EXPECT_TRUE(hasService);
 
-  ignition::msgs::VideoRecord videoRecordMsg;
-  ignition::msgs::Boolean res;
+  gz::msgs::VideoRecord videoRecordMsg;
+  gz::msgs::Boolean res;
   bool result = false;
   unsigned int timeout = 5000;
 

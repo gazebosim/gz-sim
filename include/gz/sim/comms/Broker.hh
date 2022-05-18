@@ -25,7 +25,7 @@
 #include "gz/sim/comms/MsgManager.hh"
 #include "gz/sim/config.hh"
 
-namespace ignition
+namespace gz
 {
 namespace msgs
 {
@@ -34,7 +34,7 @@ namespace msgs
   class Dataframe;
   class StringMsg_V;
 }
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -75,7 +75,7 @@ namespace comms
   /// Here's an example:
   /// <plugin
   ///   filename="ignition-gazebo-perfect-comms-system"
-  ///   name="ignition::gazebo::systems::PerfectComms">
+  ///   name="gz::sim::systems::PerfectComms">
   ///   <broker>
   ///     <messages_topic>/broker/inbound</messages_topic>
   ///     <bind_service>/broker/bind_address</bind_service>
@@ -114,20 +114,20 @@ namespace comms
     ///   _req[2] Client subscription topic.
     /// \param[out] _rep Unused
     /// \return True when the bind service succeeded or false otherwise.
-    public: bool OnBind(const ignition::msgs::StringMsg_V &_req,
-                        ignition::msgs::Boolean &_rep);
+    public: bool OnBind(const gz::msgs::StringMsg_V &_req,
+                        gz::msgs::Boolean &_rep);
 
     /// \brief Unbind a given client address. The client associated to this
     /// address will not receive any more messages.
     /// \param[in] _req Bind request containing the following content:
     ///   _req[0] Client address.
     ///   _req[1] Client subscription topic.
-    public: void OnUnbind(const ignition::msgs::StringMsg_V &_req);
+    public: void OnUnbind(const gz::msgs::StringMsg_V &_req);
 
     /// \brief Callback executed to process a communication request from one of
     /// the clients.
     /// \param[in] _msg The message from the client.
-    public: void OnMsg(const ignition::msgs::Dataframe &_msg);
+    public: void OnMsg(const gz::msgs::Dataframe &_msg);
 
     /// \brief Process all the messages in the inbound queue and deliver them
     /// to the destination clients.

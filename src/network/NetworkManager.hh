@@ -29,9 +29,9 @@
 
 #include "NetworkConfig.hh"
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -46,7 +46,7 @@ namespace ignition
     class IGNITION_GAZEBO_VISIBLE NetworkManager
     {
       /// \brief Convenience type alias for NodeOptions
-      public: using NodeOptions = ignition::transport::NodeOptions;
+      public: using NodeOptions = gz::transport::NodeOptions;
 
       /// \brief Create a class derived from NetworkManager based on
       /// a given configuration
@@ -122,7 +122,7 @@ namespace ignition
       protected: std::unique_ptr<NetworkManagerPrivate> dataPtr;
     };
     }
-  }  // namespace gazebo
-}  // namespace ignition
+  }  // namespace sim
+}  // namespace gz
 
 #endif  // GZ_GAZEBO_NETWORKMANAGER_HH_

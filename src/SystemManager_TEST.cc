@@ -25,7 +25,7 @@
 
 #include "SystemManager.hh"
 
-using namespace ignition::gazebo;
+using namespace gz::sim;
 
 /////////////////////////////////////////////////
 class SystemWithConfigure:

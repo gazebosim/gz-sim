@@ -23,9 +23,9 @@
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {

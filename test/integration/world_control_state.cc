@@ -30,8 +30,8 @@
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 class WorldControlState : public InternalFixture<::testing::Test>
@@ -62,8 +62,8 @@ TEST_F(WorldControlState, IGN_UTILS_TEST_DISABLED_ON_WIN32(SetState))
       msgs::WorldControlState req;
       req.mutable_state()->CopyFrom(localEcm.State());
 
-      std::function<void(const ignition::msgs::Boolean &, const bool)> cb2 =
-          [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+      std::function<void(const gz::msgs::Boolean &, const bool)> cb2 =
+          [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
           {
             if (!_result)
               ignerr << "Error sharing WorldControl info with the server.\n";
@@ -74,7 +74,7 @@ TEST_F(WorldControlState, IGN_UTILS_TEST_DISABLED_ON_WIN32(SetState))
   };
 
   // Create a system that checks for state changes in the ECM
-  ignition::gazebo::test::Relay testSystem;
+  gz::sim::test::Relay testSystem;
 
   testSystem.OnUpdate([](const gazebo::UpdateInfo &_info,
     gazebo::EntityComponentManager &_ecm)
@@ -82,9 +82,9 @@ TEST_F(WorldControlState, IGN_UTILS_TEST_DISABLED_ON_WIN32(SetState))
       // After the first iteration, there should be an entity with the name
       // "box"
       bool hasBox = false;
-      _ecm.Each<ignition::gazebo::components::Name>(
-        [&](const ignition::gazebo::Entity &,
-            const ignition::gazebo::components::Name *_name)->bool
+      _ecm.Each<gz::sim::components::Name>(
+        [&](const gz::sim::Entity &,
+            const gz::sim::components::Name *_name)->bool
         {
           if (_name->Data() == "box")
           {

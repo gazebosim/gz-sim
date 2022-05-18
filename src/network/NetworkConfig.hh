@@ -25,9 +25,9 @@
 
 #include "NetworkRole.hh"
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -54,7 +54,7 @@ namespace ignition
       public: size_t numSecondariesExpected { 0 };
     };
     }
-  }  // namespace gazebo
-}  // namespace ignition
+  }  // namespace sim
+}  // namespace gz
 
 #endif  // GZ_GAZEBO_NETWORKCONFIG_HH_

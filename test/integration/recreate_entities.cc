@@ -42,8 +42,8 @@
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace components;
 
 using namespace std::chrono_literals;
@@ -84,7 +84,7 @@ TEST_F(RecreateEntitiesFixture,
       if (recreateEntities)
       {
         _ecm.Each<components::Model>(
-            [&](const ignition::gazebo::Entity &_entity,
+            [&](const gz::sim::Entity &_entity,
                 const components::Model *) -> bool
             {
               // add a components::Recreate to indicate that this entity
@@ -164,35 +164,35 @@ TEST_F(RecreateEntitiesFixture,
         EXPECT_EQ(worldEntity, _parent->Data());
         if (modelCount == 1)
         {
-          EXPECT_EQ(ignition::math::Pose3d(1, 2, 3, 0, 0, 1),
+          EXPECT_EQ(gz::math::Pose3d(1, 2, 3, 0, 0, 1),
               _pose->Data());
           EXPECT_EQ("box", _name->Data());
           boxModelEntity = _entity;
         }
         else if (modelCount == 2)
         {
-          EXPECT_EQ(ignition::math::Pose3d(-1, -2, -3, 0, 0, 1),
+          EXPECT_EQ(gz::math::Pose3d(-1, -2, -3, 0, 0, 1),
               _pose->Data());
           EXPECT_EQ("cylinder", _name->Data());
           cylModelEntity = _entity;
         }
         else if (modelCount == 3)
         {
-          EXPECT_EQ(ignition::math::Pose3d(0, 0, 0, 0, 0, 1),
+          EXPECT_EQ(gz::math::Pose3d(0, 0, 0, 0, 0, 1),
               _pose->Data());
           EXPECT_EQ("sphere", _name->Data());
           sphModelEntity = _entity;
         }
         else if (modelCount == 4)
         {
-          EXPECT_EQ(ignition::math::Pose3d(-4, -5, -6, 0, 0, 1),
+          EXPECT_EQ(gz::math::Pose3d(-4, -5, -6, 0, 0, 1),
               _pose->Data());
           EXPECT_EQ("capsule", _name->Data());
           capModelEntity = _entity;
         }
         else if (modelCount == 5)
         {
-          EXPECT_EQ(ignition::math::Pose3d(4, 5, 6, 0, 0, 1),
+          EXPECT_EQ(gz::math::Pose3d(4, 5, 6, 0, 0, 1),
               _pose->Data());
           EXPECT_EQ("ellipsoid", _name->Data());
           ellipModelEntity = _entity;
@@ -228,7 +228,7 @@ TEST_F(RecreateEntitiesFixture,
 
         if (linkCount == 1)
         {
-          EXPECT_EQ(ignition::math::Pose3d(0.1, 0.1, 0.1, 0, 0, 0),
+          EXPECT_EQ(gz::math::Pose3d(0.1, 0.1, 0.1, 0, 0, 0),
               _pose->Data());
           EXPECT_EQ("box_link", _name->Data());
           EXPECT_EQ(boxModelEntity, _parent->Data());
@@ -236,7 +236,7 @@ TEST_F(RecreateEntitiesFixture,
         }
         else if (linkCount == 2)
         {
-          EXPECT_EQ(ignition::math::Pose3d(0.2, 0.2, 0.2, 0, 0, 0),
+          EXPECT_EQ(gz::math::Pose3d(0.2, 0.2, 0.2, 0, 0, 0),
               _pose->Data());
           EXPECT_EQ("cylinder_link", _name->Data());
           EXPECT_EQ(cylModelEntity, _parent->Data());
@@ -244,7 +244,7 @@ TEST_F(RecreateEntitiesFixture,
         }
         else if (linkCount == 3)
         {
-          EXPECT_EQ(ignition::math::Pose3d(0.3, 0.3, 0.3, 0, 0, 0),
+          EXPECT_EQ(gz::math::Pose3d(0.3, 0.3, 0.3, 0, 0, 0),
               _pose->Data());
           EXPECT_EQ("sphere_link", _name->Data());
           EXPECT_EQ(sphModelEntity, _parent->Data());
@@ -252,7 +252,7 @@ TEST_F(RecreateEntitiesFixture,
         }
         else if (linkCount == 4)
         {
-          EXPECT_EQ(ignition::math::Pose3d(0.5, 0.5, 0.5, 0, 0, 0),
+          EXPECT_EQ(gz::math::Pose3d(0.5, 0.5, 0.5, 0, 0, 0),
               _pose->Data());
           EXPECT_EQ("capsule_link", _name->Data());
           EXPECT_EQ(capModelEntity, _parent->Data());
@@ -260,7 +260,7 @@ TEST_F(RecreateEntitiesFixture,
         }
         else if (linkCount == 5)
         {
-          EXPECT_EQ(ignition::math::Pose3d(0.8, 0.8, 0.8, 0, 0, 0),
+          EXPECT_EQ(gz::math::Pose3d(0.8, 0.8, 0.8, 0, 0, 0),
               _pose->Data());
           EXPECT_EQ("ellipsoid_link", _name->Data());
           EXPECT_EQ(ellipModelEntity, _parent->Data());
@@ -354,7 +354,7 @@ TEST_F(RecreateEntitiesFixture,
       if (recreateEntities)
       {
         _ecm.Each<components::Model>(
-            [&](const ignition::gazebo::Entity &_entity,
+            [&](const gz::sim::Entity &_entity,
                 const components::Model *) -> bool
             {
               // add a components::Recreate to indicate that this entity
@@ -513,7 +513,7 @@ TEST_F(RecreateEntitiesFixture,
       if (recreateEntities)
       {
         _ecm.Each<components::Model>(
-            [&](const ignition::gazebo::Entity &_entity,
+            [&](const gz::sim::Entity &_entity,
                 const components::Model *) -> bool
             {
               // add a components::Recreate to indicate that this entity

@@ -44,16 +44,16 @@
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Private Imu data class.
-class ignition::gazebo::systems::ImuPrivate
+class gz::sim::systems::ImuPrivate
 {
   /// \brief A map of IMU entity to its IMU sensor.
   public: std::unordered_map<Entity,
-      std::unique_ptr<ignition::sensors::ImuSensor>> entitySensorMap;
+      std::unique_ptr<gz::sensors::ImuSensor>> entitySensorMap;
 
   /// \brief Ign-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
@@ -217,7 +217,7 @@ void ImuPrivate::AddSensor(
     if (imuElementPtr->HasElement("orientation_reference_frame")) {
       double heading = 0.0;
 
-      ignition::gazebo::World world(worldEntity);
+      gz::sim::World world(worldEntity);
       if (world.SphericalCoordinates(_ecm))
       {
         auto sphericalCoordinates = world.SphericalCoordinates(_ecm).value();
@@ -225,7 +225,7 @@ void ImuPrivate::AddSensor(
       }
 
       sensor->SetWorldFrameOrientation(math::Quaterniond(0, 0, heading),
-        ignition::sensors::WorldFrameEnumType::ENU);
+        gz::sensors::WorldFrameEnumType::ENU);
     }
   }
 
@@ -345,4 +345,4 @@ IGNITION_ADD_PLUGIN(Imu, System,
   Imu::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(Imu, "ignition::gazebo::systems::Imu")
+IGNITION_ADD_PLUGIN_ALIAS(Imu, "gz::sim::systems::Imu")

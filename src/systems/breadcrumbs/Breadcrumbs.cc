@@ -44,8 +44,8 @@
 #include "gz/sim/components/World.hh"
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 //////////////////////////////////////////////////
@@ -172,8 +172,8 @@ void Breadcrumbs::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void Breadcrumbs::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void Breadcrumbs::PreUpdate(const gz::sim::UpdateInfo &_info,
+    gz::sim::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("Breadcrumbs::PreUpdate");
 
@@ -434,8 +434,8 @@ void Breadcrumbs::OnDeploy(const msgs::Empty &)
 }
 
 IGNITION_ADD_PLUGIN(Breadcrumbs,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     Breadcrumbs::ISystemConfigure,
                     Breadcrumbs::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(Breadcrumbs, "ignition::gazebo::systems::Breadcrumbs")
+IGNITION_ADD_PLUGIN_ALIAS(Breadcrumbs, "gz::sim::systems::Breadcrumbs")

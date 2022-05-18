@@ -21,9 +21,9 @@
 #include <gz/common/Profiler.hh>
 #include <gz/gui/Application.hh>
 
-using namespace ignition;
-using namespace gazebo;
-using namespace gazebo::gui;
+using namespace gz;
+using namespace sim;
+using namespace sim::gui;
 
 /////////////////////////////////////////////////
 AboutDialogHandler::AboutDialogHandler()

@@ -48,9 +48,9 @@
 
 #include "VisualizeContacts.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 {
@@ -72,7 +72,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     public: bool checkboxPrevState{false};
 
     /// \brief Message for visualizing contact positions
-    public: ignition::msgs::Marker positionMarkerMsg;
+    public: gz::msgs::Marker positionMarkerMsg;
 
     /// \brief Radius of the visualized contact sphere
     public: double contactRadius{0.10};
@@ -98,8 +98,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 }
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 VisualizeContacts::VisualizeContacts()
@@ -123,11 +123,11 @@ void VisualizeContacts::LoadConfig(const tinyxml2::XMLElement *)
   // Create the marker message
   this->dataPtr->positionMarkerMsg.set_ns("positions");
   this->dataPtr->positionMarkerMsg.set_action(
-    ignition::msgs::Marker::ADD_MODIFY);
+    gz::msgs::Marker::ADD_MODIFY);
   this->dataPtr->positionMarkerMsg.set_type(
-    ignition::msgs::Marker::SPHERE);
+    gz::msgs::Marker::SPHERE);
   this->dataPtr->positionMarkerMsg.set_visibility(
-    ignition::msgs::Marker::GUI);
+    gz::msgs::Marker::GUI);
   this->dataPtr->
     positionMarkerMsg.mutable_lifetime()->
       set_sec(0);
@@ -136,16 +136,16 @@ void VisualizeContacts::LoadConfig(const tinyxml2::XMLElement *)
       set_nsec(this->dataPtr->markerLifetime * 1000000);
 
   // Set material properties
-  ignition::msgs::Set(
+  gz::msgs::Set(
     this->dataPtr->positionMarkerMsg.mutable_material()->mutable_ambient(),
-    ignition::math::Color(0, 0, 1, 1));
-  ignition::msgs::Set(
+    gz::math::Color(0, 0, 1, 1));
+  gz::msgs::Set(
     this->dataPtr->positionMarkerMsg.mutable_material()->mutable_diffuse(),
-    ignition::math::Color(0, 0, 1, 1));
+    gz::math::Color(0, 0, 1, 1));
 
   // Set contact position scale
-  ignition::msgs::Set(this->dataPtr->positionMarkerMsg.mutable_scale(),
-    ignition::math::Vector3d(this->dataPtr->contactRadius,
+  gz::msgs::Set(this->dataPtr->positionMarkerMsg.mutable_scale(),
+    gz::math::Vector3d(this->dataPtr->contactRadius,
     this->dataPtr->contactRadius,
     this->dataPtr->contactRadius));
 }
@@ -190,7 +190,7 @@ void VisualizeContacts::Update(const UpdateInfo &_info,
     {
       // Remove the markers
       this->dataPtr->positionMarkerMsg.set_action(
-        ignition::msgs::Marker::DELETE_ALL);
+        gz::msgs::Marker::DELETE_ALL);
 
       igndbg << "Removing markers..." << std::endl;
       this->dataPtr->node.Request(
@@ -198,7 +198,7 @@ void VisualizeContacts::Update(const UpdateInfo &_info,
 
       // Change action in case checkbox is checked again
       this->dataPtr->positionMarkerMsg.set_action(
-        ignition::msgs::Marker::ADD_MODIFY);
+        gz::msgs::Marker::ADD_MODIFY);
     }
 
     this->dataPtr->checkboxPrevState = this->dataPtr->checkboxState;
@@ -233,8 +233,8 @@ void VisualizeContacts::Update(const UpdateInfo &_info,
         {
           // Set marker id, poses and request service
           this->dataPtr->positionMarkerMsg.set_id(markerID++);
-          ignition::msgs::Set(this->dataPtr->positionMarkerMsg.mutable_pose(),
-            ignition::math::Pose3d(contact.position(i).x(),
+          gz::msgs::Set(this->dataPtr->positionMarkerMsg.mutable_pose(),
+            gz::math::Pose3d(contact.position(i).x(),
               contact.position(i).y(), contact.position(i).z(),
               0, 0, 0));
 
@@ -292,8 +292,8 @@ void VisualizeContacts::UpdateRadius(double _radius)
   this->dataPtr->contactRadius = _radius;
 
   // Set scale
-  ignition::msgs::Set(this->dataPtr->positionMarkerMsg.mutable_scale(),
-    ignition::math::Vector3d(this->dataPtr->contactRadius,
+  gz::msgs::Set(this->dataPtr->positionMarkerMsg.mutable_scale(),
+    gz::math::Vector3d(this->dataPtr->contactRadius,
     this->dataPtr->contactRadius,
     this->dataPtr->contactRadius));
 }
@@ -310,5 +310,5 @@ void VisualizeContacts::UpdatePeriod(double _period)
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::VisualizeContacts,
-                    ignition::gui::Plugin)
+IGNITION_ADD_PLUGIN(gz::sim::VisualizeContacts,
+                    gz::gui::Plugin)

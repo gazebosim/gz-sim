@@ -32,9 +32,9 @@
 
 #include "gz/sim/EntityComponentManager.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -65,7 +65,7 @@ namespace traits
 /// equality operator.
 /// If `DataType` doesn't have an equality operator defined, it will return
 /// false.
-/// For doubles, `ignition::math::equal` will be used.
+/// For doubles, `gz::math::equal` will be used.
 template<typename DataType>
 auto CompareData = [](const DataType &_a, const DataType &_b) -> bool
 {

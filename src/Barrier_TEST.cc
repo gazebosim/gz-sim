@@ -21,7 +21,7 @@
 
 #include "Barrier.hh"
 
-using namespace ignition;
+using namespace gz;
 
 //////////////////////////////////////////////////
 inline bool wasCancelled(const gazebo::Barrier::ExitStatus &_ret)

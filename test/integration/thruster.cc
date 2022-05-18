@@ -35,8 +35,8 @@
 #include "gz/sim/test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 class ThrusterTest : public InternalFixture<::testing::Test>
 {
@@ -74,10 +74,10 @@ void ThrusterTest::TestWorld(const std::string &_world,
   double dt{0.0};
   fixture.
   OnConfigure(
-    [&](const ignition::gazebo::Entity &_worldEntity,
+    [&](const gz::sim::Entity &_worldEntity,
       const std::shared_ptr<const sdf::Element> &/*_sdf*/,
-      ignition::gazebo::EntityComponentManager &_ecm,
-      ignition::gazebo::EventManager &/*_eventMgr*/)
+      gz::sim::EntityComponentManager &_ecm,
+      gz::sim::EventManager &/*_eventMgr*/)
     {
       World world(_worldEntity);
 

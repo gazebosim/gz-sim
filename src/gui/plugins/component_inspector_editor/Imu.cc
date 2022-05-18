@@ -24,8 +24,8 @@
 #include "Imu.hh"
 #include "Types.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 Imu::Imu(ComponentInspectorEditor *_inspector)
@@ -99,7 +99,7 @@ Q_INVOKABLE void Imu::OnLinearAccelerationXNoise(
     double _stdDevBias, double _dynamicBiasStdDev,
     double _dynamicBiasCorrelationTime)
 {
-  ignition::gazebo::UpdateCallback cb =
+  gz::sim::UpdateCallback cb =
       [=](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::Imu>(
@@ -133,7 +133,7 @@ Q_INVOKABLE void Imu::OnLinearAccelerationYNoise(
     double _stdDevBias, double _dynamicBiasStdDev,
     double _dynamicBiasCorrelationTime)
 {
-  ignition::gazebo::UpdateCallback cb =
+  gz::sim::UpdateCallback cb =
       [=](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::Imu>(
@@ -167,7 +167,7 @@ Q_INVOKABLE void Imu::OnLinearAccelerationZNoise(
     double _stdDevBias, double _dynamicBiasStdDev,
     double _dynamicBiasCorrelationTime)
 {
-  ignition::gazebo::UpdateCallback cb =
+  gz::sim::UpdateCallback cb =
       [=](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::Imu>(
@@ -201,7 +201,7 @@ Q_INVOKABLE void Imu::OnAngularVelocityXNoise(
     double _stdDevBias, double _dynamicBiasStdDev,
     double _dynamicBiasCorrelationTime)
 {
-  ignition::gazebo::UpdateCallback cb =
+  gz::sim::UpdateCallback cb =
       [=](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::Imu>(
@@ -235,7 +235,7 @@ Q_INVOKABLE void Imu::OnAngularVelocityYNoise(
     double _stdDevBias, double _dynamicBiasStdDev,
     double _dynamicBiasCorrelationTime)
 {
-  ignition::gazebo::UpdateCallback cb =
+  gz::sim::UpdateCallback cb =
       [=](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::Imu>(
@@ -269,7 +269,7 @@ Q_INVOKABLE void Imu::OnAngularVelocityZNoise(
     double _stdDevBias, double _dynamicBiasStdDev,
     double _dynamicBiasCorrelationTime)
 {
-  ignition::gazebo::UpdateCallback cb =
+  gz::sim::UpdateCallback cb =
       [=](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::Imu>(

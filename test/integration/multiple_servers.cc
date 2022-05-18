@@ -22,8 +22,8 @@
 
 #include "../test/helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace ignition::gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace std::chrono_literals;
 
 /////////////////////////////////////////////////
@@ -34,7 +34,7 @@ class MultipleServers : public InternalFixture<::testing::TestWithParam<int>>
 /////////////////////////////////////////////////
 TEST_P(MultipleServers, TwoServersNonBlocking)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
 
   gazebo::Server server1(serverConfig);
@@ -74,7 +74,7 @@ TEST_P(MultipleServers, TwoServersNonBlocking)
 /////////////////////////////////////////////////
 TEST_P(MultipleServers, TwoServersMixedBlocking)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
 
   gazebo::Server server1(serverConfig);

@@ -38,8 +38,8 @@
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test Thermal system
 class ThermalSensorTest : public InternalFixture<::testing::Test>
@@ -99,7 +99,7 @@ TEST_F(ThermalSensorTest,
     const gazebo::EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Temperature, components::Name>(
-          [&](const ignition::gazebo::Entity &_id,
+          [&](const gz::sim::Entity &_id,
               const components::Temperature *_temp,
               const components::Name *_name) -> bool
           {
@@ -116,7 +116,7 @@ TEST_F(ThermalSensorTest,
     gazebo::EntityComponentManager &_ecm)
     {
       _ecm.Each<components::ThermalCamera, components::Name>(
-          [&](const ignition::gazebo::Entity &_id,
+          [&](const gz::sim::Entity &_id,
               const components::ThermalCamera *_sensor,
               const components::Name *_name) -> bool
           {

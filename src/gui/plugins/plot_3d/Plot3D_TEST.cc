@@ -52,7 +52,7 @@ char* g_argv[] =
   reinterpret_cast<char*>(const_cast<char*>("dummy")),
 };
 
-using namespace ignition;
+using namespace gz;
 
 /// \brief Tests for the joint position controller GUI plugin
 class Plot3D : public InternalFixture<::testing::Test>

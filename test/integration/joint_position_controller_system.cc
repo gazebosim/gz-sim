@@ -37,8 +37,8 @@
 
 #define TOL 1e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test fixture for JointPositionController system
 class JointPositionControllerTestFixture
@@ -88,7 +88,7 @@ TEST_F(JointPositionControllerTestFixture,
       {
         _ecm.Each<components::Joint, components::Name,
                   components::JointPosition>(
-            [&](const ignition::gazebo::Entity &,
+            [&](const gz::sim::Entity &,
                 const components::Joint *,
                 const components::Name *_name,
                 const components::JointPosition *_position) -> bool
@@ -165,7 +165,7 @@ TEST_F(JointPositionControllerTestFixture,
       {
         _ecm.Each<components::Joint, components::Name,
                   components::JointPosition>(
-            [&](const ignition::gazebo::Entity &,
+            [&](const gz::sim::Entity &,
                 const components::Joint *,
                 const components::Name *_name,
                 const components::JointPosition *_position) -> bool
