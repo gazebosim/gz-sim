@@ -334,7 +334,6 @@ bool ThrusterPrivateData::HasSufficientBattery(
 
     return true;
   });
-  //igndbg << "Batteries" << batteryEntities.size() << std::endl;
   return result;
 }
 
