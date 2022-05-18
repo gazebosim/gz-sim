@@ -54,6 +54,12 @@ namespace gazebo
       NOTIFY CamClipDistChanged
     )
 
+    Q_PROPERTY(
+      double camHFOV
+      READ GetCamHFOV
+      NOTIFY CamHFOVChanged
+    )
+
     /// \brief Constructor
     public: ViewAngle();
 
@@ -105,6 +111,16 @@ namespace gazebo
     /// \param[in] _near Near clipping plane distance
     /// \param[in] _far Far clipping plane distance
     public slots: void SetCamClipDist(double _near, double _far);
+
+    /// \brief Get the current GUI camera's horizontal FOV
+    public: Q_INVOKABLE double GetCamHFOV() const;
+
+    /// \brief Notify that the GUI camera's horizontal FOV changed
+    signals: void CamHFOVChanged();
+
+    /// \brief Update gui camera's FOV
+    /// \param[in] _fovDeg Horizontal FOV of the camera in degree
+    public slots: void SetCamHFOV(double _fovDeg);
 
     /// \internal
     /// \brief Pointer to private data.

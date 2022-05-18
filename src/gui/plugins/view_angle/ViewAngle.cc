@@ -73,10 +73,22 @@ namespace ignition::gazebo
     /// coming from qml side
     public: bool newCamClipDist = false;
 
+    /// \brief GUI camera horizontal FOV in degree
+    public: double camHFOV = 0;
+
+    /// \brief Flag indicating if there is a new camera horizontal FOV
+    /// coming from qml
+    public: bool newCamHFOV = false;
+
     /// \brief Checks if there is new camera clipping distance from gui camera,
     /// used to update qml side
     /// \return True if there is a new clipping distance from gui camera
     public: bool UpdateQtCamClipDist();
+
+    /// \brief Checks if there is a new camera horizontal FOV from gui camera,
+    /// used to update qml side
+    /// \return True if there is a new camera horizontal FOV from gui camera
+    public: bool UpdateQtCamHFOV();
 
     /// \brief User camera
     public: rendering::CameraPtr camera{nullptr};
@@ -163,6 +175,11 @@ bool ViewAngle::eventFilter(QObject *_obj, QEvent *_event)
     if (this->dataPtr->UpdateQtCamClipDist())
     {
       this->CamClipDistChanged();
+    }
+
+    if (this->dataPtr->UpdateQtCamHFOV())
+    {
+      this->CamHFOVChanged();
     }
   }
   else if (_event->type() ==
@@ -308,11 +325,24 @@ QList<double> ViewAngle::CamClipDist() const
 }
 
 /////////////////////////////////////////////////
+double ViewAngle::GetCamHFOV() const
+{
+  return this->dataPtr->camHFOV;
+}
+
+/////////////////////////////////////////////////
 void ViewAngle::SetCamClipDist(double _near, double _far)
 {
   this->dataPtr->camClipDist[0] = _near;
   this->dataPtr->camClipDist[1] = _far;
   this->dataPtr->newCamClipDist = true;
+}
+
+/////////////////////////////////////////////////
+void ViewAngle::SetCamHFOV(double _fovDeg)
+{
+  this->dataPtr->camHFOV = _fovDeg;
+  this->dataPtr->newCamHFOV = true;
 }
 
 /////////////////////////////////////////////////
@@ -435,6 +465,12 @@ void ViewAnglePrivate::OnRender()
     this->camera->SetFarClipPlane(this->camClipDist[1]);
     this->newCamClipDist = false;
   }
+
+  if (this->newCamHFOV)
+  {
+    // camera used Radian but GUI uses degree.
+    this->camera->SetHFOV(IGN_DTOR(this->camHFOV));
+  }
 }
 
 /////////////////////////////////////////////////
@@ -461,6 +497,19 @@ bool ViewAnglePrivate::UpdateQtCamClipDist()
   }
   return updated;
 }
+
+/////////////////////////////////////////////////
+bool ViewAnglePrivate::UpdateQtCamHFOV()
+{
+  bool updated = false;
+  if (std::abs(this->camera->HFOV().Degree() - this->camHFOV) > 0.1)
+  {
+    this->camHFOV = this->camera->HFOV().Degree();
+    updated = true;
+  }
+  return updated;
+}
+
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(ignition::gazebo::ViewAngle,

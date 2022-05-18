@@ -391,6 +391,41 @@ ColumnLayout {
     }
   }
 
+  // Set camera's FOV
+  Text {
+    text: "Camera FOV"
+    Layout.fillWidth: true
+    color: Material.Grey
+    leftPadding: 5
+    topPadding: 10
+    font.bold: true
+  }
+
+  GridLayout {
+    width: parent.width
+    columns: 4
+
+    Text {
+      text: "horizontal fov (degree)"
+      color: "dimgrey"
+      Layout.row: 0
+      Layout.column: 0
+      leftPadding: 5
+    }
+    IgnSpinBox {
+      id: hfov
+      Layout.fillWidth: true
+      Layout.row: 0
+      Layout.column: 1
+      value: ViewAngle.camHFOV
+      maximumValue: 170
+      minimumValue: 10
+      decimals: 1
+      stepSize: 10
+      onEditingFinished: ViewAngle.SetCamHFOV(hfov.value)
+    }
+  }
+
   // Bottom spacer
   Item {
     width: 10
