@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SDFGENERATOR_HH_
-#define IGNITION_GAZEBO_SDFGENERATOR_HH_
+#ifndef GZ_GAZEBO_SDFGENERATOR_HH_
+#define GZ_GAZEBO_SDFGENERATOR_HH_
 
 #include <gz/msgs/sdf_generator_config.pb.h>
 
@@ -147,4 +147,4 @@ namespace sdf_generator
 }  // namespace gazebo
 }  // namespace ignition
 
-#endif /* end of include guard: IGNITION_GAZEBO_SDFGENERATOR_HH_ */
+#endif /* end of include guard: GZ_GAZEBO_SDFGENERATOR_HH_ */

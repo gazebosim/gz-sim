@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_LIFT_DRAG_HH_
-#define IGNITION_GAZEBO_SYSTEMS_LIFT_DRAG_HH_
+#ifndef GZ_GAZEBO_SYSTEMS_LIFT_DRAG_HH_
+#define GZ_GAZEBO_SYSTEMS_LIFT_DRAG_HH_
 
 #include <memory>
 #include <gz/sim/System.hh>

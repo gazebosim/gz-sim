@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_TOUCH_PLUGIN_HH_
-#define IGNITION_GAZEBO_SYSTEMS_TOUCH_PLUGIN_HH_
+#ifndef GZ_GAZEBO_SYSTEMS_TOUCH_PLUGIN_HH_
+#define GZ_GAZEBO_SYSTEMS_TOUCH_PLUGIN_HH_
 
 #include <memory>
 #include <gz/sim/System.hh>

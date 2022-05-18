@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_TEST_TESTVISUALSYSTEM_HH_
-#define IGNITION_GAZEBO_TEST_TESTVISUALSYSTEM_HH_
+#ifndef GZ_GAZEBO_TEST_TESTVISUALSYSTEM_HH_
+#define GZ_GAZEBO_TEST_TESTVISUALSYSTEM_HH_
 
 #include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/components/Factory.hh>

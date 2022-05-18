@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_BARRIER_HH_
-#define IGNITION_GAZEBO_BARRIER_HH_
+#ifndef GZ_GAZEBO_BARRIER_HH_
+#define GZ_GAZEBO_BARRIER_HH_
 
 #include <atomic>
 #include <condition_variable>
@@ -92,4 +92,4 @@ namespace ignition
   }  // namespace gazebo
 }  // namespace ignition
 
-#endif  // IGNITION_GAZEBO_BARRIER_HH_
+#endif  // GZ_GAZEBO_BARRIER_HH_

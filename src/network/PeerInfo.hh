@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_NETWORK_PEERINFO_HH_
-#define IGNITION_GAZEBO_NETWORK_PEERINFO_HH_
+#ifndef GZ_GAZEBO_NETWORK_PEERINFO_HH_
+#define GZ_GAZEBO_NETWORK_PEERINFO_HH_
 
 #include <string>
 
@@ -64,5 +64,5 @@ namespace ignition
   }  // namespace gazebo
 }  // namespace ignition
 
-#endif  // IGNITION_GAZEBO_NETWORK_PEERINFO_HH_
+#endif  // GZ_GAZEBO_NETWORK_PEERINFO_HH_
 

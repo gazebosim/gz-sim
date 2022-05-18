@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SCENEBROADCASTER_SYSTEM_HH_
-#define IGNITION_GAZEBO_SCENEBROADCASTER_SYSTEM_HH_
+#ifndef GZ_GAZEBO_SCENEBROADCASTER_SYSTEM_HH_
+#define GZ_GAZEBO_SCENEBROADCASTER_SYSTEM_HH_
 
 #include <memory>
 #include <vector>

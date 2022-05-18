@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_TEST_HELPERS_RELAY_HH_
-#define IGNITION_GAZEBO_TEST_HELPERS_RELAY_HH_
+#ifndef GZ_GAZEBO_TEST_HELPERS_RELAY_HH_
+#define GZ_GAZEBO_TEST_HELPERS_RELAY_HH_
 
 #include <gz/sim/test_config.hh>
 

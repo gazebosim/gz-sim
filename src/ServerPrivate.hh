@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SERVERPRIVATE_HH_
-#define IGNITION_GAZEBO_SERVERPRIVATE_HH_
+#ifndef GZ_GAZEBO_SERVERPRIVATE_HH_
+#define GZ_GAZEBO_SERVERPRIVATE_HH_
 
 #include <gz/msgs/stringmsg_v.pb.h>
 

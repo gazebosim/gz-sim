@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SIMULATIONRUNNER_HH_
-#define IGNITION_GAZEBO_SIMULATIONRUNNER_HH_
+#ifndef GZ_GAZEBO_SIMULATIONRUNNER_HH_
+#define GZ_GAZEBO_SIMULATIONRUNNER_HH_
 
 #include <gz/msgs/gui.pb.h>
 #include <gz/msgs/log_playback_control.pb.h>

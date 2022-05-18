@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SYSTEMMANAGER_HH_
-#define IGNITION_GAZEBO_SYSTEMMANAGER_HH_
+#ifndef GZ_GAZEBO_SYSTEMMANAGER_HH_
+#define GZ_GAZEBO_SYSTEMMANAGER_HH_
 
 #include <memory>
 #include <string>
@@ -163,4 +163,4 @@ namespace ignition
     }
   }  // namespace gazebo
 }  // namespace ignition
-#endif  // IGNITION_GAZEBO_SYSTEMINTERNAL_HH_
+#endif  // GZ_GAZEBO_SYSTEMINTERNAL_HH_

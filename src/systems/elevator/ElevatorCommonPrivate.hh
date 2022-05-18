@@ -20,8 +20,8 @@
  * \date January 2021
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_ELEVATOR_COMMON_PRIVATE_HH_
-#define IGNITION_GAZEBO_SYSTEMS_ELEVATOR_COMMON_PRIVATE_HH_
+#ifndef GZ_GAZEBO_SYSTEMS_ELEVATOR_COMMON_PRIVATE_HH_
+#define GZ_GAZEBO_SYSTEMS_ELEVATOR_COMMON_PRIVATE_HH_
 
 #include <functional>
 #include <mutex>
@@ -96,4 +96,4 @@ class ElevatorCommonPrivate
 }  // namespace gazebo
 }  // namespace ignition
 
-#endif  // IGNITION_GAZEBO_SYSTEMS_ELEVATOR_COMMON_PRIVATE_HH_
+#endif  // GZ_GAZEBO_SYSTEMS_ELEVATOR_COMMON_PRIVATE_HH_

@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_GUI_GUIRUNNER_HH_
-#define IGNITION_GAZEBO_GUI_GUIRUNNER_HH_
+#ifndef GZ_GAZEBO_GUI_GUIRUNNER_HH_
+#define GZ_GAZEBO_GUI_GUIRUNNER_HH_
 
 #include <gz/msgs/serialized_map.pb.h>
 

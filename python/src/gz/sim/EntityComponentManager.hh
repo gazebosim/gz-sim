@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef IGNITION_GAZEBO_PYTHON__ENTITY_COMPONENT_MANAGER_HH_
-#define IGNITION_GAZEBO_PYTHON__ENTITY_COMPONENT_MANAGER_HH_
+#ifndef GZ_GAZEBO_PYTHON__ENTITY_COMPONENT_MANAGER_HH_
+#define GZ_GAZEBO_PYTHON__ENTITY_COMPONENT_MANAGER_HH_
 
 #include <pybind11/pybind11.h>
 
@@ -37,4 +37,4 @@ defineGazeboEntityComponentManager(pybind11::object module);
 }  // namespace gazebo
 }  // namespace ignition
 
-#endif  // IGNITION_GAZEBO_PYTHON__ENTITY_COMPONENT_MANAGER_HH_
+#endif  // GZ_GAZEBO_PYTHON__ENTITY_COMPONENT_MANAGER_HH_

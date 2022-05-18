@@ -15,8 +15,8 @@
  */
 
 
-#ifndef IGNITION_GAZEBO_PYTHON__SERVER_CONFIG_HH_
-#define IGNITION_GAZEBO_PYTHON__SERVER_CONFIG_HH_
+#ifndef GZ_GAZEBO_PYTHON__SERVER_CONFIG_HH_
+#define GZ_GAZEBO_PYTHON__SERVER_CONFIG_HH_
 
 #include <pybind11/pybind11.h>
 
@@ -36,4 +36,4 @@ defineGazeboServerConfig(pybind11::object module);
 }  // namespace gazebo
 }  // namespace ignition
 
-#endif  // IGNITION_GAZEBO_PYTHON__SERVER_CONFIG_HH_
+#endif  // GZ_GAZEBO_PYTHON__SERVER_CONFIG_HH_

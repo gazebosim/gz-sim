@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GUI_PLUGINS_PLOTTING_HH_
-#define IGNITION_GUI_PLUGINS_PLOTTING_HH_
+#ifndef GZ_GUI_PLUGINS_PLOTTING_HH_
+#define GZ_GUI_PLUGINS_PLOTTING_HH_
 
 #include <gz/gui/qt.h>
 #include <gz/gui/Application.hh>

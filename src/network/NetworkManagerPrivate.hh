@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_NETWORK_NETWORKMANAGERPRIVATE_HH_
-#define IGNITION_GAZEBO_NETWORK_NETWORKMANAGERPRIVATE_HH_
+#ifndef GZ_GAZEBO_NETWORK_NETWORKMANAGERPRIVATE_HH_
+#define GZ_GAZEBO_NETWORK_NETWORKMANAGERPRIVATE_HH_
 
 #include <functional>
 #include <memory>
@@ -72,5 +72,5 @@ namespace ignition
   }  // namespace gazebo
 }  // namespace ignition
 
-#endif  // IGNITION_GAZEBO_NETWORKMANAGER_HH_
+#endif  // GZ_GAZEBO_NETWORKMANAGER_HH_
 

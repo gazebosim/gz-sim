@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_SCENE3D_HH_
-#define IGNITION_GAZEBO_GUI_SCENE3D_HH_
+#ifndef GZ_GAZEBO_GUI_SCENE3D_HH_
+#define GZ_GAZEBO_GUI_SCENE3D_HH_
 
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/gui_camera.pb.h>

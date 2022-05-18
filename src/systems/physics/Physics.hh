@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SYSTEMS_PHYSICS_HH_
-#define IGNITION_GAZEBO_SYSTEMS_PHYSICS_HH_
+#ifndef GZ_GAZEBO_SYSTEMS_PHYSICS_HH_
+#define GZ_GAZEBO_SYSTEMS_PHYSICS_HH_
 
 #include <memory>
 #include <unordered_map>

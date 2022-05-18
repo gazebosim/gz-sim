@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_WHEELSLIP_HH_
-#define IGNITION_GAZEBO_SYSTEMS_WHEELSLIP_HH_
+#ifndef GZ_GAZEBO_SYSTEMS_WHEELSLIP_HH_
+#define GZ_GAZEBO_SYSTEMS_WHEELSLIP_HH_
 
 #include <gz/sim/System.hh>
 #include <memory>
