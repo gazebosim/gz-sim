@@ -11,6 +11,7 @@ release will remove the deprecated code.
   + The `ParticleEmitter2` system was renamed to `ParticleEmitter`. The
   `ParticleEmitter2` system is now deprecated. Please use the
   `ParticleEmitter` system. 
+  + The `ignition` namespace is deprecated and will be removed in future versions. Use `gz` instead.
 
 ## Ignition Gazebo 6.1 to 6.2
 
