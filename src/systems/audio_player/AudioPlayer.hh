@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_SYSTEMS_AUDIOPLAYER_HH_
 
 #include <ignition/gazebo/System.hh>
+#include <ignition/utils/ImplPtr.hh>
 #include <memory>
 
 namespace ignition
@@ -28,13 +29,11 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
 {
-  // Forward declaration
-  class AudioPlayerPrivate;
-
   /// \brief ToDo
   class AudioPlayer
       : public System,
-        public ISystemConfigure
+        public ISystemConfigure,
+        public ISystemPreUpdate
   {
     /// \brief Constructor
     public: AudioPlayer();
@@ -48,8 +47,13 @@ namespace systems
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) override;
 
-    /// \brief Private data pointer
-    // private: std::unique_ptr<AudioPlayerPrivate> dataPtr;
+    // Documentation inherited
+    public: void PreUpdate(
+                const ignition::gazebo::UpdateInfo &_info,
+                ignition::gazebo::EntityComponentManager &_ecm) override;
+
+    /// \brief Private data pointer.
+    IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)
   };
   }
 }

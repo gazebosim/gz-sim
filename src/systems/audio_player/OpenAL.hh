@@ -51,6 +51,9 @@ namespace systems
     /// \brief Constructor
     public: OpenAL();
 
+    /// \brief Destructor
+    public: virtual ~OpenAL();
+
     /// \brief Load the OpenAL server.
     /// \return True on success.
     public: bool Load(sdf::ElementPtr _sdf = sdf::ElementPtr());

@@ -27,6 +27,7 @@
 #endif
 //#endif
 
+#include <ignition/common/AudioDecoder.hh>
 #include <ignition/common/Console.hh>
 #include <ignition/gazebo/Util.hh>
 #include "OpenAL.hh"
@@ -72,6 +73,12 @@ OpenAL::OpenAL()
 {
   this->dataPtr->context = NULL;
   this->dataPtr->audioDevice = NULL;
+}
+
+/////////////////////////////////////////////////
+OpenAL::~OpenAL()
+{
+  this->Fini();
 }
 
 /////////////////////////////////////////////////
@@ -527,6 +534,7 @@ bool OpenALSource::FillBufferFromPCM(uint8_t *_pcmData,
 /////////////////////////////////////////////////
 void OpenALSource::FillBufferFromFile(const std::string &_audioFile)
 {
+  ignerr << "Audio file: " << _audioFile << std::endl;
   common::SystemPaths systemPaths;
   systemPaths.SetFilePathEnv(kResourcePathEnv);
   auto fullPathAudioFile = systemPaths.FindFile(_audioFile);
@@ -543,10 +551,10 @@ void OpenALSource::FillBufferFromFile(const std::string &_audioFile)
 
   uint8_t *dataBuffer = NULL;
 
-#ifdef HAVE_FFMPEG
+//#ifdef HAVE_FFMPEG
   unsigned int dataBufferSize;
   // Create an audio decoder
-  common::AudioDecoder audioDecoder;
+  ignition::common::AudioDecoder audioDecoder;
 
   // Set the audio file to decode
   audioDecoder.SetFile(fullPathAudioFile);
@@ -556,11 +564,11 @@ void OpenALSource::FillBufferFromFile(const std::string &_audioFile)
   // AL_FORMAT_MONO8, AL_FORMAT_MONO16, AL_FORMAT_STEREO8,
   // AL_FORMAT_STEREO16
   this->FillBufferFromPCM(dataBuffer, dataBufferSize,
-      audioDecoder.GetSampleRate());
+      audioDecoder.SampleRate());
 
-#else
-  std::cerr << "No FFMPEG audio decoder. Missing FFMPEG libraries.\n";
-#endif
+//#else
+//  std::cerr << "No FFMPEG audio decoder. Missing FFMPEG libraries.\n";
+//#endif
 
   if (dataBuffer)
     delete [] dataBuffer;

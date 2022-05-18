@@ -16,6 +16,7 @@ gz_add_system(audioplayer
     ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER}
     ignition-msgs${IGN_MSGS_VER}::ignition-msgs${IGN_MSGS_VER}
     ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
+    ${OPENAL_LIBRARY}
 )
 
 #set (gtest_sources

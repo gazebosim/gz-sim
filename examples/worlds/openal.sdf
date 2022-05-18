@@ -31,6 +31,13 @@
       filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
+    <!-- <plugin
+      filename="ignition-gazebo-audioplayer-system"
+      name="ignition::gazebo::systems::AudioPlayer">
+      <audio>
+        <device>default</device>
+      </audio>
+    </plugin> -->
 
     <light type="directional" name="sun">
       <cast_shadows>true</cast_shadows>
@@ -107,15 +114,79 @@
             <specular>1 0 0 1</specular>
           </material>
         </visual>
+
+        <!-- <audio_source>
+          <uri>file://media/audio/cheer.mp3</uri>
+          <pitch>2.0</pitch>
+          <gain>1.0</gain>
+          <loop>false</loop>
+          <contact>
+            <collision>collision</collision>
+          </contact>
+        </audio_source> -->
       </link>
 
       <plugin
         filename="ignition-gazebo-audioplayer-system"
         name="ignition::gazebo::systems::AudioPlayer">
+        <audio>
+          <device>default</device>
+        </audio>
+        <audio_source>
+          <link_name>box_link</link_name>
+          <!-- <uri>file:///home/caguero/fortress_ws/src/ign-gazebo/src/systems/audio_player/cheer.mp3</uri> -->
+          <uri>file:///usr/lib/libreoffice/share/gallery/sounds/drama.wav</uri>
+          <pitch>2.0</pitch>
+          <gain>1.0</gain>
+          <loop>false</loop>
+          <!-- <contact>
+            <collision>collision</collision>
+          </contact> -->
+        </audio_source>
+        <!-- <audio_sink>
+          <link_name>box_link</link_name>
+        </audio_sink> -->
       </plugin>
 
     </model>
 
+    <model name="sphere">
+      <pose>-2 1.5 0.5 0 0 0</pose>
+      <link name="link">
+        <!-- <audio_sink /> -->
+        <collision name="collision">
+          <geometry>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0 0 1 1</ambient>
+            <diffuse>0 0 1 1</diffuse>
+            <specular>0 0 1 1</specular>
+          </material>
+        </visual>
+      </link>
+
+      <plugin
+        filename="ignition-gazebo-audioplayer-system"
+        name="ignition::gazebo::systems::AudioPlayer">
+        <!-- <audio>
+          <device>default</device>
+        </audio> -->
+        <!-- <audio_sink>
+          <link_name>link</link_name>
+        </audio_sink> -->
+      </plugin>
+
+    </model>
 
   </world>
 </sdf>
