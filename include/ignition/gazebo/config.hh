@@ -15,4 +15,14 @@
  *
  */
 
+#ifndef IGNITION_SIM__CONFIG_HH_
+#define IGNITION_SIM__CONFIG_HH_
+
 #include <gz/sim/config.hh>
+
+namespace [[deprecated("Use gz namespace.")]]  ignition
+{
+  using namespace gz;
+}
+
+#endif
