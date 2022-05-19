@@ -41,7 +41,7 @@ namespace systems
   /// plugin), etc.
   ///
   /// # System Parameters
-  /// The exact description of these parameters can be found on p. 37 of
+  /// The exact description of these parameters can be found on p. 37 and p. 43 of
   /// Fossen's book. They are used to calculate added mass, linear and quadratic
   /// drag and coriolis force.
   ///   * <xDotU> - Added mass in x direction [kg]
@@ -50,18 +50,18 @@ namespace systems
   ///   * <kDotP> - Added mass in roll direction [kgm^2]
   ///   * <mDotQ> - Added mass in pitch direction [kgm^2]
   ///   * <nDotR> - Added mass in yaw direction [kgm^2]
-  ///   * <xUU>   - Stability derivative, 2nd order, x component [kg/m]
-  ///   * <xU>    - Stability derivative, 1st order, x component [kg]
-  ///   * <yVV>   - Stability derivative, 2nd order, y component [kg/m]
-  ///   * <yV>    - Stability derivative, 1st order, y component [kg]
-  ///   * <zWW>   - Stability derivative, 2nd order, z component [kg/m]
-  ///   * <zW>    - Stability derivative, 1st order, z component [kg]
-  ///   * <kPP>   - Stability derivative, 2nd order, roll component [kg/m^2]
-  ///   * <kP>    - Stability derivative, 1st order, roll component [kg/m]
-  ///   * <mQQ>   - Stability derivative, 2nd order, pitch component [kg/m^2]
-  ///   * <mQ>    - Stability derivative, 1st order, pitch component [kg/m]
-  ///   * <nRR>   - Stability derivative, 2nd order, yaw component [kg/m^2]
-  ///   * <nR>    - Stability derivative, 1st order, yaw component [kg/m]
+  ///   * <xUU>   - Quadratic damping, 2nd order, x component [kg/m]
+  ///   * <xU>    - Linear damping, 1st order, x component [kg]
+  ///   * <yVV>   - Quadratic damping, 2nd order, y component [kg/m]
+  ///   * <yV>    - Linear damping, 1st order, y component [kg]
+  ///   * <zWW>   - Quadratic damping, 2nd order, z component [kg/m]
+  ///   * <zW>    - Linear damping, 1st order, z component [kg]
+  ///   * <kPP>   - Quadratic damping, 2nd order, roll component [kg/m^2]
+  ///   * <kP>    - Linear damping, 1st order, roll component [kg/m]
+  ///   * <mQQ>   - Quadratic damping, 2nd order, pitch component [kg/m^2]
+  ///   * <mQ>    - Linear damping, 1st order, pitch component [kg/m]
+  ///   * <nRR>   - Quadratic damping, 2nd order, yaw component [kg/m^2]
+  ///   * <nR>    - Linear damping, 1st order, yaw component [kg/m]
   /// Additionally the system also supports the following parameters:
   ///   * <waterDensity> - The density of the fluid its moving in.
   ///     Defaults to 998kgm^-3. [kgm^-3, deprecated]
