@@ -24,7 +24,7 @@ import "qrc:/qml"
 
 ColumnLayout {
   Layout.minimumWidth: 320
-  Layout.minimumHeight: 530
+  Layout.minimumHeight: 600
   anchors.fill: parent
 
   ToolBar {
@@ -406,7 +406,7 @@ ColumnLayout {
     columns: 4
 
     Text {
-      text: "horizontal fov (degree)"
+      text: "Horizontal Fov (degree)"
       color: "dimgrey"
       Layout.row: 0
       Layout.column: 0

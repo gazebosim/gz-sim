@@ -56,7 +56,7 @@ namespace gazebo
 
     Q_PROPERTY(
       double camHFOV
-      READ GetCamHFOV
+      READ CamHFOV
       NOTIFY CamHFOVChanged
     )
 
@@ -113,7 +113,7 @@ namespace gazebo
     public slots: void SetCamClipDist(double _near, double _far);
 
     /// \brief Get the current GUI camera's horizontal FOV
-    public: Q_INVOKABLE double GetCamHFOV() const;
+    public: Q_INVOKABLE double CamHFOV() const;
 
     /// \brief Notify that the GUI camera's horizontal FOV changed
     signals: void CamHFOVChanged();

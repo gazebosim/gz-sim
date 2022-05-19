@@ -325,7 +325,7 @@ QList<double> ViewAngle::CamClipDist() const
 }
 
 /////////////////////////////////////////////////
-double ViewAngle::GetCamHFOV() const
+double ViewAngle::CamHFOV() const
 {
   return this->dataPtr->camHFOV;
 }
