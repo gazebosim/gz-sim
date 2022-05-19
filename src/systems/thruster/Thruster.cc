@@ -55,7 +55,7 @@ class ignition::gazebo::systems::ThrusterPrivateData
   /// \brief Desired propeller angular velocity in rad / s
   public: double propellerAngVel = 0.0;
 
-  /// \brief Enabled ofr not
+  /// \brief Enabled or not
   public: bool enabled = true;
 
   /// \brief Model entity
@@ -113,7 +113,8 @@ class ignition::gazebo::systems::ThrusterPrivateData
   public: double ThrustToAngularVec(double _thrust);
 
   /// \brief Returns a boolean if the battery has sufficient charge to continue
-  /// \return True if battery is charged, false otherwise. If no battery found
+  /// \return True if battery is charged, false otherwise. If no battery found,
+  /// returns true.
   public: bool HasSufficientBattery(const EntityComponentManager &_ecm) const;
 };
 
@@ -322,7 +323,7 @@ bool ThrusterPrivateData::HasSufficientBattery(
   bool result = true;
   _ecm.Each<components::BatterySoC>([&](
     const Entity &_entity,
-    const components::BatterySoC* _data
+    const components::BatterySoC *_data
   ){
     if(_ecm.ParentEntity(_entity) == this->modelEntity)
     {
