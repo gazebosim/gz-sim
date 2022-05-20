@@ -55,7 +55,7 @@ class gz::sim::SystemLoaderPrivate
     std::string homePath;
     gz::common::env(IGN_HOMEDIR, homePath);
     systemPaths.AddPluginPaths(homePath + "/.gz/sim/plugins");
-    systemPaths.AddPluginPaths(IGN_GAZEBO_PLUGIN_INSTALL_DIR);
+    systemPaths.AddPluginPaths(GZ_SIM_PLUGIN_INSTALL_DIR);
 
     auto pathToLib = systemPaths.FindSharedLibrary(_filename);
     if (pathToLib.empty())

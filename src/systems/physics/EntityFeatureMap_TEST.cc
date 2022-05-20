@@ -57,7 +57,7 @@ class EntityFeatureMapFixture: public InternalFixture<::testing::Test>
     const std::string pluginLib = "libignition-physics-dartsim-plugin.so";
 
     common::SystemPaths systemPaths;
-    systemPaths.AddPluginPaths({IGNITION_PHYSICS_ENGINE_INSTALL_DIR});
+    systemPaths.AddPluginPaths({GZ_PHYSICS_ENGINE_INSTALL_DIR});
 
     auto pathToLib = systemPaths.FindSharedLibrary(pluginLib);
     ASSERT_FALSE(pathToLib.empty())

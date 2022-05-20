@@ -33,13 +33,13 @@
 //////////////////////////////////////////////////
 extern "C" char *ignitionGazeboVersion()
 {
-  return strdup(GZ_GAZEBO_VERSION_FULL);
+  return strdup(GZ_SIM_VERSION_FULL);
 }
 
 //////////////////////////////////////////////////
 extern "C" char *gazeboVersionHeader()
 {
-  return strdup(IGNITION_GAZEBO_VERSION_HEADER);
+  return strdup(GZ_SIM_VERSION_HEADER);
 }
 
 //////////////////////////////////////////////////
@@ -52,7 +52,7 @@ extern "C" void cmdVerbosity(
 //////////////////////////////////////////////////
 extern "C" const char *worldInstallDir()
 {
-  return IGN_GAZEBO_WORLD_INSTALL_DIR;
+  return GZ_SIM_WORLD_INSTALL_DIR;
 }
 
 //////////////////////////////////////////////////
@@ -145,7 +145,7 @@ extern "C" int runServer(const char *_sdfString,
 
   serverConfig.SetLogRecordPath(recordPathMod);
 
-  ignmsg << "Ignition Gazebo Server v" << GZ_GAZEBO_VERSION_FULL
+  ignmsg << "Ignition Gazebo Server v" << GZ_SIM_VERSION_FULL
          << std::endl;
 
   // Set the SDF string to user
@@ -214,7 +214,7 @@ extern "C" int runGui(const char *_guiConfig)
     sigKilled = true;
   });
 
-  ignmsg << "Ignition Gazebo GUI    v" << GZ_GAZEBO_VERSION_FULL
+  ignmsg << "Ignition Gazebo GUI    v" << GZ_SIM_VERSION_FULL
          << std::endl;
 
   int argc = 0;
@@ -222,16 +222,16 @@ extern "C" int runGui(const char *_guiConfig)
 
   // Initialize Qt app
   gz::gui::Application app(argc, argv);
-  app.AddPluginPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
+  app.AddPluginPath(GZ_SIM_WORLD_INSTALL_DIR;;
 
   // add import path so we can load custom modules
-  app.Engine()->addImportPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
+  app.Engine()->addImportPath(GZ_SIM_WORLD_INSTALL_DIR;;
 
   // Set default config file for Gazebo
   std::string defaultConfigDir;
   gz::common::env(IGN_HOMEDIR, defaultConfigDir);
   defaultConfigDir = gz::common::joinPaths(defaultConfig, ".gz",
-      "sim", IGNITION_GAZEBO_MAJOR_VERSION_STR);
+      "sim", GZ_SIM_MAJOR_VERSION_STR);
 
   auto defaultConfig = gz::common::joinPaths(defaultConfigDir,
       "gui.config");
@@ -406,7 +406,7 @@ extern "C" int runGui(const char *_guiConfig)
     if (!gz::common::exists(defaultConfig))
     {
       auto installedConfig = gz::common::joinPaths(
-          IGNITION_GAZEBO_GUI_CONFIG_PATH, "gui.config");
+          GZ_SIM_GUI_CONFIG_PATH, "gui.config");
 
       if (!gz::common::createDirectories(defaultConfigDir))
       {

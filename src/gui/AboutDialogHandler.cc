@@ -28,7 +28,7 @@ using namespace sim::gui;
 /////////////////////////////////////////////////
 AboutDialogHandler::AboutDialogHandler()
 {
-  aboutText += std::string(IGNITION_GAZEBO_VERSION_HEADER);
+  aboutText += std::string(GZ_SIM_VERSION_HEADER);
   aboutText += "<table class='nostyle'>"
                  "<tr>"
                    "<td style='padding-right: 10px;'>Documentation:"

@@ -773,7 +773,7 @@ void Physics::Configure(const Entity &_entity,
   // * Engines installed with ign-physics
   common::SystemPaths systemPaths;
   systemPaths.SetPluginPathEnv(this->dataPtr->pluginPathEnv);
-  systemPaths.AddPluginPaths({IGNITION_PHYSICS_ENGINE_INSTALL_DIR});
+  systemPaths.AddPluginPaths({GZ_PHYSICS_ENGINE_INSTALL_DIR});
 
   auto pathToLib = systemPaths.FindSharedLibrary(pluginLib);
   if (pathToLib.empty())

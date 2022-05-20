@@ -2699,7 +2699,7 @@
 
 ### Gazebo 2.18.0 (2020-05-20)
 
-1. Added a `/world/<world_name>/create_multiple` service that parallels the current `/world/<world_name>/create` service. The `create_multiple` service can handle an `ignition::msgs::EntityFactory_V` message that may contain one or more entities to spawn.
+1. Added a `/world/<world_name>/create_multiple` service that parallels the current `/world/<world_name>/create` service. The `create_multiple` service can handle an `gz::msgs::EntityFactory_V` message that may contain one or more entities to spawn.
     * [Pull Request 146](https://github.com/gazebosim/gz-sim/pull/146)
 
 1. DetachableJoint system: Add option to suppress warning about missing child model
@@ -3116,7 +3116,7 @@
 1. Update Camera and DepthCamera components to use sdf::Sensor object instead of an sdf::ElementPtr.
     * [BitBucket pull request 299](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/299)
 
-1. Added system for ignition::sensors::AirPressureSensor.
+1. Added system for gz::sensors::AirPressureSensor.
     * [BitBucket pull request 300](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/300)
 
 1. Support conversion and serialization of Imu components. IMU sensors are

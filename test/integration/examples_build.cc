@@ -90,11 +90,11 @@ std::vector<ExampleEntry> GetExamples()
       common::joinPaths(PROJECT_SOURCE_PATH, "/examples/", type);
 
     // Iterate over directory
-    ignition::common::DirIter endIter;
-    for (ignition::common::DirIter dirIter(examplesDir);
+    gz::common::DirIter endIter;
+    for (gz::common::DirIter dirIter(examplesDir);
         dirIter != endIter; ++dirIter)
     {
-      auto base = ignition::common::basename(*dirIter);
+      auto base = gz::common::basename(*dirIter);
       auto sourceDir = common::joinPaths(examplesDir, base);
       examples.push_back({ type, base, sourceDir });
     }
@@ -122,7 +122,7 @@ void ExamplesBuild::Build(const ExampleEntry &_entry)
   }
 
   // Path to examples of the given type
-  ASSERT_TRUE(ignition::common::exists(_entry.sourceDir));
+  ASSERT_TRUE(gz::common::exists(_entry.sourceDir));
 
   igndbg << "Source: " << _entry.sourceDir << std::endl;
 

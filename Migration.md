@@ -96,7 +96,7 @@ since pose information is being logged in the `changed_state` topic.
 
 * Use `cli` component of `ignition-utils1`.
 
-* `ignition::sim::RenderUtil::SelectedEntities()` now returns a
+* `gz::sim::RenderUtil::SelectedEntities()` now returns a
   `const std::vector<Entity> &` instead of forcing a copy. The calling code
   should create a copy if it needs to modify the vector in some way.
 
@@ -109,14 +109,14 @@ since pose information is being logged in the `changed_state` topic.
 
 * Various `GuiEvent`s were deprecated in favor of their Gazebo GUI
   equivalents.
-  * **Deprecated** `ignition::sim::gui::SnapIntervals`
-  * **Replacement** `ignition::gui::SnapIntervals`
-  * **Deprecated** `ignition::sim::gui::Render`
-  * **Replacement** `ignition::gui::Render`
-  * **Deprecated** `ignition::sim::gui::SpawnPreviewModel`
-  * **Replacement** `ignition::gui::SpawnFromDescription`
-  * **Deprecated** `ignition::sim::gui::SnapPreviewPath`
-  * **Replacement** `ignition::gui::SnapFromPath`
+  * **Deprecated** `gz::sim::gui::SnapIntervals`
+  * **Replacement** `gz::gui::SnapIntervals`
+  * **Deprecated** `gz::sim::gui::Render`
+  * **Replacement** `gz::gui::Render`
+  * **Deprecated** `gz::sim::gui::SpawnPreviewModel`
+  * **Replacement** `gz::gui::SpawnFromDescription`
+  * **Deprecated** `gz::sim::gui::SnapPreviewPath`
+  * **Replacement** `gz::gui::SnapFromPath`
 
 * The `<direction>` tag of spot lights was previously not parsed by the
   scene, so all spot lights shone in the direction corresponding to the

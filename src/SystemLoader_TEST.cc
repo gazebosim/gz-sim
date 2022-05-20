@@ -42,7 +42,7 @@ TEST(SystemLoader, Constructor)
   root.LoadSdfString(std::string("<?xml version='1.0'?><sdf version='1.6'>"
       "<world name='default'>"
       "<plugin filename='libignition-gazebo") +
-      IGNITION_GAZEBO_MAJOR_VERSION_STR + "-physics-system.so' "
+      GZ_SIM_MAJOR_VERSION_STR + "-physics-system.so' "
       "name='gz::sim::systems::Physics'></plugin>"
       "</world></sdf>");
 

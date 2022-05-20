@@ -37,13 +37,13 @@
 //////////////////////////////////////////////////
 extern "C" char *ignitionGazeboVersion()
 {
-  return strdup(GZ_GAZEBO_VERSION_FULL);
+  return strdup(GZ_SIM_VERSION_FULL);
 }
 
 //////////////////////////////////////////////////
 extern "C" char *gazeboVersionHeader()
 {
-  return strdup(IGNITION_GAZEBO_VERSION_HEADER);
+  return strdup(GZ_SIM_VERSION_HEADER);
 }
 
 //////////////////////////////////////////////////
@@ -56,7 +56,7 @@ extern "C" void cmdVerbosity(
 //////////////////////////////////////////////////
 extern "C" const char *worldInstallDir()
 {
-  return IGN_GAZEBO_WORLD_INSTALL_DIR;
+  return GZ_SIM_WORLD_INSTALL_DIR;
 }
 
 //////////////////////////////////////////////////
@@ -281,7 +281,7 @@ extern "C" int runServer(const char *_sdfString,
     serverConfig.SetLogRecordCompressPath(cmpPath);
   }
 
-  ignmsg << "Gazebo Server v" << GZ_GAZEBO_VERSION_FULL
+  ignmsg << "Gazebo Server v" << GZ_SIM_VERSION_FULL
          << std::endl;
 
   // Set the SDF string to user

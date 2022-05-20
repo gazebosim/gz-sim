@@ -73,7 +73,7 @@ function(gz_add_system system_name)
   endif()
 
   # Note that plugins are currently being installed in 2 places. /lib and the plugin dir
-  install(TARGETS ${system_target} DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
+  install(TARGETS ${system_target} DESTINATION ${GZ_SIM_PLUGIN_INSTALL_DIR})
 
   # The library created by `ign_add_component` includes the ign-gazebo version
   # (i.e. libignition-gazebo1-name-system.so), but for portability of SDF
@@ -89,7 +89,7 @@ function(gz_add_system system_name)
   else()
     file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
     EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E create_symlink ${versioned} ${unversioned} WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
-    INSTALL(FILES ${PROJECT_BINARY_DIR}/lib/${unversioned} DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
+    INSTALL(FILES ${PROJECT_BINARY_DIR}/lib/${unversioned} DESTINATION ${GZ_SIM_PLUGIN_INSTALL_DIR})
   endif()
 endfunction()
 

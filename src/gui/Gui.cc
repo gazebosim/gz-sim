@@ -52,7 +52,7 @@ std::unique_ptr<gz::gui::Application> createGui(
     sigKilled = true;
   });
 
-  ignmsg << "Gazebo GUI    v" << GZ_GAZEBO_VERSION_FULL
+  ignmsg << "Gazebo GUI    v" << GZ_SIM_VERSION_FULL
          << std::endl;
 
   // Set auto scaling factor for HiDPI displays
@@ -63,7 +63,7 @@ std::unique_ptr<gz::gui::Application> createGui(
 
   // Initialize Qt app
   auto app = std::make_unique<gz::gui::Application>(_argc, _argv);
-  app->AddPluginPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
+  app->AddPluginPath(GZ_SIM_GUI_PLUGIN_INSTALL_DIR);
 
   auto aboutDialogHandler = new gz::sim::gui::AboutDialogHandler();
   aboutDialogHandler->setParent(app->Engine());
@@ -75,7 +75,7 @@ std::unique_ptr<gz::gui::Application> createGui(
   pathManager->setParent(app->Engine());
 
   // add import path so we can load custom modules
-  app->Engine()->addImportPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
+  app->Engine()->addImportPath(GZ_SIM_GUI_PLUGIN_INSTALL_DIR);
   std::string defaultGuiConfigName = "gui.config";
 
   // Set default config file for Gazebo
@@ -280,7 +280,7 @@ std::unique_ptr<gz::gui::Application> createGui(
       }
 
       auto installedConfig = gz::common::joinPaths(
-          IGNITION_GAZEBO_GUI_CONFIG_PATH, defaultGuiConfigName);
+          GZ_SIM_GUI_CONFIG_PATH, defaultGuiConfigName);
       if (!gz::common::exists(installedConfig))
       {
         ignerr << "Failed to copy installed config [" << installedConfig

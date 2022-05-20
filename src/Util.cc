@@ -622,7 +622,7 @@ std::string resolveSdfWorldFile(const std::string &_sdfFile,
     systemPaths.SetFilePathEnv(kResourcePathEnv);
 
     // Worlds installed with ign-gazebo
-    systemPaths.AddFilePaths(IGN_GAZEBO_WORLD_INSTALL_DIR);
+    systemPaths.AddFilePaths(GZ_SIM_WORLD_INSTALL_DIR);
 
     filePath = systemPaths.FindFile(_sdfFile);
   }

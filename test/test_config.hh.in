@@ -49,12 +49,12 @@ struct TestWorldSansPhysics
     "<sdf version='1.6'>"
       "<world name='default'>"
         "<plugin filename='libignition-gazebo") +
-        GZ_GAZEBO_MAJOR_VERSION_STR + "-scene-broadcaster-system.so'"
+        GZ_SIM_MAJOR_VERSION_STR + "-scene-broadcaster-system.so'"
         "  name='gz::sim::systems::SceneBroadcaster'>"
         "</plugin>"
         "<plugin"
         "  filename='libignition-gazebo" +
-        GZ_GAZEBO_MAJOR_VERSION_STR + "-user-commands-system.so'"
+        GZ_SIM_MAJOR_VERSION_STR + "-user-commands-system.so'"
         "  name='gz::sim::systems::UserCommands'>"
         "</plugin>"
       "</world>"
