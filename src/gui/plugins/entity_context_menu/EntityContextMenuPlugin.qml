@@ -36,7 +36,7 @@ ColumnLayout {
       '<li>Move To / Follow: Camera tracking</li>' +
       '<li>Copy / Paste: Copy Paste</li>' +
       '<li>View: Visualization Capabilities</li>' +
-      '<li>Remove: Gz Scene Manager</li></ul>'
+      '<li>Remove: Gazebo Scene Manager</li></ul>'
 
   Label {
     Layout.fillWidth: true

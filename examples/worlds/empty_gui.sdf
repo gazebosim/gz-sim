@@ -9,7 +9,7 @@ This example helps illustrate the interaction of the MinimalScene with other GUI
 
     The entire screen will be grey, because there's no scene manager populating it with
 
-2. From the top-right menu, insert the Gz Scene Manager plugin.
+2. From the top-right menu, insert the Gazebo Scene Manager plugin.
     The ground plane, shapes and sky will show up. But it isn't possible to orbit the
     camera with the mouse.
 
