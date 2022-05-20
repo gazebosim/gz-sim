@@ -74,7 +74,7 @@ void Label::Configure(const Entity &_entity,
   {
     // TODO(anyone) add support for nested models. We will need to check for
     // child models and their respective links/visuals
-    // https://github.com/ignitionrobotics/ign-gazebo/issues/1041
+    // https://github.com/gazebosim/gz-sim/issues/1041
 
     // Get link childern of parent model
     auto links = _ecm.ChildrenByComponents<components::Link>(

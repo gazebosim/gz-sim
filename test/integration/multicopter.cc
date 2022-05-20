@@ -67,7 +67,7 @@ class MulticopterTest : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 // Test that commanded motor speed is applied
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(MulticopterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(CommandedMotorSpeed))
 {
   // Start server

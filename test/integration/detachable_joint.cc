@@ -58,7 +58,7 @@ class DetachableJointTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(DetachableJointTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StartConnected))
 {
   using namespace std::chrono_literals;

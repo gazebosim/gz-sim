@@ -48,7 +48,7 @@ class TouchPluginTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OneLink))
 {
   this->StartServer("/test/worlds/touch_plugin.sdf");
@@ -100,7 +100,7 @@ TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OneLink))
     std::this_thread::sleep_for(std::chrono::milliseconds(30));
   }
 // Known to fail on OSX, see
-// https://github.com/ignitionrobotics/ign-gazebo/issues/22
+// https://github.com/gazebosim/gz-sim/issues/22
 #if !defined (__APPLE__)
   EXPECT_TRUE(whiteTouched);
 #endif
@@ -180,7 +180,7 @@ TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StartDisabled))
     std::this_thread::sleep_for(std::chrono::milliseconds(30));
   }
 // Known to fail on OSX, see
-// https://github.com/ignitionrobotics/ign-gazebo/issues/22
+// https://github.com/gazebosim/gz-sim/issues/22
 #if !defined (__APPLE__)
   EXPECT_TRUE(blueTouched);
 #endif

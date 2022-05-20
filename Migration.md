@@ -181,7 +181,7 @@ updated to report its scoped name.
 
 * Log files generated from Ignition Gazebo 1.X are no longer compatible with
 Gazebo 2+ for playback. [BitBucket pull request
-#257](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/257)
+#257](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/257)
 added an SDF message to the start of log files.
 
 * Log playback using `<path>` SDF parameter is deprecated. Use `--playback`

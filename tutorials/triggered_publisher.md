@@ -13,10 +13,10 @@ in response to the motion of a vehicle. The tutorial also covers how Triggered
 Publisher systems can be chained together by showing how the falling of the box
 can trigger another box to fall. The finished world SDFormat file for this
 tutorial can be found in
-[examples/worlds/triggered_publisher.sdf](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo2/examples/worlds/triggered_publisher.sdf)
+[examples/worlds/triggered_publisher.sdf](https://github.com/gazebosim/gz-sim/blob/ign-gazebo2/examples/worlds/triggered_publisher.sdf)
 
 We will use the differential drive vehicle from
-[examples/worlds/diff_drive.sdf](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo2/examples/worlds/diff_drive.sdf),
+[examples/worlds/diff_drive.sdf](https://github.com/gazebosim/gz-sim/blob/ign-gazebo2/examples/worlds/diff_drive.sdf),
 but modify the input topic of the `DiffDrive` system to `cmd_vel`. A snippet of
 the change to the `DiffDrive` system is shown below:
 

@@ -798,7 +798,7 @@ void OpticalTactilePluginPrivate::ComputeNormalForces(
 
       // todo(anyone) Replace with MatrixX and use vector multiplication instead
       // of for-loops once the following issue is completed:
-      // https://github.com/ignitionrobotics/ign-math/issues/144
+      // https://github.com/gazebosim/gz-math/issues/144
       gz::math::Vector3f normalForce = direction.Normalized();
 
       // Add force to buffer

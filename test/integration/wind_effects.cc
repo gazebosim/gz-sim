@@ -185,7 +185,7 @@ class BlockingPublisher
 
 /////////////////////////////////////////////////
 /// Check if 'enable_wind' set only in <model> works
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(WindEffectsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(WindEnabledInModel))
 {
   this->StartServer("/test/worlds/wind_effects.sdf");

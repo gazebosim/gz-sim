@@ -29,7 +29,7 @@
 #include "../helpers/EnvTestFixture.hh"
 
 // File copied from
-// https://github.com/ignitionrobotics/ign-gui/raw/ign-gui3/test/integration/ExamplesBuild_TEST.cc
+// https://github.com/gazebosim/gz-gui/raw/ign-gui3/test/integration/ExamplesBuild_TEST.cc
 
 using namespace gz;
 
@@ -142,7 +142,7 @@ void ExamplesBuild::Build(const ExampleEntry &_entry)
 }
 
 //////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_P(ExamplesBuild, IGN_UTILS_TEST_DISABLED_ON_WIN32(Build))
 {
   Build(GetParam());

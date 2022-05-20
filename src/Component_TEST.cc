@@ -62,7 +62,7 @@ TEST_F(ComponentTest, ComponentCanBeCopiedAfterDefaultCtor)
 }
 
 //////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(ComponentTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(DataByMove))
 {
   auto factory = components::Factory::Instance();

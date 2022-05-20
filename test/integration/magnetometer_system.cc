@@ -61,7 +61,7 @@ void magnetometerCb(const msgs::Magnetometer &_msg)
 
 /////////////////////////////////////////////////
 // The test checks the detected field from a rotated magnetometer
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(MagnetometerTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RotatedMagnetometer))
 {
   // Start server

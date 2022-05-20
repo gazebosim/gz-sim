@@ -70,7 +70,7 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
                                       bool &_shouldSkip)
   {
 #if __APPLE__
-    // until https://github.com/ignitionrobotics/ign-gazebo/issues/806 is fixed
+    // until https://github.com/gazebosim/gz-sim/issues/806 is fixed
     _shouldSkip = true;
 #else
     _shouldSkip = false;
@@ -564,7 +564,7 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(TrackedVehicleTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 {
   this->TestPublishCmd(

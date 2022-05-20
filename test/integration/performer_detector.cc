@@ -61,7 +61,7 @@ class PerformerDetectorTest : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 // Test that commanded motor speed is applied
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(PerformerDetectorTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(MovingPerformer))
 {
   auto server = this->StartServer("/test/worlds/performer_detector.sdf");

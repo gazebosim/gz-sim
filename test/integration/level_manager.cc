@@ -179,7 +179,7 @@ class LevelManagerFixture : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 /// Check default level includes entities not included by other levels
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(LevelManagerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(DefaultLevel))
 {
   std::vector<std::set<std::string>> levelEntityNamesList;

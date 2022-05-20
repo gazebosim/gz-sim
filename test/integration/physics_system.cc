@@ -119,7 +119,7 @@ TEST_F(PhysicsSystemFixture, CreatePhysicsWorld)
 }
 
 ////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(FallingObject))
 {
   gz::sim::ServerConfig serverConfig;

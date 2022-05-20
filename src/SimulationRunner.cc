@@ -650,8 +650,8 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     // because the GUI listens to these msgs to receive confirmation that
     // pause/play GUI requests have been processed by the server, so we want to
     // make sure that GUI requests are acknowledged quickly (see
-    // https://github.com/ignitionrobotics/ign-gui/pull/306 and
-    // https://github.com/ignitionrobotics/ign-gazebo/pull/1163)
+    // https://github.com/gazebosim/gz-gui/pull/306 and
+    // https://github.com/gazebosim/gz-sim/pull/1163)
     advertOpts.SetMsgsPerSec(10);
     this->statsPub = this->node->Advertise<gz::msgs::WorldStatistics>(
         "stats", advertOpts);

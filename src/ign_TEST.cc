@@ -55,7 +55,7 @@ std::string customExecStr(std::string _cmd)
 }
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST(CmdLine, IGN_UTILS_TEST_DISABLED_ON_WIN32(Server))
 {
   std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 " +

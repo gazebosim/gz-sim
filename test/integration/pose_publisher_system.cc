@@ -99,7 +99,7 @@ std::string addDelimiter(const std::vector<std::string> &_name,
 }
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(PosePublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 {
   // Start server

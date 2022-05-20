@@ -84,7 +84,7 @@ class Relay
 
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_P(FollowActorTest,
        IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PublishCmd))
 {

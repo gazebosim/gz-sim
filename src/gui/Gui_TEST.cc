@@ -41,8 +41,8 @@ class GuiTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-// https://github.com/ignitionrobotics/ign-gazebo/issues/8
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// https://github.com/gazebosim/gz-sim/issues/8
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(GuiTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
 {
   common::Console::SetVerbosity(4);

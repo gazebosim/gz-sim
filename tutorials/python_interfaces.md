@@ -45,7 +45,7 @@ while(server.is_running()):
 # Run the example
 
 In the
-[examples/scripts/python_api](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo7/examples/scripts/python_api)
+[examples/scripts/python_api](https://github.com/gazebosim/gz-sim/blob/ign-gazebo7/examples/scripts/python_api)
 folder there is a Python script that shows how to make use of this API.
 
 If you compiled Ignition Gazebo from source you should modify your `PYTHONPATH`:

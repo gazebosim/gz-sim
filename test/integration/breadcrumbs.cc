@@ -76,7 +76,7 @@ void remainingCb(const msgs::Int32 &_msg)
 
 /////////////////////////////////////////////////
 // This test checks the .../deploy/remaining topic
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Remaining))
 {
   // Start server

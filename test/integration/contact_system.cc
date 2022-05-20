@@ -191,7 +191,7 @@ TEST_F(ContactSystemTest,
 
 /////////////////////////////////////////////////
 // The test checks that contacts are published by the contact system
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(ContactSystemTest,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(MultipleCollisionsAsContactSensors))
 {

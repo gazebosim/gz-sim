@@ -73,7 +73,7 @@ feature which hasn't been released yet.
 
 3. Clone repository
   ```
-  git clone https://github.com/ignitionrobotics/ign-gazebo -b ign-gazebo<#>
+  git clone https://github.com/gazebosim/gz-sim -b ign-gazebo<#>
   ```
 
 4. Install package dependencies (including other Ignition libraries):
@@ -95,7 +95,7 @@ feature which hasn't been released yet.
 
 1. Clone the repository
   ```
-  git clone https://github.com/ignitionrobotics/ign-gazebo -b ign-gazebo<#>
+  git clone https://github.com/gazebosim/gz-sim -b ign-gazebo<#>
   ```
 
 2. Install dependencies
@@ -130,7 +130,7 @@ You can also generate the documentation from a clone of this repository by follo
 
 2. Clone the repository
   ```
-  git clone https://github.com/ignitionrobotics/ign-gazebo
+  git clone https://github.com/gazebosim/gz-sim
   ```
 
 3. Configure and build the documentation.

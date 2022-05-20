@@ -119,7 +119,7 @@ GuiRunner::GuiRunner(const std::string &_worldName)
   // and add support for accepting uint64_t data in ign-rendering Node's
   // UserData object.
   // todo(anyone) address
-  // https://github.com/ignitionrobotics/ign-gazebo/issues/1134
+  // https://github.com/gazebosim/gz-sim/issues/1134
   // so that an offset is not required
   this->dataPtr->ecm.SetEntityCreateOffset(math::MAX_I32 / 2);
 

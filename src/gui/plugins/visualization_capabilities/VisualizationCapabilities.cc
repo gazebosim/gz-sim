@@ -1647,7 +1647,7 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateFrameVisual(
   // Add frame name
   auto textGeom = this->scene->CreateText();
   // Ogre 2 doesn't support Text, see
-  // https://github.com/ignitionrobotics/ign-rendering/issues/487
+  // https://github.com/gazebosim/gz-rendering/issues/487
   if (nullptr != textGeom)
   {
     textGeom->SetFontName("Liberation Sans");

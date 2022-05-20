@@ -91,7 +91,7 @@ bool waitUntil(int _timeoutMs, Pred _pred)
 /////////////////////////////////////////////////
 /// Check that empty message types do not need any data to be specified in the
 /// configuration
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(TriggeredPublisherTest,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(EmptyInputEmptyOutput))
 {

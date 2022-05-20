@@ -5,7 +5,7 @@ This tutorial shows how to use the particle emitter system to add and configure 
 ## Particle Emitter System
 
 We will demonstrate the particle emitter system by using the [examples/worlds/particle_emitter.sdf](
-https://github.com/ignitionrobotics/ign-gazebo/blob/main/examples/worlds/particle_emitter.sdf) world.
+https://github.com/gazebosim/gz-sim/blob/main/examples/worlds/particle_emitter.sdf) world.
 
 To be able to spawn particle emitters,  first you will need to include the particle emitter system as a plugin to the world in your SDF. The system does not take any arguments.
 

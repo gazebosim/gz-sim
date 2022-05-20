@@ -396,7 +396,7 @@ inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
   ///
   ///
   /// For more info see
-  /// https://github.com/ignitionrobotics/ign-rendering/issues/304
+  /// https://github.com/gazebosim/gz-rendering/issues/304
   class RenderSync
   {
     /// \brief Cond. variable to synchronize rendering on specific events
@@ -1186,7 +1186,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
   g_renderCv.notify_one();
 
   // TODO(anyone) implement a SwapFromThread for parallel command generation
-  // See https://github.com/ignitionrobotics/ign-rendering/issues/304
+  // See https://github.com/gazebosim/gz-rendering/issues/304
   // if( bForcedSerialization )
   //   this->dataPtr->camera->SwapFromThread();
   // else
@@ -2714,7 +2714,7 @@ void TextureNode::PrepareNode()
         newId, sz, QQuickWindow::TextureIsOpaque);
 #else
     // TODO(anyone) Use createTextureFromNativeObject
-    // https://github.com/ignitionrobotics/ign-gui/issues/113
+    // https://github.com/gazebosim/gz-gui/issues/113
 #ifndef _WIN32
 # pragma GCC diagnostic push
 # pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -2742,7 +2742,7 @@ void TextureNode::PrepareNode()
   // However we need to synchronize the threads when resolution changes,
   // and we're also currently doing everything in lockstep (i.e. both Qt
   // and worker thread are serialized,
-  // see https://github.com/ignitionrobotics/ign-rendering/issues/304 )
+  // see https://github.com/gazebosim/gz-rendering/issues/304 )
   //
   // We need to emit even if newId == 0 because it's safe as long as both
   // threads are forcefully serialized and otherwise we may get a
@@ -2768,7 +2768,7 @@ RenderWindowItem::RenderWindowItem(QQuickItem *_parent)
   // is non-trivial since the plugin's internals have changed. Keeping this
   // shortcut here for now, and revisiting later specifically for ign-gazebo5
   // onwards.
-  // See https://github.com/ignitionrobotics/ign-gazebo/issues/1254
+  // See https://github.com/gazebosim/gz-sim/issues/1254
   static bool done{false};
   if (done)
   {
@@ -2952,7 +2952,7 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   // is non-trivial since the plugin's internals have changed. Keeping this
   // shortcut here for now, and revisiting later specifically for ign-gazebo5
   // onwards.
-  // See https://github.com/ignitionrobotics/ign-gazebo/issues/1254
+  // See https://github.com/gazebosim/gz-sim/issues/1254
   static bool done{false};
   if (done)
   {

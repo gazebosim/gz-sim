@@ -263,7 +263,7 @@ class LogSystemTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPlaybackStatistics))
 {
   // TODO(anyone) see LogSystemTest.LogControl comment about re-recording
@@ -848,7 +848,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogControl))
   // before terminating. For some reason, when running with `-r` &/or
   // terminating sim w/o pausing causing strange pose behavior
   // when seeking close to end of file followed by rewind. For more details:
-  // https://github.com/ignitionrobotics/ign-gazebo/pull/839
+  // https://github.com/gazebosim/gz-sim/pull/839
   auto logPath = common::joinPaths(PROJECT_SOURCE_PATH, "test", "media",
       "rolling_shapes_log");
 
@@ -1088,7 +1088,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogOverwrite))
   // ign gazebo. server_main.cc is deprecated and does not have overwrite
   // renaming implemented. So will always overwrite. Will not test (#) type of
   // renaming on OS X until ign gazebo is fixed:
-  // https://github.com/ignitionrobotics/ign-gazebo/issues/25
+  // https://github.com/gazebosim/gz-sim/issues/25
 
   // New log files were created
   EXPECT_TRUE(common::exists(this->logDir + "(1)"));

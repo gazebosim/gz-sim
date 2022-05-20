@@ -14,7 +14,7 @@ class.
 
 If you're trying to use some API which doesn't have an equivalent on Ignition
 yet, feel free to
-[ticket an issue](https://github.com/ignitionrobotics/ign-gazebo/issues/).
+[ticket an issue](https://github.com/gazebosim/gz-sim/issues/).
 
 ## World API
 

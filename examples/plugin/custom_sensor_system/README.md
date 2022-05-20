@@ -3,7 +3,7 @@
 This example shows how to use a custom sensor with Ignition Gazebo.
 
 It uses the odometer created on this example:
-[ign-sensors/examples/custom_sensor](https://github.com/ignitionrobotics/ign-sensors/tree/main/examples/custom_sensor).
+[ign-sensors/examples/custom_sensor](https://github.com/gazebosim/gz-sensors/tree/main/examples/custom_sensor).
 
 ## Build
 

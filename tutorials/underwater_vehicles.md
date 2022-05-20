@@ -15,7 +15,7 @@ The behaviour of a moving body through water is different from the behaviour of
 a ground based vehicle. In particular bodies moving underwater experience much
 more forces derived from drag, buoyancy and lift. The way these forces act on
 a body can be seen in the following diagram:
-![force diagram](https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/ign-gazebo5/tutorials/files/underwater/MBARI%20forces.png)
+![force diagram](https://raw.githubusercontent.com/gazebosim/gz-sim/ign-gazebo5/tutorials/files/underwater/MBARI%20forces.png)
 
 # Setting up the buoyancy plugin
 The buoyancy plugin in ignition uses the collision mesh to calculate the volume

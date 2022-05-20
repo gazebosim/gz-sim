@@ -10,7 +10,7 @@ using Continuous Integration (CI).
 Gazebo can be used for testing using any testing library. We provide
 an example of how to setup some test cases using
 [Google Test](https://github.com/google/googletest) in
-[ign-gazebo/examples/standalone/gtest_setup](https://github.com/ignitionrobotics/ign-gazebo/tree/main/examples/standalone/gtest_setup).
+[ign-gazebo/examples/standalone/gtest_setup](https://github.com/gazebosim/gz-sim/tree/main/examples/standalone/gtest_setup).
 
 The instructions on that example's `README` can be followed to compile and run
 those tests. Also be sure to go through the source code for comments with

@@ -52,7 +52,7 @@ class UserCommandsTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Create))
 {
   // Start server
@@ -768,7 +768,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PoseVector))
 }
 
 /////////////////////////////////////////////////
-// https://github.com/ignitionrobotics/ign-gazebo/issues/634
+// https://github.com/gazebosim/gz-sim/issues/634
 TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
 {
   // Start server

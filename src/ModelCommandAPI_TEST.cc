@@ -73,7 +73,7 @@ std::string customExecStr(std::string _cmd)
 
 /////////////////////////////////////////////////
 // Test `ign model` command when no Gazebo server is running.
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_WIN32(NoServerRunning))
 {
   const std::string cmd = kIgnModelCommand + "--list ";

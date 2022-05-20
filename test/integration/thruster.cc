@@ -272,7 +272,7 @@ TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(CcwAngVelCmdControl))
 }
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PIDControl))
 {
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),

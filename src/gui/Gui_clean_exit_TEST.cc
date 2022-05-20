@@ -77,7 +77,7 @@ void startBoth(const std::string &_fileName)
 
 /////////////////////////////////////////////////
 /// TODO (azeey) Temporarliy disabled until
-/// https://github.com/ignitionrobotics/ign-gazebo/issues/1443 is resolved
+/// https://github.com/gazebosim/gz-sim/issues/1443 is resolved
 TEST_P(GazeboDeathTest, DISABLED_CleanExit)
 {
   std::string githubAction;

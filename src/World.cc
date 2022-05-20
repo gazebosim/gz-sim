@@ -140,7 +140,7 @@ Entity World::LightByName(const EntityComponentManager &_ecm,
     const std::string &_name) const
 {
   // Can't use components::Light in EntityByComponents, see
-  // https://github.com/ignitionrobotics/ign-gazebo/issues/376
+  // https://github.com/gazebosim/gz-sim/issues/376
   auto entities = _ecm.EntitiesByComponents(
       components::ParentEntity(this->dataPtr->id),
       components::Name(_name));
@@ -158,7 +158,7 @@ Entity World::ActorByName(const EntityComponentManager &_ecm,
     const std::string &_name) const
 {
   // Can't use components::Actor in EntityByComponents, see
-  // https://github.com/ignitionrobotics/ign-gazebo/issues/376
+  // https://github.com/gazebosim/gz-sim/issues/376
   auto entities = _ecm.EntitiesByComponents(
       components::ParentEntity(this->dataPtr->id),
       components::Name(_name));
@@ -185,7 +185,7 @@ Entity World::ModelByName(const EntityComponentManager &_ecm,
 std::vector<Entity> World::Lights(const EntityComponentManager &_ecm) const
 {
   // Can't use components::Light in EntityByComponents, see
-  // https://github.com/ignitionrobotics/ign-gazebo/issues/376
+  // https://github.com/gazebosim/gz-sim/issues/376
   auto entities = _ecm.EntitiesByComponents(
       components::ParentEntity(this->dataPtr->id));
 
@@ -202,7 +202,7 @@ std::vector<Entity> World::Lights(const EntityComponentManager &_ecm) const
 std::vector<Entity> World::Actors(const EntityComponentManager &_ecm) const
 {
   // Can't use components::Actor in EntityByComponents, see
-  // https://github.com/ignitionrobotics/ign-gazebo/issues/376
+  // https://github.com/gazebosim/gz-sim/issues/376
   auto entities = _ecm.EntitiesByComponents(
       components::ParentEntity(this->dataPtr->id));
 
