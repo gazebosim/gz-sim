@@ -470,6 +470,14 @@ Please use [GZ_SIM_RESOURCE_PATH] instead."
       # Neither the -s nor -g options were used, so run both the server
       # and gui.
       if options['server'] == 0 && options['gui'] == 0
+
+        if plugin.end_with? ".dylib"
+          puts "On macOS `ign gazebo` currently only works with either the -s argument
+or the -g argument, you cannot run both server and gui in one terminal. 
+See https://github.com/ignitionrobotics/ign-gazebo/issues/44 for more info."
+          exit(-1)
+        end
+
         serverPid = Process.fork do
           ENV['RMT_PORT'] = '1500'
           Process.setpgid(0, 0)
