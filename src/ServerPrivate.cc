@@ -356,6 +356,20 @@ void ServerPrivate::SetupTransport()
            << "]" << std::endl;
   }
 
+  std::string resolvePathService{"/gazebo/resource_paths/resolve"};
+  if (this->node.Advertise(resolvePathService,
+      &ServerPrivate::ResourcePathsResolveService, this))
+  {
+    ignmsg << "Resource path resolve service on [" << resolvePathService << "]."
+           << std::endl;
+  }
+  else
+  {
+    ignerr << "Something went wrong, failed to advertise [" << getPathService
+           << "]" << std::endl;
+  }
+
+
   std::string pathTopic{"/gazebo/resource_paths"};
   this->pathPub = this->node.Advertise<msgs::StringMsg_V>(pathTopic);
 
@@ -483,6 +497,63 @@ bool ServerPrivate::ResourcePathsService(
   }
 
   return true;
+}
+
+//////////////////////////////////////////////////
+bool ServerPrivate::ResourcePathsResolveService(
+    const ignition::msgs::StringMsg &_req,
+    ignition::msgs::StringMsg &_res)
+{
+  // Get the request
+  std::string req = _req.data();
+
+  // Handle the case where the request is already valid
+  if (common::exists(req))
+  {
+    _res.set_data(req);
+    return true;
+  }
+
+  // Try Fuel first.
+  std::string path =
+      fuel_tools::fetchResourceWithClient(req, *this->fuelClient.get());
+  if (!path.empty() && common::exists(path))
+  {
+    _res.set_data(path);
+    return true;
+  }
+
+  // Check for the file:// prefix.
+  std::string prefix = "file://";
+  if (req.find(prefix) == 0)
+  {
+    req = req.substr(prefix.size());
+    // Check to see if the path exists
+    if (common::exists(req))
+    {
+      _res.set_data(req);
+      return true;
+    }
+  }
+
+  // Check for the model:// prefix
+  prefix = "model://";
+  if (req.find(prefix) == 0)
+    req = req.substr(prefix.size());
+
+  // Checkout resource paths
+  std::vector<std::string> gzPaths = resourcePaths();
+  for (const std::string &gzPath : gzPaths)
+  {
+    std::string fullPath = common::joinPaths(gzPath, req);
+    if (common::exists(fullPath))
+    {
+      _res.set_data(fullPath);
+      return true;
+    }
+  }
+
+  return false;
 }
 
 //////////////////////////////////////////////////

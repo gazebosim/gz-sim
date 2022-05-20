@@ -117,6 +117,14 @@ namespace ignition
       /// \return True if successful.
       private: bool ResourcePathsService(ignition::msgs::StringMsg_V &_res);
 
+      /// \brief Callback for resource paths resolve service.
+      /// \param[in] _req Request filled with a path to resolve.
+      /// \param[out] _res Response filled with the resovled path.
+      /// \return True if successful.
+      private: bool ResourcePathsResolveService(
+                   const ignition::msgs::StringMsg &_req,
+                   ignition::msgs::StringMsg &_res);
+
       /// \brief Callback for server control service.
       /// \param[out] _req The control request.
       /// \param[out] _res Whether the request was successfully fullfilled.
