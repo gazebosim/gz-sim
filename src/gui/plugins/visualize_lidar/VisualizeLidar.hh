@@ -20,9 +20,9 @@
 
 #include <memory>
 
-#include "ignition/msgs/laserscan.pb.h"
-#include "ignition/gazebo/gui/GuiSystem.hh"
-#include "ignition/gui/qt.h"
+#include "gz/msgs/laserscan.pb.h"
+#include "gz/sim/gui/GuiSystem.hh"
+#include "gz/gui/qt.h"
 
 namespace ignition
 {

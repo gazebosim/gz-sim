@@ -15,7 +15,7 @@
  *
 */
 
-#include "ignition/gazebo/gui/GuiEvents.hh"
+#include "gz/sim/gui/GuiEvents.hh"
 
 class ignition::gazebo::gui::events::GuiNewRemovedEntities::Implementation
 {

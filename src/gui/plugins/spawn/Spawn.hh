@@ -20,8 +20,8 @@
 
 #include <memory>
 
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/Plugin.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/Plugin.hh>
 
 namespace ignition
 {

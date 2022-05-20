@@ -21,7 +21,7 @@ import QtQuick.Controls.Material 2.1
 import QtQuick.Dialogs 1.0
 import QtQuick.Layouts 1.3
 import QtQuick.Controls.Styles 1.4
-import IgnGazebo 1.0 as IgnGazebo
+import GzSim 1.0 as GzSim
 
 
 Rectangle {
@@ -237,7 +237,7 @@ Rectangle {
       anchors.fill: parent
       spacing: 0
 
-      IgnGazebo.TypeIcon {
+      GzSim.TypeIcon {
         id: icon
         height: lockButton.height * 0.8
         width: lockButton.height * 0.8

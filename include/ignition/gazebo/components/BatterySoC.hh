@@ -13,29 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
-#ifndef IGNITION_GAZEBO_COMPONENTS_BATTERY_HH_
-#define IGNITION_GAZEBO_COMPONENTS_BATTERY_HH_
+ */
 
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/config.hh>
-
-namespace ignition
-{
-namespace gazebo
-{
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace components
-{
-  /// A component that identifies an entity as being a battery.
-  ///   Float value indicates state of charge.
-  using BatterySoC = Component<float, class BatterySoCTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.BatterySoC", BatterySoC)
-}
-}
-}
-}
-
-#endif
+#include <gz/sim/components/BatterySoC.hh>

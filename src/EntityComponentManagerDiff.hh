@@ -18,9 +18,9 @@
 #ifndef IGNITION_GAZEBO_ENTITYCOMPONENTMANAGER_DIFF_HH_
 #define IGNITION_GAZEBO_ENTITYCOMPONENTMANAGER_DIFF_HH_
 
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/Export.hh"
-#include "ignition/gazebo/Types.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/Export.hh"
+#include "gz/sim/Types.hh"
 
 #include <vector>
 

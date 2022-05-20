@@ -14,37 +14,5 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_JOINTVELOCITYRESET_HH_
-#define IGNITION_GAZEBO_COMPONENTS_JOINTVELOCITYRESET_HH_
 
-#include <vector>
-
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Serialization.hh>
-#include <ignition/gazebo/config.hh>
-
-namespace ignition
-{
-namespace gazebo
-{
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace components
-{
-  /// \brief Joint velocities in SI units
-  ///        (rad/s for revolute, m/s for prismatic).
-  ///
-  /// The component wraps a std::vector of size equal to the degrees of freedom
-  /// of the joint.
-  using JointVelocityReset = Component<std::vector<double>,
-                                       class JointVelocityResetTag,
-                                       serializers::VectorDoubleSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
-      "ign_gazebo_components.JointVelocityReset", JointVelocityReset)
-}
-}
-}
-}
-
-#endif
+#include <gz/sim/components/JointVelocityReset.hh>

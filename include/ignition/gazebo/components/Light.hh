@@ -13,43 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
-#ifndef IGNITION_GAZEBO_COMPONENTS_LIGHT_HH_
-#define IGNITION_GAZEBO_COMPONENTS_LIGHT_HH_
+ */
 
-#include <ignition/msgs/light.pb.h>
-
-#include <sdf/Light.hh>
-
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Serialization.hh>
-#include <ignition/gazebo/Conversions.hh>
-#include <ignition/gazebo/config.hh>
-
-namespace ignition
-{
-namespace gazebo
-{
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace serializers
-{
-  using LightSerializer =
-      serializers::ComponentToMsgSerializer<sdf::Light, msgs::Light>;
-}
-
-namespace components
-{
-  /// \brief This component contains light source information. For more
-  /// information on lights, see [SDF's Light
-  /// element](http://sdformat.org/spec?ver=1.6&elem=light).
-  using Light =
-      Component<sdf::Light, class LightTag, serializers::LightSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Light", Light)
-}
-}
-}
-}
-
-#endif
+#include <gz/sim/components/Light.hh>

@@ -14,33 +14,5 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_CONTACTDATASENSOR_HH_
-#define IGNITION_GAZEBO_COMPONENTS_CONTACTDATASENSOR_HH_
 
-#include <ignition/msgs/contacts.pb.h>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Serialization.hh>
-#include <ignition/gazebo/config.hh>
-#include <ignition/math/Vector3.hh>
-
-namespace ignition
-{
-namespace gazebo
-{
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace components
-{
-  /// \brief A component type that contains a list of contacts.
-  using ContactSensorData =
-      Component<msgs::Contacts,
-      class ContactSensorDataTag, serializers::MsgSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.ContactSensorData",
-                                ContactSensorData)
-}
-}
-}
-}
-
-#endif
+#include <gz/sim/components/ContactSensorData.hh>

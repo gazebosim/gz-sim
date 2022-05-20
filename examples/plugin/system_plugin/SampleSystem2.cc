@@ -1,7 +1,7 @@
 #include "SampleSystem.hh"
 
 //! [registerSampleSystem2]
-#include <ignition/plugin/RegisterMore.hh>
+#include <gz/plugin/RegisterMore.hh>
 
 IGNITION_ADD_PLUGIN(
     sample_system::SampleSystem2,

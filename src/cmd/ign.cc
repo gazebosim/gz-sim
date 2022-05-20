@@ -16,17 +16,17 @@
 */
 #include <tinyxml2.h>
 #include <cstring>
-#include <ignition/common/Console.hh>
-#include <ignition/common/SignalHandler.hh>
-#include <ignition/common/Filesystem.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/SignalHandler.hh>
+#include <gz/common/Filesystem.hh>
 
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/gui/Plugin.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/gui/Plugin.hh>
 
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/ServerConfig.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/ServerConfig.hh"
 #include "gui/GuiRunner.hh"
 #include "ign.hh"
 
@@ -401,7 +401,7 @@ extern "C" int runGui(const char *_guiConfig)
   if (plugins.empty())
   {
     // Check if there's a default config file under
-    // ~/.ignition/gazebo and use that. If there isn't, copy
+    // ~/.gz/sim and use that. If there isn't, copy
     // the installed file there first.
     if (!ignition::common::exists(defaultConfig))
     {
@@ -439,7 +439,7 @@ extern "C" int runGui(const char *_guiConfig)
       }
     }
 
-    // Also set ~/.ignition/gazebo/ver/gui.config as the default path
+    // Also set ~/.gz/sim/ver/gui.config as the default path
     if (!app.LoadConfig(defaultConfig))
     {
       ignerr << "Failed to load config file[" << _guiConfig << "]."

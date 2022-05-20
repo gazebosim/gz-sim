@@ -16,8 +16,8 @@
  */
 #include "CommandActor.hh"
 
-#include <ignition/gazebo/components/Pose.hh>
-#include <ignition/plugin/Register.hh>
+#include <gz/sim/components/Pose.hh>
+#include <gz/plugin/Register.hh>
 
 IGNITION_ADD_PLUGIN(
     command_actor::CommandActor,

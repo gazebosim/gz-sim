@@ -18,7 +18,7 @@
 #ifndef IGNITION_GAZEBO_SYSTEMS_JOINT_TRAJECTORY_CONTROLLER_HH_
 #define IGNITION_GAZEBO_SYSTEMS_JOINT_TRAJECTORY_CONTROLLER_HH_
 
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/System.hh>
 #include <memory>
 
 namespace ignition

@@ -14,41 +14,5 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_ANGULARACCELERATION_HH_
-#define IGNITION_GAZEBO_COMPONENTS_ANGULARACCELERATION_HH_
 
-#include <ignition/math/Vector3.hh>
-
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-
-#include <ignition/gazebo/components/Factory.hh>
-#include "ignition/gazebo/components/Component.hh"
-
-namespace ignition
-{
-namespace gazebo
-{
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace components
-{
-  /// \brief A component type that contains angular acceleration of an entity
-  /// represented by ignition::math::Vector3d.
-  using AngularAcceleration =
-      Component<math::Vector3d, class AngularAccelerationTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.AngularAcceleration",
-                                AngularAcceleration)
-
-  /// \brief A component type that contains angular acceleration of an entity in
-  /// the world frame represented by ignition::math::Vector3d.
-  using WorldAngularAcceleration =
-      Component<math::Vector3d, class WorldAngularAccelerationTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
-      "ign_gazebo_components.WorldAngularAcceleration",
-      WorldAngularAcceleration)
-}
-}
-}
-}
-#endif
+#include <gz/sim/components/AngularAcceleration.hh>

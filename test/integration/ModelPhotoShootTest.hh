@@ -34,7 +34,7 @@
 #include "ignition/gazebo/components/JointPosition.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/test_config.hh"
 #include "ignition/gazebo/TestFixture.hh"
 #include "ignition/gazebo/rendering/Events.hh"
 #include "ignition/gazebo/Model.hh"

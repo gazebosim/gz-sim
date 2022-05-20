@@ -19,10 +19,10 @@
 
 #include <string>
 
-#include <ignition/gazebo/components/LogicalAudio.hh>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/logicalaudiosensorplugin-system/Export.hh>
-#include <ignition/math/Pose3.hh>
+#include <gz/sim/components/LogicalAudio.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/logicalaudiosensorplugin-system/Export.hh>
+#include <gz/math/Pose3.hh>
 
 namespace ignition
 {

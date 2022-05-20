@@ -13,33 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
-#ifndef IGNITION_GAZEBO_COMPONENTS_RENDERENGINESERVERHEADLESS_HH_
-#define IGNITION_GAZEBO_COMPONENTS_RENDERENGINESERVERHEADLESS_HH_
+ */
 
-#include <string>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Serialization.hh>
-#include <ignition/gazebo/config.hh>
-
-namespace ignition
-{
-namespace gazebo
-{
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace components
-{
-  /// \brief Holds the headless mode.
-  using RenderEngineServerHeadless = Component<bool,
-      class RenderEngineServerHeadlessTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
-      "ign_gazebo_components.RenderEngineServerHeadless",
-      RenderEngineServerHeadless)
-}
-}
-}
-}
-
-#endif
+#include <gz/sim/components/RenderEngineServerHeadless.hh>

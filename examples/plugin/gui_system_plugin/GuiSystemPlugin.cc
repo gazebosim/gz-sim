@@ -15,11 +15,11 @@
  *
 */
 
-#include <ignition/plugin/Register.hh>
-#include <ignition/gazebo/components/Name.hh>
-#include <ignition/gazebo/components/World.hh>
-#include <ignition/gazebo/EntityComponentManager.hh>
-#include <ignition/gazebo/gui/GuiEvents.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/sim/components/Name.hh>
+#include <gz/sim/components/World.hh>
+#include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/gui/GuiEvents.hh>
 
 #include "GuiSystemPlugin.hh"
 

@@ -17,9 +17,9 @@
 #ifndef IGNITION_GAZEBO_SIMULATIONRUNNER_HH_
 #define IGNITION_GAZEBO_SIMULATIONRUNNER_HH_
 
-#include <ignition/msgs/gui.pb.h>
-#include <ignition/msgs/log_playback_control.pb.h>
-#include <ignition/msgs/sdf_generator_config.pb.h>
+#include <gz/msgs/gui.pb.h>
+#include <gz/msgs/log_playback_control.pb.h>
+#include <gz/msgs/sdf_generator_config.pb.h>
 
 #include <atomic>
 #include <chrono>
@@ -36,20 +36,20 @@
 
 #include <sdf/World.hh>
 
-#include <ignition/common/Event.hh>
-#include <ignition/common/WorkerPool.hh>
-#include <ignition/math/Stopwatch.hh>
-#include <ignition/msgs.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Event.hh>
+#include <gz/common/WorkerPool.hh>
+#include <gz/math/Stopwatch.hh>
+#include <gz/msgs.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/Conversions.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/EventManager.hh"
-#include "ignition/gazebo/Export.hh"
-#include "ignition/gazebo/ServerConfig.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/Types.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/Conversions.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/EventManager.hh"
+#include "gz/sim/Export.hh"
+#include "gz/sim/ServerConfig.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/Types.hh"
 
 #include "network/NetworkManager.hh"
 #include "LevelManager.hh"

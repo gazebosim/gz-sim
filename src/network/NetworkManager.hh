@@ -22,10 +22,10 @@
 #include <memory>
 #include <string>
 
-#include <ignition/transport/NodeOptions.hh>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/EventManager.hh>
+#include <gz/transport/NodeOptions.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
+#include <gz/sim/EventManager.hh>
 
 #include "NetworkConfig.hh"
 
@@ -39,7 +39,7 @@ namespace ignition
     class NetworkManagerPrivate;
 
     /// \class NetworkManager NetworkManager.hh
-    ///   ignition/gazebo/NetworkManager.hh
+    ///   gz/sim/NetworkManager.hh
     /// \brief The NetworkManager provides a common interface to derived
     /// objects that control the flow of information in the distributed
     /// simulation environment.

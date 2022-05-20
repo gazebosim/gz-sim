@@ -15,25 +15,25 @@
  *
  */
 
-#include <ignition/msgs/pose.pb.h>
+#include <gz/msgs/pose.pb.h>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/math/AxisAlignedBox.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/math/AxisAlignedBox.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 #include <sdf/Box.hh>
 #include <sdf/Element.hh>
 #include <sdf/Geometry.hh>
 
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/components/Geometry.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Performer.hh"
-#include "ignition/gazebo/components/Pose.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Util.hh"
+#include "gz/sim/components/Geometry.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Performer.hh"
+#include "gz/sim/components/Pose.hh"
 
 #include "PerformerDetector.hh"
 
