@@ -89,24 +89,29 @@ namespace systems
   /// ```
   /// The vehicle should move in a circle.
   class Thruster:
-    public ignition::gazebo::System,
-    public ignition::gazebo::ISystemConfigure,
-    public ignition::gazebo::ISystemPreUpdate
+    public System,
+    public ISystemConfigure,
+    public ISystemPreUpdate,
+    public ISystemPostUpdate
   {
     /// \brief Constructor
     public: Thruster();
 
     /// Documentation inherited
     public: void Configure(
-        const ignition::gazebo::Entity &_entity,
+        const Entity &_entity,
         const std::shared_ptr<const sdf::Element> &_sdf,
-        ignition::gazebo::EntityComponentManager &_ecm,
-        ignition::gazebo::EventManager &/*_eventMgr*/) override;
+        EntityComponentManager &_ecm,
+        EventManager &/*_eventMgr*/) override;
 
     /// Documentation inherited
     public: void PreUpdate(
         const ignition::gazebo::UpdateInfo &_info,
         ignition::gazebo::EntityComponentManager &_ecm) override;
+
+    /// Documentation inherited
+    public: void PostUpdate(const UpdateInfo &_info,
+        const EntityComponentManager &_ecm);
 
     /// \brief Private data pointer
     private: std::unique_ptr<ThrusterPrivateData> dataPtr;
