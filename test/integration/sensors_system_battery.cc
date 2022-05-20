@@ -21,17 +21,17 @@
 
 #include <sdf/Root.hh>
 
-#include <ignition/transport/Node.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/Types.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/Types.hh"
 #include "gz/sim/test_config.hh"
 
-#include "ignition/gazebo/components/BatterySoC.hh"
-#include "ignition/gazebo/components/Name.hh"
+#include "gz/sim/components/BatterySoC.hh"
+#include "gz/sim/components/Name.hh"
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"

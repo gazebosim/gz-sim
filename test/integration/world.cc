@@ -19,28 +19,28 @@
 
 #include <sdf/Atmosphere.hh>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/math/SphericalCoordinates.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/SphericalCoordinates.hh>
 
-#include <ignition/gazebo/EntityComponentManager.hh>
-#include <ignition/gazebo/World.hh>
-#include <ignition/gazebo/components/Actor.hh>
-#include <ignition/gazebo/components/Atmosphere.hh>
-#include <ignition/gazebo/components/Gravity.hh>
-#include <ignition/gazebo/components/Light.hh>
-#include <ignition/gazebo/components/MagneticField.hh>
-#include <ignition/gazebo/components/Model.hh>
-#include <ignition/gazebo/components/Name.hh>
-#include <ignition/gazebo/components/ParentEntity.hh>
-#include <ignition/gazebo/components/PoseCmd.hh>
-#include <ignition/gazebo/components/SelfCollide.hh>
-#include <ignition/gazebo/components/SourceFilePath.hh>
-#include <ignition/gazebo/components/SphericalCoordinates.hh>
-#include <ignition/gazebo/components/Static.hh>
-#include <ignition/gazebo/components/WindMode.hh>
-#include <ignition/gazebo/components/World.hh>
+#include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/World.hh>
+#include <gz/sim/components/Actor.hh>
+#include <gz/sim/components/Atmosphere.hh>
+#include <gz/sim/components/Gravity.hh>
+#include <gz/sim/components/Light.hh>
+#include <gz/sim/components/MagneticField.hh>
+#include <gz/sim/components/Model.hh>
+#include <gz/sim/components/Name.hh>
+#include <gz/sim/components/ParentEntity.hh>
+#include <gz/sim/components/PoseCmd.hh>
+#include <gz/sim/components/SelfCollide.hh>
+#include <gz/sim/components/SourceFilePath.hh>
+#include <gz/sim/components/SphericalCoordinates.hh>
+#include <gz/sim/components/Static.hh>
+#include <gz/sim/components/WindMode.hh>
+#include <gz/sim/components/World.hh>
 
 #include "../helpers/EnvTestFixture.hh"
 

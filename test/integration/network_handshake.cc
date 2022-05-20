@@ -19,12 +19,12 @@
 #include <chrono>
 #include <condition_variable>
 
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/msgs/world_control.pb.h"
-#include "ignition/msgs/world_stats.pb.h"
-#include "ignition/transport/Node.hh"
-#include "ignition/gazebo/Server.hh"
+#include "gz/msgs/world_control.pb.h"
+#include "gz/msgs/world_stats.pb.h"
+#include "gz/transport/Node.hh"
+#include "gz/sim/Server.hh"
 #include "gz/sim/test_config.hh"  // NOLINT(build/include)
 
 #include "../helpers/EnvTestFixture.hh"

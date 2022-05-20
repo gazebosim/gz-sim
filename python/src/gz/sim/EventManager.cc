@@ -16,7 +16,7 @@
 
 #include <pybind11/pybind11.h>
 
-#include "ignition/gazebo/EventManager.hh"
+#include "gz/sim/EventManager.hh"
 
 #include "EventManager.hh"
 

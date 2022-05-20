@@ -16,7 +16,7 @@
 */
 
 #include <gtest/gtest.h>
-#include <ignition/msgs/pose_v.pb.h>
+#include <gz/msgs/pose_v.pb.h>
 
 #include <algorithm>
 #include <climits>
@@ -26,29 +26,29 @@
 #include <numeric>
 #include <string>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/fuel_tools/Zip.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/log/Batch.hh>
-#include <ignition/transport/log/Log.hh>
-#include <ignition/transport/log/MsgIter.hh>
-#include <ignition/transport/log/Playback.hh>
-#include <ignition/transport/log/QualifiedTime.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/fuel_tools/Zip.hh>
+#include <gz/transport/Node.hh>
+#include <gz/transport/log/Batch.hh>
+#include <gz/transport/log/Log.hh>
+#include <gz/transport/log/MsgIter.hh>
+#include <gz/transport/log/Playback.hh>
+#include <gz/transport/log/QualifiedTime.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
 #include <sdf/Element.hh>
 
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/LogPlaybackStatistics.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/ServerConfig.hh"
-#include "ignition/gazebo/SystemLoader.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/LogPlaybackStatistics.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/ServerConfig.hh"
+#include "gz/sim/SystemLoader.hh"
 #include "gz/sim/test_config.hh"
 
 #include "../helpers/Relay.hh"

@@ -15,8 +15,8 @@
  *
 */
 #include "Null.hh"
-#include <ignition/gazebo/Entity.hh>
-#include <ignition/plugin/Register.hh>
+#include <gz/sim/Entity.hh>
+#include <gz/plugin/Register.hh>
 
 using namespace gz::sim;
 using namespace gz::sim::systems;

@@ -18,12 +18,12 @@
 #include <gtest/gtest.h>
 #include <string>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/common/TempDirectory.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/math/SemanticVersion.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/common/TempDirectory.hh>
+#include <gz/common/Util.hh>
+#include <gz/math/SemanticVersion.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/test_config.hh"
 #include "../helpers/EnvTestFixture.hh"

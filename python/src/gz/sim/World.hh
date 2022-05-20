@@ -19,7 +19,7 @@
 
 #include <pybind11/pybind11.h>
 
-#include <ignition/gazebo/World.hh>
+#include <gz/sim/World.hh>
 
 namespace gz
 {

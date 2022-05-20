@@ -17,12 +17,12 @@
 
 
 #include <gtest/gtest.h>
-#include <ignition/math/Stopwatch.hh>
+#include <gz/math/Stopwatch.hh>
 
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/components/Name.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/components/Name.hh"
 
 using namespace gz;
 using namespace sim;

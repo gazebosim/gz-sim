@@ -19,17 +19,17 @@
 
 #include <string>
 
-#include <ignition/common/Util.hh>
-#include <ignition/math/Color.hh>
-#include <ignition/msgs/Utility.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Util.hh>
+#include <gz/math/Color.hh>
+#include <gz/msgs/Utility.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParticleEmitter.hh"
-#include "ignition/gazebo/components/Pose.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParticleEmitter.hh"
+#include "gz/sim/components/Pose.hh"
 #include "gz/sim/test_config.hh"
 
 #include "helpers/EnvTestFixture.hh"

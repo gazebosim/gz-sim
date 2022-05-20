@@ -1,6 +1,6 @@
 #include "MockSystem.hh"
 
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
 IGNITION_ADD_PLUGIN(gz::sim::MockSystem, gz::sim::System,
     gz::sim::MockSystem::ISystemConfigure,

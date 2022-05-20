@@ -18,7 +18,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/chrono.h>
 
-#include <ignition/gazebo/World.hh>
+#include <gz/sim/World.hh>
 
 #include "UpdateInfo.hh"
 

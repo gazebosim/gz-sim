@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <ignition/common/Console.hh>
+#include <gz/common/Console.hh>
 
 #include "Console.hh"
 

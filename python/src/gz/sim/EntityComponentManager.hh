@@ -19,7 +19,7 @@
 
 #include <pybind11/pybind11.h>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include "gz/sim/EntityComponentManager.hh"
 
 namespace gz
 {

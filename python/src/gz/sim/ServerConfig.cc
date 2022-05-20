@@ -17,7 +17,7 @@
 
 #include <pybind11/pybind11.h>
 
-#include <ignition/gazebo/ServerConfig.hh>
+#include <gz/sim/ServerConfig.hh>
 
 #include "ServerConfig.hh"
 

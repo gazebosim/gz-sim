@@ -20,7 +20,7 @@
 
 #include <iostream>
 
-#include <ignition/gazebo/Util.hh>
+#include <gz/sim/Util.hh>
 #include "Util.hh"
 
 namespace gz

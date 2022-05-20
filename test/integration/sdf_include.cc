@@ -17,10 +17,10 @@
 
 #include <gtest/gtest.h>
 #include <sdf/sdf.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/fuel_tools.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
-#include "ignition/gazebo/Server.hh"
+#include <gz/common/Filesystem.hh>
+#include <gz/fuel_tools.hh>
+#include <gz/utils/ExtraTestMacros.hh>
+#include "gz/sim/Server.hh"
 #include "gz/sim/test_config.hh"  // NOLINT(build/include)
 
 #include "../helpers/EnvTestFixture.hh"
