@@ -6,11 +6,11 @@
     </physics>
 
     <plugin
-      filename="ignition-gazebo-air-pressure-system"
+      filename="gz-sim-air-pressure-system"
       name="gz::sim::systems::AirPressure">
     </plugin>
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
+      filename="libgz-sim-scene-broadcaster-system.so"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 

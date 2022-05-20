@@ -25,7 +25,7 @@ the change to the `DiffDrive` system is shown below:
   ...
 
   <plugin
-    filename="ignition-gazebo-diff-drive-system"
+    filename="gz-sim-diff-drive-system"
     name="gz::sim::systems::DiffDrive">
     <left_joint>front_left_wheel_joint</left_joint>
     <left_joint>rear_left_wheel_joint</left_joint>
@@ -44,7 +44,7 @@ a predetermined `Twist` message to the `DiffDrive` vehicle in response to
 a "start" message from the user:
 
 ```xml
-<plugin filename="ignition-gazebo-triggered-publisher-system"
+<plugin filename="gz-sim-triggered-publisher-system"
         name="gz::sim::systems::TriggeredPublisher">
   <input type="gz.msgs.Empty" topic="/start"/>
   <output type="gz.msgs.Twist" topic="/cmd_vel">
@@ -117,14 +117,14 @@ indicating where the sensor is on the ground.
       </sensor>
     </link>
     <plugin
-      filename="ignition-gazebo-touchplugin-system"
+      filename="gz-sim-touchplugin-system"
       name="gz::sim::systems::TouchPlugin">
       <target>vehicle_blue</target>
       <namespace>trigger</namespace>
       <time>0.001</time>
       <enabled>true</enabled>
     </plugin>
-    <plugin filename="ignition-gazebo-detachable-joint-system"
+    <plugin filename="gz-sim-detachable-joint-system"
             name="gz::sim::systems::DetachableJoint">
       <parent_link>body</parent_link>
       <child_model>box1</child_model>
@@ -141,7 +141,7 @@ indicating where the sensor is on the ground.
     <world>
       ...
       <plugin
-        filename="ignition-gazebo-contact-system"
+        filename="gz-sim-contact-system"
         name="gz::sim::systems::Contact">
       </plugin>
       ...
@@ -163,7 +163,7 @@ to demonstrate the use of matchers, we will only trigger when the Boolean input
 message is `true`
 
 ```xml
-<plugin filename="ignition-gazebo-triggered-publisher-system"
+<plugin filename="gz-sim-triggered-publisher-system"
         name="gz::sim::systems::TriggeredPublisher">
   <input type="gz.msgs.Boolean" topic="/trigger/touched">
     <match>data: true</match>
@@ -196,7 +196,7 @@ the link "box_body" in `box1`
 ```xml
     <world>
       ...
-      <plugin filename="ignition-gazebo-altimeter-system"
+      <plugin filename="gz-sim-altimeter-system"
         name="gz::sim::systems::Altimeter">
       </plugin>
       ...
@@ -219,7 +219,7 @@ static model `trigger` by adding the following to `trigger`
 ```xml
 <model name="trigger">
   ...
-  <plugin filename="ignition-gazebo-detachable-joint-system"
+  <plugin filename="gz-sim-detachable-joint-system"
           name="gz::sim::systems::DetachableJoint">
     <parent_link>body</parent_link>
     <child_model>box2</child_model>
@@ -243,7 +243,7 @@ we do not know the exact value and an exact comparison of floating point
 numbers is not advised, we will set a tolerance of 0.2.
 
 ```xml
-<plugin filename="ignition-gazebo-triggered-publisher-system"
+<plugin filename="gz-sim-triggered-publisher-system"
         name="gz::sim::systems::TriggeredPublisher">
   <input type="gz.msgs.Altimeter" topic="/altimeter">
     <match field="vertical_position" tol="0.2">-7.5</match>

@@ -16,23 +16,23 @@
 <sdf version="1.7">
   <world name="optical_tactile_plugin">
     <plugin
-      filename="libignition-gazebo-physics-system.so"
+      filename="libgz-sim-physics-system.so"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-contact-system.so"
+      filename="libgz-sim-contact-system.so"
       name="gz::sim::systems::Contact">
     </plugin>
     <plugin
-      filename="libignition-gazebo-user-commands-system.so"
+      filename="libgz-sim-user-commands-system.so"
       name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
+      filename="libgz-sim-scene-broadcaster-system.so"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin
-      filename="libignition-gazebo-sensors-system.so"
+      filename="libgz-sim-sensors-system.so"
       name="gz::sim::systems::Sensors">
       <render_engine>ogre2</render_engine>
     </plugin>
@@ -242,7 +242,7 @@
       </link>
       <static>false</static>
       <plugin
-        filename="libignition-gazebo-opticaltactileplugin-system.so"
+        filename="libgz-sim-opticaltactileplugin-system.so"
         name="gz::sim::systems::OpticalTactilePlugin">
         <enabled>true</enabled>
         <namespace>optical_tactile_plugin</namespace>

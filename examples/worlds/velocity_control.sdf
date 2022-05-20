@@ -17,15 +17,15 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="ignition-gazebo-physics-system"
+      filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-user-commands-system"
+      filename="gz-sim-user-commands-system"
       name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
+      filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
@@ -239,7 +239,7 @@
       </joint>
 
       <plugin
-        filename="ignition-gazebo-velocity-control-system"
+        filename="gz-sim-velocity-control-system"
         name="gz::sim::systems::VelocityControl">
       </plugin>
 
@@ -414,7 +414,7 @@
       </joint>
 
       <plugin
-        filename="ignition-gazebo-velocity-control-system"
+        filename="gz-sim-velocity-control-system"
         name="gz::sim::systems::VelocityControl">
         <initial_linear>0.3 0 0</initial_linear>
         <initial_angular>0 0 -0.1</initial_angular>

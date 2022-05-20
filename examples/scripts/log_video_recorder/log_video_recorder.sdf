@@ -10,15 +10,15 @@
 -->
 <sdf version='1.6'>
   <world name='default'>
-    <plugin filename='ignition-gazebo-scene-broadcaster-system'
+    <plugin filename='gz-sim-scene-broadcaster-system'
             name='gz::sim::systems::SceneBroadcaster'>
     </plugin>
     <plugin
-      filename='ignition-gazebo-log-system'
+      filename='gz-sim-log-system'
       name='gz::sim::systems::LogPlayback'>
       <path>tmp_record</path>
     </plugin>
-    <plugin filename='ignition-gazebo-log-video-recorder-system'
+    <plugin filename='gz-sim-log-video-recorder-system'
             name='gz::sim::systems::LogVideoRecorder'>
       <region>
         <min>-5 -5 0.001</min>

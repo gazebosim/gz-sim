@@ -6,11 +6,11 @@
       <real_time_factor>0</real_time_factor>
     </physics>
     <plugin
-      filename="ignition-gazebo-physics-system"
+      filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-buoyancy-system"
+      filename="gz-sim-buoyancy-system"
       name="gz::sim::systems::Buoyancy">
       <uniform_fluid_density>1000</uniform_fluid_density>
     </plugin>
@@ -56,7 +56,7 @@
         </collision>
       </link>
       <plugin
-        filename="libignition-gazebo-buoyancy-engine-system.so"
+        filename="libgz-sim-buoyancy-engine-system.so"
         name="gz::sim::systems::BuoyancyEngine">
         <link_name>body</link_name>
         <namespace>buoyant_box</namespace>
@@ -96,7 +96,7 @@
         </collision>
       </link>
       <plugin
-        filename="libignition-gazebo-buoyancy-engine-system.so"
+        filename="libgz-sim-buoyancy-engine-system.so"
         name="gz::sim::systems::BuoyancyEngine">
         <link_name>body</link_name>
         <namespace>buoyant_box</namespace>

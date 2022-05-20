@@ -80,7 +80,7 @@ favorite editor and save this file as `fuel_preview.sdf`:
 <sdf version="1.6">
   <world name="fuel_preview">
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
+      filename="libgz-sim-scene-broadcaster-system.so"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 

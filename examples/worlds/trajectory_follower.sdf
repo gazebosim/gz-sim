@@ -20,15 +20,15 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="ignition-gazebo-physics-system"
+      filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-user-commands-system"
+      filename="gz-sim-user-commands-system"
       name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
+      filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
@@ -110,7 +110,7 @@
       </link>
 
       <plugin
-        filename="ignition-gazebo-trajectory-follower-system"
+        filename="gz-sim-trajectory-follower-system"
         name="gz::sim::systems::TrajectoryFollower">
         <link_name>box_link</link_name>
         <loop>true</loop>
@@ -161,7 +161,7 @@
       </link>
 
       <plugin
-        filename="ignition-gazebo-trajectory-follower-system"
+        filename="gz-sim-trajectory-follower-system"
         name="gz::sim::systems::TrajectoryFollower">
         <link_name>box_link</link_name>
         <loop>true</loop>
@@ -212,7 +212,7 @@
       </link>
 
       <plugin
-        filename="ignition-gazebo-trajectory-follower-system"
+        filename="gz-sim-trajectory-follower-system"
         name="gz::sim::systems::TrajectoryFollower">
         <link_name>box_link</link_name>
         <loop>true</loop>

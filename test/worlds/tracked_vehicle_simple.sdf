@@ -9,9 +9,9 @@
             <real_time_factor>0</real_time_factor>
             <real_time_update_rate>1000</real_time_update_rate>
         </physics>
-        <plugin name='gz::sim::systems::Physics' filename='ignition-gazebo-physics-system'/>
-        <plugin name='gz::sim::systems::UserCommands' filename='ignition-gazebo-user-commands-system'/>
-        <plugin name='gz::sim::systems::SceneBroadcaster' filename='ignition-gazebo-scene-broadcaster-system'/>
+        <plugin name='gz::sim::systems::Physics' filename='gz-sim-physics-system'/>
+        <plugin name='gz::sim::systems::UserCommands' filename='gz-sim-user-commands-system'/>
+        <plugin name='gz::sim::systems::SceneBroadcaster' filename='gz-sim-scene-broadcaster-system'/>
         <scene>
             <ambient>1 1 1 1</ambient>
             <background>0.8 0.8 0.8 1</background>
@@ -1065,7 +1065,7 @@
                 </physics>
             </joint>
 
-            <plugin name="gz::sim::systems::TrackedVehicle" filename="ignition-gazebo-tracked-vehicle-system">
+            <plugin name="gz::sim::systems::TrackedVehicle" filename="gz-sim-tracked-vehicle-system">
                 <left_track><link>left_track</link></left_track>
                 <left_track><link>front_left_flipper</link></left_track>
                 <left_track><link>rear_left_flipper</link></left_track>
@@ -1076,32 +1076,32 @@
                 <tracks_height>0.18094</tracks_height>
                 <steering_efficiency>0.5</steering_efficiency>
             </plugin>
-            <plugin name='gz::sim::systems::TrackController' filename='libignition-gazebo-track-controller-system.so'>
+            <plugin name='gz::sim::systems::TrackController' filename='libgz-sim-track-controller-system.so'>
                 <link>left_track</link>
                 <min_velocity>-1.0</min_velocity>
                 <max_velocity>1.0</max_velocity>
             </plugin>
-            <plugin name='gz::sim::systems::TrackController' filename='libignition-gazebo-track-controller-system.so'>
+            <plugin name='gz::sim::systems::TrackController' filename='libgz-sim-track-controller-system.so'>
                 <link>right_track</link>
                 <min_velocity>-1.0</min_velocity>
                 <max_velocity>1.0</max_velocity>
             </plugin>
-            <plugin name='gz::sim::systems::TrackController' filename='libignition-gazebo-track-controller-system.so'>
+            <plugin name='gz::sim::systems::TrackController' filename='libgz-sim-track-controller-system.so'>
                 <link>front_left_flipper</link>
                 <min_velocity>-1.0</min_velocity>
                 <max_velocity>1.0</max_velocity>
             </plugin>
-            <plugin name='gz::sim::systems::TrackController' filename='libignition-gazebo-track-controller-system.so'>
+            <plugin name='gz::sim::systems::TrackController' filename='libgz-sim-track-controller-system.so'>
                 <link>rear_left_flipper</link>
                 <min_velocity>-1.0</min_velocity>
                 <max_velocity>1.0</max_velocity>
             </plugin>
-            <plugin name='gz::sim::systems::TrackController' filename='libignition-gazebo-track-controller-system.so'>
+            <plugin name='gz::sim::systems::TrackController' filename='libgz-sim-track-controller-system.so'>
                 <link>front_right_flipper</link>
                 <min_velocity>-1.0</min_velocity>
                 <max_velocity>1.0</max_velocity>
             </plugin>
-            <plugin name='gz::sim::systems::TrackController' filename='libignition-gazebo-track-controller-system.so'>
+            <plugin name='gz::sim::systems::TrackController' filename='libgz-sim-track-controller-system.so'>
                 <link>rear_right_flipper</link>
                 <min_velocity>-1.0</min_velocity>
                 <max_velocity>1.0</max_velocity>

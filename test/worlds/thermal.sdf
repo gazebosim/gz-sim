@@ -11,16 +11,16 @@
       <real_time_factor>0</real_time_factor>
     </physics>
     <plugin
-      filename="ignition-gazebo-physics-system"
+      filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-sensors-system"
+      filename="gz-sim-sensors-system"
       name="gz::sim::systems::Sensors">
       <render_engine>ogre2</render_engine>
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
+      filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
@@ -109,7 +109,7 @@
             <specular>0 0 1 1</specular>
           </material>
           <plugin
-            filename="ignition-gazebo-thermal-system"
+            filename="gz-sim-thermal-system"
             name="gz::sim::systems::Thermal">
             <temperature>600.0</temperature>
           </plugin>
@@ -153,7 +153,7 @@
             <specular>0 1 0 1</specular>
           </material>
           <plugin
-            filename="ignition-gazebo-thermal-system"
+            filename="gz-sim-thermal-system"
             name="gz::sim::systems::Thermal">
             <temperature>400.0</temperature>
           </plugin>
@@ -202,7 +202,7 @@
             <specular>0 1 0 1</specular>
           </material>
           <plugin
-            filename="ignition-gazebo-thermal-system"
+            filename="gz-sim-thermal-system"
             name="gz::sim::systems::Thermal">
             <heat_signature>../media/duck.png</heat_signature>
             <temperature>400.0</temperature>
@@ -246,7 +246,7 @@
             <specular>0 0 1 1</specular>
           </material>
           <plugin
-            filename="ignition-gazebo-thermal-system"
+            filename="gz-sim-thermal-system"
             name="gz::sim::systems::Thermal">
             <heat_signature>../media/duck.png</heat_signature>
             <max_temp>500.0</max_temp>
@@ -293,7 +293,7 @@
             <specular>0 0 1 1</specular>
           </material>
           <plugin
-            filename="ignition-gazebo-thermal-system"
+            filename="gz-sim-thermal-system"
             name="gz::sim::systems::Thermal">
             <heat_signature>../media/duck.png</heat_signature>
             <min_temp>400.0</min_temp>
@@ -345,7 +345,7 @@
           <visualize>true</visualize>
           <topic>thermal_camera_8bit/image</topic>
           <plugin
-            filename="ignition-gazebo-thermal-sensor-system"
+            filename="gz-sim-thermal-sensor-system"
             name="gz::sim::systems::ThermalSensor">
             <min_temp>253.15</min_temp>
             <max_temp>673.15</max_temp>

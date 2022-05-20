@@ -55,7 +55,7 @@ For the example above, you can load it like this:
 
 ```{.xml}
 <plugin
-  filename="ignition-gazebo-physics-system"
+  filename="gz-sim-physics-system"
   name="gz::sim::systems::Physics">
   <engine>
     <filename>CustomEngine</filename>

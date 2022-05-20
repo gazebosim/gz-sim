@@ -209,7 +209,7 @@
         </axis>
       </joint>
       <plugin
-        filename="libignition-gazebo-wheel-slip-system.so"
+        filename="libgz-sim-wheel-slip-system.so"
         name="gz::sim::systems::WheelSlip">
         <wheel link_name="wheel">
           <wheel_radius>0.1</wheel_radius>

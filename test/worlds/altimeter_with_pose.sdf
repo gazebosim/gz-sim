@@ -6,15 +6,15 @@
       <real_time_factor>0</real_time_factor>
     </physics>
     <plugin
-      filename="ignition-gazebo-physics-system"
+      filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-altimeter-system"
+      filename="gz-sim-altimeter-system"
       name="gz::sim::systems::Altimeter">
     </plugin>
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
+      filename="libgz-sim-scene-broadcaster-system.so"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
@@ -80,7 +80,7 @@
       </link>
 
       <plugin
-        filename="ignition-gazebo-kinetic-energy-monitor-system"
+        filename="gz-sim-kinetic-energy-monitor-system"
         name="gz::sim::systems::KineticEnergyMonitor">
         <link_name>link</link_name>
         <kinetic_energy_threshold>2</kinetic_energy_threshold>

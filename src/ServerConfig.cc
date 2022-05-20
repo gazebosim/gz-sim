@@ -573,7 +573,7 @@ ServerConfig::LogPlaybackPlugin() const
   auto entityName = "*";
   auto entityType = "world";
   auto pluginName = "gz::sim::systems::LogPlayback";
-  auto pluginFilename = "ignition-gazebo-log-system";
+  auto pluginFilename = "gz-sim-log-system";
 
   sdf::ElementPtr playbackElem;
   playbackElem = std::make_shared<sdf::Element>();
@@ -603,7 +603,7 @@ ServerConfig::LogRecordPlugin() const
   auto entityName = "*";
   auto entityType = "world";
   auto pluginName = "gz::sim::systems::LogRecord";
-  auto pluginFilename = "ignition-gazebo-log-system";
+  auto pluginFilename = "gz-sim-log-system";
 
   sdf::ElementPtr recordElem;
 
@@ -916,8 +916,8 @@ gz::sim::loadPluginInfo(bool _isPlayback)
 
   std::string defaultConfigDir;
   gz::common::env(IGN_HOMEDIR, defaultConfigDir);
-  defaultConfigDir = gz::common::joinPaths(defaultConfigDir, ".ignition",
-    "gazebo", IGNITION_GAZEBO_MAJOR_VERSION_STR);
+  defaultConfigDir = gz::common::joinPaths(defaultConfigDir, ".gz",
+    "sim", GZ_SIM_MAJOR_VERSION_STR);
 
   auto defaultConfig = gz::common::joinPaths(defaultConfigDir,
       configFilename);
@@ -925,7 +925,7 @@ gz::sim::loadPluginInfo(bool _isPlayback)
   if (!gz::common::exists(defaultConfig))
   {
     auto installedConfig = gz::common::joinPaths(
-        IGNITION_GAZEBO_SERVER_CONFIG_PATH,
+        GZ_SIM_SERVER_CONFIG_PATH,
         configFilename);
 
     if (!gz::common::createDirectories(defaultConfigDir))

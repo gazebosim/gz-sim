@@ -53,25 +53,25 @@ ign service -s /world/spherical_coordinates/set_spherical_coordinates \
 
     <!-- Processes the NavSat sensor -->
     <plugin
-      filename="ignition-gazebo-navsat-system"
+      filename="gz-sim-navsat-system"
       name="gz::sim::systems::NavSat">
     </plugin>
 
     <!-- Handles requests to update the spherical coordinates -->
     <plugin
-      filename="ignition-gazebo-user-commands-system"
+      filename="gz-sim-user-commands-system"
       name="gz::sim::systems::UserCommands">
     </plugin>
 
     <!-- Populates the GUI with data from the server -->
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
+      filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <!-- Processes pose commands -->
     <plugin
-      filename="ignition-gazebo-physics-system"
+      filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
 

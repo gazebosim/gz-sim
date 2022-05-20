@@ -5,9 +5,9 @@
       <max_step_size>0.01</max_step_size>
       <real_time_factor>0</real_time_factor>
     </physics>
-    <plugin filename="libignition-gazebo-user-commands-system.so" name="gz::sim::systems::UserCommands">
+    <plugin filename="libgz-sim-user-commands-system.so" name="gz::sim::systems::UserCommands">
     </plugin>
-    <plugin filename="libignition-gazebo-scene-broadcaster-system.so" name="gz::sim::systems::SceneBroadcaster">
+    <plugin filename="libgz-sim-scene-broadcaster-system.so" name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <scene>
       <ambient>1 1 1</ambient>
@@ -27,7 +27,7 @@
       </attenuation>
       <direction>-0.5 0.1 -0.9</direction>
     </light>
-    <plugin name="gz::sim::systems::ColladaWorldExporter" filename="ignition-gazebo-collada-world-exporter-system" />
+    <plugin name="gz::sim::systems::ColladaWorldExporter" filename="gz-sim-collada-world-exporter-system" />
     <include>
       <name>building_L1</name>
       <uri>model://building_L1</uri>

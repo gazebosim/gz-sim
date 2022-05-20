@@ -94,8 +94,8 @@ std::unique_ptr<gz::gui::Application> createGui(
     }
     gz::common::env(IGN_HOMEDIR, defaultConfig);
     defaultConfigFolder =
-      gz::common::joinPaths(defaultConfig, ".ignition",
-        "gazebo", IGNITION_GAZEBO_MAJOR_VERSION_STR);
+      gz::common::joinPaths(defaultConfig, ".gz",
+        "sim", GZ_SIM_MAJOR_VERSION_STR);
     defaultConfig = gz::common::joinPaths(defaultConfigFolder,
         defaultGuiConfigName);
   }

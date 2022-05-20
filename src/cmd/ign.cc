@@ -230,8 +230,8 @@ extern "C" int runGui(const char *_guiConfig)
   // Set default config file for Gazebo
   std::string defaultConfigDir;
   gz::common::env(IGN_HOMEDIR, defaultConfigDir);
-  defaultConfigDir = gz::common::joinPaths(defaultConfig, ".ignition",
-      "gazebo", IGNITION_GAZEBO_MAJOR_VERSION_STR);
+  defaultConfigDir = gz::common::joinPaths(defaultConfig, ".gz",
+      "sim", IGNITION_GAZEBO_MAJOR_VERSION_STR);
 
   auto defaultConfig = gz::common::joinPaths(defaultConfigDir,
       "gui.config");

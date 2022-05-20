@@ -1233,7 +1233,7 @@ TEST_F(ComponentsTest, ModelSdf)
     << "      <real_time_factor>1.0</real_time_factor>"
     << "    </physics>"
     << "    <plugin"
-    << "      filename=\"ignition-gazebo-physics-system\""
+    << "      filename=\"gz-sim-physics-system\""
     << "      name=\"gz::sim::systems::Physics\">"
     << "    </plugin>"
     << "    <model name='my_model'>"
