@@ -34,7 +34,7 @@ namespace gz
     /// \\brief Used to track the changes in an EntityComponentManager
     ///
     /// Tracks added and removed entities for the purpose of a reset
-    class IGNITION_GAZEBO_VISIBLE EntityComponentManagerDiff
+    class GZ_GAZEBO_VISIBLE EntityComponentManagerDiff
     {
       /// \brief Add an added entity to the current diff
       /// \param[in] _entity Entity that was added

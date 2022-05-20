@@ -64,7 +64,7 @@ namespace comms
   ///   name="gz::sim::systems::PerfectComms">
   ///   <step_size>1</step_size>
   /// </plugin>
-  class IGNITION_GAZEBO_VISIBLE ICommsModel:
+  class GZ_GAZEBO_VISIBLE ICommsModel:
 #ifdef _MSC_VER
   #pragma warning(push)
   #pragma warning(disable:4275)

@@ -42,7 +42,7 @@ namespace logical_audio
   /// device with a higher detection threshold.
   /// \return true if the listening device can detect volume at _volumeLevel,
   /// false otherwise.
-  IGNITION_GAZEBO_LOGICALAUDIOSENSORPLUGIN_SYSTEM_VISIBLE
+  GZ_GAZEBO_LOGICALAUDIOSENSORPLUGIN_SYSTEM_VISIBLE
   bool detect(double _volumeLevel, double _volumeDetectionThreshold);
 
   /// \brief Computes the volume level of an audio source at a certain location.
@@ -63,7 +63,7 @@ namespace logical_audio
   /// \return The volume level at this location.
   /// If the attenuation function or shape is undefined, -1.0 is returned.
   /// If the source is not playing, 0.0 is returned.
-  IGNITION_GAZEBO_LOGICALAUDIOSENSORPLUGIN_SYSTEM_VISIBLE
+  GZ_GAZEBO_LOGICALAUDIOSENSORPLUGIN_SYSTEM_VISIBLE
   double computeVolume(bool _playing,
       AttenuationFunction _attenuationFunc,
       AttenuationShape _attenuationShape,
@@ -86,7 +86,7 @@ namespace logical_audio
   /// the calculated attenuation function.
   /// \param[in] _str A string that should map to a value in
   /// AttenuationFunction.
-  IGNITION_GAZEBO_LOGICALAUDIOSENSORPLUGIN_SYSTEM_VISIBLE
+  GZ_GAZEBO_LOGICALAUDIOSENSORPLUGIN_SYSTEM_VISIBLE
   void setAttenuationFunction(AttenuationFunction &_attenuationFunc,
       std::string _str);
 
@@ -102,7 +102,7 @@ namespace logical_audio
   /// calculated attenuation shape.
   /// \param[in] _str A string that should map to a value in
   ///   AttenuationShape.
-  IGNITION_GAZEBO_LOGICALAUDIOSENSORPLUGIN_SYSTEM_VISIBLE
+  GZ_GAZEBO_LOGICALAUDIOSENSORPLUGIN_SYSTEM_VISIBLE
   void setAttenuationShape(AttenuationShape &_attenuationShape,
       std::string _str);
 
@@ -115,7 +115,7 @@ namespace logical_audio
   /// source. This value must be greater than _innerRadius.
   /// If _falloffDistance < _innerRadius, _falloffDistance will be set to
   /// _innerRadius + 1 (assuming that _innerRadius is valid).
-  IGNITION_GAZEBO_LOGICALAUDIOSENSORPLUGIN_SYSTEM_VISIBLE
+  GZ_GAZEBO_LOGICALAUDIOSENSORPLUGIN_SYSTEM_VISIBLE
   void validateInnerRadiusAndFalloffDistance(double &_innerRadius,
       double &_falloffDistance);
 
@@ -123,7 +123,7 @@ namespace logical_audio
   /// \param[in,out] _volumeLevel The volume the source should play at.
   /// This parameter is checked (and possibly clipped) to ensure that it falls
   /// between 0.0 (0% volume) and 1.0 (100% volume).
-  IGNITION_GAZEBO_LOGICALAUDIOSENSORPLUGIN_SYSTEM_VISIBLE
+  GZ_GAZEBO_LOGICALAUDIOSENSORPLUGIN_SYSTEM_VISIBLE
   void validateVolumeLevel(double &_volumeLevel);
 }
 }

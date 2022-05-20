@@ -43,7 +43,7 @@ namespace gui
   /// configuration from IGN_HOMEDIR/.gz/sim/gui.config will be used.
   /// \param[in] _renderEngineGui --render-engine-gui option
   /// \return -1 on failure, 0 on success
-  IGNITION_GAZEBO_GUI_VISIBLE int runGui(int &_argc,
+  GZ_GAZEBO_GUI_VISIBLE int runGui(int &_argc,
     char **_argv, const char *_guiConfig, const char * _renderEngine = nullptr);
 
   /// \brief Create a Gazebo GUI application
@@ -64,7 +64,7 @@ namespace gui
   /// SDFormat file will get loaded.
   /// \param[in] _renderEngineGui --render-engine-gui option
   /// \return Newly created application.
-  IGNITION_GAZEBO_GUI_VISIBLE
+  GZ_GAZEBO_GUI_VISIBLE
   std::unique_ptr<gz::gui::Application> createGui(
       int &_argc, char **_argv, const char *_guiConfig,
       const char *_defaultGuiConfig = nullptr, bool _loadPluginsFromSdf = true,

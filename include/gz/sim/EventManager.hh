@@ -37,7 +37,7 @@ namespace gz
     // Inline bracket to help doxygen filtering.
     inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
-    class IGNITION_GAZEBO_HIDDEN EventManagerPrivate;
+    class GZ_GAZEBO_HIDDEN EventManagerPrivate;
 
     /// \brief The EventManager is used to send/receive notifications of
     /// simulator events.

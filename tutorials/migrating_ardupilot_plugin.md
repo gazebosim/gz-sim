@@ -108,7 +108,7 @@ the symbol visibility macro):
 
 ```cpp
 // NEW
-class IGNITION_GAZEBO_VISIBLE ArduPilotPlugin:
+class GZ_GAZEBO_VISIBLE ArduPilotPlugin:
        public gz::sim::System,
        public gz::sim::ISystemConfigure,
        public gz::sim::ISystemPostUpdate,

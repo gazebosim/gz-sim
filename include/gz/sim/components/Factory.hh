@@ -82,7 +82,7 @@ namespace components
   class StorageDescriptorBase
   {
     /// \brief Constructor
-    public: IGN_DEPRECATED(6) StorageDescriptorBase() = default;
+    public: GZ_DEPRECATED(6) StorageDescriptorBase() = default;
 
     /// \brief Destructor
     public: virtual ~StorageDescriptorBase() = default;
@@ -99,7 +99,7 @@ namespace components
     : public StorageDescriptorBase
   {
     /// \brief Constructor
-    public: IGN_DEPRECATED(6) StorageDescriptor() = default;
+    public: GZ_DEPRECATED(6) StorageDescriptor() = default;
 
     /// \brief Create an instance of a storage that holds ComponentTypeT
     /// components.
@@ -123,7 +123,7 @@ namespace components
     /// \tparam ComponentTypeT Type of component to register.
     /// \deprecated See function that doesn't accept a storage
     public: template<typename ComponentTypeT>
-    void IGN_DEPRECATED(6) Register(const std::string &_type,
+    void GZ_DEPRECATED(6) Register(const std::string &_type,
         ComponentDescriptorBase *_compDesc,
         StorageDescriptorBase * /*_storageDesc*/)
     {
@@ -302,7 +302,7 @@ namespace components
     /// \param[in] _typeId Type of component which the storage will hold.
     /// \return Always returns nullptr.
     /// \deprecated Storages aren't necessary anymore.
-    public: std::unique_ptr<ComponentStorageBase> IGN_DEPRECATED(6) NewStorage(
+    public: std::unique_ptr<ComponentStorageBase> GZ_DEPRECATED(6) NewStorage(
         const ComponentTypeId & /*_typeId*/)
     {
       return nullptr;

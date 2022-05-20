@@ -614,7 +614,7 @@
 1. Examples and tutorial on using rendering API from plugins
     * [Pull request #596](https://github.com/ignitionrobotics/ign-gazebo/pull/596)
 
-1.  Add missing IGNITION_GAZEBO_VISIBLE macros
+1.  Add missing GZ_GAZEBO_VISIBLE macros
     * [Pull request #563](https://github.com/ignitionrobotics/ign-gazebo/pull/563)
 
 1. Fix visibility macro names when used by a different component (Windows)
@@ -1299,7 +1299,7 @@
 1. Use common::setenv for portability to Windows
     * [Pull request #561](https://github.com/ignitionrobotics/ign-gazebo/pull/561)
 
-1.  Add missing IGNITION_GAZEBO_VISIBLE macros
+1.  Add missing GZ_GAZEBO_VISIBLE macros
     * [Pull request #563](https://github.com/ignitionrobotics/ign-gazebo/pull/563)
 
 1. Fix deprecation warnings
@@ -2010,7 +2010,7 @@
 1. Examples and tutorial on using rendering API from plugins
     * [Pull request #596](https://github.com/ignitionrobotics/ign-gazebo/pull/596)
 
-1.  Add missing IGNITION_GAZEBO_VISIBLE macros
+1.  Add missing GZ_GAZEBO_VISIBLE macros
     * [Pull request #563](https://github.com/ignitionrobotics/ign-gazebo/pull/563)
 
 1. Fix visibility macro names when used by a different component (Windows)

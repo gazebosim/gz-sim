@@ -109,7 +109,7 @@ namespace gz
     /// 3. `/gazebo/resource_paths` : gz::msgs::StringMsg_V
     ///   + Updated list of resource paths.
     ///
-    class IGNITION_GAZEBO_VISIBLE Server
+    class GZ_GAZEBO_VISIBLE Server
     {
       /// \brief Construct the server using the parameters specified in a
       /// ServerConfig.

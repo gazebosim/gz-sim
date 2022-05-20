@@ -82,7 +82,7 @@ namespace comms
   ///     <unbind_service>/broker/unbind_address</unbind_service>
   ///   </broker>
   /// </plugin>
-  class IGNITION_GAZEBO_VISIBLE Broker
+  class GZ_GAZEBO_VISIBLE Broker
   {
     /// \brief Constructor.
     public: Broker();

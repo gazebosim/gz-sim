@@ -35,7 +35,7 @@ namespace gz
     inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
     /// \class NetworkManagerPrivate NetworkManagerPrivate.hh
     /// gz/sim/NetworkManagerPrivate.hh
-    class IGNITION_GAZEBO_VISIBLE NetworkManagerPrivate
+    class GZ_GAZEBO_VISIBLE NetworkManagerPrivate
     {
       /// \brief Network Configuration
       public: NetworkConfig config;

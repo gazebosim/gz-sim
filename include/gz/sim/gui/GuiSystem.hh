@@ -41,7 +41,7 @@ namespace sim
   /// GUI systems are different from `gz::sim::System`s because they
   /// don't run in the same process as the physics. Instead, they run in a
   /// separate process that is stepped by updates coming through the network
-  class IGNITION_GAZEBO_GUI_VISIBLE GuiSystem : public gz::gui::Plugin
+  class GZ_GAZEBO_GUI_VISIBLE GuiSystem : public gz::gui::Plugin
   {
     Q_OBJECT
 

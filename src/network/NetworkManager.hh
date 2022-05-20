@@ -43,7 +43,7 @@ namespace gz
     /// \brief The NetworkManager provides a common interface to derived
     /// objects that control the flow of information in the distributed
     /// simulation environment.
-    class IGNITION_GAZEBO_VISIBLE NetworkManager
+    class GZ_GAZEBO_VISIBLE NetworkManager
     {
       /// \brief Convenience type alias for NodeOptions
       public: using NodeOptions = gz::transport::NodeOptions;

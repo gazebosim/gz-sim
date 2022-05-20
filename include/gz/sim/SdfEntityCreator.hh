@@ -55,7 +55,7 @@ namespace gz
     /// This class provides wrappers around entities and components
     /// which are more convenient and straight-forward to use than dealing
     /// with the `EntityComponentManager` directly.
-    class IGNITION_GAZEBO_VISIBLE SdfEntityCreator
+    class GZ_GAZEBO_VISIBLE SdfEntityCreator
     {
       /// \brief Constructor
       /// \param[in] _ecm Entity component manager. This class keeps a pointer

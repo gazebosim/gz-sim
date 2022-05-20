@@ -39,7 +39,7 @@ namespace gz
     // Inline bracket to help doxygen filtering.
     inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
-    class IGNITION_GAZEBO_HIDDEN LinkPrivate;
+    class GZ_GAZEBO_HIDDEN LinkPrivate;
     //
     /// \class Link Link.hh gz/sim/Link.hh
     /// \brief This class provides wrappers around entities and components
@@ -60,7 +60,7 @@ namespace gz
     ///    Link link(entity);
     ///    std::string name = link.Name(ecm);
     ///
-    class IGNITION_GAZEBO_VISIBLE Link
+    class GZ_GAZEBO_VISIBLE Link
     {
       /// \brief Constructor
       /// \param[in] _entity Link entity

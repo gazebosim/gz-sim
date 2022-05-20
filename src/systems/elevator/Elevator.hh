@@ -102,7 +102,7 @@ class ElevatorPrivate;
 ///
 /// `<open_door_wait_duration>`: Time to wait with a door open before the door
 /// closes. This element is optional and the default value is 5 sec.
-class IGNITION_GAZEBO_VISIBLE Elevator : public System,
+class GZ_GAZEBO_VISIBLE Elevator : public System,
                                          public ISystemConfigure,
                                          public ISystemPostUpdate
 {

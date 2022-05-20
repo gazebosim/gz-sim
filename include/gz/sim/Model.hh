@@ -35,7 +35,7 @@ namespace gz
     // Inline bracket to help doxygen filtering.
     inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
-    class IGNITION_GAZEBO_HIDDEN ModelPrivate;
+    class GZ_GAZEBO_HIDDEN ModelPrivate;
     //
     /// \class Model Model.hh gz/sim/Model.hh
     /// \brief This class provides wrappers around entities and components
@@ -57,7 +57,7 @@ namespace gz
     ///    std::string name = model.Name(ecm);
     ///
     /// \todo(louise) Store the ecm instead of passing it at every API call.
-    class IGNITION_GAZEBO_VISIBLE Model {
+    class GZ_GAZEBO_VISIBLE Model {
       /// \brief Constructor
       /// \param[in] _entity Model entity
       public: explicit Model(gazebo::Entity _entity = kNullEntity);

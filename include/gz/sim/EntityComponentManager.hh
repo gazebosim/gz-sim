@@ -48,7 +48,7 @@ namespace gz
     // Inline bracket to help doxygen filtering.
     inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
-    class IGNITION_GAZEBO_HIDDEN EntityComponentManagerPrivate;
+    class GZ_GAZEBO_HIDDEN EntityComponentManagerPrivate;
     class EntityComponentManagerDiff;
 
     /// \brief Type alias for the graph that holds entities.
@@ -64,7 +64,7 @@ namespace gz
     /// components and entities.
     /// A component can be of any class which inherits from
     /// `components::BaseComponent`.
-    class IGNITION_GAZEBO_VISIBLE EntityComponentManager
+    class GZ_GAZEBO_VISIBLE EntityComponentManager
     {
       /// \brief Constructor
       public: EntityComponentManager();
@@ -205,7 +205,7 @@ namespace gz
       /// \param[in] _entity The entity to check.
       /// \param[in] _key The component to check.
       /// \return True if the component key belongs to the entity.
-      public: bool IGN_DEPRECATED(6) EntityHasComponent(const Entity _entity,
+      public: bool GZ_DEPRECATED(6) EntityHasComponent(const Entity _entity,
                   const ComponentKey &_key) const;
 
       /// \brief Check whether an entity has a specific component type.
@@ -228,7 +228,7 @@ namespace gz
       /// \param[in] _key A key that uniquely identifies a component.
       /// \return True if the entity and component existed and the component was
       ///  removed.
-      public: bool IGN_DEPRECATED(6) RemoveComponent(
+      public: bool GZ_DEPRECATED(6) RemoveComponent(
                   const Entity _entity, const ComponentKey &_key);
 
       /// \brief Remove a component from an entity based on a type id.
@@ -285,7 +285,7 @@ namespace gz
       /// \return The component associated with the key, or nullptr if the
       /// component could not be found.
       public: template<typename ComponentTypeT>
-              const ComponentTypeT IGN_DEPRECATED(6) * Component(
+              const ComponentTypeT GZ_DEPRECATED(6) * Component(
               const ComponentKey &_key) const;
 
       /// \brief Get a mutable component based on a key.
@@ -293,7 +293,7 @@ namespace gz
       /// \return The component associated with the key, or nullptr if the
       /// component could not be found.
       public: template<typename ComponentTypeT>
-              ComponentTypeT IGN_DEPRECATED(6) * Component(
+              ComponentTypeT GZ_DEPRECATED(6) * Component(
               const ComponentKey &_key);
 
       /// \brief Get a mutable component assigned to an entity based on a
@@ -345,13 +345,13 @@ namespace gz
       /// This function is now deprecated, and will always return nullptr.
       /// \return nullptr.
       public: template<typename ComponentTypeT>
-              const ComponentTypeT IGN_DEPRECATED(6) * First() const;
+              const ComponentTypeT GZ_DEPRECATED(6) * First() const;
 
       /// \brief The first component instance of the specified type.
       /// This function is now deprecated, and will always return nullptr.
       /// \return nullptr.
       public: template<typename ComponentTypeT>
-              ComponentTypeT IGN_DEPRECATED(6) * First();
+              ComponentTypeT GZ_DEPRECATED(6) * First();
 
       /// \brief Get an entity which matches the value of all the given
       /// components. For example, the following will return the entity which

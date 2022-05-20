@@ -34,7 +34,7 @@ class MarkerManagerPrivate;
 
 /// \brief Creates, deletes, and maintains marker visuals. Only the
 /// Scene class should instantiate and use this class.
-class IGNITION_GAZEBO_RENDERING_VISIBLE MarkerManager
+class GZ_GAZEBO_RENDERING_VISIBLE MarkerManager
 {
   /// \brief Constructor
   public: MarkerManager();

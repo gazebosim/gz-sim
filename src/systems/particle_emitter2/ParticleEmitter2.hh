@@ -52,7 +52,7 @@ namespace systems
         public ISystemPreUpdate
   {
     /// \brief Constructor
-    public: IGN_DEPRECATED(7) ParticleEmitter2();
+    public: GZ_DEPRECATED(7) ParticleEmitter2();
 
     // Documentation inherited
     public: void Configure(const Entity &_entity,

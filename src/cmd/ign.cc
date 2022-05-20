@@ -33,7 +33,7 @@
 //////////////////////////////////////////////////
 extern "C" char *ignitionGazeboVersion()
 {
-  return strdup(IGNITION_GAZEBO_VERSION_FULL);
+  return strdup(GZ_GAZEBO_VERSION_FULL);
 }
 
 //////////////////////////////////////////////////
@@ -145,7 +145,7 @@ extern "C" int runServer(const char *_sdfString,
 
   serverConfig.SetLogRecordPath(recordPathMod);
 
-  ignmsg << "Ignition Gazebo Server v" << IGNITION_GAZEBO_VERSION_FULL
+  ignmsg << "Ignition Gazebo Server v" << GZ_GAZEBO_VERSION_FULL
          << std::endl;
 
   // Set the SDF string to user
@@ -214,7 +214,7 @@ extern "C" int runGui(const char *_guiConfig)
     sigKilled = true;
   });
 
-  ignmsg << "Ignition Gazebo GUI    v" << IGNITION_GAZEBO_VERSION_FULL
+  ignmsg << "Ignition Gazebo GUI    v" << GZ_GAZEBO_VERSION_FULL
          << std::endl;
 
   int argc = 0;

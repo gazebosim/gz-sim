@@ -68,7 +68,7 @@ namespace gz
     // Forward declarations.
     class SimulationRunnerPrivate;
 
-    class IGNITION_GAZEBO_VISIBLE SimulationRunner
+    class GZ_GAZEBO_VISIBLE SimulationRunner
     {
       /// \brief Constructor
       /// \param[in] _world Pointer to the SDF world.

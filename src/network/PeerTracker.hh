@@ -53,7 +53,7 @@ namespace gz
     ///
     /// It is used to both announce the existence of a peer, as well as track
     /// announcements and heartbeats from other peers.
-    class IGNITION_GAZEBO_VISIBLE PeerTracker {
+    class GZ_GAZEBO_VISIBLE PeerTracker {
       /// \brief Convenience type alias for NodeOptions
       public: using NodeOptions = gz::transport::NodeOptions;
 

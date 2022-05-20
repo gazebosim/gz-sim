@@ -75,7 +75,7 @@ struct AddressContent
 using Registry = std::unordered_map<std::string, AddressContent>;
 
 /// \brief Class to handle messages and subscriptions.
-class IGNITION_GAZEBO_VISIBLE MsgManager
+class GZ_GAZEBO_VISIBLE MsgManager
 {
   /// \brief Default constructor.
   public: MsgManager();

@@ -32,7 +32,7 @@ namespace sim
 // Inline bracket to help doxygen filtering.
 inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
 //
-class IGNITION_GAZEBO_HIDDEN TestFixturePrivate;
+class GZ_GAZEBO_HIDDEN TestFixturePrivate;
 /// \brief Helper class to write automated tests. It provides a convenient API
 /// to load a world file, step simulation and check entities and components.
 ///
@@ -52,7 +52,7 @@ class IGNITION_GAZEBO_HIDDEN TestFixturePrivate;
 /// // Run the server
 /// fixture.Server()->Run(true, 1000, false);
 ///
-class IGNITION_GAZEBO_VISIBLE TestFixture
+class GZ_GAZEBO_VISIBLE TestFixture
 {
   /// \brief Constructor
   /// \param[in] _path Path to SDF file.

@@ -24,7 +24,7 @@
 #define PROJECT_BINARY_PATH "${CMAKE_BINARY_DIR}"
 #define CMAKE_VERSION "${CMAKE_VERSION}"
 
-#define IGN_CONFIG_PATH "@CMAKE_BINARY_DIR@/test/conf"
+#define GZ_CONFIG_PATH "@CMAKE_BINARY_DIR@/test/conf"
 
 #ifdef _MSC_VER
 #    define popen _popen
@@ -49,12 +49,12 @@ struct TestWorldSansPhysics
     "<sdf version='1.6'>"
       "<world name='default'>"
         "<plugin filename='libignition-gazebo") +
-        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-scene-broadcaster-system.so'"
+        GZ_GAZEBO_MAJOR_VERSION_STR + "-scene-broadcaster-system.so'"
         "  name='gz::sim::systems::SceneBroadcaster'>"
         "</plugin>"
         "<plugin"
         "  filename='libignition-gazebo" +
-        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-user-commands-system.so'"
+        GZ_GAZEBO_MAJOR_VERSION_STR + "-user-commands-system.so'"
         "  name='gz::sim::systems::UserCommands'>"
         "</plugin>"
       "</world>"

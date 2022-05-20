@@ -44,7 +44,7 @@ namespace gz
     ///
     /// Note that this can likely be replaced once the C++ concurrency TS
     /// is ratified: https://en.cppreference.com/w/cpp/experimental/barrier
-    class IGNITION_GAZEBO_VISIBLE Barrier
+    class GZ_GAZEBO_VISIBLE Barrier
     {
       /// \brief Constructor
       /// \param[in] _threadCount Number of threads to syncronize

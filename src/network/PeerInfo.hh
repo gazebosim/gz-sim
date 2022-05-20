@@ -31,7 +31,7 @@ namespace gz
   {
     // Inline bracket to help doxygen filtering.
     inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
-    class IGNITION_GAZEBO_VISIBLE PeerInfo {
+    class GZ_GAZEBO_VISIBLE PeerInfo {
       /// \brief Constructor
       public: explicit PeerInfo(const NetworkRole &_role = NetworkRole::None);
 
@@ -53,13 +53,13 @@ namespace gz
     /// \brief Construct a `PeerInfo` object from a message.
     /// \param[in] _proto Message
     /// \result Equivalent PeerInfo
-    IGNITION_GAZEBO_VISIBLE PeerInfo fromProto(
+    GZ_GAZEBO_VISIBLE PeerInfo fromProto(
         const private_msgs::PeerInfo &_proto);
 
     /// \brief Construct a `PeerInfo` message from an object.
     /// \param[in] _info Peer info object
     /// \result Equivalent message
-    IGNITION_GAZEBO_VISIBLE private_msgs::PeerInfo toProto(
+    GZ_GAZEBO_VISIBLE private_msgs::PeerInfo toProto(
         const PeerInfo &_info);
   }  // namespace sim
 }  // namespace gz

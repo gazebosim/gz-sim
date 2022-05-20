@@ -77,7 +77,7 @@ using namespace gz;
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 msgs::Entity_Type gz::sim::convert(const std::string &_in)
 {
   msgs::Entity_Type out = msgs::Entity_Type_NONE;
@@ -115,7 +115,7 @@ msgs::Entity_Type gz::sim::convert(const std::string &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 math::Pose3d gz::sim::convert(const msgs::Pose &_in)
 {
   math::Pose3d out(_in.position().x(),
@@ -132,7 +132,7 @@ math::Pose3d gz::sim::convert(const msgs::Pose &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 msgs::Collision gz::sim::convert(const sdf::Collision &_in)
 {
   msgs::Collision out;
@@ -145,7 +145,7 @@ msgs::Collision gz::sim::convert(const sdf::Collision &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 sdf::Collision gz::sim::convert(const msgs::Collision &_in)
 {
   sdf::Collision out;
@@ -157,7 +157,7 @@ sdf::Collision gz::sim::convert(const msgs::Collision &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 msgs::Geometry gz::sim::convert(const sdf::Geometry &_in)
 {
   msgs::Geometry out;
@@ -252,7 +252,7 @@ msgs::Geometry gz::sim::convert(const sdf::Geometry &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 sdf::Geometry gz::sim::convert(const msgs::Geometry &_in)
 {
   sdf::Geometry out;
@@ -367,7 +367,7 @@ sdf::Geometry gz::sim::convert(const msgs::Geometry &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 msgs::Material gz::sim::convert(const sdf::Material &_in)
 {
   msgs::Material out;
@@ -426,7 +426,7 @@ msgs::Material gz::sim::convert(const sdf::Material &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 sdf::Material gz::sim::convert(const msgs::Material &_in)
 {
   sdf::Material out;
@@ -469,7 +469,7 @@ sdf::Material gz::sim::convert(const msgs::Material &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 msgs::Actor gz::sim::convert(const sdf::Actor &_in)
 {
   msgs::Actor out;
@@ -509,7 +509,7 @@ msgs::Actor gz::sim::convert(const sdf::Actor &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 sdf::Actor gz::sim::convert(const msgs::Actor &_in)
 {
   sdf::Actor out;
@@ -552,7 +552,7 @@ sdf::Actor gz::sim::convert(const msgs::Actor &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 msgs::Light gz::sim::convert(const sdf::Light &_in)
 {
   msgs::Light out;
@@ -584,7 +584,7 @@ msgs::Light gz::sim::convert(const sdf::Light &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 sdf::Light gz::sim::convert(const msgs::Light &_in)
 {
   sdf::Light out;
@@ -616,7 +616,7 @@ sdf::Light gz::sim::convert(const msgs::Light &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 msgs::GUI gz::sim::convert(const sdf::Gui &_in)
 {
   msgs::GUI out;
@@ -655,7 +655,7 @@ msgs::GUI gz::sim::convert(const sdf::Gui &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 msgs::Time gz::sim::convert(
     const std::chrono::steady_clock::duration &_in)
 {
@@ -671,7 +671,7 @@ msgs::Time gz::sim::convert(
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 std::chrono::steady_clock::duration gz::sim::convert(
     const msgs::Time &_in)
 {
@@ -680,7 +680,7 @@ std::chrono::steady_clock::duration gz::sim::convert(
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 msgs::Inertial gz::sim::convert(const math::Inertiald &_in)
 {
   msgs::Inertial out;
@@ -697,7 +697,7 @@ msgs::Inertial gz::sim::convert(const math::Inertiald &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 math::Inertiald gz::sim::convert(const msgs::Inertial &_in)
 {
   math::MassMatrix3d massMatrix;
@@ -717,7 +717,7 @@ math::Inertiald gz::sim::convert(const msgs::Inertial &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 msgs::Axis gz::sim::convert(const sdf::JointAxis &_in)
 {
   msgs::Axis out;
@@ -747,7 +747,7 @@ msgs::Axis gz::sim::convert(const sdf::JointAxis &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 sdf::JointAxis gz::sim::convert(const msgs::Axis &_in)
 {
   sdf::JointAxis out;
@@ -767,7 +767,7 @@ sdf::JointAxis gz::sim::convert(const msgs::Axis &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 msgs::Scene gz::sim::convert(const sdf::Scene &_in)
 {
   msgs::Scene out;
@@ -798,7 +798,7 @@ msgs::Scene gz::sim::convert(const sdf::Scene &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 sdf::Scene gz::sim::convert(const msgs::Scene &_in)
 {
   sdf::Scene out;
@@ -828,7 +828,7 @@ sdf::Scene gz::sim::convert(const msgs::Scene &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 msgs::Atmosphere gz::sim::convert(const sdf::Atmosphere &_in)
 {
   msgs::Atmosphere out;
@@ -846,7 +846,7 @@ msgs::Atmosphere gz::sim::convert(const sdf::Atmosphere &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 sdf::Atmosphere gz::sim::convert(const msgs::Atmosphere &_in)
 {
   sdf::Atmosphere out;
@@ -884,7 +884,7 @@ void gz::sim::set(msgs::WorldStatistics *_msg,
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 msgs::Physics gz::sim::convert(const sdf::Physics &_in)
 {
   msgs::Physics out;
@@ -895,7 +895,7 @@ msgs::Physics gz::sim::convert(const sdf::Physics &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 sdf::Physics gz::sim::convert(const msgs::Physics &_in)
 {
   sdf::Physics out;
@@ -971,7 +971,7 @@ sdf::LightType gz::sim::convert(const std::string &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 sdf::Noise gz::sim::convert(const msgs::SensorNoise &_in)
 {
   sdf::Noise out;
@@ -1004,7 +1004,7 @@ sdf::Noise gz::sim::convert(const msgs::SensorNoise &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 msgs::Sensor gz::sim::convert(const sdf::Sensor &_in)
 {
   msgs::Sensor out;
@@ -1259,7 +1259,7 @@ msgs::Sensor gz::sim::convert(const sdf::Sensor &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
 {
   sdf::Sensor out;
@@ -1499,7 +1499,7 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 msgs::WorldStatistics gz::sim::convert(const gazebo::UpdateInfo &_in)
 {
   msgs::WorldStatistics out;
@@ -1509,7 +1509,7 @@ msgs::WorldStatistics gz::sim::convert(const gazebo::UpdateInfo &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 gazebo::UpdateInfo gz::sim::convert(const msgs::WorldStatistics &_in)
 {
   gazebo::UpdateInfo out;
@@ -1523,7 +1523,7 @@ gazebo::UpdateInfo gz::sim::convert(const msgs::WorldStatistics &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 msgs::AxisAlignedBox gz::sim::convert(const math::AxisAlignedBox &_in)
 {
   msgs::AxisAlignedBox out;
@@ -1534,7 +1534,7 @@ msgs::AxisAlignedBox gz::sim::convert(const math::AxisAlignedBox &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 math::AxisAlignedBox gz::sim::convert(const msgs::AxisAlignedBox &_in)
 {
   math::AxisAlignedBox out;
@@ -1545,7 +1545,7 @@ math::AxisAlignedBox gz::sim::convert(const msgs::AxisAlignedBox &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 msgs::ParticleEmitter gz::sim::convert(const sdf::ParticleEmitter &_in)
 {
   msgs::ParticleEmitter out;
@@ -1612,7 +1612,7 @@ msgs::ParticleEmitter gz::sim::convert(const sdf::ParticleEmitter &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
+GZ_GAZEBO_VISIBLE
 sdf::ParticleEmitter gz::sim::convert(const msgs::ParticleEmitter &_in)
 {
   sdf::ParticleEmitter out;

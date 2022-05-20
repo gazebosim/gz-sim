@@ -34,11 +34,11 @@ namespace gz
     // Inline bracket to help doxygen filtering.
     inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
-    class IGNITION_GAZEBO_HIDDEN SystemLoaderPrivate;
+    class GZ_GAZEBO_HIDDEN SystemLoaderPrivate;
 
     /// \class SystemLoader SystemLoader.hh gz/sim/SystemLoader.hh
     /// \brief Class for loading/unloading System plugins.
-    class IGNITION_GAZEBO_VISIBLE SystemLoader
+    class GZ_GAZEBO_VISIBLE SystemLoader
     {
       /// \brief Constructor
       public: explicit SystemLoader();

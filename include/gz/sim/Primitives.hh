@@ -31,7 +31,7 @@ namespace gz
     inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Enumeration of available primitive shape types
-    enum class IGNITION_GAZEBO_VISIBLE PrimitiveShape
+    enum class GZ_GAZEBO_VISIBLE PrimitiveShape
     {
       kBox,
       kCapsule,
@@ -41,7 +41,7 @@ namespace gz
     };
 
     /// \brief Enumeration of available primitive light types
-    enum class IGNITION_GAZEBO_VISIBLE PrimitiveLight
+    enum class GZ_GAZEBO_VISIBLE PrimitiveLight
     {
       kDirectional,
       kPoint,
@@ -53,7 +53,7 @@ namespace gz
     /// \param[in] _type Type of shape to retrieve
     /// \return String containing SDF description of primitive shape
     /// Empty string if the _type is not supported.
-    std::string IGNITION_GAZEBO_VISIBLE
+    std::string GZ_GAZEBO_VISIBLE
     getPrimitiveShape(const PrimitiveShape &_type);
 
     /// \brief Return an SDF string of one of the available primitive
@@ -61,7 +61,7 @@ namespace gz
     /// \param[in] _type Type of light to retrieve
     /// \return String containing SDF description of primitive light
     /// Empty string if the _type is not supported.
-    std::string IGNITION_GAZEBO_VISIBLE
+    std::string GZ_GAZEBO_VISIBLE
     getPrimitiveLight(const PrimitiveLight &_type);
 
     /// \brief Return an SDF string of one of the available primitive shape or
@@ -71,7 +71,7 @@ namespace gz
     /// point, or spot.
     /// \return String containing SDF description of primitive shape or light.
     /// Empty string if the _typeName is invalid.
-    std::string IGNITION_GAZEBO_VISIBLE
+    std::string GZ_GAZEBO_VISIBLE
     getPrimitive(const std::string &_typeName);
     }
   }  // namespace sim

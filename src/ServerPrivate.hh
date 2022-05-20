@@ -58,7 +58,7 @@ namespace gz
     class SimulationRunner;
 
     // Private data for Server
-    class IGNITION_GAZEBO_HIDDEN ServerPrivate
+    class GZ_GAZEBO_HIDDEN ServerPrivate
     {
       /// \brief Constructor
       public: ServerPrivate();

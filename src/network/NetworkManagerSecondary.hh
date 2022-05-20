@@ -40,7 +40,7 @@ namespace gz
     /// \class NetworkManagerSecondary NetworkManagerSecondary.hh
     ///   gz/sim/network/NetworkManagerSecondary.hh
     /// \brief Secondary specific behaviors
-    class IGNITION_GAZEBO_VISIBLE NetworkManagerSecondary:
+    class GZ_GAZEBO_VISIBLE NetworkManagerSecondary:
       public NetworkManager
     {
       // Documentation inherited
