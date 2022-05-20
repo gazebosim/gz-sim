@@ -6,11 +6,11 @@ You can use the velocity controller and command linear velocity and yaw angular 
 
   Send commands to the quadcopter to go straight up:
 
-    ign topic -t "/X3/gazebo/command/twist" -m ignition.msgs.Twist -p "linear: {x:0 y: 0 z: 0.1} angular {z: 0}"
+    ign topic -t "/X3/gazebo/command/twist" -m gz.msgs.Twist -p "linear: {x:0 y: 0 z: 0.1} angular {z: 0}"
 
   To hover
 
-    ign topic -t "/X3/gazebo/command/twist" -m ignition.msgs.Twist -p " "
+    ign topic -t "/X3/gazebo/command/twist" -m gz.msgs.Twist -p " "
 
   Listen to odometry:
 
@@ -19,11 +19,11 @@ You can use the velocity controller and command linear velocity and yaw angular 
 
   Send commands to the hexacopter to go straight up:
 
-    ign topic -t "/X4/gazebo/command/twist" -m ignition.msgs.Twist -p "linear: {x:0 y: 0 z: 0.1} angular {z: 0}"
+    ign topic -t "/X4/gazebo/command/twist" -m gz.msgs.Twist -p "linear: {x:0 y: 0 z: 0.1} angular {z: 0}"
 
   To hover
 
-    ign topic -t "/X4/gazebo/command/twist" -m ignition.msgs.Twist -p " "
+    ign topic -t "/X4/gazebo/command/twist" -m gz.msgs.Twist -p " "
 
   Listen to odometry:
 

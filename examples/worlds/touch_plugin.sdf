@@ -8,8 +8,8 @@ The plugin's parameters are documented in src/systems/touchplugin/TouchPlugin.hh
 
 If the plugin is not enabled by default send this command to enable
   ign service -s /white_touches_only_green/enable \
-  --reqtype ignition.msgs.Boolean \
-  --reptype ignition.msgs.Empty \
+  --reqtype gz.msgs.Boolean \
+  --reptype gz.msgs.Empty \
   --timeout 3000 \
   --req 'data:true'
 

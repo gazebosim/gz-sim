@@ -41,13 +41,13 @@ until it breaches and then start oscillating around the surface. On the other
 hand the box on the right will rise forever as no surface is set.
 Enter the following in a separate terminal:
 ```
-ign topic -t  /model/buoyant_box/buoyancy_engine/ -m ignition.msgs.Double
+ign topic -t  /model/buoyant_box/buoyancy_engine/ -m gz.msgs.Double
    -p "data: 0.003"
 ```
 The boxes will float up. Note that the box on the left will start oscillating
 once it breaches the surface.
 ```
-ign topic -t  /model/buoyant_box/buoyancy_engine/ -m ignition.msgs.Double
+ign topic -t  /model/buoyant_box/buoyancy_engine/ -m gz.msgs.Double
    -p "data: 0.001"
 ```
 The boxes will go down.

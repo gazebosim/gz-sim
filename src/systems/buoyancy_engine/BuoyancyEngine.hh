@@ -72,12 +72,12 @@ namespace systems
   /// ```
   /// Enter the following in a separate terminal:
   /// ```
-  /// ign topic -t  /model/buoyant_box/buoyancy_engine/ -m ignition.msgs.Double
+  /// ign topic -t  /model/buoyant_box/buoyancy_engine/ -m gz.msgs.Double
   ///    -p "data: 0.003"
   /// ```
   /// To see the box float up.
   /// ```
-  /// ign topic -t  /model/buoyant_box/buoyancy_engine/ -m ignition.msgs.Double
+  /// ign topic -t  /model/buoyant_box/buoyancy_engine/ -m gz.msgs.Double
   ///    -p "data: 0.001"
   /// ```
   /// To see the box go down.

@@ -3,7 +3,7 @@
 Ignition Gazebo Trigger Publisher demo
 
 Send the command:
-  ign topic -t "/start" -m ignition.msgs.Empty -p " "
+  ign topic -t "/start" -m gz.msgs.Empty -p " "
 
 The vehicle should start moving while the two boxes remain floating. When the
 vehicle crosses the line on the ground, the first box should start falling.
@@ -449,23 +449,23 @@ start falling.
     </model>
 
     <plugin filename="ignition-gazebo-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
-      <input type="ignition.msgs.Empty" topic="/start"/>
-      <output type="ignition.msgs.Twist" topic="/cmd_vel">
+      <input type="gz.msgs.Empty" topic="/start"/>
+      <output type="gz.msgs.Twist" topic="/cmd_vel">
           linear: {x: 3}
       </output>
     </plugin>
     <plugin filename="ignition-gazebo-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
-      <input type="ignition.msgs.Boolean" topic="/trigger/touched">
+      <input type="gz.msgs.Boolean" topic="/trigger/touched">
         <match>data: true</match>
       </input>
-      <output type="ignition.msgs.Empty" topic="/box1/detach"/>
+      <output type="gz.msgs.Empty" topic="/box1/detach"/>
     </plugin>
     <plugin filename="ignition-gazebo-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
-      <input type="ignition.msgs.Altimeter" topic="/altimeter">
+      <input type="gz.msgs.Altimeter" topic="/altimeter">
         <match field="vertical_position" tol="0.2">-7.5</match>
       </input>
       <delay_ms>5000</delay_ms>
-      <output type="ignition.msgs.Empty" topic="/box2/detach"/>
+      <output type="gz.msgs.Empty" topic="/box2/detach"/>
     </plugin>
 </world>
 </sdf>

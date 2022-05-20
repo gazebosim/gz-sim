@@ -153,10 +153,10 @@
             <!-- Moving Forward: W -->
             <plugin filename="libignition-gazebo-triggered-publisher-system.so"
                     name="gz::sim::systems::TriggeredPublisher">
-                <input type="ignition.msgs.Int32" topic="/keyboard/keypress">
+                <input type="gz.msgs.Int32" topic="/keyboard/keypress">
                     <match field="data">87</match>
                 </input>
-                <output type="ignition.msgs.Double" topic="/model/conveyor/link/base_link/track_cmd_vel">
+                <output type="gz.msgs.Double" topic="/model/conveyor/link/base_link/track_cmd_vel">
                     data: 10.0
                 </output>
             </plugin>
@@ -164,10 +164,10 @@
             <!-- Moving Backward: X -->
             <plugin filename="libignition-gazebo-triggered-publisher-system.so"
                     name="gz::sim::systems::TriggeredPublisher">
-                <input type="ignition.msgs.Int32" topic="/keyboard/keypress">
+                <input type="gz.msgs.Int32" topic="/keyboard/keypress">
                     <match field="data">88</match>
                 </input>
-                <output type="ignition.msgs.Double" topic="/model/conveyor/link/base_link/track_cmd_vel">
+                <output type="gz.msgs.Double" topic="/model/conveyor/link/base_link/track_cmd_vel">
                     data: -1.0
                 </output>
             </plugin>
@@ -175,10 +175,10 @@
             <!-- Stop: S -->
             <plugin filename="libignition-gazebo-triggered-publisher-system.so"
                     name="gz::sim::systems::TriggeredPublisher">
-                <input type="ignition.msgs.Int32" topic="/keyboard/keypress">
+                <input type="gz.msgs.Int32" topic="/keyboard/keypress">
                     <match field="data">83</match>
                 </input>
-                <output type="ignition.msgs.Double" topic="/model/conveyor/link/base_link/track_cmd_vel">
+                <output type="gz.msgs.Double" topic="/model/conveyor/link/base_link/track_cmd_vel">
                     data: 0.0
                 </output>
             </plugin>

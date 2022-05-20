@@ -31,4 +31,4 @@ Then run a world that loads the plugin as follows:
 
 In another terminal, run the following to reset the world.
 
-    ign service -s /world/default/control --reqtype ignition.msgs.WorldControl --reptype ignition.msgs.Boolean --timeout 3000 --req 'reset: {all: true}'
+    ign service -s /world/default/control --reqtype gz.msgs.WorldControl --reptype gz.msgs.Boolean --timeout 3000 --req 'reset: {all: true}'

@@ -244,14 +244,14 @@ bool LogPlaybackPrivate::Start(EntityComponentManager &_ecm)
   for (; iter != this->batch.end(); ++iter)
   {
     auto msgType = iter->Type();
-    if (msgType == "ignition.msgs.SerializedState")
+    if (msgType == "gz.msgs.SerializedState")
     {
       msgs::SerializedState msg;
       msg.ParseFromString(iter->Data());
       this->Parse(_ecm, msg);
       break;
     }
-    else if (msgType == "ignition.msgs.SerializedStateMap")
+    else if (msgType == "gz.msgs.SerializedStateMap")
     {
       msgs::SerializedStateMap msg;
       msg.ParseFromString(iter->Data());
@@ -500,7 +500,7 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   {
     auto msgType = iter->Type();
 
-    if (msgType == "ignition.msgs.SerializedState")
+    if (msgType == "gz.msgs.SerializedState")
     {
       msgs::SerializedState msg;
       msg.ParseFromString(iter->Data());
@@ -526,7 +526,7 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 
       this->dataPtr->Parse(_ecm, msg);
     }
-    else if (msgType == "ignition.msgs.SerializedStateMap")
+    else if (msgType == "gz.msgs.SerializedStateMap")
     {
       msgs::SerializedStateMap msg;
       msg.ParseFromString(iter->Data());
@@ -553,7 +553,7 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 
       this->dataPtr->Parse(_ecm, msg);
     }
-    else if (msgType == "ignition.msgs.StringMsg")
+    else if (msgType == "gz.msgs.StringMsg")
     {
       // Do nothing, we assume this is the SDF string
     }

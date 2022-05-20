@@ -70,7 +70,7 @@ You should see the fog slowly starting to appear from the ground plane in the wo
 Next, try changing some properties of the particle emitter while the simulation is running. You can do this by publishing messages over Ignition Transport. Try turning off the particle emitter by setting the `emitting` property to `false`. Make sure the simulation is running in order for this command to take effect.
 
 ```bash
-ign topic -t /model/fog_generator/link/fog_link/particle_emitter/emitter/cmd -m ignition.msgs.ParticleEmitter -p 'emitting: {data: false}'
+ign topic -t /model/fog_generator/link/fog_link/particle_emitter/emitter/cmd -m gz.msgs.ParticleEmitter -p 'emitting: {data: false}'
 ```
 
 Note the above command tells the particle emitter to stop emitting. It does not make all the particles disappear immediately. The particles that have already been emitted will naturally fade and disappear over the specified `lifetime`.
@@ -78,13 +78,13 @@ Note the above command tells the particle emitter to stop emitting. It does not 
 Turn particle emitter back on by setting the `emitting` property to `true`:
 
 ```bash
-ign topic -t /model/fog_generator/link/fog_link/particle_emitter/emitter/cmd -m ignition.msgs.ParticleEmitter -p 'emitting: {data: true}'
+ign topic -t /model/fog_generator/link/fog_link/particle_emitter/emitter/cmd -m gz.msgs.ParticleEmitter -p 'emitting: {data: true}'
 ```
 
 Here is an example command for changing the `rate` property of the particle emitter. This should make the particle emitter emit more particles per second, causing it to visually appear more dense.
 
 ```bash
-ign topic -t /model/fog_generator/link/fog_link/particle_emitter/emitter/cmd -m ignition.msgs.ParticleEmitter -p 'rate: {data: 100}'
+ign topic -t /model/fog_generator/link/fog_link/particle_emitter/emitter/cmd -m gz.msgs.ParticleEmitter -p 'rate: {data: 100}'
 ```
 
 ## Particle Effects on Sensors

@@ -61,7 +61,7 @@ namespace systems
   /// - `<topic>`: Custom topic to be used to deploy breadcrumbs. If topic is
   /// not set, the default topic with the following pattern would be used
   /// `/model/<model_name>/breadcrumbs/<breadcrumb_name>/deploy`. The topic
-  /// type is ignition.msgs.Empty
+  /// type is gz.msgs.Empty
   /// - `<max_deployments>`: The maximum number of times this breadcrumb can be
   /// deployed. Once this many are deployed, publishing on the deploy topic
   /// will have no effect. If a negative number is set, the maximum deployment

@@ -3,7 +3,7 @@
 
 Try moving a model:
 
-    ign service -s /world/shapes/set_pose --reqtype ignition.msgs.Pose --reptype ignition.msgs.Boolean --timeout 300 --req 'name: "box", position: {z: 5.0}'
+    ign service -s /world/shapes/set_pose --reqtype gz.msgs.Pose --reptype gz.msgs.Boolean --timeout 300 --req 'name: "box", position: {z: 5.0}'
 
 -->
 <sdf version="1.6">

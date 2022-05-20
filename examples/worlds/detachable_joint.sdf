@@ -6,13 +6,13 @@
 
     To move the vehicle:
 
-      ign topic -t "/model/vehicle_blue/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 0.5}"
+      ign topic -t "/model/vehicle_blue/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 0.5}"
 
     To drop breadcrumbs:
 
-      ign topic -t "/B1/detach" -m ignition.msgs.Empty -p "unused: true"
-      ign topic -t "/B2/detach" -m ignition.msgs.Empty -p "unused: true"
-      ign topic -t "/B3/detach" -m ignition.msgs.Empty -p "unused: true"
+      ign topic -t "/B1/detach" -m gz.msgs.Empty -p "unused: true"
+      ign topic -t "/B2/detach" -m gz.msgs.Empty -p "unused: true"
+      ign topic -t "/B3/detach" -m gz.msgs.Empty -p "unused: true"
 -->
 
 <sdf version="1.6">

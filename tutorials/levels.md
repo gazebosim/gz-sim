@@ -39,11 +39,11 @@ Gazebo ships with an example world that demos the levels feature. Try it as foll
 2. Open a new terminal and publish the following commands for the vehicles to
     drive forward:
 
-    `ign topic -t "/model/vehicle_blue/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 4.0}"`
+    `ign topic -t "/model/vehicle_blue/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 4.0}"`
 
     and
 
-    `ign topic -t "/model/vehicle_red/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 2.0}"`
+    `ign topic -t "/model/vehicle_red/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 2.0}"`
 
 3. Press play on Gazebo. You'll see that the tunnels will be loaded as the
     vehicles move forward.
@@ -240,7 +240,7 @@ Here you will see the two vehicles, which are regular models that do not trigger
 2. In another terminal call the add performer service for the blue vehicle.
 
 ```
-ign service -s /world/levels/level/set_performer --reqtype ignition.msgs.StringMsg --reptype ignition.msgs.Boolean --timeout 2000 --req 'data: "vehicle_blue"'
+ign service -s /world/levels/level/set_performer --reqtype gz.msgs.StringMsg --reptype gz.msgs.Boolean --timeout 2000 --req 'data: "vehicle_blue"'
 ```
 
 ### Example

@@ -78,14 +78,14 @@ namespace systems
   ///
   /// `<frame_id>`: Custom `frame_id` field that this system will use as the
   /// origin of the odometry transform in both the `<tf_topic>`
-  /// `ignition.msgs.Pose_V` message and the `<odom_topic>`
-  /// `ignition.msgs.Odometry` message. This element if optional, and the
+  /// `gz.msgs.Pose_V` message and the `<odom_topic>`
+  /// `gz.msgs.Odometry` message. This element if optional, and the
   /// default value is `{name_of_model}/odom`.
   ///
   /// `<child_frame_id>`: Custom `child_frame_id` that this system will use as
   /// the target of the odometry trasnform in both the `<tf_topic>`
-  /// `ignition.msgs.Pose_V` message and the `<odom_topic>`
-  /// `ignition.msgs.Odometry` message. This element if optional,
+  /// `gz.msgs.Pose_V` message and the `<odom_topic>`
+  /// `gz.msgs.Odometry` message. This element if optional,
   ///  and the default value is `{name_of_model}/{name_of_link}`.
   class MecanumDrive
       : public System,

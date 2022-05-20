@@ -4,11 +4,11 @@
 
   Call the following service to start video recording:
 
-      ign service -s /camera/record_video --reqtype ignition.msgs.VideoRecord --reptype ignition.msgs.Boolean --timeout 300 --req 'start: true, format:"mp4", save_filename:"test.mp4"'
+      ign service -s /camera/record_video --reqtype gz.msgs.VideoRecord --reptype gz.msgs.Boolean --timeout 300 --req 'start: true, format:"mp4", save_filename:"test.mp4"'
 
   Call the following service to stop video recording:
 
-      ign service -s /camera/record_video --reqtype ignition.msgs.VideoRecord --reptype ignition.msgs.Boolean --timeout 300 --req 'stop: true'
+      ign service -s /camera/record_video --reqtype gz.msgs.VideoRecord --reptype gz.msgs.Boolean --timeout 300 --req 'stop: true'
 
   The video is saved to test.mp4
 

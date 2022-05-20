@@ -74,7 +74,7 @@ class systems::InputMatcher
                                      const transport::ProtoMsg &_input);
 
   /// \brief Factory function for creating matchers.
-  /// \param[in] _msgType Input message type (eg. ignition.msgs.Boolean)
+  /// \param[in] _msgType Input message type (eg. gz.msgs.Boolean)
   /// \param[in] _matchElem the SDFormat Element that contains the configuration
   /// for the matcher
   /// \return A concrete InputMatcher initialized according to the contents of

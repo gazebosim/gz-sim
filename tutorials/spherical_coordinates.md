@@ -83,8 +83,8 @@ Loading the world above, try calling for example:
 ```.bash
 ign service \
 -s /world/spherical_coordinates/set_spherical_coordinates \
---reqtype ignition.msgs.SphericalCoordinates \
---reptype ignition.msgs.Boolean \
+--reqtype gz.msgs.SphericalCoordinates \
+--reptype gz.msgs.Boolean \
 --timeout 2000 \
 --req "surface_model: EARTH_WGS84, latitude_deg: 35.6, longitude_deg: 140.1, elevation: 10.0"
 ```
@@ -106,8 +106,8 @@ as follows:
 
 ```.bash
 ign service -s /world/spherical_coordinates/create \
---reqtype ignition.msgs.EntityFactory \
---reptype ignition.msgs.Boolean \
+--reqtype gz.msgs.EntityFactory \
+--reptype gz.msgs.Boolean \
 --timeout 300 \
 --req 'sdf: '\
 '"<?xml version=\"1.0\" ?>'\
@@ -136,8 +136,8 @@ For example, to move the sphere created above:
 
 ```.bash
 ign service -s /world/spherical_coordinates/set_spherical_coordinates \
---reqtype ignition.msgs.SphericalCoordinates \
---reptype ignition.msgs.Boolean \
+--reqtype gz.msgs.SphericalCoordinates \
+--reptype gz.msgs.Boolean \
 --timeout 300 \
 --req 'entity: {name: "spawned_model", type: MODEL}, latitude_deg: 35.59990, longitude_deg: 140.09990'
 ```

@@ -17,15 +17,15 @@
 
 syntax = "proto3";
 
-package ignition.gazebo.private_msgs;
+package gz.sim.private_msgs;
 
-import "ignition/msgs/header.proto";
+import "gz/msgs/header.proto";
 
 /// \brief Holds information about a peer in the network.
 message PeerInfo
 {
   /// \brief Optional header data
-  ignition.msgs.Header header = 1;
+  gz.msgs.Header header = 1;
 
   /// \brief ID of the peer
   string id = 2;

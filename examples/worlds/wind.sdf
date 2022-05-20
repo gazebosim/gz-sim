@@ -4,7 +4,7 @@
 After starting the simulation, the wind velocity can be adjusted by publishing a Wind message
 Example:
 
-  ign topic -t "/world/wind_demo/wind/" -m ignition.msgs.Wind  -p "linear_velocity: {x:-50, y:50}, enable_wind: true"
+  ign topic -t "/world/wind_demo/wind/" -m gz.msgs.Wind  -p "linear_velocity: {x:-50, y:50}, enable_wind: true"
 -->
 
 <sdf version="1.6">

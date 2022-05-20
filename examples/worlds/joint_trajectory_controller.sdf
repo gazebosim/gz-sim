@@ -6,7 +6,7 @@
 
     - Position control (Red RR robot) -
 
-    ign topic -t "/model/RR_position_control/joint_trajectory" -m ignition.msgs.JointTrajectory -p '
+    ign topic -t "/model/RR_position_control/joint_trajectory" -m gz.msgs.JointTrajectory -p '
     joint_names: "RR_position_control_joint1"
     joint_names: "RR_position_control_joint2"
     points {
@@ -45,7 +45,7 @@
 
     - Velocity control (Green RR robot) -
 
-    ign topic -t "/model/RR_velocity_control/joint_trajectory" -m ignition.msgs.JointTrajectory -p '
+    ign topic -t "/model/RR_velocity_control/joint_trajectory" -m gz.msgs.JointTrajectory -p '
     joint_names: "RR_velocity_control_joint1"
     joint_names: "RR_velocity_control_joint2"
     points {
@@ -84,7 +84,7 @@
 
     - Effort control (Blue RR robot) -
 
-    ign topic -t "/custom_topic_effort_control" -m ignition.msgs.JointTrajectory -p '
+    ign topic -t "/custom_topic_effort_control" -m gz.msgs.JointTrajectory -p '
     joint_names: "RR_effort_control_joint1"
     joint_names: "RR_effort_control_joint2"
     points {

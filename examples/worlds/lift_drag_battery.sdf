@@ -6,7 +6,7 @@
 
   Try sending commands:
 
-    ign topic -t "/model/lift_drag_demo_model/joint/rod_1_joint/cmd_force" -m ignition.msgs.Double  -p "data: 0.7"
+    ign topic -t "/model/lift_drag_demo_model/joint/rod_1_joint/cmd_force" -m gz.msgs.Double  -p "data: 0.7"
 
   Listen to joint states:
 

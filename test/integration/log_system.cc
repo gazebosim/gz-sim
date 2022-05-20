@@ -738,7 +738,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RecordAndPlayback))
   auto recordedIter = batch.begin();
   EXPECT_NE(batch.end(), recordedIter);
 
-  EXPECT_EQ("ignition.msgs.StringMsg", recordedIter->Type());
+  EXPECT_EQ("gz.msgs.StringMsg", recordedIter->Type());
   EXPECT_TRUE(recordedIter->Topic().find("/sdf"));
 
   msgs::StringMsg sdfMsg;
@@ -752,7 +752,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RecordAndPlayback))
   recordedIter = batch.begin();
   EXPECT_NE(batch.end(), recordedIter);
 
-  EXPECT_EQ("ignition.msgs.SerializedStateMap", recordedIter->Type());
+  EXPECT_EQ("gz.msgs.SerializedStateMap", recordedIter->Type());
   EXPECT_EQ(recordedIter->Topic(), "/world/log_pendulum/changed_state");
 
   msgs::SerializedStateMap stateMsg;
@@ -779,7 +779,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RecordAndPlayback))
           return;
 
         // Get next recorded message
-        EXPECT_EQ("ignition.msgs.SerializedStateMap", recordedIter->Type());
+        EXPECT_EQ("gz.msgs.SerializedStateMap", recordedIter->Type());
         EXPECT_EQ(recordedIter->Topic(), "/world/log_pendulum/changed_state");
         stateMsg.ParseFromString(recordedIter->Data());
 

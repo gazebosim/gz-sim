@@ -99,7 +99,7 @@ inline namespace GZ_GAZEBO_VERSION_NAMESPACE
     public: Q_INVOKABLE QStringList TopicList() const;
 
     /// \brief Set the topic list from a string, for example
-    /// 'ignition.msgs.StringMsg'
+    /// 'gz.msgs.StringMsg'
     /// \param[in] _topicList Message type
     public: Q_INVOKABLE void SetTopicList(const QStringList &_topicList);
 

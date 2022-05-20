@@ -5,10 +5,10 @@
   Try sending commands:
 
   This will apply a constant force on the joint
-    ign topic -t "/model/joint_force_example/joint/j1/cmd_force" -m ignition.msgs.Double  -p "data: 0.001"
+    ign topic -t "/model/joint_force_example/joint/j1/cmd_force" -m gz.msgs.Double  -p "data: 0.001"
 
   This will stop applying the force. The joint may continue to rotate for some time before coming to a stop
-    ign topic -t "/model/joint_force_example/joint/j1/cmd_force" -m ignition.msgs.Double  -p "data: 0.0"
+    ign topic -t "/model/joint_force_example/joint/j1/cmd_force" -m gz.msgs.Double  -p "data: 0.0"
 -->
 <sdf version="1.6">
   <world name="apply_joint_force">

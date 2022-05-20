@@ -6,11 +6,11 @@
 
     To pause the trajectory follower behavior:
 
-      ign topic -t "/model/box/trajectory_follower/pause" -m ignition.msgs.Boolean -p "data: true"
+      ign topic -t "/model/box/trajectory_follower/pause" -m gz.msgs.Boolean -p "data: true"
 
     To resume the trajectory follower behavior:
 
-      ign topic -t "/model/box/trajectory_follower/pause" -m ignition.msgs.Boolean -p "data: false"
+      ign topic -t "/model/box/trajectory_follower/pause" -m gz.msgs.Boolean -p "data: false"
 -->
 <sdf version="1.6">
   <world name="trajectory_follower">

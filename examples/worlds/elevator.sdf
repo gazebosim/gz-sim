@@ -4,7 +4,7 @@
 
   Try sending a command:
 
-    ign topic -t "/model/elevator/cmd" -m ignition.msgs.Int32 -p "data: 2"
+    ign topic -t "/model/elevator/cmd" -m gz.msgs.Int32 -p "data: 2"
 
   Listen to state:
 

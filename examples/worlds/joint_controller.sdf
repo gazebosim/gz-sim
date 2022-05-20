@@ -4,15 +4,15 @@
 
   Try sending joint velocity commands (velocity mode):
 
-    ign topic -t "/model/joint_controller_demo/joint/j1/cmd_vel" -m ignition.msgs.Double -p "data: -1.0"
+    ign topic -t "/model/joint_controller_demo/joint/j1/cmd_vel" -m gz.msgs.Double -p "data: -1.0"
 
-    ign topic -t "/model/joint_controller_demo/joint/j1/cmd_vel" -m ignition.msgs.Double -p "data: 10.0"
+    ign topic -t "/model/joint_controller_demo/joint/j1/cmd_vel" -m gz.msgs.Double -p "data: 10.0"
 
   Try sending joint velocity commands (force mode):
 
-    ign topic -t "/model/joint_controller_demo_2/joint/j1/cmd_vel" -m ignition.msgs.Double -p "data: -1.0"
+    ign topic -t "/model/joint_controller_demo_2/joint/j1/cmd_vel" -m gz.msgs.Double -p "data: -1.0"
 
-    ign topic -t "/model/joint_controller_demo_2/joint/j1/cmd_vel" -m ignition.msgs.Double -p "data: 10.0"
+    ign topic -t "/model/joint_controller_demo_2/joint/j1/cmd_vel" -m gz.msgs.Double -p "data: 10.0"
 -->
 <sdf version="1.6">
   <world name="default">

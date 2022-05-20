@@ -41,7 +41,7 @@ namespace systems
   /// Alternatively, one may send angular velocity commands to calculate the
   /// force to be applied using the said equation. In the default mode the
   /// plugin will publish angular velocity in radians per second on
-  /// `/model/{ns}/joint/{joint_name}/ang_vel` as an ignition.msgs.double. If
+  /// `/model/{ns}/joint/{joint_name}/ang_vel` as an gz.msgs.double. If
   /// <use_angvel_cmd> is set to true it publishes force in Newtons instead to
   /// `/model/{ns}/joint/{joint_name}/force`.
   ///
@@ -95,12 +95,12 @@ namespace systems
   /// To control the rudder of the craft run the following:
   /// ```
   /// ign topic -t /model/tethys/joint/vertical_fins_joint/0/cmd_pos
-  ///    -m ignition.msgs.Double -p 'data: -0.17'
+  ///    -m gz.msgs.Double -p 'data: -0.17'
   /// ```
   /// To apply a thrust you may run the following command:
   /// ```
   /// ign topic -t /model/tethys/joint/propeller_joint/cmd_thrust
-  /// -m ignition.msgs.Double -p 'data: -31'
+  /// -m gz.msgs.Double -p 'data: -31'
   /// ```
   /// The vehicle should move in a circle.
   class Thruster:

@@ -89,12 +89,12 @@ namespace systems
   /// To control the rudder of the craft run the following
   /// ```
   /// ign topic -t /model/tethys/joint/vertical_fins_joint/0/cmd_pos
-  ///    -m ignition.msgs.Double -p 'data: -0.17'
+  ///    -m gz.msgs.Double -p 'data: -0.17'
   /// ```
   /// To apply a thrust you may run the following command
   /// ```
   /// ign topic -t /model/tethys/joint/propeller_joint/cmd_pos
-  /// -m ignition.msgs.Double -p 'data: -31'
+  /// -m gz.msgs.Double -p 'data: -31'
   /// ```
   /// The vehicle should move in a circle.
   ///
@@ -103,7 +103,7 @@ namespace systems
   /// hydrodynamics plugin allows simulation of such currents. We can add
   /// a current simply by publishing the following:
   /// ```
-  /// ign topic -t /ocean_current -m ignition.msgs.Vector3d -p 'x: 1, y:0, z:0'
+  /// ign topic -t /ocean_current -m gz.msgs.Vector3d -p 'x: 1, y:0, z:0'
   /// ```
   /// You should observe your vehicle slowly drift to the side.
   ///

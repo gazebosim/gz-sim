@@ -12,12 +12,12 @@
 
   To play the source attached to the blue box, run the following command:
     ign service -s /model/blue_box/sensor/source_1/play
-      --reqtype ignition.msgs.Empty --reptype ignition.msgs.Boolean
+      --reqtype gz.msgs.Empty --reptype gz.msgs.Boolean
       --timeout 1000 --req 'unused: false'
 
   To stop the source attached to the blue box, run the following command:
     ign service -s /model/blue_box/sensor/source_1/stop
-      --reqtype ignition.msgs.Empty --reptype ignition.msgs.Boolean
+      --reqtype gz.msgs.Empty --reptype gz.msgs.Boolean
       --timeout 1000 --req 'unused: false'
 
   To observe microphone detections, use the <PREFIX>/mic_<id>/detection topic.

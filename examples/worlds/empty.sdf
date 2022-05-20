@@ -3,8 +3,8 @@
   Try inserting a model:
 
 ign service -s /world/empty/create \
---reqtype ignition.msgs.EntityFactory \
---reptype ignition.msgs.Boolean \
+--reqtype gz.msgs.EntityFactory \
+--reptype gz.msgs.Boolean \
 --timeout 300 \
 --req 'sdf: '\
 '"<?xml version=\"1.0\" ?>'\
@@ -27,14 +27,14 @@ ign service -s /world/empty/create \
   Then try deleting it:
 
 ign service -s /world/empty/remove \
---reqtype ignition.msgs.Entity \
---reptype ignition.msgs.Boolean \
+--reqtype gz.msgs.Entity \
+--reptype gz.msgs.Boolean \
 --timeout 300 \
 --req 'name: "new_name" type: MODEL'
 
   Try inserting a light:
 
-ign service -s /world/empty/create --reqtype ignition.msgs.EntityFactory --reptype ignition.msgs.Boolean --timeout 300 --req 'sdf: '\
+ign service -s /world/empty/create --reqtype gz.msgs.EntityFactory --reptype gz.msgs.Boolean --timeout 300 --req 'sdf: '\
 '"<?xml version=\"1.0\" ?>'\
 '<sdf version=\"1.6\">'\
 '<light name=\"spawned_light\" type=\"directional\">'\
@@ -45,16 +45,16 @@ ign service -s /world/empty/create --reqtype ignition.msgs.EntityFactory --repty
   Then try deleting it:
 
 ign service -s /world/empty/remove \
---reqtype ignition.msgs.Entity \
---reptype ignition.msgs.Boolean \
+--reqtype gz.msgs.Entity \
+--reptype gz.msgs.Boolean \
 --timeout 300 \
 --req 'name: "spawned_light" type: LIGHT'
 
   Insert a light using a message and allow_renaming:
 
 ign service -s /world/empty/create \
---reqtype ignition.msgs.EntityFactory \
---reptype ignition.msgs.Boolean \
+--reqtype gz.msgs.EntityFactory \
+--reptype gz.msgs.Boolean \
 --timeout 300 \
 --req 'allow_renaming: true, light: {name: "spawned_light", type: 2, diffuse: {r: 1}}'
 

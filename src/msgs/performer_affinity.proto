@@ -17,16 +17,16 @@
 
 syntax = "proto3";
 
-package ignition.gazebo.private_msgs;
+package gz.sim.private_msgs;
 
-import "ignition/msgs/entity.proto";
+import "gz/msgs/entity.proto";
 
 /// \brief Message to contain information about one performer's distributed
 /// simulation affinity.
 message PerformerAffinity
 {
   /// \brief Information about the performer entity.
-  ignition.msgs.Entity entity = 1;
+  gz.msgs.Entity entity = 1;
 
   /// \brief Prefix used to communicate with the secondary.
   string secondary_prefix = 2;

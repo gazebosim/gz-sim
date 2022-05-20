@@ -7,8 +7,8 @@
   Disable the sensor with:
 
     ign service -s /optical_tactile_plugin/enable \
-        --reqtype ignition.msgs.Boolean \
-        --reptype ignition.msgs.Empty \
+        --reqtype gz.msgs.Boolean \
+        --reptype gz.msgs.Empty \
         --timeout 2000 --req 'data: false'
 
 -->

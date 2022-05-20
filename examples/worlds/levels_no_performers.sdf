@@ -5,21 +5,21 @@
   * Start gazebo using the "--levels" flag.
   * Start the simulation and try sending commands:
 
-    ign topic -t "/model/vehicle_blue/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 4.0}"
+    ign topic -t "/model/vehicle_blue/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 4.0}"
 
-    ign topic -t "/model/vehicle_red/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 2.0}"
+    ign topic -t "/model/vehicle_red/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 2.0}"
 
   * The vehicles should both drive off the world's edge.
   * Restart simulation with the "--levels" flag.
   * This time, tell simulation that the "vehicle_red" is a perfomer using:
 
-    ign service -s /world/levels/level/set_performer --reqtype ignition.msgs.StringMsg --reptype ignition.msgs.Boolean --timeout 2000 --req 'data: "vehicle_red"'
+    ign service -s /world/levels/level/set_performer --reqtype gz.msgs.StringMsg --reptype gz.msgs.Boolean --timeout 2000 --req 'data: "vehicle_red"'
 
   * Apply a velocity command to both vehicles:
 
-    ign topic -t "/model/vehicle_blue/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 4.0}"
+    ign topic -t "/model/vehicle_blue/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 4.0}"
 
-    ign topic -t "/model/vehicle_red/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 2.0}"
+    ign topic -t "/model/vehicle_red/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 2.0}"
 
 
   * The red vehicle will have a longer runway as new levels load.

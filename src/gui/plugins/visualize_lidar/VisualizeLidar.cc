@@ -437,7 +437,7 @@ void VisualizeLidar::OnRefresh()
     this->dataPtr->node.TopicInfo(topic, publishers);
     for (auto pub : publishers)
     {
-      if (pub.MsgTypeName() == "ignition.msgs.LaserScan")
+      if (pub.MsgTypeName() == "gz.msgs.LaserScan")
       {
         this->dataPtr->topicList.push_back(QString::fromStdString(topic));
         break;

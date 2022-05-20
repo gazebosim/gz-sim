@@ -9,15 +9,15 @@
 
     To disable the particle emitter:
 
-      ign topic -t /model/fog_generator/link/fog_link/particle_emitter/emitter/cmd -m ignition.msgs.ParticleEmitter -p 'emitting: {data: false}'
+      ign topic -t /model/fog_generator/link/fog_link/particle_emitter/emitter/cmd -m gz.msgs.ParticleEmitter -p 'emitting: {data: false}'
 
     Enable back the particle emitter:
 
-      ign topic -t /model/fog_generator/link/fog_link/particle_emitter/emitter/cmd -m ignition.msgs.ParticleEmitter -p 'emitting: {data: true}'
+      ign topic -t /model/fog_generator/link/fog_link/particle_emitter/emitter/cmd -m gz.msgs.ParticleEmitter -p 'emitting: {data: true}'
 
     Then, change the particle rate:
 
-      ign topic -t /model/fog_generator/link/fog_link/particle_emitter/emitter/cmd -m ignition.msgs.ParticleEmitter -p 'rate: {data: 100}'
+      ign topic -t /model/fog_generator/link/fog_link/particle_emitter/emitter/cmd -m gz.msgs.ParticleEmitter -p 'rate: {data: 100}'
 -->
 
 <sdf version="1.6">
