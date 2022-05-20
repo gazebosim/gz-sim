@@ -82,7 +82,7 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
     // Find physics plugin (copied from the Physics system with some
     // modifications)
     common::SystemPaths systemPaths;
-    systemPaths.SetPluginPathEnv("IGN_GAZEBO_PHYSICS_ENGINE_PATH");
+    systemPaths.SetPluginPathEnv("GZ_SIM_PHYSICS_ENGINE_PATH");
     systemPaths.AddPluginPaths({IGNITION_PHYSICS_ENGINE_INSTALL_DIR});
 
     auto pathToLib = systemPaths.FindSharedLibrary(*pluginLib);

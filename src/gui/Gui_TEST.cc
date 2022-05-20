@@ -48,7 +48,7 @@ TEST_F(GuiTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
   common::Console::SetVerbosity(4);
   igndbg << "Start test" << std::endl;
 
-  gz::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+  gz::common::setenv("GZ_SIM_RESOURCE_PATH",
          "/from_env:/tmp/more_env");
   gz::common::setenv("SDF_PATH", "");
   gz::common::setenv("IGN_FILE_PATH", "");
@@ -101,7 +101,7 @@ TEST_F(GuiTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
   EXPECT_TRUE(pathsCalled);
 
   // Check paths
-  for (auto env : {"IGN_GAZEBO_RESOURCE_PATH", "SDF_PATH", "IGN_FILE_PATH"})
+  for (auto env : {"GZ_SIM_RESOURCE_PATH", "SDF_PATH", "IGN_FILE_PATH"})
   {
     igndbg << "Checking variable [" << env << "]" << std::endl;
     char *pathCStr = std::getenv(env);
@@ -147,7 +147,7 @@ TEST_F(GuiTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
   EXPECT_TRUE(topicCalled);
 
   // Check paths
-  for (auto env : {"IGN_GAZEBO_RESOURCE_PATH", "SDF_PATH", "IGN_FILE_PATH"})
+  for (auto env : {"GZ_SIM_RESOURCE_PATH", "SDF_PATH", "IGN_FILE_PATH"})
   {
     igndbg << "Checking variable [" << env << "]" << std::endl;
     char *pathCStr = std::getenv(env);

@@ -26,7 +26,7 @@
 #include "gz/sim/test_config.hh"  // NOLINT(build/include)
 
 static const std::string kIgnModelCommand(
-    std::string(BREW_RUBY) + std::string(IGN_PATH) + "/ign model ");
+    std::string(BREW_RUBY) + std::string(GZ_PATH) + "/ign model ");
 
 
 /////////////////////////////////////////////////

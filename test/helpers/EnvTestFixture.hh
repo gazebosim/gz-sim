@@ -34,7 +34,7 @@ class InternalFixture : public TestType
   protected: void SetUp() override
   {
     // Augment the system plugin path.  In SetUp to avoid test order issues.
-    common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+    common::setenv("GZ_SIM_SYSTEM_PLUGIN_PATH",
            common::joinPaths(std::string(PROJECT_BINARY_PATH), "lib").c_str());
 
     common::Console::SetVerbosity(4);

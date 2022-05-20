@@ -438,7 +438,7 @@ class gz::sim::systems::PhysicsPrivate
           }};
 
   /// \brief Environment variable which holds paths to look for engine plugins
-  public: std::string pluginPathEnv = "IGN_GAZEBO_PHYSICS_ENGINE_PATH";
+  public: std::string pluginPathEnv = "GZ_SIM_PHYSICS_ENGINE_PATH";
 
   //////////////////////////////////////////////////
   ////////////// Optional Features /////////////////

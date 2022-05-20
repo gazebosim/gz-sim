@@ -849,7 +849,7 @@ TEST_P(ServerFixture, Seed)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
 {
-  gz::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+  gz::common::setenv("GZ_SIM_RESOURCE_PATH",
          (std::string(PROJECT_SOURCE_PATH) + "/test/worlds:" +
           std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models").c_str());
 
@@ -937,7 +937,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, GetResourcePaths)
 {
-  gz::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+  gz::common::setenv("GZ_SIM_RESOURCE_PATH",
       "/tmp/some/path:/home/user/another_path");
 
   ServerConfig serverConfig;
@@ -967,7 +967,7 @@ TEST_P(ServerFixture, GetResourcePaths)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, AddResourcePaths)
 {
-  gz::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+  gz::common::setenv("GZ_SIM_RESOURCE_PATH",
       "/tmp/some/path:/home/user/another_path");
   gz::common::setenv("SDF_PATH", "");
   gz::common::setenv("IGN_FILE_PATH", "");
@@ -1012,7 +1012,7 @@ TEST_P(ServerFixture, AddResourcePaths)
   EXPECT_TRUE(receivedMsg);
 
   // Check environment variables
-  for (auto env : {"IGN_GAZEBO_RESOURCE_PATH", "SDF_PATH", "IGN_FILE_PATH"})
+  for (auto env : {"GZ_SIM_RESOURCE_PATH", "SDF_PATH", "IGN_FILE_PATH"})
   {
     char *pathCStr = std::getenv(env);
 

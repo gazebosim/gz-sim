@@ -540,10 +540,10 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
       "/gazebo/resource_paths/get", 5000, res, result);
   if (!executed || !result || res.data_size() < 1)
   {
-    ignwarn << "No paths found in IGN_GAZEBO_RESOURCE_PATH.\n";
+    ignwarn << "No paths found in GZ_SIM_RESOURCE_PATH.\n";
   }
 
-  // Add all local paths found in `IGN_GAZEBO_RESOURCE_PATH` to the qml list
+  // Add all local paths found in `GZ_SIM_RESOURCE_PATH` to the qml list
   for (int i = 0; i < res.data_size(); i++)
   {
     const std::string path = res.data(i);

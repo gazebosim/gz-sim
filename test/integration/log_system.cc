@@ -62,7 +62,7 @@ static const std::string kBinPath(PROJECT_BINARY_PATH);
 // \todo(anyone) Enable tests for OSX once command line works there
 #ifndef __APPLE__
 static const std::string kIgnCommand(
-  "IGN_GAZEBO_SYSTEM_PLUGIN_PATH=" + kBinPath + "/lib LD_LIBRARY_PATH=" +
+  "GZ_SIM_SYSTEM_PLUGIN_PATH=" + kBinPath + "/lib LD_LIBRARY_PATH=" +
   kBinPath + "/lib:/usr/local/lib:${LD_LIBRARY_PATH} ign gazebo -s ");
 #endif
 

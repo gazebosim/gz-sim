@@ -110,7 +110,7 @@ class gz::sim::SystemLoaderPrivate
   }
 
   // Default plugin search path environment variable
-  public: std::string pluginPathEnv{"IGN_GAZEBO_SYSTEM_PLUGIN_PATH"};
+  public: std::string pluginPathEnv{"GZ_SIM_SYSTEM_PLUGIN_PATH"};
 
   /// \brief Plugin loader instace
   public: gz::plugin::Loader loader;

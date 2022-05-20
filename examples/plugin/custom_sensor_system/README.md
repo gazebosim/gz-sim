@@ -28,7 +28,7 @@ Before starting Gazebo, we must make sure it can find the plugin by doing:
 
 ~~~
 cd examples/plugins/custom_sensor_system
-export IGN_GAZEBO_SYSTEM_PLUGIN_PATH=`pwd`/build
+export GZ_SIM_SYSTEM_PLUGIN_PATH=`pwd`/build
 ~~~
 
 Then load the example world:

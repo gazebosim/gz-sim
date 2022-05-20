@@ -146,7 +146,7 @@ Each simulator uses a different environment variable:
     * `GAZEBO_MODEL_PATH` for models
     * `GAZEBO_RESOURCE_PATH` for worlds and some rendering resources
 * Ignition Gazebo:
-    * `IGN_GAZEBO_RESOURCE_PATH` for worlds, models and other resources
+    * `GZ_SIM_RESOURCE_PATH` for worlds, models and other resources
 
 For example, if you have the file structure above, you can set the environment
 variable to `/home/username/models`:
@@ -154,7 +154,7 @@ variable to `/home/username/models`:
 ```
 export GAZEBO_MODEL_PATH=/home/username/models
 export GAZEBO_RESOURCE_PATH=/home/username/models
-export IGN_GAZEBO_RESOURCE_PATH=/home/username/models
+export GZ_SIM_RESOURCE_PATH=/home/username/models
 ```
 
 And inside `world.sdf` include the model with:
@@ -170,7 +170,7 @@ On both situations, the `model://` prefix will be substituted by
 
 You can also set several lookup paths separating them with `:`, for example:
 
-`export IGN_GAZEBO_RESOURCE_PATH=/home/username/models:/home/username/another_project/models`
+`export GZ_SIM_RESOURCE_PATH=/home/username/models:/home/username/another_project/models`
 
 ### Absolute paths
 
@@ -236,7 +236,7 @@ where that plugin is located. The variables are different for each simulator:
 * Gazebo classic:
     * `GAZEBO_PLUGIN_PATH` for all plugin types.
 * Ignition Gazebo:
-    * `IGN_GAZEBO_SYSTEM_PLUGIN_PATH` for Ignition Gazebo systems (world, model,
+    * `GZ_SIM_SYSTEM_PLUGIN_PATH` for Ignition Gazebo systems (world, model,
       sensor and visual plugins).
     * `IGN_GUI_PLUGIN_PATH` for GUI plugins.
 

@@ -209,11 +209,11 @@ foreach(CMD_TEST
       "BREW_RUBY=\"${BREW_RUBY} \"")
 
   target_compile_definitions(${CMD_TEST} PRIVATE
-      "IGN_PATH=\"${IGNITION-TOOLS2_BINARY_DIRS}\"")
+      "GZ_PATH=\"${IGNITION-TOOLS2_BINARY_DIRS}\"")
 
   set(_env_vars)
-  list(APPEND _env_vars "IGN_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf")
-  list(APPEND _env_vars "IGN_GAZEBO_SYSTEM_PLUGIN_PATH=$<TARGET_FILE_DIR:TestModelSystem>")
+  list(APPEND _env_vars "GZ_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf")
+  list(APPEND _env_vars "GZ_SIM_SYSTEM_PLUGIN_PATH=$<TARGET_FILE_DIR:TestModelSystem>")
 
   set_tests_properties(${CMD_TEST} PROPERTIES
     ENVIRONMENT "${_env_vars}")

@@ -79,7 +79,7 @@ TEST_F(ColladaWorldExporterFixture,
 {
   std::string world_path =
     gz::common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds");
-  gz::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+  gz::common::setenv("GZ_SIM_RESOURCE_PATH",
     (world_path + ":" +
     gz::common::joinPaths(world_path, "models")).c_str());
 
@@ -117,7 +117,7 @@ TEST_F(ColladaWorldExporterFixture,
 {
   std::string world_path =
     gz::common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds");
-  gz::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+  gz::common::setenv("GZ_SIM_RESOURCE_PATH",
     (world_path + ":" +
     gz::common::joinPaths(world_path, "models")).c_str());
 

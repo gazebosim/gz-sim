@@ -1397,7 +1397,7 @@ TEST_F(PhysicsSystemFixture,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(IncludeNestedModelDartsim))
 {
   std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
-  gz::common::setenv("IGN_GAZEBO_RESOURCE_PATH", path.c_str());
+  gz::common::setenv("GZ_SIM_RESOURCE_PATH", path.c_str());
   gz::sim::ServerConfig serverConfig;
   serverConfig.SetResourceCache(path);
   serverConfig.SetPhysicsEngine("libignition-physics-dartsim-plugin.so");
@@ -1540,7 +1540,7 @@ TEST_F(PhysicsSystemFixture,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(IncludeNestedModelTPE))
 {
   std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
-  gz::common::setenv("IGN_GAZEBO_RESOURCE_PATH", path.c_str());
+  gz::common::setenv("GZ_SIM_RESOURCE_PATH", path.c_str());
   gz::sim::ServerConfig serverConfig;
   serverConfig.SetResourceCache(path);
   serverConfig.SetPhysicsEngine("libignition-physics-tpe-plugin.so");

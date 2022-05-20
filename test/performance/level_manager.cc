@@ -38,7 +38,7 @@ TEST(LevelManagerPerfrormance, IGN_UTILS_TEST_DISABLED_ON_WIN32(LevelVsNoLevel))
 
   common::Console::SetVerbosity(4);
 
-  gz::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+  gz::common::setenv("GZ_SIM_SYSTEM_PLUGIN_PATH",
          (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
 
   gz::sim::ServerConfig serverConfig;

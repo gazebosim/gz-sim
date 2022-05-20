@@ -22,7 +22,7 @@ Add the library to the path:
 
 ~~~
 cd examples/plugin/reset_plugin
-export IGN_GAZEBO_SYSTEM_PLUGIN_PATH=`pwd`/build
+export GZ_SIM_SYSTEM_PLUGIN_PATH=`pwd`/build
 ~~~
 
 Then run a world that loads the plugin as follows:

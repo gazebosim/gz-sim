@@ -100,10 +100,10 @@ In the event that the installation is a mix of Debian and from source, command
 line tools from `ign-tools` may not work correctly.
 
 A workaround for a single package is to define the environment variable
-`IGN_CONFIG_PATH` to point to the location of the Ignition library installation,
+`GZ_CONFIG_PATH` to point to the location of the Ignition library installation,
 where the YAML file for the package is found, such as
 ```
-export IGN_CONFIG_PATH=/usr/local/share/ignition
+export GZ_CONFIG_PATH=/usr/local/share/ignition
 ```
 
 However, that environment variable only takes a single path, which means if the
@@ -118,7 +118,7 @@ ln -s /usr/local/share/ignition/fuel8.yaml .
 ln -s /usr/local/share/ignition/transport12.yaml .
 ln -s /usr/local/share/ignition/transportlog12.yaml .
 ...
-export IGN_CONFIG_PATH=$HOME/.ignition/tools/configs
+export GZ_CONFIG_PATH=$HOME/.ignition/tools/configs
 ```
 
 This issue is tracked [here](https://github.com/ignitionrobotics/ign-tools/issues/8).

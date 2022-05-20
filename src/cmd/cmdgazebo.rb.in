@@ -128,25 +128,25 @@ COMMANDS = { 'gazebo' =>
   "                               Gazebo will use DART by default.                 \n"\
   "                               (ignition-physics-dartsim-plugin)                \n"\
   "                               Make sure custom plugins are in                  \n"\
-  "                               IGN_GAZEBO_PHYSICS_ENGINE_PATH.                  \n"\
+  "                               GZ_SIM_PHYSICS_ENGINE_PATH.                  \n"\
   "\n"\
   "  --render-engine [arg]        Ignition Rendering engine plugin to load for     \n"\
   "                               both the server and the GUI. Gazebo will use     \n"\
   "                               OGRE2 by default. (ogre2)                        \n"\
   "                               Make sure custom plugins are in                  \n"\
-  "                               IGN_GAZEBO_RENDER_ENGINE_PATH.                   \n"\
+  "                               GZ_SIM_RENDER_ENGINE_PATH.                   \n"\
   "\n"\
   "  --render-engine-gui [arg]    Ignition Rendering engine plugin to load for     \n"\
   "                               the GUI. Gazebo will use OGRE2 by default.       \n"\
   "                               (ogre2)                                          \n"\
   "                               Make sure custom plugins are in                  \n"\
-  "                               IGN_GAZEBO_RENDER_ENGINE_PATH.                   \n"\
+  "                               GZ_SIM_RENDER_ENGINE_PATH.                   \n"\
   "\n"\
   "  --render-engine-server [arg] Ignition Rendering engine plugin to load for     \n"\
   "                               the server. Gazebo will use OGRE2 by default.    \n"\
   "                               (ogre2)                                          \n"\
   "                               Make sure custom plugins are in                  \n"\
-  "                               IGN_GAZEBO_RENDER_ENGINE_PATH.                   \n"\
+  "                               GZ_SIM_RENDER_ENGINE_PATH.                   \n"\
   "\n"\
   "  --version                    Print Gazebo version information.                \n"\
   "\n"\
@@ -154,11 +154,11 @@ COMMANDS = { 'gazebo' =>
   "\n"+
   COMMON_OPTIONS + "\n\n" +
   "Environment variables:                                                  \n"\
-  "  IGN_GAZEBO_RESOURCE_PATH    Colon separated paths used to locate      \n"\
+  "  GZ_SIM_RESOURCE_PATH    Colon separated paths used to locate      \n"\
   " resources such as worlds and models.                                 \n\n"\
-  "  IGN_GAZEBO_SYSTEM_PLUGIN_PATH    Colon separated paths used to        \n"\
+  "  GZ_SIM_SYSTEM_PLUGIN_PATH    Colon separated paths used to        \n"\
   " locate system plugins.                                               \n\n"\
-  "  IGN_GAZEBO_SERVER_CONFIG_PATH    Path to server configuration file. \n\n"\
+  "  GZ_SIM_SERVER_CONFIG_PATH    Path to server configuration file. \n\n"\
   "  IGN_GUI_PLUGIN_PATH    Colon separated paths used to locate GUI       \n"\
   " plugins.                                                               \n"\
 }
@@ -393,10 +393,10 @@ has properly set the DYLD_LIBRARY_PATH environment variables."
         # Check if the passed in file exists.
         if File.exists?(options['file'])
           path = options['file']
-        # If not, then first check the IGN_GAZEBO_RESOURCE_PATH environment
+        # If not, then first check the GZ_SIM_RESOURCE_PATH environment
         # variable, then the configuration path from the launch library.
         else
-          resourcePathEnv = ENV['IGN_GAZEBO_RESOURCE_PATH']
+          resourcePathEnv = ENV['GZ_SIM_RESOURCE_PATH']
           if !resourcePathEnv.nil?
             resourcePaths = resourcePathEnv.split(':')
             for resourcePath in resourcePaths
