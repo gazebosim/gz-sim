@@ -61,7 +61,7 @@ class TestWorldSystem :
               components::WorldPluginComponent(value));
         }
 
-  public: void Update(const gazebo::UpdateInfo &_info,
+  public: void Update(const sim::UpdateInfo &_info,
                       EntityComponentManager &) override
           {
             std::cout << "iteration " << _info.iterations << std::endl;

@@ -61,14 +61,14 @@ class ResetFixture: public InternalFixture<::testing::Test>
                                 nullptr);
     EXPECT_TRUE(plugin.has_value());
     this->systemPtr = plugin.value();
-    this->mockSystem = static_cast<gazebo::MockSystem *>(
-        systemPtr->QueryInterface<gazebo::System>());
+    this->mockSystem = static_cast<sim::MockSystem *>(
+        systemPtr->QueryInterface<sim::System>());
   }
 
   public: gz::sim::SystemPluginPtr systemPtr;
-  public: gazebo::MockSystem *mockSystem;
+  public: sim::MockSystem *mockSystem;
 
-  private: gazebo::SystemLoader sm;
+  private: sim::SystemLoader sm;
 };
 
 /////////////////////////////////////////////////
@@ -103,10 +103,10 @@ TEST_F(ResetFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
 
   sdf::Root root;
   root.Load(sdfFile);
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
 
   // A pointer to the ecm. This will be valid once we run the mock system
-  gazebo::EntityComponentManager *ecm = nullptr;
+  sim::EntityComponentManager *ecm = nullptr;
 
   this->mockSystem->configureCallback =
     [&ecm](const Entity &,
@@ -153,8 +153,8 @@ TEST_F(ResetFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
 
   // Validate update info in the reset
   this->mockSystem->resetCallback =
-    [](const gazebo::UpdateInfo &_info,
-       gazebo::EntityComponentManager &)
+    [](const sim::UpdateInfo &_info,
+       sim::EntityComponentManager &)
     {
       EXPECT_EQ(0u, _info.iterations);
       EXPECT_EQ(std::chrono::steady_clock::duration{0}, _info.simTime);

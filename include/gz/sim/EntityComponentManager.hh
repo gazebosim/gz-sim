@@ -128,7 +128,7 @@ namespace gz
       /// update step.
       ///
       /// \details It is recommended that systems don't call this function
-      /// directly, and instead use the `gazebo::SdfEntityCreator` class to
+      /// directly, and instead use the `sim::SdfEntityCreator` class to
       /// remove entities.
       ///
       /// \param[in] _entity Entity to be removed.
@@ -187,7 +187,7 @@ namespace gz
       /// \brief Set the parent of an entity.
       ///
       /// \details It is recommended that systems don't call this function
-      /// directly, and instead use the `gazebo::SdfEntityCreator` class to
+      /// directly, and instead use the `sim::SdfEntityCreator` class to
       /// create entities that have the correct parent-child relationship.
       ///
       /// \param[in] _child Entity to set the parent
@@ -663,13 +663,13 @@ namespace gz
       /// \param[in] _c Changed state value, defaults to one-time-change.
       public: void SetChanged(
           const Entity _entity, const ComponentTypeId _type,
-          gazebo::ComponentState _c = ComponentState::OneTimeChange);
+          sim::ComponentState _c = ComponentState::OneTimeChange);
 
       /// \brief Get a component's state.
       /// \param[in] _entity Entity that contains the component.
       /// \param[in] _typeId Component type ID.
       /// \return Component's current state
-      public: gazebo::ComponentState ComponentState(const Entity _entity,
+      public: sim::ComponentState ComponentState(const Entity _entity,
           const ComponentTypeId _typeId) const;
 
       /// \brief All future entities will have an id that starts at _offset.

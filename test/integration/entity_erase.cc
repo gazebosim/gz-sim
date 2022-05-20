@@ -43,7 +43,7 @@ TEST_F(PhysicsSystemFixture,
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/shapes.sdf");
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
   EXPECT_TRUE(server.HasEntity("box"));
   EXPECT_TRUE(server.HasEntity("capsule"));
   EXPECT_TRUE(server.HasEntity("cylinder"));

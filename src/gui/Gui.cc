@@ -321,7 +321,7 @@ std::unique_ptr<gz::gui::Application> createGui(
 int runGui(int &_argc, char **_argv, const char *_guiConfig,
   const char *_renderEngine)
 {
-  auto app = gazebo::gui::createGui(
+  auto app = sim::gui::createGui(
     _argc, _argv, _guiConfig, nullptr, true, _renderEngine);
   if (nullptr != app)
   {

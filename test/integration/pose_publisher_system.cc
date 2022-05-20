@@ -143,8 +143,8 @@ TEST_F(PosePublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
       [&modelName, &baseName, &lowerLinkName, &upperLinkName, &sensorName,
       &poses, &basePoses, &lowerLinkPoses, &upperLinkPoses, &sensorPoses,
       &timestamps](
-      const gazebo::UpdateInfo &_info,
-      const gazebo::EntityComponentManager &_ecm)
+      const sim::UpdateInfo &_info,
+      const sim::EntityComponentManager &_ecm)
     {
       // get our double pendulum model
       auto id = _ecm.EntityByComponents(
@@ -438,8 +438,8 @@ TEST_F(PosePublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StaticPosePublisher))
       [&modelName, &baseName, &lowerLinkName, &upperLinkName, &sensorName,
       &poses, &basePoses, &lowerLinkPoses, &upperLinkPoses, &sensorPoses,
       &timestamps, &staticPoseTimestamps](
-      const gazebo::UpdateInfo &_info,
-      const gazebo::EntityComponentManager &_ecm)
+      const sim::UpdateInfo &_info,
+      const sim::EntityComponentManager &_ecm)
     {
       // get our double pendulum model
       auto id = _ecm.EntityByComponents(

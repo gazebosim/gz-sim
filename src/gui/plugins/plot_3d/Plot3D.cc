@@ -265,7 +265,7 @@ bool Plot3D::eventFilter(QObject *_obj, QEvent *_event)
 {
   if (!this->dataPtr->locked)
   {
-    if (_event->type() == gazebo::gui::events::EntitiesSelected::kType)
+    if (_event->type() == sim::gui::events::EntitiesSelected::kType)
     {
       auto event = reinterpret_cast<gui::events::EntitiesSelected *>(_event);
       if (event && !event->Data().empty())
@@ -274,7 +274,7 @@ bool Plot3D::eventFilter(QObject *_obj, QEvent *_event)
       }
     }
 
-    if (_event->type() == gazebo::gui::events::DeselectAllEntities::kType)
+    if (_event->type() == sim::gui::events::DeselectAllEntities::kType)
     {
       auto event = reinterpret_cast<gui::events::DeselectAllEntities *>(
           _event);

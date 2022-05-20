@@ -67,7 +67,7 @@ struct AddressContent
   public: std::string modelName;
 
   /// \brief Entity of the model associated to this address.
-  public: gazebo::Entity entity;
+  public: sim::Entity entity;
 };
 
 /// \brief A map where the key is an address and the value is all the

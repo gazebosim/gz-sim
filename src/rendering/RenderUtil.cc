@@ -371,7 +371,7 @@ class gz::sim::RenderUtilPrivate
   /// \brief Callback function for creating sensors.
   /// The function args are: entity id, sensor sdf, and parent name.
   /// The function returns the id of the rendering sensor created.
-  public: std::function<std::string(const gazebo::Entity &, const sdf::Sensor &,
+  public: std::function<std::string(const sim::Entity &, const sdf::Sensor &,
           const std::string &)> createSensorCb;
 
   /// \brief Light equality comparison function.
@@ -407,7 +407,7 @@ class gz::sim::RenderUtilPrivate
 
   /// \brief Callback function for removing sensors.
   /// The function arg is the entity id
-  public: std::function<void(const gazebo::Entity &)> removeSensorCb;
+  public: std::function<void(const sim::Entity &)> removeSensorCb;
 
   /// \brief Currently selected entities, organized by order of selection.
   public: std::vector<Entity> selectedEntities;
@@ -2647,7 +2647,7 @@ void RenderUtil::SetWinID(const std::string &_winID)
 
 /////////////////////////////////////////////////
 void RenderUtil::SetEnableSensors(bool _enable,
-    std::function<std::string(const gazebo::Entity &, const sdf::Sensor &,
+    std::function<std::string(const sim::Entity &, const sdf::Sensor &,
       const std::string &)> _createSensorCb)
 {
   this->dataPtr->enableSensors = _enable;
@@ -2656,7 +2656,7 @@ void RenderUtil::SetEnableSensors(bool _enable,
 
 /////////////////////////////////////////////////
 void RenderUtil::SetRemoveSensorCb(
-    std::function<void(const gazebo::Entity &)> _removeSensorCb)
+    std::function<void(const sim::Entity &)> _removeSensorCb)
 {
   this->dataPtr->removeSensorCb = std::move(_removeSensorCb);
 }

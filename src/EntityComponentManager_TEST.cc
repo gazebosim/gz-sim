@@ -1546,11 +1546,11 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_TRUE(manager.SetParentEntity(e6, e2));
   EXPECT_TRUE(manager.SetParentEntity(e7, e2));
 
-  EXPECT_FALSE(manager.SetParentEntity(e1, gazebo::Entity(1000)));
-  EXPECT_FALSE(manager.SetParentEntity(gazebo::Entity(1000), e1));
+  EXPECT_FALSE(manager.SetParentEntity(e1, sim::Entity(1000)));
+  EXPECT_FALSE(manager.SetParentEntity(sim::Entity(1000), e1));
 
   // Check their parents
-  EXPECT_EQ(gazebo::kNullEntity, manager.ParentEntity(e1));
+  EXPECT_EQ(sim::kNullEntity, manager.ParentEntity(e1));
   EXPECT_EQ(e1, manager.ParentEntity(e2));
   EXPECT_EQ(e1, manager.ParentEntity(e3));
   EXPECT_EQ(e2, manager.ParentEntity(e4));
@@ -1559,8 +1559,8 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_EQ(e2, manager.ParentEntity(e7));
 
   // Detach from graph
-  EXPECT_TRUE(manager.SetParentEntity(e7, gazebo::kNullEntity));
-  EXPECT_EQ(gazebo::kNullEntity, manager.ParentEntity(e7));
+  EXPECT_TRUE(manager.SetParentEntity(e7, sim::kNullEntity));
+  EXPECT_EQ(sim::kNullEntity, manager.ParentEntity(e7));
 
   // Reparent
   EXPECT_TRUE(manager.SetParentEntity(e5, e3));

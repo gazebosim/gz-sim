@@ -70,8 +70,8 @@ TEST_F(RecreateEntitiesFixture,
 
   // Create a system that adds a recreate component to models
   test::Relay testSystem;
-  testSystem.OnUpdate([&](const gazebo::UpdateInfo &,
-    gazebo::EntityComponentManager &_ecm)
+  testSystem.OnUpdate([&](const sim::UpdateInfo &,
+    sim::EntityComponentManager &_ecm)
     {
       // cppcheck-suppress knownConditionTrueFalse
       if (!ecm)
@@ -340,8 +340,8 @@ TEST_F(RecreateEntitiesFixture,
 
   // Create a system that adds a recreate component to models
   test::Relay testSystem;
-  testSystem.OnUpdate([&](const gazebo::UpdateInfo &,
-    gazebo::EntityComponentManager &_ecm)
+  testSystem.OnUpdate([&](const sim::UpdateInfo &,
+    sim::EntityComponentManager &_ecm)
     {
       // cppcheck-suppress knownConditionTrueFalse
       if (!ecm)
@@ -499,8 +499,8 @@ TEST_F(RecreateEntitiesFixture,
 
   // Create a system that adds a recreate component to models
   test::Relay testSystem;
-  testSystem.OnUpdate([&](const gazebo::UpdateInfo &,
-    gazebo::EntityComponentManager &_ecm)
+  testSystem.OnUpdate([&](const sim::UpdateInfo &,
+    sim::EntityComponentManager &_ecm)
     {
       // cppcheck-suppress knownConditionTrueFalse
       if (!ecm)

@@ -400,7 +400,7 @@ void RFComms::Step(
     // Associate entity if needed.
     if (content.entity == kNullEntity)
     {
-      auto entities = gazebo::entitiesFromScopedName(content.modelName, _ecm);
+      auto entities = sim::entitiesFromScopedName(content.modelName, _ecm);
       if (entities.empty())
         continue;
 
@@ -415,7 +415,7 @@ void RFComms::Step(
     else
     {
       // Update radio state.
-      const auto kPose = gazebo::worldPose(content.entity, _ecm);
+      const auto kPose = sim::worldPose(content.entity, _ecm);
       this->dataPtr->radioStates[address].pose = kPose;
       this->dataPtr->radioStates[address].timeStamp =
         std::chrono::duration<double>(_info.simTime).count();

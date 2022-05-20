@@ -58,8 +58,8 @@ class VelocityControlTest
     test::Relay testSystem;
 
     std::vector<math::Pose3d> poses;
-    testSystem.OnPostUpdate([&poses](const gazebo::UpdateInfo &,
-      const gazebo::EntityComponentManager &_ecm)
+    testSystem.OnPostUpdate([&poses](const sim::UpdateInfo &,
+      const sim::EntityComponentManager &_ecm)
       {
         auto id = _ecm.EntityByComponents(
           components::Model(),
@@ -145,8 +145,8 @@ class VelocityControlTest
     std::vector<math::Pose3d> modelPoses;
     std::vector<math::Pose3d> linkPoses;
     testSystem.OnPostUpdate([&linkPoses, &modelPoses](
-      const gazebo::UpdateInfo &,
-      const gazebo::EntityComponentManager &_ecm)
+      const sim::UpdateInfo &,
+      const sim::EntityComponentManager &_ecm)
       {
         auto modelId = _ecm.EntityByComponents(
           components::Model(),

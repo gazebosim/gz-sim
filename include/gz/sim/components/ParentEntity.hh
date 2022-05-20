@@ -37,7 +37,7 @@ namespace components
   /// kept in sync with the parent entity components. Therefore,
   /// it is recommended that the `ParentEntity` component is never
   /// edited by hand, and instead, entities should be created using
-  /// the `gazebo::SdfEntityCreator` class.
+  /// the `sim::SdfEntityCreator` class.
   using ParentEntity = Component<Entity, class ParentEntityTag>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "gz_sim_components.ParentEntity", ParentEntity)

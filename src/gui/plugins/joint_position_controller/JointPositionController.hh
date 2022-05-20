@@ -88,7 +88,7 @@ namespace gui
   /// `<model_name>`: Load the widget pointed at the given model, so it's not
   /// necessary to select it. If a model is given at startup, the plugin starts
   /// in locked mode.
-  class JointPositionController : public gazebo::GuiSystem
+  class JointPositionController : public sim::GuiSystem
   {
     Q_OBJECT
 

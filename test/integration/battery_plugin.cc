@@ -59,15 +59,15 @@ class BatteryPluginTest : public InternalFixture<::testing::Test>
     EXPECT_TRUE(plugin.has_value());
     this->systemPtr = plugin.value();
 
-    this->mockSystem = static_cast<gazebo::MockSystem *>(
-        systemPtr->QueryInterface<gazebo::System>());
+    this->mockSystem = static_cast<sim::MockSystem *>(
+        systemPtr->QueryInterface<sim::System>());
     EXPECT_NE(nullptr, this->mockSystem);
   }
 
   public: gz::sim::SystemPluginPtr systemPtr;
-  public: gazebo::MockSystem *mockSystem;
+  public: sim::MockSystem *mockSystem;
 
-  private: gazebo::SystemLoader sm;
+  private: sim::SystemLoader sm;
 };
 
 
@@ -86,9 +86,9 @@ TEST_F(BatteryPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SingleBattery))
   serverConfig.SetSdfFile(sdfPath);
 
   // A pointer to the ecm. This will be valid once we run the mock system
-  gazebo::EntityComponentManager *ecm = nullptr;
+  sim::EntityComponentManager *ecm = nullptr;
   this->mockSystem->preUpdateCallback =
-    [&ecm](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+    [&ecm](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
     {
       ecm = &_ecm;
 
@@ -176,9 +176,9 @@ TEST_F(BatteryPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PowerDrainTopic))
   serverConfig.SetSdfFile(sdfPath);
 
   // A pointer to the ecm. This will be valid once we run the mock system
-  gazebo::EntityComponentManager *ecm = nullptr;
+  sim::EntityComponentManager *ecm = nullptr;
   this->mockSystem->preUpdateCallback =
-    [&ecm](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+    [&ecm](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
     {
       ecm = &_ecm;
 

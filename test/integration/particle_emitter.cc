@@ -69,8 +69,8 @@ TEST_F(ParticleEmitterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SDFLoad))
 
   // Create a system that checks a particle emitter.
   test::Relay testSystem;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-                              const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &,
+                              const sim::EntityComponentManager &_ecm)
       {
         _ecm.Each<components::ParticleEmitter,
                   components::Name,

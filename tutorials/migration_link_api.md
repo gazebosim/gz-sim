@@ -9,7 +9,7 @@ view of the architecture differences before using this guide.
 
 This tutorial is meant to serve as a reference guide for developers migrating
 functions from the
-[gazebo::phyiscs::Link](http://osrf-distributions.s3.amazonaws.com/gazebo/api/11.0.0/classgazebo_1_1physics_1_1Link.html)
+[sim::phyiscs::Link](http://osrf-distributions.s3.amazonaws.com/gazebo/api/11.0.0/classgazebo_1_1physics_1_1Link.html)
 class.
 
 If you're trying to use some API which doesn't have an equivalent on Ignition
@@ -18,7 +18,7 @@ yet, feel free to
 
 ## Link API
 
-Gazebo-classic's `gazebo::physics::Link` provides lots of functionality, which
+Gazebo-classic's `sim::physics::Link` provides lots of functionality, which
 can be divided in these categories:
 
 * **Properties**: Setting / getting properties
@@ -86,7 +86,7 @@ GetType | `gz::sim::entityType`
 GetWorldEnergy | TODO
 GetWorldEnergyKinetic | `gz::sim::Link::WorldKineticEnergy`
 GetWorldEnergyPotential | TODO
-HasType | `gazebo::components::Link::typeId == entityTypeId(entity, ecm)`
+HasType | `sim::components::Link::typeId == entityTypeId(entity, ecm)`
 InitialRelativePose | TODO
 IsCanonicalLink | `gz::sim::Link::IsCanonical`
 IsSelected | Selection is client-specific, not porting

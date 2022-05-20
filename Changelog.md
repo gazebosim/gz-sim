@@ -1246,7 +1246,7 @@
 1. Prepare GuiRunner to be made private
     * [Pull request #567](https://github.com/ignitionrobotics/ign-gazebo/pull/567)
 
-1. Deprecate some gazebo::gui events in favor of ign-gui events
+1. Deprecate some sim::gui events in favor of ign-gui events
     * [Pull request #595](https://github.com/ignitionrobotics/ign-gazebo/pull/595)
 
 1. Heightmap (rendering only)
@@ -1927,7 +1927,7 @@
 1. Fix generation of systems library symlinks in build directory
     * [Pull request #1160](https://github.com/ignitionrobotics/ign-gazebo/pull/1160)
 
-1. Backport gazebo::Util::validTopic() from ign-gazebo4.
+1. Backport sim::Util::validTopic() from ign-gazebo4.
     * [Pull request #1153](https://github.com/ignitionrobotics/ign-gazebo/pull/1153)
 
 1. Support setting the background color for sensors

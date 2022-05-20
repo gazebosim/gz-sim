@@ -9,7 +9,7 @@ view of the architecture differences before using this guide.
 
 This tutorial is meant to serve as a reference guide for developers migrating
 functions from the
-[gazebo::physics::Model](http://osrf-distributions.s3.amazonaws.com/gazebo/api/11.0.0/classgazebo_1_1physics_1_1Model.html)
+[sim::physics::Model](http://osrf-distributions.s3.amazonaws.com/gazebo/api/11.0.0/classgazebo_1_1physics_1_1Model.html)
 class.
 
 If you're trying to use some API which doesn't have an equivalent on Ignition
@@ -18,7 +18,7 @@ yet, feel free to
 
 ## Model API
 
-Gazebo-classic's `gazebo::physics::Model` provides lots of functionality, which
+Gazebo-classic's `sim::physics::Model` provides lots of functionality, which
 can be divided in these categories:
 
 * **Properties**: Setting / getting properties
@@ -73,7 +73,7 @@ GetType | `gz::sim::entityType`
 GetWorldEnergy | TODO
 GetWorldEnergyKinetic | TODO
 GetWorldEnergyPotential | TODO
-HasType | `gazebo::components::Model::typeId == entityTypeId(entity, ecm)`
+HasType | `sim::components::Model::typeId == entityTypeId(entity, ecm)`
 InitialRelativePose | TODO
 IsCanonicalLink | See link API
 IsSelected | Selection is client-specific, not porting

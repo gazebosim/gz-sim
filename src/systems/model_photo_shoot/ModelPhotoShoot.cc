@@ -125,7 +125,7 @@ void ModelPhotoShoot::PreUpdate(
 {
   if (this->dataPtr->randomPoses)
   {
-    std::vector<gazebo::Entity> joints = this->dataPtr->model->Joints(_ecm);
+    std::vector<sim::Entity> joints = this->dataPtr->model->Joints(_ecm);
     unsigned seed =
         std::chrono::system_clock::now().time_since_epoch().count();
     std::default_random_engine generator(seed);

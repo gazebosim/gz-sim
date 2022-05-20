@@ -95,8 +95,8 @@ TEST_F(ThermalSensorTest,
   std::string name;
   sdf::Sensor sensorSdf;
 
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-    const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &,
+    const sim::EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Temperature, components::Name>(
           [&](const gz::sim::Entity &_id,
@@ -112,8 +112,8 @@ TEST_F(ThermalSensorTest,
             return true;
           });
     });
-  testSystem.OnUpdate([&](const gazebo::UpdateInfo &,
-    gazebo::EntityComponentManager &_ecm)
+  testSystem.OnUpdate([&](const sim::UpdateInfo &,
+    sim::EntityComponentManager &_ecm)
     {
       _ecm.Each<components::ThermalCamera, components::Name>(
           [&](const gz::sim::Entity &_id,

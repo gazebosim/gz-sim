@@ -136,8 +136,8 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
   std::vector<math::Pose3d> poses;
   std::vector<math::Vector3d> accelerations;
   std::vector<math::Vector3d> angularVelocities;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
-                              const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &_info,
+                              const sim::EntityComponentManager &_ecm)
       {
         _ecm.Each<components::Imu,
                   components::Name,

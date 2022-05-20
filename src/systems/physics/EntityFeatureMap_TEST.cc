@@ -113,13 +113,13 @@ TEST_F(EntityFeatureMapFixture,
   // Making these entities different from 1 and 2 ensures that the implicit
   // conversion in ign-physics between EntityPtr and std::size_t doesn't cause
   // false positive tests
-  gazebo::Entity gazeboWorld1Entity = 123;
-  gazebo::Entity gazeboWorld2Entity = 456;
+  sim::Entity gazeboWorld1Entity = 123;
+  sim::Entity gazeboWorld2Entity = 456;
   WorldPtrType testWorld1 = this->engine->ConstructEmptyWorld("world1");
   WorldEntityMap testMap;
   EXPECT_FALSE(testMap.HasEntity(gazeboWorld1Entity));
   EXPECT_EQ(nullptr, testMap.Get(gazeboWorld1Entity));
-  EXPECT_EQ(gazebo::kNullEntity, testMap.Get(testWorld1));
+  EXPECT_EQ(sim::kNullEntity, testMap.Get(testWorld1));
   EXPECT_EQ(0u, testMap.TotalMapEntryCount());
 
   testMap.AddEntity(gazeboWorld1Entity, testWorld1);
@@ -168,12 +168,12 @@ TEST_F(EntityFeatureMapFixture,
   testMap.Remove(gazeboWorld1Entity);
   EXPECT_FALSE(testMap.HasEntity(gazeboWorld1Entity));
   EXPECT_EQ(nullptr, testMap.Get(gazeboWorld1Entity));
-  EXPECT_EQ(gazebo::kNullEntity, testMap.Get(testWorld1));
+  EXPECT_EQ(sim::kNullEntity, testMap.Get(testWorld1));
   EXPECT_EQ(4u, testMap.TotalMapEntryCount());
 
   testMap.Remove(testWorld2);
   EXPECT_FALSE(testMap.HasEntity(gazeboWorld2Entity));
   EXPECT_EQ(nullptr, testMap.Get(gazeboWorld2Entity));
-  EXPECT_EQ(gazebo::kNullEntity, testMap.Get(testWorld2));
+  EXPECT_EQ(sim::kNullEntity, testMap.Get(testWorld2));
   EXPECT_EQ(0u, testMap.TotalMapEntryCount());
 }

@@ -169,7 +169,7 @@ namespace sim
   ///
   /// ## Configuration
   /// None
-  class ComponentInspector : public gazebo::GuiSystem
+  class ComponentInspector : public sim::GuiSystem
   {
     Q_OBJECT
 

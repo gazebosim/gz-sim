@@ -169,7 +169,7 @@ bool ViewAngle::eventFilter(QObject *_obj, QEvent *_event)
            gz::sim::gui::events::EntitiesSelected::kType)
   {
     auto selectedEvent =
-        reinterpret_cast<gazebo::gui::events::EntitiesSelected *>(
+        reinterpret_cast<sim::gui::events::EntitiesSelected *>(
         _event);
 
     if (selectedEvent && !selectedEvent->Data().empty())

@@ -133,8 +133,8 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
     // Create a system that records the vehicle poses
     test::Relay ecmGetterSystem;
     EntityComponentManager* ecm {nullptr};
-    ecmGetterSystem.OnPreUpdate([&ecm](const gazebo::UpdateInfo &,
-      gazebo::EntityComponentManager &_ecm)
+    ecmGetterSystem.OnPreUpdate([&ecm](const sim::UpdateInfo &,
+      sim::EntityComponentManager &_ecm)
       {
         if (ecm == nullptr)
           ecm = &_ecm;
@@ -156,8 +156,8 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
     test::Relay testSystem;
     Entity modelEntity {kNullEntity};
     std::vector<math::Pose3d> poses;
-    testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-      const gazebo::EntityComponentManager &_ecm)
+    testSystem.OnPostUpdate([&](const sim::UpdateInfo &,
+      const sim::EntityComponentManager &_ecm)
       {
         modelEntity = _ecm.EntityByComponents(
           components::Model(),
@@ -253,7 +253,7 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
 
     poses.clear();
 
-    gazebo::Model model(modelEntity);
+    sim::Model model(modelEntity);
 
     // Move the robot somewhere to free space without obstacles.
     model.SetWorldPoseCmd(*ecm, math::Pose3d(10, 10, 0.1, 0, 0, 0));
@@ -455,8 +455,8 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
     // Create a system that records the vehicle poses
     test::Relay ecmGetterSystem;
     EntityComponentManager* ecm {nullptr};
-    ecmGetterSystem.OnPreUpdate([&ecm](const gazebo::UpdateInfo &,
-      gazebo::EntityComponentManager &_ecm)
+    ecmGetterSystem.OnPreUpdate([&ecm](const sim::UpdateInfo &,
+      sim::EntityComponentManager &_ecm)
       {
         if (ecm == nullptr)
           ecm = &_ecm;
@@ -478,8 +478,8 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
     test::Relay testSystem;
     Entity boxEntity {kNullEntity};
     std::vector<math::Pose3d> poses;
-    testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-      const gazebo::EntityComponentManager &_ecm)
+    testSystem.OnPostUpdate([&](const sim::UpdateInfo &,
+      const sim::EntityComponentManager &_ecm)
       {
         boxEntity = _ecm.EntityByComponents(
           components::Model(),

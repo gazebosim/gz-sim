@@ -2556,7 +2556,7 @@ void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
   _ecm.Each<components::Model>(
       [&](const Entity &_entity, const components::Model *)
       {
-        this->modelWorldPoses[_entity] = gazebo::worldPose(_entity, _ecm);
+        this->modelWorldPoses[_entity] = sim::worldPose(_entity, _ecm);
         return true;
       });
 
@@ -2771,7 +2771,7 @@ void PhysicsPrivate::UpdateModelPose(const Entity _model,
   // once the model pose has been updated, all descendant link poses of this
   // model must be updated (whether the link actually changed pose or not)
   // since link poses are saved w.r.t. their parent model
-  auto model = gazebo::Model(_model);
+  auto model = sim::Model(_model);
   for (const auto &childLink : model.Links(_ecm))
   {
     // skip links that are already marked as a link to be updated

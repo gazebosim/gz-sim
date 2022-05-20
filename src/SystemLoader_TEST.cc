@@ -31,7 +31,7 @@ using namespace gz;
 /////////////////////////////////////////////////
 TEST(SystemLoader, Constructor)
 {
-  gazebo::SystemLoader sm;
+  sim::SystemLoader sm;
 
   // Add test plugin to path (referenced in config)
   auto testBuildPath = gz::common::joinPaths(
@@ -60,7 +60,7 @@ TEST(SystemLoader, Constructor)
 
 TEST(SystemLoader, EmptyNames)
 {
-  gazebo::SystemLoader sm;
+  sim::SystemLoader sm;
   sdf::ElementPtr element;
   auto system = sm.LoadPlugin("", "", element);
   ASSERT_FALSE(system.has_value());

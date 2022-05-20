@@ -873,7 +873,7 @@ void gz::sim::set(msgs::Time *_msg,
 
 //////////////////////////////////////////////////
 void gz::sim::set(msgs::WorldStatistics *_msg,
-    const gazebo::UpdateInfo &_in)
+    const sim::UpdateInfo &_in)
 {
   set(_msg->mutable_sim_time(), _in.simTime);
   set(_msg->mutable_real_time(), _in.realTime);
@@ -1084,23 +1084,23 @@ msgs::Sensor gz::sim::convert(const sdf::Sensor &_in)
 
       if (sdfSensor->HorizontalPositionNoise().Type() != sdf::NoiseType::NONE)
       {
-        gazebo::set(sensor->mutable_position()->mutable_horizontal_noise(),
+        sim::set(sensor->mutable_position()->mutable_horizontal_noise(),
             sdfSensor->HorizontalPositionNoise());
       }
       if (sdfSensor->VerticalPositionNoise().Type() != sdf::NoiseType::NONE)
       {
-        gazebo::set(sensor->mutable_position()->mutable_vertical_noise(),
+        sim::set(sensor->mutable_position()->mutable_vertical_noise(),
             sdfSensor->VerticalPositionNoise());
 
       }
       if (sdfSensor->HorizontalVelocityNoise().Type() != sdf::NoiseType::NONE)
       {
-        gazebo::set(sensor->mutable_velocity()->mutable_horizontal_noise(),
+        sim::set(sensor->mutable_velocity()->mutable_horizontal_noise(),
             sdfSensor->HorizontalVelocityNoise());
       }
       if (sdfSensor->VerticalVelocityNoise().Type() != sdf::NoiseType::NONE)
       {
-        gazebo::set(sensor->mutable_velocity()->mutable_vertical_noise(),
+        sim::set(sensor->mutable_velocity()->mutable_vertical_noise(),
             sdfSensor->VerticalVelocityNoise());
       }
     }
@@ -1500,7 +1500,7 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
 //////////////////////////////////////////////////
 template<>
 GZ_GAZEBO_VISIBLE
-msgs::WorldStatistics gz::sim::convert(const gazebo::UpdateInfo &_in)
+msgs::WorldStatistics gz::sim::convert(const sim::UpdateInfo &_in)
 {
   msgs::WorldStatistics out;
   set(&out, _in);
@@ -1510,9 +1510,9 @@ msgs::WorldStatistics gz::sim::convert(const gazebo::UpdateInfo &_in)
 //////////////////////////////////////////////////
 template<>
 GZ_GAZEBO_VISIBLE
-gazebo::UpdateInfo gz::sim::convert(const msgs::WorldStatistics &_in)
+sim::UpdateInfo gz::sim::convert(const msgs::WorldStatistics &_in)
 {
-  gazebo::UpdateInfo out;
+  sim::UpdateInfo out;
   out.iterations = _in.iterations();
   out.paused = _in.paused();
   out.simTime = convert<std::chrono::steady_clock::duration>(_in.sim_time());

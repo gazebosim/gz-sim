@@ -60,8 +60,8 @@ class HaltMotionTest : public InternalFixture<::testing::TestWithParam<int>>
     test::Relay testSystem;
 
     std::vector<math::Pose3d> poses;
-    testSystem.OnPostUpdate([&poses](const gazebo::UpdateInfo &,
-      const gazebo::EntityComponentManager &_ecm)
+    testSystem.OnPostUpdate([&poses](const sim::UpdateInfo &,
+      const sim::EntityComponentManager &_ecm)
       {
         auto id = _ecm.EntityByComponents(
           components::Model(),
@@ -73,8 +73,8 @@ class HaltMotionTest : public InternalFixture<::testing::TestWithParam<int>>
 
         poses.push_back(poseComp->Data());
       });
-    testSystem.OnPreUpdate([&poses](const gazebo::UpdateInfo &,
-      gazebo::EntityComponentManager & _ecm)
+    testSystem.OnPreUpdate([&poses](const sim::UpdateInfo &,
+      sim::EntityComponentManager & _ecm)
       {
         auto model = _ecm.EntityByComponents(
           components::Model(),

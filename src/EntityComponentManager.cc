@@ -1924,7 +1924,7 @@ void EntityComponentManager::SetAllComponentsUnchanged()
 /////////////////////////////////////////////////
 void EntityComponentManager::SetChanged(
     const Entity _entity, const ComponentTypeId _type,
-    gazebo::ComponentState _c)
+    sim::ComponentState _c)
 {
   // make sure _entity exists
   auto ecIter = this->dataPtr->componentTypeIndex.find(_entity);

@@ -71,8 +71,8 @@ TEST_F(DetachableJointTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StartConnected))
   auto poseRecorder =
       [](const std::string &_modelName, std::vector<math::Pose3d> &_poses)
   {
-    return [&, _modelName](const gazebo::UpdateInfo &,
-                           const gazebo::EntityComponentManager &_ecm)
+    return [&, _modelName](const sim::UpdateInfo &,
+                           const sim::EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Model, components::Name, components::Pose>(
           [&](const Entity &_entity, const components::Model *,
@@ -149,8 +149,8 @@ TEST_F(DetachableJointTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LinksInSameModel))
   auto poseRecorder =
       [](const std::string &_linkName, std::vector<math::Pose3d> &_poses)
   {
-    return [&, _linkName](const gazebo::UpdateInfo &,
-                          const gazebo::EntityComponentManager &_ecm)
+    return [&, _linkName](const sim::UpdateInfo &,
+                          const sim::EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Link, components::Name, components::Pose>(
           [&](const Entity &_entity, const components::Link *,

@@ -62,8 +62,8 @@ TEST_F(JointPositionControllerGui, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Load))
   ASSERT_NE(nullptr, app);
   app->AddPluginPath(std::string(PROJECT_BINARY_PATH) + "/lib");
 
-  // Create GUI runner to handle gazebo::gui plugins
-  auto runner = new gazebo::GuiRunner("test");
+  // Create GUI runner to handle sim::gui plugins
+  auto runner = new sim::GuiRunner("test");
   runner->setParent(gui::App());
 
   // Add plugin
@@ -75,7 +75,7 @@ TEST_F(JointPositionControllerGui, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Load))
 
   // Get plugin
   auto plugins = win->findChildren<
-      gazebo::gui::JointPositionController *>();
+      sim::gui::JointPositionController *>();
   EXPECT_EQ(plugins.size(), 1);
 
   auto plugin = plugins[0];
@@ -91,7 +91,7 @@ TEST_F(JointPositionControllerGui, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Load))
 
   EXPECT_LT(sleep, maxSleep);
   EXPECT_EQ(plugin->Title(), "Joint position controller");
-  EXPECT_EQ(plugin->ModelEntity(), gazebo::kNullEntity);
+  EXPECT_EQ(plugin->ModelEntity(), sim::kNullEntity);
   EXPECT_EQ(plugin->ModelName(), QString("No model selected"))
       << plugin->ModelName().toStdString();
   EXPECT_FALSE(plugin->Locked());
@@ -105,24 +105,24 @@ TEST_F(JointPositionControllerGui,
     IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PublishCommand))
 {
   // Create a model with a joint
-  gazebo::EntityComponentManager ecm;
+  sim::EntityComponentManager ecm;
 
   auto modelEntity = ecm.CreateEntity();
-  ecm.CreateComponent(modelEntity, gazebo::components::Model());
-  ecm.CreateComponent(modelEntity, gazebo::components::Name("model_name"));
+  ecm.CreateComponent(modelEntity, sim::components::Model());
+  ecm.CreateComponent(modelEntity, sim::components::Name("model_name"));
 
   auto jointEntity = ecm.CreateEntity();
-  ecm.CreateComponent(jointEntity, gazebo::components::Joint());
-  ecm.CreateComponent(jointEntity, gazebo::components::Name("joint_name"));
-  ecm.CreateComponent(jointEntity, gazebo::components::ParentEntity(
+  ecm.CreateComponent(jointEntity, sim::components::Joint());
+  ecm.CreateComponent(jointEntity, sim::components::Name("joint_name"));
+  ecm.CreateComponent(jointEntity, sim::components::ParentEntity(
       modelEntity));
-  ecm.CreateComponent(jointEntity, gazebo::components::JointPosition({0.1}));
-  ecm.CreateComponent(jointEntity, gazebo::components::JointType(
+  ecm.CreateComponent(jointEntity, sim::components::JointPosition({0.1}));
+  ecm.CreateComponent(jointEntity, sim::components::JointType(
       sdf::JointType::REVOLUTE));
   sdf::JointAxis jointAxis;
   jointAxis.SetLower(-1.0);
   jointAxis.SetUpper(1.0);
-  ecm.CreateComponent(jointEntity, gazebo::components::JointAxis(jointAxis));
+  ecm.CreateComponent(jointEntity, sim::components::JointAxis(jointAxis));
 
   // Populate state message
   msgs::SerializedStepMap stepMsg;
@@ -146,8 +146,8 @@ TEST_F(JointPositionControllerGui,
   ASSERT_NE(nullptr, app);
   app->AddPluginPath(std::string(PROJECT_BINARY_PATH) + "/lib");
 
-  // Create GUI runner to handle gazebo::gui plugins
-  auto runner = new gazebo::GuiRunner("test");
+  // Create GUI runner to handle sim::gui plugins
+  auto runner = new sim::GuiRunner("test");
   runner->setParent(gui::App());
 
   // Load plugin
@@ -172,7 +172,7 @@ TEST_F(JointPositionControllerGui,
 
   // Get plugin
   auto plugins = win->findChildren<
-      gazebo::gui::JointPositionController *>();
+      sim::gui::JointPositionController *>();
   EXPECT_EQ(plugins.size(), 1);
 
   auto plugin = plugins[0];
@@ -188,13 +188,13 @@ TEST_F(JointPositionControllerGui,
   }
   EXPECT_LT(sleep, maxSleep);
 
-  EXPECT_EQ(plugin->ModelEntity(), gazebo::kNullEntity);
+  EXPECT_EQ(plugin->ModelEntity(), sim::kNullEntity);
   EXPECT_EQ(plugin->ModelName(), QString("No model selected"))
       << plugin->ModelName().toStdString();
   EXPECT_FALSE(plugin->Locked());
 
   // Get model
-  auto models = win->findChildren<gazebo::gui::JointsModel *>();
+  auto models = win->findChildren<sim::gui::JointsModel *>();
   EXPECT_EQ(models.size(), 1);
 
   auto jointsModel = models[0];

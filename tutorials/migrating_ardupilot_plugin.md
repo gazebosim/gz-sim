@@ -332,7 +332,7 @@ The old code uses a custom time class:
 
 ```cpp
 // OLD
-gazebo::common::Time lastControllerUpdateTime;
+sim::common::Time lastControllerUpdateTime;
 ```
 
 while the new code uses `std::chrono`:
@@ -505,7 +505,7 @@ The old code does the following each time step in its `OnUpdate()` method:
 
 ```cpp
 // OLD
-const gazebo::common::Time curTime =
+const sim::common::Time curTime =
   this->dataPtr->model->GetWorld()->SimTime();
 
 if (curTime > this->dataPtr->lastControllerUpdateTime)

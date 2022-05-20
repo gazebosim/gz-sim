@@ -250,7 +250,7 @@ void ModelEditor::Update(const UpdateInfo &,
 /////////////////////////////////////////////////
 bool ModelEditor::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == gazebo::gui::events::ModelEditorAddEntity::kType)
+  if (_event->type() == sim::gui::events::ModelEditorAddEntity::kType)
   {
     auto event = reinterpret_cast<gui::events::ModelEditorAddEntity *>(_event);
     if (event)

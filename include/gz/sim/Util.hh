@@ -89,7 +89,7 @@ namespace gz
     /// can be checked against different types. For example, if the
     /// entity is a model, this will be true:
     ///
-    /// `gazebo::components::Model::typeId == entityTypeId(entity, ecm)`
+    /// `sim::components::Model::typeId == entityTypeId(entity, ecm)`
     ///
     /// In case the entity isn't of any known type, this will return
     /// `gz::sim::kComponentTypeIdInvalid`.

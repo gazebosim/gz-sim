@@ -9,7 +9,7 @@ view of the architecture differences before using this guide.
 
 This tutorial is meant to serve as a reference guide for developers migrating
 functions from the
-[gazebo::physics::World](http://osrf-distributions.s3.amazonaws.com/gazebo/api/11.0.0/classgazebo_1_1physics_1_1World.html)
+[sim::physics::World](http://osrf-distributions.s3.amazonaws.com/gazebo/api/11.0.0/classgazebo_1_1physics_1_1World.html)
 class.
 
 If you're trying to use some API which doesn't have an equivalent on Ignition
@@ -18,7 +18,7 @@ yet, feel free to
 
 ## World API
 
-Gazebo-classic's `gazebo::physics::World` provides lots of functionality, which
+Gazebo-classic's `sim::physics::World` provides lots of functionality, which
 can be divided in these categories:
 
 * **Properties**: Setting / getting properties

@@ -41,10 +41,10 @@ class GazeboDeathTest
 /// \param[in] _fileName Full path to the SDFormat file to load.
 void startServer(const std::string &_fileName)
 {
-  gazebo::ServerConfig config;
+  sim::ServerConfig config;
   config.SetSdfFile(_fileName);
 
-  gazebo::Server server(config);
+  sim::Server server(config);
   EXPECT_TRUE(server.Run(true, 1, true));
 }
 
@@ -54,7 +54,7 @@ void startGui()
 {
   int argc = 1;
   char *argv = const_cast<char *>("ign-gazebo-gui");
-  EXPECT_EQ(0, gazebo::gui::runGui(argc, &argv, "", ""));
+  EXPECT_EQ(0, sim::gui::runGui(argc, &argv, "", ""));
 }
 
 /////////////////////////////////////////////////

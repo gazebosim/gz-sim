@@ -91,8 +91,8 @@ void ThrusterTest::TestWorld(const std::string &_world,
       propeller = Link(propellerEntity);
       propeller.EnableVelocityChecks(_ecm);
     }).
-  OnPostUpdate([&](const gazebo::UpdateInfo &_info,
-                            const gazebo::EntityComponentManager &_ecm)
+  OnPostUpdate([&](const sim::UpdateInfo &_info,
+                            const sim::EntityComponentManager &_ecm)
     {
       dt = std::chrono::duration<double>(_info.dt).count();
 

@@ -67,8 +67,8 @@ TEST_F(ThermalTest, IGN_UTILS_TEST_DISABLED_ON_MAC(TemperatureComponent))
   std::map<std::string, components::TemperatureRangeInfo>
     entityTempRange;
   std::map<std::string, std::string> heatSignatures;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-    const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &,
+    const sim::EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Temperature, components::Name>(
           [&](const gz::sim::Entity &_id,
@@ -192,8 +192,8 @@ TEST_F(ThermalTest, IGN_UTILS_TEST_DISABLED_ON_MAC(ThermalSensorSystem))
   double maxTemp = 0.0;
   std::string name;
   sdf::Sensor sensorSdf;
-  testSystem.OnUpdate([&](const gazebo::UpdateInfo &,
-    gazebo::EntityComponentManager &_ecm)
+  testSystem.OnUpdate([&](const sim::UpdateInfo &,
+    sim::EntityComponentManager &_ecm)
     {
       _ecm.Each<components::ThermalCamera, components::Name>(
           [&](const gz::sim::Entity &_id,

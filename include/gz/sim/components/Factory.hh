@@ -378,8 +378,8 @@ namespace components
       if (_classname::typeId != 0) \
         return; \
       using namespace gz;\
-      using Desc = gazebo::components::ComponentDescriptor<_classname>; \
-      gazebo::components::Factory::Instance()->Register<_classname>(\
+      using Desc = sim::components::ComponentDescriptor<_classname>; \
+      sim::components::Factory::Instance()->Register<_classname>(\
         _compType, new Desc());\
     } \
   }; \

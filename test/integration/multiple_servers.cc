@@ -37,8 +37,8 @@ TEST_P(MultipleServers, TwoServersNonBlocking)
   gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
 
-  gazebo::Server server1(serverConfig);
-  gazebo::Server server2(serverConfig);
+  sim::Server server1(serverConfig);
+  sim::Server server2(serverConfig);
   EXPECT_FALSE(server1.Running());
   EXPECT_FALSE(*server1.Running(0));
   EXPECT_FALSE(server2.Running());
@@ -77,8 +77,8 @@ TEST_P(MultipleServers, TwoServersMixedBlocking)
   gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
 
-  gazebo::Server server1(serverConfig);
-  gazebo::Server server2(serverConfig);
+  sim::Server server1(serverConfig);
+  sim::Server server2(serverConfig);
   EXPECT_FALSE(server1.Running());
   EXPECT_FALSE(*server1.Running(0));
   EXPECT_FALSE(server2.Running());

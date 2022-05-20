@@ -37,8 +37,8 @@ namespace test
 ///  test::Relay testSystem;
 ///
 ///  // Register callbacks, for example:
-///  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-///    const gazebo::EntityComponentManager &_ecm)
+///  testSystem.OnPostUpdate([&](const sim::UpdateInfo &,
+///    const sim::EntityComponentManager &_ecm)
 ///    {
 ///      // Add expectations here
 ///    }

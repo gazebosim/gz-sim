@@ -110,7 +110,7 @@ TEST_P(VerticalForceParamFixture,
   std::vector<math::Vector3d> linearVelocities;
   std::vector<math::Vector3d> forces;
   testSystem.OnPreUpdate(
-      [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+      [&](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
       {
         // Create velocity and acceleration components if they dont't exist.
         // This signals physics system to populate the component
@@ -130,7 +130,7 @@ TEST_P(VerticalForceParamFixture,
   const double kp = 100.0;
   // Set a constant velocity to the prismatic joint
   testSystem.OnPreUpdate(
-      [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+      [&](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
       {
         auto joint = _ecm.EntityByComponents(components::Joint(),
                                              components::Name(jointName));
@@ -161,8 +161,8 @@ TEST_P(VerticalForceParamFixture,
   // drag system. This is needed to capture the wrench set by the lift drag
   // system. This assumption may not hold when systems are run in parallel.
   test::Relay wrenchRecorder;
-  wrenchRecorder.OnPreUpdate([&](const gazebo::UpdateInfo &,
-                              const gazebo::EntityComponentManager &_ecm)
+  wrenchRecorder.OnPreUpdate([&](const sim::UpdateInfo &,
+                              const sim::EntityComponentManager &_ecm)
       {
         auto bladeLink = firstEntityFromScopedName(bladeName, _ecm);
         auto bodyLink = firstEntityFromScopedName(bodyName, _ecm);

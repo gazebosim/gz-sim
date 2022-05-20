@@ -74,7 +74,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(DefaultServerConfig))
   EXPECT_TRUE(serverConfig.Plugins().empty());
   EXPECT_TRUE(serverConfig.LogRecordTopics().empty());
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(std::nullopt, server.Running(1));
@@ -90,7 +90,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(DefaultServerConfig))
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, UpdateRate)
 {
-  gazebo::ServerConfig serverConfig;
+  sim::ServerConfig serverConfig;
   serverConfig.SetUpdateRate(1000.0);
   EXPECT_DOUBLE_EQ(1000.0, *serverConfig.UpdateRate());
   serverConfig.SetUpdateRate(-1000.0);
@@ -182,7 +182,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigRealPlugin))
   serverConfig.AddPlugin({"box", "model",
       "libTestModelSystem.so", "gz::sim::TestModelSystem", sdf});
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
 
   // The simulation runner should not be running.
   EXPECT_FALSE(*server.Running(0));
@@ -231,7 +231,7 @@ TEST_P(ServerFixture,
       sdf});
 
   igndbg << "Create server" << std::endl;
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
 
   // The simulation runner should not be running.
   EXPECT_FALSE(*server.Running(0));
@@ -277,7 +277,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(SdfServerConfig))
   EXPECT_FALSE(serverConfig.SdfFile().empty());
   EXPECT_TRUE(serverConfig.SdfString().empty());
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_TRUE(*server.Paused());
@@ -320,7 +320,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(SdfRootServerConfig))
   EXPECT_TRUE(serverConfig.SdfFile().empty());
   EXPECT_TRUE(serverConfig.SdfString().empty());
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_TRUE(*server.Paused());
@@ -354,11 +354,11 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigLogRecord))
   EXPECT_FALSE(common::exists(compressedFile));
 
   {
-    gazebo::ServerConfig serverConfig;
+    sim::ServerConfig serverConfig;
     serverConfig.SetUseLogRecord(true);
     serverConfig.SetLogRecordPath(logPath);
 
-    gazebo::Server server(serverConfig);
+    sim::Server server(serverConfig);
 
     EXPECT_EQ(0u, *server.IterationCount());
     EXPECT_EQ(3u, *server.EntityCount());
@@ -394,12 +394,12 @@ TEST_P(ServerFixture,
   EXPECT_FALSE(common::exists(compressedFile));
 
   {
-    gazebo::ServerConfig serverConfig;
+    sim::ServerConfig serverConfig;
     serverConfig.SetUseLogRecord(true);
     serverConfig.SetLogRecordPath(logPath);
     serverConfig.SetLogRecordCompressPath(compressedFile);
 
-    gazebo::Server server(serverConfig);
+    sim::Server server(serverConfig);
     EXPECT_EQ(0u, *server.IterationCount());
     EXPECT_EQ(3u, *server.EntityCount());
     EXPECT_EQ(4u, *server.SystemCount());
@@ -424,7 +424,7 @@ TEST_P(ServerFixture, SdfStringServerConfig)
   EXPECT_TRUE(serverConfig.SdfFile().empty());
   EXPECT_FALSE(serverConfig.SdfString().empty());
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_TRUE(*server.Paused());
@@ -436,7 +436,7 @@ TEST_P(ServerFixture, SdfStringServerConfig)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, RunBlocking)
 {
-  gazebo::Server server;
+  sim::Server server;
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_TRUE(*server.Paused());
@@ -462,7 +462,7 @@ TEST_P(ServerFixture, RunBlocking)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, RunNonBlockingPaused)
 {
-  gazebo::Server server;
+  sim::Server server;
 
   // The server should not be running.
   EXPECT_FALSE(server.Running());
@@ -512,7 +512,7 @@ TEST_P(ServerFixture, RunNonBlockingPaused)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, RunNonBlocking)
 {
-  gazebo::Server server;
+  sim::Server server;
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(0u, *server.IterationCount());
@@ -532,13 +532,13 @@ TEST_P(ServerFixture, RunNonBlocking)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(RunOnceUnpaused))
 {
-  gazebo::Server server;
+  sim::Server server;
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(0u, *server.IterationCount());
 
   // Load a system
-  gazebo::SystemLoader systemLoader;
+  sim::SystemLoader systemLoader;
   auto mockSystemPlugin = systemLoader.LoadPlugin(
       "libMockSystem.so", "gz::sim::MockSystem", nullptr);
   ASSERT_TRUE(mockSystemPlugin.has_value());
@@ -549,9 +549,9 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(RunOnceUnpaused))
   EXPECT_EQ(systemCount + 1, *server.SystemCount());
 
   // Query the interface from the plugin
-  auto system = mockSystemPlugin.value()->QueryInterface<gazebo::System>();
+  auto system = mockSystemPlugin.value()->QueryInterface<sim::System>();
   EXPECT_NE(system, nullptr);
-  auto mockSystem = dynamic_cast<gazebo::MockSystem*>(system);
+  auto mockSystem = dynamic_cast<sim::MockSystem*>(system);
   EXPECT_NE(mockSystem, nullptr);
 
   // No steps should have been executed
@@ -579,13 +579,13 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(RunOnceUnpaused))
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(RunOncePaused))
 {
-  gazebo::Server server;
+  sim::Server server;
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(0u, *server.IterationCount());
 
   // Load a system
-  gazebo::SystemLoader systemLoader;
+  sim::SystemLoader systemLoader;
   auto mockSystemPlugin = systemLoader.LoadPlugin(
       "libMockSystem.so", "gz::sim::MockSystem", nullptr);
   ASSERT_TRUE(mockSystemPlugin.has_value());
@@ -596,9 +596,9 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(RunOncePaused))
   EXPECT_EQ(systemCount + 1, *server.SystemCount());
 
   // Query the interface from the plugin
-  auto system = mockSystemPlugin.value()->QueryInterface<gazebo::System>();
+  auto system = mockSystemPlugin.value()->QueryInterface<sim::System>();
   EXPECT_NE(system, nullptr);
-  auto mockSystem = dynamic_cast<gazebo::MockSystem*>(system);
+  auto mockSystem = dynamic_cast<sim::MockSystem*>(system);
   EXPECT_NE(mockSystem, nullptr);
 
   // No steps should have been executed
@@ -628,7 +628,7 @@ TEST_P(ServerFixture, RunNonBlockingMultiple)
 {
   gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
 
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
@@ -648,7 +648,7 @@ TEST_P(ServerFixture, RunNonBlockingMultiple)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, SigInt)
 {
-  gazebo::Server server;
+  sim::Server server;
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
@@ -672,7 +672,7 @@ TEST_P(ServerFixture, ServerControlStop)
   // Test that the server correctly reacts to requests on /server_control
   // service with `stop` set to either false or true.
 
-  gazebo::Server server;
+  sim::Server server;
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
@@ -732,7 +732,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(AddSystemWhileRunning))
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   server.SetUpdatePeriod(1us);
@@ -748,7 +748,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(AddSystemWhileRunning))
   EXPECT_EQ(3u, *server.SystemCount());
 
   // Add system from plugin
-  gazebo::SystemLoader systemLoader;
+  sim::SystemLoader systemLoader;
   auto mockSystemPlugin = systemLoader.LoadPlugin("libMockSystem.so",
       "gz::sim::MockSystem", nullptr);
   ASSERT_TRUE(mockSystemPlugin.has_value());
@@ -780,19 +780,19 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(AddSystemAfterLoad))
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
   // Add system from plugin
-  gazebo::SystemLoader systemLoader;
+  sim::SystemLoader systemLoader;
   auto mockSystemPlugin = systemLoader.LoadPlugin("libMockSystem.so",
       "gz::sim::MockSystem", nullptr);
   ASSERT_TRUE(mockSystemPlugin.has_value());
 
-  auto system = mockSystemPlugin.value()->QueryInterface<gazebo::System>();
+  auto system = mockSystemPlugin.value()->QueryInterface<sim::System>();
   EXPECT_NE(system, nullptr);
-  auto mockSystem = dynamic_cast<gazebo::MockSystem*>(system);
+  auto mockSystem = dynamic_cast<sim::MockSystem*>(system);
   ASSERT_NE(mockSystem, nullptr);
 
   EXPECT_EQ(3u, *server.SystemCount());
@@ -855,13 +855,13 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
 
   ServerConfig serverConfig;
   serverConfig.SetSdfFile("resource_paths.sdf");
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
 
   test::Relay testSystem;
   unsigned int preUpdates{0};
   testSystem.OnPreUpdate(
-    [&preUpdates](const gazebo::UpdateInfo &,
-    gazebo::EntityComponentManager &_ecm)
+    [&preUpdates](const sim::UpdateInfo &,
+    sim::EntityComponentManager &_ecm)
     {
       // Create AABB so it is populated
       unsigned int eachCount{0};
@@ -879,8 +879,8 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
     });
 
   unsigned int postUpdates{0};
-  testSystem.OnPostUpdate([&postUpdates](const gazebo::UpdateInfo &,
-    const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&postUpdates](const sim::UpdateInfo &,
+    const sim::EntityComponentManager &_ecm)
     {
       // Check geometry components
       unsigned int eachCount{0};
@@ -941,7 +941,7 @@ TEST_P(ServerFixture, GetResourcePaths)
       "/tmp/some/path:/home/user/another_path");
 
   ServerConfig serverConfig;
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
 
   EXPECT_FALSE(*server.Running(0));
 
@@ -973,7 +973,7 @@ TEST_P(ServerFixture, AddResourcePaths)
   gz::common::setenv("IGN_FILE_PATH", "");
 
   ServerConfig serverConfig;
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
 
   EXPECT_FALSE(*server.Running(0));
 

@@ -49,7 +49,7 @@ Q_DECLARE_METATYPE(msgs::SerializedStepMap)
 class gz::sim::GuiRunner::Implementation
 {
   /// \brief Entity-component manager.
-  public: gazebo::EntityComponentManager ecm;
+  public: sim::EntityComponentManager ecm;
 
   /// \brief Transport node.
   public: transport::Node node{};

@@ -96,7 +96,7 @@ since pose information is being logged in the `changed_state` topic.
 
 * Use `cli` component of `ignition-utils1`.
 
-* `ignition::gazebo::RenderUtil::SelectedEntities()` now returns a
+* `ignition::sim::RenderUtil::SelectedEntities()` now returns a
   `const std::vector<Entity> &` instead of forcing a copy. The calling code
   should create a copy if it needs to modify the vector in some way.
 
@@ -109,13 +109,13 @@ since pose information is being logged in the `changed_state` topic.
 
 * Various `GuiEvent`s were deprecated in favor of their Ignition GUI
   equivalents.
-  * **Deprecated** `ignition::gazebo::gui::SnapIntervals`
+  * **Deprecated** `ignition::sim::gui::SnapIntervals`
   * **Replacement** `ignition::gui::SnapIntervals`
-  * **Deprecated** `ignition::gazebo::gui::Render`
+  * **Deprecated** `ignition::sim::gui::Render`
   * **Replacement** `ignition::gui::Render`
-  * **Deprecated** `ignition::gazebo::gui::SpawnPreviewModel`
+  * **Deprecated** `ignition::sim::gui::SpawnPreviewModel`
   * **Replacement** `ignition::gui::SpawnFromDescription`
-  * **Deprecated** `ignition::gazebo::gui::SnapPreviewPath`
+  * **Deprecated** `ignition::sim::gui::SnapPreviewPath`
   * **Replacement** `ignition::gui::SnapFromPath`
 
 * The `<direction>` tag of spot lights was previously not parsed by the
@@ -139,7 +139,7 @@ in SDF by setting the `<visual><material><double_sided>` SDF element.
           std::string(const sdf::Sensor &, const std::string &)>)`
     * ***Replacement***
       `public: void SetEnableSensors(bool, std::function<
-          std::string(const gazebo::Entity &,
+          std::string(const sim::Entity &,
           const sdf::Sensor &, const std::string &)>)`
 
 * Log playback using `<path>` SDF parameter is removed. Use --playback command

@@ -110,7 +110,7 @@ TEST_F(JointTrajectoryControllerTestFixture,
   test::Relay testSystem;
   double currentPositions[kNumberOfJoints];
   testSystem.OnPreUpdate(
-      [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+      [&](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
       {
         // Create a JointPosition component for each joint if it doesn't exist
         for (const auto &jointName : jointNames)
@@ -124,8 +124,8 @@ TEST_F(JointTrajectoryControllerTestFixture,
           }
         }
       });
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-                              const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &,
+                              const sim::EntityComponentManager &_ecm)
       {
         // Get the current position of each joint
         for (std::size_t i = 0; i < kNumberOfJoints; ++i)
@@ -280,7 +280,7 @@ TEST_F(JointTrajectoryControllerTestFixture,
   test::Relay testSystem;
   double currentVelocities[kNumberOfJoints];
   testSystem.OnPreUpdate(
-      [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+      [&](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
       {
         // Create a JointVelocity component for each joint if it doesn't exist
         for (const auto &jointName : jointNames)
@@ -294,8 +294,8 @@ TEST_F(JointTrajectoryControllerTestFixture,
           }
         }
       });
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-                              const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &,
+                              const sim::EntityComponentManager &_ecm)
       {
         // Get the current velocity of each joint
         for (std::size_t i = 0; i < kNumberOfJoints; ++i)

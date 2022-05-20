@@ -98,7 +98,7 @@ inline namespace GZ_GAZEBO_VERSION_NAMESPACE
     public: QStringList topicList;
 
     /// \brief Entity representing the sensor in the world
-    public: gazebo::Entity lidarEntity;
+    public: sim::Entity lidarEntity;
 
     /// \brief Minimum range for the visual
     public: double minVisualRange{0.0};

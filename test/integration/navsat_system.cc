@@ -71,8 +71,8 @@ TEST_F(NavSatTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
   bool checkedComponents{false};
   fixture.OnPostUpdate(
     [&](
-      const gazebo::UpdateInfo &,
-      const gazebo::EntityComponentManager &_ecm)
+      const sim::UpdateInfo &,
+      const sim::EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Sensor, components::NavSat, components::Name,
                 components::SensorTopic>(

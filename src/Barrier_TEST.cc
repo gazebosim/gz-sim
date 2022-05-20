@@ -24,15 +24,15 @@
 using namespace gz;
 
 //////////////////////////////////////////////////
-inline bool wasCancelled(const gazebo::Barrier::ExitStatus &_ret)
+inline bool wasCancelled(const sim::Barrier::ExitStatus &_ret)
 {
-  return _ret == gazebo::Barrier::ExitStatus::CANCELLED;
+  return _ret == sim::Barrier::ExitStatus::CANCELLED;
 }
 
 //////////////////////////////////////////////////
 void syncThreadsTest(unsigned int _threadCount)
 {
-  auto barrier = std::make_unique<gazebo::Barrier>(_threadCount + 1);
+  auto barrier = std::make_unique<sim::Barrier>(_threadCount + 1);
 
   unsigned int preBarrier { 0 };
   unsigned int postBarrier { 0 };
@@ -51,7 +51,7 @@ void syncThreadsTest(unsigned int _threadCount)
         }
 
         EXPECT_EQ(barrier->Wait(),
-            gazebo::Barrier::ExitStatus::DONE);
+            sim::Barrier::ExitStatus::DONE);
 
         {
           std::lock_guard<std::mutex> lock(mutex);
@@ -74,7 +74,7 @@ void syncThreadsTest(unsigned int _threadCount)
   // Give time for the last thread to call Wait
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-  EXPECT_EQ(barrier->Wait(), gazebo::Barrier::ExitStatus::DONE_LAST);
+  EXPECT_EQ(barrier->Wait(), sim::Barrier::ExitStatus::DONE_LAST);
 
   {
     std::unique_lock<std::mutex> lock(mutex);
@@ -125,7 +125,7 @@ TEST(Barrier, Cancel)
 {
   // Use 3 as number of threads, but only create one, which
   // guarantees it won't make it past `wait`
-  auto barrier = std::make_unique<gazebo::Barrier>(3);
+  auto barrier = std::make_unique<sim::Barrier>(3);
 
   unsigned int preBarrier { 0 };
   unsigned int postBarrier { 0 };

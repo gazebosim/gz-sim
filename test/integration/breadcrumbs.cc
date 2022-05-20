@@ -147,8 +147,8 @@ TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(DeployAtOffset))
       node.Advertise<msgs::Empty>("/model/vehicle_blue/breadcrumbs/B1/deploy");
 
   std::size_t iterTestStart = 1000;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
-                             const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &_info,
+                             const sim::EntityComponentManager &_ecm)
   {
     // Start moving the vehicle
     // After 1000 iterations, stop the vehicle, spawn a breadcrumb
@@ -212,8 +212,8 @@ TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(MaxDeployments))
       node.Advertise<msgs::Empty>("/model/vehicle_blue/breadcrumbs/B1/deploy");
 
   std::size_t iterTestStart = 1000;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
-                             const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &_info,
+                             const sim::EntityComponentManager &_ecm)
   {
     // Start moving the vehicle
     // Every 1000 iterations, deploy
@@ -270,8 +270,8 @@ TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(FuelDeploy))
   const std::size_t nIters = iterTestStart + 2500;
   const std::size_t maxDeployments = 5;
   std::size_t deployCount = 0;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
-                             const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &_info,
+                             const sim::EntityComponentManager &_ecm)
   {
     // Start moving the vehicle
     // Every 500 iterations, deploy
@@ -324,8 +324,8 @@ TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Performer))
   const std::size_t nIters = iterTestStart + 10000;
 
   std::optional<math::Pose3d> initialPose;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
-                             const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &_info,
+                             const sim::EntityComponentManager &_ecm)
   {
     // Deploy a performer breadcrumb on a tile that's on a level, and ensure
     // that it keeps the tile from being unloaded.
@@ -396,8 +396,8 @@ TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PerformerSetVolume))
   const std::size_t iterTestStart = 1000;
   const std::size_t nIters = iterTestStart + 2000;
 
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
-                             const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &_info,
+                             const sim::EntityComponentManager &_ecm)
   {
     // Deploy a performer breadcrumb on a tile that's on the default a level,
     // and check that it causes tile_1 to be loaded since the performer's volume
@@ -449,8 +449,8 @@ TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(DeployDisablePhysics))
       node.Advertise<msgs::Empty>("/model/vehicle_blue/breadcrumbs/B2/deploy");
 
   std::size_t iterTestStart = 1000;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
-                              const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &_info,
+                              const sim::EntityComponentManager &_ecm)
   {
     // Start moving the vehicle
     // After 1000 iterations, stop the vehicle, spawn a breadcrumb
@@ -550,7 +550,7 @@ TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(AllowRenaming))
 /////////////////////////////////////////////////
 /// Return a list of model entities whose names match the given regex
 std::vector<Entity> ModelsByNameRegex(
-    const gazebo::EntityComponentManager &_ecm, const std::regex &_re)
+    const sim::EntityComponentManager &_ecm, const std::regex &_re)
 {
   std::vector<Entity> entities;
   _ecm.Each<components::Model, components::Name>(
@@ -585,8 +585,8 @@ TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LevelLoadUnload))
   std::regex reTile1{"tile_1"};
   std::regex reBreadcrumb{"B1_.*"};
   testSystem.OnPostUpdate(
-      [&](const gazebo::UpdateInfo &_info,
-          const gazebo::EntityComponentManager &_ecm)
+      [&](const sim::UpdateInfo &_info,
+          const sim::EntityComponentManager &_ecm)
       {
         // Ensure that tile_1 is loaded at the start, deploy a breadcrumb
         if (_info.iterations == iterTestStart)

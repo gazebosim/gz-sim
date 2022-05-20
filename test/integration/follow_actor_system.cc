@@ -104,8 +104,8 @@ TEST_P(FollowActorTest,
   // Create a system that records the actor poses
   Relay testSystem;
   testSystem.OnPreUpdate(
-    [&](const gazebo::UpdateInfo &_info,
-        gazebo::EntityComponentManager &_ecm)
+    [&](const sim::UpdateInfo &_info,
+        sim::EntityComponentManager &_ecm)
     {
       auto entity = _ecm.EntityByComponents(
         components::Name("box"));
@@ -129,8 +129,8 @@ TEST_P(FollowActorTest,
     });
 
   testSystem.OnPostUpdate(
-    [&](const gazebo::UpdateInfo &_info,
-        const gazebo::EntityComponentManager &_ecm)
+    [&](const sim::UpdateInfo &_info,
+        const sim::EntityComponentManager &_ecm)
     {
       auto actorEntity = _ecm.EntityByComponents(
         components::Name("walker"));

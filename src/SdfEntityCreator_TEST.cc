@@ -59,7 +59,7 @@ using namespace gz;
 using namespace sim;
 
 /////////////////////////////////////////////////
-class EntityCompMgrTest : public gazebo::EntityComponentManager
+class EntityCompMgrTest : public sim::EntityComponentManager
 {
   public: void ProcessEntityRemovals()
   {

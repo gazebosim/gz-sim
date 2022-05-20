@@ -26,9 +26,9 @@ namespace gz
 namespace sim
 {
 class EventTriggerSystem :
-  public gazebo::System,
-  public gazebo::ISystemConfigure,
-  public gazebo::ISystemUpdate
+  public sim::System,
+  public sim::ISystemConfigure,
+  public sim::ISystemUpdate
 {
   // needed for linter
   public: EventTriggerSystem() = default;

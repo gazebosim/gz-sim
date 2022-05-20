@@ -93,8 +93,8 @@ TEST_F(LogicalCameraTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogicalCameraBox))
 
   // Create a system that checks sensor topics
   test::Relay testSystem;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
-                              const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &_info,
+                              const sim::EntityComponentManager &_ecm)
       {
         _ecm.Each<components::LogicalCamera, components::Name>(
             [&](const gz::sim::Entity &_entity,

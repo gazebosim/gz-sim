@@ -60,7 +60,7 @@ namespace gz
     class GZ_GAZEBO_VISIBLE Model {
       /// \brief Constructor
       /// \param[in] _entity Model entity
-      public: explicit Model(gazebo::Entity _entity = kNullEntity);
+      public: explicit Model(sim::Entity _entity = kNullEntity);
 
       /// \brief Copy constructor
       /// \param[in] _model Model to copy.
@@ -85,7 +85,7 @@ namespace gz
 
       /// \brief Get the entity which this Model is related to.
       /// \return Model entity.
-      public: gazebo::Entity Entity() const;
+      public: sim::Entity Entity() const;
 
       /// \brief Check whether this model correctly refers to an entity that
       /// has a components::Model.
@@ -127,7 +127,7 @@ namespace gz
       /// \param[in] _name Joint name.
       /// \return Joint entity.
       /// \todo(anyone) Make const
-      public: gazebo::Entity JointByName(const EntityComponentManager &_ecm,
+      public: sim::Entity JointByName(const EntityComponentManager &_ecm,
           const std::string &_name);
 
       /// \brief Get the ID of a link entity which is an immediate child of
@@ -136,25 +136,25 @@ namespace gz
       /// \param[in] _name Link name.
       /// \return Link entity.
       /// \todo(anyone) Make const
-      public: gazebo::Entity LinkByName(const EntityComponentManager &_ecm,
+      public: sim::Entity LinkByName(const EntityComponentManager &_ecm,
           const std::string &_name);
 
       /// \brief Get all joints which are immediate children of this model.
       /// \param[in] _ecm Entity-component manager.
       /// \return All joints in this model.
-      public: std::vector<gazebo::Entity> Joints(
+      public: std::vector<sim::Entity> Joints(
           const EntityComponentManager &_ecm) const;
 
       /// \brief Get all links which are immediate children of this model.
       /// \param[in] _ecm Entity-component manager.
       /// \return All links in this model.
-      public: std::vector<gazebo::Entity> Links(
+      public: std::vector<sim::Entity> Links(
           const EntityComponentManager &_ecm) const;
 
       /// \brief Get all models which are immediate children of this model.
       /// \param[in] _ecm Entity-component manager.
       /// \return All models in this model.
-      public: std::vector<gazebo::Entity> Models(
+      public: std::vector<sim::Entity> Models(
           const EntityComponentManager &_ecm) const;
 
       /// \brief Get the number of joints which are immediate children of this

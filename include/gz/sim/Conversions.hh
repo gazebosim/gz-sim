@@ -71,7 +71,7 @@ namespace gz
     set(msgs::SensorNoise *_msg, const sdf::Noise &_sdf);
 
     /// \brief Helper function that sets a mutable msgs::WorldStatistics object
-    /// to the values contained in a gazebo::UpdateInfo  object.
+    /// to the values contained in a sim::UpdateInfo  object.
     /// \param[out] _msg WorldStatistics message to set.
     /// \param[in] _in UpdateInfo object.
     void GZ_GAZEBO_VISIBLE

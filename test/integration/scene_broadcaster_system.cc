@@ -51,7 +51,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PoseInfo))
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(24u, *server.EntityCount());
@@ -101,7 +101,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneInfo))
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(24u, *server.EntityCount());
@@ -147,7 +147,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneGraph))
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(24u, *server.EntityCount());
@@ -187,7 +187,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneTopic))
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
                           "/test/worlds/shapes.sdf");
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(24u, *server.EntityCount());
@@ -232,7 +232,7 @@ TEST_P(SceneBroadcasterTest,
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
                           "/test/worlds/altimeter_with_pose.sdf");
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(12u, *server.EntityCount());
@@ -283,7 +283,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(DeletedTopic))
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
                           "/test/worlds/shapes.sdf");
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
@@ -343,7 +343,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SpawnedModel))
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
                           "/test/worlds/shapes.sdf");
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
@@ -413,7 +413,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(State))
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(24u, *server.EntityCount());
@@ -524,7 +524,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StateStatic))
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/empty.sdf");
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(8u, *server.EntityCount());
@@ -630,15 +630,15 @@ TEST_P(SceneBroadcasterTest,
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
                           "/test/worlds/shapes_scene_broadcaster_only.sdf");
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
   // Create a system that removes a component
   gz::sim::test::Relay testSystem;
 
-  testSystem.OnUpdate([](const gazebo::UpdateInfo &_info,
-    gazebo::EntityComponentManager &_ecm)
+  testSystem.OnUpdate([](const sim::UpdateInfo &_info,
+    sim::EntityComponentManager &_ecm)
     {
       static bool periodicChangeMade = false;
 
@@ -664,8 +664,8 @@ TEST_P(SceneBroadcasterTest,
       else if (_info.iterations == 3)
       {
         auto boxEntity = _ecm.EntityByComponents(
-            gazebo::components::Name("box"), gazebo::components::Model());
-        ASSERT_NE(gazebo::kNullEntity, boxEntity);
+            sim::components::Name("box"), sim::components::Model());
+        ASSERT_NE(sim::kNullEntity, boxEntity);
         EXPECT_FALSE(_ecm.EntityHasComponentType(boxEntity,
               gz::sim::components::Pose::typeId));
         _ecm.CreateComponent<gz::sim::components::Pose>(boxEntity,
@@ -677,46 +677,46 @@ TEST_P(SceneBroadcasterTest,
       else if (_info.iterations == 4)
       {
         auto boxEntity = _ecm.EntityByComponents(
-            gazebo::components::Name("box"), gazebo::components::Model());
-        ASSERT_NE(gazebo::kNullEntity, boxEntity);
+            sim::components::Name("box"), sim::components::Model());
+        ASSERT_NE(sim::kNullEntity, boxEntity);
         _ecm.RequestRemoveEntity(boxEntity);
       }
       // create an entity
       else if (_info.iterations == 5)
       {
-        EXPECT_EQ(gazebo::kNullEntity, _ecm.EntityByComponents(
-              gazebo::components::Name("newEntity"),
-              gazebo::components::Model()));
+        EXPECT_EQ(sim::kNullEntity, _ecm.EntityByComponents(
+              sim::components::Name("newEntity"),
+              sim::components::Model()));
         auto newEntity = _ecm.CreateEntity();
-        _ecm.CreateComponent(newEntity, gazebo::components::Name("newEntity"));
-        _ecm.CreateComponent(newEntity, gazebo::components::Model());
-        EXPECT_NE(gazebo::kNullEntity, _ecm.EntityByComponents(
-              gazebo::components::Name("newEntity"),
-              gazebo::components::Model()));
+        _ecm.CreateComponent(newEntity, sim::components::Name("newEntity"));
+        _ecm.CreateComponent(newEntity, sim::components::Model());
+        EXPECT_NE(sim::kNullEntity, _ecm.EntityByComponents(
+              sim::components::Name("newEntity"),
+              sim::components::Model()));
       }
       // modify an existing component via OneTimeChange
       else if (_info.iterations == 6)
       {
         auto entity = _ecm.EntityByComponents(
-            gazebo::components::Name("newEntity"),
-            gazebo::components::Model());
-        ASSERT_NE(gazebo::kNullEntity, entity);
-        EXPECT_TRUE(_ecm.SetComponentData<gazebo::components::Name>(entity,
+            sim::components::Name("newEntity"),
+            sim::components::Model());
+        ASSERT_NE(sim::kNullEntity, entity);
+        EXPECT_TRUE(_ecm.SetComponentData<sim::components::Name>(entity,
             "newEntity1"));
-        _ecm.SetChanged(entity, gazebo::components::Name::typeId,
-            gazebo::ComponentState::OneTimeChange);
+        _ecm.SetChanged(entity, sim::components::Name::typeId,
+            sim::ComponentState::OneTimeChange);
       }
       // modify an existing component via PeriodicChange
       else if (_info.iterations > 6 && !periodicChangeMade)
       {
         auto entity = _ecm.EntityByComponents(
-            gazebo::components::Name("newEntity1"),
-            gazebo::components::Model());
-        ASSERT_NE(gazebo::kNullEntity, entity);
-        EXPECT_TRUE(_ecm.SetComponentData<gazebo::components::Name>(entity,
+            sim::components::Name("newEntity1"),
+            sim::components::Model());
+        ASSERT_NE(sim::kNullEntity, entity);
+        EXPECT_TRUE(_ecm.SetComponentData<sim::components::Name>(entity,
             "newEntity2"));
-        _ecm.SetChanged(entity, gazebo::components::Name::typeId,
-            gazebo::ComponentState::PeriodicChange);
+        _ecm.SetChanged(entity, sim::components::Name::typeId,
+            sim::ComponentState::PeriodicChange);
         periodicChangeMade = true;
       }
     });

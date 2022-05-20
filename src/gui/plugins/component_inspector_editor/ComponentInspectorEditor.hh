@@ -167,7 +167,7 @@ namespace sim
   ///
   /// ## Configuration
   /// None
-  class ComponentInspectorEditor : public gazebo::GuiSystem
+  class ComponentInspectorEditor : public sim::GuiSystem
   {
     Q_OBJECT
 
@@ -335,7 +335,7 @@ namespace sim
 
     /// \brief Set the entity currently inspected.
     /// \param[in] _entity Entity ID.
-    public: Q_INVOKABLE void SetEntity(const gazebo::Entity &_entity);
+    public: Q_INVOKABLE void SetEntity(const sim::Entity &_entity);
 
     /// \brief Notify that entity has changed.
     signals: void EntityChanged();

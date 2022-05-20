@@ -869,7 +869,7 @@ gz::sim::loadPluginInfo(bool _isPlayback)
 
   // 1. Check contents of environment variable
   std::string envConfig;
-  bool configSet = gz::common::env(gazebo::kServerConfigPathEnv,
+  bool configSet = gz::common::env(sim::kServerConfigPathEnv,
                                          envConfig,
                                          true);
 
@@ -884,7 +884,7 @@ gz::sim::loadPluginInfo(bool _isPlayback)
         // This may be desired behavior, but warn just in case.
         // Some users may want to defer all loading until later
         // during runtime.
-        ignwarn << gazebo::kServerConfigPathEnv
+        ignwarn << sim::kServerConfigPathEnv
                 << " set but no plugins found\n";
       }
       igndbg << "Loaded (" << ret.size() << ") plugins from file " <<
@@ -897,7 +897,7 @@ gz::sim::loadPluginInfo(bool _isPlayback)
       // This may be desired behavior, but warn just in case.
       // Some users may want to defer all loading until late
       // during runtime.
-      ignwarn << gazebo::kServerConfigPathEnv
+      ignwarn << sim::kServerConfigPathEnv
               << " set but no file found,"
               << " no plugins loaded\n";
       return ret;

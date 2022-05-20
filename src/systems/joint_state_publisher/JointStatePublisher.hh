@@ -70,7 +70,7 @@ namespace systems
     /// \param[in] _ecm The EntityComponentManager.
     /// \param[in] _joint The joint entity to create component for.
     private: void CreateComponents(EntityComponentManager &_ecm,
-                                   gazebo::Entity _joint);
+                                   sim::Entity _joint);
 
     /// \brief The model
     private: Model model;

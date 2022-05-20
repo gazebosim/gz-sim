@@ -50,7 +50,7 @@ namespace systems
     public: void Configure(const Entity &_entity,
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
-                           gazebo::EventManager &_eventMgr) final;
+                           sim::EventManager &_eventMgr) final;
   };
   }
 }

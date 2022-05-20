@@ -188,7 +188,7 @@ void Broker::OnMsg(const gz::msgs::Dataframe &_msg)
 
   // Stamp the time.
   msgPtr->mutable_header()->mutable_stamp()->CopyFrom(
-      gazebo::convert<msgs::Time>(this->dataPtr->time));
+      sim::convert<msgs::Time>(this->dataPtr->time));
 
   this->DataManager().AddOutbound(_msg.src_address(), msgPtr);
 }

@@ -120,10 +120,10 @@ TEST_F(WheelSlipTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TireDrum))
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  gazebo::EntityComponentManager *ecm = nullptr;
+  sim::EntityComponentManager *ecm = nullptr;
   test::Relay testSystem;
-  testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
-        gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPreUpdate([&](const sim::UpdateInfo &,
+        sim::EntityComponentManager &_ecm)
       {
       ecm = &_ecm;
       });
@@ -141,7 +141,7 @@ TEST_F(WheelSlipTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TireDrum))
   Entity worldEntity =
     ecm->EntityByComponents(components::World());
 
-  EXPECT_NE(gazebo::kNullEntity, worldEntity);
+  EXPECT_NE(sim::kNullEntity, worldEntity);
 
   // Get both models
   Entity tireEntity =
@@ -152,8 +152,8 @@ TEST_F(WheelSlipTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TireDrum))
     ecm->EntityByComponents(components::Model(),
         components::Name("drum"));
 
-  EXPECT_NE(gazebo::kNullEntity, tireEntity);
-  EXPECT_NE(gazebo::kNullEntity, drumEntity);
+  EXPECT_NE(sim::kNullEntity, tireEntity);
+  EXPECT_NE(sim::kNullEntity, drumEntity);
 
   Entity wheelLinkEntity = ecm->EntityByComponents(
       components::ParentEntity(tireEntity),
@@ -165,8 +165,8 @@ TEST_F(WheelSlipTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TireDrum))
       components::Name("link"),
       components::Link());
 
-  EXPECT_NE(gazebo::kNullEntity, wheelLinkEntity);
-  EXPECT_NE(gazebo::kNullEntity, drumLinkEntity);
+  EXPECT_NE(sim::kNullEntity, wheelLinkEntity);
+  EXPECT_NE(sim::kNullEntity, drumLinkEntity);
 
   auto wheelInertialComp =
     ecm->Component<components::Inertial>(wheelLinkEntity);
@@ -193,8 +193,8 @@ TEST_F(WheelSlipTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TireDrum))
       components::Name("collision"),
       components::Collision());
 
-  EXPECT_NE(gazebo::kNullEntity, collisionWheelLinkEntity);
-  EXPECT_NE(gazebo::kNullEntity, collisionDrumLinkEntity);
+  EXPECT_NE(sim::kNullEntity, collisionWheelLinkEntity);
+  EXPECT_NE(sim::kNullEntity, collisionDrumLinkEntity);
 
   auto wheelCollisionComp =
     ecm->Component<components::CollisionElement>(collisionWheelLinkEntity);
@@ -247,7 +247,7 @@ TEST_F(WheelSlipTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TireDrum))
         components::ParentEntity(tireEntity),
         components::Name(linkName),
         components::Link());
-    EXPECT_NE(gazebo::kNullEntity, linkEntity);
+    EXPECT_NE(sim::kNullEntity, linkEntity);
     auto inertialComp = ecm->Component<components::Inertial>(linkEntity);
 
     EXPECT_NE(nullptr, inertialComp);
@@ -261,14 +261,14 @@ TEST_F(WheelSlipTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TireDrum))
       components::Name("axle_wheel"),
       components::Joint());
 
-  ASSERT_NE(gazebo::kNullEntity, wheelAxleJointEntity);
+  ASSERT_NE(sim::kNullEntity, wheelAxleJointEntity);
 
   Entity wheelSteerJointEntity = ecm->EntityByComponents(
       components::ParentEntity(tireEntity),
       components::Name("steer"),
       components::Joint());
 
-  ASSERT_NE(gazebo::kNullEntity, wheelSteerJointEntity);
+  ASSERT_NE(sim::kNullEntity, wheelSteerJointEntity);
 
   const double wheelSpeed =
     -25.0 * metersPerMile / secondsPerHour / wheelRadius;
@@ -382,10 +382,10 @@ TEST_F(WheelSlipTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TricyclesUphill))
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  gazebo::EntityComponentManager *ecm = nullptr;
+  sim::EntityComponentManager *ecm = nullptr;
   test::Relay testSystem;
-  testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
-        gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPreUpdate([&](const sim::UpdateInfo &,
+        sim::EntityComponentManager &_ecm)
       {
       ecm = &_ecm;
       });
@@ -403,7 +403,7 @@ TEST_F(WheelSlipTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TricyclesUphill))
   Entity worldEntity =
     ecm->EntityByComponents(components::World());
 
-  EXPECT_NE(gazebo::kNullEntity, worldEntity);
+  EXPECT_NE(sim::kNullEntity, worldEntity);
 
   auto gravity = ecm->Component<components::Gravity>(worldEntity);
 
@@ -415,14 +415,14 @@ TEST_F(WheelSlipTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TricyclesUphill))
     ecm->EntityByComponents(components::Model(),
         components::Name("trisphere_cycle0"));
 
-  EXPECT_NE(gazebo::kNullEntity, trisphereCycle0Entity);
+  EXPECT_NE(sim::kNullEntity, trisphereCycle0Entity);
 
 
   Entity trisphereCycle1Entity =
     ecm->EntityByComponents(components::Model(),
         components::Name("trisphere_cycle1"));
 
-  EXPECT_NE(gazebo::kNullEntity, trisphereCycle1Entity);
+  EXPECT_NE(sim::kNullEntity, trisphereCycle1Entity);
 
   // Check rear left wheel of first model
   Entity wheelRearLeftEntity = ecm->EntityByComponents(
@@ -430,7 +430,7 @@ TEST_F(WheelSlipTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TricyclesUphill))
       components::Name("wheel_rear_left"),
       components::Link());
 
-  EXPECT_NE(gazebo::kNullEntity, wheelRearLeftEntity);
+  EXPECT_NE(sim::kNullEntity, wheelRearLeftEntity);
 
   Entity wheelRearLeftCollisionEntity = ecm->EntityByComponents(
       components::ParentEntity(wheelRearLeftEntity),
@@ -450,28 +450,28 @@ TEST_F(WheelSlipTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TricyclesUphill))
       components::Name("wheel_rear_left_spin"),
       components::Joint());
 
-  EXPECT_NE(gazebo::kNullEntity, wheelRearLeftSpin0Entity);
+  EXPECT_NE(sim::kNullEntity, wheelRearLeftSpin0Entity);
 
   Entity wheelRearRightSpin0Entity = ecm->EntityByComponents(
       components::ParentEntity(trisphereCycle0Entity),
       components::Name("wheel_rear_right_spin"),
       components::Joint());
 
-  EXPECT_NE(gazebo::kNullEntity, wheelRearRightSpin0Entity);
+  EXPECT_NE(sim::kNullEntity, wheelRearRightSpin0Entity);
 
   Entity wheelRearLeftSpin1Entity = ecm->EntityByComponents(
       components::ParentEntity(trisphereCycle1Entity),
       components::Name("wheel_rear_left_spin"),
       components::Joint());
 
-  EXPECT_NE(gazebo::kNullEntity, wheelRearLeftSpin1Entity);
+  EXPECT_NE(sim::kNullEntity, wheelRearLeftSpin1Entity);
 
   Entity wheelRearRightSpin1Entity = ecm->EntityByComponents(
       components::ParentEntity(trisphereCycle1Entity),
       components::Name("wheel_rear_right_spin"),
       components::Joint());
 
-  EXPECT_NE(gazebo::kNullEntity, wheelRearRightSpin1Entity);
+  EXPECT_NE(sim::kNullEntity, wheelRearRightSpin1Entity);
 
   // Set speed of both models
   const double angularSpeed = 6.0;
@@ -526,8 +526,8 @@ TEST_F(WheelSlipTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TricyclesUphill))
   }
 
   test::Relay testSlipSystem;
-  testSlipSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
-        gazebo::EntityComponentManager &)
+  testSlipSystem.OnPreUpdate([&](const sim::UpdateInfo &,
+        sim::EntityComponentManager &)
       {
       auto wheelRearLeftVelocity0Cmd =
         ecm->Component<components::JointVelocityCmd>(wheelRearLeftSpin0Entity);

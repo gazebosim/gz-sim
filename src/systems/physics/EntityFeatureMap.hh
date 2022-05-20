@@ -94,7 +94,7 @@ namespace systems::physics_system
     /// requested feature.
     public: template <typename ToFeatureList>
             PhysicsEntityPtr<ToFeatureList>
-            EntityCast(gazebo::Entity _entity) const
+            EntityCast(sim::Entity _entity) const
     {
       // Using constexpr to limit compiler error message to the static_assert
       // cppcheck-suppress syntaxError

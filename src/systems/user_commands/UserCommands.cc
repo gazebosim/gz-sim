@@ -1124,7 +1124,7 @@ bool CreateCommand::Execute()
       if (createMsg->has_pose())
       {
         // TODO(anyone) handle if relative_to is filled
-        auto pose = gazebo::convert<math::Pose3d>(createMsg->pose());
+        auto pose = sim::convert<math::Pose3d>(createMsg->pose());
         this->iface->ecm->SetComponentData<components::Pose>(clonedEntity,
             pose);
       }

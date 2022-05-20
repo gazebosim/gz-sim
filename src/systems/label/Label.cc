@@ -43,8 +43,8 @@ Label::~Label() = default;
 //////////////////////////////////////////////////
 void Label::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
-    gazebo::EntityComponentManager &_ecm,
-    gazebo::EventManager & /*_eventMgr*/)
+    sim::EntityComponentManager &_ecm,
+    sim::EventManager & /*_eventMgr*/)
 {
   const std::string labelTag = "label";
 

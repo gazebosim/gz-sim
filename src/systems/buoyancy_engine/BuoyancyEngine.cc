@@ -96,7 +96,7 @@ double BuoyancyEnginePrivateData::CurrentFluidDensity(
   if (!this->surface.has_value())
     return fluidDensity;
 
-  auto pose = gazebo::worldPose(this->linkEntity, _ecm);
+  auto pose = sim::worldPose(this->linkEntity, _ecm);
 
   if (pose.Pos().Z() < this->surface.value())
   {

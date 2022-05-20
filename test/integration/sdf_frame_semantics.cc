@@ -64,7 +64,7 @@ class SdfFrameSemanticsTest : public InternalFixture<::testing::Test>
     EXPECT_FALSE(*this->server->Running(0));
     // A pointer to the ecm. This will be valid once we run the mock system
     relay->OnPreUpdate(
-        [this](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+        [this](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
         {
           this->ecm = &_ecm;
         });
@@ -97,15 +97,15 @@ class SdfFrameSemanticsTest : public InternalFixture<::testing::Test>
     this->creator->SetParent(modelEntity, worldEntity);
   }
 
-  public: gazebo::Model GetModel(const std::string &_name)
+  public: sim::Model GetModel(const std::string &_name)
   {
-    return gazebo::Model(this->ecm->EntityByComponents(
+    return sim::Model(this->ecm->EntityByComponents(
         components::Model(), components::Name(_name)));
   }
 
-  public: gazebo::Model GetChildModel(Entity _parent, const std::string &_name)
+  public: sim::Model GetChildModel(Entity _parent, const std::string &_name)
   {
-    return gazebo::Model(
+    return sim::Model(
       this->ecm->EntityByComponents(
         components::Model(),
         components::ParentEntity(_parent),

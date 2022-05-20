@@ -42,8 +42,8 @@ class GZ_GAZEBO_HIDDEN TestFixturePrivate;
 /// gz::sim::TestFixture fixture("path_to.sdf");
 ///
 /// // Register callbacks, for example:
-/// fixture.OnPostUpdate([&](const gazebo::UpdateInfo &,
-///   const gazebo::EntityComponentManager &_ecm)
+/// fixture.OnPostUpdate([&](const sim::UpdateInfo &,
+///   const sim::EntityComponentManager &_ecm)
 ///   {
 ///     // Add expectations here
 ///   }).Finalize();
@@ -100,7 +100,7 @@ class GZ_GAZEBO_VISIBLE TestFixture
   public: TestFixture &Finalize();
 
   /// \brief Get pointer to underlying server.
-  public: std::shared_ptr<gazebo::Server> Server() const;
+  public: std::shared_ptr<sim::Server> Server() const;
 
   /// \internal
   /// \brief Pointer to private data.

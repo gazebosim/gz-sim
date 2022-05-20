@@ -69,7 +69,7 @@ void JointStatePublisher::Configure(
     while (elem)
     {
       std::string jointName = elem->Get<std::string>();
-      gazebo::Entity jointEntity = this->model.JointByName(_ecm, jointName);
+      sim::Entity jointEntity = this->model.JointByName(_ecm, jointName);
       if (jointEntity != kNullEntity)
       {
         this->CreateComponents(_ecm, jointEntity);
@@ -105,7 +105,7 @@ void JointStatePublisher::Configure(
 
 //////////////////////////////////////////////////
 void JointStatePublisher::CreateComponents(EntityComponentManager &_ecm,
-    gazebo::Entity _joint)
+    sim::Entity _joint)
 {
   if (this->joints.find(_joint) != this->joints.end())
   {

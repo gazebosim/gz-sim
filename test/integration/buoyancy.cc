@@ -59,8 +59,8 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RestoringMoments))
     serverConfig.SetSdfFile(sdfFile);
 
     test::Relay testSystem;
-    testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &/*unused*/,
-                              const gazebo::EntityComponentManager &_ecm)
+    testSystem.OnPostUpdate([&](const sim::UpdateInfo &/*unused*/,
+                              const sim::EntityComponentManager &_ecm)
     {
       // Get Submarine
       Entity submarine = _ecm.EntityByComponents(
@@ -89,8 +89,8 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RestoringMoments))
     serverConfig.SetSdfFile(sdfFile);
 
     test::Relay testSystem;
-    testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &/*unused*/,
-                              const gazebo::EntityComponentManager &_ecm)
+    testSystem.OnPostUpdate([&](const sim::UpdateInfo &/*unused*/,
+                              const sim::EntityComponentManager &_ecm)
     {
       // Get Submarine
       Entity submarine = _ecm.EntityByComponents(
@@ -181,8 +181,8 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(UniformWorldMovement))
 
   bool finished = false;
   test::Relay testSystem;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
-                             const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &_info,
+                             const sim::EntityComponentManager &_ecm)
   {
     // Check pose
     Entity submarine = _ecm.EntityByComponents(
@@ -336,8 +336,8 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(GradedBuoyancy))
 
   bool finished = false;
   test::Relay testSystem;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
-                             const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &_info,
+                             const sim::EntityComponentManager &_ecm)
   {
     // Check pose
     Entity neutralBox = _ecm.EntityByComponents(
@@ -409,8 +409,8 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OffsetAndRotationGraded))
 
   std::size_t iterations{0};
   fixture.OnPostUpdate([&](
-      const gazebo::UpdateInfo &,
-      const gazebo::EntityComponentManager &_ecm)
+      const sim::UpdateInfo &,
+      const sim::EntityComponentManager &_ecm)
   {
     // Get links
     auto noOffsets = entitiesFromScopedName("no_offset::link", _ecm);
@@ -464,8 +464,8 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OffsetAndRotation))
 
   std::size_t iterations{0};
   fixture.OnPostUpdate([&](
-      const gazebo::UpdateInfo &,
-      const gazebo::EntityComponentManager &_ecm)
+      const sim::UpdateInfo &,
+      const sim::EntityComponentManager &_ecm)
   {
     // Get links
     auto noOffsets = entitiesFromScopedName("no_offset::link", _ecm);

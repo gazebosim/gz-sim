@@ -73,15 +73,15 @@ class ModelMover: public test::Relay
     poseCmd = std::move(_pose);
   }
 
-  public: gazebo::Entity Id() const
+  public: sim::Entity Id() const
   {
     return entity;
   }
 
   /// \brief Sets the pose component of the entity to the commanded pose. This
   /// function meant to be called in the preupdate phase
-  private: void MoveModel(const gazebo::UpdateInfo &,
-                          gazebo::EntityComponentManager &_ecm)
+  private: void MoveModel(const sim::UpdateInfo &,
+                          sim::EntityComponentManager &_ecm)
   {
     if (this->poseCmd)
     {
@@ -93,7 +93,7 @@ class ModelMover: public test::Relay
 
 
   /// \brief Entity to move
-  private: gazebo::Entity entity;
+  private: sim::Entity entity;
   /// \brief Pose command
   private: std::optional<math::Pose3d> poseCmd;
 };
@@ -116,12 +116,12 @@ class LevelManagerFixture : public InternalFixture<::testing::Test>
     serverConfig.SetUseLevels(true);
 
     EXPECT_EQ(nullptr, this->server);
-    this->server = std::make_unique<gazebo::Server>(serverConfig);
+    this->server = std::make_unique<sim::Server>(serverConfig);
 
     test::Relay testSystem;
     // Check entities loaded on the default level
-    testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-                            const gazebo::EntityComponentManager &_ecm)
+    testSystem.OnPostUpdate([&](const sim::UpdateInfo &,
+                            const sim::EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Model, components::Name>(
           [&](const Entity &, const components::Model *,
@@ -170,7 +170,7 @@ class LevelManagerFixture : public InternalFixture<::testing::Test>
     this->server->Run(true, 1, false);
   }
 
-  public: std::unique_ptr<gazebo::Server> server;
+  public: std::unique_ptr<sim::Server> server;
   public: std::vector<std::string> loadedModels;
   public: std::vector<std::string> unloadedModels;
   public: std::vector<std::string> loadedLights;
@@ -186,8 +186,8 @@ TEST_F(LevelManagerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(DefaultLevel))
 
   test::Relay recorder;
   // Check entities loaded on the default level
-  recorder.OnPostUpdate([&](const gazebo::UpdateInfo &,
-                            const gazebo::EntityComponentManager &_ecm)
+  recorder.OnPostUpdate([&](const sim::UpdateInfo &,
+                            const sim::EntityComponentManager &_ecm)
   {
     _ecm.Each<components::DefaultLevel, components::LevelEntityNames>(
         [&](const Entity &, const components::DefaultLevel *,

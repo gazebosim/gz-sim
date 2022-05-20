@@ -53,7 +53,7 @@ TEST(LevelManagerPerfrormance, IGN_UTILS_TEST_DISABLED_ON_WIN32(LevelVsNoLevel))
   // measuring time differences between levels and no levels.
   {
     serverConfig.SetUseLevels(true);
-    gazebo::Server server(serverConfig);
+    sim::Server server(serverConfig);
     server.SetUpdatePeriod(1ns);
 
     server.Run(true, 1, false);
@@ -62,7 +62,7 @@ TEST(LevelManagerPerfrormance, IGN_UTILS_TEST_DISABLED_ON_WIN32(LevelVsNoLevel))
   // Server with levels
   {
     serverConfig.SetUseLevels(true);
-    gazebo::Server server(serverConfig);
+    sim::Server server(serverConfig);
     server.SetUpdatePeriod(1ns);
 
     watch.Start(true);
@@ -74,7 +74,7 @@ TEST(LevelManagerPerfrormance, IGN_UTILS_TEST_DISABLED_ON_WIN32(LevelVsNoLevel))
   // Server without levels
   {
     serverConfig.SetUseLevels(false);
-    gazebo::Server serverNoLevels(serverConfig);
+    sim::Server serverNoLevels(serverConfig);
     serverNoLevels.SetUpdatePeriod(1ns);
 
     watch.Start(true);

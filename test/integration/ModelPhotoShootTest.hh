@@ -231,15 +231,15 @@ class ModelPhotoShootTest : public InternalFixture<::testing::Test>
       EntityComponentManager &,
       EventManager &_eventMgr)
     {
-      postRenderConn = _eventMgr.Connect<gazebo::events::PostRender>(
+      postRenderConn = _eventMgr.Connect<sim::events::PostRender>(
             std::bind(&ModelPhotoShootTest::OnPostRender, this));
     }).Finalize();
 
     fixture.Server()->Run(true, 50, false);
     this->LoadPoseValues();
 
-    fixture.OnPreUpdate([&](const gazebo::UpdateInfo &,
-                            gazebo::EntityComponentManager &_ecm)
+    fixture.OnPreUpdate([&](const sim::UpdateInfo &,
+                            sim::EntityComponentManager &_ecm)
     {
       if(!jointPositions.empty() && this->checkRandomJoints)
       {
@@ -254,7 +254,7 @@ class ModelPhotoShootTest : public InternalFixture<::testing::Test>
           }
           return true;
         });
-        std::vector<gazebo::Entity> joints = this->model->Joints(_ecm);
+        std::vector<sim::Entity> joints = this->model->Joints(_ecm);
         for (const auto &joint : joints)
         {
           auto jointNameComp = _ecm.Component<components::Name>(joint);

@@ -1304,7 +1304,7 @@ TEST_P(SimulationRunnerTest,
   // ServerConfig will fall back to environment variable
   auto config = common::joinPaths(PROJECT_SOURCE_PATH,
     "test", "worlds", "server_valid2.config");
-  ASSERT_EQ(true, common::setenv(gazebo::kServerConfigPathEnv, config));
+  ASSERT_EQ(true, common::setenv(sim::kServerConfigPathEnv, config));
   ServerConfig serverConfig;
 
   // Create simulation runner
@@ -1429,13 +1429,13 @@ TEST_P(SimulationRunnerTest,
   // The user may have modified their local config.
   auto config = common::joinPaths(PROJECT_SOURCE_PATH,
     "include", "gz", "sim", "server.config");
-  ASSERT_TRUE(common::setenv(gazebo::kServerConfigPathEnv, config));
+  ASSERT_TRUE(common::setenv(sim::kServerConfigPathEnv, config));
 
   // Create simulation runner
   auto systemLoader = std::make_shared<SystemLoader>();
   SimulationRunner runner(rootWithout.WorldByIndex(0), systemLoader);
   ASSERT_EQ(3u, runner.SystemCount());
-  common::unsetenv(gazebo::kServerConfigPathEnv);
+  common::unsetenv(sim::kServerConfigPathEnv);
 }
 
 /////////////////////////////////////////////////
@@ -1544,7 +1544,7 @@ TEST_P(SimulationRunnerTest,
   // ServerConfig will fall back to environment variable
   auto config = common::joinPaths(PROJECT_SOURCE_PATH,
     "test", "worlds", "server_valid2.config");
-  ASSERT_EQ(true, common::setenv(gazebo::kServerConfigPathEnv, config));
+  ASSERT_EQ(true, common::setenv(sim::kServerConfigPathEnv, config));
   ServerConfig serverConfig;
 
   // Create simulation runner

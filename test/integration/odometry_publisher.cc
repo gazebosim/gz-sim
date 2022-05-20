@@ -63,8 +63,8 @@ class OdometryPublisherTest
     test::Relay testSystem;
 
     std::vector<math::Pose3d> poses;
-    testSystem.OnPostUpdate([&poses](const gazebo::UpdateInfo &,
-      const gazebo::EntityComponentManager &_ecm)
+    testSystem.OnPostUpdate([&poses](const sim::UpdateInfo &,
+      const sim::EntityComponentManager &_ecm)
       {
         auto id = _ecm.EntityByComponents(
           components::Model(),
@@ -118,8 +118,8 @@ class OdometryPublisherTest
     math::Vector3d linVelCmd(1, 0.5, 0.0);
     math::Vector3d angVelCmd(0.0, 0.0, 0.2);
     velocityRamp.OnPreUpdate(
-        [&](const gazebo::UpdateInfo &/*_info*/,
-            gazebo::EntityComponentManager &_ecm)
+        [&](const sim::UpdateInfo &/*_info*/,
+            sim::EntityComponentManager &_ecm)
         {
           auto en = _ecm.EntityByComponents(
             components::Model(),
@@ -223,8 +223,8 @@ class OdometryPublisherTest
     test::Relay testSystem;
 
     std::vector<math::Pose3d> poses;
-    testSystem.OnPostUpdate([&poses](const gazebo::UpdateInfo &,
-      const gazebo::EntityComponentManager &_ecm)
+    testSystem.OnPostUpdate([&poses](const sim::UpdateInfo &,
+      const sim::EntityComponentManager &_ecm)
       {
         auto id = _ecm.EntityByComponents(
           components::Model(),
@@ -280,8 +280,8 @@ class OdometryPublisherTest
     math::Vector3d linVelCmd(0.5, 0.3, 1.5);
     math::Vector3d angVelCmd(0.0, 0.0, 0.2);
     velocityRamp.OnPreUpdate(
-        [&](const gazebo::UpdateInfo &/*_info*/,
-            gazebo::EntityComponentManager &/*_ecm*/)
+        [&](const sim::UpdateInfo &/*_info*/,
+            sim::EntityComponentManager &/*_ecm*/)
         {
           msgs::Twist msg;
           msgs::Set(msg.mutable_linear(), linVelCmd);

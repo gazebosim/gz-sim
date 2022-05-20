@@ -58,7 +58,7 @@ void PerfectComms::Step(
   {
     if (content.entity == kNullEntity)
     {
-      auto entities = gazebo::entitiesFromScopedName(content.modelName, _ecm);
+      auto entities = sim::entitiesFromScopedName(content.modelName, _ecm);
       if (entities.empty())
         continue;
 

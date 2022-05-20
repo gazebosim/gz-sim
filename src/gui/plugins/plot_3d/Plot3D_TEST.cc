@@ -67,9 +67,9 @@ TEST_F(Plot3D, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Load))
   ASSERT_NE(nullptr, app);
   app->AddPluginPath(std::string(PROJECT_BINARY_PATH) + "/lib");
 
-  // Create GUI runner to handle gazebo::gui plugins
+  // Create GUI runner to handle sim::gui plugins
   IGN_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
-  auto runner = new gazebo::GuiRunner("test");
+  auto runner = new sim::GuiRunner("test");
   IGN_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
   runner->setParent(gui::App());
 
@@ -96,12 +96,12 @@ TEST_F(Plot3D, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Load))
   ASSERT_NE(nullptr, win);
 
   // Get plugin
-  auto plugins = win->findChildren<gazebo::gui::Plot3D *>();
+  auto plugins = win->findChildren<sim::gui::Plot3D *>();
   ASSERT_EQ(plugins.size(), 1);
 
   auto plugin = plugins[0];
   EXPECT_EQ("Plot3D!", plugin->Title());
-  EXPECT_EQ(gazebo::kNullEntity, plugin->TargetEntity());
+  EXPECT_EQ(sim::kNullEntity, plugin->TargetEntity());
   EXPECT_EQ(QString("banana"), plugin->TargetName())
       << plugin->TargetName().toStdString();
   EXPECT_EQ(QVector3D(0.1, 0.2, 0.3), plugin->Color());

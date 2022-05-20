@@ -144,14 +144,14 @@ inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
     /// The callback function args are: sensor entity, sensor sdf
     /// and parent name, it returns the name of the rendering sensor created.
     public: void SetEnableSensors(bool _enable, std::function<
-        std::string(const gazebo::Entity &, const sdf::Sensor &,
+        std::string(const sim::Entity &, const sdf::Sensor &,
           const std::string &)> _createSensorCb = {});
 
     /// \brief Set the callback function for removing the sensors
     /// \param[in] _removeSensorCb Callback function for removing the sensors
     /// The callback function arg is the sensor entity to remove
     public : void SetRemoveSensorCb(
-        std::function<void(const gazebo::Entity &)> _removeSensorCb);
+        std::function<void(const sim::Entity &)> _removeSensorCb);
 
     /// \brief View an entity as transparent
     /// \param[in] _entity Entity to view as transparent

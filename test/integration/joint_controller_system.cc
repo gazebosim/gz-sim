@@ -70,7 +70,7 @@ TEST_F(JointControllerTestFixture,
   test::Relay testSystem;
   std::vector<math::Vector3d> angularVelocities;
   testSystem.OnPreUpdate(
-      [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+      [&](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
       {
         auto link = _ecm.EntityByComponents(components::Link(),
                                             components::Name(linkName));
@@ -82,8 +82,8 @@ TEST_F(JointControllerTestFixture,
         }
       });
 
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-                              const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &,
+                              const sim::EntityComponentManager &_ecm)
       {
         _ecm.Each<components::Link, components::Name,
                   components::AngularVelocity>(
@@ -168,7 +168,7 @@ TEST_F(JointControllerTestFixture,
   test::Relay testSystem;
   math::Vector3d angularVelocity;
   testSystem.OnPreUpdate(
-      [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+      [&](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
       {
         auto link = _ecm.EntityByComponents(components::Link(),
                                             components::Name(linkName));
@@ -180,8 +180,8 @@ TEST_F(JointControllerTestFixture,
         }
       });
 
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-                              const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &,
+                              const sim::EntityComponentManager &_ecm)
       {
         _ecm.Each<components::Link, components::Name,
                   components::AngularVelocity>(

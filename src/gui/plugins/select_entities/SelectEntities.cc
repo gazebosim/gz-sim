@@ -524,7 +524,7 @@ bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
     gz::sim::gui::events::TransformControlModeActive::kType)
   {
     auto transformControlMode =
-      reinterpret_cast<gazebo::gui::events::TransformControlModeActive *>(
+      reinterpret_cast<sim::gui::events::TransformControlModeActive *>(
         _event);
     this->dataPtr->transformControlActive =
       transformControlMode->TransformControlActive();

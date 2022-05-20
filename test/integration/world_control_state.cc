@@ -76,8 +76,8 @@ TEST_F(WorldControlState, IGN_UTILS_TEST_DISABLED_ON_WIN32(SetState))
   // Create a system that checks for state changes in the ECM
   gz::sim::test::Relay testSystem;
 
-  testSystem.OnUpdate([](const gazebo::UpdateInfo &_info,
-    gazebo::EntityComponentManager &_ecm)
+  testSystem.OnUpdate([](const sim::UpdateInfo &_info,
+    sim::EntityComponentManager &_ecm)
     {
       // After the first iteration, there should be an entity with the name
       // "box"

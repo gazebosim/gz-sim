@@ -81,7 +81,7 @@ TEST_F(MulticopterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(CommandedMotorSpeed))
   const std::size_t iterTestStart{100};
   const std::size_t nIters{500};
   testSystem.OnPreUpdate(
-      [&](const gazebo::UpdateInfo &_info, gazebo::EntityComponentManager &_ecm)
+      [&](const sim::UpdateInfo &_info, sim::EntityComponentManager &_ecm)
       {
         // Create components, if the don't exist, on the first iteration
         if (_info.iterations == 1)
@@ -97,8 +97,8 @@ TEST_F(MulticopterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(CommandedMotorSpeed))
       });
 
   testSystem.OnPostUpdate(
-      [&](const gazebo::UpdateInfo &_info,
-          const gazebo::EntityComponentManager &_ecm)
+      [&](const sim::UpdateInfo &_info,
+          const sim::EntityComponentManager &_ecm)
       {
         // Command a motor speed
         // After nIters iterations, check angular velocity of each of the rotors
@@ -147,7 +147,7 @@ TEST_F(MulticopterTest,
 
   const std::size_t nIters{2000};
   testSystem.OnPreUpdate(
-      [&](const gazebo::UpdateInfo &_info, gazebo::EntityComponentManager &_ecm)
+      [&](const sim::UpdateInfo &_info, sim::EntityComponentManager &_ecm)
       {
         // Create components, if the don't exist, on the first iteration
         if (_info.iterations == 1)
@@ -185,8 +185,8 @@ TEST_F(MulticopterTest,
   };
 
   testSystem.OnPostUpdate(
-      [&](const gazebo::UpdateInfo &_info,
-          const gazebo::EntityComponentManager &_ecm)
+      [&](const sim::UpdateInfo &_info,
+          const sim::EntityComponentManager &_ecm)
       {
         if (!iterTestStart.has_value())
         {
@@ -255,7 +255,7 @@ TEST_F(MulticopterTest,
   auto cmdVel = node.Advertise<msgs::Twist>("/X3/gazebo/command/twist");
 
   testSystem.OnPreUpdate(
-      [&](const gazebo::UpdateInfo &_info, gazebo::EntityComponentManager &_ecm)
+      [&](const sim::UpdateInfo &_info, sim::EntityComponentManager &_ecm)
       {
         // Create components, if the don't exist, on the first iteration
         if (_info.iterations == 1)
@@ -289,8 +289,8 @@ TEST_F(MulticopterTest,
       node.Advertise<msgs::Actuators>("/X3/gazebo/command/motor_speed");
 
   testSystem.OnPostUpdate(
-      [&](const gazebo::UpdateInfo &,
-          const gazebo::EntityComponentManager &_ecm)
+      [&](const sim::UpdateInfo &,
+          const sim::EntityComponentManager &_ecm)
       {
         // Publish a motor speed command
         {
