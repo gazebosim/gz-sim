@@ -46,7 +46,7 @@ namespace gz
   namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_SIM_VERSION_NAMESPACE {
     // Forward declarations.
     class GZ_GAZEBO_HIDDEN EntityComponentManagerPrivate;
     class EntityComponentManagerDiff;

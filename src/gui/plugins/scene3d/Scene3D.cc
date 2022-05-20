@@ -83,7 +83,7 @@ namespace gz
 {
 namespace sim
 {
-inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
   /// \brief Helper to store selection requests to be handled in the render
   /// thread by `IgnRenderer::HandleEntitySelection`.
   // SelectEntities

@@ -31,7 +31,7 @@
 
 namespace gz::sim
 {
-inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems::physics_system
 {
   // \brief Helper class that associates Gazebo entities with Physics entities

@@ -27,7 +27,7 @@ namespace gz
 namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
   class GzSceneManagerPrivate;
 
   /// \brief Updates a 3D scene based on information coming from the ECM.

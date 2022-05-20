@@ -24,7 +24,7 @@ namespace gz
 {
   namespace sim
   {
-    inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_SIM_VERSION_NAMESPACE {
     class TestSystem: public System
     {
       public: TestSystem();

@@ -35,7 +35,7 @@ namespace sim
 {
 // namespace gz
 // Inline bracket to help doxygen filtering.
-inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace traits
 {
   /// \brief Helper trait to determine if a type is shared_ptr or not

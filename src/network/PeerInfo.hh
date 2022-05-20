@@ -30,7 +30,7 @@ namespace gz
   namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_SIM_VERSION_NAMESPACE {
     class GZ_GAZEBO_VISIBLE PeerInfo {
       /// \brief Constructor
       public: explicit PeerInfo(const NetworkRole &_role = NetworkRole::None);

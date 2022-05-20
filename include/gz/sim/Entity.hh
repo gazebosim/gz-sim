@@ -30,7 +30,7 @@ namespace gz
   namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_SIM_VERSION_NAMESPACE {
     // Adding component namespace information here because there is
     // currently no one component class that seems like a good place to hold
     // this documentation.

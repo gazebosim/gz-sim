@@ -25,7 +25,7 @@ namespace gz
   namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_SIM_VERSION_NAMESPACE {
     /// \brief Enumeration of roles that a network participant can take.
     enum class NetworkRole
     {
