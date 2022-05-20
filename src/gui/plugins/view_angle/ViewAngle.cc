@@ -387,6 +387,14 @@ void ViewAnglePrivate::OnRender()
     }
   }
 
+  // Update HFOV
+  if (this->newCamHFOV)
+  {
+    // camera used Radian but GUI uses degree.
+    this->camera->SetHFOV(IGN_DTOR(this->camHFOV));
+    this->newCamHFOV = false;
+  }
+
   // View angle
   if (this->viewingAngle)
   {
@@ -464,12 +472,6 @@ void ViewAnglePrivate::OnRender()
     this->camera->SetNearClipPlane(this->camClipDist[0]);
     this->camera->SetFarClipPlane(this->camClipDist[1]);
     this->newCamClipDist = false;
-  }
-
-  if (this->newCamHFOV)
-  {
-    // camera used Radian but GUI uses degree.
-    this->camera->SetHFOV(IGN_DTOR(this->camHFOV));
   }
 }
 
