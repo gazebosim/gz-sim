@@ -366,11 +366,26 @@ extern "C" int runGui(const char *_guiConfig, const char *_renderEngine)
   //  entire lifetime of the QApplication object. In addition, argc must be
   //  greater than zero and argv must contain at least one valid character
   //  string."
-  int argc = 1;
+
   // Converting a string literal to char * is forbidden as of C++11. It can only
   // be converted to a const char *. The const cast is here to prevent a warning
   // since we do need to pass a char* to runGui
-  char *argv = const_cast<char *>("ign-gazebo-gui");
-  return ignition::gazebo::gui::runGui(
-    argc, &argv, _guiConfig, _renderEngine);
+  static char *argv[] = {
+    const_cast<char *>("ign-gazebo-gui"),
+#ifdef QT_QML_DEBUG
+    // To debug with QML, you must add
+    //
+    // CMAKE_CXX_FLAGS += -DQT_QML_DEBUG
+    // Or at least (if CMAKE_BUILD_TYPE = Debug)
+    // CMAKE_CXX_FLAGS_DEBUG += -DQT_QML_DEBUG
+    //
+    // The port you must attach to is 40000
+    const_cast<char *>(
+      "-qmljsdebugger=port:40000,block,services:DebugMessages,QmlDebugger,"
+      "V8Debugger,QmlInspector,DebugTranslation")
+#endif
+  };
+  int argc = sizeof(argv) / sizeof(argv[0]);
+
+  return ignition::gazebo::gui::runGui(argc, argv, _guiConfig, _renderEngine);
 }
