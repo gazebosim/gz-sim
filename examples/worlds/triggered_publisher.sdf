@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!--
-Ignition Gazebo Trigger Publisher demo
+Gazebo Trigger Publisher demo
 
 Send the command:
   ign topic -t "/start" -m gz.msgs.Empty -p " "

@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!--
-  Demo world to show how to include a model from Ignition Fuel.
+  Demo world to show how to include a model from Gazebo Fuel.
 -->
 <sdf version="1.6">
   <world name="fuel">

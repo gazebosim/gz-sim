@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo buoyancy plugin demo. This world demonstrates a graded
+  Gazebo buoyancy plugin demo. This world demonstrates a graded
   buoyancy world consisting of some basic shapes which should eventually float
   up.
 -->

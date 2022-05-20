@@ -33,7 +33,7 @@ namespace systems
   /// \class NavSat NavSat.hh gz/sim/systems/NavSat.hh
   /// \brief System that handles navigation satellite sensors, such as GPS,
   /// that reports position and velocity in spherical coordinates (latitude /
-  /// longitude) over Ignition Transport.
+  /// longitude) over Gazebo Transport.
   ///
   /// The NavSat sensors rely on the world origin's spherical coordinates
   /// being set, for example through SDF's `<spherical_coordinates>` tag

@@ -129,15 +129,15 @@ class gz::sim::systems::LinearBatteryPluginPrivate
   /// \brief Hours taken to fully charge battery
   public: double tCharge{0.0};
 
-  /// \TODO(caguero) Remove this flag in Ignition Dome.
+  /// \TODO(caguero) Remove this flag in Gazebo Dome.
   /// \brief Flag to enable some battery fixes.
   public: bool fixIssue225{false};
 
-  /// \TODO(caguero) Remove in Ignition Dome.
+  /// \TODO(caguero) Remove in Gazebo Dome.
   /// \brief Battery current for a historic time window
   public: std::deque<double> iList;
 
-  /// \TODO(caguero) Remove in Ignition Dome.
+  /// \TODO(caguero) Remove in Gazebo Dome.
   /// \brief Time interval for a historic time window
   public: std::deque<double> dtList;
 

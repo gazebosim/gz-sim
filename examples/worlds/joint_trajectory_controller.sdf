@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo demo for JointTrajectoryController plugin
+  Gazebo demo for JointTrajectoryController plugin
 
   Try sending joint trajectory commands:
 

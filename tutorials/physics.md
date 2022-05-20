@@ -1,22 +1,22 @@
 \page physics Physics engines
 
-Ignition Gazebo supports choosing what physics engine to use at runtime.
+Gazebo supports choosing what physics engine to use at runtime.
 This is made possible by
-[Ignition Physics](https://ignitionrobotics.org/libs/physics)' abstraction
+[Gazebo Physics](https://ignitionrobotics.org/libs/physics)' abstraction
 layer.
 
-Ignition Gazebo uses the [DART](https://dartsim.github.io/) physics engine
+Gazebo uses the [DART](https://dartsim.github.io/) physics engine
 by default.
 
 Downstream developers may also integrate other physics engines by creating new
-Ignition Physics engine plugins. See
-[Ignition Physics](https://ignitionrobotics.org/api/physics/2.0/tutorials.html)'s
+Gazebo Physics engine plugins. See
+[Gazebo Physics](https://ignitionrobotics.org/api/physics/2.0/tutorials.html)'s
 tutorials to learn how to integrate a new engine.
 
 ## How Gazebo finds engines
 
-Ignition Gazebo automatically looks for all physics engine plugins that are
-installed with Ignition Physics. At the moment, that's only DART
+Gazebo automatically looks for all physics engine plugins that are
+installed with Gazebo Physics. At the moment, that's only DART
 (`ignition-physics-dartsim-plugin`).
 
 If you've created a custom engine plugin, you can tell Gazebo where to find it
@@ -101,9 +101,9 @@ may support them. The default physics engine, DART, supports all these options.
 > Failed to find plugin [libCustomEngine.so]. Have you checked the
 > GZ_SIM_PHYSICS_ENGINE_PATH environment variable?
 
-Ignition Gazebo can't find out where `libCustomEngine.so` is located.
+Gazebo can't find out where `libCustomEngine.so` is located.
 
-If that's an engine you believe should be installed with Ignition Physics,
+If that's an engine you believe should be installed with Gazebo Physics,
 check if the relevant plugin is installed.
 
 If that's a 3rd party engine, find where the `.so` file is installed and add
@@ -118,7 +118,7 @@ permissions to access it, and that it's acually a physics engine plugin.
 > [/home/physics_engines/libCustomEngine.so]
 
 This means that there are plugins on that library, but none of them satisfies
-the minimum requirement of features needed to run an Ignition Gazebo simulation.
+the minimum requirement of features needed to run an Gazebo simulation.
 Be sure to implement all the necessary features.
 
 > Failed to load a valid physics engine from

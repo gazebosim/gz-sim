@@ -1,9 +1,9 @@
 \page ardupilot
 
-# Case study: migrating the ArduPilot ModelPlugin from Gazebo classic to Ignition Gazebo
+# Case study: migrating the ArduPilot ModelPlugin from Gazebo classic to Gazebo
 
 A variety of changes are required when migrating a plugin from Gazebo classic
-to Ignition Gazebo. In this tutorial we offer as a case
+to Gazebo. In this tutorial we offer as a case
 study the migration of one particular `ModelPlugin`,
 [ardupilot_gazebo](https://github.com/khancyr/ardupilot_gazebo). We hope that
 this example provides useful tips to others who are migrating their existing

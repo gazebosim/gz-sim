@@ -1,6 +1,6 @@
 \page levels Levels
 
-This tutorial gives an introduction to Ignition Gazebo's levels feature.
+This tutorial gives an introduction to Gazebo's levels feature.
 This feature allows loading and unloading objects in simulation according
 to their proximity to the robot, which improves performance in simulations
 with large environments.
@@ -140,7 +140,7 @@ Two new SDF elements are introduced for distributed simulation:
 * `<level>`
 * `<performer>`
 
-The concepts of levels and performers are specific to Ignition Gazebo, thus,
+The concepts of levels and performers are specific to Gazebo, thus,
 putting them directly under the `<world>` tag would diminish the generality of
 SDF. A new tag, `<extension>`, has been proposed for such circumstances but has
 not been implemented yet. Therefore, for now, the `<level>` and `<performer>`
@@ -215,7 +215,7 @@ Example snippet:
 
 ### Runtime performers
 
-Performers can be specified at runtime using an Ignition Transport service.
+Performers can be specified at runtime using an Gazebo Transport service.
 This functionality can be used when a performer is not known at load time. For
 example, you may need to start simulation with an empty world and spawn
 models (performers) into simulation at a later time.

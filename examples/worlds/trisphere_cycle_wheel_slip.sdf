@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo trisphere wheel slip plugin demo
+  Gazebo trisphere wheel slip plugin demo
 
   A demo displaying the wheel slip plugin.  The red trisphere cycle has wheel slip while the blue does not.
 

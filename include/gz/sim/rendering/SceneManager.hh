@@ -247,7 +247,7 @@ inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
     /// to the scene. Here we just keep track of it and make sure it has
     /// the correct parent.
     /// \param[in] _gazeboId Entity in Gazebo
-    /// \param[in] _sensorName Name of sensor node in Ignition Rendering.
+    /// \param[in] _sensorName Name of sensor node in Gazebo Rendering.
     /// \param[in] _parentGazeboId Parent Id on Gazebo.
     /// \return True if sensor is successfully handled
     public: bool AddSensor(Entity _gazeboId, const std::string &_sensorName,

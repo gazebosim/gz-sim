@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo sensor demo for sensors that do not require rendering.
+  Gazebo sensor demo for sensors that do not require rendering.
 
   Listen to sensor readings:
 

@@ -52,7 +52,7 @@ class JointParameters
   /// \brief Parse all parameters required for creation of ActuatedJoint and
   /// return them in a map
   /// \param[in] _sdf SDF reference used to obtain the parameters
-  /// \param[in] _ecm Ignition Entity Component Manager
+  /// \param[in] _ecm Gazebo Entity Component Manager
   /// \param[in] _enabledJoints List of joint entities that are enabled and
   /// need to be created
   /// \return Map of parameters for each joint, the first entry of pair
@@ -149,7 +149,7 @@ class ActuatedJoint
                         const JointParameters &_params);
 
   /// \brief Setup components required for control of this joint
-  /// \param[in,out] _ecm Ignition Entity Component Manager
+  /// \param[in,out] _ecm Gazebo Entity Component Manager
   public: void SetupComponents(
               gz::sim::EntityComponentManager &_ecm) const;
 
@@ -162,7 +162,7 @@ class ActuatedJoint
               const size_t &_jointIndex);
 
   /// \brief Update command force that is applied on the joint
-  /// \param[in,out] _ecm Ignition Entity Component Manager
+  /// \param[in,out] _ecm Gazebo Entity Component Manager
   /// \param[in] _dt Time difference to update for
   public: void Update(gz::sim::EntityComponentManager &_ecm,
                       const std::chrono::steady_clock::duration &_dt);
@@ -262,7 +262,7 @@ class gz::sim::systems::JointTrajectoryControllerPrivate
   /// \param[in] _entity Entity of the model that the plugin is being
   /// configured for
   /// \param[in] _sdf SDF reference used to determine enabled joints
-  /// \param[in] _ecm Ignition Entity Component Manager
+  /// \param[in] _ecm Gazebo Entity Component Manager
   /// \return List of entities containinig all enabled joints
   public: std::vector<Entity> GetEnabledJoints(
               const Entity &_entity,

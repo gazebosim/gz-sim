@@ -1,6 +1,6 @@
 \page terminology Terminology
 
-This is a list of definitions used throughout Ignition Gazebo. Some of them
+This is a list of definitions used throughout Gazebo. Some of them
 are important for downstream users, while some of them are only interesting
 to developers touching the source code.
 
@@ -16,7 +16,7 @@ to developers touching the source code.
 
 * **Component**: Adds a certain functionality or characteristic (e.g., pose,
     name, material, etc.) to an entity.
-    Ignition Gazebo comes with various
+    Gazebo comes with various
     [components](namespace gz_1_1gazebo_1_1components.html)
     ready to be used, such as `Pose` and `Inertial`, and downstream developers
     can also create their own by inheriting from the
@@ -26,7 +26,7 @@ to developers touching the source code.
 
 * **System**: Logic that operates on all entities that have a given set of
     components. Systems are plugins that can be loaded at runtime.
-    Ignition Gazebo ships with various systems, and downstream develpers can
+    Gazebo ships with various systems, and downstream develpers can
     [create their own systems](createsystemplugins.html).
 
 * **Entity-component manager** (**ECM**): Provides functions for
@@ -67,7 +67,7 @@ to developers touching the source code.
     Manages events that can be sent across systems and the server. Plugins can
     create and emit custom
     [Event](https://ignitionrobotics.org/api/common/3.0/classignition_1_1common_1_1Event.html)s
-    and / or emit / listen to events from Ignition Gazebo.
+    and / or emit / listen to events from Gazebo.
 
 * **Simulation runner**: Runs a whole world or some levels of a world, but no
     more than 1 world.
@@ -78,6 +78,6 @@ to developers touching the source code.
     * It has a network manager, if simulation is distributed.
     * It loads up a set of systems.
 
-* **Server**: Ignition Gazebo's entry point. It's responsible for loading an
+* **Server**: Gazebo's entry point. It's responsible for loading an
     SDF file and instantiating a simulation runner per world.
 

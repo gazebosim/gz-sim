@@ -1,4 +1,4 @@
-# Ignition Gazebo : A Robotic Simulator
+# Gazebo : A Robotic Simulator
 
 **Maintainer:** louise AT openrobotics DOT org
 
@@ -14,9 +14,9 @@ Ubuntu Focal | [![Build Status](https://build.osrfoundation.org/buildStatus/icon
 Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-main-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-main-homebrew-amd64)
 Windows       | [![Build Status](https://build.osrfoundation.org/job/ign_gazebo-ci-win/badge/icon)](https://build.osrfoundation.org/job/ign_gazebo-ci-win/)
 
-Ignition Gazebo is an open source robotics simulator. Through Ignition Gazebo, users have access to high fidelity physics, rendering, and sensor models. Additionally, users and developers have multiple points of entry to simulation including a graphical user interface, plugins, and asynchronous message passing and services.
+Gazebo is an open source robotics simulator. Through Gazebo, users have access to high fidelity physics, rendering, and sensor models. Additionally, users and developers have multiple points of entry to simulation including a graphical user interface, plugins, and asynchronous message passing and services.
 
-Ignition Gazebo is derived from [Gazebo](http://gazebosim.org) and represents over 16 years of development and experience in robotics and simulation. This library is part of the [Ignition Robotics](https://ignitionrobotics.org) project.
+Gazebo is derived from [Gazebo](http://gazebosim.org) and represents over 16 years of development and experience in robotics and simulation. This library is part of the [Gazebo Robotics](https://ignitionrobotics.org) project.
 
 # Table of Contents
 
@@ -44,34 +44,34 @@ Ignition Gazebo is derived from [Gazebo](http://gazebosim.org) and represents ov
 
 * **Dynamics simulation**: Access multiple high-performance physics engines
 through
-[Ignition Physics](https://github.com/gazebosim/gz-physics).
+[Gazebo Physics](https://github.com/gazebosim/gz-physics).
 
 * **Advanced 3D graphics**: Through
-[Ignition Rendering](https://github.com/gazebosim/gz-rendering),
+[Gazebo Rendering](https://github.com/gazebosim/gz-rendering),
 it's possible to use rendering engines such as OGRE v2 for realistic rendering
 of environments with high-quality lighting, shadows, and textures.
 
 * **Sensors and noise models**: Generate sensor data, optionally with noise,
 from laser range finders, 2D/3D cameras, Kinect style sensors, contact sensors,
 force-torque, IMU, GPS, and more, all powered by
-[Ignition Sensors](https://github.com/gazebosim/gz-sensors)
+[Gazebo Sensors](https://github.com/gazebosim/gz-sensors)
 
 * **Plugins**: Develop custom plugins for robot, sensor, and
 environment control.
 
 * **Graphical interface**: Create, instrospect and interact with your simulations
 through plugin-based graphical interfaces powered by
-[Ignition GUI](https://github.com/gazebosim/gz-gui).
+[Gazebo GUI](https://github.com/gazebosim/gz-gui).
 
 * **Simulation models**: Access numerous robots including PR2, Pioneer2 DX,
 iRobot Create, and TurtleBot, and construct environments using other physically
 accurate models available through
-[Ignition Fuel](https://app.ignitionrobotics.org/fuel). You can also build a
+[Gazebo Fuel](https://app.ignitionrobotics.org/fuel). You can also build a
 new model using [SDF](http://sdformat.org).
 
 * **TCP/IP Transport**: Run simulation on remote servers and interface to Ignition
 Gazebo through socket-based message passing using
-[Ignition Transport](https://github.com/gazebosim/gz-transport).
+[Gazebo Transport](https://github.com/gazebosim/gz-transport).
 
 * **Command line tools**: Extensive command line tools for increased simulation
 introspection and control.
@@ -172,7 +172,7 @@ Please see
 
 # Versioning
 
-This library uses [Semantic Versioning](https://semver.org/). Additionally, this library is part of the [Ignition Robotics project](https://ignitionrobotics.org) which periodically releases a versioned set of compatible and complimentary libraries. See the [Ignition Robotics website](https://ignitionrobotics.org) for version and release information.
+This library uses [Semantic Versioning](https://semver.org/). Additionally, this library is part of the [Gazebo Robotics project](https://ignitionrobotics.org) which periodically releases a versioned set of compatible and complimentary libraries. See the [Gazebo Robotics website](https://ignitionrobotics.org) for version and release information.
 
 # License
 

@@ -1,9 +1,9 @@
 \page entity_creation Entity creation
 
-This tutorial gives an introduction to Ignition Gazebo's service `/world/<world name>/create`.
+This tutorial gives an introduction to Gazebo's service `/world/<world name>/create`.
 This service allows creating entities in the scene such us spheres, lights, etc.
 
-Ignition Gazebo creates many services depending on the plugins that are specified in the SDF.
+Gazebo creates many services depending on the plugins that are specified in the SDF.
 In this case we need to load the `UserCommands` plugin, which will offer the `create` service.
 You can include the `UserCommands` system plugin including these lines in your SDF:
 
@@ -67,7 +67,7 @@ This tutorial introduces how to create entities from SDF strings and light messa
 
 ## Insert an entity based on a string
 
-We will open an empty Ignition Gazebo world, let's start creating a sphere in the world.
+We will open an empty Gazebo world, let's start creating a sphere in the world.
 In the next snippet you can see how to create models based on strings.
 
 \snippet examples/standalone/entity_creation/entity_creation.cc create sphere

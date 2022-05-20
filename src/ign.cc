@@ -281,7 +281,7 @@ extern "C" int runServer(const char *_sdfString,
     serverConfig.SetLogRecordCompressPath(cmpPath);
   }
 
-  ignmsg << "Ignition Gazebo Server v" << GZ_GAZEBO_VERSION_FULL
+  ignmsg << "Gazebo Server v" << GZ_GAZEBO_VERSION_FULL
          << std::endl;
 
   // Set the SDF string to user

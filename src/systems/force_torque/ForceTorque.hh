@@ -34,7 +34,7 @@ namespace systems
 
   /// \class ForceTorque ForceTorque.hh gz/sim/systems/ForceTorque.hh
   /// \brief This system manages all Force-Torque sensors in simulation.
-  /// Each FT sensor reports readings over Ignition Transport.
+  /// Each FT sensor reports readings over Gazebo Transport.
   /// \note Regardless of the setting of //sensor/force_torque/frame the point
   /// of application of the force is at the sensor's origin.
   /// //sensor/force_torque/frame only changes the coordinate frame in which the

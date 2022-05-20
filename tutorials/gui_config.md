@@ -1,9 +1,9 @@
 \page gui_config GUI Configuration
 
-Ignition Gazebo's graphical user interface is powered by
-[Ignition GUI](https://ignitionrobotics.org/libs/gui). Therefore, Gazebo's
+Gazebo's graphical user interface is powered by
+[Gazebo GUI](https://ignitionrobotics.org/libs/gui). Therefore, Gazebo's
 GUI layout can be defined in
-[Ignition GUI configuration files](https://ignitionrobotics.org/api/gui/2.1/config.html).
+[Gazebo GUI configuration files](https://ignitionrobotics.org/api/gui/2.1/config.html).
 These are XML files that describe what plugins to be loaded and with what
 settings.
 
@@ -28,7 +28,7 @@ through the command line or the SDF file.
 
 ### Default configuration
 
-Let's try this in practice. First, let's open Ignition Gazebo without passing
+Let's try this in practice. First, let's open Gazebo without passing
 any arguments:
 
 `ign gazebo`
@@ -42,7 +42,7 @@ By default, you're loading this file:
 
 `$HOME/.ignition/gazebo/<#>/gui.config`
 
-That file is created the first time you load Ignition Gazebo. Once it is
+That file is created the first time you load Gazebo. Once it is
 created, Ignition will never write to it again unless you delete it. This
 means that you can customize it with your preferences and they will be applied
 every time Ignition is started!

@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo link velocity control demo
+  Gazebo link velocity control demo
 
   Try sending commands:
     ign topic -t "/model/double_pendulum_with_base/link/lower_link/cmd_vel" -m gz.msgs.Twist -p "angular: {x: 0.5}"

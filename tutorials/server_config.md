@@ -1,6 +1,6 @@
 \page server_config Server Configuration
 
-Most functionality on Ignition Gazebo is provided by plugins, which means that
+Most functionality on Gazebo is provided by plugins, which means that
 users can choose exactly what functionality is available to their simulations.
 Even running the physics engine is optional. This gives users great control
 and makes sure only what's crucial for a given simulation is loaded.
@@ -30,7 +30,7 @@ environment variable.
 
 ### Default configuration
 
-Let's try this in practice. First, let's open Ignition Gazebo without passing
+Let's try this in practice. First, let's open Gazebo without passing
 any arguments:
 
 `ign gazebo`
@@ -51,7 +51,7 @@ By default, you're loading this file:
 
 `$HOME/.ignition/gazebo/<#>/server.config`
 
-That file is created the first time you load Ignition Gazebo. Once it is
+That file is created the first time you load Gazebo. Once it is
 created, Ignition will never write to it again unless you delete it. This
 means that you can customize it with your preferences and they will be applied
 every time Ignition is started!

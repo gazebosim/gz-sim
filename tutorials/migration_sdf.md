@@ -2,7 +2,7 @@
 
 # Migration from Gazebo classic: SDF
 
-Both Gazebo classic and Ignition Gazebo support [SDF](http://sdformat.org/)
+Both Gazebo classic and Gazebo support [SDF](http://sdformat.org/)
 files to describe the simulation to be loaded. An SDF file defines the world
 environment, the robot's characteristics and what plugins to load.
 
@@ -30,10 +30,10 @@ nested models. These are some of the SDF tags that take URIs:
 
 Here are the recommended ways to use URIs from most recommended to least:
 
-### Ignition Fuel URL
+### Gazebo Fuel URL
 
 It's possible to use URLs of resources on
-[Ignition Fuel](https://app.ignitionrobotics.org) within any of the tags
+[Gazebo Fuel](https://app.ignitionrobotics.org) within any of the tags
 above and both simulators will be able to load it.
 
 For example, this world can be loaded into both simulators:
@@ -145,7 +145,7 @@ Each simulator uses a different environment variable:
 * Gazebo classic:
     * `GAZEBO_MODEL_PATH` for models
     * `GAZEBO_RESOURCE_PATH` for worlds and some rendering resources
-* Ignition Gazebo:
+* Gazebo:
     * `GZ_SIM_RESOURCE_PATH` for worlds, models and other resources
 
 For example, if you have the file structure above, you can set the environment
@@ -185,7 +185,7 @@ different directories.
 ## Plugins
 
 Plugins are binary files compiled to use with a specific simulator. Plugins
-for Gazebo classic and Ignition Gazebo aren't usually compatible, so plugins
+for Gazebo classic and Gazebo aren't usually compatible, so plugins
 will need to be specified for each simulator separately.
 
 It's important to note that for both simulators, plugins compiled against
@@ -198,7 +198,7 @@ sure you're loading the correct plugins.
 Both simulators are installed with several built-in plugins.
 [Gazebo classic's plugins](https://github.com/osrf/gazebo/tree/gazebo11/plugins)
 and
-[Ignition Gazebo's plugins](https://github.com/gazebosim/gz-sim/tree/main/src/systems)
+[Gazebo's plugins](https://github.com/gazebosim/gz-sim/tree/main/src/systems)
 have different file names. For example, to use Gazebo classic's differential drive
 plugin, the user can refer to it as follows:
 
@@ -235,8 +235,8 @@ where that plugin is located. The variables are different for each simulator:
 
 * Gazebo classic:
     * `GAZEBO_PLUGIN_PATH` for all plugin types.
-* Ignition Gazebo:
-    * `GZ_SIM_SYSTEM_PLUGIN_PATH` for Ignition Gazebo systems (world, model,
+* Gazebo:
+    * `GZ_SIM_SYSTEM_PLUGIN_PATH` for Gazebo systems (world, model,
       sensor and visual plugins).
     * `IGN_GUI_PLUGIN_PATH` for GUI plugins.
 
@@ -257,7 +257,7 @@ and [xacro](http://wiki.ros.org/xacro) to generate SDF files with the correct pl
 
 ### Default plugins
 
-Ignition Gazebo is more modular than Gazebo classic, so most features are optional.
+Gazebo is more modular than Gazebo classic, so most features are optional.
 For example, by default, Ignition will load all the system plugins defined on
 the `~/.ignition/gazebo/<#>/server.config` file and all GUI plugins defined on the
 `~/.ignition/gazebo/<#>/gui.config` file. But the user can always remove plugins from

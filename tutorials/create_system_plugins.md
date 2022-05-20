@@ -1,6 +1,6 @@
 \page createsystemplugins Create System Plugins
 
-In Ignition Gazebo, all systems are loaded as plugins at runtime. Each system
+In Gazebo, all systems are loaded as plugins at runtime. Each system
 is associated with an entity in simulation. Systems can be attached to the
 following entity types:
 

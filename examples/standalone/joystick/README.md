@@ -2,7 +2,7 @@
 
 Standalone program that publishes
 [gz::msgs::Joy](https://ignitionrobotics.org/api/msgs/5.6/classignition_1_1msgs_1_1Joy.html)
-messages from a joystick device using Ignition Transport.
+messages from a joystick device using Gazebo Transport.
 
 The mapping of joystick buttons to fields in the message is the same as [this](http://wiki.ros.org/joy).
 
@@ -43,7 +43,7 @@ echoing the `/joy` topic:
 
 ## Demo example
 
-Ignition Gazebo ships with an example file which has a differential drive vehicle
+Gazebo ships with an example file which has a differential drive vehicle
 that can be controlled using a joystick. You can run it as follows:
 
 1. In a terminal, run the joystick executable as described above to publish

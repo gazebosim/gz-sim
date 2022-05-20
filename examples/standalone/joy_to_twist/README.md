@@ -34,7 +34,7 @@ messages that it can consume. See the demo below for a full integrated example.
 
 ## Demo example
 
-Ignition Gazebo ships with an example file which has a differential drive vehicle
+Gazebo ships with an example file which has a differential drive vehicle
 that can be controlled using a joystick. You can run it as follows:
 
 1. In a terminal, run the joystick executable which will publish joystick

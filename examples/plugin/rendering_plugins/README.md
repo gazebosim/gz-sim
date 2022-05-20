@@ -1,6 +1,6 @@
 # Rendering plugins
 
-Demo of 2 plugins that use Ignition Rendering, one for the server and one for the client.
+Demo of 2 plugins that use Gazebo Rendering, one for the server and one for the client.
 
 ## Build
 

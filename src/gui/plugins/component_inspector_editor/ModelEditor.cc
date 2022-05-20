@@ -236,7 +236,7 @@ void ModelEditor::Update(const UpdateInfo &,
   }
 
   // use GuiNewRemovedEntities event to update other gui plugins
-  // note this event will be removed in Ignition Garden
+  // note this event will be removed in Gazebo Garden
   std::set<Entity> removedEntities;
   gz::sim::gui::events::GuiNewRemovedEntities event(
       newEntities, removedEntities);

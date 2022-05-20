@@ -50,7 +50,7 @@ class gz::sim::comms::Broker::Implementation
   /// \brief The current time.
   public: std::chrono::steady_clock::duration time{0};
 
-  /// \brief An Ignition Transport node for communications.
+  /// \brief An Gazebo Transport node for communications.
   public: std::unique_ptr<gz::transport::Node> node;
 };
 

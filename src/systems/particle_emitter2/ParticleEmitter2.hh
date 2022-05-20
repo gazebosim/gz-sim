@@ -41,11 +41,11 @@ namespace systems
   /// `/model/{model_name}/link/{link_name}/particle_emitter/{emitter_name}/cmd`
   ///
   /// \todo(nkoenig) Plan for ParticleEmitter and ParticleEmitter2:
-  ///     1. Deprecate ParticleEmitter in Ignition Fortress.
-  ///     2. Remove ParticleEmitter in Ignition G.
-  ///     3. Copy ParticleEmitter2 to ParticleEmitter in Ignition G.
-  ///     4. Deprecrate ParticleEmitter2 in Ignition G.
-  ///     5. Remove ParticleEmitter2 in Ignition H.
+  ///     1. Deprecate ParticleEmitter in Gazebo Fortress.
+  ///     2. Remove ParticleEmitter in Gazebo G.
+  ///     3. Copy ParticleEmitter2 to ParticleEmitter in Gazebo G.
+  ///     4. Deprecrate ParticleEmitter2 in Gazebo G.
+  ///     5. Remove ParticleEmitter2 in Gazebo H.
   class ParticleEmitter2
       : public System,
         public ISystemConfigure,

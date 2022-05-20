@@ -67,7 +67,7 @@ TEST_F(JointTrajectoryControllerTestFixture,
   const std::string jointNames[kNumberOfJoints] = {"RR_position_control_joint1",
                                                   "RR_position_control_joint2"};
 
-  // Define names of Ignition Transport topics
+  // Define names of Gazebo Transport topics
   const std::string trajectoryTopic =
       "/model/RR_position_control/joint_trajectory";
   const std::string feedbackTopic =
@@ -243,7 +243,7 @@ TEST_F(JointTrajectoryControllerTestFixture,
   const std::string jointNames[kNumberOfJoints] = {"RR_velocity_control_joint1",
                                                   "RR_velocity_control_joint2"};
 
-  // Define names of Ignition Transport topics
+  // Define names of Gazebo Transport topics
   const std::string trajectoryTopic = "/test_custom_topic/velocity_control";
   const std::string feedbackTopic =
       "/test_custom_topic/velocity_control_feedback";

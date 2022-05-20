@@ -118,31 +118,31 @@ COMMANDS = { 'gazebo' =>
   "                               The default verbosity is 1, use -v without       \n"\
   "                               arguments for level 3.                           \n"\
   "\n"\
-  "  --gui-config [arg]           Ignition GUI configuration file to load.         \n"\
+  "  --gui-config [arg]           Gazebo GUI configuration file to load.         \n"\
   "                               If no config is given, the configuration in      \n"\
   "                               the SDF file is used. And if that's not          \n"\
   "                               provided, the default installed config is        \n"\
   "                               used.                                            \n"\
   "\n"\
-  "  --physics-engine [arg]       Ignition Physics engine plugin to load.          \n"\
+  "  --physics-engine [arg]       Gazebo Physics engine plugin to load.          \n"\
   "                               Gazebo will use DART by default.                 \n"\
   "                               (ignition-physics-dartsim-plugin)                \n"\
   "                               Make sure custom plugins are in                  \n"\
   "                               GZ_SIM_PHYSICS_ENGINE_PATH.                  \n"\
   "\n"\
-  "  --render-engine [arg]        Ignition Rendering engine plugin to load for     \n"\
+  "  --render-engine [arg]        Gazebo Rendering engine plugin to load for     \n"\
   "                               both the server and the GUI. Gazebo will use     \n"\
   "                               OGRE2 by default. (ogre2)                        \n"\
   "                               Make sure custom plugins are in                  \n"\
   "                               GZ_SIM_RENDER_ENGINE_PATH.                   \n"\
   "\n"\
-  "  --render-engine-gui [arg]    Ignition Rendering engine plugin to load for     \n"\
+  "  --render-engine-gui [arg]    Gazebo Rendering engine plugin to load for     \n"\
   "                               the GUI. Gazebo will use OGRE2 by default.       \n"\
   "                               (ogre2)                                          \n"\
   "                               Make sure custom plugins are in                  \n"\
   "                               GZ_SIM_RENDER_ENGINE_PATH.                   \n"\
   "\n"\
-  "  --render-engine-server [arg] Ignition Rendering engine plugin to load for     \n"\
+  "  --render-engine-server [arg] Gazebo Rendering engine plugin to load for     \n"\
   "                               the server. Gazebo will use OGRE2 by default.    \n"\
   "                               (ogre2)                                          \n"\
   "                               Make sure custom plugins are in                  \n"\
@@ -164,7 +164,7 @@ COMMANDS = { 'gazebo' =>
 }
 
 #
-# Class for the Ignition Gazebo command line tools.
+# Class for the Gazebo command line tools.
 #
 class Cmd
 
@@ -476,8 +476,8 @@ See https://github.com/gazebosim/gz-sim/issues/44 for more info."
         end
 
         Signal.trap("INT") {
-          self.killProcess(guiPid, "Ignition Gazebo GUI", 5.0)
-          self.killProcess(serverPid, "Ignition Gazebo Server", 5.0)
+          self.killProcess(guiPid, "Gazebo GUI", 5.0)
+          self.killProcess(serverPid, "Gazebo Server", 5.0)
           return 1
         }
 
@@ -485,9 +485,9 @@ See https://github.com/gazebosim/gz-sim/issues/44 for more info."
         pid, status = Process.wait2
 
         if pid == serverPid
-          self.killProcess(guiPid, "Ignition Gazebo GUI", 5.0)
+          self.killProcess(guiPid, "Gazebo GUI", 5.0)
         else
-          self.killProcess(serverPid, "Ignition Gazebo Server", 5.0)
+          self.killProcess(serverPid, "Gazebo Server", 5.0)
         end
 
       # If the -s option was specified, then run only the server

@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo lift-drag system demo
+  Gazebo lift-drag system demo
 
   This file was adapted from osrf/gazebo/worlds/propeller_plane_demo.world
 

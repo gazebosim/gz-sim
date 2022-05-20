@@ -17,7 +17,7 @@
 #include "Console.hh"
 
 PYBIND11_MODULE(common, m) {
-  m.doc() = "Ignition Common Python Library.";
+  m.doc() = "Gazebo Common Python Library.";
 
   m.def(
     "set_verbosity", &gz::common::python::SetVerbosity,

@@ -1,6 +1,6 @@
 \page light_config Light config
 
-This tutorial gives an introduction to Ignition Gazebo's service `/world/<world name>/light_config`.
+This tutorial gives an introduction to Gazebo's service `/world/<world name>/light_config`.
 This service will allow to modify lights in the scene.
 
 # Modifying lights

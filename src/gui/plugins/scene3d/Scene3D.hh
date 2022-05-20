@@ -60,7 +60,7 @@ inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
   /// It is possible to orbit the camera around the scene with
   /// the mouse. Use other plugins to manage objects in the scene.
   ///
-  /// Only one plugin displaying an Ignition Rendering scene can be used at a
+  /// Only one plugin displaying an Gazebo Rendering scene can be used at a
   /// time.
   ///
   /// ## Configuration

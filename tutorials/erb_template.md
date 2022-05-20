@@ -160,7 +160,7 @@ erb my_first_erb.erb > my_first_erb.sdf
 To test if the ERB template works, run the SDF file with the `ign gazebo` command
 
 ```{.sh}
-# run with Ignition Gazebo
+# run with Gazebo
 ign gazebo my_first_erb.sdf
 ```
 

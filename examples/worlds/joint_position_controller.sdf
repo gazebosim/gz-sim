@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo joint position controller plugin demo
+  Gazebo joint position controller plugin demo
 
   Try sending joint position commands:
 

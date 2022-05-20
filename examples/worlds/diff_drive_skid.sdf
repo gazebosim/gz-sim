@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo skid steer differential drive plugin demo
+  Gazebo skid steer differential drive plugin demo
 
   Try sending commands:
 

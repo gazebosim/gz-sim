@@ -22,8 +22,8 @@
 #include <gz/gui/Plugin.hh>
 #include <gz/rendering/Scene.hh>
 
-/// \brief Example of a GUI plugin that uses Ignition Rendering.
-/// This plugin works with either Ignition GUI's Scene3D or Ignition Gazebo's
+/// \brief Example of a GUI plugin that uses Gazebo Rendering.
+/// This plugin works with either Gazebo GUI's Scene3D or Gazebo's
 /// Scene3D.
 class RenderingGuiPlugin : public gz::gui::Plugin
 {

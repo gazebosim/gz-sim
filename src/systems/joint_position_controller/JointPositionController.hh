@@ -34,7 +34,7 @@ namespace systems
   /// \brief Joint position controller which can be attached to a model with a
   /// reference to a single joint.
   ///
-  /// A new Ignition Transport topic is created to send target joint positions.
+  /// A new Gazebo Transport topic is created to send target joint positions.
   /// The topic name is
   /// "/model/<model_name>/joint/<joint_name>/<joint_index>/cmd_pos".
   ///

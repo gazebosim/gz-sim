@@ -1,17 +1,17 @@
-# Ignition Gazebo Dockerfiles
+# Gazebo Sim Dockerfiles
 
 This directory contains a few Dockerfiles and supporting scripts. See each
 section below for usage information about
 
-1. [Dockerfile.ignition](#Ignition-Gazebo-Using-Debians-In-Docker)
-1. [Dockerfile.nightly](#Build-Ignition-Gazebo-Using-Nightly-Debians)
+1. [Dockerfile.ignition](#Gazebo-Sim-Using-Debians-In-Docker)
+1. [Dockerfile.nightly](#Build-Gazebo-Sim-Using-Nightly-Debians)
 
-## Build Ignition Gazebo Using Nightly Debians
+## Build Gazebo Sim Using Nightly Debians
 
 This section describes how to build and run a docker image based on
 nightly builds of downstream
 [Ignition libraries](https://ignitionrobotics.org/libs). The Docker image will
-use the Ignition Gazebo code found in the current source tree.
+use the Gazebo code found in the current source tree.
 
 **Requirements**
 
@@ -24,14 +24,14 @@ use the Ignition Gazebo code found in the current source tree.
 
 **Steps**
 
-1. Change the root directory of the Ignition Gazebo source tree. If you are
+1. Change the root directory of the Gazebo Sim source tree. If you are
    currently in the `docker` subdirectory:
 
     ```
     cd ..
     ```
 
-1. Build the ign-gazebo:base image.
+1. Build the gz-gazebo:base image.
 
     ```
     docker build . -f ./docker/Dockerfile.base -t ign-gazebo:base
@@ -49,13 +49,13 @@ use the Ignition Gazebo code found in the current source tree.
     docker run -it ign-gazebo:nightly /bin/bash
     ```
 
-4. Alternatively, you can directly run Ignition Gazebo using
+4. Alternatively, you can directly run Gazebo using
 
     ```
     ./docker/run.bash ign-gazebo:nightly ign-gazebo-server -v 4
     ```
 
-## Ignition Gazebo Using Debians In Docker
+## Gazebo Using Debians In Docker
 
 This section describes how to build and run a docker image of an Ignition
 distribution using debians.
@@ -70,7 +70,7 @@ distribution using debians.
 
 1. Build a docker image using the `build.bash` command. The first argument
    must be the name of the Ignition distribution. The list of Ignition distribution can be found at [Ignition distribution](https://ignitionrobotics.org/docs). For example, to build an
-   image of Ignition Fortress:
+   image of Gazebo Fortress:
 
     ```
     ./build.bash ignition-garden ./Dockerfile.ignition
@@ -83,7 +83,7 @@ distribution using debians.
     ./run.bash ignition-garden
     ```
 
-3. You can pass arguments to Ignition Gazebo by appending them the
+3. You can pass arguments to Gazebo by appending them the
    `run.bash` command. For example, to load the shapes.sdf file:
 
     ```

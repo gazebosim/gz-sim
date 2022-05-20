@@ -35,7 +35,7 @@ namespace systems
   /// \brief Joint trajectory controller, which can be attached to a model with
   /// reference to one or more 1-axis joints in order to follow a trajectory.
   ///
-  /// Joint trajectories can be sent to this plugin via Ignition Transport.
+  /// Joint trajectories can be sent to this plugin via Gazebo Transport.
   /// The default topic name is "/model/${MODEL_NAME}/joint_trajectory" that
   /// can be configured with the `<topic>` system parameter.
   ///
@@ -54,7 +54,7 @@ namespace systems
   ///
   /// Input trajectory can be produced by a motion planning framework such as
   /// MoveIt2. For smooth execution of the trajectory, its points should to be
-  /// interpolated before sending them via Ignition Transport (interpolation
+  /// interpolated before sending them via Gazebo Transport (interpolation
   /// might already be implemented in the motion planning framework of your
   /// choice).
   ///

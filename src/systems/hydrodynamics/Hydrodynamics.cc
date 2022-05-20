@@ -206,7 +206,7 @@ void Hydrodynamics::Configure(
   if (_sdf->HasElement("waterDensity"))
   {
     ignwarn <<
-      "<waterDensity> parameter is deprecated and will be removed Ignition G.\n"
+      "<waterDensity> parameter is deprecated and will be removed Gazebo G.\n"
       << "\tPlease update your SDF to use <water_density> instead.";
   }
 

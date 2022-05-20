@@ -5,7 +5,7 @@
 #              [PRIVATE_LINK_LIBS <libraries...>]
 #              [PRIVATE_COMPILE_DEFS <definitions...>])
 #
-# Add a system component to Ignition Gazebo.
+# Add a system component to Gazebo.
 #
 # <system> Required. Name of the system.
 #

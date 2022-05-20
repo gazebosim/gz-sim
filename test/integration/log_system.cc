@@ -433,7 +433,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
     "log_record_dbl_pendulum.sdf");
 
   // Test case 1:
-  // A path is specified in SDF - a feature removed in Ignition Dome.
+  // A path is specified in SDF - a feature removed in Gazebo Dome.
   // No path specified in C++ API.
   // Should ignore SDF path. No default logging directory is initialized for
   // state and console logs because ign.cc is not triggered.
@@ -483,7 +483,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
   entryList(logPath, entriesBefore);
 
   // Test case 2:
-  // A path is specified in SDF - a feature removed in Ignition Dome.
+  // A path is specified in SDF - a feature removed in Gazebo Dome.
   // SDF path should be ignored.
   // State log and console log should be stored to default timestamp path
   // ignLogDirectory because ign.cc is triggered by command line.
@@ -542,7 +542,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
   this->CreateLogsDir();
 
   // Test case 3:
-  // A path is specified in SDF - a feature removed in Ignition Dome.
+  // A path is specified in SDF - a feature removed in Gazebo Dome.
   // Empty path is specified via C++ API.
   // Should ignore SDF path. No default logging directory is initialized for
   // state and console logs because ign.cc is not triggered.
@@ -581,7 +581,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
   this->CreateLogsDir();
 
   // Test case 4:
-  // A path is specified in SDF - a feature removed in Ignition Dome.
+  // A path is specified in SDF - a feature removed in Gazebo Dome.
   // A different path is specified via C++ API.
   // Should take C++ API path. State log should be stored here. Console log is
   // not initialized because ign.cc is not triggered.
@@ -646,7 +646,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
   this->CreateLogsDir();
 
   // Test case 6:
-  // A path is specified in SDF - a feature removed in Ignition Dome.
+  // A path is specified in SDF - a feature removed in Gazebo Dome.
   // A path is specified by --record-path on command line.
   // Path in SDF should be ignored. Both state and console logs should be
   // stored to --record-path path.

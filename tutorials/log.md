@@ -8,7 +8,7 @@ Ignition records two types of information to files:
     * Always recorded
 * Simulation state
     * Entity poses, insertion and deletion
-    * Logged to an [Ignition Transport `state.tlog` file](https://ignitionrobotics.org/api/transport/7.0/logging.html)
+    * Logged to an [Gazebo Transport `state.tlog` file](https://ignitionrobotics.org/api/transport/7.0/logging.html)
     * Recording must be enabled from the command line or the C++ API
     * Can be played back using the command line or the C++ API
 

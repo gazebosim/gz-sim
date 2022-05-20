@@ -65,7 +65,7 @@ class gz::sim::systems::ImuPrivate
 
   /// \brief Keep track of world ID, which is equivalent to the scene's
   /// root visual.
-  /// Defaults to zero, which is considered invalid by Ignition Gazebo.
+  /// Defaults to zero, which is considered invalid by Gazebo.
   public: Entity worldEntity = kNullEntity;
 
   /// True if the rendering component is initialized

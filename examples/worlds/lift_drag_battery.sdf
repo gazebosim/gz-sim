@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo lift-drag system with a battery plugin demo
+  Gazebo lift-drag system with a battery plugin demo
 
   This file was adapted from osrf/gazebo/worlds/single_rotor_demo.world
 

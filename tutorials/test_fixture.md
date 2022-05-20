@@ -1,8 +1,8 @@
 \page test_fixture Test fixture
 
-Ignition Gazebo can be used to run scripted simulations so that it's convenient
+Gazebo can be used to run scripted simulations so that it's convenient
 to run automated tests for robot applications. This tutorial will go over the
-process of writing automated tests using Ignition Gazebo so that they can be run
+process of writing automated tests using Gazebo so that they can be run
 using Continuous Integration (CI).
 
 ## Example setup

@@ -26,7 +26,7 @@
 #include "World.hh"
 
 PYBIND11_MODULE(gazebo, m) {
-  m.doc() = "Ignition Gazebo Python Library.";
+  m.doc() = "Gazebo Python Library.";
 
   gz::sim::python::defineGazeboEntityComponentManager(m);
   gz::sim::python::defineGazeboEventManager(m);

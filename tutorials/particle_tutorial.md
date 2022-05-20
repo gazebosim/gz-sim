@@ -1,6 +1,6 @@
 \page particle_emitter Particle Emitter
 
-This tutorial shows how to use the particle emitter system to add and configure particle effects like smoke and fog in simulation. It also shows the effects that particles have on different types of sensors in Ignition Gazebo.
+This tutorial shows how to use the particle emitter system to add and configure particle effects like smoke and fog in simulation. It also shows the effects that particles have on different types of sensors in Gazebo.
 
 ## Particle Emitter System
 
@@ -16,7 +16,7 @@ To be able to spawn particle emitters,  first you will need to include the parti
     </plugin>
 ```
 
-Next, we can start adding particle emitter models into the world. In our example world, we include a [Fog Generator](https://app.ignitionrobotics.org/OpenRobotics/fuel/models/Fog%20Generator) model from Ignition Fuel:
+Next, we can start adding particle emitter models into the world. In our example world, we include a [Fog Generator](https://app.ignitionrobotics.org/OpenRobotics/fuel/models/Fog%20Generator) model from Gazebo Fuel:
 
 ```xml
     <include>
@@ -55,7 +55,7 @@ Here is the content of the Fog Generator [model.sdf](https://fuel.ignitionroboti
   </model>
 ```
 
-The SDF 1.6+ specification supports having a `<particle_emitter>` SDF element as a child of `<link>`. The particle emitter itself has several properties that can be configured, see Ignition Rendering's [particles tutorial](https://ignitionrobotics.org/api/rendering/4.0/particles.html) for more details on these properties. In our Fog Generator model, we are using a box type particle emitter that covers a region size of 10 by 10m. By default, the particles are emitted in the `+x` direction, hence the model as a pitch rotation of -90 degrees to rotate the particle emitter so that the particles are emitted upwards in `+z`.
+The SDF 1.6+ specification supports having a `<particle_emitter>` SDF element as a child of `<link>`. The particle emitter itself has several properties that can be configured, see Gazebo Rendering's [particles tutorial](https://ignitionrobotics.org/api/rendering/4.0/particles.html) for more details on these properties. In our Fog Generator model, we are using a box type particle emitter that covers a region size of 10 by 10m. By default, the particles are emitted in the `+x` direction, hence the model as a pitch rotation of -90 degrees to rotate the particle emitter so that the particles are emitted upwards in `+z`.
 
 Let's launch the example world to see what it looks like.
 
@@ -67,7 +67,7 @@ You should see the fog slowly starting to appear from the ground plane in the wo
 
 @image html files/particle_emitter/fog_generator.png
 
-Next, try changing some properties of the particle emitter while the simulation is running. You can do this by publishing messages over Ignition Transport. Try turning off the particle emitter by setting the `emitting` property to `false`. Make sure the simulation is running in order for this command to take effect.
+Next, try changing some properties of the particle emitter while the simulation is running. You can do this by publishing messages over Gazebo Transport. Try turning off the particle emitter by setting the `emitting` property to `false`. Make sure the simulation is running in order for this command to take effect.
 
 ```bash
 ign topic -t /model/fog_generator/link/fog_link/particle_emitter/emitter/cmd -m gz.msgs.ParticleEmitter -p 'emitting: {data: false}'

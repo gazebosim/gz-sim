@@ -2,7 +2,7 @@
 
 # Install
 
-These instructions are for installing only Ignition Gazebo. If you're interested
+These instructions are for installing only Gazebo. If you're interested
 in using all the Ignition libraries, not only Igniton Gazebo, check out this
 [Ignition installation](https://ignitionrobotics.org/docs/latest/install).
 
@@ -25,7 +25,7 @@ available through a package management utility such as [Apt](https://wiki.debian
 This approach eliminates the need to download and compile source code, and dependencies
 are handled for you. The downside of a binary install is that you won't be able to modify
 the code. See [Source Install](#source-install) for information on
-installing Ignition Gazebo from source.
+installing Gazebo from source.
 
 1. Configure package repositories.
   ```
@@ -34,7 +34,7 @@ installing Ignition Gazebo from source.
   sudo apt-get update
   ```
 
-2. Install Ignition Gazebo
+2. Install Gazebo
   ```
   sudo apt-get install libignition-gazebo<#>-dev
   ```
@@ -47,7 +47,7 @@ installing Ignition Gazebo from source.
   brew tap osrf/simulation
   ```
 
-2. Install Ignition Gazebo:
+2. Install Gazebo:
   ```
   brew install ignition-gazebo<#>
   ```

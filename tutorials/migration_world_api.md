@@ -2,7 +2,7 @@
 
 # Migration from Gazebo-classic: World API
 
-When migrating plugins from Gazebo-classic to Ignition Gazebo, developers will
+When migrating plugins from Gazebo-classic to Gazebo, developers will
 notice that the C++ APIs for both simulators are quite different. Be sure to
 check the [plugin migration tutorial](migrationplugins.html) to get a high-level
 view of the architecture differences before using this guide.
@@ -32,7 +32,7 @@ can be divided in these categories:
 * **Others**: Functions that don't fit any of the categories above
     * Example: [World::UniqueModelName](http://osrf-distributions.s3.amazonaws.com/gazebo/api/11.0.0/classgazebo_1_1physics_1_1World.html#a05934164af0cf95eb5a4be70e726846d)
 
-You'll find the Ignition APIs below on the following headers:
+You'll find the Gazebo APIs below on the following headers:
 
 * [ignition/gazebo/World.hh](https://ignitionrobotics.org/api/gazebo/3.3/World_8hh.html)
 * [ignition/gazebo/Util.hh](https://ignitionrobotics.org/api/gazebo/3.3/Util_8hh.html)

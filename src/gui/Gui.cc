@@ -52,7 +52,7 @@ std::unique_ptr<gz::gui::Application> createGui(
     sigKilled = true;
   });
 
-  ignmsg << "Ignition Gazebo GUI    v" << GZ_GAZEBO_VERSION_FULL
+  ignmsg << "Gazebo GUI    v" << GZ_GAZEBO_VERSION_FULL
          << std::endl;
 
   // Set auto scaling factor for HiDPI displays

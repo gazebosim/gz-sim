@@ -1,1 +1,1 @@
-See the [Ignition Robotics contributing guide](https://ignitionrobotics.org/docs/all/contributing).
+See the [Gazebo Robotics contributing guide](https://ignitionrobotics.org/docs/all/contributing).

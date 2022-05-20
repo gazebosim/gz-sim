@@ -2,16 +2,16 @@
 
 ## Using the model photo shot plugin
 
-Ignition Gazebo offers a model photo taking tool that will take perspective,
+Gazebo offers a model photo taking tool that will take perspective,
 top, front, and both sides pictures of a model. You can test the demo world
-in Ignition Gazebo, located at `examples/worlds/model_photo_shoot.sdf`, by
+in Gazebo, located at `examples/worlds/model_photo_shoot.sdf`, by
 running the following command:
 
 ```
 ign gazebo  -s -r -v 4 --iterations 50 model_photo_shoot.sdf
 ```
 
-This will start Ignition Gazebo server, load the model and the plugin, take the
+This will start Gazebo server, load the model and the plugin, take the
 pictures and shutdown after 50 iterations. The pictures can be found at the
 same location where the command was issued.
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo perfect-comms plugin demo.
+  Gazebo perfect-comms plugin demo.
 
   Compile the comms publisher:
     cd ign-gazebo/examples/standalone/comms

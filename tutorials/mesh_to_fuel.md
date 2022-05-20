@@ -1,7 +1,7 @@
 \page meshtofuel Importing a Mesh to Fuel
 
-This tutorial will explain how to import a mesh to the [Ignition Fuel](https://app.ignitionrobotics.org) web application.
-Adding models and/or worlds to Fuel will make your content readily available to the open source robotics simulation community, and easier to use with the Ignition GUI.
+This tutorial will explain how to import a mesh to the [Gazebo Fuel](https://app.ignitionrobotics.org) web application.
+Adding models and/or worlds to Fuel will make your content readily available to the open source robotics simulation community, and easier to use with the Gazebo GUI.
 
 ## Prerequisites
 
@@ -144,7 +144,7 @@ Scroll all the way to the bottom of the file until you see the `include` tag sec
 ```xml
 <?xml version="1.0" ?>
 <!--
-  Demo world to show how to include a model from Ignition Fuel.
+  Demo world to show how to include a model from Gazebo Fuel.
 -->
 <sdf version="1.6">
   <world name="fuel">

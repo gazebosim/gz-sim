@@ -10,7 +10,7 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage terminology "Terminology": List of terms used across the documentation.
 * \subpage install "Install instructions": Install instructions.
 * \subpage createsystemplugins "Create System Plugins": Programmatically access simulation using C++ plugins.
-* \subpage rendering_plugins "Rendering plugins": Write plugins that use Ignition Rendering on the server and client.
+* \subpage rendering_plugins "Rendering plugins": Write plugins that use Gazebo Rendering on the server and client.
 * \subpage levels "Levels": Load entities on demand in large environments.
 * \subpage distributedsimulation "Distributed Simulation": Spread simulation across several processes.
 * \subpage resources "Finding resources": The different ways in which Ignition looks for files.
@@ -23,7 +23,7 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage server_config "Server configuration": Customizing what system plugins are loaded.
 * \subpage debugging "Debugging": Information about debugging Gazebo.
 * \subpage pointcloud "Converting a Point Cloud to a 3D Model": Turn point cloud data into 3D models for use in simulations.
-* \subpage meshtofuel "Importing a Mesh to Fuel": Build a model directory around a mesh so it can be added to the Ignition Fuel app.
+* \subpage meshtofuel "Importing a Mesh to Fuel": Build a model directory around a mesh so it can be added to the Gazebo Fuel app.
 * \subpage erbtemplate "ERB Template": Use ERB, a templating language, to generate SDF files for simulation worlds.
 * \subpage detachablejoints "Detachable Joints": Creating models that start off rigidly attached and then get detached during simulation.
 * \subpage triggeredpublisher "Triggered Publisher": Using the TriggeredPublisher system to orchestrate actions in simulation.
@@ -43,12 +43,12 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 
 **Migration from Gazebo classic**
 
-* \subpage migrationplugins "Plugins": Walk through the differences between writing plugins for Gazebo classic and Ignition Gazebo
-* \subpage migrationsdf "SDF": Migrating SDF files from Gazebo classic to Ignition Gazebo
-* \subpage migrationworldapi "World API": Guide on what World C++ functions to call in Ignition Gazebo when migrating from Gazebo classic
-* \subpage migrationmodelapi "Model API": Guide on what Model C++ functions to call in Ignition Gazebo when migrating from Gazebo classic
-* \subpage migrationlinkapi "Link API": Guide on what Link C++ functions to call in Ignition Gazebo when migrating from Gazebo classic
-* \subpage ardupilot "Case Study": Migrating the ArduPilot ModelPlugin from Gazebo classic to Ignition Gazebo.
+* \subpage migrationplugins "Plugins": Walk through the differences between writing plugins for Gazebo classic and Gazebo
+* \subpage migrationsdf "SDF": Migrating SDF files from Gazebo classic to Gazebo
+* \subpage migrationworldapi "World API": Guide on what World C++ functions to call in Gazebo when migrating from Gazebo classic
+* \subpage migrationmodelapi "Model API": Guide on what Model C++ functions to call in Gazebo when migrating from Gazebo classic
+* \subpage migrationlinkapi "Link API": Guide on what Link C++ functions to call in Gazebo when migrating from Gazebo classic
+* \subpage ardupilot "Case Study": Migrating the ArduPilot ModelPlugin from Gazebo classic to Gazebo.
 
 ## License
 

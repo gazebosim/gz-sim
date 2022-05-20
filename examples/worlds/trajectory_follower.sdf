@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo trajectory follower plugin demo.
+  Gazebo trajectory follower plugin demo.
 
   Try sending commands:
 

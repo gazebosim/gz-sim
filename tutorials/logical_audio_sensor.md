@@ -1,6 +1,6 @@
 \page logicalaudiosensor Logical Audio Sensor
 
-This tutorial will explain how to use the `LogicalAudioSensor` system plugin in Ignition Gazebo.
+This tutorial will explain how to use the `LogicalAudioSensor` system plugin in Gazebo.
 
 The logical audio sensor plugin allows for the usage of logical audio sources and microphones in a simulation environment.
 At the end of each simulation step, microphones check if audio was detected by any of the sources in the world.

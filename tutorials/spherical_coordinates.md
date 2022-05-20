@@ -27,7 +27,7 @@ ENU (East-North-Up) convention, as shown on the image below:
 
 Users can define where the origin of the ENU coordinates sits on the surface
 of the planet in three different ways: through the SDF file, the GUI, or through
-an Ignition Transport service call.
+an Gazebo Transport service call.
 
 Changing the world origin will only affect operations performed afterwards. For
 example, models already in the world will not be moved when the world origin's

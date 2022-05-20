@@ -190,7 +190,7 @@ namespace gz
     std::string GZ_GAZEBO_VISIBLE validTopic(
         const std::vector<std::string> &_topics);
 
-    /// \brief Helper function that returns a valid Ignition Transport topic
+    /// \brief Helper function that returns a valid Gazebo Transport topic
     /// consisting of the scoped name for the provided entity.
     ///
     /// For example, if the provided entity has a scoped name of
@@ -202,7 +202,7 @@ namespace gz
     /// \param[in] _entity The entity to generate the topic name for.
     /// \param[in] _ecm The entity component manager.
     /// \param[in] _excludeWorld True to exclude the world name from the topic.
-    /// \return An Ignition Transport topic name based on the scoped name of
+    /// \return An Gazebo Transport topic name based on the scoped name of
     /// the provided entity, or empty string if a topic name could not be
     /// generated.
     std::string GZ_GAZEBO_VISIBLE topicFromScopedName(

@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!--
-  Demo containing a model with PBR materials, pulled from Ignition Fuel.
+  Demo containing a model with PBR materials, pulled from Gazebo Fuel.
 -->
 <sdf version="1.6">
   <world name="fuel">

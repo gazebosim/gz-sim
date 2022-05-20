@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo level manager demo, with perfomers added at runtime.
+  Gazebo level manager demo, with perfomers added at runtime.
 
   * Start gazebo using the "--levels" flag.
   * Start the simulation and try sending commands:

@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo Model Photo Shoot plugin demo
+  Gazebo Model Photo Shoot plugin demo
 
   This will take perspective, top, front, and both sides pictures of the model:
     ign gazebo  -s -r -v 4 \-\-iterations 50 model_photo_shoot.sdf

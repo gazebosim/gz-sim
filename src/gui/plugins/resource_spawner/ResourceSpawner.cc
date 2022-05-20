@@ -59,7 +59,7 @@ namespace gz::sim
     /// resources
     public: PathModel ownerModel;
 
-    /// \brief Client used to download resources from Ignition Fuel.
+    /// \brief Client used to download resources from Gazebo Fuel.
     public: std::unique_ptr<gz::fuel_tools::FuelClient>
             fuelClient = nullptr;
 

@@ -2,7 +2,7 @@
 
 # Overview
 
-Ignition Gazebo provides a Python API to interact with world.
+Gazebo provides a Python API to interact with world.
 
 For now, we provide a `TestFixture` class that allows to load a world file,
 step simulation and check entities and components.
@@ -48,7 +48,7 @@ In the
 [examples/scripts/python_api](https://github.com/gazebosim/gz-sim/blob/ign-gazebo7/examples/scripts/python_api)
 folder there is a Python script that shows how to make use of this API.
 
-If you compiled Ignition Gazebo from source you should modify your `PYTHONPATH`:
+If you compiled Gazebo from source you should modify your `PYTHONPATH`:
 
 ```bash
 export PYTHONPATH=$PYTHONPATH:<path to ws>/install/lib/python

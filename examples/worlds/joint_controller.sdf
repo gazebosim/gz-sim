@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo joint controller plugin demo
+  Gazebo joint controller plugin demo
 
   Try sending joint velocity commands (velocity mode):
 

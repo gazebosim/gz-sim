@@ -1,7 +1,7 @@
 \page rendering_plugins Rendering plugins
 
-This tutorial will go over how to write Ignition Gazebo plugins that alter the
-3D scene's visual appearance using Ignition Rendering APIs.
+This tutorial will go over how to write Gazebo plugins that alter the
+3D scene's visual appearance using Gazebo Rendering APIs.
 
 This is not to be confused with integrating a new rendering engine. See
 [How to write your own rendering engine plugin](https://ignitionrobotics.org/api/rendering/4.2/renderingplugin.html)
@@ -13,7 +13,7 @@ https://github.com/gazebosim/gz-sim/tree/main/examples/plugin/rendering_plugins.
 ## Scenes
 
 During simulation, there are up to two 3D scenes being rendered by
-Ignition Gazebo, one on the server process and one on the client process.
+Gazebo, one on the server process and one on the client process.
 
 The server-side scene will only be created when using the
 `gz::sim::systems::Sensors` system plugin on the server. This is the
@@ -27,10 +27,10 @@ For the user to see what the sensors see, they need to use other GUI plugins
 that display sensor data, such as `gz::gui::plugins::ImageDisplay` for
 camera images or `gz::sim::VisualizeLidar` for lidar point clouds.
 
-Ignition Gazebo keeps these scenes in sync by sending periodic state messages
+Gazebo keeps these scenes in sync by sending periodic state messages
 from the server to the client that contain entity and component data with
 the `gz::sim::systems::SceneBroadcaster` plugin. Any
-changes done to these scenes using Ignition Rendering APIs directly, as
+changes done to these scenes using Gazebo Rendering APIs directly, as
 described in this tutorial, will only affect one of the scenes and will not be
 synchronized. The examples below will show how to change the ambient light for
 each scene separately.

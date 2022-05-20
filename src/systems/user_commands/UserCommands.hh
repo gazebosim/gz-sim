@@ -32,7 +32,7 @@ namespace systems
   // Forward declarations.
   class UserCommandsPrivate;
 
-  /// \brief This system provides an Ignition Transport interface to execute
+  /// \brief This system provides an Gazebo Transport interface to execute
   /// commands while simulation is running.
   ///
   /// \todo(louise) In the future, an interface undo/redo commands will also

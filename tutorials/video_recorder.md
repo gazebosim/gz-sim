@@ -2,12 +2,12 @@
 
 ## Using the video recorder plugin
 
-Ignition Gazebo offers a video recorder tool for recording videos from the 3D
+Gazebo offers a video recorder tool for recording videos from the 3D
 scene. The recorder tool is available as a GUI plugin. To open this plugin,
-first launch Ignition Gazebo and select the ellipsis menu on top right
+first launch Gazebo and select the ellipsis menu on top right
 (3 dots menu), and scroll down to find the `Video Recorder` option. Click on the
 plugin to open the Video Recorder tool. Alternatively, launch the demo world in
-Ignition Gazebo that already has this plugin included in the GUI.
+Gazebo that already has this plugin included in the GUI.
 
 ```
 ign gazebo -v 4 video_record_dbl_pendulum.sdf
@@ -35,12 +35,12 @@ window prior to recording.
 
 A few video recorder parameters can be specified using GUI configurations, see
 the [GUI Configuration](gui_config.html) tutorial for more information.
-If you launched Ignition Gazebo with the
+If you launched Gazebo with the
 `video_record_dbl_pendulum.sdf` demo world, the GUI configurations are embedded
 in the world SDF file so you will need to download a copy of the
 [sdf file](https://raw.githubusercontent.com/gazebosim/gz-sim/main/examples/worlds/video_record_dbl_pendulum.sdf).
 and modify the GUI configuration in that file. On the other hand, if you
-launched Ignition Gazebo with a world file that does not have GUI
+launched Gazebo with a world file that does not have GUI
 configurations, you will need to specify the settings in
 `$HOME/.ignition/gazebo/<#>/gui.config`.
 
@@ -108,7 +108,7 @@ generated video. The default bitrate is 2Mbps.
 
 ## Hardware-accelerated encoding
 
-Since Ignition Common 3.10.2, there is support for utilizing the power of GPUs
+Since Gazebo Common 3.10.2, there is support for utilizing the power of GPUs
 to speed up the video encoding process. See the
 [Hardware-accelerated Video Encoding tutorial](https://ignitionrobotics.org/api/common/3.10/hw-encoding.html)
 for more details.

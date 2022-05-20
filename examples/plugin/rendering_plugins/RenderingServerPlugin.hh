@@ -20,7 +20,7 @@
 #include <gz/sim/System.hh>
 #include <gz/rendering/Scene.hh>
 
-/// \brief Server-side system that uses Ignition Rendering APIs.
+/// \brief Server-side system that uses Gazebo Rendering APIs.
 /// It changes the ambient color every 2 simulation seconds.
 class RenderingServerPlugin:
   public gz::sim::System,

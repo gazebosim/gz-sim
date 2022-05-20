@@ -5,18 +5,18 @@
 Gazebo Classic supports
 [6 different C++ plugin types](http://gazebosim.org/tutorials?tut=plugins_hello_world&cat=write_plugin),
 each providing access to different parts of the API, like physics, rendering,
-sensors, GUI, etc. Due to Ignition Gazebo's architecture based on an
+sensors, GUI, etc. Due to Gazebo's architecture based on an
 [ECS](https://en.wikipedia.org/wiki/Entity_component_system)
 , plugin interfaces are somewhat different, but more varied and in many cases much
-more powerful. Some plugins in Ignition are systems within Ignition Gazebo,
+more powerful. Some plugins in Ignition are systems within Gazebo,
 while others are specific plugin types from other Ignition libraries.
 
-\note Plugin types other than systems may be added to Ignition Gazebo in the future.
+\note Plugin types other than systems may be added to Gazebo in the future.
 
 For example, plugins which get and set properties of simulation entities would be
-Ignition Gazebo systems. On the other hand, there are now plugin interfaces which didn't
+Gazebo systems. On the other hand, there are now plugin interfaces which didn't
 exist in Gazebo Classic, such as integrating a new physics or rendering engine, and these can
-be also used in projects outside of Ignition Gazebo.
+be also used in projects outside of Gazebo.
 
 Take a look at the comparison below:
 
@@ -30,7 +30,7 @@ Visual | Get/set properties of the visual and its children | Gazebo system | Get
 Sensor | Get/set sensor properties and readings | Gazebo system | Get/set components.
 World / Model | Access physics-engine-specific features | Physics plugin | Loaded by ign-physics
 Visual | Access rendering-engine-specific features | Rendering plugin | Loaded by ign-rendering
-Sensor | Connect to callbacks | Standalone program | Subscribe to Ignition Transport messages.
+Sensor | Connect to callbacks | Standalone program | Subscribe to Gazebo Transport messages.
 All | Connect to simulation events | Gazebo system | Use `PreUpdate`, `Update` and `PostUpdate` callbacks for the update loop, and the event manager for other events.
 GUI | Add an overlay UI | GUI plugin | Support for overlays and docked widgets
 GUI / System | Change the default UI | GUI plugin / SDF | All GUI elements can be removed or configured through SDF
@@ -97,7 +97,7 @@ class MyPlugin : public ModelPlugin
 GZ_REGISTER_MODEL_PLUGIN(MyPlugin)
 ```
 
-On Ignition Gazebo, that would be implemented as follows:
+On Gazebo, that would be implemented as follows:
 
 ```cpp
 #include <gz/sim/Model.hh>
@@ -237,7 +237,7 @@ IGNITION_ADD_PLUGIN(MyPlugin,
 IGNITION_ADD_PLUGIN_ALIAS(MyPlugin, "gz::sim::systems::MyPlugin")
 ```
 
-In summary, the key differences between Gazebo Classic and Ignition Gazebo are:
+In summary, the key differences between Gazebo Classic and Gazebo are:
 
 * Plugins must inherit from the `ISystemConfigure` class to be able to override
   the `Configure` callback that gives access to many things, such as the SDF

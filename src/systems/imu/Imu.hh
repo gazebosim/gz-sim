@@ -35,7 +35,7 @@ namespace systems
   /// \class Imu Imu.hh gz/sim/systems/Imu.hh
   /// \brief This system manages all IMU sensors in simulation.
   /// Each IMU sensor eports vertical position, angular velocity
-  /// and lienar acceleration readings over Ignition Transport.
+  /// and lienar acceleration readings over Gazebo Transport.
   class Imu:
     public System,
     public ISystemPreUpdate,

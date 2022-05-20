@@ -74,7 +74,7 @@ class gz::sim::SceneManagerPrivate
 {
   /// \brief Keep track of world ID, which is equivalent to the scene's
   /// root visual.
-  /// Defaults to zero, which is considered invalid by Ignition Gazebo.
+  /// Defaults to zero, which is considered invalid by Gazebo.
   public: Entity worldId{0};
 
   //// \brief Pointer to the rendering scene
@@ -825,7 +825,7 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
       if (specular)
       {
         ignerr << "PBR material: currently only metal workflow is supported. "
-               << "Ignition Gazebo will try to render the material using "
+               << "Gazebo will try to render the material using "
                << "metal workflow but without Roughness / Metalness settings."
                << std::endl;
       }

@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo logical camera sensor demo
+  Gazebo logical camera sensor demo
 
   Listen to sensor readings:
 

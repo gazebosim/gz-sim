@@ -1,4 +1,4 @@
-# Ignition Gazebo design
+# Gazebo design
 
 > This is an evolving document as design is discussed and iterated on. As features are released,
   the relevant parts of this document should be updated and moved to a tutorial.

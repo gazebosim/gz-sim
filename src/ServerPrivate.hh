@@ -157,7 +157,7 @@ namespace gz
       /// \brief The server configuration.
       public: ServerConfig config;
 
-      /// \brief Client used to download resources from Ignition Fuel.
+      /// \brief Client used to download resources from Gazebo Fuel.
       public: std::unique_ptr<fuel_tools::FuelClient> fuelClient = nullptr;
 
       /// \brief Map from file paths to fuel URIs. This is set and updated by

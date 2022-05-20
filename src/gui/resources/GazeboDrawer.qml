@@ -80,7 +80,7 @@ Rectangle {
       type: "world"
     }
 
-    // Actions provided by Ignition GUI, with custom titles
+    // Actions provided by Gazebo GUI, with custom titles
     ListElement {
       title: "Load client configuration"
       actionElement: "loadConfig"
@@ -146,7 +146,7 @@ Rectangle {
    */
   Dialog {
     id: aboutDialog
-    title: "Ignition Gazebo"
+    title: "Gazebo"
 
     modal: true
     focus: true

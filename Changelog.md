@@ -1,10 +1,10 @@
-## Ignition Gazebo 7.x
+## Gazebo 7.x
 
-### Ignition Gazebo 7.X.X (20XX-XX-XX)
+### Gazebo 7.X.X (20XX-XX-XX)
 
-## Ignition Gazebo 6.x
+## Gazebo 6.x
 
-### Ignition Gazebo 6.9.0 (2022-04-14)
+### Gazebo 6.9.0 (2022-04-14)
 
 1. Add new `RFComms` system
     * [Pull request #1428](https://github.com/gazebosim/gz-sim/pull/1428)
@@ -37,7 +37,7 @@
 1. Add Gaussian noise to Odometry Publisher
     * [Pull request #1393](https://github.com/gazebosim/gz-sim/pull/1393)
 
-### Ignition Gazebo 6.8.0 (2022-04-04)
+### Gazebo 6.8.0 (2022-04-04)
 
 1. ServerConfig accepts an sdf::Root DOM object
     * [Pull request #1333](https://github.com/gazebosim/gz-sim/pull/1333)
@@ -111,9 +111,9 @@
 1. Populate GUI plugins that are empty
     * [Pull request #1375](https://github.com/gazebosim/gz-sim/pull/1375)
 
-### Ignition Gazebo 6.7.0 (2022-02-24)
+### Gazebo 6.7.0 (2022-02-24)
 
-1. Added Python interfaces to some Ignition Gazebo methods
+1. Added Python interfaces to some Gazebo methods
     * [Pull request #1219](https://github.com/gazebosim/gz-sim/pull/1219)
 
 1. Use pose multiplication instead of addition
@@ -134,7 +134,7 @@
 1. GzSceneManager: Prevent crash boom when inserted from menu
     * [Pull request #1371](https://github.com/gazebosim/gz-sim/pull/1371)
 
-### Ignition Gazebo 6.6.0 (2022-02-24)
+### Gazebo 6.6.0 (2022-02-24)
 
 1. Fix accessing empty JointPosition component in lift drag plugin
     * [Pull request #1366](https://github.com/gazebosim/gz-sim/pull/1366)
@@ -169,7 +169,7 @@
 1. Removed unused variables in shapes plugin
     * [Pull request #1321](https://github.com/gazebosim/gz-sim/pull/1321)
 
-### Ignition Gazebo 6.5.0 (2022-02-15)
+### Gazebo 6.5.0 (2022-02-15)
 
 1. New trajectory follower system
     * [Pull request #1332](https://github.com/gazebosim/gz-sim/pull/1332)
@@ -237,7 +237,7 @@
 1. Implement /server_control::stop
     * [Pull request #1240](https://github.com/gazebosim/gz-sim/pull/1240)
 
-### Ignition Gazebo 6.4.0 (2021-01-13)
+### Gazebo 6.4.0 (2021-01-13)
 
 1. Disable more tests on Windows
     * [Pull request #1286](https://github.com/gazebosim/gz-sim/pull/1286)
@@ -273,7 +273,7 @@
     * [Pull request #1205](https://github.com/gazebosim/gz-sim/pull/1205)
 
 
-### Ignition Gazebo 6.3.0 (2021-12-10)
+### Gazebo 6.3.0 (2021-12-10)
 
 1. View entity frames from the GUI
     * [Pull request #1105](https://github.com/gazebosim/gz-sim/pull/1105)
@@ -303,7 +303,7 @@
 1. Fix the force-torque sensor update rate
     * [Pull request #1159](https://github.com/gazebosim/gz-sim/pull/1159)
 
-### Ignition Gazebo 6.2.0 (2021-11-16)
+### Gazebo 6.2.0 (2021-11-16)
 
 1. Configurable joint state publisher's topic
     * [Pull request #1076](https://github.com/gazebosim/gz-sim/pull/1076)
@@ -400,7 +400,7 @@
     * [Pull request #1138](https://github.com/gazebosim/gz-sim/pull/1138)
     * [Pull request #1213](https://github.com/gazebosim/gz-sim/pull/1213)
 
-### Ignition Gazebo 6.1.0 (2021-10-25)
+### Gazebo 6.1.0 (2021-10-25)
 
 1. Updates to camera video record from subt
     * [Pull request #1117](https://github.com/gazebosim/gz-sim/pull/1117)
@@ -450,7 +450,7 @@
 1. Parse new param for enabling / disabling IMU orientation output
     * [Pull request #899](https://github.com/gazebosim/gz-sim/pull/899)
 
-### Ignition Gazebo 6.0.0 (2021-10-01)
+### Gazebo 6.0.0 (2021-10-01)
 
 1. Deprecated GzScene3D in favor of MinimalScene
     * [Pull request #1065](https://github.com/gazebosim/gz-sim/pull/1065)
@@ -665,9 +665,9 @@
 1. Bump dependencies in fortress
     * [Pull request #764](https://github.com/gazebosim/gz-sim/pull/764)
 
-## Ignition Gazebo 5.x
+## Gazebo 5.x
 
-### Ignition Gazebo 5.4.0 (2022-03-31)
+### Gazebo 5.4.0 (2022-03-31)
 
 1. Add the Model Photo Shoot system, port of Modelpropshop plugin from Gazebo classic
     * [Pull request #1331](https://github.com/gazebosim/gz-sim/pull/1331)
@@ -760,7 +760,7 @@
 1. Limit thruster system's input thrust cmd
     * [Pull request #1318](https://github.com/gazebosim/gz-sim/pull/1318)
 
-### Ignition Gazebo 5.3.0 (2021-11-12)
+### Gazebo 5.3.0 (2021-11-12)
 
 1. Prevent creation of spurious <plugin> elements when saving worlds
     * [Pull request #1192](https://github.com/gazebosim/gz-sim/pull/1192)
@@ -798,7 +798,7 @@
 1. Fix integers and floats on component inspector
     * [Pull request #1143](https://github.com/gazebosim/gz-sim/pull/1143)
 
-### Ignition Gazebo 5.2.0 (2021-10-22)
+### Gazebo 5.2.0 (2021-10-22)
 
 1. Fix performance level test flakiness
     * [Pull request #1129](https://github.com/gazebosim/gz-sim/pull/1129)
@@ -1007,7 +1007,7 @@
 1. Fix mouse view control target position
     * [Pull request #879](https://github.com/gazebosim/gz-sim/pull/879)
 
-### Ignition Gazebo 5.1.0 (2021-06-29)
+### Gazebo 5.1.0 (2021-06-29)
 
 1. Depend on SDF 11.2.1, rendering 5.1 and GUI 5.1. Fix Windows.
     * [Pull request #877](https://github.com/gazebosim/gz-sim/pull/877)
@@ -1198,7 +1198,7 @@
 1. Make it so joint state publisher is quieter
     * [Pull request #696](https://github.com/gazebosim/gz-sim/pull/696)
 
-### Ignition Gazebo 5.0.0 (2021-03-30)
+### Gazebo 5.0.0 (2021-03-30)
 
 1. Added Ellipsoid and Capsule geometries
     * [Pull request #581](https://github.com/gazebosim/gz-sim/pull/581)
@@ -1329,9 +1329,9 @@
 1. Add 25percent darker view angle icons
     * [Pull request #426](https://github.com/gazebosim/gz-sim/pull/426)
 
-## Ignition Gazebo 4.x
+## Gazebo 4.x
 
-### Ignition Gazebo 4.14.0 (2021-12-20)
+### Gazebo 4.14.0 (2021-12-20)
 
 1. Support battery draining start via topics
     * [Pull request #1255](https://github.com/gazebosim/gz-sim/pull/1255)
@@ -1346,7 +1346,7 @@
 1. Disable user commands light test on macOS
     * [Pull request #1204](https://github.com/gazebosim/gz-sim/pull/1204)
 
-### Ignition Gazebo 4.13.0 (2021-11-15)
+### Gazebo 4.13.0 (2021-11-15)
 
 1. Prevent creation of spurious `<plugin>` elements when saving worlds
     * [Pull request #1192](https://github.com/gazebosim/gz-sim/pull/1192)
@@ -1381,7 +1381,7 @@
 1. Fix integers and floats on component inspector
     * [Pull request #1143](https://github.com/gazebosim/gz-sim/pull/1143)
 
-### Ignition Gazebo 4.12.0 (2021-10-22)
+### Gazebo 4.12.0 (2021-10-22)
 
 1. Fix performance issue with contact data and AABB updates.
     * [Pull Request 1048](https://github.com/gazebosim/gz-sim/pull/1048)
@@ -1416,12 +1416,12 @@
 1. Fix performance level test flakiness.
     * [Pull Request 1129](https://github.com/gazebosim/gz-sim/pull/1129)
 
-### Ignition Gazebo 4.11.0 (2021-09-23)
+### Gazebo 4.11.0 (2021-09-23)
 
 1. Support locked entities, and headless video recording using sim time.
     * [Pull Request 862](https://github.com/gazebosim/gz-sim/pull/862)
 
-### Ignition Gazebo 4.10.0 (2021-09-15)
+### Gazebo 4.10.0 (2021-09-15)
 
 1. Fixed GUI's ComponentInspector light parameter
     * [Pull Request 1018](https://github.com/gazebosim/gz-sim/pull/1018)
@@ -1467,12 +1467,12 @@
     * [Pull Request 973](https://github.com/gazebosim/gz-sim/pull/973)
     * [Pull Request 1017](https://github.com/gazebosim/gz-sim/pull/1017)
 
-### Ignition Gazebo 4.9.1 (2021-05-24)
+### Gazebo 4.9.1 (2021-05-24)
 
 1. Make halt motion act like a brake.
     * [Pull Request 830](https://github.com/gazebosim/gz-sim/pull/830)
 
-### Ignition Gazebo 4.9.0 (2021-05-20)
+### Gazebo 4.9.0 (2021-05-20)
 
 1. Enable Focal CI.
     * [Pull Request 646](https://github.com/gazebosim/gz-sim/pull/646)
@@ -1510,7 +1510,7 @@
 1. add conversion for particle scatter ratio field.
     * [Pull Request 791](https://github.com/gazebosim/gz-sim/pull/791)
 
-### Ignition Gazebo 4.8.0 (2021-04-22)
+### Gazebo 4.8.0 (2021-04-22)
 
 1. Add odometry publisher system.
     * [Pull Request 547](https://github.com/gazebosim/gz-sim/pull/547)
@@ -1518,7 +1518,7 @@
 1. Patch particle emitter2 service.
     * [Pull Request 777](https://github.com/gazebosim/gz-sim/pull/777)
 
-### Ignition Gazebo 4.7.0 (2021-04-09)
+### Gazebo 4.7.0 (2021-04-09)
 
 1. Particle emitter based on SDF.
     * [Pull Request 730](https://github.com/gazebosim/gz-sim/pull/730)
@@ -1580,7 +1580,7 @@
 
 1. All changes up to 3.8.0.
 
-### Ignition Gazebo 4.6.0 (2021-03-01)
+### Gazebo 4.6.0 (2021-03-01)
 
 1. Use a custom data structure to manage entity feature maps.
     * [Pull Request 586](https://github.com/gazebosim/gz-sim/pull/586)
@@ -1628,7 +1628,7 @@
 1. Fix pose of plane visual with non-default normal vector.
     * [Pull Request 574](https://github.com/gazebosim/gz-sim/pull/574)
 
-### Ignition Gazebo 4.5.0 (2020-02-17)
+### Gazebo 4.5.0 (2020-02-17)
 
 1. Added particle system.
     * [Pull Request 516](https://github.com/gazebosim/gz-sim/pull/516)
@@ -1648,7 +1648,7 @@
 1. Add JointTrajectoryController system plugin.
     * [Pull Request 473](https://github.com/gazebosim/gz-sim/pull/473)
 
-### Ignition Gazebo 4.4.0 (2020-02-10)
+### Gazebo 4.4.0 (2020-02-10)
 
 1. Added issue and PR templates
     * [Pull Request 613](https://github.com/gazebosim/gz-sim/pull/613)
@@ -1665,7 +1665,7 @@
 1. Add thermal sensor system for configuring thermal camera properties
     * [Pull Request 614](https://github.com/gazebosim/gz-sim/pull/614)
 
-### Ignition Gazebo 4.3.0 (2020-02-02)
+### Gazebo 4.3.0 (2020-02-02)
 
 1. Non-blocking paths request.
     * [Pull Request 555](https://github.com/gazebosim/gz-sim/pull/555)
@@ -1718,10 +1718,10 @@
 1. Refactor UNIT_Server_TEST.
     * [Pull Request 594](https://github.com/gazebosim/gz-sim/pull/594)
 
-1. Use Ignition GUI render event.
+1. Use Gazebo GUI render event.
     * [Pull Request 598](https://github.com/gazebosim/gz-sim/pull/598)
 
-### Ignition Gazebo 4.2.0 (2020-01-13)
+### Gazebo 4.2.0 (2020-01-13)
 
 1. Automatically load a subset of world plugins.
     * [Pull Request 537](https://github.com/gazebosim/gz-sim/pull/537)
@@ -1752,7 +1752,7 @@
 
 1. All changes up to version 3.7.0.
 
-### Ignition Gazebo 4.1.0 (2020-12-11)
+### Gazebo 4.1.0 (2020-12-11)
 
 1. Update Dockerfiles to use focal images
     * [pull request 388](https://github.com/gazebosim/gz-sim/pull/388)
@@ -1810,7 +1810,7 @@
 
 1. All changes up to and including those in version 3.5.0 and version 2.25.0
 
-### Ignition Gazebo 4.0.0 (2020-09-30)
+### Gazebo 4.0.0 (2020-09-30)
 
 1. Names with spaces: add string serializer
     * [pull request 244](https://github.com/gazebosim/gz-sim/pull/244)
@@ -1903,11 +1903,11 @@
 1. Add window focus upon mouse entering the render window
     * [Github pull request 97](https://github.com/gazebosim/gz-sim/pull/97)
 
-## Ignition Gazebo 3.x
+## Gazebo 3.x
 
-### Ignition Gazebo 3.X.X (20XX-XX-XX)
+### Gazebo 3.X.X (20XX-XX-XX)
 
-### Ignition Gazebo 3.12.0 (2021-11-11)
+### Gazebo 3.12.0 (2021-11-11)
 
 1. Prevent creation of spurious `<plugin>` elements when saving worlds
     * [Pull request #1192](https://github.com/gazebosim/gz-sim/pull/1192)
@@ -1939,14 +1939,14 @@
 1. Fix integers and floats on component inspector
     * [Pull request #1143](https://github.com/gazebosim/gz-sim/pull/1143)
 
-### Ignition Gazebo 3.11.0 (2021-10-21)
+### Gazebo 3.11.0 (2021-10-21)
 
 1. Updates to camera video record from subt.
     * [Pull request #1117](https://github.com/gazebosim/gz-sim/pull/1117)
 1. Fix performance level test flakiness.
     * [Pull request #1129](https://github.com/gazebosim/gz-sim/pull/1129)
 
-### Ignition Gazebo 3.10.0 (2021-10-15)
+### Gazebo 3.10.0 (2021-10-15)
 
 1. Performance: use std::unordered_map where possible in SceneManager
     * [Pull request #1083](https://github.com/gazebosim/gz-sim/pull/1083)
@@ -1978,7 +1978,7 @@
 1. Use QTimer to update plugins in the Qt thread
     * [Pull request #1095](https://github.com/gazebosim/gz-sim/pull/1095)
 
-### Ignition Gazebo 3.9.0 (2021-08-16)
+### Gazebo 3.9.0 (2021-08-16)
 
 1. Entity tree: prevent creation of repeated entity items
     * [Pull request #974](https://github.com/gazebosim/gz-sim/pull/974)
@@ -2155,7 +2155,7 @@
 1. Make it so joint state publisher is quieter
     * [Pull request #696](https://github.com/gazebosim/gz-sim/pull/696)
 
-### Ignition Gazebo 3.8.0 (2021-03-17)
+### Gazebo 3.8.0 (2021-03-17)
 
 1. Add joint position controller GUI, also enable tests for GUI plugins
     * [Pull request #534](https://github.com/gazebosim/gz-sim/pull/534)
@@ -2238,7 +2238,7 @@
 1. Make topics configurable for joint controllers
     * [Pull request #584](https://github.com/gazebosim/gz-sim/pull/584)
 
-1. Also use Ignition GUI render event
+1. Also use Gazebo GUI render event
     * [Pull request #598](https://github.com/gazebosim/gz-sim/pull/598)
 
 1. Tutorial on migrating SDF files from Gazebo classic
@@ -2262,7 +2262,7 @@
 1. Non-blocking paths request
     * [Pull request #555](https://github.com/gazebosim/gz-sim/pull/555)
 
-### Ignition Gazebo 3.7.0 (2021-01-13)
+### Gazebo 3.7.0 (2021-01-13)
 
 1. Fix examples in migration plugins tutorial.
     * [Pull Request 543](https://github.com/gazebosim/gz-sim/pull/543)
@@ -2282,7 +2282,7 @@
 1. Don't make docs on macOS.
     * [Pull Request 528](https://github.com/gazebosim/gz-sim/pull/528)
 
-### Ignition Gazebo 3.6.0 (2020-12-30)
+### Gazebo 3.6.0 (2020-12-30)
 
 1. Fix pose msg conversion when msg is missing orientation
     * [Pull Request 450](https://github.com/gazebosim/gz-sim/pull/450)
@@ -2344,7 +2344,7 @@
 1. Disable right click menu when using measuring tool
     * [Pull Request 458](https://github.com/gazebosim/gz-sim/pull/458)
 
-### Ignition Gazebo 3.5.0 (2020-11-03)
+### Gazebo 3.5.0 (2020-11-03)
 
 1. Updated source build instructions
     * [Pull Request 403](https://github.com/gazebosim/gz-sim/pull/403)
@@ -2371,7 +2371,7 @@
 1. Component Vector -> Map ECM Optimization
     * [Pull Request 416](https://github.com/gazebosim/gz-sim/pull/416)
 
-### Ignition Gazebo 3.4.0 (2020-10-14)
+### Gazebo 3.4.0 (2020-10-14)
 
 1. Fix gui sendEvent memory leaks
     * [Pull Request 365](https://github.com/gazebosim/gz-sim/pull/365)
@@ -2467,7 +2467,7 @@
 1. Add Render Engine Cmd Line option
     * [Pull Request 331](https://github.com/gazebosim/gz-sim/pull/331)
 
-### Ignition Gazebo 3.3.0 (2020-08-31)
+### Gazebo 3.3.0 (2020-08-31)
 
 1. Added marker array service.
     * [pull request 302](https://github.com/gazebosim/gz-sim/pull/302)
@@ -2501,12 +2501,12 @@
 
 1. This version includes all features in Gazebo 2.23.0
 
-### Ignition Gazebo 3.2.0 (2020-05-20)
+### Gazebo 3.2.0 (2020-05-20)
 
 1. Merge ign-gazebo2 to ign-gazebo3
     * [pull request 149](https://github.com/gazebosim/gz-sim/pull/149)
 
-### Ignition Gazebo 3.1.0 (2020-05-19)
+### Gazebo 3.1.0 (2020-05-19)
 
 1. Port support for computing model bounding box in physics system
     * [pull request 127](https://github.com/gazebosim/gz-sim/pull/127)
@@ -2540,7 +2540,7 @@
 1. Add window focus upon mouse entering the render window
     * [Github pull request 96](https://github.com/gazebosim/gz-sim/pull/96)
 
-### Ignition Gazebo 3.0.0 (2019-12-10)
+### Gazebo 3.0.0 (2019-12-10)
 
 1. Add example world for collide bitmask feature
     * [BitBucket pull request 525](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/525)
@@ -2574,9 +2574,9 @@
     * [BitBucket pull request 414](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/414)
 
 
-## Ignition Gazebo 2.x
+## Gazebo 2.x
 
-### Ignition Gazebo 2.25.0 (2020-09-17)
+### Gazebo 2.25.0 (2020-09-17)
 
 1. Added wheel slip system plugin.
     * [Pull Request 134](https://github.com/gazebosim/gz-sim/pull/134)
@@ -2603,7 +2603,7 @@
 1. Support spawning during log playback.
     * [Pull Request 346](https://github.com/gazebosim/gz-sim/pull/346)
 
-### Ignition Gazebo 2.24.0 (2020-09-03)
+### Gazebo 2.24.0 (2020-09-03)
 
 1. Resource env var, with transport interface.
     * [Pull Request 172](https://github.com/gazebosim/gz-sim/pull/172)
@@ -2638,7 +2638,7 @@
 1. Publish remaining breadcrumb deployments.
     * [Pull Request 308](https://github.com/gazebosim/gz-sim/pull/308)
 
-### Ignition Gazebo 2.23.0 (2020-07-28)
+### Gazebo 2.23.0 (2020-07-28)
 
 1. Deactivate PerformerDetector if its parent model gets removed.
     * [Pull Request 260](https://github.com/gazebosim/gz-sim/pull/260)
@@ -2646,12 +2646,12 @@
 1. Backport support for <uri>s from Fuel #255
     * [Pull Request 255](https://github.com/gazebosim/gz-sim/pull/255)
 
-### Ignition Gazebo 2.22.0 (2020-07-22)
+### Gazebo 2.22.0 (2020-07-22)
 
 1. Allow zero or more key/value pairs to be added to detection header information.
     * [Pull Request 257](https://github.com/gazebosim/gz-sim/pull/257)
 
-### Ignition Gazebo 2.21.0 (2020-07-16)
+### Gazebo 2.21.0 (2020-07-16)
 
 1. Added support for controlling which joints are published by the
    JointStatePublisher.
@@ -2663,12 +2663,12 @@
 1. Fixed battery issues and updated tutorial.
     * [Pull Request 230](https://github.com/gazebosim/gz-sim/pull/230)
 
-### Ignition Gazebo 2.20.1 (2020-06-18)
+### Gazebo 2.20.1 (2020-06-18)
 
 1. Properly add new models into the scenegraph. With this fix, when a model is spawned it will be added into the graph and resulting calls to the `scene/info` service will return a correct `msgs::Scene`.
     * [Pull Request 212](https://github.com/gazebosim/gz-sim/pull/212)
 
-### Ignition Gazebo 2.20.0 (2020-06-09)
+### Gazebo 2.20.0 (2020-06-09)
 
 1. Updated battery model to stop battery drain when there is no joint
    velocity/force command, and added a recharging trigger.
@@ -2680,7 +2680,7 @@
 1. Added an `<odom_topic>` element to the DiffDrive system so that a custom odometry topic can be used.
     * [Pull Request 179](https://github.com/gazebosim/gz-sim/pull/179)
 
-### Ignition Gazebo 2.19.0 (2020-06-02)
+### Gazebo 2.19.0 (2020-06-02)
 
 1. Use updated model names for spawned models when generating SDFormat
     * [Pull Request 166](https://github.com/gazebosim/gz-sim/pull/166)
@@ -2697,7 +2697,7 @@
 1. Add PerformerDetector, a system for detecting when performers enter a specified region
     * [Pull Request 125](https://github.com/gazebosim/gz-sim/pull/125)
 
-### Ignition Gazebo 2.18.0 (2020-05-20)
+### Gazebo 2.18.0 (2020-05-20)
 
 1. Added a `/world/<world_name>/create_multiple` service that parallels the current `/world/<world_name>/create` service. The `create_multiple` service can handle an `ignition::msgs::EntityFactory_V` message that may contain one or more entities to spawn.
     * [Pull Request 146](https://github.com/gazebosim/gz-sim/pull/146)
@@ -2705,7 +2705,7 @@
 1. DetachableJoint system: Add option to suppress warning about missing child model
     * [Pull Request 132](https://github.com/gazebosim/gz-sim/pull/132)
 
-### Ignition Gazebo 2.17.0 (2020-05-13)
+### Gazebo 2.17.0 (2020-05-13)
 
 1. Allow battery plugin to work with joint force systems.
     * [Pull Request 120](https://github.com/gazebosim/gz-sim/pull/120)
@@ -2728,7 +2728,7 @@
 1. Add window focus upon mouse entering the render window
     * [Github pull request 95](https://github.com/gazebosim/gz-sim/pull/95)
 
-### Ignition Gazebo 2.16.0 (2020-03-24)
+### Gazebo 2.16.0 (2020-03-24)
 
 1. Add support for computing model bounding box in physics system
     * [BitBucket pull request 546](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/546)
@@ -2790,7 +2790,7 @@
 1. Fix shift translation bug
     * [BitBucket pull request 529](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/529)
 
-### Ignition Gazebo 2.15.0 (2020-02-07)
+### Gazebo 2.15.0 (2020-02-07)
 
 1. Fix seeking back in time in log playback
     * [BitBucket pull request 523](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/523)
@@ -2816,7 +2816,7 @@
 1. Add hotkey keybindings
     * [BitBucket pull request 486](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/486)
 
-### Ignition Gazebo 2.14.0 (2020-01-10)
+### Gazebo 2.14.0 (2020-01-10)
 
 1. Use Actuator component to communicate between MulticopterVelocityControl and MulticopterMotorModel systems
     * [BitBucket pull request 498](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/498)
@@ -2830,7 +2830,7 @@
 1.  Fix tooltips on entity tree
     * [BitBucket pull request 496](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/496)
 
-### Ignition Gazebo 2.13.0 (2019-12-17)
+### Gazebo 2.13.0 (2019-12-17)
 
 1. Add Multicopter velocity controller
     * [BitBucket pull request 487](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/487)
@@ -2850,7 +2850,7 @@
 1. Show grid using SDF file
     * [BitBucket pull request 461](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/461)
 
-### Ignition Gazebo 2.12.0 (2019-11-25)
+### Gazebo 2.12.0 (2019-11-25)
 
 1. Parse visual cast shadows and add CastShadows component
     * [BitBucket pull request 453](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/453)
@@ -2876,7 +2876,7 @@
 1. Prevent crash when attempting to load more than one render engine per process
     * [BitBucket pull request 463](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/463)
 
-### Ignition Gazebo 2.11.0 (2019-10-23)
+### Gazebo 2.11.0 (2019-10-23)
 
 1.  Handle Relative URIs
     * [BitBucket pull request 433](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/433)
@@ -2900,7 +2900,7 @@
     * [BitBucket pull request 430](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/430)
     * [BitBucket pull request 436](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/436)
 
-### Ignition Gazebo 2.10.0 (2019-09-08)
+### Gazebo 2.10.0 (2019-09-08)
 
 1.  Custom odom frequency in sim time
     * [BitBucket pull request 427](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/427)
@@ -2908,12 +2908,12 @@
 1.  Add Move To gui plugin
     * [BitBucket pull request 426](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/426)
 
-### Ignition Gazebo 2.9.0
+### Gazebo 2.9.0
 
 1.  Use the JointSetVelocityCommand feature to set joint velocities
     * [BitBucket pull request 424](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/424)
 
-### Ignition Gazebo 2.8.0 (2019-08-23)
+### Gazebo 2.8.0 (2019-08-23)
 
 1. Add video recorder gui plugin
     * [BitBucket pull request 422](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/422)
@@ -2924,14 +2924,14 @@
 1. Print world path when using cli
     * [BitBucket pull request 420](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/420)
 
-### Ignition Gazebo 2.7.1
+### Gazebo 2.7.1
 
 1. Fix order of adding and removing rendering entities, and clean up mesh
    materials in the SceneManager.
     * [BitBucket pull request 415](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/415)
     * [BitBucket pull request 416](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/416)
 
-### Ignition Gazebo 2.7.0
+### Gazebo 2.7.0
 
 1. Move creation of default log path to ServerConfig. This lets both console logs and state logs to be stored in the same directory.  The console messages are always logged.  Allow state log files to be overwritten.
     * [BitBucket pull request 413](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/413)
@@ -2949,12 +2949,12 @@
    See the `test/performance/READEM.md` file for more info.
     * [BitBucket pull request 389](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/389)
 
-### Ignition Gazebo 2.6.1 (2019-07-26)
+### Gazebo 2.6.1 (2019-07-26)
 
 1. Clear stepMsg before populating it
     * [BitBucket pull request 398](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/398)
 
-### Ignition Gazebo 2.6.0 (2019-07-24)
+### Gazebo 2.6.0 (2019-07-24)
 
 1.  Improve performance of Pose Publisher
     * [BitBucket pull request 392](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/392)
@@ -2962,17 +2962,17 @@
 1. Fix distributed sim
     * [BitBucket pull request 385](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/385)
 
-### Ignition Gazebo 2.5.0 (2019-07-19)
+### Gazebo 2.5.0 (2019-07-19)
 
 1. The LinearBatteryPlugin system publishes battery state
     * [BitBucket pull request 388](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/388)
 
-### Ignition Gazebo 2.4.0 (2019-07-17)
+### Gazebo 2.4.0 (2019-07-17)
 
 1. Bundle scene updates in sensor system
     * [BitBucket pull request 386](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/386)
 
-### Ignition Gazebo 2.3.0 (2019-07-13)
+### Gazebo 2.3.0 (2019-07-13)
 
 1. Improve physics system peformance by skipping static model updates.
    Components state information has been incorporated, which is used to
@@ -2996,7 +2996,7 @@
     * [BitBucket pull request 375](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/375)
     * [BitBucket pull request 376](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/376)
 
-### Ignition Gazebo 2.2.0
+### Gazebo 2.2.0
 
 1. The DiffDrive system publishes odometry information.
     * [BitBucket pull request 368](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/368)
@@ -3016,7 +3016,7 @@
 1. Support custom random seed from the command line.
     * [BitBucket pull request 362](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/362)
 
-### Ignition Gazebo 2.1.0
+### Gazebo 2.1.0
 
 1. RenderUtil fix bad merge: check for existing entities in GzScene3D on initialization.
     * [BitBucket pull request 360](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/360)
@@ -3040,7 +3040,7 @@
 1. Support log playback from a different path
     * [BitBucket pull request 355](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/355)
 
-### Ignition Gazebo 2.0.0
+### Gazebo 2.0.0
 
 1. RenderUtil: check for existing entities in GzScene3D on initialization.
     * [BitBucket pull request 350](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/350)
@@ -3227,9 +3227,9 @@
 1. Depend on ign-sensors rendering component
     * [BitBucket pull request 212](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/212)
 
-## Ignition Gazebo 1.x
+## Gazebo 1.x
 
-### Ignition Gazebo 1.X.X
+### Gazebo 1.X.X
 
 1. Add Wind Plugin (Ported from Gazebo classic)
     * [BitBucket pull request 273](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/273/)
@@ -3330,7 +3330,7 @@
 1. Prevent error message when using levels
     * [BitBucket pull request 229](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/229)
 
-### Ignition Gazebo 1.1.0 (2019-03-15)
+### Gazebo 1.1.0 (2019-03-15)
 
 1. Distributed performers running in lockstep
     * [BitBucket pull request 186](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/186)
@@ -3359,23 +3359,23 @@
 1. Unversioned system libraries
     * [BitBucket pull request 222](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/222)
 
-### Ignition Gazebo 1.0.2 (2019-03-12)
+### Gazebo 1.0.2 (2019-03-12)
 
 1. Use TARGET_SO_NAME to fix finding dartsim plugin
     * [BitBucket pull request 217](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/217)
 
-### Ignition Gazebo 1.0.1 (2019-03-01)
+### Gazebo 1.0.1 (2019-03-01)
 
 1. Update gazebo version number in sdf files
     * [BitBucket pull request 207](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/207)
 
-### Ignition Gazebo 1.0.0 (2019-03-01)
+### Gazebo 1.0.0 (2019-03-01)
 
 1. Initial release
 
-## Ignition Gazebo 0.x
+## Gazebo 0.x
 
-### Ignition Gazebo 0.1.0
+### Gazebo 0.1.0
 
 1. Add support for joints
     * [BitBucket pull request 77](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/77)

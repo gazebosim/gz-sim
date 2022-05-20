@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
 <!--
-Ignition Gazebo contact sensor example
+Gazebo contact sensor example
 
 Run the following to print out contacts,
 
