@@ -10,7 +10,7 @@ loader.
 1. Add the following lines as a child to the `<world>` tag in an SDF file.
 ```
 <plugin
-  filename="gz-sim-collada-world-exporter-system"
+  filename="ignition-gazebo-collada-world-exporter-system"
   name="gz::sim::systems::ColladaWorldExporter">
 </plugin>
 ```

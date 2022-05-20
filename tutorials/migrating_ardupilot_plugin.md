@@ -832,7 +832,7 @@ In the new model, we do this instead:
 <!-- NEW -->
 <plugin
     name="gz::sim::systems::LiftDrag"
-    filename="gz-sim-lift-drag-system">
+    filename="ignition-gazebo-lift-drag-system">
   <!-- ...configuration goes here... -->
   <link_name>rotor_0</link_name>
 </plugin>
@@ -845,25 +845,25 @@ plugin once for the entire model and the `ApplyJointForce` plugin once for each 
 ```xml
 <!-- NEW -->
 <plugin
-  filename="gz-sim-joint-state-publisher-system"
+  filename="ignition-gazebo-joint-state-publisher-system"
   name="gz::sim::systems::JointStatePublisher"></plugin>
 <plugin
-  filename="gz-sim-apply-joint-force-system"
+  filename="ignition-gazebo-apply-joint-force-system"
   name="gz::sim::systems::ApplyJointForce">
   <joint_name>rotor_0_joint</joint_name>
 </plugin>
 <plugin
-  filename="gz-sim-apply-joint-force-system"
+  filename="ignition-gazebo-apply-joint-force-system"
   name="gz::sim::systems::ApplyJointForce">
   <joint_name>rotor_1_joint</joint_name>
 </plugin>
 <plugin
-  filename="gz-sim-apply-joint-force-system"
+  filename="ignition-gazebo-apply-joint-force-system"
   name="gz::sim::systems::ApplyJointForce">
   <joint_name>rotor_2_joint</joint_name>
 </plugin>
 <plugin
-  filename="gz-sim-apply-joint-force-system"
+  filename="ignition-gazebo-apply-joint-force-system"
   name="gz::sim::systems::ApplyJointForce">
   <joint_name>rotor_3_joint</joint_name>
 </plugin>

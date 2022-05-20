@@ -6,11 +6,11 @@
       <real_time_factor>0</real_time_factor>
     </physics>
     <plugin
-      filename="gz-sim-physics-system"
+      filename="ignition-gazebo-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="gz-sim-navsat-system"
+      filename="ignition-gazebo-navsat-system"
       name="gz::sim::systems::NavSat">
     </plugin>
 

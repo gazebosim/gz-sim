@@ -60,7 +60,7 @@ namespace comms
   ///   <real_time_factor>1.0</real_time_factor>
   /// </physics>
   /// <plugin
-  ///   filename="gz-sim-perfect-comms-system"
+  ///   filename="ignition-gazebo-perfect-comms-system"
   ///   name="gz::sim::systems::PerfectComms">
   ///   <step_size>1</step_size>
   /// </plugin>

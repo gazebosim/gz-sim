@@ -7,15 +7,15 @@
     </physics>
 
     <plugin
-      filename="libgz-sim-physics-system.so"
+      filename="libignition-gazebo-physics-system.so"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="libgz-sim-contact-system.so"
+      filename="libignition-gazebo-contact-system.so"
       name="gz::sim::systems::Contact">
     </plugin>
     <plugin
-      filename="libgz-sim-sensors-system.so"
+      filename="libignition-gazebo-sensors-system.so"
       name="gz::sim::systems::Sensors">
     </plugin>
 
@@ -79,7 +79,7 @@
       </link>
       <static>false</static>
       <plugin
-        filename="libgz-sim-opticaltactileplugin-system.so"
+        filename="libignition-gazebo-opticaltactileplugin-system.so"
         name="gz::sim::systems::OpticalTactilePlugin">
         <enabled>false</enabled>
         <namespace>optical_tactile_sensor</namespace>

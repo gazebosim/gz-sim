@@ -27,19 +27,19 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="gz-sim-physics-system"
+      filename="ignition-gazebo-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="gz-sim-user-commands-system"
+      filename="ignition-gazebo-user-commands-system"
       name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-      filename="gz-sim-scene-broadcaster-system"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin
-      filename="gz-sim-buoyancy-system"
+      filename="ignition-gazebo-buoyancy-system"
       name="gz::sim::systems::Buoyancy">
       <uniform_fluid_density>1000</uniform_fluid_density>
     </plugin>
@@ -203,13 +203,13 @@
       </joint>
 
       <plugin
-        filename="gz-sim-apply-joint-force-system"
+        filename="ignition-gazebo-apply-joint-force-system"
         name="gz::sim::systems::ApplyJointForce">
         <joint_name>propeller_joint</joint_name>
       </plugin>
 
       <plugin
-        filename="gz-sim-lift-drag-system"
+        filename="ignition-gazebo-lift-drag-system"
         name="gz::sim::systems::LiftDrag">
         <air_density>1000</air_density>
         <cla>1.2535816618911175</cla>
@@ -226,7 +226,7 @@
       </plugin>
 
       <plugin
-        filename="gz-sim-lift-drag-system"
+        filename="ignition-gazebo-lift-drag-system"
         name="gz::sim::systems::LiftDrag">
         <air_density>1000</air_density>
         <cla>1.2535816618911175</cla>
@@ -243,7 +243,7 @@
       </plugin>
 
       <plugin
-        filename="gz-sim-lift-drag-system"
+        filename="ignition-gazebo-lift-drag-system"
         name="gz::sim::systems::LiftDrag">
 
         <air_density>1000</air_density>
@@ -261,7 +261,7 @@
       </plugin>
 
       <plugin
-        filename="gz-sim-lift-drag-system"
+        filename="ignition-gazebo-lift-drag-system"
         name="gz::sim::systems::LiftDrag">
 
         <air_density>1000</air_density>

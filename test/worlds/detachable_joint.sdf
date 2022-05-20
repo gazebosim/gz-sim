@@ -5,7 +5,7 @@
       <real_time_factor>0</real_time_factor>
     </physics>
 
-    <plugin filename="gz-sim-physics-system"
+    <plugin filename="ignition-gazebo-physics-system"
       name="gz::sim::systems::Physics"/>
 
     <model name="ground_plane">
@@ -45,7 +45,7 @@
         </collision>
       </link>
 
-      <plugin filename="gz-sim-detachable-joint-system" name="gz::sim::systems::DetachableJoint">
+      <plugin filename="ignition-gazebo-detachable-joint-system" name="gz::sim::systems::DetachableJoint">
         <parent_link>body</parent_link>
         <child_model>M2</child_model>
         <child_link>body</child_link>
@@ -120,7 +120,7 @@
           </geometry>
         </collision>
       </link>
-      <plugin filename="gz-sim-detachable-joint-system" name="gz::sim::systems::DetachableJoint">
+      <plugin filename="ignition-gazebo-detachable-joint-system" name="gz::sim::systems::DetachableJoint">
         <parent_link>body1</parent_link>
         <child_model>__model__</child_model>
         <child_link>body2</child_link>

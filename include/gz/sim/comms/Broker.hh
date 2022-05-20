@@ -74,7 +74,7 @@ namespace comms
   ///
   /// Here's an example:
   /// <plugin
-  ///   filename="gz-sim-perfect-comms-system"
+  ///   filename="ignition-gazebo-perfect-comms-system"
   ///   name="gz::sim::systems::PerfectComms">
   ///   <broker>
   ///     <messages_topic>/broker/inbound</messages_topic>

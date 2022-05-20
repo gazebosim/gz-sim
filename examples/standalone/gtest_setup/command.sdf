@@ -2,7 +2,7 @@
 <sdf version="1.6">
   <world name="test_world">
     <plugin
-      filename="gz-sim-physics-system"
+      filename="ignition-gazebo-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
 
@@ -18,7 +18,7 @@
         </inertial>
       </link>
       <plugin
-        filename="gz-sim-velocity-control-system"
+        filename="ignition-gazebo-velocity-control-system"
         name="gz::sim::systems::VelocityControl">
       </plugin>
     </model>

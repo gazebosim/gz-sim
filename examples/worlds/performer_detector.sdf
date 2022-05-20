@@ -20,15 +20,15 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="gz-sim-physics-system"
+      filename="ignition-gazebo-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="gz-sim-user-commands-system"
+      filename="ignition-gazebo-user-commands-system"
       name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-      filename="gz-sim-scene-broadcaster-system"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
@@ -341,7 +341,7 @@
       </joint>
 
       <plugin
-        filename="gz-sim-diff-drive-system"
+        filename="ignition-gazebo-diff-drive-system"
         name="gz::sim::systems::DiffDrive">
         <left_joint>front_left_wheel_joint</left_joint>
         <left_joint>rear_left_wheel_joint</left_joint>
@@ -372,7 +372,7 @@
         </visual>
       </link>
       <plugin
-        filename="gz-sim-performer-detector-system"
+        filename="ignition-gazebo-performer-detector-system"
         name="gz::sim::systems::PerformerDetector">
         <topic>/performer_detector</topic>
         <geometry>
@@ -401,7 +401,7 @@
           <cast_shadows>false</cast_shadows>
         </visual>
       </link>
-      <plugin filename="gz-sim-performer-detector-system" name="gz::sim::systems::PerformerDetector">
+      <plugin filename="ignition-gazebo-performer-detector-system" name="gz::sim::systems::PerformerDetector">
         <topic>/performer_detector</topic>
         <geometry>
           <box>

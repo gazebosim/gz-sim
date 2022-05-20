@@ -90,7 +90,7 @@ favorite editor and save this file as `fuel_preview.sdf`:
 <sdf version="1.6">
   <world name="fuel_preview">
     <plugin
-      filename="libgz-sim-scene-broadcaster-system.so"
+      filename="libignition-gazebo-scene-broadcaster-system.so"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
@@ -239,12 +239,12 @@ system:
   <plugins>
     <plugin entity_name="*"
             entity_type="world"
-            filename="gz-sim-scene-broadcaster-system"
+            filename="ignition-gazebo-scene-broadcaster-system"
             name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin entity_name="*"
             entity_type="world"
-            filename="gz-sim-sensors-system"
+            filename="ignition-gazebo-sensors-system"
             name="gz::sim::systems::Sensors">
       <render_engine>ogre</render_engine>
     </plugin>

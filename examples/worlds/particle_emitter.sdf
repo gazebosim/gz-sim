@@ -28,21 +28,21 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="gz-sim-physics-system"
+      filename="ignition-gazebo-physics-system"
       name="gz::sim::systems::Physics">
       <!-- Use TPE in order to use nested models -->
       <engine><filename>libignition-physics-tpe-plugin.so</filename></engine>
     </plugin>
     <plugin
-      filename="gz-sim-user-commands-system"
+      filename="ignition-gazebo-user-commands-system"
       name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-      filename="gz-sim-scene-broadcaster-system"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin
-      filename="gz-sim-particle-emitter-system"
+      filename="ignition-gazebo-particle-emitter-system"
       name="gz::sim::systems::ParticleEmitter">
     </plugin>
 

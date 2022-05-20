@@ -22,15 +22,15 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="gz-sim-physics-system"
+      filename="ignition-gazebo-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="gz-sim-user-commands-system"
+      filename="ignition-gazebo-user-commands-system"
       name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-      filename="gz-sim-scene-broadcaster-system"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
@@ -342,7 +342,7 @@
       </joint>
 
       <plugin
-        filename="gz-sim-diff-drive-system"
+        filename="ignition-gazebo-diff-drive-system"
         name="gz::sim::systems::DiffDrive">
         <left_joint>front_left_wheel_joint</left_joint>
         <left_joint>rear_left_wheel_joint</left_joint>
@@ -351,7 +351,7 @@
         <wheel_separation>1.25</wheel_separation>
         <wheel_radius>0.3</wheel_radius>
       </plugin>
-      <plugin filename="gz-sim-breadcrumbs-system" name="gz::sim::systems::Breadcrumbs">
+      <plugin filename="ignition-gazebo-breadcrumbs-system" name="gz::sim::systems::Breadcrumbs">
        <topic>/B1/deploy</topic>
        <max_deployments>3</max_deployments>
        <breadcrumb>
@@ -394,7 +394,7 @@
          </sdf>
        </breadcrumb>
       </plugin>
-      <plugin filename="gz-sim-breadcrumbs-system" name="gz::sim::systems::Breadcrumbs">
+      <plugin filename="ignition-gazebo-breadcrumbs-system" name="gz::sim::systems::Breadcrumbs">
        <topic>/B2/deploy</topic>
        <disable_physics_time>2.0</disable_physics_time>
        <max_deployments>3</max_deployments>

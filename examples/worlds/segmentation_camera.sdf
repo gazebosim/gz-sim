@@ -8,19 +8,19 @@
 <sdf version="1.6">
   <world name="shapes">
     <plugin
-      filename="gz-sim-physics-system"
+      filename="ignition-gazebo-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="gz-sim-user-commands-system"
+      filename="ignition-gazebo-user-commands-system"
       name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-      filename="gz-sim-scene-broadcaster-system"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin
-      filename="gz-sim-sensors-system"
+      filename="ignition-gazebo-sensors-system"
       name="gz::sim::systems::Sensors">
       <render_engine>ogre2</render_engine>
     </plugin>
@@ -205,7 +205,7 @@
       <uri>
         https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Hatchback blue
       </uri>
-      <plugin filename="gz-sim-label-system" name="gz::sim::systems::Label">
+      <plugin filename="ignition-gazebo-label-system" name="gz::sim::systems::Label">
         <label>40</label>
       </plugin>
     </include>
@@ -216,7 +216,7 @@
       <uri>
         https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Pickup
       </uri>
-      <plugin filename="gz-sim-label-system" name="gz::sim::systems::Label">
+      <plugin filename="ignition-gazebo-label-system" name="gz::sim::systems::Label">
         <label>40</label>
       </plugin>
     </include>
@@ -227,7 +227,7 @@
       <uri>
         https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/SUV
       </uri>
-      <plugin filename="gz-sim-label-system" name="gz::sim::systems::Label">
+      <plugin filename="ignition-gazebo-label-system" name="gz::sim::systems::Label">
         <label>40</label>
       </plugin>
     </include>
@@ -239,7 +239,7 @@
       <uri>
         https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Pine Tree
       </uri>
-      <plugin filename="gz-sim-label-system" name="gz::sim::systems::Label">
+      <plugin filename="ignition-gazebo-label-system" name="gz::sim::systems::Label">
         <label>30</label>
       </plugin>
     </include>
@@ -250,7 +250,7 @@
       <uri>
         https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Pine Tree
       </uri>
-      <plugin filename="gz-sim-label-system" name="gz::sim::systems::Label">
+      <plugin filename="ignition-gazebo-label-system" name="gz::sim::systems::Label">
         <label>30</label>
       </plugin>
     </include>
@@ -261,7 +261,7 @@
       <uri>
         https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Pine Tree
       </uri>
-      <plugin filename="gz-sim-label-system" name="gz::sim::systems::Label">
+      <plugin filename="ignition-gazebo-label-system" name="gz::sim::systems::Label">
         <label>30</label>
       </plugin>
     </include>
@@ -282,7 +282,7 @@
       <uri>
         https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Construction Cone
       </uri>
-      <plugin filename="gz-sim-label-system" name="gz::sim::systems::Label">
+      <plugin filename="ignition-gazebo-label-system" name="gz::sim::systems::Label">
         <label>20</label>
       </plugin>
     </include>
@@ -293,7 +293,7 @@
       <uri>
         https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Construction Cone
       </uri>
-      <plugin filename="gz-sim-label-system" name="gz::sim::systems::Label">
+      <plugin filename="ignition-gazebo-label-system" name="gz::sim::systems::Label">
         <label>20</label>
       </plugin>
     </include>
@@ -304,7 +304,7 @@
       <uri>
         https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Construction Cone
       </uri>
-      <plugin filename="gz-sim-label-system" name="gz::sim::systems::Label">
+      <plugin filename="ignition-gazebo-label-system" name="gz::sim::systems::Label">
         <label>20</label>
       </plugin>
     </include>

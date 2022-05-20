@@ -23,19 +23,19 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="gz-sim-physics-system"
+      filename="ignition-gazebo-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="gz-sim-user-commands-system"
+      filename="ignition-gazebo-user-commands-system"
       name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-      filename="gz-sim-scene-broadcaster-system"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin
-      filename="gz-sim-imu-system"
+      filename="ignition-gazebo-imu-system"
       name="gz::sim::systems::Imu">
     </plugin>
 
@@ -1050,7 +1050,7 @@
       </joint>
 
       <!-- Track drive -->
-      <plugin filename="gz-sim-diff-drive-system"
+      <plugin filename="ignition-gazebo-diff-drive-system"
               name="gz::sim::systems::DiffDrive">
         <left_joint>left_track_wheel1_j</left_joint>
         <right_joint>right_track_wheel1_j</right_joint>
@@ -2071,7 +2071,7 @@
       </joint>
 
       <!-- Track drive -->
-      <plugin filename="gz-sim-diff-drive-system"
+      <plugin filename="ignition-gazebo-diff-drive-system"
               name="gz::sim::systems::DiffDrive">
         <left_joint>left_track_wheel1_j</left_joint>
         <right_joint>right_track_wheel1_j</right_joint>

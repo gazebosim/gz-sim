@@ -26,7 +26,7 @@ the buoyancy plugin all one needs to do is add the following under the `<world>`
 tag:
 ```xml
 <plugin
-      filename="gz-sim-buoyancy-system"
+      filename="ignition-gazebo-buoyancy-system"
       name="gz::sim::systems::Buoyancy">
     <uniform_fluid_density>1000</uniform_fluid_density>
 </plugin>
@@ -37,7 +37,7 @@ thruster plugin takes in a force and applies it along with calculating the desir
 rpm. Under the `<include>` or `<model>` tag add the following:
 ```xml
 <plugin
-    filename="gz-sim-thruster-system"
+    filename="ignition-gazebo-thruster-system"
     name="gz::sim::systems::Thruster">
     <namespace>tethys</namespace>
     <joint_name>propeller_joint</joint_name>
@@ -69,7 +69,7 @@ his book. Usually these parameters can be found via fluid simulation programs or
 experimental tests in a water tub.
 ```xml
 <plugin
-filename="gz-sim-hydrodynamics-system"
+filename="ignition-gazebo-hydrodynamics-system"
 name="gz::sim::systems::Hydrodynamics">
     <link_name>base_link</link_name>
     <xDotU>-4.876161</xDotU>
@@ -107,7 +107,7 @@ turning when we move.
 ```xml
 <!-- Vertical fin -->
 <plugin
-filename="gz-sim-lift-drag-system"
+filename="ignition-gazebo-lift-drag-system"
 name="gz::sim::systems::LiftDrag">
     <air_density>1000</air_density>
     <cla>4.13</cla>
@@ -125,7 +125,7 @@ name="gz::sim::systems::LiftDrag">
 
 <!-- Horizontal fin -->
 <plugin
-filename="gz-sim-lift-drag-system"
+filename="ignition-gazebo-lift-drag-system"
 name="gz::sim::systems::LiftDrag">
     <air_density>1000</air_density>
     <cla>4.13</cla>
@@ -146,14 +146,14 @@ We also need to be able to control the position of the thruster fins so we will
 use the joint controller plugin.
 ```xml
 <plugin
-filename="gz-sim-joint-position-controller-system"
+filename="ignition-gazebo-joint-position-controller-system"
 name="gz::sim::systems::JointPositionController">
     <joint_name>horizontal_fins_joint</joint_name>
     <p_gain>0.1</p_gain>
 </plugin>
 
 <plugin
-filename="gz-sim-joint-position-controller-system"
+filename="ignition-gazebo-joint-position-controller-system"
 name="gz::sim::systems::JointPositionController">
     <joint_name>vertical_fins_joint</joint_name>
     <p_gain>0.1</p_gain>

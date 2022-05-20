@@ -16,35 +16,35 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="gz-sim-physics-system"
+      filename="ignition-gazebo-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="gz-sim-air-pressure-system"
+      filename="ignition-gazebo-air-pressure-system"
       name="gz::sim::systems::AirPressure">
     </plugin>
     <plugin
-      filename="gz-sim-altimeter-system"
+      filename="ignition-gazebo-altimeter-system"
       name="gz::sim::systems::Altimeter">
     </plugin>
     <plugin
-      filename="gz-sim-imu-system"
+      filename="ignition-gazebo-imu-system"
       name="gz::sim::systems::Imu">
     </plugin>
     <plugin
-      filename="gz-sim-magnetometer-system"
+      filename="ignition-gazebo-magnetometer-system"
       name="gz::sim::systems::Magnetometer">
     </plugin>
     <plugin
-      filename="gz-sim-forcetorque-system"
+      filename="ignition-gazebo-forcetorque-system"
       name="gz::sim::systems::ForceTorque">
     </plugin>
     <plugin
-      filename="gz-sim-user-commands-system"
+      filename="ignition-gazebo-user-commands-system"
       name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-      filename="gz-sim-scene-broadcaster-system"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 

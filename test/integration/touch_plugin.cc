@@ -248,7 +248,7 @@ TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SpawnedEntities))
           </sensor>
         </link>
         <plugin
-          filename="libgz-sim-touchplugin-system.so"
+          filename="libignition-gazebo-touchplugin-system.so"
           name="gz::sim::systems::TouchPlugin">
           <target>green_box_for_white</target>
           <time>0.2</time>

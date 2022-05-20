@@ -6,11 +6,11 @@
       <real_time_factor>0</real_time_factor>
     </physics>
     <plugin
-      filename="gz-sim-physics-system"
+      filename="ignition-gazebo-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="gz-sim-scene-broadcaster-system"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
@@ -42,7 +42,7 @@
         </visual>
       </link>
 
-      <plugin filename="gz-sim-linearbatteryplugin-system"
+      <plugin filename="ignition-gazebo-linearbatteryplugin-system"
         name="gz::sim::systems::LinearBatteryPlugin">
         <battery_name>linear_battery</battery_name>
         <voltage>12.592</voltage>
@@ -72,7 +72,7 @@
         </visual>
       </link>
 
-      <plugin filename="gz-sim-linearbatteryplugin-system"
+      <plugin filename="ignition-gazebo-linearbatteryplugin-system"
         name="gz::sim::systems::LinearBatteryPlugin">
         <battery_name>linear_battery_topics</battery_name>
         <voltage>12.592</voltage>

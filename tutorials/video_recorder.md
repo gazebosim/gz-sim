@@ -97,7 +97,7 @@ going to the world SDF file, locate the
 `<state_hertz>` parameter:
 
 ```xml
-        <plugin filename='gz-sim-scene-broadcaster-system'
+        <plugin filename='ignition-gazebo-scene-broadcaster-system'
                 name='gz::sim::systems::SceneBroadcaster'>
           <state_hertz>25</state_hertz>
         </plugin>

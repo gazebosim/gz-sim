@@ -24,7 +24,7 @@ contains a good example of the different options and other related plugins:
 
 ```
 <plugin
-  filename="gz-sim-physics-system"
+  filename="ignition-gazebo-physics-system"
   name="gz::sim::systems::Physics">
 </plugin>
 ```
@@ -37,7 +37,7 @@ to random positions.
 
 ```
 <plugin
-  filename="gz-sim-sensors-system"
+  filename="ignition-gazebo-sensors-system"
   name="gz::sim::systems::Sensors">
   <render_engine>ogre2</render_engine>
   <background_color>1, 1, 1</background_color>
@@ -55,7 +55,7 @@ plugin will also affect the final resulting background color on the images.
 <include>
   <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Robonaut</uri>
   <plugin
-    filename="gz-sim-model-photo-shoot-system"
+    filename="ignition-gazebo-model-photo-shoot-system"
     name="gz::sim::systems::ModelPhotoShoot">
     <translation_data_file>poses.txt</translation_data_file>
     <random_joints_pose>true</random_joints_pose>

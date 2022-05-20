@@ -9,7 +9,7 @@ You can include the `UserCommands` system plugin including these lines in your S
 
 ```xml
 <plugin
-  filename="gz-sim-user-commands-system"
+  filename="ignition-gazebo-user-commands-system"
   name="gz::sim::systems::UserCommands">
 </plugin>
 ```

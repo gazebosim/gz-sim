@@ -14,15 +14,15 @@
             <real_time_factor>1.0</real_time_factor>
         </physics>
         <plugin
-                filename="gz-sim-physics-system"
+                filename="ignition-gazebo-physics-system"
                 name="gz::sim::systems::Physics">
         </plugin>
         <plugin
-                filename="gz-sim-user-commands-system"
+                filename="ignition-gazebo-user-commands-system"
                 name="gz::sim::systems::UserCommands">
         </plugin>
         <plugin
-                filename="gz-sim-scene-broadcaster-system"
+                filename="ignition-gazebo-scene-broadcaster-system"
                 name="gz::sim::systems::SceneBroadcaster">
         </plugin>
 
@@ -144,14 +144,14 @@
                 <kinematic>0</kinematic>
             </link>
 
-            <plugin filename="libgz-sim-track-controller-system.so"
+            <plugin filename="libignition-gazebo-track-controller-system.so"
                     name="gz::sim::systems::TrackController">
                 <link>base_link</link>
                 <!--debug>true</debug-->
             </plugin>
 
             <!-- Moving Forward: W -->
-            <plugin filename="libgz-sim-triggered-publisher-system.so"
+            <plugin filename="libignition-gazebo-triggered-publisher-system.so"
                     name="gz::sim::systems::TriggeredPublisher">
                 <input type="gz.msgs.Int32" topic="/keyboard/keypress">
                     <match field="data">87</match>
@@ -162,7 +162,7 @@
             </plugin>
 
             <!-- Moving Backward: X -->
-            <plugin filename="libgz-sim-triggered-publisher-system.so"
+            <plugin filename="libignition-gazebo-triggered-publisher-system.so"
                     name="gz::sim::systems::TriggeredPublisher">
                 <input type="gz.msgs.Int32" topic="/keyboard/keypress">
                     <match field="data">88</match>
@@ -173,7 +173,7 @@
             </plugin>
 
             <!-- Stop: S -->
-            <plugin filename="libgz-sim-triggered-publisher-system.so"
+            <plugin filename="libignition-gazebo-triggered-publisher-system.so"
                     name="gz::sim::systems::TriggeredPublisher">
                 <input type="gz.msgs.Int32" topic="/keyboard/keypress">
                     <match field="data">83</match>

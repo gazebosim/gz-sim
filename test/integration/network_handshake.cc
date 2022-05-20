@@ -137,7 +137,7 @@ TEST_F(NetworkHandshake, IGN_UTILS_TEST_DISABLED_ON_WIN32(Updates))
   primaryPluginInfo.SetEntityName("default");
   primaryPluginInfo.SetEntityType("world");
   primaryPluginInfo.SetFilename(
-      "libgz-sim-scene-broadcaster-system.so");
+      "libignition-sim-scene-broadcaster-system.so");
   primaryPluginInfo.SetName("gz::sim::systems::SceneBroadcaster");
   primaryPluginInfo.SetSdf(pluginElem);
 
@@ -158,7 +158,7 @@ TEST_F(NetworkHandshake, IGN_UTILS_TEST_DISABLED_ON_WIN32(Updates))
   ServerConfig::PluginInfo secondaryPluginInfo;
   secondaryPluginInfo.SetEntityName("default");
   secondaryPluginInfo.SetEntityType("world");
-  secondaryPluginInfo.SetFilename("libgz-sim-physics-system.so");
+  secondaryPluginInfo.SetFilename("libignition-sim-physics-system.so");
   secondaryPluginInfo.SetName("gz::sim::systems::Physics");
   secondaryPluginInfo.SetSdf(pluginElem);
 

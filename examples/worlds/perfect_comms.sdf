@@ -23,19 +23,19 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="gz-sim-physics-system"
+      filename="ignition-gazebo-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="gz-sim-user-commands-system"
+      filename="ignition-gazebo-user-commands-system"
       name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-      filename="gz-sim-scene-broadcaster-system"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin
-      filename="gz-sim-perfect-comms-system"
+      filename="ignition-gazebo-perfect-comms-system"
       name="gz::sim::systems::PerfectComms">
     </plugin>
 
@@ -117,7 +117,7 @@
       </link>
 
       <plugin
-        filename="gz-sim-comms-endpoint-system"
+        filename="ignition-gazebo-comms-endpoint-system"
         name="gz::sim::systems::CommsEndpoint">
         <address>addr1</address>
         <topic>addr1/rx</topic>
@@ -161,7 +161,7 @@
       </link>
 
       <plugin
-        filename="gz-sim-comms-endpoint-system"
+        filename="ignition-gazebo-comms-endpoint-system"
         name="gz::sim::systems::CommsEndpoint">
         <address>addr2</address>
         <topic>addr2/rx</topic>

@@ -7,7 +7,7 @@
       <real_time_factor>0</real_time_factor>
     </physics>
     <plugin
-      filename="gz-sim-physics-system"
+      filename="ignition-gazebo-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
 
@@ -220,7 +220,7 @@
       </joint>
 
       <plugin
-        filename="gz-sim-odometry-publisher-system"
+        filename="ignition-gazebo-odometry-publisher-system"
         name="gz::sim::systems::OdometryPublisher">
       <xyz_offset>1 -1 0</xyz_offset>
       <rpy_offset>1.5708 0 0</rpy_offset>

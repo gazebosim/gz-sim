@@ -13,11 +13,11 @@
 <sdf version="1.6">
   <world name="apply_joint_force">
     <plugin
-      filename="gz-sim-physics-system"
+      filename="ignition-gazebo-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="gz-sim-scene-broadcaster-system"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
@@ -144,7 +144,7 @@
         </axis>
       </joint>
       <plugin
-        filename="gz-sim-apply-joint-force-system"
+        filename="ignition-gazebo-apply-joint-force-system"
         name="gz::sim::systems::ApplyJointForce">
         <joint_name>j1</joint_name>
       </plugin>

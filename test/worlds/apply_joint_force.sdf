@@ -6,7 +6,7 @@
     </physics>
 
     <plugin
-      filename="gz-sim-physics-system"
+      filename="ignition-gazebo-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
 
@@ -107,7 +107,7 @@
         </axis>
       </joint>
       <plugin
-        filename="gz-sim-apply-joint-force-system"
+        filename="ignition-gazebo-apply-joint-force-system"
         name="gz::sim::systems::ApplyJointForce">
         <joint_name>j1</joint_name>
       </plugin>

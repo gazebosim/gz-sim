@@ -90,7 +90,7 @@ namespace systems
         </visual>
       </link>
       <plugin
-        filename="gz-sim-kinetic-energy-monitor-system"
+        filename="ignition-gazebo-kinetic-energy-monitor-system"
         name="gz::sim::systems::KineticEnergyMonitor">
         <base_link_name>sphere_link</base_link_name>
         <kinetic_energy_threshold>100</kinetic_energy_threshold>

@@ -69,7 +69,7 @@ namespace systems
   /// the contacts. Remains true by default. Usage :
   /// ```
   ///  <plugin
-  ///    filename="gz-sim-physics-system"
+  ///    filename="ignition-gazebo-physics-system"
   ///    name="gz::sim::systems::Physics">
   ///    <contacts>
   ///      <include_entity_names>false</include_entity_names>

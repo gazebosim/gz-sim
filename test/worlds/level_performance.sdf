@@ -12,11 +12,11 @@
     </physics>
 
     <plugin
-     filename="gz-sim-physics-system"
+     filename="ignition-gazebo-physics-system"
      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="gz-sim-scene-broadcaster-system"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 

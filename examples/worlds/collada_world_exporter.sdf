@@ -15,7 +15,7 @@ This example just exports simple shapes into a Collada file. To run use:
   <world name="shapes">
 
     <plugin
-      filename="gz-sim-collada-world-exporter-system"
+      filename="ignition-gazebo-collada-world-exporter-system"
       name="gz::sim::systems::ColladaWorldExporter">
     </plugin>
 

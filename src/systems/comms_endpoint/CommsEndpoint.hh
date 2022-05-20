@@ -53,7 +53,7 @@ namespace systems
   ///
   /// Here's an example:
   /// <plugin
-  ///   filename="gz-sim-comms-endpoint-system"
+  ///   filename="ignition-gazebo-comms-endpoint-system"
   ///   name="gz::sim::systems::CommsEndpoint">
   ///   <address>addr1</address>
   ///   <topic>addr1/rx</topic>

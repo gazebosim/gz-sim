@@ -18,15 +18,15 @@
 <sdf version="1.6">
   <world name="default">
     <plugin
-     filename="gz-sim-physics-system"
+     filename="ignition-gazebo-physics-system"
      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="gz-sim-scene-broadcaster-system"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin
-      filename="gz-sim-log-system"
+      filename="ignition-gazebo-log-system"
       name="gz::sim::systems::LogRecord">
     </plugin>
 
@@ -247,7 +247,7 @@
       </joint>
 
       <plugin
-        filename="gz-sim-diff-drive-system"
+        filename="ignition-gazebo-diff-drive-system"
         name="gz::sim::systems::DiffDrive">
         <left_joint>left_wheel_joint_green</left_joint>
         <right_joint>right_wheel_joint_green</right_joint>
@@ -425,7 +425,7 @@
       </joint>
 
       <plugin
-        filename="gz-sim-diff-drive-system"
+        filename="ignition-gazebo-diff-drive-system"
         name="gz::sim::systems::DiffDrive">
         <left_joint>left_wheel_joint_blue</left_joint>
         <right_joint>right_wheel_joint_blue</right_joint>

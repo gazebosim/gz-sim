@@ -18,7 +18,7 @@ model:
 ```{.xml}
 <model>
   ...
-  <plugin filename="gz-sim-linearbatteryplugin-system"
+  <plugin filename="ignition-gazebo-linearbatteryplugin-system"
         name="gz::sim::systems::LinearBatteryPlugin">
         <!--Li-ion battery spec from LIR18650 datasheet-->
         <battery_name>linear_battery</battery_name>

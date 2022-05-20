@@ -6,14 +6,14 @@
     </physics>
 
     <plugin
-      filename="gz-sim-physics-system"
+      filename="ignition-gazebo-physics-system"
       name="gz::sim::systems::Physics">
       <contacts>
         <include_entity_names>false</include_entity_names>
       </contacts>
     </plugin>
     <plugin
-      filename="gz-sim-contact-system"
+      filename="ignition-gazebo-contact-system"
       name="gz::sim::systems::Contact">
     </plugin>
 

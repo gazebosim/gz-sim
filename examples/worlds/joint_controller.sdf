@@ -17,11 +17,11 @@
 <sdf version="1.6">
   <world name="default">
     <plugin
-      filename="gz-sim-physics-system"
+      filename="ignition-gazebo-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="gz-sim-scene-broadcaster-system"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
@@ -117,7 +117,7 @@
       </joint>
       <!-- Velocity mode -->
       <plugin
-        filename="gz-sim-joint-controller-system"
+        filename="ignition-gazebo-joint-controller-system"
         name="gz::sim::systems::JointController">
         <joint_name>j1</joint_name>
         <initial_velocity>5.0</initial_velocity>
@@ -204,7 +204,7 @@
 
       <!-- Force mode -->
       <plugin
-        filename="gz-sim-joint-controller-system"
+        filename="ignition-gazebo-joint-controller-system"
         name="gz::sim::systems::JointController">
         <joint_name>j1</joint_name>
         <use_force_commands>true</use_force_commands>

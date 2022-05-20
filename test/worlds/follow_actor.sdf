@@ -8,7 +8,7 @@
     <!-- add sensors system and camera so that the rendering code is also tested
     -->
     <plugin
-      filename="gz-sim-sensors-system"
+      filename="ignition-gazebo-sensors-system"
       name="gz::sim::systems::Sensors">
       <render_engine>ogre2</render_engine>
     </plugin>
@@ -87,7 +87,7 @@
       <!-- Root node pose (torso) -->
       <pose>0 -2 1.0 0 0 0</pose>
       <uri>https://fuel.ignitionrobotics.org/1.0/chapulina/models/Walking actor</uri>
-      <plugin filename="libgz-sim-follow-actor-system.so"
+      <plugin filename="libignition-gazebo-follow-actor-system.so"
               name="gz::sim::systems::FollowActor">
         <target>box</target>
         <min_distance>1.0</min_distance>

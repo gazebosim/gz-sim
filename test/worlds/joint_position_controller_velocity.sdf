@@ -5,11 +5,11 @@
       <real_time_factor>0</real_time_factor>
     </physics>
     <plugin
-      filename="gz-sim-physics-system"
+      filename="ignition-gazebo-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="gz-sim-scene-broadcaster-system"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
@@ -110,7 +110,7 @@
         </axis>
       </joint>
       <plugin
-        filename="gz-sim-joint-position-controller-system"
+        filename="ignition-gazebo-joint-position-controller-system"
         name="gz::sim::systems::JointPositionController">
         <joint_name>j1</joint_name>
         <use_velocity_commands>true</use_velocity_commands>

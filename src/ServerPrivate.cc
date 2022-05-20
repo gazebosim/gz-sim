@@ -40,7 +40,7 @@ struct LoggingPlugin
   public: static std::string &LoggingPluginFileName()
   {
     static std::string recordPluginFileName =
-      std::string("gz-sim") +
+      std::string("ignition-gazebo") +
       GZ_SIM_MAJOR_VERSION_STR + "-log-system";
     return recordPluginFileName;
   }

@@ -14,15 +14,15 @@
     </physics>
 
     <plugin
-     filename="gz-sim-physics-system"
+     filename="ignition-gazebo-physics-system"
      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="gz-sim-scene-broadcaster-system"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin
-      filename="gz-sim-log-system"
+      filename="ignition-gazebo-log-system"
       name="gz::sim::systems::LogRecord">
       <!-- Deprecated: directories to write recorded files.
            Use --record-path instead. -->

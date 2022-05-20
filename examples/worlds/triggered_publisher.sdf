@@ -19,23 +19,23 @@ start falling.
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="gz-sim-physics-system"
+      filename="ignition-gazebo-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="gz-sim-contact-system"
+      filename="ignition-gazebo-contact-system"
       name="gz::sim::systems::Contact">
     </plugin>
     <plugin
-      filename="gz-sim-user-commands-system"
+      filename="ignition-gazebo-user-commands-system"
       name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-      filename="gz-sim-scene-broadcaster-system"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin
-      filename="gz-sim-altimeter-system"
+      filename="ignition-gazebo-altimeter-system"
       name="gz::sim::systems::Altimeter">
     </plugin>
 
@@ -347,7 +347,7 @@ start falling.
       </joint>
 
       <plugin
-        filename="gz-sim-diff-drive-system"
+        filename="ignition-gazebo-diff-drive-system"
         name="gz::sim::systems::DiffDrive">
         <left_joint>front_left_wheel_joint</left_joint>
         <left_joint>rear_left_wheel_joint</left_joint>
@@ -380,20 +380,20 @@ start falling.
         </sensor>
       </link>
       <plugin
-        filename="gz-sim-touchplugin-system"
+        filename="ignition-gazebo-touchplugin-system"
         name="gz::sim::systems::TouchPlugin">
         <target>vehicle_blue</target>
         <namespace>trigger</namespace>
         <time>0.001</time>
         <enabled>true</enabled>
       </plugin>
-      <plugin filename="gz-sim-detachable-joint-system" name="gz::sim::systems::DetachableJoint">
+      <plugin filename="ignition-gazebo-detachable-joint-system" name="gz::sim::systems::DetachableJoint">
         <parent_link>body</parent_link>
         <child_model>box1</child_model>
         <child_link>box_body</child_link>
         <topic>/box1/detach</topic>
       </plugin>
-      <plugin filename="gz-sim-detachable-joint-system" name="gz::sim::systems::DetachableJoint">
+      <plugin filename="ignition-gazebo-detachable-joint-system" name="gz::sim::systems::DetachableJoint">
         <parent_link>body</parent_link>
         <child_model>box2</child_model>
         <child_link>box_body</child_link>
@@ -448,19 +448,19 @@ start falling.
       </link>
     </model>
 
-    <plugin filename="gz-sim-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
+    <plugin filename="ignition-gazebo-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
       <input type="gz.msgs.Empty" topic="/start"/>
       <output type="gz.msgs.Twist" topic="/cmd_vel">
           linear: {x: 3}
       </output>
     </plugin>
-    <plugin filename="gz-sim-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
+    <plugin filename="ignition-gazebo-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
       <input type="gz.msgs.Boolean" topic="/trigger/touched">
         <match>data: true</match>
       </input>
       <output type="gz.msgs.Empty" topic="/box1/detach"/>
     </plugin>
-    <plugin filename="gz-sim-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
+    <plugin filename="ignition-gazebo-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
       <input type="gz.msgs.Altimeter" topic="/altimeter">
         <match field="vertical_position" tol="0.2">-7.5</match>
       </input>

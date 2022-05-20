@@ -11,9 +11,9 @@
             <max_step_size>0.004</max_step_size>
             <real_time_factor>1.0</real_time_factor>
         </physics>
-        <plugin name='gz::sim::systems::Physics' filename='gz-sim-physics-system'/>
-        <plugin name='gz::sim::systems::UserCommands' filename='gz-sim-user-commands-system'/>
-        <plugin name='gz::sim::systems::SceneBroadcaster' filename='gz-sim-scene-broadcaster-system'/>
+        <plugin name='gz::sim::systems::Physics' filename='ignition-gazebo-physics-system'/>
+        <plugin name='gz::sim::systems::UserCommands' filename='ignition-gazebo-user-commands-system'/>
+        <plugin name='gz::sim::systems::SceneBroadcaster' filename='ignition-gazebo-scene-broadcaster-system'/>
         <scene>
             <ambient>1 1 1 1</ambient>
             <background>0.8 0.8 0.8 1</background>
@@ -1067,7 +1067,7 @@
                 </physics>
             </joint>
 
-            <plugin name="gz::sim::systems::TrackedVehicle" filename="gz-sim-tracked-vehicle-system">
+            <plugin name="gz::sim::systems::TrackedVehicle" filename="ignition-gazebo-tracked-vehicle-system">
                 <left_track><link>left_track</link></left_track>
                 <left_track><link>front_left_flipper</link></left_track>
                 <left_track><link>rear_left_flipper</link></left_track>
@@ -1079,40 +1079,40 @@
                 <steering_efficiency>0.5</steering_efficiency>
                 <!--debug>1</debug-->
             </plugin>
-            <plugin name='gz::sim::systems::TrackController' filename='libgz-sim-track-controller-system.so'>
+            <plugin name='gz::sim::systems::TrackController' filename='libignition-gazebo-track-controller-system.so'>
                 <link>left_track</link>
                 <min_velocity>-1.0</min_velocity>
                 <max_velocity>1.0</max_velocity>
                 <!--debug>1</debug-->
             </plugin>
-            <plugin name='gz::sim::systems::TrackController' filename='libgz-sim-track-controller-system.so'>
+            <plugin name='gz::sim::systems::TrackController' filename='libignition-gazebo-track-controller-system.so'>
                 <link>right_track</link>
                 <min_velocity>-1.0</min_velocity>
                 <max_velocity>1.0</max_velocity>
             </plugin>
-            <plugin name='gz::sim::systems::TrackController' filename='libgz-sim-track-controller-system.so'>
+            <plugin name='gz::sim::systems::TrackController' filename='libignition-gazebo-track-controller-system.so'>
                 <link>front_left_flipper</link>
                 <min_velocity>-1.0</min_velocity>
                 <max_velocity>1.0</max_velocity>
             </plugin>
-            <plugin name='gz::sim::systems::TrackController' filename='libgz-sim-track-controller-system.so'>
+            <plugin name='gz::sim::systems::TrackController' filename='libignition-gazebo-track-controller-system.so'>
                 <link>rear_left_flipper</link>
                 <min_velocity>-1.0</min_velocity>
                 <max_velocity>1.0</max_velocity>
             </plugin>
-            <plugin name='gz::sim::systems::TrackController' filename='libgz-sim-track-controller-system.so'>
+            <plugin name='gz::sim::systems::TrackController' filename='libignition-gazebo-track-controller-system.so'>
                 <link>front_right_flipper</link>
                 <min_velocity>-1.0</min_velocity>
                 <max_velocity>1.0</max_velocity>
             </plugin>
-            <plugin name='gz::sim::systems::TrackController' filename='libgz-sim-track-controller-system.so'>
+            <plugin name='gz::sim::systems::TrackController' filename='libignition-gazebo-track-controller-system.so'>
                 <link>rear_right_flipper</link>
                 <min_velocity>-1.0</min_velocity>
                 <max_velocity>1.0</max_velocity>
             </plugin>
 
             <!-- Moving Forward: W -->
-            <plugin filename="libgz-sim-triggered-publisher-system.so"
+            <plugin filename="libignition-gazebo-triggered-publisher-system.so"
                     name="gz::sim::systems::TriggeredPublisher">
                 <input type="gz.msgs.Int32" topic="/keyboard/keypress">
                     <match field="data">87</match>
@@ -1123,7 +1123,7 @@
             </plugin>
 
             <!-- Moving Backward: X -->
-            <plugin filename="libgz-sim-triggered-publisher-system.so"
+            <plugin filename="libignition-gazebo-triggered-publisher-system.so"
                     name="gz::sim::systems::TriggeredPublisher">
                 <input type="gz.msgs.Int32" topic="/keyboard/keypress">
                     <match field="data">88</match>
@@ -1134,7 +1134,7 @@
             </plugin>
 
             <!-- Stop: S -->
-            <plugin filename="libgz-sim-triggered-publisher-system.so"
+            <plugin filename="libignition-gazebo-triggered-publisher-system.so"
                     name="gz::sim::systems::TriggeredPublisher">
                 <input type="gz.msgs.Int32" topic="/keyboard/keypress">
                     <match field="data">83</match>
@@ -1145,7 +1145,7 @@
             </plugin>
 
             <!-- Left: A -->
-            <plugin filename="libgz-sim-triggered-publisher-system.so"
+            <plugin filename="libignition-gazebo-triggered-publisher-system.so"
                     name="gz::sim::systems::TriggeredPublisher">
                 <input type="gz.msgs.Int32" topic="/keyboard/keypress">
                     <match field="data">65</match>
@@ -1156,7 +1156,7 @@
             </plugin>
 
             <!-- Right: D -->
-            <plugin filename="libgz-sim-triggered-publisher-system.so"
+            <plugin filename="libignition-gazebo-triggered-publisher-system.so"
                     name="gz::sim::systems::TriggeredPublisher">
                 <input type="gz.msgs.Int32" topic="/keyboard/keypress">
                     <match field="data">68</match>
@@ -1167,7 +1167,7 @@
             </plugin>
 
             <!-- Forward Left: Q -->
-            <plugin filename="libgz-sim-triggered-publisher-system.so"
+            <plugin filename="libignition-gazebo-triggered-publisher-system.so"
                     name="gz::sim::systems::TriggeredPublisher">
                 <input type="gz.msgs.Int32" topic="/keyboard/keypress">
                     <match field="data">81</match>
@@ -1178,7 +1178,7 @@
             </plugin>
 
             <!-- Forward Right: E -->
-            <plugin filename="libgz-sim-triggered-publisher-system.so"
+            <plugin filename="libignition-gazebo-triggered-publisher-system.so"
                     name="gz::sim::systems::TriggeredPublisher">
                 <input type="gz.msgs.Int32" topic="/keyboard/keypress">
                     <match field="data">69</match>
@@ -1189,7 +1189,7 @@
             </plugin>
 
             <!-- Back Left: Z -->
-            <plugin filename="libgz-sim-triggered-publisher-system.so"
+            <plugin filename="libignition-gazebo-triggered-publisher-system.so"
                     name="gz::sim::systems::TriggeredPublisher">
                 <input type="gz.msgs.Int32" topic="/keyboard/keypress">
                     <match field="data">90</match>
@@ -1200,7 +1200,7 @@
             </plugin>
 
             <!-- Back Right: C -->
-            <plugin filename="libgz-sim-triggered-publisher-system.so"
+            <plugin filename="libignition-gazebo-triggered-publisher-system.so"
                     name="gz::sim::systems::TriggeredPublisher">
                 <input type="gz.msgs.Int32" topic="/keyboard/keypress">
                     <match field="data">67</match>

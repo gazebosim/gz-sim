@@ -47,7 +47,7 @@
           </visual>
         </link>
         <plugin
-           filename="gz-sim-pose-publisher-system"
+           filename="ignition-gazebo-pose-publisher-system"
            name="gz::sim::systems::PosePublisher">
           <publish_link_pose>true</publish_link_pose>
           <publish_sensor_pose>false</publish_sensor_pose>

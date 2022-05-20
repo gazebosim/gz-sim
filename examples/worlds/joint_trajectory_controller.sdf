@@ -140,13 +140,13 @@
   <world name="default">
     <!-- Physics -->
     <plugin
-      filename="gz-sim-physics-system"
+      filename="ignition-gazebo-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
 
     <!-- Scene -->
     <plugin
-      filename="gz-sim-scene-broadcaster-system"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <scene>
@@ -333,7 +333,7 @@
       </joint>
       <!-- Controller -->
       <plugin
-        filename="libgz-sim-joint-trajectory-controller-system.so"
+        filename="libignition-gazebo-joint-trajectory-controller-system.so"
         name="gz::sim::systems::JointTrajectoryController">
         <joint_name>RR_position_control_joint1</joint_name>
         <initial_position>0.7854</initial_position>
@@ -497,7 +497,7 @@
       </joint>
       <!-- Controller -->
       <plugin
-        filename="libgz-sim-joint-trajectory-controller-system.so"
+        filename="libignition-gazebo-joint-trajectory-controller-system.so"
         name="gz::sim::systems::JointTrajectoryController">
         <!-- Note: If joint names are omitted, their respective order from model will be preserved
              when applying other parameters during configuration -->
@@ -653,7 +653,7 @@
       </joint>
       <!-- Controller -->
       <plugin
-        filename="libgz-sim-joint-trajectory-controller-system.so"
+        filename="libignition-gazebo-joint-trajectory-controller-system.so"
         name="gz::sim::systems::JointTrajectoryController">
         <!-- Note: You can also specify a custom topic for the joint trajectory commands -->
         <topic>custom_topic_effort_control</topic>

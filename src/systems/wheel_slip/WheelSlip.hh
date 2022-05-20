@@ -75,7 +75,7 @@ namespace systems
       --+-------------------------- slipRatio
         |
 
-    <plugin filename="libgz-sim-wheel-slip-system.so"
+    <plugin filename="libignition-gazebo-wheel-slip-system.so"
      name="gz::sim::systems::WheelSlip">
       <wheel link_name="wheel_front_left">
         <slip_compliance_lateral>0</slip_compliance_lateral>
