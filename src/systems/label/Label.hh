@@ -27,7 +27,7 @@ namespace gz
 namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
 namespace systems
 {
   /// \brief A label plugin that annotates models by setting the label

@@ -36,7 +36,7 @@ namespace gz
   namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
     // Network Events
     /// \brief PeerAdded fired when a peer announces itself or detected via
     /// heartbeat

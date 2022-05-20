@@ -37,7 +37,7 @@ namespace gz
   namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
     class IGNITION_GAZEBO_HIDDEN LinkPrivate;
     //

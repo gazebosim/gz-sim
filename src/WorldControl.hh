@@ -27,7 +27,7 @@ namespace gz
   namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Helper struct to control world time. It's used to hold
     /// input from either msgs::WorldControl or msgs::LogPlaybackControl.

@@ -31,7 +31,7 @@ namespace gz
   namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Class to hold systems internally. It supports systems loaded
     /// from plugins, as well as systems created at runtime.

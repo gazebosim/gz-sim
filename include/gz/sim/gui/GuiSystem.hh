@@ -31,7 +31,7 @@ namespace gz
 namespace sim
 {
   // Inline bracket to help doxygen filtering.
-  inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+  inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
   /// \brief Base class for a GUI System.
   ///
   /// A System operates on Entities that have certain Components. A System

@@ -34,7 +34,7 @@ namespace gz
   namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Used to load / unload sysetms as well as iterate over them.
     class IGNITION_GAZEBO_VISIBLE SystemManager

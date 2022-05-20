@@ -28,7 +28,7 @@ namespace gz
 {
 namespace sim
 {
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
 // Forward declare private data class.
 class MarkerManagerPrivate;
 

@@ -30,7 +30,7 @@ namespace gz
 namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
 //
 class IGNITION_GAZEBO_HIDDEN TestFixturePrivate;
 /// \brief Helper class to write automated tests. It provides a convenient API

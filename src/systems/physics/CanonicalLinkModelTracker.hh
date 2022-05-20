@@ -28,7 +28,7 @@
 
 namespace gz::sim
 {
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
 namespace systems::physics_system
 {
   /// \brief Helper class that keeps track of which models have a particular

@@ -24,7 +24,7 @@ namespace gz
   namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
     //
     /// \brief All component instances of the same type are stored
     /// sequentially in memory. This is a base class for storing components

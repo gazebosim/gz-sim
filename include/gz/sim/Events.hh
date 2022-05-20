@@ -29,7 +29,7 @@ namespace gz
   namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
     /// \brief Namespace for all events. Refer to the EventManager class for
     /// more information about events.
     namespace events

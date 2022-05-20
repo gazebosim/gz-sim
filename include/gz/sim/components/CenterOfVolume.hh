@@ -27,7 +27,7 @@ namespace gz
 namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component for an entity's center of volume. Units are in meters.

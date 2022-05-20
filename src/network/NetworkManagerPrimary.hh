@@ -38,7 +38,7 @@ namespace gz
   namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_GAZEBO_VERSION_NAMESPACE {
     struct SecondaryControl
     {
       /// \brief indicate if the secondary is ready to execute
