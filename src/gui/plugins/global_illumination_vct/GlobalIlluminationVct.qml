@@ -35,6 +35,41 @@ GridLayout {
   anchors.leftMargin: 10
   anchors.rightMargin: 10
 
+  function isPowerOf2(n) {
+    return (n & n-1) === 0;
+  }
+
+  // Returns the closest power of 2, rounding down if need to.
+  //  floorPowerOf2( 4 ) = 4
+  //  floorPowerOf2( 5 ) = 4
+  function floorPowerOf2(n) {
+    return 1 << (31 - Math.clz32(n));
+  }
+
+  // Returns the closest power of 2, rounding up if need to.
+  //  floorPowerOf2( 4 ) = 4
+  //  floorPowerOf2( 5 ) = 8
+  function ceilPowerOf2(n) {
+      if (isPowerOf2(n)) {
+        return n;
+      }
+    return 1 << (31 - Math.clz32(n) + 1);
+  }
+
+  function nearestPowerOf2(n, oldValue=undefined) {
+    if (oldValue === undefined) {
+      return floorPowerOf2(n);
+    }
+    else {
+      if (oldValue <= n) {
+        return ceilPowerOf2(n);
+      }
+      else {
+        return floorPowerOf2(n);
+      }
+    }
+  }
+
   CheckBox {
     Layout.alignment: Qt.AlignHCenter
     id: displayVisual
@@ -75,38 +110,53 @@ GridLayout {
   }
 
   IgnSpinBox {
+    property int oldValue: -1
+
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: resolutionSpinX
-    value: resolutionSpinX.activeFocus ? resolutionSpinX.value : numberValue
     minimumValue: 4
     maximumValue: 512
     decimals: 1
     onEditingFinished: {
+      var tmpValue = value;
+      tmpValue = nearestPowerOf2(tmpValue, oldValue);
+      oldValue = tmpValue;
+      value = tmpValue;
       // VisualizeLidar.UpdateResolution(0,resolutionSpinX.value)
     }
   }
   IgnSpinBox {
+    property int oldValue: -1
+
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: resolutionSpinY
-    value: resolutionSpinY.activeFocus ? resolutionSpinY.value : numberValue
     minimumValue: 4
     maximumValue: 512
     decimals: 1
     onEditingFinished: {
+      var tmpValue = value;
+      tmpValue = nearestPowerOf2(tmpValue, oldValue);
+      oldValue = tmpValue;
+      value = tmpValue;
       // VisualizeLidar.UpdateResolution(1,resolutionSpinY.value)
     }
   }
   IgnSpinBox {
+    property int oldValue: -1
+
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: resolutionSpinZ
-    value: resolutionSpinZ.activeFocus ? resolutionSpinZ.value : numberValue
     minimumValue: 4
     maximumValue: 512
     decimals: 1
     onEditingFinished: {
+      var tmpValue = value;
+      tmpValue = nearestPowerOf2(tmpValue, oldValue);
+      oldValue = tmpValue;
+      value = tmpValue;
       // VisualizeLidar.UpdateResolution(2,resolutionSpinZ.value)
     }
   }
