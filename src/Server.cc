@@ -39,11 +39,11 @@ struct DefaultWorld
   /// \brief Get the default world as a string.
   /// Plugins will be loaded from the server.config file.
   /// \return An SDF string that contains the default world.
-  public: static std::string &World()
+  public: static std::string &World(std::string _worldName="default")
   {
     static std::string world = std::string("<?xml version='1.0'?>"
       "<sdf version='1.6'>"
-        "<world name='empty_world'>") +
+        "<world name='" + _worldName + "'>") +
         "</world>"
       "</sdf>";
 
@@ -71,6 +71,7 @@ Server::Server(bool _downloadInParallel, const ServerConfig &_config)
 /////////////////////////////////////////////////
 bool Server::DownloadModels()
 {
+  sdf::Root root;
   sdf::Errors errors;
   std::cerr << "this->dataPtr->config.Source() "
             << static_cast<int>(this->dataPtr->config.Source()) << '\n';
@@ -96,8 +97,9 @@ bool Server::DownloadModels()
         msg += "File path [" + this->dataPtr->config.SdfFile() + "].\n";
       }
       ignmsg <<  msg;
-      errors = this->dataPtr->sdfRoot.LoadSdfString(
+      errors = root.LoadSdfString(
         this->dataPtr->config.SdfString());
+      this->dataPtr->sdfRoot = root.Clone();
       break;
     }
 
@@ -122,7 +124,8 @@ bool Server::DownloadModels()
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
       }
 
-      errors = this->dataPtr->sdfRoot.Load(filePath);
+      errors = root.Load(filePath);
+      this->dataPtr->sdfRoot = root.Clone();
 
       if (!this->dataPtr->downloadInParallel)
         return true;
@@ -149,7 +152,7 @@ bool Server::DownloadModels()
       }
       ignmsg << "Download models in parallel has finished. "
              << "Now you can start the simulation" << std::endl;
-       break;
+      break;
     }
 
     case ServerConfig::SourceType::kNone:
@@ -158,7 +161,8 @@ bool Server::DownloadModels()
       ignmsg << "Loading default world.\n";
       // Load an empty world.
       /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
-      errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World());
+      errors = root.LoadSdfString(DefaultWorld::World());
+      this->dataPtr->sdfRoot = root.Clone();
       break;
     }
   }
@@ -201,7 +205,34 @@ void Server::Init()
     ignmsg << "Loading default world.\n";
     // Load an empty world.
     /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
-    errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World());
+    // std::string filePath = resolveSdfWorldFile(this->dataPtr->config.SdfFile(),
+    //     this->dataPtr->config.ResourceCache());
+    //
+    // if (filePath.empty())
+    // {
+    //   ignerr << "Failed to find world ["
+    //          << this->dataPtr->config.SdfFile() << "]"
+    //          << std::endl;
+    //   return;
+    // }
+
+    common::SystemPaths systemPaths;
+
+    // Worlds from environment variable
+    systemPaths.SetFilePathEnv(kResourcePathEnv);
+
+    // Worlds installed with ign-gazebo
+    systemPaths.AddFilePaths(IGN_GAZEBO_WORLD_INSTALL_DIR);
+
+    std::string filePath = systemPaths.FindFile(this->dataPtr->config.SdfFile());
+
+    ignerr << "filePath " << filePath << std::endl;
+
+    std::string worldName;
+    auto errors2 = this->dataPtr->sdfRoot.GetWorldName(filePath, worldName);
+
+    errors = this->dataPtr->sdfRoot.LoadSdfString(
+      DefaultWorld::World(worldName));
   }
   else
   {

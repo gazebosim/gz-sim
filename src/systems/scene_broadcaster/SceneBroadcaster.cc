@@ -257,12 +257,6 @@ void SceneBroadcaster::Configure(
 
   this->dataPtr->worldEntity = _entity;
 
-  if (!this->dataPtr->worldName.empty() && this->dataPtr->node)
-  {
-    std::cerr << "RESETING node" << '\n';
-    this->dataPtr->node.reset();
-  }
-
   this->dataPtr->worldName = name->Data();
 
   std::cerr << "SceneBroadcaster::Configure " << this->dataPtr->worldName << '\n';
@@ -390,7 +384,34 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
 void SceneBroadcaster::Reset(const UpdateInfo &_info,
                              EntityComponentManager &_manager)
 {
-  std::cerr << "SceneBroadcaster reset" << this->dataPtr->worldName << '\n';
+  const components::Name *name =
+  _manager.Component<components::Name>(this->dataPtr->worldEntity);
+  if (name == nullptr)
+  {
+    ignerr << "World with id: " << this->dataPtr->worldEntity
+           << " has no name. SceneBroadcaster cannot create transport topics\n";
+    return;
+  }
+  this->dataPtr->worldName = name->Data();
+
+  ignerr << "SceneBroadcaster::Reset " << this->dataPtr->worldName << std::endl;
+  this->dataPtr->node.reset();
+  // Update scene graph with added entities before populating pose message
+  this->dataPtr->SceneGraphAddEntities(_manager);
+
+  this->dataPtr->PoseUpdate(_info, _manager);
+
+  // call SceneGraphRemoveEntities at the end of this update cycle so that
+  // removed entities are removed from the scene graph for the next update cycle
+  this->dataPtr->SceneGraphRemoveEntities(_manager);
+
+  std::unique_lock<std::mutex> lock(this->dataPtr->stateMutex);
+  this->dataPtr->stepMsg.Clear();
+
+  set(this->dataPtr->stepMsg.mutable_stats(), _info);
+  _manager.State(*this->dataPtr->stepMsg.mutable_state(), {}, {}, true);
+  this->dataPtr->statePub.Publish(this->dataPtr->stepMsg);
+  this->dataPtr->lastStatePubTime = std::chrono::system_clock::now();
 }
 
 //////////////////////////////////////////////////
@@ -1193,7 +1214,8 @@ void SceneBroadcasterPrivate::RemoveFromGraph(const Entity _entity,
 IGNITION_ADD_PLUGIN(SceneBroadcaster,
                     ignition::gazebo::System,
                     SceneBroadcaster::ISystemConfigure,
-                    SceneBroadcaster::ISystemPostUpdate)
+                    SceneBroadcaster::ISystemPostUpdate,
+                    SceneBroadcaster::ISystemReset)
 
 // Add plugin alias so that we can refer to the plugin without the version
 // namespace

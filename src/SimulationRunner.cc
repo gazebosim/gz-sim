@@ -538,8 +538,7 @@ void SimulationRunner::UpdateSystems()
   if (this->resetInitiated)
   {
     IGN_PROFILE("Reset");
-    for (auto &system : this->systemMgr->SystemsReset())
-      system->Reset(this->currentInfo, this->entityCompMgr);
+    // this->systemMgr->Reset(this->currentInfo, this->entityCompMgr);
     return;
   }
 
@@ -722,7 +721,6 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   uint64_t processedIterations{0};
 
   bool isInitialRunOfSimulationSet = false;
-  bool initialize = false;
 
   // Execute all the systems until we are told to stop, or the number of
   // iterations is reached.
