@@ -399,9 +399,9 @@ with their Ignition equivalents:
 ```cpp
 // NEW
 igndbg << ... ;
-ignlog << ... ;
-ignwarn << ... ;
-ignerr << ... ;
+gzlog << ... ;
+gzwarn << ... ;
+gzerr << ... ;
 ```
 
 ### Plugin interface: Configure()
@@ -588,7 +588,7 @@ if(!this->dataPtr->imuInitialized)
 
   if(imuTopicName.empty())
   {
-    ignerr << "[" << this->dataPtr->modelName << "] "
+    gzerr << "[" << this->dataPtr->modelName << "] "
           << "imu_sensor [" << this->dataPtr->imuName
           << "] not found, abort ArduPilot plugin." << "\n";
     return;

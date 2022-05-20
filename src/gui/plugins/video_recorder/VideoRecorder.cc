@@ -156,14 +156,14 @@ void VideoRecorderPrivate::Initialize()
 
   if (!this->camera)
   {
-    ignerr << "Camera is not available" << std::endl;
+    gzerr << "Camera is not available" << std::endl;
     return;
   }
 
   // recorder stats topic
   this->recorderStatsPub =
     this->node.Advertise<msgs::Time>(this->recorderStatsTopic);
-  ignmsg << "Video recorder stats topic advertised on ["
+  gzmsg << "Video recorder stats topic advertised on ["
          << this->recorderStatsTopic << "]" << std::endl;
 }
 
@@ -230,17 +230,17 @@ void VideoRecorderPrivate::OnRender()
       else
       {
         if (this->useSimTime)
-          ignmsg << "Recording video using sim time." << std::endl;
+          gzmsg << "Recording video using sim time." << std::endl;
         if (this->lockstep)
         {
-          ignmsg << "Recording video in lockstep mode" << std::endl;
+          gzmsg << "Recording video in lockstep mode" << std::endl;
           if (!this->useSimTime)
           {
-            ignwarn << "It is recommended to set <use_sim_time> to true "
+            gzwarn << "It is recommended to set <use_sim_time> to true "
                     << "when recording video in lockstep mode." << std::endl;
           }
         }
-        ignmsg << "Recording video using bitrate: "
+        gzmsg << "Recording video using bitrate: "
                << this->bitrate <<  std::endl;
         this->videoEncoder.Start(this->format,
             this->filename, width, height, 25,
@@ -304,7 +304,7 @@ void VideoRecorder::LoadConfig(const tinyxml2::XMLElement * _pluginElem)
         bool useSimTime = false;
         if (useSimTimeElem->QueryBoolText(&useSimTime) != tinyxml2::XML_SUCCESS)
         {
-          ignerr << "Faild to parse <use_sim_time> value: "
+          gzerr << "Faild to parse <use_sim_time> value: "
                  << useSimTimeElem->GetText() << std::endl;
         }
         else
@@ -317,7 +317,7 @@ void VideoRecorder::LoadConfig(const tinyxml2::XMLElement * _pluginElem)
         bool lockstep = false;
         if (lockstepElem->QueryBoolText(&lockstep) != tinyxml2::XML_SUCCESS)
         {
-          ignerr << "Failed to parse <lockstep> value: "
+          gzerr << "Failed to parse <lockstep> value: "
                  << lockstepElem->GetText() << std::endl;
         }
         else
@@ -337,7 +337,7 @@ void VideoRecorder::LoadConfig(const tinyxml2::XMLElement * _pluginElem)
         }
         else
         {
-          ignerr << "Video recorder bitrate must be larger than 0"
+          gzerr << "Video recorder bitrate must be larger than 0"
                  << std::endl;
         }
       }
@@ -390,7 +390,7 @@ void VideoRecorder::OnStart(const QString &_format)
         [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
     {
       if (!_result)
-        ignerr << "Error sending video record start request" << std::endl;
+        gzerr << "Error sending video record start request" << std::endl;
     };
     gz::msgs::VideoRecord req;
     req.set_start(this->dataPtr->recordVideo);
@@ -412,7 +412,7 @@ void VideoRecorder::OnStop()
         [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
     {
       if (!_result)
-        ignerr << "Error sending video record stop request" << std::endl;
+        gzerr << "Error sending video record stop request" << std::endl;
     };
 
     gz::msgs::VideoRecord req;
@@ -445,12 +445,12 @@ void VideoRecorder::OnSave(const QString &_url)
 
   if (!result)
   {
-    ignerr  << "Unable to rename file from[" << this->dataPtr->filename
+    gzerr  << "Unable to rename file from[" << this->dataPtr->filename
       << "] to [" << path << "]" << std::endl;
   }
   else
   {
-    ignmsg << "Video saved to: " << path << std::endl;
+    gzmsg << "Video saved to: " << path << std::endl;
   }
 }
 

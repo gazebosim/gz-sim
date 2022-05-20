@@ -163,7 +163,7 @@ void SelectEntitiesPrivate::HandleEntitySelection()
 
       if (nullptr == visualToHighLight)
       {
-        ignerr << "Failed to get visual with ID ["
+        gzerr << "Failed to get visual with ID ["
                << this->selectedEntitiesIDNew[i] << "]" << std::endl;
         continue;
       }
@@ -266,7 +266,7 @@ void SelectEntitiesPrivate::HighlightNode(const rendering::VisualPtr &_visual)
 {
   if (nullptr == _visual)
   {
-    ignerr << "Failed to highlight null visual." << std::endl;
+    gzerr << "Failed to highlight null visual." << std::endl;
     return;
   }
 
@@ -346,7 +346,7 @@ void SelectEntitiesPrivate::SetSelectedEntity(
 {
   if (nullptr == _visual)
   {
-    ignerr << "Failed to select null visual" << std::endl;
+    gzerr << "Failed to select null visual" << std::endl;
     return;
   }
 
@@ -457,7 +457,7 @@ void SelectEntitiesPrivate::Initialize()
 
     if (!this->camera)
     {
-      ignerr << "TransformControl camera is not available" << std::endl;
+      gzerr << "TransformControl camera is not available" << std::endl;
       return;
     }
   }
@@ -482,7 +482,7 @@ void SelectEntities::LoadConfig(const tinyxml2::XMLElement *)
   if (done)
   {
     std::string msg{"Only one SelectEntities plugin is supported at a time."};
-    ignerr << msg << std::endl;
+    gzerr << msg << std::endl;
     QQmlProperty::write(this->PluginItem(), "message",
         QString::fromStdString(msg));
     return;

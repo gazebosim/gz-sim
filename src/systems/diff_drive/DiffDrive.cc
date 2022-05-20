@@ -177,7 +177,7 @@ void DiffDrive::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "DiffDrive plugin should be attached to a model entity. "
+    gzerr << "DiffDrive plugin should be attached to a model entity. "
            << "Failed to initialize." << std::endl;
     return;
   }
@@ -381,7 +381,7 @@ void DiffDrive::Configure(const Entity &_entity,
   if (_sdf->HasElement("child_frame_id"))
     this->dataPtr->sdfChildFrameId = _sdf->Get<std::string>("child_frame_id");
 
-  ignmsg << "DiffDrive subscribing to twist messages on [" << topic << "]"
+  gzmsg << "DiffDrive subscribing to twist messages on [" << topic << "]"
          << std::endl;
 }
 
@@ -394,7 +394,7 @@ void DiffDrive::PreUpdate(const gz::sim::UpdateInfo &_info,
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -413,7 +413,7 @@ void DiffDrive::PreUpdate(const gz::sim::UpdateInfo &_info,
         this->dataPtr->leftJoints.push_back(joint);
       else if (warnedModels.find(modelName) == warnedModels.end())
       {
-        ignwarn << "Failed to find left joint [" << name << "] for model ["
+        gzwarn << "Failed to find left joint [" << name << "] for model ["
                 << modelName << "]" << std::endl;
         warned = true;
       }
@@ -426,7 +426,7 @@ void DiffDrive::PreUpdate(const gz::sim::UpdateInfo &_info,
         this->dataPtr->rightJoints.push_back(joint);
       else if (warnedModels.find(modelName) == warnedModels.end())
       {
-        ignwarn << "Failed to find right joint [" << name << "] for model ["
+        gzwarn << "Failed to find right joint [" << name << "] for model ["
                 << modelName << "]" << std::endl;
         warned = true;
       }
@@ -442,7 +442,7 @@ void DiffDrive::PreUpdate(const gz::sim::UpdateInfo &_info,
 
   if (warnedModels.find(modelName) != warnedModels.end())
   {
-    ignmsg << "Found joints for model [" << modelName
+    gzmsg << "Found joints for model [" << modelName
            << "], plugin will start working." << std::endl;
     warnedModels.erase(modelName);
   }

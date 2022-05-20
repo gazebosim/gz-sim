@@ -262,7 +262,7 @@ void TransformControl::OnMode(const QString &_mode)
         [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
     {
       if (!_result)
-        ignerr << "Error setting transform mode" << std::endl;
+        gzerr << "Error setting transform mode" << std::endl;
     };
 
     gz::msgs::StringMsg req;
@@ -282,7 +282,7 @@ void TransformControl::OnMode(const QString &_mode)
     else if (modeStr == "scale")
       this->dataPtr->transformMode = rendering::TransformMode::TM_SCALE;
     else
-      ignerr << "Unknown transform mode: [" << modeStr << "]" << std::endl;
+      gzerr << "Unknown transform mode: [" << modeStr << "]" << std::endl;
 
     gz::sim::gui::events::TransformControlModeActive
       transformControlModeActive(this->dataPtr->transformMode);
@@ -649,7 +649,7 @@ void TransformControlPrivate::HandleTransform()
               }
             }
             if (!_result)
-              ignerr << "Error setting pose" << std::endl;
+              gzerr << "Error setting pose" << std::endl;
           };
           rendering::NodePtr nodeTmp = this->transformControl.Node();
           auto topVisual = std::dynamic_pointer_cast<rendering::Visual>(
@@ -673,7 +673,7 @@ void TransformControlPrivate::HandleTransform()
                 this->poseCmdService);
             if (this->poseCmdService.empty())
             {
-              ignerr << "Failed to create valid pose command service "
+              gzerr << "Failed to create valid pose command service "
                      << "for world [" << worldName << "]" << std::endl;
               return;
             }
@@ -816,7 +816,7 @@ void TransformControlPrivate::HandleTransform()
       }
       if (!target)
       {
-        ignwarn << "Failed to find node with ID [" << nodeId << "]"
+        gzwarn << "Failed to find node with ID [" << nodeId << "]"
                 << std::endl;
         return;
       }
@@ -998,14 +998,14 @@ void TransformControlPrivate::SnapPoint(
 {
   if (_snapVals.X() <= 0 || _snapVals.Y() <= 0 || _snapVals.Z() <= 0)
   {
-    ignerr << "Interval distance must be greater than 0"
+    gzerr << "Interval distance must be greater than 0"
         << std::endl;
     return;
   }
 
   if (_sensitivity < 0 || _sensitivity > 1.0)
   {
-    ignerr << "Sensitivity must be between 0 and 1" << std::endl;
+    gzerr << "Sensitivity must be between 0 and 1" << std::endl;
     return;
   }
 

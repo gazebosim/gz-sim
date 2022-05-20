@@ -234,7 +234,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "MulticopterMotorModel plugin should be attached to a model "
+    gzerr << "MulticopterMotorModel plugin should be attached to a model "
            << "entity. Failed to initialize." << std::endl;
     return;
   }
@@ -250,7 +250,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   }
   else
   {
-    ignerr << "Please specify a robotNamespace.\n";
+    gzerr << "Please specify a robotNamespace.\n";
   }
 
   // Get params from SDF
@@ -261,7 +261,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
 
   if (this->dataPtr->jointName.empty())
   {
-    ignerr << "MulticopterMotorModel found an empty jointName parameter. "
+    gzerr << "MulticopterMotorModel found an empty jointName parameter. "
            << "Failed to initialize.";
     return;
   }
@@ -273,7 +273,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
 
   if (this->dataPtr->linkName.empty())
   {
-    ignerr << "MulticopterMotorModel found an empty linkName parameter. "
+    gzerr << "MulticopterMotorModel found an empty linkName parameter. "
            << "Failed to initialize.";
     return;
   }
@@ -282,7 +282,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
     this->dataPtr->motorNumber =
       sdfClone->GetElement("motorNumber")->Get<int>();
   else
-    ignerr << "Please specify a motorNumber.\n";
+    gzerr << "Please specify a motorNumber.\n";
 
   if (sdfClone->HasElement("turningDirection"))
   {
@@ -293,11 +293,11 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
     else if (turningDirection == "ccw")
       this->dataPtr->turningDirection = turning_direction::kCcw;
     else
-      ignerr << "Please only use 'cw' or 'ccw' as turningDirection.\n";
+      gzerr << "Please only use 'cw' or 'ccw' as turningDirection.\n";
   }
   else
   {
-    ignerr << "Please specify a turning direction ('cw' or 'ccw').\n";
+    gzerr << "Please specify a turning direction ('cw' or 'ccw').\n";
   }
 
   if (sdfClone->HasElement("motorType"))
@@ -308,22 +308,22 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
     else if (motorType == "position")
     {
       this->dataPtr->motorType = MotorType::kPosition;
-      ignerr << "motorType 'position' not supported" << std::endl;
+      gzerr << "motorType 'position' not supported" << std::endl;
     }
     else if (motorType == "force")
     {
       this->dataPtr->motorType = MotorType::kForce;
-      ignerr << "motorType 'force' not supported" << std::endl;
+      gzerr << "motorType 'force' not supported" << std::endl;
     }
     else
     {
-      ignerr << "Please only use 'velocity', 'position' or "
+      gzerr << "Please only use 'velocity', 'position' or "
                "'force' as motorType.\n";
     }
   }
   else
   {
-    ignwarn << "motorType not specified, using velocity.\n";
+    gzwarn << "motorType not specified, using velocity.\n";
     this->dataPtr->motorType = MotorType::kVelocity;
   }
 
@@ -361,7 +361,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
       this->dataPtr->robotNamespace + "/" + this->dataPtr->commandSubTopic);
   if (topic.empty())
   {
-    ignerr << "Failed to create topic for [" << this->dataPtr->robotNamespace
+    gzerr << "Failed to create topic for [" << this->dataPtr->robotNamespace
            << "]" << std::endl;
     return;
   }
@@ -378,7 +378,7 @@ void MulticopterMotorModel::PreUpdate(const gz::sim::UpdateInfo &_info,
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -505,7 +505,7 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
   {
     if (this->motorNumber > msg->velocity_size() - 1)
     {
-      ignerr << "You tried to access index " << this->motorNumber
+      gzerr << "You tried to access index " << this->motorNumber
         << " of the Actuator velocity array which is of size "
         << msg->velocity_size() << std::endl;
       return;
@@ -545,7 +545,7 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
       double motorRotVel = jointVelocity->Data()[0];
       if (motorRotVel / (2 * IGN_PI) > 1 / (2 * this->samplingTime))
       {
-        ignerr << "Aliasing on motor [" << this->motorNumber
+        gzerr << "Aliasing on motor [" << this->motorNumber
               << "] might occur. Consider making smaller simulation time "
                  "steps or raising the rotorVelocitySlowdownSim param.\n";
       }
@@ -573,7 +573,7 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
           this->jointEntity);
       if (!jointPose)
       {
-        ignerr << "joint " << this->jointName << " has no Pose"
+        gzerr << "joint " << this->jointName << " has no Pose"
                << "component" << std::endl;
         return;
       }
@@ -585,7 +585,7 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
           this->jointEntity);
       if (!jointAxisComp)
       {
-        ignerr << "joint " << this->jointName << " has no JointAxis"
+        gzerr << "joint " << this->jointName << " has no JointAxis"
                << "component" << std::endl;
         return;
       }

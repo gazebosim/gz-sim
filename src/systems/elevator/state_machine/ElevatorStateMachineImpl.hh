@@ -102,7 +102,7 @@ void ElevatorStateMachinePrivate::EnqueueNewTarget(double _target)
   std::ostringstream ss;
   ss << "The elevator enqueued target " << _target << " [ ";
   for (const auto &target : this->targets) ss << target << " ";
-  ignmsg << ss.str() << "]" << std::endl;
+  gzmsg << ss.str() << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////

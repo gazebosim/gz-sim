@@ -191,7 +191,7 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "Optical tactile plugin should be attached to a model entity. "
+    gzerr << "Optical tactile plugin should be attached to a model entity. "
       << "Failed to initialize." << std::endl;
     return;
   }
@@ -217,7 +217,7 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
   {
     if (_sdf->Get<int>("visualization_resolution") < 0)
     {
-      ignwarn << "Parameter <visualization_resolution> must be positive, "
+      gzwarn << "Parameter <visualization_resolution> must be positive, "
         << "setting to " << this->dataPtr->visualizationResolution << std::endl;
     }
     else
@@ -256,7 +256,7 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
   {
     if (_sdf->Get<double>("extended_sensing") < 0)
     {
-      ignwarn << "Parameter <extended_sensing> must be positive, "
+      gzwarn << "Parameter <extended_sensing> must be positive, "
         << "setting to " << this->dataPtr->extendedSensing << std::endl;
     }
     else
@@ -284,7 +284,7 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
   {
     if (_sdf->Get<double>("force_length") < 0)
     {
-      ignwarn << "Parameter <force_length> must be positive, "
+      gzwarn << "Parameter <force_length> must be positive, "
         << "setting to " << this->dataPtr->forceLength << std::endl;
     }
     else
@@ -337,12 +337,12 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
     this->dataPtr->node.Advertise<gz::msgs::Image>(normalForcesTopic);
   if (!this->dataPtr->normalForcesPub)
   {
-    ignerr << "Error advertising topic [" << normalForcesTopic << "]"
+    gzerr << "Error advertising topic [" << normalForcesTopic << "]"
       << std::endl;
   }
   else
   {
-    ignmsg << "Topic publishing normal forces [" << normalForcesTopic << "]"
+    gzmsg << "Topic publishing normal forces [" << normalForcesTopic << "]"
            << std::endl;
   }
 
@@ -351,12 +351,12 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
   if (!this->dataPtr->node.Advertise(enableService,
       &OpticalTactilePluginPrivate::Enable, this->dataPtr.get()))
   {
-    ignerr << "Error advertising service [" << enableService << "]"
+    gzerr << "Error advertising service [" << enableService << "]"
       << std::endl;
   }
   else
   {
-    ignmsg << "Service to enable tactile sensor [" << enableService << "]"
+    gzmsg << "Service to enable tactile sensor [" << enableService << "]"
            << std::endl;
   }
 }
@@ -473,7 +473,7 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm)
   {
     if (!this->initErrorPrinted)
     {
-      ignerr << "Plugin must have exactly 1 link (only printed once)"
+      gzerr << "Plugin must have exactly 1 link (only printed once)"
         << std::endl;
       this->initErrorPrinted = true;
     }
@@ -488,7 +488,7 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm)
   {
     if (!this->initErrorPrinted)
     {
-      ignerr << "Link must have at least 1 collision (only printed once)"
+      gzerr << "Link must have at least 1 collision (only printed once)"
         << std::endl;
       this->initErrorPrinted = true;
     }
@@ -512,7 +512,7 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm)
       {
         if (!this->initErrorPrinted)
         {
-          ignerr << "Contact sensor geometry must be a box"
+          gzerr << "Contact sensor geometry must be a box"
             << " (only printed once)" << std::endl;
           this->initErrorPrinted = true;
         }
@@ -550,7 +550,7 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm)
   {
     if (!this->initErrorPrinted)
     {
-      ignerr << "Link must have exactly 1 depth camera sensor and "
+      gzerr << "Link must have exactly 1 depth camera sensor and "
         << "1 contact sensor (only printed once)" << std::endl;
       this->initErrorPrinted = true;
     }
@@ -562,7 +562,7 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm)
   {
     if (!this->initErrorPrinted)
     {
-      ignerr << "Depth camera should have an <update_rate> value "
+      gzerr << "Depth camera should have an <update_rate> value "
         << "(only printed once)" << std::endl;
       this->initErrorPrinted = true;
     }
@@ -583,7 +583,7 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm)
   // Configure subscriber for depth camera images
   if (!depthCameraSdf.Element()->HasElement("topic"))
   {
-    ignwarn << "Depth camera publishing to __default__ topic. "
+    gzwarn << "Depth camera publishing to __default__ topic. "
       << "It's possible that two depth cameras are publishing into the same "
       << "topic" << std::endl;
   }
@@ -600,7 +600,7 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm)
   {
     if (!this->initErrorPrinted)
     {
-      ignerr << "Error subscribing to topic " << "[" << topic << "]. "
+      gzerr << "Error subscribing to topic " << "[" << topic << "]. "
         << "<topic> must not contain '/' (only printing once)" << std::endl;
       this->initErrorPrinted = true;
     }
@@ -625,7 +625,7 @@ void OpticalTactilePluginPrivate::Enable(const gz::msgs::Boolean &_req)
 {
   if (_req.data() != this->enabled)
   {
-    ignmsg << "Enabling optical tactile sensor with namespace [" << this->ns
+    gzmsg << "Enabling optical tactile sensor with namespace [" << this->ns
            << "]: " << _req.data() << std::endl;
   }
 
@@ -654,7 +654,7 @@ void OpticalTactilePluginPrivate::DepthCameraCallback(
     {
       if (field.datatype() != float32Type)
       {
-        ignerr << "FLOAT32 is expected for a casting to float *" << std::endl;
+        gzerr << "FLOAT32 is expected for a casting to float *" << std::endl;
         return;
       }
     }

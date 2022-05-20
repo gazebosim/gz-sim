@@ -80,11 +80,11 @@ std::unique_ptr<NetworkManager> NetworkManager::Create(
       break;
     case NetworkRole::ReadOnly:
       // \todo(mjcarroll): Enable ReadOnly
-      ignwarn << "ReadOnly role not currently supported" << std::endl;
+      gzwarn << "ReadOnly role not currently supported" << std::endl;
     case NetworkRole::None:
       break;
     default:
-      ignwarn << "Cannot create NetworkManager, unrecognized role"
+      gzwarn << "Cannot create NetworkManager, unrecognized role"
         << std::endl;
   }
 
@@ -119,7 +119,7 @@ NetworkManager::NetworkManager(
     {
       if (_info.Namespace() != this->Namespace())
       {
-        ignmsg << "Peer [" << _info.Namespace()
+        gzmsg << "Peer [" << _info.Namespace()
                << "] removed, stopping simulation" << std::endl;
         this->dataPtr->eventMgr->Emit<events::Stop>();
       }
@@ -130,7 +130,7 @@ NetworkManager::NetworkManager(
     {
       if (_info.Namespace() != this->Namespace())
       {
-        ignerr << "Peer [" << _info.Namespace()
+        gzerr << "Peer [" << _info.Namespace()
                << "] went stale, stopping simulation" << std::endl;
         this->dataPtr->eventMgr->Emit<events::Stop>();
       }
@@ -138,7 +138,7 @@ NetworkManager::NetworkManager(
   }
   else
   {
-    ignwarn << "NetworkManager started without EventManager. "
+    gzwarn << "NetworkManager started without EventManager. "
       << "Distributed environment may not terminate correctly" << std::endl;
   }
 }

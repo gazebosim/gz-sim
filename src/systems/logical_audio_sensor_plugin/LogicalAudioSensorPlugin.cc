@@ -270,7 +270,7 @@ void LogicalAudioSensorPluginPrivate::CreateAudioSource(
 
   if (!_elem->HasElement("id"))
   {
-    ignerr << "Audio source is missing an id. " << kSourceSkipMsg;
+    gzerr << "Audio source is missing an id. " << kSourceSkipMsg;
     return;
   }
   const auto id = _elem->Get<unsigned int>("id");
@@ -278,7 +278,7 @@ void LogicalAudioSensorPluginPrivate::CreateAudioSource(
   // make sure no other sources exist with the same ID in the parent
   if (_ids.find(id) != _ids.end())
   {
-    ignerr << "The specified source ID of " << id << " already exists for "
+    gzerr << "The specified source ID of " << id << " already exists for "
       << "another source in entity " << _parent << ". " << kSourceSkipMsg;
     return;
   }
@@ -287,7 +287,7 @@ void LogicalAudioSensorPluginPrivate::CreateAudioSource(
   gz::math::Pose3d pose;
   if (!_elem->HasElement("pose"))
   {
-    ignwarn << "Audio source is missing a pose. "
+    gzwarn << "Audio source is missing a pose. "
       << "{0.0, 0.0, 0.0, 0.0, 0.0, 0.0} will be used.\n";
     pose = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   }
@@ -298,42 +298,42 @@ void LogicalAudioSensorPluginPrivate::CreateAudioSource(
 
   if (!_elem->HasElement("attenuation_function"))
   {
-    ignerr << "Audio source has no attenuation function. " << kSourceSkipMsg;
+    gzerr << "Audio source has no attenuation function. " << kSourceSkipMsg;
     return;
   }
   const auto attenuationFunc = _elem->Get<std::string>("attenuation_function");
 
   if (!_elem->HasElement("attenuation_shape"))
   {
-    ignerr << "Audio source has no attenuation shape. " << kSourceSkipMsg;
+    gzerr << "Audio source has no attenuation shape. " << kSourceSkipMsg;
     return;
   }
   const auto attenuationShape = _elem->Get<std::string>("attenuation_shape");
 
   if (!_elem->HasElement("inner_radius"))
   {
-    ignerr << "Audio source has no inner radius. " << kSourceSkipMsg;
+    gzerr << "Audio source has no inner radius. " << kSourceSkipMsg;
     return;
   }
   const auto innerRadius = _elem->Get<double>("inner_radius");
 
   if (!_elem->HasElement("falloff_distance"))
   {
-    ignerr << "Audio source is missing a falloff distance. " << kSourceSkipMsg;
+    gzerr << "Audio source is missing a falloff distance. " << kSourceSkipMsg;
     return;
   }
   const auto falloffDistance = _elem->Get<double>("falloff_distance");
 
   if (!_elem->HasElement("volume_level"))
   {
-    ignerr << "Audio source is missing a volume level. " << kSourceSkipMsg;
+    gzerr << "Audio source is missing a volume level. " << kSourceSkipMsg;
     return;
   }
   const auto volumeLevel = _elem->Get<double>("volume_level");
 
   if (!_elem->HasElement("playing"))
   {
-    ignerr << "Audio source is missing the playing attribute. "
+    gzerr << "Audio source is missing the playing attribute. "
            << kSourceSkipMsg;
     return;
   }
@@ -341,7 +341,7 @@ void LogicalAudioSensorPluginPrivate::CreateAudioSource(
 
   if (!_elem->HasElement("play_duration"))
   {
-    ignerr << "Audio source is missing the play duration. " << kSourceSkipMsg;
+    gzerr << "Audio source is missing the play duration. " << kSourceSkipMsg;
     return;
   }
   const auto playDuration = _elem->Get<unsigned int>("play_duration");
@@ -350,7 +350,7 @@ void LogicalAudioSensorPluginPrivate::CreateAudioSource(
   auto entity = _ecm.CreateEntity();
   if (entity == kNullEntity)
   {
-    ignerr << "Failed to create a logical audio source entity. "
+    gzerr << "Failed to create a logical audio source entity. "
       << kSourceSkipMsg;
     return;
   }
@@ -407,19 +407,19 @@ void LogicalAudioSensorPluginPrivate::CreateAudioSource(
   auto validName = transport::TopicUtils::AsValidTopic(fullName);
   if (validName.empty())
   {
-    ignerr << "Failed to create valid topics with entity scoped name ["
+    gzerr << "Failed to create valid topics with entity scoped name ["
            << fullName << "]" << std::endl;
     return;
   }
   if (!this->node.Advertise(validName + "/play", playSrvCb))
   {
-    ignerr << "Error advertising the play source service for source "
+    gzerr << "Error advertising the play source service for source "
       << id << " in entity " << _parent << ". " << kSourceSkipMsg;
     return;
   }
   if (!this->node.Advertise(validName + "/stop", stopSrvCb))
   {
-    ignerr << "Error advertising the stop source service for source "
+    gzerr << "Error advertising the stop source service for source "
       << id << " in entity " << _parent << ". " << kSourceSkipMsg;
     return;
   }
@@ -440,7 +440,7 @@ void LogicalAudioSensorPluginPrivate::CreateMicrophone(
 
   if (!_elem->HasElement("id"))
   {
-    ignerr << "Microphone is missing an id. " << kMicSkipMsg;
+    gzerr << "Microphone is missing an id. " << kMicSkipMsg;
     return;
   }
   const auto id = _elem->Get<unsigned int>("id");
@@ -448,7 +448,7 @@ void LogicalAudioSensorPluginPrivate::CreateMicrophone(
   // make sure no other microphones exist with the same ID in the parent
   if (_ids.find(id) != _ids.end())
   {
-    ignerr << "The specified microphone ID of " << id << " already exists for "
+    gzerr << "The specified microphone ID of " << id << " already exists for "
       << "another microphone in entity " << _parent << ". " << kMicSkipMsg;
     return;
   }
@@ -457,7 +457,7 @@ void LogicalAudioSensorPluginPrivate::CreateMicrophone(
   gz::math::Pose3d pose;
   if (!_elem->HasElement("pose"))
   {
-    ignwarn << "Microphone is missing a pose. "
+    gzwarn << "Microphone is missing a pose. "
       << "{0.0, 0.0, 0.0, 0.0, 0.0, 0.0} will be used.\n";
     pose = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   }
@@ -469,7 +469,7 @@ void LogicalAudioSensorPluginPrivate::CreateMicrophone(
   double volumeDetectionThreshold;
   if (!_elem->HasElement("volume_threshold"))
   {
-    ignwarn << "Microphone is missing a volume threshold. 0.0 will be used.\n";
+    gzwarn << "Microphone is missing a volume threshold. 0.0 will be used.\n";
     volumeDetectionThreshold = 0.0;
   }
   else
@@ -481,7 +481,7 @@ void LogicalAudioSensorPluginPrivate::CreateMicrophone(
   auto entity = _ecm.CreateEntity();
   if (entity == kNullEntity)
   {
-    ignerr << "Failed to create a logical audio microphone entity. "
+    gzerr << "Failed to create a logical audio microphone entity. "
       << kMicSkipMsg;
     return;
   }
@@ -505,7 +505,7 @@ void LogicalAudioSensorPluginPrivate::CreateMicrophone(
       scopedName(entity, _ecm) + "/detection");
   if (!pub)
   {
-    ignerr << "Error creating a detection publisher for microphone "
+    gzerr << "Error creating a detection publisher for microphone "
       << id << " in entity " << _parent << ". " << kMicSkipMsg;
     return;
   }

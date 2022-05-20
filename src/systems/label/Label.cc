@@ -50,7 +50,7 @@ void Label::Configure(const Entity &_entity,
 
   if (!_sdf->HasElement(labelTag))
   {
-    ignerr << "Failed to load Label system; label tag not found.\n";
+    gzerr << "Failed to load Label system; label tag not found.\n";
     return;
   }
 
@@ -58,7 +58,7 @@ void Label::Configure(const Entity &_entity,
 
   if (label < 0 || label > 255)
   {
-    ignerr << "Failed to configure Label system; value " << label
+    gzerr << "Failed to configure Label system; value " << label
       << " is not in [0-255] range.\n";
     return;
   }
@@ -96,7 +96,7 @@ void Label::Configure(const Entity &_entity,
   }
   else
   {
-    ignerr << "Entity [" << _entity << "] is not a visual, actor, or model. "
+    gzerr << "Entity [" << _entity << "] is not a visual, actor, or model. "
            << "Label will be ignored. \n";
     return;
   }

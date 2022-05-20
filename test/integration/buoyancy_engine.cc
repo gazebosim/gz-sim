@@ -85,7 +85,7 @@ TEST_F(BuoyancyEngineTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TestDownward))
     EXPECT_NE(submarineBuoyantPose, nullptr);
     if (submarineBuoyantPose == nullptr)
     {
-      ignerr << "Unable to get pose" <<std::endl;
+      gzerr << "Unable to get pose" <<std::endl;
       return;
     }
     poses.push_back(submarineBuoyantPose->Data());
@@ -134,7 +134,7 @@ TEST_F(BuoyancyEngineTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TestUpward))
     EXPECT_NE(submarineBuoyantPose, nullptr);
     if (submarineBuoyantPose == nullptr)
     {
-      ignerr << "Unable to get pose" <<std::endl;
+      gzerr << "Unable to get pose" <<std::endl;
       return;
     }
     poses.push_back(submarineBuoyantPose->Data());
@@ -183,7 +183,7 @@ TEST_F(BuoyancyEngineTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TestUpwardSurface))
     EXPECT_NE(submarineBuoyantPose, nullptr);
     if (submarineBuoyantPose == nullptr)
     {
-      ignerr << "Unable to get pose" <<std::endl;
+      gzerr << "Unable to get pose" <<std::endl;
       return;
     }
     poses.push_back(submarineBuoyantPose->Data());

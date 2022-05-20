@@ -48,7 +48,7 @@ void DetachableJoint::Configure(const Entity &_entity,
   this->model = Model(_entity);
   if (!this->model.Valid(_ecm))
   {
-    ignerr << "DetachableJoint should be attached to a model entity. "
+    gzerr << "DetachableJoint should be attached to a model entity. "
            << "Failed to initialize." << std::endl;
     return;
   }
@@ -59,7 +59,7 @@ void DetachableJoint::Configure(const Entity &_entity,
     this->parentLinkEntity = this->model.LinkByName(_ecm, parentLinkName);
     if (kNullEntity == this->parentLinkEntity)
     {
-      ignerr << "Link with name " << parentLinkName
+      gzerr << "Link with name " << parentLinkName
              << " not found in model " << this->model.Name(_ecm)
              << ". Make sure the parameter 'parent_link' has the "
              << "correct value. Failed to initialize.\n";
@@ -68,7 +68,7 @@ void DetachableJoint::Configure(const Entity &_entity,
   }
   else
   {
-    ignerr << "'parent_link' is a required parameter for DetachableJoint. "
+    gzerr << "'parent_link' is a required parameter for DetachableJoint. "
               "Failed to initialize.\n";
     return;
   }
@@ -79,7 +79,7 @@ void DetachableJoint::Configure(const Entity &_entity,
   }
   else
   {
-    ignerr << "'child_model' is a required parameter for DetachableJoint."
+    gzerr << "'child_model' is a required parameter for DetachableJoint."
               "Failed to initialize.\n";
     return;
   }
@@ -90,7 +90,7 @@ void DetachableJoint::Configure(const Entity &_entity,
   }
   else
   {
-    ignerr << "'child_link' is a required parameter for DetachableJoint."
+    gzerr << "'child_link' is a required parameter for DetachableJoint."
               "Failed to initialize.\n";
     return;
   }
@@ -152,20 +152,20 @@ void DetachableJoint::PreUpdate(
         this->node.Subscribe(
             this->topic, &DetachableJoint::OnDetachRequest, this);
 
-        ignmsg << "DetachableJoint subscribing to messages on "
+        gzmsg << "DetachableJoint subscribing to messages on "
                << "[" << this->topic << "]" << std::endl;
 
         this->initialized = true;
       }
       else
       {
-        ignwarn << "Child Link " << this->childLinkName
+        gzwarn << "Child Link " << this->childLinkName
                 << " could not be found.\n";
       }
     }
     else if (!this->suppressChildWarning)
     {
-      ignwarn << "Child Model " << this->childModelName
+      gzwarn << "Child Model " << this->childModelName
               << " could not be found.\n";
     }
   }

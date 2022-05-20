@@ -102,11 +102,11 @@ void GuiFileHandler::SaveWorldAs(const QString &_fileUrl,
 
   if (!status)
   {
-    ignerr << statusMsg.str();
+    gzerr << statusMsg.str();
   }
   else
   {
-    ignmsg << statusMsg.str();
+    gzmsg << statusMsg.str();
   }
   emit newSaveWorldStatus(status, QString::fromStdString(statusMsg.str()));
 }

@@ -326,13 +326,13 @@ void JointTrajectoryController::Configure(
   const auto model = Model(_entity);
   if (!model.Valid(_ecm))
   {
-    ignerr << "[JointTrajectoryController] Failed to initialize because ["
+    gzerr << "[JointTrajectoryController] Failed to initialize because ["
            << model.Name(_ecm) << "(Entity=" << _entity
            << ")] is not a model. Please make sure that"
               " JointTrajectoryController is attached to a valid model.\n";
     return;
   }
-  ignmsg << "[JointTrajectoryController] Setting up controller for ["
+  gzmsg << "[JointTrajectoryController] Setting up controller for ["
          << model.Name(_ecm) << "(Entity=" << _entity << ")].\n";
 
   // Get list of enabled joints
@@ -350,14 +350,14 @@ void JointTrajectoryController::Configure(
         _ecm.Component<components::Name>(jointEntity)->Data();
     this->dataPtr->actuatedJoints[jointName] =
         ActuatedJoint(jointEntity, jointParameters[jointName]);
-    ignmsg << "[JointTrajectoryController] Configured joint ["
+    gzmsg << "[JointTrajectoryController] Configured joint ["
            << jointName << "(Entity=" << jointEntity << ")].\n";
   }
 
   // Make sure at least one joint is configured
   if (this->dataPtr->actuatedJoints.empty())
   {
-    ignerr << "[JointTrajectoryController] Failed to initialize because ["
+    gzerr << "[JointTrajectoryController] Failed to initialize because ["
            << model.Name(_ecm) << "(Entity=" << _entity
            << ")] has no supported joints.\n";
     return;
@@ -386,12 +386,12 @@ void JointTrajectoryController::Configure(
       trajectoryTopic);
   if (validTrajectoryTopic.empty())
   {
-    ignerr << "[JointTrajectoryController] Cannot subscribe to invalid topic ["
+    gzerr << "[JointTrajectoryController] Cannot subscribe to invalid topic ["
            << trajectoryTopic << "].\n";
     return;
   }
   // Subscribe
-  ignmsg << "[JointTrajectoryController] Subscribing to joint trajectory"
+  gzmsg << "[JointTrajectoryController] Subscribing to joint trajectory"
             " commands on topic [" << validTrajectoryTopic << "].\n";
   this->dataPtr->node.Subscribe(
       validTrajectoryTopic,
@@ -400,7 +400,7 @@ void JointTrajectoryController::Configure(
 
   // Advertise progress
   const auto progressTopic = validTrajectoryTopic + "_progress";
-  ignmsg << "[JointTrajectoryController] Advertising joint trajectory progress"
+  gzmsg << "[JointTrajectoryController] Advertising joint trajectory progress"
             " on topic [" << progressTopic << "].\n";
   this->dataPtr->progressPub =
       this->dataPtr->node.Advertise<gz::msgs::Float>(progressTopic);
@@ -427,7 +427,7 @@ void JointTrajectoryController::PreUpdate(
   // Reset plugin if jump back in time is detected
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignmsg << "[JointTrajectoryController] Resetting plugin because jump back"
+    gzmsg << "[JointTrajectoryController] Resetting plugin because jump back"
               " in time ["
            << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
            << " s] was detected.\n";
@@ -548,13 +548,13 @@ std::vector<Entity> JointTrajectoryControllerPrivate::GetEnabledJoints(
       // Check that model has exactly one joint that matches the name
       if (enabledJointEntity.empty())
       {
-        ignerr << "[JointTrajectoryController] Model does not contain joint ["
+        gzerr << "[JointTrajectoryController] Model does not contain joint ["
                << enabledJointName << "], which was explicitly enabled.\n";
         continue;
       }
       else if (enabledJointEntity.size() > 1)
       {
-        ignwarn << "[JointTrajectoryController] Model has "
+        gzwarn << "[JointTrajectoryController] Model has "
                 << enabledJointEntity.size() << " duplicate joints named ["
                 << enabledJointName << "]. Only the first (Entity="
                 << enabledJointEntity[0] << ") will be configured.\n";
@@ -579,7 +579,7 @@ std::vector<Entity> JointTrajectoryControllerPrivate::GetEnabledJoints(
     {
       if (actuatedJoint.second.entity == jointEntity)
       {
-        ignwarn << "[JointTrajectoryController] Ignoring duplicate joint ["
+        gzwarn << "[JointTrajectoryController] Ignoring duplicate joint ["
                 << jointName << "(Entity=" << jointEntity << ")].\n";
         continue;
       }
@@ -609,7 +609,7 @@ std::vector<Entity> JointTrajectoryControllerPrivate::GetEnabledJoints(
       case sdf::JointType::BALL:
       case sdf::JointType::UNIVERSAL:
       {
-        ignwarn << "[JointTrajectoryController] Joint [" << jointName
+        gzwarn << "[JointTrajectoryController] Joint [" << jointName
                 << "(Entity=" << jointEntity
                 << ")] is of unsupported type. Only joints with a single axis"
                    " are supported.\n";
@@ -617,7 +617,7 @@ std::vector<Entity> JointTrajectoryControllerPrivate::GetEnabledJoints(
       }
       default:
       {
-        ignwarn << "[JointTrajectoryController] Joint [" << jointName
+        gzwarn << "[JointTrajectoryController] Joint [" << jointName
                 << "(Entity=" << jointEntity << ")] is of unknown type.\n";
         continue;
       }
@@ -635,7 +635,7 @@ void JointTrajectoryControllerPrivate::JointTrajectoryCallback(
   // Make sure the message is valid
   if (_msg.joint_names_size() == 0)
   {
-    ignwarn << "[JointTrajectoryController] JointTrajectory message does not"
+    gzwarn << "[JointTrajectoryController] JointTrajectory message does not"
                " contain any joint names.\n";
     return;
   }
@@ -644,7 +644,7 @@ void JointTrajectoryControllerPrivate::JointTrajectoryCallback(
   // contains them
   if (_msg.points(0).accelerations_size() > 0)
   {
-    ignwarn << "[JointTrajectoryController] JointTrajectory message contains"
+    gzwarn << "[JointTrajectoryController] JointTrajectory message contains"
                " acceleration commands, which are currently ignored.\n";
   }
 
@@ -653,7 +653,7 @@ void JointTrajectoryControllerPrivate::JointTrajectoryCallback(
 
   if (this->trajectory.status != Trajectory::Reached)
   {
-    ignwarn << "[JointTrajectoryController] A new JointTrajectory message was"
+    gzwarn << "[JointTrajectoryController] A new JointTrajectory message was"
                " received while executing a previous trajectory.\n";
   }
 

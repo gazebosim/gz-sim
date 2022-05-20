@@ -778,7 +778,7 @@ void Physics::Configure(const Entity &_entity,
   auto pathToLib = systemPaths.FindSharedLibrary(pluginLib);
   if (pathToLib.empty())
   {
-    ignerr << "Failed to find plugin [" << pluginLib
+    gzerr << "Failed to find plugin [" << pluginLib
            << "]. Have you checked the " << this->dataPtr->pluginPathEnv
            << " environment variable?" << std::endl;
     return;
@@ -789,7 +789,7 @@ void Physics::Configure(const Entity &_entity,
   auto plugins = pluginLoader.LoadLib(pathToLib);
   if (plugins.empty())
   {
-    ignerr << "Unable to load the [" << pathToLib << "] library.\n";
+    gzerr << "Unable to load the [" << pathToLib << "] library.\n";
     return;
   }
 
@@ -798,7 +798,7 @@ void Physics::Configure(const Entity &_entity,
       physics::FeaturePolicy3d>>();
   if (classNames.empty())
   {
-    ignerr << "No physics plugins found in library [" << pathToLib << "]."
+    gzerr << "No physics plugins found in library [" << pathToLib << "]."
            << std::endl;
     return;
   }
@@ -810,7 +810,7 @@ void Physics::Configure(const Entity &_entity,
 
     if (!plugin)
     {
-      ignwarn << "Failed to instantiate [" << className << "] from ["
+      gzwarn << "Failed to instantiate [" << className << "] from ["
               << pathToLib << "]" << std::endl;
       continue;
     }
@@ -837,12 +837,12 @@ void Physics::Configure(const Entity &_entity,
     {
       msg << "- " << feature << std::endl;
     }
-    ignwarn << msg.str();
+    gzwarn << msg.str();
   }
 
   if (nullptr == this->dataPtr->engine)
   {
-    ignerr << "Failed to load a valid physics engine from [" << pathToLib
+    gzerr << "Failed to load a valid physics engine from [" << pathToLib
            << "]."
            << std::endl;
     return;
@@ -924,7 +924,7 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
         {
           if (_warnIfEntityExists)
           {
-            ignwarn << "World entity [" << _entity
+            gzwarn << "World entity [" << _entity
                     << "] marked as new, but it's already on the map."
                     << std::endl;
           }
@@ -1013,7 +1013,7 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
         {
           if (_warnIfEntityExists)
           {
-            ignwarn << "Model entity [" << _entity
+            gzwarn << "Model entity [" << _entity
                     << "] marked as new, but it's already on the map."
                     << std::endl;
           }
@@ -1115,14 +1115,14 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
             }
             else
             {
-              ignerr << "Model: '" << _name->Data() << "' not loaded. "
+              gzerr << "Model: '" << _name->Data() << "' not loaded. "
                      << "Failed to create nested model."
                      << std::endl;
             }
           }
           else
           {
-            ignwarn << "Model's parent entity [" << _parent->Data()
+            gzwarn << "Model's parent entity [" << _parent->Data()
                     << "] not found on world / model map." << std::endl;
             return true;
           }
@@ -1161,7 +1161,7 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
         {
           if (_warnIfEntityExists)
           {
-            ignwarn << "Link entity [" << _entity
+            gzwarn << "Link entity [" << _entity
                     << "] marked as new, but it's already on the map."
                     << std::endl;
           }
@@ -1173,7 +1173,7 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
         // Check if parent model exists
         if (!this->entityModelMap.HasEntity(_parent->Data()))
         {
-          ignwarn << "Link's parent entity [" << _parent->Data()
+          gzwarn << "Link's parent entity [" << _parent->Data()
                   << "] not found on model map." << std::endl;
           return true;
         }
@@ -1233,7 +1233,7 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
         {
           if (_warnIfEntityExists)
           {
-            ignwarn << "Collision entity [" << _entity
+            gzwarn << "Collision entity [" << _entity
                     << "] marked as new, but it's already on the map."
                     << std::endl;
           }
@@ -1243,7 +1243,7 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
         // Check if parent link exists
         if (!this->entityLinkMap.HasEntity(_parent->Data()))
         {
-          ignwarn << "Collision's parent entity [" << _parent->Data()
+          gzwarn << "Collision's parent entity [" << _parent->Data()
                   << "] not found on link map." << std::endl;
           return true;
         }
@@ -1263,7 +1263,7 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
           const sdf::Mesh *meshSdf = _geom->Data().MeshShape();
           if (nullptr == meshSdf)
           {
-            ignwarn << "Mesh geometry for collision [" << _name->Data()
+            gzwarn << "Mesh geometry for collision [" << _name->Data()
                     << "] missing mesh shape." << std::endl;
             return true;
           }
@@ -1273,7 +1273,7 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
           auto *mesh = meshManager.Load(fullPath);
           if (nullptr == mesh)
           {
-            ignwarn << "Failed to load mesh from [" << fullPath
+            gzwarn << "Failed to load mesh from [" << fullPath
                     << "]." << std::endl;
             return true;
           }
@@ -1321,7 +1321,7 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
           auto heightmapSdf = _geom->Data().HeightmapShape();
           if (nullptr == heightmapSdf)
           {
-            ignwarn << "Heightmap geometry for collision [" << _name->Data()
+            gzwarn << "Heightmap geometry for collision [" << _name->Data()
                     << "] missing heightmap shape." << std::endl;
             return true;
           }
@@ -1330,7 +1330,7 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
               heightmapSdf->FilePath()));
           if (fullPath.empty())
           {
-            ignerr << "Heightmap geometry missing URI" << std::endl;
+            gzerr << "Heightmap geometry missing URI" << std::endl;
             return true;
           }
 
@@ -1344,7 +1344,7 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
             auto img = std::make_shared<common::ImageHeightmap>();
             if (img->Load(fullPath) < 0)
             {
-              ignerr << "Failed to load heightmap image data from ["
+              gzerr << "Failed to load heightmap image data from ["
                      << fullPath << "]" << std::endl;
               return true;
             }
@@ -1356,7 +1356,7 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
             auto dem = std::make_shared<common::Dem>();
             if (dem->Load(fullPath) < 0)
             {
-              ignerr << "Failed to load heightmap dem data from ["
+              gzerr << "Failed to load heightmap dem data from ["
                      << fullPath << "]" << std::endl;
               return true;
             }
@@ -1465,7 +1465,7 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
         {
           if (_warnIfEntityExists)
           {
-            ignwarn << "Joint entity [" << _entity
+            gzwarn << "Joint entity [" << _entity
                     << "] marked as new, but it's already on the map."
                     << std::endl;
           }
@@ -1475,7 +1475,7 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
         // Check if parent model exists
         if (!this->entityModelMap.HasEntity(_parentModel->Data()))
         {
-          ignwarn << "Joint's parent entity [" << _parentModel->Data()
+          gzwarn << "Joint's parent entity [" << _parentModel->Data()
                   << "] not found on model map." << std::endl;
           return true;
         }
@@ -1540,7 +1540,7 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
       {
         if (_jointInfo->Data().jointType != "fixed")
         {
-          ignerr << "Detachable joint type [" << _jointInfo->Data().jointType
+          gzerr << "Detachable joint type [" << _jointInfo->Data().jointType
                  << "] is currently not supported" << std::endl;
           return true;
         }
@@ -1549,7 +1549,7 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
         {
           if (_warnIfEntityExists)
           {
-            ignwarn << "Joint entity [" << _entity
+            gzwarn << "Joint entity [" << _entity
                     << "] marked as new, but it's already on the map."
                     << std::endl;
           }
@@ -1561,7 +1561,7 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
             this->entityLinkMap.Get(_jointInfo->Data().parentLink);
         if (!parentLinkPhys)
         {
-          ignwarn << "DetachableJoint's parent link entity ["
+          gzwarn << "DetachableJoint's parent link entity ["
                   << _jointInfo->Data().parentLink << "] not found in link map."
                   << std::endl;
           return true;
@@ -1573,7 +1573,7 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
         auto childLinkPhys = this->entityLinkMap.Get(childLinkEntity);
         if (!childLinkPhys)
         {
-          ignwarn << "Failed to find joint's child link [" << childLinkEntity
+          gzwarn << "Failed to find joint's child link [" << childLinkEntity
                   << "]." << std::endl;
           return true;
         }
@@ -1619,7 +1619,7 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
         }
         else
         {
-          ignwarn << "DetachableJoint could not be created." << std::endl;
+          gzwarn << "DetachableJoint could not be created." << std::endl;
         }
         return true;
       });
@@ -1641,14 +1641,14 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
             this->EnableContactSurfaceCustomization(world);
           }
           this->customContactSurfaceEntities[world].insert(_entity);
-          ignmsg << "Enabling contact surface customization for collision ["
+          gzmsg << "Enabling contact surface customization for collision ["
                  << _name->Data() << "]" << std::endl;
         }
         else
         {
           if (this->customContactSurfaceEntities[world].erase(_entity) > 0)
           {
-            ignmsg << "Disabling contact surface customization for collision ["
+            gzmsg << "Disabling contact surface customization for collision ["
                    << _name->Data() << "]" << std::endl;
             if (this->customContactSurfaceEntities[world].empty())
             {
@@ -1742,7 +1742,7 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
       {
         if (!this->entityJointMap.HasEntity(_entity))
         {
-          ignwarn << "Failed to find joint [" << _entity
+          gzwarn << "Failed to find joint [" << _entity
                   << "]." << std::endl;
           return true;
         }
@@ -1845,7 +1845,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
           if (limits.size() != jointPhys->GetDegreesOfFreedom())
           {
-            ignwarn << "There is a mismatch in the degrees of freedom "
+            gzwarn << "There is a mismatch in the degrees of freedom "
             << "between Joint [" << _name->Data() << "(Entity="
             << _entity << ")] and its JointPositionLimitsCmd "
             << "component. The joint has "
@@ -1876,7 +1876,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
           if (limits.size() != jointPhys->GetDegreesOfFreedom())
           {
-            ignwarn << "There is a mismatch in the degrees of freedom "
+            gzwarn << "There is a mismatch in the degrees of freedom "
             << "between Joint [" << _name->Data() << "(Entity="
             << _entity << ")] and its JointVelocityLimitsCmd "
             << "component. The joint has "
@@ -1907,7 +1907,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
           if (limits.size() != jointPhys->GetDegreesOfFreedom())
           {
-            ignwarn << "There is a mismatch in the degrees of freedom "
+            gzwarn << "There is a mismatch in the degrees of freedom "
             << "between Joint [" << _name->Data() << "(Entity="
             << _entity << ")] and its JointEffortLimitsCmd "
             << "component. The joint has "
@@ -1942,7 +1942,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
           if (jointVelocity.size() != jointPhys->GetDegreesOfFreedom())
           {
-            ignwarn << "There is a mismatch in the degrees of freedom "
+            gzwarn << "There is a mismatch in the degrees of freedom "
                     << "between Joint [" << _name->Data() << "(Entity="
                     << _entity << ")] and its JointVelocityReset "
                     << "component. The joint has "
@@ -1967,7 +1967,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
           if (jointPosition.size() != jointPhys->GetDegreesOfFreedom())
           {
-            ignwarn << "There is a mismatch in the degrees of freedom "
+            gzwarn << "There is a mismatch in the degrees of freedom "
                     << "between Joint [" << _name->Data() << "(Entity="
                     << _entity << ")] and its JointPositionyReset "
                     << "component. The joint has "
@@ -1990,7 +1990,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         {
           if (force->Data().size() != jointPhys->GetDegreesOfFreedom())
           {
-            ignwarn << "There is a mismatch in the degrees of freedom between "
+            gzwarn << "There is a mismatch in the degrees of freedom between "
                     << "Joint [" << _name->Data() << "(Entity=" << _entity
                     << ")] and its JointForceCmd component. The joint has "
                     << jointPhys->GetDegreesOfFreedom() << " while the "
@@ -2011,7 +2011,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
           if (velReset)
           {
-            ignwarn << "Found both JointVelocityReset and "
+            gzwarn << "Found both JointVelocityReset and "
                     << "JointVelocityCmd components for Joint ["
                     << _name->Data() << "(Entity=" << _entity
                     << "]). Ignoring JointVelocityCmd component."
@@ -2021,7 +2021,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
           if (velocityCmd.size() != jointPhys->GetDegreesOfFreedom())
           {
-            ignwarn << "There is a mismatch in the degrees of freedom"
+            gzwarn << "There is a mismatch in the degrees of freedom"
                     << " between Joint [" << _name->Data()
                     << "(Entity=" << _entity<< ")] and its "
                     << "JointVelocityCmd component. The joint has "
@@ -2055,7 +2055,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
       {
         if (!this->entityLinkMap.HasEntity(_entity))
         {
-          ignwarn << "Failed to find link [" << _entity
+          gzwarn << "Failed to find link [" << _entity
                   << "]." << std::endl;
           return true;
         }
@@ -2103,7 +2103,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         // world pose cmd currently not supported for nested models
         if (_entity != this->topLevelModelMap[_entity])
         {
-          ignerr << "Unable to set world pose for nested models."
+          gzerr << "Unable to set world pose for nested models."
                  << std::endl;
           return true;
         }
@@ -2160,7 +2160,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
       {
         if (!this->entityCollisionMap.HasEntity(_entity))
         {
-          ignwarn << "Failed to find shape [" << _entity << "]." << std::endl;
+          gzwarn << "Failed to find shape [" << _entity << "]." << std::endl;
           return true;
         }
 
@@ -2170,7 +2170,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
         if (!slipComplianceShape)
         {
-          ignwarn << "Can't process Wheel Slip component, physics engine "
+          gzwarn << "Can't process Wheel Slip component, physics engine "
                   << "missing SetShapeFrictionPyramidSlipCompliance"
                   << std::endl;
 
@@ -2201,7 +2201,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         // angular vel cmd currently not supported for nested models
         if (_entity != this->topLevelModelMap[_entity])
         {
-          ignerr << "Unable to set angular velocity for nested models."
+          gzerr << "Unable to set angular velocity for nested models."
                  << std::endl;
           return true;
         }
@@ -2250,7 +2250,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         // linear vel cmd currently not supported for nested models
         if (_entity != this->topLevelModelMap[_entity])
         {
-          ignerr << "Unable to set linear velocity for nested models."
+          gzerr << "Unable to set linear velocity for nested models."
                  << std::endl;
           return true;
         }
@@ -2296,7 +2296,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
       {
         if (!this->entityLinkMap.HasEntity(_entity))
         {
-          ignwarn << "Failed to find link [" << _entity
+          gzwarn << "Failed to find link [" << _entity
                   << "]." << std::endl;
           return true;
         }
@@ -2348,7 +2348,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
       {
         if (!this->entityLinkMap.HasEntity(_entity))
         {
-          ignwarn << "Failed to find link [" << _entity
+          gzwarn << "Failed to find link [" << _entity
                   << "]." << std::endl;
           return true;
         }
@@ -2403,7 +2403,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
       {
         if (!this->entityModelMap.HasEntity(_entity))
         {
-          ignwarn << "Failed to find model [" << _entity << "]." << std::endl;
+          gzwarn << "Failed to find model [" << _entity << "]." << std::endl;
           return true;
         }
 
@@ -2459,7 +2459,7 @@ void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
         auto linkPtrPhys = this->entityLinkMap.Get(_entity);
         if (nullptr == linkPtrPhys)
         {
-          ignwarn << "Failed to find link [" << _entity << "]." << std::endl;
+          gzwarn << "Failed to find link [" << _entity << "]." << std::endl;
           return true;
         }
 
@@ -2530,7 +2530,7 @@ void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
         auto jointPhys = this->entityJointMap.Get(_entity);
         if (nullptr == jointPhys)
         {
-          ignwarn << "Failed to find joint [" << _entity << "]." << std::endl;
+          gzwarn << "Failed to find joint [" << _entity << "]." << std::endl;
           return true;
         }
 
@@ -2638,14 +2638,14 @@ std::map<Entity, physics::FrameData3d> PhysicsPrivate::ChangedLinks(
       const auto linkPhys = this->entityLinkMap.GetPhysicsEntityPtr(link.body);
       if (nullptr == linkPhys)
       {
-        ignerr << "Internal error: a physics entity ptr with an ID of ["
+        gzerr << "Internal error: a physics entity ptr with an ID of ["
           << link.body << "] does not exist." << std::endl;
         continue;
       }
       auto entity = this->entityLinkMap.Get(linkPhys);
       if (entity == kNullEntity)
       {
-        ignerr << "Internal error: no gazebo entity matches the physics entity "
+        gzerr << "Internal error: no gazebo entity matches the physics entity "
           << "with ID [" << link.body << "]." << std::endl;
         continue;
       }
@@ -2673,7 +2673,7 @@ std::map<Entity, physics::FrameData3d> PhysicsPrivate::ChangedLinks(
           if (this->linkAddedToModel.find(_entity) ==
               this->linkAddedToModel.end())
           {
-            ignerr << "Internal error: link [" << _entity
+            gzerr << "Internal error: link [" << _entity
               << "] not in entity map" << std::endl;
           }
           return true;
@@ -2796,7 +2796,7 @@ void PhysicsPrivate::UpdateModelPose(const Entity _model,
     {
       auto staticComp = _ecm.Component<components::Static>(nestedModel);
       if (!staticComp || !staticComp->Data())
-        ignerr << "Model [" << nestedModel << "] has no canonical link\n";
+        gzerr << "Model [" << nestedModel << "] has no canonical link\n";
       continue;
     }
 
@@ -2828,7 +2828,7 @@ bool PhysicsPrivate::GetFrameDataRelativeToWorld(const Entity _entity,
     // Suppress error message if the link has just been added to the model.
     if (this->linkAddedToModel.find(_entity) == this->linkAddedToModel.end())
     {
-      ignerr << "Internal error: entity [" << _entity
+      gzerr << "Internal error: entity [" << _entity
         << "] not in entity map" << std::endl;
     }
     return false;
@@ -2926,7 +2926,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
       auto parentModelPoseIt = this->modelWorldPoses.find(parentEntity);
       if (parentModelPoseIt == this->modelWorldPoses.end())
       {
-        ignerr << "Internal error: parent model [" << parentEntity
+        gzerr << "Internal error: parent model [" << parentEntity
               << "] does not have a world pose available for child entity["
               << entity << "]" << std::endl;
         continue;
@@ -3384,13 +3384,13 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
 
   if (worldEntity == kNullEntity)
   {
-    ignerr << "Missing world entity.\n";
+    gzerr << "Missing world entity.\n";
     return;
   }
 
   if (!this->entityWorldMap.HasEntity(worldEntity))
   {
-    ignwarn << "Failed to find world [" << worldEntity << "]." << std::endl;
+    gzwarn << "Failed to find world [" << worldEntity << "]." << std::endl;
     return;
   }
 
@@ -3570,7 +3570,7 @@ void PhysicsPrivate::EnableContactSurfaceCustomization(const Entity &_world)
 
   this->worldContactCallbackIDs[_world] = callbackID;
 
-  ignmsg << "Enabled contact surface customization for world entity [" << _world
+  gzmsg << "Enabled contact surface customization for world entity [" << _world
          << "]" << std::endl;
 }
 
@@ -3593,7 +3593,7 @@ void PhysicsPrivate::DisableContactSurfaceCustomization(const Entity &_world)
   setContactPropertiesCallbackFeature->
    RemoveContactPropertiesCallback(this->worldContactCallbackIDs[_world]);
 
-  ignmsg << "Disabled contact surface customization for world entity ["
+  gzmsg << "Disabled contact surface customization for world entity ["
          << _world << "]" << std::endl;
 }
 

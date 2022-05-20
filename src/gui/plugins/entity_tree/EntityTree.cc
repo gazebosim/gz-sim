@@ -405,14 +405,14 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
       auto nameComp = _ecm.Component<components::Name>(entity);
       if (!nameComp)
       {
-        ignerr << "Could not add entity [" << entity << "] to the entity tree "
+        gzerr << "Could not add entity [" << entity << "] to the entity tree "
                << "because it does not have a name component.\n";
         continue;
       }
       auto parentComp = _ecm.Component<components::ParentEntity>(entity);
       if (!parentComp)
       {
-        ignerr << "Could not add entity [" << entity << "] to the entity tree "
+        gzerr << "Could not add entity [" << entity << "] to the entity tree "
                << "because it does not have a parent entity component.\n";
         continue;
       }

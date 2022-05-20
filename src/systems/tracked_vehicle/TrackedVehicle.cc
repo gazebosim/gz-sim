@@ -214,7 +214,7 @@ void TrackedVehicle::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "TrackedVehicle plugin should be attached to a model entity. "
+    gzerr << "TrackedVehicle plugin should be attached to a model entity. "
     << "Failed to initialize." << std::endl;
     return;
   }
@@ -404,18 +404,18 @@ void TrackedVehicle::Configure(const Entity &_entity,
   if (_sdf->HasElement("child_frame_id"))
     this->dataPtr->sdfChildFrameId = _sdf->Get<std::string>("child_frame_id");
 
-  ignmsg << "TrackedVehicle [" << modelName << "] loaded:" << std::endl;
-  ignmsg << "- tracks separation: " << this->dataPtr->tracksSeparation
+  gzmsg << "TrackedVehicle [" << modelName << "] loaded:" << std::endl;
+  gzmsg << "- tracks separation: " << this->dataPtr->tracksSeparation
          << " m" << std::endl;
-  ignmsg << "- track height (for odometry): " << this->dataPtr->trackHeight
+  gzmsg << "- track height (for odometry): " << this->dataPtr->trackHeight
          << " m" << std::endl;
-  ignmsg << "- initial steering efficiency: "
+  gzmsg << "- initial steering efficiency: "
          << this->dataPtr->steeringEfficiency << std::endl;
-  ignmsg << "- subscribing to twist messages on [" << topic << "]" << std::endl;
-  ignmsg << "- subscribing to steering efficiency messages on ["
+  gzmsg << "- subscribing to twist messages on [" << topic << "]" << std::endl;
+  gzmsg << "- subscribing to steering efficiency messages on ["
          << seTopic << "]" << std::endl;
-  ignmsg << "- publishing odometry on [" << odomTopic << "]" << std::endl;
-  ignmsg << "- publishing TF on [" << tfTopic << "]" << std::endl;
+  gzmsg << "- publishing odometry on [" << odomTopic << "]" << std::endl;
+  gzmsg << "- publishing TF on [" << tfTopic << "]" << std::endl;
 
   // Initialize debugging helpers if needed
   this->dataPtr->debug = _sdf->Get<bool>("debug", false).first;
@@ -453,7 +453,7 @@ void TrackedVehicle::PreUpdate(const gz::sim::UpdateInfo &_info,
 
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. Resetting odometry." << std::endl;
     this->dataPtr->odom.Init(
@@ -477,7 +477,7 @@ void TrackedVehicle::PreUpdate(const gz::sim::UpdateInfo &_info,
       static bool warned {false};
       if (!warned)
       {
-        ignwarn << "Failed to find body link [" << this->dataPtr->bodyLinkName
+        gzwarn << "Failed to find body link [" << this->dataPtr->bodyLinkName
           << "] for model [" << modelName << "]" << std::endl;
         warned = true;
       }
@@ -496,7 +496,7 @@ void TrackedVehicle::PreUpdate(const gz::sim::UpdateInfo &_info,
         this->dataPtr->leftTracks.push_back(track);
       else if (warnedModels.find(modelName) == warnedModels.end())
       {
-        ignwarn << "Failed to find left track [" << name << "] for model ["
+        gzwarn << "Failed to find left track [" << name << "] for model ["
                 << modelName << "]" << std::endl;
         warned = true;
       }
@@ -509,7 +509,7 @@ void TrackedVehicle::PreUpdate(const gz::sim::UpdateInfo &_info,
         this->dataPtr->rightTracks.push_back(track);
       else if (warnedModels.find(modelName) == warnedModels.end())
       {
-        ignwarn << "Failed to find right track [" << name << "] for model ["
+        gzwarn << "Failed to find right track [" << name << "] for model ["
                 << modelName << "]" << std::endl;
         warned = true;
       }
@@ -525,7 +525,7 @@ void TrackedVehicle::PreUpdate(const gz::sim::UpdateInfo &_info,
 
   if (warnedModels.find(modelName) != warnedModels.end())
   {
-    ignmsg << "Found tracks for model [" << modelName
+    gzmsg << "Found tracks for model [" << modelName
            << "], plugin will start working." << std::endl;
     warnedModels.erase(modelName);
   }

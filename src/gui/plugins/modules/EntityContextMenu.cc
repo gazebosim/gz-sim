@@ -143,7 +143,7 @@ void EntityContextMenu::OnRemove(
     auto runners = gui::App()->findChildren<GuiRunner *>();
     if (runners.empty() || runners[0] == nullptr)
     {
-      ignerr << "Internal error: no GuiRunner found." << std::endl;
+      gzerr << "Internal error: no GuiRunner found." << std::endl;
       return;
     }
 
@@ -151,7 +151,7 @@ void EntityContextMenu::OnRemove(
     auto worldNameVariant = runners[0]->property("worldName");
     if (!worldNameVariant.isValid())
     {
-      ignwarn << "GuiRunner's worldName not set, using["
+      gzwarn << "GuiRunner's worldName not set, using["
               << this->dataPtr->worldName << "]" << std::endl;
     }
     else
@@ -167,7 +167,7 @@ void EntityContextMenu::OnRemove(
       [](const gz::msgs::Boolean &_rep, const bool _result)
   {
     if (!_result || !_rep.data())
-      ignerr << "Error sending remove request" << std::endl;
+      gzerr << "Error sending remove request" << std::endl;
   };
 
   gz::msgs::Entity req;
@@ -184,7 +184,7 @@ void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
       [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
-      ignerr << "Error sending move to request" << std::endl;
+      gzerr << "Error sending move to request" << std::endl;
   };
 
   std::string request = _request.toStdString();
@@ -255,6 +255,6 @@ void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
   }
   else
   {
-    ignwarn << "Unknown request [" << request << "]" << std::endl;
+    gzwarn << "Unknown request [" << request << "]" << std::endl;
   }
 }

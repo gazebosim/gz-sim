@@ -50,7 +50,7 @@ void PerformerDetector::Configure(const Entity &_entity,
   this->model = Model(_entity);
   if (!this->model.Valid(_ecm))
   {
-    ignerr << "PerformerDetector should be attached to a model entity. "
+    gzerr << "PerformerDetector should be attached to a model entity. "
            << "Failed to initialize." << std::endl;
     return;
   }
@@ -73,7 +73,7 @@ void PerformerDetector::Configure(const Entity &_entity,
 
   if (!hasGeometry)
   {
-    ignerr << "'<geometry><box>' is a required parameter for "
+    gzerr << "'<geometry><box>' is a required parameter for "
               "PerformerDetector. Failed to initialize.\n";
     return;
   }
@@ -95,19 +95,19 @@ void PerformerDetector::Configure(const Entity &_entity,
         this->extraHeaderData[key] = value;
       else if (key.empty() && !value.empty())
       {
-        ignerr << "Performer detector[" << this->detectorName << "] has an "
+        gzerr << "Performer detector[" << this->detectorName << "] has an "
           << "empty <key> with an associated <value> of [" << value << "]. "
           << "This <header_data> will be ignored.\n";
       }
       else if (value.empty() && !key.empty())
       {
-        ignerr << "Performer detector[" << this->detectorName << "] has an "
+        gzerr << "Performer detector[" << this->detectorName << "] has an "
           << "empty <value> with an associated <key> of [" << key << "]. "
           << "This <header_data> will be ignored.\n";
       }
       else
       {
-        ignerr << "Performer detector[" << this->detectorName << "] has an "
+        gzerr << "Performer detector[" << this->detectorName << "] has an "
           << "empty <header_data> element. This <header_data> will be "
           << "ignored\n";
       }
@@ -120,7 +120,7 @@ void PerformerDetector::Configure(const Entity &_entity,
                              "/performer_detector/status"};
   auto topic = _sdf->Get<std::string>("topic", defaultTopic).first;
 
-  ignmsg << "PerformerDetector publishing messages on "
+  gzmsg << "PerformerDetector publishing messages on "
          << "[" << topic << "]" << std::endl;
 
   transport::Node node;
@@ -173,7 +173,7 @@ void PerformerDetector::PostUpdate(
         auto perfBox = _geometry->Data().BoxShape();
         if (nullptr == perfBox)
         {
-          ignerr << "Internal error: geometry of performer [" << _entity
+          gzerr << "Internal error: geometry of performer [" << _entity
                  << "] missing box." << std::endl;
           return true;
         }

@@ -209,7 +209,7 @@ void LogVideoRecorder::Configure(
     std::chrono::milliseconds ms(static_cast<int64_t>(t * 1000.0));
     if (this->dataPtr->startTime > ms)
     {
-      ignerr << "<start_time> cannot be larger than <end_time>" << std::endl;
+      gzerr << "<start_time> cannot be larger than <end_time>" << std::endl;
     }
     else
     {
@@ -376,7 +376,7 @@ void LogVideoRecorderPrivate::Rewind()
       [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
-      ignerr << "Error sending rewind request" << std::endl;
+      gzerr << "Error sending rewind request" << std::endl;
   };
 
 
@@ -403,7 +403,7 @@ void LogVideoRecorderPrivate::Follow(const std::string &_entity)
       [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
-      ignerr << "Error sending follow request" << std::endl;
+      gzerr << "Error sending follow request" << std::endl;
   };
 
   gz::msgs::StringMsg req;
@@ -421,7 +421,7 @@ void LogVideoRecorderPrivate::Record(bool _record)
       [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
-      ignerr << "Error sending record request" << std::endl;
+      gzerr << "Error sending record request" << std::endl;
   };
 
   gz::msgs::VideoRecord req;

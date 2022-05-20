@@ -60,7 +60,7 @@ namespace sim
     }
     else
     {
-      ignwarn << "Attempting to set unsupported data type to item ["
+      gzwarn << "Attempting to set unsupported data type to item ["
               << _item->text().toStdString() << "]" << std::endl;
     }
   }

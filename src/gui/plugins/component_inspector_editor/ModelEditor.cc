@@ -170,7 +170,7 @@ void ModelEditor::Update(const UpdateInfo &,
   {
     if (eta.parentEntity == kNullEntity)
     {
-      ignerr << "Parent entity not defined." << std::endl;
+      gzerr << "Parent entity not defined." << std::endl;
        continue;
     }
 
@@ -302,7 +302,7 @@ std::optional<sdf::Light> ModelEditorPrivate::CreateLight(
   }
   else
   {
-    ignwarn << "Light type not supported: "
+    gzwarn << "Light type not supported: "
       << _eta.geomOrLightType << std::endl;
     return std::nullopt;
   }
@@ -362,7 +362,7 @@ std::optional<sdf::Geometry> ModelEditorPrivate::CreateGeom(
   }
   else
   {
-    ignwarn << "Geometry type not supported: "
+    gzwarn << "Geometry type not supported: "
       << _eta.geomOrLightType << std::endl;
     return std::nullopt;
   }
@@ -377,7 +377,7 @@ std::optional<sdf::Link> ModelEditorPrivate::CreateLink(
   sdf::Link link;
   if (_eta.parentEntity == kNullEntity)
   {
-    ignerr << "Parent entity not defined." << std::endl;
+    gzerr << "Parent entity not defined." << std::endl;
     return std::nullopt;
   }
 
@@ -432,7 +432,7 @@ std::optional<sdf::Sensor> ModelEditorPrivate::CreateSensor(
   // Exit early if there is no parent entity
   if (_eta.parentEntity == kNullEntity)
   {
-    ignerr << "Parent entity not defined." << std::endl;
+    gzerr << "Parent entity not defined." << std::endl;
     return std::nullopt;
   }
 
@@ -500,7 +500,7 @@ std::optional<sdf::Joint> ModelEditorPrivate::CreateJoint(
     joint.SetType(sdf::JointType::SCREW);
   else
   {
-    ignwarn << "Joint type not supported: "
+    gzwarn << "Joint type not supported: "
       << _eta.geomOrLightType << std::endl;
 
     return std::nullopt;

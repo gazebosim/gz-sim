@@ -80,7 +80,7 @@ class TestModelSystem :
           // Fail to create component if link is not found
           if (link == kNullEntity)
           {
-            ignerr << "Failed to find link" << std::endl;
+            gzerr << "Failed to find link" << std::endl;
             return;
           }
 

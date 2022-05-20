@@ -55,7 +55,7 @@ void JointStatePublisher::Configure(
   this->model = Model(_entity);
   if (!this->model.Valid(_ecm))
   {
-    ignerr << "The JointStatePublisher system should be attached to a model "
+    gzerr << "The JointStatePublisher system should be attached to a model "
       << "entity. Failed to initialize." << std::endl;
     return;
   }
@@ -76,7 +76,7 @@ void JointStatePublisher::Configure(
       }
       else
       {
-        ignerr << "Joint with name[" << jointName << "] not found. "
+        gzerr << "Joint with name[" << jointName << "] not found. "
           << "The JointStatePublisher will not publish this joint.\n";
       }
 
@@ -109,7 +109,7 @@ void JointStatePublisher::CreateComponents(EntityComponentManager &_ecm,
 {
   if (this->joints.find(_joint) != this->joints.end())
   {
-    ignwarn << "Ignoring duplicate joint in a JointSatePublisher plugin.\n";
+    gzwarn << "Ignoring duplicate joint in a JointSatePublisher plugin.\n";
     return;
   }
 
@@ -169,7 +169,7 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
       this->topic = validTopic(topics);
       if (this->topic.empty())
       {
-        ignerr << "No valid topics for JointStatePublisher could be found."
+        gzerr << "No valid topics for JointStatePublisher could be found."
           << "Make sure World/Model name does'nt contain invalid characters.\n";
         return;
       }
@@ -255,7 +255,7 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
         }
         else if (!hasWarned)
         {
-          ignwarn << "Joint state publisher only supports two joint axis\n";
+          gzwarn << "Joint state publisher only supports two joint axis\n";
           hasWarned = true;
         }
       }
@@ -278,7 +278,7 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
         }
         else if (!hasWarned)
         {
-          ignwarn << "Joint state publisher only supports two joint axis\n";
+          gzwarn << "Joint state publisher only supports two joint axis\n";
           hasWarned = true;
         }
       }
@@ -301,7 +301,7 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
         }
         else if (!hasWarned)
         {
-          ignwarn << "Joint state publisher only supports two joint axis\n";
+          gzwarn << "Joint state publisher only supports two joint axis\n";
           hasWarned = true;
         }
       }

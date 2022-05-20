@@ -136,7 +136,7 @@ void OdometryPublisher::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "OdometryPublisher system plugin should be attached to a model"
+    gzerr << "OdometryPublisher system plugin should be attached to a model"
            << " entity. Failed to initialize." << std::endl;
     return;
   }
@@ -144,7 +144,7 @@ void OdometryPublisher::Configure(const Entity &_entity,
   this->dataPtr->odomFrame = this->dataPtr->model.Name(_ecm) + "/" + "odom";
   if (!_sdf->HasElement("odom_frame"))
   {
-    ignwarn << "OdometryPublisher system plugin missing <odom_frame>, "
+    gzwarn << "OdometryPublisher system plugin missing <odom_frame>, "
       << "defaults to \"" << this->dataPtr->odomFrame << "\"" << std::endl;
   }
   else
@@ -174,7 +174,7 @@ void OdometryPublisher::Configure(const Entity &_entity,
     + "/" + "base_footprint";
   if (!_sdf->HasElement("robot_base_frame"))
   {
-    ignwarn << "OdometryPublisher system plugin missing <robot_base_frame>, "
+    gzwarn << "OdometryPublisher system plugin missing <robot_base_frame>, "
       << "defaults to \"" << this->dataPtr->robotBaseFrame << "\"" << std::endl;
   }
   else
@@ -193,7 +193,7 @@ void OdometryPublisher::Configure(const Entity &_entity,
     this->dataPtr->dimensions = _sdf->Get<int>("dimensions");
     if (this->dataPtr->dimensions != 2 && this->dataPtr->dimensions != 3)
     {
-      ignerr << "OdometryPublisher system plugin <dimensions> must be 2D or 3D "
+      gzerr << "OdometryPublisher system plugin <dimensions> must be 2D or 3D "
              << "not " << this->dataPtr->dimensions
              << "D. Failed to initialize." << std::endl;
       return;
@@ -222,7 +222,7 @@ void OdometryPublisher::Configure(const Entity &_entity,
   std::string odomTopicValid {transport::TopicUtils::AsValidTopic(odomTopic)};
   if (odomTopicValid.empty())
   {
-    ignerr << "Failed to generate odom topic ["
+    gzerr << "Failed to generate odom topic ["
            << odomTopic << "]" << std::endl;
   }
   else
@@ -235,7 +235,7 @@ void OdometryPublisher::Configure(const Entity &_entity,
     transport::TopicUtils::AsValidTopic(odomCovTopic)};
   if (odomCovTopicValid.empty())
   {
-    ignerr << "Failed to generate odom topic ["
+    gzerr << "Failed to generate odom topic ["
            << odomCovTopic << "]" << std::endl;
   }
   else
@@ -254,7 +254,7 @@ void OdometryPublisher::PreUpdate(const gz::sim::UpdateInfo &_info,
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }

@@ -122,7 +122,7 @@ void ContactSensor::Load(const sdf::ElementPtr &_sdf, const std::string &_topic,
     this->topic = tmpTopic;
   }
 
-  ignmsg << "Contact system publishing on " << this->topic << std::endl;
+  gzmsg << "Contact system publishing on " << this->topic << std::endl;
   this->pub = this->node.Advertise<gz::msgs::Contacts>(this->topic);
 }
 
@@ -244,7 +244,7 @@ void ContactPrivate::RemoveSensors(
         auto sensorId = this->entitySensorMap.find(_entity);
         if (sensorId == this->entitySensorMap.end())
         {
-          ignerr << "Internal error, missing Contact sensor for entity ["
+          gzerr << "Internal error, missing Contact sensor for entity ["
                  << _entity << "]" << std::endl;
           return true;
         }
@@ -275,7 +275,7 @@ void Contact::PostUpdate(const UpdateInfo &_info,
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }

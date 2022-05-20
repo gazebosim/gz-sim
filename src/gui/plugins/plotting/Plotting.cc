@@ -140,7 +140,7 @@ PlotComponent::PlotComponent(const std::string &_type,
     this->dataPtr->data["heading"] = std::make_shared<PlotData>();
   }
   else
-    ignwarn << "Invalid Plot Component Type:" << _type << std::endl;
+    gzwarn << "Invalid Plot Component Type:" << _type << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -153,7 +153,7 @@ void PlotComponent::RegisterChart(std::string _attribute, int _chart)
 {
   if (this->dataPtr->data.count(_attribute) == 0)
   {
-    ignwarn << "Invalid Plot Component Attribute" << std::endl;
+    gzwarn << "Invalid Plot Component Attribute" << std::endl;
     return;
   }
   this->dataPtr->data[_attribute]->AddChart(_chart);
@@ -164,7 +164,7 @@ void PlotComponent::UnRegisterChart(std::string _attribute, int _chart)
 {
   if (this->dataPtr->data.count(_attribute) == 0)
   {
-    ignwarn << "Invalid Plot Component Attribute" << std::endl;
+    gzwarn << "Invalid Plot Component Attribute" << std::endl;
     return;
   }
   this->dataPtr->data[_attribute]->RemoveChart(_chart);

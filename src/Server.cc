@@ -79,7 +79,7 @@ Server::Server(const ServerConfig &_config)
     case ServerConfig::SourceType::kSdfRoot:
     {
       this->dataPtr->sdfRoot = _config.SdfRoot()->Clone();
-      ignmsg << "Loading SDF world from SDF DOM.\n";
+      gzmsg << "Loading SDF world from SDF DOM.\n";
       break;
     }
 
@@ -94,7 +94,7 @@ Server::Server(const ServerConfig &_config)
       {
         msg += "File path [" + _config.SdfFile() + "].\n";
       }
-      ignmsg <<  msg;
+      gzmsg <<  msg;
       errors = this->dataPtr->sdfRoot.LoadSdfString(_config.SdfString());
       break;
     }
@@ -106,12 +106,12 @@ Server::Server(const ServerConfig &_config)
 
       if (filePath.empty())
       {
-        ignerr << "Failed to find world [" << _config.SdfFile() << "]"
+        gzerr << "Failed to find world [" << _config.SdfFile() << "]"
                << std::endl;
         return;
       }
 
-      ignmsg << "Loading SDF world file[" << filePath << "].\n";
+      gzmsg << "Loading SDF world file[" << filePath << "].\n";
 
       // \todo(nkoenig) Async resource download.
       // This call can block for a long period of time while
@@ -125,7 +125,7 @@ Server::Server(const ServerConfig &_config)
     case ServerConfig::SourceType::kNone:
     default:
     {
-      ignmsg << "Loading default world.\n";
+      gzmsg << "Loading default world.\n";
       // Load an empty world.
       /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
       errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World());
@@ -136,7 +136,7 @@ Server::Server(const ServerConfig &_config)
   if (!errors.empty())
   {
     for (auto &err : errors)
-      ignerr << err << "\n";
+      gzerr << err << "\n";
     return;
   }
 
@@ -175,14 +175,14 @@ bool Server::Run(const bool _blocking, const uint64_t _iterations,
     std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);
     if (!this->dataPtr->sigHandler.Initialized())
     {
-      ignerr << "Signal handlers were not created. The server won't run.\n";
+      gzerr << "Signal handlers were not created. The server won't run.\n";
       return false;
     }
 
     // Do not allow running more than once.
     if (this->dataPtr->running)
     {
-      ignwarn << "The server is already runnnng.\n";
+      gzwarn << "The server is already runnnng.\n";
       return false;
     }
   }
@@ -299,7 +299,7 @@ std::optional<bool> Server::AddSystem(const SystemPluginPtr &_system,
   // Do not allow running more than once.
   if (this->dataPtr->running)
   {
-    ignerr << "Cannot add system while the server is runnnng.\n";
+    gzerr << "Cannot add system while the server is runnnng.\n";
     return false;
   }
 
@@ -319,7 +319,7 @@ std::optional<bool> Server::AddSystem(const std::shared_ptr<System> &_system,
   std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);
   if (this->dataPtr->running)
   {
-    ignerr << "Cannot add system while the server is runnnng.\n";
+    gzerr << "Cannot add system while the server is runnnng.\n";
     return false;
   }
 

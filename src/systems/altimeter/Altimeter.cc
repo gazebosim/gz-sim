@@ -112,7 +112,7 @@ void Altimeter::PreUpdate(const UpdateInfo &/*_info*/,
     auto it = this->dataPtr->entitySensorMap.find(entity);
     if (it == this->dataPtr->entitySensorMap.end())
     {
-      ignerr << "Entity [" << entity
+      gzerr << "Entity [" << entity
              << "] isn't in sensor map, this shouldn't happen." << std::endl;
       continue;
     }
@@ -131,7 +131,7 @@ void Altimeter::PostUpdate(const UpdateInfo &_info,
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -176,7 +176,7 @@ void AltimeterPrivate::AddAltimeter(
       sensors::AltimeterSensor>(data);
   if (nullptr == sensor)
   {
-    ignerr << "Failed to create sensor [" << sensorScopedName << "]"
+    gzerr << "Failed to create sensor [" << sensorScopedName << "]"
            << std::endl;
     return;
   }
@@ -250,7 +250,7 @@ void AltimeterPrivate::UpdateAltimeters(const EntityComponentManager &_ecm)
         }
         else
         {
-          ignerr << "Failed to update altimeter: " << _entity << ". "
+          gzerr << "Failed to update altimeter: " << _entity << ". "
                  << "Entity not found." << std::endl;
         }
 
@@ -270,7 +270,7 @@ void AltimeterPrivate::RemoveAltimeterEntities(
         auto sensorId = this->entitySensorMap.find(_entity);
         if (sensorId == this->entitySensorMap.end())
         {
-          ignerr << "Internal error, missing altimeter sensor for entity ["
+          gzerr << "Internal error, missing altimeter sensor for entity ["
                  << _entity << "]" << std::endl;
           return true;
         }

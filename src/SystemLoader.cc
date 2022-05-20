@@ -63,7 +63,7 @@ class gz::sim::SystemLoaderPrivate
       // We assume gz::sim corresponds to the levels feature
       if (_name != "gz::sim")
       {
-        ignerr << "Failed to load system plugin [" << _filename <<
+        gzerr << "Failed to load system plugin [" << _filename <<
                   "] : couldn't find shared library." << std::endl;
       }
       return false;
@@ -72,7 +72,7 @@ class gz::sim::SystemLoaderPrivate
     auto pluginNames = this->loader.LoadLib(pathToLib);
     if (pluginNames.empty())
     {
-      ignerr << "Failed to load system plugin [" << _filename <<
+      gzerr << "Failed to load system plugin [" << _filename <<
                 "] : couldn't load library on path [" << pathToLib <<
                 "]." << std::endl;
       return false;
@@ -81,7 +81,7 @@ class gz::sim::SystemLoaderPrivate
     auto pluginName = *pluginNames.begin();
     if (pluginName.empty())
     {
-      ignerr << "Failed to load system plugin [" << _filename <<
+      gzerr << "Failed to load system plugin [" << _filename <<
                 "] : couldn't load library on path [" << pathToLib <<
                 "]." << std::endl;
       return false;
@@ -90,7 +90,7 @@ class gz::sim::SystemLoaderPrivate
     _plugin = this->loader.Instantiate(_name);
     if (!_plugin)
     {
-      ignerr << "Failed to load system plugin [" << _name <<
+      gzerr << "Failed to load system plugin [" << _name <<
                 "] : could not instantiate from library [" << _filename <<
                 "] from path [" << pathToLib << "]." << std::endl;
       return false;
@@ -98,7 +98,7 @@ class gz::sim::SystemLoaderPrivate
 
     if (!_plugin->HasInterface<System>())
     {
-      ignerr << "Failed to load system plugin [" << _name <<
+      gzerr << "Failed to load system plugin [" << _name <<
         "] : system not found in library  [" << _filename <<
         "] from path [" << pathToLib << "]." << std::endl;
 
@@ -147,7 +147,7 @@ std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(
 
   if (_filename == "" || _name == "")
   {
-    ignerr << "Failed to instantiate system plugin: empty argument "
+    gzerr << "Failed to instantiate system plugin: empty argument "
               "[(filename): " << _filename << "] " <<
               "[(name): " << _name << "]." << std::endl;
     return {};

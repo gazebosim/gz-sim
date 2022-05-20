@@ -23,6 +23,6 @@ SampleSystem::~SampleSystem()
 void SampleSystem::PostUpdate(const gz::sim::UpdateInfo &_info,
     const gz::sim::EntityComponentManager &_ecm)
 {
-  ignmsg << "SampleSystem::PostUpdate" << std::endl;
+  gzmsg << "SampleSystem::PostUpdate" << std::endl;
 }
 //! [implementSampleSystem]

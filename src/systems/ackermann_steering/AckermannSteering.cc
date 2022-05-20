@@ -202,7 +202,7 @@ void AckermannSteering::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "AckermannSteering plugin should be attached to a model entity. "
+    gzerr << "AckermannSteering plugin should be attached to a model entity. "
            << "Failed to initialize." << std::endl;
     return;
   }
@@ -317,7 +317,7 @@ void AckermannSteering::Configure(const Entity &_entity,
   auto topic = validTopic(topics);
   if (topic.empty())
   {
-    ignerr << "AckermannSteering plugin received invalid model name "
+    gzerr << "AckermannSteering plugin received invalid model name "
            << "Failed to initialize." << std::endl;
     return;
   }
@@ -335,7 +335,7 @@ void AckermannSteering::Configure(const Entity &_entity,
   auto odomTopic = validTopic(odomTopics);
   if (topic.empty())
   {
-    ignerr << "AckermannSteering plugin received invalid model name "
+    gzerr << "AckermannSteering plugin received invalid model name "
            << "Failed to initialize." << std::endl;
     return;
   }
@@ -349,7 +349,7 @@ void AckermannSteering::Configure(const Entity &_entity,
   if (_sdf->HasElement("child_frame_id"))
     this->dataPtr->sdfChildFrameId = _sdf->Get<std::string>("child_frame_id");
 
-  ignmsg << "AckermannSteering subscribing to twist messages on [" <<
+  gzmsg << "AckermannSteering subscribing to twist messages on [" <<
       topic << "]" << std::endl;
 }
 
@@ -362,7 +362,7 @@ void AckermannSteering::PreUpdate(const gz::sim::UpdateInfo &_info,
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -383,7 +383,7 @@ void AckermannSteering::PreUpdate(const gz::sim::UpdateInfo &_info,
         this->dataPtr->leftJoints.push_back(joint);
       else if (warnedModels.find(modelName) == warnedModels.end())
       {
-        ignwarn << "Failed to find left joint [" << name << "] for model ["
+        gzwarn << "Failed to find left joint [" << name << "] for model ["
                 << modelName << "]" << std::endl;
         warned = true;
       }
@@ -396,7 +396,7 @@ void AckermannSteering::PreUpdate(const gz::sim::UpdateInfo &_info,
         this->dataPtr->rightJoints.push_back(joint);
       else if (warnedModels.find(modelName) == warnedModels.end())
       {
-        ignwarn << "Failed to find right joint [" << name << "] for model ["
+        gzwarn << "Failed to find right joint [" << name << "] for model ["
                 << modelName << "]" << std::endl;
         warned = true;
       }
@@ -408,7 +408,7 @@ void AckermannSteering::PreUpdate(const gz::sim::UpdateInfo &_info,
         this->dataPtr->leftSteeringJoints.push_back(joint);
       else if (warnedModels.find(modelName) == warnedModels.end())
       {
-        ignwarn << "Failed to find left steering joint ["
+        gzwarn << "Failed to find left steering joint ["
                 << name << "] for model ["
                 << modelName << "]" << std::endl;
         warned = true;
@@ -422,7 +422,7 @@ void AckermannSteering::PreUpdate(const gz::sim::UpdateInfo &_info,
         this->dataPtr->rightSteeringJoints.push_back(joint);
       else if (warnedModels.find(modelName) == warnedModels.end())
       {
-        ignwarn << "Failed to find right steering joint [" <<
+        gzwarn << "Failed to find right steering joint [" <<
             name << "] for model [" << modelName << "]" << std::endl;
         warned = true;
       }
@@ -440,7 +440,7 @@ void AckermannSteering::PreUpdate(const gz::sim::UpdateInfo &_info,
 
   if (warnedModels.find(modelName) != warnedModels.end())
   {
-    ignmsg << "Found joints for model [" << modelName
+    gzmsg << "Found joints for model [" << modelName
            << "], plugin will start working." << std::endl;
     warnedModels.erase(modelName);
   }

@@ -96,11 +96,11 @@ Q_INVOKABLE void Lidar::OnLidarNoise(
         lidar->SetLidarNoise(noise);
       }
       else
-        ignerr << "Unable to get the lidar noise data.\n";
+        gzerr << "Unable to get the lidar noise data.\n";
     }
     else
     {
-      ignerr << "Unable to get the lidar component.\n";
+      gzerr << "Unable to get the lidar component.\n";
     }
   };
   this->inspector->AddUpdateCallback(cb);
@@ -141,11 +141,11 @@ Q_INVOKABLE void Lidar::OnLidarChange(
         lidar->SetVerticalScanMaxAngle(_verticalScanMaxAngle);
       }
       else
-        ignerr << "Unable to get the lidar data.\n";
+        gzerr << "Unable to get the lidar data.\n";
     }
     else
     {
-      ignerr << "Unable to get the lidar component.\n";
+      gzerr << "Unable to get the lidar component.\n";
     }
   };
   this->inspector->AddUpdateCallback(cb);

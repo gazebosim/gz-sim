@@ -83,7 +83,7 @@ void ParticleEmitter2Private::OnCmd(const msgs::ParticleEmitter &_msg,
   }
   else
   {
-    ignwarn << "Topic[" << _info.Topic() << "] is not known to the particle "
+    gzwarn << "Topic[" << _info.Topic() << "] is not known to the particle "
       "emitter system. The requested command will be ignored.\n";
   }
 }
@@ -115,7 +115,7 @@ void ParticleEmitter2::Configure(const Entity &_entity,
   const components::Name *name = _ecm.Component<components::Name>(_entity);
   if (name == nullptr)
   {
-    ignerr << "World with id: " << _entity
+    gzerr << "World with id: " << _entity
            << " has no name. ParticleEmitter2 cannot create transport topics\n";
     return;
   }
@@ -124,12 +124,12 @@ void ParticleEmitter2::Configure(const Entity &_entity,
   if (this->dataPtr->node.Advertise(emittersService,
         &ParticleEmitter2Private::EmittersService, this->dataPtr.get()))
   {
-    ignmsg << "Serving particle emitter information on ["
+    gzmsg << "Serving particle emitter information on ["
       << emittersService << "]" << std::endl;
   }
   else
   {
-    ignerr << "Something went wrong, failed to advertise [" << emittersService
+    gzerr << "Something went wrong, failed to advertise [" << emittersService
            << "]" << std::endl;
   }
 }
@@ -176,11 +176,11 @@ void ParticleEmitter2::PreUpdate(const gz::sim::UpdateInfo &_info,
           if (!this->dataPtr->node.Subscribe(
                 topic, &ParticleEmitter2Private::OnCmd, this->dataPtr.get()))
           {
-            ignerr << "Error subscribing to topic [" << topic << "]. "
+            gzerr << "Error subscribing to topic [" << topic << "]. "
               << "Particle emitter will not receive updates." << std::endl;
             return false;
           }
-          ignmsg << "Particle emitter["
+          gzmsg << "Particle emitter["
             << scopedName(_entity, _ecm, "::", false) << "] subscribed "
             << "to command messages on topic[" << topic << "]\n";
 

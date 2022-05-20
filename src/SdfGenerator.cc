@@ -970,7 +970,7 @@ namespace sdf_generator
           }
           else
           {
-            ignwarn << "Error retrieving Fuel model version,"
+            gzwarn << "Error retrieving Fuel model version,"
                     << " saving model without version."
                     << std::endl;
           }

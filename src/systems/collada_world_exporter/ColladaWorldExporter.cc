@@ -210,13 +210,13 @@ class gz::sim::systems::ColladaWorldExporterPrivate
 
         if (fullPath.empty())
         {
-          ignerr << "Mesh geometry missing uri" << std::endl;
+          gzerr << "Mesh geometry missing uri" << std::endl;
           return true;
         }
         mesh = meshManager->Load(fullPath);
 
         if (!mesh) {
-          ignerr << "mesh not found!" << std::endl;
+          gzerr << "mesh not found!" << std::endl;
           return true;
         }
 
@@ -246,7 +246,7 @@ class gz::sim::systems::ColladaWorldExporterPrivate
       }
       else
       {
-        ignwarn << "Unsupported geometry type" << std::endl;
+        gzwarn << "Unsupported geometry type" << std::endl;
       }
 
       return true;
@@ -301,7 +301,7 @@ class gz::sim::systems::ColladaWorldExporterPrivate
     common::ColladaExporter exporter;
     exporter.Export(&worldMesh, "./" + worldMesh.Name(), true,
                     subMeshMatrix, lights);
-    ignmsg << "The world has been exported into the "
+    gzmsg << "The world has been exported into the "
            << "./" + worldMesh.Name() << " directory." << std::endl;
     this->exported = true;
   }

@@ -81,18 +81,18 @@ void NetworkManagerPrimary::Handshake()
     {
       if (result)
       {
-        ignmsg << "Peer initialized [" << sc->prefix << "]" << std::endl;
+        gzmsg << "Peer initialized [" << sc->prefix << "]" << std::endl;
         sc->ready = true;
       }
       else
       {
-        ignerr << "Peer service call failed [" << sc->prefix << "]"
+        gzerr << "Peer service call failed [" << sc->prefix << "]"
           << std::endl;
       }
     }
     else
     {
-      ignerr << "Peer service call timed out [" << sc->prefix << "], waited "
+      gzerr << "Peer service call timed out [" << sc->prefix << "], waited "
              << timeout << " ms" << std::endl;
     }
 
@@ -124,7 +124,7 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
   // TODO(louise) Wait for peers to be ready in a loop?
   if (!ready)
   {
-    ignerr << "Trying to step network primary before all peers are ready."
+    gzerr << "Trying to step network primary before all peers are ready."
            << std::endl;
     return false;
   }
@@ -156,7 +156,7 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
 
     if (std::future_status::ready != result)
     {
-      ignerr << "Waited 10 s and got only [" << this->secondaryStates.size()
+      gzerr << "Waited 10 s and got only [" << this->secondaryStates.size()
              << " / " << this->secondaries.size()
              << "] responses from secondaries. Stopping simulation."
              << std::endl;

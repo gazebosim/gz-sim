@@ -772,14 +772,14 @@ parsePluginsFromDoc(const tinyxml2::XMLDocument &_doc)
   auto root = _doc.RootElement();
   if (root == nullptr)
   {
-    ignerr << "No <server_config> element found when parsing plugins\n";
+    gzerr << "No <server_config> element found when parsing plugins\n";
     return ret;
   }
 
   auto plugins = root->FirstChildElement("plugins");
   if (plugins == nullptr)
   {
-    ignerr << "No <plugins> element found when parsing plugins\n";
+    gzerr << "No <plugins> element found when parsing plugins\n";
     return ret;
   }
 
@@ -795,7 +795,7 @@ parsePluginsFromDoc(const tinyxml2::XMLDocument &_doc)
     std::string name = nameStr == nullptr ? "" : nameStr;
     if (name.empty())
     {
-      ignerr << "Plugin is missing the name attribute. "
+      gzerr << "Plugin is missing the name attribute. "
         << "Skipping this plugin.\n";
       continue;
     }
@@ -805,7 +805,7 @@ parsePluginsFromDoc(const tinyxml2::XMLDocument &_doc)
     std::string file = fileStr == nullptr ? "" : fileStr;
     if (file.empty())
     {
-      ignerr << "A Plugin with name[" << name << "] is "
+      gzerr << "A Plugin with name[" << name << "] is "
         << "missing the filename attribute. Skipping this plugin.\n";
       continue;
     }
@@ -815,7 +815,7 @@ parsePluginsFromDoc(const tinyxml2::XMLDocument &_doc)
     std::string entityName = entityNameStr == nullptr ? "" : entityNameStr;
     if (entityName.empty())
     {
-      ignerr << "A Plugin with name[" << name << "] and "
+      gzerr << "A Plugin with name[" << name << "] and "
         << "filename[" << file << "] is missing the entity_name attribute. "
         << "Skipping this plugin.\n";
       continue;
@@ -826,7 +826,7 @@ parsePluginsFromDoc(const tinyxml2::XMLDocument &_doc)
     std::string entityType = entityTypeStr == nullptr ? "" : entityTypeStr;
     if (entityType.empty())
     {
-      ignerr << "A Plugin with name[" << name << "] and "
+      gzerr << "A Plugin with name[" << name << "] and "
         << "filename[" << file << "] is missing the entity_type attribute. "
         << "Skipping this plugin.\n";
       continue;
@@ -884,7 +884,7 @@ gz::sim::loadPluginInfo(bool _isPlayback)
         // This may be desired behavior, but warn just in case.
         // Some users may want to defer all loading until later
         // during runtime.
-        ignwarn << sim::kServerConfigPathEnv
+        gzwarn << sim::kServerConfigPathEnv
                 << " set but no plugins found\n";
       }
       igndbg << "Loaded (" << ret.size() << ") plugins from file " <<
@@ -897,7 +897,7 @@ gz::sim::loadPluginInfo(bool _isPlayback)
       // This may be desired behavior, but warn just in case.
       // Some users may want to defer all loading until late
       // during runtime.
-      ignwarn << sim::kServerConfigPathEnv
+      gzwarn << sim::kServerConfigPathEnv
               << " set but no file found,"
               << " no plugins loaded\n";
       return ret;
@@ -930,14 +930,14 @@ gz::sim::loadPluginInfo(bool _isPlayback)
 
     if (!gz::common::createDirectories(defaultConfigDir))
     {
-      ignerr << "Failed to create directory [" << defaultConfigDir
+      gzerr << "Failed to create directory [" << defaultConfigDir
              << "]." << std::endl;
       return ret;
     }
 
     if (!gz::common::exists(installedConfig))
     {
-      ignerr << "Failed to copy installed config [" << installedConfig
+      gzerr << "Failed to copy installed config [" << installedConfig
              << "] to default config [" << defaultConfig << "]."
              << "(file " << installedConfig << " doesn't exist)"
              << std::endl;
@@ -945,14 +945,14 @@ gz::sim::loadPluginInfo(bool _isPlayback)
     }
     else if (!gz::common::copyFile(installedConfig, defaultConfig))
     {
-      ignerr << "Failed to copy installed config [" << installedConfig
+      gzerr << "Failed to copy installed config [" << installedConfig
              << "] to default config [" << defaultConfig << "]."
              << std::endl;
       return ret;
     }
     else
     {
-      ignmsg << "Copied installed config [" << installedConfig
+      gzmsg << "Copied installed config [" << installedConfig
              << "] to default config [" << defaultConfig << "]."
              << std::endl;
     }
@@ -963,7 +963,7 @@ gz::sim::loadPluginInfo(bool _isPlayback)
   if (ret.empty())
   {
     // This may be desired behavior, but warn just in case.
-    ignwarn << "Loaded config: [" << defaultConfig
+    gzwarn << "Loaded config: [" << defaultConfig
       << "], but no plugins found\n";
   }
 

@@ -43,7 +43,7 @@ struct ElevatorStateMachineDef::IdleState : state<IdleState>
   public: template <typename Event, typename FSM>
   void on_enter(const Event &, FSM &)
   {
-    ignmsg << "The elevator is idling" << std::endl;
+    gzmsg << "The elevator is idling" << std::endl;
   }
 };
 
@@ -74,7 +74,7 @@ struct ElevatorStateMachineDef::DoorState : state<DoorState<E>>
   {
     const auto &data = _fsm.dataPtr;
     int32_t floorTarget = data->system->state;
-    ignmsg << "The elevator is " << this->Report(data) << std::endl;
+    gzmsg << "The elevator is " << this->Report(data) << std::endl;
 
     double jointTarget = this->JointTarget(data, floorTarget);
     data->SendCmd(data->system->doorJointCmdPubs[floorTarget], jointTarget);
@@ -173,7 +173,7 @@ struct ElevatorStateMachineDef::WaitState : state<WaitState>
   void on_enter(const Event &, FSM &_fsm)
   {
     const auto &data = _fsm.dataPtr;
-    ignmsg << "The elevator is waiting to close door " << data->system->state
+    gzmsg << "The elevator is waiting to close door " << data->system->state
            << std::endl;
 
     this->triggerEvent = [&_fsm] { _fsm.process_event(events::Timeout()); };
@@ -215,7 +215,7 @@ struct ElevatorStateMachineDef::MoveCabinState : state<MoveCabinState>
   {
     const auto &data = _fsm.dataPtr;
     int32_t floorTarget = data->targets.front();
-    ignmsg << "The elevator is moving the cabin [ " << data->system->state
+    gzmsg << "The elevator is moving the cabin [ " << data->system->state
            << " -> " << floorTarget << " ]" << std::endl;
 
     double jointTarget = data->system->cabinTargets[floorTarget];

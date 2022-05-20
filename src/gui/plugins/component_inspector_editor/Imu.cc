@@ -117,11 +117,11 @@ Q_INVOKABLE void Imu::OnLinearAccelerationXNoise(
         imu->SetLinearAccelerationXNoise(noise);
       }
       else
-        ignerr << "Unable to get the imu linear acceleration x noise data.\n";
+        gzerr << "Unable to get the imu linear acceleration x noise data.\n";
     }
     else
     {
-      ignerr << "Unable to get the imu component.\n";
+      gzerr << "Unable to get the imu component.\n";
     }
   };
   this->inspector->AddUpdateCallback(cb);
@@ -151,11 +151,11 @@ Q_INVOKABLE void Imu::OnLinearAccelerationYNoise(
         imu->SetLinearAccelerationYNoise(noise);
       }
       else
-        ignerr << "Unable to get the imu linear acceleration y noise data.\n";
+        gzerr << "Unable to get the imu linear acceleration y noise data.\n";
     }
     else
     {
-      ignerr << "Unable to get the imu component.\n";
+      gzerr << "Unable to get the imu component.\n";
     }
   };
   this->inspector->AddUpdateCallback(cb);
@@ -185,11 +185,11 @@ Q_INVOKABLE void Imu::OnLinearAccelerationZNoise(
         imu->SetLinearAccelerationZNoise(noise);
       }
       else
-        ignerr << "Unable to get the imu linear acceleration z noise data.\n";
+        gzerr << "Unable to get the imu linear acceleration z noise data.\n";
     }
     else
     {
-      ignerr << "Unable to get the imu component.\n";
+      gzerr << "Unable to get the imu component.\n";
     }
   };
   this->inspector->AddUpdateCallback(cb);
@@ -219,11 +219,11 @@ Q_INVOKABLE void Imu::OnAngularVelocityXNoise(
         imu->SetAngularVelocityXNoise(noise);
       }
       else
-        ignerr << "Unable to get the imu angular velocity x noise data.\n";
+        gzerr << "Unable to get the imu angular velocity x noise data.\n";
     }
     else
     {
-      ignerr << "Unable to get the imu component.\n";
+      gzerr << "Unable to get the imu component.\n";
     }
   };
   this->inspector->AddUpdateCallback(cb);
@@ -253,11 +253,11 @@ Q_INVOKABLE void Imu::OnAngularVelocityYNoise(
         imu->SetAngularVelocityYNoise(noise);
       }
       else
-        ignerr << "Unable to get the imu angular velocity y noise data.\n";
+        gzerr << "Unable to get the imu angular velocity y noise data.\n";
     }
     else
     {
-      ignerr << "Unable to get the imu component.\n";
+      gzerr << "Unable to get the imu component.\n";
     }
   };
   this->inspector->AddUpdateCallback(cb);
@@ -287,11 +287,11 @@ Q_INVOKABLE void Imu::OnAngularVelocityZNoise(
         imu->SetAngularVelocityZNoise(noise);
       }
       else
-        ignerr << "Unable to get the imu angular velocity z noise data.\n";
+        gzerr << "Unable to get the imu angular velocity z noise data.\n";
     }
     else
     {
-      ignerr << "Unable to get the imu component.\n";
+      gzerr << "Unable to get the imu component.\n";
     }
   };
   this->inspector->AddUpdateCallback(cb);

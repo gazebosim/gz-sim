@@ -112,7 +112,7 @@ void VelocityControl::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "VelocityControl plugin should be attached to a model entity. "
+    gzerr << "VelocityControl plugin should be attached to a model entity. "
            << "Failed to initialize." << std::endl;
     return;
   }
@@ -122,7 +122,7 @@ void VelocityControl::Configure(const Entity &_entity,
     this->dataPtr->linearVelocity = _sdf->Get<math::Vector3d>("initial_linear");
     msgs::Set(this->dataPtr->targetVel.mutable_linear(),
         this->dataPtr->linearVelocity);
-    ignmsg << "Linear velocity initialized to ["
+    gzmsg << "Linear velocity initialized to ["
            << this->dataPtr->linearVelocity << "]" << std::endl;
   }
 
@@ -132,7 +132,7 @@ void VelocityControl::Configure(const Entity &_entity,
         _sdf->Get<math::Vector3d>("initial_angular");
     msgs::Set(this->dataPtr->targetVel.mutable_angular(),
         this->dataPtr->angularVelocity);
-    ignmsg << "Angular velocity initialized to ["
+    gzmsg << "Angular velocity initialized to ["
            << this->dataPtr->angularVelocity << "]" << std::endl;
   }
 
@@ -147,7 +147,7 @@ void VelocityControl::Configure(const Entity &_entity,
   auto modelTopic = validTopic(modelTopics);
   this->dataPtr->node.Subscribe(
     modelTopic, &VelocityControlPrivate::OnCmdVel, this->dataPtr.get());
-  ignmsg << "VelocityControl subscribing to twist messages on ["
+  gzmsg << "VelocityControl subscribing to twist messages on ["
          << modelTopic << "]"
          << std::endl;
 
@@ -173,7 +173,7 @@ void VelocityControl::Configure(const Entity &_entity,
     linkTopic = transport::TopicUtils::AsValidTopic(linkTopic);
     this->dataPtr->node.Subscribe(
         linkTopic, &VelocityControlPrivate::OnLinkCmdVel, this->dataPtr.get());
-    ignmsg << "VelocityControl subscribing to twist messages on ["
+    gzmsg << "VelocityControl subscribing to twist messages on ["
            << linkTopic << "]"
            << std::endl;
   }
@@ -188,7 +188,7 @@ void VelocityControl::PreUpdate(const gz::sim::UpdateInfo &_info,
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -250,7 +250,7 @@ void VelocityControl::PreUpdate(const gz::sim::UpdateInfo &_info,
           this->dataPtr->links.insert({linkName, link});
         else
         {
-          ignwarn << "Failed to find link [" << linkName
+          gzwarn << "Failed to find link [" << linkName
                 << "] for model [" << modelName << "]" << std::endl;
         }
       }
@@ -277,7 +277,7 @@ void VelocityControl::PreUpdate(const gz::sim::UpdateInfo &_info,
     }
     else
     {
-      ignwarn << "No link found for angular velocity cmd ["
+      gzwarn << "No link found for angular velocity cmd ["
               << linkName << "]" << std::endl;
     }
   }
@@ -301,7 +301,7 @@ void VelocityControl::PreUpdate(const gz::sim::UpdateInfo &_info,
     }
     else
     {
-      ignwarn << "No link found for linear velocity cmd ["
+      gzwarn << "No link found for linear velocity cmd ["
               << linkName << "]" << std::endl;
     }
   }

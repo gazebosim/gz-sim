@@ -168,7 +168,7 @@ bool CameraVideoRecorderPrivate::OnRecordVideo(const msgs::VideoRecord &_msg,
       if (this->recordVideoFormat != "mp4" && this->recordVideoFormat!= "ogv" &&
           this->recordVideoFormat != "avi")
       {
-        ignerr << "Video encoding format: '" << this->recordVideoFormat
+        gzerr << "Video encoding format: '" << this->recordVideoFormat
                << "' not supported. Available formats are: mp4, ogv, and avi."
                << std::endl;
         _res.set_data(false);
@@ -220,7 +220,7 @@ void CameraVideoRecorder::Configure(
       _ecm.Component<components::Camera>(_entity);
   if (!cameraEntComp)
   {
-    ignerr << "The camera video recorder system can only be attached to a "
+    gzerr << "The camera video recorder system can only be attached to a "
            << "camera sensor." << std::endl;
   }
 
@@ -233,7 +233,7 @@ void CameraVideoRecorder::Configure(
         _sdf->Get<std::string>("service"));
     if (this->dataPtr->service.empty())
     {
-      ignerr << "Service [" << _sdf->Get<std::string>("service")
+      gzerr << "Service [" << _sdf->Get<std::string>("service")
              << "] not valid. Ignoring." << std::endl;
     }
   }
@@ -248,7 +248,7 @@ void CameraVideoRecorder::Configure(
     topic = transport::TopicUtils::AsValidTopic(scoped + "/image");
     if (topic.empty())
     {
-      ignerr << "Failed to generate valid topic for entity [" << scoped
+      gzerr << "Failed to generate valid topic for entity [" << scoped
              << "]" << std::endl;
     }
   }
@@ -268,7 +268,7 @@ void CameraVideoRecorder::Configure(
   std::string recorderStatsTopic = this->dataPtr->sensorTopic + "/stats";
   this->dataPtr->recorderStatsPub =
     this->dataPtr->node.Advertise<msgs::Time>(recorderStatsTopic);
-  ignmsg << "Camera Video recorder stats topic advertised on ["
+  gzmsg << "Camera Video recorder stats topic advertised on ["
     << recorderStatsTopic << "]" << std::endl;
 }
 
@@ -296,14 +296,14 @@ void CameraVideoRecorderPrivate::OnPostRender()
     auto sensor = this->scene->SensorByName(this->cameraName);
     if (!sensor)
     {
-      ignerr << "Unable to find sensor: " << this->cameraName
+      gzerr << "Unable to find sensor: " << this->cameraName
              << std::endl;
       return;
     }
     this->camera = std::dynamic_pointer_cast<rendering::Camera>(sensor);
     if (!this->camera)
     {
-      ignerr << "Sensor: " << this->cameraName << " is not a caemra"
+      gzerr << "Sensor: " << this->cameraName << " is not a caemra"
              << std::endl;
       return;
     }
@@ -381,7 +381,7 @@ void CameraVideoRecorderPrivate::OnPostRender()
       this->recordStartTime = std::chrono::steady_clock::time_point(
             std::chrono::duration(std::chrono::seconds(0)));
 
-      ignmsg << "Start video recording on [" << this->service << "]. "
+      gzmsg << "Start video recording on [" << this->service << "]. "
              << "Encoding to tmp file: ["
              << this->tmpVideoFilename << "]" << std::endl;
     }
@@ -395,7 +395,7 @@ void CameraVideoRecorderPrivate::OnPostRender()
     // stop encoding
     this->videoEncoder.Stop();
 
-    ignmsg << "Stop video recording on [" << this->service << "]." << std::endl;
+    gzmsg << "Stop video recording on [" << this->service << "]." << std::endl;
 
     if (common::exists(this->tmpVideoFilename))
     {
@@ -405,7 +405,7 @@ void CameraVideoRecorderPrivate::OnPostRender()
       if (parentPath != this->recordVideoSavePath &&
           !common::exists(parentPath) && !common::createDirectory(parentPath))
       {
-        ignerr << "Unable to create directory[" << parentPath
+        gzerr << "Unable to create directory[" << parentPath
           << "]. Video file[" << this->tmpVideoFilename
           << "] will not be moved." << std::endl;
       }
@@ -416,7 +416,7 @@ void CameraVideoRecorderPrivate::OnPostRender()
         // Remove old temp file, if it exists.
         std::remove(this->tmpVideoFilename.c_str());
 
-        ignmsg << "Saving tmp video[" << this->tmpVideoFilename << "] file to ["
+        gzmsg << "Saving tmp video[" << this->tmpVideoFilename << "] file to ["
                << this->recordVideoSavePath << "]" << std::endl;
       }
     }
@@ -448,7 +448,7 @@ void CameraVideoRecorder::PostUpdate(const UpdateInfo &_info,
         "/record_video");
     if (this->dataPtr->service.empty())
     {
-      ignerr << "Failed to create valid service for [" << scoped << "]"
+      gzerr << "Failed to create valid service for [" << scoped << "]"
              << std::endl;
     }
     return;
@@ -456,7 +456,7 @@ void CameraVideoRecorder::PostUpdate(const UpdateInfo &_info,
 
   this->dataPtr->node.Advertise(this->dataPtr->service,
        &CameraVideoRecorderPrivate::OnRecordVideo, this->dataPtr.get());
-  ignmsg << "Record video service on ["
+  gzmsg << "Record video service on ["
        << this->dataPtr->service << "]" << std::endl;
 }
 

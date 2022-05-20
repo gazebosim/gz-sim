@@ -155,7 +155,7 @@ bool ServerPrivate::Run(const uint64_t _iterations,
 
     if (!networkReady || receivedStop)
     {
-      ignerr << "Failed to start network, simulation terminating" << std::endl;
+      gzerr << "Failed to start network, simulation terminating" << std::endl;
       return false;
     }
   }
@@ -321,11 +321,11 @@ void ServerPrivate::SetupTransport()
   std::string worldsService{"/gazebo/worlds"};
   if (this->node.Advertise(worldsService, &ServerPrivate::WorldsService, this))
   {
-    ignmsg << "Serving world names on [" << worldsService << "]" << std::endl;
+    gzmsg << "Serving world names on [" << worldsService << "]" << std::endl;
   }
   else
   {
-    ignerr << "Something went wrong, failed to advertise [" << worldsService
+    gzerr << "Something went wrong, failed to advertise [" << worldsService
            << "]" << std::endl;
   }
 
@@ -334,12 +334,12 @@ void ServerPrivate::SetupTransport()
   if (this->node.Advertise(addPathService,
       &ServerPrivate::AddResourcePathsService, this))
   {
-    ignmsg << "Resource path add service on [" << addPathService << "]."
+    gzmsg << "Resource path add service on [" << addPathService << "]."
            << std::endl;
   }
   else
   {
-    ignerr << "Something went wrong, failed to advertise [" << addPathService
+    gzerr << "Something went wrong, failed to advertise [" << addPathService
            << "]" << std::endl;
   }
 
@@ -347,12 +347,12 @@ void ServerPrivate::SetupTransport()
   if (this->node.Advertise(getPathService,
       &ServerPrivate::ResourcePathsService, this))
   {
-    ignmsg << "Resource path get service on [" << getPathService << "]."
+    gzmsg << "Resource path get service on [" << getPathService << "]."
            << std::endl;
   }
   else
   {
-    ignerr << "Something went wrong, failed to advertise [" << getPathService
+    gzerr << "Something went wrong, failed to advertise [" << getPathService
            << "]" << std::endl;
   }
 
@@ -361,12 +361,12 @@ void ServerPrivate::SetupTransport()
 
   if (this->pathPub)
   {
-    ignmsg << "Resource paths published on [" << pathTopic << "]."
+    gzmsg << "Resource paths published on [" << pathTopic << "]."
            << std::endl;
   }
   else
   {
-    ignerr << "Something went wrong, failed to advertise [" << pathTopic
+    gzerr << "Something went wrong, failed to advertise [" << pathTopic
            << "]" << std::endl;
   }
 
@@ -374,12 +374,12 @@ void ServerPrivate::SetupTransport()
   if (this->node.Advertise(serverControlService,
                            &ServerPrivate::ServerControlService, this))
   {
-    ignmsg << "Server control service on [" << serverControlService << "]."
+    gzmsg << "Server control service on [" << serverControlService << "]."
            << std::endl;
   }
   else
   {
-    ignerr << "Something went wrong, failed to advertise ["
+    gzerr << "Something went wrong, failed to advertise ["
            << serverControlService << "]" << std::endl;
   }
 }
@@ -410,7 +410,7 @@ bool ServerPrivate::ServerControlService(
     if (!this->stopThread)
     {
       this->stopThread = std::make_shared<std::thread>([this]{
-        ignlog << "Stopping Gazebo" << std::endl;
+        gzlog << "Stopping Gazebo" << std::endl;
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
         this->Stop();
       });
@@ -421,21 +421,21 @@ bool ServerPrivate::ServerControlService(
   // TODO(chapulina): implement world cloning
   if (_req.clone() || _req.new_port() != 0 || !_req.save_world_name().empty())
   {
-    ignerr << "ServerControl::clone is not implemented" << std::endl;
+    gzerr << "ServerControl::clone is not implemented" << std::endl;
     _res.set_data(false);
   }
 
   // TODO(chapulina): implement adding a new world
   if (_req.new_world())
   {
-    ignerr << "ServerControl::new_world is not implemented" << std::endl;
+    gzerr << "ServerControl::new_world is not implemented" << std::endl;
     _res.set_data(false);
   }
 
   // TODO(chapulina): implement loading a world
   if (!_req.open_filename().empty())
   {
-    ignerr << "ServerControl::open_filename is not implemented" << std::endl;
+    gzerr << "ServerControl::open_filename is not implemented" << std::endl;
     _res.set_data(false);
   }
 

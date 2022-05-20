@@ -81,7 +81,7 @@ namespace gz
                 }
                 else
                 {
-                  ignerr << "Failed to connect event: "
+                  gzerr << "Failed to connect event: "
                     << typeid(E).name() << std::endl;
                   return nullptr;
                 }
@@ -113,7 +113,7 @@ namespace gz
                 }
                 else
                 {
-                  ignerr << "Failed to signal event: "
+                  gzerr << "Failed to signal event: "
                     << typeid(E).name() << std::endl;
                 }
               }

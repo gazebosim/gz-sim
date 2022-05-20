@@ -231,7 +231,7 @@ void Elevator::Configure(const Entity &_entity,
       _sdf->Get<std::string>("cmd_topic", topicPrefix + "/cmd").first;
   this->dataPtr->node.Subscribe(cmdTopicName, &ElevatorPrivate::OnCmdMsg,
                                 this->dataPtr.get());
-  ignmsg << "System " << this->dataPtr->model.Name(_ecm) << " subscribed to "
+  gzmsg << "System " << this->dataPtr->model.Name(_ecm) << " subscribed to "
          << cmdTopicName << " for command messages" << std::endl;
 }
 
@@ -272,7 +272,7 @@ bool ElevatorPrivate::InitCabin(const std::string &_cabinJointName,
   this->cabinJoint = this->model.JointByName(_ecm, _cabinJointName);
   if (this->cabinJoint == kNullEntity)
   {
-    ignerr << "Failed to find cabin joint " << _cabinJointName << std::endl;
+    gzerr << "Failed to find cabin joint " << _cabinJointName << std::endl;
     return false;
   }
   if (!_ecm.EntityHasComponentType(this->cabinJoint,
@@ -298,7 +298,7 @@ bool ElevatorPrivate::InitCabin(const std::string &_cabinJointName,
     auto link = this->model.LinkByName(_ecm, name);
     if (link == kNullEntity)
     {
-      ignerr << "Failed to find floor link " << name << std::endl;
+      gzerr << "Failed to find floor link " << name << std::endl;
       return false;
     }
     auto z = _ecm.Component<components::Pose>(link)->Data().Z();
@@ -326,7 +326,7 @@ bool ElevatorPrivate::InitDoors(const std::string &_doorJointPrefix,
     auto joint = this->model.JointByName(_ecm, name);
     if (joint == kNullEntity)
     {
-      ignerr << "Failed to find door joint " << name << std::endl;
+      gzerr << "Failed to find door joint " << name << std::endl;
       return false;
     }
     if (!_ecm.EntityHasComponentType(joint,
@@ -434,7 +434,7 @@ void ElevatorPrivate::OnCmdMsg(const msgs::Int32 &_msg)
   auto target = _msg.data();
   if (target < 0 || target >= static_cast<int32_t>(this->cabinTargets.size()))
   {
-    ignwarn << "Invalid target [" << target << "]; command must be in [0,"
+    gzwarn << "Invalid target [" << target << "]; command must be in [0,"
             << this->cabinTargets.size() << ")" << std::endl;
     return;
   }

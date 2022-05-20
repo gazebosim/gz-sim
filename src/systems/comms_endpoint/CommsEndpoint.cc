@@ -126,7 +126,7 @@ void CommsEndpoint::Configure(const Entity &_entity,
   // Parse <address>.
   if (!_sdf->HasElement("address"))
   {
-    ignerr << "No <address> specified." << std::endl;
+    gzerr << "No <address> specified." << std::endl;
     return;
   }
   this->dataPtr->address = _sdf->Get<std::string>("address");
@@ -134,7 +134,7 @@ void CommsEndpoint::Configure(const Entity &_entity,
   // Parse <topic>.
   if (!_sdf->HasElement("topic"))
   {
-    ignerr << "No <topic> specified." << std::endl;
+    gzerr << "No <topic> specified." << std::endl;
     return;
   }
   this->dataPtr->topic = _sdf->Get<std::string>("topic");

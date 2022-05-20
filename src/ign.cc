@@ -70,7 +70,7 @@ extern "C" const char *findFuelResource(
   // Attempt to find cached copy, and then attempt download
   if (fuelClient.CachedWorld(gz::common::URI(_pathToResource), path))
   {
-    ignmsg << "Cached world found." << std::endl;
+    gzmsg << "Cached world found." << std::endl;
     worldPath = path;
   }
   // cppcheck-suppress syntaxError
@@ -78,12 +78,12 @@ extern "C" const char *findFuelResource(
     fuelClient.DownloadWorld(gz::common::URI(_pathToResource), path);
     result)
   {
-    ignmsg << "Successfully downloaded world from fuel." << std::endl;
+    gzmsg << "Successfully downloaded world from fuel." << std::endl;
     worldPath = path;
   }
   else
   {
-    ignwarn << "Fuel world download failed because " << result.ReadableResult()
+    gzwarn << "Fuel world download failed because " << result.ReadableResult()
         << std::endl;
     return "";
   }
@@ -145,7 +145,7 @@ extern "C" int runServer(const char *_sdfString,
   {
     if (_playback != nullptr && std::strlen(_playback) > 0)
     {
-      ignerr << "Both record and playback are specified. Only specify one.\n";
+      gzerr << "Both record and playback are specified. Only specify one.\n";
       return -1;
     }
 
@@ -189,22 +189,22 @@ extern "C" int runServer(const char *_sdfString,
           }
 
           // Create log file before printing any messages so they can be logged
-          ignLogInit(recordPathMod, "server_console.log");
+          gzLogInit(recordPathMod, "server_console.log");
 
           if (recordMsg)
           {
-            ignmsg << "Log path already exists on disk! Existing files will "
+            gzmsg << "Log path already exists on disk! Existing files will "
               << "be overwritten." << std::endl;
-            ignmsg << "Removing existing path [" << recordPathMod << "]\n";
+            gzmsg << "Removing existing path [" << recordPathMod << "]\n";
           }
           if (cmpMsg)
           {
             if (_logCompress > 0)
             {
-              ignwarn << "Compressed log path already exists on disk! Existing "
+              gzwarn << "Compressed log path already exists on disk! Existing "
                 << "files will be overwritten." << std::endl;
             }
-            ignmsg << "Removing existing compressed file [" << cmpPath << "]\n";
+            gzmsg << "Removing existing compressed file [" << cmpPath << "]\n";
           }
         }
         // Otherwise rename to unique path
@@ -239,27 +239,27 @@ extern "C" int runServer(const char *_sdfString,
             cmpPath += ".zip";
           }
 
-          ignLogInit(recordPathMod, "server_console.log");
-          ignwarn << "Log path already exists on disk! "
+          gzLogInit(recordPathMod, "server_console.log");
+          gzwarn << "Log path already exists on disk! "
             << "Recording instead to [" << recordPathMod << "]" << std::endl;
           if (_logCompress > 0)
           {
-            ignwarn << "Compressed log path already exists on disk! "
+            gzwarn << "Compressed log path already exists on disk! "
               << "Recording instead to [" << cmpPath << "]" << std::endl;
           }
         }
       }
       else
       {
-        ignLogInit(recordPathMod, "server_console.log");
+        gzLogInit(recordPathMod, "server_console.log");
       }
     }
     // Empty record path specified. Use default.
     else
     {
       // Create log file before printing any messages so they can be logged
-      ignLogInit(recordPathMod, "server_console.log");
-      ignmsg << "Recording states to default path [" << recordPathMod << "]"
+      gzLogInit(recordPathMod, "server_console.log");
+      gzmsg << "Recording states to default path [" << recordPathMod << "]"
              << std::endl;
     }
     serverConfig.SetLogRecordPath(recordPathMod);
@@ -273,7 +273,7 @@ extern "C" int runServer(const char *_sdfString,
   }
   else
   {
-    ignLogInit(serverConfig.LogRecordPath(), "server_console.log");
+    gzLogInit(serverConfig.LogRecordPath(), "server_console.log");
   }
 
   if (_logCompress > 0)
@@ -281,7 +281,7 @@ extern "C" int runServer(const char *_sdfString,
     serverConfig.SetLogRecordCompressPath(cmpPath);
   }
 
-  ignmsg << "Gazebo Server v" << GZ_SIM_VERSION_FULL
+  gzmsg << "Gazebo Server v" << GZ_SIM_VERSION_FULL
          << std::endl;
 
   // Set the SDF string to user
@@ -289,7 +289,7 @@ extern "C" int runServer(const char *_sdfString,
   {
     if (!serverConfig.SetSdfString(_sdfString))
     {
-      ignerr << "Failed to set SDF string [" << _sdfString << "]" << std::endl;
+      gzerr << "Failed to set SDF string [" << _sdfString << "]" << std::endl;
       return -1;
     }
   }
@@ -302,13 +302,13 @@ extern "C" int runServer(const char *_sdfString,
   // Set whether levels should be used.
   if (_levels > 0)
   {
-    ignmsg << "Using the level system\n";
+    gzmsg << "Using the level system\n";
     serverConfig.SetUseLevels(true);
   }
 
   if (_networkRole && std::strlen(_networkRole) > 0)
   {
-    ignmsg << "Using the distributed simulation and levels systems\n";
+    gzmsg << "Using the distributed simulation and levels systems\n";
     serverConfig.SetNetworkRole(_networkRole);
     serverConfig.SetNetworkSecondaries(_networkSecondaries);
     serverConfig.SetUseLevels(true);
@@ -318,13 +318,13 @@ extern "C" int runServer(const char *_sdfString,
   {
     if (_sdfString != nullptr && std::strlen(_sdfString) > 0)
     {
-      ignerr << "Both an SDF file and playback flag are specified. "
+      gzerr << "Both an SDF file and playback flag are specified. "
         << "Only specify one.\n";
       return -1;
     }
     else
     {
-      ignmsg << "Playing back states" << _playback << std::endl;
+      gzmsg << "Playing back states" << _playback << std::endl;
       serverConfig.SetLogPlaybackPath(gz::common::absPath(
         std::string(_playback)));
     }

@@ -124,7 +124,7 @@ namespace serializers
           static bool warned{false};
           if (!warned)
           {
-            ignwarn << "Trying to serialize component with data type ["
+            gzwarn << "Trying to serialize component with data type ["
                     << typeid(DataType).name() << "], which doesn't have "
                     << "`operator<<`. Component will not be serialized."
                     << std::endl;
@@ -141,7 +141,7 @@ namespace serializers
         static bool warned{false};
         if (!warned)
         {
-          ignwarn << "Trying to serialize component with data type ["
+          gzwarn << "Trying to serialize component with data type ["
                   << typeid(DataType).name() << "], which doesn't have "
                   << "`operator<<`. Component will not be serialized."
                   << std::endl;
@@ -169,7 +169,7 @@ namespace serializers
           static bool warned{false};
           if (!warned)
           {
-            ignwarn << "Trying to deserialize component with data type ["
+            gzwarn << "Trying to deserialize component with data type ["
                     << typeid(DataType).name() << "], which doesn't have "
                     << "`operator>>`. Component will not be deserialized."
                     << std::endl;
@@ -186,7 +186,7 @@ namespace serializers
         static bool warned{false};
         if (!warned)
         {
-          ignwarn << "Trying to deserialize component with data type ["
+          gzwarn << "Trying to deserialize component with data type ["
                   << typeid(DataType).name() << "], which doesn't have "
                   << "`operator>>`. Component will not be deserialized."
                   << std::endl;
@@ -247,7 +247,7 @@ namespace components
       static bool warned{false};
       if (!warned)
       {
-        ignwarn << "Trying to serialize component of type [" << this->TypeId()
+        gzwarn << "Trying to serialize component of type [" << this->TypeId()
                 << "], which hasn't implemented the `Serialize` function. "
                 << "Component will not be serialized." << std::endl;
         warned = true;
@@ -266,7 +266,7 @@ namespace components
       static bool warned{false};
       if (!warned)
       {
-        ignwarn << "Trying to deserialize component of type ["
+        gzwarn << "Trying to deserialize component of type ["
                 << this->TypeId() << "], which hasn't implemented the "
                 << "`Deserialize` function. Component will not be deserialized."
                 << std::endl;

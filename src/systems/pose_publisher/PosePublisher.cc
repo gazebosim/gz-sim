@@ -187,7 +187,7 @@ void PosePublisher::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "PosePublisher plugin should be attached to a model entity. "
+    gzerr << "PosePublisher plugin should be attached to a model entity. "
       << "Failed to initialize." << std::endl;
     return;
   }
@@ -255,7 +255,7 @@ void PosePublisher::Configure(const Entity &_entity,
   if (poseTopic.empty())
   {
     poseTopic = "/pose";
-    ignerr << "Empty pose topic generated for pose_publisher system. "
+    gzerr << "Empty pose topic generated for pose_publisher system. "
            << "Setting to " << poseTopic << std::endl;
   }
   std::string staticPoseTopic = poseTopic + "_static";
@@ -294,7 +294,7 @@ void PosePublisher::PostUpdate(const UpdateInfo &_info,
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -484,7 +484,7 @@ void PosePublisherPrivate::InitializeEntitiesToPublish(
   {
     if (this->entitiesToPublish.find(ent) == this->entitiesToPublish.end())
     {
-      ignwarn << "Entity id: '" << ent << "' not found when creating a list "
+      gzwarn << "Entity id: '" << ent << "' not found when creating a list "
               << "of dynamic entities in pose publisher." << std::endl;
     }
   }

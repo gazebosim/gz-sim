@@ -54,7 +54,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 {
   if (nullptr == _world)
   {
-    ignerr << "Can't start simulation runner with null world." << std::endl;
+    gzerr << "Can't start simulation runner with null world." << std::endl;
     return;
   }
 
@@ -154,13 +154,13 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
     {
       if (this->networkMgr->IsPrimary())
       {
-        ignmsg << "Network Primary, expects ["
+        gzmsg << "Network Primary, expects ["
           << this->networkMgr->Config().numSecondariesExpected
           << "] secondaries." << std::endl;
       }
       else if (this->networkMgr->IsSecondary())
       {
-        ignmsg << "Network Secondary, with namespace ["
+        gzmsg << "Network Secondary, with namespace ["
           << this->networkMgr->Namespace() << "]." << std::endl;
       }
     }
@@ -180,7 +180,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   if (this->systemMgr->TotalByEntity(
       worldEntity(this->entityCompMgr)).empty())
   {
-    ignmsg << "No systems loaded from SDF, loading defaults" << std::endl;
+    gzmsg << "No systems loaded from SDF, loading defaults" << std::endl;
     bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
     auto plugins = gz::sim::loadPluginInfo(isPlayback);
     this->LoadServerPlugins(plugins);
@@ -199,7 +199,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   auto validNs = transport::TopicUtils::AsValidTopic(ns);
   if (validNs.empty())
   {
-    ignerr << "Invalid namespace [" << ns
+    gzerr << "Invalid namespace [" << ns
            << "], not initializing runner transport." << std::endl;
     return;
   }
@@ -214,7 +214,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->node->Advertise("playback/control",
       &SimulationRunner::OnPlaybackControl, this);
 
-  ignmsg << "Serving world controls on [" << opts.NameSpace()
+  gzmsg << "Serving world controls on [" << opts.NameSpace()
          << "/control], [" << opts.NameSpace() << "/control/state] and ["
          << opts.NameSpace() << "/playback/control]" << std::endl;
 
@@ -228,17 +228,17 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   std::string infoService{"gui/info"};
   this->node->Advertise(infoService, &SimulationRunner::GuiInfoService, this);
 
-  ignmsg << "Serving GUI information on [" << opts.NameSpace() << "/"
+  gzmsg << "Serving GUI information on [" << opts.NameSpace() << "/"
          << infoService << "]" << std::endl;
 
-  ignmsg << "World [" << _world->Name() << "] initialized with ["
+  gzmsg << "World [" << _world->Name() << "] initialized with ["
          << physics->Name() << "] physics profile." << std::endl;
 
   std::string genWorldSdfService{"generate_world_sdf"};
   this->node->Advertise(
       genWorldSdfService, &SimulationRunner::GenerateWorldSdf, this);
 
-  ignmsg << "Serving world SDF generation service on [" << opts.NameSpace()
+  gzmsg << "Serving world SDF generation service on [" << opts.NameSpace()
          << "/" << genWorldSdfService << "]" << std::endl;
 }
 
@@ -665,7 +665,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
     if (!publishers.empty())
     {
-      ignwarn << "Found additional publishers on /stats," <<
+      gzwarn << "Found additional publishers on /stats," <<
                  " using namespaced stats topic only" << std::endl;
       igndbg << "Publishers [Address, Message Type]:\n";
 
@@ -678,7 +678,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     }
     else
     {
-      ignmsg << "Found no publishers on /stats, adding root stats topic"
+      gzmsg << "Found no publishers on /stats, adding root stats topic"
              << std::endl;
       this->rootStatsPub = this->node->Advertise<msgs::WorldStatistics>(
           "/stats");
@@ -698,7 +698,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
     if (!publishers.empty())
     {
-      ignwarn << "Found additional publishers on /clock," <<
+      gzwarn << "Found additional publishers on /clock," <<
                  " using namespaced clock topic only" << std::endl;
       igndbg << "Publishers [Address, Message Type]:\n";
 
@@ -711,7 +711,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     }
     else
     {
-      ignmsg << "Found no publishers on /clock, adding root clock topic"
+      gzmsg << "Found no publishers on /clock, adding root clock topic"
              << std::endl;
       this->rootClockPub = this->node->Advertise<gz::msgs::Clock>(
           "/clock");
@@ -951,7 +951,7 @@ void SimulationRunner::LoadServerPlugins(
     }
     else
     {
-      ignwarn << "No support for attaching plugins to entity of type ["
+      gzwarn << "No support for attaching plugins to entity of type ["
               << plugin.EntityType() << "]" << std::endl;
     }
 
@@ -970,7 +970,7 @@ void SimulationRunner::LoadLoggingPlugins(const ServerConfig &_config)
 
   if (_config.UseLogRecord() && !_config.LogPlaybackPath().empty())
   {
-    ignwarn <<
+    gzwarn <<
       "Both recording and playback are specified, defaulting to playback\n";
   }
 
@@ -1145,13 +1145,13 @@ bool SimulationRunner::OnWorldControlState(const msgs::WorldControlState &_req,
 
     if (_req.world_control().reset().model_only())
     {
-      ignwarn << "Model only reset is not supported." << std::endl;
+      gzwarn << "Model only reset is not supported." << std::endl;
     }
   }
 
   if (_req.world_control().seed() != 0)
   {
-    ignwarn << "Changing seed is not supported." << std::endl;
+    gzwarn << "Changing seed is not supported." << std::endl;
   }
 
   if (_req.world_control().has_run_to_sim_time())
@@ -1201,7 +1201,7 @@ bool SimulationRunner::OnPlaybackControl(const msgs::LogPlaybackControl &_req,
 
   if (_req.forward())
   {
-    ignwarn << "Log forwarding is not supported, use seek." << std::endl;
+    gzwarn << "Log forwarding is not supported, use seek." << std::endl;
   }
 
   this->worldControls.push_back(control);
@@ -1294,26 +1294,26 @@ void SimulationRunner::ProcessRecreateEntitiesCreate()
       // next iteration
       if (!this->entityCompMgr.RemoveComponent<components::Recreate>(ent))
       {
-        ignerr << "Failed to remove Recreate component from entity["
+        gzerr << "Failed to remove Recreate component from entity["
           << ent << "]" << std::endl;
       }
 
       if (!this->entityCompMgr.RemoveComponent<components::Recreate>(
             clonedEntity))
       {
-        ignerr << "Failed to remove Recreate component from entity["
+        gzerr << "Failed to remove Recreate component from entity["
           << clonedEntity << "]" << std::endl;
       }
     }
     else if (!nameComp)
     {
-      ignerr << "Missing name component for entity[" << ent << "]. "
+      gzerr << "Missing name component for entity[" << ent << "]. "
         << "The entity will not be cloned during the recreation process."
         << std::endl;
     }
     else if (!parentComp)
     {
-      ignerr << "Missing parent component for entity[" << ent << "]. "
+      gzerr << "Missing parent component for entity[" << ent << "]. "
         << "The entity will not be cloned during the recreation process."
          << std::endl;
     }

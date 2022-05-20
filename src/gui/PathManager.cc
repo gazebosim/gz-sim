@@ -49,7 +49,7 @@ void onAddResourcePaths(const msgs::StringMsg_V &_res, const bool _result)
 {
   if (!_result)
   {
-    ignerr << "Failed to get resource paths through service" << std::endl;
+    gzerr << "Failed to get resource paths through service" << std::endl;
     return;
   }
   igndbg << "Received resource paths." << std::endl;

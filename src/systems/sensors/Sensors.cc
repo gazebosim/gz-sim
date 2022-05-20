@@ -536,7 +536,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -683,7 +683,7 @@ std::string Sensors::CreateSensor(const Entity &_entity,
 {
   if (_sdf.Type() == sdf::SensorType::NONE)
   {
-    ignerr << "Unable to create sensor. SDF sensor type is NONE." << std::endl;
+    gzerr << "Unable to create sensor. SDF sensor type is NONE." << std::endl;
     return std::string();
   }
 
@@ -727,7 +727,7 @@ std::string Sensors::CreateSensor(const Entity &_entity,
 
   if (nullptr == sensor)
   {
-    ignerr << "Failed to create sensor [" << _sdf.Name()
+    gzerr << "Failed to create sensor [" << _sdf.Name()
            << "]." << std::endl;
     return std::string();
   }
@@ -802,7 +802,7 @@ std::string Sensors::CreateSensor(const Entity &_entity,
         std::fabs(this->dataPtr->ambientTemperatureGradient * height);
     thermalSensor->SetAmbientTemperatureRange(tempRange);
 
-    ignmsg << "Setting ambient temperature to "
+    gzmsg << "Setting ambient temperature to "
            << this->dataPtr->ambientTemperature << " Kelvin and gradient to "
            << this->dataPtr->ambientTemperatureGradient << " K/m. "
            << "The resulting temperature range is: " << tempRange

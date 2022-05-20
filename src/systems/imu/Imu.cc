@@ -116,7 +116,7 @@ void Imu::PreUpdate(const UpdateInfo &/*_info*/,
     auto it = this->dataPtr->entitySensorMap.find(entity);
     if (it == this->dataPtr->entitySensorMap.end())
     {
-      ignerr << "Entity [" << entity
+      gzerr << "Entity [" << entity
              << "] isn't in sensor map, this shouldn't happen." << std::endl;
       continue;
     }
@@ -135,7 +135,7 @@ void Imu::PostUpdate(const UpdateInfo &_info,
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -168,7 +168,7 @@ void ImuPrivate::AddSensor(
   auto gravity = _ecm.Component<components::Gravity>(worldEntity);
   if (nullptr == gravity)
   {
-    ignerr << "World missing gravity." << std::endl;
+    gzerr << "World missing gravity." << std::endl;
     return;
   }
 
@@ -188,7 +188,7 @@ void ImuPrivate::AddSensor(
       sensors::ImuSensor>(data);
   if (nullptr == sensor)
   {
-    ignerr << "Failed to create sensor [" << sensorScopedName << "]"
+    gzerr << "Failed to create sensor [" << sensorScopedName << "]"
            << std::endl;
     return;
   }
@@ -250,7 +250,7 @@ void ImuPrivate::CreateSensors(const EntityComponentManager &_ecm)
     this->worldEntity = _ecm.EntityByComponents(components::World());
   if (kNullEntity == this->worldEntity)
   {
-    ignerr << "Missing world entity." << std::endl;
+    gzerr << "Missing world entity." << std::endl;
     return;
   }
 
@@ -309,7 +309,7 @@ void ImuPrivate::Update(const EntityComponentManager &_ecm)
          }
         else
         {
-          ignerr << "Failed to update IMU: " << _entity << ". "
+          gzerr << "Failed to update IMU: " << _entity << ". "
                  << "Entity not found." << std::endl;
         }
 
@@ -329,7 +329,7 @@ void ImuPrivate::RemoveImuEntities(
         auto sensorId = this->entitySensorMap.find(_entity);
         if (sensorId == this->entitySensorMap.end())
         {
-          ignerr << "Internal error, missing IMU sensor for entity ["
+          gzerr << "Internal error, missing IMU sensor for entity ["
                  << _entity << "]" << std::endl;
           return true;
         }

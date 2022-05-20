@@ -84,7 +84,7 @@ void KineticEnergyMonitor::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "KineticEnergyMonitor should be attached to a model "
+    gzerr << "KineticEnergyMonitor should be attached to a model "
       << "entity. Failed to initialize." << std::endl;
     return;
   }
@@ -100,7 +100,7 @@ void KineticEnergyMonitor::Configure(const Entity &_entity,
 
   if (linkName.empty())
   {
-    ignerr << "found an empty <link_name> parameter. Failed to initialize."
+    gzerr << "found an empty <link_name> parameter. Failed to initialize."
       << std::endl;
     return;
   }
@@ -110,7 +110,7 @@ void KineticEnergyMonitor::Configure(const Entity &_entity,
 
   if (this->dataPtr->linkEntity == kNullEntity)
   {
-    ignerr << "Link " << linkName
+    gzerr << "Link " << linkName
       << " could not be found. Failed to initialize.\n";
     return;
   }
@@ -122,7 +122,7 @@ void KineticEnergyMonitor::Configure(const Entity &_entity,
     "/kinetic_energy"};
   std::string topic = sdfClone->Get<std::string>("topic", defaultTopic).first;
 
-  ignmsg << "KineticEnergyMonitor publishing messages on "
+  gzmsg << "KineticEnergyMonitor publishing messages on "
     << "[" << topic << "]" << std::endl;
 
   transport::Node node;
@@ -157,7 +157,7 @@ void KineticEnergyMonitor::PostUpdate(const UpdateInfo &_info,
 
       if (deltaKE > this->dataPtr->keThreshold)
       {
-        ignmsg << this->dataPtr->modelName
+        gzmsg << this->dataPtr->modelName
           << " Change in kinetic energy above threshold - deltaKE: "
           << deltaKE << std::endl;
         msgs::Double msg;

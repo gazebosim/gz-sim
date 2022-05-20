@@ -52,7 +52,7 @@ std::unique_ptr<gz::gui::Application> createGui(
     sigKilled = true;
   });
 
-  ignmsg << "Gazebo GUI    v" << GZ_SIM_VERSION_FULL
+  gzmsg << "Gazebo GUI    v" << GZ_SIM_VERSION_FULL
          << std::endl;
 
   // Set auto scaling factor for HiDPI displays
@@ -135,7 +135,7 @@ std::unique_ptr<gz::gui::Application> createGui(
   }
   else
   {
-    ignerr << "Failed to instantiate custom drawer, drawer will be empty"
+    gzerr << "Failed to instantiate custom drawer, drawer will be empty"
            << std::endl;
   }
 
@@ -162,9 +162,9 @@ std::unique_ptr<gz::gui::Application> createGui(
   if (!sigKilled)
   {
     if (!executed)
-      ignerr << "Timed out when getting world names." << std::endl;
+      gzerr << "Timed out when getting world names." << std::endl;
     else if (!result)
-      ignerr << "Failed to get world names." << std::endl;
+      gzerr << "Failed to get world names." << std::endl;
   }
 
   if (!executed || !result || worldsMsg.data().empty())
@@ -187,7 +187,7 @@ std::unique_ptr<gz::gui::Application> createGui(
     // Load plugins after runner is up
     if (!app->LoadConfig(_guiConfig))
     {
-      ignwarn << "Failed to load config file[" << _guiConfig << "]."
+      gzwarn << "Failed to load config file[" << _guiConfig << "]."
               << std::endl;
     }
   }
@@ -207,7 +207,7 @@ std::unique_ptr<gz::gui::Application> createGui(
           "/gui/info");
       if (service.empty())
       {
-        ignerr << "Failed to generate valid service for world [" << worldName
+        gzerr << "Failed to generate valid service for world [" << worldName
                << "]" << std::endl;
       }
       else
@@ -219,12 +219,12 @@ std::unique_ptr<gz::gui::Application> createGui(
 
         if (!executed)
         {
-          ignerr << "Service call timed out for [" << service << "]"
+          gzerr << "Service call timed out for [" << service << "]"
                  << std::endl;
         }
         else if (!result)
         {
-          ignerr << "Service call failed for [" << service << "]" << std::endl;
+          gzerr << "Service call failed for [" << service << "]" << std::endl;
         }
       }
 
@@ -256,7 +256,7 @@ std::unique_ptr<gz::gui::Application> createGui(
 
   if (0 == runnerCount)
   {
-    ignerr << "Failed to start a GUI runner." << std::endl;
+    gzerr << "Failed to start a GUI runner." << std::endl;
     return nullptr;
   }
 
@@ -273,7 +273,7 @@ std::unique_ptr<gz::gui::Application> createGui(
       {
         if (!gz::common::createDirectories(defaultConfigFolder))
         {
-          ignerr << "Failed to create the default config folder ["
+          gzerr << "Failed to create the default config folder ["
             << defaultConfigFolder << "]\n";
           return nullptr;
         }
@@ -283,7 +283,7 @@ std::unique_ptr<gz::gui::Application> createGui(
           GZ_SIM_GUI_CONFIG_PATH, defaultGuiConfigName);
       if (!gz::common::exists(installedConfig))
       {
-        ignerr << "Failed to copy installed config [" << installedConfig
+        gzerr << "Failed to copy installed config [" << installedConfig
                << "] to default config [" << defaultConfig << "]."
                << "(file " << installedConfig << " doesn't exist)"
                << std::endl;
@@ -292,14 +292,14 @@ std::unique_ptr<gz::gui::Application> createGui(
 
       if (!gz::common::copyFile(installedConfig, defaultConfig))
       {
-        ignerr << "Failed to copy installed config [" << installedConfig
+        gzerr << "Failed to copy installed config [" << installedConfig
                << "] to default config [" << defaultConfig << "]."
                << std::endl;
         return nullptr;
       }
       else
       {
-        ignmsg << "Copied installed config [" << installedConfig
+        gzmsg << "Copied installed config [" << installedConfig
                << "] to default config [" << defaultConfig << "]."
                << std::endl;
       }
@@ -308,7 +308,7 @@ std::unique_ptr<gz::gui::Application> createGui(
     // Also set ~/.gz/sim/ver/gui.config as the default path
     if (!app->LoadConfig(defaultConfig))
     {
-      ignerr << "Failed to load config file[" << defaultConfig << "]."
+      gzerr << "Failed to load config file[" << defaultConfig << "]."
              << std::endl;
       return nullptr;
     }

@@ -250,7 +250,7 @@ void SceneBroadcaster::Configure(
   const components::Name *name = _ecm.Component<components::Name>(_entity);
   if (name == nullptr)
   {
-    ignerr << "World with id: " << _entity
+    gzerr << "World with id: " << _entity
            << " has no name. SceneBroadcaster cannot create transport topics\n";
     return;
   }
@@ -499,7 +499,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   auto ns = transport::TopicUtils::AsValidTopic("/world/" + _worldName);
   if (ns.empty())
   {
-    ignerr << "Failed to create valid namespace for world [" << _worldName
+    gzerr << "Failed to create valid namespace for world [" << _worldName
            << "]" << std::endl;
     return;
   }
@@ -514,7 +514,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   this->node->Advertise(infoService, &SceneBroadcasterPrivate::SceneInfoService,
       this);
 
-  ignmsg << "Serving scene information on [" << opts.NameSpace() << "/"
+  gzmsg << "Serving scene information on [" << opts.NameSpace() << "/"
          << infoService << "]" << std::endl;
 
   // Scene graph service
@@ -523,7 +523,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   this->node->Advertise(graphService,
       &SceneBroadcasterPrivate::SceneGraphService, this);
 
-  ignmsg << "Serving graph information on [" << opts.NameSpace() << "/"
+  gzmsg << "Serving graph information on [" << opts.NameSpace() << "/"
          << graphService << "]" << std::endl;
 
   // State service
@@ -534,7 +534,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   this->node->Advertise(stateService, &SceneBroadcasterPrivate::StateService,
       this);
 
-  ignmsg << "Serving full state on [" << opts.NameSpace() << "/"
+  gzmsg << "Serving full state on [" << opts.NameSpace() << "/"
          << stateService << "]" << std::endl;
 
   // Async State service
@@ -543,7 +543,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   this->node->Advertise(stateAsyncService,
       &SceneBroadcasterPrivate::StateAsyncService, this);
 
-  ignmsg << "Serving full state (async) on [" << opts.NameSpace() << "/"
+  gzmsg << "Serving full state (async) on [" << opts.NameSpace() << "/"
          << stateAsyncService << "]" << std::endl;
 
   // Scene info topic
@@ -551,7 +551,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
 
   this->scenePub = this->node->Advertise<gz::msgs::Scene>(sceneTopic);
 
-  ignmsg << "Publishing scene information on [" << sceneTopic
+  gzmsg << "Publishing scene information on [" << sceneTopic
          << "]" << std::endl;
 
   // Entity deletion publisher
@@ -560,7 +560,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   this->deletionPub =
       this->node->Advertise<gz::msgs::UInt32_V>(deletionTopic);
 
-  ignmsg << "Publishing entity deletions on [" << deletionTopic << "]"
+  gzmsg << "Publishing entity deletions on [" << deletionTopic << "]"
          << std::endl;
 
   // State topic
@@ -569,7 +569,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   this->statePub =
       this->node->Advertise<gz::msgs::SerializedStepMap>(stateTopic);
 
-  ignmsg << "Publishing state changes on [" << stateTopic << "]"
+  gzmsg << "Publishing state changes on [" << stateTopic << "]"
       << std::endl;
 
   // Pose info publisher
@@ -580,7 +580,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   this->posePub = this->node->Advertise<msgs::Pose_V>(poseTopic,
       poseAdvertOpts);
 
-  ignmsg << "Publishing pose messages on [" << opts.NameSpace() << "/"
+  gzmsg << "Publishing pose messages on [" << opts.NameSpace() << "/"
          << poseTopic << "]" << std::endl;
 
   // Dynamic pose info publisher
@@ -591,7 +591,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   this->dyPosePub = this->node->Advertise<msgs::Pose_V>(dyPoseTopic,
       dyPoseAdvertOpts);
 
-  ignmsg << "Publishing dynamic pose messages on [" << opts.NameSpace() << "/"
+  gzmsg << "Publishing dynamic pose messages on [" << opts.NameSpace() << "/"
          << dyPoseTopic << "]" << std::endl;
 }
 
@@ -640,7 +640,7 @@ bool SceneBroadcasterPrivate::StateService(
   if (success)
     _res.CopyFrom(this->stepMsg);
   else
-    ignerr << "Timed out waiting for state" << std::endl;
+    gzerr << "Timed out waiting for state" << std::endl;
 
   return success;
 }

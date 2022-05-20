@@ -101,7 +101,7 @@ void EntityContextMenu::LoadConfig(const tinyxml2::XMLElement *)
       this->PluginItem()->findChild<EntityContextMenuItem *>();
   if (!renderWindowOverlay)
   {
-    ignerr << "Unable to find Render Window Overlay item. "
+    gzerr << "Unable to find Render Window Overlay item. "
            << "Render window overlay will not be created" << std::endl;
     return;
   }

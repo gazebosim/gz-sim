@@ -57,12 +57,12 @@ bool View::HasCachedComponentData(const Entity _entity) const
 
   if (cachedComps && !cachedConstComps)
   {
-    ignwarn << "Non-const component data is cached for entity " << _entity
+    gzwarn << "Non-const component data is cached for entity " << _entity
       << ", but const component data is not cached." << std::endl;
   }
   else if (cachedConstComps && !cachedComps)
   {
-    ignwarn << "Const component data is cached for entity " << _entity
+    gzwarn << "Const component data is cached for entity " << _entity
       << ", but non-const component data is not cached." << std::endl;
   }
 

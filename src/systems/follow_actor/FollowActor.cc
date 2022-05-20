@@ -84,13 +84,13 @@ void FollowActor::Configure(const Entity &_entity,
   auto actorComp = _ecm.Component<components::Actor>(_entity);
   if (!actorComp)
   {
-    ignerr << "Entity [" << _entity << "] is not an actor." << std::endl;
+    gzerr << "Entity [" << _entity << "] is not an actor." << std::endl;
     return;
   }
 
   if (!_sdf->HasElement("target"))
   {
-    ignerr << "Missing <target>, can't follow." << std::endl;
+    gzerr << "Missing <target>, can't follow." << std::endl;
     return;
   }
 
@@ -99,7 +99,7 @@ void FollowActor::Configure(const Entity &_entity,
       targetName));
   if (kNullEntity == this->dataPtr->targetEntity)
   {
-    ignerr << "Failed to find target entity [" << targetName << "]"
+    gzerr << "Failed to find target entity [" << targetName << "]"
            << std::endl;
     return;
   }
@@ -123,7 +123,7 @@ void FollowActor::Configure(const Entity &_entity,
   {
     if (actorComp->Data().AnimationCount() < 1)
     {
-      ignerr << "Actor SDF doesn't have any animations." << std::endl;
+      gzerr << "Actor SDF doesn't have any animations." << std::endl;
       return;
     }
 
@@ -136,7 +136,7 @@ void FollowActor::Configure(const Entity &_entity,
 
   if (animationName.empty())
   {
-    ignerr << "Can't find actor's animation name." << std::endl;
+    gzerr << "Can't find actor's animation name." << std::endl;
     return;
   }
 
@@ -237,7 +237,7 @@ void FollowActor::PreUpdate(const UpdateInfo &_info,
   {
     if (this->dataPtr->following)
     {
-      ignmsg << "Target [" << this->dataPtr->targetEntity
+      gzmsg << "Target [" << this->dataPtr->targetEntity
              <<  "] too far, actor [" << this->dataPtr->actorEntity
              <<"] stopped following" << std::endl;
       this->dataPtr->following = false;
@@ -246,7 +246,7 @@ void FollowActor::PreUpdate(const UpdateInfo &_info,
   }
   if (!this->dataPtr->following)
   {
-    ignmsg << "Target [" << this->dataPtr->targetEntity
+    gzmsg << "Target [" << this->dataPtr->targetEntity
            <<  "] within range, actor [" << this->dataPtr->actorEntity
            <<"] started following" << std::endl;
     this->dataPtr->following = true;

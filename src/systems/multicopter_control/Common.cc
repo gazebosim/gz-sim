@@ -56,7 +56,7 @@ RotorConfiguration loadRotorConfiguration(const EntityComponentManager &_ecm,
     Rotor rotor;
     if (!elem->HasElement("jointName"))
     {
-      ignerr << "Please specify jointName for rotor index " << count
+      gzerr << "Please specify jointName for rotor index " << count
               << std::endl;
       continue;
     }
@@ -66,7 +66,7 @@ RotorConfiguration loadRotorConfiguration(const EntityComponentManager &_ecm,
         components::ParentEntity(_model.Entity()));
     if (kNullEntity == joint)
     {
-      ignerr << "Joint with name " << jointName << " could not be found in "
+      gzerr << "Joint with name " << jointName << " could not be found in "
               << "model " << _model.Name(_ecm) << " while processing rotor "
               << "index " << count << std::endl;
       continue;
@@ -86,7 +86,7 @@ RotorConfiguration loadRotorConfiguration(const EntityComponentManager &_ecm,
 
     if (kNullEntity == childLink)
     {
-      ignerr << "Child link of joint " << jointName << " with name "
+      gzerr << "Child link of joint " << jointName << " with name "
               << childLinkName << " could not be found in  model "
               << _model.Name(_ecm) << " while processing rotor index " << count
               << std::endl;
@@ -116,7 +116,7 @@ RotorConfiguration loadRotorConfiguration(const EntityComponentManager &_ecm,
 
     if (!elem->HasElement("forceConstant"))
     {
-      ignerr << "Please specify forceConstant for rotor index " << count
+      gzerr << "Please specify forceConstant for rotor index " << count
               << std::endl;
       continue;
     }
@@ -145,7 +145,7 @@ RotorConfiguration loadRotorConfiguration(const EntityComponentManager &_ecm,
 
     if (!elem->HasElement("momentConstant"))
     {
-      ignerr << "Please specify momentConstant for rotor index " << count
+      gzerr << "Please specify momentConstant for rotor index " << count
               << std::endl;
       continue;
     }
@@ -153,7 +153,7 @@ RotorConfiguration loadRotorConfiguration(const EntityComponentManager &_ecm,
 
     if (!elem->HasElement("direction"))
     {
-      ignerr << "Please specify direction for rotor index " << count
+      gzerr << "Please specify direction for rotor index " << count
               << std::endl;
       continue;
     }
@@ -198,7 +198,7 @@ std::optional<Eigen::Matrix4Xd> calculateAllocationMatrix(
   int rank = lu.rank();
   if (rank < 4)
   {
-    ignerr << "The rank of the allocation matrix is " << lu.rank()
+    gzerr << "The rank of the allocation matrix is " << lu.rank()
             << ", it should have rank 4, to have a fully controllable system,"
             << " check your configuration." << std::endl;
     return std::nullopt;
@@ -238,7 +238,7 @@ std::optional<FrameData> getFrameData(const EntityComponentManager &_ecm,
 
   if (!poseComp)
   {
-    ignerr << "WorldPose component not found on link entity " << _link
+    gzerr << "WorldPose component not found on link entity " << _link
            << std::endl;
     return std::nullopt;
   }
@@ -247,7 +247,7 @@ std::optional<FrameData> getFrameData(const EntityComponentManager &_ecm,
 
   if (!velComp)
   {
-    ignerr << "WorldLinearVelocity component not found on link entity " << _link
+    gzerr << "WorldLinearVelocity component not found on link entity " << _link
            << std::endl;
     return std::nullopt;
   }
@@ -255,7 +255,7 @@ std::optional<FrameData> getFrameData(const EntityComponentManager &_ecm,
 
   if (!angVelComp)
   {
-    ignerr << "AngularVelocity component not found on link entity " << _link
+    gzerr << "AngularVelocity component not found on link entity " << _link
            << std::endl;
     return std::nullopt;
   }

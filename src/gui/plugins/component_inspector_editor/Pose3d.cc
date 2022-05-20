@@ -83,7 +83,7 @@ Q_INVOKABLE void Pose3d::PoseUpdate(
       _ecm.CreateComponent(modelEntity, components::Recreate());
     }
     else
-      ignerr << "Unable to get the pose component.\n";
+      gzerr << "Unable to get the pose component.\n";
   };
   this->inspector->AddUpdateCallback(cb);
 }

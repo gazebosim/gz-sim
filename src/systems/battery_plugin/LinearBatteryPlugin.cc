@@ -203,7 +203,7 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
   auto model = Model(_entity);
   if (!model.Valid(_ecm))
   {
-    ignerr << "Linear battery plugin should be attached to a model entity. "
+    gzerr << "Linear battery plugin should be attached to a model entity. "
            << "Failed to initialize." << std::endl;
     return;
   }
@@ -221,7 +221,7 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
 
   if (this->dataPtr->c <= 0)
   {
-    ignerr << "No <capacity> or incorrect value specified. Capacity should be "
+    gzerr << "No <capacity> or incorrect value specified. Capacity should be "
            << "greater than 0.\n";
     return;
   }
@@ -232,11 +232,11 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
     this->dataPtr->q0 = _sdf->Get<double>("initial_charge");
     if (this->dataPtr->q0 > this->dataPtr->c || this->dataPtr->q0 < 0)
     {
-      ignerr << "<initial_charge> value should be between [0, <capacity>]."
+      gzerr << "<initial_charge> value should be between [0, <capacity>]."
              << std::endl;
       this->dataPtr->q0 =
         std::max(0.0, std::min(this->dataPtr->q0, this->dataPtr->c));
-      ignerr << "Setting <initial_charge> to [" << this->dataPtr->q0
+      gzerr << "Setting <initial_charge> to [" << this->dataPtr->q0
              << "] instead." << std::endl;
     }
   }
@@ -251,7 +251,7 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
     this->dataPtr->tau = _sdf->Get<double>("smooth_current_tau");
     if (this->dataPtr->tau <= 0)
     {
-      ignerr << "<smooth_current_tau> value should be positive. "
+      gzerr << "<smooth_current_tau> value should be positive. "
              << "Using [1] instead." << std::endl;
       this->dataPtr->tau = 1;
     }
@@ -284,7 +284,7 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
   }
   else
   {
-    ignerr << "No <battery_name> or <voltage> specified. Both are required.\n";
+    gzerr << "No <battery_name> or <voltage> specified. Both are required.\n";
     return;
   }
 
@@ -297,7 +297,7 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
         this->dataPtr->tCharge = _sdf->Get<double>("charging_time");
       else
       {
-        ignerr << "No <charging_time> specified. "
+        gzerr << "No <charging_time> specified. "
                   "Parameter required to enable recharge.\n";
         return;
       }
@@ -315,7 +315,7 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
           disableRechargeTopic);
       if (validEnableRechargeTopic.empty() || validDisableRechargeTopic.empty())
       {
-        ignerr << "Failed to create valid topics. Not valid: ["
+        gzerr << "Failed to create valid topics. Not valid: ["
                << enableRechargeTopic << "] and [" << disableRechargeTopic
                << "]" << std::endl;
         return;
@@ -344,11 +344,11 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
     bool success = this->dataPtr->battery->SetPowerLoad(
       this->dataPtr->consumerId, powerLoad);
     if (!success)
-      ignerr << "Failed to set consumer power load." << std::endl;
+      gzerr << "Failed to set consumer power load." << std::endl;
   }
   else
   {
-    ignwarn << "Required attribute power_load missing "
+    gzwarn << "Required attribute power_load missing "
             << "in LinearBatteryPlugin SDF" << std::endl;
   }
 
@@ -363,13 +363,13 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
           std::bind(&LinearBatteryPluginPrivate::OnBatteryDrainingMsg,
           this->dataPtr.get(), std::placeholders::_1, std::placeholders::_2,
           std::placeholders::_3));
-      ignmsg << "LinearBatteryPlugin subscribes to power draining topic ["
+      gzmsg << "LinearBatteryPlugin subscribes to power draining topic ["
              << topic << "]." << std::endl;
       sdfElem = sdfElem->GetNextElement("power_draining_topic");
     }
   }
 
-  ignmsg << "LinearBatteryPlugin configured. Battery name: "
+  gzmsg << "LinearBatteryPlugin configured. Battery name: "
          << this->dataPtr->battery->Name() << std::endl;
   igndbg << "Battery initial voltage: " << this->dataPtr->battery->InitVoltage()
          << std::endl;
@@ -383,7 +383,7 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
   auto validStateTopic = transport::TopicUtils::AsValidTopic(stateTopic);
   if (validStateTopic.empty())
   {
-    ignerr << "Failed to create valid state topic ["
+    gzerr << "Failed to create valid state topic ["
            << stateTopic << "]" << std::endl;
     return;
   }
@@ -492,7 +492,7 @@ void LinearBatteryPlugin::Update(const UpdateInfo &_info,
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -526,7 +526,7 @@ void LinearBatteryPlugin::Update(const UpdateInfo &_info,
     this->dataPtr->stepSize).count()) * 1e-9;
   if (this->dataPtr->tau < dt)
   {
-    ignerr << "<smooth_current_tau> should be in the range [dt, +inf) but is "
+    gzerr << "<smooth_current_tau> should be in the range [dt, +inf) but is "
            << "configured with [" << this->dataPtr->tau << "]. We'll be using "
            << "[" << dt << "] instead" << std::endl;
     this->dataPtr->tau = dt;
@@ -662,7 +662,7 @@ double LinearBatteryPlugin::OnUpdateVoltage(
   }
   if (this->dataPtr->StateOfCharge() < 0 && !this->dataPtr->drainPrinted)
   {
-    ignwarn << "Model " << this->dataPtr->modelName << " out of battery.\n";
+    gzwarn << "Model " << this->dataPtr->modelName << " out of battery.\n";
     this->dataPtr->drainPrinted = true;
   }
 

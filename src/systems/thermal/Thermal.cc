@@ -62,7 +62,7 @@ void Thermal::Configure(const Entity &_entity,
 
   if (_sdf->HasElement(temperatureTag) && _sdf->HasElement(heatSignatureTag))
   {
-    ignwarn << "Both <" << temperatureTag << "> and <" << heatSignatureTag
+    gzwarn << "Both <" << temperatureTag << "> and <" << heatSignatureTag
            << "> were specified, but the thermal system only uses one. "
            << "<" << heatSignatureTag << "> will be used.\n";
   }
@@ -78,7 +78,7 @@ void Thermal::Configure(const Entity &_entity,
     // make sure the specified heat signature can be found
     if (path.empty())
     {
-      ignerr << "Failed to load thermal system. Heat signature ["
+      gzerr << "Failed to load thermal system. Heat signature ["
         << heatSignature << "] could not be found\n";
       return;
     }
@@ -124,7 +124,7 @@ void Thermal::Configure(const Entity &_entity,
   }
   else
   {
-    ignerr << "Failed to load thermal system. "
+    gzerr << "Failed to load thermal system. "
            << "Neither <" << temperatureTag << "> or <" << heatSignatureTag
            << "> were specified.\n";
   }

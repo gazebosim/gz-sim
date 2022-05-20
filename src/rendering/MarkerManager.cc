@@ -153,7 +153,7 @@ bool MarkerManager::Init(const gz::rendering::ScenePtr &_scene)
 {
   if (!_scene)
   {
-    ignerr << "Scene pointer is invalid\n";
+    gzerr << "Scene pointer is invalid\n";
     return false;
   }
 
@@ -161,7 +161,7 @@ bool MarkerManager::Init(const gz::rendering::ScenePtr &_scene)
 
   if (this->dataPtr->topicName.empty())
   {
-    ignerr << "Unable to advertise marker service. Topic name empty.\n";
+    gzerr << "Unable to advertise marker service. Topic name empty.\n";
     return false;
   }
 
@@ -169,7 +169,7 @@ bool MarkerManager::Init(const gz::rendering::ScenePtr &_scene)
   if (!this->dataPtr->node.Advertise(this->dataPtr->topicName + "/list",
       &MarkerManagerPrivate::OnList, this->dataPtr.get()))
   {
-    ignerr << "Unable to advertise to the " << this->dataPtr->topicName
+    gzerr << "Unable to advertise to the " << this->dataPtr->topicName
            << "/list service.\n";
   }
 
@@ -177,7 +177,7 @@ bool MarkerManager::Init(const gz::rendering::ScenePtr &_scene)
   if (!this->dataPtr->node.Advertise(this->dataPtr->topicName,
         &MarkerManagerPrivate::OnMarkerMsg, this->dataPtr.get()))
   {
-    ignerr << "Unable to advertise to the " << this->dataPtr->topicName
+    gzerr << "Unable to advertise to the " << this->dataPtr->topicName
            << " service.\n";
   }
 
@@ -185,7 +185,7 @@ bool MarkerManager::Init(const gz::rendering::ScenePtr &_scene)
   if (!this->dataPtr->node.Advertise(this->dataPtr->topicName + "_array",
         &MarkerManagerPrivate::OnMarkerMsgArray, this->dataPtr.get()))
   {
-    ignerr << "Unable to advertise to the " << this->dataPtr->topicName
+    gzerr << "Unable to advertise to the " << this->dataPtr->topicName
            << "_array service.\n";
   }
 
@@ -294,7 +294,7 @@ void MarkerManagerPrivate::SetVisual(const gz::msgs::Marker &_msg,
     }
     else
     {
-      ignerr << "No visual with the name[" << _msg.parent() << "]\n";
+      gzerr << "No visual with the name[" << _msg.parent() << "]\n";
     }
   }
 
@@ -391,7 +391,7 @@ gz::rendering::MarkerType MarkerManagerPrivate::MsgToType(
     case gz::msgs::Marker::TRIANGLE_STRIP:
       return gz::rendering::MarkerType::MT_TRIANGLE_STRIP;
     default:
-      ignerr << "Unable to create marker of type[" << _msg.type() << "]\n";
+      gzerr << "Unable to create marker of type[" << _msg.type() << "]\n";
       break;
   }
   return gz::rendering::MarkerType::MT_NONE;
@@ -543,7 +543,7 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const gz::msgs::Marker &_msg)
     }
     else
     {
-      ignwarn << "Unable to delete marker with id[" << id << "] "
+      gzwarn << "Unable to delete marker with id[" << id << "] "
         << "in namespace[" << ns << "]" << std::endl;
       return false;
     }
@@ -554,7 +554,7 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const gz::msgs::Marker &_msg)
     // If given namespace doesn't exist
     if (!ns.empty() && nsIter == this->visuals.end())
     {
-      ignwarn << "Unable to delete all markers in namespace[" << ns <<
+      gzwarn << "Unable to delete all markers in namespace[" << ns <<
           "], namespace can't be found." << std::endl;
       return false;
     }
@@ -584,7 +584,7 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const gz::msgs::Marker &_msg)
   }
   else
   {
-    ignerr << "Unknown marker action[" << _msg.action() << "]\n";
+    gzerr << "Unknown marker action[" << _msg.action() << "]\n";
     return false;
   }
 

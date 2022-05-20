@@ -132,7 +132,7 @@ GuiRunner::GuiRunner(const std::string &_worldName)
       _worldName + "/state");
   if (this->dataPtr->stateTopic.empty())
   {
-    ignerr << "Failed to generate valid topic for world [" << _worldName << "]"
+    gzerr << "Failed to generate valid topic for world [" << _worldName << "]"
            << std::endl;
     return;
   }
@@ -188,7 +188,7 @@ bool GuiRunner::eventFilter(QObject *_obj, QEvent *_event)
           [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
           {
             if (!_result)
-              ignerr << "Error sharing WorldControl info with the server.\n";
+              gzerr << "Error sharing WorldControl info with the server.\n";
           };
       this->dataPtr->node.Request(this->dataPtr->controlService, req, cb);
     }
@@ -222,7 +222,7 @@ void GuiRunner::RequestState()
   auto reqSrvValid = transport::TopicUtils::AsValidTopic(reqSrv);
   if (reqSrvValid.empty())
   {
-    ignerr << "Failed to generate valid service [" << reqSrv << "]"
+    gzerr << "Failed to generate valid service [" << reqSrv << "]"
            << std::endl;
     return;
   }
@@ -235,7 +235,7 @@ void GuiRunner::RequestState()
     if (!this->dataPtr->node.Advertise(reqSrv, &GuiRunner::OnStateAsyncService,
         this))
     {
-      ignerr << "Failed to advertise [" << reqSrv << "]" << std::endl;
+      gzerr << "Failed to advertise [" << reqSrv << "]" << std::endl;
     }
   }
 

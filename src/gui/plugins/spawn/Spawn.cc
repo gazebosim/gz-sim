@@ -172,7 +172,7 @@ void Spawn::LoadConfig(const tinyxml2::XMLElement *)
   if (done)
   {
     std::string msg{"Only one Spawn plugin is supported at a time."};
-    ignerr << msg << std::endl;
+    gzerr << msg << std::endl;
     QQmlProperty::write(this->PluginItem(), "message",
         QString::fromStdString(msg));
     return;
@@ -214,7 +214,7 @@ void SpawnPrivate::HandlePlacement()
         [](const msgs::Boolean &/*_rep*/, const bool _result)
     {
       if (!_result)
-        ignerr << "Error creating entity" << std::endl;
+        gzerr << "Error creating entity" << std::endl;
     };
     math::Vector3d pos = gz::rendering::screenToPlane(
       this->mouseEvent.Pos(), this->camera, this->rayQuery);
@@ -234,7 +234,7 @@ void SpawnPrivate::HandlePlacement()
     }
     else
     {
-      ignwarn << "Failed to find SDF string or file path" << std::endl;
+      gzwarn << "Failed to find SDF string or file path" << std::endl;
     }
     req.set_allow_renaming(true);
     msgs::Set(req.mutable_pose(), math::Pose3d(pos, pose.Rot()));
@@ -248,7 +248,7 @@ void SpawnPrivate::HandlePlacement()
         this->createCmdService);
     if (this->createCmdService.empty())
     {
-      ignerr << "Failed to create valid create command service for world ["
+      gzerr << "Failed to create valid create command service for world ["
              << this->worldName <<"]" << std::endl;
       return;
     }
@@ -317,7 +317,7 @@ void SpawnPrivate::OnRender()
     }
     else
     {
-      ignwarn << "Failed to spawn: no SDF string, path, or name of resource "
+      gzwarn << "Failed to spawn: no SDF string, path, or name of resource "
               << "to clone" << std::endl;
     }
 
@@ -359,7 +359,7 @@ bool SpawnPrivate::GeneratePreview(const sdf::Root &_sdf)
 
   if (nullptr == _sdf.Model() && nullptr == _sdf.Light())
   {
-    ignwarn << "Only model or light entities can be spawned at the moment."
+    gzwarn << "Only model or light entities can be spawned at the moment."
             << std::endl;
     return false;
   }
@@ -453,7 +453,7 @@ bool SpawnPrivate::GeneratePreview(const std::string &_name)
       this->sceneManager.WorldId());
   if (!visualChildrenPair.first)
   {
-    ignerr << "Copying a visual named " << _name << "failed.\n";
+    gzerr << "Copying a visual named " << _name << "failed.\n";
     return false;
   }
 
@@ -562,7 +562,7 @@ void Spawn::OnDropped(const gz::gui::events::DropOnScene *_event)
       [](const gz::msgs::Boolean &_res, const bool _result)
   {
     if (!_result || !_res.data())
-      ignerr << "Error creating dropped entity." << std::endl;
+      gzerr << "Error creating dropped entity." << std::endl;
   };
 
   math::Vector3d pos = gz::rendering::screenToScene(

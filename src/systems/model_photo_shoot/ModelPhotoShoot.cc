@@ -168,13 +168,13 @@ void ModelPhotoShoot::PreUpdate(
             }
             else
             {
-              ignerr << "No jointAxisComp found, ignoring joint: " <<
+              gzerr << "No jointAxisComp found, ignoring joint: " <<
                   jointNameComp->Data() << std::endl;
             }
           }
           else
           {
-            ignerr << "Model Photo Shoot only supports single axis joints. "
+            gzerr << "Model Photo Shoot only supports single axis joints. "
                 "Skipping joint: "<< jointNameComp->Data() << std::endl;
           }
         }
@@ -186,7 +186,7 @@ void ModelPhotoShoot::PreUpdate(
       }
       else
       {
-          ignerr << "No jointNameComp found on entity: " << joint <<
+          gzerr << "No jointNameComp found on entity: " << joint <<
               std:: endl;
       }
     }

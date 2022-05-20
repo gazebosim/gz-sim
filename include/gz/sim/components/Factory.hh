@@ -280,12 +280,12 @@ namespace components
 
       if (nullptr == _data)
       {
-        ignerr << "Requested to create a new component instance with null "
+        gzerr << "Requested to create a new component instance with null "
           << "data." << std::endl;
       }
       else if (_type != _data->TypeId())
       {
-        ignerr << "The typeID of _type [" << _type << "] does not match the "
+        gzerr << "The typeID of _type [" << _type << "] does not match the "
           << "typeID of _data [" << _data->TypeId() << "]." << std::endl;
       }
       else

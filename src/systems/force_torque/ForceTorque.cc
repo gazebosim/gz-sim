@@ -124,7 +124,7 @@ void ForceTorque::PostUpdate(const UpdateInfo &_info,
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -183,7 +183,7 @@ void ForceTorquePrivate::CreateForceTorqueEntities(EntityComponentManager &_ecm)
             sensors::ForceTorqueSensor>(data);
         if (nullptr == sensor)
         {
-          ignerr << "Failed to create sensor [" << sensorScopedName << "]"
+          gzerr << "Failed to create sensor [" << sensorScopedName << "]"
                  << std::endl;
           return true;
         }
@@ -199,7 +199,7 @@ void ForceTorquePrivate::CreateForceTorqueEntities(EntityComponentManager &_ecm)
         if (!_ecm.EntityHasComponentType(jointEntity,
                                          components::Joint::typeId))
         {
-          ignerr << "Parent entity of sensor [" << sensorScopedName
+          gzerr << "Parent entity of sensor [" << sensorScopedName
                  << "] must be a joint. Failed to create sensor." << std::endl;
           return true;
         }
@@ -215,7 +215,7 @@ void ForceTorquePrivate::CreateForceTorqueEntities(EntityComponentManager &_ecm)
             this->GetLinkFromScopedName(_ecm, jointParentName, modelEntity);
         if (kNullEntity == jointParentLinkEntity )
         {
-          ignerr << "Parent link with name [" << jointParentName
+          gzerr << "Parent link with name [" << jointParentName
                  << "] of joint with name [" << jointName
                  << "] not found. Failed to create sensor [" << sensorScopedName
                  << "]" << std::endl;
@@ -228,7 +228,7 @@ void ForceTorquePrivate::CreateForceTorqueEntities(EntityComponentManager &_ecm)
             this->GetLinkFromScopedName(_ecm, jointChildName, modelEntity);
         if (kNullEntity == jointChildLinkEntity)
         {
-          ignerr << "Child link with name [" << jointChildName
+          gzerr << "Child link with name [" << jointChildName
                  << "] of joint with name [" << jointName
                  << "] not found. Failed to create sensor [" << sensorScopedName
                  << "]" << std::endl;
@@ -268,7 +268,7 @@ void ForceTorquePrivate::Update(const EntityComponentManager &_ecm)
           auto jointLinkIt = this->sensorJointLinkMap.find(_entity);
           if (jointLinkIt == this->sensorJointLinkMap.end())
           {
-            ignerr << "Failed to update Force/Torque Sensor: " << _entity
+            gzerr << "Failed to update Force/Torque Sensor: " << _entity
                    << ". Associated entities not found." << std::endl;
             return true;
           }
@@ -313,7 +313,7 @@ void ForceTorquePrivate::Update(const EntityComponentManager &_ecm)
         }
         else
         {
-          ignerr << "Failed to update Force/Torque Sensor: " << _entity << ". "
+          gzerr << "Failed to update Force/Torque Sensor: " << _entity << ". "
                  << "Entity not found." << std::endl;
         }
 
@@ -333,7 +333,7 @@ void ForceTorquePrivate::RemoveForceTorqueEntities(
         auto sensorId = this->entitySensorMap.find(_entity);
         if (sensorId == this->entitySensorMap.end())
         {
-          ignerr << "Internal error, missing FT sensor for entity ["
+          gzerr << "Internal error, missing FT sensor for entity ["
                  << _entity << "]" << std::endl;
           return true;
         }

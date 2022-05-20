@@ -60,7 +60,7 @@ void Breadcrumbs::Configure(const Entity &_entity,
   // Exit early if breadcrumbs deployments are set to zero.
   if (this->maxDeployments == 0)
   {
-    ignmsg << "Breadcrumbs max deployment is == 0. Breadcrumbs are disabled."
+    gzmsg << "Breadcrumbs max deployment is == 0. Breadcrumbs are disabled."
       << std::endl;
     return;
   }
@@ -77,14 +77,14 @@ void Breadcrumbs::Configure(const Entity &_entity,
   this->model = Model(_entity);
   if (!this->model.Valid(_ecm))
   {
-    ignerr << "The Breadcrumbs system should be attached to a model entity. "
+    gzerr << "The Breadcrumbs system should be attached to a model entity. "
            << "Failed to initialize." << std::endl;
     return;
   }
 
   if (!_sdf->HasElement("breadcrumb"))
   {
-    ignerr << "<breadcrumb> not set" << std::endl;
+    gzerr << "<breadcrumb> not set" << std::endl;
     return;
   }
 
@@ -92,7 +92,7 @@ void Breadcrumbs::Configure(const Entity &_entity,
 
   if (!breadcrumb->HasElement("sdf"))
   {
-    ignerr << "<sdf> not found in <breadcrumb>" << std::endl;
+    gzerr << "<sdf> not found in <breadcrumb>" << std::endl;
     return;
   }
 
@@ -105,13 +105,13 @@ void Breadcrumbs::Configure(const Entity &_entity,
   {
     for (const auto &e : errors)
     {
-      ignerr << e.Message() << std::endl;
+      gzerr << e.Message() << std::endl;
     }
     return;
   }
   if (nullptr == this->modelRoot.Model())
   {
-    ignerr << "Model not found in <breadcrumb>" << std::endl;
+    gzerr << "Model not found in <breadcrumb>" << std::endl;
     return;
   }
 
@@ -127,7 +127,7 @@ void Breadcrumbs::Configure(const Entity &_entity,
     }
     else
     {
-      ignerr << "Geometry specified in <performer_volume> is invalid\n";
+      gzerr << "Geometry specified in <performer_volume> is invalid\n";
       return;
     }
   }
@@ -151,7 +151,7 @@ void Breadcrumbs::Configure(const Entity &_entity,
   {
     if (!node.EnableStats(this->topic, true))
     {
-      ignerr << "Unable to enable topic statistics on topic["
+      gzerr << "Unable to enable topic statistics on topic["
         << this->topic << "]." << std::endl;
       this->topicStatistics = false;
     }
@@ -161,7 +161,7 @@ void Breadcrumbs::Configure(const Entity &_entity,
   this->remainingPub = this->node.Advertise<msgs::Int32>(
       this->topic + "/remaining");
 
-  ignmsg << "Breadcrumbs subscribing to deploy messages on ["
+  gzmsg << "Breadcrumbs subscribing to deploy messages on ["
     << this->topic << "]" << std::endl;
 
   this->creator = std::make_unique<SdfEntityCreator>(_ecm, _eventMgr);
@@ -222,7 +222,7 @@ void Breadcrumbs::PreUpdate(const gz::sim::UpdateInfo &_info,
         {
           if (!this->allowRenaming)
           {
-            ignwarn << "Entity named [" << desiredName
+            gzwarn << "Entity named [" << desiredName
                     << "] already exists and "
                     << "[allow_renaming] is false. Entity not spawned."
                     << std::endl;
@@ -241,7 +241,7 @@ void Breadcrumbs::PreUpdate(const gz::sim::UpdateInfo &_info,
 
         modelToSpawn.SetName(desiredName);
         modelToSpawn.SetRawPose(poseComp->Data() * modelToSpawn.RawPose());
-        ignmsg << "Deploying " << modelToSpawn.Name() << " at "
+        gzmsg << "Deploying " << modelToSpawn.Name() << " at "
                << modelToSpawn.RawPose() << std::endl;
         Entity entity = this->creator->CreateEntities(&modelToSpawn);
         this->creator->SetParent(entity, this->worldEntity);
@@ -277,7 +277,7 @@ void Breadcrumbs::PreUpdate(const gz::sim::UpdateInfo &_info,
       }
       else
       {
-        ignmsg << "Asked to deploy " << this->modelRoot.Model()->Name()
+        gzmsg << "Asked to deploy " << this->modelRoot.Model()->Name()
                << " but the maximum number of deployments has reached the "
                << "limit of " << this->maxDeployments << std::endl;
       }
@@ -330,12 +330,12 @@ void Breadcrumbs::PreUpdate(const gz::sim::UpdateInfo &_info,
         auto name = _ecm.Component<components::Name>(it->first)->Data();
         if (!this->MakeStatic(it->first, _ecm))
         {
-          ignerr << "Failed to make breadcrumb '" << name
+          gzerr << "Failed to make breadcrumb '" << name
                  << "' static." << std::endl;
         }
         else
         {
-          ignmsg << "Breadcrumb '" << name << "' is now static." << std::endl;
+          gzmsg << "Breadcrumb '" << name << "' is now static." << std::endl;
         }
         this->autoStaticEntities.erase(it++);
       }
@@ -412,7 +412,7 @@ void Breadcrumbs::OnDeploy(const msgs::Empty &)
   // Check topic statistics for dropped messages
   if (this->topicStatistics)
   {
-    ignmsg << "Received breadcrumb deployment for " <<
+    gzmsg << "Received breadcrumb deployment for " <<
       this->modelRoot.Model()->Name() << std::endl;
     std::optional<transport::TopicStatistics> stats =
       this->node.TopicStats(this->topic);
@@ -420,14 +420,14 @@ void Breadcrumbs::OnDeploy(const msgs::Empty &)
     {
       if (stats->DroppedMsgCount() > 0)
       {
-        ignwarn << "Dropped message count of " << stats->DroppedMsgCount()
+        gzwarn << "Dropped message count of " << stats->DroppedMsgCount()
           << " for breadcrumbs on model "
           << this->modelRoot.Model()->Name() << std::endl;
       }
     }
     else
     {
-      ignerr << "Unable to get topic statistics for topic["
+      gzerr << "Unable to get topic statistics for topic["
         << this->topic << "]." << std::endl;
     }
   }

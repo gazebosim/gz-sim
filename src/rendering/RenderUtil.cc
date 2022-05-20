@@ -834,7 +834,7 @@ void RenderUtilPrivate::FindInertialLinks(const EntityComponentManager &_ecm)
     }
     else
     {
-      ignerr << "Entity [" << entity
+      gzerr << "Entity [" << entity
              << "] for viewing inertia must be a model or link"
              << std::endl;
       continue;
@@ -858,7 +858,7 @@ void RenderUtilPrivate::FindInertialLinks(const EntityComponentManager &_ecm)
     }
     else
     {
-      ignerr << "Entity [" << entity
+      gzerr << "Entity [" << entity
              << "] for viewing center of mass must be a model or link"
              << std::endl;
       continue;
@@ -906,7 +906,7 @@ void RenderUtilPrivate::FindJointModels(const EntityComponentManager &_ecm)
     }
     else
     {
-      ignerr << "Entity [" << entity
+      gzerr << "Entity [" << entity
              << "] for viewing joints must be a model"
              << std::endl;
       continue;
@@ -936,7 +936,7 @@ void RenderUtilPrivate::PopulateViewModeVisualLinks(
     }
     else
     {
-      ignerr << "Entity [" << entity
+      gzerr << "Entity [" << entity
              << "] for viewing wireframe must be a model or link"
              << std::endl;
       continue;
@@ -961,7 +961,7 @@ void RenderUtilPrivate::PopulateViewModeVisualLinks(
     }
     else
     {
-      ignerr << "Entity [" << entity
+      gzerr << "Entity [" << entity
              << "] for viewing as transparent must be a model or link"
              << std::endl;
       continue;
@@ -993,7 +993,7 @@ void RenderUtilPrivate::FindCollisionLinks(const EntityComponentManager &_ecm)
     }
     else
     {
-      ignerr << "Entity [" << entity
+      gzerr << "Entity [" << entity
              << "] for viewing collision must be a model or link"
              << std::endl;
       continue;
@@ -1235,7 +1235,7 @@ void RenderUtil::Update()
         auto parentNode = this->dataPtr->sceneManager.NodeById(parent);
         if (!parentNode)
         {
-          ignerr << "Failed to create sensor with name[" << dataSdf.Name()
+          gzerr << "Failed to create sensor with name[" << dataSdf.Name()
                  << "] for entity [" << entity
                  << "]. Parent not found with ID[" << parent << "]."
                  << std::endl;
@@ -1247,7 +1247,7 @@ void RenderUtil::Update()
         // Add to the system's scene manager
         if (!this->dataPtr->sceneManager.AddSensor(entity, sensorName, parent))
         {
-          ignerr << "Failed to create sensor [" << sensorName << "]"
+          gzerr << "Failed to create sensor [" << sensorName << "]"
                  << std::endl;
         }
       }
@@ -1299,7 +1299,7 @@ void RenderUtil::Update()
         auto actorVisual = this->dataPtr->sceneManager.NodeById(tf.first);
         if (!actorMesh || !actorVisual)
         {
-          ignerr << "Actor with Entity ID '" << tf.first << "'. not found. "
+          gzerr << "Actor with Entity ID '" << tf.first << "'. not found. "
                  << "Skipping skeleton animation update." << std::endl;
           continue;
         }
@@ -2514,7 +2514,7 @@ void RenderUtil::Init()
   this->dataPtr->engine = rendering::engine(this->dataPtr->engineName, params);
   if (!this->dataPtr->engine)
   {
-    ignerr << "Engine [" << this->dataPtr->engineName << "] is not supported. "
+    gzerr << "Engine [" << this->dataPtr->engineName << "] is not supported. "
            << "Loading OGRE2 instead." << std::endl;
     this->dataPtr->engine = rendering::engine("ogre2", params);
   }
@@ -2580,7 +2580,7 @@ void RenderUtil::ShowGrid()
   rendering::GridPtr gridGeom = this->dataPtr->scene->CreateGrid();
   if (!gridGeom)
   {
-    ignwarn << "Failed to create grid for scene ["
+    gzwarn << "Failed to create grid for scene ["
       << this->dataPtr->scene->Name() << "] on engine ["
         << this->dataPtr->scene->Engine()->Name() << "]"
           << std::endl;
@@ -2974,7 +2974,7 @@ void RenderUtilPrivate::UpdateThermalCamera(const std::unordered_map<Entity,
       }
       else
       {
-        ignwarn << "Unable to set thermal camera temperature linear resolution."
+        gzwarn << "Unable to set thermal camera temperature linear resolution."
                 << " Value must be greater than 0. Using the default value: "
                 << camera->LinearResolution() << ". " << std::endl;
       }
@@ -2987,7 +2987,7 @@ void RenderUtilPrivate::UpdateThermalCamera(const std::unordered_map<Entity,
       }
       else
       {
-        ignwarn << "Unable to set thermal camera temperature range."
+        gzwarn << "Unable to set thermal camera temperature range."
                 << "Max temperature must be greater or equal to min. "
                 << "Using the default values : [" << camera->MinTemperature()
                 << ", " << camera->MaxTemperature() << "]." << std::endl;
@@ -3010,7 +3010,7 @@ void RenderUtilPrivate::UpdateAnimation(const std::unordered_map<Entity,
         it.first);
     if (!actorMesh || !actorVisual || !actorSkel)
     {
-      ignerr << "Actor with Entity ID '" << it.first << "'. not found. "
+      gzerr << "Actor with Entity ID '" << it.first << "'. not found. "
              << "Skipping skeleton animation update." << std::endl;
       continue;
     }
@@ -3018,7 +3018,7 @@ void RenderUtilPrivate::UpdateAnimation(const std::unordered_map<Entity,
     const AnimationUpdateData &animData = it.second;
     if (!animData.valid)
     {
-      ignerr << "invalid animation update data" << std::endl;
+      gzerr << "invalid animation update data" << std::endl;
       continue;
     }
     // Enable skeleton animation
@@ -3192,7 +3192,7 @@ void RenderUtil::ViewInertia(const Entity &_entity)
         this->dataPtr->sceneManager.VisualById(inertiaVisualId);
     if (inertiaVisual == nullptr)
     {
-      ignerr << "Could not find inertia visual for entity [" << inertiaLink
+      gzerr << "Could not find inertia visual for entity [" << inertiaLink
              << "]" << std::endl;
       continue;
     }
@@ -3251,7 +3251,7 @@ void RenderUtil::ViewCOM(const Entity &_entity)
         this->dataPtr->sceneManager.VisualById(comVisualId);
     if (comVisual == nullptr)
     {
-      ignerr << "Could not find center of mass visual for entity ["
+      gzerr << "Could not find center of mass visual for entity ["
              << inertiaLink
              << "]" << std::endl;
       continue;
@@ -3337,7 +3337,7 @@ void RenderUtil::ViewJoints(const Entity &_entity)
         this->dataPtr->sceneManager.VisualById(jointEntity);
     if (jointVisual == nullptr)
     {
-      ignerr << "Could not find visual for entity [" << jointEntity
+      gzerr << "Could not find visual for entity [" << jointEntity
              << "]" << std::endl;
       continue;
     }
@@ -3407,7 +3407,7 @@ void RenderUtil::ViewTransparent(const Entity &_entity)
         this->dataPtr->sceneManager.VisualById(visEntity);
     if (transparentVisual == nullptr)
     {
-      ignerr << "Could not find visual for entity [" << visEntity
+      gzerr << "Could not find visual for entity [" << visEntity
              << "]" << std::endl;
       continue;
     }
@@ -3479,7 +3479,7 @@ void RenderUtil::ViewWireframes(const Entity &_entity)
         this->dataPtr->sceneManager.VisualById(visEntity);
     if (wireframeVisual == nullptr)
     {
-      ignerr << "Could not find visual for entity [" << visEntity
+      gzerr << "Could not find visual for entity [" << visEntity
              << "]" << std::endl;
       continue;
     }
@@ -3549,7 +3549,7 @@ void RenderUtil::ViewCollisions(const Entity &_entity)
         this->dataPtr->sceneManager.VisualById(colEntity);
     if (colVisual == nullptr)
     {
-      ignerr << "Could not find collision visual for entity [" << colEntity
+      gzerr << "Could not find collision visual for entity [" << colEntity
              << "]" << std::endl;
       continue;
     }

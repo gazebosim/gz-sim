@@ -72,7 +72,7 @@ void ApplyJointForce::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "ApplyJointForce plugin should be attached to a model entity. "
+    gzerr << "ApplyJointForce plugin should be attached to a model entity. "
            << "Failed to initialize." << std::endl;
     return;
   }
@@ -88,7 +88,7 @@ void ApplyJointForce::Configure(const Entity &_entity,
 
   if (this->dataPtr->jointName == "")
   {
-    ignerr << "ApplyJointForce found an empty jointName parameter. "
+    gzerr << "ApplyJointForce found an empty jointName parameter. "
            << "Failed to initialize.";
     return;
   }
@@ -99,14 +99,14 @@ void ApplyJointForce::Configure(const Entity &_entity,
       "/cmd_force");
   if (topic.empty())
   {
-    ignerr << "Failed to create valid topic for [" << this->dataPtr->jointName
+    gzerr << "Failed to create valid topic for [" << this->dataPtr->jointName
            << "]" << std::endl;
     return;
   }
   this->dataPtr->node.Subscribe(topic, &ApplyJointForcePrivate::OnCmdForce,
                                 this->dataPtr.get());
 
-  ignmsg << "ApplyJointForce subscribing to Double messages on [" << topic
+  gzmsg << "ApplyJointForce subscribing to Double messages on [" << topic
          << "]" << std::endl;
 }
 
@@ -119,7 +119,7 @@ void ApplyJointForce::PreUpdate(const gz::sim::UpdateInfo &_info,
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }

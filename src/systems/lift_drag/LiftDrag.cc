@@ -178,14 +178,14 @@ void LiftDragPrivate::Load(const EntityComponentManager &_ecm,
 
     if (entities.empty())
     {
-      ignerr << "Link with name[" << linkName << "] not found. "
+      gzerr << "Link with name[" << linkName << "] not found. "
              << "The LiftDrag will not generate forces\n";
       this->validConfig = false;
       return;
     }
     else if (entities.size() > 1)
     {
-      ignwarn << "Multiple link entities with name[" << linkName << "] found. "
+      gzwarn << "Multiple link entities with name[" << linkName << "] found. "
              << "Using the first one.\n";
     }
 
@@ -194,14 +194,14 @@ void LiftDragPrivate::Load(const EntityComponentManager &_ecm,
                                      components::Link::typeId))
     {
       this->linkEntity = kNullEntity;
-      ignerr << "Entity with name[" << linkName << "] is not a link\n";
+      gzerr << "Entity with name[" << linkName << "] is not a link\n";
       this->validConfig = false;
       return;
     }
   }
   else
   {
-    ignerr << "The LiftDrag system requires the 'link_name' parameter\n";
+    gzerr << "The LiftDrag system requires the 'link_name' parameter\n";
     this->validConfig = false;
     return;
   }
@@ -215,14 +215,14 @@ void LiftDragPrivate::Load(const EntityComponentManager &_ecm,
 
     if (entities.empty())
     {
-      ignerr << "Joint with name[" << controlJointName << "] not found. "
+      gzerr << "Joint with name[" << controlJointName << "] not found. "
              << "The LiftDrag will not generate forces\n";
       this->validConfig = false;
       return;
     }
     else if (entities.size() > 1)
     {
-      ignwarn << "Multiple joint entities with name[" << controlJointName
+      gzwarn << "Multiple joint entities with name[" << controlJointName
               << "] found. Using the first one.\n";
     }
 
@@ -231,7 +231,7 @@ void LiftDragPrivate::Load(const EntityComponentManager &_ecm,
                                      components::Joint::typeId))
     {
       this->controlJointEntity = kNullEntity;
-      ignerr << "Entity with name[" << controlJointName << "] is not a joint\n";
+      gzerr << "Entity with name[" << controlJointName << "] is not a joint\n";
       this->validConfig = false;
       return;
     }
@@ -503,7 +503,7 @@ void LiftDrag::Configure(const Entity &_entity,
   this->dataPtr->model = Model(_entity);
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "The LiftDrag system should be attached to a model entity. "
+    gzerr << "The LiftDrag system should be attached to a model entity. "
            << "Failed to initialize." << std::endl;
     return;
   }
@@ -518,7 +518,7 @@ void LiftDrag::PreUpdate(const UpdateInfo &_info, EntityComponentManager &_ecm)
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }

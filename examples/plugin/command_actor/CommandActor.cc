@@ -43,7 +43,7 @@ void CommandActor::Configure(const gz::sim::Entity &_entity,
     gz::sim::EventManager &/*_eventMgr*/)
 {
   this->entity = _entity;
-  ignmsg << "Command actor for entity [" << _entity << "]" << std::endl;
+  gzmsg << "Command actor for entity [" << _entity << "]" << std::endl;
 
   auto sdfClone = _sdf->Clone();
 
@@ -56,7 +56,7 @@ void CommandActor::Configure(const gz::sim::Entity &_entity,
     auto time = originElem->Get<int>("time");
 
     this->origins[time] = pose;
-    ignmsg << "Stored origin change at [" << time << "] seconds to pose ["
+    gzmsg << "Stored origin change at [" << time << "] seconds to pose ["
            << pose << "]" << std::endl;
   }
 
@@ -69,7 +69,7 @@ void CommandActor::Configure(const gz::sim::Entity &_entity,
     auto time = trajPoseElem->Get<int>("time");
 
     this->trajPoses[time] = pose;
-    ignmsg << "Stored trajectory pose change at [" << time
+    gzmsg << "Stored trajectory pose change at [" << time
            << "] seconds to pose ["
            << pose << "]" << std::endl;
   }
@@ -95,7 +95,7 @@ void CommandActor::PreUpdate(const gz::sim::UpdateInfo &_info,
     _ecm.SetChanged(this->entity, gz::sim::components::Pose::typeId,
         gz::sim::ComponentState::OneTimeChange);
 
-    ignmsg << "Changing origin to [" << this->origins[sec] << "]" << std::endl;
+    gzmsg << "Changing origin to [" << this->origins[sec] << "]" << std::endl;
 
     this->lastOriginChange = sec;
   }
@@ -118,7 +118,7 @@ void CommandActor::PreUpdate(const gz::sim::UpdateInfo &_info,
           gz::sim::components::TrajectoryPose(this->trajPoses[sec]);
     }
 
-    ignmsg << "Changing trajectory pose to [" << this->trajPoses[sec] << "]"
+    gzmsg << "Changing trajectory pose to [" << this->trajPoses[sec] << "]"
            << std::endl;
 
     this->lastTrajPoseChange = sec;

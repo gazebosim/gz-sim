@@ -157,7 +157,7 @@ TestFixture &TestFixture::Finalize()
 {
   if (this->dataPtr->finalized)
   {
-    ignwarn << "Fixture has already been finalized, this only needs to be done"
+    gzwarn << "Fixture has already been finalized, this only needs to be done"
             << " once." << std::endl;
     return *this;
   }

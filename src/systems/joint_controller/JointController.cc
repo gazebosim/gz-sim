@@ -80,7 +80,7 @@ void JointController::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "JointController plugin should be attached to a model entity. "
+    gzerr << "JointController plugin should be attached to a model entity. "
            << "Failed to initialize." << std::endl;
     return;
   }
@@ -89,7 +89,7 @@ void JointController::Configure(const Entity &_entity,
   auto jointName = _sdf->Get<std::string>("joint_name");
   if (jointName.empty())
   {
-    ignerr << "JointController found an empty jointName parameter. "
+    gzerr << "JointController found an empty jointName parameter. "
            << "Failed to initialize.";
     return;
   }
@@ -98,7 +98,7 @@ void JointController::Configure(const Entity &_entity,
       jointName);
   if (this->dataPtr->jointEntity == kNullEntity)
   {
-    ignerr << "Joint with name[" << jointName << "] not found. "
+    gzerr << "Joint with name[" << jointName << "] not found. "
     << "The JointController may not control this joint.\n";
     return;
   }
@@ -106,7 +106,7 @@ void JointController::Configure(const Entity &_entity,
   if (_sdf->HasElement("initial_velocity"))
   {
     this->dataPtr->jointVelCmd = _sdf->Get<double>("initial_velocity");
-    ignmsg << "Joint velocity initialized to ["
+    gzmsg << "Joint velocity initialized to ["
            << this->dataPtr->jointVelCmd << "]" << std::endl;
   }
 
@@ -148,7 +148,7 @@ void JointController::Configure(const Entity &_entity,
       "/cmd_vel");
   if (topic.empty())
   {
-    ignerr << "Failed to create topic for joint [" << jointName
+    gzerr << "Failed to create topic for joint [" << jointName
            << "]" << std::endl;
     return;
   }
@@ -159,7 +159,7 @@ void JointController::Configure(const Entity &_entity,
 
     if (topic.empty())
     {
-      ignerr << "Failed to create topic [" << _sdf->Get<std::string>("topic")
+      gzerr << "Failed to create topic [" << _sdf->Get<std::string>("topic")
              << "]" << " for joint [" << jointName
              << "]" << std::endl;
       return;
@@ -168,7 +168,7 @@ void JointController::Configure(const Entity &_entity,
   this->dataPtr->node.Subscribe(topic, &JointControllerPrivate::OnCmdVel,
                                 this->dataPtr.get());
 
-  ignmsg << "JointController subscribing to Double messages on [" << topic
+  gzmsg << "JointController subscribing to Double messages on [" << topic
          << "]" << std::endl;
 }
 
@@ -185,7 +185,7 @@ void JointController::PreUpdate(const gz::sim::UpdateInfo &_info,
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }

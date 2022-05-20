@@ -132,7 +132,7 @@ void BuoyancyEnginePlugin::Configure(
   auto model = gz::sim::Model(_entity);
   if (!_sdf->HasElement("link_name"))
   {
-    ignerr << "Buoyancy Engine must be attached to some link."  << std::endl;
+    gzerr << "Buoyancy Engine must be attached to some link."  << std::endl;
     return;
   }
 
@@ -140,7 +140,7 @@ void BuoyancyEnginePlugin::Configure(
     model.LinkByName(_ecm, _sdf->Get<std::string>("link_name"));
   if (this->dataPtr->linkEntity == kNullEntity)
   {
-    ignerr << "Link [" << _sdf->Get<std::string>("link_name")
+    gzerr << "Link [" << _sdf->Get<std::string>("link_name")
       << "] was not found in model [" << model.Name(_ecm) << "]" << std::endl;
     return;
   }
@@ -185,7 +185,7 @@ void BuoyancyEnginePlugin::Configure(
   this->dataPtr->world = _ecm.EntityByComponents(components::World());
   if (this->dataPtr->world == kNullEntity)
   {
-    ignerr << "World entity not found" <<std::endl;
+    gzerr << "World entity not found" <<std::endl;
     return;
   }
 
@@ -203,7 +203,7 @@ void BuoyancyEnginePlugin::Configure(
   if (!this->dataPtr->node.Subscribe(cmdTopic,
     &BuoyancyEnginePrivateData::OnCmdBuoyancyEngine, this->dataPtr.get()))
   {
-    ignerr << "Failed to subscribe to [" << cmdTopic << "]" << std::endl;
+    gzerr << "Failed to subscribe to [" << cmdTopic << "]" << std::endl;
   }
 
   this->dataPtr->statusPub =
@@ -230,7 +230,7 @@ void BuoyancyEnginePlugin::PreUpdate(
     this->dataPtr->world);
   if (!gravity)
   {
-    ignerr << "World has no gravity component" << std::endl;
+    gzerr << "World has no gravity component" << std::endl;
     return;
   }
 

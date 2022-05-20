@@ -123,7 +123,7 @@ namespace {
     const std::string gtAttrName = _prefix + "gt";
     if (_sdf->HasAttribute(geAttrName) && _sdf->HasAttribute(gtAttrName))
     {
-      ignerr << "Attributes '" << geAttrName << "' and '" << gtAttrName << "'"
+      gzerr << "Attributes '" << geAttrName << "' and '" << gtAttrName << "'"
              << " are mutually exclusive. Ignoring both." << std::endl;
     }
     else if (_sdf->HasAttribute(geAttrName))
@@ -131,7 +131,7 @@ namespace {
       sdf::ParamPtr sdfGeAttrValue = _sdf->GetAttribute(geAttrName);
       if (!sdfGeAttrValue->Get<double>(leftValue))
       {
-        ignerr << "Invalid '" << geAttrName << "' attribute value. "
+        gzerr << "Invalid '" << geAttrName << "' attribute value. "
                << "Ignoring." << std::endl;
       }
       else
@@ -144,7 +144,7 @@ namespace {
       sdf::ParamPtr sdfGtAttrValue = _sdf->GetAttribute(gtAttrName);
       if(!sdfGtAttrValue->Get<double>(leftValue))
       {
-        ignerr << "Invalid '" << gtAttrName << "' attribute value. "
+        gzerr << "Invalid '" << gtAttrName << "' attribute value. "
                << "Ignoring." << std::endl;
       }
     }
@@ -155,7 +155,7 @@ namespace {
     const std::string ltAttrName = _prefix + "lt";
     if (_sdf->HasAttribute(leAttrName) && _sdf->HasAttribute(ltAttrName))
     {
-      ignerr << "Attributes '" << leAttrName << "' and '" << ltAttrName << "'"
+      gzerr << "Attributes '" << leAttrName << "' and '" << ltAttrName << "'"
              << " are mutually exclusive. Ignoring both." << std::endl;
     }
     else if (_sdf->HasAttribute(leAttrName))
@@ -163,7 +163,7 @@ namespace {
       sdf::ParamPtr sdfLeAttrValue = _sdf->GetAttribute(leAttrName);
       if (!sdfLeAttrValue->Get<double>(rightValue))
       {
-        ignerr << "Invalid '" << leAttrName << "' attribute value. "
+        gzerr << "Invalid '" << leAttrName << "' attribute value. "
                << "Ignoring." << std::endl;
       }
       else
@@ -176,7 +176,7 @@ namespace {
       sdf::ParamPtr sdfLtAttrValue = _sdf->GetAttribute(ltAttrName);
       if (!sdfLtAttrValue->Get<double>(rightValue))
       {
-        ignerr << "Invalid '" << gtAttrName << "'"
+        gzerr << "Invalid '" << gtAttrName << "'"
                << "attribute value. Ignoring."
                << std::endl;
       }
@@ -338,7 +338,7 @@ void WindEffectsPrivate::Load(EntityComponentManager &_ecm,
 
         if (std::fabs(this->characteristicTimeForWindRise) < 1e-6)
         {
-          ignerr << "Please set <horizontal><magnitude><time_for_rise> to a "
+          gzerr << "Please set <horizontal><magnitude><time_for_rise> to a "
                  << "value greater than 0" << std::endl;
           return;
         }
@@ -378,7 +378,7 @@ void WindEffectsPrivate::Load(EntityComponentManager &_ecm,
 
         if (std::fabs(this->characteristicTimeForWindOrientationChange) < 1e-6)
         {
-          ignerr << "Please set <horizontal><direction><time_for_rise> to a "
+          gzerr << "Please set <horizontal><direction><time_for_rise> to a "
                  << "value greater than 0" << std::endl;
           return;
         }
@@ -418,7 +418,7 @@ void WindEffectsPrivate::Load(EntityComponentManager &_ecm,
 
       if (std::fabs(this->characteristicTimeForWindRiseVertical) < 1e-6)
       {
-        ignerr << "Please set <horizontal><magnitude><time_for_rise> to a "
+        gzerr << "Please set <horizontal><magnitude><time_for_rise> to a "
                << "value greater than 0" << std::endl;
         return;
       }
@@ -447,7 +447,7 @@ void WindEffectsPrivate::Load(EntityComponentManager &_ecm,
   // It doesn't make sense to be negative, that would be negative wind drag.
   if (this->forceApproximationScalingFactor.Minimum() < 0.)
   {
-    ignerr << "<force_approximation_scaling_factor> must "
+    gzerr << "<force_approximation_scaling_factor> must "
            << "always be a nonnegative quantity" << std::endl;
     return;
   }
@@ -461,7 +461,7 @@ void WindEffectsPrivate::SetupTransport(const std::string &_worldName)
   auto validWorldName = transport::TopicUtils::AsValidTopic(_worldName);
   if (validWorldName.empty())
   {
-    ignerr << "Failed to setup transport, invalid world name [" << _worldName
+    gzerr << "Failed to setup transport, invalid world name [" << _worldName
            << "]" << std::endl;
     return;
   }
@@ -701,7 +701,7 @@ void WindEffects::PreUpdate(const UpdateInfo &_info,
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }

@@ -354,11 +354,11 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
   }
 
   // We should expect to see "auto_default.log"  and "state.tlog"
-  EXPECT_FALSE(ignLogDirectory().empty());
+  EXPECT_FALSE(gzLogDirectory().empty());
   EXPECT_TRUE(common::exists(
-        common::joinPaths(ignLogDirectory(), "auto_default.log")));
+        common::joinPaths(gzLogDirectory(), "auto_default.log")));
   EXPECT_TRUE(common::exists(
-        common::joinPaths(ignLogDirectory(), "state.tlog")));
+        common::joinPaths(gzLogDirectory(), "state.tlog")));
 
   // Remove artifacts. Recreate new directory
   this->RemoveLogsDir();
@@ -370,7 +370,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
   // No path specified on command line (only --record, no --record-path).
   // No path specified in SDF.
   // Run from command line, which should trigger ign.cc, which should initialize
-  // ignLogDirectory() to default timestamp path. Both console and state logs
+  // gzLogDirectory() to default timestamp path. Both console and state logs
   // should be recorded here.
 
   // Store number of files before running
@@ -381,7 +381,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
   entryList(logPath, entriesBefore);
 
   {
-    // Command line triggers ign.cc, which handles initializing ignLogDirectory
+    // Command line triggers ign.cc, which handles initializing gzLogDirectory
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
       + "--record " + recordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
@@ -486,7 +486,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
   // A path is specified in SDF - a feature removed in Gazebo Dome.
   // SDF path should be ignored.
   // State log and console log should be stored to default timestamp path
-  // ignLogDirectory because ign.cc is triggered by command line.
+  // gzLogDirectory because ign.cc is triggered by command line.
   {
     // Change log path in SDF to build directory
     sdf::Root recordSdfRoot;
@@ -501,7 +501,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
     ofs << recordSdfRoot.Element()->ToString("").c_str();
     ofs.close();
 
-    // Command line triggers ign.cc, which handles initializing ignLogDirectory
+    // Command line triggers ign.cc, which handles initializing gzLogDirectory
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
       + "--record " + tmpRecordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
@@ -624,7 +624,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
   // A path is specified by --record-path on command line.
   // Both state and console logs should be stored here.
   {
-    // Command line triggers ign.cc, which handles initializing ignLogDirectory
+    // Command line triggers ign.cc, which handles initializing gzLogDirectory
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
       + "--record-path " + this->logDir + " " + recordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
@@ -666,7 +666,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
     ofs << recordSdfRoot.Element()->ToString("").c_str();
     ofs.close();
 
-    // Command line triggers ign.cc, which handles initializing ignLogDirectory
+    // Command line triggers ign.cc, which handles initializing gzLogDirectory
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
       + "--record-path " + cliPath + " " + tmpRecordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
@@ -975,8 +975,8 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogOverwrite))
     std::string(PROJECT_SOURCE_PATH), "test", "worlds",
     "log_record_dbl_pendulum.sdf");
 
-  ignLogInit(this->logDir, "server_console.log");
-  EXPECT_EQ(this->logDir, ignLogDirectory());
+  gzLogInit(this->logDir, "server_console.log");
+  EXPECT_EQ(this->logDir, gzLogDirectory());
 
   // Record something to create some files
   {
@@ -1504,7 +1504,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogResources))
 #ifndef __APPLE__
   // Log resources from command line
   {
-    // Command line triggers ign.cc, which handles initializing ignLogDirectory
+    // Command line triggers ign.cc, which handles initializing gzLogDirectory
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
       + "--record --record-resources --record-path " + recordPath + " "
       + recordSdfPath;
@@ -1548,7 +1548,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogResources))
     recordServer.Run(true, 100, false);
   }
 
-  // Console log is not created because ignLogDirectory() is not initialized,
+  // Console log is not created because gzLogDirectory() is not initialized,
   // as ign.cc is not executed by command line.
   EXPECT_TRUE(common::exists(statePath));
 
@@ -1591,7 +1591,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogTopics))
 #ifndef __APPLE__
   // Log only the /clock topic from command line
   {
-    // Command line triggers ign.cc, which handles initializing ignLogDirectory
+    // Command line triggers ign.cc, which handles initializing gzLogDirectory
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
       + "--record-topic /clock "
       + "--record-path " + recordPath + " "

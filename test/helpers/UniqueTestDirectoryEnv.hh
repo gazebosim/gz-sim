@@ -61,7 +61,7 @@ class UniqueTestDirectoryEnv : public ::testing::Environment
     // caught by gtest.
     if (_dirName.empty())
     {
-      ignerr << "_dirName cannot be empty\n";
+      gzerr << "_dirName cannot be empty\n";
     }
     else
     {

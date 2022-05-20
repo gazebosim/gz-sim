@@ -68,7 +68,7 @@ void OdometerSystem::PreUpdate(const gz::sim::UpdateInfo &,
         auto sensor = sensorFactory.CreateSensor<custom::Odometer>(data);
         if (nullptr == sensor)
         {
-          ignerr << "Failed to create odometer [" << sensorScopedName << "]"
+          gzerr << "Failed to create odometer [" << sensorScopedName << "]"
                  << std::endl;
           return false;
         }
@@ -117,7 +117,7 @@ void OdometerSystem::RemoveSensorEntities(
       {
         if (this->entitySensorMap.erase(_entity) == 0)
         {
-          ignerr << "Internal error, missing odometer for entity ["
+          gzerr << "Internal error, missing odometer for entity ["
                          << _entity << "]" << std::endl;
         }
         return true;

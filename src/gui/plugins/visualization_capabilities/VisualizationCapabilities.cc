@@ -811,7 +811,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
       }
       else
       {
-        ignerr << "Unable to find node name ["
+        gzerr << "Unable to find node name ["
                << this->viewCOMTarget
                << "] to view center of mass" << std::endl;
       }
@@ -837,7 +837,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
       }
       else
       {
-        ignerr << "Unable to find node name ["
+        gzerr << "Unable to find node name ["
                << this->viewInertiaTarget
                << "] to view inertia" << std::endl;
       }
@@ -863,7 +863,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
       }
       else
       {
-        ignerr << "Unable to find node name ["
+        gzerr << "Unable to find node name ["
                << this->viewTransparentTarget
                << "] to view as transparent" << std::endl;
       }
@@ -889,7 +889,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
       }
       else
       {
-        ignerr << "Unable to find node name ["
+        gzerr << "Unable to find node name ["
                << this->viewCollisionsTarget
                << "] to view collisions" << std::endl;
       }
@@ -915,7 +915,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
       }
       else
       {
-        ignerr << "Unable to find node name ["
+        gzerr << "Unable to find node name ["
                << this->viewJointsTarget
                << "] to view joints" << std::endl;
       }
@@ -941,7 +941,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
       }
       else
       {
-        ignerr << "Unable to find node name ["
+        gzerr << "Unable to find node name ["
                << this->viewWireframesTarget
                << "] to view wireframes" << std::endl;
       }
@@ -966,7 +966,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
       }
       else
       {
-        ignerr << "Unable to find node name ["
+        gzerr << "Unable to find node name ["
                << this->viewFramesTarget
                << "] to view frame" << std::endl;
       }
@@ -1230,7 +1230,7 @@ rendering::GeometryPtr VisualizationCapabilitiesPrivate::CreateGeometry(
         _geom.MeshShape()->FilePath());
     if (fullPath.empty())
     {
-      ignerr << "Mesh geometry missing uri" << std::endl;
+      gzerr << "Mesh geometry missing uri" << std::endl;
       return geom;
     }
     rendering::MeshDescriptor descriptor;
@@ -1252,7 +1252,7 @@ rendering::GeometryPtr VisualizationCapabilitiesPrivate::CreateGeometry(
         _geom.HeightmapShape()->FilePath());
     if (fullPath.empty())
     {
-      ignerr << "Heightmap geometry missing URI" << std::endl;
+      gzerr << "Heightmap geometry missing URI" << std::endl;
       return geom;
     }
 
@@ -1266,7 +1266,7 @@ rendering::GeometryPtr VisualizationCapabilitiesPrivate::CreateGeometry(
       auto img = std::make_shared<common::ImageHeightmap>();
       if (img->Load(fullPath) < 0)
       {
-        ignerr << "Failed to load heightmap image data from ["
+        gzerr << "Failed to load heightmap image data from ["
                << fullPath << "]" << std::endl;
         return geom;
       }
@@ -1278,7 +1278,7 @@ rendering::GeometryPtr VisualizationCapabilitiesPrivate::CreateGeometry(
       auto dem = std::make_shared<common::Dem>();
       if (dem->Load(fullPath) < 0)
       {
-        ignerr << "Failed to load heightmap dem data from ["
+        gzerr << "Failed to load heightmap dem data from ["
                << fullPath << "]" << std::endl;
         return geom;
       }
@@ -1314,13 +1314,13 @@ rendering::GeometryPtr VisualizationCapabilitiesPrivate::CreateGeometry(
     geom = this->scene->CreateHeightmap(descriptor);
     if (nullptr == geom)
     {
-      ignerr << "Failed to create heightmap [" << fullPath << "]" << std::endl;
+      gzerr << "Failed to create heightmap [" << fullPath << "]" << std::endl;
     }
     scale = _geom.HeightmapShape()->Size();
   }
   else
   {
-    ignerr << "Unsupported geometry type" << std::endl;
+    gzerr << "Unsupported geometry type" << std::endl;
   }
   _scale = scale;
   _localPose = localPose;
@@ -1364,7 +1364,7 @@ rendering::MaterialPtr VisualizationCapabilitiesPrivate::CreateMaterial(
         if (!fullPath.empty())
           material->SetRoughnessMap(fullPath);
         else
-          ignerr << "Unable to find file [" << roughnessMap << "]\n";
+          gzerr << "Unable to find file [" << roughnessMap << "]\n";
       }
 
       // metalness map
@@ -1376,13 +1376,13 @@ rendering::MaterialPtr VisualizationCapabilitiesPrivate::CreateMaterial(
         if (!fullPath.empty())
           material->SetMetalnessMap(fullPath);
         else
-          ignerr << "Unable to find file [" << metalnessMap << "]\n";
+          gzerr << "Unable to find file [" << metalnessMap << "]\n";
       }
       workflow = const_cast<sdf::PbrWorkflow *>(metal);
     }
     else
     {
-      ignerr << "PBR material: currently only metal workflow is supported"
+      gzerr << "PBR material: currently only metal workflow is supported"
              << std::endl;
     }
 
@@ -1399,7 +1399,7 @@ rendering::MaterialPtr VisualizationCapabilitiesPrivate::CreateMaterial(
         material->SetAlphaFromTexture(true, 0.5, _material.DoubleSided());
       }
       else
-        ignerr << "Unable to find file [" << albedoMap << "]\n";
+        gzerr << "Unable to find file [" << albedoMap << "]\n";
     }
 
     // normal map
@@ -1411,7 +1411,7 @@ rendering::MaterialPtr VisualizationCapabilitiesPrivate::CreateMaterial(
       if (!fullPath.empty())
         material->SetNormalMap(fullPath);
       else
-        ignerr << "Unable to find file [" << normalMap << "]\n";
+        gzerr << "Unable to find file [" << normalMap << "]\n";
     }
 
 
@@ -1424,7 +1424,7 @@ rendering::MaterialPtr VisualizationCapabilitiesPrivate::CreateMaterial(
       if (!fullPath.empty())
         material->SetEnvironmentMap(fullPath);
       else
-        ignerr << "Unable to find file [" << environmentMap << "]\n";
+        gzerr << "Unable to find file [" << environmentMap << "]\n";
     }
 
     // emissive map
@@ -1436,7 +1436,7 @@ rendering::MaterialPtr VisualizationCapabilitiesPrivate::CreateMaterial(
       if (!fullPath.empty())
         material->SetEmissiveMap(fullPath);
       else
-        ignerr << "Unable to find file [" << emissiveMap << "]\n";
+        gzerr << "Unable to find file [" << emissiveMap << "]\n";
     }
 
     // light map
@@ -1452,7 +1452,7 @@ rendering::MaterialPtr VisualizationCapabilitiesPrivate::CreateMaterial(
       }
       else
       {
-        ignerr << "Unable to find file [" << lightMap << "]\n";
+        gzerr << "Unable to find file [" << lightMap << "]\n";
       }
     }
   }
@@ -1580,7 +1580,7 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateCollisionVisual(
   }
   else
   {
-    ignerr << "Failed to load geometry for visual: " << _visual.Name()
+    gzerr << "Failed to load geometry for visual: " << _visual.Name()
            << std::endl;
   }
 
@@ -1945,7 +1945,7 @@ void VisualizationCapabilitiesPrivate::ViewJoints(const Entity &_entity)
         this->VisualByEntity(jointEntity);
     if (jointVisual == nullptr)
     {
-      ignerr << "Could not find visual for entity [" << jointEntity
+      gzerr << "Could not find visual for entity [" << jointEntity
              << "]" << std::endl;
       continue;
     }
@@ -2087,7 +2087,7 @@ void VisualizationCapabilitiesPrivate::ViewFrames(const Entity &_entity)
     auto frameVisual = this->scene->VisualById(frameVisualId);
     if (frameVisual == nullptr)
     {
-      ignerr << "Failed to find frame visual with ID [" << frameVisualId
+      gzerr << "Failed to find frame visual with ID [" << frameVisualId
              << "] for entity [" << descendant << "]" << std::endl;
       continue;
     }
@@ -2263,7 +2263,7 @@ void VisualizationCapabilitiesPrivate::FindJointModels(
     }
     else
     {
-      ignerr << "Entity [" << entity
+      gzerr << "Entity [" << entity
              << "] for viewing joints must be a model"
              << std::endl;
       continue;
@@ -2292,7 +2292,7 @@ void VisualizationCapabilitiesPrivate::FindInertialLinks(
     }
     else
     {
-      ignerr << "Entity [" << entity
+      gzerr << "Entity [" << entity
              << "] for viewing inertia must be a model or link"
              << std::endl;
       continue;
@@ -2316,7 +2316,7 @@ void VisualizationCapabilitiesPrivate::FindInertialLinks(
     }
     else
     {
-      ignerr << "Entity [" << entity
+      gzerr << "Entity [" << entity
              << "] for viewing center of mass must be a model or link"
              << std::endl;
       continue;
@@ -2348,7 +2348,7 @@ void VisualizationCapabilitiesPrivate::FindCollisionLinks(
     }
     else
     {
-      ignerr << "Entity [" << entity
+      gzerr << "Entity [" << entity
              << "] for viewing collision must be a model or link"
              << std::endl;
       continue;
@@ -2378,7 +2378,7 @@ void VisualizationCapabilitiesPrivate::PopulateViewModeVisualLinks(
     }
     else
     {
-      ignerr << "Entity [" << entity
+      gzerr << "Entity [" << entity
              << "] for viewing wireframe must be a model or link"
              << std::endl;
       continue;
@@ -2403,7 +2403,7 @@ void VisualizationCapabilitiesPrivate::PopulateViewModeVisualLinks(
     }
     else
     {
-      ignerr << "Entity [" << entity
+      gzerr << "Entity [" << entity
              << "] for viewing as transparent must be a model or link"
              << std::endl;
       continue;
@@ -2798,7 +2798,7 @@ void VisualizationCapabilities::LoadConfig(const tinyxml2::XMLElement *)
   {
     std::string msg{
         "Only one Visualization capabilities plugin is supported at a time."};
-    ignerr << msg << std::endl;
+    gzerr << msg << std::endl;
     QQmlProperty::write(this->PluginItem(), "message",
         QString::fromStdString(msg));
     return;
@@ -2809,28 +2809,28 @@ void VisualizationCapabilities::LoadConfig(const tinyxml2::XMLElement *)
   this->dataPtr->viewTransparentService = "/gui/view/transparent";
   this->dataPtr->node.Advertise(this->dataPtr->viewTransparentService,
     &VisualizationCapabilitiesPrivate::OnViewTransparent, this->dataPtr.get());
-  ignmsg << "View as transparent service on ["
+  gzmsg << "View as transparent service on ["
          << this->dataPtr->viewTransparentService << "]" << std::endl;
 
   // view wireframes service
   this->dataPtr->viewWireframesService = "/gui/view/wireframes";
   this->dataPtr->node.Advertise(this->dataPtr->viewWireframesService,
    &VisualizationCapabilitiesPrivate::OnViewWireframes, this->dataPtr.get());
-  ignmsg << "View as wireframes service on ["
+  gzmsg << "View as wireframes service on ["
         << this->dataPtr->viewWireframesService << "]" << std::endl;
 
   // view center of mass service
   this->dataPtr->viewCOMService = "/gui/view/com";
   this->dataPtr->node.Advertise(this->dataPtr->viewCOMService,
       &VisualizationCapabilitiesPrivate::OnViewCOM, this->dataPtr.get());
-  ignmsg << "View center of mass service on ["
+  gzmsg << "View center of mass service on ["
          << this->dataPtr->viewCOMService << "]" << std::endl;
 
   // view inertia service
   this->dataPtr->viewInertiaService = "/gui/view/inertia";
   this->dataPtr->node.Advertise(this->dataPtr->viewInertiaService,
       &VisualizationCapabilitiesPrivate::OnViewInertia, this->dataPtr.get());
-  ignmsg << "View inertia service on ["
+  gzmsg << "View inertia service on ["
          << this->dataPtr->viewInertiaService << "]" << std::endl;
 
    // view collisions service
@@ -2838,7 +2838,7 @@ void VisualizationCapabilities::LoadConfig(const tinyxml2::XMLElement *)
    this->dataPtr->node.Advertise(this->dataPtr->viewCollisionsService,
        &VisualizationCapabilitiesPrivate::OnViewCollisions,
        this->dataPtr.get());
-   ignmsg << "View collisions service on ["
+   gzmsg << "View collisions service on ["
           << this->dataPtr->viewCollisionsService << "]" << std::endl;
 
   // view joints service
@@ -2846,14 +2846,14 @@ void VisualizationCapabilities::LoadConfig(const tinyxml2::XMLElement *)
   this->dataPtr->node.Advertise(this->dataPtr->viewJointsService,
       &VisualizationCapabilitiesPrivate::OnViewJoints,
       this->dataPtr.get());
-  ignmsg << "View joints service on ["
+  gzmsg << "View joints service on ["
          << this->dataPtr->viewJointsService << "]" << std::endl;
 
   // view frames service
   this->dataPtr->viewFramesService = "/gui/view/frames";
   this->dataPtr->node.Advertise(this->dataPtr->viewFramesService,
       &VisualizationCapabilitiesPrivate::OnViewFrames, this->dataPtr.get());
-  ignmsg << "View frames service on ["
+  gzmsg << "View frames service on ["
          << this->dataPtr->viewFramesService << "]" << std::endl;
 
   gz::gui::App()->findChild

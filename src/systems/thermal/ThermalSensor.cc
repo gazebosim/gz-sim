@@ -60,7 +60,7 @@ void ThermalSensor::Configure(const Entity &_entity,
   auto sensorComp = _ecm.Component<components::ThermalCamera>(_entity);
   if (sensorComp == nullptr)
   {
-    ignerr << "The thermal sensor system can only be used to configure "
+    gzerr << "The thermal sensor system can only be used to configure "
            << "parameters of thermal camera sensor " << std::endl;
     return;
   }

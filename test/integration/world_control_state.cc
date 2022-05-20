@@ -66,7 +66,7 @@ TEST_F(WorldControlState, IGN_UTILS_TEST_DISABLED_ON_WIN32(SetState))
           [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
           {
             if (!_result)
-              ignerr << "Error sharing WorldControl info with the server.\n";
+              gzerr << "Error sharing WorldControl info with the server.\n";
           };
       node.Request("/world/default/control/state", req, cb2);
     }

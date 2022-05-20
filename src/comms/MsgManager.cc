@@ -58,7 +58,7 @@ bool MsgManager::AddSubscriber(const std::string &_address,
   {
     if (!it->second.modelName.empty() && it->second.modelName != _modelName)
     {
-      ignerr << "AddSubscriber() error: Address already attached to a different"
+      gzerr << "AddSubscriber() error: Address already attached to a different"
              << " model" << std::endl;
       return false;
     }
@@ -93,7 +93,7 @@ bool MsgManager::RemoveSubscriber(const std::string &_address,
   auto it = this->dataPtr->data.find(_address);
   if (it == this->dataPtr->data.end())
   {
-    ignerr << "RemoveSubscriber() error: Unable to find address ["
+    gzerr << "RemoveSubscriber() error: Unable to find address ["
            << _address << "]" << std::endl;
     return false;
   }
@@ -115,7 +115,7 @@ bool MsgManager::RemoveInbound(const std::string &_address,
   auto it = this->dataPtr->data.find(_address);
   if (it == this->dataPtr->data.end())
   {
-    ignerr << "RemoveInbound() error: Unable to find address ["
+    gzerr << "RemoveInbound() error: Unable to find address ["
            << _address << "]" << std::endl;
     return false;
   }
@@ -132,7 +132,7 @@ bool MsgManager::RemoveOutbound(const std::string &_address,
   auto it = this->dataPtr->data.find(_address);
   if (it == this->dataPtr->data.end())
   {
-    ignerr << "RemoveOutbound() error: Unable to find address ["
+    gzerr << "RemoveOutbound() error: Unable to find address ["
            << _address << "]" << std::endl;
     return false;
   }

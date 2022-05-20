@@ -59,7 +59,7 @@ int main(int _argc, char** _argv)
   gz::sim::ServerConfig serverConfig;
   if (!serverConfig.SetSdfFile(sdfFile))
   {
-    ignerr << "Failed to set SDF file [" << sdfFile << "]" << std::endl;
+    gzerr << "Failed to set SDF file [" << sdfFile << "]" << std::endl;
     return -1;
   }
 

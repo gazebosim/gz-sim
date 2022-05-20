@@ -265,7 +265,7 @@ void Buoyancy::Configure(const Entity &_entity,
       this->dataPtr->world);
   if (!gravity)
   {
-    ignerr << "Unable to get the gravity vector. Make sure this plugin is "
+    gzerr << "Unable to get the gravity vector. Make sure this plugin is "
       << "attached to a <world>, not a <model>." << std::endl;
     return;
   }
@@ -282,7 +282,7 @@ void Buoyancy::Configure(const Entity &_entity,
     auto gradedElement = _sdf->GetFirstElement();
     if (gradedElement == nullptr)
     {
-      ignerr << "Unable to get element description" << std::endl;
+      gzerr << "Unable to get element description" << std::endl;
       return;
     }
 
@@ -301,12 +301,12 @@ void Buoyancy::Configure(const Entity &_entity,
         auto density = argument->Get<double>("density", 0.0);
         if (!depth.second)
         {
-          ignwarn << "No <above_depth> tag was found as a "
+          gzwarn << "No <above_depth> tag was found as a "
             << "child of <density_change>" << std::endl;
         }
         if (!density.second)
         {
-          ignwarn << "No <density> tag was found as a "
+          gzwarn << "No <density> tag was found as a "
             << "child of <density_change>" << std::endl;
         }
         this->dataPtr->layers[depth.first] = density.first;
@@ -318,7 +318,7 @@ void Buoyancy::Configure(const Entity &_entity,
   }
   else
   {
-    ignwarn <<
+    gzwarn <<
       "Neither <graded_buoyancy> nor <uniform_fluid_density> specified"
       << std::endl
       << "\tDefaulting to <uniform_fluid_density>1000</uniform_fluid_density>"
@@ -345,7 +345,7 @@ void Buoyancy::PreUpdate(const gz::sim::UpdateInfo &_info,
       this->dataPtr->world);
   if (!gravity)
   {
-    ignerr << "Unable to get the gravity vector. Has gravity been defined?"
+    gzerr << "Unable to get the gravity vector. Has gravity been defined?"
            << std::endl;
     return;
   }
@@ -389,7 +389,7 @@ void Buoyancy::PreUpdate(const gz::sim::UpdateInfo &_info,
 
       if (!coll)
       {
-        ignerr << "Invalid collision pointer. This shouldn't happen\n";
+        gzerr << "Invalid collision pointer. This shouldn't happen\n";
         continue;
       }
 
@@ -420,16 +420,16 @@ void Buoyancy::PreUpdate(const gz::sim::UpdateInfo &_info,
               if (mesh)
                 volume = mesh->Volume();
               else
-                ignerr << "Unable to load mesh[" << file << "]\n";
+                gzerr << "Unable to load mesh[" << file << "]\n";
             }
             else
             {
-              ignerr << "Invalid mesh filename[" << file << "]\n";
+              gzerr << "Invalid mesh filename[" << file << "]\n";
             }
             break;
           }
         default:
-          ignerr << "Unsupported collision geometry["
+          gzerr << "Unsupported collision geometry["
             << static_cast<int>(coll->Data().Geom()->Type()) << "]\n";
           break;
       }
@@ -507,7 +507,7 @@ void Buoyancy::PreUpdate(const gz::sim::UpdateInfo &_info,
 
           if (!coll)
           {
-            ignerr << "Invalid collision pointer. This shouldn't happen\n";
+            gzerr << "Invalid collision pointer. This shouldn't happen\n";
             continue;
           }
 
@@ -530,7 +530,7 @@ void Buoyancy::PreUpdate(const gz::sim::UpdateInfo &_info,
               static bool warned{false};
               if (!warned)
               {
-                ignwarn << "Only <box> and <sphere> collisions are supported "
+                gzwarn << "Only <box> and <sphere> collisions are supported "
                   << "by the graded buoyancy option." << std::endl;
                 warned = true;
               }

@@ -100,7 +100,7 @@ void GzSceneManager::LoadConfig(const tinyxml2::XMLElement *)
   if (done)
   {
     std::string msg{"Only one GzSceneManager is supported at a time."};
-    ignerr << msg << std::endl;
+    gzerr << msg << std::endl;
     QQmlProperty::write(this->PluginItem(), "message",
         QString::fromStdString(msg));
     return;
@@ -234,7 +234,7 @@ void GzSceneManagerPrivate::OnRender()
     auto runners = gz::gui::App()->findChildren<GuiRunner *>();
     if (runners.empty() || runners[0] == nullptr)
     {
-      ignerr << "Internal error: no GuiRunner found." << std::endl;
+      gzerr << "Internal error: no GuiRunner found." << std::endl;
     }
     else
     {

@@ -244,7 +244,7 @@ msgs::Geometry gz::sim::convert(const sdf::Geometry &_in)
   }
   else
   {
-    ignerr << "Geometry type [" << static_cast<int>(_in.Type())
+    gzerr << "Geometry type [" << static_cast<int>(_in.Type())
            << "] not supported" << std::endl;
   }
   return out;
@@ -359,7 +359,7 @@ sdf::Geometry gz::sim::convert(const msgs::Geometry &_in)
   }
   else
   {
-    ignerr << "Geometry type [" << static_cast<int>(_in.type())
+    gzerr << "Geometry type [" << static_cast<int>(_in.type())
            << "] not supported" << std::endl;
   }
   return out;
@@ -647,7 +647,7 @@ msgs::GUI gz::sim::convert(const sdf::Gui &_in)
 
   if (elem->HasElement("camera"))
   {
-    ignwarn << "<gui><camera> can't be converted yet" << std::endl;
+    gzwarn << "<gui><camera> can't be converted yet" << std::endl;
   }
 
   return out;
@@ -753,7 +753,7 @@ sdf::JointAxis gz::sim::convert(const msgs::Axis &_in)
   sdf::JointAxis out;
   sdf::Errors errors = out.SetXyz(msgs::Convert(_in.xyz()));
   for (const auto &err : errors) {
-    ignerr << err.Message() << std::endl;
+    gzerr << err.Message() << std::endl;
   }
   out.SetXyzExpressedIn(_in.xyz_expressed_in());
   out.SetDamping(_in.damping());
@@ -1037,7 +1037,7 @@ msgs::Sensor gz::sim::convert(const sdf::Sensor &_in)
     }
     else
     {
-      ignerr << "Attempting to convert a magnetometer SDF sensor, but the "
+      gzerr << "Attempting to convert a magnetometer SDF sensor, but the "
         << "sensor pointer is null.\n";
     }
   }
@@ -1068,7 +1068,7 @@ msgs::Sensor gz::sim::convert(const sdf::Sensor &_in)
     }
     else
     {
-      ignerr << "Attempting to convert a camera SDF sensor, but the "
+      gzerr << "Attempting to convert a camera SDF sensor, but the "
         << "sensor pointer is null.\n";
     }
   }
@@ -1106,7 +1106,7 @@ msgs::Sensor gz::sim::convert(const sdf::Sensor &_in)
     }
     else
     {
-      ignerr << "Attempting to convert a NavSat SDF sensor, but the "
+      gzerr << "Attempting to convert a NavSat SDF sensor, but the "
         << "sensor pointer is null.\n";
     }
   }
@@ -1131,7 +1131,7 @@ msgs::Sensor gz::sim::convert(const sdf::Sensor &_in)
     }
     else
     {
-      ignerr << "Attempting to convert an altimeter SDF sensor, but the "
+      gzerr << "Attempting to convert an altimeter SDF sensor, but the "
         << "sensor pointer is null.\n";
     }
   }
@@ -1152,7 +1152,7 @@ msgs::Sensor gz::sim::convert(const sdf::Sensor &_in)
     }
     else
     {
-      ignerr << "Attempting to convert an air pressure SDF sensor, but the "
+      gzerr << "Attempting to convert an air pressure SDF sensor, but the "
         << "sensor pointer is null.\n";
     }
   }
@@ -1216,7 +1216,7 @@ msgs::Sensor gz::sim::convert(const sdf::Sensor &_in)
     }
     else
     {
-      ignerr << "Attempting to convert an IMU SDF sensor, but the "
+      gzerr << "Attempting to convert an IMU SDF sensor, but the "
         << "sensor pointer is null.\n";
     }
   }
@@ -1250,7 +1250,7 @@ msgs::Sensor gz::sim::convert(const sdf::Sensor &_in)
     }
     else
     {
-      ignerr << "Attempting to convert a Lidar SDF sensor, but the "
+      gzerr << "Attempting to convert a Lidar SDF sensor, but the "
         << "sensor pointer is null.\n";
     }
   }
@@ -1265,7 +1265,7 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
   sdf::Sensor out;
   out.SetName(_in.name());
   if (!out.SetType(_in.type()))
-    ignerr << "Failed to set the sensor type from [" << _in.type() << "]\n";
+    gzerr << "Failed to set the sensor type from [" << _in.type() << "]\n";
 
   out.SetUpdateRate(_in.update_rate());
   out.SetTopic(_in.topic());
@@ -1293,7 +1293,7 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
     }
     else
     {
-      ignerr << "Attempting to convert a magnetometer sensor message, but the "
+      gzerr << "Attempting to convert a magnetometer sensor message, but the "
         << "message does not have a magnetometer nested message.\n";
     }
 
@@ -1329,7 +1329,7 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
     }
     else
     {
-      ignerr << "Attempting to convert a camera sensor message, but the "
+      gzerr << "Attempting to convert a camera sensor message, but the "
         << "message does not have a camera nested message.\n";
     }
 
@@ -1354,7 +1354,7 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
     }
     else
     {
-      ignerr << "Attempting to convert an altimeter sensor message, but the "
+      gzerr << "Attempting to convert an altimeter sensor message, but the "
         << "message does not have a altimeter nested message.\n";
     }
 
@@ -1375,7 +1375,7 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
     }
     else
     {
-      ignerr << "Attempting to convert an air pressure sensor message, but the "
+      gzerr << "Attempting to convert an air pressure sensor message, but the "
         << "message does not have an air pressure nested message.\n";
     }
 
@@ -1454,7 +1454,7 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
     }
     else
     {
-      ignerr << "Attempting to convert an IMU sensor message, but the "
+      gzerr << "Attempting to convert an IMU sensor message, but the "
         << "message does not have an IMU nested message.\n";
     }
 
@@ -1488,7 +1488,7 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
     }
     else
     {
-      ignerr << "Attempting to convert a lidar sensor message, but the "
+      gzerr << "Attempting to convert a lidar sensor message, but the "
         << "message does not have a lidar nested message.\n";
     }
 

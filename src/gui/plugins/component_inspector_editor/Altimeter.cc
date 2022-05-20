@@ -86,11 +86,11 @@ Q_INVOKABLE void Altimeter::OnAltimeterPositionNoise(
         altimeter->SetVerticalPositionNoise(noise);
       }
       else
-        ignerr << "Unable to get the altimeter data.\n";
+        gzerr << "Unable to get the altimeter data.\n";
     }
     else
     {
-      ignerr << "Unable to get the altimeter component.\n";
+      gzerr << "Unable to get the altimeter component.\n";
     }
   };
   this->inspector->AddUpdateCallback(cb);
@@ -120,11 +120,11 @@ Q_INVOKABLE void Altimeter::OnAltimeterVelocityNoise(
         altimeter->SetVerticalVelocityNoise(noise);
       }
       else
-        ignerr << "Unable to get the altimeter data.\n";
+        gzerr << "Unable to get the altimeter data.\n";
     }
     else
     {
-      ignerr << "Unable to get the altimeter component.\n";
+      gzerr << "Unable to get the altimeter component.\n";
     }
   };
   this->inspector->AddUpdateCallback(cb);

@@ -54,7 +54,7 @@ math::Pose3d worldPose(const Entity &_entity,
   auto poseComp = _ecm.Component<components::Pose>(_entity);
   if (nullptr == poseComp)
   {
-    ignwarn << "Trying to get world pose from entity [" << _entity
+    gzwarn << "Trying to get world pose from entity [" << _entity
             << "], which doesn't have a pose component" << std::endl;
     return math::Pose3d();
   }
@@ -97,7 +97,7 @@ std::string scopedName(const Entity &_entity,
     std::string prefix = entityTypeStr(entity, _ecm);
     if (prefix.empty())
     {
-      ignwarn << "Skipping entity [" << name
+      gzwarn << "Skipping entity [" << name
               << "] when generating scoped name, entity type not known."
               << std::endl;
     }
@@ -132,7 +132,7 @@ std::unordered_set<Entity> entitiesFromScopedName(
 {
   if (_delim.empty())
   {
-    ignwarn << "Can't process scoped name [" << _scopedName
+    gzwarn << "Can't process scoped name [" << _scopedName
             << "] with empty delimiter." << std::endl;
     return {};
   }
@@ -347,7 +347,7 @@ std::string asFullPath(const std::string &_uri, const std::string &_filePath)
   // When SDF is loaded from a string instead of a file
   if (std::string(sdf::kSdfStringSource) == _filePath)
   {
-    ignwarn << "Can't resolve full path for relative path ["
+    gzwarn << "Can't resolve full path for relative path ["
             << _uri << "]. Loaded from a data-string." << std::endl;
     return _uri;
   }
@@ -519,7 +519,7 @@ std::string validTopic(const std::vector<std::string> &_topics)
     auto validTopic = transport::TopicUtils::AsValidTopic(topic);
     if (validTopic.empty())
     {
-      ignerr << "Topic [" << topic << "] is invalid, ignoring." << std::endl;
+      gzerr << "Topic [" << topic << "] is invalid, ignoring." << std::endl;
       continue;
     }
     if (validTopic != topic)
@@ -608,7 +608,7 @@ std::string resolveSdfWorldFile(const std::string &_sdfFile,
     }
     else
     {
-      ignwarn << "Fuel couldn't download URL [" << _sdfFile
+      gzwarn << "Fuel couldn't download URL [" << _sdfFile
         << "], error: [" << result.ReadableResult() << "]"
         << std::endl;
     }

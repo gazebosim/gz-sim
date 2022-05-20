@@ -96,7 +96,7 @@ void JointPositionController::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "JointPositionController plugin should be attached to a model "
+    gzerr << "JointPositionController plugin should be attached to a model "
            << "entity. Failed to initialize." << std::endl;
     return;
   }
@@ -106,7 +106,7 @@ void JointPositionController::Configure(const Entity &_entity,
 
   if (this->dataPtr->jointName == "")
   {
-    ignerr << "JointPositionController found an empty jointName parameter. "
+    gzerr << "JointPositionController found an empty jointName parameter. "
            << "Failed to initialize.";
     return;
   }
@@ -182,7 +182,7 @@ void JointPositionController::Configure(const Entity &_entity,
       "/" + std::to_string(this->dataPtr->jointIndex) + "/cmd_pos");
   if (topic.empty())
   {
-    ignerr << "Failed to create topic for joint [" << this->dataPtr->jointName
+    gzerr << "Failed to create topic for joint [" << this->dataPtr->jointName
            << "]" << std::endl;
     return;
   }
@@ -193,7 +193,7 @@ void JointPositionController::Configure(const Entity &_entity,
 
     if (topic.empty())
     {
-      ignerr << "Failed to create topic [" << _sdf->Get<std::string>("topic")
+      gzerr << "Failed to create topic [" << _sdf->Get<std::string>("topic")
              << "]" << " for joint [" << this->dataPtr->jointName
              << "]" << std::endl;
       return;
@@ -226,7 +226,7 @@ void JointPositionController::PreUpdate(
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -244,7 +244,7 @@ void JointPositionController::PreUpdate(
   {
     static bool warned = false;
     if(!warned)
-      ignerr << "Could not find joint with name ["
+      gzerr << "Could not find joint with name ["
         << this->dataPtr->jointName <<"]\n";
     warned = true;
     return;
@@ -273,7 +273,7 @@ void JointPositionController::PreUpdate(
     static std::unordered_set<Entity> reported;
     if (reported.find(this->dataPtr->jointEntity) == reported.end())
     {
-      ignerr << "[JointPositionController]: Detected an invalid <joint_index> "
+      gzerr << "[JointPositionController]: Detected an invalid <joint_index> "
              << "parameter. The index specified is ["
              << this->dataPtr->jointIndex << "] but joint ["
              << this->dataPtr->jointName << "] only has ["

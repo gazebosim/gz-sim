@@ -108,7 +108,7 @@ void NavSat::PreUpdate(const UpdateInfo &/*_info*/,
     auto it = this->dataPtr->entitySensorMap.find(entity);
     if (it == this->dataPtr->entitySensorMap.end())
     {
-      ignerr << "Entity [" << entity
+      gzerr << "Entity [" << entity
              << "] isn't in sensor map, this shouldn't happen." << std::endl;
       continue;
     }
@@ -127,7 +127,7 @@ void NavSat::PostUpdate(const UpdateInfo &_info,
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -170,7 +170,7 @@ void NavSat::Implementation::AddSensor(
       this->sensorFactory.CreateSensor<sensors::NavSatSensor>(data);
   if (nullptr == sensor)
   {
-    ignerr << "Failed to create sensor [" << sensorScopedName << "]"
+    gzerr << "Failed to create sensor [" << sensorScopedName << "]"
            << std::endl;
     return;
   }
@@ -229,7 +229,7 @@ void NavSat::Implementation::Update(const EntityComponentManager &_ecm)
 
         if (it == this->entitySensorMap.end())
         {
-          ignerr << "Failed to update NavSat sensor entity [" << _entity
+          gzerr << "Failed to update NavSat sensor entity [" << _entity
                  << "]. Entity not found." << std::endl;
           return true;
         }
@@ -238,7 +238,7 @@ void NavSat::Implementation::Update(const EntityComponentManager &_ecm)
         auto latLonEle = sphericalCoordinates(_entity, _ecm);
         if (!latLonEle)
         {
-          ignwarn << "Failed to update NavSat sensor enity [" << _entity
+          gzwarn << "Failed to update NavSat sensor enity [" << _entity
                   << "]. Spherical coordinates not set." << std::endl;
           return true;
         }
@@ -265,7 +265,7 @@ void NavSat::Implementation::RemoveSensors(const EntityComponentManager &_ecm)
         auto sensorId = this->entitySensorMap.find(_entity);
         if (sensorId == this->entitySensorMap.end())
         {
-          ignerr << "Internal error, missing NavSat sensor for entity ["
+          gzerr << "Internal error, missing NavSat sensor for entity ["
                  << _entity << "]" << std::endl;
           return true;
         }

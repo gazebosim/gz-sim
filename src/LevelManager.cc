@@ -69,7 +69,7 @@ LevelManager::LevelManager(SimulationRunner *_runner, const bool _useLevels)
 {
   if (nullptr == _runner)
   {
-    ignerr << "Can't start level manager with null runner." << std::endl;
+    gzerr << "Can't start level manager with null runner." << std::endl;
     return;
   }
 
@@ -84,7 +84,7 @@ LevelManager::LevelManager(SimulationRunner *_runner, const bool _useLevels)
       this->runner->sdfWorld->Name() + "/level/set_performer");
   if (service.empty())
   {
-    ignerr << "Failed to generate set_performer topic for world ["
+    gzerr << "Failed to generate set_performer topic for world ["
            << this->runner->sdfWorld->Name() << "]" << std::endl;
     return;
   }
@@ -215,7 +215,7 @@ void LevelManager::ReadLevelPerformerInfo()
   {
     if (this->useLevels)
     {
-      ignerr << "Could not find a plugin tag with name " << kPluginName
+      gzerr << "Could not find a plugin tag with name " << kPluginName
              << ". Levels and distributed simulation will not work.\n";
     }
   }
@@ -266,7 +266,7 @@ void LevelManager::ReadPerformers(const sdf::ElementPtr &_sdf)
           this->runner->entityCompMgr.Component<components::Name>(
               this->performerMap[ref]);
 
-        ignerr << "Found multiple performers (" << name << " and "
+        gzerr << "Found multiple performers (" << name << " and "
           << performer2->Data() << ") referring to the same entity\n";
       }
 
@@ -281,7 +281,7 @@ void LevelManager::ReadPerformers(const sdf::ElementPtr &_sdf)
       this->runner->entityCompMgr.CreateComponent(performerEntity,
           components::Geometry(geometry));
 
-      ignmsg << "Created performer [" << performerEntity << " / " << name << "]"
+      gzmsg << "Created performer [" << performerEntity << " / " << name << "]"
              << std::endl;
     }
   }
@@ -328,7 +328,7 @@ bool LevelManager::OnSetPerformer(const msgs::StringMsg &_req,
   }
   else
   {
-    ignerr << "Empty performer name. Performer will not be created\n";
+    gzerr << "Empty performer name. Performer will not be created\n";
   }
 
   return true;
@@ -343,7 +343,7 @@ bool LevelManager::OnSetPerformer(const msgs::StringMsg &_req,
   //     components::Name(name));
   // if (modelEntity == kNullEntity)
   // {
-  //   ignerr << "Unable to find model with name[" << name << "]. "
+  //   gzerr << "Unable to find model with name[" << name << "]. "
   //     << "Performer not created\n";
   //   return true;
   // }
@@ -364,7 +364,7 @@ bool LevelManager::OnSetPerformer(const msgs::StringMsg &_req,
   // }
   // else
   // {
-  //   ignwarn << "Performer with name[" << name << "] "
+  //   gzwarn << "Performer with name[" << name << "] "
   //     << "has already been set.\n";
   // }
 
@@ -392,7 +392,7 @@ void LevelManager::ReadLevels(const sdf::ElementPtr &_sdf)
 
     if (nullptr == geometry.BoxShape())
     {
-      ignerr << "Level [" << name << "]'s geometry is not a box, level won't "
+      gzerr << "Level [" << name << "]'s geometry is not a box, level won't "
              << "be created." << std::endl;
       continue;
     }
@@ -400,7 +400,7 @@ void LevelManager::ReadLevels(const sdf::ElementPtr &_sdf)
     double buffer = level->Get<double>("buffer", 0.0).first;
     if (buffer < 0)
     {
-      ignwarn << "The buffer parameter for Level [" << name << "]cannot be a "
+      gzwarn << "The buffer parameter for Level [" << name << "]cannot be a "
               << " negative number. Setting to 0.0\n";
       buffer = 0.0;
     }
@@ -521,7 +521,7 @@ void LevelManager::CreatePerformers()
 
   if (this->worldEntity == kNullEntity)
   {
-    ignerr << "Could not find the world entity while creating performers\n";
+    gzerr << "Could not find the world entity while creating performers\n";
     return;
   }
   // Models
@@ -621,7 +621,7 @@ void LevelManager::UpdateLevelsState()
           auto perfBox = _geometry->Data().BoxShape();
           if (nullptr == perfBox)
           {
-          ignerr << "Internal error: geometry of performer [" << _perfEntity
+          gzerr << "Internal error: geometry of performer [" << _perfEntity
           << "] missing box." << std::endl;
           return true;
           }
@@ -649,7 +649,7 @@ void LevelManager::UpdateLevelsState()
                 auto box = _levelGeometry->Data().BoxShape();
                 if (nullptr == box)
                 {
-                ignerr << "Level [" << _entity
+                gzerr << "Level [" << _entity
                 << "]'s geometry is not a box." << std::endl;
                 return true;
                 }
@@ -773,7 +773,7 @@ void LevelManager::UpdateLevelsState()
   {
     if (!this->IsLevelActive(level))
     {
-      ignmsg << "Loaded level [" << level << "]" << std::endl;
+      gzmsg << "Loaded level [" << level << "]" << std::endl;
       this->activeLevels.push_back(level);
     }
   }
@@ -781,7 +781,7 @@ void LevelManager::UpdateLevelsState()
   auto pendingEnd = this->activeLevels.end();
   for (const auto &toUnload : levelsToUnload)
   {
-    ignmsg << "Unloaded level [" << toUnload << "]" << std::endl;
+    gzmsg << "Unloaded level [" << toUnload << "]" << std::endl;
     pendingEnd = std::remove(this->activeLevels.begin(), pendingEnd, toUnload);
   }
   // Erase from vector
@@ -795,7 +795,7 @@ void LevelManager::LoadActiveEntities(const std::set<std::string> &_namesToLoad)
 
   if (this->worldEntity == kNullEntity)
   {
-    ignerr << "Could not find the world entity while loading levels\n";
+    gzerr << "Could not find the world entity while loading levels\n";
     return;
   }
 
@@ -904,7 +904,7 @@ int LevelManager::CreatePerformerEntity(const std::string &_name,
       components::Name(_name));
   if (modelEntity == kNullEntity)
   {
-    ignwarn << "Attempting to set performer with name ["
+    gzwarn << "Attempting to set performer with name ["
       << _name << "] "
       << ", but the entity could not be found. Another attempt will be made "
       << "in the next iteration.\n";
@@ -914,7 +914,7 @@ int LevelManager::CreatePerformerEntity(const std::string &_name,
   if (!this->runner->entityCompMgr.ChildrenByComponents(modelEntity,
         components::Performer()).empty())
   {
-    ignwarn << "Attempting to set performer with name ["
+    gzwarn << "Attempting to set performer with name ["
       << _name << "], but the entity already has a performer.\n";
     return 1;
   }

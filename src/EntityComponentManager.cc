@@ -346,7 +346,7 @@ Entity EntityComponentManager::CreateEntity()
 
   if (entity == std::numeric_limits<uint64_t>::max())
   {
-    ignwarn << "Reached maximum number of entities [" << entity << "]"
+    gzwarn << "Reached maximum number of entities [" << entity << "]"
             << std::endl;
     return entity;
   }
@@ -373,7 +373,7 @@ Entity EntityComponentManagerPrivate::CreateEntityImplementation(Entity _entity)
       std::vector<std::unique_ptr<components::BaseComponent>>()});
   if (!result.second)
   {
-    ignwarn << "Attempted to add entity [" << _entity
+    gzwarn << "Attempted to add entity [" << _entity
       << "] to component storage, but this entity is already in component "
       << "storage.\n";
   }
@@ -382,7 +382,7 @@ Entity EntityComponentManagerPrivate::CreateEntityImplementation(Entity _entity)
       std::unordered_map<ComponentTypeId, std::size_t>()});
   if (!result2.second)
   {
-    ignwarn << "Attempted to add entity [" << _entity
+    gzwarn << "Attempted to add entity [" << _entity
       << "] to component type index, but this entity is already in component "
       << "type index.\n";
   }
@@ -413,7 +413,7 @@ Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
           oldCanonicalLink);
       if (iter == this->dataPtr->oldToClonedCanonicalLink.end())
       {
-        ignerr << "Error: attempted to clone model(s) with canonical link(s), "
+        gzerr << "Error: attempted to clone model(s) with canonical link(s), "
           << "but entity [" << oldCanonicalLink << "] was not cloned as a "
           << "canonical link." << std::endl;
         continue;
@@ -432,7 +432,7 @@ Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
       if (!this->dataPtr->ClonedJointLinkName<components::ParentLinkName>(
             clonedJoint, originalParentLink, this))
       {
-        ignerr << "Error updating the cloned parent link name for cloned "
+        gzerr << "Error updating the cloned parent link name for cloned "
                << "joint [" << clonedJoint << "]\n";
         continue;
       }
@@ -441,7 +441,7 @@ Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
       if (!this->dataPtr->ClonedJointLinkName<components::ChildLinkName>(
             clonedJoint, originalChildLink, this))
       {
-        ignerr << "Error updating the cloned child link name for cloned "
+        gzerr << "Error updating the cloned child link name for cloned "
                << "joint [" << clonedJoint << "]\n";
         continue;
       }
@@ -462,7 +462,7 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
   //  2. We can generate a unique name for the cloned entity
   if (!this->HasEntity(_entity))
   {
-    ignerr << "Requested to clone entity [" << _entity
+    gzerr << "Requested to clone entity [" << _entity
       << "], but this entity does not exist." << std::endl;
     return kNullEntity;
   }
@@ -493,7 +493,7 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
 
     if (kNullEntity != ent && !hasRecreateComp)
     {
-      ignerr << "Requested to clone entity [" << _entity
+      gzerr << "Requested to clone entity [" << _entity
         << "] with a name of [" << _name << "], but another entity already "
         << "has this name." << std::endl;
       return kNullEntity;
@@ -601,7 +601,7 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
 
     if (!originalParentLink || !originalChildLink)
     {
-      ignerr << "The cloned joint entity [" << clonedEntity << "] was unable "
+      gzerr << "The cloned joint entity [" << clonedEntity << "] was unable "
         << "to find the original joint entity's parent and/or child link.\n";
       this->RequestRemoveEntity(clonedEntity);
       return kNullEntity;
@@ -630,7 +630,7 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
         _allowRename);
     if (kNullEntity == clonedChild)
     {
-      ignerr << "Cloning child entity [" << childEntity << "] failed.\n";
+      gzerr << "Cloning child entity [" << childEntity << "] failed.\n";
       this->RequestRemoveEntity(clonedEntity);
       return kNullEntity;
     }
@@ -1042,7 +1042,7 @@ bool EntityComponentManager::CreateComponentImplementation(
   // make sure the entity exists
   if (!this->HasEntity(_entity))
   {
-    ignerr << "Trying to create a component of type [" << _componentTypeId
+    gzerr << "Trying to create a component of type [" << _componentTypeId
       << "] attached to entity [" << _entity << "], but this entity does not "
       << "exist. This create component request will be ignored." << std::endl;
     return false;
@@ -1053,7 +1053,7 @@ bool EntityComponentManager::CreateComponentImplementation(
   if (!this->HasComponentType(_componentTypeId) &&
       !components::Factory::Instance()->HasType(_componentTypeId))
   {
-    ignerr << "Failed to create component of type [" << _componentTypeId
+    gzerr << "Failed to create component of type [" << _componentTypeId
            << "] for entity [" << _entity
            << "]. Type has not been properly registered." << std::endl;
     return false;
@@ -1070,7 +1070,7 @@ bool EntityComponentManager::CreateComponentImplementation(
   auto typeMapIter = this->dataPtr->componentTypeIndex.find(_entity);
   if (typeMapIter == this->dataPtr->componentTypeIndex.end())
   {
-    ignerr << "Attempt to create a component of type [" << _componentTypeId
+    gzerr << "Attempt to create a component of type [" << _componentTypeId
       << "] attached to entity [" << _entity
       << "] failed: entity not in componentTypeIndex." << std::endl;
     return false;
@@ -1079,7 +1079,7 @@ bool EntityComponentManager::CreateComponentImplementation(
   auto entityCompIter = this->dataPtr->componentStorage.find(_entity);
   if (entityCompIter == this->dataPtr->componentStorage.end())
   {
-    ignerr << "Attempt to create a component of type [" << _componentTypeId
+    gzerr << "Attempt to create a component of type [" << _componentTypeId
       << "] attached to entity [" << _entity
       << "] failed: entity not in storage." << std::endl;
     return false;
@@ -1119,7 +1119,7 @@ bool EntityComponentManager::CreateComponentImplementation(
     auto existingCompPtr = entityCompIter->second.at(compIdxIter->second).get();
     if (!existingCompPtr)
     {
-      ignerr << "Internal error: entity [" << _entity << "] has a component of "
+      gzerr << "Internal error: entity [" << _entity << "] has a component of "
         << "type [" << _componentTypeId << "] in the storage, but the instance "
         << "of this component is nullptr. This should never happen!"
         << std::endl;
@@ -1199,7 +1199,7 @@ const components::BaseComponent
   const auto compVecIter = this->dataPtr->componentStorage.find(_entity);
   if (compVecIter == this->dataPtr->componentStorage.end())
   {
-    ignerr << "Internal error: Entity [" << _entity
+    gzerr << "Internal error: Entity [" << _entity
       << "] is missing in storage, but is in "
       << "componentTypeIndex. This should never happen!" << std::endl;
     return nullptr;
@@ -1208,7 +1208,7 @@ const components::BaseComponent
   auto compPtr = compVecIter->second.at(compIdxIter->second).get();
   if (nullptr == compPtr)
   {
-    ignerr << "Internal error: entity [" << _entity << "] has a component of "
+    gzerr << "Internal error: entity [" << _entity << "] has a component of "
       << "type [" << _type << "] in the storage, but the instance "
       << "of this component is nullptr. This should never happen!"
       << std::endl;
@@ -1755,7 +1755,7 @@ void EntityComponentManager::SetState(
         if (printedComps.find(type) == printedComps.end())
         {
           printedComps.insert(type);
-          ignwarn << "Component type [" << type << "] has not been "
+          gzwarn << "Component type [" << type << "] has not been "
                   << "registered in this process, so it can't be deserialized."
                   << std::endl;
         }
@@ -1780,7 +1780,7 @@ void EntityComponentManager::SetState(
         auto newComp = components::Factory::Instance()->New(type);
         if (nullptr == newComp)
         {
-          ignerr << "Failed to create component type ["
+          gzerr << "Failed to create component type ["
             << compMsg.type() << "]" << std::endl;
           continue;
         }
@@ -1837,7 +1837,7 @@ void EntityComponentManager::SetState(
         if (printedComps.find(type) == printedComps.end())
         {
           printedComps.insert(type);
-          ignwarn << "Component type [" << type << "] has not been "
+          gzwarn << "Component type [" << type << "] has not been "
                   << "registered in this process, so it can't be deserialized."
                   << std::endl;
         }
@@ -1865,7 +1865,7 @@ void EntityComponentManager::SetState(
 
         if (nullptr == newComp)
         {
-          ignerr << "Failed to create component of type [" << compMsg.type()
+          gzerr << "Failed to create component of type [" << compMsg.type()
             << "]" << std::endl;
           continue;
         }
@@ -1990,7 +1990,7 @@ void EntityComponentManager::SetEntityCreateOffset(uint64_t _offset)
 {
   if (_offset < this->dataPtr->entityCount)
   {
-    ignwarn << "Setting an entity offset of [" << _offset << "] is less than "
+    gzwarn << "Setting an entity offset of [" << _offset << "] is less than "
      << "the current entity count of [" << this->dataPtr->entityCount << "]. "
      << "Incorrect behavior should be expected.\n";
   }
@@ -2045,7 +2045,7 @@ bool EntityComponentManagerPrivate::ClonedJointLinkName(Entity _joint,
   if (ComponentTypeT::typeId != components::ParentLinkName::typeId &&
       ComponentTypeT::typeId != components::ChildLinkName::typeId)
   {
-    ignerr << "Template type is invalid. Must be either "
+    gzerr << "Template type is invalid. Must be either "
            << "components::ParentLinkName or components::ChildLinkName\n";
     return false;
   }
@@ -2065,7 +2065,7 @@ bool EntityComponentManagerPrivate::ClonedJointLinkName(Entity _joint,
     auto iter = this->originalToClonedLink.find(_originalLink);
     if (iter == this->originalToClonedLink.end())
     {
-      ignerr << "Error: attempted to clone links, but link ["
+      gzerr << "Error: attempted to clone links, but link ["
         << _originalLink << "] was never cloned.\n";
       return false;
     }
@@ -2074,7 +2074,7 @@ bool EntityComponentManagerPrivate::ClonedJointLinkName(Entity _joint,
     auto nameComp = _ecm->Component<components::Name>(clonedLink);
     if (!nameComp)
     {
-      ignerr << "Link [" << _originalLink
+      gzerr << "Link [" << _originalLink
         << "] was cloned, but its clone has no name.\n";
       return false;
     }

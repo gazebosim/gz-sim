@@ -189,7 +189,7 @@ void JointPositionController::Update(const UpdateInfo &,
     this->SetModelEntity(entity);
     this->SetLocked(true);
     this->dataPtr->xmlModelInitialized = true;
-    ignmsg << "Controller locked on [" << this->dataPtr->modelName.toStdString()
+    gzmsg << "Controller locked on [" << this->dataPtr->modelName.toStdString()
            << "]" << std::endl;
   }
 
@@ -218,7 +218,7 @@ void JointPositionController::Update(const UpdateInfo &,
     auto typeComp = _ecm.Component<components::JointType>(jointEntity);
     if (nullptr == typeComp)
     {
-      ignerr << "Joint [" << jointEntity << "] missing type" << std::endl;
+      gzerr << "Joint [" << jointEntity << "] missing type" << std::endl;
       continue;
     }
 
@@ -246,7 +246,7 @@ void JointPositionController::Update(const UpdateInfo &,
 
     if (nullptr == item)
     {
-      ignerr << "Failed to get item for joint [" << jointEntity << "]"
+      gzerr << "Failed to get item for joint [" << jointEntity << "]"
              << std::endl;
       continue;
     }
@@ -382,7 +382,7 @@ void JointPositionController::OnCommand(const QString &_jointName, double _pos)
 
   if (topic.empty())
   {
-    ignerr << "Failed to create valid topic for joint [" << jointName << "]"
+    gzerr << "Failed to create valid topic for joint [" << jointName << "]"
            << std::endl;
     return;
   }
@@ -400,7 +400,7 @@ void JointPositionController::OnReset()
         .toString().toStdString();
     if (jointName.empty())
     {
-      ignerr << "Internal error: failed to get joint name." << std::endl;
+      gzerr << "Internal error: failed to get joint name." << std::endl;
       continue;
     }
 
@@ -412,7 +412,7 @@ void JointPositionController::OnReset()
 
     if (topic.empty())
     {
-      ignerr << "Failed to create valid topic for joint [" << jointName << "]"
+      gzerr << "Failed to create valid topic for joint [" << jointName << "]"
              << std::endl;
       return;
     }

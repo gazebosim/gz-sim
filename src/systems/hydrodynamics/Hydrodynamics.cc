@@ -205,7 +205,7 @@ void Hydrodynamics::Configure(
 {
   if (_sdf->HasElement("waterDensity"))
   {
-    ignwarn <<
+    gzwarn <<
       "<waterDensity> parameter is deprecated and will be removed Gazebo G.\n"
       << "\tPlease update your SDF to use <water_density> instead.";
   }
@@ -251,7 +251,7 @@ void Hydrodynamics::Configure(
 
   if (!_sdf->HasElement("link_name"))
   {
-    ignerr << "You musk specify a <link_name> for the hydrodynamic"
+    gzerr << "You musk specify a <link_name> for the hydrodynamic"
       << " plugin to act upon";
     return;
   }
@@ -259,7 +259,7 @@ void Hydrodynamics::Configure(
   this->dataPtr->linkEntity = model.LinkByName(_ecm, linkName);
   if (!_ecm.HasEntity(this->dataPtr->linkEntity))
   {
-    ignerr << "Link name" << linkName << "does not exist";
+    gzerr << "Link name" << linkName << "does not exist";
     return;
   }
 
@@ -314,7 +314,7 @@ void Hydrodynamics::PreUpdate(
 
   if (!linearVelocity)
   {
-    ignerr << "no linear vel" <<"\n";
+    gzerr << "no linear vel" <<"\n";
     return;
   }
 

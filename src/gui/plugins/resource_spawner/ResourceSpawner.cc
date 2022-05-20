@@ -515,7 +515,7 @@ void ResourceSpawner::OnDownloadFuelResource(const QString &_path,
   }
   else
   {
-    ignwarn << "Download failed.  Try again." << std::endl;
+    gzwarn << "Download failed.  Try again." << std::endl;
   }
   QGuiApplication::restoreOverrideCursor();
 }
@@ -540,7 +540,7 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
       "/gazebo/resource_paths/get", 5000, res, result);
   if (!executed || !result || res.data_size() < 1)
   {
-    ignwarn << "No paths found in GZ_SIM_RESOURCE_PATH.\n";
+    gzwarn << "No paths found in GZ_SIM_RESOURCE_PATH.\n";
   }
 
   // Add all local paths found in `GZ_SIM_RESOURCE_PATH` to the qml list
@@ -551,7 +551,7 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
   }
 
   auto servers = this->dataPtr->fuelClient->Config().Servers();
-  ignmsg << "Please wait... Loading models from Fuel.\n";
+  gzmsg << "Please wait... Loading models from Fuel.\n";
 
   // Add notice for the user that fuel resources are being loaded
   this->dataPtr->ownerModel.AddPath("Please wait... Loading models from Fuel.");
@@ -604,7 +604,7 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
     {
       this->dataPtr->ownerModel.AddPath(resource);
     }
-    ignmsg << "Fuel resources loaded.\n";
+    gzmsg << "Fuel resources loaded.\n";
   });
   t.detach();
 }

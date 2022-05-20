@@ -640,7 +640,7 @@ IgnRenderer::IgnRenderer()
   std::string recorderStatsTopic = "/gui/record_video/stats";
   this->dataPtr->recorderStatsPub =
     this->dataPtr->node.Advertise<msgs::Time>(recorderStatsTopic);
-  ignmsg << "Video recorder stats topic advertised on ["
+  gzmsg << "Video recorder stats topic advertised on ["
          << recorderStatsTopic << "]" << std::endl;
 }
 
@@ -660,7 +660,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
   rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
   if (!scene)
   {
-    ignwarn << "Scene is null. The render step will not occur in Scene3D."
+    gzwarn << "Scene is null. The render step will not occur in Scene3D."
       << std::endl;
     return;
   }
@@ -805,17 +805,17 @@ void IgnRenderer::Render(RenderSync *_renderSync)
       else
       {
         if (this->dataPtr->recordVideoUseSimTime)
-          ignmsg << "Recording video using sim time." << std::endl;
+          gzmsg << "Recording video using sim time." << std::endl;
         if (this->dataPtr->recordVideoLockstep)
         {
-          ignmsg << "Recording video in lockstep mode" << std::endl;
+          gzmsg << "Recording video in lockstep mode" << std::endl;
           if (!this->dataPtr->recordVideoUseSimTime)
           {
-            ignwarn << "It is recommended to set <use_sim_time> to true "
+            gzwarn << "It is recommended to set <use_sim_time> to true "
                     << "when recording video in lockstep mode." << std::endl;
           }
         }
-        ignmsg << "Recording video using bitrate: "
+        gzmsg << "Recording video using bitrate: "
                << this->dataPtr->recordVideoBitrate <<  std::endl;
         this->dataPtr->videoEncoder.Start(this->dataPtr->recordVideoFormat,
             this->dataPtr->recordVideoSavePath, width, height, 25,
@@ -847,7 +847,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
         }
         else
         {
-          ignerr << "Unable to move to target. Target: '"
+          gzerr << "Unable to move to target. Target: '"
                  << this->dataPtr->moveToTarget << "' not found" << std::endl;
           this->dataPtr->moveToTarget.clear();
         }
@@ -926,7 +926,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
       }
       else if (!this->dataPtr->followTargetWait)
       {
-        ignerr << "Unable to follow target. Target: '"
+        gzerr << "Unable to follow target. Target: '"
                << this->dataPtr->followTarget << "' not found" << std::endl;
         this->dataPtr->followTarget.clear();
       }
@@ -999,7 +999,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
       }
       else
       {
-        ignwarn << "Failed to spawn: no SDF string or path" << std::endl;
+        gzwarn << "Failed to spawn: no SDF string or path" << std::endl;
       }
       this->dataPtr->isPlacing = this->GeneratePreview(root);
       this->dataPtr->isSpawning = false;
@@ -1034,7 +1034,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
       }
       else
       {
-        ignerr << "Unable to find node name ["
+        gzerr << "Unable to find node name ["
                << this->dataPtr->viewTransparentTarget
                << "] to view as transparent" << std::endl;
       }
@@ -1060,7 +1060,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
       }
       else
       {
-        ignerr << "Unable to find node name ["
+        gzerr << "Unable to find node name ["
                << this->dataPtr->viewCOMTarget
                << "] to view center of mass" << std::endl;
       }
@@ -1086,7 +1086,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
       }
       else
       {
-        ignerr << "Unable to find node name ["
+        gzerr << "Unable to find node name ["
                << this->dataPtr->viewInertiaTarget
                << "] to view inertia" << std::endl;
       }
@@ -1112,7 +1112,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
       }
       else
       {
-        ignerr << "Unable to find node name ["
+        gzerr << "Unable to find node name ["
                << this->dataPtr->viewJointsTarget
                << "] to view joints" << std::endl;
       }
@@ -1138,7 +1138,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
       }
       else
       {
-        ignerr << "Unable to find node name ["
+        gzerr << "Unable to find node name ["
                << this->dataPtr->viewWireframesTarget
                << "] to view wireframes" << std::endl;
       }
@@ -1164,7 +1164,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
       }
       else
       {
-        ignerr << "Unable to find node name ["
+        gzerr << "Unable to find node name ["
                << this->dataPtr->viewCollisionsTarget
                << "] to view collisions" << std::endl;
       }
@@ -1202,7 +1202,7 @@ bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
 
   if (nullptr == _sdf.Model() && nullptr == _sdf.Light())
   {
-    ignwarn << "Only model entities can be spawned at the moment." << std::endl;
+    gzwarn << "Only model entities can be spawned at the moment." << std::endl;
     this->TerminateSpawnPreview();
     return false;
   }
@@ -1554,7 +1554,7 @@ void IgnRenderer::HandleModelPlacement()
         [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
     {
       if (!_result)
-        ignerr << "Error creating model" << std::endl;
+        gzerr << "Error creating model" << std::endl;
     };
     math::Vector3d pos = this->ScreenToPlane(this->dataPtr->mouseEvent.Pos());
     pos.Z(modelPose.Pos().Z());
@@ -1569,7 +1569,7 @@ void IgnRenderer::HandleModelPlacement()
     }
     else
     {
-      ignwarn << "Failed to find SDF string or file path" << std::endl;
+      gzwarn << "Failed to find SDF string or file path" << std::endl;
     }
     req.set_allow_renaming(true);
     msgs::Set(req.mutable_pose(), math::Pose3d(pos, modelPose.Rot()));
@@ -1583,7 +1583,7 @@ void IgnRenderer::HandleModelPlacement()
         this->dataPtr->createCmdService);
     if (this->dataPtr->createCmdService.empty())
     {
-      ignerr << "Failed to create valid create command service for world ["
+      gzerr << "Failed to create valid create command service for world ["
              << this->worldName <<"]" << std::endl;
       return;
     }
@@ -1621,7 +1621,7 @@ void IgnRenderer::DeselectAllEntities(bool _sendEvent)
 {
   if (this->dataPtr->renderThreadId != std::this_thread::get_id())
   {
-    ignwarn << "Making render calls from outside the render thread"
+    gzwarn << "Making render calls from outside the render thread"
             << std::endl;
   }
 
@@ -1670,14 +1670,14 @@ void IgnRenderer::SnapPoint(
 {
   if (_snapVals.X() <= 0 || _snapVals.Y() <= 0 || _snapVals.Z() <= 0)
   {
-    ignerr << "Interval distance must be greater than 0"
+    gzerr << "Interval distance must be greater than 0"
         << std::endl;
     return;
   }
 
   if (_sensitivity < 0 || _sensitivity > 1.0)
   {
-    ignerr << "Sensitivity must be between 0 and 1" << std::endl;
+    gzerr << "Sensitivity must be between 0 and 1" << std::endl;
     return;
   }
 
@@ -1717,7 +1717,7 @@ void IgnRenderer::HandleMouseTransformControl()
 {
   if (this->dataPtr->renderThreadId != std::this_thread::get_id())
   {
-    ignwarn << "Making render calls from outside the render thread"
+    gzwarn << "Making render calls from outside the render thread"
             << std::endl;
   }
 
@@ -1794,7 +1794,7 @@ void IgnRenderer::HandleMouseTransformControl()
               [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
           {
             if (!_result)
-              ignerr << "Error setting pose" << std::endl;
+              gzerr << "Error setting pose" << std::endl;
           };
           rendering::NodePtr node = this->dataPtr->transformControl.Node();
           gz::msgs::Pose req;
@@ -1810,7 +1810,7 @@ void IgnRenderer::HandleMouseTransformControl()
               this->dataPtr->poseCmdService);
           if (this->dataPtr->poseCmdService.empty())
           {
-            ignerr << "Failed to create valid pose command service for world ["
+            gzerr << "Failed to create valid pose command service for world ["
                    << this->worldName <<"]" << std::endl;
             return;
           }
@@ -1897,7 +1897,7 @@ void IgnRenderer::HandleMouseTransformControl()
           this->dataPtr->renderUtil.SceneManager().NodeById(nodeId);
       if (!target)
       {
-        ignwarn << "Failed to find node with ID [" << nodeId << "]"
+        gzwarn << "Failed to find node with ID [" << nodeId << "]"
                 << std::endl;
         return;
       }
@@ -2006,7 +2006,7 @@ void IgnRenderer::HandleMouseViewControl()
 
   if (this->dataPtr->renderThreadId != std::this_thread::get_id())
   {
-    ignwarn << "Making render calls from outside the render thread"
+    gzwarn << "Making render calls from outside the render thread"
             << std::endl;
   }
 
@@ -2023,7 +2023,7 @@ void IgnRenderer::HandleMouseViewControl()
   }
   else
   {
-    ignerr << "Unknown view controller: " << this->dataPtr->viewController
+    gzerr << "Unknown view controller: " << this->dataPtr->viewController
            << ". Defaulting to orbit view controller" << std::endl;
     this->dataPtr->viewController = "orbit";
     this->dataPtr->viewControl = &this->dataPtr->orbitViewControl;
@@ -2211,7 +2211,7 @@ void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node,
 
   if (this->dataPtr->renderThreadId != std::this_thread::get_id())
   {
-    ignwarn << "Making render calls from outside the render thread"
+    gzwarn << "Making render calls from outside the render thread"
             << std::endl;
   }
 
@@ -2277,7 +2277,7 @@ void IgnRenderer::SetTransformMode(const std::string &_mode)
   else if (_mode == "scale")
     this->dataPtr->transformMode = rendering::TransformMode::TM_SCALE;
   else
-    ignerr << "Unknown transform mode: [" << _mode << "]" << std::endl;
+    gzerr << "Unknown transform mode: [" << _mode << "]" << std::endl;
 
   // Update selected entities if transform control is changed
   if (!this->dataPtr->renderUtil.SelectedEntities().empty())
@@ -2610,7 +2610,7 @@ void RenderThread::RenderNext(RenderSync *_renderSync)
   // check if engine has been successfully initialized
   if (!this->ignRenderer.initialized)
   {
-    ignerr << "Unable to initialize renderer" << std::endl;
+    gzerr << "Unable to initialize renderer" << std::endl;
     return;
   }
 
@@ -2650,7 +2650,7 @@ void RenderThread::SizeChanged()
   auto item = qobject_cast<QQuickItem *>(this->sender());
   if (!item)
   {
-    ignerr << "Internal error, sender is not QQuickItem." << std::endl;
+    gzerr << "Internal error, sender is not QQuickItem." << std::endl;
     return;
   }
 
@@ -2936,7 +2936,7 @@ RenderUtil *RenderWindowItem::RenderUtil() const
 Scene3D::Scene3D()
   : GuiSystem(), dataPtr(new Scene3DPrivate)
 {
-  ignwarn << "The GzScene3D plugin is deprecated on v6 and will be removed on "
+  gzwarn << "The GzScene3D plugin is deprecated on v6 and will be removed on "
           << "v7. Use MinimalScene together with other plugins as needed."
           << std::endl;
   qmlRegisterType<RenderWindowItem>("RenderWindow", 1, 0, "RenderWindow");
@@ -2956,7 +2956,7 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   static bool done{false};
   if (done)
   {
-    ignerr << "Only one Scene3D is supported per process at the moment."
+    gzerr << "Only one Scene3D is supported per process at the moment."
            << std::endl;
     return;
   }
@@ -2965,7 +2965,7 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
   if (!renderWindow)
   {
-    ignerr << "Unable to find Render Window item. "
+    gzerr << "Unable to find Render Window item. "
            << "Render window will not be created" << std::endl;
     return;
   }
@@ -3025,7 +3025,7 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
     {
       this->dataPtr->renderUtil->SetSkyEnabled(true);
       if (!elem->NoChildren())
-        ignwarn << "Child elements of <sky> are not supported yet" << std::endl;
+        gzwarn << "Child elements of <sky> are not supported yet" << std::endl;
     }
 
     if (auto elem = _pluginElem->FirstChildElement("camera_pose"))
@@ -3049,7 +3049,7 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
         if (gain >= 0 && gain <= 1.0)
           renderWindow->SetFollowPGain(gain);
         else
-          ignerr << "Camera follow p gain outside of range [0, 1]" << std::endl;
+          gzerr << "Camera follow p gain outside of range [0, 1]" << std::endl;
       }
 
       if (auto targetElem = elem->FirstChildElement("target"))
@@ -3069,7 +3069,7 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
           renderWindow->SetFollowWorldFrame(false);
         else
         {
-          ignerr << "Faild to parse <world_frame> value: " << worldFrameStr
+          gzerr << "Faild to parse <world_frame> value: " << worldFrameStr
                  << std::endl;
         }
       }
@@ -3091,7 +3091,7 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
         bool useSimTime = false;
         if (useSimTimeElem->QueryBoolText(&useSimTime) != tinyxml2::XML_SUCCESS)
         {
-          ignerr << "Faild to parse <use_sim_time> value: "
+          gzerr << "Faild to parse <use_sim_time> value: "
                  << useSimTimeElem->GetText() << std::endl;
         }
         else
@@ -3104,7 +3104,7 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
         bool lockstep = false;
         if (lockstepElem->QueryBoolText(&lockstep) != tinyxml2::XML_SUCCESS)
         {
-          ignerr << "Failed to parse <lockstep> value: "
+          gzerr << "Failed to parse <lockstep> value: "
                  << lockstepElem->GetText() << std::endl;
         }
         else
@@ -3124,7 +3124,7 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
         }
         else
         {
-          ignerr << "Video recorder bitrate must be larger than 0"
+          gzerr << "Video recorder bitrate must be larger than 0"
                  << std::endl;
         }
       }
@@ -3161,7 +3161,7 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       "/gui/transform_mode";
   this->dataPtr->node.Advertise(this->dataPtr->transformModeService,
       &Scene3D::OnTransformMode, this);
-  ignmsg << "Transform mode service on ["
+  gzmsg << "Transform mode service on ["
          << this->dataPtr->transformModeService << "]" << std::endl;
 
   // video recorder
@@ -3169,28 +3169,28 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       "/gui/record_video";
   this->dataPtr->node.Advertise(this->dataPtr->recordVideoService,
       &Scene3D::OnRecordVideo, this);
-  ignmsg << "Record video service on ["
+  gzmsg << "Record video service on ["
          << this->dataPtr->recordVideoService << "]" << std::endl;
 
   // move to
   this->dataPtr->moveToService = "/gui/move_to";
   this->dataPtr->node.Advertise(this->dataPtr->moveToService,
       &Scene3D::OnMoveTo, this);
-  ignmsg << "Move to service on ["
+  gzmsg << "Move to service on ["
          << this->dataPtr->moveToService << "]" << std::endl;
 
   // follow
   this->dataPtr->followService = "/gui/follow";
   this->dataPtr->node.Advertise(this->dataPtr->followService,
       &Scene3D::OnFollow, this);
-  ignmsg << "Follow service on ["
+  gzmsg << "Follow service on ["
          << this->dataPtr->followService << "]" << std::endl;
 
   // follow offset
   this->dataPtr->followOffsetService = "/gui/follow/offset";
   this->dataPtr->node.Advertise(this->dataPtr->followOffsetService,
       &Scene3D::OnFollowOffset, this);
-  ignmsg << "Follow offset service on ["
+  gzmsg << "Follow offset service on ["
          << this->dataPtr->followOffsetService << "]" << std::endl;
 
   // view angle
@@ -3198,7 +3198,7 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       "/gui/view_angle";
   this->dataPtr->node.Advertise(this->dataPtr->viewAngleService,
       &Scene3D::OnViewAngle, this);
-  ignmsg << "View angle service on ["
+  gzmsg << "View angle service on ["
          << this->dataPtr->viewAngleService << "]" << std::endl;
 
   // move to pose service
@@ -3206,63 +3206,63 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       "/gui/move_to/pose";
   this->dataPtr->node.Advertise(this->dataPtr->moveToPoseService,
       &Scene3D::OnMoveToPose, this);
-  ignmsg << "Move to pose service on ["
+  gzmsg << "Move to pose service on ["
          << this->dataPtr->moveToPoseService << "]" << std::endl;
 
   // camera position topic
   this->dataPtr->cameraPoseTopic = "/gui/camera/pose";
   this->dataPtr->cameraPosePub =
     this->dataPtr->node.Advertise<msgs::Pose>(this->dataPtr->cameraPoseTopic);
-  ignmsg << "Camera pose topic advertised on ["
+  gzmsg << "Camera pose topic advertised on ["
          << this->dataPtr->cameraPoseTopic << "]" << std::endl;
 
   // view as transparent service
   this->dataPtr->viewTransparentService = "/gui/view/transparent";
   this->dataPtr->node.Advertise(this->dataPtr->viewTransparentService,
       &Scene3D::OnViewTransparent, this);
-  ignmsg << "View as transparent service on ["
+  gzmsg << "View as transparent service on ["
          << this->dataPtr->viewTransparentService << "]" << std::endl;
 
   // view center of mass service
   this->dataPtr->viewCOMService = "/gui/view/com";
   this->dataPtr->node.Advertise(this->dataPtr->viewCOMService,
       &Scene3D::OnViewCOM, this);
-  ignmsg << "View center of mass service on ["
+  gzmsg << "View center of mass service on ["
          << this->dataPtr->viewCOMService << "]" << std::endl;
 
   // view inertia service
   this->dataPtr->viewInertiaService = "/gui/view/inertia";
   this->dataPtr->node.Advertise(this->dataPtr->viewInertiaService,
       &Scene3D::OnViewInertia, this);
-  ignmsg << "View inertia service on ["
+  gzmsg << "View inertia service on ["
          << this->dataPtr->viewInertiaService << "]" << std::endl;
 
   // view joints service
   this->dataPtr->viewJointsService = "/gui/view/joints";
   this->dataPtr->node.Advertise(this->dataPtr->viewJointsService,
       &Scene3D::OnViewJoints, this);
-  ignmsg << "View joints service on ["
+  gzmsg << "View joints service on ["
          << this->dataPtr->viewJointsService << "]" << std::endl;
 
   // view wireframes service
   this->dataPtr->viewWireframesService = "/gui/view/wireframes";
   this->dataPtr->node.Advertise(this->dataPtr->viewWireframesService,
       &Scene3D::OnViewWireframes, this);
-  ignmsg << "View wireframes service on ["
+  gzmsg << "View wireframes service on ["
          << this->dataPtr->viewWireframesService << "]" << std::endl;
 
   // view collisions service
   this->dataPtr->viewCollisionsService = "/gui/view/collisions";
   this->dataPtr->node.Advertise(this->dataPtr->viewCollisionsService,
       &Scene3D::OnViewCollisions, this);
-  ignmsg << "View collisions service on ["
+  gzmsg << "View collisions service on ["
          << this->dataPtr->viewCollisionsService << "]" << std::endl;
 
   // camera view control mode
   this->dataPtr->cameraViewControlService = "/gui/camera/view_control";
   this->dataPtr->node.Advertise(this->dataPtr->cameraViewControlService,
       &Scene3D::OnViewControl, this);
-  ignmsg << "Camera view controller topic advertised on ["
+  gzmsg << "Camera view controller topic advertised on ["
          << this->dataPtr->cameraViewControlService << "]" << std::endl;
 
   gz::gui::App()->findChild<
@@ -3538,7 +3538,7 @@ void Scene3D::OnDropped(const QString &_drop, int _mouseX, int _mouseY)
       [](const gz::msgs::Boolean &_res, const bool _result)
   {
     if (!_result || !_res.data())
-      ignerr << "Error creating dropped entity." << std::endl;
+      gzerr << "Error creating dropped entity." << std::endl;
   };
 
   auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();

@@ -69,14 +69,14 @@ CopyPaste::CopyPaste()
   if (!this->dataPtr->node.Advertise(this->dataPtr->copyService,
         &CopyPaste::CopyServiceCB, this))
   {
-    ignerr << "Error advertising service [" << this->dataPtr->copyService
+    gzerr << "Error advertising service [" << this->dataPtr->copyService
            << "]" << std::endl;
   }
 
   if (!this->dataPtr->node.Advertise(this->dataPtr->pasteService,
         &CopyPaste::PasteServiceCB, this))
   {
-    ignerr << "Error advertising service [" << this->dataPtr->pasteService
+    gzerr << "Error advertising service [" << this->dataPtr->pasteService
            << "]" << std::endl;
   }
 }

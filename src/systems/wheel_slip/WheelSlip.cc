@@ -132,7 +132,7 @@ bool WheelSlipPrivate::Load(const EntityComponentManager &_ecm,
 
   if (!_sdf->HasElement("wheel"))
   {
-    ignerr << "No wheel tags specified, plugin is disabled" << std::endl;
+    gzerr << "No wheel tags specified, plugin is disabled" << std::endl;
     return false;
   }
 
@@ -142,7 +142,7 @@ bool WheelSlipPrivate::Load(const EntityComponentManager &_ecm,
   {
     if (!wheelElem->HasAttribute("link_name"))
     {
-      ignerr << "wheel element missing link_name attribute" << std::endl;
+      gzerr << "wheel element missing link_name attribute" << std::endl;
       continue;
     }
 
@@ -173,7 +173,7 @@ bool WheelSlipPrivate::Load(const EntityComponentManager &_ecm,
     auto link = Link(this->model.LinkByName(_ecm, linkName));
     if (!link.Valid(_ecm))
     {
-      ignerr << "Could not find link named [" << linkName
+      gzerr << "Could not find link named [" << linkName
             << "] in model [" << modelName << "]"
             << std::endl;
       continue;
@@ -183,7 +183,7 @@ bool WheelSlipPrivate::Load(const EntityComponentManager &_ecm,
         _ecm.ChildrenByComponents(link.Entity(), components::Collision());
     if (collisions.empty() || collisions.size() != 1)
     {
-      ignerr << "There should be 1 collision in link named [" << linkName
+      gzerr << "There should be 1 collision in link named [" << linkName
             << "] in model [" << modelName << "]"
             << ", but " << collisions.size() << " were found"
             << std::endl;
@@ -200,7 +200,7 @@ bool WheelSlipPrivate::Load(const EntityComponentManager &_ecm,
                                   components::ChildLinkName(linkName));
     if (joints.empty() || joints.size() != 1)
     {
-      ignerr << "There should be 1 parent joint for link named [" << linkName
+      gzerr << "There should be 1 parent joint for link named [" << linkName
             << "] in model [" << modelName << "]"
             << ", but " << joints.size() << " were found"
             << std::endl;
@@ -211,7 +211,7 @@ bool WheelSlipPrivate::Load(const EntityComponentManager &_ecm,
 
     if (params.wheelRadius <= 0)
     {
-      ignerr << "Found wheel radius [" << params.wheelRadius
+      gzerr << "Found wheel radius [" << params.wheelRadius
             << "], which is not positive"
             << " in link named [" << linkName
             << "] in model [" << modelName << "]"
@@ -221,7 +221,7 @@ bool WheelSlipPrivate::Load(const EntityComponentManager &_ecm,
 
     if (params.wheelNormalForce <= 0)
     {
-      ignerr << "Found wheel normal force [" << params.wheelNormalForce
+      gzerr << "Found wheel normal force [" << params.wheelNormalForce
             << "], which is not positive"
             << " in link named [" << linkName
             << "] in model [" << modelName << "]"
@@ -234,7 +234,7 @@ bool WheelSlipPrivate::Load(const EntityComponentManager &_ecm,
 
   if (this->mapLinkSurfaceParams.empty())
   {
-    ignerr << "No links and surfaces found, plugin is disabled"
+    gzerr << "No links and surfaces found, plugin is disabled"
            << std::endl;
     return false;
   }
@@ -337,7 +337,7 @@ void WheelSlip::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "WheelSlip plugin should be attached to a model entity. "
+    gzerr << "WheelSlip plugin should be attached to a model entity. "
            << "Failed to initialize." << std::endl;
     return;
   }

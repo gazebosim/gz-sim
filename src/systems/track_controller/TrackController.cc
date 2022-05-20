@@ -194,14 +194,14 @@ void TrackController::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "TrackController should be attached to a model "
+    gzerr << "TrackController should be attached to a model "
            << "entity. Failed to initialize." << std::endl;
     return;
   }
 
   if (!_sdf->HasElement("link"))
   {
-    ignerr << "TrackController plugin is missing <link> element." << std::endl;
+    gzerr << "TrackController plugin is missing <link> element." << std::endl;
     return;
   }
   this->dataPtr->linkName = _sdf->Get<std::string>("link");
@@ -246,7 +246,7 @@ void TrackController::Configure(const Entity &_entity,
   if (!this->dataPtr->node.Subscribe(
     velTopic, &TrackControllerPrivate::OnCmdVel, this->dataPtr.get()))
   {
-    ignerr << "Error subscribing to topic [" << velTopic << "]. "
+    gzerr << "Error subscribing to topic [" << velTopic << "]. "
            << "Track will not receive commands." << std::endl;
     return;
   }
@@ -260,7 +260,7 @@ void TrackController::Configure(const Entity &_entity,
     corTopic, &TrackControllerPrivate::OnCenterOfRotation,
     this->dataPtr.get()))
   {
-    ignerr << "Error subscribing to topic [" << corTopic << "]. "
+    gzerr << "Error subscribing to topic [" << corTopic << "]. "
            << "Track will not receive center of rotation commands."
            << std::endl;
     return;
@@ -387,7 +387,7 @@ void TrackController::PreUpdate(
   }
   if (this->dataPtr->linkEntity == kNullEntity)
   {
-    ignwarn << "Could not find track link [" << this->dataPtr->linkName << "]"
+    gzwarn << "Could not find track link [" << this->dataPtr->linkName << "]"
       << std::endl;
     return;
   }
@@ -449,7 +449,7 @@ void TrackControllerPrivate::ComputeSurfaceProperties(
     static bool informed = false;
     if (!informed)
     {
-      ignerr << "TrackController requires a physics engine that computes "
+      gzerr << "TrackController requires a physics engine that computes "
              << "contact normals!" << std::endl;
       informed = true;
     }

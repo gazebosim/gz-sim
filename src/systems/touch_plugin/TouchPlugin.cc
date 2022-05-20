@@ -121,7 +121,7 @@ void TouchPluginPrivate::Load(const EntityComponentManager &_ecm,
   // Get target substring
   if (!_sdf->HasElement("target"))
   {
-    ignerr << "Missing required parameter <target>." << std::endl;
+    gzerr << "Missing required parameter <target>." << std::endl;
     return;
   }
 
@@ -160,14 +160,14 @@ void TouchPluginPrivate::Load(const EntityComponentManager &_ecm,
   // Namespace
   if (!_sdf->HasElement("namespace"))
   {
-    ignerr << "Missing required parameter <namespace>" << std::endl;
+    gzerr << "Missing required parameter <namespace>" << std::endl;
     return;
   }
   this->ns = transport::TopicUtils::AsValidTopic(_sdf->Get<std::string>(
       "namespace"));
   if (this->ns.empty())
   {
-    ignerr << "<namespace> [" << _sdf->Get<std::string>("namespace")
+    gzerr << "<namespace> [" << _sdf->Get<std::string>("namespace")
            << "] is invalid." << std::endl;
     return;
   }
@@ -175,7 +175,7 @@ void TouchPluginPrivate::Load(const EntityComponentManager &_ecm,
   // Target time
   if (!_sdf->HasElement("time"))
   {
-    ignerr << "Missing required parameter <time>" << std::endl;
+    gzerr << "Missing required parameter <time>" << std::endl;
     return;
   }
 
@@ -239,7 +239,7 @@ void TouchPluginPrivate::Update(const UpdateInfo &_info,
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -362,7 +362,7 @@ void TouchPlugin::Configure(const Entity &_entity,
   this->dataPtr->model = Model(_entity);
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "Touch plugin should be attached to a model entity. "
+    gzerr << "Touch plugin should be attached to a model entity. "
            << "Failed to initialize." << std::endl;
     return;
   }

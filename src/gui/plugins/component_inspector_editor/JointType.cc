@@ -113,11 +113,11 @@ Q_INVOKABLE void JointType::OnJointType(QString _jointType)
     }
     else if (!comp)
     {
-      ignerr << "Unable to get the joint type component.\n";
+      gzerr << "Unable to get the joint type component.\n";
     }
     else
     {
-      ignerr << "Unable to get the joint's parent entity component.\n";
+      gzerr << "Unable to get the joint's parent entity component.\n";
     }
   };
   this->inspector->AddUpdateCallback(cb);

@@ -552,7 +552,7 @@ void ComponentInspector::Update(const UpdateInfo &,
 
     if (nullptr == item)
     {
-      ignerr << "Failed to get item for component type [" << typeId << "]"
+      gzerr << "Failed to get item for component type [" << typeId << "]"
              << std::endl;
       continue;
     }
@@ -996,7 +996,7 @@ void ComponentInspector::OnLight(
       [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
-      ignerr << "Error setting light configuration" << std::endl;
+      gzerr << "Error setting light configuration" << std::endl;
   };
 
   gz::msgs::Light req;
@@ -1040,7 +1040,7 @@ void ComponentInspector::OnLight(
   lightConfigService = transport::TopicUtils::AsValidTopic(lightConfigService);
   if (lightConfigService.empty())
   {
-    ignerr << "Invalid light command service topic provided" << std::endl;
+    gzerr << "Invalid light command service topic provided" << std::endl;
     return;
   }
   this->dataPtr->node.Request(lightConfigService, req, cb);
@@ -1053,7 +1053,7 @@ void ComponentInspector::OnPhysics(double _stepSize, double _realTimeFactor)
       [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
-        ignerr << "Error setting physics parameters" << std::endl;
+        gzerr << "Error setting physics parameters" << std::endl;
   };
 
   gz::msgs::Physics req;
@@ -1064,7 +1064,7 @@ void ComponentInspector::OnPhysics(double _stepSize, double _realTimeFactor)
   physicsCmdService = transport::TopicUtils::AsValidTopic(physicsCmdService);
   if (physicsCmdService.empty())
   {
-    ignerr << "Invalid physics command service topic provided" << std::endl;
+    gzerr << "Invalid physics command service topic provided" << std::endl;
     return;
   }
   this->dataPtr->node.Request(physicsCmdService, req, cb);
@@ -1120,7 +1120,7 @@ void ComponentInspector::OnMaterialColor(
     }
     else
     {
-      ignerr << "Invalid material type: " << type << std::endl;
+      gzerr << "Invalid material type: " << type << std::endl;
       return;
     }
   }
@@ -1129,7 +1129,7 @@ void ComponentInspector::OnMaterialColor(
       [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
-      ignerr << "Error setting material color configuration"
+      gzerr << "Error setting material color configuration"
              << " on visual" << std::endl;
   };
 
@@ -1154,7 +1154,7 @@ void ComponentInspector::OnMaterialColor(
   materialCmdService = transport::TopicUtils::AsValidTopic(materialCmdService);
   if (materialCmdService.empty())
   {
-    ignerr << "Invalid material command service topic provided" << std::endl;
+    gzerr << "Invalid material command service topic provided" << std::endl;
     return;
   }
   this->dataPtr->node.Request(materialCmdService, req, cb);
@@ -1167,7 +1167,7 @@ void ComponentInspector::OnSphericalCoordinates(QString _surface,
 {
   if (_surface != QString("EARTH_WGS84"))
   {
-    ignerr << "Surface [" << _surface.toStdString() << "] not supported."
+    gzerr << "Surface [" << _surface.toStdString() << "] not supported."
            << std::endl;
     return;
   }
@@ -1176,7 +1176,7 @@ void ComponentInspector::OnSphericalCoordinates(QString _surface,
       [](const msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
-      ignerr << "Error setting spherical coordinates." << std::endl;
+      gzerr << "Error setting spherical coordinates." << std::endl;
   };
 
   msgs::SphericalCoordinates req;
@@ -1192,7 +1192,7 @@ void ComponentInspector::OnSphericalCoordinates(QString _surface,
       transport::TopicUtils::AsValidTopic(sphericalCoordsCmdService);
   if (sphericalCoordsCmdService.empty())
   {
-    ignerr << "Invalid spherical coordinates service" << std::endl;
+    gzerr << "Invalid spherical coordinates service" << std::endl;
     return;
   }
   this->dataPtr->node.Request(sphericalCoordsCmdService, req, cb);

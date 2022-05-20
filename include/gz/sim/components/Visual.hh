@@ -64,7 +64,7 @@ namespace serializers
       bool result = sdf::readString(sdfStr, sdfParsed);
       if (!result)
       {
-        ignerr << "Unable to deserialize sdf::ElementPtr" << std::endl;
+        gzerr << "Unable to deserialize sdf::ElementPtr" << std::endl;
         return _in;
       }
 

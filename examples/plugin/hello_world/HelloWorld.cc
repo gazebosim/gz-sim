@@ -15,7 +15,7 @@
  *
 */
 
-// We'll use a string and the ignmsg command below for a brief example.
+// We'll use a string and the gzmsg command below for a brief example.
 // Remove these includes if your plugin doesn't need them.
 #include <string>
 #include <gz/common/Console.hh>
@@ -47,9 +47,9 @@ void HelloWorld::PostUpdate(const gz::sim::UpdateInfo &_info,
     msg += "not ";
   msg += "paused.";
 
-  // Messages printed with ignmsg only show when running with verbosity 3 or
+  // Messages printed with gzmsg only show when running with verbosity 3 or
   // higher (i.e. ign gazebo -v 3)
-  ignmsg << msg << std::endl;
+  gzmsg << msg << std::endl;
 }
 
 

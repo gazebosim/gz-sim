@@ -166,11 +166,11 @@ void AlignTool::OnAlignConfig(const QString &_config)
   }
   else
   {
-    ignwarn << "Invalid align axis config: " << newConfig << "\n";
-    ignwarn << "The valid options are:\n";
-    ignwarn << " - min\n";
-    ignwarn << " - mid\n";
-    ignwarn << " - max\n";
+    gzwarn << "Invalid align axis config: " << newConfig << "\n";
+    gzwarn << "The valid options are:\n";
+    gzwarn << " - min\n";
+    gzwarn << " - mid\n";
+    gzwarn << " - max\n";
   }
 }
 
@@ -201,11 +201,11 @@ void AlignTool::OnAlignAxis(const QString &_axis)
   }
   else
   {
-    ignwarn << "Invalid align axis string: " << newAxis << "\n";
-    ignwarn << "The valid options are:\n";
-    ignwarn << " - X\n";
-    ignwarn << " - Y\n";
-    ignwarn << " - Z\n";
+    gzwarn << "Invalid align axis string: " << newAxis << "\n";
+    gzwarn << "The valid options are:\n";
+    gzwarn << " - X\n";
+    gzwarn << " - Y\n";
+    gzwarn << " - Z\n";
   }
 }
 
@@ -227,10 +227,10 @@ void AlignTool::OnAlignTarget(const QString &_target)
   }
   else
   {
-    ignwarn << "Invalid align target string: " << newTarget << "\n";
-    ignwarn << "The valid options are:\n";
-    ignwarn << " - first\n";
-    ignwarn << " - last\n";
+    gzwarn << "Invalid align target string: " << newTarget << "\n";
+    gzwarn << "The valid options are:\n";
+    gzwarn << " - first\n";
+    gzwarn << " - last\n";
   }
 }
 
@@ -392,7 +392,7 @@ void AlignTool::Align()
       [](const gz::msgs::Boolean &/* _rep*/, const bool _result)
   {
     if (!_result)
-      ignerr << "Error setting pose" << std::endl;
+      gzerr << "Error setting pose" << std::endl;
   };
 
   // Set service topic

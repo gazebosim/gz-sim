@@ -163,7 +163,7 @@ void VisualizeLidar::LoadLidar()
   auto engine = rendering::engine(engineName);
   if (!engine)
   {
-    ignerr << "Internal error: failed to load engine [" << engineName
+    gzerr << "Internal error: failed to load engine [" << engineName
       << "]. VisualizeLidar plugin won't work." << std::endl;
     return;
   }
@@ -176,7 +176,7 @@ void VisualizeLidar::LoadLidar()
   auto scene = engine->SceneByIndex(0);
   if (!scene)
   {
-    ignerr << "Internal error: scene is null." << std::endl;
+    gzerr << "Internal error: scene is null." << std::endl;
     return;
   }
 
@@ -192,7 +192,7 @@ void VisualizeLidar::LoadLidar()
   this->dataPtr->lidar = scene->CreateLidarVisual();
   if (!this->dataPtr->lidar)
   {
-    ignwarn << "Failed to create lidar, visualize lidar plugin won't work."
+    gzwarn << "Failed to create lidar, visualize lidar plugin won't work."
             << std::endl;
 
     scene->DestroyVisual(this->dataPtr->lidar);
@@ -248,7 +248,7 @@ bool VisualizeLidar::eventFilter(QObject *_obj, QEvent *_event)
     }
     else
     {
-      ignerr << "Lidar pointer is not set" << std::endl;
+      gzerr << "Lidar pointer is not set" << std::endl;
     }
   }
 
@@ -274,7 +274,7 @@ void VisualizeLidar::Update(const UpdateInfo &,
           components::Name(lidarURIVec[0]));
       if (!baseEntity)
       {
-        ignerr << "Error entity " << lidarURIVec[0]
+        gzerr << "Error entity " << lidarURIVec[0]
             << " doesn't exist and cannot be used to set lidar visual pose"
             << std::endl;
         return;
@@ -311,7 +311,7 @@ void VisualizeLidar::Update(const UpdateInfo &,
           }
           if (!foundChild)
           {
-            ignerr << "The entity could not be found."
+            gzerr << "The entity could not be found."
                   << "Error displaying lidar visual" <<std::endl;
             return;
           }
@@ -383,7 +383,7 @@ void VisualizeLidar::OnTopic(const QString &_topicName)
   if (!this->dataPtr->topicName.empty() &&
       !this->dataPtr->node.Unsubscribe(this->dataPtr->topicName))
   {
-    ignerr << "Unable to unsubscribe from topic ["
+    gzerr << "Unable to unsubscribe from topic ["
            << this->dataPtr->topicName <<"]" <<std::endl;
   }
   this->dataPtr->topicName = _topicName.toStdString();
@@ -395,12 +395,12 @@ void VisualizeLidar::OnTopic(const QString &_topicName)
   if (!this->dataPtr->node.Subscribe(this->dataPtr->topicName,
                             &VisualizeLidar::OnScan, this))
   {
-    ignerr << "Unable to subscribe to topic ["
+    gzerr << "Unable to subscribe to topic ["
            << this->dataPtr->topicName << "]\n";
     return;
   }
   this->dataPtr->visualDirty = false;
-  ignmsg << "Subscribed to " << this->dataPtr->topicName << std::endl;
+  gzmsg << "Subscribed to " << this->dataPtr->topicName << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -415,7 +415,7 @@ void VisualizeLidar::DisplayVisual(bool _value)
 {
   std::lock_guard<std::mutex>(this->dataPtr->serviceMutex);
   this->dataPtr->lidar->SetVisible(_value);
-  ignmsg << "Lidar Visual Display " << ((_value) ? "ON." : "OFF.")
+  gzmsg << "Lidar Visual Display " << ((_value) ? "ON." : "OFF.")
          << std::endl;
 }
 
@@ -423,7 +423,7 @@ void VisualizeLidar::DisplayVisual(bool _value)
 void VisualizeLidar::OnRefresh()
 {
   std::lock_guard<std::mutex>(this->dataPtr->serviceMutex);
-  ignmsg << "Refreshing topic list for LaserScan messages." << std::endl;
+  gzmsg << "Refreshing topic list for LaserScan messages." << std::endl;
 
   // Clear
   this->dataPtr->topicList.clear();

@@ -87,7 +87,7 @@ void Broker::Start()
   if (!this->dataPtr->node->Advertise(this->dataPtr->bindSrv,
                                       &Broker::OnBind, this))
   {
-    ignerr << "Error advertising srv [" << this->dataPtr->bindSrv << "]"
+    gzerr << "Error advertising srv [" << this->dataPtr->bindSrv << "]"
            << std::endl;
     return;
   }
@@ -96,7 +96,7 @@ void Broker::Start()
   if (!this->dataPtr->node->Advertise(this->dataPtr->unbindSrv,
                                       &Broker::OnUnbind, this))
   {
-    ignerr << "Error advertising srv [" << this->dataPtr->unbindSrv << "]"
+    gzerr << "Error advertising srv [" << this->dataPtr->unbindSrv << "]"
            << std::endl;
     return;
   }
@@ -105,7 +105,7 @@ void Broker::Start()
   if (!this->dataPtr->node->Subscribe(this->dataPtr->msgTopic,
                                       &Broker::OnMsg, this))
   {
-    ignerr << "Error subscribing to topic [" << this->dataPtr->msgTopic << "]"
+    gzerr << "Error subscribing to topic [" << this->dataPtr->msgTopic << "]"
            << std::endl;
     return;
   }
@@ -137,7 +137,7 @@ bool Broker::OnBind(const gz::msgs::StringMsg_V &_req,
   auto count = _req.data_size();
   if (count != 3)
   {
-    ignerr << "Receive incorrect number of arguments. "
+    gzerr << "Receive incorrect number of arguments. "
            << "Expecting 3 and receive " << count << std::endl;
     return false;
   }
@@ -151,7 +151,7 @@ bool Broker::OnBind(const gz::msgs::StringMsg_V &_req,
   if (!this->DataManager().AddSubscriber(address, model, topic))
     return false;
 
-  ignmsg << "Address [" << address << "] bound to model [" << model
+  gzmsg << "Address [" << address << "] bound to model [" << model
          << "] on topic [" << topic << "]" << std::endl;
 
   return true;
@@ -163,7 +163,7 @@ void Broker::OnUnbind(const gz::msgs::StringMsg_V &_req)
   auto count = _req.data_size();
   if (count != 2)
   {
-    ignerr << "Received incorrect number of arguments. "
+    gzerr << "Received incorrect number of arguments. "
            << "Expecting 2 and received " << count << std::endl;
     return;
   }
@@ -174,7 +174,7 @@ void Broker::OnUnbind(const gz::msgs::StringMsg_V &_req)
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->DataManager().RemoveSubscriber(address, topic);
 
-  ignmsg << "Address [" << address << "] unbound on topic ["
+  gzmsg << "Address [" << address << "] unbound on topic ["
          << topic << "]" << std::endl;
 }
 

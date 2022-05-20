@@ -71,7 +71,7 @@ extern "C" int runServer(const char *_sdfString,
   {
     if (_playback != nullptr && std::strlen(_playback) > 0)
     {
-      ignerr << "Both record and playback are specified. Only specify one.\n";
+      gzerr << "Both record and playback are specified. Only specify one.\n";
       return -1;
     }
 
@@ -97,13 +97,13 @@ extern "C" int runServer(const char *_sdfString,
           }
 
           // Create log file before printing any messages so they can be logged
-          ignLogInit(recordPathMod, "server_console.log");
+          gzLogInit(recordPathMod, "server_console.log");
 
           if (recordMsg)
           {
-            ignmsg << "Log path already exists on disk! Existing files will "
+            gzmsg << "Log path already exists on disk! Existing files will "
               << "be overwritten." << std::endl;
-            ignmsg << "Removing existing path [" << recordPathMod << "]\n";
+            gzmsg << "Removing existing path [" << recordPathMod << "]\n";
           }
         }
         // Otherwise rename to unique path
@@ -117,22 +117,22 @@ extern "C" int runServer(const char *_sdfString,
           }
           recordPathMod = gz::common::uniqueDirectoryPath(recordPathMod);
 
-          ignLogInit(recordPathMod, "server_console.log");
-          ignwarn << "Log path already exists on disk! "
+          gzLogInit(recordPathMod, "server_console.log");
+          gzwarn << "Log path already exists on disk! "
             << "Recording instead to [" << recordPathMod << "]" << std::endl;
         }
       }
       else
       {
-        ignLogInit(recordPathMod, "server_console.log");
+        gzLogInit(recordPathMod, "server_console.log");
       }
     }
     // Empty record path specified. Use default.
     else
     {
       // Create log file before printing any messages so they can be logged
-      ignLogInit(recordPathMod, "server_console.log");
-      ignmsg << "Recording states to default path [" << recordPathMod << "]"
+      gzLogInit(recordPathMod, "server_console.log");
+      gzmsg << "Recording states to default path [" << recordPathMod << "]"
              << std::endl;
 
       serverConfig.SetLogRecordPath(recordPathMod);
@@ -140,12 +140,12 @@ extern "C" int runServer(const char *_sdfString,
   }
   else
   {
-    ignLogInit(serverConfig.LogRecordPath(), "server_console.log");
+    gzLogInit(serverConfig.LogRecordPath(), "server_console.log");
   }
 
   serverConfig.SetLogRecordPath(recordPathMod);
 
-  ignmsg << "Ignition Gazebo Server v" << GZ_SIM_VERSION_FULL
+  gzmsg << "Ignition Gazebo Server v" << GZ_SIM_VERSION_FULL
          << std::endl;
 
   // Set the SDF string to user
@@ -153,7 +153,7 @@ extern "C" int runServer(const char *_sdfString,
   {
     if (!serverConfig.SetSdfString(_sdfString))
     {
-      ignerr << "Failed to set SDF string [" << _sdfString << "]" << std::endl;
+      gzerr << "Failed to set SDF string [" << _sdfString << "]" << std::endl;
       return -1;
     }
   }
@@ -166,13 +166,13 @@ extern "C" int runServer(const char *_sdfString,
   // Set whether levels should be used.
   if (_levels > 0)
   {
-    ignmsg << "Using the level system\n";
+    gzmsg << "Using the level system\n";
     serverConfig.SetUseLevels(true);
   }
 
   if (_networkRole && std::strlen(_networkRole) > 0)
   {
-    ignmsg << "Using the distributed simulation and levels systems\n";
+    gzmsg << "Using the distributed simulation and levels systems\n";
     serverConfig.SetNetworkRole(_networkRole);
     serverConfig.SetNetworkSecondaries(_networkSecondaries);
     serverConfig.SetUseLevels(true);
@@ -182,13 +182,13 @@ extern "C" int runServer(const char *_sdfString,
   {
     if (_sdfString != nullptr && std::strlen(_sdfString) > 0)
     {
-      ignerr << "Both an SDF file and playback flag are specified. "
+      gzerr << "Both an SDF file and playback flag are specified. "
         << "Only specify one.\n";
       return -1;
     }
     else
     {
-      ignmsg << "Playing back states" << _playback << std::endl;
+      gzmsg << "Playing back states" << _playback << std::endl;
       serverConfig.SetLogPlaybackPath(gz::common::absPath(
         std::string(_playback)));
     }
@@ -214,7 +214,7 @@ extern "C" int runGui(const char *_guiConfig)
     sigKilled = true;
   });
 
-  ignmsg << "Ignition Gazebo GUI    v" << GZ_SIM_VERSION_FULL
+  gzmsg << "Ignition Gazebo GUI    v" << GZ_SIM_VERSION_FULL
          << std::endl;
 
   int argc = 0;
@@ -258,7 +258,7 @@ extern "C" int runGui(const char *_guiConfig)
   }
   else
   {
-    ignerr << "Failed to instantiate custom drawer, drawer will be empty"
+    gzerr << "Failed to instantiate custom drawer, drawer will be empty"
            << std::endl;
   }
 
@@ -286,9 +286,9 @@ extern "C" int runGui(const char *_guiConfig)
   if (!sigKilled)
   {
     if (!executed)
-      ignerr << "Timed out when getting world names." << std::endl;
+      gzerr << "Timed out when getting world names." << std::endl;
     else if (!result)
-      ignerr << "Failed to get world names." << std::endl;
+      gzerr << "Failed to get world names." << std::endl;
   }
 
   if (!executed || !result || worldsMsg.data().empty())
@@ -314,7 +314,7 @@ extern "C" int runGui(const char *_guiConfig)
   {
     if (!app.LoadConfig(_guiConfig))
     {
-      ignwarn << "Failed to load config file[" << _guiConfig << "]."
+      gzwarn << "Failed to load config file[" << _guiConfig << "]."
               << std::endl;
     }
 
@@ -362,9 +362,9 @@ extern "C" int runGui(const char *_guiConfig)
       executed = node.Request(service, timeout, res, result);
 
       if (!executed)
-        ignerr << "Service call timed out for [" << service << "]" << std::endl;
+        gzerr << "Service call timed out for [" << service << "]" << std::endl;
       else if (!result)
-        ignerr << "Service call failed for [" << service << "]" << std::endl;
+        gzerr << "Service call failed for [" << service << "]" << std::endl;
 
       for (int p = 0; p < res.plugin_size(); ++p)
       {
@@ -392,7 +392,7 @@ extern "C" int runGui(const char *_guiConfig)
 
   if (runners.empty())
   {
-    ignerr << "Failed to start a GUI runner." << std::endl;
+    gzerr << "Failed to start a GUI runner." << std::endl;
     return -1;
   }
 
@@ -410,14 +410,14 @@ extern "C" int runGui(const char *_guiConfig)
 
       if (!gz::common::createDirectories(defaultConfigDir))
       {
-        ignerr << "Failed to create directory [" << defaultConfigDir
+        gzerr << "Failed to create directory [" << defaultConfigDir
                << "]." << std::endl;
         return -1;
       }
 
       if (!gz::common::exists(installedConfig))
       {
-        ignerr << "Failed to copy installed config [" << installedConfig
+        gzerr << "Failed to copy installed config [" << installedConfig
                << "] to default config [" << defaultConfig << "]."
                << "(file " << installedConfig << " doesn't exist)"
                << std::endl;
@@ -426,14 +426,14 @@ extern "C" int runGui(const char *_guiConfig)
 
       if (!gz::common::copyFile(installedConfig, defaultConfig))
       {
-        ignerr << "Failed to copy installed config [" << installedConfig
+        gzerr << "Failed to copy installed config [" << installedConfig
                << "] to default config [" << defaultConfig << "]."
                << std::endl;
         return -1;
       }
       else
       {
-        ignmsg << "Copied installed config [" << installedConfig
+        gzmsg << "Copied installed config [" << installedConfig
                << "] to default config [" << defaultConfig << "]."
                << std::endl;
       }
@@ -442,7 +442,7 @@ extern "C" int runGui(const char *_guiConfig)
     // Also set ~/.gz/sim/ver/gui.config as the default path
     if (!app.LoadConfig(defaultConfig))
     {
-      ignerr << "Failed to load config file[" << _guiConfig << "]."
+      gzerr << "Failed to load config file[" << _guiConfig << "]."
              << std::endl;
       return -1;
     }

@@ -125,7 +125,7 @@ void TrajectoryFollowerPrivate::Load(const EntityComponentManager &_ecm,
   // Parse required elements.
   if (!_sdf->HasElement("link_name"))
   {
-    ignerr << "No <link_name> specified" << std::endl;
+    gzerr << "No <link_name> specified" << std::endl;
     return;
   }
 
@@ -133,7 +133,7 @@ void TrajectoryFollowerPrivate::Load(const EntityComponentManager &_ecm,
   this->link = Link(this->model.LinkByName(_ecm, linkName));
   if (!this->link.Valid(_ecm))
   {
-    ignerr << "Could not find link named [" << linkName
+    gzerr << "Could not find link named [" << linkName
            << "] in model" << std::endl;
     return;
   }
@@ -149,7 +149,7 @@ void TrajectoryFollowerPrivate::Load(const EntityComponentManager &_ecm,
     // We need at least one waypoint
     if (!waypointsElem->HasElement("waypoint"))
     {
-      ignerr << "TrajectoryFollower: Unable to find <waypoints><waypoint> "
+      gzerr << "TrajectoryFollower: Unable to find <waypoints><waypoint> "
             << "element in SDF." << std::endl;
       return;
     }
@@ -177,7 +177,7 @@ void TrajectoryFollowerPrivate::Load(const EntityComponentManager &_ecm,
 
     if (!circleElem->HasElement("radius"))
     {
-      ignerr << "No <circle><radius> specified" << std::endl;
+      gzerr << "No <circle><radius> specified" << std::endl;
       return;
     }
 
@@ -207,7 +207,7 @@ void TrajectoryFollowerPrivate::Load(const EntityComponentManager &_ecm,
     // Parse the required <direction> field.
     if (!lineElem->HasElement("direction"))
     {
-      ignerr << "No <line><direction> specified" << std::endl;
+      gzerr << "No <line><direction> specified" << std::endl;
       return;
     }
     gz::math::Angle direction =
@@ -216,7 +216,7 @@ void TrajectoryFollowerPrivate::Load(const EntityComponentManager &_ecm,
     // Parse the required <length> field.
     if (!lineElem->HasElement("length"))
     {
-      ignerr << "No <line><length> specified" << std::endl;
+      gzerr << "No <line><length> specified" << std::endl;
       return;
     }
     auto length = lineElem->Get<double>("length");
@@ -271,7 +271,7 @@ void TrajectoryFollowerPrivate::Load(const EntityComponentManager &_ecm,
 
   this->node.Subscribe(topic, &TrajectoryFollowerPrivate::OnPause, this);
 
-  ignmsg << "TrajectoryFollower["
+  gzmsg << "TrajectoryFollower["
       << this->model.Name(_ecm) << "] subscribed "
       << "to pause messages on topic[" << this->topic << "]\n";
 
@@ -382,7 +382,7 @@ void TrajectoryFollower::PreUpdate(
   auto comPose = this->dataPtr->link.WorldInertialPose(_ecm);
   if (!comPose.has_value())
   {
-    ignerr << "Failed to get CoM pose for link ["
+    gzerr << "Failed to get CoM pose for link ["
            << this->dataPtr->link.Entity() << "]" << std::endl;
     return;
   }

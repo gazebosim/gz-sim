@@ -46,7 +46,7 @@ namespace serializers
       sdf::ElementPtr modelElem = _model.Element();
       if (!modelElem)
       {
-        ignerr << "Unable to serialize sdf::Model" << std::endl;
+        gzerr << "Unable to serialize sdf::Model" << std::endl;
         return _out;
       }
 
@@ -70,7 +70,7 @@ namespace serializers
       sdf::Errors errors = root.LoadSdfString(sdf);
       if (!root.Model())
       {
-        ignerr << "Unable to unserialize sdf::Model" << std::endl;
+        gzerr << "Unable to unserialize sdf::Model" << std::endl;
         return _in;
       }
 

@@ -150,7 +150,7 @@ void ShaderParam::Configure(const Entity &_entity,
       if (!paramElem->HasElement("shader") ||
           !paramElem->HasElement("name"))
       {
-        ignerr << "<param> must have <shader> and <name> sdf elements"
+        gzerr << "<param> must have <shader> and <name> sdf elements"
                << std::endl;
         paramElem = paramElem->GetNextElement("param");
         continue;
@@ -192,7 +192,7 @@ void ShaderParam::Configure(const Entity &_entity,
   // parse path to shaders
   if (!sdf->HasElement("shader"))
   {
-    ignerr << "Unable to load shader param system. "
+    gzerr << "Unable to load shader param system. "
            << "Missing <shader> SDF element." << std::endl;
     return;
   }
@@ -203,7 +203,7 @@ void ShaderParam::Configure(const Entity &_entity,
     if (!shaderElem->HasElement("vertex") ||
         !shaderElem->HasElement("fragment"))
     {
-      ignerr << "<shader> must have <vertex> and <fragment> sdf elements"
+      gzerr << "<shader> must have <vertex> and <fragment> sdf elements"
              << std::endl;
     }
     else
@@ -230,7 +230,7 @@ void ShaderParam::Configure(const Entity &_entity,
   }
   if (this->dataPtr->shaders.empty())
   {
-    ignerr << "Unable to load shader param system. "
+    gzerr << "Unable to load shader param system. "
            << "No valid shaders." << std::endl;
     return;
   }
@@ -325,7 +325,7 @@ void ShaderParamPrivate::OnUpdate()
       // if both glsl and metal are specified, print a msg to inform that
       // metal is used instead of glsl
       if (it != this->shaders.end())
-        ignmsg << "Using metal shaders. " << std::endl;
+        gzmsg << "Using metal shaders. " << std::endl;
     }
 #endif
     this->visual->SetMaterial(mat);

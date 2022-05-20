@@ -198,7 +198,7 @@ void PlaybackScrubber::OnTimeEntered(const QString &_time)
     math::stringToTimePoint(time);
   if (enteredTime == math::secNsecToTimePoint(-1, 0))
   {
-    ignwarn << "Invalid time entered. "
+    gzwarn << "Invalid time entered. "
       "The format is dd hh:mm:ss.nnn" << std::endl;
     return;
   }

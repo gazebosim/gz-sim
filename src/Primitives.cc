@@ -350,15 +350,15 @@ std::string gz::sim::getPrimitive(const std::string &_typeName)
   else if (type == "spot")
     return getPrimitiveLight(PrimitiveLight::kSpot);
 
-  ignwarn << "Invalid model string " << type << "\n";
-  ignwarn << "The valid options are:\n";
-  ignwarn << " - box\n";
-  ignwarn << " - sphere\n";
-  ignwarn << " - cylinder\n";
-  ignwarn << " - capsule\n";
-  ignwarn << " - ellipsoid\n";
-  ignwarn << " - point\n";
-  ignwarn << " - directional\n";
-  ignwarn << " - spot\n";
+  gzwarn << "Invalid model string " << type << "\n";
+  gzwarn << "The valid options are:\n";
+  gzwarn << " - box\n";
+  gzwarn << " - sphere\n";
+  gzwarn << " - cylinder\n";
+  gzwarn << " - capsule\n";
+  gzwarn << " - ellipsoid\n";
+  gzwarn << " - point\n";
+  gzwarn << " - directional\n";
+  gzwarn << " - spot\n";
   return "";
 }

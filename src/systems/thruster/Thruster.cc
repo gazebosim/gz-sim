@@ -155,7 +155,7 @@ void Thruster::Configure(
   // Get joint name
   if (!_sdf->HasElement("joint_name"))
   {
-    ignerr << "Missing <joint_name>. Plugin won't be initialized."
+    gzerr << "Missing <joint_name>. Plugin won't be initialized."
            << std::endl;
     return;
   }
@@ -190,7 +190,7 @@ void Thruster::Configure(
   this->dataPtr->jointEntity = model.JointByName(_ecm, jointName);
   if (kNullEntity == this->dataPtr->jointEntity)
   {
-    ignerr << "Failed to find joint [" << jointName << "] in model ["
+    gzerr << "Failed to find joint [" << jointName << "] in model ["
            << modelName << "]. Plugin not initialized." << std::endl;
     return;
   }
@@ -230,7 +230,7 @@ void Thruster::Configure(
       &ThrusterPrivateData::OnCmdThrust,
       this->dataPtr.get());
 
-    ignmsg << "Thruster listening to commands in [" << thrusterTopic << "]"
+    gzmsg << "Thruster listening to commands in [" << thrusterTopic << "]"
           << std::endl;
 
     std::string feedbackTopic = gz::transport::TopicUtils::AsValidTopic(
@@ -251,7 +251,7 @@ void Thruster::Configure(
       &ThrusterPrivateData::OnCmdAngVel,
       this->dataPtr.get());
 
-    ignmsg << "Thruster listening to commands in [" << thrusterTopic << "]"
+    gzmsg << "Thruster listening to commands in [" << thrusterTopic << "]"
           << std::endl;
 
     std::string feedbackTopic = gz::transport::TopicUtils::AsValidTopic(
@@ -278,7 +278,7 @@ void Thruster::Configure(
   }
   if (maxThrustCmd < minThrustCmd)
   {
-    ignerr << "<max_thrust_cmd> must be greater than or equal to "
+    gzerr << "<max_thrust_cmd> must be greater than or equal to "
            << "<min_thrust_cmd>. Revert to using default values: "
            << "min: " << this->dataPtr->cmdMin << ", "
            << "max: " << this->dataPtr->cmdMax << std::endl;

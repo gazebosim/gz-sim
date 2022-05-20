@@ -204,7 +204,7 @@ void ViewAngle::OnAngleMode(int _x, int _y, int _z)
         [](const msgs::Boolean &/*_rep*/, const bool _result)
     {
       if (!_result)
-        ignerr << "Error setting view angle mode" << std::endl;
+        gzerr << "Error setting view angle mode" << std::endl;
     };
 
     msgs::Vector3d req;
@@ -229,7 +229,7 @@ void ViewAngle::OnViewControl(const QString &_controller)
       [](const msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
-      ignerr << "Error setting view controller" << std::endl;
+      gzerr << "Error setting view controller" << std::endl;
   };
 
   msgs::StringMsg req;
@@ -240,7 +240,7 @@ void ViewAngle::OnViewControl(const QString &_controller)
     req.set_data("ortho");
   else
   {
-    ignerr << "Unknown view controller selected: " << str << std::endl;
+    gzerr << "Unknown view controller selected: " << str << std::endl;
     return;
   }
 
@@ -273,7 +273,7 @@ void ViewAngle::SetCamPose(double _x, double _y, double _z,
         [](const msgs::Boolean &/*_rep*/, const bool _result)
     {
       if (!_result)
-        ignerr << "Error sending move camera to pose request" << std::endl;
+        gzerr << "Error sending move camera to pose request" << std::endl;
     };
 
     msgs::GUICamera req;
@@ -352,7 +352,7 @@ void ViewAnglePrivate::OnRender()
 
     if (!this->camera)
     {
-      ignerr << "ViewAngle camera is not available" << std::endl;
+      gzerr << "ViewAngle camera is not available" << std::endl;
       return;
     }
   }

@@ -86,7 +86,7 @@ void RenderingServerPlugin::FindScene()
   auto engine = gz::rendering::engine(engineName);
   if (!engine)
   {
-    ignerr << "Internal error: failed to load engine [" << engineName
+    gzerr << "Internal error: failed to load engine [" << engineName
       << "]. Grid plugin won't work." << std::endl;
     return;
   }
@@ -101,7 +101,7 @@ void RenderingServerPlugin::FindScene()
   auto scenePtr = engine->SceneByIndex(0);
   if (nullptr == scenePtr)
   {
-    ignerr << "Internal error: scene is null." << std::endl;
+    gzerr << "Internal error: scene is null." << std::endl;
     return;
   }
 

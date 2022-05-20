@@ -94,7 +94,7 @@ ComponentTypeT *EntityComponentManager::CreateComponent(const Entity _entity,
   {
     if (!comp)
     {
-      ignerr << "Internal error. Failure to create a component of type "
+      gzerr << "Internal error. Failure to create a component of type "
         << ComponentTypeT::typeId << " for entity " << _entity
         << ". This should never happen!\n";
       return comp;
@@ -190,7 +190,7 @@ bool EntityComponentManager::SetComponentData(const Entity _entity,
 template<typename ComponentTypeT>
 const ComponentTypeT *EntityComponentManager::First() const
 {
-  ignwarn << "EntityComponentManager::First is now deprecated and will always "
+  gzwarn << "EntityComponentManager::First is now deprecated and will always "
     << "return nullptr.\n";
   return nullptr;
 }
@@ -199,7 +199,7 @@ const ComponentTypeT *EntityComponentManager::First() const
 template<typename ComponentTypeT>
 ComponentTypeT *EntityComponentManager::First()
 {
-  ignwarn << "EntityComponentManager::First is now deprecated and will always "
+  gzwarn << "EntityComponentManager::First is now deprecated and will always "
     << "return nullptr.\n";
   return nullptr;
 }
@@ -554,7 +554,7 @@ detail::View *EntityComponentManager::FindView() const
       auto mutexPtr = baseViewMutexPair.second;
       if (nullptr == mutexPtr)
       {
-        ignerr << "Internal error: requested to lock a view, but no mutex "
+        gzerr << "Internal error: requested to lock a view, but no mutex "
           << "exists for this view. This should never happen!" << std::endl;
         return view;
       }
