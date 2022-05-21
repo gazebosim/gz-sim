@@ -104,6 +104,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \brief See rendering::Ogre2GlobalIlluminationVct::SetBounceCount
     public: uint32_t bounceCount GUARDED_BY(serviceMutex){6u};
 
+    /// \brief See rendering::Ogre2GlobalIlluminationVct::SetHighQuality
+    public: bool highQuality GUARDED_BY(serviceMutex){true};
+
+    /// \brief See rendering::Ogre2GlobalIlluminationVct::SetAnisotropic
+    public: bool anisotropic GUARDED_BY(serviceMutex){true};
+
 #ifdef VCT_DISABLED
     /// \brief URI sequence to the lidar link
     public: std::string lidarString{""};
@@ -270,6 +276,8 @@ bool GlobalIlluminationVct::eventFilter(QObject *_obj, QEvent *_event)
         this->dataPtr->gi->SetResolution(this->dataPtr->resolution);
         this->dataPtr->gi->SetOctantCount(this->dataPtr->octantCount);
         this->dataPtr->gi->SetBounceCount(this->dataPtr->bounceCount);
+        this->dataPtr->gi->SetHighQuality(this->dataPtr->highQuality);
+        this->dataPtr->gi->SetAnisotropic(this->dataPtr->anisotropic);
 
         if (this->dataPtr->enabled)
         {
@@ -288,9 +296,11 @@ bool GlobalIlluminationVct::eventFilter(QObject *_obj, QEvent *_event)
         this->dataPtr->visualDirty = false;
         this->dataPtr->lightingDirty = false;
       }
-      else if(this->dataPtr->lightingDirty)
+      else if (this->dataPtr->lightingDirty)
       {
         this->dataPtr->gi->SetBounceCount(this->dataPtr->bounceCount);
+        this->dataPtr->gi->SetHighQuality(this->dataPtr->highQuality);
+        this->dataPtr->gi->SetAnisotropic(this->dataPtr->anisotropic);
         this->dataPtr->gi->LightingChanged();
         this->dataPtr->lightingDirty = false;
       }
@@ -607,6 +617,36 @@ uint32_t GlobalIlluminationVct::BounceCount() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
   return this->dataPtr->bounceCount;
+}
+
+//////////////////////////////////////////////////
+void GlobalIlluminationVct::SetHighQuality(const uint32_t _quality)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+  this->dataPtr->highQuality = _quality;
+  this->dataPtr->lightingDirty = true;
+}
+
+//////////////////////////////////////////////////
+uint32_t GlobalIlluminationVct::HighQuality() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+  return this->dataPtr->highQuality;
+}
+
+//////////////////////////////////////////////////
+void GlobalIlluminationVct::SetAnisotropic(const uint32_t _anisotropic)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+  this->dataPtr->anisotropic = _anisotropic;
+  this->dataPtr->lightingDirty = true;
+}
+
+//////////////////////////////////////////////////
+uint32_t GlobalIlluminationVct::Anisotropic() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+  return this->dataPtr->anisotropic;
 }
 
 // Register this plugin

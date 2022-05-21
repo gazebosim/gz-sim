@@ -95,6 +95,20 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
       NOTIFY LightingChanged
     )
 
+    Q_PROPERTY(
+      bool highQuality
+      READ HighQuality
+      WRITE SetHighQuality
+      NOTIFY LightingChanged
+    )
+
+    Q_PROPERTY(
+      bool anisotropic
+      READ Anisotropic
+      WRITE SetAnisotropic
+      NOTIFY LightingChanged
+    )
+
     /// \brief Constructor
     public: GlobalIlluminationVct();
 
@@ -209,6 +223,22 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \brief See rendering::GlobalIlluminationVct::BounceCount
     /// \return See rendering::GlobalIlluminationVct::BounceCount
     public: Q_INVOKABLE uint32_t BounceCount() const;
+
+    /// \brief See rendering::GlobalIlluminationVct::SetHighQuality
+    /// \param[in] _enabled See GlobalIlluminationVct::SetHighQuality
+    public: Q_INVOKABLE void SetHighQuality(const uint32_t _quality);
+
+    /// \brief See rendering::GlobalIlluminationVct::HighQuality
+    /// \return See rendering::GlobalIlluminationVct::HighQuality
+    public: Q_INVOKABLE uint32_t HighQuality() const;
+
+    /// \brief See rendering::GlobalIlluminationVct::SetAnisotropic
+    /// \param[in] _enabled See GlobalIlluminationVct::SetAnisotropic
+    public: Q_INVOKABLE void SetAnisotropic(const uint32_t _anisotropic);
+
+    /// \brief See rendering::GlobalIlluminationVct::Anisotropic
+    /// \return See rendering::GlobalIlluminationVct::Anisotropic
+    public: Q_INVOKABLE uint32_t Anisotropic() const;
 
     /// \internal
     /// \brief Pointer to private data

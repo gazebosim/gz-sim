@@ -226,9 +226,9 @@ GridLayout {
     Layout.columnSpan: 6
     Layout.fillWidth: true
     text: qsTr("High Quality")
-    checked: true
+    checked: GlobalIlluminationVct.highQuality
     onClicked: {
-        // VisualizeLidar.DisplayVisual(checked)
+      GlobalIlluminationVct.highQuality = checked;
     }
   }
 
@@ -238,9 +238,9 @@ GridLayout {
     Layout.columnSpan: 6
     Layout.fillWidth: true
     text: qsTr("Anisotropic")
-    checked: true
+    checked: GlobalIlluminationVct.anisotropic
     onClicked: {
-        // VisualizeLidar.DisplayVisual(checked)
+      GlobalIlluminationVct.anisotropic = checked;
     }
   }
 
@@ -274,7 +274,7 @@ GridLayout {
     Layout.columnSpan: 4
     id: debugVisualization
     Layout.fillWidth: true
-    currentIndex: 3
+    currentIndex: 4
     model: ["Albedo", "Normal", "Emissive", "Lighting", "None"]
     onCurrentIndexChanged: {
       if (currentIndex < 0) {
