@@ -19,6 +19,7 @@
 #include <cstdio>
 #include <cstdlib>
 
+#include <fstream>
 #include <string>
 #include <ignition/common/Util.hh>
 #include <ignition/utilities/ExtraTestMacros.hh>
@@ -159,4 +160,69 @@ TEST(CmdLine, ResourcePath)
   output = customExecStr(path + cmd);
   EXPECT_EQ(output.find("Unable to find file plugins.sdf"), std::string::npos)
       << output;
+}
+
+//////////////////////////////////////////////////
+/// \brief Check --help message and bash completion script for consistent flags
+TEST(CmdLine, HelpVsCompletionFlags)
+{
+  // Flags in help message
+  std::string output = customExecStr(kIgnCommand + " gazebo --help");
+  EXPECT_NE(std::string::npos, output.find("-g")) << output;
+  EXPECT_NE(std::string::npos, output.find("--iterations")) << output;
+  EXPECT_NE(std::string::npos, output.find("--levels")) << output;
+  EXPECT_NE(std::string::npos, output.find("--network-role")) << output;
+  EXPECT_NE(std::string::npos, output.find("--network-secondaries")) << output;
+  EXPECT_NE(std::string::npos, output.find("--record")) << output;
+  EXPECT_NE(std::string::npos, output.find("--record-path")) << output;
+  EXPECT_NE(std::string::npos, output.find("--record-resources")) << output;
+  EXPECT_NE(std::string::npos, output.find("--record-topic")) << output;
+  EXPECT_NE(std::string::npos, output.find("--log-overwrite")) << output;
+  EXPECT_NE(std::string::npos, output.find("--log-compress")) << output;
+  EXPECT_NE(std::string::npos, output.find("--playback")) << output;
+  EXPECT_NE(std::string::npos, output.find("-r")) << output;
+  EXPECT_NE(std::string::npos, output.find("-s")) << output;
+  EXPECT_NE(std::string::npos, output.find("--verbose")) << output;
+  EXPECT_NE(std::string::npos, output.find("--gui-config")) << output;
+  EXPECT_NE(std::string::npos, output.find("--physics-engine")) << output;
+  EXPECT_NE(std::string::npos, output.find("--render-engine")) << output;
+  EXPECT_NE(std::string::npos, output.find("--render-engine-gui")) << output;
+  EXPECT_NE(std::string::npos, output.find("--render-engine-server")) << output;
+  EXPECT_NE(std::string::npos, output.find("--version")) << output;
+  EXPECT_NE(std::string::npos, output.find("-z")) << output;
+  EXPECT_NE(std::string::npos, output.find("--help")) << output;
+  EXPECT_NE(std::string::npos, output.find("--force-version")) << output;
+  EXPECT_NE(std::string::npos, output.find("--versions")) << output;
+
+  // Flags in bash completion
+  std::ifstream scriptFile(std::string(PROJECT_SOURCE_PATH) +
+    "/src/cmd/gazebo.bash_completion.sh");
+  std::string script((std::istreambuf_iterator<char>(scriptFile)),
+      std::istreambuf_iterator<char>());
+
+  EXPECT_NE(std::string::npos, script.find("-g")) << script;
+  EXPECT_NE(std::string::npos, script.find("--iterations")) << script;
+  EXPECT_NE(std::string::npos, script.find("--levels")) << script;
+  EXPECT_NE(std::string::npos, script.find("--network-role")) << script;
+  EXPECT_NE(std::string::npos, script.find("--network-secondaries")) << script;
+  EXPECT_NE(std::string::npos, script.find("--record")) << script;
+  EXPECT_NE(std::string::npos, script.find("--record-path")) << script;
+  EXPECT_NE(std::string::npos, script.find("--record-resources")) << script;
+  EXPECT_NE(std::string::npos, script.find("--record-topic")) << script;
+  EXPECT_NE(std::string::npos, script.find("--log-overwrite")) << script;
+  EXPECT_NE(std::string::npos, script.find("--log-compress")) << script;
+  EXPECT_NE(std::string::npos, script.find("--playback")) << script;
+  EXPECT_NE(std::string::npos, script.find("-r")) << script;
+  EXPECT_NE(std::string::npos, script.find("-s")) << script;
+  EXPECT_NE(std::string::npos, script.find("--verbose")) << script;
+  EXPECT_NE(std::string::npos, script.find("--gui-config")) << script;
+  EXPECT_NE(std::string::npos, script.find("--physics-engine")) << script;
+  EXPECT_NE(std::string::npos, script.find("--render-engine")) << script;
+  EXPECT_NE(std::string::npos, script.find("--render-engine-gui")) << script;
+  EXPECT_NE(std::string::npos, script.find("--render-engine-server")) << script;
+  EXPECT_NE(std::string::npos, script.find("--version")) << script;
+  EXPECT_NE(std::string::npos, script.find("-z")) << script;
+  EXPECT_NE(std::string::npos, script.find("--help")) << script;
+  EXPECT_NE(std::string::npos, script.find("--force-version")) << script;
+  EXPECT_NE(std::string::npos, script.find("--versions")) << script;
 }
