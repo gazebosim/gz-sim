@@ -164,7 +164,7 @@ TEST(CmdLine, ResourcePath)
 
 //////////////////////////////////////////////////
 /// \brief Check --help message and bash completion script for consistent flags
-TEST(CmdLine, HelpVsCompletionFlags)
+TEST(CmdLine, GazeboHelpVsCompletionFlags)
 {
   // Flags in help message
   std::string output = customExecStr(kIgnCommand + " gazebo --help");
