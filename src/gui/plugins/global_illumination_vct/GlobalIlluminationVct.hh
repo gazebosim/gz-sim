@@ -50,6 +50,51 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
       NOTIFY EnabledChanged
     )
 
+    Q_PROPERTY(
+      int resolutionX
+      READ ResolutionX
+      WRITE SetResolutionX
+      NOTIFY SettingsChanged
+    )
+    Q_PROPERTY(
+      int resolutionY
+      READ ResolutionY
+      WRITE SetResolutionY
+      NOTIFY SettingsChanged
+    )
+    Q_PROPERTY(
+      int resolutionZ
+      READ ResolutionZ
+      WRITE SetResolutionZ
+      NOTIFY SettingsChanged
+    )
+
+    Q_PROPERTY(
+      int octantCountX
+      READ OctantCountX
+      WRITE SetOctantCountX
+      NOTIFY SettingsChanged
+    )
+    Q_PROPERTY(
+      int octantCountY
+      READ OctantCountY
+      WRITE SetOctantCountY
+      NOTIFY SettingsChanged
+    )
+    Q_PROPERTY(
+      int octantCountZ
+      READ OctantCountZ
+      WRITE SetOctantCountZ
+      NOTIFY SettingsChanged
+    )
+
+    Q_PROPERTY(
+      int bounceCount
+      READ BounceCount
+      WRITE SetBounceCount
+      NOTIFY LightingChanged
+    )
+
     /// \brief Constructor
     public: GlobalIlluminationVct();
 
@@ -82,6 +127,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \param[in] _res New resolution
     public: Q_INVOKABLE void UpdateResolution(int _axis, uint32_t _res);
 
+    /// \brief Set VCT octant count
+    /// \param[in] _axis Axis (width, height, depth). In range [0; 3)
+    /// \param[in] _res New octant count
+    public: Q_INVOKABLE void UpdateOctantCount(int _axis, uint32_t _count);
+
     /// \brief Set topic to subscribe for LidarSensor data
     /// \param[in] _topicName Name of selected topic
     public: Q_INVOKABLE void OnTopic(const QString &_topicName);
@@ -97,6 +147,68 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 
     /// \brief Notify this property has changed
     signals: void EnabledChanged();
+
+    /// \brief Notify various properties may have changed
+    signals: void SettingsChanged();
+
+    /// \brief Notify fast-to-rebuild properties may have changed
+    signals: void LightingChanged();
+
+    /// \brief See rendering::GlobalIlluminationVct::SetResolution
+    /// \param[in] _enabled See GlobalIlluminationVct::SetResolution
+    public: Q_INVOKABLE void SetResolutionX(const uint32_t _res);
+
+    /// \brief See rendering::GlobalIlluminationVct::Resolution
+    /// \return See rendering::GlobalIlluminationVct::Resolution
+    public: Q_INVOKABLE uint32_t ResolutionX() const;
+
+    /// \brief See rendering::GlobalIlluminationVct::SetResolution
+    /// \param[in] _enabled See GlobalIlluminationVct::SetResolution
+    public: Q_INVOKABLE void SetResolutionY(const uint32_t _res);
+
+    /// \brief See rendering::GlobalIlluminationVct::Resolution
+    /// \return See rendering::GlobalIlluminationVct::Resolution
+    public: Q_INVOKABLE uint32_t ResolutionY() const;
+
+    /// \brief See rendering::GlobalIlluminationVct::SetResolution
+    /// \param[in] _enabled See GlobalIlluminationVct::SetResolution
+    public: Q_INVOKABLE void SetResolutionZ(const uint32_t _res);
+
+    /// \brief See rendering::GlobalIlluminationVct::Resolution
+    /// \return See rendering::GlobalIlluminationVct::Resolution
+    public: Q_INVOKABLE uint32_t ResolutionZ() const;
+
+    /// \brief See rendering::GlobalIlluminationVct::SetOctantCount
+    /// \param[in] _enabled See GlobalIlluminationVct::SetOctantCount
+    public: Q_INVOKABLE void SetOctantCountX(const uint32_t _res);
+
+    /// \brief See rendering::GlobalIlluminationVct::OctantCount
+    /// \return See rendering::GlobalIlluminationVct::OctantCount
+    public: Q_INVOKABLE uint32_t OctantCountX() const;
+
+    /// \brief See rendering::GlobalIlluminationVct::SetOctantCount
+    /// \param[in] _enabled See GlobalIlluminationVct::SetOctantCount
+    public: Q_INVOKABLE void SetOctantCountY(const uint32_t _res);
+
+    /// \brief See rendering::GlobalIlluminationVct::OctantCount
+    /// \return See rendering::GlobalIlluminationVct::OctantCount
+    public: Q_INVOKABLE uint32_t OctantCountY() const;
+
+    /// \brief See rendering::GlobalIlluminationVct::SetOctantCount
+    /// \param[in] _enabled See GlobalIlluminationVct::SetOctantCount
+    public: Q_INVOKABLE void SetOctantCountZ(const uint32_t _res);
+
+    /// \brief See rendering::GlobalIlluminationVct::OctantCount
+    /// \return See rendering::GlobalIlluminationVct::OctantCount
+    public: Q_INVOKABLE uint32_t OctantCountZ() const;
+
+    /// \brief See rendering::GlobalIlluminationVct::SetBounceCount
+    /// \param[in] _enabled See GlobalIlluminationVct::SetBounceCount
+    public: Q_INVOKABLE void SetBounceCount(const uint32_t _bounces);
+
+    /// \brief See rendering::GlobalIlluminationVct::BounceCount
+    /// \return See rendering::GlobalIlluminationVct::BounceCount
+    public: Q_INVOKABLE uint32_t BounceCount() const;
 
     /// \internal
     /// \brief Pointer to private data

@@ -98,6 +98,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \brief See rendering::Ogre2GlobalIlluminationVct::SetResolution
     public: uint32_t resolution[3] GUARDED_BY(serviceMutex){16u, 16u, 16u};
 
+    /// \brief See rendering::Ogre2GlobalIlluminationVct::SetOctantCount
+    public: uint32_t octantCount[3] GUARDED_BY(serviceMutex){1u, 1u, 1u};
+
+    /// \brief See rendering::Ogre2GlobalIlluminationVct::SetBounceCount
+    public: uint32_t bounceCount GUARDED_BY(serviceMutex){6u};
+
 #ifdef VCT_DISABLED
     /// \brief URI sequence to the lidar link
     public: std::string lidarString{""};
@@ -126,8 +132,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \brief Reset visual flag
     public: bool resetVisual{false};
 
-    /// \brief lidar visual display dirty flag
+    /// \brief GI visual display dirty flag
     public: bool visualDirty GUARDED_BY(serviceMutex){false};
+
+    /// \brief GI visual display dirty flag; but it is fast/quick to rebuild
+    public: bool lightingDirty GUARDED_BY(serviceMutex){false};
 
     /// \brief lidar sensor entity dirty flag
     public: bool lidarEntityDirty{true};
@@ -258,19 +267,32 @@ bool GlobalIlluminationVct::eventFilter(QObject *_obj, QEvent *_event)
       }
       if (this->dataPtr->visualDirty)
       {
+        this->dataPtr->gi->SetResolution(this->dataPtr->resolution);
+        this->dataPtr->gi->SetOctantCount(this->dataPtr->octantCount);
+        this->dataPtr->gi->SetBounceCount(this->dataPtr->bounceCount);
+
         if (this->dataPtr->enabled)
         {
+          this->dataPtr->gi->Build();
           this->dataPtr->scene->SetActiveGlobalIllumination(this->dataPtr->gi);
         }
         else
         {
           this->dataPtr->scene->SetActiveGlobalIllumination(nullptr);
         }
+
 #ifdef VCT_DISABLED
         this->dataPtr->lidar->SetWorldPose(this->dataPtr->lidarPose);
         this->dataPtr->lidar->Update();
 #endif
         this->dataPtr->visualDirty = false;
+        this->dataPtr->lightingDirty = false;
+      }
+      else if(this->dataPtr->lightingDirty)
+      {
+        this->dataPtr->gi->SetBounceCount(this->dataPtr->bounceCount);
+        this->dataPtr->gi->LightingChanged();
+        this->dataPtr->lightingDirty = false;
       }
     }
     else
@@ -397,6 +419,14 @@ void GlobalIlluminationVct::UpdateResolution(int _axis, uint32_t _res)
 }
 
 //////////////////////////////////////////////////
+void GlobalIlluminationVct::UpdateOctantCount(int _axis, uint32_t _count)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+  this->dataPtr->octantCount[_axis] = _count;
+  this->dataPtr->visualDirty = true;
+}
+
+//////////////////////////////////////////////////
 void GlobalIlluminationVct::OnTopic(const QString &_topicName)
 {
 #ifdef VCT_DISABLED
@@ -477,14 +507,6 @@ void GlobalIlluminationVct::SetEnabled(const bool _enabled)
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
   this->dataPtr->enabled = _enabled;
   this->dataPtr->visualDirty = true;
-  /*if (_enabled)
-  {
-    this->dataPtr->scene->SetActiveGlobalIllumination(this->dataPtr->gi);
-  }
-  else
-  {
-    this->dataPtr->scene->SetActiveGlobalIllumination(nullptr);
-  }*/
 }
 
 //////////////////////////////////////////////////
@@ -492,6 +514,99 @@ bool GlobalIlluminationVct::Enabled() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
   return this->dataPtr->enabled;
+}
+
+//////////////////////////////////////////////////
+void GlobalIlluminationVct::SetResolutionX(const uint32_t _res)
+{
+  this->UpdateResolution(0, _res);
+}
+
+//////////////////////////////////////////////////
+uint32_t GlobalIlluminationVct::ResolutionX() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+  return this->dataPtr->resolution[0];
+}
+
+//////////////////////////////////////////////////
+void GlobalIlluminationVct::SetResolutionY(const uint32_t _res)
+{
+  this->UpdateResolution(1, _res);
+}
+
+//////////////////////////////////////////////////
+uint32_t GlobalIlluminationVct::ResolutionY() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+  return this->dataPtr->resolution[1];
+}
+
+//////////////////////////////////////////////////
+void GlobalIlluminationVct::SetResolutionZ(const uint32_t _res)
+{
+  this->UpdateResolution(2, _res);
+}
+
+//////////////////////////////////////////////////
+uint32_t GlobalIlluminationVct::ResolutionZ() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+  return this->dataPtr->resolution[2];
+}
+
+//////////////////////////////////////////////////
+void GlobalIlluminationVct::SetOctantCountX(const uint32_t _res)
+{
+  this->UpdateOctantCount(0, _res);
+}
+
+//////////////////////////////////////////////////
+uint32_t GlobalIlluminationVct::OctantCountX() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+  return this->dataPtr->octantCount[0];
+}
+
+//////////////////////////////////////////////////
+void GlobalIlluminationVct::SetOctantCountY(const uint32_t _res)
+{
+  this->UpdateOctantCount(1, _res);
+}
+
+//////////////////////////////////////////////////
+uint32_t GlobalIlluminationVct::OctantCountY() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+  return this->dataPtr->octantCount[1];
+}
+
+//////////////////////////////////////////////////
+void GlobalIlluminationVct::SetOctantCountZ(const uint32_t _res)
+{
+  this->UpdateOctantCount(2, _res);
+}
+
+//////////////////////////////////////////////////
+uint32_t GlobalIlluminationVct::OctantCountZ() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+  return this->dataPtr->octantCount[2];
+}
+
+//////////////////////////////////////////////////
+void GlobalIlluminationVct::SetBounceCount(const uint32_t _bounces)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+  this->dataPtr->bounceCount = _bounces;
+  this->dataPtr->lightingDirty = true;
+}
+
+//////////////////////////////////////////////////
+uint32_t GlobalIlluminationVct::BounceCount() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+  return this->dataPtr->bounceCount;
 }
 
 // Register this plugin

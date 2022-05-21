@@ -93,12 +93,12 @@ GridLayout {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: bounceCount
-    value: writableSpin.activeFocus ? writableSpin.value : numberValue
+    value: GlobalIlluminationVct.bounceCount
     minimumValue: 0
     maximumValue: 16
     decimals: 1
-    onEditingFinished: {
-      sendLight()
+    onValueChanged: {
+      GlobalIlluminationVct.bounceCount = value
     }
   }
 
@@ -115,6 +115,7 @@ GridLayout {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: resolutionSpinX
+    value: GlobalIlluminationVct.resolutionX
     minimumValue: 4
     maximumValue: 512
     decimals: 1
@@ -123,7 +124,7 @@ GridLayout {
       tmpValue = nearestPowerOf2(tmpValue, oldValue);
       oldValue = tmpValue;
       value = tmpValue;
-      // VisualizeLidar.UpdateResolution(0,resolutionSpinX.value)
+      GlobalIlluminationVct.resolutionX = value;
     }
   }
   IgnSpinBox {
@@ -132,6 +133,7 @@ GridLayout {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: resolutionSpinY
+    value: GlobalIlluminationVct.resolutionY
     minimumValue: 4
     maximumValue: 512
     decimals: 1
@@ -140,7 +142,7 @@ GridLayout {
       tmpValue = nearestPowerOf2(tmpValue, oldValue);
       oldValue = tmpValue;
       value = tmpValue;
-      // VisualizeLidar.UpdateResolution(1,resolutionSpinY.value)
+      GlobalIlluminationVct.resolutionY = value;
     }
   }
   IgnSpinBox {
@@ -149,6 +151,7 @@ GridLayout {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: resolutionSpinZ
+    value: GlobalIlluminationVct.resolutionZ
     minimumValue: 4
     maximumValue: 512
     decimals: 1
@@ -157,7 +160,7 @@ GridLayout {
       tmpValue = nearestPowerOf2(tmpValue, oldValue);
       oldValue = tmpValue;
       value = tmpValue;
-      // VisualizeLidar.UpdateResolution(2,resolutionSpinZ.value)
+      GlobalIlluminationVct.resolutionZ = value;
     }
   }
 
@@ -172,36 +175,36 @@ GridLayout {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: octantCountX
-    value: octantCountX.activeFocus ? octantCountX.value : numberValue
-    minimumValue: 4
-    maximumValue: 512
+    value: GlobalIlluminationVct.octantCountX
+    minimumValue: 1
+    maximumValue: 8
     decimals: 1
     onEditingFinished: {
-      sendLight()
+      GlobalIlluminationVct.octantCountX = value
     }
   }
   IgnSpinBox {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: octantCountY
-    value: octantCountY.activeFocus ? octantCountY.value : numberValue
-    minimumValue: 4
-    maximumValue: 512
+    value: GlobalIlluminationVct.octantCountY
+    minimumValue: 1
+    maximumValue: 8
     decimals: 1
     onEditingFinished: {
-      sendLight()
+      GlobalIlluminationVct.octantCountY = value
     }
   }
   IgnSpinBox {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: octantCountZ
-    value: octantCountZ.activeFocus ? octantCountZ.value : numberValue
-    minimumValue: 4
-    maximumValue: 512
+    value: GlobalIlluminationVct.octantCountZ
+    minimumValue: 1
+    maximumValue: 8
     decimals: 1
     onEditingFinished: {
-      sendLight()
+      GlobalIlluminationVct.octantCountZ = value
     }
   }
 
