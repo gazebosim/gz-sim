@@ -42,7 +42,7 @@ namespace detail
 /// \brief A view that caches a particular set of component type data.
 ///
 /// Note that symbols for this class are visible because methods from this class
-/// are used in templated Ignition::Gazebo::EntityComponentManager methods.
+/// are used in templated Gz::Sim::EntityComponentManager methods.
 /// However, users should not use this class (or anything else in namespace
 /// gz::sim::detail) directly.
 class GZ_GAZEBO_VISIBLE View : public BaseView
