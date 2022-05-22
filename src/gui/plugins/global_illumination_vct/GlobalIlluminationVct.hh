@@ -110,6 +110,20 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     )
 
     Q_PROPERTY(
+      bool conserveMemory
+      READ ConserveMemory
+      WRITE SetConserveMemory
+      NOTIFY LightingChanged
+    )
+
+    Q_PROPERTY(
+      float thinWallCounter
+      READ ThinWallCounter
+      WRITE SetThinWallCounter
+      NOTIFY LightingChanged
+    )
+
+    Q_PROPERTY(
       int debugVisualizationMode
       READ DebugVisualizationMode
       WRITE SetDebugVisualizationMode
@@ -249,6 +263,22 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \brief See rendering::GlobalIlluminationVct::Anisotropic
     /// \return See rendering::GlobalIlluminationVct::Anisotropic
     public: Q_INVOKABLE bool Anisotropic() const;
+
+    /// \brief See rendering::GlobalIlluminationVct::SetConserveMemory
+    /// \param[in] _enabled See GlobalIlluminationVct::SetConserveMemory
+    public: Q_INVOKABLE void SetConserveMemory(const bool _conserveMemory);
+
+    /// \brief See rendering::GlobalIlluminationVct::ConserveMemory
+    /// \return See rendering::GlobalIlluminationVct::ConserveMemory
+    public: Q_INVOKABLE bool ConserveMemory() const;
+
+    /// \brief See rendering::GlobalIlluminationVct::SetThinWallCounter
+    /// \param[in] _enabled See GlobalIlluminationVct::SetThinWallCounter
+    public: Q_INVOKABLE void SetThinWallCounter(const float _thinWallCounter);
+
+    /// \brief See rendering::GlobalIlluminationVct::ThinWallCounter
+    /// \return See rendering::GlobalIlluminationVct::ThinWallCounter
+    public: Q_INVOKABLE float ThinWallCounter() const;
 
     /// \brief See rendering::GlobalIlluminationVct::SetDebugVisualizationMode
     /// \param[in] _enabled See GlobalIlluminationVct::SetDebugVisualizationMode

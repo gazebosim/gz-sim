@@ -110,6 +110,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \brief See rendering::GlobalIlluminationVct::SetAnisotropic
     public: bool anisotropic GUARDED_BY(serviceMutex){true};
 
+    /// \brief See rendering::GlobalIlluminationVct::SetConserveMemory
+    public: bool conserveMemory GUARDED_BY(serviceMutex){false};
+
+    /// \brief See rendering::GlobalIlluminationVct::DebugVisualizationMode
+    public: float thinWallCounter GUARDED_BY(serviceMutex){ 1.0f };
+
     /// \brief See rendering::GlobalIlluminationVct::DebugVisualizationMode
     public: uint32_t debugVisMode GUARDED_BY(
       serviceMutex){ rendering::GlobalIlluminationVct::DVM_None };
@@ -286,6 +292,8 @@ bool GlobalIlluminationVct::eventFilter(QObject *_obj, QEvent *_event)
         this->dataPtr->gi->SetBounceCount(this->dataPtr->bounceCount);
         this->dataPtr->gi->SetHighQuality(this->dataPtr->highQuality);
         this->dataPtr->gi->SetAnisotropic(this->dataPtr->anisotropic);
+        this->dataPtr->gi->SetThinWallCounter(this->dataPtr->thinWallCounter);
+        this->dataPtr->gi->SetConserveMemory(this->dataPtr->conserveMemory);
 
         // Ogre-Next may crash if some of the settings above are
         // changed while visualizing is enabled.
@@ -320,16 +328,24 @@ bool GlobalIlluminationVct::eventFilter(QObject *_obj, QEvent *_event)
         this->dataPtr->gi->SetBounceCount(this->dataPtr->bounceCount);
         this->dataPtr->gi->SetHighQuality(this->dataPtr->highQuality);
         this->dataPtr->gi->SetAnisotropic(this->dataPtr->anisotropic);
-        this->dataPtr->gi->SetDebugVisualization(
-          rendering::GlobalIlluminationVct::DVM_None);
+        this->dataPtr->gi->SetThinWallCounter(this->dataPtr->thinWallCounter);
+        this->dataPtr->gi->SetConserveMemory(this->dataPtr->conserveMemory);
 
-        this->dataPtr->gi->LightingChanged();
+        if (this->dataPtr->gi->Enabled())
+        {
+          this->dataPtr->gi->SetDebugVisualization(
+            rendering::GlobalIlluminationVct::DVM_None);
 
-        this->dataPtr->gi->SetDebugVisualization(
-          static_cast<rendering::GlobalIlluminationVct::DebugVisualizationMode>(
-            this->dataPtr->debugVisMode));
+          this->dataPtr->gi->LightingChanged();
+
+          this->dataPtr->gi->SetDebugVisualization(
+            static_cast<
+              rendering::GlobalIlluminationVct::DebugVisualizationMode>(
+              this->dataPtr->debugVisMode));
+
+          this->dataPtr->debugVisualizationDirty = false;
+        }
         this->dataPtr->lightingDirty = false;
-        this->dataPtr->debugVisualizationDirty = false;
       }
       else if (this->dataPtr->debugVisualizationDirty)
       {
@@ -681,6 +697,36 @@ bool GlobalIlluminationVct::Anisotropic() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
   return this->dataPtr->anisotropic;
+}
+
+//////////////////////////////////////////////////
+void GlobalIlluminationVct::SetConserveMemory(const bool _conserveMemory)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+  this->dataPtr->conserveMemory = _conserveMemory;
+  this->dataPtr->lightingDirty = true;
+}
+
+//////////////////////////////////////////////////
+bool GlobalIlluminationVct::ConserveMemory() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+  return this->dataPtr->conserveMemory;
+}
+
+//////////////////////////////////////////////////
+void GlobalIlluminationVct::SetThinWallCounter(const float _thinWallCounter)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+  this->dataPtr->thinWallCounter = _thinWallCounter;
+  this->dataPtr->lightingDirty = true;
+}
+
+//////////////////////////////////////////////////
+float GlobalIlluminationVct::ThinWallCounter() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+  return this->dataPtr->thinWallCounter;
 }
 
 //////////////////////////////////////////////////

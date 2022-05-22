@@ -77,8 +77,8 @@ GridLayout {
     Layout.fillWidth: true
     text: qsTr("Enabled")
     checked: GlobalIlluminationVct.enabled
-    onClicked: {
-        GlobalIlluminationVct.enabled = checked
+    onToggled: {
+      GlobalIlluminationVct.enabled = checked
     }
   }
 
@@ -214,9 +214,9 @@ GridLayout {
     Layout.columnSpan: 6
     Layout.fillWidth: true
     text: qsTr("Conserve Memory")
-    checked: false
-    onClicked: {
-        // VisualizeLidar.DisplayVisual(checked)
+    checked: GlobalIlluminationVct.conserveMemory
+    onToggled: {
+        GlobalIlluminationVct.conserveMemory = checked;
     }
   }
 
@@ -227,7 +227,7 @@ GridLayout {
     Layout.fillWidth: true
     text: qsTr("High Quality")
     checked: GlobalIlluminationVct.highQuality
-    onClicked: {
+    onToggled: {
       GlobalIlluminationVct.highQuality = checked;
     }
   }
@@ -239,7 +239,7 @@ GridLayout {
     Layout.fillWidth: true
     text: qsTr("Anisotropic")
     checked: GlobalIlluminationVct.anisotropic
-    onClicked: {
+    onToggled: {
       GlobalIlluminationVct.anisotropic = checked;
     }
   }
@@ -255,11 +255,13 @@ GridLayout {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: thinWallCounter
-    value: thinWallCounter.activeFocus ? thinWallCounter.value : numberValue
+    value: GlobalIlluminationVct.thinWallCounter
     minimumValue: 0
-    maximumValue: 3
-    onEditingFinished: {
-      sendLight()
+    maximumValue: 5
+    decimals: 2
+    stepSize: 0.1
+    onValueChanged: {
+      GlobalIlluminationVct.thinWallCounter = value
     }
   }
 
