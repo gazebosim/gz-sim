@@ -95,20 +95,24 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \brief TBD
     public: bool enabled GUARDED_BY(serviceMutex){false};
 
-    /// \brief See rendering::Ogre2GlobalIlluminationVct::SetResolution
+    /// \brief See rendering::GlobalIlluminationVct::SetResolution
     public: uint32_t resolution[3] GUARDED_BY(serviceMutex){16u, 16u, 16u};
 
-    /// \brief See rendering::Ogre2GlobalIlluminationVct::SetOctantCount
+    /// \brief See rendering::GlobalIlluminationVct::SetOctantCount
     public: uint32_t octantCount[3] GUARDED_BY(serviceMutex){1u, 1u, 1u};
 
-    /// \brief See rendering::Ogre2GlobalIlluminationVct::SetBounceCount
+    /// \brief See rendering::GlobalIlluminationVct::SetBounceCount
     public: uint32_t bounceCount GUARDED_BY(serviceMutex){6u};
 
-    /// \brief See rendering::Ogre2GlobalIlluminationVct::SetHighQuality
+    /// \brief See rendering::GlobalIlluminationVct::SetHighQuality
     public: bool highQuality GUARDED_BY(serviceMutex){true};
 
-    /// \brief See rendering::Ogre2GlobalIlluminationVct::SetAnisotropic
+    /// \brief See rendering::GlobalIlluminationVct::SetAnisotropic
     public: bool anisotropic GUARDED_BY(serviceMutex){true};
+
+    /// \brief See rendering::GlobalIlluminationVct::DebugVisualizationMode
+    public: uint32_t debugVisMode GUARDED_BY(
+      serviceMutex){ rendering::GlobalIlluminationVct::DVM_None };
 
 #ifdef VCT_DISABLED
     /// \brief URI sequence to the lidar link
@@ -143,6 +147,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 
     /// \brief GI visual display dirty flag; but it is fast/quick to rebuild
     public: bool lightingDirty GUARDED_BY(serviceMutex){false};
+
+    /// \brief GI debug visualization is dirty. Only used by GUI.
+    /// Not in simulation.
+    public: bool debugVisualizationDirty GUARDED_BY(serviceMutex){false};
 
     /// \brief lidar sensor entity dirty flag
     public: bool lidarEntityDirty{true};
@@ -279,6 +287,11 @@ bool GlobalIlluminationVct::eventFilter(QObject *_obj, QEvent *_event)
         this->dataPtr->gi->SetHighQuality(this->dataPtr->highQuality);
         this->dataPtr->gi->SetAnisotropic(this->dataPtr->anisotropic);
 
+        // Ogre-Next may crash if some of the settings above are
+        // changed while visualizing is enabled.
+        this->dataPtr->gi->SetDebugVisualization(
+          rendering::GlobalIlluminationVct::DVM_None);
+
         if (this->dataPtr->enabled)
         {
           this->dataPtr->gi->Build();
@@ -289,20 +302,41 @@ bool GlobalIlluminationVct::eventFilter(QObject *_obj, QEvent *_event)
           this->dataPtr->scene->SetActiveGlobalIllumination(nullptr);
         }
 
+        // Restore debug visualization to desired.
+        this->dataPtr->gi->SetDebugVisualization(
+          static_cast<rendering::GlobalIlluminationVct::DebugVisualizationMode>(
+            this->dataPtr->debugVisMode));
+
 #ifdef VCT_DISABLED
         this->dataPtr->lidar->SetWorldPose(this->dataPtr->lidarPose);
         this->dataPtr->lidar->Update();
 #endif
         this->dataPtr->visualDirty = false;
         this->dataPtr->lightingDirty = false;
+        this->dataPtr->debugVisualizationDirty = false;
       }
       else if (this->dataPtr->lightingDirty)
       {
         this->dataPtr->gi->SetBounceCount(this->dataPtr->bounceCount);
         this->dataPtr->gi->SetHighQuality(this->dataPtr->highQuality);
         this->dataPtr->gi->SetAnisotropic(this->dataPtr->anisotropic);
+        this->dataPtr->gi->SetDebugVisualization(
+          rendering::GlobalIlluminationVct::DVM_None);
+
         this->dataPtr->gi->LightingChanged();
+
+        this->dataPtr->gi->SetDebugVisualization(
+          static_cast<rendering::GlobalIlluminationVct::DebugVisualizationMode>(
+            this->dataPtr->debugVisMode));
         this->dataPtr->lightingDirty = false;
+        this->dataPtr->debugVisualizationDirty = false;
+      }
+      else if (this->dataPtr->debugVisualizationDirty)
+      {
+        this->dataPtr->gi->SetDebugVisualization(
+          static_cast<rendering::GlobalIlluminationVct::DebugVisualizationMode>(
+            this->dataPtr->debugVisMode));
+        this->dataPtr->debugVisualizationDirty = false;
       }
     }
     else
@@ -620,7 +654,7 @@ uint32_t GlobalIlluminationVct::BounceCount() const
 }
 
 //////////////////////////////////////////////////
-void GlobalIlluminationVct::SetHighQuality(const uint32_t _quality)
+void GlobalIlluminationVct::SetHighQuality(const bool _quality)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
   this->dataPtr->highQuality = _quality;
@@ -628,14 +662,14 @@ void GlobalIlluminationVct::SetHighQuality(const uint32_t _quality)
 }
 
 //////////////////////////////////////////////////
-uint32_t GlobalIlluminationVct::HighQuality() const
+bool GlobalIlluminationVct::HighQuality() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
   return this->dataPtr->highQuality;
 }
 
 //////////////////////////////////////////////////
-void GlobalIlluminationVct::SetAnisotropic(const uint32_t _anisotropic)
+void GlobalIlluminationVct::SetAnisotropic(const bool _anisotropic)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
   this->dataPtr->anisotropic = _anisotropic;
@@ -643,10 +677,25 @@ void GlobalIlluminationVct::SetAnisotropic(const uint32_t _anisotropic)
 }
 
 //////////////////////////////////////////////////
-uint32_t GlobalIlluminationVct::Anisotropic() const
+bool GlobalIlluminationVct::Anisotropic() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
   return this->dataPtr->anisotropic;
+}
+
+//////////////////////////////////////////////////
+void GlobalIlluminationVct::SetDebugVisualizationMode(const uint32_t _visMode)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+  this->dataPtr->debugVisMode = _visMode;
+  this->dataPtr->debugVisualizationDirty = true;
+}
+
+//////////////////////////////////////////////////
+uint32_t GlobalIlluminationVct::DebugVisualizationMode() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+  return this->dataPtr->debugVisMode;
 }
 
 // Register this plugin

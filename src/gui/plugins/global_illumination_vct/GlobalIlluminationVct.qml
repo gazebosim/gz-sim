@@ -274,14 +274,13 @@ GridLayout {
     Layout.columnSpan: 4
     id: debugVisualization
     Layout.fillWidth: true
-    currentIndex: 4
+    currentIndex: GlobalIlluminationVct.debugVisualizationMode
     model: ["Albedo", "Normal", "Emissive", "Lighting", "None"]
     onCurrentIndexChanged: {
-      if (currentIndex < 0) {
+      if (currentIndex < 0|| currentIndex > 4) {
         return;
       }
-      /*GlobalIlluminationVct.UpdateDebugVisualizationMode(
-            typeCombo.currentIndex);*/
+      GlobalIlluminationVct.debugVisualizationMode = currentIndex
     }
   }
 }

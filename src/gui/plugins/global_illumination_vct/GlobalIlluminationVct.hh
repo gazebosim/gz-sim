@@ -109,6 +109,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
       NOTIFY LightingChanged
     )
 
+    Q_PROPERTY(
+      int debugVisualizationMode
+      READ DebugVisualizationMode
+      WRITE SetDebugVisualizationMode
+      NOTIFY DebugVisualizationModeChanged
+    )
+
     /// \brief Constructor
     public: GlobalIlluminationVct();
 
@@ -168,6 +175,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \brief Notify fast-to-rebuild properties may have changed
     signals: void LightingChanged();
 
+    /// \brief Notify debug visualization has changed
+    signals: void DebugVisualizationModeChanged();
+
     /// \brief See rendering::GlobalIlluminationVct::SetResolution
     /// \param[in] _enabled See GlobalIlluminationVct::SetResolution
     public: Q_INVOKABLE void SetResolutionX(const uint32_t _res);
@@ -226,19 +236,27 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 
     /// \brief See rendering::GlobalIlluminationVct::SetHighQuality
     /// \param[in] _enabled See GlobalIlluminationVct::SetHighQuality
-    public: Q_INVOKABLE void SetHighQuality(const uint32_t _quality);
+    public: Q_INVOKABLE void SetHighQuality(const bool _quality);
 
     /// \brief See rendering::GlobalIlluminationVct::HighQuality
     /// \return See rendering::GlobalIlluminationVct::HighQuality
-    public: Q_INVOKABLE uint32_t HighQuality() const;
+    public: Q_INVOKABLE bool HighQuality() const;
 
     /// \brief See rendering::GlobalIlluminationVct::SetAnisotropic
     /// \param[in] _enabled See GlobalIlluminationVct::SetAnisotropic
-    public: Q_INVOKABLE void SetAnisotropic(const uint32_t _anisotropic);
+    public: Q_INVOKABLE void SetAnisotropic(const bool _anisotropic);
 
     /// \brief See rendering::GlobalIlluminationVct::Anisotropic
     /// \return See rendering::GlobalIlluminationVct::Anisotropic
-    public: Q_INVOKABLE uint32_t Anisotropic() const;
+    public: Q_INVOKABLE bool Anisotropic() const;
+
+    /// \brief See rendering::GlobalIlluminationVct::SetDebugVisualizationMode
+    /// \param[in] _enabled See GlobalIlluminationVct::SetDebugVisualizationMode
+    public: Q_INVOKABLE void SetDebugVisualizationMode(const uint32_t _visMode);
+
+    /// \brief See rendering::GlobalIlluminationVct::DebugVisualizationMode
+    /// \return See rendering::GlobalIlluminationVct::DebugVisualizationMode
+    public: Q_INVOKABLE uint32_t DebugVisualizationMode() const;
 
     /// \internal
     /// \brief Pointer to private data
