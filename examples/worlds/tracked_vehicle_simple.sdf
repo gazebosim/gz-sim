@@ -1719,7 +1719,7 @@
         <include>
             <name>pallet</name>
             <pose>2 -2 0.1 0 0 0</pose>
-            <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Euro pallet</uri>
+            <uri>https://fuel.gazebosim.org/1.0/openrobotics/models/Euro pallet</uri>
         </include>
 
         <gui fullscreen='0'>

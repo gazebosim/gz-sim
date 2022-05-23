@@ -1,17 +1,17 @@
 \page meshtofuel Importing a Mesh to Fuel
 
-This tutorial will explain how to import a mesh to the [Gazebo Fuel](https://app.ignitionrobotics.org) web application.
+This tutorial will explain how to import a mesh to the [Gazebo Fuel](https://app.gazebosim.org) web application.
 Adding models and/or worlds to Fuel will make your content readily available to the open source robotics simulation community, and easier to use with the Gazebo GUI.
 
 ## Prerequisites
 
 To import meshes to Fuel, you need to have a user account.
-Go to [app.ignitionrobotics.org](https://app.ignitionrobotics.org) and click Login in the top right corner of the screen, then click Sign Up.
+Go to [app.gazebosim.org](https://app.gazebosim.org) and click Login in the top right corner of the screen, then click Sign Up.
 Once you verify your email address, your account will be ready.
 
 You'll need a mesh ready before trying to import to Fuel.
 There are several ways to acquire a mesh. <!--point cloud to mesh tutorial, cad to mesh tutorial-->
-To save time, we'll use this [Electrical Box model](https://app.ignitionrobotics.org/openrobotics/fuel/models/Electrical%20Box) that you can download from Fuel.
+To save time, we'll use this [Electrical Box model](https://app.gazebosim.org/openrobotics/fuel/models/Electrical%20Box) that you can download from Fuel.
 
 ## Model Directory Structure
 
@@ -156,7 +156,7 @@ Scroll all the way to the bottom of the file until you see the `include` tag sec
       <static>true</static>
       <name>Electrical Box</name>
       <pose>0 0 0 0 0 0</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Electrical Box</uri>
+      <uri>https://fuel.gazebosim.org/1.0/openrobotics/models/Electrical Box</uri>
     </include>
 
   </world>
@@ -171,7 +171,7 @@ Change `Electrical Box` to `Electrical Box Test`.
 The syntax for including any model from Fuel is:
 
 ```xml
-<uri>https://fuel.ignitionrobotics.org/1.0/<user account name>/models/<model name></uri>
+<uri>https://fuel.gazebosim.org/1.0/<user account name>/models/<model name></uri>
 ```
 
 ### Launch World

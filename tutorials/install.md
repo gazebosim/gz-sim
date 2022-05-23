@@ -4,7 +4,7 @@
 
 These instructions are for installing only Gazebo. If you're interested
 in using all the Ignition libraries, not only Igniton Gazebo, check out this
-[Ignition installation](https://ignitionrobotics.org/docs/latest/install).
+[Ignition installation](https://gazebosim.org/docs/latest/install).
 
 We recommend following the binary install instructions to get up and running as
 quickly and painlessly as possible.
@@ -119,7 +119,7 @@ feature which hasn't been released yet.
 
 # Documentation
 
-API documentation and tutorials can be accessed at [https://ignitionrobotics.org/libs/gazebo](https://ignitionrobotics.org/libs/gazebo)
+API documentation and tutorials can be accessed at [https://gazebosim.org/libs/gazebo](https://gazebosim.org/libs/gazebo)
 
 You can also generate the documentation from a clone of this repository by following these steps.
 

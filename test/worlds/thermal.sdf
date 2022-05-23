@@ -306,7 +306,7 @@
     <include>
       <pose>0 0 0 0 0 1.570796</pose>
       <name>rescue_randy</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Rescue Randy</uri>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Rescue Randy</uri>
     </include>
 
     <model name="thermal_camera_8bit">

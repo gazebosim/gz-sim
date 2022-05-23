@@ -62,7 +62,7 @@
         <model name="M3">
           <include>
             <name>coke</name>
-            <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Coke Can</uri>
+            <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Coke Can</uri>
             <pose>2 2 2 0 0 0</pose>
           </include>
         </model>

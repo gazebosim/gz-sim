@@ -63,7 +63,7 @@ here](https://www.ogre3d.org/2021/02/06/ogre-2-2-5-cerberus-released-and-egl-hea
   ```
   sudo reboot
   ```
-11. [Install Gazebo](https://ignitionrobotics.org/docs/latest/install).
+11. [Install Gazebo](https://gazebosim.org/docs/latest/install).
 12. Run a Gazebo world that uses OGRE2 with camera sensors using headless rendering. This will enable EGL.
   ```
   ign gazebo -v 4 -s -r --headless-rendering sensors_demo.sdf

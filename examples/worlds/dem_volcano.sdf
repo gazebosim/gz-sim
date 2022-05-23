@@ -174,7 +174,7 @@
 
     <include>
       <uri>
-        https://fuel.ignitionrobotics.org/1.0/jennuine/models/Volcano
+        https://fuel.gazebosim.org/1.0/jennuine/models/Volcano
       </uri>
     </include>
   </world>

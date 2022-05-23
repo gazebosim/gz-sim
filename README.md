@@ -16,7 +16,7 @@ Windows       | [![Build Status](https://build.osrfoundation.org/job/ign_gazebo-
 
 Gazebo Sim is an open source robotics simulator. Through Gazebo, users have access to high fidelity physics, rendering, and sensor models. Additionally, users and developers have multiple points of entry to simulation including a graphical user interface, plugins, and asynchronous message passing and services.
 
-Gazebo Sim is derived from [Gazebo](http://gazebosim.org) and represents over 16 years of development and experience in robotics and simulation. This library is part of the [Gazebo](https://ignitionrobotics.org) project.
+Gazebo Sim is derived from [Gazebo](http://gazebosim.org) and represents over 16 years of development and experience in robotics and simulation. This library is part of the [Gazebo](https://gazebosim.org) project.
 
 # Table of Contents
 
@@ -66,7 +66,7 @@ through plugin-based graphical interfaces powered by
 * **Simulation models**: Access numerous robots including PR2, Pioneer2 DX,
 iRobot Create, and TurtleBot, and construct environments using other physically
 accurate models available through
-[Gazebo Fuel](https://app.ignitionrobotics.org/fuel). You can also build a
+[Gazebo Fuel](https://app.gazebosim.org/fuel). You can also build a
 new model using [SDF](http://sdformat.org).
 
 * **TCP/IP Transport**: Run simulation on remote servers and interface to Ignition
@@ -78,7 +78,7 @@ introspection and control.
 
 # Install
 
-See the [installation tutorial](https://ignitionrobotics.org/api/gazebo/6.1/install.html).
+See the [installation tutorial](https://gazebosim.org/api/gazebo/6.1/install.html).
 
 # Usage
 
@@ -125,11 +125,11 @@ This issue is tracked [here](https://github.com/gazebosim/gz-tools/issues/8).
 
 # Documentation
 
-See the [installation tutorial](https://ignitionrobotics.org/api/gazebo/6.1/install.html).
+See the [installation tutorial](https://gazebosim.org/api/gazebo/6.1/install.html).
 
 # Testing
 
-See the [installation tutorial](https://ignitionrobotics.org/api/gazebo/6.1/install.html).
+See the [installation tutorial](https://gazebosim.org/api/gazebo/6.1/install.html).
 
 See the [Writing Tests section of the contributor guide](https://github.com/gazebosim/gz-sim/blob/main/CONTRIBUTING.md#writing-tests) for help creating or modifying tests.
 
@@ -172,7 +172,7 @@ Please see
 
 # Versioning
 
-This library uses [Semantic Versioning](https://semver.org/). Additionally, this library is part of the [Gazebo project](https://ignitionrobotics.org) which periodically releases a versioned set of compatible and complimentary libraries. See the [Gazebo website](https://ignitionrobotics.org) for version and release information.
+This library uses [Semantic Versioning](https://semver.org/). Additionally, this library is part of the [Gazebo project](https://gazebosim.org) which periodically releases a versioned set of compatible and complimentary libraries. See the [Gazebo website](https://gazebosim.org) for version and release information.
 
 # License
 

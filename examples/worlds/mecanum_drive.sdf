@@ -77,7 +77,7 @@
       </link>
     </model>
 
-    <model name='vehicle_blue' xmlns:ignition="http://ignitionrobotics.org/schema">
+    <model name='vehicle_blue' xmlns:ignition="http://gazebosim.org/schema">
       <pose>0 2 0.325 0 -0 0</pose>
 
       <link name='chassis'>

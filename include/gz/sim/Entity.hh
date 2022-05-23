@@ -22,7 +22,7 @@
 #include <gz/sim/Export.hh>
 
 /// \brief This library is part of the [Ignition
-/// Robotics](https://ignitionrobotics.org) project.
+/// Robotics](https://gazebosim.org) project.
 namespace gz
 {
   /// \brief Gazebo is a leading open source robotics simulator, that

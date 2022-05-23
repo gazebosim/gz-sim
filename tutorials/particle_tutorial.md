@@ -16,15 +16,15 @@ To be able to spawn particle emitters,  first you will need to include the parti
     </plugin>
 ```
 
-Next, we can start adding particle emitter models into the world. In our example world, we include a [Fog Generator](https://app.ignitionrobotics.org/OpenRobotics/fuel/models/Fog%20Generator) model from Gazebo Fuel:
+Next, we can start adding particle emitter models into the world. In our example world, we include a [Fog Generator](https://app.gazebosim.org/OpenRobotics/fuel/models/Fog%20Generator) model from Gazebo Fuel:
 
 ```xml
     <include>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/fog generator</uri>
+      <uri>https://fuel.gazebosim.org/1.0/openrobotics/models/fog generator</uri>
     </include>
 ```
 
-Here is the content of the Fog Generator [model.sdf](https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Fog%20Generator/1/files/model.sdf) file.
+Here is the content of the Fog Generator [model.sdf](https://fuel.gazebosim.org/1.0/OpenRobotics/models/Fog%20Generator/1/files/model.sdf) file.
 
 ```xml
   <model name="fog_generator">
@@ -55,7 +55,7 @@ Here is the content of the Fog Generator [model.sdf](https://fuel.ignitionroboti
   </model>
 ```
 
-The SDF 1.6+ specification supports having a `<particle_emitter>` SDF element as a child of `<link>`. The particle emitter itself has several properties that can be configured, see Gazebo Rendering's [particles tutorial](https://ignitionrobotics.org/api/rendering/4.0/particles.html) for more details on these properties. In our Fog Generator model, we are using a box type particle emitter that covers a region size of 10 by 10m. By default, the particles are emitted in the `+x` direction, hence the model as a pitch rotation of -90 degrees to rotate the particle emitter so that the particles are emitted upwards in `+z`.
+The SDF 1.6+ specification supports having a `<particle_emitter>` SDF element as a child of `<link>`. The particle emitter itself has several properties that can be configured, see Gazebo Rendering's [particles tutorial](https://gazebosim.org/api/rendering/4.0/particles.html) for more details on these properties. In our Fog Generator model, we are using a box type particle emitter that covers a region size of 10 by 10m. By default, the particles are emitted in the `+x` direction, hence the model as a pitch rotation of -90 degrees to rotate the particle emitter so that the particles are emitted upwards in `+z`.
 
 Let's launch the example world to see what it looks like.
 

@@ -727,11 +727,11 @@ TEST_F(UtilTest, ResolveSdfWorldFile)
 
   // URI to a Fuel world.
   std::string fuelUri =
-    "https://fuel.ignitionrobotics.org/1.0/openrobotics/worlds/test world";
+    "https://fuel.gazebosim.org/1.0/openrobotics/worlds/test world";
 
   // The expect path for the local Fuel world.
   std::string expectedPath = common::joinPaths(
-      config.CacheLocation(), "fuel.ignitionrobotics.org",
+      config.CacheLocation(), "fuel.gazebosim.org",
       "openrobotics", "worlds", "test world");
 
   // Get the Fuel world.

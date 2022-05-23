@@ -10,7 +10,7 @@ section below for usage information about
 
 This section describes how to build and run a docker image based on
 nightly builds of downstream
-[Ignition libraries](https://ignitionrobotics.org/libs). The Docker image will
+[Ignition libraries](https://gazebosim.org/libs). The Docker image will
 use the Gazebo code found in the current source tree.
 
 **Requirements**
@@ -69,7 +69,7 @@ distribution using debians.
 **Steps**
 
 1. Build a docker image using the `build.bash` command. The first argument
-   must be the name of the Ignition distribution. The list of Ignition distribution can be found at [Ignition distribution](https://ignitionrobotics.org/docs). For example, to build an
+   must be the name of the Ignition distribution. The list of Ignition distribution can be found at [Ignition distribution](https://gazebosim.org/docs). For example, to build an
    image of Gazebo Fortress:
 
     ```

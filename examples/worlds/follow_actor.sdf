@@ -215,7 +215,7 @@
       <name>walker_slow_red</name>
       <!-- Root node pose (torso) -->
       <pose>0 -2 1.0 0 0 0</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/chapulina/models/Walking actor</uri>
+      <uri>https://fuel.gazebosim.org/1.0/chapulina/models/Walking actor</uri>
       <plugin filename="ignition-gazebo-follow-actor-system"
               name="gz::sim::systems::FollowActor">
         <target>red_box</target>
@@ -229,7 +229,7 @@
     <include>
       <name>walker_fast_green</name>
       <pose>0 0 1.0 0 0 0</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/chapulina/models/Walking actor</uri>
+      <uri>https://fuel.gazebosim.org/1.0/chapulina/models/Walking actor</uri>
       <plugin filename="ignition-gazebo-follow-actor-system"
               name="gz::sim::systems::FollowActor">
         <target>green_box</target>
@@ -243,7 +243,7 @@
     <include>
       <name>runner_slow_blue</name>
       <pose>0 2 1.0 0 0 0</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+      <uri>https://fuel.gazebosim.org/1.0/Mingfei/models/actor</uri>
       <plugin filename="ignition-gazebo-follow-actor-system"
               name="gz::sim::systems::FollowActor">
         <target>blue_box</target>
@@ -258,7 +258,7 @@
     <include>
       <name>runner_fast_yellow</name>
       <pose>0 4 1.0 0 0 0</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+      <uri>https://fuel.gazebosim.org/1.0/Mingfei/models/actor</uri>
       <plugin filename="ignition-gazebo-follow-actor-system"
               name="gz::sim::systems::FollowActor">
         <target>yellow_box</target>

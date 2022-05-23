@@ -6,7 +6,7 @@
     </physics>
 
     <include>
-      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/ground plane/1</uri>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/ground plane/1</uri>
     </include>
   </world>
 </sdf>

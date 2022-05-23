@@ -115,7 +115,7 @@ TEST_F(SdfGeneratorFixture,
   // This has to be different from the backpack in order to test SDFormat
   // generation for a Fuel URI that was not known when simulation started.
   const std::string groundPlaneUri =
-      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/ground plane";
+      "https://fuel.gazebosim.org/1.0/OpenRobotics/models/ground plane";
 
   transport::Node node;
   {
@@ -419,7 +419,7 @@ TEST_F(SdfGeneratorFixture, ModelWithNestedIncludes)
   ASSERT_NE(nullptr, uri);
   ASSERT_NE(nullptr, uri->GetText());
   EXPECT_EQ(
-    "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Coke Can/2",
+    "https://fuel.gazebosim.org/1.0/OpenRobotics/models/Coke Can/2",
      std::string(uri->GetText()));
 
   name = include->FirstChildElement("name");

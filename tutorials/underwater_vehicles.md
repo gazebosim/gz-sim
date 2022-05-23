@@ -6,7 +6,7 @@ This capability is based on the equations described in Fossen's ["Guidance and
 Control of Ocean Vehicles"](https://www.wiley.com/en-sg/Guidance+and+Control+of+Ocean+Vehicles-p-9780471941132).
 This tutorial will guide you through the steps you
 need to setup simulation of an underwater vehicle. In this tutorial, we will
-guide you through the setup of the [MBARI Tethys](https://app.ignitionrobotics.org/accurrent/fuel/models/MBARI%20Tethys%20LRAUV).
+guide you through the setup of the [MBARI Tethys](https://app.gazebosim.org/accurrent/fuel/models/MBARI%20Tethys%20LRAUV).
 One can find the final sdf file for this tutorial in the
 `examples/worlds/auv_controls.sdf` file.
 
