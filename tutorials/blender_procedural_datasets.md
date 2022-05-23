@@ -86,11 +86,8 @@ eventually added to improve its functionality (contributions are welcome).
     entities under a single SDF model (default behavior).
   - Support exporting processed objects as separate SDF models (user-configured
     optional feature).
-  - Add option to skip exporting of `<visual>` or `<collision>` entities for
-    some of the processed objects (user-configured optional feature).
   - Support exporting of lights.
   - Support exporting of cameras.
-  - Automatic generation of thumbnails via Blender renders.
 - **Materials**
   - Support texture baking for processed objects (should be the default
     behavior).
