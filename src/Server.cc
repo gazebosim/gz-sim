@@ -61,12 +61,13 @@ struct DefaultWorld
 {
   /// \brief Get the default world as a string.
   /// Plugins will be loaded from the server.config file.
+  /// \param[in] _worldName Name of the world
   /// \return An SDF string that contains the default world.
-  public: static std::string &World()
+  public: static std::string &World(std::string _worldName="default")
   {
     static std::string world = std::string("<?xml version='1.0'?>"
       "<sdf version='1.6'>"
-        "<world name='empty_world'>") +
+        "<world name='" + _worldName + "'>") +
         "</world>"
       "</sdf>";
 
@@ -94,6 +95,7 @@ Server::Server(bool _downloadInParallel, const ServerConfig &_config)
 /////////////////////////////////////////////////
 bool Server::DownloadModels()
 {
+  sdf::Root root;
   sdf::Errors errorsThread;
   // Load a world if specified. Check SDF string first, then SDF file
   if (!this->dataPtr->config.SdfString().empty())
@@ -108,8 +110,9 @@ bool Server::DownloadModels()
       msg += "File path [" + this->dataPtr->config.SdfFile() + "].\n";
     }
     ignmsg <<  msg;
-    errorsThread = this->dataPtr->sdfRoot.LoadSdfString(
+    errorsThread = root.LoadSdfString(
       this->dataPtr->config.SdfString());
+    this->dataPtr->sdfRoot = root;
   }
   else if (!this->dataPtr->config.SdfFile().empty())
   {
@@ -172,7 +175,8 @@ bool Server::DownloadModels()
     // resources are downloaded. Blocking here causes the GUI to block with
     // a black screen (search for "Async resource download" in
     // 'src/gui_main.cc'.
-    errorsThread = this->dataPtr->sdfRoot.Load(filePath);
+    errorsThread = root.Load(filePath);
+    this->dataPtr->sdfRoot = root;
 
     if (!this->dataPtr->downloadInParallel)
       return true;
@@ -206,7 +210,8 @@ bool Server::DownloadModels()
 
     // Load an empty world.
     /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
-    errorsThread = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World());
+    errorsThread = root.LoadSdfString(DefaultWorld::World());
+    this->dataPtr->sdfRoot = root;
   }
 
   if (!errorsThread.empty())
@@ -246,9 +251,20 @@ void Server::Init()
     });
 
     ignmsg << "Loading default world.\n";
+
+    common::SystemPaths systemPaths;
+    // Worlds from environment variable
+    systemPaths.SetFilePathEnv(kResourcePathEnv);
+    // Worlds installed with ign-gazebo
+    systemPaths.AddFilePaths(IGN_GAZEBO_WORLD_INSTALL_DIR);
+    std::string filePath = systemPaths.FindFile(this->dataPtr->config.SdfFile());
+
+    std::string worldName;
+    auto errors2 = this->dataPtr->sdfRoot.GetWorldName(filePath, worldName);
+
     // Load an empty world.
     /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
-    errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World());
+    errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World(worldName));
   }
   else
   {

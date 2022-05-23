@@ -147,13 +147,30 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
 {
   IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::World)");
 
-  // World entity
-  Entity worldEntity = this->dataPtr->ecm->CreateEntity();
+  Entity worldEntity = kNullEntity;
+    this->dataPtr->ecm->Each<ignition::gazebo::components::Name,
+              ignition::gazebo::components::World>(
+      [&](const ignition::gazebo::Entity &_entity,
+          const ignition::gazebo::components::Name *_name,
+          const ignition::gazebo::components::World *)->bool
+    {
+      if (_world->Name() == _name->Data())
+      {
+        ignerr << "world name" << _world->Name() << std::endl;
+        worldEntity = _entity;
+        return false;
+      }
+      return true;
+    });
 
-  // World components
-  this->dataPtr->ecm->CreateComponent(worldEntity, components::World());
-  this->dataPtr->ecm->CreateComponent(worldEntity,
-      components::Name(_world->Name()));
+  if (worldEntity == kNullEntity)
+  {
+    worldEntity = this->dataPtr->ecm->CreateEntity();
+    // World components
+    this->dataPtr->ecm->CreateComponent(worldEntity, components::World());
+    this->dataPtr->ecm->CreateComponent(worldEntity,
+        components::Name(_world->Name()));
+  }
 
   // scene
   if (_world->Scene())
@@ -217,12 +234,17 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
   this->dataPtr->ecm->CreateComponent(worldEntity,
       components::MagneticField(_world->MagneticField()));
 
+  // ignerr << "LoadPlugins" << std::endl;
   this->dataPtr->eventManager->Emit<events::LoadPlugins>(worldEntity,
       _world->Element());
 
   // Store the world's SDF DOM to be used when saving the world to file
   this->dataPtr->ecm->CreateComponent(
       worldEntity, components::WorldSdf(*_world));
+
+  // ignerr << "worldEntity " << worldEntity  << std::endl;
+  // components::Name *name =
+  //   this->dataPtr->ecm->Component<components::Name>(worldEntity);
 
   return worldEntity;
 }

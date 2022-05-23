@@ -234,6 +234,7 @@ class ignition::gazebo::ServerConfigPrivate
             renderEngineServer(_cfg->renderEngineServer),
             renderEngineGui(_cfg->renderEngineGui),
             running(_cfg->running),
+            downloadInParallel(_cfg->downloadInParallel),
             plugins(_cfg->plugins),
             networkRole(_cfg->networkRole),
             networkSecondaries(_cfg->networkSecondaries),

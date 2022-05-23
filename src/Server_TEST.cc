@@ -82,7 +82,7 @@ TEST_P(ServerFixture, DefaultServerConfig)
   EXPECT_EQ(0u, *server.IterationCount());
 
   EXPECT_EQ(3u, *server.EntityCount());
-  EXPECT_TRUE(server.HasEntity("default"));
+  EXPECT_TRUE(server.HasEntity("empty_world"));
 
   EXPECT_EQ(3u, *server.SystemCount());
 }
@@ -157,6 +157,25 @@ TEST_P(ServerFixture, ServerConfigPluginInfo)
     EXPECT_EQ(cfgPlugins.front().Name(), plugins.front().Name());
     EXPECT_EQ(cfgPlugins.front().Sdf(), plugins.front().Sdf());
   }
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, ServerDownloadParallel)
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetUpdateRate(10000);
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/shapes.sdf");
+
+  gazebo::Server server(true, serverConfig);
+
+  EXPECT_TRUE(server.Run(false, 0, false));
+  while (*server.IterationCount() == 0)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  EXPECT_EQ(18u, *server.EntityCount());
 }
 
 /////////////////////////////////////////////////

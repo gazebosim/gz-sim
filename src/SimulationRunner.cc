@@ -43,6 +43,21 @@ using StringSet = std::unordered_set<std::string>;
 
 
 //////////////////////////////////////////////////
+/// \brief Structure to temporarily store plugin information for reset
+struct PluginInfo {
+  /// \brief Entity plugin is attached to
+  Entity entity;
+  /// \brief  Filename of the plugin library
+  std::string fname;
+  /// \brief Name of the plugin
+  std::string name;
+  /// \brief SDF element (content of the plugin tag)
+  sdf::ElementPtr sdf;
+};
+
+std::vector<PluginInfo> loadedPlugins;
+
+//////////////////////////////////////////////////
 SimulationRunner::SimulationRunner(const sdf::World *_world,
                                    const SystemLoaderPtr &_systemLoader,
                                    const ServerConfig &_config)
@@ -731,21 +746,29 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
     // If the models are still being downloaded, it doesn't allow to start
     // the simulation
-    if (this->serverConfig.DownloadInParallel())
+    if (this->serverConfig.DownloadInParallel()&& !this->FetchedAllIncludes())
     {
-      if (!this->FetchedAllIncludes())
-      {
         this->SetPaused(true);
-      }
-      else
+    }
+    else
+    {
+      // when the models are downloaded we should set which is the run option
+      // used by the user.
+      if (!isInitialRunOfSimulationSet)
       {
-        // when the models are downloaded we should set which is the run option
-        // used by the user.
-        if (!isInitialRunOfSimulationSet)
-        {
-          isInitialRunOfSimulationSet = true;
-          this->SetPaused(!this->serverConfig.RunOption());
-        }
+        isInitialRunOfSimulationSet = true;
+        this->SetPaused(!this->serverConfig.RunOption());
+
+        // this->initialEntityCompMgr.CopyFrom(this->entityCompMgr);
+        //
+        // WorldControl control;
+        // control.rewind = true;
+        // control.pause = !this->serverConfig.RunOption();
+        // {
+        //   std::lock_guard<std::mutex> lockBuffer(this->msgBufferMutex);
+        //   this->worldControls.push_back(control);
+        // }
+        // this->requestedRewind = true;
       }
     }
 
@@ -864,6 +887,26 @@ void SimulationRunner::LoadPlugin(const Entity _entity,
                                   const std::string &_name,
                                   const sdf::ElementPtr &_sdf)
 {
+  for (const auto pluginInfo: loadedPlugins)
+  {
+    if (_entity == pluginInfo.entity &&
+        _fname == pluginInfo.fname &&
+        _name == pluginInfo.name)
+    {
+      //  Plugin already loaded
+      igndbg << "This system Plugin [" << _name
+             << "] is already loaded in this entity [" << _entity
+             << "]" << std::endl;
+      return;
+    }
+  }
+
+  PluginInfo info;
+  info.entity = _entity;
+  info.name = _name;
+  info.fname = _fname;
+  loadedPlugins.push_back(info);
+
   std::optional<SystemPluginPtr> system;
   {
     std::lock_guard<std::mutex> lock(this->systemLoaderMutex);

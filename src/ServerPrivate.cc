@@ -108,6 +108,10 @@ ServerPrivate::~ServerPrivate()
   {
     this->downloadModelsThread.join();
   }
+  if (this->downloadModelsThread.joinable())
+  {
+    this->downloadModelsThread.join();
+  }
 }
 
 //////////////////////////////////////////////////
