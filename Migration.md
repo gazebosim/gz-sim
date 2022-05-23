@@ -5,7 +5,7 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
-## Gazebo 6.x to 7.0
+## Gazebo Sim 6.x to 7.0
 
 * **Deprecated**
   + The `ParticleEmitter2` system was renamed to `ParticleEmitter`. The
@@ -15,19 +15,19 @@ release will remove the deprecated code.
   + Header files under `ignition/...` are deprecated and will be removed in future versions.
   Use `gz/...` instead.
 
-## Gazebo 6.1 to 6.2
+## Gazebo Sim 6.1 to 6.2
 
 * If no `<namespace>` is given to the `Thruster` plugin, the namespace now
   defaults to the model name, instead of an empty string.
 
-## Gazebo 5.x to 6.x
+## Gazebo Sim 5.x to 6.x
 
 * The ParticleEmitter system is deprecated. Please use the ParticleEmitter2
 system.
 
 * Marker example has been moved to Gazebo GUI.
 
-* Some GUI plugins have been moved to Gazebo GUI. Gazebo users don't need to
+* Some GUI plugins have been moved to Gazebo GUI. Gazebo Sim users don't need to
   change their configuration files, the plugins will be loaded the same way.
     * Grid Config
     * Tape Measure
@@ -87,12 +87,12 @@ since pose information is being logged in the `changed_state` topic.
   should not mutate internal component state. Component implementations that
   overrode the `Clone` method must also be marked `const`.
 
-## Gazebo 5.2 to 5.3
+## Gazebo Sim 5.2 to 5.3
 
 * If no `<namespace>` is given to the `Thruster` plugin, the namespace now
   defaults to the model name, instead of an empty string.
 
-## Gazebo 4.x to 5.x
+## Gazebo Sim 4.x to 5.x
 
 * Use `cli` component of `ignition-utils1`.
 
@@ -123,14 +123,14 @@ since pose information is being logged in the `changed_state` topic.
   default `0 0 -1`. Since 5.x, the `<direction>` tag is correctly
   processed.
 
-## Gazebo 4.0.0 to 4.X.X
+## Gazebo Sim 4.0.0 to 4.X.X
 
-* Gazebo 4.0.0 enabled double sided material by default but this
+* Gazebo Sim 4.0.0 enabled double sided material by default but this
 caused shadow artifacts to appear on some meshes. Double sided material is
 now disabled and made an opt-in feature. Users can configure this property
 in SDF by setting the `<visual><material><double_sided>` SDF element.
 
-## Gazebo 3.x to 4.x
+## Gazebo Sim 3.x to 4.x
 
 * The `RenderUtil::SetEnabledSensors` callback in gazebo rendering has a new
   required function argument for the Entity of the sensor.
@@ -149,15 +149,15 @@ in SDF by setting the `<visual><material><double_sided>` SDF element.
     * **Deprecated**: `Entity EntityFromNode(const rendering::NodePtr &_node) const;`
     * **Replacement**: `Entity entity = std::get<int>(visual->UserData("gazebo-entity"));`
 
-## Gazebo 3.12.0 to 3.X.X
+## Gazebo Sim 3.12.0 to 3.X.X
 
 * Some sensors will only have the `SensorTopic` component after the 1st iteration.
 
-## Gazebo 2.x to 3.x
+## Gazebo Sim 2.x to 3.x
 
 * Use ign-rendering3, ign-sensors3 and ign-gui3.
 
-## Gazebo 1.x to 2.x
+## Gazebo Sim 1.x to 2.x
 
 * Changed component data types:
     * `Altimeter` now uses `sdf::Sensor`
@@ -179,15 +179,15 @@ in SDF by setting the `<visual><material><double_sided>` SDF element.
 * The `entity_name` field in the messages published by the imu system is
 updated to report its scoped name.
 
-* Log files generated from Gazebo 1.X are no longer compatible with
-Gazebo 2+ for playback. [BitBucket pull request
+* Log files generated from Gazebo Sim 1.X are no longer compatible with
+Gazebo Sim 2+ for playback. [BitBucket pull request
 #257](https://osrf-migration.github.io/ignition-gh-pages/#!/gazebosim/gz-sim/pull-requests/257)
 added an SDF message to the start of log files.
 
 * Log playback using `<path>` SDF parameter is deprecated. Use `--playback`
   command line argument instead.
 
-## Gazebo 1.0.2 to 1.1.0
+## Gazebo Sim 1.0.2 to 1.1.0
 
 * All headers in `gazebo/network` are no longer installed.
 

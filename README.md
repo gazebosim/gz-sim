@@ -1,4 +1,4 @@
-# Gazebo : A Robotic Simulator
+# Gazebo Sim : A Robotic Simulator
 
 **Maintainer:** louise AT openrobotics DOT org
 
@@ -14,9 +14,9 @@ Ubuntu Focal | [![Build Status](https://build.osrfoundation.org/buildStatus/icon
 Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-main-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-main-homebrew-amd64)
 Windows       | [![Build Status](https://build.osrfoundation.org/job/ign_gazebo-ci-win/badge/icon)](https://build.osrfoundation.org/job/ign_gazebo-ci-win/)
 
-Gazebo is an open source robotics simulator. Through Gazebo, users have access to high fidelity physics, rendering, and sensor models. Additionally, users and developers have multiple points of entry to simulation including a graphical user interface, plugins, and asynchronous message passing and services.
+Gazebo Sim is an open source robotics simulator. Through Gazebo, users have access to high fidelity physics, rendering, and sensor models. Additionally, users and developers have multiple points of entry to simulation including a graphical user interface, plugins, and asynchronous message passing and services.
 
-Gazebo is derived from [Gazebo](http://gazebosim.org) and represents over 16 years of development and experience in robotics and simulation. This library is part of the [Gazebo Robotics](https://ignitionrobotics.org) project.
+Gazebo Sim is derived from [Gazebo](http://gazebosim.org) and represents over 16 years of development and experience in robotics and simulation. This library is part of the [Gazebo Robotics](https://ignitionrobotics.org) project.
 
 # Table of Contents
 
@@ -70,7 +70,7 @@ accurate models available through
 new model using [SDF](http://sdformat.org).
 
 * **TCP/IP Transport**: Run simulation on remote servers and interface to Ignition
-Gazebo through socket-based message passing using
+Gazebo Sim through socket-based message passing using
 [Gazebo Transport](https://github.com/gazebosim/gz-transport).
 
 * **Command line tools**: Extensive command line tools for increased simulation
@@ -82,7 +82,7 @@ See the [installation tutorial](https://ignitionrobotics.org/api/gazebo/6.1/inst
 
 # Usage
 
-Gazebo can be run from the command line, once [installed](#install), using:
+Gazebo Sim can be run from the command line, once [installed](#install), using:
 
 ```
 ign gazebo
