@@ -1,13 +1,47 @@
-from __future__ import annotations
-
 """
 Blender exporter of SDF models with support for generating procedural datasets via node
 based modifiers, e.g. Geometry Nodes.
 """
+from __future__ import annotations
 
 # Please, manually adjust the last tested (and working) Blender version for this script
 LAST_TESTED_VERSION: Tuple(int, int, int) = (3, 1, 0)
 
+
+### Default parameters for `sdf_model_exporter`
+DIRNAME_EXPORT: str = "./blender_export"
+MODEL_VERSION: Optional[int] = None
+###
+
+### Default parameters for `procedural_dataset_generator`
+INITIAL_SEED: int = 0
+NUMBER_OF_VARIANTS: int = 8
+###
+
+### Default model-specific parameters
+STATIC: bool = False
+
+SUBDIVISION_LEVEL_VISUAL: int = 4
+SUBDIVISION_LEVEL_COLLISION: int = 2
+
+SHADE_SMOOTH: bool = True
+TEXTURE_SOURCE: str = "none"
+TEXTURE_SOURCE_VALUE: Optional[Any] = None
+MATERIAL_TEXTURE_DIFFUSE: Union[
+    Tuple[float, float, float], Tuple[float, float, float, float]
+] = (1.0, 1.0, 1.0, 1.0)
+MATERIAL_TEXTURE_SPECULAR: Union[
+    Tuple[float, float, float], Tuple[float, float, float, float]
+] = (0.2, 0.2, 0.2, 1.0)
+
+MODEL_TARGET_MASS: Optional[Union[float, Tuple[float, float]]] = None
+MODEL_DENSITY: Union[float, Tuple[float, float]] = 1.0
+
+FRICTION_COEFFICIENT: Optional[Union[float, Tuple[float, float]]] = 1.0
+###
+
+
+### Imports
 import enum
 import os
 import random
@@ -27,23 +61,7 @@ except ImportError as err:
         "Python module of Blender 'bpy' not found! Please, execute this script inside "
         "a Blender environment (e.g. copy-paste into Scripting tab)."
     ) from err
-
-
-def print_bpy(msg: Any, file: Optional[TextIO] = sys.stdout, *args, **kwargs):
-    """
-    Helper print function that also provides output inside the Blender console,
-    in addition to the system console.
-    """
-
-    print(msg, file=file, *args, **kwargs)
-    for window in bpy.context.window_manager.windows:
-        for area in window.screen.areas:
-            if area.type == "CONSOLE":
-                bpy.ops.console.scrollback_append(
-                    {"window": window, "screen": window.screen, "area": area},
-                    text=str(msg),
-                    type="ERROR" if file == sys.stderr else "OUTPUT",
-                )
+###
 
 
 class sdf_model_exporter(ModuleType):
@@ -61,24 +79,40 @@ class sdf_model_exporter(ModuleType):
     # Benefit  - Support multiple materials with different textures and overlapping UVs
     # Drawback - Much more complex, especially for estimating inertial properties
 
-    # Default export args
-    DEFAULT_DIRNAME_EXPORT: str = "./blender_export"
-    DEFAULT_MODEL_VERSION: Optional[int] = None
-    # Default inertial properties args
-    DEFAULT_STATIC: bool = False
-    DEFAULT_MODEL_TARGET_MASS: Optional[Union[float, Tuple[float, float]]] = None
-    DEFAULT_MODEL_DENSITY: Union[float, Tuple[float, float]] = 1.0
-    # Default surface friction args
-    DEFAULT_FRICTION_COEFFICIENT: Optional[Union[float, Tuple[float, float]]] = 1.0
-    # Default material args
+    # Default args for export
+    DEFAULT_DIRNAME_EXPORT: str = DIRNAME_EXPORT
+    DEFAULT_MODEL_VERSION: Optional[int] = MODEL_VERSION
+
+    # Default args for model being static
+    DEFAULT_STATIC: bool = STATIC
+
+    # Default args for subdivision level
+    DEFAULT_SUBDIVISION_LEVEL_VISUAL: int = SUBDIVISION_LEVEL_VISUAL
+    DEFAULT_SUBDIVISION_LEVEL_COLLISION: int = SUBDIVISION_LEVEL_COLLISION
+
+    # Default args for smooth shading (visual geometry)
+    DEFAULT_SHADE_SMOOTH: bool = SHADE_SMOOTH
+
+    # Default args for material
     DEFAULT_MATERIAL_TEXTURE_DIFFUSE: Union[
         Tuple[float, float, float], Tuple[float, float, float, float]
-    ] = (1.0, 1.0, 1.0, 1.0)
+    ] = MATERIAL_TEXTURE_DIFFUSE
     DEFAULT_MATERIAL_TEXTURE_SPECULAR: Union[
         Tuple[float, float, float], Tuple[float, float, float, float]
-    ] = (0.1, 0.1, 0.1, 1.0)
+    ] = MATERIAL_TEXTURE_SPECULAR
 
-    # Default dir- and basenames compatible with SDF directory structure
+    # Default args for inertial properties
+    DEFAULT_MODEL_TARGET_MASS: Optional[
+        Union[float, Tuple[float, float]]
+    ] = MODEL_TARGET_MASS
+    DEFAULT_MODEL_DENSITY: Union[float, Tuple[float, float]] = MODEL_DENSITY
+
+    # Default args for surface friction
+    DEFAULT_FRICTION_COEFFICIENT: Optional[
+        Union[float, Tuple[float, float]]
+    ] = FRICTION_COEFFICIENT
+
+    # Default directory and basenames compatible with SDF directory structure
     # All of these are expressed with respect to the model base directory
     BASENAME_SDF: str = "model.sdf"
     BASENAME_SDF_MODEL_CONFIG: str = "model.config"
@@ -247,6 +281,9 @@ class sdf_model_exporter(ModuleType):
         estimate_inertial_properties_density: Union[
             float, Tuple[float, float]
         ] = DEFAULT_MODEL_DENSITY,
+        subdivision_level_visual: int = DEFAULT_SUBDIVISION_LEVEL_VISUAL,
+        subdivision_level_collision: int = DEFAULT_SUBDIVISION_LEVEL_COLLISION,
+        shade_smooth: bool = DEFAULT_SHADE_SMOOTH,
         generate_thumbnails: bool = False,
         model_name_prefix: str = "",
         model_name_suffix: str = "",
@@ -274,21 +311,21 @@ class sdf_model_exporter(ModuleType):
         for obj in objects_to_process:
             if obj.type == "MESH":
                 meshes_to_process.append(obj)
-                print_bpy(
+                cls._print_bpy(
                     f"Info: Processing mesh '{obj.name}'...",
                 )
             # elif obj.type == "CAMERA":
             #     cameras_to_process.append(obj)
-            #     print_bpy(
+            #     cls._print_bpy(
             #         f"Info: Processing camera '{obj.name}'...",
             #     )
             # elif obj.type == "LIGHT":
             #     lights_to_process.append(obj)
-            #     print_bpy(
+            #     cls._print_bpy(
             #         f"Info: Processing light '{obj.name}'...",
             #     )
             else:
-                print_bpy(
+                cls._print_bpy(
                     f"Warn: Blender object '{obj.name}' with type '{obj.type}' will "
                     "not be processed.",
                     file=sys.stderr,
@@ -349,6 +386,9 @@ class sdf_model_exporter(ModuleType):
             model_name=model_name,
             filetype_visual=filetype_visual,
             filetype_collision=filetype_collision,
+            subdivision_level_visual=subdivision_level_visual,
+            subdivision_level_collision=subdivision_level_collision,
+            shade_smooth=shade_smooth,
         )
         sdf_data.update(exported_meshes)
 
@@ -389,7 +429,9 @@ class sdf_model_exporter(ModuleType):
         if generate_thumbnails:
             cls._generate_thumbnails()
 
-        print_bpy(f"Info: Model '{model_name}' exported to 'file://{export_path}'.")
+        cls._print_bpy(
+            f"Info: Model '{model_name}' exported to 'file://{export_path}'."
+        )
 
         # Select the original objects again to keep the UI (almost) the same
         bpy.ops.object.select_all(action="DESELECT")
@@ -405,6 +447,9 @@ class sdf_model_exporter(ModuleType):
         model_name: str,
         filetype_visual: Union[ExportFormat, str],
         filetype_collision: Union[ExportFormat, str],
+        subdivision_level_visual: int,
+        subdivision_level_collision: int,
+        shade_smooth: bool,
     ) -> Dict[str, str]:
         """
         Process and export meshes of the model.
@@ -428,6 +473,9 @@ class sdf_model_exporter(ModuleType):
             model_name=model_name,
             filetype_visual=filetype_visual,
             filetype_collision=filetype_collision,
+            subdivision_level_visual=subdivision_level_visual,
+            subdivision_level_collision=subdivision_level_collision,
+            shade_smooth=shade_smooth,
         )
 
     @classmethod
@@ -437,16 +485,26 @@ class sdf_model_exporter(ModuleType):
         model_name: str,
         filetype_visual: ExportFormat,
         filetype_collision: ExportFormat,
+        subdivision_level_visual: int,
+        subdivision_level_collision: int,
+        shade_smooth: bool,
     ) -> Dict[str, str]:
         """
         Export both visual and collision mesh geometry.
         """
 
         filepath_collision = cls._export_geometry_collision(
-            export_path=export_path, model_name=model_name, filetype=filetype_collision
+            export_path=export_path,
+            model_name=model_name,
+            filetype=filetype_collision,
+            subdivision_level=subdivision_level_collision,
         )
         filepath_visual = cls._export_geometry_visual(
-            export_path=export_path, model_name=model_name, filetype=filetype_visual
+            export_path=export_path,
+            model_name=model_name,
+            filetype=filetype_visual,
+            subdivision_level=subdivision_level_visual,
+            shade_smooth=shade_smooth,
         )
 
         return {
@@ -463,6 +521,7 @@ class sdf_model_exporter(ModuleType):
         cls,
         export_path: str,
         model_name: str,
+        subdivision_level: int,
         filetype: ExportFormat,
     ) -> str:
         """
@@ -471,7 +530,7 @@ class sdf_model_exporter(ModuleType):
         """
 
         # Hook call before export of collision geometry
-        cls._pre_export_geometry_collision()
+        cls._pre_export_geometry_collision(subdivision_level=subdivision_level)
 
         return filetype.export(
             path.join(export_path, cls.DIRNAME_MESHES_COLLISION, model_name)
@@ -483,6 +542,8 @@ class sdf_model_exporter(ModuleType):
         export_path: str,
         model_name: str,
         filetype: ExportFormat,
+        subdivision_level: int,
+        shade_smooth: bool,
     ) -> str:
         """
         Export visual geometry of the model with the specified `filetype`.
@@ -490,13 +551,17 @@ class sdf_model_exporter(ModuleType):
         """
 
         # Hook call before export of visual geometry
-        cls._pre_export_geometry_visual()
+        cls._pre_export_geometry_visual(
+            subdivision_level=subdivision_level, shade_smooth=shade_smooth
+        )
 
         return filetype.export(
             path.join(export_path, cls.DIRNAME_MESHES_VISUAL, model_name)
         )
 
+    @classmethod
     def _estimate_inertial_properties(
+        cls,
         analysed_mesh_filepath: str,
         target_mass: Optional[Union[float, Tuple[float, float]]],
         density: Union[float, Tuple[float, float]],
@@ -533,7 +598,7 @@ class sdf_model_exporter(ModuleType):
             import site
             import subprocess
 
-            print_bpy(
+            cls._print_bpy(
                 "Warn: Python module 'trimesh' could not found! This module is "
                 "necessary to estimate inertial properties of objects. Attempting "
                 "to install the module automatically via 'pip'...",
@@ -563,7 +628,7 @@ class sdf_model_exporter(ModuleType):
                     "environment of the system via `--python-use-system-env` flag when "
                     "running Blender)."
                 )
-                print_bpy(
+                cls._print_bpy(
                     f"Err: {err_msg}",
                     file=sys.stderr,
                 )
@@ -837,7 +902,7 @@ class sdf_model_exporter(ModuleType):
         raise NotImplementedError("Generation of thumbnails is not yet implemented!")
 
     @classmethod
-    def _pre_export_geometry_collision(cls):
+    def _pre_export_geometry_collision(cls, subdivision_level: int):
         """
         A hook that is called before exporting collision geometry. Defaults to no-op.
         """
@@ -845,12 +910,28 @@ class sdf_model_exporter(ModuleType):
         pass  # abstractclassmethod
 
     @classmethod
-    def _pre_export_geometry_visual(cls):
+    def _pre_export_geometry_visual(cls, subdivision_level: int, shade_smooth: bool):
         """
         A hook that is called before exporting visual geometry. Defaults to no-op.
         """
 
         pass  # abstractclassmethod
+
+    def _print_bpy(msg: Any, file: Optional[TextIO] = sys.stdout, *args, **kwargs):
+        """
+        Helper print function that also provides output inside the Blender console,
+        in addition to the system console.
+        """
+
+        print(msg, file=file, *args, **kwargs)
+        for window in bpy.context.window_manager.windows:
+            for area in window.screen.areas:
+                if area.type == "CONSOLE":
+                    bpy.ops.console.scrollback_append(
+                        {"window": window, "screen": window.screen, "area": area},
+                        text=str(msg),
+                        type="ERROR" if file == sys.stderr else "OUTPUT",
+                    )
 
     @classmethod
     def __preprocess_texture_path(
@@ -954,18 +1035,12 @@ class procedural_dataset_generator(sdf_model_exporter):
     """
 
     # Default export args
-    DEFAULT_INITIAL_SEED: int = 0
-    DEFAULT_NUMBER_OF_VARIANTS: int = 10
+    DEFAULT_INITIAL_SEED: int = INITIAL_SEED
+    DEFAULT_NUMBER_OF_VARIANTS: int = NUMBER_OF_VARIANTS
 
     # Default texture source
-    DEFAULT_TEXTURE_SOURCE: str = "none"
-    DEFAULT_TEXTURE_SOURCE_VALUE: Optional[Any] = None
-
-    # These constants are specific to the exported models of each individual Blender
-    # project and must therefore be configured
-    SUBDIVISION_LEVEL_VISUAL: int = 4
-    SUBDIVISION_LEVEL_COLLISION: int = 2
-    SHADE_SMOOTH: bool = True
+    DEFAULT_TEXTURE_SOURCE: str = TEXTURE_SOURCE
+    DEFAULT_TEXTURE_SOURCE_VALUE: Optional[Any] = TEXTURE_SOURCE_VALUE
 
     # The following lookup phrases are used to find the corresponding input attributes
     # of the node system (exact match, insensitive to case, insensitive to '_'/'-'/...)
@@ -1079,7 +1154,7 @@ class procedural_dataset_generator(sdf_model_exporter):
         the Geometry Nodes system of the individual meshes.
         """
 
-        print_bpy(
+        cls._print_bpy(
             f"Generating {number_of_variants} model variants in the seed range "
             f"[{initial_seed}, {initial_seed + number_of_variants}]."
         )
@@ -1090,7 +1165,7 @@ class procedural_dataset_generator(sdf_model_exporter):
             texture_source = cls.TextureSource.from_str(texture_source)
         textures_dirpath = texture_source.get_path(texture_source_value)
         if not textures_dirpath:
-            print_bpy(
+            cls._print_bpy(
                 "Warn: Models will be exported without any textures.",
                 file=sys.stderr,
             )
@@ -1112,7 +1187,7 @@ class procedural_dataset_generator(sdf_model_exporter):
                 bpy.ops.wm.redraw_timer(type="DRAW_WIN_SWAP", iterations=1)
 
     @classmethod
-    def _pre_export_geometry_collision(cls):
+    def _pre_export_geometry_collision(cls, subdivision_level: int):
         """
         A hook that is called before exporting collision geometry. This implementation
         adjusts input attributes of the Geometry Nodes system for each mesh.
@@ -1128,7 +1203,7 @@ class procedural_dataset_generator(sdf_model_exporter):
                 cls.__try_set_nodes_input_attribute(
                     nodes_modifier,
                     cls.LOOKUP_PHRASES_SUBDIVISION_LEVEL,
-                    cls.SUBDIVISION_LEVEL_COLLISION,
+                    subdivision_level,
                 )
                 cls.__try_set_nodes_input_attribute(
                     nodes_modifier, cls.LOOKUP_PHRASES_SHADE_SMOOTH, int(False)
@@ -1136,7 +1211,7 @@ class procedural_dataset_generator(sdf_model_exporter):
             cls.__trigger_modifier_update(obj)
 
     @classmethod
-    def _pre_export_geometry_visual(cls):
+    def _pre_export_geometry_visual(cls, subdivision_level: int, shade_smooth: bool):
         """
         A hook that is called before exporting visual geometry. This implementation
         adjusts input attributes of the Geometry Nodes system for each mesh.
@@ -1152,12 +1227,12 @@ class procedural_dataset_generator(sdf_model_exporter):
                 cls.__try_set_nodes_input_attribute(
                     nodes_modifier,
                     cls.LOOKUP_PHRASES_SUBDIVISION_LEVEL,
-                    cls.SUBDIVISION_LEVEL_VISUAL,
+                    subdivision_level,
                 )
                 cls.__try_set_nodes_input_attribute(
                     nodes_modifier,
                     cls.LOOKUP_PHRASES_SHADE_SMOOTH,
-                    int(cls.SHADE_SMOOTH),
+                    int(shade_smooth),
                 )
 
             cls.__trigger_modifier_update(obj)
@@ -1210,7 +1285,7 @@ class procedural_dataset_generator(sdf_model_exporter):
                 elif not texture_normal and "normal" in texture_cmp:
                     texture_normal = path.join(texture_dirpath, texture)
                 else:
-                    print_bpy(
+                    cls._print_bpy(
                         f"Warn: File 'file://{path.join(texture_dirpath, texture)}' is "
                         "not a recognized texture type or there are multiple textures "
                         "of the same type inside 'file://{texture_dirpath}'.",
@@ -1250,7 +1325,7 @@ class procedural_dataset_generator(sdf_model_exporter):
                 input_id = attribute.identifier
                 break
         if input_id is None:
-            print_bpy(
+            cls._print_bpy(
                 f"Warn: Cannot match an input attribute of '{modifier.name}' for any "
                 f"of the requested lookup phrases {lookup_phrases}.",
                 file=sys.stderr,
@@ -1312,17 +1387,17 @@ def main():
         bpy.app.version[0] != LAST_TESTED_VERSION[0]
         or bpy.app.version[1] < LAST_TESTED_VERSION[1]
     ):
-        print_bpy(
+        sdf_model_exporter._print_bpy(
             f"Warn: Untested version of Blender detected ({bpy.app.version_string})! "
             "This script might not work as originally intended. Please consider using "
             f"version [>={LAST_TESTED_VERSION[0]}.{LAST_TESTED_VERSION[1]}].",
             file=sys.stderr,
         )
 
-    # # Generate a single SDF model
+    ### Generate a single SDF model
     # sdf_model_exporter.generate()
 
-    # Generate dataset of procedural models
+    ### Generate a dataset of procedural models
     procedural_dataset_generator.generate()
 
 
