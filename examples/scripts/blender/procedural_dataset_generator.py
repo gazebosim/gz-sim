@@ -24,6 +24,9 @@ STATIC: bool = False
 SUBDIVISION_LEVEL_VISUAL: int = 4
 SUBDIVISION_LEVEL_COLLISION: int = 2
 
+IGNORE_OBJECT_NAMES_VISUAL: List[str] = []
+IGNORE_OBJECT_NAMES_COLLISION: List[str] = []
+
 SHADE_SMOOTH: bool = True
 TEXTURE_SOURCE: str = "none"
 TEXTURE_SOURCE_VALUE: Optional[Any] = None
@@ -85,6 +88,10 @@ class sdf_model_exporter(ModuleType):
 
     # Default args for model being static
     DEFAULT_STATIC: bool = STATIC
+
+    # Default args for which objects to ignore from mesh exporting
+    DEFAULT_IGNORE_OBJECT_NAMES_VISUAL: List[str] = IGNORE_OBJECT_NAMES_VISUAL
+    DEFAULT_IGNORE_OBJECT_NAMES_COLLISION: List[str] = IGNORE_OBJECT_NAMES_COLLISION
 
     # Default args for subdivision level
     DEFAULT_SUBDIVISION_LEVEL_VISUAL: int = SUBDIVISION_LEVEL_VISUAL
@@ -284,6 +291,10 @@ class sdf_model_exporter(ModuleType):
         subdivision_level_visual: int = DEFAULT_SUBDIVISION_LEVEL_VISUAL,
         subdivision_level_collision: int = DEFAULT_SUBDIVISION_LEVEL_COLLISION,
         shade_smooth: bool = DEFAULT_SHADE_SMOOTH,
+        ignore_object_names_visual: List[str] = DEFAULT_IGNORE_OBJECT_NAMES_VISUAL,
+        ignore_object_names_collision: List[
+            str
+        ] = DEFAULT_IGNORE_OBJECT_NAMES_COLLISION,
         generate_thumbnails: bool = False,
         model_name_prefix: str = "",
         model_name_suffix: str = "",
@@ -389,6 +400,8 @@ class sdf_model_exporter(ModuleType):
             subdivision_level_visual=subdivision_level_visual,
             subdivision_level_collision=subdivision_level_collision,
             shade_smooth=shade_smooth,
+            ignore_object_names_visual=ignore_object_names_visual,
+            ignore_object_names_collision=ignore_object_names_collision,
         )
         sdf_data.update(exported_meshes)
 
@@ -439,6 +452,22 @@ class sdf_model_exporter(ModuleType):
         for obj in selected_objects_original:
             obj.select_set(True)
 
+    def _print_bpy(msg: Any, file: Optional[TextIO] = sys.stdout, *args, **kwargs):
+        """
+        Helper print function that also provides output inside the Blender console,
+        in addition to the system console.
+        """
+
+        print(msg, file=file, *args, **kwargs)
+        for window in bpy.context.window_manager.windows:
+            for area in window.screen.areas:
+                if area.type == "CONSOLE":
+                    bpy.ops.console.scrollback_append(
+                        {"window": window, "screen": window.screen, "area": area},
+                        text=str(msg),
+                        type="ERROR" if file == sys.stderr else "OUTPUT",
+                    )
+
     @classmethod
     def _process_meshes(
         cls,
@@ -450,6 +479,8 @@ class sdf_model_exporter(ModuleType):
         subdivision_level_visual: int,
         subdivision_level_collision: int,
         shade_smooth: bool,
+        ignore_object_names_visual: List[str],
+        ignore_object_names_collision: List[str],
     ) -> Dict[str, str]:
         """
         Process and export meshes of the model.
@@ -461,9 +492,21 @@ class sdf_model_exporter(ModuleType):
         if isinstance(filetype_collision, str):
             filetype_collision = cls.ExportFormat.from_str(filetype_collision)
 
+        # Keep only object names that need processing in the ignore list
+        meshes_to_process_names = [mesh.name for mesh in meshes_to_process]
+        ignore_object_names_visual = [
+            name
+            for name in ignore_object_names_visual
+            if name in meshes_to_process_names
+        ]
+        ignore_object_names_collision = [
+            name
+            for name in ignore_object_names_collision
+            if name in meshes_to_process_names
+        ]
+
         # Deselect all objects
         bpy.ops.object.select_all(action="DESELECT")
-
         # Select all desired meshes at the same time
         for obj in meshes_to_process:
             obj.select_set(True)
@@ -476,6 +519,8 @@ class sdf_model_exporter(ModuleType):
             subdivision_level_visual=subdivision_level_visual,
             subdivision_level_collision=subdivision_level_collision,
             shade_smooth=shade_smooth,
+            ignore_object_names_visual=ignore_object_names_visual,
+            ignore_object_names_collision=ignore_object_names_collision,
         )
 
     @classmethod
@@ -488,6 +533,8 @@ class sdf_model_exporter(ModuleType):
         subdivision_level_visual: int,
         subdivision_level_collision: int,
         shade_smooth: bool,
+        ignore_object_names_visual: List[str],
+        ignore_object_names_collision: List[str],
     ) -> Dict[str, str]:
         """
         Export both visual and collision mesh geometry.
@@ -498,6 +545,7 @@ class sdf_model_exporter(ModuleType):
             model_name=model_name,
             filetype=filetype_collision,
             subdivision_level=subdivision_level_collision,
+            ignore_object_names=ignore_object_names_collision,
         )
         filepath_visual = cls._export_geometry_visual(
             export_path=export_path,
@@ -505,6 +553,7 @@ class sdf_model_exporter(ModuleType):
             filetype=filetype_visual,
             subdivision_level=subdivision_level_visual,
             shade_smooth=shade_smooth,
+            ignore_object_names=ignore_object_names_visual,
         )
 
         return {
@@ -521,20 +570,29 @@ class sdf_model_exporter(ModuleType):
         cls,
         export_path: str,
         model_name: str,
-        subdivision_level: int,
         filetype: ExportFormat,
+        subdivision_level: int,
+        ignore_object_names: List[str],
     ) -> str:
         """
         Export collision geometry of the model with the specified `filetype`.
         Method `_pre_export_geometry_collision()` is called before the export.
+        Method `_post_export_geometry_collision()` is called after the export.
         """
 
         # Hook call before export of collision geometry
-        cls._pre_export_geometry_collision(subdivision_level=subdivision_level)
+        cls._pre_export_geometry_collision(
+            subdivision_level=subdivision_level, ignore_object_names=ignore_object_names
+        )
 
-        return filetype.export(
+        resulting_export_path = filetype.export(
             path.join(export_path, cls.DIRNAME_MESHES_COLLISION, model_name)
         )
+
+        # Hook call after export of collision geometry
+        cls._post_export_geometry_collision(ignore_object_names=ignore_object_names)
+
+        return resulting_export_path
 
     @classmethod
     def _export_geometry_visual(
@@ -544,20 +602,29 @@ class sdf_model_exporter(ModuleType):
         filetype: ExportFormat,
         subdivision_level: int,
         shade_smooth: bool,
+        ignore_object_names: List[str],
     ) -> str:
         """
         Export visual geometry of the model with the specified `filetype`.
         Method `_pre_export_geometry_visual()` is called before the export.
+        Method `_post_export_geometry_visual()` is called after the export.
         """
 
         # Hook call before export of visual geometry
         cls._pre_export_geometry_visual(
-            subdivision_level=subdivision_level, shade_smooth=shade_smooth
+            subdivision_level=subdivision_level,
+            shade_smooth=shade_smooth,
+            ignore_object_names=ignore_object_names,
         )
 
-        return filetype.export(
+        resulting_export_path = filetype.export(
             path.join(export_path, cls.DIRNAME_MESHES_VISUAL, model_name)
         )
+
+        # Hook call after export of visual geometry
+        cls._post_export_geometry_collision(ignore_object_names=ignore_object_names)
+
+        return resulting_export_path
 
     @classmethod
     def _estimate_inertial_properties(
@@ -902,36 +969,69 @@ class sdf_model_exporter(ModuleType):
         raise NotImplementedError("Generation of thumbnails is not yet implemented!")
 
     @classmethod
-    def _pre_export_geometry_collision(cls, subdivision_level: int):
+    def _pre_export_geometry_collision(
+        cls, subdivision_level: int, ignore_object_names: List[str] = []
+    ):
         """
-        A hook that is called before exporting collision geometry. Defaults to no-op.
+        A hook that is called before exporting collision geometry. Always chain up the
+        parent implementation.
+        By default, this hook handles reselecting objects from `ignore_object_names`.
         """
 
-        pass  # abstractclassmethod
+        cls.__select_objects(
+            names=ignore_object_names, type_filter="MESH", select=False
+        )
 
     @classmethod
-    def _pre_export_geometry_visual(cls, subdivision_level: int, shade_smooth: bool):
+    def _post_export_geometry_collision(cls, ignore_object_names: List[str] = []):
         """
-        A hook that is called before exporting visual geometry. Defaults to no-op.
-        """
-
-        pass  # abstractclassmethod
-
-    def _print_bpy(msg: Any, file: Optional[TextIO] = sys.stdout, *args, **kwargs):
-        """
-        Helper print function that also provides output inside the Blender console,
-        in addition to the system console.
+        A hook that is called after exporting collision geometry. Always chain up the
+        parent implementation.
+        By default, this hook handles deselecting objects from `ignore_object_names`.
         """
 
-        print(msg, file=file, *args, **kwargs)
-        for window in bpy.context.window_manager.windows:
-            for area in window.screen.areas:
-                if area.type == "CONSOLE":
-                    bpy.ops.console.scrollback_append(
-                        {"window": window, "screen": window.screen, "area": area},
-                        text=str(msg),
-                        type="ERROR" if file == sys.stderr else "OUTPUT",
-                    )
+        cls.__select_objects(names=ignore_object_names, type_filter="MESH", select=True)
+
+    @classmethod
+    def _pre_export_geometry_visual(
+        cls,
+        subdivision_level: int,
+        shade_smooth: bool,
+        ignore_object_names: List[str] = [],
+    ):
+        """
+        A hook that is called before exporting visual geometry. Always chain up the
+        parent implementation.
+        By default, this hook handles reselecting objects from `ignore_object_names`.
+        """
+
+        cls.__select_objects(
+            names=ignore_object_names, type_filter="MESH", select=False
+        )
+
+    @classmethod
+    def _post_export_geometry_visual(cls, ignore_object_names: List[str] = []):
+        """
+        A hook that is called after exporting visual geometry. Always chain up the
+        parent implementation.
+        By default, this hook handles deselecting objects from `ignore_object_names`.
+        """
+
+        cls.__select_objects(names=ignore_object_names, type_filter="MESH", select=True)
+
+    def __select_objects(
+        names=List[str], type_filter: Optional[str] = None, select: bool = True
+    ):
+        """
+        (De)select list of objects based on their `names`. List can be filtered
+        according to the object type via `type_filter`.
+        """
+
+        for obj in bpy.context.selectable_objects:
+            if type_filter and obj.type != type_filter:
+                continue
+            if obj.name in names:
+                obj.select_set(select)
 
     @classmethod
     def __preprocess_texture_path(
@@ -1187,11 +1287,19 @@ class procedural_dataset_generator(sdf_model_exporter):
                 bpy.ops.wm.redraw_timer(type="DRAW_WIN_SWAP", iterations=1)
 
     @classmethod
-    def _pre_export_geometry_collision(cls, subdivision_level: int):
+    def _pre_export_geometry_collision(
+        cls, subdivision_level: int, ignore_object_names: List[str] = []
+    ):
         """
         A hook that is called before exporting collision geometry. This implementation
         adjusts input attributes of the Geometry Nodes system for each mesh.
         """
+
+        # Call parent impl
+        sdf_model_exporter._pre_export_geometry_collision(
+            subdivision_level=subdivision_level,
+            ignore_object_names=ignore_object_names,
+        )
 
         global current_seed
         selected_meshes = bpy.context.selected_objects
@@ -1211,11 +1319,23 @@ class procedural_dataset_generator(sdf_model_exporter):
             cls.__trigger_modifier_update(obj)
 
     @classmethod
-    def _pre_export_geometry_visual(cls, subdivision_level: int, shade_smooth: bool):
+    def _pre_export_geometry_visual(
+        cls,
+        subdivision_level: int,
+        shade_smooth: bool,
+        ignore_object_names: List[str] = [],
+    ):
         """
         A hook that is called before exporting visual geometry. This implementation
         adjusts input attributes of the Geometry Nodes system for each mesh.
         """
+
+        # Call parent impl
+        sdf_model_exporter._pre_export_geometry_visual(
+            subdivision_level=subdivision_level,
+            shade_smooth=shade_smooth,
+            ignore_object_names=ignore_object_names,
+        )
 
         global current_seed
         selected_meshes = bpy.context.selected_objects
