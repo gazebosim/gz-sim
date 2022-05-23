@@ -43,6 +43,10 @@ MODEL_DENSITY: Union[float, Tuple[float, float]] = 1.0
 FRICTION_COEFFICIENT: Optional[Union[float, Tuple[float, float]]] = 1.0
 ###
 
+### All additional keyword arguments can go here, e.g. `{"filetype_visual": "OBJ"}`
+DEFAULT_KWARGS: Any = {}
+###
+
 
 ### Imports
 import enum
@@ -1564,7 +1568,7 @@ class procedural_dataset_generator(sdf_model_exporter):
             return string.upper()
 
 
-def main():
+def main(**kwargs):
 
     # Warn the user in case an untested version of Blender is used
     if (
@@ -1578,12 +1582,19 @@ def main():
             file=sys.stderr,
         )
 
+    # Update default keyword arguments with parsed arguments
+    export_kwargs = DEFAULT_KWARGS
+    export_kwargs.update(kwargs)
+
     ### Generate a single SDF model
-    # sdf_model_exporter.generate()
+    sdf_model_exporter.export(**export_kwargs)
 
     ### Generate a dataset of procedural models
-    procedural_dataset_generator.generate()
+    procedural_dataset_generator.generate(**export_kwargs)
 
 
 if __name__ == "__main__":
-    main()
+    kwargs = {
+        arg.split("=")[0]: arg.split("=")[1] for arg in sys.argv[1:] if "=" in arg
+    }
+    main(**kwargs)
