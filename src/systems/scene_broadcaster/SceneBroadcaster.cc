@@ -259,8 +259,6 @@ void SceneBroadcaster::Configure(
 
   this->dataPtr->worldName = name->Data();
 
-  std::cerr << "SceneBroadcaster::Configure " << this->dataPtr->worldName << '\n';
-
   auto readHertz = _sdf->Get<int>("dynamic_pose_hertz", 60);
   this->dataPtr->dyPoseHertz = readHertz.first;
 
@@ -378,40 +376,6 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
       this->dataPtr->lastStatePubTime = now;
     }
   }
-}
-
-//////////////////////////////////////////////////
-void SceneBroadcaster::Reset(const UpdateInfo &_info,
-                             EntityComponentManager &_manager)
-{
-  const components::Name *name =
-  _manager.Component<components::Name>(this->dataPtr->worldEntity);
-  if (name == nullptr)
-  {
-    ignerr << "World with id: " << this->dataPtr->worldEntity
-           << " has no name. SceneBroadcaster cannot create transport topics\n";
-    return;
-  }
-  this->dataPtr->worldName = name->Data();
-
-  ignerr << "SceneBroadcaster::Reset " << this->dataPtr->worldName << std::endl;
-  this->dataPtr->node.reset();
-  // Update scene graph with added entities before populating pose message
-  this->dataPtr->SceneGraphAddEntities(_manager);
-
-  this->dataPtr->PoseUpdate(_info, _manager);
-
-  // call SceneGraphRemoveEntities at the end of this update cycle so that
-  // removed entities are removed from the scene graph for the next update cycle
-  this->dataPtr->SceneGraphRemoveEntities(_manager);
-
-  std::unique_lock<std::mutex> lock(this->dataPtr->stateMutex);
-  this->dataPtr->stepMsg.Clear();
-
-  set(this->dataPtr->stepMsg.mutable_stats(), _info);
-  _manager.State(*this->dataPtr->stepMsg.mutable_state(), {}, {}, true);
-  this->dataPtr->statePub.Publish(this->dataPtr->stepMsg);
-  this->dataPtr->lastStatePubTime = std::chrono::system_clock::now();
 }
 
 //////////////////////////////////////////////////
@@ -533,7 +497,6 @@ void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
 //////////////////////////////////////////////////
 void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
 {
-  this->worldName = _worldName;
   auto ns = transport::TopicUtils::AsValidTopic("/world/" + _worldName);
   if (ns.empty())
   {
@@ -1214,8 +1177,7 @@ void SceneBroadcasterPrivate::RemoveFromGraph(const Entity _entity,
 IGNITION_ADD_PLUGIN(SceneBroadcaster,
                     ignition::gazebo::System,
                     SceneBroadcaster::ISystemConfigure,
-                    SceneBroadcaster::ISystemPostUpdate,
-                    SceneBroadcaster::ISystemReset)
+                    SceneBroadcaster::ISystemPostUpdate)
 
 // Add plugin alias so that we can refer to the plugin without the version
 // namespace

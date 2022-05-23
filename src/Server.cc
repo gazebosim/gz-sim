@@ -39,7 +39,7 @@ struct DefaultWorld
   /// \brief Get the default world as a string.
   /// Plugins will be loaded from the server.config file.
   /// \return An SDF string that contains the default world.
-  public: static std::string &World(std::string _worldName="default")
+  public: static std::string &World(const std::string &_worldName = "default")
   {
     static std::string world = std::string("<?xml version='1.0'?>"
       "<sdf version='1.6'>"
@@ -105,8 +105,9 @@ bool Server::DownloadModels()
 
     case ServerConfig::SourceType::kSdfFile:
     {
-      std::string filePath = resolveSdfWorldFile(this->dataPtr->config.SdfFile(),
-          this->dataPtr->config.ResourceCache());
+      std::string filePath = resolveSdfWorldFile(
+        this->dataPtr->config.SdfFile(),
+        this->dataPtr->config.ResourceCache());
 
       if (filePath.empty())
       {
@@ -203,18 +204,6 @@ void Server::Init()
     });
 
     ignmsg << "Loading default world.\n";
-    // Load an empty world.
-    /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
-    // std::string filePath = resolveSdfWorldFile(this->dataPtr->config.SdfFile(),
-    //     this->dataPtr->config.ResourceCache());
-    //
-    // if (filePath.empty())
-    // {
-    //   ignerr << "Failed to find world ["
-    //          << this->dataPtr->config.SdfFile() << "]"
-    //          << std::endl;
-    //   return;
-    // }
 
     common::SystemPaths systemPaths;
 
@@ -224,9 +213,8 @@ void Server::Init()
     // Worlds installed with ign-gazebo
     systemPaths.AddFilePaths(IGN_GAZEBO_WORLD_INSTALL_DIR);
 
-    std::string filePath = systemPaths.FindFile(this->dataPtr->config.SdfFile());
-
-    ignerr << "filePath " << filePath << std::endl;
+    std::string filePath = systemPaths.FindFile(
+      this->dataPtr->config.SdfFile());
 
     std::string worldName;
     auto errors2 = this->dataPtr->sdfRoot.GetWorldName(filePath, worldName);

@@ -51,7 +51,7 @@ void SystemManager::LoadPlugin(const Entity _entity,
                                const std::string &_name,
                                const sdf::ElementPtr &_sdf)
 {
-  for (const auto pluginInfo: loadedPlugins)
+  for (const auto pluginInfo : loadedPlugins)
   {
     if (_entity == pluginInfo.entity &&
         _fname == pluginInfo.fname &&
@@ -196,7 +196,10 @@ void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
   // to ensure the previous instance is destroyed before the new one is created
   // and configured.
   for (const auto &pluginInfo : pluginsToBeLoaded) {
-    this->LoadPlugin(pluginInfo.entity, pluginInfo.fname, pluginInfo.name, pluginInfo.sdf);
+    this->LoadPlugin(pluginInfo.entity,
+                     pluginInfo.fname,
+                     pluginInfo.name,
+                     pluginInfo.sdf);
   }
   this->ActivatePendingSystems();
 }

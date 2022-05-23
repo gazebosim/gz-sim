@@ -744,7 +744,6 @@ bool SimulationRunner::Run(const uint64_t _iterations)
       if (!isInitialRunOfSimulationSet)
       {
         isInitialRunOfSimulationSet = true;
-        // this->SetPaused(!this->serverConfig.RunOption());
 
         this->initialEntityCompMgr.CopyFrom(this->entityCompMgr);
 
@@ -755,7 +754,6 @@ bool SimulationRunner::Run(const uint64_t _iterations)
           std::lock_guard<std::mutex> lockBuffer(this->msgBufferMutex);
           this->worldControls.push_back(control);
         }
-        // this->requestedRewind = true;
       }
     }
 
