@@ -1587,7 +1587,7 @@ def main(**kwargs):
     export_kwargs.update(kwargs)
 
     ### Generate a single SDF model
-    sdf_model_exporter.export(**export_kwargs)
+    # sdf_model_exporter.export(**export_kwargs)
 
     ### Generate a dataset of procedural models
     procedural_dataset_generator.generate(**export_kwargs)
