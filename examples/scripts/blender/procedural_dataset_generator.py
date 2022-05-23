@@ -295,7 +295,7 @@ class sdf_model_exporter(ModuleType):
         ignore_object_names_collision: List[
             str
         ] = DEFAULT_IGNORE_OBJECT_NAMES_COLLISION,
-        generate_thumbnails: bool = False,
+        generate_thumbnails: bool = True,
         model_name_prefix: str = "",
         model_name_suffix: str = "",
         **kwargs,
@@ -440,7 +440,7 @@ class sdf_model_exporter(ModuleType):
 
         # Render few images to generate thumbnails
         if generate_thumbnails:
-            cls._generate_thumbnails()
+            cls._generate_thumbnails(export_path=export_path)
 
         cls._print_bpy(
             f"Info: Model '{model_name}' exported to 'file://{export_path}'."
@@ -960,13 +960,28 @@ class sdf_model_exporter(ModuleType):
         model_config_file.write(model_config_xml_string)
         model_config_file.close()
 
-    def _generate_thumbnails(export_path: str):
+    @classmethod
+    def _generate_thumbnails(cls, export_path: str):
         """
         Render thumbnails for the SDF model.
+        Currently, only a single viewport render is created using OpenGL.
         """
 
-        # TODO[feature]: Add automatic generation of thumbnails via Blender renders
-        raise NotImplementedError("Generation of thumbnails is not yet implemented!")
+        # Create thumbnails directory for the model
+        thumbnails_dir = path.join(export_path, cls.DIRNAME_THUMBNAILS)
+        os.makedirs(name=thumbnails_dir, exist_ok=True)
+
+        # Specify path for the thumbnail
+        bpy.context.scene.render.filepath = path.join(thumbnails_dir, "0")
+
+        # Set render parameters
+        bpy.context.scene.render.resolution_x = 256
+        bpy.context.scene.render.resolution_y = 256
+        bpy.context.scene.render.pixel_aspect_x = 1.0
+        bpy.context.scene.render.pixel_aspect_x = 1.0
+
+        # Render image through viewport
+        bpy.ops.render.opengl(write_still=True)
 
     @classmethod
     def _pre_export_geometry_collision(
