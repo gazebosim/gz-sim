@@ -26,6 +26,7 @@ namespace ignition {
     class MockSystem :
       public gazebo::System,
       public gazebo::ISystemConfigure,
+      public gazebo::ISystemReset,
       public gazebo::ISystemPreUpdate,
       public gazebo::ISystemUpdate,
       public gazebo::ISystemPostUpdate
@@ -33,6 +34,7 @@ namespace ignition {
       public: MockSystem() = default;
       public: ~MockSystem() = default;
       public: size_t configureCallCount {0};
+      public: size_t resetCallCount {0};
       public: size_t preUpdateCallCount {0};
       public: size_t updateCallCount {0};
       public: size_t postUpdateCallCount {0};
@@ -49,6 +51,8 @@ namespace ignition {
                     EntityComponentManager &,
                     EventManager &)>
                 configureCallback;
+
+      public: CallbackType resetCallback;
       public: CallbackType preUpdateCallback;
       public: CallbackType updateCallback;
       public: CallbackTypeConst postUpdateCallback;
@@ -61,6 +65,14 @@ namespace ignition {
                 ++this->configureCallCount;
                 if (this->configureCallback)
                   this->configureCallback(_entity, _sdf, _ecm, _eventMgr);
+              }
+
+      public: void Reset(const gazebo::UpdateInfo &_info,
+                    gazebo::EntityComponentManager &_ecm) override final
+              {
+                ++this->resetCallCount;
+                if (this->resetCallback)
+                  this->resetCallback(_info, _ecm);
               }
 
       public: void PreUpdate(const gazebo::UpdateInfo &_info,

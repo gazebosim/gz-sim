@@ -14,29 +14,5 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_SELFCOLLIDE_HH_
-#define IGNITION_GAZEBO_COMPONENTS_SELFCOLLIDE_HH_
 
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/config.hh>
-
-namespace ignition
-{
-namespace gazebo
-{
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace components
-{
-  /// \brief A component used to hold a model's self collide property.
-  using SelfCollide = Component<bool, class SelfCollideTag>;
-
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.SelfCollide",
-                                SelfCollide)
-}
-}
-}
-}
-
-#endif
+#include <gz/sim/components/SelfCollide.hh>

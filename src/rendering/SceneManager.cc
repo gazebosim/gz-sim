@@ -31,37 +31,37 @@
 #include <sdf/Plane.hh>
 #include <sdf/Sphere.hh>
 
-#include <ignition/common/Animation.hh>
-#include <ignition/common/Console.hh>
-#include <ignition/common/geospatial/Dem.hh>
-#include <ignition/common/geospatial/HeightmapData.hh>
-#include <ignition/common/geospatial/ImageHeightmap.hh>
-#include <ignition/common/KeyFrame.hh>
-#include <ignition/common/MeshManager.hh>
-#include <ignition/common/Skeleton.hh>
-#include <ignition/common/SkeletonAnimation.hh>
-#include <ignition/common/StringUtils.hh>
+#include <gz/common/Animation.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/geospatial/Dem.hh>
+#include <gz/common/geospatial/HeightmapData.hh>
+#include <gz/common/geospatial/ImageHeightmap.hh>
+#include <gz/common/KeyFrame.hh>
+#include <gz/common/MeshManager.hh>
+#include <gz/common/Skeleton.hh>
+#include <gz/common/SkeletonAnimation.hh>
+#include <gz/common/StringUtils.hh>
 
-#include <ignition/msgs/Utility.hh>
+#include <gz/msgs/Utility.hh>
 
-#include "ignition/rendering/Capsule.hh"
-#include <ignition/rendering/COMVisual.hh>
-#include <ignition/rendering/Geometry.hh>
-#include <ignition/rendering/Heightmap.hh>
-#include <ignition/rendering/HeightmapDescriptor.hh>
-#include <ignition/rendering/InertiaVisual.hh>
-#include <ignition/rendering/JointVisual.hh>
-#include <ignition/rendering/Light.hh>
-#include <ignition/rendering/LightVisual.hh>
-#include <ignition/rendering/Material.hh>
-#include <ignition/rendering/ParticleEmitter.hh>
-#include <ignition/rendering/Scene.hh>
-#include <ignition/rendering/Visual.hh>
-#include <ignition/rendering/WireBox.hh>
+#include "gz/rendering/Capsule.hh"
+#include <gz/rendering/COMVisual.hh>
+#include <gz/rendering/Geometry.hh>
+#include <gz/rendering/Heightmap.hh>
+#include <gz/rendering/HeightmapDescriptor.hh>
+#include <gz/rendering/InertiaVisual.hh>
+#include <gz/rendering/JointVisual.hh>
+#include <gz/rendering/Light.hh>
+#include <gz/rendering/LightVisual.hh>
+#include <gz/rendering/Material.hh>
+#include <gz/rendering/ParticleEmitter.hh>
+#include <gz/rendering/Scene.hh>
+#include <gz/rendering/Visual.hh>
+#include <gz/rendering/WireBox.hh>
 
-#include "ignition/gazebo/Conversions.hh"
-#include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/rendering/SceneManager.hh"
+#include "gz/sim/Conversions.hh"
+#include "gz/sim/Util.hh"
+#include "gz/sim/rendering/SceneManager.hh"
 
 using namespace ignition;
 using namespace gazebo;

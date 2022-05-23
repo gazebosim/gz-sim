@@ -14,34 +14,5 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_SOURCEFILEPATH_HH_
-#define IGNITION_GAZEBO_COMPONENTS_SOURCEFILEPATH_HH_
 
-#include <string>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Serialization.hh>
-#include <ignition/gazebo/config.hh>
-
-namespace ignition
-{
-namespace gazebo
-{
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace components
-{
-  /// \brief This component holds the filepath to the source from which an
-  /// entity is created. For example, it can be used to store the file path of a
-  /// model's SDFormat file.
-  using SourceFilePath = Component<std::string, class SourceFilePathTag,
-      serializers::StringSerializer>;
-
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.SourceFilePath",
-                                SourceFilePath)
-}
-}
-}
-}
-
-#endif
+#include <gz/sim/components/SourceFilePath.hh>

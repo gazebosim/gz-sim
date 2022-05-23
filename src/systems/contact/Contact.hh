@@ -18,7 +18,7 @@
 #define IGNITION_GAZEBO_SYSTEMS_CONTACT_HH_
 
 #include <memory>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/System.hh>
 
 namespace ignition
 {
@@ -32,7 +32,7 @@ namespace systems
   class ContactPrivate;
 
   /** \class Contact Contact.hh \
-   * ignition/gazebo/systems/Contact/Contact.hh
+   * gz/sim/systems/Contact/Contact.hh
   **/
   /// \brief Contact sensor system which manages all contact sensors in
   /// simulation

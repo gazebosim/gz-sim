@@ -14,37 +14,5 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_LINEARVELOCITY_HH_
-#define IGNITION_GAZEBO_COMPONENTS_LINEARVELOCITY_HH_
 
-#include <ignition/math/Vector3.hh>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/config.hh>
-
-namespace ignition
-{
-namespace gazebo
-{
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace components
-{
-  /// \brief A component type that contains linear velocity of an entity
-  /// represented by ignition::math::Vector3d.
-  using LinearVelocity = Component<math::Vector3d, class LinearVelocityTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
-      "ign_gazebo_components.LinearVelocity", LinearVelocity)
-
-  /// \brief A component type that contains linear velocity of an entity in the
-  /// world frame represented by ignition::math::Vector3d.
-  using WorldLinearVelocity =
-      Component<math::Vector3d, class WorldLinearVelocityTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
-      "ign_gazebo_components.WorldLinearVelocity", WorldLinearVelocity)
-}
-}
-}
-}
-
-#endif
+#include <gz/sim/components/LinearVelocity.hh>

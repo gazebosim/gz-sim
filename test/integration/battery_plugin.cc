@@ -33,7 +33,7 @@
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/ServerConfig.hh"
 #include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/test_config.hh"
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/components/BatterySoC.hh"
 #include "ignition/gazebo/components/Link.hh"

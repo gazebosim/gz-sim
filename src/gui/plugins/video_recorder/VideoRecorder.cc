@@ -17,25 +17,25 @@
 
 #include "VideoRecorder.hh"
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/video_record.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/video_record.pb.h>
 
 #include <iostream>
 #include <string>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/common/Profiler.hh>
-#include <ignition/common/VideoEncoder.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/rendering/Camera.hh>
-#include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/Scene.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/Publisher.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/common/VideoEncoder.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/rendering/Camera.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include <gz/rendering/Scene.hh>
+#include <gz/transport/Node.hh>
+#include <gz/transport/Publisher.hh>
 
 /// \brief condition variable for lockstepping video recording
 /// todo(anyone) avoid using a global condition variable when we support

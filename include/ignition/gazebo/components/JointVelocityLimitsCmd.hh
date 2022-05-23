@@ -14,45 +14,5 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_JOINTVELOCITYLIMITSCMD_HH_
-#define IGNITION_GAZEBO_COMPONENTS_JOINTVELOCITYLIMITSCMD_HH_
 
-#include <vector>
-#include <ignition/math/Vector2.hh>
-
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Serialization.hh>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-
-namespace ignition
-{
-namespace gazebo
-{
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-
-namespace components
-{
-/// \brief Command for setting velocity limits of a joint. Data are a vector
-/// with a Vector2 for each DOF. The X() component of the Vector2 specifies
-/// the minimum velocity limit, the Y() component stands for maximum limit.
-/// Set to +-infinity to disable the limits.
-/// \note It is expected that the physics plugin reads this component and
-/// sets the limit to the dynamics engine. After setting it, the data of this
-/// component will be cleared (i.e. the vector will have length zero).
-using JointVelocityLimitsCmd = Component<
-  std::vector<ignition::math::Vector2d>,
-  class JointVelocityLimitsCmdTag,
-  serializers::VectorSerializer<ignition::math::Vector2d>
->;
-
-IGN_GAZEBO_REGISTER_COMPONENT(
-  "ign_gazebo_components.JointVelocityLimitsCmd", JointVelocityLimitsCmd)
-}
-}
-}
-}
-
-#endif
+#include <gz/sim/components/JointVelocityLimitsCmd.hh>

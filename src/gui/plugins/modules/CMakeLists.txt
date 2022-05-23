@@ -1,7 +1,7 @@
-# Create an IgnGazebo module
-set(module_name IgnGazebo)
+# Create an GzSim module
+set(module_name GzSim)
 
-# Add EntityContextMenu QML plugin to IgnGazebo module
+# Add EntityContextMenu QML plugin to GzSim module
 gz_add_gui_library(EntityContextMenu
   SOURCES EntityContextMenu.cc
   QT_HEADERS EntityContextMenu.hh

@@ -13,43 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
-#ifndef IGNITION_GAZEBO_COMPONENTS_GEOMETRY_HH_
-#define IGNITION_GAZEBO_COMPONENTS_GEOMETRY_HH_
+ */
 
-#include <ignition/msgs/geometry.pb.h>
-
-#include <sdf/Geometry.hh>
-
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Serialization.hh>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Conversions.hh>
-
-namespace ignition
-{
-namespace gazebo
-{
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace serializers
-{
-  using GeometrySerializer =
-      serializers::ComponentToMsgSerializer<sdf::Geometry, msgs::Geometry>;
-}
-
-namespace components
-{
-  /// \brief This component holds an entity's geometry.
-  using Geometry = Component<sdf::Geometry, class GeometryTag,
-                             serializers::GeometrySerializer>;
-
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Geometry", Geometry)
-
-}
-}
-}
-}
-
-#endif
+#include <gz/sim/components/Geometry.hh>

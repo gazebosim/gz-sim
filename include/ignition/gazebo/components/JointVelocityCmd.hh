@@ -14,35 +14,5 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_JOINTVELOCITYCMD_HH_
-#define IGNITION_GAZEBO_COMPONENTS_JOINTVELOCITYCMD_HH_
 
-#include <vector>
-
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Serialization.hh>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-
-namespace ignition
-{
-namespace gazebo
-{
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace components
-{
-  /// \brief Base class which can be extended to add serialization
-  using JointVelocityCmd =
-      Component<std::vector<double>, class JointVelocityCmdTag,
-                serializers::VectorDoubleSerializer>;
-
-  IGN_GAZEBO_REGISTER_COMPONENT(
-      "ign_gazebo_components.JointVelocityCmd", JointVelocityCmd)
-}
-}
-}
-}
-
-#endif
+#include <gz/sim/components/JointVelocityCmd.hh>

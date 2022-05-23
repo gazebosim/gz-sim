@@ -24,10 +24,10 @@
 #include <string>
 #include <vector>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/Entity.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
+#include <gz/sim/Entity.hh>
+#include <gz/transport/Node.hh>
 
 #include "msgs/simulation_step.pb.h"
 
@@ -55,7 +55,7 @@ namespace ignition
     };
 
     /// \class NetworkManagerPrimary NetworkManagerPrimary.hh
-    ///   ignition/gazebo/network/NetworkManagerPrimary.hh
+    ///   gz/sim/network/NetworkManagerPrimary.hh
     /// \brief Simulation primary specific behaviors
     class IGNITION_GAZEBO_VISIBLE NetworkManagerPrimary:
       public NetworkManager

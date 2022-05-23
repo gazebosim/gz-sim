@@ -17,10 +17,10 @@
 
 #include "Physics.hh"
 
-#include <ignition/msgs/contact.pb.h>
-#include <ignition/msgs/contacts.pb.h>
-#include <ignition/msgs/entity.pb.h>
-#include <ignition/msgs/Utility.hh>
+#include <gz/msgs/contact.pb.h>
+#include <gz/msgs/contacts.pb.h>
+#include <gz/msgs/entity.pb.h>
+#include <gz/msgs/Utility.hh>
 
 #include <algorithm>
 #include <iostream>
@@ -32,48 +32,48 @@
 #include <unordered_set>
 #include <vector>
 
-#include <ignition/common/geospatial/Dem.hh>
-#include <ignition/common/geospatial/HeightmapData.hh>
-#include <ignition/common/geospatial/ImageHeightmap.hh>
-#include <ignition/common/MeshManager.hh>
-#include <ignition/common/Profiler.hh>
-#include <ignition/common/StringUtils.hh>
-#include <ignition/common/SystemPaths.hh>
-#include <ignition/math/AxisAlignedBox.hh>
-#include <ignition/math/eigen3/Conversions.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/physics/config.hh>
-#include <ignition/physics/FeatureList.hh>
-#include <ignition/physics/FeaturePolicy.hh>
-#include <ignition/physics/heightmap/HeightmapShape.hh>
-#include <ignition/physics/RelativeQuantity.hh>
-#include <ignition/physics/RequestEngine.hh>
+#include <gz/common/geospatial/Dem.hh>
+#include <gz/common/geospatial/HeightmapData.hh>
+#include <gz/common/geospatial/ImageHeightmap.hh>
+#include <gz/common/MeshManager.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/common/StringUtils.hh>
+#include <gz/common/SystemPaths.hh>
+#include <gz/math/AxisAlignedBox.hh>
+#include <gz/math/eigen3/Conversions.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/physics/config.hh>
+#include <gz/physics/FeatureList.hh>
+#include <gz/physics/FeaturePolicy.hh>
+#include <gz/physics/heightmap/HeightmapShape.hh>
+#include <gz/physics/RelativeQuantity.hh>
+#include <gz/physics/RequestEngine.hh>
 
-#include <ignition/physics/BoxShape.hh>
-#include <ignition/physics/ContactProperties.hh>
-#include <ignition/physics/CylinderShape.hh>
-#include <ignition/physics/ForwardStep.hh>
-#include <ignition/physics/FrameSemantics.hh>
-#include <ignition/physics/FreeGroup.hh>
-#include <ignition/physics/FixedJoint.hh>
-#include <ignition/physics/GetContacts.hh>
-#include <ignition/physics/GetBoundingBox.hh>
-#include <ignition/physics/Joint.hh>
-#include <ignition/physics/Link.hh>
-#include <ignition/physics/RemoveEntities.hh>
-#include <ignition/physics/Shape.hh>
-#include <ignition/physics/SphereShape.hh>
-#include <ignition/physics/World.hh>
-#include <ignition/physics/mesh/MeshShape.hh>
-#include <ignition/physics/sdf/ConstructCollision.hh>
-#include <ignition/physics/sdf/ConstructJoint.hh>
-#include <ignition/physics/sdf/ConstructLink.hh>
-#include <ignition/physics/sdf/ConstructModel.hh>
-#include <ignition/physics/sdf/ConstructNestedModel.hh>
-#include <ignition/physics/sdf/ConstructWorld.hh>
-#include <ignition/plugin/Loader.hh>
-#include <ignition/plugin/PluginPtr.hh>
-#include <ignition/plugin/Register.hh>
+#include <gz/physics/BoxShape.hh>
+#include <gz/physics/ContactProperties.hh>
+#include <gz/physics/CylinderShape.hh>
+#include <gz/physics/ForwardStep.hh>
+#include <gz/physics/FrameSemantics.hh>
+#include <gz/physics/FreeGroup.hh>
+#include <gz/physics/FixedJoint.hh>
+#include <gz/physics/GetContacts.hh>
+#include <gz/physics/GetBoundingBox.hh>
+#include <gz/physics/Joint.hh>
+#include <gz/physics/Link.hh>
+#include <gz/physics/RemoveEntities.hh>
+#include <gz/physics/Shape.hh>
+#include <gz/physics/SphereShape.hh>
+#include <gz/physics/World.hh>
+#include <gz/physics/mesh/MeshShape.hh>
+#include <gz/physics/sdf/ConstructCollision.hh>
+#include <gz/physics/sdf/ConstructJoint.hh>
+#include <gz/physics/sdf/ConstructLink.hh>
+#include <gz/physics/sdf/ConstructModel.hh>
+#include <gz/physics/sdf/ConstructNestedModel.hh>
+#include <gz/physics/sdf/ConstructWorld.hh>
+#include <gz/plugin/Loader.hh>
+#include <gz/plugin/PluginPtr.hh>
+#include <gz/plugin/Register.hh>
 
 // SDF
 #include <sdf/Collision.hh>
@@ -85,61 +85,61 @@
 #include <sdf/Surface.hh>
 #include <sdf/World.hh>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Util.hh"
 
 // Components
-#include "ignition/gazebo/components/AngularAcceleration.hh"
-#include "ignition/gazebo/components/AngularVelocity.hh"
-#include "ignition/gazebo/components/AngularVelocityCmd.hh"
-#include "ignition/gazebo/components/AxisAlignedBox.hh"
-#include "ignition/gazebo/components/BatterySoC.hh"
-#include "ignition/gazebo/components/CanonicalLink.hh"
-#include "ignition/gazebo/components/ChildLinkName.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/ContactSensorData.hh"
-#include "ignition/gazebo/components/Geometry.hh"
-#include "ignition/gazebo/components/Gravity.hh"
-#include "ignition/gazebo/components/Inertial.hh"
-#include "ignition/gazebo/components/DetachableJoint.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/JointAxis.hh"
-#include "ignition/gazebo/components/JointEffortLimitsCmd.hh"
-#include "ignition/gazebo/components/JointPosition.hh"
-#include "ignition/gazebo/components/JointPositionLimitsCmd.hh"
-#include "ignition/gazebo/components/JointPositionReset.hh"
-#include "ignition/gazebo/components/JointType.hh"
-#include "ignition/gazebo/components/JointVelocity.hh"
-#include "ignition/gazebo/components/JointVelocityCmd.hh"
-#include "ignition/gazebo/components/JointVelocityLimitsCmd.hh"
-#include "ignition/gazebo/components/JointVelocityReset.hh"
-#include "ignition/gazebo/components/LinearAcceleration.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/LinearVelocityCmd.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/ParentLinkName.hh"
-#include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
-#include "ignition/gazebo/components/JointTransmittedWrench.hh"
-#include "ignition/gazebo/components/JointForceCmd.hh"
-#include "ignition/gazebo/components/Physics.hh"
-#include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/PoseCmd.hh"
-#include "ignition/gazebo/components/Recreate.hh"
-#include "ignition/gazebo/components/SelfCollide.hh"
-#include "ignition/gazebo/components/SlipComplianceCmd.hh"
-#include "ignition/gazebo/components/Static.hh"
-#include "ignition/gazebo/components/ThreadPitch.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/components/HaltMotion.hh"
+#include "gz/sim/components/AngularAcceleration.hh"
+#include "gz/sim/components/AngularVelocity.hh"
+#include "gz/sim/components/AngularVelocityCmd.hh"
+#include "gz/sim/components/AxisAlignedBox.hh"
+#include "gz/sim/components/BatterySoC.hh"
+#include "gz/sim/components/CanonicalLink.hh"
+#include "gz/sim/components/ChildLinkName.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/ContactSensorData.hh"
+#include "gz/sim/components/Geometry.hh"
+#include "gz/sim/components/Gravity.hh"
+#include "gz/sim/components/Inertial.hh"
+#include "gz/sim/components/DetachableJoint.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointAxis.hh"
+#include "gz/sim/components/JointEffortLimitsCmd.hh"
+#include "gz/sim/components/JointPosition.hh"
+#include "gz/sim/components/JointPositionLimitsCmd.hh"
+#include "gz/sim/components/JointPositionReset.hh"
+#include "gz/sim/components/JointType.hh"
+#include "gz/sim/components/JointVelocity.hh"
+#include "gz/sim/components/JointVelocityCmd.hh"
+#include "gz/sim/components/JointVelocityLimitsCmd.hh"
+#include "gz/sim/components/JointVelocityReset.hh"
+#include "gz/sim/components/LinearAcceleration.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/LinearVelocityCmd.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/ParentLinkName.hh"
+#include "gz/sim/components/ExternalWorldWrenchCmd.hh"
+#include "gz/sim/components/JointTransmittedWrench.hh"
+#include "gz/sim/components/JointForceCmd.hh"
+#include "gz/sim/components/Physics.hh"
+#include "gz/sim/components/PhysicsEnginePlugin.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/PoseCmd.hh"
+#include "gz/sim/components/Recreate.hh"
+#include "gz/sim/components/SelfCollide.hh"
+#include "gz/sim/components/SlipComplianceCmd.hh"
+#include "gz/sim/components/Static.hh"
+#include "gz/sim/components/ThreadPitch.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/components/HaltMotion.hh"
 
 #include "CanonicalLinkModelTracker.hh"
 // Events
-#include "ignition/gazebo/physics/Events.hh"
+#include "gz/sim/physics/Events.hh"
 
 #include "EntityFeatureMap.hh"
 
@@ -191,27 +191,44 @@ class ignition::gazebo::systems::PhysicsPrivate
 
   /// \brief Create physics entities
   /// \param[in] _ecm Constant reference to ECM.
-  public: void CreatePhysicsEntities(const EntityComponentManager &_ecm);
+  /// \param[in] _warnIfEntityExists True to emit warnings if the same entity
+  /// already exists in the physics system
+  public: void CreatePhysicsEntities(const EntityComponentManager &_ecm,
+                                     bool _warnIfEntityExists = true);
 
   /// \brief Create world entities
   /// \param[in] _ecm Constant reference to ECM.
-  public: void CreateWorldEntities(const EntityComponentManager &_ecm);
-
+  /// \param[in] _warnIfEntityExists True to emit warnings if the same entity
+  /// already exists in the physics system
+  public: void CreateWorldEntities(const EntityComponentManager &_ecm,
+                                   bool _warnIfEntityExists = true);
   /// \brief Create model entities
   /// \param[in] _ecm Constant reference to ECM.
-  public: void CreateModelEntities(const EntityComponentManager &_ecm);
+  /// \param[in] _warnIfEntityExists True to emit warnings if the same entity
+  /// already exists in the physics system
+  public: void CreateModelEntities(const EntityComponentManager &_ecm,
+                                   bool _warnIfEntityExists = true);
 
   /// \brief Create link entities
   /// \param[in] _ecm Constant reference to ECM.
-  public: void CreateLinkEntities(const EntityComponentManager &_ecm);
+  /// \param[in] _warnIfEntityExists True to emit warnings if the same entity
+  /// already exists in the physics system
+  public: void CreateLinkEntities(const EntityComponentManager &_ecm,
+                                  bool _warnIfEntityExists = true);
 
   /// \brief Create collision entities
   /// \param[in] _ecm Constant reference to ECM.
-  public: void CreateCollisionEntities(const EntityComponentManager &_ecm);
+  /// \param[in] _warnIfEntityExists True to emit warnings if the same entity
+  /// already exists in the physics system
+  public: void CreateCollisionEntities(const EntityComponentManager &_ecm,
+                                       bool _warnIfEntityExists = true);
 
   /// \brief Create joint entities
   /// \param[in] _ecm Constant reference to ECM.
-  public: void CreateJointEntities(const EntityComponentManager &_ecm);
+  /// \param[in] _warnIfEntityExists True to emit warnings if the same entity
+  /// already exists in the physics system
+  public: void CreateJointEntities(const EntityComponentManager &_ecm,
+                                   bool _warnIfEntityExists = true);
 
   /// \brief Create Battery entities
   /// \param[in] _ecm Constant reference to ECM.
@@ -224,6 +241,10 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// \brief Update physics from components
   /// \param[in] _ecm Mutable reference to ECM.
   public: void UpdatePhysics(EntityComponentManager &_ecm);
+
+  /// \brief Reset physics from components
+  /// \param[in] _ecm Constant reference to ECM.
+  public: void ResetPhysics(EntityComponentManager &_ecm);
 
   /// \brief Step the simulation for each world
   /// \param[in] _dt Duration
@@ -838,14 +859,6 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
   IGN_PROFILE("Physics::Update");
 
-  // \TODO(anyone) Support rewind
-  if (_info.dt < std::chrono::steady_clock::duration::zero())
-  {
-    ignwarn << "Detected jump back in time ["
-        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
-        << "s]. System may not work properly." << std::endl;
-  }
-
   if (this->dataPtr->engine)
   {
     this->dataPtr->CreatePhysicsEntities(_ecm);
@@ -867,23 +880,37 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 }
 
 //////////////////////////////////////////////////
-void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
+void Physics::Reset(const UpdateInfo &, EntityComponentManager &_ecm)
+{
+  IGN_PROFILE("Physics::Reset");
+
+  if (this->dataPtr->engine)
+  {
+    igndbg << "Resetting Physics\n";
+    this->dataPtr->ResetPhysics(_ecm);
+  }
+}
+
+//////////////////////////////////////////////////
+void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm,
+                                           bool _warnIfEntityExists)
 {
   // Clear the set of links that were added to a model.
   this->linkAddedToModel.clear();
   this->jointAddedToModel.clear();
 
-  this->CreateWorldEntities(_ecm);
-  this->CreateModelEntities(_ecm);
-  this->CreateLinkEntities(_ecm);
+  this->CreateWorldEntities(_ecm, _warnIfEntityExists);
+  this->CreateModelEntities(_ecm, _warnIfEntityExists);
+  this->CreateLinkEntities(_ecm, _warnIfEntityExists);
   // We don't need to add visuals to the physics engine.
-  this->CreateCollisionEntities(_ecm);
-  this->CreateJointEntities(_ecm);
+  this->CreateCollisionEntities(_ecm, _warnIfEntityExists);
+  this->CreateJointEntities(_ecm, _warnIfEntityExists);
   this->CreateBatteryEntities(_ecm);
 }
 
 //////////////////////////////////////////////////
-void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm)
+void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
+                                         bool _warnIfEntityExists)
 {
   // Get all the new worlds
   _ecm.EachNew<components::World, components::Name, components::Gravity>(
@@ -895,9 +922,12 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm)
         // Check if world already exists
         if (this->entityWorldMap.HasEntity(_entity))
         {
-          ignwarn << "World entity [" << _entity
-                  << "] marked as new, but it's already on the map."
-                  << std::endl;
+          if (_warnIfEntityExists)
+          {
+            ignwarn << "World entity [" << _entity
+                    << "] marked as new, but it's already on the map."
+                    << std::endl;
+          }
           return true;
         }
 
@@ -964,7 +994,8 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm)
 }
 
 //////////////////////////////////////////////////
-void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm)
+void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
+                                         bool _warnIfEntityExists)
 {
   _ecm.EachNew<components::Model, components::Name, components::Pose,
             components::ParentEntity>(
@@ -980,9 +1011,12 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm)
         // Check if model already exists
         if (this->entityModelMap.HasEntity(_entity))
         {
-          ignwarn << "Model entity [" << _entity
-                  << "] marked as new, but it's already on the map."
-                  << std::endl;
+          if (_warnIfEntityExists)
+          {
+            ignwarn << "Model entity [" << _entity
+                    << "] marked as new, but it's already on the map."
+                    << std::endl;
+          }
           return true;
         }
         // TODO(anyone) Don't load models unless they have collisions
@@ -1099,7 +1133,8 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm)
 }
 
 //////////////////////////////////////////////////
-void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm)
+void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
+                                        bool _warnIfEntityExists)
 {
   _ecm.EachNew<components::Link, components::Name, components::Pose,
             components::ParentEntity>(
@@ -1124,9 +1159,12 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm)
         // Check if link already exists
         if (this->entityLinkMap.HasEntity(_entity))
         {
-          ignwarn << "Link entity [" << _entity
-                  << "] marked as new, but it's already on the map."
-                  << std::endl;
+          if (_warnIfEntityExists)
+          {
+            ignwarn << "Link entity [" << _entity
+                    << "] marked as new, but it's already on the map."
+                    << std::endl;
+          }
           return true;
         }
 
@@ -1169,7 +1207,8 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm)
 }
 
 //////////////////////////////////////////////////
-void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm)
+void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
+                                             bool _warnIfEntityExists)
 {
   _ecm.EachNew<components::Collision, components::Name, components::Pose,
             components::Geometry, components::CollisionElement,
@@ -1192,9 +1231,12 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm)
 
         if (this->entityCollisionMap.HasEntity(_entity))
         {
-           ignwarn << "Collision entity [" << _entity
-                   << "] marked as new, but it's already on the map."
-                   << std::endl;
+          if (_warnIfEntityExists)
+          {
+            ignwarn << "Collision entity [" << _entity
+                    << "] marked as new, but it's already on the map."
+                    << std::endl;
+          }
           return true;
         }
 
@@ -1389,7 +1431,8 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm)
 }
 
 //////////////////////////////////////////////////
-void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm)
+void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
+                                         bool _warnIfEntityExists)
 {
   _ecm.EachNew<components::Joint, components::Name, components::JointType,
                components::Pose, components::ThreadPitch,
@@ -1420,9 +1463,12 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm)
         // Check if joint already exists
         if (this->entityJointMap.HasEntity(_entity))
         {
-          ignwarn << "Joint entity [" << _entity
-                  << "] marked as new, but it's already on the map."
-                  << std::endl;
+          if (_warnIfEntityExists)
+          {
+            ignwarn << "Joint entity [" << _entity
+                    << "] marked as new, but it's already on the map."
+                    << std::endl;
+          }
           return true;
         }
 
@@ -1501,9 +1547,12 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm)
         // Check if joint already exists
         if (this->entityJointMap.HasEntity(_entity))
         {
-          ignwarn << "Joint entity [" << _entity
-                  << "] marked as new, but it's already on the map."
-                  << std::endl;
+          if (_warnIfEntityExists)
+          {
+            ignwarn << "Joint entity [" << _entity
+                    << "] marked as new, but it's already on the map."
+                    << std::endl;
+          }
           return true;
         }
 
@@ -1663,6 +1712,7 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
               }
             }
             this->entityLinkMap.Remove(childLink);
+            this->entityFreeGroupMap.Remove(childLink);
             this->topLevelModelMap.erase(childLink);
             this->staticEntities.erase(childLink);
             this->linkWorldPoses.erase(childLink);
@@ -2387,6 +2437,131 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
       });
 }  // NOLINT readability/fn_size
 // TODO (azeey) Reduce size of function and remove the NOLINT above
+
+//////////////////////////////////////////////////
+void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
+{
+  IGN_PROFILE("PhysicsPrivate::ResetPhysics");
+  // Clear worldPoseCmdsToRemove because pose commands that were issued before
+  // the reset will be ignored.
+  this->linkWorldPoses.clear();
+  this->canonicalLinkModelTracker = CanonicalLinkModelTracker();
+  this->modelWorldPoses.clear();
+  this->worldPoseCmdsToRemove.clear();
+
+  this->CreatePhysicsEntities(_ecm, false);
+  this->canonicalLinkModelTracker.AddAllModels(_ecm);
+
+  // Update link pose, linear velocity, and angular velocity
+  _ecm.Each<components::Link>(
+      [&](const Entity &_entity, const components::Link *)
+      {
+        auto linkPtrPhys = this->entityLinkMap.Get(_entity);
+        if (nullptr == linkPtrPhys)
+        {
+          ignwarn << "Failed to find link [" << _entity << "]." << std::endl;
+          return true;
+        }
+
+        auto freeGroup = linkPtrPhys->FindFreeGroup();
+        if (!freeGroup)
+          return true;
+
+        this->entityFreeGroupMap.AddEntity(_entity, freeGroup);
+
+        if (freeGroup->RootLink() == linkPtrPhys)
+        {
+          auto linkWorldPose = worldPose(_entity, _ecm);
+          freeGroup->SetWorldPose(math::eigen3::convert(linkWorldPose));
+        }
+
+        auto worldAngularVelFeature =
+            this->entityFreeGroupMap
+                .EntityCast<WorldVelocityCommandFeatureList>(_entity);
+
+        if (!worldAngularVelFeature)
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            igndbg << "Attempting to reset link angular velocity, but the "
+                   << "physics engine doesn't support velocity commands. "
+                   << "Velocity won't be reset."
+                   << std::endl;
+            informed = true;
+          }
+          return true;
+        }
+        else
+        {
+          worldAngularVelFeature->SetWorldAngularVelocity(
+              Eigen::Vector3d::Zero());
+        }
+
+        auto worldLinearVelFeature =
+            this->entityFreeGroupMap
+                .EntityCast<WorldVelocityCommandFeatureList>(_entity);
+        if (!worldLinearVelFeature)
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            igndbg << "Attempting to set link linear velocity, but the "
+                   << "physics engine doesn't support velocity commands. "
+                   << "Velocity won't be set."
+                   << std::endl;
+            informed = true;
+          }
+          return true;
+        }
+        else
+        {
+          worldLinearVelFeature->SetWorldLinearVelocity(
+              Eigen::Vector3d::Zero());
+        }
+
+        return true;
+      });
+
+  // Handle joint state
+  _ecm.Each<components::Joint>(
+      [&](const Entity &_entity, const components::Joint *)
+      {
+        auto jointPhys = this->entityJointMap.Get(_entity);
+        if (nullptr == jointPhys)
+        {
+          ignwarn << "Failed to find joint [" << _entity << "]." << std::endl;
+          return true;
+        }
+
+        // Assume initial joint position and velocities are zero
+        // Reset the velocity
+        for (std::size_t i = 0; i < jointPhys->GetDegreesOfFreedom(); ++i)
+        {
+          jointPhys->SetVelocity(i, 0.0);
+          jointPhys->SetPosition(i, 0.0);
+        }
+
+        return true;
+      });
+
+  // Also update modelWorldPoses. This is a workaround to the problem that we
+  // don't have a way to reset the physics engine and clear its internal cache
+  // of link poses. In the event that a model's canonical link's pose hasn't
+  // changed after reset, the parent model's world pose won't be recorded in
+  // the modelWorldPoses map. If any of the model's other links have changed,
+  // however, we try to look for the parent model's world pose in
+  // modelWorldPoses and fail. So the workaround here is to update the world
+  // poses of all models.
+  _ecm.Each<components::Model>(
+      [&](const Entity &_entity, const components::Model *)
+      {
+        this->modelWorldPoses[_entity] = gazebo::worldPose(_entity, _ecm);
+        return true;
+      });
+
+  this->RemovePhysicsEntities(_ecm);
+}
 
 //////////////////////////////////////////////////
 ignition::physics::ForwardStep::Output PhysicsPrivate::Step(
@@ -3425,6 +3600,7 @@ void PhysicsPrivate::DisableContactSurfaceCustomization(const Entity &_world)
 IGNITION_ADD_PLUGIN(Physics,
                     ignition::gazebo::System,
                     Physics::ISystemConfigure,
+                    Physics::ISystemReset,
                     Physics::ISystemUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(Physics, "ignition::gazebo::systems::Physics")

@@ -15,26 +15,26 @@
  *
  */
 
-#include <ignition/msgs/double.pb.h>
+#include <gz/msgs/double.pb.h>
 
 #include <string>
 #include <unordered_map>
 #include <utility>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/sensors/Noise.hh>
-#include <ignition/sensors/SensorFactory.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/sensors/Noise.hh>
+#include <gz/sensors/SensorFactory.hh>
 
 #include <sdf/Sensor.hh>
 
-#include <ignition/gazebo/components/CustomSensor.hh>
-#include <ignition/gazebo/components/Name.hh>
-#include <ignition/gazebo/components/ParentEntity.hh>
-#include <ignition/gazebo/components/Sensor.hh>
-#include <ignition/gazebo/components/World.hh>
-#include <ignition/gazebo/EntityComponentManager.hh>
-#include <ignition/gazebo/Util.hh>
+#include <gz/sim/components/CustomSensor.hh>
+#include <gz/sim/components/Name.hh>
+#include <gz/sim/components/ParentEntity.hh>
+#include <gz/sim/components/Sensor.hh>
+#include <gz/sim/components/World.hh>
+#include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/Util.hh>
 
 #include "Odometer.hh"
 #include "OdometerSystem.hh"

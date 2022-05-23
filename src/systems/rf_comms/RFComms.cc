@@ -24,15 +24,15 @@
 #include <utility>
 
 #include <sdf/sdf.hh>
-#include <ignition/common/Profiler.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/math/Rand.hh>
-#include <ignition/plugin/Register.hh>
-#include "ignition/gazebo/comms/MsgManager.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Util.hh"
+#include <gz/common/Profiler.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/Rand.hh>
+#include <gz/plugin/Register.hh>
+#include "gz/sim/comms/MsgManager.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Util.hh"
 #include "RFComms.hh"
 
 using namespace ignition;

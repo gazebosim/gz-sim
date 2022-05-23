@@ -17,8 +17,8 @@
 
 #include "VisualizationCapabilities.hh"
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 
 #include <algorithm>
 #include <iostream>
@@ -32,34 +32,34 @@
 #include <vector>
 #include <QQmlProperty>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/geospatial/Dem.hh>
-#include <ignition/common/geospatial/HeightmapData.hh>
-#include <ignition/common/geospatial/ImageHeightmap.hh>
-#include <ignition/common/MeshManager.hh>
-#include <ignition/common/Profiler.hh>
-#include <ignition/common/StringUtils.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/geospatial/Dem.hh>
+#include <gz/common/geospatial/HeightmapData.hh>
+#include <gz/common/geospatial/ImageHeightmap.hh>
+#include <gz/common/MeshManager.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/common/StringUtils.hh>
 
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/Helpers.hh>
-#include <ignition/gui/MainWindow.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/Helpers.hh>
+#include <gz/gui/MainWindow.hh>
 
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
-#include "ignition/rendering/AxisVisual.hh"
-#include "ignition/rendering/Capsule.hh"
-#include <ignition/rendering/COMVisual.hh>
-#include <ignition/rendering/Heightmap.hh>
-#include <ignition/rendering/InertiaVisual.hh>
-#include <ignition/rendering/JointVisual.hh>
-#include <ignition/rendering/Visual.hh>
-#include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/Scene.hh>
-#include <ignition/rendering/Text.hh>
-#include <ignition/rendering/WireBox.hh>
+#include "gz/rendering/AxisVisual.hh"
+#include "gz/rendering/Capsule.hh"
+#include <gz/rendering/COMVisual.hh>
+#include <gz/rendering/Heightmap.hh>
+#include <gz/rendering/InertiaVisual.hh>
+#include <gz/rendering/JointVisual.hh>
+#include <gz/rendering/Visual.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include <gz/rendering/Scene.hh>
+#include <gz/rendering/Text.hh>
+#include <gz/rendering/WireBox.hh>
 
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
 #include <sdf/Capsule.hh>
 #include <sdf/Ellipsoid.hh>
@@ -69,29 +69,29 @@
 #include <sdf/Pbr.hh>
 #include <sdf/Root.hh>
 
-#include "ignition/gazebo/components/CastShadows.hh"
-#include "ignition/gazebo/components/ChildLinkName.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/Geometry.hh"
-#include "ignition/gazebo/components/Inertial.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/JointAxis.hh"
-#include "ignition/gazebo/components/JointType.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/ParentLinkName.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Scene.hh"
-#include "ignition/gazebo/components/Transparency.hh"
-#include "ignition/gazebo/components/Visibility.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/World.hh"
+#include "gz/sim/components/CastShadows.hh"
+#include "gz/sim/components/ChildLinkName.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/Geometry.hh"
+#include "gz/sim/components/Inertial.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointAxis.hh"
+#include "gz/sim/components/JointType.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/ParentLinkName.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Scene.hh"
+#include "gz/sim/components/Transparency.hh"
+#include "gz/sim/components/Visibility.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/World.hh"
 
-#include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/rendering/RenderUtil.hh"
-#include "ignition/gazebo/rendering/SceneManager.hh"
+#include "gz/sim/Util.hh"
+#include "gz/sim/rendering/RenderUtil.hh"
+#include "gz/sim/rendering/SceneManager.hh"
 
 namespace ignition::gazebo
 {

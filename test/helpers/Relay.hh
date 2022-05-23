@@ -17,7 +17,7 @@
 #ifndef IGNITION_GAZEBO_TEST_HELPERS_RELAY_HH_
 #define IGNITION_GAZEBO_TEST_HELPERS_RELAY_HH_
 
-#include <ignition/gazebo/test_config.hh>
+#include <gz/sim/test_config.hh>
 
 #include "../plugins/MockSystem.hh"
 

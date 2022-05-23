@@ -15,10 +15,10 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUISYSTEMPLUGIN_HH_
-#define IGNITION_GAZEBO_GUISYSTEMPLUGIN_HH_
+#ifndef GZ_GAZEBO_GUISYSTEMPLUGIN_HH_
+#define GZ_GAZEBO_GUISYSTEMPLUGIN_HH_
 
-#include <ignition/gazebo/gui/GuiSystem.hh>
+#include <gz/sim/gui/GuiSystem.hh>
 
 /// \brief Example of a GUI plugin that has access to entities and components.
 class GuiSystemPlugin : public ignition::gazebo::GuiSystem

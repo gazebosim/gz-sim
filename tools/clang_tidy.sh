@@ -11,7 +11,7 @@ cmake .. \
   -DCMAKE_EXPORT_COMPILE_COMMANDS=1
 
 # Build enough to get generated msg headers
-make ignition-gazebo_private_msgs
+make gz-sim_private_msgs
 
 cd ..
 

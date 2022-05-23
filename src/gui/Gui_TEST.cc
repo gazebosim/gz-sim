@@ -17,16 +17,16 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/stringmsg.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/StringUtils.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/StringUtils.hh>
+#include <gz/common/Util.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/gui/Gui.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/gui/Gui.hh"
+#include "gz/sim/test_config.hh"
 
 #include "../../test/helpers/EnvTestFixture.hh"
 
