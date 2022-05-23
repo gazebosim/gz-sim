@@ -73,7 +73,7 @@
     </model>
 
     <include>
-      <uri>https://fuel.gazebosim.org/1.0/nlamprian/models/Elevator</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/nlamprian/models/Elevator</uri>
     </include>
 
   </world>

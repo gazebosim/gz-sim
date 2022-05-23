@@ -173,7 +173,7 @@
 
     <include>
       <uri>
-        https://fuel.gazebosim.org/1.0/chapulina/models/Heightmap Bowl
+        https://fuel.ignitionrobotics.org/1.0/chapulina/models/Heightmap Bowl
       </uri>
     </include>
   </world>

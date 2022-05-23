@@ -202,7 +202,7 @@
       <static>true</static>
       <name>Rescue Randy</name>
       <pose>0 0 0 0 0 1.57</pose>
-      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Rescue Randy</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Rescue Randy</uri>
     </include>
 
     <!-- Tube Light -->
@@ -210,7 +210,7 @@
       <static>true</static>
       <name>Tube Light</name>
       <pose>1.5 0 3 0 0.78 0</pose>
-      <uri>https://fuel.gazebosim.org/1.0/openrobotics/models/Tube Light</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tube Light</uri>
     </include>
 
     <light type="spot" name="tube_light">

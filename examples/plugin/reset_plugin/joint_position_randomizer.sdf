@@ -37,7 +37,7 @@
       </link>
     </model>
     <include>
-      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Simple Arm</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Simple Arm</uri>
       <plugin filename="build/libJointPositionRandomizer.so" name="reset_plugin::JointPositionRandomizer"/>
     </include>
   </world>

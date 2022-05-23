@@ -71,7 +71,7 @@
 
     <include>
       <pose>0 0 1 0 0 1.57</pose>
-      <uri>https://fuel.gazebosim.org/1.0/accurrent/models/MBARI%20Tethys%20LRAUV</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/accurrent/models/MBARI%20Tethys%20LRAUV</uri>
 
       <!-- Joint controllers -->
       <plugin

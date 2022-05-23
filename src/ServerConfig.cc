@@ -267,7 +267,7 @@ class gz::sim::ServerConfigPrivate
   public: std::string logRecordCompressPath = "";
 
   /// \brief Path to where simulation resources, such as models downloaded
-  /// from fuel.gazebosim.org, should be stored.
+  /// from fuel.ignitionrobotics.org, should be stored.
   public: std::string resourceCache = "";
 
   /// \brief File containing physics engine plugin. If empty, DART will be used.

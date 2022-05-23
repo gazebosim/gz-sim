@@ -104,11 +104,11 @@ favorite editor and save this file as `fuel_preview.sdf`:
     </gui>
 
     <include>
-      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Sun</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Sun</uri>
     </include>
 
     <include>
-      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Gazebo</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Gazebo</uri>
     </include>
 
   </world>

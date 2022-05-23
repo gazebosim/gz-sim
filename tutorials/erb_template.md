@@ -116,11 +116,11 @@ Instead of simple shapes, you can also use a nested loop to generate 100 actors 
 
     <actor name="actor_<%= 10*i+j %>">
         <skin>
-        <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
         <scale>1.0</scale>
         </skin>
         <animation name="talk_b">
-        <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
         <scale>0.055</scale>
         <interpolate_x>true</interpolate_x>
         </animation>

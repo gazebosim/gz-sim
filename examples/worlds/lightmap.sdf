@@ -22,7 +22,7 @@ There are no dynamic lights or shadows in the scene.
       <static>true</static>
       <name>Indoor Lightmap</name>
       <pose>0 0 0 0 0 0</pose>
-      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Indoor Lightmap</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Indoor Lightmap</uri>
     </include>
 
   </world>

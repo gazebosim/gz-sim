@@ -67,16 +67,16 @@
       <name>demo_actor</name>
       <!-- override actor's pose, which has 1m in Z -->
       <pose>0 0 0 0 0 0</pose>
-      <uri>https://fuel.gazebosim.org/1.0/Mingfei/models/actor</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
     </include>
 
     <actor name="actor_talking">
       <skin>
-        <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
         <scale>1.0</scale>
       </skin>
       <animation name="talk_b">
-        <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
         <scale>0.055</scale>
         <interpolate_x>true</interpolate_x>
       </animation>
@@ -167,11 +167,11 @@
 
     <actor name="actor_walking">
       <skin>
-        <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename>
         <scale>1.0</scale>
       </skin>
       <animation name="walk">
-        <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename>
         <interpolate_x>true</interpolate_x>
       </animation>
       <script>

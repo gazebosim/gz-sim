@@ -44,10 +44,10 @@ namespace gz::sim
 }
 
 const char kBanana[] =
-  "https://fuel.gazebosim.org/1.0/mjcarroll/models/banana for scale";
+  "https://fuel.ignitionrobotics.org/1.0/mjcarroll/models/banana for scale";
 
 const char kBigBanana[] =
-  "https://fuel.gazebosim.org/1.0/mjcarroll/models/big banana for scale";
+  "https://fuel.ignitionrobotics.org/1.0/mjcarroll/models/big banana for scale";
 
 using namespace gz;
 using namespace sim;

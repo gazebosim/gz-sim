@@ -156,7 +156,7 @@ Scroll all the way to the bottom of the file until you see the `include` tag sec
       <static>true</static>
       <name>Electrical Box</name>
       <pose>0 0 0 0 0 0</pose>
-      <uri>https://fuel.gazebosim.org/1.0/openrobotics/models/Electrical Box</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Electrical Box</uri>
     </include>
 
   </world>
@@ -171,7 +171,7 @@ Change `Electrical Box` to `Electrical Box Test`.
 The syntax for including any model from Fuel is:
 
 ```xml
-<uri>https://fuel.gazebosim.org/1.0/<user account name>/models/<model name></uri>
+<uri>https://fuel.ignitionrobotics.org/1.0/<user account name>/models/<model name></uri>
 ```
 
 ### Launch World

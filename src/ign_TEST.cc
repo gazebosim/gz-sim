@@ -93,7 +93,7 @@ TEST(CmdLine, IGN_UTILS_TEST_DISABLED_ON_WIN32(CachedFuelWorld))
   std::string projectPath = std::string(PROJECT_SOURCE_PATH) + "/test/worlds";
   gz::common::setenv("IGN_FUEL_CACHE_PATH", projectPath.c_str());
   std::string cmd = kIgnCommand + " -r -v 4 --iterations 5" +
-    " https://fuel.gazebosim.org/1.0/OpenRobotics/worlds/Test%20world";
+    " https://fuel.ignitionrobotics.org/1.0/OpenRobotics/worlds/Test%20world";
   std::cout << "Running command [" << cmd << "]" << std::endl;
 
   std::string output = customExecStr(cmd);

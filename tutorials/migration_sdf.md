@@ -43,12 +43,12 @@ For example, this world can be loaded into both simulators:
   <world name="demo">
     <!-- Included light -->
     <include>
-      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Sun</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Sun</uri>
     </include>
 
     <!-- Included model -->
     <include>
-      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Ground Plane</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Ground Plane</uri>
     </include>
 
     <model name="Radio">
@@ -59,7 +59,7 @@ For example, this world can be loaded into both simulators:
           <geometry>
             <!-- Collision mesh -->
             <mesh>
-              <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Radio/4/files/meshes/Radio.dae</uri>
+              <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Radio/4/files/meshes/Radio.dae</uri>
             </mesh>
           </geometry>
         </collision>
@@ -67,7 +67,7 @@ For example, this world can be loaded into both simulators:
           <geometry>
             <!-- Visual mesh -->
             <mesh>
-              <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Radio/4/files/meshes/Radio.dae</uri>
+              <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Radio/4/files/meshes/Radio.dae</uri>
             </mesh>
           </geometry>
         </visual>
@@ -76,11 +76,11 @@ For example, this world can be loaded into both simulators:
 
     <actor name="actor_talking">
       <skin>
-        <filename>https://fuel.gazebosim.org/1.0/OpenRobotics/models/actor - relative paths/tip/files/meshes/talk_b.dae</filename>
+        <filename>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/actor - relative paths/tip/files/meshes/talk_b.dae</filename>
         <scale>1.0</scale>
       </skin>
       <animation name="talk_b">
-        <filename>https://fuel.gazebosim.org/1.0/OpenRobotics/models/actor - relative paths/tip/files/meshes/talk_b.dae</filename>
+        <filename>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/actor - relative paths/tip/files/meshes/talk_b.dae</filename>
         <scale>1.0</scale>
       </animation>
       <script>

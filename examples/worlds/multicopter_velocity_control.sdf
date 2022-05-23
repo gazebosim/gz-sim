@@ -98,7 +98,7 @@ You can use the velocity controller and command linear velocity and yaw angular 
 
     <include>
       <uri>
-        https://fuel.gazebosim.org/1.0/OpenRobotics/models/X3 UAV/4
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/X3 UAV/4
       </uri>
       <plugin
         filename="ignition-gazebo-multicopter-motor-model-system"
@@ -228,7 +228,7 @@ You can use the velocity controller and command linear velocity and yaw angular 
     <include>
       <pose>0 3 1 0 0 0</pose>
       <uri>
-        https://fuel.gazebosim.org/1.0/OpenRobotics/models/X4 UAV Config 1
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/X4 UAV Config 1
       </uri>
 
       <plugin filename="ignition-gazebo-multicopter-motor-model-system"

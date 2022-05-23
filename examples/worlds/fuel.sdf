@@ -62,27 +62,27 @@
     <include>
       <name>Double pendulum</name>
       <pose>-3 0 0 0 0 0</pose>
-      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Double pendulum with base</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Double pendulum with base</uri>
     </include>
 
     <!-- Included model with meshes -->
     <include>
       <pose>3 -1 0 0 0 0</pose>
-      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Backpack</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack</uri>
     </include>
 
     <!-- Included model with meshes using relative paths -->
     <include>
       <name>Gazebo (relative paths)</name>
       <pose>2 5 0 0 0 0</pose>
-      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Gazebo - relative paths</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Gazebo - relative paths</uri>
     </include>
 
     <!-- Included actor with meshes using relative paths -->
     <include>
       <name>Actor Test</name>
       <pose>0 0 0 0 0 0</pose>
-      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/actor - relative paths</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/actor - relative paths</uri>
     </include>
 
     <!-- Model with meshes -->
@@ -93,14 +93,14 @@
         <collision name="collision">
           <geometry>
             <mesh>
-              <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Radio/4/files/meshes/Radio.dae</uri>
+              <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Radio/4/files/meshes/Radio.dae</uri>
             </mesh>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
             <mesh>
-              <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Radio/4/files/meshes/Radio.dae</uri>
+              <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Radio/4/files/meshes/Radio.dae</uri>
             </mesh>
           </geometry>
         </visual>
@@ -116,18 +116,18 @@
             <heightmap>
               <use_terrain_paging>false</use_terrain_paging>
               <texture>
-                <diffuse>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/dirt_diffusespecular.png</diffuse>
-                <normal>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/flat_normal.png</normal>
+                <diffuse>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/dirt_diffusespecular.png</diffuse>
+                <normal>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/flat_normal.png</normal>
                 <size>10</size>
               </texture>
               <texture>
-                <diffuse>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/grass_diffusespecular.png</diffuse>
-                <normal>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/flat_normal.png</normal>
+                <diffuse>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/grass_diffusespecular.png</diffuse>
+                <normal>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/flat_normal.png</normal>
                 <size>10</size>
               </texture>
               <texture>
-                <diffuse>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/fungus_diffusespecular.png</diffuse>
-                <normal>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/flat_normal.png</normal>
+                <diffuse>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/fungus_diffusespecular.png</diffuse>
+                <normal>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/flat_normal.png</normal>
                 <size>10</size>
               </texture>
               <blend>
@@ -138,7 +138,7 @@
                 <min_height>35</min_height>
                 <fade_dist>18</fade_dist>
               </blend>
-              <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/fortress_heightmap.png</uri>
+              <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/fortress_heightmap.png</uri>
               <size>257 257 50</size>
               <pos>0 0 -28</pos>
             </heightmap>
@@ -147,7 +147,7 @@
         <collision name="collision">
           <geometry>
             <heightmap>
-              <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/fortress_heightmap.png</uri>
+              <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/fortress_heightmap.png</uri>
               <size>257 257 50</size>
               <pos>0 0 -28</pos>
             </heightmap>

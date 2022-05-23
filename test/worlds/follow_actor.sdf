@@ -86,7 +86,7 @@
       <name>walker</name>
       <!-- Root node pose (torso) -->
       <pose>0 -2 1.0 0 0 0</pose>
-      <uri>https://fuel.gazebosim.org/1.0/chapulina/models/Walking actor</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/chapulina/models/Walking actor</uri>
       <plugin filename="libignition-gazebo-follow-actor-system.so"
               name="gz::sim::systems::FollowActor">
         <target>box</target>

@@ -20,11 +20,11 @@ Next, we can start adding particle emitter models into the world. In our example
 
 ```xml
     <include>
-      <uri>https://fuel.gazebosim.org/1.0/openrobotics/models/fog generator</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/fog generator</uri>
     </include>
 ```
 
-Here is the content of the Fog Generator [model.sdf](https://fuel.gazebosim.org/1.0/OpenRobotics/models/Fog%20Generator/1/files/model.sdf) file.
+Here is the content of the Fog Generator [model.sdf](https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Fog%20Generator/1/files/model.sdf) file.
 
 ```xml
   <model name="fog_generator">

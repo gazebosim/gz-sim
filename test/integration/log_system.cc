@@ -1522,7 +1522,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogResources))
   // Recorded models should exist
   EXPECT_GT(entryCount(recordPath), 2);
   EXPECT_TRUE(common::exists(common::joinPaths(recordPath, homeFake,
-      ".ignition", "fuel", "fuel.gazebosim.org", "openrobotics",
+      ".ignition", "fuel", "fuel.ignitionrobotics.org", "openrobotics",
       "models", "x2 config 1")));
 
   // Remove artifacts. Recreate new directory
@@ -1557,7 +1557,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogResources))
   EXPECT_GT(entryCount(recordPath), 1);
 #endif
   EXPECT_TRUE(common::exists(common::joinPaths(recordPath, homeFake,
-      ".ignition", "fuel", "fuel.gazebosim.org", "openrobotics",
+      ".ignition", "fuel", "fuel.ignitionrobotics.org", "openrobotics",
       "models", "x2 config 1")));
 
   // Revert environment variable after test is done

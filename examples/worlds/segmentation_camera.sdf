@@ -203,7 +203,7 @@
       <name>Car1</name>
       <pose>-2 -2 0 0 0 0</pose>
       <uri>
-        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Hatchback blue
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Hatchback blue
       </uri>
       <plugin filename="ignition-gazebo-label-system" name="gz::sim::systems::Label">
         <label>40</label>
@@ -214,7 +214,7 @@
       <name>Car2</name>
       <pose>-3 -5 0 0 0 0</pose>
       <uri>
-        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Pickup
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Pickup
       </uri>
       <plugin filename="ignition-gazebo-label-system" name="gz::sim::systems::Label">
         <label>40</label>
@@ -225,7 +225,7 @@
       <name>Car3</name>
       <pose>-4 3 0 0 0 -1.57</pose>
       <uri>
-        https://fuel.gazebosim.org/1.0/OpenRobotics/models/SUV
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/SUV
       </uri>
       <plugin filename="ignition-gazebo-label-system" name="gz::sim::systems::Label">
         <label>40</label>
@@ -237,7 +237,7 @@
       <name>tree1</name>
       <pose>-2 5 0 0 0 0</pose>
       <uri>
-        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Pine Tree
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Pine Tree
       </uri>
       <plugin filename="ignition-gazebo-label-system" name="gz::sim::systems::Label">
         <label>30</label>
@@ -248,7 +248,7 @@
       <name>tree2</name>
       <pose>-7 2 0 0 0 0</pose>
       <uri>
-        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Pine Tree
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Pine Tree
       </uri>
       <plugin filename="ignition-gazebo-label-system" name="gz::sim::systems::Label">
         <label>30</label>
@@ -259,7 +259,7 @@
       <name>tree3</name>
       <pose>-7 -4 0 0 0 0</pose>
       <uri>
-        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Pine Tree
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Pine Tree
       </uri>
       <plugin filename="ignition-gazebo-label-system" name="gz::sim::systems::Label">
         <label>30</label>
@@ -271,7 +271,7 @@
       <name>home</name>
       <pose>-15 0 0 0 0 1.57</pose>
       <uri>
-        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Collapsed House
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Collapsed House
       </uri>
     </include>
 
@@ -280,7 +280,7 @@
       <name>cone1</name>
       <pose>0 1 0 0 0 1.570796</pose>
       <uri>
-        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Construction Cone
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Construction Cone
       </uri>
       <plugin filename="ignition-gazebo-label-system" name="gz::sim::systems::Label">
         <label>20</label>
@@ -291,7 +291,7 @@
       <name>cone2</name>
       <pose>0 4 0 0 0 1.570796</pose>
       <uri>
-        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Construction Cone
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Construction Cone
       </uri>
       <plugin filename="ignition-gazebo-label-system" name="gz::sim::systems::Label">
         <label>20</label>
@@ -302,7 +302,7 @@
       <name>cone3</name>
       <pose>2 -2 0 0 0.0 1.57</pose>
       <uri>
-        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Construction Cone
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Construction Cone
       </uri>
       <plugin filename="ignition-gazebo-label-system" name="gz::sim::systems::Label">
         <label>20</label>
