@@ -141,6 +141,7 @@ class sdf_model_exporter(ModuleType):
 
         COLLADA = enum.auto()
         STL = enum.auto()
+        WAVEFRONT = enum.auto()
 
         def export(self, filepath: str) -> str:
             """
@@ -224,6 +225,50 @@ class sdf_model_exporter(ModuleType):
                     use_selection=True,
                     use_mesh_modifiers=True,
                 )
+            elif self.WAVEFRONT == self:
+                bpy.ops.wm.obj_export(
+                    filepath=filepath,
+                    check_existing=False,
+                    filter_blender=False,
+                    filter_backup=False,
+                    filter_image=False,
+                    filter_movie=False,
+                    filter_python=False,
+                    filter_font=False,
+                    filter_sound=False,
+                    filter_text=False,
+                    filter_archive=False,
+                    filter_btx=False,
+                    filter_collada=False,
+                    filter_alembic=False,
+                    filter_usd=False,
+                    filter_obj=True,
+                    filter_volume=False,
+                    filter_folder=True,
+                    filter_blenlib=False,
+                    filemode=8,
+                    display_type="DEFAULT",
+                    sort_method="DEFAULT",
+                    export_animation=False,
+                    start_frame=-2147483648,
+                    end_frame=2147483647,
+                    forward_axis="X_FORWARD",
+                    up_axis="Z_UP",
+                    scaling_factor=1,
+                    apply_modifiers=True,
+                    export_eval_mode="DAG_EVAL_VIEWPORT",
+                    export_selected_objects=False,
+                    export_uv=True,
+                    export_normals=True,
+                    export_materials=True,
+                    export_triangulated_mesh=False,
+                    export_curves_as_nurbs=False,
+                    export_object_groups=False,
+                    export_material_groups=False,
+                    export_vertex_groups=False,
+                    export_smooth_groups=False,
+                    smooth_group_bitflags=False,
+                )
             else:
                 raise ValueError(f"Filetype '{self}' is not supported for export.")
 
@@ -240,6 +285,8 @@ class sdf_model_exporter(ModuleType):
                 return cls.COLLADA
             elif "STL" in filetype_str:
                 return cls.STL
+            elif "WAVEFRONT" in filetype_str or "OBJ" in filetype_str:
+                return cls.WAVEFRONT
             else:
                 raise ValueError(f"Unknown '{filetype_str}' filetype.")
 
@@ -269,6 +316,8 @@ class sdf_model_exporter(ModuleType):
                 return ".dae"
             elif self.STL == self:
                 return ".stl"
+            elif self.WAVEFRONT == self:
+                return ".obj"
             else:
                 raise ValueError(f"Unknown extension for '{self}' filetype.")
 
