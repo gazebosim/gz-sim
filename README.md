@@ -123,7 +123,7 @@ export IGN_CONFIG_PATH=$HOME/.ignition/tools/configs
 
 This issue is tracked [here](https://github.com/ignitionrobotics/ign-tools/issues/8).
 
-# Documentation
+# Documentation
 
 See the [installation tutorial](https://ignitionrobotics.org/api/gazebo/6.0/install.html).
 
