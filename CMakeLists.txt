@@ -256,7 +256,7 @@ if(TARGET doc)
 endif()
 
 # TICKTOCK MASTER HEADER (to bypass IGN_DESIGNATION)
-# TODO(CH3): Remove on tock
+# TODO(CH3): Deprecated. Remove on tock
 configure_file(
   ${CMAKE_CURRENT_BINARY_DIR}/include/gz/${IGN_DESIGNATION}.hh
   ${CMAKE_CURRENT_BINARY_DIR}/include/gz/sim.hh
