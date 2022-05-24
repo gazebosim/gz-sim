@@ -256,7 +256,7 @@ class sdf_model_exporter(ModuleType):
                     export_animation=False,
                     start_frame=-2147483648,
                     end_frame=2147483647,
-                    forward_axis="X_FORWARD",
+                    forward_axis="Y_FORWARD",
                     up_axis="Z_UP",
                     scaling_factor=1,
                     apply_modifiers=True,
