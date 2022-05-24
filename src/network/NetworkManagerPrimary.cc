@@ -23,19 +23,19 @@
 #include <string>
 #include <utility>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/common/Profiler.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/common/Profiler.hh>
 
 #include "msgs/peer_control.pb.h"
 #include "msgs/simulation_step.pb.h"
 
-#include "ignition/gazebo/components/PerformerAffinity.hh"
-#include "ignition/gazebo/components/PerformerLevels.hh"
-#include "ignition/gazebo/Conversions.hh"
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Events.hh"
+#include "gz/sim/components/PerformerAffinity.hh"
+#include "gz/sim/components/PerformerLevels.hh"
+#include "gz/sim/Conversions.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Events.hh"
 
 #include "NetworkManagerPrivate.hh"
 #include "PeerTracker.hh"

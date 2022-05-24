@@ -20,8 +20,8 @@
 #include <functional>
 #include <memory>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
 
 #include "NetworkConfig.hh"
 #include "PeerInfo.hh"
@@ -34,7 +34,7 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \class NetworkManagerPrivate NetworkManagerPrivate.hh
-    /// ignition/gazebo/NetworkManagerPrivate.hh
+    /// gz/sim/NetworkManagerPrivate.hh
     class IGNITION_GAZEBO_VISIBLE NetworkManagerPrivate
     {
       /// \brief Network Configuration

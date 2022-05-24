@@ -13,53 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
-#ifndef IGNITION_GAZEBO_PHYSICS_EVENTS_HH_
-#define IGNITION_GAZEBO_PHYSICS_EVENTS_HH_
+ */
 
-#include <optional>
-
-#include <ignition/common/Event.hh>
-
-#include <ignition/physics/ContactProperties.hh>
-
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/Entity.hh"
-
-#include <Eigen/Geometry>
-
-namespace ignition
-{
-  namespace gazebo
-  {
-    // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-
-    namespace events
-    {
-      using Policy = physics::FeaturePolicy3d;
-
-      /// \brief This event is called when the physics engine needs to collect
-      /// what customizations it should do to the surface of a contact point. It
-      /// is called during the Update phase after collision checking has been
-      /// finished and before the physics update has happened. The event
-      /// subscribers are expected to change the `params` argument.
-      using CollectContactSurfaceProperties = ignition::common::EventT<
-        void(
-          const Entity& /* collision1 */,
-          const Entity& /* collision2 */,
-          const math::Vector3d &  /* point */,
-          const std::optional<math::Vector3d> /* force */,
-          const std::optional<math::Vector3d> /* normal */,
-          const std::optional<double> /* depth */,
-          const size_t /* numContactsOnCollision */,
-          physics::SetContactPropertiesCallbackFeature::
-            ContactSurfaceParams<Policy>& /* params */
-        ),
-        struct CollectContactSurfacePropertiesTag>;
-      }
-    }  // namespace events
-  }  // namespace gazebo
-}  // namespace ignition
-
-#endif  // IGNITION_GAZEBO_PHYSICS_EVENTS_HH_
+#include <gz/sim/physics/Events.hh>

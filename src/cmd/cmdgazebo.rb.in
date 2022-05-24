@@ -64,7 +64,7 @@ COMMANDS = { 'gazebo' =>
   "\n"\
   "  --record                     Use logging system to record states and          \n"\
   "                               console messages to the default location,        \n"\
-  "                               in ~/.ignition/gazebo/log.                       \n"\
+  "                               in ~/.gz/sim/log.                       \n"\
   "\n"\
   "  --record-path [arg]          Implicitly invokes --record, and specifies       \n"\
   "                               custom path to put recorded files. Argument      \n"\

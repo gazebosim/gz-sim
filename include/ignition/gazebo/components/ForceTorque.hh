@@ -13,35 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
-#ifndef IGNITION_GAZEBO_COMPONENTS_FORCETORQUE_HH_
-#define IGNITION_GAZEBO_COMPONENTS_FORCETORQUE_HH_
+ */
 
-#include <sdf/Sensor.hh>
-
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Serialization.hh>
-
-namespace ignition
-{
-namespace gazebo
-{
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace components
-{
-  /// \brief A component type that contains an FT sensor,
-  /// sdf::ForceTorque, information.
-  using ForceTorque = Component<sdf::Sensor, class ForceTorqueTag,
-      serializers::SensorSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.ForceTorque",
-                                ForceTorque)
-}
-}
-}
-}
-#endif
+#include <gz/sim/components/ForceTorque.hh>

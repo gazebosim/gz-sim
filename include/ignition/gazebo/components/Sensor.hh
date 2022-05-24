@@ -13,39 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
-#ifndef IGNITION_GAZEBO_COMPONENTS_SENSOR_HH_
-#define IGNITION_GAZEBO_COMPONENTS_SENSOR_HH_
+ */
 
-#include <string>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Serialization.hh>
-#include <ignition/gazebo/config.hh>
-
-namespace ignition
-{
-namespace gazebo
-{
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace components
-{
-  /// \brief A component that identifies an entity as being a sensor.
-  using Sensor = Component<NoData, class SensorTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Sensor", Sensor)
-
-  /// \brief Name of the transport topic where a sensor is publishing its
-  /// data.
-  /// For sensors that publish on more than one topic, this will usually be the
-  /// prefix common to all topics of that sensor.
-  using SensorTopic = Component<std::string, class SensorTopicTag,
-      serializers::StringSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.SensorTopic",
-      SensorTopic)
-}
-}
-}
-}
-
-#endif
+#include <gz/sim/components/Sensor.hh>

@@ -13,39 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
-#ifndef IGNITION_GAZEBO_COMPONENTS_INERTIAL_HH_
-#define IGNITION_GAZEBO_COMPONENTS_INERTIAL_HH_
+ */
 
-#include <ignition/msgs/inertial.pb.h>
-#include <ignition/math/Inertial.hh>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Serialization.hh>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Conversions.hh>
-
-namespace ignition
-{
-namespace gazebo
-{
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace serializers
-{
-  using InertialSerializer =
-      serializers::ComponentToMsgSerializer<math::Inertiald, msgs::Inertial>;
-}
-
-namespace components
-{
-  /// \brief This component holds an entity's inertial.
-  using Inertial = Component<math::Inertiald, class InertialTag,
-                             serializers::InertialSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Inertial", Inertial)
-}
-}
-}
-}
-
-#endif
+#include <gz/sim/components/Inertial.hh>

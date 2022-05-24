@@ -17,9 +17,9 @@
 #ifndef ODOMETERSYSTEM_HH_
 #define ODOMETERSYSTEM_HH_
 
-#include <ignition/gazebo/System.hh>
-#include <ignition/sensors/Sensor.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/sim/System.hh>
+#include <gz/sensors/Sensor.hh>
+#include <gz/transport/Node.hh>
 
 namespace custom
 {

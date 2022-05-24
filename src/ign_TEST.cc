@@ -20,10 +20,10 @@
 #include <cstdlib>
 
 #include <string>
-#include <ignition/common/Util.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Util.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
+#include "gz/sim/test_config.hh"  // NOLINT(build/include)
 
 static const std::string kBinPath(PROJECT_BINARY_PATH);
 

@@ -13,36 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
-#ifndef IGNITION_GAZEBO_COMPONENTS_CANONICALLINK_HH_
-#define IGNITION_GAZEBO_COMPONENTS_CANONICALLINK_HH_
+ */
 
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Entity.hh>
-
-namespace ignition
-{
-namespace gazebo
-{
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace components
-{
-  /// \brief A component that identifies an entity as being a canonical link.
-  using CanonicalLink = Component<NoData, class CanonicalLinkTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
-      "ign_gazebo_components.CanonicalLink", CanonicalLink)
-
-  /// \brief A component that contains a reference to the canonical link entity
-  /// of a model.
-  using ModelCanonicalLink = Component<Entity, class ModelCanonicalLinkTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
-      "ign_gazebo_components.ModelCanonicalLink", ModelCanonicalLink)
-}
-}
-}
-}
-
-#endif
+#include <gz/sim/components/CanonicalLink.hh>

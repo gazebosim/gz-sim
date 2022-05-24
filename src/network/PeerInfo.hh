@@ -19,8 +19,8 @@
 
 #include <string>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
 
 #include "NetworkRole.hh"
 #include "msgs/peer_info.pb.h"

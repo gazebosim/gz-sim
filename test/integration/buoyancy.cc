@@ -33,7 +33,7 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Volume.hh"
 
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/test_config.hh"
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 

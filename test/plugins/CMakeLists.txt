@@ -20,7 +20,7 @@ set (test_plugins
 )
 
 # TODO: someone with knowledge of ign-plugin please resolve:
-# TestSystem.obj : error LNK2001: unresolved external symbol IgnitionPluginHook
+# TestSystem.obj : error LNK2001: unresolved external symbol GzPluginHook
 if(NOT WIN32)
   set (test_plugins
     ${test_plugins}

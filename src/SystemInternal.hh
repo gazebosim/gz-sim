@@ -23,9 +23,9 @@
 #include <utility>
 #include <vector>
 
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/System.hh"
-#include "ignition/gazebo/SystemPluginPtr.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/System.hh"
+#include "gz/sim/SystemPluginPtr.hh"
 
 namespace ignition
 {

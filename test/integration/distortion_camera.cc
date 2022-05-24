@@ -26,7 +26,7 @@
 #endif
 
 #include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/test_config.hh"
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>

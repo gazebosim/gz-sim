@@ -19,8 +19,8 @@
 
 #include <memory>
 #include <vector>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/System.hh>
 
 namespace ignition
 {
@@ -33,7 +33,7 @@ namespace systems
   class SceneBroadcasterPrivate;
 
   /** \class SceneBroadcaster SceneBroadcaster.hh \
-   * ignition/gazebo/systems/SceneBroadcaster.hh
+   * gz/sim/systems/SceneBroadcaster.hh
   **/
   /// \brief System which periodically publishes an ignition::msgs::Scene
   /// message with updated information.

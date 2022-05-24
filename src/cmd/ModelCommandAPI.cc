@@ -30,33 +30,33 @@
 #include <sdf/Noise.hh>
 #include <sdf/Sensor.hh>
 
-#include <ignition/msgs/serialized.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
+#include <gz/msgs/serialized.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/gazebo/EntityComponentManager.hh>
-#include <ignition/gazebo/components/AirPressureSensor.hh>
-#include <ignition/gazebo/components/Altimeter.hh>
-#include <ignition/gazebo/components/Camera.hh>
-#include <ignition/gazebo/components/ChildLinkName.hh>
-#include <ignition/gazebo/components/GpuLidar.hh>
-#include <ignition/gazebo/components/Imu.hh>
-#include <ignition/gazebo/components/Inertial.hh>
-#include <ignition/gazebo/components/Joint.hh>
-#include <ignition/gazebo/components/JointAxis.hh>
-#include <ignition/gazebo/components/JointType.hh>
-#include <ignition/gazebo/components/Link.hh>
-#include <ignition/gazebo/components/Magnetometer.hh>
-#include <ignition/gazebo/components/Model.hh>
-#include <ignition/gazebo/components/Name.hh>
-#include <ignition/gazebo/components/ParentEntity.hh>
-#include <ignition/gazebo/components/ParentLinkName.hh>
-#include <ignition/gazebo/components/Pose.hh>
-#include <ignition/gazebo/components/RgbdCamera.hh>
-#include <ignition/gazebo/components/Sensor.hh>
-#include <ignition/gazebo/components/World.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/components/AirPressureSensor.hh>
+#include <gz/sim/components/Altimeter.hh>
+#include <gz/sim/components/Camera.hh>
+#include <gz/sim/components/ChildLinkName.hh>
+#include <gz/sim/components/GpuLidar.hh>
+#include <gz/sim/components/Imu.hh>
+#include <gz/sim/components/Inertial.hh>
+#include <gz/sim/components/Joint.hh>
+#include <gz/sim/components/JointAxis.hh>
+#include <gz/sim/components/JointType.hh>
+#include <gz/sim/components/Link.hh>
+#include <gz/sim/components/Magnetometer.hh>
+#include <gz/sim/components/Model.hh>
+#include <gz/sim/components/Name.hh>
+#include <gz/sim/components/ParentEntity.hh>
+#include <gz/sim/components/ParentLinkName.hh>
+#include <gz/sim/components/Pose.hh>
+#include <gz/sim/components/RgbdCamera.hh>
+#include <gz/sim/components/Sensor.hh>
+#include <gz/sim/components/World.hh>
+#include <gz/transport/Node.hh>
 
 using namespace ignition;
 using namespace gazebo;

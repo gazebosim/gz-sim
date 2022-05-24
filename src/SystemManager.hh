@@ -21,11 +21,11 @@
 #include <string>
 #include <vector>
 
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Export.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/Types.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Export.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/Types.hh"
 
 #include "SystemInternal.hh"
 

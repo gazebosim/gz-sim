@@ -23,42 +23,42 @@
 #include <utility>
 #include <vector>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/plugin/Register.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/plugin/Register.hh>
 
 #include <sdf/Sensor.hh>
 
-#include <ignition/math/Helpers.hh>
+#include <gz/math/Helpers.hh>
 
-#include <ignition/rendering/Scene.hh>
-#include <ignition/sensors/CameraSensor.hh>
-#include <ignition/sensors/DepthCameraSensor.hh>
-#include <ignition/sensors/GpuLidarSensor.hh>
-#include <ignition/sensors/RenderingSensor.hh>
-#include <ignition/sensors/RgbdCameraSensor.hh>
-#include <ignition/sensors/ThermalCameraSensor.hh>
-#include <ignition/sensors/SegmentationCameraSensor.hh>
-#include <ignition/sensors/WideAngleCameraSensor.hh>
-#include <ignition/sensors/Manager.hh>
+#include <gz/rendering/Scene.hh>
+#include <gz/sensors/CameraSensor.hh>
+#include <gz/sensors/DepthCameraSensor.hh>
+#include <gz/sensors/GpuLidarSensor.hh>
+#include <gz/sensors/RenderingSensor.hh>
+#include <gz/sensors/RgbdCameraSensor.hh>
+#include <gz/sensors/ThermalCameraSensor.hh>
+#include <gz/sensors/SegmentationCameraSensor.hh>
+#include <gz/sensors/WideAngleCameraSensor.hh>
+#include <gz/sensors/Manager.hh>
 
-#include "ignition/gazebo/components/Atmosphere.hh"
-#include "ignition/gazebo/components/BatterySoC.hh"
-#include "ignition/gazebo/components/Camera.hh"
-#include "ignition/gazebo/components/DepthCamera.hh"
-#include "ignition/gazebo/components/GpuLidar.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/RenderEngineServerHeadless.hh"
-#include "ignition/gazebo/components/RenderEngineServerPlugin.hh"
-#include "ignition/gazebo/components/RgbdCamera.hh"
-#include "ignition/gazebo/components/SegmentationCamera.hh"
-#include "ignition/gazebo/components/ThermalCamera.hh"
-#include "ignition/gazebo/components/WideAngleCamera.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/Events.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include "gz/sim/components/Atmosphere.hh"
+#include "gz/sim/components/BatterySoC.hh"
+#include "gz/sim/components/Camera.hh"
+#include "gz/sim/components/DepthCamera.hh"
+#include "gz/sim/components/GpuLidar.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/RenderEngineServerHeadless.hh"
+#include "gz/sim/components/RenderEngineServerPlugin.hh"
+#include "gz/sim/components/RgbdCamera.hh"
+#include "gz/sim/components/SegmentationCamera.hh"
+#include "gz/sim/components/ThermalCamera.hh"
+#include "gz/sim/components/WideAngleCamera.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/Events.hh"
+#include "gz/sim/EntityComponentManager.hh"
 
-#include "ignition/gazebo/rendering/Events.hh"
-#include "ignition/gazebo/rendering/RenderUtil.hh"
+#include "gz/sim/rendering/Events.hh"
+#include "gz/sim/rendering/RenderUtil.hh"
 
 using namespace ignition;
 using namespace gazebo;

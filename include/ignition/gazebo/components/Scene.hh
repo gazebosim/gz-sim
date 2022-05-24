@@ -13,41 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
-#ifndef IGNITION_GAZEBO_COMPONENTS_SCENE_HH_
-#define IGNITION_GAZEBO_COMPONENTS_SCENE_HH_
+ */
 
-#include <ignition/msgs/scene.pb.h>
-
-#include <sdf/Scene.hh>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Serialization.hh>
-#include <ignition/gazebo/Conversions.hh>
-#include <ignition/gazebo/config.hh>
-
-namespace ignition
-{
-namespace gazebo
-{
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace serializers
-{
-  using SceneSerializer =
-      serializers::ComponentToMsgSerializer<sdf::Scene, msgs::Scene>;
-}
-
-namespace components
-{
-  /// \brief This component holds scene properties of the world.
-  using Scene =
-      Component<sdf::Scene, class SceneTag, serializers::SceneSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
-      "ign_gazebo_components.Scene", Scene)
-}
-}
-}
-}
-
-#endif
+#include <gz/sim/components/Scene.hh>

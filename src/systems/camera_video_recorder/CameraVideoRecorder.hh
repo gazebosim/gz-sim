@@ -18,8 +18,8 @@
 #define IGNITION_GAZEBO_CAMERAVIDEORECORDER_SYSTEM_HH_
 
 #include <memory>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/System.hh>
 
 namespace ignition
 {
@@ -32,7 +32,7 @@ namespace systems
   class CameraVideoRecorderPrivate;
 
   /** \class CameraVideoRecorder CameraVideoRecorder.hh \
-   * ignition/gazebo/systems/CameraVideoRecorder.hh
+   * gz/sim/systems/CameraVideoRecorder.hh
   **/
   /// \brief Record video from a camera sensor
   /// The system takes in the following parameter:

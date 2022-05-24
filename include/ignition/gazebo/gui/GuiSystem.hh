@@ -13,53 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
-#ifndef IGNITION_GAZEBO_GUI_GUISYSTEM_HH_
-#define IGNITION_GAZEBO_GUI_GUISYSTEM_HH_
+ */
 
-#include <QtCore>
-
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/EntityComponentManager.hh>
-#include <ignition/gazebo/gui/Export.hh>
-#include <ignition/gui/Plugin.hh>
-
-#include <sdf/Element.hh>
-
-namespace ignition
-{
-namespace gazebo
-{
-  // Inline bracket to help doxygen filtering.
-  inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-  /// \brief Base class for a GUI System.
-  ///
-  /// A System operates on Entities that have certain Components. A System
-  /// will only operate on an Entity if it has all of the required
-  /// Components.
-  ///
-  /// GUI systems are different from `ignition::gazebo::System`s because they
-  /// don't run in the same process as the physics. Instead, they run in a
-  /// separate process that is stepped by updates coming through the network
-  class IGNITION_GAZEBO_GUI_VISIBLE GuiSystem : public ignition::gui::Plugin
-  {
-    Q_OBJECT
-
-    /// \brief Update callback called every time the system is stepped.
-    /// This is called at an Ignition transport thread, so any interaction
-    /// with Qt should be done through signals and slots.
-    /// \param[in] _info Current simulation information, such as time.
-    /// \param[in] _ecm Mutable reference to the ECM, so the system can read
-    /// and write entities and their components.
-    public: virtual void Update(const UpdateInfo &_info,
-                                EntityComponentManager &_ecm)
-    {
-      // This will avoid many doxygen warnings
-      (void)_info;
-      (void)_ecm;
-    }
-  };
-}
-}
-}
-#endif
+#include <gz/sim/gui/GuiSystem.hh>

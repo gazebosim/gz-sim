@@ -17,15 +17,15 @@
 
 #include <string>
 
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
-#include <ignition/common/Profiler.hh>
+#include <gz/common/Profiler.hh>
 
-#include <ignition/gazebo/components/Actor.hh>
-#include <ignition/gazebo/components/Name.hh>
-#include <ignition/gazebo/components/Pose.hh>
-#include <ignition/gazebo/EntityComponentManager.hh>
-#include <ignition/gazebo/Util.hh>
+#include <gz/sim/components/Actor.hh>
+#include <gz/sim/components/Name.hh>
+#include <gz/sim/components/Pose.hh>
+#include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/Util.hh>
 
 #include "FollowActor.hh"
 

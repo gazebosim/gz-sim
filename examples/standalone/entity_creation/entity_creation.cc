@@ -15,11 +15,11 @@
  *
 */
 
-#include <ignition/msgs/entity_factory.pb.h>
+#include <gz/msgs/entity_factory.pb.h>
 
 #include <iostream>
 
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
 // Create a transport node.
 ignition::transport::Node node;

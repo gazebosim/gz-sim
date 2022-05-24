@@ -18,11 +18,11 @@
 #ifndef IGNITION_GAZEBO_GUI_VIEWANGLE_HH_
 #define IGNITION_GAZEBO_GUI_VIEWANGLE_HH_
 
-#include <ignition/msgs/pose.pb.h>
+#include <gz/msgs/pose.pb.h>
 
 #include <memory>
 
-#include <ignition/gui/Plugin.hh>
+#include <gz/gui/Plugin.hh>
 
 namespace ignition
 {

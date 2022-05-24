@@ -14,28 +14,5 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_STATIC_HH_
-#define IGNITION_GAZEBO_COMPONENTS_STATIC_HH_
 
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/config.hh>
-
-namespace ignition
-{
-namespace gazebo
-{
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace components
-{
-  /// \brief A component used to indicate that a model is static (i.e. not
-  /// moveable).
-  using Static = Component<bool, class StaticTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Static", Static)
-}
-}
-}
-}
-
-#endif
+#include <gz/sim/components/Static.hh>

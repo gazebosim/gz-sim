@@ -18,13 +18,13 @@
 #define EXAMPLES_PLUGINS_CUSTOMCOMPONENTPLUGIN_HH_
 
 // This header provides components::Component
-#include <ignition/gazebo/components/Component.hh>
+#include <gz/sim/components/Component.hh>
 
 // This header provides the registration macro
-#include <ignition/gazebo/components/Factory.hh>
+#include <gz/sim/components/Factory.hh>
 
-#include <ignition/gazebo/System.hh>
-#include <ignition/gazebo/config.hh>
+#include <gz/sim/System.hh>
+#include <gz/sim/config.hh>
 
 namespace examples
 {

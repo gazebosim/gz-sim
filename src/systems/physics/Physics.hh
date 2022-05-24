@@ -20,36 +20,36 @@
 #include <memory>
 #include <unordered_map>
 #include <utility>
-#include <ignition/physics/FindFeatures.hh>
-#include <ignition/physics/RequestFeatures.hh>
+#include <gz/physics/FindFeatures.hh>
+#include <gz/physics/RequestFeatures.hh>
 
 // Features need to be defined ahead of entityCast
-#include <ignition/physics/BoxShape.hh>
-#include <ignition/physics/CapsuleShape.hh>
-#include <ignition/physics/CylinderShape.hh>
-#include <ignition/physics/EllipsoidShape.hh>
-#include <ignition/physics/ForwardStep.hh>
-#include <ignition/physics/FrameSemantics.hh>
-#include <ignition/physics/FreeGroup.hh>
-#include <ignition/physics/FixedJoint.hh>
-#include <ignition/physics/GetContacts.hh>
-#include <ignition/physics/GetBoundingBox.hh>
-#include <ignition/physics/Joint.hh>
-#include <ignition/physics/Link.hh>
-#include <ignition/physics/RemoveEntities.hh>
-#include <ignition/physics/Shape.hh>
-#include <ignition/physics/SphereShape.hh>
-#include <ignition/physics/World.hh>
-#include <ignition/physics/mesh/MeshShape.hh>
-#include <ignition/physics/sdf/ConstructCollision.hh>
-#include <ignition/physics/sdf/ConstructJoint.hh>
-#include <ignition/physics/sdf/ConstructLink.hh>
-#include <ignition/physics/sdf/ConstructModel.hh>
-#include <ignition/physics/sdf/ConstructNestedModel.hh>
-#include <ignition/physics/sdf/ConstructWorld.hh>
+#include <gz/physics/BoxShape.hh>
+#include <gz/physics/CapsuleShape.hh>
+#include <gz/physics/CylinderShape.hh>
+#include <gz/physics/EllipsoidShape.hh>
+#include <gz/physics/ForwardStep.hh>
+#include <gz/physics/FrameSemantics.hh>
+#include <gz/physics/FreeGroup.hh>
+#include <gz/physics/FixedJoint.hh>
+#include <gz/physics/GetContacts.hh>
+#include <gz/physics/GetBoundingBox.hh>
+#include <gz/physics/Joint.hh>
+#include <gz/physics/Link.hh>
+#include <gz/physics/RemoveEntities.hh>
+#include <gz/physics/Shape.hh>
+#include <gz/physics/SphereShape.hh>
+#include <gz/physics/World.hh>
+#include <gz/physics/mesh/MeshShape.hh>
+#include <gz/physics/sdf/ConstructCollision.hh>
+#include <gz/physics/sdf/ConstructJoint.hh>
+#include <gz/physics/sdf/ConstructLink.hh>
+#include <gz/physics/sdf/ConstructModel.hh>
+#include <gz/physics/sdf/ConstructNestedModel.hh>
+#include <gz/physics/sdf/ConstructWorld.hh>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/System.hh>
 
 namespace ignition
 {
@@ -62,7 +62,7 @@ namespace systems
   // Forward declarations.
   class PhysicsPrivate;
 
-  /// \class Physics Physics.hh ignition/gazebo/systems/Physics.hh
+  /// \class Physics Physics.hh gz/sim/systems/Physics.hh
   /// \brief Base class for a System.
   /// Includes optional parameter : <include_entity_names>. When set
   /// to false, the name of colliding entities is not populated in

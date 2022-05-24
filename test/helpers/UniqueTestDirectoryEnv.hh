@@ -21,7 +21,7 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Filesystem.hh>
-#include <ignition/gazebo/test_config.hh>
+#include <gz/sim/test_config.hh>
 
 namespace ignition
 {

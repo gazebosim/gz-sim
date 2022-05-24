@@ -13,36 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
-#ifndef IGNITION_GAZEBO_COMPONENTS_VISIBILITY_HH_
-#define IGNITION_GAZEBO_COMPONENTS_VISIBILITY_HH_
+ */
 
-#include <string>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/config.hh>
-
-namespace ignition
-{
-namespace gazebo
-{
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace components
-{
-  /// \brief This component holds an entity's visibility flags (visual entities)
-  using VisibilityFlags = Component<uint32_t, class VisibilityFlagsTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.VisibilityFlags",
-      VisibilityFlags)
-
-  /// \brief This component holds an entity's visibility mask
-  /// (camera sensor entities)
-  using VisibilityMask = Component<uint32_t, class VisibilityMaskTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.VisibilityMask",
-      VisibilityMask)
-}
-}
-}
-}
-
-#endif
+#include <gz/sim/components/Visibility.hh>

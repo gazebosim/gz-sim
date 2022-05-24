@@ -17,15 +17,15 @@
 #ifndef IGNITION_GAZEBO_GUI_GUIFILEHANDLER_HH_
 #define IGNITION_GAZEBO_GUI_GUIFILEHANDLER_HH_
 
-#include <ignition/msgs/sdf_generator_config.pb.h>
+#include <gz/msgs/sdf_generator_config.pb.h>
 
 #include <QtCore>
 #include <string>
 
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Export.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Export.hh"
 
 namespace ignition
 {
