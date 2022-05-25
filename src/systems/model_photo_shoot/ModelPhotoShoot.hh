@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef GZ_GAZEBO_SYSTEMS_MODELPHOTOSHOOT_HH_
-#define GZ_GAZEBO_SYSTEMS_MODELPHOTOSHOOT_HH_
+#ifndef GZ_SIM_SYSTEMS_MODELPHOTOSHOOT_HH_
+#define GZ_SIM_SYSTEMS_MODELPHOTOSHOOT_HH_
 
 #include <sdf/sdf.hh>
 

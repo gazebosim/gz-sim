@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef GZ_GAZEBO_GUI_GUIFILEHANDLER_HH_
-#define GZ_GAZEBO_GUI_GUIFILEHANDLER_HH_
+#ifndef GZ_SIM_GUI_GUIFILEHANDLER_HH_
+#define GZ_SIM_GUI_GUIFILEHANDLER_HH_
 
 #include <gz/msgs/sdf_generator_config.pb.h>
 

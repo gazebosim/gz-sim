@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_GAZEBO_TYPES_HH_
-#define GZ_GAZEBO_TYPES_HH_
+#ifndef GZ_SIM_TYPES_HH_
+#define GZ_SIM_TYPES_HH_
 
 #include <chrono>
 #include <cstdint>

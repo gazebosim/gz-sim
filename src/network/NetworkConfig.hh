@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef GZ_GAZEBO_NETWORK_NETWORKCONFIG_HH_
-#define GZ_GAZEBO_NETWORK_NETWORKCONFIG_HH_
+#ifndef GZ_SIM_NETWORK_NETWORKCONFIG_HH_
+#define GZ_SIM_NETWORK_NETWORKCONFIG_HH_
 
 #include <memory>
 #include <string>
@@ -57,4 +57,4 @@ namespace gz
   }  // namespace sim
 }  // namespace gz
 
-#endif  // GZ_GAZEBO_NETWORKCONFIG_HH_
+#endif  // GZ_SIM_NETWORKCONFIG_HH_

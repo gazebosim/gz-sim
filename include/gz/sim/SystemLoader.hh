@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_GAZEBO_SYSTEMLOADER_HH_
-#define GZ_GAZEBO_SYSTEMLOADER_HH_
+#ifndef GZ_SIM_SYSTEMLOADER_HH_
+#define GZ_SIM_SYSTEMLOADER_HH_
 
 #include <memory>
 #include <optional>
@@ -77,5 +77,5 @@ namespace gz
     using SystemLoaderPtr = std::shared_ptr<SystemLoader>;
   }
 }
-#endif  // GZ_GAZEBO_SYSTEMLOADER_HH_
+#endif  // GZ_SIM_SYSTEMLOADER_HH_
 

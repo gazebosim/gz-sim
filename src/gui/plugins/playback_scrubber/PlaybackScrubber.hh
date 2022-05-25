@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef GZ_GAZEBO_GUI_PLAYBACK_SCRUBBER_HH_
-#define GZ_GAZEBO_GUI_PLAYBACK_SCRUBBER_HH_
+#ifndef GZ_SIM_GUI_PLAYBACK_SCRUBBER_HH_
+#define GZ_SIM_GUI_PLAYBACK_SCRUBBER_HH_
 
 #include <chrono>
 #include <memory>

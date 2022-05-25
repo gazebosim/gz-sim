@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_GAZEBO_EVENTMANAGER_HH_
-#define GZ_GAZEBO_EVENTMANAGER_HH_
+#ifndef GZ_SIM_EVENTMANAGER_HH_
+#define GZ_SIM_EVENTMANAGER_HH_
 
 #include <functional>
 #include <memory>
@@ -149,4 +149,4 @@ namespace gz
   }
 }
 
-#endif  // GZ_GAZEBO_EVENTMANAGER_HH_
+#endif  // GZ_SIM_EVENTMANAGER_HH_

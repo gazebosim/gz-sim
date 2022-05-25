@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_GAZEBO_RENDERING_EVENTS_HH_
-#define GZ_GAZEBO_RENDERING_EVENTS_HH_
+#ifndef GZ_SIM_RENDERING_EVENTS_HH_
+#define GZ_SIM_RENDERING_EVENTS_HH_
 
 
 #include <gz/common/Event.hh>
@@ -70,4 +70,4 @@ namespace gz
   }  // namespace sim
 }  // namespace gz
 
-#endif  // GZ_GAZEBO_RENDEREVENTS_HH_
+#endif  // GZ_SIM_RENDEREVENTS_HH_

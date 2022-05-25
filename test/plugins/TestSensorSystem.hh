@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_GAZEBO_TEST_TESTSENSORSYSTEM_HH_
-#define GZ_GAZEBO_TEST_TESTSENSORSYSTEM_HH_
+#ifndef GZ_SIM_TEST_TESTSENSORSYSTEM_HH_
+#define GZ_SIM_TEST_TESTSENSORSYSTEM_HH_
 
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/components/Factory.hh>

@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef GZ_GAZEBO_GUI_ENTITYCONTEXTMENU_HH_
-#define GZ_GAZEBO_GUI_ENTITYCONTEXTMENU_HH_
+#ifndef GZ_SIM_GUI_ENTITYCONTEXTMENU_HH_
+#define GZ_SIM_GUI_ENTITYCONTEXTMENU_HH_
 
 #include <gz/gui/qt.h>
 #include <QtQml/QQmlExtensionPlugin>

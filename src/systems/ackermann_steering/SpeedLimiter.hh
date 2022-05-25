@@ -37,8 +37,8 @@
  * Modified: Carlos Agüero
  */
 
-#ifndef GZ_GAZEBO_SYSTEMS_SPEEDLIMITER_HH_
-#define GZ_GAZEBO_SYSTEMS_SPEEDLIMITER_HH_
+#ifndef GZ_SIM_SYSTEMS_SPEEDLIMITER_HH_
+#define GZ_SIM_SYSTEMS_SPEEDLIMITER_HH_
 
 #include <memory>
 

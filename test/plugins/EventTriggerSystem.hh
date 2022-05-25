@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_GAZEBO_TEST_EVENTTRIGGERSYSTEM_HH_
-#define GZ_GAZEBO_TEST_EVENTTRIGGERSYSTEM_HH_
+#ifndef GZ_SIM_TEST_EVENTTRIGGERSYSTEM_HH_
+#define GZ_SIM_TEST_EVENTTRIGGERSYSTEM_HH_
 
 #include <gz/common/Console.hh>
 #include "gz/sim/Events.hh"

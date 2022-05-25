@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_GAZEBO_WORLDCONTROL_HH_
-#define GZ_GAZEBO_WORLDCONTROL_HH_
+#ifndef GZ_SIM_WORLDCONTROL_HH_
+#define GZ_SIM_WORLDCONTROL_HH_
 
 #include <chrono>
 #include <cstdint>
@@ -58,4 +58,4 @@ namespace gz
     }
   }  // namespace sim
 }  // namespace gz
-#endif  // GZ_GAZEBO_WORLDCONTROL_HH_
+#endif  // GZ_SIM_WORLDCONTROL_HH_

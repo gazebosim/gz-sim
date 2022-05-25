@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_GAZEBO_UTIL_HH_
-#define GZ_GAZEBO_UTIL_HH_
+#ifndef GZ_SIM_UTIL_HH_
+#define GZ_SIM_UTIL_HH_
 
 #include <string>
 #include <unordered_set>

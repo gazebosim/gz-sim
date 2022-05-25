@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_GAZEBO_PYTHON__TEST_FIXTURE_HH_
-#define GZ_GAZEBO_PYTHON__TEST_FIXTURE_HH_
+#ifndef GZ_SIM_PYTHON__TEST_FIXTURE_HH_
+#define GZ_SIM_PYTHON__TEST_FIXTURE_HH_
 
 #include <pybind11/pybind11.h>
 
@@ -35,4 +35,4 @@ defineGazeboTestFixture(pybind11::object module);
 }
 }
 
-#endif  // GZ_GAZEBO_PYTHON__TEST_FIXTURE_HH_
+#endif  // GZ_SIM_PYTHON__TEST_FIXTURE_HH_

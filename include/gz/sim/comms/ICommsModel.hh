@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef GZ_GAZEBO_ICOMMSMODEL_HH_
-#define GZ_GAZEBO_ICOMMSMODEL_HH_
+#ifndef GZ_SIM_ICOMMSMODEL_HH_
+#define GZ_SIM_ICOMMSMODEL_HH_
 
 #include <memory>
 

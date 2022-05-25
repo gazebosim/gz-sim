@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef GZ_GAZEBO_NETWORK_NETWORKMANAGERSECONDARY_HH_
-#define GZ_GAZEBO_NETWORK_NETWORKMANAGERSECONDARY_HH_
+#ifndef GZ_SIM_NETWORK_NETWORKMANAGERSECONDARY_HH_
+#define GZ_SIM_NETWORK_NETWORKMANAGERSECONDARY_HH_
 
 #include <atomic>
 #include <memory>
@@ -86,5 +86,5 @@ namespace gz
   }  // namespace sim
 }  // namespace gz
 
-#endif  // GZ_GAZEBO_NETWORKMANAGERSECONDARY_HH_
+#endif  // GZ_SIM_NETWORKMANAGERSECONDARY_HH_
 

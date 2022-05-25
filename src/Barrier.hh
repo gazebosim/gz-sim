@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef GZ_GAZEBO_BARRIER_HH_
-#define GZ_GAZEBO_BARRIER_HH_
+#ifndef GZ_SIM_BARRIER_HH_
+#define GZ_SIM_BARRIER_HH_
 
 #include <atomic>
 #include <condition_variable>
@@ -92,4 +92,4 @@ namespace gz
   }  // namespace sim
 }  // namespace gz
 
-#endif  // GZ_GAZEBO_BARRIER_HH_
+#endif  // GZ_SIM_BARRIER_HH_

@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef GZ_GAZEBO_SYSTEMS_BUOYANCY_HH_
-#define GZ_GAZEBO_SYSTEMS_BUOYANCY_HH_
+#ifndef GZ_SIM_SYSTEMS_BUOYANCY_HH_
+#define GZ_SIM_SYSTEMS_BUOYANCY_HH_
 
 #include <gz/sim/System.hh>
 #include <memory>

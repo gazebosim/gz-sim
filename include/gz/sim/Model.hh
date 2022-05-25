@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_GAZEBO_MODEL_HH_
-#define GZ_GAZEBO_MODEL_HH_
+#ifndef GZ_SIM_MODEL_HH_
+#define GZ_SIM_MODEL_HH_
 
 #include <memory>
 #include <string>

@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef GZ_GAZEBO_MSGMANAGER_HH_
-#define GZ_GAZEBO_MSGMANAGER_HH_
+#ifndef GZ_SIM_MSGMANAGER_HH_
+#define GZ_SIM_MSGMANAGER_HH_
 
 #include <deque>
 #include <memory>

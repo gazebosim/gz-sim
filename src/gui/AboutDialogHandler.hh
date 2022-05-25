@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef GZ_GAZEBO_GUI_ABOUTDIALOGHANDLER_HH_
-#define GZ_GAZEBO_GUI_ABOUTDIALOGHANDLER_HH_
+#ifndef GZ_SIM_GUI_ABOUTDIALOGHANDLER_HH_
+#define GZ_SIM_GUI_ABOUTDIALOGHANDLER_HH_
 
 #include <QtCore>
 #include <QDesktopServices>

@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef GZ_GAZEBO_PRIMITIVES_HH_
-#define GZ_GAZEBO_PRIMITIVES_HH_
+#ifndef GZ_SIM_PRIMITIVES_HH_
+#define GZ_SIM_PRIMITIVES_HH_
 
 #include <gz/sim/config.hh>
 #include <gz/sim/Export.hh>
@@ -78,6 +78,6 @@ namespace gz
 }  // namespace gz
 
 
-#endif  // GZ_GAZEBO_PRIMITIVES_HH_
+#endif  // GZ_SIM_PRIMITIVES_HH_
 
 

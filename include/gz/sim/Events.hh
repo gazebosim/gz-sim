@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_GAZEBO_EVENTS_HH_
-#define GZ_GAZEBO_EVENTS_HH_
+#ifndef GZ_SIM_EVENTS_HH_
+#define GZ_SIM_EVENTS_HH_
 
 #include <sdf/Element.hh>
 
@@ -63,4 +63,4 @@ namespace gz
   }  // namespace sim
 }  // namespace gz
 
-#endif  // GZ_GAZEBO_EVENTS_HH_
+#endif  // GZ_SIM_EVENTS_HH_

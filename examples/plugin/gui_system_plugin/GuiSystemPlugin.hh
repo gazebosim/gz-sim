@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef GZ_GAZEBO_GUISYSTEMPLUGIN_HH_
-#define GZ_GAZEBO_GUISYSTEMPLUGIN_HH_
+#ifndef GZ_SIM_GUISYSTEMPLUGIN_HH_
+#define GZ_SIM_GUISYSTEMPLUGIN_HH_
 
 #include <gz/sim/gui/GuiSystem.hh>
 

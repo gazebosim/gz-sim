@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_GAZEBO_NULL_SYSTEM_HH_
-#define GZ_GAZEBO_NULL_SYSTEM_HH_
+#ifndef GZ_SIM_NULL_SYSTEM_HH_
+#define GZ_SIM_NULL_SYSTEM_HH_
 
 #include <memory>
 

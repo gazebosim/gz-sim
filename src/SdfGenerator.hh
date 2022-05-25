@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef GZ_GAZEBO_SDFGENERATOR_HH_
-#define GZ_GAZEBO_SDFGENERATOR_HH_
+#ifndef GZ_SIM_SDFGENERATOR_HH_
+#define GZ_SIM_SDFGENERATOR_HH_
 
 #include <gz/msgs/sdf_generator_config.pb.h>
 
@@ -147,4 +147,4 @@ namespace sdf_generator
 }  // namespace sim
 }  // namespace gz
 
-#endif /* end of include guard: GZ_GAZEBO_SDFGENERATOR_HH_ */
+#endif /* end of include guard: GZ_SIM_SDFGENERATOR_HH_ */

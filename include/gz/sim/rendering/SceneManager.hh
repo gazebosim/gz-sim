@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef GZ_GAZEBO_SCENEMANAGER_HH_
-#define GZ_GAZEBO_SCENEMANAGER_HH_
+#ifndef GZ_SIM_SCENEMANAGER_HH_
+#define GZ_SIM_SCENEMANAGER_HH_
 
 #include <map>
 #include <memory>

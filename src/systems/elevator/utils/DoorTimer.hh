@@ -20,8 +20,8 @@
  * \date January 2021
  */
 
-#ifndef GZ_GAZEBO_SYSTEMS_DOOR_TIMER_HH_
-#define GZ_GAZEBO_SYSTEMS_DOOR_TIMER_HH_
+#ifndef GZ_SIM_SYSTEMS_DOOR_TIMER_HH_
+#define GZ_SIM_SYSTEMS_DOOR_TIMER_HH_
 
 #include <chrono>
 #include <functional>
@@ -77,4 +77,4 @@ class DoorTimer
 }  // namespace sim
 }  // namespace gz
 
-#endif  // GZ_GAZEBO_SYSTEMS_DOOR_TIMER_HH_
+#endif  // GZ_SIM_SYSTEMS_DOOR_TIMER_HH_

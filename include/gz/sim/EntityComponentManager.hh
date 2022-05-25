@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
-#define GZ_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
+#ifndef GZ_SIM_ENTITYCOMPONENTMANAGER_HH_
+#define GZ_SIM_ENTITYCOMPONENTMANAGER_HH_
 
 #include <gz/msgs/serialized.pb.h>
 #include <gz/msgs/serialized_map.pb.h>

@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_GAZEBO_GUI_GUIEVENTS_HH_
-#define GZ_GAZEBO_GUI_GUIEVENTS_HH_
+#ifndef GZ_SIM_GUI_GUIEVENTS_HH_
+#define GZ_SIM_GUI_GUIEVENTS_HH_
 
 #include <QEvent>
 #include <QMap>
@@ -241,4 +241,4 @@ namespace events
 }  // namespace sim
 }  // namespace gz
 
-#endif  // GZ_GAZEBO_GUI_GUIEVENTS_HH_
+#endif  // GZ_SIM_GUI_GUIEVENTS_HH_

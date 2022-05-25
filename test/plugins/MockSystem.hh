@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_GAZEBO_TEST_MOCKSYSTEM_HH_
-#define GZ_GAZEBO_TEST_MOCKSYSTEM_HH_
+#ifndef GZ_SIM_TEST_MOCKSYSTEM_HH_
+#define GZ_SIM_TEST_MOCKSYSTEM_HH_
 
 #include <memory>
 

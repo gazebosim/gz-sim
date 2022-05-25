@@ -15,8 +15,8 @@
  */
 
 
-#ifndef GZ_GAZEBO_PYTHON__EVENT_MANAGER_HH_
-#define GZ_GAZEBO_PYTHON__EVENT_MANAGER_HH_
+#ifndef GZ_SIM_PYTHON__EVENT_MANAGER_HH_
+#define GZ_SIM_PYTHON__EVENT_MANAGER_HH_
 
 #include <pybind11/pybind11.h>
 
@@ -36,4 +36,4 @@ defineGazeboEventManager(pybind11::object module);
 }  // namespace sim
 }  // namespace gz
 
-#endif  // GZ_GAZEBO_PYTHON__EVENT_MANAGER_HH_
+#endif  // GZ_SIM_PYTHON__EVENT_MANAGER_HH_

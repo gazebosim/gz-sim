@@ -20,8 +20,8 @@
  * \date January 2021
  */
 
-#ifndef GZ_GAZEBO_SYSTEMS_JOINT_MONITOR_HH_
-#define GZ_GAZEBO_SYSTEMS_JOINT_MONITOR_HH_
+#ifndef GZ_SIM_SYSTEMS_JOINT_MONITOR_HH_
+#define GZ_SIM_SYSTEMS_JOINT_MONITOR_HH_
 
 #include <functional>
 #include <memory>
@@ -76,4 +76,4 @@ class JointMonitor
 }  // namespace sim
 }  // namespace gz
 
-#endif  // GZ_GAZEBO_SYSTEMS_JOINT_MONITOR_HH_
+#endif  // GZ_SIM_SYSTEMS_JOINT_MONITOR_HH_

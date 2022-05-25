@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_GAZEBO_DETAIL_COMPONENTSTORAGEBASE_HH_
-#define GZ_GAZEBO_DETAIL_COMPONENTSTORAGEBASE_HH_
+#ifndef GZ_SIM_DETAIL_COMPONENTSTORAGEBASE_HH_
+#define GZ_SIM_DETAIL_COMPONENTSTORAGEBASE_HH_
 
 #include "gz/sim/Export.hh"
 

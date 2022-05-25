@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef GZ_GAZEBO_GUI_GUI_HH_
-#define GZ_GAZEBO_GUI_GUI_HH_
+#ifndef GZ_SIM_GUI_GUI_HH_
+#define GZ_SIM_GUI_GUI_HH_
 
 #include <memory>
 #include <gz/gui/Application.hh>

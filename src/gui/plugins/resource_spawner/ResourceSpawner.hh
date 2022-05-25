@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef GZ_GAZEBO_GUI_RESOURCE_SPAWNER_HH_
-#define GZ_GAZEBO_GUI_RESOURCE_SPAWNER_HH_
+#ifndef GZ_SIM_GUI_RESOURCE_SPAWNER_HH_
+#define GZ_SIM_GUI_RESOURCE_SPAWNER_HH_
 
 #include <algorithm>
 #include <memory>

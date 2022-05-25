@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef GZ_GAZEBO_BROKER_HH_
-#define GZ_GAZEBO_BROKER_HH_
+#ifndef GZ_SIM_BROKER_HH_
+#define GZ_SIM_BROKER_HH_
 
 #include <memory>
 

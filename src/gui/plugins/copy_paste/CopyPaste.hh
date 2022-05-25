@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef GZ_GAZEBO_GUI_COPYPASTE_HH_
-#define GZ_GAZEBO_GUI_COPYPASTE_HH_
+#ifndef GZ_SIM_GUI_COPYPASTE_HH_
+#define GZ_SIM_GUI_COPYPASTE_HH_
 
 #include <memory>
 

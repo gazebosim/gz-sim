@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_GAZEBO_ENTITY_HH_
-#define GZ_GAZEBO_ENTITY_HH_
+#ifndef GZ_SIM_ENTITY_HH_
+#define GZ_SIM_ENTITY_HH_
 
 #include <cstdint>
 #include <gz/sim/config.hh>

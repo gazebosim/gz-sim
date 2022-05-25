@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef GZ_GAZEBO_PYTHON__UTIL_HH_
-#define GZ_GAZEBO_PYTHON__UTIL_HH_
+#ifndef GZ_SIM_PYTHON__UTIL_HH_
+#define GZ_SIM_PYTHON__UTIL_HH_
 
 #include <pybind11/pybind11.h>
 
@@ -34,4 +34,4 @@ void defineGazeboUtil(pybind11::module &_module);
 }  // namespace sim
 }  // namespace gz
 
-#endif  // GZ_GAZEBO_PYTHON__WORLD_HH_
+#endif  // GZ_SIM_PYTHON__WORLD_HH_

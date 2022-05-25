@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_GAZEBO_DETAIL_BASEVIEW_HH_
-#define GZ_GAZEBO_DETAIL_BASEVIEW_HH_
+#ifndef GZ_SIM_DETAIL_BASEVIEW_HH_
+#define GZ_SIM_DETAIL_BASEVIEW_HH_
 
 #include <cstddef>
 #include <set>

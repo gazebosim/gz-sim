@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_GAZEBO_SYSTEMS_IMU_HH_
-#define GZ_GAZEBO_SYSTEMS_IMU_HH_
+#ifndef GZ_SIM_SYSTEMS_IMU_HH_
+#define GZ_SIM_SYSTEMS_IMU_HH_
 
 #include <memory>
 #include <gz/sim/config.hh>

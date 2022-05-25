@@ -20,8 +20,8 @@
  * \date January 2021
  */
 
-#ifndef GZ_GAZEBO_SYSTEMS_ELEVATOR_HH_
-#define GZ_GAZEBO_SYSTEMS_ELEVATOR_HH_
+#ifndef GZ_SIM_SYSTEMS_ELEVATOR_HH_
+#define GZ_SIM_SYSTEMS_ELEVATOR_HH_
 
 #include <memory>
 
@@ -131,4 +131,4 @@ class GZ_GAZEBO_VISIBLE Elevator : public System,
 }  // namespace sim
 }  // namespace gz
 
-#endif  // GZ_GAZEBO_SYSTEMS_ELEVATOR_HH_
+#endif  // GZ_SIM_SYSTEMS_ELEVATOR_HH_

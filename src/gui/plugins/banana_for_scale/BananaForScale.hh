@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef GZ_GAZEBO_GUI_BANANA_FOR_SCALE_HH_
-#define GZ_GAZEBO_GUI_BANANA_FOR_SCALE_HH_
+#ifndef GZ_SIM_GUI_BANANA_FOR_SCALE_HH_
+#define GZ_SIM_GUI_BANANA_FOR_SCALE_HH_
 
 #include <memory>
 

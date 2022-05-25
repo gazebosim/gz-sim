@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef GZ_GAZEBO_SYSTEMS_STATE_PUBLISHER_HH_
-#define GZ_GAZEBO_SYSTEMS_STATE_PUBLISHER_HH_
+#ifndef GZ_SIM_SYSTEMS_STATE_PUBLISHER_HH_
+#define GZ_SIM_SYSTEMS_STATE_PUBLISHER_HH_
 
 #include <memory>
 #include <set>

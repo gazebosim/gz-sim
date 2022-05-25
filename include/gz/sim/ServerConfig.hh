@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_GAZEBO_SERVERCONFIG_HH_
-#define GZ_GAZEBO_SERVERCONFIG_HH_
+#ifndef GZ_SIM_SERVERCONFIG_HH_
+#define GZ_SIM_SERVERCONFIG_HH_
 
 #include <chrono>
 #include <list>

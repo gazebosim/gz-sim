@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_GAZEBO_CONVERSIONS_HH_
-#define GZ_GAZEBO_CONVERSIONS_HH_
+#ifndef GZ_SIM_CONVERSIONS_HH_
+#define GZ_SIM_CONVERSIONS_HH_
 
 #include <gz/msgs/actor.pb.h>
 #include <gz/msgs/atmosphere.pb.h>
