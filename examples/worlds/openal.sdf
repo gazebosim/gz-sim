@@ -132,17 +132,17 @@
         <audio>
           <device>default</device>
         </audio>
-        <audio_source>
-          <link_name>box_link</link_name>
+       <!--  <audio_source>
+          <link_name>box_link</link_name> -->
           <!-- <uri>file:///home/caguero/fortress_ws/src/ign-gazebo/src/systems/audio_player/cheer.mp3</uri> -->
-          <uri>file:///usr/lib/libreoffice/share/gallery/sounds/drama.wav</uri>
-          <pitch>2.0</pitch>
-          <gain>1.0</gain>
-          <loop>false</loop>
+          <!-- <uri>file:///usr/lib/libreoffice/share/gallery/sounds/drama.wav</uri> -->
+         <!--  <pitch>2.0</pitch> -->
+          <!-- <gain>1.0</gain>
+          <loop>true</loop> -->
           <!-- <contact>
             <collision>collision</collision>
           </contact> -->
-        </audio_source>
+        <!-- </audio_source> -->
         <!-- <audio_sink>
           <link_name>box_link</link_name>
         </audio_sink> -->
@@ -175,16 +175,16 @@
         </visual>
       </link>
 
-      <plugin
+      <!-- <plugin
         filename="ignition-gazebo-audioplayer-system"
         name="ignition::gazebo::systems::AudioPlayer">
-        <!-- <audio>
+        <audio>
           <device>default</device>
-        </audio> -->
-        <!-- <audio_sink>
+        </audio>
+        <audio_sink>
           <link_name>link</link_name>
-        </audio_sink> -->
-      </plugin>
+        </audio_sink>
+      </plugin> -->
 
     </model>
 

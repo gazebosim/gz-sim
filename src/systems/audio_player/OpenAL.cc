@@ -513,6 +513,8 @@ bool OpenALSource::FillBufferFromPCM(uint8_t *_pcmData,
   // First detach the buffer
   alSourcei(this->dataPtr->alSource, AL_BUFFER, 0);
 
+  ignerr << "Sample rate: " << _sampleRate << std::endl;
+
   // Copy raw buffer into AL buffer
   // AL_FORMAT_MONO8, AL_FORMAT_MONO16, AL_FORMAT_STEREO8,
   // AL_FORMAT_STEREO16

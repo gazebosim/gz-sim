@@ -123,5 +123,9 @@ ign service -s /world/empty/create \
       </link>
     </model>
 
+    <include>
+      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/gripper</uri>
+    </include>
+
   </world>
 </sdf>
