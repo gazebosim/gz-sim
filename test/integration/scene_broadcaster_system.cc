@@ -915,7 +915,8 @@ TEST_P(SceneBroadcasterTest,
 }
 
 /////////////////////////////////////////////////
-TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneInfoHasSceneSdf))
+TEST_P(SceneBroadcasterTest,
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneInfoHasSceneSdf))
 {
   // Start server
   ignition::gazebo::ServerConfig serverConfig;
