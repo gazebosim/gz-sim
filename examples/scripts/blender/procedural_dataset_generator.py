@@ -5,8 +5,18 @@ based modifiers, e.g. Geometry Nodes.
 from __future__ import annotations
 
 # Please, manually adjust the last tested (and working) Blender version for this script
-LAST_TESTED_VERSION: Tuple(int, int, int) = (3, 1, 0)
+LAST_TESTED_VERSION: Tuple(int, int, int) = (3, 1, 2)
 
+import enum
+import os
+import random
+import shutil
+import sys
+from os import path
+from types import ModuleType
+from typing import Any, Dict, Iterable, List, Optional, TextIO, Tuple, Union
+from xml.dom import minidom
+from xml.etree import ElementTree
 
 ### Default parameters for `sdf_model_exporter`
 DIRNAME_EXPORT: str = "./blender_export"
@@ -48,18 +58,6 @@ DEFAULT_KWARGS: Any = {}
 ###
 
 
-### Imports
-import enum
-import os
-import random
-import shutil
-import sys
-from os import path
-from types import ModuleType
-from typing import Any, Dict, Iterable, List, Optional, TextIO, Tuple, Union
-from xml.dom import minidom
-from xml.etree import ElementTree
-
 # Raise an informative error in case the script is run outside Python env of Blender
 try:
     import bpy
@@ -68,7 +66,6 @@ except ImportError as err:
         "Python module of Blender 'bpy' not found! Please, execute this script inside "
         "a Blender environment (e.g. copy-paste into Scripting tab)."
     ) from err
-###
 
 
 class sdf_model_exporter(ModuleType):
