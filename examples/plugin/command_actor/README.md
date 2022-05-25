@@ -22,7 +22,7 @@ Add the library to the path:
 
 ~~~
 cd examples/plugin/command_actor
-export GZ_SIM_SYSTEM_PLUGIN_PATH=`pwd`/build
+export IGN_GAZEBO_SYSTEM_PLUGIN_PATH=`pwd`/build
 ~~~
 
 Then run the demo world:

@@ -925,7 +925,7 @@ gz::sim::loadPluginInfo(bool _isPlayback)
   if (!gz::common::exists(defaultConfig))
   {
     auto installedConfig = gz::common::joinPaths(
-        GZ_SIM_SERVER_CONFIG_PATH,
+        IGN_GAZEBO_SERVER_CONFIG_PATH,
         configFilename);
 
     if (!gz::common::createDirectories(defaultConfigDir))

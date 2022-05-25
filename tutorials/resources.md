@@ -38,7 +38,7 @@ System plugins may be loaded through:
 
 Ignition will look for system plugins on the following paths, in order:
 
-1. All paths on the `GZ_SIM_SYSTEM_PLUGIN_PATH` environment variable
+1. All paths on the `IGN_GAZEBO_SYSTEM_PLUGIN_PATH` environment variable
 2. `$HOME/.ignition/gazebo/plugins`
 3. [Systems that are installed with Gazebo](https://gazebosim.org/api/gazebo/4.6/namespace gz_1_1gazebo_1_1systems.html)
 

@@ -236,7 +236,7 @@ where that plugin is located. The variables are different for each simulator:
 * Gazebo classic:
     * `GAZEBO_PLUGIN_PATH` for all plugin types.
 * Gazebo:
-    * `GZ_SIM_SYSTEM_PLUGIN_PATH` for Gazebo systems (world, model,
+    * `IGN_GAZEBO_SYSTEM_PLUGIN_PATH` for Gazebo systems (world, model,
       sensor and visual plugins).
     * `IGN_GUI_PLUGIN_PATH` for GUI plugins.
 
