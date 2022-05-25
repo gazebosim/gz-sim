@@ -19,7 +19,7 @@ from xml.dom import minidom
 from xml.etree import ElementTree
 
 ### Default parameters for `sdf_model_exporter`
-DIRNAME_EXPORT: str = "./blender_export"
+DIRNAME_EXPORT: str = path.join(path.dirname(path.realpath(__file__)), "blender_export")
 MODEL_VERSION: Optional[int] = None
 ###
 
