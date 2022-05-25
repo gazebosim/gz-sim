@@ -117,18 +117,20 @@ namespace ignition
       /// \return True if successful.
       private: bool ResourcePathsService(ignition::msgs::StringMsg_V &_res);
 
-      /// \brief Callback for resource paths resolve service. This service
+      /// \brief Callback for a resource path resolve service. This service
       /// will return the full path to a provided resource's URI. An empty
       /// string and return value of false will be used if the resource could
       /// not be found.
       ///
       /// Fuel will be checked and then the GZ_GAZEBO_RESOURCE_PATH environment
-      /// variable paths.
+      /// variable paths. This service will not check for files relative to
+      /// working directory of the Gazebo server.
+      ///
       /// \param[in] _req Request filled with a rsource URI to resolve.
       /// Example values could be:
       ///   * https://URI_TO_A_FUEL_RESOURCE
       ///   * model://MODLE_NAME/meshes/MESH_NAME
-      ///   * file:///PATH/TO/FILE
+      ///   * file://PATH/TO/FILE
       ///
       /// \param[out] _res Response filled with the resovled path, or empty
       /// if the resource could not be found.
