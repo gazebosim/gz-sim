@@ -118,7 +118,7 @@ permissions to access it, and that it's acually a physics engine plugin.
 > [/home/physics_engines/libCustomEngine.so]
 
 This means that there are plugins on that library, but none of them satisfies
-the minimum requirement of features needed to run an Gazebo simulation.
+the minimum requirement of features needed to run a Gazebo simulation.
 Be sure to implement all the necessary features.
 
 > Failed to load a valid physics engine from

@@ -215,7 +215,7 @@ Example snippet:
 
 ### Runtime performers
 
-Performers can be specified at runtime using an Gazebo Transport service.
+Performers can be specified at runtime using a Gazebo Transport service.
 This functionality can be used when a performer is not known at load time. For
 example, you may need to start simulation with an empty world and spawn
 models (performers) into simulation at a later time.

@@ -202,7 +202,7 @@ namespace gz
     /// \param[in] _entity The entity to generate the topic name for.
     /// \param[in] _ecm The entity component manager.
     /// \param[in] _excludeWorld True to exclude the world name from the topic.
-    /// \return An Gazebo Transport topic name based on the scoped name of
+    /// \return A Gazebo Transport topic name based on the scoped name of
     /// the provided entity, or empty string if a topic name could not be
     /// generated.
     std::string GZ_GAZEBO_VISIBLE topicFromScopedName(

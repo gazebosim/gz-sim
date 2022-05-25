@@ -257,7 +257,7 @@ and [xacro](http://wiki.ros.org/xacro) to generate SDF files with the correct pl
 
 ### Default plugins
 
-Gazebo is more modular than Gazebo classic, so most features are optional.
+Gazebo is more modular tha Gazebo classic, so most features are optional.
 For example, by default, Ignition will load all the system plugins defined on
 the `~/.ignition/gazebo/<#>/server.config` file and all GUI plugins defined on the
 `~/.ignition/gazebo/<#>/gui.config` file. But the user can always remove plugins from

@@ -33,7 +33,7 @@ class gz::sim::comms::MsgManager::Implementation
   /// to the address.
   public: Registry data;
 
-  /// \brief An Gazebo Transport node for communications.
+  /// \brief A Gazebo Transport node for communications.
   public: std::unique_ptr<gz::transport::Node> node;
 };
 
