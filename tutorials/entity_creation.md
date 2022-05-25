@@ -1,6 +1,6 @@
 \page entity_creation Entity creation
 
-This tutorial gives an introduction to Gazebo's service `/world/<world name>/create`.
+This tutorial gives an introduction to Gazebo Sim's service `/world/<world name>/create`.
 This service allows creating entities in the scene such us spheres, lights, etc.
 
 Gazebo creates many services depending on the plugins that are specified in the SDF.

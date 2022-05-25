@@ -23,7 +23,7 @@
 #include <gz/rendering/Scene.hh>
 
 /// \brief Example of a GUI plugin that uses Gazebo Rendering.
-/// This plugin works with either Gazebo GUI's Scene3D or Gazebo's
+/// This plugin works with either Gazebo GUI's Scene3D or Gazebo Sim's
 /// Scene3D.
 class RenderingGuiPlugin : public gz::gui::Plugin
 {

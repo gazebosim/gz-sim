@@ -5,7 +5,7 @@
 Gazebo Classic supports
 [6 different C++ plugin types](http://gazebosim.org/tutorials?tut=plugins_hello_world&cat=write_plugin),
 each providing access to different parts of the API, like physics, rendering,
-sensors, GUI, etc. Due to Gazebo's architecture based on an
+sensors, GUI, etc. Due to Gazebo Sim's architecture based on an
 [ECS](https://en.wikipedia.org/wiki/Entity_component_system)
 , plugin interfaces are somewhat different, but more varied and in many cases much
 more powerful. Some plugins in Ignition are systems within Gazebo,

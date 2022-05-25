@@ -78,6 +78,6 @@ to developers touching the source code.
     * It has a network manager, if simulation is distributed.
     * It loads up a set of systems.
 
-* **Server**: Gazebo's entry point. It's responsible for loading an
+* **Server**: Gazebo Sim's entry point. It's responsible for loading an
     SDF file and instantiating a simulation runner per world.
 

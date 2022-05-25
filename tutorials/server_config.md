@@ -15,7 +15,7 @@ There are a few places where the plugins can be defined:
 1. `<plugin>` elements inside an SDF file.
 2. File path defined by the `IGN_GAZEBO_SERVER_CONFIG_PATH` environment variable.
 3. The default configuration file at `$HOME/.ignition/gazebo/<#>/server.config` \*,
-   where `<#>` is Gazebo's major version.
+   where `<#>` is Gazebo Sim's major version.
 
 Each of the items above takes precedence over the ones below it. For example,
 if a the SDF file has any `<plugin>` elements, then the

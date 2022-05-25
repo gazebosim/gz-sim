@@ -1,6 +1,6 @@
 \page levels Levels
 
-This tutorial gives an introduction to Gazebo's levels feature.
+This tutorial gives an introduction to Gazebo Sim's levels feature.
 This feature allows loading and unloading objects in simulation according
 to their proximity to the robot, which improves performance in simulations
 with large environments.

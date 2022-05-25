@@ -5,7 +5,7 @@ simulations using the
 [WGS84](https://en.wikipedia.org/wiki/World_Geodetic_System#1984_version)
 geodetic system.
 
-Gazebo's simulation is always performed in Cartesian coordinates (good old XYZ).
+Gazebo Sim's simulation is always performed in Cartesian coordinates (good old XYZ).
 Therefore, in order to use spherical coordinates, it's necessary to project
 coordinates expressed in the `WGS84` frame to Cartesian and back.
 

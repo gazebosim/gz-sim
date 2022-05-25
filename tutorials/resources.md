@@ -146,7 +146,7 @@ Ignition will look for URIs (path / URL) in the following, in order:
 
 ### GUI configuration
 
-Gazebo's
+Gazebo Sim's
 [GUI configuration](https://gazebosim.org/api/gui/4.2/config.html)
 can come from the following, in order:
 

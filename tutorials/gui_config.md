@@ -1,7 +1,7 @@
 \page gui_config GUI Configuration
 
-Gazebo's graphical user interface is powered by
-[Gazebo GUI](https://gazebosim.org/libs/gui). Therefore, Gazebo's
+Gazebo Sim's graphical user interface is powered by
+[Gazebo GUI](https://gazebosim.org/libs/gui). Therefore, Gazebo Sim's
 GUI layout can be defined in
 [Gazebo GUI configuration files](https://gazebosim.org/api/gui/2.1/config.html).
 These are XML files that describe what plugins to be loaded and with what
@@ -14,7 +14,7 @@ There are a few places where the GUI configuration can come from:
 1. A file passed to the `--gui-config` command line argument
 2. A `<gui>` element inside an SDF file
 3. The default configuration file at `$HOME/.ignition/gazebo/<#>/gui.config` \*,
-   where `<#>` is Gazebo's major version.
+   where `<#>` is Gazebo Sim's major version.
 
 Each of the items above takes precedence over the ones below it. For example,
 if a user chooses a `--gui-config`, the SDF's `<gui>` element is ignored. And
